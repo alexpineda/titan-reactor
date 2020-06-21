@@ -1,0 +1,32 @@
+{
+  "name": "bw-chk-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "electron.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel index.html",
+    "electron": "electron --js-flags='--max-old-space-size=10192' ."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bw-chk": "file:../bw-chk-mine"
+  },
+  "dependencies": {
+    "bmp-js": "0.1.0",
+    "concat-stream": "2.0.0",
+    "electron": "9.0.0",
+    "electron-is-dev": "1.2.0",
+    "implode-decoder": "1.0.1",
+    "jssuh": "1.4.0",
+    "pngjs": "5.0.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "scm-extractor": "1.0.6"
+  },
+  "__comment": "parcel does not transpile node_modules",
+  "browserslist": [
+    "last 2 Chrome versions"
+  ]
+}

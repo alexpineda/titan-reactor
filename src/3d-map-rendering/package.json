@@ -1,0 +1,21 @@
+{
+  "name": "002-bw-bumpmap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/electron.js",
+  "scripts": {
+    "electron": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bw-chk": "^1.1.0",
+    "three": "^0.117.1"
+  },
+  "devDependencies": {
+    "electron": "^9.0.4",
+    "electron-is-dev": "^1.2.0",
+    "parcel-plugin-static-files-copy": "^2.4.3"
+  }
+}
