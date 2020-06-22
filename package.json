@@ -1,0 +1,40 @@
+{
+  "name": "bw-lab",
+  "version": "1.0.0",
+  "description": "",
+  "main": "labs/electron.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron": "electron ."
+  },
+  "browserslist": [
+    "last 2 Chrome versions"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imbateam-gg/bw-lab.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imbateam-gg/bw-lab/issues"
+  },
+  "homepage": "https://github.com/imbateam-gg/bw-lab#readme",
+  "dependencies": {
+    "bw-chk": "file:../bw-chk",
+    "electron": "^9.0.4",
+    "electron-is-dev": "^1.2.0",
+    "ks": "^2.0.4",
+    "open-simplex-noise": "^2.3.1",
+    "pngjs": "^5.0.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-dropzone": "^11.0.1",
+    "scm-extractor": "^1.0.6",
+    "three": "^0.117.1",
+    "typescript": "^3.9.5"
+  },
+  "devDependencies": {
+    "parcel-plugin-static-files-copy": "^2.4.3"
+  }
+}
