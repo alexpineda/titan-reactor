@@ -68,8 +68,19 @@ function displacement(filename) {
     .pipe(
       concat((data) => {
         console.log("displacement", filename);
-        generateDisplacementMap("./bwdata", data).then(
-          ({ data, width, height }) => {
+        
+        generateDisplacementMap({
+          bwDataPath: "./bwdata", 
+          scmData: data, 
+          scale: 0.25,
+          elevations: [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
+          detailsElevations: [1, 1, 0.5, 1, 0.5, 1, 0],
+          detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
+          walkableLayerBlur: 32,
+          allLayersBlur: 8,
+        }).then(
+          ({ data, width, height,chk }) => {
+            window.chk = chk
             canvas.width = width;
             canvas.height = height;
             writeToCanvas(ctx, data, width, height, false);
@@ -88,7 +99,8 @@ function emissive(filename) {
       concat((data) => {
         console.log("emissive", filename);
         generateEmissiveMap("./bwdata", data).then(
-          ({ data, width, height }) => {
+          ({ data, width, height,chk }) => {
+            window.chk = chk
             canvas.width = width;
             canvas.height = height;
             writeToCanvas(ctx, data, width, height, false);
@@ -106,8 +118,18 @@ function roughness(filename) {
     .pipe(
       concat((data) => {
         console.log("roughness", filename);
-        generateRoughnessMap("./bwdata", data).then(
-          ({ data, width, height }) => {
+        
+        generateRoughnessMap({
+          bwDataPath: "./bwdata",
+          scmData: data,
+          elevations: [0.7, 1, 1, 1, 1, 1, 1],
+          detailsElevations: [1, 0, 0, 0, 0, 0, 0],
+          detailsRatio: [0.5, 0,0 ,0,0,0,0],
+          scale:0.5, //0.25 * 0.5,
+          water: true,
+        }).then(
+          ({ data, width, height, chk }) => {
+            window.chk = chk
             canvas.width = width;
             canvas.height = height;
             writeToCanvas(ctx, data, width, height, false);
@@ -125,7 +147,13 @@ function terrain(filename) {
     .pipe(
       concat((data) => {
         console.log("terrain", filename);
-        generateMap("./bwdata", data, 1, 0).then(({ data, width, height }) => {
+        generateMap({
+          bwDataPath: "./bwdata", 
+          scmData: data, 
+          scale: 1, 
+          blurFactor: 0
+        }).then(({ data, width, height, chk }) => {
+          window.chk = chk
           canvas.width = width;
           canvas.height = height;
           writeToCanvas(ctx, data, width, height, false);
@@ -141,9 +169,14 @@ function background(filename) {
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
-        console.log("background", filename);
-        generateMap("./bwdata", data, 0.25, 32).then(
-          ({ data, width, height }) => {
+        generateMap({
+          bwDataPath: "./bwdata", 
+          scmData: data, 
+          scale: 0.25, 
+          blurFactor: 32
+        }).then(
+          ({ data, width, height, chk }) => {
+            window.chk = chk
             canvas.width = width;
             canvas.height = height;
             writeToCanvas(ctx, data, width, height, false);

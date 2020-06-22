@@ -1,14 +1,20 @@
 import Chk from "bw-chk";
 import { nearestNeighbour } from "../image/nearest";
 
-const elevations = [0.6, 1, 1, 1, 1];
-const detailsRatio = 0.9;
-
-export const generateRoughnessMap = (
+export const generateRoughnessMap = ({
   bwDataPath,
   scmData,
-  scale = 0.25 * 0.5
-) => {
+  elevations = [0.7, 1, 1, 1, 1, 1, 1],
+  detailsElevations = [1, 0, 0, 0, 0, 0, 0],
+  detailsRatio = [0.5, 0, 0, 0, 0, 0, 0],
+  scale = 0.25 * 0.5,
+  water = false,
+  twilight = false, 
+  lava = false,
+  blurFactor = 0,
+  skipDetails = false,
+  onlyWalkable = false,
+}) => {
   const chk = new Chk(scmData);
   const width = chk.size[0] * 32;
   const height = chk.size[1] * 32;
@@ -21,9 +27,18 @@ export const generateRoughnessMap = (
       sprites: false,
       displacement: {
         elevations,
+        detailsElevations,
         detailsRatio,
         tint: [1, 1, 1],
+        blur: blurFactor,
+        water,
+        twilight,
+        lava,
+        skipDetails,
+        onlyWalkable
+
       },
     })
-    .then((data) => nearestNeighbour(data, width, height, scale));
+    .then((data) => nearestNeighbour(data, width, height, scale))
+    .then(({data, width, height}) => ({chk, data, width, height}))
 };

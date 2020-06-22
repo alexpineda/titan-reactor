@@ -18,8 +18,6 @@ import { generateRoughnessMap } from "../2d-map-rendering/src/generators/generat
 
 import { generateMapDetails } from "../2d-map-rendering/src/generators/generateMapDetails";
 
-import { loadMap } from './loadMap';
-
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import { Vector3 } from 'three';
@@ -45,7 +43,7 @@ window.camera = camera;
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.Uncharted2ToneMapping;
-renderer.toneMappingExposure = 1.3;
+renderer.toneMappingExposure = 1.2;
 renderer.gammaFactor = 2.2;
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true;
@@ -69,6 +67,8 @@ function generateMapMeshes(width, height, map, bg, displace, rough) {
       map: map,
       displacementMap: displace,
       displacementScale: 6,
+      bumpMap: map,
+      bumpScale: 0.1,
       // normalMap: normal,
       // normalScale: new THREE.Vector2(1.3, 1.6),
       // normalMapType: THREE.TangentSpaceNormalMap,
@@ -178,7 +178,12 @@ const toDataTexture = ({data, width, height}) => new THREE.DataTexture(data, wid
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
-        generateMap("./bwdata", data).then(data => res(toDataTexture(data)), rej
+        generateMap({
+          bwDataPath: "./bwdata", 
+          scmData: data, 
+          scale: 1, 
+          blurFactor: 0
+        }).then(data => res(toDataTexture(data)), rej
         );
       })
     );
@@ -189,7 +194,12 @@ const toDataTexture = ({data, width, height}) => new THREE.DataTexture(data, wid
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
-        generateMap("./bwdata", data, 0.25, 32).then(data => res(toDataTexture(data)), rej
+        generateMap({
+          bwDataPath: "./bwdata", 
+          scmData: data, 
+          scale: 0.25*0.25, 
+          blurFactor: 32
+        }).then(data => res(toDataTexture(data)), rej
         );
       })
     );
@@ -201,31 +211,66 @@ const toDataTexture = ({data, width, height}) => new THREE.DataTexture(data, wid
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
-        generateDisplacementMap("./bwdata", data).then(data => res(toDataTexture(data)), rej
+        generateDisplacementMap({
+          bwDataPath: "./bwdata", 
+          scmData: data, 
+          scale: 0.25,
+          elevations: [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
+          detailsElevations: [1, 1, 0.5, 1, 0.5, 1, 0],
+          detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
+          walkableLayerBlur: 32,
+          allLayersBlur: 8,
+        }).then(data => res(toDataTexture(data)), rej
         );
       })
     );
   });
 
+  control.on('roughness', (opts) => {
+    console.log('on:roughness', opts)
+  })
 
-  const roughnessLoader = new Promise((res, rej) => {
+  const roughnessLoader = (opts = {}) => new Promise((res, rej) => {
+    
     fs.createReadStream(`./maps/${map}`)
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
-        generateRoughnessMap("./bwdata", data).then(data => res(toDataTexture(data)), rej
+        generateRoughnessMap(
+          {
+            bwDataPath: "./bwdata",
+            scmData: data,
+            elevations: [1, 1, 1, 1, 1, 1, 1],
+            detailsElevations: [1, 0, 0, 0, 0, 0, 0],
+            detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
+            scale: 0.5,
+            blur: 0,
+            water: false,
+            lava: true,
+            twilight: false,
+            skipDetails: false,
+          onlyWalkable: false,
+          ...opts,
+        }).then(data => res(toDataTexture(data)), rej
         );
       })
     );
   })
 
-  Promise.all([mapDetailsLoader, mapLoader, bgLoader, displaceLoader, roughnessLoader]).then(([mapDetails, map, bg, displace, roughness]) => {
+  Promise.all([mapDetailsLoader, mapLoader, bgLoader, displaceLoader, roughnessLoader()]).then(([mapDetails, map, bg, displace, roughness]) => {
     map.encoding = THREE.sRGBEncoding;
     bg.encoding = THREE.sRGBEncoding;
-    // map.flipY = false;
-    // bg.flipY = false;
-    // displace.flipY = false;
-    // roughness.flipY = false;
+    const flip = (texture ) => {
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.repeat.x = - 1;
+      texture.flipY = false;
+    }
+    flip(map)
+    flip(bg)
+    flip(displace)
+    flip(roughness)
+  
+    
     const [newFloor, newFloorBg] = generateMapMeshes(mapDetails.size[0], mapDetails.size[1], map, bg, displace,roughness);
     
     const floor = findMeshByName('floor');

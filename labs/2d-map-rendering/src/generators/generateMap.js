@@ -2,7 +2,7 @@ import Chk from "bw-chk";
 import { nearestNeighbour } from "../image/nearest";
 import { blur } from "../image/blur";
 
-export const generateMap = (bwDataPath, scmData, scale = 1, blurFactor = 0) => {
+export const generateMap = ({bwDataPath, scmData, scale = 1, blurFactor = 0}) => {
   const chk = new Chk(scmData);
   const width = chk.size[0] * 32;
   const height = chk.size[1] * 32;
@@ -33,6 +33,7 @@ export const generateMap = (bwDataPath, scmData, scale = 1, blurFactor = 0) => {
         data,
         width,
         height,
+        chk
       };
     });
 };

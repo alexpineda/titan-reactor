@@ -27,24 +27,35 @@ export function createGui() {
         listeners[eventName].forEach((handler) => handler(eventData))
     }
 
-    this.game = {
-      pause: function () {
-        dispatch("game:togglePause")
-      },
-      restart: function () {
-        dispatch("game:restart")
+    this.displacement = {
+      elevations: '1 1 1 1 1 1 1',
+      regenerate : function () {
+        console.log('dispatch:displacement')
+        dispatch("displacement", ctrl.roughness)
       },
     }
-    this.lighting = {
-      x: 40,
-      y: 300,
-      z: 120,
-      c: "#ffffff",
+
+    this.roughness = {
+      elevations: '1 1 1 1 1 1 1',
+      detailsElevations: '1 0 0 0 0 0 0',
+      detailsRatio: '0.5 0 0 0 0 0 0',
+      scale: 0.5,
+      blur: 0,
+      water: false,
+    lava: false,
+    twilight: false,
+    skipDetails: false,
+          onlyWalkable: false,
+      regenerate : function () {
+        console.log('dispatch:roughness')
+        dispatch("roughness", ctrl.roughness)
+      },
     }
 
     this.map = {
         map: '',
         reload: function () {
+          
             dispatch("map:reload", ctrl.map.map)
           },
     }
@@ -54,25 +65,13 @@ export function createGui() {
         }
     }
 
-    this.camera = {
-      fov: 45,
-      near: 0.1,
-      far: 1000,
-      position: {
-        x: 0,
-        y: 30,
-        z: 120,
-      },
-      lookAtReset: function () {
-        dispatch("camera:lookAtReset")
-      },
-    }
   })()
 
   
+  gui.remember(control);
 
-  const m = gui.addFolder("Map")
-  m.add(control.map, 'map', [ 
+  const mapFolder = gui.addFolder("Map")
+  const map = mapFolder.add(control.map, 'map', [ 
     'Reap the Storm.scx',
     '(3)Neo_Sylphid_2.0.scx',
     '(2)MatchPoint1.3.scx',
@@ -108,29 +107,30 @@ export function createGui() {
     '(8)Big Game Hunters.scm',
     '(4)Blood Bath.scm',
   ] )
-  m.add(control.map, "reload")
+  map.onFinishChange(function(value) {
+    map.object.reload(value)
+  });
+  mapFolder.add(control.map, "reload")
 
-  const g = gui.addFolder("Game")
-  g.add(control.game, "pause")
-  g.add(control.game, "restart")
+  const roughnessFolder = gui.addFolder("Roughness")
+  roughnessFolder.add(control.roughness, "elevations")
+  roughnessFolder.add(control.roughness, "detailsElevations")
+  roughnessFolder.add(control.roughness, "detailsRatio")
+  roughnessFolder.add(control.roughness, "scale")
+  roughnessFolder.add(control.roughness, "blur")
+  roughnessFolder.add(control.roughness, "water")
+  roughnessFolder.add(control.roughness, "lava")
+  roughnessFolder.add(control.roughness, "twilight")
+  roughnessFolder.add(control.roughness, "skipDetails")
+  roughnessFolder.add(control.roughness, "onlyWalkable")
+  roughnessFolder.add(control.roughness, "regenerate")
 
-  const f1 = gui.addFolder("Lighting")
-  f1.add(control.lighting, "x")
-  f1.add(control.lighting, "y")
-  f1.add(control.lighting, "z")
-  f1.add(control.lighting, "c")
-
-  const f2 = gui.addFolder("Camera")
-  f2.add(control.camera, "fov")
-  f2.add(control.camera, "near")
-  f2.add(control.camera, "far")
-  f2.add(control.camera.position, "x").listen()
-  f2.add(control.camera.position, "y").listen()
-  f2.add(control.camera.position, "z").listen()
-  f2.add(control.camera, "lookAtReset")
-
-  const scene = gui.addFolder("Scene");
-  scene.add(control.scene, "save");
+  const displacementFolder = gui.addFolder('Displacement');
+  displacementFolder.add(control.displacement, 'elevations');
+  displacementFolder.add(control.displacement, 'regenerate');
+  
+  const sceneFolder = gui.addFolder("Scene");
+  sceneFolder.add(control.scene, "save");
   
   gui.show()
   return control
