@@ -2,8 +2,8 @@ import Chk from "bw-chk";
 
 const elevations = [0, 0.4, 0.79, 0.85, 1];
 const detailsRatio = 0.85;
-const walkableLayerBlur = 0;
-const allLayersBlur = 0;
+const walkableLayerBlur = 64;
+const allLayersBlur = 8;
 
 export const generateDisplacementMap = (bwDataPath, scmData) => {
   const chk = new Chk(scmData);

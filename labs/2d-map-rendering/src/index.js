@@ -1,18 +1,33 @@
 import createScmExtractor from "scm-extractor";
 import Chk from "bw-chk";
 import concat from "concat-stream";
-import { generateDisplacementMap } from "./generateDisplacementMap";
+import { generateDisplacementMap } from "./generators/generateDisplacementMap";
+import { generateMap } from "./generators/generateMap";
 // import { ipcRenderer } from "electron";
 // ipc.send("hello", "a string", 10);
 
 const fs = window.require("fs");
 
-const canvas = document.createElement("canvas");
+const canvas = document.getElementById("canvas");
 canvas.style.transformOrigin = "0 0";
 canvas.style.transform = "scale(0.25)";
 
-document.body.appendChild(canvas);
 const ctx = canvas.getContext("2d");
+
+let mode = "terrain";
+let map = "";
+
+document.querySelectorAll('[name="mode"]').forEach((el) => {
+  el.addEventListener("change", function () {
+    mode = this.value;
+    functions[mode](map);
+  });
+});
+
+document.querySelector("#maps").addEventListener("change", function () {
+  map = this.value;
+  functions[mode](map);
+});
 
 console.log("bw-chk-test:start", new Date().toLocaleString());
 
@@ -36,96 +51,67 @@ canvas.addEventListener("click", ({ offsetX, offsetY }) => {
     .then((data) => console.log(data));
 });
 
-// const file = fs.createReadStream("./ladder/Season 7/(3)Reap the Storm.scx");
-// const file = fs.createReadStream("./ladder/Season 7/(3)Neo_Sylphid_2.0.scx")
-// const file = fs.createReadStream("./ladder/Season 7/(2)MatchPoint1.3.scx")
-// const file = fs.createReadStream("./ladder/Season 7/(2)Eclipse_1.05a.scx")
-// const file = fs.createReadStream("./ladder/Season 7/(4)CircuitBreakers1.0.scx");
-const file = fs.createReadStream("./ladder/Season 7/(4)Fighting Spirit.scx");
-// const file = fs.createReadStream("./ladder/Season 7/(4)Polypoid 1.32.scx");
-// const file = fs.createReadStream("./ladder/Season 6/(2)Hitchhiker 1.3[P].scx");
-// const file = fs.createReadStream("./ladder/Season 6/(2)Neo Bloody Ridge 2.1.scx");
-// const file = fs.createReadStream("./ladder/Season 6/(4)Escalade1.0.scx");
-// const file = fs.createReadStream("./ladder/Season 6/(4)LaMancha1.1.scx");
-// const file = fs.createReadStream("./ladder/Season 5/(2)Destination.scx");
-// const file = fs.createReadStream("./ladder/Season 5/(2)Heartbreak Ridge 2.1.scx");
-// const file = fs.createReadStream("./ladder/Season 5/(3)Whiteout1.2.scx");
-// const file = fs.createReadStream("./ladder/Season 5/(4)Gladiator1.1.scx");
-// const file = fs.createReadStream("./ladder/FrontierLeague2018/(3)Longinus 2.scx");
-// const file = fs.createReadStream("./ladder/FrontierLeague2018/(3)Tau Cross.scx");
-// const file = fs.createReadStream("./ladder/FrontierLeague2018/(3)Transistor1.2.scm");
-// const file = fs.createReadStream("./ladder/FrontierLeague2017/(4)Jade.scx");
-// const file = fs.createReadStream("./ladder/2019Season2/(2)Overwatch(n).scx");
-// const file = fs.createReadStream("./ladder/2019Season2/(2)Tres Pass.scx");
-// const file = fs.createReadStream("./ladder/2019Season2/(3)Power Bond.scx");
-// const file = fs.createReadStream("./ladder/2019Season2/(4)BlockChainSE2.1.scx");
-// const file = fs.createReadStream("./ladder/2019Season1/(2)Cross Game.scx");
-// const file = fs.createReadStream("./ladder/2019Season1/(3)Medusa 2.2_iCCup.scx");
-// const file = fs.createReadStream("./ladder/2019Season1/(4)Colosseum 2.0_iCCup.scx");
-// const file = fs.createReadStream("./ladder/2019Season1/(4)Ground_Zero_2.0_iCCup.scx");
-// const file = fs.createReadStream("./ladder/2018Season2/(2)Benzene 1.1_iCCup.scx");
-// const file = fs.createReadStream("./ladder/2018Season2/(3)Aztec 2.1_iCCup.scx");
-// const file = fs.createReadStream("./ladder/2018Season2/(4)In the Way of an Eddy.scx");
-// const file = fs.createReadStream("./ladder/2018Season2/(4)Roadkill.scm");
-// const file = fs.createReadStream("./ladder/2018Season1/(2)Polaris Rhapsody.scx");
-// const file = fs.createReadStream("./ladder/(8)Big Game Hunters.scm");
-// const file = fs.createReadStream("./ladder/(4)Blood Bath.scm");
+const functions = {
+  terrain: terrain,
+  displacement: displacement,
+  background: background,
+};
 
-file.pipe(createScmExtractor()).pipe(
-  concat((data) => {
-    generateDisplacementMap("./bwdata", data).then(
-      ({ data, width, height }) => {
-        console.log("bmp", data, width, height);
-        canvas.width = width;
-        canvas.height = height;
-        writeToCanvas(ctx, data, width, height, false);
-        // drawGrid(ctx, width, height);
-        addDownloadLink();
-      }
+function displacement(filename) {
+  fs.createReadStream(`./maps/${filename}`)
+    .pipe(createScmExtractor())
+    .pipe(
+      concat((data) => {
+        console.log("displacement", filename);
+        generateDisplacementMap("./bwdata", data).then(
+          ({ data, width, height }) => {
+            canvas.width = width;
+            canvas.height = height;
+            writeToCanvas(ctx, data, width, height, false);
+            // drawGrid(ctx, width, height);
+            addDownloadLink();
+          }
+        );
+      })
     );
-  })
-);
+}
 
-// try {
-//   file.pipe(createScmExtractor()).pipe(
-//     concat((data) => {
-//       const chk = new Chk(data);
-//       console.log("mapInfo", chk);
-//       window.chk = chk;
+function terrain(filename) {
+  fs.createReadStream(`./maps/${filename}`)
+    .pipe(createScmExtractor())
+    .pipe(
+      concat((data) => {
+        console.log("terrain", filename);
+        generateMap("./bwdata", data, 1, 0).then(({ data, width, height }) => {
+          canvas.width = width;
+          canvas.height = height;
+          writeToCanvas(ctx, data, width, height, false);
+          // drawGrid(ctx, width, height);
+          addDownloadLink();
+        });
+      })
+    );
+}
 
-//       const width = chk.size[0] * 32;
-//       const height = chk.size[1] * 32;
-//       canvas.width = width;
-//       canvas.height = height;
-
-//       chk
-//         .image(Chk.fsFileAccess("bwdata"), width, height, {
-//           melee: false,
-//           startLocations: false,
-//           sprites: false,
-//         })
-//         .then((data) => {
-//           console.log("bitMapData", chk);
-//           chk.bitMapData = data;
-//           writeToCanvas(ctx, data, width, height);
-
-//           // chk
-//           //   .image(Chk.fsFileAccess("./bwdata"), width, height, {
-//           //     mode: "displacement",
-//           //   })
-//           //   .then((data) => {
-//           //     writeToCanvas(ctx, data, width, height, false);
-//           //     // drawGrid(ctx, width, height);
-//           //     addDownloadLink();
-//           //   });
-
-//           // fs.writeFile("fs-new.bin", data, () => {})
-//         });
-//     })
-//   );
-// } catch (e) {
-//   console.error(e);
-// }
+function background(filename) {
+  fs.createReadStream(`./maps/${filename}`)
+    .pipe(createScmExtractor())
+    .pipe(
+      concat((data) => {
+        console.log("background", filename);
+        generateMap("./bwdata", data, 0.25, 32).then(
+          ({ data, width, height }) => {
+            console.log("bmp", data, width, height);
+            canvas.width = width;
+            canvas.height = height;
+            writeToCanvas(ctx, data, width, height, false);
+            // drawGrid(ctx, width, height);
+            addDownloadLink();
+          }
+        );
+      })
+    );
+}
 
 function addDownloadLink() {
   var img = canvas.toDataURL("image/png");
