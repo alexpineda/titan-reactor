@@ -1,5 +1,6 @@
 import Chk from "bw-chk";
 import { nearestNeighbour } from "../image/nearest";
+import { displacement } from "../image/displacement";
 
 export const generateRoughnessMap = ({
   bwDataPath,
@@ -9,7 +10,7 @@ export const generateRoughnessMap = ({
   detailsRatio = [0.5, 0, 0, 0, 0, 0, 0],
   scale = 0.25 * 0.5,
   water = false,
-  twilight = false, 
+  twilight = false,
   lava = false,
   blurFactor = 0,
   skipDetails = false,
@@ -22,10 +23,9 @@ export const generateRoughnessMap = ({
 
   return chk
     .image(fileAccess, width, height, {
-      mode: "displacement",
       startLocations: false,
       sprites: false,
-      displacement: {
+      render: displacement({
         elevations,
         detailsElevations,
         detailsRatio,
@@ -35,10 +35,9 @@ export const generateRoughnessMap = ({
         twilight,
         lava,
         skipDetails,
-        onlyWalkable
-
-      },
+        onlyWalkable,
+      }),
     })
     .then((data) => nearestNeighbour(data, width, height, scale))
-    .then(({data, width, height}) => ({chk, data, width, height}))
+    .then(({ data, width, height }) => ({ chk, data, width, height }));
 };

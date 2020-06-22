@@ -2,18 +2,18 @@ import Chk from "bw-chk";
 import { blendNonZeroPixels, overlayImage } from "../image/blend";
 import { blur } from "../image/blur";
 import { nearestNeighbour } from "../image/nearest";
+import { displacement } from "../image/displacement";
 
 export const generateDisplacementMap = ({
-  bwDataPath, 
-  scmData, 
+  bwDataPath,
+  scmData,
   scale = 0.25,
   elevations = [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
   detailsElevations = [1, 1, 0.5, 1, 0.5, 1, 0],
   detailsRatio = [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
   walkableLayerBlur = 32,
   allLayersBlur = 8,
-}
-  ) => {
+}) => {
   const chk = new Chk(scmData);
   const width = chk.size[0] * 32;
   const height = chk.size[1] * 32;
@@ -23,17 +23,16 @@ export const generateDisplacementMap = ({
 
   return chk
     .image(fileAccess, width, height, {
-      mode: "displacement",
       startLocations: false,
       sprites: false,
-      displacement: {
+      render: displacement({
         elevations,
         detailsElevations,
         detailsRatio,
         skipDetails: true,
         onlyWalkable: true,
         tint: [1, 1, 1],
-      },
+      }),
     })
     .then((data) => {
       blendNonZeroPixels(data, width, height);
@@ -47,16 +46,15 @@ export const generateDisplacementMap = ({
       walkableLayer = scaled;
 
       return chk.image(fileAccess, width, height, {
-        mode: "displacement",
         startLocations: false,
         sprites: false,
-        displacement: {
+        render: displacement({
           elevations,
           detailsElevations,
           detailsRatio,
           skipWalkable: true,
           tint: [1, 1, 1],
-        },
+        }),
       });
     })
     .then((overlay) => {
@@ -66,7 +64,7 @@ export const generateDisplacementMap = ({
         height,
         scale
       );
-      
+
       overlayImage(walkableLayer, scaled);
       blur(walkableLayer, sw, sh, allLayersBlur);
 
@@ -74,7 +72,7 @@ export const generateDisplacementMap = ({
         data: walkableLayer,
         width: sw,
         height: sh,
-        chk
+        chk,
       };
     });
 };

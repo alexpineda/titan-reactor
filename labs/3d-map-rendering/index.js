@@ -1,4 +1,4 @@
-import { createStats, createGui } from './gui';
+import { createStats, createGui } from "./gui";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
@@ -11,16 +11,8 @@ import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader.js";
 
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 
-import { generateDisplacementMap } from "../2d-map-rendering/src/generators/generateDisplacementMap";
-import { generateEmissiveMap } from "../2d-map-rendering/src/generators/generateEmissiveMap";
-import { generateMap } from "../2d-map-rendering/src/generators/generateMap";
-import { generateRoughnessMap } from "../2d-map-rendering/src/generators/generateRoughnessMap";
-
-import { generateMapDetails } from "../2d-map-rendering/src/generators/generateMapDetails";
-
-import createScmExtractor from "scm-extractor";
-import concat from "concat-stream";
-import { Vector3 } from 'three';
+import { Vector3 } from "three";
+import { loadAllTerrain } from "./loadTerrain";
 
 console.log(new Date().toLocaleString());
 const fs = window.require("fs");
@@ -40,7 +32,10 @@ const camera = new THREE.PerspectiveCamera(
 );
 window.camera = camera;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: "high-performance",
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.Uncharted2ToneMapping;
 renderer.toneMappingExposure = 1.2;
@@ -51,65 +46,14 @@ renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const findMeshByName = (name) => {
   let mesh;
-  scene.traverse(o => {
+  scene.traverse((o) => {
     if (o.name === name) {
       mesh = o;
       return false;
     }
-  })
+  });
   return mesh;
-}
-
-function generateMapMeshes(width, height, map, bg, displace, rough) {
-  const floor = (function () {
-    const geometry = new THREE.PlaneGeometry(width, height, width * 2, height * 2);
-    const material = new THREE.MeshStandardMaterial({
-      map: map,
-      displacementMap: displace,
-      displacementScale: 6,
-      bumpMap: map,
-      bumpScale: 0.1,
-      // normalMap: normal,
-      // normalScale: new THREE.Vector2(1.3, 1.6),
-      // normalMapType: THREE.TangentSpaceNormalMap,
-      dithering: true,
-      roughness: 1,
-      roughnessMap: rough
-    });
-    const plane = new THREE.Mesh(geometry, material);
-    plane.rotation.x = -Math.PI / 2;
-  
-    plane.castShadow = true;
-    plane.receiveShadow = true;
-    plane.material.map.anisotropy = 16;
-    plane.name = "floor";
-    return plane;
-  })();
-  
-  const backingFloor = (function () {
-    const geometry = new THREE.PlaneGeometry(width, height, 4, 4);
-    const material = new THREE.MeshLambertMaterial({
-      map: bg,
-      transparent: true,
-      opacity: 0.5,
-      toneMapped: false,
-    });
-    const plane = new THREE.Mesh(geometry, material);
-    plane.scale.x = 10;
-    plane.scale.y = 10;
-    plane.rotation.x = -Math.PI / 2;
-  
-    plane.position.z = 32;
-    plane.material.map.anisotropy = 1;
-    plane.name = "backing-floor";
-    return plane;
-  })();
-
-  return [
-    floor,
-    backingFloor
-  ]
-}
+};
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -160,139 +104,23 @@ const control = createGui();
 const stats = createStats();
 
 control.on("map:reload", (map) => {
-
-const toDataTexture = ({data, width, height}) => new THREE.DataTexture(data, width, height, THREE.RGBFormat);
-
-  const mapDetailsLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
-      .pipe(createScmExtractor())
-      .pipe(
-        concat((data) => {
-          res(generateMapDetails(data))
-        }))
-      })
-  
-
-  const mapLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
-    .pipe(createScmExtractor())
-    .pipe(
-      concat((data) => {
-        generateMap({
-          bwDataPath: "./bwdata", 
-          scmData: data, 
-          scale: 1, 
-          blurFactor: 0
-        }).then(data => res(toDataTexture(data)), rej
-        );
-      })
-    );
-  })
-
-  const bgLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
-    .pipe(createScmExtractor())
-    .pipe(
-      concat((data) => {
-        generateMap({
-          bwDataPath: "./bwdata", 
-          scmData: data, 
-          scale: 0.25*0.25, 
-          blurFactor: 32
-        }).then(data => res(toDataTexture(data)), rej
-        );
-      })
-    );
-  })
-
-  const displaceLoader = new Promise((res, rej) => {
-
-    fs.createReadStream(`./maps/${map}`)
-    .pipe(createScmExtractor())
-    .pipe(
-      concat((data) => {
-        generateDisplacementMap({
-          bwDataPath: "./bwdata", 
-          scmData: data, 
-          scale: 0.25,
-          elevations: [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
-          detailsElevations: [1, 1, 0.5, 1, 0.5, 1, 0],
-          detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
-          walkableLayerBlur: 32,
-          allLayersBlur: 8,
-        }).then(data => res(toDataTexture(data)), rej
-        );
-      })
-    );
-  });
-
-  control.on('roughness', (opts) => {
-    console.log('on:roughness', opts)
-  })
-
-  const roughnessLoader = (opts = {}) => new Promise((res, rej) => {
-    
-    fs.createReadStream(`./maps/${map}`)
-    .pipe(createScmExtractor())
-    .pipe(
-      concat((data) => {
-        generateRoughnessMap(
-          {
-            bwDataPath: "./bwdata",
-            scmData: data,
-            elevations: [1, 1, 1, 1, 1, 1, 1],
-            detailsElevations: [1, 0, 0, 0, 0, 0, 0],
-            detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
-            scale: 0.5,
-            blur: 0,
-            water: false,
-            lava: true,
-            twilight: false,
-            skipDetails: false,
-          onlyWalkable: false,
-          ...opts,
-        }).then(data => res(toDataTexture(data)), rej
-        );
-      })
-    );
-  })
-
-  Promise.all([mapDetailsLoader, mapLoader, bgLoader, displaceLoader, roughnessLoader()]).then(([mapDetails, map, bg, displace, roughness]) => {
-    map.encoding = THREE.sRGBEncoding;
-    bg.encoding = THREE.sRGBEncoding;
-    const flip = (texture ) => {
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.repeat.x = - 1;
-      texture.flipY = false;
-    }
-    flip(map)
-    flip(bg)
-    flip(displace)
-    flip(roughness)
-  
-    
-    const [newFloor, newFloorBg] = generateMapMeshes(mapDetails.size[0], mapDetails.size[1], map, bg, displace,roughness);
-    
-    const floor = findMeshByName('floor');
-    const floorBg = findMeshByName('backing-floor');
+  loadAllTerrain(map).then(([newFloor, newFloorBg]) => {
+    const floor = findMeshByName("floor");
+    const floorBg = findMeshByName("backing-floor");
     if (floor) {
-      scene.remove(floor)
+      scene.remove(floor);
     }
     if (floorBg) {
-    scene.remove(floorBg)
+      scene.remove(floorBg);
     }
     scene.add(newFloor);
     scene.add(newFloorBg);
-
-
-  })
-
-  
-})
+  });
+});
 
 let f = 0;
 function animate() {
-  stats.begin()
+  stats.begin();
   //   plane.rotation.z += 0.0005;
   spotlight.position.set(
     camera.position.x + 10,
@@ -304,7 +132,7 @@ function animate() {
   pointLight.position.z = Math.sin(f) * 64;
 
   controls.update();
-  stats.end()
+  stats.end();
   renderer.render(scene, camera);
   //   composer.render();
   requestAnimationFrame(animate);
@@ -313,14 +141,13 @@ animate();
 
 control.on("scene:save", (map) => {
   var exporter = new GLTFExporter();
-    exporter.parse(
-      scene,
-      function (gltf) {
-        fs.writeFile("./scene.glb", gltf, () => {});
-      },
-      {
-        binary: true,
-      }
-    )
-  
-})
+  exporter.parse(
+    scene,
+    function (gltf) {
+      fs.writeFile("./scene.glb", gltf, () => {});
+    },
+    {
+      binary: true,
+    }
+  );
+});

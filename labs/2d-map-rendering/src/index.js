@@ -68,26 +68,24 @@ function displacement(filename) {
     .pipe(
       concat((data) => {
         console.log("displacement", filename);
-        
+
         generateDisplacementMap({
-          bwDataPath: "./bwdata", 
-          scmData: data, 
+          bwDataPath: "./bwdata",
+          scmData: data,
           scale: 0.25,
           elevations: [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
           detailsElevations: [1, 1, 0.5, 1, 0.5, 1, 0],
           detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
           walkableLayerBlur: 32,
           allLayersBlur: 8,
-        }).then(
-          ({ data, width, height,chk }) => {
-            window.chk = chk
-            canvas.width = width;
-            canvas.height = height;
-            writeToCanvas(ctx, data, width, height, false);
-            // drawGrid(ctx, width, height);
-            addDownloadLink();
-          }
-        );
+        }).then(({ data, width, height, chk }) => {
+          window.chk = chk;
+          canvas.width = width;
+          canvas.height = height;
+          writeToCanvas(ctx, data, width, height, false);
+          // drawGrid(ctx, width, height);
+          addDownloadLink();
+        });
       })
     );
 }
@@ -99,8 +97,8 @@ function emissive(filename) {
       concat((data) => {
         console.log("emissive", filename);
         generateEmissiveMap("./bwdata", data).then(
-          ({ data, width, height,chk }) => {
-            window.chk = chk
+          ({ data, width, height, chk }) => {
+            window.chk = chk;
             canvas.width = width;
             canvas.height = height;
             writeToCanvas(ctx, data, width, height, false);
@@ -118,25 +116,23 @@ function roughness(filename) {
     .pipe(
       concat((data) => {
         console.log("roughness", filename);
-        
+
         generateRoughnessMap({
           bwDataPath: "./bwdata",
           scmData: data,
           elevations: [0.7, 1, 1, 1, 1, 1, 1],
           detailsElevations: [1, 0, 0, 0, 0, 0, 0],
-          detailsRatio: [0.5, 0,0 ,0,0,0,0],
-          scale:0.5, //0.25 * 0.5,
-          water: true,
-        }).then(
-          ({ data, width, height, chk }) => {
-            window.chk = chk
-            canvas.width = width;
-            canvas.height = height;
-            writeToCanvas(ctx, data, width, height, false);
-            // drawGrid(ctx, width, height);
-            addDownloadLink();
-          }
-        );
+          detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
+          scale: 0.5, //0.25 * 0.5,
+          lava: true,
+        }).then(({ data, width, height, chk }) => {
+          window.chk = chk;
+          canvas.width = width;
+          canvas.height = height;
+          writeToCanvas(ctx, data, width, height, false);
+          // drawGrid(ctx, width, height);
+          addDownloadLink();
+        });
       })
     );
 }
@@ -148,12 +144,12 @@ function terrain(filename) {
       concat((data) => {
         console.log("terrain", filename);
         generateMap({
-          bwDataPath: "./bwdata", 
-          scmData: data, 
-          scale: 1, 
-          blurFactor: 0
+          bwDataPath: "./bwdata",
+          scmData: data,
+          scale: 1,
+          blurFactor: 0,
         }).then(({ data, width, height, chk }) => {
-          window.chk = chk
+          window.chk = chk;
           canvas.width = width;
           canvas.height = height;
           writeToCanvas(ctx, data, width, height, false);
@@ -170,20 +166,18 @@ function background(filename) {
     .pipe(
       concat((data) => {
         generateMap({
-          bwDataPath: "./bwdata", 
-          scmData: data, 
-          scale: 0.25, 
-          blurFactor: 32
-        }).then(
-          ({ data, width, height, chk }) => {
-            window.chk = chk
-            canvas.width = width;
-            canvas.height = height;
-            writeToCanvas(ctx, data, width, height, false);
-            // drawGrid(ctx, width, height);
-            addDownloadLink();
-          }
-        );
+          bwDataPath: "./bwdata",
+          scmData: data,
+          scale: 0.25,
+          blurFactor: 32,
+        }).then(({ data, width, height, chk }) => {
+          window.chk = chk;
+          canvas.width = width;
+          canvas.height = height;
+          writeToCanvas(ctx, data, width, height, false);
+          // drawGrid(ctx, width, height);
+          addDownloadLink();
+        });
       })
     );
 }

@@ -1,4 +1,12 @@
 export function nearestNeighbour(src, srcWidth, srcHeight, scale) {
+  if (scale === 1) {
+    return {
+      data: src,
+      width: srcWidth,
+      height: srcHeight,
+    };
+  }
+
   const dstWidth = srcWidth * scale;
   const dstHeight = srcHeight * scale;
   const data = new Buffer(dstWidth * dstHeight * 3);
