@@ -10,6 +10,11 @@ import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader.js";
 
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 
+import { generateDisplacementMap } from "../../2d-map-rendering/src/generators/generateDisplacementMap";
+import { generateEmissiveMap } from "../../2d-map-rendering/src/generators/generateEmissiveMap";
+import { generateMap } from "../../2d-map-rendering/src/generators/generateMap";
+import { generateRoughnessMap } from "../../2d-map-rendering/src/generators/generateRoughnessMap";
+
 console.log(new Date().toLocaleString());
 const fs = window.require("fs");
 

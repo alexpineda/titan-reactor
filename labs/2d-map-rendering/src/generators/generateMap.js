@@ -1,7 +1,8 @@
 import Chk from "bw-chk";
-// import { nearestNeighbour } from "../image/nearest";
+import { nearestNeighbour } from "../image/nearest";
+import { blur } from "../image/blur";
 
-export const generateMap = (bwDataPath, scmData, scale = 1, blur = 0) => {
+export const generateMap = (bwDataPath, scmData, scale = 1, blurFactor = 0) => {
   const chk = new Chk(scmData);
   const width = chk.size[0] * 32;
   const height = chk.size[1] * 32;
@@ -12,19 +13,26 @@ export const generateMap = (bwDataPath, scmData, scale = 1, blur = 0) => {
       mode: "terrain",
       startLocations: false,
       sprites: false,
-      postProcess: {
-        gaussianBlur: blur,
-      },
     })
     .then((data) => {
       if (scale != 1) {
         return nearestNeighbour(data, width, height, scale);
-      } else {
-        return {
-          data,
-          width,
-          height,
-        };
       }
+
+      return {
+        data,
+        width,
+        height,
+      };
+    })
+    .then(({ data, width, height }) => {
+      if (blurFactor > 0) {
+        blur(data, width, height, blurFactor);
+      }
+      return {
+        data,
+        width,
+        height,
+      };
     });
 };

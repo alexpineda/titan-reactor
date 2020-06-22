@@ -6,7 +6,7 @@ export function nearestNeighbour(src, srcWidth, srcHeight, scale) {
   for (var x = 0; x < dstWidth; x++) {
     for (var y = 0; y < dstHeight; y++) {
       var sourceInd =
-        4 * (Math.floor(y / scale) * srcWidth + Math.floor(x / scale));
+        3 * (Math.floor(y / scale) * srcWidth + Math.floor(x / scale));
       var targetInd = 3 * (y * dstWidth + x);
       var sourceP = src.slice(sourceInd, sourceInd + 3); //this.get(x/wScale, y/hScale)
       data[targetInd] = sourceP[0];

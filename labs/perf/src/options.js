@@ -73,6 +73,13 @@ export default ({ defaultOptions }) => {
             <li>Selected Units - Toggle: E</li>
           </ul>
         </Tab>
+        <Tab tabName={tabs.audio} activeTab={tab}>
+          <ul>
+            <li>Music Volume: OFF-100</li>
+            <li>Sound Volume: OFF-100</li>
+            <li>Loading Music: ON/OFF</li>
+          </ul>
+        </Tab>
         <Tab tabName={tabs.perf} activeTab={tab}>
           <ul className="tab-content">
             <li>Antialias: ON</li>

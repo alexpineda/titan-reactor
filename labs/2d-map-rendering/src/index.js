@@ -3,6 +3,9 @@ import Chk from "bw-chk";
 import concat from "concat-stream";
 import { generateDisplacementMap } from "./generators/generateDisplacementMap";
 import { generateMap } from "./generators/generateMap";
+import { generateEmissiveMap } from "./generators/generateEmissiveMap";
+import { generateRoughnessMap } from "./generators/generateRoughnessMap";
+
 // import { ipcRenderer } from "electron";
 // ipc.send("hello", "a string", 10);
 
@@ -15,7 +18,7 @@ canvas.style.transform = "scale(0.25)";
 const ctx = canvas.getContext("2d");
 
 let mode = "terrain";
-let map = "";
+let map = "(4)Fighting Spirit.scx";
 
 document.querySelectorAll('[name="mode"]').forEach((el) => {
   el.addEventListener("change", function () {
@@ -55,6 +58,8 @@ const functions = {
   terrain: terrain,
   displacement: displacement,
   background: background,
+  emissive: emissive,
+  roughness: roughness,
 };
 
 function displacement(filename) {
@@ -64,6 +69,44 @@ function displacement(filename) {
       concat((data) => {
         console.log("displacement", filename);
         generateDisplacementMap("./bwdata", data).then(
+          ({ data, width, height }) => {
+            canvas.width = width;
+            canvas.height = height;
+            writeToCanvas(ctx, data, width, height, false);
+            // drawGrid(ctx, width, height);
+            addDownloadLink();
+          }
+        );
+      })
+    );
+}
+
+function emissive(filename) {
+  fs.createReadStream(`./maps/${filename}`)
+    .pipe(createScmExtractor())
+    .pipe(
+      concat((data) => {
+        console.log("emissive", filename);
+        generateEmissiveMap("./bwdata", data).then(
+          ({ data, width, height }) => {
+            canvas.width = width;
+            canvas.height = height;
+            writeToCanvas(ctx, data, width, height, false);
+            // drawGrid(ctx, width, height);
+            addDownloadLink();
+          }
+        );
+      })
+    );
+}
+
+function roughness(filename) {
+  fs.createReadStream(`./maps/${filename}`)
+    .pipe(createScmExtractor())
+    .pipe(
+      concat((data) => {
+        console.log("roughness", filename);
+        generateRoughnessMap("./bwdata", data).then(
           ({ data, width, height }) => {
             canvas.width = width;
             canvas.height = height;
@@ -101,7 +144,6 @@ function background(filename) {
         console.log("background", filename);
         generateMap("./bwdata", data, 0.25, 32).then(
           ({ data, width, height }) => {
-            console.log("bmp", data, width, height);
             canvas.width = width;
             canvas.height = height;
             writeToCanvas(ctx, data, width, height, false);
@@ -114,12 +156,8 @@ function background(filename) {
 }
 
 function addDownloadLink() {
-  var img = canvas.toDataURL("image/png");
-  const a = document.createElement("a");
-  a.setAttribute("href", img);
-  a.setAttribute("download", "download");
-  a.innerText = "download";
-  document.body.appendChild(a);
+  const el = document.getElementById("download");
+  el.setAttribute("href", canvas.toDataURL("image/png"));
 }
 
 function drawGrid(ctx, width, height) {
@@ -172,3 +210,5 @@ function writeToCanvas(ctx, data, width, height, blend = false) {
 
   ctx.putImageData(imagedata, 0, 0);
 }
+
+// functions[mode](map);

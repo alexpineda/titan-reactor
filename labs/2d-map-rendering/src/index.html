@@ -63,16 +63,20 @@
         <option>(4)Blood Bath.scm</option>
     </select>
 
-    <input type="radio" name="mode" value="terrain" checked>
+    <input type="radio" name="mode" value="terrain">
     <label>Terrain</label>
     <input type="radio" name="mode" value="displacement">
     <label>Displacement</label>
     <input type="radio" name="mode" value="background">
     <label>Background</label>
+    <input type="radio" name="mode" value="emissive">
+    <label>Emissive</label>
+    <input type="radio" name="mode" value="roughness">
+    <label>Roughness</label>
 
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" width="4096px" height="4096px" style="transform: scale(0.25)"></canvas>
 
-
+    <a id="download" href="" download>download</a>
     <script src="index.js"></script>
 </body>
 
