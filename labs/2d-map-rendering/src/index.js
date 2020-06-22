@@ -1,12 +1,11 @@
 import createScmExtractor from "scm-extractor";
 import Chk from "bw-chk";
 import concat from "concat-stream";
-import { ipcRenderer } from "electron";
-ipc.send("hello", "a string", 10);
+import { generateDisplacementMap } from "./generateDisplacementMap";
+// import { ipcRenderer } from "electron";
+// ipc.send("hello", "a string", 10);
 
 const fs = window.require("fs");
-
-let width, height;
 
 const canvas = document.createElement("canvas");
 canvas.style.transformOrigin = "0 0";
@@ -29,8 +28,8 @@ canvas.addEventListener("click", ({ offsetX, offsetY }) => {
   window.chk
     .getTileInfoFromXY(
       Chk.fsFileAccess("./bwdata"),
-      width,
-      height,
+      window.chk.size[0],
+      window.chk.size[1],
       offsetX,
       offsetY
     )
@@ -40,8 +39,8 @@ canvas.addEventListener("click", ({ offsetX, offsetY }) => {
 // const file = fs.createReadStream("./ladder/Season 7/(3)Reap the Storm.scx");
 // const file = fs.createReadStream("./ladder/Season 7/(3)Neo_Sylphid_2.0.scx")
 // const file = fs.createReadStream("./ladder/Season 7/(2)MatchPoint1.3.scx")
-// const file = fs.createReadStream("./ladder/Season 7/(2)Eclipse_1.05.scx")
-// const file = fs.createReadStream("./ladder/Season 7/(4)CircuitBreakers1.0.scx")
+// const file = fs.createReadStream("./ladder/Season 7/(2)Eclipse_1.05a.scx")
+// const file = fs.createReadStream("./ladder/Season 7/(4)CircuitBreakers1.0.scx");
 const file = fs.createReadStream("./ladder/Season 7/(4)Fighting Spirit.scx");
 // const file = fs.createReadStream("./ladder/Season 7/(4)Polypoid 1.32.scx");
 // const file = fs.createReadStream("./ladder/Season 6/(2)Hitchhiker 1.3[P].scx");
@@ -72,8 +71,23 @@ const file = fs.createReadStream("./ladder/Season 7/(4)Fighting Spirit.scx");
 // const file = fs.createReadStream("./ladder/(8)Big Game Hunters.scm");
 // const file = fs.createReadStream("./ladder/(4)Blood Bath.scm");
 
-// file.pipe(createScmExtractor())
-//   .pipe(
+file.pipe(createScmExtractor()).pipe(
+  concat((data) => {
+    generateDisplacementMap("./bwdata", data).then(
+      ({ data, width, height }) => {
+        console.log("bmp", data, width, height);
+        canvas.width = width;
+        canvas.height = height;
+        writeToCanvas(ctx, data, width, height, false);
+        // drawGrid(ctx, width, height);
+        addDownloadLink();
+      }
+    );
+  })
+);
+
+// try {
+//   file.pipe(createScmExtractor()).pipe(
 //     concat((data) => {
 //       const chk = new Chk(data);
 //       console.log("mapInfo", chk);
@@ -84,61 +98,34 @@ const file = fs.createReadStream("./ladder/Season 7/(4)Fighting Spirit.scx");
 //       canvas.width = width;
 //       canvas.height = height;
 
-//           chk.image(Chk.fsFileAccess("./bwdata"), width, height, {
-//             mode: 'displacement',
-//             startLocations: false,
-//             sprites: false
-//           }).then((data) => {
+//       chk
+//         .image(Chk.fsFileAccess("bwdata"), width, height, {
+//           melee: false,
+//           startLocations: false,
+//           sprites: false,
+//         })
+//         .then((data) => {
+//           console.log("bitMapData", chk);
+//           chk.bitMapData = data;
+//           writeToCanvas(ctx, data, width, height);
 
-//             writeToCanvas(ctx, data, width, height, false);
-//             // drawGrid(ctx, width, height);
-//             addDownloadLink();
-//           }
-//           )
+//           // chk
+//           //   .image(Chk.fsFileAccess("./bwdata"), width, height, {
+//           //     mode: "displacement",
+//           //   })
+//           //   .then((data) => {
+//           //     writeToCanvas(ctx, data, width, height, false);
+//           //     // drawGrid(ctx, width, height);
+//           //     addDownloadLink();
+//           //   });
 
+//           // fs.writeFile("fs-new.bin", data, () => {})
+//         });
 //     })
 //   );
-
-try {
-  file.pipe(createScmExtractor()).pipe(
-    concat((data) => {
-      const chk = new Chk(data);
-      console.log("mapInfo", chk);
-      window.chk = chk;
-
-      const width = chk.size[0] * 32;
-      const height = chk.size[1] * 32;
-      canvas.width = width;
-      canvas.height = height;
-
-      chk
-        .image(Chk.fsFileAccess("bwdata"), width, height, {
-          melee: false,
-          startLocations: false,
-          sprites: false,
-        })
-        .then((data) => {
-          console.log("bitMapData", chk);
-          chk.bitMapData = data;
-          writeToCanvas(ctx, data, width, height);
-
-          // chk
-          //   .image(Chk.fsFileAccess("./bwdata"), width, height, {
-          //     mode: "displacement",
-          //   })
-          //   .then((data) => {
-          //     writeToCanvas(ctx, data, width, height, false);
-          //     // drawGrid(ctx, width, height);
-          //     addDownloadLink();
-          //   });
-
-          // fs.writeFile("fs-new.bin", data, () => {})
-        });
-    })
-  );
-} catch (e) {
-  console.error(e);
-}
+// } catch (e) {
+//   console.error(e);
+// }
 
 function addDownloadLink() {
   var img = canvas.toDataURL("image/png");

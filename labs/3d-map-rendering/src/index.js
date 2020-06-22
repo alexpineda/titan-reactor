@@ -8,12 +8,15 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader.js";
 import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader.js";
 
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
+
 console.log(new Date().toLocaleString());
 const fs = window.require("fs");
 
 const scene = new THREE.Scene();
-const fogColor = new THREE.Color(0x080820);
+window.scene = scene;
 
+const fogColor = new THREE.Color(0x080820);
 scene.background = fogColor;
 scene.fog = new THREE.Fog(fogColor, 256, 512);
 
@@ -23,20 +26,24 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
+window.camera = camera;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.toneMapping = THREE.ReinhardToneMapping;
-renderer.toneMappingExposure = 1.8;
+renderer.toneMapping = THREE.Uncharted2ToneMapping;
+renderer.toneMappingExposure = 1.5;
+renderer.gammaFactor = 2.2;
+renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
 let blurredTexture = new THREE.TextureLoader().load("fs-blur.png");
 
-let displacementMap = new THREE.TextureLoader().load("displacement8-2.png");
+let displacementMap = new THREE.TextureLoader().load("fs-64.png");
 let normalMap = new THREE.TextureLoader().load("fs-nodoodads_normal.png");
 
 let texture = new THREE.TextureLoader().load("fs-nodoodads.png");
+texture.encoding = THREE.sRGBEncoding;
 
 // let textureData = fs.readFileSync("static/fs.bin");
 
@@ -55,9 +62,10 @@ const floor = (function () {
     displacementMap: displacementMap,
     displacementScale: 6,
     normalMap: normalMap,
-    normalScale: new THREE.Vector2(1.3, 1.6),
-    normalMapType: THREE.TangentSpaceNormalMap,
+    // normalScale: new THREE.Vector2(1.3, 1.6),
+    // normalMapType: THREE.TangentSpaceNormalMap,
     dithering: true,
+    roughness: 1,
   });
   const plane = new THREE.Mesh(geometry, material);
   plane.rotation.x = -Math.PI / 2;
@@ -65,6 +73,7 @@ const floor = (function () {
   plane.castShadow = true;
   plane.receiveShadow = true;
   plane.material.map.anisotropy = 16;
+  plane.name = "floor";
   return plane;
 })();
 
@@ -83,6 +92,7 @@ const backingFloor = (function () {
 
   plane.position.z = 32;
   plane.material.map.anisotropy = 16;
+  plane.name = "backing-floor";
   return plane;
 })();
 
@@ -91,8 +101,8 @@ const controls = new OrbitControls(camera, renderer.domElement);
 scene.add(floor);
 scene.add(backingFloor);
 
-camera.position.z = 100;
-camera.position.y = 100;
+camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
+
 controls.update();
 camera.lookAt(floor);
 
@@ -152,3 +162,20 @@ function animate() {
   //   composer.render();
 }
 animate();
+
+var exporter = new GLTFExporter();
+
+// Parse the input and generate the glTF output
+setTimeout(
+  () =>
+    exporter.parse(
+      scene,
+      function (gltf) {
+        fs.writeFile("./scene.glb", gltf);
+      },
+      {
+        binary: true,
+      }
+    ),
+  5000
+);
