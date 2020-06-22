@@ -1,13 +1,13 @@
 import Chk from "bw-chk";
 import { nearestNeighbour } from "../image/nearest";
 
-const elevations = [0, 1, 1, 1, 1];
+const elevations = [0.6, 1, 1, 1, 1];
 const detailsRatio = 0.9;
 
 export const generateRoughnessMap = (
   bwDataPath,
   scmData,
-  scale = 0.25 * 0.25
+  scale = 0.25 * 0.5
 ) => {
   const chk = new Chk(scmData);
   const width = chk.size[0] * 32;

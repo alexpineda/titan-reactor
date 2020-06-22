@@ -22,6 +22,7 @@
   "homepage": "https://github.com/imbateam-gg/bw-lab#readme",
   "dependencies": {
     "bw-chk": "file:../bw-chk",
+    "dat.gui": "0.7.7",
     "electron": "^9.0.4",
     "electron-is-dev": "^1.2.0",
     "ks": "^2.0.4",
@@ -31,6 +32,7 @@
     "react-dom": "^16.13.1",
     "react-dropzone": "^11.0.1",
     "scm-extractor": "^1.0.6",
+    "stats.js": "0.17.0",
     "three": "^0.117.1",
     "typescript": "^3.9.5"
   },
