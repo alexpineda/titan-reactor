@@ -1,9 +1,11 @@
-import { generateDisplacementMap } from "../2d-map-rendering/src/generators/generateDisplacementMap";
-import { generateEmissiveMap } from "../2d-map-rendering/src/generators/generateEmissiveMap";
-import { generateMap } from "../2d-map-rendering/src/generators/generateMap";
-import { generateRoughnessMap } from "../2d-map-rendering/src/generators/generateRoughnessMap";
+import { generateDisplacementMap } from "../2d-map-rendering/generators/generateDisplacementMap";
+import { generateEmissiveMap } from "../2d-map-rendering/generators/generateEmissiveMap";
+import { generateMap } from "../2d-map-rendering/generators/generateMap";
+import { generateRoughnessMap } from "../2d-map-rendering/generators/generateRoughnessMap";
 
-import { generateMapDetails } from "../2d-map-rendering/src/generators/generateMapDetails";
+import { generateMapDetails } from "../2d-map-rendering/generators/generateMapDetails";
+
+import { rgbToCanvas } from "../2d-map-rendering/image/canvas";
 
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
@@ -76,9 +78,10 @@ export function generateMapMeshes(mapDetails, map, bg, displace, rough) {
 
 export function loadAllTerrain(map) {
   const flip = (texture) => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.repeat.x = -1;
-    texture.flipY = false;
+    // texture.wrapS = THREE.RepeatWrapping;
+    // texture.repeat.x = -1;
+    // texture.flipY = false;
+    console.log("no flip");
     return texture;
   };
 
@@ -110,8 +113,8 @@ export function loadAllTerrain(map) {
             scale: 1,
             blurFactor: 0,
           })
-            .then(toDataTexture)
-            .then(flip)
+            .then(rgbToCanvas)
+            .then((canvas) => new THREE.CanvasTexture(canvas))
             .then(encoding)
             .then(res, rej);
         })
@@ -129,8 +132,8 @@ export function loadAllTerrain(map) {
             scale: 0.25 * 0.25,
             blurFactor: 32,
           })
-            .then(toDataTexture)
-            .then(flip)
+            .then(rgbToCanvas)
+            .then((canvas) => new THREE.CanvasTexture(canvas))
             .then(encoding)
             .then(res, rej);
         })
@@ -152,8 +155,8 @@ export function loadAllTerrain(map) {
             walkableLayerBlur: 24,
             allLayersBlur: 8,
           })
-            .then(toDataTexture)
-            .then(flip)
+            .then(rgbToCanvas)
+            .then((canvas) => new THREE.CanvasTexture(canvas))
             .then(res, rej);
         })
       );
@@ -173,15 +176,15 @@ export function loadAllTerrain(map) {
               detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
               scale: 0.5,
               blur: 0,
-              water: false,
-              lava: true,
+              water: true,
+              lava: false,
               twilight: false,
               skipDetails: false,
               onlyWalkable: false,
               ...opts,
             })
-              .then(toDataTexture)
-              .then(flip)
+              .then(rgbToCanvas)
+              .then((canvas) => new THREE.CanvasTexture(canvas))
               .then(res, rej);
           })
         );

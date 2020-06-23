@@ -5,6 +5,7 @@ import { generateDisplacementMap } from "./generators/generateDisplacementMap";
 import { generateMap } from "./generators/generateMap";
 import { generateEmissiveMap } from "./generators/generateEmissiveMap";
 import { generateRoughnessMap } from "./generators/generateRoughnessMap";
+import { writeToContext2d } from "./image/canvas";
 
 // import { ipcRenderer } from "electron";
 // ipc.send("hello", "a string", 10);
@@ -82,7 +83,7 @@ function displacement(filename) {
           window.chk = chk;
           canvas.width = width;
           canvas.height = height;
-          writeToCanvas(ctx, data, width, height, false);
+          writeToContext2d(ctx, data, width, height, false);
           // drawGrid(ctx, width, height);
           addDownloadLink();
         });
@@ -101,7 +102,7 @@ function emissive(filename) {
             window.chk = chk;
             canvas.width = width;
             canvas.height = height;
-            writeToCanvas(ctx, data, width, height, false);
+            writeToContext2d(ctx, data, width, height, false);
             // drawGrid(ctx, width, height);
             addDownloadLink();
           }
@@ -129,7 +130,7 @@ function roughness(filename) {
           window.chk = chk;
           canvas.width = width;
           canvas.height = height;
-          writeToCanvas(ctx, data, width, height, false);
+          writeToContext2d(ctx, data, width, height, false);
           // drawGrid(ctx, width, height);
           addDownloadLink();
         });
@@ -152,7 +153,7 @@ function terrain(filename) {
           window.chk = chk;
           canvas.width = width;
           canvas.height = height;
-          writeToCanvas(ctx, data, width, height, false);
+          writeToContext2d(ctx, data, width, height, false);
           // drawGrid(ctx, width, height);
           addDownloadLink();
         });
@@ -174,7 +175,7 @@ function background(filename) {
           window.chk = chk;
           canvas.width = width;
           canvas.height = height;
-          writeToCanvas(ctx, data, width, height, false);
+          writeToContext2d(ctx, data, width, height, false);
           // drawGrid(ctx, width, height);
           addDownloadLink();
         });
@@ -204,38 +205,3 @@ function drawGrid(ctx, width, height) {
     ctx.stroke();
   }
 }
-function writeToCanvas(ctx, data, width, height, blend = false) {
-  const srcPixelWidth = "rgb".length;
-  const dstPixelWidth = 4;
-
-  const prevdata = ctx.getImageData(0, 0, width, height);
-  const imagedata = ctx.createImageData(width, height);
-
-  if (blend) {
-    for (
-      let src = 0, dst = 0;
-      src < data.length;
-      src += srcPixelWidth, dst += dstPixelWidth
-    ) {
-      imagedata.data[dst] = (data[src] + prevdata.data[dst]) / 2;
-      imagedata.data[dst + 1] = (data[src + 1] + prevdata.data[dst + 1]) / 2;
-      imagedata.data[dst + 2] = (data[src + 2] + prevdata.data[dst + 2]) / 2;
-      imagedata.data[dst + 3] = srcPixelWidth === 4 ? data[src + 3] : 255;
-    }
-  } else {
-    for (
-      let src = 0, dst = 0;
-      src < data.length;
-      src += srcPixelWidth, dst += dstPixelWidth
-    ) {
-      imagedata.data[dst] = data[src];
-      imagedata.data[dst + 1] = data[src + 1];
-      imagedata.data[dst + 2] = data[src + 2];
-      imagedata.data[dst + 3] = srcPixelWidth === 4 ? data[src + 3] : 255;
-    }
-  }
-
-  ctx.putImageData(imagedata, 0, 0);
-}
-
-// functions[mode](map);

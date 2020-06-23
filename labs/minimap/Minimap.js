@@ -1,7 +1,13 @@
 import { Vector3 } from "three";
 
 export class Minimap {
-  constructor(element, mapWidth, mapHeight, updateGlobalCamera) {
+  constructor(
+    element,
+    mapWidth,
+    mapHeight,
+    updateGlobalCamera,
+    updateMouseHover
+  ) {
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
     this.width = element.offsetWidth;
@@ -9,6 +15,7 @@ export class Minimap {
     this.dragging = false;
     this.element = element;
     this.updateGlobalCamera = updateGlobalCamera;
+    this.updateMouseHover = updateMouseHover;
     this.enableDragging(true);
     this._attach();
   }
@@ -32,11 +39,15 @@ export class Minimap {
 
     this.element.addEventListener("mousemove", (e) => {
       if (!this.enableDragging) return;
+      const x = e.offsetX * (this.mapWidth / this.width) - this.mapWidth / 2;
+      const y = e.offsetY * (this.mapHeight / this.height) - this.mapHeight / 2;
+
+      const pos = new Vector3(x, 0, y);
+
       if (this.dragging) {
-        const x = e.offsetX * (this.mapWidth / this.width) - this.mapWidth / 2;
-        const y =
-          e.offsetY * (this.mapHeight / this.height) - this.mapHeight / 2;
-        this.updateGlobalCamera(new Vector3(x, 0, y));
+        this.updateGlobalCamera(pos);
+      } else if (this.updateMouseHover) {
+        this.updateMouseHover(pos);
       }
     });
   }
