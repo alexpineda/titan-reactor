@@ -25,6 +25,7 @@
     "dat.gui": "0.7.7",
     "electron": "^9.0.4",
     "electron-is-dev": "^1.2.0",
+    "howler": "2.2.0",
     "ks": "^2.0.4",
     "open-simplex-noise": "^2.3.1",
     "pngjs": "^5.0.0",
