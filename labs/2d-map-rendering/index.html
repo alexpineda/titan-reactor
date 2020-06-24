@@ -26,44 +26,8 @@
 </head>
 
 <body>
-    <select id="maps">
-        <option>Reap the Storm.scx</option>
-        <option>(3)Neo_Sylphid_2.0.scx</option>
-        <option>(2)MatchPoint1.3.scx</option>
-        <option>(2)Eclipse_1.05a.scx</option>
-        <option>(4)CircuitBreakers1.0.scx</option>
-        <option selected="selected">(4)Fighting Spirit.scx</option>
-        <option>(4)Polypoid 1.32.scx</option>
-        <option>(2)Hitchhiker 1.3[P].scx</option>
-        <option>(2)Neo Bloody Ridge 2.1.scx</option>
-        <option>(4)Escalade1.0.scx</option>
-        <option>(4)LaMancha1.1.scx</option>
-        <option>(2)Destination.scx</option>
-        <option>(2)Heartbreak Ridge 2.1.scx</option>
-        <option>(3)Whiteout1.2.scx</option>
-        <option>(4)Gladiator1.1.scx</option>
-        <option>(3)Longinus 2.scx</option>
-        <option>(3)Tau Cross.scx</option>
-        <option>(3)Transistor1.2.scm</option>
-        <option>(4)Jade.scx</option>
-        <option>(2)Overwatch(n).scx</option>
-        <option>(2)Tres Pass.scx</option>
-        <option>(3)Power Bond.scx</option>
-        <option>(4)BlockChainSE2.1.scx</option>
-        <option>(2)Cross Game.scx</option>
-        <option>(3)Medusa 2.2_iCCup.scx</option>
-        <option>(4)Colosseum 2.0_iCCup.scx</option>
-        <option>(4)Ground_Zero_2.0_iCCup.scx</option>
-        <option>(2)Benzene 1.1_iCCup.scx</option>
-        <option>(3)Aztec 2.1_iCCup.scx</option>
-        <option>(4)In the Way of an Eddy.scx</option>
-        <option>(4)Roadkill.scm</option>
-        <option>(2)Polaris Rhapsody.scx</option>
-        <option>(8)Big Game Hunters.scm</option>
-        <option>(4)Blood Bath.scm</option>
-    </select>
 
-    <input type="radio" name="mode" value="terrain">
+    <input type="radio" name="mode" value="terrain" checked>
     <label>Terrain</label>
     <input type="radio" name="mode" value="displacement">
     <label>Displacement</label>
@@ -76,7 +40,7 @@
     <input type="radio" name="mode" value="normal">
     <label>Normal</label>
 
-    <canvas id="canvas" width="4096px" height="4096px" style="transform: scale(0.25)"></canvas>
+    <canvas id="canvas" style="transform: scale(0.25)"></canvas>
 
     <a id="download" href="" download>download</a>
     <script src="index.js"></script>

@@ -1,4 +1,5 @@
 export function blendNonZeroPixels(out, width, height) {
+  const start = Date.now();
   const isBlack = (p) => p[0] === 0 && p[1] === 0 && p[2] === 0;
   const getColorAtP = (p) => out.slice(p * 3, p * 3 + 3);
   const setColorAtP = (p, c) => {
@@ -52,20 +53,23 @@ export function blendNonZeroPixels(out, width, height) {
       }
     }
   }
+  console.log("blend", Date.now() - start);
 }
 
 export function overlayImage(out, overlay) {
-  
+  const start = Date.now();
+
   for (let i = 0; i < out.byteLength; i = i + 3) {
     //add details to walkable layer via blue channel
-    if (overlay[i] === 0 && overlay[i+1] === 0 ) {
-      out[i] = out[i] + overlay[i+2]
-      out[i+1] = out[i+1] + overlay[i+2]
-      out[i+2] = out[i+2] + overlay[i+2]
+    if (overlay[i] === 0 && overlay[i + 1] === 0) {
+      out[i] = out[i] + overlay[i + 2];
+      out[i + 1] = out[i + 1] + overlay[i + 2];
+      out[i + 2] = out[i + 2] + overlay[i + 2];
     } else {
       out[i] = overlay[i];
       out[i + 1] = overlay[i + 1];
       out[i + 2] = overlay[i + 2];
     }
   }
+  console.log("overlay", Date.now() - start);
 }

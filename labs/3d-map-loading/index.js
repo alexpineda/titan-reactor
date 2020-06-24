@@ -13,9 +13,45 @@ import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 
 import { Vector3 } from "three";
 import { loadAllTerrain } from "./loadTerrain";
+import { initRenderer } from "./renderer";
+import { savePNG } from "../2d-map-rendering/image/png";
+
+const fs = window.require("fs");
+const { ipcRenderer } = window.require("electron");
 
 console.log(new Date().toLocaleString());
-const fs = window.require("fs");
+
+ipcRenderer.on("open-map", (event, [map]) => {
+  loadMap(map);
+});
+
+ipcRenderer.on("save-image", (event) => {
+  var strMime = "image/jpeg";
+  const data = renderer.domElement.toDataURL(strMime);
+
+  var saveFile = function (strData, filename) {
+    var link = document.createElement("a");
+    link.download = "Screenshot";
+    link.href = strData;
+    link.click();
+  };
+  saveFile(data);
+  // fs.writeFile(file, data, () => {});
+});
+ipcRenderer.on("save-gltf", (event, file) => {
+  // Instantiate a exporter
+  var exporter = new GLTFExporter();
+
+  // Parse the input and generate the glTF output
+  console.log("export scene", file, scene);
+  exporter.parse(
+    scene,
+    function (gltf) {
+      fs.writeFile(file, gltf, () => {});
+    },
+    {}
+  );
+});
 
 const scene = new THREE.Scene();
 window.scene = scene;
@@ -32,17 +68,21 @@ const camera = new THREE.PerspectiveCamera(
 );
 window.camera = camera;
 
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  powerPreference: "high-performance",
+const renderer = initRenderer({
+  width: window.innerWidth,
+  height: window.innerHeight,
 });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.toneMapping = THREE.Uncharted2ToneMapping;
-renderer.toneMappingExposure = 1.2;
-renderer.gammaFactor = 2.2;
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+// const renderer = new THREE.WebGLRenderer({
+//   antialias: true,
+//   powerPreference: "high-performance",
+// });
+// renderer.setSize(window.innerWidth, window.innerHeight);
+// renderer.toneMapping = THREE.Uncharted2ToneMapping;
+// renderer.toneMappingExposure = 1.2;
+// renderer.gammaFactor = 2.2;
+// renderer.outputEncoding = THREE.sRGBEncoding;
+// renderer.shadowMap.enabled = true;
+// renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const findMeshByName = (name) => {
   let mesh;
@@ -64,6 +104,10 @@ camera.lookAt(new Vector3());
 
 const hemi = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1);
 scene.add(hemi);
+
+const light = new THREE.DirectionalLight(0xffffff, 3);
+light.name = "directional";
+scene.add(light);
 
 const spotlight = new THREE.SpotLight(0xffa95c, 2);
 // spotlight.position.y = 50;
@@ -103,7 +147,7 @@ composer.addPass(new RenderPass(scene, camera));
 const control = createGui();
 const stats = createStats();
 
-control.on("map:reload", (map) => {
+const loadMap = (map) => {
   loadAllTerrain(map).then(([newFloor, newFloorBg]) => {
     const floor = findMeshByName("floor");
     const floorBg = findMeshByName("backing-floor");
@@ -116,20 +160,26 @@ control.on("map:reload", (map) => {
     scene.add(newFloor);
     scene.add(newFloorBg);
   });
-});
+};
+
+control.on("map:reload", loadMap);
 
 let f = 0;
+let res = 0;
 function animate() {
   stats.begin();
   //   plane.rotation.z += 0.0005;
-  spotlight.position.set(
-    camera.position.x + 10,
-    camera.position.y + 10,
-    spotlight.position.z
-  );
-  f += 0.01;
-  pointLight.position.x = Math.cos(f) * 64;
-  pointLight.position.z = Math.sin(f) * 64;
+  res++;
+  if (res % 10) {
+    spotlight.position.set(
+      camera.position.x + 10,
+      camera.position.y + 10,
+      spotlight.position.z
+    );
+    f += 0.01;
+    pointLight.position.x = Math.cos(f) * 64;
+    pointLight.position.z = Math.sin(f) * 64;
+  }
 
   controls.update();
   stats.end();

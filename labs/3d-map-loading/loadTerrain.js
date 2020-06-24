@@ -6,10 +6,12 @@ import { generateRoughnessMap } from "../2d-map-rendering/generators/generateRou
 import { generateMapDetails } from "../2d-map-rendering/generators/generateMapDetails";
 
 import { rgbToCanvas } from "../2d-map-rendering/image/canvas";
+import { savePNG } from "../2d-map-rendering/image/png";
 
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import * as THREE from "three";
+import { test } from "ramda";
 const fs = window.require("fs");
 
 export function loadMapDetails(map) {}
@@ -25,7 +27,7 @@ export function loadRoughness(map) {}
 export function generateMapMeshes(mapDetails, map, bg, displace, rough) {
   const [width, height] = mapDetails.size;
   const floor = (function () {
-    const geometry = new THREE.PlaneBufferGeometry(
+    const geometry = new THREE.PlaneGeometry(
       width,
       height,
       width * 2,
@@ -89,11 +91,9 @@ export function loadAllTerrain(map) {
     texture.encoding = THREE.sRGBEncoding;
     return texture;
   };
-  const toDataTexture = ({ data, width, height }) =>
-    new THREE.DataTexture(data, width, height, THREE.RGBFormat);
 
   const mapDetailsLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
+    fs.createReadStream(map)
       .pipe(createScmExtractor())
       .pipe(
         concat((data) => {
@@ -102,8 +102,26 @@ export function loadAllTerrain(map) {
       );
   });
 
+  // function mapLoader(path) {
+  //   function loadImage(url) {
+  //     return new Promise((r) => {
+  //       let i = new Image();
+  //       i.onload = () => r(i);
+  //       i.src = url;
+  //     });
+  //   }
+  //   return loadImage(path)
+  //     .then((img) => {
+  //       const canvas = document.createElement("canvas");
+  //       const ctx = canvas.getContext("2d");
+  //       ctx.drawImage(img, 0, 0);
+  //       return canvas;
+  //     })
+  //     .then(encoding);
+  // }
+
   const mapLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
+    fs.createReadStream(map)
       .pipe(createScmExtractor())
       .pipe(
         concat((data) => {
@@ -113,6 +131,10 @@ export function loadAllTerrain(map) {
             scale: 1,
             blurFactor: 0,
           })
+            // .then(({ data, width, height }) => {
+            //   savePNG(data, width, height, `${map}-map`);
+            //   return { data, width, height };
+            // })
             .then(rgbToCanvas)
             .then((canvas) => new THREE.CanvasTexture(canvas))
             .then(encoding)
@@ -122,7 +144,7 @@ export function loadAllTerrain(map) {
   });
 
   const bgLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
+    fs.createReadStream(map)
       .pipe(createScmExtractor())
       .pipe(
         concat((data) => {
@@ -132,6 +154,10 @@ export function loadAllTerrain(map) {
             scale: 0.25 * 0.25,
             blurFactor: 32,
           })
+            // .then(({ data, width, height }) => {
+            //   savePNG(data, width, height, `${map}-bgmap`);
+            //   return { data, width, height };
+            // })
             .then(rgbToCanvas)
             .then((canvas) => new THREE.CanvasTexture(canvas))
             .then(encoding)
@@ -141,7 +167,7 @@ export function loadAllTerrain(map) {
   });
 
   const displaceLoader = new Promise((res, rej) => {
-    fs.createReadStream(`./maps/${map}`)
+    fs.createReadStream(map)
       .pipe(createScmExtractor())
       .pipe(
         concat((data) => {
@@ -155,6 +181,10 @@ export function loadAllTerrain(map) {
             walkableLayerBlur: 24,
             allLayersBlur: 8,
           })
+            // .then(({ data, width, height }) => {
+            //   savePNG(data, width, height, `${map}-displace`);
+            //   return { data, width, height };
+            // })
             .then(rgbToCanvas)
             .then((canvas) => new THREE.CanvasTexture(canvas))
             .then(res, rej);
@@ -164,7 +194,7 @@ export function loadAllTerrain(map) {
 
   const roughnessLoader = (opts = {}) =>
     new Promise((res, rej) => {
-      fs.createReadStream(`./maps/${map}`)
+      fs.createReadStream(map)
         .pipe(createScmExtractor())
         .pipe(
           concat((data) => {
@@ -183,6 +213,10 @@ export function loadAllTerrain(map) {
               onlyWalkable: false,
               ...opts,
             })
+              // .then(({ data, width, height }) => {
+              //   savePNG(data, width, height, `${map}-roughness`);
+              //   return { data, width, height };
+              // })
               .then(rgbToCanvas)
               .then((canvas) => new THREE.CanvasTexture(canvas))
               .then(res, rej);

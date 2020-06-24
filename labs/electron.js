@@ -1,7 +1,11 @@
-const electron = require("electron");
-const app = electron.app;
-
-const BrowserWindow = electron.BrowserWindow;
+const {
+  app,
+  Menu,
+  BrowserWindow,
+  shell,
+  dialog,
+  ipcMain,
+} = require("electron");
 
 const path = require("path");
 const isDev = require("electron-is-dev");
@@ -13,9 +17,9 @@ function createWindow() {
     width: 900,
     height: 680,
     webPreferences: {
-        nodeIntegration: true,
-        nodeIntegrationInWorker: true
-      }
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+    },
   });
   mainWindow.maximize();
   mainWindow.loadURL(
@@ -40,3 +44,160 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+const isMac = process.platform === "darwin";
+
+var showOpen = function (isMap = false) {
+  const filters = isMap
+    ? { name: "Starcraft Map", extensions: ["scm", "scx"] }
+    : { name: "Starcraft Replay", extensions: ["rep"] };
+  const command = isMap ? "open-map" : "open-replay";
+  const multiSelections = isMap
+    ? ["openFile"]
+    : ["openFile", "multiSelections"];
+  dialog
+    .showOpenDialog({
+      properties: multiSelections,
+      filters,
+    })
+    .then(({ filePaths, canceled }) => {
+      if (canceled) return;
+      mainWindow.webContents.send(command, filePaths);
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Loading File",
+        message: "There was an error loading this file: " + err.message,
+      });
+    });
+};
+const showOpenReplay = showOpen.bind(null, false);
+const showOpenMap = showOpen.bind(null, true);
+
+const showSave = (isImage) => {
+  const filters = isImage
+    ? { name: "Image (.jpeg)", extensions: ["png"] }
+    : { name: "Scene (.gltf)", extensions: ["gltf"] };
+  const command = isImage ? "save-image" : "save-gltf";
+
+  dialog
+    .showSaveDialog({
+      filters,
+    })
+    .then(({ filePath, canceled }) => {
+      if (canceled) return;
+      mainWindow.webContents.send(command, filePath);
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Saving File",
+        message: "There was an error loading this file: " + err.message,
+      });
+    });
+};
+
+const showSaveModel = showSave.bind(null, false);
+const showSaveImage = () => {
+  mainWindow.webContents.send("save-image");
+};
+
+const template = [
+  // { role: 'appMenu' }
+  ...(isMac
+    ? [
+        {
+          label: app.name,
+          submenu: [
+            { role: "about" },
+            { type: "separator" },
+            { role: "services" },
+            { type: "separator" },
+            { role: "hide" },
+            { role: "hideothers" },
+            { role: "unhide" },
+            { type: "separator" },
+            { role: "quit" },
+          ],
+        },
+      ]
+    : []),
+  // { role: 'fileMenu' }
+  {
+    label: "&File",
+    submenu: [
+      {
+        label: "&Open Replay",
+        accelerator: "CmdOrCtrl+Shift+O",
+        click: function () {
+          showOpenReplay();
+        },
+      },
+      {
+        label: "Open &Map",
+        click: function () {
+          showOpenMap();
+        },
+      },
+      { type: "separator" },
+      {
+        label: "Export Scene",
+        click: function () {
+          showSaveModel();
+        },
+      },
+      {
+        label: "Export Image",
+        click: function () {
+          showSaveImage();
+        },
+      },
+      { type: "separator" },
+      { role: isMac ? "close" : "quit" },
+    ],
+  },
+  {
+    label: "View",
+    submenu: [
+      { role: "reload" },
+      { role: "forcereload" },
+      { role: "toggledevtools" },
+      { type: "separator" },
+      { role: "resetzoom" },
+      { role: "zoomin" },
+      { role: "zoomout" },
+      { type: "separator" },
+      { role: "togglefullscreen" },
+    ],
+  },
+  {
+    label: "Window",
+    submenu: [
+      { role: "minimize" },
+      { role: "zoom" },
+      ...(isMac
+        ? [
+            { type: "separator" },
+            { role: "front" },
+            { type: "separator" },
+            { role: "window" },
+          ]
+        : [{ role: "close" }]),
+    ],
+  },
+  {
+    role: "help",
+    submenu: [
+      {
+        label: "Learn More",
+        click: async () => {
+          await shell.openExternal("https://electronjs.org");
+        },
+      },
+    ],
+  },
+];
+
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);

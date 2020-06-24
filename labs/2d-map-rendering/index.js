@@ -12,6 +12,15 @@ import { writeToContext2d } from "./image/canvas";
 
 const fs = window.require("fs");
 
+const { ipcRenderer } = window.require("electron");
+
+console.log(new Date().toLocaleString());
+
+ipcRenderer.on("open-map", (event, [newMap]) => {
+  map = newMap;
+  functions[mode](map);
+});
+
 const canvas = document.getElementById("canvas");
 canvas.style.transformOrigin = "0 0";
 canvas.style.transform = "scale(0.25)";
@@ -26,11 +35,6 @@ document.querySelectorAll('[name="mode"]').forEach((el) => {
     mode = this.value;
     functions[mode](map);
   });
-});
-
-document.querySelector("#maps").addEventListener("change", function () {
-  map = this.value;
-  functions[mode](map);
 });
 
 console.log("bw-chk-test:start", new Date().toLocaleString());
@@ -64,7 +68,7 @@ const functions = {
 };
 
 function displacement(filename) {
-  fs.createReadStream(`./maps/${filename}`)
+  fs.createReadStream(filename)
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
@@ -92,7 +96,7 @@ function displacement(filename) {
 }
 
 function emissive(filename) {
-  fs.createReadStream(`./maps/${filename}`)
+  fs.createReadStream(filename)
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
@@ -112,7 +116,7 @@ function emissive(filename) {
 }
 
 function roughness(filename) {
-  fs.createReadStream(`./maps/${filename}`)
+  fs.createReadStream(filename)
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
@@ -139,7 +143,7 @@ function roughness(filename) {
 }
 
 function terrain(filename) {
-  fs.createReadStream(`./maps/${filename}`)
+  fs.createReadStream(filename)
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {
@@ -162,7 +166,7 @@ function terrain(filename) {
 }
 
 function background(filename) {
-  fs.createReadStream(`./maps/${filename}`)
+  fs.createReadStream(filename)
     .pipe(createScmExtractor())
     .pipe(
       concat((data) => {

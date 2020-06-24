@@ -8,6 +8,7 @@ export const rgbToCanvas = ({ data, width, height }) => {
 };
 
 export function writeToContext2d(ctx, data, width, height) {
+  const start = Date.now();
   const srcPixelWidth = "rgb".length;
   const dstPixelWidth = 4;
 
@@ -25,4 +26,5 @@ export function writeToContext2d(ctx, data, width, height) {
   }
 
   ctx.putImageData(imagedata, 0, 0);
+  console.log("writeToCanvas", Date.now() - start);
 }

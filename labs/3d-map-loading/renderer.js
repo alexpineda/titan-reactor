@@ -12,6 +12,7 @@ export const initRenderer = ({
     canvas,
     antialias,
     powerPreference: "high-performance",
+    preserveDrawingBuffer: true,
   });
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio);
