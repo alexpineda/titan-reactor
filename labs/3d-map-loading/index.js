@@ -1,6 +1,6 @@
 import { createStats, createGui } from "./gui";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { initOrbitControls } from "../camera-minimap/orbitControl";
 
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -12,9 +12,8 @@ import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader.js";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 
 import { Vector3 } from "three";
-import { loadAllTerrain } from "./generateTerrainTextures";
+import { loadAllTerrain, mapPreviewLoader } from "./generateTerrainTextures";
 import { initRenderer } from "./renderer";
-import { savePNG } from "../2d-map-rendering/image/png";
 
 const fs = window.require("fs");
 const { ipcRenderer } = window.require("electron");
@@ -36,7 +35,6 @@ ipcRenderer.on("save-image", (event) => {
     link.click();
   };
   saveFile(data);
-  // fs.writeFile(file, data, () => {});
 });
 ipcRenderer.on("save-gltf", (event, file) => {
   // Instantiate a exporter
@@ -53,11 +51,21 @@ ipcRenderer.on("save-gltf", (event, file) => {
   );
 });
 
+var starcraftFont = new FontFace(
+  "Blizzard Regular",
+  "url(BLIZZARD-REGULAR.TTF)"
+  // "url(./bwdata/font/BLIZZARD-REGULAR.TTF)"
+);
+starcraftFont.load().then(function (loaded_face) {
+  document.fonts.add(loaded_face);
+});
+
 const scene = new THREE.Scene();
 window.scene = scene;
 
 const fogColor = new THREE.Color(0x080820);
 scene.background = fogColor;
+
 scene.fog = new THREE.Fog(fogColor, 256, 512);
 
 const camera = new THREE.PerspectiveCamera(
@@ -72,17 +80,6 @@ const renderer = initRenderer({
   width: window.innerWidth,
   height: window.innerHeight,
 });
-// const renderer = new THREE.WebGLRenderer({
-//   antialias: true,
-//   powerPreference: "high-performance",
-// });
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// renderer.toneMapping = THREE.Uncharted2ToneMapping;
-// renderer.toneMappingExposure = 1.2;
-// renderer.gammaFactor = 2.2;
-// renderer.outputEncoding = THREE.sRGBEncoding;
-// renderer.shadowMap.enabled = true;
-// renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const findMeshByName = (name) => {
   let mesh;
@@ -95,29 +92,30 @@ const findMeshByName = (name) => {
   return mesh;
 };
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = initOrbitControls(camera, renderer.domElement);
 
 camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 
 controls.update();
 camera.lookAt(new Vector3());
 
-const hemi = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1);
-scene.add(hemi);
+// const hemi = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1);
+// scene.add(hemi);
 
-const light = new THREE.DirectionalLight(0xffffff, 3);
+const light = new THREE.DirectionalLight(0xffffff, 8);
+// light.castShadow = true;
 light.name = "directional";
 scene.add(light);
 
-const spotlight = new THREE.SpotLight(0xffa95c, 2);
-// spotlight.position.y = 50;
-// spotlight.position.z = 80;
+const spotlight = new THREE.SpotLight(0xffa95c, 100);
+spotlight.position.y = 50;
+spotlight.position.z = 80;
 spotlight.castShadow = true;
 spotlight.shadow.bias = -0.0001;
 spotlight.shadow.mapSize.width = 1024 * 4;
 spotlight.shadow.mapSize.height = 1024 * 4;
 spotlight.decay = 2;
-spotlight.distance = 1000;
+spotlight.distance = 10;
 spotlight.penumbra = 0.2;
 
 scene.add(spotlight);
@@ -145,21 +143,43 @@ composer.addPass(new RenderPass(scene, camera));
 })();
 
 const control = createGui();
+console.log("creategui", control);
 const stats = createStats();
 
-const loadMap = (map) => {
-  loadAllTerrain(map).then(([newFloor, newFloorBg]) => {
-    const floor = findMeshByName("floor");
-    const floorBg = findMeshByName("backing-floor");
-    if (floor) {
-      scene.remove(floor);
-    }
-    if (floorBg) {
-      scene.remove(floorBg);
-    }
-    scene.add(newFloor);
-    scene.add(newFloorBg);
-  });
+const loadMap = (filepath) => {
+  console.log("load map", filepath);
+  const mapPreviewEl = document.getElementById("map--preview-canvas");
+  const mapNameEl = document.getElementById("map-name");
+  const mapDescriptionEl = document.getElementById("map-description");
+  const loadOverlayEl = document.getElementById("load-overlay");
+
+  // hide loading ui elements
+  mapNameEl.innerText = "initializing...";
+  mapDescriptionEl.innerText = "";
+  mapPreviewEl.style.display = "none";
+  loadOverlayEl.style.display = "flex";
+
+  mapPreviewLoader(filepath, mapPreviewEl)
+    .then(({ chk }) => {
+      console.log("mapPreviewLoader:completed", chk);
+      mapNameEl.innerText = chk.title;
+      mapDescriptionEl.innerText = chk.description;
+      mapPreviewEl.style.display = "block";
+    })
+    .then(() => loadAllTerrain(filepath, renderer))
+    .then(([newFloor, newFloorBg]) => {
+      const floor = findMeshByName("floor");
+      const floorBg = findMeshByName("backing-floor");
+      if (floor) {
+        scene.remove(floor);
+      }
+      if (floorBg) {
+        scene.remove(floorBg);
+      }
+      scene.add(newFloor);
+      scene.add(newFloorBg);
+      loadOverlayEl.style.display = "none";
+    });
 };
 
 control.on("map:reload", loadMap);
@@ -181,7 +201,6 @@ function animate() {
     pointLight.position.z = Math.sin(f) * 64;
   }
 
-  controls.update();
   stats.end();
   renderer.render(scene, camera);
   //   composer.render();
@@ -201,3 +220,7 @@ control.on("scene:save", (map) => {
     }
   );
 });
+
+loadMap(
+  "/Users/ricardopineda/Library/Application Support/Blizzard/StarCraft/Maps/iCCup Map Pack v39.0/Observer/Blue Storm 1.2_iccOB.scx"
+);

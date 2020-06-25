@@ -1,8 +1,7 @@
 import Chk from "bw-chk";
 import { blendNonZeroPixels, overlayImage } from "../image/blend";
 import { blur } from "../image/blur";
-import { nearestNeighbour } from "../image/nearest";
-import { displacement } from "../image/displacement";
+import { displacementColorAtMega } from "../image/displacement";
 
 export const generateDisplacementMap = ({
   bwDataPath,
@@ -15,17 +14,17 @@ export const generateDisplacementMap = ({
   allLayersBlur = 8,
 }) => {
   const chk = new Chk(scmData);
-  const width = chk.size[0] * 32;
-  const height = chk.size[1] * 32;
+  const originalWidth = chk.size[0] * 32;
+  const originalHeight = chk.size[0] * 32;
+  const width = originalWidth * scale;
+  const height = originalHeight * scale;
   const fileAccess = Chk.fsFileAccess(bwDataPath);
-
-  let walkableLayer = null;
 
   return chk
     .image(fileAccess, width, height, {
       startLocations: false,
       sprites: false,
-      render: displacement({
+      colorAtMega: displacementColorAtMega({
         elevations,
         detailsElevations,
         detailsRatio,
@@ -36,42 +35,31 @@ export const generateDisplacementMap = ({
     })
     .then((data) => {
       blendNonZeroPixels(data, width, height);
-      const { data: scaled, width: sw, height: sh } = nearestNeighbour(
-        data,
-        width,
-        height,
-        scale
-      );
-      blur(scaled, sw, sh, walkableLayerBlur);
-      walkableLayer = scaled;
+      blur(data, width, height, walkableLayerBlur);
 
-      return chk.image(fileAccess, width, height, {
-        startLocations: false,
-        sprites: false,
-        render: displacement({
-          elevations,
-          detailsElevations,
-          detailsRatio,
-          skipWalkable: true,
-          tint: [1, 1, 1],
-        }),
-      });
+      return chk
+        .image(fileAccess, width, height, {
+          startLocations: false,
+          sprites: false,
+          colorAtMega: displacementColorAtMega({
+            elevations,
+            detailsElevations,
+            detailsRatio,
+            skipWalkable: true,
+
+            tint: [1, 1, 1],
+          }),
+        })
+        .then((overlay) => [data, overlay]);
     })
-    .then((overlay) => {
-      const { data: scaled, width: sw, height: sh } = nearestNeighbour(
-        overlay,
-        width,
-        height,
-        scale
-      );
-
-      overlayImage(walkableLayer, scaled);
-      blur(walkableLayer, sw, sh, allLayersBlur);
+    .then(([base, overlay]) => {
+      overlayImage(base, overlay);
+      blur(base, width, height, allLayersBlur);
 
       return {
-        data: walkableLayer,
-        width: sw,
-        height: sh,
+        data: base,
+        width,
+        height,
         chk,
       };
     });

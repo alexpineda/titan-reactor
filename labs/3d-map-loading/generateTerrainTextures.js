@@ -7,11 +7,26 @@ import Chk from "bw-chk";
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import * as THREE from "three";
-import { Cache } from "../utils/cache";
-import { gameOptions } from "../utils/options";
+// import { Cache } from "../utils/electron/cache";
+import { gameOptions } from "../utils/gameOptions";
 import { generateTerrainMesh } from "./generateTerrainMesh";
+import { rgbToCanvas } from "../2d-map-rendering/image/canvas";
 
 const fs = window.require("fs");
+
+const Cache = {
+  restore: (filepath) => Promise.reject(),
+  save: (filepath, data) => Promise.resolve(data),
+  convertAndSaveMapTexture: (filepath, id, data, width, height) =>
+    Promise.resolve(
+      new THREE.CanvasTexture(rgbToCanvas({ data, width, height }))
+    ),
+};
+
+const encoding = (texture) => {
+  texture.encoding = THREE.sRGBEncoding;
+  return texture;
+};
 
 export const chkLoader = (filepath, ignoreCache = false) => {
   const load = () =>
@@ -34,21 +49,34 @@ export const chkLoader = (filepath, ignoreCache = false) => {
   }
 };
 
-export function loadAllTerrain(filepath, ignoreCache = true) {
-  const flip = (texture) => {
-    // texture.wrapS = THREE.RepeatWrapping;
-    // texture.repeat.x = -1;
-    // texture.flipY = false;
-    console.log("no flip");
-    return texture;
-  };
+export const mapPreviewLoader = (filepath, canvas, ignoreCache = false) =>
+  new Promise((res, rej) => {
+    fs.createReadStream(filepath)
+      .pipe(createScmExtractor())
+      .pipe(
+        concat((chkData) => {
+          generateMap({
+            bwDataPath: gameOptions.bwDataPath,
+            scmData: chkData,
+            scale: 0.25 * 0.25,
+            blurFactor: 0,
+          }).then(({ data, width, height }) => {
+            res({
+              canvas: rgbToCanvas({
+                data,
+                width,
+                height,
+                defaultCanvas: canvas,
+              }),
+              chk: new Chk(chkData),
+            });
+          });
+        })
+      );
+  });
 
-  const encoding = (texture) => {
-    texture.encoding = THREE.sRGBEncoding;
-    return texture;
-  };
-
-  const mapLoader = new Promise((res, rej) => {
+export const mapLoader = (filepath, ignoreCache = false) =>
+  new Promise((res, rej) => {
     fs.createReadStream(filepath)
       .pipe(createScmExtractor())
       .pipe(
@@ -74,6 +102,15 @@ export function loadAllTerrain(filepath, ignoreCache = true) {
       );
   });
 
+export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
+  const flip = (texture) => {
+    // texture.wrapS = THREE.RepeatWrapping;
+    // texture.repeat.x = -1;
+    // texture.flipY = false;
+    console.log("no flip");
+    return texture;
+  };
+
   const bgLoader = new Promise((res, rej) => {
     fs.createReadStream(filepath)
       .pipe(createScmExtractor())
@@ -83,7 +120,7 @@ export function loadAllTerrain(filepath, ignoreCache = true) {
             bwDataPath: gameOptions.bwDataPath,
             scmData: data,
             scale: 0.25 * 0.25,
-            blurFactor: 32,
+            blurFactor: 16,
           })
             .then(({ data, width, height }) =>
               Cache.convertAndSaveMapTexture(
@@ -112,7 +149,7 @@ export function loadAllTerrain(filepath, ignoreCache = true) {
             elevations: [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
             detailsElevations: [1, 1, 0.5, 1, 0.5, 1, 0],
             detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
-            walkableLayerBlur: 24,
+            walkableLayerBlur: 16,
             allLayersBlur: 8,
           })
             .then(({ data, width, height }) =>
@@ -166,10 +203,10 @@ export function loadAllTerrain(filepath, ignoreCache = true) {
 
   return chkLoader(filepath, ignoreCache).then(({ size }) => {
     return Promise.all([
-      mapLoader,
+      mapLoader(filepath, ignoreCache),
       bgLoader,
       displaceLoader,
       roughnessLoader(),
-    ]).then((args) => generateTerrainMesh(size[0], size[1], ...args));
+    ]).then((args) => generateTerrainMesh(renderer, size[0], size[1], ...args));
   });
 }

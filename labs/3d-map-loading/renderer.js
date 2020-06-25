@@ -17,13 +17,15 @@ export const initRenderer = ({
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
-  renderer.toneMapping = THREE.ReinhardToneMapping;
-  renderer.toneMappingExposure = 1;
-  renderer.gammaFactor = 2;
+  renderer.toneMapping = THREE.NoToneMapping;
+  // renderer.toneMapping = THREE.ReinhardToneMapping;
+  // renderer.toneMappingExposure = 1;
+  renderer.gammaFactor = 2.2;
   renderer.physicallyCorrectLights = physicallyCorrectLights;
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = shadowMap;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.background = new THREE.Color(0x080820);
+
   return renderer;
 };

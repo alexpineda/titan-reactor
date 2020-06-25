@@ -1,6 +1,9 @@
 import { Vector3, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+//zoom in tighter allowed as teh angle is closer to 90deg above
+// rotating angle will then zoom out if outside the limit
+
 export const initOrbitControls = (camera, element) => {
   const orbitControl = new OrbitControls(camera, element);
   orbitControl.mouseButtons = {
@@ -10,7 +13,7 @@ export const initOrbitControls = (camera, element) => {
   };
   orbitControl.panSpeed = 2;
   orbitControl.rotateSpeed = 0.4;
-  orbitControl.maxDistance = 120;
+  orbitControl.maxDistance = 80;
   orbitControl.minDistance = 20;
   orbitControl.enableDamping = true;
   orbitControl.dampingFactor = 0.2;
@@ -19,7 +22,7 @@ export const initOrbitControls = (camera, element) => {
 
   orbitControl.maxPolarAngle = Math.PI / 3;
   // option to disable for 360 view
-  orbitControl.maxAzimuthAngle = Math.PI / 4;
-  orbitControl.minAzimuthAngle = -Math.PI / 4;
+  orbitControl.maxAzimuthAngle = Math.PI / 5;
+  orbitControl.minAzimuthAngle = -Math.PI / 5;
   return orbitControl;
 };

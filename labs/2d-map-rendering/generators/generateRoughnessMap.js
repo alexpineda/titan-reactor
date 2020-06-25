@@ -1,6 +1,6 @@
 import Chk from "bw-chk";
 import { nearestNeighbour } from "../image/nearest";
-import { displacement } from "../image/displacement";
+import { displacementColorAtMega } from "../image/displacement";
 
 export const generateRoughnessMap = ({
   bwDataPath,
@@ -17,15 +17,15 @@ export const generateRoughnessMap = ({
   onlyWalkable = false,
 }) => {
   const chk = new Chk(scmData);
-  const width = chk.size[0] * 32;
-  const height = chk.size[1] * 32;
+  const width = chk.size[0] * 32 * scale;
+  const height = chk.size[1] * 32 * scale;
   const fileAccess = Chk.fsFileAccess(bwDataPath);
 
   return chk
     .image(fileAccess, width, height, {
       startLocations: false,
       sprites: false,
-      render: displacement({
+      colorAtMega: displacementColorAtMega({
         elevations,
         detailsElevations,
         detailsRatio,
@@ -38,6 +38,5 @@ export const generateRoughnessMap = ({
         onlyWalkable,
       }),
     })
-    .then((data) => nearestNeighbour(data, width, height, scale))
-    .then(({ data, width, height }) => ({ chk, data, width, height }));
+    .then((data) => ({ chk, data, width, height }));
 };

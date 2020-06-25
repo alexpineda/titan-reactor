@@ -7,9 +7,6 @@ import { generateEmissiveMap } from "./generators/generateEmissiveMap";
 import { generateRoughnessMap } from "./generators/generateRoughnessMap";
 import { writeToContext2d } from "./image/canvas";
 
-// import { ipcRenderer } from "electron";
-// ipc.send("hello", "a string", 10);
-
 const fs = window.require("fs");
 
 const { ipcRenderer } = window.require("electron");
@@ -28,7 +25,7 @@ canvas.style.transform = "scale(0.25)";
 const ctx = canvas.getContext("2d");
 
 let mode = "terrain";
-let map = "(4)Fighting Spirit.scx";
+let map = "/Users/ricardopineda/dev/jssuh-test/fs.scx";
 
 document.querySelectorAll('[name="mode"]').forEach((el) => {
   el.addEventListener("change", function () {
@@ -65,6 +62,7 @@ const functions = {
   background: background,
   emissive: emissive,
   roughness: roughness,
+  fast: fastTerrain,
 };
 
 function displacement(filename) {
@@ -81,7 +79,7 @@ function displacement(filename) {
           elevations: [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
           detailsElevations: [1, 1, 0.5, 1, 0.5, 1, 0],
           detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
-          walkableLayerBlur: 32,
+          walkableLayerBlur: 16,
           allLayersBlur: 8,
         }).then(({ data, width, height, chk }) => {
           window.chk = chk;
@@ -101,16 +99,22 @@ function emissive(filename) {
     .pipe(
       concat((data) => {
         console.log("emissive", filename);
-        generateEmissiveMap("./bwdata", data).then(
-          ({ data, width, height, chk }) => {
-            window.chk = chk;
-            canvas.width = width;
-            canvas.height = height;
-            writeToContext2d(ctx, data, width, height, false);
-            // drawGrid(ctx, width, height);
-            addDownloadLink();
-          }
-        );
+        generateEmissiveMap({
+          bwDataPath: "./bwdata",
+          scmData: data,
+          elevations: [0.7, 1, 1, 1, 1, 1, 1],
+          detailsElevations: [1, 0, 0, 0, 0, 0, 0],
+          detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
+          scale: 0.5, //0.25 * 0.5,
+          lava: true,
+        }).then(({ data, width, height, chk }) => {
+          window.chk = chk;
+          canvas.width = width;
+          canvas.height = height;
+          writeToContext2d(ctx, data, width, height, false);
+          // drawGrid(ctx, width, height);
+          addDownloadLink();
+        });
       })
     );
 }
@@ -148,11 +152,37 @@ function terrain(filename) {
     .pipe(
       concat((data) => {
         console.log("terrain", filename);
+        const start = Date.now();
         generateMap({
           bwDataPath: "./bwdata",
           scmData: data,
           scale: 1,
           blurFactor: 0,
+        }).then(({ data, width, height, chk }) => {
+          window.chk = chk;
+          canvas.width = width;
+          canvas.height = height;
+          writeToContext2d(ctx, data, width, height, false);
+          // drawGrid(ctx, width, height);
+          addDownloadLink();
+        });
+        console.log("finish", Date.now() - start);
+      })
+    );
+}
+
+function fastTerrain(filename) {
+  fs.createReadStream(filename)
+    .pipe(createScmExtractor())
+    .pipe(
+      concat((data) => {
+        console.log("fast terrain", filename);
+        generateMap({
+          bwDataPath: "./bwdata",
+          scmData: data,
+          scale: 0.25,
+          blurFactor: 0,
+          sampled: true,
         }).then(({ data, width, height, chk }) => {
           window.chk = chk;
           canvas.width = width;
@@ -174,7 +204,8 @@ function background(filename) {
           bwDataPath: "./bwdata",
           scmData: data,
           scale: 0.25,
-          blurFactor: 32,
+          blurFactor: 16,
+          sampled: true,
         }).then(({ data, width, height, chk }) => {
           window.chk = chk;
           canvas.width = width;

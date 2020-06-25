@@ -1,5 +1,5 @@
-export const rgbToCanvas = ({ data, width, height }) => {
-  const canvas = document.createElement("canvas");
+export const rgbToCanvas = ({ data, width, height, defaultCanvas }) => {
+  const canvas = defaultCanvas || document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   canvas.width = width;
   canvas.height = height;

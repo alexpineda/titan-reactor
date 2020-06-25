@@ -1,5 +1,4 @@
 import Chk from "bw-chk";
-import { nearestNeighbour, gpuNearestNeighbour } from "../image/nearest";
 import { blur } from "../image/blur";
 
 export const generateMap = ({
@@ -9,9 +8,10 @@ export const generateMap = ({
   blurFactor = 0,
 }) => {
   const chk = new Chk(scmData);
-  const width = chk.size[0] * 32;
-  const height = chk.size[1] * 32;
   const fileAccess = Chk.fsFileAccess(bwDataPath);
+
+  const width = chk.size[0] * 32 * scale;
+  const height = chk.size[1] * 32 * scale;
 
   return chk
     .image(fileAccess, width, height, {
@@ -20,17 +20,6 @@ export const generateMap = ({
       sprites: false,
     })
     .then((data) => {
-      if (scale != 1) {
-        return gpuNearestNeighbour(data, width, height, scale);
-      }
-
-      return {
-        data,
-        width,
-        height,
-      };
-    })
-    .then(({ data, width, height }) => {
       if (blurFactor > 0) {
         blur(data, width, height, blurFactor);
       }
@@ -41,23 +30,4 @@ export const generateMap = ({
         chk,
       };
     });
-};
-
-export const generateMapCanvas = ({
-  bwDataPath,
-  scmData,
-  scale = 1,
-  blurFactor = 0,
-}) => {
-  const chk = new Chk(scmData);
-  const width = chk.size[0] * 32;
-  const height = chk.size[1] * 32;
-  const fileAccess = Chk.fsFileAccess(bwDataPath);
-
-  return chk.image(fileAccess, width, height, {
-    mode: "terrain",
-    canvas: true,
-    startLocations: false,
-    sprites: false,
-  });
 };

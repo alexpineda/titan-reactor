@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 export function generateTerrainMesh(
+  renderer,
   mapWidth,
   mapHeight,
   map,
@@ -15,18 +16,20 @@ export function generateTerrainMesh(
       mapWidth * 2,
       mapHeight * 2
     );
+
     const material = new THREE.MeshStandardMaterial({
       map: map,
       displacementMap: displace,
       displacementScale: 6,
       bumpMap: map,
-      bumpScale: 0.1,
+      bumpScale: 0.2,
       // normalMap: normal,
       // normalScale: new THREE.Vector2(1.3, 1.6),
       // normalMapType: THREE.TangentSpaceNormalMap,
       dithering: true,
       roughness: 1,
       roughnessMap: rough,
+      envMap: THREE.WebGLCubeRenderTarget(renderer, map),
     });
     const plane = new THREE.Mesh(geometry, material);
     plane.rotation.x = -Math.PI / 2;
