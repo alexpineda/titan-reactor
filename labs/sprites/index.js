@@ -1,19 +1,19 @@
 import * as THREE from "three";
 import { handleResize } from "../utils/resize";
-import { loadAllTerrain } from "../3d-map-loading/loadTerrain";
+import { loadAllTerrain } from "../3d-map-loading/generateTerrainTextures";
 import { initRenderer } from "../3d-map-loading/renderer";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
 import { jssuhLoadReplay } from "../replay/loaders/JssuhLoader";
 
 const { ipcRenderer } = window.require("electron");
-ipcRenderer.on("open-replay", (event, replays) => {
-  jssuhLoadReplay("./bwdata", replays[0], "./maps/(4)Fighting Spirit.scx").then(
+ipcRenderer.on("open-replay", (event, [replay]) => {
+  jssuhLoadReplay("./bwdata", replay, "./maps/(4)Fighting Spirit.scx").then(
     console.log
   );
 });
 
-ipcRenderer.on("open-map", (event, map) => {
-  console.log(map);
+ipcRenderer.on("open-map", (event, [map]) => {
+  loadMap(map);
 });
 
 console.log(new Date().toLocaleString());
@@ -92,18 +92,28 @@ scene.add(world);
 //replay
 //realtime
 //terrain
+const loadStartingUnits = (map) => {
+  replay.map.geysers.forEach(({ x, y }) => {
+    world.add(createGuyser(tx(x), ty(y)));
+  });
 
-// loadAllTerrain("(4)Fighting Spirit.scx").then(([floor]) => {
-//   world.remove(gridHelper);
-//   world.add(floor);
-//   // // Instantiate a exporter
-//   // var exporter = new GLTFExporter();
+  replay.map.minerals.forEach(({ x, y }) => {
+    world.add(createMineral(tx(x), ty(y)));
+  });
+};
+const loadMap = (map) => {
+  loadAllTerrain(map).then(([floor]) => {
+    world.remove(gridHelper);
+    world.add(floor);
+    // // Instantiate a exporter
+    // var exporter = new GLTFExporter();
 
-//   // // Parse the input and generate the glTF output
-//   // exporter.parse(scene, function (gltf) {
-//   //   fs.writeFile("./scene.gltf", gltf, () => {});
-//   // });
-// });
+    // // Parse the input and generate the glTF output
+    // exporter.parse(scene, function (gltf) {
+    //   fs.writeFile("./scene.gltf", gltf, () => {});
+    // });
+  });
+};
 
 const orbitControls = initOrbitControls(camera, renderer.domElement);
 
@@ -112,6 +122,7 @@ orbitControls.update();
 function gameLoop() {
   requestAnimationFrame(gameLoop);
 
+  renderer.clear();
   renderer.render(scene, camera);
 }
 handleResize(camera, renderer);

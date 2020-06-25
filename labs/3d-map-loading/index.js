@@ -12,7 +12,7 @@ import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader.js";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 
 import { Vector3 } from "three";
-import { loadAllTerrain } from "./loadTerrain";
+import { loadAllTerrain } from "./generateTerrainTextures";
 import { initRenderer } from "./renderer";
 import { savePNG } from "../2d-map-rendering/image/png";
 

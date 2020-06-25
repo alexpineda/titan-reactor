@@ -1,14 +1,8 @@
-const {
-  app,
-  Menu,
-  BrowserWindow,
-  shell,
-  dialog,
-  ipcMain,
-} = require("electron");
+const { app, Menu, BrowserWindow, shell, dialog } = require("electron");
 
 const path = require("path");
 const isDev = require("electron-is-dev");
+require("./handlers");
 
 let mainWindow;
 

@@ -17,7 +17,7 @@ export const initRenderer = ({
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
-  renderer.toneMapping = THREE.Uncharted2ToneMapping;
+  renderer.toneMapping = THREE.ReinhardToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.gammaFactor = 2;
   renderer.physicallyCorrectLights = physicallyCorrectLights;

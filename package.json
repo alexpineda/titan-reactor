@@ -2,9 +2,10 @@
   "name": "bw-lab",
   "version": "1.0.0",
   "description": "",
-  "main": "labs/electron.js",
+  "main": "electron/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "clear-cache": "rm -rf .cache dist",
     "electron": "electron ."
   },
   "browserslist": [
