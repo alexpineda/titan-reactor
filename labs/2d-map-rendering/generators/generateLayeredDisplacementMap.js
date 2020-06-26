@@ -1,9 +1,9 @@
 import Chk from "bw-chk";
 import { blendNonZeroPixels, overlayImage } from "../image/blend";
 import { blurImage } from "../image/blur";
-import { displacementColorAtMega } from "../image/displacement";
+import { elevationColorAtMega } from "../image/elevationColorAtMega";
 
-export const generateDisplacementMap = ({
+export const generateLayeredDisplacementMap = ({
   bwDataPath,
   scmData,
   scale,
@@ -25,7 +25,7 @@ export const generateDisplacementMap = ({
     .image(fileAccess, width, height, {
       startLocations: false,
       sprites: false,
-      colorAtMega: displacementColorAtMega({
+      colorAtMega: elevationColorAtMega({
         elevations,
         detailsElevations,
         detailsRatio,
@@ -43,13 +43,11 @@ export const generateDisplacementMap = ({
         .image(fileAccess, width, height, {
           startLocations: false,
           sprites: false,
-          colorAtMega: displacementColorAtMega({
+          colorAtMega: elevationColorAtMega({
             elevations,
             detailsElevations,
             detailsRatio,
             skipWalkable: true,
-
-            tint: [1, 1, 1],
           }),
         })
         .then((overlay) => [data, overlay]);

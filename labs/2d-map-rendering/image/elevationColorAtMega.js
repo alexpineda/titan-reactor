@@ -1,15 +1,14 @@
-export const displacementColorAtMega = (opts) => {
+export const elevationColorAtMega = (opts) => {
   const {
     elevations,
     detailsRatio,
     onlyWalkable,
     skipWalkable,
     skipDetails,
-    tint,
-    detailsElevations,
     water,
     twilight,
     lava,
+    colorReplace,
   } = opts;
 
   return (tileset, mega, x, y) => {
@@ -54,7 +53,7 @@ export const displacementColorAtMega = (opts) => {
 
     const [r, g, b] = tileset.palette.slice(color * 4, color * 4 + 3);
 
-    let detailsNormal = (r + g + b) / (3 * 255);
+    let details = (r + g + b) / (3 * 255);
 
     let elevation = 0;
 
@@ -73,7 +72,7 @@ export const displacementColorAtMega = (opts) => {
     }
 
     if (skipDetails) {
-      detailsNormal = 0;
+      details = 0;
     }
 
     if (blocksView) {
@@ -90,8 +89,6 @@ export const displacementColorAtMega = (opts) => {
       return [0, 0, 0];
     }
 
-    const details = detailsNormal * detailsElevations[elevation];
-
     if (skipWalkable && walkable && !(mid && high)) {
       const d = details * detailsRatio[elevation] * 255;
       return [0, 0, d];
@@ -102,24 +99,30 @@ export const displacementColorAtMega = (opts) => {
         details * detailsRatio[elevation]) *
       255;
 
+    //color difference
     if (water) {
       if (b - r < 12 && b - g < 12) {
         rgb = 255;
       }
     }
+    //abs(r-g) < 12 b-g < 12  abs(r-g) < 0
 
+    // color range
     if (lava) {
       if (r > 120 && b < 40 && g < 40) {
         rgb = 255;
       }
     }
+    //r-b <80, r-g <80, g-b<
 
+    //color replace r,g,b 0.5 1
+    //
     if (twilight) {
       if (g > 160 && b > 160 && r < 160) {
         rgb = 255;
       }
     }
 
-    return [rgb * tint[0], rgb * tint[1], rgb * tint[2]];
+    return [rgb, rgb, rgb];
   };
 };

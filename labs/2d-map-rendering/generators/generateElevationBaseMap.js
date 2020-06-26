@@ -1,18 +1,17 @@
 import Chk from "bw-chk";
 import { nearestNeighbour } from "../image/nearest";
-import { displacementColorAtMega } from "../image/displacement";
+import { elevationColorAtMega } from "../image/elevationColorAtMega";
 
-export const generateRoughnessMap = ({
+export const generateElevationBasedMap = ({
   bwDataPath,
   scmData,
-  elevations = [0.7, 1, 1, 1, 1, 1, 1],
-  detailsElevations = [1, 0, 0, 0, 0, 0, 0],
-  detailsRatio = [0.5, 0, 0, 0, 0, 0, 0],
-  scale = 0.25 * 0.5,
-  water = true,
+  elevations,
+  detailsRatio,
+  scale = 1,
+  water = false,
   twilight = false,
   lava = false,
-  blurFactor = 0,
+  blur = 0,
   skipDetails = false,
   onlyWalkable = false,
 }) => {
@@ -25,12 +24,10 @@ export const generateRoughnessMap = ({
     .image(fileAccess, width, height, {
       startLocations: false,
       sprites: false,
-      colorAtMega: displacementColorAtMega({
+      colorAtMega: elevationColorAtMega({
         elevations,
-        detailsElevations,
         detailsRatio,
-        tint: [1, 1, 1],
-        blur: blurFactor,
+        blur: blur,
         water,
         twilight,
         lava,

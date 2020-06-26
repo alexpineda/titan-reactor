@@ -18,8 +18,6 @@ export const initRenderer = ({
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
   renderer.toneMapping = THREE.NoToneMapping;
-  // renderer.toneMapping = THREE.ReinhardToneMapping;
-  // renderer.toneMappingExposure = 1;
   renderer.gammaFactor = 2.2;
   renderer.physicallyCorrectLights = physicallyCorrectLights;
   renderer.outputEncoding = THREE.sRGBEncoding;

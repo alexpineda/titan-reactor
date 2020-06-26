@@ -1,8 +1,8 @@
-import { generateDisplacementMap } from "../2d-map-rendering/generators/generateDisplacementMap";
-import { generateEmissiveMap } from "../2d-map-rendering/generators/generateEmissiveMap";
+import { generateLayeredDisplacementMap } from "../2d-map-rendering/generators/generateLayeredDisplacementMap";
 import { generateMap } from "../2d-map-rendering/generators/generateMap";
-import { generateRoughnessMap } from "../2d-map-rendering/generators/generateRoughnessMap";
+import { generateElevationBasedMap } from "../2d-map-rendering/generators/generateElevationBaseMap";
 import Chk from "bw-chk";
+import { imageChk, extractChk } from "../utils/loadChk";
 
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
@@ -28,17 +28,11 @@ const encoding = (texture) => {
   return texture;
 };
 
-export const chkLoader = (filepath, ignoreCache = false) => {
-  const load = () =>
-    new Promise((res, rej) => {
-      fs.createReadStream(filepath)
-        .pipe(createScmExtractor())
-        .pipe(
-          concat((data) => {
-            Cache.save(filepath, data).then(res);
-          })
-        );
-    });
+export const chkLoader = async (filepath, ignoreCache = false) => {
+  const load = async () => {
+    const chkData = await extractChk(filepath);
+    return Cache.save(filepath, chkData);
+  };
 
   const process = (data) => new Chk(data);
 
@@ -49,124 +43,102 @@ export const chkLoader = (filepath, ignoreCache = false) => {
   }
 };
 
-export const mapPreviewLoader = (filepath, canvas, ignoreCache = false) =>
-  new Promise((res, rej) => {
-    fs.createReadStream(filepath)
-      .pipe(createScmExtractor())
-      .pipe(
-        concat((chkData) => {
-          generateMap({
-            bwDataPath: gameOptions.bwDataPath,
-            scmData: chkData,
-            scale: 0.25 * 0.25,
-            blurFactor: 0,
-          }).then(({ data, width, height }) => {
-            res({
-              canvas: rgbToCanvas({
-                data,
-                width,
-                height,
-                defaultCanvas: canvas,
-              }),
-              chk: new Chk(chkData),
-            });
-          });
-        })
-      );
+export const mapPreviewLoader = async (
+  filepath,
+  canvas,
+  ignoreCache = false
+) => {
+  const chk = await imageChk(filepath, gameOptions.bwDataPath);
+  const { data, width, height } = await generateMap({
+    chk,
+    scale: 0.25 * 0.25,
+    blur: 0,
   });
 
-export const mapElevationsLoader = (filepath, ignoreCache = false) =>
-  new Promise((res, rej) => {
-    fs.createReadStream(filepath)
-      .pipe(createScmExtractor())
-      .pipe(
-        concat((chkData) => {
-          generateMap({
-            bwDataPath: gameOptions.bwDataPath,
-            scmData: chkData,
-            scale: 0.25 * 0.5,
-            blurFactor: 0,
-            renderElevations: true,
-          })
-            .then(({ data, width, height }) =>
-              Cache.convertAndSaveMapTexture(
-                filepath,
-                "map",
-                data,
-                width,
-                height
-              )
-            )
-            .then(encoding)
-            .then(res, rej);
-        })
-      );
+  return {
+    canvas: rgbToCanvas({
+      data,
+      width,
+      height,
+      defaultCanvas: canvas,
+    }),
+    chk,
+  };
+};
+
+export const mapElevationsLoader = async (filepath, ignoreCache = false) => {
+  const chk = await imageChk(filepath, gameOptions.bwDataPath);
+  const { data, width, height } = await generateMap({
+    chk,
+    scale: 0.25 * 0.5,
+    blur: 0,
+    renderElevations: true,
   });
 
-export const mapLoader = (filepath, renderer, opts = {}, ignoreCache = false) =>
-  new Promise((res, rej) => {
-    fs.createReadStream(filepath)
-      .pipe(createScmExtractor())
-      .pipe(
-        concat((data) => {
-          generateMap({
-            bwDataPath: gameOptions.bwDataPath,
-            scmData: data,
-            scale: 1,
-            blurFactor: 0,
-            ...opts,
-          })
-            .then(({ data, width, height }) =>
-              Cache.convertAndSaveMapTexture(
-                filepath,
-                "map",
-                data,
-                width,
-                height
-              )
-            )
-            .then(encoding)
-            .then((texture) => {
-              renderer.initTexture(texture);
-              return texture;
-            })
-            .then(res, rej);
-        })
-      );
+  const texture = await Cache.convertAndSaveMapTexture(
+    filepath,
+    "map",
+    data,
+    width,
+    height
+  );
+  return encoding(texture);
+};
+
+export const mapLoader = async (
+  filepath,
+  renderer,
+  preset = {},
+  ignoreCache = false
+) => {
+  const chk = await imageChk(filepath, gameOptions.bwDataPath);
+  const { data, width, height } = await generateMap({
+    chk,
+    scale: 1,
+    blur: 0,
+    ...preset,
   });
 
-export const bgLoader = (filepath, renderer, opts = {}, ignoreCache = false) =>
-  new Promise((res, rej) => {
-    fs.createReadStream(filepath)
-      .pipe(createScmExtractor())
-      .pipe(
-        concat((data) => {
-          generateMap({
-            bwDataPath: gameOptions.bwDataPath,
-            scmData: data,
-            scale: 0.25 * 0.25,
-            blurFactor: 16,
-            ...opts,
-          })
-            .then(({ data, width, height }) =>
-              Cache.convertAndSaveMapTexture(
-                filepath,
-                "bg",
-                data,
-                width,
-                height
-              )
-            )
-            .then(encoding)
-            .then(res, rej);
-        })
-      );
+  const texture = Cache.convertAndSaveMapTexture(
+    filepath,
+    "map",
+    data,
+    width,
+    height
+  );
+
+  return encoding(texture);
+};
+
+export const bgLoader = async (
+  filepath,
+  renderer,
+  preset = {},
+  ignoreCache = false
+) => {
+  const chk = await imageChk(filepath, gameOptions.bwDataPath);
+
+  const { data, width, height } = await generateMap({
+    chk,
+    scale: 0.25 * 0.25,
+    blur: 16,
+    ...preset,
   });
+
+  const texture = await Cache.convertAndSaveMapTexture(
+    filepath,
+    "bg",
+    data,
+    width,
+    height
+  );
+  return encoding(texture);
+};
 
 export const displaceLoader = (
   filepath,
   renderer,
-  opts = {},
+  preset = {},
   ignoreCache = false
 ) =>
   new Promise((res, rej) => {
@@ -174,7 +146,7 @@ export const displaceLoader = (
       .pipe(createScmExtractor())
       .pipe(
         concat((data) => {
-          generateDisplacementMap({
+          generateLayeredDisplacementMap({
             bwDataPath: gameOptions.bwDataPath,
             scmData: data,
             scale: 0.25,
@@ -183,7 +155,7 @@ export const displaceLoader = (
             detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
             walkableLayerBlur: 16,
             allLayersBlur: 8,
-            ...opts,
+            ...preset,
           })
             .then(({ data, width, height }) =>
               Cache.convertAndSaveMapTexture(
@@ -199,17 +171,16 @@ export const displaceLoader = (
       );
   });
 
-export const roughnessLoader = (filepath, renderer, opts = {}, ignoreCache) =>
+export const roughnessLoader = (filepath, renderer, preset = {}, ignoreCache) =>
   new Promise((res, rej) => {
     fs.createReadStream(filepath)
       .pipe(createScmExtractor())
       .pipe(
         concat((data) => {
-          generateRoughnessMap({
+          generateElevationBasedMap({
             bwDataPath: gameOptions.bwDataPath,
             scmData: data,
             elevations: [1, 1, 1, 1, 1, 1, 1],
-            detailsElevations: [1, 0, 0, 0, 0, 0, 0],
             detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
             scale: 0.5,
             blur: 0,
@@ -218,7 +189,7 @@ export const roughnessLoader = (filepath, renderer, opts = {}, ignoreCache) =>
             twilight: false,
             skipDetails: false,
             onlyWalkable: false,
-            ...opts,
+            ...preset,
           })
             .then(({ data, width, height }) =>
               Cache.convertAndSaveMapTexture(
@@ -234,7 +205,7 @@ export const roughnessLoader = (filepath, renderer, opts = {}, ignoreCache) =>
       );
   });
 
-export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
+export function loadAllTerrain(filepath, renderer, preset, ignoreCache = true) {
   const flip = (texture) => {
     // texture.wrapS = THREE.RepeatWrapping;
     // texture.repeat.x = -1;

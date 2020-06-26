@@ -9,8 +9,10 @@ import {
   mapPreviewLoader,
   displaceLoader,
   mapElevationsLoader,
+  roughnessLoader,
 } from "./generateTerrainTextures";
 import { initRenderer } from "./renderer";
+import { loadTerrainPreset } from "./terrainPresets";
 
 const fs = window.require("fs");
 const { ipcRenderer } = window.require("electron");
@@ -144,12 +146,15 @@ const loadMap = (filepath) => {
 
   mapPreviewLoader(filepath, mapPreviewEl)
     .then(({ chk }) => {
+      scene.userData.chk = chk;
       console.log("mapPreviewLoader:completed", chk);
       mapNameEl.innerText = chk.title;
       mapDescriptionEl.innerText = chk.description;
       mapPreviewEl.style.display = "block";
+
+      return loadTerrainPreset(chk.tilesetName);
     })
-    .then(() => loadAllTerrain(filepath, renderer))
+    .then((preset) => loadAllTerrain(filepath, renderer, preset))
     .then(([newFloor, newFloorBg]) => {
       return mapElevationsLoader(filepath).then((elevationsTexture) => [
         newFloor,
@@ -271,18 +276,36 @@ control.on("displacement", () => {
   const d2 = {
     ...control.displacement,
     elevations: d.elevations.split(", ").map(Number),
-    detailsElevations: d.detailsElevations.split(", ").map(Number),
     detailsRatio: d.detailsRatio.split(", ").map(Number),
     scale: d.textureScale,
   };
 
-  displaceLoader(currentMapFilePath, renderer, d2).then((displace) => {
+  displaceLoader(currentMapFilePath, renderer, d2).then((map) => {
     const floor = findMeshByName("floor");
-    floor.material.displacementMap = displace;
+    floor.material.displacementMap = map;
     console.log("done");
   });
 
-  console.log("on:roughness");
+  console.log("on:displacement");
+});
+
+control.on("roughness", () => {
+  const d = control.roughness;
+
+  const d2 = {
+    ...control.roughness,
+    elevations: d.elevations.split(", ").map(Number),
+    detailsRatio: d.detailsRatio.split(", ").map(Number),
+    scale: d.textureScale,
+  };
+
+  roughnessLoader(currentMapFilePath, renderer, d2).then((map) => {
+    const floor = findMeshByName("floor");
+    floor.material.roughnessMap = map;
+    console.log("done");
+  });
+
+  console.log("on:displacement");
 });
 
 handleResize(camera, renderer);

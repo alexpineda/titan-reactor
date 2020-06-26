@@ -1,11 +1,14 @@
 import createScmExtractor from "scm-extractor";
 import Chk from "bw-chk";
 import concat from "concat-stream";
-import { generateDisplacementMap } from "./generators/generateDisplacementMap";
+import { generateLayeredDisplacementMap } from "./generators/generateLayeredDisplacementMap";
 import { generateMap } from "./generators/generateMap";
-import { generateEmissiveMap } from "./generators/generateEmissiveMap";
-import { generateRoughnessMap } from "./generators/generateRoughnessMap";
+import { generateElevationBasedMap } from "./generators/generateElevationBaseMap";
 import { writeToContext2d } from "./image/canvas";
+import { createGui } from "../3d-map-loading/gui";
+
+const { control } = createGui(true);
+control.on("roughness", () => console.log("roughness"));
 
 const fs = window.require("fs");
 
@@ -72,7 +75,7 @@ function displacement(filename) {
       concat((data) => {
         console.log("displacement", filename);
 
-        generateDisplacementMap({
+        generateLayeredDisplacementMap({
           bwDataPath: "./bwdata",
           scmData: data,
           scale: 0.25,
@@ -126,7 +129,7 @@ function roughness(filename) {
       concat((data) => {
         console.log("roughness", filename);
 
-        generateRoughnessMap({
+        generateElevationBasedMap({
           bwDataPath: "./bwdata",
           scmData: data,
           elevations: [0.7, 1, 1, 1, 1, 1, 1],

@@ -8,23 +8,41 @@ export function createStats() {
   return stats;
 }
 
-export function createGui() {
+export function createGui(onlyTextures = false) {
   const gui = new dat.GUI();
+  const listeners = {};
+
+  const on = function (eventName, handler) {
+    if (listeners[eventName]) {
+      listeners[eventName].push(handler);
+    } else {
+      listeners[eventName] = [handler];
+    }
+  };
+  const dispatch = function (eventName, eventData) {
+    listeners[eventName] &&
+      listeners[eventName].forEach((handler) => handler(eventData));
+  };
 
   let control = new (function () {
-    const listeners = {};
     const ctrl = this;
+    this.on = on;
 
-    this.on = function (eventName, handler) {
-      if (listeners[eventName]) {
-        listeners[eventName].push(handler);
-      } else {
-        listeners[eventName] = [handler];
-      }
-    };
-    const dispatch = function (eventName, eventData) {
-      listeners[eventName] &&
-        listeners[eventName].forEach((handler) => handler(eventData));
+    this.state = {
+      tileset: "Jungle",
+      save: function () {
+        localStorage.setItem(this.tileset, JSON.stringify(ctrl));
+      },
+      load: function () {
+        const json = JSON.parse(localStorage.getItem(this.tileset));
+
+        for (const [key, value] of Object.entries(json)) {
+          Object.assign(ctrl[key], value);
+        }
+
+        gui.updateDisplay();
+        return ctrl;
+      },
     };
 
     this.renderer = {
@@ -43,7 +61,6 @@ export function createGui() {
 
     this.roughness = {
       elevations: "1 1 1 1 1 1 1",
-      detailsElevations: "1 0 0 0 0 0 0",
       detailsRatio: "0.5 0 0 0 0 0 0",
       textureScale: 0.5,
       scale: 1,
@@ -61,8 +78,7 @@ export function createGui() {
 
     this.displacement = {
       elevations: "0, 0.4, 0.79, 0.85, 1, 1, 0.85",
-      detailsElevations: "1, 1, 0.5, 1, 0.5, 1, 0",
-      detailsRatio: "0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15",
+      detailsRatio: "0.15, 0.15, 0.075, 0.15, 0.15, 0.075, 0",
       textureScale: 0.25,
       scale: 6,
       water: false,
@@ -79,7 +95,6 @@ export function createGui() {
 
     this.emissive = {
       elevations: "1 1 1 1 1 1 1",
-      detailsElevations: "1 0 0 0 0 0 0",
       detailsRatio: "0.5 0 0 0 0 0 0",
       textureScale: 0.5,
       scale: 1,
@@ -97,7 +112,6 @@ export function createGui() {
 
     this.metallic = {
       elevations: "1 1 1 1 1 1 1",
-      detailsElevations: "1 0 0 0 0 0 0",
       detailsRatio: "0.5 0 0 0 0 0 0",
       textureScale: 0.5,
       scale: 1,
@@ -161,30 +175,67 @@ export function createGui() {
     };
   })();
 
-  gui.remember(control);
-
-  const rendererFolder = gui.addFolder("Renderer");
-  rendererFolder.add(control.renderer, "gamma");
-  rendererFolder.add(control.renderer, "toneMapping", [
-    "NoToneMapping",
-    "LinearToneMapping",
-    "ReinhardToneMapping",
-    "CineonToneMapping",
-    "ACESFilmicToneMapping",
+  const stateFolder = gui.addFolder("State");
+  stateFolder.add(control.state, "tileset", [
+    "Badlands",
+    "Space",
+    "Installation",
+    "Ashworld",
+    "Jungle",
+    "Desert",
+    "Ice",
+    "Twilight",
   ]);
-  rendererFolder.add(control.renderer, "toneMappingExposure");
-  rendererFolder.addColor(control.renderer, "fogColor");
+  stateFolder.add(control.state, "save");
+  stateFolder.add(control.state, "load");
 
-  const cameraFolder = gui.addFolder("Camera");
-  cameraFolder.add(control.camera, "zoom");
-  cameraFolder.add(control.camera, "fov");
+  if (!onlyTextures) {
+    const rendererFolder = gui.addFolder("Renderer");
+    rendererFolder.add(control.renderer, "gamma");
+    rendererFolder.add(control.renderer, "toneMapping", [
+      "NoToneMapping",
+      "LinearToneMapping",
+      "ReinhardToneMapping",
+      "CineonToneMapping",
+      "ACESFilmicToneMapping",
+    ]);
+    rendererFolder.add(control.renderer, "toneMappingExposure");
+    rendererFolder.addColor(control.renderer, "fogColor");
 
-  const mapFolder = gui.addFolder("Map");
-  mapFolder.add(control.map, "showElevations");
+    const cameraFolder = gui.addFolder("Camera");
+    cameraFolder.add(control.camera, "zoom");
+    cameraFolder.add(control.camera, "fov");
 
-  const roughnessFolder = gui.addFolder("Roughness");
+    const mapFolder = gui.addFolder("Map");
+    mapFolder.add(control.map, "showElevations");
+
+    const dirlightFolder = gui.addFolder("Directional");
+    dirlightFolder.add(control.dirlight, "power");
+    dirlightFolder.addColor(control.dirlight, "color");
+
+    const pointlightFolder = gui.addFolder("Point Light");
+    pointlightFolder.add(control.pointlight, "power");
+    pointlightFolder.addColor(control.pointlight, "color");
+
+    const hemilightFolder = gui.addFolder("Hemi Light");
+    hemilightFolder.add(control.hemilight, "power");
+    hemilightFolder.addColor(control.hemilight, "color1");
+    hemilightFolder.addColor(control.hemilight, "color2");
+
+    const spotlightFolder = gui.addFolder("Spotlights");
+    spotlightFolder.add(control.spotlight, "castShadow");
+    spotlightFolder.add(control.spotlight, "shadowBias");
+    spotlightFolder.add(control.spotlight, "decay");
+    spotlightFolder.add(control.spotlight, "distance");
+    spotlightFolder.add(control.spotlight, "penumbra");
+    spotlightFolder.add(control.spotlight, "reload");
+    spotlightFolder.add(control.spotlight, "power");
+    spotlightFolder.add(control.spotlight, "color");
+  }
+  const texturesFolder = gui.addFolder("Textures");
+
+  const roughnessFolder = texturesFolder.addFolder("Roughness");
   roughnessFolder.add(control.roughness, "elevations");
-  roughnessFolder.add(control.roughness, "detailsElevations");
   roughnessFolder.add(control.roughness, "detailsRatio");
   roughnessFolder.add(control.roughness, "textureScale");
   roughnessFolder.add(control.roughness, "scale");
@@ -196,9 +247,8 @@ export function createGui() {
   roughnessFolder.add(control.roughness, "onlyWalkable");
   roughnessFolder.add(control.roughness, "regenerate");
 
-  const displacementFolder = gui.addFolder("Displacement");
+  const displacementFolder = texturesFolder.addFolder("Displacement");
   displacementFolder.add(control.displacement, "elevations");
-  displacementFolder.add(control.displacement, "detailsElevations");
   displacementFolder.add(control.displacement, "detailsRatio");
   displacementFolder.add(control.displacement, "textureScale");
   displacementFolder.add(control.displacement, "scale");
@@ -210,9 +260,8 @@ export function createGui() {
   displacementFolder.add(control.displacement, "showMap");
   displacementFolder.add(control.displacement, "regenerate");
 
-  const emissiveFolder = gui.addFolder("Emissive");
+  const emissiveFolder = texturesFolder.addFolder("Emissive");
   emissiveFolder.add(control.emissive, "elevations");
-  emissiveFolder.add(control.emissive, "detailsElevations");
   emissiveFolder.add(control.emissive, "detailsRatio");
   emissiveFolder.add(control.emissive, "textureScale");
   emissiveFolder.add(control.emissive, "scale");
@@ -224,9 +273,8 @@ export function createGui() {
   emissiveFolder.add(control.emissive, "onlyWalkable");
   emissiveFolder.add(control.emissive, "regenerate");
 
-  const metallicFolder = gui.addFolder("Metallic");
+  const metallicFolder = texturesFolder.addFolder("Metallic");
   emissiveFolder.add(control.emissive, "elevations");
-  emissiveFolder.add(control.emissive, "detailsElevations");
   metallicFolder.add(control.metallic, "detailsRatio");
   metallicFolder.add(control.metallic, "textureScale");
   metallicFolder.add(control.metallic, "scale");
@@ -237,29 +285,6 @@ export function createGui() {
   metallicFolder.add(control.metallic, "skipDetails");
   metallicFolder.add(control.metallic, "onlyWalkable");
   metallicFolder.add(control.metallic, "regenerate");
-
-  const dirlightFolder = gui.addFolder("Directional");
-  dirlightFolder.add(control.dirlight, "power");
-  dirlightFolder.addColor(control.dirlight, "color");
-
-  const pointlightFolder = gui.addFolder("Point Light");
-  pointlightFolder.add(control.pointlight, "power");
-  pointlightFolder.addColor(control.pointlight, "color");
-
-  const hemilightFolder = gui.addFolder("Hemi Light");
-  hemilightFolder.add(control.hemilight, "power");
-  hemilightFolder.addColor(control.hemilight, "color1");
-  hemilightFolder.addColor(control.hemilight, "color2");
-
-  const spotlightFolder = gui.addFolder("Spotlights");
-  spotlightFolder.add(control.spotlight, "castShadow");
-  spotlightFolder.add(control.spotlight, "shadowBias");
-  spotlightFolder.add(control.spotlight, "decay");
-  spotlightFolder.add(control.spotlight, "distance");
-  spotlightFolder.add(control.spotlight, "penumbra");
-  spotlightFolder.add(control.spotlight, "reload");
-  spotlightFolder.add(control.spotlight, "power");
-  spotlightFolder.add(control.spotlight, "color");
 
   gui.show();
   return {
