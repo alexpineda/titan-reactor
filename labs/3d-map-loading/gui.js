@@ -134,7 +134,7 @@ export function createGui(onlyTextures = false) {
     };
 
     this.dirlight = {
-      power: 8,
+      power: 3,
       color: "#ffffff",
     };
 
@@ -150,10 +150,10 @@ export function createGui(onlyTextures = false) {
       positionZ: 80,
       castShadow: true,
       shadowBias: -0.0001,
-      decay: 2,
-      distance: 10,
-      penumbra: 0.2,
-      power: 1000,
+      decay: 3.7,
+      distance: 100,
+      penumbra: 0.5,
+      power: 750,
       color: "#ffa95c",
       reload: function () {
         console.log("dispatch:spotlight");
@@ -163,6 +163,7 @@ export function createGui(onlyTextures = false) {
 
     this.map = {
       showElevations: false,
+      showWireframe: false,
       map: "",
       reload: function () {
         dispatch("map:reload", ctrl.map.map);
@@ -210,6 +211,7 @@ export function createGui(onlyTextures = false) {
 
     const mapFolder = sceneFolder.addFolder("Map");
     mapFolder.add(control.map, "showElevations");
+    mapFolder.add(control.map, "showWireframe");
 
     const dirlightFolder = sceneFolder.addFolder("Directional");
     dirlightFolder.add(control.dirlight, "power");
@@ -257,6 +259,7 @@ export function createGui(onlyTextures = false) {
   const displacePre = displacementFolder.addFolder("Pre");
   const displaceProcess = displacementFolder.addFolder("Process");
   const displacePost = displacementFolder.addFolder("Post");
+  displacementFolder.add(control.displacement, "showMap");
   displacePre.add(control.displacement, "textureScale");
   displacePost.add(control.displacement, "effectScale");
   displacePost.add(control.displacement, "walkableLayerBlur");
@@ -267,7 +270,7 @@ export function createGui(onlyTextures = false) {
   displaceProcess.add(control.displacement, "water");
   displaceProcess.add(control.displacement, "lava");
   displaceProcess.add(control.displacement, "twilight");
-  displaceProcess.add(control.displacement, "showMap");
+
   displacementFolder.add(control.displacement, "regenerate");
 
   const emissiveFolder = texturesFolder.addFolder("Emissive");

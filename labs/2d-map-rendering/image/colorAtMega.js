@@ -41,9 +41,9 @@ export function colorAtMega({ renderElevations }) {
 
     if (renderElevations) {
       if (blocksView) {
-        return [255, 255, 255];
-      } else if (high && walkable && mid) {
         return [0, 0, 255];
+      } else if (high && walkable && mid) {
+        return [0, 0, 127];
       } else if (high && walkable) {
         return [0, 255, 0];
       } else if (high) {

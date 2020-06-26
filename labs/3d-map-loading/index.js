@@ -100,10 +100,11 @@ camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 controls.update();
 camera.lookAt(new Vector3());
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 1);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0);
 scene.add(hemi);
 
-const light = new THREE.DirectionalLight(0xffffff, 8);
+const light = new THREE.DirectionalLight(0xffffff, 1);
+
 // light.castShadow = true;
 light.name = "directional";
 scene.add(light);
@@ -115,9 +116,6 @@ spotlight.castShadow = true;
 spotlight.shadow.bias = -0.0001;
 spotlight.shadow.mapSize.width = 1024 * 4;
 spotlight.shadow.mapSize.height = 1024 * 4;
-spotlight.decay = 2;
-spotlight.distance = 10;
-spotlight.penumbra = 0.2;
 
 scene.add(spotlight);
 
@@ -152,31 +150,32 @@ const loadMap = async (filepath) => {
   await mapPreviewLoader(chk, mapPreviewEl);
 
   mapNameEl.innerText = chk.title;
+  document.title = `Titan Reactor - ${chk.title}`;
   // mapDescriptionEl.innerText = chk.description;
   mapDescriptionEl.innerText = chk.tilesetName;
   mapPreviewEl.style.display = "block";
 
   //force dom refresh??
-  setTimeout(async () => {
-    const preset = loadTerrainPreset(chk.tilesetName);
-    const [newFloor, newFloorBg] = await loadAllTerrain(chk, renderer, preset);
-    const elevationsTexture = await mapElevationsLoader(chk);
+  // setTimeout(async () => {
+  const preset = loadTerrainPreset(chk.tilesetName);
+  const [newFloor, newFloorBg] = await loadAllTerrain(chk, renderer, preset);
+  const elevationsTexture = await mapElevationsLoader(chk);
 
-    const floor = findMeshByName("floor");
-    const floorBg = findMeshByName("backing-floor");
-    if (floor) {
-      scene.remove(floor);
-    }
-    if (floorBg) {
-      scene.remove(floorBg);
-    }
-    scene.add(newFloor);
-    scene.add(newFloorBg);
+  const floor = findMeshByName("floor");
+  const floorBg = findMeshByName("backing-floor");
+  if (floor) {
+    scene.remove(floor);
+  }
+  if (floorBg) {
+    scene.remove(floorBg);
+  }
+  scene.add(newFloor);
+  scene.add(newFloorBg);
 
-    newFloor.userData.originalMap = newFloor.material.map;
-    newFloor.userData.elevationsTexture = elevationsTexture;
-    loadOverlayEl.style.display = "none";
-  }, 1);
+  newFloor.userData.originalMap = newFloor.material.map;
+  newFloor.userData.elevationsTexture = elevationsTexture;
+  loadOverlayEl.style.display = "none";
+  // }, 1);
 };
 
 const { control } = createGui();
@@ -240,6 +239,7 @@ function animate() {
 
     const floor = findMeshByName("floor");
     if (floor) {
+      floor.material.wireframe = control.map.showWireframe;
       floor.material.displacementScale = control.displacement.effectScale;
       const { material } = floor;
       if (material.map) {
@@ -268,7 +268,7 @@ document.getElementById("map-name").onclick = function () {
   );
 };
 
-control.on("displacement", () => {
+control.on("displacement", async () => {
   const d = control.displacement;
 
   const d2 = {
@@ -278,28 +278,10 @@ control.on("displacement", () => {
     scale: d.textureScale,
   };
 
-  displaceLoader(currentMapFilePath, renderer, d2).then((map) => {
+  const chk = await imageChk(currentMapFilePath, gameOptions.bwDataPath);
+  displaceLoader(chk, renderer, d2).then((map) => {
     const floor = findMeshByName("floor");
     floor.material.displacementMap = map;
-    console.log("done");
-  });
-
-  console.log("on:displacement");
-});
-
-control.on("roughness", () => {
-  const d = control.roughness;
-
-  const d2 = {
-    ...control.roughness,
-    elevations: d.elevations.split(", ").map(Number),
-    detailsRatio: d.detailsRatio.split(", ").map(Number),
-    scale: d.textureScale,
-  };
-
-  roughnessLoader(currentMapFilePath, renderer, d2).then((map) => {
-    const floor = findMeshByName("floor");
-    floor.material.roughnessMap = map;
     console.log("done");
   });
 

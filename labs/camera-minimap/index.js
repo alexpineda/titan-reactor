@@ -1,10 +1,13 @@
 import * as THREE from "three";
 import { handleResize } from "../utils/resize";
-import { loadAllTerrain } from "../3d-map-loading/loadTerrain";
 import { initRenderer } from "../3d-map-loading/renderer";
 import { Vector3, OrthographicCamera, CameraHelper } from "three";
 import { Minimap } from "./Minimap";
 import { initOrbitControls } from "./orbitControl";
+import { loadAllTerrain } from "../3d-map-loading/generateTerrainTextures";
+import { imageChk } from "../utils/loadChk";
+import { gameOptions } from "../utils/gameOptions";
+import { loadTerrainPreset } from "../3d-map-loading/terrainPresets";
 
 const LAYER_MINIMAP = 9;
 
@@ -114,20 +117,27 @@ scene.add(light);
 //realtime
 //terrain
 
-// loadAllTerrain("(2)Blue Storm 1.2_iCCup.scx").then(([floor]) => {
-//   world.remove(gridHelper);
-//   world.add(floor);
-//   miniMapPlane.material.map = floor.material.map;
-//   miniMapPlane.material.needsUpdate = true;
+(async function () {
+  const chk = await imageChk(
+    "/Users/ricardopineda/Library/Application Support/Blizzard/StarCraft/Maps/iCCup Map Pack v39.0/Observer/Blue Storm 1.2_iccOB.scx",
+    gameOptions.bwDataPath
+  );
+  const preset = loadTerrainPreset(chk.tilesetName);
+  loadAllTerrain(chk, renderer, preset).then(([floor]) => {
+    world.remove(gridHelper);
+    world.add(floor);
+    miniMapPlane.material.map = floor.material.map;
+    miniMapPlane.material.needsUpdate = true;
 
-//   // // Instantiate a exporter
-//   // var exporter = new GLTFExporter();
+    // // Instantiate a exporter
+    // var exporter = new GLTFExporter();
 
-//   // // Parse the input and generate the glTF output
-//   // exporter.parse(scene, function (gltf) {
-//   //   fs.writeFile("./scene.gltf", gltf, () => {});
-//   // });
-// });
+    // // Parse the input and generate the glTF output
+    // exporter.parse(scene, function (gltf) {
+    //   fs.writeFile("./scene.gltf", gltf, () => {});
+    // });
+  });
+})();
 
 const orbitControls = initOrbitControls(camera, renderer.domElement);
 
