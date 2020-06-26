@@ -1,18 +1,15 @@
 import { createStats, createGui } from "./gui";
 import * as THREE from "three";
+import { handleResize } from "../utils/resize";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
-
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
-
-import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader.js";
-import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader.js";
-
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
-
 import { Vector3 } from "three";
-import { loadAllTerrain, mapPreviewLoader } from "./generateTerrainTextures";
+import {
+  loadAllTerrain,
+  mapPreviewLoader,
+  displaceLoader,
+  mapElevationsLoader,
+} from "./generateTerrainTextures";
 import { initRenderer } from "./renderer";
 
 const fs = window.require("fs");
@@ -99,8 +96,8 @@ camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 controls.update();
 camera.lookAt(new Vector3());
 
-// const hemi = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1);
-// scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 1);
+scene.add(hemi);
 
 const light = new THREE.DirectionalLight(0xffffff, 8);
 // light.castShadow = true;
@@ -122,31 +119,17 @@ scene.add(spotlight);
 
 var pointLight = new THREE.PointLight(0xedd89f, 1, 100);
 pointLight.position.set(-64, 10, -64);
-pointLight.power = 8 * Math.PI;
+pointLight.power = 16 * Math.PI;
+pointLight.decay = 2;
 scene.add(pointLight);
 
 document.body.appendChild(renderer.domElement);
 
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-
-(function () {
-  const effect = new ShaderPass(DotScreenShader);
-  effect.uniforms["scale"].value = 4;
-  composer.addPass(effect);
-})();
-
-(function () {
-  const effect = new ShaderPass(RGBShiftShader);
-  effect.uniforms["amount"].value = 0.0015;
-  composer.addPass(effect);
-})();
-
-const control = createGui();
-console.log("creategui", control);
 const stats = createStats();
 
+let currentMapFilePath;
 const loadMap = (filepath) => {
+  currentMapFilePath = filepath;
   console.log("load map", filepath);
   const mapPreviewEl = document.getElementById("map--preview-canvas");
   const mapNameEl = document.getElementById("map-name");
@@ -168,6 +151,14 @@ const loadMap = (filepath) => {
     })
     .then(() => loadAllTerrain(filepath, renderer))
     .then(([newFloor, newFloorBg]) => {
+      return mapElevationsLoader(filepath).then((elevationsTexture) => [
+        newFloor,
+        newFloorBg,
+        elevationsTexture,
+      ]);
+    })
+    .then(([newFloor, newFloorBg, elevationsTexture]) => {
+      console.log("elevationsTexture", elevationsTexture);
       const floor = findMeshByName("floor");
       const floorBg = findMeshByName("backing-floor");
       if (floor) {
@@ -178,19 +169,23 @@ const loadMap = (filepath) => {
       }
       scene.add(newFloor);
       scene.add(newFloorBg);
+
+      newFloor.userData.originalMap = newFloor.material.map;
+      newFloor.userData.elevationsTexture = elevationsTexture;
       loadOverlayEl.style.display = "none";
     });
 };
 
-control.on("map:reload", loadMap);
+const { control } = createGui();
 
 let f = 0;
-let res = 0;
+let cycle = 0;
 function animate() {
   stats.begin();
-  //   plane.rotation.z += 0.0005;
-  res++;
-  if (res % 10) {
+
+  cycle++;
+
+  if (cycle % 10) {
     spotlight.position.set(
       camera.position.x + 10,
       camera.position.y + 10,
@@ -199,28 +194,95 @@ function animate() {
     f += 0.01;
     pointLight.position.x = Math.cos(f) * 64;
     pointLight.position.z = Math.sin(f) * 64;
+
+    spotlight.castShadow = control.spotlight.castShadow;
+    spotlight.shadow.bias = control.spotlight.shadowBias;
+    spotlight.decay = control.spotlight.decay;
+    spotlight.distance = control.spotlight.distance;
+    spotlight.penumbra = control.spotlight.penumbra;
+    spotlight.power = control.spotlight.power;
+    spotlight.color = new THREE.Color(
+      parseInt(control.spotlight.color.substr(1), 16)
+    );
+
+    pointLight.power = control.pointlight.power;
+    pointLight.color = new THREE.Color(
+      parseInt(control.pointlight.color.substr(1), 16)
+    );
+
+    light.intensity = control.dirlight.power;
+    light.color = new THREE.Color(
+      parseInt(control.dirlight.color.substr(1), 16)
+    );
+
+    hemi.intensity = control.hemilight.power;
+    hemi.groundColor = new THREE.Color(
+      parseInt(control.hemilight.color2.substr(1), 16)
+    );
+    hemi.skyColor = new THREE.Color(
+      parseInt(control.hemilight.color1.substr(1), 16)
+    );
+
+    renderer.toneMappingExposure = control.renderer.toneMappingExposure;
+    renderer.gammaFactor = control.renderer.gamma;
+    scene.background = new THREE.Color(
+      parseInt(control.renderer.fogColor.substr(1), 16)
+    );
+    scene.fog.color = scene.background;
+    renderer.toneMapping = THREE[control.renderer.toneMapping];
+
+    camera.fov = control.camera.fov;
+    camera.zoom = control.camera.zoom;
+    camera.updateProjectionMatrix();
+
+    const floor = findMeshByName("floor");
+    if (floor) {
+      floor.material.displacementScale = control.displacement.scale;
+      const { material } = floor;
+      if (material.map) {
+        const oldMap = material.map;
+        if (control.displacement.showMap) {
+          material.map = material.displacementMap;
+        } else if (control.map.showElevations) {
+          material.map = floor.userData.elevationsTexture;
+        } else {
+          material.map = floor.userData.originalMap;
+        }
+      }
+    }
   }
 
   stats.end();
   renderer.render(scene, camera);
-  //   composer.render();
   requestAnimationFrame(animate);
 }
 animate();
 
-control.on("scene:save", (map) => {
-  var exporter = new GLTFExporter();
-  exporter.parse(
-    scene,
-    function (gltf) {
-      fs.writeFile("./scene.glb", gltf, () => {});
-    },
-    {
-      binary: true,
-    }
+console.log("toneMapping", control.renderer.toneMapping);
+document.getElementById("map-name").onclick = function () {
+  loadMap(
+    "/Users/ricardopineda/Library/Application Support/Blizzard/StarCraft/Maps/iCCup Map Pack v39.0/Observer/Blue Storm 1.2_iccOB.scx"
   );
+};
+
+control.on("displacement", () => {
+  const d = control.displacement;
+
+  const d2 = {
+    ...control.displacement,
+    elevations: d.elevations.split(", ").map(Number),
+    detailsElevations: d.detailsElevations.split(", ").map(Number),
+    detailsRatio: d.detailsRatio.split(", ").map(Number),
+    scale: d.textureScale,
+  };
+
+  displaceLoader(currentMapFilePath, renderer, d2).then((displace) => {
+    const floor = findMeshByName("floor");
+    floor.material.displacementMap = displace;
+    console.log("done");
+  });
+
+  console.log("on:roughness");
 });
 
-loadMap(
-  "/Users/ricardopineda/Library/Application Support/Blizzard/StarCraft/Maps/iCCup Map Pack v39.0/Observer/Blue Storm 1.2_iccOB.scx"
-);
+handleResize(camera, renderer);

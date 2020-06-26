@@ -1,17 +1,18 @@
 import Chk from "bw-chk";
 import { blendNonZeroPixels, overlayImage } from "../image/blend";
-import { blur } from "../image/blur";
+import { blurImage } from "../image/blur";
 import { displacementColorAtMega } from "../image/displacement";
 
 export const generateDisplacementMap = ({
   bwDataPath,
   scmData,
-  scale = 0.25,
-  elevations = [0, 0.4, 0.79, 0.85, 1, 1, 0.85],
-  detailsElevations = [1, 1, 0.5, 1, 0.5, 1, 0],
-  detailsRatio = [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
-  walkableLayerBlur = 32,
-  allLayersBlur = 8,
+  scale,
+  elevations,
+  detailsElevations,
+  detailsRatio,
+  walkableLayerBlur,
+  allLayersBlur,
+  showLayers,
 }) => {
   const chk = new Chk(scmData);
   const originalWidth = chk.size[0] * 32;
@@ -31,11 +32,12 @@ export const generateDisplacementMap = ({
         skipDetails: true,
         onlyWalkable: true,
         tint: [1, 1, 1],
+        showLayers,
       }),
     })
     .then((data) => {
       blendNonZeroPixels(data, width, height);
-      blur(data, width, height, walkableLayerBlur);
+      blurImage(data, width, height, walkableLayerBlur);
 
       return chk
         .image(fileAccess, width, height, {
@@ -54,7 +56,7 @@ export const generateDisplacementMap = ({
     })
     .then(([base, overlay]) => {
       overlayImage(base, overlay);
-      blur(base, width, height, allLayersBlur);
+      blurImage(base, width, height, allLayersBlur);
 
       return {
         data: base,

@@ -1,5 +1,5 @@
-import { GPU } from "gpu.js";
-import { range } from "ramda";
+// import { GPU } from "gpu.js";
+// import { range } from "ramda";
 
 export function nearestNeighbour(src, srcWidth, srcHeight, scale) {
   const start = Date.now();
@@ -38,40 +38,40 @@ export function nearestNeighbour(src, srcWidth, srcHeight, scale) {
 const dev = { mode: "dev" };
 const prod = {};
 
-export function gpuNearestNeighbour(src, srcWidth, srcHeight, scale) {
-  const start = Date.now();
-  if (scale === 1) {
-    return {
-      data: src,
-      width: srcWidth,
-      height: srcHeight,
-    };
-  }
+// export function gpuNearestNeighbour(src, srcWidth, srcHeight, scale) {
+//   const start = Date.now();
+//   if (scale === 1) {
+//     return {
+//       data: src,
+//       width: srcWidth,
+//       height: srcHeight,
+//     };
+//   }
 
-  const gpu = new GPU(dev);
+//   const gpu = new GPU(dev);
 
-  const dstWidth = srcWidth * scale;
-  const dstHeight = srcHeight * scale;
+//   const dstWidth = srcWidth * scale;
+//   const dstHeight = srcHeight * scale;
 
-  const render = gpu.createKernel(
-    function (src, srcWidth, srcHeight, scale, dstWidth, dstHeight) {
-      const x = this.thread.x % dstWidth;
-      const px = this.thread.x % 3;
-      const y = Math.floor(this.thread.x / dstWidth);
+//   const render = gpu.createKernel(
+//     function (src, srcWidth, srcHeight, scale, dstWidth, dstHeight) {
+//       const x = this.thread.x % dstWidth;
+//       const px = this.thread.x % 3;
+//       const y = Math.floor(this.thread.x / dstWidth);
 
-      var sourceInd =
-        3 * (Math.floor(y / scale) * srcWidth + Math.floor(x / scale));
+//       var sourceInd =
+//         3 * (Math.floor(y / scale) * srcWidth + Math.floor(x / scale));
 
-      return src[sourceInd + px];
-    },
-    { output: [dstWidth * dstHeight * 3] }
-  );
+//       return src[sourceInd + px];
+//     },
+//     { output: [dstWidth * dstHeight * 3] }
+//   );
 
-  const data = render(src, srcWidth, srcHeight, scale, dstWidth, dstHeight);
-  console.log("nearestNeighbour", Date.now() - start);
-  return {
-    data,
-    width: dstWidth,
-    height: dstHeight,
-  };
-}
+//   const data = render(src, srcWidth, srcHeight, scale, dstWidth, dstHeight);
+//   console.log("nearestNeighbour", Date.now() - start);
+//   return {
+//     data,
+//     width: dstWidth,
+//     height: dstHeight,
+//   };
+// }

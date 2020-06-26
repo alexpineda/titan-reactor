@@ -75,17 +75,18 @@ export const mapPreviewLoader = (filepath, canvas, ignoreCache = false) =>
       );
   });
 
-export const mapLoader = (filepath, ignoreCache = false) =>
+export const mapElevationsLoader = (filepath, ignoreCache = false) =>
   new Promise((res, rej) => {
     fs.createReadStream(filepath)
       .pipe(createScmExtractor())
       .pipe(
-        concat((data) => {
+        concat((chkData) => {
           generateMap({
             bwDataPath: gameOptions.bwDataPath,
-            scmData: data,
-            scale: 1,
+            scmData: chkData,
+            scale: 0.25 * 0.5,
             blurFactor: 0,
+            renderElevations: true,
           })
             .then(({ data, width, height }) =>
               Cache.convertAndSaveMapTexture(
@@ -102,16 +103,40 @@ export const mapLoader = (filepath, ignoreCache = false) =>
       );
   });
 
-export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
-  const flip = (texture) => {
-    // texture.wrapS = THREE.RepeatWrapping;
-    // texture.repeat.x = -1;
-    // texture.flipY = false;
-    console.log("no flip");
-    return texture;
-  };
+export const mapLoader = (filepath, renderer, opts = {}, ignoreCache = false) =>
+  new Promise((res, rej) => {
+    fs.createReadStream(filepath)
+      .pipe(createScmExtractor())
+      .pipe(
+        concat((data) => {
+          generateMap({
+            bwDataPath: gameOptions.bwDataPath,
+            scmData: data,
+            scale: 1,
+            blurFactor: 0,
+            ...opts,
+          })
+            .then(({ data, width, height }) =>
+              Cache.convertAndSaveMapTexture(
+                filepath,
+                "map",
+                data,
+                width,
+                height
+              )
+            )
+            .then(encoding)
+            .then((texture) => {
+              renderer.initTexture(texture);
+              return texture;
+            })
+            .then(res, rej);
+        })
+      );
+  });
 
-  const bgLoader = new Promise((res, rej) => {
+export const bgLoader = (filepath, renderer, opts = {}, ignoreCache = false) =>
+  new Promise((res, rej) => {
     fs.createReadStream(filepath)
       .pipe(createScmExtractor())
       .pipe(
@@ -121,6 +146,7 @@ export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
             scmData: data,
             scale: 0.25 * 0.25,
             blurFactor: 16,
+            ...opts,
           })
             .then(({ data, width, height }) =>
               Cache.convertAndSaveMapTexture(
@@ -137,7 +163,13 @@ export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
       );
   });
 
-  const displaceLoader = new Promise((res, rej) => {
+export const displaceLoader = (
+  filepath,
+  renderer,
+  opts = {},
+  ignoreCache = false
+) =>
+  new Promise((res, rej) => {
     fs.createReadStream(filepath)
       .pipe(createScmExtractor())
       .pipe(
@@ -151,6 +183,7 @@ export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
             detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
             walkableLayerBlur: 16,
             allLayersBlur: 8,
+            ...opts,
           })
             .then(({ data, width, height }) =>
               Cache.convertAndSaveMapTexture(
@@ -166,47 +199,56 @@ export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
       );
   });
 
-  const roughnessLoader = (opts = {}) =>
-    new Promise((res, rej) => {
-      fs.createReadStream(filepath)
-        .pipe(createScmExtractor())
-        .pipe(
-          concat((data) => {
-            generateRoughnessMap({
-              bwDataPath: gameOptions.bwDataPath,
-              scmData: data,
-              elevations: [1, 1, 1, 1, 1, 1, 1],
-              detailsElevations: [1, 0, 0, 0, 0, 0, 0],
-              detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
-              scale: 0.5,
-              blur: 0,
-              water: true,
-              lava: false,
-              twilight: false,
-              skipDetails: false,
-              onlyWalkable: false,
-              ...opts,
-            })
-              .then(({ data, width, height }) =>
-                Cache.convertAndSaveMapTexture(
-                  filepath,
-                  "rough",
-                  data,
-                  width,
-                  height
-                )
-              )
-              .then(res, rej);
+export const roughnessLoader = (filepath, renderer, opts = {}, ignoreCache) =>
+  new Promise((res, rej) => {
+    fs.createReadStream(filepath)
+      .pipe(createScmExtractor())
+      .pipe(
+        concat((data) => {
+          generateRoughnessMap({
+            bwDataPath: gameOptions.bwDataPath,
+            scmData: data,
+            elevations: [1, 1, 1, 1, 1, 1, 1],
+            detailsElevations: [1, 0, 0, 0, 0, 0, 0],
+            detailsRatio: [0.5, 0, 0, 0, 0, 0, 0],
+            scale: 0.5,
+            blur: 0,
+            water: true,
+            lava: false,
+            twilight: false,
+            skipDetails: false,
+            onlyWalkable: false,
+            ...opts,
           })
-        );
-    });
+            .then(({ data, width, height }) =>
+              Cache.convertAndSaveMapTexture(
+                filepath,
+                "rough",
+                data,
+                width,
+                height
+              )
+            )
+            .then(res, rej);
+        })
+      );
+  });
+
+export function loadAllTerrain(filepath, renderer, ignoreCache = true) {
+  const flip = (texture) => {
+    // texture.wrapS = THREE.RepeatWrapping;
+    // texture.repeat.x = -1;
+    // texture.flipY = false;
+    console.log("no flip");
+    return texture;
+  };
 
   return chkLoader(filepath, ignoreCache).then(({ size }) => {
     return Promise.all([
-      mapLoader(filepath, ignoreCache),
-      bgLoader,
-      displaceLoader,
-      roughnessLoader(),
+      mapLoader(filepath, renderer, ignoreCache),
+      bgLoader(filepath, renderer, ignoreCache),
+      displaceLoader(filepath, renderer, ignoreCache),
+      roughnessLoader(filepath, renderer, ignoreCache),
     ]).then((args) => generateTerrainMesh(renderer, size[0], size[1], ...args));
   });
 }

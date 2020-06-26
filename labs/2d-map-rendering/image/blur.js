@@ -1,7 +1,7 @@
 // adapted from https://codepen.io/uriuriuriu/pen/zEnlq?editors=1010
 
-import { GPU } from "gpu.js";
-const gpu = new GPU();
+// import { GPU } from "gpu.js";
+// const gpu = new GPU();
 
 // export function gpuBlur(out, width, height, radius) {
 //   let blurRange = radius * 3;
@@ -64,7 +64,8 @@ const gpu = new GPU();
 //   blurX(width, height, out);
 // }
 
-export function blur(out, width, height, radius) {
+export function blurImage(out, width, height, radius) {
+  if (radius === 0) return;
   const start = Date.now();
 
   let blurRange = radius * 3; // ガウス分布 σ

@@ -29,17 +29,15 @@ export function createGui() {
 
     this.renderer = {
       gamma: 2.2,
-      toneMapping: [],
+      toneMapping: "NoToneMapping",
       toneMappingExposure: 1,
+      fogColor: "#080820",
     };
 
     this.camera = {
-      x: 0,
-      y: 0,
-      z: 0,
       zoom: 1,
       fov: 75,
-      near: 1,
+      near: 0.1,
       far: 1000,
     };
 
@@ -62,20 +60,20 @@ export function createGui() {
     };
 
     this.displacement = {
-      elevations: "1 1 1 1 1 1 1",
-      detailsElevations: "1 0 0 0 0 0 0",
-      detailsRatio: "0.5 0 0 0 0 0 0",
-      textureScale: 0.5,
+      elevations: "0, 0.4, 0.79, 0.85, 1, 1, 0.85",
+      detailsElevations: "1, 1, 0.5, 1, 0.5, 1, 0",
+      detailsRatio: "0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15",
+      textureScale: 0.25,
       scale: 6,
-      blur: 0,
       water: false,
       lava: false,
       twilight: false,
-      skipDetails: false,
-      onlyWalkable: false,
+      walkableLayerBlur: 16,
+      allLayersBlur: 8,
+      showMap: false,
       regenerate: function () {
         console.log("dispatch:displacement");
-        dispatch("displacement", ctrl.roughness);
+        dispatch("displacement", ctrl.displacement);
       },
     };
 
@@ -92,8 +90,8 @@ export function createGui() {
       skipDetails: false,
       onlyWalkable: false,
       regenerate: function () {
-        console.log("dispatch:displacement");
-        dispatch("displacement", ctrl.roughness);
+        console.log("dispatch:emissive");
+        dispatch("emissive", ctrl.emissive);
       },
     };
 
@@ -111,12 +109,46 @@ export function createGui() {
       skipDetails: false,
       onlyWalkable: false,
       regenerate: function () {
-        console.log("dispatch:displacement");
-        dispatch("displacement", ctrl.roughness);
+        console.log("dispatch:metallic");
+        dispatch("metallic", ctrl.metallic);
+      },
+    };
+
+    this.pointlight = {
+      power: 1000,
+      color: "#ffffff",
+    };
+
+    this.dirlight = {
+      power: 8,
+      color: "#ffffff",
+    };
+
+    this.hemilight = {
+      power: 0,
+      color1: "#ffffff",
+      color2: "#ffffff",
+    };
+
+    this.spotlight = {
+      positionY: 50,
+      positionX: 80,
+      positionZ: 80,
+      castShadow: true,
+      shadowBias: -0.0001,
+      decay: 2,
+      distance: 10,
+      penumbra: 0.2,
+      power: 1000,
+      color: "#ffa95c",
+      reload: function () {
+        console.log("dispatch:spotlight");
+        dispatch("spotlight");
       },
     };
 
     this.map = {
+      showElevations: false,
       map: "",
       reload: function () {
         dispatch("map:reload", ctrl.map.map);
@@ -130,6 +162,25 @@ export function createGui() {
   })();
 
   gui.remember(control);
+
+  const rendererFolder = gui.addFolder("Renderer");
+  rendererFolder.add(control.renderer, "gamma");
+  rendererFolder.add(control.renderer, "toneMapping", [
+    "NoToneMapping",
+    "LinearToneMapping",
+    "ReinhardToneMapping",
+    "CineonToneMapping",
+    "ACESFilmicToneMapping",
+  ]);
+  rendererFolder.add(control.renderer, "toneMappingExposure");
+  rendererFolder.addColor(control.renderer, "fogColor");
+
+  const cameraFolder = gui.addFolder("Camera");
+  cameraFolder.add(control.camera, "zoom");
+  cameraFolder.add(control.camera, "fov");
+
+  const mapFolder = gui.addFolder("Map");
+  mapFolder.add(control.map, "showElevations");
 
   const roughnessFolder = gui.addFolder("Roughness");
   roughnessFolder.add(control.roughness, "elevations");
@@ -151,12 +202,12 @@ export function createGui() {
   displacementFolder.add(control.displacement, "detailsRatio");
   displacementFolder.add(control.displacement, "textureScale");
   displacementFolder.add(control.displacement, "scale");
-  displacementFolder.add(control.displacement, "blur");
+  displacementFolder.add(control.displacement, "walkableLayerBlur");
+  displacementFolder.add(control.displacement, "allLayersBlur");
   displacementFolder.add(control.displacement, "water");
   displacementFolder.add(control.displacement, "lava");
   displacementFolder.add(control.displacement, "twilight");
-  displacementFolder.add(control.displacement, "skipDetails");
-  displacementFolder.add(control.displacement, "onlyWalkable");
+  displacementFolder.add(control.displacement, "showMap");
   displacementFolder.add(control.displacement, "regenerate");
 
   const emissiveFolder = gui.addFolder("Emissive");
@@ -187,13 +238,31 @@ export function createGui() {
   metallicFolder.add(control.metallic, "onlyWalkable");
   metallicFolder.add(control.metallic, "regenerate");
 
-  const lightsFolder = gui.addFolder("Lights");
+  const dirlightFolder = gui.addFolder("Directional");
+  dirlightFolder.add(control.dirlight, "power");
+  dirlightFolder.addColor(control.dirlight, "color");
+
+  const pointlightFolder = gui.addFolder("Point Light");
+  pointlightFolder.add(control.pointlight, "power");
+  pointlightFolder.addColor(control.pointlight, "color");
+
+  const hemilightFolder = gui.addFolder("Hemi Light");
+  hemilightFolder.add(control.hemilight, "power");
+  hemilightFolder.addColor(control.hemilight, "color1");
+  hemilightFolder.addColor(control.hemilight, "color2");
 
   const spotlightFolder = gui.addFolder("Spotlights");
-
-  // emissiveFolder.add(control.emissive, "elevations");
-  // emissiveFolder.add(control.emissive, "detailsElevations");
+  spotlightFolder.add(control.spotlight, "castShadow");
+  spotlightFolder.add(control.spotlight, "shadowBias");
+  spotlightFolder.add(control.spotlight, "decay");
+  spotlightFolder.add(control.spotlight, "distance");
+  spotlightFolder.add(control.spotlight, "penumbra");
+  spotlightFolder.add(control.spotlight, "reload");
+  spotlightFolder.add(control.spotlight, "power");
+  spotlightFolder.add(control.spotlight, "color");
 
   gui.show();
-  return control;
+  return {
+    control,
+  };
 }

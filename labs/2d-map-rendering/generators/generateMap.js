@@ -1,11 +1,13 @@
 import Chk from "bw-chk";
-import { blur } from "../image/blur";
+import { blurImage } from "../image/blur";
+import { colorAtMega } from "../image/colorAtMega";
 
 export const generateMap = ({
   bwDataPath,
   scmData,
   scale = 1,
   blurFactor = 0,
+  renderElevations = false,
 }) => {
   const chk = new Chk(scmData);
   const fileAccess = Chk.fsFileAccess(bwDataPath);
@@ -18,11 +20,12 @@ export const generateMap = ({
       mode: "terrain",
       startLocations: false,
       sprites: false,
+
+      colorAtMega: colorAtMega({ renderElevations }),
     })
     .then((data) => {
-      if (blurFactor > 0) {
-        blur(data, width, height, blurFactor);
-      }
+      blurImage(data, width, height, blurFactor);
+
       return {
         data,
         width,
