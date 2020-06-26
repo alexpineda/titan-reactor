@@ -181,44 +181,30 @@ export function fromScrepJSON({ Header, Computed, MapData, Commands }) {
   };
 }
 
-export function fromJssuhJSON({ header, commands, mapData }) {
+export function fromJssuhJSON(header, commands, chk) {
   let playerColorIndex = 0;
 
-  const data = {
-    getPlayerById: function (id) {
-      return this.players.find((p) => p.id == id);
-    },
-    map: {
-      name: header.mapName,
-      width: mapData.size[0],
-      height: mapData.size[1],
-      geysers: mapData.units
-        .filter(({ unitId }) => unitId == unitIDVespeneGeyser)
-        .map(({ x, y, resourceAmt }) => ({ x, y, resourceAmt })),
-      minerals: mapData.units
-        .filter(({ unitId }) =>
-          [
-            unitIDMineralField1,
-            unitIDMineralField2,
-            unitIDMineralField3,
-          ].includes(unitId)
-        )
-        .map(({ x, y, resourceAmt }) => ({ x, y, resourceAmt })),
-      tileset: {
-        name: mapData.tilesetName,
-        id: mapData.tileset,
-      },
-      tiles: mapData._tiles,
-      bitmap: mapData.bitmap,
-      version: -1,
-    },
+  return {
+    chk,
+    geysers: chk.units
+      .filter(({ unitId }) => unitId == unitIDVespeneGeyser)
+      .map(({ x, y, resourceAmt }) => ({ x, y, resourceAmt })),
+    minerals: chk.units
+      .filter(({ unitId }) =>
+        [
+          unitIDMineralField1,
+          unitIDMineralField2,
+          unitIDMineralField3,
+        ].includes(unitId)
+      )
+      .map(({ x, y, resourceAmt }) => ({ x, y, resourceAmt })),
     gameType: -1,
     startTime: new Date(header.seed * 1000).toISOString(),
     players: header.players.map((player) => {
       return {
         ...player,
         color: playerColors[playerColorIndex++].rgb,
-        startLocation: mapData.units.find(
+        startLocation: chk.units.find(
           (u) => u.player == player.id && u.unitId == unitIdStartLocation
         ),
       };

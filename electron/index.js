@@ -152,6 +152,19 @@ const template = [
     ],
   },
   {
+    label: "Replay Queue",
+    submenu: [
+      { label: "Add Replay" },
+      { type: "separator" },
+      { label: "Next Replay", accelerator: "CmdOrCtrl+Shift+N" },
+      { type: "separator" },
+      {
+        label: "Queue",
+        submenu: [{ label: "Flash vs Jaedong" }, { label: "Dark vs Snipe" }],
+      },
+    ],
+  },
+  {
     label: "Edit",
     submenu: [
       { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },

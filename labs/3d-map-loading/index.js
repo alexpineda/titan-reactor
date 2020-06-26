@@ -25,42 +25,6 @@ ipcRenderer.on("open-map", (event, [map]) => {
   loadMap(map);
 });
 
-ipcRenderer.on("save-image", (event) => {
-  var strMime = "image/jpeg";
-  const data = renderer.domElement.toDataURL(strMime);
-
-  var saveFile = function (strData, filename) {
-    var link = document.createElement("a");
-    link.download = "Screenshot";
-    link.href = strData;
-    link.click();
-  };
-  saveFile(data);
-});
-ipcRenderer.on("save-gltf", (event, file) => {
-  // Instantiate a exporter
-  var exporter = new GLTFExporter();
-
-  // Parse the input and generate the glTF output
-  console.log("export scene", file, scene);
-  exporter.parse(
-    scene,
-    function (gltf) {
-      fs.writeFile(file, gltf, () => {});
-    },
-    {}
-  );
-});
-
-var starcraftFont = new FontFace(
-  "Blizzard Regular",
-  "url(BLIZZARD-REGULAR.TTF)"
-  // "url(./bwdata/font/BLIZZARD-REGULAR.TTF)"
-);
-starcraftFont.load().then(function (loaded_face) {
-  document.fonts.add(loaded_face);
-});
-
 const scene = new THREE.Scene();
 window.scene = scene;
 

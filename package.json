@@ -24,6 +24,7 @@
   "dependencies": {
     "bw-chk": "file:../bw-chk",
     "concat": "1.0.3",
+    "d3-ease": "1.0.6",
     "dat.gui": "0.7.7",
     "electron": "^9.0.4",
     "electron-is-dev": "^1.2.0",

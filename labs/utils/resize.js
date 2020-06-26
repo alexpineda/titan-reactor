@@ -10,8 +10,5 @@ export function handleResize(camera, renderer) {
     onResize.bind(null, camera, renderer),
     false
   );
-}
-
-export function cancelResize() {
-  window.removeEventListener("resize");
+  return () => window.removeEventListener("resize");
 }

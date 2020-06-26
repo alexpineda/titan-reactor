@@ -24,7 +24,7 @@ export const imageChk = (scm, bwDataPath) =>
     })
   );
 
-export const loadChk = (scm) => {
+export const loadChk = async (scm) => {
   if (scm instanceof Chk) return scm;
   return typeof scm == "string"
     ? extractChk(scm).then(parseChk)
