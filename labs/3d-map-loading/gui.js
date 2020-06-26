@@ -63,7 +63,7 @@ export function createGui(onlyTextures = false) {
       elevations: "1 1 1 1 1 1 1",
       detailsRatio: "0.5 0 0 0 0 0 0",
       textureScale: 0.5,
-      scale: 1,
+      effectScale: 1,
       blur: 0,
       water: false,
       lava: false,
@@ -80,7 +80,7 @@ export function createGui(onlyTextures = false) {
       elevations: "0, 0.4, 0.79, 0.85, 1, 1, 0.85",
       detailsRatio: "0.15, 0.15, 0.075, 0.15, 0.15, 0.075, 0",
       textureScale: 0.25,
-      scale: 6,
+      effectScale: 6,
       water: false,
       lava: false,
       twilight: false,
@@ -97,7 +97,7 @@ export function createGui(onlyTextures = false) {
       elevations: "1 1 1 1 1 1 1",
       detailsRatio: "0.5 0 0 0 0 0 0",
       textureScale: 0.5,
-      scale: 1,
+      effectScale: 1,
       blur: 0,
       water: false,
       lava: false,
@@ -114,7 +114,7 @@ export function createGui(onlyTextures = false) {
       elevations: "1 1 1 1 1 1 1",
       detailsRatio: "0.5 0 0 0 0 0 0",
       textureScale: 0.5,
-      scale: 1,
+      effectScale: 1,
       displacementScale: 6,
       blur: 0,
       water: false,
@@ -190,7 +190,9 @@ export function createGui(onlyTextures = false) {
   stateFolder.add(control.state, "load");
 
   if (!onlyTextures) {
-    const rendererFolder = gui.addFolder("Renderer");
+    const sceneFolder = gui.addFolder("Scene");
+
+    const rendererFolder = sceneFolder.addFolder("Renderer");
     rendererFolder.add(control.renderer, "gamma");
     rendererFolder.add(control.renderer, "toneMapping", [
       "NoToneMapping",
@@ -202,27 +204,27 @@ export function createGui(onlyTextures = false) {
     rendererFolder.add(control.renderer, "toneMappingExposure");
     rendererFolder.addColor(control.renderer, "fogColor");
 
-    const cameraFolder = gui.addFolder("Camera");
+    const cameraFolder = sceneFolder.addFolder("Camera");
     cameraFolder.add(control.camera, "zoom");
     cameraFolder.add(control.camera, "fov");
 
-    const mapFolder = gui.addFolder("Map");
+    const mapFolder = sceneFolder.addFolder("Map");
     mapFolder.add(control.map, "showElevations");
 
-    const dirlightFolder = gui.addFolder("Directional");
+    const dirlightFolder = sceneFolder.addFolder("Directional");
     dirlightFolder.add(control.dirlight, "power");
     dirlightFolder.addColor(control.dirlight, "color");
 
-    const pointlightFolder = gui.addFolder("Point Light");
+    const pointlightFolder = sceneFolder.addFolder("Point Light");
     pointlightFolder.add(control.pointlight, "power");
     pointlightFolder.addColor(control.pointlight, "color");
 
-    const hemilightFolder = gui.addFolder("Hemi Light");
+    const hemilightFolder = sceneFolder.addFolder("Hemi Light");
     hemilightFolder.add(control.hemilight, "power");
     hemilightFolder.addColor(control.hemilight, "color1");
     hemilightFolder.addColor(control.hemilight, "color2");
 
-    const spotlightFolder = gui.addFolder("Spotlights");
+    const spotlightFolder = sceneFolder.addFolder("Spotlights");
     spotlightFolder.add(control.spotlight, "castShadow");
     spotlightFolder.add(control.spotlight, "shadowBias");
     spotlightFolder.add(control.spotlight, "decay");
@@ -235,55 +237,71 @@ export function createGui(onlyTextures = false) {
   const texturesFolder = gui.addFolder("Textures");
 
   const roughnessFolder = texturesFolder.addFolder("Roughness");
-  roughnessFolder.add(control.roughness, "elevations");
-  roughnessFolder.add(control.roughness, "detailsRatio");
-  roughnessFolder.add(control.roughness, "textureScale");
-  roughnessFolder.add(control.roughness, "scale");
-  roughnessFolder.add(control.roughness, "blur");
-  roughnessFolder.add(control.roughness, "water");
-  roughnessFolder.add(control.roughness, "lava");
-  roughnessFolder.add(control.roughness, "twilight");
-  roughnessFolder.add(control.roughness, "skipDetails");
-  roughnessFolder.add(control.roughness, "onlyWalkable");
+  const roughPre = roughnessFolder.addFolder("Pre");
+  const roughProcess = roughnessFolder.addFolder("Process");
+  const roughPost = roughnessFolder.addFolder("Post");
+
+  roughProcess.add(control.roughness, "elevations");
+  roughProcess.add(control.roughness, "detailsRatio");
+  roughPre.add(control.roughness, "textureScale");
+  roughPost.add(control.roughness, "effectScale");
+  roughPost.add(control.roughness, "blur");
+  roughProcess.add(control.roughness, "water");
+  roughProcess.add(control.roughness, "lava");
+  roughProcess.add(control.roughness, "twilight");
+  roughProcess.add(control.roughness, "skipDetails");
+  roughProcess.add(control.roughness, "onlyWalkable");
   roughnessFolder.add(control.roughness, "regenerate");
 
   const displacementFolder = texturesFolder.addFolder("Displacement");
-  displacementFolder.add(control.displacement, "elevations");
-  displacementFolder.add(control.displacement, "detailsRatio");
-  displacementFolder.add(control.displacement, "textureScale");
-  displacementFolder.add(control.displacement, "scale");
-  displacementFolder.add(control.displacement, "walkableLayerBlur");
-  displacementFolder.add(control.displacement, "allLayersBlur");
-  displacementFolder.add(control.displacement, "water");
-  displacementFolder.add(control.displacement, "lava");
-  displacementFolder.add(control.displacement, "twilight");
-  displacementFolder.add(control.displacement, "showMap");
+  const displacePre = displacementFolder.addFolder("Pre");
+  const displaceProcess = displacementFolder.addFolder("Process");
+  const displacePost = displacementFolder.addFolder("Post");
+  displacePre.add(control.displacement, "textureScale");
+  displacePost.add(control.displacement, "effectScale");
+  displacePost.add(control.displacement, "walkableLayerBlur");
+  displacePost.add(control.displacement, "allLayersBlur");
+
+  displaceProcess.add(control.displacement, "elevations");
+  displaceProcess.add(control.displacement, "detailsRatio");
+  displaceProcess.add(control.displacement, "water");
+  displaceProcess.add(control.displacement, "lava");
+  displaceProcess.add(control.displacement, "twilight");
+  displaceProcess.add(control.displacement, "showMap");
   displacementFolder.add(control.displacement, "regenerate");
 
   const emissiveFolder = texturesFolder.addFolder("Emissive");
-  emissiveFolder.add(control.emissive, "elevations");
-  emissiveFolder.add(control.emissive, "detailsRatio");
-  emissiveFolder.add(control.emissive, "textureScale");
-  emissiveFolder.add(control.emissive, "scale");
-  emissiveFolder.add(control.emissive, "blur");
-  emissiveFolder.add(control.emissive, "water");
-  emissiveFolder.add(control.emissive, "lava");
-  emissiveFolder.add(control.emissive, "twilight");
-  emissiveFolder.add(control.emissive, "skipDetails");
-  emissiveFolder.add(control.emissive, "onlyWalkable");
+  const emissivePre = emissiveFolder.addFolder("Pre");
+  const emissiveProcess = emissiveFolder.addFolder("Process");
+  const emissivePost = emissiveFolder.addFolder("Post");
+
+  emissiveProcess.add(control.emissive, "elevations");
+  emissiveProcess.add(control.emissive, "detailsRatio");
+  emissivePre.add(control.emissive, "textureScale");
+  emissivePost.add(control.emissive, "effectScale");
+  emissivePost.add(control.emissive, "blur");
+  emissiveProcess.add(control.emissive, "water");
+  emissiveProcess.add(control.emissive, "lava");
+  emissiveProcess.add(control.emissive, "twilight");
+  emissiveProcess.add(control.emissive, "skipDetails");
+  emissiveProcess.add(control.emissive, "onlyWalkable");
   emissiveFolder.add(control.emissive, "regenerate");
 
   const metallicFolder = texturesFolder.addFolder("Metallic");
-  emissiveFolder.add(control.emissive, "elevations");
-  metallicFolder.add(control.metallic, "detailsRatio");
-  metallicFolder.add(control.metallic, "textureScale");
-  metallicFolder.add(control.metallic, "scale");
-  metallicFolder.add(control.metallic, "blur");
-  metallicFolder.add(control.metallic, "water");
-  metallicFolder.add(control.metallic, "lava");
-  metallicFolder.add(control.metallic, "twilight");
-  metallicFolder.add(control.metallic, "skipDetails");
-  metallicFolder.add(control.metallic, "onlyWalkable");
+  const metallicPre = metallicFolder.addFolder("Pre");
+  const metallicProcess = metallicFolder.addFolder("Process");
+  const metallicPost = metallicFolder.addFolder("Post");
+
+  metallicProcess.add(control.emissive, "elevations");
+  metallicProcess.add(control.metallic, "detailsRatio");
+  metallicPre.add(control.metallic, "textureScale");
+  metallicPost.add(control.metallic, "effectScale");
+  metallicPost.add(control.metallic, "blur");
+  metallicProcess.add(control.metallic, "water");
+  metallicProcess.add(control.metallic, "lava");
+  metallicProcess.add(control.metallic, "twilight");
+  metallicProcess.add(control.metallic, "skipDetails");
+  metallicProcess.add(control.metallic, "onlyWalkable");
   metallicFolder.add(control.metallic, "regenerate");
 
   gui.show();

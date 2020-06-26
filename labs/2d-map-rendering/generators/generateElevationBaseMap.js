@@ -1,10 +1,7 @@
-import Chk from "bw-chk";
-import { nearestNeighbour } from "../image/nearest";
 import { elevationColorAtMega } from "../image/elevationColorAtMega";
 
 export const generateElevationBasedMap = ({
-  bwDataPath,
-  scmData,
+  chk,
   elevations,
   detailsRatio,
   scale = 1,
@@ -15,13 +12,11 @@ export const generateElevationBasedMap = ({
   skipDetails = false,
   onlyWalkable = false,
 }) => {
-  const chk = new Chk(scmData);
   const width = chk.size[0] * 32 * scale;
   const height = chk.size[1] * 32 * scale;
-  const fileAccess = Chk.fsFileAccess(bwDataPath);
 
   return chk
-    .image(fileAccess, width, height, {
+    .image(width, height, {
       startLocations: false,
       sprites: false,
       colorAtMega: elevationColorAtMega({

@@ -75,15 +75,15 @@ export const elevationColorAtMega = (opts) => {
       details = 0;
     }
 
-    if (blocksView) {
-      elevation = Math.min(4, elevation + 1);
-    }
+    // if (blocksView) {
+    //   elevation = Math.min(4, elevation + 1);
+    // }
 
     let elevationNormal = elevations[elevation];
 
-    if (blocksView) {
-      elevationNormal = Math.min(1, elevationNormal * 1.25);
-    }
+    // if (blocksView) {
+    //   elevationNormal = Math.min(1, elevationNormal * 1.25);
+    // }
 
     if (onlyWalkable && !walkable) {
       return [0, 0, 0];

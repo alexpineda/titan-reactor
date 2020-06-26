@@ -13,6 +13,8 @@ import {
 } from "./generateTerrainTextures";
 import { initRenderer } from "./renderer";
 import { loadTerrainPreset } from "./terrainPresets";
+import { imageChk } from "../utils/loadChk";
+import { gameOptions } from "../utils/gameOptions";
 
 const fs = window.require("fs");
 const { ipcRenderer } = window.require("electron");
@@ -130,9 +132,8 @@ document.body.appendChild(renderer.domElement);
 const stats = createStats();
 
 let currentMapFilePath;
-const loadMap = (filepath) => {
+const loadMap = async (filepath) => {
   currentMapFilePath = filepath;
-  console.log("load map", filepath);
   const mapPreviewEl = document.getElementById("map--preview-canvas");
   const mapNameEl = document.getElementById("map-name");
   const mapDescriptionEl = document.getElementById("map-description");
@@ -144,41 +145,38 @@ const loadMap = (filepath) => {
   mapPreviewEl.style.display = "none";
   loadOverlayEl.style.display = "flex";
 
-  mapPreviewLoader(filepath, mapPreviewEl)
-    .then(({ chk }) => {
-      scene.userData.chk = chk;
-      console.log("mapPreviewLoader:completed", chk);
-      mapNameEl.innerText = chk.title;
-      mapDescriptionEl.innerText = chk.description;
-      mapPreviewEl.style.display = "block";
+  const chk = await imageChk(filepath, gameOptions.bwDataPath);
+  console.log("chk loaded", filepath, chk);
+  scene.userData.chk = chk;
 
-      return loadTerrainPreset(chk.tilesetName);
-    })
-    .then((preset) => loadAllTerrain(filepath, renderer, preset))
-    .then(([newFloor, newFloorBg]) => {
-      return mapElevationsLoader(filepath).then((elevationsTexture) => [
-        newFloor,
-        newFloorBg,
-        elevationsTexture,
-      ]);
-    })
-    .then(([newFloor, newFloorBg, elevationsTexture]) => {
-      console.log("elevationsTexture", elevationsTexture);
-      const floor = findMeshByName("floor");
-      const floorBg = findMeshByName("backing-floor");
-      if (floor) {
-        scene.remove(floor);
-      }
-      if (floorBg) {
-        scene.remove(floorBg);
-      }
-      scene.add(newFloor);
-      scene.add(newFloorBg);
+  await mapPreviewLoader(chk, mapPreviewEl);
 
-      newFloor.userData.originalMap = newFloor.material.map;
-      newFloor.userData.elevationsTexture = elevationsTexture;
-      loadOverlayEl.style.display = "none";
-    });
+  mapNameEl.innerText = chk.title;
+  // mapDescriptionEl.innerText = chk.description;
+  mapDescriptionEl.innerText = chk.tilesetName;
+  mapPreviewEl.style.display = "block";
+
+  //force dom refresh??
+  setTimeout(async () => {
+    const preset = loadTerrainPreset(chk.tilesetName);
+    const [newFloor, newFloorBg] = await loadAllTerrain(chk, renderer, preset);
+    const elevationsTexture = await mapElevationsLoader(chk);
+
+    const floor = findMeshByName("floor");
+    const floorBg = findMeshByName("backing-floor");
+    if (floor) {
+      scene.remove(floor);
+    }
+    if (floorBg) {
+      scene.remove(floorBg);
+    }
+    scene.add(newFloor);
+    scene.add(newFloorBg);
+
+    newFloor.userData.originalMap = newFloor.material.map;
+    newFloor.userData.elevationsTexture = elevationsTexture;
+    loadOverlayEl.style.display = "none";
+  }, 1);
 };
 
 const { control } = createGui();
@@ -242,7 +240,7 @@ function animate() {
 
     const floor = findMeshByName("floor");
     if (floor) {
-      floor.material.displacementScale = control.displacement.scale;
+      floor.material.displacementScale = control.displacement.effectScale;
       const { material } = floor;
       if (material.map) {
         const oldMap = material.map;
@@ -259,7 +257,7 @@ function animate() {
 
   stats.end();
   renderer.render(scene, camera);
-  requestAnimationFrame(animate);
+  setTimeout(() => requestAnimationFrame(animate), 100);
 }
 animate();
 
