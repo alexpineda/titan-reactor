@@ -1,12 +1,13 @@
 {
   "name": "bw-lab",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "3D Map & Replay View for Starcraft Broodwar",
   "main": "electron/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clear-cache": "rm -rf .cache dist",
-    "electron": "electron ."
+    "electron": "electron .",
+    "dev": "electron-webpack dev"
   },
   "browserslist": [
     "last 2 Chrome versions"
@@ -21,14 +22,25 @@
     "url": "https://github.com/imbateam-gg/bw-lab/issues"
   },
   "homepage": "https://github.com/imbateam-gg/bw-lab#readme",
+  "electronWebpack": {
+    "commonSourceDirectory": "src/common",
+    "staticSourceDirectory": "src/static",
+    "title": "Titan Reactor",
+
+    "main": {
+      "sourceDirectory": "src/main"
+    },
+
+    "renderer": {
+      "sourceDirectory": "src/renderer/camera-minimap/"
+    }
+  },
   "dependencies": {
     "bw-chk": "file:../bw-chk",
     "concat": "1.0.3",
     "d3-ease": "1.0.6",
     "dat.gui": "0.7.7",
-    "electron": "^9.0.4",
     "electron-is-dev": "^1.2.0",
-    "gpu.js": "2.9.4",
     "howler": "2.2.0",
     "jssuh": "1.4.0",
     "ks": "^2.0.4",
@@ -44,6 +56,10 @@
     "typescript": "^3.9.5"
   },
   "devDependencies": {
-    "parcel-plugin-static-files-copy": "^2.4.3"
+    "@babel/preset-react": "^7.10.1",
+    "electron": "^9.0.5",
+    "electron-webpack": "^2.8.2",
+    "parcel-plugin-static-files-copy": "^2.4.3",
+    "webpack": "^4.43.0"
   }
 }

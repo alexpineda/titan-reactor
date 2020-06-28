@@ -1,0 +1,86 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .body {
+            position: relative;
+        }
+
+        #control-bar {
+            bottom: 0;
+            position: absolute;
+            width: 80vw;
+            height: 20vh;
+            left: 20vw;
+            display: flex;
+            align-items: stretch;
+        }
+
+        #minimap-players {
+            position: absolute;
+        }
+
+        #minimap {
+            flex: 0 1 20vw;
+            background-color: brown;
+        }
+
+        #selection {
+            flex: 1 1;
+            background-color: burlywood;
+            position: relative;
+        }
+
+        #replay {
+            flex: 0 1 20vw;
+            color: white;
+        }
+
+        #production {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: white;
+        }
+
+        #resources {
+            position: absolute;
+            right: 0;
+            background-color: blueviolet;
+        }
+
+
+
+        #hotkeys {
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="three-js"></canvas>
+    <div id="production"></div>
+    <div id="resources"></div>
+    <div id="options"></div>
+    <div id="hotkeys"></div>
+
+    <div id="control-bar">
+        <div id="minimap-players"></div>
+        <div id="minimap"></div>
+        <div id="selection"></div>
+        <div id="replay"></div>
+    </div>
+
+    <script src="hud.js"></script>
+</body>
+
+</html>
