@@ -174,8 +174,6 @@ minimap.updateGlobalCameraStart = (pos) => {
 };
 
 minimap.updateGlobalCamera = (pos) => {
-  // console.log(pos);
-
   orbitControls.target.copy(pos);
   camera.position.subVectors(pos, delta);
 };
