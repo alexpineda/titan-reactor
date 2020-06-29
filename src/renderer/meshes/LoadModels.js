@@ -1,4 +1,5 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { sRGBEncoding } from "three";
 
 export class LoadModel {
   constructor(perfOptions = {}) {
@@ -12,9 +13,10 @@ export class LoadModel {
         function ({ scene }) {
           console.log("gltf:loaded", scene);
           scene.traverse((o) => {
-            if (o.type == "mesh") {
-              o.castShadow = true;
-              o.receiveShadow = true;
+            if (o.type == "Mesh") {
+              o.castShadow = true; //shadow level 1
+              o.receiveShadow = true; //shadow level 2
+              o.material.encoding = sRGBEncoding;
             }
           });
 

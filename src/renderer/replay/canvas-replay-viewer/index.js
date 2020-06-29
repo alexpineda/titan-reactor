@@ -1,3 +1,5 @@
+import { FrameData, readUnitsFrameData } from "./frames";
+
 const inputElement = document.getElementById("input");
 inputElement.addEventListener("change", handleFiles, false);
 
@@ -22,51 +24,6 @@ function handleFiles() {
       console.error(evt);
     };
   }
-}
-
-function readAllData(data) {
-  return readUnitsFrameData(data, 0, data.byteLength);
-}
-
-function readFrameIndexData(data, start) {
-  const view = new DataView(data);
-  return {
-    frameIndex: view.getInt32(start, true),
-    unitCount: view.getInt32(start + 4, true),
-  };
-}
-
-function readUnitsFrameData(data, start, length) {
-  const frameData = [];
-  const view = new DataView(data);
-
-  console.log("start:readFrameData", data.byteLength);
-
-  const structSize = 45;
-  const frameCount = Math.floor(data.byteLength / structSize);
-
-  for (let b = 0; b <= data.byteLength - structSize; b += structSize) {
-    frameData.push({
-      playerId: view.getInt32(b, true),
-      repId: view.getInt32(b + 4, true),
-      typeId: view.getInt32(b + 8, true),
-      exists: view.getUint8(b + 12),
-      x: view.getInt32(b + 13, true),
-      y: view.getInt32(b + 17, true),
-      angle: view.getFloat64(b + 21, true),
-      hp: view.getInt32(b + 29, true),
-      shields: view.getInt32(b + 33, true),
-      energy: view.getInt32(b + 37, true),
-      frame: view.getInt32(b + 41, true),
-    });
-    if (b % (structSize * 1000) === 0) {
-      console.log("progress", b / data.byteLength);
-    }
-  }
-  return {
-    frameData,
-    frameCount,
-  };
 }
 
 let prevTime;

@@ -1,14 +1,13 @@
 import { ipcMain, app } from "electron";
 import fs from "fs";
+import { openFileBinary } from "./fs";
 import path from "path";
-
-const getAppCachePath = "getAppCachePath";
+import { getAppCachePath, openFile } from "../common/handleNames";
 
 ipcMain.handle(getAppCachePath, async (event, folder = "") => {
-  debugger;
   return path.join(app.getPath("appData"), folder);
 });
 
-export const handles = {
-  getAppCachePath,
-};
+ipcMain.handle(openFile, async (event, filepath = "") => {
+  return openFileBinary(filepath);
+});
