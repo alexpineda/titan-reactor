@@ -14,7 +14,7 @@ export const initOrbitControls = (camera, element) => {
   orbitControl.panSpeed = 2;
   orbitControl.rotateSpeed = 0.4;
   orbitControl.maxDistance = 80;
-  orbitControl.minDistance = 20;
+  orbitControl.minDistance = 15;
   orbitControl.enableDamping = true;
   orbitControl.dampingFactor = 0.2;
   orbitControl.keyPanSpeed = 50;

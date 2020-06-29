@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { handleResize } from "../../../utils/resize";
+import { handleResize } from "../../utils/resize";
 import ks from "ks";
 
 function createFloor(mapWidth, mapHeight) {

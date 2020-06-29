@@ -24,15 +24,13 @@
   "homepage": "https://github.com/imbateam-gg/bw-lab#readme",
   "electronWebpack": {
     "commonSourceDirectory": "src/common",
-    "staticSourceDirectory": "src/static",
+    "staticSourceDirectory": "bwdata",
     "title": "Titan Reactor",
-
     "main": {
       "sourceDirectory": "src/main"
     },
-
     "renderer": {
-      "sourceDirectory": "src/renderer/camera-minimap/"
+      "sourceDirectory": "src/renderer"
     }
   },
   "dependencies": {
@@ -42,6 +40,7 @@
     "dat.gui": "0.7.7",
     "electron-is-dev": "^1.2.0",
     "howler": "2.2.0",
+    "iconv-lite": "0.6.1",
     "jssuh": "1.4.0",
     "ks": "^2.0.4",
     "open-simplex-noise": "^2.3.1",
