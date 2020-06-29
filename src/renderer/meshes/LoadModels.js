@@ -10,6 +10,7 @@ export class LoadModel {
       new GLTFLoader().load(
         file,
         function ({ scene }) {
+          console.log("gltf:loaded", scene);
           scene.traverse((o) => {
             if (o.type == "mesh") {
               o.castShadow = true;

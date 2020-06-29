@@ -152,9 +152,6 @@ const loadMap = async (filepath) => {
   // }, 1);
 };
 
-const loadModel = new LoadModel();
-loadModel.load(`${__static}/modifiedscv.glb`).then(scene.add);
-
 const { control } = createGui();
 
 let f = 0;

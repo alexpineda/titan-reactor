@@ -10,6 +10,7 @@ import React from "react";
 import { render } from "react-dom";
 import { App } from "./ui";
 import { ipcRenderer } from "electron";
+import { LoadModel } from "../meshes/LoadModels";
 
 console.log(new Date().toLocaleString());
 
@@ -81,6 +82,9 @@ scene.add(world);
 
 const light = new THREE.DirectionalLight(0xffffff, 10);
 scene.add(light);
+
+const loadModel = new LoadModel();
+loadModel.load(`_alex/modifiedscv.glb`).then((model) => scene.add(model));
 
 async function loadMap(filepath) {
   const chk = await imageChk(filepath, gameOptions.bwDataPath);
