@@ -136,10 +136,13 @@ export function createGui(onlyTextures = false) {
     this.dirlight = {
       power: 3,
       color: "#ffffff",
+      x: -40,
+      y: 20,
+      z: -60,
     };
 
     this.hemilight = {
-      power: 0,
+      power: 3,
       color1: "#ffffff",
       color2: "#ffffff",
     };
@@ -153,7 +156,7 @@ export function createGui(onlyTextures = false) {
       decay: 3.7,
       distance: 100,
       penumbra: 0.5,
-      power: 750,
+      power: 0,
       color: "#ffa95c",
       reload: function () {
         console.log("dispatch:spotlight");
@@ -195,13 +198,18 @@ export function createGui(onlyTextures = false) {
 
     const rendererFolder = sceneFolder.addFolder("Renderer");
     rendererFolder.add(control.renderer, "gamma");
-    rendererFolder.add(control.renderer, "toneMapping", [
-      "NoToneMapping",
-      "LinearToneMapping",
-      "ReinhardToneMapping",
-      "CineonToneMapping",
-      "ACESFilmicToneMapping",
-    ]);
+    control.toneMappingChanged = rendererFolder.add(
+      control.renderer,
+      "toneMapping",
+      [
+        "NoToneMapping",
+        "LinearToneMapping",
+        "ReinhardToneMapping",
+        "CineonToneMapping",
+        "ACESFilmicToneMapping",
+      ]
+    ).onFinishChange;
+
     rendererFolder.add(control.renderer, "toneMappingExposure");
     rendererFolder.addColor(control.renderer, "fogColor");
 
@@ -216,6 +224,9 @@ export function createGui(onlyTextures = false) {
     const dirlightFolder = sceneFolder.addFolder("Directional");
     dirlightFolder.add(control.dirlight, "power");
     dirlightFolder.addColor(control.dirlight, "color");
+    dirlightFolder.add(control.dirlight, "x");
+    dirlightFolder.add(control.dirlight, "y");
+    dirlightFolder.add(control.dirlight, "z");
 
     const pointlightFolder = sceneFolder.addFolder("Point Light");
     pointlightFolder.add(control.pointlight, "power");

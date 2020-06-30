@@ -2,7 +2,6 @@ import { createStats, createGui } from "./gui";
 import * as THREE from "three";
 import { handleResize } from "../utils/resize";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
-import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter";
 import { Vector3 } from "three";
 import {
   loadAllTerrain,
@@ -18,9 +17,9 @@ import { gameOptions } from "../utils/gameOptions";
 import React from "react";
 import { render } from "react-dom";
 import { App } from "./ui";
-import { LoadModel } from "../meshes/LoadModels";
-
+import { sunlight } from "./sunlight";
 import { ipcRenderer } from "electron";
+import { terrainMesh } from "./generateTerrainMesh";
 
 console.log("3d-map-loading", new Date().toLocaleString());
 
@@ -70,14 +69,16 @@ camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 controls.update();
 camera.lookAt(new Vector3());
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 3);
 scene.add(hemi);
 
-const light = new THREE.DirectionalLight(0xffffff, 1);
-
-// light.castShadow = true;
-light.name = "directional";
+const light = sunlight(128, 128);
 scene.add(light);
+
+var h = new THREE.CameraHelper(light.shadow.camera);
+scene.add(h);
+var helper = new THREE.DirectionalLightHelper(light, 5);
+scene.add(helper);
 
 const spotlight = new THREE.SpotLight(0xffa95c, 100);
 spotlight.position.y = 50;
@@ -129,8 +130,6 @@ const loadMap = async (filepath) => {
     setTimeout(res, 100);
   });
 
-  //force dom refresh??
-  // setTimeout(async () => {
   const preset = loadTerrainPreset(chk.tilesetName);
   const [newFloor, newFloorBg] = await loadAllTerrain(chk, renderer, preset);
   const elevationsTexture = await mapElevationsLoader(chk);
@@ -149,7 +148,6 @@ const loadMap = async (filepath) => {
   newFloor.userData.originalMap = newFloor.material.map;
   newFloor.userData.elevationsTexture = elevationsTexture;
   loadOverlayEl.style.display = "none";
-  // }, 1);
 };
 
 const { control } = createGui();
@@ -190,6 +188,11 @@ function animate() {
     light.color = new THREE.Color(
       parseInt(control.dirlight.color.substr(1), 16)
     );
+    light.position.set(
+      control.dirlight.x,
+      control.dirlight.y,
+      control.dirlight.z
+    );
 
     hemi.intensity = control.hemilight.power;
     hemi.groundColor = new THREE.Color(
@@ -211,15 +214,22 @@ function animate() {
     camera.zoom = control.camera.zoom;
     camera.updateProjectionMatrix();
 
+    control.toneMappingChanged(() => {
+      scene.traverse((o) => {
+        if (o.type === "Mesh") {
+          o.material.needsUpdate = true;
+        }
+      });
+    });
+
     const floor = findMeshByName("floor");
     if (floor) {
       floor.material.wireframe = control.map.showWireframe;
-      floor.material.displacementScale = control.displacement.effectScale;
+
       const { material } = floor;
       if (material.map) {
-        const oldMap = material.map;
         if (control.displacement.showMap) {
-          material.map = material.displacementMap;
+          material.map = floor.userData.displacementMap;
         } else if (control.map.showElevations) {
           material.map = floor.userData.elevationsTexture;
         } else {
@@ -255,7 +265,21 @@ control.on("displacement", async () => {
   const chk = await imageChk(currentMapFilePath, gameOptions.bwDataPath);
   displaceLoader(chk, renderer, d2).then((map) => {
     const floor = findMeshByName("floor");
-    floor.material.displacementMap = map;
+
+    const newFloor = terrainMesh(
+      chk.size[0],
+      chk.size[1],
+      floor.material.map.clone(),
+      map,
+      floor.material.roughnessMap.clone(),
+      null,
+      control.displacement.effectScale
+    );
+
+    scene.add(newFloor);
+
+    scene.remove(floor);
+
     console.log("done");
   });
 

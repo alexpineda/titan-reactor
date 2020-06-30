@@ -30,5 +30,5 @@ export const generateElevationBasedMap = ({
         onlyWalkable,
       }),
     })
-    .then((data) => ({ chk, data, width, height }));
+    .then((data) => ({ data, width, height }));
 };

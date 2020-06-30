@@ -1,10 +1,11 @@
 import * as THREE from "three";
-import { initRenderer } from "./3d-map-loading/renderer";
+import { initRenderer } from "./3d-map-rendering/renderer";
 import { initOrbitControls } from "./camera-minimap/orbitControl";
-import { loadAllTerrain } from "./3d-map-loading/generateTerrainTextures";
-import { loadTerrainPreset } from "./3d-map-loading/terrainPresets";
+import { loadAllTerrain } from "./3d-map-rendering/generateTerrainTextures";
+import { loadTerrainPreset } from "./3d-map-rendering/terrainPresets";
 import { handleResize } from "./utils/resize";
 import { LoadModel } from "./meshes/LoadModels";
+import { sunlight } from "./3d-map-rendering/sunlight";
 
 export async function TitanReactorMap(chk, canvas) {
   console.log("haaaaalp");
@@ -44,7 +45,7 @@ export async function TitanReactorMap(chk, canvas) {
   world.add(gridHelper);
   scene.add(world);
 
-  const light = new THREE.DirectionalLight(0xffffff, 10);
+  const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
 
   const preset = loadTerrainPreset(chk.tilesetName);

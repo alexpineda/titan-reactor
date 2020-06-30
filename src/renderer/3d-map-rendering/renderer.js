@@ -17,13 +17,13 @@ export const initRenderer = ({
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
-  renderer.toneMapping = THREE.LinearToneMapping; //THREE.NoToneMapping;
+  renderer.toneMapping = THREE.CineonToneMapping; //THREE.NoToneMapping;
   renderer.toneMappingExposure = 1.2;
   renderer.gammaFactor = 2.2;
-  // renderer.physicallyCorrectLights = physicallyCorrectLights;
+  renderer.physicallyCorrectLights = physicallyCorrectLights;
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = shadowMap;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
   renderer.background = new THREE.Color(0x080820);
 
   return renderer;

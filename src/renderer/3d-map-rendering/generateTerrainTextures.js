@@ -3,7 +3,7 @@ import { generateMap } from "../2d-map-rendering/generators/generateMap";
 import { generateElevationBasedMap } from "../2d-map-rendering/generators/generateElevationBaseMap";
 import * as THREE from "three";
 // import { Cache } from "../utils/electron/cache";
-import { generateTerrainMesh } from "./generateTerrainMesh";
+import { terrainMesh, backgroundTerrainMesh } from "./generateTerrainMesh";
 import { rgbToCanvas } from "../2d-map-rendering/image/canvas";
 
 const Cache = {
@@ -14,6 +14,8 @@ const Cache = {
       new THREE.CanvasTexture(rgbToCanvas({ data, width, height }))
     ),
 };
+
+// new THREE.ImageBitmapLoader().load("_alex/fs-nodoodads_normal.png")
 
 const flip = (texture) => {
   // texture.wrapS = THREE.RepeatWrapping;
@@ -104,7 +106,7 @@ export const bgLoader = async (
 export const displaceLoader = async (
   chk,
   renderer,
-  preset = {},
+
   ignoreCache = false
 ) => {
   const scale = 0.25;
@@ -120,7 +122,6 @@ export const displaceLoader = async (
     detailsRatio: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15],
     walkableLayerBlur: 16,
     allLayersBlur: 8,
-    ...preset,
   });
   return Cache.convertAndSaveMapTexture("displace", image, width, height);
 };
@@ -148,13 +149,31 @@ export const roughnessLoader = async (
   return Cache.convertAndSaveMapTexture("rough", data, width, height);
 };
 
-export function loadAllTerrain(chk, renderer, preset, ignoreCache = true) {
+export async function loadAllTerrain(
+  chk,
+  renderer,
+  preset,
+  ignoreCache = true
+) {
   return Promise.all([
     mapLoader(chk, renderer, {}, ignoreCache),
     bgLoader(chk, renderer, {}, ignoreCache),
     displaceLoader(chk, renderer, {}, ignoreCache),
     roughnessLoader(chk, renderer, {}, ignoreCache),
-  ]).then((args) =>
-    generateTerrainMesh(renderer, chk.size[0], chk.size[1], ...args)
-  );
+    Promise.resolve(
+      new THREE.TextureLoader().load("_alex/fs-nodoodads_normal.png")
+    ),
+  ]).then(([map, bg, displace, roughness, normal]) => {
+    const terrain = terrainMesh(
+      chk.size[0],
+      chk.size[1],
+      map,
+      displace,
+      roughness,
+      normal
+    );
+    const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
+
+    return [terrain, bgTerrain];
+  });
 }

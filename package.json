@@ -30,7 +30,8 @@
       "sourceDirectory": "src/main"
     },
     "renderer": {
-      "sourceDirectory": "src/renderer"
+      "sourceDirectory": "src/renderer",
+      "webpackConfig": "src/build/webpack.renderer.additions.js"
     }
   },
   "dependencies": {
@@ -59,6 +60,8 @@
     "electron": "^9.0.5",
     "electron-webpack": "^2.8.2",
     "parcel-plugin-static-files-copy": "^2.4.3",
-    "webpack": "^4.43.0"
+    "source-map-support": "^0.5.19",
+    "webpack": "^4.43.0",
+    "worker-loader": "^2.0.0"
   }
 }
