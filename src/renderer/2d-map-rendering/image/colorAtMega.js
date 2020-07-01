@@ -1,4 +1,4 @@
-export function colorAtMega({ renderElevations }) {
+export function colorAtMega({ renderElevations } = {}) {
   return (tileset, mega, x, y) => {
     const miniX = Math.floor(x / 8);
     const miniY = Math.floor(y / 8);

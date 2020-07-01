@@ -2,20 +2,25 @@ import React from "react";
 import * as THREE from "three";
 import { render } from "react-dom";
 import { ipcRenderer } from "electron";
-import { createStats, createGui } from "./gui";
+import { createStats, createGui } from "./gui/gui";
 import { handleResize } from "../utils/resize";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
-import { loadAllTerrain } from "./generateTerrainTextures";
-import { mapPreviewCanvas } from "./textures/mapPreviewCanvas";
-import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
-import { displacementCanvasTexture } from "./textures/displacementCanvasTexture";
+
 import { initRenderer } from "./renderer";
-import { loadTerrainPreset } from "./terrainPresets";
 import { imageChk } from "../utils/loadChk";
 import { gameOptions } from "../utils/gameOptions";
 import { App } from "./ui";
 import { sunlight } from "./environment/sunlight";
+
 import { terrainMesh } from "./meshes/terrainMesh";
+import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
+import { mapCanvasTexture } from "./textures/mapCanvasTexture";
+import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
+import { displacementCanvasTexture } from "./textures/displacementCanvasTexture";
+import { roughnessCanvasTexture } from "./textures/roughnessCanvasTexture";
+import { normalCanvasTexture } from "./textures/normalCanvasTexture";
+import { mapPreviewCanvas } from "./textures/mapPreviewCanvas";
+import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
 
 console.log("3d-map-loading", new Date().toLocaleString());
 
@@ -92,6 +97,13 @@ pointLight.power = 16 * Math.PI;
 pointLight.decay = 2;
 scene.add(pointLight);
 
+scene.add(
+  new THREE.Mesh(
+    new THREE.SphereBufferGeometry(10),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+  )
+);
+
 document.body.appendChild(renderer.domElement);
 
 const stats = createStats();
@@ -126,8 +138,23 @@ const loadMap = async (filepath) => {
     setTimeout(res, 100);
   });
 
-  const preset = loadTerrainPreset(chk.tilesetName);
-  const [newFloor, newFloorBg] = await loadAllTerrain(chk);
+  const map = await mapCanvasTexture(chk);
+  const bg = await bgMapCanvasTexture(chk);
+  const displace = await displacementCanvasTexture(chk);
+  const roughness = await roughnessCanvasTexture(chk);
+  const normal = await normalCanvasTexture(chk);
+
+  const newFloor = terrainMesh(
+    chk.size[0],
+    chk.size[1],
+    map,
+    displace,
+    roughness,
+    normal
+  );
+  newFloor.name = "floor";
+  const newFloorBg = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
+  newFloorBg.name = "backing-floor";
   const elevationsTexture = await mapElevationsCanvasTexture(chk);
 
   const floor = findMeshByName("floor");
@@ -198,25 +225,24 @@ function animate() {
       parseInt(control.hemilight.color1.substr(1), 16)
     );
 
-    renderer.toneMappingExposure = control.renderer.toneMappingExposure;
-    renderer.gammaFactor = control.renderer.gamma;
-    scene.background = new THREE.Color(
-      parseInt(control.renderer.fogColor.substr(1), 16)
-    );
-    scene.fog.color = scene.background;
-    renderer.toneMapping = THREE[control.renderer.toneMapping];
+    // renderer.toneMappingExposure = control.renderer.toneMappingExposure;
+    // renderer.gammaFactor = control.renderer.gamma;
+    // scene.background = new THREE.Color(
+    //   parseInt(control.renderer.fogColor.substr(1), 16)
+    // );
+    // scene.fog.color = scene.background;
+    // renderer.toneMapping = THREE[control.renderer.toneMapping];
+    // control.toneMappingChanged(() => {
+    //   scene.traverse((o) => {
+    //     if (o.type === "Mesh") {
+    //       o.material.needsUpdate = true;
+    //     }
+    //   });
+    // });
 
     camera.fov = control.camera.fov;
     camera.zoom = control.camera.zoom;
     camera.updateProjectionMatrix();
-
-    control.toneMappingChanged(() => {
-      scene.traverse((o) => {
-        if (o.type === "Mesh") {
-          o.material.needsUpdate = true;
-        }
-      });
-    });
 
     const floor = findMeshByName("floor");
     if (floor) {
@@ -248,38 +274,21 @@ document.getElementById("map-name").onclick = function () {
   );
 };
 
-control.on("displacement", async () => {
-  const d = control.displacement;
-
-  const d2 = {
-    ...control.displacement,
-    elevations: d.elevations.split(", ").map(Number),
-    detailsRatio: d.detailsRatio.split(", ").map(Number),
-    scale: d.textureScale,
-  };
-
-  const chk = await imageChk(currentMapFilePath, gameOptions.bwDataPath);
-  displacementCanvasTexture(chk, renderer, d2).then((map) => {
-    const floor = findMeshByName("floor");
-
-    const newFloor = terrainMesh(
-      chk.size[0],
-      chk.size[1],
-      floor.material.map.clone(),
-      map,
-      floor.material.roughnessMap.clone(),
-      null,
-      control.displacement.effectScale
-    );
-
-    scene.add(newFloor);
-
-    scene.remove(floor);
-
-    console.log("done");
-  });
-
-  console.log("on:displacement");
-});
-
 handleResize(camera, renderer);
+
+const myC = document.createElement("canvas");
+myC.style.display = "none";
+
+window.showMap = (canvas) => {
+  if (!canvas) {
+    myC.style.display = "none";
+    return;
+  }
+  //grab the context from your destination canvas
+  var destCtx = myC.getContext("2d");
+  myC.width = canvas.width;
+  myC.height = canvas.height;
+  //call its drawImage() function passing it the source canvas directly
+  destCtx.drawImage(canvas, 0, 0);
+  myC.style.display = "block";
+};

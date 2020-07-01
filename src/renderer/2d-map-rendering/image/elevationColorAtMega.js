@@ -1,16 +1,14 @@
-export const elevationColorAtMega = (opts) => {
-  const {
-    elevations,
-    detailsRatio,
-    onlyWalkable,
-    skipWalkable,
-    skipDetails,
-    water,
-    twilight,
-    lava,
-    colorReplace,
-  } = opts;
-
+export const elevationColorAtMega = ({
+  elevations,
+  detailsRatio,
+  onlyWalkable,
+  skipWalkable,
+  skipDetails,
+  water,
+  twilight,
+  lava,
+  colorReplace,
+} = {}) => {
   return (tileset, mega, x, y) => {
     const miniX = Math.floor(x / 8);
     const miniY = Math.floor(y / 8);

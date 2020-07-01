@@ -1,5 +1,7 @@
 import * as dat from "dat.gui";
 import Stats from "stats.js";
+import { renderOptions, addRendererFields } from "./renderer";
+import { render } from "react-dom";
 
 export function createStats() {
   const stats = new Stats();
@@ -45,12 +47,7 @@ export function createGui(onlyTextures = false) {
       },
     };
 
-    this.renderer = {
-      gamma: 2.2,
-      toneMapping: "NoToneMapping",
-      toneMappingExposure: 1,
-      fogColor: "#080820",
-    };
+    this.renderer = renderOptions();
 
     this.camera = {
       zoom: 1,
@@ -196,22 +193,11 @@ export function createGui(onlyTextures = false) {
   if (!onlyTextures) {
     const sceneFolder = gui.addFolder("Scene");
 
-    const rendererFolder = sceneFolder.addFolder("Renderer");
-    rendererFolder.add(control.renderer, "gamma");
-    control.toneMappingChanged = rendererFolder.add(
-      control.renderer,
-      "toneMapping",
-      [
-        "NoToneMapping",
-        "LinearToneMapping",
-        "ReinhardToneMapping",
-        "CineonToneMapping",
-        "ACESFilmicToneMapping",
-      ]
-    ).onFinishChange;
-
-    rendererFolder.add(control.renderer, "toneMappingExposure");
-    rendererFolder.addColor(control.renderer, "fogColor");
+    const folder = sceneFolder.addFolder("Renderer");
+    addRendererFields(
+      folder.add.bind(folder, control.renderer),
+      folder.addColor.bind(folder, control.renderer)
+    );
 
     const cameraFolder = sceneFolder.addFolder("Camera");
     cameraFolder.add(control.camera, "zoom");
