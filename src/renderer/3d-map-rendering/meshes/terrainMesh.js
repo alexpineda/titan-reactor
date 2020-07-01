@@ -11,6 +11,7 @@ export function terrainMesh(
   displacementScale = 6
 ) {
   const geometry = createDisplacementGeometry(
+    null,
     mapWidth,
     mapHeight,
     mapWidth * 2,

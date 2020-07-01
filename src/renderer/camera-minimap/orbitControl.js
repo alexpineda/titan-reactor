@@ -25,6 +25,7 @@ export const initOrbitControls = (camera, element, limitControl = true) => {
     // option to disable for 360 view
     orbitControl.maxAzimuthAngle = Math.PI / 5;
     orbitControl.minAzimuthAngle = -Math.PI / 5;
+    camera.position.clampLength(5, 60);
   }
   return orbitControl;
 };

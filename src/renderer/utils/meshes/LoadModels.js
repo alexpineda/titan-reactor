@@ -1,14 +1,14 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { sRGBEncoding } from "three";
+import { sRGBEncoding, DefaultLoadingManager } from "three";
 
 export class LoadModel {
-  constructor(perfOptions = {}) {
-    this.perfOptions = perfOptions;
+  constructor(loadingManager = DefaultLoadingManager) {
+    this.loadingManager = loadingManager;
   }
 
   load(file, name = "", userData = {}) {
     return new Promise((resolve, reject) => {
-      new GLTFLoader().load(
+      new GLTFLoader(this.loadingManager).load(
         file,
         function ({ scene }) {
           console.log("gltf:loaded", scene);
@@ -35,12 +35,10 @@ export class LoadModel {
 }
 
 class LoadModels {
-  constructor(perfOptions = {}) {
-    this.perfOptions = perfOptions;
-  }
+  constructor() {}
 
   loadAll() {
-    const loader = new LoadModel(this.perfOptions);
+    const loader = new LoadModel();
 
     return new Promise((resolve, reject) => {
       Promise.all([

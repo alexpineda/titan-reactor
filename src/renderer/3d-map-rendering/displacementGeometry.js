@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 export const createDisplacementGeometry = (
+  existingGeom,
   width,
   height,
   widthSegments,
@@ -9,13 +10,9 @@ export const createDisplacementGeometry = (
   displacementScale = 2,
   displacementBias = 1
 ) => {
-  var geom = new THREE.PlaneBufferGeometry(
-    width,
-    height,
-    widthSegments,
-    heightSegments
-  );
-
+  const geom =
+    existingGeom ||
+    new THREE.PlaneBufferGeometry(width, height, widthSegments, heightSegments);
   var ctx = canvas.getContext("2d");
 
   var pos = geom.getAttribute("position");

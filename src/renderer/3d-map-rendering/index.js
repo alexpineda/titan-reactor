@@ -5,6 +5,8 @@ import { ipcRenderer } from "electron";
 import { createStats, createGui } from "./gui/gui";
 import { handleResize } from "../utils/resize";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
+import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler";
+import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 
 import { initRenderer } from "./renderer";
 import { imageChk } from "../utils/loadChk";
@@ -21,6 +23,8 @@ import { roughnessCanvasTexture } from "./textures/roughnessCanvasTexture";
 import { normalCanvasTexture } from "./textures/normalCanvasTexture";
 import { mapPreviewCanvas } from "./textures/mapPreviewCanvas";
 import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
+import { createDisplacementGeometry } from "./displacementGeometry";
+import { LoadModel } from "../utils/meshes/LoadModels";
 
 console.log("3d-map-loading", new Date().toLocaleString());
 
@@ -63,7 +67,7 @@ const findMeshByName = (name) => {
   return mesh;
 };
 
-const controls = initOrbitControls(camera, renderer.domElement);
+let controls = initOrbitControls(camera, renderer.domElement, false);
 
 camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 
@@ -76,10 +80,10 @@ scene.add(hemi);
 const light = sunlight(128, 128);
 scene.add(light);
 
-var h = new THREE.CameraHelper(light.shadow.camera);
-scene.add(h);
-var helper = new THREE.DirectionalLightHelper(light, 5);
-scene.add(helper);
+var lightCameraHelper = new THREE.CameraHelper(light.shadow.camera);
+scene.add(lightCameraHelper);
+var lightHelper = new THREE.DirectionalLightHelper(light, 5);
+scene.add(lightHelper);
 
 const spotlight = new THREE.SpotLight(0xffa95c, 100);
 spotlight.position.y = 50;
@@ -88,8 +92,10 @@ spotlight.castShadow = true;
 spotlight.shadow.bias = -0.0001;
 spotlight.shadow.mapSize.width = 1024 * 4;
 spotlight.shadow.mapSize.height = 1024 * 4;
-
 scene.add(spotlight);
+
+const spotlightHelper = new THREE.SpotLightHelper(spotlight);
+scene.add(spotlightHelper);
 
 var pointLight = new THREE.PointLight(0xedd89f, 1, 100);
 pointLight.position.set(-64, 10, -64);
@@ -97,12 +103,20 @@ pointLight.power = 16 * Math.PI;
 pointLight.decay = 2;
 scene.add(pointLight);
 
-scene.add(
-  new THREE.Mesh(
-    new THREE.SphereBufferGeometry(10),
-    new THREE.MeshBasicMaterial({ color: 0xff0000 })
-  )
-);
+const loadModel = new LoadModel();
+const prefabs = [];
+const assignModel = (id) => (model) => (prefabs[id] = model);
+loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
+loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
+loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));
+loadModel.load(`_alex/pylon.glb`).then(assignModel(0x9c));
+loadModel.load(`_alex/nexus.glb`).then(assignModel(0x9a));
+loadModel.load(`_alex/command-center.glb`).then(assignModel(0x6a));
+loadModel.load(`_alex/refinery.glb`).then(assignModel(0x6e));
+loadModel.load(`_alex/barracks.glb`).then(assignModel(0x6f));
+loadModel.load(`_alex/assimilator.glb`).then(assignModel(0x9d));
+loadModel.load(`_alex/gateway.glb`).then(assignModel(0xa0));
+loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
 
 document.body.appendChild(renderer.domElement);
 
@@ -170,10 +184,33 @@ const loadMap = async (filepath) => {
 
   newFloor.userData.originalMap = newFloor.material.map;
   newFloor.userData.elevationsTexture = elevationsTexture;
+
+  // var vertexHelper = new VertexNormalsHelper(newFloor, 2, 0x00ff00, 1);
+  // scene.add(vertexHelper);
+
+  var sampler = new MeshSurfaceSampler(newFloor)
+    .setWeightAttribute("uv")
+    .build();
+
+  scene.traverse((o) => {
+    if (o.userData.type === "unit") {
+      scene.remove(o);
+    }
+  });
+
+  prefabs.forEach((prefab) => {
+    let position = new THREE.Vector3(),
+      normal = new THREE.Vector3();
+    sampler.sample(position, normal);
+    prefab.position.set(position.x, position.z, position.y);
+    prefab.userData.type = "unit";
+    scene.add(prefab);
+  });
+
   loadOverlayEl.style.display = "none";
 };
 
-const { control } = createGui();
+const { control, controllers } = createGui();
 
 let f = 0;
 let cycle = 0;
@@ -191,74 +228,6 @@ function animate() {
     f += 0.01;
     pointLight.position.x = Math.cos(f) * 64;
     pointLight.position.z = Math.sin(f) * 64;
-
-    spotlight.castShadow = control.spotlight.castShadow;
-    spotlight.shadow.bias = control.spotlight.shadowBias;
-    spotlight.decay = control.spotlight.decay;
-    spotlight.distance = control.spotlight.distance;
-    spotlight.penumbra = control.spotlight.penumbra;
-    spotlight.power = control.spotlight.power;
-    spotlight.color = new THREE.Color(
-      parseInt(control.spotlight.color.substr(1), 16)
-    );
-
-    pointLight.power = control.pointlight.power;
-    pointLight.color = new THREE.Color(
-      parseInt(control.pointlight.color.substr(1), 16)
-    );
-
-    light.intensity = control.dirlight.power;
-    light.color = new THREE.Color(
-      parseInt(control.dirlight.color.substr(1), 16)
-    );
-    light.position.set(
-      control.dirlight.x,
-      control.dirlight.y,
-      control.dirlight.z
-    );
-
-    hemi.intensity = control.hemilight.power;
-    hemi.groundColor = new THREE.Color(
-      parseInt(control.hemilight.color2.substr(1), 16)
-    );
-    hemi.skyColor = new THREE.Color(
-      parseInt(control.hemilight.color1.substr(1), 16)
-    );
-
-    // renderer.toneMappingExposure = control.renderer.toneMappingExposure;
-    // renderer.gammaFactor = control.renderer.gamma;
-    // scene.background = new THREE.Color(
-    //   parseInt(control.renderer.fogColor.substr(1), 16)
-    // );
-    // scene.fog.color = scene.background;
-    // renderer.toneMapping = THREE[control.renderer.toneMapping];
-    // control.toneMappingChanged(() => {
-    //   scene.traverse((o) => {
-    //     if (o.type === "Mesh") {
-    //       o.material.needsUpdate = true;
-    //     }
-    //   });
-    // });
-
-    camera.fov = control.camera.fov;
-    camera.zoom = control.camera.zoom;
-    camera.updateProjectionMatrix();
-
-    const floor = findMeshByName("floor");
-    if (floor) {
-      floor.material.wireframe = control.map.showWireframe;
-
-      const { material } = floor;
-      if (material.map) {
-        if (control.displacement.showMap) {
-          material.map = floor.userData.displacementMap;
-        } else if (control.map.showElevations) {
-          material.map = floor.userData.elevationsTexture;
-        } else {
-          material.map = floor.userData.originalMap;
-        }
-      }
-    }
   }
 
   stats.end();
@@ -267,28 +236,124 @@ function animate() {
 }
 animate();
 
-console.log("toneMapping", control.renderer.toneMapping);
-document.getElementById("map-name").onclick = function () {
-  loadMap(
-    "/Users/ricardopineda/Library/Application Support/Blizzard/StarCraft/Maps/iCCup Map Pack v39.0/Observer/Blue Storm 1.2_iccOB.scx"
-  );
-};
-
 handleResize(camera, renderer);
 
-const myC = document.createElement("canvas");
-myC.style.display = "none";
+//#region camera controllers
+controllers.camera.onChangeAny(({ fov, zoom }) => {
+  camera.fov = fov;
+  camera.zoom = zoom;
+  camera.updateProjectionMatrix();
+});
 
-window.showMap = (canvas) => {
-  if (!canvas) {
-    myC.style.display = "none";
-    return;
+controllers.camera.free.onChange((free) => {
+  controls.dispose();
+  controls = initOrbitControls(camera, renderer.domElement, free);
+});
+//#endregion
+
+//#region map controllers
+controllers.map.onChangeAny(({ showElevations, showWireframe }) => {
+  const floor = findMeshByName("floor");
+  if (!floor) return;
+  if (showElevations) {
+    floor.material.map = newFloor.userData.elevationsTexture;
+  } else {
+    material.map = floor.userData.originalMap;
   }
-  //grab the context from your destination canvas
-  var destCtx = myC.getContext("2d");
-  myC.width = canvas.width;
-  myC.height = canvas.height;
-  //call its drawImage() function passing it the source canvas directly
-  destCtx.drawImage(canvas, 0, 0);
-  myC.style.display = "block";
-};
+  floor.material.wireframe = showWireframe;
+});
+//#endregion
+
+//#region renderer controllers
+controllers.renderer.fogColor.onChange((fogColor) => {
+  scene.background = new THREE.Color(parseInt(fogColor.substr(1), 16));
+  scene.fog.color = scene.background;
+});
+
+controllers.renderer.onFinishChangeAny(
+  ({ toneMappingExposure, gammaFactor, toneMapping }) => {
+    renderer.toneMappingExposure = toneMappingExposure;
+    renderer.gammaFactor = gammaFactor;
+    renderer.toneMapping = THREE[toneMapping];
+    scene.traverse((o) => {
+      if (o.type === "Mesh") {
+        o.material.needsUpdate = true;
+      }
+    });
+  }
+);
+//#endregion
+
+//#region hemilight controllers
+controllers.hemilight.onChangeAny(({ intensity, skyColor, groundColor }) => {
+  hemi.intensity = intensity;
+  hemi.skyColor = new THREE.Color(parseInt(skyColor.substr(1), 16));
+  hemi.groundColor = new THREE.Color(parseInt(groundColor.substr(1), 16));
+});
+//#endregion
+
+//#region pointlight controllers
+controllers.pointlight.onChangeAny(({ intensity, color, helper }) => {
+  pointLight.intensity = intensity;
+  pointLight.color = new THREE.Color(parseInt(color.substr(1), 16));
+});
+
+//#endregion
+
+//#region dirlight controllers
+controllers.dirlight.onChangeAny(
+  ({ intensity, color, x, y, z, x2, y2, z2, helper }) => {
+    light.intensity = intensity;
+    light.color = new THREE.Color(parseInt(color.substr(1), 16));
+    light.position.x = x;
+    light.position.y = y;
+    light.position.z = z;
+    light.target.position.x = x2;
+    light.target.position.y = y2;
+    light.target.position.z = z2;
+    lightCameraHelper.visible = helper;
+    lightHelper.visible = helper;
+  }
+);
+//#endregion
+
+//#region spotlight controllers
+controllers.spotlight.onChangeAny(
+  ({
+    castShadow,
+    shadowBias,
+    decay,
+    distance,
+    penumbra,
+    power,
+    color,
+    helper,
+  }) => {
+    spotlight.castShadow = castShadow;
+    spotlight.shadow.bias = shadowBias;
+    spotlight.decay = decay;
+    spotlight.distance = distance;
+    spotlight.penumbra = penumbra;
+    spotlight.power = power;
+    spotlight.color = new THREE.Color(parseInt(color.substr(1), 16));
+    spotlightHelper.visible = helper;
+  }
+);
+//#endregion
+
+//#region displacement base controllers
+// controllers.displacementBase.elevations.onChange;
+
+//#endregion
+
+//#region
+controllers.displacementMix.show.onChange((value) => {
+  const floor = findMeshByName("floor");
+  if (!floor) return;
+  if (value) {
+    floor.material.map = floor.userData.displacementMap;
+  } else {
+    material.map = floor.userData.originalMap;
+  }
+});
+//#endregion

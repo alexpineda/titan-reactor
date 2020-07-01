@@ -1,8 +1,9 @@
-import { DirectionalLight } from "three";
+import { DirectionalLight, Object3D } from "three";
 
 export function sunlight(mapWidth, mapHeight) {
   const light = new DirectionalLight(0xffffff, 3);
   light.position.set(-40, 20, -60);
+  light.target = new Object3D();
   light.castShadow = true;
   light.shadow.camera.near = 0.5; // default
   light.shadow.camera.far = 100; // default

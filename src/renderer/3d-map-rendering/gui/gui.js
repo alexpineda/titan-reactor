@@ -1,7 +1,41 @@
 import * as dat from "dat.gui";
 import Stats from "stats.js";
-import { renderOptions, addRendererFields } from "./renderer";
-import { render } from "react-dom";
+import options from "./options";
+
+const bindFields = (folder, control, method) => {
+  return method(
+    folder.add.bind(folder, control),
+    folder.addColor.bind(folder, control)
+  );
+};
+
+const controller = (key, parentFolder, control) => {
+  control[key] = options[key].values;
+  const folder = parentFolder.addFolder(key[0].toUpperCase() + key.substr(1));
+  return [key, bindFields(folder, control[key], getFieldsFn(key))];
+};
+
+export const getFieldsFn = (key) => {
+  return (add, addColor) => {
+    const fields = Object.keys({
+      ...options[key].values,
+      ...options[key].args,
+    });
+
+    return fields
+      .map((field) => {
+        let name = field,
+          args = options[key].args[field] || [];
+
+        const fn = name.toLowerCase().includes("color") ? addColor : add;
+        return [name, fn(name, ...args)];
+      })
+      .reduce((obj, [name, fn]) => {
+        obj[name] = fn;
+        return obj;
+      }, {});
+  };
+};
 
 export function createStats() {
   const stats = new Stats();
@@ -10,7 +44,7 @@ export function createStats() {
   return stats;
 }
 
-export function createGui(onlyTextures = false) {
+export function createGui() {
   const gui = new dat.GUI();
   const listeners = {};
 
@@ -47,128 +81,6 @@ export function createGui(onlyTextures = false) {
       },
     };
 
-    this.renderer = renderOptions();
-
-    this.camera = {
-      zoom: 1,
-      fov: 75,
-      near: 0.1,
-      far: 1000,
-    };
-
-    this.roughness = {
-      elevations: "1 1 1 1 1 1 1",
-      detailsRatio: "0.5 0 0 0 0 0 0",
-      textureScale: 0.5,
-      effectScale: 1,
-      blur: 0,
-      water: false,
-      lava: false,
-      twilight: false,
-      skipDetails: false,
-      onlyWalkable: false,
-      regenerate: function () {
-        console.log("dispatch:roughness");
-        dispatch("roughness", ctrl.roughness);
-      },
-    };
-
-    this.displacement = {
-      elevations: "0, 0.4, 0.79, 0.85, 1, 1, 0.85",
-      detailsRatio: "0.15, 0.15, 0.075, 0.15, 0.15, 0.075, 0",
-      textureScale: 0.25,
-      effectScale: 6,
-      water: false,
-      lava: false,
-      twilight: false,
-      walkableLayerBlur: 16,
-      allLayersBlur: 8,
-      showMap: false,
-      regenerate: function () {
-        console.log("dispatch:displacement");
-        dispatch("displacement", ctrl.displacement);
-      },
-    };
-
-    this.emissive = {
-      elevations: "1 1 1 1 1 1 1",
-      detailsRatio: "0.5 0 0 0 0 0 0",
-      textureScale: 0.5,
-      effectScale: 1,
-      blur: 0,
-      water: false,
-      lava: false,
-      twilight: false,
-      skipDetails: false,
-      onlyWalkable: false,
-      regenerate: function () {
-        console.log("dispatch:emissive");
-        dispatch("emissive", ctrl.emissive);
-      },
-    };
-
-    this.metallic = {
-      elevations: "1 1 1 1 1 1 1",
-      detailsRatio: "0.5 0 0 0 0 0 0",
-      textureScale: 0.5,
-      effectScale: 1,
-      displacementScale: 6,
-      blur: 0,
-      water: false,
-      lava: false,
-      twilight: false,
-      skipDetails: false,
-      onlyWalkable: false,
-      regenerate: function () {
-        console.log("dispatch:metallic");
-        dispatch("metallic", ctrl.metallic);
-      },
-    };
-
-    this.pointlight = {
-      power: 1000,
-      color: "#ffffff",
-    };
-
-    this.dirlight = {
-      power: 3,
-      color: "#ffffff",
-      x: -40,
-      y: 20,
-      z: -60,
-    };
-
-    this.hemilight = {
-      power: 3,
-      color1: "#ffffff",
-      color2: "#ffffff",
-    };
-
-    this.spotlight = {
-      positionY: 50,
-      positionX: 80,
-      positionZ: 80,
-      castShadow: true,
-      shadowBias: -0.0001,
-      decay: 3.7,
-      distance: 100,
-      penumbra: 0.5,
-      power: 0,
-      color: "#ffa95c",
-      reload: function () {
-        console.log("dispatch:spotlight");
-        dispatch("spotlight");
-      },
-    };
-
-    this.map = {
-      showElevations: false,
-      showWireframe: false,
-      map: "",
-      reload: function () {
-        dispatch("map:reload", ctrl.map.map);
-      },
-    };
     this.scene = {
       save: function () {
         dispatch("scene:save");
@@ -190,122 +102,46 @@ export function createGui(onlyTextures = false) {
   stateFolder.add(control.state, "save");
   stateFolder.add(control.state, "load");
 
-  if (!onlyTextures) {
-    const sceneFolder = gui.addFolder("Scene");
+  const scene = gui.addFolder("Scene");
+  const textures = gui.addFolder("Textures");
 
-    const folder = sceneFolder.addFolder("Renderer");
-    addRendererFields(
-      folder.add.bind(folder, control.renderer),
-      folder.addColor.bind(folder, control.renderer)
-    );
+  const controllerGroups = Object.entries(options)
+    .map(([key, option]) => {
+      let parent = gui;
+      if (option.parent === "scene") {
+        parent = scene;
+      } else if (option.parent === "textures") {
+        parent = textures;
+      }
 
-    const cameraFolder = sceneFolder.addFolder("Camera");
-    cameraFolder.add(control.camera, "zoom");
-    cameraFolder.add(control.camera, "fov");
+      return controller(key, parent, control);
+    })
+    .reduce((obj, [key, controllers]) => {
+      //key -> prop -> fn
+      obj[key] = controllers;
+      return obj;
+    }, {});
 
-    const mapFolder = sceneFolder.addFolder("Map");
-    mapFolder.add(control.map, "showElevations");
-    mapFolder.add(control.map, "showWireframe");
+  Object.entries(controllerGroups).forEach(([key, group]) => {
+    const onChangeAnyCbs = [];
+    const onFinishChangeAnyCbs = [];
 
-    const dirlightFolder = sceneFolder.addFolder("Directional");
-    dirlightFolder.add(control.dirlight, "power");
-    dirlightFolder.addColor(control.dirlight, "color");
-    dirlightFolder.add(control.dirlight, "x");
-    dirlightFolder.add(control.dirlight, "y");
-    dirlightFolder.add(control.dirlight, "z");
+    Object.values(group).forEach((ctrl) => {
+      ctrl.onChange &&
+        ctrl.onChange(() => onChangeAnyCbs.forEach((cb) => cb(control[key])));
+      ctrl.onFinishChange &&
+        ctrl.onFinishChange(() =>
+          onFinishChangeAnyCbs.forEach((cb) => cb(control[key]))
+        );
+    });
 
-    const pointlightFolder = sceneFolder.addFolder("Point Light");
-    pointlightFolder.add(control.pointlight, "power");
-    pointlightFolder.addColor(control.pointlight, "color");
-
-    const hemilightFolder = sceneFolder.addFolder("Hemi Light");
-    hemilightFolder.add(control.hemilight, "power");
-    hemilightFolder.addColor(control.hemilight, "color1");
-    hemilightFolder.addColor(control.hemilight, "color2");
-
-    const spotlightFolder = sceneFolder.addFolder("Spotlights");
-    spotlightFolder.add(control.spotlight, "castShadow");
-    spotlightFolder.add(control.spotlight, "shadowBias");
-    spotlightFolder.add(control.spotlight, "decay");
-    spotlightFolder.add(control.spotlight, "distance");
-    spotlightFolder.add(control.spotlight, "penumbra");
-    spotlightFolder.add(control.spotlight, "reload");
-    spotlightFolder.add(control.spotlight, "power");
-    spotlightFolder.add(control.spotlight, "color");
-  }
-  const texturesFolder = gui.addFolder("Textures");
-
-  const roughnessFolder = texturesFolder.addFolder("Roughness");
-  const roughPre = roughnessFolder.addFolder("Pre");
-  const roughProcess = roughnessFolder.addFolder("Process");
-  const roughPost = roughnessFolder.addFolder("Post");
-
-  roughProcess.add(control.roughness, "elevations");
-  roughProcess.add(control.roughness, "detailsRatio");
-  roughPre.add(control.roughness, "textureScale");
-  roughPost.add(control.roughness, "effectScale");
-  roughPost.add(control.roughness, "blur");
-  roughProcess.add(control.roughness, "water");
-  roughProcess.add(control.roughness, "lava");
-  roughProcess.add(control.roughness, "twilight");
-  roughProcess.add(control.roughness, "skipDetails");
-  roughProcess.add(control.roughness, "onlyWalkable");
-  roughnessFolder.add(control.roughness, "regenerate");
-
-  const displacementFolder = texturesFolder.addFolder("Displacement");
-  const displacePre = displacementFolder.addFolder("Pre");
-  const displaceProcess = displacementFolder.addFolder("Process");
-  const displacePost = displacementFolder.addFolder("Post");
-  displacementFolder.add(control.displacement, "showMap");
-  displacePre.add(control.displacement, "textureScale");
-  displacePost.add(control.displacement, "effectScale");
-  displacePost.add(control.displacement, "walkableLayerBlur");
-  displacePost.add(control.displacement, "allLayersBlur");
-
-  displaceProcess.add(control.displacement, "elevations");
-  displaceProcess.add(control.displacement, "detailsRatio");
-  displaceProcess.add(control.displacement, "water");
-  displaceProcess.add(control.displacement, "lava");
-  displaceProcess.add(control.displacement, "twilight");
-
-  displacementFolder.add(control.displacement, "regenerate");
-
-  const emissiveFolder = texturesFolder.addFolder("Emissive");
-  const emissivePre = emissiveFolder.addFolder("Pre");
-  const emissiveProcess = emissiveFolder.addFolder("Process");
-  const emissivePost = emissiveFolder.addFolder("Post");
-
-  emissiveProcess.add(control.emissive, "elevations");
-  emissiveProcess.add(control.emissive, "detailsRatio");
-  emissivePre.add(control.emissive, "textureScale");
-  emissivePost.add(control.emissive, "effectScale");
-  emissivePost.add(control.emissive, "blur");
-  emissiveProcess.add(control.emissive, "water");
-  emissiveProcess.add(control.emissive, "lava");
-  emissiveProcess.add(control.emissive, "twilight");
-  emissiveProcess.add(control.emissive, "skipDetails");
-  emissiveProcess.add(control.emissive, "onlyWalkable");
-  emissiveFolder.add(control.emissive, "regenerate");
-
-  const metallicFolder = texturesFolder.addFolder("Metallic");
-  const metallicPre = metallicFolder.addFolder("Pre");
-  const metallicProcess = metallicFolder.addFolder("Process");
-  const metallicPost = metallicFolder.addFolder("Post");
-
-  metallicProcess.add(control.emissive, "elevations");
-  metallicProcess.add(control.metallic, "detailsRatio");
-  metallicPre.add(control.metallic, "textureScale");
-  metallicPost.add(control.metallic, "effectScale");
-  metallicPost.add(control.metallic, "blur");
-  metallicProcess.add(control.metallic, "water");
-  metallicProcess.add(control.metallic, "lava");
-  metallicProcess.add(control.metallic, "twilight");
-  metallicProcess.add(control.metallic, "skipDetails");
-  metallicProcess.add(control.metallic, "onlyWalkable");
-  metallicFolder.add(control.metallic, "regenerate");
+    group.onChangeAny = (cb) => onChangeAnyCbs.push(cb);
+    group.onFinishChangeAny = (cb) => onFinishChangeAnyCbs.push(cb);
+  });
 
   gui.show();
   return {
     control,
+    controllers: controllerGroups,
   };
 }

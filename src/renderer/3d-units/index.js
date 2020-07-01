@@ -10,7 +10,7 @@ import React from "react";
 import { render } from "react-dom";
 import { App } from "./ui";
 import { ipcRenderer } from "electron";
-import { LoadModel } from "../meshes/LoadModels";
+import { LoadModel } from "../utils/meshes/LoadModels";
 import { Vector3, OrthographicCamera, Object3D } from "three";
 import { openFile } from "../invoke";
 import { BWAPIFrameFromBuffer } from "../replay/BWAPIFrames";
