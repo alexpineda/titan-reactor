@@ -15,7 +15,7 @@ const controller = (key, parentFolder, control) => {
   return [key, bindFields(folder, control[key], getFieldsFn(key))];
 };
 
-export const getFieldsFn = (key) => {
+const getFieldsFn = (key) => {
   return (add, addColor) => {
     const fields = Object.keys({
       ...options[key].values,
@@ -44,104 +44,94 @@ export function createStats() {
   return stats;
 }
 
-export function createGui() {
-  const gui = new dat.GUI();
-  const listeners = {};
-
-  const on = function (eventName, handler) {
-    if (listeners[eventName]) {
-      listeners[eventName].push(handler);
-    } else {
-      listeners[eventName] = [handler];
-    }
-  };
-  const dispatch = function (eventName, eventData) {
-    listeners[eventName] &&
-      listeners[eventName].forEach((handler) => handler(eventData));
-  };
-
-  let control = new (function () {
-    const ctrl = this;
-    this.on = on;
-
-    this.state = {
-      tileset: "Jungle",
-      save: function () {
-        localStorage.setItem(this.tileset, JSON.stringify(ctrl));
+export class SceneGui {
+  constructor() {
+    const gui = new dat.GUI();
+    const control = {
+      state: {
+        tileset: "Jungle",
+        save: this.save,
+        load: this.load,
       },
-      load: function () {
-        const json = JSON.parse(localStorage.getItem(this.tileset));
+    };
 
-        for (const [key, value] of Object.entries(json)) {
-          Object.assign(ctrl[key], value);
+    const stateFolder = gui.addFolder("State");
+    const scene = gui.addFolder("Scene");
+    const textures = gui.addFolder("Textures");
+
+    const controllers = Object.entries(options)
+      .map(([key, option]) => {
+        let parent = gui;
+        if (option.parent === "scene") {
+          parent = scene;
+        } else if (option.parent === "textures") {
+          parent = textures;
         }
 
-        gui.updateDisplay();
-        return ctrl;
-      },
-    };
+        return controller(key, parent, control);
+      })
+      .reduce((obj, [key, controllers]) => {
+        //key -> prop -> fn
+        obj[key] = controllers;
+        return obj;
+      }, {});
 
-    this.scene = {
-      save: function () {
-        dispatch("scene:save");
-      },
-    };
-  })();
+    Object.entries(controllers).forEach(([key, group]) => {
+      const onChangeAnyCbs = [];
+      const onFinishChangeAnyCbs = [];
 
-  const stateFolder = gui.addFolder("State");
-  stateFolder.add(control.state, "tileset", [
-    "Badlands",
-    "Space",
-    "Installation",
-    "Ashworld",
-    "Jungle",
-    "Desert",
-    "Ice",
-    "Twilight",
-  ]);
-  stateFolder.add(control.state, "save");
-  stateFolder.add(control.state, "load");
+      Object.values(group).forEach((ctrl) => {
+        ctrl.onChange &&
+          ctrl.onChange(() => onChangeAnyCbs.forEach((cb) => cb(control[key])));
+        ctrl.onFinishChange &&
+          ctrl.onFinishChange(() =>
+            onFinishChangeAnyCbs.forEach((cb) => cb(control[key]))
+          );
+      });
 
-  const scene = gui.addFolder("Scene");
-  const textures = gui.addFolder("Textures");
-
-  const controllerGroups = Object.entries(options)
-    .map(([key, option]) => {
-      let parent = gui;
-      if (option.parent === "scene") {
-        parent = scene;
-      } else if (option.parent === "textures") {
-        parent = textures;
-      }
-
-      return controller(key, parent, control);
-    })
-    .reduce((obj, [key, controllers]) => {
-      //key -> prop -> fn
-      obj[key] = controllers;
-      return obj;
-    }, {});
-
-  Object.entries(controllerGroups).forEach(([key, group]) => {
-    const onChangeAnyCbs = [];
-    const onFinishChangeAnyCbs = [];
-
-    Object.values(group).forEach((ctrl) => {
-      ctrl.onChange &&
-        ctrl.onChange(() => onChangeAnyCbs.forEach((cb) => cb(control[key])));
-      ctrl.onFinishChange &&
-        ctrl.onFinishChange(() =>
-          onFinishChangeAnyCbs.forEach((cb) => cb(control[key]))
-        );
+      group.onChangeAny = (cb) => onChangeAnyCbs.push(cb);
+      group.onFinishChangeAny = (cb) => onFinishChangeAnyCbs.push(cb);
     });
 
-    group.onChangeAny = (cb) => onChangeAnyCbs.push(cb);
-    group.onFinishChangeAny = (cb) => onFinishChangeAnyCbs.push(cb);
-  });
+    //special state group
+    stateFolder.add(control.state, "save");
+    stateFolder.add(control.state, "load");
+    controllers["state"] = {
+      tileset: stateFolder.add(control.state, "tileset", [
+        "Badlands",
+        "Space",
+        "Installation",
+        "Ashworld",
+        "Jungle",
+        "Desert",
+        "Ice",
+        "Twilight",
+      ]),
+    };
 
-  gui.show();
-  return {
-    control,
-    controllers: controllerGroups,
-  };
+    gui.show();
+    this.controllers = controllers;
+    this.control = control;
+    this.gui = gui;
+  }
+
+  save() {
+    localStorage.setItem(this.tileset, JSON.stringify(this.control));
+  }
+
+  load(tileset) {
+    try {
+      const json = JSON.parse(localStorage.getItem(tileset || this.tileset));
+
+      for (const [key, value] of Object.entries(json)) {
+        Object.assign(this.control[key], value);
+      }
+
+      this.gui.updateDisplay();
+    } catch (e) {
+      console.error(`error loading tileset state config`);
+    }
+  }
 }
+
+export function createGui() {}

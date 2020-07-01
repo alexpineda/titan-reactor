@@ -2,7 +2,7 @@ import React from "react";
 import * as THREE from "three";
 import { render } from "react-dom";
 import { ipcRenderer } from "electron";
-import { createStats, createGui } from "./gui/gui";
+import { createStats, SceneGui } from "./gui/gui";
 import { handleResize } from "../utils/resize";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
 import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler";
@@ -74,7 +74,7 @@ camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 controls.update();
 camera.lookAt(new THREE.Vector3());
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 3);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
 scene.add(hemi);
 
 const light = sunlight(128, 128);
@@ -104,8 +104,9 @@ pointLight.decay = 2;
 scene.add(pointLight);
 
 const loadModel = new LoadModel();
-const prefabs = [];
-const assignModel = (id) => (model) => (prefabs[id] = model);
+const units = new THREE.Object3D();
+scene.add(units);
+const assignModel = () => (model) => units.add(model);
 loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
 loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
 loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));
@@ -121,6 +122,9 @@ loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
 document.body.appendChild(renderer.domElement);
 
 const stats = createStats();
+const gui = new SceneGui();
+const control = gui.control;
+const controllers = gui.controllers;
 
 let currentMapFilePath;
 const loadMap = async (filepath) => {
@@ -192,25 +196,15 @@ const loadMap = async (filepath) => {
     .setWeightAttribute("uv")
     .build();
 
-  scene.traverse((o) => {
-    if (o.userData.type === "unit") {
-      scene.remove(o);
-    }
-  });
-
-  prefabs.forEach((prefab) => {
+  units.children.forEach((unit) => {
     let position = new THREE.Vector3(),
       normal = new THREE.Vector3();
     sampler.sample(position, normal);
-    prefab.position.set(position.x, position.z, position.y);
-    prefab.userData.type = "unit";
-    scene.add(prefab);
+    unit.position.set(position.x, position.z, position.y);
   });
 
   loadOverlayEl.style.display = "none";
 };
-
-const { control, controllers } = createGui();
 
 let f = 0;
 let cycle = 0;
@@ -256,9 +250,9 @@ controllers.map.onChangeAny(({ showElevations, showWireframe }) => {
   const floor = findMeshByName("floor");
   if (!floor) return;
   if (showElevations) {
-    floor.material.map = newFloor.userData.elevationsTexture;
+    floor.material.map = floor.userData.elevationsTexture;
   } else {
-    material.map = floor.userData.originalMap;
+    floor.material.map = floor.userData.originalMap;
   }
   floor.material.wireframe = showWireframe;
 });
@@ -353,7 +347,7 @@ controllers.displacementMix.show.onChange((value) => {
   if (value) {
     floor.material.map = floor.userData.displacementMap;
   } else {
-    material.map = floor.userData.originalMap;
+    floor.material.map = floor.userData.originalMap;
   }
 });
 //#endregion
