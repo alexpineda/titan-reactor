@@ -1,24 +1,5 @@
 import * as THREE from "three";
-import { createDisplacementGeometry } from "./displacementGeometry";
-
-export function backgroundTerrainMesh(mapWidth, mapHeight, map) {
-  const geometry = new THREE.PlaneBufferGeometry(mapWidth, mapHeight, 4, 4);
-  const material = new THREE.MeshLambertMaterial({
-    map,
-    transparent: true,
-    opacity: 0.5,
-    toneMapped: false,
-  });
-  const plane = new THREE.Mesh(geometry, material);
-  plane.scale.x = 10;
-  plane.scale.y = 10;
-  plane.rotation.x = -Math.PI / 2;
-
-  plane.position.z = 32;
-  plane.material.map.anisotropy = 1;
-  plane.name = "backing-floor";
-  return plane;
-}
+import { createDisplacementGeometry } from "../displacementGeometry";
 
 export function terrainMesh(
   mapWidth,
@@ -39,17 +20,10 @@ export function terrainMesh(
     0
   );
 
-  // const geometry = new THREE.PlaneBufferGeometry(
-  //   mapWidth,
-  //   mapHeight,
-  //   mapWidth * 2,
-  //   mapHeight * 2
-  // );
-
   const material = new THREE.MeshStandardMaterial({
     map: map,
     // displacementMap: displace,
-    // displacementScale: 6, // use it for reference, not for deformation since we already generated the mesh
+    // displacementScale: 0.5, // use it for reference, not for deformation since we already generated the mesh
     // bumpMap: map,
     // bumpScale: 0.1,
     // normalMap: normal,

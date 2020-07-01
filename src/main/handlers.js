@@ -9,5 +9,5 @@ ipcMain.handle(getAppCachePath, async (event, folder = "") => {
 });
 
 ipcMain.handle(openFile, async (event, filepath = "") => {
-  return openFileBinary(filepath);
+  return await openFileBinary(filepath);
 });

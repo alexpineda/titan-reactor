@@ -1,25 +1,21 @@
-import { createStats, createGui } from "./gui";
+import React from "react";
 import * as THREE from "three";
+import { render } from "react-dom";
+import { ipcRenderer } from "electron";
+import { createStats, createGui } from "./gui";
 import { handleResize } from "../utils/resize";
 import { initOrbitControls } from "../camera-minimap/orbitControl";
-import { Vector3 } from "three";
-import {
-  loadAllTerrain,
-  mapPreviewLoader,
-  displaceLoader,
-  mapElevationsLoader,
-  roughnessLoader,
-} from "./generateTerrainTextures";
+import { loadAllTerrain } from "./generateTerrainTextures";
+import { mapPreviewCanvas } from "./textures/mapPreviewCanvas";
+import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
+import { displacementCanvasTexture } from "./textures/displacementCanvasTexture";
 import { initRenderer } from "./renderer";
 import { loadTerrainPreset } from "./terrainPresets";
 import { imageChk } from "../utils/loadChk";
 import { gameOptions } from "../utils/gameOptions";
-import React from "react";
-import { render } from "react-dom";
 import { App } from "./ui";
-import { sunlight } from "./sunlight";
-import { ipcRenderer } from "electron";
-import { terrainMesh } from "./generateTerrainMesh";
+import { sunlight } from "./environment/sunlight";
+import { terrainMesh } from "./meshes/terrainMesh";
 
 console.log("3d-map-loading", new Date().toLocaleString());
 
@@ -67,7 +63,7 @@ const controls = initOrbitControls(camera, renderer.domElement);
 camera.position.set(33.63475259896081, 17.37837820247766, 40.53771830914678);
 
 controls.update();
-camera.lookAt(new Vector3());
+camera.lookAt(new THREE.Vector3());
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 3);
 scene.add(hemi);
@@ -119,7 +115,7 @@ const loadMap = async (filepath) => {
   console.log("chk loaded", filepath, chk);
   scene.userData.chk = chk;
 
-  await mapPreviewLoader(chk, mapPreviewEl);
+  await mapPreviewCanvas(chk, mapPreviewEl);
 
   await new Promise((res, rej) => {
     mapNameEl.innerText = chk.title;
@@ -131,8 +127,8 @@ const loadMap = async (filepath) => {
   });
 
   const preset = loadTerrainPreset(chk.tilesetName);
-  const [newFloor, newFloorBg] = await loadAllTerrain(chk, renderer, preset);
-  const elevationsTexture = await mapElevationsLoader(chk);
+  const [newFloor, newFloorBg] = await loadAllTerrain(chk);
+  const elevationsTexture = await mapElevationsCanvasTexture(chk);
 
   const floor = findMeshByName("floor");
   const floorBg = findMeshByName("backing-floor");
@@ -263,7 +259,7 @@ control.on("displacement", async () => {
   };
 
   const chk = await imageChk(currentMapFilePath, gameOptions.bwDataPath);
-  displaceLoader(chk, renderer, d2).then((map) => {
+  displacementCanvasTexture(chk, renderer, d2).then((map) => {
     const floor = findMeshByName("floor");
 
     const newFloor = terrainMesh(

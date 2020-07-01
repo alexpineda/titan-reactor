@@ -10,7 +10,7 @@ export function openFileBinary(filepath) {
         } else {
           res(buf);
         }
-      })
+      }).on("error", rej)
     );
   });
 }

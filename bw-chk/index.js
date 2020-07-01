@@ -4,7 +4,7 @@ console.log("using: bw-chk-mine4");
 
 import BufferList from "bl";
 import { Duplex } from "stream";
-import fs from "fs";
+import fs, { read } from "fs";
 import iconv from "iconv-lite";
 import SpriteGroup from "./grp";
 import SPRITES from "./sprites.json";
@@ -1037,7 +1037,6 @@ export default class Chk {
 class Tilesets {
   constructor() {
     this._tilesets = [];
-    this._incompeleteTilesets = [];
   }
 
   async tileset(id, readCb) {
@@ -1049,48 +1048,26 @@ class Tilesets {
       return tileset;
     }
 
-    if (!this._incompeleteTilesets[id]) {
-      this._addFiles(id, readCb);
-    }
-    await this._incompeleteTilesets[id];
+    await this._addFiles(id, readCb);
+
     return this._tilesets[id];
   }
 
-  _addFiles(tilesetId, readCb) {
+  async _addFiles(tilesetId, readCb) {
     const path = `tileset/${TILESET_NAMES[tilesetId]}`;
-    const isExtended = fs.existsSync(`${readCb.directory}/${path}.vx4ex`);
+    const isExtended = fs.promises
+      .access(`${readCb.directory}/${path}.vx4ex`, fs.constants.F_OK)
+      .then(() => true)
+      .catch(() => false);
 
-    const promises = [
-      ".cv5",
-      isExtended ? ".vx4ex" : ".vx4",
-      ".vr4",
-      ".wpe",
-      ".vf4",
-    ].map((extension) => readCb(path + extension));
-    const promise = Promise.all(promises).then((files) => {
-      this._incompeleteTilesets[tilesetId] = null;
-      this._addBuffers(
-        tilesetId,
-        files[0],
-        files[1],
-        files[2],
-        files[3],
-        files[4],
-        isExtended
-      );
-    });
-    this._incompeleteTilesets[tilesetId] = promise;
-  }
+    const tilegroup = await readCb(`${path}.cv5`);
+    const megatiles = await readCb(`${path}.vx4ex`).catch(() =>
+      readCb(`${path}.vx4`)
+    );
+    const minitiles = await readCb(`${path}.vr4`);
+    const palette = await readCb(`${path}.wpe`);
+    const megatilesMeta = await readCb(`${path}.vf4`);
 
-  _addBuffers(
-    tilesetId,
-    tilegroup,
-    megatiles,
-    minitiles,
-    palette,
-    megatilesMeta,
-    isExtended
-  ) {
     this._tilesets[tilesetId] = {
       tilegroup,
       megatiles,

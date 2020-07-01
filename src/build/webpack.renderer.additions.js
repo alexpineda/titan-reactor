@@ -1,3 +1,5 @@
+const path = require("path");
+
 module.exports = {
   module: {
     rules: [
@@ -6,5 +8,13 @@ module.exports = {
         use: { loader: "worker-loader" },
       },
     ],
+  },
+  resolve: {
+    alias: {
+      "@2d-map-rendering": path.resolve(
+        __dirname,
+        "src/renderer/2d-map-rendering/"
+      ),
+    },
   },
 };

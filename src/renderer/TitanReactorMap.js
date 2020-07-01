@@ -4,11 +4,10 @@ import { initOrbitControls } from "./camera-minimap/orbitControl";
 import { loadAllTerrain } from "./3d-map-rendering/generateTerrainTextures";
 import { loadTerrainPreset } from "./3d-map-rendering/terrainPresets";
 import { handleResize } from "./utils/resize";
-import { LoadModel } from "./meshes/LoadModels";
-import { sunlight } from "./3d-map-rendering/sunlight";
+import { LoadModel } from "./utils/meshes/LoadModels";
+import { sunlight } from "./3d-map-rendering/environment/sunlight";
 
 export async function TitanReactorMap(chk, canvas) {
-  console.log("haaaaalp");
   const scene = new THREE.Scene();
 
   const sceneWidth = window.innerWidth;
@@ -49,7 +48,7 @@ export async function TitanReactorMap(chk, canvas) {
   scene.add(light);
 
   const preset = loadTerrainPreset(chk.tilesetName);
-  const [floor, bgFloor] = await loadAllTerrain(chk, renderer, preset);
+  const [floor, bgFloor] = await loadAllTerrain(chk);
 
   world.remove(gridHelper);
   world.add(floor);

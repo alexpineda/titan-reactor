@@ -48,6 +48,10 @@ export const generateLayeredDisplacementMap = ({
       overlayImage(base, overlay);
       blurImage(base, width, height, allLayersBlur);
 
-      return base;
+      return {
+        data: base,
+        width,
+        height,
+      };
     });
 };

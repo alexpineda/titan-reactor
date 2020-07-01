@@ -15,7 +15,7 @@ export const createDisplacementGeometry = (
     widthSegments,
     heightSegments
   );
-  // geom.rotateX(-Math.PI * 0.5);
+
   var ctx = canvas.getContext("2d");
 
   var pos = geom.getAttribute("position");
