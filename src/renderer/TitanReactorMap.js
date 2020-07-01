@@ -4,9 +4,14 @@ import { initOrbitControls } from "./camera-minimap/orbitControl";
 import { handleResize } from "./utils/resize";
 import { LoadModel } from "./utils/meshes/LoadModels";
 import { sunlight } from "./3d-map-rendering/environment/sunlight";
+import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
+import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
+import { Terrain } from "./3d-map-rendering/Terrain";
 
-export async function TitanReactorMap(chk, canvas) {
+export async function TitanReactorMap(chk, canvas, loaded) {
   const scene = new THREE.Scene();
+
+  THREE.DefaultLoadingManager.onLoad = () => loaded();
 
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
@@ -45,21 +50,19 @@ export async function TitanReactorMap(chk, canvas) {
   const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
 
-  const preset = loadTerrainPreset(chk.tilesetName);
-  const [floor, bgFloor] = await loadAllTerrain(chk);
+  const terrainMesh = new Terrain(chk);
+  const terrain = await terrainMesh.generate();
+  const bg = await bgMapCanvasTexture(chk);
+  const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
 
   world.remove(gridHelper);
-  world.add(floor);
-  world.add(bgFloor);
+  world.add(terrain);
+  world.add(bgTerrain);
 
   const orbitControls = initOrbitControls(camera, renderer.domElement);
   orbitControls.update();
 
   const cancelResize = handleResize(camera, renderer);
-
-  const loadModel = new LoadModel();
-  const scv = await loadModel.load(`${__static}/modifiedscv.glb`);
-  scene.add(scv);
 
   let running = true;
   let id = null;

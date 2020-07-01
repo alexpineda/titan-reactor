@@ -1,10 +1,8 @@
 import { Audio, AudioLoader } from "three";
-import { gameOptions } from "../utils/gameOptions";
 const rand = (n) => Math.floor(Math.random() * n);
 
 export class BgMusic {
-  constructor(bwDataPath, listener) {
-    this.bwDataPath = bwDataPath;
+  constructor(listener) {
     this.audio = new Audio(listener);
     // this.volume = gameOptions.volume;
   }

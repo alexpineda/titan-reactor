@@ -1,6 +1,7 @@
 import { TitanReactorMap } from "./TitanReactorMap";
-import { TitanReactorReplay } from "./TitanReactorReplay";
+import { TitanReactorReplay } from "./replay/TitanReactorReplay";
 import { TitanReactorSandbox } from "./3d-map-rendering/TitanReactorSandbox";
+import { TitanReactorAudioSandbox } from "./audio/TitanReactorAudioSandbox";
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
@@ -131,7 +132,7 @@ const loadMap = async (filepath) => {
 
   document.title = `Titan Reactor - ${chk.title}`;
 
-  return await TitanReactorSandbox(
+  return await TitanReactorAudioSandbox(
     chk,
     document.getElementById("three-js"),
     () => (loadOverlayEl.style.display = "none")
