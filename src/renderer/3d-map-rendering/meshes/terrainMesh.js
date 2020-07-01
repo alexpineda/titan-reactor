@@ -48,5 +48,6 @@ export function terrainMesh(
   plane.material.map.anisotropy = 16;
   plane.userData.displacementMap = displace;
   plane.userData.displacementScale = displacementScale;
+  plane.name = "terrainMesh";
   return plane;
 }

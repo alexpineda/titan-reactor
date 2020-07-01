@@ -15,5 +15,6 @@ export function backgroundTerrainMesh(mapWidth, mapHeight, map) {
 
   plane.position.z = 32;
   plane.material.map.anisotropy = 1;
+  plane.name = "backgroundTerrainMesh";
   return plane;
 }

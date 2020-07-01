@@ -115,11 +115,11 @@ export class SceneGui {
     this.gui = gui;
   }
 
-  save() {
+  async save() {
     localStorage.setItem(this.tileset, JSON.stringify(this.control));
   }
 
-  load(tileset) {
+  async load(tileset) {
     try {
       const json = JSON.parse(localStorage.getItem(tileset || this.tileset));
 

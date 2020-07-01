@@ -1,8 +1,6 @@
 import * as THREE from "three";
 import { initRenderer } from "./3d-map-rendering/renderer";
 import { initOrbitControls } from "./camera-minimap/orbitControl";
-import { loadAllTerrain } from "./3d-map-rendering/generateTerrainTextures";
-import { loadTerrainPreset } from "./3d-map-rendering/terrainPresets";
 import { handleResize } from "./utils/resize";
 import { LoadModel } from "./utils/meshes/LoadModels";
 import { sunlight } from "./3d-map-rendering/environment/sunlight";

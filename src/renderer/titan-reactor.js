@@ -1,5 +1,6 @@
 import { TitanReactorMap } from "./TitanReactorMap";
 import { TitanReactorReplay } from "./TitanReactorReplay";
+import { TitanReactorSandbox } from "./3d-map-rendering/TitanReactorSandbox";
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
@@ -8,6 +9,7 @@ import { ipcRenderer } from "electron";
 import React from "react";
 import { render } from "react-dom";
 import { App } from "./react-ui/App";
+import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
@@ -101,14 +103,39 @@ ipcRenderer.on("save-gltf", (event, file) => {
 //terrain
 
 const loadMap = async (filepath) => {
+  const mapPreviewEl = document.getElementById("map--preview-canvas");
+  const mapNameEl = document.getElementById("map-name");
+  const mapDescriptionEl = document.getElementById("map-description");
+  const loadOverlayEl = document.getElementById("load-overlay");
+
+  // hide loading ui elements
+  mapNameEl.innerText = "initializing...";
+  mapDescriptionEl.innerText = "";
+  mapPreviewEl.style.display = "none";
+  loadOverlayEl.style.display = "flex";
+
   console.log("load chk", filepath);
   const chk = await imageChk(filepath, gameOptions.bwDataPath);
   console.log("chk loaded", filepath, chk);
 
-  // await mapPreviewLoader(chk, mapPreviewEl);
+  await mapPreviewCanvas(chk, mapPreviewEl);
+
+  await new Promise((res, rej) => {
+    mapNameEl.innerText = chk.title;
+    document.title = `Titan Reactor - ${chk.title}`;
+    // mapDescriptionEl.innerText = chk.description;
+    mapDescriptionEl.innerText = chk.tilesetName;
+    mapPreviewEl.style.display = "block";
+    setTimeout(res, 100);
+  });
+
   document.title = `Titan Reactor - ${chk.title}`;
 
-  return await TitanReactorMap(chk, document.getElementById("three-js"));
+  return await TitanReactorSandbox(
+    chk,
+    document.getElementById("three-js"),
+    () => (loadOverlayEl.style.display = "none")
+  );
 };
 
 const loadReplay = async (filepath) => {
