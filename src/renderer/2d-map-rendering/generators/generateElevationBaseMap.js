@@ -8,7 +8,6 @@ export const generateElevationBasedMap = ({
   water = false,
   twilight = false,
   lava = false,
-  blur = 0,
   skipDetails = false,
   onlyWalkable = false,
 }) => {
@@ -22,7 +21,6 @@ export const generateElevationBasedMap = ({
       colorAtMega: elevationColorAtMega({
         elevations,
         detailsRatio,
-        blur: blur,
         water,
         twilight,
         lava,
