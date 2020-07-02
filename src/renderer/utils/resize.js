@@ -5,10 +5,7 @@ function onResize(camera, renderer, cb) {
 }
 
 export function handleResize(camera, renderer) {
-  window.addEventListener(
-    "resize",
-    onResize.bind(null, camera, renderer),
-    false
-  );
-  return () => window.removeEventListener("resize");
+  const handler = onResize.bind(null, camera, renderer);
+  window.addEventListener("resize", handler, false);
+  return () => window.removeEventListener("resize", handler);
 }

@@ -62,8 +62,8 @@ const isMac = process.platform === "darwin";
 
 var showOpen = function (isMap = false) {
   const filters = isMap
-    ? { name: "Starcraft Map", extensions: ["scm", "scx"] }
-    : { name: "Starcraft Replay", extensions: ["rep"] };
+    ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
+    : [{ name: "Starcraft Replay", extensions: ["rep"] }];
   const command = isMap ? "open-map" : "open-replay";
   const multiSelections = isMap
     ? ["openFile"]
@@ -90,8 +90,8 @@ const showOpenMap = showOpen.bind(null, true);
 
 const showSave = (isImage) => {
   const filters = isImage
-    ? { name: "Image (.jpeg)", extensions: ["png"] }
-    : { name: "Scene (.gltf)", extensions: ["gltf"] };
+    ? [{ name: "Image (.jpeg)", extensions: ["png"] }]
+    : [{ name: "Scene (.gltf)", extensions: ["gltf"] }];
   const command = isImage ? "save-image" : "save-gltf";
 
   dialog
@@ -114,6 +114,50 @@ const showSave = (isImage) => {
 const showSaveModel = showSave.bind(null, false);
 const showSaveImage = () => {
   window.webContents.send("save-image");
+};
+
+var showOpenEnvironmentSettings = function () {
+  const filters = [{ name: "Environment Settings", extensions: ["json"] }];
+  const command = "open-env-settings";
+  const multiSelections = ["openFile"];
+
+  dialog
+    .showOpenDialog({
+      properties: multiSelections,
+      filters,
+    })
+    .then(({ filePaths, canceled }) => {
+      if (canceled) return;
+      window.webContents.send(command, filePaths);
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Loading File",
+        message: "There was an error loading this file: " + err.message,
+      });
+    });
+};
+
+const showSaveEnvironmentSettings = (isImage) => {
+  const filters = { name: "Environment Settings", extensions: ["json"] };
+  const command = "save-env-settings";
+
+  dialog
+    .showSaveDialog({
+      filters,
+    })
+    .then(({ filePath, canceled }) => {
+      if (canceled) return;
+      window.webContents.send(command, filePath);
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Saving File",
+        message: "There was an error loading this file: " + err.message,
+      });
+    });
 };
 
 const template = [
@@ -168,7 +212,25 @@ const template = [
       },
       { type: "separator" },
       { role: isMac ? "close" : "quit" },
-    ],
+    ].concat(
+      isDev
+        ? [
+            { type: "separator" },
+            {
+              label: "Load Environment Settings",
+              click: function () {
+                showOpenEnvironmentSettings();
+              },
+            },
+            {
+              label: "Save Environment Settings",
+              click: function () {
+                showSaveEnvironmentSettings();
+              },
+            },
+          ]
+        : []
+    ),
   },
   {
     label: "Replay Queue",

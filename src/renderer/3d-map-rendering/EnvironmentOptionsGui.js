@@ -1,6 +1,5 @@
 import * as dat from "dat.gui";
-import Stats from "stats.js";
-import options from "./options";
+import options from "./environmentOptions";
 
 const bindFields = (folder, control, method) => {
   return method(
@@ -37,14 +36,7 @@ const getFieldsFn = (key) => {
   };
 };
 
-export function createStats() {
-  const stats = new Stats();
-  stats.showPanel(0);
-  document.body.appendChild(stats.dom);
-  return stats;
-}
-
-export class SceneGui {
+export class EnvironmentOptionsGui {
   constructor() {
     const gui = new dat.GUI();
     const control = {

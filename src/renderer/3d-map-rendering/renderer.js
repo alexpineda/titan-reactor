@@ -24,7 +24,6 @@ export const initRenderer = ({
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = shadowMap;
   renderer.shadowMap.type = THREE.BasicShadowMap;
-  renderer.background = new THREE.Color(0x080820);
 
   return renderer;
 };

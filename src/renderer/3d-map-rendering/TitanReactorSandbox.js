@@ -1,25 +1,24 @@
 // playground for environment
 import * as THREE from "three";
-import { createStats, SceneGui } from "./gui/gui";
+import { EnvironmentOptionsGui } from "./EnvironmentOptionsGui";
+import { createStats } from "../utils/stats";
 import { handleResize } from "../utils/resize";
-import { initOrbitControls } from "../camera-minimap/orbitControl";
-import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler";
-import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
+import { initCamera } from "../camera-minimap/camera";
 import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
 
-import { sunlight } from "./environment/sunlight";
+import { sunlight, fog } from "./environment";
 import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
 
-import { LoadModel } from "../utils/meshes/LoadModels";
 import { Terrain } from "./Terrain";
 import { initRenderer } from "./renderer";
+import { splatUnits } from "../utils/meshes/splatUnits";
 
 export async function TitanReactorSandbox(chk, canvas, loaded) {
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
 
-  const gui = new SceneGui();
+  const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
   const renderer = initRenderer({
@@ -30,55 +29,21 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
     shadowMap: true,
   });
 
-  const scene = new THREE.Scene();
-  window.scene = scene;
+  const scene = (window.scene = new THREE.Scene());
 
   const terrainMesh = new Terrain(chk);
   const terrain = await terrainMesh.generate();
-
-  const elevationsTexture = await mapElevationsCanvasTexture(chk);
+  terrain.userData.elevationsTexture = await mapElevationsCanvasTexture(chk);
   const bg = await bgMapCanvasTexture(chk);
   const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
+  scene.add(terrain);
+  scene.add(bgTerrain);
 
-  const findMeshByName = (name) => {
-    let mesh;
-    scene.traverse((o) => {
-      if (o.name === name) {
-        mesh = o;
-        return false;
-      }
-    });
-    return mesh;
-  };
-
-  const fogColor = new THREE.Color(0x080820);
-  scene.background = fogColor;
-
-  scene.fog = new THREE.Fog(fogColor, 256, 512);
-
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-  window.camera = camera;
-  camera.position.set(13.313427680971873, 19.58336565195161, 56.716490281);
-  camera.rotation.set(
-    -0.9353944571799614,
-    0.0735893206705483,
-    0.09937435112806427
-  );
-  camera.lookAt(new THREE.Vector3());
+  scene.fog = fog(chk.size[0], chk.size[1]);
+  scene.background = scene.fog.color;
 
   var axesHelper = new THREE.AxesHelper(5);
   scene.add(axesHelper);
-
-  const world = new THREE.Group();
-  const gridHelper = new THREE.GridHelper(128, 64);
-
-  world.add(gridHelper);
-  scene.add(world);
 
   const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
@@ -90,43 +55,13 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
   scene.add(hemi);
 
-  world.remove(gridHelper);
-  world.add(terrain);
-  world.add(bgTerrain);
-
-  const orbitControls = initOrbitControls(camera, renderer.domElement);
-  orbitControls.update();
+  const [camera, cameraControls] = initCamera(renderer.domElement);
+  cameraControls.update();
 
   const cancelResize = handleResize(camera, renderer);
 
-  const loadModel = new LoadModel();
-  const units = new THREE.Object3D();
-  scene.add(units);
-  const assignModel = () => (model) => units.add(model);
-  loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
-  loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
-  loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));
-  loadModel.load(`_alex/pylon.glb`).then(assignModel(0x9c));
-  loadModel.load(`_alex/nexus.glb`).then(assignModel(0x9a));
-  loadModel.load(`_alex/command-center.glb`).then(assignModel(0x6a));
-  loadModel.load(`_alex/refinery.glb`).then(assignModel(0x6e));
-  loadModel.load(`_alex/barracks.glb`).then(assignModel(0x6f));
-  loadModel.load(`_alex/assimilator.glb`).then(assignModel(0x9d));
-  loadModel.load(`_alex/gateway.glb`).then(assignModel(0xa0));
-  loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
-
   THREE.DefaultLoadingManager.onLoad = function () {
-    var sampler = new MeshSurfaceSampler(terrain)
-      .setWeightAttribute("uv")
-      .build();
-
-    units.children.forEach((unit) => {
-      let position = new THREE.Vector3(),
-        normal = new THREE.Vector3();
-      sampler.sample(position, normal);
-      unit.position.set(position.x, position.z, position.y);
-    });
-
+    scene.add(splatUnits(terrain));
     loaded();
   };
 
@@ -136,12 +71,12 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   let id = null;
   function gameLoop() {
     if (!running) return;
-    orbitControls.update();
 
     renderer.clear();
     renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.render(scene, camera);
 
+    stats.update();
     setTimeout(() => {
       id = requestAnimationFrame(gameLoop);
     }, 100);
@@ -158,10 +93,6 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
     camera.updateProjectionMatrix();
   });
 
-  gui.controllers.camera.free.onChange((free) => {
-    controls.dispose();
-    controls = initOrbitControls(camera, renderer.domElement, free);
-  });
   //#endregion
 
   //#region map controllers
@@ -251,33 +182,6 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
       //geometries
 
       //scene dispose
-      scene.traverse((o) => {
-        if (o.type === "Mesh") {
-          if (o.material) {
-            if (o.material.map) {
-              o.material.map.dispose();
-            }
-            if (o.material.bumpMap) {
-              o.material.bumpMap.dispose();
-            }
-            if (o.material.normalMap) {
-              o.material.normalMap.dispose();
-            }
-            if (o.material.displacementMap) {
-              o.material.displacementMap.dispose();
-            }
-            if (o.material.roughnessMap) {
-              o.material.roughnessMap.dispose();
-            }
-            if (o.material.emissiveMap) {
-              o.material.emissiveMap.dispose();
-            }
-            o.material.dispose();
-          }
-          o.geometry.dispose();
-          o.dispose();
-        }
-      });
     },
   };
 }

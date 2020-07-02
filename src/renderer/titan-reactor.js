@@ -98,6 +98,14 @@ ipcRenderer.on("save-gltf", (event, file) => {
   );
 });
 
+ipcRenderer.on("open-env-settings", (event, [file]) => {
+  console.log("open-env", file);
+});
+
+ipcRenderer.on("save-env-settings", (event, file) => {
+  console.log("save-env", file);
+});
+
 //map
 //replay
 //realtime
@@ -132,7 +140,7 @@ const loadMap = async (filepath) => {
 
   document.title = `Titan Reactor - ${chk.title}`;
 
-  return await TitanReactorAudioSandbox(
+  return await TitanReactorReplay(
     chk,
     document.getElementById("three-js"),
     () => (loadOverlayEl.style.display = "none")
@@ -149,10 +157,10 @@ const loadReplay = async (filepath) => {
   // const frameStream = await generateFrameStream(filepath);
 
   return await TitanReactorReplay(
-    null,
-    null,
     chk,
+    frames,
     document.getElementById("three-js")
+    // () => (loadOverlayEl.style.display = "none")
   );
 };
 
