@@ -116,14 +116,23 @@ def test_next_x(image, x, y, width, max_n):
     return count
 
 
-def test_pattern(image, pattern, x, y, flipX=False, offset=0):
+def test_pattern(image, pixels, pattern, x, y, flipX=False):
+    offset = 0
     if flipX:
         for j in range(len(pattern)):
             pattern[j] = pattern[j][::-1]
         offset = -len(pattern[0]) + 1
 
     def same_color(i, j, color):
-        return get_pixel(image, x + i, y + j) == color
+        if x + i < 0:
+            return False
+        if y + j < 0:
+            return False
+        if y + j >= image.size[1]:
+            return False
+        if x + i >= image.size[0]:
+            return False
+        return pixels[x + i, y + j] == color
 
     h = len(pattern)
     w = len(pattern[0])
@@ -136,38 +145,69 @@ def test_pattern(image, pattern, x, y, flipX=False, offset=0):
     return True
 
 
-def test_duck(image, x, y, highcolor, lowcolor, flipX=False, offset=0):
+def test_and_draw_pattern(image, pixels, pattern, x, y, flipX, color):
+    if test_pattern(image, pixels, pattern, x, y, flipX):
+        offset = 0
+        if flipX:
+            offset = -len(pattern[0]) + 1
+        draw_box(pixels, x + offset, y, len(pattern[0]), len(pattern), color)
+        return -len(pattern[0]) + 1 if flipX else len(pattern[0])
+    else:
+        return 0
+
+
+def test_fs_duck(image, pixels, x, y, hc, lc, flipX, color):
     pattern = [
-        [lowcolor, lowcolor, highcolor, highcolor],
-        [lowcolor, lowcolor, highcolor, highcolor],
-        [lowcolor, lowcolor, lowcolor, lowcolor],
-        [lowcolor, lowcolor, lowcolor, lowcolor],
+        [lc, lc, hc, hc],
+        [lc, lc, hc, hc],
+        [lc, lc, lc, lc],
+        [lc, lc, lc, lc],
     ]
 
-    return test_pattern(image, pattern, x, y, flipX, offset)
+    return test_and_draw_pattern(image, pixels, pattern, x, y, flipX, color)
 
 
-def test_longduck(image, x, y, highcolor, lowcolor, flipX=False, offset=0):
+def test_fs_longduck(image, pixels, x, y, hc, lc, flipX, color):
     pattern = [
-        [lowcolor, lowcolor, highcolor, highcolor, highcolor, highcolor],
-        [lowcolor, lowcolor, highcolor, highcolor, highcolor, highcolor],
-        [lowcolor, lowcolor, lowcolor, lowcolor, lowcolor, lowcolor],
-        [lowcolor, lowcolor, lowcolor, lowcolor, lowcolor, lowcolor],
+        [lc, lc, hc, hc, hc, hc],
+        [lc, lc, hc, hc, hc, hc],
+        [lc, lc, lc, lc, lc, lc],
+        [lc, lc, lc, lc, lc, lc],
     ]
 
-    return test_pattern(image, pattern, x, y, flipX, offset)
+    return test_and_draw_pattern(image, pixels, pattern, x, y, flipX, color)
 
 
-def draw_duck(pixels, x, y, color, offset=0):
-    for i in range(4):
-        for j in range(4):
-            pixels[x + i + offset, y + j] = color
+def test_mp_axe(image, pixels, x, y, hc, lc, flipX, color):
+    pattern = [
+        [lc, lc, hc, hc, hc, hc, hc, hc, hc, hc, hc, hc, hc, hc],
+        [lc, lc, hc, hc, hc, hc, hc, hc, hc, hc, hc, hc, hc, hc],
+        [lc, lc, lc, lc, lc, lc, hc, hc, hc, hc, hc, hc, hc, hc],
+        [lc, lc, lc, lc, lc, lc, hc, hc, hc, hc, hc, hc, hc, hc],
+        [lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, hc, hc, hc, hc],
+        [lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, hc, hc, hc, hc],
+        [lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc],
+        [lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc, lc],
+    ]
+
+    return test_and_draw_pattern(image, pixels, pattern, x, y, flipX, color)
 
 
-def draw_longduck(pixels, x, y, color, offset=0):
-    for i in range(6):
-        for j in range(4):
-            pixels[x + i + offset, y + j] = color
+def test_mp_hockey_rev(image, pixels, x, y, hc, lc, flipX, color):
+    pattern = [
+        [lc, lc, hc, hc]
+
+    ]
+
+    return test_and_draw_pattern(image, pixels, pattern, x, y, flipX, color)
+
+
+def draw_box(pixels, x, y, width, height, color):
+    for i in range(width):
+        for j in range(height):
+            (r, g, b) = pixels[x + i, y + j]
+            (r2, g2, b2) = color
+            pixels[x + i, y + j] = ((r+r2)/2, (g+g2)/2, (b+b2)/2)
 
 
 def fill_irregularities(image):
@@ -175,13 +215,12 @@ def fill_irregularities(image):
     width, height = image.size
 
     # Create new Image and a Pixel Map
-    new = create_image(width, height)
-    pixels = new.load()
+    newImage = create_image(width, height)
+    pixels = newImage.load()
 
     black = (0, 0, 0)
     green = (0, 255, 0)
     magenta = (255, 0, 255)
-    total_fixes = 0
 
     for y in range(height):
         for x in range(width):
@@ -198,12 +237,15 @@ def fill_irregularities(image):
             high_pixel = pixels[max(0, x-1), y]
 
             if (high_pixel > pixel):
-                if test_longduck(image, x, y, high_pixel, pixel):
-                    draw_longduck(pixels, x, y, green)
-                    x = x + 6
-                elif test_duck(image, x, y, high_pixel, pixel):
-                    draw_duck(pixels, x, y, green)
-                    x = x + 4
+                out = test_mp_axe(newImage, pixels, x, y,
+                                  high_pixel, pixel, False, magenta)
+                # if not out == 0:
+                #   x = x + out
+
+                out = test_fs_longduck(newImage, pixels, x, y,
+                                       high_pixel, pixel, False, green)
+                out = test_fs_duck(newImage, pixels, x, y, high_pixel,
+                                   pixel, False, green)
 
         for x in range(width - 1, -1, -1):
             # Get Pixel
@@ -213,16 +255,16 @@ def fill_irregularities(image):
 
             high_pixel = pixels[min(width - 1, x+1), y]
 
-            if (high_pixel > pixel and not high_pixel == magenta):
-                if test_longduck(image, x, y, high_pixel, pixel, True):
-                    draw_longduck(pixels, x, y, green, -5)
-                    x = x - 5
-                if test_duck(image, x, y, high_pixel, pixel, True):
-                    draw_duck(pixels, x, y, green, -3)
-                    x = x - 3
+            if (high_pixel > pixel):
+                out = test_mp_axe(newImage, pixels, x, y,
+                                  high_pixel, pixel, True, magenta)
+                out = test_fs_longduck(newImage, pixels, x, y,
+                                       high_pixel, pixel, True, green)
+                out = test_fs_duck(newImage, pixels, x, y, high_pixel,
+                                   pixel, True, green)
 
     # Return new image
-    return new
+    return newImage
 
 
 def nearest(image):
@@ -248,7 +290,7 @@ def nearest(image):
 
 
 def main(argv):
-    img = open_image("matchpoint.png")
+    img = open_image("aztec.png")
     # processed = find_ramps(img)
     processed = fill_irregularities(img)
     # processed = nearest(img)
