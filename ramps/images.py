@@ -6,28 +6,28 @@ import math
 from os import listdir
 from os.path import isfile, join
 
-
-# Open an Image
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
+green = (0, 255, 0)
+blue = (0, 0, 255)
+cyan = (0, 255, 255)
+magenta = (255, 0, 255)
+yellow = (255, 255, 0)
 
 
 def open_image(path):
     newImage = Image.open(path)
     return newImage
 
-# Save Image
-
 
 def save_image(image, path):
     image.save(path, 'png')
-
-# Create a new image with the given size
 
 
 def create_image(i, j):
     image = Image.new("RGB", (i, j), "black")
     return image
-
-# Get the pixel from the given image
 
 
 def get_pixel(image, i, j):
@@ -53,16 +53,6 @@ def find_edges(image):
     new = create_image(width, height)
     pixels = new.load()
 
-    black = (0, 0, 0)
-    high = (184, 184, 184)
-    low = (86, 86, 86)
-
-    lastcolor = (-1, -1, -1)
-
-    # for y in range(height):
-    #     for x in range(width):
-    #         pixels[x, y] = black
-    # Transform to grayscale
     for y in range(height):
         for x in range(width):
             # Get Pixel
@@ -73,7 +63,7 @@ def find_edges(image):
 
             high_pixel = get_pixel(image, x-1, y)
             if (high_pixel > pixel):
-                pixels[x, y] = (255, 0, 0)
+                pixels[x, y] = red
 
         for x in range(width - 1, -1, -1):
             # Get Pixel
@@ -83,7 +73,7 @@ def find_edges(image):
 
             high_pixel = get_pixel(image, min(width - 1, x+1), y)
             if (high_pixel > pixel):
-                pixels[x, y] = (0, 255, 0)
+                pixels[x, y] = green
 
     for x in range(width):
         for y in range(height):
@@ -93,7 +83,7 @@ def find_edges(image):
 
             high_pixel = get_pixel(image, x, y-1)
             if (high_pixel > pixel):
-                pixels[x, y] = (0, 0, 255)
+                pixels[x, y] = blue
 
         for y in range(height - 1, -1, -1):
             pixel = get_pixel(image, x, y)
@@ -102,14 +92,7 @@ def find_edges(image):
 
             high_pixel = get_pixel(image, x, min(height - 1, y+1))
             if (high_pixel > pixel):
-                pixels[x, y] = (0, 255, 255)
-
-    # for y in range(height):
-    #     for x in range(width):
-    #         if pixels[x, y] == black:
-    #             (r, g, b) = get_pixel(image, x, y)
-    #             pixels[x, y] = (
-    #                 r//4, g//4, b//4)
+                pixels[x, y] = cyan
 
     # Return new image
     return new
@@ -117,7 +100,6 @@ def find_edges(image):
 
 def create_ramps(image, original):
     width, height = image.size
-    black = (0, 0, 0)
 
     # Create new Image and a Pixel Map
     new = create_image(width, height)
@@ -134,7 +116,7 @@ def create_ramps(image, original):
         if (get_pixel(image, x, y) == black or not processed[x, y] == black):
             return []
 
-        processed[x, y] = (255, 255, 255)
+        processed[x, y] = white
         east = find_neighbours((x+1, y))
         south_east = find_neighbours((x+1, y+1))
         south = find_neighbours((x, y+1))
@@ -164,7 +146,6 @@ def create_ramps(image, original):
         for (x, y) in ramp:
             pixels[x, y] = get_pixel(image, x, y)
 
-    new.show()
     return [new, ramps]
 
 
@@ -176,7 +157,74 @@ def draw_ramps(ramps, image):
 
     # create line image
     img1 = ImageDraw.Draw(img)
-    img1.line(shape, fill="none", width=0)
+
+    for ramp in ramps:
+        east = 0
+        south = 0
+        north = 0
+        west = 0
+        min_x = width
+        min_y = height
+        max_x = 0
+        max_y = 0
+        min_v = (width, height)
+        max_v = (0, 0)
+        for (x, y) in ramp:
+            if x < min_x:
+                min_x = x
+            if y < min_y:
+                min_y = y
+            if x > max_x:
+                max_x = x
+            if y > max_y:
+                max_y = y
+
+            if (x, y) < min_v:
+                min_v = (x, y)
+            if (x, y) > max_v:
+                max_v = (x, y)
+
+            if get_pixel(image, x, y) == red:
+                east = east + 1
+            elif get_pixel(image, x, y) == green:
+                west = west + 1
+            elif get_pixel(image, x, y) == blue:
+                south = south + 1
+            elif get_pixel(image, x, y) == cyan:
+                north = north + 1
+
+        # img1.rectangle([min_x, min_y, max_x, max_y], black, white)
+        w = max_x - min_x
+        h = max_y - min_y
+        l = math.sqrt(w * w + h * h)
+
+        vec_x = east - west
+        vec_y = south - north
+
+        cx = (min_x + max_x)/2
+        cy = (min_y + max_y)/2
+
+        # method 1: sourcing max x y points independently blue/green axis
+        img1.line([cx - vec_x//2, cy + vec_y//2,
+                   cx + vec_x//2, cy-vec_y//2], blue)
+
+        img1.line([cx - vec_x//2, cy - vec_y//2,
+                   cx + vec_x//2, cy+vec_y//2], red)
+
+        cx = (min_v[0] + max_v[0]) / 2
+        cy = (min_v[1] + max_v[1]) / 2
+
+        vec_x = max_v[0] - min_v[0]
+        vec_y = max_v[1] - min_v[1]
+
+        # method 2: sourcing max vectors cyan/magenta axis
+        img1.line([cx - vec_x//2, cy + vec_y//2,
+                   cx + vec_x//2, cy-vec_y//2], cyan)
+
+        img1.line([cx - vec_x//2, cy - vec_y//2,
+                   cx + vec_x//2, cy+vec_y//2], magenta)
+
+    return img
 
 
 def test_next_x(image, x, y, width, max_n):
@@ -277,8 +325,20 @@ def test_mp_hockey_rev(image, pixels, x, y, hc, lc, flipX, color):
     return test_and_draw_pattern(image, pixels, pattern, x, y, flipX, color)
 
 
-def mix((r, g, b), (r2, g2, b2)):
-    return ((r+r2)/2, (g+g2)/2, (b+b2)/2)
+def mix_image(a, b, ratio=0.5):
+    width, height = a.size
+    newImage = create_image(width, height)
+    pixels = newImage.load()
+
+    for x in range(width):
+        for y in range(height):
+            pixels[x, y] = mix(get_pixel(a, x, y), get_pixel(b, x, y))
+
+    return newImage
+
+
+def mix((r, g, b), (r2, g2, b2), ratio=0.5):
+    return (int(r*ratio+r2*(1-ratio)), int(g*ratio+g2*(1-ratio)), int(b*ratio+b2*(1-ratio)))
 
 
 def darken((r, g, b)):
@@ -301,10 +361,6 @@ def fill_irregularities(image):
     # Create new Image and a Pixel Map
     newImage = create_image(width, height)
     pixels = newImage.load()
-
-    black = (0, 0, 0)
-    green = (0, 255, 0)
-    magenta = (255, 0, 255)
 
     for y in range(height):
         for x in range(width):
@@ -358,10 +414,12 @@ def main(argv):
         no_irreg = fill_irregularities(img)
         edges = find_edges(no_irreg)
         [render, ramps] = create_ramps(edges, img)
-        render.show()
-        # rampImage = draw_ramps(ramps, img)
-        # save_image(rampImage, "out/out-" + file)
-        break
+        rampImage = draw_ramps(ramps, edges)
+
+        out = mix_image(img, rampImage, 0.5)
+        # out.show()
+        save_image(out, "out/out-" + file)
+        # break
 
 
 if __name__ == "__main__":
