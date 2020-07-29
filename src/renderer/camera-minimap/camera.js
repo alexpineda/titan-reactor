@@ -1,4 +1,4 @@
-import { Vector3, MOUSE, PerspectiveCamera } from "three";
+import { Vector3, MOUSE, PerspectiveCamera, OrthographicCamera } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 //zoom in tighter allowed as teh angle is closer to 90deg above
@@ -32,8 +32,24 @@ const initCameraControls = (camera, element, limitControl = false) => {
 };
 
 export const initCamera = (domElement, limitControl = false) => {
+  const camera = orthoCamera();
+  return [camera, initCameraControls(camera, domElement, limitControl)];
+};
+
+const orthoCamera = () => {
+  const camera = new OrthographicCamera(16, 0, 16, 0);
+  camera.position.set(13.313427680971873, 19.58336565195161, 56.716490281);
+  camera.rotation.set(
+    -0.9353944571799614,
+    0.0735893206705483,
+    0.09937435112806427
+  );
+  return camera;
+};
+
+const perspectiveCamera = () => {
   const camera = new PerspectiveCamera(
-    75,
+    30,
     window.innerWidth / window.innerHeight,
     0.1,
     1000
@@ -46,5 +62,5 @@ export const initCamera = (domElement, limitControl = false) => {
     0.09937435112806427
   );
   camera.lookAt(new Vector3());
-  return [camera, initCameraControls(camera, domElement, limitControl)];
+  return camera;
 };

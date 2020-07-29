@@ -54,6 +54,8 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (window === null) {
+    app.commandLine.appendSwitch("--disable-xr-sandbox");
+
     createWindow();
   }
 });

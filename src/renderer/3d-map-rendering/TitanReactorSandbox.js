@@ -13,6 +13,10 @@ import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
 import { Terrain } from "./Terrain";
 import { initRenderer } from "./renderer";
 import { splatUnits } from "../utils/meshes/splatUnits";
+import { disposeMeshes } from "../utils/meshes/dispose";
+
+import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
+import { render } from "react-dom";
 
 export async function TitanReactorSandbox(chk, canvas, loaded) {
   const sceneWidth = window.innerWidth;
@@ -36,8 +40,9 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   terrain.userData.elevationsTexture = await mapElevationsCanvasTexture(chk);
   const bg = await bgMapCanvasTexture(chk);
   const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
+  bgTerrain.position.y = -1;
   scene.add(terrain);
-  scene.add(bgTerrain);
+  // scene.add(bgTerrain);
 
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
@@ -69,6 +74,7 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
 
   let running = true;
   let id = null;
+
   function gameLoop() {
     if (!running) return;
 
@@ -77,14 +83,15 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
     renderer.render(scene, camera);
 
     stats.update();
-    setTimeout(() => {
-      id = requestAnimationFrame(gameLoop);
-    }, 100);
+    // setTimeout(() => {
+    //   id = requestAnimationFrame(gameLoop);
+    // }, 100);
   }
 
   document.body.appendChild(renderer.domElement);
 
-  gameLoop();
+  renderer.setAnimationLoop(gameLoop);
+  // gameLoop();
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom }) => {
@@ -168,13 +175,15 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   });
   //#endregion
 
+  document.body.appendChild(VRButton.createButton(renderer));
+
   return {
     dispose: () => {
       running = false;
       cancelAnimationFrame(id);
       //dispose all
       cancelResize();
-
+      disposeMeshes(scene);
       //textures
 
       //materials

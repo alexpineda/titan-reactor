@@ -1,4 +1,4 @@
-import fs, { promises as fsPromises, fstatSync } from "fs";
+import fs from "fs";
 import BufferList from "bl";
 
 export function openFileBinary(filepath) {
@@ -12,5 +12,14 @@ export function openFileBinary(filepath) {
         }
       }).on("error", rej)
     );
+  });
+}
+
+export function openFileLines(filepath, windows = true) {
+  return new Promise((res, rej) => {
+    fs.readFile(filepath, "utf8", function (err, data) {
+      if (err) rej(err);
+      res(data.split(windows ? "\r\n" : "\n"));
+    });
   });
 }

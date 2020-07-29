@@ -7,17 +7,12 @@ import { backgroundTerrainMesh } from "../3d-map-rendering/meshes/backgroundTerr
 import { bgMapCanvasTexture } from "../3d-map-rendering/textures/bgMapCanvasTexture";
 import { Terrain } from "../3d-map-rendering/Terrain";
 import { BWAPIFrameFromBuffer } from "./BWAPIFrames";
-import { ReplayUnits3D } from "./Units3D";
-import { Units2D } from "./Units2D";
+import { ReplayUnits3D } from "./ReplayUnits3D";
+import { Units2D } from "./ReplayUnits2D";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
-
+import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
-
-// load unit models
-// spawn unit
-// update unit
-// destroy unit
 
 export async function TitanReactorReplay(chk, canvas, loaded) {
   const scene = new THREE.Scene();
@@ -258,7 +253,7 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
       cancelAnimationFrame(requestAnimationFrameId);
       //dispose all
       cancelResize();
-
+      disposeMeshes(scene);
       //textures
 
       //materials

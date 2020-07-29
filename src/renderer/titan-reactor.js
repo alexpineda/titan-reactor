@@ -5,7 +5,6 @@ import { TitanReactorAudioSandbox } from "./audio/TitanReactorAudioSandbox";
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
-import { fromJssuhJSON } from "./replay/loaders/TransformReplay";
 import { ipcRenderer } from "electron";
 import React from "react";
 import { render } from "react-dom";
@@ -106,11 +105,6 @@ ipcRenderer.on("save-env-settings", (event, file) => {
   console.log("save-env", file);
 });
 
-//map
-//replay
-//realtime
-//terrain
-
 const loadMap = async (filepath) => {
   const mapPreviewEl = document.getElementById("map--preview-canvas");
   const mapNameEl = document.getElementById("map-name");
@@ -140,7 +134,7 @@ const loadMap = async (filepath) => {
 
   document.title = `Titan Reactor - ${chk.title}`;
 
-  return await TitanReactorReplay(
+  return TitanReactorSandbox(
     chk,
     document.getElementById("three-js"),
     () => (loadOverlayEl.style.display = "none")
@@ -152,15 +146,11 @@ const loadReplay = async (filepath) => {
     filepath,
     gameOptions.bwDataPath
   );
-  // const replay = fromJssuhJSON(headers, commands, chk);
 
-  // const frameStream = await generateFrameStream(filepath);
-
-  return await TitanReactorReplay(
+  return TitanReactorSandbox(
     chk,
-    frames,
-    document.getElementById("three-js")
-    // () => (loadOverlayEl.style.display = "none")
+    document.getElementById("three-js"),
+    () => (loadOverlayEl.style.display = "none")
   );
 };
 

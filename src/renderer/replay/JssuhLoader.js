@@ -1,7 +1,6 @@
 import ReplayParser from "./node_modules/jssuh";
 import concat from "concat-stream";
 import createScmExtractor from "scm-extractor";
-// import Chk from "../../../../bw-chk";
 import Chk from "bw-chk/lib";
 import { Writable } from "stream";
 

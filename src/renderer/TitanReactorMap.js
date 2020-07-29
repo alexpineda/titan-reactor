@@ -6,6 +6,7 @@ import { sunlight } from "./3d-map-rendering/environment";
 import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
 import { Terrain } from "./3d-map-rendering/Terrain";
+import { disposeMeshes } from "./utils/meshes/dispose";
 
 export async function TitanReactorMap(chk, canvas, loaded) {
   const scene = new THREE.Scene();
@@ -69,7 +70,7 @@ export async function TitanReactorMap(chk, canvas, loaded) {
       cancelAnimationFrame(id);
       //dispose all
       cancelResize();
-
+      disposeMeshes(scene);
       //textures
 
       //materials

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 export function backgroundTerrainMesh(mapWidth, mapHeight, map) {
-  const geometry = new THREE.PlaneBufferGeometry(mapWidth, mapHeight, 4, 4);
+  const geometry = new THREE.PlaneBufferGeometry(mapWidth, mapHeight, 1, 1);
   const material = new THREE.MeshLambertMaterial({
     map,
     transparent: true,

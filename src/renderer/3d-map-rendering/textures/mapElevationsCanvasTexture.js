@@ -3,6 +3,7 @@ import { rgbToCanvas } from "../../2d-map-rendering/image/canvas";
 import { mapImage } from "../../2d-map-rendering/image/mapImage";
 import { colorAtMega } from "../../2d-map-rendering/image/colorAtMega";
 import dimensions from "./dimensions";
+import { savePNG } from "../../2d-map-rendering/image/png";
 
 export const mapElevationsCanvasTexture = async (chk) => {
   const scale = 0.25 * 0.5;
@@ -13,6 +14,8 @@ export const mapElevationsCanvasTexture = async (chk) => {
     height,
     colorAtMega({ renderElevations: true })
   );
+
+  // await savePNG(data, width, height, "elevation." + Math.random());
 
   const canvas = rgbToCanvas({ data, width, height });
   const texture = new CanvasTexture(canvas);
