@@ -12,7 +12,7 @@ export class UpgradesDAT extends DAT {
       { size: 2, name: "ResearchTimeFactor" },
       { size: 2, name: "Requirements" },
       { size: 2, name: "Icon", get: this._infoValue("Icons") },
-      { size: 2, name: "Label", get: this._statTxt("Upgrade Label") },
+      { size: 2, name: "Label", get: this._statTxt() },
       { size: 1, name: "Race", get: this._infoValue("Races") },
       { size: 1, name: "MaxRepeats" },
       { size: 1, name: "BroodwarOnly" },

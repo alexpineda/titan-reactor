@@ -7,7 +7,7 @@ export class PortraitsDAT extends DAT {
       {
         size: 4,
         name: "PortraitFile",
-        get: this._statTxt("Portrait File Path"),
+        get: this._statTxt,
       },
       { size: 1, name: "SMKChange" },
       { size: 1, name: "Unknown" },

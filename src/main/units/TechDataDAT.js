@@ -11,7 +11,7 @@ export class TechDataDAT extends DAT {
       { size: 2, name: "ResearchRequirements" },
       { size: 2, name: "UseRequirements" },
       { size: 2, name: "Icon", get: this._infoValue("Icons") },
-      { size: 2, name: "Label", get: this._statTxt("Technology Label") },
+      { size: 2, name: "Label", get: this._statTxt() },
       { size: 1, name: "Race", get: this._infoValue("Races") },
       { size: 1, name: "Researched" },
       { size: 1, name: "BroodwarOnly" },

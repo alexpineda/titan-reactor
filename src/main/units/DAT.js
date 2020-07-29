@@ -9,7 +9,7 @@ export class DAT {
     this.statFile = `${process.env.BWDATA}/rez/stat_txt.tbl`;
   }
 
-  async init() {
+  init() {
     const names = [
       "Animations",
       "Behaviours",
@@ -40,24 +40,23 @@ export class DAT {
       "Upgrades",
       "Weapons",
     ];
-    this.stats = await this._loadStatFile();
-    this.initialized = Promise.all(
-      names
-        .map((name) => openFileLines(`./src/main/units/Data/${name}.txt`))
-        .concat()
-    ).then((files) => {
-      files.forEach((buf, i) => {
-        this.info[names[i]] = buf;
-      });
+
+    this.initialized = new Promise((res) => {
+      this._loadStatFile()
+        .then((stats) => (this.stats = stats))
+        .then(
+          Promise.all(
+            names
+              .map((name) => openFileLines(`./src/main/units/Data/${name}.txt`))
+              .concat()
+          ).then((files) => {
+            files.forEach((buf, i) => {
+              this.info[names[i]] = buf;
+            });
+            res();
+          })
+        );
     });
-  }
-  _readProp(buf, { size, array }) {
-    if (array) {
-      //@todo read the prop as an array itself instead
-      return range(0, array).map((_) => this._read(buf, size));
-    } else {
-      return this._read(buf, { size });
-    }
   }
 
   _read(buf, size, pos) {
@@ -77,18 +76,16 @@ export class DAT {
     return TBL.parse(file);
   }
 
-  async _loadIdFile(filename) {
-    return await openFileBinary(`./src/main/units/Data/${filename}`);
-  }
-
   async _loadDatFile(filename) {
     return await openFileBinary(`${process.env.BWDATA}/arr/${filename}`);
   }
 
-  _statTxt(sublabel) {
+  _statTxt() {
     return (index) => {
-      const offset = sublabel === "Sublabel" ? 1301 : 0;
-      return this.stats[index + offset];
+      if (index === 0) {
+        return null;
+      }
+      return this.stats[index - 1];
     };
   }
 
@@ -107,10 +104,10 @@ export class DAT {
 
   async load() {
     if (!this.initialized) {
-      await this.init();
+      this.init();
     }
+    await this.initialized;
 
-    this.stringIds = await this._loadIdFile(this.idfile);
     const buf = await this._loadDatFile(this.datname);
 
     const formatRange = (fmt) =>
@@ -119,9 +116,12 @@ export class DAT {
     const formatMin = (fmt) => formatRange(fmt)[0];
 
     this.entries = range(0, this.count).map((i) => {
-      const values = this.format.map((fmt, j) => {
+      const values = this.format.flatMap((fmt, j) => {
         if (!formatRange(fmt).includes(i)) {
-          return [fmt.name, 0];
+          if (fmt.names) {
+            return fmt.names.map((name) => ({ name, value: 0 }));
+          }
+          return { name: fmt.name, value: 0 };
         }
         const pos =
           range(0, j)
@@ -131,12 +131,20 @@ export class DAT {
               0
             ) +
           fmt.size * (i - formatMin(fmt));
-        const value = this._read(buf, fmt.size, pos);
-        return [fmt.name, fmt.get ? fmt.get(value) : value];
+
+        if (fmt.names) {
+          return fmt.names.map((name, n) => {
+            const size = fmt.size / fmt.names.length;
+            const value = this._read(buf, size, pos + n * size);
+            return { name, value };
+          });
+        }
+        const data = this._read(buf, fmt.size, pos);
+        return { name: fmt.name, value: fmt.get ? fmt.get(data) : data };
       });
 
-      return values.reduce((memo, [key, val]) => {
-        return { ...memo, [key]: val };
+      return values.reduce((memo, { name, value }) => {
+        return { ...memo, [name]: value };
       }, {});
     });
   }
