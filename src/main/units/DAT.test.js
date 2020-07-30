@@ -9,8 +9,8 @@ import { ImagesDAT } from "./ImagesDAT";
 import { WeaponsDAT } from "./WeaponsDAT";
 import { UnitsDAT } from "./UnitsDAT";
 
-import { writeFile } from "fs";
-// const writeFile = () => {};
+// import { writeFile } from "fs";
+const writeFile = () => {};
 
 test("SoundsDAT should parse sfxdata.dat", async (done) => {
   const dat = new SoundsDAT();
@@ -85,7 +85,7 @@ test("WeaponsDAT should parse weapons.dat", async (done) => {
 test("UnitsDAT should parse units.dat", async (done) => {
   const dat = new UnitsDAT();
   await dat.load();
-  console.log(dat.entries);
+  // console.log(dat.entries);
   writeFile("units.result.json", JSON.stringify(dat.entries), () => {});
   done();
 });

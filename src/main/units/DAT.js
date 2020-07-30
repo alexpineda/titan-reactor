@@ -62,7 +62,7 @@ export class DAT {
   _read(buf, size, pos) {
     let value = null;
     if (size === 1) {
-      value = buf.readInt8(pos);
+      value = buf.readUInt8(pos);
     } else if (size === 2) {
       value = buf.readUInt16LE(pos);
     } else if (size === 4) {
