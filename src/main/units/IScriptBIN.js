@@ -1,5 +1,5 @@
 import { openFileBinary, openFileLines } from "../fs";
-import { range } from "ramda";
+import { range, pathSatisfies } from "ramda";
 const IScriptHeaders = [
   "Init",
   "Death",
@@ -154,7 +154,9 @@ const read = (buf, size, pos) => {
 };
 
 export class IScriptBIN {
-  constructor() {}
+  constructor(bwDataPath) {
+    this.bwDataPath = bwDataPath;
+  }
 
   init() {
     if (this.initialized) return this.initialized;
@@ -166,9 +168,7 @@ export class IScriptBIN {
 
   async load() {
     await this.init();
-    const buf = await openFileBinary(
-      `${process.env.BWDATA}/scripts/iscript.bin`
-    );
+    const buf = await openFileBinary(`${this.bwDataPath}/scripts/iscript.bin`);
 
     const headers = [];
 
@@ -194,7 +194,6 @@ export class IScriptBIN {
 
       const header = {
         id: headerId,
-        // name: IScriptHeaders[headerId], //probabl not right since we have that missing index 1
         entryType: buf.readUInt8(offset + 4),
         offset,
         offsets: [],
@@ -208,7 +207,34 @@ export class IScriptBIN {
       readSection(pos + 4);
     }
 
-    function loadOffset(offset) {
+    function loadOffsets(offset) {
+      if (!offset) {
+        return [];
+      }
+      let nextOffset = offset;
+      let cmds = [];
+
+      let iter = 0;
+      while (nextOffset && nextOffset < buf.byteLength) {
+        const res = loadOffset(nextOffset);
+        if (!res) {
+          break;
+        }
+        const [cmd, nextPos] = res;
+        nextOffset = nextPos;
+        cmds.push(cmd);
+        iter++;
+        if (iter > 20) {
+          return cmds;
+        }
+      }
+      return cmds;
+    }
+
+    function loadOffset(offset, meta) {
+      if (offset === 0) {
+        throw new Error("invalid offset");
+      }
       const opIndex = buf.readUInt8(offset);
       if (opIndex >= IScriptOPCodes.length) {
         throw new Error("invalid command");
@@ -217,12 +243,13 @@ export class IScriptBIN {
       const [opName, params] = IScriptOPCodes[opIndex];
       const op = { opName, opIndex, offset };
       const args = [];
+      let newPos = offset + 1;
       if (params.length) {
         if (params[0].name != "sounds") {
-          params.reduce((pos, { name, size }) => {
-            args.push({ name, val: read(buf, size, pos) });
+          newPos = params.reduce((pos, { name, size }) => {
+            args.push({ name, val: read(buf, size, pos), size });
             return pos + size;
-          }, offset + 1);
+          }, newPos);
         } else {
           const [sounds, { name, size }] = params;
 
@@ -234,31 +261,35 @@ export class IScriptBIN {
               val: read(buf, size, offset + 2 + size * x),
             });
           });
+          newPos = offset + 2 + size * numSounds;
         }
       } //end params
 
       if (opIndex == 7) {
-        // go to
-        return { ...loadOffset(args[0].val), gotoFrom: opIndex };
+        //goto
+        newPos = null;
       } else if ([22, 54].includes(opIndex)) {
         //end and return
+        newPos = null;
       } else if ([30, 53, 57, 58, 59, 60, 63].includes(opIndex)) {
         //randcondjump,call,pwrupcondjmp,trgtrangecondjmp,trgtarccondjmp,curdirectcondjmp,liftoffcondjump
-        return {
-          ...loadOffset(args[args.length - 1].val),
-          jumpedFrom: op,
-        };
+        newPos = null;
       }
 
-      return { op, args };
+      return [{ op, args, meta }, newPos];
     }
 
-    headers
-      .filter((h) => h)
-      .forEach((header) => {
-        header.commands = header.offsets.filter((o) => o).map(loadOffset);
-      });
+    const cleanHeaders = (commands) => {
+      return commands.map((c) => [
+        c.op.opName,
+        ...c.args.map(({ val }) => val),
+      ]);
+    };
 
-    this.headers = headers;
+    headers.forEach((header) => {
+      header.commands = header.offsets.map(loadOffsets).map(cleanHeaders);
+    });
+
+    this.scripts = headers;
   }
 }

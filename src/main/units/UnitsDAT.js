@@ -22,8 +22,8 @@ const reductions = {
 };
 
 export class UnitsDAT extends DAT {
-  constructor() {
-    super();
+  constructor(bwDataPath) {
+    super(bwDataPath);
 
     this.format = [
       { size: 1, name: "Graphics", get: this._datValue("Flingy") },

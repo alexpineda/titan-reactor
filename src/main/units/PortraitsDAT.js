@@ -1,7 +1,7 @@
 import { DAT } from "./DAT";
 export class PortraitsDAT extends DAT {
-  constructor() {
-    super();
+  constructor(bwDataPath) {
+    super(bwDataPath);
 
     this.format = [
       {

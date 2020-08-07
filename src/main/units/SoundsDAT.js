@@ -1,9 +1,9 @@
 import { DAT } from "./DAT";
 export class SoundsDAT extends DAT {
-  constructor() {
-    super();
+  constructor(bwDataPath) {
+    super(bwDataPath);
 
-    this.statFile = `${process.env.BWDATA}/arr/sfxdata.tbl`;
+    this.statFile = `${bwDataPath}/arr/sfxdata.tbl`;
 
     this.format = [
       { size: 4, name: "Soundfile", get: this._statTxt() },

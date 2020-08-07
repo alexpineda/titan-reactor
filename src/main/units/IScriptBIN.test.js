@@ -1,12 +1,11 @@
 import { IScriptBIN } from "./IScriptBIN";
 
-import { writeFile } from "fs";
-// const writeFile = () => {};
+// import { writeFile } from "fs";
+const writeFile = () => {};
 
 test("IScriptBIN should parse iscript.bin", async (done) => {
-  const iscript = new IScriptBIN();
+  const iscript = new IScriptBIN(process.env.BWDATA);
   await iscript.load();
-  writeFile("iscript.result.json", JSON.stringify(iscript.headers), () => {});
-  // console.log(iscript.headers);
+  writeFile("iscript.result.json", JSON.stringify(iscript.scripts), () => {});
   done();
 });

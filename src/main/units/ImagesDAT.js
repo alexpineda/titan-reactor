@@ -1,7 +1,7 @@
 import { DAT } from "./DAT";
 export class ImagesDAT extends DAT {
-  constructor() {
-    super();
+  constructor(bwDataPath) {
+    super(bwDataPath);
 
     this.statFile = `${process.env.BWDATA}/arr/images.tbl`;
 

@@ -5,8 +5,8 @@
   "main": "electron/index.js",
   "scripts": {
     "test": "jest --watchAll",
-    "test:once": "jest",
-    "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
+    "test:once": "jest --runInBand",
+    "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",
     "clear-cache": "rm -rf .cache dist",
     "electron": "electron .",
     "dev": "electron-webpack dev"

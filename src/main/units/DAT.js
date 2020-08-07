@@ -3,10 +3,12 @@ import { openFileBinary, openFileLines } from "../fs";
 import { range, identity, memoizeWith } from "ramda";
 
 export class DAT {
-  constructor() {
+  constructor(bwDataPath, resourcesPath = "./src/main/units/Data") {
+    this.bwDataPath = bwDataPath;
+    this.resourcesPath = resourcesPath;
     this.entries = [];
     this.info = {};
-    this.statFile = `${process.env.BWDATA}/rez/stat_txt.tbl`;
+    this.statFile = `${this.bwDataPath}/rez/stat_txt.tbl`;
   }
 
   init() {
@@ -47,7 +49,7 @@ export class DAT {
         .then(
           Promise.all(
             names
-              .map((name) => openFileLines(`./src/main/units/Data/${name}.txt`))
+              .map((name) => openFileLines(`${this.resourcesPath}/${name}.txt`))
               .concat()
           ).then((files) => {
             files.forEach((buf, i) => {
@@ -77,7 +79,7 @@ export class DAT {
   }
 
   async _loadDatFile(filename) {
-    return await openFileBinary(`${process.env.BWDATA}/arr/${filename}`);
+    return await openFileBinary(`${this.bwDataPath}/arr/${filename}`);
   }
 
   _statTxt() {

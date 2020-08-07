@@ -6,8 +6,8 @@ export class SpritesDAT extends DAT {
     return Math.floor((value - 1) / 3);
   };
 
-  constructor() {
-    super();
+  constructor(bwDataPath) {
+    super(bwDataPath);
 
     this.format = [
       { size: 2, name: "ImageFile", get: this._datValue("Images") },
