@@ -56,9 +56,10 @@ export class ReplayUnits3D {
     const prefab = this.prefabs[frameData.typeId] || this.prefabs[999];
     const unit = prefab.clone();
     // unit.matrixAutoUpdate = false;
-    unit.add(new AxesHelper(2));
+    // unit.add(new AxesHelper(2));
     unit.userData.repId = frameData.repId;
     unit.userData.typeId = frameData.typeId;
+    unit.name = this.bwDat.units[unit.userData.typeId].name;
     this.units.add(unit);
     return unit;
   }
@@ -74,7 +75,7 @@ export class ReplayUnits3D {
     const x = frameData.x / 32 - 64;
     const y = frameData.y / 32 - 64;
 
-    const position = new Vector3(x, 6, y);
+    const position = new Vector3(x, this.getTerrainY(x, y), y);
     const rotationY = -frameData.angle + Math.PI / 2;
 
     unit.position.copy(position);
@@ -97,22 +98,20 @@ export class ReplayUnits3D {
     const { hp, shields, energy, frame, order, subOrder } = frameData;
 
     unit.userData.previous = unit.userData.current;
-    unit.userData.current = {
-      hp,
-      shields,
-      energy,
-      frame,
-      order,
-      subOrder,
-    };
+    unit.userData.current = frameData;
+    // unit.userData.current = {
+    //   hp,
+    //   shields,
+    //   energy,
+    //   frame,
+    //   order,
+    //   subOrder,
+    // };
 
     this.runIscript(frameData);
   }
 
-  runIscript(frameData) {
-    console.log(frameData);
-    debugger;
-  }
+  runIscript(frameData) {}
 
   clear(frame) {
     // this.units.children
@@ -135,3 +134,35 @@ export class ReplayUnits3D {
     this.units = new Group();
   }
 }
+
+// //#region lepring movement and adjusting position according to terrain
+// units.getUnits().forEach((model) => {
+//     if (model.userData.nextPosition) {
+//       model.position.lerpVectors(
+//         model.userData.startPosition,
+//         model.userData.nextPosition,
+//         (worldFrame % physicsFrameSkip) / physicsFrameSkip
+//       );
+//     }
+//   }
+
+// displacement = {
+//   image: floor.material.displacementMap.image
+//     .getContext("2d")
+//     .getImageData(0, 0, disp.width, disp.height),
+//   width: disp.width,
+//   scale: floor.material.displacementScale,
+// };
+
+// if (worldFloor && worldFrame % 50 === 0) {
+//   const testPoint = new Vector3();
+//   const raycaster = new THREE.Raycaster(
+//     testPoint.addVectors(model.position, new Vector3(0, 20, 0)),
+//     new Vector3(0, -1, 0)
+//   );
+//   const result = raycaster.intersectObject(worldFloor, false);
+//   if (result && result.length) {
+//     const point = result[0].point;
+//     model.position.copy(point.add);
+//   }
+// }

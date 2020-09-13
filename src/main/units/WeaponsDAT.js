@@ -1,33 +1,33 @@
 import { DAT } from "./DAT";
 export class WeaponsDAT extends DAT {
-  constructor(bwDataPath) {
+  constructor(bwDataPath, flingy = {}) {
     super(bwDataPath);
 
     this.format = [
-      { size: 2, name: "Label", get: (i) => this.stats[i] },
-      { size: 4, name: "Graphics", get: this._datValue("Flingy") },
-      { size: 1, name: "Unused", get: this._infoValue("Techdata") },
-      { size: 2, name: "TargetFlags" }, //'Air,Ground,Mechanical,Organic,non-Building,non-Robotic,Terrain,Organic or Mechanical,Own'
-      { size: 4, name: "MinimumRange" },
-      { size: 4, name: "MaximumRange" },
-      { size: 1, name: "DamageUpgrade", get: this._datValue("Upgrades") },
-      { size: 1, name: "WeaponType", get: this._infoValue("DamTypes") },
-      { size: 1, name: "WeaponBehavior", get: this._infoValue("Behaviours") },
-      { size: 1, name: "RemoveAfter" },
-      { size: 1, name: "ExplosionType" },
-      { size: 2, name: "InnerSplashRange" },
-      { size: 2, name: "MediumSplashRange" },
-      { size: 2, name: "OuterSplashRange" },
-      { size: 2, name: "DamageAmount" },
-      { size: 2, name: "DamageBonus" },
-      { size: 1, name: "WeaponCooldown" },
-      { size: 1, name: "DamageFactor" },
-      { size: 1, name: "AttackAngle" },
-      { size: 1, name: "LaunchSpin" },
-      { size: 1, name: "ForwardOffset" },
-      { size: 1, name: "UpwardOffset" },
-      { size: 2, name: "TargetErrorMessage", get: (i) => this.stats[i] },
-      { size: 2, name: "Icon", get: this._infoValue("Icons") },
+      { size: 2, name: "name", get: (i) => this.stats[i] },
+      { size: 4, name: "flingy", get: (i) => flingy[i] },
+      { size: 1, name: "unused", get: this._infoValue("Techdata") },
+      { size: 2, name: "targetFlags" }, //'Air,Ground,Mechanical,Organic,non-Building,non-Robotic,Terrain,Organic or Mechanical,Own'
+      { size: 4, name: "minRange" },
+      { size: 4, name: "maxRange" },
+      { size: 1, name: "damageUpgrade", get: this._datValue("Upgrades") },
+      { size: 1, name: "weaponType", get: this._infoValue("DamTypes") },
+      { size: 1, name: "weaponBehavior", get: this._infoValue("Behaviours") },
+      { size: 1, name: "removeAfter" },
+      { size: 1, name: "explosionType" },
+      { size: 2, name: "innerSplashRange" },
+      { size: 2, name: "mediumSplashRange" },
+      { size: 2, name: "outerSplashRange" },
+      { size: 2, name: "damageAmount" },
+      { size: 2, name: "damageBonus" },
+      { size: 1, name: "weaponCooldown" },
+      { size: 1, name: "damageFactor" },
+      { size: 1, name: "attackAngle" },
+      { size: 1, name: "launchSpin" },
+      { size: 1, name: "forwardOffset" },
+      { size: 1, name: "upwardOffset" },
+      { size: 2, name: "targetErrorMessage", get: (i) => this.stats[i] },
+      { size: 2, name: "icon", get: this._infoValue("Icons") },
     ];
 
     const flaglens = { TargetFlags: 9 };
@@ -35,5 +35,11 @@ export class WeaponsDAT extends DAT {
     this.idfile = "Weapons.txt";
     this.filesize = 5460;
     this.count = 130;
+  }
+
+  post(entries) {
+    return entries.map((entry, i) => {
+      entry.index = i;
+    });
   }
 }

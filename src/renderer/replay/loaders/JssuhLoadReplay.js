@@ -7,7 +7,6 @@ import fs from "fs";
 
 const echo = new Writable({
   write(chunk, enc, next) {
-    console.log(chunk, enc);
     next();
   },
 });
@@ -16,7 +15,6 @@ export const jssuhLoadReplay = (replayFile, bwDataPath) => {
   const reppi = fs.createReadStream(replayFile).pipe(new ReplayParser());
   const headerPromise = new Promise((resolve) => {
     reppi.on("replayHeader", (header) => {
-      console.log(header);
       resolve(header);
     });
   });
@@ -25,7 +23,6 @@ export const jssuhLoadReplay = (replayFile, bwDataPath) => {
     reppi.pipeChk(
       Chk.createStream((err, data) => {
         if (err) return rej(err);
-        // console.log("chkPromise", imageChk(data));
         res(imageChk(data, bwDataPath));
       })
     );

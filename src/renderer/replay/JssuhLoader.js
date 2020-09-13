@@ -8,7 +8,6 @@ import fs from "fs";
 
 const echo = new Writable({
   write(chunk, enc, next) {
-    console.log(chunk, enc);
     next();
   },
 });

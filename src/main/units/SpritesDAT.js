@@ -1,6 +1,6 @@
 import { DAT } from "./DAT";
 import { range } from "ramda";
-
+import { selectionCircleSize } from "../../common/bwdat/selectionCircleSize";
 export class SpritesDAT extends DAT {
   _hpBar() {
     return (value) => {
@@ -8,31 +8,37 @@ export class SpritesDAT extends DAT {
     };
   }
 
-  constructor(bwDataPath) {
+  constructor(bwDataPath, images = {}) {
     super(bwDataPath);
 
     this.format = [
-      { size: 2, name: "ImageFile", get: this._datValue("Images") },
+      { size: 2, name: "image", get: (i) => images[i] },
       {
         size: 1,
-        name: "HealthBar",
+        name: "healthBar",
         get: this._hpBar(),
         range: () => range(130, 517),
       },
-      { size: 1, name: "Unknown" },
-      { size: 1, name: "IsVisible" },
+      { size: 1, name: "unknown" },
+      { size: 1, name: "visible" },
       {
         size: 1,
-        name: "SelectionCircleImage",
-        get: this._infoValue("SelCircleSize"),
+        name: "selectionCircleImage",
+        get: (i) => selectionCircleSize[i],
         range: () => range(130, 517),
       },
-      { size: 1, name: "SelectionCircleOffset", range: () => range(130, 517) },
+      { size: 1, name: "selectionCircleOffset", range: () => range(130, 517) },
     ];
 
     this.datname = "sprites.dat";
     this.idfile = "Sprites.txt";
     this.filesize = 3229;
     this.count = 517;
+  }
+
+  post(entries) {
+    return entries.map((entry, i) => {
+      entry.index = i;
+    });
   }
 }

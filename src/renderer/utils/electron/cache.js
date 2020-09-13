@@ -8,7 +8,6 @@ import BufferList from "bl";
 
 export class Cache {
   static save(filepath, data) {
-    console.log("save", data);
     const filename = path.basename(filepath);
     const cacheFile = path.join(getAppCachePath.cachePath, `${filename}.chk`);
 
@@ -29,7 +28,6 @@ export class Cache {
 
   static restore(path) {
     return promises.readFile(path).then((data) => {
-      console.log(new BufferList(data).slice(0));
       return new BufferList(data).slice(0);
     });
   }

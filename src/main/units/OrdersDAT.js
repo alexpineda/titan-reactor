@@ -4,30 +4,36 @@ export class OrdersDAT extends DAT {
     super(bwDataPath);
 
     this.format = [
-      { size: 2, name: "Label", get: (i) => this.stats[i] },
-      { size: 1, name: "UseWeaponTargeting" },
-      { size: 1, name: "Unknown1" },
-      { size: 1, name: "MainOrSecondary" },
-      { size: 1, name: "Unknown3" },
-      { size: 1, name: "Unknown4" },
-      { size: 1, name: "Interruptable" },
-      { size: 1, name: "Unknown5" },
-      { size: 1, name: "Queueable" },
-      { size: 1, name: "Unknown6" },
-      { size: 1, name: "Unknown7" },
-      { size: 1, name: "Unknown8" },
-      { size: 1, name: "Unknown9" },
-      { size: 1, name: "Targeting", get: this._datValue("Weapons") },
-      { size: 1, name: "Energy", get: this._infoValue("Techdata") },
-      { size: 1, name: "Animation", get: this._infoValue("Animations") },
-      { size: 2, name: "Highlight", get: this._infoValue("Icons") },
-      { size: 2, name: "Unknown10" },
-      { size: 1, name: "ObscuredOrder", get: this._datValue("Orders") },
+      { size: 2, name: "name", get: (i) => this.stats[i] },
+      { size: 1, name: "useWeaponTargeting" },
+      { size: 1, name: "unknown1" },
+      { size: 1, name: "mainOrSecondary" },
+      { size: 1, name: "unknown3" },
+      { size: 1, name: "unknown4" },
+      { size: 1, name: "interruptable" },
+      { size: 1, name: "unknown5" },
+      { size: 1, name: "queueable" },
+      { size: 1, name: "unknown6" },
+      { size: 1, name: "unknown7" },
+      { size: 1, name: "unknown8" },
+      { size: 1, name: "unknown9" },
+      { size: 1, name: "targeting", get: this._datValue("Weapons") },
+      { size: 1, name: "energy", get: this._infoValue("Techdata") },
+      { size: 1, name: "animation", get: this._infoValue("Animations") },
+      { size: 2, name: "highlight", get: this._infoValue("Icons") },
+      { size: 2, name: "unknown10" },
+      { size: 1, name: "obscuredOrder", get: this._datValue("Orders") },
     ];
 
     this.datname = "orders.dat";
     this.idfile = "Orders.txt";
     this.filesize = 4158;
     this.count = 189;
+  }
+
+  post(entries) {
+    return entries.map((entry, i) => {
+      entry.index = i;
+    });
   }
 }

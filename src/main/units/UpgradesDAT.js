@@ -4,23 +4,29 @@ export class UpgradesDAT extends DAT {
     super(bwDataPath);
 
     this.format = [
-      { size: 2, name: "MineralCostBase" },
-      { size: 2, name: "MineralCostFactor" },
-      { size: 2, name: "VespeneCostBase" },
-      { size: 2, name: "VespeneCostFactor" },
-      { size: 2, name: "ResearchTimeBase" },
-      { size: 2, name: "ResearchTimeFactor" },
-      { size: 2, name: "Requirements" },
-      { size: 2, name: "Icon", get: this._infoValue("Icons") },
-      { size: 2, name: "Label", get: this._statTxt() },
-      { size: 1, name: "Race", get: this._infoValue("Races") },
-      { size: 1, name: "MaxRepeats" },
-      { size: 1, name: "BroodwarOnly" },
+      { size: 2, name: "mineralCostBase" },
+      { size: 2, name: "mineralCostFactor" },
+      { size: 2, name: "vespeneCostBase" },
+      { size: 2, name: "vespeneCostFactor" },
+      { size: 2, name: "researchTimeBase" },
+      { size: 2, name: "researchTimeFactor" },
+      { size: 2, name: "requirements" },
+      { size: 2, name: "icon", get: this._infoValue("Icons") },
+      { size: 2, name: "name", get: this._statTxt() },
+      { size: 1, name: "race", get: this._infoValue("Races") },
+      { size: 1, name: "maxRepeats" },
+      { size: 1, name: "broodwarOnly" },
     ];
 
     this.datname = "upgrades.dat";
     this.idfile = "Upgrades.txt";
     this.filesize = 1281;
     this.count = 61;
+  }
+
+  post(entries) {
+    return entries.map((entry, i) => {
+      entry.index = i;
+    });
   }
 }

@@ -66,7 +66,14 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
   scene.background = scene.fog.color;
 
   const terrainY = getTerrainY(
-    terrain.userData.displacementMap.image.getContext("2d"),
+    terrain.userData.displacementMap.image
+      .getContext("2d")
+      .getImageData(
+        0,
+        0,
+        terrain.userData.displacementMap.image.width,
+        terrain.userData.displacementMap.image.height
+      ),
     terrain.userData.displacementScale,
     chk.size[0],
     chk.size[1]
@@ -114,7 +121,6 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
     }
   });
 
-  //todo make item select work!
   document.addEventListener("mousedown", (event) => {
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
@@ -126,30 +132,48 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     // calculate objects intersecting the picking ray
-    var intersects = raycaster.intersectObjects(units.getUnits());
-    intersects.forEach(({ object }) => {
-      console.log("intersect", object, object.typeId);
-      if (object.typeId) {
-        console.log(object.typeId);
+    const intersects = raycaster.intersectObjects(units.getUnits(), true);
+    const getAsUnit = (mesh) => {
+      if (!mesh) return null;
+      if (mesh.userData && mesh.userData.typeId) {
+        return mesh;
+      } else {
+        return getAsUnit(mesh.parent);
       }
-    });
+    };
+
+    if (intersects[0]) {
+      const unit = getAsUnit(intersects[0].object);
+
+      if (unit) {
+        console.log(unit);
+        // var geometry = new THREE.CircleGeometry(1, 8);
+        // var material = new THREE.MeshBasicMaterial({
+        //   color: new THREE.Color("0xffff00"),
+        // });
+        // var circle = new THREE.Mesh(geometry, material);
+        // circle.rotation.x = Math.PI / -2;
+        // circle.name = "Selection";
+        // unit.add(circle);
+      }
+    }
   });
 
   function gameLoop() {
-    if (!running) {
-      setTimeout(() => {
-        requestAnimationFrameId = requestAnimationFrame(gameLoop);
-      }, 100);
-      return;
-    }
+    // if (!running) {
+    //   setTimeout(() => {
+    //     requestAnimationFrameId = requestAnimationFrame(gameLoop);
+    //   }, 100);
+    //   return;
+    // }
 
     worldFrame++;
 
     units.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
-    // if (BWAPIFramesDataView && worldFrame % 10 === 0) {
     if (BWAPIFramesDataView) {
+      // if (BWAPIFramesDataView) {
       for (let gf = 0; gf < numSkipGameFrames; gf++) {
         while (true) {
           const frameData = BWAPIFrameFromBuffer(
@@ -158,7 +182,6 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
           );
 
           if (frameData) {
-            console.log("a", frameData.angle);
             const unit = units.spawnIfNotExists(frameData);
             units.update(unit, frameData);
 
@@ -177,76 +200,6 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
       }
       // units.clear(BWAPIFrame);
     }
-    //#endregion
-
-    //#region lepring movement and adjusting position according to terrain
-    units.getUnits().forEach((model) => {
-      if (worldFrame % physicsFrameSkip === 0 && false) {
-        if (model.position.x > 64 || model.position.x < -64) {
-          model.userData.movement = new Vector3(
-            model.userData.movement.x * -1,
-            0,
-            model.userData.movement.z
-          );
-        } else if (model.position.z < -64 || model.position.z > 64) {
-          model.userData.movement = new Vector3(
-            model.userData.movement.x,
-            0,
-            model.userData.movement.z * -1
-          );
-        }
-
-        model.userData.nextPosition = new Vector3(
-          model.position.x,
-          model.position.y,
-          model.position.z
-        );
-        const movement = new Vector3(
-          model.userData.movement.x,
-          model.userData.movement.y,
-          model.userData.movement.z
-        );
-        movement.multiplyScalar(physicsFrameSkip);
-        model.userData.nextPosition.add(movement);
-
-        model.userData.startPosition = model.position.clone();
-        model.userData.nextPosition = new Vector3(
-          model.userData.nextPosition.x,
-          (model.userData.nextPosition.y = d),
-          model.userData.nextPosition.z
-        );
-      } else if (false) {
-        if (model.userData.nextPosition) {
-          model.position.lerpVectors(
-            model.userData.startPosition,
-            model.userData.nextPosition,
-            (worldFrame % physicsFrameSkip) / physicsFrameSkip
-          );
-        }
-      }
-
-      // displacement = {
-      //   image: floor.material.displacementMap.image
-      //     .getContext("2d")
-      //     .getImageData(0, 0, disp.width, disp.height),
-      //   width: disp.width,
-      //   scale: floor.material.displacementScale,
-      // };
-
-      // if (worldFloor && worldFrame % 50 === 0) {
-      //   const testPoint = new Vector3();
-      //   const raycaster = new THREE.Raycaster(
-      //     testPoint.addVectors(model.position, new Vector3(0, 20, 0)),
-      //     new Vector3(0, -1, 0)
-      //   );
-      //   const result = raycaster.intersectObject(worldFloor, false);
-      //   if (result && result.length) {
-      //     const point = result[0].point;
-      //     model.position.copy(point.add);
-      //   }
-      // }
-    });
-
     //#endregion
 
     renderer.clear();

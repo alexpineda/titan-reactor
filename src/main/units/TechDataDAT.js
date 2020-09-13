@@ -4,22 +4,28 @@ export class TechDataDAT extends DAT {
     super(bwDataPath);
 
     this.format = [
-      { size: 2, name: "MineralCost" },
-      { size: 2, name: "VespeneCost" },
-      { size: 2, name: "ResearchTime" }, //frames, to get seconds divide by 24
-      { size: 2, name: "EnergyRequired" },
-      { size: 2, name: "ResearchRequirements" },
-      { size: 2, name: "UseRequirements" },
-      { size: 2, name: "Icon", get: this._infoValue("Icons") },
-      { size: 2, name: "Label", get: this._statTxt() },
-      { size: 1, name: "Race", get: this._infoValue("Races") },
-      { size: 1, name: "Researched" },
-      { size: 1, name: "BroodwarOnly" },
+      { size: 2, name: "mineralCost" },
+      { size: 2, name: "vespeneCost" },
+      { size: 2, name: "researchTime" }, //frames
+      { size: 2, name: "energyRequired" },
+      { size: 2, name: "researchRequirements" },
+      { size: 2, name: "useRequirements" },
+      { size: 2, name: "icon", get: this._infoValue("Icons") },
+      { size: 2, name: "name", get: this._statTxt() },
+      { size: 1, name: "race", get: this._infoValue("Races") },
+      { size: 1, name: "researched" },
+      { size: 1, name: "broodwarOnly" },
     ];
 
     this.datname = "techdata.dat";
     this.idfile = "Techdata.txt";
     this.filesize = 836;
     this.count = 44;
+  }
+
+  post(entries) {
+    return entries.map((entry, i) => {
+      entry.index = i;
+    });
   }
 }
