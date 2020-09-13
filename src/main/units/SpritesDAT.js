@@ -2,9 +2,11 @@ import { DAT } from "./DAT";
 import { range } from "ramda";
 
 export class SpritesDAT extends DAT {
-  _hpBar = () => (value) => {
-    return Math.floor((value - 1) / 3);
-  };
+  _hpBar() {
+    return (value) => {
+      return Math.floor((value - 1) / 3);
+    };
+  }
 
   constructor(bwDataPath) {
     super(bwDataPath);

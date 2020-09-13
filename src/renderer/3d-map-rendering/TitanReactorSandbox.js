@@ -52,10 +52,10 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
 
   const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
-  var lightCameraHelper = new THREE.CameraHelper(light.shadow.camera);
-  scene.add(lightCameraHelper);
-  var lightHelper = new THREE.DirectionalLightHelper(light, 5);
-  scene.add(lightHelper);
+  // var lightCameraHelper = new THREE.CameraHelper(light.shadow.camera);
+  // scene.add(lightCameraHelper);
+  // var lightHelper = new THREE.DirectionalLightHelper(light, 5);
+  // scene.add(lightHelper);
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
   scene.add(hemi);

@@ -5,6 +5,7 @@ import { TitanReactorAudioSandbox } from "./audio/TitanReactorAudioSandbox";
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
+import { loadAllDataFiles } from "./invoke";
 import { ipcRenderer } from "electron";
 import React from "react";
 import { render } from "react-dom";
@@ -18,6 +19,7 @@ console.log(new Date().toLocaleString());
 //   module.hot.accept();
 // }
 
+let bwDat = null;
 let scene = null;
 let appIsReady = true;
 
@@ -39,6 +41,20 @@ async function bootup() {
   // }
 
   appIsReady = true;
+
+  bwDat = await loadAllDataFiles(gameOptions.bwDataPath);
+  console.log("bwDat", bwDat);
+
+  let replayPlaylist = [];
+  let replayIndex = 0;
+  ipcRenderer.on("open-replay", (event, replays) => {
+    if (!appIsReady) {
+      return alert("Please configure your Starcraft path first");
+    }
+    replayPlaylist = replays;
+    replayIndex = 0;
+    loadReplay(replays[0]);
+  });
 }
 
 ipcRenderer.on("open-map", async (event, [map]) => {
@@ -142,14 +158,17 @@ const loadMap = async (filepath) => {
 };
 
 const loadReplay = async (filepath) => {
+  const loadOverlayEl = document.getElementById("load-overlay");
+
   const { headers, commands, chk } = await jssuhLoadReplay(
     filepath,
     gameOptions.bwDataPath
   );
 
-  return TitanReactorSandbox(
+  return TitanReactorReplay(
     chk,
     document.getElementById("three-js"),
+    bwDat,
     () => (loadOverlayEl.style.display = "none")
   );
 };

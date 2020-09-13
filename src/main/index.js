@@ -87,7 +87,27 @@ var showOpen = function (isMap = false) {
       });
     });
 };
+
+// const showOpenReplay = () => {
+//   dialog
+//     .showOpenDialog({
+//       properties: ["openFile", "multiSelections"],
+//       filters: { name: "Starcraft Replay", extensions: ["rep"] },
+//     })
+//     .then(({ filePaths, canceled }) => {
+//       if (canceled) return;
+//       window.webContents.send("open-replay", filePaths);
+//     })
+//     .catch((err) => {
+//       dialog.showMessageBox({
+//         type: "error",
+//         title: "Error Loading File",
+//         message: "There was an error loading this file: " + err.message,
+//       });
+//     });
+// };
 const showOpenReplay = showOpen.bind(null, false);
+
 const showOpenMap = showOpen.bind(null, true);
 
 const showSave = (isImage) => {

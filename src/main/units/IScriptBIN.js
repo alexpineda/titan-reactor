@@ -290,6 +290,6 @@ export class IScriptBIN {
       header.commands = header.offsets.map(loadOffsets).map(cleanHeaders);
     });
 
-    this.scripts = headers;
+    return (this.entries = headers);
   }
 }

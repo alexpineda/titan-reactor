@@ -117,7 +117,7 @@ export class DAT {
     const formatLen = (fmt) => formatRange(fmt).length;
     const formatMin = (fmt) => formatRange(fmt)[0];
 
-    this.entries = range(0, this.count).map((i) => {
+    return (this.entries = range(0, this.count).map((i) => {
       const values = this.format.flatMap((fmt, j) => {
         if (!formatRange(fmt).includes(i)) {
           if (fmt.names) {
@@ -148,6 +148,6 @@ export class DAT {
       return values.reduce((memo, { name, value }) => {
         return { ...memo, [name]: value };
       }, {});
-    });
+    }));
   }
 }

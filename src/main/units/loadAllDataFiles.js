@@ -14,7 +14,6 @@ export function loadAllDataFiles(bwDataPath) {
   const data = [
     new IScriptBIN(bwDataPath),
     new SoundsDAT(bwDataPath),
-    new PortraitsDAT(bwDataPath),
     new SpritesDAT(bwDataPath),
     new FlingyDAT(bwDataPath),
     new TechDataDAT(bwDataPath),
@@ -29,7 +28,6 @@ export function loadAllDataFiles(bwDataPath) {
     ([
       iscript,
       sounds,
-      portraits,
       sprites,
       flingy,
       tech,
@@ -38,18 +36,20 @@ export function loadAllDataFiles(bwDataPath) {
       images,
       weapons,
       units,
-    ]) => ({
-      iscript,
-      sounds,
-      portraits,
-      sprites,
-      flingy,
-      tech,
-      upgrades,
-      orders,
-      images,
-      weapons,
-      units,
-    })
+    ]) => {
+      const result = {
+        iscript,
+        sounds,
+        sprites,
+        flingy,
+        tech,
+        upgrades,
+        orders,
+        images,
+        weapons,
+        units,
+      };
+      return result;
+    }
   );
 }

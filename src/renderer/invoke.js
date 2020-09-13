@@ -9,3 +9,7 @@ export const openFile = async (filepath) => {
   const result = await ipcRenderer.invoke(handles.openFile, filepath);
   return new Buffer(result);
 };
+
+export const loadAllDataFiles = async (bwDataPath) => {
+  return await ipcRenderer.invoke(handles.loadAllDataFiles, bwDataPath);
+};

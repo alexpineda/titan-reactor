@@ -14,7 +14,7 @@ import {
 import { disposeMesh } from "../utils/meshes/dispose";
 
 export class ReplayUnits3D {
-  constructor(getTerrainY, loadManager = DefaultLoadingManager) {
+  constructor(bwDat, getTerrainY, loadManager = DefaultLoadingManager) {
     const prefabs = {
       999: new Mesh(
         new SphereBufferGeometry(1),
@@ -29,6 +29,7 @@ export class ReplayUnits3D {
     this.units = new Group();
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
+    this.bwDat = bwDat;
     this.loadModels(loadManager);
   }
 
@@ -48,6 +49,7 @@ export class ReplayUnits3D {
     loadModel.load(`_alex/assimilator.glb`).then(assignModel(0x9d));
     loadModel.load(`_alex/gateway.glb`).then(assignModel(0xa0));
     loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
+    // loadModel.load(`_alex/medic.glb`).then(assignModel(0x22));
   }
 
   spawn(frameData) {
@@ -55,14 +57,15 @@ export class ReplayUnits3D {
     const unit = prefab.clone();
     // unit.matrixAutoUpdate = false;
     unit.add(new AxesHelper(2));
-    unit.userData.frameData = frameData;
+    unit.userData.repId = frameData.repId;
+    unit.userData.typeId = frameData.typeId;
     this.units.add(unit);
     return unit;
   }
 
   spawnIfNotExists(frameData) {
     const exists = this.units.children.find(
-      (child) => child.userData.frameData.repId === frameData.repId
+      (child) => child.userData.repId === frameData.repId
     );
     return exists || this.spawn(frameData);
   }
@@ -72,7 +75,7 @@ export class ReplayUnits3D {
     const y = frameData.y / 32 - 64;
 
     const position = new Vector3(x, 6, y);
-    const rotationY = frameData.angle * window.angleMult + window.angleAdd;
+    const rotationY = -frameData.angle + Math.PI / 2;
 
     unit.position.copy(position);
     unit.rotation.y = rotationY;
@@ -91,10 +94,28 @@ export class ReplayUnits3D {
     unit.userData.movement = new Vector3();
     unit.userData.nextPosition = new Vector3();
     unit.userData.nextPosition.copy(unit.position);
-    unit.userData.typeId = frameData.typeId;
-    unit.userData.hp = frameData.hp;
-    unit.userData.shields = frameData.shields;
-    unit.userData.energy = frameData.energy;
+    const { hp, shields, energy, frame, order, subOrder } = frameData;
+
+    unit.userData.previous = unit.userData.current;
+    unit.userData.current = {
+      hp,
+      shields,
+      energy,
+      frame,
+      order,
+      subOrder,
+    };
+
+    this.runIscript(frameData);
+  }
+
+  runIscript(frameData) {
+    console.log(frameData);
+    debugger;
+  }
+
+  clear(frame) {
+    // this.units.children
   }
 
   cameraUpdate({ position }, { target }) {

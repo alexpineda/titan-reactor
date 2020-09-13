@@ -32,12 +32,13 @@ const initCameraControls = (camera, element, limitControl = false) => {
 };
 
 export const initCamera = (domElement, limitControl = false) => {
-  const camera = orthoCamera();
+  // const camera = orthoCamera();
+  const camera = perspectiveCamera();
   return [camera, initCameraControls(camera, domElement, limitControl)];
 };
 
 const orthoCamera = () => {
-  const camera = new OrthographicCamera(16, 0, 16, 0);
+  const camera = new OrthographicCamera(16, 0, 16, 0, 1, 10000);
   camera.position.set(13.313427680971873, 19.58336565195161, 56.716490281);
   camera.rotation.set(
     -0.9353944571799614,

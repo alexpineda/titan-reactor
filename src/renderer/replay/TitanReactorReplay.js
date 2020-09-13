@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { initRenderer } from "../3d-map-rendering/renderer";
 import { initCamera } from "../camera-minimap/camera";
 import { handleResize } from "../utils/resize";
-import { sunlight } from "../3d-map-rendering/environment";
+import { sunlight, fog } from "../3d-map-rendering/environment";
 import { backgroundTerrainMesh } from "../3d-map-rendering/meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "../3d-map-rendering/textures/bgMapCanvasTexture";
 import { Terrain } from "../3d-map-rendering/Terrain";
@@ -14,7 +14,7 @@ import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
 
-export async function TitanReactorReplay(chk, canvas, loaded) {
+export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
   const scene = new THREE.Scene();
 
   let running = false;
@@ -45,10 +45,14 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
   gridHelper.position.set(0, 6, 0);
   gridHelper.material.transparent = true;
   gridHelper.material.opacity = 0.5;
+  gridHelper.visible = false;
   scene.add(gridHelper);
 
   const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
+  scene.add(hemi);
 
   const terrainMesh = new Terrain(chk);
   const terrain = await terrainMesh.generate();
@@ -58,6 +62,9 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
   scene.add(terrain);
   scene.add(bgTerrain);
 
+  scene.fog = fog(chk.size[0], chk.size[1]);
+  scene.background = scene.fog.color;
+
   const terrainY = getTerrainY(
     terrain.userData.displacementMap.image.getContext("2d"),
     terrain.userData.displacementScale,
@@ -65,17 +72,19 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
     chk.size[1]
   );
 
-  const units = new ReplayUnits3D(terrainY);
+  const units = new ReplayUnits3D(bwDat, terrainY);
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
 
   let BWAPIFramesDataView = null;
 
-  THREE.DefaultLoadingManager.itemStart("./bwdata/_alex/drop.rep.bin");
-  openFile("./bwdata/_alex/drop.rep.bin").then((frames) => {
+  const tempReplayFile = "./bwdata/_alex/0006 ramiyerP ScanKaLT.rep.bin";
+
+  THREE.DefaultLoadingManager.itemStart(tempReplayFile);
+  openFile(tempReplayFile).then((frames) => {
     BWAPIFramesDataView = new DataView(frames.buffer);
-    THREE.DefaultLoadingManager.itemEnd("./bwdata/_alex/drop.rep.bin");
+    THREE.DefaultLoadingManager.itemEnd(tempReplayFile);
   });
 
   let requestAnimationFrameId = null;
@@ -139,7 +148,8 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
     units.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
-    if (BWAPIFramesDataView && worldFrame % 10 === 0) {
+    // if (BWAPIFramesDataView && worldFrame % 10 === 0) {
+    if (BWAPIFramesDataView) {
       for (let gf = 0; gf < numSkipGameFrames; gf++) {
         while (true) {
           const frameData = BWAPIFrameFromBuffer(
@@ -148,6 +158,7 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
           );
 
           if (frameData) {
+            console.log("a", frameData.angle);
             const unit = units.spawnIfNotExists(frameData);
             units.update(unit, frameData);
 
@@ -164,6 +175,7 @@ export async function TitanReactorReplay(chk, canvas, loaded) {
         }
         // units.units.updateMatrixWorld(true);
       }
+      // units.clear(BWAPIFrame);
     }
     //#endregion
 

@@ -3,7 +3,7 @@ export class ImagesDAT extends DAT {
   constructor(bwDataPath) {
     super(bwDataPath);
 
-    this.statFile = `${process.env.BWDATA}/arr/images.tbl`;
+    this.statFile = `${bwDataPath}/arr/images.tbl`;
 
     this.format = [
       { size: 4, name: "GRPFile", get: this._statTxt() },
