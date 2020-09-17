@@ -71,6 +71,7 @@ ipcRenderer.on("open-map", async (event, [map]) => {
 let replayPlaylist = [];
 let replayIndex = 0;
 ipcRenderer.on("open-replay", (event, replays) => {
+  console.log("open-replay");
   if (!appIsReady) {
     return alert("Please configure your Starcraft path first");
   }
@@ -122,6 +123,8 @@ ipcRenderer.on("save-env-settings", (event, file) => {
 });
 
 const loadMap = async (filepath) => {
+  console.log("LOADING MAP");
+
   const mapPreviewEl = document.getElementById("map--preview-canvas");
   const mapNameEl = document.getElementById("map-name");
   const mapDescriptionEl = document.getElementById("map-description");
@@ -157,7 +160,13 @@ const loadMap = async (filepath) => {
   );
 };
 
+let loading = false;
+
 const loadReplay = async (filepath) => {
+  if (loading) return;
+  loading = true;
+
+  console.log("LOADING REPLAY");
   const loadOverlayEl = document.getElementById("load-overlay");
 
   const { headers, commands, chk } = await jssuhLoadReplay(

@@ -8,17 +8,20 @@ import { bgMapCanvasTexture } from "../3d-map-rendering/textures/bgMapCanvasText
 import { Terrain } from "../3d-map-rendering/Terrain";
 import { BWAPIFrameFromBuffer } from "./BWAPIFrames";
 import { ReplayUnits3D } from "./ReplayUnits3D";
-import { Units2D } from "./ReplayUnits2D";
+import { ReplayUnits2D } from "./ReplayUnits2D";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
 import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
 
 export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
+  const gameId = Math.random();
+  console.log("replay game id", gameId);
   const scene = new THREE.Scene();
 
   let running = false;
   THREE.DefaultLoadingManager.onLoad = () => {
+    console.log("loaded");
     loaded();
     running = true;
   };
@@ -79,7 +82,7 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
     chk.size[1]
   );
 
-  const units = new ReplayUnits3D(bwDat, terrainY);
+  const units = new ReplayUnits2D(bwDat, terrainY, openFile);
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
@@ -102,8 +105,6 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
   let gameFrame = 0;
   const physicsFrameSkip = 20;
 
-  console.log(running ? "NOT PAUSED" : "PAUSED");
-
   document.addEventListener("keydown", (e) => {
     if (e.code === "KeyP") {
       running = !running;
@@ -112,6 +113,14 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
 
     if (e.code === "KeyG") {
       gridHelper.visible = !gridHelper.visible;
+    }
+
+    if (e.code === "KeyS") {
+      if (numSkipGameFrames === 10) {
+        numSkipGameFrames = 1;
+      } else {
+        numSkipGameFrames = 10;
+      }
     }
 
     if (e.code === "KeyR") {
@@ -160,19 +169,12 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
   });
 
   function gameLoop() {
-    // if (!running) {
-    //   setTimeout(() => {
-    //     requestAnimationFrameId = requestAnimationFrame(gameLoop);
-    //   }, 100);
-    //   return;
-    // }
-
     worldFrame++;
 
     units.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
-    if (BWAPIFramesDataView) {
+    if (running && BWAPIFramesDataView) {
       // if (BWAPIFramesDataView) {
       for (let gf = 0; gf < numSkipGameFrames; gf++) {
         while (true) {

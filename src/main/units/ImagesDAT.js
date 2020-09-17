@@ -2,7 +2,7 @@ import { DAT } from "./DAT";
 import { remapping } from "../../common/bwdat/remapping";
 
 export class ImagesDAT extends DAT {
-  constructor(bwDataPath, iscript = {}) {
+  constructor(bwDataPath) {
     super(bwDataPath);
 
     this.statFile = `${bwDataPath}/arr/images.tbl`;
@@ -15,7 +15,7 @@ export class ImagesDAT extends DAT {
       { size: 1, name: "drawIfCloaked" },
       { size: 1, name: "drawFunction", get: this._infoValue("DrawList") },
       { size: 1, name: "remapping", get: this._infoValue("Remapping") },
-      { size: 4, name: "iscript", get: (i) => iscript[i] },
+      { size: 4, name: "iscript" },
       { size: 4, name: "shieldOverlay", get: this._statTxt() },
       { size: 4, name: "attackOverlay", get: this._statTxt() },
       { size: 4, name: "damageOverlay", get: this._statTxt() },

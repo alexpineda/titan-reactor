@@ -29,6 +29,12 @@ export function BWAPIFrameFromBuffer(view, frameStart) {
     order: view.getInt32(b + 45, true),
     subOrder: view.getInt32(b + 49, true),
 
+    flagsA,
+    flagsB,
+    flagsC,
+    flagsD,
+    flagsE,
+    flagsF,
     isAttacking: flagsA & (1 << 7),
     isAccelerating: flagsA & (1 << 6),
     isBraking: flagsA & (1 << 5),

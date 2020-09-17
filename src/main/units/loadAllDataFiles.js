@@ -29,5 +29,7 @@ export async function loadAllDataFiles(bwDataPath) {
     upgrades,
     orders,
     units,
+    images,
+    weapons,
   };
 }

@@ -10,7 +10,7 @@ export class LoadModel {
     return new Promise((resolve, reject) => {
       new GLTFLoader(this.loadingManager).load(
         file,
-        function ({ scene }) {
+        ({ scene }) => {
           scene.traverse((o) => {
             if (o.type == "Mesh") {
               o.castShadow = true; //shadow level 1
@@ -19,43 +19,15 @@ export class LoadModel {
             }
           });
 
-          scene.name = name;
-          scene.userData = userData;
+          Object.assign(scene, { name, userData });
 
           resolve(scene);
         },
         undefined,
-        function (error) {
+        (error) => {
           reject(error);
         }
       );
     });
   }
 }
-
-class LoadModels {
-  constructor() {}
-
-  loadAll() {
-    const loader = new LoadModel();
-
-    return new Promise((resolve, reject) => {
-      Promise.all([
-        // loader.load(Mineral1, "Mineral1", {hello:'word'})
-      ]).then((models) => {
-        this.models = models;
-        resolve(models);
-      }, reject);
-    });
-  }
-
-  createInstance(name) {
-    return this.models.find((m) => m.name === name).clone();
-  }
-
-  dispose() {
-    this.models = [];
-  }
-}
-
-export default LoadModels;

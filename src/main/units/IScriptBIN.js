@@ -287,7 +287,7 @@ export class IScriptBIN {
     };
 
     headers.forEach((header) => {
-      header.commands = header.offsets.map(loadOffsets).map(cleanHeaders);
+      header.sections = header.offsets.map(loadOffsets).map(cleanHeaders);
     });
 
     return (this.entries = headers);

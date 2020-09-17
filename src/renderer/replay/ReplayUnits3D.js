@@ -12,9 +12,16 @@ import {
   Matrix4,
 } from "three";
 import { disposeMesh } from "../utils/meshes/dispose";
+import { IScriptRunner } from "./IScriptRunner";
+import { path } from "ramda";
 
 export class ReplayUnits3D {
-  constructor(bwDat, getTerrainY, loadManager = DefaultLoadingManager) {
+  constructor(
+    bwDat,
+    getTerrainY,
+    fileAccess,
+    loadManager = DefaultLoadingManager
+  ) {
     const prefabs = {
       999: new Mesh(
         new SphereBufferGeometry(1),
@@ -30,10 +37,10 @@ export class ReplayUnits3D {
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
     this.bwDat = bwDat;
-    this.loadModels(loadManager);
+    this.loadAssets(loadManager);
   }
 
-  loadModels(loadManager) {
+  loadAssets(loadManager) {
     const { prefabs } = this;
     const loadModel = new LoadModel(loadManager);
     const assignModel = (id) => (model) => (prefabs[id] = model);
@@ -57,9 +64,20 @@ export class ReplayUnits3D {
     const unit = prefab.clone();
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
+
+    unit.userData.current = frameData;
     unit.userData.repId = frameData.repId;
     unit.userData.typeId = frameData.typeId;
     unit.name = this.bwDat.units[unit.userData.typeId].name;
+
+    unit.userData.runner = new IScriptRunner(
+      this.bwDat,
+      path(
+        ["flingy", "sprite", "image", "iscript"],
+        this.bwDat.units[unit.userData.typeId]
+      )
+    );
+
     this.units.add(unit);
     return unit;
   }
@@ -73,9 +91,10 @@ export class ReplayUnits3D {
 
   update(unit, frameData) {
     const x = frameData.x / 32 - 64;
-    const y = frameData.y / 32 - 64;
+    const z = frameData.y / 32 - 64;
 
-    const position = new Vector3(x, this.getTerrainY(x, y), y);
+    const y = frameData.isFlying ? 6 : this.getTerrainY(x, z);
+    const position = new Vector3(x, y, z);
     const rotationY = -frameData.angle + Math.PI / 2;
 
     unit.position.copy(position);
@@ -99,6 +118,7 @@ export class ReplayUnits3D {
 
     unit.userData.previous = unit.userData.current;
     unit.userData.current = frameData;
+    unit.userData.runner.update();
     // unit.userData.current = {
     //   hp,
     //   shields,
@@ -107,14 +127,12 @@ export class ReplayUnits3D {
     //   order,
     //   subOrder,
     // };
-
-    this.runIscript(frameData);
   }
 
-  runIscript(frameData) {}
-
   clear(frame) {
-    // this.units.children
+    this.units.children
+      .filter((c) => c.userData.current.frame != frame)
+      .forEach((c) => (c.visible = false));
   }
 
   cameraUpdate({ position }, { target }) {

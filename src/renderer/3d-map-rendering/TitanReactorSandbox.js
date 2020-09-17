@@ -42,7 +42,7 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
   bgTerrain.position.y = -1;
   scene.add(terrain);
-  // scene.add(bgTerrain);
+  scene.add(bgTerrain);
 
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
@@ -66,7 +66,7 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   const cancelResize = handleResize(camera, renderer);
 
   THREE.DefaultLoadingManager.onLoad = function () {
-    scene.add(splatUnits(terrain));
+    // scene.add(splatUnits(terrain));
     loaded();
   };
 
