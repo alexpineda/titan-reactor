@@ -1,0 +1,35 @@
+import { invertObj } from "ramda";
+
+export const iscriptHeaders = {
+  init: 0x00,
+  death: 0x01,
+  gndAttkInit: 0x02,
+  airAttkInit: 0x03,
+  airAttkInit: 0x04,
+  unused1: 0x05,
+  gndAttkRpt: 0x06,
+  airAttkRpt: 0x07,
+  castSpell: 0x08,
+  gndAttkToIdle: 0x09,
+  airAttkToIdle: 0x0a,
+  unused2: 0x0b,
+  walking: 0x0c,
+  walkingToIdle: 0x0d,
+  specialState1: 0x0e,
+  specialState2: 0x0f,
+  almostBuilt: 0x10,
+  built: 0x11,
+  landing: 0x12,
+  liftOff: 0x13,
+  isWorking: 0x14,
+  workingToIdle: 0x15,
+  warpIn: 0x16,
+  unused3: 0x17,
+  starEditInit: 0x18,
+  disable: 0x19,
+  burrow: 0x1a,
+  unBurrow: 0x1b,
+  enable: 0x1c,
+};
+
+export const ordersById = invertObj(iscriptHeaders);
