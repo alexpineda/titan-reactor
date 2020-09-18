@@ -6,17 +6,26 @@ import { sunlight, fog } from "../3d-map-rendering/environment";
 import { backgroundTerrainMesh } from "../3d-map-rendering/meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "../3d-map-rendering/textures/bgMapCanvasTexture";
 import { Terrain } from "../3d-map-rendering/Terrain";
+import { TextureCache } from "../3d-map-rendering/textures/TextureCache";
+
 import { BWAPIFrameFromBuffer } from "./BWAPIFrames";
+import { BgMusic } from "../audio/BgMusic";
+
 import { ReplayUnits3D } from "./ReplayUnits3D";
 import { ReplayUnits2D } from "./ReplayUnits2D";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
 import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
+import { difference } from "ramda";
 
-export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
-  const gameId = Math.random();
-  console.log("replay game id", gameId);
+export async function TitanReactorReplay(
+  { header, commands, chk, chkSum },
+  canvas,
+  bwDat,
+  loaded
+) {
+  console.log(header, commands, chk);
   const scene = new THREE.Scene();
 
   let running = false;
@@ -57,7 +66,8 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
   scene.add(hemi);
 
-  const terrainMesh = new Terrain(chk);
+  const textureCache = new TextureCache(chk.title);
+  const terrainMesh = new Terrain(chk, textureCache);
   const terrain = await terrainMesh.generate();
   const bg = await bgMapCanvasTexture(chk);
   const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
@@ -67,6 +77,12 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
 
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
+
+  const audioListener = new THREE.AudioListener();
+  const bgMusic = new BgMusic(audioListener);
+  bgMusic.setVolume(0.06);
+  // bgMusic.playGame();
+  scene.add(bgMusic.getAudio());
 
   const terrainY = getTerrainY(
     terrain.userData.displacementMap.image
@@ -82,7 +98,7 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
     chk.size[1]
   );
 
-  const units = new ReplayUnits2D(bwDat, terrainY, openFile);
+  const units = new ReplayUnits3D(bwDat, terrainY, audioListener, openFile);
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
@@ -156,18 +172,12 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
 
       if (unit) {
         console.log(unit);
-        // var geometry = new THREE.CircleGeometry(1, 8);
-        // var material = new THREE.MeshBasicMaterial({
-        //   color: new THREE.Color("0xffff00"),
-        // });
-        // var circle = new THREE.Mesh(geometry, material);
-        // circle.rotation.x = Math.PI / -2;
-        // circle.name = "Selection";
-        // unit.add(circle);
       }
     }
   });
 
+  let unitsLastFrame = [];
+  let unitsThisFrame = [];
   function gameLoop() {
     worldFrame++;
 
@@ -176,25 +186,25 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
     //#region BWAPIFrames interpretation
     if (running && BWAPIFramesDataView) {
       // if (BWAPIFramesDataView) {
-      for (let gf = 0; gf < numSkipGameFrames; gf++) {
+      gameloop: for (let gf = 0; gf < numSkipGameFrames; gf++) {
+        // while (BWAPIFrame + gf < headers.durationFrames) {
         while (true) {
           const frameData = BWAPIFrameFromBuffer(
             BWAPIFramesDataView,
             BWAPIFrame
           );
 
-          if (frameData) {
-            const unit = units.spawnIfNotExists(frameData);
-            units.update(unit, frameData);
+          const unit = units.spawnIfNotExists(frameData);
+          units.update(unit, frameData);
 
-            BWAPIFrame = BWAPIFrame + 1;
-            if (gameFrame != frameData.frame) {
-              gameFrame = frameData.frame;
-              break;
-            }
+          BWAPIFrame = BWAPIFrame + 1;
+          if (gameFrame === frameData.frame) {
+            unitsThisFrame.push(frameData.repId);
           } else {
-            BWAPIFrame = 0;
-            gameFrame = 0;
+            units.killUnits(difference(unitsLastFrame, unitsThisFrame));
+            unitsLastFrame = [...unitsThisFrame];
+            unitsThisFrame = [frameData.repId];
+            gameFrame = frameData.frame;
             break;
           }
         }
@@ -227,6 +237,8 @@ export async function TitanReactorReplay(chk, canvas, bwDat, loaded) {
 
       //geometries
 
+      //audio
+      bgMusic.dispose();
       //scene dispose
     },
   };

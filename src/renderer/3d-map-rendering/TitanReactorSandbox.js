@@ -14,11 +14,17 @@ import { Terrain } from "./Terrain";
 import { initRenderer } from "./renderer";
 import { splatUnits } from "../utils/meshes/splatUnits";
 import { disposeMeshes } from "../utils/meshes/dispose";
+import { TextureCache } from "./textures/TextureCache";
 
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { render } from "react-dom";
+import { Vector3 } from "three";
 
 export async function TitanReactorSandbox(chk, canvas, loaded) {
+  if (module.hot && dispose) {
+    module.hot.dispose(dispose);
+    dispose = null;
+  }
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
 
@@ -35,7 +41,7 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
 
   const scene = (window.scene = new THREE.Scene());
 
-  const terrainMesh = new Terrain(chk);
+  const terrainMesh = new Terrain(chk, new TextureCache(chk.title));
   const terrain = await terrainMesh.generate();
   terrain.userData.elevationsTexture = await mapElevationsCanvasTexture(chk);
   const bg = await bgMapCanvasTexture(chk);
@@ -82,6 +88,7 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
     renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.render(scene, camera);
 
+    cameraControls.update();
     stats.update();
     // setTimeout(() => {
     //   id = requestAnimationFrame(gameLoop);
@@ -97,26 +104,47 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   gui.controllers.camera.onChangeAny(({ fov, zoom }) => {
     camera.fov = fov;
     camera.zoom = zoom;
+
     camera.updateProjectionMatrix();
+  });
+
+  gui.controllers.camera.rotate.onChange((val) => {
+    cameraControls.autoRotate = val;
+    if (val) {
+      cameraControls.target = terrain.position;
+    } else {
+      cameraControls.target = null;
+    }
   });
 
   //#endregion
 
   //#region map controllers
-  gui.controllers.map.onChangeAny(({ showElevations, showWireframe }) => {
-    if (showElevations) {
-      terrain.material.map = terrain.userData.elevationsTexture;
-    } else {
-      terrain.material.map = terrain.userData.originalMap;
+  gui.controllers.map.onChangeAny(
+    ({ showElevations, showWireframe, showBackgroundTerrain }) => {
+      if (showElevations) {
+        terrain.material.map = terrain.userData.elevationsTexture;
+      } else {
+        terrain.material.map = terrain.userData.originalMap;
+      }
+      terrain.material.wireframe = showWireframe;
+      bgTerrain.visible = showBackgroundTerrain;
     }
-    terrain.material.wireframe = showWireframe;
-  });
+  );
   //#endregion
 
   //#region renderer controllers
   gui.controllers.renderer.fogColor.onChange((fogColor) => {
     scene.background = new THREE.Color(parseInt(fogColor.substr(1), 16));
     scene.fog.color = scene.background;
+  });
+
+  gui.controllers.renderer.fogEnabled.onChange((val) => {
+    if (val) {
+      scene.fog = fog(chk.size[0], chk.size[1]);
+    } else {
+      scene.fog = null;
+    }
   });
 
   gui.controllers.renderer.onFinishChangeAny(
@@ -175,22 +203,26 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   });
   //#endregion
 
-  document.body.appendChild(VRButton.createButton(renderer));
+  // document.body.appendChild(VRButton.createButton(renderer));
+
+  var dispose = () => {
+    console.log("disposing");
+    running = false;
+    cancelAnimationFrame(id);
+    //dispose all
+    cancelResize();
+    disposeMeshes(scene);
+    //textures
+
+    //materials
+
+    //geometries
+
+    //scene dispose
+    gui.dispose();
+  };
 
   return {
-    dispose: () => {
-      running = false;
-      cancelAnimationFrame(id);
-      //dispose all
-      cancelResize();
-      disposeMeshes(scene);
-      //textures
-
-      //materials
-
-      //geometries
-
-      //scene dispose
-    },
+    dispose,
   };
 }

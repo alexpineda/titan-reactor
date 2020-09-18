@@ -25,6 +25,11 @@ export class IScriptRunner {
     this.commandIndex = 0;
   }
 
+  toSection(section) {
+    this.commands = this.iscript.sections[section];
+    this.commandIndex = 0;
+  }
+
   update() {
     if (this.state.terminated) {
       return;
@@ -43,7 +48,7 @@ export class IScriptRunner {
     this.next();
   }
 
-  onCommand(command, cb) {
+  on(command, cb) {
     this.listeners[command] = this.listeners[command] || [];
     this.listeners[command].push(cb);
   }
@@ -112,13 +117,18 @@ export class IScriptRunner {
     this.commands = this.iscript.sections[this.iscript.offsets.indexOf(offset)];
     if (!this.commands) {
       // wider search
-      const otherScript = this.bwDat.iscript.find(
-        (i) => i.offsets.indexOf(offset) > -1
-      );
-      this.commands = otherScript.sections[otherScript.offsets.indexOf(offset)];
-      if (!this.commands) {
-        throw new Error("goto offset not found");
-      }
+      this.state.terminated = true;
+      //   const otherScript = this.bwDat.iscript.find((script) => {
+      //     if (!script || !script.offsets) {
+      //       debugger;
+      //       return false;
+      //     }
+      //     return script.offsets.indexOf(offset) > -1;
+      //   });
+      //   this.commands = otherScript.sections[otherScript.offsets.indexOf(offset)];
+      //   if (!this.commands) {
+      //     throw new Error("goto offset not found");
+      //   }
     }
     this._dispatch("goto", offset);
   }
@@ -237,7 +247,7 @@ export class IScriptRunner {
         if (typeof this[`__${command}`] !== "function") {
           throw new Error(`${command} not found in IScriptRunner`);
         }
-      // this[`__${command}`](args);
+        this[`__${command}`](args);
     }
   }
 }

@@ -3,14 +3,18 @@ import { Group, Vector3, DefaultLoadingManager } from "three";
 import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
 import { path } from "ramda";
+import { ReplayUnits } from "./ReplayUnits";
+import { iscriptHeaders } from "../../common/bwdat/iscriptHeaders";
 
-export class ReplayUnits2D {
+export class ReplayUnits2D extends ReplayUnits {
   constructor(
     bwDat,
     getTerrainY,
+    audioListener,
     fileAccess,
     loadManager = DefaultLoadingManager
   ) {
+    super();
     const loadSprite = new LoadSprite(loadManager, fileAccess);
 
     const prefabs = {
@@ -56,13 +60,6 @@ export class ReplayUnits2D {
     return unit;
   }
 
-  spawnIfNotExists(frameData) {
-    const exists = this.units.children.find(
-      (child) => child.userData.repId === frameData.repId
-    );
-    return exists || this.spawn(frameData);
-  }
-
   update(unit, frameData) {
     const x = frameData.x / 32 - 64;
     const z = frameData.y / 32 - 64;
@@ -89,37 +86,16 @@ export class ReplayUnits2D {
     unit.userData.movement = new Vector3();
     unit.userData.nextPosition = new Vector3();
     unit.userData.nextPosition.copy(unit.position);
-    const { hp, shields, energy, frame, order, subOrder } = frameData;
 
     unit.userData.previous = unit.userData.current;
     unit.userData.current = frameData;
     unit.userData.runner.update();
-    // unit.userData.current = {
-    //   hp,
-    //   shields,
-    //   energy,
-    //   frame,
-    //   order,
-    //   subOrder,
-    // };
   }
 
-  clear(frame) {
-    this.units.children
-      .filter((c) => c.userData.current.frame != frame)
-      .forEach((c) => (c.visible = false));
+  killUnit(unit) {
+    unit.visible = false;
+    runSection(iscriptHeaders.death);
   }
-
-  cameraUpdate({ position }, { target }) {
-    const delta = new Vector3();
-    this.shear = delta.subVectors(position, target);
-  }
-
-  getUnits() {
-    return this.units.children;
-  }
-
-  destroy() {}
 
   dispose() {
     this.units.children.forEach(disposeMesh);

@@ -10,18 +10,24 @@ import {
   Quaternion,
   Euler,
   Matrix4,
+  PositionalAudio,
+  AudioLoader,
 } from "three";
 import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
 import { path } from "ramda";
+import { ReplayUnits } from "./ReplayUnits";
+import { iscriptHeaders } from "../../common/bwdat/iscriptHeaders";
 
-export class ReplayUnits3D {
+export class ReplayUnits3D extends ReplayUnits {
   constructor(
     bwDat,
     getTerrainY,
+    audioListener,
     fileAccess,
     loadManager = DefaultLoadingManager
   ) {
+    super();
     const prefabs = {
       999: new Mesh(
         new SphereBufferGeometry(1),
@@ -37,12 +43,14 @@ export class ReplayUnits3D {
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
     this.bwDat = bwDat;
-    this.loadAssets(loadManager);
+    this.audioListener = audioListener;
+    this.loadManager = loadManager;
+    this.loadAssets();
   }
 
-  loadAssets(loadManager) {
+  loadAssets() {
     const { prefabs } = this;
-    const loadModel = new LoadModel(loadManager);
+    const loadModel = new LoadModel(this.loadManager);
     const assignModel = (id) => (model) => (prefabs[id] = model);
 
     loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
@@ -78,15 +86,27 @@ export class ReplayUnits3D {
       )
     );
 
+    const unitSound = new PositionalAudio(this.audioListener);
+    unit.add(unitSound);
+
+    unit.userData.runner.on("playsnd", (soundId) => {
+      console.log("playsnd", soundId);
+      const audioLoader = new AudioLoader(this.loadManager);
+      audioLoader.load(`./sound/${this.bwDat.sounds[soundId].file}`, function (
+        buffer
+      ) {
+        unitSound.setBuffer(buffer);
+        unitSound.setRefDistance(10);
+        unitSound.setRolloffFactor(2.2);
+        unitSound.setDistanceModel("exponential");
+        unitSound.setVolume(1);
+        unitSound.play();
+        console.log("play", soundId);
+      });
+    });
+
     this.units.add(unit);
     return unit;
-  }
-
-  spawnIfNotExists(frameData) {
-    const exists = this.units.children.find(
-      (child) => child.userData.repId === frameData.repId
-    );
-    return exists || this.spawn(frameData);
   }
 
   update(unit, frameData) {
@@ -118,6 +138,9 @@ export class ReplayUnits3D {
 
     unit.userData.previous = unit.userData.current;
     unit.userData.current = frameData;
+    if (!unit.userData.current.exists && unit.userData.previous.exists) {
+      console.log("died", unit.userData.current);
+    }
     unit.userData.runner.update();
     // unit.userData.current = {
     //   hp,
@@ -128,23 +151,10 @@ export class ReplayUnits3D {
     //   subOrder,
     // };
   }
-
-  clear(frame) {
-    this.units.children
-      .filter((c) => c.userData.current.frame != frame)
-      .forEach((c) => (c.visible = false));
+  killUnit(unit) {
+    unit.visible = false;
+    unit.userData.runner.toSection(iscriptHeaders.death);
   }
-
-  cameraUpdate({ position }, { target }) {
-    const delta = new Vector3();
-    this.shear = delta.subVectors(position, target);
-  }
-
-  getUnits() {
-    return this.units.children;
-  }
-
-  destroy() {}
 
   dispose() {
     this.units.children.forEach(disposeMesh);

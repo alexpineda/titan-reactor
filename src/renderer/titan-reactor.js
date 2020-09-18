@@ -70,14 +70,19 @@ ipcRenderer.on("open-map", async (event, [map]) => {
 
 let replayPlaylist = [];
 let replayIndex = 0;
+let currentReplay;
+
 ipcRenderer.on("open-replay", (event, replays) => {
   console.log("open-replay");
   if (!appIsReady) {
     return alert("Please configure your Starcraft path first");
   }
+  if (currentReplay && currentReplay.dispose) {
+    currentReplay.dispose();
+  }
   replayPlaylist = replays;
   replayIndex = 0;
-  loadReplay(replays[0]);
+  currentReplay = loadReplay(replays[0]);
 });
 
 ipcRenderer.on("add-replay", (event, replays) => {
@@ -123,8 +128,6 @@ ipcRenderer.on("save-env-settings", (event, file) => {
 });
 
 const loadMap = async (filepath) => {
-  console.log("LOADING MAP");
-
   const mapPreviewEl = document.getElementById("map--preview-canvas");
   const mapNameEl = document.getElementById("map-name");
   const mapDescriptionEl = document.getElementById("map-description");
@@ -169,13 +172,10 @@ const loadReplay = async (filepath) => {
   console.log("LOADING REPLAY");
   const loadOverlayEl = document.getElementById("load-overlay");
 
-  const { headers, commands, chk } = await jssuhLoadReplay(
-    filepath,
-    gameOptions.bwDataPath
-  );
+  const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
   return TitanReactorReplay(
-    chk,
+    jssuh,
     document.getElementById("three-js"),
     bwDat,
     () => (loadOverlayEl.style.display = "none")

@@ -7,8 +7,9 @@ import { createDisplacementGeometry } from "./displacementGeometry";
 import { mapCanvasTexture } from "./textures/mapCanvasTexture";
 import { terrainMesh } from "./meshes/terrainMesh";
 export class Terrain {
-  constructor(chk) {
+  constructor(chk, cache) {
     this.chk = chk;
+    this.cache = cache;
   }
 
   async displace(baseOptions, overlayOptions) {
@@ -36,12 +37,22 @@ export class Terrain {
   }
 
   async generate(defaultMap, defaultDisplace, defaultRoughness, defaultNormal) {
-    const map = defaultMap || (await mapCanvasTexture(this.chk));
+    const map =
+      defaultMap ||
+      (await this.cache.get("map")) ||
+      (await mapCanvasTexture(this.chk));
     const displace =
-      defaultDisplace || (await displacementCanvasTexture(this.chk));
+      defaultDisplace ||
+      (await this.cache.get("displace")) ||
+      (await displacementCanvasTexture(this.chk));
     const roughness =
-      defaultRoughness || (await roughnessCanvasTexture(this.chk));
-    const normal = defaultNormal || (await normalCanvasTexture(this.chk));
+      defaultRoughness ||
+      (await this.cache.get("roughness")) ||
+      (await roughnessCanvasTexture(this.chk));
+    const normal =
+      defaultNormal ||
+      (await this.cache.get("normal")) ||
+      (await normalCanvasTexture(this.chk));
 
     this.terrain = terrainMesh(
       this.chk.size[0],

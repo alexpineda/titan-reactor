@@ -104,6 +104,7 @@ export class EnvironmentOptionsGui {
     gui.show();
     this.controllers = controllers;
     this.control = control;
+    this._folders = [stateFolder, scene, textures];
     this.gui = gui;
   }
 
@@ -123,6 +124,11 @@ export class EnvironmentOptionsGui {
     } catch (e) {
       console.error(`error loading tileset state config`);
     }
+  }
+
+  dispose() {
+    this._folders.forEach((folder) => this.gui.removeFolder(folder));
+    this.gui.destroy();
   }
 }
 

@@ -6,6 +6,7 @@ export default {
       toneMapping: "NoToneMapping",
       toneMappingExposure: 1,
       fogColor: "#080820",
+      fogEnabled: true,
     },
     args: {
       toneMapping: [
@@ -25,6 +26,7 @@ export default {
       near: 0.1,
       far: 1000,
       free: false,
+      rotate: false,
     },
     args: {},
   },
@@ -33,6 +35,7 @@ export default {
     values: {
       showElevations: false,
       showWireframe: false,
+      showBackgroundTerrain: true,
     },
     args: {},
   },
