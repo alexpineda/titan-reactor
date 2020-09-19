@@ -62,7 +62,7 @@
     "@babel/preset-react": "^7.10.4",
     "babel-jest": "^26.3.0",
     "dotenv": "^8.2.0",
-    "electron": "^9.3.1",
+    "electron": "^10.1.2",
     "electron-webpack": "^2.8.2",
     "jest": "^26.4.2",
     "parcel-plugin-static-files-copy": "^2.5.0",

@@ -37,10 +37,16 @@ export class Terrain {
   }
 
   async generate(defaultMap, defaultDisplace, defaultRoughness, defaultNormal) {
+    const save = async (name) =>
+      (await this.cache.exists(name))
+        ? null
+        : this.cache.save.bind(this.cache, name);
+
     const map =
       defaultMap ||
       (await this.cache.get("map")) ||
-      (await mapCanvasTexture(this.chk));
+      (await mapCanvasTexture(this.chk, await save("map")));
+
     const displace =
       defaultDisplace ||
       (await this.cache.get("displace")) ||

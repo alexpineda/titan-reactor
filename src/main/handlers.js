@@ -10,7 +10,7 @@ import {
 import { loadAllDataFiles } from "./units/loadAllDataFiles";
 
 ipcMain.handle(getAppCachePath, async (event, folder = "") => {
-  return path.join(app.getPath("appData"), folder);
+  return path.join(app.getAppPath(), folder);
 });
 
 ipcMain.handle(openFile, async (event, filepath = "") => {

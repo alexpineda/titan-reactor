@@ -18,13 +18,12 @@ import { TextureCache } from "./textures/TextureCache";
 
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { render } from "react-dom";
-import { Vector3 } from "three";
 
-export async function TitanReactorSandbox(chk, canvas, loaded) {
-  if (module.hot && dispose) {
-    module.hot.dispose(dispose);
-    dispose = null;
-  }
+import { openFile, getAppCachePath } from "../invoke";
+
+export const hot = module.hot ? module.hot.data : null;
+
+export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
 
@@ -41,7 +40,10 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
 
   const scene = (window.scene = new THREE.Scene());
 
-  const terrainMesh = new Terrain(chk, new TextureCache(chk.title));
+  const terrainMesh = new Terrain(
+    chk,
+    new TextureCache(chk.title, await getAppCachePath())
+  );
   const terrain = await terrainMesh.generate();
   terrain.userData.elevationsTexture = await mapElevationsCanvasTexture(chk);
   const bg = await bgMapCanvasTexture(chk);
@@ -67,6 +69,10 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
   scene.add(hemi);
 
   const [camera, cameraControls] = initCamera(renderer.domElement);
+  if (hot && hot.camera) {
+    camera.position.copy(hot.camera.position);
+    camera.rotation.copy(hot.camera.rotation);
+  }
   cameraControls.update();
 
   const cancelResize = handleResize(camera, renderer);
@@ -205,22 +211,29 @@ export async function TitanReactorSandbox(chk, canvas, loaded) {
 
   // document.body.appendChild(VRButton.createButton(renderer));
 
-  var dispose = () => {
+  const dispose = () => {
     console.log("disposing");
+
     running = false;
     cancelAnimationFrame(id);
-    //dispose all
     cancelResize();
     disposeMeshes(scene);
-    //textures
-
-    //materials
-
-    //geometries
-
-    //scene dispose
+    renderer.dispose();
+    cameraControls.dispose();
     gui.dispose();
+    stats.dispose();
   };
+
+  if (module.hot) {
+    module.hot.dispose((data) => {
+      data.filepath = filepath;
+      data.camera = {
+        position: camera.position.clone(),
+        rotation: camera.rotation.clone(),
+      };
+      dispose();
+    });
+  }
 
   return {
     dispose,

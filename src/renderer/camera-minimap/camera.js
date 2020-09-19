@@ -4,7 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 //zoom in tighter allowed as teh angle is closer to 90deg above
 // rotating angle will then zoom out if outside the limit
 
-const initCameraControls = (camera, element, limitControl = false) => {
+export const initCameraControls = (camera, element, limitControl = false) => {
   const orbitControl = new OrbitControls(camera, element);
   orbitControl.mouseButtons = {
     LEFT: MOUSE.PAN,

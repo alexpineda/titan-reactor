@@ -1,7 +1,9 @@
 import { TitanReactorMap } from "./TitanReactorMap";
 import { TitanReactorReplay } from "./replay/TitanReactorReplay";
-import { TitanReactorSandbox } from "./3d-map-rendering/TitanReactorSandbox";
-import { TitanReactorAudioSandbox } from "./audio/TitanReactorAudioSandbox";
+import {
+  TitanReactorSandbox,
+  hot as hotSandbox,
+} from "./3d-map-rendering/TitanReactorSandbox";
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
@@ -11,13 +13,31 @@ import React from "react";
 import { render } from "react-dom";
 import { App } from "./react-ui/App";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
+import { DefaultLoadingManager } from "three";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
 
-// if (module.hot) {
-//   module.hot.accept();
-// }
+if (module.hot) {
+  module.hot.decline();
+
+  module.hot.accept("./replay/TitanReactorReplay.js", (data) => {
+    if (module.hot.data.filepath) {
+      console.log("hot loading replay");
+
+      scene = loadReplay(module.hot.data.filepath, module.hot.data);
+    }
+  });
+
+  module.hot.accept("./3d-map-rendering/TitanReactorSandbox.js", () => {
+    console.log("hot loading map ???", hotSandbox);
+
+    if (hotSandbox) {
+      console.log("hot loading map");
+      scene = loadMap(hotSandbox.filepath);
+    }
+  });
+}
 
 let bwDat = null;
 let scene = null;
@@ -44,17 +64,6 @@ async function bootup() {
 
   bwDat = await loadAllDataFiles(gameOptions.bwDataPath);
   console.log("bwDat", bwDat);
-
-  let replayPlaylist = [];
-  let replayIndex = 0;
-  ipcRenderer.on("open-replay", (event, replays) => {
-    if (!appIsReady) {
-      return alert("Please configure your Starcraft path first");
-    }
-    replayPlaylist = replays;
-    replayIndex = 0;
-    loadReplay(replays[0]);
-  });
 }
 
 ipcRenderer.on("open-map", async (event, [map]) => {
@@ -70,19 +79,18 @@ ipcRenderer.on("open-map", async (event, [map]) => {
 
 let replayPlaylist = [];
 let replayIndex = 0;
-let currentReplay;
 
 ipcRenderer.on("open-replay", (event, replays) => {
   console.log("open-replay");
   if (!appIsReady) {
     return alert("Please configure your Starcraft path first");
   }
-  if (currentReplay && currentReplay.dispose) {
-    currentReplay.dispose();
+  if (scene) {
+    scene.dispose();
   }
   replayPlaylist = replays;
   replayIndex = 0;
-  currentReplay = loadReplay(replays[0]);
+  scene = loadReplay(replays[0]);
 });
 
 ipcRenderer.on("add-replay", (event, replays) => {
@@ -157,24 +165,21 @@ const loadMap = async (filepath) => {
   document.title = `Titan Reactor - ${chk.title}`;
 
   return TitanReactorSandbox(
+    filepath,
     chk,
     document.getElementById("three-js"),
     () => (loadOverlayEl.style.display = "none")
   );
 };
 
-let loading = false;
-
-const loadReplay = async (filepath) => {
-  if (loading) return;
-  loading = true;
-
-  console.log("LOADING REPLAY");
+const loadReplay = async (filepath, hot) => {
   const loadOverlayEl = document.getElementById("load-overlay");
 
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
   return TitanReactorReplay(
+    filepath,
+    hot,
     jssuh,
     document.getElementById("three-js"),
     bwDat,

@@ -16,15 +16,24 @@ import { ReplayUnits2D } from "./ReplayUnits2D";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
 import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
-import { openFile } from "../invoke";
+import { openFile, getAppCachePath } from "../invoke";
 import { difference } from "ramda";
 
+export const hot = module.hot ? module.hot.data : null;
+
 export async function TitanReactorReplay(
+  filepath,
   { header, commands, chk, chkSum },
   canvas,
   bwDat,
   loaded
 ) {
+  if (module.hot) {
+    module.hot.dispose((data) => {
+      Object.assign(data, { camera, BWAPIFrame, filepath });
+      dispose();
+    });
+  }
   console.log(header, commands, chk);
   const scene = new THREE.Scene();
 
@@ -66,7 +75,7 @@ export async function TitanReactorReplay(
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
   scene.add(hemi);
 
-  const textureCache = new TextureCache(chk.title);
+  const textureCache = new TextureCache(chk.title, await getAppCachePath());
   const terrainMesh = new Terrain(chk, textureCache);
   const terrain = await terrainMesh.generate();
   const bg = await bgMapCanvasTexture(chk);
@@ -81,7 +90,7 @@ export async function TitanReactorReplay(
   const audioListener = new THREE.AudioListener();
   const bgMusic = new BgMusic(audioListener);
   bgMusic.setVolume(0.06);
-  // bgMusic.playGame();
+  bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
   const terrainY = getTerrainY(
@@ -224,22 +233,20 @@ export async function TitanReactorReplay(
   }
 
   gameLoop();
+
+  var dispose = () => {
+    console.log("disposing");
+
+    running = false;
+    cancelAnimationFrame(requestAnimationFrameId);
+    cancelResize();
+    disposeMeshes(scene);
+    cameraControls.dispose();
+    bgMusic.dispose();
+    renderer.dispose();
+  };
+
   return {
-    dispose: () => {
-      running = false;
-      cancelAnimationFrame(requestAnimationFrameId);
-      //dispose all
-      cancelResize();
-      disposeMeshes(scene);
-      //textures
-
-      //materials
-
-      //geometries
-
-      //audio
-      bgMusic.dispose();
-      //scene dispose
-    },
+    dispose,
   };
 }

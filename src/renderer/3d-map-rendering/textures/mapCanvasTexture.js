@@ -5,11 +5,13 @@ import dimensions from "./dimensions";
 import { CanvasTexture, sRGBEncoding } from "three";
 import { savePNG } from "../../2d-map-rendering/image/png";
 
-export const mapCanvasTexture = async (chk) => {
+export const mapCanvasTexture = async (chk, save) => {
   const { width, height } = dimensions(chk);
 
   const data = await mapImage(chk, width, height, colorAtMega());
-  // await savePNG(data, width, height, "map." + Math.random());
+  if (save) {
+    save(data, width, height);
+  }
 
   const canvas = rgbToCanvas({ data, width, height });
   const texture = new CanvasTexture(canvas);

@@ -1,23 +1,29 @@
 import { savePNG } from "../../2d-map-rendering/image/png";
 import { TextureLoader, DefaultLoadingManager, sRGBEncoding } from "three";
 import fs, { promises as fsPromises } from "fs";
+import path from "path";
 
 export class TextureCache {
-  constructor(baseName, loadingManager = DefaultLoadingManager) {
+  constructor(baseName, dir, loadingManager = DefaultLoadingManager) {
+    console.log("dir", dir);
     this.baseName = baseName;
+    this.dir = dir;
     this.loadingManager = loadingManager;
   }
 
-  _name(id) {
-    return `${this.baseName}-${id}.png`;
+  _name(name) {
+    return path.join(this.dir, `${this.baseName}-${name}.png`);
   }
 
   async save(name, data, width, height) {
+    console.log("saving", this._name(name));
     return await savePNG(data, width, height, this._name(name));
   }
 
   exists(name) {
-    return fsPromises.access(this._name(name), fs.constants.R_OK);
+    return fsPromises
+      .access(this._name(name), fs.constants.R_OK)
+      .catch((_) => null);
   }
 
   get(name) {

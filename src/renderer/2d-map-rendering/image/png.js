@@ -10,5 +10,12 @@ export const savePNG = (data, width, height, name, format = "rgb") =>
       inputColorType: format === "rgb" ? 2 : 6,
     });
     image.data = data;
-    image.pack().pipe(fs.createWriteStream(`${name}.png`).on("close", res));
+    image
+      .pack()
+      .pipe(
+        fs
+          .createWriteStream(`${name}`)
+          .on("close", res)
+          .on("error", console.error)
+      );
   });
