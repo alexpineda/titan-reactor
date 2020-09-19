@@ -1,4 +1,4 @@
-import Chk from "../../../bw-chk";
+import Chk from "../../../libs/bw-chk";
 import createScmExtractor from "scm-extractor";
 import fs from "fs";
 import concat from "concat-stream";

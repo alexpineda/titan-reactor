@@ -1,7 +1,7 @@
 import ReplayParser from "jssuh";
 import concat from "concat-stream";
 import { imageChk } from "../../utils/loadChk";
-import Chk from "../../../../bw-chk";
+import Chk from "../../../../libs/bw-chk";
 import { Writable } from "stream";
 import fs from "fs";
 

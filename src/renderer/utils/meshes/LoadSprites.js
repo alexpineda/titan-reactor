@@ -6,7 +6,7 @@ import {
   sRGBEncoding,
   Vector2,
 } from "three";
-import { Grp } from "../../../../bw-chk/grp";
+import { Grp } from "../../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
 
 export class LoadSprite {

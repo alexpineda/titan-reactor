@@ -23,7 +23,7 @@ export default {
             concat((data) => {
               const chk = new Chk(data);
               chk
-                .image(Chk.fsFileAccess("./bwdata"), 1024, 1025)
+                .image(Chk.fsFileAccess("./bwdata"), 1024, 1024)
                 .then((data) => {
                   chk.bitmap = data;
                   resolve(chk);
