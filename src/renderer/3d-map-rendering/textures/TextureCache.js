@@ -1,12 +1,12 @@
-import { savePNG } from "../../2d-map-rendering/image/png";
-import { TextureLoader, DefaultLoadingManager, sRGBEncoding } from "three";
+import { savePNG, loadPNG } from "../../2d-map-rendering/image/png";
+import { DefaultLoadingManager } from "three";
 import fs, { promises as fsPromises } from "fs";
 import path from "path";
+import sanitize from "sanitize-filename";
 
 export class TextureCache {
   constructor(baseName, dir, loadingManager = DefaultLoadingManager) {
-    console.log("dir", dir);
-    this.baseName = baseName;
+    this.baseName = sanitize(baseName);
     this.dir = dir;
     this.loadingManager = loadingManager;
   }
@@ -23,27 +23,11 @@ export class TextureCache {
   exists(name) {
     return fsPromises
       .access(this._name(name), fs.constants.R_OK)
-      .catch((_) => null);
+      .then((_) => true)
+      .catch((_) => false);
   }
 
   get(name) {
-    return new Promise((res) => {
-      const loader = new TextureLoader(this.loadingManager);
-
-      loader.load(
-        this._name(name),
-
-        function (texture) {
-          texture.encoding = sRGBEncoding;
-          res(texture);
-        },
-
-        undefined,
-
-        function () {
-          res(null);
-        }
-      );
-    });
+    return loadPNG(this._name(name));
   }
 }

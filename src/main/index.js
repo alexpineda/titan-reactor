@@ -14,6 +14,9 @@ function createWindow() {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
       webSecurity: false,
+      // contextIsolation: true,
+      // worldSafeExecuteJavaScript: true,
+      // enableRemoteModule: false
     },
   });
   window.maximize();
@@ -44,7 +47,11 @@ function createWindow() {
   });
 }
 
-app.on("ready", createWindow);
+app.commandLine.appendSwitch("--disable-xr-sandbox");
+
+app.on("ready", () => {
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -54,10 +61,20 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (window === null) {
-    app.commandLine.appendSwitch("--disable-xr-sandbox");
-
     createWindow();
   }
+});
+
+app.on("web-contents-created", (event, contents) => {
+  // prevent navigation
+  contents.on("will-navigate", (event, navigationUrl) => {
+    event.preventDefault();
+  });
+
+  // prevent new windows
+  contents.on("new-window", async (event, navigationUrl) => {
+    event.preventDefault();
+  });
 });
 
 const isMac = process.platform === "darwin";

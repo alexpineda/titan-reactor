@@ -28,12 +28,6 @@ export async function TitanReactorReplay(
   bwDat,
   loaded
 ) {
-  if (module.hot) {
-    module.hot.dispose((data) => {
-      Object.assign(data, { camera, BWAPIFrame, filepath });
-      dispose();
-    });
-  }
   console.log(header, commands, chk);
   const scene = new THREE.Scene();
 
@@ -234,7 +228,7 @@ export async function TitanReactorReplay(
 
   gameLoop();
 
-  var dispose = () => {
+  const dispose = () => {
     console.log("disposing");
 
     running = false;
@@ -245,6 +239,13 @@ export async function TitanReactorReplay(
     bgMusic.dispose();
     renderer.dispose();
   };
+
+  if (module.hot) {
+    module.hot.dispose((data) => {
+      Object.assign(data, { camera, BWAPIFrame, filepath });
+      dispose();
+    });
+  }
 
   return {
     dispose,

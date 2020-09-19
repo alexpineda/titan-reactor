@@ -1,20 +1,21 @@
-import { displacementCanvasTexture } from "./textures/displacementCanvasTexture";
-import { roughnessCanvasTexture } from "./textures/roughnessCanvasTexture";
-import { normalCanvasTexture } from "./textures/normalCanvasTexture";
-import { emissiveCanvasTexture } from "./textures/emissiveCanvasTexture";
-
-import { createDisplacementGeometry } from "./displacementGeometry";
-import { mapCanvasTexture } from "./textures/mapCanvasTexture";
+import { displacementImage } from "./textures/displacementImage";
+import { roughnessImage } from "./textures/roughnessImage";
+import { TextureLoader } from "three";
+import { mapImage } from "./textures/mapImage";
 import { terrainMesh } from "./meshes/terrainMesh";
+import { imageToCanvasTexture } from "./textures/imageToCanvasTexture";
+import { removeAlphaChannel } from "../2d-map-rendering/image/removeAlphaChannel";
+
 export class Terrain {
   constructor(chk, cache) {
     this.chk = chk;
     this.cache = cache;
   }
 
-  async displace(baseOptions, overlayOptions) {
-    const displace = await displacementCanvasTexture(
+  async displace(save, baseOptions = {}, overlayOptions = {}) {
+    const displace = await displacementImage(
       this.chk,
+      save,
       baseOptions,
       overlayOptions
     );
@@ -27,7 +28,7 @@ export class Terrain {
   }
 
   async roughness(options) {
-    const roughness = await roughnessCanvasTexture(this.chk, options);
+    const roughness = await roughnessImage(this.chk, options);
     this.generate(
       this.terrain.material.map,
       this.terrain.userData.displacementMap,
@@ -37,28 +38,30 @@ export class Terrain {
   }
 
   async generate(defaultMap, defaultDisplace, defaultRoughness, defaultNormal) {
-    const save = async (name) =>
-      (await this.cache.exists(name))
-        ? null
-        : this.cache.save.bind(this.cache, name);
+    const get = async (name, generate, defaultImage = null) => {
+      let image = defaultImage;
+      let format = "rgb";
+      if (!defaultImage) {
+        if (await this.cache.exists(name)) {
+          image = await this.cache.get(name);
+          format = "rgba";
+        } else {
+          image = await generate(this.chk);
+          this.cache.save(name, image.data, image.width, image.height);
+        }
+      }
+      return imageToCanvasTexture(
+        image.data,
+        image.width,
+        image.height,
+        format
+      );
+    };
 
-    const map =
-      defaultMap ||
-      (await this.cache.get("map")) ||
-      (await mapCanvasTexture(this.chk, await save("map")));
-
-    const displace =
-      defaultDisplace ||
-      (await this.cache.get("displace")) ||
-      (await displacementCanvasTexture(this.chk));
-    const roughness =
-      defaultRoughness ||
-      (await this.cache.get("roughness")) ||
-      (await roughnessCanvasTexture(this.chk));
-    const normal =
-      defaultNormal ||
-      (await this.cache.get("normal")) ||
-      (await normalCanvasTexture(this.chk));
+    const map = await get("map", mapImage, defaultMap);
+    const displace = await get("displace", displacementImage, defaultDisplace);
+    const roughness = await get("roughness", roughnessImage, defaultRoughness);
+    const normal = new TextureLoader().load("_alex/fs-nodoodads_normal.png");
 
     this.terrain = terrainMesh(
       this.chk.size[0],
@@ -68,7 +71,6 @@ export class Terrain {
       roughness,
       normal
     );
-    this.terrain.name = "floor";
 
     this.terrain.userData.originalMap = this.terrain.material.map;
 

@@ -2,6 +2,10 @@ import React, { memo } from "react";
 
 export const App = memo(() => (
   <>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'"
+    ></meta>
     <div
       id="load-overlay"
       style={{

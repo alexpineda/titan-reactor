@@ -1,15 +1,18 @@
-export const rgbToCanvas = ({ data, width, height, defaultCanvas = null }) => {
+export const rgbToCanvas = (
+  { data, width, height, defaultCanvas = null },
+  format
+) => {
   const canvas = defaultCanvas || document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   canvas.width = width;
   canvas.height = height;
-  writeToContext2d(ctx, data, width, height);
+  writeToContext2d(ctx, data, width, height, format);
   return canvas;
 };
 
-export function writeToContext2d(ctx, data, width, height) {
-  const start = Date.now();
-  const srcPixelWidth = "rgb".length;
+export function writeToContext2d(ctx, data, width, height, format = "rgb") {
+  console.log("write", format);
+  const srcPixelWidth = format === "rgba" ? 4 : 3;
   const dstPixelWidth = 4;
 
   const imagedata = ctx.createImageData(width, height);
@@ -26,5 +29,4 @@ export function writeToContext2d(ctx, data, width, height) {
   }
 
   ctx.putImageData(imagedata, 0, 0);
-  console.log("writeToCanvas", Date.now() - start);
 }

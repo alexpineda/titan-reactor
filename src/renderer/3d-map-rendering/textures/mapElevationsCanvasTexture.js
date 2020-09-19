@@ -1,14 +1,12 @@
-import { CanvasTexture, sRGBEncoding } from "three";
-import { rgbToCanvas } from "../../2d-map-rendering/image/canvas";
-import { mapImage } from "../../2d-map-rendering/image/mapImage";
+import { chkImage } from "../../2d-map-rendering/image/chkImage";
 import { colorAtMega } from "../../2d-map-rendering/image/colorAtMega";
 import dimensions from "./dimensions";
-import { savePNG } from "../../2d-map-rendering/image/png";
+import { imageToCanvasTexture } from "./imageToCanvasTexture";
 
 export const mapElevationsCanvasTexture = async (chk) => {
   const scale = 0.25 * 0.5;
   const { width, height } = dimensions(chk, scale);
-  const data = await mapImage(
+  const data = await chkImage(
     chk,
     width,
     height,
@@ -16,9 +14,5 @@ export const mapElevationsCanvasTexture = async (chk) => {
   );
 
   // await savePNG(data, width, height, "elevation." + Math.random());
-
-  const canvas = rgbToCanvas({ data, width, height });
-  const texture = new CanvasTexture(canvas);
-  texture.encoding = sRGBEncoding;
-  return texture;
+  return imageToCanvasTexture(data, width, height);
 };

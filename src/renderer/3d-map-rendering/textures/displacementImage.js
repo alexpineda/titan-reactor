@@ -1,9 +1,6 @@
-import { CanvasTexture, sRGBEncoding } from "three";
-import { mapImage } from "../../2d-map-rendering/image/mapImage";
+import { chkImage } from "../../2d-map-rendering/image/chkImage";
 import { elevationColorAtMega } from "../../2d-map-rendering/image/elevationColorAtMega";
-import { rgbToCanvas } from "../../2d-map-rendering/image/canvas";
 import dimensions from "./dimensions";
-import { savePNG } from "../../2d-map-rendering/image/png";
 
 import {
   blurImage,
@@ -14,9 +11,13 @@ import {
   blendNonZeroPixels as blendPixels,
 } from "../../2d-map-rendering/image/blend";
 
-export const displacementCanvasTexture = async (
+export const displacementImage = async (
   chk,
-  baseOptions = {
+  save,
+  userBaseOptions = {},
+  userOverlayOptions = {}
+) => {
+  const baseOptions = {
     colorAtMega: elevationColorAtMega({
       elevations: [0, 0.3, 0.69, 0.69, 1, 1, 0.85],
       detailsRatio: [0.15, 0.15, 0.1, 0.15, 0.1, 0.15, 0.15],
@@ -30,8 +31,10 @@ export const displacementCanvasTexture = async (
       blur: 16,
       blendNonZeroPixels: true,
     },
-  },
-  overlayOptions = {
+    ...userBaseOptions,
+  };
+
+  const overlayOptions = {
     colorAtMega: elevationColorAtMega({
       elevations: [0, 0.3, 0.69, 0.69, 1, 1, 0.85],
       detailsRatio: [0.15, 0.15, 0.1, 0.15, 0.1, 0.15, 0.15],
@@ -41,11 +44,12 @@ export const displacementCanvasTexture = async (
       scale: 0.5,
     },
     post: { blur: 4 },
-  }
-) => {
+    ...userOverlayOptions,
+  };
+
   const { width, height } = dimensions(chk, baseOptions.pre.scale);
 
-  const base = await mapImage(chk, width, height, baseOptions.colorAtMega);
+  const base = await chkImage(chk, width, height, baseOptions.colorAtMega);
   // await savePNG(base, width, height, "walkable." + Math.random());
   // if (baseOptions.post.blendNonZeroPixels) {
   //   blendPixels(base, width, height);
@@ -54,7 +58,7 @@ export const displacementCanvasTexture = async (
     blurImageSelective(base, width, height, baseOptions.post.blur, [0, 0, 0]);
   }
 
-  const overlay = await mapImage(
+  const overlay = await chkImage(
     chk,
     width,
     height,
@@ -68,8 +72,5 @@ export const displacementCanvasTexture = async (
     blurImage(base, width, height, overlayOptions.post.blur);
   }
 
-  const canvas = rgbToCanvas({ data: base, width, height });
-  const texture = new CanvasTexture(canvas);
-  texture.encoding = sRGBEncoding;
-  return texture;
+  return { data: base, width, height };
 };

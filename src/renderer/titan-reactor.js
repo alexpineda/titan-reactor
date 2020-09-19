@@ -172,14 +172,13 @@ const loadMap = async (filepath) => {
   );
 };
 
-const loadReplay = async (filepath, hot) => {
+const loadReplay = async (filepath) => {
   const loadOverlayEl = document.getElementById("load-overlay");
 
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
   return TitanReactorReplay(
     filepath,
-    hot,
     jssuh,
     document.getElementById("three-js"),
     bwDat,
