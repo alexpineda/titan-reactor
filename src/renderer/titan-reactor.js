@@ -1,5 +1,8 @@
 import { TitanReactorMap } from "./TitanReactorMap";
-import { TitanReactorReplay } from "./replay/TitanReactorReplay";
+import {
+  TitanReactorReplay,
+  hot as hotReplay,
+} from "./replay/TitanReactorReplay";
 import {
   TitanReactorSandbox,
   hot as hotSandbox,
@@ -11,7 +14,7 @@ import { loadAllDataFiles } from "./invoke";
 import { ipcRenderer } from "electron";
 import React from "react";
 import { render } from "react-dom";
-import { App } from "./react-ui/App";
+import { App, LoadingOverlay } from "./react-ui/App";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
 import { DefaultLoadingManager } from "three";
 
@@ -22,18 +25,15 @@ if (module.hot) {
   module.hot.decline();
 
   module.hot.accept("./replay/TitanReactorReplay.js", (data) => {
-    if (module.hot.data.filepath) {
-      console.log("hot loading replay");
-
-      scene = loadReplay(module.hot.data.filepath, module.hot.data);
+    if (hotReplay) {
+      console.log("hot loading replay", hotReplay.filepath);
+      scene = loadReplay(hotReplay.filepath);
     }
   });
 
   module.hot.accept("./3d-map-rendering/TitanReactorSandbox.js", () => {
-    console.log("hot loading map ???", hotSandbox);
-
     if (hotSandbox) {
-      console.log("hot loading map");
+      console.log("hot loading map", hotSandbox.filepath);
       scene = loadMap(hotSandbox.filepath);
     }
   });
@@ -42,6 +42,18 @@ if (module.hot) {
 let bwDat = null;
 let scene = null;
 let appIsReady = true;
+let overlay = {
+  state: "bootup",
+  mapName: "",
+  description: "",
+  preview: null,
+};
+
+const updateUi = () =>
+  render(
+    <App loadingOverlay={<LoadingOverlay {...overlay} />} />,
+    document.getElementById("app")
+  );
 
 async function bootup() {
   let starcraftFont = new FontFace(
@@ -55,7 +67,6 @@ async function bootup() {
     document.fonts.add(loadedFont);
   } catch (e) {}
 
-  render(<App />, document.getElementById("app"));
   // if (!(await fs.promises.exists(gameOptions.bwDataPath))) {
   //   // please point us to your starcraft install directory
   // }
@@ -64,6 +75,7 @@ async function bootup() {
 
   bwDat = await loadAllDataFiles(gameOptions.bwDataPath);
   console.log("bwDat", bwDat);
+  updateUi();
 }
 
 ipcRenderer.on("open-map", async (event, [map]) => {
@@ -136,44 +148,53 @@ ipcRenderer.on("save-env-settings", (event, file) => {
 });
 
 const loadMap = async (filepath) => {
-  const mapPreviewEl = document.getElementById("map--preview-canvas");
-  const mapNameEl = document.getElementById("map-name");
-  const mapDescriptionEl = document.getElementById("map-description");
-  const loadOverlayEl = document.getElementById("load-overlay");
+  overlay = {
+    state: "initializing",
+    mapName: "",
+    description: "",
+    preview: "",
+  };
 
-  // hide loading ui elements
-  mapNameEl.innerText = "initializing...";
-  mapDescriptionEl.innerText = "";
-  mapPreviewEl.style.display = "none";
-  loadOverlayEl.style.display = "flex";
+  updateUi();
 
-  console.log("load chk", filepath);
   const chk = await imageChk(filepath, gameOptions.bwDataPath);
-  console.log("chk loaded", filepath, chk);
-
-  await mapPreviewCanvas(chk, mapPreviewEl);
+  overlay.preview = mapPreviewCanvas.bind(null, chk);
 
   await new Promise((res, rej) => {
-    mapNameEl.innerText = chk.title;
+    Object.assign(overlay, {
+      state: "loading",
+      mapName: chk.title,
+      description: chk.tilesetName,
+    });
+
     document.title = `Titan Reactor - ${chk.title}`;
+    console.log(overlay);
     // mapDescriptionEl.innerText = chk.description;
-    mapDescriptionEl.innerText = chk.tilesetName;
-    mapPreviewEl.style.display = "block";
+    updateUi();
+
     setTimeout(res, 100);
   });
-
-  document.title = `Titan Reactor - ${chk.title}`;
 
   return TitanReactorSandbox(
     filepath,
     chk,
     document.getElementById("three-js"),
-    () => (loadOverlayEl.style.display = "none")
+    () => {
+      overlay.state = "";
+      updateUi();
+    }
   );
 };
 
 const loadReplay = async (filepath) => {
-  const loadOverlayEl = document.getElementById("load-overlay");
+  overlay = {
+    state: "initializing",
+    mapName: "initializing",
+    description: "",
+    preview: "",
+  };
+
+  updateUi();
 
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
@@ -182,7 +203,10 @@ const loadReplay = async (filepath) => {
     jssuh,
     document.getElementById("three-js"),
     bwDat,
-    () => (loadOverlayEl.style.display = "none")
+    () => {
+      overlay.state = "";
+      updateUi();
+    }
   );
 };
 

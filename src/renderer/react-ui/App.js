@@ -1,11 +1,33 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useEffect } from "react";
 
-export const App = memo(() => (
-  <>
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'"
-    ></meta>
+const RenderingCanvas = memo(() => <canvas id="three-js"></canvas>);
+const MapPreviewCanvas = ({ preview }) => {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    preview(canvasRef.current);
+  }, [preview]);
+  return <canvas id="map--preview-canvas" ref={canvasRef}></canvas>;
+};
+const MinimapCanvas = memo(() => (
+  <div
+    id="minimap"
+    style={{
+      position: "absolute",
+      left: "0",
+      bottom: "0",
+      height: "300px",
+      width: "300px",
+    }}
+  ></div>
+));
+
+export const LoadingOverlay = ({
+  state = "",
+  mapName = "",
+  description = "",
+  preview,
+}) => {
+  return (
     <div
       id="load-overlay"
       style={{
@@ -15,7 +37,7 @@ export const App = memo(() => (
         justifyContent: "center",
         alignItems: "center",
         background: "rgba(0,0,0,0.9)",
-        display: "flex",
+        display: state ? "flex" : "none",
       }}
     >
       <div id="map-preview">
@@ -29,7 +51,7 @@ export const App = memo(() => (
             filter: "brightness(2) contract(1.2)",
           }}
         >
-          <canvas id="map--preview-canvas"></canvas>
+          {state === "loading" && <MapPreviewCanvas preview={preview} />}
           <p
             id="map-name"
             style={{
@@ -38,7 +60,8 @@ export const App = memo(() => (
               fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
-            Use the file menu to load a replay or map
+            {mapName}
+            {state === "bootup" && "Use the file menu to load a replay or map"}
           </p>
           <p
             id="map-description"
@@ -49,20 +72,19 @@ export const App = memo(() => (
               textAlign: "center",
               fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
-          ></p>
+          >
+            {description}
+          </p>
         </span>
       </div>
     </div>
-    <div
-      id="minimap"
-      style={{
-        position: "absolute",
-        left: "0",
-        bottom: "0",
-        height: "300px",
-        width: "300px",
-      }}
-    ></div>
-    <canvas id="three-js"></canvas>
+  );
+};
+
+export const App = ({ loadingOverlay }) => (
+  <>
+    {loadingOverlay}
+    <MinimapCanvas />
+    <RenderingCanvas />
   </>
-));
+);

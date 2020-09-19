@@ -154,9 +154,8 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   });
 
   gui.controllers.renderer.onFinishChangeAny(
-    ({ toneMappingExposure, gammaFactor, toneMapping }) => {
+    ({ toneMappingExposure, toneMapping }) => {
       renderer.toneMappingExposure = toneMappingExposure;
-      renderer.gammaFactor = gammaFactor;
       renderer.toneMapping = THREE[toneMapping];
       scene.traverse((o) => {
         if (o.type === "Mesh") {

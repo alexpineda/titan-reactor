@@ -11,7 +11,6 @@ export const rgbToCanvas = (
 };
 
 export function writeToContext2d(ctx, data, width, height, format = "rgb") {
-  console.log("write", format);
   const srcPixelWidth = format === "rgba" ? 4 : 3;
   const dstPixelWidth = 4;
 

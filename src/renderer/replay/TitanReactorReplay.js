@@ -52,15 +52,16 @@ export async function TitanReactorReplay(
   });
 
   const [camera, cameraControls] = initCamera(renderer.domElement);
-
-  var axesHelper = new THREE.AxesHelper(5);
-  scene.add(axesHelper);
+  if (hot && hot.camera) {
+    camera.position.copy(hot.camera.position);
+    camera.rotation.copy(hot.camera.rotation);
+  }
 
   const gridHelper = new THREE.GridHelper(128, 128, 0xff0000, 0x009900);
   gridHelper.position.set(0, 6, 0);
   gridHelper.material.transparent = true;
   gridHelper.material.opacity = 0.5;
-  gridHelper.visible = false;
+  gridHelper.visible = true;
   scene.add(gridHelper);
 
   const light = sunlight(chk.size[0], chk.size[1]);
@@ -120,7 +121,8 @@ export async function TitanReactorReplay(
 
   let worldFrame = 0;
   let BWAPIFrame = 0;
-  let numSkipGameFrames = 10;
+  let initialSkipGameFrames = hot ? hot.BWAPIFrame : 0;
+  let numSkipGameFrames = 1;
   let gameFrame = 0;
   const physicsFrameSkip = 20;
 
@@ -189,7 +191,11 @@ export async function TitanReactorReplay(
     //#region BWAPIFrames interpretation
     if (running && BWAPIFramesDataView) {
       // if (BWAPIFramesDataView) {
-      gameloop: for (let gf = 0; gf < numSkipGameFrames; gf++) {
+      gameloop: for (
+        let gf = 0;
+        gf < numSkipGameFrames + initialSkipGameFrames;
+        gf++
+      ) {
         // while (BWAPIFrame + gf < headers.durationFrames) {
         while (true) {
           const frameData = BWAPIFrameFromBuffer(
