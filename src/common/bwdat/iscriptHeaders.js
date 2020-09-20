@@ -20,7 +20,7 @@ export const iscriptHeaders = {
   built: 0x10,
   landing: 0x11,
   liftOff: 0x12,
-  isWorking: 0x13,
+  working: 0x13,
   workingToIdle: 0x14,
   warpIn: 0x15,
   unused3: 0x16,
@@ -31,4 +31,4 @@ export const iscriptHeaders = {
   enable: 0x1b,
 };
 
-export const ordersById = invertObj(iscriptHeaders);
+export const headersById = invertObj(iscriptHeaders);

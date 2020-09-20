@@ -1,4 +1,4 @@
-export const BWAPIFrameDataStructSize = 59;
+export const BWAPIFrameDataStructSize = 67;
 
 export function BWAPIFrameFromBuffer(view, frameStart) {
   const b = frameStart * BWAPIFrameDataStructSize;
@@ -7,12 +7,12 @@ export function BWAPIFrameFromBuffer(view, frameStart) {
     return null;
   }
 
-  const flagsA = view.getUint8(b + 53, true);
-  const flagsB = view.getUint8(b + 54, true);
-  const flagsC = view.getUint8(b + 55, true);
-  const flagsD = view.getUint8(b + 56, true);
-  const flagsE = view.getUint8(b + 57, true);
-  const flagsF = view.getUint8(b + 58, true);
+  const flagsA = view.getUint8(b + 61, true);
+  const flagsB = view.getUint8(b + 62, true);
+  const flagsC = view.getUint8(b + 63, true);
+  const flagsD = view.getUint8(b + 64, true);
+  const flagsE = view.getUint8(b + 65, true);
+  const flagsF = view.getUint8(b + 66, true);
 
   return {
     playerId: view.getInt32(b, true),
@@ -28,6 +28,8 @@ export function BWAPIFrameFromBuffer(view, frameStart) {
     frame: view.getInt32(b + 41, true),
     order: view.getInt32(b + 45, true),
     subOrder: view.getInt32(b + 49, true),
+    groundWeaponCooldown: view.getInt32(b + 53, true),
+    airWeaponCooldown: view.getInt32(b + 57, true),
 
     flagsA,
     flagsB,

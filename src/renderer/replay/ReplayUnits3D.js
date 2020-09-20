@@ -10,6 +10,7 @@ import {
   Quaternion,
   Euler,
   Matrix4,
+  Color,
   PositionalAudio,
   AudioLoader,
 } from "three";
@@ -17,7 +18,11 @@ import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
 import { is, path } from "ramda";
 import { ReplayUnits } from "./ReplayUnits";
-import { iscriptHeaders } from "../../common/bwdat/iscriptHeaders";
+import { iscriptHeaders as headers } from "../../common/bwdat/iscriptHeaders";
+
+const red = new Color(0x990000);
+const green = new Color(0x009900);
+const white = new Color(0x999999);
 
 export class ReplayUnits3D extends ReplayUnits {
   constructor(
@@ -30,14 +35,17 @@ export class ReplayUnits3D extends ReplayUnits {
   ) {
     super();
     const prefabs = {
-      999: new Mesh(
-        new SphereBufferGeometry(1),
-        new MeshStandardMaterial({ color: 0x999999 })
-      ),
-    };
+      999: () => {
+        const mesh = new Mesh(
+          new SphereBufferGeometry(1),
+          new MeshStandardMaterial({ color: 0x999999 })
+        );
 
-    prefabs[999].castShadow = true;
-    prefabs[999].receiveShadow = true;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        return mesh;
+      },
+    };
 
     this.prefabs = prefabs;
     this.units = new Group();
@@ -47,15 +55,16 @@ export class ReplayUnits3D extends ReplayUnits {
     this.bwDat = bwDat;
     this.audioListener = audioListener;
     this.loadManager = loadManager;
+    // more of a cache for the moment
     this.audioPool = audioPool;
     this.loadAssets();
   }
 
   loadAssets() {
-    const { prefabs } = this;
     const loadModel = new LoadModel(this.loadManager);
-    const assignModel = (id) => (model) => (prefabs[id] = model);
-
+    const assignModel = (id) => (model) => {
+      this.prefabs[id] = () => model.clone();
+    };
     loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
     loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
     loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));
@@ -72,7 +81,7 @@ export class ReplayUnits3D extends ReplayUnits {
 
   spawn(frameData) {
     const prefab = this.prefabs[frameData.typeId] || this.prefabs[999];
-    const unit = prefab.clone();
+    const unit = prefab();
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
 
@@ -81,16 +90,32 @@ export class ReplayUnits3D extends ReplayUnits {
     unit.userData.typeId = frameData.typeId;
     unit.name = this.bwDat.units[unit.userData.typeId].name;
 
-    unit.userData.runner = new IScriptRunner(
+    const runner = new IScriptRunner(
       this.bwDat,
       path(
         ["flingy", "sprite", "image", "iscript"],
         this.bwDat.units[unit.userData.typeId]
-      )
+      ),
+      {
+        typeId: unit.userData.typeId,
+        repId: unit.userData.repId,
+        lifted: unit.userData.current.lifted,
+      }
     );
-    // if (unit.userData.repId != 3596) {
-    //   unit.userData.runner.state.terminated = true;
-    // }
+
+    if (unit.userData.repId != 5644) {
+      unit.userData.runner = {
+        state: {},
+        on: () => {},
+        update: () => {},
+        toAnimationBlock: () => {},
+      };
+    } else {
+      console.log("5644");
+      unit.userData.runner = runner;
+    }
+
+    //unit.userData.runner = runner;
 
     const unitSound = new PositionalAudio(this.audioListener);
     unit.add(unitSound);
@@ -117,21 +142,24 @@ export class ReplayUnits3D extends ReplayUnits {
         }
       );
     };
-    unit.userData.runner.on("playsnd", playSound);
-    unit.userData.runner.on("playsndbtwn", playSound);
-    unit.userData.runner.on("playsndrand", playSound);
+    runner.on("playsnd", playSound);
+    runner.on("playsndbtwn", playSound);
+    runner.on("playsndrand", playSound);
 
     this.units.add(unit);
     return unit;
   }
 
   update(unit, frameData) {
-    const x = frameData.x / 32 - 64;
-    const z = frameData.y / 32 - 64;
+    const previous = (unit.userData.previous = unit.userData.current);
+    const current = (unit.userData.current = frameData);
 
-    const y = frameData.isFlying ? 6 : this.getTerrainY(x, z);
+    const x = current.x / 32 - 64;
+    const z = current.y / 32 - 64;
+
+    const y = current.flying ? 6 : this.getTerrainY(x, z);
     const position = new Vector3(x, y, z);
-    const rotationY = -frameData.angle + Math.PI / 2;
+    const rotationY = -current.angle + Math.PI / 2;
 
     unit.position.copy(position);
     unit.rotation.y = rotationY;
@@ -151,61 +179,98 @@ export class ReplayUnits3D extends ReplayUnits {
     unit.userData.nextPosition = new Vector3();
     unit.userData.nextPosition.copy(unit.position);
 
-    unit.userData.previous = unit.userData.current;
-    unit.userData.current = frameData;
+    const runner = unit.userData.runner;
+    const isNow = (prop) => current[prop] && !previous[prop];
+    const was = (prop) => !current[prop] && previous[prop];
+    const run = (section) => runner.toAnimationBlock(section);
 
-    const is = (prop) =>
-      unit.userData.current[prop] && !unit.userData.previous[prop];
-    const was = (prop) =>
-      !unit.userData.current[prop] && unit.userData.previous[prop];
-    const run = (section) => unit.userData.runner.toSection(section);
+    if (!runner.state.noBrkCode) {
+      //@todo
+      //if cooldown timer && repeatAttk run(repeatAttk)
 
-    //alex: alternative way to go about this is using attack cooldown, consider it!
-    if (is("attacking")) {
-      run(iscriptHeaders.gndAttkInit);
-    } else if (was("attacking")) {
-      run(iscriptHeaders.gndAttkToIdle);
+      if (isNow("attacking") && unit.material) {
+        unit.material.color = red;
+        unit.material.needsUpdate = true;
+      } else if (was("attacking") && unit.material) {
+        unit.material.color = white;
+        unit.material.needsUpdate = true;
+      }
+
+      if (current.groundWeaponCooldown && !previous.groundWeaponCooldown) {
+        run(headers.gndAttkInit);
+      } else if (current.airWeaponCooldown && !previous.airWeaponCooldown) {
+        run(headers.airAttkInit);
+      }
+
+      if (!current.groundWeaponCooldown && previous.groundWeaponCooldown) {
+        if (runner.state.repeatAttackAfterCooldown) {
+          run(headers.gndAttkRpt);
+        } else {
+          run(headers.gndAttkToIdle);
+        }
+      } else if (!current.airWeaponCooldown && previous.airdWeaponCooldown) {
+        if (runner.state.repeatAttackAfterCooldown) {
+          run(headers.airAttkRpt);
+        } else {
+          run(headers.airAttkToIdle);
+        }
+      }
+
+      // if (isNow("moving")) {
+      //   run(headers.walking);
+      // } else if (was("moving")) {
+      //   run(headers.walkingToIdle);
+      // }
+
+      if (isNow("lifted")) {
+        run(headers.liftOff);
+      } else if (was("lifted")) {
+        run(headers.landing);
+      }
+
+      if (isNow("burrowed")) {
+        run(headers.burrow);
+      } else if (was("burrowed")) {
+        run(headers.unBurrow);
+      }
     }
-
     /*
-    iscriptHeaders.init
-    iscriptHeaders.death;
-    iscriptHeaders.gndAttkInit X
-    iscriptHeaders.gndAttkRpt;
-    iscriptHeaders.gndAttkToIdle; X
-    iscriptHeaders.working;
-    iscriptHeaders.landing;
-    iscriptHeaders.liftOff;
-    iscriptHeaders.walking;
-    iscriptHeaders.walkingToIdle;
-    iscriptHeaders.airAttkInit;
-    iscriptHeaders.airAttkRpt;
-    iscriptHeaders.airAttkToIdle;
+    iscriptHeaders.init X
+    iscriptHeaders.death; X
+    iscriptHeaders.gndAttkInit; X
+    iscriptHeaders.airAttkInit; X
+    iscriptHeaders.unused1;
+    iscriptHeaders.gndAttkRpt; X
+    iscriptHeaders.airAttkRpt; X
     iscriptHeaders.castSpell
+    iscriptHeaders.gndAttkToIdle; X
+    iscriptHeaders.airAttkToIdle; X
+    iscriptHeaders.unused2;
+    iscriptHeaders.walking; X
+    iscriptHeaders.walkingToIdle; X
     iscriptHeaders.specialState1
     iscriptHeaders.specialState2
-    -- building progress stat?
     iscriptHeaders.almostBuilt
     iscriptHeaders.built
-    iscriptHeaders.landing
-    iscriptHeaders.liftOff
-    iscriptHeaders.isWorking
+    iscriptHeaders.landing X
+    iscriptHeaders.liftOff X
+    iscriptHeaders.working 
     iscriptHeaders.workingToIdle
     iscriptHeaders.warpIn
     iscriptHeaders.unused3
     iscriptHeaders.starEditInit
     iscriptHeaders.disable
-    iscriptHeaders.burrow
-    iscriptHeaders.unBurrow
+    iscriptHeaders.burrow X
+    iscriptHeaders.unBurrow X
     iscriptHeaders.enable
 
     */
 
     // if (diff("idle")) {
-    //   unit.userData.runner.toSection(iscriptHeaders.init);
+    //   unit.userData.runner.toAnimationBlock(iscriptHeaders.init);
     // }
 
-    unit.userData.runner.update();
+    runner.update();
   }
 
   updateDeadUnits() {
@@ -214,7 +279,7 @@ export class ReplayUnits3D extends ReplayUnits {
 
   killUnit(unit) {
     unit.userData.current.alive = false;
-    unit.userData.runner.toSection(iscriptHeaders.death);
+    unit.userData.runner.toAnimationBlock(headers.death);
     this.deadUnits.push(unit);
   }
 

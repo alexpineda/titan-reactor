@@ -1,35 +1,5 @@
-import { openFileBinary, openFileLines } from "../fs";
-import { range, pathSatisfies } from "ramda";
-const IScriptHeaders = [
-  "Init",
-  "Death",
-  "GndAttkInit",
-  "AirAttkInit",
-  "Unused1",
-  "GndAttkRpt",
-  "AirAttkRpt",
-  "CastSpell",
-  "GndAttkToIdle",
-  "AirAttkToIdle",
-  "Unused2",
-  "Walking",
-  "WalkingToIdle",
-  "SpecialState1",
-  "SpecialState2",
-  "AlmostBuilt",
-  "Built",
-  "Landing",
-  "LiftOff",
-  "IsWorking",
-  "WorkingToIdle",
-  "WarpIn",
-  "Unused3",
-  "StarEditInit",
-  "Disable",
-  "Burrow",
-  "UnBurrow",
-  "Enable",
-];
+import { openFileBinary } from "../fs";
+import { range } from "ramda";
 
 const IScriptEntryTypes = {
   0: 2,
@@ -287,7 +257,7 @@ export class IScriptBIN {
     };
 
     headers.forEach((header) => {
-      header.sections = header.offsets.map(loadOffsets).map(cleanHeaders);
+      header.blocks = header.offsets.map(loadOffsets).map(cleanHeaders);
     });
 
     return (this.entries = headers);

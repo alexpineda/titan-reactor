@@ -29,6 +29,16 @@ export async function TitanReactorReplay(
   loaded
 ) {
   console.log(header, commands, chk);
+
+  const infoDiv = document.createElement("div");
+  infoDiv.style.top = "10px";
+  infoDiv.style.left = "10px";
+  infoDiv.style.position = "absolute";
+  infoDiv.style.color = "white";
+  document.body.appendChild(infoDiv);
+  const appendInfoDiv = (str) => (infoDiv.innerHTML += str + "<br/>");
+  const clearInfoDiv = () => (infoDiv.innerHTML = "");
+
   const scene = new THREE.Scene();
 
   let running = false;
@@ -40,8 +50,6 @@ export async function TitanReactorReplay(
 
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
-  window.angleAdd = 0;
-  window.angleMult = 1;
 
   const renderer = initRenderer({
     canvas,
@@ -79,14 +87,14 @@ export async function TitanReactorReplay(
   scene.add(terrain);
   scene.add(bgTerrain);
 
-  scene.fog = fog(chk.size[0], chk.size[1]);
-  scene.background = scene.fog.color;
+  // scene.fog = fog(chk.size[0], chk.size[1]);
+  // scene.background = scene.fog.color;
 
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
   const bgMusic = new BgMusic(audioListener);
   bgMusic.setVolume(0.01);
-  bgMusic.playGame();
+  // bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
   const terrainY = getTerrainY(
@@ -150,6 +158,7 @@ export async function TitanReactorReplay(
     }
   };
   let resetTo;
+  window.goto = (frame) => (resetTo = frame);
 
   document.addEventListener("keydown", keyDownListener);
 
@@ -203,6 +212,8 @@ export async function TitanReactorReplay(
         units.clear();
         resetTo = undefined;
       }
+      clearInfoDiv();
+      appendInfoDiv(`Frame: ${gameFrame}`);
       // if (BWAPIFramesDataView) {
       gameloop: for (
         let gf = 0;
@@ -234,6 +245,8 @@ export async function TitanReactorReplay(
       }
       units.updateDeadUnits();
     }
+    initialSkipGameFrames = 0;
+
     //#endregion
 
     renderer.clear();
@@ -262,6 +275,7 @@ export async function TitanReactorReplay(
     canvas.removeEventListener("mousedown", mouseDownListener);
 
     window.dispose = null;
+    window.goto = null;
   };
 
   window.dispose = dispose;
