@@ -1,6 +1,13 @@
 import React, { memo, useRef, useEffect } from "react";
 
-const RenderingCanvas = memo(() => <canvas id="three-js"></canvas>);
+const RenderingCanvas = ({ canvas }) => {
+  const canvasRef = useRef();
+  useEffect(() => {
+    canvasRef.current.appendChild(canvas);
+  }, []);
+  return <div ref={canvasRef}></div>;
+};
+
 const MapPreviewCanvas = ({ preview }) => {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -57,7 +64,7 @@ export const LoadingOverlay = ({
             style={{
               color: "white",
               fontSize: "32px",
-              fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
+              // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
             {mapName}
@@ -70,7 +77,7 @@ export const LoadingOverlay = ({
               fontSize: "12px",
               width: "100%",
               textAlign: "center",
-              fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
+              // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
             {description}
@@ -81,10 +88,10 @@ export const LoadingOverlay = ({
   );
 };
 
-export const App = ({ loadingOverlay }) => (
+export const App = ({ loadingOverlay, canvas }) => (
   <>
     {loadingOverlay}
     <MinimapCanvas />
-    <RenderingCanvas />
+    <RenderingCanvas canvas={canvas} />
   </>
 );

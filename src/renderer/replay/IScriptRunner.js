@@ -28,6 +28,9 @@ export class IScriptRunner {
   toSection(section) {
     this.commands = this.iscript.sections[section];
     this.commandIndex = 0;
+    Object.assign(this.state, {
+      waiting: 0,
+    });
   }
 
   update() {
@@ -39,6 +42,10 @@ export class IScriptRunner {
     if (this.state.matchParentFrame) {
       this.state.frame = this.parent.state.frame;
     }
+
+    this.state.underlays.forEach((underlay) => underlay.iscript.update());
+    this.state.overlays.forEach((underlay) => underlay.iscript.update());
+    this.state.usingWeapon && this.state.usingWeapon.iscript.update();
 
     // update iscript state
     if (this.state.waiting !== 0) {
@@ -118,6 +125,7 @@ export class IScriptRunner {
     if (!this.commands) {
       // wider search
       this.state.terminated = true;
+      console.error(`goto ${offset}`);
       //   const otherScript = this.bwDat.iscript.find((script) => {
       //     if (!script || !script.offsets) {
       //       debugger;
@@ -140,6 +148,16 @@ export class IScriptRunner {
 
   __playsnd([soundId]) {
     this._dispatch("playsnd", soundId);
+  }
+
+  __playsndbtwn([soundA, soundB]) {
+    const soundId = Math.floor(Math.random() * (soundB - soundA + 1)) + soundA;
+    this._dispatch("playsndbtwn", soundId);
+  }
+
+  __playsndrand([numSounds, ...sounds]) {
+    const soundId = sounds[Math.floor(Math.random() * numSounds)];
+    this._dispatch("playsndrand", soundId);
   }
 
   __end() {
@@ -195,12 +213,10 @@ export class IScriptRunner {
       case "sprol":
       case "sproluselo":
       case "highsprol":
-      case "lowsprol":
+      case "lowsprul":
       case "sprul":
       case "spruluselo":
       case "setflipstate":
-      case "playsndrand":
-      case "playbtwn":
       case "attackmelee":
       case "randcondjmp":
       case "turnccwise":

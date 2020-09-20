@@ -61,7 +61,7 @@ export async function TitanReactorReplay(
   gridHelper.position.set(0, 6, 0);
   gridHelper.material.transparent = true;
   gridHelper.material.opacity = 0.5;
-  gridHelper.visible = true;
+  gridHelper.visible = false;
   scene.add(gridHelper);
 
   const light = sunlight(chk.size[0], chk.size[1]);
@@ -83,8 +83,9 @@ export async function TitanReactorReplay(
   scene.background = scene.fog.color;
 
   const audioListener = new THREE.AudioListener();
+  camera.add(audioListener);
   const bgMusic = new BgMusic(audioListener);
-  bgMusic.setVolume(0.06);
+  bgMusic.setVolume(0.01);
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
@@ -102,7 +103,7 @@ export async function TitanReactorReplay(
     chk.size[1]
   );
 
-  const units = new ReplayUnits3D(bwDat, terrainY, audioListener, openFile);
+  const units = new ReplayUnits3D(bwDat, terrainY, audioListener, {}, openFile);
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
@@ -126,7 +127,7 @@ export async function TitanReactorReplay(
   let gameFrame = 0;
   const physicsFrameSkip = 20;
 
-  document.addEventListener("keydown", (e) => {
+  const keyDownListener = (e) => {
     if (e.code === "KeyP") {
       running = !running;
       console.log("BWAPIFrame", gameFrame);
@@ -144,14 +145,15 @@ export async function TitanReactorReplay(
       }
     }
 
-    if (e.code === "KeyR") {
-      gameFrame = 0;
-      BWAPIFrame = 0;
-      units.dispose();
+    if (e.code === "Digit0") {
+      resetTo = 0;
     }
-  });
+  };
+  let resetTo;
 
-  document.addEventListener("mousedown", (event) => {
+  document.addEventListener("keydown", keyDownListener);
+
+  const mouseDownListener = (event) => {
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
 
@@ -161,6 +163,7 @@ export async function TitanReactorReplay(
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
+
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(units.getUnits(), true);
     const getAsUnit = (mesh) => {
@@ -179,7 +182,8 @@ export async function TitanReactorReplay(
         console.log(unit);
       }
     }
-  });
+  };
+  document.addEventListener("mousedown", mouseDownListener);
 
   let unitsLastFrame = [];
   let unitsThisFrame = [];
@@ -190,6 +194,15 @@ export async function TitanReactorReplay(
 
     //#region BWAPIFrames interpretation
     if (running && BWAPIFramesDataView) {
+      if (resetTo !== undefined) {
+        gameFrame = 0;
+        BWAPIFrame = 0;
+        initialSkipGameFrames = resetTo;
+        unitsLastFrame = [];
+        unitsThisFrame = [];
+        units.clear();
+        resetTo = undefined;
+      }
       // if (BWAPIFramesDataView) {
       gameloop: for (
         let gf = 0;
@@ -219,7 +232,7 @@ export async function TitanReactorReplay(
         }
         // units.units.updateMatrixWorld(true);
       }
-      // units.clear(BWAPIFrame);
+      units.updateDeadUnits();
     }
     //#endregion
 
@@ -244,8 +257,18 @@ export async function TitanReactorReplay(
     cameraControls.dispose();
     bgMusic.dispose();
     renderer.dispose();
+
+    document.removeEventListener("keydown", keyDownListener);
+    canvas.removeEventListener("mousedown", mouseDownListener);
+
+    window.dispose = null;
   };
 
+  window.dispose = dispose;
+
+  window.onbeforeunload = (e) => {
+    dispose();
+  };
   if (module.hot) {
     module.hot.dispose((data) => {
       Object.assign(data, { camera, BWAPIFrame, filepath });

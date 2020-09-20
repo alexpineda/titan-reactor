@@ -27,6 +27,7 @@ export const initCameraControls = (camera, element, limitControl = false) => {
     orbitControl.minAzimuthAngle = -Math.PI / 5;
     // camera.position.clampLength(5, 60);
   }
+  orbitControl.screenSpacePanning = false;
   orbitControl.update();
   return orbitControl;
 };

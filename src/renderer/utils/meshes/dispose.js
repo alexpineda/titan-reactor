@@ -24,13 +24,13 @@ export const disposeMesh = (mesh) => {
     });
 
     try {
-      mesh.material.dispose();
+      mesh.material && mesh.material.dispose();
     } catch (e) {
       console.error(`error disposing material`, e);
     }
   }
   try {
-    mesh.geometry.dispose();
+    mesh.geometry && mesh.geometry.dispose();
   } catch (e) {
     console.error(`error disposing geometry`, e);
   }

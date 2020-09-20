@@ -12,27 +12,29 @@ import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
 import { loadAllDataFiles } from "./invoke";
 import { ipcRenderer } from "electron";
-import React from "react";
+import React, { useState } from "react";
 import { render } from "react-dom";
 import { App, LoadingOverlay } from "./react-ui/App";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
-import { DefaultLoadingManager } from "three";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
+
+const canvas = document.createElement("canvas");
+canvas.id = "three-canvas";
 
 if (module.hot) {
   module.hot.decline();
 
   module.hot.accept("./replay/TitanReactorReplay.js", (data) => {
-    if (hotReplay) {
+    if (hotReplay && hotReplay.filepath) {
       console.log("hot loading replay", hotReplay.filepath);
       scene = loadReplay(hotReplay.filepath);
     }
   });
 
   module.hot.accept("./3d-map-rendering/TitanReactorSandbox.js", () => {
-    if (hotSandbox) {
+    if (hotSandbox && hotSandbox.filepath) {
       console.log("hot loading map", hotSandbox.filepath);
       scene = loadMap(hotSandbox.filepath);
     }
@@ -51,7 +53,7 @@ let overlay = {
 
 const updateUi = () =>
   render(
-    <App loadingOverlay={<LoadingOverlay {...overlay} />} />,
+    <App loadingOverlay={<LoadingOverlay {...overlay} />} canvas={canvas} />,
     document.getElementById("app")
   );
 
@@ -175,15 +177,10 @@ const loadMap = async (filepath) => {
     setTimeout(res, 100);
   });
 
-  return TitanReactorSandbox(
-    filepath,
-    chk,
-    document.getElementById("three-js"),
-    () => {
-      overlay.state = "";
-      updateUi();
-    }
-  );
+  return TitanReactorSandbox(filepath, chk, canvas, () => {
+    overlay.state = "";
+    updateUi();
+  });
 };
 
 const loadReplay = async (filepath) => {
@@ -198,16 +195,10 @@ const loadReplay = async (filepath) => {
 
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
-  return TitanReactorReplay(
-    filepath,
-    jssuh,
-    document.getElementById("three-js"),
-    bwDat,
-    () => {
-      overlay.state = "";
-      updateUi();
-    }
-  );
+  return TitanReactorReplay(filepath, jssuh, canvas, bwDat, () => {
+    overlay.state = "";
+    updateUi();
+  });
 };
 
 bootup();

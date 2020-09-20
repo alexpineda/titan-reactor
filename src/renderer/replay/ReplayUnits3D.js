@@ -15,7 +15,7 @@ import {
 } from "three";
 import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
-import { path } from "ramda";
+import { is, path } from "ramda";
 import { ReplayUnits } from "./ReplayUnits";
 import { iscriptHeaders } from "../../common/bwdat/iscriptHeaders";
 
@@ -24,6 +24,7 @@ export class ReplayUnits3D extends ReplayUnits {
     bwDat,
     getTerrainY,
     audioListener,
+    audioPool = {},
     fileAccess,
     loadManager = DefaultLoadingManager
   ) {
@@ -40,11 +41,13 @@ export class ReplayUnits3D extends ReplayUnits {
 
     this.prefabs = prefabs;
     this.units = new Group();
+    this.deadUnits = [];
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
     this.bwDat = bwDat;
     this.audioListener = audioListener;
     this.loadManager = loadManager;
+    this.audioPool = audioPool;
     this.loadAssets();
   }
 
@@ -85,25 +88,38 @@ export class ReplayUnits3D extends ReplayUnits {
         this.bwDat.units[unit.userData.typeId]
       )
     );
+    // if (unit.userData.repId != 3596) {
+    //   unit.userData.runner.state.terminated = true;
+    // }
 
     const unitSound = new PositionalAudio(this.audioListener);
     unit.add(unitSound);
 
-    unit.userData.runner.on("playsnd", (soundId) => {
+    const playSound = (soundId) => {
+      if (this.audioPool[soundId]) {
+        unitSound.setBuffer(this.audioPool[soundId]);
+        unitSound.play();
+        return;
+      }
+
       console.log("playsnd", soundId);
       const audioLoader = new AudioLoader(this.loadManager);
-      audioLoader.load(`./sound/${this.bwDat.sounds[soundId].file}`, function (
-        buffer
-      ) {
-        unitSound.setBuffer(buffer);
-        unitSound.setRefDistance(10);
-        unitSound.setRolloffFactor(2.2);
-        unitSound.setDistanceModel("exponential");
-        unitSound.setVolume(1);
-        unitSound.play();
-        console.log("play", soundId);
-      });
-    });
+      audioLoader.load(
+        `./sound/${this.bwDat.sounds[soundId].file}`,
+        (buffer) => {
+          this.audioPool[soundId] = buffer;
+          unitSound.setBuffer(buffer);
+          unitSound.setRefDistance(10);
+          unitSound.setRolloffFactor(2.2);
+          unitSound.setDistanceModel("exponential");
+          unitSound.setVolume(1);
+          unitSound.play();
+        }
+      );
+    };
+    unit.userData.runner.on("playsnd", playSound);
+    unit.userData.runner.on("playsndbtwn", playSound);
+    unit.userData.runner.on("playsndrand", playSound);
 
     this.units.add(unit);
     return unit;
@@ -134,32 +150,82 @@ export class ReplayUnits3D extends ReplayUnits {
     unit.userData.movement = new Vector3();
     unit.userData.nextPosition = new Vector3();
     unit.userData.nextPosition.copy(unit.position);
-    const { hp, shields, energy, frame, order, subOrder } = frameData;
 
     unit.userData.previous = unit.userData.current;
     unit.userData.current = frameData;
-    if (!unit.userData.current.exists && unit.userData.previous.exists) {
-      console.log("died", unit.userData.current);
+
+    const is = (prop) =>
+      unit.userData.current[prop] && !unit.userData.previous[prop];
+    const was = (prop) =>
+      !unit.userData.current[prop] && unit.userData.previous[prop];
+    const run = (section) => unit.userData.runner.toSection(section);
+
+    //alex: alternative way to go about this is using attack cooldown, consider it!
+    if (is("attacking")) {
+      run(iscriptHeaders.gndAttkInit);
+    } else if (was("attacking")) {
+      run(iscriptHeaders.gndAttkToIdle);
     }
+
+    /*
+    iscriptHeaders.init
+    iscriptHeaders.death;
+    iscriptHeaders.gndAttkInit X
+    iscriptHeaders.gndAttkRpt;
+    iscriptHeaders.gndAttkToIdle; X
+    iscriptHeaders.working;
+    iscriptHeaders.landing;
+    iscriptHeaders.liftOff;
+    iscriptHeaders.walking;
+    iscriptHeaders.walkingToIdle;
+    iscriptHeaders.airAttkInit;
+    iscriptHeaders.airAttkRpt;
+    iscriptHeaders.airAttkToIdle;
+    iscriptHeaders.castSpell
+    iscriptHeaders.specialState1
+    iscriptHeaders.specialState2
+    -- building progress stat?
+    iscriptHeaders.almostBuilt
+    iscriptHeaders.built
+    iscriptHeaders.landing
+    iscriptHeaders.liftOff
+    iscriptHeaders.isWorking
+    iscriptHeaders.workingToIdle
+    iscriptHeaders.warpIn
+    iscriptHeaders.unused3
+    iscriptHeaders.starEditInit
+    iscriptHeaders.disable
+    iscriptHeaders.burrow
+    iscriptHeaders.unBurrow
+    iscriptHeaders.enable
+
+    */
+
+    // if (diff("idle")) {
+    //   unit.userData.runner.toSection(iscriptHeaders.init);
+    // }
+
     unit.userData.runner.update();
-    // unit.userData.current = {
-    //   hp,
-    //   shields,
-    //   energy,
-    //   frame,
-    //   order,
-    //   subOrder,
-    // };
   }
+
+  updateDeadUnits() {
+    this.deadUnits.forEach((unit) => this.update(unit, unit.userData.current));
+  }
+
   killUnit(unit) {
-    unit.visible = false;
+    unit.userData.current.alive = false;
     unit.userData.runner.toSection(iscriptHeaders.death);
+    this.deadUnits.push(unit);
+  }
+
+  clear() {
+    this.units = new Group();
+    this.deadUnits = [];
   }
 
   dispose() {
-    this.units.children.forEach(disposeMesh);
     disposeMesh(this.units);
-    this.units = new Group();
+    this.clear();
   }
 }
 

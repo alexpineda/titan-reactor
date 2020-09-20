@@ -29,7 +29,7 @@ export class ReplayUnits {
     }
     this.units.children
       .filter(({ userData }) => repIds.includes(userData.repId))
-      .forEach(this.killUnit);
+      .forEach((unit) => this.killUnit(unit));
   }
 
   dispose() {}
