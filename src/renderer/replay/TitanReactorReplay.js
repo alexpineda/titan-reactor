@@ -11,8 +11,7 @@ import { TextureCache } from "../3d-map-rendering/textures/TextureCache";
 import { BWAPIFrameFromBuffer } from "./BWAPIFrames";
 import { BgMusic } from "../audio/BgMusic";
 
-import { ReplayUnits3D } from "./ReplayUnits3D";
-import { ReplayUnits2D } from "./ReplayUnits2D";
+import { ReplayUnits } from "./ReplayUnits";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
 import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
@@ -111,7 +110,7 @@ export async function TitanReactorReplay(
     chk.size[1]
   );
 
-  const units = new ReplayUnits3D(bwDat, terrainY, audioListener, {}, openFile);
+  const units = new ReplayUnits(bwDat, terrainY, audioListener, {}, openFile);
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
@@ -129,7 +128,7 @@ export async function TitanReactorReplay(
   let requestAnimationFrameId = null;
 
   let worldFrame = 0;
-  let BWAPIFrame = 0;
+  let BWAPIFrameOffset = 0;
   let initialSkipGameFrames = hot ? hot.BWAPIFrame : 0;
   let numSkipGameFrames = 1;
   let gameFrame = 0;
@@ -206,7 +205,7 @@ export async function TitanReactorReplay(
     if (running && BWAPIFramesDataView) {
       if (resetTo !== undefined) {
         gameFrame = 0;
-        BWAPIFrame = 0;
+        BWAPIFrameOffset = 0;
         initialSkipGameFrames = resetTo;
         unitsLastFrame = [];
         unitsThisFrame = [];
@@ -223,15 +222,15 @@ export async function TitanReactorReplay(
       ) {
         // while (BWAPIFrame + gf < headers.durationFrames) {
         while (true) {
-          const frameData = BWAPIFrameFromBuffer(
+          const { frameData, frameSize } = BWAPIFrameFromBuffer(
             BWAPIFramesDataView,
-            BWAPIFrame
+            BWAPIFrameOffset
           );
 
           const unit = units.spawnIfNotExists(frameData);
           units.update(unit, frameData);
 
-          BWAPIFrame = BWAPIFrame + 1;
+          BWAPIFrameOffset = BWAPIFrameOffset + frameSize;
           if (gameFrame === frameData.frame) {
             unitsThisFrame.push(frameData.repId);
           } else {
@@ -286,7 +285,7 @@ export async function TitanReactorReplay(
   };
   if (module.hot) {
     module.hot.dispose((data) => {
-      Object.assign(data, { camera, BWAPIFrame, filepath });
+      Object.assign(data, { camera, BWAPIFrame: BWAPIFrameOffset, filepath });
       dispose();
     });
   }

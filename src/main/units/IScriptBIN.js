@@ -209,7 +209,7 @@ export class IScriptBIN {
       return [{ op, args }, newPos];
     }
 
-    function loadIncrementalIScript(pos) {
+    function loadNextIScript(pos) {
       if (pos > buf.byteLength - 4) return;
 
       const iscriptIndex = buf.readUInt16LE(pos);
@@ -241,10 +241,10 @@ export class IScriptBIN {
       iscript.offsets.forEach(loadAnimationBlock);
 
       iscripts[iscriptIndex] = iscript;
-      loadIncrementalIScript(pos + 4);
+      loadNextIScript(pos + 4);
     }
 
-    loadIncrementalIScript(buf.readUInt16LE(0));
+    loadNextIScript(buf.readUInt16LE(0));
 
     return (this.entries = { iscripts, animationBlocks });
   }

@@ -1,5 +1,3 @@
-export const BWAPIFrameDataStructSize = 67;
-
 class BWAPIFrame {
   constructor(data) {
     Object.assign(this, data);
@@ -199,105 +197,82 @@ class BWAPIFrame {
   }
 }
 
-export function BWAPIFrameFromBuffer(view, frameStart) {
-  const b = frameStart * BWAPIFrameDataStructSize;
-
-  if (b + BWAPIFrameDataStructSize > view.byteLength) {
-    return null;
-  }
-
-  const flagsA = view.getUint8(b + 61, true);
-  const flagsB = view.getUint8(b + 62, true);
-  const flagsC = view.getUint8(b + 63, true);
-  const flagsD = view.getUint8(b + 64, true);
-  const flagsE = view.getUint8(b + 65, true);
-  const flagsF = view.getUint8(b + 66, true);
-
-  return new BWAPIFrame({
-    playerId: view.getInt32(b, true),
-    repId: view.getInt32(b + 4, true),
-    typeId: view.getInt32(b + 8, true),
-    alive: view.getUint8(b + 12),
-    x: view.getInt32(b + 13, true),
-    y: view.getInt32(b + 17, true),
-    angle: view.getFloat64(b + 21, true),
-    hp: view.getInt32(b + 29, true),
-    shields: view.getInt32(b + 33, true),
-    energy: view.getInt32(b + 37, true),
-    frame: view.getInt32(b + 41, true),
-    order: view.getInt32(b + 45, true),
-    subOrder: view.getInt32(b + 49, true),
-    groundWeaponCooldown: view.getInt32(b + 53, true),
-    airWeaponCooldown: view.getInt32(b + 57, true),
-
-    flagsA,
-    flagsB,
-    flagsC,
-    flagsD,
-    flagsE,
-    flagsF,
+const ConsumingDataView = (dataView, offset = 0, endianness = true) => {
+  let bytesConsumed = 0;
+  return new Proxy(dataView, {
+    get: (target, prop, receiver) => {
+      if (typeof target[prop] === "function" && prop.substr(0, 3) === "get") {
+        return () => {
+          const len = prop.substr(-1) === "8" ? 1 : Number(prop.substr(-2)) / 8;
+          const fn = target[prop];
+          let result = fn.call(target, offset + bytesConsumed, endianness);
+          bytesConsumed = bytesConsumed + len;
+          return result;
+        };
+      } else if (prop === "bytesConsumed") {
+        return bytesConsumed;
+      } else {
+        return Reflect.get(target, prop, receiver);
+      }
+    },
   });
-}
+};
 
-export function BWAPIFramesFromBuffer(view, frameStart, numFrames = 1) {
-  const BWAPIFrames = [];
+export function BWAPIFrameFromBuffer(dataView, offset) {
+  const view = ConsumingDataView(dataView, offset);
 
-  const len =
-    Math.min(
-      arrayBuffer.byteLength,
-      (frameStart + numFrames) * BWAPIFrameDataStructSize
-    ) - BWAPIFrameDataStructSize;
+  const playerId = view.getInt32();
+  const repId = view.getInt32();
+  const typeId = view.getInt32();
+  const alive = view.getUint8();
+  const x = view.getInt32();
+  const y = view.getInt32();
+  const angle = view.getFloat64();
+  const hp = view.getInt32();
+  const shields = view.getInt32();
+  const energy = view.getInt32();
+  const frame = view.getInt32();
+  const order = view.getInt32();
+  const subOrder = view.getInt32();
+  const groundWeaponCooldown = view.getInt32();
+  const airWeaponCooldown = view.getInt32();
+  const targetRepId = view.getInt32();
+  const orderTargetRepId = view.getInt32();
+  const getRemainingBuildTime = view.getInt32();
+  const flagsA = view.getUint8();
+  const flagsB = view.getUint8();
+  const flagsC = view.getUint8();
+  const flagsD = view.getUint8();
+  const flagsE = view.getUint8();
+  const flagsF = view.getUint8();
 
-  for (
-    let b = frameStart * BWAPIFrameDataStructSize;
-    b <= len;
-    b += BWAPIFrameDataStructSize
-  ) {
-    BWAPIFrames.push({
-      playerId: view.getInt32(b, true),
-      repId: view.getInt32(b + 4, true),
-      typeId: view.getInt32(b + 8, true),
-      exists: view.getUint8(b + 12),
-      x: view.getInt32(b + 13, true),
-      y: view.getInt32(b + 17, true),
-      angle: view.getFloat64(b + 21, true),
-      hp: view.getInt32(b + 29, true),
-      shields: view.getInt32(b + 33, true),
-      energy: view.getInt32(b + 37, true),
-      frame: view.getInt32(b + 41, true),
-    });
-  }
-  return BWAPIFrames;
-}
-
-export function AllBWAPIFramesFromBuffer(view, progressCb) {
-  const BWAPIFrames = [];
-
-  const frameCount = Math.floor(
-    arrayBuffer.byteLength / BWAPIFrameDataStructSize
-  );
-
-  for (
-    let b = 0;
-    b <= arrayBuffer.byteLength - BWAPIFrameDataStructSize;
-    b += BWAPIFrameDataStructSize
-  ) {
-    BWAPIFrames.push({
-      playerId: view.getInt32(b, true),
-      repId: view.getInt32(b + 4, true),
-      typeId: view.getInt32(b + 8, true),
-      exists: view.getUint8(b + 12),
-      x: view.getInt32(b + 13, true),
-      y: view.getInt32(b + 17, true),
-      angle: view.getFloat64(b + 21, true),
-      hp: view.getInt32(b + 29, true),
-      shields: view.getInt32(b + 33, true),
-      energy: view.getInt32(b + 37, true),
-      frame: view.getInt32(b + 41, true),
-    });
-    if (b % (BWAPIFrameDataStructSize * 2000) === 0) {
-      progressCb(b / arrayBuffer.byteLength);
-    }
-  }
-  return BWAPIFrames;
+  return {
+    frameSize: view.bytesConsumed,
+    frameData: new BWAPIFrame({
+      playerId,
+      repId,
+      typeId,
+      alive,
+      x,
+      y,
+      angle,
+      hp,
+      shields,
+      energy,
+      frame,
+      order,
+      subOrder,
+      groundWeaponCooldown,
+      airWeaponCooldown,
+      targetRepId,
+      orderTargetRepId,
+      getRemainingBuildTime,
+      flagsA,
+      flagsB,
+      flagsC,
+      flagsD,
+      flagsE,
+      flagsF,
+    }),
+  };
 }
