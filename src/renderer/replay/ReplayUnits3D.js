@@ -149,7 +149,7 @@ export class ReplayUnits3D extends ReplayUnits {
     const x = current.x / 32 - 64;
     const z = current.y / 32 - 64;
 
-    const y = current.flying ? 6 : this.getTerrainY(x, z);
+    const y = current.flying() ? 6 : this.getTerrainY(x, z);
     const position = new Vector3(x, y, z);
     const rotationY = -current.angle + Math.PI / 2;
 
@@ -172,8 +172,8 @@ export class ReplayUnits3D extends ReplayUnits {
     unit.userData.nextPosition.copy(unit.position);
 
     const runner = unit.userData.runner;
-    const isNow = (prop) => current[prop] && !previous[prop];
-    const was = (prop) => !current[prop] && previous[prop];
+    const isNow = (prop) => current[prop]() && !previous[prop]();
+    const was = (prop) => !current[prop]() && previous[prop]();
     const run = (section) => runner.toAnimationBlock(section);
 
     if (!runner.state.noBrkCode) {
