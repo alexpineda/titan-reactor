@@ -93,8 +93,8 @@ export async function TitanReactorReplay(
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
   const bgMusic = new BgMusic(audioListener);
-  bgMusic.setVolume(0.01);
-  // bgMusic.playGame();
+  bgMusic.setVolume(0.0);
+  bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
   const terrainY = getTerrainY(
@@ -177,7 +177,7 @@ export async function TitanReactorReplay(
     const intersects = raycaster.intersectObjects(units.getUnits(), true);
     const getAsUnit = (mesh) => {
       if (!mesh) return null;
-      if (mesh.userData && mesh.userData.typeId) {
+      if (mesh.userData && mesh.userData.typeId !== undefined) {
         return mesh;
       } else {
         return getAsUnit(mesh.parent);
@@ -185,6 +185,7 @@ export async function TitanReactorReplay(
     };
 
     if (intersects[0]) {
+      console.log("intersects", intersects[0]);
       const unit = getAsUnit(intersects[0].object);
 
       if (unit) {

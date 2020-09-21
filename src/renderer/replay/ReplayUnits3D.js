@@ -76,6 +76,9 @@ export class ReplayUnits3D extends ReplayUnits {
     loadModel.load(`_alex/assimilator.glb`).then(assignModel(0x9d));
     loadModel.load(`_alex/gateway.glb`).then(assignModel(0xa0));
     loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
+    loadModel.load(`_alex/marine.glb`).then(assignModel(0x0));
+    loadModel.load(`_alex/scarab.glb`).then(assignModel(0x55));
+
     // loadModel.load(`_alex/medic.glb`).then(assignModel(0x22));
   }
 
@@ -90,7 +93,7 @@ export class ReplayUnits3D extends ReplayUnits {
     unit.userData.typeId = frameData.typeId;
     unit.name = this.bwDat.units[unit.userData.typeId].name;
 
-    const runner = new IScriptRunner(
+    const runner = (unit.userData.runner = new IScriptRunner(
       this.bwDat,
       path(
         ["flingy", "sprite", "image", "iscript"],
@@ -101,26 +104,15 @@ export class ReplayUnits3D extends ReplayUnits {
         repId: unit.userData.repId,
         lifted: unit.userData.current.lifted,
       }
-    );
-
-    if (unit.userData.repId != 5644) {
-      unit.userData.runner = {
-        state: {},
-        on: () => {},
-        update: () => {},
-        toAnimationBlock: () => {},
-      };
-    } else {
-      console.log("5644");
-      unit.userData.runner = runner;
-    }
-
-    //unit.userData.runner = runner;
+    ));
 
     const unitSound = new PositionalAudio(this.audioListener);
     unit.add(unitSound);
 
     const playSound = (soundId) => {
+      if (unitSound.isPlaying) {
+        return;
+      }
       if (this.audioPool[soundId]) {
         unitSound.setBuffer(this.audioPool[soundId]);
         unitSound.play();

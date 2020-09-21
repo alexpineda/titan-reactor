@@ -77,6 +77,8 @@ async function bootup() {
 
   bwDat = await loadAllDataFiles(gameOptions.bwDataPath);
   console.log("bwDat", bwDat);
+  window.bwDat = bwDat;
+
   updateUi();
 }
 

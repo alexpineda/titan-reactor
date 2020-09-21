@@ -1,7 +1,7 @@
 import { openFileBinary } from "../fs";
 import { range } from "ramda";
 
-const IScriptEntryTypes = {
+const IScriptTypes = {
   0: 2,
   1: 2,
   2: 4,
@@ -38,8 +38,6 @@ const typeBFrame = { size: 1, name: "bframe" };
 const typeGasOverlay = { size: 1, name: "gasoverlay" };
 const typeShort = { size: 2, name: "short" };
 const typeOverlayId = { size: 1, name: "overlayid" };
-
-const reader = (buf) => {};
 
 const IScriptOPCodes = [
   ["playfram", [typeFrame]],
@@ -140,68 +138,28 @@ export class IScriptBIN {
     await this.init();
     const buf = await openFileBinary(`${this.bwDataPath}/scripts/iscript.bin`);
 
-    const headers = [];
+    const iscripts = [];
+    const animationBlocks = {};
 
-    readSection(buf.readUInt16LE(0));
-
-    function readSection(pos) {
-      if (pos > buf.byteLength - 4) return;
-
-      const headerId = buf.readUInt16LE(pos);
-      if (headers[headerId]) {
-        throw new Error("duplicate header id");
-      }
-
-      const offset = buf.readUInt16LE(pos + 2);
-
-      if (headerId == 65535 && offset == 0) {
+    function loadAnimationBlock(offset) {
+      if (!offset || animationBlocks[offset]) {
         return;
       }
-
-      if (buf.toString("utf8", offset, offset + 4) != "SCPE") {
-        throw new Error(`invalid header`);
-      }
-
-      const header = {
-        id: headerId,
-        entryType: buf.readUInt8(offset + 4),
-        offset,
-        offsets: [],
-      };
-
-      const ct = IScriptEntryTypes[header.entryType];
-      header.offsets = range(0, ct).map((x) =>
-        buf.readUInt16LE(offset + 8 + 2 * x)
-      );
-      headers[headerId] = header;
-      readSection(pos + 4);
-    }
-
-    function loadOffsets(offset) {
-      if (!offset) {
-        return [];
-      }
       let nextOffset = offset;
-      let cmds = [];
+      animationBlocks[offset] = [];
 
-      let iter = 0;
       while (nextOffset && nextOffset < buf.byteLength) {
-        const res = loadOffset(nextOffset);
-        if (!res) {
-          break;
-        }
+        const res = loadCommand(nextOffset);
         const [cmd, nextPos] = res;
         nextOffset = nextPos;
-        cmds.push(cmd);
-        iter++;
-        if (iter > 20) {
-          return cmds;
-        }
+        animationBlocks[offset].push([
+          cmd.op.opName,
+          cmd.args.map(({ val }) => val),
+        ]);
       }
-      return cmds;
     }
 
-    function loadOffset(offset, meta) {
+    function loadCommand(offset) {
       if (offset === 0) {
         throw new Error("invalid offset");
       }
@@ -237,29 +195,57 @@ export class IScriptBIN {
 
       if (opIndex == 7) {
         //goto
+        loadAnimationBlock(args[0].val);
         newPos = null;
       } else if ([22, 54].includes(opIndex)) {
         //end and return
         newPos = null;
       } else if ([30, 53, 57, 58, 59, 60, 63].includes(opIndex)) {
         //randcondjump,call,pwrupcondjmp,trgtrangecondjmp,trgtarccondjmp,curdirectcondjmp,liftoffcondjump
-        newPos = null;
+        //@todo probably need to understand what else is getting loaded
+        loadAnimationBlock(args[args.length - 1].val);
       }
 
-      return [{ op, args, meta }, newPos];
+      return [{ op, args }, newPos];
     }
 
-    const cleanHeaders = (commands) => {
-      return commands.map((c) => [
-        c.op.opName,
-        ...c.args.map(({ val }) => val),
-      ]);
-    };
+    function loadIncrementalIScript(pos) {
+      if (pos > buf.byteLength - 4) return;
 
-    headers.forEach((header) => {
-      header.blocks = header.offsets.map(loadOffsets).map(cleanHeaders);
-    });
+      const iscriptIndex = buf.readUInt16LE(pos);
+      if (iscripts[iscriptIndex]) {
+        throw new Error("duplicate header id");
+      }
 
-    return (this.entries = headers);
+      const offset = buf.readUInt16LE(pos + 2);
+
+      if (iscriptIndex == 65535 && offset == 0) {
+        return;
+      }
+
+      if (buf.toString("utf8", offset, offset + 4) != "SCPE") {
+        throw new Error(`invalid header`);
+      }
+
+      const iscript = {
+        id: iscriptIndex,
+        type: buf.readUInt8(offset + 4),
+        offset,
+        offsets: [],
+      };
+
+      const ct = IScriptTypes[iscript.type];
+      iscript.offsets = range(0, ct).map((x) =>
+        buf.readUInt16LE(offset + 8 + 2 * x)
+      );
+      iscript.offsets.forEach(loadAnimationBlock);
+
+      iscripts[iscriptIndex] = iscript;
+      loadIncrementalIScript(pos + 4);
+    }
+
+    loadIncrementalIScript(buf.readUInt16LE(0));
+
+    return (this.entries = { iscripts, animationBlocks });
   }
 }

@@ -9,15 +9,12 @@ export class IScriptRunner {
     this.bwDat = bwDat;
     // unit if its the first IScript runner, or IScriptRunner if it is a child
     this.parent = parent;
-    this.iscriptId = iscriptId;
-    this.iscript = bwDat.iscript[iscriptId];
+    this.iscript = bwDat.iscript.iscripts[iscriptId];
+    // blocks that exist outside this "unit iscript"
     this.state = {
       children: [],
       waiting: 0,
       image: null,
-      x: 0,
-      y: 0,
-      frame: 0,
       matchParentFrame: false,
       terminated: false,
       isGndWpnAnimationBlock: false,
@@ -25,19 +22,30 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: true,
       noBrkCode: false,
       ignoreRest: false,
-      //@todo refactor to flingy?
-      flingyDirection: 0,
       ...state,
     };
     this.listeners = listeners;
+    this.dbg = {};
     this.toAnimationBlock(headers.init);
   }
 
   toAnimationBlock(header) {
-    if (this.iscriptId === 144) {
-      debugger;
+    this.dbg.prevAnimBlock = {
+      commands: this.commands,
+      commandIndex: this.commandIndex,
+    };
+    return this._toAnimationBlock(this.iscript.offsets[header], header);
+  }
+
+  _toAnimationBlock(offset, header = -1) {
+    const commands = this.bwDat.iscript.animationBlocks[offset];
+    if (!commands) {
+      console.error(`animation block does not exist`, this);
+      this.state.ignoreRest = true;
+      return;
     }
-    this.commands = this.iscript.blocks[header];
+
+    this.commands = commands;
     this.commands.header = header;
     this.commandIndex = 0;
     Object.assign(this.state, {
@@ -45,19 +53,19 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: false,
       ignoreRest: false,
     });
+    if (header === -1) {
+      this.debugLog(`_animation block - local`, this);
+    } else {
+      this.debugLog(`_animation block - ${headersById[header]}`, this);
+    }
 
-    console.log(
-      `animation block ${headersById[header]} ${
-        this.parent.userData ? this.parent.userData.repId : ""
-      }`,
-      this
-    );
+    return this;
   }
 
   update() {
-    this.state.children.forEach((underlay) => underlay.iscript.update());
+    this.state.children.forEach((underlay) => underlay.runner.update());
     this.state.children = this.state.children.filter(
-      ({ iscript }) => !iscript.state.terminated
+      ({ runner }) => !runner.state.terminated
     );
 
     if (this.state.terminated) {
@@ -72,6 +80,7 @@ export class IScriptRunner {
     // update iscript state
     if (this.state.waiting !== 0) {
       this.state.waiting = this.state.waiting - 1;
+      this.debugLog("waiting", this.state.waiting);
       return;
     }
     this.next();
@@ -82,17 +91,41 @@ export class IScriptRunner {
     this.listeners[command].push(cb);
   }
 
+  debugLog(...args) {
+    let log = () => {};
+    if (window.dbg) {
+      if (window.dbg.all) {
+        log = console.log;
+      } else if (
+        window.dbg.iscriptId !== undefined &&
+        this.iscript.id === window.dbg.iscriptId
+      ) {
+        log = console.log;
+      } else if (
+        window.dbg.repId !== undefined &&
+        this.parent.repId === window.dbg.repId
+      ) {
+        log = console.log;
+      } else if (
+        window.dbg.typeId !== undefined &&
+        this.parent.typeId === window.dbg.typeId
+      ) {
+        log = console.log;
+      }
+    }
+    log.call(log, args);
+  }
   _dispatch(command, event) {
-    console.log(`dispatch ${command}`, event);
+    this.debugLog(`dispatch ${command}`, event);
     this.listeners[command] &&
       this.listeners[command].forEach((cb) => cb(event));
     return true;
   }
 
-  __imgul([imageId, x, y]) {
-    return;
+  __imgul(imageId, x, y) {
     const image = this.bwDat.images[imageId];
-    const iscript = new IScriptRunner(
+
+    const runner = new IScriptRunner(
       this.bwDat,
       image.iscript,
       this,
@@ -103,16 +136,14 @@ export class IScriptRunner {
       },
       this.listeners
     );
-    const underlay = { underlay: true, image, iscript };
+    const underlay = { underlay: true, image, runner };
     this.state.children.push(underlay);
     this._dispatch("imgul", underlay);
   }
 
-  __imgol([imageId, x, y]) {
-    return;
-
+  __imgol(imageId, x, y) {
     const image = this.bwDat.images[imageId];
-    const iscript = new IScriptRunner(
+    const runner = new IScriptRunner(
       this.bwDat,
       image.iscript,
       this,
@@ -123,13 +154,13 @@ export class IScriptRunner {
       },
       this.listeners
     );
-    const overlay = { overlay: true, image, iscript };
+    const overlay = { overlay: true, image, runner };
 
     this.state.children.push(overlay);
     this._dispatch("imgol", overlay);
   }
 
-  __wait([frames]) {
+  __wait(frames) {
     this.state.waiting = frames;
     this._dispatch("wait", frames);
   }
@@ -144,10 +175,10 @@ export class IScriptRunner {
     this._dispatch("followmaingraphic");
   }
 
-  __randcondjmp([probability, offset]) {
+  __randcondjmp(probability, offset) {
     if (Math.floor(Math.random()) == probability) {
       this.__goto(
-        [offset],
+        offset,
         this._dispatch("randcondjmp", { probability, offset, result: true })
       );
     } else {
@@ -155,38 +186,20 @@ export class IScriptRunner {
     }
   }
 
-  //@todo fix this
-  __goto([offset], alreadyDispatched) {
-    this.commandIndex = 0;
-    this.commands = this.iscript.blocks[this.iscript.offsets.indexOf(offset)];
-    if (!this.commands) {
-      // wider search
-      this.state.ignoreRest = true;
-      console.error(`goto ${offset}`);
-      //   const otherScript = this.bwDat.iscript.find((script) => {
-      //     if (!script || !script.offsets) {
-      //       debugger;
-      //       return false;
-      //     }
-      //     return script.offsets.indexOf(offset) > -1;
-      //   });
-      //   this.commands = otherScript.blocks[otherScript.offsets.indexOf(offset)];
-      //   if (!this.commands) {
-      //     throw new Error("goto offset not found");
-      //   }
-    }
+  __goto(offset, alreadyDispatched) {
+    this._toAnimationBlock(offset);
     !alreadyDispatched && this._dispatch("goto", offset);
   }
 
   // melee only needs 1 level of call stack for broodling
   // should we move commands, commandIndex into state and just create a proper stack?
-  __call([offset]) {
+  __call(offset) {
     this.callStack = {
       commands: this.commands,
       commandIndex: this.commandIndex,
     };
     this.commandIndex = 0;
-    this.commands = this.iscript.blocks[this.iscript.offsets.indexOf(offset)];
+    this.commands = this.bwDat.iscript.animationBlocks[offset];
     this._dispatch("call", offset);
   }
 
@@ -197,45 +210,33 @@ export class IScriptRunner {
     this._dispatch("return");
   }
 
-  __playsnd([soundId]) {
+  __playsnd(soundId) {
     this._dispatch("playsnd", soundId);
   }
 
-  __playsndbtwn([soundA, soundB]) {
+  __playsndbtwn(soundA, soundB) {
     const soundId = Math.floor(Math.random() * (soundB - soundA + 1)) + soundA;
     this._dispatch("playsndbtwn", soundId);
   }
 
-  __playsndrand([numSounds, ...sounds]) {
+  __playsndrand(numSounds, ...sounds) {
     const soundId = sounds[Math.floor(Math.random() * numSounds)];
     this._dispatch("playsndrand", soundId);
   }
 
-  __attackmelee([numSounds, ...sounds]) {
+  __attackmelee(numSounds, ...sounds) {
     const soundId = sounds[Math.floor(Math.random() * numSounds)];
     this._dispatch("attackmelee", soundId);
   }
 
   __end() {
     this.state.terminated = true;
-    const hasDeathBlock = ({ iscript }) =>
-      iscript.commands.header != headers.death && iscript.blocks[headers.death];
 
-    this.state.children
-      .filter(hasDeathBlock)
-      .forEach(({ iscript }) => iscript.toAnimationBlock(headers.death));
-
-    //@todo dispose children with graceful end ??
-    // reject(hasDeathBlock, this.state.children).forEach(({ iscript }) =>
-    //   iscript.dispose()
-    // );
+    this.state.children.forEach(({ runner }) =>
+      runner.toAnimationBlock(headers.death)
+    );
 
     this._dispatch("end");
-  }
-
-  __setvertpos([y]) {
-    this.state.y = y;
-    this._dispatch("setvertpos", y);
   }
 
   __gotorepeatattk() {
@@ -253,7 +254,7 @@ export class IScriptRunner {
     this._dispatch("nobrkcodeend");
   }
 
-  __attackwith([weaponType]) {
+  __attackwith(weaponType) {
     const unitDef = this.bwDat.units[this.parent.typeId];
     this.__useweapon(
       [weaponType === 1 ? unitDef.groundWeapon : unitDef.airWeapon],
@@ -261,20 +262,20 @@ export class IScriptRunner {
     );
   }
 
-  __useweapon([weaponId], alreadyDispatched) {
+  __useweapon(weaponId, alreadyDispatched) {
     // carriers, reavers, etc have "no weapon" and use 130 for weaponId
     if (weaponId >= this.bwDat.weapons.length) {
       return;
     }
     const weapon = this.bwDat.weapons[weaponId];
-    const iscript = new IScriptRunner(
+    const runner = new IScriptRunner(
       this.bwDat,
       weapon.flingy.sprite.image.iscript,
       this,
       {},
       this.listeners
     );
-    const entry = { weapon, iscript };
+    const entry = { weapon, runner };
     this.state.children.push(entry);
 
     !alreadyDispatched && this._dispatch("useweapon", weapon);
@@ -289,7 +290,7 @@ export class IScriptRunner {
     this._dispatch("dogrddamage");
   }
 
-  __liftoffcondjmp([offset]) {
+  __liftoffcondjmp(offset) {
     if (this.parent.lifted) {
       this.__goto([offset], this._dispatch("liftoffcondjmp", true));
     } else {
@@ -307,22 +308,22 @@ export class IScriptRunner {
       return;
     }
     if (this.commandIndex >= this.commands.length) {
-      let nextHeader = this.commands.header + 1;
-      while (
-        !this.iscript.blocks[nextHeader] &&
-        nextHeader < this.iscript.blocks.length
-      ) {
+      let nextHeader = this.commands.header;
+      let nextAnimationBlock;
+      do {
         nextHeader = nextHeader + 1;
-      }
+        nextAnimationBlock = this.toAnimationBlock(nextHeader);
+      } while (!nextAnimationBlock && nextHeader < this.iscript.offsets.length);
 
       //@todo be able to access next units commands as well
-      if (nextHeader >= this.iscript.blocks.length) {
-        throw new Error("ran out of commands");
+      if (!nextAnimationBlock) {
+        debugger;
+        throw new Error("ran out of animation blocks");
       }
-      return this.toAnimationBlock(nextHeader);
+      return nextAnimationBlock;
     }
 
-    const [command, ...args] = this.commands[this.commandIndex];
+    const [command, args] = this.commands[this.commandIndex];
     switch (command) {
       case "attack":
       case "castspell":
@@ -332,6 +333,7 @@ export class IScriptRunner {
       case "playframtile":
       case "sethorpos":
       case "setpos":
+      case "setvertpos":
       case "imgolorig":
       case "switchul":
       case "imgoluselo":
@@ -373,13 +375,16 @@ export class IScriptRunner {
       case "__2d":
       case "__3e":
       case "__43":
+        this.commandIndex++;
+        this.debugLog(command, "not implemented");
         break;
       default:
         this.commandIndex++;
         if (typeof this[`__${command}`] !== "function") {
           throw new Error(`${command} not found in IScriptRunner`);
         }
-        this[`__${command}`](args);
+
+        this[`__${command}`].apply(this, args);
     }
   }
 }
