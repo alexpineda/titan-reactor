@@ -1,4 +1,3 @@
-import { LoadModel } from "../utils/meshes/LoadModels";
 import {
   Mesh,
   SphereBufferGeometry,
@@ -16,9 +15,8 @@ import {
 } from "three";
 import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
-import { is, path } from "ramda";
+import { path } from "ramda";
 import { iscriptHeaders as headers } from "../../common/bwdat/iscriptHeaders";
-import { LoadSprite } from "../utils/meshes/LoadSprites";
 
 const red = new Color(0x990000);
 const green = new Color(0x009900);
@@ -27,64 +25,24 @@ const white = new Color(0x999999);
 export class ReplayUnits {
   constructor(
     bwDat,
+    renderUnit,
     getTerrainY,
     audioListener,
     audioPool = {},
     fileAccess,
-    loadManager = DefaultLoadingManager
+    loadingManager = DefaultLoadingManager
   ) {
-    const prefabs = {
-      999: () => {
-        const mesh = new Mesh(
-          new SphereBufferGeometry(1),
-          new MeshStandardMaterial({ color: 0x999999 })
-        );
-
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        return mesh;
-      },
-    };
-
-    this.prefabs = prefabs;
     this.units = new Group();
     this.deadUnits = [];
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
     this.bwDat = bwDat;
     this.audioListener = audioListener;
-    this.loadManager = loadManager;
+    this.loadingManager = loadingManager;
     // more of a cache for the moment
     this.audioPool = audioPool;
-    this.loadAssets();
-  }
-
-  loadAssets() {
-    // const loadSprite = new LoadSprite(loadManager, fileAccess);
-
-    // const prefabs = {
-    //   999: loadSprite.loadSync(`_alex/marine.bmp`),
-    // };
-
-    const loadModel = new LoadModel(this.loadManager);
-    const assignModel = (id) => (model) => {
-      this.prefabs[id] = () => model.clone();
-    };
-    loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
-    loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
-    loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));
-    loadModel.load(`_alex/pylon.glb`).then(assignModel(0x9c));
-    loadModel.load(`_alex/nexus.glb`).then(assignModel(0x9a));
-    loadModel.load(`_alex/command-center.glb`).then(assignModel(0x6a));
-    loadModel.load(`_alex/refinery.glb`).then(assignModel(0x6e));
-    loadModel.load(`_alex/barracks.glb`).then(assignModel(0x6f));
-    loadModel.load(`_alex/assimilator.glb`).then(assignModel(0x9d));
-    loadModel.load(`_alex/gateway.glb`).then(assignModel(0xa0));
-    loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
-    loadModel.load(`_alex/marine.glb`).then(assignModel(0x0));
-    loadModel.load(`_alex/scarab.glb`).then(assignModel(0x55));
-
-    // loadModel.load(`_alex/medic.glb`).then(assignModel(0x22));
+    this.renderUnit = renderUnit;
+    this.renderUnit.loadAssets();
   }
 
   spawnIfNotExists(frameData) {
@@ -95,8 +53,7 @@ export class ReplayUnits {
   }
 
   spawn(frameData) {
-    const prefab = this.prefabs[frameData.typeId] || this.prefabs[999];
-    const unit = prefab();
+    const unit = this.renderUnit.load(frameData.typeId);
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
 
@@ -115,6 +72,12 @@ export class ReplayUnits {
         typeId: unit.userData.typeId,
         repId: unit.userData.repId,
         lifted: unit.userData.current.lifted,
+      },
+      {
+        image: path(
+          ["flingy", "sprite", "image"],
+          this.bwDat.units[unit.userData.typeId]
+        ),
       }
     ));
 
@@ -132,7 +95,7 @@ export class ReplayUnits {
       }
 
       console.log("playsnd", soundId);
-      const audioLoader = new AudioLoader(this.loadManager);
+      const audioLoader = new AudioLoader(this.loadingManager);
       audioLoader.load(
         `./sound/${this.bwDat.sounds[soundId].file}`,
         (buffer) => {
@@ -157,16 +120,20 @@ export class ReplayUnits {
   update(unit, frameData) {
     const previous = (unit.userData.previous = unit.userData.current);
     const current = (unit.userData.current = frameData);
+    const unitType = this.bwDat.units[unit.userData.typeId];
 
     const x = current.x / 32 - 64;
     const z = current.y / 32 - 64;
 
-    const y = current.flying() ? 6 : this.getTerrainY(x, z);
+    const y = unitType.flyer() ? 6 : this.getTerrainY(x, z);
     const position = new Vector3(x, y, z);
     const rotationY = -current.angle + Math.PI / 2;
 
     unit.position.copy(position);
     unit.rotation.y = rotationY;
+
+    unit.visible = window.showAlive ? true : current.alive;
+    unit.visible = unit.visible && !current.loaded();
 
     // const rotation = new Quaternion();
     // rotation.setFromEuler(new Euler(0, rotationY, 0));
@@ -237,36 +204,56 @@ export class ReplayUnits {
       } else if (was("burrowed")) {
         run(headers.unBurrow);
       }
+
+      if (isNow("completed") && unitType.building()) {
+        run(headers.built);
+      }
+
+      //@todo verify validity for zerg & protoss
+      if (
+        current.remainingBuildTime &&
+        unitType.building() &&
+        (unitType.zerg() || unitType.terran()) &&
+        current.remainingBuildTime / unitType.buildTime < 0.4 &&
+        runner.commands.header !== headers.almostBuilt &&
+        !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
+      ) {
+        run(headers.almostBuilt);
+      }
     }
     /*
+    iscriptHeaders.castSpell
+    iscriptHeaders.specialState1
+    iscriptHeaders.specialState2
+    iscriptHeaders.working 
+    iscriptHeaders.workingToIdle
+    iscriptHeaders.warpIn
+
+    iscriptHeaders.almostBuilt T P?Z?
+
+    iscriptHeaders.enable
+    iscriptHeaders.disable
+
+    iscriptHeaders.unused1;
+    iscriptHeaders.unused2;
+    iscriptHeaders.unused3
+    iscriptHeaders.starEditInit
+
     iscriptHeaders.init X
     iscriptHeaders.death; X
     iscriptHeaders.gndAttkInit; X
     iscriptHeaders.airAttkInit; X
-    iscriptHeaders.unused1;
     iscriptHeaders.gndAttkRpt; X
     iscriptHeaders.airAttkRpt; X
-    iscriptHeaders.castSpell
     iscriptHeaders.gndAttkToIdle; X
     iscriptHeaders.airAttkToIdle; X
-    iscriptHeaders.unused2;
     iscriptHeaders.walking; X
     iscriptHeaders.walkingToIdle; X
-    iscriptHeaders.specialState1
-    iscriptHeaders.specialState2
-    iscriptHeaders.almostBuilt
-    iscriptHeaders.built
+    iscriptHeaders.built X
     iscriptHeaders.landing X
     iscriptHeaders.liftOff X
-    iscriptHeaders.working 
-    iscriptHeaders.workingToIdle
-    iscriptHeaders.warpIn
-    iscriptHeaders.unused3
-    iscriptHeaders.starEditInit
-    iscriptHeaders.disable
     iscriptHeaders.burrow X
     iscriptHeaders.unBurrow X
-    iscriptHeaders.enable
 
     */
 
@@ -275,6 +262,7 @@ export class ReplayUnits {
     // }
 
     runner.update();
+    this.renderUnit.update(unit);
   }
 
   updateDeadUnits() {

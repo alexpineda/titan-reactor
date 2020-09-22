@@ -57,12 +57,7 @@ const perspectiveCamera = () => {
     1000
   );
   window.camera = camera;
-  camera.position.set(13.313427680971873, 19.58336565195161, 56.716490281);
-  camera.rotation.set(
-    -0.9353944571799614,
-    0.0735893206705483,
-    0.09937435112806427
-  );
+  camera.position.set(0, 272, 0);
   camera.lookAt(new Vector3());
   return camera;
 };

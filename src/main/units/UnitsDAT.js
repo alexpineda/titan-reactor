@@ -21,6 +21,160 @@ const reductions = {
   83: 0.1, // Reaver
 };
 
+export class UnitDAT {
+  constructor(data) {
+    Object.assign(this, data);
+  }
+
+  _flag(shift) {
+    return !!(this.specialAbilityFlags & (1 << shift));
+  }
+
+  building() {
+    return this._flag(0);
+  }
+
+  addon() {
+    return this._flag(1);
+  }
+
+  flyer() {
+    return this._flag(2);
+  }
+
+  resourceMiner() {
+    return this._flag(3);
+  }
+
+  subunit() {
+    return this._flag(4);
+  }
+
+  flyingbuilding() {
+    return this._flag(5);
+  }
+
+  hero() {
+    return this._flag(6);
+  }
+
+  regenerate() {
+    return this._flag(7);
+  }
+
+  animatedIdle() {
+    return this._flag(8);
+  }
+
+  cloakable() {
+    return this._flag(9);
+  }
+
+  twoUnitsInOneEgg() {
+    return this._flag(10);
+  }
+
+  singleEntity() {
+    return this._flag(11);
+  }
+
+  resourceDepot() {
+    return this._flag(12);
+  }
+
+  resourceContainer() {
+    return this._flag(13);
+  }
+
+  robotic() {
+    return this._flag(14);
+  }
+
+  detector() {
+    return this._flag(15);
+  }
+
+  organic() {
+    return this._flag(16);
+  }
+
+  requiresCreep() {
+    return this._flag(17);
+  }
+
+  unusedFlag() {
+    return this._flag(18);
+  }
+
+  requiresPsi() {
+    return this._flag(19);
+  }
+
+  burrowable() {
+    return this._flag(20);
+  }
+
+  spellcaster() {
+    return this._flag(21);
+  }
+
+  permanentCloak() {
+    return this._flag(22);
+  }
+
+  pickupItem() {
+    return this._flag(23);
+  }
+
+  ignoreSupplyCheck() {
+    return this._flag(24);
+  }
+
+  useMediumOverlays() {
+    return this._flag(25);
+  }
+
+  useLargeOverlays() {
+    return this._flag(26);
+  }
+
+  battleReactions() {
+    return this._flag(27);
+  }
+
+  fullAutoAttack() {
+    return this._flag(28);
+  }
+
+  invincible() {
+    return this._flag(29);
+  }
+
+  mechanical() {
+    return this._flag(30);
+  }
+
+  producesUnits() {
+    return this._flag(31);
+  }
+
+  _starEditGroupFlag(bit) {
+    return !!(this.starEditGroupFlags & bit);
+  }
+
+  zerg() {
+    return this._starEditGroupFlag(1);
+  }
+
+  terran() {
+    return this._starEditGroupFlag(2);
+  }
+
+  protoss() {
+    return this._starEditGroupFlag(4);
+  }
+}
+
 export class UnitsDAT extends DAT {
   constructor(bwDataPath, images = {}, flingy = {}, weapons = {}) {
     super(bwDataPath);

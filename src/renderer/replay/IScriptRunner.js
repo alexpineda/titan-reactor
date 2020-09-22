@@ -10,6 +10,7 @@ export class IScriptRunner {
     // unit if its the first IScript runner, or IScriptRunner if it is a child
     this.parent = parent;
     this.iscript = bwDat.iscript.iscripts[iscriptId];
+    this.hasRunAnimationBlockAtLeastOnce = {};
     // blocks that exist outside this "unit iscript"
     this.state = {
       children: [],
@@ -22,6 +23,8 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: true,
       noBrkCode: false,
       ignoreRest: false,
+      frame: 0,
+      prevFrame: -1,
       ...state,
     };
     this.listeners = listeners;
@@ -40,11 +43,16 @@ export class IScriptRunner {
   _toAnimationBlock(offset, header = -1) {
     const commands = this.bwDat.iscript.animationBlocks[offset];
     if (!commands) {
-      console.error(`animation block does not exist`, this);
+      let name = "local";
+      if (header >= 0) {
+        name = headersById[header];
+      }
+      console.error(`animation block - ${name} - does not exist`, this);
       this.state.ignoreRest = true;
       return;
     }
 
+    this.hasRunAnimationBlockAtLeastOnce[header] = true;
     this.commands = commands;
     this.commands.header = header;
     this.commandIndex = 0;
@@ -63,9 +71,9 @@ export class IScriptRunner {
   }
 
   update() {
-    this.state.children.forEach((underlay) => underlay.runner.update());
+    this.state.children.forEach((runner) => runner.update());
     this.state.children = this.state.children.filter(
-      ({ runner }) => !runner.state.terminated
+      (runner) => !runner.state.terminated
     );
 
     if (this.state.terminated) {
@@ -115,6 +123,7 @@ export class IScriptRunner {
     }
     log.call(log, args);
   }
+
   _dispatch(command, event) {
     this.debugLog(`dispatch ${command}`, event);
     this.listeners[command] &&
@@ -133,12 +142,12 @@ export class IScriptRunner {
         x,
         y,
         image,
+        underlay: true,
       },
       this.listeners
     );
-    const underlay = { underlay: true, image, runner };
-    this.state.children.push(underlay);
-    this._dispatch("imgul", underlay);
+    this.state.children.push(runner);
+    this._dispatch("imgul", runner);
   }
 
   __imgol(imageId, x, y) {
@@ -151,13 +160,13 @@ export class IScriptRunner {
         x,
         y,
         image,
+        overlay: true,
       },
       this.listeners
     );
-    const overlay = { overlay: true, image, runner };
 
-    this.state.children.push(overlay);
-    this._dispatch("imgol", overlay);
+    this.state.children.push(runner);
+    this._dispatch("imgol", runner);
   }
 
   __wait(frames) {
@@ -165,7 +174,7 @@ export class IScriptRunner {
     this._dispatch("wait", frames);
   }
 
-  __waitrand(frames) {
+  __waitrand(...frames) {
     this.state.waiting = frames[Math.floor(Math.random() * frames.length)];
     this._dispatch("waitrand", this.state.waiting);
   }
@@ -232,7 +241,7 @@ export class IScriptRunner {
   __end() {
     this.state.terminated = true;
 
-    this.state.children.forEach(({ runner }) =>
+    this.state.children.forEach((runner) =>
       runner.toAnimationBlock(headers.death)
     );
 
@@ -272,11 +281,13 @@ export class IScriptRunner {
       this.bwDat,
       weapon.flingy.sprite.image.iscript,
       this,
-      {},
+      {
+        weapon,
+        image: weapon.flingy.sprite.image,
+      },
       this.listeners
     );
-    const entry = { weapon, runner };
-    this.state.children.push(entry);
+    this.state.children.push(runner);
 
     !alreadyDispatched && this._dispatch("useweapon", weapon);
   }

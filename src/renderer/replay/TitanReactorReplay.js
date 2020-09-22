@@ -17,12 +17,16 @@ import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile, getAppCachePath } from "../invoke";
 import { difference } from "ramda";
+import { RenderUnit3D } from "./RenderUnit3D";
+import { RenderUnit2D } from "./RenderUnit2D";
+import { Tileset, tilesetNames } from "../bwdat/Tileset";
 
 export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorReplay(
   filepath,
-  { header, commands, chk, chkSum },
+  { header, commands, chk },
+  renderUnit,
   canvas,
   bwDat,
   loaded
@@ -110,7 +114,14 @@ export async function TitanReactorReplay(
     chk.size[1]
   );
 
-  const units = new ReplayUnits(bwDat, terrainY, audioListener, {}, openFile);
+  const units = new ReplayUnits(
+    bwDat,
+    renderUnit,
+    terrainY,
+    audioListener,
+    {},
+    openFile
+  );
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
@@ -214,6 +225,13 @@ export async function TitanReactorReplay(
       }
       clearInfoDiv();
       appendInfoDiv(`Frame: ${gameFrame}`);
+      appendInfoDiv(
+        `Mem %: ${(
+          window.performance.memory.usedJSHeapSize /
+          window.performance.memory.totalJSHeapSize
+        ).toFixed(2)}`
+      );
+
       // if (BWAPIFramesDataView) {
       gameloop: for (
         let gf = 0;

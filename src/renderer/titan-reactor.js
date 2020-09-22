@@ -10,12 +10,16 @@ import {
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
-import { loadAllDataFiles } from "./invoke";
+import { loadAllDataFiles, openFile } from "./invoke";
 import { ipcRenderer } from "electron";
 import React, { useState } from "react";
 import { render } from "react-dom";
 import { App, LoadingOverlay } from "./react-ui/App";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
+import { UnitDAT } from "../main/units/UnitsDAT";
+import { Tileset } from "./bwdat/Tileset";
+import { RenderUnit2D } from "./replay/RenderUnit2D";
+import { RenderUnit3D } from "./replay/RenderUnit3D";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
@@ -75,7 +79,12 @@ async function bootup() {
 
   appIsReady = true;
 
-  bwDat = await loadAllDataFiles(gameOptions.bwDataPath);
+  //@todo move parsing to renderer so I don't have to reassign shit
+  const origBwDat = await loadAllDataFiles(gameOptions.bwDataPath);
+  bwDat = {
+    ...origBwDat,
+    units: origBwDat.units.map((unit) => new UnitDAT(unit)),
+  };
   console.log("bwDat", bwDat);
   window.bwDat = bwDat;
 
@@ -197,7 +206,21 @@ const loadReplay = async (filepath) => {
 
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
-  return TitanReactorReplay(filepath, jssuh, canvas, bwDat, () => {
+  const tileset = new Tileset(
+    jssuh.chk.tileset,
+    gameOptions.bwDataPath,
+    openFile
+  );
+  await tileset.load();
+
+  gameOptions.render = "2d";
+
+  const renderUnit =
+    gameOptions.render === "3d"
+      ? new RenderUnit3D()
+      : new RenderUnit2D(bwDat, gameOptions.bwDataPath, tileset, openFile);
+
+  return TitanReactorReplay(filepath, jssuh, renderUnit, canvas, bwDat, () => {
     overlay.state = "";
     updateUi();
   });

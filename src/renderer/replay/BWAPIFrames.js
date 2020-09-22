@@ -8,6 +8,7 @@ class BWAPIFrame {
   _flag(flag, shift) {
     return !!(this[`flag${flag}`] & (1 << shift));
   }
+
   attacking() {
     return this._flag("A", 7);
   }
@@ -238,7 +239,7 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
   const airWeaponCooldown = view.getInt32();
   const targetRepId = view.getInt32();
   const orderTargetRepId = view.getInt32();
-  const getRemainingBuildTime = view.getInt32();
+  const remainingBuildTime = view.getInt32();
   const flagsA = view.getUint8();
   const flagsB = view.getUint8();
   const flagsC = view.getUint8();
@@ -266,7 +267,7 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
       airWeaponCooldown,
       targetRepId,
       orderTargetRepId,
-      getRemainingBuildTime,
+      remainingBuildTime,
       flagsA,
       flagsB,
       flagsC,

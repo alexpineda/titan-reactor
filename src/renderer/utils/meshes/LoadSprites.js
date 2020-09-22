@@ -8,19 +8,28 @@ import {
 } from "three";
 import { Grp } from "../../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
+import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
 
 export class LoadSprite {
-  constructor(loadingManager = DefaultLoadingManager, fileAccess) {
+  constructor(tileset, fileAccess, loadingManager = DefaultLoadingManager) {
     this.loadingManager = loadingManager;
     this.fileAccess = fileAccess;
+    this.tileset = tileset;
+    this._grp = {};
   }
 
-  async loadGrp(file, name, userData) {
+  async getFrame(file, frame, remapping) {
     this.loadingManager.itemStart(file);
-    const buf = await this.fileAccess(file);
+    const buf = this._grp[file] || (await this.fileAccess(file));
+    this._grp[file] = buf;
     const grp = new Grp(buf, Buffer);
+    const { data, x, y, w, h } = grp.decode(
+      frame,
+      this.tileset.palettes[remapping]
+    );
+    const map = imageToCanvasTexture(data, w, h, "rgba");
     this.loadingManager.itemEnd(file);
-    return grp;
+    return { map, w, h };
   }
 
   load(file, name = "", userData = {}) {
