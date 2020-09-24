@@ -4,7 +4,6 @@ import { TextureLoader } from "three";
 import { mapImage } from "./textures/mapImage";
 import { terrainMesh } from "./meshes/terrainMesh";
 import { imageToCanvasTexture } from "./textures/imageToCanvasTexture";
-import { removeAlphaChannel } from "../2d-map-rendering/image/removeAlphaChannel";
 
 export class Terrain {
   constructor(chk, cache) {

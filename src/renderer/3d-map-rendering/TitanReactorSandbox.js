@@ -12,18 +12,28 @@ import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
 
 import { Terrain } from "./Terrain";
 import { initRenderer } from "./renderer";
-import { splatUnits } from "../utils/meshes/splatUnits";
 import { disposeMeshes } from "../utils/meshes/dispose";
 import { TextureCache } from "./textures/TextureCache";
 
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { render } from "react-dom";
 
-import { openFile, getAppCachePath } from "../invoke";
+import { getAppCachePath } from "../invoke";
+import { createStartLocation } from "../utils/meshes/BasicObjects";
+import { getTerrainY } from "./displacementGeometry";
+import { LoadModel } from "../utils/meshes/LoadModels";
+import { Vector3, WebGLCubeRenderTarget } from "three";
+import { dec } from "ramda";
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
+export async function TitanReactorSandbox(
+  filepath,
+  chk,
+  canvas,
+  loaded,
+  tempCamera
+) {
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
 
@@ -55,17 +65,15 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
 
-  var axesHelper = new THREE.AxesHelper(5);
-  scene.add(axesHelper);
-
   const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
-  // var lightCameraHelper = new THREE.CameraHelper(light.shadow.camera);
-  // scene.add(lightCameraHelper);
-  // var lightHelper = new THREE.DirectionalLightHelper(light, 5);
-  // scene.add(lightHelper);
+  var lightCameraHelper = new THREE.CameraHelper(light.shadow.camera);
+  lightCameraHelper.visible = false;
+  scene.add(lightCameraHelper);
+  var lightHelper = new THREE.DirectionalLightHelper(light, 5);
+  scene.add(lightHelper);
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
   scene.add(hemi);
 
   const [camera, cameraControls] = initCamera(renderer.domElement);
@@ -73,7 +81,74 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     camera.position.copy(hot.camera.position);
     camera.rotation.copy(hot.camera.rotation);
   }
+  if (tempCamera) {
+    camera.position.copy(tempCamera.position);
+    camera.rotation.copy(tempCamera.rotation);
+  }
   cameraControls.update();
+
+  const terrainY = getTerrainY(
+    terrain.userData.displacementMap.image
+      .getContext("2d")
+      .getImageData(
+        0,
+        0,
+        terrain.userData.displacementMap.image.width,
+        terrain.userData.displacementMap.image.height
+      ),
+    terrain.userData.displacementScale,
+    chk.size[0],
+    chk.size[1]
+  );
+
+  const playerColors = ["#a80808", "#083498", "#209070", "#88409c"];
+  const startLocations = chk.units
+    .filter((unit) => unit.unitId === 214)
+    .map((unit) => {
+      const x = unit.x / 32 - chk.size[0] / 2;
+      const y = unit.y / 32 - chk.size[1] / 2;
+      return createStartLocation(
+        x,
+        y,
+        playerColors[unit.player],
+        terrainY(x, y)
+      );
+    });
+  startLocations.forEach((sl) => scene.add(sl));
+
+  const cubeRenderTargetGenerator = new WebGLCubeRenderTarget(128, {
+    format: THREE.RGBFormat,
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+  });
+
+  const renderTarget = cubeRenderTargetGenerator.fromEquirectangularTexture(
+    renderer,
+    terrain.material.map
+  );
+  const cubeCamera = new THREE.CubeCamera(1, 100000, renderTarget);
+  scene.add(cubeCamera);
+
+  const pointLight = new THREE.PointLight();
+  pointLight.castShadow = true;
+  scene.add(pointLight);
+
+  const loadModel = new LoadModel();
+  const mineral = await loadModel.load("_alex/mineral1.glb", "mineral", (o) => {
+    o.receiveShadow = false;
+    o.material.envMap = renderTarget.texture;
+  });
+
+  const minerals = chk.units
+    .filter((unit) => [176, 177, 178].includes(unit.unitId))
+    .map((unit) => {
+      const x = unit.x / 32 - chk.size[0] / 2;
+      const y = unit.y / 32 - chk.size[1] / 2;
+      const m = mineral.clone();
+      m.position.set(x, terrainY(x, y), y);
+      return m;
+    });
+  minerals.forEach((m) => scene.add(m));
 
   const cancelResize = handleResize(camera, renderer);
 
@@ -81,30 +156,6 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     // scene.add(splatUnits(terrain));
     loaded();
   };
-
-  const stats = createStats();
-
-  let running = true;
-  let id = null;
-
-  function gameLoop() {
-    if (!running) return;
-
-    renderer.clear();
-    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
-
-    cameraControls.update();
-    stats.update();
-    // setTimeout(() => {
-    //   id = requestAnimationFrame(gameLoop);
-    // }, 100);
-  }
-
-  document.body.appendChild(renderer.domElement);
-
-  renderer.setAnimationLoop(gameLoop);
-  // gameLoop();
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom }) => {
@@ -116,6 +167,7 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
 
   gui.controllers.camera.rotate.onChange((val) => {
     cameraControls.autoRotate = val;
+    // startLocations.forEach((sl) => (sl.visible = !val));
     if (val) {
       cameraControls.target = terrain.position;
     } else {
@@ -123,6 +175,23 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     }
   });
 
+  let cameraZoom = {
+    start: 1,
+    end: 1,
+    i: 0,
+    speed: 0.1,
+    active: false,
+  };
+
+  const keyDownListener = (e) => {
+    if (e.code === "Digit3") {
+      console.log("go");
+      cameraZoom.start = camera.zoom;
+      cameraZoom.end = 2.8;
+      cameraZoom.active = true;
+    }
+  };
+  document.addEventListener("keydown", keyDownListener);
   //#endregion
 
   //#region map controllers
@@ -176,6 +245,15 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   );
   //#endregion
 
+  gui.controllers.pointlight.onChangeAny(
+    ({ color, decay, distance, power }) => {
+      pointLight.color = new THREE.Color(parseInt(color.substr(1), 16));
+      pointLight.decay = decay;
+      pointLight.distance = distance;
+      pointLight.power = power;
+    }
+  );
+
   //#region dirlight controllers
   gui.controllers.dirlight.onChangeAny(
     ({ intensity, color, x, y, z, x2, y2, z2, helper }) => {
@@ -210,6 +288,46 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
 
   // document.body.appendChild(VRButton.createButton(renderer));
 
+  let running = true;
+  let id = null;
+
+  function gameLoop() {
+    if (!running) return;
+
+    if (cameraZoom.active) {
+      camera.zoom = THREE.MathUtils.lerp(
+        cameraZoom.start,
+        cameraZoom.end,
+        (cameraZoom.i += cameraZoom.speed)
+      );
+      if (cameraZoom.i > 1) {
+        cameraZoom.active = false;
+        cameraZoom.i = 0;
+      }
+      camera.updateProjectionMatrix();
+    }
+
+    pointLight.position.copy(camera.position);
+    pointLight.position.y += 5;
+
+    cameraControls.update();
+    cubeCamera.position.copy(camera.position);
+    cubeCamera.rotation.copy(camera.rotation);
+    cubeCamera.update(renderer, scene);
+
+    renderer.clear();
+    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    renderer.render(scene, camera);
+
+    // setTimeout(() => {
+    //   id = requestAnimationFrame(gameLoop);
+    // }, 100);
+  }
+
+  document.body.appendChild(renderer.domElement);
+
+  renderer.setAnimationLoop(gameLoop);
+
   const dispose = () => {
     console.log("disposing");
 
@@ -220,7 +338,13 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     renderer.dispose();
     cameraControls.dispose();
     gui.dispose();
-    stats.dispose();
+
+    return {
+      camera: {
+        position: camera.position.clone(),
+        rotation: camera.rotation.clone(),
+      },
+    };
   };
 
   if (module.hot) {

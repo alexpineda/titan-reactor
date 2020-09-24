@@ -51,6 +51,9 @@ export class RenderUnit3D {
     loadModel.load(`_alex/dropship.glb`).then(assignModel(0xb));
     loadModel.load(`_alex/marine.glb`).then(assignModel(0x0));
     loadModel.load(`_alex/scarab.glb`).then(assignModel(0x55));
+    loadModel.load(`_alex/mineral1.glb`).then(assignModel(0xb0));
+    loadModel.load(`_alex/mineral1.glb`).then(assignModel(0xb1));
+    loadModel.load(`_alex/mineral1.glb`).then(assignModel(0xb2));
 
     // loadModel.load(`_alex/medic.glb`).then(assignModel(0x22));
   }

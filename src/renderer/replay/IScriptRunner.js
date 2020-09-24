@@ -349,6 +349,7 @@ export class IScriptRunner {
       case "switchul":
       case "imgoluselo":
       case "imguluselo":
+      case "imgulnextid":
       case "sprol":
       case "sproluselo":
       case "highsprol":

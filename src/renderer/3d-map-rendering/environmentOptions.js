@@ -2,8 +2,7 @@ export default {
   renderer: {
     parent: "scene",
     values: {
-      gammaFactor: 2.2,
-      toneMapping: "NoToneMapping",
+      toneMapping: "ACESFilmicToneMapping",
       toneMappingExposure: 1,
       fogColor: "#080820",
       fogEnabled: true,
@@ -57,16 +56,17 @@ export default {
   pointlight: {
     parent: "scene",
     values: {
-      intensity: 1000,
       color: "#ffffff",
-      helper: false,
+      decay: 0,
+      distance: 60,
+      power: 40,
     },
     args: {},
   },
   hemilight: {
     parent: "scene",
     values: {
-      intensity: 8,
+      intensity: 6,
       skyColor: "#ffffff",
       groundColor: "#ffffff",
     },

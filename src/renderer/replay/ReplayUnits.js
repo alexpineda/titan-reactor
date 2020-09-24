@@ -132,7 +132,7 @@ export class ReplayUnits {
     unit.position.copy(position);
     unit.rotation.y = rotationY;
 
-    unit.visible = window.showAlive ? true : current.alive;
+    // unit.visible = window.showAlive ? true : current.alive;
     unit.visible = unit.visible && !current.loaded();
 
     // const rotation = new Quaternion();
@@ -154,6 +154,15 @@ export class ReplayUnits {
     const isNow = (prop) => current[prop]() && !previous[prop]();
     const was = (prop) => !current[prop]() && previous[prop]();
     const run = (section) => runner.toAnimationBlock(section);
+    const target = this.units.children.find(
+      ({ userData }) =>
+        userData.repId === (current.targetRepId || current.orderTargetRepId)
+    );
+    const targetIsAir = () => {
+      if (target) {
+        return target.userData.current.flying();
+      }
+    };
 
     if (!runner.state.noBrkCode) {
       //@todo
@@ -167,19 +176,35 @@ export class ReplayUnits {
         unit.material.needsUpdate = true;
       }
 
-      if (current.groundWeaponCooldown && !previous.groundWeaponCooldown) {
+      if (
+        current.groundWeaponCooldown &&
+        !previous.groundWeaponCooldown &&
+        !targetIsAir()
+      ) {
         run(headers.gndAttkInit);
-      } else if (current.airWeaponCooldown && !previous.airWeaponCooldown) {
+      } else if (
+        current.airWeaponCooldown &&
+        !previous.airWeaponCooldown &&
+        targetIsAir()
+      ) {
         run(headers.airAttkInit);
       }
 
-      if (!current.groundWeaponCooldown && previous.groundWeaponCooldown) {
+      if (
+        !current.groundWeaponCooldown &&
+        previous.groundWeaponCooldown &&
+        !targetIsAir()
+      ) {
         if (runner.state.repeatAttackAfterCooldown) {
           run(headers.gndAttkRpt);
         } else {
           run(headers.gndAttkToIdle);
         }
-      } else if (!current.airWeaponCooldown && previous.airdWeaponCooldown) {
+      } else if (
+        !current.airWeaponCooldown &&
+        previous.airdWeaponCooldown &&
+        targetIsAir()
+      ) {
         if (runner.state.repeatAttackAfterCooldown) {
           run(headers.airAttkRpt);
         } else {
@@ -271,7 +296,8 @@ export class ReplayUnits {
 
   killUnit(unit) {
     unit.userData.current.alive = false;
-    unit.userData.runner.toAnimationBlock(headers.death);
+    //@todo send kill signal to runners without interrupting them
+    // unit.userData.runner.toAnimationBlock(headers.death);
     this.deadUnits.push(unit);
   }
 

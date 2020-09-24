@@ -17,9 +17,7 @@ import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile, getAppCachePath } from "../invoke";
 import { difference } from "ramda";
-import { RenderUnit3D } from "./RenderUnit3D";
-import { RenderUnit2D } from "./RenderUnit2D";
-import { Tileset, tilesetNames } from "../bwdat/Tileset";
+import { WebGLCubeRenderTarget } from "three";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -78,7 +76,7 @@ export async function TitanReactorReplay(
   const light = sunlight(chk.size[0], chk.size[1]);
   scene.add(light);
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 12);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
   scene.add(hemi);
 
   const textureCache = new TextureCache(chk.title, await getAppCachePath());
@@ -88,10 +86,28 @@ export async function TitanReactorReplay(
   const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
 
   scene.add(terrain);
-  scene.add(bgTerrain);
+  // scene.add(bgTerrain);
 
-  // scene.fog = fog(chk.size[0], chk.size[1]);
-  // scene.background = scene.fog.color;
+  scene.fog = fog(chk.size[0], chk.size[1]);
+  scene.background = scene.fog.color;
+
+  const cubeRenderTargetGenerator = new WebGLCubeRenderTarget(128, {
+    format: THREE.RGBFormat,
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+  });
+
+  const renderTarget = cubeRenderTargetGenerator.fromEquirectangularTexture(
+    renderer,
+    terrain.material.map
+  );
+  const cubeCamera = new THREE.CubeCamera(1, 100000, renderTarget);
+  scene.add(cubeCamera);
+
+  const pointLight = new THREE.PointLight("0xffffff", 1, 60, 0);
+  pointLight.power = 20;
+  pointLight.castShadow = true;
+  scene.add(pointLight);
 
   const audioListener = new THREE.AudioListener();
   camera.add(audioListener);
@@ -128,8 +144,11 @@ export async function TitanReactorReplay(
 
   let BWAPIFramesDataView = null;
 
-  const tempReplayFile = "./bwdata/_alex/0006 ramiyerP ScanKaLT.rep.bin";
-
+  // const tempReplayFile = "./bwdata/_alex/0279 ScanKaLT azzyP.rep.bin";
+  // const tempReplayFile = "./bwdata/_alex/CTR_F505F47D.rep.bin";
+  const tempReplayFile = "./bwdata/_alex/CTR_52C0564.rep.bin";
+  // const tempReplayFile = "./bwdata/_alex/0255 CleanNaraT simjeongZ.rep.bin";
+  // 0006 ramiyerP ScanKaLT.rep.bin
   THREE.DefaultLoadingManager.itemStart(tempReplayFile);
   openFile(tempReplayFile).then((frames) => {
     BWAPIFramesDataView = new DataView(frames.buffer);
@@ -266,6 +285,13 @@ export async function TitanReactorReplay(
     initialSkipGameFrames = 0;
 
     //#endregion
+
+    pointLight.position.copy(camera.position);
+    pointLight.position.y += 5;
+
+    // cubeCamera.position.copy(camera.position);
+    // cubeCamera.rotation.copy(camera.rotation);
+    // cubeCamera.update(renderer, scene);
 
     renderer.clear();
     renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);

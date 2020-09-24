@@ -1,4 +1,4 @@
-import { IScriptBIN } from "./IScriptBIN";
+import parseIscript from "iscript";
 import { SoundsDAT } from "./SoundsDAT";
 import { SpritesDAT } from "./SpritesDAT";
 import { FlingyDAT } from "./FlingyDAT";
@@ -8,10 +8,13 @@ import { OrdersDAT } from "./OrdersDAT";
 import { ImagesDAT } from "./ImagesDAT";
 import { WeaponsDAT } from "./WeaponsDAT";
 import { UnitsDAT } from "./UnitsDAT";
+import { openFileBinary, openFileLines } from "../fs";
 
 export async function loadAllDataFiles(bwDataPath) {
-  const iscript = await new IScriptBIN(bwDataPath).load();
-  const images = await new ImagesDAT(bwDataPath, iscript).load();
+  const iscript = parseIscript(
+    await openFileBinary(`${bwDataPath}/scripts/iscript.bin`)
+  );
+  const images = await new ImagesDAT(bwDataPath).load();
   const sprites = await new SpritesDAT(bwDataPath, images).load();
   const flingy = await new FlingyDAT(bwDataPath, sprites).load();
   const weapons = await new WeaponsDAT(bwDataPath, flingy).load();

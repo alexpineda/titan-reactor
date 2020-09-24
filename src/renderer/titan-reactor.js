@@ -95,11 +95,12 @@ ipcRenderer.on("open-map", async (event, [map]) => {
   if (!appIsReady) {
     return alert("Please configure your Starcraft path first");
   }
+  let camera;
   if (scene) {
-    scene.dispose();
+    camera = scene.dispose().camera;
   }
   console.log("open-map");
-  scene = await loadMap(map);
+  scene = await loadMap(map, camera);
 });
 
 let replayPlaylist = [];
@@ -160,7 +161,7 @@ ipcRenderer.on("save-env-settings", (event, file) => {
   console.log("save-env", file);
 });
 
-const loadMap = async (filepath) => {
+const loadMap = async (filepath, camera) => {
   overlay = {
     state: "initializing",
     mapName: "",
@@ -173,6 +174,8 @@ const loadMap = async (filepath) => {
   const chk = await imageChk(filepath, gameOptions.bwDataPath);
   overlay.preview = mapPreviewCanvas.bind(null, chk);
 
+  window.chk = chk;
+  console.log("chk", chk);
   await new Promise((res, rej) => {
     Object.assign(overlay, {
       state: "loading",
@@ -188,10 +191,16 @@ const loadMap = async (filepath) => {
     setTimeout(res, 100);
   });
 
-  return TitanReactorSandbox(filepath, chk, canvas, () => {
-    overlay.state = "";
-    updateUi();
-  });
+  return TitanReactorSandbox(
+    filepath,
+    chk,
+    canvas,
+    () => {
+      overlay.state = "";
+      updateUi();
+    },
+    camera
+  );
 };
 
 const loadReplay = async (filepath) => {
@@ -206,6 +215,11 @@ const loadReplay = async (filepath) => {
 
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
+  gameOptions.experience = {
+    sprites: false,
+    remastered: false,
+  };
+
   const tileset = new Tileset(
     jssuh.chk.tileset,
     gameOptions.bwDataPath,
@@ -213,12 +227,9 @@ const loadReplay = async (filepath) => {
   );
   await tileset.load();
 
-  gameOptions.render = "2d";
-
-  const renderUnit =
-    gameOptions.render === "3d"
-      ? new RenderUnit3D()
-      : new RenderUnit2D(bwDat, gameOptions.bwDataPath, tileset, openFile);
+  const renderUnit = gameOptions.experience.sprites
+    ? new RenderUnit2D(bwDat, gameOptions.bwDataPath, tileset, openFile)
+    : new RenderUnit3D();
 
   return TitanReactorReplay(filepath, jssuh, renderUnit, canvas, bwDat, () => {
     overlay.state = "";

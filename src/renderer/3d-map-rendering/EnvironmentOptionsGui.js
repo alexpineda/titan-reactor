@@ -101,7 +101,7 @@ export class EnvironmentOptionsGui {
       ]),
     };
 
-    gui.show();
+    // gui.show();
     this.controllers = controllers;
     this.control = control;
     this._folders = [stateFolder, scene, textures];

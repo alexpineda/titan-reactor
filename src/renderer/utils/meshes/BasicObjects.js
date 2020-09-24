@@ -25,7 +25,7 @@ export function createMineral(mapX, mapY) {
   return mes;
 }
 
-export function createStartLocation(mapX, mapY, color) {
+export function createStartLocation(mapX, mapY, color, mapZ = 0) {
   var geometry = new THREE.CircleGeometry(2, 32);
   var material = new THREE.MeshBasicMaterial({
     color,
@@ -36,7 +36,7 @@ export function createStartLocation(mapX, mapY, color) {
   circle.rotation.x = Math.PI / -2;
   circle.position.x = mapX;
   circle.position.z = mapY;
-  circle.position.y = 0.01;
+  circle.position.y = mapZ;
   circle.name = "StartPosition";
   return circle;
 }

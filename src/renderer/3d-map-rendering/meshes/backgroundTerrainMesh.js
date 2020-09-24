@@ -5,7 +5,7 @@ export function backgroundTerrainMesh(mapWidth, mapHeight, map) {
   const material = new THREE.MeshLambertMaterial({
     map,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.1,
     toneMapped: false,
   });
   const plane = new THREE.Mesh(geometry, material);
