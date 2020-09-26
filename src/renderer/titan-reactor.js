@@ -10,7 +10,7 @@ import {
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
 import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
-import { loadAllDataFiles, openFile } from "./invoke";
+import { getAppCachePath, loadAllDataFiles, openFile } from "./invoke";
 import { ipcRenderer } from "electron";
 import React, { useState } from "react";
 import { render } from "react-dom";
@@ -21,6 +21,8 @@ import { Tileset } from "./bwdat/Tileset";
 import { RenderUnit2D } from "./replay/RenderUnit2D";
 import { RenderUnit3D } from "./replay/RenderUnit3D";
 import { LoadSprite } from "./utils/meshes/LoadSprites";
+import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
+import { JsonCache } from "./utils/jsonCache";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
@@ -222,25 +224,55 @@ const loadReplay = async (filepath) => {
   );
   await tileset.load();
 
-  const loadSprite = new LoadSprite(
-    tileset,
-    bwDat.images,
-    (file) => openFile(`${gameOptions.bwDataPath}/unit/${file}`),
-    //@todo init renderer here and get renderer.capabilities.maxTextureSize
-    8192
+  let renderUnit;
+  if (gameOptions.experience.sprites) {
+    const spritesTextureCache = new TextureCache(
+      "sprite-",
+      await getAppCachePath()
+    );
+
+    const jsonCache = new JsonCache("sprite-", await getAppCachePath());
+    const loadSprite = new LoadSprite(
+      tileset,
+      bwDat.images,
+      (file) => openFile(`${gameOptions.bwDataPath}/unit/${file}`),
+      spritesTextureCache,
+      jsonCache,
+      //@todo init renderer here and get renderer.capabilities.maxTextureSize
+      8192
+    );
+
+    overlay = {
+      state: "initializing",
+      mapName: "loading sprites",
+      description: "",
+      preview: "",
+    };
+
+    updateUi();
+    await loadSprite.loadAll();
+    renderUnit = new RenderUnit2D(bwDat, gameOptions.bwDataPath, loadSprite);
+  } else {
+    renderUnit = new RenderUnit3D();
+  }
+
+  const mapTexturesCache = new TextureCache(
+    jssuh.chk.title,
+    await getAppCachePath()
   );
 
-  loadSprite.loadAll();
-
-  return;
-  const renderUnit = gameOptions.experience.sprites
-    ? new RenderUnit2D(bwDat, gameOptions.bwDataPath, loadSprite)
-    : new RenderUnit3D();
-
-  return TitanReactorReplay(filepath, jssuh, renderUnit, canvas, bwDat, () => {
-    overlay.state = "";
-    updateUi();
-  });
+  return TitanReactorReplay(
+    filepath,
+    jssuh,
+    renderUnit,
+    canvas,
+    bwDat,
+    mapTexturesCache,
+    () => {
+      overlay.state = "";
+      updateUi();
+    }
+  );
 };
 
 bootup();

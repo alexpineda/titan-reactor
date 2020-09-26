@@ -6,7 +6,6 @@ import { sunlight, fog } from "../3d-map-rendering/environment";
 import { backgroundTerrainMesh } from "../3d-map-rendering/meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "../3d-map-rendering/textures/bgMapCanvasTexture";
 import { Terrain } from "../3d-map-rendering/Terrain";
-import { TextureCache } from "../3d-map-rendering/textures/TextureCache";
 
 import { BWAPIFrameFromBuffer } from "./BWAPIFrames";
 import { BgMusic } from "../audio/BgMusic";
@@ -15,7 +14,7 @@ import { ReplayUnits } from "./ReplayUnits";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
 import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
-import { openFile, getAppCachePath } from "../invoke";
+import { openFile } from "../invoke";
 import { difference } from "ramda";
 
 export const hot = module.hot ? module.hot.data : null;
@@ -26,6 +25,7 @@ export async function TitanReactorReplay(
   renderUnit,
   canvas,
   bwDat,
+  textureCache,
   loaded
 ) {
   console.log(header, commands, chk);
@@ -77,7 +77,6 @@ export async function TitanReactorReplay(
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
   scene.add(hemi);
 
-  const textureCache = new TextureCache(chk.title, await getAppCachePath());
   const terrainMesh = new Terrain(chk, textureCache);
   const terrain = await terrainMesh.generate();
   const bg = await bgMapCanvasTexture(chk);

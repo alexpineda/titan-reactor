@@ -12,12 +12,15 @@ import { Buffer } from "buffer/";
 import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
 import { range } from "ramda";
 import Worker from "../packbin.worker.js";
+import { TextureCache } from "../../3d-map-rendering/textures/TextureCache";
 
 export class LoadSprite {
   constructor(
     tileset,
     images,
     fileAccess,
+    textureCache,
+    jsonCache,
     maxTextureSize,
     loadingManager = DefaultLoadingManager
   ) {
@@ -25,6 +28,8 @@ export class LoadSprite {
     this.images = images;
     this.fileAccess = fileAccess;
     this.maxTextureSize = maxTextureSize;
+    this.textureCache = textureCache;
+    this.jsonCache = jsonCache;
     this.tileset = tileset;
     this._grp = {};
   }
@@ -40,27 +45,27 @@ export class LoadSprite {
       (_) => sizePerBucket
     );
 
-    let bucketOffset = 0;
+    let imageOffset = 0;
     const buckets = bucketSizes.map((bucketSize, i) => {
       let bucket;
       if (
         i === bucketSizes.length - 1 ||
         bucketSize + bucketSize >= bufs.length
       ) {
-        bucket = bufs.slice(bucketOffset);
+        bucket = bufs.slice(imageOffset);
       } else {
-        bucket = bufs.slice(bucketOffset, bucketOffset + bucketSize);
+        bucket = bufs.slice(imageOffset, imageOffset + bucketSize);
       }
 
       const boxes = bucket.flatMap((buf, imageId) => {
         const grp = new Grp(buf, Buffer);
         return range(0, grp.frameCount()).map((frame) => {
           const { w, h } = grp.header(frame);
-          return { w, h, data: { imageId, frame } };
+          return { w, h, data: { imageId: imageId + imageOffset, frame } };
         });
       });
 
-      bucketOffset = bucketOffset + bucket.length;
+      imageOffset = imageOffset + bucket.length;
       return {
         boxes,
         textureSize: this.maxTextureSize,
@@ -73,7 +78,7 @@ export class LoadSprite {
     let bins = [];
 
     const workersDone = new Promise(async (res, rej) => {
-      worker.onmessage = function ({ data }) {
+      worker.onmessage = ({ data }) => {
         console.log("workrerdone", data);
 
         const { result, bucketId } = data;
@@ -87,28 +92,39 @@ export class LoadSprite {
           throw new Error("multiple pages not implemented");
         }
 
-        // const { w, h, rects } = result.pages[0];
+        const { w, h, rects } = result.pages[0];
 
-        // const out = new Buffer(w * h * 4);
+        const out = new Buffer(w * h * 4);
 
-        // bufs.forEach((buf, i) => {
-        //   const grp = new Grp(buf, Buffer);
-        //   rects
-        //     .filter((rect) => rect.data.imageId === i)
-        //     .forEach((rect) => {
-        //       grp.render(
-        //         rect.data.frame,
-        //         this.tileset.palettes[this.images[i].remapping],
-        //         out,
-        //         rect.x,
-        //         rect.y,
-        //         rect.w,
-        //         rect.h,
-        //         1,
-        //         1
-        //       );
-        //     });
-        // });
+        debugger;
+
+        bufs.forEach((buf, i) => {
+          const grp = new Grp(buf, Buffer);
+
+          //@todo support mapping 5, special - own cloak
+          const remapping =
+            this.images[i].remapping < 5 ? this.images[i].remapping : 0;
+
+          rects
+            .filter((rect) => rect.data.imageId === i)
+            .forEach((rect) => {
+              console.log(`render ${i} ${rect.data.frame}`);
+              grp.render(
+                rect.data.frame,
+                this.tileset.palettes[remapping],
+                out,
+                rect.x,
+                rect.y,
+                rect.w,
+                rect.h,
+                1,
+                1
+              );
+            });
+        });
+
+        this.textureCache.save(`sd-${bucketId}`, out, w, h);
+        this.jsonCache.save(`sd-${bucketId}`, { bucketId, rects });
 
         bins.push(data);
         if (bucketId === bucketSizes.length - 1) {
