@@ -8,7 +8,7 @@ export class TBL {
       const offset = buf.readUInt16LE(2 + i * 2);
 
       let offsetNext = n;
-      if (i != n - 1) {
+      if (i != n) {
         offsetNext = buf.readUInt16LE(2 + (i + 1) * 2);
       }
 

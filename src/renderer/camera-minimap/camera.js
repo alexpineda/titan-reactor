@@ -1,4 +1,11 @@
-import { Vector3, MOUSE, PerspectiveCamera, OrthographicCamera } from "three";
+import {
+  Vector3,
+  MOUSE,
+  PerspectiveCamera,
+  OrthographicCamera,
+  WebGLCubeRenderTarget,
+  CubeCamera,
+} from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 //zoom in tighter allowed as teh angle is closer to 90deg above
@@ -60,4 +67,16 @@ const perspectiveCamera = () => {
   camera.position.set(0, 272, 0);
   camera.lookAt(new Vector3());
   return camera;
+};
+
+export const initCubeCamera = (renderer, map) => {
+  const cubeRenderTargetGenerator = new WebGLCubeRenderTarget(128, {});
+
+  const renderTarget = cubeRenderTargetGenerator.fromEquirectangularTexture(
+    renderer,
+    map
+  );
+  cubeRenderTargetGenerator.dispose();
+  const cubeCamera = new CubeCamera(1, 100000, renderTarget);
+  return cubeCamera;
 };

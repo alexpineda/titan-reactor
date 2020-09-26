@@ -8,7 +8,9 @@
     "test:once": "jest --runInBand",
     "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",
     "clear-cache": "rm -rf .cache dist",
-    "electron": "electron .",
+    "compile": "electron-webpack",
+    "dist": "yarn compile && electron-builder",
+    "dist:dir": "yarn dist -- --dir -c.compression=store -c.mac.identity=null",
     "dev": "electron-webpack dev"
   },
   "browserslist": [
@@ -37,6 +39,7 @@
     }
   },
   "dependencies": {
+    "binpackingjs": "^2.3.2",
     "bl": "^4.0.3",
     "buffer": "^5.6.0",
     "bw-chk": "file:../bw-chk",
@@ -48,6 +51,7 @@
     "iscript": "^1.0.1",
     "jssuh": "1.4.0",
     "ks": "^2.0.4",
+    "npm": "^6.14.8",
     "pngjs": "^5.0.0",
     "ramda": "0.27.0",
     "react": "^16.13.1",
@@ -55,7 +59,6 @@
     "react-dropzone": "^11.2.0",
     "sanitize-filename": "^1.6.3",
     "scm-extractor": "^1.0.6",
-    "stats.js": "0.17.0",
     "three": "^0.120.1",
     "typescript": "^3.9.7"
   },
@@ -66,6 +69,7 @@
     "babel-jest": "^26.3.0",
     "dotenv": "^8.2.0",
     "electron": "^10.1.2",
+    "electron-builder": "^22.8.1",
     "electron-webpack": "^2.8.2",
     "jest": "^26.4.2",
     "parcel-plugin-static-files-copy": "^2.5.0",

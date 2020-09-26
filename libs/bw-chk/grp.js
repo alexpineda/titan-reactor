@@ -12,10 +12,14 @@ export class Grp {
     this.Buffer = Buffer;
   }
 
-  // Decodes into a 32-bit rgba surface.
-  decode(frame, palette) {
+  frameCount() {
+    return this._buf.readUInt16LE(0);
+  }
+
+  header(frame) {
     const frameCount = this._buf.readUInt16LE(0);
     if (frame >= frameCount) {
+      console.error(`${frame} > ${frameCount}`);
       return null;
     }
 
@@ -31,13 +35,27 @@ export class Grp {
     const frameHeight = header.readUInt8(3);
 
     const lineOffsets = this._buf.slice(frameOffset);
-    const out = new this.Buffer(frameWidth * frameHeight * 4);
+    return {
+      x,
+      y,
+      w: frameWidth,
+      h: frameHeight,
+      lineOffsets,
+      frameOffset,
+    };
+  }
+
+  // Decodes into a 32-bit rgba surface.
+  decode(frame, palette) {
+    const { x, y, w, h, frameOffset, lineOffsets } = this.header(frame);
+
+    const out = new this.Buffer(w * h * 4);
     let outPos = 0;
-    for (let y = 0; y < frameHeight; y++) {
+    for (let y = 0; y < h; y++) {
       const lineData = this._buf.slice(
         frameOffset + lineOffsets.readUInt16LE(y * 2)
       );
-      const lineEnd = outPos + 4 * frameWidth;
+      const lineEnd = outPos + 4 * w;
       let pos = 0;
       while (outPos < lineEnd) {
         const val = lineData[pos];
@@ -74,7 +92,7 @@ export class Grp {
         }
       }
     }
-    return { data: out, x, y, w: frameWidth, h: frameHeight };
+    return { data: out, x, y, w, h };
   }
 
   render(frame, palette, surface, surfX, surfY, surfW, surfH, scaleX, scaleY) {

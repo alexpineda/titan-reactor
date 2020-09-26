@@ -20,6 +20,7 @@ import { UnitDAT } from "../main/units/UnitsDAT";
 import { Tileset } from "./bwdat/Tileset";
 import { RenderUnit2D } from "./replay/RenderUnit2D";
 import { RenderUnit3D } from "./replay/RenderUnit3D";
+import { LoadSprite } from "./utils/meshes/LoadSprites";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
@@ -95,12 +96,12 @@ ipcRenderer.on("open-map", async (event, [map]) => {
   if (!appIsReady) {
     return alert("Please configure your Starcraft path first");
   }
-  let camera;
-  if (scene) {
-    camera = scene.dispose().camera;
+
+  if (scene && scene.dispose) {
+    scene.dispose();
   }
   console.log("open-map");
-  scene = await loadMap(map, camera);
+  scene = await loadMap(map);
 });
 
 let replayPlaylist = [];
@@ -111,7 +112,7 @@ ipcRenderer.on("open-replay", (event, replays) => {
   if (!appIsReady) {
     return alert("Please configure your Starcraft path first");
   }
-  if (scene) {
+  if (scene && scene.dispose) {
     scene.dispose();
   }
   replayPlaylist = replays;
@@ -161,7 +162,7 @@ ipcRenderer.on("save-env-settings", (event, file) => {
   console.log("save-env", file);
 });
 
-const loadMap = async (filepath, camera) => {
+const loadMap = async (filepath) => {
   overlay = {
     state: "initializing",
     mapName: "",
@@ -191,16 +192,10 @@ const loadMap = async (filepath, camera) => {
     setTimeout(res, 100);
   });
 
-  return TitanReactorSandbox(
-    filepath,
-    chk,
-    canvas,
-    () => {
-      overlay.state = "";
-      updateUi();
-    },
-    camera
-  );
+  return TitanReactorSandbox(filepath, chk, canvas, () => {
+    overlay.state = "";
+    updateUi();
+  });
 };
 
 const loadReplay = async (filepath) => {
@@ -216,7 +211,7 @@ const loadReplay = async (filepath) => {
   const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
 
   gameOptions.experience = {
-    sprites: false,
+    sprites: true,
     remastered: false,
   };
 
@@ -227,8 +222,19 @@ const loadReplay = async (filepath) => {
   );
   await tileset.load();
 
+  const loadSprite = new LoadSprite(
+    tileset,
+    bwDat.images,
+    (file) => openFile(`${gameOptions.bwDataPath}/unit/${file}`),
+    //@todo init renderer here and get renderer.capabilities.maxTextureSize
+    8192
+  );
+
+  loadSprite.loadAll();
+
+  return;
   const renderUnit = gameOptions.experience.sprites
-    ? new RenderUnit2D(bwDat, gameOptions.bwDataPath, tileset, openFile)
+    ? new RenderUnit2D(bwDat, gameOptions.bwDataPath, loadSprite)
     : new RenderUnit3D();
 
   return TitanReactorReplay(filepath, jssuh, renderUnit, canvas, bwDat, () => {

@@ -53,7 +53,11 @@ export class ReplayUnits {
   }
 
   spawn(frameData) {
-    const unit = this.renderUnit.load(frameData.typeId);
+    return this._spawn(frameData);
+  }
+
+  _spawn(frameData, replacingUnitType) {
+    const unit = replacingUnitType || this.renderUnit.load(frameData.typeId);
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
 
@@ -62,7 +66,7 @@ export class ReplayUnits {
     unit.userData.typeId = frameData.typeId;
     unit.name = this.bwDat.units[unit.userData.typeId].name;
 
-    const runner = (unit.userData.runner = new IScriptRunner(
+    unit.userData.runner = new IScriptRunner(
       this.bwDat,
       path(
         ["flingy", "sprite", "image", "iscript"],
@@ -71,7 +75,14 @@ export class ReplayUnits {
       {
         typeId: unit.userData.typeId,
         repId: unit.userData.repId,
-        lifted: unit.userData.current.lifted,
+        lifted: () => unit.userData.current.lifted(),
+        direction: () =>
+          Math.floor(
+            (((unit.userData.current.angle + (Math.PI * 1) / 2) %
+              (Math.PI * 2)) /
+              (Math.PI * 2)) *
+              32
+          ),
       },
       {
         image: path(
@@ -79,8 +90,15 @@ export class ReplayUnits {
           this.bwDat.units[unit.userData.typeId]
         ),
       }
-    ));
+    );
+    unit.userData.runner.toAnimationBlock(headers.init);
 
+    !replacingUnitType && this._initAudio(unit);
+    this.units.add(unit);
+    return unit;
+  }
+
+  _initAudio(unit) {
     const unitSound = new PositionalAudio(this.audioListener);
     unit.add(unitSound);
 
@@ -94,7 +112,6 @@ export class ReplayUnits {
         return;
       }
 
-      console.log("playsnd", soundId);
       const audioLoader = new AudioLoader(this.loadingManager);
       audioLoader.load(
         `./sound/${this.bwDat.sounds[soundId].file}`,
@@ -109,17 +126,33 @@ export class ReplayUnits {
         }
       );
     };
-    runner.on("playsnd", playSound);
-    runner.on("playsndbtwn", playSound);
-    runner.on("playsndrand", playSound);
+    unit.userData.runner.on("playsnd", playSound);
+    unit.userData.runner.on("playsndbtwn", playSound);
+    unit.userData.runner.on("playsndrand", playSound);
+    unit.userData.runner.on("attackmelee", playSound);
+  }
 
-    this.units.add(unit);
-    return unit;
+  // zerg spawn
+  replaceWith(frameData, unit) {
+    const {
+      userData: { unitMesh },
+    } = this.renderUnit.load(frameData.typeId);
+
+    //@todo dispose any children material from runner spawns
+
+    unit.userData.unitMesh = unitMesh;
+    unit.add(unitMesh);
+    this._spawn(frameData, unit);
   }
 
   update(unit, frameData) {
     const previous = (unit.userData.previous = unit.userData.current);
     const current = (unit.userData.current = frameData);
+
+    if (current.frame > 0 && current.typeId != previous.typeId) {
+      this.replaceWith(current, unit);
+    }
+
     const unitType = this.bwDat.units[unit.userData.typeId];
 
     const x = current.x / 32 - 64;

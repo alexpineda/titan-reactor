@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { EnvironmentOptionsGui } from "./EnvironmentOptionsGui";
 import { createStats } from "../utils/stats";
 import { handleResize } from "../utils/resize";
-import { initCamera } from "../camera-minimap/camera";
+import { initCamera, initCubeCamera } from "../camera-minimap/camera";
 import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
 
 import { sunlight, fog } from "./environment";
@@ -27,13 +27,7 @@ import { dec } from "ramda";
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorSandbox(
-  filepath,
-  chk,
-  canvas,
-  loaded,
-  tempCamera
-) {
+export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
 
@@ -72,6 +66,7 @@ export async function TitanReactorSandbox(
   scene.add(lightCameraHelper);
   var lightHelper = new THREE.DirectionalLightHelper(light, 5);
   scene.add(lightHelper);
+  lightHelper.visible = false;
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
   scene.add(hemi);
@@ -80,10 +75,6 @@ export async function TitanReactorSandbox(
   if (hot && hot.camera) {
     camera.position.copy(hot.camera.position);
     camera.rotation.copy(hot.camera.rotation);
-  }
-  if (tempCamera) {
-    camera.position.copy(tempCamera.position);
-    camera.rotation.copy(tempCamera.rotation);
   }
   cameraControls.update();
 
@@ -101,7 +92,16 @@ export async function TitanReactorSandbox(
     chk.size[1]
   );
 
-  const playerColors = ["#a80808", "#083498", "#209070", "#88409c"];
+  const playerColors = [
+    "#a80808",
+    "#083498",
+    "#209070",
+    "#88409c",
+    "#e87824",
+    "#34200c",
+    "#c4c0bc",
+    "dcdc3c",
+  ];
   const startLocations = chk.units
     .filter((unit) => unit.unitId === 214)
     .map((unit) => {
@@ -116,17 +116,7 @@ export async function TitanReactorSandbox(
     });
   startLocations.forEach((sl) => scene.add(sl));
 
-  const cubeRenderTargetGenerator = new WebGLCubeRenderTarget(128, {
-    format: THREE.RGBFormat,
-    generateMipmaps: true,
-    minFilter: THREE.LinearMipmapLinearFilter,
-  });
-
-  const renderTarget = cubeRenderTargetGenerator.fromEquirectangularTexture(
-    renderer,
-    terrain.material.map
-  );
-  const cubeCamera = new THREE.CubeCamera(1, 100000, renderTarget);
+  const cubeCamera = initCubeCamera(renderer, terrain.material.map);
   scene.add(cubeCamera);
 
   const pointLight = new THREE.PointLight();
@@ -136,7 +126,7 @@ export async function TitanReactorSandbox(
   const loadModel = new LoadModel();
   const mineral = await loadModel.load("_alex/mineral1.glb", "mineral", (o) => {
     o.receiveShadow = false;
-    o.material.envMap = renderTarget.texture;
+    o.material.envMap = cubeCamera.renderTarget.texture;
   });
 
   const minerals = chk.units
@@ -318,10 +308,6 @@ export async function TitanReactorSandbox(
     renderer.clear();
     renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.render(scene, camera);
-
-    // setTimeout(() => {
-    //   id = requestAnimationFrame(gameLoop);
-    // }, 100);
   }
 
   document.body.appendChild(renderer.domElement);
@@ -336,15 +322,12 @@ export async function TitanReactorSandbox(
     cancelResize();
     disposeMeshes(scene);
     renderer.dispose();
+
+    //@todo
+    // cubeCamera.dispose();
+
     cameraControls.dispose();
     gui.dispose();
-
-    return {
-      camera: {
-        position: camera.position.clone(),
-        rotation: camera.rotation.clone(),
-      },
-    };
   };
 
   if (module.hot) {

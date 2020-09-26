@@ -3,6 +3,7 @@ import {
   SphereBufferGeometry,
   MeshStandardMaterial,
   DefaultLoadingManager,
+  Group,
 } from "three";
 import { LoadModel } from "../utils/meshes/LoadModels";
 
@@ -23,10 +24,18 @@ export class RenderUnit3D {
     };
   }
 
-  load(typeId) {
-    const prefab = this.prefabs[typeId] || this.prefabs[999];
-    return prefab();
+  load(typeId, unit = new Group()) {
+    const mesh = this.prefabs[typeId] || this.prefabs[999];
+    unit.userData.unitMesh = mesh;
+    unit.add(mesh);
+    return unit;
   }
+
+  replace(unit, typeId) {
+    unit.children.remove(unit.userData.unitMesh);
+    return this.load(typeId, unit);
+  }
+
   loadAssets() {
     // const loadSprite = new LoadSprite(loadManager, fileAccess);
 

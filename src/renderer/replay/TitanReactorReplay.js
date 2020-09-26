@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { initRenderer } from "../3d-map-rendering/renderer";
-import { initCamera } from "../camera-minimap/camera";
+import { initCamera, initCubeCamera } from "../camera-minimap/camera";
 import { handleResize } from "../utils/resize";
 import { sunlight, fog } from "../3d-map-rendering/environment";
 import { backgroundTerrainMesh } from "../3d-map-rendering/meshes/backgroundTerrainMesh";
@@ -17,7 +17,6 @@ import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile, getAppCachePath } from "../invoke";
 import { difference } from "ramda";
-import { WebGLCubeRenderTarget } from "three";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -44,7 +43,6 @@ export async function TitanReactorReplay(
 
   let running = false;
   THREE.DefaultLoadingManager.onLoad = () => {
-    console.log("loaded");
     loaded();
     running = true;
   };
@@ -86,22 +84,13 @@ export async function TitanReactorReplay(
   const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
 
   scene.add(terrain);
+  // @todo fix sprite black box issue
   // scene.add(bgTerrain);
 
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
 
-  const cubeRenderTargetGenerator = new WebGLCubeRenderTarget(128, {
-    format: THREE.RGBFormat,
-    generateMipmaps: true,
-    minFilter: THREE.LinearMipmapLinearFilter,
-  });
-
-  const renderTarget = cubeRenderTargetGenerator.fromEquirectangularTexture(
-    renderer,
-    terrain.material.map
-  );
-  const cubeCamera = new THREE.CubeCamera(1, 100000, renderTarget);
+  const cubeCamera = initCubeCamera(renderer, terrain.material.map);
   scene.add(cubeCamera);
 
   const pointLight = new THREE.PointLight("0xffffff", 1, 60, 0);
@@ -146,8 +135,8 @@ export async function TitanReactorReplay(
 
   // const tempReplayFile = "./bwdata/_alex/0279 ScanKaLT azzyP.rep.bin";
   // const tempReplayFile = "./bwdata/_alex/CTR_F505F47D.rep.bin";
-  const tempReplayFile = "./bwdata/_alex/CTR_52C0564.rep.bin";
-  // const tempReplayFile = "./bwdata/_alex/0255 CleanNaraT simjeongZ.rep.bin";
+  // const tempReplayFile = "./bwdata/_alex/CTR_52C0564.rep.bin";
+  const tempReplayFile = "./bwdata/_alex/0255 CleanNaraT simjeongZ.rep.bin";
   // 0006 ramiyerP ScanKaLT.rep.bin
   THREE.DefaultLoadingManager.itemStart(tempReplayFile);
   openFile(tempReplayFile).then((frames) => {
@@ -289,9 +278,9 @@ export async function TitanReactorReplay(
     pointLight.position.copy(camera.position);
     pointLight.position.y += 5;
 
-    // cubeCamera.position.copy(camera.position);
-    // cubeCamera.rotation.copy(camera.rotation);
-    // cubeCamera.update(renderer, scene);
+    cubeCamera.position.copy(camera.position);
+    cubeCamera.rotation.copy(camera.rotation);
+    cubeCamera.update(renderer, scene);
 
     renderer.clear();
     renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
@@ -315,8 +304,11 @@ export async function TitanReactorReplay(
     bgMusic.dispose();
     renderer.dispose();
 
+    //@todo dispose
+    // cubeCamera.dispose();
+
     document.removeEventListener("keydown", keyDownListener);
-    canvas.removeEventListener("mousedown", mouseDownListener);
+    document.removeEventListener("mousedown", mouseDownListener);
 
     window.dispose = null;
     window.goto = null;

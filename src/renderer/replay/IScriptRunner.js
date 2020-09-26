@@ -1,4 +1,3 @@
-import { reject } from "ramda";
 import {
   iscriptHeaders as headers,
   headersById,
@@ -23,13 +22,15 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: true,
       noBrkCode: false,
       ignoreRest: false,
-      frame: 0,
-      prevFrame: -1,
+      frame: null,
+      prevFrame: null,
+      flipFrame: false,
+      direction: 0,
+      flDirect: undefined,
       ...state,
     };
     this.listeners = listeners;
     this.dbg = {};
-    this.toAnimationBlock(headers.init);
   }
 
   toAnimationBlock(header) {
@@ -61,10 +62,19 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: false,
       ignoreRest: false,
     });
+
     if (header === -1) {
       this.debugLog(`_animation block - local`, this);
     } else {
       this.debugLog(`_animation block - ${headersById[header]}`, this);
+    }
+
+    if (this.dbg && this.dbg.prevAnimBlock && this.dbg.prevAnimBlock.commands) {
+      if (this.dbg.prevAnimBlock.commands.header === -1) {
+        this.debugLog(`prev anim - local`, this);
+      } else {
+        this.debugLog(`prev anim - ${headersById[header]}`, this);
+      }
     }
 
     return this;
@@ -88,7 +98,6 @@ export class IScriptRunner {
     // update iscript state
     if (this.state.waiting !== 0) {
       this.state.waiting = this.state.waiting - 1;
-      this.debugLog("waiting", this.state.waiting);
       return;
     }
     this.next();
@@ -146,6 +155,7 @@ export class IScriptRunner {
       },
       this.listeners
     );
+    runner.toAnimationBlock(headers.init);
     this.state.children.push(runner);
     this._dispatch("imgul", runner);
   }
@@ -164,7 +174,7 @@ export class IScriptRunner {
       },
       this.listeners
     );
-
+    runner.toAnimationBlock(headers.init);
     this.state.children.push(runner);
     this._dispatch("imgol", runner);
   }
@@ -185,7 +195,7 @@ export class IScriptRunner {
   }
 
   __randcondjmp(probability, offset) {
-    if (Math.floor(Math.random()) == probability) {
+    if (Math.random() <= probability / 255) {
       this.__goto(
         offset,
         this._dispatch("randcondjmp", { probability, offset, result: true })
@@ -287,8 +297,8 @@ export class IScriptRunner {
       },
       this.listeners
     );
+    runner.toAnimationBlock(headers.init);
     this.state.children.push(runner);
-
     !alreadyDispatched && this._dispatch("useweapon", weapon);
   }
 
@@ -302,11 +312,36 @@ export class IScriptRunner {
   }
 
   __liftoffcondjmp(offset) {
-    if (this.parent.lifted) {
-      this.__goto([offset], this._dispatch("liftoffcondjmp", true));
+    if (this.parent.lifted()) {
+      this.__goto(offset, this._dispatch("liftoffcondjmp", true));
     } else {
       this._dispatch("liftoffcondjmp", false);
     }
+  }
+
+  __playfram(frame) {
+    this.state.prevFrame = frame;
+    //frameset
+    if (frame % 17 === 0) {
+      this._setFrameBasedOnDirection(frame);
+      this._dispatch("playfram", { frameset: frame, frame: this.state.frame });
+    } else {
+      this.state.frame = frame;
+      this._dispatch("playfram", frame);
+    }
+  }
+
+  _getParentDirection(obj) {
+    if (!obj.repId) {
+      return this._getParentDirection(obj.parent);
+    }
+    return obj.direction();
+  }
+
+  _setFrameBasedOnDirection(offset) {
+    const dir = this._getParentDirection(this.parent);
+    this.state.frame = offset + dir;
+    this.state.flipFrame = dir > 15;
   }
 
   __ignorerest() {
@@ -340,7 +375,6 @@ export class IScriptRunner {
       case "castspell":
 
       case "setfldirect":
-      case "playfram":
       case "playframtile":
       case "sethorpos":
       case "setpos":
@@ -398,5 +432,9 @@ export class IScriptRunner {
 
         this[`__${command}`].apply(this, args);
     }
+  }
+
+  dispose() {
+    this.listeners = null;
   }
 }

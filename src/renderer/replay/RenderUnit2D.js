@@ -1,5 +1,6 @@
 import {
   DefaultLoadingManager,
+  Group,
   Mesh,
   MeshBasicMaterial,
   SphereBufferGeometry,
@@ -12,16 +13,14 @@ export class RenderUnit2D {
   constructor(
     bwDat,
     bwDataPath,
-    tileset,
-    fileAccess,
+    loadSprite,
     loadingManager = DefaultLoadingManager
   ) {
     this.bwDat = bwDat;
     this.bwDataPath = bwDataPath;
     this.loadingManager = loadingManager;
     //@todo refactor this, move one level up
-    this.loadSprite = new LoadSprite(tileset, fileAccess, loadingManager);
-    this.tileset = tileset;
+    this.loadSprite = loadSprite;
 
     this.prefabs = {
       999: () => this.loadSprite.loadSync(`_alex/marine.bmp`),
@@ -32,11 +31,18 @@ export class RenderUnit2D {
     return `${this.bwDataPath}/unit/${file}`;
   }
 
-  load(typeId) {
+  load(typeId, unit = new Group()) {
     const prefab = this.prefabs[typeId] || this.prefabs[999];
     const mesh = prefab();
     mesh.material.transparent = this.bwDat.units[typeId].cloakable();
-    return mesh;
+    unit.userData.unitMesh = mesh;
+    unit.add(mesh);
+    return unit;
+  }
+
+  replace(unit, typeId) {
+    unit.children.remove(unit.userData.unitMesh);
+    return this.load(typeId, unit);
   }
 
   //@todo just push in userData
@@ -45,25 +51,31 @@ export class RenderUnit2D {
     if (userData.runner.state.frame === userData.runner.state.prevFrame) {
       return;
     }
-    console.log("grp", userData.runner.state.image.grpFile);
+
+    if (window.dbg && window.dbg.repId === userData.repId) {
+      console.log("grp", userData.runner.state.image.grpFile);
+    }
+
     const { map, w, h } = await this.loadSprite.getFrame(
       this._unitPath(userData.runner.state.image.grpFile),
       userData.runner.state.frame,
+      userData.runner.state.flipFrame,
       userData.runner.state.image.remapping
     );
 
-    //@todo remove once implemented in runner
-    userData.runner.state.prevFrame = userData.runner.state.frame;
+    // @todo render children
 
-    unit.material.dispose();
+    const mesh = unit.userData.unitMesh;
+
+    mesh.material.dispose();
     //todo refactor, should be in LoadSprites
-    unit.material = new SpriteMaterial({ map });
-    unit.material.transparent = true;
-    unit.material.opacity = this.bwDat.units[userData.typeId].permanentCloak()
+    mesh.material = new SpriteMaterial({ map });
+    mesh.material.transparent = true;
+    mesh.material.opacity = this.bwDat.units[userData.typeId].permanentCloak()
       ? 0.6
       : 1;
     const scale = new Vector3(w / 32, h / 32, 1);
-    unit.scale.copy(scale);
+    mesh.scale.copy(scale);
     // unit.material.needsUpdate = true;
   }
 
