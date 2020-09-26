@@ -39,7 +39,7 @@ export class LoadSprite {
       this.images.map((image) => this.fileAccess(image.grpFile))
     );
 
-    //hand picked good mix between texture size and bin packing speed
+    //fixed amount of units per texture, obviously not optimal but sufficient for our needs, total texture size for all units ~300mb
     const sizePerBucket = 30;
     const bucketSizes = range(0, Math.ceil(bufs.length / sizePerBucket)).map(
       (_) => sizePerBucket
@@ -74,13 +74,14 @@ export class LoadSprite {
     }); //end bucket creation
 
     const worker = new Worker();
-
+    const workerStart = (bucket) => {
+      this.loadingManager.itemStart(`sd-texture-packing-${bucket.bucketId}`);
+      worker.postMessage(bucket);
+    };
     let bins = [];
 
     const workersDone = new Promise(async (res, rej) => {
       worker.onmessage = ({ data }) => {
-        console.log("workrerdone", data);
-
         const { result, bucketId } = data;
         if (result.notPacked.length) {
           throw new Error("frame was excluded");
@@ -106,23 +107,30 @@ export class LoadSprite {
           rects
             .filter((rect) => rect.data.imageId === i)
             .forEach((rect) => {
-              console.log(`render ${i} ${rect.data.frame}`);
-              grp.renderRGBA(
+              //@todo remap for player color magenta
+              const { data: color } = grp.decode(
                 rect.data.frame,
-                this.tileset.palettes[remapping],
-                out,
-                rect.x,
-                rect.y,
-                w,
-                h,
-                1,
-                1
+                this.tileset.palettes[remapping]
               );
+
+              for (let y = 0; y < rect.h; y++) {
+                for (let x = 0; x < rect.w; x++) {
+                  let pos = ((y + rect.y) * w + (x + rect.x)) * 4;
+                  let spritePos = (y * rect.w + x) * 4;
+
+                  out[pos] = color[spritePos];
+                  out[pos + 1] = color[spritePos + 1];
+                  out[pos + 2] = color[spritePos + 2];
+                  out[pos + 3] = color[spritePos + 3];
+                }
+              }
             });
         });
 
         this.textureCache.save(`sd-${bucketId}`, out, w, h);
         this.jsonCache.save(`sd-${bucketId}`, { bucketId, rects });
+
+        this.loadingManager.itemEnd(`sd-texture-packing-${bucketId}`);
 
         bins.push(data);
         if (bucketId === bucketSizes.length - 1) {
@@ -138,12 +146,12 @@ export class LoadSprite {
           );
           res();
         } else {
-          worker.postMessage(buckets[bucketId + 1]);
+          workerStart(buckets[bucketId + 1]);
         }
       };
     });
 
-    worker.postMessage(buckets[0]);
+    workerStart(buckets[0]);
 
     await workersDone;
   }
