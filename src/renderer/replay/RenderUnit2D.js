@@ -1,13 +1,4 @@
-import {
-  DefaultLoadingManager,
-  Group,
-  Mesh,
-  MeshBasicMaterial,
-  SphereBufferGeometry,
-  SpriteMaterial,
-  Vector3,
-} from "three";
-import { LoadSprite } from "../utils/meshes/LoadSprites";
+import { DefaultLoadingManager, Group, SpriteMaterial, Vector3 } from "three";
 
 export class RenderUnit2D {
   constructor(
@@ -19,7 +10,6 @@ export class RenderUnit2D {
     this.bwDat = bwDat;
     this.bwDataPath = bwDataPath;
     this.loadingManager = loadingManager;
-    //@todo refactor this, move one level up
     this.loadSprite = loadSprite;
 
     this.prefabs = {
@@ -45,7 +35,6 @@ export class RenderUnit2D {
     return this.load(typeId, unit);
   }
 
-  //@todo just push in userData
   async update(unit) {
     const { userData } = unit;
     if (userData.runner.state.frame === userData.runner.state.prevFrame) {
