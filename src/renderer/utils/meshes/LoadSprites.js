@@ -96,8 +96,6 @@ export class LoadSprite {
 
         const out = new Buffer(w * h * 4);
 
-        debugger;
-
         bufs.forEach((buf, i) => {
           const grp = new Grp(buf, Buffer);
 
@@ -109,14 +107,14 @@ export class LoadSprite {
             .filter((rect) => rect.data.imageId === i)
             .forEach((rect) => {
               console.log(`render ${i} ${rect.data.frame}`);
-              grp.render(
+              grp.renderRGBA(
                 rect.data.frame,
                 this.tileset.palettes[remapping],
                 out,
                 rect.x,
                 rect.y,
-                rect.w,
-                rect.h,
+                w,
+                h,
                 1,
                 1
               );

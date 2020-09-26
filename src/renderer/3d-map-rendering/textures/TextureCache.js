@@ -5,9 +5,15 @@ import path from "path";
 import sanitize from "sanitize-filename";
 
 export class TextureCache {
-  constructor(baseName, dir, loadingManager = DefaultLoadingManager) {
+  constructor(
+    baseName,
+    dir,
+    format = "rgb",
+    loadingManager = DefaultLoadingManager
+  ) {
     this.baseName = sanitize(baseName);
     this.dir = dir;
+    this.format = format;
     this.loadingManager = loadingManager;
   }
 
@@ -17,7 +23,7 @@ export class TextureCache {
 
   async save(name, data, width, height) {
     console.log("saving", this._name(name));
-    return await savePNG(data, width, height, this._name(name));
+    return await savePNG(data, width, height, this._name(name), this.format);
   }
 
   exists(name) {

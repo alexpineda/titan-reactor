@@ -228,7 +228,8 @@ const loadReplay = async (filepath) => {
   if (gameOptions.experience.sprites) {
     const spritesTextureCache = new TextureCache(
       "sprite-",
-      await getAppCachePath()
+      await getAppCachePath(),
+      "rgba"
     );
 
     const jsonCache = new JsonCache("sprite-", await getAppCachePath());
@@ -255,6 +256,8 @@ const loadReplay = async (filepath) => {
   } else {
     renderUnit = new RenderUnit3D();
   }
+
+  return;
 
   const mapTexturesCache = new TextureCache(
     jssuh.chk.title,
