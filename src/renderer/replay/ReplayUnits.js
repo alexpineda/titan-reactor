@@ -1,14 +1,7 @@
 import {
-  Mesh,
-  SphereBufferGeometry,
-  MeshStandardMaterial,
   Group,
-  AxesHelper,
   Vector3,
   DefaultLoadingManager,
-  Quaternion,
-  Euler,
-  Matrix4,
   Color,
   PositionalAudio,
   AudioLoader,
@@ -29,7 +22,6 @@ export class ReplayUnits {
     getTerrainY,
     audioListener,
     audioPool = {},
-    fileAccess,
     loadingManager = DefaultLoadingManager
   ) {
     this.units = new Group();
@@ -42,7 +34,9 @@ export class ReplayUnits {
     // more of a cache for the moment
     this.audioPool = audioPool;
     this.renderUnit = renderUnit;
-    this.renderUnit.loadAssets();
+
+    //@todo refactor out
+    this.renderUnit.loadAssets && this.renderUnit.loadAssets();
   }
 
   spawnIfNotExists(frameData) {

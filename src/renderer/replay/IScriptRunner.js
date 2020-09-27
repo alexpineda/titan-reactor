@@ -326,6 +326,7 @@ export class IScriptRunner {
       this._setFrameBasedOnDirection(frame);
       this._dispatch("playfram", { frameset: frame, frame: this.state.frame });
     } else {
+      this.state.flipFrame = false;
       this.state.frame = frame;
       this._dispatch("playfram", frame);
     }

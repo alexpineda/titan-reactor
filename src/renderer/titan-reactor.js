@@ -257,8 +257,6 @@ const loadReplay = async (filepath) => {
     renderUnit = new RenderUnit3D();
   }
 
-  return;
-
   const mapTexturesCache = new TextureCache(
     jssuh.chk.title,
     await getAppCachePath()

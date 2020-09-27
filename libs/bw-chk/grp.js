@@ -16,6 +16,10 @@ export class Grp {
     return this._buf.readUInt16LE(0);
   }
 
+  maxDimensions() {
+    return [this._buf.readUInt16LE(2), this._buf.readUInt16LE(4)];
+  }
+
   header(frame) {
     const frameCount = this._buf.readUInt16LE(0);
     if (frame >= frameCount) {

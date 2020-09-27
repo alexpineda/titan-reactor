@@ -1,4 +1,4 @@
-import { DefaultLoadingManager, Group, SpriteMaterial, Vector3 } from "three";
+import { DefaultLoadingManager, Group } from "three";
 import { units } from "../../common/bwdat/units";
 
 export class RenderUnit2D {
@@ -12,7 +12,9 @@ export class RenderUnit2D {
     this.bwDataPath = bwDataPath;
     this.loadingManager = loadingManager;
     this.loadSprite = loadSprite;
-
+    if (!this.loadSprite.loaded) {
+      throw new Error("sprites must be preloaded");
+    }
     this.prefabs = {
       999: () => this.loadSprite.loadSync(`_alex/marine.bmp`),
     };
@@ -41,9 +43,9 @@ export class RenderUnit2D {
   }
 
   load(typeId, unit = new Group()) {
-    const prefab = this.prefabs[typeId] || this.prefabs[999];
-    const mesh = prefab();
-    mesh.material.transparent = this.bwDat.units[typeId].cloakable();
+    const mesh = this.loadSprite.getMesh(
+      this.bwDat.units[typeId].flingy.sprite.image.index
+    );
     unit.userData.unitMesh = mesh;
     unit.add(mesh);
     return unit;
@@ -64,28 +66,18 @@ export class RenderUnit2D {
       console.log("grp", userData.runner.state.image.grpFile);
     }
 
-    const { map, w, h } = await this.loadSprite.getFrame(
-      this._unitPath(userData.runner.state.image.grpFile),
+    this.loadSprite.setFrame(
+      unit.userData.unitMesh,
+      userData.runner.state.image.index,
       userData.runner.state.frame,
-      userData.runner.state.flipFrame,
-      userData.runner.state.image.remapping
+      userData.runner.state.flipFrame
     );
 
     // @todo render children
 
     const mesh = unit.userData.unitMesh;
-
-    mesh.material.dispose();
-    //todo refactor, should be in LoadSprites
-    mesh.material = new SpriteMaterial({ map });
-    mesh.material.transparent = true;
     mesh.material.opacity = this.bwDat.units[userData.typeId].permanentCloak()
       ? 0.6
       : 1;
-    const scale = new Vector3(w / 32, h / 32, 1);
-    mesh.scale.copy(scale);
-    // unit.material.needsUpdate = true;
   }
-
-  loadAssets() {}
 }

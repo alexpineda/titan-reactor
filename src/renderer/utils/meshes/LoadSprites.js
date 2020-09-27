@@ -6,13 +6,16 @@ import {
   sRGBEncoding,
   Vector2,
   RepeatWrapping,
+  LinearFilter,
+  ClampToEdgeWrapping,
+  BufferAttribute,
 } from "three";
 import { Grp } from "../../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
 import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
-import { range } from "ramda";
+import { range, groupBy, all } from "ramda";
 import Worker from "../packbin.worker.js";
-import { units } from "../../../common/bwdat/units";
+import { asyncFilter } from "./async";
 
 export class LoadSprite {
   constructor(
@@ -31,7 +34,11 @@ export class LoadSprite {
     this.textureCache = textureCache;
     this.jsonCache = jsonCache;
     this.tileset = tileset;
-    this._grp = {};
+    this.atlas = [];
+    this.maxDimensions = [];
+    this.textures = [];
+    this.masks = [];
+    this.loaded = false;
   }
 
   async loadAll() {
@@ -40,9 +47,9 @@ export class LoadSprite {
     );
 
     //fixed amount of units per texture, obviously not optimal but sufficient for our needs, total texture size for all units ~300mb
-    const sizePerBucket = 30;
-    const bucketSizes = range(0, Math.ceil(bufs.length / sizePerBucket)).map(
-      (_) => sizePerBucket
+    const unitsPerBucket = 30;
+    const bucketSizes = range(0, Math.ceil(bufs.length / unitsPerBucket)).map(
+      (_) => unitsPerBucket
     );
 
     let imageOffset = 0;
@@ -59,6 +66,8 @@ export class LoadSprite {
 
       const boxes = bucket.flatMap((buf, imageId) => {
         const grp = new Grp(buf, Buffer);
+        //since we're already initializing a Grp, document it's max dimensions for reference later
+        this.maxDimensions[imageId + imageOffset] = grp.maxDimensions();
         return range(0, grp.frameCount()).map((frame) => {
           const { w, h } = grp.header(frame);
           return { w, h, data: { imageId: imageId + imageOffset, frame } };
@@ -78,7 +87,6 @@ export class LoadSprite {
       this.loadingManager.itemStart(`sd-texture-packing-${bucket.bucketId}`);
       worker.postMessage(bucket);
     };
-    let bins = [];
 
     const playerMaskPalette = new Buffer(this.tileset.palettes[0]);
 
@@ -98,6 +106,16 @@ export class LoadSprite {
       playerMaskPalette[(i + 0x8) * 4 + 2] = playerColors[i];
     }
 
+    const createTexture = (data, w, h) => {
+      const texture = imageToCanvasTexture(data, w, h, "rgba");
+      texture.encoding = sRGBEncoding;
+      texture.minFilter = LinearFilter;
+      texture.magFilter = LinearFilter;
+      texture.wrapT = ClampToEdgeWrapping;
+      texture.wrapS = RepeatWrapping;
+      return texture;
+    };
+
     const workersDone = new Promise(async (res, rej) => {
       worker.onmessage = ({ data }) => {
         const { result, bucketId } = data;
@@ -111,11 +129,19 @@ export class LoadSprite {
           throw new Error("multiple pages not implemented");
         }
 
-        const { w, h, rects } = result.pages[0];
-
+        const { w, h, rects: origRects } = result.pages[0];
+        const rects = origRects.map(({ x, y, w, h, data }) => ({
+          x,
+          y,
+          w,
+          h,
+          ...data,
+          bucketId,
+        }));
         const out = new Buffer(w * h * 4);
         const maskOut = new Buffer(w * h * 4);
 
+        //draw out
         bufs.forEach((buf, i) => {
           const grp = new Grp(buf, Buffer);
 
@@ -124,15 +150,15 @@ export class LoadSprite {
             this.images[i].remapping < 5 ? this.images[i].remapping : 0;
 
           rects
-            .filter((rect) => rect.data.imageId === i)
+            .filter((rect) => rect.imageId === i)
             .forEach((rect) => {
               const { data: grpData } = grp.decode(
-                rect.data.frame,
+                rect.frame,
                 this.tileset.palettes[remapping]
               );
 
               const { data: playerMaskData } = grp.decode(
-                rect.data.frame,
+                rect.frame,
                 playerMaskPalette
               );
 
@@ -156,52 +182,100 @@ export class LoadSprite {
             });
         });
 
+        const frameGroups = Object.values(
+          groupBy(({ imageId }) => imageId, rects)
+        );
+
+        const images = frameGroups.map(
+          (frames) => new AtlasImage(frames, w, h, bucketId)
+        );
+        this.atlas = this.atlas.concat(images);
         this.textureCache.save(`unit-${bucketId}`, out, w, h);
         this.textureCache.save(`mask-${bucketId}`, maskOut, w, h);
-        this.jsonCache.save(`sd-${bucketId}`, { bucketId, rects });
+
+        this.textures[bucketId] = createTexture(out, w, h);
+        this.masks[bucketId] = createTexture(maskOut, w, h);
 
         this.loadingManager.itemEnd(`sd-texture-packing-${bucketId}`);
 
-        bins.push(data);
         if (bucketId === bucketSizes.length - 1) {
-          console.log(
-            "total size",
-            bins.reduce(
-              (total, { result }) =>
-                total + result.pages[0].w * result.pages[0].h,
-              0
-            )
-          );
+          console.log("atlas:complete", this);
+          this.jsonCache.save(`sd-frames`, this.atlas);
+          this.loaded = true;
           res();
         } else {
           workerStart(buckets[bucketId + 1]);
         }
       };
-    });
 
-    workerStart(buckets[0]);
+      const exists = await asyncFilter(buckets, async ({ bucketId }) => {
+        return (
+          (await this.textureCache.exists(`unit-${bucketId}`)) &&
+          (await this.textureCache.exists(`mask-${bucketId}`))
+        );
+      });
+
+      if (
+        exists.length === buckets.length &&
+        (await this.jsonCache.exists(`sd-atlas`))
+      ) {
+        try {
+          this.atlas = (await this.jsonCache.get(`sd-atlas`)).map(
+            (atlasImage) => new AtlasImage(atlasImage)
+          );
+
+          buckets.forEach(async ({ bucketId }) => {
+            const texture = await this.textureCache.get(`unit-${bucketId}`);
+            const mask = await this.textureCache.get(`mask-${bucketId}`);
+
+            this.textures[bucketId] = createTexture(
+              texture.data,
+              texture.width,
+              texture.height
+            );
+            this.masks[bucketId] = createTexture(
+              mask.data,
+              mask.width,
+              mask.height
+            );
+          });
+
+          this.loaded = true;
+          res();
+        } catch (e) {
+          console.log("error loading sprites from cache");
+          workerStart(buckets[0]);
+        }
+      } else {
+        workerStart(buckets[0]);
+      }
+    });
 
     await workersDone;
   }
 
-  async getFrame(file, frame, flip, remapping) {
-    throw new Error("reimplement using loaded atlas");
-    this.loadingManager.itemStart(file);
-    const buf = this._grp[file] || (await this.fileAccess(file));
-    this._grp[file] = buf;
-    const grp = new Grp(buf, Buffer);
-    const { data, x, y, w, h } = grp.decode(
-      frame,
-      this.tileset.palettes[remapping]
-    );
-    const map = imageToCanvasTexture(data, w, h, "rgba");
-    if (flip) {
-      map.wrapS = RepeatWrapping;
-      map.repeat.x = -1;
-    }
+  getMesh(image) {
+    const map = this.textures[this.atlas[image].bucketId];
+    //@todo implement mask
+    const [w, h] = this.maxDimensions[image];
+    debugger;
+    const sprite = new Sprite(new SpriteMaterial({ map }));
+    sprite.geometry = sprite.geometry.clone();
+    sprite.center = new Vector2(0.5, 0);
+    sprite.scale.set(w / 32, h / 32, 1);
+    sprite.material.transparent = true;
 
-    this.loadingManager.itemEnd(file);
-    return { map, w, h };
+    return sprite;
+  }
+
+  setFrame(mesh, imageId, frameId, flip) {
+    const f = frameId % 17;
+    const image = this.atlas[imageId];
+
+    mesh.geometry.setAttribute(
+      "uv",
+      new BufferAttribute(image.uv(f), 2, false)
+    );
   }
 
   load(file, name = "", userData = {}) {
@@ -230,5 +304,36 @@ export class LoadSprite {
     sprite.center = new Vector2(0.5, 0);
 
     return sprite;
+  }
+}
+
+class AtlasImage {
+  constructor(frames, w, h, bucketId) {
+    // hydrate if from json
+    if (frames.frames) {
+      Object.assign(this, frames);
+    } else {
+      this.frames = frames;
+      this.w = w;
+      this.h = h;
+      this.bucketId = bucketId;
+    }
+  }
+
+  uv(frame) {
+    return this._uv(this.frames[frame]);
+  }
+
+  _uv(frame) {
+    return new Float32Array([
+      frame.x / this.w,
+      1 - (frame.y + frame.h) / this.h,
+      frame.x / this.w,
+      1 - frame.y / this.h,
+      (frame.x + frame.w) / this.w,
+      1 - frame.y / this.h,
+      (frame.x + frame.w) / this.w,
+      1 - (frame.y + frame.h) / this.h,
+    ]);
   }
 }
