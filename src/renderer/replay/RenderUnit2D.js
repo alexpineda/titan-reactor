@@ -1,4 +1,5 @@
 import { DefaultLoadingManager, Group, SpriteMaterial, Vector3 } from "three";
+import { units } from "../../common/bwdat/units";
 
 export class RenderUnit2D {
   constructor(
@@ -19,6 +20,24 @@ export class RenderUnit2D {
 
   _unitPath(file) {
     return `${this.bwDataPath}/unit/${file}`;
+  }
+
+  useUnitPalette(unitType) {
+    switch (unitType) {
+      case units.startLocation:
+      case units.mineral1:
+      case units.mineral2:
+      case units.mineral3:
+      case units.ragnasaur:
+      case units.rhynadon:
+      case units.bengalaas:
+      case units.scantid:
+      case units.ursadon:
+      case units.kakaru:
+        return false;
+      default:
+        return true;
+    }
   }
 
   load(typeId, unit = new Group()) {

@@ -47,6 +47,7 @@ export class RenderUnit3D {
     const assignModel = (id) => (model) => {
       this.prefabs[id] = () => model.clone();
     };
+    //@todo use units.js from bwdat
     loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
     loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
     loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));

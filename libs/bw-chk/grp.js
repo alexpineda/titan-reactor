@@ -151,76 +151,7 @@ export class Grp {
       pos = pos + (surfW - w) * 3;
     }
   }
-
-  renderRGBA(
-    frame,
-    palette,
-    surface,
-    surfX,
-    surfY,
-    surfW,
-    surfH,
-    scaleX,
-    scaleY
-  ) {
-    const floor = Math.floor;
-
-    if (!this._buf) {
-      return;
-    }
-    const img = this.decode(frame, palette);
-    if (!img) {
-      return;
-    }
-    let w = floor(img.w * scaleX);
-    let h = floor(img.h * scaleY);
-    let x = floor(surfX + (img.x - this._buf.readUInt16LE(2) / 2) * scaleX);
-    let y = floor(surfY + (img.y - this._buf.readUInt16LE(4) / 2) * scaleY);
-    if (x < 0) {
-      w = w + x;
-      x = 0;
-    }
-    if (y < 0) {
-      h = h + y;
-      y = 0;
-    }
-    if (x + w > surfW) {
-      w = surfW - x;
-    }
-    if (y + h > surfH) {
-      h = surfH - y;
-    }
-
-    const value = (x, y, offset) => {
-      const x1 = floor((x / w) * img.w);
-      const x2 = floor(((x + 0.5) / w) * img.w);
-      const y1 = floor((y / h) * img.h);
-      const y2 = floor(((y + 0.5) / h) * img.h);
-      const a = img.data[(y1 * img.w + x1) * 4 + offset];
-      const b = img.data[(y2 * img.w + x1) * 4 + offset];
-      const c = img.data[(y1 * img.w + x2) * 4 + offset];
-      const d = img.data[(y2 * img.w + x2) * 4 + offset];
-      return (a + b + c + d) / 4;
-    };
-
-    let pos = (y * surfW + x) * 4;
-    for (let i = 0; i < h; i++) {
-      for (let j = 0; j < w; j++) {
-        const red = value(j, i, 0);
-        const green = value(j, i, 1);
-        const blue = value(j, i, 2);
-        const alpha = value(j, i, 3);
-        surface[pos + 0] = red;
-        surface[pos + 1] = green;
-        surface[pos + 2] = blue;
-        surface[pos + 3] = alpha;
-        pos = pos + 4;
-      }
-      pos = pos + (surfW - w) * 4;
-    }
-  }
 }
-
 // Mostly just a id -> key -> Grp mapping which shares
 // buffers when several ids have the same key.
 // Supports setting/getting by unit or sprite id.

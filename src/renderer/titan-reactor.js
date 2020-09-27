@@ -227,7 +227,7 @@ const loadReplay = async (filepath) => {
   let renderUnit;
   if (gameOptions.experience.sprites) {
     const spritesTextureCache = new TextureCache(
-      "sprite",
+      "sd",
       await getAppCachePath(),
       "rgba"
     );

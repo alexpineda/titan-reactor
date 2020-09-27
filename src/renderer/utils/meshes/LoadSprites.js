@@ -12,7 +12,7 @@ import { Buffer } from "buffer/";
 import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
 import { range } from "ramda";
 import Worker from "../packbin.worker.js";
-import { TextureCache } from "../../3d-map-rendering/textures/TextureCache";
+import { units } from "../../../common/bwdat/units";
 
 export class LoadSprite {
   constructor(
@@ -80,6 +80,24 @@ export class LoadSprite {
     };
     let bins = [];
 
+    const playerMaskPalette = new Buffer(this.tileset.palettes[0]);
+
+    for (let i = 0; i < playerMaskPalette.byteLength; i = i + 3) {
+      playerMaskPalette[i] = 0;
+      playerMaskPalette[i + 1] = 0;
+      playerMaskPalette[i + 2] = 0;
+    }
+
+    // using R value of the red player to determine mask alphas (tunit.pcx)
+    // @todo use RGBAInteger format in shader and use tunit.pcx to apply nuances in colors
+    const playerColors = [244, 168, 168, 132, 96, 72, 52, 16];
+
+    for (let i = 0; i < 8; i++) {
+      playerMaskPalette[(i + 0x8) * 4 + 0] = playerColors[i];
+      playerMaskPalette[(i + 0x8) * 4 + 1] = playerColors[i];
+      playerMaskPalette[(i + 0x8) * 4 + 2] = playerColors[i];
+    }
+
     const workersDone = new Promise(async (res, rej) => {
       worker.onmessage = ({ data }) => {
         const { result, bucketId } = data;
@@ -96,6 +114,7 @@ export class LoadSprite {
         const { w, h, rects } = result.pages[0];
 
         const out = new Buffer(w * h * 4);
+        const maskOut = new Buffer(w * h * 4);
 
         bufs.forEach((buf, i) => {
           const grp = new Grp(buf, Buffer);
@@ -107,10 +126,14 @@ export class LoadSprite {
           rects
             .filter((rect) => rect.data.imageId === i)
             .forEach((rect) => {
-              //@todo remap for player color magenta
-              const { data: color } = grp.decode(
+              const { data: grpData } = grp.decode(
                 rect.data.frame,
                 this.tileset.palettes[remapping]
+              );
+
+              const { data: playerMaskData } = grp.decode(
+                rect.data.frame,
+                playerMaskPalette
               );
 
               for (let y = 0; y < rect.h; y++) {
@@ -118,24 +141,29 @@ export class LoadSprite {
                   let pos = ((y + rect.y) * w + (x + rect.x)) * 4;
                   let spritePos = (y * rect.w + x) * 4;
 
-                  out[pos] = color[spritePos];
-                  out[pos + 1] = color[spritePos + 1];
-                  out[pos + 2] = color[spritePos + 2];
-                  out[pos + 3] = color[spritePos + 3];
+                  out[pos] = grpData[spritePos];
+                  out[pos + 1] = grpData[spritePos + 1];
+                  out[pos + 2] = grpData[spritePos + 2];
+                  out[pos + 3] = grpData[spritePos + 3];
+
+                  const maskAlpha = playerMaskData[spritePos] > 0 ? 255 : 0;
+                  maskOut[pos] = playerMaskData[spritePos];
+                  maskOut[pos + 1] = playerMaskData[spritePos + 1];
+                  maskOut[pos + 2] = playerMaskData[spritePos + 2];
+                  maskOut[pos + 3] = maskAlpha;
                 }
               }
             });
         });
 
-        this.textureCache.save(`sd-${bucketId}`, out, w, h);
+        this.textureCache.save(`unit-${bucketId}`, out, w, h);
+        this.textureCache.save(`mask-${bucketId}`, maskOut, w, h);
         this.jsonCache.save(`sd-${bucketId}`, { bucketId, rects });
 
         this.loadingManager.itemEnd(`sd-texture-packing-${bucketId}`);
 
         bins.push(data);
         if (bucketId === bucketSizes.length - 1) {
-          console.log("all complete");
-
           console.log(
             "total size",
             bins.reduce(
@@ -156,8 +184,8 @@ export class LoadSprite {
     await workersDone;
   }
 
-  //@todo get rid of async, load atlas
   async getFrame(file, frame, flip, remapping) {
+    throw new Error("reimplement using loaded atlas");
     this.loadingManager.itemStart(file);
     const buf = this._grp[file] || (await this.fileAccess(file));
     this._grp[file] = buf;
