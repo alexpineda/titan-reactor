@@ -35,7 +35,6 @@ export class LoadSprite {
     this.jsonCache = jsonCache;
     this.tileset = tileset;
     this.atlas = [];
-    this.maxDimensions = [];
     this.textures = [];
     this.masks = [];
     this.loaded = false;
@@ -67,10 +66,23 @@ export class LoadSprite {
       const boxes = bucket.flatMap((buf, imageId) => {
         const grp = new Grp(buf, Buffer);
         //since we're already initializing a Grp, document it's max dimensions for reference later
-        this.maxDimensions[imageId + imageOffset] = grp.maxDimensions();
+        const max = grp.maxDimensions();
         return range(0, grp.frameCount()).map((frame) => {
-          const { w, h } = grp.header(frame);
-          return { w, h, data: { imageId: imageId + imageOffset, frame } };
+          const { x, y, w, h } = grp.header(frame);
+          return {
+            w: max.w,
+            h: max.h,
+            data: {
+              imageId: imageId + imageOffset,
+              frame: {
+                frame,
+                x,
+                y,
+                w,
+                h,
+              },
+            },
+          };
         });
       });
 
@@ -120,16 +132,27 @@ export class LoadSprite {
       worker.onmessage = ({ data }) => {
         const { result, bucketId } = data;
         if (result.notPacked.length) {
-          throw new Error("frame was excluded");
+          rej({
+            err: new Error(`frame was excluded in bucket ${bucketId}`),
+            data: result,
+          });
         }
         if (result.pages.length === 0) {
-          throw new Error("no frames were packed");
+          rej({
+            err: new Error(`no frames were packed in bucket ${bucketId}`),
+            data: result,
+          });
         }
         if (result.pages.length > 1) {
-          throw new Error("multiple pages not implemented");
+          rej({
+            err: new Error(
+              `multiple pages not implemented in bucket ${bucketId}`
+            ),
+            data: result,
+          });
         }
 
-        const { w, h, rects: origRects } = result.pages[0];
+        const { w: pW, h: pH, rects: origRects } = result.pages[0];
         const rects = origRects.map(({ x, y, w, h, data }) => ({
           x,
           y,
@@ -138,8 +161,9 @@ export class LoadSprite {
           ...data,
           bucketId,
         }));
-        const out = new Buffer(w * h * 4);
-        const maskOut = new Buffer(w * h * 4);
+
+        const out = new Buffer(pW * pH * 4);
+        const maskOut = new Buffer(pW * pH * 4);
 
         //draw out
         bufs.forEach((buf, i) => {
@@ -151,35 +175,46 @@ export class LoadSprite {
 
           rects
             .filter((rect) => rect.imageId === i)
-            .forEach((rect) => {
-              const { data: grpData } = grp.decode(
-                rect.frame,
-                this.tileset.palettes[remapping]
-              );
+            .forEach(
+              ({
+                x: rX,
+                y: rY,
+                w: rW,
+                frame: { frame, x: fX, y: fY, w: fW, h: fH },
+              }) => {
+                const { data: grpData } = grp.decode(
+                  frame,
+                  this.tileset.palettes[remapping]
+                );
 
-              const { data: playerMaskData } = grp.decode(
-                rect.frame,
-                playerMaskPalette
-              );
+                const { data: playerMaskData } = grp.decode(
+                  frame,
+                  playerMaskPalette
+                );
 
-              for (let y = 0; y < rect.h; y++) {
-                for (let x = 0; x < rect.w; x++) {
-                  let pos = ((y + rect.y) * w + (x + rect.x)) * 4;
-                  let spritePos = (y * rect.w + x) * 4;
+                for (let y = 0; y < fH; y++) {
+                  for (let x = 0; x < fW; x++) {
+                    let pos = ((y + fY + rY) * pW + (x + fX + rX)) * 4;
+                    let spritePos = (y * fW + x) * 4;
 
-                  out[pos] = grpData[spritePos];
-                  out[pos + 1] = grpData[spritePos + 1];
-                  out[pos + 2] = grpData[spritePos + 2];
-                  out[pos + 3] = grpData[spritePos + 3];
+                    // rY + fy
+                    // let pos = ((y + rect.y) * w + (x + rect.x)) * 4;
+                    // let spritePos = (y * rect.w + x) * 4;
 
-                  const maskAlpha = playerMaskData[spritePos] > 0 ? 255 : 0;
-                  maskOut[pos] = playerMaskData[spritePos];
-                  maskOut[pos + 1] = playerMaskData[spritePos + 1];
-                  maskOut[pos + 2] = playerMaskData[spritePos + 2];
-                  maskOut[pos + 3] = maskAlpha;
+                    out[pos] = grpData[spritePos];
+                    out[pos + 1] = grpData[spritePos + 1];
+                    out[pos + 2] = grpData[spritePos + 2];
+                    out[pos + 3] = grpData[spritePos + 3];
+
+                    const maskAlpha = playerMaskData[spritePos] > 0 ? 255 : 0;
+                    maskOut[pos] = playerMaskData[spritePos];
+                    maskOut[pos + 1] = playerMaskData[spritePos + 1];
+                    maskOut[pos + 2] = playerMaskData[spritePos + 2];
+                    maskOut[pos + 3] = maskAlpha;
+                  }
                 }
               }
-            });
+            );
         });
 
         const frameGroups = Object.values(
@@ -187,14 +222,15 @@ export class LoadSprite {
         );
 
         const images = frameGroups.map(
-          (frames) => new AtlasImage(frames, w, h, bucketId)
+          (frames) => new AtlasImage(frames, pW, pH, bucketId)
         );
-        this.atlas = this.atlas.concat(images);
-        this.textureCache.save(`unit-${bucketId}`, out, w, h);
-        this.textureCache.save(`mask-${bucketId}`, maskOut, w, h);
 
-        this.textures[bucketId] = createTexture(out, w, h);
-        this.masks[bucketId] = createTexture(maskOut, w, h);
+        this.atlas = this.atlas.concat(images);
+        this.textureCache.save(`unit-${bucketId}`, out, pW, pH);
+        this.textureCache.save(`mask-${bucketId}`, maskOut, pW, pH);
+
+        this.textures[bucketId] = createTexture(out, pW, pH);
+        this.masks[bucketId] = createTexture(maskOut, pW, pH);
 
         this.loadingManager.itemEnd(`sd-texture-packing-${bucketId}`);
 
@@ -255,10 +291,9 @@ export class LoadSprite {
   }
 
   getMesh(image) {
-    const map = this.textures[this.atlas[image].bucketId];
+    const { bucketId, w, h } = this.atlas[image];
+    const map = this.textures[bucketId];
     //@todo implement mask
-    const [w, h] = this.maxDimensions[image];
-    debugger;
     const sprite = new Sprite(new SpriteMaterial({ map }));
     sprite.geometry = sprite.geometry.clone();
     sprite.center = new Vector2(0.5, 0);
@@ -308,32 +343,32 @@ export class LoadSprite {
 }
 
 class AtlasImage {
-  constructor(frames, w, h, bucketId) {
+  constructor(frameGroup, w, h, bucketId) {
     // hydrate if from json
-    if (frames.frames) {
-      Object.assign(this, frames);
+    if (frameGroup.frameGroup) {
+      Object.assign(this, frameGroup);
     } else {
-      this.frames = frames;
-      this.w = w;
-      this.h = h;
+      this.frameGroup = frameGroup;
+      this.pW = w;
+      this.pH = h;
       this.bucketId = bucketId;
     }
   }
 
   uv(frame) {
-    return this._uv(this.frames[frame]);
+    return this._uv(this.frameGroup[frame]);
   }
 
   _uv(frame) {
     return new Float32Array([
-      frame.x / this.w,
-      1 - (frame.y + frame.h) / this.h,
-      frame.x / this.w,
+      frame.x / this.pW,
+      1 - (frame.y + frame.h) / this.pH,
+      frame.x / this.pH,
       1 - frame.y / this.h,
-      (frame.x + frame.w) / this.w,
+      (frame.x + frame.w) / this.pW,
       1 - frame.y / this.h,
-      (frame.x + frame.w) / this.w,
-      1 - (frame.y + frame.h) / this.h,
+      (frame.x + frame.w) / this.pW,
+      1 - (frame.y + frame.h) / this.pH,
     ]);
   }
 }

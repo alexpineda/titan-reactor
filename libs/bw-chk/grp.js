@@ -17,7 +17,7 @@ export class Grp {
   }
 
   maxDimensions() {
-    return [this._buf.readUInt16LE(2), this._buf.readUInt16LE(4)];
+    return { w: this._buf.readUInt16LE(2), h: this._buf.readUInt16LE(4) };
   }
 
   header(frame) {
