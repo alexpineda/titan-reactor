@@ -197,10 +197,6 @@ export class LoadSprite {
                     let pos = ((y + fY + rY) * pW + (x + fX + rX)) * 4;
                     let spritePos = (y * fW + x) * 4;
 
-                    // rY + fy
-                    // let pos = ((y + rect.y) * w + (x + rect.x)) * 4;
-                    // let spritePos = (y * rect.w + x) * 4;
-
                     out[pos] = grpData[spritePos];
                     out[pos + 1] = grpData[spritePos + 1];
                     out[pos + 2] = grpData[spritePos + 2];
@@ -236,7 +232,7 @@ export class LoadSprite {
 
         if (bucketId === bucketSizes.length - 1) {
           console.log("atlas:complete", this);
-          this.jsonCache.save(`sd-frames`, this.atlas);
+          this.jsonCache.save(`sd-atlas`, this.atlas);
           this.loaded = true;
           res();
         } else {
@@ -251,6 +247,7 @@ export class LoadSprite {
         );
       });
 
+      console.log("cache test", exists.length, buckets.length);
       if (
         exists.length === buckets.length &&
         (await this.jsonCache.exists(`sd-atlas`))
@@ -303,13 +300,13 @@ export class LoadSprite {
     return sprite;
   }
 
+  //@todo implement flip
   setFrame(mesh, imageId, frameId, flip) {
     const f = frameId % 17;
     const image = this.atlas[imageId];
-
     mesh.geometry.setAttribute(
       "uv",
-      new BufferAttribute(image.uv(f), 2, false)
+      new BufferAttribute(image.uv(f, flip), 2, false)
     );
   }
 
@@ -349,6 +346,8 @@ class AtlasImage {
       Object.assign(this, frameGroup);
     } else {
       this.frameGroup = frameGroup;
+      this.w = frameGroup[0].w;
+      this.h = frameGroup[0].h;
       this.pW = w;
       this.pH = h;
       this.bucketId = bucketId;
@@ -359,16 +358,19 @@ class AtlasImage {
     return this._uv(this.frameGroup[frame]);
   }
 
-  _uv(frame) {
+  _uv(frame, flipFrame) {
     return new Float32Array([
       frame.x / this.pW,
       1 - (frame.y + frame.h) / this.pH,
-      frame.x / this.pH,
-      1 - frame.y / this.h,
-      (frame.x + frame.w) / this.pW,
-      1 - frame.y / this.h,
+
       (frame.x + frame.w) / this.pW,
       1 - (frame.y + frame.h) / this.pH,
+
+      (frame.x + frame.w) / this.pW,
+      1 - frame.y / this.pH,
+
+      frame.x / this.pW,
+      1 - frame.y / this.pH,
     ]);
   }
 }

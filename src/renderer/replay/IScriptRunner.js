@@ -13,6 +13,7 @@ export class IScriptRunner {
     // blocks that exist outside this "unit iscript"
     this.state = {
       children: [],
+      //@todo consider changing to delta
       waiting: 0,
       image: null,
       matchParentFrame: false,
@@ -22,8 +23,8 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: true,
       noBrkCode: false,
       ignoreRest: false,
-      frame: null,
-      prevFrame: null,
+      frame: 0,
+      prevFrame: -1,
       flipFrame: false,
       direction: 0,
       flDirect: undefined,

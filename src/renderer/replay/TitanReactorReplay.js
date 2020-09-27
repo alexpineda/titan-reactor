@@ -118,14 +118,7 @@ export async function TitanReactorReplay(
     chk.size[1]
   );
 
-  const units = new ReplayUnits(
-    bwDat,
-    renderUnit,
-    terrainY,
-    audioListener,
-    {},
-    openFile
-  );
+  const units = new ReplayUnits(bwDat, renderUnit, terrainY, audioListener, {});
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);

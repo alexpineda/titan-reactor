@@ -73,6 +73,9 @@ export class RenderUnit2D {
       userData.runner.state.flipFrame
     );
 
+    //temp
+    userData.runner.state.prevFrame = userData.runner.state.frame;
+
     // @todo render children
 
     const mesh = unit.userData.unitMesh;
