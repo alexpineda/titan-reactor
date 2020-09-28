@@ -16,6 +16,7 @@ import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
 import { difference } from "ramda";
+import { ReplayPosition } from "./ReplayPosition";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -56,6 +57,8 @@ export async function TitanReactorReplay(
     height: sceneHeight,
     antialias: true,
     shadowMap: true,
+    //@todo refactor out with renderer in 2d only
+    logarithmicDepthBuffer: true,
   });
 
   const [camera, cameraControls] = initCamera(renderer.domElement);
@@ -138,17 +141,17 @@ export async function TitanReactorReplay(
 
   let requestAnimationFrameId = null;
 
-  let worldFrame = 0;
-  let BWAPIFrameOffset = 0;
-  let initialSkipGameFrames = hot ? hot.BWAPIFrame : 0;
-  let numSkipGameFrames = 1;
-  let gameFrame = 0;
-  const physicsFrameSkip = 20;
+  let replayPosition = new ReplayPosition();
+  replayPosition.onResetState = () => {
+    unitsLastFrame = [];
+    unitsThisFrame = [];
+    units.clear();
+  };
 
   const keyDownListener = (e) => {
     if (e.code === "KeyP") {
       running = !running;
-      console.log("BWAPIFrame", gameFrame);
+      console.log("bwGameFrame", replayPosition.bwGameFrame);
     }
 
     if (e.code === "KeyG") {
@@ -156,19 +159,15 @@ export async function TitanReactorReplay(
     }
 
     if (e.code === "KeyS") {
-      if (numSkipGameFrames === 10) {
-        numSkipGameFrames = 1;
-      } else {
-        numSkipGameFrames = 10;
-      }
+      replayPosition.toggleSkipFrames();
     }
 
     if (e.code === "Digit0") {
-      resetTo = 0;
+      replayPosition.goto(0);
     }
   };
-  let resetTo;
-  window.goto = (frame) => (resetTo = frame);
+
+  window.goto = (frame) => replayPosition.goto(frame);
 
   document.addEventListener("keydown", keyDownListener);
 
@@ -194,37 +193,25 @@ export async function TitanReactorReplay(
       }
     };
 
-    if (intersects[0]) {
-      console.log("intersects", intersects[0]);
-      const unit = getAsUnit(intersects[0].object);
+    intersects.forEach(({ object }) => {
+      const unit = getAsUnit(object);
 
       if (unit) {
         console.log(unit);
       }
-    }
+    });
   };
   document.addEventListener("mousedown", mouseDownListener);
 
   let unitsLastFrame = [];
   let unitsThisFrame = [];
   function gameLoop() {
-    worldFrame++;
-
     units.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
     if (running && BWAPIFramesDataView) {
-      if (resetTo !== undefined) {
-        gameFrame = 0;
-        BWAPIFrameOffset = 0;
-        initialSkipGameFrames = resetTo;
-        unitsLastFrame = [];
-        unitsThisFrame = [];
-        units.clear();
-        resetTo = undefined;
-      }
       clearInfoDiv();
-      appendInfoDiv(`Frame: ${gameFrame}`);
+      appendInfoDiv(`Frame: ${replayPosition.bwGameFrame}`);
       appendInfoDiv(
         `Mem %: ${(
           window.performance.memory.usedJSHeapSize /
@@ -232,30 +219,29 @@ export async function TitanReactorReplay(
         ).toFixed(2)}`
       );
 
+      replayPosition.update();
+
       // if (BWAPIFramesDataView) {
-      gameloop: for (
-        let gf = 0;
-        gf < numSkipGameFrames + initialSkipGameFrames;
-        gf++
-      ) {
+      gameloop: for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
         // while (BWAPIFrame + gf < headers.durationFrames) {
         while (true) {
           const { frameData, frameSize } = BWAPIFrameFromBuffer(
             BWAPIFramesDataView,
-            BWAPIFrameOffset
+            replayPosition.bwapiBufferFrame
           );
 
           const unit = units.spawnIfNotExists(frameData);
           units.update(unit, frameData);
 
-          BWAPIFrameOffset = BWAPIFrameOffset + frameSize;
-          if (gameFrame === frameData.frame) {
+          replayPosition.bwapiBufferFrame =
+            replayPosition.bwapiBufferFrame + frameSize;
+          if (replayPosition.bwGameFrame === frameData.frame) {
             unitsThisFrame.push(frameData.repId);
           } else {
             units.killUnits(difference(unitsLastFrame, unitsThisFrame));
             unitsLastFrame = [...unitsThisFrame];
             unitsThisFrame = [frameData.repId];
-            gameFrame = frameData.frame;
+            replayPosition.bwGameFrame = frameData.frame;
             break;
           }
         }
@@ -263,7 +249,6 @@ export async function TitanReactorReplay(
       }
       units.updateDeadUnits();
     }
-    initialSkipGameFrames = 0;
 
     //#endregion
 
@@ -313,7 +298,7 @@ export async function TitanReactorReplay(
   };
   if (module.hot) {
     module.hot.dispose((data) => {
-      Object.assign(data, { camera, BWAPIFrame: BWAPIFrameOffset, filepath });
+      Object.assign(data, { camera, BWAPIFrame: bwapiBufferFrame, filepath });
       dispose();
     });
   }

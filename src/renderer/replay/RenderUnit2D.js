@@ -65,11 +65,7 @@ export class RenderUnit2D {
       return;
     }
 
-    if (window.dbg && window.dbg.repId === userData.repId) {
-      console.log("grp", userData.runner.state.image.grpFile);
-    }
-
-    const frameFloorOffset = this.loadSprite.setFrame(
+    this.loadSprite.setFrame(
       unit.userData.unitMesh,
       userData.runner.state.image.index,
       userData.runner.state.frame,

@@ -66,16 +66,20 @@ export class IScriptRunner {
     });
 
     if (header === -1) {
-      this.logger.log(`_animation block - local`, this);
+      this.logger.log("iscript", `_animation block - local`, this);
     } else {
-      this.logger.log(`_animation block - ${headersById[header]}`, this);
+      this.logger.log(
+        "iscript",
+        `_animation block - ${headersById[header]}`,
+        this
+      );
     }
 
     if (this.dbg && this.dbg.prevAnimBlock && this.dbg.prevAnimBlock.commands) {
       if (this.dbg.prevAnimBlock.commands.header === -1) {
-        this.logger.log(`prev anim - local`, this);
+        this.logger.log("iscript", `prev anim - local`, this);
       } else {
-        this.logger.log(`prev anim - ${headersById[header]}`, this);
+        this.logger.log("iscript", `prev anim - ${headersById[header]}`, this);
       }
     }
 
@@ -111,7 +115,7 @@ export class IScriptRunner {
   }
 
   _dispatch(command, event) {
-    this.logger.log(`dispatch ${command}`, event);
+    this.logger.log("iscript", `dispatch ${command}`, event);
     this.listeners[command] &&
       this.listeners[command].forEach((cb) => cb(event));
     return true;
@@ -404,7 +408,7 @@ export class IScriptRunner {
       case "__3e":
       case "__43":
         this.commandIndex++;
-        this.logger.log(command, "not implemented");
+        this.logger.log("iscript", command, "not implemented");
         break;
       default:
         this.commandIndex++;

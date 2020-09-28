@@ -6,7 +6,7 @@ import {
   WebGLCubeRenderTarget,
   CubeCamera,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { OrbitControls } from "../utils/OrbitalControls";
 
 //zoom in tighter allowed as teh angle is closer to 90deg above
 // rotating angle will then zoom out if outside the limit

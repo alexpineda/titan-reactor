@@ -9,6 +9,7 @@ import {
   LinearFilter,
   ClampToEdgeWrapping,
   BufferAttribute,
+  DynamicDrawUsage,
 } from "three";
 import { Grp } from "../../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
@@ -302,7 +303,15 @@ export class LoadSprite {
     const map = this.textures[bucketId];
     //@todo implement mask
     const sprite = new Sprite(new SpriteMaterial({ map }));
+
     sprite.geometry = sprite.geometry.clone();
+    const ba = new BufferAttribute(
+      new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+      2,
+      false
+    );
+    ba.usage = DynamicDrawUsage;
+    sprite.geometry.setAttribute("uv", ba);
     sprite.center = new Vector2(0.5, yOff);
     sprite.scale.set(w / 32, h / 32, 1);
     sprite.material.transparent = true;
@@ -315,12 +324,9 @@ export class LoadSprite {
     const f = frameId % 17;
     const image = this.atlas[imageId];
 
-    mesh.geometry.setAttribute(
-      "uv",
-      new BufferAttribute(image.uv(f, flip), 2, false)
-    );
-
-    return image.frameFloorOffset(image, frameId);
+    const uv = mesh.geometry.getAttribute("uv");
+    uv.set(image.uv(f, flip));
+    uv.needsUpdate = true;
   }
 
   load(file, name = "", userData = {}) {

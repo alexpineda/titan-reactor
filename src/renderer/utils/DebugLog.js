@@ -3,9 +3,12 @@ export class DebugLog {
     this.obj = obj;
   }
 
-  log(...args) {
+  log(module, ...args) {
     let log = () => {};
     if (window.dbg) {
+      if (window.dbg.modules && !window.dbg.modules.includes(module)) {
+        return log;
+      }
       if (window.dbg.all) {
         log = console.log;
       } else if (

@@ -131,12 +131,12 @@ export class ReplayUnits {
 
   // zerg spawn
   replaceWith(frameData, unit) {
+    unit.remove(unit.userData.unitMesh);
+    //@todo dispose any children material from runner spawns
+
     const {
       userData: { unitMesh },
     } = this.renderUnit.load(frameData.typeId);
-
-    //@todo dispose any children material from runner spawns
-    unit.remove(unitMesh);
 
     unit.userData.unitMesh = unitMesh;
     unit.add(unitMesh);
@@ -160,14 +160,14 @@ export class ReplayUnits {
     const z = current.y / 32 - 64;
 
     //@todo consider setting frame floor once to the lowest frame
-    const y = unitType.flyer() ? 6 : this.getTerrainY(x, z);
+    const y = unitType.flyer() || current.lifted() ? 6 : this.getTerrainY(x, z);
     const position = new Vector3(x, y, z);
     const rotationY = -current.angle + Math.PI / 2;
 
     unit.position.copy(position);
     unit.rotation.y = rotationY;
 
-    // unit.visible = window.showAlive ? true : current.alive;
+    unit.visible = window.showAlive ? true : current.alive;
     unit.visible = unit.visible && !current.loaded();
 
     // const rotation = new Quaternion();
@@ -202,16 +202,17 @@ export class ReplayUnits {
     const usingWeaponType = (air) =>
       current.groundWeaponCooldown && air && targetIsAir();
 
-    const toIdle = () => {
-      if (usingWeaponType()) {
+    const toIdle = (header) => {
+      if (header) {
+        run(header);
+      } else if (usingWeaponType()) {
         run(headers.gndAttkToIdle);
       } else if (usingWeaponType(true)) {
         run(headers.airAttkToIdle);
       } else if (current.moving()) {
         run(headers.walkingToIdle);
-      } else {
-        run(headers.workingToIdle);
       }
+      //workingToIdle
     };
 
     const toAttack = () => {
@@ -222,15 +223,16 @@ export class ReplayUnits {
     if (!runner.state.noBrkCode) {
       if (current.order !== previous.order) {
         current.lastOrder = previous.order;
-        logger.log(`order ${ordersById[current.order]}`);
+        logger.log("units", `order ${ordersById[current.order]}`);
 
         switch (current.order) {
+          case orders.harvest1:
           case orders.moveToMinerals:
             run(headers.walking);
             break;
-          // case orders.harvest1:
-          //   run(headers.working);
-
+          case orders.die:
+            console.log("die", unit);
+            break;
           case orders.stop:
           case orders.gaurd:
           case orders.playerGaurd:
@@ -253,11 +255,16 @@ export class ReplayUnits {
           case orders.buildingLand:
             run(headers.landing);
             break;
+          case orders.zergBirth:
+          case orders.zergBuildingMorph:
+          case orders.zergUnitMorph:
+            logger.log("units", "zerg details", unit);
+            break;
         }
       }
 
       if (current.subOrder !== previous.subOrder) {
-        logger.log(`subOrder ${ordersById[current.subOrder]}`);
+        logger.log("units", `subOrder ${ordersById[current.subOrder]}`);
       }
       // if (
       //   current.groundWeaponCooldown &&
@@ -386,7 +393,8 @@ export class ReplayUnits {
   }
 
   clear() {
-    this.units = new Group();
+    //@todo dispose without fucking up materials
+    this.units.children.forEach((child) => this.units.remove(child));
     this.deadUnits = [];
   }
 
