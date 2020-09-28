@@ -2,12 +2,14 @@ import {
   iscriptHeaders as headers,
   headersById,
 } from "../../common/bwdat/iscriptHeaders";
+import { DebugLog } from "../utils/DebugLog";
 
 export class IScriptRunner {
   constructor(bwDat, iscriptId, parent, state = {}, listeners = {}) {
     this.bwDat = bwDat;
     // unit if its the first IScript runner, or IScriptRunner if it is a child
     this.parent = parent;
+    this.logger = new DebugLog({ ...parent, iscriptId });
     this.iscript = bwDat.iscript.iscripts[iscriptId];
     this.hasRunAnimationBlockAtLeastOnce = {};
     // blocks that exist outside this "unit iscript"
@@ -24,10 +26,9 @@ export class IScriptRunner {
       noBrkCode: false,
       ignoreRest: false,
       frame: 0,
-      prevFrame: -1,
+      prevFrame: 0,
       flipFrame: false,
       direction: 0,
-      flDirect: undefined,
       ...state,
     };
     this.listeners = listeners;
@@ -65,16 +66,16 @@ export class IScriptRunner {
     });
 
     if (header === -1) {
-      this.debugLog(`_animation block - local`, this);
+      this.logger.log(`_animation block - local`, this);
     } else {
-      this.debugLog(`_animation block - ${headersById[header]}`, this);
+      this.logger.log(`_animation block - ${headersById[header]}`, this);
     }
 
     if (this.dbg && this.dbg.prevAnimBlock && this.dbg.prevAnimBlock.commands) {
       if (this.dbg.prevAnimBlock.commands.header === -1) {
-        this.debugLog(`prev anim - local`, this);
+        this.logger.log(`prev anim - local`, this);
       } else {
-        this.debugLog(`prev anim - ${headersById[header]}`, this);
+        this.logger.log(`prev anim - ${headersById[header]}`, this);
       }
     }
 
@@ -109,33 +110,8 @@ export class IScriptRunner {
     this.listeners[command].push(cb);
   }
 
-  debugLog(...args) {
-    let log = () => {};
-    if (window.dbg) {
-      if (window.dbg.all) {
-        log = console.log;
-      } else if (
-        window.dbg.iscriptId !== undefined &&
-        this.iscript.id === window.dbg.iscriptId
-      ) {
-        log = console.log;
-      } else if (
-        window.dbg.repId !== undefined &&
-        this.parent.repId === window.dbg.repId
-      ) {
-        log = console.log;
-      } else if (
-        window.dbg.typeId !== undefined &&
-        this.parent.typeId === window.dbg.typeId
-      ) {
-        log = console.log;
-      }
-    }
-    log.call(log, args);
-  }
-
   _dispatch(command, event) {
-    this.debugLog(`dispatch ${command}`, event);
+    this.logger.log(`dispatch ${command}`, event);
     this.listeners[command] &&
       this.listeners[command].forEach((cb) => cb(event));
     return true;
@@ -321,18 +297,21 @@ export class IScriptRunner {
   }
 
   __playfram(frame) {
-    this.state.prevFrame = frame;
     //frameset
-    if (frame % 17 === 0) {
+    if (this.state.image.gfxTurns && frame % 17 === 0) {
       this._setFrameBasedOnDirection(frame);
       this._dispatch("playfram", { frameset: frame, frame: this.state.frame });
     } else {
-      this.state.flipFrame = false;
-      this.state.frame = frame;
+      this.setFrame(frame, false);
       this._dispatch("playfram", frame);
     }
   }
 
+  setFrame(frame, flip) {
+    this.state.prevFrame = this.state.frame;
+    this.state.flipFrame = flip;
+    this.state.frame = frame;
+  }
   _getParentDirection(obj) {
     if (!obj.repId) {
       return this._getParentDirection(obj.parent);
@@ -342,8 +321,7 @@ export class IScriptRunner {
 
   _setFrameBasedOnDirection(offset) {
     const dir = this._getParentDirection(this.parent);
-    this.state.frame = offset + dir;
-    this.state.flipFrame = dir > 15;
+    this.setFrame(offset + dir, dir > 15);
   }
 
   __ignorerest() {
@@ -370,6 +348,8 @@ export class IScriptRunner {
       }
       return nextAnimationBlock;
     }
+
+    //@todo use state.image.useFullIscript to filter out headers
 
     const [command, args] = this.commands[this.commandIndex];
     switch (command) {
@@ -424,7 +404,7 @@ export class IScriptRunner {
       case "__3e":
       case "__43":
         this.commandIndex++;
-        this.debugLog(command, "not implemented");
+        this.logger.log(command, "not implemented");
         break;
       default:
         this.commandIndex++;

@@ -56,9 +56,12 @@ export class RenderUnit2D {
     return this.load(typeId, unit);
   }
 
-  async update(unit) {
+  update(unit) {
     const { userData } = unit;
-    if (userData.runner.state.frame === userData.runner.state.prevFrame) {
+    if (
+      userData.runner.state.frame &&
+      userData.runner.state.frame === userData.runner.state.prevFrame
+    ) {
       return;
     }
 
@@ -66,7 +69,7 @@ export class RenderUnit2D {
       console.log("grp", userData.runner.state.image.grpFile);
     }
 
-    this.loadSprite.setFrame(
+    const frameFloorOffset = this.loadSprite.setFrame(
       unit.userData.unitMesh,
       userData.runner.state.image.index,
       userData.runner.state.frame,
@@ -74,7 +77,7 @@ export class RenderUnit2D {
     );
 
     //temp
-    userData.runner.state.prevFrame = userData.runner.state.frame;
+    // userData.runner.state.prevFrame = userData.runner.state.frame;
 
     // @todo render children
 

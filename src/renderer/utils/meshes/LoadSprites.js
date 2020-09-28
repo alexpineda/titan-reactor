@@ -13,7 +13,7 @@ import {
 import { Grp } from "../../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
 import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
-import { range, groupBy, all } from "ramda";
+import { range, groupBy, all, flip } from "ramda";
 import Worker from "../packbin.worker.js";
 import { asyncFilter } from "./async";
 
@@ -247,7 +247,6 @@ export class LoadSprite {
         );
       });
 
-      console.log("cache test", exists.length, buckets.length);
       if (
         exists.length === buckets.length &&
         (await this.jsonCache.exists(`sd-atlas`))
@@ -289,11 +288,22 @@ export class LoadSprite {
 
   getMesh(image) {
     const { bucketId, w, h } = this.atlas[image];
+
+    const maxFrameBottom = this.atlas[image].frameGroup.reduce(
+      (max, { h, frame }) => {
+        if (h - frame.h - frame.y > max) {
+          max = h - frame.h - frame.y;
+        }
+        return max;
+      },
+      0
+    );
+    const yOff = maxFrameBottom / this.atlas[image].frameGroup[0].h;
     const map = this.textures[bucketId];
     //@todo implement mask
     const sprite = new Sprite(new SpriteMaterial({ map }));
     sprite.geometry = sprite.geometry.clone();
-    sprite.center = new Vector2(0.5, 0);
+    sprite.center = new Vector2(0.5, yOff);
     sprite.scale.set(w / 32, h / 32, 1);
     sprite.material.transparent = true;
 
@@ -304,10 +314,13 @@ export class LoadSprite {
   setFrame(mesh, imageId, frameId, flip) {
     const f = frameId % 17;
     const image = this.atlas[imageId];
+
     mesh.geometry.setAttribute(
       "uv",
       new BufferAttribute(image.uv(f, flip), 2, false)
     );
+
+    return image.frameFloorOffset(image, frameId);
   }
 
   load(file, name = "", userData = {}) {
@@ -354,23 +367,44 @@ class AtlasImage {
     }
   }
 
-  uv(frame) {
-    return this._uv(this.frameGroup[frame]);
+  frameFloorOffset(image, frameId) {
+    const frame = image.frameGroup[frameId].frame;
+
+    return (image.h - frame.h - frame.y) / 32;
+  }
+
+  uv(frame, flipFrame) {
+    return this._uv(this.frameGroup[frame], flipFrame);
   }
 
   _uv(frame, flipFrame) {
-    return new Float32Array([
-      frame.x / this.pW,
-      1 - (frame.y + frame.h) / this.pH,
+    if (frame === undefined) debugger;
+    return flipFrame
+      ? new Float32Array([
+          (frame.x + frame.w) / this.pW,
+          1 - (frame.y + frame.h) / this.pH,
 
-      (frame.x + frame.w) / this.pW,
-      1 - (frame.y + frame.h) / this.pH,
+          frame.x / this.pW,
+          1 - (frame.y + frame.h) / this.pH,
 
-      (frame.x + frame.w) / this.pW,
-      1 - frame.y / this.pH,
+          frame.x / this.pW,
+          1 - frame.y / this.pH,
 
-      frame.x / this.pW,
-      1 - frame.y / this.pH,
-    ]);
+          (frame.x + frame.w) / this.pW,
+          1 - frame.y / this.pH,
+        ])
+      : new Float32Array([
+          frame.x / this.pW,
+          1 - (frame.y + frame.h) / this.pH,
+
+          (frame.x + frame.w) / this.pW,
+          1 - (frame.y + frame.h) / this.pH,
+
+          (frame.x + frame.w) / this.pW,
+          1 - frame.y / this.pH,
+
+          frame.x / this.pW,
+          1 - frame.y / this.pH,
+        ]);
   }
 }

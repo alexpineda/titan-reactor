@@ -10,6 +10,8 @@ import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
 import { path } from "ramda";
 import { iscriptHeaders as headers } from "../../common/bwdat/iscriptHeaders";
+import { orders, ordersById } from "../../common/bwdat/orders";
+import { DebugLog } from "../utils/DebugLog";
 
 const red = new Color(0x990000);
 const green = new Color(0x009900);
@@ -86,6 +88,7 @@ export class ReplayUnits {
       }
     );
     unit.userData.runner.toAnimationBlock(headers.init);
+    // unit.visible = false;
 
     !replacingUnitType && this._initAudio(unit);
     this.units.add(unit);
@@ -133,6 +136,7 @@ export class ReplayUnits {
     } = this.renderUnit.load(frameData.typeId);
 
     //@todo dispose any children material from runner spawns
+    unit.remove(unitMesh);
 
     unit.userData.unitMesh = unitMesh;
     unit.add(unitMesh);
@@ -140,18 +144,22 @@ export class ReplayUnits {
   }
 
   update(unit, frameData) {
+    const logger = new DebugLog(unit);
     const previous = (unit.userData.previous = unit.userData.current);
     const current = (unit.userData.current = frameData);
+    current.lastOrder = previous.lastOrder;
 
     if (current.frame > 0 && current.typeId != previous.typeId) {
       this.replaceWith(current, unit);
     }
 
+    const runner = unit.userData.runner;
     const unitType = this.bwDat.units[unit.userData.typeId];
 
     const x = current.x / 32 - 64;
     const z = current.y / 32 - 64;
 
+    //@todo consider setting frame floor once to the lowest frame
     const y = unitType.flyer() ? 6 : this.getTerrainY(x, z);
     const position = new Vector3(x, y, z);
     const rotationY = -current.angle + Math.PI / 2;
@@ -177,10 +185,11 @@ export class ReplayUnits {
     unit.userData.nextPosition = new Vector3();
     unit.userData.nextPosition.copy(unit.position);
 
-    const runner = unit.userData.runner;
     const isNow = (prop) => current[prop]() && !previous[prop]();
     const was = (prop) => !current[prop]() && previous[prop]();
     const run = (section) => runner.toAnimationBlock(section);
+    const order = (orderType) =>
+      current.order !== previous.order && orderType === current.order;
     const target = this.units.children.find(
       ({ userData }) =>
         userData.repId === (current.targetRepId || current.orderTargetRepId)
@@ -190,54 +199,101 @@ export class ReplayUnits {
         return target.userData.current.flying();
       }
     };
+    const usingWeaponType = (air) =>
+      current.groundWeaponCooldown && air && targetIsAir();
 
+    const toIdle = () => {
+      if (usingWeaponType()) {
+        run(headers.gndAttkToIdle);
+      } else if (usingWeaponType(true)) {
+        run(headers.airAttkToIdle);
+      } else if (current.moving()) {
+        run(headers.walkingToIdle);
+      } else {
+        run(headers.workingToIdle);
+      }
+    };
+
+    const toAttack = () => {
+      targetIsAir() ? run(headers.airAttkInit) : run(headers.gndAttkInit);
+    };
+
+    //@todo let die order indicate deaths not other method
     if (!runner.state.noBrkCode) {
-      //@todo
-      //if cooldown timer && repeatAttk run(repeatAttk)
+      if (current.order !== previous.order) {
+        current.lastOrder = previous.order;
+        logger.log(`order ${ordersById[current.order]}`);
 
-      if (isNow("attacking") && unit.material) {
-        unit.material.color = red;
-        unit.material.needsUpdate = true;
-      } else if (was("attacking") && unit.material) {
-        unit.material.color = white;
-        unit.material.needsUpdate = true;
-      }
+        switch (current.order) {
+          case orders.moveToMinerals:
+            run(headers.walking);
+            break;
+          // case orders.harvest1:
+          //   run(headers.working);
 
-      if (
-        current.groundWeaponCooldown &&
-        !previous.groundWeaponCooldown &&
-        !targetIsAir()
-      ) {
-        run(headers.gndAttkInit);
-      } else if (
-        current.airWeaponCooldown &&
-        !previous.airWeaponCooldown &&
-        targetIsAir()
-      ) {
-        run(headers.airAttkInit);
-      }
-
-      if (
-        !current.groundWeaponCooldown &&
-        previous.groundWeaponCooldown &&
-        !targetIsAir()
-      ) {
-        if (runner.state.repeatAttackAfterCooldown) {
-          run(headers.gndAttkRpt);
-        } else {
-          run(headers.gndAttkToIdle);
-        }
-      } else if (
-        !current.airWeaponCooldown &&
-        previous.airdWeaponCooldown &&
-        targetIsAir()
-      ) {
-        if (runner.state.repeatAttackAfterCooldown) {
-          run(headers.airAttkRpt);
-        } else {
-          run(headers.airAttkToIdle);
+          case orders.stop:
+          case orders.gaurd:
+          case orders.playerGaurd:
+          case orders.turretGaurd:
+          case orders.bunkerGaurd:
+          case orders.stopReaver:
+          case orders.towerGaurd:
+            toIdle();
+            break;
+          case orders.attack1:
+          case orders.attack2:
+          case orders.attackUnit:
+          case orders.attackFixedRange:
+          case orders.attackTile:
+            toAttack();
+            break;
+          case orders.buildingLiftOff:
+            run(headers.liftOff);
+            break;
+          case orders.buildingLand:
+            run(headers.landing);
+            break;
         }
       }
+
+      if (current.subOrder !== previous.subOrder) {
+        logger.log(`subOrder ${ordersById[current.subOrder]}`);
+      }
+      // if (
+      //   current.groundWeaponCooldown &&
+      //   !previous.groundWeaponCooldown &&
+      //   !targetIsAir()
+      // ) {
+      //   run(headers.gndAttkInit);
+      // } else if (
+      //   current.airWeaponCooldown &&
+      //   !previous.airWeaponCooldown &&
+      //   targetIsAir()
+      // ) {
+      //   run(headers.airAttkInit);
+      // }
+
+      // if (
+      //   !current.groundWeaponCooldown &&
+      //   previous.groundWeaponCooldown &&
+      //   !targetIsAir()
+      // ) {
+      //   if (runner.state.repeatAttackAfterCooldown) {
+      //     run(headers.gndAttkRpt);
+      //   } else {
+      //     run(headers.gndAttkToIdle);
+      //   }
+      // } else if (
+      //   !current.airWeaponCooldown &&
+      //   previous.airdWeaponCooldown &&
+      //   targetIsAir()
+      // ) {
+      //   if (runner.state.repeatAttackAfterCooldown) {
+      //     run(headers.airAttkRpt);
+      //   } else {
+      //     run(headers.airAttkToIdle);
+      //   }
+      // }
 
       // if (isNow("moving")) {
       //   run(headers.walking);
@@ -245,33 +301,34 @@ export class ReplayUnits {
       //   run(headers.walkingToIdle);
       // }
 
-      if (isNow("lifted")) {
-        run(headers.liftOff);
-      } else if (was("lifted")) {
-        run(headers.landing);
+      // if (isNow("burrowed")) {
+      //   run(headers.burrow);
+      // } else if (was("burrowed")) {
+      //   run(headers.unBurrow);
+      // }
+
+      if (isNow("completed")) {
+        // unit.visible = true;
+        if (unitType.building()) {
+          run(headers.built);
+        }
       }
 
-      if (isNow("burrowed")) {
-        run(headers.burrow);
-      } else if (was("burrowed")) {
-        run(headers.unBurrow);
-      }
-
-      if (isNow("completed") && unitType.building()) {
-        run(headers.built);
-      }
+      // if (current.frame === 0) {
+      //   unit.visible = true;
+      // }
 
       //@todo verify validity for zerg & protoss
-      if (
-        current.remainingBuildTime &&
-        unitType.building() &&
-        (unitType.zerg() || unitType.terran()) &&
-        current.remainingBuildTime / unitType.buildTime < 0.4 &&
-        runner.commands.header !== headers.almostBuilt &&
-        !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
-      ) {
-        run(headers.almostBuilt);
-      }
+      // if (
+      //   current.remainingBuildTime &&
+      //   unitType.building() &&
+      //   (unitType.zerg() || unitType.terran()) &&
+      //   current.remainingBuildTime / unitType.buildTime < 0.4 &&
+      //   runner.commands.header !== headers.almostBuilt &&
+      //   !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
+      // ) {
+      //   run(headers.almostBuilt);
+      // }
     }
     /*
     iscriptHeaders.castSpell
