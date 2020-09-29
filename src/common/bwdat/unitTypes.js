@@ -119,6 +119,7 @@ export const unitTypeIdByName = {
   geyser: 0xbc,
   darkSwarm: 0xca,
   startLocation: 0xd6,
+  none: 0xe4,
 };
 
 export const unitsByTypeId = invertObj(unitTypeIdByName);

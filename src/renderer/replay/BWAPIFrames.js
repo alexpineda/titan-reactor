@@ -237,8 +237,8 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
   const subOrder = view.getInt32();
   const groundWeaponCooldown = view.getInt32();
   const airWeaponCooldown = view.getInt32();
-  const targetRepId = view.getInt32();
-  const orderTargetRepId = view.getInt32();
+  const target = view.getInt32();
+  const orderTarget = view.getInt32();
   const remainingBuildTime = view.getInt32();
   const flagsA = view.getUint8();
   const flagsB = view.getUint8();
@@ -265,8 +265,8 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
       subOrder,
       groundWeaponCooldown,
       airWeaponCooldown,
-      targetRepId,
-      orderTargetRepId,
+      target,
+      orderTarget,
       remainingBuildTime,
       flagsA,
       flagsB,

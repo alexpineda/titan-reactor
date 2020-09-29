@@ -9,30 +9,30 @@ export class DebugLog {
   }
 
   log(...args) {
-    let log = () => {};
+    let log = false;
     if (window.dbg) {
       if (window.dbg.modules && !window.dbg.modules.includes(this.module)) {
-        return log;
+        return;
       }
       if (window.dbg.all) {
-        log = console.log;
+        log = true;
       } else if (
         window.dbg.iscriptId !== undefined &&
         this.obj.iscriptId === window.dbg.iscriptId
       ) {
-        log = console.log;
+        log = true;
       } else if (
         window.dbg.repId !== undefined &&
         this.obj.repId === window.dbg.repId
       ) {
-        log = console.log;
+        log = true;
       } else if (
         window.dbg.typeId !== undefined &&
         this.obj.typeId === window.dbg.typeId
       ) {
-        log = console.log;
+        log = true;
       }
     }
-    log.call(log, args);
+    log && console.log(...args);
   }
 }

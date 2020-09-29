@@ -181,8 +181,8 @@ export class UnitsDAT extends DAT {
 
     this.format = [
       { size: 1, name: "flingy", get: (i) => flingy[i] },
-      { size: 2, name: "subUnit1", get: this._datValue("Units") },
-      { size: 2, name: "subUnit2", get: this._datValue("Units") },
+      { size: 2, name: "subUnit1" },
+      { size: 2, name: "subUnit2" },
       {
         size: 2,
         name: "infestation",

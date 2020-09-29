@@ -42,7 +42,7 @@ export class ReplayUnits {
     // more of a cache for the moment
     this.audioPool = audioPool;
     this.renderUnit = renderUnit;
-
+    this.logger = new DebugLog("units");
     //@todo refactor out
     this.renderUnit.loadAssets && this.renderUnit.loadAssets();
   }
@@ -60,45 +60,43 @@ export class ReplayUnits {
 
   _spawn(frameData, replacingUnitType, skippingFrames) {
     const unit = replacingUnitType || this.renderUnit.load(frameData.typeId);
+
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
-
     unit.userData.current = frameData;
     unit.userData.repId = frameData.repId;
     unit.userData.typeId = frameData.typeId;
+    unit.userData.currentOrder = {};
     unit.name = this.bwDat.units[unit.userData.typeId].name;
 
     unit.userData._active = new Mesh(
       new ConeGeometry(0.5, 2),
-      new MeshBasicMaterial({ color: 0x0000ff })
+      new MeshBasicMaterial({ color: 0xffff00 })
     );
     unit.userData._active.position.y = 4;
-    unit.userData._active.y = Math.PI;
-    unit.userData._active.material.transparent = true;
-    unit.userData._active.material.opacity = 0.2;
+    unit.userData._active.rotation.x = Math.PI;
     unit.userData._active.visible = false;
     unit.add(unit.userData._active);
 
-    unit.userData.runner = new IScriptRunner(
-      this.bwDat,
-      path(
-        ["flingy", "sprite", "image", "iscript"],
-        this.bwDat.units[unit.userData.typeId]
-      ),
-      {
-        typeId: unit.userData.typeId,
-        repId: unit.userData.repId,
-        lifted: () => unit.userData.current.lifted(),
-        direction: () => angleToDirection(unit.userData.current.angle),
-      },
-      {
-        image: path(
-          ["flingy", "sprite", "image"],
-          this.bwDat.units[unit.userData.typeId]
-        ),
-      }
-    );
+    unit.userData.runner = this._initRunner({
+      typeId: unit.userData.typeId,
+      directionFn: () => angleToDirection(unit.userData.current.angle),
+    });
     unit.userData.runner.toAnimationBlock(headers.init);
+
+    if (this.bwDat.units[frameData.typeId].subUnit1 !== unitTypeIdByName.none) {
+      const subUnit = this.renderUnit.load(
+        this.bwDat.units[frameData.typeId].subUnit1
+      );
+      subUnit.position.z = 0.01;
+      subUnit.userData.runner = this._initRunner({
+        typeId: this.bwDat.units[frameData.typeId].subUnit1,
+        directionFn: null,
+      });
+      unit.userData.subUnit = subUnit;
+      unit.add(subUnit);
+    }
+
     // unit.visible = false;
 
     !replacingUnitType && this._initAudio(unit);
@@ -106,7 +104,22 @@ export class ReplayUnits {
     return unit;
   }
 
+  _initRunner({ typeId, directionFn }) {
+    return new IScriptRunner(
+      this.bwDat,
+      path(["flingy", "sprite", "image", "iscript"], this.bwDat.units[typeId]),
+      {
+        typeId,
+        directionFn,
+      },
+      {
+        image: path(["flingy", "sprite", "image"], this.bwDat.units[typeId]),
+      }
+    );
+  }
+
   _initAudio(unit) {
+    this.logger.assign(unit.userData);
     const unitSound = new PositionalAudio(this.audioListener);
     unit.add(unitSound);
 
@@ -114,6 +127,12 @@ export class ReplayUnits {
       if (unitSound.isPlaying) {
         return;
       }
+      this.logger.log(
+        `%c play sound ${soundId}`,
+        "background: #ffff00; color: #000000"
+      );
+
+      this.logger.log(`play sound ${soundId}`);
       if (this.audioPool[soundId]) {
         unitSound.setBuffer(this.audioPool[soundId]);
         unitSound.play();
@@ -155,9 +174,11 @@ export class ReplayUnits {
   }
 
   update(unit, frameData, skippingFrames) {
+    this.logger.assign(unit.userData);
+
     const previous = (unit.userData.previous = unit.userData.current);
     const current = (unit.userData.current = frameData);
-    const logger = new DebugLog("unit:update", current);
+    const currentOrder = unit.userData.currentOrder;
 
     if (window.dbg) {
       unit.userData._active.visible = window.dbg.repId === current.repId;
@@ -203,45 +224,59 @@ export class ReplayUnits {
     const isNow = (prop) => current[prop]() && !previous[prop]();
     const was = (prop) => !current[prop]() && previous[prop]();
     const run = (section) => runner.toAnimationBlock(section);
-    const target = this.units.children.find(({ userData }) =>
-      [current.targetRepId, current.orderTargetRepId].includes(userData.repId)
-    );
+    const target = () =>
+      this.units.children.find(({ userData }) =>
+        [currentOrder.target, currentOrder.orderTarget].includes(userData.repId)
+      );
     const targetIsAir = () => {
+      const t = target();
       return (
-        target &&
-        (this.bwDat.units[target.userData.typeId].flyer() ||
-          unit.userData.buildingLifted)
+        t &&
+        (this.bwDat.units[t.userData.typeId].flyer() ||
+          t.userData.buildingLifted)
       );
     };
-    const usingWeaponType = (air) =>
-      current.groundWeaponCooldown && air && targetIsAir();
-
-    // const toIdle = (header) => {
-    //   if (header) {
-    //     run(header);
-    //   } else if (usingWeaponType()) {
-    //     run(headers.gndAttkToIdle);
-    //   } else if (usingWeaponType(true)) {
-    //     run(headers.airAttkToIdle);
-    //   } else if (
-    //     current.lastOrder == orders.move ||
-    //     current.lastOrder == orders.attackMove
-    //   ) {
-    //     run(headers.walkingToIdle);
-    //   }
-
-    //   //workingToIdle
-    // };
 
     const toAttack = () => {
       targetIsAir() ? run(headers.airAttkInit) : run(headers.gndAttkInit);
     };
 
+    if (runner.state.frameset !== null) {
+      runner.setFrameBasedOnDirection(angleToDirection(current.angle));
+    }
+    runner.update();
+
+    // some state we persist from iscript state
+    //@todo what are teh cases where these get overwritten if these are dispatched on the first frame??
+    if (runner.dispatched["gotorepeatattk"]) {
+      currentOrder.repeatAttackAfterCooldown = true;
+    }
+
+    if (runner.dispatched["attackwith"]) {
+      currentOrder.usingWeaponType = runner.dispatched["attackwith"];
+    }
+
     //@todo let die order indicate deaths not other method
     if (!runner.state.noBrkCode) {
       if (current.order !== previous.order) {
-        unit.userData.lastOrder = previous.order;
-        logger.log("units", `order ${ordersById[current.order]}`);
+        Object.assign(currentOrder, {
+          order: current.order,
+          prevOrder: previous.order,
+          target: current.target,
+          orderTarget: current.orderTarget,
+          repeatAttackAfterCooldown: null,
+          usingWeaponType: null,
+        });
+
+        //for cool down reasons
+        if (current.target !== -1 || current.orderTarget !== -1) {
+          currentOrder.lastTargetWasAir = targetIsAir();
+        }
+
+        this.logger.log(
+          `%c order ${ordersById[current.order]}`,
+          "background: #222; color: #bada55"
+        );
 
         switch (current.order) {
           case orders.move:
@@ -289,6 +324,9 @@ export class ReplayUnits {
             // toIdle();
             break;
           case orders.attackUnit:
+          // if (unit.userData.repId === 3561) {
+          //   debugger;
+          // }
           case orders.attackFixedRange:
           case orders.attackTile:
             toAttack();
@@ -307,7 +345,6 @@ export class ReplayUnits {
           case orders.zergBirth: //egg->unit or coccoon -> unit
           case orders.zergBuildingMorph:
           case orders.zergUnitMorph: //larva->egg
-            logger.log("zerg details", unit);
             break;
           case orders.burrowing:
             run(headers.burrow);
@@ -316,7 +353,7 @@ export class ReplayUnits {
             run(headers.unBurrow);
             break;
           case orders.burrowed:
-            run(headers.specialState1);
+            run(headers.specialState2);
             break;
           case orders.larva:
             run(headers.walking);
@@ -325,11 +362,11 @@ export class ReplayUnits {
       }
 
       if (current.subOrder !== previous.subOrder) {
-        logger.log(`subOrder ${ordersById[current.subOrder]}`);
+        this.logger.log(`subOrder ${ordersById[current.subOrder]}`);
       }
 
       if (current.remainingBuildTime) {
-        logger.log(`build time ${current.remainingBuildTime}`);
+        this.logger.log(`build time ${current.remainingBuildTime}`);
       }
 
       if (current.remainingBuildTime === 17 && current.typeId === zergEgg) {
@@ -346,27 +383,31 @@ export class ReplayUnits {
         run(headers.almostBuilt);
       }
 
-      // if (
-      //   !current.groundWeaponCooldown &&
-      //   previous.groundWeaponCooldown &&
-      //   !targetIsAir()
-      // ) {
-      //   if (runner.state.repeatAttackAfterCooldown) {
-      //     run(headers.gndAttkRpt);
-      //   } else {
-      //     run(headers.gndAttkToIdle);
-      //   }
-      // } else if (
-      //   !current.airWeaponCooldown &&
-      //   previous.airdWeaponCooldown &&
-      //   targetIsAir()
-      // ) {
-      //   if (runner.state.repeatAttackAfterCooldown) {
-      //     run(headers.airAttkRpt);
-      //   } else {
-      //     run(headers.airAttkToIdle);
-      //   }
-      // }
+      //@todo check getRemainingBuildType
+      if (previous.remainingBuildTime === 1 && unitType.building()) {
+        run(headers.built);
+      }
+
+      //@todo have a attktoIdle when there is no use weapon type
+      // note: airweapon and groundweapon cool down will always equal each other, so don't use them in else if blocks!!
+      if (
+        previous.groundWeaponCooldown === 1 &&
+        !currentOrder.lastTargetWasAir
+      ) {
+        if (currentOrder.repeatAttackAfterCooldown) {
+          run(headers.gndAttkRpt);
+        } else {
+          run(headers.gndAttkToIdle);
+        }
+      }
+
+      if (previous.airWeaponCooldown === 1 && currentOrder.lastTargetWasAir) {
+        if (currentOrder.repeatAttackAfterCooldown) {
+          run(headers.airAttkRpt);
+        } else {
+          run(headers.airAttkToIdle);
+        }
+      }
 
       if (isNow("completed")) {
         // unit.visible = true;
@@ -411,20 +452,10 @@ export class ReplayUnits {
 
     */
 
-    switch (current.order) {
-      case orders.harvestGas:
-        visible(false);
-        break;
-    }
-
-    if (runner.state.frameset !== null) {
-      runner.setFrameBasedOnDirection(angleToDirection(current.angle));
-    }
-
+    visible(current.order !== orders.harvestGas);
     visible(window.showAlive ? true : current.alive);
     visible(!current.loaded());
     unit.visible = visible();
-    runner.update();
 
     this.renderUnit.update(unit);
   }

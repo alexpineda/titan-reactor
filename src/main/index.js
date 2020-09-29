@@ -199,6 +199,25 @@ const showSaveEnvironmentSettings = (isImage) => {
     });
 };
 
+const submenu = [
+  {
+    label: "Open &Map",
+    click: function () {
+      showOpenMap();
+    },
+  },
+];
+
+if (true) {
+  submenu.push({
+    label: "&Open Replay",
+    accelerator: "CmdOrCtrl+Shift+O",
+    click: function () {
+      showOpenReplay();
+    },
+  });
+}
+
 const template = [
   // { role: 'appMenu' }
   ...(isMac
@@ -222,67 +241,43 @@ const template = [
   // { role: 'fileMenu' }
   {
     label: "&File",
-    submenu: [
-      {
-        label: "&Open Replay",
-        accelerator: "CmdOrCtrl+Shift+O",
-        click: function () {
-          showOpenReplay();
+    submenu: submenu
+      .concat([
+        { type: "separator" },
+        {
+          label: "Export Scene",
+          click: function () {
+            showSaveModel();
+          },
         },
-      },
-      {
-        label: "Open &Map",
-        click: function () {
-          showOpenMap();
+        {
+          label: "Export Image",
+          click: function () {
+            showSaveImage();
+          },
         },
-      },
-      { type: "separator" },
-      {
-        label: "Export Scene",
-        click: function () {
-          showSaveModel();
-        },
-      },
-      {
-        label: "Export Image",
-        click: function () {
-          showSaveImage();
-        },
-      },
-      { type: "separator" },
-      { role: isMac ? "close" : "quit" },
-    ].concat(
-      isDev
-        ? [
-            { type: "separator" },
-            {
-              label: "Load Environment Settings",
-              click: function () {
-                showOpenEnvironmentSettings();
+        { type: "separator" },
+        { role: isMac ? "close" : "quit" },
+      ])
+      .concat(
+        isDev
+          ? [
+              { type: "separator" },
+              {
+                label: "Load Environment Settings",
+                click: function () {
+                  showOpenEnvironmentSettings();
+                },
               },
-            },
-            {
-              label: "Save Environment Settings",
-              click: function () {
-                showSaveEnvironmentSettings();
+              {
+                label: "Save Environment Settings",
+                click: function () {
+                  showSaveEnvironmentSettings();
+                },
               },
-            },
-          ]
-        : []
-    ),
-  },
-  {
-    label: "Replay Queue",
-    submenu: [
-      { label: "Add Replay" },
-      { type: "separator" },
-      { label: "Next Replay", accelerator: "CmdOrCtrl+Shift+N" },
-      { type: "separator" },
-      {
-        label: "Queue",
-        submenu: [{ label: "Flash vs Jaedong" }, { label: "Dark vs Snipe" }],
-      },
-    ],
+            ]
+          : []
+      ),
   },
   {
     label: "Edit",

@@ -10,6 +10,7 @@ export class IScriptRunner {
     // unit if its the first IScript runner, or IScriptRunner if it is a child
     this.parent = parent;
     this.logger = new DebugLog("iscript", { ...parent, iscriptId });
+    this.dispatched = {};
     this.iscript = bwDat.iscript.iscripts[iscriptId];
     this.hasRunAnimationBlockAtLeastOnce = {};
     // blocks that exist outside this "unit iscript"
@@ -22,7 +23,7 @@ export class IScriptRunner {
       terminated: false,
       isGndWpnAnimationBlock: false,
       isAirWpnAnimationBlock: false,
-      repeatAttackAfterCooldown: true,
+      lifted: false,
       noBrkCode: false,
       ignoreRest: false,
       frameset: null,
@@ -62,9 +63,14 @@ export class IScriptRunner {
     this.commandIndex = 0;
     Object.assign(this.state, {
       waiting: 0,
-      repeatAttackAfterCooldown: false,
       ignoreRest: false,
     });
+
+    if (header === headers.liftOff) {
+      this.state.lifted = true;
+    } else if (header === headers.landing) {
+      this.state.lifted = false;
+    }
 
     if (header === -1) {
       this.logger.log(`_animation block - local`, this);
@@ -84,6 +90,7 @@ export class IScriptRunner {
   }
 
   update() {
+    this.dispatched = {};
     this.state.children.forEach((runner) => runner.update());
     this.state.children = this.state.children.filter(
       (runner) => !runner.state.terminated
@@ -106,6 +113,11 @@ export class IScriptRunner {
     this.next();
   }
 
+  add(runner) {
+    this.toAnimationBlock(headers.init);
+    this.state.children.push(runner);
+  }
+
   on(command, cb) {
     this.listeners[command] = this.listeners[command] || [];
     this.listeners[command].push(cb);
@@ -115,6 +127,7 @@ export class IScriptRunner {
     this.logger.log(`dispatch ${command}`, event);
     this.listeners[command] &&
       this.listeners[command].forEach((cb) => cb(event));
+    this.dispatched[command] = event;
     return true;
   }
 
@@ -169,7 +182,7 @@ export class IScriptRunner {
 
   __followmaingraphic() {
     this.state.matchParentFrame = true;
-    this._dispatch("followmaingraphic");
+    this._dispatch("followmaingraphic", true);
   }
 
   __randcondjmp(probability, offset) {
@@ -204,7 +217,7 @@ export class IScriptRunner {
     this.commands = this.callStack.commands;
     this.commandIndex = this.callStack.commandIndex;
     delete this.callStack;
-    this._dispatch("return");
+    this._dispatch("return", true);
   }
 
   __playsnd(soundId) {
@@ -233,22 +246,21 @@ export class IScriptRunner {
       runner.toAnimationBlock(headers.death)
     );
 
-    this._dispatch("end");
+    this._dispatch("end", true);
   }
 
   __gotorepeatattk() {
-    this.state.repeatAttackAfterCooldown = true;
-    this._dispatch("gotorepeatattk");
+    this._dispatch("gotorepeatattk", true);
   }
 
   __nobrkcodestart() {
     this.state.noBrkCode = true;
-    this._dispatch("nobrkcodestart");
+    this._dispatch("nobrkcodestart", true);
   }
 
   __nobrkcodeend() {
     this.state.noBrkCode = false;
-    this._dispatch("nobrkcodeend");
+    this._dispatch("nobrkcodeend", true);
   }
 
   __attackwith(weaponType) {
@@ -282,15 +294,15 @@ export class IScriptRunner {
 
   //@todo send the weapon id / have better way to manage that state
   __domissiledmg() {
-    this._dispatch("domissiledmg");
+    this._dispatch("domissiledmg", true);
   }
 
   __dogrddamage() {
-    this._dispatch("dogrddamage");
+    this._dispatch("dogrddamage", true);
   }
 
   __liftoffcondjmp(offset) {
-    if (this.parent.lifted()) {
+    if (this.state.lifted) {
       this.__goto(offset, this._dispatch("liftoffcondjmp", true));
     } else {
       this._dispatch("liftoffcondjmp", false);
@@ -315,10 +327,10 @@ export class IScriptRunner {
   }
 
   _getDirection(obj) {
-    if (!obj.repId) {
+    if (!obj.directionFn) {
       return this._getDirection(obj.parent);
     }
-    return obj.direction();
+    return obj.directionFn();
   }
 
   setFrameBasedOnDirection(dir) {
@@ -335,7 +347,7 @@ export class IScriptRunner {
 
   __ignorerest() {
     this.state.ignoreRest = true;
-    this._dispatch("ignorerest");
+    this._dispatch("ignorerest", true);
   }
 
   next() {
