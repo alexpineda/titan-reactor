@@ -9,7 +9,7 @@ export class IScriptRunner {
     this.bwDat = bwDat;
     // unit if its the first IScript runner, or IScriptRunner if it is a child
     this.parent = parent;
-    this.logger = new DebugLog({ ...parent, iscriptId });
+    this.logger = new DebugLog("iscript", { ...parent, iscriptId });
     this.iscript = bwDat.iscript.iscripts[iscriptId];
     this.hasRunAnimationBlockAtLeastOnce = {};
     // blocks that exist outside this "unit iscript"
@@ -25,6 +25,7 @@ export class IScriptRunner {
       repeatAttackAfterCooldown: true,
       noBrkCode: false,
       ignoreRest: false,
+      frameset: null,
       frame: 0,
       prevFrame: 0,
       flipFrame: false,
@@ -66,20 +67,16 @@ export class IScriptRunner {
     });
 
     if (header === -1) {
-      this.logger.log("iscript", `_animation block - local`, this);
+      this.logger.log(`_animation block - local`, this);
     } else {
-      this.logger.log(
-        "iscript",
-        `_animation block - ${headersById[header]}`,
-        this
-      );
+      this.logger.log(`_animation block - ${headersById[header]}`, this);
     }
 
     if (this.dbg && this.dbg.prevAnimBlock && this.dbg.prevAnimBlock.commands) {
       if (this.dbg.prevAnimBlock.commands.header === -1) {
-        this.logger.log("iscript", `prev anim - local`, this);
+        this.logger.log(`prev anim - local`, this);
       } else {
-        this.logger.log("iscript", `prev anim - ${headersById[header]}`, this);
+        this.logger.log(`prev anim - ${headersById[header]}`, this);
       }
     }
 
@@ -115,7 +112,7 @@ export class IScriptRunner {
   }
 
   _dispatch(command, event) {
-    this.logger.log("iscript", `dispatch ${command}`, event);
+    this.logger.log(`dispatch ${command}`, event);
     this.listeners[command] &&
       this.listeners[command].forEach((cb) => cb(event));
     return true;
@@ -301,11 +298,11 @@ export class IScriptRunner {
   }
 
   __playfram(frame) {
-    //frameset
     if (this.state.image.gfxTurns && frame % 17 === 0) {
-      this._setFrameBasedOnDirection(frame);
-      this._dispatch("playfram", { frameset: frame, frame: this.state.frame });
+      this.state.frameset = frame;
+      this.setFrameBasedOnDirection(this._getDirection(this.parent));
     } else {
+      this.state.frameset = null;
       this.setFrame(frame, false);
       this._dispatch("playfram", frame);
     }
@@ -316,16 +313,24 @@ export class IScriptRunner {
     this.state.flipFrame = flip;
     this.state.frame = frame;
   }
-  _getParentDirection(obj) {
+
+  _getDirection(obj) {
     if (!obj.repId) {
-      return this._getParentDirection(obj.parent);
+      return this._getDirection(obj.parent);
     }
     return obj.direction();
   }
 
-  _setFrameBasedOnDirection(offset) {
-    const dir = this._getParentDirection(this.parent);
-    this.setFrame(offset + dir, dir > 15);
+  setFrameBasedOnDirection(dir) {
+    if (dir > 16) {
+      this.setFrame(this.state.frameset + 32 - dir, true);
+    } else {
+      this.setFrame(this.state.frameset + dir, false);
+    }
+    this._dispatch(
+      "playfram",
+      `frame:${this.state.frame} dir:${dir} frameset:${this.state.frameset} `
+    );
   }
 
   __ignorerest() {
@@ -408,7 +413,7 @@ export class IScriptRunner {
       case "__3e":
       case "__43":
         this.commandIndex++;
-        this.logger.log("iscript", command, "not implemented");
+        this.logger.log(command, "not implemented");
         break;
       default:
         this.commandIndex++;

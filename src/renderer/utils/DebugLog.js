@@ -1,12 +1,17 @@
 export class DebugLog {
-  constructor(obj) {
+  constructor(module, obj) {
+    this.module = module;
+    this.assign(obj);
+  }
+
+  assign(obj) {
     this.obj = obj;
   }
 
-  log(module, ...args) {
+  log(...args) {
     let log = () => {};
     if (window.dbg) {
-      if (window.dbg.modules && !window.dbg.modules.includes(module)) {
+      if (window.dbg.modules && !window.dbg.modules.includes(this.module)) {
         return log;
       }
       if (window.dbg.all) {

@@ -5,6 +5,9 @@ import {
   Color,
   PositionalAudio,
   AudioLoader,
+  Mesh,
+  MeshBasicMaterial,
+  ConeGeometry,
 } from "three";
 import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
@@ -12,6 +15,9 @@ import { path } from "ramda";
 import { iscriptHeaders as headers } from "../../common/bwdat/iscriptHeaders";
 import { orders, ordersById } from "../../common/bwdat/orders";
 import { DebugLog } from "../utils/DebugLog";
+import { angleToDirection } from "../utils/conversions";
+import { unitTypeIdByName } from "../../common/bwdat/unitTypes";
+const { zergEgg } = unitTypeIdByName;
 
 const red = new Color(0x990000);
 const green = new Color(0x009900);
@@ -52,7 +58,7 @@ export class ReplayUnits {
     return this._spawn(frameData);
   }
 
-  _spawn(frameData, replacingUnitType) {
+  _spawn(frameData, replacingUnitType, skippingFrames) {
     const unit = replacingUnitType || this.renderUnit.load(frameData.typeId);
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
@@ -61,6 +67,17 @@ export class ReplayUnits {
     unit.userData.repId = frameData.repId;
     unit.userData.typeId = frameData.typeId;
     unit.name = this.bwDat.units[unit.userData.typeId].name;
+
+    unit.userData._active = new Mesh(
+      new ConeGeometry(0.5, 2),
+      new MeshBasicMaterial({ color: 0x0000ff })
+    );
+    unit.userData._active.position.y = 4;
+    unit.userData._active.y = Math.PI;
+    unit.userData._active.material.transparent = true;
+    unit.userData._active.material.opacity = 0.2;
+    unit.userData._active.visible = false;
+    unit.add(unit.userData._active);
 
     unit.userData.runner = new IScriptRunner(
       this.bwDat,
@@ -72,13 +89,7 @@ export class ReplayUnits {
         typeId: unit.userData.typeId,
         repId: unit.userData.repId,
         lifted: () => unit.userData.current.lifted(),
-        direction: () =>
-          Math.floor(
-            (((unit.userData.current.angle + (Math.PI * 1) / 2) %
-              (Math.PI * 2)) /
-              (Math.PI * 2)) *
-              32
-          ),
+        direction: () => angleToDirection(unit.userData.current.angle),
       },
       {
         image: path(
@@ -143,11 +154,14 @@ export class ReplayUnits {
     this._spawn(frameData, unit);
   }
 
-  update(unit, frameData) {
-    const logger = new DebugLog(unit);
+  update(unit, frameData, skippingFrames) {
     const previous = (unit.userData.previous = unit.userData.current);
     const current = (unit.userData.current = frameData);
-    current.lastOrder = previous.lastOrder;
+    const logger = new DebugLog("unit:update", current);
+
+    if (window.dbg) {
+      unit.userData._active.visible = window.dbg.repId === current.repId;
+    }
 
     if (current.frame > 0 && current.typeId != previous.typeId) {
       this.replaceWith(current, unit);
@@ -167,8 +181,9 @@ export class ReplayUnits {
     unit.position.copy(position);
     unit.rotation.y = rotationY;
 
-    unit.visible = window.showAlive ? true : current.alive;
-    unit.visible = unit.visible && !current.loaded();
+    let _visible = true;
+    const visible = (v) =>
+      v === undefined ? _visible : (_visible = _visible && v);
 
     // const rotation = new Quaternion();
     // rotation.setFromEuler(new Euler(0, rotationY, 0));
@@ -188,32 +203,35 @@ export class ReplayUnits {
     const isNow = (prop) => current[prop]() && !previous[prop]();
     const was = (prop) => !current[prop]() && previous[prop]();
     const run = (section) => runner.toAnimationBlock(section);
-    const order = (orderType) =>
-      current.order !== previous.order && orderType === current.order;
-    const target = this.units.children.find(
-      ({ userData }) =>
-        userData.repId === (current.targetRepId || current.orderTargetRepId)
+    const target = this.units.children.find(({ userData }) =>
+      [current.targetRepId, current.orderTargetRepId].includes(userData.repId)
     );
     const targetIsAir = () => {
-      if (target) {
-        return target.userData.current.flying();
-      }
+      return (
+        target &&
+        (this.bwDat.units[target.userData.typeId].flyer() ||
+          unit.userData.buildingLifted)
+      );
     };
     const usingWeaponType = (air) =>
       current.groundWeaponCooldown && air && targetIsAir();
 
-    const toIdle = (header) => {
-      if (header) {
-        run(header);
-      } else if (usingWeaponType()) {
-        run(headers.gndAttkToIdle);
-      } else if (usingWeaponType(true)) {
-        run(headers.airAttkToIdle);
-      } else if (current.moving()) {
-        run(headers.walkingToIdle);
-      }
-      //workingToIdle
-    };
+    // const toIdle = (header) => {
+    //   if (header) {
+    //     run(header);
+    //   } else if (usingWeaponType()) {
+    //     run(headers.gndAttkToIdle);
+    //   } else if (usingWeaponType(true)) {
+    //     run(headers.airAttkToIdle);
+    //   } else if (
+    //     current.lastOrder == orders.move ||
+    //     current.lastOrder == orders.attackMove
+    //   ) {
+    //     run(headers.walkingToIdle);
+    //   }
+
+    //   //workingToIdle
+    // };
 
     const toAttack = () => {
       targetIsAir() ? run(headers.airAttkInit) : run(headers.gndAttkInit);
@@ -222,13 +240,41 @@ export class ReplayUnits {
     //@todo let die order indicate deaths not other method
     if (!runner.state.noBrkCode) {
       if (current.order !== previous.order) {
-        current.lastOrder = previous.order;
+        unit.userData.lastOrder = previous.order;
         logger.log("units", `order ${ordersById[current.order]}`);
 
         switch (current.order) {
+          case orders.move:
           case orders.harvest1:
+          case orders.harvest2:
           case orders.moveToMinerals:
+          case orders.moveToGas:
+          case orders.returnMinerals:
+          case orders.attackMove:
+          case orders.placeBuilding:
+          case orders.attack1:
+          case orders.attack2:
             run(headers.walking);
+            break;
+          case orders.incompleteBuilding:
+            //just before zerg drone becomes building
+            break;
+          case orders.harvestGas:
+            break;
+          case orders.returnGas:
+            break;
+          case orders.waitForMinerals:
+          case orders.waitForGas:
+            run(headers.walkingToIdle);
+            break;
+          case orders.constructingBuilding:
+          case orders.miningMinerals:
+            run(headers.almostBuilt);
+            break;
+          case orders.harvest3:
+            run(headers.walkingToIdle);
+            break;
+          case orders.harvest4:
             break;
           case orders.die:
             console.log("die", unit);
@@ -240,45 +286,65 @@ export class ReplayUnits {
           case orders.bunkerGaurd:
           case orders.stopReaver:
           case orders.towerGaurd:
-            toIdle();
+            // toIdle();
             break;
-          case orders.attack1:
-          case orders.attack2:
           case orders.attackUnit:
           case orders.attackFixedRange:
           case orders.attackTile:
             toAttack();
             break;
+          case orders.upgrade:
+            unitType.terran() && run(headers.working);
+            break;
           case orders.buildingLiftOff:
             run(headers.liftOff);
+            unit.userData.buildingLifted = true;
             break;
           case orders.buildingLand:
             run(headers.landing);
+            unit.userData.buildingLifted = false;
             break;
-          case orders.zergBirth:
+          case orders.zergBirth: //egg->unit or coccoon -> unit
           case orders.zergBuildingMorph:
-          case orders.zergUnitMorph:
-            logger.log("units", "zerg details", unit);
+          case orders.zergUnitMorph: //larva->egg
+            logger.log("zerg details", unit);
+            break;
+          case orders.burrowing:
+            run(headers.burrow);
+            break;
+          case orders.unburrowing:
+            run(headers.unBurrow);
+            break;
+          case orders.burrowed:
+            run(headers.specialState1);
+            break;
+          case orders.larva:
+            run(headers.walking);
             break;
         }
       }
 
       if (current.subOrder !== previous.subOrder) {
-        logger.log("units", `subOrder ${ordersById[current.subOrder]}`);
+        logger.log(`subOrder ${ordersById[current.subOrder]}`);
       }
-      // if (
-      //   current.groundWeaponCooldown &&
-      //   !previous.groundWeaponCooldown &&
-      //   !targetIsAir()
-      // ) {
-      //   run(headers.gndAttkInit);
-      // } else if (
-      //   current.airWeaponCooldown &&
-      //   !previous.airWeaponCooldown &&
-      //   targetIsAir()
-      // ) {
-      //   run(headers.airAttkInit);
-      // }
+
+      if (current.remainingBuildTime) {
+        logger.log(`build time ${current.remainingBuildTime}`);
+      }
+
+      if (current.remainingBuildTime === 17 && current.typeId === zergEgg) {
+        run(headers.specialState1);
+      }
+
+      if (
+        current.remainingBuildTime &&
+        unitType.building() &&
+        (unitType.zerg() || unitType.terran()) &&
+        current.remainingBuildTime / unitType.buildTime < 0.4 &&
+        !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
+      ) {
+        run(headers.almostBuilt);
+      }
 
       // if (
       //   !current.groundWeaponCooldown &&
@@ -302,40 +368,12 @@ export class ReplayUnits {
       //   }
       // }
 
-      // if (isNow("moving")) {
-      //   run(headers.walking);
-      // } else if (was("moving")) {
-      //   run(headers.walkingToIdle);
-      // }
-
-      // if (isNow("burrowed")) {
-      //   run(headers.burrow);
-      // } else if (was("burrowed")) {
-      //   run(headers.unBurrow);
-      // }
-
       if (isNow("completed")) {
         // unit.visible = true;
         if (unitType.building()) {
           run(headers.built);
         }
       }
-
-      // if (current.frame === 0) {
-      //   unit.visible = true;
-      // }
-
-      //@todo verify validity for zerg & protoss
-      // if (
-      //   current.remainingBuildTime &&
-      //   unitType.building() &&
-      //   (unitType.zerg() || unitType.terran()) &&
-      //   current.remainingBuildTime / unitType.buildTime < 0.4 &&
-      //   runner.commands.header !== headers.almostBuilt &&
-      //   !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
-      // ) {
-      //   run(headers.almostBuilt);
-      // }
     }
     /*
     iscriptHeaders.castSpell
@@ -373,11 +411,21 @@ export class ReplayUnits {
 
     */
 
-    // if (diff("idle")) {
-    //   unit.userData.runner.toAnimationBlock(iscriptHeaders.init);
-    // }
+    switch (current.order) {
+      case orders.harvestGas:
+        visible(false);
+        break;
+    }
 
+    if (runner.state.frameset !== null) {
+      runner.setFrameBasedOnDirection(angleToDirection(current.angle));
+    }
+
+    visible(window.showAlive ? true : current.alive);
+    visible(!current.loaded());
+    unit.visible = visible();
     runner.update();
+
     this.renderUnit.update(unit);
   }
 
@@ -395,6 +443,7 @@ export class ReplayUnits {
   clear() {
     //@todo dispose without fucking up materials
     this.units.children.forEach((child) => this.units.remove(child));
+    this.units.children = [];
     this.deadUnits = [];
   }
 

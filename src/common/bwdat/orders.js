@@ -1,19 +1,19 @@
 import { invertObj } from "ramda";
 
 export const orders = {
-  die: 0x0, //
-  stop: 0x1, //
-  gaurd: 0x2, //
-  playerGaurd: 0x3, //
-  turretGaurd: 0x4, //
-  bunkerGaurd: 0x5, //
+  die: 0x0,
+  stop: 0x1,
+  gaurd: 0x2,
+  playerGaurd: 0x3,
+  turretGaurd: 0x4,
+  bunkerGaurd: 0x5,
   move: 0x6,
-  stopReaver: 0x7, //
-  attack1: 0x8, //
-  attack2: 0x9, //
-  attackUnit: 0xa, //
-  attackFixedRange: 0xb, //
-  attackTile: 0xc, //
+  stopReaver: 0x7,
+  attack1: 0x8,
+  attack2: 0x9,
+  attackUnit: 0xa,
+  attackFixedRange: 0xb,
+  attackTile: 0xc,
   hover: 0xd,
   attackMove: 0xe,
   infestedCommandCenter: 0xf,

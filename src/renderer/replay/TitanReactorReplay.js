@@ -95,7 +95,7 @@ export async function TitanReactorReplay(
   const cubeCamera = initCubeCamera(renderer, terrain.material.map);
   scene.add(cubeCamera);
 
-  const pointLight = new THREE.PointLight("0xffffff", 1, 60, 0);
+  const pointLight = new THREE.PointLight(0xffffff, 1, 60, 0);
   pointLight.power = 20;
   pointLight.castShadow = true;
   scene.add(pointLight);
@@ -193,11 +193,12 @@ export async function TitanReactorReplay(
       }
     };
 
-    intersects.forEach(({ object }) => {
+    if (!intersects.length) return;
+    intersects.slice(0, 1).forEach(({ object }) => {
       const unit = getAsUnit(object);
 
       if (unit) {
-        console.log(unit);
+        console.log(unit.userData.repId, unit);
       }
     });
   };
@@ -230,8 +231,11 @@ export async function TitanReactorReplay(
             replayPosition.bwapiBufferFrame
           );
 
-          const unit = units.spawnIfNotExists(frameData);
-          units.update(unit, frameData);
+          const unit = units.spawnIfNotExists(
+            frameData,
+            replayPosition.skipGameFrames > 1
+          );
+          units.update(unit, frameData, replayPosition.skipGameFrames > 1);
 
           replayPosition.bwapiBufferFrame =
             replayPosition.bwapiBufferFrame + frameSize;

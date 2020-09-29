@@ -1,5 +1,5 @@
 import { DefaultLoadingManager, Group } from "three";
-import { units } from "../../common/bwdat/units";
+import { unitTypeIdByName } from "../../common/bwdat/unitTypes";
 
 export class RenderUnit2D {
   constructor(
@@ -26,16 +26,16 @@ export class RenderUnit2D {
 
   useUnitPalette(unitType) {
     switch (unitType) {
-      case units.startLocation:
-      case units.mineral1:
-      case units.mineral2:
-      case units.mineral3:
-      case units.ragnasaur:
-      case units.rhynadon:
-      case units.bengalaas:
-      case units.scantid:
-      case units.ursadon:
-      case units.kakaru:
+      case unitTypeIdByName.startLocation:
+      case unitTypeIdByName.mineral1:
+      case unitTypeIdByName.mineral2:
+      case unitTypeIdByName.mineral3:
+      case unitTypeIdByName.ragnasaur:
+      case unitTypeIdByName.rhynadon:
+      case unitTypeIdByName.bengalaas:
+      case unitTypeIdByName.scantid:
+      case unitTypeIdByName.ursadon:
+      case unitTypeIdByName.kakaru:
         return false;
       default:
         return true;
@@ -52,7 +52,7 @@ export class RenderUnit2D {
   }
 
   replace(unit, typeId) {
-    unit.children.remove(unit.userData.unitMesh);
+    unit.remove(unit.userData.unitMesh);
     return this.load(typeId, unit);
   }
 
@@ -66,6 +66,7 @@ export class RenderUnit2D {
     }
 
     this.loadSprite.setFrame(
+      unit,
       unit.userData.unitMesh,
       userData.runner.state.image.index,
       userData.runner.state.frame,

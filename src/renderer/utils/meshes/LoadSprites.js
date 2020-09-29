@@ -17,6 +17,7 @@ import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCan
 import { range, groupBy, all, flip } from "ramda";
 import Worker from "../packbin.worker.js";
 import { asyncFilter } from "./async";
+import { DebugLog } from "../DebugLog";
 
 export class LoadSprite {
   constructor(
@@ -39,6 +40,7 @@ export class LoadSprite {
     this.textures = [];
     this.masks = [];
     this.loaded = false;
+    this.logger = new DebugLog("sprite");
   }
 
   async loadAll() {
@@ -319,42 +321,14 @@ export class LoadSprite {
     return sprite;
   }
 
-  //@todo implement flip
-  setFrame(mesh, imageId, frameId, flip) {
-    const f = frameId % 17;
+  setFrame(unit, mesh, imageId, frameId, flip) {
     const image = this.atlas[imageId];
 
+    this.logger.assign(unit.userData);
+    this.logger.log(`frame i${imageId} f${frameId} V${flip}`);
     const uv = mesh.geometry.getAttribute("uv");
-    uv.set(image.uv(f, flip));
+    uv.set(image.uv(frameId, flip));
     uv.needsUpdate = true;
-  }
-
-  load(file, name = "", userData = {}) {
-    return new Promise((resolve, reject) => {
-      new TextureLoader(this.loadingManager).load(
-        file,
-        (map) => {
-          map.encoding = sRGBEncoding;
-          const sprite = new Sprite(new SpriteMaterial({ map }));
-          sprite.center = new Vector2(0.5, 0);
-          Object.assign(sprite, { name, userData });
-          resolve(sprite);
-        },
-        undefined,
-        function (error) {
-          reject(error);
-        }
-      );
-    });
-  }
-
-  loadSync(file, name = "", userData = {}) {
-    const map = new TextureLoader(this.loadingManager).load(file);
-    map.encoding = sRGBEncoding;
-    const sprite = new Sprite(new SpriteMaterial({ map }));
-    sprite.center = new Vector2(0.5, 0);
-
-    return sprite;
   }
 }
 
