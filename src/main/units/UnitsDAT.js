@@ -31,7 +31,7 @@ export class UnitDAT {
   }
 
   building() {
-    return this._flag(0);
+    return this.specialAbilityFlags & 1;
   }
 
   addon() {

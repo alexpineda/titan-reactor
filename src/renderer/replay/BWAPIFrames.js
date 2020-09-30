@@ -6,7 +6,7 @@ class BWAPIFrame {
   direction() {}
 
   _flag(flag, shift) {
-    return !!(this[`flag${flag}`] & (1 << shift));
+    return !!(this[`flags${flag}`] & (1 << shift));
   }
 
   attacking() {

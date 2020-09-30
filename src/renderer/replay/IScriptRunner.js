@@ -30,7 +30,11 @@ export class IScriptRunner {
       frame: 0,
       prevFrame: 0,
       flipFrame: false,
+      //forced flip frame
+      flipState: false,
       direction: 0,
+      //override direction with setfldirect
+      flDirect: false,
       ...state,
     };
     this.listeners = listeners;
@@ -54,9 +58,9 @@ export class IScriptRunner {
   }
 
   _toAnimationBlock(offset, header = -1) {
-    if (this.parent.repId === 3583) {
-      debugger;
-    }
+    // if (this.parent.repId === 3583) {
+    //   debugger;
+    // }
     const commands = this.bwDat.iscript.animationBlocks[offset];
     if (!commands) {
       let name = "local";
@@ -83,21 +87,20 @@ export class IScriptRunner {
       this.state.lifted = false;
     }
 
-    if (header === -1) {
-      this.logger.log(`_animation block - local`, this);
-    } else {
-      this.logger.log(`_animation block - ${headersById[header]}`, this);
-    }
+    let prevAnim = "";
 
     if (this.dbg && this.dbg.prevAnimBlock && this.dbg.prevAnimBlock.commands) {
       if (this.dbg.prevAnimBlock.commands.header === -1) {
-        this.logger.log(`prev anim - local`, this);
+        prevAnim = "local";
       } else {
-        this.logger.log(
-          `prev anim - ${headersById[this.dbg.prevAnimBlock.commands.header]}`,
-          this
-        );
+        prevAnim = headersById[this.dbg.prevAnimBlock.commands.header];
       }
+    }
+
+    if (header === -1) {
+      this.logger.log(`📝 local <- ${prevAnim}`, this);
+    } else {
+      this.logger.log(`📝 ${headersById[header]} <- ${prevAnim}`, this);
     }
 
     return this;
@@ -138,7 +141,7 @@ export class IScriptRunner {
   }
 
   _dispatch(command, event) {
-    this.logger.log(`dispatch ${command}`, event);
+    this.logger.log(`🧩 ${command}`, event);
     this.listeners[command] &&
       this.listeners[command].forEach((cb) => cb(event));
     this.dispatched[command] = event;
@@ -330,11 +333,15 @@ export class IScriptRunner {
     } else {
       //@todo see if this matters
       this.state.frameset = null;
-      this.setFrame(frame, false);
+      this.setFrame(frame, this.state.flipState);
       this._dispatch("playfram", frame);
     }
   }
 
+  __setflipstate(flip) {
+    this.state.flipState = flip;
+    this._dispatch("setflipstate", flip);
+  }
   setFrame(frame, flip) {
     this.state.prevFrame = this.state.frame;
     this.state.flipFrame = flip;
@@ -342,6 +349,9 @@ export class IScriptRunner {
   }
 
   setDirection(direction) {
+    if (this.state.flDirect) {
+      return;
+    }
     this.state.direction = direction;
     if (this.state.noBrkCode) return;
     if (this.state.image.gfxTurns) {
@@ -367,6 +377,38 @@ export class IScriptRunner {
       "playfram",
       `frame:${this.state.frame} dir:${this.state.direction} frameset:${this.state.frameset} `
     );
+  }
+
+  __setfldirect(direction) {
+    this.state.flDirect = true;
+    this.state.direction = direction;
+    this._dispatch("setfldirect", direction);
+  }
+
+  __turnccwise(turns, alreadyDispatched) {
+    this.direction = this.direction - turns;
+    if (this.direction < 0) {
+      this.direction = 32 - this.direction;
+    }
+    !alreadyDispatched && this._dispatch("turnccwise", turns);
+  }
+
+  __turncwise(turns, alreadyDispatched) {
+    this.direction = (this.direction += turns) % 31;
+    !alreadyDispatched && this._dispatch("turncwise", turns);
+  }
+
+  __turn1cwise() {
+    this.direction = (this.direction += 1) % 31;
+    this._dispatch("turn1cwise", true);
+  }
+
+  __turnrand(turns) {
+    if (Math.random() > 0.7) {
+      this.__turncwise(turns, this._dispatch("turnrand", turns));
+    } else {
+      this.__turnccwise(turns, this._dispatch("turnrand", turns));
+    }
   }
 
   __ignorerest() {
@@ -400,8 +442,6 @@ export class IScriptRunner {
     switch (command) {
       case "attack":
       case "castspell":
-
-      case "setfldirect":
       case "playframtile":
       case "sethorpos":
       case "setpos":
@@ -417,19 +457,12 @@ export class IScriptRunner {
       case "lowsprul":
       case "sprul":
       case "spruluselo":
-      case "setflipstate":
-      case "turnccwise":
-      case "turncwise":
-      case "turn1cwise":
-      case "turnrand":
       // will require getOrder and getOrderTarget from BWAPI
-      case "move":
       case "engframe":
       case "engset":
       case "attkshiftproj":
       case "tmprmgraphicstart":
       case "tmprmgraphicend":
-      case "setflspeed":
       case "creategasoverlays":
       case "trgtrangecondjmp":
       case "trgtarccondjmp":
@@ -439,6 +472,8 @@ export class IScriptRunner {
       //nuclear missile only
       case "curdirectcondjmp":
 
+      case "setflspeed":
+      case "move":
       case "pwrupcondjmp":
       case "sigorder":
       case "orderdone":

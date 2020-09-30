@@ -58,9 +58,9 @@ export class ReplayUnits {
     return this._spawn(frameData);
   }
 
-  _spawn(frameData, replacingUnitType, skippingFrames) {
+  _spawn(frameData, replaceUnit, skippingFrames) {
     const unit =
-      replacingUnitType ||
+      replaceUnit ||
       this.renderUnit.load(
         this.renderUnit.loadFromUnitType
           ? frameData.typeId
@@ -86,7 +86,8 @@ export class ReplayUnits {
 
     unit.userData.runner = this._initRunner(
       unit.userData.typeId,
-      unit.userData.repId
+      unit.userData.repId,
+      replaceUnit ? replaceUnit.userData.runner.listeners : []
     );
     unit.userData.runner.toAnimationBlock(headers.init);
 
@@ -110,7 +111,7 @@ export class ReplayUnits {
       ? 0.6
       : 1;
 
-    !replacingUnitType && this._initAudio(unit);
+    !replaceUnit && this._initAudio(unit);
     this.units.add(unit);
     return unit;
   }
@@ -133,7 +134,7 @@ export class ReplayUnits {
     this._spawn(frameData, unit);
   }
 
-  _initRunner(typeId, repId) {
+  _initRunner(typeId, repId, listeners = []) {
     return new IScriptRunner(
       this.bwDat,
       path(["flingy", "sprite", "image", "iscript"], this.bwDat.units[typeId]),
@@ -143,10 +144,12 @@ export class ReplayUnits {
       },
       {
         image: path(["flingy", "sprite", "image"], this.bwDat.units[typeId]),
-      }
+      },
+      listeners
     );
   }
 
+  //@todo refactor out of event model
   _initAudio(unit) {
     this.logger.assign(unit.userData);
     const unitSound = new PositionalAudio(this.audioListener);
@@ -154,12 +157,17 @@ export class ReplayUnits {
 
     const playSound = (soundId) => {
       if (unitSound.isPlaying) {
+        this.logger.log(
+          `%c 🔊 ${soundId}`,
+          "background: #ffff00; color: #000000"
+        );
         return;
+      } else {
+        this.logger.log(
+          `%c 🔇 ${soundId}`,
+          "background: #990000; color: #ffffff"
+        );
       }
-      this.logger.log(
-        `%c play sound ${soundId}`,
-        "background: #ffff00; color: #000000"
-      );
 
       this.logger.log(`play sound ${soundId}`);
       if (this.audioPool[soundId]) {
@@ -221,10 +229,6 @@ export class ReplayUnits {
     unit.position.copy(position);
     unit.rotation.y = rotationY;
 
-    let _visible = true;
-    const visible = (v) =>
-      v === undefined ? _visible : (_visible = _visible && v);
-
     // const rotation = new Quaternion();
     // rotation.setFromEuler(new Euler(0, rotationY, 0));
 
@@ -249,18 +253,29 @@ export class ReplayUnits {
       );
     const targetIsAir = () => {
       const t = target();
-      return (
-        t &&
-        (this.bwDat.units[t.userData.typeId].flyer() ||
-          t.userData.buildingLifted)
-      );
+      return t && t.userData.current.flying();
     };
 
     const toAttack = () => {
       targetIsAir() ? run(headers.airAttkInit) : run(headers.gndAttkInit);
     };
 
-    runner.setDirection(angleToDirection(current.angle));
+    const toIdle = () => {
+      if (previous.airWeaponCooldown && currentOrder.lastTargetWasAir) {
+        run(headers.airAttkToIdle);
+      } else if (
+        previous.groundWeaponCooldown &&
+        !currentOrder.lastTargetWasAir
+      ) {
+        run(headers.gndAttkToIdle);
+      } else {
+        run(headers.walkingToIdle);
+      }
+    };
+
+    if (angleToDirection(current.angle) !== angleToDirection(previous.angle)) {
+      runner.setDirection(angleToDirection(current.angle));
+    }
     runner.update();
 
     //@todo what are teh cases where these get overwritten if these are dispatched on the first frame??
@@ -268,6 +283,7 @@ export class ReplayUnits {
       currentOrder.repeatAttackAfterCooldown = true;
     }
 
+    //@todo needed?
     if (runner.dispatched["attackwith"]) {
       currentOrder.usingWeaponType = runner.dispatched["attackwith"];
     }
@@ -275,6 +291,14 @@ export class ReplayUnits {
     //@todo let die order indicate deaths not other method
     // if (!runner.state.noBrkCode) {
     if (current.order !== previous.order) {
+      this.logger.log(
+        `%c order ${ordersById[current.order]} <- ${
+          ordersById[previous.order]
+        }`,
+        "background: #222; color: #bada55"
+      );
+
+      //items like target are not persisted in bwapi frames, just the initial change
       Object.assign(currentOrder, {
         order: current.order,
         prevOrder: previous.order,
@@ -289,11 +313,6 @@ export class ReplayUnits {
         currentOrder.lastTargetWasAir = targetIsAir();
       }
 
-      this.logger.log(
-        `%c order ${ordersById[current.order]}`,
-        "background: #222; color: #bada55"
-      );
-
       switch (current.order) {
         case orders.move:
         case orders.harvest1:
@@ -305,6 +324,7 @@ export class ReplayUnits {
         case orders.placeBuilding:
         case orders.attack1:
         case orders.attack2:
+        case orders.medicHealMove:
           run(headers.walking);
           break;
         case orders.incompleteBuilding:
@@ -333,6 +353,14 @@ export class ReplayUnits {
         case orders.stop:
         case orders.gaurd:
         case orders.playerGaurd:
+        case orders.holdPosition:
+        case orders.medicHealToIdle:
+        case orders.medicHoldPosition:
+          toIdle();
+          break;
+        case orders.medicHeal:
+          run(headers.specialState1);
+          break;
         case orders.turretGaurd:
         case orders.bunkerGaurd:
         case orders.stopReaver:
@@ -340,9 +368,9 @@ export class ReplayUnits {
           // toIdle();
           break;
         case orders.attackUnit:
-          if (unit.userData.repId === 3583) {
-            debugger;
-          }
+        // if (unit.userData.repId === 3583) {
+        //   debugger;
+        // }
         case orders.attackFixedRange:
         case orders.attackTile:
           toAttack();
@@ -352,11 +380,9 @@ export class ReplayUnits {
           break;
         case orders.buildingLiftOff:
           run(headers.liftOff);
-          unit.userData.buildingLifted = true;
           break;
         case orders.buildingLand:
           run(headers.landing);
-          unit.userData.buildingLifted = false;
           break;
         case orders.zergBirth: //egg->unit or coccoon -> unit
         case orders.zergBuildingMorph:
@@ -380,98 +406,57 @@ export class ReplayUnits {
       if (current.subOrder !== previous.subOrder) {
         this.logger.log(`subOrder ${ordersById[current.subOrder]}`);
       }
+    }
 
-      if (current.remainingBuildTime) {
-        this.logger.log(`build time ${current.remainingBuildTime}`);
-      }
+    this.logger.log(`build time ${current.remainingBuildTime}`);
 
-      if (current.remainingBuildTime === 17 && current.typeId === zergEgg) {
-        run(headers.specialState1);
-      }
+    if (current.remainingBuildTime) {
+      this.logger.log(`build time ${current.remainingBuildTime}`);
+    }
 
-      if (
-        current.remainingBuildTime &&
-        unitType.building() &&
-        (unitType.zerg() || unitType.terran()) &&
-        current.remainingBuildTime / unitType.buildTime < 0.4 &&
-        !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
-      ) {
-        run(headers.almostBuilt);
-      }
+    if (current.remainingBuildTime === 17 && current.typeId === zergEgg) {
+      run(headers.specialState1);
+    }
 
-      //@todo check getRemainingBuildType
-      if (previous.remainingBuildTime === 1 && unitType.building()) {
-        run(headers.built);
-      }
+    if (
+      current.remainingBuildTime &&
+      unitType.building() &&
+      (unitType.zerg() || unitType.terran()) &&
+      current.remainingBuildTime / unitType.buildTime < 0.4 &&
+      !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
+    ) {
+      run(headers.almostBuilt);
+    }
 
-      //@todo have a attktoIdle when there is no use weapon type
-      // note: airweapon and groundweapon cool down will always equal each other, so don't use them in else if blocks!!
-      if (
-        previous.groundWeaponCooldown === 1 &&
-        !currentOrder.lastTargetWasAir
-      ) {
-        if (currentOrder.repeatAttackAfterCooldown) {
-          run(headers.gndAttkRpt);
-        } else {
-          run(headers.gndAttkToIdle);
-        }
-      }
+    //@todo check getRemainingBuildType
+    if (previous.remainingBuildTime === 1 && unitType.building()) {
+      run(headers.built);
+    }
 
-      if (previous.airWeaponCooldown === 1 && currentOrder.lastTargetWasAir) {
-        if (currentOrder.repeatAttackAfterCooldown) {
-          run(headers.airAttkRpt);
-        } else {
-          run(headers.airAttkToIdle);
-        }
-      }
-
-      if (isNow("completed")) {
-        // unit.visible = true;
-        if (unitType.building()) {
-          run(headers.built);
-        }
+    //@todo have a attktoIdle when there is no use weapon type
+    // note: airweapon and groundweapon cool down will always equal each other, so don't use them in else if blocks!!
+    if (previous.groundWeaponCooldown === 1 && !currentOrder.lastTargetWasAir) {
+      if (currentOrder.repeatAttackAfterCooldown) {
+        run(headers.gndAttkRpt);
+      } else {
+        run(headers.gndAttkToIdle);
       }
     }
-    /*
-    iscriptHeaders.castSpell
-    iscriptHeaders.specialState1
-    iscriptHeaders.specialState2
-    iscriptHeaders.working 
-    iscriptHeaders.workingToIdle
-    iscriptHeaders.warpIn
 
-    iscriptHeaders.almostBuilt T P?Z?
+    if (previous.airWeaponCooldown === 1 && currentOrder.lastTargetWasAir) {
+      if (currentOrder.repeatAttackAfterCooldown) {
+        run(headers.airAttkRpt);
+      } else {
+        run(headers.airAttkToIdle);
+      }
+    }
 
-    iscriptHeaders.enable
-    iscriptHeaders.disable
+    let visible = true;
+    visible = visible && !current.loaded();
+    visible = visible && !(current.order === orders.harvestGas);
+    visible = visible && (window.showAlive ? true : current.alive);
 
-    iscriptHeaders.unused1;
-    iscriptHeaders.unused2;
-    iscriptHeaders.unused3
-    iscriptHeaders.starEditInit
-
-    iscriptHeaders.init X
-    iscriptHeaders.death; X
-    iscriptHeaders.gndAttkInit; X
-    iscriptHeaders.airAttkInit; X
-    iscriptHeaders.gndAttkRpt; X
-    iscriptHeaders.airAttkRpt; X
-    iscriptHeaders.gndAttkToIdle; X
-    iscriptHeaders.airAttkToIdle; X
-    iscriptHeaders.walking; X
-    iscriptHeaders.walkingToIdle; X
-    iscriptHeaders.built X
-    iscriptHeaders.landing X
-    iscriptHeaders.liftOff X
-    iscriptHeaders.burrow X
-    iscriptHeaders.unBurrow X
-
-    */
-
-    visible(current.order !== orders.harvestGas);
-    visible(window.showAlive ? true : current.alive);
-    visible(!current.loaded());
-    unit.visible = visible();
+    unit.visible = visible;
 
     this.renderUnit.update(unit);
   }
@@ -483,7 +468,7 @@ export class ReplayUnits {
   killUnit(unit) {
     unit.userData.current.alive = false;
     //@todo send kill signal to runners without interrupting them
-    // unit.userData.runner.toAnimationBlock(headers.death);
+    unit.userData.runner.toAnimationBlock(headers.death);
     this.deadUnits.push(unit);
   }
 
