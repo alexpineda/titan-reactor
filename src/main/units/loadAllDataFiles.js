@@ -8,12 +8,22 @@ import { OrdersDAT } from "./OrdersDAT";
 import { ImagesDAT } from "./ImagesDAT";
 import { WeaponsDAT } from "./WeaponsDAT";
 import { UnitsDAT } from "./UnitsDAT";
-import { openFileBinary, openFileLines } from "../fs";
+import { openFileBinary, openFileLines, searchFiles } from "../fs";
+import { parseLo } from "./parseLo";
+import path from "path";
 
 export async function loadAllDataFiles(bwDataPath) {
   const iscript = parseIscript(
     await openFileBinary(`${bwDataPath}/scripts/iscript.bin`)
   );
+
+  const loFiles = await searchFiles(`${bwDataPath}/unit/`, ".lo");
+  let los = [];
+  for (let loFile of loFiles) {
+    const key = loFile.replace(path.join(`${bwDataPath}/unit/`), "");
+    los[key] = await parseLo(await openFileBinary(loFile));
+  }
+
   const images = await new ImagesDAT(bwDataPath).load();
   const sprites = await new SpritesDAT(bwDataPath, images).load();
   const flingy = await new FlingyDAT(bwDataPath, sprites).load();
@@ -26,6 +36,7 @@ export async function loadAllDataFiles(bwDataPath) {
   const orders = await new OrdersDAT(bwDataPath).load();
 
   return {
+    los,
     iscript,
     sounds,
     tech,

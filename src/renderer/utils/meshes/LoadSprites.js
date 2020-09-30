@@ -68,7 +68,6 @@ export class LoadSprite {
 
       const boxes = bucket.flatMap((buf, imageId) => {
         const grp = new Grp(buf, Buffer);
-        //since we're already initializing a Grp, document it's max dimensions for reference later
         const max = grp.maxDimensions();
         return range(0, grp.frameCount()).map((frame) => {
           const { x, y, w, h } = grp.header(frame);
@@ -314,7 +313,7 @@ export class LoadSprite {
     );
     ba.usage = DynamicDrawUsage;
     sprite.geometry.setAttribute("uv", ba);
-    sprite.center = new Vector2(0.5, yOff);
+    sprite.center = new Vector2(0.5, yOff - 0.1);
     sprite.scale.set(w / 32, h / 32, 1);
     sprite.material.transparent = true;
 

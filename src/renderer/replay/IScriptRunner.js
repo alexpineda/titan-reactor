@@ -54,6 +54,9 @@ export class IScriptRunner {
   }
 
   _toAnimationBlock(offset, header = -1) {
+    if (this.parent.repId === 3583) {
+      debugger;
+    }
     const commands = this.bwDat.iscript.animationBlocks[offset];
     if (!commands) {
       let name = "local";
@@ -90,7 +93,10 @@ export class IScriptRunner {
       if (this.dbg.prevAnimBlock.commands.header === -1) {
         this.logger.log(`prev anim - local`, this);
       } else {
-        this.logger.log(`prev anim - ${headersById[header]}`, this);
+        this.logger.log(
+          `prev anim - ${headersById[this.dbg.prevAnimBlock.commands.header]}`,
+          this
+        );
       }
     }
 
@@ -337,6 +343,7 @@ export class IScriptRunner {
 
   setDirection(direction) {
     this.state.direction = direction;
+    if (this.state.noBrkCode) return;
     if (this.state.image.gfxTurns) {
       if (this.state.frameset === null) {
         this.logger.log(

@@ -84,7 +84,10 @@ export class ReplayUnits {
     unit.userData._active.visible = false;
     unit.add(unit.userData._active);
 
-    unit.userData.runner = this._initRunner(unit.userData.typeId);
+    unit.userData.runner = this._initRunner(
+      unit.userData.typeId,
+      unit.userData.repId
+    );
     unit.userData.runner.toAnimationBlock(headers.init);
 
     // if (this.bwDat.units[frameData.typeId].subUnit1 !== unitTypeIdByName.none) {
@@ -130,12 +133,13 @@ export class ReplayUnits {
     this._spawn(frameData, unit);
   }
 
-  _initRunner(typeId) {
+  _initRunner(typeId, repId) {
     return new IScriptRunner(
       this.bwDat,
       path(["flingy", "sprite", "image", "iscript"], this.bwDat.units[typeId]),
       {
         typeId,
+        repId,
       },
       {
         image: path(["flingy", "sprite", "image"], this.bwDat.units[typeId]),
@@ -196,6 +200,10 @@ export class ReplayUnits {
     }
 
     if (current.frame > 0 && current.typeId != previous.typeId) {
+      this.logger.log(
+        `%c ${current.repId} change type ${previous.typeId}->${current.typeId}`,
+        "background: #ffff00; color: #000000"
+      );
       this.replaceWith(current, unit);
     }
 
@@ -255,7 +263,6 @@ export class ReplayUnits {
     runner.setDirection(angleToDirection(current.angle));
     runner.update();
 
-    // some state we persist from iscript state
     //@todo what are teh cases where these get overwritten if these are dispatched on the first frame??
     if (runner.dispatched["gotorepeatattk"]) {
       currentOrder.repeatAttackAfterCooldown = true;
@@ -266,109 +273,109 @@ export class ReplayUnits {
     }
 
     //@todo let die order indicate deaths not other method
-    if (!runner.state.noBrkCode) {
-      if (current.order !== previous.order) {
-        Object.assign(currentOrder, {
-          order: current.order,
-          prevOrder: previous.order,
-          target: current.target,
-          orderTarget: current.orderTarget,
-          repeatAttackAfterCooldown: null,
-          usingWeaponType: null,
-        });
+    // if (!runner.state.noBrkCode) {
+    if (current.order !== previous.order) {
+      Object.assign(currentOrder, {
+        order: current.order,
+        prevOrder: previous.order,
+        target: current.target,
+        orderTarget: current.orderTarget,
+        repeatAttackAfterCooldown: null,
+        usingWeaponType: null,
+      });
 
-        //for cool down reasons
-        if (current.target !== -1 || current.orderTarget !== -1) {
-          currentOrder.lastTargetWasAir = targetIsAir();
-        }
-
-        this.logger.log(
-          `%c order ${ordersById[current.order]}`,
-          "background: #222; color: #bada55"
-        );
-
-        switch (current.order) {
-          case orders.move:
-          case orders.harvest1:
-          case orders.harvest2:
-          case orders.moveToMinerals:
-          case orders.moveToGas:
-          case orders.returnMinerals:
-          case orders.attackMove:
-          case orders.placeBuilding:
-          case orders.attack1:
-          case orders.attack2:
-            run(headers.walking);
-            break;
-          case orders.incompleteBuilding:
-            //just before zerg drone becomes building
-            break;
-          case orders.harvestGas:
-            break;
-          case orders.returnGas:
-            break;
-          case orders.waitForMinerals:
-          case orders.waitForGas:
-            run(headers.walkingToIdle);
-            break;
-          case orders.constructingBuilding:
-          case orders.miningMinerals:
-            run(headers.almostBuilt);
-            break;
-          case orders.harvest3:
-            run(headers.walkingToIdle);
-            break;
-          case orders.harvest4:
-            break;
-          case orders.die:
-            console.log("die", unit);
-            break;
-          case orders.stop:
-          case orders.gaurd:
-          case orders.playerGaurd:
-          case orders.turretGaurd:
-          case orders.bunkerGaurd:
-          case orders.stopReaver:
-          case orders.towerGaurd:
-            // toIdle();
-            break;
-          case orders.attackUnit:
-          // if (unit.userData.repId === 3561) {
-          //   debugger;
-          // }
-          case orders.attackFixedRange:
-          case orders.attackTile:
-            toAttack();
-            break;
-          case orders.upgrade:
-            unitType.terran() && run(headers.working);
-            break;
-          case orders.buildingLiftOff:
-            run(headers.liftOff);
-            unit.userData.buildingLifted = true;
-            break;
-          case orders.buildingLand:
-            run(headers.landing);
-            unit.userData.buildingLifted = false;
-            break;
-          case orders.zergBirth: //egg->unit or coccoon -> unit
-          case orders.zergBuildingMorph:
-          case orders.zergUnitMorph: //larva->egg
-            break;
-          case orders.burrowing:
-            run(headers.burrow);
-            break;
-          case orders.unburrowing:
-            run(headers.unBurrow);
-            break;
-          case orders.burrowed:
-            run(headers.specialState2);
-            break;
-          case orders.larva:
-            run(headers.walking);
-            break;
-        }
+      //for cool down reasons
+      if (current.target !== -1 || current.orderTarget !== -1) {
+        currentOrder.lastTargetWasAir = targetIsAir();
       }
+
+      this.logger.log(
+        `%c order ${ordersById[current.order]}`,
+        "background: #222; color: #bada55"
+      );
+
+      switch (current.order) {
+        case orders.move:
+        case orders.harvest1:
+        case orders.harvest2:
+        case orders.moveToMinerals:
+        case orders.moveToGas:
+        case orders.returnMinerals:
+        case orders.attackMove:
+        case orders.placeBuilding:
+        case orders.attack1:
+        case orders.attack2:
+          run(headers.walking);
+          break;
+        case orders.incompleteBuilding:
+          //just before zerg drone becomes building
+          break;
+        case orders.harvestGas:
+          break;
+        case orders.returnGas:
+          break;
+        case orders.waitForMinerals:
+        case orders.waitForGas:
+          run(headers.walkingToIdle);
+          break;
+        case orders.constructingBuilding:
+        case orders.miningMinerals:
+          run(headers.almostBuilt);
+          break;
+        case orders.harvest3:
+          run(headers.walkingToIdle);
+          break;
+        case orders.harvest4:
+          break;
+        case orders.die:
+          console.log("die", unit);
+          break;
+        case orders.stop:
+        case orders.gaurd:
+        case orders.playerGaurd:
+        case orders.turretGaurd:
+        case orders.bunkerGaurd:
+        case orders.stopReaver:
+        case orders.towerGaurd:
+          // toIdle();
+          break;
+        case orders.attackUnit:
+          if (unit.userData.repId === 3583) {
+            debugger;
+          }
+        case orders.attackFixedRange:
+        case orders.attackTile:
+          toAttack();
+          break;
+        case orders.upgrade:
+          unitType.terran() && run(headers.working);
+          break;
+        case orders.buildingLiftOff:
+          run(headers.liftOff);
+          unit.userData.buildingLifted = true;
+          break;
+        case orders.buildingLand:
+          run(headers.landing);
+          unit.userData.buildingLifted = false;
+          break;
+        case orders.zergBirth: //egg->unit or coccoon -> unit
+        case orders.zergBuildingMorph:
+        case orders.zergUnitMorph: //larva->egg
+          break;
+        case orders.burrowing:
+          run(headers.burrow);
+          break;
+        case orders.unburrowing:
+          run(headers.unBurrow);
+          break;
+        case orders.burrowed:
+          run(headers.specialState2);
+          break;
+        case orders.larva:
+          run(headers.walking);
+          break;
+      }
+      // }
 
       if (current.subOrder !== previous.subOrder) {
         this.logger.log(`subOrder ${ordersById[current.subOrder]}`);
