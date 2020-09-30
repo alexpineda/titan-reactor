@@ -9,6 +9,7 @@ import { LoadModel } from "../utils/meshes/LoadModels";
 
 export class RenderUnit3D {
   constructor(loadingManager = DefaultLoadingManager) {
+    this.loadFromUnitType = true;
     this.loadingManager = loadingManager;
     this.prefabs = {
       999: () => {

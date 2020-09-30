@@ -20,10 +20,6 @@ export class RenderUnit2D {
     };
   }
 
-  _unitPath(file) {
-    return `${this.bwDataPath}/unit/${file}`;
-  }
-
   useUnitPalette(unitType) {
     switch (unitType) {
       case unitTypeIdByName.startLocation:
@@ -42,18 +38,11 @@ export class RenderUnit2D {
     }
   }
 
-  load(typeId, unit = new Group()) {
-    const mesh = this.loadSprite.getMesh(
-      this.bwDat.units[typeId].flingy.sprite.image.index
-    );
+  load(image, unit = new Group()) {
+    const mesh = this.loadSprite.getMesh(image);
     unit.userData.unitMesh = mesh;
     unit.add(mesh);
     return unit;
-  }
-
-  replace(unit, typeId) {
-    unit.remove(unit.userData.unitMesh);
-    return this.load(typeId, unit);
   }
 
   update(unit) {
@@ -72,15 +61,5 @@ export class RenderUnit2D {
       userData.runner.state.frame,
       userData.runner.state.flipFrame
     );
-
-    //temp
-    // userData.runner.state.prevFrame = userData.runner.state.frame;
-
-    // @todo render children
-
-    const mesh = unit.userData.unitMesh;
-    mesh.material.opacity = this.bwDat.units[userData.typeId].permanentCloak()
-      ? 0.6
-      : 1;
   }
 }

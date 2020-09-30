@@ -35,6 +35,14 @@ export class IScriptRunner {
     };
     this.listeners = listeners;
     this.dbg = {};
+
+    if (!this.state.image) {
+      throw new Error("image required");
+    }
+
+    if (this.state.image.gfxTurns) {
+      this.state.frameset = 0;
+    }
   }
 
   toAnimationBlock(header) {
@@ -312,8 +320,9 @@ export class IScriptRunner {
   __playfram(frame) {
     if (this.state.image.gfxTurns && frame % 17 === 0) {
       this.state.frameset = frame;
-      this.setFrameBasedOnDirection(this._getDirection(this.parent));
+      this.setFrameBasedOnDirection();
     } else {
+      //@todo see if this matters
       this.state.frameset = null;
       this.setFrame(frame, false);
       this._dispatch("playfram", frame);
@@ -326,22 +335,30 @@ export class IScriptRunner {
     this.state.frame = frame;
   }
 
-  _getDirection(obj) {
-    if (!obj.directionFn) {
-      return this._getDirection(obj.parent);
+  setDirection(direction) {
+    this.state.direction = direction;
+    if (this.state.image.gfxTurns) {
+      if (this.state.frameset === null) {
+        this.logger.log(
+          `%c cant update frame without frameset`,
+          `color:#990011`
+        );
+        // console.error("cant update frame without frameset");
+      } else {
+        this.setFrameBasedOnDirection();
+      }
     }
-    return obj.directionFn();
   }
 
-  setFrameBasedOnDirection(dir) {
-    if (dir > 16) {
-      this.setFrame(this.state.frameset + 32 - dir, true);
+  setFrameBasedOnDirection() {
+    if (this.state.direction > 16) {
+      this.setFrame(this.state.frameset + 32 - this.state.direction, true);
     } else {
-      this.setFrame(this.state.frameset + dir, false);
+      this.setFrame(this.state.frameset + this.state.direction, false);
     }
     this._dispatch(
       "playfram",
-      `frame:${this.state.frame} dir:${dir} frameset:${this.state.frameset} `
+      `frame:${this.state.frame} dir:${this.state.direction} frameset:${this.state.frameset} `
     );
   }
 

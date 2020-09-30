@@ -59,7 +59,13 @@ export class ReplayUnits {
   }
 
   _spawn(frameData, replacingUnitType, skippingFrames) {
-    const unit = replacingUnitType || this.renderUnit.load(frameData.typeId);
+    const unit =
+      replacingUnitType ||
+      this.renderUnit.load(
+        this.renderUnit.loadFromUnitType
+          ? frameData.typeId
+          : this.bwDat.units[frameData.typeId].flingy.sprite.image.index
+      );
 
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
@@ -78,39 +84,58 @@ export class ReplayUnits {
     unit.userData._active.visible = false;
     unit.add(unit.userData._active);
 
-    unit.userData.runner = this._initRunner({
-      typeId: unit.userData.typeId,
-      directionFn: () => angleToDirection(unit.userData.current.angle),
-    });
+    unit.userData.runner = this._initRunner(unit.userData.typeId);
     unit.userData.runner.toAnimationBlock(headers.init);
 
-    if (this.bwDat.units[frameData.typeId].subUnit1 !== unitTypeIdByName.none) {
-      const subUnit = this.renderUnit.load(
-        this.bwDat.units[frameData.typeId].subUnit1
-      );
-      subUnit.position.z = 0.01;
-      subUnit.userData.runner = this._initRunner({
-        typeId: this.bwDat.units[frameData.typeId].subUnit1,
-        directionFn: null,
-      });
-      unit.userData.subUnit = subUnit;
-      unit.add(subUnit);
-    }
+    // if (this.bwDat.units[frameData.typeId].subUnit1 !== unitTypeIdByName.none) {
+    //   const subUnitTypeId = this.bwDat.units[frameData.typeId].subUnit1;
 
-    // unit.visible = false;
+    //   const subUnit = this.renderUnit.load(
+    //     this.renderUnit.loadFromUnitType
+    //       ? subUnitTypeId
+    //       : this.bwDat.units[subUnitTypeId].flingy.sprite.image.index
+    //   );
+    //   subUnit.position.z = 0.01;
+    //   subUnit.userData.runner = this._initRunner( this.bwDat.units[frameData.typeId].subUnit1);
+    //   unit.userData.subUnit = subUnit;
+    //   unit.add(subUnit);
+    // }
+
+    unit.userData.unitMesh.material.opacity = this.bwDat.units[
+      frameData.typeId
+    ].permanentCloak()
+      ? 0.6
+      : 1;
 
     !replacingUnitType && this._initAudio(unit);
     this.units.add(unit);
     return unit;
   }
 
-  _initRunner({ typeId, directionFn }) {
+  // zerg spawn
+  replaceWith(frameData, unit) {
+    unit.remove(unit.userData.unitMesh);
+    //@todo dispose any children material from runner spawns
+
+    const {
+      userData: { unitMesh },
+    } = this.renderUnit.load(
+      this.renderUnit.loadFromUnitType
+        ? frameData.typeId
+        : this.bwDat.units[frameData.typeId].flingy.sprite.image.index
+    );
+
+    unit.userData.unitMesh = unitMesh;
+    unit.add(unitMesh);
+    this._spawn(frameData, unit);
+  }
+
+  _initRunner(typeId) {
     return new IScriptRunner(
       this.bwDat,
       path(["flingy", "sprite", "image", "iscript"], this.bwDat.units[typeId]),
       {
         typeId,
-        directionFn,
       },
       {
         image: path(["flingy", "sprite", "image"], this.bwDat.units[typeId]),
@@ -157,20 +182,6 @@ export class ReplayUnits {
     unit.userData.runner.on("playsndbtwn", playSound);
     unit.userData.runner.on("playsndrand", playSound);
     unit.userData.runner.on("attackmelee", playSound);
-  }
-
-  // zerg spawn
-  replaceWith(frameData, unit) {
-    unit.remove(unit.userData.unitMesh);
-    //@todo dispose any children material from runner spawns
-
-    const {
-      userData: { unitMesh },
-    } = this.renderUnit.load(frameData.typeId);
-
-    unit.userData.unitMesh = unitMesh;
-    unit.add(unitMesh);
-    this._spawn(frameData, unit);
   }
 
   update(unit, frameData, skippingFrames) {
@@ -241,9 +252,7 @@ export class ReplayUnits {
       targetIsAir() ? run(headers.airAttkInit) : run(headers.gndAttkInit);
     };
 
-    if (runner.state.frameset !== null) {
-      runner.setFrameBasedOnDirection(angleToDirection(current.angle));
-    }
+    runner.setDirection(angleToDirection(current.angle));
     runner.update();
 
     // some state we persist from iscript state
