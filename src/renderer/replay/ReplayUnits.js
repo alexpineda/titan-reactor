@@ -43,6 +43,7 @@ export class ReplayUnits {
     this.audioPool = audioPool;
     this.renderUnit = renderUnit;
     this.logger = new DebugLog("units");
+    this.cameraDirection = 0;
     //@todo refactor out
     this.renderUnit.loadAssets && this.renderUnit.loadAssets();
   }
@@ -274,7 +275,9 @@ export class ReplayUnits {
     };
 
     if (angleToDirection(current.angle) !== angleToDirection(previous.angle)) {
-      runner.setDirection(angleToDirection(current.angle));
+      runner.setDirection(
+        (angleToDirection(current.angle) + this.cameraDirection) % 32
+      );
     }
     runner.update();
 

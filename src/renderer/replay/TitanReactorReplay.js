@@ -264,6 +264,15 @@ export async function TitanReactorReplay(
     cubeCamera.rotation.copy(camera.rotation);
     cubeCamera.update(renderer, scene);
 
+    const adj = cameraControls.target.z - camera.position.z;
+    const opp = cameraControls.target.x - camera.position.x;
+    const a = Math.atan2(opp, adj) / Math.PI;
+    if (a < 0) {
+      units.cameraDirection = Math.floor((a + 2) * 16 + 16);
+    } else {
+      units.cameraDirection = Math.floor(a * 16 + 16);
+    }
+
     renderer.clear();
     renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.render(scene, camera);

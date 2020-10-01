@@ -394,12 +394,12 @@ export class IScriptRunner {
   }
 
   __turncwise(turns, alreadyDispatched) {
-    this.direction = (this.direction += turns) % 31;
+    this.direction = (this.direction += turns) % 32;
     !alreadyDispatched && this._dispatch("turncwise", turns);
   }
 
   __turn1cwise() {
-    this.direction = (this.direction += 1) % 31;
+    this.direction = (this.direction += 1) % 32;
     this._dispatch("turn1cwise", true);
   }
 
