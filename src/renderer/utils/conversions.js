@@ -7,7 +7,7 @@ export const pixelToWalkTile = (p) => Math.floor(p / 8);
 export const scaleTileToMeter = (t) => t / 32;
 
 export const gameSpeeds = {
-  slowest: 167, // s/frame
+  slowest: 167, // ms/frame
   slower: 111,
   slow: 83,
   normal: 67,

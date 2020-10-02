@@ -25,14 +25,7 @@ export const cmdToJson = function ({ type: { name } }, buffer) {
     case "Select Add":
     case "Select Remove":
       const count = data.readUInt8(0);
-      const unitTags = [];
-
-      for (let i = 0; i < count; i += 2) {
-        //todo verify these values are accurate
-        //seems like they are 1/2 values
-        unitTags.push(unitTag(data.readUInt16LE(1 + i)));
-      }
-
+      const unitTags = range(0, count).map((i) => data.readUInt16LE(1 + i * 2));
       return {
         unitTags,
       };

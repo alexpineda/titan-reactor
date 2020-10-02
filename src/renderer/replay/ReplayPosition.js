@@ -71,7 +71,9 @@ export class ReplayPosition {
   }
 
   goto(frame) {
-    this.destination = frame;
+    this.destination = Math.min(frame, this.maxFrame);
+    this.lastDelta = 0;
+    this.skipGameFrames = 0;
     this._goto = () => {
       if (frame > this.bwGameFrame) {
         this.skipGameFrames = Math.min(
@@ -109,7 +111,12 @@ export class ReplayPosition {
       this.lastDelta = this.lastDelta + this.clock.getDelta();
       if (this.lastDelta >= this.gameSpeed) {
         this.skipGameFrames = Math.floor(this.lastDelta / this.gameSpeed);
-        this.lastDelta = this.lastDelta - this.skipGameFrames * this.gameSpeed;
+        if (this.skipGameFrames > this._maxSkipSpeed) {
+          this.goto(this.bwGameFrame + this.skipGameFrames);
+        } else {
+          this.lastDelta =
+            this.lastDelta - this.skipGameFrames * this.gameSpeed;
+        }
       } else {
         this.skipGameFrames = 0;
       }
