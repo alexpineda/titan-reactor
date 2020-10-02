@@ -1,36 +1,75 @@
-export const GameSpeed = {
-  slowest: 2,
-  normal: 12,
-  fastest: 24,
-  "2x": 48,
-  "4x": 48,
-  "8x": 48,
-  "16x": 48,
-  "32x": 48,
-};
+export class ClockMs {
+  constructor(autoStart) {
+    this.autoStart = autoStart !== undefined ? autoStart : true;
+
+    this.startTime = 0;
+    this.oldTime = 0;
+    this.elapsedTime = 0;
+
+    this.running = false;
+  }
+
+  start() {
+    this.startTime = (typeof performance === "undefined"
+      ? Date
+      : performance
+    ).now(); // see #10732
+
+    this.oldTime = this.startTime;
+    this.elapsedTime = 0;
+    this.running = true;
+  }
+
+  stop() {
+    this.getElapsedTime();
+    this.running = false;
+    this.autoStart = false;
+  }
+
+  getElapsedTime() {
+    this.getDelta();
+    return this.elapsedTime;
+  }
+
+  getDelta() {
+    let diff = 0;
+
+    if (this.autoStart && !this.running) {
+      this.start();
+      return 0;
+    }
+
+    if (this.running) {
+      const newTime = (typeof performance === "undefined"
+        ? Date
+        : performance
+      ).now();
+
+      diff = newTime - this.oldTime;
+      this.oldTime = newTime;
+
+      this.elapsedTime += diff;
+    }
+
+    return diff;
+  }
+}
 
 export class ReplayPosition {
-  constructor(maxFrame) {
+  constructor(maxFrame, clock, gameSpeed) {
     this.maxFrame = maxFrame;
     this.frame = 0;
     this.bwapiBufferFrame = 0;
     this.bwGameFrame = 0;
-    this.skipGameFrames = 1;
+    this.skipGameFrames = 0;
     this.skipPhysicsFrames = 20;
-    this.gameSpeed = GameSpeed.fastest;
     this._maxSkipSpeed = 100;
+    this.gameSpeed = gameSpeed;
+    this.clock = clock;
+    this.lastDelta = 0;
     this.onResetState = () => {};
   }
 
-  toggleSkipFrames() {
-    if (this.skipGameFrames > 1) {
-      this.skipGameFrames = 1;
-    } else {
-      this.skipGameFrames = 10;
-    }
-  }
-
-  //@todo skipGameFrames in smaller increments
   goto(frame) {
     this.destination = frame;
     this._goto = () => {
@@ -54,15 +93,30 @@ export class ReplayPosition {
 
     this._goto && this._goto();
 
-    if (this.bwGameFrame === this.destination) {
-      delete this.destination;
-      this.skipGameFrames = 1;
+    if (this.destination) {
+      if (this.bwGameFrame === this.destination) {
+        delete this.destination;
+        this.skipGameFrames = 0;
+        this.lastDelta = 0;
+      }
+      if (
+        this.bwGameFrame >= this.destination - this._maxSkipSpeed &&
+        this.bwGameFrame <= this.destination + this._maxSkipSpeed
+      ) {
+        this.skipGameFrames = this.destination - this.bwGameFrame;
+      }
+    } else {
+      this.lastDelta = this.lastDelta + this.clock.getDelta();
+      if (this.lastDelta >= this.gameSpeed) {
+        this.skipGameFrames = Math.floor(this.lastDelta / this.gameSpeed);
+        this.lastDelta = this.lastDelta - this.skipGameFrames * this.gameSpeed;
+      } else {
+        this.skipGameFrames = 0;
+      }
     }
-    if (
-      this.bwGameFrame >= this.destination - this._maxSkipSpeed &&
-      this.bwGameFrame <= this.destination + this._maxSkipSpeed
-    ) {
-      this.skipGameFrames = this.destination - this.bwGameFrame;
-    }
+  }
+
+  isMaxFrame() {
+    return this.bwGameFrame === this.maxFrame;
   }
 }

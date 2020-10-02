@@ -1,6 +1,5 @@
 import { displacementImage } from "./textures/displacementImage";
 import { roughnessImage } from "./textures/roughnessImage";
-import { TextureLoader } from "three";
 import { mapImage } from "./textures/mapImage";
 import { terrainMesh } from "./meshes/terrainMesh";
 import { imageToCanvasTexture } from "./textures/imageToCanvasTexture";
@@ -60,15 +59,13 @@ export class Terrain {
     const map = await get("map", mapImage, defaultMap);
     const displace = await get("displace", displacementImage, defaultDisplace);
     const roughness = await get("roughness", roughnessImage, defaultRoughness);
-    const normal = new TextureLoader().load("_alex/fs-nodoodads_normal.png");
 
     this.terrain = terrainMesh(
       this.chk.size[0],
       this.chk.size[1],
       map,
       displace,
-      roughness,
-      normal
+      roughness
     );
 
     this.terrain.userData.originalMap = this.terrain.material.map;

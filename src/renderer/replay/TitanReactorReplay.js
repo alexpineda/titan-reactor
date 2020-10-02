@@ -16,7 +16,8 @@ import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
 import { difference } from "ramda";
-import { ReplayPosition } from "./ReplayPosition";
+import { ReplayPosition, ClockMs } from "./ReplayPosition";
+import { gameSpeeds } from "../utils/conversions";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -142,7 +143,12 @@ export async function TitanReactorReplay(
 
   let requestAnimationFrameId = null;
 
-  let replayPosition = new ReplayPosition();
+  let replayPosition = new ReplayPosition(
+    header.durationFrames,
+    new ClockMs(false),
+    gameSpeeds.fastest
+  );
+
   replayPosition.onResetState = () => {
     unitsLastFrame = [];
     unitsThisFrame = [];
@@ -207,7 +213,10 @@ export async function TitanReactorReplay(
 
   let unitsLastFrame = [];
   let unitsThisFrame = [];
+
   function gameLoop() {
+    replayPosition.update();
+
     units.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
@@ -220,8 +229,6 @@ export async function TitanReactorReplay(
           window.performance.memory.totalJSHeapSize
         ).toFixed(2)}`
       );
-
-      replayPosition.update();
 
       // if (BWAPIFramesDataView) {
       gameloop: for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {

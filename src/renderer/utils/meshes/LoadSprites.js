@@ -1,6 +1,5 @@
 import {
   DefaultLoadingManager,
-  TextureLoader,
   SpriteMaterial,
   Sprite,
   sRGBEncoding,
@@ -14,7 +13,7 @@ import {
 import { Grp } from "../../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
 import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
-import { range, groupBy, all, flip } from "ramda";
+import { range, groupBy } from "ramda";
 import Worker from "../packbin.worker.js";
 import { asyncFilter } from "./async";
 import { DebugLog } from "../DebugLog";

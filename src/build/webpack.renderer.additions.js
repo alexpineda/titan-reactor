@@ -15,6 +15,7 @@ module.exports = {
         __dirname,
         "src/renderer/2d-map-rendering/"
       ),
+      "@common": path.resolve(__dirname, "src/common/"),
     },
   },
 };

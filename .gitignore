@@ -7,3 +7,4 @@ bwdata
 dist
 .vscode
 ramps
+.DS_Store
