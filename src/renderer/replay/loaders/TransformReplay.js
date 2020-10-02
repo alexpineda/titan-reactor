@@ -1,95 +1,12 @@
-import ParseCmd from "./ParseCmd";
-
-const unitIdStartLocation = 0xd6;
-const unitIDMineralField1 = 0xb0;
-const unitIDMineralField2 = 0xb1;
-const unitIDMineralField3 = 0xb2;
-const unitIDVespeneGeyser = 0xbc;
-
-const commands = {
-  "Keep Alive": 0x05,
-  "Save Game": 0x06,
-  "Load Game": 0x07,
-  "Restart Game": 0x08,
-  Select: 0x09,
-  "Select Add": 0x0a,
-  "Select Remove": 0x0b,
-  Build: 0x0c,
-  Vision: 0x0d,
-  Alliance: 0x0e,
-  "Game Speed": 0x0f,
-  Pause: 0x10,
-  Resume: 0x11,
-  Cheat: 0x12,
-  Hotkey: 0x13,
-  "Right Click": 0x14,
-  "Targeted Order": 0x15,
-  "Cancel Build": 0x18,
-  "Cancel Morph": 0x19,
-  Stop: 0x1a,
-  "Carrier Stop": 0x1b,
-  "Reaver Stop": 0x1c,
-  "Order Nothing": 0x1d,
-  "Return Cargo": 0x1e,
-  Train: 0x1f,
-  "Cancel Train": 0x20,
-  Cloak: 0x21,
-  Decloak: 0x22,
-  "Unit Morph": 0x23,
-  Unsiege: 0x25,
-  Siege: 0x26,
-  "Train Fighter": 0x27, // Build interceptor / scarab
-  "Unload All": 0x28,
-  Unload: 0x29,
-  "Merge Archon": 0x2a,
-  "Hold Position": 0x2b,
-  Burrow: 0x2c,
-  Unburrow: 0x2d,
-  "Cancel Nuke": 0x2e,
-  "Lift Off": 0x2f,
-  Tech: 0x30,
-  "Cancel Tech": 0x31,
-  Upgrade: 0x32,
-  "Cancel Upgrade": 0x33,
-  "Cancel Addon": 0x34,
-  "Building Morph": 0x35,
-  Stim: 0x36,
-  Sync: 0x37,
-  "Voice Enable": 0x38,
-  "Voice Disable": 0x39,
-  "Voice Squelch": 0x3a,
-  "Voice Unsquelch": 0x3b,
-  "[Lobby] Start Game": 0x3c,
-  "[Lobby] Download Percentage": 0x3d,
-  "[Lobby] Change Game Slot": 0x3e,
-  "[Lobby] New Net Player": 0x3f,
-  "[Lobby] Joined Game": 0x40,
-  "[Lobby] Change Race": 0x41,
-  "[Lobby] Team Game Team": 0x42,
-  "[Lobby] UMS Team": 0x43,
-  "[Lobby] Melee Team": 0x44,
-  "[Lobby] Swap Players": 0x45,
-  "[Lobby] Saved Data": 0x48,
-  "Briefing Start": 0x54,
-  Latency: 0x55,
-  "Replay Speed": 0x56,
-  "Leave Game": 0x57,
-  "Minimap Ping": 0x58,
-  "Merge Dark Archon": 0x5a,
-  "Make Game Public": 0x5b,
-  Chat: 0x5c,
-  "Right Click 1.21": 0x60,
-  "Targeted Order 1.21": 0x61,
-  "Unload 1.21": 0x62,
-  "Select 1.21": 0x63,
-  "Select Add 1.21": 0x64,
-  "Select Remove 1.21": 0x65,
-};
-
-const commandsById = Object.keys(commands).reduce((memo, key) => {
-  memo[commands[key]] = key;
-  return memo;
-}, {});
+import { cmdToJson } from "./ParseCmd";
+import { commandsById } from "../../../common/bwdat/commands";
+import {
+  mineral1,
+  mineral2,
+  mineral3,
+  geyser,
+  startLocation,
+} from "../../../common/bwdat/unitTypes";
 
 const playerColors = [
   { name: "Red", id: 0x00, rgb: 0xf40404 },
@@ -187,16 +104,10 @@ export function fromJssuhJSON(header, commands, chk) {
   return {
     chk,
     geysers: chk.units
-      .filter(({ unitId }) => unitId == unitIDVespeneGeyser)
+      .filter(({ unitId }) => unitId == geyser)
       .map(({ x, y, resourceAmt }) => ({ x, y, resourceAmt })),
     minerals: chk.units
-      .filter(({ unitId }) =>
-        [
-          unitIDMineralField1,
-          unitIDMineralField2,
-          unitIDMineralField3,
-        ].includes(unitId)
-      )
+      .filter(({ unitId }) => [mineral1, mineral2, mineral3].includes(unitId))
       .map(({ x, y, resourceAmt }) => ({ x, y, resourceAmt })),
     gameType: -1,
     startTime: new Date(header.seed * 1000).toISOString(),
@@ -205,14 +116,14 @@ export function fromJssuhJSON(header, commands, chk) {
         ...player,
         color: playerColors[playerColorIndex++].rgb,
         startLocation: chk.units.find(
-          (u) => u.player == player.id && u.unitId == unitIdStartLocation
+          (u) => u.player == player.id && u.unitId == startLocation
         ),
       };
     }),
     commands: commands.map(({ frame, id, player, data }) => {
       const name = commandsById[id];
       if (typeof name === "undefined") {
-        console.error("watch out command has no name", id);
+        console.error("command has no name", id);
       }
 
       let cmd = {
@@ -228,6 +139,4 @@ export function fromJssuhJSON(header, commands, chk) {
     }),
     durationFrames: header.durationFrames,
   };
-
-  return data;
 }

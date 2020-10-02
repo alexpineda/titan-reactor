@@ -2,14 +2,7 @@ import ReplayParser from "jssuh";
 import concat from "concat-stream";
 import { imageChk } from "../../utils/loadChk";
 import Chk from "../../../../libs/bw-chk";
-import { Writable } from "stream";
 import fs from "fs";
-
-const echo = new Writable({
-  write(chunk, enc, next) {
-    next();
-  },
-});
 
 export const jssuhLoadReplay = (replayFile, bwDataPath) => {
   const reppi = fs.createReadStream(replayFile).pipe(new ReplayParser());
