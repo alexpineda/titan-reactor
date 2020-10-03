@@ -43,7 +43,11 @@ export class ReplayUnits {
     this.audioPool = audioPool;
     this.renderUnit = renderUnit;
     this.logger = new DebugLog("units");
-    this.cameraDirection = 0;
+    // for 2d sprites only
+    this.cameraDirection = {
+      direction: 0,
+      previousDirection: 0,
+    };
     //@todo refactor out
     this.renderUnit.loadAssets && this.renderUnit.loadAssets();
   }
@@ -274,9 +278,12 @@ export class ReplayUnits {
       }
     };
 
-    if (angleToDirection(current.angle) !== angleToDirection(previous.angle)) {
+    if (
+      angleToDirection(current.angle) !== angleToDirection(previous.angle) ||
+      this.cameraDirection.direction !== this.cameraDirection.previousDirection
+    ) {
       runner.setDirection(
-        (angleToDirection(current.angle) + this.cameraDirection) % 32
+        (angleToDirection(current.angle) + this.cameraDirection.direction) % 32
       );
     }
     runner.update();
@@ -359,6 +366,7 @@ export class ReplayUnits {
         case orders.holdPosition:
         case orders.medicHealToIdle:
         case orders.medicHoldPosition:
+        case orders.medic:
           toIdle();
           break;
         case orders.medicHeal:
@@ -370,10 +378,7 @@ export class ReplayUnits {
         case orders.towerGaurd:
           // toIdle();
           break;
-        case orders.attackUnit:
-        // if (unit.userData.repId === 3583) {
-        //   debugger;
-        // }
+
         case orders.attackFixedRange:
         case orders.attackTile:
           toAttack();
@@ -411,14 +416,19 @@ export class ReplayUnits {
       }
     }
 
-    this.logger.log(`build time ${current.remainingBuildTime}`);
-
     if (current.remainingBuildTime) {
       this.logger.log(`build time ${current.remainingBuildTime}`);
     }
 
     if (current.remainingBuildTime === 17 && current.typeId === zergEgg) {
       run(headers.specialState1);
+    }
+
+    if (
+      current.order === orders.move &&
+      runner.lastNamedAnimationBlock !== headers.walking
+    ) {
+      run(headers.walking);
     }
 
     if (
@@ -434,6 +444,22 @@ export class ReplayUnits {
     //@todo check getRemainingBuildType
     if (previous.remainingBuildTime === 1 && unitType.building()) {
       run(headers.built);
+    }
+
+    if (
+      current.order === orders.attackUnit &&
+      !current.attacking() &&
+      runner.lastNamedAnimationBlock !== headers.walking
+    ) {
+      run(headers.walking);
+    } else if (
+      current.order === orders.attackUnit &&
+      current.attacking() &&
+      !previous.attacking() &&
+      runner.lastNamedAnimationBlock !== headers.gndAttkInit &&
+      runner.lastNamedAnimationBlock !== headers.gndAttkRpt
+    ) {
+      run(headers.gndAttkInit);
     }
 
     //@todo have a attktoIdle when there is no use weapon type

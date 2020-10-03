@@ -13,6 +13,8 @@ export class IScriptRunner {
     this.dispatched = {};
     this.iscript = bwDat.iscript.iscripts[iscriptId];
     this.hasRunAnimationBlockAtLeastOnce = {};
+    this.lastNamedAnimationBlock = null;
+    this.commands = [];
     // blocks that exist outside this "unit iscript"
     this.state = {
       children: [],
@@ -54,6 +56,7 @@ export class IScriptRunner {
       commands: this.commands,
       commandIndex: this.commandIndex,
     };
+    this.lastNamedAnimationBlock = this.commands.header;
     return this._toAnimationBlock(this.iscript.offsets[header], header);
   }
 

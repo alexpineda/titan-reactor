@@ -130,9 +130,9 @@ export async function TitanReactorReplay(
   let BWAPIFramesDataView = null;
 
   // const tempReplayFile = "./bwdata/_alex/0279 ScanKaLT azzyP.rep.bin";
-  const tempReplayFile = "./bwdata/_alex/CTR_F505F47D.rep.bin";
+  // const tempReplayFile = "./bwdata/_alex/CTR_F505F47D.rep.bin";
   // const tempReplayFile = "./bwdata/_alex/CTR_52C0564.rep.bin";
-  // const tempReplayFile = "./bwdata/_alex/0255 CleanNaraT simjeongZ.rep.bin";
+  const tempReplayFile = "./bwdata/_alex/0255 CleanNaraT simjeongZ.rep.bin";
   // const tempReplayFile = "./bwdata/_alex/0006 ramiyerP ScanKaLT.rep.bin";
 
   THREE.DefaultLoadingManager.itemStart(tempReplayFile);
@@ -274,10 +274,11 @@ export async function TitanReactorReplay(
     const adj = cameraControls.target.z - camera.position.z;
     const opp = cameraControls.target.x - camera.position.x;
     const a = Math.atan2(opp, adj) / Math.PI;
+    units.cameraDirection.previousDirection = units.cameraDirection.direction;
     if (a < 0) {
-      units.cameraDirection = Math.floor((a + 2) * 16 + 16);
+      units.cameraDirection.direction = Math.floor((a + 2) * 16 + 16);
     } else {
-      units.cameraDirection = Math.floor(a * 16 + 16);
+      units.cameraDirection.direction = Math.floor(a * 16 + 16);
     }
 
     renderer.clear();

@@ -11,6 +11,7 @@ export class RenderUnit3D {
   constructor(loadingManager = DefaultLoadingManager) {
     this.loadFromUnitType = true;
     this.loadingManager = loadingManager;
+    // not used in 3d but required for interface
     this.prefabs = {
       999: () => {
         const mesh = new Mesh(
