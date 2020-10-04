@@ -12,18 +12,22 @@ import {
 import { disposeMesh } from "../utils/meshes/dispose";
 import { IScriptRunner } from "./IScriptRunner";
 import { path } from "ramda";
-import { iscriptHeaders as headers } from "../../common/bwdat/iscriptHeaders";
+import {
+  headersById,
+  iscriptHeaders as headers,
+} from "../../common/bwdat/iscriptHeaders";
 import { orders, ordersById } from "../../common/bwdat/orders";
 import { DebugLog } from "../utils/DebugLog";
 import { angleToDirection } from "../utils/conversions";
 import { unitTypeIdByName } from "../../common/bwdat/unitTypes";
+import { buildTypes, buildTypesById } from "./BWAPIFrames";
 const { zergEgg } = unitTypeIdByName;
 
 const red = new Color(0x990000);
 const green = new Color(0x009900);
 const white = new Color(0x999999);
 
-export class ReplayUnits {
+export class Units {
   constructor(
     bwDat,
     renderUnit,
@@ -63,7 +67,7 @@ export class ReplayUnits {
     return this._spawn(frameData);
   }
 
-  _spawn(frameData, replaceUnit, skippingFrames) {
+  _spawn(frameData, replaceUnit) {
     const unit =
       replaceUnit ||
       this.renderUnit.load(
@@ -212,7 +216,8 @@ export class ReplayUnits {
       unit.userData._active.visible = window.dbg.repId === current.repId;
     }
 
-    if (current.frame > 0 && current.typeId != previous.typeId) {
+    //unit morphed and its not first frame
+    if (current.typeId != previous.typeId && current !== previous) {
       this.logger.log(
         `%c ${current.repId} change type ${previous.typeId}->${current.typeId}`,
         "background: #ffff00; color: #000000"
@@ -265,19 +270,6 @@ export class ReplayUnits {
       targetIsAir() ? run(headers.airAttkInit) : run(headers.gndAttkInit);
     };
 
-    const toIdle = () => {
-      if (previous.airWeaponCooldown && currentOrder.lastTargetWasAir) {
-        run(headers.airAttkToIdle);
-      } else if (
-        previous.groundWeaponCooldown &&
-        !currentOrder.lastTargetWasAir
-      ) {
-        run(headers.gndAttkToIdle);
-      } else {
-        run(headers.walkingToIdle);
-      }
-    };
-
     if (
       angleToDirection(current.angle) !== angleToDirection(previous.angle) ||
       this.cameraDirection.direction !== this.cameraDirection.previousDirection
@@ -298,118 +290,84 @@ export class ReplayUnits {
       currentOrder.usingWeaponType = runner.dispatched["attackwith"];
     }
 
+    if (current.anim !== previous.anim && headersById[current.anim]) {
+      run(current.anim);
+    }
+
     //@todo let die order indicate deaths not other method
-    // if (!runner.state.noBrkCode) {
-    if (current.order !== previous.order) {
-      this.logger.log(
-        `%c order ${ordersById[current.order]} <- ${
-          ordersById[previous.order]
-        }`,
-        "background: #222; color: #bada55"
-      );
+    if (!runner.state.noBrkCode) {
+      if (current.order !== previous.order) {
+        this.logger.log(
+          `%c order ${ordersById[current.order]} <- ${
+            ordersById[previous.order]
+          }`,
+          "background: #222; color: #bada55"
+        );
 
-      //items like target are not persisted in bwapi frames, just the initial change
-      Object.assign(currentOrder, {
-        order: current.order,
-        prevOrder: previous.order,
-        target: current.target,
-        orderTarget: current.orderTarget,
-        repeatAttackAfterCooldown: null,
-        usingWeaponType: null,
-      });
+        //items like target are not persisted in bwapi frames, just the initial change
+        Object.assign(currentOrder, {
+          order: current.order,
+          prevOrder: previous.order,
+          target: current.target,
+          orderTarget: current.orderTarget,
+          repeatAttackAfterCooldown: null,
+          usingWeaponType: null,
+        });
 
-      //for cool down reasons
-      if (current.target !== -1 || current.orderTarget !== -1) {
-        currentOrder.lastTargetWasAir = targetIsAir();
+        //for cool down reasons
+        if (current.target !== -1 || current.orderTarget !== -1) {
+          currentOrder.lastTargetWasAir = targetIsAir();
+        }
+
+        switch (current.order) {
+          case orders.move:
+          case orders.harvest1:
+          case orders.harvest2:
+          case orders.moveToMinerals:
+          case orders.moveToGas:
+          case orders.returnMinerals:
+          case orders.attackMove:
+          case orders.placeBuilding:
+          case orders.attack1:
+          case orders.attack2:
+          case orders.medicHealMove:
+          case orders.incompleteBuilding:
+          case orders.harvestGas:
+          case orders.returnGas:
+          case orders.waitForMinerals:
+          case orders.waitForGas:
+          case orders.constructingBuilding:
+          case orders.miningMinerals:
+          case orders.harvest3:
+          case orders.harvest4:
+          case orders.die:
+          case orders.stop:
+          case orders.gaurd:
+          case orders.playerGaurd:
+          case orders.holdPosition:
+          case orders.medicHealToIdle:
+          case orders.medicHoldPosition:
+          case orders.medic:
+          case orders.medicHeal:
+          case orders.turretGaurd:
+          case orders.bunkerGaurd:
+          case orders.stopReaver:
+          case orders.towerGaurd:
+          case orders.attackFixedRange:
+          case orders.attackTile:
+          case orders.upgrade:
+          case orders.buildingLiftOff:
+          case orders.buildingLand:
+          case orders.zergBirth: //egg->unit or coccoon -> unit
+          case orders.zergBuildingMorph:
+          case orders.zergUnitMorph: //larva->egg
+          case orders.burrowing:
+          case orders.unburrowing:
+          case orders.burrowed:
+          case orders.larva:
+            break;
+        }
       }
-
-      switch (current.order) {
-        case orders.move:
-        case orders.harvest1:
-        case orders.harvest2:
-        case orders.moveToMinerals:
-        case orders.moveToGas:
-        case orders.returnMinerals:
-        case orders.attackMove:
-        case orders.placeBuilding:
-        case orders.attack1:
-        case orders.attack2:
-        case orders.medicHealMove:
-          run(headers.walking);
-          break;
-        case orders.incompleteBuilding:
-          //just before zerg drone becomes building
-          break;
-        case orders.harvestGas:
-          break;
-        case orders.returnGas:
-          break;
-        case orders.waitForMinerals:
-        case orders.waitForGas:
-          run(headers.walkingToIdle);
-          break;
-        case orders.constructingBuilding:
-        case orders.miningMinerals:
-          run(headers.almostBuilt);
-          break;
-        case orders.harvest3:
-          run(headers.walkingToIdle);
-          break;
-        case orders.harvest4:
-          break;
-        case orders.die:
-          console.log("die", unit);
-          break;
-        case orders.stop:
-        case orders.gaurd:
-        case orders.playerGaurd:
-        case orders.holdPosition:
-        case orders.medicHealToIdle:
-        case orders.medicHoldPosition:
-        case orders.medic:
-          toIdle();
-          break;
-        case orders.medicHeal:
-          run(headers.specialState1);
-          break;
-        case orders.turretGaurd:
-        case orders.bunkerGaurd:
-        case orders.stopReaver:
-        case orders.towerGaurd:
-          // toIdle();
-          break;
-
-        case orders.attackFixedRange:
-        case orders.attackTile:
-          toAttack();
-          break;
-        case orders.upgrade:
-          unitType.terran() && run(headers.working);
-          break;
-        case orders.buildingLiftOff:
-          run(headers.liftOff);
-          break;
-        case orders.buildingLand:
-          run(headers.landing);
-          break;
-        case orders.zergBirth: //egg->unit or coccoon -> unit
-        case orders.zergBuildingMorph:
-        case orders.zergUnitMorph: //larva->egg
-          break;
-        case orders.burrowing:
-          run(headers.burrow);
-          break;
-        case orders.unburrowing:
-          run(headers.unBurrow);
-          break;
-        case orders.burrowed:
-          run(headers.specialState2);
-          break;
-        case orders.larva:
-          run(headers.walking);
-          break;
-      }
-      // }
 
       if (current.subOrder !== previous.subOrder) {
         this.logger.log(`subOrder ${ordersById[current.subOrder]}`);
@@ -418,66 +376,6 @@ export class ReplayUnits {
 
     if (current.remainingBuildTime) {
       this.logger.log(`build time ${current.remainingBuildTime}`);
-    }
-
-    if (current.remainingBuildTime === 17 && current.typeId === zergEgg) {
-      run(headers.specialState1);
-    }
-
-    if (
-      current.order === orders.move &&
-      runner.lastNamedAnimationBlock !== headers.walking
-    ) {
-      run(headers.walking);
-    }
-
-    if (
-      current.remainingBuildTime &&
-      unitType.building() &&
-      (unitType.zerg() || unitType.terran()) &&
-      current.remainingBuildTime / unitType.buildTime < 0.4 &&
-      !runner.hasRunAnimationBlockAtLeastOnce[headers.almostBuilt]
-    ) {
-      run(headers.almostBuilt);
-    }
-
-    //@todo check getRemainingBuildType
-    if (previous.remainingBuildTime === 1 && unitType.building()) {
-      run(headers.built);
-    }
-
-    if (
-      current.order === orders.attackUnit &&
-      !current.attacking() &&
-      runner.lastNamedAnimationBlock !== headers.walking
-    ) {
-      run(headers.walking);
-    } else if (
-      current.order === orders.attackUnit &&
-      current.attacking() &&
-      !previous.attacking() &&
-      runner.lastNamedAnimationBlock !== headers.gndAttkInit &&
-      runner.lastNamedAnimationBlock !== headers.gndAttkRpt
-    ) {
-      run(headers.gndAttkInit);
-    }
-
-    //@todo have a attktoIdle when there is no use weapon type
-    // note: airweapon and groundweapon cool down will always equal each other, so don't use them in else if blocks!!
-    if (previous.groundWeaponCooldown === 1 && !currentOrder.lastTargetWasAir) {
-      if (currentOrder.repeatAttackAfterCooldown) {
-        run(headers.gndAttkRpt);
-      } else {
-        run(headers.gndAttkToIdle);
-      }
-    }
-
-    if (previous.airWeaponCooldown === 1 && currentOrder.lastTargetWasAir) {
-      if (currentOrder.repeatAttackAfterCooldown) {
-        run(headers.airAttkRpt);
-      } else {
-        run(headers.airAttkToIdle);
-      }
     }
 
     let visible = true;
@@ -497,7 +395,7 @@ export class ReplayUnits {
   killUnit(unit) {
     unit.userData.current.alive = false;
     //@todo send kill signal to runners without interrupting them
-    unit.userData.runner.toAnimationBlock(headers.death);
+    // unit.userData.runner.toAnimationBlock(headers.death);
     this.deadUnits.push(unit);
   }
 

@@ -82,7 +82,7 @@ const isMac = process.platform === "darwin";
 var showOpen = function (isMap = false) {
   const filters = isMap
     ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
-    : [{ name: "Starcraft Replay", extensions: ["rep"] }];
+    : [{ name: "Starcraft Replay", extensions: ["rep.bin"] }];
   const command = isMap ? "open-map" : "open-replay";
   const multiSelections = isMap
     ? ["openFile"]

@@ -1,6 +1,24 @@
-class BWAPIFrame {
+const buildTypes = {
+  build: 1,
+  research: 2,
+  train: 3,
+  upgrade: 4,
+};
+
+class BWAPIUnit {
   constructor(data) {
     Object.assign(this, data);
+
+    if (this.remainingBuildType === buildTypes.research) {
+      this.remainingResearchTime = this.remainingBuildTime;
+      this.remainingBuildTime = 0;
+    } else if (this.remainingBuildType === buildTypes.train) {
+      this.remainingTrainTime = this.remainingBuildTime;
+      this.remainingBuildTime = 0;
+    } else if (this.remainingBuildType === buildTypes.upgrade) {
+      this.remainingUpgradeTime = this.remainingBuildTime;
+      this.remainingBuildTime = 0;
+    }
   }
 
   direction() {}
@@ -219,7 +237,7 @@ const ConsumingDataView = (dataView, offset = 0, endianness = true) => {
   });
 };
 
-export function BWAPIFrameFromBuffer(dataView, offset) {
+export function BWAPIUnitFromBuffer(dataView, offset) {
   const view = ConsumingDataView(dataView, offset);
 
   const playerId = view.getInt32();
@@ -232,7 +250,6 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
   const hp = view.getInt32();
   const shields = view.getInt32();
   const energy = view.getInt32();
-  const frame = view.getInt32();
   const order = view.getInt32();
   const subOrder = view.getInt32();
   const groundWeaponCooldown = view.getInt32();
@@ -240,6 +257,12 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
   const target = view.getInt32();
   const orderTarget = view.getInt32();
   const remainingBuildTime = view.getInt32();
+
+  const remainingBuildType = view.getInt8();
+  const orderState = view.getUint8();
+  const secondaryOrderState = view.getUint8();
+  const anim = view.getUint8();
+
   const flagsA = view.getUint8();
   const flagsB = view.getUint8();
   const flagsC = view.getUint8();
@@ -249,7 +272,7 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
 
   return {
     frameSize: view.bytesConsumed,
-    frameData: new BWAPIFrame({
+    frameData: new BWAPIUnit({
       playerId,
       repId,
       typeId,
@@ -260,20 +283,54 @@ export function BWAPIFrameFromBuffer(dataView, offset) {
       hp,
       shields,
       energy,
-      frame,
       order,
       subOrder,
+      orderState,
+      secondaryOrderState,
+      anim,
       groundWeaponCooldown,
       airWeaponCooldown,
       target,
       orderTarget,
       remainingBuildTime,
+      remainingBuildType,
       flagsA,
       flagsB,
       flagsC,
       flagsD,
       flagsE,
       flagsF,
+    }),
+  };
+}
+
+export function BWAPIBulletFromBuffer(dataView, offset) {
+  const view = ConsumingDataView(dataView, offset);
+
+  const playerId = view.getInt32();
+  const repId = view.getInt32();
+  const typeId = view.getInt32();
+  const alive = view.getUint8();
+  const x = view.getInt32();
+  const y = view.getInt32();
+  const angle = view.getFloat64();
+  const timer = view.getInt32();
+  const sourceUnitRepId = view.getInt32();
+  const targetUnitRepId = view.getInt32();
+
+  return {
+    frameSize: view.bytesConsumed,
+    frameData: new BWAPIUnit({
+      playerId,
+      repId,
+      typeId,
+      alive,
+      x,
+      y,
+      angle,
+      timer,
+      sourceUnitRepId,
+      targetUnitRepId,
     }),
   };
 }

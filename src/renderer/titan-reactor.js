@@ -210,7 +210,10 @@ const loadReplay = async (filepath) => {
 
   updateUi();
 
-  const jssuh = await jssuhLoadReplay(filepath, gameOptions.bwDataPath);
+  const jssuh = await jssuhLoadReplay(
+    `./maps/other/replays/game.rep`,
+    gameOptions.bwDataPath
+  );
 
   gameOptions.experience = {
     sprites: true,
@@ -262,9 +265,13 @@ const loadReplay = async (filepath) => {
     await getAppCachePath()
   );
 
+  const frames = await openFile(filepath);
+  // const frames = await openFile(filepath);
+
   return TitanReactorReplay(
     filepath,
     jssuh,
+    new DataView(frames.buffer),
     renderUnit,
     canvas,
     bwDat,

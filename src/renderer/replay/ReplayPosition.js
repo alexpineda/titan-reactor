@@ -1,3 +1,5 @@
+import { gameSpeeds } from "../utils/conversions";
+
 export class ClockMs {
   constructor(autoStart) {
     this.autoStart = autoStart !== undefined ? autoStart : true;
@@ -56,10 +58,11 @@ export class ClockMs {
 }
 
 export class ReplayPosition {
-  constructor(maxFrame, clock, gameSpeed) {
+  constructor(buf, maxFrame, clock, gameSpeed) {
+    this.buf = buf;
     this.maxFrame = maxFrame;
     this.frame = 0;
-    this.bwapiBufferFrame = 0;
+    this.bwapiBufferPosition = 0;
     this.bwGameFrame = 0;
     this.skipGameFrames = 0;
     this.skipPhysicsFrames = 20;
@@ -67,6 +70,7 @@ export class ReplayPosition {
     this.gameSpeed = gameSpeed;
     this.clock = clock;
     this.lastDelta = 0;
+    this.paused = true;
     this.onResetState = () => {};
   }
 
@@ -82,7 +86,7 @@ export class ReplayPosition {
         );
       } else {
         this.skipGameFrames = Math.min(frame, this._maxSkipSpeed);
-        this.bwapiBufferFrame = 0;
+        this.bwapiBufferPosition = 0;
         this.bwGameFrame = 0;
         this.onResetState();
       }
@@ -90,8 +94,20 @@ export class ReplayPosition {
     };
   }
 
+  pause() {
+    this.paused = true;
+    this.skipGameFrames = 0;
+    this.clock.stop();
+  }
+
+  resume() {
+    this.paused = false;
+    this.lastDelta = 0;
+  }
+
   update() {
     this.frame++;
+    if (this.paused) return;
 
     this._goto && this._goto();
 
@@ -125,5 +141,26 @@ export class ReplayPosition {
 
   isMaxFrame() {
     return this.bwGameFrame === this.maxFrame;
+  }
+
+  getFriendlyTime() {
+    const t = (this.bwGameFrame * gameSpeeds.fastest) / 1000;
+    const minutes = Math.floor(t / 60);
+    const seconds = Math.floor(t % 60);
+    return `${minutes}:${seconds.toFixed(2)}`;
+  }
+
+  skippingFrames() {
+    return this.skipGameFrames > 1;
+  }
+
+  readUInt32AndAdvance() {
+    const v = this.buf.getUint32(this.bwapiBufferPosition, true);
+    this.advanceBuffer(4);
+    return v;
+  }
+
+  advanceBuffer(bytes) {
+    this.bwapiBufferPosition += bytes;
   }
 }

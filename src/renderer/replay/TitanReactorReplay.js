@@ -7,15 +7,15 @@ import { backgroundTerrainMesh } from "../3d-map-rendering/meshes/backgroundTerr
 import { bgMapCanvasTexture } from "../3d-map-rendering/textures/bgMapCanvasTexture";
 import { Terrain } from "../3d-map-rendering/Terrain";
 
-import { BWAPIFrameFromBuffer } from "./BWAPIFrames";
+import { BWAPIUnitFromBuffer, BWAPIBulletFromBuffer } from "./BWAPIFrames";
 import { BgMusic } from "../audio/BgMusic";
 
-import { ReplayUnits } from "./ReplayUnits";
+import { Units } from "./Units";
 import { getTerrainY } from "../3d-map-rendering/displacementGeometry";
 import { disposeMeshes } from "../utils/meshes/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
-import { difference } from "ramda";
+import { difference, range } from "ramda";
 import { ReplayPosition, ClockMs } from "./ReplayPosition";
 import { gameSpeeds } from "../utils/conversions";
 
@@ -24,6 +24,7 @@ export const hot = module.hot ? module.hot.data : null;
 export async function TitanReactorReplay(
   filepath,
   { header, commands, chk },
+  BWAPIFramesDataView,
   renderUnit,
   canvas,
   bwDat,
@@ -42,12 +43,6 @@ export async function TitanReactorReplay(
   const clearInfoDiv = () => (infoDiv.innerHTML = "");
 
   const scene = new THREE.Scene();
-
-  let running = false;
-  THREE.DefaultLoadingManager.onLoad = () => {
-    loaded();
-    running = true;
-  };
 
   const sceneWidth = window.innerWidth;
   const sceneHeight = window.innerHeight;
@@ -122,32 +117,25 @@ export async function TitanReactorReplay(
     chk.size[1]
   );
 
-  const units = new ReplayUnits(bwDat, renderUnit, terrainY, audioListener, {});
+  const units = new Units(bwDat, renderUnit, terrainY, audioListener, {});
   scene.add(units.units);
 
   const cancelResize = handleResize(camera, renderer);
 
-  let BWAPIFramesDataView = null;
-
-  // const tempReplayFile = "./bwdata/_alex/0279 ScanKaLT azzyP.rep.bin";
-  // const tempReplayFile = "./bwdata/_alex/CTR_F505F47D.rep.bin";
-  // const tempReplayFile = "./bwdata/_alex/CTR_52C0564.rep.bin";
-  const tempReplayFile = "./bwdata/_alex/0255 CleanNaraT simjeongZ.rep.bin";
-  // const tempReplayFile = "./bwdata/_alex/0006 ramiyerP ScanKaLT.rep.bin";
-
-  THREE.DefaultLoadingManager.itemStart(tempReplayFile);
-  openFile(tempReplayFile).then((frames) => {
-    BWAPIFramesDataView = new DataView(frames.buffer);
-    THREE.DefaultLoadingManager.itemEnd(tempReplayFile);
-  });
-
   let requestAnimationFrameId = null;
 
   let replayPosition = new ReplayPosition(
-    header.durationFrames,
-    new ClockMs(false),
+    BWAPIFramesDataView,
+    100000000,
+    // header.durationFrames,
+    new ClockMs(),
     gameSpeeds.fastest
   );
+
+  THREE.DefaultLoadingManager.onLoad = () => {
+    loaded();
+    replayPosition.resume();
+  };
 
   replayPosition.onResetState = () => {
     unitsLastFrame = [];
@@ -157,7 +145,11 @@ export async function TitanReactorReplay(
 
   const keyDownListener = (e) => {
     if (e.code === "KeyP") {
-      running = !running;
+      if (replayPosition.paused) {
+        replayPosition.resume();
+      } else {
+        replayPosition.pause();
+      }
       console.log("bwGameFrame", replayPosition.bwGameFrame);
     }
 
@@ -165,12 +157,37 @@ export async function TitanReactorReplay(
       gridHelper.visible = !gridHelper.visible;
     }
 
-    if (e.code === "KeyS") {
-      replayPosition.toggleSkipFrames();
-    }
-
-    if (e.code === "Digit0") {
-      replayPosition.goto(0);
+    switch (e.code) {
+      case "Digit1":
+        replayPosition.gameSpeed = gameSpeeds.slowest;
+        break;
+      case "Digit2":
+        replayPosition.gameSpeed = gameSpeeds.slow;
+        break;
+      case "Digit3":
+        replayPosition.gameSpeed = gameSpeeds.normal;
+        break;
+      case "Digit4":
+        replayPosition.gameSpeed = gameSpeeds.fast;
+        break;
+      case "Digit5":
+        replayPosition.gameSpeed = gameSpeeds.faster;
+        break;
+      case "Digit6":
+        replayPosition.gameSpeed = gameSpeeds.fastest;
+        break;
+      case "Digit7":
+        replayPosition.gameSpeed = gameSpeeds["2x"];
+        break;
+      case "Digit8":
+        replayPosition.gameSpeed = gameSpeeds["4x"];
+        break;
+      case "Digit9":
+        replayPosition.gameSpeed = gameSpeeds["8x"];
+        break;
+      case "Digit0":
+        replayPosition.gameSpeed = gameSpeeds["16x"];
+        break;
     }
   };
 
@@ -214,52 +231,69 @@ export async function TitanReactorReplay(
   let unitsLastFrame = [];
   let unitsThisFrame = [];
 
+  const version = replayPosition.readUInt32AndAdvance();
+  if (version !== 1) {
+    throw new Error("invalid rep.bin version");
+  }
+
   function gameLoop() {
     replayPosition.update();
 
     units.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
-    if (running && BWAPIFramesDataView) {
+    if (!replayPosition.paused) {
       clearInfoDiv();
       appendInfoDiv(`Frame: ${replayPosition.bwGameFrame}`);
+      appendInfoDiv(`Time: ${replayPosition.getFriendlyTime()}`);
       appendInfoDiv(
-        `Mem %: ${(
-          window.performance.memory.usedJSHeapSize /
-          window.performance.memory.totalJSHeapSize
-        ).toFixed(2)}`
+        `Mem : ${window.performance.memory.usedJSHeapSize.toFixed(2)}`
       );
 
-      // if (BWAPIFramesDataView) {
-      gameloop: for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
-        // while (BWAPIFrame + gf < headers.durationFrames) {
-        while (true) {
-          const { frameData, frameSize } = BWAPIFrameFromBuffer(
+      for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
+        replayPosition.bwGameFrame = replayPosition.readUInt32AndAdvance();
+
+        if (replayPosition.isMaxFrame()) {
+          replayPosition.pause();
+          continue;
+        }
+
+        const numUnitsThisFrame = replayPosition.readUInt32AndAdvance();
+
+        unitsThisFrame = range(0, numUnitsThisFrame).map(() => {
+          const { frameData, frameSize } = BWAPIUnitFromBuffer(
             BWAPIFramesDataView,
-            replayPosition.bwapiBufferFrame
+            replayPosition.bwapiBufferPosition
           );
 
           const unit = units.spawnIfNotExists(
             frameData,
-            replayPosition.skipGameFrames > 1
+            replayPosition.skippingFrames()
           );
-          units.update(unit, frameData, replayPosition.skipGameFrames > 1);
+          units.update(unit, frameData, replayPosition.skippingFrames());
 
-          replayPosition.bwapiBufferFrame =
-            replayPosition.bwapiBufferFrame + frameSize;
-          if (replayPosition.bwGameFrame === frameData.frame) {
-            unitsThisFrame.push(frameData.repId);
-          } else {
-            units.killUnits(difference(unitsLastFrame, unitsThisFrame));
-            unitsLastFrame = [...unitsThisFrame];
-            unitsThisFrame = [frameData.repId];
-            replayPosition.bwGameFrame = frameData.frame;
-            break;
-          }
-        }
+          replayPosition.advanceBuffer(frameSize);
+
+          return frameData.repId;
+        });
+
+        // const numBulletsThisFrame = replayPosition.readUInt32AndAdvance();
+
+        // range(0, numUnitsThisFrame).map(() => {
+        //   const { frameData, frameSize } = BWAPIBulletFromBuffer(
+        //     BWAPIFramesDataView,
+        //     replayPosition.bwapiBufferPosition
+        //   );
+
+        //   replayPosition.advanceBuffer(frameSize);
+
+        //   return frameData.repId;
+        // });
+
+        units.killUnits(difference(unitsLastFrame, unitsThisFrame));
+        unitsLastFrame = [...unitsThisFrame];
         // units.units.updateMatrixWorld(true);
       }
-      units.updateDeadUnits();
     }
 
     //#endregion
@@ -295,7 +329,7 @@ export async function TitanReactorReplay(
   const dispose = () => {
     console.log("disposing");
 
-    running = false;
+    replayPosition.pause();
     cancelAnimationFrame(requestAnimationFrameId);
     cancelResize();
     disposeMeshes(scene);

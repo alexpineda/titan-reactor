@@ -61,9 +61,6 @@ export class IScriptRunner {
   }
 
   _toAnimationBlock(offset, header = -1) {
-    // if (this.parent.repId === 3583) {
-    //   debugger;
-    // }
     const commands = this.bwDat.iscript.animationBlocks[offset];
     if (!commands) {
       let name = "local";
