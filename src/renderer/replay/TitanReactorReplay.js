@@ -26,7 +26,7 @@ export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorReplay(
   filepath,
-  updateUi,
+  parentUpdateUi,
   { header, commands, chk },
   BWAPIFramesDataView,
   renderImage,
@@ -119,7 +119,7 @@ export async function TitanReactorReplay(
   );
   scene.add(game.units);
 
-  const cancelResize = handleResize(camera, renderer);
+  const resize = handleResize(camera, renderer);
 
   let requestAnimationFrameId = null;
 
@@ -239,7 +239,10 @@ export async function TitanReactorReplay(
   const hudData = {
     position: () => replayPosition.bwGameFrame / replayPosition.maxFrame,
     onChangeGameSpeed: (speed) => (replayPosition.gameSpeed = speed),
-    onChangeAutoGameSpeed: (val) => replayPosition.setAutoSpeed(val),
+    onChangeAutoGameSpeed: (val) => {
+      replayPosition.setAutoSpeed(val);
+      updateUi();
+    },
     onChangePosition: (pos) => {
       replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
     },
@@ -249,23 +252,38 @@ export async function TitanReactorReplay(
       } else {
         replayPosition.pause();
       }
+      updateUi();
     },
   };
 
+  resize.refresh();
+
+  let uiUpdated = false;
+  const updateUi = () => {
+    // just in case we call several times in game loop
+    if (uiUpdated) return;
+    uiUpdated = true;
+    parentUpdateUi(
+      <HUD
+        autoSpeed={replayPosition.autoSpeed}
+        destination={replayPosition.destination}
+        gameSpeed={replayPosition.gameSpeed}
+        maxFrame={replayPosition.maxFrame}
+        position={hudData.position()}
+        paused={replayPosition.paused}
+        timeLabel={replayPosition.getFriendlyTime()}
+        onChangeGameSpeed={hudData.onChangeGameSpeed}
+        onChangeAutoGameSpeed={hudData.onChangeAutoGameSpeed}
+        onChangePosition={hudData.onChangePosition}
+        onTogglePlay={hudData.onTogglePlay}
+      />
+    );
+  };
+
   function gameLoop() {
+    uiUpdated = false;
     if (replayPosition.frame % 24 === 0) {
-      updateUi(
-        <HUD
-          defaultGameSpeed={replayPosition.gameSpeed}
-          maxFrame={replayPosition.maxFrame}
-          position={hudData.position()}
-          timeLabel={replayPosition.getFriendlyTime()}
-          onChangeGameSpeed={hudData.onChangeGameSpeed}
-          onChangeAutoGameSpeed={hudData.onChangeAutoGameSpeed}
-          onChangePosition={hudData.onChangePosition}
-          onTogglePlay={hudData.onTogglePlay}
-        />
-      );
+      updateUi();
     }
 
     replayPosition.update();
@@ -347,7 +365,9 @@ export async function TitanReactorReplay(
           }
           return true;
         });
-      replayPosition.updateAutoSpeed(attackingUnits);
+      if (replayPosition.updateAutoSpeed(attackingUnits)) {
+        updateUi();
+      }
     }
 
     //#endregion
@@ -385,7 +405,7 @@ export async function TitanReactorReplay(
 
     replayPosition.pause();
     cancelAnimationFrame(requestAnimationFrameId);
-    cancelResize();
+    resize.dispose();
     disposeMeshes(scene);
     cameraControls.dispose();
     bgMusic.dispose();

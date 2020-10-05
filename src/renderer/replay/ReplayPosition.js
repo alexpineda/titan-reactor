@@ -1,5 +1,6 @@
 import { easeCubicOut } from "d3-ease";
 import { orders } from "../../common/bwdat/orders";
+import { unitTypes } from "../../common/bwdat/unitTypes";
 import { gameSpeeds } from "../utils/conversions";
 
 export class ClockMs {
@@ -74,10 +75,12 @@ export class ReplayPosition {
     this.clock = clock;
     this.lastDelta = 0;
     this.paused = true;
+    this.destination = undefined;
     this.onResetState = () => {};
   }
 
   goto(frame) {
+    if (this.destination >= 0) return;
     this.destination = Math.min(frame, this.maxFrame);
     this.lastDelta = 0;
     this.skipGameFrames = 0;
@@ -187,20 +190,33 @@ export class ReplayPosition {
     if (
       this.autoSpeed &&
       !this.skippingFrames() &&
-      this.frame % (24 * 10) === 0
+      this.frame % (24 * 5) === 0
     ) {
       const orderScoreNorm = (order) => this._orderScore(order) / 5;
 
-      const n = attackingUnits.reduce(
-        (sum, unit) => sum + orderScoreNorm(unit.userData.current.order),
-        0
-      );
+      const n = attackingUnits.reduce((sum, unit) => {
+        let score = 0;
+
+        if (
+          ![
+            unitTypes.siegeTankSiegeMode,
+            unitTypes.siegeTurretSiegeMode,
+          ].includes(unit.userData.typeId)
+        ) {
+          score = orderScoreNorm(unit.userData.current.order);
+        }
+        return sum + score;
+      }, 0);
 
       const t = 1 - easeCubicOut(n / (attackingUnits.length + 1));
       this.gameSpeed =
-        t * (gameSpeeds["1.5x"] - gameSpeeds.fastest) + gameSpeeds.fastest;
+        t * (gameSpeeds["1.5x"] - gameSpeeds.fastest) +
+        gameSpeeds.fastest +
+        Math.random() * 0.001; // variance for useEffect in UI
       console.log("auto", this.gameSpeed);
+      return true;
     }
+    return false;
   }
 
   _orderScore(order) {

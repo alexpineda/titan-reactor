@@ -55,14 +55,17 @@ const demo = {
 };
 
 export default ({
+  paused,
   position,
+  destination,
+  autoSpeed,
   timeLabel,
   onChangeGameSpeed,
   onChangeAutoGameSpeed,
   onChangePosition,
   onTogglePlay,
   maxFrame,
-  defaultGameSpeed,
+  gameSpeed,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
@@ -133,10 +136,13 @@ export default ({
           textSize={config.textSize}
         />
         <ReplayPosition
+          paused={paused}
           maxFrame={maxFrame}
+          destination={destination}
+          autoSpeed={autoSpeed}
           timeLabel={timeLabel}
           position={position}
-          defaultGameSpeed={defaultGameSpeed}
+          gameSpeed={gameSpeed}
           onTogglePlay={onTogglePlay}
           onChangePosition={onChangePosition}
           onChangeAutoGameSpeed={onChangeAutoGameSpeed}

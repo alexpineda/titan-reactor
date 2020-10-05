@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { gameSpeeds, gameSpeedNames } from "../../utils/conversions";
+import sparkly from "sparkly";
 
 const gameSpeedsArray = [
   gameSpeeds.slowest,
@@ -21,9 +22,12 @@ const capitalizeFirst = (str) => {
 };
 
 export default ({
+  paused,
   position,
+  destination,
+  autoSpeed,
   timeLabel,
-  defaultGameSpeed,
+  gameSpeed,
   maxFrame,
   onTogglePlay,
   onChangePosition,
@@ -35,13 +39,25 @@ export default ({
 }) => {
   const progress = Math.ceil(position * 100);
 
-  const [gameSpeed, setGameSpeed] = useState(defaultGameSpeed);
   const [hideProgress, setHideProgress] = useState(false);
   const [showProduction, setShowProduction] = useState(true);
   const [showResources, setShowResources] = useState(true);
-  const [autoSpeed, setAutoSpeed] = useState(false);
-  const [play, setPlay] = useState(true);
   const [positionLabel, setPositionLabel] = useState("");
+
+  const [hideAutoSpeed, setHideAutoSpeed] = useState(false);
+
+  const [prevAutoSpeeds, setPrevAutoSpeeds] = useState([0, 0, 0]);
+
+  const deltaSpeeds = gameSpeeds.fastest - gameSpeeds["1.5x"];
+
+  useEffect(() => {
+    if (!autoSpeed || destination >= 0) return;
+    setPrevAutoSpeeds([
+      ...prevAutoSpeeds.slice(1),
+      (gameSpeeds.fastest - gameSpeed) / deltaSpeeds,
+    ]);
+    console.log(prevAutoSpeeds);
+  }, [gameSpeed]);
 
   const setPositionHandler = (e) => {
     const rect = e.target.getBoundingClientRect();
@@ -62,6 +78,7 @@ export default ({
   };
 
   const canIncreaseGameSpeed = () => {
+    if (autoSpeed || destination >= 0) return false;
     const i = gameSpeedsArray.indexOf(gameSpeed);
     return i < gameSpeedsArray.length - 1;
   };
@@ -70,12 +87,12 @@ export default ({
     if (canIncreaseGameSpeed()) {
       const i = gameSpeedsArray.indexOf(gameSpeed);
       const newGameSpeed = gameSpeedsArray[i + 1];
-      setGameSpeed(newGameSpeed);
       onChangeGameSpeed && onChangeGameSpeed(newGameSpeed);
     }
   };
 
   const canDecreaseGameSpeed = () => {
+    if (autoSpeed || destination >= 0) return false;
     const i = gameSpeedsArray.indexOf(gameSpeed);
     return i > 0;
   };
@@ -84,7 +101,6 @@ export default ({
     if (canDecreaseGameSpeed()) {
       const i = gameSpeedsArray.indexOf(gameSpeed);
       const newGameSpeed = gameSpeedsArray[i - 1];
-      setGameSpeed(newGameSpeed);
       onChangeGameSpeed && onChangeGameSpeed(newGameSpeed);
     }
   };
@@ -98,10 +114,33 @@ export default ({
     if (!hideProgress) {
       label = positionLabel ? positionLabel : label;
     }
+
+    let autoSpeedLabel;
+    if (destination) {
+      autoSpeedLabel = "Seeking...";
+    } else {
+      autoSpeedLabel = autoSpeed ? (
+        <span
+          className="cursor-pointer"
+          onClick={() => setHideAutoSpeed(!hideAutoSpeed)}
+        >
+          Auto{" "}
+          <span className="bg-gray-500">
+            {!hideAutoSpeed &&
+              sparkly(prevAutoSpeeds, {
+                minimum: 0,
+                maximum: 1,
+              })}
+          </span>
+        </span>
+      ) : (
+        capitalizeFirst(gameSpeedNames[gameSpeed])
+      );
+    }
+
     return (
       <>
-        {label} -{" "}
-        {autoSpeed ? "Auto" : capitalizeFirst(gameSpeedNames[gameSpeed])}
+        {label} - {autoSpeedLabel}
       </>
     );
   };
@@ -120,7 +159,9 @@ export default ({
             </p>
             <p
               className={` text-${textSize} ${
-                positionLabel ? "text-green-500" : "text-gray-400"
+                positionLabel && !hideProgress
+                  ? "text-green-500"
+                  : "text-gray-400"
               }`}
             >
               {timeRemainingLabel()}
@@ -161,8 +202,7 @@ export default ({
                     if (progress === 100) {
                       return;
                     }
-                    onTogglePlay && onTogglePlay(!play);
-                    setPlay(!play);
+                    onTogglePlay && onTogglePlay(!paused);
                   }}
                   className={`material-icons ${
                     progress < 100
@@ -173,7 +213,7 @@ export default ({
                   style={{ fontSize: "1rem" }}
                   data-tip="Play / Pause"
                 >
-                  {play ? "pause" : "play_arrow"}
+                  {paused ? "play_arrow" : "pause"}
                 </i>
               </span>
 
@@ -228,8 +268,12 @@ export default ({
                   }`}
                   data-tip="Auto Speed"
                   onClick={() => {
-                    onChangeAutoGameSpeed && onChangeAutoGameSpeed(!autoSpeed);
-                    setAutoSpeed(!autoSpeed);
+                    if (!onChangeAutoGameSpeed) return;
+                    if (autoSpeed >= 0) {
+                      onChangeAutoGameSpeed(0);
+                    } else {
+                      onChangeAutoGameSpeed(gameSpeeds.fastest);
+                    }
                   }}
                 >
                   rotate_right
