@@ -1,4 +1,4 @@
-import { rgbToCanvas } from "../../2d-map-rendering/image/canvas";
+import { rgbToCanvas } from "image/canvas";
 import { CanvasTexture, sRGBEncoding } from "three";
 
 export const imageToCanvasTexture = (data, width, height, format = "rgb") => {

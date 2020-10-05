@@ -1,4 +1,3 @@
-import { TitanReactorMap } from "./TitanReactorMap";
 import {
   TitanReactorReplay,
   hot as hotReplay,
@@ -9,7 +8,7 @@ import {
 } from "./3d-map-rendering/TitanReactorSandbox";
 import { imageChk } from "./utils/loadChk";
 import { gameOptions } from "./utils/gameOptions";
-import { jssuhLoadReplay } from "./replay/loaders/JssuhLoadReplay";
+import { jssuhLoadReplay } from "./replay/LoadReplay";
 import { getAppCachePath, loadAllDataFiles, openFile } from "./invoke";
 import { ipcRenderer } from "electron";
 import React, { useState } from "react";
@@ -18,9 +17,9 @@ import { App, LoadingOverlay } from "./react-ui/App";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
 import { UnitDAT } from "../main/units/UnitsDAT";
 import { Tileset } from "./bwdat/Tileset";
-import { RenderUnit2D } from "./replay/RenderUnit2D";
-import { RenderUnit3D } from "./replay/RenderUnit3D";
-import { LoadSprite } from "./utils/meshes/LoadSprites";
+import { ImageSD } from "./mesh/ImageSD";
+import { Image3D } from "./mesh/Image3D";
+import { LoadSprite } from "./mesh/LoadSprites";
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
 import { JsonCache } from "./utils/jsonCache";
 
@@ -122,48 +121,6 @@ ipcRenderer.on("open-replay", (event, replays) => {
   scene = loadReplay(replays[0]);
 });
 
-ipcRenderer.on("add-replay", (event, replays) => {
-  if (!appIsReady) {
-    return alert("Please configure your Starcraft path first");
-  }
-  replayPlaylist = replayPlaylist.concat(replays);
-});
-
-ipcRenderer.on("save-image", (event) => {
-  var strMime = "image/jpeg";
-  const data = renderer.domElement.toDataURL(strMime);
-
-  var saveFile = function (strData, filename) {
-    var link = document.createElement("a");
-    link.download = "Screenshot";
-    link.href = strData;
-    link.click();
-  };
-  saveFile(data);
-});
-ipcRenderer.on("save-gltf", (event, file) => {
-  // Instantiate a exporter
-  var exporter = new GLTFExporter();
-
-  // Parse the input and generate the glTF output
-  console.log("export scene", file, scene);
-  exporter.parse(
-    scene,
-    function (gltf) {
-      fs.writeFile(file, gltf, () => {});
-    },
-    {}
-  );
-});
-
-ipcRenderer.on("open-env-settings", (event, [file]) => {
-  console.log("open-env", file);
-});
-
-ipcRenderer.on("save-env-settings", (event, file) => {
-  console.log("save-env", file);
-});
-
 const loadMap = async (filepath) => {
   overlay = {
     state: "initializing",
@@ -227,7 +184,7 @@ const loadReplay = async (filepath) => {
   );
   await tileset.load();
 
-  let renderUnit;
+  let renderImage;
   if (gameOptions.experience.sprites) {
     const spritesTextureCache = new TextureCache(
       "sd",
@@ -255,9 +212,9 @@ const loadReplay = async (filepath) => {
 
     updateUi();
     await loadSprite.loadAll();
-    renderUnit = new RenderUnit2D(bwDat, gameOptions.bwDataPath, loadSprite);
+    renderImage = new ImageSD(bwDat, gameOptions.bwDataPath, loadSprite);
   } else {
-    renderUnit = new RenderUnit3D();
+    renderImage = new Image3D();
   }
 
   const mapTexturesCache = new TextureCache(
@@ -272,7 +229,7 @@ const loadReplay = async (filepath) => {
     filepath,
     jssuh,
     new DataView(frames.buffer),
-    renderUnit,
+    renderImage,
     canvas,
     bwDat,
     mapTexturesCache,

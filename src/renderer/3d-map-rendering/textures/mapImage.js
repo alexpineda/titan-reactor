@@ -1,5 +1,5 @@
-import { chkImage } from "../../2d-map-rendering/image/chkImage";
-import { colorAtMega } from "../../2d-map-rendering/image/colorAtMega";
+import { chkImage } from "image/chkImage";
+import { colorAtMega } from "image/colorAtMega";
 import dimensions from "./dimensions";
 
 export const mapImage = async (chk) => {

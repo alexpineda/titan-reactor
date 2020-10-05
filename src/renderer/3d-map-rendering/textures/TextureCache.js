@@ -1,4 +1,4 @@
-import { savePNG, loadPNG } from "../../2d-map-rendering/image/png";
+import { savePNG, loadPNG } from "image/png";
 import { DefaultLoadingManager } from "three";
 import fs, { promises as fsPromises } from "fs";
 import path from "path";

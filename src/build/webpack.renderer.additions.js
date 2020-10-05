@@ -11,11 +11,11 @@ module.exports = {
   },
   resolve: {
     alias: {
-      "@2d-map-rendering": path.resolve(
-        __dirname,
-        "src/renderer/2d-map-rendering/"
-      ),
-      "@common": path.resolve(__dirname, "src/common/"),
+      image: path.resolve("./src/renderer/image"),
+      environment: path.resolve("./src/renderer/3d-map-rendering"),
+      mesh: path.resolve("./src/renderer/mesh"),
+      utils: path.resolve("./src/renderer/utils"),
+      bwdat: path.resolve("./src/common/bwdat"),
     },
   },
 };

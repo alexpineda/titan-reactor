@@ -10,13 +10,13 @@ import {
   BufferAttribute,
   DynamicDrawUsage,
 } from "three";
-import { Grp } from "../../../../libs/bw-chk/grp";
+import { Grp } from "../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
-import { imageToCanvasTexture } from "../../3d-map-rendering/textures/imageToCanvasTexture";
+import { imageToCanvasTexture } from "../3d-map-rendering/textures/imageToCanvasTexture";
 import { range, groupBy } from "ramda";
-import Worker from "../packbin.worker.js";
-import { asyncFilter } from "./async";
-import { DebugLog } from "../DebugLog";
+import Worker from "./packbin.worker.js";
+import { asyncFilter } from "../utils/async";
+import { DebugLog } from "../utils/DebugLog";
 
 export class LoadSprite {
   constructor(
@@ -39,7 +39,6 @@ export class LoadSprite {
     this.textures = [];
     this.masks = [];
     this.loaded = false;
-    this.logger = new DebugLog("sprite");
   }
 
   async loadAll() {
@@ -319,11 +318,8 @@ export class LoadSprite {
     return sprite;
   }
 
-  setFrame(unit, mesh, imageId, frameId, flip) {
+  setFrame(mesh, imageId, frameId, flip) {
     const image = this.atlas[imageId];
-
-    this.logger.assign(unit.userData);
-    this.logger.log(`frame i${imageId} f${frameId} V${flip}`);
     const uv = mesh.geometry.getAttribute("uv");
     uv.set(image.uv(frameId, flip));
     uv.needsUpdate = true;

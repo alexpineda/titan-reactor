@@ -1,3 +1,5 @@
+import { xprod } from "ramda";
+import { render } from "react-dom";
 import {
   iscriptHeaders as headers,
   headersById,
@@ -5,20 +7,24 @@ import {
 import { DebugLog } from "../utils/DebugLog";
 
 export class IScriptRunner {
-  constructor(bwDat, iscriptId, parent, state = {}, listeners = {}) {
+  constructor(bwDat, image, parent, tileset, state = {}, listeners = {}) {
     this.bwDat = bwDat;
-    // unit if its the first IScript runner, or IScriptRunner if it is a child
-    this.parent = parent;
-    this.logger = new DebugLog("iscript", { ...parent, iscriptId });
+    this.renderImage = null;
+    this.image = image;
+    this.tileset = tileset;
+    this.logger = new DebugLog("iscript", {
+      ...parent,
+      iscriptId: image.iscript,
+    });
     this.dispatched = {};
-    this.iscript = bwDat.iscript.iscripts[iscriptId];
-    this.hasRunAnimationBlockAtLeastOnce = {};
-    this.lastNamedAnimationBlock = null;
+    this.iscript = bwDat.iscript.iscripts[image.iscript];
+    this.alreadyRun = {};
+    this.lastRun = null;
+    this.parent = parent;
     this.commands = [];
-    // blocks that exist outside this "unit iscript"
+    this.children = [];
+
     this.state = {
-      children: [],
-      //@todo consider changing to delta
       waiting: 0,
       image: null,
       matchParentFrame: false,
@@ -29,34 +35,47 @@ export class IScriptRunner {
       noBrkCode: false,
       ignoreRest: false,
       frameset: null,
-      frame: 0,
-      prevFrame: 0,
+      frame: -1,
+      prevFrame: -1,
       flipFrame: false,
       //forced flip frame
       flipState: false,
       direction: 0,
       //override direction with setfldirect
       flDirect: false,
+      offset: {
+        x: 0,
+        y: 0,
+      },
       ...state,
     };
+
     this.listeners = listeners;
     this.dbg = {};
 
-    if (!this.state.image) {
+    if (!this.image) {
       throw new Error("image required");
     }
 
-    if (this.state.image.gfxTurns) {
+    if (this.image.gfxTurns) {
       this.state.frameset = 0;
     }
   }
 
-  toAnimationBlock(header) {
+  setRenderImage(renderImage) {
+    this.renderImage = renderImage;
+  }
+
+  frameHasChanged() {
+    return this.state.frame !== this.state.prevFrame;
+  }
+
+  run(header) {
     this.dbg.prevAnimBlock = {
       commands: this.commands,
       commandIndex: this.commandIndex,
     };
-    this.lastNamedAnimationBlock = this.commands.header;
+    this.lastRun = this.commands.header;
     return this._toAnimationBlock(this.iscript.offsets[header], header);
   }
 
@@ -72,7 +91,7 @@ export class IScriptRunner {
       return;
     }
 
-    this.hasRunAnimationBlockAtLeastOnce[header] = true;
+    this.alreadyRun[header] = true;
     this.commands = commands;
     this.commands.header = header;
     this.commandIndex = 0;
@@ -107,20 +126,24 @@ export class IScriptRunner {
   }
 
   update() {
+    if (this.lastRun === null) return;
     this.dispatched = {};
-    this.state.children.forEach((runner) => runner.update());
-    this.state.children = this.state.children.filter(
-      (runner) => !runner.state.terminated
-    );
+    this.children.forEach((runner) => runner.update());
+    this.children = this.children.filter((runner) => !runner.state.terminated);
 
     if (this.state.terminated) {
       return;
     }
 
-    // update graphics state
-    // if (this.state.matchParentFrame) {
-    //   this.state.frame = this.parent.state.frame;
-    // }
+    if (this.state.matchParentFrame) {
+      Object.assign(this.state, {
+        frame: this.parent.state.frame,
+        frameset: this.parent.state.frameset,
+        prevFrame: this.parent.state.prevFrame,
+        flipFrame: this.parent.state.flipFrame,
+        flipState: this.parent.state.flipState,
+      });
+    }
 
     // update iscript state
     if (this.state.waiting !== 0) {
@@ -128,11 +151,6 @@ export class IScriptRunner {
       return;
     }
     this.next();
-  }
-
-  add(runner) {
-    this.toAnimationBlock(headers.init);
-    this.state.children.push(runner);
   }
 
   on(command, cb) {
@@ -153,18 +171,20 @@ export class IScriptRunner {
 
     const runner = new IScriptRunner(
       this.bwDat,
-      image.iscript,
+      image,
       this,
+      this.tileset,
       {
-        x,
-        y,
-        image,
+        offset: {
+          x: x / 32,
+          y: y / 32,
+        },
         underlay: true,
       },
       this.listeners
     );
-    runner.toAnimationBlock(headers.init);
-    this.state.children.push(runner);
+    runner.run(headers.init);
+    this.children.push(runner);
     this._dispatch("imgul", runner);
   }
 
@@ -172,19 +192,42 @@ export class IScriptRunner {
     const image = this.bwDat.images[imageId];
     const runner = new IScriptRunner(
       this.bwDat,
-      image.iscript,
+      image,
       this,
+      this.tileset,
       {
-        x,
-        y,
-        image,
+        offset: {
+          x: x / 32,
+          y: y / 32,
+        },
         overlay: true,
       },
       this.listeners
     );
-    runner.toAnimationBlock(headers.init);
-    this.state.children.push(runner);
+    runner.run(headers.init);
+    this.children.push(runner);
     this._dispatch("imgol", runner);
+  }
+
+  __useweapon(weaponId, alreadyDispatched) {
+    // carriers, reavers, etc have "no weapon" and use 130 for weaponId
+    if (weaponId >= this.bwDat.weapons.length) {
+      return;
+    }
+    const weapon = this.bwDat.weapons[weaponId];
+    const runner = new IScriptRunner(
+      this.bwDat,
+      weapon.flingy.sprite.image,
+      this,
+      this.tileset,
+      {
+        weapon,
+      },
+      this.listeners
+    );
+    runner.run(headers.init);
+    this.children.push(runner);
+    !alreadyDispatched && this._dispatch("useweapon", runner);
   }
 
   __wait(frames) {
@@ -259,9 +302,7 @@ export class IScriptRunner {
   __end() {
     this.state.terminated = true;
 
-    this.state.children.forEach((runner) =>
-      runner.toAnimationBlock(headers.death)
-    );
+    this.children.forEach((runner) => runner.toAnimationBlock(headers.death));
 
     this._dispatch("end", true);
   }
@@ -288,27 +329,6 @@ export class IScriptRunner {
     );
   }
 
-  __useweapon(weaponId, alreadyDispatched) {
-    // carriers, reavers, etc have "no weapon" and use 130 for weaponId
-    if (weaponId >= this.bwDat.weapons.length) {
-      return;
-    }
-    const weapon = this.bwDat.weapons[weaponId];
-    const runner = new IScriptRunner(
-      this.bwDat,
-      weapon.flingy.sprite.image.iscript,
-      this,
-      {
-        weapon,
-        image: weapon.flingy.sprite.image,
-      },
-      this.listeners
-    );
-    runner.toAnimationBlock(headers.init);
-    this.state.children.push(runner);
-    !alreadyDispatched && this._dispatch("useweapon", weapon);
-  }
-
   //@todo send the weapon id / have better way to manage that state
   __domissiledmg() {
     this._dispatch("domissiledmg", true);
@@ -327,7 +347,7 @@ export class IScriptRunner {
   }
 
   __playfram(frame) {
-    if (this.state.image.gfxTurns && frame % 17 === 0) {
+    if (this.image.gfxTurns && frame % 17 === 0) {
       this.state.frameset = frame;
       this.setFrameBasedOnDirection();
     } else {
@@ -336,6 +356,11 @@ export class IScriptRunner {
       this.setFrame(frame, this.state.flipState);
       this._dispatch("playfram", frame);
     }
+  }
+
+  __playframtile(frame) {
+    //@todo limit to image.frames.length
+    this.setFrame(frame + this.tileset, false);
   }
 
   __setflipstate(flip) {
@@ -354,7 +379,7 @@ export class IScriptRunner {
     }
     this.state.direction = direction;
     if (this.state.noBrkCode) return;
-    if (this.state.image.gfxTurns) {
+    if (this.image.gfxTurns) {
       if (this.state.frameset === null) {
         this.logger.log(
           `%c cant update frame without frameset`,
@@ -411,6 +436,22 @@ export class IScriptRunner {
     }
   }
 
+  __setvertpos(y) {
+    this.state.offsetY = y;
+    this._dispatch("setvertpos", y);
+  }
+
+  __sethorpos(x) {
+    this.state.offsetX = x;
+    this._dispatch("setvertpos", x);
+  }
+
+  __setpos(x, y) {
+    this.state.offsetX = x;
+    this.state.offsetY = y;
+    this._dispatch("setpos", [x, y]);
+  }
+
   __ignorerest() {
     this.state.ignoreRest = true;
     this._dispatch("ignorerest", true);
@@ -425,7 +466,7 @@ export class IScriptRunner {
       let nextAnimationBlock;
       do {
         nextHeader = nextHeader + 1;
-        nextAnimationBlock = this.toAnimationBlock(nextHeader);
+        nextAnimationBlock = this.run(nextHeader);
       } while (!nextAnimationBlock && nextHeader < this.iscript.offsets.length);
 
       //@todo be able to access next units commands as well
@@ -442,10 +483,6 @@ export class IScriptRunner {
     switch (command) {
       case "attack":
       case "castspell":
-      case "playframtile":
-      case "sethorpos":
-      case "setpos":
-      case "setvertpos":
       case "imgolorig":
       case "switchul":
       case "imgoluselo":
@@ -457,7 +494,6 @@ export class IScriptRunner {
       case "lowsprul":
       case "sprul":
       case "spruluselo":
-      // will require getOrder and getOrderTarget from BWAPI
       case "engframe":
       case "engset":
       case "attkshiftproj":
@@ -496,7 +532,11 @@ export class IScriptRunner {
     }
   }
 
-  dispose() {
+  dispose(disposeMesh) {
+    this.children.forEach((runner) => {
+      runner.dispose(disposeMesh);
+    });
+    this.mesh && disposeMesh(this.mesh);
     this.listeners = null;
   }
 }

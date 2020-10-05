@@ -1,15 +1,9 @@
-import { chkImage } from "../../2d-map-rendering/image/chkImage";
-import { elevationColorAtMega } from "../../2d-map-rendering/image/elevationColorAtMega";
+import { chkImage } from "image/chkImage";
+import { elevationColorAtMega } from "image/elevationColorAtMega";
 import dimensions from "./dimensions";
 
-import {
-  blurImage,
-  blurImageSelective,
-} from "../../2d-map-rendering/image/blur";
-import {
-  overlayImage,
-  blendNonZeroPixels as blendPixels,
-} from "../../2d-map-rendering/image/blend";
+import { blurImage, blurImageSelective } from "image/blur";
+import { overlayImage, blendNonZeroPixels as blendPixels } from "image/blend";
 
 export const displacementImage = async (
   chk,

@@ -5,7 +5,7 @@ const buildTypes = {
   upgrade: 4,
 };
 
-class BWAPIUnit {
+export class BWAPIUnit {
   constructor(data) {
     Object.assign(this, data);
 
@@ -257,11 +257,11 @@ export function BWAPIUnitFromBuffer(dataView, offset) {
   const target = view.getInt32();
   const orderTarget = view.getInt32();
   const remainingBuildTime = view.getInt32();
-
   const remainingBuildType = view.getInt8();
   const orderState = view.getUint8();
   const secondaryOrderState = view.getUint8();
   const anim = view.getUint8();
+  const resources = view.getInt32();
 
   const flagsA = view.getUint8();
   const flagsB = view.getUint8();
@@ -294,6 +294,7 @@ export function BWAPIUnitFromBuffer(dataView, offset) {
       orderTarget,
       remainingBuildTime,
       remainingBuildType,
+      resources,
       flagsA,
       flagsB,
       flagsC,

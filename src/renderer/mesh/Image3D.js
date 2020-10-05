@@ -5,9 +5,9 @@ import {
   DefaultLoadingManager,
   Group,
 } from "three";
-import { LoadModel } from "../utils/meshes/LoadModels";
+import { LoadModel } from "./LoadModels";
 
-export class RenderUnit3D {
+export class Image3D {
   constructor(loadingManager = DefaultLoadingManager) {
     this.loadFromUnitType = true;
     this.loadingManager = loadingManager;

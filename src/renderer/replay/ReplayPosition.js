@@ -103,6 +103,7 @@ export class ReplayPosition {
   resume() {
     this.paused = false;
     this.lastDelta = 0;
+    this.clock.start();
   }
 
   update() {

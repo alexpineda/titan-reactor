@@ -6,22 +6,22 @@ import { handleResize } from "../utils/resize";
 import { initCamera, initCubeCamera } from "../camera-minimap/camera";
 import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
 
-import { sunlight, fog } from "./environment";
+import { sunlight, fog } from "./lights";
 import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
 
 import { Terrain } from "./Terrain";
-import { initRenderer } from "./renderer";
-import { disposeMeshes } from "../utils/meshes/dispose";
+import { initRenderer } from "../renderer";
+import { disposeMeshes } from "../utils/dispose";
 import { TextureCache } from "./textures/TextureCache";
 
 import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
 import { render } from "react-dom";
 
 import { getAppCachePath } from "../invoke";
-import { createStartLocation } from "../utils/meshes/BasicObjects";
+import { createStartLocation } from "../utils/BasicObjects";
 import { getTerrainY } from "./displacementGeometry";
-import { LoadModel } from "../utils/meshes/LoadModels";
+import { LoadModel } from "../mesh/LoadModels";
 import { Vector3, WebGLCubeRenderTarget } from "three";
 import { dec } from "ramda";
 

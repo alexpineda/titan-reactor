@@ -1,6 +1,6 @@
-import { chkImage } from "../../2d-map-rendering/image/chkImage";
-import { rgbToCanvas } from "../../2d-map-rendering/image/canvas";
-import { colorAtMega } from "../../2d-map-rendering/image/colorAtMega";
+import { chkImage } from "image/chkImage";
+import { rgbToCanvas } from "image/canvas";
+import { colorAtMega } from "image/colorAtMega";
 import dimensions from "./dimensions";
 
 export const mapPreviewCanvas = async (chk, canvas) => {

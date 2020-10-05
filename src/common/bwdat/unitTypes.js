@@ -1,6 +1,6 @@
 import { invertObj } from "ramda";
 
-export const unitTypeIdByName = {
+export const unitTypes = {
   marine: 0x00,
   ghost: 0x01,
   vulture: 0x02,
@@ -122,4 +122,4 @@ export const unitTypeIdByName = {
   none: 0xe4,
 };
 
-export const unitsByTypeId = invertObj(unitTypeIdByName);
+export const unitsByTypeId = invertObj(unitTypes);
