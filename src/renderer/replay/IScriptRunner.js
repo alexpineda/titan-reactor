@@ -481,6 +481,9 @@ export class IScriptRunner {
 
     const [command, args] = this.commands[this.commandIndex];
     switch (command) {
+      case "imgul":
+      case "imgol":
+      case "useweapon":
       case "attack":
       case "castspell":
       case "imgolorig":

@@ -13,7 +13,8 @@ import { getAppCachePath, loadAllDataFiles, openFile } from "./invoke";
 import { ipcRenderer } from "electron";
 import React, { useState } from "react";
 import { render } from "react-dom";
-import { App, LoadingOverlay } from "./react-ui/App";
+import { App } from "./react-ui/App";
+import { LoadingOverlay } from "./react-ui/LoadingOverlay";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
 import { UnitDAT } from "../main/units/UnitsDAT";
 import { Tileset } from "./bwdat/Tileset";
@@ -22,12 +23,19 @@ import { Image3D } from "./mesh/Image3D";
 import { LoadSprite } from "./mesh/LoadSprites";
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
 import { JsonCache } from "./utils/jsonCache";
+import { initRenderer } from "./renderer";
 
 console.log("renderer");
 console.log(new Date().toLocaleString());
 
 const canvas = document.createElement("canvas");
 canvas.id = "three-canvas";
+canvas.style.position = "absolute";
+canvas.style.top = "0";
+canvas.style.left = "0";
+canvas.style.right = "0";
+canvas.style.bottom = "0";
+canvas.style.zIndex = "-10";
 
 if (module.hot) {
   module.hot.decline();
@@ -57,9 +65,12 @@ let overlay = {
   preview: null,
 };
 
-const updateUi = () =>
+const updateUi = (children) =>
   render(
-    <App loadingOverlay={<LoadingOverlay {...overlay} />} canvas={canvas} />,
+    <App loadingOverlay={<LoadingOverlay {...overlay} />} canvas={canvas}>
+      {children}
+    </App>,
+
     document.getElementById("app")
   );
 
@@ -225,17 +236,27 @@ const loadReplay = async (filepath) => {
   const frames = await openFile(filepath);
   // const frames = await openFile(filepath);
 
+  const renderer = initRenderer({
+    canvas,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    antialias: true,
+    shadowMap: true,
+    //@todo refactor out with renderer in 2d only
+    logarithmicDepthBuffer: true,
+  });
+
   return TitanReactorReplay(
     filepath,
+    updateUi,
     jssuh,
     new DataView(frames.buffer),
     renderImage,
-    canvas,
+    renderer,
     bwDat,
     mapTexturesCache,
     () => {
       overlay.state = "";
-      updateUi();
     }
   );
 };

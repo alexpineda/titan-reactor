@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { initRenderer } from "../renderer";
+import React from "react";
 import { sunlight, fog } from "environment/lights";
 import { getTerrainY } from "environment/displacementGeometry";
 import { backgroundTerrainMesh } from "environment/meshes/backgroundTerrainMesh";
@@ -19,15 +19,18 @@ import { openFile } from "../invoke";
 import { difference, range } from "ramda";
 import { ReplayPosition, ClockMs } from "./ReplayPosition";
 import { gameSpeeds } from "../utils/conversions";
+import HUD from "../react-ui/hud/HUD";
+import { Clock } from "three";
 
 export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorReplay(
   filepath,
+  updateUi,
   { header, commands, chk },
   BWAPIFramesDataView,
   renderImage,
-  canvas,
+  renderer,
   bwDat,
   textureCache,
   loaded
@@ -44,19 +47,6 @@ export async function TitanReactorReplay(
   const clearInfoDiv = () => (infoDiv.innerHTML = "");
 
   const scene = new THREE.Scene();
-
-  const sceneWidth = window.innerWidth;
-  const sceneHeight = window.innerHeight;
-
-  const renderer = initRenderer({
-    canvas,
-    width: sceneWidth,
-    height: sceneHeight,
-    antialias: true,
-    shadowMap: true,
-    //@todo refactor out with renderer in 2d only
-    logarithmicDepthBuffer: true,
-  });
 
   const [camera, cameraControls] = initCamera(renderer.domElement);
   if (hot && hot.camera) {
@@ -122,6 +112,7 @@ export async function TitanReactorReplay(
     bwDat,
     renderImage,
     chk.tileset,
+    chk.size,
     terrainY,
     audioListener,
     {}
@@ -240,11 +231,25 @@ export async function TitanReactorReplay(
   let unitsThisFrame = [];
 
   const version = replayPosition.readUInt32AndAdvance();
-  if (version !== 2) {
+  if (version !== 3) {
     throw new Error("invalid rep.bin version");
   }
+  replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
+
+  const hudData = {
+    position: () => replayPosition.bwGameFrame / replayPosition.maxFrame,
+  };
 
   function gameLoop() {
+    if (replayPosition.frame % 24 === 0) {
+      updateUi(
+        <HUD
+          position={hudData.position()}
+          timeLabel={replayPosition.getFriendlyTime()}
+        />
+      );
+    }
+
     replayPosition.update();
 
     game.cameraUpdate(camera, cameraControls);

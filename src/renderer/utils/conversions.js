@@ -14,6 +14,7 @@ export const gameSpeeds = {
   fast: 56,
   faster: 48,
   fastest: 42,
+  "1.5x": 31,
   "2x": 21,
   "4x": 10,
   "8x": 5,
@@ -21,15 +22,7 @@ export const gameSpeeds = {
 };
 export const gameSpeedNames = invertObj(gameSpeeds);
 
-export const frameToSecond = (f, gameSpeed) => f / 23.81;
-export const secondToFrame = (f, gameSpeed) => 23.81;
-
 export const angleToDirection = (angle) =>
-  Math.floor(
-    (((angle + (Math.PI * 1) / 2) % (Math.PI * 2)) / (Math.PI * 2)) * 32
-  );
-
-export const angleToDirectionUsingCamera = (camera) => (angle) =>
   Math.floor(
     (((angle + (Math.PI * 1) / 2) % (Math.PI * 2)) / (Math.PI * 2)) * 32
   );

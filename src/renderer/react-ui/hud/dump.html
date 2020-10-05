@@ -1,0 +1,221 @@
+<div class="w-100 h-screen" style="background:url(https://i.imgur.com/waGGN0Y.png)">
+
+    <!-- PRODUCTION -->
+    <div class="flex absolute top-0 left-0">
+        <div class="production-parent">
+            <div class="rounded ml-1 mt-1 flex flex-col" style="background-color:#1a202c99">
+                <!-- player 1 prod -->
+                <ul class="h-6 mb-4">
+                    <li class="inline-block w-6 h-6">
+                        <img src="https://i.imgur.com/CBDWAUr.png" />
+                        <span style="width:50%" class="mt-1 bg-blue-900 h-1 inline-block">&nbsp;</span>
+                    </li>
+                </ul>
+                <!-- player 2 prod -->
+                <ul class="h-6 mb-2">
+                    <li class="inline-block w-6 h-6">
+                        <img src="https://i.imgur.com/CBDWAUr.png" />
+                        <span style="width:50%" class="mt-1 bg-red-900 h-1 inline-block">&nbsp;</span>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div class="flex absolute top-0 right-0">
+        <div class="resources-parent">
+
+            <div class="rounded mx-1 my-1 p-2 flex" style="background-color:#1a202c99">
+                <table class="table-auto flex-1">
+                    <tbody>
+                        <!-- player 1 resources -->
+                        <tr>
+                            <td class="pr-2">
+                                <span class="text-red-500 text-xs">Flash</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/ram4CBj.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">100</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/NI5ynEw.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">50</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/guJEX8T.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">7</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/ThFP93l.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">12</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/AFgJh3V.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">477</span>
+                            </td>
+                        </tr>
+
+                        <!-- player 2 resources -->
+                        <tr>
+                            <td class="pr-2">
+                                <span class="text-blue-500 text-xs">Jaedong</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/ram4CBj.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">100</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/NI5ynEw.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">50</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/guJEX8T.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">7</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/ThFP93l.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">12</span>
+                            </td>
+                            <td class="pr-2">
+                                <img src="https://i.imgur.com/AFgJh3V.png" class="inline w-4" />
+                                <span class="text-gray-400 text-xs">477</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- fpvod controls -->
+                <aside class="flex flex-col justify-between ml-2 b">
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="resources">slideshow</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer transform rotate-90 mb-1"
+                        style="font-size:0.75rem" title="resources">call_merge</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="resources">slideshow</i>
+                </aside>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="w-full flex absolute bottom-0 items-stretch divide-x-4 divide-transparent px-2">
+
+        <!-- MINIMAP -->
+        <div class="minimap-parent flex-1 max-w-sm flex items-stretch">
+            <div class="rounded mb-2 pr-2 flex flex-1 border-2 border-yellow-900" style="background-color:#1a202c99">
+
+                <article class="minimap flex-1 relative">
+                    <p class="text-gray-400 text-xs bg-black inline-block absolute px-6 pt-1 pb-2 rounded-tl-full rounded-tr-full border-t-2 border-yellow-800"
+                        style="top:-1.5rem; left:50%; transform:translateX(-50%);">11:05</p>
+                    <canvas class="bg-black w-full h-full border-r border-yellow-800"></canvas>
+                </article>
+
+                <aside class="view-controls flex-0 flex flex-col space-y-2 ml-2 py-2">
+
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="cinematic">filter_hdr</i>
+                    <i class="material-icons text-yellow-600 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="heat-map">zoom_out_map</i>
+
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer"
+                        style="font-size:0.75rem; margin-top:auto;" title="heat-map">bubble_chart</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="drop-alarms">alarm_on</i>
+
+                </aside>
+
+            </div>
+        </div>
+
+        <!-- DETAILS -->
+        <div class="details flex-1 flex items-stretch">
+            <div class="rounded mb-2 p-2 flex flex-1 border-2 border-yellow-900" style="background-color:#1a202c99">
+
+                <article class="flex-1">
+                    Building Select
+                </article>
+
+                <aside class="flex flex-col space-y-2 ml-2">
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="information">help</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="attack-info">highlight</i>
+
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer"
+                        style="font-size:0.75rem; margin-top:auto" title="follow">gps_fixed</i>
+
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="fpvod">slideshow</i>
+
+                </aside>
+            </div>
+
+        </div>
+
+        <!-- REPLAY POSITION -->
+        <div class="replay-parent flex-1 max-w-xs flex items-stretch">
+            <div class="replay-position rounded mb-2 p-2 border-2 border-yellow-900 flex-1 flex"
+                style="background-color:#1a202caa">
+
+                <article class="flex-1 flex flex-col justify-around">
+                    <!-- replay position header -->
+                    <span class="flex items-center justify-center  mb-2">
+                        <span class="text-yellow-400 text-xs">Replay Progress</span>
+                    </span>
+
+                    <!-- replay position bar -->
+                    <div class="position control">
+                        <div class="h-3 bg-black rounded-lg border-2 border-gray-800">
+                            <div
+                                class="w-10 h-full bg-green-700 text-green-800 pattern-vertical-stripes-sm  rounded-sm cursor-pointer">
+                                &nbsp;
+                            </div>
+                        </div>
+
+                        <div class="flex justify-around items-center p-2 mt-2">
+                            <span
+                                class="border-2 border-yellow-600 rounded-full w-6 h-6 flex items-center justify-center"><i
+                                    class="material-icons text-yellow-600 cursor-pointer" title="hide progress"
+                                    style="font-size:1rem">play_arrow</i></span>
+
+                            <span
+                                class="border-2 border-yellow-600 rounded-full w-6 h-6 flex items-center justify-center"><i
+                                    class="material-icons text-yellow-600 cursor-pointer"
+                                    title="hide progress">arrow_drop_up</i></span>
+
+                            <span
+                                class="border-2 border-yellow-600 rounded-full w-6 h-6 flex items-center justify-center"><i
+                                    class="material-icons text-yellow-600 cursor-pointer"
+                                    title="hide progress">arrow_drop_down</i></span>
+
+                            <span class="rounded-full flex items-center justify-center bg-yellow-900"><i
+                                    class="material-icons text-black cursor-pointer"
+                                    title="hide progress">rotate_right</i></span>
+                        </div>
+                    </div>
+                </article>
+
+                <aside class="flex flex-col space-y-2 ml-2">
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="hide progress">remove_red_eye</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="scrubber">launch</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="cinematics">voice_chat</i>
+
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer"
+                        style="font-size:0.75rem; margin-top:auto" title="production">view_module</i>
+                    <i class="material-icons text-yellow-700 rounded cursor-pointer" style="font-size:0.75rem"
+                        title="resources">timeline</i>
+                </aside>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</div>

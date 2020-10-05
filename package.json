@@ -56,6 +56,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-dropzone": "^11.2.0",
+    "react-tooltip": "^4.2.10",
     "sanitize-filename": "^1.6.3",
     "scm-extractor": "^1.0.6",
     "three": "^0.120.1",

@@ -101,6 +101,7 @@ export class ReplayPosition {
   }
 
   resume() {
+    if (this.bwGameFrame === this.maxFrame) return;
     this.paused = false;
     this.lastDelta = 0;
     this.clock.start();
@@ -148,7 +149,8 @@ export class ReplayPosition {
     const t = (this.bwGameFrame * gameSpeeds.fastest) / 1000;
     const minutes = Math.floor(t / 60);
     const seconds = Math.floor(t % 60);
-    return `${minutes}:${seconds.toFixed(2)}`;
+
+    return `${minutes}:${("00" + seconds).slice(-2)}`;
   }
 
   skippingFrames() {
@@ -157,6 +159,12 @@ export class ReplayPosition {
 
   readUInt32AndAdvance() {
     const v = this.buf.getUint32(this.bwapiBufferPosition, true);
+    this.advanceBuffer(4);
+    return v;
+  }
+
+  readInt32AndAdvance() {
+    const v = this.buf.getInt32(this.bwapiBufferPosition, true);
     this.advanceBuffer(4);
     return v;
   }

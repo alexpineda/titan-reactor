@@ -32,6 +32,7 @@ export class Game {
     bwDat,
     renderImage,
     tileset,
+    mapSize,
     getTerrainY,
     audioListener,
     audioPool = {},
@@ -39,6 +40,10 @@ export class Game {
   ) {
     this.units = new Group();
     this.tileset = tileset;
+    this.mapSize = {
+      w: mapSize[0],
+      h: mapSize[1],
+    };
     this.deadUnits = [];
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
@@ -188,8 +193,8 @@ export class Game {
     const runner = unit.userData.runner;
     const unitType = this.bwDat.units[unit.userData.typeId];
 
-    const x = current.x / 32 - 64;
-    const z = current.y / 32 - 64;
+    const x = current.x / 32 - this.mapSize.w / 2;
+    const z = current.y / 32 - this.mapSize.h / 2;
 
     //@todo consider setting frame floor once to the lowest frame
     const y = unitType.flyer() || current.lifted() ? 6 : this.getTerrainY(x, z);
@@ -387,9 +392,9 @@ export class Game {
       runner.renderImage.assign(unit.userData);
       runner.renderImage.update();
     }
-    runner.children.forEach((r) => {
-      r.renderImage && r.renderImage.update();
-    });
+    // runner.children.forEach((r) => {
+    //   r.renderImage && r.renderImage.update();
+    // });
 
     unit.userData.previous = unit.userData.current;
   }
