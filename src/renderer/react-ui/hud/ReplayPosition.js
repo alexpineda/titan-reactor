@@ -24,6 +24,7 @@ export default ({
   position,
   timeLabel,
   defaultGameSpeed,
+  maxFrame,
   onTogglePlay,
   onChangePosition,
   onChangeAutoGameSpeed,
@@ -40,13 +41,24 @@ export default ({
   const [showResources, setShowResources] = useState(true);
   const [autoSpeed, setAutoSpeed] = useState(false);
   const [play, setPlay] = useState(true);
+  const [positionLabel, setPositionLabel] = useState("");
 
   const setPositionHandler = (e) => {
     const rect = e.target.getBoundingClientRect();
-    console.log(e.clientX - rect.left, rect.right - rect.left);
     const p = (e.clientX - rect.left) / (rect.right - rect.left);
 
     onChangePosition && onChangePosition(p);
+  };
+
+  const setPositionLabelHandler = (e) => {
+    const rect = e.target.getBoundingClientRect();
+    const p = (e.clientX - rect.left) / (rect.right - rect.left);
+
+    const t = (p * maxFrame * gameSpeeds.fastest) / 1000;
+    const minutes = Math.floor(t / 60);
+    const seconds = Math.floor(t % 60);
+
+    setPositionLabel(`${minutes}:${("00" + seconds).slice(-2)}`);
   };
 
   const canIncreaseGameSpeed = () => {
@@ -82,9 +94,13 @@ export default ({
       return "Replay Completed";
     }
 
+    let label = timeLabel;
+    if (!hideProgress) {
+      label = positionLabel ? positionLabel : label;
+    }
     return (
       <>
-        {timeLabel} -{" "}
+        {label} -{" "}
         {autoSpeed ? "Auto" : capitalizeFirst(gameSpeedNames[gameSpeed])}
       </>
     );
@@ -102,7 +118,11 @@ export default ({
             <p className={`text-yellow-400 text-${textSize} inline-block`}>
               Replay Progress
             </p>
-            <p className={`text-gray-400 text-${textSize}`}>
+            <p
+              className={` text-${textSize} ${
+                positionLabel ? "text-green-500" : "text-gray-400"
+              }`}
+            >
               {timeRemainingLabel()}
             </p>
           </span>
@@ -111,13 +131,19 @@ export default ({
             <div
               className={`h-3 bg-black rounded-sm border-2 border-gray-800 cursor-pointer`}
               onClick={setPositionHandler}
+              onMouseMove={setPositionLabelHandler}
+              onMouseLeave={() => setPositionLabel("")}
             >
               <div
                 style={{ width: `${hideProgress ? 100 : progress}%` }}
                 className={`pointer-events-none h-full rounded-sm ${
                   hideProgress
                     ? "pattern-grid-sm bg-gray-700 text-gray-800 "
-                    : "pattern-vertical-stripes-sm bg-green-700 text-green-800 "
+                    : `pattern-vertical-stripes-sm ${
+                        progress === 100
+                          ? "bg-red-700 text-red-800"
+                          : "bg-green-700 text-green-800"
+                      }  `
                 }`}
               >
                 &nbsp;

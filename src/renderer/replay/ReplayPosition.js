@@ -1,3 +1,5 @@
+import { easeCubicOut } from "d3-ease";
+import { orders } from "../../common/bwdat/orders";
 import { gameSpeeds } from "../utils/conversions";
 
 export class ClockMs {
@@ -68,6 +70,7 @@ export class ReplayPosition {
     this.skipPhysicsFrames = 20;
     this._maxSkipSpeed = 100;
     this.gameSpeed = gameSpeed;
+    this.autoSpeed = false;
     this.clock = clock;
     this.lastDelta = 0;
     this.paused = true;
@@ -157,6 +160,13 @@ export class ReplayPosition {
     return this.skipGameFrames > 1;
   }
 
+  setAutoSpeed(val) {
+    this.autoSpeed = val;
+    this.gameSpeed = gameSpeeds.fastest;
+    this.skipGameFrames = 0;
+    this.lastDelta = 0;
+  }
+
   readUInt32AndAdvance() {
     const v = this.buf.getUint32(this.bwapiBufferPosition, true);
     this.advanceBuffer(4);
@@ -171,5 +181,69 @@ export class ReplayPosition {
 
   advanceBuffer(bytes) {
     this.bwapiBufferPosition += bytes;
+  }
+
+  updateAutoSpeed(attackingUnits) {
+    if (
+      this.autoSpeed &&
+      !this.skippingFrames() &&
+      this.frame % (24 * 10) === 0
+    ) {
+      const orderScoreNorm = (order) => this._orderScore(order) / 5;
+
+      const n = attackingUnits.reduce(
+        (sum, unit) => sum + orderScoreNorm(unit.userData.current.order),
+        0
+      );
+
+      const t = 1 - easeCubicOut(n / (attackingUnits.length + 1));
+      this.gameSpeed =
+        t * (gameSpeeds["1.5x"] - gameSpeeds.fastest) + gameSpeeds.fastest;
+      console.log("auto", this.gameSpeed);
+    }
+  }
+
+  _orderScore(order) {
+    switch (order) {
+      case orders.castScannerSweep:
+        return 2;
+      case orders.interceptorAttack:
+        return 3;
+      case orders.holdPosition:
+      case orders.stop:
+      case orders.move:
+      case orders.burrowing:
+      case orders.unburrowing:
+      case orders.medicHeal:
+      case orders.attackMove:
+        return 5;
+      case orders.castConsume:
+      case orders.castDarkSwarm:
+      case orders.castDefensiveMatrix:
+      case orders.castDisruptionWeb:
+      case orders.castEmpShockwave:
+      case orders.castEnsnare:
+      case orders.castFeedback:
+      case orders.castHallucination:
+      case orders.castInfestation:
+      case orders.castIrradiate:
+      case orders.castLockdown:
+      case orders.castMaelstrom:
+      case orders.castMindControl:
+      case orders.castNuclearStrike:
+      case orders.castOpticalFlare:
+      case orders.castParasite:
+      case orders.castPlague:
+      case orders.castPsionicStorm:
+      case orders.castRecall:
+      case orders.castRestoration:
+      case orders.castScannerSweep:
+      case orders.castSpawnBroodlings:
+      case orders.castStasisField:
+      case orders.scarabAttack:
+        return 6;
+      default:
+        return 0;
+    }
   }
 }

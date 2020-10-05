@@ -20,7 +20,7 @@ import { difference, range } from "ramda";
 import { ReplayPosition, ClockMs } from "./ReplayPosition";
 import { gameSpeeds } from "../utils/conversions";
 import HUD from "../react-ui/hud/HUD";
-import { Clock } from "three";
+import { unitTypes } from "../../common/bwdat/unitTypes";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -238,20 +238,37 @@ export async function TitanReactorReplay(
 
   const hudData = {
     position: () => replayPosition.bwGameFrame / replayPosition.maxFrame,
+    onChangeGameSpeed: (speed) => (replayPosition.gameSpeed = speed),
+    onChangeAutoGameSpeed: (val) => replayPosition.setAutoSpeed(val),
+    onChangePosition: (pos) => {
+      replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
+    },
+    onTogglePlay: (play) => {
+      if (play) {
+        replayPosition.resume();
+      } else {
+        replayPosition.pause();
+      }
+    },
   };
 
   function gameLoop() {
     if (replayPosition.frame % 24 === 0) {
       updateUi(
         <HUD
+          defaultGameSpeed={replayPosition.gameSpeed}
+          maxFrame={replayPosition.maxFrame}
           position={hudData.position()}
           timeLabel={replayPosition.getFriendlyTime()}
+          onChangeGameSpeed={hudData.onChangeGameSpeed}
+          onChangeAutoGameSpeed={hudData.onChangeAutoGameSpeed}
+          onChangePosition={hudData.onChangePosition}
+          onTogglePlay={hudData.onTogglePlay}
         />
       );
     }
 
     replayPosition.update();
-
     game.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
@@ -307,6 +324,30 @@ export async function TitanReactorReplay(
         unitsLastFrame = [...unitsThisFrame];
         // units.units.updateMatrixWorld(true);
       }
+
+      const attackingUnits = unitsThisFrame
+        .map((unitRepId) => {
+          return game.units.children.find(
+            ({ userData }) => userData.repId === unitRepId
+          );
+        })
+        .filter((unit) => {
+          const unitType = bwDat.units[unit.userData.typeId];
+          if (
+            unitType.building() ||
+            unitType.resourceMiner() ||
+            unitType.resourceContainer()
+          ) {
+            return false;
+          }
+          if (
+            [unitTypes.overlord, unitTypes.larva].includes(unit.userData.typeId)
+          ) {
+            return false;
+          }
+          return true;
+        });
+      replayPosition.updateAutoSpeed(attackingUnits);
     }
 
     //#endregion

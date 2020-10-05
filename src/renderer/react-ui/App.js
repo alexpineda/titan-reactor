@@ -11,24 +11,10 @@ const RenderingCanvas = ({ canvas }) => {
   return <div ref={canvasRef}></div>;
 };
 
-const MinimapCanvas = memo(() => (
-  <div
-    id="minimap"
-    style={{
-      position: "absolute",
-      left: "0",
-      bottom: "0",
-      height: "300px",
-      width: "300px",
-    }}
-  ></div>
-));
-
 export const App = ({ loadingOverlay, canvas, children }) => (
   <>
+    <RenderingCanvas canvas={canvas} />
     {loadingOverlay}
     {children}
-    <MinimapCanvas />
-    <RenderingCanvas canvas={canvas} />
   </>
 );

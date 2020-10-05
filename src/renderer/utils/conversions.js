@@ -22,6 +22,8 @@ export const gameSpeeds = {
 };
 export const gameSpeedNames = invertObj(gameSpeeds);
 
+export const framesPerSecond = (speed) => 1000 / speed;
+
 export const angleToDirection = (angle) =>
   Math.floor(
     (((angle + (Math.PI * 1) / 2) % (Math.PI * 2)) / (Math.PI * 2)) * 32

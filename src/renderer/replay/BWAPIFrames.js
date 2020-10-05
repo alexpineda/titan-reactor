@@ -21,8 +21,6 @@ export class BWAPIUnit {
     }
   }
 
-  direction() {}
-
   _flag(flag, shift) {
     return !!(this[`flags${flag}`] & (1 << shift));
   }

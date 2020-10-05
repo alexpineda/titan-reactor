@@ -54,7 +54,16 @@ const demo = {
   selectedUnits: [],
 };
 
-export default ({ position, timeLabel }) => {
+export default ({
+  position,
+  timeLabel,
+  onChangeGameSpeed,
+  onChangeAutoGameSpeed,
+  onChangePosition,
+  onTogglePlay,
+  maxFrame,
+  defaultGameSpeed,
+}) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
 
@@ -66,19 +75,6 @@ export default ({ position, timeLabel }) => {
   };
   const onToggleDualFPV = (e) => {
     console.log("onToggleDualFPV", e);
-  };
-
-  const onTogglePlay = (e) => {
-    console.log("onTogglePlay", e);
-  };
-  const onChangePosition = (e) => {
-    console.log("onChangePosition", e);
-  };
-  const onChangeAutoGameSpeed = (e) => {
-    console.log("onChangeAutoGameSpeed", e);
-  };
-  const onChangeGameSpeed = (e) => {
-    console.log("onChangeGameSpeed", e);
   };
 
   const onRevealMap = (e) => {
@@ -137,9 +133,10 @@ export default ({ position, timeLabel }) => {
           textSize={config.textSize}
         />
         <ReplayPosition
+          maxFrame={maxFrame}
           timeLabel={timeLabel}
           position={position}
-          defaultGameSpeed={gameSpeeds.fastest}
+          defaultGameSpeed={defaultGameSpeed}
           onTogglePlay={onTogglePlay}
           onChangePosition={onChangePosition}
           onChangeAutoGameSpeed={onChangeAutoGameSpeed}
