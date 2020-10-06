@@ -16,7 +16,7 @@ import { Game } from "./Game";
 import { disposeMeshes } from "../utils/dispose";
 //todo refactor out
 import { openFile } from "../invoke";
-import { difference, range } from "ramda";
+import { difference, range, compose } from "ramda";
 import { ReplayPosition, ClockMs } from "./ReplayPosition";
 import { gameSpeeds } from "../utils/conversions";
 import HUD from "../react-ui/hud/HUD";
@@ -313,29 +313,17 @@ export async function TitanReactorReplay(
         // units.units.updateMatrixWorld(true);
       }
 
-      const attackingUnits = unitsThisFrame
-        .map((unitRepId) => {
-          return game.units.children.find(
-            ({ userData }) => userData.repId === unitRepId
-          );
-        })
-        .filter((unit) => {
-          const unitType = bwDat.units[unit.userData.typeId];
-          if (
-            unitType.building() ||
-            unitType.resourceMiner() ||
-            unitType.resourceContainer()
-          ) {
-            return false;
-          }
-          if (
-            [unitTypes.overlord, unitTypes.larva].includes(unit.userData.typeId)
-          ) {
-            return false;
-          }
-          return true;
-        });
-      if (replayPosition.updateAutoSpeed(attackingUnits)) {
+      const attackingUnits = compose(
+        (units) => heatMapScore.unitsOfInterest(units),
+        (units) =>
+          units.map((unitRepId) => {
+            return game.units.children.find(
+              ({ userData }) => userData.repId === unitRepId
+            );
+          })
+      );
+
+      if (replayPosition.updateAutoSpeed(attackingUnits(unitsThisFrame))) {
         updateUi();
       }
     }
