@@ -1,6 +1,4 @@
-import { easeCubicOut } from "d3-ease";
-import { orders } from "../../common/bwdat/orders";
-import { unitTypes } from "../../common/bwdat/unitTypes";
+import { MathUtils } from "three";
 import { gameSpeeds } from "../utils/conversions";
 
 export class ClockMs {
@@ -61,7 +59,7 @@ export class ClockMs {
 }
 
 export class ReplayPosition {
-  constructor(buf, maxFrame, clock, gameSpeed) {
+  constructor(buf, maxFrame, clock, gameSpeed, heatMapScore) {
     this.buf = buf;
     this.maxFrame = maxFrame;
     this.frame = 0;
@@ -71,11 +69,13 @@ export class ReplayPosition {
     this.skipPhysicsFrames = 20;
     this._maxSkipSpeed = 100;
     this.gameSpeed = gameSpeed;
-    this.autoSpeed = false;
+    this.autoSpeed = 0;
+    this.autoSpeedLerpClock = new ClockMs();
     this.clock = clock;
     this.lastDelta = 0;
     this.paused = true;
     this.destination = undefined;
+    this.heatMapScore = heatMapScore;
     this.onResetState = () => {};
   }
 
@@ -165,6 +165,12 @@ export class ReplayPosition {
 
   setAutoSpeed(val) {
     this.autoSpeed = val;
+    this.autoSpeedLerpClock.elapsedTime = 0;
+    if (val) {
+      this.autoSpeedLerpClock.start();
+    } else {
+      this.autoSpeedLerpClock.stop();
+    }
     this.gameSpeed = gameSpeeds.fastest;
     this.skipGameFrames = 0;
     this.lastDelta = 0;
@@ -187,79 +193,25 @@ export class ReplayPosition {
   }
 
   updateAutoSpeed(attackingUnits) {
-    if (
-      this.autoSpeed &&
-      !this.skippingFrames() &&
-      this.frame % (24 * 5) === 0
-    ) {
-      const orderScoreNorm = (order) => this._orderScore(order) / 5;
+    if (!this.autoSpeed || this.destination) {
+      return;
+    }
 
-      const n = attackingUnits.reduce((sum, unit) => {
-        let score = 0;
+    this.gameSpeed = MathUtils.lerp(
+      this.gameSpeed,
+      this.autoSpeed,
+      this.autoSpeedLerpClock.getElapsedTime() / 5000
+    );
 
-        if (
-          ![
-            unitTypes.siegeTankSiegeMode,
-            unitTypes.siegeTurretSiegeMode,
-          ].includes(unit.userData.typeId)
-        ) {
-          score = orderScoreNorm(unit.userData.current.order);
-        }
-        return sum + score;
-      }, 0);
-
-      const t = 1 - easeCubicOut(n / (attackingUnits.length + 1));
-      this.gameSpeed =
-        t * (gameSpeeds["1.5x"] - gameSpeeds.fastest) +
+    if (this.frame % (24 * 5) === 0) {
+      this.autoSpeed =
+        (1 - this.heatMapScore.totalScore(attackingUnits)) *
+          (gameSpeeds["1.5x"] - gameSpeeds.fastest) +
         gameSpeeds.fastest +
         Math.random() * 0.001; // variance for useEffect in UI
-      console.log("auto", this.gameSpeed);
+      this.autoSpeedLerpClock.elapsedTime = 0;
       return true;
     }
     return false;
-  }
-
-  _orderScore(order) {
-    switch (order) {
-      case orders.castScannerSweep:
-        return 2;
-      case orders.interceptorAttack:
-        return 3;
-      case orders.holdPosition:
-      case orders.stop:
-      case orders.move:
-      case orders.burrowing:
-      case orders.unburrowing:
-      case orders.medicHeal:
-      case orders.attackMove:
-        return 5;
-      case orders.castConsume:
-      case orders.castDarkSwarm:
-      case orders.castDefensiveMatrix:
-      case orders.castDisruptionWeb:
-      case orders.castEmpShockwave:
-      case orders.castEnsnare:
-      case orders.castFeedback:
-      case orders.castHallucination:
-      case orders.castInfestation:
-      case orders.castIrradiate:
-      case orders.castLockdown:
-      case orders.castMaelstrom:
-      case orders.castMindControl:
-      case orders.castNuclearStrike:
-      case orders.castOpticalFlare:
-      case orders.castParasite:
-      case orders.castPlague:
-      case orders.castPsionicStorm:
-      case orders.castRecall:
-      case orders.castRestoration:
-      case orders.castScannerSweep:
-      case orders.castSpawnBroodlings:
-      case orders.castStasisField:
-      case orders.scarabAttack:
-        return 6;
-      default:
-        return 0;
-    }
   }
 }

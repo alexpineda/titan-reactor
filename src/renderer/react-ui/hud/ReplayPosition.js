@@ -44,20 +44,23 @@ export default ({
   const [showResources, setShowResources] = useState(true);
   const [positionLabel, setPositionLabel] = useState("");
 
-  const [hideAutoSpeed, setHideAutoSpeed] = useState(false);
+  const [autoSpeedMode, setAutoSpeedMode] = useState(0);
 
   const [prevAutoSpeeds, setPrevAutoSpeeds] = useState([0, 0, 0]);
 
-  const deltaSpeeds = gameSpeeds.fastest - gameSpeeds["1.5x"];
+  const maxSpeed = gameSpeeds["1.5x"];
+  const deltaSpeeds = gameSpeeds.fastest - maxSpeed;
+  const totalSpeeds = gameSpeeds.fastest + (gameSpeeds.fastest - maxSpeed);
 
   useEffect(() => {
     if (!autoSpeed || destination >= 0) return;
     setPrevAutoSpeeds([
       ...prevAutoSpeeds.slice(1),
-      (gameSpeeds.fastest - gameSpeed) / deltaSpeeds,
+      1 - (gameSpeeds.fastest - gameSpeed) / deltaSpeeds,
     ]);
-    console.log(prevAutoSpeeds);
-  }, [gameSpeed]);
+  }, [autoSpeed]);
+
+  const autoSpeedNorm = 1 - (gameSpeeds.fastest - autoSpeed) / deltaSpeeds;
 
   const setPositionHandler = (e) => {
     const rect = e.target.getBoundingClientRect();
@@ -122,15 +125,35 @@ export default ({
       autoSpeedLabel = autoSpeed ? (
         <span
           className="cursor-pointer"
-          onClick={() => setHideAutoSpeed(!hideAutoSpeed)}
+          onClick={() => {
+            setAutoSpeedMode((autoSpeedMode + 1) % 3);
+          }}
         >
-          Auto{" "}
-          <span className="bg-gray-500">
-            {!hideAutoSpeed &&
-              sparkly(prevAutoSpeeds, {
-                minimum: 0,
-                maximum: 1,
-              })}
+          &nbsp;
+          {autoSpeedMode == 2 && <span className="text-gray-400">Auto</span>}
+          <span>
+            <span className="text-gray-400">
+              {autoSpeedMode == 1 &&
+                `${Math.floor(totalSpeeds / autoSpeed)}.${(
+                  "0" +
+                  ((totalSpeeds / autoSpeed) %
+                    Math.floor(totalSpeeds / autoSpeed))
+                ).slice(-1)}x`}
+            </span>
+            <span className="text-gray-700 absolute ml-1">
+              {autoSpeedMode == 0 &&
+                sparkly([autoSpeedNorm, autoSpeedNorm, autoSpeedNorm], {
+                  minimum: 0,
+                  maximum: 1,
+                })}
+            </span>
+            <span className="text-gray-600 absolute">
+              {autoSpeedMode == 0 &&
+                sparkly(prevAutoSpeeds, {
+                  minimum: 0,
+                  maximum: 1,
+                })}
+            </span>
           </span>
         </span>
       ) : (
@@ -266,10 +289,10 @@ export default ({
                   className={`material-icons cursor-pointer ${
                     autoSpeed ? "text-yellow-600" : "text-black"
                   }`}
-                  data-tip="Auto Speed"
+                  data-tip="Autospeed"
                   onClick={() => {
                     if (!onChangeAutoGameSpeed) return;
-                    if (autoSpeed >= 0) {
+                    if (autoSpeed > 0) {
                       onChangeAutoGameSpeed(0);
                     } else {
                       onChangeAutoGameSpeed(gameSpeeds.fastest);

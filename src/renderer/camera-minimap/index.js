@@ -21,8 +21,6 @@ const LAYER_MINIMAP = 9;
 
 console.log(new Date().toLocaleString());
 
-console.log(new Date().toLocaleString());
-
 render(<App />, document.getElementById("app"));
 
 ipcRenderer.on("open-map", (event, [map]) => {

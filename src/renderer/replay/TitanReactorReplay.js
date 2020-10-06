@@ -21,6 +21,7 @@ import { ReplayPosition, ClockMs } from "./ReplayPosition";
 import { gameSpeeds } from "../utils/conversions";
 import HUD from "../react-ui/hud/HUD";
 import { unitTypes } from "../../common/bwdat/unitTypes";
+import HeatmapScore from "../react-ui/hud/HeatmapScore";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -123,12 +124,14 @@ export async function TitanReactorReplay(
 
   let requestAnimationFrameId = null;
 
+  const heatMapScore = new HeatmapScore(bwDat);
   let replayPosition = new ReplayPosition(
     BWAPIFramesDataView,
     100000000,
     // header.durationFrames,
     new ClockMs(),
-    gameSpeeds.slowest
+    gameSpeeds.slowest,
+    heatMapScore
   );
 
   THREE.DefaultLoadingManager.onLoad = () => {
@@ -149,44 +152,10 @@ export async function TitanReactorReplay(
       } else {
         replayPosition.pause();
       }
-      console.log("bwGameFrame", replayPosition.bwGameFrame);
     }
 
     if (e.code === "KeyG") {
       gridHelper.visible = !gridHelper.visible;
-    }
-
-    switch (e.code) {
-      case "Digit1":
-        replayPosition.gameSpeed = gameSpeeds.slowest;
-        break;
-      case "Digit2":
-        replayPosition.gameSpeed = gameSpeeds.slow;
-        break;
-      case "Digit3":
-        replayPosition.gameSpeed = gameSpeeds.normal;
-        break;
-      case "Digit4":
-        replayPosition.gameSpeed = gameSpeeds.fast;
-        break;
-      case "Digit5":
-        replayPosition.gameSpeed = gameSpeeds.faster;
-        break;
-      case "Digit6":
-        replayPosition.gameSpeed = gameSpeeds.fastest;
-        break;
-      case "Digit7":
-        replayPosition.gameSpeed = gameSpeeds["2x"];
-        break;
-      case "Digit8":
-        replayPosition.gameSpeed = gameSpeeds["4x"];
-        break;
-      case "Digit9":
-        replayPosition.gameSpeed = gameSpeeds["8x"];
-        break;
-      case "Digit0":
-        replayPosition.gameSpeed = gameSpeeds["16x"];
-        break;
     }
   };
 
@@ -245,6 +214,7 @@ export async function TitanReactorReplay(
     },
     onChangePosition: (pos) => {
       replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
+      updateUi();
     },
     onTogglePlay: (play) => {
       if (play) {

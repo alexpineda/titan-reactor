@@ -1,7 +1,5 @@
 "use strict";
 
-console.log("using: bw-chk-mine4");
-
 import BufferList from "bl";
 import { Duplex } from "stream";
 import fs, { read } from "fs";

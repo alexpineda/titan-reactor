@@ -25,7 +25,6 @@ import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
 import { JsonCache } from "./utils/jsonCache";
 import { initRenderer } from "./renderer";
 
-console.log("renderer");
 console.log(new Date().toLocaleString());
 
 const canvas = document.createElement("canvas");
@@ -155,7 +154,6 @@ const loadMap = async (filepath) => {
     });
 
     document.title = `Titan Reactor - ${chk.title}`;
-    console.log(overlay);
     // mapDescriptionEl.innerText = chk.description;
     updateUi();
 
