@@ -105,11 +105,16 @@ export class TitanReactor {
     });
     document.title = `Titan Reactor - ${chk.title}`;
 
+    const mapTexturesCache = new TextureCache(
+      chk.title,
+      await getAppCachePath()
+    );
+
     this.scene = await TitanReactorSandbox(
       this.context,
       chkFilepath,
       chk,
-      this.context.getGameCanvas()
+      mapTexturesCache
     );
     this.reactApp.render();
   }

@@ -1,60 +1,44 @@
 // playground for environment
 import * as THREE from "three";
 import { EnvironmentOptionsGui } from "./EnvironmentOptionsGui";
-import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
 
-import { sunlight, fog } from "./lights";
-import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
-import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
-
-import { Terrain } from "./Terrain";
 import { disposeMeshes } from "../utils/dispose";
-import { TextureCache } from "./textures/TextureCache";
 
-import { getAppCachePath } from "../invoke";
 import { createStartLocation } from "../utils/BasicObjects";
-import { getTerrainY } from "./displacementGeometry";
 import { LoadModel } from "../mesh/LoadModels";
 import { unitTypes } from "../../common/bwdat/unitTypes";
 import { Cameras } from "../replay/Cameras";
+import { TitanReactorScene } from "./TitanReactorScene";
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorSandbox(context, filepath, chk) {
+export async function TitanReactorSandbox(
+  context,
+  filepath,
+  chk,
+  textureCache
+) {
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
   const scene = (window.scene = new THREE.Scene());
 
-  const terrainMesh = new Terrain(
-    chk,
-    new TextureCache(chk.title, await getAppCachePath()),
-    context.renderer.capabilities.getMaxAnisotropy()
+  const titanReactorScene = new TitanReactorScene(chk, textureCache);
+  await titanReactorScene.init(scene);
+
+  var lightCameraHelper = new THREE.CameraHelper(
+    titanReactorScene.light.shadow.camera
   );
-  const terrain = await terrainMesh.generate();
-  terrain.userData.elevationsTexture = await mapElevationsCanvasTexture(chk);
-  const bg = await bgMapCanvasTexture(chk);
-  const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
-  bgTerrain.position.y = -1;
-  scene.add(terrain);
-  scene.add(bgTerrain);
-
-  scene.fog = fog(chk.size[0], chk.size[1]);
-  scene.background = scene.fog.color;
-
-  const light = sunlight(chk.size[0], chk.size[1]);
-  scene.add(light);
-  var lightCameraHelper = new THREE.CameraHelper(light.shadow.camera);
   lightCameraHelper.visible = false;
   scene.add(lightCameraHelper);
-  var lightHelper = new THREE.DirectionalLightHelper(light, 5);
+  var lightHelper = new THREE.DirectionalLightHelper(
+    titanReactorScene.light,
+    5
+  );
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
-  scene.add(hemi);
-
-  const cameras = new Cameras(context, terrain.material.map);
+  const cameras = new Cameras(context, titanReactorScene.terrain.material.map);
 
   if (hot && hot.camera) {
     cameras.main.position.copy(hot.camera.position);
@@ -63,19 +47,7 @@ export async function TitanReactorSandbox(context, filepath, chk) {
   cameras.control.update();
   scene.add(cameras.cubeCamera);
 
-  const terrainY = getTerrainY(
-    terrain.userData.displacementMap.image
-      .getContext("2d")
-      .getImageData(
-        0,
-        0,
-        terrain.userData.displacementMap.image.width,
-        terrain.userData.displacementMap.image.height
-      ),
-    terrain.userData.displacementScale,
-    chk.size[0],
-    chk.size[1]
-  );
+  const terrainY = titanReactorScene.getTerrainY();
 
   const playerColors = [
     "#a80808",
@@ -142,7 +114,7 @@ export async function TitanReactorSandbox(context, filepath, chk) {
     cameras.control.autoRotate = val;
     // startLocations.forEach((sl) => (sl.visible = !val));
     if (val) {
-      cameras.control.target = terrain.position;
+      cameras.control.target = titanReactorScene.terrain.position;
     } else {
       cameras.control.target = null;
     }
@@ -170,6 +142,8 @@ export async function TitanReactorSandbox(context, filepath, chk) {
   //#region map controllers
   gui.controllers.map.onChangeAny(
     ({ showElevations, showWireframe, showBackgroundTerrain }) => {
+      const { terrain, bgTerrain } = titanReactorScene;
+
       if (showElevations) {
         terrain.material.map = terrain.userData.elevationsTexture;
       } else {
@@ -211,6 +185,7 @@ export async function TitanReactorSandbox(context, filepath, chk) {
   //#region hemilight controllers
   gui.controllers.hemilight.onChangeAny(
     ({ intensity, skyColor, groundColor }) => {
+      const { hemi } = titanReactorScene;
       hemi.intensity = intensity;
       hemi.skyColor = new THREE.Color(parseInt(skyColor.substr(1), 16));
       hemi.groundColor = new THREE.Color(parseInt(groundColor.substr(1), 16));
@@ -230,6 +205,7 @@ export async function TitanReactorSandbox(context, filepath, chk) {
   //#region dirlight controllers
   gui.controllers.dirlight.onChangeAny(
     ({ intensity, color, x, y, z, x2, y2, z2, helper }) => {
+      const { light } = titanReactorScene;
       light.intensity = intensity;
       light.color = new THREE.Color(parseInt(color.substr(1), 16));
       light.position.x = x;
@@ -251,6 +227,7 @@ export async function TitanReactorSandbox(context, filepath, chk) {
 
   //#region
   gui.controllers.displacementMix.show.onChange((value) => {
+    const { terrain } = titanReactorScene;
     if (value) {
       terrain.material.map = terrain.userData.displacementMap;
     } else {

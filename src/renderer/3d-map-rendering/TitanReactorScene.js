@@ -38,8 +38,12 @@ export class TitanReactorScene {
 
     scene.fog = fog(w, h);
     scene.background = scene.fog.color;
+
     this.terrain = terrain;
+    this.bgTerrain = bgTerrain;
     this.gridHelper = gridHelper;
+    this.light = light;
+    this.hemi = hemi;
   }
 
   getTerrainY() {
