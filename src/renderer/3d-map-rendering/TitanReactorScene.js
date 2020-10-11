@@ -5,13 +5,14 @@ import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
 import { Terrain } from "./Terrain";
 import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
 
-export class TitanReactorScene {
+export class TitanReactorScene extends Scene {
   constructor(chk, textureCache) {
+    super();
     this.chk = chk;
     this.textureCache = textureCache;
   }
 
-  async init(scene) {
+  async init() {
     const [w, h] = this.chk.size;
 
     const gridHelper = new GridHelper(128, 128, 0xff0000, 0x009900);
@@ -19,25 +20,25 @@ export class TitanReactorScene {
     gridHelper.material.transparent = true;
     gridHelper.material.opacity = 0.5;
     gridHelper.visible = false;
-    scene.add(gridHelper);
+    this.add(gridHelper);
 
     const light = sunlight(w, h);
-    scene.add(light);
+    this.add(light);
 
     const hemi = new HemisphereLight(0xffffff, 0xffffff, 5);
-    scene.add(hemi);
+    this.add(hemi);
 
     const terrainMesh = new Terrain(this.chk, this.textureCache);
     const terrain = await terrainMesh.generate();
     const bg = await bgMapCanvasTexture(this.chk);
     const bgTerrain = backgroundTerrainMesh(w, h, bg);
 
-    scene.add(terrain);
+    this.add(terrain);
     // @todo fix sprite black box issue
-    scene.add(bgTerrain);
+    this.add(bgTerrain);
 
-    scene.fog = fog(w, h);
-    scene.background = scene.fog.color;
+    this.fog = fog(w, h);
+    this.background = this.fog.color;
 
     this.terrain = terrain;
     this.bgTerrain = bgTerrain;

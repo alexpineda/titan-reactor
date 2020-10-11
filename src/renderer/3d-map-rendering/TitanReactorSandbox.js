@@ -8,7 +8,7 @@ import { createStartLocation } from "../utils/BasicObjects";
 import { LoadModel } from "../mesh/LoadModels";
 import { unitTypes } from "../../common/bwdat/unitTypes";
 import { Cameras } from "../replay/Cameras";
-import { TitanReactorScene } from "./TitanReactorScene";
+import { TitanReactorScene } from "../3d-map-rendering/TitanReactorScene";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -21,24 +21,17 @@ export async function TitanReactorSandbox(
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
-  const scene = (window.scene = new THREE.Scene());
+  const scene = new TitanReactorScene(chk, textureCache);
+  await scene.init();
 
-  const titanReactorScene = new TitanReactorScene(chk, textureCache);
-  await titanReactorScene.init(scene);
-
-  var lightCameraHelper = new THREE.CameraHelper(
-    titanReactorScene.light.shadow.camera
-  );
+  var lightCameraHelper = new THREE.CameraHelper(scene.light.shadow.camera);
   lightCameraHelper.visible = false;
   scene.add(lightCameraHelper);
-  var lightHelper = new THREE.DirectionalLightHelper(
-    titanReactorScene.light,
-    5
-  );
+  var lightHelper = new THREE.DirectionalLightHelper(scene.light, 5);
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const cameras = new Cameras(context, titanReactorScene.terrain.material.map);
+  const cameras = new Cameras(context, scene.terrain.material.map);
 
   if (hot && hot.camera) {
     cameras.main.position.copy(hot.camera.position);
@@ -47,7 +40,7 @@ export async function TitanReactorSandbox(
   cameras.control.update();
   scene.add(cameras.cubeCamera);
 
-  const terrainY = titanReactorScene.getTerrainY();
+  const terrainY = scene.getTerrainY();
 
   const playerColors = [
     "#a80808",
@@ -114,7 +107,7 @@ export async function TitanReactorSandbox(
     cameras.control.autoRotate = val;
     // startLocations.forEach((sl) => (sl.visible = !val));
     if (val) {
-      cameras.control.target = titanReactorScene.terrain.position;
+      cameras.control.target = scene.terrain.position;
     } else {
       cameras.control.target = null;
     }
@@ -142,7 +135,7 @@ export async function TitanReactorSandbox(
   //#region map controllers
   gui.controllers.map.onChangeAny(
     ({ showElevations, showWireframe, showBackgroundTerrain }) => {
-      const { terrain, bgTerrain } = titanReactorScene;
+      const { terrain, bgTerrain } = scene;
 
       if (showElevations) {
         terrain.material.map = terrain.userData.elevationsTexture;
@@ -185,7 +178,7 @@ export async function TitanReactorSandbox(
   //#region hemilight controllers
   gui.controllers.hemilight.onChangeAny(
     ({ intensity, skyColor, groundColor }) => {
-      const { hemi } = titanReactorScene;
+      const { hemi } = scene;
       hemi.intensity = intensity;
       hemi.skyColor = new THREE.Color(parseInt(skyColor.substr(1), 16));
       hemi.groundColor = new THREE.Color(parseInt(groundColor.substr(1), 16));
@@ -205,7 +198,7 @@ export async function TitanReactorSandbox(
   //#region dirlight controllers
   gui.controllers.dirlight.onChangeAny(
     ({ intensity, color, x, y, z, x2, y2, z2, helper }) => {
-      const { light } = titanReactorScene;
+      const { light } = scene;
       light.intensity = intensity;
       light.color = new THREE.Color(parseInt(color.substr(1), 16));
       light.position.x = x;
@@ -227,7 +220,7 @@ export async function TitanReactorSandbox(
 
   //#region
   gui.controllers.displacementMix.show.onChange((value) => {
-    const { terrain } = titanReactorScene;
+    const { terrain } = scene;
     if (value) {
       terrain.material.map = terrain.userData.displacementMap;
     } else {

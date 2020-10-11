@@ -15,7 +15,6 @@ import HeatmapScore from "../react-ui/hud/HeatmapScore";
 import { DebugInfo } from "../utils/DebugINfo";
 import { Cameras } from "./Cameras";
 import { TitanReactorScene } from "../3d-map-rendering/TitanReactorScene";
-import { Scene } from "three";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -30,14 +29,12 @@ export async function TitanReactorReplay(
   bwDat,
   textureCache
 ) {
-  const scene = new Scene();
-  const titanReactorScene = new TitanReactorScene(chk, textureCache);
-
-  await titanReactorScene.init(scene);
+  const scene = new TitanReactorScene(chk, textureCache);
+  await scene.init();
 
   const debugInfo = new DebugInfo();
 
-  const cameras = new Cameras(context, titanReactorScene.terrain.material.map);
+  const cameras = new Cameras(context, scene.terrain.material.map);
   if (hot && hot.camera) {
     cameras.main.position.copy(hot.camera.position);
     cameras.main.rotation.copy(hot.camera.rotation);
@@ -62,7 +59,7 @@ export async function TitanReactorReplay(
     renderImage,
     chk.tileset,
     chk.size,
-    titanReactorScene.getTerrainY(),
+    scene.getTerrainY(),
     audioListener,
     {}
   );
@@ -98,8 +95,7 @@ export async function TitanReactorReplay(
     }
 
     if (e.code === "KeyG") {
-      titanReactorScene.gridHelper.visible = !titanReactorScene.gridHelper
-        .visible;
+      scene.gridHelper.visible = !scene.gridHelper.visible;
     }
   };
 
