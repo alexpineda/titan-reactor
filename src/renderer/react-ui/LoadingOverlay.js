@@ -4,6 +4,7 @@ export const LoadingOverlay = ({
   label = "",
   description = "",
   mapPreview = null,
+  header,
 }) => {
   return (
     <div
@@ -54,6 +55,17 @@ export const LoadingOverlay = ({
           >
             {description}
           </p>
+          {header && (
+            <ul>
+              {header.players.map((player) => {
+                return (
+                  <li className="block text-gray-200">
+                    {player.name} ({player.race})
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </span>
       </div>
     </div>

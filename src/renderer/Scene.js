@@ -1,4 +1,9 @@
-import { GridHelper, HemisphereLight, Scene } from "three";
+import {
+  DefaultLoadingManager,
+  GridHelper,
+  HemisphereLight,
+  Scene,
+} from "three";
 import { disposeMeshes } from "./utils/dispose";
 import { getTerrainY } from "./3d-map-rendering/displacementGeometry";
 import { fog, sunlight } from "./3d-map-rendering/lights";
@@ -7,10 +12,11 @@ import { Terrain } from "./3d-map-rendering/Terrain";
 import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
 
 export class TitanReactorScene extends Scene {
-  constructor(chk, textureCache) {
+  constructor(chk, textureCache, loadingManager = DefaultLoadingManager) {
     super();
     this.chk = chk;
     this.textureCache = textureCache;
+    this.loadingManager = loadingManager;
   }
 
   async init() {

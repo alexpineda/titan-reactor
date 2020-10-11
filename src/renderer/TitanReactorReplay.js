@@ -16,7 +16,6 @@ import HUD from "./react-ui/hud/HUD";
 import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
 import { Cameras } from "./replay/Cameras";
-import { TitanReactorScene } from "./Scene";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -24,16 +23,13 @@ export async function TitanReactorReplay(
   context,
   filepath,
   reactApp,
+  scene,
   chk,
   rep,
   BWAPIFramesDataView,
   renderImage,
-  bwDat,
-  textureCache
+  bwDat
 ) {
-  const scene = new TitanReactorScene(chk, textureCache);
-  await scene.init();
-
   const debugInfo = new DebugInfo();
 
   const cameras = new Cameras(context, scene.terrain.material.map);

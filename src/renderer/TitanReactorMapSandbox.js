@@ -5,21 +5,12 @@ import { createStartLocation } from "./utils/BasicObjects";
 import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
 import { Cameras } from "./replay/Cameras";
-import { TitanReactorScene } from "./Scene";
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorSandbox(
-  context,
-  filepath,
-  chk,
-  textureCache
-) {
+export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
-
-  const scene = new TitanReactorScene(chk, textureCache);
-  await scene.init();
 
   var lightCameraHelper = new THREE.CameraHelper(scene.light.shadow.camera);
   lightCameraHelper.visible = false;

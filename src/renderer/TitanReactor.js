@@ -1,6 +1,5 @@
 import { parseReplay } from "downgrade-replay";
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
-import { TitanReactorSandbox } from "./TitanReactorSandbox";
 import { Tileset } from "./bwdat/Tileset";
 import { getAppCachePath } from "./invoke";
 import { LoadSprite } from "./mesh/LoadSprites";
@@ -8,7 +7,10 @@ import { JsonCache } from "./utils/jsonCache";
 import { imageChk } from "./utils/loadChk";
 import { ImageSD } from "./mesh/ImageSD";
 import { Image3D } from "./mesh/Image3D";
+import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
+import { LoadingManager } from "three";
+import { TitanReactorScene } from "./Scene";
 
 export const SceneMode = {
   MapViewer: 0,
@@ -27,6 +29,8 @@ export class TitanReactor {
 
   async spawnReplay(filepath) {
     await this.dispose();
+    const loadingManager = new LoadingManager();
+
     this.mode = SceneMode.Replay;
     document.title = `Titan Reactor - Replay`;
 
@@ -35,6 +39,7 @@ export class TitanReactor {
 
     this.reactApp.overlay({
       chk,
+      header: rep.header,
     });
 
     let renderImage;
@@ -58,7 +63,8 @@ export class TitanReactor {
         (file) => this.fileAccess(`${this.context.bwDataPath}/unit/${file}`),
         spritesTextureCache,
         jsonCache,
-        Math.sqrt(this.context.renderer.capabilities.maxTextureSize)
+        Math.sqrt(this.context.renderer.capabilities.maxTextureSize),
+        loadingManager
       );
 
       await loadSprite.loadAll();
@@ -71,28 +77,29 @@ export class TitanReactor {
       renderImage = new Image3D();
     }
 
-    const mapTexturesCache = new TextureCache(
-      chk.title,
-      await getAppCachePath()
-    );
+    const textureCache = new TextureCache(chk.title, await getAppCachePath());
 
     const frames = await this.fileAccess(`${filepath}.bin`);
+
+    const scene = new TitanReactorScene(chk, textureCache, loadingManager);
+    await scene.init();
 
     this.scene = await TitanReactorReplay(
       this.context,
       filepath,
       this.reactApp,
+      scene,
       chk,
       rep,
       new DataView(frames.buffer),
       renderImage,
-      this.bwDat,
-      mapTexturesCache
+      this.bwDat
     );
   }
 
   async spawnMapViewer(chkFilepath) {
     await this.dispose();
+    const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.MapViewer;
     const chk = await imageChk(chkFilepath, this.context.bwDataPath);
@@ -103,16 +110,16 @@ export class TitanReactor {
     });
     document.title = `Titan Reactor - ${chk.title}`;
 
-    const mapTexturesCache = new TextureCache(
-      chk.title,
-      await getAppCachePath()
-    );
+    const textureCache = new TextureCache(chk.title, await getAppCachePath());
 
-    this.scene = await TitanReactorSandbox(
+    const scene = new TitanReactorScene(chk, textureCache, loadingManager);
+    await scene.init();
+
+    this.scene = await TitanReactorMapSandbox(
       this.context,
       chkFilepath,
       chk,
-      mapTexturesCache
+      scene
     );
     this.reactApp.render();
   }

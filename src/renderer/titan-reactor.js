@@ -1,5 +1,5 @@
 import { hot as hotReplay } from "./TitanReactorReplay";
-import { hot as hotSandbox } from "./TitanReactorSandbox";
+import { hot as hotSandbox } from "./TitanReactorMapSandbox";
 import { loadAllDataFiles, openFile } from "./invoke";
 import { ipcRenderer } from "electron";
 import { UI } from "./react-ui/UI";
@@ -24,7 +24,7 @@ if (module.hot) {
     }
   });
 
-  module.hot.accept("./TitanReactorSandbox.js", () => {
+  module.hot.accept("./TitanReactorMapSandbox.js", () => {
     if (hotSandbox && hotSandbox.filepath) {
       console.log("hot loading map", hotSandbox.filepath);
       titanReactor.spawnMapViewer(hotSandbox.filepath);

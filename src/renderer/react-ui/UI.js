@@ -2,7 +2,7 @@ import React from "react";
 import { render } from "react-dom";
 import { WrappedCanvas } from "./WrappedCanvas";
 import { LoadingOverlay } from "./LoadingOverlay";
-
+import { LoadingProgress } from "./LoadingProgress";
 import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
 import "./css/icon.css";
@@ -40,5 +40,9 @@ export class UI {
     } else {
       this.render(<LoadingOverlay label={label} description={description} />);
     }
+  }
+
+  progress(progress, total) {
+    this.render(<LoadingProgress progress={progress} total={total} />);
   }
 }
