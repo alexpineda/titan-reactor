@@ -20,7 +20,7 @@ import { Cameras } from "../replay/Cameras";
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorSandbox(context, filepath, chk, canvas) {
+export async function TitanReactorSandbox(context, filepath, chk) {
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
@@ -300,6 +300,7 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
     pointLight.position.y += 5;
 
     cameras.control.update();
+    // cameras.updateCubeCamera(scene);
 
     context.renderer.clear();
     context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);

@@ -15,7 +15,7 @@ export const SceneMode = {
   Replay: 1,
 };
 
-export class TitanReactorScene {
+export class TitanReactor {
   constructor(context, reactApp, fileAccess, gameOptions, bwDat) {
     this.context = context;
     this.mode = null;

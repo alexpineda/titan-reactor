@@ -7,10 +7,10 @@ import { UI } from "./react-ui/UI";
 
 import { UnitDAT } from "../main/units/UnitsDAT";
 import { SceneContext } from "./SceneContext";
-import { TitanReactorScene } from "./TitanReactorScene";
+import { TitanReactor } from "./TitanReactor";
 
 const gameOptions = new GameOptions();
-let context, titanReactorScene, ui, bwDat;
+let context, titanReactor, ui, bwDat;
 let replayPlaylist = [];
 let replayIndex = 0;
 
@@ -22,14 +22,14 @@ if (module.hot) {
   module.hot.accept("./replay/TitanReactorReplay.js", () => {
     if (hotReplay && hotReplay.filepath) {
       console.log("hot loading replay", hotReplay.filepath);
-      titanReactorScene.spawnReplay(hotReplay.filepath);
+      titanReactor.spawnReplay(hotReplay.filepath);
     }
   });
 
   module.hot.accept("./3d-map-rendering/TitanReactorSandbox.js", () => {
     if (hotSandbox && hotSandbox.filepath) {
       console.log("hot loading map", hotSandbox.filepath);
-      titanReactorScene.spawnMapViewer(hotSandbox.filepath);
+      titanReactor.spawnMapViewer(hotSandbox.filepath);
     }
   });
 }
@@ -48,13 +48,7 @@ async function bootup() {
 
   ui = new UI(document.getElementById("app"), context.getGameCanvas());
 
-  titanReactorScene = new TitanReactorScene(
-    context,
-    ui,
-    openFile,
-    gameOptions,
-    bwDat
-  );
+  titanReactor = new TitanReactor(context, ui, openFile, gameOptions, bwDat);
 
   context.initRenderer();
   ui.render();
@@ -62,14 +56,14 @@ async function bootup() {
 
 ipcRenderer.on("open-map", async (event, [map]) => {
   console.log("open-map");
-  titanReactorScene.spawnMapViewer(map);
+  titanReactor.spawnMapViewer(map);
 });
 
 ipcRenderer.on("open-replay", (event, replays) => {
   console.log("open-replay");
   replayPlaylist = replays;
   replayIndex = 0;
-  titanReactorScene.spawnReplay(replays[0]);
+  titanReactor.spawnReplay(replays[0]);
 });
 
 bootup();

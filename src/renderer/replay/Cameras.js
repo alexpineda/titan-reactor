@@ -111,6 +111,12 @@ export class Cameras {
     obj.material.envMap = this.cubeCamera.renderTarget.texture;
   }
 
+  updateCubeCamera(scene) {
+    this.cubeCamera.position.copy(this.main.position);
+    this.cubeCamera.rotation.copy(this.main.rotation);
+    this.cubeCamera.update(this.context.renderer, scene);
+  }
+
   dispose() {
     this.control.dispose();
     this.cubeCamera.renderTarget.dispose();

@@ -1,10 +1,5 @@
 import * as THREE from "three";
 import React from "react";
-import { sunlight, fog } from "environment/lights";
-import { getTerrainY } from "environment/displacementGeometry";
-import { backgroundTerrainMesh } from "environment/meshes/backgroundTerrainMesh";
-import { bgMapCanvasTexture } from "environment/textures/bgMapCanvasTexture";
-import { Terrain } from "environment/Terrain";
 
 import { BWAPIUnitFromBuffer, BWAPIBulletFromBuffer } from "./BWAPIFrames";
 import { BgMusic } from "../audio/BgMusic";
@@ -19,6 +14,8 @@ import HUD from "../react-ui/hud/HUD";
 import HeatmapScore from "../react-ui/hud/HeatmapScore";
 import { DebugInfo } from "../utils/DebugINfo";
 import { Cameras } from "./Cameras";
+import { TitanReactorScene } from "../3d-map-rendering/TitanReactorScene";
+import { Scene } from "three";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -33,35 +30,14 @@ export async function TitanReactorReplay(
   bwDat,
   textureCache
 ) {
-  const scene = new THREE.Scene();
+  const scene = new Scene();
+  const titanReactorScene = new TitanReactorScene(chk, textureCache);
+
+  await titanReactorScene.init(scene);
+
   const debugInfo = new DebugInfo();
 
-  const gridHelper = new THREE.GridHelper(128, 128, 0xff0000, 0x009900);
-  gridHelper.position.set(0, 0.1, 0);
-  gridHelper.material.transparent = true;
-  gridHelper.material.opacity = 0.5;
-  gridHelper.visible = false;
-  scene.add(gridHelper);
-
-  const light = sunlight(chk.size[0], chk.size[1]);
-  scene.add(light);
-
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
-  scene.add(hemi);
-
-  const terrainMesh = new Terrain(chk, textureCache);
-  const terrain = await terrainMesh.generate();
-  const bg = await bgMapCanvasTexture(chk);
-  const bgTerrain = backgroundTerrainMesh(chk.size[0], chk.size[1], bg);
-
-  scene.add(terrain);
-  // @todo fix sprite black box issue
-  scene.add(bgTerrain);
-
-  scene.fog = fog(chk.size[0], chk.size[1]);
-  scene.background = scene.fog.color;
-
-  const cameras = new Cameras(context, terrain.material.map);
+  const cameras = new Cameras(context, titanReactorScene.terrain.material.map);
   if (hot && hot.camera) {
     cameras.main.position.copy(hot.camera.position);
     cameras.main.rotation.copy(hot.camera.rotation);
@@ -81,26 +57,12 @@ export async function TitanReactorReplay(
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
-  const terrainY = getTerrainY(
-    terrain.userData.displacementMap.image
-      .getContext("2d")
-      .getImageData(
-        0,
-        0,
-        terrain.userData.displacementMap.image.width,
-        terrain.userData.displacementMap.image.height
-      ),
-    terrain.userData.displacementScale,
-    chk.size[0],
-    chk.size[1]
-  );
-
   const game = new Game(
     bwDat,
     renderImage,
     chk.tileset,
     chk.size,
-    terrainY,
+    titanReactorScene.getTerrainY(),
     audioListener,
     {}
   );
@@ -136,7 +98,8 @@ export async function TitanReactorReplay(
     }
 
     if (e.code === "KeyG") {
-      gridHelper.visible = !gridHelper.visible;
+      titanReactorScene.gridHelper.visible = !titanReactorScene.gridHelper
+        .visible;
     }
   };
 
@@ -282,8 +245,6 @@ export async function TitanReactorReplay(
   function gameLoop() {
     uiUpdated = false;
 
-    //@todo if scene dimensions have changed, update all dependent components
-
     //only update rep position every fastest frame update
     if (replayPosition.frame % 24 === 0) {
       updateUi();
@@ -291,7 +252,6 @@ export async function TitanReactorReplay(
 
     replayPosition.update();
 
-    //#region BWAPIFrames interpretation
     if (!replayPosition.paused) {
       debugInfo.clear();
       debugInfo.append(`Frame: ${replayPosition.bwGameFrame}`);
@@ -365,14 +325,10 @@ export async function TitanReactorReplay(
       }
     }
 
-    //#endregion
-
     pointLight.position.copy(cameras.main.position);
     pointLight.position.y += 5;
 
-    // cubeCamera.position.copy(camera.position);
-    // cubeCamera.rotation.copy(camera.rotation);
-    // cubeCamera.update(renderer, scene);
+    // cameras.updateCubeCamera(scene);
 
     game.cameraDirection.previousDirection = game.cameraDirection.direction;
 
