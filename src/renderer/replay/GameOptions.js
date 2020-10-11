@@ -14,19 +14,13 @@ export const RenderMode = {
 };
 
 export class GameOptions extends EventDispatcher {
-  constructor() {
+  constructor(context) {
     super();
+    this.context = context;
     this.renderMode = RenderMode.SD;
   }
 
-  async load() {
-    this.cachePath = "~/dev/cache/MapData"; //await getAppCachePath("MapData");
-    this.bwDataPath = "./bwdata";
-  }
-
-  getBwDataPath() {
-    return this.bwDataPath;
-  }
+  async load() {}
 
   getRenderMode() {
     return this.renderMode;

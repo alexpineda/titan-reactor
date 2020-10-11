@@ -16,13 +16,12 @@ export const SceneMode = {
 };
 
 export class TitanReactor {
-  constructor(context, reactApp, fileAccess, gameOptions, bwDat) {
+  constructor(context, reactApp, fileAccess, bwDat) {
     this.context = context;
     this.mode = null;
     this.scene = null;
     this.reactApp = reactApp;
     this.fileAccess = fileAccess;
-    this.gameOptions = gameOptions;
     this.bwDat = bwDat;
   }
 
@@ -32,14 +31,14 @@ export class TitanReactor {
     document.title = `Titan Reactor - Replay`;
 
     const rep = await parseReplay(await this.fileAccess(filepath));
-    const chk = await imageChk(rep.chk, this.gameOptions.getBwDataPath());
+    const chk = await imageChk(rep.chk, this.context.bwDataPath);
 
     this.reactApp.overlay({
       chk,
     });
 
     let renderImage;
-    if (this.gameOptions.is2d()) {
+    if (this.context.options.is2d()) {
       const spritesTextureCache = new TextureCache(
         "sd",
         await getAppCachePath(),
@@ -49,15 +48,14 @@ export class TitanReactor {
       const jsonCache = new JsonCache("sprite-", await getAppCachePath());
       const tileset = new Tileset(
         chk.tileset,
-        this.gameOptions.getBwDataPath(),
+        this.context.bwDataPath,
         this.fileAccess
       );
       await tileset.load();
       const loadSprite = new LoadSprite(
         tileset,
         this.bwDat.images,
-        (file) =>
-          this.fileAccess(`${this.gameOptions.getBwDataPath()}/unit/${file}`),
+        (file) => this.fileAccess(`${this.context.bwDataPath}/unit/${file}`),
         spritesTextureCache,
         jsonCache,
         Math.sqrt(this.context.renderer.capabilities.maxTextureSize)
@@ -66,7 +64,7 @@ export class TitanReactor {
       await loadSprite.loadAll();
       renderImage = new ImageSD(
         this.bwDat,
-        this.gameOptions.getBwDataPath(),
+        this.context.bwDataPath,
         loadSprite
       );
     } else {
@@ -97,7 +95,7 @@ export class TitanReactor {
     await this.dispose();
 
     this.mode = SceneMode.MapViewer;
-    const chk = await imageChk(chkFilepath, this.gameOptions.getBwDataPath());
+    const chk = await imageChk(chkFilepath, this.context.bwDataPath);
     window.chk = chk;
 
     this.reactApp.overlay({

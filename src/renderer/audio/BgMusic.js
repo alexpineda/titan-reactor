@@ -4,7 +4,6 @@ const rand = (n) => Math.floor(Math.random() * n);
 export class BgMusic {
   constructor(listener) {
     this.audio = new Audio(listener);
-    // this.volume = gameOptions.volume;
   }
 
   getAudio() {

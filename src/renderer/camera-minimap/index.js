@@ -6,7 +6,6 @@ import { Minimap } from "./Minimap";
 import { initOrbitControls } from "./orbitControl";
 import { loadAllTerrain } from "../3d-map-loading/generateTerrainTextures";
 import { imageChk } from "../utils/loadChk";
-import { gameOptions } from "../utils/gameOptions";
 import { loadTerrainPreset } from "../3d-map-loading/terrainPresets";
 import React from "react";
 import { render } from "react-dom";
@@ -126,7 +125,7 @@ const light = new THREE.DirectionalLight(0xffffff, 10);
 scene.add(light);
 
 async function loadMap(filepath) {
-  const chk = await imageChk(filepath, gameOptions.bwDataPath);
+  const chk = await imageChk(filepath, "./bwdata");
   const preset = loadTerrainPreset(chk.tilesetName);
   loadAllTerrain(chk, renderer, preset).then(([floor]) => {
     world.remove(gridHelper);
