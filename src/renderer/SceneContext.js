@@ -1,15 +1,17 @@
 import {
   CineonToneMapping,
+  EventDispatcher,
   PCFSoftShadowMap,
   sRGBEncoding,
   WebGLRenderer,
 } from "three";
-import WithListeners from "./utils/WithListeners";
 
-export class SceneContext extends WithListeners {
+export class SceneContext extends EventDispatcher {
   constructor(window) {
     super();
+    this.window = window;
     this.document = window.document;
+    this.renderer = null;
   }
 
   getGameCanvas() {
@@ -27,11 +29,8 @@ export class SceneContext extends WithListeners {
     return canvas;
   }
 
-  initRenderer() {
-    if (this.renderer) return;
-
+  _initRenderer() {
     const [width, height] = this.getSceneDimensions();
-
     const renderer = new WebGLRenderer({
       canvas: this.getGameCanvas(),
       antialias: true,
@@ -40,7 +39,7 @@ export class SceneContext extends WithListeners {
       logarithmicDepthBuffer: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(this.window.devicePixelRatio);
     renderer.autoClear = false;
     renderer.toneMapping = CineonToneMapping; //THREE.NoToneMapping;
     renderer.toneMappingExposure = 1.2;
@@ -49,28 +48,54 @@ export class SceneContext extends WithListeners {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
     renderer.xr.enabled = true;
-    this.renderer = renderer;
+    return renderer;
   }
 
-  setRenderer(renderer) {
-    this.renderer = renderer;
-    this._changed();
+  initRenderer(force = false) {
+    if (this.renderer && !force) return;
+
+    this.renderer = this._initRenderer();
+
+    this.getGameCanvas().addEventListener(
+      "webglcontextlost",
+      function (event) {
+        event.preventDefault();
+        // animationID would have been set by your call to requestAnimationFrame
+        this.dispatchEvent({ type: "lostcontext" });
+      },
+      false
+    );
+
+    this.getGameCanvas().addEventListener(
+      "webglcontextrestored",
+      function (event) {
+        this.dispatchEvent({ type: "restorecontext" });
+      },
+      false
+    );
+
+    this.window.addEventListener("resize", this._resize.bind(this), false);
   }
 
-  getRenderer() {
-    return this.renderer;
+  forceResize() {
+    this._resize();
   }
 
-  setSceneDimension(width, height) {
-    this.width = width;
-    this.height = height;
+  _resize() {
+    this.renderer.setSize(this.window.innerWidth, this.window.innerHeight);
+    this.dispatchEvent({ type: "resize", message: this.getSceneDimensions() });
   }
 
   getSceneDimensions() {
-    return [this.width, this.height];
+    return [this.window.innerWidth, this.window.innerHeight];
   }
 
   getAspectRatio() {
-    return this.width / this.height;
+    const [width, height] = this.getSceneDimensions();
+    return width / height;
+  }
+
+  dispose() {
+    this.window.removeEventListener("resize", this._resize);
   }
 }

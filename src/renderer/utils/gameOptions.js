@@ -2,7 +2,7 @@
 // const path = window.require("path");
 // const { app } = require("electron");
 
-import WithListeners from "./WithListeners";
+import { EventDispatcher } from "three";
 
 // export const getAppCachePath = async (folder) => {
 //   return path.join(app.getPath("appData"), folder);
@@ -13,7 +13,7 @@ export const RenderMode = {
   ThreeD: 2,
 };
 
-export class GameOptions extends WithListeners {
+export class GameOptions extends EventDispatcher {
   constructor() {
     super();
     this.renderMode = RenderMode.SD;

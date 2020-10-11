@@ -437,11 +437,6 @@ export class Game {
     this.supplyTaken = [0, 0];
   }
 
-  cameraUpdate({ position }, { target }) {
-    const delta = new Vector3();
-    this.shear = delta.subVectors(position, target);
-  }
-
   getUnits() {
     return this.units.children;
   }
@@ -500,6 +495,10 @@ export class Game {
     unit.userData.runner.on("playsndbtwn", playSound);
     unit.userData.runner.on("playsndrand", playSound);
     unit.userData.runner.on("attackmelee", playSound);
+  }
+
+  setShear(shear) {
+    this.shear = shear;
   }
 
   getWorkerCount(player) {

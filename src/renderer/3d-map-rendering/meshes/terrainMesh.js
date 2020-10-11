@@ -46,7 +46,6 @@ export function terrainMesh(
 
   plane.castShadow = true;
   plane.receiveShadow = true;
-  plane.material.map.anisotropy = 16;
   plane.userData.displacementMap = displace;
   plane.userData.displacementScale = displacementScale;
   plane.name = "terrainMesh";

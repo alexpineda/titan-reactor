@@ -5,9 +5,10 @@ import { terrainMesh } from "./meshes/terrainMesh";
 import { imageToCanvasTexture } from "./textures/imageToCanvasTexture";
 
 export class Terrain {
-  constructor(chk, cache) {
+  constructor(chk, cache, maxAnisotropy) {
     this.chk = chk;
     this.cache = cache;
+    this.maxAnisotropy = maxAnisotropy;
   }
 
   async displace(save, baseOptions = {}, overlayOptions = {}) {
@@ -67,6 +68,7 @@ export class Terrain {
       displace,
       roughness
     );
+    this.terrain.material.map.anisotropy = this.maxAnisotropy;
 
     this.terrain.userData.originalMap = this.terrain.material.map;
 

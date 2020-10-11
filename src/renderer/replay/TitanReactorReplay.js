@@ -6,9 +6,6 @@ import { backgroundTerrainMesh } from "environment/meshes/backgroundTerrainMesh"
 import { bgMapCanvasTexture } from "environment/textures/bgMapCanvasTexture";
 import { Terrain } from "environment/Terrain";
 
-import { initCamera, initCubeCamera } from "../camera-minimap/camera";
-import { handleResize } from "utils/resize";
-
 import { BWAPIUnitFromBuffer, BWAPIBulletFromBuffer } from "./BWAPIFrames";
 import { BgMusic } from "../audio/BgMusic";
 
@@ -21,6 +18,7 @@ import { gameSpeeds } from "../utils/conversions";
 import HUD from "../react-ui/hud/HUD";
 import HeatmapScore from "../react-ui/hud/HeatmapScore";
 import { DebugInfo } from "../utils/DebugINfo";
+import { Cameras } from "./Cameras";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -38,14 +36,8 @@ export async function TitanReactorReplay(
   const scene = new THREE.Scene();
   const debugInfo = new DebugInfo();
 
-  const [camera, cameraControls] = initCamera(context.renderer.domElement);
-  if (hot && hot.camera) {
-    camera.position.copy(hot.camera.position);
-    camera.rotation.copy(hot.camera.rotation);
-  }
-
   const gridHelper = new THREE.GridHelper(128, 128, 0xff0000, 0x009900);
-  gridHelper.position.set(0, 6, 0);
+  gridHelper.position.set(0, 0.1, 0);
   gridHelper.material.transparent = true;
   gridHelper.material.opacity = 0.5;
   gridHelper.visible = false;
@@ -69,8 +61,13 @@ export async function TitanReactorReplay(
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
 
-  const cubeCamera = initCubeCamera(context.renderer, terrain.material.map);
-  scene.add(cubeCamera);
+  const cameras = new Cameras(context, terrain.material.map);
+  if (hot && hot.camera) {
+    cameras.main.position.copy(hot.camera.position);
+    cameras.main.rotation.copy(hot.camera.rotation);
+  }
+  cameras.control.update();
+  scene.add(cameras.cubeCamera);
 
   const pointLight = new THREE.PointLight(0xffffff, 1, 60, 0);
   pointLight.power = 20;
@@ -78,7 +75,7 @@ export async function TitanReactorReplay(
   scene.add(pointLight);
 
   const audioListener = new THREE.AudioListener();
-  camera.add(audioListener);
+  cameras.main.add(audioListener);
   const bgMusic = new BgMusic(audioListener);
   bgMusic.setVolume(0.0);
   bgMusic.playGame();
@@ -108,10 +105,6 @@ export async function TitanReactorReplay(
     {}
   );
   scene.add(game.units);
-
-  const resize = handleResize(camera, context.renderer);
-
-  let requestAnimationFrameId = null;
 
   const heatMapScore = new HeatmapScore(bwDat);
   let replayPosition = new ReplayPosition(
@@ -160,7 +153,7 @@ export async function TitanReactorReplay(
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
+    raycaster.setFromCamera(mouse, cameras.main);
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(game.getUnits(), true);
@@ -214,7 +207,23 @@ export async function TitanReactorReplay(
     },
   };
 
-  resize.refresh();
+  const lostContextHandler = () => {
+    context.renderer.setAnimationLoop(null);
+  };
+  context.addEventListener("lostcontext", lostContextHandler);
+
+  const restoreContextHandler = () => {
+    context.initRenderer(true);
+    cameras.onRestoreContext(scene);
+    context.renderer.setAnimationLoop(gameLoop);
+  };
+  context.addEventListener("lostcontext", restoreContextHandler);
+
+  const sceneResizeHandler = () => {
+    cameras.onResize();
+  };
+  context.addEventListener("resize", sceneResizeHandler);
+  context.forceResize();
 
   const players = [
     {
@@ -281,7 +290,6 @@ export async function TitanReactorReplay(
     }
 
     replayPosition.update();
-    game.cameraUpdate(camera, cameraControls);
 
     //#region BWAPIFrames interpretation
     if (!replayPosition.paused) {
@@ -359,47 +367,41 @@ export async function TitanReactorReplay(
 
     //#endregion
 
-    pointLight.position.copy(camera.position);
+    pointLight.position.copy(cameras.main.position);
     pointLight.position.y += 5;
 
     // cubeCamera.position.copy(camera.position);
     // cubeCamera.rotation.copy(camera.rotation);
     // cubeCamera.update(renderer, scene);
 
-    const adj = cameraControls.target.z - camera.position.z;
-    const opp = cameraControls.target.x - camera.position.x;
-    const a = Math.atan2(opp, adj) / Math.PI;
     game.cameraDirection.previousDirection = game.cameraDirection.direction;
-    if (a < 0) {
-      game.cameraDirection.direction = Math.floor((a + 2) * 16 + 16);
-    } else {
-      game.cameraDirection.direction = Math.floor(a * 16 + 16);
-    }
+
+    game.cameraDirection.direction = cameras.getDirection32();
+
+    game.setShear(cameras.getShear());
 
     context.renderer.clear();
     context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    context.renderer.render(scene, camera);
-
-    setTimeout(() => {
-      requestAnimationFrameId = requestAnimationFrame(gameLoop);
-    }, 10);
+    context.renderer.render(scene, cameras.main);
   }
 
-  gameLoop();
+  context.renderer.setAnimationLoop(gameLoop);
 
   const dispose = () => {
     console.log("disposing");
 
     replayPosition.pause();
-    cancelAnimationFrame(requestAnimationFrameId);
-    resize.dispose();
     disposeMeshes(scene);
-    cameraControls.dispose();
-    bgMusic.dispose();
-    debugInfo.dispose();
 
-    //@todo dispose
-    // cubeCamera.dispose();
+    bgMusic.dispose();
+
+    context.renderer.setAnimationLoop(null);
+    context.removeEventListener("resize", sceneResizeHandler);
+    context.removeEventListener("lostcontext", lostContextHandler);
+    context.removeEventListener("lostcontext", restoreContextHandler);
+
+    cameras.dispose();
+    debugInfo.dispose();
 
     document.removeEventListener("keydown", keyDownListener);
     document.removeEventListener("mousedown", mouseDownListener);
@@ -416,7 +418,7 @@ export async function TitanReactorReplay(
   if (module.hot) {
     module.hot.dispose((data) => {
       Object.assign(data, {
-        camera,
+        camera: cameras.main,
         BWAPIFrame: replayPosition.bwGameFrame,
         filepath,
       });

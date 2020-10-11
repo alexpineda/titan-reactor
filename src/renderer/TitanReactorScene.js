@@ -60,8 +60,7 @@ export class TitanReactorScene {
           this.fileAccess(`${this.gameOptions.getBwDataPath()}/unit/${file}`),
         spritesTextureCache,
         jsonCache,
-        //@todo init renderer here and get renderer.capabilities.maxTextureSize
-        8192
+        Math.sqrt(this.context.renderer.capabilities.maxTextureSize)
       );
 
       await loadSprite.loadAll();

@@ -19,7 +19,7 @@ console.log(new Date().toLocaleString());
 if (module.hot) {
   module.hot.decline();
 
-  module.hot.accept("./replay/TitanReactorReplay.js", (data) => {
+  module.hot.accept("./replay/TitanReactorReplay.js", () => {
     if (hotReplay && hotReplay.filepath) {
       console.log("hot loading replay", hotReplay.filepath);
       titanReactorScene.spawnReplay(hotReplay.filepath);

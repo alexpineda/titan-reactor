@@ -1,9 +1,6 @@
 // playground for environment
 import * as THREE from "three";
 import { EnvironmentOptionsGui } from "./EnvironmentOptionsGui";
-import { createStats } from "../utils/stats";
-import { handleResize } from "../utils/resize";
-import { initCamera, initCubeCamera } from "../camera-minimap/camera";
 import { mapElevationsCanvasTexture } from "./textures/mapElevationsCanvasTexture";
 
 import { sunlight, fog } from "./lights";
@@ -18,7 +15,8 @@ import { getAppCachePath } from "../invoke";
 import { createStartLocation } from "../utils/BasicObjects";
 import { getTerrainY } from "./displacementGeometry";
 import { LoadModel } from "../mesh/LoadModels";
-import { Vector3, WebGLCubeRenderTarget } from "three";
+import { unitTypes } from "../../common/bwdat/unitTypes";
+import { Cameras } from "../replay/Cameras";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -30,7 +28,8 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
 
   const terrainMesh = new Terrain(
     chk,
-    new TextureCache(chk.title, await getAppCachePath())
+    new TextureCache(chk.title, await getAppCachePath()),
+    context.renderer.capabilities.getMaxAnisotropy()
   );
   const terrain = await terrainMesh.generate();
   terrain.userData.elevationsTexture = await mapElevationsCanvasTexture(chk);
@@ -55,12 +54,14 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
   scene.add(hemi);
 
-  const [camera, cameraControls] = initCamera(context.renderer.domElement);
+  const cameras = new Cameras(context, terrain.material.map);
+
   if (hot && hot.camera) {
-    camera.position.copy(hot.camera.position);
-    camera.rotation.copy(hot.camera.rotation);
+    cameras.main.position.copy(hot.camera.position);
+    cameras.main.rotation.copy(hot.camera.rotation);
   }
-  cameraControls.update();
+  cameras.control.update();
+  scene.add(cameras.cubeCamera);
 
   const terrainY = getTerrainY(
     terrain.userData.displacementMap.image
@@ -100,9 +101,6 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
     });
   startLocations.forEach((sl) => scene.add(sl));
 
-  const cubeCamera = initCubeCamera(context.renderer, terrain.material.map);
-  scene.add(cubeCamera);
-
   const pointLight = new THREE.PointLight();
   pointLight.castShadow = true;
   scene.add(pointLight);
@@ -110,11 +108,15 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
   const loadModel = new LoadModel();
   const mineral = await loadModel.load("_alex/mineral1.glb", "mineral", (o) => {
     o.receiveShadow = false;
-    o.material.envMap = cubeCamera.renderTarget.texture;
+    o.userData.needsEnvMap = true;
   });
 
   const minerals = chk.units
-    .filter((unit) => [176, 177, 178].includes(unit.unitId))
+    .filter((unit) =>
+      [unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
+        unit.unitId
+      )
+    )
     .map((unit) => {
       const x = unit.x / 32 - chk.size[0] / 2;
       const y = unit.y / 32 - chk.size[1] / 2;
@@ -124,27 +126,25 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
     });
   minerals.forEach((m) => scene.add(m));
 
-  const resize = handleResize(camera, context.renderer);
-
   THREE.DefaultLoadingManager.onLoad = function () {
     // scene.add(splatUnits(terrain));
   };
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom }) => {
-    camera.fov = fov;
-    camera.zoom = zoom;
+    cameras.main.fov = fov;
+    cameras.main.zoom = zoom;
 
-    camera.updateProjectionMatrix();
+    cameras.main.updateProjectionMatrix();
   });
 
   gui.controllers.camera.rotate.onChange((val) => {
-    cameraControls.autoRotate = val;
+    cameras.control.autoRotate = val;
     // startLocations.forEach((sl) => (sl.visible = !val));
     if (val) {
-      cameraControls.target = terrain.position;
+      cameras.control.target = terrain.position;
     } else {
-      cameraControls.target = null;
+      cameras.control.target = null;
     }
   });
 
@@ -159,7 +159,7 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
   const keyDownListener = (e) => {
     if (e.code === "Digit3") {
       console.log("go");
-      cameraZoom.start = camera.zoom;
+      cameraZoom.start = cameras.main.zoom;
       cameraZoom.end = 2.8;
       cameraZoom.active = true;
     }
@@ -259,17 +259,32 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
   });
   //#endregion
 
-  // document.body.appendChild(VRButton.createButton(renderer));
-  resize.refresh();
+  const lostContextHandler = () => {
+    context.renderer.setAnimationLoop(null);
+  };
+  context.addEventListener("lostcontext", lostContextHandler);
+
+  const restoreContextHandler = () => {
+    context.initRenderer(true);
+    cameras.onRestoreContext(scene);
+    context.renderer.setAnimationLoop(gameLoop);
+  };
+  context.addEventListener("lostcontext", restoreContextHandler);
+
+  const sceneResizeHandler = () => {
+    cameras.onResize();
+  };
+  context.addEventListener("resize", sceneResizeHandler);
+
+  context.forceResize();
 
   let running = true;
-  let id = null;
 
   function gameLoop() {
     if (!running) return;
 
     if (cameraZoom.active) {
-      camera.zoom = THREE.MathUtils.lerp(
+      cameras.main.zoom = THREE.MathUtils.lerp(
         cameraZoom.start,
         cameraZoom.end,
         (cameraZoom.i += cameraZoom.speed)
@@ -278,17 +293,17 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
         cameraZoom.active = false;
         cameraZoom.i = 0;
       }
-      camera.updateProjectionMatrix();
+      cameras.main.updateProjectionMatrix();
     }
 
-    pointLight.position.copy(camera.position);
+    pointLight.position.copy(cameras.main.position);
     pointLight.position.y += 5;
 
-    cameraControls.update();
+    cameras.control.update();
 
     context.renderer.clear();
     context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    context.renderer.render(scene, camera);
+    context.renderer.render(scene, cameras.main);
   }
 
   context.renderer.setAnimationLoop(gameLoop);
@@ -297,16 +312,16 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
     console.log("disposing");
 
     running = false;
-    cancelAnimationFrame(id);
-    resize.dispose();
     disposeMeshes(scene);
+
+    context.removeEventListener("resize", sceneResizeHandler);
+    context.removeEventListener("lostcontext", lostContextHandler);
+    context.removeEventListener("lostcontext", restoreContextHandler);
+
     context.renderer.setAnimationLoop(null);
     context.renderer.dispose();
 
-    //@todo
-    // cubeCamera.dispose();
-
-    cameraControls.dispose();
+    cameras.dispose();
     gui.dispose();
   };
 
@@ -314,8 +329,8 @@ export async function TitanReactorSandbox(context, filepath, chk, canvas) {
     module.hot.dispose((data) => {
       data.filepath = filepath;
       data.camera = {
-        position: camera.position.clone(),
-        rotation: camera.rotation.clone(),
+        position: cameras.main.position.clone(),
+        rotation: cameras.main.rotation.clone(),
       };
       dispose();
     });
