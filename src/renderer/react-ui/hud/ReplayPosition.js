@@ -317,13 +317,13 @@ export default ({
           >
             remove_red_eye
           </i>
-          <i
+          {/* <i
             className="material-icons text-yellow-700 rounded cursor-pointer"
             style={{ fontSize: smallIconFontSize }}
             data-tip="Preview Scrubber"
           >
             launch
-          </i>
+          </i> */}
           {/* <i
             className="material-icons text-yellow-700 rounded cursor-pointer"
             style={{ fontSize: "0.75rem" }}
@@ -331,20 +331,6 @@ export default ({
           >
             voice_chat
           </i> */}
-
-          <i
-            onClick={() => {
-              onToggleProduction && onToggleProduction(!showProduction);
-              setShowProduction(!showProduction);
-            }}
-            className={`material-icons rounded cursor-pointer ${
-              showProduction ? "text-yellow-700" : "text-gray-700 "
-            }`}
-            style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
-            data-tip="Show Production (Top Left)"
-          >
-            view_module
-          </i>
 
           <i
             onClick={() => {
@@ -356,6 +342,20 @@ export default ({
             }`}
             style={{ fontSize: smallIconFontSize }}
             data-tip="Show Resources (Top Right)"
+          >
+            view_module
+          </i>
+
+          <i
+            onClick={() => {
+              onToggleProduction && onToggleProduction(!showProduction);
+              setShowProduction(!showProduction);
+            }}
+            className={`material-icons rounded cursor-pointer ${
+              showProduction ? "text-yellow-700" : "text-gray-700 "
+            }`}
+            style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
+            data-tip="Show Production (Top Left)"
           >
             timeline
           </i>

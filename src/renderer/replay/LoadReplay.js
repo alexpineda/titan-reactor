@@ -7,13 +7,7 @@ import { commandsById } from "../../common/bwdat/commands";
 import { unitTypes } from "../../common/bwdat/unitTypes";
 import fs from "fs";
 
-const {
-  mineral1,
-  mineral2,
-  mineral3,
-  geyser,
-  startLocation,
-} = unitTypes;
+const { mineral1, mineral2, mineral3, geyser, startLocation } = unitTypes;
 
 const unitTag = (uint16) => uint16 & 0x7ff;
 const unitTagIsValid = (uint16) => uint16 != 0xffff;
@@ -276,11 +270,7 @@ export const jssuhLoadReplay = (replayFile, bwDataPath) => {
 
     Promise.all([headerPromise, commandsPromise, chkPromise]).then(
       ([header, commands, chk]) => {
-        resolve({
-          header,
-          commands,
-          chk,
-        });
+        resolve(fromJssuhJSON(header, commands, chk));
       }
     );
   });

@@ -11,36 +11,20 @@ import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
 import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
 
 import { Terrain } from "./Terrain";
-import { initRenderer } from "../renderer";
 import { disposeMeshes } from "../utils/dispose";
 import { TextureCache } from "./textures/TextureCache";
-
-import { VRButton } from "three/examples/jsm/webxr/VRButton.js";
-import { render } from "react-dom";
 
 import { getAppCachePath } from "../invoke";
 import { createStartLocation } from "../utils/BasicObjects";
 import { getTerrainY } from "./displacementGeometry";
 import { LoadModel } from "../mesh/LoadModels";
 import { Vector3, WebGLCubeRenderTarget } from "three";
-import { dec } from "ramda";
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
-  const sceneWidth = window.innerWidth;
-  const sceneHeight = window.innerHeight;
-
+export async function TitanReactorSandbox(context, filepath, chk, canvas) {
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
-
-  const renderer = initRenderer({
-    canvas,
-    width: sceneWidth,
-    height: sceneHeight,
-    antialias: true,
-    shadowMap: true,
-  });
 
   const scene = (window.scene = new THREE.Scene());
 
@@ -71,7 +55,7 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 5);
   scene.add(hemi);
 
-  const [camera, cameraControls] = initCamera(renderer.domElement);
+  const [camera, cameraControls] = initCamera(context.renderer.domElement);
   if (hot && hot.camera) {
     camera.position.copy(hot.camera.position);
     camera.rotation.copy(hot.camera.rotation);
@@ -116,7 +100,7 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     });
   startLocations.forEach((sl) => scene.add(sl));
 
-  const cubeCamera = initCubeCamera(renderer, terrain.material.map);
+  const cubeCamera = initCubeCamera(context.renderer, terrain.material.map);
   scene.add(cubeCamera);
 
   const pointLight = new THREE.PointLight();
@@ -140,11 +124,10 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     });
   minerals.forEach((m) => scene.add(m));
 
-  const cancelResize = handleResize(camera, renderer);
+  const resize = handleResize(camera, context.renderer);
 
   THREE.DefaultLoadingManager.onLoad = function () {
     // scene.add(splatUnits(terrain));
-    loaded();
   };
 
   //#region camera controllers
@@ -214,8 +197,8 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
 
   gui.controllers.renderer.onFinishChangeAny(
     ({ toneMappingExposure, toneMapping }) => {
-      renderer.toneMappingExposure = toneMappingExposure;
-      renderer.toneMapping = THREE[toneMapping];
+      context.renderer.toneMappingExposure = toneMappingExposure;
+      context.renderer.toneMapping = THREE[toneMapping];
       scene.traverse((o) => {
         if (o.type === "Mesh") {
           o.material.needsUpdate = true;
@@ -277,6 +260,7 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
   //#endregion
 
   // document.body.appendChild(VRButton.createButton(renderer));
+  resize.refresh();
 
   let running = true;
   let id = null;
@@ -301,27 +285,23 @@ export async function TitanReactorSandbox(filepath, chk, canvas, loaded) {
     pointLight.position.y += 5;
 
     cameraControls.update();
-    cubeCamera.position.copy(camera.position);
-    cubeCamera.rotation.copy(camera.rotation);
-    cubeCamera.update(renderer, scene);
 
-    renderer.clear();
-    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
+    context.renderer.clear();
+    context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    context.renderer.render(scene, camera);
   }
 
-  document.body.appendChild(renderer.domElement);
-
-  renderer.setAnimationLoop(gameLoop);
+  context.renderer.setAnimationLoop(gameLoop);
 
   const dispose = () => {
     console.log("disposing");
 
     running = false;
     cancelAnimationFrame(id);
-    cancelResize();
+    resize.dispose();
     disposeMeshes(scene);
-    renderer.dispose();
+    context.renderer.setAnimationLoop(null);
+    context.renderer.dispose();
 
     //@todo
     // cubeCamera.dispose();

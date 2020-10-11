@@ -1,18 +1,9 @@
-import React, { useRef, useEffect } from "react";
-
-const MapPreviewCanvas = ({ preview }) => {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    preview(canvasRef.current);
-  }, [preview]);
-  return <canvas id="map--preview-canvas" ref={canvasRef}></canvas>;
-};
+import React from "react";
 
 export const LoadingOverlay = ({
-  state = "",
-  mapName = "",
+  label = "",
   description = "",
-  preview,
+  mapPreview = null,
 }) => {
   return (
     <div
@@ -26,7 +17,7 @@ export const LoadingOverlay = ({
         justifyContent: "center",
         alignItems: "center",
         background: "rgba(0,0,0,0.9)",
-        display: state ? "flex" : "none",
+        display: "flex",
       }}
     >
       <div id="map-preview">
@@ -40,7 +31,7 @@ export const LoadingOverlay = ({
             filter: "brightness(2) contract(1.2)",
           }}
         >
-          {state === "loading" && <MapPreviewCanvas preview={preview} />}
+          {mapPreview}
           <p
             id="map-name"
             style={{
@@ -49,8 +40,7 @@ export const LoadingOverlay = ({
               // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
-            {mapName}
-            {state === "bootup" && "Use the file menu to load a replay or map"}
+            {label}
           </p>
           <p
             id="map-description"

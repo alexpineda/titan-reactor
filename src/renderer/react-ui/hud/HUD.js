@@ -12,49 +12,13 @@ const config = {
   showTooltips: true,
 };
 
-const players = [
-  {
-    name: "Flash",
-    minerals: 100,
-    gas: 50,
-    workers: 7,
-    supply: 12,
-    race: "terran",
-    apm: 356,
-    color: "#f56565",
-    units: [
-      {
-        image: "https://i.imgur.com/CBDWAUr.png",
-        progress: 50,
-        name: "Zerg Drone",
-      },
-    ],
-  },
-  {
-    name: "Jaedong",
-    minerals: 150,
-    gas: 20,
-    workers: 8,
-    supply: 11,
-    race: "zerg",
-    apm: 477,
-    color: "#4299e1",
-    units: [
-      {
-        image: "https://i.imgur.com/CBDWAUr.png",
-        progress: 50,
-        name: "Zerg Drone",
-      },
-    ],
-  },
-];
-
 const demo = {
   position: 90,
   selectedUnits: [],
 };
 
 export default ({
+  players,
   paused,
   position,
   destination,

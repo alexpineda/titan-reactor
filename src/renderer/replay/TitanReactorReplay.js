@@ -15,41 +15,30 @@ import { BgMusic } from "../audio/BgMusic";
 import { Game } from "./Game";
 import { disposeMeshes } from "../utils/dispose";
 //todo refactor out
-import { openFile } from "../invoke";
 import { difference, range, compose } from "ramda";
 import { ReplayPosition, ClockMs } from "./ReplayPosition";
 import { gameSpeeds } from "../utils/conversions";
 import HUD from "../react-ui/hud/HUD";
-import { unitTypes } from "../../common/bwdat/unitTypes";
 import HeatmapScore from "../react-ui/hud/HeatmapScore";
+import { DebugInfo } from "../utils/DebugINfo";
 
 export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorReplay(
+  context,
   filepath,
-  parentUpdateUi,
-  { header, commands, chk },
+  reactApp,
+  chk,
+  rep,
   BWAPIFramesDataView,
   renderImage,
-  renderer,
   bwDat,
-  textureCache,
-  loaded
+  textureCache
 ) {
-  console.log(header, commands, chk);
-
-  const infoDiv = document.createElement("div");
-  infoDiv.style.top = "10px";
-  infoDiv.style.left = "10px";
-  infoDiv.style.position = "absolute";
-  infoDiv.style.color = "white";
-  document.body.appendChild(infoDiv);
-  const appendInfoDiv = (str) => (infoDiv.innerHTML += str + "<br/>");
-  const clearInfoDiv = () => (infoDiv.innerHTML = "");
-
   const scene = new THREE.Scene();
+  const debugInfo = new DebugInfo();
 
-  const [camera, cameraControls] = initCamera(renderer.domElement);
+  const [camera, cameraControls] = initCamera(context.renderer.domElement);
   if (hot && hot.camera) {
     camera.position.copy(hot.camera.position);
     camera.rotation.copy(hot.camera.rotation);
@@ -75,12 +64,12 @@ export async function TitanReactorReplay(
 
   scene.add(terrain);
   // @todo fix sprite black box issue
-  // scene.add(bgTerrain);
+  scene.add(bgTerrain);
 
   scene.fog = fog(chk.size[0], chk.size[1]);
   scene.background = scene.fog.color;
 
-  const cubeCamera = initCubeCamera(renderer, terrain.material.map);
+  const cubeCamera = initCubeCamera(context.renderer, terrain.material.map);
   scene.add(cubeCamera);
 
   const pointLight = new THREE.PointLight(0xffffff, 1, 60, 0);
@@ -120,7 +109,7 @@ export async function TitanReactorReplay(
   );
   scene.add(game.units);
 
-  const resize = handleResize(camera, renderer);
+  const resize = handleResize(camera, context.renderer);
 
   let requestAnimationFrameId = null;
 
@@ -135,7 +124,6 @@ export async function TitanReactorReplay(
   );
 
   THREE.DefaultLoadingManager.onLoad = () => {
-    loaded();
     replayPosition.resume();
   };
 
@@ -199,8 +187,8 @@ export async function TitanReactorReplay(
   let unitsLastFrame = [];
   let unitsThisFrame = [];
 
-  const version = replayPosition.readUInt32AndAdvance();
-  if (version !== 3) {
+  const version = replayPosition.readInt32AndAdvance();
+  if (version !== 4) {
     throw new Error("invalid rep.bin version");
   }
   replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
@@ -228,13 +216,45 @@ export async function TitanReactorReplay(
 
   resize.refresh();
 
+  const players = [
+    {
+      name: rep.header.players[0].name,
+      minerals: 0,
+      gas: 0,
+      workers: 4,
+      supply: 4,
+      race: rep.header.players[0].race,
+      apm: 0,
+      color: "#f56565",
+      units: [],
+    },
+    {
+      name: rep.header.players[1].name,
+      minerals: 0,
+      gas: 0,
+      workers: 4,
+      supply: 4,
+      race: rep.header.players[1].race,
+      apm: 0,
+      color: "#4299e1",
+      units: [],
+    },
+  ];
+
   let uiUpdated = false;
   const updateUi = () => {
     // just in case we call several times in game loop
     if (uiUpdated) return;
     uiUpdated = true;
-    parentUpdateUi(
+
+    players[0].supply = game.supplyTaken[0];
+    players[1].supply = game.supplyTaken[1];
+    players[0].workers = game.getWorkerCount(0);
+    players[1].workers = game.getWorkerCount(1);
+
+    reactApp.render(
       <HUD
+        players={players}
         autoSpeed={replayPosition.autoSpeed}
         destination={replayPosition.destination}
         gameSpeed={replayPosition.gameSpeed}
@@ -252,6 +272,10 @@ export async function TitanReactorReplay(
 
   function gameLoop() {
     uiUpdated = false;
+
+    //@todo if scene dimensions have changed, update all dependent components
+
+    //only update rep position every fastest frame update
     if (replayPosition.frame % 24 === 0) {
       updateUi();
     }
@@ -261,15 +285,20 @@ export async function TitanReactorReplay(
 
     //#region BWAPIFrames interpretation
     if (!replayPosition.paused) {
-      clearInfoDiv();
-      appendInfoDiv(`Frame: ${replayPosition.bwGameFrame}`);
-      appendInfoDiv(`Time: ${replayPosition.getFriendlyTime()}`);
-      appendInfoDiv(
+      debugInfo.clear();
+      debugInfo.append(`Frame: ${replayPosition.bwGameFrame}`);
+      debugInfo.append(`Time: ${replayPosition.getFriendlyTime()}`);
+      debugInfo.append(
         `Mem : ${window.performance.memory.usedJSHeapSize.toFixed(2)}`
       );
 
       for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
-        replayPosition.bwGameFrame = replayPosition.readUInt32AndAdvance();
+        replayPosition.bwGameFrame = replayPosition.readInt32AndAdvance();
+
+        players[0].gas = replayPosition.readInt32AndAdvance();
+        players[1].gas = replayPosition.readInt32AndAdvance();
+        players[0].minerals = replayPosition.readInt32AndAdvance();
+        players[1].minerals = replayPosition.readInt32AndAdvance();
 
         if (replayPosition.isMaxFrame()) {
           replayPosition.pause();
@@ -347,9 +376,9 @@ export async function TitanReactorReplay(
       game.cameraDirection.direction = Math.floor(a * 16 + 16);
     }
 
-    renderer.clear();
-    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
+    context.renderer.clear();
+    context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    context.renderer.render(scene, camera);
 
     setTimeout(() => {
       requestAnimationFrameId = requestAnimationFrame(gameLoop);
@@ -367,7 +396,7 @@ export async function TitanReactorReplay(
     disposeMeshes(scene);
     cameraControls.dispose();
     bgMusic.dispose();
-    renderer.dispose();
+    debugInfo.dispose();
 
     //@todo dispose
     // cubeCamera.dispose();
@@ -386,7 +415,11 @@ export async function TitanReactorReplay(
   };
   if (module.hot) {
     module.hot.dispose((data) => {
-      Object.assign(data, { camera, BWAPIFrame: bwapiBufferFrame, filepath });
+      Object.assign(data, {
+        camera,
+        BWAPIFrame: replayPosition.bwGameFrame,
+        filepath,
+      });
       dispose();
     });
   }

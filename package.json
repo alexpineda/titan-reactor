@@ -61,7 +61,8 @@
     "scm-extractor": "^1.0.6",
     "sparkly": "^5.0.0",
     "three": "^0.120.1",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "downgrade-replay": "file:../downgrade-replay"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",

@@ -8,6 +8,7 @@ const PlayerResources = ({
   workers,
   supply,
   race,
+  color,
   apm,
   textSize,
   onTogglePlayerVision,
@@ -28,7 +29,7 @@ const PlayerResources = ({
         data-tip={`Toggle Fog of War`}
         onClick={() => onTogglePlayerVision && onTogglePlayerVision(index)}
       >
-        <span className={`text-red-500 text-${textSize} cursor-pointer`}>
+        <span className={`text-${textSize} cursor-pointer`} style={{ color }}>
           {name}
         </span>
       </td>
@@ -46,7 +47,9 @@ const PlayerResources = ({
       </td>
       <td className="pr-2 pointer-events-none">
         <img src={supplyIcon} className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>{supply}</span>
+        <span className={`text-gray-400 text-${textSize}`}>
+          {Math.floor(supply / 2)}
+        </span>
       </td>
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />

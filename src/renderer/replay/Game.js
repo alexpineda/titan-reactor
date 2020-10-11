@@ -59,6 +59,7 @@ export class Game {
       direction: 0,
       previousDirection: 0,
     };
+    this.supplyTaken = [0, 0];
     //@todo refactor out
     this.renderImage.loadAssets && this.renderImage.loadAssets();
   }
@@ -81,6 +82,12 @@ export class Game {
     //   ? 0.6
     //   : 1;
 
+    if (replaceUnit) {
+      this.supplyTaken[unit.userData.current.playerId] =
+        this.supplyTaken[unit.userData.current.playerId] -
+        this.bwDat.units[unit.userData.previous.typeId].supplyRequired;
+    }
+
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
     unit.userData.repId = frameData.repId;
@@ -89,6 +96,10 @@ export class Game {
     unit.userData.previous = new BWAPIUnit();
     unit.userData.currentOrder = {};
     unit.name = this.bwDat.units[unit.userData.typeId].name;
+
+    this.supplyTaken[unit.userData.current.playerId] =
+      this.supplyTaken[unit.userData.current.playerId] +
+      this.bwDat.units[unit.userData.current.typeId].supplyRequired;
 
     unit.userData._active = new Mesh(
       new ConeGeometry(0.5, 2),
@@ -104,7 +115,7 @@ export class Game {
       unit.userData,
       replaceUnit ? replaceUnit.userData.runner.listeners : []
     );
-    unit.userData.runner.run(headers.init);
+    unit.userData.runner.setFrame(0, false);
     // unit.userData.runner.on("imgul", (runner) => {
     //   runner.state.mesh = this.renderUnit.load(runner.state.image.index);
     // });
@@ -182,7 +193,7 @@ export class Game {
     }
 
     // unit morphed
-    if (current.typeId !== previous.typeId && frame > 0) {
+    if (current.typeId !== previous.typeId && previous.typeId >= 0) {
       this.logger.log(
         `%c ${current.repId} change type ${previous.typeId}->${current.typeId}`,
         "background: #ffff00; color: #000000"
@@ -406,9 +417,15 @@ export class Game {
   }
 
   killUnit(unit) {
-    unit.userData.current.alive = false;
     //@todo send kill signal to runners without interrupting them
-    // unit.userData.runner.run(headers.death);
+
+    this.supplyTaken[unit.userData.current.playerId] =
+      this.supplyTaken[unit.userData.current.playerId] -
+      this.bwDat.units[unit.userData.current.typeId].supplyRequired;
+
+    unit.userData.current.alive = false;
+    unit.userData.previous.alive = false;
+    unit.userData.runner.run(headers.death);
     this.deadUnits.push(unit);
   }
 
@@ -417,6 +434,7 @@ export class Game {
     this.units.children.forEach((child) => this.units.remove(child));
     this.units.children = [];
     this.deadUnits = [];
+    this.supplyTaken = [0, 0];
   }
 
   cameraUpdate({ position }, { target }) {
@@ -482,6 +500,20 @@ export class Game {
     unit.userData.runner.on("playsndbtwn", playSound);
     unit.userData.runner.on("playsndrand", playSound);
     unit.userData.runner.on("attackmelee", playSound);
+  }
+
+  getWorkerCount(player) {
+    return this.units.children.reduce((sum, { userData }) => {
+      if (
+        userData.current.playerId === player &&
+        [unitTypes.scv, unitTypes.drone, unitTypes.probe].includes(
+          userData.current.typeId
+        )
+      ) {
+        return sum + 1;
+      }
+      return sum;
+    }, 0);
   }
 
   dispose() {

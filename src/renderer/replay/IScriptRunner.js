@@ -367,6 +367,7 @@ export class IScriptRunner {
     this.state.flipState = flip;
     this._dispatch("setflipstate", flip);
   }
+
   setFrame(frame, flip) {
     this.state.prevFrame = this.state.frame;
     this.state.flipFrame = flip;
