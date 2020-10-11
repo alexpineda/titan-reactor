@@ -1,14 +1,11 @@
 // playground for environment
 import * as THREE from "three";
-import { EnvironmentOptionsGui } from "./EnvironmentOptionsGui";
-
-import { disposeMeshes } from "../utils/dispose";
-
-import { createStartLocation } from "../utils/BasicObjects";
-import { LoadModel } from "../mesh/LoadModels";
-import { unitTypes } from "../../common/bwdat/unitTypes";
-import { Cameras } from "../replay/Cameras";
-import { TitanReactorScene } from "../3d-map-rendering/TitanReactorScene";
+import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui";
+import { createStartLocation } from "./utils/BasicObjects";
+import { LoadModel } from "./mesh/LoadModels";
+import { unitTypes } from "../common/bwdat/unitTypes";
+import { Cameras } from "./replay/Cameras";
+import { TitanReactorScene } from "./Scene";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -282,14 +279,13 @@ export async function TitanReactorSandbox(
   const dispose = () => {
     console.log("disposing");
 
+    context.renderer.setAnimationLoop(null);
     running = false;
-    disposeMeshes(scene);
-
     context.removeEventListener("resize", sceneResizeHandler);
     context.removeEventListener("lostcontext", lostContextHandler);
     context.removeEventListener("lostcontext", restoreContextHandler);
 
-    context.renderer.setAnimationLoop(null);
+    scene.dispose();
     context.renderer.dispose();
 
     cameras.dispose();

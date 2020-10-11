@@ -1,12 +1,12 @@
-import { hot as hotReplay } from "./replay/TitanReactorReplay";
-import { hot as hotSandbox } from "./3d-map-rendering/TitanReactorSandbox";
+import { hot as hotReplay } from "./TitanReactorReplay";
+import { hot as hotSandbox } from "./TitanReactorSandbox";
 import { GameOptions } from "./utils/GameOptions";
 import { loadAllDataFiles, openFile } from "./invoke";
 import { ipcRenderer } from "electron";
 import { UI } from "./react-ui/UI";
 
 import { UnitDAT } from "../main/units/UnitsDAT";
-import { SceneContext } from "./SceneContext";
+import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
 
 const gameOptions = new GameOptions();
@@ -19,14 +19,14 @@ console.log(new Date().toLocaleString());
 if (module.hot) {
   module.hot.decline();
 
-  module.hot.accept("./replay/TitanReactorReplay.js", () => {
+  module.hot.accept("./TitanReactorReplay.js", () => {
     if (hotReplay && hotReplay.filepath) {
       console.log("hot loading replay", hotReplay.filepath);
       titanReactor.spawnReplay(hotReplay.filepath);
     }
   });
 
-  module.hot.accept("./3d-map-rendering/TitanReactorSandbox.js", () => {
+  module.hot.accept("./TitanReactorSandbox.js", () => {
     if (hotSandbox && hotSandbox.filepath) {
       console.log("hot loading map", hotSandbox.filepath);
       titanReactor.spawnMapViewer(hotSandbox.filepath);
@@ -35,7 +35,8 @@ if (module.hot) {
 }
 
 async function bootup() {
-  await gameOptions.load();
+  context = new Context(window);
+
   //@todo move parsing to renderer so I don't have to reassign shit
   const origBwDat = await loadAllDataFiles(gameOptions.getBwDataPath());
   bwDat = {
@@ -44,7 +45,7 @@ async function bootup() {
   };
   window.bwDat = bwDat;
 
-  context = new SceneContext(window);
+  await gameOptions.load();
 
   ui = new UI(document.getElementById("app"), context.getGameCanvas());
 
@@ -66,4 +67,6 @@ ipcRenderer.on("open-replay", (event, replays) => {
   titanReactor.spawnReplay(replays[0]);
 });
 
-bootup();
+async function controlPanel() {}
+
+window.location.search.includes("controlpanel") ? controlPanel() : bootup();

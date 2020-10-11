@@ -29,7 +29,7 @@ export default ({
   timeLabel,
   gameSpeed,
   maxFrame,
-  onTogglePlay,
+  onTogglePaused,
   onChangePosition,
   onChangeAutoGameSpeed,
   onChangeGameSpeed,
@@ -225,7 +225,7 @@ export default ({
                     if (progress === 100) {
                       return;
                     }
-                    onTogglePlay && onTogglePlay(!paused);
+                    onTogglePaused && onTogglePaused(!paused);
                   }}
                   className={`material-icons ${
                     progress < 100

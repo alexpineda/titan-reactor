@@ -1,20 +1,22 @@
 import * as THREE from "three";
 import React from "react";
 
-import { BWAPIUnitFromBuffer, BWAPIBulletFromBuffer } from "./BWAPIFrames";
-import { BgMusic } from "../audio/BgMusic";
+import {
+  BWAPIUnitFromBuffer,
+  BWAPIBulletFromBuffer,
+} from "./replay/BWAPIFrames";
+import { BgMusic } from "./audio/BgMusic";
 
-import { Game } from "./Game";
-import { disposeMeshes } from "../utils/dispose";
+import { Game } from "./replay/Game";
 //todo refactor out
 import { difference, range, compose } from "ramda";
-import { ReplayPosition, ClockMs } from "./ReplayPosition";
-import { gameSpeeds } from "../utils/conversions";
-import HUD from "../react-ui/hud/HUD";
-import HeatmapScore from "../react-ui/hud/HeatmapScore";
-import { DebugInfo } from "../utils/DebugINfo";
-import { Cameras } from "./Cameras";
-import { TitanReactorScene } from "../3d-map-rendering/TitanReactorScene";
+import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
+import { gameSpeeds } from "./utils/conversions";
+import HUD from "./react-ui/hud/HUD";
+import HeatmapScore from "./react-ui/hud/HeatmapScore";
+import { DebugInfo } from "./utils/DebugINfo";
+import { Cameras } from "./replay/Cameras";
+import { TitanReactorScene } from "./Scene";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -94,6 +96,15 @@ export async function TitanReactorReplay(
       }
     }
 
+    // esc
+    if (e.keyCode == 27) {
+      console.log("options");
+    }
+
+    if (e.code === "KeyG") {
+      scene.gridHelper.visible = !scene.gridHelper.visible;
+    }
+
     if (e.code === "KeyG") {
       scene.gridHelper.visible = !scene.gridHelper.visible;
     }
@@ -156,11 +167,11 @@ export async function TitanReactorReplay(
       replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
       updateUi();
     },
-    onTogglePlay: (play) => {
-      if (play) {
-        replayPosition.resume();
-      } else {
+    onTogglePaused: (pause) => {
+      if (pause) {
         replayPosition.pause();
+      } else {
+        replayPosition.resume();
       }
       updateUi();
     },
@@ -233,7 +244,7 @@ export async function TitanReactorReplay(
         onChangeGameSpeed={hudData.onChangeGameSpeed}
         onChangeAutoGameSpeed={hudData.onChangeAutoGameSpeed}
         onChangePosition={hudData.onChangePosition}
-        onTogglePlay={hudData.onTogglePlay}
+        onTogglePaused={hudData.onTogglePaused}
       />
     );
   };
@@ -342,27 +353,25 @@ export async function TitanReactorReplay(
   const dispose = () => {
     console.log("disposing");
 
+    context.renderer.setAnimationLoop(null);
+
     replayPosition.pause();
-    disposeMeshes(scene);
 
     bgMusic.dispose();
 
-    context.renderer.setAnimationLoop(null);
     context.removeEventListener("resize", sceneResizeHandler);
     context.removeEventListener("lostcontext", lostContextHandler);
     context.removeEventListener("lostcontext", restoreContextHandler);
 
+    scene.dispose();
     cameras.dispose();
     debugInfo.dispose();
 
     document.removeEventListener("keydown", keyDownListener);
     document.removeEventListener("mousedown", mouseDownListener);
 
-    window.dispose = null;
     window.goto = null;
   };
-
-  window.dispose = dispose;
 
   window.onbeforeunload = (e) => {
     dispose();

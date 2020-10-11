@@ -27,7 +27,7 @@ export default ({
   onChangeGameSpeed,
   onChangeAutoGameSpeed,
   onChangePosition,
-  onTogglePlay,
+  onTogglePaused,
   maxFrame,
   gameSpeed,
 }) => {
@@ -107,7 +107,7 @@ export default ({
           timeLabel={timeLabel}
           position={position}
           gameSpeed={gameSpeed}
-          onTogglePlay={onTogglePlay}
+          onTogglePaused={onTogglePaused}
           onChangePosition={onChangePosition}
           onChangeAutoGameSpeed={onChangeAutoGameSpeed}
           onChangeGameSpeed={onChangeGameSpeed}

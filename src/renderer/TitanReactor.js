@@ -1,6 +1,6 @@
 import { parseReplay } from "downgrade-replay";
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
-import { TitanReactorSandbox } from "./3d-map-rendering/TitanReactorSandbox";
+import { TitanReactorSandbox } from "./TitanReactorSandbox";
 import { Tileset } from "./bwdat/Tileset";
 import { getAppCachePath } from "./invoke";
 import { LoadSprite } from "./mesh/LoadSprites";
@@ -8,7 +8,7 @@ import { JsonCache } from "./utils/jsonCache";
 import { imageChk } from "./utils/loadChk";
 import { ImageSD } from "./mesh/ImageSD";
 import { Image3D } from "./mesh/Image3D";
-import { TitanReactorReplay } from "./replay/TitanReactorReplay";
+import { TitanReactorReplay } from "./TitanReactorReplay";
 
 export const SceneMode = {
   MapViewer: 0,

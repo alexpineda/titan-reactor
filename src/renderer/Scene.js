@@ -1,9 +1,10 @@
 import { GridHelper, HemisphereLight, Scene } from "three";
-import { getTerrainY } from "./displacementGeometry";
-import { fog, sunlight } from "./lights";
-import { backgroundTerrainMesh } from "./meshes/backgroundTerrainMesh";
-import { Terrain } from "./Terrain";
-import { bgMapCanvasTexture } from "./textures/bgMapCanvasTexture";
+import { disposeMeshes } from "./utils/dispose";
+import { getTerrainY } from "./3d-map-rendering/displacementGeometry";
+import { fog, sunlight } from "./3d-map-rendering/lights";
+import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
+import { Terrain } from "./3d-map-rendering/Terrain";
+import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
 
 export class TitanReactorScene extends Scene {
   constructor(chk, textureCache) {
@@ -61,5 +62,9 @@ export class TitanReactorScene extends Scene {
       this.chk.size[0],
       this.chk.size[1]
     );
+  }
+
+  dispose() {
+    disposeMeshes(this);
   }
 }

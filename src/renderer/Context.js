@@ -6,7 +6,7 @@ import {
   WebGLRenderer,
 } from "three";
 
-export class SceneContext extends EventDispatcher {
+export class Context extends EventDispatcher {
   constructor(window) {
     super();
     this.window = window;
