@@ -39,6 +39,7 @@ export async function TitanReactorReplay(
 ) {
   const debugInfo = new DebugInfo();
 
+  console.log("rep", rep);
   const minimap = new Minimap(
     context.getMinimapCanvas(),
     chk.size[0],
@@ -79,7 +80,6 @@ export async function TitanReactorReplay(
     {}
   );
   scene.add(game.units);
-  scene.add(game.minimapPoints.unit);
 
   const heatMapScore = new HeatmapScore(bwDat);
   let replayPosition = new ReplayPosition(
@@ -109,10 +109,6 @@ export async function TitanReactorReplay(
     // esc
     if (e.keyCode == 27) {
       console.log("options");
-    }
-
-    if (e.code === "KeyG") {
-      scene.gridHelper.visible = !scene.gridHelper.visible;
     }
 
     if (e.code === "KeyG") {
@@ -213,6 +209,7 @@ export async function TitanReactorReplay(
       gas: 0,
       workers: 4,
       supply: 4,
+      supplyMax: 8,
       race: rep.header.players[0].race,
       apm: 0,
       color: rep.header.players[0].color,
@@ -223,7 +220,8 @@ export async function TitanReactorReplay(
       minerals: 0,
       gas: 0,
       workers: 4,
-      supply: 4,
+      supply: 0,
+      supplyMax: 0,
       race: rep.header.players[1].race,
       apm: 0,
       color: rep.header.players[1].color,
@@ -241,6 +239,8 @@ export async function TitanReactorReplay(
 
     players[0].supply = game.supplyTaken[0];
     players[1].supply = game.supplyTaken[1];
+    players[0].supplyMax = game.supplyProvided[0];
+    players[1].supplyMax = game.supplyProvided[1];
     players[0].workers = game.getWorkerCount(0);
     players[1].workers = game.getWorkerCount(1);
 

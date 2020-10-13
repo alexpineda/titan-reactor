@@ -11,7 +11,6 @@ import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
 import { LoadingManager } from "three";
 import { TitanReactorScene } from "./Scene";
-
 export const SceneMode = {
   MapViewer: 0,
   Replay: 1,

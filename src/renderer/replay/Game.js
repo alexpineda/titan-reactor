@@ -22,9 +22,7 @@ import { DebugLog } from "../utils/DebugLog";
 import { angleToDirection } from "../utils/conversions";
 import { unitTypes } from "../../common/bwdat/unitTypes";
 import { BWAPIUnit } from "./BWAPIFrames";
-import { createMinimapPoint, MinimapCameraHelper } from "./Minimap";
-import { isThisTypeNode } from "typescript";
-import { MinimapLayer } from "./Layers";
+import { createMinimapPoint } from "./Minimap";
 const { zergEgg, mineral1, mineral2, mineral3, geyser } = unitTypes;
 
 export class Game {
@@ -56,12 +54,6 @@ export class Game {
     this.audioPool = audioPool;
     this.renderImage = renderImage;
 
-    this.minimapPoints = {
-      _map: {},
-      unit: new Group(),
-    };
-    this.minimapPoints.unit.layers.set(MinimapLayer);
-
     this.logger = new DebugLog("units");
     // for 2d sprites only
     this.cameraDirection = {
@@ -69,6 +61,7 @@ export class Game {
       previousDirection: 0,
     };
     this.supplyTaken = [0, 0];
+    this.supplyProvided = [0, 0];
     //@todo refactor out
     this.renderImage.loadAssets && this.renderImage.loadAssets();
   }
@@ -91,24 +84,29 @@ export class Game {
     //   ? 0.6
     //   : 1;
 
-    if (replaceUnit) {
-      this.supplyTaken[unit.userData.current.playerId] =
-        this.supplyTaken[unit.userData.current.playerId] -
-        this.bwDat.units[unit.userData.previous.typeId].supplyRequired;
-    }
-
     // unit.matrixAutoUpdate = false;
     // unit.add(new AxesHelper(2));
     unit.userData.repId = frameData.repId;
     unit.userData.typeId = frameData.typeId;
     unit.userData.current = frameData;
-    unit.userData.previous = new BWAPIUnit();
+    unit.userData.previous = replaceUnit
+      ? replaceUnit.userData.previous
+      : new BWAPIUnit();
     unit.userData.currentOrder = {};
     unit.name = this.bwDat.units[unit.userData.typeId].name;
 
-    this.supplyTaken[unit.userData.current.playerId] =
-      this.supplyTaken[unit.userData.current.playerId] +
-      this.bwDat.units[unit.userData.current.typeId].supplyRequired;
+    if (replaceUnit) {
+      this.supplyTaken[unit.userData.current.playerId] =
+        this.supplyTaken[unit.userData.current.playerId] -
+        this.bwDat.units[unit.userData.previous.typeId].supplyRequired;
+    } else {
+      this.supplyTaken[unit.userData.current.playerId] =
+        this.supplyTaken[unit.userData.current.playerId] +
+        this.bwDat.units[unit.userData.current.typeId].supplyRequired;
+      this.supplyProvided[unit.userData.current.playerId] =
+        this.supplyProvided[unit.userData.current.playerId] +
+        this.bwDat.units[unit.userData.current.typeId].supplyProvided;
+    }
 
     unit.userData._active = new Mesh(
       new ConeGeometry(0.5, 2),
@@ -142,8 +140,7 @@ export class Game {
       }
 
       if (minimapPoint) {
-        this.minimapPoints._map[unit.userData.current.repId] = minimapPoint;
-        this.minimapPoints.unit.add(minimapPoint);
+        unit.add(minimapPoint);
       } else {
         debugger;
       }
@@ -446,10 +443,6 @@ export class Game {
     //   r.renderImage && r.renderImage.update();
     // });
 
-    if (this.minimapPoints._map[current.repId]) {
-      this.minimapPoints._map[current.repId].position.copy(unit.position);
-    }
-
     unit.userData.previous = unit.userData.current;
   }
 
@@ -465,6 +458,10 @@ export class Game {
     this.supplyTaken[unit.userData.current.playerId] =
       this.supplyTaken[unit.userData.current.playerId] -
       this.bwDat.units[unit.userData.current.typeId].supplyRequired;
+
+    this.supplyProvided[unit.userData.current.playerId] =
+      this.supplyProvided[unit.userData.current.playerId] -
+      this.bwDat.units[unit.userData.current.typeId].supplyProvided;
 
     unit.userData.current.alive = false;
     unit.userData.previous.alive = false;

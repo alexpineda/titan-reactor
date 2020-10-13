@@ -4,7 +4,7 @@ export const LoadingOverlay = ({
   label = "",
   description = "",
   mapPreview = null,
-  header,
+  header = null,
 }) => {
   return (
     <div
@@ -59,7 +59,7 @@ export const LoadingOverlay = ({
             <ul>
               {header.players.map((player) => {
                 return (
-                  <li className="block text-gray-200">
+                  <li className="block text-gray-200" key={player.name}>
                     {player.name} ({player.race})
                   </li>
                 );

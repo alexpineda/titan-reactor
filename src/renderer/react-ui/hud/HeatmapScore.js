@@ -25,7 +25,7 @@ export default class HeatmapScore {
         unitTypes.scannerSweep,
       ].includes(unit.userData.typeId)
     ) {
-      return 0;
+      score = 0;
     }
     // modify
     else if (unit.userData.typeId === unitTypes.siegeTurretSiegeMode) {
@@ -40,6 +40,7 @@ export default class HeatmapScore {
     } else {
       score = this.orderScore(unit.userData.current.order);
     }
+    unit.userData.heatmapScore = score;
     return score;
   }
 

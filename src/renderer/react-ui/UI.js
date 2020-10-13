@@ -7,6 +7,7 @@ import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
 import "./css/icon.css";
 import { mapPreviewCanvas } from "../3d-map-rendering/textures/mapPreviewCanvas";
+import Home from "./home/Home";
 
 export class UI {
   constructor(domElement, gameCanvas, miniMapCanvas) {
@@ -25,7 +26,11 @@ export class UI {
     );
   }
 
-  async overlay({ chk, label, description }) {
+  home() {
+    this.render(<Home />);
+  }
+
+  async overlay({ chk, label, description, header = null }) {
     if (chk) {
       const preview = await mapPreviewCanvas(chk);
       const mapPreview = <WrappedCanvas canvas={preview} />;
@@ -35,6 +40,7 @@ export class UI {
           label={chk.title}
           description={chk.tilesetName}
           mapPreview={mapPreview}
+          header={header}
         />
       );
     } else {

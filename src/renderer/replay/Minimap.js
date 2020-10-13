@@ -11,12 +11,9 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  Object3D,
   OrthographicCamera,
   Plane,
   PlaneBufferGeometry,
-  Points,
-  PointsMaterial,
   Quaternion,
   SphereGeometry,
   Vector3,
@@ -277,13 +274,6 @@ export class MinimapCameraHelper extends LineSegments {
     setPoint("c", pointMap, geometry, _camera, 0, 0, -1);
     setPoint("t", pointMap, geometry, _camera, 0, 0, 1);
 
-    // near
-
-    // setPoint("n1", pointMap, geometry, _camera, -w, -h, -1);
-    // setPoint("n2", pointMap, geometry, _camera, w, -h, -1);
-    // setPoint("n3", pointMap, geometry, _camera, -w, h, -1);
-    // setPoint("n4", pointMap, geometry, _camera, w, h, -1);
-
     // far
 
     setPoint("f1", pointMap, geometry, _camera, -w, -h, 1); //bl
@@ -315,5 +305,9 @@ export const createMinimapPoint = (color, w, h) => {
   const plane = new Mesh(geometry, material);
   plane.rotation.x = -Math.PI / 2;
   plane.layers.set(MinimapLayer);
+  // plane.updateMatrixWorld = function () {
+  //   this.position.copy(this.parent.position);
+  //   this.scale.copy(this.parent.scale);
+  // };
   return plane;
 };

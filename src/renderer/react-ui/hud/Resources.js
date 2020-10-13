@@ -1,4 +1,5 @@
 import React from "react";
+import { RollingNumber } from "./RollingNumber";
 
 const PlayerResources = ({
   index,
@@ -7,6 +8,7 @@ const PlayerResources = ({
   gas,
   workers,
   supply,
+  supplyMax,
   race,
   color,
   apm,
@@ -38,11 +40,15 @@ const PlayerResources = ({
       </td>
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/ram4CBj.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>{minerals}</span>
+        <span className={`text-gray-400 text-${textSize}`}>
+          <RollingNumber number={minerals} />
+        </span>
       </td>
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/NI5ynEw.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>{gas}</span>
+        <span className={`text-gray-400 text-${textSize}`}>
+          <RollingNumber number={gas} />
+        </span>
       </td>
       <td className="pr-2 pointer-events-none">
         <img src={workerIcon} className="inline w-4" />
@@ -51,12 +57,14 @@ const PlayerResources = ({
       <td className="pr-2 pointer-events-none">
         <img src={supplyIcon} className="inline w-4" />
         <span className={`text-gray-400 text-${textSize}`}>
-          {Math.floor(supply / 2)}
+          {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)}
         </span>
       </td>
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>{apm}</span>
+        <span className={`text-gray-400 text-${textSize}`}>
+          <RollingNumber number={apm} />
+        </span>
       </td>
     </tr>
   );

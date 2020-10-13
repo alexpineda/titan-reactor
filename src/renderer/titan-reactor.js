@@ -53,7 +53,7 @@ async function bootup() {
   titanReactor = new TitanReactor(context, ui, openFile, bwDat);
 
   context.initRenderer();
-  ui.render();
+  ui.home();
 }
 
 ipcRenderer.on("open-map", async (event, [map]) => {
