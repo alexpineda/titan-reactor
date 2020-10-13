@@ -23,7 +23,7 @@ export default ({
         <aside className="flex flex-col space-y-2 ml-2">
           <i
             onClick={() => onUnitDetails && onUnitDetails()}
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize }}
             data-tip={`Unit Information`}
           >
@@ -31,7 +31,7 @@ export default ({
           </i>
           <i
             onClick={() => onShowAttackDetails && onShowAttackDetails()}
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize }}
             data-tip={`Show Attack Details`}
           >
@@ -40,7 +40,7 @@ export default ({
 
           <i
             onClick={() => onFollowUnit && onFollowUnit()}
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
             data-tip={`Follow Unit`}
           >
@@ -49,7 +49,7 @@ export default ({
 
           <i
             onClick={() => onUnitFPV && onUnitFPV()}
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize }}
             data-tip={`Unit First Person View`}
           >

@@ -20,7 +20,12 @@ import {
   Vector4,
 } from "three";
 import { Heatmap } from "../mesh/Heatmap";
-import { MinimapLayer } from "./Layers";
+import {
+  MinimapFogLayer,
+  MinimapLayer,
+  MinimapPingLayer,
+  MinimapUnitLayer,
+} from "./Layers";
 
 export class Minimap extends EventDispatcher {
   constructor(domElement, terrainMap, mapWidth, mapHeight, heatMapScore) {
@@ -91,7 +96,11 @@ export class Minimap extends EventDispatcher {
     );
     camera.position.set(0, 128, 0);
     camera.lookAt(new Vector3());
-    camera.layers.set(MinimapLayer);
+    camera.layers.disableAll();
+    camera.layers.enable(MinimapLayer);
+    camera.layers.enable(MinimapUnitLayer);
+    camera.layers.enable(MinimapPingLayer);
+    camera.layers.enable(MinimapFogLayer);
 
     return camera;
   }
@@ -318,7 +327,7 @@ export const createMinimapPoint = (color, w, h) => {
   const material = new MeshBasicMaterial({ color });
   const plane = new Mesh(geometry, material);
   plane.rotation.x = -Math.PI / 2;
-  plane.layers.set(MinimapLayer);
+  plane.layers.set(MinimapUnitLayer);
   // plane.updateMatrixWorld = function () {
   //   this.position.copy(this.parent.position);
   //   this.scale.copy(this.parent.scale);

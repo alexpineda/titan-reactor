@@ -13,6 +13,9 @@ export class Players extends Array {
         apm: 0,
         color: player.color,
         units: [],
+        showActions: false,
+        showPov: false,
+        hideVision: false,
       }))
     );
   }

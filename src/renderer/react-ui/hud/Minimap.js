@@ -36,7 +36,7 @@ export default ({
           style={{ backgroundColor: "#1a202c99" }}
         >
           <i
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize }}
             title={`Reveal Entire Map`}
             data-tip={`Reveal Entire Map`}
@@ -46,7 +46,7 @@ export default ({
           </i>
 
           <i
-            className={`material-icons  rounded cursor-pointer ${
+            className={`material-icons  rounded cursor-pointer hover:text-yellow-500 ${
               heatmapEnabled ? "text-yellow-700" : "text-gray-700 "
             }`}
             style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
@@ -57,7 +57,7 @@ export default ({
             bubble_chart
           </i>
           <i
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className="material-icons hover:text-yellow-500 rounded cursor-pointer"
             style={{ fontSize: smallIconFontSize }}
             title={`Drop Pings`}
             data-tip={`Drop Pings`}

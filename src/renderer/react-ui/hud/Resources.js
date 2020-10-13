@@ -13,6 +13,7 @@ const PlayerResources = ({
   color,
   apm,
   textSize,
+  hideVision,
   onTogglePlayerVision,
 }) => {
   let workerIcon = "https://i.imgur.com/guJEX8T.png";
@@ -33,7 +34,7 @@ const PlayerResources = ({
       >
         <span
           className={`text-${textSize} cursor-pointer`}
-          style={{ color: color.hex }}
+          style={{ color: color.hex, opacity: hideVision ? 0.8 : 1 }}
         >
           {name}
         </span>
@@ -79,6 +80,7 @@ export default ({
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
+  console.log(players);
   return (
     <div className="flex absolute top-0 right-0 select-none">
       <div className="resources-parent">
@@ -103,15 +105,21 @@ export default ({
           <aside className="flex flex-col justify-between ml-2">
             <i
               onClick={() => onTogglePlayerFPV && onTogglePlayerFPV(0)}
-              className="material-icons text-yellow-700 rounded cursor-pointer"
+              className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
+                players[0].showPov ? "text-yellow-700" : "text-gray-700 "
+              }`}
               style={{ fontSize: smallIconFontSize }}
               data-tip={`${players[0].name} First Person`}
             >
               slideshow
             </i>
             <i
-              onClick={() => onToggleDualFPV && onToggleDualFPV(0)}
-              className="material-icons text-yellow-700 rounded cursor-pointer transform rotate-90 mb-1"
+              onClick={() => onToggleDualFPV && onToggleDualFPV()}
+              className={`material-icons hover:text-yellow-500 rounded cursor-pointer transform rotate-90 mb-1 ${
+                players[0].showPov && players[1].showPov
+                  ? "text-yellow-700"
+                  : "text-gray-700 "
+              }`}
               style={{ fontSize: smallIconFontSize }}
               data-tip={`Split First Person`}
             >
@@ -119,7 +127,9 @@ export default ({
             </i>
             <i
               onClick={() => onTogglePlayerFPV && onTogglePlayerFPV(1)}
-              className="material-icons text-yellow-700 rounded cursor-pointer"
+              className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
+                players[1].showPov ? "text-yellow-700" : "text-gray-700 "
+              }`}
               style={{ fontSize: smallIconFontSize }}
               data-tip={`${players[1].name} First Person`}
             >
@@ -129,7 +139,9 @@ export default ({
           <aside className="flex flex-col justify-between ml-2 b">
             <i
               onClick={() => onTogglePlayerActions && onTogglePlayerActions(0)}
-              className="material-icons text-yellow-700 rounded cursor-pointer"
+              className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
+                players[0].showActions ? "text-yellow-700" : "text-gray-700 "
+              }`}
               style={{ fontSize: smallIconFontSize }}
               title="resources"
             >
@@ -138,7 +150,9 @@ export default ({
 
             <i
               onClick={() => onTogglePlayerActions && onTogglePlayerActions(1)}
-              className="material-icons text-yellow-700 rounded cursor-pointer"
+              className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
+                players[1].showActions ? "text-yellow-700" : "text-gray-700 "
+              }`}
               style={{ fontSize: smallIconFontSize }}
               title="resources"
             >

@@ -33,6 +33,7 @@ export default ({
   minimapCanvas,
   onShowHeatMap,
   heatmapEnabled,
+  onTogglePlayerActions,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
@@ -66,9 +67,6 @@ export default ({
   };
   const onUnitFPV = (e) => {
     console.log("onUnitFPV", e);
-  };
-  const onTogglePlayerActions = (e) => {
-    console.log("onTogglePlayerActions");
   };
 
   return (

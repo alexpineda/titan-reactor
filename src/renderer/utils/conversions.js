@@ -1,10 +1,9 @@
 import { invertObj } from "ramda";
 //bw scales
-export const buildTileToPixel = (t) => t * 32;
-export const pixelToBuildTile = (p) => Math.floor(p / 32);
-export const walkTileToPixel = (w) => w * 8;
-export const pixelToWalkTile = (p) => Math.floor(p / 8);
-export const scaleTileToMeter = (t) => t / 32;
+export const pxToMapMeter = (mapWidth, mapHeight) => ({
+  x: (x) => x / 32 - mapWidth / 2,
+  y: (y) => y / 32 - mapHeight / 2,
+});
 
 export const gameSpeeds = {
   slowest: 167, // ms/frame

@@ -1,0 +1,63 @@
+import { Mesh, ConeGeometry, Group, MeshBasicMaterial, Color } from "three";
+import { easeElasticOut, easeExpOut } from "d3-ease";
+
+//@todo refactor with pooling + ClockMs()
+export class FadingPointers extends Group {
+  constructor() {
+    super();
+    this.lifespan = 160;
+    this.maxOpacity = 0.8;
+    this.bounceEnd = 48;
+    this.bounceEndT = this.bounceEnd / this.lifespan;
+    this.dropHeight = 3;
+  }
+
+  addPointer(x, y, z, color, time) {
+    const geo = new ConeGeometry(0.5, 1, 5);
+    geo.rotateX(Math.PI);
+    geo.translate(0, 0, 0);
+    const mat = new MeshBasicMaterial({
+      color: new Color(color),
+    });
+    mat.transparent = true;
+    mat.opacity = this.maxOpacity;
+    const mesh = new Mesh(geo, mat);
+
+    mesh.position.x = x;
+    mesh.position.z = y;
+    mesh.position.y = z + easeElasticOut(1) * this.dropHeight;
+    mesh.name = "FadingPointer";
+
+    mesh.userData = {
+      time,
+      destY: z,
+    };
+    this.add(mesh);
+  }
+
+  update(time) {
+    this.children
+      .filter((c) => c.name == "FadingPointer" && c.visible)
+      .forEach((o) => {
+        const lifetime = time - o.userData.time;
+
+        try {
+          if (lifetime < this.bounceEnd) {
+            o.position.y =
+              o.userData.destY +
+              (1 - easeElasticOut(lifetime / this.bounceEnd)) *
+                this.dropHeight +
+              0.5;
+          } else {
+            const opacity = easeExpOut(
+              1 - lifetime / (this.lifespan - this.bounceEnd)
+            );
+            o.material.opacity = opacity * this.maxOpacity;
+          }
+        } catch (e) {}
+        if (lifetime > this.lifespan) {
+          o.visible = false;
+        }
+      });
+  }
+}

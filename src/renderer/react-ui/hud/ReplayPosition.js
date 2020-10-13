@@ -130,7 +130,7 @@ export default ({
           }}
         >
           &nbsp;
-          {autoSpeedMode == 2 && <span className="text-gray-400">Auto</span>}
+          {autoSpeedMode == 2 && <span className="text-gray-500">Auto</span>}
           <span>
             <span className="text-gray-400">
               {autoSpeedMode == 1 &&
@@ -312,7 +312,7 @@ export default ({
         <aside className="flex flex-col space-y-2 ml-2">
           <i
             onClick={() => setHideProgress(!hideProgress)}
-            className={`material-icons rounded cursor-pointer ${
+            className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
               hideProgress ? "text-gray-700 " : "text-yellow-700 "
             }`}
             style={{ fontSize: smallIconFontSize }}
@@ -340,7 +340,7 @@ export default ({
               onToggleResources && onToggleResources(!showResources);
               setShowResources(!showResources);
             }}
-            className={`material-icons rounded cursor-pointer ${
+            className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
               showResources ? "text-yellow-700" : "text-gray-700 "
             }`}
             style={{ fontSize: smallIconFontSize }}
@@ -354,7 +354,7 @@ export default ({
               onToggleProduction && onToggleProduction(!showProduction);
               setShowProduction(!showProduction);
             }}
-            className={`material-icons rounded cursor-pointer ${
+            className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
               showProduction ? "text-yellow-700" : "text-gray-700 "
             }`}
             style={{ fontSize: smallIconFontSize, marginTop: "auto" }}

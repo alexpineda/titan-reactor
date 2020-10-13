@@ -1,7 +1,7 @@
 // playground for environment
 import * as THREE from "three";
 import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui";
-import { createStartLocation } from "./utils/BasicObjects";
+import { createStartLocation } from "./mesh/BasicObjects";
 import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
 import { Cameras } from "./replay/Cameras";

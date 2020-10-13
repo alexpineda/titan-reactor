@@ -41,7 +41,6 @@ export class TitanReactorScene extends Scene {
     const bgTerrain = backgroundTerrainMesh(w, h, bg);
 
     this.add(terrain);
-    // @todo fix sprite black box issue
     this.add(bgTerrain);
 
     this.fog = fog(w, h);

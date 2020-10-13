@@ -1,7 +1,6 @@
 //partial credit @prisoner89 https://codepen.io/prisoner849/pen/pOPBYM?editors=1010
 import { Mesh, PlaneBufferGeometry, RedFormat, ShaderMaterial } from "three";
 import { DataTexture } from "three/src/textures/DataTexture";
-import { MinimapLayer } from "../replay/Layers";
 
 const heatVertex = `
     uniform sampler2D heightMap;

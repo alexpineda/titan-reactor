@@ -1,5 +1,4 @@
 import {
-  CameraHelper,
   CubeCamera,
   MOUSE,
   OrthographicCamera,
@@ -15,7 +14,8 @@ export const CameraControlType = {
   none: 0,
   planeOrbit: 1,
   free: 2,
-  fpv: 3,
+  unitPov: 3,
+  playerPov: 4,
 };
 
 export class Cameras {
@@ -156,7 +156,6 @@ export class Cameras {
     this.cubeCamera.update(this.context.renderer, scene);
   }
 
-  changeCameraControls(type) {}
   dispose() {
     this.control.dispose();
     this.cubeCamera.renderTarget.dispose();
