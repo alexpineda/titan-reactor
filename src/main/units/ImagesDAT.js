@@ -9,12 +9,7 @@ export class ImagesDAT extends DAT {
     this.format = [
       {
         size: 4,
-        name: "grpFile",
-        get: (index) => {
-          const grpFile = this._statTxt()(index);
-          //remove null from end
-          return grpFile.substr(0, grpFile.length - 1);
-        },
+        name: "grp",
       },
       { size: 1, name: "gfxTurns" },
       { size: 1, name: "clickable" },
@@ -40,6 +35,9 @@ export class ImagesDAT extends DAT {
   post(entries) {
     return entries.map((entry, i) => {
       entry.index = i;
+      entry.grpFile = this._statTxt()(entry.grp);
+      //remove null from end
+      entry.grpFile = entry.grpFile.substr(0, entry.grpFile.length - 1);
     });
   }
 }

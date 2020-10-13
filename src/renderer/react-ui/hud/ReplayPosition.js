@@ -170,7 +170,10 @@ export default ({
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
   return (
-    <div className="replay-parent flex-1 max-w-xs flex items-stretch select-none">
+    <div
+      className="replay-parent flex self-end select-none"
+      style={{ height: "26vh", width: "24vw" }}
+    >
       <div
         className="replay-position rounded mb-2 p-2 border-2 border-yellow-900 flex-1 flex"
         style={{ backgroundColor: "#1a202caa" }}

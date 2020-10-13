@@ -1,4 +1,5 @@
 import {
+  CameraHelper,
   CubeCamera,
   MOUSE,
   OrthographicCamera,
@@ -7,15 +8,53 @@ import {
   WebGLCubeRenderTarget,
 } from "three";
 import { OrbitControls } from "../utils/OrbitalControls";
+import { MinimapLayer } from "./Layers";
+import { MinimapCameraHelper } from "./Minimap";
+
+export const CameraControlType = {
+  none: 0,
+  planeOrbit: 1,
+  free: 2,
+  fpv: 3,
+};
 
 export class Cameras {
-  constructor(context, map) {
+  constructor(context, map, minimap = null) {
     this.main = this._initPerspectiveCamera();
-    this.minimap = null;
+
     this.context = context;
     this.map = map;
-    this.cubeCamera = this._initCubeCamera();
-    this.control = this._initOrbitControls(true);
+    if (map) {
+      this.cubeCamera = this._initCubeCamera();
+    }
+    this.control = this._initOrbitControls(false);
+
+    this.minimap = minimap;
+    this._delta = new Vector3();
+
+    if (this.minimap) {
+      this.minimapCameraHelper = new MinimapCameraHelper(this.main);
+      this.minimapCameraHelper.layers.set(MinimapLayer);
+
+      minimap.addEventListener("start", ({ message: pos }) => {
+        this._delta.subVectors(this.control.target, this.main.position);
+        this.control.target.copy(pos);
+        this.main.position.subVectors(pos, this._delta);
+      });
+
+      minimap.addEventListener("update", ({ message: pos }) => {
+        this.control.target.copy(pos);
+        this.main.position.subVectors(pos, this._delta);
+      });
+
+      minimap.addEventListener("hover", ({ message: pos }) => {
+        console.log("hover");
+        this._delta.subVectors(this.control.target, this.main.position);
+        this.minimapCameraHelper.position.set(pos.x, 10, pos.z + 10);
+        this.minimapCameraHelper.lookAt(pos);
+      });
+    }
+
     this.resetMainCamera();
   }
 
@@ -23,8 +62,8 @@ export class Cameras {
     return new PerspectiveCamera(
       30,
       window.innerWidth / window.innerHeight,
-      0.1,
-      1000
+      5,
+      100
     );
   }
 
@@ -44,7 +83,7 @@ export class Cameras {
     return cubeCamera;
   }
 
-  _initOrbitControls(limitControl) {
+  _initOrbitControls(limitControl = false) {
     const orbitControl = new OrbitControls(this.main, this.context.gameCanvas);
     orbitControl.mouseButtons = {
       LEFT: MOUSE.PAN,
@@ -73,7 +112,7 @@ export class Cameras {
   }
 
   resetMainCamera() {
-    this.main.position.set(0, 200, 0);
+    this.main.position.set(0, 100, 0);
     this.main.lookAt(new Vector3());
   }
 
@@ -117,6 +156,7 @@ export class Cameras {
     this.cubeCamera.update(this.context.renderer, scene);
   }
 
+  changeCameraControls(type) {}
   dispose() {
     this.control.dispose();
     this.cubeCamera.renderTarget.dispose();

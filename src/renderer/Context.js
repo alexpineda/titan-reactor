@@ -37,6 +37,17 @@ export class Context extends EventDispatcher {
     return canvas;
   }
 
+  getMinimapCanvas() {
+    if (this.minimapCanvas) return this.minimapCanvas;
+
+    const canvas = this.document.createElement("canvas");
+    canvas.id = "minimap";
+    canvas.style.width = "30vh";
+    canvas.style.height = "30vh";
+    this.minimapCanvas = canvas;
+    return canvas;
+  }
+
   _initRenderer() {
     const [width, height] = this.getSceneDimensions();
     const renderer = new WebGLRenderer({
@@ -64,25 +75,29 @@ export class Context extends EventDispatcher {
 
     this.renderer = this._initRenderer();
 
+    this._contextLostHandler = function (event) {
+      event.preventDefault();
+      this.dispatchEvent({ type: "lostcontext" });
+    }.bind(this);
+
     this.getGameCanvas().addEventListener(
       "webglcontextlost",
-      function (event) {
-        event.preventDefault();
-        // animationID would have been set by your call to requestAnimationFrame
-        this.dispatchEvent({ type: "lostcontext" });
-      },
+      this._contextLostHandler,
       false
     );
+
+    this._contextRestoredHandler = function (event) {
+      this.dispatchEvent({ type: "restorecontext" });
+    }.bind(this);
 
     this.getGameCanvas().addEventListener(
       "webglcontextrestored",
-      function (event) {
-        this.dispatchEvent({ type: "restorecontext" });
-      },
+      this._contextRestoredHandler,
       false
     );
 
-    this.window.addEventListener("resize", this._resize.bind(this), false);
+    this._resizeHandler = this._resize.bind(this);
+    this.window.addEventListener("resize", this._resizeHandler, false);
   }
 
   forceResize() {
@@ -104,6 +119,15 @@ export class Context extends EventDispatcher {
   }
 
   dispose() {
-    this.window.removeEventListener("resize", this._resize);
+    this.window.removeEventListener("resize", this._resizeHandler);
+    this.getGameCanvas().removeEventListener(
+      "webglcontextrestored",
+      this._contextRestoredHandler
+    );
+
+    this.getGameCanvas().removeEventListener(
+      "webglcontextlost",
+      this._contextLostHandler
+    );
   }
 }

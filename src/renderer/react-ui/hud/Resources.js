@@ -29,7 +29,10 @@ const PlayerResources = ({
         data-tip={`Toggle Fog of War`}
         onClick={() => onTogglePlayerVision && onTogglePlayerVision(index)}
       >
-        <span className={`text-${textSize} cursor-pointer`} style={{ color }}>
+        <span
+          className={`text-${textSize} cursor-pointer`}
+          style={{ color: color.hex }}
+        >
           {name}
         </span>
       </td>

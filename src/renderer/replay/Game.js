@@ -8,6 +8,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   ConeGeometry,
+  Object3D,
 } from "three";
 import { disposeMesh } from "../utils/dispose";
 import { IScriptRunner } from "./IScriptRunner";
@@ -21,11 +22,10 @@ import { DebugLog } from "../utils/DebugLog";
 import { angleToDirection } from "../utils/conversions";
 import { unitTypes } from "../../common/bwdat/unitTypes";
 import { BWAPIUnit } from "./BWAPIFrames";
-const { zergEgg, mineral1, mineral2, mineral3 } = unitTypes;
-
-const red = new Color(0x990000);
-const green = new Color(0x009900);
-const white = new Color(0x999999);
+import { createMinimapPoint, MinimapCameraHelper } from "./Minimap";
+import { isThisTypeNode } from "typescript";
+import { MinimapLayer } from "./Layers";
+const { zergEgg, mineral1, mineral2, mineral3, geyser } = unitTypes;
 
 export class Game {
   constructor(
@@ -35,6 +35,7 @@ export class Game {
     mapSize,
     getTerrainY,
     audioListener,
+    playerColors,
     audioPool = {},
     loadingManager = DefaultLoadingManager
   ) {
@@ -48,11 +49,19 @@ export class Game {
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
     this.bwDat = bwDat;
+    this.playerColors = playerColors;
     this.audioListener = audioListener;
     this.loadingManager = loadingManager;
     // more of a cache for the moment
     this.audioPool = audioPool;
     this.renderImage = renderImage;
+
+    this.minimapPoints = {
+      _map: {},
+      unit: new Group(),
+    };
+    this.minimapPoints.unit.layers.set(MinimapLayer);
+
     this.logger = new DebugLog("units");
     // for 2d sprites only
     this.cameraDirection = {
@@ -109,6 +118,36 @@ export class Game {
     unit.userData._active.rotation.x = Math.PI;
     unit.userData._active.visible = false;
     unit.add(unit.userData._active);
+
+    if (!replaceUnit) {
+      const unitType = this.bwDat.units[unit.userData.current.typeId];
+      const grp = this.bwDat.grps[unitType.flingy.sprite.image.grp];
+      // const w = grp.maxFrameW / 32;
+      // const h = grp.maxFrameH / 32;
+      const w = grp.w / 48;
+      const h = grp.h / 48;
+      let minimapPoint;
+      if (unit.userData.current.playerId >= 0) {
+        minimapPoint = createMinimapPoint(
+          this.playerColors[unit.userData.current.playerId],
+          w,
+          h
+        );
+      } else if (
+        [mineral1, mineral2, mineral3, geyser].includes(
+          unit.userData.current.typeId
+        )
+      ) {
+        minimapPoint = createMinimapPoint(new Color(0x00e4fc), w, h);
+      }
+
+      if (minimapPoint) {
+        this.minimapPoints._map[unit.userData.current.repId] = minimapPoint;
+        this.minimapPoints.unit.add(minimapPoint);
+      } else {
+        debugger;
+      }
+    }
 
     unit.userData.runner = this._initRunner(
       unit,
@@ -407,6 +446,10 @@ export class Game {
     //   r.renderImage && r.renderImage.update();
     // });
 
+    if (this.minimapPoints._map[current.repId]) {
+      this.minimapPoints._map[current.repId].position.copy(unit.position);
+    }
+
     unit.userData.previous = unit.userData.current;
   }
 
@@ -513,6 +556,16 @@ export class Game {
       }
       return sum;
     }, 0);
+  }
+
+  getSupplyCap(player) {
+    return this.units.children
+      .map(({ userData }) => userData)
+      .filter(({ playerId }) => playerId === player)
+      .reduce((sum, { typeId }) => {
+        const supp = this.bwDat[typeId].supplyProvided;
+        return (sum = sum + supp);
+      }, 0);
   }
 
   dispose() {

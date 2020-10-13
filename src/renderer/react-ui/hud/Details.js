@@ -10,7 +10,10 @@ export default ({
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
-    <div className="details flex-1 flex items-stretch select-none">
+    <div
+      className="details flex-1 flex self-end select-none"
+      style={{ height: "26vh" }}
+    >
       <div
         className="rounded mb-2 p-2 flex flex-1 border-2 border-yellow-900"
         style={{ backgroundColor: "#1a202c99" }}

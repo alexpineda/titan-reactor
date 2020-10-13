@@ -1,6 +1,23 @@
-import { RGBA_ASTC_4x4_Format } from "three";
-
 export const playerColors = [
+  { name: "Red", id: 0x00, rgb: 0xf40404 },
+  { name: "Blue", id: 0x01, rgb: 0x0c48cc },
+  { name: "Teal", id: 0x02, rgb: 0x2cb494 },
+  { name: "Purple", id: 0x03, rgb: 0x88409c },
+  { name: "Orange", id: 0x04, rgb: 0xf88c14 },
+  { name: "Brown", id: 0x05, rgb: 0x703014 },
+  { name: "White", id: 0x06, rgb: 0xcce0d0 },
+  { name: "Yellow", id: 0x07, rgb: 0xfcfc38 },
+  { name: "Green", id: 0x08, rgb: 0x088008 },
+  { name: "Pale Yellow", id: 0x09, rgb: 0xfcfc7c },
+  { name: "Tan", id: 0x0a, rgb: 0xecc4b0 },
+  { name: "Aqua", id: 0x0b, rgb: 0x4068d4 },
+  { name: "Pale Green", id: 0x0c, rgb: 0x74a47c },
+  { name: "Blueish Grey", id: 0x0d, rgb: 0x9090b8 },
+  { name: "Pale Yellow2", id: 0x0e, rgb: 0xfcfc7c },
+  { name: "Cyan", id: 0x0f, rgb: 0x00e4fc },
+];
+
+export const playerPallete = [
   [
     [244, 4, 4],
     [168, 8, 8],

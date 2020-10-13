@@ -30,6 +30,7 @@ export default ({
   onTogglePaused,
   maxFrame,
   gameSpeed,
+  minimapCanvas,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
@@ -83,38 +84,41 @@ export default ({
           textSize={config.textSize}
         />
       )}
-      <div className="w-full flex absolute bottom-0 items-stretch divide-x-4 divide-transparent px-2">
+      <div className="w-full flex absolute bottom-0 divide-x-4 divide-transparent px-2">
         <Minimap
           onRevealMap={onRevealMap}
           onShowHeatMap={onShowHeatMap}
           onDropPings={onDropPings}
           timeLabel={timeLabel}
           textSize={config.textSize}
+          canvas={minimapCanvas}
         />
-        <Details
-          units={demo.selectedUnits}
-          onUnitDetails={onUnitDetails}
-          onShowAttackDetails={onShowAttackDetails}
-          onFollowUnit={onFollowUnit}
-          onUnitFPV={onUnitFPV}
-          textSize={config.textSize}
-        />
-        <ReplayPosition
-          paused={paused}
-          maxFrame={maxFrame}
-          destination={destination}
-          autoSpeed={autoSpeed}
-          timeLabel={timeLabel}
-          position={position}
-          gameSpeed={gameSpeed}
-          onTogglePaused={onTogglePaused}
-          onChangePosition={onChangePosition}
-          onChangeAutoGameSpeed={onChangeAutoGameSpeed}
-          onChangeGameSpeed={onChangeGameSpeed}
-          onToggleProduction={setShowProduction}
-          onToggleResources={setShowResources}
-          textSize={config.textSize}
-        />
+        <div className="flex flex-1">
+          <Details
+            units={demo.selectedUnits}
+            onUnitDetails={onUnitDetails}
+            onShowAttackDetails={onShowAttackDetails}
+            onFollowUnit={onFollowUnit}
+            onUnitFPV={onUnitFPV}
+            textSize={config.textSize}
+          />
+          <ReplayPosition
+            paused={paused}
+            maxFrame={maxFrame}
+            destination={destination}
+            autoSpeed={autoSpeed}
+            timeLabel={timeLabel}
+            position={position}
+            gameSpeed={gameSpeed}
+            onTogglePaused={onTogglePaused}
+            onChangePosition={onChangePosition}
+            onChangeAutoGameSpeed={onChangeAutoGameSpeed}
+            onChangeGameSpeed={onChangeGameSpeed}
+            onToggleProduction={setShowProduction}
+            onToggleResources={setShowResources}
+            textSize={config.textSize}
+          />
+        </div>
       </div>
     </>
   );

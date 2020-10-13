@@ -44,7 +44,11 @@ async function bootup() {
   };
   window.bwDat = bwDat;
 
-  ui = new UI(document.getElementById("app"), context.getGameCanvas());
+  ui = new UI(
+    document.getElementById("app"),
+    context.getGameCanvas(),
+    context.getMinimapCanvas()
+  );
 
   titanReactor = new TitanReactor(context, ui, openFile, bwDat);
 

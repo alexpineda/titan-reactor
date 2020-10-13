@@ -1,5 +1,11 @@
-import * as THREE from "three";
 import React from "react";
+import {
+  CameraHelper,
+  PointLight,
+  Raycaster,
+  Vector2,
+  AudioListener,
+} from "three";
 
 import {
   BWAPIUnitFromBuffer,
@@ -16,6 +22,7 @@ import HUD from "./react-ui/hud/HUD";
 import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
 import { Cameras } from "./replay/Cameras";
+import { Minimap } from "./replay/Minimap";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -32,7 +39,13 @@ export async function TitanReactorReplay(
 ) {
   const debugInfo = new DebugInfo();
 
-  const cameras = new Cameras(context, scene.terrain.material.map);
+  const minimap = new Minimap(
+    context.getMinimapCanvas(),
+    chk.size[0],
+    chk.size[1]
+  );
+
+  const cameras = new Cameras(context, scene.terrain.material.map, minimap);
   if (hot && hot.camera) {
     cameras.main.position.copy(hot.camera.position);
     cameras.main.rotation.copy(hot.camera.rotation);
@@ -40,12 +53,15 @@ export async function TitanReactorReplay(
   cameras.control.update();
   scene.add(cameras.cubeCamera);
 
-  const pointLight = new THREE.PointLight(0xffffff, 1, 60, 0);
+  scene.add(minimap.createMiniMapPlane(scene.terrain.material.map));
+  scene.add(cameras.minimapCameraHelper);
+
+  const pointLight = new PointLight(0xffffff, 1, 60, 0);
   pointLight.power = 20;
   pointLight.castShadow = true;
   scene.add(pointLight);
 
-  const audioListener = new THREE.AudioListener();
+  const audioListener = new AudioListener();
   cameras.main.add(audioListener);
   const bgMusic = new BgMusic(audioListener);
   bgMusic.setVolume(0.0);
@@ -59,9 +75,11 @@ export async function TitanReactorReplay(
     chk.size,
     scene.getTerrainY(),
     audioListener,
+    rep.header.players.map((p) => p.color.rgb),
     {}
   );
   scene.add(game.units);
+  scene.add(game.minimapPoints.unit);
 
   const heatMapScore = new HeatmapScore(bwDat);
   let replayPosition = new ReplayPosition(
@@ -72,10 +90,6 @@ export async function TitanReactorReplay(
     gameSpeeds.slowest,
     heatMapScore
   );
-
-  THREE.DefaultLoadingManager.onLoad = () => {
-    replayPosition.resume();
-  };
 
   replayPosition.onResetState = () => {
     unitsLastFrame = [];
@@ -111,8 +125,8 @@ export async function TitanReactorReplay(
   document.addEventListener("keydown", keyDownListener);
 
   const mouseDownListener = (event) => {
-    var raycaster = new THREE.Raycaster();
-    var mouse = new THREE.Vector2();
+    var raycaster = new Raycaster();
+    var mouse = new Vector2();
 
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
@@ -187,6 +201,7 @@ export async function TitanReactorReplay(
 
   const sceneResizeHandler = () => {
     cameras.onResize();
+    minimap.refresh();
   };
   context.addEventListener("resize", sceneResizeHandler);
   context.forceResize();
@@ -200,7 +215,7 @@ export async function TitanReactorReplay(
       supply: 4,
       race: rep.header.players[0].race,
       apm: 0,
-      color: "#f56565",
+      color: rep.header.players[0].color,
       units: [],
     },
     {
@@ -211,15 +226,17 @@ export async function TitanReactorReplay(
       supply: 4,
       race: rep.header.players[1].race,
       apm: 0,
-      color: "#4299e1",
+      color: rep.header.players[1].color,
       units: [],
     },
   ];
 
   let uiUpdated = false;
+  let firstUiUpdate = true;
   const updateUi = () => {
     // just in case we call several times in game loop
     if (uiUpdated) return;
+
     uiUpdated = true;
 
     players[0].supply = game.supplyTaken[0];
@@ -241,8 +258,13 @@ export async function TitanReactorReplay(
         onChangeAutoGameSpeed={hudData.onChangeAutoGameSpeed}
         onChangePosition={hudData.onChangePosition}
         onTogglePaused={hudData.onTogglePaused}
+        minimapCanvas={context.minimapCanvas}
       />
     );
+    if (firstUiUpdate) {
+      minimap.refresh();
+      firstUiUpdate = false;
+    }
   };
 
   function gameLoop() {
@@ -336,15 +358,23 @@ export async function TitanReactorReplay(
     game.cameraDirection.previousDirection = game.cameraDirection.direction;
 
     game.cameraDirection.direction = cameras.getDirection32();
-
     game.setShear(cameras.getShear());
 
-    context.renderer.clear();
     context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
     context.renderer.render(scene, cameras.main);
+
+    context.renderer.clearDepth();
+    context.renderer.setScissor(minimap.viewport);
+    context.renderer.setScissorTest(true);
+    context.renderer.setViewport(minimap.viewport);
+    context.renderer.render(scene, minimap.camera); //minimap.camera);
+    context.renderer.setScissorTest(false);
   }
 
   context.renderer.setAnimationLoop(gameLoop);
+
+  //@todo add settings to not auto play
+  replayPosition.resume();
 
   const dispose = () => {
     console.log("disposing");
@@ -359,6 +389,7 @@ export async function TitanReactorReplay(
     context.removeEventListener("lostcontext", lostContextHandler);
     context.removeEventListener("lostcontext", restoreContextHandler);
 
+    minimap.dispose();
     scene.dispose();
     cameras.dispose();
     debugInfo.dispose();

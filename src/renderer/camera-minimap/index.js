@@ -27,17 +27,6 @@ ipcRenderer.on("open-map", (event, [map]) => {
   loadMap(map);
 });
 
-function createMiniMapPlane(width, height) {
-  const geo = new THREE.PlaneBufferGeometry(width, height, width, height);
-  const mat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-  });
-  var mesh = new THREE.Mesh(geo, mat);
-  mesh.rotateX(-0.5 * Math.PI);
-  mesh.layers.set(LAYER_MINIMAP);
-  return mesh;
-}
-
 function createStartLocation(mapX, mapY, color) {
   var geometry = new THREE.CircleBufferGeometry(2, 32);
   var material = new THREE.MeshBasicMaterial({
