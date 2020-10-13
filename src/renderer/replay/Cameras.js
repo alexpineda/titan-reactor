@@ -9,6 +9,7 @@ import {
 import { OrbitControls } from "../utils/OrbitalControls";
 import { MinimapLayer } from "./Layers";
 import { MinimapCameraHelper } from "./Minimap";
+import { PlayerPovCamera } from "./PlayerPovCamera";
 
 export const CameraControlType = {
   none: 0,
@@ -21,6 +22,7 @@ export const CameraControlType = {
 export class Cameras {
   constructor(context, map, minimap = null) {
     this.main = this._initPerspectiveCamera();
+    this.playerCameras = [new PlayerPovCamera(0), new PlayerPovCamera(1)];
 
     this.context = context;
     this.map = map;

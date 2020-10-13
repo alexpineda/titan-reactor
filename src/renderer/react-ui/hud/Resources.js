@@ -75,12 +75,11 @@ export default ({
   textSize,
   onTogglePlayerVision,
   onTogglePlayerActions,
-  onTogglePlayerFPV,
-  onToggleDualFPV,
+  onTogglePlayerPov,
+  onToggleDualPov,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
-  console.log(players);
   return (
     <div className="flex absolute top-0 right-0 select-none">
       <div className="resources-parent">
@@ -104,7 +103,7 @@ export default ({
 
           <aside className="flex flex-col justify-between ml-2">
             <i
-              onClick={() => onTogglePlayerFPV && onTogglePlayerFPV(0)}
+              onClick={() => onTogglePlayerPov && onTogglePlayerPov(0)}
               className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
                 players[0].showPov ? "text-yellow-700" : "text-gray-700 "
               }`}
@@ -114,7 +113,7 @@ export default ({
               slideshow
             </i>
             <i
-              onClick={() => onToggleDualFPV && onToggleDualFPV()}
+              onClick={() => onToggleDualPov && onToggleDualPov()}
               className={`material-icons hover:text-yellow-500 rounded cursor-pointer transform rotate-90 mb-1 ${
                 players[0].showPov && players[1].showPov
                   ? "text-yellow-700"
@@ -126,7 +125,7 @@ export default ({
               call_merge
             </i>
             <i
-              onClick={() => onTogglePlayerFPV && onTogglePlayerFPV(1)}
+              onClick={() => onTogglePlayerPov && onTogglePlayerPov(1)}
               className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
                 players[1].showPov ? "text-yellow-700" : "text-gray-700 "
               }`}

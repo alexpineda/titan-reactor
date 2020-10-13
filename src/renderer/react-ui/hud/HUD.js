@@ -34,18 +34,14 @@ export default ({
   onShowHeatMap,
   heatmapEnabled,
   onTogglePlayerActions,
+  onTogglePlayerPov,
+  onToggleDualPov,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
 
   const onTogglePlayerVision = (e) => {
     console.log("onTogglePlayerVision", e);
-  };
-  const onTogglePlayerFPV = (e) => {
-    console.log("onTogglePlayerFPV", e);
-  };
-  const onToggleDualFPV = (e) => {
-    console.log("onToggleDualFPV", e);
   };
 
   const onRevealMap = (e) => {
@@ -79,8 +75,8 @@ export default ({
         <Resources
           onTogglePlayerActions={onTogglePlayerActions}
           onTogglePlayerVision={onTogglePlayerVision}
-          onTogglePlayerFPV={onTogglePlayerFPV}
-          onToggleDualFPV={onToggleDualFPV}
+          onTogglePlayerPov={onTogglePlayerPov}
+          onToggleDualPov={onToggleDualPov}
           players={players}
           textSize={config.textSize}
         />

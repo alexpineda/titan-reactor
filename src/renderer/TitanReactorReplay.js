@@ -198,6 +198,29 @@ export async function TitanReactorReplay(
     onTogglePlayerActions: (player) => {
       players[player].showActions = !players[player].showActions;
     },
+    onTogglePlayerPov: (player) => {
+      const otherPlayer = player === 0 ? 1 : 0;
+      players[player].showPov = !players[player].showPov;
+      players[otherPlayer].showActions = players[player].showPov;
+
+      if (players[player].showPov && players[otherPlayer].showPov) {
+        players[otherPlayer].showPov = false;
+        players[otherPlayer].showActions = false;
+      }
+    },
+    onToggleDualPov: () => {
+      if (players[0].showPov && players[1].showPov) {
+        players[0].showPov = false;
+        players[1].showPov = false;
+        players[0].showActions = false;
+        players[1].showActions = false;
+      } else {
+        players[0].showPov = true;
+        players[1].showPov = true;
+        players[0].showActions = true;
+        players[1].showActions = true;
+      }
+    },
   };
 
   const lostContextHandler = () => {
@@ -247,6 +270,8 @@ export async function TitanReactorReplay(
         onShowHeatMap={hudData.onShowHeatMap}
         heatmapEnabled={minimap.heatmapEnabled}
         onTogglePlayerActions={hudData.onTogglePlayerActions}
+        onTogglePlayerPov={hudData.onTogglePlayerPov}
+        onToggleDualPov={hudData.onToggleDualPov}
       />
     );
     if (firstUiUpdate) {
@@ -325,22 +350,26 @@ export async function TitanReactorReplay(
 
         if (rep.cmds[replayPosition.bwGameFrame]) {
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
-            if (!players[cmd.player].showActions) continue;
-            switch (cmd.id) {
-              case commands.rightClick:
-              case commands.targetedOrder:
-              case commands.build:
-                const px = pxToMeter.x(cmd.x);
-                const py = pxToMeter.y(cmd.y);
-                const pz = getTerrainY(px, py);
+            if (players[cmd.player].showPov) {
+              cameras.playerCameras[cmd.player].update(cmd, pxToMeter);
+            }
+            if (players[cmd.player].showActions) {
+              switch (cmd.id) {
+                case commands.rightClick:
+                case commands.targetedOrder:
+                case commands.build:
+                  const px = pxToMeter.x(cmd.x);
+                  const py = pxToMeter.y(cmd.y);
+                  const pz = getTerrainY(px, py);
 
-                fadingPointers.addPointer(
-                  px,
-                  py,
-                  pz,
-                  players[cmd.player].color.rgb,
-                  replayPosition.bwGameFrame
-                );
+                  fadingPointers.addPointer(
+                    px,
+                    py,
+                    pz,
+                    players[cmd.player].color.rgb,
+                    replayPosition.bwGameFrame
+                  );
+              }
             }
           }
         }
@@ -375,8 +404,25 @@ export async function TitanReactorReplay(
     game.cameraDirection.direction = cameras.getDirection32();
     game.setShear(cameras.getShear());
 
-    context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    context.renderer.render(scene, cameras.main);
+    if (players[0].showPov && players[1].showPov) {
+      context.renderer.setScissorTest(true);
+      context.renderer.setViewport(cameras.playerCameras[0].viewport);
+      context.renderer.setScissor(cameras.playerCameras[0].viewport);
+      context.renderer.render(scene, cameras.playerCameras[0]);
+      context.renderer.setViewport(cameras.playerCameras[1].viewport);
+      context.renderer.setScissor(cameras.playerCameras[1].viewport);
+      context.renderer.render(scene, cameras.playerCameras[1]);
+      context.renderer.setScissorTest(false);
+    } else if (players[0].showPov) {
+      context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+      context.renderer.render(scene, cameras.playerCameras[0]);
+    } else if (players[1].showPov) {
+      context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+      context.renderer.render(scene, cameras.playerCameras[1]);
+    } else {
+      context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+      context.renderer.render(scene, cameras.main);
+    }
 
     context.renderer.clearDepth();
     context.renderer.setScissor(minimap.viewport);
