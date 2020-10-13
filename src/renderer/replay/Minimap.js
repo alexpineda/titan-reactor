@@ -19,10 +19,11 @@ import {
   Vector3,
   Vector4,
 } from "three";
+import { Heatmap } from "../mesh/Heatmap";
 import { MinimapLayer } from "./Layers";
 
 export class Minimap extends EventDispatcher {
-  constructor(domElement, mapWidth, mapHeight) {
+  constructor(domElement, terrainMap, mapWidth, mapHeight, heatMapScore) {
     super();
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
@@ -32,7 +33,11 @@ export class Minimap extends EventDispatcher {
     this.updateMouseHover = true;
     this.domElement = domElement;
     this.viewport = new Vector4();
-
+    this.minimapPlane = this._createMiniMapPlane(terrainMap);
+    this.heatmapEnabled = false;
+    this.heatmap = new Heatmap(mapWidth, mapHeight, heatMapScore);
+    this.heatmap.layers.set(MinimapLayer);
+    this.heatmap.visible = false;
     this.camera = this._initMinimapCamera();
 
     this._resizeObserver = new ResizeObserver(() => {
@@ -49,7 +54,7 @@ export class Minimap extends EventDispatcher {
     this.enableDragging = enable;
   }
 
-  createMiniMapPlane(map) {
+  _createMiniMapPlane(map) {
     const geo = new PlaneBufferGeometry(
       this.mapWidth,
       this.mapHeight,
@@ -64,6 +69,15 @@ export class Minimap extends EventDispatcher {
     mesh.rotateX(-0.5 * Math.PI);
     mesh.layers.set(MinimapLayer);
     return mesh;
+  }
+
+  toggleHeatmap() {
+    this.heatmapEnabled = !this.heatmapEnabled;
+    this.heatmap.visible = this.heatmapEnabled;
+    this.minimapPlane.visible = !this.heatmapEnabled;
+    if (this.heatmapEnabled) {
+      this.dispatchEvent({ type: "heatmap-enabled" });
+    }
   }
 
   _initMinimapCamera() {

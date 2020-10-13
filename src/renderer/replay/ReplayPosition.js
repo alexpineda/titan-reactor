@@ -76,6 +76,7 @@ export class ReplayPosition {
     this.paused = true;
     this.destination = undefined;
     this.heatMapScore = heatMapScore;
+    this.autoSpeedRefreshRate = 24 * 5;
     this.onResetState = () => {};
   }
 
@@ -203,7 +204,7 @@ export class ReplayPosition {
       this.autoSpeedLerpClock.getElapsedTime() / 5000
     );
 
-    if (this.frame % (24 * 5) === 0) {
+    if (this.frame % this.autoSpeedRefreshRate === 0) {
       this.autoSpeed =
         (1 - this.heatMapScore.totalScore(attackingUnits)) *
           (gameSpeeds["1.5x"] - gameSpeeds.fastest) +

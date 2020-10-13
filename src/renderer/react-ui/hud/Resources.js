@@ -73,6 +73,7 @@ export default ({
   players,
   textSize,
   onTogglePlayerVision,
+  onTogglePlayerActions,
   onTogglePlayerFPV,
   onToggleDualFPV,
 }) => {
@@ -123,6 +124,25 @@ export default ({
               data-tip={`${players[1].name} First Person`}
             >
               slideshow
+            </i>
+          </aside>
+          <aside className="flex flex-col justify-between ml-2 b">
+            <i
+              onClick={() => onTogglePlayerActions && onTogglePlayerActions(0)}
+              className="material-icons text-yellow-700 rounded cursor-pointer"
+              style={{ fontSize: smallIconFontSize }}
+              title="resources"
+            >
+              room
+            </i>
+
+            <i
+              onClick={() => onTogglePlayerActions && onTogglePlayerActions(1)}
+              className="material-icons text-yellow-700 rounded cursor-pointer"
+              style={{ fontSize: smallIconFontSize }}
+              title="resources"
+            >
+              room
             </i>
           </aside>
         </div>

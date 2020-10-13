@@ -62,10 +62,12 @@
     "scm-extractor": "^1.0.6",
     "sparkly": "^5.0.0",
     "three": "^0.120.1",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "webpack": "4.42.1"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-react": "^7.10.4",
     "babel-jest": "^26.3.0",
@@ -76,7 +78,6 @@
     "jest": "^26.4.2",
     "parcel-plugin-static-files-copy": "^2.5.0",
     "source-map-support": "^0.5.19",
-    "webpack": "^4.44.2",
     "worker-loader": "^2.0.0"
   }
 }

@@ -15,7 +15,7 @@ import { BgMusic } from "./audio/BgMusic";
 
 import { Game } from "./replay/Game";
 //todo refactor out
-import { difference, range, compose } from "ramda";
+import { difference, range, compose, min } from "ramda";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
 import { gameSpeeds } from "./utils/conversions";
 import HUD from "./react-ui/hud/HUD";
@@ -23,6 +23,7 @@ import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
 import { Cameras } from "./replay/Cameras";
 import { Minimap } from "./replay/Minimap";
+import { Players } from "./replay/Players";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -40,10 +41,13 @@ export async function TitanReactorReplay(
   const debugInfo = new DebugInfo();
 
   console.log("rep", rep);
+  const heatMapScore = new HeatmapScore(bwDat);
   const minimap = new Minimap(
     context.getMinimapCanvas(),
+    scene.terrain.material.map,
     chk.size[0],
-    chk.size[1]
+    chk.size[1],
+    heatMapScore
   );
 
   const cameras = new Cameras(context, scene.terrain.material.map, minimap);
@@ -54,7 +58,8 @@ export async function TitanReactorReplay(
   cameras.control.update();
   scene.add(cameras.cubeCamera);
 
-  scene.add(minimap.createMiniMapPlane(scene.terrain.material.map));
+  scene.add(minimap.minimapPlane);
+  scene.add(minimap.heatmap);
   scene.add(cameras.minimapCameraHelper);
 
   const pointLight = new PointLight(0xffffff, 1, 60, 0);
@@ -69,6 +74,8 @@ export async function TitanReactorReplay(
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
+  const players = new Players(rep.header.players);
+
   const game = new Game(
     bwDat,
     renderImage,
@@ -76,12 +83,11 @@ export async function TitanReactorReplay(
     chk.size,
     scene.getTerrainY(),
     audioListener,
-    rep.header.players.map((p) => p.color.rgb),
+    players,
     {}
   );
   scene.add(game.units);
 
-  const heatMapScore = new HeatmapScore(bwDat);
   let replayPosition = new ReplayPosition(
     BWAPIFramesDataView,
     100000000,
@@ -181,6 +187,12 @@ export async function TitanReactorReplay(
       }
       updateUi();
     },
+    onShowHeatMap: () => {
+      minimap.toggleHeatmap();
+      if (minimap.heatmapEnabled) {
+        minimap.heatmap.reset();
+      }
+    },
   };
 
   const lostContextHandler = () => {
@@ -202,33 +214,6 @@ export async function TitanReactorReplay(
   context.addEventListener("resize", sceneResizeHandler);
   context.forceResize();
 
-  const players = [
-    {
-      name: rep.header.players[0].name,
-      minerals: 0,
-      gas: 0,
-      workers: 4,
-      supply: 4,
-      supplyMax: 8,
-      race: rep.header.players[0].race,
-      apm: 0,
-      color: rep.header.players[0].color,
-      units: [],
-    },
-    {
-      name: rep.header.players[1].name,
-      minerals: 0,
-      gas: 0,
-      workers: 4,
-      supply: 0,
-      supplyMax: 0,
-      race: rep.header.players[1].race,
-      apm: 0,
-      color: rep.header.players[1].color,
-      units: [],
-    },
-  ];
-
   let uiUpdated = false;
   let firstUiUpdate = true;
   const updateUi = () => {
@@ -237,12 +222,7 @@ export async function TitanReactorReplay(
 
     uiUpdated = true;
 
-    players[0].supply = game.supplyTaken[0];
-    players[1].supply = game.supplyTaken[1];
-    players[0].supplyMax = game.supplyProvided[0];
-    players[1].supplyMax = game.supplyProvided[1];
-    players[0].workers = game.getWorkerCount(0);
-    players[1].workers = game.getWorkerCount(1);
+    players.updateResources(game);
 
     reactApp.render(
       <HUD
@@ -259,6 +239,8 @@ export async function TitanReactorReplay(
         onChangePosition={hudData.onChangePosition}
         onTogglePaused={hudData.onTogglePaused}
         minimapCanvas={context.minimapCanvas}
+        onShowHeatMap={hudData.onShowHeatMap}
+        heatmapEnabled={minimap.heatmapEnabled}
       />
     );
     if (firstUiUpdate) {
@@ -335,18 +317,21 @@ export async function TitanReactorReplay(
         // units.units.updateMatrixWorld(true);
       }
 
-      const attackingUnits = compose(
-        (units) => heatMapScore.unitsOfInterest(units),
-        (units) =>
-          units.map((unitRepId) => {
-            return game.units.children.find(
+      if (replayPosition.autoSpeed || minimap.heatmapEnabled) {
+        const attackingUnits = unitsThisFrame
+          .map((unitRepId) =>
+            game.units.children.find(
               ({ userData }) => userData.repId === unitRepId
-            );
-          })
-      );
+            )
+          )
+          .filter((unit) => heatMapScore.unitOfInterestFilter(unit));
 
-      if (replayPosition.updateAutoSpeed(attackingUnits(unitsThisFrame))) {
-        updateUi();
+        if (replayPosition.updateAutoSpeed(attackingUnits)) {
+          updateUi();
+        }
+        if (minimap.heatmapEnabled) {
+          minimap.heatmap.update(replayPosition.bwGameFrame, attackingUnits);
+        }
       }
     }
 

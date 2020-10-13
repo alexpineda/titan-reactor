@@ -7,6 +7,7 @@ export default ({
   onRevealMap,
   onShowHeatMap,
   onDropPings,
+  heatmapEnabled,
   canvas,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
@@ -45,7 +46,9 @@ export default ({
           </i>
 
           <i
-            className="material-icons text-yellow-700 rounded cursor-pointer"
+            className={`material-icons  rounded cursor-pointer ${
+              heatmapEnabled ? "text-yellow-700" : "text-gray-700 "
+            }`}
             style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
             title={`Activity Heatmap`}
             data-tip={`Activity Heatmap`}

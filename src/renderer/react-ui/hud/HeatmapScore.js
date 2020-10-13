@@ -90,30 +90,32 @@ export default class HeatmapScore {
     }
   }
 
-  unitsOfInterest(units) {
-    return units.filter((unit) => {
-      const unitType = this.bwDat.units[unit.userData.typeId];
-      if (unitType.resourceMiner()) {
-        return [orders.attackMove, orders.attackUnit].includes(
-          unit.userData.current.order
-        );
-      } else if (
-        [
-          unitTypes.sunkenColony,
-          unitTypes.sporeColony,
-          unitTypes.bunker,
-          unitTypes.photonCannon,
-        ].includes(unit.userData.typeId)
-      ) {
-        return true;
-      } else if (unitType.building() || unitType.resourceContainer()) {
-        return false;
-      } else if (
-        [unitTypes.overlord, unitTypes.larva].includes(unit.userData.typeId)
-      ) {
-        return false;
-      }
+  unitOfInterestFilter(unit) {
+    const unitType = this.bwDat.units[unit.userData.typeId];
+    if (unitType.resourceMiner()) {
+      return [orders.attackMove, orders.attackUnit].includes(
+        unit.userData.current.order
+      );
+    } else if (
+      [
+        unitTypes.sunkenColony,
+        unitTypes.sporeColony,
+        unitTypes.bunker,
+        unitTypes.photonCannon,
+      ].includes(unit.userData.typeId)
+    ) {
       return true;
-    });
+    } else if (unitType.building() || unitType.resourceContainer()) {
+      return false;
+    } else if (
+      [unitTypes.overlord, unitTypes.larva].includes(unit.userData.typeId)
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  unitsOfInterest(units) {
+    return units.filter(this.unitOfInterestFilter);
   }
 }

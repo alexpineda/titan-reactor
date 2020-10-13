@@ -33,7 +33,7 @@ export class Game {
     mapSize,
     getTerrainY,
     audioListener,
-    playerColors,
+    players,
     audioPool = {},
     loadingManager = DefaultLoadingManager
   ) {
@@ -47,7 +47,7 @@ export class Game {
     this.getTerrainY = getTerrainY;
     this.shear = new Vector3(0, 0, 0);
     this.bwDat = bwDat;
-    this.playerColors = playerColors;
+    this.players = players;
     this.audioListener = audioListener;
     this.loadingManager = loadingManager;
     // more of a cache for the moment
@@ -94,6 +94,7 @@ export class Game {
       : new BWAPIUnit();
     unit.userData.currentOrder = {};
     unit.name = this.bwDat.units[unit.userData.typeId].name;
+    unit.userData.heatmapScore = 0;
 
     if (replaceUnit) {
       this.supplyTaken[unit.userData.current.playerId] =
@@ -127,7 +128,7 @@ export class Game {
       let minimapPoint;
       if (unit.userData.current.playerId >= 0) {
         minimapPoint = createMinimapPoint(
-          this.playerColors[unit.userData.current.playerId],
+          this.players[unit.userData.current.playerId].color.rgb,
           w,
           h
         );
@@ -469,6 +470,10 @@ export class Game {
     this.deadUnits.push(unit);
   }
 
+  onEndFrame() {
+    this.players.updateResources(this);
+  }
+
   clear() {
     //@todo dispose without fucking up materials
     this.units.children.forEach((child) => this.units.remove(child));
@@ -553,16 +558,6 @@ export class Game {
       }
       return sum;
     }, 0);
-  }
-
-  getSupplyCap(player) {
-    return this.units.children
-      .map(({ userData }) => userData)
-      .filter(({ playerId }) => playerId === player)
-      .reduce((sum, { typeId }) => {
-        const supp = this.bwDat[typeId].supplyProvided;
-        return (sum = sum + supp);
-      }, 0);
   }
 
   dispose() {

@@ -31,6 +31,8 @@ export default ({
   maxFrame,
   gameSpeed,
   minimapCanvas,
+  onShowHeatMap,
+  heatmapEnabled,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
@@ -47,9 +49,6 @@ export default ({
 
   const onRevealMap = (e) => {
     console.log("onRevealMap", e);
-  };
-  const onShowHeatMap = (e) => {
-    console.log("onShowHeatMap", e);
   };
 
   const onDropPings = (e) => {
@@ -68,6 +67,9 @@ export default ({
   const onUnitFPV = (e) => {
     console.log("onUnitFPV", e);
   };
+  const onTogglePlayerActions = (e) => {
+    console.log("onTogglePlayerActions");
+  };
 
   return (
     <>
@@ -77,6 +79,7 @@ export default ({
       )}
       {showResources && (
         <Resources
+          onTogglePlayerActions={onTogglePlayerActions}
           onTogglePlayerVision={onTogglePlayerVision}
           onTogglePlayerFPV={onTogglePlayerFPV}
           onToggleDualFPV={onToggleDualFPV}
@@ -88,6 +91,7 @@ export default ({
         <Minimap
           onRevealMap={onRevealMap}
           onShowHeatMap={onShowHeatMap}
+          heatmapEnabled={heatmapEnabled}
           onDropPings={onDropPings}
           timeLabel={timeLabel}
           textSize={config.textSize}
