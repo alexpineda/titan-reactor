@@ -1,5 +1,5 @@
 import { MathUtils } from "three";
-import { gameSpeeds } from "../utils/conversions";
+import { framesBySeconds, gameSpeeds } from "../utils/conversions";
 
 export class ClockMs {
   constructor(autoStart) {
@@ -76,7 +76,7 @@ export class ReplayPosition {
     this.paused = true;
     this.destination = undefined;
     this.heatMapScore = heatMapScore;
-    this.autoSpeedRefreshRate = 24 * 5;
+    this.autoSpeedRefreshRate = framesBySeconds(5);
     this.onResetState = () => {};
   }
 

@@ -1,8 +1,9 @@
 export class Players extends Array {
-  constructor(players) {
+  constructor(players, startLocations) {
     super();
     this.push(
       ...players.map((player) => ({
+        id: player.id,
         name: player.name,
         minerals: 0,
         gas: 0,
@@ -16,8 +17,10 @@ export class Players extends Array {
         showActions: false,
         showPov: false,
         hideVision: false,
+        startLocation: startLocations.find((u) => u.player == player.id),
       }))
     );
+    this.activePovs = 0;
   }
 
   static get [Symbol.species]() {

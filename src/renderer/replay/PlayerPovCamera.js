@@ -1,17 +1,23 @@
-import { commands } from "bwdat/commands";
 import { Vector4 } from "three/src/math/Vector4";
 
 const { PerspectiveCamera } = require("three");
 
+export const PovLeft = Symbol("povLeft");
+export const PovRight = Symbol("povRight");
+
 export class PlayerPovCamera extends PerspectiveCamera {
-  constructor(player) {
+  constructor(side, getActivePovs, { x = 0, y = 0 }) {
     super(30, window.innerWidth / 2 / window.innerHeight, 5, 100);
-    this.initViewport(player);
     this.position.y = 40;
+    this.side = side;
+    this.enabled = false;
+    this.getActivePovs = getActivePovs;
+    this.resizeViewport();
+    this.moveTo(x, y);
   }
 
-  initViewport(player) {
-    if (player === 0) {
+  resizeViewport() {
+    if (this.side === PovLeft) {
       this.viewport = new Vector4(
         0,
         0,
@@ -26,6 +32,12 @@ export class PlayerPovCamera extends PerspectiveCamera {
         window.innerHeight
       );
     }
+  }
+
+  moveTo(x, y) {
+    this.position.x = x;
+    this.position.z = y;
+    this.lookAt(this.position.x, 0, this.position.z);
   }
 
   update(cmd, pxToMeter) {
@@ -43,5 +55,15 @@ export class PlayerPovCamera extends PerspectiveCamera {
     //   case commands.targetedOrder:
     //   case commands.build:
     // }
+  }
+
+  updateAspect(width, height) {
+    if (this.getActivePovs() === 0) {
+      return;
+    }
+
+    this.aspect = width / this.getActivePovs() / height;
+    this.resizeViewport();
+    this.updateProjectionMatrix();
   }
 }

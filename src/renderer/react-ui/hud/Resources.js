@@ -74,9 +74,7 @@ export default ({
   players,
   textSize,
   onTogglePlayerVision,
-  onTogglePlayerActions,
   onTogglePlayerPov,
-  onToggleDualPov,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
@@ -101,7 +99,7 @@ export default ({
             </tbody>
           </table>
 
-          <aside className="flex flex-col justify-between ml-2">
+          <aside className="flex flex-col justify-around ml-2">
             <i
               onClick={() => onTogglePlayerPov && onTogglePlayerPov(0)}
               className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
@@ -111,18 +109,6 @@ export default ({
               data-tip={`${players[0].name} First Person`}
             >
               slideshow
-            </i>
-            <i
-              onClick={() => onToggleDualPov && onToggleDualPov()}
-              className={`material-icons hover:text-yellow-500 rounded cursor-pointer transform rotate-90 mb-1 ${
-                players[0].showPov && players[1].showPov
-                  ? "text-yellow-700"
-                  : "text-gray-700 "
-              }`}
-              style={{ fontSize: smallIconFontSize }}
-              data-tip={`Split First Person`}
-            >
-              call_merge
             </i>
             <i
               onClick={() => onTogglePlayerPov && onTogglePlayerPov(1)}
@@ -135,7 +121,7 @@ export default ({
               slideshow
             </i>
           </aside>
-          <aside className="flex flex-col justify-between ml-2 b">
+          {/* <aside className="flex flex-col justify-between ml-2 b">
             <i
               onClick={() => onTogglePlayerActions && onTogglePlayerActions(0)}
               className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
@@ -157,7 +143,7 @@ export default ({
             >
               room
             </i>
-          </aside>
+          </aside> */}
         </div>
       </div>
     </div>

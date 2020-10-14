@@ -4,11 +4,15 @@ import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui"
 import { createStartLocation } from "./mesh/BasicObjects";
 import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
-import { Cameras } from "./replay/Cameras";
-
+import { MainCamera } from "./replay/MainCamera";
+import { fog } from "./3d-map-rendering/lights";
+import { TerrainCubeCamera } from "./replay/CubeCamera";
+import { createStats } from "utils/stats";
 export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
+  const stats = createStats();
+
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
@@ -19,14 +23,15 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const cameras = new Cameras(context, scene.terrain.material.map);
-
+  const mainCamera = new MainCamera(context);
   if (hot && hot.camera) {
-    cameras.main.position.copy(hot.camera.position);
-    cameras.main.rotation.copy(hot.camera.rotation);
+    mainCamera.camera.position.copy(hot.camera.position);
+    mainCamera.camera.rotation.copy(hot.camera.rotation);
   }
-  cameras.control.update();
-  scene.add(cameras.cubeCamera);
+  mainCamera.control.update();
+
+  const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
+  scene.add(cubeCamera);
 
   const terrainY = scene.getTerrainY();
 
@@ -85,19 +90,19 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom }) => {
-    cameras.main.fov = fov;
-    cameras.main.zoom = zoom;
+    mainCamera.camera.fov = fov;
+    mainCamera.camera.zoom = zoom;
 
-    cameras.main.updateProjectionMatrix();
+    mainCamera.camera.updateProjectionMatrix();
   });
 
   gui.controllers.camera.rotate.onChange((val) => {
-    cameras.control.autoRotate = val;
+    mainCamera.control.autoRotate = val;
     // startLocations.forEach((sl) => (sl.visible = !val));
     if (val) {
-      cameras.control.target = scene.terrain.position;
+      mainCamera.control.target = scene.terrain.position;
     } else {
-      cameras.control.target = null;
+      mainCamera.control.target = null;
     }
   });
 
@@ -112,13 +117,24 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   const keyDownListener = (e) => {
     if (e.code === "Digit3") {
       console.log("go");
-      cameraZoom.start = cameras.main.zoom;
+      cameraZoom.start = mainCamera.camera.zoom;
       cameraZoom.end = 2.8;
       cameraZoom.active = true;
     }
   };
   document.addEventListener("keydown", keyDownListener);
   //#endregion
+
+  const getTerrainY = scene.getTerrainY();
+
+  const lm = new LoadModel();
+  for (let i = 0; i < 1000; i++) {
+    const z = await lm.load("_alex/zergling.glb");
+    const x = (Math.random() - 0.5) * 128;
+    const y = (Math.random() - 0.5) * 128;
+    z.position.set(x, getTerrainY(x, y), y);
+    scene.add(z);
+  }
 
   //#region map controllers
   gui.controllers.map.onChangeAny(
@@ -224,13 +240,13 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
   const restoreContextHandler = () => {
     context.initRenderer(true);
-    cameras.onRestoreContext(scene);
+    cubeCamera.onRestoreContext();
     context.renderer.setAnimationLoop(gameLoop);
   };
   context.addEventListener("lostcontext", restoreContextHandler);
 
-  const sceneResizeHandler = () => {
-    cameras.onResize();
+  const sceneResizeHandler = ({ message: [width, height] }) => {
+    mainCamera.updateAspect(width, height);
   };
   context.addEventListener("resize", sceneResizeHandler);
 
@@ -242,7 +258,7 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
     if (!running) return;
 
     if (cameraZoom.active) {
-      cameras.main.zoom = THREE.MathUtils.lerp(
+      mainCamera.camera.zoom = THREE.MathUtils.lerp(
         cameraZoom.start,
         cameraZoom.end,
         (cameraZoom.i += cameraZoom.speed)
@@ -251,18 +267,20 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
         cameraZoom.active = false;
         cameraZoom.i = 0;
       }
-      cameras.main.updateProjectionMatrix();
+      mainCamera.camera.updateProjectionMatrix();
     }
 
-    pointLight.position.copy(cameras.main.position);
+    pointLight.position.copy(mainCamera.camera.position);
     pointLight.position.y += 5;
 
-    cameras.control.update();
+    mainCamera.control.update();
     // cameras.updateCubeCamera(scene);
 
     context.renderer.clear();
     context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    context.renderer.render(scene, cameras.main);
+    context.renderer.render(scene, mainCamera.camera);
+
+    stats.update();
   }
 
   context.renderer.setAnimationLoop(gameLoop);
@@ -279,16 +297,17 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
     scene.dispose();
     context.renderer.dispose();
 
-    cameras.dispose();
+    mainCamera.dispose();
     gui.dispose();
+    stats.dispose();
   };
 
   if (module.hot) {
     module.hot.dispose((data) => {
       data.filepath = filepath;
       data.camera = {
-        position: cameras.main.position.clone(),
-        rotation: cameras.main.rotation.clone(),
+        position: mainCamera.camera.position.clone(),
+        rotation: mainCamera.camera.rotation.clone(),
       };
       dispose();
     });

@@ -49,7 +49,9 @@ export class Image3D {
     const assignModel = (id) => (model) => {
       this.prefabs[id] = () => model.clone();
     };
+
     //@todo use units.js from bwdat
+    //@todo don't use static asset directory anymore, load from fs
     loadModel.load(`_alex/scvm.glb`).then(assignModel(0x7));
     loadModel.load(`_alex/probe.glb`).then(assignModel(0x40));
     loadModel.load(`_alex/supply.glb`).then(assignModel(0x6d));

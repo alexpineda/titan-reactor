@@ -33,9 +33,7 @@ export default ({
   minimapCanvas,
   onShowHeatMap,
   heatmapEnabled,
-  onTogglePlayerActions,
   onTogglePlayerPov,
-  onToggleDualPov,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
@@ -73,10 +71,8 @@ export default ({
       )}
       {showResources && (
         <Resources
-          onTogglePlayerActions={onTogglePlayerActions}
           onTogglePlayerVision={onTogglePlayerVision}
           onTogglePlayerPov={onTogglePlayerPov}
-          onToggleDualPov={onToggleDualPov}
           players={players}
           textSize={config.textSize}
         />

@@ -201,20 +201,20 @@ export default ({
               onMouseMove={setPositionLabelHandler}
               onMouseLeave={() => setPositionLabel("")}
             >
-              <div
-                style={{ width: `${hideProgress ? 100 : progress}%` }}
-                className={`pointer-events-none h-full rounded-sm ${
-                  hideProgress
-                    ? "pattern-grid-sm bg-gray-700 text-gray-800 "
-                    : `pattern-vertical-stripes-sm ${
-                        progress === 100
-                          ? "bg-red-700 text-red-800"
-                          : "bg-green-700 text-green-800"
-                      }  `
-                }`}
-              >
-                &nbsp;
-              </div>
+              {!hideProgress && (
+                <div
+                  style={{
+                    width: `${progress}%`,
+                  }}
+                  className={`pointer-events-none h-full rounded-sm pattern-vertical-stripes-sm ${
+                    progress === 100
+                      ? "bg-red-700 text-red-800"
+                      : "bg-green-700 text-green-800"
+                  }`}
+                >
+                  &nbsp;
+                </div>
+              )}
             </div>
 
             <div className="flex justify-around items-center p-2 mt-2">

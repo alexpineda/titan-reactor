@@ -47,6 +47,7 @@
     "dat.gui": "0.7.7",
     "downgrade-replay": "file:../downgrade-replay",
     "electron-is-dev": "^1.2.0",
+    "esm": "^3.2.25",
     "iconv-lite": "0.6.1",
     "iscript": "^1.0.2",
     "jssuh": "1.4.0",

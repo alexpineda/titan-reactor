@@ -1,8 +1,21 @@
-import { invertObj } from "ramda";
+import { invertObj, is } from "ramda";
 //bw scales
+
+const transform = (a, b) => a / 32 - b / 2;
+
 export const pxToMapMeter = (mapWidth, mapHeight) => ({
-  x: (x) => x / 32 - mapWidth / 2,
-  y: (y) => y / 32 - mapHeight / 2,
+  x: (x) => transform(x, mapWidth),
+  y: (y) => transform(y, mapHeight),
+  xy: (xy) => {
+    if (is(Array, xy)) {
+      return [transform(xy[0], mapWidth), transform(xy[1], mapHeight)];
+    } else {
+      return {
+        x: transform(xy.x, mapWidth),
+        y: transform(xy.y, mapHeight),
+      };
+    }
+  },
 });
 
 export const gameSpeeds = {
@@ -21,7 +34,10 @@ export const gameSpeeds = {
 };
 export const gameSpeedNames = invertObj(gameSpeeds);
 
-export const framesPerSecond = (speed) => 1000 / speed;
+export const framesBySeconds = (frames = 1, roundFn = Math.ceil) =>
+  roundFn((frames * 1000) / gameSpeeds.fastest);
+
+export const onFastestTick = (frame) => frame % 24 === 0;
 
 export const angleToDirection = (angle) =>
   Math.floor(

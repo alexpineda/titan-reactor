@@ -1,13 +1,14 @@
 import { Mesh, ConeGeometry, Group, MeshBasicMaterial, Color } from "three";
 import { easeElasticOut, easeExpOut } from "d3-ease";
+import { framesBySeconds } from "utils/conversions";
 
 //@todo refactor with pooling + ClockMs()
 export class FadingPointers extends Group {
   constructor() {
     super();
-    this.lifespan = 160;
+    this.lifespan = framesBySeconds(7);
     this.maxOpacity = 0.8;
-    this.bounceEnd = 48;
+    this.bounceEnd = framesBySeconds(2);
     this.bounceEndT = this.bounceEnd / this.lifespan;
     this.dropHeight = 3;
   }

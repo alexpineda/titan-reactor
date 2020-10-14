@@ -1,5 +1,5 @@
 import React from "react";
-import { PointLight, Raycaster, Vector2, AudioListener, Color } from "three";
+import { PointLight, Raycaster, Vector2, AudioListener } from "three";
 
 import {
   BWAPIUnitFromBuffer,
@@ -9,18 +9,23 @@ import { BgMusic } from "./audio/BgMusic";
 
 import { Game } from "./replay/Game";
 //todo refactor out
-import { difference, range } from "ramda";
+import { difference } from "ramda";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
-import { gameSpeeds, pxToMapMeter } from "./utils/conversions";
+import { gameSpeeds, pxToMapMeter, onFastestTick } from "./utils/conversions";
 import HUD from "./react-ui/hud/HUD";
 import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
-import { Cameras } from "./replay/Cameras";
+import { MainCamera } from "./replay/MainCamera";
 import { Minimap } from "./replay/Minimap";
 import { Players } from "./replay/Players";
 import { FadingPointers } from "./mesh/FadingPointers";
 import { MinimapUnitLayer } from "./replay/Layers";
 import { commands } from "bwdat/commands";
+import { PlayerPovCamera, PovLeft, PovRight } from "./replay/PlayerPovCamera";
+import { TerrainCubeCamera } from "./replay/CubeCamera";
+import { unitTypes } from "../common/bwdat/unitTypes";
+const { startLocation } = unitTypes;
+
 export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorReplay(
@@ -48,17 +53,34 @@ export async function TitanReactorReplay(
     heatMapScore
   );
 
-  const cameras = new Cameras(context, scene.terrain.material.map, minimap);
+  const mainCamera = new MainCamera(context, minimap);
   if (hot && hot.camera) {
-    cameras.main.position.copy(hot.camera.position);
-    cameras.main.rotation.copy(hot.camera.rotation);
+    mainCamera.camera.position.copy(hot.camera.position);
+    mainCamera.camera.rotation.copy(hot.camera.rotation);
   }
-  cameras.control.update();
-  scene.add(cameras.cubeCamera);
+  mainCamera.control.update();
+  scene.add(mainCamera.minimapCameraHelper);
+
+  const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
+  scene.add(cubeCamera);
+
+  const players = new Players(
+    rep.header.players,
+    chk.units.filter((u) => u.unitId === startLocation)
+  );
+  players[0].camera = new PlayerPovCamera(
+    PovLeft,
+    () => players.activePovs,
+    pxToMeter.xy(players[0].startLocation)
+  );
+  players[1].camera = new PlayerPovCamera(
+    PovRight,
+    () => players.activePovs,
+    pxToMeter.xy(players[1].startLocation)
+  );
 
   scene.add(minimap.minimapPlane);
   scene.add(minimap.heatmap);
-  scene.add(cameras.minimapCameraHelper);
 
   const pointLight = new PointLight(0xffffff, 1, 60, 0);
   pointLight.power = 20;
@@ -66,13 +88,11 @@ export async function TitanReactorReplay(
   scene.add(pointLight);
 
   const audioListener = new AudioListener();
-  cameras.main.add(audioListener);
+  mainCamera.camera.add(audioListener);
   const bgMusic = new BgMusic(audioListener);
   bgMusic.setVolume(0.01);
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
-
-  const players = new Players(rep.header.players);
 
   const getTerrainY = scene.getTerrainY();
   const game = new Game(
@@ -133,7 +153,7 @@ export async function TitanReactorReplay(
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, cameras.main);
+    raycaster.setFromCamera(mouse, mainCamera.camera);
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(game.getUnits(), true);
@@ -170,6 +190,7 @@ export async function TitanReactorReplay(
   }
   replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
 
+  //@todo move to class
   const hudData = {
     position: () => replayPosition.bwGameFrame / replayPosition.maxFrame,
     onChangeGameSpeed: (speed) => (replayPosition.gameSpeed = speed),
@@ -195,31 +216,28 @@ export async function TitanReactorReplay(
         minimap.heatmap.reset();
       }
     },
-    onTogglePlayerActions: (player) => {
-      players[player].showActions = !players[player].showActions;
-    },
+    povInterval: null,
+    povFns: [],
     onTogglePlayerPov: (player) => {
-      const otherPlayer = player === 0 ? 1 : 0;
-      players[player].showPov = !players[player].showPov;
-      players[otherPlayer].showActions = players[player].showPov;
+      clearTimeout(hudData.povInterval);
 
-      if (players[player].showPov && players[otherPlayer].showPov) {
-        players[otherPlayer].showPov = false;
-        players[otherPlayer].showActions = false;
-      }
-    },
-    onToggleDualPov: () => {
-      if (players[0].showPov && players[1].showPov) {
-        players[0].showPov = false;
-        players[1].showPov = false;
-        players[0].showActions = false;
-        players[1].showActions = false;
-      } else {
-        players[0].showPov = true;
-        players[1].showPov = true;
-        players[0].showActions = true;
-        players[1].showActions = true;
-      }
+      hudData.povFns.push(() => {
+        players[player].showPov = !players[player].showPov;
+        players[player].showActions = players[player].showPov;
+      });
+
+      hudData.povInterval = setTimeout(() => {
+        hudData.povFns.forEach((fn) => fn());
+        hudData.povFns = [];
+
+        players.activePovs = players.filter(
+          ({ showPov }) => showPov === true
+        ).length;
+        const [w, h] = context.getSceneDimensions();
+        players.forEach(({ camera }) => camera.updateAspect(w, h));
+
+        mainCamera.control.enabled = players.activePovs === 0;
+      }, 1000);
     },
   };
 
@@ -230,13 +248,14 @@ export async function TitanReactorReplay(
 
   const restoreContextHandler = () => {
     context.initRenderer(true);
-    cameras.onRestoreContext(scene);
+    cubeCamera.onRestoreContext();
     context.renderer.setAnimationLoop(gameLoop);
   };
   context.addEventListener("lostcontext", restoreContextHandler);
 
-  const sceneResizeHandler = () => {
-    cameras.onResize();
+  const sceneResizeHandler = ({ message: [width, height] }) => {
+    mainCamera.updateAspect(width, height);
+    players.forEach(({ camera }) => camera.updateAspect(width, height));
     minimap.refresh();
   };
   context.addEventListener("resize", sceneResizeHandler);
@@ -269,9 +288,7 @@ export async function TitanReactorReplay(
         minimapCanvas={context.minimapCanvas}
         onShowHeatMap={hudData.onShowHeatMap}
         heatmapEnabled={minimap.heatmapEnabled}
-        onTogglePlayerActions={hudData.onTogglePlayerActions}
         onTogglePlayerPov={hudData.onTogglePlayerPov}
-        onToggleDualPov={hudData.onToggleDualPov}
       />
     );
     if (firstUiUpdate) {
@@ -283,8 +300,7 @@ export async function TitanReactorReplay(
   function gameLoop() {
     uiUpdated = false;
 
-    //only update rep position every fastest frame update
-    if (replayPosition.frame % 24 === 0) {
+    if (onFastestTick(replayPosition.frame)) {
       updateUi();
     }
 
@@ -351,7 +367,7 @@ export async function TitanReactorReplay(
         if (rep.cmds[replayPosition.bwGameFrame]) {
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
             if (players[cmd.player].showPov) {
-              cameras.playerCameras[cmd.player].update(cmd, pxToMeter);
+              players[cmd.player].camera.update(cmd, pxToMeter);
             }
             if (players[cmd.player].showActions) {
               switch (cmd.id) {
@@ -394,34 +410,33 @@ export async function TitanReactorReplay(
       }
     }
 
-    pointLight.position.copy(cameras.main.position);
+    pointLight.position.copy(mainCamera.camera.position);
     pointLight.position.y += 5;
 
     // cameras.updateCubeCamera(scene);
 
     game.cameraDirection.previousDirection = game.cameraDirection.direction;
 
-    game.cameraDirection.direction = cameras.getDirection32();
-    game.setShear(cameras.getShear());
+    game.cameraDirection.direction = mainCamera.getDirection32();
+    game.setShear(mainCamera.getShear());
 
     if (players[0].showPov && players[1].showPov) {
       context.renderer.setScissorTest(true);
-      context.renderer.setViewport(cameras.playerCameras[0].viewport);
-      context.renderer.setScissor(cameras.playerCameras[0].viewport);
-      context.renderer.render(scene, cameras.playerCameras[0]);
-      context.renderer.setViewport(cameras.playerCameras[1].viewport);
-      context.renderer.setScissor(cameras.playerCameras[1].viewport);
-      context.renderer.render(scene, cameras.playerCameras[1]);
+      players.forEach(({ camera }) => {
+        context.renderer.setViewport(camera.viewport);
+        context.renderer.setScissor(camera.viewport);
+        context.renderer.render(scene, camera);
+      });
       context.renderer.setScissorTest(false);
     } else if (players[0].showPov) {
       context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-      context.renderer.render(scene, cameras.playerCameras[0]);
+      context.renderer.render(scene, players[0].camera);
     } else if (players[1].showPov) {
       context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-      context.renderer.render(scene, cameras.playerCameras[1]);
+      context.renderer.render(scene, players[1].camera);
     } else {
       context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-      context.renderer.render(scene, cameras.main);
+      context.renderer.render(scene, mainCamera.camera);
     }
 
     context.renderer.clearDepth();
@@ -452,7 +467,7 @@ export async function TitanReactorReplay(
 
     minimap.dispose();
     scene.dispose();
-    cameras.dispose();
+    mainCamera.dispose();
     debugInfo.dispose();
 
     document.removeEventListener("keydown", keyDownListener);
@@ -467,7 +482,7 @@ export async function TitanReactorReplay(
   if (module.hot) {
     module.hot.dispose((data) => {
       Object.assign(data, {
-        camera: cameras.main,
+        camera: mainCamera.camera,
         BWAPIFrame: replayPosition.bwGameFrame,
         filepath,
       });

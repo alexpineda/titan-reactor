@@ -1,15 +1,8 @@
-import {
-  CubeCamera,
-  MOUSE,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Vector3,
-  WebGLCubeRenderTarget,
-} from "three";
+import { MOUSE, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import { Object3D } from "three/src/core/Object3D";
 import { OrbitControls } from "../utils/OrbitalControls";
 import { MinimapLayer } from "./Layers";
 import { MinimapCameraHelper } from "./Minimap";
-import { PlayerPovCamera } from "./PlayerPovCamera";
 
 export const CameraControlType = {
   none: 0,
@@ -19,39 +12,34 @@ export const CameraControlType = {
   playerPov: 4,
 };
 
-export class Cameras {
-  constructor(context, map, minimap = null) {
-    this.main = this._initPerspectiveCamera();
-    this.playerCameras = [new PlayerPovCamera(0), new PlayerPovCamera(1)];
+export class MainCamera {
+  constructor(context, minimap = null) {
+    this.camera = this._initOrthoCamera();
 
     this.context = context;
-    this.map = map;
-    if (map) {
-      this.cubeCamera = this._initCubeCamera();
-    }
     this.control = this._initOrbitControls(false);
 
     this.minimap = minimap;
     this._delta = new Vector3();
 
     if (this.minimap) {
-      this.minimapCameraHelper = new MinimapCameraHelper(this.main);
+      this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
       this.minimapCameraHelper.layers.set(MinimapLayer);
 
       minimap.addEventListener("start", ({ message: pos }) => {
-        this._delta.subVectors(this.control.target, this.main.position);
+        this._delta.subVectors(this.control.target, this.camera.position);
         this.control.target.copy(pos);
-        this.main.position.subVectors(pos, this._delta);
+        this.camera.position.subVectors(pos, this._delta);
       });
 
       minimap.addEventListener("update", ({ message: pos }) => {
         this.control.target.copy(pos);
-        this.main.position.subVectors(pos, this._delta);
+        this.camera.position.subVectors(pos, this._delta);
       });
 
       minimap.addEventListener("hover", ({ message: pos }) => {
         console.log("hover");
-        this._delta.subVectors(this.control.target, this.main.position);
+        this._delta.subVectors(this.control.target, this.camera.position);
         this.minimapCameraHelper.position.set(pos.x, 10, pos.z + 10);
         this.minimapCameraHelper.lookAt(pos);
       });
@@ -70,23 +58,14 @@ export class Cameras {
   }
 
   _initOrthoCamera() {
-    return new OrthographicCamera(16, 0, 16, 0, 1, 10000);
-  }
-
-  _initCubeCamera() {
-    const cubeRenderTargetGenerator = new WebGLCubeRenderTarget(128, {});
-
-    const renderTarget = cubeRenderTargetGenerator.fromEquirectangularTexture(
-      this.context.renderer,
-      this.map
-    );
-    cubeRenderTargetGenerator.dispose();
-    const cubeCamera = new CubeCamera(1, 100000, renderTarget);
-    return cubeCamera;
+    return new OrthographicCamera(-16, 16, 16, -16, 1, 10000);
   }
 
   _initOrbitControls(limitControl = false) {
-    const orbitControl = new OrbitControls(this.main, this.context.gameCanvas);
+    const orbitControl = new OrbitControls(
+      this.camera,
+      this.context.gameCanvas
+    );
     orbitControl.mouseButtons = {
       LEFT: MOUSE.PAN,
       MIDDLE: MOUSE.DOLLY,
@@ -114,32 +93,23 @@ export class Cameras {
   }
 
   resetMainCamera() {
-    this.main.position.set(0, 100, 0);
-    this.main.lookAt(new Vector3());
+    this.camera.position.set(0, 100, 0);
+    this.camera.lookAt(new Vector3());
   }
 
-  onResize() {
-    const [width, height] = this.context.getSceneDimensions();
-    this.main.aspect = width / height;
-    this.main.updateProjectionMatrix();
-  }
-
-  onRestoreContext(scene) {
-    scene.remove(this.cubeCamera);
-    this.cubeCamera.renderTarget.dispose();
-    this.cubeCamera = this._initCubeCamera();
-    scene.add(this.cubeCamera);
-    //@todo update env maps
+  updateAspect(width, height) {
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 
   getShear() {
     const delta = new Vector3();
-    return delta.subVectors(this.main.position, this.control.target);
+    return delta.subVectors(this.camera.position, this.control.target);
   }
 
   getDirection32() {
-    const adj = this.control.target.z - this.main.position.z;
-    const opp = this.control.target.x - this.main.position.x;
+    const adj = this.control.target.z - this.camera.position.z;
+    const opp = this.control.target.x - this.camera.position.x;
     const a = Math.atan2(opp, adj) / Math.PI;
     if (a < 0) {
       return Math.floor((a + 2) * 16 + 16);
@@ -148,18 +118,7 @@ export class Cameras {
     }
   }
 
-  updateEnvMap(obj) {
-    obj.material.envMap = this.cubeCamera.renderTarget.texture;
-  }
-
-  updateCubeCamera(scene) {
-    this.cubeCamera.position.copy(this.main.position);
-    this.cubeCamera.rotation.copy(this.main.rotation);
-    this.cubeCamera.update(this.context.renderer, scene);
-  }
-
   dispose() {
     this.control.dispose();
-    this.cubeCamera.renderTarget.dispose();
   }
 }

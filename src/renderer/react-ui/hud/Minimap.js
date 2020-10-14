@@ -13,7 +13,7 @@ export default ({
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div className="minimap-parent flex items-stretch select-none">
-      <div className="rounded mb-2 pr-2 flex flex-1 border-2 border-yellow-900">
+      <div className="rounded mb-2 flex flex-1 border-2 border-yellow-900">
         <article className="minimap flex-1 relative">
           <p
             className={`text-gray-400 text-${textSize} bg-black inline-block absolute px-6 pt-1 pb-2 rounded-tl-full rounded-tr-full border-t-2 border-yellow-800`}
@@ -32,7 +32,7 @@ export default ({
         </article>
 
         <aside
-          className="view-controls flex-0 flex flex-col space-y-2 ml-2 py-2"
+          className="view-controls flex-0 flex flex-col space-y-2 ml-2 px-2"
           style={{ backgroundColor: "#1a202c99" }}
         >
           <i
@@ -45,7 +45,7 @@ export default ({
             filter_hdr
           </i>
 
-          <i
+          {/* <i
             className={`material-icons  rounded cursor-pointer hover:text-yellow-500 ${
               heatmapEnabled ? "text-yellow-700" : "text-gray-700 "
             }`}
@@ -55,7 +55,7 @@ export default ({
             onClick={() => onShowHeatMap && onShowHeatMap()}
           >
             bubble_chart
-          </i>
+          </i> */}
           <i
             className="material-icons hover:text-yellow-500 rounded cursor-pointer"
             style={{ fontSize: smallIconFontSize }}

@@ -21,16 +21,8 @@ export function terrainMesh(
     0
   );
 
-  // const geometry = new THREE.PlaneBufferGeometry(
-  //   mapWidth,
-  //   mapHeight,
-  //   mapWidth * 2,
-  //   mapHeight * 2
-  // );
   const material = new THREE.MeshStandardMaterial({
     map: map,
-    // displacementMap: displace,
-    // displacementScale: 0.5, // use it for reference, not for deformation since we already generated the mesh
     bumpMap: map,
     bumpScale: 0.3,
     // normalMap: normal,
