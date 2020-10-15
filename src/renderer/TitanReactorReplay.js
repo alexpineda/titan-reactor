@@ -316,9 +316,7 @@ export async function TitanReactorReplay(
       debugInfo.append(
         `Mem : ${window.performance.memory.usedJSHeapSize.toFixed(2)}`
       );
-      if (replayPosition.destination) {
-        debugger;
-      }
+
       for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
         replayPosition.bwGameFrame = replayPosition.readInt32AndAdvance();
 

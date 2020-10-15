@@ -42,20 +42,20 @@ const PlayerResources = ({
           {name}
         </span>
       </td>
-      <td className="pr-2 pointer-events-none" onClick={toggleWorkerCount}>
+      <td className="pr-2" onClick={toggleWorkerCount}>
         <img src="https://i.imgur.com/ram4CBj.png" className="inline w-4" />
         <span className={`text-gray-400 text-${textSize}`}>
           <RollingNumber number={minerals} />
         </span>
       </td>
-      <td className="pr-2 pointer-events-none" onClick={toggleWorkerCount}>
+      <td className="pr-2" onClick={toggleWorkerCount}>
         <img src="https://i.imgur.com/NI5ynEw.png" className="inline w-4" />
         <span className={`text-gray-400 text-${textSize}`}>
           <RollingNumber number={gas} />
         </span>
       </td>
       {showWorkerCount && (
-        <td className="pr-2 pointer-events-none" onClick={toggleWorkerCount}>
+        <td className="pr-2" onClick={toggleWorkerCount}>
           <img src={workerIcon} className="inline w-4" />
           <span className={`text-gray-400 text-${textSize}`}>{workers}</span>
         </td>

@@ -93,7 +93,8 @@ export class ReplayPosition {
         );
       } else {
         this.skipGameFrames = Math.min(frame, this._maxSkipSpeed);
-        this.bwapiBufferPosition = 0;
+        // skip first 2 uints
+        this.bwapiBufferPosition = 8;
         this.bwGameFrame = 0;
         this.onResetState();
       }

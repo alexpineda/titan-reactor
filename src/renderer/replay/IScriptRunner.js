@@ -1,5 +1,3 @@
-import { xprod } from "ramda";
-import { render } from "react-dom";
 import {
   iscriptHeaders as headers,
   headersById,
