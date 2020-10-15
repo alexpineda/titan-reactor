@@ -34,10 +34,12 @@ export class Game {
     getTerrainY,
     audioListener,
     players,
+    cameras,
     audioPool = {},
     loadingManager = DefaultLoadingManager
   ) {
     this.units = new Group();
+    this.cameras = cameras;
     this.tileset = tileset;
     this.mapSize = {
       w: mapSize[0],
@@ -438,7 +440,7 @@ export class Game {
 
     if (visible) {
       runner.renderImage.assign(unit.userData);
-      runner.renderImage.update();
+      runner.renderImage.update(this.cameras.main);
     }
     // runner.children.forEach((r) => {
     //   r.renderImage && r.renderImage.update();
@@ -480,6 +482,7 @@ export class Game {
     this.units.children = [];
     this.deadUnits = [];
     this.supplyTaken = [0, 0];
+    this.supplyProvided = [0, 0];
   }
 
   getUnits() {

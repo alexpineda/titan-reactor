@@ -62,7 +62,7 @@ export class TitanReactor {
         (file) => this.fileAccess(`${this.context.bwDataPath}/unit/${file}`),
         spritesTextureCache,
         jsonCache,
-        Math.sqrt(this.context.renderer.capabilities.maxTextureSize),
+        this.context.renderer.capabilities.maxTextureSize,
         loadingManager
       );
 

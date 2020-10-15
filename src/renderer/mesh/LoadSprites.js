@@ -9,6 +9,9 @@ import {
   ClampToEdgeWrapping,
   BufferAttribute,
   DynamicDrawUsage,
+  MeshStandardMaterial,
+  RGBADepthPacking,
+  MeshDepthMaterial,
 } from "three";
 import { Grp } from "../../../libs/bw-chk/grp";
 import { Buffer } from "buffer/";
@@ -17,6 +20,7 @@ import { range, groupBy } from "ramda";
 import Worker from "./packbin.worker.js";
 import { asyncFilter } from "../utils/async";
 import { DebugLog } from "../utils/DebugLog";
+import { SDSprite } from "./SDSprite";
 
 export class LoadSprite {
   constructor(
@@ -202,11 +206,11 @@ export class LoadSprite {
                     out[pos + 2] = grpData[spritePos + 2];
                     out[pos + 3] = grpData[spritePos + 3];
 
-                    const maskAlpha = playerMaskData[spritePos] > 0 ? 255 : 0;
-                    maskOut[pos] = playerMaskData[spritePos];
-                    maskOut[pos + 1] = playerMaskData[spritePos + 1];
-                    maskOut[pos + 2] = playerMaskData[spritePos + 2];
-                    maskOut[pos + 3] = maskAlpha;
+                    const maskAlpha = grpData[spritePos] > 0 ? 255 : 0;
+                    maskOut[pos] = maskAlpha;
+                    maskOut[pos + 1] = maskAlpha;
+                    maskOut[pos + 2] = maskAlpha;
+                    maskOut[pos + 3] = 255;
                   }
                 }
               }
@@ -298,12 +302,20 @@ export class LoadSprite {
       },
       0
     );
+
     const yOff = maxFrameBottom / this.atlas[image].frameGroup[0].h;
     const map = this.textures[bucketId];
-    //@todo implement mask
-    const sprite = new Sprite(new SpriteMaterial({ map }));
 
+    // const sprite = new SDSprite(new MeshStandardMaterial({ map }));
+    // sprite.customDepthMaterial = new MeshDepthMaterial({
+    //   depthPacking: RGBADepthPacking,
+    //   map: this.masks[bucketId],
+    //   alphaTest: 0.5,
+    // });
+
+    const sprite = new Sprite(new SpriteMaterial({ map }));
     sprite.geometry = sprite.geometry.clone();
+
     const ba = new BufferAttribute(
       new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
       2,
@@ -315,6 +327,7 @@ export class LoadSprite {
     sprite.scale.set(w / 32, h / 32, 1);
     sprite.material.transparent = true;
     sprite.material.alphaTest = 0.01;
+    sprite.castShadow = true;
 
     return sprite;
   }

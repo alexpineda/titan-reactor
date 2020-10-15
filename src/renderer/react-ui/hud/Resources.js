@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { RollingNumber } from "./RollingNumber";
 
 const PlayerResources = ({
@@ -16,6 +16,9 @@ const PlayerResources = ({
   hideVision,
   onTogglePlayerVision,
 }) => {
+  const [showWorkerCount, setShowWorkerCount] = useState(true);
+  const toggleWorkerCount = () => setShowWorkerCount(!showWorkerCount);
+
   let workerIcon = "https://i.imgur.com/guJEX8T.png";
   let supplyIcon = "https://i.imgur.com/ThFP93l.png";
   switch (race) {
@@ -39,22 +42,24 @@ const PlayerResources = ({
           {name}
         </span>
       </td>
-      <td className="pr-2 pointer-events-none">
+      <td className="pr-2 pointer-events-none" onClick={toggleWorkerCount}>
         <img src="https://i.imgur.com/ram4CBj.png" className="inline w-4" />
         <span className={`text-gray-400 text-${textSize}`}>
           <RollingNumber number={minerals} />
         </span>
       </td>
-      <td className="pr-2 pointer-events-none">
+      <td className="pr-2 pointer-events-none" onClick={toggleWorkerCount}>
         <img src="https://i.imgur.com/NI5ynEw.png" className="inline w-4" />
         <span className={`text-gray-400 text-${textSize}`}>
           <RollingNumber number={gas} />
         </span>
       </td>
-      <td className="pr-2 pointer-events-none">
-        <img src={workerIcon} className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>{workers}</span>
-      </td>
+      {showWorkerCount && (
+        <td className="pr-2 pointer-events-none" onClick={toggleWorkerCount}>
+          <img src={workerIcon} className="inline w-4" />
+          <span className={`text-gray-400 text-${textSize}`}>{workers}</span>
+        </td>
+      )}
       <td className="pr-2 pointer-events-none">
         <img src={supplyIcon} className="inline w-4" />
         <span className={`text-gray-400 text-${textSize}`}>

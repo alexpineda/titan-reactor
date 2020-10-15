@@ -79,7 +79,9 @@ export class ImageSD {
     return {
       add: (child, p = mesh) => p.add(child),
       assign: (obj) => this.logger.assign(obj),
-      update: this.update.bind(this, mesh, runner),
+      update: () => {
+        this.update(mesh, runner);
+      },
       remove: () => parent.remove(mesh),
     };
   }

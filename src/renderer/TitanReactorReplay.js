@@ -103,6 +103,7 @@ export async function TitanReactorReplay(
     getTerrainY,
     audioListener,
     players,
+    { main: mainCamera.camera },
     {}
   );
   scene.add(game.units);
@@ -183,9 +184,11 @@ export async function TitanReactorReplay(
 
   let unitsLastFrame = [];
   let unitsThisFrame = [];
+  let bulletsLastFrame = [];
+  let bulletsThisFrame = [];
 
   const version = replayPosition.readInt32AndAdvance();
-  if (version !== 4) {
+  if (version !== 5) {
     throw new Error("invalid rep.bin version");
   }
   replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
@@ -313,7 +316,9 @@ export async function TitanReactorReplay(
       debugInfo.append(
         `Mem : ${window.performance.memory.usedJSHeapSize.toFixed(2)}`
       );
-
+      if (replayPosition.destination) {
+        debugger;
+      }
       for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
         replayPosition.bwGameFrame = replayPosition.readInt32AndAdvance();
 
@@ -343,22 +348,21 @@ export async function TitanReactorReplay(
           );
 
           replayPosition.advanceBuffer(frameSize);
-
           unitsThisFrame.push(frameData.repId);
         }
 
-        // const numBulletsThisFrame = replayPosition.readUInt32AndAdvance();
+        const numBulletsThisFrame = replayPosition.readUInt32AndAdvance();
 
-        // range(0, numUnitsThisFrame).map(() => {
-        //   const { frameData, frameSize } = BWAPIBulletFromBuffer(
-        //     BWAPIFramesDataView,
-        //     replayPosition.bwapiBufferPosition
-        //   );
+        bulletsThisFrame = [];
+        for (let i = 0; i < numBulletsThisFrame; i++) {
+          const { frameData, frameSize } = BWAPIBulletFromBuffer(
+            BWAPIFramesDataView,
+            replayPosition.bwapiBufferPosition
+          );
 
-        //   replayPosition.advanceBuffer(frameSize);
-
-        //   return frameData.repId;
-        // });
+          replayPosition.advanceBuffer(frameSize);
+          bulletsThisFrame.push(frameData);
+        }
 
         game.killUnits(difference(unitsLastFrame, unitsThisFrame));
         unitsLastFrame = [...unitsThisFrame];
