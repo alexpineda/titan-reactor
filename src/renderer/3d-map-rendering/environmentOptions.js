@@ -26,8 +26,23 @@ export default {
       far: 1000,
       free: false,
       rotate: false,
+      focus: 10,
     },
     args: {},
+  },
+  cinematic: {
+    parent: "scene",
+    args: {},
+    values: {
+      focalLength: 15,
+      shaderFocus: false,
+      fstop: 2.8,
+
+      showFocus: false,
+      focalDepth: 0.1,
+
+      coc: 0.019,
+    },
   },
   map: {
     parent: "scene",

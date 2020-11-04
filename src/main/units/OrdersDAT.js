@@ -17,16 +17,15 @@ export class OrdersDAT extends DAT {
       { size: 1, name: "unknown7" },
       { size: 1, name: "unknown8" },
       { size: 1, name: "unknown9" },
-      { size: 1, name: "targeting", get: this._datValue("Weapons") },
-      { size: 1, name: "energy", get: this._infoValue("Techdata") },
-      { size: 1, name: "animation", get: this._infoValue("Animations") },
-      { size: 2, name: "highlight", get: this._infoValue("Icons") },
+      { size: 1, name: "targeting" },
+      { size: 1, name: "energy" },
+      { size: 1, name: "animation" },
+      { size: 2, name: "highlight" },
       { size: 2, name: "unknown10" },
-      { size: 1, name: "obscuredOrder", get: this._datValue("Orders") },
+      { size: 1, name: "obscuredOrder" },
     ];
 
     this.datname = "orders.dat";
-    this.idfile = "Orders.txt";
     this.filesize = 4158;
     this.count = 189;
   }

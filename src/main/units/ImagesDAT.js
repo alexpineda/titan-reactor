@@ -15,19 +15,18 @@ export class ImagesDAT extends DAT {
       { size: 1, name: "clickable" },
       { size: 1, name: "useFullIscript" },
       { size: 1, name: "drawIfCloaked" },
-      { size: 1, name: "drawFunction", get: this._infoValue("DrawList") },
+      { size: 1, name: "drawFunction" },
       { size: 1, name: "remapping" },
       { size: 4, name: "iscript" },
-      { size: 4, name: "shieldOverlay", get: this._statTxt() },
-      { size: 4, name: "attackOverlay", get: this._statTxt() },
-      { size: 4, name: "damageOverlay", get: this._statTxt() },
-      { size: 4, name: "specialOverlay", get: this._statTxt() },
-      { size: 4, name: "landingDustOverlay", get: this._statTxt() },
-      { size: 4, name: "liftOffDustOverlay", get: this._statTxt() },
+      { size: 4, name: "shieldOverlay" },
+      { size: 4, name: "attackOverlay" },
+      { size: 4, name: "damageOverlay" },
+      { size: 4, name: "specialOverlay" },
+      { size: 4, name: "landingDustOverlay" },
+      { size: 4, name: "liftOffDustOverlay" },
     ];
 
     this.datname = "images.dat";
-    this.idfile = "Images.txt";
     this.filesize = 37962;
     this.count = 999;
   }
@@ -36,8 +35,6 @@ export class ImagesDAT extends DAT {
     return entries.map((entry, i) => {
       entry.index = i;
       entry.grpFile = this._statTxt()(entry.grp);
-      //remove null from end
-      entry.grpFile = entry.grpFile.substr(0, entry.grpFile.length - 1);
     });
   }
 }

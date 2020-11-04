@@ -20,7 +20,7 @@ function createWindow() {
     },
   });
   window.maximize();
-  window.setFullScreen(true);
+  // window.setFullScreen(true);
 
   if (isDev) {
     window.webContents.openDevTools();

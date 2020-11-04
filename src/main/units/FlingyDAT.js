@@ -13,12 +13,10 @@ export class FlingyDAT extends DAT {
       {
         size: 1,
         name: "movementControl",
-        get: this._infoValue("FlingyControl"),
       },
     ];
 
     this.datname = "flingy.dat";
-    this.idfile = "Flingy.txt";
     this.filesize = 3135;
     this.count = 209;
   }

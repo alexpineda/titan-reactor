@@ -33,8 +33,11 @@ export class TitanReactor {
     this.mode = SceneMode.Replay;
     document.title = `Titan Reactor - Replay`;
 
+    console.log("1");
     const rep = await parseReplay(await this.fileAccess(filepath));
+    console.log("2");
     const chk = await imageChk(rep.chk, this.context.bwDataPath);
+    console.log("13");
 
     this.reactApp.overlay({
       chk,
@@ -56,6 +59,7 @@ export class TitanReactor {
         this.fileAccess
       );
       await tileset.load();
+      console.log("4");
       const loadSprite = new LoadSprite(
         tileset,
         this.bwDat.images,
@@ -67,6 +71,7 @@ export class TitanReactor {
       );
 
       await loadSprite.loadAll();
+      console.log("5");
       renderImage = new ImageSD(
         this.bwDat,
         this.context.bwDataPath,
@@ -80,8 +85,10 @@ export class TitanReactor {
 
     const frames = await this.fileAccess(`${filepath}.bin`);
 
+    console.log("6");
     const scene = new TitanReactorScene(chk, textureCache, loadingManager);
     await scene.init();
+    console.log("7");
 
     this.scene = await TitanReactorReplay(
       this.context,
@@ -94,6 +101,7 @@ export class TitanReactor {
       renderImage,
       this.bwDat
     );
+    console.log("done");
   }
 
   async spawnMapViewer(chkFilepath) {

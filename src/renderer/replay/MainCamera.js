@@ -1,4 +1,6 @@
+import { is } from "ramda";
 import { MOUSE, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 import { Object3D } from "three/src/core/Object3D";
 import { OrbitControls } from "../utils/OrbitalControls";
 import { MinimapLayer } from "./Layers";
@@ -14,7 +16,7 @@ export const CameraControlType = {
 
 export class MainCamera {
   constructor(context, minimap = null) {
-    this.camera = this._initOrthoCamera();
+    this.camera = this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initOrthoCamera(); //
 
     this.context = context;
     this.control = this._initOrbitControls(false);
@@ -50,11 +52,22 @@ export class MainCamera {
 
   _initPerspectiveCamera() {
     return new PerspectiveCamera(
-      30,
+      22,
       window.innerWidth / window.innerHeight,
       5,
       100
     );
+  }
+
+  _initCinematicCamera() {
+    return new CinematicCamera(
+      90,
+      window.innerWidth / window.innerHeight,
+      1,
+      1000
+    );
+    // setFocalLength
+    // filmGuage
   }
 
   _initOrthoCamera() {
@@ -98,7 +111,17 @@ export class MainCamera {
   }
 
   updateAspect(width, height) {
-    this.camera.aspect = width / height;
+    if (is(OrthographicCamera, this.camera)) {
+      const m = Math.max(width, height);
+
+      this.camera.left = (-16 * width) / m;
+      this.camera.right = (16 * width) / m;
+      this.camera.top = (16 * height) / m;
+      this.camera.bottom = (-16 * height) / m;
+    } else {
+      this.camera.aspect = width / height;
+    }
+
     this.camera.updateProjectionMatrix();
   }
 

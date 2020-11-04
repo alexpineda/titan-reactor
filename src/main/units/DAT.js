@@ -12,40 +12,19 @@ export class DAT {
   }
 
   init() {
-    const names = [
-      "Animations",
-      "Behaviours",
-      "DamTypes",
-      "DrawList",
-      "ElevationLevels",
-      "Explosions",
-      "Flingy",
-      "FlingyControl",
-      "Hints",
-      "Icons",
-      "Images",
-      "IscriptIDList",
-      "Listfile",
-      "Mapdata",
-      "Orders",
-      "Portdata",
-      "Races",
-      "Remapping",
-      "Rightclick",
-      "SelCircleSize",
-      "Sfxdata",
-      "ShieldSize",
-      "Sprites",
-      "Techdata",
-      "Units",
-      "UnitSize",
-      "Upgrades",
-      "Weapons",
-    ];
+    const names = ["ElevationLevels", "Hints", "Listfile", "Sprites"];
 
     this.initialized = new Promise((res) => {
       this._loadStatFile()
-        .then((stats) => (this.stats = stats))
+        .then(
+          (stats) =>
+            (this.stats = stats.map((file) => {
+              if (file.includes("\u0000")) {
+                return file.substr(0, file.indexOf("\u0000"));
+              }
+              return file;
+            }))
+        )
         .then(
           Promise.all(
             names

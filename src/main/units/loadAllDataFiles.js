@@ -8,7 +8,7 @@ import { OrdersDAT } from "./OrdersDAT";
 import { ImagesDAT } from "./ImagesDAT";
 import { WeaponsDAT } from "./WeaponsDAT";
 import { UnitsDAT } from "./UnitsDAT";
-import { openFileBinary, openFileLines, searchFiles } from "../fs";
+import { openFileBinary } from "../fs";
 import { parseLo } from "./parseLo";
 import path from "path";
 import { range } from "ramda";
@@ -19,20 +19,23 @@ export async function loadAllDataFiles(bwDataPath) {
     await openFileBinary(`${bwDataPath}/scripts/iscript.bin`)
   );
 
-  const loFiles = await searchFiles(`${bwDataPath}/unit/`, ".lo");
-  let los = [];
-  for (let loFile of loFiles) {
-    const key = loFile.replace(path.join(`${bwDataPath}/unit/`), "");
-    los[key] = await parseLo(await openFileBinary(loFile));
-  }
+  const imagesDat = new ImagesDAT(bwDataPath);
+  const images = await imagesDat.load();
 
-  const images = await new ImagesDAT(bwDataPath).load();
+  const los = [];
+  for (let i = 0; i < imagesDat.stats.length; i++) {
+    if (imagesDat.stats[i].includes(".lo")) {
+      const fpath = path.join(`${bwDataPath}/unit/`, imagesDat.stats[i]);
+      los[i] = await parseLo(await openFileBinary(fpath));
+    }
+  }
   const sprites = await new SpritesDAT(bwDataPath, images).load();
   const flingy = await new FlingyDAT(bwDataPath, sprites).load();
   const weapons = await new WeaponsDAT(bwDataPath, flingy).load();
-  const units = await new UnitsDAT(bwDataPath, images, flingy, weapons).load();
-
   const sounds = await new SoundsDAT(bwDataPath).load();
+
+  const units = await new UnitsDAT(bwDataPath, images, flingy, sounds).load();
+
   const tech = await new TechDataDAT(bwDataPath).load();
   const upgrades = await new UpgradesDAT(bwDataPath).load();
   const orders = await new OrdersDAT(bwDataPath).load();
@@ -63,7 +66,6 @@ export async function loadAllDataFiles(bwDataPath) {
   });
 
   return {
-    los,
     iscript,
     sounds,
     tech,
@@ -71,6 +73,8 @@ export async function loadAllDataFiles(bwDataPath) {
     orders,
     units,
     images,
+    los,
+    sprites,
     weapons,
     grps,
   };

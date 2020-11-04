@@ -64,6 +64,7 @@ export class IScriptRunner {
     this.renderImage = renderImage;
   }
 
+  //@todo do we want to include flip in this too?
   frameHasChanged() {
     return this.state.frame !== this.state.prevFrame;
   }
@@ -470,7 +471,6 @@ export class IScriptRunner {
 
       //@todo be able to access next units commands as well
       if (!nextAnimationBlock) {
-        debugger;
         throw new Error("ran out of animation blocks");
       }
       return nextAnimationBlock;

@@ -7,7 +7,7 @@ import {
 } from "./replay/BWAPIFrames";
 import { BgMusic } from "./audio/BgMusic";
 
-import { Game } from "./replay/Game";
+import { Units } from "./replay/Units";
 //todo refactor out
 import { difference } from "ramda";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
@@ -95,7 +95,7 @@ export async function TitanReactorReplay(
   scene.add(bgMusic.getAudio());
 
   const getTerrainY = scene.getTerrainY();
-  const game = new Game(
+  const units = new Units(
     bwDat,
     renderImage,
     chk.tileset,
@@ -106,7 +106,7 @@ export async function TitanReactorReplay(
     { main: mainCamera.camera },
     {}
   );
-  scene.add(game.units);
+  scene.add(units.units);
 
   let replayPosition = new ReplayPosition(
     BWAPIFramesDataView,
@@ -119,7 +119,7 @@ export async function TitanReactorReplay(
   replayPosition.onResetState = () => {
     unitsLastFrame = [];
     unitsThisFrame = [];
-    game.clear();
+    units.clear();
   };
 
   const keyDownListener = (e) => {
@@ -157,7 +157,7 @@ export async function TitanReactorReplay(
     raycaster.setFromCamera(mouse, mainCamera.camera);
 
     // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObjects(game.getUnits(), true);
+    const intersects = raycaster.intersectObjects(units.getUnits(), true);
     const getAsUnit = (mesh) => {
       if (!mesh) return null;
       if (mesh.userData && mesh.userData.typeId !== undefined) {
@@ -272,7 +272,7 @@ export async function TitanReactorReplay(
 
     uiUpdated = true;
 
-    players.updateResources(game);
+    players.updateResources(units);
 
     reactApp.render(
       <HUD
@@ -339,7 +339,7 @@ export async function TitanReactorReplay(
             replayPosition.bwapiBufferPosition
           );
 
-          game.updateUnit(
+          units.updateUnit(
             frameData,
             replayPosition.bwGameFrame,
             replayPosition.skippingFrames()
@@ -362,7 +362,7 @@ export async function TitanReactorReplay(
           bulletsThisFrame.push(frameData);
         }
 
-        game.killUnits(difference(unitsLastFrame, unitsThisFrame));
+        units.killUnits(difference(unitsLastFrame, unitsThisFrame));
         unitsLastFrame = [...unitsThisFrame];
         // units.units.updateMatrixWorld(true);
 
@@ -397,7 +397,7 @@ export async function TitanReactorReplay(
       if (replayPosition.autoSpeed || minimap.heatmapEnabled) {
         const attackingUnits = unitsThisFrame
           .map((unitRepId) =>
-            game.units.children.find(
+            units.units.children.find(
               ({ userData }) => userData.repId === unitRepId
             )
           )
@@ -417,10 +417,10 @@ export async function TitanReactorReplay(
 
     // cameras.updateCubeCamera(scene);
 
-    game.cameraDirection.previousDirection = game.cameraDirection.direction;
+    units.cameraDirection.previousDirection = units.cameraDirection.direction;
 
-    game.cameraDirection.direction = mainCamera.getDirection32();
-    game.setShear(mainCamera.getShear());
+    units.cameraDirection.direction = mainCamera.getDirection32();
+    units.setShear(mainCamera.getShear());
 
     if (players[0].showPov && players[1].showPov) {
       context.renderer.setScissorTest(true);

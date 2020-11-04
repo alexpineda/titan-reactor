@@ -1,4 +1,4 @@
-import { range } from "ramda";
+import { range, prop } from "ramda";
 import { DAT } from "./DAT";
 
 //@todo use reductions?
@@ -176,7 +176,7 @@ export class UnitDAT {
 }
 
 export class UnitsDAT extends DAT {
-  constructor(bwDataPath, images = {}, flingy = {}, weapons = {}) {
+  constructor(bwDataPath, images = {}, flingy = {}, sounds = []) {
     super(bwDataPath);
 
     this.format = [
@@ -186,7 +186,6 @@ export class UnitsDAT extends DAT {
       {
         size: 2,
         name: "infestation",
-        get: this._datValue("Units"),
         range: () => range(106, 202),
       },
       { size: 4, name: "constructionAnimation", get: (i) => images[i] },
@@ -201,11 +200,11 @@ export class UnitsDAT extends DAT {
       },
       { size: 1, name: "unknown" },
       { size: 1, name: "sublabel" },
-      { size: 1, name: "compAIIdle", get: this._datValue("Orders") },
-      { size: 1, name: "humanAIIdle", get: this._datValue("Orders") },
-      { size: 1, name: "returntoIdle", get: this._datValue("Orders") },
-      { size: 1, name: "attackUnit", get: this._datValue("Orders") },
-      { size: 1, name: "attackMove", get: this._datValue("Orders") },
+      { size: 1, name: "compAIIdleOrder" },
+      { size: 1, name: "humanAIIdleOrder" },
+      { size: 1, name: "returntoIdleOrder" },
+      { size: 1, name: "attackUnitOrder" },
+      { size: 1, name: "attackMoveOrder" },
       { size: 1, name: "groundWeapon" },
       { size: 1, name: "maxGroundHits" },
       { size: 1, name: "airWeapon" },
@@ -214,15 +213,14 @@ export class UnitsDAT extends DAT {
       { size: 4, name: "specialAbilityFlags" },
       { size: 1, name: "targetAcquisitionRange" },
       { size: 1, name: "sightRange" },
-      { size: 1, name: "armorUpgrade", get: this._datValue("Upgrades") },
-      { size: 1, name: "unitSize", get: this._infoValue("UnitSize") },
+      { size: 1, name: "armorUpgrade" },
+      { size: 1, name: "unitSize" },
       { size: 1, name: "armor" },
-      { size: 1, name: "rightClickAction", get: this._infoValue("Rightclick") },
+      { size: 1, name: "rightClickAction" },
       {
         size: 2,
         name: "readySound",
         range: () => range(0, 106),
-        get: this._datValue("Sfxdata"),
       },
       { size: 2, name: "whatSoundStart" },
       { size: 2, name: "whatSoundEnd" },
@@ -259,7 +257,7 @@ export class UnitsDAT extends DAT {
         size: 8,
         names: ["unitSizeLeft", "unitSizeUp", "unitSizeRight", "unitSizeDown"],
       },
-      { size: 2, name: "portrait", get: this._datValue("Portdata") },
+      { size: 2, name: "portrait" },
       { size: 2, name: "mineralCost" },
       { size: 2, name: "vespeneCost" },
       { size: 2, name: "buildTime" },
@@ -277,9 +275,9 @@ export class UnitsDAT extends DAT {
     ];
 
     this.datname = "units.dat";
-    this.idfile = "Units.txt";
     this.filesize = 19876;
     this.count = 228;
+    this.sounds = sounds;
   }
 
   post(entries) {
@@ -287,7 +285,7 @@ export class UnitsDAT extends DAT {
       const loadSounds = (start, end, label) => {
         if (entry[start] && entry[end]) {
           entry[label] = range(0, entry[end] - entry[start]).map((s) =>
-            this._datValue("Sfxdata")(s + entry[start])
+            prop("file", this.sounds[s + entry[start]])
           );
           delete entry[start];
           delete entry[end];
@@ -298,7 +296,8 @@ export class UnitsDAT extends DAT {
       loadSounds("pissSoundStart", "pissSoundEnd", "pissSound");
       loadSounds("yesSoundStart", "yesSoundEnd", "yesSound");
 
-      entry.name = this._datValue("Units")(i);
+      entry.readySound = prop("file", this.sounds[entry.readySound]);
+      entry.name = this.stats[i];
     });
   }
 }

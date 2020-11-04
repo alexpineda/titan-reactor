@@ -31,7 +31,6 @@ export class SpritesDAT extends DAT {
     ];
 
     this.datname = "sprites.dat";
-    this.idfile = "Sprites.txt";
     this.filesize = 3229;
     this.count = 517;
   }

@@ -8,7 +8,6 @@ import {
   Mesh,
   MeshBasicMaterial,
   ConeGeometry,
-  Object3D,
 } from "three";
 import { disposeMesh } from "../utils/dispose";
 import { IScriptRunner } from "./IScriptRunner";
@@ -25,7 +24,7 @@ import { BWAPIUnit } from "./BWAPIFrames";
 import { createMinimapPoint } from "./Minimap";
 const { zergEgg, mineral1, mineral2, mineral3, geyser } = unitTypes;
 
-export class Game {
+export class Units {
   constructor(
     bwDat,
     renderImage,

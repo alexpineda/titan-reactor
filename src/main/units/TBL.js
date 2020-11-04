@@ -14,30 +14,5 @@ export class TBL {
 
       return buf.toString("utf8", offset, offsetNext);
     });
-
-    const offsets = range(0, n).map((i) => buf.readUInt16LE(i * 2));
-
-    const findlen = [...offsets, n];
-    findlen.sort((a, b) => a - b);
-    findlen.reverse();
-
-    const lengths = {};
-
-    for (let i = 1; i < n; i++) {
-      const start = findlen[i];
-      if (!lengths[start]) {
-        const end = findlen[i - 1];
-        lengths[start] = end - start;
-      }
-    }
-
-    const strings = [];
-    range(1, n).map((x) => {
-      const o = offsets[x];
-      const l = lengths[o];
-      strings.push(buf.toString("ascii", o, o + l));
-    });
-
-    return strings;
   }
 }

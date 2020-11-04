@@ -7,6 +7,7 @@ import { UI } from "./react-ui/UI";
 import { UnitDAT } from "../main/units/UnitsDAT";
 import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
+import fs from "fs";
 
 let context, titanReactor, ui, bwDat;
 let replayPlaylist = [];
@@ -43,6 +44,8 @@ async function bootup() {
     units: origBwDat.units.map((unit) => new UnitDAT(unit)),
   };
   window.bwDat = bwDat;
+
+  fs.writeFile("./bwdat.json", JSON.stringify(origBwDat), (err) => {});
 
   ui = new UI(
     document.getElementById("app"),
