@@ -1,3 +1,5 @@
+// thanks to farty and neiv for references
+
 // struct header{
 //     unsigned int magic; // "ANIM"
 //     unsigned short version; // Version? 0x0101 for SD, 0x0202 for HD2, 0x0204 for HD
@@ -63,7 +65,7 @@ const Version = {
   0x0204: versionHD2,
 };
 
-const Anim = (buf) => {
+export const Anim = (buf) => {
   const bl = new BufferList(buf);
 
   const header = bl.shallowSlice(0, 12 + 10 * 32);
@@ -76,7 +78,13 @@ const Anim = (buf) => {
 
   const layerNames = range(0, 10)
     .map((i) => header.slice(i * 32, i * 32 + 32).toString())
-    .map((str) => str.substr(0, str.indexOf("\u0000")));
+    .map((str, i) => {
+      const res = str.substr(0, str.indexOf("\u0000"));
+      if (!res) {
+        return `layer_{i}`;
+      }
+      return res;
+    });
 
   if (magic !== "ANIM") {
     throw new Error("not an anim file");
@@ -89,87 +97,87 @@ const Anim = (buf) => {
   }
 
   console.log(
-    `v${version} layers:${numLayers} entries:${numEntries}`,
+    `v${version.toString()} layers:${numLayers} entries:${numEntries}`,
     layerNames
   );
 
-  const parseSprite = (o) => {
-    const sprite = bl.shallowSlice(o);
+  const parseSprite = (sprite) => {
     const numFrames = sprite.readUInt16LE(0);
     // sprite reference
     if (numFrames === 0) {
+      const refId = sprite.readInt16LE(2);
+      sprite.consume(4);
       return {
-        refId: sprite.readInt16LE(2),
+        refId,
       };
     }
     const w = sprite.readInt16LE(4);
     const h = sprite.readInt16LE(6);
     const framesOffset = sprite.readInt32LE(8);
-    const images = parseTextures(o + 12);
+    sprite.consume(12);
+    const maps = parseTextures(sprite);
     const frames = parseFrames(numFrames, framesOffset);
 
     return {
       w,
       h,
-      images,
+      maps,
       frames,
     };
   };
 
   //    // In version 0x0101, the player color mask is in a bitmap format, which is just "BMP " followed by width*height bytes, either 0x00 or 0xFF in a top-to-bottom row order. version 0x0202 uses only DDS files.
-  const parseTextures = (o) =>
-    range(0, numLayers).map(() => {
-      const dds = bl.readUInt32LE(0);
-      const size = bl.readUInt32LE(4);
-      const width = bl.readUInt32LE(8);
-      const height = bl.readUInt32LE(12);
-      bl.consume(16);
-      return {
-        dds,
-        size,
-        width,
-        height,
-      };
-    });
+  const parseTextures = (texture) =>
+    range(0, numLayers).reduce((tex, i) => {
+      const ddsOffset = texture.readUInt32LE(0);
+      const size = texture.readUInt32LE(4);
+      const width = texture.readUInt16LE(8);
+      const height = texture.readUInt16LE(10);
+      texture.consume(12);
+      if (ddsOffset > 0) {
+        tex[layerNames[i]] = {
+          ddsOffset,
+          size,
+          width,
+          height,
+        };
+      }
+      return tex;
+    }, {});
 
   const parseFrames = (numFrames, o) => {
-    const x = bl.readUInt16LE(0);
-    const y = bl.readUInt16LE(2);
-    const xoff = bl.readUInt16LE(4);
-    const yoff = bl.readUInt16LE(6);
-    const w = bl.readUInt16LE(8);
-    const h = bl.readUInt16LE(10);
-    const unk1 = bl.readUInt16LE(12);
-    const unk2 = bl.readUInt16LE(14);
-    bl.consume(16);
-    return {
-      x,
-      y,
-      xoff,
-      yoff,
-      w,
-      h,
-    };
+    return range(0, numFrames).map((frame) => {
+      const frames = bl.shallowSlice(o + frame * 16);
+      const x = frames.readUInt16LE(0);
+      const y = frames.readUInt16LE(2);
+      const xoff = frames.readUInt16LE(4);
+      const yoff = frames.readUInt16LE(6);
+      const w = frames.readUInt16LE(8);
+      const h = frames.readUInt16LE(10);
+      const unk1 = frames.readUInt16LE(12);
+      const unk2 = frames.readUInt16LE(14);
+
+      return {
+        x,
+        y,
+        xoff,
+        yoff,
+        w,
+        h,
+      };
+    });
   };
 
   const spriteOffsets = [];
   if (version !== versionSD) {
-    spriteOffsets.push(bl.readUInt32LE(0x14c));
+    spriteOffsets.push(0x14c);
   }
 
-  const sprites = spriteOffsets.map(parseSprite);
+  const entries = bl.shallowSlice(spriteOffsets[0]);
+  const sprite = parseSprite(entries);
 
   return {
-    sprites,
+    sprite,
     version,
-    layerNames,
   };
 };
-
-fs.readFile(process.argv[2], (err, buf) => {
-  if (err) {
-    console.error(err);
-  }
-
-  const anim = Anim(buf);
-});

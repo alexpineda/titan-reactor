@@ -6,9 +6,9 @@ export const parseLo = (buf) => {
 
   const frameData = range(0, frames).map((frame) => {
     let offset = buf.readUInt32LE(8 + 4 * frame);
-    return range(0, overlays).map((overlay) => {
-      const coords = [buf.readInt8(offset), buf.readInt8(offset)];
-      offset == offset + 2;
+    return range(0, overlays).map(() => {
+      const coords = [buf.readInt8(offset), buf.readInt8(offset + 1)];
+      offset = offset + 2;
       return coords;
     });
   });

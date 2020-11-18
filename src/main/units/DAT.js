@@ -12,8 +12,6 @@ export class DAT {
   }
 
   init() {
-    const names = ["ElevationLevels", "Hints", "Listfile", "Sprites"];
-
     this.initialized = new Promise((res) => {
       this._loadStatFile()
         .then(
@@ -25,18 +23,7 @@ export class DAT {
               return file;
             }))
         )
-        .then(
-          Promise.all(
-            names
-              .map((name) => openFileLines(`${this.resourcesPath}/${name}.txt`))
-              .concat()
-          ).then((files) => {
-            files.forEach((buf, i) => {
-              this.info[names[i]] = buf;
-            });
-            res();
-          })
-        );
+        .then(res);
     });
   }
 
