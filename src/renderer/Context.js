@@ -5,7 +5,6 @@ import {
   sRGBEncoding,
   WebGLRenderer,
 } from "three";
-import { GameOptions } from "./replay/GameOptions";
 
 export class Context extends EventDispatcher {
   constructor(window) {
@@ -13,15 +12,9 @@ export class Context extends EventDispatcher {
     this.window = window;
     this.document = window.document;
     this.renderer = null;
-    this.cachePath = "";
-    this.bwDataPath = "";
-    this.options = new GameOptions(this);
-  }
-
-  async loadSettings() {
-    this.cachePath = "~/dev/cache/MapData";
     this.bwDataPath = "./bwdata";
   }
+
   getGameCanvas() {
     if (this.gameCanvas) return this.gameCanvas;
 

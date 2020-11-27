@@ -1,8 +1,23 @@
-import { app, Menu, BrowserWindow, shell, dialog } from "electron";
-
-import path from "path";
+import { app, ipcMain, Menu, BrowserWindow, shell, dialog } from "electron";
 import isDev from "electron-is-dev";
-import "./handlers";
+import { openFileBinary } from "./fs";
+import path from "path";
+import {
+  GET_APPCACHE_PATH,
+  OPEN_FILE,
+  LOAD_ALL_DATA_FILES,
+  SELECT_FOLDER,
+  GET_SETTINGS,
+  SET_SETTINGS,
+  SETTINGS_CHANGED,
+  GET_LANGUAGE,
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+} from "../common/handleNames";
+import { loadAllDataFiles } from "./units/loadAllDataFiles";
+import { Settings } from "./settings";
+import { getUserDataPath } from "./userDataPath";
+import lang from "../common/lang";
 
 let window;
 
@@ -50,7 +65,28 @@ function createWindow() {
 
 app.commandLine.appendSwitch("--disable-xr-sandbox");
 
-app.on("ready", () => {
+app.on("ready", async () => {
+  const settings = new Settings(path.join(getUserDataPath(), "settings.json"));
+
+  await settings.init();
+
+  settings.on("change", (settings) => {
+    console.log("change", settings);
+    window.webContents.send(SETTINGS_CHANGED, settings);
+  });
+
+  ipcMain.handle(GET_SETTINGS, async (event) => {
+    return settings.get();
+  });
+
+  ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
+    settings.save(newSettings);
+  });
+
+  ipcMain.handle(GET_LANGUAGE, async (event) => {
+    return lang[settings.get().language];
+  });
+
   createWindow();
 });
 
@@ -84,7 +120,7 @@ var showOpen = function (isMap = false) {
   const filters = isMap
     ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
     : [{ name: "Starcraft Replay", extensions: ["rep"] }];
-  const command = isMap ? "open-map" : "open-replay";
+  const command = isMap ? OPEN_MAP_DIALOG : OPEN_REPLAY_DIALOG;
   const multiSelections = isMap
     ? ["openFile"]
     : ["openFile", "multiSelections"];
@@ -217,3 +253,42 @@ const template = [
 
 const menu = Menu.buildFromTemplate(template);
 Menu.setApplicationMenu(menu);
+
+ipcMain.handle(GET_APPCACHE_PATH, async (event, folder = "") => {
+  return path.join(app.getPath("temp"), folder);
+});
+
+ipcMain.handle(OPEN_FILE, async (event, filepath = "") => {
+  return await openFileBinary(filepath);
+});
+
+ipcMain.handle(LOAD_ALL_DATA_FILES, async (event, bwDataPath) => {
+  return await loadAllDataFiles(bwDataPath);
+});
+
+ipcMain.on(OPEN_MAP_DIALOG, async (event) => {
+  showOpenMap();
+});
+
+ipcMain.on(OPEN_REPLAY_DIALOG, async (event) => {
+  showOpenReplay();
+});
+
+ipcMain.handle(SELECT_FOLDER, async (event, key) => {
+  dialog
+    .showOpenDialog({
+      properties: ["openDirectory"],
+    })
+    .then(({ filePaths, canceled }) => {
+      console.log("show open dialog", filePaths);
+      if (canceled) return;
+      window.webContents.send(SELECT_FOLDER, { key, filePaths });
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Loading File",
+        message: "There was an error selecting path: " + err.message,
+      });
+    });
+});

@@ -1,0 +1,46 @@
+{
+    "MAPS": "Maps",
+    "REPLAYS": "Replays",
+    "OPTIONS": "Options",
+
+    "LAUNCH": "Launch",
+    "CREDITS": "Credits",
+    "LEGAL": "Legal",
+    "SETTINGS_LANGUAGE": "Language",
+    "SETTINGS_STARCRAFT_PATH": "Starcraft Install Directory",
+    "SETTINGS_COMMUNITY_3D_MODELS_PATH": "Community 3D Models Directory",
+    "SETTINGS_MAPS_PATH": "Maps Directory",
+    "SETTINGS_REPLAYS_PATH": "Replays Directory",
+
+    "SETTINGS_GRAPHICS_RENDER_MODE": "Render Mode",
+    "SETTINGS_MAX_AUTO_REPLAY_SPEED": "Max Auto Replay Speed",
+    "SETTINGS_OBSERVER_LINK": "2nd Observer Invite Link",
+    "SETTINGS_GENERAL": "General",
+    "SETTINGS_AUDIO": "Audio",
+    "SETTINGS_GRAPHICS": "Graphics",
+    "SETTINGS_INTEGRATIONS": "Integrations",
+    "SETTINGS_MUSIC_VOLUME": "Music Volume",
+    "SETTINGS_SOUND_VOLUME": "Sound Volume",
+    "SETTINGS_GRAPHICS_ANTIALIAS": "Antialias",
+    "SETTINGS_GRAPHICS_SHADOWS": "Shadows",
+    "SETTINGS_GRAPHICS_ANISOTROPY": "Anisotropy",
+    "SETTINGS_GRAPHICS_RESOLUTION": "Screen Resolution",
+
+    "TWITCH_INTEGRATION": "Twitch Integration",
+    "INSTALLED_MAPS": "Installed Maps",
+    "COMMUNITY_MAPS": "Community Maps",
+
+    "LOCAL_REPLAYS": "Local Replays",
+    "COMMUNITY_REPLAYS": "Community Replays",
+    "PRO_REPLAYS": "Pro & Tournament Replays",
+    "AI_REPLAYS": "AI Replays",
+    "MY_PLAYLIST": "My Playlist",
+
+    "BUTTON_OFF": "Off",
+    "BUTTON_ON": "On",
+    "BUTTON_SELECT": "Select",
+    "BUTTON_CONNECT": "Connect",
+    "BUTTON_CHANGE": "Change",
+    "BUTTON_SHOW": "Show",
+    "BUTTON_LAUNCH": "Launch"
+}

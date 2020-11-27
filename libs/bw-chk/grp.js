@@ -1,10 +1,5 @@
-// Decoding/rendering of bw's sprites.
-// Current implementation decodes the sprite every time
-// before it is rendered, to simplify player color handling
-// and tileset-specific palette colors.
-//
-// Grp buffers are currently not validated, passing invalid
-// sprite data may result in exceptions during render() calls.
+// ported from bw-chk package by shieldbattery
+// modifications include support reading headers, as well as additional palette support and shadow support
 
 export class Grp {
   constructor(buf, Buffer) {
@@ -50,7 +45,7 @@ export class Grp {
   }
 
   // Decodes into a 32-bit rgba surface.
-  decode(frame, palette) {
+  decode(frame, palette, hasAlpha = false, isShadow = false) {
     const { x, y, w, h, frameOffset, lineOffsets } = this.header(frame);
 
     const out = new this.Buffer(w * h * 4);
@@ -74,10 +69,22 @@ export class Grp {
           const amount = val & ~0x40;
           const color = lineData[pos + 1];
           for (let i = 0; i < amount; i++) {
-            out[outPos + 0] = palette[color * 4 + 0];
-            out[outPos + 1] = palette[color * 4 + 1];
-            out[outPos + 2] = palette[color * 4 + 2];
-            out[outPos + 3] = 0xff;
+            if (isShadow) {
+              out[outPos + 0] = palette[19 * 4];
+              out[outPos + 1] = palette[19 * 4];
+              out[outPos + 2] = palette[19 * 4];
+              out[outPos + 3] = 0x7f;
+            } else {
+              out[outPos + 0] = palette[color * 4 + 0];
+              out[outPos + 1] = palette[color * 4 + 1];
+              out[outPos + 2] = palette[color * 4 + 2];
+              if (hasAlpha) {
+                out[outPos + 3] = palette[color * 4 + 3];
+              } else {
+                out[outPos + 3] = 0xff;
+              }
+            }
+
             outPos = outPos + 4;
           }
           pos = pos + 2;
@@ -86,10 +93,22 @@ export class Grp {
           const amount = val;
           for (let i = 0; i < amount; i++) {
             const color = lineData[pos + 1 + i];
-            out[outPos + 0] = palette[color * 4 + 0];
-            out[outPos + 1] = palette[color * 4 + 1];
-            out[outPos + 2] = palette[color * 4 + 2];
-            out[outPos + 3] = 0xff;
+            if (isShadow) {
+              out[outPos + 0] = palette[19 * 4];
+              out[outPos + 1] = palette[19 * 4];
+              out[outPos + 2] = palette[19 * 4];
+              out[outPos + 3] = 0x7f;
+            } else {
+              out[outPos + 0] = palette[color * 4 + 0];
+              out[outPos + 1] = palette[color * 4 + 1];
+              out[outPos + 2] = palette[color * 4 + 2];
+              if (hasAlpha) {
+                out[outPos + 3] = palette[color * 4 + 3];
+              } else {
+                out[outPos + 3] = 0xff;
+              }
+            }
+
             outPos = outPos + 4;
           }
           pos = pos + 1 + amount;

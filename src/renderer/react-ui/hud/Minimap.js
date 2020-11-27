@@ -1,15 +1,7 @@
 import React from "react";
 import { WrappedCanvas } from "../WrappedCanvas";
 
-export default ({
-  timeLabel,
-  textSize,
-  onRevealMap,
-  onShowHeatMap,
-  onDropPings,
-  heatmapEnabled,
-  canvas,
-}) => {
+export default ({ timeLabel, textSize, onRevealMap, onDropPings, canvas }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div className="minimap-parent flex items-stretch select-none">
@@ -45,17 +37,6 @@ export default ({
             filter_hdr
           </i>
 
-          {/* <i
-            className={`material-icons  rounded cursor-pointer hover:text-yellow-500 ${
-              heatmapEnabled ? "text-yellow-700" : "text-gray-700 "
-            }`}
-            style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
-            title={`Activity Heatmap`}
-            data-tip={`Activity Heatmap`}
-            onClick={() => onShowHeatMap && onShowHeatMap()}
-          >
-            bubble_chart
-          </i> */}
           <i
             className="material-icons hover:text-yellow-500 rounded cursor-pointer"
             style={{ fontSize: smallIconFontSize }}

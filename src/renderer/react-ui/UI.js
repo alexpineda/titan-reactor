@@ -10,16 +10,15 @@ import { mapPreviewCanvas } from "../3d-map-rendering/textures/mapPreviewCanvas"
 import Home from "./home/Home";
 
 export class UI {
-  constructor(domElement, gameCanvas, miniMapCanvas) {
-    this.gameCanvas = gameCanvas;
-    this.miniMapCanvas = miniMapCanvas;
+  constructor(domElement, context) {
+    this.context = context;
     this.domElement = domElement;
   }
 
   render(children = null) {
     render(
       <>
-        <WrappedCanvas canvas={this.gameCanvas} />
+        <WrappedCanvas canvas={this.context.getGameCanvas()} />
         {children}
       </>,
       this.domElement
@@ -27,7 +26,7 @@ export class UI {
   }
 
   home() {
-    this.render(<Home />);
+    this.render(<Home context={this.context} />);
   }
 
   async overlay({ chk, label, description, header = null }) {

@@ -11,6 +11,9 @@ import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
 import { LoadingManager } from "three";
 import { TitanReactorScene } from "./Scene";
+import { getSettings } from "./invoke";
+import { RenderMode } from "../main/settings";
+
 export const SceneMode = {
   MapViewer: 0,
   Replay: 1,
@@ -28,6 +31,7 @@ export class TitanReactor {
 
   async spawnReplay(filepath) {
     await this.dispose();
+    const settings = await getSettings();
     const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.Replay;
@@ -45,7 +49,10 @@ export class TitanReactor {
     });
 
     let renderImage;
-    if (this.context.options.is2d()) {
+    if (
+      settings.renderMode === RenderMode.SD ||
+      settings.renderMode === RenderMode.HD
+    ) {
       const spritesTextureCache = new TextureCache(
         "sd",
         await getAppCachePath(),
@@ -106,6 +113,8 @@ export class TitanReactor {
 
   async spawnMapViewer(chkFilepath) {
     await this.dispose();
+    const settings = await getSettings();
+
     const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.MapViewer;

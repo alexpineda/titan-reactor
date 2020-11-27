@@ -207,7 +207,7 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
     const y = (Math.random() - 0.5) * 128;
     z.position.set(x, getTerrainY(x, y), y);
     // zerglings.push(z);
-    scene.add(z);
+    // scene.add(z);
   }
 
   //#region map controllers
@@ -352,7 +352,10 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
     context.renderer.clear();
     context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-    if (mainCamera.camera.postprocessing.enabled) {
+    if (
+      mainCamera.camera.postprocessing &&
+      mainCamera.camera.postprocessing.enabled
+    ) {
       mainCamera.camera.renderCinematic(scene, context.renderer);
     } else {
       context.renderer.render(scene, mainCamera.camera);

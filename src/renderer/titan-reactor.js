@@ -8,6 +8,7 @@ import { UnitDAT } from "../main/units/UnitsDAT";
 import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
 import fs from "fs";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
 
 let context, titanReactor, ui, bwDat;
 let replayPlaylist = [];
@@ -16,7 +17,7 @@ let replayIndex = 0;
 console.log(new Date().toLocaleString());
 
 if (module.hot) {
-  module.hot.decline();
+  // module.hot.decline();
 
   module.hot.accept("./TitanReactorReplay.js", () => {
     if (hotReplay && hotReplay.filepath) {
@@ -35,7 +36,6 @@ if (module.hot) {
 
 async function bootup() {
   context = new Context(window);
-  await context.loadSettings();
 
   //@todo move parsing to renderer so I don't have to reassign shit
   const origBwDat = await loadAllDataFiles(context.bwDataPath);
@@ -47,11 +47,7 @@ async function bootup() {
 
   fs.writeFile("./bwdat.json", JSON.stringify(origBwDat), (err) => {});
 
-  ui = new UI(
-    document.getElementById("app"),
-    context.getGameCanvas(),
-    context.getMinimapCanvas()
-  );
+  ui = new UI(document.getElementById("app"), context);
 
   titanReactor = new TitanReactor(context, ui, openFile, bwDat);
 
@@ -59,13 +55,11 @@ async function bootup() {
   ui.home();
 }
 
-ipcRenderer.on("open-map", async (event, [map]) => {
-  console.log("open-map");
+ipcRenderer.on(OPEN_MAP_DIALOG, async (event, [map]) => {
   titanReactor.spawnMapViewer(map);
 });
 
-ipcRenderer.on("open-replay", (event, replays) => {
-  console.log("open-replay");
+ipcRenderer.on(OPEN_REPLAY_DIALOG, (event, replays) => {
   replayPlaylist = replays;
   replayIndex = 0;
   titanReactor.spawnReplay(replays[0]);

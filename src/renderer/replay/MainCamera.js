@@ -16,7 +16,7 @@ export const CameraControlType = {
 
 export class MainCamera {
   constructor(context, minimap = null) {
-    this.camera = this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initOrthoCamera(); //
+    this.camera = this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initOrthoCamera(); //
 
     this.context = context;
     this.control = this._initOrbitControls(false);
@@ -54,8 +54,8 @@ export class MainCamera {
     return new PerspectiveCamera(
       22,
       window.innerWidth / window.innerHeight,
-      5,
-      100
+      1,
+      1000
     );
   }
 

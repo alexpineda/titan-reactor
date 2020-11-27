@@ -1,5 +1,6 @@
 {
   "name": "bw-lab",
+  "productName": "Titan Reactor",
   "version": "0.1.0",
   "description": "3D Map & Replay View for Starcraft Broodwar",
   "main": "electron/index.js",
@@ -45,6 +46,7 @@
     "concat": "1.0.3",
     "d3-ease": "1.0.6",
     "dat.gui": "0.7.7",
+    "deep-equal": "^2.0.4",
     "downgrade-replay": "file:../downgrade-replay",
     "electron-is-dev": "^1.2.0",
     "esm": "^3.2.25",
@@ -62,9 +64,11 @@
     "sanitize-filename": "^1.6.3",
     "scm-extractor": "^1.0.6",
     "sparkly": "^5.0.0",
+    "superagent": "^6.1.0",
     "three": "^0.120.1",
     "typescript": "^4.0.3",
-    "webpack": "4.42.1"
+    "webpack": "4.42.1",
+    "winreg": "^1.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",

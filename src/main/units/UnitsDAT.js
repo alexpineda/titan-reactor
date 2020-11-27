@@ -196,7 +196,6 @@ export class UnitsDAT extends DAT {
       {
         size: 1,
         name: "elevationLevel",
-        get: this._infoValue("ElevationLevels"),
       },
       { size: 1, name: "unknown" },
       { size: 1, name: "sublabel" },
