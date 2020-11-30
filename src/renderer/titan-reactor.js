@@ -1,67 +1,54 @@
-import { hot as hotReplay } from "./TitanReactorReplay";
-import { hot as hotSandbox } from "./TitanReactorMapSandbox";
-import { loadAllDataFiles, openFile } from "./invoke";
+import { getSettings, loadAllDataFiles, openFile, log } from "./invoke";
 import { ipcRenderer } from "electron";
 import { UI } from "./react-ui/UI";
 
 import { UnitDAT } from "../main/units/UnitsDAT";
 import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
-import fs from "fs";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
+import "./utils/electronFileLoader";
 
 let context, titanReactor, ui, bwDat;
 let replayPlaylist = [];
 let replayIndex = 0;
 
-console.log(new Date().toLocaleString());
-
-if (module.hot) {
-  // module.hot.decline();
-
-  module.hot.accept("./TitanReactorReplay.js", () => {
-    if (hotReplay && hotReplay.filepath) {
-      console.log("hot loading replay", hotReplay.filepath);
-      titanReactor.spawnReplay(hotReplay.filepath);
-    }
-  });
-
-  module.hot.accept("./TitanReactorMapSandbox.js", () => {
-    if (hotSandbox && hotSandbox.filepath) {
-      console.log("hot loading map", hotSandbox.filepath);
-      titanReactor.spawnMapViewer(hotSandbox.filepath);
-    }
-  });
-}
-
-async function bootup() {
-  context = new Context(window);
-
+async function initTitanReactor(settings) {
+  if (titanReactor) return;
   //@todo move parsing to renderer so I don't have to reassign shit
-  const origBwDat = await loadAllDataFiles(context.bwDataPath);
+  log("loading DAT and ISCRIPT files");
+  const origBwDat = await loadAllDataFiles(settings.starcraftPath);
   bwDat = {
     ...origBwDat,
     units: origBwDat.units.map((unit) => new UnitDAT(unit)),
   };
   window.bwDat = bwDat;
-
-  fs.writeFile("./bwdat.json", JSON.stringify(origBwDat), (err) => {});
-
-  ui = new UI(document.getElementById("app"), context);
-
   titanReactor = new TitanReactor(context, ui, openFile, bwDat);
+}
+
+async function bootup() {
+  context = new Context(window);
+
+  const settings = await getSettings();
+  if (!settings.errors.length) {
+    initTitanReactor(settings);
+  }
+  ui = new UI(document.getElementById("app"), context);
 
   context.initRenderer();
   ui.home();
 }
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (event, [map]) => {
+  if (!titanReactor) return;
+  log(`opening map ${map}`);
   titanReactor.spawnMapViewer(map);
 });
 
 ipcRenderer.on(OPEN_REPLAY_DIALOG, (event, replays) => {
+  if (!titanReactor) return;
   replayPlaylist = replays;
   replayIndex = 0;
+  log(`opening replay ${replays[0]}`);
   titanReactor.spawnReplay(replays[0]);
 });
 

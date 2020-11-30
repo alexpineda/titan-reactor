@@ -13,11 +13,14 @@ import {
   GET_LANGUAGE,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
+  LOG_MESSAGE,
+  EXIT,
 } from "../common/handleNames";
 import { loadAllDataFiles } from "./units/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
 import lang from "../common/lang";
+import logger from "./logger";
 
 let window;
 
@@ -67,7 +70,6 @@ app.commandLine.appendSwitch("--disable-xr-sandbox");
 
 app.on("ready", async () => {
   const settings = new Settings(path.join(getUserDataPath(), "settings.json"));
-
   await settings.init();
 
   settings.on("change", (settings) => {
@@ -76,7 +78,7 @@ app.on("ready", async () => {
   });
 
   ipcMain.handle(GET_SETTINGS, async (event) => {
-    return settings.get();
+    return await settings.get();
   });
 
   ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
@@ -116,7 +118,7 @@ app.on("web-contents-created", (event, contents) => {
 
 const isMac = process.platform === "darwin";
 
-var showOpen = function (isMap = false) {
+var showOpen = function (isMap = false, defaultPath = "") {
   const filters = isMap
     ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
     : [{ name: "Starcraft Replay", extensions: ["rep"] }];
@@ -128,9 +130,12 @@ var showOpen = function (isMap = false) {
     .showOpenDialog({
       properties: multiSelections,
       filters,
+      defaultPath,
     })
     .then(({ filePaths, canceled }) => {
       if (canceled) return;
+      logger.log();
+
       window.webContents.send(command, filePaths);
     })
     .catch((err) => {
@@ -266,15 +271,23 @@ ipcMain.handle(LOAD_ALL_DATA_FILES, async (event, bwDataPath) => {
   return await loadAllDataFiles(bwDataPath);
 });
 
-ipcMain.on(OPEN_MAP_DIALOG, async (event) => {
-  showOpenMap();
+ipcMain.on(OPEN_MAP_DIALOG, async (event, defaultPath = "") => {
+  showOpenMap(defaultPath);
 });
 
-ipcMain.on(OPEN_REPLAY_DIALOG, async (event) => {
-  showOpenReplay();
+ipcMain.on(OPEN_REPLAY_DIALOG, async (event, defaultPath = "") => {
+  showOpenReplay(defaultPath);
 });
 
-ipcMain.handle(SELECT_FOLDER, async (event, key) => {
+ipcMain.on(LOG_MESSAGE, (event, { level, message }) => {
+  logger.log(level, message);
+});
+
+ipcMain.on(EXIT, () => {
+  app.exit(0);
+});
+
+ipcMain.on(SELECT_FOLDER, async (event, key) => {
   dialog
     .showOpenDialog({
       properties: ["openDirectory"],
@@ -282,7 +295,7 @@ ipcMain.handle(SELECT_FOLDER, async (event, key) => {
     .then(({ filePaths, canceled }) => {
       console.log("show open dialog", filePaths);
       if (canceled) return;
-      window.webContents.send(SELECT_FOLDER, { key, filePaths });
+      event.sender.send(SELECT_FOLDER, { key, filePaths });
     })
     .catch((err) => {
       dialog.showMessageBox({

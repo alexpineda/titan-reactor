@@ -17,7 +17,7 @@ const Tab = ({ tabName, activeTab, children }) => (
 
 export default ({ context, lang, defaultTab = tabs.general }) => {
   const [tab, setTab] = useState(defaultTab);
-  const [localOptions, setLocalOptions] = useState({});
+  const [localOptions, setLocalOptions] = useState({ errors: [] });
 
   const initSettings = async () => {
     const settings = await getSettings();
@@ -113,17 +113,29 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
                 {lang["BUTTON_SELECT"]}
               </button>
             )}
-            {localOptions.starcraftPath && (
-              <p className="italic text-sm text-gray-300">
-                {localOptions.starcraftPath}{" "}
-                <button
-                  className="text-blue-300"
-                  onClick={() => selectFolder("starcraftPath")}
-                >
-                  ({lang["BUTTON_CHANGE"]})
-                </button>
-              </p>
-            )}
+            <span className="flex">
+              {localOptions.starcraftPath && (
+                <p className="italic text-sm text-gray-300">
+                  {localOptions.starcraftPath}{" "}
+                  <button
+                    className="text-blue-300"
+                    onClick={() => selectFolder("starcraftPath")}
+                  >
+                    ({lang["BUTTON_CHANGE"]})
+                  </button>
+                </p>
+              )}
+              {localOptions.starcraftPath &&
+                localOptions.errors.includes("starcraftPath") && (
+                  <span
+                    className="material-icons text-yellow-700 select-none"
+                    title={`This directory either does not exist or contains invalid contents`}
+                    data-tip={`This directory either does not exist or contains invalid contents`}
+                  >
+                    error_outline
+                  </span>
+                )}
+            </span>
           </li>
           <li>
             <p>{lang["SETTINGS_MAPS_PATH"]}</p>
@@ -135,17 +147,29 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
                 {lang["BUTTON_SELECT"]}
               </button>
             )}
-            {localOptions.mapsPath && (
-              <p className="italic text-sm text-gray-300">
-                {localOptions.mapsPath}{" "}
-                <button
-                  className="text-blue-300"
-                  onClick={() => selectFolder("mapsPath")}
-                >
-                  ({lang["BUTTON_CHANGE"]})
-                </button>
-              </p>
-            )}
+            <span className="flex">
+              {localOptions.mapsPath && (
+                <p className="italic text-sm text-gray-300">
+                  {localOptions.mapsPath}{" "}
+                  <button
+                    className="text-blue-300"
+                    onClick={() => selectFolder("mapsPath")}
+                  >
+                    ({lang["BUTTON_CHANGE"]})
+                  </button>
+                </p>
+              )}
+              {localOptions.mapsPath &&
+                localOptions.errors.includes("mapsPath") && (
+                  <span
+                    className="material-icons text-yellow-700 select-none"
+                    title={`This directory does not exist, choose another directory`}
+                    data-tip={`This directory does not exist, choose another directory`}
+                  >
+                    error_outline
+                  </span>
+                )}
+            </span>
           </li>
           <li>
             <p>{lang["SETTINGS_REPLAYS_PATH"]}</p>
@@ -157,17 +181,29 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
                 {lang["BUTTON_SELECT"]}
               </button>
             )}
-            {localOptions.replaysPath && (
-              <p className="italic text-sm text-gray-300">
-                {localOptions.replaysPath}{" "}
-                <button
-                  className="text-blue-300"
-                  onClick={() => selectFolder("replaysPath")}
-                >
-                  ({lang["BUTTON_CHANGE"]})
-                </button>
-              </p>
-            )}
+            <span className="flex">
+              {localOptions.replaysPath && (
+                <p className="italic text-sm text-gray-300">
+                  {localOptions.replaysPath}{" "}
+                  <button
+                    className="text-blue-300"
+                    onClick={() => selectFolder("replaysPath")}
+                  >
+                    ({lang["BUTTON_CHANGE"]})
+                  </button>
+                </p>
+              )}
+              {localOptions.replaysPath &&
+                localOptions.errors.includes("replaysPath") && (
+                  <span
+                    className="material-icons text-yellow-700 select-none"
+                    title={`This directory does not exist, choose another directory`}
+                    data-tip={`This directory does not exist, choose another directory`}
+                  >
+                    error_outline
+                  </span>
+                )}
+            </span>
           </li>
           <li>
             <p>{lang["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}</p>
@@ -179,17 +215,29 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
                 {lang["BUTTON_SELECT"]}
               </button>
             )}
-            {localOptions.communityModelsPath && (
-              <p className="italic text-sm text-gray-300">
-                {localOptions.communityModelsPath}{" "}
-                <button
-                  className="text-blue-300"
-                  onClick={() => selectFolder("communityModelsPath")}
-                >
-                  ({lang["BUTTON_CHANGE"]})
-                </button>
-              </p>
-            )}
+            <span className="flex">
+              {localOptions.communityModelsPath && (
+                <p className="italic text-sm text-gray-300">
+                  {localOptions.communityModelsPath}{" "}
+                  <button
+                    className="text-blue-300"
+                    onClick={() => selectFolder("communityModelsPath")}
+                  >
+                    ({lang["BUTTON_CHANGE"]})
+                  </button>
+                </p>
+              )}
+              {localOptions.communityModelsPath &&
+                localOptions.errors.includes("communityModelsPath") && (
+                  <span
+                    className="material-icons text-yellow-700 select-none"
+                    title={`This directory does not exist, choose another directory`}
+                    data-tip={`This directory does not exist, choose another directory`}
+                  >
+                    error_outline
+                  </span>
+                )}
+            </span>
           </li>
 
           <li>

@@ -3,9 +3,8 @@ import { openFileBinary, openFileLines } from "../fs";
 import { range, identity, memoizeWith } from "ramda";
 
 export class DAT {
-  constructor(bwDataPath, resourcesPath = "./src/main/units/Data") {
+  constructor(bwDataPath) {
     this.bwDataPath = bwDataPath;
-    this.resourcesPath = resourcesPath;
     this.entries = [];
     this.info = {};
     this.statFile = `${this.bwDataPath}/rez/stat_txt.tbl`;

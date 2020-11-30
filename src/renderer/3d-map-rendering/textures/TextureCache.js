@@ -11,6 +11,7 @@ export class TextureCache {
     format = "rgb",
     loadingManager = DefaultLoadingManager
   ) {
+    console.log(dir);
     this.baseName = sanitize(baseName);
     this.dir = dir;
     this.format = format;
@@ -23,10 +24,11 @@ export class TextureCache {
 
   async save(name, data, width, height) {
     console.log("saving", this._name(name));
-    return await savePNG(data, width, height, this._name(name), this.format);
+    // return await savePNG(data, width, height, this._name(name), this.format);
   }
 
-  exists(name) {
+  async exists(name) {
+    return false;
     return fsPromises
       .access(this._name(name), fs.constants.R_OK)
       .then((_) => true)

@@ -526,7 +526,7 @@ export class Units {
 
       const audioLoader = new AudioLoader(this.loadingManager);
       audioLoader.load(
-        `./sound/${this.bwDat.sounds[soundId].file}`,
+        `../bwdata/sound/${this.bwDat.sounds[soundId].file}`,
         (buffer) => {
           this.audioPool[soundId] = buffer;
           unitSound.setBuffer(buffer);

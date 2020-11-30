@@ -2,7 +2,11 @@ import { Audio, AudioLoader } from "three";
 const rand = (n) => Math.floor(Math.random() * n);
 
 export class BgMusic {
-  constructor(listener) {
+  constructor(bwDataPath) {
+    this.bwDataPath = bwDataPath;
+  }
+
+  setListener(listener) {
     this.audio = new Audio(listener);
   }
 
@@ -13,7 +17,7 @@ export class BgMusic {
   playGame() {
     const race = ["terran", "zerg", "protoss"];
     this.audio.onEnded = this.playGame.bind(this);
-    this._play(`music/${race[rand(2)]}${rand(4) + 1}.ogg`);
+    this._play(`${this.bwDataPath}/music/${race[rand(2)]}${rand(4) + 1}.ogg`);
   }
 
   playMenu() {

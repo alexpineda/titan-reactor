@@ -26,10 +26,12 @@ const Panels = {
 export default ({ context }) => {
   const [activePanel, setActivePanel] = useState(Panels.Home);
   const [lang, setLang] = useState({});
+  const [settings, setSettings] = useState({});
 
   const initLanguage = async () => {
     const settings = await getSettings();
     updateLanguage(settings.language);
+    setSettings(settings);
   };
 
   const updateLanguage = async (val) => {
@@ -42,6 +44,7 @@ export default ({ context }) => {
     const listener = (evt, { settings }) => {
       console.log("settings", settings);
       updateLanguage(settings.language);
+      setSettings(settings);
     };
 
     ipcRenderer.on(SETTINGS_CHANGED, listener);
@@ -65,13 +68,17 @@ export default ({ context }) => {
             <ul className="mt-auto">
               <li
                 className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
-                onClick={() => ipcRenderer.send(OPEN_MAP_DIALOG)}
+                onClick={() =>
+                  ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
+                }
               >
                 {lang["MAPS"]}
               </li>
               <li
                 className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
-                onClick={() => ipcRenderer.send(OPEN_REPLAY_DIALOG)}
+                onClick={() =>
+                  ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
+                }
               >
                 {lang["REPLAYS"]}
               </li>

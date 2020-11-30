@@ -6,6 +6,7 @@ export default ({
   onUnitDetails,
   onShowAttackDetails,
   onFollowUnit,
+  followingUnit,
   onUnitFPV,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
@@ -22,8 +23,14 @@ export default ({
 
         <aside className="flex flex-col space-y-2 ml-2">
           <i
-            onClick={() => onUnitDetails && onUnitDetails()}
-            className="material-icons rounded cursor-pointer hover:text-yellow-500"
+            onClick={(evt) => {
+              evt.preventDefault();
+              evt.stopPropagation();
+              onUnitDetails && units.length === 1 && onUnitDetails();
+            }}
+            className={`material-icons rounded cursor-pointer ${
+              units.length === 1 ? "text-blue-700" : "text-gray-700"
+            }`}
             style={{ fontSize: smallIconFontSize }}
             data-tip={`Unit Information`}
           >
@@ -40,7 +47,9 @@ export default ({
 
           <i
             onClick={() => onFollowUnit && onFollowUnit()}
-            className="material-icons rounded cursor-pointer hover:text-yellow-500"
+            className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
+              followingUnit ? "text-yellow-700" : "text-gray-700"
+            } `}
             style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
             data-tip={`Follow Unit`}
           >

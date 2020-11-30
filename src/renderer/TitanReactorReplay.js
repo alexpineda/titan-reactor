@@ -1,5 +1,12 @@
 import React from "react";
-import { PointLight, Raycaster, Vector2, AudioListener } from "three";
+import {
+  PointLight,
+  Raycaster,
+  Vector2,
+  AudioListener,
+  Camera,
+  Vector3,
+} from "three";
 
 import {
   BWAPIUnitFromBuffer,
@@ -24,6 +31,7 @@ import { commands } from "bwdat/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./replay/PlayerPovCamera";
 import { TerrainCubeCamera } from "./replay/CubeCamera";
 import { unitTypes } from "../common/bwdat/unitTypes";
+import createUnitDetails from "./react-ui/hud/createUnitDetails";
 const { startLocation } = unitTypes;
 
 export const hot = module.hot ? module.hot.data : null;
@@ -37,7 +45,8 @@ export async function TitanReactorReplay(
   rep,
   BWAPIFramesDataView,
   renderImage,
-  bwDat
+  bwDat,
+  bgMusic
 ) {
   const debugInfo = new DebugInfo();
 
@@ -89,7 +98,7 @@ export async function TitanReactorReplay(
 
   const audioListener = new AudioListener();
   mainCamera.camera.add(audioListener);
-  const bgMusic = new BgMusic(audioListener);
+  bgMusic.setListener(audioListener);
   bgMusic.setVolume(0.01);
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
@@ -141,9 +150,11 @@ export async function TitanReactorReplay(
     }
   };
 
-  window.goto = (frame) => replayPosition.goto(frame);
-
   document.addEventListener("keydown", keyDownListener);
+
+  let selectedUnits = [];
+  let followingUnit = false;
+  let showingUnitDetails;
 
   const mouseDownListener = (event) => {
     var raycaster = new Raycaster();
@@ -172,6 +183,7 @@ export async function TitanReactorReplay(
       const unit = getAsUnit(object);
 
       if (unit) {
+        selectedUnits = [unit];
         console.log(unit.userData.repId, unit);
       }
     });
@@ -213,10 +225,17 @@ export async function TitanReactorReplay(
       }
       updateUi();
     },
-    onShowHeatMap: () => {
-      minimap.toggleHeatmap();
-      if (minimap.heatmapEnabled) {
-        minimap.heatmap.reset();
+    onFollowUnit: () => {
+      followingUnit = !followingUnit;
+    },
+    onUnitDetails: () => {
+      if (showingUnitDetails) {
+        showingUnitDetails = null;
+      } else {
+        showingUnitDetails = createUnitDetails(
+          bwDat,
+          selectedUnits[0].userData.typeId
+        );
       }
     },
     povInterval: null,
@@ -289,9 +308,12 @@ export async function TitanReactorReplay(
         onChangePosition={hudData.onChangePosition}
         onTogglePaused={hudData.onTogglePaused}
         minimapCanvas={context.minimapCanvas}
-        onShowHeatMap={hudData.onShowHeatMap}
-        heatmapEnabled={minimap.heatmapEnabled}
         onTogglePlayerPov={hudData.onTogglePlayerPov}
+        selectedUnits={selectedUnits}
+        onFollowUnit={hudData.onFollowUnit}
+        followingUnit={followingUnit}
+        onUnitDetails={hudData.onUnitDetails}
+        UnitDetails={showingUnitDetails}
       />
     );
     if (firstUiUpdate) {
@@ -362,8 +384,18 @@ export async function TitanReactorReplay(
           bulletsThisFrame.push(frameData);
         }
 
-        units.killUnits(difference(unitsLastFrame, unitsThisFrame));
+        const deadUnits = difference(unitsLastFrame, unitsThisFrame);
+        units.killUnits(deadUnits);
         unitsLastFrame = [...unitsThisFrame];
+
+        if (selectedUnits.length) {
+          selectedUnits = selectedUnits.filter(
+            (unit) => !deadUnits.includes(unit.userData.repId)
+          );
+          if (selectedUnits.length === 0 && followingUnit) {
+            followingUnit = false;
+          }
+        }
         // units.units.updateMatrixWorld(true);
 
         if (rep.cmds[replayPosition.bwGameFrame]) {
@@ -394,7 +426,7 @@ export async function TitanReactorReplay(
         fadingPointers.update(replayPosition.bwGameFrame);
       }
 
-      if (replayPosition.autoSpeed || minimap.heatmapEnabled) {
+      if (replayPosition.willUpdateAutospeed()) {
         const attackingUnits = unitsThisFrame
           .map((unitRepId) =>
             units.units.children.find(
@@ -406,16 +438,11 @@ export async function TitanReactorReplay(
         if (replayPosition.updateAutoSpeed(attackingUnits)) {
           updateUi();
         }
-        if (minimap.heatmapEnabled) {
-          minimap.heatmap.update(replayPosition.bwGameFrame, attackingUnits);
-        }
       }
     }
 
     pointLight.position.copy(mainCamera.camera.position);
     pointLight.position.y += 5;
-
-    // cameras.updateCubeCamera(scene);
 
     units.cameraDirection.previousDirection = units.cameraDirection.direction;
 
@@ -437,6 +464,24 @@ export async function TitanReactorReplay(
       context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
       context.renderer.render(scene, players[1].camera);
     } else {
+      //#region followUnit
+      if (followingUnit && selectedUnits.length) {
+        const x =
+          selectedUnits.reduce(
+            (sum, unit) => sum + unit.getWorldPosition().x,
+            0
+          ) / selectedUnits.length;
+        const y =
+          selectedUnits.reduce(
+            (sum, unit) => sum + unit.getWorldPosition().y,
+            0
+          ) / selectedUnits.length;
+        //@todo pick better height
+        mainCamera.camera.position.set(x, 40, y + 5);
+        //@todo use terrainY
+        mainCamera.camera.lookAt(new Vector3(x, 0, y));
+      }
+      //#endregion
       context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
       context.renderer.render(scene, mainCamera.camera);
     }
@@ -474,8 +519,6 @@ export async function TitanReactorReplay(
 
     document.removeEventListener("keydown", keyDownListener);
     document.removeEventListener("mousedown", mouseDownListener);
-
-    window.goto = null;
   };
 
   window.onbeforeunload = (e) => {

@@ -6,6 +6,7 @@ import {
   SET_SETTINGS,
   GET_SETTINGS,
   SELECT_FOLDER,
+  LOG_MESSAGE,
 } from "../common/handleNames";
 import { Buffer } from "buffer/";
 
@@ -25,7 +26,7 @@ export const loadAllDataFiles = async (bwDataPath) => {
 };
 
 export const selectFolder = async (key) => {
-  return await ipcRenderer.invoke(SELECT_FOLDER, key);
+  return await ipcRenderer.send(SELECT_FOLDER, key);
 };
 
 export const getSettings = async (settings) => {
@@ -42,4 +43,8 @@ export const openMapDialog = async (settings) => {
 
 export const openReplayDialog = async (settings) => {
   return await ipcRenderer.invoke(SET_SETTINGS, settings);
+};
+
+export const log = async (message, level = "info") => {
+  return await ipcRenderer.send(LOG_MESSAGE, { level, message });
 };

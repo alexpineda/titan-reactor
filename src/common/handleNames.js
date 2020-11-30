@@ -8,6 +8,8 @@ export const SET_SETTINGS = "SET_SETTINGS";
 export const SETTINGS_CHANGED = "SETTINGS_CHANGED";
 export const GET_LANGUAGE = "GET_LANGUAGE";
 export const SELECT_FOLDER = "SELECT_FOLDER";
+export const LOG_MESSAGE = "LOG_MESSAGE";
+export const EXIT = "EXIT";
 
 export default {
   GET_APPCACHE_PATH,
@@ -20,4 +22,6 @@ export default {
   SELECT_FOLDER,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
+  LOG_MESSAGE,
+  EXIT,
 };

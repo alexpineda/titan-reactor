@@ -4,7 +4,8 @@ import {
   findMapsPath,
   findReplaysPath,
   findStarcraftPath,
-} from "./findInstallPath";
+} from "./starcraft/findInstallPath";
+import fileExists from "./utils/fileExists";
 
 const VERSION = 1;
 export const RenderMode = {
@@ -56,8 +57,43 @@ export class Settings extends EventEmitter {
     }
   }
 
-  get() {
-    return this._settings;
+  async get() {
+    const errors = [];
+    const files = [
+      "starcraftPath",
+      "mapsPath",
+      "replaysPath",
+      "communityModelsPath",
+    ];
+
+    for (let file of files) {
+      if (!(await fileExists(this._settings[file]))) {
+        errors.push(file);
+      }
+    }
+
+    const dataFolders = [
+      "anim",
+      "arr",
+      "cursor",
+      "game",
+      "music",
+      "portrait",
+      "scripts",
+      "sound",
+      "TileSet",
+      "unit",
+    ];
+    if (!(await fileExists(this._settings["starcraftPath"]))) {
+      for (let folder of dataFolders) {
+        if (!(await fileExists(this._settings[folder]))) {
+          if (!errors.includes("starcraftPath")) {
+            errors.push("starcraftPath");
+          }
+        }
+      }
+    }
+    return { ...this._settings, errors };
   }
 
   async load() {
@@ -70,6 +106,10 @@ export class Settings extends EventEmitter {
   }
 
   async save(settings) {
+    if (settings.errors) {
+      delete settings.errors;
+    }
+
     const diff = shallowDiff(this._settings, settings);
     this._settings = Object.assign({}, this._settings, settings);
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings), {
@@ -90,7 +130,7 @@ export class Settings extends EventEmitter {
       renderMode: RenderMode.SD,
       maxAutoReplaySpeed: 1.5,
       language: languages.includes(getEnvLocale()) ? getEnvLocale() : "en-US",
-      starcraftPath: await findStarcraftPath(),
+      starcraftPath: "", //await findStarcraftPath(),
       mapsPath: await findMapsPath(),
       replaysPath: await findReplaysPath(),
       communityModelsPath: "",

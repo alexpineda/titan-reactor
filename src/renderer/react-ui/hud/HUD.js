@@ -5,16 +5,10 @@ import Resources from "./Resources";
 import ReactTooltip from "react-tooltip";
 import Details from "./Details";
 import ReplayPosition from "./ReplayPosition";
-import { gameSpeeds } from "../../utils/conversions";
 
 const config = {
   textSize: "sm",
   showTooltips: true,
-};
-
-const demo = {
-  position: 90,
-  selectedUnits: [],
 };
 
 export default ({
@@ -31,9 +25,12 @@ export default ({
   maxFrame,
   gameSpeed,
   minimapCanvas,
-  onShowHeatMap,
-  heatmapEnabled,
   onTogglePlayerPov,
+  selectedUnits,
+  onFollowUnit,
+  followingUnit,
+  onUnitDetails,
+  UnitDetails,
 }) => {
   const [showResources, setShowResources] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
@@ -50,14 +47,8 @@ export default ({
     console.log("onDropPings", e);
   };
 
-  const onUnitDetails = (e) => {
-    console.log("onUnitDetails", e);
-  };
   const onShowAttackDetails = (e) => {
     console.log("onShowAttackDetails", e);
-  };
-  const onFollowUnit = (e) => {
-    console.log("onFollowUnit", e);
   };
   const onUnitFPV = (e) => {
     console.log("onUnitFPV", e);
@@ -77,11 +68,10 @@ export default ({
           textSize={config.textSize}
         />
       )}
+      {UnitDetails && <UnitDetails onClose={onUnitDetails} />}
       <div className="w-full flex absolute bottom-0 divide-x-4 divide-transparent px-2">
         <Minimap
           onRevealMap={onRevealMap}
-          onShowHeatMap={onShowHeatMap}
-          heatmapEnabled={heatmapEnabled}
           onDropPings={onDropPings}
           timeLabel={timeLabel}
           textSize={config.textSize}
@@ -89,10 +79,11 @@ export default ({
         />
         <div className="flex flex-1">
           <Details
-            units={demo.selectedUnits}
+            units={selectedUnits}
             onUnitDetails={onUnitDetails}
             onShowAttackDetails={onShowAttackDetails}
             onFollowUnit={onFollowUnit}
+            followingUnit={followingUnit}
             onUnitFPV={onUnitFPV}
             textSize={config.textSize}
           />

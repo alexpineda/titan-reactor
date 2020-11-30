@@ -40,7 +40,6 @@ export class MainCamera {
       });
 
       minimap.addEventListener("hover", ({ message: pos }) => {
-        console.log("hover");
         this._delta.subVectors(this.control.target, this.camera.position);
         this.minimapCameraHelper.position.set(pos.x, 10, pos.z + 10);
         this.minimapCameraHelper.lookAt(pos);

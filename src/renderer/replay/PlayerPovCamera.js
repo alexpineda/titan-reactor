@@ -36,7 +36,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
 
   moveTo(x, y) {
     this.position.x = x;
-    this.position.z = y;
+    this.position.z = y + 5;
     this.lookAt(this.position.x, 0, this.position.z);
   }
 
@@ -47,7 +47,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
 
     if (cmd.x && cmd.y) {
       this.position.x = pxToMeter.x(cmd.x);
-      this.position.z = pxToMeter.y(cmd.y);
+      this.position.z = pxToMeter.y(cmd.y) + 5;
       this.lookAt(this.position.x, 0, this.position.z);
     }
     // switch (cmd.id) {

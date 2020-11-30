@@ -67,52 +67,52 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   pointLight.castShadow = true;
   scene.add(pointLight);
 
-  const loadModel = new LoadModel();
-  const mineral = await loadModel.load("_alex/mineral1.glb", "mineral", (o) => {
-    o.receiveShadow = false;
-    o.userData.needsEnvMap = true;
-  });
+  // const loadModel = new LoadModel();
+  // const mineral = await loadModel.load("_alex/mineral1.glb", "mineral", (o) => {
+  //   o.receiveShadow = false;
+  //   o.userData.needsEnvMap = true;
+  // });
 
-  const minerals = chk.units
-    .filter((unit) =>
-      [unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
-        unit.unitId
-      )
-    )
-    .map((unit) => {
-      const x = unit.x / 32 - chk.size[0] / 2;
-      const y = unit.y / 32 - chk.size[1] / 2;
-      const m = mineral.clone();
-      m.position.set(x, terrainY(x, y), y);
-      return m;
-    });
-  minerals.forEach((m) => scene.add(m));
+  // const minerals = chk.units
+  //   .filter((unit) =>
+  //     [unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
+  //       unit.unitId
+  //     )
+  //   )
+  //   .map((unit) => {
+  //     const x = unit.x / 32 - chk.size[0] / 2;
+  //     const y = unit.y / 32 - chk.size[1] / 2;
+  //     const m = mineral.clone();
+  //     m.position.set(x, terrainY(x, y), y);
+  //     return m;
+  //   });
+  // minerals.forEach((m) => scene.add(m));
 
-  const mouseDownListener = (event) => {
-    var raycaster = new Raycaster();
-    var mouse = new Vector2();
+  // const mouseDownListener = (event) => {
+  //   var raycaster = new Raycaster();
+  //   var mouse = new Vector2();
 
-    // calculate mouse position in normalized device coordinates
-    // (-1 to +1) for both components
+  //   // calculate mouse position in normalized device coordinates
+  //   // (-1 to +1) for both components
 
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, mainCamera.camera);
+  //   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  //   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  //   raycaster.setFromCamera(mouse, mainCamera.camera);
 
-    // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObjects(zerglings, true);
+  //   // calculate objects intersecting the picking ray
+  //   const intersects = raycaster.intersectObjects(zerglings, true);
 
-    console.log("1");
+  //   console.log("1");
 
-    if (!intersects.length) return;
-    intersects.slice(0, 1).forEach(({ object, distance }) => {
-      if (object) {
-        console.log("3", object, distance);
-        mainCamera.camera.focusAt && mainCamera.camera.focusAt(distance);
-      }
-    });
-  };
-  document.addEventListener("mousedown", mouseDownListener);
+  //   if (!intersects.length) return;
+  //   intersects.slice(0, 1).forEach(({ object, distance }) => {
+  //     if (object) {
+  //       console.log("3", object, distance);
+  //       mainCamera.camera.focusAt && mainCamera.camera.focusAt(distance);
+  //     }
+  //   });
+  // };
+  // document.addEventListener("mousedown", mouseDownListener);
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom, focus }) => {
@@ -199,16 +199,16 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
   const getTerrainY = scene.getTerrainY();
 
-  const zerglings = [];
-  const lm = new LoadModel();
-  for (let i = 0; i < 1000; i++) {
-    const z = await lm.load("_alex/zergling.glb");
-    const x = (Math.random() - 0.5) * 128;
-    const y = (Math.random() - 0.5) * 128;
-    z.position.set(x, getTerrainY(x, y), y);
-    // zerglings.push(z);
-    // scene.add(z);
-  }
+  // const zerglings = [];
+  // const lm = new LoadModel();
+  // for (let i = 0; i < 1000; i++) {
+  //   const z = await lm.load("_alex/zergling.glb");
+  //   const x = (Math.random() - 0.5) * 128;
+  //   const y = (Math.random() - 0.5) * 128;
+  //   z.position.set(x, getTerrainY(x, y), y);
+  //   // zerglings.push(z);
+  //   // scene.add(z);
+  // }
 
   //#region map controllers
   gui.controllers.map.onChangeAny(

@@ -194,6 +194,12 @@ export class ReplayPosition {
     this.bwapiBufferPosition += bytes;
   }
 
+  willUpdateAutospeed() {
+    if (!this.autoSpeed || this.destination) {
+      return false;
+    }
+    return this.frame % this.autoSpeedRefreshRate === 0;
+  }
   updateAutoSpeed(attackingUnits) {
     if (!this.autoSpeed || this.destination) {
       return;

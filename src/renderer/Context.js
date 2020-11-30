@@ -12,7 +12,6 @@ export class Context extends EventDispatcher {
     this.window = window;
     this.document = window.document;
     this.renderer = null;
-    this.bwDataPath = "./bwdata";
   }
 
   getGameCanvas() {

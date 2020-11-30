@@ -2,7 +2,7 @@
 import Registry from "winreg";
 import { app } from "electron";
 import path from "path";
-import fileExists from "./fileExists";
+import fileExists from "../utils/fileExists";
 
 function readRegValue(hive, key, value) {
   return new Promise((resolve, reject) => {

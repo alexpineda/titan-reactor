@@ -11,8 +11,9 @@ import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
 import { LoadingManager } from "three";
 import { TitanReactorScene } from "./Scene";
-import { getSettings } from "./invoke";
+import { getSettings, log } from "./invoke";
 import { RenderMode } from "../main/settings";
+import { BgMusic } from "./audio/BgMusic";
 
 export const SceneMode = {
   MapViewer: 0,
@@ -30,6 +31,7 @@ export class TitanReactor {
   }
 
   async spawnReplay(filepath) {
+    log(`loading replay ${filepath}`);
     await this.dispose();
     const settings = await getSettings();
     const loadingManager = new LoadingManager();
@@ -37,12 +39,12 @@ export class TitanReactor {
     this.mode = SceneMode.Replay;
     document.title = `Titan Reactor - Replay`;
 
-    console.log("1");
+    log(`parsing replay`);
     const rep = await parseReplay(await this.fileAccess(filepath));
-    console.log("2");
-    const chk = await imageChk(rep.chk, this.context.bwDataPath);
-    console.log("13");
+    log(`loading chk`);
+    const chk = await imageChk(rep.chk, settings.starcraftPath);
 
+    log(`showing loading overlay`);
     this.reactApp.overlay({
       chk,
       header: rep.header,
@@ -53,24 +55,27 @@ export class TitanReactor {
       settings.renderMode === RenderMode.SD ||
       settings.renderMode === RenderMode.HD
     ) {
+      log(`initializing sprite texture cache`);
       const spritesTextureCache = new TextureCache(
         "sd",
         await getAppCachePath(),
         "rgba"
       );
+      log(`initializing json cache`);
 
       const jsonCache = new JsonCache("sprite-", await getAppCachePath());
+      log(`loading tileset`);
       const tileset = new Tileset(
         chk.tileset,
-        this.context.bwDataPath,
+        settings.starcraftPath,
         this.fileAccess
       );
       await tileset.load();
-      console.log("4");
+      log(`loading unit atlas`);
       const loadSprite = new LoadSprite(
         tileset,
         this.bwDat.images,
-        (file) => this.fileAccess(`${this.context.bwDataPath}/unit/${file}`),
+        (file) => this.fileAccess(`${settings.starcraftPath}/unit/${file}`),
         spritesTextureCache,
         jsonCache,
         this.context.renderer.capabilities.maxTextureSize,
@@ -78,12 +83,7 @@ export class TitanReactor {
       );
 
       await loadSprite.loadAll();
-      console.log("5");
-      renderImage = new ImageSD(
-        this.bwDat,
-        this.context.bwDataPath,
-        loadSprite
-      );
+      renderImage = new ImageSD(this.bwDat, settings.starcraftPath, loadSprite);
     } else {
       renderImage = new Image3D();
     }
@@ -92,11 +92,11 @@ export class TitanReactor {
 
     const frames = await this.fileAccess(`${filepath}.bin`);
 
-    console.log("6");
+    log(`initializing scene`);
     const scene = new TitanReactorScene(chk, textureCache, loadingManager);
     await scene.init();
-    console.log("7");
 
+    log(`initializing replay`);
     this.scene = await TitanReactorReplay(
       this.context,
       filepath,
@@ -106,9 +106,9 @@ export class TitanReactor {
       rep,
       new DataView(frames.buffer),
       renderImage,
-      this.bwDat
+      this.bwDat,
+      new BgMusic(settings.starcraftPath)
     );
-    console.log("done");
   }
 
   async spawnMapViewer(chkFilepath) {
@@ -118,7 +118,8 @@ export class TitanReactor {
     const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.MapViewer;
-    const chk = await imageChk(chkFilepath, this.context.bwDataPath);
+    log(`loading chk`);
+    const chk = await imageChk(chkFilepath, settings.starcraftPath);
     window.chk = chk;
 
     this.reactApp.overlay({
@@ -126,8 +127,10 @@ export class TitanReactor {
     });
     document.title = `Titan Reactor - ${chk.title}`;
 
+    log(`initializing texture cache`);
     const textureCache = new TextureCache(chk.title, await getAppCachePath());
 
+    log(`initializing scene`);
     const scene = new TitanReactorScene(chk, textureCache, loadingManager);
     await scene.init();
 
@@ -142,6 +145,7 @@ export class TitanReactor {
 
   dispose() {
     if (this.scene) {
+      log("disposing previous scene");
       return this.scene.dispose();
     }
   }
