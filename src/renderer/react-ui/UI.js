@@ -10,6 +10,7 @@ import "./css/styles.css";
 
 import { mapPreviewCanvas } from "../3d-map-rendering/textures/mapPreviewCanvas";
 import Home from "./home/Home";
+import Loading from "./home/Loading";
 
 export class UI {
   constructor(domElement, context) {
@@ -29,6 +30,10 @@ export class UI {
 
   home() {
     this.render(<Home context={this.context} />);
+  }
+
+  loading(lang) {
+    this.render(<Loading lang={lang} />);
   }
 
   async overlay({ chk, label, description, header = null }) {

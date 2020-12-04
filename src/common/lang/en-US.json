@@ -2,6 +2,7 @@
     "MAPS": "Maps",
     "REPLAYS": "Replays",
     "OPTIONS": "Options",
+    "LOADING": "Loading",
 
     "LAUNCH": "Launch",
     "CREDITS": "Credits",
@@ -21,7 +22,7 @@
     "SETTINGS_GRAPHICS": "Graphics",
     "SETTINGS_INTEGRATIONS": "Integrations",
     "SETTINGS_PLAYER_COLORS": "Player Colors",
-    "SETTINGS_CAMERA_SHAKE": "Cinematic Camera Shake", 
+    "SETTINGS_CAMERA_SHAKE": "Cinematic Camera Shake",
     "SETTINGS_MUSIC_VOLUME": "Music Volume",
     "SETTINGS_SOUND_VOLUME": "Sound Volume",
     "SETTINGS_GRAPHICS_ANTIALIAS": "Antialias",

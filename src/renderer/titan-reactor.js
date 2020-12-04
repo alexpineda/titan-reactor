@@ -1,6 +1,6 @@
-import { log } from "./invoke";
 import { ipcRenderer } from "electron";
 import { UI } from "./react-ui/UI";
+import { getSettings, log } from "./invoke";
 
 import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
@@ -15,13 +15,20 @@ async function bootup() {
   const context = new Context(window);
   const ui = new UI(document.getElementById("app"), context);
 
-  titanReactor = new TitanReactor(context, ui);
-  const success = await titanReactor.init();
-
-  if (success) {
-    context.initRenderer();
-    ui.home();
+  const settings = await getSettings();
+  if (settings.errors.length) {
+    return false;
   }
+
+  const lang = await import(`common/lang/${settings.language}`);
+  ui.loading(lang);
+
+  context.initRenderer();
+
+  titanReactor = new TitanReactor(context, ui);
+  await titanReactor.init(settings);
+
+  ui.home();
 }
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (event, [map]) => {

@@ -9,7 +9,7 @@ import { ImageSD } from "./mesh/ImageSD";
 import { Image3D } from "./mesh/Image3D";
 import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
-import { LoadingManager } from "three";
+import { DefaultLoadingManager, LoadingManager } from "three";
 import { TitanReactorScene } from "./Scene";
 import { RenderMode } from "../main/settings";
 import { BgMusic } from "./audio/BgMusic";
@@ -30,12 +30,7 @@ export class TitanReactor {
     this.reactApp = reactApp;
   }
 
-  async init() {
-    const settings = await getSettings();
-    if (settings.errors.length) {
-      return false;
-    }
-
+  async init(settings) {
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
     const origBwDat = await loadAllDataFiles(settings.starcraftPath);
@@ -53,20 +48,28 @@ export class TitanReactor {
       await loadSpritePalettes(this.readStarcraftFile)
     );
 
-    //load sd sprites
-    // const loadSprite = new LoadSprite(
-    //   palettes,
-    //   this.bwDat.images,
-    //   (file) => openFile(`${settings.starcraftPath}/unit/${file}`),
-    //   spritesTextureCache,
-    //   jsonCache,
-    //   this.context.renderer.capabilities.maxTextureSize,
-    //   loadingManager
-    // );
+    log(`initializing sprite texture cache`);
+    const spritesTextureCache = new TextureCache(
+      "sd",
+      await getAppCachePath(),
+      "rgba"
+    );
+    log(`initializing json cache`);
 
-    // await loadSprite.loadAll();
+    const jsonCache = new JsonCache("sprite-", await getAppCachePath());
 
-    return true;
+    log(`loading unit atlas`);
+    this.loadSprite = new LoadSprite(
+      this.palettes,
+      this.bwDat.images,
+      (file) => openFile(`${settings.starcraftPath}/unit/${file}`),
+      spritesTextureCache,
+      jsonCache,
+      this.context.renderer.capabilities.maxTextureSize,
+      DefaultLoadingManager
+    );
+
+    await this.loadSprite.loadAll();
   }
 
   async spawnReplay(filepath) {
@@ -94,35 +97,11 @@ export class TitanReactor {
       settings.renderMode === RenderMode.SD ||
       settings.renderMode === RenderMode.HD
     ) {
-      log(`initializing sprite texture cache`);
-      const spritesTextureCache = new TextureCache(
-        "sd",
-        await getAppCachePath(),
-        "rgba"
-      );
-      log(`initializing json cache`);
-
-      const jsonCache = new JsonCache("sprite-", await getAppCachePath());
-      log(`loading tileset`);
-      const tileset = new Tileset(
-        chk.tileset,
+      renderImage = new ImageSD(
+        this.bwDat,
         settings.starcraftPath,
-        openFile
+        this.loadSprite
       );
-      await tileset.load();
-      log(`loading unit atlas`);
-      const loadSprite = new LoadSprite(
-        tileset.palettes,
-        this.bwDat.images,
-        (file) => openFile(`${settings.starcraftPath}/unit/${file}`),
-        spritesTextureCache,
-        jsonCache,
-        this.context.renderer.capabilities.maxTextureSize,
-        loadingManager
-      );
-
-      await loadSprite.loadAll();
-      renderImage = new ImageSD(this.bwDat, settings.starcraftPath, loadSprite);
     } else {
       renderImage = new Image3D();
     }
