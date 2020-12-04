@@ -1,13 +1,17 @@
-export const tilesetNames = [
-  "badlands",
-  "platform",
-  "install",
-  "ashworld",
-  "jungle",
-  "desert",
-  "ice",
-  "twilight",
-];
+import tilesetNames from "../../common/bwdat/tilesetNames";
+
+export const createTilesetPalettes = async (
+  palettes,
+  tileset,
+  bwDataPath,
+  fileAccess
+) => {
+  const tilesetPalettes = [...palettes];
+  tilesetPalettes[0] = await fileAccess(
+    `${bwDataPath}/tileset/${tilesetNames[tileset]}.wpe`
+  );
+  return tilesetPalettes;
+};
 
 export class Tileset {
   constructor(tileset, bwDataPath, fileAccess) {

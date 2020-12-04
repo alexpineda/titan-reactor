@@ -10,6 +10,12 @@ export const rgbToCanvas = (
   return canvas;
 };
 
+export const canvasToHtmlImage = (canvas) => {
+  var image = new Image();
+  image.src = canvas.toDataURL();
+  return image;
+}
+
 export function writeToContext2d(ctx, data, width, height, format = "rgb") {
   const srcPixelWidth = format === "rgba" ? 4 : 3;
   const dstPixelWidth = 4;

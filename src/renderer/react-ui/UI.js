@@ -6,6 +6,8 @@ import { LoadingProgress } from "./LoadingProgress";
 import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
 import "./css/icon.css";
+import "./css/styles.css";
+
 import { mapPreviewCanvas } from "../3d-map-rendering/textures/mapPreviewCanvas";
 import Home from "./home/Home";
 

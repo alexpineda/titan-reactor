@@ -39,6 +39,12 @@
       "webpackConfig": "src/build/webpack.renderer.additions.js"
     }
   },
+  "build": {
+    "extraResources": [{
+      "from": "data",
+      "to": "data"
+    }]
+  },
   "dependencies": {
     "@eliasku/binpack": "^1.0.1",
     "bl": "^4.0.3",

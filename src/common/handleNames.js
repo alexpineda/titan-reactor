@@ -10,10 +10,12 @@ export const GET_LANGUAGE = "GET_LANGUAGE";
 export const SELECT_FOLDER = "SELECT_FOLDER";
 export const LOG_MESSAGE = "LOG_MESSAGE";
 export const EXIT = "EXIT";
+export const OPEN_DATA_FILE = "OPEN_DATA_FILE";
 
 export default {
   GET_APPCACHE_PATH,
   OPEN_FILE,
+  OPEN_DATA_FILE,
   LOAD_ALL_DATA_FILES,
   GET_SETTINGS,
   SET_SETTINGS,

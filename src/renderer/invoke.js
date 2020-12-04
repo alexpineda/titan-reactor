@@ -2,6 +2,7 @@ import { ipcRenderer } from "electron";
 import {
   GET_APPCACHE_PATH,
   OPEN_FILE,
+  OPEN_DATA_FILE,
   LOAD_ALL_DATA_FILES,
   SET_SETTINGS,
   GET_SETTINGS,
@@ -16,6 +17,11 @@ export const getAppCachePath = async (folder = "") => {
 
 export const openFile = async (filepath) => {
   const result = await ipcRenderer.invoke(OPEN_FILE, filepath);
+  return new Buffer(result);
+};
+
+export const openDataFile = async (filepath) => {
+  const result = await ipcRenderer.invoke(OPEN_DATA_FILE, filepath);
   return new Buffer(result);
 };
 

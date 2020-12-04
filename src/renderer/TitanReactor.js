@@ -11,9 +11,11 @@ import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
 import { LoadingManager } from "three";
 import { TitanReactorScene } from "./Scene";
-import { getSettings, log } from "./invoke";
 import { RenderMode } from "../main/settings";
 import { BgMusic } from "./audio/BgMusic";
+import { getSettings, loadAllDataFiles, openFile, log } from "./invoke";
+import { UnitDAT } from "../main/units/UnitsDAT";
+import loadSpritePalettes from "./image/palettes";
 
 export const SceneMode = {
   MapViewer: 0,
@@ -21,13 +23,50 @@ export const SceneMode = {
 };
 
 export class TitanReactor {
-  constructor(context, reactApp, fileAccess, bwDat) {
+  constructor(context, reactApp) {
     this.context = context;
     this.mode = null;
     this.scene = null;
     this.reactApp = reactApp;
-    this.fileAccess = fileAccess;
-    this.bwDat = bwDat;
+  }
+
+  async init() {
+    const settings = await getSettings();
+    if (settings.errors.length) {
+      return false;
+    }
+
+    //@todo move parsing to renderer so I don't have to reassign shit
+    log("loading DAT and ISCRIPT files");
+    const origBwDat = await loadAllDataFiles(settings.starcraftPath);
+    this.bwDat = {
+      ...origBwDat,
+      units: origBwDat.units.map((unit) => new UnitDAT(unit)),
+    };
+    window.bwDat = this.bwDat;
+
+    this.readStarcraftFile = (file) =>
+      openFile(`${settings.starcraftPath}/${file}`);
+
+    //load sprite palettes
+    this.palettes = Object.freeze(
+      await loadSpritePalettes(this.readStarcraftFile)
+    );
+
+    //load sd sprites
+    // const loadSprite = new LoadSprite(
+    //   palettes,
+    //   this.bwDat.images,
+    //   (file) => openFile(`${settings.starcraftPath}/unit/${file}`),
+    //   spritesTextureCache,
+    //   jsonCache,
+    //   this.context.renderer.capabilities.maxTextureSize,
+    //   loadingManager
+    // );
+
+    // await loadSprite.loadAll();
+
+    return true;
   }
 
   async spawnReplay(filepath) {
@@ -40,7 +79,7 @@ export class TitanReactor {
     document.title = `Titan Reactor - Replay`;
 
     log(`parsing replay`);
-    const rep = await parseReplay(await this.fileAccess(filepath));
+    const rep = await parseReplay(await openFile(filepath));
     log(`loading chk`);
     const chk = await imageChk(rep.chk, settings.starcraftPath);
 
@@ -68,14 +107,14 @@ export class TitanReactor {
       const tileset = new Tileset(
         chk.tileset,
         settings.starcraftPath,
-        this.fileAccess
+        openFile
       );
       await tileset.load();
       log(`loading unit atlas`);
       const loadSprite = new LoadSprite(
-        tileset,
+        tileset.palettes,
         this.bwDat.images,
-        (file) => this.fileAccess(`${settings.starcraftPath}/unit/${file}`),
+        (file) => openFile(`${settings.starcraftPath}/unit/${file}`),
         spritesTextureCache,
         jsonCache,
         this.context.renderer.capabilities.maxTextureSize,
@@ -90,7 +129,7 @@ export class TitanReactor {
 
     const textureCache = new TextureCache(chk.title, await getAppCachePath());
 
-    const frames = await this.fileAccess(`${filepath}.bin`);
+    const frames = await openFile(`${filepath}.bin`);
 
     log(`initializing scene`);
     const scene = new TitanReactorScene(chk, textureCache, loadingManager);

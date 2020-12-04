@@ -6,6 +6,7 @@ import { SELECT_FOLDER } from "../../../common/handleNames";
 
 const tabs = {
   general: "general",
+  game: "game",
   perf: "perf",
   audio: "audio",
   twitch: "twitch",
@@ -56,6 +57,14 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
           onClick={(e) => setTab(tabs.general)}
         >
           {lang["SETTINGS_GENERAL"]}
+        </li>
+        <li
+          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
+            tab === tabs.game ? "bg-gray-800" : ""
+          }`}
+          onClick={(e) => setTab(tabs.game)}
+        >
+          {lang["SETTINGS_GAME"]}
         </li>
         <li
           className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
@@ -240,6 +249,12 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
             </span>
           </li>
 
+          
+        </ul>
+      </Tab>
+
+      <Tab tabName={tabs.game} activeTab={tab}>
+        <ul className="divide-y-8 divide-transparent leading-relaxed">
           <li>
             <p>{lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}</p>
             <input
@@ -255,6 +270,38 @@ export default ({ context, lang, defaultTab = tabs.general }) => {
               }}
             />{" "}
             <span>{localOptions.maxAutoReplaySpeed}</span>
+          </li>
+          <li>
+            <p>{lang["SETTINGS_PLAYER_COLORS"]}</p>
+            <div className="flex rounded-lg text-lg" role="group">
+              <button
+                className={`border border-r-0 border-blue-500 rounded-l-lg px-4 py-2 mx-0 outline-none focus:shadow-outline hover:bg-blue-500 hover:text-white ${
+                  localOptions.renderMode === 0
+                    ? "bg-blue-500 text-white"
+                    : "bg-white text-blue-500 "
+                }`}
+              >
+                Use Replay Colors
+              </button>
+              <button
+                className={`hover:bg-blue-500 hover:text-white border border-l-0 border-blue-500 rounded-r-lg px-4 py-2 mx-0 outline-none focus:shadow-outline ${
+                  localOptions.renderMode === 2
+                    ? "bg-blue-500 text-white"
+                    : "bg-white text-blue-500 "
+                }`}
+              >
+                Use Custom Colors
+              </button>
+            </div>
+          </li>
+          <li>
+            <p>{lang["SETTINGS_CAMERA_SHAKE"]}</p>
+            <input
+              type="range"
+              min="1"
+              max="0"
+              step="0.05"
+            />{" "}
           </li>
         </ul>
       </Tab>

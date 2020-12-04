@@ -24,8 +24,7 @@ export default ({
         <aside className="flex flex-col space-y-2 ml-2">
           <i
             onClick={(evt) => {
-              evt.preventDefault();
-              evt.stopPropagation();
+              evt.nativeEvent.stopImmediatePropagation();
               onUnitDetails && units.length === 1 && onUnitDetails();
             }}
             className={`material-icons rounded cursor-pointer ${
@@ -56,14 +55,14 @@ export default ({
             gps_fixed
           </i>
 
-          <i
+          {/* <i
             onClick={() => onUnitFPV && onUnitFPV()}
             className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize }}
             data-tip={`Unit First Person View`}
           >
             slideshow
-          </i>
+          </i> */}
         </aside>
       </div>
     </div>

@@ -5,6 +5,7 @@ import path from "path";
 import {
   GET_APPCACHE_PATH,
   OPEN_FILE,
+  OPEN_DATA_FILE,
   LOAD_ALL_DATA_FILES,
   SELECT_FOLDER,
   GET_SETTINGS,
@@ -265,6 +266,14 @@ ipcMain.handle(GET_APPCACHE_PATH, async (event, folder = "") => {
 
 ipcMain.handle(OPEN_FILE, async (event, filepath = "") => {
   return await openFileBinary(filepath);
+});
+
+ipcMain.handle(OPEN_DATA_FILE, async (event, filepath) => {
+  const dataPath = isDev
+    ? path.join(`./data/${filepath}`)
+    : path.join(process.resourcesPath, "data", filepath);
+
+  return await openFileBinary(dataPath);
 });
 
 ipcMain.handle(LOAD_ALL_DATA_FILES, async (event, bwDataPath) => {

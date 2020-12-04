@@ -31,7 +31,7 @@ import { commands } from "bwdat/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./replay/PlayerPovCamera";
 import { TerrainCubeCamera } from "./replay/CubeCamera";
 import { unitTypes } from "../common/bwdat/unitTypes";
-import createUnitDetails from "./react-ui/hud/createUnitDetails";
+import createUnitDetails from "./react-ui/hud/unitDetails/createUnitDetails";
 const { startLocation } = unitTypes;
 
 export const hot = module.hot ? module.hot.data : null;
@@ -46,7 +46,9 @@ export async function TitanReactorReplay(
   BWAPIFramesDataView,
   renderImage,
   bwDat,
-  bgMusic
+  bgMusic,
+  gameIcons,
+  unitWireframes
 ) {
   const debugInfo = new DebugInfo();
 
@@ -121,9 +123,12 @@ export async function TitanReactorReplay(
     BWAPIFramesDataView,
     rep.header.frameCount,
     new ClockMs(),
-    gameSpeeds.slowest,
+    gameSpeeds.fastest,
     heatMapScore
   );
+
+  //@todo disable if turned off in settings
+  replayPosition.autoSpeed = gameSpeeds.fastest;
 
   replayPosition.onResetState = () => {
     unitsLastFrame = [];
@@ -314,6 +319,7 @@ export async function TitanReactorReplay(
         followingUnit={followingUnit}
         onUnitDetails={hudData.onUnitDetails}
         UnitDetails={showingUnitDetails}
+        gameIcons={gameIcons}
       />
     );
     if (firstUiUpdate) {
@@ -399,6 +405,22 @@ export async function TitanReactorReplay(
         // units.units.updateMatrixWorld(true);
 
         if (rep.cmds[replayPosition.bwGameFrame]) {
+
+          // #region apm
+          const apm = [];
+          for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
+            if (!apm[cmd.player]) {
+              apm[cmd.player] = 1;
+            } else {
+              apm[cmd.player] = apm[cmd.player] + 1;
+            }
+          }
+          Object.keys(apm).map(player => {
+            players[player].apm = players[player].apm + Math.ceil(apm[player] / gameSpeeds.fastest);
+          })
+          // #endregion
+
+          // #region player command pointers
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
             if (players[cmd.player].showPov) {
               players[cmd.player].camera.update(cmd, pxToMeter);
@@ -422,6 +444,8 @@ export async function TitanReactorReplay(
               }
             }
           }
+
+          // #endregion player commandpointers
         }
         fadingPointers.update(replayPosition.bwGameFrame);
       }

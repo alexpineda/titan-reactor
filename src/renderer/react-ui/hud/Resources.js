@@ -15,6 +15,7 @@ const PlayerResources = ({
   textSize,
   hideVision,
   onTogglePlayerVision,
+  gameIcons,
 }) => {
   const [showWorkerCount, setShowWorkerCount] = useState(true);
   const toggleWorkerCount = () => setShowWorkerCount(!showWorkerCount);
@@ -68,8 +69,8 @@ const PlayerResources = ({
       </td>
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>
-          <RollingNumber number={apm} />
+        <span className={`text-gray-400 text-${textSize} w-10`}>
+          {apm}
         </span>
       </td>
     </tr>

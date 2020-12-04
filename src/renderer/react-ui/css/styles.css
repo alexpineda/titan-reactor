@@ -12,6 +12,7 @@
     font-size: 16px;
     border: 1px solid #aaa;
     border-radius: 4px;
+    background-color: #242526;
   }
   
   .react-autosuggest__input--focused {
@@ -33,7 +34,7 @@
     top: 30px;
     width: 280px;
     border: 1px solid #aaa;
-    background-color: #fff;
+    background-color: #242526;
     font-family: Helvetica, sans-serif;
     font-weight: 300;
     font-size: 16px;
@@ -50,6 +51,7 @@
   
   .react-autosuggest__suggestion {
     cursor: pointer;
+    color: #F6F5F3 !important;
     padding: 10px 20px;
   }
   
@@ -57,3 +59,38 @@
     background-color: #ddd;
   }
   
+  .bg-gray-100 {
+      background-color: #F6F5F3;
+  }
+
+  .bg-gray-200 {
+    background-color: #EBE9E5;
+}
+
+.bg-gray-300 {
+    background-color: #E1E0DF;
+}
+
+.bg-gray-400 {
+    background-color: #ABA8A3;
+}
+
+.bg-gray-500 {
+    background-color: #807B79;
+}
+
+.bg-gray-600 {
+    background-color: #5F5D5B;
+}
+
+.bg-gray-700 {
+    background-color: #333435;
+}
+
+.bg-gray-800 {
+    background-color: #242526;
+}
+
+.bg-gray-900 {
+    background-color: #242526;
+}

@@ -24,7 +24,7 @@ import { SDSprite } from "./SDSprite";
 
 export class LoadSprite {
   constructor(
-    tileset,
+    palettes,
     images,
     fileAccess,
     textureCache,
@@ -38,7 +38,7 @@ export class LoadSprite {
     this.maxTextureSize = maxTextureSize;
     this.textureCache = textureCache;
     this.jsonCache = jsonCache;
-    this.tileset = tileset;
+    this.palettes = palettes;
     this.atlas = [];
     this.textures = [];
     this.masks = [];
@@ -104,7 +104,7 @@ export class LoadSprite {
       worker.postMessage(bucket);
     };
 
-    const playerMaskPalette = new Buffer(this.tileset.palettes[0]);
+    const playerMaskPalette = new Buffer(this.palettes[0]);
 
     for (let i = 0; i < playerMaskPalette.byteLength; i = i + 3) {
       playerMaskPalette[i] = 0;
@@ -188,7 +188,7 @@ export class LoadSprite {
               }) => {
                 const { data: grpData } = grp.decode(
                   frame,
-                  this.tileset.palettes[remapping]
+                  this.palettes[remapping]
                 );
 
                 const { data: playerMaskData } = grp.decode(
