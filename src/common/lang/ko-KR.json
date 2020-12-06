@@ -1,3 +1,7 @@
 {
-    "MAPS": "지도"
+    "MENU_MAPS": "Maps",
+    "MENU_REPLAYS": "Replays",
+    "MENU_OPTIONS": "Options",
+    "MENU_CREDITS": "Credits",
+    "MENU_LEGAL": "Legal"
 }

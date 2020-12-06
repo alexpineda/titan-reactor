@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import {
   CineonToneMapping,
   EventDispatcher,
@@ -5,6 +6,8 @@ import {
   sRGBEncoding,
   WebGLRenderer,
 } from "three";
+import { SETTINGS_CHANGED } from "../common/handleNames";
+import { getSettings, log } from "./invoke";
 
 export class Context extends EventDispatcher {
   constructor(window) {
@@ -12,6 +15,24 @@ export class Context extends EventDispatcher {
     this.window = window;
     this.document = window.document;
     this.renderer = null;
+  }
+
+  async loadSettings() {
+    const settings = await getSettings();
+    this.settings = settings;
+    this.lang = await import(`common/lang/${settings.language}`);
+    console.log("settings", settings);
+
+    this.settingsChangedListener = async (event, { settings }) => {
+      console.log("settingsChangedListener", settings);
+      this.settings = settings;
+      this.lang = await import(`common/lang/${settings.language}`);
+      this.dispatchEvent({
+        type: "settings",
+        message: { settings, lang: this.lang },
+      });
+    };
+    ipcRenderer.on(SETTINGS_CHANGED, this.settingsChangedListener);
   }
 
   getGameCanvas() {
@@ -64,6 +85,16 @@ export class Context extends EventDispatcher {
 
   initRenderer(force = false) {
     if (this.renderer && !force) return;
+
+    log(`initializing renderer ${force ? "(forced)" : ""}`);
+
+    if (this.renderer && force) {
+      try {
+        this.renderer.dispose();
+      } catch (err) {
+        log("failed to dispose renderer");
+      }
+    }
 
     this.renderer = this._initRenderer();
 
@@ -121,5 +152,7 @@ export class Context extends EventDispatcher {
       "webglcontextlost",
       this._contextLostHandler
     );
+
+    ipcRenderer.removeListener(SETTINGS_CHANGED, this.settingsChangedListener);
   }
 }

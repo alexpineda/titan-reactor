@@ -1,3 +1,4 @@
+import { settings } from "cluster";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 import {
@@ -6,6 +7,7 @@ import {
   findStarcraftPath,
 } from "./starcraft/findInstallPath";
 import fileExists from "./utils/fileExists";
+const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
 const VERSION = 1;
 export const RenderMode = {
@@ -93,6 +95,16 @@ export class Settings extends EventEmitter {
         }
       }
     }
+
+    const localLanguage = supportedLanguages.includes(getEnvLocale())
+      ? getEnvLocale()
+      : "en-US";
+    this._settings.language = supportedLanguages.includes(
+      this._settings.language
+    )
+      ? this._settings.language
+      : localLanguage;
+
     return { ...this._settings, errors };
   }
 
@@ -118,18 +130,18 @@ export class Settings extends EventEmitter {
     this._emitChanged(diff);
   }
 
-  _emitChanged(diff = {}) {
-    this.emit("change", { diff, settings: this._settings });
+  async _emitChanged(diff = {}) {
+    this.emit("change", { diff, settings: await this.get() });
   }
 
   async createDefaults() {
-    const languages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
-
     return {
       version: VERSION,
       renderMode: RenderMode.SD,
       maxAutoReplaySpeed: 1.5,
-      language: languages.includes(getEnvLocale()) ? getEnvLocale() : "en-US",
+      language: supportedLanguages.includes(getEnvLocale())
+        ? getEnvLocale()
+        : "en-US",
       starcraftPath: "", //await findStarcraftPath(),
       mapsPath: await findMapsPath(),
       replaysPath: await findReplaysPath(),

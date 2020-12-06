@@ -19,8 +19,6 @@ import { imageToCanvasTexture } from "../3d-map-rendering/textures/imageToCanvas
 import { range, groupBy } from "ramda";
 import Worker from "./packbin.worker.js";
 import { asyncFilter } from "../utils/async";
-import { DebugLog } from "../utils/DebugLog";
-import { SDSprite } from "./SDSprite";
 
 export class LoadSprite {
   constructor(

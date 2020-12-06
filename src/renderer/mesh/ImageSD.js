@@ -2,31 +2,6 @@ import { DefaultLoadingManager } from "three";
 import { unitTypes } from "bwdat/unitTypes";
 import { DebugLog } from "utils/DebugLog";
 
-class ImageSDInstance {
-  constructor(mesh, runner, parent, imageSD) {
-    this.mesh = mesh;
-    this.runner = runner;
-    this.parent = parent;
-    this.imageSD = imageSD;
-  }
-
-  addOverlay(child, parent = this.mesh) {
-    parent.add(child);
-  }
-
-  addUnderlay(child, parent = this.mesh) {
-    parent.add(child);
-  }
-
-  update() {
-    this.imageSD.update(this.mesh, this.runner);
-  }
-
-  remove() {
-    this.parent.remove(this.mesh);
-  }
-}
-
 export class ImageSD {
   constructor(
     bwDat,

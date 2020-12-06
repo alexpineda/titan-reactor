@@ -1,12 +1,20 @@
 {
-    "MAPS": "Maps",
-    "REPLAYS": "Replays",
-    "OPTIONS": "Options",
+    "MENU_MAPS": "Maps",
+    "MENU_REPLAYS": "Replays",
+    "MENU_OPTIONS": "Options",
+    "MENU_CREDITS": "Credits",
+    "MENU_LEGAL": "Legal",
+
+    "MENU_RETURN_TO_GAME": "Return to Game",
+    "MENU_RETURN_TO_MAP": "Return to Map",
+    "MENU_NEXT_REPLAY": "Next Replay",
+    "MENU_BACK_TO_MAIN_MENU": "Back to Main Menu",
+
     "LOADING": "Loading",
 
+
     "LAUNCH": "Launch",
-    "CREDITS": "Credits",
-    "LEGAL": "Legal",
+
     "SETTINGS_LANGUAGE": "Language",
     "SETTINGS_STARCRAFT_PATH": "Starcraft Data Directory",
     "SETTINGS_COMMUNITY_3D_MODELS_PATH": "Community 3D Models Directory",
@@ -39,6 +47,9 @@
     "PRO_REPLAYS": "Pro & Tournament Replays",
     "AI_REPLAYS": "AI Replays",
     "MY_PLAYLIST": "My Playlist",
+
+
+
 
     "BUTTON_OFF": "Off",
     "BUTTON_ON": "On",

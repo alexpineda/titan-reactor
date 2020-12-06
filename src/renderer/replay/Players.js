@@ -11,6 +11,7 @@ export class Players extends Array {
         supply: 4,
         supplyMax: 8,
         race: player.race,
+        totalActions: 0,
         apm: 0,
         color: player.color,
         units: [],

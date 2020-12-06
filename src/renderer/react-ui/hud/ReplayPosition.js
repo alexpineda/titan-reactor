@@ -39,7 +39,7 @@ export default ({
 }) => {
   const progress = Math.ceil(position * 100);
 
-  const [hideProgress, setHideProgress] = useState(false);
+  const [hideProgress, setHideProgress] = useState(true);
   const [showProduction, setShowProduction] = useState(true);
   const [showResources, setShowResources] = useState(true);
   const [positionLabel, setPositionLabel] = useState("");

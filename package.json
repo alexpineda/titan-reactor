@@ -40,10 +40,12 @@
     }
   },
   "build": {
-    "extraResources": [{
-      "from": "data",
-      "to": "data"
-    }]
+    "extraResources": [
+      {
+        "from": "data",
+        "to": "data"
+      }
+    ]
   },
   "dependencies": {
     "@eliasku/binpack": "^1.0.1",
@@ -64,6 +66,9 @@
     "pngjs": "^5.0.0",
     "ramda": "0.27.0",
     "react": "^16.13.1",
+    "react-autosuggest": "^10.0.4",
+    "react-circle": "^1.1.1",
+    "react-color": "^2.19.3",
     "react-dom": "^16.13.1",
     "react-dropzone": "^11.2.0",
     "react-tooltip": "^4.2.10",

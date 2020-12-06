@@ -4,12 +4,9 @@ import Maps from "./Maps";
 import Replays from "./Replays";
 import LanguageContext from "../LanguageContext";
 import { ipcRenderer } from "electron";
-import {
-  SETTINGS_CHANGED,
-  OPEN_MAP_DIALOG,
-  OPEN_REPLAY_DIALOG,
-} from "common/handleNames";
-import { getSettings } from "../../invoke";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
+import { MenuItem } from "../components/MenuItem";
+import { OPEN_DATA_FILE } from "../../../common/handleNames";
 
 if (module.hot) {
   module.hot.accept();
@@ -23,36 +20,8 @@ const Panels = {
   Legal: "Legal",
 };
 
-export default ({ context }) => {
+export default ({ settings, lang }) => {
   const [activePanel, setActivePanel] = useState(Panels.Home);
-  const [lang, setLang] = useState({});
-  const [settings, setSettings] = useState({});
-
-  const initLanguage = async () => {
-    const settings = await getSettings();
-    updateLanguage(settings.language);
-    setSettings(settings);
-  };
-
-  const updateLanguage = async (val) => {
-    setLang(await import(`common/lang/${val}`));
-  };
-
-  useEffect(() => {
-    initLanguage();
-
-    const listener = (evt, { settings }) => {
-      console.log("settings", settings);
-      updateLanguage(settings.language);
-      setSettings(settings);
-    };
-
-    ipcRenderer.on(SETTINGS_CHANGED, listener);
-
-    return () => {
-      ipcRenderer.removeListener(SETTINGS_CHANGED, listener);
-    };
-  }, []);
 
   return (
     <LanguageContext.Provider value={lang}>
@@ -66,22 +35,28 @@ export default ({ context }) => {
         <div className="flex flex-1">
           <div className="w-1/4 flex-col-reverse flex">
             <ul className="mt-auto">
-              <li
-                className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
+              <MenuItem
+                label={lang["MENU_MAPS"]}
+                disabled={
+                  settings.errors.includes("starcraftPath") ||
+                  settings.errors.includes("mapsPath")
+                }
                 onClick={() =>
                   ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
                 }
-              >
-                {lang["MAPS"]}
-              </li>
-              <li
-                className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
+              />
+
+              <MenuItem
+                label={lang["MENU_REPLAYS"]}
+                disabled={
+                  settings.errors.includes("starcraftPath") ||
+                  settings.errors.includes("replaysPath")
+                }
                 onClick={() =>
                   ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
                 }
-              >
-                {lang["REPLAYS"]}
-              </li>
+              />
+
               {/* <li
                 className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
                 onClick={() => setActivePanel(Panels.Maps)}
@@ -95,12 +70,11 @@ export default ({ context }) => {
                 {lang["REPLAYS"]}
               </li> */}
 
-              <li
-                className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
+              <MenuItem
+                label={lang["MENU_OPTIONS"]}
+                disabled={false}
                 onClick={() => setActivePanel(Panels.Options)}
-              >
-                {lang["OPTIONS"]}
-              </li>
+              />
             </ul>
           </div>
 
@@ -148,7 +122,7 @@ export default ({ context }) => {
           {activePanel === Panels.Options && (
             <div className="w-3/4">
               <p className="font-bold mb-6 select-none">Options</p>
-              <Options context={context} lang={lang} />
+              <Options lang={lang} settings={settings} />
             </div>
           )}
           {activePanel === Panels.Legal && (
@@ -177,13 +151,13 @@ export default ({ context }) => {
               className="p-1 hover:bg-gray-800 cursor-pointer text-xs text-gray-500 select-none"
               onClick={() => setActivePanel(Panels.Legal)}
             >
-              {lang["LEGAL"]}
+              {lang["MENU_LEGAL"]}
             </li>
             <li
               className="p-1 hover:bg-gray-800 cursor-pointer text-xs text-gray-500 select-none"
               onClick={() => setActivePanel(Panels.Credits)}
             >
-              {lang["CREDITS"]}
+              {lang["MENU_CREDITS"]}
             </li>
           </ul>
         </footer>

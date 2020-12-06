@@ -34,8 +34,8 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   }
   mainCamera.control.update();
 
-  const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
-  scene.add(cubeCamera);
+  // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
+  // scene.add(cubeCamera);
 
   const terrainY = scene.getTerrainY();
 
@@ -314,7 +314,7 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
   const restoreContextHandler = () => {
     context.initRenderer(true);
-    cubeCamera.onRestoreContext();
+    // cubeCamera.onRestoreContext();
     context.renderer.setAnimationLoop(gameLoop);
   };
   context.addEventListener("lostcontext", restoreContextHandler);

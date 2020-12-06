@@ -1,7 +1,7 @@
 export class DebugInfo {
   constructor() {
     const infoDiv = document.createElement("div");
-    infoDiv.style.top = "10px";
+    infoDiv.style.top = "100px";
     infoDiv.style.left = "10px";
     infoDiv.style.position = "absolute";
     infoDiv.style.color = "white";

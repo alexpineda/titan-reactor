@@ -1,6 +1,5 @@
 import { parseReplay } from "downgrade-replay";
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
-import { Tileset } from "./bwdat/Tileset";
 import { getAppCachePath } from "./invoke";
 import { LoadSprite } from "./mesh/LoadSprites";
 import { JsonCache } from "./utils/jsonCache";
@@ -28,12 +27,17 @@ export class TitanReactor {
     this.mode = null;
     this.scene = null;
     this.reactApp = reactApp;
+    this._preloaded = false;
   }
 
-  async init(settings) {
+  async preload() {
+    if (this._preloaded) return;
+    this._preloaded = true;
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
-    const origBwDat = await loadAllDataFiles(settings.starcraftPath);
+    const origBwDat = await loadAllDataFiles(
+      this.context.settings.starcraftPath
+    );
     this.bwDat = {
       ...origBwDat,
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
@@ -41,7 +45,7 @@ export class TitanReactor {
     window.bwDat = this.bwDat;
 
     this.readStarcraftFile = (file) =>
-      openFile(`${settings.starcraftPath}/${file}`);
+      openFile(`${this.context.settings.starcraftPath}/${file}`);
 
     //load sprite palettes
     this.palettes = Object.freeze(
@@ -54,15 +58,15 @@ export class TitanReactor {
       await getAppCachePath(),
       "rgba"
     );
-    log(`initializing json cache`);
 
+    log(`initializing json cache`);
     const jsonCache = new JsonCache("sprite-", await getAppCachePath());
 
     log(`loading unit atlas`);
     this.loadSprite = new LoadSprite(
       this.palettes,
       this.bwDat.images,
-      (file) => openFile(`${settings.starcraftPath}/unit/${file}`),
+      (file) => openFile(`${this.context.settings.starcraftPath}/unit/${file}`),
       spritesTextureCache,
       jsonCache,
       this.context.renderer.capabilities.maxTextureSize,
@@ -75,7 +79,9 @@ export class TitanReactor {
   async spawnReplay(filepath) {
     log(`loading replay ${filepath}`);
     await this.dispose();
-    const settings = await getSettings();
+    this.context.initRenderer();
+    await this.preload();
+
     const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.Replay;
@@ -84,7 +90,7 @@ export class TitanReactor {
     log(`parsing replay`);
     const rep = await parseReplay(await openFile(filepath));
     log(`loading chk`);
-    const chk = await imageChk(rep.chk, settings.starcraftPath);
+    const chk = await imageChk(rep.chk, this.context.settings.starcraftPath);
 
     log(`showing loading overlay`);
     this.reactApp.overlay({
@@ -94,12 +100,12 @@ export class TitanReactor {
 
     let renderImage;
     if (
-      settings.renderMode === RenderMode.SD ||
-      settings.renderMode === RenderMode.HD
+      this.context.settings.renderMode === RenderMode.SD ||
+      this.context.settings.renderMode === RenderMode.HD
     ) {
       renderImage = new ImageSD(
         this.bwDat,
-        settings.starcraftPath,
+        this.context.settings.starcraftPath,
         this.loadSprite
       );
     } else {
@@ -125,19 +131,22 @@ export class TitanReactor {
       new DataView(frames.buffer),
       renderImage,
       this.bwDat,
-      new BgMusic(settings.starcraftPath)
+      new BgMusic(this.context.settings.starcraftPath)
     );
   }
 
   async spawnMapViewer(chkFilepath) {
     await this.dispose();
-    const settings = await getSettings();
+    this.context.initRenderer();
 
     const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.MapViewer;
     log(`loading chk`);
-    const chk = await imageChk(chkFilepath, settings.starcraftPath);
+    const chk = await imageChk(
+      chkFilepath,
+      this.context.settings.starcraftPath
+    );
     window.chk = chk;
 
     this.reactApp.overlay({

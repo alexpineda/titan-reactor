@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import Visible from "../../utils/visible";
 import { ipcRenderer } from "electron";
 import { selectFolder, saveSettings, getSettings } from "../../invoke";
 import { SELECT_FOLDER } from "../../../common/handleNames";
+import Option from "../components/Option";
+import Tab from "../components/Tab";
+import TabSelector from "../components/TabSelector";
+import PathSelect from "../components/PathSelect";
+import Button from "../components/Button";
+import ButtonSet from "../components/ButtonSet";
+import ButtonSetContainer from "../components/ButtonSetContainer";
+import Visible from "../components/visible";
+import ColorPicker from "../components/ColorPicker";
 
 const tabs = {
   general: "general",
@@ -12,466 +20,273 @@ const tabs = {
   twitch: "twitch",
 };
 
-const Tab = ({ tabName, activeTab, children }) => (
-  <Visible visible={tabName === activeTab}>{children}</Visible>
-);
-
-export default ({ context, lang, defaultTab = tabs.general }) => {
+export default ({
+  lang,
+  settings,
+  defaultTab = tabs.general,
+  inGame = false,
+}) => {
+  console.log("options", lang, settings);
   const [tab, setTab] = useState(defaultTab);
-  const [localOptions, setLocalOptions] = useState({ errors: [] });
 
-  const initSettings = async () => {
-    const settings = await getSettings();
-    setLocalOptions(settings);
-
+  useEffect(() => {
     const listener = (event, { key, filePaths: [dir] }) => {
-      console.log("s", localOptions);
-      updateLocalOptions({
+      updateSettings({
         [key]: dir,
       });
     };
     ipcRenderer.on(SELECT_FOLDER, listener);
-    return listener;
-  };
-
-  useEffect(() => {
-    const listener = initSettings();
 
     return () => ipcRenderer.removeListener(SELECT_FOLDER, listener);
   }, []);
 
-  const updateLocalOptions = (options) => {
-    const newOptions = { ...localOptions, ...options };
-    console.log("new Options", localOptions, newOptions);
-    setLocalOptions(newOptions);
+  const updateSettings = (options) => {
+    const newOptions = { ...settings, ...options };
     saveSettings(newOptions);
   };
 
   return (
     <>
       <ul className="mb-6 flex">
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
-            tab === tabs.general ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(tabs.general)}
-        >
-          {lang["SETTINGS_GENERAL"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
-            tab === tabs.game ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(tabs.game)}
-        >
-          {lang["SETTINGS_GAME"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
-            tab === tabs.audio ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(tabs.audio)}
-        >
-          {lang["SETTINGS_AUDIO"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
-            tab === tabs.perf ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(tabs.perf)}
-        >
-          {lang["SETTINGS_GRAPHICS"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
-            tab === tabs.twitch ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(tabs.twitch)}
-        >
-          {lang["SETTINGS_INTEGRATIONS"]}
-        </li>
+        <TabSelector
+          activeTab={tab}
+          tab={tabs.general}
+          setTab={setTab}
+          label={lang["SETTINGS_GENERAL"]}
+        />
+
+        <TabSelector
+          activeTab={tab}
+          tab={tabs.game}
+          setTab={setTab}
+          label={lang["SETTINGS_GAME"]}
+        />
+
+        <TabSelector
+          activeTab={tab}
+          tab={tabs.audio}
+          setTab={setTab}
+          label={lang["SETTINGS_AUDIO"]}
+        />
+
+        <TabSelector
+          activeTab={tab}
+          tab={tabs.perf}
+          setTab={setTab}
+          label={lang["SETTINGS_GRAPHICS"]}
+        />
+
+        <TabSelector
+          activeTab={tab}
+          tab={tabs.twitch}
+          setTab={setTab}
+          label={lang["SETTINGS_INTEGRATIONS"]}
+        />
       </ul>
 
       <Tab tabName={tabs.general} activeTab={tab}>
-        <ul className="tab-content divide-y-8 divide-transparent leading-relaxed">
-          <li>
-            <p>{lang["SETTINGS_LANGUAGE"]}</p>
-            <select
-              className="rounded text-gray-800"
-              onChange={(evt) => {
-                updateLocalOptions({
-                  language: evt.target.value,
-                });
-              }}
-              value={localOptions.language}
-            >
-              <option value="en-US">English</option>
-              <option value="ko-KR">한국어</option>
-              <option value="es-ES">Español</option>
-              <option value="ru-RU">русский</option>
-              <option value="pl-PL">Polskie</option>
-            </select>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_STARCRAFT_PATH"]}</p>
-            {!localOptions.starcraftPath && (
-              <button
-                className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200"
-                onClick={() => selectFolder("starcraftPath")}
-              >
-                {lang["BUTTON_SELECT"]}
-              </button>
-            )}
-            <span className="flex">
-              {localOptions.starcraftPath && (
-                <p className="italic text-sm text-gray-300">
-                  {localOptions.starcraftPath}{" "}
-                  <button
-                    className="text-blue-300"
-                    onClick={() => selectFolder("starcraftPath")}
-                  >
-                    ({lang["BUTTON_CHANGE"]})
-                  </button>
-                </p>
-              )}
-              {localOptions.starcraftPath &&
-                localOptions.errors.includes("starcraftPath") && (
-                  <span
-                    className="material-icons text-yellow-700 select-none"
-                    title={`This directory either does not exist or contains invalid contents`}
-                    data-tip={`This directory either does not exist or contains invalid contents`}
-                  >
-                    error_outline
-                  </span>
-                )}
-            </span>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_MAPS_PATH"]}</p>
-            {!localOptions.mapsPath && (
-              <button
-                className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200"
-                onClick={() => selectFolder("mapsPath")}
-              >
-                {lang["BUTTON_SELECT"]}
-              </button>
-            )}
-            <span className="flex">
-              {localOptions.mapsPath && (
-                <p className="italic text-sm text-gray-300">
-                  {localOptions.mapsPath}{" "}
-                  <button
-                    className="text-blue-300"
-                    onClick={() => selectFolder("mapsPath")}
-                  >
-                    ({lang["BUTTON_CHANGE"]})
-                  </button>
-                </p>
-              )}
-              {localOptions.mapsPath &&
-                localOptions.errors.includes("mapsPath") && (
-                  <span
-                    className="material-icons text-yellow-700 select-none"
-                    title={`This directory does not exist, choose another directory`}
-                    data-tip={`This directory does not exist, choose another directory`}
-                  >
-                    error_outline
-                  </span>
-                )}
-            </span>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_REPLAYS_PATH"]}</p>
-            {!localOptions.replaysPath && (
-              <button
-                className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200"
-                onClick={() => selectFolder("replaysPath")}
-              >
-                {lang["BUTTON_SELECT"]}
-              </button>
-            )}
-            <span className="flex">
-              {localOptions.replaysPath && (
-                <p className="italic text-sm text-gray-300">
-                  {localOptions.replaysPath}{" "}
-                  <button
-                    className="text-blue-300"
-                    onClick={() => selectFolder("replaysPath")}
-                  >
-                    ({lang["BUTTON_CHANGE"]})
-                  </button>
-                </p>
-              )}
-              {localOptions.replaysPath &&
-                localOptions.errors.includes("replaysPath") && (
-                  <span
-                    className="material-icons text-yellow-700 select-none"
-                    title={`This directory does not exist, choose another directory`}
-                    data-tip={`This directory does not exist, choose another directory`}
-                  >
-                    error_outline
-                  </span>
-                )}
-            </span>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}</p>
-            {!localOptions.communityModelsPath && (
-              <button
-                className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200"
-                onClick={() => selectFolder("communityModelsPath")}
-              >
-                {lang["BUTTON_SELECT"]}
-              </button>
-            )}
-            <span className="flex">
-              {localOptions.communityModelsPath && (
-                <p className="italic text-sm text-gray-300">
-                  {localOptions.communityModelsPath}{" "}
-                  <button
-                    className="text-blue-300"
-                    onClick={() => selectFolder("communityModelsPath")}
-                  >
-                    ({lang["BUTTON_CHANGE"]})
-                  </button>
-                </p>
-              )}
-              {localOptions.communityModelsPath &&
-                localOptions.errors.includes("communityModelsPath") && (
-                  <span
-                    className="material-icons text-yellow-700 select-none"
-                    title={`This directory does not exist, choose another directory`}
-                    data-tip={`This directory does not exist, choose another directory`}
-                  >
-                    error_outline
-                  </span>
-                )}
-            </span>
-          </li>
+        <Option label={lang["SETTINGS_LANGUAGE"]}>
+          <select
+            className="rounded text-gray-800"
+            onChange={(evt) => {
+              updateSettings({
+                language: evt.target.value,
+              });
+            }}
+            value={settings.language}
+          >
+            <option value="en-US">English</option>
+            <option value="ko-KR">한국어</option>
+            <option value="es-ES">Español</option>
+            <option value="ru-RU">русский</option>
+            <option value="pl-PL">Polskie</option>
+          </select>
+        </Option>
 
-          
-        </ul>
+        <Visible visible={!inGame}>
+          <Option label={lang["SETTINGS_STARCRAFT_PATH"]}>
+            <PathSelect
+              prop={"starcraftPath"}
+              lang={lang}
+              settings={settings}
+              selectFolder={selectFolder}
+            />
+          </Option>
+
+          <Option label={lang["SETTINGS_MAPS_PATH"]}>
+            <PathSelect
+              prop={"mapsPath"}
+              lang={lang}
+              settings={settings}
+              selectFolder={selectFolder}
+            />
+          </Option>
+
+          <Option label={lang["SETTINGS_REPLAYS_PATH"]}>
+            <PathSelect
+              prop={"replaysPath"}
+              lang={lang}
+              settings={settings}
+              selectFolder={selectFolder}
+            />
+          </Option>
+
+          <Option label={lang["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+            <PathSelect
+              prop={"communityModelsPath"}
+              lang={lang}
+              settings={settings}
+              selectFolder={selectFolder}
+            />
+          </Option>
+        </Visible>
       </Tab>
 
       <Tab tabName={tabs.game} activeTab={tab}>
-        <ul className="divide-y-8 divide-transparent leading-relaxed">
-          <li>
-            <p>{lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}</p>
-            <input
-              type="range"
-              min="1.05"
-              max="1.6"
-              step="0.05"
-              value={localOptions.maxAutoReplaySpeed}
-              onChange={(evt) => {
-                updateLocalOptions({
-                  maxAutoReplaySpeed: Number(evt.target.value),
-                });
-              }}
-            />{" "}
-            <span>{localOptions.maxAutoReplaySpeed}</span>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_PLAYER_COLORS"]}</p>
-            <div className="flex rounded-lg text-lg" role="group">
-              <button
-                className={`border border-r-0 border-blue-500 rounded-l-lg px-4 py-2 mx-0 outline-none focus:shadow-outline hover:bg-blue-500 hover:text-white ${
-                  localOptions.renderMode === 0
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-              >
-                Use Replay Colors
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-l-0 border-blue-500 rounded-r-lg px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.renderMode === 2
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-              >
-                Use Custom Colors
-              </button>
-            </div>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_CAMERA_SHAKE"]}</p>
-            <input
-              type="range"
-              min="1"
-              max="0"
-              step="0.05"
-            />{" "}
-          </li>
-        </ul>
+        <Option label={lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}>
+          <input
+            type="range"
+            min="1.05"
+            max="1.6"
+            step="0.05"
+            value={settings.maxAutoReplaySpeed}
+            onChange={(evt) => {
+              updateSettings({
+                maxAutoReplaySpeed: Number(evt.target.value),
+              });
+            }}
+          />{" "}
+          <span>{settings.maxAutoReplaySpeed}</span>
+        </Option>
+        <Option label={lang["SETTINGS_PLAYER_COLORS"]}>
+          <>
+            <ButtonSetContainer>
+              <ButtonSet selected={false} label={"Use Replay Colors"} first />
+              <ButtonSet selected={false} label={"Use Custom Colors"} last />
+            </ButtonSetContainer>
+            <Visible visible={true}>
+              <div className="flex">
+                <ColorPicker
+                  color={"#000"}
+                  onChange={() => {}}
+                  className="mr-4"
+                />
+                <ColorPicker color={"#000"} onChange={() => {}} />
+              </div>
+            </Visible>
+          </>
+        </Option>
+        <Option label={lang["SETTINGS_CAMERA_SHAKE"]}>
+          <input type="range" min="1" max="0" step="0.05" />{" "}
+        </Option>
+
+        <Option label={"Environmental Effects"}></Option>
+
+        <Option label={"Start Replay: Paused, Started"}></Option>
       </Tab>
 
       <Tab tabName={tabs.audio} activeTab={tab}>
-        <ul className="divide-y-8 divide-transparent leading-relaxed">
-          <li>
-            <p>{lang["SETTINGS_MUSIC_VOLUME"]}</p>{" "}
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={localOptions.musicVolume}
-              onChange={(evt) => {
-                updateLocalOptions({
-                  musicVolume: Number(evt.target.value),
-                });
-              }}
-            />
-          </li>
-          <li>
-            <p>{lang["SETTINGS_SOUND_VOLUME"]}</p>{" "}
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={localOptions.soundVolume}
-              onChange={(evt) => {
-                updateLocalOptions({
-                  soundVolume: Number(evt.target.value),
-                });
-              }}
-            />
-          </li>
-        </ul>
+        <Option label={lang["SETTINGS_MUSIC_VOLUME"]}>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={settings.musicVolume}
+            onChange={(evt) => {
+              updateSettings({
+                musicVolume: Number(evt.target.value),
+              });
+            }}
+          />
+        </Option>
+
+        <Option label={lang["SETTINGS_SOUND_VOLUME"]}>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={settings.soundVolume}
+            onChange={(evt) => {
+              updateSettings({
+                soundVolume: Number(evt.target.value),
+              });
+            }}
+          />
+        </Option>
       </Tab>
 
       <Tab tabName={tabs.perf} activeTab={tab}>
-        <ul className="divide-y-8 divide-transparent leading-relaxed">
-          <li>
-            <p>{lang["SETTINGS_GRAPHICS_RENDER_MODE"]}</p>
-            <div className="flex rounded-lg text-lg" role="group">
-              <button
-                className={`border border-r-0 border-blue-500 rounded-l-lg px-4 py-2 mx-0 outline-none focus:shadow-outline hover:bg-blue-500 hover:text-white ${
-                  localOptions.renderMode === 0
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ renderMode: 0 })}
-              >
-                SD
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-blue-500  px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.renderMode === 1
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ renderMode: 1 })}
-              >
-                HD
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-l-0 border-blue-500 rounded-r-lg px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.renderMode === 2
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ renderMode: 2 })}
-              >
-                3D
-              </button>
-            </div>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_GRAPHICS_ANTIALIAS"]}</p>{" "}
-            <div className="flex rounded-lg text-lg" role="group">
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-r-0 border-blue-500 rounded-l-lg px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  !localOptions.antialias
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ antialias: false })}
-              >
-                {lang["BUTTON_OFF"]}
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-l-0 border-blue-500 rounded-r-lg px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.antialias
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ antialias: true })}
-              >
-                {lang["BUTTON_ON"]}
-              </button>
-            </div>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_GRAPHICS_SHADOWS"]}</p>{" "}
-            <div className="flex rounded-lg text-lg" role="group">
-              <button
-                className={`border border-r-0 border-blue-500 rounded-l-lg px-4 py-2 mx-0 outline-none focus:shadow-outline hover:bg-blue-500 hover:text-white ${
-                  localOptions.shadows === 0
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ shadows: 0 })}
-              >
-                {lang["BUTTON_OFF"]}
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-blue-500  px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.shadows === 1
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ shadows: 1 })}
-              >
-                Low
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-blue-500  px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.shadows === 2
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ shadows: 2 })}
-              >
-                Med
-              </button>
-              <button
-                className={`hover:bg-blue-500 hover:text-white border border-l-0 border-blue-500 rounded-r-lg px-4 py-2 mx-0 outline-none focus:shadow-outline ${
-                  localOptions.shadows === 3
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-blue-500 "
-                }`}
-                onClick={() => updateLocalOptions({ shadows: 3 })}
-              >
-                High
-              </button>
-            </div>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_GRAPHICS_ANISOTROPY"]}</p>{" "}
-          </li>
-          <li>
-            <p>{lang["SETTINGS_GRAPHICS_RESOLUTION"]}</p>{" "}
-          </li>
-        </ul>
+        <Option label={lang["SETTINGS_GRAPHICS_RENDER_MODE"]}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={settings.renderMode === 0}
+              label={"SD"}
+              first
+              onClick={() => updateSettings({ renderMode: 0 })}
+            />
+            <ButtonSet
+              selected={settings.renderMode === 1}
+              label={"HD"}
+              onClick={() => updateSettings({ renderMode: 1 })}
+            />
+            <ButtonSet
+              selected={settings.renderMode === 2}
+              label={"3D"}
+              last
+              onClick={() => updateSettings({ renderMode: 2 })}
+            />
+          </ButtonSetContainer>
+        </Option>
+
+        <Option label={lang["SETTINGS_GRAPHICS_ANTIALIAS"]}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={!settings.antialias}
+              label={lang["BUTTON_OFF"]}
+              onClick={() => updateSettings({ antialias: false })}
+              first
+            />
+            <ButtonSet
+              selected={settings.antialias}
+              label={lang["BUTTON_ON"]}
+              onClick={() => updateSettings({ antialias: true })}
+              last
+            />
+          </ButtonSetContainer>
+        </Option>
+
+        <Option label={lang["SETTINGS_GRAPHICS_SHADOWS"]}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={!settings.shadows}
+              label={lang["BUTTON_OFF"]}
+              onClick={() => updateSettings({ shadows: false })}
+              first
+            />
+            <ButtonSet
+              selected={settings.shadows}
+              label={lang["BUTTON_ON"]}
+              onClick={() => updateSettings({ shadows: true })}
+              last
+            />
+          </ButtonSetContainer>
+        </Option>
+
+        <Option label={lang["SETTINGS_GRAPHICS_ANISOTROPY"]}></Option>
+
+        <Option label={lang["SETTINGS_GRAPHICS_RESOLUTION"]}></Option>
       </Tab>
 
       <Tab tabName={tabs.twitch} activeTab={tab}>
-        <ul className="divide-y-8 divide-transparent leading-relaxed">
-          <li>
-            <p>{lang["TWITCH_INTEGRATION"]}</p>{" "}
-            <button className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200">
-              {lang["BUTTON_CONNECT"]}
-            </button>
-          </li>
-          <li>
-            <p>{lang["SETTINGS_OBSERVER_LINK"]}</p>
-            <button className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200">
-              {lang["BUTTON_SHOW"]}
-            </button>
-          </li>
-        </ul>
+        <Option label={lang["TWITCH_INTEGRATION"]}>
+          <Button label={lang["BUTTON_CONNECT"]} />
+        </Option>
+
+        <Option label={lang["SETTINGS_OBSERVER_LINK"]}>
+          <Button label={lang["BUTTON_SHOW"]} />
+        </Option>
       </Tab>
     </>
   );

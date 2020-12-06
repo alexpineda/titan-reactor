@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { UI } from "./react-ui/UI";
-import { getSettings, log } from "./invoke";
+import { log } from "./invoke";
 
 import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
@@ -9,26 +9,25 @@ import "./utils/electronFileLoader";
 
 let replayPlaylist = [];
 let replayIndex = 0;
-let titanReactor;
+const context = new Context(window);
+const titanReactor = new TitanReactor(
+  context,
+  new UI(document.getElementById("app"), context)
+);
 
 async function bootup() {
-  const context = new Context(window);
-  const ui = new UI(document.getElementById("app"), context);
-
-  const settings = await getSettings();
-  if (settings.errors.length) {
-    return false;
+  try {
+    await context.loadSettings();
+    titanReactor.reactApp.loading();
+    if (!context.settings.errors.includes("starcraftPath")) {
+      context.initRenderer();
+      await titanReactor.preload();
+    }
+    titanReactor.reactApp.home();
+  } catch (err) {
+    console.error(err);
+    titanReactor.reactApp.criticalError();
   }
-
-  const lang = await import(`common/lang/${settings.language}`);
-  ui.loading(lang);
-
-  context.initRenderer();
-
-  titanReactor = new TitanReactor(context, ui);
-  await titanReactor.init(settings);
-
-  ui.home();
 }
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (event, [map]) => {
