@@ -7,7 +7,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { SETTINGS_CHANGED } from "../common/handleNames";
-import { getSettings, log } from "./invoke";
+import { getSettings, log, setWebGLCapabilities } from "./invoke";
 
 export class Context extends EventDispatcher {
   constructor(window) {
@@ -18,6 +18,14 @@ export class Context extends EventDispatcher {
   }
 
   async loadSettings() {
+    const renderer = new WebGLRenderer();
+    this.webGLCapabilities = renderer.capabilities;
+    renderer.dispose();
+
+    await setWebGLCapabilities({
+      anisotropy: this.webGLCapabilities.getMaxAnisotropy(),
+    });
+
     const settings = await getSettings();
     this.settings = settings;
     this.lang = await import(`common/lang/${settings.language}`);
@@ -142,6 +150,7 @@ export class Context extends EventDispatcher {
   }
 
   dispose() {
+    this.renderer.dispose();
     this.window.removeEventListener("resize", this._resizeHandler);
     this.getGameCanvas().removeEventListener(
       "webglcontextrestored",

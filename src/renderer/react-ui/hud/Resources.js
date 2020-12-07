@@ -70,7 +70,7 @@ const PlayerResources = ({
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />
         <span className={`text-gray-400 text-${textSize} w-10`}>
-          {apm}
+          <RollingNumber number={apm} />
         </span>
       </td>
     </tr>

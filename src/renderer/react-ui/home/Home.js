@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Options from "./Options";
 import Maps from "./Maps";
 import Replays from "./Replays";
@@ -7,6 +7,7 @@ import { ipcRenderer } from "electron";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
 import { MenuItem } from "../components/MenuItem";
 import { OPEN_DATA_FILE } from "../../../common/handleNames";
+import { exit } from "../../invoke";
 
 if (module.hot) {
   module.hot.accept();
@@ -74,6 +75,11 @@ export default ({ settings, lang }) => {
                 label={lang["MENU_OPTIONS"]}
                 disabled={false}
                 onClick={() => setActivePanel(Panels.Options)}
+              />
+              <MenuItem
+                label={lang["MENU_EXIT"]}
+                disabled={false}
+                onClick={exit}
               />
             </ul>
           </div>

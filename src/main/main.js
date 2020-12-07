@@ -16,6 +16,7 @@ import {
   OPEN_REPLAY_DIALOG,
   LOG_MESSAGE,
   EXIT,
+  SET_WEBGL_CAPABILITIES,
 } from "../common/handleNames";
 import { loadAllDataFiles } from "./units/loadAllDataFiles";
 import { Settings } from "./settings";
@@ -71,7 +72,6 @@ app.commandLine.appendSwitch("--disable-xr-sandbox");
 
 app.on("ready", async () => {
   const settings = new Settings(path.join(getUserDataPath(), "settings.json"));
-  await settings.init();
 
   settings.on("change", (settings) => {
     console.log("change", settings);
@@ -90,6 +90,10 @@ app.on("ready", async () => {
     return lang[settings.get().language];
   });
 
+  ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
+    return await settings.init(webGLCapabilities);
+  });
+
   createWindow();
 });
 
@@ -98,6 +102,8 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+ipcMain.on(EXIT, () => app.exit(0));
 
 app.on("activate", () => {
   if (window === null) {

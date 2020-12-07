@@ -167,7 +167,7 @@ export class TitanReactor {
       chk,
       scene
     );
-    this.reactApp.render();
+    this.reactApp.hide();
   }
 
   dispose() {

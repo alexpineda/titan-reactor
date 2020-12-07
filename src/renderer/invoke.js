@@ -8,6 +8,8 @@ import {
   GET_SETTINGS,
   SELECT_FOLDER,
   LOG_MESSAGE,
+  SET_WEBGL_CAPABILITIES,
+  EXIT,
 } from "../common/handleNames";
 import { Buffer } from "buffer/";
 
@@ -43,14 +45,22 @@ export const saveSettings = async (settings) => {
   return await ipcRenderer.invoke(SET_SETTINGS, settings);
 };
 
-export const openMapDialog = async (settings) => {
-  return await ipcRenderer.invoke(SET_SETTINGS, settings);
-};
+// export const openMapDialog = async (settings) => {
+//   return await ipcRenderer.invoke(SET_SETTINGS, settings);
+// };
 
-export const openReplayDialog = async (settings) => {
-  return await ipcRenderer.invoke(SET_SETTINGS, settings);
-};
+// export const openReplayDialog = async (settings) => {
+//   return await ipcRenderer.invoke(SET_SETTINGS, settings);
+// };
 
 export const log = async (message, level = "info") => {
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
+};
+
+export const setWebGLCapabilities = async (capabilities) => {
+  return await ipcRenderer.invoke(SET_WEBGL_CAPABILITIES, capabilities);
+};
+
+export const exit = () => {
+  ipcRenderer.send(EXIT);
 };

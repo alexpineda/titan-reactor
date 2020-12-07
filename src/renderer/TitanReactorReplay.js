@@ -12,7 +12,6 @@ import {
   BWAPIUnitFromBuffer,
   BWAPIBulletFromBuffer,
 } from "./replay/BWAPIFrames";
-import { BgMusic } from "./audio/BgMusic";
 
 import { Units } from "./replay/Units";
 //todo refactor out
@@ -93,11 +92,6 @@ export async function TitanReactorReplay(
 
   scene.add(minimap.minimapPlane);
   scene.add(minimap.heatmap);
-
-  const pointLight = new PointLight(0xffffff, 1, 60, 0);
-  pointLight.power = 20;
-  pointLight.castShadow = true;
-  scene.add(pointLight);
 
   const audioListener = new AudioListener();
   mainCamera.camera.add(audioListener);
@@ -433,9 +427,11 @@ export async function TitanReactorReplay(
           Object.keys(actions).map((player) => {
             players[player].totalActions =
               players[player].totalActions + actions[player];
-            players[player].apm =
+            players[player].apm = Math.floor(
               players[player].totalActions /
-              (replayPosition.bwGameFrame * gameSpeeds.fastest);
+                ((replayPosition.bwGameFrame * gameSpeeds.fastest) /
+                  (1000 * 60))
+            );
           });
           // #endregion
 
@@ -483,9 +479,6 @@ export async function TitanReactorReplay(
         }
       }
     }
-
-    pointLight.position.copy(mainCamera.camera.position);
-    pointLight.position.y += 5;
 
     units.cameraDirection.previousDirection = units.cameraDirection.direction;
 

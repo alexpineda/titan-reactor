@@ -1,6 +1,7 @@
 import { settings } from "cluster";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
+import { RenderMode, ShadowLevel } from "common/settings";
 import {
   findMapsPath,
   findReplaysPath,
@@ -10,18 +11,6 @@ import fileExists from "./utils/fileExists";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
 const VERSION = 1;
-export const RenderMode = {
-  SD: 0,
-  HD: 1,
-  ThreeD: 2,
-};
-
-export const ShadowLevel = {
-  Off: 0,
-  Low: 1,
-  Medium: 2,
-  High: 3,
-};
 
 const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
@@ -42,10 +31,13 @@ export class Settings extends EventEmitter {
     super();
     this._settings = {};
     this._filepath = filepath;
+    this._initialized = false;
   }
 
-  async init() {
+  async init(webGLCapabilities) {
     try {
+      await fsPromises.unlink(this._filepath);
+
       this._settings = JSON.parse(
         await fsPromises.readFile(this._filepath, { encoding: "utf8" })
       );
@@ -54,12 +46,16 @@ export class Settings extends EventEmitter {
         await fsPromises.unlink(this._filepath);
       } catch (err) {
       } finally {
-        await this.save(await this.createDefaults());
+        await this.save(await this.createDefaults(webGLCapabilities));
       }
     }
+    this._initialized = true;
   }
 
   async get() {
+    if (!this._initialized) {
+      throw new Error("settings not initialized");
+    }
     const errors = [];
     const files = [
       "starcraftPath",
@@ -109,6 +105,9 @@ export class Settings extends EventEmitter {
   }
 
   async load() {
+    if (!this._initialized) {
+      throw new Error("settings not initialized");
+    }
     const contents = await fsPromises.readFile(this._filepath, {
       encoding: "utf8",
     });
@@ -134,15 +133,16 @@ export class Settings extends EventEmitter {
     this.emit("change", { diff, settings: await this.get() });
   }
 
-  async createDefaults() {
+  async createDefaults(webGLCapabilities) {
     return {
       version: VERSION,
       renderMode: RenderMode.SD,
       maxAutoReplaySpeed: 1.5,
+      startPaused: false,
       language: supportedLanguages.includes(getEnvLocale())
         ? getEnvLocale()
         : "en-US",
-      starcraftPath: "", //await findStarcraftPath(),
+      starcraftPath: await findStarcraftPath(),
       mapsPath: await findMapsPath(),
       replaysPath: await findReplaysPath(),
       communityModelsPath: "",
@@ -150,8 +150,18 @@ export class Settings extends EventEmitter {
       musicVolume: 0.01,
       soundVolume: 1,
       antialias: true,
+      anisotropy: webGLCapabilities.anisotropy,
+      maxAnisotropy: webGLCapabilities.anisotropy,
+      gamma: 2,
       shadows: ShadowLevel.High,
       twitch: "",
+      countdownTimer: true,
+      orthoCamera: false,
+      mapsRss: "",
+      replaysRss: "",
+      useCustomColors: false,
+      player1Color: "#ef4444",
+      player2Color: "#3b82f6",
     };
   }
 }

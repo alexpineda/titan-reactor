@@ -4,6 +4,7 @@
     "MENU_OPTIONS": "Options",
     "MENU_CREDITS": "Credits",
     "MENU_LEGAL": "Legal",
+    "MENU_EXIT": "Exit",
 
     "MENU_RETURN_TO_GAME": "Return to Game",
     "MENU_RETURN_TO_MAP": "Return to Map",
@@ -20,7 +21,7 @@
     "SETTINGS_COMMUNITY_3D_MODELS_PATH": "Community 3D Models Directory",
     "SETTINGS_MAPS_PATH": "Maps Directory",
     "SETTINGS_REPLAYS_PATH": "Replays Directory",
-
+    "SETTINGS_RSS_FEEDS": "RSS Feeds",
     "SETTINGS_GRAPHICS_RENDER_MODE": "Render Mode",
     "SETTINGS_MAX_AUTO_REPLAY_SPEED": "Max Auto Replay Speed",
     "SETTINGS_OBSERVER_LINK": "2nd Observer Invite Link",
@@ -30,6 +31,8 @@
     "SETTINGS_GRAPHICS": "Graphics",
     "SETTINGS_INTEGRATIONS": "Integrations",
     "SETTINGS_PLAYER_COLORS": "Player Colors",
+    "SETTINGS_USE_CUSTOM_COLORS": "Use Custom Colors",
+    "SETTINGS_USE_REPLAY_COLORS": "Use Replay Colors",
     "SETTINGS_CAMERA_SHAKE": "Cinematic Camera Shake",
     "SETTINGS_MUSIC_VOLUME": "Music Volume",
     "SETTINGS_SOUND_VOLUME": "Sound Volume",
@@ -37,6 +40,7 @@
     "SETTINGS_GRAPHICS_SHADOWS": "Shadows",
     "SETTINGS_GRAPHICS_ANISOTROPY": "Anisotropy",
     "SETTINGS_GRAPHICS_RESOLUTION": "Screen Resolution",
+    "SETTINGS_GRAPHICS_GAMMA": "Gamma",
 
     "TWITCH_INTEGRATION": "Twitch Integration",
     "INSTALLED_MAPS": "Installed Maps",
@@ -57,5 +61,8 @@
     "BUTTON_CONNECT": "Connect",
     "BUTTON_CHANGE": "Change",
     "BUTTON_SHOW": "Show",
-    "BUTTON_LAUNCH": "Launch"
+    "BUTTON_LAUNCH": "Launch",
+    "BUTTON_LOW": "Low",
+    "BUTTON_MED": "Medium",
+    "BUTTON_HIGH": "High"
 }

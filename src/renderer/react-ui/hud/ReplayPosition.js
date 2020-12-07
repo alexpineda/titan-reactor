@@ -316,7 +316,7 @@ export default ({
               hideProgress ? "text-gray-700 " : "text-yellow-700 "
             }`}
             style={{ fontSize: smallIconFontSize }}
-            data-tip="Hide Progress"
+            data-tip={hideProgress ? "Show Progress" : "Hide Progress"}
           >
             remove_red_eye
           </i>

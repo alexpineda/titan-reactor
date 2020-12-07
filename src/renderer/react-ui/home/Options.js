@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ipcRenderer } from "electron";
-import { selectFolder, saveSettings, getSettings } from "../../invoke";
+import { selectFolder, saveSettings } from "../../invoke";
 import { SELECT_FOLDER } from "../../../common/handleNames";
 import Option from "../components/Option";
 import Tab from "../components/Tab";
@@ -11,6 +11,7 @@ import ButtonSet from "../components/ButtonSet";
 import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
 import ColorPicker from "../components/ColorPicker";
+import { RenderMode, ShadowLevel } from "common/settings";
 
 const tabs = {
   general: "general",
@@ -18,6 +19,7 @@ const tabs = {
   perf: "perf",
   audio: "audio",
   twitch: "twitch",
+  feeds: "feeds",
 };
 
 export default ({
@@ -82,6 +84,12 @@ export default ({
           setTab={setTab}
           label={lang["SETTINGS_INTEGRATIONS"]}
         />
+        <TabSelector
+          activeTab={tab}
+          tab={tabs.feeds}
+          setTab={setTab}
+          label={lang["SETTINGS_RSS_FEEDS"]}
+        />
       </ul>
 
       <Tab tabName={tabs.general} activeTab={tab}>
@@ -143,7 +151,10 @@ export default ({
       </Tab>
 
       <Tab tabName={tabs.game} activeTab={tab}>
-        <Option label={lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}>
+        <Option
+          label={lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}
+          value={`${settings.maxAutoReplaySpeed}x`}
+        >
           <input
             type="range"
             min="1.05"
@@ -156,22 +167,34 @@ export default ({
               });
             }}
           />{" "}
-          <span>{settings.maxAutoReplaySpeed}</span>
         </Option>
         <Option label={lang["SETTINGS_PLAYER_COLORS"]}>
           <>
             <ButtonSetContainer>
-              <ButtonSet selected={false} label={"Use Replay Colors"} first />
-              <ButtonSet selected={false} label={"Use Custom Colors"} last />
+              <ButtonSet
+                selected={settings.useCustomColors}
+                label={lang["SETTINGS_USE_CUSTOM_COLORS"]}
+                onClick={() => updateSettings({ useCustomColors: true })}
+                first
+              />
+              <ButtonSet
+                selected={!settings.useCustomColors}
+                label={lang["SETTINGS_USE_REPLAY_COLORS"]}
+                onClick={() => updateSettings({ useCustomColors: false })}
+                last
+              />
             </ButtonSetContainer>
-            <Visible visible={true}>
+            <Visible visible={settings.useCustomColors}>
               <div className="flex">
                 <ColorPicker
-                  color={"#000"}
-                  onChange={() => {}}
+                  color={settings.player1Color}
+                  onChange={(value) => console.log(value)}
                   className="mr-4"
                 />
-                <ColorPicker color={"#000"} onChange={() => {}} />
+                <ColorPicker
+                  color={settings.player2Color}
+                  onChange={(value) => console.log(value)}
+                />
               </div>
             </Visible>
           </>
@@ -180,9 +203,29 @@ export default ({
           <input type="range" min="1" max="0" step="0.05" />{" "}
         </Option>
 
-        <Option label={"Environmental Effects"}></Option>
+        <Option label={"Environmental Effects"}>
+          <ButtonSetContainer>
+            <ButtonSet selected={false} label={lang["BUTTON_OFF"]} first />
+            <ButtonSet selected={false} label={lang["BUTTON_ON"]} last />
+          </ButtonSetContainer>
+        </Option>
 
-        <Option label={"Start Replay: Paused, Started"}></Option>
+        <Option label={"Start Replay Paused"}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={!settings.startPaused}
+              label={lang["BUTTON_OFF"]}
+              onClick={() => updateSettings({ startPaused: false })}
+              first
+            />
+            <ButtonSet
+              selected={settings.startPaused}
+              label={lang["BUTTON_ON"]}
+              onClick={() => updateSettings({ startPaused: true })}
+              last
+            />
+          </ButtonSetContainer>
+        </Option>
       </Tab>
 
       <Tab tabName={tabs.audio} activeTab={tab}>
@@ -221,23 +264,55 @@ export default ({
         <Option label={lang["SETTINGS_GRAPHICS_RENDER_MODE"]}>
           <ButtonSetContainer>
             <ButtonSet
-              selected={settings.renderMode === 0}
+              selected={settings.renderMode === RenderMode.SD}
               label={"SD"}
               first
-              onClick={() => updateSettings({ renderMode: 0 })}
+              onClick={() => updateSettings({ renderMode: RenderMode.SD })}
             />
             <ButtonSet
-              selected={settings.renderMode === 1}
+              selected={settings.renderMode === RenderMode.HD}
               label={"HD"}
-              onClick={() => updateSettings({ renderMode: 1 })}
+              onClick={() => updateSettings({ renderMode: RenderMode.HD })}
             />
             <ButtonSet
-              selected={settings.renderMode === 2}
+              selected={settings.renderMode === RenderMode.ThreeD}
               label={"3D"}
               last
-              onClick={() => updateSettings({ renderMode: 2 })}
+              onClick={() => updateSettings({ renderMode: RenderMode.ThreeD })}
             />
           </ButtonSetContainer>
+        </Option>
+
+        <Option label={lang["SETTINGS_GRAPHICS_RENDER_MODE"]}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={!settings.orthoCamera}
+              label={"Perspective"}
+              first
+              onClick={() => updateSettings({ orthoCamera: false })}
+            />
+            <ButtonSet
+              selected={settings.orthoCamera}
+              label={"Orthographic"}
+              last
+              onClick={() => updateSettings({ orthoCamera: true })}
+            />
+          </ButtonSetContainer>
+        </Option>
+
+        <Option label={lang["SETTINGS_GRAPHICS_GAMMA"]} value={settings.gamma}>
+          <input
+            type="range"
+            min="1"
+            max="6"
+            step="0.1"
+            value={settings.gamma}
+            onChange={(evt) => {
+              updateSettings({
+                gamma: Number(evt.target.value),
+              });
+            }}
+          />
         </Option>
 
         <Option label={lang["SETTINGS_GRAPHICS_ANTIALIAS"]}>
@@ -262,19 +337,45 @@ export default ({
             <ButtonSet
               selected={!settings.shadows}
               label={lang["BUTTON_OFF"]}
-              onClick={() => updateSettings({ shadows: false })}
+              onClick={() => updateSettings({ shadows: ShadowLevel.Off })}
               first
             />
             <ButtonSet
+              selected={!settings.shadows}
+              label={lang["BUTTON_LOW"]}
+              onClick={() => updateSettings({ shadows: ShadowLevel.Low })}
+            />
+            <ButtonSet
+              selected={!settings.shadows}
+              label={lang["BUTTON_MED"]}
+              onClick={() => updateSettings({ shadows: ShadowLevel.Medium })}
+            />
+            <ButtonSet
               selected={settings.shadows}
-              label={lang["BUTTON_ON"]}
-              onClick={() => updateSettings({ shadows: true })}
+              label={lang["BUTTON_HIGH"]}
+              onClick={() => updateSettings({ shadows: ShadowLevel.High })}
               last
             />
           </ButtonSetContainer>
         </Option>
 
-        <Option label={lang["SETTINGS_GRAPHICS_ANISOTROPY"]}></Option>
+        <Option
+          label={lang["SETTINGS_GRAPHICS_ANISOTROPY"]}
+          value={settings.anisotropy}
+        >
+          <input
+            type="range"
+            min="0"
+            max={settings.maxAnisotropy}
+            step="2"
+            value={settings.anisotropy}
+            onChange={(evt) => {
+              updateSettings({
+                anisotropy: Number(evt.target.value),
+              });
+            }}
+          />
+        </Option>
 
         <Option label={lang["SETTINGS_GRAPHICS_RESOLUTION"]}></Option>
       </Tab>
@@ -286,6 +387,24 @@ export default ({
 
         <Option label={lang["SETTINGS_OBSERVER_LINK"]}>
           <Button label={lang["BUTTON_SHOW"]} />
+        </Option>
+      </Tab>
+
+      <Tab tabName={tabs.feeds} activeTab={tab}>
+        <Option label={"Maps RSS Feeds"}>
+          <textarea
+            className="w-full h-40 bg-gray-600"
+            value={"hi"}
+            onChange={() => {}}
+          />
+        </Option>
+
+        <Option label={"Replays RSS Feeds"}>
+          <textarea
+            className="w-full h-40 bg-gray-600"
+            value={"hi"}
+            onChange={() => {}}
+          />
         </Option>
       </Tab>
     </>

@@ -1,9 +1,12 @@
 import React from "react";
 
-const Option = ({ label, children = null }) => {
+const Option = ({ label, value = undefined, children = null }) => {
   return (
     <li>
-      <p>{label}</p>
+      <p>
+        {label}{" "}
+        {value !== undefined && <span className="text-gray-500">{value}</span>}
+      </p>
       {children}
     </li>
   );

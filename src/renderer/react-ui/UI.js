@@ -29,6 +29,10 @@ export class UI {
     );
   }
 
+  hide() {
+    this._render(null);
+  }
+
   hud(children) {
     this.resetListener(() => this.hud(children));
     this._render(children);
