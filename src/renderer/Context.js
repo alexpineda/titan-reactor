@@ -1,7 +1,9 @@
 import { ipcRenderer } from "electron";
 import {
+  BasicShadowMap,
   CineonToneMapping,
   EventDispatcher,
+  PCFShadowMap,
   PCFSoftShadowMap,
   sRGBEncoding,
   WebGLRenderer,
@@ -31,13 +33,13 @@ export class Context extends EventDispatcher {
     this.lang = await import(`common/lang/${settings.language}`);
     console.log("settings", settings);
 
-    this.settingsChangedListener = async (event, { settings }) => {
-      console.log("settingsChangedListener", settings);
+    this.settingsChangedListener = async (event, { diff, settings }) => {
+      console.log("settingsChangedListener", settings, diff);
       this.settings = settings;
       this.lang = await import(`common/lang/${settings.language}`);
       this.dispatchEvent({
         type: "settings",
-        message: { settings, lang: this.lang },
+        message: { settings, lang: this.lang, diff },
       });
     };
     ipcRenderer.on(SETTINGS_CHANGED, this.settingsChangedListener);
@@ -69,11 +71,21 @@ export class Context extends EventDispatcher {
     return canvas;
   }
 
+  setShadowLevel(shadowLevel) {
+    const shadowLevels = [null, BasicShadowMap, PCFShadowMap, PCFSoftShadowMap];
+    if (this.settings.shadows) {
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = shadowLevels[shadowLevel];
+    } else {
+      this.renderer.shadowMap.enabled = false;
+    }
+  }
+
   _initRenderer() {
     const [width, height] = this.getSceneDimensions();
     const renderer = new WebGLRenderer({
       canvas: this.getGameCanvas(),
-      antialias: true,
+      antialias: this.settings.antialias,
       powerPreference: "high-performance",
       preserveDrawingBuffer: true,
       logarithmicDepthBuffer: false,
@@ -85,8 +97,7 @@ export class Context extends EventDispatcher {
     renderer.toneMappingExposure = 1.2;
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = PCFSoftShadowMap;
+    renderer.gammaFactor = this.settings.gamma;
     renderer.xr.enabled = true;
     return renderer;
   }
@@ -105,6 +116,7 @@ export class Context extends EventDispatcher {
     }
 
     this.renderer = this._initRenderer();
+    this.setShadowLevel(this.settings.shadows);
 
     this._contextLostHandler = function (event) {
       event.preventDefault();
@@ -136,7 +148,8 @@ export class Context extends EventDispatcher {
   }
 
   _resize() {
-    this.renderer.setSize(this.window.innerWidth, this.window.innerHeight);
+    const [width, height] = this.getSceneDimensions();
+    this.renderer.setSize(width, height);
     this.dispatchEvent({ type: "resize", message: this.getSceneDimensions() });
   }
 

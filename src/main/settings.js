@@ -1,4 +1,3 @@
-import { settings } from "cluster";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 import { RenderMode, ShadowLevel } from "common/settings";
@@ -8,6 +7,7 @@ import {
   findStarcraftPath,
 } from "./starcraft/findInstallPath";
 import fileExists from "./utils/fileExists";
+import path from "path";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
 const VERSION = 1;
@@ -36,7 +36,7 @@ export class Settings extends EventEmitter {
 
   async init(webGLCapabilities) {
     try {
-      await fsPromises.unlink(this._filepath);
+      // await fsPromises.unlink(this._filepath);
 
       this._settings = JSON.parse(
         await fsPromises.readFile(this._filepath, { encoding: "utf8" })
@@ -82,9 +82,13 @@ export class Settings extends EventEmitter {
       "TileSet",
       "unit",
     ];
-    if (!(await fileExists(this._settings["starcraftPath"]))) {
+    if (await fileExists(this._settings["starcraftPath"])) {
       for (let folder of dataFolders) {
-        if (!(await fileExists(this._settings[folder]))) {
+        if (
+          !(await fileExists(
+            path.join(this._settings["starcraftPath"], folder)
+          ))
+        ) {
           if (!errors.includes("starcraftPath")) {
             errors.push("starcraftPath");
           }

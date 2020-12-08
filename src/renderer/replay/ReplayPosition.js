@@ -71,6 +71,7 @@ export class ReplayPosition {
     this.gameSpeed = gameSpeed;
     this.autoSpeed = 0;
     this.autoSpeedLerpClock = new ClockMs();
+    this.maxAutoSpeed = 1.5;
     this.clock = clock;
     this.lastDelta = 0;
     this.paused = true;
@@ -113,6 +114,14 @@ export class ReplayPosition {
     this.paused = false;
     this.lastDelta = 0;
     this.clock.start();
+  }
+
+  togglePlay() {
+    if (this.paused) {
+      this.resume();
+    } else {
+      this.pause();
+    }
   }
 
   update() {
@@ -200,6 +209,16 @@ export class ReplayPosition {
     }
     return this.frame % this.autoSpeedRefreshRate === 0;
   }
+
+  setMaxAutoSpeed(val) {
+    if (val > 1) {
+      this.autoSpeed = gameSpeeds.fastest;
+      this.maxAutoSpeed = (val - 1) * (gameSpeeds.fastest / 2);
+    } else {
+      this.autoSpeed = 0;
+    }
+  }
+
   updateAutoSpeed(attackingUnits) {
     if (!this.autoSpeed || this.destination) {
       return;
@@ -213,10 +232,9 @@ export class ReplayPosition {
 
     if (this.frame % this.autoSpeedRefreshRate === 0) {
       this.autoSpeed =
-        (1 - this.heatMapScore.totalScore(attackingUnits)) *
-          (gameSpeeds["1.5x"] - gameSpeeds.fastest) +
-        gameSpeeds.fastest +
-        Math.random() * 0.001; // variance for useEffect in UI
+        gameSpeeds.fastest -
+        (1 - this.heatMapScore.totalScore(attackingUnits)) * this.maxAutoSpeed +
+        +Math.random() * 0.001; // variance for useEffect in UI
       this.autoSpeedLerpClock.elapsedTime = 0;
       return true;
     }

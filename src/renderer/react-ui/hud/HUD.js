@@ -3,7 +3,7 @@ import Minimap from "./Minimap";
 import Production from "./Production";
 import Resources from "./Resources";
 import ReactTooltip from "react-tooltip";
-import Details from "./Details";
+import UnitSelection from "./UnitSelection";
 import ReplayPosition from "./ReplayPosition";
 
 const config = {
@@ -31,10 +31,12 @@ export default ({
   followingUnit,
   onUnitDetails,
   UnitDetails,
+  hideMinimap,
+  hideUnitSelection,
+  hideReplayPosition,
+  hideResources,
+  hideProduction,
 }) => {
-  const [showResources, setShowResources] = useState(true);
-  const [showProduction, setShowProduction] = useState(true);
-
   const onTogglePlayerVision = (e) => {
     console.log("onTogglePlayerVision", e);
   };
@@ -50,17 +52,14 @@ export default ({
   const onShowAttackDetails = (e) => {
     console.log("onShowAttackDetails", e);
   };
-  const onUnitFPV = (e) => {
-    console.log("onUnitFPV", e);
-  };
 
   return (
     <>
       {config.showTooltips && <ReactTooltip textColor="#cbd5e0" />}
-      {showProduction && (
+      {!hideProduction && (
         <Production players={players} textSize={config.textSize} />
       )}
-      {showResources && (
+      {!hideResources && (
         <Resources
           onTogglePlayerVision={onTogglePlayerVision}
           onTogglePlayerPov={onTogglePlayerPov}
@@ -76,16 +75,17 @@ export default ({
           timeLabel={timeLabel}
           textSize={config.textSize}
           canvas={minimapCanvas}
+          hideMinimap={hideMinimap}
         />
         <div className="flex flex-1">
-          <Details
+          <UnitSelection
             units={selectedUnits}
             onUnitDetails={onUnitDetails}
             onShowAttackDetails={onShowAttackDetails}
             onFollowUnit={onFollowUnit}
             followingUnit={followingUnit}
-            onUnitFPV={onUnitFPV}
             textSize={config.textSize}
+            hideUnitSelection={hideUnitSelection}
           />
           <ReplayPosition
             paused={paused}
@@ -99,9 +99,8 @@ export default ({
             onChangePosition={onChangePosition}
             onChangeAutoGameSpeed={onChangeAutoGameSpeed}
             onChangeGameSpeed={onChangeGameSpeed}
-            onToggleProduction={setShowProduction}
-            onToggleResources={setShowResources}
             textSize={config.textSize}
+            hideReplayPosition={hideReplayPosition}
           />
         </div>
       </div>

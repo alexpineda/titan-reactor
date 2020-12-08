@@ -27,8 +27,9 @@ export default ({
   settings,
   defaultTab = tabs.general,
   inGame = false,
+  className = "",
+  style = {},
 }) => {
-  console.log("options", lang, settings);
   const [tab, setTab] = useState(defaultTab);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export default ({
   };
 
   return (
-    <>
+    <div className={className} style={style}>
       <ul className="mb-6 flex">
         <TabSelector
           activeTab={tab}
@@ -153,12 +154,16 @@ export default ({
       <Tab tabName={tabs.game} activeTab={tab}>
         <Option
           label={lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}
-          value={`${settings.maxAutoReplaySpeed}x`}
+          value={`${
+            settings.maxAutoReplaySpeed > 1
+              ? `${settings.maxAutoReplaySpeed}x`
+              : lang["BUTTON_OFF"]
+          }`}
         >
           <input
             type="range"
-            min="1.05"
-            max="1.6"
+            min="1"
+            max="1.8"
             step="0.05"
             value={settings.maxAutoReplaySpeed}
             onChange={(evt) => {
@@ -229,12 +234,15 @@ export default ({
       </Tab>
 
       <Tab tabName={tabs.audio} activeTab={tab}>
-        <Option label={lang["SETTINGS_MUSIC_VOLUME"]}>
+        <Option
+          label={lang["SETTINGS_MUSIC_VOLUME"]}
+          value={`${Math.floor(settings.musicVolume * 100)}%`}
+        >
           <input
             type="range"
             min="0"
             max="1"
-            step="0.05"
+            step="0.01"
             value={settings.musicVolume}
             onChange={(evt) => {
               updateSettings({
@@ -244,12 +252,15 @@ export default ({
           />
         </Option>
 
-        <Option label={lang["SETTINGS_SOUND_VOLUME"]}>
+        <Option
+          label={lang["SETTINGS_SOUND_VOLUME"]}
+          value={`${Math.floor(settings.soundVolume * 100)}%`}
+        >
           <input
             type="range"
             min="0"
             max="1"
-            step="0.05"
+            step="0.01"
             value={settings.soundVolume}
             onChange={(evt) => {
               updateSettings({
@@ -407,6 +418,6 @@ export default ({
           />
         </Option>
       </Tab>
-    </>
+    </div>
   );
 };

@@ -350,8 +350,10 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
     mainCamera.control.update();
     // cameras.updateCubeCamera(scene);
 
+    const [width, height] = context.getSceneDimensions();
+
     context.renderer.clear();
-    context.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    context.renderer.setViewport(0, 0, width, height);
     if (
       mainCamera.camera.postprocessing &&
       mainCamera.camera.postprocessing.enabled

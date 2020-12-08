@@ -14,6 +14,11 @@ export class Audio {
     this.audioListener = audioListener;
     this.audioPool = {};
     this.loadingManager = loadingManager;
+    this.volume = 1;
+  }
+
+  setVolume(volume) {
+    this.volume = volume;
   }
 
   initUnit(unit) {
@@ -38,6 +43,7 @@ export class Audio {
       this.logger.log(`play sound ${soundId}`);
       if (this.audioPool[soundId]) {
         unitSound.setBuffer(this.audioPool[soundId]);
+        unitSound.setVolume(this.volume);
         unitSound.play();
         return;
       }

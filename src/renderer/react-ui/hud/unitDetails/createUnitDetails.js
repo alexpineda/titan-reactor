@@ -58,8 +58,6 @@ export default (bwDat, defaultUnitTypeId = 0) => {
     const [queue, setQueue] = useState([defaultUnitTypeId]);
     const [queuePosition, setQueuePosition] = useState(0);
 
-    console.log("queue", queue);
-    console.log("queuePosition", queuePosition);
     const unit = new UnitDAT(bwDat.units[unitTypeId]);
     const isBuilding = unit.building();
 
@@ -107,7 +105,6 @@ export default (bwDat, defaultUnitTypeId = 0) => {
       <div className="text-gray-800">{suggestion.name}</div>
     );
 
-
     return (
       <div
         className="absolute overflow-y-auto overflow-x-hidden rounded text-gray-300 p-6"
@@ -131,7 +128,7 @@ export default (bwDat, defaultUnitTypeId = 0) => {
               placeholder: "Type a unit name",
               value: searchValue,
               onChange: (event, { newValue }) => {
-                console.log("newValue", newValue);
+                event.nativeEvent.stopImmediatePropagation();
                 setSearchValue(newValue);
                 const unit = bwDat.units.findIndex(
                   ({ name }) => name == newValue
@@ -145,190 +142,108 @@ export default (bwDat, defaultUnitTypeId = 0) => {
               },
             }}
           />
-          {queue.length > 1 && <span>
-            <span
-            className={`cursor-pointer select-none ${queuePosition === 0 ? "text-gray-700" : ""}`}
-             onClick={() => {
-              const pos = Math.max(0, queuePosition - 1);
-              setQueuePosition(pos)
-             setUnitTypeId(queue[pos]); 
-            }}>←</span>
-            <span 
-            className={`cursor-pointer select-none ${queuePosition === queue.length -1 ? "text-gray-700" : ""}`}
-            onClick={() => {
-              const pos = Math.min(queue.length - 1, queuePosition + 1);
-              setQueuePosition(pos)
-             setUnitTypeId(queue[pos]); 
-
-            }}>→</span>
-          </span>}
+          {queue.length > 1 && (
+            <span>
+              <span
+                className={`cursor-pointer select-none ${
+                  queuePosition === 0 ? "text-gray-700" : ""
+                }`}
+                onClick={() => {
+                  const pos = Math.max(0, queuePosition - 1);
+                  setQueuePosition(pos);
+                  setUnitTypeId(queue[pos]);
+                }}
+              >
+                ←
+              </span>
+              <span
+                className={`cursor-pointer select-none ${
+                  queuePosition === queue.length - 1 ? "text-gray-700" : ""
+                }`}
+                onClick={() => {
+                  const pos = Math.min(queue.length - 1, queuePosition + 1);
+                  setQueuePosition(pos);
+                  setUnitTypeId(queue[pos]);
+                }}
+              >
+                →
+              </span>
+            </span>
+          )}
           <div className="ml-auto cursor-pointer" onClick={onClose}>
             X
           </div>
         </div>
         <div className="flex justify-evenly">
-          <aside style={{ width: "400px" }}  className="bg-gray-800 p-4 flex flex-col justify-center items-center rounded-lg mr-10
-">
+          <aside
+            style={{ width: "400px" }}
+            className="bg-gray-800 p-4 flex flex-col justify-center items-center rounded-lg mr-10
+"
+          >
             <article style={{ zoom: "1.3" }}>
-            <div
-              className="text-2xl mb-5 cursor-pointer"
-              onClick={() => setDisplay(Display.Unit)}
-            >
-              {unit.name}
-            </div>
+              <div
+                className="text-2xl mb-5 cursor-pointer"
+                onClick={() => setDisplay(Display.Unit)}
+              >
+                {unit.name}
+              </div>
 
-                <div className="flex">
-                  <div className="mr-3 lead-4">
-                    <p style={{whiteSpace: "nowrap"}}>
-                      <span className="text-sm text-gray-400">MINERALS</span>{" "}
-                      <span className="font-medium">{unit.mineralCost}</span>
+              <div className="flex">
+                <div className="mr-3 lead-4">
+                  <p style={{ whiteSpace: "nowrap" }}>
+                    <span className="text-sm text-gray-400">MINERALS</span>{" "}
+                    <span className="font-medium">{unit.mineralCost}</span>
+                  </p>
+                  <p style={{ whiteSpace: "nowrap" }}>
+                    <span className="text-sm text-gray-400">VESPENE</span>{" "}
+                    <span className="font-medium">{unit.vespeneCost}</span>
+                  </p>
+                  {Boolean(unit.supplyRequired) && (
+                    <p style={{ whiteSpace: "nowrap" }}>
+                      <span className="text-sm text-gray-400">SUPPLY</span>{" "}
+                      <span className="font-medium">
+                        {unit.supplyRequired / 2}
+                      </span>
                     </p>
-                    <p style={{whiteSpace: "nowrap"}}>
-                      <span className="text-sm text-gray-400">VESPENE</span>{" "}
-                      <span className="font-medium">{unit.vespeneCost}</span>
+                  )}
+
+                  {Boolean(unit.supplyProvided) && (
+                    <p style={{ whiteSpace: "nowrap" }}>
+                      <span className="text-sm text-gray-400">PROVIDES</span>{" "}
+                      <span className="font-medium">
+                        {unit.supplyProvided / 2}
+                      </span>
                     </p>
-                    {Boolean(unit.supplyRequired) && (
-                      <p style={{whiteSpace: "nowrap"}}>
-                        <span className="text-sm text-gray-400">SUPPLY</span>{" "}
-                        <span className="font-medium">
-                          {unit.supplyRequired / 2}
-                        </span>
-                      </p>
-                    )}
+                  )}
+                  {Boolean(unit.spaceProvided) && (
+                    <p style={{ whiteSpace: "nowrap" }}>
+                      <span className="text-sm text-gray-400">CARGO</span>{" "}
+                      <span className="font-medium">
+                        {unit.spaceProvided / 2}
+                      </span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <div className="flex mb-2">
+                    <div className="absolute">
+                      <Circle
+                        size="50" // String: Defines the size of the circle.
+                        lineWidth="50" // String: Defines the thickness of the circle's stroke.
+                        progress={Math.floor((unit.hp / maxUnitHP) * 100)} // String: Update to change the progress and percentage.
+                        progressColor="rgb(239, 68, 68)" // String: Color of "progress" portion of circle.
+                        bgColor="rgb(153, 27, 27)" // String: Color of "empty" portion of circle.
+                        textColor="#6b778c" // String: Color of percentage text color.
+                        textStyle={{
+                          font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
+                        }}
+                        percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
+                        roundedStroke={false} // Boolean: Rounded/Flat line ends
+                        showPercentage={false} // Boolean: Show/hide percentage.
+                        showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
+                      />
 
-                    {Boolean(unit.supplyProvided) && (
-                      <p style={{whiteSpace: "nowrap"}}>
-                        <span className="text-sm text-gray-400">PROVIDES</span>{" "}
-                        <span className="font-medium">
-                          {unit.supplyProvided / 2}
-                        </span>
-                      </p>
-                    )}
-                    {Boolean(unit.spaceProvided) && (
-                      <p style={{whiteSpace: "nowrap"}}>
-                        <span className="text-sm text-gray-400">CARGO</span>{" "}
-                        <span className="font-medium">
-                          {unit.spaceProvided / 2}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex mb-2">
-                      <div className="absolute">
-                        <Circle
-                          size="50" // String: Defines the size of the circle.
-                          lineWidth="50" // String: Defines the thickness of the circle's stroke.
-                          progress={Math.floor((unit.hp / maxUnitHP) * 100)} // String: Update to change the progress and percentage.
-                          progressColor="rgb(239, 68, 68)" // String: Color of "progress" portion of circle.
-                          bgColor="rgb(153, 27, 27)" // String: Color of "empty" portion of circle.
-                          textColor="#6b778c" // String: Color of percentage text color.
-                          textStyle={{
-                            font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
-                          }}
-                          percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
-                          roundedStroke={false} // Boolean: Rounded/Flat line ends
-                          showPercentage={false} // Boolean: Show/hide percentage.
-                          showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
-                        />
-
-                        {Boolean(unit.shieldsEnabled) && (
-                          <div
-                            className="relative"
-                            style={{ left: "5px", top: "-45px" }}
-                          >
-                            <Circle
-                              size="40" // String: Defines the size of the circle.
-                              lineWidth="50" // String: Defines the thickness of the circle's stroke.
-                              progress={Math.floor(
-                                (unit.shields / maxUnitShields) * 100
-                              )} // String: Update to change the progress and percentage.
-                              progressColor="rgb(59, 130, 246)" // String: Color of "progress" portion of circle.
-                              bgColor="rgb(30, 64, 175)" // String: Color of "empty" portion of circle.
-                              textColor="#6b778c" // String: Color of percentage text color.
-                              textStyle={{
-                                font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
-                              }}
-                              percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
-                              roundedStroke={false} // Boolean: Rounded/Flat line ends
-                              showPercentage={false} // Boolean: Show/hide percentage.
-                              showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
-                            />
-                          </div>
-                        )}
-
-                        <div
-                          className="relative"
-                          style={{
-                            left: "10px",
-                            top: unit.shieldsEnabled ? "-80px" : "-40px",
-                          }}
-                        >
-                          <Circle
-                            size="30" // String: Defines the size of the circle.
-                            lineWidth="50" // String: Defines the thickness of the circle's stroke.
-                            progress={Math.floor(
-                              (unit.armor / maxUnitArmor) * 100
-                            )} // String: Update to change the progress and percentage.
-                            progressColor="rgb(107, 114, 128)" // String: Color of "progress" portion of circle.
-                            bgColor="rgb(31, 41, 55)" // String: Color of "empty" portion of circle.
-                            textColor="#6b778c" // String: Color of percentage text color.
-                            textStyle={{
-                              font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
-                            }}
-                            percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
-                            roundedStroke={false} // Boolean: Rounded/Flat line ends
-                            showPercentage={false} // Boolean: Show/hide percentage.
-                            showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
-                          />
-                        </div>
-                      </div>
-
-                      <div style={{ width: "50px", height: "50px" }}>
-                        &nbsp;
-                      </div>
-                      <div className="ml-3 leading-4">
-                        <p style={{whiteSpace: "nowrap"}}>
-                          <span className="text-sm text-gray-400">HP</span>{" "}
-                          <span className="font-medium">{unit.hp}</span>
-                        </p>
-                        {Boolean(unit.shieldsEnabled) && (
-                          <p style={{whiteSpace: "nowrap"}}>
-                            
-                            <span className="text-sm text-gray-400">
-                              SHIELDS
-                            </span>{" "}
-                            <span className="font-medium">{unit.shields}</span>
-                            
-                          </p>
-                        )}
-                        <p style={{whiteSpace: "nowrap"}}>
-                          <span className="text-sm text-gray-400">ARMOR</span>{" "}
-                          <span className="font-medium">{unit.armor}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex mb-2">
-                      <div className="absolute">
-                        <Circle
-                          size="50" // String: Defines the size of the circle.
-                          lineWidth="50" // String: Defines the thickness of the circle's stroke.
-                          progress={Math.floor(
-                            (unit.buildTime / maxUnitBuildTime) * 100
-                          )} // String: Update to change the progress and percentage.
-                          progressColor="rgb(245, 158, 11)" // String: Color of "progress" portion of circle.
-                          bgColor="rgb(146, 64, 14)" // String: Color of "empty" portion of circle.
-                          textColor="#6b778c" // String: Color of percentage text color.
-                          textStyle={{
-                            font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
-                          }}
-                          percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
-                          roundedStroke={false} // Boolean: Rounded/Flat line ends
-                          showPercentage={false} // Boolean: Show/hide percentage.
-                          showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
-                        />
-
+                      {Boolean(unit.shieldsEnabled) && (
                         <div
                           className="relative"
                           style={{ left: "5px", top: "-45px" }}
@@ -337,10 +252,10 @@ export default (bwDat, defaultUnitTypeId = 0) => {
                             size="40" // String: Defines the size of the circle.
                             lineWidth="50" // String: Defines the thickness of the circle's stroke.
                             progress={Math.floor(
-                              (unit.unitSize / maxUnitSize) * 100
+                              (unit.shields / maxUnitShields) * 100
                             )} // String: Update to change the progress and percentage.
-                            progressColor="rgb(107, 114, 128)" // String: Color of "progress" portion of circle.
-                            bgColor="rgb(31, 41, 55)" // String: Color of "empty" portion of circle.
+                            progressColor="rgb(59, 130, 246)" // String: Color of "progress" portion of circle.
+                            bgColor="rgb(30, 64, 175)" // String: Color of "empty" portion of circle.
                             textColor="#6b778c" // String: Color of percentage text color.
                             textStyle={{
                               font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
@@ -351,34 +266,122 @@ export default (bwDat, defaultUnitTypeId = 0) => {
                             showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
                           />
                         </div>
-                      </div>
+                      )}
 
-                      <div style={{ width: "50px", height: "50px" }}>
-                        &nbsp;
+                      <div
+                        className="relative"
+                        style={{
+                          left: "10px",
+                          top: unit.shieldsEnabled ? "-80px" : "-40px",
+                        }}
+                      >
+                        <Circle
+                          size="30" // String: Defines the size of the circle.
+                          lineWidth="50" // String: Defines the thickness of the circle's stroke.
+                          progress={Math.floor(
+                            (unit.armor / maxUnitArmor) * 100
+                          )} // String: Update to change the progress and percentage.
+                          progressColor="rgb(107, 114, 128)" // String: Color of "progress" portion of circle.
+                          bgColor="rgb(31, 41, 55)" // String: Color of "empty" portion of circle.
+                          textColor="#6b778c" // String: Color of percentage text color.
+                          textStyle={{
+                            font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
+                          }}
+                          percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
+                          roundedStroke={false} // Boolean: Rounded/Flat line ends
+                          showPercentage={false} // Boolean: Show/hide percentage.
+                          showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
+                        />
                       </div>
-                      <div className="ml-3 leading-4">
-                        <p style={{whiteSpace: "nowrap"}}>
-                          <span className="text-sm text-gray-400">BUILD</span>{" "}
-                          <span className="font-medium">
-                            {renderTime(unit.buildTime)}
-                          </span>
+                    </div>
+
+                    <div style={{ width: "50px", height: "50px" }}>&nbsp;</div>
+                    <div className="ml-3 leading-4">
+                      <p style={{ whiteSpace: "nowrap" }}>
+                        <span className="text-sm text-gray-400">HP</span>{" "}
+                        <span className="font-medium">{unit.hp}</span>
+                      </p>
+                      {Boolean(unit.shieldsEnabled) && (
+                        <p style={{ whiteSpace: "nowrap" }}>
+                          <span className="text-sm text-gray-400">SHIELDS</span>{" "}
+                          <span className="font-medium">{unit.shields}</span>
                         </p>
-                        <p style={{whiteSpace: "nowrap"}}>
-                          <span className="text-sm text-gray-400">SIZE</span>{" "}
-                          <span className="font-medium">{unit.unitSize}</span>
-                        </p>
+                      )}
+                      <p style={{ whiteSpace: "nowrap" }}>
+                        <span className="text-sm text-gray-400">ARMOR</span>{" "}
+                        <span className="font-medium">{unit.armor}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex mb-2">
+                    <div className="absolute">
+                      <Circle
+                        size="50" // String: Defines the size of the circle.
+                        lineWidth="50" // String: Defines the thickness of the circle's stroke.
+                        progress={Math.floor(
+                          (unit.buildTime / maxUnitBuildTime) * 100
+                        )} // String: Update to change the progress and percentage.
+                        progressColor="rgb(245, 158, 11)" // String: Color of "progress" portion of circle.
+                        bgColor="rgb(146, 64, 14)" // String: Color of "empty" portion of circle.
+                        textColor="#6b778c" // String: Color of percentage text color.
+                        textStyle={{
+                          font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
+                        }}
+                        percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
+                        roundedStroke={false} // Boolean: Rounded/Flat line ends
+                        showPercentage={false} // Boolean: Show/hide percentage.
+                        showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
+                      />
+
+                      <div
+                        className="relative"
+                        style={{ left: "5px", top: "-45px" }}
+                      >
+                        <Circle
+                          size="40" // String: Defines the size of the circle.
+                          lineWidth="50" // String: Defines the thickness of the circle's stroke.
+                          progress={Math.floor(
+                            (unit.unitSize / maxUnitSize) * 100
+                          )} // String: Update to change the progress and percentage.
+                          progressColor="rgb(107, 114, 128)" // String: Color of "progress" portion of circle.
+                          bgColor="rgb(31, 41, 55)" // String: Color of "empty" portion of circle.
+                          textColor="#6b778c" // String: Color of percentage text color.
+                          textStyle={{
+                            font: "bold 4rem Helvetica, Arial, sans-serif", // CSSProperties: Custom styling for percentage.
+                          }}
+                          percentSpacing={10} // Number: Adjust spacing of "%" symbol and number.
+                          roundedStroke={false} // Boolean: Rounded/Flat line ends
+                          showPercentage={false} // Boolean: Show/hide percentage.
+                          showPercentageSymbol={false} // Boolean: Show/hide only the "%" symbol.
+                        />
                       </div>
+                    </div>
+
+                    <div style={{ width: "50px", height: "50px" }}>&nbsp;</div>
+                    <div className="ml-3 leading-4">
+                      <p style={{ whiteSpace: "nowrap" }}>
+                        <span className="text-sm text-gray-400">BUILD</span>{" "}
+                        <span className="font-medium">
+                          {renderTime(unit.buildTime)}
+                        </span>
+                      </p>
+                      <p style={{ whiteSpace: "nowrap" }}>
+                        <span className="text-sm text-gray-400">SIZE</span>{" "}
+                        <span className="font-medium">{unit.unitSize}</span>
+                      </p>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div
-              className="text-2xl mb-5 invisible"
-              onClick={() => setDisplay(Display.Unit)}
-            >
-              {unit.name}
-            </div>
-      {/* <div
+              <div
+                className="text-2xl mb-5 invisible"
+                onClick={() => setDisplay(Display.Unit)}
+              >
+                {unit.name}
+              </div>
+              {/* <div
           className="grid mt-2"
           style={{
             gridTemplateColumns: "auto auto",
@@ -403,7 +406,7 @@ export default (bwDat, defaultUnitTypeId = 0) => {
             </div>
           )}
         </div> */}
-      </article>
+            </article>
           </aside>
           <main className="flex flex-col  bg-gray-800">
             <canvas width="400" height="400" className="bg-gray-600" />
@@ -429,7 +432,6 @@ export default (bwDat, defaultUnitTypeId = 0) => {
 
         </div> */}
         </div>
-        
       </div>
     );
   };

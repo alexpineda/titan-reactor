@@ -46,9 +46,8 @@ export class BgMusic {
   }
 
   setVolume(volume) {
-    this.volume = volume;
+    this.volume = volume * 0.2;
     this.audio.setVolume(volume);
-    // this.audio.setVolume(Math.min(1, Math.max(0, volume)));
   }
 
   dispose() {

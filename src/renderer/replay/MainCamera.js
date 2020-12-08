@@ -1,7 +1,6 @@
 import { is } from "ramda";
 import { MOUSE, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
-import { Object3D } from "three/src/core/Object3D";
 import { OrbitControls } from "../utils/OrbitalControls";
 import { MinimapLayer } from "./Layers";
 import { MinimapCameraHelper } from "./Minimap";
@@ -16,9 +15,11 @@ export const CameraControlType = {
 
 export class MainCamera {
   constructor(context, minimap = null) {
-    this.camera = this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initOrthoCamera(); //
-
     this.context = context;
+    this.camera = this.context.settings.orthoCamera
+      ? this._initOrthoCamera()
+      : this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this.; //
+
     this.control = this._initOrbitControls(false);
 
     this.minimap = minimap;
@@ -50,21 +51,11 @@ export class MainCamera {
   }
 
   _initPerspectiveCamera() {
-    return new PerspectiveCamera(
-      22,
-      window.innerWidth / window.innerHeight,
-      1,
-      1000
-    );
+    return new PerspectiveCamera(22, this.context.getAspectRatio(), 1, 1000);
   }
 
   _initCinematicCamera() {
-    return new CinematicCamera(
-      90,
-      window.innerWidth / window.innerHeight,
-      1,
-      1000
-    );
+    return new CinematicCamera(90, this.context.getAspectRatio(), 1, 1000);
     // setFocalLength
     // filmGuage
   }
@@ -73,7 +64,7 @@ export class MainCamera {
     return new OrthographicCamera(-16, 16, 16, -16, 1, 10000);
   }
 
-  _initOrbitControls(limitControl = false) {
+  _initOrbitControls(limitControl = true) {
     const orbitControl = new OrbitControls(
       this.camera,
       this.context.gameCanvas

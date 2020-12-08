@@ -3,8 +3,8 @@ import React from "react";
 const TabSelector = ({ activeTab, setTab, tab, label }) => {
   return (
     <li
-      className={`py-2 px-3 hover:bg-gray-800 cursor-pointer ${
-        activeTab === tab ? "bg-gray-800" : ""
+      className={`py-2 px-3 hover:bg-gray-700 cursor-pointer ${
+        activeTab == tab ? "bg-gray-700" : ""
       }`}
       onClick={(e) => setTab(tab)}
     >

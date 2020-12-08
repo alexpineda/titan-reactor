@@ -33,15 +33,12 @@ export default ({
   onChangePosition,
   onChangeAutoGameSpeed,
   onChangeGameSpeed,
-  onToggleProduction,
-  onToggleResources,
   textSize,
+  hideReplayPosition,
 }) => {
   const progress = Math.ceil(position * 100);
 
   const [hideProgress, setHideProgress] = useState(true);
-  const [showProduction, setShowProduction] = useState(true);
-  const [showResources, setShowResources] = useState(true);
   const [positionLabel, setPositionLabel] = useState("");
 
   const [autoSpeedMode, setAutoSpeedMode] = useState(0);
@@ -171,7 +168,9 @@ export default ({
 
   return (
     <div
-      className="replay-parent flex self-end select-none"
+      className={`replay-parent flex self-end select-none ${
+        hideReplayPosition ? "hidden" : ""
+      }`}
       style={{ height: "26vh", width: "24vw" }}
     >
       <div
@@ -334,34 +333,6 @@ export default ({
           >
             voice_chat
           </i> */}
-
-          <i
-            onClick={() => {
-              onToggleResources && onToggleResources(!showResources);
-              setShowResources(!showResources);
-            }}
-            className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
-              showResources ? "text-yellow-700" : "text-gray-700 "
-            }`}
-            style={{ fontSize: smallIconFontSize }}
-            data-tip="Show Resources (Top Right)"
-          >
-            view_module
-          </i>
-
-          <i
-            onClick={() => {
-              onToggleProduction && onToggleProduction(!showProduction);
-              setShowProduction(!showProduction);
-            }}
-            className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
-              showProduction ? "text-yellow-700" : "text-gray-700 "
-            }`}
-            style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
-            data-tip="Show Production (Top Left)"
-          >
-            timeline
-          </i>
         </aside>
       </div>
     </div>

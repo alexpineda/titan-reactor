@@ -10,7 +10,7 @@ import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
 import { DefaultLoadingManager, LoadingManager } from "three";
 import { TitanReactorScene } from "./Scene";
-import { RenderMode } from "../main/settings";
+import { RenderMode } from "common/settings";
 import { BgMusic } from "./audio/BgMusic";
 import { getSettings, loadAllDataFiles, openFile, log } from "./invoke";
 import { UnitDAT } from "../main/units/UnitsDAT";
@@ -79,13 +79,6 @@ export class TitanReactor {
   async spawnReplay(filepath) {
     log(`loading replay ${filepath}`);
     await this.dispose();
-    this.context.initRenderer();
-    await this.preload();
-
-    const loadingManager = new LoadingManager();
-
-    this.mode = SceneMode.Replay;
-    document.title = `Titan Reactor - Replay`;
 
     log(`parsing replay`);
     const rep = await parseReplay(await openFile(filepath));
@@ -97,6 +90,14 @@ export class TitanReactor {
       chk,
       header: rep.header,
     });
+
+    this.context.initRenderer();
+    await this.preload();
+
+    const loadingManager = new LoadingManager();
+
+    this.mode = SceneMode.Replay;
+    document.title = `Titan Reactor - Replay`;
 
     let renderImage;
     if (
@@ -137,6 +138,11 @@ export class TitanReactor {
 
   async spawnMapViewer(chkFilepath) {
     await this.dispose();
+    this.reactApp.overlay({
+      label: "Loading",
+      description: chkFilepath,
+    });
+
     this.context.initRenderer();
 
     const loadingManager = new LoadingManager();
