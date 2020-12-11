@@ -2651,6 +2651,11 @@ camelize@^1.0.0:
   resolved "https://registry.yarnpkg.com/camelize/-/camelize-1.0.0.tgz#164a5483e630fa4321e5af07020e531831b2609b"
   integrity sha1-FkpUg+Yw+kMh5a8HAg5TGDGyYJs=
 
+camera-controls@^1.25.3:
+  version "1.25.3"
+  resolved "https://registry.yarnpkg.com/camera-controls/-/camera-controls-1.25.3.tgz#c216e8499e0075f82e7452b9854b10726a7a79eb"
+  integrity sha512-hcPgd3ly69N+HU8LRsyCmDh4N5YAbyDLB2LwbwOJdFoXomvpEi1BPGIJCbHbzp/n+CrisEjgeCHJprqy7GT2Dg==
+
 caniuse-lite@^1.0.30001135:
   version "1.0.30001137"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001137.tgz#6f0127b1d3788742561a25af3607a17fc778b803"
@@ -5119,6 +5124,11 @@ hoist-non-react-statics@^3.0.0:
   integrity sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==
   dependencies:
     react-is "^16.7.0"
+
+hold-event@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/hold-event/-/hold-event-0.0.1.tgz#576f9b57fb2af7526029609adbd1089485ef7334"
+  integrity sha512-CB63bPcgMaierrHAGBnNaucJ1ZHVaPmtCKp1hsRc6nc66b5p+OM1n3MyExk1wtS5vrhCopP/lpUZ3kbwOxXmbQ==
 
 homedir-polyfill@^1.0.1:
   version "1.0.3"

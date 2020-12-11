@@ -6,7 +6,7 @@ import Parser from "rss-parser";
 import fs from "fs";
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
-
+import { Readable } from "stream";
 import { parseReplay } from "downgrade-replay";
 
 import {
@@ -55,7 +55,8 @@ function createWindow() {
     },
   });
   window.maximize();
-  // window.setFullScreen(true);
+  window.setFullScreen(true);
+  window.setAutoHideMenuBar(true);
 
   if (isDev) {
     window.webContents.openDevTools();
@@ -351,15 +352,16 @@ ipcMain.handle(LOAD_CHK, (event, buf) => {
 });
 
 ipcMain.handle(LOAD_SCX, async (event, buf) => {
+  const readable = new Readable({ read: () => {} });
+  readable.push(Buffer.from(buf));
+  readable.push(null);
+
   const chk = await new Promise((res, rej) =>
-    fs
-      .createReadStream(buf)
-      .pipe(createScmExtractor())
-      .pipe(
-        concat((data) => {
-          res(data);
-        })
-      )
+    readable.pipe(createScmExtractor()).pipe(
+      concat((data) => {
+        res(data);
+      })
+    )
   );
   const res = new Chk(chk);
   return res;

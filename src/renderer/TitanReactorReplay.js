@@ -11,8 +11,8 @@ import { gameSpeeds, pxToMapMeter, onFastestTick } from "./utils/conversions";
 import HUD from "./react-ui/hud/HUD";
 import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
-import MainCamera from "./camera/MainCamera";
-import { Minimap } from "./replay/Minimap";
+import Cameras from "./camera/Cameras";
+import MinimapControl, { createMiniMapPlane } from "./replay/MinimapControl";
 import { Players } from "./replay/Players";
 import { FadingPointers } from "./mesh/FadingPointers";
 import { MinimapUnitLayer } from "./camera/Layers";
@@ -58,23 +58,24 @@ export async function TitanReactorReplay(
 
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
-  const minimap = new Minimap(
+  const minimapControl = new MinimapControl(
     minimapSurface,
-    scene.terrain.material.map,
     chk.size[0],
     chk.size[1]
   );
 
-  scene.add(minimap.minimapPlane);
+  scene.add(
+    createMiniMapPlane(scene.terrain.material.map, chk.size[0], chk.size[1])
+  );
 
-  const mainCamera = new MainCamera(
+  const cameras = new Cameras(
     context,
     gameSurface,
     window.innerWidth / window.innerHeight,
-    minimap
+    minimapControl
   );
-  mainCamera.control.update();
-  scene.add(mainCamera.minimapCameraHelper);
+  scene.add(cameras.minimapCameraHelper);
+  cameras.control.setLookAt(0, 200, 1, 0, 0, 0, false);
 
   // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
   // scene.add(cubeCamera);
@@ -98,7 +99,7 @@ export async function TitanReactorReplay(
 
   // #region audio initialization
   const audioListener = new AudioListener();
-  mainCamera.camera.add(audioListener);
+  cameras.camera.add(audioListener);
   bgMusic.setListener(audioListener);
   bgMusic.setVolume(context.settings.musicVolume);
   bgMusic.playGame();
@@ -114,7 +115,7 @@ export async function TitanReactorReplay(
     getTerrainY,
     audioListener,
     players,
-    { main: mainCamera.camera },
+    { main: cameras.camera },
     {}
   );
   scene.add(units.units);
@@ -180,12 +181,13 @@ export async function TitanReactorReplay(
     }
     const show = val !== undefined ? val : any();
     all(hudData, null, !show);
+    updateUi();
   };
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
   {
-    const ev = (event, action) =>
-      keyboardShortcuts.addEventListener(event, action);
+    const ev = (event, handler) =>
+      keyboardShortcuts.addEventListener(event, handler);
     const k = KeyboardEvents;
     ev(k.TogglePlay, () => replayPosition.togglePlay());
     ev(
@@ -219,6 +221,19 @@ export async function TitanReactorReplay(
     ev(k.ToggleUnitInformation, () => {
       hudData.onUnitDetails();
     });
+
+    ev(k.TruckLeft, ({ message: delta }) => {
+      cameras.control.truck(-0.02 * delta, 0, true);
+    });
+    ev(k.TruckRight, ({ message: delta }) => {
+      cameras.control.truck(0.02 * delta, 0, true);
+    });
+    ev(k.MoveForward, ({ message: delta }) => {
+      cameras.control.forward(0.02 * delta, true);
+    });
+    ev(k.MoveBackward, ({ message: delta }) => {
+      cameras.control.forward(-0.02 * delta, true);
+    });
   }
   // #endregion keyboard shortcuts
 
@@ -237,7 +252,7 @@ export async function TitanReactorReplay(
 
     mouse.x = (event.clientX / width) * 2 - 1;
     mouse.y = -(event.clientY / height) * 2 + 1;
-    raycaster.setFromCamera(mouse, mainCamera.camera);
+    raycaster.setFromCamera(mouse, cameras.camera);
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(units.getUnits(), true);
@@ -332,7 +347,7 @@ export async function TitanReactorReplay(
           camera.updateAspect(window.innerWidth, window.innerHeight)
         );
 
-        mainCamera.control.enabled = players.activePovs === 0;
+        cameras.enableControls(players.activePovs === 0);
       }, 1000);
     },
   };
@@ -394,7 +409,7 @@ export async function TitanReactorReplay(
       </>
     );
     if (firstUiUpdate) {
-      minimap.refresh();
+      minimapControl.refresh();
       firstUiUpdate = false;
     }
   };
@@ -402,15 +417,22 @@ export async function TitanReactorReplay(
 
   const sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    mainCamera.updateAspect(gameSurface.getWidth(), gameSurface.getHeight());
+    cameras.updateGameScreenAspect(
+      gameSurface.getWidth(),
+      gameSurface.getHeight()
+    );
     players.forEach(({ camera }) =>
       camera.updateAspect(gameSurface.getWidth(), gameSurface.getHeight())
     );
     minimapSurface.setDimensions(
-      Math.floor(gameSurface.getWidth() * 0.3),
+      Math.floor(gameSurface.getHeight() * 0.3),
       Math.floor(gameSurface.getHeight() * 0.3)
     );
-    minimap.refresh();
+    cameras.updatePreviewScreenAspect(
+      minimapSurface.getWidth(),
+      minimapSurface.getHeight()
+    );
+    minimapControl.refresh();
 
     // renderMan.gameSurface.resize();
     // renderMan.minimapSurface.resize();
@@ -437,6 +459,7 @@ export async function TitanReactorReplay(
     }
 
     replayPosition.update();
+    cameras.update();
 
     if (!replayPosition.paused) {
       debugInfo.clear();
@@ -571,10 +594,25 @@ export async function TitanReactorReplay(
       }
     }
 
+    if (
+      cameras.control.distance < 50 &&
+      !cameras.control.cameraShake.isShaking
+    ) {
+      const attackingUnits = unitsThisFrame
+        .map((unitRepId) =>
+          units.units.children.find(
+            ({ userData }) => userData.repId === unitRepId
+          )
+        )
+        .filter((unit) => heatMapScore.unitOfInterestFilter(unit));
+
+      // mainCamera.control.shake(heatMapScore.totalScore(attackingUnits));
+    }
+
     units.cameraDirection.previousDirection = units.cameraDirection.direction;
 
-    units.cameraDirection.direction = mainCamera.getDirection32();
-    units.setShear(mainCamera.getShear());
+    units.cameraDirection.direction = cameras.getDirection32();
+    units.setShear(cameras.getShear());
 
     renderMan.setCanvas(gameSurface.canvas);
 
@@ -598,12 +636,18 @@ export async function TitanReactorReplay(
             (sum, unit) => sum + unit.getWorldPosition().z,
             0
           ) / selectedUnits.length;
-        //@todo pick better height
-        mainCamera.camera.position.set(x, 40, z + 5);
-        //@todo use terrainY
-        mainCamera.camera.lookAt(new Vector3(x, getTerrainY(x, z), z));
+
+        cameras.control.setLookAt(
+          x,
+          getTerrainY(x, z) + 40,
+          z + 10,
+          x,
+          getTerrainY(x, z),
+          z,
+          true
+        );
       }
-      renderMan.render(scene, mainCamera.camera);
+      renderMan.render(scene, cameras.camera);
     }
 
     if (
@@ -611,8 +655,13 @@ export async function TitanReactorReplay(
       (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 1000)
     ) {
       renderMan.setCanvas(minimapSurface.canvas);
-      renderMan.renderer.clearDepth();
-      renderMan.render(scene, minimap.camera);
+      renderMan.renderer.clear();
+
+      if (cameras.previewOn) {
+        renderMan.render(scene, cameras.previewCamera);
+      } else {
+        renderMan.render(scene, cameras.minimapCamera, minimapControl.viewport);
+      }
     }
 
     stats.update();
@@ -632,9 +681,9 @@ export async function TitanReactorReplay(
 
     window.addEventListener("resize", sceneResizeHandler, false);
 
-    minimap.dispose();
+    minimapControl.dispose();
     scene.dispose();
-    mainCamera.dispose();
+    cameras.dispose();
     debugInfo.dispose();
     stats.dispose();
 

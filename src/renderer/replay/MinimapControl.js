@@ -1,33 +1,15 @@
 import {
-  BufferGeometry,
-  Camera,
-  Color,
-  Euler,
   EventDispatcher,
-  Float32BufferAttribute,
-  Line3,
-  LineBasicMaterial,
-  LineSegments,
-  Matrix4,
   Mesh,
   MeshBasicMaterial,
-  OrthographicCamera,
-  Plane,
   PlaneBufferGeometry,
-  Quaternion,
-  SphereGeometry,
   Vector3,
   Vector4,
 } from "three";
-import {
-  MinimapFogLayer,
-  MinimapLayer,
-  MinimapPingLayer,
-  MinimapUnitLayer,
-} from "../camera/Layers";
+import { MinimapLayer, MinimapUnitLayer } from "../camera/Layers";
 
-export class Minimap extends EventDispatcher {
-  constructor(surface, terrainMap, mapWidth, mapHeight) {
+class MinimapControl extends EventDispatcher {
+  constructor(surface, mapWidth, mapHeight) {
     super();
     this.surface = surface;
     this.mapWidth = mapWidth;
@@ -35,8 +17,6 @@ export class Minimap extends EventDispatcher {
     this._dragging = false;
     this.updateMouseHover = true;
     this.viewport = new Vector4();
-    this.minimapPlane = this._createMiniMapPlane(terrainMap);
-    this.camera = this._initMinimapCamera();
 
     this.refresh();
     this.enableDragging(true);
@@ -45,43 +25,6 @@ export class Minimap extends EventDispatcher {
 
   enableDragging(enable) {
     this.enableDragging = enable;
-  }
-
-  _createMiniMapPlane(map) {
-    const geo = new PlaneBufferGeometry(
-      this.mapWidth,
-      this.mapHeight,
-      Math.floor(this.mapWidth / 32),
-      Math.floor(this.mapHeight / 32)
-    );
-    const mat = new MeshBasicMaterial({
-      color: 0xffffff,
-      map,
-    });
-    var mesh = new Mesh(geo, mat);
-    mesh.rotateX(-0.5 * Math.PI);
-    mesh.layers.set(MinimapLayer);
-    return mesh;
-  }
-
-  _initMinimapCamera() {
-    const camera = new OrthographicCamera(
-      -this.mapWidth / 2,
-      this.mapWidth / 2,
-      this.mapHeight / 2,
-      -this.mapHeight / 2,
-      0.1,
-      10000
-    );
-    camera.position.set(0, 128, 0);
-    camera.lookAt(new Vector3());
-    camera.layers.disableAll();
-    camera.layers.enable(MinimapLayer);
-    camera.layers.enable(MinimapUnitLayer);
-    camera.layers.enable(MinimapPingLayer);
-    camera.layers.enable(MinimapFogLayer);
-
-    return camera;
   }
 
   _attach() {
@@ -93,8 +36,15 @@ export class Minimap extends EventDispatcher {
       const y =
         e.offsetY * (this.mapHeight / this.surface.getHeight()) -
         this.mapHeight / 2;
-      this.dispatchEvent({ type: "start", message: new Vector3(x, 0, y) });
-      this._dragging = true;
+
+      const pos = new Vector3(x, 0, y);
+
+      const isCut = e.button === 2;
+      this.dispatchEvent({ type: "start", message: { pos, cut: isCut } });
+
+      if (!isCut) {
+        this._dragging = true;
+      }
     });
 
     this.surface.canvas.addEventListener("mouseup", (e) => {
@@ -113,22 +63,28 @@ export class Minimap extends EventDispatcher {
       const pos = new Vector3(x, 0, y);
 
       if (this._dragging) {
-        this.dispatchEvent({ type: "update", message: pos });
+        this.dispatchEvent({ type: "update", message: { pos } });
       } else if (this.updateMouseHover) {
-        this.dispatchEvent({ type: "hover", message: pos });
+        this.dispatchEvent({
+          type: "hover",
+          message: { pos, preview: e.shiftKey },
+        });
       }
+    });
+
+    this.surface.canvas.addEventListener("mouseleave ", (e) => {
+      this.dispatchEvent({
+        type: "stop",
+      });
     });
   }
 
   refresh() {
     const mapAspect = Math.max(this.mapWidth, this.mapHeight);
-
     const minimapWidth =
       (this.surface.getHeight() * this.mapHeight) / mapAspect;
     const minimapHeight = (this.surface.getWidth() * this.mapWidth) / mapAspect;
-
     const { left, bottom } = this.surface.canvas.getBoundingClientRect();
-
     this.viewport = new Vector4(
       (this.surface.getWidth() - minimapWidth) / 2 + left,
       (this.surface.getHeight() - minimapHeight) / 2 +
@@ -144,6 +100,23 @@ export class Minimap extends EventDispatcher {
     this.surface.canvas.removeEventListener("mousemove");
   }
 }
+
+export const createMiniMapPlane = (map, mapWidth, mapHeight) => {
+  const geo = new PlaneBufferGeometry(
+    mapWidth,
+    mapHeight,
+    Math.floor(mapWidth / 32),
+    Math.floor(mapHeight / 32)
+  );
+  const mat = new MeshBasicMaterial({
+    color: 0xffffff,
+    map,
+  });
+  var mesh = new Mesh(geo, mat);
+  mesh.rotateX(-0.5 * Math.PI);
+  mesh.layers.set(MinimapLayer);
+  return mesh;
+};
 
 export const createMinimapPoint = (color, w, h) => {
   const geometry = new PlaneBufferGeometry(w, h);
@@ -185,3 +158,5 @@ export const createMinimapPoint = (color, w, h) => {
   });
   return plane;
 };
+
+export default MinimapControl;

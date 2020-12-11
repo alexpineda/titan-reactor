@@ -21,7 +21,7 @@ import { DebugLog } from "../utils/DebugLog";
 import { angleToDirection } from "../utils/conversions";
 import { unitTypes } from "../../common/bwdat/unitTypes";
 import { BWAPIUnit } from "./BWAPIFrames";
-import { createMinimapPoint } from "./Minimap";
+import { createMinimapPoint } from "./MinimapControl";
 const { zergEgg, mineral1, mineral2, mineral3, geyser } = unitTypes;
 
 export class Units {

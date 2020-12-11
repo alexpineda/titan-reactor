@@ -28,10 +28,7 @@ export default ({
           >
             {timeLabel}
           </p>
-          <WrappedCanvas
-            canvas={canvas}
-            className="w-full h-full border-r border-yellow-800"
-          />
+          <WrappedCanvas canvas={canvas} />
         </article>
 
         <aside

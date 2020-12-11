@@ -1,5 +1,5 @@
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
-import { getAppCachePath, loadChk } from "./invoke";
+import { getAppCachePath, loadChk, loadScx } from "./invoke";
 import { LoadSprite } from "./mesh/LoadSprites";
 import { JsonCache } from "./utils/jsonCache";
 import { imageChk } from "./utils/loadChk";
@@ -84,7 +84,6 @@ export class TitanReactor {
     await this.dispose();
 
     log(`parsing replay`);
-    // const rep = await loadReplayFromFile(filepath);
     const rep = await parseReplay(await openFile(filepath));
     // const rep = await loadReplayFromFile(filepath);
 

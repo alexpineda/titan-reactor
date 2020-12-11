@@ -40,15 +40,18 @@
     }
   },
   "build": {
-    "extraResources": [{
-      "from": "data",
-      "to": "data"
-    }]
+    "extraResources": [
+      {
+        "from": "data",
+        "to": "data"
+      }
+    ]
   },
   "dependencies": {
     "@eliasku/binpack": "^1.0.1",
     "bl": "^4.0.3",
     "buffer": "^5.6.0",
+    "camera-controls": "^1.25.3",
     "concat": "1.0.3",
     "d3-ease": "1.0.6",
     "dat.gui": "0.7.7",
@@ -56,6 +59,7 @@
     "downgrade-replay": "file:../downgrade-replay",
     "electron-is-dev": "^1.2.0",
     "esm": "^3.2.25",
+    "hold-event": "^0.0.1",
     "iconv-lite": "0.6.1",
     "iscript": "^1.0.2",
     "jssuh": "1.4.0",

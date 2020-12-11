@@ -36,68 +36,11 @@ export class Context extends EventDispatcher {
     ipcRenderer.on(SETTINGS_CHANGED, this.settingsChangedListener);
   }
 
-  // getGameCanvas() {
-  //   if (this.gameCanvas) return this.gameCanvas;
-
-  //   const canvas = this.document.createElement("canvas");
-  //   canvas.id = "three-canvas";
-  //   canvas.style.position = "absolute";
-  //   canvas.style.top = "0";
-  //   canvas.style.left = "0";
-  //   canvas.style.right = "0";
-  //   canvas.style.bottom = "0";
-  //   canvas.style.zIndex = "-10";
-  //   this.gameCanvas = canvas;
-  //   return canvas;
-  // }
-
-  // getGameAspectRatio() {
-  //   const aspect = this.getGameCanvas().width / this.getGameCanvas().height;
-  //   console.log("aspect", aspect);
-  //   return aspect;
-  // }
-
-  // getMinimapCanvas() {
-  //   if (this.minimapCanvas) return this.minimapCanvas;
-
-  //   const canvas = this.document.createElement("canvas");
-  //   canvas.id = "minimap";
-  //   canvas.style.width = "30vh";
-  //   canvas.style.height = "30vh";
-  //   this.minimapCanvas = canvas;
-  //   return canvas;
-  // }
-
-  // getMinimapAspectRatio() {
-  //   return this.getMinimapCanvas().width / this.getMinimapCanvas().height;
-  // }
-
-  // getUnitInformationCanvas() {
-  //   if (this.unitInfoCanvas) return this.unitInfoCanvas;
-
-  //   const canvas = this.document.createElement("canvas");
-  //   canvas.id = "unit-info";
-  //   canvas.style.width = "30vh";
-  //   canvas.style.height = "30vh";
-  //   this.unitInfoCanvas = canvas;
-  //   return canvas;
-  // }
-
   getDevicePixelRatio() {
     return this.window.devicePixelRatio;
   }
 
   dispose() {
     ipcRenderer.removeListener(SETTINGS_CHANGED, this.settingsChangedListener);
-
-    // this.getGameCanvas().removeEventListener(
-    //   "webglcontextrestored",
-    //   this._contextRestoredHandler
-    // );
-
-    // this.getGameCanvas().removeEventListener(
-    //   "webglcontextlost",
-    //   this._contextLostHandler
-    // );
   }
 }

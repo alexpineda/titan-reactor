@@ -5,6 +5,7 @@ const {
   BasicShadowMap,
   PCFShadowMap,
   PCFSoftShadowMap,
+  Vector4,
 } = require("three");
 import { log } from "../invoke";
 
@@ -47,8 +48,12 @@ class RenderMan {
     this.canvas.getContext("2d").drawImage(this.renderer.domElement, 0, 0);
   }
 
-  render(scene, camera) {
-    this.renderer.setViewport(0, 0, this.canvas.width, this.canvas.height);
+  render(
+    scene,
+    camera,
+    viewport = new Vector4(0, 0, this.canvas.width, this.canvas.height)
+  ) {
+    this.renderer.setViewport(viewport);
     this._render(scene, camera);
   }
 

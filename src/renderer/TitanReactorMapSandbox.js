@@ -6,7 +6,7 @@ import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui"
 import { createStartLocation } from "./mesh/BasicObjects";
 import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
-import MainCamera from "./camera/MainCamera";
+import Cameras from "./camera/Cameras";
 import { fog } from "./3d-map-rendering/lights";
 import { TerrainCubeCamera } from "./camera/CubeCamera";
 import { createStats } from "utils/stats";
@@ -27,7 +27,7 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const mainCamera = new MainCamera(context);
+  const mainCamera = new Cameras(context);
   if (hot && hot.camera) {
     mainCamera.camera.position.copy(hot.camera.position);
     mainCamera.camera.rotation.copy(hot.camera.rotation);
@@ -320,7 +320,7 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   context.addEventListener("lostcontext", restoreContextHandler);
 
   const sceneResizeHandler = ({ message: [width, height] }) => {
-    mainCamera.updateAspect(width, height);
+    mainCamera.updateGameScreenAspect(width, height);
   };
   context.addEventListener("resize", sceneResizeHandler);
 
