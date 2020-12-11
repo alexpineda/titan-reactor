@@ -13,6 +13,7 @@ import {
   EXIT,
   LOAD_REPLAY_FROM_FILE,
   LOAD_CHK,
+  LOAD_SCX,
 } from "../common/handleNames";
 import { Buffer } from "buffer/";
 
@@ -66,6 +67,10 @@ export const loadReplayFromFile = async (filepath) => {
 
 export const loadChkFromFile = async (filepath) => {
   return await ipcRenderer.invoke(LOAD_REPLAY_FROM_FILE, filepath);
+};
+
+export const loadScx = async (buf) => {
+  return await ipcRenderer.invoke(LOAD_SCX, buf);
 };
 
 export const loadChk = async (buf) => {

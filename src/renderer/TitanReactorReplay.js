@@ -356,6 +356,7 @@ export async function TitanReactorReplay(
             settings={context.settings}
             onClose={() => {
               hudData.showMenu = false;
+              toggleAllHud(!hudData.showMenu);
             }}
             isReplay={true}
             hasNextReplay={false}
@@ -605,9 +606,14 @@ export async function TitanReactorReplay(
       renderMan.render(scene, mainCamera.camera);
     }
 
-    renderMan.setCanvas(minimapSurface.canvas);
-    renderMan.renderer.clearDepth();
-    renderMan.render(scene, minimap.camera);
+    if (
+      (!replayPosition.skippingFrames() && replayPosition.bwGameFrame % 100) ||
+      (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 1000)
+    ) {
+      renderMan.setCanvas(minimapSurface.canvas);
+      renderMan.renderer.clearDepth();
+      renderMan.render(scene, minimap.camera);
+    }
 
     stats.update();
   }

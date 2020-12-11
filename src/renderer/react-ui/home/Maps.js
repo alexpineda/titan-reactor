@@ -26,16 +26,17 @@ export default ({ lang }) => {
           label={lang["COMMUNITY_MAPS"]}
         />
       </ul>
-      <Tab tabName={Tabs.Maps} activeTab={tab}>
-        <div>
-          <div>Folder</div>
-          <div>File</div>
-        </div>
-      </Tab>
-      <Tab tabName={Tabs.Maps} activeTab={tab}>
-        Maps
-      </Tab>
-
+      <main style={{ maxHeight: "50vh" }}>
+        <Tab tabName={Tabs.Maps} activeTab={tab}>
+          <div>
+            <div>Folder</div>
+            <div>File</div>
+          </div>
+        </Tab>
+        <Tab tabName={Tabs.Maps} activeTab={tab}>
+          Maps
+        </Tab>
+      </main>
       <button className="mt-auto g-btn--yellow-to-orange">
         {lang["BUTTON_LAUNCH"]}
       </button>

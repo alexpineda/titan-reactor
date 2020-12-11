@@ -3,6 +3,10 @@ import isDev from "electron-is-dev";
 import { openFileBinary } from "./fs";
 import path from "path";
 import Parser from "rss-parser";
+import fs from "fs";
+import createScmExtractor from "scm-extractor";
+import concat from "concat-stream";
+
 import { parseReplay } from "downgrade-replay";
 
 import {
@@ -25,6 +29,7 @@ import {
   LOAD_CHK_FROM_FILE,
   LOAD_CHK,
   LOAD_CHK_IMAGE,
+  LOAD_SCX,
 } from "../common/handleNames";
 import { loadAllDataFiles } from "./units/loadAllDataFiles";
 import { Settings } from "./settings";
@@ -337,12 +342,25 @@ ipcMain.handle(GET_RSS_FEED, async (event, url) => {
 });
 
 ipcMain.handle(LOAD_REPLAY_FROM_FILE, async (event, filepath) => {
-  const rep = await parseReplay(await openFileBinary(filepath));
-  rep.chk = Buffer.from(rep.chk);
-  return rep;
+  return await parseReplay(await openFileBinary(filepath));
 });
 
 ipcMain.handle(LOAD_CHK, (event, buf) => {
   const chk = new Chk(new BufferList(buf));
   return chk;
+});
+
+ipcMain.handle(LOAD_SCX, async (event, buf) => {
+  const chk = await new Promise((res, rej) =>
+    fs
+      .createReadStream(buf)
+      .pipe(createScmExtractor())
+      .pipe(
+        concat((data) => {
+          res(data);
+        })
+      )
+  );
+  const res = new Chk(chk);
+  return res;
 });

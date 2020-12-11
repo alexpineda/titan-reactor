@@ -62,7 +62,35 @@ export default ({ settings, lang }) => {
         file/folder
       </Tab>
       <Tab tabName={Tabs.Community} activeTab={tab}>
-        {JSON.stringify(feeds)}
+        {feeds.map(({ title, description, link, items }) => {
+          return (
+            <div key={link}>
+              <header>
+                <div>
+                  <a href={link} target="_blank">
+                    {title}
+                  </a>
+                </div>
+                <div>{description}</div>
+              </header>
+
+              <ul>
+                {items.map(({ title, link, isoDate, content, guid }) => {
+                  return (
+                    <li key={guid}>
+                      <div>
+                        <a href={link} target="_blank">
+                          {title}
+                        </a>
+                      </div>
+                      <div>{content}</div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </Tab>
       <Tab tabName={Tabs.Playlist} activeTab={tab}>
         Playlist
