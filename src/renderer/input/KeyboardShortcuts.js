@@ -10,6 +10,7 @@ export const KeyboardEvents = {
   ToggleResources: "ToggleResources",
   ToggleProduction: "ToggleProduction",
   ToggleAll: "ToggleAll",
+  ToggleUnitInformation: "ToggleUnitInformation",
 };
 
 class KeyboardShortcuts extends EventDispatcher {
@@ -22,48 +23,21 @@ class KeyboardShortcuts extends EventDispatcher {
 
     this.keyDownListener = (e) => {
       if (!this.enabled) return;
-      switch (e.code) {
-        case "KeyP":
-          {
-            dispatch(KeyboardEvents.TogglePlay);
-          }
-          break;
-        case "KeyG":
-          {
-            dispatch(KeyboardEvents.ToggleGrid);
-          }
-          break;
+      const k = KeyboardEvents;
 
-        case "KeyE":
-          {
-            dispatch(KeyboardEvents.ToggleReplayPosition);
-          }
-          break;
-        case "KeyW":
-          {
-            dispatch(KeyboardEvents.ToggleUnitSelection);
-          }
-          break;
-        case "KeyQ":
-          {
-            dispatch(KeyboardEvents.ToggleMinimap);
-          }
-          break;
-        case "KeyR":
-          {
-            dispatch(KeyboardEvents.ToggleProduction);
-          }
-          break;
-        case "KeyT":
-          {
-            dispatch(KeyboardEvents.ToggleResources);
-          }
-          break;
-        case "KeyA":
-          {
-            dispatch(KeyboardEvents.ToggleAll);
-          }
-          break;
+      [
+        ["KeyP", k.TogglePlay],
+        ["KeyG", k.ToggleGrid],
+        ["KeyE", k.ToggleReplayPosition],
+        ["KeyW", k.ToggleUnitSelection],
+        ["KeyQ", k.ToggleMinimap],
+        ["KeyR", k.ToggleProduction],
+        ["KeyT", k.ToggleResources],
+        ["KeyA", k.ToggleAll],
+        ["KeyI", k.ToggleUnitInformation],
+      ].forEach(([key, event]) => e.code === key && dispatch(event));
+
+      switch (e.code) {
       }
 
       switch (e.keyCode) {

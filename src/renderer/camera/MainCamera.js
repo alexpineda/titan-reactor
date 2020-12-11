@@ -3,7 +3,7 @@ import { MOUSE, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 import { OrbitControls } from "../utils/OrbitalControls";
 import { MinimapLayer } from "./Layers";
-import { MinimapCameraHelper } from "./Minimap";
+import MinimapCameraHelper from "./MinimapCameraHelper";
 
 export const CameraControlType = {
   none: 0,
@@ -13,14 +13,15 @@ export const CameraControlType = {
   playerPov: 4,
 };
 
-export class MainCamera {
-  constructor(context, minimap = null) {
+class MainCamera {
+  constructor(context, gameSurface, aspect, minimap = null) {
     this.context = context;
+    this.gameSurface = gameSurface;
     this.camera = this.context.settings.orthoCamera
       ? this._initOrthoCamera()
-      : this._initPerspectiveCamera(); //this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this.; //
+      : this._initPerspectiveCamera(aspect); //this._initCinematicCamera(); // this._initPerspectiveCamera(); //this._initCinematicCamera(); // this.; //
 
-    this.control = this._initOrbitControls(false);
+    this.control = this._initOrbitControls(gameSurface.canvas, false);
 
     this.minimap = minimap;
     this._delta = new Vector3();
@@ -50,12 +51,12 @@ export class MainCamera {
     this.resetMainCamera();
   }
 
-  _initPerspectiveCamera() {
-    return new PerspectiveCamera(22, this.context.getAspectRatio(), 1, 1000);
+  _initPerspectiveCamera(aspect) {
+    return new PerspectiveCamera(22, aspect, 1, 1000);
   }
 
-  _initCinematicCamera() {
-    return new CinematicCamera(90, this.context.getAspectRatio(), 1, 1000);
+  _initCinematicCamera(aspect) {
+    return new CinematicCamera(90, aspect, 1, 1000);
     // setFocalLength
     // filmGuage
   }
@@ -64,11 +65,8 @@ export class MainCamera {
     return new OrthographicCamera(-16, 16, 16, -16, 1, 10000);
   }
 
-  _initOrbitControls(limitControl = true) {
-    const orbitControl = new OrbitControls(
-      this.camera,
-      this.context.gameCanvas
-    );
+  _initOrbitControls(canvas, limitControl = true) {
+    const orbitControl = new OrbitControls(this.camera, canvas);
     orbitControl.mouseButtons = {
       LEFT: MOUSE.PAN,
       MIDDLE: MOUSE.DOLLY,
@@ -135,3 +133,5 @@ export class MainCamera {
     this.control.dispose();
   }
 }
+
+export default MainCamera;

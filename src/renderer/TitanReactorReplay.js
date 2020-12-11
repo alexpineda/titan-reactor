@@ -1,39 +1,31 @@
 import React from "react";
-import {
-  PointLight,
-  Raycaster,
-  Vector2,
-  AudioListener,
-  Camera,
-  Vector3,
-} from "three";
-
+import { Raycaster, Vector2, AudioListener, Vector3 } from "three";
 import {
   BWAPIUnitFromBuffer,
   BWAPIBulletFromBuffer,
 } from "./replay/BWAPIFrames";
-
 import { Units } from "./replay/Units";
-//todo refactor out
-import { difference, isEmpty } from "ramda";
+import { difference, isEmpty, uniq } from "ramda";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
 import { gameSpeeds, pxToMapMeter, onFastestTick } from "./utils/conversions";
 import HUD from "./react-ui/hud/HUD";
 import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
-import { MainCamera } from "./replay/MainCamera";
+import MainCamera from "./camera/MainCamera";
 import { Minimap } from "./replay/Minimap";
 import { Players } from "./replay/Players";
 import { FadingPointers } from "./mesh/FadingPointers";
-import { MinimapUnitLayer } from "./replay/Layers";
+import { MinimapUnitLayer } from "./camera/Layers";
 import { commands } from "bwdat/commands";
-import { PlayerPovCamera, PovLeft, PovRight } from "./replay/PlayerPovCamera";
-import { TerrainCubeCamera } from "./replay/CubeCamera";
+import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
+import { TerrainCubeCamera } from "./camera/CubeCamera";
 import { unitTypes } from "../common/bwdat/unitTypes";
 import createUnitDetails from "./react-ui/hud/unitDetails/createUnitDetails";
 import Menu from "./react-ui/hud/Menu";
 import { createStats } from "utils/stats";
 import KeyboardShortcuts, { KeyboardEvents } from "./input/KeyboardShortcuts";
+import RenderMan from "./render/RenderMan";
+import CanvasTarget from "./render/CanvasTarget";
 
 const { startLocation } = unitTypes;
 
@@ -58,20 +50,29 @@ export async function TitanReactorReplay(
 
   console.log("rep", rep);
 
+  const renderMan = new RenderMan(context);
+  renderMan.initRenderer();
+
+  const gameSurface = new CanvasTarget({ position: "absolute", zIndex: "-10" });
+  const minimapSurface = new CanvasTarget();
+
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
   const minimap = new Minimap(
-    context.getMinimapCanvas(),
+    minimapSurface,
     scene.terrain.material.map,
     chk.size[0],
-    chk.size[1],
-    heatMapScore
+    chk.size[1]
   );
 
   scene.add(minimap.minimapPlane);
-  scene.add(minimap.heatmap);
 
-  const mainCamera = new MainCamera(context, minimap);
+  const mainCamera = new MainCamera(
+    context,
+    gameSurface,
+    window.innerWidth / window.innerHeight,
+    minimap
+  );
   mainCamera.control.update();
   scene.add(mainCamera.minimapCameraHelper);
 
@@ -99,7 +100,7 @@ export async function TitanReactorReplay(
   const audioListener = new AudioListener();
   mainCamera.camera.add(audioListener);
   bgMusic.setListener(audioListener);
-  bgMusic.setVolume(0.01);
+  bgMusic.setVolume(context.settings.musicVolume);
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
   // #endregion audio initialization
@@ -126,7 +127,6 @@ export async function TitanReactorReplay(
     heatMapScore
   );
 
-  //@todo disable if turned off in settings
   replayPosition.setMaxAutoSpeed(context.settings.maxAutoReplaySpeed);
 
   replayPosition.onResetState = () => {
@@ -147,10 +147,10 @@ export async function TitanReactorReplay(
       // audio.setVolume(diff.soundVolume);
     }
     if (diff.gamma) {
-      context.renderer.gammaFactor = diff.gamma;
+      renderMan.renderer.gammaFactor = diff.gamma;
     }
     if (diff.shadows) {
-      context.setShadowLevel(diff.shadows);
+      renderMan.setShadowLevel(diff.shadows);
     }
   });
 
@@ -216,6 +216,9 @@ export async function TitanReactorReplay(
     ev(k.ToggleAll, () => {
       toggleAllHud();
     });
+    ev(k.ToggleUnitInformation, () => {
+      hudData.onUnitDetails();
+    });
   }
   // #endregion keyboard shortcuts
 
@@ -230,7 +233,7 @@ export async function TitanReactorReplay(
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
 
-    const [width, height] = context.getSceneDimensions();
+    const [width, height] = [window.innerWidth, window.innerHeight];
 
     mouse.x = (event.clientX / width) * 2 - 1;
     mouse.y = -(event.clientY / height) * 2 + 1;
@@ -261,19 +264,7 @@ export async function TitanReactorReplay(
   //#endregion mouse listener
 
   const fadingPointers = new FadingPointers();
-  fadingPointers.layers.enable(MinimapUnitLayer);
   scene.add(fadingPointers);
-
-  let unitsLastFrame = [];
-  let unitsThisFrame = [];
-  let bulletsLastFrame = [];
-  let bulletsThisFrame = [];
-
-  const version = replayPosition.readInt32AndAdvance();
-  if (version !== 5) {
-    throw new Error("invalid rep.bin version");
-  }
-  replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
 
   //#region hud ui
   const hudData = {
@@ -283,7 +274,7 @@ export async function TitanReactorReplay(
     hideUnitSelection: false,
     hideResources: false,
     hideProduction: false,
-    showingUnitDetails: false,
+    showingUnitDetails: null,
     position: () => replayPosition.bwGameFrame / replayPosition.maxFrame,
     onChangeGameSpeed: (speed) => (replayPosition.gameSpeed = speed),
     onChangeAutoGameSpeed: (val) => {
@@ -313,7 +304,7 @@ export async function TitanReactorReplay(
       } else {
         hudData.showingUnitDetails = createUnitDetails(
           bwDat,
-          selectedUnits[0].userData.typeId
+          uniq(selectedUnits.map((unit) => unit.userData.typeId)).sort()
         );
         keyboardShortcuts.enabled = false;
         toggleAllHud(false);
@@ -336,8 +327,10 @@ export async function TitanReactorReplay(
         players.activePovs = players.filter(
           ({ showPov }) => showPov === true
         ).length;
-        const [w, h] = context.getSceneDimensions();
-        players.forEach(({ camera }) => camera.updateAspect(w, h));
+
+        players.forEach(({ camera }) =>
+          camera.updateAspect(window.innerWidth, window.innerHeight)
+        );
 
         mainCamera.control.enabled = players.activePovs === 0;
       }, 1000);
@@ -354,7 +347,8 @@ export async function TitanReactorReplay(
 
     players.updateResources(units);
 
-    reactApp.hud(
+    reactApp.game(
+      gameSurface.canvas,
       <>
         {hudData.showMenu && (
           <Menu
@@ -382,7 +376,7 @@ export async function TitanReactorReplay(
           onChangeAutoGameSpeed={hudData.onChangeAutoGameSpeed}
           onChangePosition={hudData.onChangePosition}
           onTogglePaused={hudData.onTogglePaused}
-          minimapCanvas={context.minimapCanvas}
+          minimapCanvas={minimapSurface.canvas}
           onTogglePlayerPov={hudData.onTogglePlayerPov}
           selectedUnits={selectedUnits}
           onFollowUnit={hudData.onFollowUnit}
@@ -405,25 +399,34 @@ export async function TitanReactorReplay(
   };
   //#endregion hud ui
 
-  const lostContextHandler = () => {
-    context.renderer.setAnimationLoop(null);
-  };
-  context.addEventListener("lostcontext", lostContextHandler);
-
-  const restoreContextHandler = () => {
-    context.initRenderer(true);
-    // cubeCamera.onRestoreContext();
-    context.renderer.setAnimationLoop(gameLoop);
-  };
-  context.addEventListener("restorecontext", restoreContextHandler);
-
-  const sceneResizeHandler = ({ message: [width, height] }) => {
-    mainCamera.updateAspect(width, height);
-    players.forEach(({ camera }) => camera.updateAspect(width, height));
+  const sceneResizeHandler = () => {
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+    mainCamera.updateAspect(gameSurface.getWidth(), gameSurface.getHeight());
+    players.forEach(({ camera }) =>
+      camera.updateAspect(gameSurface.getWidth(), gameSurface.getHeight())
+    );
+    minimapSurface.setDimensions(
+      Math.floor(gameSurface.getWidth() * 0.3),
+      Math.floor(gameSurface.getHeight() * 0.3)
+    );
     minimap.refresh();
+
+    // renderMan.gameSurface.resize();
+    // renderMan.minimapSurface.resize();
   };
-  context.addEventListener("resize", sceneResizeHandler);
-  context.forceResize();
+  sceneResizeHandler();
+  window.addEventListener("resize", sceneResizeHandler, false);
+
+  let unitsLastFrame = [];
+  let unitsThisFrame = [];
+  let bulletsLastFrame = [];
+  let bulletsThisFrame = [];
+
+  const version = replayPosition.readInt32AndAdvance();
+  if (version !== 5) {
+    throw new Error("invalid rep.bin version");
+  }
+  replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
 
   function gameLoop() {
     uiUpdated = false;
@@ -572,24 +575,17 @@ export async function TitanReactorReplay(
     units.cameraDirection.direction = mainCamera.getDirection32();
     units.setShear(mainCamera.getShear());
 
-    const [width, height] = context.getSceneDimensions();
+    renderMan.setCanvas(gameSurface.canvas);
 
     if (players[0].showPov && players[1].showPov) {
-      context.renderer.setScissorTest(true);
       players.forEach(({ camera }) => {
-        context.renderer.setViewport(camera.viewport);
-        context.renderer.setScissor(camera.viewport);
-        context.renderer.render(scene, camera);
+        renderMan.renderSplitScreen(scene, camera, camera.viewport);
       });
-      context.renderer.setScissorTest(false);
     } else if (players[0].showPov) {
-      context.renderer.setViewport(0, 0, width, height);
-      context.renderer.render(scene, players[0].camera);
+      renderMan.render(scene, players[0].camera);
     } else if (players[1].showPov) {
-      context.renderer.setViewport(0, 0, width, height);
-      context.renderer.render(scene, players[1].camera);
+      renderMan.render(scene, players[1].camera);
     } else {
-      //#region followUnit
       if (followingUnit && selectedUnits.length) {
         const x =
           selectedUnits.reduce(
@@ -606,38 +602,29 @@ export async function TitanReactorReplay(
         //@todo use terrainY
         mainCamera.camera.lookAt(new Vector3(x, getTerrainY(x, z), z));
       }
-      //#endregion
-      context.renderer.setViewport(0, 0, width, height);
-      context.renderer.render(scene, mainCamera.camera);
+      renderMan.render(scene, mainCamera.camera);
     }
 
-    context.renderer.clearDepth();
-    context.renderer.setScissor(minimap.viewport);
-    context.renderer.setScissorTest(true);
-    context.renderer.setViewport(minimap.viewport);
-    context.renderer.render(scene, minimap.camera); //minimap.camera);
-    context.renderer.setScissorTest(false);
+    renderMan.setCanvas(minimapSurface.canvas);
+    renderMan.renderer.clearDepth();
+    renderMan.render(scene, minimap.camera);
 
     stats.update();
   }
 
-  context.renderer.setAnimationLoop(gameLoop);
-
   //@todo add settings to not auto play
-  replayPosition.resume();
 
   const dispose = () => {
     console.log("disposing");
 
-    context.renderer.setAnimationLoop(null);
+    renderMan.renderer.setAnimationLoop(null);
+    renderMan.dispose();
 
     replayPosition.pause();
 
     bgMusic.dispose();
 
-    context.removeEventListener("resize", sceneResizeHandler);
-    context.removeEventListener("lostcontext", lostContextHandler);
-    context.removeEventListener("restorecontext", restoreContextHandler);
+    window.addEventListener("resize", sceneResizeHandler, false);
 
     minimap.dispose();
     scene.dispose();
@@ -649,15 +636,12 @@ export async function TitanReactorReplay(
     document.removeEventListener("mousedown", mouseDownListener);
   };
 
-  if (module.hot) {
-    module.hot.dispose((data) => {
-      Object.assign(data, {
-        camera: mainCamera.camera,
-        BWAPIFrame: replayPosition.bwGameFrame,
-        filepath,
-      });
-      dispose();
-    });
+  renderMan.renderer.setAnimationLoop(gameLoop);
+
+  if (context.settings.startPaused) {
+    //run first frame
+  } else {
+    replayPosition.resume();
   }
 
   return {

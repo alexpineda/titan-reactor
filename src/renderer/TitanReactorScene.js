@@ -19,7 +19,7 @@ export class TitanReactorScene extends Scene {
     this.loadingManager = loadingManager;
   }
 
-  async init() {
+  async init(isDev) {
     const [w, h] = this.chk.size;
 
     const gridHelper = new GridHelper(128, 128, 0xff0000, 0x009900);
@@ -36,7 +36,7 @@ export class TitanReactorScene extends Scene {
     this.add(hemi);
 
     const terrainMesh = new Terrain(this.chk, this.textureCache);
-    const terrain = await terrainMesh.generate();
+    const terrain = await terrainMesh.generate(isDev);
     const bg = await bgMapCanvasTexture(this.chk);
     const bgTerrain = backgroundTerrainMesh(w, h, bg);
 

@@ -36,7 +36,7 @@ export default ({ settings, lang }) => {
         <div className="flex flex-1">
           <div className="w-1/4 flex-col-reverse flex">
             <ul className="mt-auto">
-              <MenuItem
+              {/* <MenuItem
                 label={lang["MENU_MAPS"]}
                 disabled={
                   settings.errors.includes("starcraftPath") ||
@@ -56,20 +56,25 @@ export default ({ settings, lang }) => {
                 onClick={() =>
                   ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
                 }
+              /> */}
+
+              <MenuItem
+                label={lang["MENU_MAPS"]}
+                disabled={
+                  settings.errors.includes("starcraftPath") ||
+                  settings.errors.includes("mapsPath")
+                }
+                onClick={() => setActivePanel(Panels.Maps)}
               />
 
-              {/* <li
-                className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
-                onClick={() => setActivePanel(Panels.Maps)}
-              >
-                {lang["MAPS"]}
-              </li>
-              <li
-                className={`p-1 hover:bg-gray-800 cursor-pointer select-none text-lg`}
+              <MenuItem
+                label={lang["MENU_REPLAYS"]}
+                disabled={
+                  settings.errors.includes("starcraftPath") ||
+                  settings.errors.includes("replaysPath")
+                }
                 onClick={() => setActivePanel(Panels.Replays)}
-              >
-                {lang["REPLAYS"]}
-              </li> */}
+              />
 
               <MenuItem
                 label={lang["MENU_OPTIONS"]}
@@ -122,7 +127,7 @@ export default ({ settings, lang }) => {
           {activePanel === Panels.Replays && (
             <div className="w-3/4">
               <p className="font-bold mb-6 select-none">Replays</p>
-              <Replays lang={lang} />
+              <Replays lang={lang} settings={settings} />
             </div>
           )}
           {activePanel === Panels.Options && (

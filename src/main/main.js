@@ -2,6 +2,9 @@ import { app, ipcMain, Menu, BrowserWindow, shell, dialog } from "electron";
 import isDev from "electron-is-dev";
 import { openFileBinary } from "./fs";
 import path from "path";
+import Parser from "rss-parser";
+import { parseReplay } from "downgrade-replay";
+
 import {
   GET_APPCACHE_PATH,
   OPEN_FILE,
@@ -17,12 +20,19 @@ import {
   LOG_MESSAGE,
   EXIT,
   SET_WEBGL_CAPABILITIES,
+  GET_RSS_FEED,
+  LOAD_REPLAY_FROM_FILE,
+  LOAD_CHK_FROM_FILE,
+  LOAD_CHK,
+  LOAD_CHK_IMAGE,
 } from "../common/handleNames";
 import { loadAllDataFiles } from "./units/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
 import lang from "../common/lang";
 import logger from "./logger";
+import Chk from "../../libs/bw-chk";
+import BufferList from "bl";
 
 let window;
 
@@ -319,4 +329,20 @@ ipcMain.on(SELECT_FOLDER, async (event, key) => {
         message: "There was an error selecting path: " + err.message,
       });
     });
+});
+
+ipcMain.handle(GET_RSS_FEED, async (event, url) => {
+  const parser = new Parser();
+  return await parser.parseURL(url);
+});
+
+ipcMain.handle(LOAD_REPLAY_FROM_FILE, async (event, filepath) => {
+  const rep = await parseReplay(await openFileBinary(filepath));
+  rep.chk = Buffer.from(rep.chk);
+  return rep;
+});
+
+ipcMain.handle(LOAD_CHK, (event, buf) => {
+  const chk = new Chk(new BufferList(buf));
+  return chk;
 });

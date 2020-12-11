@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import Tab from "../components/Tab";
+import TabSelector from "../components/TabSelector";
 
 const Tabs = {
   Maps: "Maps",
@@ -11,27 +13,29 @@ export default ({ lang }) => {
   return (
     <>
       <ul className="mb-6 flex">
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.Maps ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.Maps)}
-        >
-          {lang["INSTALLED_MAPS"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.Community ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.Community)}
-        >
-          {lang["COMMUNITY_MAPS"]}
-        </li>
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Maps}
+          setTab={setTab}
+          label={lang["LOCAL_MAPS"]}
+        />
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Community}
+          setTab={setTab}
+          label={lang["COMMUNITY_MAPS"]}
+        />
       </ul>
-      <div>
-        <div>Folder</div>
-        <div>File</div>
-      </div>
+      <Tab tabName={Tabs.Maps} activeTab={tab}>
+        <div>
+          <div>Folder</div>
+          <div>File</div>
+        </div>
+      </Tab>
+      <Tab tabName={Tabs.Maps} activeTab={tab}>
+        Maps
+      </Tab>
+
       <button className="mt-auto g-btn--yellow-to-orange">
         {lang["BUTTON_LAUNCH"]}
       </button>

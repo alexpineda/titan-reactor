@@ -38,6 +38,7 @@ export class Units {
     loadingManager = DefaultLoadingManager
   ) {
     this.units = new Group();
+    this.allDeadUnits = [];
     this.cameras = cameras;
     this.tileset = tileset;
     this.mapSize = {
@@ -494,7 +495,10 @@ export class Units {
     }
     this.units.children
       .filter(({ userData }) => repIds.includes(userData.repId))
-      .forEach((unit) => this.killUnit(unit));
+      .forEach((unit) => {
+        this.allDeadUnits.push(unit.userData);
+        this.killUnit(unit);
+      });
   }
 
   //@todo refactor out of event model

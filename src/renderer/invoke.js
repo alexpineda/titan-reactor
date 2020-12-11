@@ -9,7 +9,10 @@ import {
   SELECT_FOLDER,
   LOG_MESSAGE,
   SET_WEBGL_CAPABILITIES,
+  GET_RSS_FEED,
   EXIT,
+  LOAD_REPLAY_FROM_FILE,
+  LOAD_CHK,
 } from "../common/handleNames";
 import { Buffer } from "buffer/";
 
@@ -45,20 +48,28 @@ export const saveSettings = async (settings) => {
   return await ipcRenderer.invoke(SET_SETTINGS, settings);
 };
 
-// export const openMapDialog = async (settings) => {
-//   return await ipcRenderer.invoke(SET_SETTINGS, settings);
-// };
-
-// export const openReplayDialog = async (settings) => {
-//   return await ipcRenderer.invoke(SET_SETTINGS, settings);
-// };
-
 export const log = async (message, level = "info") => {
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
 };
 
 export const setWebGLCapabilities = async (capabilities) => {
   return await ipcRenderer.invoke(SET_WEBGL_CAPABILITIES, capabilities);
+};
+
+export const getRssFeed = async (url) => {
+  return await ipcRenderer.invoke(GET_RSS_FEED, url);
+};
+
+export const loadReplayFromFile = async (filepath) => {
+  return await ipcRenderer.invoke(LOAD_REPLAY_FROM_FILE, filepath);
+};
+
+export const loadChkFromFile = async (filepath) => {
+  return await ipcRenderer.invoke(LOAD_REPLAY_FROM_FILE, filepath);
+};
+
+export const loadChk = async (buf) => {
+  return await ipcRenderer.invoke(LOAD_CHK, buf);
 };
 
 export const exit = () => {

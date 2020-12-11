@@ -20,7 +20,6 @@ async function bootup() {
     await context.loadSettings();
     titanReactor.reactApp.loading();
     if (!context.settings.errors.includes("starcraftPath")) {
-      context.initRenderer();
       await titanReactor.preload();
     }
     titanReactor.reactApp.home();

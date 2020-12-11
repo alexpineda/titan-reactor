@@ -79,17 +79,17 @@ export default ({
           label={lang["SETTINGS_GRAPHICS"]}
         />
 
-        <TabSelector
+        {/* <TabSelector
           activeTab={tab}
           tab={tabs.twitch}
           setTab={setTab}
           label={lang["SETTINGS_INTEGRATIONS"]}
-        />
+        /> */}
         <TabSelector
           activeTab={tab}
           tab={tabs.feeds}
           setTab={setTab}
-          label={lang["SETTINGS_RSS_FEEDS"]}
+          label={lang["SETTINGS_COMMUNITY_MAPS_AND_REPLAYS"]}
         />
       </ul>
 
@@ -402,19 +402,27 @@ export default ({
       </Tab>
 
       <Tab tabName={tabs.feeds} activeTab={tab}>
-        <Option label={"Maps RSS Feeds"}>
+        <Option label={lang["SETTINGS_MAPS_RSS_FEEDS"]}>
           <textarea
             className="w-full h-40 bg-gray-600"
-            value={"hi"}
-            onChange={() => {}}
+            value={settings.mapsRss}
+            onChange={(evt) =>
+              updateSettings({
+                mapsRss: evt.target.value,
+              })
+            }
           />
         </Option>
 
-        <Option label={"Replays RSS Feeds"}>
+        <Option label={lang["SETTINGS_REPLAYS_RSS_FEEDS"]}>
           <textarea
             className="w-full h-40 bg-gray-600"
-            value={"hi"}
-            onChange={() => {}}
+            value={settings.replaysRss}
+            onChange={(evt) =>
+              updateSettings({
+                replaysRss: evt.target.value,
+              })
+            }
           />
         </Option>
       </Tab>

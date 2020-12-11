@@ -1,61 +1,72 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { getRssFeed } from "../../invoke";
+import Tab from "../components/Tab";
+import TabSelector from "../components/TabSelector";
 
 const Tabs = {
   Local: "Local",
-  Pro: "Pro",
+  // Pro: "Pro",
   Community: "Community",
-  AI: "AI",
   Playlist: "Playlist",
 };
 
-export default ({ lang }) => {
+export default ({ settings, lang }) => {
   const [tab, setTab] = useState(Tabs.Local);
+  const [feeds, setFeeds] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadFeeds = async (feedUrls) => {
+    const feeds = [];
+    for (const url of feedUrls) {
+      try {
+        const feed = await getRssFeed(url);
+        feeds.push(feed);
+      } catch (e) {}
+    }
+    setFeeds(feeds);
+    console.log(feeds);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    const feedUrls = settings.replaysRss.split("\n");
+    if (feedUrls.length) {
+      loadFeeds(feedUrls);
+    }
+  }, []);
 
   return (
     <>
       {" "}
       <ul className="mb-6 flex">
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.Local ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.Local)}
-        >
-          {lang["LOCAL_REPLAYS"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.Pro ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.Pro)}
-        >
-          {lang["PRO_REPLAYS"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.Community ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.Community)}
-        >
-          {lang["COMMUNITY_REPLAYS"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.AI ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.AI)}
-        >
-          {lang["AI_REPLAYS"]}
-        </li>
-        <li
-          className={`py-2 px-3 hover:bg-gray-800 cursor-pointer select-none ${
-            tab === Tabs.Playlist ? "bg-gray-800" : ""
-          }`}
-          onClick={(e) => setTab(Tabs.Playlist)}
-        >
-          {lang["MY_PLAYLIST"]}
-        </li>
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Local}
+          setTab={setTab}
+          label={lang["LOCAL_REPLAYS"]}
+        />
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Community}
+          setTab={setTab}
+          label={lang["COMMUNITY_REPLAYS"]}
+        />
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Playlist}
+          setTab={setTab}
+          label={lang["MY_PLAYLIST"]}
+        />
       </ul>
+      <Tab tabName={Tabs.Local} activeTab={tab}>
+        file/folder
+      </Tab>
+      <Tab tabName={Tabs.Community} activeTab={tab}>
+        {JSON.stringify(feeds)}
+      </Tab>
+      <Tab tabName={Tabs.Playlist} activeTab={tab}>
+        Playlist
+      </Tab>
     </>
   );
 };

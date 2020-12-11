@@ -6,9 +6,9 @@ import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui"
 import { createStartLocation } from "./mesh/BasicObjects";
 import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
-import { MainCamera } from "./replay/MainCamera";
+import MainCamera from "./camera/MainCamera";
 import { fog } from "./3d-map-rendering/lights";
-import { TerrainCubeCamera } from "./replay/CubeCamera";
+import { TerrainCubeCamera } from "./camera/CubeCamera";
 import { createStats } from "utils/stats";
 import { is } from "ramda";
 import { Raycaster, Vector2 } from "three";

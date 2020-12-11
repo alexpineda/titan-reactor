@@ -36,7 +36,7 @@ export class Terrain {
     );
   }
 
-  async generate(defaultMap, defaultDisplace, defaultRoughness, defaultNormal) {
+  async generate(isDev) {
     const get = async (name, generate, defaultImage = null) => {
       let image = defaultImage;
       let format = "rgb";
@@ -57,9 +57,21 @@ export class Terrain {
       );
     };
 
-    const map = await get("map", mapImage, defaultMap);
+    const defaultDisplace = isDev
+      ? await displacementImage(
+          this.chk,
+          {
+            post: {
+              blur: 0,
+              blendNonZeroPixels: true,
+            },
+          },
+          { post: { blur: 0 } }
+        )
+      : null;
+    const map = await get("map", mapImage);
     const displace = await get("displace", displacementImage, defaultDisplace);
-    const roughness = await get("roughness", roughnessImage, defaultRoughness);
+    const roughness = await get("roughness", roughnessImage);
 
     this.terrain = terrainMesh(
       this.chk.size[0],

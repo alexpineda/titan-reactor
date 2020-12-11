@@ -1,7 +1,7 @@
 import { Audio, AudioLoader } from "three";
 const rand = (n) => Math.floor(Math.random() * n);
 
-export class BgMusic {
+class BgMusic {
   constructor(bwDataPath) {
     this.bwDataPath = bwDataPath;
   }
@@ -34,6 +34,8 @@ export class BgMusic {
     if (audio.isPlaying) {
       audio.stop();
     }
+    if (volume === 0) return;
+
     audioLoader.load(filepath, function (buffer) {
       audio.setBuffer(buffer);
       audio.setVolume(volume);
@@ -48,6 +50,9 @@ export class BgMusic {
   setVolume(volume) {
     this.volume = volume * 0.2;
     this.audio.setVolume(volume);
+    if (this.volume === 0 && this.audio.isPlaying) {
+      this.audio.stop();
+    }
   }
 
   dispose() {
@@ -55,3 +60,5 @@ export class BgMusic {
     this.audio = null;
   }
 }
+
+export default BgMusic;

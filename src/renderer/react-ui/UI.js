@@ -20,22 +20,21 @@ export class UI {
   }
 
   _render(children = null) {
-    render(
-      <>
-        <WrappedCanvas canvas={this.context.getGameCanvas()} />
-        {children}
-      </>,
-      this.domElement
-    );
+    render(<>{children}</>, this.domElement);
   }
 
   hide() {
     this._render(null);
   }
 
-  hud(children) {
-    this.resetListener(() => this.hud(children));
-    this._render(children);
+  game(canvas, children) {
+    this.resetListener(() => this.game(canvas, children));
+    this._render(
+      <>
+        <WrappedCanvas canvas={canvas} />
+        {children}
+      </>
+    );
   }
 
   resetListener(listener) {

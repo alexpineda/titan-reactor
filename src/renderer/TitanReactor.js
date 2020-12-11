@@ -1,20 +1,21 @@
-import { parseReplay } from "downgrade-replay";
 import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
-import { getAppCachePath } from "./invoke";
+import { getAppCachePath, loadChk } from "./invoke";
 import { LoadSprite } from "./mesh/LoadSprites";
 import { JsonCache } from "./utils/jsonCache";
 import { imageChk } from "./utils/loadChk";
 import { ImageSD } from "./mesh/ImageSD";
 import { Image3D } from "./mesh/Image3D";
+import EmptyImage from "./mesh/EmptyImage";
 import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
 import { TitanReactorReplay } from "./TitanReactorReplay";
 import { DefaultLoadingManager, LoadingManager } from "three";
-import { TitanReactorScene } from "./Scene";
+import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
-import { BgMusic } from "./audio/BgMusic";
-import { getSettings, loadAllDataFiles, openFile, log } from "./invoke";
+import BgMusic from "./audio/BgMusic";
+import { loadReplayFromFile, loadAllDataFiles, openFile, log } from "./invoke";
 import { UnitDAT } from "../main/units/UnitsDAT";
 import loadSpritePalettes from "./image/palettes";
+import { parseReplay } from "downgrade-replay";
 
 export const SceneMode = {
   MapViewer: 0,
@@ -44,6 +45,8 @@ export class TitanReactor {
     };
     window.bwDat = this.bwDat;
 
+    if (this.context.settings.isDev) return;
+
     this.readStarcraftFile = (file) =>
       openFile(`${this.context.settings.starcraftPath}/${file}`);
 
@@ -69,7 +72,7 @@ export class TitanReactor {
       (file) => openFile(`${this.context.settings.starcraftPath}/unit/${file}`),
       spritesTextureCache,
       jsonCache,
-      this.context.renderer.capabilities.maxTextureSize,
+      8192,
       DefaultLoadingManager
     );
 
@@ -81,7 +84,10 @@ export class TitanReactor {
     await this.dispose();
 
     log(`parsing replay`);
+    // const rep = await loadReplayFromFile(filepath);
     const rep = await parseReplay(await openFile(filepath));
+    // const rep = await loadReplayFromFile(filepath);
+
     log(`loading chk`);
     const chk = await imageChk(rep.chk, this.context.settings.starcraftPath);
 
@@ -91,7 +97,6 @@ export class TitanReactor {
       header: rep.header,
     });
 
-    this.context.initRenderer();
     await this.preload();
 
     const loadingManager = new LoadingManager();
@@ -100,7 +105,9 @@ export class TitanReactor {
     document.title = `Titan Reactor - Replay`;
 
     let renderImage;
-    if (
+    if (this.context.settings.isDev) {
+      renderImage = new EmptyImage();
+    } else if (
       this.context.settings.renderMode === RenderMode.SD ||
       this.context.settings.renderMode === RenderMode.HD
     ) {
@@ -119,7 +126,7 @@ export class TitanReactor {
 
     log(`initializing scene`);
     const scene = new TitanReactorScene(chk, textureCache, loadingManager);
-    await scene.init();
+    await scene.init(this.context.settings.isDev);
 
     log(`initializing replay`);
     this.scene = await TitanReactorReplay(

@@ -21,7 +21,9 @@
     "SETTINGS_COMMUNITY_3D_MODELS_PATH": "Community 3D Models Directory",
     "SETTINGS_MAPS_PATH": "Maps Directory",
     "SETTINGS_REPLAYS_PATH": "Replays Directory",
-    "SETTINGS_RSS_FEEDS": "RSS Feeds",
+    "SETTINGS_COMMUNITY_MAPS_AND_REPLAYS": "Community Maps & Replays",
+    "SETTINGS_MAPS_RSS_FEEDS": "Maps RSS Feeds",
+    "SETTINGS_REPLAYS_RSS_FEEDS": "Replays RSS Feeds",
     "SETTINGS_GRAPHICS_RENDER_MODE": "Render Mode",
     "SETTINGS_MAX_AUTO_REPLAY_SPEED": "Max Auto Replay Speed",
     "SETTINGS_OBSERVER_LINK": "2nd Observer Invite Link",
@@ -43,7 +45,7 @@
     "SETTINGS_GRAPHICS_GAMMA": "Gamma",
 
     "TWITCH_INTEGRATION": "Twitch Integration",
-    "INSTALLED_MAPS": "Installed Maps",
+    "LOCAL_MAPS": "Local Maps",
     "COMMUNITY_MAPS": "Community Maps",
 
     "LOCAL_REPLAYS": "Local Replays",

@@ -7,7 +7,6 @@ import { overlayImage, blendNonZeroPixels as blendPixels } from "image/blend";
 
 export const displacementImage = async (
   chk,
-  save,
   userBaseOptions = {},
   userOverlayOptions = {}
 ) => {

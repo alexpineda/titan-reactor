@@ -18,9 +18,6 @@ export class ImageSD {
     if (!this.loadSprite.loaded) {
       throw new Error("sprites must be preloaded");
     }
-    this.prefabs = {
-      999: () => this.loadSprite.loadSync(`_alex/marine.bmp`),
-    };
   }
 
   useUnitPalette(unitType) {

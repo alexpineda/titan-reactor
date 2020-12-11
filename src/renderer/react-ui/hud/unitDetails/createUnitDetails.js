@@ -33,7 +33,7 @@ const Display = {
   AirWeapon: "AirWeapon",
 };
 
-export default (bwDat, defaultUnitTypeId = 0) => {
+export default (bwDat, defaultUnitTypes = [0]) => {
   const unitSuggestions = bwDat.units
     .map((unit) => new UnitDAT(unit))
     .filter(
@@ -51,11 +51,11 @@ export default (bwDat, defaultUnitTypeId = 0) => {
     );
 
   return ({ onClose }) => {
-    const [unitTypeId, setUnitTypeId] = useState(defaultUnitTypeId);
+    const [unitTypeId, setUnitTypeId] = useState(defaultUnitTypes[0]);
     const [searchValue, setSearchValue] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [display, setDisplay] = useState(Display.Unit);
-    const [queue, setQueue] = useState([defaultUnitTypeId]);
+    const [queue, setQueue] = useState(defaultUnitTypes);
     const [queuePosition, setQueuePosition] = useState(0);
 
     const unit = new UnitDAT(bwDat.units[unitTypeId]);

@@ -1,6 +1,8 @@
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 import { RenderMode, ShadowLevel } from "common/settings";
+import isDev from "electron-is-dev";
+
 import {
   findMapsPath,
   findReplaysPath,
@@ -105,7 +107,7 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    return { ...this._settings, errors };
+    return { ...this._settings, errors, isDev };
   }
 
   async load() {
