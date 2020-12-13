@@ -26,9 +26,6 @@ export class Context extends EventDispatcher {
     const sizes = SUPPORTED_WINDOW_SIZES.filter(
       (r) => r.width <= screen.width && r.height <= screen.height
     );
-    const largestSize = sizes[sizes.length - 1];
-    this.gameScreenWidth = largestSize.width;
-    this.gameScreenHeight = largestSize.height;
   }
 
   async loadSettings() {

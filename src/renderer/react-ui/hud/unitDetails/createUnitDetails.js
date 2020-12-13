@@ -50,7 +50,7 @@ export default (bwDat, defaultUnitTypes = [0]) => {
         ].includes(i)
     );
 
-  return ({ onClose }) => {
+  return ({ onClose, gameWidth, gameHeight }) => {
     const [unitTypeId, setUnitTypeId] = useState(defaultUnitTypes[0]);
     const [searchValue, setSearchValue] = useState("");
     const [suggestions, setSuggestions] = useState([]);
@@ -110,8 +110,8 @@ export default (bwDat, defaultUnitTypes = [0]) => {
         className="absolute overflow-y-auto overflow-x-hidden rounded text-gray-300 p-6"
         style={{
           transform: "translate(-50%, -50%)",
-          left: "50%",
-          top: "50%",
+          left: `${gameWidth / 2}px`,
+          top: `${gameHeight / 2}px`,
           backgroundColor: "rgba(0,0,0,0.8)",
         }}
       >

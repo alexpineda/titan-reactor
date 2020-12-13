@@ -10,10 +10,15 @@ import "./utils/electronFileLoader";
 let replayPlaylist = [];
 let replayIndex = 0;
 const context = new Context(window);
-const titanReactor = new TitanReactor(
-  context,
-  new UI(document.getElementById("app"), context)
-);
+const ui = new UI(document.getElementById("app"), context, (data, file) => {
+  const ext = file.name.split(".").pop();
+  if (ext === "rep") {
+    titanReactor.spawnReplay(file);
+  } else if (["scx", "scm"].includes(ext)) {
+    titanReactor.spawnMapViewer(file);
+  }
+});
+const titanReactor = new TitanReactor(context, ui);
 
 async function bootup() {
   try {

@@ -22,7 +22,7 @@ class Cameras {
   constructor(context, gameSurface, minimapControl, keyboardShortcuts) {
     this.context = context;
     this.gameSurface = gameSurface;
-    const aspect = gameSurface.getWidth() / gameSurface.getHeight();
+    const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
     this.previewCamera = this._createCamera(aspect);
 
@@ -48,14 +48,17 @@ class Cameras {
       this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
       this.minimapCameraHelper.layers.enable(MinimapLayer);
 
-      minimapControl.addEventListener("start", ({ message: { pos, cut } }) => {
-        const target = new Vector3();
-        this.control.getTarget(target);
+      minimapControl.addEventListener(
+        "start",
+        ({ message: { pos, rightMouse } }) => {
+          const target = new Vector3();
+          this.control.getTarget(target);
 
-        this._delta.subVectors(target, this.camera.position);
-        this.control.moveTo(pos.x, pos.y, pos.z, !cut);
-        this.camera.position.subVectors(pos, this._delta);
-      });
+          this._delta.subVectors(target, this.camera.position);
+          this.control.moveTo(pos.x, pos.y, pos.z, rightMouse);
+          this.camera.position.subVectors(pos, this._delta);
+        }
+      );
 
       minimapControl.addEventListener("update", ({ message: { pos } }) => {
         this.control.moveTo(pos.x, pos.y, pos.z, true);

@@ -1,8 +1,9 @@
 import React from "react";
 import { render } from "react-dom";
-import { WrappedCanvas } from "./WrappedCanvas";
+import WrappedCanvas from "./WrappedCanvas";
 import { LoadingOverlay } from "./LoadingOverlay";
 import { LoadingProgress } from "./LoadingProgress";
+import FileDropZone from "./components/FileDropZone";
 import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
 import "./css/icon.css";
@@ -13,28 +14,19 @@ import Home from "./home/Home";
 import Loading from "./home/Loading";
 
 export class UI {
-  constructor(domElement, context) {
+  constructor(domElement, context, onFileDropped) {
     this.context = context;
     this.domElement = domElement;
+    this.onFileDropped = onFileDropped;
     this._lastRender = null;
   }
 
-  _render(children = null) {
+  render(children = null) {
     render(<>{children}</>, this.domElement);
   }
 
   hide() {
-    this._render(null);
-  }
-
-  game(canvas, children) {
-    this.resetListener(() => this.game(canvas, children));
-    this._render(
-      <>
-        <WrappedCanvas canvas={canvas} />
-        {children}
-      </>
-    );
+    this.render(null);
   }
 
   resetListener(listener) {
@@ -49,21 +41,21 @@ export class UI {
 
   home() {
     this.resetListener(() => this.home());
-    this._render(
+    this.render(
       <Home settings={this.context.settings} lang={this.context.lang} />
     );
   }
 
   criticalError() {
     this.resetListener(null);
-    this._render(
+    this.render(
       <p>There was a critical error. Try deleting your settings file.</p>
     );
   }
 
   loading() {
     this.resetListener(null);
-    this._render(<Loading lang={this.context.lang} />);
+    this.render(<Loading lang={this.context.lang} />);
   }
 
   async overlay({ chk, label, description, header = null }) {
@@ -72,7 +64,7 @@ export class UI {
       const preview = await mapPreviewCanvas(chk);
       const mapPreview = <WrappedCanvas canvas={preview} />;
 
-      this._render(
+      this.render(
         <LoadingOverlay
           label={chk.title}
           description={chk.tilesetName}
@@ -81,12 +73,12 @@ export class UI {
         />
       );
     } else {
-      this._render(<LoadingOverlay label={label} description={description} />);
+      this.render(<LoadingOverlay label={label} description={description} />);
     }
   }
 
   progress(progress, total) {
     this.resetListener(null);
-    this._render(<LoadingProgress progress={progress} total={total} />);
+    this.render(<LoadingProgress progress={progress} total={total} />);
   }
 }

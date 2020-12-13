@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 
-export function FileDropZone({ onFileDropped, children }) {
+function FileDropZone({ onFileDropped, children }) {
   const onDrop = useCallback((acceptedFiles) => {
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
@@ -23,3 +23,5 @@ export function FileDropZone({ onFileDropped, children }) {
     </div>
   );
 }
+
+export default FileDropZone;

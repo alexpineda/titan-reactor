@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { WrappedCanvas } from "./WrappedCanvas";
+import WrappedCanvas from "./WrappedCanvas";
 
 import "./css/tailwind.min.css";
 import "./css/pattern.min.css";

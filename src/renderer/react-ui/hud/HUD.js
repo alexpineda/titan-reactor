@@ -12,6 +12,7 @@ const config = {
 };
 
 export default ({
+  gameSurface,
   players,
   paused,
   position,
@@ -57,7 +58,11 @@ export default ({
     <>
       {config.showTooltips && <ReactTooltip textColor="#cbd5e0" />}
       {!hideProduction && (
-        <Production players={players} textSize={config.textSize} />
+        <Production
+          players={players}
+          textSize={config.textSize}
+          gameTop={gameSurface.top}
+        />
       )}
       {!hideResources && (
         <Resources
@@ -65,10 +70,28 @@ export default ({
           onTogglePlayerPov={onTogglePlayerPov}
           players={players}
           textSize={config.textSize}
+          gameWidth={gameSurface.width}
+          gameHeight={gameSurface.height}
+          gameTop={gameSurface.top}
         />
       )}
-      {UnitDetails && <UnitDetails onClose={onUnitDetails} />}
-      <div className="w-full flex absolute bottom-0 divide-x-4 divide-transparent px-2">
+      {UnitDetails && (
+        <UnitDetails
+          onClose={onUnitDetails}
+          gameWidth={gameSurface.width}
+          gameHeight={gameSurface.height}
+          gameTop={gameSurface.top}
+        />
+      )}
+      <div
+        className="w-full flex absolute divide-x-4 divide-transparent px-2"
+        style={{
+          bottom: `${
+            window.innerHeight - (gameSurface.height + gameSurface.top)
+          }px`,
+          width: `${gameSurface.width}px`,
+        }}
+      >
         <Minimap
           onRevealMap={onRevealMap}
           onDropPings={onDropPings}

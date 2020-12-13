@@ -46,10 +46,14 @@ function createWindow() {
   gameWindow = new BrowserWindow({
     width: 900,
     height: 680,
+    backgroundColor: "#242526",
     webPreferences: {
+      // preload: "",
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
-      webSecurity: false,
+      webSecurity: true,
+      spellcheck: false,
+      enableWebSQL: false,
       // contextIsolation: true,
       // worldSafeExecuteJavaScript: true,
       // enableRemoteModule: false
@@ -86,41 +90,6 @@ function createWindow() {
   });
 }
 
-function createProducerWindow() {
-  producerWindow = new BrowserWindow({
-    width: 900,
-    height: 680,
-    webPreferences: {
-      nodeIntegration: true,
-      nodeIntegrationInWorker: true,
-      webSecurity: false,
-      // contextIsolation: true,
-      // worldSafeExecuteJavaScript: true,
-      // enableRemoteModule: false
-    },
-  });
-
-  if (isDev) {
-    producerWindow.webContents.openDevTools();
-  }
-
-  if (isDev) {
-    producerWindow.loadURL(
-      `http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}?producer`
-    );
-  } else {
-    producerWindow.loadURL(
-      formatUrl({
-        pathname: path.join(__dirname, "index.html"),
-        protocol: "file",
-        slashes: true,
-      })
-    );
-  }
-
-  gameWindow.on("closed", () => (producerWindow = null));
-}
-
 app.commandLine.appendSwitch("--disable-xr-sandbox");
 
 app.on("ready", async () => {
@@ -148,7 +117,6 @@ app.on("ready", async () => {
   });
 
   createWindow();
-  createProducerWindow();
 });
 
 app.on("window-all-closed", () => {

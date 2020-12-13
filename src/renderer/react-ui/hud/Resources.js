@@ -81,11 +81,19 @@ export default ({
   textSize,
   onTogglePlayerVision,
   onTogglePlayerPov,
+  gameWidth,
+  gameTop,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
   return (
-    <div className="flex absolute top-0 right-0 select-none">
+    <div
+      className="flex absolute select-none"
+      style={{
+        top: `${gameTop}px`,
+        right: `${window.innerWidth - gameWidth}px`,
+      }}
+    >
       <div className="resources-parent">
         <div
           className="rounded mx-1 my-1 py-1 px-2 flex"

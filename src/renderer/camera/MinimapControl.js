@@ -36,18 +36,16 @@ class MinimapControl extends EventDispatcher {
     this.surface.canvas.addEventListener("mousedown", (e) => {
       if (!this._enableDragging) return;
       const x =
-        e.offsetX * (this.mapWidth / this.surface.getWidth()) -
-        this.mapWidth / 2;
+        e.offsetX * (this.mapWidth / this.surface.width) - this.mapWidth / 2;
       const y =
-        e.offsetY * (this.mapHeight / this.surface.getHeight()) -
-        this.mapHeight / 2;
+        e.offsetY * (this.mapHeight / this.surface.height) - this.mapHeight / 2;
 
       const pos = new Vector3(x, 0, y);
 
-      const isCut = e.button === 2;
-      this.dispatchEvent({ type: "start", message: { pos, cut: isCut } });
+      const rightMouse = e.button === 2;
+      this.dispatchEvent({ type: "start", message: { pos, rightMouse } });
 
-      if (!isCut) {
+      if (rightMouse) {
         this._dragging = true;
       }
     });
@@ -58,11 +56,9 @@ class MinimapControl extends EventDispatcher {
 
     this.surface.canvas.addEventListener("mousemove", (e) => {
       const x =
-        e.offsetX * (this.mapWidth / this.surface.getWidth()) -
-        this.mapWidth / 2;
+        e.offsetX * (this.mapWidth / this.surface.width) - this.mapWidth / 2;
       const y =
-        e.offsetY * (this.mapHeight / this.surface.getHeight()) -
-        this.mapHeight / 2;
+        e.offsetY * (this.mapHeight / this.surface.height) - this.mapHeight / 2;
 
       const pos = new Vector3(x, 0, y);
 

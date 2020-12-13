@@ -5,27 +5,13 @@ class CanvasTarget {
     this.canvas = canvas;
   }
 
-  getWidth() {
-    return this.canvas.width;
-  }
-
-  getHeight() {
-    return this.canvas.height;
-  }
-
-  getDeviceIndependentWidth() {
-    return this.deviceIndependentWidth;
-  }
-
-  getDeviceIndependentHeight() {
-    return this.deviceIndependentHeight;
-  }
-
   setDimensions(width, height) {
-    this.deviceIndependentWidth = width;
-    this.deviceIndependentHeight = height;
     this.canvas.width = width;
     this.canvas.height = height;
+    this.width = width;
+    this.height = height;
+    this.scaledWidth = width * window.devicePixelRatio;
+    this.scaledHeight = height * window.devicePixelRatio;
   }
 
   getContext() {

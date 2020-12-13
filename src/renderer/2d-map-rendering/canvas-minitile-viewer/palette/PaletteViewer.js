@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileDropZone } from "../FileDropZone";
+import FileDropZone from "../../../react-ui/components/FileDropZone";
 import { Palette } from "./Palette";
 
 export function readColors(data) {

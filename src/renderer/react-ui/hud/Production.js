@@ -20,9 +20,14 @@ const PlayerProduction = ({ color, units, textSize }) => {
   );
 };
 
-export default ({ players, textSize }) => {
+export default ({ players, textSize, gameTop }) => {
   return (
-    <div className="flex absolute top-0 left-0 select-none">
+    <div
+      className="flex absolute left-0 select-none"
+      style={{
+        top: `${gameTop}px`,
+      }}
+    >
       <div className="production-parent">
         <div
           className="rounded ml-1 mt-1 flex flex-col"

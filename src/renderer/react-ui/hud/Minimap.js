@@ -1,5 +1,5 @@
 import React from "react";
-import { WrappedCanvas } from "../WrappedCanvas";
+import WrappedCanvas from "../WrappedCanvas";
 
 export default ({
   timeLabel,
@@ -17,7 +17,7 @@ export default ({
       }`}
     >
       <div className="rounded mb-2 flex flex-1 border-2 border-yellow-900">
-        <article className="minimap flex-1 relative">
+        <article className="minimap flex-1 relative bg-black flex items-center">
           <p
             className={`text-gray-400 text-${textSize} bg-black inline-block absolute px-6 pt-1 pb-2 rounded-tl-full rounded-tr-full border-t-2 border-yellow-800`}
             style={{
@@ -32,7 +32,7 @@ export default ({
         </article>
 
         <aside
-          className="view-controls flex-0 flex flex-col space-y-2 ml-2 px-2"
+          className="view-controls flex-0 flex flex-col space-y-2 px-2"
           style={{ backgroundColor: "#1a202c99" }}
         >
           <i

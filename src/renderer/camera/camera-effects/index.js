@@ -9,7 +9,7 @@ import { MinimapLayer } from "../Layers";
 import KeyboardShortcuts from "../../input/KeyboardShortcuts";
 
 import { Color } from "three";
-import { WrappedCanvas } from "../../react-ui/WrappedCanvas";
+import WrappedCanvas from "../../react-ui/WrappedCanvas";
 
 if (window.location.search.includes("producer")) {
   return;

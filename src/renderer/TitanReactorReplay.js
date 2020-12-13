@@ -27,6 +27,8 @@ import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "./render/CanvasTarget";
+import GameCanvasTarget from "./render/GameCanvasTarget";
+import WrappedCanvas from "./react-ui/WrappedCanvas";
 
 const { startLocation } = unitTypes;
 
@@ -67,14 +69,21 @@ export async function TitanReactorReplay(
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
 
-  const gameSurface = new CanvasTarget({ position: "absolute", zIndex: "-10" });
+  const gameSurface = new GameCanvasTarget(context);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.setDimensions(
-    Math.floor(gameSurface.getHeight() / 30),
-    Math.floor(gameSurface.getHeight() / 30)
+    Math.floor(gameSurface.height / 30),
+    Math.floor(gameSurface.height / 30)
   );
+
+  const previewSurfaces = [
+    new CanvasTarget(),
+    new CanvasTarget(),
+    new CanvasTarget(),
+    new CanvasTarget(),
+  ];
 
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
@@ -381,9 +390,18 @@ export async function TitanReactorReplay(
 
     players.updateResources(units);
 
-    reactApp.game(
-      gameSurface.canvas,
+    reactApp.render(
       <>
+        <WrappedCanvas
+          canvas={gameSurface.canvas}
+          style={{
+            position: "absolute",
+            zIndex: "-10",
+            left: `${gameSurface.left}px`,
+            top: `${gameSurface.top}px`,
+          }}
+        />
+
         {hudData.showMenu && (
           <Menu
             lang={context.lang}
@@ -399,6 +417,7 @@ export async function TitanReactorReplay(
           />
         )}
         <HUD
+          gameSurface={gameSurface}
           players={players}
           autoSpeed={replayPosition.autoSpeed}
           destination={replayPosition.destination}
@@ -435,23 +454,18 @@ export async function TitanReactorReplay(
 
   const sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    cameras.updateGameScreenAspect(
-      gameSurface.getWidth(),
-      gameSurface.getHeight()
-    );
+
+    cameras.updateGameScreenAspect(gameSurface.width, gameSurface.height);
     players.forEach(({ camera }) =>
-      camera.updateGameScreenAspect(
-        gameSurface.getWidth(),
-        gameSurface.getHeight()
-      )
+      camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
     );
     minimapSurface.setDimensions(
-      Math.floor(gameSurface.getHeight() * 0.3),
-      Math.floor(gameSurface.getHeight() * 0.3)
+      Math.floor(gameSurface.height * 0.3),
+      Math.floor(gameSurface.height * 0.3)
     );
     cameras.updatePreviewScreenAspect(
-      minimapSurface.getWidth(),
-      minimapSurface.getHeight()
+      minimapSurface.width,
+      minimapSurface.height
     );
   };
   sceneResizeHandler();

@@ -7,7 +7,6 @@ const Tabs = {
   Local: "Local",
   // Pro: "Pro",
   Community: "Community",
-  Playlist: "Playlist",
 };
 
 export default ({ settings, lang }) => {
@@ -51,12 +50,6 @@ export default ({ settings, lang }) => {
           setTab={setTab}
           label={lang["COMMUNITY_REPLAYS"]}
         />
-        <TabSelector
-          activeTab={tab}
-          tab={Tabs.Playlist}
-          setTab={setTab}
-          label={lang["MY_PLAYLIST"]}
-        />
       </ul>
       <Tab tabName={Tabs.Local} activeTab={tab}>
         file/folder
@@ -91,9 +84,6 @@ export default ({ settings, lang }) => {
             </div>
           );
         })}
-      </Tab>
-      <Tab tabName={Tabs.Playlist} activeTab={tab}>
-        Playlist
       </Tab>
     </>
   );
