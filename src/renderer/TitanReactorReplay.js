@@ -293,15 +293,20 @@ export async function TitanReactorReplay(
       }
     };
 
-    if (!intersects.length) return;
-    intersects.slice(0, 1).forEach(({ object }) => {
-      const unit = getAsUnit(object);
+    if (!intersects.length) {
+      selectedUnits = [];
+    } else {
+      intersects.slice(0, 1).forEach(({ object }) => {
+        const unit = getAsUnit(object);
 
-      if (unit) {
-        selectedUnits = [unit];
-        console.log(unit.userData.repId, unit);
-      }
-    });
+        if (unit) {
+          selectedUnits = [unit];
+          console.log(unit.userData.repId, unit);
+        } else {
+          selectedUnits = [];
+        }
+      });
+    }
   };
   document.addEventListener("mousedown", mouseDownListener);
   //#endregion mouse listener
@@ -401,7 +406,12 @@ export async function TitanReactorReplay(
             top: `${gameSurface.top}px`,
           }}
         />
-
+        <div
+          class="absolute right-0 bottom-0 text-gray-500"
+          style={{ zIndex: "-20" }}
+        >
+          {gameSurface.width}x{gameSurface.height}
+        </div>
         {hudData.showMenu && (
           <Menu
             lang={context.lang}
@@ -417,7 +427,7 @@ export async function TitanReactorReplay(
           />
         )}
         <HUD
-          gameSurface={gameSurface}
+          gameDimensions={gameSurface.getRect()}
           players={players}
           autoSpeed={replayPosition.autoSpeed}
           destination={replayPosition.destination}
@@ -467,6 +477,7 @@ export async function TitanReactorReplay(
       minimapSurface.width,
       minimapSurface.height
     );
+    updateUi();
   };
   sceneResizeHandler();
   window.addEventListener("resize", sceneResizeHandler, false);

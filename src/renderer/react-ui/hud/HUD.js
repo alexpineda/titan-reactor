@@ -12,7 +12,7 @@ const config = {
 };
 
 export default ({
-  gameSurface,
+  gameDimensions,
   players,
   paused,
   position,
@@ -61,7 +61,7 @@ export default ({
         <Production
           players={players}
           textSize={config.textSize}
-          gameTop={gameSurface.top}
+          gameDimensions={gameDimensions}
         />
       )}
       {!hideResources && (
@@ -70,26 +70,18 @@ export default ({
           onTogglePlayerPov={onTogglePlayerPov}
           players={players}
           textSize={config.textSize}
-          gameWidth={gameSurface.width}
-          gameHeight={gameSurface.height}
-          gameTop={gameSurface.top}
+          gameDimensions={gameDimensions}
         />
       )}
       {UnitDetails && (
-        <UnitDetails
-          onClose={onUnitDetails}
-          gameWidth={gameSurface.width}
-          gameHeight={gameSurface.height}
-          gameTop={gameSurface.top}
-        />
+        <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
       )}
       <div
         className="w-full flex absolute divide-x-4 divide-transparent px-2"
         style={{
-          bottom: `${
-            window.innerHeight - (gameSurface.height + gameSurface.top)
-          }px`,
-          width: `${gameSurface.width}px`,
+          bottom: `${gameDimensions.bottom}px`,
+          width: `${gameDimensions.width}px`,
+          left: `${gameDimensions.left}px`,
         }}
       >
         <Minimap
