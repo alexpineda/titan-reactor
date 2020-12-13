@@ -19,26 +19,34 @@ export const CameraControlType = {
 };
 
 class Cameras {
-  constructor(context, gameSurface, aspect, minimapControl = null) {
+  constructor(context, gameSurface, minimapControl, keyboardShortcuts) {
     this.context = context;
     this.gameSurface = gameSurface;
+    const aspect = gameSurface.getWidth() / gameSurface.getHeight();
     this.camera = this._createCamera(aspect);
     this.previewCamera = this._createCamera(aspect);
-    this.minimapCamera = this._initMinimapCamera();
 
-    this.control = new CameraControls(this.camera, gameSurface.canvas);
+    this.control = new CameraControls(
+      this.camera,
+      gameSurface.canvas,
+      keyboardShortcuts
+    );
     this.previewControl = new CameraControls(
       this.previewCamera,
-      gameSurface.canvas
+      gameSurface.canvas,
+      keyboardShortcuts
     );
     this.controlClock = new Clock();
 
-    this.minimap = minimapControl;
     this._delta = new Vector3();
 
-    if (this.minimap) {
+    if (minimapControl) {
+      this.minimapCamera = this._initMinimapCamera(
+        minimapControl.mapWidth,
+        minimapControl.mapHeight
+      );
       this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
-      this.minimapCameraHelper.layers.set(MinimapLayer);
+      this.minimapCameraHelper.layers.enable(MinimapLayer);
 
       minimapControl.addEventListener("start", ({ message: { pos, cut } }) => {
         const target = new Vector3();
@@ -64,7 +72,6 @@ class Cameras {
 
             const delta = new Vector3();
             delta.subVectors(target, this.camera.position);
-            this.previewControl.moveTo(pos.x, pos.y, pos.z, true);
 
             const newCameraPosition = new Vector3();
             newCameraPosition.subVectors(pos, delta);
@@ -110,14 +117,16 @@ class Cameras {
     return new OrthographicCamera(-16, 16, 16, -16, 1, 10000);
   }
 
-  _initMinimapCamera() {
+  _initMinimapCamera(mapWidth, mapHeight) {
+    const dim = Math.max(mapWidth, mapHeight);
+
     const camera = new OrthographicCamera(
-      -this.mapWidth / 2,
-      this.mapWidth / 2,
-      this.mapHeight / 2,
-      -this.mapHeight / 2,
+      -mapWidth / 2,
+      mapWidth / 2,
+      mapHeight / 2,
+      -mapHeight / 2,
       0.1,
-      10000
+      130
     );
     camera.position.set(0, 128, 0);
     camera.lookAt(new Vector3());

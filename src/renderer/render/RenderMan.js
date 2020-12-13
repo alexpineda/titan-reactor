@@ -7,17 +7,12 @@ const {
   PCFSoftShadowMap,
   Vector4,
 } = require("three");
-import { log } from "../invoke";
-
+// import { log } from "../invoke";
+const log = () => {};
 class RenderMan {
   constructor(context) {
     this.context = context;
     this.renderer = null;
-
-    this._resizeHandler = () => {
-      // this.renderer.setSize();
-    };
-    this.context.addEventListener("resize", this._resizeHandler);
   }
 
   setShadowLevel(shadowLevel) {
@@ -115,6 +110,7 @@ class RenderMan {
       "webglcontextrestored",
       this._contextRestoredListener
     );
+
     this.renderer.dispose();
   }
 }

@@ -43,6 +43,8 @@ ipcRenderer.on(OPEN_REPLAY_DIALOG, (event, replays) => {
   titanReactor.spawnReplay(replays[0]);
 });
 
-async function controlPanel() {}
+async function producerBootup() {
+  console.log("hi");
+}
 
-window.location.search.includes("controlpanel") ? controlPanel() : bootup();
+window.location.search.includes("producer") ? producerBootup() : bootup();

@@ -12,7 +12,7 @@ import HUD from "./react-ui/hud/HUD";
 import HeatmapScore from "./react-ui/hud/HeatmapScore";
 import { DebugInfo } from "./utils/DebugINfo";
 import Cameras from "./camera/Cameras";
-import MinimapControl, { createMiniMapPlane } from "./replay/MinimapControl";
+import MinimapControl, { createMiniMapPlane } from "./camera/MinimapControl";
 import { Players } from "./replay/Players";
 import { FadingPointers } from "./mesh/FadingPointers";
 import { MinimapUnitLayer } from "./camera/Layers";
@@ -23,7 +23,8 @@ import { unitTypes } from "../common/bwdat/unitTypes";
 import createUnitDetails from "./react-ui/hud/unitDetails/createUnitDetails";
 import Menu from "./react-ui/hud/Menu";
 import { createStats } from "utils/stats";
-import KeyboardShortcuts, { KeyboardEvents } from "./input/KeyboardShortcuts";
+import KeyboardShortcuts from "./input/KeyboardShortcuts";
+import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "./render/CanvasTarget";
 
@@ -50,29 +51,49 @@ export async function TitanReactorReplay(
 
   console.log("rep", rep);
 
+  const [mapWidth, mapHeight] = chk.size;
+
+  // const div = document.createElement("div");
+  // div.innerText = "&nbsp;";
+  // div.style.borderWidth = "10px";
+  // div.style.borderColor = "red";
+  // div.style.position = "absolute";
+  // div.style.width = `${context.gameScreenWidth}px`;
+  // div.style.height = `${context.gameScreenHeight}px`;
+  // document.body.appendChild(div);
+
   const renderMan = new RenderMan(context);
   renderMan.initRenderer();
 
+  const keyboardShortcuts = new KeyboardShortcuts(document);
+
   const gameSurface = new CanvasTarget({ position: "absolute", zIndex: "-10" });
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+
   const minimapSurface = new CanvasTarget();
+  minimapSurface.setDimensions(
+    Math.floor(gameSurface.getHeight() / 30),
+    Math.floor(gameSurface.getHeight() / 30)
+  );
 
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
   const minimapControl = new MinimapControl(
     minimapSurface,
-    chk.size[0],
-    chk.size[1]
+    mapWidth,
+    mapHeight,
+    keyboardShortcuts
   );
 
   scene.add(
-    createMiniMapPlane(scene.terrain.material.map, chk.size[0], chk.size[1])
+    createMiniMapPlane(scene.terrain.material.map, mapWidth, mapHeight)
   );
 
   const cameras = new Cameras(
     context,
     gameSurface,
-    window.innerWidth / window.innerHeight,
-    minimapControl
+    minimapControl,
+    keyboardShortcuts
   );
   scene.add(cameras.minimapCameraHelper);
   cameras.control.setLookAt(0, 200, 1, 0, 0, 0, false);
@@ -154,10 +175,8 @@ export async function TitanReactorReplay(
       renderMan.setShadowLevel(diff.shadows);
     }
   });
-
   // #endregion
 
-  // #region keyboard shortcuts
   let prevHudState = {};
   const toggleAllHud = (val, except = []) => {
     const huds = [
@@ -184,11 +203,11 @@ export async function TitanReactorReplay(
     updateUi();
   };
 
-  const keyboardShortcuts = new KeyboardShortcuts(document);
+  //#region keyboard shortcuts
   {
     const ev = (event, handler) =>
       keyboardShortcuts.addEventListener(event, handler);
-    const k = KeyboardEvents;
+    const k = InputEvents;
     ev(k.TogglePlay, () => replayPosition.togglePlay());
     ev(
       k.ToggleGrid,
@@ -344,7 +363,7 @@ export async function TitanReactorReplay(
         ).length;
 
         players.forEach(({ camera }) =>
-          camera.updateAspect(window.innerWidth, window.innerHeight)
+          camera.updateGameScreenAspect(window.innerWidth, window.innerHeight)
         );
 
         cameras.enableControls(players.activePovs === 0);
@@ -409,7 +428,6 @@ export async function TitanReactorReplay(
       </>
     );
     if (firstUiUpdate) {
-      minimapControl.refresh();
       firstUiUpdate = false;
     }
   };
@@ -422,7 +440,10 @@ export async function TitanReactorReplay(
       gameSurface.getHeight()
     );
     players.forEach(({ camera }) =>
-      camera.updateAspect(gameSurface.getWidth(), gameSurface.getHeight())
+      camera.updateGameScreenAspect(
+        gameSurface.getWidth(),
+        gameSurface.getHeight()
+      )
     );
     minimapSurface.setDimensions(
       Math.floor(gameSurface.getHeight() * 0.3),
@@ -432,10 +453,6 @@ export async function TitanReactorReplay(
       minimapSurface.getWidth(),
       minimapSurface.getHeight()
     );
-    minimapControl.refresh();
-
-    // renderMan.gameSurface.resize();
-    // renderMan.minimapSurface.resize();
   };
   sceneResizeHandler();
   window.addEventListener("resize", sceneResizeHandler, false);
@@ -660,7 +677,7 @@ export async function TitanReactorReplay(
       if (cameras.previewOn) {
         renderMan.render(scene, cameras.previewCamera);
       } else {
-        renderMan.render(scene, cameras.minimapCamera, minimapControl.viewport);
+        renderMan.render(scene, cameras.minimapCamera);
       }
     }
 

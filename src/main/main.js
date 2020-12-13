@@ -39,10 +39,11 @@ import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 
-let window;
+let gameWindow;
+let producerWindow;
 
 function createWindow() {
-  window = new BrowserWindow({
+  gameWindow = new BrowserWindow({
     width: 900,
     height: 680,
     webPreferences: {
@@ -54,18 +55,20 @@ function createWindow() {
       // enableRemoteModule: false
     },
   });
-  window.maximize();
-  window.setFullScreen(true);
-  window.setAutoHideMenuBar(true);
+  gameWindow.maximize();
+  gameWindow.setFullScreen(true);
+  gameWindow.setAutoHideMenuBar(true);
 
   if (isDev) {
-    window.webContents.openDevTools();
+    gameWindow.webContents.openDevTools();
   }
 
   if (isDev) {
-    window.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`);
+    gameWindow.loadURL(
+      `http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`
+    );
   } else {
-    window.loadURL(
+    gameWindow.loadURL(
       formatUrl({
         pathname: path.join(__dirname, "index.html"),
         protocol: "file",
@@ -74,14 +77,48 @@ function createWindow() {
     );
   }
 
-  window.webContents.openDevTools();
-  window.on("closed", () => (window = null));
-  window.webContents.on("devtools-opened", () => {
-    window.focus();
+  gameWindow.on("closed", () => (gameWindow = null));
+  gameWindow.webContents.on("devtools-opened", () => {
+    gameWindow.focus();
     setImmediate(() => {
-      window.focus();
+      gameWindow.focus();
     });
   });
+}
+
+function createProducerWindow() {
+  producerWindow = new BrowserWindow({
+    width: 900,
+    height: 680,
+    webPreferences: {
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+      webSecurity: false,
+      // contextIsolation: true,
+      // worldSafeExecuteJavaScript: true,
+      // enableRemoteModule: false
+    },
+  });
+
+  if (isDev) {
+    producerWindow.webContents.openDevTools();
+  }
+
+  if (isDev) {
+    producerWindow.loadURL(
+      `http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}?producer`
+    );
+  } else {
+    producerWindow.loadURL(
+      formatUrl({
+        pathname: path.join(__dirname, "index.html"),
+        protocol: "file",
+        slashes: true,
+      })
+    );
+  }
+
+  gameWindow.on("closed", () => (producerWindow = null));
 }
 
 app.commandLine.appendSwitch("--disable-xr-sandbox");
@@ -91,7 +128,7 @@ app.on("ready", async () => {
 
   settings.on("change", (settings) => {
     console.log("change", settings);
-    window.webContents.send(SETTINGS_CHANGED, settings);
+    gameWindow.webContents.send(SETTINGS_CHANGED, settings);
   });
 
   ipcMain.handle(GET_SETTINGS, async (event) => {
@@ -111,6 +148,7 @@ app.on("ready", async () => {
   });
 
   createWindow();
+  createProducerWindow();
 });
 
 app.on("window-all-closed", () => {
@@ -122,7 +160,7 @@ app.on("window-all-closed", () => {
 ipcMain.on(EXIT, () => app.exit(0));
 
 app.on("activate", () => {
-  if (window === null) {
+  if (gameWindow === null) {
     createWindow();
   }
 });
@@ -159,7 +197,7 @@ var showOpen = function (isMap = false, defaultPath = "") {
       if (canceled) return;
       logger.log();
 
-      window.webContents.send(command, filePaths);
+      gameWindow.webContents.send(command, filePaths);
     })
     .catch((err) => {
       dialog.showMessageBox({

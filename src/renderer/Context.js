@@ -3,11 +3,32 @@ import { EventDispatcher, WebGLRenderer } from "three";
 import { SETTINGS_CHANGED } from "../common/handleNames";
 import { getSettings, log, setWebGLCapabilities } from "./invoke";
 
+const SUPPORTED_WINDOW_SIZES = [
+  { width: 640, height: 480 },
+  { width: 800, height: 600 },
+  { width: 1024, height: 768 },
+  { width: 1152, height: 864 },
+  { width: 1280, height: 960 },
+  { width: 1400, height: 1050 },
+  { width: 1600, height: 1200 },
+  { width: 2048, height: 1536 },
+  { width: 3200, height: 2400 },
+  { width: 4000, height: 3000 },
+  { width: 6400, height: 4800 },
+];
+
 export class Context extends EventDispatcher {
   constructor(window) {
     super();
     this.window = window;
     this.document = window.document;
+
+    const sizes = SUPPORTED_WINDOW_SIZES.filter(
+      (r) => r.width <= screen.width && r.height <= screen.height
+    );
+    const largestSize = sizes[sizes.length - 1];
+    this.gameScreenWidth = largestSize.width;
+    this.gameScreenHeight = largestSize.height;
   }
 
   async loadSettings() {

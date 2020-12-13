@@ -13,7 +13,17 @@ class CanvasTarget {
     return this.canvas.height;
   }
 
+  getDeviceIndependentWidth() {
+    return this.deviceIndependentWidth;
+  }
+
+  getDeviceIndependentHeight() {
+    return this.deviceIndependentHeight;
+  }
+
   setDimensions(width, height) {
+    this.deviceIndependentWidth = width;
+    this.deviceIndependentHeight = height;
     this.canvas.width = width;
     this.canvas.height = height;
   }

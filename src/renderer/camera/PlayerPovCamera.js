@@ -7,30 +7,19 @@ export const PovRight = Symbol("povRight");
 
 export class PlayerPovCamera extends PerspectiveCamera {
   constructor(side, getActivePovs, { x = 0, y = 0 }) {
-    super(30, window.innerWidth / 2 / window.innerHeight, 5, 100);
-    this.position.y = 40;
+    super(30, 1, 5, 100);
+    this.position.y = 80;
     this.side = side;
     this.enabled = false;
     this.getActivePovs = getActivePovs;
-    this.resizeViewport();
     this.moveTo(x, y);
   }
 
-  resizeViewport() {
+  resizeViewport(width, height) {
     if (this.side === PovLeft) {
-      this.viewport = new Vector4(
-        0,
-        0,
-        window.innerWidth / 2,
-        window.innerHeight
-      );
+      this.viewport = new Vector4(0, 0, width / 2, height);
     } else {
-      this.viewport = new Vector4(
-        window.innerWidth / 2,
-        0,
-        window.innerWidth / 2,
-        window.innerHeight
-      );
+      this.viewport = new Vector4(width / 2, 0, width / 2, height);
     }
   }
 
@@ -57,13 +46,13 @@ export class PlayerPovCamera extends PerspectiveCamera {
     // }
   }
 
-  updateAspect(width, height) {
+  updateGameScreenAspect(width, height) {
     if (this.getActivePovs() === 0) {
       return;
     }
 
     this.aspect = width / this.getActivePovs() / height;
-    this.resizeViewport();
+    this.resizeViewport(width, height);
     this.updateProjectionMatrix();
   }
 }

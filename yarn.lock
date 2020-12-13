@@ -2968,11 +2968,6 @@ component-emitter@^1.2.1, component-emitter@^1.3.0:
   resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.3.0.tgz#16e4070fba8ae29b679f2215853ee181ab2eabc0"
   integrity sha512-Rd3se6QB+sO1TwqZjscQrurpEPIfO0/yYnSin6Q/rD3mOutHvUrCAhJub3r90uNb+SESBuE0QYoB90YdfatsRg==
 
-component-event@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/component-event/-/component-event-0.1.4.tgz#3de78fc28782381787e24bf2a7c536bf0142c9b4"
-  integrity sha1-PeePwoeCOBeH4kvyp8U2vwFCybQ=
-
 compressible@~2.0.16:
   version "2.0.18"
   resolved "https://registry.yarnpkg.com/compressible/-/compressible-2.0.18.tgz#af53cca6b070d4c3c0750fbd77286a6d7cc46fba"
@@ -6542,18 +6537,6 @@ jssuh@1.4.0, jssuh@^1.4.0:
     iconv-lite "^0.5.1"
     implode-decoder "^1.0.1"
 
-keycodes@^0.2.0:
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/keycodes/-/keycodes-0.2.5.tgz#e0d135f7ccdb3041f1ef43d3791d84c05d6a07ba"
-  integrity sha1-4NE198zbMEHx70PTeR2EwF1qB7o=
-
-keycomb@^0.1.3:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/keycomb/-/keycomb-0.1.3.tgz#778ab81c383fea8f6089fd20a35ca87572d9b2d0"
-  integrity sha1-d4q4HDg/6o9gif0go1yodXLZstA=
-  dependencies:
-    keycodes "^0.2.0"
-
 keyv@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-3.1.0.tgz#ecc228486f69991e49e9476485a5be1e8fc5c4d9"
@@ -6594,14 +6577,6 @@ kleur@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
-
-ks@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/ks/-/ks-2.0.4.tgz#104460319d7a0d30d2a10aa85a91b267a8d0df88"
-  integrity sha1-EERgMZ16DTDSoQqoWpGyZ6jQ34g=
-  dependencies:
-    component-event "^0.1.4"
-    keycomb "^0.1.3"
 
 latest-version@^3.0.0:
   version "3.1.0"

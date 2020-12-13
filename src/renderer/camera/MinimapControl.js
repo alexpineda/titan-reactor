@@ -4,32 +4,37 @@ import {
   MeshBasicMaterial,
   PlaneBufferGeometry,
   Vector3,
-  Vector4,
 } from "three";
-import { MinimapLayer, MinimapUnitLayer } from "../camera/Layers";
+import { MinimapLayer, MinimapUnitLayer } from "./Layers";
+import InputEvents from "../input/InputEvents";
 
 class MinimapControl extends EventDispatcher {
-  constructor(surface, mapWidth, mapHeight) {
+  constructor(surface, mapWidth, mapHeight, keyboardShortcuts) {
     super();
     this.surface = surface;
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
     this._dragging = false;
-    this.updateMouseHover = true;
-    this.viewport = new Vector4();
 
-    this.refresh();
     this.enableDragging(true);
     this._attach();
   }
 
   enableDragging(enable) {
-    this.enableDragging = enable;
+    this._enableDragging = enable;
+  }
+
+  setConstraints(settings) {
+    this.constraints = {
+      distances: [20, 50, 100],
+      polarAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
+      azimuthAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
+    };
   }
 
   _attach() {
     this.surface.canvas.addEventListener("mousedown", (e) => {
-      if (!this.enableDragging) return;
+      if (!this._enableDragging) return;
       const x =
         e.offsetX * (this.mapWidth / this.surface.getWidth()) -
         this.mapWidth / 2;
@@ -52,7 +57,6 @@ class MinimapControl extends EventDispatcher {
     });
 
     this.surface.canvas.addEventListener("mousemove", (e) => {
-      if (!this.enableDragging) return;
       const x =
         e.offsetX * (this.mapWidth / this.surface.getWidth()) -
         this.mapWidth / 2;
@@ -64,7 +68,7 @@ class MinimapControl extends EventDispatcher {
 
       if (this._dragging) {
         this.dispatchEvent({ type: "update", message: { pos } });
-      } else if (this.updateMouseHover) {
+      } else {
         this.dispatchEvent({
           type: "hover",
           message: { pos, preview: e.shiftKey },
@@ -72,26 +76,17 @@ class MinimapControl extends EventDispatcher {
       }
     });
 
+    this.surface.canvas.addEventListener("mouseenter ", (e) => {
+      this.mouseInside = true;
+    });
+
     this.surface.canvas.addEventListener("mouseleave ", (e) => {
+      this.mouseInside = false;
+
       this.dispatchEvent({
         type: "stop",
       });
     });
-  }
-
-  refresh() {
-    const mapAspect = Math.max(this.mapWidth, this.mapHeight);
-    const minimapWidth =
-      (this.surface.getHeight() * this.mapHeight) / mapAspect;
-    const minimapHeight = (this.surface.getWidth() * this.mapWidth) / mapAspect;
-    const { left, bottom } = this.surface.canvas.getBoundingClientRect();
-    this.viewport = new Vector4(
-      (this.surface.getWidth() - minimapWidth) / 2 + left,
-      (this.surface.getHeight() - minimapHeight) / 2 +
-        (window.innerHeight - bottom),
-      minimapWidth,
-      minimapHeight
-    );
   }
 
   dispose() {

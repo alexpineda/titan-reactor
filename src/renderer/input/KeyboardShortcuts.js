@@ -1,22 +1,7 @@
 import { EventDispatcher } from "three";
 import { KeyboardKeyHold } from "hold-event";
-
-export const KeyboardEvents = {
-  TogglePlay: "TogglePlay",
-  ToggleGrid: "ToggleGrid",
-  ToggleMenu: "ToggleMenu",
-  ToggleReplayPosition: "ToggleReplayPosition",
-  ToggleUnitSelection: "ToggleUnitSelection",
-  ToggleMinimap: "ToggleMinimap",
-  ToggleResources: "ToggleResources",
-  ToggleProduction: "ToggleProduction",
-  ToggleAll: "ToggleAll",
-  ToggleUnitInformation: "ToggleUnitInformation",
-  TruckLeft: "TruckLeft",
-  TruckRight: "TruckRight",
-  MoveForward: "MoveForward",
-  MoveBackward: "MoveBackward",
-};
+import { range } from "ramda";
+import InputEvents from "./InputEvents";
 
 const KeyCode = {
   W: 87,
@@ -30,6 +15,9 @@ const KeyCode = {
   ESC: 27,
 };
 
+const keyNumbers = range(48, 59);
+const keyPadNumbers = range(96, 107);
+
 class KeyboardShortcuts extends EventDispatcher {
   constructor(domElement) {
     super();
@@ -40,11 +28,16 @@ class KeyboardShortcuts extends EventDispatcher {
 
     this.keyDownListener = (e) => {
       if (!this.enabled) return;
-      const k = KeyboardEvents;
+      const k = InputEvents;
 
       [
         ["KeyP", k.TogglePlay],
         ["KeyG", k.ToggleGrid],
+        ["KeyA", k.AzimuthLeft],
+        ["KeyD", k.AzimuthRight],
+        ["KeyW", k.PolarUp],
+        ["KeyS", k.PolarDown],
+        ["KeyC", k.PolarDown],
         // ["KeyE", k.ToggleReplayPosition],
         // ["KeyW", k.ToggleUnitSelection],
         // ["KeyQ", k.ToggleMinimap],
@@ -55,20 +48,17 @@ class KeyboardShortcuts extends EventDispatcher {
         ["F10", k.ToggleMenu],
       ].forEach(([key, event]) => e.code === key && dispatch(event));
 
-      switch (e.keyCode) {
-        case KeyCode.ESC:
-          {
-            dispatch(KeyboardEvents.ToggleMenu);
-          }
-          break;
-      }
+      [
+        [KeyCode.ESC, k.ToggleMenu],
+        ["KeyG", k.ToggleMenu],
+      ].forEach(([key, event]) => e.keyCode === key && dispatch(event));
     };
 
     this.holdEvents = [
-      [KeyCode.W, KeyboardEvents.MoveForward],
-      [KeyCode.A, KeyboardEvents.TruckLeft],
-      [KeyCode.S, KeyboardEvents.MoveBackward],
-      [KeyCode.D, KeyboardEvents.TruckRight],
+      [KeyCode.ArrowUp, InputEvents.MoveForward],
+      [KeyCode.ArrowLeft, InputEvents.TruckLeft],
+      [KeyCode.ArrowDown, InputEvents.MoveBackward],
+      [KeyCode.ArrowRight, InputEvents.TruckRight],
     ].map(([keyCode, eventType]) => {
       const key = new KeyboardKeyHold(keyCode, 100);
       const listener = (event) => {
