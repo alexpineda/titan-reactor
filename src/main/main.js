@@ -40,7 +40,6 @@ import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 
 let gameWindow;
-let producerWindow;
 
 function createWindow() {
   gameWindow = new BrowserWindow({
@@ -60,7 +59,6 @@ function createWindow() {
     },
   });
   gameWindow.maximize();
-  gameWindow.setFullScreen(true);
   gameWindow.setAutoHideMenuBar(true);
 
   if (isDev) {
@@ -95,9 +93,18 @@ app.commandLine.appendSwitch("--disable-xr-sandbox");
 app.on("ready", async () => {
   const settings = new Settings(path.join(getUserDataPath(), "settings.json"));
 
+  const updateFullScreen = (fullscreen) => {
+    gameWindow.setFullScreen(fullscreen);
+    if (fullscreen) {
+      gameWindow.maximize();
+    }
+  };
+
   settings.on("change", (settings) => {
-    console.log("change", settings);
     gameWindow.webContents.send(SETTINGS_CHANGED, settings);
+    if (settings.diff.fullscreen !== undefined) {
+      updateFullScreen(settings.diff.fullscreen);
+    }
   });
 
   ipcMain.handle(GET_SETTINGS, async (event) => {
@@ -117,6 +124,7 @@ app.on("ready", async () => {
   });
 
   createWindow();
+  updateFullScreen(settings.fullscreen);
 });
 
 app.on("window-all-closed", () => {
@@ -163,8 +171,6 @@ var showOpen = function (isMap = false, defaultPath = "") {
     })
     .then(({ filePaths, canceled }) => {
       if (canceled) return;
-      logger.log();
-
       gameWindow.webContents.send(command, filePaths);
     })
     .catch((err) => {

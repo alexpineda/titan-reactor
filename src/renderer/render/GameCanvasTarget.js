@@ -1,18 +1,5 @@
 import CanvasTarget from "./CanvasTarget";
-
-const ProducerWindowPosition = {
-  None: "None",
-  DockLeft: "DockLeft",
-  DockRight: "DockRight",
-  PopOut: "PopOut",
-};
-
-const ProducerGameAspect = {
-  Fit: "Fit",
-  Native: "Native",
-  FourThree: "FourThree",
-  SixteenNine: "SixteenNine",
-};
+import { GameAspect, ProducerWindowPosition } from "../../common/settings";
 
 class GameCanvasTarget extends CanvasTarget {
   constructor(context) {
@@ -22,42 +9,40 @@ class GameCanvasTarget extends CanvasTarget {
     this.left = 0;
   }
 
-  //producer window - OFF, DOCK LEFT, DOCK RIGHT, POPUP
-  //producer screen size - constrain 4:3, 16:9, Native Aspect, Fit, SPECIFIC
   setDimensions(screenWidth, screenHeight) {
-    const producerWindowPosition = ProducerWindowPosition.DockLeft;
-    const producerGameAspect = ProducerGameAspect.FourThree;
-    const producerBarSize = 300;
+    const producerWindowPosition = this.context.settings.producerWindowPosition;
+    const gameAspect = this.context.settings.gameAspect;
+    const producerDockSize = this.context.settings.producerDockSize;
 
     const maxWidth =
       producerWindowPosition === ProducerWindowPosition.DockLeft ||
       producerWindowPosition === ProducerWindowPosition.DockRight
-        ? screenWidth - producerBarSize
+        ? screenWidth - producerDockSize
         : screenWidth;
     const maxHeight = screenHeight;
 
     const aspects = {
-      [ProducerGameAspect.Native]: screen.width / screen.height,
-      [ProducerGameAspect.FourThree]: 4 / 3,
-      [ProducerGameAspect.SixteenNine]: 16 / 9,
+      [GameAspect.Native]: screen.width / screen.height,
+      [GameAspect.FourThree]: 4 / 3,
+      [GameAspect.SixteenNine]: 16 / 9,
     };
 
     this.left =
       producerWindowPosition === ProducerWindowPosition.DockLeft
-        ? producerBarSize
+        ? producerDockSize
         : 0;
 
     this.right =
       producerWindowPosition === ProducerWindowPosition.DockRight
-        ? producerBarSize
+        ? producerDockSize
         : 0;
 
-    if (producerGameAspect === ProducerGameAspect.Fit) {
+    if (gameAspect === GameAspect.Fit) {
       this.top = 0;
 
       super.setDimensions(maxWidth, maxHeight);
     } else {
-      const aspect = aspects[producerGameAspect];
+      const aspect = aspects[gameAspect];
       let width = maxWidth;
       if (width / aspect > maxHeight) {
         width = maxHeight * aspect;

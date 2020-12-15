@@ -6,10 +6,9 @@ import {
   Vector3,
 } from "three";
 import { MinimapLayer, MinimapUnitLayer } from "./Layers";
-import InputEvents from "../input/InputEvents";
 
 class MinimapControl extends EventDispatcher {
-  constructor(surface, mapWidth, mapHeight, keyboardShortcuts) {
+  constructor(surface, mapWidth, mapHeight) {
     super();
     this.surface = surface;
     this.mapWidth = mapWidth;
@@ -32,6 +31,7 @@ class MinimapControl extends EventDispatcher {
     };
   }
 
+  // @todo modify this to account for map aspect ratio
   _attach() {
     this.surface.canvas.addEventListener("mousedown", (e) => {
       if (!this._enableDragging) return;

@@ -4,6 +4,7 @@ import { RollingNumber } from "./RollingNumber";
 const PlayerResources = ({
   index,
   name,
+  playerNameCache = {},
   minerals,
   gas,
   workers,
@@ -12,12 +13,20 @@ const PlayerResources = ({
   race,
   color,
   apm,
-  textSize,
+  textSize = "base",
   hideVision,
   onTogglePlayerVision,
+  onPlayerNameChange = () => {},
+  playerScore = 0,
+  showScore = true,
+  onChangeScore = () => {},
   gameIcons,
 }) => {
   const [showWorkerCount, setShowWorkerCount] = useState(true);
+  const [score, setScore] = useState(playerScore);
+  const [isChangingName, setIsChangingName] = useState(false);
+  const [playerName, setPlayerName] = useState(playerNameCache[name] || name);
+  const [tempName, setTempName] = useState("");
   const toggleWorkerCount = () => setShowWorkerCount(!showWorkerCount);
 
   let workerIcon = "https://i.imgur.com/guJEX8T.png";
@@ -31,45 +40,91 @@ const PlayerResources = ({
 
   return (
     <tr>
+      {showScore && (
+        <td
+          className="pr-2"
+          data-tip={`Player Score`}
+          onMouseDown={(evt) => {
+            const newScore =
+              evt.button === 0 ? score + 1 : Math.max(0, score - 1);
+            setScore(newScore);
+            onChangeScore(newScore);
+          }}
+        >
+          <span
+            className={`text-${textSize} cursor-pointer inline-block px-1 bg-gray-700 text-gray-200 rounded w-full`}
+          >
+            {score}
+          </span>
+        </td>
+      )}
       <td
         className="pr-2"
         data-tip={`Toggle Fog of War`}
-        onClick={() => onTogglePlayerVision && onTogglePlayerVision(index)}
+        onMouseDown={(evt) => {
+          if (evt.button === 0) {
+            onTogglePlayerVision && onTogglePlayerVision(index);
+          } else {
+            // setIsChangingName(true);
+            setTempName(playerName);
+          }
+        }}
       >
-        <span
-          className={`text-${textSize} cursor-pointer`}
-          style={{ color: color.hex, opacity: hideVision ? 0.8 : 1 }}
-        >
-          {name}
-        </span>
+        {!isChangingName && (
+          <span
+            className={`text-${textSize} cursor-pointer`}
+            style={{ color: color.hex, opacity: hideVision ? 0.8 : 1 }}
+          >
+            {playerName}
+          </span>
+        )}
+        {isChangingName && (
+          <input
+            type="text"
+            value={tempName}
+            onChange={(evt) => {
+              setTempName(evt.target.value);
+            }}
+            onKeyDown={(evt) => {
+              evt.nativeEvent.stopImmediatePropagation();
+              if (evt.key === "Enter") {
+                setPlayerName(tempName);
+                onPlayerNameChange(name, tempName);
+                setIsChangingName(false);
+              } else if (evt.key === "Escape") {
+                setIsChangingName(false);
+              }
+            }}
+          />
+        )}
       </td>
       <td className="pr-2" onClick={toggleWorkerCount}>
         <img src="https://i.imgur.com/ram4CBj.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>
+        <span className={`text-gray-200 text-${textSize}`}>
           <RollingNumber number={minerals} />
         </span>
       </td>
       <td className="pr-2" onClick={toggleWorkerCount}>
         <img src="https://i.imgur.com/NI5ynEw.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>
+        <span className={`text-gray-200 text-${textSize}`}>
           <RollingNumber number={gas} />
         </span>
       </td>
       {showWorkerCount && (
         <td className="pr-2" onClick={toggleWorkerCount}>
           <img src={workerIcon} className="inline w-4" />
-          <span className={`text-gray-400 text-${textSize}`}>{workers}</span>
+          <span className={`text-gray-200 text-${textSize}`}>{workers}</span>
         </td>
       )}
       <td className="pr-2 pointer-events-none">
         <img src={supplyIcon} className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize}`}>
+        <span className={`text-gray-200 text-${textSize}`}>
           {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)}
         </span>
       </td>
       <td className="pr-2 pointer-events-none">
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />
-        <span className={`text-gray-400 text-${textSize} w-10`}>
+        <span className={`text-gray-200 text-${textSize} w-10`}>
           <RollingNumber number={apm} />
         </span>
       </td>
@@ -96,7 +151,7 @@ export default ({
       <div className="resources-parent">
         <div
           className="rounded mx-1 my-1 py-1 px-2 flex"
-          style={{ backgroundColor: "#1a202c99" }}
+          style={{ backgroundColor: "#1a202ce6" }}
         >
           <table className="table-auto flex-1 ">
             <tbody>

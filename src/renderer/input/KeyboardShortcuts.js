@@ -60,7 +60,7 @@ class KeyboardShortcuts extends EventDispatcher {
       [KeyCode.ArrowDown, InputEvents.MoveBackward],
       [KeyCode.ArrowRight, InputEvents.TruckRight],
     ].map(([keyCode, eventType]) => {
-      const key = new KeyboardKeyHold(keyCode, 100);
+      const key = new KeyboardKeyHold(keyCode, 20);
       const listener = (event) => {
         dispatch(eventType, event.deltaTime);
       };

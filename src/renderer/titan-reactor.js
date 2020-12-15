@@ -1,11 +1,15 @@
 import { ipcRenderer } from "electron";
 import { UI } from "./react-ui/UI";
 import { log } from "./invoke";
-
+import version from "../common/version";
 import { Context } from "./Context";
 import { TitanReactor } from "./TitanReactor";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
 import "./utils/electronFileLoader";
+
+log(`titan-reactor ${version}`);
+log(`chrome ${process.versions.chrome}`);
+log(`electron ${process.versions.electron}`);
 
 let replayPlaylist = [];
 let replayIndex = 0;

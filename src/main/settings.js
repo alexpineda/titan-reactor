@@ -1,6 +1,11 @@
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
-import { RenderMode, ShadowLevel } from "common/settings";
+import {
+  RenderMode,
+  ShadowLevel,
+  ProducerWindowPosition,
+  GameAspect,
+} from "common/settings";
 import isDev from "electron-is-dev";
 
 import {
@@ -165,9 +170,14 @@ export class Settings extends EventEmitter {
       maxPolar: 1,
       twitch: "",
       countdownTimer: true,
-      orthoCamera: false,
       cameraStyle2dOrtho: true,
       cameraStyle3dOrtho: false,
+      producerWindowPosition: ProducerWindowPosition.None,
+      producerDockSize: 300,
+      gameAspect: GameAspect.Native,
+      fullscreen: true,
+      enablePlayerScores: true,
+      showTooltips: true,
       cameraShake: 1,
       mapsRss: "",
       replaysRss: "",

@@ -2,15 +2,7 @@ import React, { useState } from "react";
 import { MenuItem } from "../components/MenuItem";
 import Options from "../home/Options";
 
-export default ({
-  lang,
-  settings,
-  isReplay,
-  hasNextReplay,
-  onClose,
-  onNextReplay,
-  onBackToMainMenu,
-}) => {
+export default ({ lang, settings, isReplay, onClose, onBackToMainMenu }) => {
   const [showOptions, setShowOptions] = useState(false);
 
   return (
@@ -30,14 +22,6 @@ export default ({
             label={lang["MENU_OPTIONS"]}
             onClick={() => setShowOptions(true)}
           />
-
-          {isReplay && (
-            <MenuItem
-              label={lang["MENU_NEXT_REPLAY"]}
-              onClick={onNextReplay}
-              disabled={!hasNextReplay}
-            />
-          )}
 
           <MenuItem
             label={lang["MENU_BACK_TO_MAIN_MENU"]}

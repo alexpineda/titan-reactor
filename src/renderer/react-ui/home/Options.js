@@ -3,6 +3,7 @@ import { ipcRenderer } from "electron";
 import { selectFolder, saveSettings } from "../../invoke";
 import { SELECT_FOLDER } from "../../../common/handleNames";
 import Option from "../components/Option";
+import Toggle from "../components/Toggle";
 import Tab from "../components/Tab";
 import TabSelector from "../components/TabSelector";
 import PathSelect from "../components/PathSelect";
@@ -12,20 +13,23 @@ import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
 import ColorPicker from "../components/ColorPicker";
 import { RenderMode, ShadowLevel } from "common/settings";
+import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 
-const tabs = {
-  general: "general",
-  game: "game",
-  perf: "perf",
-  audio: "audio",
-  twitch: "twitch",
-  feeds: "feeds",
+const Tabs = {
+  General: "General",
+  Game: "Game",
+  Advanced: "Advanced",
+  Camera: "Camera",
+  Graphics: "Graphics",
+  Audio: "Audio",
+  Integrations: "Integrations",
+  Community: "Community",
 };
 
 export default ({
   lang,
   settings,
-  defaultTab = tabs.general,
+  defaultTab = Tabs.General,
   inGame = false,
   className = "",
   style = {},
@@ -50,50 +54,56 @@ export default ({
 
   return (
     <div className={className} style={style}>
-      <ul className="mb-6 flex">
+      <ul className="mb-6 flex flex-wrap">
         <TabSelector
           activeTab={tab}
-          tab={tabs.general}
+          tab={Tabs.General}
           setTab={setTab}
           label={lang["SETTINGS_GENERAL"]}
         />
 
         <TabSelector
           activeTab={tab}
-          tab={tabs.game}
+          tab={Tabs.Game}
           setTab={setTab}
           label={lang["SETTINGS_GAME"]}
         />
 
         <TabSelector
           activeTab={tab}
-          tab={tabs.audio}
+          tab={Tabs.Audio}
           setTab={setTab}
           label={lang["SETTINGS_AUDIO"]}
         />
 
         <TabSelector
           activeTab={tab}
-          tab={tabs.perf}
+          tab={Tabs.Graphics}
           setTab={setTab}
           label={lang["SETTINGS_GRAPHICS"]}
         />
 
-        {/* <TabSelector
-          activeTab={tab}
-          tab={tabs.twitch}
-          setTab={setTab}
-          label={lang["SETTINGS_INTEGRATIONS"]}
-        /> */}
         <TabSelector
           activeTab={tab}
-          tab={tabs.feeds}
+          tab={Tabs.Advanced}
+          setTab={setTab}
+          label={lang["SETTINGS_ADVANCED"]}
+        />
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Camera}
+          setTab={setTab}
+          label={lang["SETTINGS_CAMERA"]}
+        />
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.Community}
           setTab={setTab}
           label={lang["SETTINGS_COMMUNITY_MAPS_AND_REPLAYS"]}
         />
       </ul>
 
-      <Tab tabName={tabs.general} activeTab={tab}>
+      <Tab tabName={Tabs.General} activeTab={tab}>
         <Option label={lang["SETTINGS_LANGUAGE"]}>
           <select
             className="rounded text-gray-800"
@@ -151,7 +161,7 @@ export default ({
         </Visible>
       </Tab>
 
-      <Tab tabName={tabs.game} activeTab={tab}>
+      <Tab tabName={Tabs.Game} activeTab={tab}>
         <Option
           label={lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}
           value={`${
@@ -173,67 +183,194 @@ export default ({
             }}
           />{" "}
         </Option>
-        <Option label={lang["SETTINGS_PLAYER_COLORS"]}>
-          <>
-            <ButtonSetContainer>
-              <ButtonSet
-                selected={settings.useCustomColors}
-                label={lang["SETTINGS_USE_CUSTOM_COLORS"]}
-                onClick={() => updateSettings({ useCustomColors: true })}
-                first
+        <Option
+          label={lang["SETTINGS_USE_CUSTOM_COLORS"]}
+          toggle={
+            <Toggle
+              value={settings.useCustomColors}
+              onChange={() =>
+                updateSettings({ useCustomColors: !settings.useCustomColors })
+              }
+            />
+          }
+        >
+          <Visible visible={settings.useCustomColors}>
+            <div className="flex">
+              <ColorPicker
+                color={settings.player1Color}
+                onChange={(value) => console.log(value)}
+                className="mr-4"
               />
-              <ButtonSet
-                selected={!settings.useCustomColors}
-                label={lang["SETTINGS_USE_REPLAY_COLORS"]}
-                onClick={() => updateSettings({ useCustomColors: false })}
-                last
+              <ColorPicker
+                color={settings.player2Color}
+                onChange={(value) => console.log(value)}
               />
-            </ButtonSetContainer>
-            <Visible visible={settings.useCustomColors}>
-              <div className="flex">
-                <ColorPicker
-                  color={settings.player1Color}
-                  onChange={(value) => console.log(value)}
-                  className="mr-4"
-                />
-                <ColorPicker
-                  color={settings.player2Color}
-                  onChange={(value) => console.log(value)}
-                />
-              </div>
-            </Visible>
-          </>
+            </div>
+          </Visible>
         </Option>
-        <Option label={lang["SETTINGS_CAMERA_SHAKE"]}>
-          <input type="range" min="1" max="0" step="0.05" />{" "}
-        </Option>
+        <Option
+          label={lang["SETTINGS_ENABLE_PLAYER_SCORES"]}
+          toggle={
+            <Toggle
+              value={settings.enablePlayerScores}
+              onChange={() =>
+                updateSettings({
+                  enablePlayerScores: !settings.enablePlayerScores,
+                })
+              }
+            />
+          }
+        />
+        <Option
+          label={lang["SETTINGS_SHOW_TOOLTIPS"]}
+          toggle={
+            <Toggle
+              value={settings.showTooltips}
+              onChange={() =>
+                updateSettings({
+                  showTooltips: !settings.showTooltips,
+                })
+              }
+            />
+          }
+        />
 
-        <Option label={"Environmental Effects"}>
+        <Option
+          label={"Start Replay Paused"}
+          toggle={
+            <Toggle
+              value={settings.startPaused}
+              onChange={() =>
+                updateSettings({
+                  startPaused: !settings.startPaused,
+                })
+              }
+            />
+          }
+        />
+      </Tab>
+
+      <Tab tabName={Tabs.Advanced} activeTab={tab}>
+        <Option label={"Constrain Aspect Ratio"}>
           <ButtonSetContainer>
-            <ButtonSet selected={false} label={lang["BUTTON_OFF"]} first />
-            <ButtonSet selected={false} label={lang["BUTTON_ON"]} last />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.Fit}
+              label={"Available Space"}
+              first
+              onClick={() => updateSettings({ gameAspect: GameAspect.Fit })}
+            />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.Native}
+              label={"Native Screen Resolution"}
+              onClick={() => updateSettings({ gameAspect: GameAspect.Native })}
+            />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.FourThree}
+              label={"4:3"}
+              onClick={() =>
+                updateSettings({ gameAspect: GameAspect.FourThree })
+              }
+            />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.SixteenNine}
+              label={"16:9"}
+              last
+              onClick={() =>
+                updateSettings({ gameAspect: GameAspect.FourThree })
+              }
+            />
           </ButtonSetContainer>
         </Option>
 
-        <Option label={"Start Replay Paused"}>
+        <Option label={"Producer Window Position"}>
           <ButtonSetContainer>
             <ButtonSet
-              selected={!settings.startPaused}
-              label={lang["BUTTON_OFF"]}
-              onClick={() => updateSettings({ startPaused: false })}
+              selected={
+                settings.producerWindowPosition === ProducerWindowPosition.None
+              }
+              label={"Off"}
               first
+              onClick={() =>
+                updateSettings({
+                  producerWindowPosition: ProducerWindowPosition.None,
+                })
+              }
             />
             <ButtonSet
-              selected={settings.startPaused}
-              label={lang["BUTTON_ON"]}
-              onClick={() => updateSettings({ startPaused: true })}
+              selected={
+                settings.producerWindowPosition ===
+                ProducerWindowPosition.DockLeft
+              }
+              label={"Left"}
+              onClick={() =>
+                updateSettings({
+                  producerWindowPosition: ProducerWindowPosition.DockLeft,
+                })
+              }
+            />
+            <ButtonSet
+              selected={
+                settings.producerWindowPosition ===
+                ProducerWindowPosition.DockRight
+              }
+              label={"Right"}
+              onClick={() =>
+                updateSettings({
+                  producerWindowPosition: ProducerWindowPosition.DockRight,
+                })
+              }
+            />
+            <ButtonSet
+              selected={
+                settings.producerWindowPosition ===
+                ProducerWindowPosition.PopOut
+              }
+              label={"Pop Out Window"}
               last
+              onClick={() =>
+                updateSettings({
+                  producerWindowPosition: ProducerWindowPosition.PopOut,
+                })
+              }
+            />
+          </ButtonSetContainer>
+        </Option>
+
+        <Option label={"2D Camera"}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={!settings.cameraStyle2dOrtho}
+              label={"Perspective"}
+              first
+              onClick={() => updateSettings({ cameraStyle2dOrtho: false })}
+            />
+            <ButtonSet
+              selected={settings.cameraStyle2dOrtho}
+              label={"Orthographic"}
+              last
+              onClick={() => updateSettings({ cameraStyle2dOrtho: true })}
+            />
+          </ButtonSetContainer>
+        </Option>
+        <Option label={"3D Camera"}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={!settings.cameraStyle3dOrtho}
+              label={"Perspective"}
+              first
+              onClick={() => updateSettings({ cameraStyle3dOrtho: false })}
+            />
+            <ButtonSet
+              selected={settings.cameraStyle3dOrtho}
+              label={"Orthographic"}
+              last
+              onClick={() => updateSettings({ cameraStyle3dOrtho: true })}
             />
           </ButtonSetContainer>
         </Option>
       </Tab>
 
-      <Tab tabName={tabs.audio} activeTab={tab}>
+      <Tab tabName={Tabs.Audio} activeTab={tab}>
         <Option
           label={lang["SETTINGS_MUSIC_VOLUME"]}
           value={`${Math.floor(settings.musicVolume * 100)}%`}
@@ -271,7 +408,7 @@ export default ({
         </Option>
       </Tab>
 
-      <Tab tabName={tabs.perf} activeTab={tab}>
+      <Tab tabName={Tabs.Graphics} activeTab={tab}>
         <Option label={lang["SETTINGS_GRAPHICS_RENDER_MODE"]}>
           <ButtonSetContainer>
             <ButtonSet
@@ -294,22 +431,19 @@ export default ({
           </ButtonSetContainer>
         </Option>
 
-        <Option label={lang["SETTINGS_GRAPHICS_RENDER_MODE"]}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={!settings.orthoCamera}
-              label={"Perspective"}
-              first
-              onClick={() => updateSettings({ orthoCamera: false })}
+        <Option
+          label={lang["SETTINGS_GRAPHICS_FULLSCREEN"]}
+          toggle={
+            <Toggle
+              value={settings.fullscreen}
+              onChange={() =>
+                updateSettings({
+                  fullscreen: !settings.fullscreen,
+                })
+              }
             />
-            <ButtonSet
-              selected={settings.orthoCamera}
-              label={"Orthographic"}
-              last
-              onClick={() => updateSettings({ orthoCamera: true })}
-            />
-          </ButtonSetContainer>
-        </Option>
+          }
+        />
 
         <Option label={lang["SETTINGS_GRAPHICS_GAMMA"]} value={settings.gamma}>
           <input
@@ -326,22 +460,19 @@ export default ({
           />
         </Option>
 
-        <Option label={lang["SETTINGS_GRAPHICS_ANTIALIAS"]}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={!settings.antialias}
-              label={lang["BUTTON_OFF"]}
-              onClick={() => updateSettings({ antialias: false })}
-              first
+        <Option
+          label={lang["SETTINGS_GRAPHICS_ANTIALIAS"]}
+          toggle={
+            <Toggle
+              value={settings.antialias}
+              onChange={() =>
+                updateSettings({
+                  antialias: !settings.antialias,
+                })
+              }
             />
-            <ButtonSet
-              selected={settings.antialias}
-              label={lang["BUTTON_ON"]}
-              onClick={() => updateSettings({ antialias: true })}
-              last
-            />
-          </ButtonSetContainer>
-        </Option>
+          }
+        />
 
         <Option label={lang["SETTINGS_GRAPHICS_SHADOWS"]}>
           <ButtonSetContainer>
@@ -391,7 +522,7 @@ export default ({
         <Option label={lang["SETTINGS_GRAPHICS_RESOLUTION"]}></Option>
       </Tab>
 
-      <Tab tabName={tabs.twitch} activeTab={tab}>
+      <Tab tabName={Tabs.Integrations} activeTab={tab}>
         <Option label={lang["TWITCH_INTEGRATION"]}>
           <Button label={lang["BUTTON_CONNECT"]} />
         </Option>
@@ -401,7 +532,7 @@ export default ({
         </Option>
       </Tab>
 
-      <Tab tabName={tabs.feeds} activeTab={tab}>
+      <Tab tabName={Tabs.Community} activeTab={tab}>
         <Option label={lang["SETTINGS_MAPS_RSS_FEEDS"]}>
           <textarea
             className="w-full h-40 bg-gray-600"

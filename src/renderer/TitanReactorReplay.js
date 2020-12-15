@@ -29,6 +29,8 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "./render/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import WrappedCanvas from "./react-ui/WrappedCanvas";
+import ProducerBar from "./react-ui/producer/ProducerBar";
+import { ProducerWindowPosition } from "../common/settings";
 
 const { startLocation } = unitTypes;
 
@@ -406,12 +408,16 @@ export async function TitanReactorReplay(
             top: `${gameSurface.top}px`,
           }}
         />
-        <div
-          class="absolute right-0 bottom-0 text-gray-500"
-          style={{ zIndex: "-20" }}
-        >
-          {gameSurface.width}x{gameSurface.height}
-        </div>
+        {context.settings.producerWindowPosition !=
+          ProducerWindowPosition.None && (
+          <ProducerBar
+            previews={previewSurfaces}
+            gameSurface={gameSurface}
+            position={context.settings.producerWindowPosition}
+            size={context.settings.producerDockSize}
+          />
+        )}
+
         {hudData.showMenu && (
           <Menu
             lang={context.lang}
@@ -699,17 +705,23 @@ export async function TitanReactorReplay(
       renderMan.setCanvas(minimapSurface.canvas);
       renderMan.renderer.clear();
 
-      if (cameras.previewOn) {
+      if (
+        cameras.previewOn &&
+        context.settings.producerWindowPosition === ProducerWindowPosition.None
+      ) {
         renderMan.render(scene, cameras.previewCamera);
       } else {
         renderMan.render(scene, cameras.minimapCamera);
+
+        const lastPreview = previewSurfaces[previewSurfaces.length - 1];
+        renderMan.setCanvas(lastPreview.canvas);
+        renderMan.renderer.clear();
+        renderMan.render(scene, cameras.previewCamera);
       }
     }
 
     stats.update();
   }
-
-  //@todo add settings to not auto play
 
   const dispose = () => {
     console.log("disposing");
