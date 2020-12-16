@@ -13,7 +13,8 @@ class MinimapControl extends EventDispatcher {
     this.surface = surface;
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
-    this._dragging = false;
+    this._isDragging = false;
+    this._isPreviewing = false;
 
     this.enableDragging(true);
     this._attach();
@@ -23,13 +24,7 @@ class MinimapControl extends EventDispatcher {
     this._enableDragging = enable;
   }
 
-  setConstraints(settings) {
-    this.constraints = {
-      distances: [20, 50, 100],
-      polarAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
-      azimuthAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
-    };
-  }
+  setConstraints(settings) {}
 
   // @todo modify this to account for map aspect ratio
   _attach() {
@@ -43,15 +38,15 @@ class MinimapControl extends EventDispatcher {
       const pos = new Vector3(x, 0, y);
 
       const rightMouse = e.button === 2;
-      this.dispatchEvent({ type: "start", message: { pos, rightMouse } });
+      this.dispatchEvent({ type: "start", message: { pos, rightMouse, e } });
 
       if (rightMouse) {
-        this._dragging = true;
+        this._isDragging = true;
       }
     });
 
     this.surface.canvas.addEventListener("mouseup", (e) => {
-      this._dragging = false;
+      this._isDragging = false;
     });
 
     this.surface.canvas.addEventListener("mousemove", (e) => {
@@ -62,12 +57,12 @@ class MinimapControl extends EventDispatcher {
 
       const pos = new Vector3(x, 0, y);
 
-      if (this._dragging) {
-        this.dispatchEvent({ type: "update", message: { pos } });
+      if (this._isDragging) {
+        this.dispatchEvent({ type: "update", message: { pos, e } });
       } else {
         this.dispatchEvent({
           type: "hover",
-          message: { pos, preview: e.shiftKey },
+          message: { pos, e },
         });
       }
     });
@@ -81,6 +76,7 @@ class MinimapControl extends EventDispatcher {
 
       this.dispatchEvent({
         type: "stop",
+        e,
       });
     });
   }

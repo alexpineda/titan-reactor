@@ -95,6 +95,7 @@ export async function TitanReactorReplay(
     mapHeight,
     keyboardShortcuts
   );
+  minimapControl.setConstraints();
 
   scene.add(
     createMiniMapPlane(scene.terrain.material.map, mapWidth, mapHeight)
@@ -108,6 +109,8 @@ export async function TitanReactorReplay(
   );
   scene.add(cameras.minimapCameraHelper);
   cameras.control.setLookAt(0, 200, 1, 0, 0, 0, false);
+  cameras.control.setConstraints();
+  cameras.control.setMapBoundary(mapWidth, mapHeight);
 
   // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
   // scene.add(cubeCamera);
@@ -131,7 +134,7 @@ export async function TitanReactorReplay(
 
   // #region audio initialization
   const audioListener = new AudioListener();
-  cameras.camera.add(audioListener);
+  scene.add(audioListener);
   bgMusic.setListener(audioListener);
   bgMusic.setVolume(context.settings.musicVolume);
   bgMusic.playGame();
@@ -278,7 +281,7 @@ export async function TitanReactorReplay(
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components
 
-    const [width, height] = [window.innerWidth, window.innerHeight];
+    const [width, height] = [gameSurface.width, gameSurface.height];
 
     mouse.x = (event.clientX / width) * 2 - 1;
     mouse.y = -(event.clientY / height) * 2 + 1;
@@ -310,7 +313,7 @@ export async function TitanReactorReplay(
       });
     }
   };
-  document.addEventListener("mousedown", mouseDownListener);
+  gameSurface.canvas.addEventListener("mousedown", mouseDownListener);
   //#endregion mouse listener
 
   const fadingPointers = new FadingPointers();
@@ -467,7 +470,7 @@ export async function TitanReactorReplay(
     }
   };
   //#endregion hud ui
-
+  window.cameras = cameras;
   const sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
@@ -508,6 +511,14 @@ export async function TitanReactorReplay(
 
     replayPosition.update();
     cameras.update();
+
+    // {
+    //   const delta = new Vector3();
+    //   const target = new Vector3();
+    //   cameras.control.getTarget(target);
+    //   delta.subVectors(target, cameras.camera.position).divideScalar(2);
+    //   audioListener.position.addVectors(target, delta);
+    // }
 
     if (!replayPosition.paused) {
       debugInfo.clear();
@@ -642,20 +653,20 @@ export async function TitanReactorReplay(
       }
     }
 
-    if (
-      cameras.control.distance < 50 &&
-      !cameras.control.cameraShake.isShaking
-    ) {
-      const attackingUnits = unitsThisFrame
-        .map((unitRepId) =>
-          units.units.children.find(
-            ({ userData }) => userData.repId === unitRepId
-          )
-        )
-        .filter((unit) => heatMapScore.unitOfInterestFilter(unit));
+    // if (
+    //   cameras.control.distance < 50 &&
+    //   !cameras.control.cameraShake.isShaking
+    // ) {
+    //   const attackingUnits = unitsThisFrame
+    //     .map((unitRepId) =>
+    //       units.units.children.find(
+    //         ({ userData }) => userData.repId === unitRepId
+    //       )
+    //     )
+    //     .filter((unit) => heatMapScore.unitOfInterestFilter(unit));
 
-      // mainCamera.control.shake(heatMapScore.totalScore(attackingUnits));
-    }
+    //   // mainCamera.control.shake(heatMapScore.totalScore(attackingUnits));
+    // }
 
     units.cameraDirection.previousDirection = units.cameraDirection.direction;
 
@@ -685,30 +696,34 @@ export async function TitanReactorReplay(
             0
           ) / selectedUnits.length;
 
-        cameras.control.setLookAt(
-          x,
-          getTerrainY(x, z) + 40,
-          z + 10,
-          x,
-          getTerrainY(x, z),
-          z,
-          true
-        );
+        cameras.control.moveTo(x, getTerrainY(x, z), z, true);
+
+        // cameras.control.setLookAt(
+        //   x,
+        //   getTerrainY(x, z) + 40,
+        //   z + 10,
+        //   x,
+        //   getTerrainY(x, z),
+        //   z,
+        //   true
+        // );
       }
       renderMan.render(scene, cameras.camera);
     }
 
+    const useMinimapPreview =
+      cameras.previewOn &&
+      context.settings.producerWindowPosition === ProducerWindowPosition.None;
+
     if (
+      useMinimapPreview ||
       (!replayPosition.skippingFrames() && replayPosition.bwGameFrame % 100) ||
       (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 1000)
     ) {
       renderMan.setCanvas(minimapSurface.canvas);
       renderMan.renderer.clear();
 
-      if (
-        cameras.previewOn &&
-        context.settings.producerWindowPosition === ProducerWindowPosition.None
-      ) {
+      if (useMinimapPreview) {
         renderMan.render(scene, cameras.previewCamera);
       } else {
         renderMan.render(scene, cameras.minimapCamera);
@@ -742,7 +757,7 @@ export async function TitanReactorReplay(
     stats.dispose();
 
     keyboardShortcuts.dispose();
-    document.removeEventListener("mousedown", mouseDownListener);
+    gameSurface.canvas.removeEventListener("mousedown", mouseDownListener);
   };
 
   renderMan.renderer.setAnimationLoop(gameLoop);

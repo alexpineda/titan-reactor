@@ -11,8 +11,8 @@ class TitanReactorCameraControls extends CameraControls {
 
     this.mouseButtons.left = CameraControls.ACTION.NONE;
     this.mouseButtons.right = CameraControls.ACTION.TRUCK;
-    this.mouseButtons.middle = CameraControls.ACTION.NONE;
-    this.mouseButtons.wheel = CameraControls.ACTION.NONE;
+    this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
+    this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
 
     keyboardShortcuts.addEventListener(
       InputEvents.TruckLeft,
@@ -41,17 +41,18 @@ class TitanReactorCameraControls extends CameraControls {
   }
 
   setConstraints(settings) {
-    this.verticalDragToForward = false;
+    this.verticalDragToForward = true;
     this.maxDistance = 200;
     this.minDistance = 15;
     this.dampingFactor = 0.2;
 
-    this.maxPolarAngle = Math.PI / 4;
-    this.maxAzimuthAngle = Math.PI / 6;
-    this.minAzimuthAngle = -Math.PI / 6;
+    this.maxPolarAngle = (20 * Math.PI) / 64;
+    this.minPolarAngle = (2 * Math.PI) / 64;
+    this.maxAzimuthAngle = (16 * Math.PI) / 64;
+    this.minAzimuthAngle = -(16 * Math.PI) / 64;
 
-    this.dollySpeed = 0.5;
-    this.truckSpeed = 0.5;
+    // this.dollySpeed = 0.5;
+    this.truckSpeed = 1;
     this.cameraShake = new CameraShake(this, 500, 10, 1);
 
     //mindistance <- close up
@@ -65,6 +66,13 @@ class TitanReactorCameraControls extends CameraControls {
     //maxazi <- extreme
   }
 
+  setMaximums(maximums) {
+    this.maximums = {
+      distances: [20, 50, 100],
+      polarAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
+      azimuthAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
+    };
+  }
   setMapBoundary(width, height) {
     if (width === null) {
       this.boundaryEnclosesCamera = false;
@@ -73,10 +81,11 @@ class TitanReactorCameraControls extends CameraControls {
     this.boundaryEnclosesCamera = true;
 
     const bb = new THREE.Box3(
-      new THREE.Vector3(-width / 2, 0, -height / 2),
-      new THREE.Vector3(width / 2, 400, height / 2)
+      new THREE.Vector3(-width, 0, -height),
+      new THREE.Vector3(width, 400, height)
     );
     this.setBoundary(bb);
+    this.boundaryFriction = 0.5;
   }
 
   startFollowUnit() {}
