@@ -44,16 +44,16 @@ class TitanReactorCameraControls extends CameraControls {
     this.verticalDragToForward = true;
     this.maxDistance = 200;
     this.minDistance = 15;
-    this.dampingFactor = 0.2;
 
     this.maxPolarAngle = (20 * Math.PI) / 64;
-    this.minPolarAngle = (2 * Math.PI) / 64;
+    this.minPolarAngle = (4 * Math.PI) / 64;
     this.maxAzimuthAngle = (16 * Math.PI) / 64;
     this.minAzimuthAngle = -(16 * Math.PI) / 64;
 
     // this.dollySpeed = 0.5;
     this.truckSpeed = 1;
     this.cameraShake = new CameraShake(this, 500, 10, 1);
+    this.dollyToCursor = true;
 
     //mindistance <- close up
     //middistance <- normal
@@ -66,13 +66,6 @@ class TitanReactorCameraControls extends CameraControls {
     //maxazi <- extreme
   }
 
-  setMaximums(maximums) {
-    this.maximums = {
-      distances: [20, 50, 100],
-      polarAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
-      azimuthAngle: [Math.PI / 6, Math.PI / 4, Math.PI / 2],
-    };
-  }
   setMapBoundary(width, height) {
     if (width === null) {
       this.boundaryEnclosesCamera = false;

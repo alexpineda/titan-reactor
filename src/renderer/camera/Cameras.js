@@ -67,130 +67,212 @@ class Cameras {
       cameraMoving = false;
     });
 
-    document.addEventListener("keypress", (evt) => {
-      const hor = {
-        current: 0,
-        previous: null,
-        azi: [-16, -12, -4, 0, 4, 12, 16].map((x) => (x * Math.PI) / 64),
-      };
+    let currentBasicShot = {};
 
-      const ver = {
-        current: 0,
-        previous: -1,
-        pol: [4, 16, 20].map((x) => (x * Math.PI) / 64),
-        fov: [22, 40, 65],
-        dolly: [70, 30, 20],
-        dollySpeed: [1, 0.5, 0.2],
-        dampingFactor: [0.05, 0.02, 0.01],
-        update: function (v) {
-          this.previous = this.current;
-          this.current = v;
-        },
-      };
+    const constraints = {
+      azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
+      pol: [4, 12, 20].map((x) => (x * Math.PI) / 64),
+      fov: [22, 40, 65],
+      dollyTo: [70, 30, 20],
+      dollySpeed: [1, 0.5, 0.2],
+      dampingFactor: [0.1, 0.075, 0.025],
+    };
 
-      const _doShot = (azi, pol, fov, dollySpeed, dampingFactor, dollyTo) => {
+    const updateShot = ({
+      azi,
+      pol,
+      fov,
+      dollySpeed,
+      dampingFactor,
+      dollyTo,
+    }) => {
+      if (is(Number, azi) && is(Number, pol)) {
         this.control.rotateTo(azi, pol, false);
+      }
+      if (is(Number, fov)) {
         this.camera.fov = fov;
-        this.control.dollySpeed = dollySpeed;
-        this.control.dampingFactor = dampingFactor;
-        this.control.dollyTo(dollyTo, false);
         this.camera.updateProjectionMatrix();
-      };
+      }
+      if (is(Number, dollySpeed)) {
+        // this.control.dollySpeed = dollySpeed;
+      }
+      if (is(Number, dampingFactor)) {
+        this.control.dampingFactor = dampingFactor;
+      }
+      if (is(Number, dampingFactor)) {
+        this.control.dollyTo(dollyTo, false);
+      }
+    };
 
-      const doShot = (h, v, absoluteValues = false) => {
-        if (absoluteValues) {
-          _doShot(
-            h,
-            v,
-            ver.fov[0],
-            ver.dollySpeed[0],
-            ver.dampingFactor[0],
-            ver.dolly[0]
-          );
-        } else {
-          hor.previous = hor.current;
-          hor.current = h;
-          ver.update(v);
-          _doShot(
-            hor.azi[h + 3],
-            ver.pol[v],
-            ver.fov[v],
-            ver.dollySpeed[v],
-            ver.dampingFactor[v],
-            ver.dolly[v]
-          );
-        }
-      };
+    const getShotBasic = (h, v) => {
+      currentBasicShot.h = h;
+      currentBasicShot.v = v;
+      return getShotAdvanced({
+        azi: h,
+        pol: v,
+        fov: v,
+        dollySpeed: v,
+        dampingFactor: v,
+        dollyTo: v,
+      });
+    };
 
-      const cycle = (v, min, max) => {
-        if (v < min) {
-          v = max;
-        } else if (v > max) {
-          v = min;
-        }
-        return v;
+    const getShotAdvanced = ({
+      azi,
+      pol,
+      fov,
+      dollySpeed,
+      dampingFactor,
+      dollyTo,
+    }) => {
+      return {
+        azi:
+          constraints.azi[azi + 3] !== undefined
+            ? constraints.azi[azi + 3]
+            : azi,
+        pol: constraints.pol[pol] !== undefined ? constraints.pol[pol] : pol,
+        fov: constraints.fov[fov] !== undefined ? constraints.fov[fov] : fov,
+        dollySpeed:
+          constraints.dollySpeed[dollySpeed] !== undefined
+            ? constraints.dollySpeed[dollySpeed]
+            : dollySpeed,
+        dampingFactor:
+          constraints.dampingFactor[dampingFactor] !== undefined
+            ? constraints.dampingFactor[dampingFactor]
+            : dampingFactor,
+        dollyTo:
+          constraints.dollyTo[dollyTo] !== undefined
+            ? constraints.dollyTo[dollyTo]
+            : dollyTo,
       };
+    };
 
+    const cycle = (v, min, max) => {
+      if (v < min) {
+        v = max;
+      } else if (v > max) {
+        v = min;
+      }
+      return v;
+    };
+
+    const isPrevBasic = (h, v) =>
+      currentBasicShot.h === h && currentBasicShot.v === v;
+
+    document.addEventListener("keypress", (evt) => {
       switch (evt.code) {
         case "Numpad0":
           {
-            ver.update(0);
-            hor.previous = hor.current;
-            hor.current = h;
-            doShot(0, (4 * Math.PI) / 64, true);
+            const shot = {
+              ...getShotBasic(0, 0),
+              dollyTo: 110,
+            };
+            updateShot(shot);
           }
           break;
         case "Numpad1":
           {
-            doShot(cycle(hor.current - 1, -3, -1), 2);
+            if (isPrevBasic(-1, 2)) {
+              updateShot({
+                ...getShotBasic(-2, 2),
+                dollyTo: constraints.dollyTo[1],
+              });
+            } else {
+              updateShot(getShotBasic(-1, 2));
+            }
+            // doShot(cycle(hor.current - 1, -3, -1), 2);
+          }
+          break;
+
+        case "Numpad2":
+          {
+            updateShot(getShotBasic(0, 2));
+          }
+          break;
+
+        case "Numpad3":
+          {
+            if (isPrevBasic(1, 2)) {
+              updateShot({
+                ...getShotBasic(2, 2),
+                dollyTo: constraints.dollyTo[1],
+              });
+            } else {
+              updateShot(getShotBasic(1, 2));
+            }
           }
           break;
         case "Numpad4":
           {
-            doShot(cycle(hor.current - 1, -3, -1), 1);
-            // this.control.rotateTo(-azi[aziCycle], pol[2], true);
-          }
-          break;
-        case "Numpad7":
-          {
-            doShot(cycle(hor.current - 1, -3, -1), 0);
-            // this.control.rotateTo(-azi[aziCycle], pol[2], true);
-          }
-          break;
-        case "Numpad2":
-          {
-            doShot(hor.current, 2);
+            if (isPrevBasic(-1, 1)) {
+              // getShotBasic(-2, 1)
+              updateShot({
+                ...getShotBasic(-2, 1),
+                dollyTo: constraints.dollyTo[0],
+              });
+            } else {
+              updateShot(getShotBasic(-1, 1));
+            }
           }
           break;
         case "Numpad5":
           {
-            doShot(hor.current, 1);
+            updateShot(getShotBasic(0, 1));
+          }
+          break;
+        case "Numpad6":
+          {
+            if (isPrevBasic(1, 1)) {
+              // getShotBasic(2, 1)
+              updateShot({
+                ...getShotBasic(2, 1),
+                dollyTo: constraints.dollyTo[0],
+              });
+            } else {
+              updateShot(getShotBasic(1, 1));
+            }
+          }
+          break;
+        case "Numpad7":
+          {
+            updateShot(
+              getShotAdvanced({
+                azi: 0,
+                pol: 0,
+                fov: 0,
+                dollySpeed: 0,
+                dampingFactor: 0,
+                dollyTo: 40,
+              })
+            );
           }
           break;
         case "Numpad8":
           {
-            doShot(hor.current, 0);
+            updateShot(
+              getShotAdvanced({
+                azi: 0,
+                pol: 0,
+                fov: 0,
+                dollySpeed: 0,
+                dampingFactor: 0,
+                dollyTo: 60,
+              })
+            );
           }
           break;
-        case "Numpad3":
-          {
-            doShot(cycle(hor.current + 1, 3, 1), 2);
-
-            // this.control.rotateTo(azi[aziCycle], pol[2], true);
-          }
-          break;
-
-        case "Numpad6":
-          {
-            doShot(cycle(hor.current + 1, 3, 1), 1);
-            // this.control.rotateTo(azi[aziCycle], pol[2], true);
-          }
-          break;
-
         case "Numpad9":
           {
-            doShot(cycle(hor.current + 1, 3, 1), 0);
-            // this.control.rotateTo(azi[aziCycle], pol[2], true);
+            updateShot(
+              getShotAdvanced({
+                azi: 0,
+                pol: 0,
+                fov: 0,
+                dollySpeed: 0,
+                dampingFactor: 0,
+                dollyTo: 80,
+              })
+            );
           }
           break;
       }

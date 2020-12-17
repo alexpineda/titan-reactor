@@ -112,7 +112,7 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    return { ...this._settings, errors, isDev };
+    return { ...this._settings, errors, isDev: false };
   }
 
   async load() {

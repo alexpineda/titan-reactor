@@ -110,7 +110,7 @@ export async function TitanReactorReplay(
   scene.add(cameras.minimapCameraHelper);
   cameras.control.setLookAt(0, 200, 1, 0, 0, 0, false);
   cameras.control.setConstraints();
-  cameras.control.setMapBoundary(mapWidth, mapHeight);
+  // cameras.control.setMapBoundary(mapWidth, mapHeight);
 
   // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
   // scene.add(cubeCamera);
