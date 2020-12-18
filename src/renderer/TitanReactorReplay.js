@@ -512,13 +512,14 @@ export async function TitanReactorReplay(
     replayPosition.update();
     cameras.update();
 
-    // {
-    //   const delta = new Vector3();
-    //   const target = new Vector3();
-    //   cameras.control.getTarget(target);
-    //   delta.subVectors(target, cameras.camera.position).divideScalar(2);
-    //   audioListener.position.addVectors(target, delta);
-    // }
+    {
+      //   const delta = new Vector3();
+      const target = new Vector3();
+      cameras.control.getTarget(target);
+      //   delta.subVectors(target, cameras.camera.position).divideScalar(2);
+      //   audioListener.position.addVectors(target, delta);
+      audioListener.position.copy(target);
+    }
 
     if (!replayPosition.paused) {
       debugInfo.clear();

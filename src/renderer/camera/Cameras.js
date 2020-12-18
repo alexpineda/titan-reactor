@@ -40,52 +40,20 @@ class Cameras {
 
     this._delta = new Vector3();
 
-    let aziCycle = 0;
-    let dollyCycle = 0;
-
-    let cameraMoving = true;
-
-    const Shots = {
-      Tight: 0,
-      Medium: 1,
-      Wide: 2,
-    };
-
-    this.control.addEventListener("controlstart", () => {
-      console.log("controlstart");
-      // aziCycle = 0;
-      // dollyCycle = 0;
-    });
-
-    this.control.addEventListener("wake", () => {
-      console.log("wake");
-      cameraMoving = true;
-    });
-
-    this.control.addEventListener("sleep", () => {
-      console.log("sleep");
-      cameraMoving = false;
-    });
-
     let currentBasicShot = {};
 
     const constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
-      pol: [4, 12, 20].map((x) => (x * Math.PI) / 64),
+      pol: [4, 12, 24].map((x) => (x * Math.PI) / 64),
       fov: [22, 40, 65],
       dollyTo: [70, 30, 20],
       dollySpeed: [1, 0.5, 0.2],
       dampingFactor: [0.1, 0.075, 0.025],
     };
 
-    const updateShot = ({
-      azi,
-      pol,
-      fov,
-      dollySpeed,
-      dampingFactor,
-      dollyTo,
-    }) => {
+    const updateShot = (opts) => {
+      const { azi, pol, fov, dollySpeed, dampingFactor, dollyTo } = opts;
+      console.log("camera", opts);
       if (is(Number, azi) && is(Number, pol)) {
         this.control.rotateTo(azi, pol, false);
       }
@@ -180,13 +148,16 @@ class Cameras {
             } else {
               updateShot(getShotBasic(-1, 2));
             }
-            // doShot(cycle(hor.current - 1, -3, -1), 2);
           }
           break;
 
         case "Numpad2":
           {
-            updateShot(getShotBasic(0, 2));
+            updateShot({
+              ...getShotBasic(0, 2),
+              dollyTo: constraints.dollyTo[1],
+              pol: constraints.pol[0],
+            });
           }
           break;
 

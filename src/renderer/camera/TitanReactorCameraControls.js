@@ -45,10 +45,10 @@ class TitanReactorCameraControls extends CameraControls {
     this.maxDistance = 200;
     this.minDistance = 15;
 
-    this.maxPolarAngle = (20 * Math.PI) / 64;
-    this.minPolarAngle = (4 * Math.PI) / 64;
-    this.maxAzimuthAngle = (16 * Math.PI) / 64;
-    this.minAzimuthAngle = -(16 * Math.PI) / 64;
+    // this.maxPolarAngle = (20 * Math.PI) / 64;
+    // this.minPolarAngle = (4 * Math.PI) / 64;
+    // this.maxAzimuthAngle = (16 * Math.PI) / 64;
+    // this.minAzimuthAngle = -(16 * Math.PI) / 64;
 
     // this.dollySpeed = 0.5;
     this.truckSpeed = 1;
