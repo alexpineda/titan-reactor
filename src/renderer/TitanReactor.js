@@ -124,7 +124,12 @@ export class TitanReactor {
     const frames = await openFile(`${filepath}.bin`);
 
     log(`initializing scene`);
-    const scene = new TitanReactorScene(chk, textureCache, loadingManager);
+    const scene = new TitanReactorScene(
+      chk,
+      textureCache,
+      this.context.settings.anisotropy,
+      loadingManager
+    );
     await scene.init(this.context.settings.isDev);
 
     log(`initializing replay`);
@@ -170,7 +175,12 @@ export class TitanReactor {
     const textureCache = new TextureCache(chk.title, await getAppCachePath());
 
     log(`initializing scene`);
-    const scene = new TitanReactorScene(chk, textureCache, loadingManager);
+    const scene = new TitanReactorScene(
+      chk,
+      textureCache,
+      this.context.settings.anisotropy,
+      loadingManager
+    );
     await scene.init();
 
     this.scene = await TitanReactorMapSandbox(

@@ -12,11 +12,17 @@ import { Terrain } from "./3d-map-rendering/Terrain";
 import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
 
 export class TitanReactorScene extends Scene {
-  constructor(chk, textureCache, loadingManager = DefaultLoadingManager) {
+  constructor(
+    chk,
+    textureCache,
+    anisotropy,
+    loadingManager = DefaultLoadingManager
+  ) {
     super();
     this.chk = chk;
     this.textureCache = textureCache;
     this.loadingManager = loadingManager;
+    this.anisotropy = anisotropy;
   }
 
   async init(isDev) {
@@ -35,7 +41,11 @@ export class TitanReactorScene extends Scene {
     const hemi = new HemisphereLight(0xffffff, 0xffffff, 5);
     this.add(hemi);
 
-    const terrainMesh = new Terrain(this.chk, this.textureCache);
+    const terrainMesh = new Terrain(
+      this.chk,
+      this.textureCache,
+      this.anisotropy
+    );
     const terrain = await terrainMesh.generate(isDev);
     const bg = await bgMapCanvasTexture(this.chk);
     const bgTerrain = backgroundTerrainMesh(w, h, bg);

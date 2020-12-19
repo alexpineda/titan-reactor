@@ -40,7 +40,11 @@ class GameCanvasTarget extends CanvasTarget {
     if (gameAspect === GameAspect.Fit) {
       this.top = 0;
 
-      super.setDimensions(maxWidth, maxHeight);
+      super.setDimensions(
+        maxWidth,
+        maxHeight,
+        this.context.settings.pixelRatio
+      );
     } else {
       const aspect = aspects[gameAspect];
       let width = maxWidth;
@@ -54,7 +58,7 @@ class GameCanvasTarget extends CanvasTarget {
       this.left = this.left + (maxWidth - width) / 2;
       this.right = this.right + (maxWidth - width) / 2;
 
-      super.setDimensions(width, height);
+      super.setDimensions(width, height, this.context.settings.pixelRatio);
     }
   }
 

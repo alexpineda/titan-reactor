@@ -1,4 +1,4 @@
-import { is, range } from "ramda";
+import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 import {
@@ -8,7 +8,7 @@ import {
   MinimapFogLayer,
 } from "./Layers";
 import MinimapCameraHelper from "./MinimapCameraHelper";
-import CameraControls from "./TitanReactorCameraControls";
+import StandardCameraControls from "./StandardCameraControls";
 
 export const CameraControlType = {
   none: 0,
@@ -26,23 +26,24 @@ class Cameras {
     this.camera = this._createCamera(aspect);
     this.previewCamera = this._createCamera(aspect);
     this.cinematicOptions = {
-      far: 1000,
+      far: this.camera.far,
       focalDepth: 100,
       focalLength: 40,
       fstop: 20,
-      near: 0.2,
+      near: 1,
       showFocus: 0,
+      gammaBoost: 1.5,
     };
 
     this.cinematicCamera = this._initCinematicCamera(aspect);
     this.useCinematicCamera = false;
 
-    this.control = new CameraControls(
+    this.control = new StandardCameraControls(
       this.camera,
       gameSurface.canvas,
       keyboardShortcuts
     );
-    this.previewControl = new CameraControls(
+    this.previewControl = new StandardCameraControls(
       this.previewCamera,
       gameSurface.canvas,
       keyboardShortcuts
@@ -50,146 +51,6 @@ class Cameras {
     this.controlClock = new Clock();
 
     this._delta = new Vector3();
-
-    const constraints = {
-      azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
-      pol: [4, 12, 20].map((x) => (x * Math.PI) / 64),
-      fov: [22, 40, 65],
-      dollyTo: [70, 30, 20],
-      dollySpeed: [1, 0.5, 0.2],
-      dampingFactor: [0.1, 0.075, 0.025],
-    };
-
-    const updateShot = (opts) => {
-      const { azi, pol, fov, dollySpeed, dampingFactor, dollyTo } = opts;
-      if (is(Number, azi) && is(Number, pol)) {
-        this.control.rotateTo(azi, pol, false);
-      }
-      if (is(Number, fov)) {
-        this.camera.fov = fov;
-        this.camera.updateProjectionMatrix();
-      }
-      if (is(Number, dollySpeed)) {
-        this.control.dollySpeed = dollySpeed;
-      }
-      if (is(Number, dampingFactor)) {
-        this.control.dampingFactor = dampingFactor;
-      }
-      if (is(Number, dollyTo)) {
-        this.control.dollyTo(dollyTo, false);
-      }
-    };
-
-    const createShot = ({
-      azi,
-      pol,
-      fov,
-      dollySpeed,
-      dampingFactor,
-      dollyTo,
-    }) => {
-      return {
-        azi:
-          constraints.azi[azi + 3] !== undefined
-            ? constraints.azi[azi + 3]
-            : azi,
-        pol: constraints.pol[pol] !== undefined ? constraints.pol[pol] : pol,
-        fov: constraints.fov[fov] !== undefined ? constraints.fov[fov] : fov,
-        dollySpeed:
-          constraints.dollySpeed[dollySpeed] !== undefined
-            ? constraints.dollySpeed[dollySpeed]
-            : dollySpeed,
-        dampingFactor:
-          constraints.dampingFactor[dampingFactor] !== undefined
-            ? constraints.dampingFactor[dampingFactor]
-            : dampingFactor,
-        dollyTo:
-          constraints.dollyTo[dollyTo] !== undefined
-            ? constraints.dollyTo[dollyTo]
-            : dollyTo,
-      };
-    };
-
-    const cycle = (v, min, max) => {
-      if (v < min) {
-        v = max;
-      } else if (v > max) {
-        v = min;
-      }
-      return v;
-    };
-
-    this.constraints = constraints;
-    this.presets = {
-      Numpad0: {
-        azi: 0,
-        pol: 0,
-        fov: 0,
-        dollyTo: 110,
-      },
-      Numpad1: {
-        azi: 0,
-        pol: 0,
-        fov: 0,
-        dollyTo: 50,
-      },
-      Numpad2: {
-        azi: 0,
-        pol: 2,
-        fov: 1,
-        dollyTo: 1,
-      },
-      Numpad3: {
-        azi: 0,
-        pol: 2,
-        fov: 2,
-        dollyTo: 2,
-      },
-      Numpad4: {
-        azi: 0,
-        pol: 0,
-        fov: 0,
-        dollyTo: 60,
-      },
-      Numpad5: {
-        azi: 0,
-        pol: 1,
-        fov: 1,
-        dollyTo: 1,
-      },
-      Numpad6: {
-        azi: 0,
-        pol: 1,
-        fov: 2,
-        dollyTo: 2,
-      },
-      Numpad7: {
-        azi: 0,
-        pol: 0,
-        fov: 0,
-        dollyTo: 80,
-      },
-      Numpad8: {
-        azi: 0,
-        pol: 0,
-        fov: 1,
-        dollyTo: 45,
-      },
-      Numpad9: {
-        azi: 0,
-        pol: 0,
-        fov: 2,
-        dollyTo: 25,
-      },
-    };
-
-    document.addEventListener("keypress", (evt) => {
-      const numpads = range(0, 10).map((n) => `Numpad${n}`);
-      console.log(numpads);
-      if (numpads.includes(evt.code)) {
-        updateShot(createShot(this.presets[evt.code]));
-      }
-    });
 
     if (minimapControl) {
       this.minimapCamera = this._initMinimapCamera(
@@ -289,11 +150,11 @@ class Cameras {
   }
 
   _initPerspectiveCamera(aspect) {
-    return new PerspectiveCamera(22, aspect, 10, 200);
+    return new PerspectiveCamera(22, aspect, 6, 256);
   }
 
   _initCinematicCamera(aspect) {
-    return new CinematicCamera(3, aspect, 10, 200);
+    return new CinematicCamera(3, aspect, 6, 256);
   }
 
   _initOrthoCamera() {

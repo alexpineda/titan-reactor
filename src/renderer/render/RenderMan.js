@@ -1,4 +1,4 @@
-const {
+import {
   WebGLRenderer,
   CineonToneMapping,
   sRGBEncoding,
@@ -6,7 +6,7 @@ const {
   PCFShadowMap,
   PCFSoftShadowMap,
   Vector4,
-} = require("three");
+} from "three";
 // import { log } from "../invoke";
 const log = () => {};
 class RenderMan {
@@ -25,9 +25,10 @@ class RenderMan {
     }
   }
 
-  setCanvas(canvas) {
-    this.canvas = canvas;
-    this.renderer.setSize(canvas.width, canvas.height);
+  setCanvasTarget(canvasTarget) {
+    this.canvasTarget = canvasTarget;
+    this.renderer.setPixelRatio(canvasTarget.pixelRatio);
+    this.renderer.setSize(canvasTarget.width, canvasTarget.height, false);
   }
 
   renderSplitScreen(scene, camera, viewport) {
@@ -45,13 +46,20 @@ class RenderMan {
       scene.overrideMaterial = null;
       this.renderer.render(scene, camera);
     }
-    this.canvas.getContext("2d").drawImage(this.renderer.domElement, 0, 0);
+    this.canvasTarget.canvas
+      .getContext("2d")
+      .drawImage(this.renderer.domElement, 0, 0);
   }
 
   render(
     scene,
     camera,
-    viewport = new Vector4(0, 0, this.canvas.width, this.canvas.height)
+    viewport = new Vector4(
+      0,
+      0,
+      this.canvasTarget.width,
+      this.canvasTarget.height
+    )
   ) {
     this.renderer.setViewport(viewport);
     this._render(scene, camera);
@@ -64,13 +72,11 @@ class RenderMan {
       preserveDrawingBuffer: true,
       logarithmicDepthBuffer: false,
     });
-    renderer.setPixelRatio(this.context.getDevicePixelRatio());
     renderer.autoClear = false;
     renderer.toneMapping = CineonToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = this.context.settings.gamma;
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
-    renderer.gammaFactor = this.context.settings.gamma;
     return renderer;
   }
 

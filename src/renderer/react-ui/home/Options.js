@@ -449,8 +449,8 @@ export default ({
           <input
             type="range"
             min="1"
-            max="6"
-            step="0.1"
+            max="2"
+            step="0.02"
             value={settings.gamma}
             onChange={(evt) => {
               updateSettings({

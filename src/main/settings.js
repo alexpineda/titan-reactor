@@ -112,7 +112,7 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    return { ...this._settings, errors, isDev: false };
+    return { ...this._settings, errors, isDev };
   }
 
   async load() {
@@ -148,7 +148,7 @@ export class Settings extends EventEmitter {
     return {
       version: VERSION,
       renderMode: RenderMode.SD,
-      maxAutoReplaySpeed: 1.5,
+      maxAutoReplaySpeed: 1.2,
       startPaused: false,
       language: supportedLanguages.includes(getEnvLocale())
         ? getEnvLocale()
@@ -160,28 +160,29 @@ export class Settings extends EventEmitter {
       observerLink: "",
       musicVolume: 0.01,
       soundVolume: 1,
-      antialias: true,
-      anisotropy: webGLCapabilities.anisotropy,
+      antialias: false,
+      anisotropy: 1,
+      pixelRatio: 1,
       maxAnisotropy: webGLCapabilities.anisotropy,
-      gamma: 2,
+      gamma: 1.2,
       shadows: ShadowLevel.High,
       keyPanSpeed: 0.5,
-      maxAzimuth: 1,
-      maxPolar: 1,
       twitch: "",
       countdownTimer: true,
       cameraStyle2dOrtho: true,
       cameraStyle3dOrtho: false,
       producerWindowPosition: ProducerWindowPosition.None,
       producerDockSize: 300,
-      gameAspect: GameAspect.Native,
+      gameAspect: GameAspect.Fit,
       fullscreen: true,
       enablePlayerScores: true,
+      hudEsportsStyle: true,
       showTooltips: true,
       cameraShake: 1,
       mapsRss: "",
       replaysRss: "",
       useCustomColors: false,
+      usePlayerColorUnitSelection: true,
       player1Color: "#ef4444",
       player2Color: "#3b82f6",
     };

@@ -1,5 +1,5 @@
 import React from "react";
-import { Raycaster, Vector2, AudioListener, Vector3 } from "three";
+import { Raycaster, Vector2, AudioListener, Vector3, AxesHelper } from "three";
 import {
   BWAPIUnitFromBuffer,
   BWAPIBulletFromBuffer,
@@ -72,12 +72,12 @@ export async function TitanReactorReplay(
     Math.floor(gameSurface.height / 30)
   );
 
-  const previewSurfaces = [
-    new CanvasTarget(),
-    new CanvasTarget(),
-    new CanvasTarget(),
-    new CanvasTarget(),
-  ];
+  // const previewSurfaces = [
+  //   new CanvasTarget(),
+  //   new CanvasTarget(),
+  //   new CanvasTarget(),
+  //   new CanvasTarget(),
+  // ];
 
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
@@ -102,6 +102,9 @@ export async function TitanReactorReplay(
   scene.add(cameras.minimapCameraHelper);
   cameras.control.setLookAt(0, 200, 1, 0, 0, 0, false);
   cameras.control.setConstraints();
+  cameras.control.initNumpadControls();
+  cameras.control.execNumpad(7);
+
   // cameras.control.setMapBoundary(mapWidth, mapHeight);
 
   // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
@@ -265,6 +268,9 @@ export async function TitanReactorReplay(
   let selectedUnits = [];
   let followingUnit = false;
 
+  const intersectAxesHelper = new AxesHelper(5);
+  scene.add(intersectAxesHelper);
+
   // #region mouse listener
   const mouseDownListener = (event) => {
     var raycaster = new Raycaster();
@@ -275,9 +281,17 @@ export async function TitanReactorReplay(
 
     const [width, height] = [gameSurface.width, gameSurface.height];
 
-    mouse.x = (event.clientX / width) * 2 - 1;
-    mouse.y = -(event.clientY / height) * 2 + 1;
+    mouse.x = (event.offsetX / width) * 2 - 1;
+    mouse.y = -(event.offsetY / height) * 2 + 1;
+    console.log(mouse, event.offsetX, event.offsetY, width, height);
+
     raycaster.setFromCamera(mouse, cameras.camera);
+
+    const intersectTerrain = raycaster.intersectObject(scene.terrain, false);
+    if (intersectTerrain.length) {
+      intersectAxesHelper.position.copy(intersectTerrain[0].point);
+      cameras.cinematicOptions.focalLength = intersectTerrain[0].distance;
+    }
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(units.getUnits(), true);
@@ -406,7 +420,7 @@ export async function TitanReactorReplay(
         {context.settings.producerWindowPosition !=
           ProducerWindowPosition.None && (
           <ProducerBar
-            previews={previewSurfaces}
+            // previews={previewSurfaces}
             gameSurface={gameSurface}
             position={context.settings.producerWindowPosition}
             size={context.settings.producerDockSize}
@@ -672,7 +686,7 @@ export async function TitanReactorReplay(
     units.cameraDirection.direction = cameras.getDirection32();
     units.setShear(cameras.getShear());
 
-    renderMan.setCanvas(gameSurface.canvas);
+    renderMan.setCanvasTarget(gameSurface);
 
     if (players[0].showPov && players[1].showPov) {
       players.forEach(({ camera }) => {
@@ -695,7 +709,9 @@ export async function TitanReactorReplay(
             0
           ) / selectedUnits.length;
 
-        cameras.control.moveTo(x, getTerrainY(x, z), z, true);
+        // cameras.control.moveTo(x, getTerrainY(x, z), z, true);
+        cameras.control.maxDistance = 40;
+        cameras.control.setTarget(x, getTerrainY(x, z), z, false);
 
         // cameras.control.setLookAt(
         //   x,
@@ -706,9 +722,13 @@ export async function TitanReactorReplay(
         //   z,
         //   true
         // );
+      } else {
+        cameras.control.maxDistance = 200;
       }
       if (cameras.useCinematicCamera) {
         const camera = cameras.cinematicCamera;
+        renderMan.renderer.toneMappingExposure =
+          context.settings.gamma + cameras.cinematicOptions.gammaBoost;
 
         camera.setLens(
           cameras.cinematicOptions.focalLength,
@@ -724,13 +744,15 @@ export async function TitanReactorReplay(
         camera.postprocessing.bokeh_uniforms["zfar"].value =
           cameras.cinematicOptions.far;
 
-        camera.focusAt(cameras.control.distance);
+        camera.focusAt(cameras.cinematicOptions.focalLength);
 
         camera.position.copy(cameras.camera.position);
         camera.rotation.copy(cameras.camera.rotation);
         camera.fov = cameras.camera.fov;
         renderMan.render(scene, camera);
       } else {
+        cameras.cinematicOptions.focalLength = cameras.control.distance;
+        renderMan.renderer.toneMappingExposure = context.settings.gamma;
         renderMan.render(scene, cameras.camera);
       }
     }
@@ -744,7 +766,7 @@ export async function TitanReactorReplay(
       (!replayPosition.skippingFrames() && replayPosition.bwGameFrame % 100) ||
       (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 1000)
     ) {
-      renderMan.setCanvas(minimapSurface.canvas);
+      renderMan.setCanvasTarget(minimapSurface);
       renderMan.renderer.clear();
 
       if (useMinimapPreview) {
@@ -752,10 +774,10 @@ export async function TitanReactorReplay(
       } else {
         renderMan.render(scene, cameras.minimapCamera);
 
-        const lastPreview = previewSurfaces[previewSurfaces.length - 1];
-        renderMan.setCanvas(lastPreview.canvas);
-        renderMan.renderer.clear();
-        renderMan.render(scene, cameras.previewCamera);
+        // const lastPreview = previewSurfaces[previewSurfaces.length - 1];
+        // renderMan.setCanvasTarget(lastPreview);
+        // renderMan.renderer.clear();
+        // renderMan.render(scene, cameras.previewCamera);
       }
     }
 

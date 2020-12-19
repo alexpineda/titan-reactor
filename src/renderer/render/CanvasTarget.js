@@ -5,11 +5,12 @@ class CanvasTarget {
     this.canvas = canvas;
   }
 
-  setDimensions(width, height) {
+  setDimensions(width, height, pixelRatio = 1) {
+    this.pixelRatio = pixelRatio;
     this.width = width;
     this.height = height;
-    this.scaledWidth = width * window.devicePixelRatio;
-    this.scaledHeight = height * window.devicePixelRatio;
+    this.scaledWidth = Math.floor(width * pixelRatio);
+    this.scaledHeight = Math.floor(height * pixelRatio);
     this.canvas.width = this.scaledWidth;
     this.canvas.height = this.scaledHeight;
     this.canvas.style.width = `${width}px`;
