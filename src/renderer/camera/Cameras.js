@@ -1,4 +1,4 @@
-import { is } from "ramda";
+import { is, range } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 import {
@@ -25,6 +25,17 @@ class Cameras {
     const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
     this.previewCamera = this._createCamera(aspect);
+    this.cinematicOptions = {
+      far: 1000,
+      focalDepth: 100,
+      focalLength: 40,
+      fstop: 20,
+      near: 0.2,
+      showFocus: 0,
+    };
+
+    this.cinematicCamera = this._initCinematicCamera(aspect);
+    this.useCinematicCamera = false;
 
     this.control = new CameraControls(
       this.camera,
@@ -40,11 +51,9 @@ class Cameras {
 
     this._delta = new Vector3();
 
-    let currentBasicShot = {};
-
     const constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
-      pol: [4, 12, 24].map((x) => (x * Math.PI) / 64),
+      pol: [4, 12, 20].map((x) => (x * Math.PI) / 64),
       fov: [22, 40, 65],
       dollyTo: [70, 30, 20],
       dollySpeed: [1, 0.5, 0.2],
@@ -53,7 +62,6 @@ class Cameras {
 
     const updateShot = (opts) => {
       const { azi, pol, fov, dollySpeed, dampingFactor, dollyTo } = opts;
-      console.log("camera", opts);
       if (is(Number, azi) && is(Number, pol)) {
         this.control.rotateTo(azi, pol, false);
       }
@@ -62,30 +70,17 @@ class Cameras {
         this.camera.updateProjectionMatrix();
       }
       if (is(Number, dollySpeed)) {
-        // this.control.dollySpeed = dollySpeed;
+        this.control.dollySpeed = dollySpeed;
       }
       if (is(Number, dampingFactor)) {
         this.control.dampingFactor = dampingFactor;
       }
-      if (is(Number, dampingFactor)) {
+      if (is(Number, dollyTo)) {
         this.control.dollyTo(dollyTo, false);
       }
     };
 
-    const getShotBasic = (h, v) => {
-      currentBasicShot.h = h;
-      currentBasicShot.v = v;
-      return getShotAdvanced({
-        azi: h,
-        pol: v,
-        fov: v,
-        dollySpeed: v,
-        dampingFactor: v,
-        dollyTo: v,
-      });
-    };
-
-    const getShotAdvanced = ({
+    const createShot = ({
       azi,
       pol,
       fov,
@@ -124,130 +119,78 @@ class Cameras {
       return v;
     };
 
-    const isPrevBasic = (h, v) =>
-      currentBasicShot.h === h && currentBasicShot.v === v;
+    this.constraints = constraints;
+    this.presets = {
+      Numpad0: {
+        azi: 0,
+        pol: 0,
+        fov: 0,
+        dollyTo: 110,
+      },
+      Numpad1: {
+        azi: 0,
+        pol: 0,
+        fov: 0,
+        dollyTo: 50,
+      },
+      Numpad2: {
+        azi: 0,
+        pol: 2,
+        fov: 1,
+        dollyTo: 1,
+      },
+      Numpad3: {
+        azi: 0,
+        pol: 2,
+        fov: 2,
+        dollyTo: 2,
+      },
+      Numpad4: {
+        azi: 0,
+        pol: 0,
+        fov: 0,
+        dollyTo: 60,
+      },
+      Numpad5: {
+        azi: 0,
+        pol: 1,
+        fov: 1,
+        dollyTo: 1,
+      },
+      Numpad6: {
+        azi: 0,
+        pol: 1,
+        fov: 2,
+        dollyTo: 2,
+      },
+      Numpad7: {
+        azi: 0,
+        pol: 0,
+        fov: 0,
+        dollyTo: 80,
+      },
+      Numpad8: {
+        azi: 0,
+        pol: 0,
+        fov: 1,
+        dollyTo: 45,
+      },
+      Numpad9: {
+        azi: 0,
+        pol: 0,
+        fov: 2,
+        dollyTo: 25,
+      },
+    };
 
     document.addEventListener("keypress", (evt) => {
-      switch (evt.code) {
-        case "Numpad0":
-          {
-            const shot = {
-              ...getShotBasic(0, 0),
-              dollyTo: 110,
-            };
-            updateShot(shot);
-          }
-          break;
-        case "Numpad1":
-          {
-            if (isPrevBasic(-1, 2)) {
-              updateShot({
-                ...getShotBasic(-2, 2),
-                dollyTo: constraints.dollyTo[1],
-              });
-            } else {
-              updateShot(getShotBasic(-1, 2));
-            }
-          }
-          break;
-
-        case "Numpad2":
-          {
-            updateShot({
-              ...getShotBasic(0, 2),
-              dollyTo: constraints.dollyTo[1],
-              pol: constraints.pol[0],
-            });
-          }
-          break;
-
-        case "Numpad3":
-          {
-            if (isPrevBasic(1, 2)) {
-              updateShot({
-                ...getShotBasic(2, 2),
-                dollyTo: constraints.dollyTo[1],
-              });
-            } else {
-              updateShot(getShotBasic(1, 2));
-            }
-          }
-          break;
-        case "Numpad4":
-          {
-            if (isPrevBasic(-1, 1)) {
-              // getShotBasic(-2, 1)
-              updateShot({
-                ...getShotBasic(-2, 1),
-                dollyTo: constraints.dollyTo[0],
-              });
-            } else {
-              updateShot(getShotBasic(-1, 1));
-            }
-          }
-          break;
-        case "Numpad5":
-          {
-            updateShot(getShotBasic(0, 1));
-          }
-          break;
-        case "Numpad6":
-          {
-            if (isPrevBasic(1, 1)) {
-              // getShotBasic(2, 1)
-              updateShot({
-                ...getShotBasic(2, 1),
-                dollyTo: constraints.dollyTo[0],
-              });
-            } else {
-              updateShot(getShotBasic(1, 1));
-            }
-          }
-          break;
-        case "Numpad7":
-          {
-            updateShot(
-              getShotAdvanced({
-                azi: 0,
-                pol: 0,
-                fov: 0,
-                dollySpeed: 0,
-                dampingFactor: 0,
-                dollyTo: 40,
-              })
-            );
-          }
-          break;
-        case "Numpad8":
-          {
-            updateShot(
-              getShotAdvanced({
-                azi: 0,
-                pol: 0,
-                fov: 0,
-                dollySpeed: 0,
-                dampingFactor: 0,
-                dollyTo: 60,
-              })
-            );
-          }
-          break;
-        case "Numpad9":
-          {
-            updateShot(
-              getShotAdvanced({
-                azi: 0,
-                pol: 0,
-                fov: 0,
-                dollySpeed: 0,
-                dampingFactor: 0,
-                dollyTo: 80,
-              })
-            );
-          }
-          break;
+      const numpads = range(0, 10).map((n) => `Numpad${n}`);
+      console.log(numpads);
+      if (numpads.includes(evt.code)) {
+        updateShot(createShot(this.presets[evt.code]));
       }
     });
+
     if (minimapControl) {
       this.minimapCamera = this._initMinimapCamera(
         minimapControl.mapWidth,
@@ -346,13 +289,11 @@ class Cameras {
   }
 
   _initPerspectiveCamera(aspect) {
-    return new PerspectiveCamera(22, aspect, 1, 1000);
+    return new PerspectiveCamera(22, aspect, 10, 200);
   }
 
   _initCinematicCamera(aspect) {
-    return new CinematicCamera(3, aspect, 1, 1000);
-    // setFocalLength
-    // filmGuage
+    return new CinematicCamera(3, aspect, 10, 200);
   }
 
   _initOrthoCamera() {
@@ -405,6 +346,7 @@ class Cameras {
       this.camera.bottom = (-16 * height) / m;
     } else {
       this.camera.aspect = width / height;
+      this.cinematicCamera.aspect = width / height;
     }
 
     this.camera.updateProjectionMatrix();

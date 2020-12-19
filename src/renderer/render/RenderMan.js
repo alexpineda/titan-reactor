@@ -39,7 +39,12 @@ class RenderMan {
   }
 
   _render(scene, camera) {
-    this.renderer.render(scene, camera);
+    if (camera.renderCinematic) {
+      camera.renderCinematic(scene, this.renderer);
+    } else {
+      scene.overrideMaterial = null;
+      this.renderer.render(scene, camera);
+    }
     this.canvas.getContext("2d").drawImage(this.renderer.domElement, 0, 0);
   }
 

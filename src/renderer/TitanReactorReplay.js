@@ -57,17 +57,9 @@ export async function TitanReactorReplay(
 
   const [mapWidth, mapHeight] = chk.size;
 
-  // const div = document.createElement("div");
-  // div.innerText = "&nbsp;";
-  // div.style.borderWidth = "10px";
-  // div.style.borderColor = "red";
-  // div.style.position = "absolute";
-  // div.style.width = `${context.gameScreenWidth}px`;
-  // div.style.height = `${context.gameScreenHeight}px`;
-  // document.body.appendChild(div);
-
   const renderMan = new RenderMan(context);
   renderMan.initRenderer();
+  window.renderMan = renderMan;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
 
@@ -502,6 +494,12 @@ export async function TitanReactorReplay(
   }
   replayPosition.maxFrame = replayPosition.readInt32AndAdvance();
 
+  document.addEventListener("keydown", (evt) => {
+    if (evt.code === "KeyZ") {
+      cameras.useCinematicCamera = !cameras.useCinematicCamera;
+    }
+  });
+
   function gameLoop() {
     uiUpdated = false;
 
@@ -709,7 +707,32 @@ export async function TitanReactorReplay(
         //   true
         // );
       }
-      renderMan.render(scene, cameras.camera);
+      if (cameras.useCinematicCamera) {
+        const camera = cameras.cinematicCamera;
+
+        camera.setLens(
+          cameras.cinematicOptions.focalLength,
+          camera.frameHeight,
+          cameras.cinematicOptions.fstop,
+          camera.coc
+        );
+        camera.postprocessing.bokeh_uniforms["showFocus"].value =
+          cameras.cinematicOptions.showFocus;
+
+        camera.postprocessing.bokeh_uniforms["znear"].value =
+          cameras.cinematicOptions.near;
+        camera.postprocessing.bokeh_uniforms["zfar"].value =
+          cameras.cinematicOptions.far;
+
+        camera.focusAt(cameras.control.distance);
+
+        camera.position.copy(cameras.camera.position);
+        camera.rotation.copy(cameras.camera.rotation);
+        camera.fov = cameras.camera.fov;
+        renderMan.render(scene, camera);
+      } else {
+        renderMan.render(scene, cameras.camera);
+      }
     }
 
     const useMinimapPreview =
