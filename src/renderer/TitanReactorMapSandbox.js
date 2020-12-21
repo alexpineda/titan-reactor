@@ -168,15 +168,15 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
     }
   );
 
-  gui.controllers.camera.rotate.onChange((val) => {
-    mainCamera.control.autoRotate = val;
-    // startLocations.forEach((sl) => (sl.visible = !val));
-    if (val) {
-      mainCamera.control.target = scene.terrain.position;
-    } else {
-      mainCamera.control.target = null;
-    }
-  });
+  // gui.controllers.camera.rotate.onChange((val) => {
+  //   mainCamera.control.autoRotate = val;
+  //   // startLocations.forEach((sl) => (sl.visible = !val));
+  //   if (val) {
+  //     mainCamera.control.target = scene.terrain.position;
+  //   } else {
+  //     mainCamera.control.target = null;
+  //   }
+  // });
 
   let cameraZoom = {
     start: 1,

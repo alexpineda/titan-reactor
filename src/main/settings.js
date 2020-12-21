@@ -112,7 +112,7 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    return { ...this._settings, errors, isDev };
+    return { ...this._settings, errors, isDev: false };
   }
 
   async load() {
@@ -166,6 +166,7 @@ export class Settings extends EventEmitter {
       maxAnisotropy: webGLCapabilities.anisotropy,
       gamma: 1.2,
       shadows: ShadowLevel.High,
+      shadowTextureSize: 0.5,
       keyPanSpeed: 0.5,
       twitch: "",
       countdownTimer: true,

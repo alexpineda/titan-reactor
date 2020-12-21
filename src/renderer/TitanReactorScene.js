@@ -33,6 +33,8 @@ export class TitanReactorScene extends Scene {
     gridHelper.material.transparent = true;
     gridHelper.material.opacity = 0.5;
     gridHelper.visible = false;
+    gridHelper.matrixAutoUpdate = false;
+    gridHelper.updateMatrix();
     this.add(gridHelper);
 
     const light = sunlight(w, h);
@@ -47,8 +49,12 @@ export class TitanReactorScene extends Scene {
       this.anisotropy
     );
     const terrain = await terrainMesh.generate(isDev);
+    terrain.matrixAutoUpdate = false;
+    terrain.updateMatrix();
     const bg = await bgMapCanvasTexture(this.chk);
     const bgTerrain = backgroundTerrainMesh(w, h, bg);
+    bgTerrain.matrixAutoUpdate = false;
+    bgTerrain.updateMatrix();
 
     this.add(terrain);
     this.add(bgTerrain);

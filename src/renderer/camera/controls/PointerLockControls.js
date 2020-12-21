@@ -1,5 +1,5 @@
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
-import InputEvents from "../input/InputEvents";
+import InputEvents from "../../input/InputEvents";
 
 class StandardPointerLockControls extends PointerLockControls {
   constructor(camera, domElement) {
@@ -56,3 +56,5 @@ class StandardPointerLockControls extends PointerLockControls {
     );
   }
 }
+
+export default StandardPointerLockControls;

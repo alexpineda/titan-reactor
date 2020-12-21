@@ -1,8 +1,8 @@
 import CameraControls from "camera-controls";
 import { is, range } from "ramda";
 import * as THREE from "three";
-import CameraShake from "./CameraShake";
-import InputEvents from "../input/InputEvents";
+import CameraShake from "../CameraShake";
+import InputEvents from "../../input/InputEvents";
 
 CameraControls.install({ THREE });
 
@@ -14,28 +14,34 @@ class StandardCameraControls extends CameraControls {
     this.mouseButtons.right = CameraControls.ACTION.TRUCK;
     this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
     this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+    this.keyboardTruckingEnabled = true;
 
     keyboardShortcuts.addEventListener(
       InputEvents.TruckLeft,
       ({ message: delta }) => {
+        if (!this.keyboardTruckingEnabled) return;
         this.truck(-0.02 * delta, 0, true);
       }
     );
     keyboardShortcuts.addEventListener(
       InputEvents.TruckRight,
       ({ message: delta }) => {
+        if (!this.keyboardTruckingEnabled) return;
+
         this.truck(0.02 * delta, 0, true);
       }
     );
     keyboardShortcuts.addEventListener(
       InputEvents.MoveForward,
       ({ message: delta }) => {
+        if (!this.keyboardTruckingEnabled) return;
         this.forward(0.02 * delta, true);
       }
     );
     keyboardShortcuts.addEventListener(
       InputEvents.MoveBackward,
       ({ message: delta }) => {
+        if (!this.keyboardTruckingEnabled) return;
         this.forward(-0.02 * delta, true);
       }
     );

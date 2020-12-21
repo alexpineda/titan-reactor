@@ -145,7 +145,7 @@ export class Units {
       if (minimapPoint) {
         unit.add(minimapPoint);
       } else {
-        debugger;
+        console.log(`no minimap point for ${unit.userData.current.typeId}`);
       }
     }
 

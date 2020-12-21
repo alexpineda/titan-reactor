@@ -2,8 +2,6 @@ import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 
-// import { FirstPersonControls } from "../utils/FirstPersonControls";
-
 import {
   MinimapLayer,
   MinimapUnitLayer,
@@ -11,7 +9,7 @@ import {
   MinimapFogLayer,
 } from "./Layers";
 import MinimapCameraHelper from "./MinimapCameraHelper";
-import StandardCameraControls from "./StandardCameraControls";
+import StandardCameraControls from "./controls/StandardCameraControls";
 
 export const CameraControlType = {
   none: 0,
@@ -45,7 +43,8 @@ class Cameras {
       gammaBoost: 1.5,
     };
 
-    this.cinematicCamera = this._initCinematicCamera(aspect);
+    this.cinematicCamera = this._createCamera(aspect); //this._initCinematicCamera(aspect);
+    this.cinematicCamera.renderCinematic = true;
 
     this.control = new StandardCameraControls(
       this.camera,
@@ -164,26 +163,19 @@ class Cameras {
 
   setActiveCamera(camera) {
     if (camera === this.cinematicCamera) {
-      this.cinematicOptions.focalLength = this.control.distance;
+      // this.cinematicOptions.focalLength = this.control.distance;
 
-      this.renderMan.renderer.toneMappingExposure =
-        this.context.settings.gamma + this.cinematicOptions.gammaBoost;
-      this.firstPersonControls.connect();
-      this.firstPersonControls.lock();
-      this.control.enabled = false;
+      // this.renderMan.renderer.toneMappingExposure =
+      //   this.context.settings.gamma + this.cinematicOptions.gammaBoost;
+      // this.control.enabled = false;
 
-      this.cinematicCamera.position.copy(this.camera.position);
-      this.cinematicCamera.rotation.copy(this.camera.rotation);
-      this.cinematicCamera.fov = this.camera.fov;
       if (this.minimapControl) {
         this.cinematicCameraHelper.visible = true;
         this.minimapCameraHelper.visible = false;
       }
     } else {
-      this.renderMan.renderer.toneMappingExposure = this.context.settings.gamma;
-      this.firstPersonControls.unlock();
-      this.firstPersonControls.disconnect();
-      this.control.enabled = true;
+      // this.renderMan.renderer.toneMappingExposure = this.context.settings.gamma;
+      // this.control.enabled = true;
 
       if (this.minimapControl) {
         this.cinematicCameraHelper.visible = false;
@@ -211,13 +203,12 @@ class Cameras {
   }
 
   _initMinimapCamera(mapWidth, mapHeight) {
-    const dim = Math.max(mapWidth, mapHeight);
-
+    const maxDim = Math.max(mapWidth, mapHeight);
     const camera = new OrthographicCamera(
-      -mapWidth / 2,
-      mapWidth / 2,
-      mapHeight / 2,
-      -mapHeight / 2,
+      -maxDim / 2,
+      maxDim / 2,
+      maxDim / 2,
+      -maxDim / 2,
       0.1,
       130
     );
@@ -240,7 +231,10 @@ class Cameras {
     const delta = this.controlClock.getDelta();
     this.control.update(delta);
     this.previewControl.update(delta);
-    // this.firstPersonControls.update(delta);
+
+    this.cinematicCamera.position.copy(this.camera.position);
+    this.cinematicCamera.rotation.copy(this.camera.rotation);
+    this.cinematicCamera.fov = this.camera.fov;
   }
 
   updateGameScreenAspect(width, height) {

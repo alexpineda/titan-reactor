@@ -1,6 +1,6 @@
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import { FlyControls } from "three/examples/jsm/controls/FlyControls";
-import { FirstPersonControls } from "../utils/FirstPersonControls";
+import { FirstPersonControls } from "../../utils/FirstPersonControls";
 import StandardCameraControls from "./StandardCameraControls";
 
 class CameraControl {
@@ -11,6 +11,12 @@ class CameraControl {
     this._numpad = null;
     this._fly = null;
   }
+
+  //enable
+  //disable
+  //set
+  //enableAll
+  //disableAll
 
   attach(camera, domElement) {
     if (this.camera || this.domElement) {
@@ -25,13 +31,15 @@ class CameraControl {
   }
 
   standard(enabled = true) {
-    if (this._standard) {
-      if (!enabled) {
+    if (enabled === false) {
+      if (this._standard) {
         this._standard.dispose();
       }
       return;
     }
-    this._standard = new StandardCameraControls(this.camera, this.domElement);
+    this._standard =
+      this._standard ||
+      new StandardCameraControls(this.camera, this.domElement);
     return this._standard;
   }
 
@@ -58,7 +66,7 @@ class CameraControl {
 
   detach(type) {
     if (this._standard && (!type || type === this.standard)) {
-      this._standard.dispose();
+      this.standard(false);
     }
 
     if (this._fps && (!type || type === this.fps)) {

@@ -67,17 +67,6 @@ export async function TitanReactorReplay(
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
   const minimapSurface = new CanvasTarget();
-  minimapSurface.setDimensions(
-    Math.floor(gameSurface.height / context.settings.minimapRatio / 100),
-    Math.floor(gameSurface.height / context.settings.minimapRatio / 100)
-  );
-
-  // const previewSurfaces = [
-  //   new CanvasTarget(),
-  //   new CanvasTarget(),
-  //   new CanvasTarget(),
-  //   new CanvasTarget(),
-  // ];
 
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
@@ -87,7 +76,6 @@ export async function TitanReactorReplay(
     mapHeight,
     keyboardShortcuts
   );
-  minimapControl.setConstraints();
 
   scene.add(
     createMiniMapPlane(scene.terrain.material.map, mapWidth, mapHeight)
@@ -145,6 +133,7 @@ export async function TitanReactorReplay(
     {}
   );
   scene.add(units.units);
+  units.units.renderOrder = 1;
 
   let replayPosition = new ReplayPosition(
     BWAPIFramesDataView,
@@ -245,19 +234,6 @@ export async function TitanReactorReplay(
     ev(k.ToggleUnitInformation, () => {
       hudData.onUnitDetails();
     });
-
-    // ev(k.TruckLeft, ({ message: delta }) => {
-    //   cameras.control.truck(-0.02 * delta, 0, true);
-    // });
-    // ev(k.TruckRight, ({ message: delta }) => {
-    //   cameras.control.truck(0.02 * delta, 0, true);
-    // });
-    // ev(k.MoveForward, ({ message: delta }) => {
-    //   cameras.control.forward(0.02 * delta, true);
-    // });
-    // ev(k.MoveBackward, ({ message: delta }) => {
-    //   cameras.control.forward(-0.02 * delta, true);
-    // });
   }
   // #endregion keyboard shortcuts
 
@@ -704,53 +680,14 @@ export async function TitanReactorReplay(
 
         cameras.setTarget(x, getTerrainY(x, z), z, true);
       }
-      if (cameras.activeCamera === cameras.cinematicCamera) {
-        const camera = cameras.cinematicCamera;
-        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
 
-        const intersectTerrain = raycaster.intersectObject(
-          scene.terrain,
-          false
-        );
-
-        if (intersectTerrain.length) {
-          cameras.cinematicOptions.focalLength = intersectTerrain[0].distance;
-          audioListener.position.lerpVectors(
-            intersectTerrain[0].point,
-            cameras.cinematicCamera.position,
-            0.5
-          );
-          intersectAxesHelper.position.copy(audioListener.position);
-          // audioListener.position.copy(cameras.cinematicCamera.position);
-        } else {
-          audioListener.position.copy(cameras.cinematicCamera.position);
-        }
-
-        camera.setLens(
-          cameras.cinematicOptions.focalLength,
-          camera.frameHeight,
-          cameras.cinematicOptions.fstop,
-          camera.coc
-        );
-        camera.postprocessing.bokeh_uniforms["showFocus"].value =
-          cameras.cinematicOptions.showFocus;
-
-        camera.postprocessing.bokeh_uniforms["znear"].value =
-          cameras.cinematicOptions.near;
-        camera.postprocessing.bokeh_uniforms["zfar"].value =
-          cameras.cinematicOptions.far;
-
-        camera.focusAt(cameras.cinematicOptions.focalLength);
-        renderMan.render(scene, camera);
-      } else {
-        audioListener.position.lerpVectors(
-          cameras.getTarget(),
-          cameras.camera.position,
-          0.5
-        );
-        intersectAxesHelper.position.copy(audioListener.position);
-        renderMan.render(scene, cameras.camera);
-      }
+      audioListener.position.lerpVectors(
+        cameras.getTarget(),
+        cameras.camera.position,
+        0.5
+      );
+      intersectAxesHelper.position.copy(audioListener.position);
+      renderMan.render(scene, cameras.activeCamera);
     }
 
     const useMinimapPreview =
@@ -769,11 +706,6 @@ export async function TitanReactorReplay(
         renderMan.render(scene, cameras.previewCamera);
       } else {
         renderMan.render(scene, cameras.minimapCamera);
-
-        // const lastPreview = previewSurfaces[previewSurfaces.length - 1];
-        // renderMan.setCanvasTarget(lastPreview);
-        // renderMan.renderer.clear();
-        // renderMan.render(scene, cameras.previewCamera);
       }
     }
 

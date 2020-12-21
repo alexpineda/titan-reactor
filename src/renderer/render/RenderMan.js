@@ -8,11 +8,28 @@ import {
   Vector4,
 } from "three";
 // import { log } from "../invoke";
+
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass";
+
 const log = () => {};
 class RenderMan {
   constructor(context) {
     this.context = context;
     this.renderer = null;
+
+    this.bokehOptions = {
+      aperture: 15,
+      focus: 20,
+      maxblur: 1,
+    };
+
+    // const gui = new GUI();
+    // gui.add( effectController, "focus", 10.0, 3000.0, 10 ).onChange( matChanger );
+    // gui.add( effectController, "aperture", 0, 10, 0.1 ).onChange( matChanger );
+    // gui.add( effectController, "maxblur", 0.0, 0.01, 0.001 ).onChange( matChanger );
+    // gui.close();
   }
 
   setShadowLevel(shadowLevel) {
@@ -29,6 +46,9 @@ class RenderMan {
     this.canvasTarget = canvasTarget;
     this.renderer.setPixelRatio(canvasTarget.pixelRatio);
     this.renderer.setSize(canvasTarget.width, canvasTarget.height, false);
+    this.renderer.setViewport(
+      new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
+    );
   }
 
   renderSplitScreen(scene, camera, viewport) {
@@ -39,11 +59,37 @@ class RenderMan {
     this.renderer.setScissorTest(false);
   }
 
+  _initPostProcessing(scene, camera) {
+    this._renderPass = new RenderPass(scene, camera);
+
+    this._bokehPass = new BokehPass(scene, camera, {
+      aperture: 15,
+      focus: 20,
+      maxblur: 1,
+
+      width: this.canvasTarget.width,
+      height: this.canvasTarget.height,
+    });
+
+    this._composer = new EffectComposer(this.renderer);
+
+    this._composer.addPass(this._renderPass);
+    this._composer.addPass(this._bokehPass);
+
+    this._composer.setSize(this.canvasTarget.width, this.canvasTarget.height);
+  }
+
   _render(scene, camera) {
     if (camera.renderCinematic) {
-      camera.renderCinematic(scene, this.renderer);
+      if (!this._composer) {
+        this._initPostProcessing(scene, camera);
+      }
+      this._bokehPass.uniforms["focus"].value = this.bokehOptions.focus;
+      this._bokehPass.uniforms["aperture"].value =
+        this.bokehOptions.aperture * 0.00001;
+      this._bokehPass.uniforms["maxblur"].value = this.bokehOptions.maxblur;
+      this._composer.render(0.1);
     } else {
-      scene.overrideMaterial = null;
       this.renderer.render(scene, camera);
     }
     this.canvasTarget.canvas
@@ -51,17 +97,7 @@ class RenderMan {
       .drawImage(this.renderer.domElement, 0, 0);
   }
 
-  render(
-    scene,
-    camera,
-    viewport = new Vector4(
-      0,
-      0,
-      this.canvasTarget.width,
-      this.canvasTarget.height
-    )
-  ) {
-    this.renderer.setViewport(viewport);
+  render(scene, camera) {
     this._render(scene, camera);
   }
 
@@ -77,6 +113,9 @@ class RenderMan {
     renderer.toneMappingExposure = this.context.settings.gamma;
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
+
+    renderer.debug.checkShaderErrors = this.context.settings.isDev;
+
     return renderer;
   }
 

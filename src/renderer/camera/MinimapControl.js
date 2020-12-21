@@ -4,6 +4,7 @@ import {
   MeshBasicMaterial,
   PlaneBufferGeometry,
   Vector3,
+  MathUtils,
 } from "three";
 import { MinimapLayer, MinimapUnitLayer } from "./Layers";
 
@@ -24,16 +25,30 @@ class MinimapControl extends EventDispatcher {
     this._enableDragging = enable;
   }
 
-  setConstraints(settings) {}
-
   // @todo modify this to account for map aspect ratio
   _attach() {
+    const max = Math.max(this.mapWidth, this.mapHeight);
+    const wAspect = this.mapWidth / max;
+    const hAspect = this.mapHeight / max;
+
+    const getX = (mouseX) =>
+      MathUtils.clamp(
+        (mouseX - this.surface.width / 2) / this.surface.width / wAspect,
+        -0.5,
+        0.5
+      ) * this.mapWidth;
+
+    const getY = (mouseY) =>
+      MathUtils.clamp(
+        (mouseY - this.surface.height / 2) / this.surface.height / hAspect,
+        -0.5,
+        0.5
+      ) * this.mapHeight;
+
     this.surface.canvas.addEventListener("mousedown", (e) => {
       if (!this._enableDragging) return;
-      const x =
-        e.offsetX * (this.mapWidth / this.surface.width) - this.mapWidth / 2;
-      const y =
-        e.offsetY * (this.mapHeight / this.surface.height) - this.mapHeight / 2;
+      const x = getX(e.offsetX);
+      const y = getY(e.offsetY);
 
       const pos = new Vector3(x, 0, y);
 
@@ -50,10 +65,8 @@ class MinimapControl extends EventDispatcher {
     });
 
     this.surface.canvas.addEventListener("mousemove", (e) => {
-      const x =
-        e.offsetX * (this.mapWidth / this.surface.width) - this.mapWidth / 2;
-      const y =
-        e.offsetY * (this.mapHeight / this.surface.height) - this.mapHeight / 2;
+      const x = getX(e.offsetX);
+      const y = getY(e.offsetY);
 
       const pos = new Vector3(x, 0, y);
 

@@ -49,7 +49,7 @@ class BgMusic {
 
   setVolume(volume) {
     this.volume = volume * 0.2;
-    this.audio.setVolume(volume);
+    this.audio.setVolume(this.volume);
     if (volume < 0.05 && this.audio.isPlaying) {
       this.audio.stop();
     } else if (volume > 0.05 && !this.audio.isPlaying) {
