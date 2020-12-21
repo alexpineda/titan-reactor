@@ -120,11 +120,12 @@ app.on("ready", async () => {
   });
 
   ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
-    return await settings.init(webGLCapabilities);
+    await settings.init(webGLCapabilities);
+    const s = await settings.get();
+    updateFullScreen(s.fullscreen);
   });
 
   createWindow();
-  updateFullScreen(settings.fullscreen);
 });
 
 app.on("window-all-closed", () => {

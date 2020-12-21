@@ -68,8 +68,8 @@ export async function TitanReactorReplay(
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.setDimensions(
-    Math.floor(gameSurface.height / 30),
-    Math.floor(gameSurface.height / 30)
+    Math.floor(gameSurface.height / context.settings.minimapRatio / 100),
+    Math.floor(gameSurface.height / context.settings.minimapRatio / 100)
   );
 
   // const previewSurfaces = [
@@ -95,17 +95,13 @@ export async function TitanReactorReplay(
 
   const cameras = new Cameras(
     context,
+    renderMan,
     gameSurface,
     minimapControl,
     keyboardShortcuts
   );
   scene.add(cameras.minimapCameraHelper);
-  cameras.control.setLookAt(0, 200, 1, 0, 0, 0, false);
-  cameras.control.setConstraints();
-  cameras.control.initNumpadControls();
-  cameras.control.execNumpad(7);
-
-  // cameras.control.setMapBoundary(mapWidth, mapHeight);
+  scene.add(cameras.cinematicCameraHelper);
 
   // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
   // scene.add(cubeCamera);
@@ -250,18 +246,18 @@ export async function TitanReactorReplay(
       hudData.onUnitDetails();
     });
 
-    ev(k.TruckLeft, ({ message: delta }) => {
-      cameras.control.truck(-0.02 * delta, 0, true);
-    });
-    ev(k.TruckRight, ({ message: delta }) => {
-      cameras.control.truck(0.02 * delta, 0, true);
-    });
-    ev(k.MoveForward, ({ message: delta }) => {
-      cameras.control.forward(0.02 * delta, true);
-    });
-    ev(k.MoveBackward, ({ message: delta }) => {
-      cameras.control.forward(-0.02 * delta, true);
-    });
+    // ev(k.TruckLeft, ({ message: delta }) => {
+    //   cameras.control.truck(-0.02 * delta, 0, true);
+    // });
+    // ev(k.TruckRight, ({ message: delta }) => {
+    //   cameras.control.truck(0.02 * delta, 0, true);
+    // });
+    // ev(k.MoveForward, ({ message: delta }) => {
+    //   cameras.control.forward(0.02 * delta, true);
+    // });
+    // ev(k.MoveBackward, ({ message: delta }) => {
+    //   cameras.control.forward(-0.02 * delta, true);
+    // });
   }
   // #endregion keyboard shortcuts
 
@@ -269,11 +265,12 @@ export async function TitanReactorReplay(
   let followingUnit = false;
 
   const intersectAxesHelper = new AxesHelper(5);
-  scene.add(intersectAxesHelper);
+  // scene.add(intersectAxesHelper);
+
+  const raycaster = new Raycaster();
 
   // #region mouse listener
   const mouseDownListener = (event) => {
-    var raycaster = new Raycaster();
     var mouse = new Vector2();
 
     // calculate mouse position in normalized device coordinates
@@ -283,14 +280,15 @@ export async function TitanReactorReplay(
 
     mouse.x = (event.offsetX / width) * 2 - 1;
     mouse.y = -(event.offsetY / height) * 2 + 1;
-    console.log(mouse, event.offsetX, event.offsetY, width, height);
 
-    raycaster.setFromCamera(mouse, cameras.camera);
+    raycaster.setFromCamera(mouse, cameras.activeCamera);
 
     const intersectTerrain = raycaster.intersectObject(scene.terrain, false);
     if (intersectTerrain.length) {
       intersectAxesHelper.position.copy(intersectTerrain[0].point);
-      cameras.cinematicOptions.focalLength = intersectTerrain[0].distance;
+      // if (cameras.activeCamera == cameras.cinematicCamera) {
+      //   cameras.cinematicOptions.focalDepth = intersectTerrain[0].distance * 3;
+      // }
     }
 
     // calculate objects intersecting the picking ray
@@ -388,7 +386,7 @@ export async function TitanReactorReplay(
         ).length;
 
         players.forEach(({ camera }) =>
-          camera.updateGameScreenAspect(window.innerWidth, window.innerHeight)
+          camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
         );
 
         cameras.enableControls(players.activePovs === 0);
@@ -485,8 +483,8 @@ export async function TitanReactorReplay(
       camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
     );
     minimapSurface.setDimensions(
-      Math.floor(gameSurface.height * 0.3),
-      Math.floor(gameSurface.height * 0.3)
+      Math.floor((gameSurface.height * context.settings.minimapRatio) / 100),
+      Math.floor((gameSurface.height * context.settings.minimapRatio) / 100)
     );
     cameras.updatePreviewScreenAspect(
       minimapSurface.width,
@@ -510,7 +508,11 @@ export async function TitanReactorReplay(
 
   document.addEventListener("keydown", (evt) => {
     if (evt.code === "KeyZ") {
-      cameras.useCinematicCamera = !cameras.useCinematicCamera;
+      if (cameras.activeCamera === cameras.cinematicCamera) {
+        cameras.setActiveCamera(cameras.camera);
+      } else {
+        cameras.setActiveCamera(cameras.cinematicCamera);
+      }
     }
   });
 
@@ -523,15 +525,6 @@ export async function TitanReactorReplay(
 
     replayPosition.update();
     cameras.update();
-
-    {
-      //   const delta = new Vector3();
-      const target = new Vector3();
-      cameras.control.getTarget(target);
-      //   delta.subVectors(target, cameras.camera.position).divideScalar(2);
-      //   audioListener.position.addVectors(target, delta);
-      audioListener.position.copy(target);
-    }
 
     if (!replayPosition.paused) {
       debugInfo.clear();
@@ -709,26 +702,29 @@ export async function TitanReactorReplay(
             0
           ) / selectedUnits.length;
 
-        // cameras.control.moveTo(x, getTerrainY(x, z), z, true);
-        cameras.control.maxDistance = 40;
-        cameras.control.setTarget(x, getTerrainY(x, z), z, false);
-
-        // cameras.control.setLookAt(
-        //   x,
-        //   getTerrainY(x, z) + 40,
-        //   z + 10,
-        //   x,
-        //   getTerrainY(x, z),
-        //   z,
-        //   true
-        // );
-      } else {
-        cameras.control.maxDistance = 200;
+        cameras.setTarget(x, getTerrainY(x, z), z, true);
       }
-      if (cameras.useCinematicCamera) {
+      if (cameras.activeCamera === cameras.cinematicCamera) {
         const camera = cameras.cinematicCamera;
-        renderMan.renderer.toneMappingExposure =
-          context.settings.gamma + cameras.cinematicOptions.gammaBoost;
+        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+
+        const intersectTerrain = raycaster.intersectObject(
+          scene.terrain,
+          false
+        );
+
+        if (intersectTerrain.length) {
+          cameras.cinematicOptions.focalLength = intersectTerrain[0].distance;
+          audioListener.position.lerpVectors(
+            intersectTerrain[0].point,
+            cameras.cinematicCamera.position,
+            0.5
+          );
+          intersectAxesHelper.position.copy(audioListener.position);
+          // audioListener.position.copy(cameras.cinematicCamera.position);
+        } else {
+          audioListener.position.copy(cameras.cinematicCamera.position);
+        }
 
         camera.setLens(
           cameras.cinematicOptions.focalLength,
@@ -745,14 +741,14 @@ export async function TitanReactorReplay(
           cameras.cinematicOptions.far;
 
         camera.focusAt(cameras.cinematicOptions.focalLength);
-
-        camera.position.copy(cameras.camera.position);
-        camera.rotation.copy(cameras.camera.rotation);
-        camera.fov = cameras.camera.fov;
         renderMan.render(scene, camera);
       } else {
-        cameras.cinematicOptions.focalLength = cameras.control.distance;
-        renderMan.renderer.toneMappingExposure = context.settings.gamma;
+        audioListener.position.lerpVectors(
+          cameras.getTarget(),
+          cameras.camera.position,
+          0.5
+        );
+        intersectAxesHelper.position.copy(audioListener.position);
         renderMan.render(scene, cameras.camera);
       }
     }
@@ -809,7 +805,7 @@ export async function TitanReactorReplay(
   renderMan.renderer.setAnimationLoop(gameLoop);
 
   if (context.settings.startPaused) {
-    //run first frame
+    //@todo run first frame
   } else {
     replayPosition.resume();
   }

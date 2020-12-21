@@ -4,7 +4,7 @@ import * as THREE from "three";
 import CameraShake from "./CameraShake";
 import InputEvents from "../input/InputEvents";
 
-CameraControls.install({ THREE: THREE });
+CameraControls.install({ THREE });
 
 class StandardCameraControls extends CameraControls {
   constructor(camera, domElement, keyboardShortcuts) {
@@ -208,12 +208,13 @@ class StandardCameraControls extends CameraControls {
       },
     };
 
-    document.addEventListener("keypress", (evt) => {
+    this._keypressListener = (evt) => {
       const numpads = range(0, 10).map((n) => `Numpad${n}`);
       if (numpads.includes(evt.code)) {
         updateShot(createShot(this.presets[evt.code]));
       }
-    });
+    };
+    document.addEventListener("keypress", this._keypressListener);
 
     this._createShot = createShot;
     this._updateShot = updateShot;
@@ -226,18 +227,15 @@ class StandardCameraControls extends CameraControls {
     this._execNumpad(`Numpad${numpadKey}`);
   }
 
-  startFollowUnit() {}
-
-  followUnit() {}
-
   shake(strength) {
     if (this.cameraShake.isShaking) return;
     this.cameraShake.strength = strength;
     this.cameraShake.shake();
   }
 
-  resetCamera() {
-    this.setLookAt(0, 100, 1, 0, 0, 0, false);
+  dispose() {
+    document.removeEventListener("keypress", this._keypressListener);
+    super.dispose();
   }
 }
 

@@ -248,6 +248,19 @@ export default ({
             />
           }
         />
+        <Option
+          label={lang["SETTINGS_CLASSIC_HUD_STYLE"]}
+          toggle={
+            <Toggle
+              value={settings.classicHudStyle}
+              onChange={() =>
+                updateSettings({
+                  classicHudStyle: !settings.classicHudStyle,
+                })
+              }
+            />
+          }
+        />
       </Tab>
 
       <Tab tabName={Tabs.Advanced} activeTab={tab}>
@@ -477,23 +490,23 @@ export default ({
         <Option label={lang["SETTINGS_GRAPHICS_SHADOWS"]}>
           <ButtonSetContainer>
             <ButtonSet
-              selected={!settings.shadows}
+              selected={settings.shadows === ShadowLevel.Off}
               label={lang["BUTTON_OFF"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.Off })}
               first
             />
             <ButtonSet
-              selected={!settings.shadows}
+              selected={settings.shadows === ShadowLevel.Low}
               label={lang["BUTTON_LOW"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.Low })}
             />
             <ButtonSet
-              selected={!settings.shadows}
+              selected={settings.shadows === ShadowLevel.Medium}
               label={lang["BUTTON_MED"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.Medium })}
             />
             <ButtonSet
-              selected={settings.shadows}
+              selected={settings.shadows === ShadowLevel.High}
               label={lang["BUTTON_HIGH"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.High })}
               last
@@ -501,7 +514,7 @@ export default ({
           </ButtonSetContainer>
         </Option>
 
-        <Option
+        {/* <Option
           label={lang["SETTINGS_GRAPHICS_ANISOTROPY"]}
           value={settings.anisotropy}
         >
@@ -517,9 +530,7 @@ export default ({
               });
             }}
           />
-        </Option>
-
-        <Option label={lang["SETTINGS_GRAPHICS_RESOLUTION"]}></Option>
+        </Option> */}
       </Tab>
 
       <Tab tabName={Tabs.Integrations} activeTab={tab}>

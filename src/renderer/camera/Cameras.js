@@ -1,6 +1,9 @@
 import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
+
+// import { FirstPersonControls } from "../utils/FirstPersonControls";
+
 import {
   MinimapLayer,
   MinimapUnitLayer,
@@ -19,8 +22,15 @@ export const CameraControlType = {
 };
 
 class Cameras {
-  constructor(context, gameSurface, minimapControl, keyboardShortcuts) {
+  constructor(
+    context,
+    renderMan,
+    gameSurface,
+    minimapControl,
+    keyboardShortcuts
+  ) {
     this.context = context;
+    this.renderMan = renderMan;
     this.gameSurface = gameSurface;
     const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
@@ -36,18 +46,22 @@ class Cameras {
     };
 
     this.cinematicCamera = this._initCinematicCamera(aspect);
-    this.useCinematicCamera = false;
 
     this.control = new StandardCameraControls(
       this.camera,
       gameSurface.canvas,
       keyboardShortcuts
     );
+    this.control.setConstraints();
+    this.control.initNumpadControls();
+    this.control.execNumpad(7);
+
     this.previewControl = new StandardCameraControls(
       this.previewCamera,
       gameSurface.canvas,
       keyboardShortcuts
     );
+
     this.controlClock = new Clock();
 
     this._delta = new Vector3();
@@ -58,7 +72,12 @@ class Cameras {
         minimapControl.mapHeight
       );
       this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
-      this.minimapCameraHelper.layers.enable(MinimapLayer);
+      this.minimapCameraHelper.layers.set(MinimapLayer);
+
+      this.cinematicCameraHelper = new MinimapCameraHelper(
+        this.cinematicCamera
+      );
+      this.cinematicCameraHelper.layers.set(MinimapLayer);
 
       //start-drag update-drag stop-drag
       //start-preview update-preview stop-preview
@@ -140,9 +159,39 @@ class Cameras {
       // });
     }
 
-    this.resetMainCamera();
+    this.setActiveCamera(this.camera);
   }
 
+  setActiveCamera(camera) {
+    if (camera === this.cinematicCamera) {
+      this.cinematicOptions.focalLength = this.control.distance;
+
+      this.renderMan.renderer.toneMappingExposure =
+        this.context.settings.gamma + this.cinematicOptions.gammaBoost;
+      this.firstPersonControls.connect();
+      this.firstPersonControls.lock();
+      this.control.enabled = false;
+
+      this.cinematicCamera.position.copy(this.camera.position);
+      this.cinematicCamera.rotation.copy(this.camera.rotation);
+      this.cinematicCamera.fov = this.camera.fov;
+      if (this.minimapControl) {
+        this.cinematicCameraHelper.visible = true;
+        this.minimapCameraHelper.visible = false;
+      }
+    } else {
+      this.renderMan.renderer.toneMappingExposure = this.context.settings.gamma;
+      this.firstPersonControls.unlock();
+      this.firstPersonControls.disconnect();
+      this.control.enabled = true;
+
+      if (this.minimapControl) {
+        this.cinematicCameraHelper.visible = false;
+        this.minimapCameraHelper.visible = true;
+      }
+    }
+    this.activeCamera = camera;
+  }
   _createCamera(aspect) {
     return this._initPerspectiveCamera(aspect);
     // this.context.settings.orthoCamera
@@ -150,11 +199,11 @@ class Cameras {
   }
 
   _initPerspectiveCamera(aspect) {
-    return new PerspectiveCamera(22, aspect, 6, 256);
+    return new PerspectiveCamera(22, aspect, 3, 256);
   }
 
   _initCinematicCamera(aspect) {
-    return new CinematicCamera(3, aspect, 6, 256);
+    return new CinematicCamera(3, aspect, 0.1, 256);
   }
 
   _initOrthoCamera() {
@@ -188,13 +237,10 @@ class Cameras {
   }
 
   update() {
-    this.control.update(this.controlClock.getDelta());
-    this.previewControl.update(this.controlClock.getDelta());
-  }
-
-  resetMainCamera() {
-    this.camera.position.set(0, 100, 0);
-    this.camera.lookAt(new Vector3());
+    const delta = this.controlClock.getDelta();
+    this.control.update(delta);
+    this.previewControl.update(delta);
+    // this.firstPersonControls.update(delta);
   }
 
   updateGameScreenAspect(width, height) {
@@ -220,14 +266,12 @@ class Cameras {
 
   getShear() {
     const delta = new Vector3();
-    const target = new Vector3();
-    this.control.getTarget(target);
+    const target = this.getTarget();
     return delta.subVectors(this.camera.position, target);
   }
 
   getDirection32() {
-    const target = new Vector3();
-    this.control.getTarget(target);
+    const target = this.getTarget();
     const adj = target.z - this.camera.position.z;
     const opp = target.x - this.camera.position.x;
     const a = Math.atan2(opp, adj) / Math.PI;
@@ -238,9 +282,27 @@ class Cameras {
     }
   }
 
+  getActiveCamera() {
+    return this.activeCamera;
+  }
+
+  getTarget() {
+    const target = new Vector3();
+    this.control.getTarget(target);
+    return target;
+  }
+
+  setTarget(x, y, z, enableTransition = false) {
+    this.control.setTarget(x, y, z, enableTransition);
+  }
+
   dispose() {
     this.control.dispose();
     this.previewControl.dispose();
+    this.gameSurface.canvas.removeEventListener(
+      "wheel",
+      this._fpControlsListener
+    );
   }
 }
 

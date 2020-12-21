@@ -45,6 +45,7 @@
     "SETTINGS_GRAPHICS_GAMMA": "Gamma",
     "SETTINGS_GRAPHICS_FULLSCREEN": "Fullscreen (Windowed)",
     "SETTINGS_ENABLE_PLAYER_SCORES": "Enable Player Scores",
+    "SETTINGS_CLASSIC_HUD_STYLE": "Classic HUD Style",
     "SETTINGS_SHOW_TOOLTIPS": "Show Tooltips",
 
     "TWITCH_INTEGRATION": "Twitch Integration",

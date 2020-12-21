@@ -106,9 +106,7 @@ const cameras = new Cameras(
   minimapControl,
   keyboardShortcuts
 );
-cameras.control.setMapBoundary(mapWidth, mapHeight);
 cameras.control.setConstraints(cameraConstraints);
-cameras.control.resetCamera();
 
 console.log("producerWindow", producerWindow);
 
