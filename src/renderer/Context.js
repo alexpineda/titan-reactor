@@ -18,25 +18,16 @@ const SUPPORTED_WINDOW_SIZES = [
 ];
 
 export class Context extends EventDispatcher {
-  constructor(window) {
+  constructor(store) {
     super();
-    this.window = window;
-    this.document = window.document;
 
+    this.store = store;
     const sizes = SUPPORTED_WINDOW_SIZES.filter(
       (r) => r.width <= screen.width && r.height <= screen.height
     );
   }
 
   async loadSettings() {
-    const renderer = new WebGLRenderer();
-    this.webGLCapabilities = renderer.capabilities;
-    renderer.dispose();
-
-    await setWebGLCapabilities({
-      anisotropy: this.webGLCapabilities.getMaxAnisotropy(),
-    });
-
     const settings = await getSettings();
     this.settings = settings;
     this.lang = await import(`common/lang/${settings.language}`);
@@ -55,7 +46,7 @@ export class Context extends EventDispatcher {
   }
 
   getDevicePixelRatio() {
-    return this.window.devicePixelRatio;
+    return window.devicePixelRatio;
   }
 
   dispose() {

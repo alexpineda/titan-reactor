@@ -113,6 +113,7 @@ app.on("ready", async () => {
 
   ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
     settings.save(newSettings);
+    return newSettings;
   });
 
   ipcMain.handle(GET_LANGUAGE, async (event) => {

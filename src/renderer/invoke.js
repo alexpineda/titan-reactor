@@ -41,8 +41,8 @@ export const selectFolder = async (key) => {
   return await ipcRenderer.send(SELECT_FOLDER, key);
 };
 
-export const getSettings = async (settings) => {
-  return await ipcRenderer.invoke(GET_SETTINGS, settings);
+export const getSettings = async () => {
+  return await ipcRenderer.invoke(GET_SETTINGS);
 };
 
 export const saveSettings = async (settings) => {

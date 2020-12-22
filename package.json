@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@eliasku/binpack": "^1.0.1",
+    "@reduxjs/toolkit": "^1.5.0",
     "bl": "^4.0.3",
     "buffer": "^5.6.0",
     "camera-controls": "^1.25.3",

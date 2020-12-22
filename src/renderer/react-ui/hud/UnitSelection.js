@@ -12,9 +12,10 @@ export default ({
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div
-      className={`details flex-1 flex self-end select-none ${
+      className={`details flex self-end select-none ${
         hideUnitSelection ? "hidden" : ""
       }`}
+      style={{ width: "24vw" }}
     >
       <div
         className="rounded mb-2 p-2 flex flex-1 border-2 border-yellow-900"

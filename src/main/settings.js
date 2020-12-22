@@ -112,7 +112,7 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    return { ...this._settings, errors, isDev: false };
+    return { ...this._settings, errors, isDev };
   }
 
   async load() {
@@ -178,16 +178,22 @@ export class Settings extends EventEmitter {
       gameAspect: GameAspect.Fit,
       fullscreen: true,
       enablePlayerScores: true,
-      esportsHud: false,
+      esportsHud: true,
       showTooltips: true,
       cameraShake: 1,
-      minimapRatio: 25,
       mapsRss: "",
       replaysRss: "",
       useCustomColors: false,
       usePlayerColorUnitSelection: true,
       player1Color: "#ef4444",
       player2Color: "#3b82f6",
+
+      hudFontSize: "sm",
+      esportsHudSize: "lg",
+      minimapRatio: 25,
+      replayAndUnitDetailSize: "24vw",
+      showWorkerCount: true,
+      showArmyCount: true,
     };
   }
 }

@@ -31,6 +31,7 @@ import GameCanvasTarget from "./render/GameCanvasTarget";
 import WrappedElement from "./react-ui/WrappedElement";
 import ProducerBar from "./react-ui/producer/ProducerBar";
 import { ProducerWindowPosition } from "../common/settings";
+import { cinematic } from "./camera/cameraReducer";
 
 const { startLocation } = unitTypes;
 
@@ -52,7 +53,10 @@ export async function TitanReactorReplay(
 ) {
   const debugInfo = new DebugInfo();
   const stats = createStats();
-
+  context.store.subscribe(() => {
+    console.log("store", context.store.getState());
+  });
+  context.store.dispatch(cinematic(true));
   console.log("rep", rep);
 
   const [mapWidth, mapHeight] = chk.size;

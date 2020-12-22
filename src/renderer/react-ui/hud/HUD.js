@@ -114,7 +114,7 @@ export default ({
             />
           </Visible>
 
-          {selectedUnits.length && (
+          <Visible visible={selectedUnits.length || alwaysHideReplayControls}>
             <UnitSelection
               units={selectedUnits}
               onUnitDetails={onUnitDetails}
@@ -124,7 +124,7 @@ export default ({
               textSize={config.textSize}
               hideUnitSelection={hideUnitSelection}
             />
-          )}
+          </Visible>
           <Visible
             visible={!alwaysHideReplayControls && selectedUnits.length === 0}
           >

@@ -14,6 +14,8 @@ import Visible from "../components/visible";
 import ColorPicker from "../components/ColorPicker";
 import { RenderMode, ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
+import ContextMenu from "../components/ContextMenu";
+import { MenuItem } from "../components/MenuItem";
 
 const Tabs = {
   General: "General",
@@ -35,6 +37,7 @@ export default ({
   style = {},
 }) => {
   const [tab, setTab] = useState(defaultTab);
+  const [showContext, hideContext] = useState();
 
   useEffect(() => {
     const listener = (event, { key, filePaths: [dir] }) => {
