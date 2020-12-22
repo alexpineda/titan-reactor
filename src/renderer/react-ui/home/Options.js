@@ -249,13 +249,26 @@ export default ({
           }
         />
         <Option
-          label={lang["SETTINGS_CLASSIC_HUD_STYLE"]}
+          label={lang["SETTINGS_ESPORTS_HUD_STYLE"]}
           toggle={
             <Toggle
-              value={settings.classicHudStyle}
+              value={settings.esportsHud}
               onChange={() =>
                 updateSettings({
-                  classicHudStyle: !settings.classicHudStyle,
+                  esportsHud: !settings.esportsHud,
+                })
+              }
+            />
+          }
+        />
+        <Option
+          label={lang["SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS"]}
+          toggle={
+            <Toggle
+              value={settings.alwaysHideReplayControls}
+              onChange={() =>
+                updateSettings({
+                  alwaysHideReplayControls: !settings.alwaysHideReplayControls,
                 })
               }
             />
@@ -289,7 +302,7 @@ export default ({
               label={"16:9"}
               last
               onClick={() =>
-                updateSettings({ gameAspect: GameAspect.FourThree })
+                updateSettings({ gameAspect: GameAspect.SixteenNine })
               }
             />
           </ButtonSetContainer>
@@ -522,7 +535,7 @@ export default ({
             type="range"
             min="0"
             max={settings.maxAnisotropy}
-            step="2"
+            step="1"
             value={settings.anisotropy}
             onChange={(evt) => {
               updateSettings({

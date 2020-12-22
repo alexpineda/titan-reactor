@@ -12,6 +12,7 @@ import {
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass";
+import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass";
 
 const log = () => {};
 class RenderMan {
@@ -19,17 +20,14 @@ class RenderMan {
     this.context = context;
     this.renderer = null;
 
-    this.bokehOptions = {
-      aperture: 15,
-      focus: 20,
-      maxblur: 1,
-    };
+    this.bokehOptions = { aperture: 40, focus: 40, maxblur: 1 };
 
-    // const gui = new GUI();
-    // gui.add( effectController, "focus", 10.0, 3000.0, 10 ).onChange( matChanger );
-    // gui.add( effectController, "aperture", 0, 10, 0.1 ).onChange( matChanger );
-    // gui.add( effectController, "maxblur", 0.0, 0.01, 0.001 ).onChange( matChanger );
-    // gui.close();
+    this.filmOptions = {
+      noiseIntensity: 0.5,
+      scanlinesIntensity: 0.5,
+      scanlinesCount: 100,
+      grayscale: 0,
+    };
   }
 
   setShadowLevel(shadowLevel) {
@@ -49,6 +47,8 @@ class RenderMan {
     this.renderer.setViewport(
       new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
     );
+    this._composer.setSize(this.canvasTarget.width, this.canvasTarget.height);
+    this._composer.setPixelRatio(canvasTarget.pixelRatio);
   }
 
   renderSplitScreen(scene, camera, viewport) {
@@ -60,34 +60,43 @@ class RenderMan {
   }
 
   _initPostProcessing(scene, camera) {
+    this._postprocessingInitialized = true;
     this._renderPass = new RenderPass(scene, camera);
 
     this._bokehPass = new BokehPass(scene, camera, {
-      aperture: 15,
-      focus: 20,
+      aperture: 40,
+      focus: 40,
       maxblur: 1,
 
       width: this.canvasTarget.width,
       height: this.canvasTarget.height,
     });
 
-    this._composer = new EffectComposer(this.renderer);
+    this._filmPass = new FilmPass();
 
     this._composer.addPass(this._renderPass);
     this._composer.addPass(this._bokehPass);
-
-    this._composer.setSize(this.canvasTarget.width, this.canvasTarget.height);
+    // this._composer.addPass(this._filmPass);
   }
 
-  _render(scene, camera) {
-    if (camera.renderCinematic) {
-      if (!this._composer) {
+  _render(scene, camera, isCinematic = false) {
+    if (isCinematic) {
+      if (!this._postprocessingInitialized) {
         this._initPostProcessing(scene, camera);
       }
       this._bokehPass.uniforms["focus"].value = this.bokehOptions.focus;
       this._bokehPass.uniforms["aperture"].value =
         this.bokehOptions.aperture * 0.00001;
       this._bokehPass.uniforms["maxblur"].value = this.bokehOptions.maxblur;
+
+      this._filmPass.uniforms["grayscale"].value = this.filmOptions.grayscale;
+      this._filmPass.uniforms[
+        "nIntensity"
+      ].value = this.filmOptions.noiseIntensity;
+      this._filmPass.uniforms[
+        "sIntensity"
+      ].value = this.filmOptions.scanlinesIntensity;
+      this._filmPass.uniforms["sCount"].value = this.filmOptions.scanlinesCount;
       this._composer.render(0.1);
     } else {
       this.renderer.render(scene, camera);
@@ -97,8 +106,8 @@ class RenderMan {
       .drawImage(this.renderer.domElement, 0, 0);
   }
 
-  render(scene, camera) {
-    this._render(scene, camera);
+  render(scene, camera, isCinematic) {
+    this._render(scene, camera, isCinematic);
   }
 
   _initRenderer() {
@@ -134,6 +143,8 @@ class RenderMan {
 
     this.renderer = this._initRenderer();
     this.setShadowLevel(this.context.settings.shadows);
+
+    this._composer = new EffectComposer(this.renderer);
 
     this._contextLostListener = () => {};
     this._contextRestoredListener = () => {

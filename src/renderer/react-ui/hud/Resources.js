@@ -20,9 +20,11 @@ const PlayerResources = ({
   playerScore = 0,
   showScore = true,
   onChangeScore = () => {},
+  fitToContent = false,
   gameIcons,
 }) => {
   const [showWorkerCount, setShowWorkerCount] = useState(true);
+  const [showArmyCount, setShowArmyCount] = useState(false);
   const [score, setScore] = useState(playerScore);
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(playerNameCache[name] || name);
@@ -37,12 +39,17 @@ const PlayerResources = ({
     case "protoss":
       break;
   }
+  const fitToContentStyle = fitToContent
+    ? { width: "1%", whiteSpace: "nowrap" }
+    : {};
+  const fixedWidthStyle = fitToContent ? { width: "6em" } : {};
 
   return (
     <tr>
       {showScore && (
         <td
           className="pr-2"
+          style={fitToContentStyle}
           data-tip={`Player Score`}
           onMouseDown={(evt) => {
             const newScore =
@@ -60,6 +67,7 @@ const PlayerResources = ({
       )}
       <td
         className="pr-2"
+        style={fitToContentStyle}
         data-tip={`Toggle Fog of War`}
         onMouseDown={(evt) => {
           if (evt.button === 0) {
@@ -98,31 +106,35 @@ const PlayerResources = ({
           />
         )}
       </td>
-      <td className="pr-2" onClick={toggleWorkerCount}>
+      <td className="pr-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
         <img src="https://i.imgur.com/ram4CBj.png" className="inline w-4" />
         <span className={`text-gray-200 text-${textSize}`}>
           <RollingNumber number={minerals} />
         </span>
       </td>
-      <td className="pr-2" onClick={toggleWorkerCount}>
+      <td className="pr-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
         <img src="https://i.imgur.com/NI5ynEw.png" className="inline w-4" />
         <span className={`text-gray-200 text-${textSize}`}>
           <RollingNumber number={gas} />
         </span>
       </td>
       {showWorkerCount && (
-        <td className="pr-2" onClick={toggleWorkerCount}>
+        <td
+          className="pr-2"
+          onClick={toggleWorkerCount}
+          style={fixedWidthStyle}
+        >
           <img src={workerIcon} className="inline w-4" />
           <span className={`text-gray-200 text-${textSize}`}>{workers}</span>
         </td>
       )}
-      <td className="pr-2 pointer-events-none">
+      <td className="pr-2 pointer-events-none" style={fixedWidthStyle}>
         <img src={supplyIcon} className="inline w-4" />
         <span className={`text-gray-200 text-${textSize}`}>
           {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)}
         </span>
       </td>
-      <td className="pr-2 pointer-events-none">
+      <td className="pr-2 pointer-events-none" style={fixedWidthStyle}>
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />
         <span className={`text-gray-200 text-${textSize} w-10`}>
           <RollingNumber number={apm} />
@@ -136,18 +148,14 @@ export default ({
   textSize,
   onTogglePlayerVision,
   onTogglePlayerPov,
-  gameDimensions,
+  fitToContent = false,
+  className = "",
+  style = {},
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
   return (
-    <div
-      className="flex absolute select-none"
-      style={{
-        top: `${gameDimensions.top}px`,
-        right: `${gameDimensions.right}px`,
-      }}
-    >
+    <div className={`select-none ${className}`} style={style}>
       <div className="resources-parent">
         <div
           className="rounded mx-1 my-1 py-1 px-2 flex"
@@ -162,6 +170,7 @@ export default ({
                   textSize={textSize}
                   {...player}
                   onTogglePlayerVision={onTogglePlayerVision}
+                  fitToContent={fitToContent}
                 />
               ))}
             </tbody>

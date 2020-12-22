@@ -1,6 +1,7 @@
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import InputEvents from "../../input/InputEvents";
 
+//deprecated
 class StandardPointerLockControls extends PointerLockControls {
   constructor(camera, domElement) {
     super(camera, domElement);
@@ -15,7 +16,6 @@ class StandardPointerLockControls extends PointerLockControls {
       scrollSpeed: 0.02,
     };
     this._fpControlsListener = (evt) => {
-      if (this.activeCamera !== this.cinematicCamera) return;
       this.cinematicCamera.position.y =
         this.cinematicCamera.position.y +
         evt.deltaY * -this.firstPersonControlsOptions.scrollSpeed;

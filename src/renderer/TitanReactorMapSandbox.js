@@ -1,17 +1,16 @@
 // playground for environment
 import * as THREE from "three";
-import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 
 import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
 import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
 import Cameras from "./camera/Cameras";
+import RenderMan from "./render/RenderMan";
+import GameCanvasTarget from "./render/GameCanvasTarget";
+import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./3d-map-rendering/lights";
-import { TerrainCubeCamera } from "./camera/CubeCamera";
 import { createStats } from "utils/stats";
-import { is } from "ramda";
-import { Raycaster, Vector2 } from "three";
 export const hot = module.hot ? module.hot.data : null;
 
 export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
@@ -27,15 +26,26 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const mainCamera = new Cameras(context);
+  const renderMan = new RenderMan(context);
+  renderMan.initRenderer();
+  window.renderMan = renderMan;
+
+  const keyboardShortcuts = new KeyboardShortcuts(document);
+
+  const gameSurface = new GameCanvasTarget(context);
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+
+  const mainCamera = new Cameras(
+    context,
+    renderMan,
+    gameSurface,
+    null,
+    keyboardShortcuts
+  );
   if (hot && hot.camera) {
     mainCamera.camera.position.copy(hot.camera.position);
     mainCamera.camera.rotation.copy(hot.camera.rotation);
   }
-  mainCamera.control.update();
-
-  // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
-  // scene.add(cubeCamera);
 
   const terrainY = scene.getTerrainY();
 
@@ -132,40 +142,7 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
       showFocus,
       focalDepth,
       coc,
-    }) => {
-      if (is(CinematicCamera, mainCamera.camera)) {
-        mainCamera.camera.setFocalLength(focalLength);
-
-        const uniforms = mainCamera.camera.postprocessing.bokeh_uniforms;
-        uniforms["shaderFocus"].value = shaderFocus;
-        uniforms["fstop"].value = fstop;
-        uniforms["showFocus"].value = showFocus;
-        uniforms["focalDepth"].value = focalDepth;
-
-        uniforms["znear"].value = mainCamera.camera.near;
-        uniforms["zfar"].value = mainCamera.camera.far;
-
-        console.log(mainCamera.camera);
-        // coc: number;
-        // aperture: number;
-        // fNumber: number;
-        // hyperFocal: number;
-        // filmGauge: number;
-
-        mainCamera.camera.setLens(
-          focalLength,
-          mainCamera.camera.frameHeight,
-          fstop,
-          coc
-        );
-        // gui.add( effectController, 'focalLength', 1, 135, 0.01 ).onChange( matChanger );
-        // gui.add( effectController, 'fstop', 1.8, 22, 0.01 ).onChange( matChanger );
-        // gui.add( effectController, 'focalDepth', 0.1, 100, 0.001 ).onChange( matChanger );
-        // gui.add( effectController, 'showFocus', true ).onChange( matChanger );
-
-        mainCamera.camera.updateProjectionMatrix();
-      }
-    }
+    }) => {}
   );
 
   // gui.controllers.camera.rotate.onChange((val) => {
@@ -196,8 +173,6 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   };
   document.addEventListener("keydown", keyDownListener);
   //#endregion
-
-  const getTerrainY = scene.getTerrainY();
 
   // const zerglings = [];
   // const lm = new LoadModel();
@@ -307,80 +282,37 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   });
   //#endregion
 
-  const lostContextHandler = () => {
-    context.renderer.setAnimationLoop(null);
-  };
-  context.addEventListener("lostcontext", lostContextHandler);
-
-  const restoreContextHandler = () => {
-    context.initRenderer(true);
-    // cubeCamera.onRestoreContext();
-    context.renderer.setAnimationLoop(gameLoop);
-  };
-  context.addEventListener("lostcontext", restoreContextHandler);
-
-  const sceneResizeHandler = ({ message: [width, height] }) => {
-    mainCamera.updateGameScreenAspect(width, height);
-  };
-  context.addEventListener("resize", sceneResizeHandler);
-
-  context.forceResize();
-
   let running = true;
+  document.body.append(gameSurface.canvas);
 
   function gameLoop() {
     if (!running) return;
 
-    if (cameraZoom.active) {
-      mainCamera.camera.zoom = THREE.MathUtils.lerp(
-        cameraZoom.start,
-        cameraZoom.end,
-        (cameraZoom.i += cameraZoom.speed)
-      );
-      if (cameraZoom.i > 1) {
-        cameraZoom.active = false;
-        cameraZoom.i = 0;
-      }
-      mainCamera.camera.updateProjectionMatrix();
-    }
-
     pointLight.position.copy(mainCamera.camera.position);
     pointLight.position.y += 5;
 
-    mainCamera.control.update();
-    // cameras.updateCubeCamera(scene);
+    mainCamera.update();
 
-    const [width, height] = context.getSceneDimensions();
-
-    context.renderer.clear();
-    context.renderer.setViewport(0, 0, width, height);
-    if (
-      mainCamera.camera.postprocessing &&
-      mainCamera.camera.postprocessing.enabled
-    ) {
-      mainCamera.camera.renderCinematic(scene, context.renderer);
-    } else {
-      context.renderer.render(scene, mainCamera.camera);
-    }
+    renderMan.setCanvasTarget(gameSurface);
+    renderMan.renderer.clear();
+    renderMan.render(scene, mainCamera.camera);
 
     stats.update();
   }
 
-  context.renderer.setAnimationLoop(gameLoop);
+  renderMan.renderer.setAnimationLoop(gameLoop);
 
   const dispose = () => {
     console.log("disposing");
-
-    context.renderer.setAnimationLoop(null);
+    gameSurface.canvas.remove();
+    renderMan.renderer.setAnimationLoop(null);
     running = false;
-    context.removeEventListener("resize", sceneResizeHandler);
-    context.removeEventListener("lostcontext", lostContextHandler);
-    context.removeEventListener("lostcontext", restoreContextHandler);
 
     scene.dispose();
-    context.renderer.dispose();
 
     mainCamera.dispose();
+    renderMan.dispose();
+    keyboardShortcuts.dispose();
     gui.dispose();
     stats.dispose();
   };

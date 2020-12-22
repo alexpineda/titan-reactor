@@ -154,8 +154,6 @@ export class TitanReactor {
       description: chkFilepath,
     });
 
-    this.context.initRenderer();
-
     const loadingManager = new LoadingManager();
 
     this.mode = SceneMode.MapViewer;

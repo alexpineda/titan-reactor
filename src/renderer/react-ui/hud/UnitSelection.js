@@ -15,7 +15,6 @@ export default ({
       className={`details flex-1 flex self-end select-none ${
         hideUnitSelection ? "hidden" : ""
       }`}
-      style={{ height: "26vh" }}
     >
       <div
         className="rounded mb-2 p-2 flex flex-1 border-2 border-yellow-900"

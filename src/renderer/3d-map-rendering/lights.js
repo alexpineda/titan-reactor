@@ -1,7 +1,7 @@
 import { DirectionalLight, Object3D, Fog, Color } from "three";
 
 export function sunlight(mapWidth, mapHeight) {
-  const light = new DirectionalLight(0xffffff, 2.5);
+  const light = new DirectionalLight(0xffffff, 2);
   light.position.set(-32, 13, -26);
   light.target = new Object3D();
   light.castShadow = true;

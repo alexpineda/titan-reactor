@@ -10,10 +10,16 @@ class StandardCameraControls extends CameraControls {
   constructor(camera, domElement, keyboardShortcuts) {
     super(camera, domElement);
 
-    this.mouseButtons.left = CameraControls.ACTION.NONE;
-    this.mouseButtons.right = CameraControls.ACTION.TRUCK;
-    this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
-    this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+    if (camera.isPerspectiveCamera) {
+      this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+      this.mouseButtons.left = CameraControls.ACTION.NONE;
+      this.mouseButtons.right = CameraControls.ACTION.TRUCK;
+      this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
+    } else {
+      this.mouseButtons.right = CameraControls.ACTION.TRUCK;
+      this.mouseButtons.left = CameraControls.ACTION.ROTATE;
+      this.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
+    }
     this.keyboardTruckingEnabled = true;
 
     keyboardShortcuts.addEventListener(
@@ -59,6 +65,7 @@ class StandardCameraControls extends CameraControls {
     this.truckSpeed = 1;
     this.cameraShake = new CameraShake(this, 500, 10, 1);
     this.dollyToCursor = true;
+    this.zoomFactor = 40;
 
     this.constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
@@ -102,7 +109,11 @@ class StandardCameraControls extends CameraControls {
         this.dampingFactor = dampingFactor;
       }
       if (is(Number, dollyTo)) {
-        this.dollyTo(dollyTo, false);
+        if (this._camera.isPerspectiveCamera) {
+          this.dollyTo(dollyTo, false);
+        } else {
+          this.zoomTo(dollyTo * this.zoomFactor, false);
+        }
       }
     };
 

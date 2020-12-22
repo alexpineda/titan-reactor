@@ -5,6 +5,7 @@ import Resources from "./Resources";
 import ReactTooltip from "react-tooltip";
 import UnitSelection from "./UnitSelection";
 import ReplayPosition from "./ReplayPosition";
+import Visible from "../components/visible";
 
 const config = {
   textSize: "sm",
@@ -37,6 +38,8 @@ export default ({
   hideReplayPosition,
   hideResources,
   hideProduction,
+  alwaysHideReplayControls = false,
+  esportsHud = true,
 }) => {
   const onTogglePlayerVision = (e) => {
     console.log("onTogglePlayerVision", e);
@@ -64,15 +67,21 @@ export default ({
           gameDimensions={gameDimensions}
         />
       )}
-      {!hideResources && (
+      <Visible visible={!hideResources && !esportsHud}>
         <Resources
+          className="flex absolute"
+          style={{
+            top: `${gameDimensions.top}px`,
+            right: `${gameDimensions.right}px`,
+          }}
           onTogglePlayerVision={onTogglePlayerVision}
           onTogglePlayerPov={onTogglePlayerPov}
           players={players}
           textSize={config.textSize}
           gameDimensions={gameDimensions}
         />
-      )}
+      </Visible>
+
       {UnitDetails && (
         <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
       )}
@@ -93,30 +102,48 @@ export default ({
           hideMinimap={hideMinimap}
         />
         <div className="flex flex-1">
-          <UnitSelection
-            units={selectedUnits}
-            onUnitDetails={onUnitDetails}
-            onShowAttackDetails={onShowAttackDetails}
-            onFollowUnit={onFollowUnit}
-            followingUnit={followingUnit}
-            textSize={config.textSize}
-            hideUnitSelection={hideUnitSelection}
-          />
-          <ReplayPosition
-            paused={paused}
-            maxFrame={maxFrame}
-            destination={destination}
-            autoSpeed={autoSpeed}
-            timeLabel={timeLabel}
-            position={position}
-            gameSpeed={gameSpeed}
-            onTogglePaused={onTogglePaused}
-            onChangePosition={onChangePosition}
-            onChangeAutoGameSpeed={onChangeAutoGameSpeed}
-            onChangeGameSpeed={onChangeGameSpeed}
-            textSize={config.textSize}
-            hideReplayPosition={hideReplayPosition}
-          />
+          <Visible visible={!hideResources && esportsHud}>
+            <Resources
+              className="flex-1 self-end"
+              onTogglePlayerVision={onTogglePlayerVision}
+              onTogglePlayerPov={onTogglePlayerPov}
+              players={players}
+              textSize="lg"
+              gameDimensions={gameDimensions}
+              fitToContent
+            />
+          </Visible>
+
+          {selectedUnits.length && (
+            <UnitSelection
+              units={selectedUnits}
+              onUnitDetails={onUnitDetails}
+              onShowAttackDetails={onShowAttackDetails}
+              onFollowUnit={onFollowUnit}
+              followingUnit={followingUnit}
+              textSize={config.textSize}
+              hideUnitSelection={hideUnitSelection}
+            />
+          )}
+          <Visible
+            visible={!alwaysHideReplayControls && selectedUnits.length === 0}
+          >
+            <ReplayPosition
+              paused={paused}
+              maxFrame={maxFrame}
+              destination={destination}
+              autoSpeed={autoSpeed}
+              timeLabel={timeLabel}
+              position={position}
+              gameSpeed={gameSpeed}
+              onTogglePaused={onTogglePaused}
+              onChangePosition={onChangePosition}
+              onChangeAutoGameSpeed={onChangeAutoGameSpeed}
+              onChangeGameSpeed={onChangeGameSpeed}
+              textSize={config.textSize}
+              hideReplayPosition={hideReplayPosition}
+            />
+          </Visible>
         </div>
       </div>
     </>

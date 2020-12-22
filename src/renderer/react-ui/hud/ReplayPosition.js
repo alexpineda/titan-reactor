@@ -171,7 +171,7 @@ export default ({
       className={`replay-parent flex self-end select-none ${
         hideReplayPosition ? "hidden" : ""
       }`}
-      style={{ height: "26vh", width: "24vw" }}
+      style={{ width: "24vw" }}
     >
       <div
         className="replay-position rounded mb-2 p-2 border-2 border-yellow-900 flex-1 flex"

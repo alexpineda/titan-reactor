@@ -1,6 +1,5 @@
 import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
-import { CinematicCamera } from "three/examples/jsm/cameras/CinematicCamera";
 
 import {
   MinimapLayer,
@@ -34,17 +33,8 @@ class Cameras {
     this.camera = this._createCamera(aspect);
     this.previewCamera = this._createCamera(aspect);
     this.cinematicOptions = {
-      far: this.camera.far,
-      focalDepth: 100,
-      focalLength: 40,
-      fstop: 20,
-      near: 1,
-      showFocus: 0,
       gammaBoost: 1.5,
     };
-
-    this.cinematicCamera = this._createCamera(aspect); //this._initCinematicCamera(aspect);
-    this.cinematicCamera.renderCinematic = true;
 
     this.control = new StandardCameraControls(
       this.camera,
@@ -73,14 +63,6 @@ class Cameras {
       this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
       this.minimapCameraHelper.layers.set(MinimapLayer);
 
-      this.cinematicCameraHelper = new MinimapCameraHelper(
-        this.cinematicCamera
-      );
-      this.cinematicCameraHelper.layers.set(MinimapLayer);
-
-      //start-drag update-drag stop-drag
-      //start-preview update-preview stop-preview
-
       minimapControl.addEventListener(
         "start",
         ({ message: { pos, rightMouse, e } }) => {
@@ -90,100 +72,18 @@ class Cameras {
           this._delta.subVectors(target, this.camera.position);
           this.control.moveTo(pos.x, pos.y, pos.z, rightMouse);
           this.camera.position.subVectors(pos, this._delta);
-
-          // this.control.rotateTo(Math.PI / 4, Math.PI / 4, true);
-          // const newCameraPosition = new Vector3();
-          // newCameraPosition.subVectors(pos, this._delta);
-
-          // this.control.setLookAt(
-          //   newCameraPosition.x,
-          //   newCameraPosition.y,
-          //   newCameraPosition.z,
-          //   pos.x,
-          //   pos.y,
-          //   pos.z,
-          //   rightMouse
-          // );
         }
       );
 
       minimapControl.addEventListener("update", ({ message: { pos, e } }) => {
         this.control.moveTo(pos.x, pos.y, pos.z, true);
         this.camera.position.subVectors(pos, this._delta);
-        // this.control.rotateTo(Math.PI / 4, Math.PI / 4, true);
-
-        // const newCameraPosition = new Vector3();
-        // newCameraPosition.subVectors(pos, this._delta);
-
-        // this.control.setLookAt(
-        //   newCameraPosition.x,
-        //   newCameraPosition.y,
-        //   newCameraPosition.z,
-        //   pos.x,
-        //   pos.y,
-        //   pos.z,
-        //   true
-        // );
       });
-
-      // minimapControl.addEventListener(
-      //   "hover",
-      //   ({ message: { pos, preview } }) => {
-      //     this.previewOn = preview;
-      //     if (preview) {
-      //       const target = new Vector3();
-      //       this.control.getTarget(target);
-
-      //       const delta = new Vector3();
-      //       delta.subVectors(target, this.previewCamera.position);
-
-      //       const newCameraPosition = new Vector3();
-      //       newCameraPosition.subVectors(pos, delta);
-
-      //       this.previewControl.setLookAt(
-      //         newCameraPosition.x,
-      //         newCameraPosition.y,
-      //         newCameraPosition.z,
-      //         pos.x,
-      //         pos.y,
-      //         pos.z,
-      //         true
-      //       );
-      //     }
-      //   }
-      // );
-
-      // minimapControl.addEventListener("stop", () => {
-      //   this.previewOn = false;
-      // });
     }
 
-    this.setActiveCamera(this.camera);
+    this.useCinematic(false);
   }
 
-  setActiveCamera(camera) {
-    if (camera === this.cinematicCamera) {
-      // this.cinematicOptions.focalLength = this.control.distance;
-
-      // this.renderMan.renderer.toneMappingExposure =
-      //   this.context.settings.gamma + this.cinematicOptions.gammaBoost;
-      // this.control.enabled = false;
-
-      if (this.minimapControl) {
-        this.cinematicCameraHelper.visible = true;
-        this.minimapCameraHelper.visible = false;
-      }
-    } else {
-      // this.renderMan.renderer.toneMappingExposure = this.context.settings.gamma;
-      // this.control.enabled = true;
-
-      if (this.minimapControl) {
-        this.cinematicCameraHelper.visible = false;
-        this.minimapCameraHelper.visible = true;
-      }
-    }
-    this.activeCamera = camera;
-  }
   _createCamera(aspect) {
     return this._initPerspectiveCamera(aspect);
     // this.context.settings.orthoCamera
@@ -192,10 +92,6 @@ class Cameras {
 
   _initPerspectiveCamera(aspect) {
     return new PerspectiveCamera(22, aspect, 3, 256);
-  }
-
-  _initCinematicCamera(aspect) {
-    return new CinematicCamera(3, aspect, 0.1, 256);
   }
 
   _initOrthoCamera() {
@@ -231,10 +127,6 @@ class Cameras {
     const delta = this.controlClock.getDelta();
     this.control.update(delta);
     this.previewControl.update(delta);
-
-    this.cinematicCamera.position.copy(this.camera.position);
-    this.cinematicCamera.rotation.copy(this.camera.rotation);
-    this.cinematicCamera.fov = this.camera.fov;
   }
 
   updateGameScreenAspect(width, height) {
@@ -247,7 +139,6 @@ class Cameras {
       this.camera.bottom = (-16 * height) / m;
     } else {
       this.camera.aspect = width / height;
-      this.cinematicCamera.aspect = width / height;
     }
 
     this.camera.updateProjectionMatrix();
@@ -276,8 +167,19 @@ class Cameras {
     }
   }
 
-  getActiveCamera() {
-    return this.activeCamera;
+  isCinematic() {
+    return this.camera.renderCinematic;
+  }
+
+  useCinematic(cinematicEnabled) {
+    this.camera.renderCinematic = cinematicEnabled;
+
+    if (cinematicEnabled) {
+      this.renderMan.renderer.toneMappingExposure =
+        this.context.settings.gamma + this.cinematicOptions.gammaBoost;
+    } else {
+      this.renderMan.renderer.toneMappingExposure = this.context.settings.gamma;
+    }
   }
 
   getTarget() {

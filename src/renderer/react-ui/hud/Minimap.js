@@ -1,5 +1,5 @@
 import React from "react";
-import WrappedCanvas from "../WrappedCanvas";
+import WrappedElement from "../WrappedElement";
 
 export default ({
   timeLabel,
@@ -28,7 +28,7 @@ export default ({
           >
             {timeLabel}
           </p>
-          <WrappedCanvas canvas={canvas} />
+          <WrappedElement canvas={canvas} />
         </article>
 
         <aside

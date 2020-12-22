@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import WrappedCanvas from "./WrappedCanvas";
+import WrappedElement from "./WrappedElement";
 import { LoadingOverlay } from "./LoadingOverlay";
 import { LoadingProgress } from "./LoadingProgress";
 import FileDropZone from "./components/FileDropZone";
@@ -62,7 +62,7 @@ export class UI {
     this.resetListener(null);
     if (chk) {
       const preview = await mapPreviewCanvas(chk);
-      const mapPreview = <WrappedCanvas canvas={preview} />;
+      const mapPreview = <WrappedElement canvas={preview} />;
 
       this.render(
         <LoadingOverlay

@@ -28,7 +28,7 @@ import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "./render/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
-import WrappedCanvas from "./react-ui/WrappedCanvas";
+import WrappedElement from "./react-ui/WrappedElement";
 import ProducerBar from "./react-ui/producer/ProducerBar";
 import { ProducerWindowPosition } from "../common/settings";
 
@@ -89,10 +89,6 @@ export async function TitanReactorReplay(
     keyboardShortcuts
   );
   scene.add(cameras.minimapCameraHelper);
-  scene.add(cameras.cinematicCameraHelper);
-
-  // const cubeCamera = new TerrainCubeCamera(context, scene.terrain.material.map);
-  // scene.add(cubeCamera);
 
   // #region player initialization
   const players = new Players(
@@ -257,12 +253,12 @@ export async function TitanReactorReplay(
     mouse.x = (event.offsetX / width) * 2 - 1;
     mouse.y = -(event.offsetY / height) * 2 + 1;
 
-    raycaster.setFromCamera(mouse, cameras.activeCamera);
+    raycaster.setFromCamera(mouse, cameras.camera);
 
     const intersectTerrain = raycaster.intersectObject(scene.terrain, false);
     if (intersectTerrain.length) {
       intersectAxesHelper.position.copy(intersectTerrain[0].point);
-      // if (cameras.activeCamera == cameras.cinematicCamera) {
+      // if (cameras.isCinematic()) {
       //   cameras.cinematicOptions.focalDepth = intersectTerrain[0].distance * 3;
       // }
     }
@@ -382,7 +378,7 @@ export async function TitanReactorReplay(
 
     reactApp.render(
       <>
-        <WrappedCanvas
+        <WrappedElement
           canvas={gameSurface.canvas}
           style={{
             position: "absolute",
@@ -442,6 +438,8 @@ export async function TitanReactorReplay(
           hideReplayPosition={hudData.hideReplayPosition}
           hideProduction={hudData.hideProduction}
           hideResources={hudData.hideResources}
+          alwaysHideReplayControls={context.settings.alwaysHideReplayControls}
+          esportsHud={context.settings.esportsHud}
         />
       </>
     );
@@ -484,11 +482,7 @@ export async function TitanReactorReplay(
 
   document.addEventListener("keydown", (evt) => {
     if (evt.code === "KeyZ") {
-      if (cameras.activeCamera === cameras.cinematicCamera) {
-        cameras.setActiveCamera(cameras.camera);
-      } else {
-        cameras.setActiveCamera(cameras.cinematicCamera);
-      }
+      cameras.useCinematic(!cameras.isCinematic());
     }
   });
 
@@ -686,8 +680,9 @@ export async function TitanReactorReplay(
         cameras.camera.position,
         0.5
       );
+      renderMan.bokehOptions.focus = cameras.control.distance;
       intersectAxesHelper.position.copy(audioListener.position);
-      renderMan.render(scene, cameras.activeCamera);
+      renderMan.render(scene, cameras.camera, cameras.isCinematic());
     }
 
     const useMinimapPreview =

@@ -149,6 +149,7 @@ export class Settings extends EventEmitter {
       version: VERSION,
       renderMode: RenderMode.SD,
       maxAutoReplaySpeed: 1.2,
+      alwaysHideReplayControls: true,
       startPaused: false,
       language: supportedLanguages.includes(getEnvLocale())
         ? getEnvLocale()
@@ -177,7 +178,7 @@ export class Settings extends EventEmitter {
       gameAspect: GameAspect.Fit,
       fullscreen: true,
       enablePlayerScores: true,
-      classicHudStyle: false,
+      esportsHud: false,
       showTooltips: true,
       cameraShake: 1,
       minimapRatio: 25,
