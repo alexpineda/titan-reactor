@@ -16,60 +16,65 @@ import { loadReplayFromFile, loadAllDataFiles, openFile, log } from "./invoke";
 import { UnitDAT } from "../main/units/UnitsDAT";
 import loadSpritePalettes from "./image/palettes";
 import { parseReplay } from "downgrade-replay";
-
-export const SceneMode = {
-  MapViewer: 0,
-  Replay: 1,
-};
+import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
+import {
+  loading,
+  loadingProgress,
+  loadingError,
+  criticalErrorOccurred,
+} from "./titanReactorReducer";
 
 export class TitanReactor {
-  constructor(context, reactApp) {
-    this.context = context;
-    this.mode = null;
+  constructor(store) {
+    this.store = store;
     this.scene = null;
-    this.reactApp = reactApp;
-    this._preloaded = false;
   }
 
   async preload() {
-    if (this._preloaded) return;
-    this._preloaded = true;
+    const dispatchPreloadLoadingProgress = () =>
+      this.store.dispatch(loadingProgress("preload"));
+    const state = this.store.getState();
+    if (state.titan.preloading || state.titan.preloaded) return;
+    this.store.dispatch(loading("preload", state.settings.data.isDev ? 1 : 3));
+
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
-    const origBwDat = await loadAllDataFiles(
-      this.context.settings.starcraftPath
-    );
+    const origBwDat = await loadAllDataFiles(state.settings.data.starcraftPath);
     this.bwDat = {
       ...origBwDat,
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
     };
     window.bwDat = this.bwDat;
-
-    if (this.context.settings.isDev) return;
+    dispatchPreloadLoadingProgress();
+    if (state.settings.isDev) {
+      return;
+    }
 
     this.readStarcraftFile = (file) =>
-      openFile(`${this.context.settings.starcraftPath}/${file}`);
+      openFile(`${state.settings.data.starcraftPath}/${file}`);
 
     //load sprite palettes
     this.palettes = Object.freeze(
       await loadSpritePalettes(this.readStarcraftFile)
     );
 
-    log(`initializing sprite texture cache`);
+    dispatchPreloadLoadingProgress();
+
+    log("initializing sprite texture cache");
     const spritesTextureCache = new TextureCache(
       "sd",
       await getAppCachePath(),
       "rgba"
     );
 
-    log(`initializing json cache`);
+    log("initializing json cache");
     const jsonCache = new JsonCache("sprite-", await getAppCachePath());
 
-    log(`loading unit atlas`);
+    log("loading unit atlas");
     this.loadSprite = new LoadSprite(
       this.palettes,
       this.bwDat.images,
-      (file) => openFile(`${this.context.settings.starcraftPath}/unit/${file}`),
+      (file) => openFile(`${state.settings.data.starcraftPath}/unit/${file}`),
       spritesTextureCache,
       jsonCache,
       8192,
@@ -77,77 +82,101 @@ export class TitanReactor {
     );
 
     await this.loadSprite.loadAll();
+
+    dispatchPreloadLoadingProgress();
   }
 
   async spawnReplay(filepath) {
+    const state = this.store.getState();
+    const dispatchRepLoadingProgress = () =>
+      this.store.dispatch(loadingProgress("replay"));
+
+    if (!state.titan.preloaded) {
+      throw new Error("cannot spawn replay before preloading assets");
+    }
+
+    this.store.dispatch(loading("replay", 4));
+
     log(`loading replay ${filepath}`);
+    log("disposing previous replay resources");
     await this.dispose();
 
-    log(`parsing replay`);
-    const rep = await parseReplay(await openFile(filepath));
+    log("parsing replay");
+    this.rep = await parseReplay(await openFile(filepath));
     // const rep = await loadReplayFromFile(filepath);
+    dispatchRepLoadingProgress();
 
-    log(`loading chk`);
-    const chk = await imageChk(rep.chk, this.context.settings.starcraftPath);
+    log("loading chk");
+    this.store.dispatch(loading("chk"));
+    this.chk = await imageChk(this.rep.chk, state.settings.data.starcraftPath);
+    this.chkPreviewCanvas = await mapPreviewCanvas(this.chk);
+    this.store.dispatch(loadingProgress("chk"));
 
-    log(`showing loading overlay`);
-    this.reactApp.overlay({
-      chk,
-      header: rep.header,
-    });
+    log("showing loading overlay");
 
     await this.preload();
 
     const loadingManager = new LoadingManager();
 
-    this.mode = SceneMode.Replay;
-    document.title = `Titan Reactor - Replay`;
+    document.title = "Titan Reactor - Replay";
 
     let renderImage;
-    if (this.context.settings.isDev) {
+    if (state.settings.isDev) {
       renderImage = new EmptyImage();
     } else if (
-      this.context.settings.renderMode === RenderMode.SD ||
-      this.context.settings.renderMode === RenderMode.HD
+      state.settings.data.renderMode === RenderMode.SD ||
+      state.settings.data.renderMode === RenderMode.HD
     ) {
       renderImage = new ImageSD(
         this.bwDat,
-        this.context.settings.starcraftPath,
+        state.settings.data.starcraftPath,
         this.loadSprite
       );
     } else {
       renderImage = new Image3D();
     }
 
-    const textureCache = new TextureCache(chk.title, await getAppCachePath());
+    const textureCache = new TextureCache(
+      this.chk.title,
+      await getAppCachePath()
+    );
 
     const frames = await openFile(`${filepath}.bin`);
+    dispatchRepLoadingProgress();
 
-    log(`initializing scene`);
+    log("initializing scene");
     const scene = new TitanReactorScene(
-      chk,
+      this.chk,
       textureCache,
-      this.context.settings.anisotropy,
+      state.settings.data.anisotropy,
       loadingManager
     );
-    await scene.init(this.context.settings.isDev);
+    await scene.init(state.setting.isDev);
+    dispatchRepLoadingProgress();
 
-    log(`initializing replay`);
+    log("initializing replay");
     this.scene = await TitanReactorReplay(
-      this.context,
+      this.store,
       filepath,
       this.reactApp,
       scene,
-      chk,
-      rep,
+      this.chk,
+      this.rep,
       new DataView(frames.buffer),
       renderImage,
       this.bwDat,
-      new BgMusic(this.context.settings.starcraftPath)
+      new BgMusic(state.settings.data.starcraftPath)
     );
+    dispatchRepLoadingProgress();
   }
 
   async spawnMapViewer(chkFilepath) {
+    const state = this.store.getState();
+
+    if (!state.titan.preloaded) {
+      throw new Error("cannot spawn replay before preloading assets");
+    }
+
     await this.dispose();
     this.reactApp.overlay({
       label: "Loading",
@@ -156,27 +185,28 @@ export class TitanReactor {
 
     const loadingManager = new LoadingManager();
 
-    this.mode = SceneMode.MapViewer;
-    log(`loading chk`);
-    const chk = await imageChk(
-      chkFilepath,
-      this.context.settings.starcraftPath
+    log("loading chk");
+    this.chk = await imageChk(chkFilepath, state.settings.data.starcraftPath);
+    window.chk = this.chk;
+
+    this.chkPreviewCanvas = await mapPreviewCanvas(this.chk);
+
+    // this.reactApp.overlay({
+    //   chk,
+    // });
+    document.title = `Titan Reactor - ${this.chk.title}`;
+
+    log("initializing texture cache");
+    const textureCache = new TextureCache(
+      this.chk.title,
+      await getAppCachePath()
     );
-    window.chk = chk;
 
-    this.reactApp.overlay({
-      chk,
-    });
-    document.title = `Titan Reactor - ${chk.title}`;
-
-    log(`initializing texture cache`);
-    const textureCache = new TextureCache(chk.title, await getAppCachePath());
-
-    log(`initializing scene`);
+    log("initializing scene");
     const scene = new TitanReactorScene(
-      chk,
+      this.chk,
       textureCache,
-      this.context.settings.anisotropy,
+      state.settings.data.anisotropy,
       loadingManager
     );
     await scene.init();
@@ -184,10 +214,9 @@ export class TitanReactor {
     this.scene = await TitanReactorMapSandbox(
       this.context,
       chkFilepath,
-      chk,
+      this.chk,
       scene
     );
-    this.reactApp.hide();
   }
 
   dispose() {

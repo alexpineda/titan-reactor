@@ -112,7 +112,9 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    return { ...this._settings, errors, isDev };
+    const phrases = await import(`common/phrases/${this._settings.language}`);
+
+    return { data: this._settings, errors, isDev, phrases, diff: {} };
   }
 
   async load() {
@@ -141,7 +143,7 @@ export class Settings extends EventEmitter {
   }
 
   async _emitChanged(diff = {}) {
-    this.emit("change", { diff, settings: await this.get() });
+    this.emit("change", { ...(await this.get()), diff });
   }
 
   async createDefaults(webGLCapabilities) {

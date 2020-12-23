@@ -7,7 +7,7 @@ const Tabs = {
   Community: "Community",
 };
 
-export default ({ lang }) => {
+export default ({ phrases }) => {
   const [tab, setTab] = useState(Tabs.Maps);
 
   return (
@@ -17,13 +17,13 @@ export default ({ lang }) => {
           activeTab={tab}
           tab={Tabs.Maps}
           setTab={setTab}
-          label={lang["LOCAL_MAPS"]}
+          label={phrases["LOCAL_MAPS"]}
         />
         <TabSelector
           activeTab={tab}
           tab={Tabs.Community}
           setTab={setTab}
-          label={lang["COMMUNITY_MAPS"]}
+          label={phrases["COMMUNITY_MAPS"]}
         />
       </ul>
       <main style={{ maxHeight: "50vh" }}>
@@ -38,7 +38,7 @@ export default ({ lang }) => {
         </Tab>
       </main>
       <button className="mt-auto g-btn--yellow-to-orange">
-        {lang["BUTTON_LAUNCH"]}
+        {phrases["BUTTON_LAUNCH"]}
       </button>
     </>
   );

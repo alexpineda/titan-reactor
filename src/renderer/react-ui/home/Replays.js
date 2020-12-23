@@ -9,7 +9,7 @@ const Tabs = {
   Community: "Community",
 };
 
-export default ({ settings, lang }) => {
+export default ({ settings, phrases }) => {
   const [tab, setTab] = useState(Tabs.Local);
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,13 +42,13 @@ export default ({ settings, lang }) => {
           activeTab={tab}
           tab={Tabs.Local}
           setTab={setTab}
-          label={lang["LOCAL_REPLAYS"]}
+          label={phrases["LOCAL_REPLAYS"]}
         />
         <TabSelector
           activeTab={tab}
           tab={Tabs.Community}
           setTab={setTab}
-          label={lang["COMMUNITY_REPLAYS"]}
+          label={phrases["COMMUNITY_REPLAYS"]}
         />
       </ul>
       <Tab tabName={Tabs.Local} activeTab={tab}>

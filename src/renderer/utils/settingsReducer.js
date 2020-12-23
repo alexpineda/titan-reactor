@@ -3,41 +3,49 @@ import { getSettings, saveSettings } from "../invoke";
 
 export const getRemoteSettings = createAsyncThunk(
   "settings/getRemote",
-  async (_, thunkAPI) => {
+  async () => {
     const settings = await getSettings();
-    thunkAPI.dispatch(setSettings(settings));
     return settings;
   }
 );
 
 export const setRemoteSettings = createAsyncThunk(
   "settings/setRemote",
-  async (settings, thunkAPI) => {
-    saveSettings(settings);
-    thunkAPI.dispatch(setSettings(settings));
+  async (newSettings, { dispatch }) => {
+    dispatch(settingsReducer.actions.setSettingsData(newSettings));
+    await saveSettings(newSettings);
+    const settings = await getSettings();
     return settings;
   }
 );
 
 const initialState = {
   data: {},
-  lang: {},
+  phrases: {},
   diff: {},
+  isDev: true,
+  errors: [],
 };
 
 const settingsReducer = createSlice({
   name: "settings",
   initialState,
   reducers: {
-    setSettings: (state, action) => {
+    setSettingsData: (state, action) => {
       state.data = action.payload;
     },
-    setAll: {
-      reducer: (state, action) => action.payload,
-      prepare: (data, diff, lang) => ({ payload: { data, diff, lang } }),
+    setAll: (state, action) => {
+      state = action.payload;
     },
+    clearDiff: (state) => {
+      state.diff = {};
+    },
+  },
+  extraReducers: {
+    [getRemoteSettings.fulfilled]: (state, action) => action.payload,
+    [setRemoteSettings.fulfilled]: (state, action) => action.payload,
   },
 });
 
-export const { setSettings, setAll } = settingsReducer.actions;
+export const { setSettingsData, setAll, clearDiff } = settingsReducer.actions;
 export default settingsReducer.reducer;

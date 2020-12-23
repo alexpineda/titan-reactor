@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ipcRenderer } from "electron";
-import { selectFolder, saveSettings } from "../../invoke";
+import { selectFolder } from "../../invoke";
 import { SELECT_FOLDER } from "../../../common/handleNames";
 import Option from "../components/Option";
 import Toggle from "../components/Toggle";
@@ -29,8 +29,10 @@ const Tabs = {
 };
 
 export default ({
-  lang,
+  phrases,
   settings,
+  errors,
+  saveSettings,
   defaultTab = Tabs.General,
   inGame = false,
   className = "",
@@ -62,52 +64,52 @@ export default ({
           activeTab={tab}
           tab={Tabs.General}
           setTab={setTab}
-          label={lang["SETTINGS_GENERAL"]}
+          label={phrases["SETTINGS_GENERAL"]}
         />
 
         <TabSelector
           activeTab={tab}
           tab={Tabs.Game}
           setTab={setTab}
-          label={lang["SETTINGS_GAME"]}
+          label={phrases["SETTINGS_GAME"]}
         />
 
         <TabSelector
           activeTab={tab}
           tab={Tabs.Audio}
           setTab={setTab}
-          label={lang["SETTINGS_AUDIO"]}
+          label={phrases["SETTINGS_AUDIO"]}
         />
 
         <TabSelector
           activeTab={tab}
           tab={Tabs.Graphics}
           setTab={setTab}
-          label={lang["SETTINGS_GRAPHICS"]}
+          label={phrases["SETTINGS_GRAPHICS"]}
         />
 
         <TabSelector
           activeTab={tab}
           tab={Tabs.Advanced}
           setTab={setTab}
-          label={lang["SETTINGS_ADVANCED"]}
+          label={phrases["SETTINGS_ADVANCED"]}
         />
         <TabSelector
           activeTab={tab}
           tab={Tabs.Camera}
           setTab={setTab}
-          label={lang["SETTINGS_CAMERA"]}
+          label={phrases["SETTINGS_CAMERA"]}
         />
         <TabSelector
           activeTab={tab}
           tab={Tabs.Community}
           setTab={setTab}
-          label={lang["SETTINGS_COMMUNITY_MAPS_AND_REPLAYS"]}
+          label={phrases["SETTINGS_COMMUNITY_MAPS_AND_REPLAYS"]}
         />
       </ul>
 
       <Tab tabName={Tabs.General} activeTab={tab}>
-        <Option label={lang["SETTINGS_LANGUAGE"]}>
+        <Option label={phrases["SETTINGS_LANGUAGE"]}>
           <select
             className="rounded text-gray-800"
             onChange={(evt) => {
@@ -126,37 +128,41 @@ export default ({
         </Option>
 
         <Visible visible={!inGame}>
-          <Option label={lang["SETTINGS_STARCRAFT_PATH"]}>
+          <Option label={phrases["SETTINGS_STARCRAFT_PATH"]}>
             <PathSelect
               prop={"starcraftPath"}
-              lang={lang}
+              phrases={phrases}
               settings={settings}
+              errors={errors}
               selectFolder={selectFolder}
             />
           </Option>
 
-          <Option label={lang["SETTINGS_MAPS_PATH"]}>
+          <Option label={phrases["SETTINGS_MAPS_PATH"]}>
             <PathSelect
               prop={"mapsPath"}
-              lang={lang}
+              phrases={phrases}
               settings={settings}
+              errors={errors}
               selectFolder={selectFolder}
             />
           </Option>
 
-          <Option label={lang["SETTINGS_REPLAYS_PATH"]}>
+          <Option label={phrases["SETTINGS_REPLAYS_PATH"]}>
             <PathSelect
               prop={"replaysPath"}
-              lang={lang}
+              phrases={phrases}
+              errors={errors}
               settings={settings}
               selectFolder={selectFolder}
             />
           </Option>
 
-          <Option label={lang["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+          <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
             <PathSelect
               prop={"communityModelsPath"}
-              lang={lang}
+              phrases={phrases}
+              errors={errors}
               settings={settings}
               selectFolder={selectFolder}
             />
@@ -166,11 +172,11 @@ export default ({
 
       <Tab tabName={Tabs.Game} activeTab={tab}>
         <Option
-          label={lang["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}
+          label={phrases["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}
           value={`${
             settings.maxAutoReplaySpeed > 1
               ? `${settings.maxAutoReplaySpeed}x`
-              : lang["BUTTON_OFF"]
+              : phrases["BUTTON_OFF"]
           }`}
         >
           <input
@@ -187,7 +193,7 @@ export default ({
           />{" "}
         </Option>
         <Option
-          label={lang["SETTINGS_USE_CUSTOM_COLORS"]}
+          label={phrases["SETTINGS_USE_CUSTOM_COLORS"]}
           toggle={
             <Toggle
               value={settings.useCustomColors}
@@ -212,7 +218,7 @@ export default ({
           </Visible>
         </Option>
         <Option
-          label={lang["SETTINGS_ENABLE_PLAYER_SCORES"]}
+          label={phrases["SETTINGS_ENABLE_PLAYER_SCORES"]}
           toggle={
             <Toggle
               value={settings.enablePlayerScores}
@@ -225,7 +231,7 @@ export default ({
           }
         />
         <Option
-          label={lang["SETTINGS_SHOW_TOOLTIPS"]}
+          label={phrases["SETTINGS_SHOW_TOOLTIPS"]}
           toggle={
             <Toggle
               value={settings.showTooltips}
@@ -252,7 +258,7 @@ export default ({
           }
         />
         <Option
-          label={lang["SETTINGS_ESPORTS_HUD_STYLE"]}
+          label={phrases["SETTINGS_ESPORTS_HUD_STYLE"]}
           toggle={
             <Toggle
               value={settings.esportsHud}
@@ -265,7 +271,7 @@ export default ({
           }
         />
         <Option
-          label={lang["SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS"]}
+          label={phrases["SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS"]}
           toggle={
             <Toggle
               value={settings.alwaysHideReplayControls}
@@ -401,7 +407,7 @@ export default ({
 
       <Tab tabName={Tabs.Audio} activeTab={tab}>
         <Option
-          label={lang["SETTINGS_MUSIC_VOLUME"]}
+          label={phrases["SETTINGS_MUSIC_VOLUME"]}
           value={`${Math.floor(settings.musicVolume * 100)}%`}
         >
           <input
@@ -419,7 +425,7 @@ export default ({
         </Option>
 
         <Option
-          label={lang["SETTINGS_SOUND_VOLUME"]}
+          label={phrases["SETTINGS_SOUND_VOLUME"]}
           value={`${Math.floor(settings.soundVolume * 100)}%`}
         >
           <input
@@ -438,7 +444,7 @@ export default ({
       </Tab>
 
       <Tab tabName={Tabs.Graphics} activeTab={tab}>
-        <Option label={lang["SETTINGS_GRAPHICS_RENDER_MODE"]}>
+        <Option label={phrases["SETTINGS_GRAPHICS_RENDER_MODE"]}>
           <ButtonSetContainer>
             <ButtonSet
               selected={settings.renderMode === RenderMode.SD}
@@ -461,7 +467,7 @@ export default ({
         </Option>
 
         <Option
-          label={lang["SETTINGS_GRAPHICS_FULLSCREEN"]}
+          label={phrases["SETTINGS_GRAPHICS_FULLSCREEN"]}
           toggle={
             <Toggle
               value={settings.fullscreen}
@@ -474,7 +480,10 @@ export default ({
           }
         />
 
-        <Option label={lang["SETTINGS_GRAPHICS_GAMMA"]} value={settings.gamma}>
+        <Option
+          label={phrases["SETTINGS_GRAPHICS_GAMMA"]}
+          value={settings.gamma}
+        >
           <input
             type="range"
             min="1"
@@ -490,7 +499,7 @@ export default ({
         </Option>
 
         <Option
-          label={lang["SETTINGS_GRAPHICS_ANTIALIAS"]}
+          label={phrases["SETTINGS_GRAPHICS_ANTIALIAS"]}
           toggle={
             <Toggle
               value={settings.antialias}
@@ -503,27 +512,27 @@ export default ({
           }
         />
 
-        <Option label={lang["SETTINGS_GRAPHICS_SHADOWS"]}>
+        <Option label={phrases["SETTINGS_GRAPHICS_SHADOWS"]}>
           <ButtonSetContainer>
             <ButtonSet
               selected={settings.shadows === ShadowLevel.Off}
-              label={lang["BUTTON_OFF"]}
+              label={phrases["BUTTON_OFF"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.Off })}
               first
             />
             <ButtonSet
               selected={settings.shadows === ShadowLevel.Low}
-              label={lang["BUTTON_LOW"]}
+              label={phrases["BUTTON_LOW"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.Low })}
             />
             <ButtonSet
               selected={settings.shadows === ShadowLevel.Medium}
-              label={lang["BUTTON_MED"]}
+              label={phrases["BUTTON_MED"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.Medium })}
             />
             <ButtonSet
               selected={settings.shadows === ShadowLevel.High}
-              label={lang["BUTTON_HIGH"]}
+              label={phrases["BUTTON_HIGH"]}
               onClick={() => updateSettings({ shadows: ShadowLevel.High })}
               last
             />
@@ -550,17 +559,17 @@ export default ({
       </Tab>
 
       <Tab tabName={Tabs.Integrations} activeTab={tab}>
-        <Option label={lang["TWITCH_INTEGRATION"]}>
-          <Button label={lang["BUTTON_CONNECT"]} />
+        <Option label={phrases["TWITCH_INTEGRATION"]}>
+          <Button label={phrases["BUTTON_CONNECT"]} />
         </Option>
 
-        <Option label={lang["SETTINGS_OBSERVER_LINK"]}>
-          <Button label={lang["BUTTON_SHOW"]} />
+        <Option label={phrases["SETTINGS_OBSERVER_LINK"]}>
+          <Button label={phrases["BUTTON_SHOW"]} />
         </Option>
       </Tab>
 
       <Tab tabName={Tabs.Community} activeTab={tab}>
-        <Option label={lang["SETTINGS_MAPS_RSS_FEEDS"]}>
+        <Option label={phrases["SETTINGS_MAPS_RSS_FEEDS"]}>
           <textarea
             className="w-full h-40 bg-gray-600"
             value={settings.mapsRss}
@@ -572,7 +581,7 @@ export default ({
           />
         </Option>
 
-        <Option label={lang["SETTINGS_REPLAYS_RSS_FEEDS"]}>
+        <Option label={phrases["SETTINGS_REPLAYS_RSS_FEEDS"]}>
           <textarea
             className="w-full h-40 bg-gray-600"
             value={settings.replaysRss}
