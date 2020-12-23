@@ -20,13 +20,13 @@ export const CameraControlType = {
 
 class Cameras {
   constructor(
-    context,
+    settings,
     renderMan,
     gameSurface,
     minimapControl,
     keyboardShortcuts
   ) {
-    this.context = context;
+    this.settings = settings;
     this.renderMan = renderMan;
     this.gameSurface = gameSurface;
     const aspect = gameSurface.width / gameSurface.height;
@@ -86,7 +86,7 @@ class Cameras {
 
   _createCamera(aspect) {
     return this._initPerspectiveCamera(aspect);
-    // this.context.settings.orthoCamera
+    // this.settings.orthoCamera
     //   ? this._initOrthoCamera()
   }
 
@@ -176,9 +176,9 @@ class Cameras {
 
     if (cinematicEnabled) {
       this.renderMan.renderer.toneMappingExposure =
-        this.context.settings.gamma + this.cinematicOptions.gammaBoost;
+        this.settings.gamma + this.cinematicOptions.gammaBoost;
     } else {
-      this.renderMan.renderer.toneMappingExposure = this.context.settings.gamma;
+      this.renderMan.renderer.toneMappingExposure = this.settings.gamma;
     }
   }
 

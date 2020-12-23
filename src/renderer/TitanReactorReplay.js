@@ -37,7 +37,7 @@ const { startLocation } = unitTypes;
 
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorReplay(
+async function TitanReactorReplay(
   context,
   filepath,
   reactApp,
@@ -745,3 +745,5 @@ export async function TitanReactorReplay(
     dispose,
   };
 }
+
+export default TitanReactorReplay;

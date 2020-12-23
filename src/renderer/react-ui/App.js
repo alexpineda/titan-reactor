@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { connect } from "react-redux";
 import WrappedElement from "./WrappedElement";
 import { LoadingOverlay } from "./LoadingOverlay";
 import Initializing from "./home/Initializing";
+import Map from "./Map";
+import Replay from "./Replay";
 import { LoadingProgress } from "./LoadingProgress";
 import FileDropZone from "./components/FileDropZone";
 import "./css/tailwind.min.css";
@@ -11,7 +13,6 @@ import "./css/icon.css";
 import "./css/styles.css";
 
 import Home from "./home/Home";
-import Loading from "./home/Initializing";
 import Visible from "./components/visible";
 
 const App = ({
@@ -20,10 +21,15 @@ const App = ({
   chkPreviewCanvas,
   criticalError,
   replayLoading,
+  replayLoaded,
+  replayHeader,
   mapLoading,
+  mapLoaded,
   initializing,
   initialized,
+  filename,
   phrases,
+  scene,
 }) => {
   return (
     <>
@@ -32,36 +38,47 @@ const App = ({
       )}
       {!criticalError && (
         <>
-          <Visible visible={initializing}>
-            <Initializing phrases={phrases} />
-          </Visible>
+          {initializing && <Initializing phrases={phrases} />}
+
           <Visible visible={initialized}>
-            <Home />
+            {!mapLoaded && !replayLoaded && <Home />}
+            {mapLoaded && <Map gameSurface={scene.gameSurface} />}
+            {mapLoaded && <Replay gameSurface={scene.gameSurface} />}
           </Visible>
 
-          {chk && (
+          <Visible visible={mapLoading}>
+            {!chk && (
+              <LoadingOverlay label={"Loading Map"} description={filename} />
+            )}
+            {chk && (
+              <LoadingOverlay
+                label={chk.title}
+                description={chk.tilesetName}
+                mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
+              />
+            )}
+          </Visible>
+
+          {replayLoading && (
             <>
-              <Visible visible={replayLoading}>
+              {!chk && (
+                <LoadingOverlay
+                  label={"Loading Replay"}
+                  description={filename}
+                  header={replayHeader}
+                />
+              )}
+              {chk && (
                 <LoadingOverlay
                   label={chk.title}
                   description={chk.tilesetName}
                   mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
-                  header={titanReactor.rep.Header}
+                  header={replayHeader}
                 />
-              </Visible>
-              <Visible visible={mapLoading}>
-                <LoadingOverlay
-                  label={titanReactor.chk.title}
-                  description={titanReactor.chk.tilesetName}
-                  mapPreview={
-                    <WrappedElement
-                      domElement={titanReactor.chkPreviewCanvas}
-                    />
-                  }
-                />
-              </Visible>
+              )}
             </>
           )}
+
           {/* <LoadingOverlay label={label} description={description} /> */}
         </>
       )}
@@ -71,19 +88,22 @@ const App = ({
 
 const mapStateToProps = (state, { titanReactor }) => {
   const processes = state.titan.processes;
+  console.log("chkPreviewCanvas", titanReactor.chkPreviewCanvas);
+
   return {
+    filename: titanReactor.filename,
     initializing: processes.init.started,
     initialized: processes.init.completed,
     replayLoading: processes.replay.started,
-    replay: processes.replay.completed ? titanReactor.rep : null,
+    replayLoaded: processes.replay.completed,
     mapLoading: processes.map.started,
     mapLoaded: processes.map.completed,
-    chk: processes.chk.completed ? titanReactor.chk : null,
-    chkPreviewCanvas: processes.chk.completed
-      ? titanReactor.chkPreviewCanvas
-      : null,
-    criticalError: false,
+    chk: titanReactor.chk,
+    chkPreviewCanvas: titanReactor.chkPreviewCanvas,
+    replayHeader: titanReactor.rep ? titanReactor.rep.Header : null,
+    criticalError: state.titan.criticalError,
     phrases: state.settings.phrases,
+    scene: titanReactor.scene,
   };
 };
 
