@@ -6,7 +6,6 @@ export const LOAD_ALL_DATA_FILES = "loadAllDataFiles";
 export const GET_SETTINGS = "GET_SETTINGS";
 export const SET_SETTINGS = "SET_SETTINGS";
 export const SETTINGS_CHANGED = "SETTINGS_CHANGED";
-export const GET_LANGUAGE = "GET_LANGUAGE";
 export const SELECT_FOLDER = "SELECT_FOLDER";
 export const LOG_MESSAGE = "LOG_MESSAGE";
 export const EXIT = "EXIT";

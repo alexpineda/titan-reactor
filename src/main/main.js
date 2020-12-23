@@ -1,5 +1,10 @@
 import { app, ipcMain, Menu, BrowserWindow, shell, dialog } from "electron";
 import isDev from "electron-is-dev";
+import installExtension, {
+  REDUX_DEVTOOLS,
+  REACT_DEVELOPER_TOOLS,
+  REACT_PERF,
+} from "electron-devtools-installer";
 import { openFileBinary } from "./fs";
 import path from "path";
 import Parser from "rss-parser";
@@ -18,7 +23,6 @@ import {
   GET_SETTINGS,
   SET_SETTINGS,
   SETTINGS_CHANGED,
-  GET_LANGUAGE,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   LOG_MESSAGE,
@@ -34,7 +38,7 @@ import {
 import { loadAllDataFiles } from "./units/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
-import lang from "../common/lang";
+import phrases from "../common/phrases";
 import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
@@ -116,15 +120,23 @@ app.on("ready", async () => {
     return newSettings;
   });
 
-  ipcMain.handle(GET_LANGUAGE, async (event) => {
-    return lang[settings.get().language];
-  });
-
   ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
     await settings.init(webGLCapabilities);
     const s = await settings.get();
     updateFullScreen(s.fullscreen);
   });
+
+  installExtension(REDUX_DEVTOOLS)
+    .then((name) => console.log(`Added Extension:  ${name}`))
+    .catch((err) => console.log("An error occurred: ", err));
+
+  // installExtension(REACT_DEVELOPER_TOOLS)
+  //   .then((name) => console.log(`Added Extension:  ${name}`))
+  //   .catch((err) => console.log("An error occurred: ", err));
+
+  // installExtension(REACT_PERF)
+  //   .then((name) => console.log(`Added Extension:  ${name}`))
+  //   .catch((err) => console.log("An error occurred: ", err));
 
   createWindow();
 });

@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 
 module.exports = {
   module: {
@@ -9,6 +10,7 @@ module.exports = {
       },
     ],
   },
+
   resolve: {
     alias: {
       image: path.resolve("./src/renderer/image"),
