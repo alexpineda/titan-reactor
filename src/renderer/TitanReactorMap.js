@@ -7,13 +7,13 @@ import { LoadModel } from "./mesh/LoadModels";
 import { unitTypes } from "../common/bwdat/unitTypes";
 import Cameras from "./camera/Cameras";
 import RenderMan from "./render/RenderMan";
-import GameCanvasTarget from "./render/GameCanvasTarget";
+import CanvasTarget from "./render/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./3d-map-rendering/lights";
 import { createStats } from "utils/stats";
 export const hot = module.hot ? module.hot.data : null;
 
-export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
+async function TitanReactorMap(store, filepath, chk, scene) {
   const stats = createStats();
 
   const gui = new EnvironmentOptionsGui();
@@ -26,17 +26,19 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const renderMan = new RenderMan(context);
+  const state = store.getState();
+
+  const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
   renderMan.initRenderer();
   window.renderMan = renderMan;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
 
-  const gameSurface = new GameCanvasTarget(context);
+  const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
   const mainCamera = new Cameras(
-    context,
+    state.settings.data,
     renderMan,
     gameSurface,
     null,
@@ -217,8 +219,8 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
   gui.controllers.renderer.onFinishChangeAny(
     ({ toneMappingExposure, toneMapping }) => {
-      context.renderer.toneMappingExposure = toneMappingExposure;
-      context.renderer.toneMapping = THREE[toneMapping];
+      renderMan.renderer.toneMappingExposure = toneMappingExposure;
+      renderMan.renderer.toneMapping = THREE[toneMapping];
       scene.traverse((o) => {
         if (o.type === "Mesh") {
           o.material.needsUpdate = true;
@@ -283,7 +285,6 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   //#endregion
 
   let running = true;
-  document.body.append(gameSurface.canvas);
 
   function gameLoop() {
     if (!running) return;
@@ -304,7 +305,6 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
 
   const dispose = () => {
     console.log("disposing");
-    gameSurface.canvas.remove();
     renderMan.renderer.setAnimationLoop(null);
     running = false;
 
@@ -329,6 +329,9 @@ export async function TitanReactorMapSandbox(context, filepath, chk, scene) {
   }
 
   return {
+    gameSurface,
     dispose,
   };
 }
+
+export default TitanReactorMap;

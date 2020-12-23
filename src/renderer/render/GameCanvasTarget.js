@@ -2,17 +2,17 @@ import CanvasTarget from "./CanvasTarget";
 import { GameAspect, ProducerWindowPosition } from "../../common/settings";
 
 class GameCanvasTarget extends CanvasTarget {
-  constructor(context) {
+  constructor(settings) {
     super();
-    this.context = context;
+    this.settings = settings;
     this.top = 0;
     this.left = 0;
   }
 
   setDimensions(screenWidth, screenHeight) {
-    const producerWindowPosition = this.context.settings.producerWindowPosition;
-    const gameAspect = this.context.settings.gameAspect;
-    const producerDockSize = this.context.settings.producerDockSize;
+    const producerWindowPosition = this.settings.producerWindowPosition;
+    const gameAspect = this.settings.gameAspect;
+    const producerDockSize = this.settings.producerDockSize;
 
     const maxWidth =
       producerWindowPosition === ProducerWindowPosition.DockLeft ||
@@ -58,7 +58,7 @@ class GameCanvasTarget extends CanvasTarget {
       this.left = this.left + (maxWidth - width) / 2;
       this.right = this.right + (maxWidth - width) / 2;
 
-      super.setDimensions(width, height, this.context.settings.pixelRatio);
+      super.setDimensions(width, height, this.settings.pixelRatio);
     }
   }
 

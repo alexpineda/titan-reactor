@@ -6,8 +6,8 @@ import { imageChk } from "./utils/loadChk";
 import { ImageSD } from "./mesh/ImageSD";
 import { Image3D } from "./mesh/Image3D";
 import EmptyImage from "./mesh/EmptyImage";
-import { TitanReactorMapSandbox } from "./TitanReactorMapSandbox";
-import { TitanReactorReplay } from "./TitanReactorReplay";
+import TitanReactorMap from "./TitanReactorMap";
+import TitanReactorReplay from "./TitanReactorReplay";
 import { DefaultLoadingManager, LoadingManager } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
@@ -31,11 +31,16 @@ export class TitanReactor {
   }
 
   async preload() {
+    const state = this.store.getState();
+    if (
+      state.titan.processes.preload.completed ||
+      state.titan.processes.preload.started
+    )
+      return;
+
     const dispatchPreloadLoadingProgress = () =>
       this.store.dispatch(loadingProgress("preload"));
-    const state = this.store.getState();
-    if (state.titan.preloading || state.titan.preloaded) return;
-    this.store.dispatch(loading("preload", state.settings.data.isDev ? 1 : 3));
+    this.store.dispatch(loading("preload", state.settings.isDev ? 1 : 3));
 
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
@@ -91,9 +96,11 @@ export class TitanReactor {
     const dispatchRepLoadingProgress = () =>
       this.store.dispatch(loadingProgress("replay"));
 
-    if (!state.titan.preloaded) {
+    if (!state.titan.processes.preload.completed) {
       throw new Error("cannot spawn replay before preloading assets");
     }
+
+    this.filename = filepath;
 
     this.store.dispatch(loading("replay", 4));
 
@@ -172,16 +179,20 @@ export class TitanReactor {
 
   async spawnMapViewer(chkFilepath) {
     const state = this.store.getState();
+    const dispatchMapLoadingProgress = () =>
+      this.store.dispatch(loadingProgress("map"));
 
-    if (!state.titan.preloaded) {
+    if (!state.titan.processes.preload.completed) {
       throw new Error("cannot spawn replay before preloading assets");
     }
 
+    this.chk = null;
+    this.chkPreviewCanvas = null;
+    this.filename = chkFilepath;
+
+    this.store.dispatch(loading("map", 3));
+
     await this.dispose();
-    this.reactApp.overlay({
-      label: "Loading",
-      description: chkFilepath,
-    });
 
     const loadingManager = new LoadingManager();
 
@@ -190,10 +201,8 @@ export class TitanReactor {
     window.chk = this.chk;
 
     this.chkPreviewCanvas = await mapPreviewCanvas(this.chk);
+    dispatchMapLoadingProgress();
 
-    // this.reactApp.overlay({
-    //   chk,
-    // });
     document.title = `Titan Reactor - ${this.chk.title}`;
 
     log("initializing texture cache");
@@ -211,12 +220,15 @@ export class TitanReactor {
     );
     await scene.init();
 
-    this.scene = await TitanReactorMapSandbox(
-      this.context,
+    dispatchMapLoadingProgress();
+
+    this.scene = await TitanReactorMap(
+      this.store,
       chkFilepath,
       this.chk,
       scene
     );
+    dispatchMapLoadingProgress();
   }
 
   dispose() {

@@ -16,8 +16,9 @@ import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass";
 
 const log = () => {};
 class RenderMan {
-  constructor(context) {
-    this.context = context;
+  constructor(settings, isDev) {
+    this.settings = settings;
+    this.isDev = isDev;
     this.renderer = null;
 
     this.bokehOptions = { aperture: 40, focus: 40, maxblur: 1 };
@@ -112,18 +113,18 @@ class RenderMan {
 
   _initRenderer() {
     const renderer = new WebGLRenderer({
-      antialias: this.context.settings.antialias,
+      antialias: this.settings.antialias,
       powerPreference: "high-performance",
       preserveDrawingBuffer: true,
       logarithmicDepthBuffer: false,
     });
     renderer.autoClear = false;
     renderer.toneMapping = CineonToneMapping;
-    renderer.toneMappingExposure = this.context.settings.gamma;
+    renderer.toneMappingExposure = this.settings.gamma;
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
 
-    renderer.debug.checkShaderErrors = this.context.settings.isDev;
+    renderer.debug.checkShaderErrors = this.isDev;
 
     return renderer;
   }
@@ -142,7 +143,7 @@ class RenderMan {
     }
 
     this.renderer = this._initRenderer();
-    this.setShadowLevel(this.context.settings.shadows);
+    this.setShadowLevel(this.settings.shadows);
 
     this._composer = new EffectComposer(this.renderer);
 
