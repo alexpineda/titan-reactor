@@ -1,16 +1,16 @@
 import { ipcRenderer } from "electron";
 import { configureStore } from "@reduxjs/toolkit";
-import { combineReducers, compose } from "redux";
-import cameraReducer from "./camera/cameraReducer";
+import { combineReducers } from "redux";
 import { SETTINGS_CHANGED } from "common/handleNames";
 import settingsReducer, { setAll } from "./utils/settingsReducer";
 import titanReactorReducer from "./titanReactorReducer";
+import replayReducer from "./react-ui/replay/replayReducer";
 
 const store = configureStore({
   reducer: combineReducers({
     titan: titanReactorReducer,
-    camera: cameraReducer,
     settings: settingsReducer,
+    replay: replayReducer,
   }),
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware();
