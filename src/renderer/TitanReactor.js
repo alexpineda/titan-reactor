@@ -158,14 +158,12 @@ export class TitanReactor {
       state.settings.data.anisotropy,
       loadingManager
     );
-    await scene.init(state.setting.isDev);
+    await scene.init(state.settings.isDev);
     dispatchRepLoadingProgress();
 
     log("initializing replay");
     this.scene = await TitanReactorReplay(
       this.store,
-      filepath,
-      this.reactApp,
       scene,
       this.chk,
       this.rep,

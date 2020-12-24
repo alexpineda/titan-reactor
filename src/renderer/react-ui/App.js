@@ -16,7 +16,6 @@ import Home from "./home/Home";
 import Visible from "./components/visible";
 
 const App = ({
-  titanReactor,
   chk,
   chkPreviewCanvas,
   criticalError,
@@ -43,7 +42,7 @@ const App = ({
           <Visible visible={initialized}>
             {!mapLoaded && !replayLoaded && <Home />}
             {mapLoaded && <Map gameSurface={scene.gameSurface} />}
-            {mapLoaded && <Replay gameSurface={scene.gameSurface} />}
+            {replayLoaded && <Replay scene={scene} />}
           </Visible>
 
           <Visible visible={mapLoading}>
@@ -89,7 +88,7 @@ const App = ({
 const mapStateToProps = (state, { titanReactor }) => {
   const processes = state.titan.processes;
   console.log("chkPreviewCanvas", titanReactor.chkPreviewCanvas);
-
+  console.log("titanReactor.rep", titanReactor.rep);
   return {
     filename: titanReactor.filename,
     initializing: processes.init.started,
@@ -100,7 +99,7 @@ const mapStateToProps = (state, { titanReactor }) => {
     mapLoaded: processes.map.completed,
     chk: titanReactor.chk,
     chkPreviewCanvas: titanReactor.chkPreviewCanvas,
-    replayHeader: titanReactor.rep ? titanReactor.rep.Header : null,
+    replayHeader: titanReactor.rep ? titanReactor.rep.header : null,
     criticalError: state.titan.criticalError,
     phrases: state.settings.phrases,
     scene: titanReactor.scene,

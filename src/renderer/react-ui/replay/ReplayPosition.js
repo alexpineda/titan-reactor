@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
 import { gameSpeeds, gameSpeedNames } from "../../utils/conversions";
 import sparkly from "sparkly";
 
@@ -21,7 +22,7 @@ const capitalizeFirst = (str) => {
   return str[0].toUpperCase() + str.substr(1);
 };
 
-export default ({
+const ReplayPosition = ({
   paused,
   position,
   destination,
@@ -195,7 +196,7 @@ export default ({
 
           <div className="position control">
             <div
-              className={`h-3 bg-black rounded-sm border-2 border-gray-800 cursor-pointer`}
+              className="h-3 bg-black rounded-sm border-2 border-gray-800 cursor-pointer"
               onClick={setPositionHandler}
               onMouseMove={setPositionLabelHandler}
               onMouseLeave={() => setPositionLabel("")}
@@ -223,7 +224,7 @@ export default ({
                 }`}
               >
                 <i
-                  onClick={(e) => {
+                  onClick={() => {
                     if (progress === 100) {
                       return;
                     }
@@ -338,3 +339,15 @@ export default ({
     </div>
   );
 };
+
+export default connect((state, { replayPosition }) => {
+  return {
+    position: replayPosition.bwGameFrame / replayPosition.maxFrame,
+    gameSpeed: replayPosition.gameSpeed,
+    timeLabel: replayPosition.getFriendlyTime(),
+    maxFrame: replayPosition.maxFrame,
+    destination: replayPosition.destination,
+    autoSpeed: replayPosition.autoSpeed,
+    paused: replayPosition.paused,
+  };
+})(ReplayPosition);

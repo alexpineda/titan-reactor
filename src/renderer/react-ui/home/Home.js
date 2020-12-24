@@ -180,7 +180,6 @@ const Home = ({ settings, errors, phrases, saveSettings }) => {
 
 export default connect(
   (state) => {
-    console.log("HOME", state);
     return {
       settings: state.settings.data,
       errors: state.settings.errors,

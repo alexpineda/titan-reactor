@@ -47,7 +47,7 @@
     "SETTINGS_ENABLE_PLAYER_SCORES": "Enable Player Scores",
     "SETTINGS_ESPORTS_HUD_STYLE": "E-Sports HUD Style",
     "SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS": "Always Hide Replay Controls",
-    "SETTINGS_SHOW_TOOLTIPS": "Show Tooltips",
+    "SETTINGS_SHOW_TOOLTIPS": "Show In-Game Tooltips",
 
     "TWITCH_INTEGRATION": "Twitch Integration",
     "LOCAL_MAPS": "Local Maps",

@@ -8,12 +8,34 @@ const initialState = {
   hoveringOverMinimap: false,
   activePreview: false,
   bookmarks: {},
+  playerPov: {},
+  playerActions: {},
 };
 
 const cameraReducer = createSlice({
   name: "camera",
   initialState,
   reducers: {
+    togglePlayerPov: {
+      reducer: (state, action) => {
+        const playerPov = state.playerPov[action.payload.player];
+        if (playerPov) {
+          const enabled =
+            action.payload.enabled !== undefined
+              ? action.payload.enabled
+              : !playerPov.enabled;
+          playerPov.enabled = enabled;
+        } else {
+          state.playerPov[action.payload.player] = {
+            enabled:
+              action.payload.enabled !== undefined
+                ? action.payload.enabled
+                : true,
+          };
+        }
+      },
+      prepare: (player, enabled) => ({ payload: { player, enabled } }),
+    },
     cinematic: (state, action) => {
       state.cinematic = action.payload;
     },
@@ -43,6 +65,7 @@ const cameraReducer = createSlice({
 });
 
 export const {
+  togglePlayerPov,
   cinematic,
   hoveringOverMinimap,
   setBookmark,

@@ -28,7 +28,7 @@ export default ({
           >
             {timeLabel}
           </p>
-          <WrappedElement canvas={canvas} />
+          <WrappedElement domElement={canvas} />
         </article>
 
         <aside

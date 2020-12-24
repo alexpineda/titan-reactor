@@ -2,7 +2,15 @@ import React, { useState } from "react";
 import { MenuItem } from "../components/MenuItem";
 import Options from "../home/Options";
 
-export default ({ lang, settings, isReplay, onClose, onBackToMainMenu }) => {
+export default ({
+  phrases,
+  settings,
+  errors,
+  saveSettings,
+  isReplay,
+  onClose,
+  onBackToMainMenu,
+}) => {
   const [showOptions, setShowOptions] = useState(false);
 
   return (
@@ -13,18 +21,21 @@ export default ({ lang, settings, isReplay, onClose, onBackToMainMenu }) => {
       {!showOptions && (
         <ul>
           {isReplay ? (
-            <MenuItem label={lang["MENU_RETURN_TO_GAME"]} onClick={onClose} />
+            <MenuItem
+              label={phrases["MENU_RETURN_TO_GAME"]}
+              onClick={onClose}
+            />
           ) : (
-            <MenuItem label={lang["MENU_RETURN_TO_MAP"]} onClick={onClose} />
+            <MenuItem label={phrases["MENU_RETURN_TO_MAP"]} onClick={onClose} />
           )}
 
           <MenuItem
-            label={lang["MENU_OPTIONS"]}
+            label={phrases["MENU_OPTIONS"]}
             onClick={() => setShowOptions(true)}
           />
 
           <MenuItem
-            label={lang["MENU_BACK_TO_MAIN_MENU"]}
+            label={phrases["MENU_BACK_TO_MAIN_MENU"]}
             onClick={onBackToMainMenu}
           />
         </ul>
@@ -33,8 +44,10 @@ export default ({ lang, settings, isReplay, onClose, onBackToMainMenu }) => {
         <>
           <p onClick={() => setShowOptions(false)}>Back</p>
           <Options
-            lang={lang}
+            phrases={phrases}
             settings={settings}
+            errors={errors}
+            saveSettings={saveSettings}
             inGame={true}
             className="bg-gray-900 w-3/4 px-6 pt-3 pb-1"
             style={{ minHeight: "30vh" }}
