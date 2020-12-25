@@ -26,6 +26,7 @@ const SECTION_APPEND = 3;
 const SECTION_TYPES = {
   MTXM: { type: SECTION_PARTIAL_OVERWRITE },
   "STR\x20": { type: SECTION_PARTIAL_OVERWRITE, minSize: 2 },
+  STRx: { type: SECTION_PARTIAL_OVERWRITE, minSize: 4 },
   "ERA\x20": { type: SECTION_FULL_OVERWRITE, minSize: 2, maxSize: 2 },
   FORC: { type: SECTION_FULL_OVERWRITE, maxSize: 20 },
   OWNR: { type: SECTION_FULL_OVERWRITE, minSize: 12, maxSize: 12 },
@@ -263,13 +264,30 @@ function briefingDisplayStrings(trigger) {
 class StrSection {
   // `usedStrings` is required with 'auto' encoding, as there may be invalid strings
   // in middle of valid ones. It is a lazily called callback returning array of string ids.
-  constructor(buf, encoding, usedStrings) {
+  constructor(sections, encoding, usedStrings) {
+    const oldStr = sections.get("STR\x20");
+    const newStr = sections.get("STRx");
+    if (oldStr === undefined && newStr === undefined) {
+      throw new ChkError("Must have either STR\x20 or STRx section");
+    }
+    this._isExtended = newStr !== undefined;
+    // Not actually sure which one has priority is both sections exist
+    const buf = this._isExtended ? newStr : oldStr;
     this._data = buf;
-    if (buf.length < 2) {
-      this._amount = 0;
+    if (!this._isExtended) {
+      if (buf.length < 2) {
+        this._amount = 0;
+      } else {
+        const maxPossibleAmt = Math.floor((buf.length - 2) / 2);
+        this._amount = Math.min(buf.readUInt16LE(0), maxPossibleAmt);
+      }
     } else {
-      const maxPossibleAmt = Math.floor((buf.length - 2) / 2);
-      this._amount = Math.min(buf.readUInt16LE(0), maxPossibleAmt);
+      if (buf.length < 4) {
+        this._amount = 0;
+      } else {
+        const maxPossibleAmt = Math.floor((buf.length - 4) / 4);
+        this._amount = Math.min(buf.readUInt32LE(0), maxPossibleAmt);
+      }
     }
     if (encoding === "auto") {
       this.encoding = this._determineEncoding(usedStrings());
@@ -285,7 +303,12 @@ class StrSection {
     if (index > this._amount || index === 0) {
       return "";
     }
-    const offset = this._data.readUInt16LE(index * 2);
+    let offset = 0;
+    if (this._isExtended) {
+      offset = this._data.readUInt32LE(index * 4);
+    } else {
+      offset = this._data.readUInt16LE(index * 2);
+    }
     if (offset >= this._data.length) {
       return "";
     }
@@ -370,11 +393,7 @@ export default class Chk {
     }
 
     const usedStrings = () => this._usedStringIds(forceSection, sections);
-    this._strings = new StrSection(
-      sections.section("STR\x20"),
-      opts.encoding,
-      usedStrings
-    );
+    this._strings = new StrSection(sections, opts.encoding, usedStrings);
     this._encoding = this._strings.encoding;
     [this.title, this.description] = this._parseScenarioProperties(
       sections.section("SPRP")

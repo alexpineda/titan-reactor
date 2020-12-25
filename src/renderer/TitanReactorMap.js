@@ -42,6 +42,7 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     renderMan,
     gameSurface,
     null,
+    null,
     keyboardShortcuts
   );
   if (hot && hot.camera) {

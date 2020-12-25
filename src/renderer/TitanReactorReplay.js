@@ -93,7 +93,6 @@ async function TitanReactorReplay(
 
   const cameras = new Cameras(
     settings,
-    state,
     renderMan,
     gameSurface,
     previewSurface,

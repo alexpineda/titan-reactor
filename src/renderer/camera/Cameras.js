@@ -21,7 +21,6 @@ export const CameraControlType = {
 class Cameras {
   constructor(
     settings,
-    state,
     renderMan,
     gameSurface,
     previewSurface,
@@ -29,7 +28,6 @@ class Cameras {
     keyboardShortcuts
   ) {
     this.settings = settings;
-    this.state = state;
     this.renderMan = renderMan;
     this.gameSurface = gameSurface;
     const aspect = gameSurface.width / gameSurface.height;
@@ -49,21 +47,21 @@ class Cameras {
     this.control.initNumpadControls();
     this.control.execNumpad(7);
 
-    this.previewControl = new StandardCameraControls(
-      this.previewCamera,
-      previewSurface.canvas,
-      keyboardShortcuts
-    );
-    this.previewControl.setConstraints();
-    this.previewControl.initNumpadControls();
-    this.previewControl.execNumpad(7);
-    this.previewControl.keyboardTruckingEnabled = false;
-
     this.controlClock = new Clock();
 
     this._delta = new Vector3();
 
     if (minimapControl) {
+      this.previewControl = new StandardCameraControls(
+        this.previewCamera,
+        previewSurface.canvas,
+        keyboardShortcuts
+      );
+      this.previewControl.setConstraints();
+      this.previewControl.initNumpadControls();
+      this.previewControl.execNumpad(7);
+      this.previewControl.keyboardTruckingEnabled = false;
+
       this.minimapCamera = this._initMinimapCamera(
         minimapControl.mapWidth,
         minimapControl.mapHeight
@@ -171,7 +169,7 @@ class Cameras {
   update() {
     const delta = this.controlClock.getDelta();
     this.control.update(delta);
-    this.previewControl.update(delta);
+    this.previewControl && this.previewControl.update(delta);
   }
 
   updateGameScreenAspect(width, height) {
