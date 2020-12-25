@@ -37,7 +37,8 @@ export const gameSpeedNames = invertObj(gameSpeeds);
 export const framesBySeconds = (frames = 1, roundFn = Math.ceil) =>
   roundFn((frames * 1000) / gameSpeeds.fastest);
 
-export const onFastestTick = (frame) => frame % 24 === 0;
+export const onFastestTick = (frame, seconds = 1) =>
+  frame % (24 * seconds) === 0;
 
 export const angleToDirection = (angle) =>
   Math.floor(

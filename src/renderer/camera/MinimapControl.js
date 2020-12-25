@@ -1,12 +1,8 @@
-import {
-  EventDispatcher,
-  Mesh,
-  MeshBasicMaterial,
-  PlaneBufferGeometry,
-  Vector3,
-  MathUtils,
-} from "three";
-import { MinimapLayer, MinimapUnitLayer } from "./Layers";
+import { EventDispatcher, Vector3, MathUtils } from "three";
+
+const LeftMouse = 0;
+const MiddleMouse = 1;
+const RightMouse = 2;
 
 class MinimapControl extends EventDispatcher {
   constructor(surface, mapWidth, mapHeight) {
@@ -52,10 +48,14 @@ class MinimapControl extends EventDispatcher {
 
       const pos = new Vector3(x, 0, y);
 
-      const rightMouse = e.button === 2;
-      this.dispatchEvent({ type: "start", message: { pos, rightMouse, e } });
+      if (e.button === LeftMouse || e.button === RightMouse) {
+        this.dispatchEvent({
+          type: "start",
+          message: { pos, rightMouse: e.button === RightMouse, e },
+        });
+      }
 
-      if (rightMouse) {
+      if (e.button === RightMouse) {
         this._isDragging = true;
       }
     });
@@ -65,6 +65,8 @@ class MinimapControl extends EventDispatcher {
     });
 
     this.surface.canvas.addEventListener("mousemove", (e) => {
+      if (e.button === MiddleMouse) return;
+
       const x = getX(e.offsetX);
       const y = getY(e.offsetY);
 
@@ -80,13 +82,19 @@ class MinimapControl extends EventDispatcher {
       }
     });
 
-    this.surface.canvas.addEventListener("mouseenter ", (e) => {
-      this.mouseInside = true;
+    this.surface.canvas.addEventListener("mouseenter", (e) => {
+      const x = getX(e.offsetX);
+      const y = getY(e.offsetY);
+
+      const pos = new Vector3(x, 0, y);
+
+      this.dispatchEvent({
+        type: "enter",
+        message: { pos, e },
+      });
     });
 
-    this.surface.canvas.addEventListener("mouseleave ", (e) => {
-      this.mouseInside = false;
-
+    this.surface.canvas.addEventListener("mouseleave", (e) => {
       this.dispatchEvent({
         type: "stop",
         e,
@@ -98,65 +106,9 @@ class MinimapControl extends EventDispatcher {
     this.surface.canvas.removeEventListener("mousedown");
     this.surface.canvas.removeEventListener("mouseup");
     this.surface.canvas.removeEventListener("mousemove");
+    this.surface.canvas.removeEventListener("mouseenter");
+    this.surface.canvas.removeEventListener("mouseleave");
   }
 }
-
-export const createMiniMapPlane = (map, mapWidth, mapHeight) => {
-  const geo = new PlaneBufferGeometry(
-    mapWidth,
-    mapHeight,
-    Math.floor(mapWidth / 32),
-    Math.floor(mapHeight / 32)
-  );
-  const mat = new MeshBasicMaterial({
-    color: 0xffffff,
-    map,
-  });
-  var mesh = new Mesh(geo, mat);
-  mesh.rotateX(-0.5 * Math.PI);
-  mesh.layers.set(MinimapLayer);
-  return mesh;
-};
-
-export const createMinimapPoint = (color, w, h) => {
-  const geometry = new PlaneBufferGeometry(w, h);
-  const material = new MeshBasicMaterial({ color });
-  const plane = new Mesh(geometry, material);
-  plane.rotation.x = -Math.PI / 2;
-  plane.layers.set(MinimapUnitLayer);
-  Object.assign(plane, {
-    updateMatrix: function () {
-      this.matrix.compose(this.position, this.quaternion, this.scale);
-
-      this.matrixWorldNeedsUpdate = true;
-    },
-
-    updateMatrixWorld: function (force) {
-      if (this.matrixAutoUpdate) this.updateMatrix();
-
-      if (this.matrixWorldNeedsUpdate || force) {
-        if (this.parent === null) {
-          this.matrixWorld.copy(this.matrix);
-        } else {
-          this.matrixWorld.multiplyMatrices(
-            this.parent.matrixWorld,
-            this.matrix
-          );
-        }
-
-        this.matrixWorldNeedsUpdate = false;
-
-        force = true;
-      }
-
-      const children = this.children;
-
-      for (let i = 0, l = children.length; i < l; i++) {
-        children[i].updateMatrixWorld(force);
-      }
-    },
-  });
-  return plane;
-};
 
 export default MinimapControl;

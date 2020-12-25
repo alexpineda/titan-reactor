@@ -44,6 +44,7 @@ class RenderMan {
   setCanvasTarget(canvasTarget) {
     this.canvasTarget = canvasTarget;
     this.renderer.setPixelRatio(canvasTarget.pixelRatio);
+    // this.renderer.setSizeFromCanvasTarget(canvasTarget);
     this.renderer.setSize(canvasTarget.width, canvasTarget.height, false);
     this.renderer.setViewport(
       new Vector4(0, 0, canvasTarget.width, canvasTarget.height)

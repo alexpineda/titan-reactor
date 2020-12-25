@@ -10,7 +10,7 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "./render/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./3d-map-rendering/lights";
-import { createStats } from "utils/stats";
+import createStats from "utils/createStats";
 export const hot = module.hot ? module.hot.data : null;
 
 async function TitanReactorMap(store, filepath, chk, scene) {

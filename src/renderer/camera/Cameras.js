@@ -21,17 +21,21 @@ export const CameraControlType = {
 class Cameras {
   constructor(
     settings,
+    state,
     renderMan,
     gameSurface,
+    previewSurface,
     minimapControl,
     keyboardShortcuts
   ) {
     this.settings = settings;
+    this.state = state;
     this.renderMan = renderMan;
     this.gameSurface = gameSurface;
     const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
     this.previewCamera = this._createCamera(aspect);
+    this.previewCamera.isPreviewCamera = true;
     this.cinematicOptions = {
       gammaBoost: 1.5,
     };
@@ -47,9 +51,13 @@ class Cameras {
 
     this.previewControl = new StandardCameraControls(
       this.previewCamera,
-      gameSurface.canvas,
+      previewSurface.canvas,
       keyboardShortcuts
     );
+    this.previewControl.setConstraints();
+    this.previewControl.initNumpadControls();
+    this.previewControl.execNumpad(7);
+    this.previewControl.keyboardTruckingEnabled = false;
 
     this.controlClock = new Clock();
 
@@ -65,19 +73,56 @@ class Cameras {
 
       minimapControl.addEventListener(
         "start",
-        ({ message: { pos, rightMouse, e } }) => {
+        ({ message: { rightMouse } }) => {
           const target = new Vector3();
-          this.control.getTarget(target);
+          const position = new Vector3();
+          this.previewControl.getTarget(target);
+          this.previewControl.getPosition(position);
 
-          this._delta.subVectors(target, this.camera.position);
-          this.control.moveTo(pos.x, pos.y, pos.z, rightMouse);
-          this.camera.position.subVectors(pos, this._delta);
+          this.camera.fov = this.previewCamera.fov;
+          this.camera.updateProjectionMatrix();
+          this.control.setLookAt(
+            position.x,
+            position.y,
+            position.z,
+            target.x,
+            target.y,
+            target.z,
+            rightMouse
+          );
         }
       );
 
       minimapControl.addEventListener("update", ({ message: { pos, e } }) => {
         this.control.moveTo(pos.x, pos.y, pos.z, true);
         this.camera.position.subVectors(pos, this._delta);
+      });
+
+      minimapControl.addEventListener("hover", ({ message: { pos, e } }) => {
+        const target = new Vector3();
+        this.control.getTarget(target);
+        this._delta.subVectors(target, this.camera.position);
+        this.previewControl.moveTo(pos.x, pos.y, pos.z, false);
+        this.previewCamera.position.subVectors(pos, this._delta);
+      });
+
+      minimapControl.addEventListener("enter", () => {
+        const target = new Vector3();
+        const position = new Vector3();
+        this.control.getTarget(target);
+        this.control.getPosition(position);
+
+        this.previewCamera.fov = this.camera.fov;
+        this.previewCamera.updateProjectionMatrix();
+        this.previewControl.setLookAt(
+          position.x,
+          position.y,
+          position.z,
+          target.x,
+          target.y,
+          target.z,
+          false
+        );
       });
     }
 

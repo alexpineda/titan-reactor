@@ -3,7 +3,7 @@ import { easeElasticOut, easeExpOut } from "d3-ease";
 import { framesBySeconds } from "utils/conversions";
 
 //@todo refactor with pooling + ClockMs()
-export class FadingPointers extends Group {
+class FadingPointers extends Group {
   constructor() {
     super();
     this.lifespan = framesBySeconds(7);
@@ -62,3 +62,4 @@ export class FadingPointers extends Group {
       });
   }
 }
+export default FadingPointers;

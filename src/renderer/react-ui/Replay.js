@@ -14,6 +14,7 @@ import { ProducerWindowPosition } from "common/settings";
 import { setRemoteSettings } from "../utils/settingsReducer";
 
 import { toggleMenu } from "./replay/replayHudReducer";
+import { hoveringOverMinimap } from "../input/inputReducer";
 
 function useForceUpdate() {
   const [value, setValue] = useState(0); // integer state
@@ -24,6 +25,7 @@ const Replay = ({
   gameSurface,
   gameDimensions,
   minimapCanvas,
+  previewSurface,
   players,
   settings,
   errors,
@@ -36,9 +38,12 @@ const Replay = ({
   showReplayControls,
   showUnitSelection,
   showMinimap,
+  showFps,
   replayPosition,
   toggleMenu,
   onTogglePlayerPov,
+  hoveringOverMinimap,
+  fpsCanvas,
   callbacks,
 }) => {
   const forceUpdate = useForceUpdate();
@@ -63,18 +68,19 @@ const Replay = ({
           top: `${gameSurface.top}px`,
         }}
         domElement={gameSurface.canvas}
-        onKeyDown={(evt) => {
-          if (evt.code === "Escape") {
-            toggleMenu();
-          }
-        }}
       />
+      {showFps &&
+        settings.producerWindowPosition === ProducerWindowPosition.None && (
+          <WrappedElement domElement={fpsCanvas} />
+        )}
       {settings.producerWindowPosition != ProducerWindowPosition.None && (
         <ProducerBar
-          // previews={previewSurfaces}
           gameSurface={gameSurface}
+          previewSurface={previewSurface}
+          fpsCanvas={fpsCanvas}
           position={settings.producerWindowPosition}
           size={settings.producerDockSize}
+          replayPosition={replayPosition}
         />
       )}
 
@@ -132,6 +138,7 @@ const Replay = ({
             timeLabel={replayPosition.getFriendlyTime()}
             textSize={settings.textSize}
             canvas={minimapCanvas}
+            hoveringOverMinimap={hoveringOverMinimap}
           />
         )}
         <div className="flex flex-1">
@@ -191,7 +198,6 @@ const Replay = ({
 
 export default connect(
   (state, { scene }) => {
-    console.log("Replay", state, scene);
     return {
       settings: state.settings.data,
       phrases: state.settings.phrases,
@@ -200,21 +206,25 @@ export default connect(
       gameSurface: scene.gameSurface,
       gameDimensions: scene.gameSurface.getRect(),
       minimapCanvas: scene.minimapSurface.canvas,
+      previewSurface: scene.previewSurface,
       showMenu: state.replay.hud.showMenu,
       showProduction: state.replay.hud.showProduction,
       showResources: state.replay.hud.showResources,
       showMinimap: state.replay.hud.showMinimap,
       showReplayControls: state.replay.hud.showReplayControls,
       showUnitSelection: state.replay.hud.showUnitSelection,
+      showFps: state.replay.hud.showFps,
       selectedUnits: state.replay.hud.selectedUnits,
       replayPosition: scene.replayPosition,
       onTogglePlayerPov: scene.callbacks.onTogglePlayerPov,
       callbacks: scene.callbacks,
+      fpsCanvas: scene.fpsCanvas,
       gameTick: state.titan.gameTick,
     };
   },
   (dispatch) => ({
     toggleMenu: (val) => dispatch(toggleMenu(val)),
     saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
+    hoveringOverMinimap: (val) => dispatch(hoveringOverMinimap(val)),
   })
 )(Replay);
