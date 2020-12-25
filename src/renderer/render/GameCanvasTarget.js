@@ -41,12 +41,13 @@ class GameCanvasTarget extends CanvasTarget {
       this.top = 0;
 
       super.setDimensions(
-        maxWidth,
-        maxHeight,
-        this.context.settings.pixelRatio
+        Math.floor(maxWidth),
+        Math.floor(maxHeight),
+        this.settings.pixelRatio
       );
     } else {
       const aspect = aspects[gameAspect];
+      this.aspect = aspect;
       let width = maxWidth;
       if (width / aspect > maxHeight) {
         width = maxHeight * aspect;
@@ -58,7 +59,11 @@ class GameCanvasTarget extends CanvasTarget {
       this.left = this.left + (maxWidth - width) / 2;
       this.right = this.right + (maxWidth - width) / 2;
 
-      super.setDimensions(width, height, this.settings.pixelRatio);
+      super.setDimensions(
+        Math.floor(width),
+        Math.floor(height),
+        this.settings.pixelRatio
+      );
     }
   }
 

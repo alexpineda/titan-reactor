@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-export const RollingNumber = ({ number, upSpeed = 60, downSpeed = 20 }) => {
+export const RollingNumber = ({ number, upSpeed = 30, downSpeed = 10 }) => {
   const [currNumber, setCurrNumber] = useState(0);
 
   useEffect(() => {

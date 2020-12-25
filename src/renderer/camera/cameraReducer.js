@@ -5,7 +5,6 @@ const initialState = {
   pointerLock: false,
   fpsMode: false,
   followUnit: null,
-  hoveringOverMinimap: false,
   activePreview: false,
   bookmarks: {},
   activePovs: 0,
@@ -21,9 +20,7 @@ const cameraReducer = createSlice({
     cinematic: (state, action) => {
       state.cinematic = action.payload;
     },
-    hoveringOverMinimap: (state, action) => {
-      state.hoveringOverMinimap = action.payload;
-    },
+
     setBookmark: {
       reducer: (state, action) => {
         const { frame, camera, note } = action.payload;
@@ -49,7 +46,6 @@ const cameraReducer = createSlice({
 export const {
   activePovsChanged,
   cinematic,
-  hoveringOverMinimap,
   setBookmark,
   deleteBookmark,
 } = cameraReducer.actions;

@@ -87,8 +87,6 @@ const App = ({
 
 const mapStateToProps = (state, { titanReactor }) => {
   const processes = state.titan.processes;
-  console.log("chkPreviewCanvas", titanReactor.chkPreviewCanvas);
-  console.log("titanReactor.rep", titanReactor.rep);
   return {
     filename: titanReactor.filename,
     initializing: processes.init.started,

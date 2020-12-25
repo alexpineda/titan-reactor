@@ -17,6 +17,7 @@ const initialState = {
   showMinimap: true,
   showReplayControls: true,
   showUnitSelection: true,
+  showFps: true,
   data: {},
 };
 
@@ -38,6 +39,7 @@ const replayHudReducer = createSlice({
     toggleMinimap: makeToggle("showMinimap"),
     toggleReplayControls: makeToggle("showReplayControls"),
     toggleUnitSelection: makeToggle("showUnitSelection"),
+    toggleFps: makeToggle("showFps"),
   },
 });
 
@@ -48,5 +50,6 @@ export const {
   toggleMinimap,
   toggleReplayControls,
   toggleUnitSelection,
+  toggleFps,
 } = replayHudReducer.actions;
 export default replayHudReducer.reducer;

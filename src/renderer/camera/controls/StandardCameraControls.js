@@ -10,7 +10,12 @@ class StandardCameraControls extends CameraControls {
   constructor(camera, domElement, keyboardShortcuts) {
     super(camera, domElement);
 
-    if (camera.isPerspectiveCamera) {
+    if (camera.isPreviewCamera) {
+      this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+      this.mouseButtons.left = CameraControls.ACTION.NONE;
+      this.mouseButtons.right = CameraControls.ACTION.NONE;
+      this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
+    } else if (camera.isPerspectiveCamera) {
       this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
       this.mouseButtons.left = CameraControls.ACTION.NONE;
       this.mouseButtons.right = CameraControls.ACTION.TRUCK;
@@ -21,6 +26,7 @@ class StandardCameraControls extends CameraControls {
       this.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
     }
     this.keyboardTruckingEnabled = true;
+    this.numpadControlEnabled = false;
 
     keyboardShortcuts.addEventListener(
       InputEvents.TruckLeft,
@@ -93,6 +99,7 @@ class StandardCameraControls extends CameraControls {
   }
 
   initNumpadControls() {
+    this.numpadControlEnabled = true;
     const updateShot = (opts) => {
       const { azi, pol, fov, dollySpeed, dampingFactor, dollyTo } = opts;
       if (is(Number, azi) && is(Number, pol)) {
@@ -226,6 +233,7 @@ class StandardCameraControls extends CameraControls {
     };
 
     this._keypressListener = (evt) => {
+      if (!this.numpadControlEnabled) return;
       const numpads = range(0, 10).map((n) => `Numpad${n}`);
       if (numpads.includes(evt.code)) {
         updateShot(createShot(this.presets[evt.code]));
