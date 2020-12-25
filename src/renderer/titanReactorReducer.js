@@ -14,6 +14,7 @@ const initialState = {
   },
   total: 0,
   progress: 0,
+  gameTick: 0,
 };
 
 const titanReactorReducer = createSlice({
@@ -86,6 +87,9 @@ const titanReactorReducer = createSlice({
     criticalErrorOccurred: (state) => {
       state.criticalError = true;
     },
+    onGameTick: (state) => {
+      state.gameTick = state.gameTick + 1;
+    },
   },
 });
 
@@ -94,6 +98,7 @@ export const {
   loadingProgress,
   loadingError,
   criticalErrorOccurred,
+  onGameTick,
 } = titanReactorReducer.actions;
 
 export default titanReactorReducer.reducer;

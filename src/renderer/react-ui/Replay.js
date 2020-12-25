@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 import WrappedElement from "./WrappedElement";
@@ -12,13 +12,12 @@ import Menu from "./replay/Menu";
 import Visible from "./components/visible";
 import { ProducerWindowPosition } from "common/settings";
 import { setRemoteSettings } from "../utils/settingsReducer";
-import { togglePlayerPov } from "./replay/cameraReducer";
 
 import { toggleMenu } from "./replay/replayHudReducer";
 
 function useForceUpdate() {
   const [value, setValue] = useState(0); // integer state
-  return () => setValue((value) => ++value); // update the state to force render
+  return useCallback(() => setValue((value) => ++value), []); // update the state to force render
 }
 
 const Replay = ({
@@ -32,25 +31,27 @@ const Replay = ({
   phrases,
   showMenu,
   selectedUnits,
-  hideProduction,
-  hideResources,
-  hideReplayPosition,
-  hideUnitSelection,
-  hideMinimap,
+  showProduction,
+  showResources,
+  showReplayControls,
+  showUnitSelection,
+  showMinimap,
   replayPosition,
   toggleMenu,
+  onTogglePlayerPov,
+  callbacks,
 }) => {
   const forceUpdate = useForceUpdate();
-  const onTogglePaused = () => {};
-  const onChangePosition = () => {};
-  const onChangeAutoGameSpeed = () => {};
-  const onChangeGameSpeed = () => {};
-  const onTogglePlayerVision = () => {};
   const onRevealMap = () => {};
   const onDropPings = () => {};
   const onUnitDetails = () => {};
   const onShowAttackDetails = () => {};
   const onFollowUnit = () => {};
+
+  useEffect(() => {
+    const handle = setTimeout(() => forceUpdate(), 1000);
+    return () => clearTimeout(handle);
+  }, []);
 
   return (
     <>
@@ -62,6 +63,11 @@ const Replay = ({
           top: `${gameSurface.top}px`,
         }}
         domElement={gameSurface.canvas}
+        onKeyDown={(evt) => {
+          if (evt.code === "Escape") {
+            toggleMenu();
+          }
+        }}
       />
       {settings.producerWindowPosition != ProducerWindowPosition.None && (
         <ProducerBar
@@ -86,14 +92,14 @@ const Replay = ({
         />
       )}
       {settings.showTooltips && <ReactTooltip textColor="#cbd5e0" />}
-      {!hideProduction && (
+      {showProduction && (
         <Production
           players={players}
           textSize={settings.textSize}
           gameDimensions={gameDimensions}
         />
       )}
-      <Visible visible={!hideResources && !settings.esportsHud}>
+      <Visible visible={showResources && !settings.esportsHud}>
         <ResourcesBar
           className="flex absolute"
           style={{
@@ -103,6 +109,7 @@ const Replay = ({
           players={players}
           textSize={settings.textSize}
           gameDimensions={gameDimensions}
+          onTogglePlayerPov={onTogglePlayerPov}
         />
       </Visible>
 
@@ -118,27 +125,32 @@ const Replay = ({
           left: `${gameDimensions.left}px`,
         }}
       >
-        <Minimap
-          onRevealMap={onRevealMap}
-          onDropPings={onDropPings}
-          timeLabel={replayPosition.getFriendlyTime()}
-          textSize={settings.textSize}
-          canvas={minimapCanvas}
-          hideMinimap={hideMinimap}
-        />
+        {showMinimap && (
+          <Minimap
+            onRevealMap={onRevealMap}
+            onDropPings={onDropPings}
+            timeLabel={replayPosition.getFriendlyTime()}
+            textSize={settings.textSize}
+            canvas={minimapCanvas}
+          />
+        )}
         <div className="flex flex-1">
-          <Visible visible={!hideResources && settings.esportsHud}>
+          <Visible visible={showResources && settings.esportsHud}>
             <ResourcesBar
               className="flex-1 self-end"
               players={players}
               textSize="lg"
               gameDimensions={gameDimensions}
+              onTogglePlayerPov={onTogglePlayerPov}
               fitToContent
             />
           </Visible>
 
           <Visible
-            visible={selectedUnits.length || settings.alwaysHideReplayControls}
+            visible={
+              showUnitSelection &&
+              (selectedUnits.length || settings.alwaysHideReplayControls)
+            }
           >
             <UnitSelection
               units={selectedUnits}
@@ -147,22 +159,28 @@ const Replay = ({
               onFollowUnit={onFollowUnit}
               followingUnit={null}
               textSize={settings.textSize}
-              hideUnitSelection={hideUnitSelection}
             />
           </Visible>
           <Visible
             visible={
-              !settings.alwaysHideReplayControls && selectedUnits.length === 0
+              showReplayControls &&
+              !settings.alwaysHideReplayControls &&
+              selectedUnits.length === 0
             }
           >
             <ReplayPosition
               replayPosition={replayPosition}
-              onTogglePaused={onTogglePaused}
-              onChangePosition={onChangePosition}
-              onChangeAutoGameSpeed={onChangeAutoGameSpeed}
-              onChangeGameSpeed={onChangeGameSpeed}
+              onTogglePaused={() => replayPosition.togglePlay()}
+              onChangePosition={(pos) => {
+                replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
+              }}
+              onChangeAutoGameSpeed={(val) => {
+                replayPosition.setAutoSpeed(val);
+              }}
+              onChangeGameSpeed={(speed) => {
+                replayPosition.gameSpeed = speed;
+              }}
               textSize={settings.textSize}
-              hideReplayPosition={hideReplayPosition}
             />
           </Visible>
         </div>
@@ -183,13 +201,16 @@ export default connect(
       gameDimensions: scene.gameSurface.getRect(),
       minimapCanvas: scene.minimapSurface.canvas,
       showMenu: state.replay.hud.showMenu,
-      hideProduction: state.replay.hud.hideProduction,
-      hideResources: state.replay.hud.hideResources,
-      hideMinimap: state.replay.hud.hideMinimap,
-      hideReplayPosition: state.replay.hud.hideReplayPosition,
-      hideUnitSelection: state.replay.hud.hideUnitSelection,
+      showProduction: state.replay.hud.showProduction,
+      showResources: state.replay.hud.showResources,
+      showMinimap: state.replay.hud.showMinimap,
+      showReplayControls: state.replay.hud.showReplayControls,
+      showUnitSelection: state.replay.hud.showUnitSelection,
       selectedUnits: state.replay.hud.selectedUnits,
       replayPosition: scene.replayPosition,
+      onTogglePlayerPov: scene.callbacks.onTogglePlayerPov,
+      callbacks: scene.callbacks,
+      gameTick: state.titan.gameTick,
     };
   },
   (dispatch) => ({

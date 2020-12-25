@@ -1,21 +1,10 @@
 import React from "react";
 import WrappedElement from "../WrappedElement";
 
-export default ({
-  timeLabel,
-  textSize,
-  onRevealMap,
-  onDropPings,
-  canvas,
-  hideMinimap,
-}) => {
+export default ({ timeLabel, textSize, onRevealMap, onDropPings, canvas }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
-    <div
-      className={`minimap-parent flex items-stretch select-none ${
-        hideMinimap ? "hidden" : ""
-      }`}
-    >
+    <div className={`minimap-parent flex items-stretch select-none`}>
       <div className="rounded mb-2 flex flex-1 border-2 border-yellow-900">
         <article className="minimap flex-1 relative bg-black flex items-center">
           <p
