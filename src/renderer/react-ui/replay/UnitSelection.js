@@ -7,14 +7,11 @@ export default ({
   onShowAttackDetails,
   onFollowUnit,
   followingUnit,
-  hideUnitSelection,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div
-      className={`details flex self-end select-none ${
-        hideUnitSelection ? "hidden" : ""
-      }`}
+      className={`details flex self-end select-none`}
       style={{ width: "24vw" }}
     >
       <div

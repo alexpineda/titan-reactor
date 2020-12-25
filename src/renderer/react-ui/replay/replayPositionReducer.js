@@ -1,8 +1,4 @@
-import {
-  createAsyncThunk,
-  createSlice,
-  combineReducers,
-} from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 // export const setRemoteSettings = createAsyncThunk(
 //   "settings/setRemote",
@@ -19,7 +15,7 @@ const initialState = {
 };
 
 const replayPositionReducer = createSlice({
-  name: "replay",
+  name: "position",
   initialState,
   reducers: {
     togglePaused: (state) => {

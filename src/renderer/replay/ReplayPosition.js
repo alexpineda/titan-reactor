@@ -104,12 +104,14 @@ export class ReplayPosition {
   }
 
   pause() {
+    if (this.paused) return;
     this.paused = true;
     this.skipGameFrames = 0;
     this.clock.stop();
   }
 
   resume() {
+    if (!this.paused) return;
     if (this.bwGameFrame === this.maxFrame) return;
     this.paused = false;
     this.lastDelta = 0;

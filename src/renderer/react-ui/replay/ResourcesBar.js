@@ -1,6 +1,4 @@
 import React from "react";
-import { connect } from "react-redux";
-import { togglePlayerPov } from "./cameraReducer";
 import PlayerResources from "./PlayerResources";
 
 const ResourcesBar = ({
@@ -39,7 +37,7 @@ const ResourcesBar = ({
 
           <aside className="flex flex-col justify-around ml-2">
             <i
-              onClick={() => onTogglePlayerPov && onTogglePlayerPov(0)}
+              onClick={() => onTogglePlayerPov(0)}
               className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
                 players[0].showPov ? "text-yellow-700" : "text-gray-700 "
               }`}
@@ -49,7 +47,7 @@ const ResourcesBar = ({
               slideshow
             </i>
             <i
-              onClick={() => onTogglePlayerPov && onTogglePlayerPov(1)}
+              onClick={() => onTogglePlayerPov(1)}
               className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
                 players[1].showPov ? "text-yellow-700" : "text-gray-700 "
               }`}
@@ -88,20 +86,4 @@ const ResourcesBar = ({
   );
 };
 
-export default connect(
-  (
-    state,
-    { players, textSize, fitToContent = false, className = "", style = {} }
-  ) => {
-    return {
-      players,
-      textSize,
-      fitToContent,
-      className,
-      style,
-    };
-  },
-  (dispatch) => ({
-    onTogglePlayerPov: (player) => dispatch(togglePlayerPov(player)),
-  })
-)(ResourcesBar);
+export default ResourcesBar;

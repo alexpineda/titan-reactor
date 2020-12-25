@@ -12,26 +12,41 @@ export const getRemoteSettings = createAsyncThunk(
 const initialState = {
   showMenu: false,
   selectedUnits: [],
-  hideProduction: false,
-  hideResources: false,
-  hideMinimap: false,
-  hideReplayPosition: false,
-  hideUnitSelection: false,
+  showProduction: true,
+  showResources: true,
+  showMinimap: true,
+  showReplayControls: true,
+  showUnitSelection: true,
   data: {},
+};
+
+const makeToggle = (prop) => (state, action) => {
+  if (action.payload !== undefined) {
+    state[prop] = action.payload;
+    return;
+  }
+  state[prop] = !state[prop];
 };
 
 const replayHudReducer = createSlice({
   name: "hud",
   initialState,
   reducers: {
-    toggleMenu: (state, action) => {
-      if (action.payload !== undefined) {
-        state.showMenu = action.payload;
-      }
-      state.showMenu = !state.showMenu;
-    },
+    toggleMenu: makeToggle("showMenu"),
+    toggleProduction: makeToggle("showProduction"),
+    toggleResources: makeToggle("showResources"),
+    toggleMinimap: makeToggle("showMinimap"),
+    toggleReplayControls: makeToggle("showReplayControls"),
+    toggleUnitSelection: makeToggle("showUnitSelection"),
   },
 });
 
-export const { toggleMenu } = replayHudReducer.actions;
+export const {
+  toggleMenu,
+  toggleProduction,
+  toggleResources,
+  toggleMinimap,
+  toggleReplayControls,
+  toggleUnitSelection,
+} = replayHudReducer.actions;
 export default replayHudReducer.reducer;
