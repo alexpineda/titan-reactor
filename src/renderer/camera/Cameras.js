@@ -32,7 +32,13 @@ class Cameras {
     this.gameSurface = gameSurface;
     const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
-    this.previewCamera = this._createCamera(aspect);
+    this.previewCameras = [
+      this._createCamera(aspect),
+      this._createCamera(aspect),
+      this._createCamera(aspect),
+      this._createCamera(aspect),
+    ];
+    this.previewCamera = this.previewCameras[0];
     this.previewCamera.isPreviewCamera = true;
     this.cinematicOptions = {
       gammaBoost: 1.5,
@@ -69,27 +75,26 @@ class Cameras {
       this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
       this.minimapCameraHelper.layers.set(MinimapLayer);
 
-      minimapControl.addEventListener(
-        "start",
-        ({ message: { rightMouse } }) => {
-          const target = new Vector3();
-          const position = new Vector3();
-          this.previewControl.getTarget(target);
-          this.previewControl.getPosition(position);
+      minimapControl.addEventListener("start", ({ message: { speed } }) => {
+        const target = new Vector3();
+        const position = new Vector3();
+        this.previewControl.getTarget(target);
+        this.previewControl.getPosition(position);
 
-          this.camera.fov = this.previewCamera.fov;
-          this.camera.updateProjectionMatrix();
-          this.control.setLookAt(
-            position.x,
-            position.y,
-            position.z,
-            target.x,
-            target.y,
-            target.z,
-            rightMouse
-          );
-        }
-      );
+        const transition = speed < 2;
+        this.control.dampingFactor = speed === 0 ? 0.005 : 0.05;
+        this.camera.fov = this.previewCamera.fov;
+        this.camera.updateProjectionMatrix();
+        this.control.setLookAt(
+          position.x,
+          position.y,
+          position.z,
+          target.x,
+          target.y,
+          target.z,
+          transition
+        );
+      });
 
       minimapControl.addEventListener("update", ({ message: { pos, e } }) => {
         this.control.moveTo(pos.x, pos.y, pos.z, true);
@@ -188,8 +193,10 @@ class Cameras {
   }
 
   updatePreviewScreenAspect(width, height) {
-    this.previewCamera.aspect = width / height;
-    this.previewCamera.updateProjectionMatrix();
+    this.previewCameras.forEach((previewCamera) => {
+      previewCamera.aspect = width / height;
+      previewCamera.updateProjectionMatrix();
+    });
   }
 
   getShear() {

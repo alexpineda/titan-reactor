@@ -16,7 +16,7 @@ class StandardCameraControls extends CameraControls {
       this.mouseButtons.right = CameraControls.ACTION.NONE;
       this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
     } else if (camera.isPerspectiveCamera) {
-      this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+      this.mouseButtons.wheel = CameraControls.ACTION.NONE;
       this.mouseButtons.left = CameraControls.ACTION.NONE;
       this.mouseButtons.right = CameraControls.ACTION.TRUCK;
       this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
@@ -32,7 +32,7 @@ class StandardCameraControls extends CameraControls {
       InputEvents.TruckLeft,
       ({ message: delta }) => {
         if (!this.keyboardTruckingEnabled) return;
-        this.truck(-0.02 * delta, 0, true);
+        this.truck(-0.01 * delta, 0, true);
       }
     );
     keyboardShortcuts.addEventListener(
@@ -40,21 +40,21 @@ class StandardCameraControls extends CameraControls {
       ({ message: delta }) => {
         if (!this.keyboardTruckingEnabled) return;
 
-        this.truck(0.02 * delta, 0, true);
+        this.truck(0.01 * delta, 0, true);
       }
     );
     keyboardShortcuts.addEventListener(
       InputEvents.MoveForward,
       ({ message: delta }) => {
         if (!this.keyboardTruckingEnabled) return;
-        this.forward(0.02 * delta, true);
+        this.forward(0.01 * delta, true);
       }
     );
     keyboardShortcuts.addEventListener(
       InputEvents.MoveBackward,
       ({ message: delta }) => {
         if (!this.keyboardTruckingEnabled) return;
-        this.forward(-0.02 * delta, true);
+        this.forward(-0.01 * delta, true);
       }
     );
   }
@@ -69,14 +69,15 @@ class StandardCameraControls extends CameraControls {
     this.maxAzimuthAngle = (24 * Math.PI) / 64;
     this.minAzimuthAngle = -(24 * Math.PI) / 64;
     this.truckSpeed = 1;
+
     this.cameraShake = new CameraShake(this, 500, 10, 1);
     this.dollyToCursor = true;
     this.zoomFactor = 40;
 
     this.constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
-      pol: [4, 12, 20].map((x) => (x * Math.PI) / 64),
-      fov: [22, 40, 65],
+      pol: [4, 10, 16].map((x) => (x * Math.PI) / 64),
+      fov: [22, 40, 55],
       dollyTo: [70, 30, 20],
       dollySpeed: [1, 0.5, 0.2],
       dampingFactor: [0.1, 0.075, 0.025],
@@ -174,13 +175,13 @@ class StandardCameraControls extends CameraControls {
         azi: 0,
         pol: 0,
         fov: 0,
-        dollyTo: 110,
+        dollyTo: 100,
       },
       Numpad1: {
         azi: 0,
         pol: 0,
         fov: 0,
-        dollyTo: 50,
+        dollyTo: 40,
       },
       Numpad2: {
         azi: 0,
@@ -198,7 +199,7 @@ class StandardCameraControls extends CameraControls {
         azi: 0,
         pol: 0,
         fov: 0,
-        dollyTo: 60,
+        dollyTo: 50,
       },
       Numpad5: {
         azi: 0,

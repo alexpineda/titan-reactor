@@ -115,7 +115,7 @@ export class DAT {
       }, {});
     });
     if (this.post) {
-      this.post(entries);
+      await this.post(entries);
     }
     return (this.entries = entries);
   }

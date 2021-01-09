@@ -1,10 +1,6 @@
 import { app, ipcMain, Menu, BrowserWindow, shell, dialog } from "electron";
 import isDev from "electron-is-dev";
-import installExtension, {
-  REDUX_DEVTOOLS,
-  REACT_DEVELOPER_TOOLS,
-  REACT_PERF,
-} from "electron-devtools-installer";
+import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
 import { openFileBinary } from "./fs";
 import path from "path";
 import Parser from "rss-parser";
@@ -129,14 +125,6 @@ app.on("ready", async () => {
   installExtension(REDUX_DEVTOOLS)
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log("An error occurred: ", err));
-
-  // installExtension(REACT_DEVELOPER_TOOLS)
-  //   .then((name) => console.log(`Added Extension:  ${name}`))
-  //   .catch((err) => console.log("An error occurred: ", err));
-
-  // installExtension(REACT_PERF)
-  //   .then((name) => console.log(`Added Extension:  ${name}`))
-  //   .catch((err) => console.log("An error occurred: ", err));
 
   createWindow();
 });

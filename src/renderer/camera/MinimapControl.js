@@ -12,13 +12,10 @@ class MinimapControl extends EventDispatcher {
     this.mapHeight = mapHeight;
     this._isDragging = false;
     this._isPreviewing = false;
+    this.mouseHoldDelay = 200;
 
-    this.enableDragging(true);
+    this.enabled = true;
     this._attach();
-  }
-
-  enableDragging(enable) {
-    this._enableDragging = enable;
   }
 
   // @todo modify this to account for map aspect ratio
@@ -41,31 +38,62 @@ class MinimapControl extends EventDispatcher {
         0.5
       ) * this.mapHeight;
 
+    this._mouseHoldTicks = 0;
+    this._lastInterval = null;
+
+    const _start = (e, pos, speed) => {
+      this.dispatchEvent({
+        type: "start",
+        message: { pos, speed, e },
+      });
+    };
+
     this.surface.canvas.addEventListener("mousedown", (e) => {
-      if (!this._enableDragging) return;
+      if (!this.enabled || e.button !== LeftMouse) return;
+
       const x = getX(e.offsetX);
       const y = getY(e.offsetY);
 
       const pos = new Vector3(x, 0, y);
 
-      if (e.button === LeftMouse || e.button === RightMouse) {
-        this.dispatchEvent({
-          type: "start",
-          message: { pos, rightMouse: e.button === RightMouse, e },
-        });
+      if (this._lastInterval) {
+        return;
       }
+      clearInterval(this._lastInterval);
+      this._mouseHoldTicks = 0;
 
-      if (e.button === RightMouse) {
-        this._isDragging = true;
-      }
+      // only if we're not double clicking
+      this._lastInterval = setInterval(() => {
+        this._mouseHoldTicks++;
+
+        clearInterval(this._lastInterval);
+
+        _start(e, pos, e.shiftKey ? 0 : 1);
+
+        if (e.button === LeftMouse) {
+          this._isDragging = true;
+        }
+      }, this.mouseHoldDelay);
     });
 
     this.surface.canvas.addEventListener("mouseup", (e) => {
+      if (!this.enabled || e.button !== LeftMouse) return;
+
+      clearInterval(this._lastInterval);
+      this._lastInterval = null;
+
       this._isDragging = false;
+      if (this._mouseHoldTicks === 0) {
+        const x = getX(e.offsetX);
+        const y = getY(e.offsetY);
+
+        const pos = new Vector3(x, 0, y);
+        _start(e, pos, 2);
+      }
     });
 
     this.surface.canvas.addEventListener("mousemove", (e) => {
-      if (e.button === MiddleMouse) return;
+      if (!this.enabled || e.button !== LeftMouse) return;
 
       const x = getX(e.offsetX);
       const y = getY(e.offsetY);
@@ -73,7 +101,10 @@ class MinimapControl extends EventDispatcher {
       const pos = new Vector3(x, 0, y);
 
       if (this._isDragging) {
-        this.dispatchEvent({ type: "update", message: { pos, e } });
+        this.dispatchEvent({
+          type: "update",
+          message: { pos, e },
+        });
       } else {
         this.dispatchEvent({
           type: "hover",

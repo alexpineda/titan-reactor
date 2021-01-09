@@ -43,6 +43,7 @@ async function TitanReactorReplay(
   bgMusic
 ) {
   const stats = createStats();
+  stats.dom.style.position = "relative";
   const state = store.getState();
   const settings = state.settings.data;
 
@@ -76,8 +77,13 @@ async function TitanReactorReplay(
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
   const minimapSurface = new CanvasTarget();
-  const previewSurface = new CanvasTarget();
-  previewSurface.setDimensions(300, 200);
+  const previewSurfaces = [
+    new CanvasTarget(),
+    new CanvasTarget(),
+    new CanvasTarget(),
+    new CanvasTarget(),
+  ];
+  previewSurfaces.forEach((surf) => surf.setDimensions(300, 200));
 
   const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
   const heatMapScore = new HeatmapScore(bwDat);
@@ -95,7 +101,7 @@ async function TitanReactorReplay(
     settings,
     renderMan,
     gameSurface,
-    previewSurface,
+    minimapSurface,
     minimapControl,
     keyboardShortcuts
   );
@@ -228,6 +234,33 @@ async function TitanReactorReplay(
     }
   };
   gameSurface.canvas.addEventListener("mousedown", mouseDownListener);
+
+  let shiftDown = false;
+  let lastChangedShiftDown = Date.now();
+  const _keyDown = (evt) => {
+    shiftDown = evt.code === "ShiftLeft";
+    // if (shiftDown && Date.now() - lastChangedShiftDown > 2000) {
+    //   lastChangedShiftDown = Date.now();
+    //   if (cameras.control.dampingFactor > 0.005) {
+    //     cameras.control.dampingFactor = 0.005;
+    //   } else {
+    //     cameras.control.dampingFactor = 0.05;
+    //   }
+    // }
+  };
+
+  document.addEventListener("keydown", _keyDown);
+  const _keyUp = (evt) => {
+    shiftDown = false;
+  };
+  document.addEventListener("keyup", _keyUp);
+
+  const _controlSleep = () => {
+    cameras.control.dampingFactor = 0.05;
+  };
+
+  cameras.control.addEventListener("sleep", _controlSleep);
+
   //#endregion mouse listener
 
   const fadingPointers = new FadingPointers();
@@ -320,7 +353,7 @@ async function TitanReactorReplay(
     } else {
       const pw = settings.producerDockSize - 10;
       const ph = pw / gameSurface.aspect;
-      previewSurface.setDimensions(pw, ph);
+      previewSurfaces.forEach((surf) => surf.setDimensions(pw, ph));
       cameras.updatePreviewScreenAspect(pw, ph);
     }
     store.dispatch(onGameTick());
@@ -439,7 +472,10 @@ async function TitanReactorReplay(
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
             if (players[cmd.player].showPov) {
               players[cmd.player].camera.update(cmd, pxToMeter);
+            } else if (replayPosition.bwGameFrame % 1000 === 0) {
+              players[cmd.player].camera.update(cmd, pxToMeter);
             }
+
             if (players[cmd.player].showActions) {
               switch (cmd.id) {
                 case commands.rightClick:
@@ -535,36 +571,44 @@ async function TitanReactorReplay(
       renderMan.render(scene, cameras.camera, cameras.isCinematic());
     }
 
-    const useMinimapPreview =
-      cameras.previewOn &&
-      settings.producerWindowPosition === ProducerWindowPosition.None;
-
     if (
       (!replayPosition.skippingFrames() && replayPosition.bwGameFrame % 500) ||
-      (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 2000)
+      (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 3000)
     ) {
       renderMan.setCanvasTarget(minimapSurface);
       renderMan.renderer.clear();
       renderMan.render(scene, cameras.minimapCamera);
 
-      if (settings.producerWindowPosition === ProducerWindowPosition.None) {
-        renderMan.render(scene, cameras.previewCamera);
-      } else {
-        renderMan.setCanvasTarget(previewSurface);
-        renderMan.renderer.clear();
-        if (state.replay.input.hoveringOverMinimap) {
-          renderMan.render(scene, cameras.previewCamera);
-        } else {
-          previewSurface.canvas
-            .getContext("2d")
-            .drawImage(
-              gameSurface.canvas,
-              0,
-              0,
-              previewSurface.width,
-              previewSurface.width
-            );
-        }
+      if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
+        previewSurfaces.forEach((previewSurface, i) => {
+          if (cameras.isCinematic()) {
+            return;
+          }
+          renderMan.setCanvasTarget(previewSurface);
+          renderMan.renderer.clear();
+          if (state.replay.input.hoveringOverMinimap || i > 0) {
+            if (i > 0 && i < 3) {
+              players[i - 1].camera.updateGameScreenAspect(
+                previewSurface.width,
+                previewSurface.height
+              );
+
+              renderMan.render(scene, players[i - 1].camera);
+            } else {
+              renderMan.render(scene, cameras.previewCameras[i]);
+            }
+          } else {
+            previewSurface.canvas
+              .getContext("2d")
+              .drawImage(
+                gameSurface.canvas,
+                0,
+                0,
+                previewSurface.width,
+                previewSurface.width
+              );
+          }
+        });
       }
     }
 
@@ -581,7 +625,7 @@ async function TitanReactorReplay(
 
     bgMusic.dispose();
 
-    window.addEventListener("resize", sceneResizeHandler, false);
+    window.removeEventListener("resize", sceneResizeHandler, false);
 
     minimapControl.dispose();
     scene.dispose();
@@ -590,6 +634,9 @@ async function TitanReactorReplay(
 
     keyboardShortcuts.dispose();
     gameSurface.canvas.removeEventListener("mousedown", mouseDownListener);
+    document.removeEventListener("keydown", _keyDown);
+    document.removeEventListener("keyup", _keyUp);
+    cameras.control.removeEventListener("sleep", _controlSleep);
   };
 
   setTimeout(() => {
@@ -606,7 +653,7 @@ async function TitanReactorReplay(
   return {
     gameSurface,
     minimapSurface,
-    previewSurface,
+    previewSurfaces,
     fpsCanvas: stats.dom,
     players,
     replayPosition,

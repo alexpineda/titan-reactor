@@ -25,7 +25,7 @@ const Replay = ({
   gameSurface,
   gameDimensions,
   minimapCanvas,
-  previewSurface,
+  previewSurfaces,
   players,
   settings,
   errors,
@@ -76,7 +76,7 @@ const Replay = ({
       {settings.producerWindowPosition != ProducerWindowPosition.None && (
         <ProducerBar
           gameSurface={gameSurface}
-          previewSurface={previewSurface}
+          previewSurfaces={previewSurfaces}
           fpsCanvas={fpsCanvas}
           position={settings.producerWindowPosition}
           size={settings.producerDockSize}
@@ -206,7 +206,7 @@ export default connect(
       gameSurface: scene.gameSurface,
       gameDimensions: scene.gameSurface.getRect(),
       minimapCanvas: scene.minimapSurface.canvas,
-      previewSurface: scene.previewSurface,
+      previewSurfaces: scene.previewSurfaces,
       showMenu: state.replay.hud.showMenu,
       showProduction: state.replay.hud.showProduction,
       showResources: state.replay.hud.showResources,

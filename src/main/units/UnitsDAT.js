@@ -297,6 +297,7 @@ export class UnitsDAT extends DAT {
 
       entry.readySound = prop("file", this.sounds[entry.readySound]);
       entry.name = this.stats[i];
+      entry.index = i;
     });
   }
 }

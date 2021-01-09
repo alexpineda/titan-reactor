@@ -114,7 +114,7 @@ export class Settings extends EventEmitter {
 
     const phrases = await import(`common/phrases/${this._settings.language}`);
 
-    return { data: this._settings, errors, isDev, phrases, diff: {} };
+    return { data: this._settings, errors, isDev: true, phrases, diff: {} };
   }
 
   async load() {

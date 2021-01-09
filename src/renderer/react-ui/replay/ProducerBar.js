@@ -20,7 +20,7 @@ const ProducerBar = ({
   position,
   size,
   gameSurface,
-  previewSurface,
+  previewSurfaces,
   fpsCanvas,
   settings,
   saveRemoteSettings,
@@ -125,14 +125,23 @@ const ProducerBar = ({
           />
         </ul>
       </div>
+      {fpsCanvas && <WrappedElement domElement={fpsCanvas} />}
+
       <Tab
-        className="flex flex-col-reverse h-full pb-10"
+        className="flex flex-col-reverse h-full pb-10 justify-around"
         tabName={Tabs.Preview}
         activeTab={tab}
       >
-        <div style={{ filter: "greyscale(1)" }}>
-          <WrappedElement domElement={previewSurface.canvas} />
-        </div>
+        {previewSurfaces.map((previewSurface) => {
+          return (
+            <WrappedElement
+              className="pt-10"
+              key={previewSurface}
+              style={{ filter: "grayscale(0.2) brightness(0.9)" }}
+              domElement={previewSurface.canvas}
+            />
+          );
+        })}
       </Tab>
 
       <Tab tabName={Tabs.Playlist} activeTab={tab}>
@@ -146,7 +155,6 @@ const ProducerBar = ({
         className="flex flex-col items-center"
       >
         <div>
-          {fpsCanvas && <WrappedElement domElement={fpsCanvas} />}
           <ul>
             <li>
               {gameSurface.width}x{gameSurface.height}

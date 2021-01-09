@@ -8,7 +8,7 @@ export const PovRight = Symbol("povRight");
 export class PlayerPovCamera extends PerspectiveCamera {
   constructor(side, getActivePovs, { x = 0, y = 0 }) {
     super(30, 1, 5, 100);
-    this.position.y = 80;
+    this.position.y = 40;
     this.side = side;
     this.enabled = false;
     this.getActivePovs = getActivePovs;
