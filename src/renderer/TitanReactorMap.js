@@ -43,7 +43,8 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     gameSurface,
     null,
     null,
-    keyboardShortcuts
+    keyboardShortcuts,
+    true
   );
   if (hot && hot.camera) {
     mainCamera.camera.position.copy(hot.camera.position);

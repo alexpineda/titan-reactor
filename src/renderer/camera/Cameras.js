@@ -25,7 +25,8 @@ class Cameras {
     gameSurface,
     previewSurface,
     minimapControl,
-    keyboardShortcuts
+    keyboardShortcuts,
+    freeControl = false
   ) {
     this.settings = settings;
     this.renderMan = renderMan;
@@ -47,7 +48,8 @@ class Cameras {
     this.control = new StandardCameraControls(
       this.camera,
       gameSurface.canvas,
-      keyboardShortcuts
+      keyboardShortcuts,
+      freeControl
     );
     this.control.setConstraints();
     this.control.initNumpadControls();

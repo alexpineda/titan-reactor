@@ -6,8 +6,8 @@ const ResourcesBar = ({
   textSize,
   fitToContent,
   onTogglePlayerPov,
-  className,
-  style,
+  className = "",
+  style = {},
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 

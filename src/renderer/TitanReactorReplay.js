@@ -259,7 +259,7 @@ async function TitanReactorReplay(
     cameras.control.dampingFactor = 0.05;
   };
 
-  cameras.control.addEventListener("sleep", _controlSleep);
+  // cameras.control.addEventListener("sleep", _controlSleep);
 
   //#endregion mouse listener
 
@@ -472,8 +472,8 @@ async function TitanReactorReplay(
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
             if (players[cmd.player].showPov) {
               players[cmd.player].camera.update(cmd, pxToMeter);
-            } else if (replayPosition.bwGameFrame % 1000 === 0) {
-              players[cmd.player].camera.update(cmd, pxToMeter);
+            } else {
+              players[cmd.player].camera.update(cmd, pxToMeter, 1000);
             }
 
             if (players[cmd.player].showActions) {

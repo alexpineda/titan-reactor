@@ -128,20 +128,28 @@ const ProducerBar = ({
       {fpsCanvas && <WrappedElement domElement={fpsCanvas} />}
 
       <Tab
-        className="flex flex-col-reverse h-full pb-10 justify-around"
+        className="flex flex-col h-full pb-10 justify-around"
         tabName={Tabs.Preview}
         activeTab={tab}
       >
-        {previewSurfaces.map((previewSurface) => {
-          return (
-            <WrappedElement
-              className="pt-10"
-              key={previewSurface}
-              style={{ filter: "grayscale(0.2) brightness(0.9)" }}
-              domElement={previewSurface.canvas}
-            />
-          );
-        })}
+        <div>
+          <span className="text-gray-200">
+            {replayPosition.getFriendlyTime()}
+          </span>
+        </div>
+
+        <div className="flex-col-reverse  h-full">
+          {previewSurfaces.map((previewSurface) => {
+            return (
+              <WrappedElement
+                className="pt-10"
+                key={previewSurface}
+                style={{ filter: "grayscale(0.2) brightness(0.9)" }}
+                domElement={previewSurface.canvas}
+              />
+            );
+          })}
+        </div>
       </Tab>
 
       <Tab tabName={Tabs.Playlist} activeTab={tab}>

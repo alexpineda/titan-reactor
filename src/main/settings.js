@@ -42,6 +42,8 @@ export class Settings extends EventEmitter {
   }
 
   async init(webGLCapabilities) {
+    this.webGLCapabilities = webGLCapabilities;
+
     try {
       // await fsPromises.unlink(this._filepath);
 
@@ -53,7 +55,7 @@ export class Settings extends EventEmitter {
         await fsPromises.unlink(this._filepath);
       } catch (err) {
       } finally {
-        await this.save(await this.createDefaults(webGLCapabilities));
+        await this.save(await this.createDefaults());
       }
     }
     this._initialized = true;
@@ -114,7 +116,13 @@ export class Settings extends EventEmitter {
 
     const phrases = await import(`common/phrases/${this._settings.language}`);
 
-    return { data: this._settings, errors, isDev: true, phrases, diff: {} };
+    return {
+      data: { ...(await this.createDefaults()), ...this._settings },
+      errors,
+      isDev: true,
+      phrases,
+      diff: {},
+    };
   }
 
   async load() {
@@ -146,7 +154,7 @@ export class Settings extends EventEmitter {
     this.emit("change", { ...(await this.get()), diff });
   }
 
-  async createDefaults(webGLCapabilities) {
+  async createDefaults() {
     return {
       version: VERSION,
       renderMode: RenderMode.SD,
@@ -166,7 +174,7 @@ export class Settings extends EventEmitter {
       antialias: false,
       anisotropy: 1,
       pixelRatio: 1,
-      maxAnisotropy: webGLCapabilities.anisotropy,
+      maxAnisotropy: this.webGLCapabilities.anisotropy,
       gamma: 1.2,
       shadows: ShadowLevel.High,
       shadowTextureSize: 0.5,

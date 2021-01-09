@@ -7,24 +7,60 @@ import InputEvents from "../../input/InputEvents";
 CameraControls.install({ THREE });
 
 class StandardCameraControls extends CameraControls {
-  constructor(camera, domElement, keyboardShortcuts) {
+  constructor(camera, domElement, keyboardShortcuts, freeControl = false) {
     super(camera, domElement);
 
     if (camera.isPreviewCamera) {
-      this.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
+      this.mouseButtons.wheel = CameraControls.ACTION.NONE;
       this.mouseButtons.left = CameraControls.ACTION.NONE;
       this.mouseButtons.right = CameraControls.ACTION.NONE;
       this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
     } else if (camera.isPerspectiveCamera) {
-      this.mouseButtons.wheel = CameraControls.ACTION.NONE;
+      this.mouseButtons.wheel = freeControl
+        ? CameraControls.ACTION.DOLLY
+        : CameraControls.ACTION.NONE;
       this.mouseButtons.left = CameraControls.ACTION.NONE;
       this.mouseButtons.right = CameraControls.ACTION.TRUCK;
-      this.mouseButtons.middle = CameraControls.ACTION.ROTATE;
+      this.mouseButtons.middle = freeControl
+        ? CameraControls.ACTION.ROTATE
+        : CameraControls.ACTION.NONE;
     } else {
       this.mouseButtons.right = CameraControls.ACTION.TRUCK;
       this.mouseButtons.left = CameraControls.ACTION.ROTATE;
       this.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
     }
+
+    this._mouseWheelTimeout;
+    this._mouseWheelDelay = 500;
+
+    this._onWheel = (evt) => {
+      if (this._mouseWheelTimeout || !this.enabled || freeControl) return;
+
+      this.dampingFactor = evt.shiftKey ? 0.005 : 0.05;
+
+      if (evt.deltaY < 0) {
+        if (!evt.altKey) {
+          this.dolly(10, true);
+        }
+        if (!evt.ctrlKey) {
+          this.rotate(0, (2 * Math.PI) / 64, true);
+        }
+      } else {
+        if (!evt.altKey) {
+          this.dolly(-10, true);
+        }
+        if (!evt.ctrlKey) {
+          this.rotate(0, -(2 * Math.PI) / 64, true);
+        }
+      }
+
+      this._mouseWheelTimeout = setTimeout(() => {
+        this._mouseWheelTimeout = null;
+      }, this._mouseWheelDelay);
+    };
+
+    this._domElement.addEventListener("wheel", this._onWheel);
+
     this.keyboardTruckingEnabled = true;
     this.numpadControlEnabled = false;
 
@@ -59,7 +95,7 @@ class StandardCameraControls extends CameraControls {
     );
   }
 
-  setConstraints(settings) {
+  setConstraints() {
     this.verticalDragToForward = true;
     this.maxDistance = 200;
     this.minDistance = 15;
@@ -234,13 +270,39 @@ class StandardCameraControls extends CameraControls {
     };
 
     this._keypressListener = (evt) => {
+      if (this._camera.isPerspectiveCamera) {
+        this.dampingFactor = evt.shiftKey ? 0.005 : 0.05;
+
+        if (evt.code === "NumpadDivide") {
+          this.rotate(-(2 * Math.PI) / 64, 0, true);
+        } else if (evt.code === "NumpadMultiply") {
+          this.rotate((2 * Math.PI) / 64, 0, true);
+        }
+
+        if (evt.code === "NumpadAdd") {
+          if (!evt.altKey) {
+            this.dolly(10, true);
+          }
+          if (!evt.ctrlKey) {
+            this.rotate(0, (2 * Math.PI) / 64, true);
+          }
+        } else if (evt.code === "NumpadSubtract") {
+          if (!evt.altKey) {
+            this.dolly(-10, true);
+          }
+          if (!evt.ctrlKey) {
+            this.rotate(0, -(2 * Math.PI) / 64, true);
+          }
+        }
+      }
+
       if (!this.numpadControlEnabled) return;
       const numpads = range(0, 10).map((n) => `Numpad${n}`);
       if (numpads.includes(evt.code)) {
         updateShot(createShot(this.presets[evt.code]));
       }
     };
-    document.addEventListener("keypress", this._keypressListener);
+    document.addEventListener("keyup", this._keypressListener);
 
     this._createShot = createShot;
     this._updateShot = updateShot;
@@ -261,6 +323,7 @@ class StandardCameraControls extends CameraControls {
 
   dispose() {
     document.removeEventListener("keypress", this._keypressListener);
+    this._domElement.addEventListener("wheel", this._onWheel);
     super.dispose();
   }
 }

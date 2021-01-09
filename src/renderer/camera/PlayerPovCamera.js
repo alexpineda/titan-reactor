@@ -1,4 +1,5 @@
 import { Vector4 } from "three/src/math/Vector4";
+import { ClockMs } from "../replay/ReplayPosition";
 
 const { PerspectiveCamera } = require("three");
 
@@ -12,6 +13,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this.side = side;
     this.enabled = false;
     this.getActivePovs = getActivePovs;
+    this._clock = new ClockMs();
     this.moveTo(x, y);
   }
 
@@ -29,10 +31,15 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this.lookAt(this.position.x, 0, this.position.z);
   }
 
-  update(cmd, pxToMeter) {
+  update(cmd, pxToMeter, debounce = 0) {
     // some commands - screen move (right click, attack move, build, research, upgrade, pick up, drop)
     // some commands - minimap action (right click, attack move)
     // some commands - before hand was screen move (observing actions)
+
+    if (this._clock.getElapsedTime() < debounce) {
+      return;
+    }
+    this._clock.elapsedTime = 0;
 
     if (cmd.x && cmd.y) {
       this.position.x = pxToMeter.x(cmd.x);

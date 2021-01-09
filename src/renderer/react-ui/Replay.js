@@ -124,7 +124,7 @@ const Replay = ({
         // <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
       )} */}
       <div
-        className="w-full flex absolute divide-x-4 divide-transparent px-2"
+        className="w-full flex absolute divide-x-4 divide-transparent px-2 pointer-events-none"
         style={{
           bottom: `${gameDimensions.bottom}px`,
           width: `${gameDimensions.width}px`,
@@ -133,6 +133,7 @@ const Replay = ({
       >
         {showMinimap && (
           <Minimap
+            className="pointer-events-auto"
             onRevealMap={onRevealMap}
             onDropPings={onDropPings}
             timeLabel={replayPosition.getFriendlyTime()}
@@ -141,56 +142,55 @@ const Replay = ({
             hoveringOverMinimap={hoveringOverMinimap}
           />
         )}
-        <div className="flex flex-1">
-          <Visible visible={showResources && settings.esportsHud}>
-            <ResourcesBar
-              className="flex-1 self-end"
-              players={players}
-              textSize="lg"
-              gameDimensions={gameDimensions}
-              onTogglePlayerPov={onTogglePlayerPov}
-              fitToContent
-            />
-          </Visible>
+        <Visible visible={showResources && settings.esportsHud}>
+          <ResourcesBar
+            className="flex-1 self-end pointer-events-auto"
+            players={players}
+            textSize="lg"
+            gameDimensions={gameDimensions}
+            onTogglePlayerPov={onTogglePlayerPov}
+            fitToContent
+          />
+        </Visible>
 
-          <Visible
-            visible={
-              showUnitSelection &&
-              (selectedUnits.length || settings.alwaysHideReplayControls)
-            }
-          >
-            <UnitSelection
-              units={selectedUnits}
-              onUnitDetails={onUnitDetails}
-              onShowAttackDetails={onShowAttackDetails}
-              onFollowUnit={onFollowUnit}
-              followingUnit={null}
-              textSize={settings.textSize}
-            />
-          </Visible>
-          <Visible
-            visible={
-              showReplayControls &&
-              !settings.alwaysHideReplayControls &&
-              selectedUnits.length === 0
-            }
-          >
-            <ReplayPosition
-              replayPosition={replayPosition}
-              onTogglePaused={() => replayPosition.togglePlay()}
-              onChangePosition={(pos) => {
-                replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
-              }}
-              onChangeAutoGameSpeed={(val) => {
-                replayPosition.setAutoSpeed(val);
-              }}
-              onChangeGameSpeed={(speed) => {
-                replayPosition.gameSpeed = speed;
-              }}
-              textSize={settings.textSize}
-            />
-          </Visible>
-        </div>
+        <Visible
+          visible={
+            showUnitSelection &&
+            (selectedUnits.length || settings.alwaysHideReplayControls)
+          }
+        >
+          <UnitSelection
+            className="pointer-events-auto"
+            units={selectedUnits}
+            onUnitDetails={onUnitDetails}
+            onShowAttackDetails={onShowAttackDetails}
+            onFollowUnit={onFollowUnit}
+            followingUnit={null}
+            textSize={settings.textSize}
+          />
+        </Visible>
+        <Visible
+          visible={
+            showReplayControls &&
+            !settings.alwaysHideReplayControls &&
+            selectedUnits.length === 0
+          }
+        >
+          <ReplayPosition
+            replayPosition={replayPosition}
+            onTogglePaused={() => replayPosition.togglePlay()}
+            onChangePosition={(pos) => {
+              replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
+            }}
+            onChangeAutoGameSpeed={(val) => {
+              replayPosition.setAutoSpeed(val);
+            }}
+            onChangeGameSpeed={(speed) => {
+              replayPosition.gameSpeed = speed;
+            }}
+            textSize={settings.textSize}
+          />
+        </Visible>
       </div>
     </>
   );

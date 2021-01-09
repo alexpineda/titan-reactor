@@ -2,6 +2,7 @@ import React from "react";
 import WrappedElement from "../WrappedElement";
 
 export default ({
+  className = "",
   timeLabel,
   textSize,
   onRevealMap,
@@ -12,7 +13,7 @@ export default ({
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div
-      className={`minimap-parent flex items-stretch select-none`}
+      className={`minimap-parent flex items-stretch select-none ${className}`}
       onMouseEnter={() => {
         hoveringOverMinimap(true);
       }}

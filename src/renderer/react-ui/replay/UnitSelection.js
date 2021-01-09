@@ -7,11 +7,12 @@ export default ({
   onShowAttackDetails,
   onFollowUnit,
   followingUnit,
+  className = "",
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div
-      className={`details flex self-end select-none`}
+      className={`details flex self-end select-none ${className}`}
       style={{ width: "24vw" }}
     >
       <div

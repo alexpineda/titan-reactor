@@ -36,6 +36,7 @@ const ReplayPosition = ({
   onChangeGameSpeed,
   textSize,
   hideReplayPosition,
+  maxAutoReplaySpeed,
 }) => {
   const progress = Math.ceil(position * 100);
 
@@ -48,7 +49,7 @@ const ReplayPosition = ({
 
   const maxSpeed = gameSpeeds["1.5x"];
   const deltaSpeeds = gameSpeeds.fastest - maxSpeed;
-  const totalSpeeds = gameSpeeds.fastest + (gameSpeeds.fastest - maxSpeed);
+  const totalSpeeds = gameSpeeds.fastest * maxAutoReplaySpeed;
 
   useEffect(() => {
     if (!autoSpeed || destination >= 0) return;
@@ -349,5 +350,6 @@ export default connect((state, { replayPosition }) => {
     destination: replayPosition.destination,
     autoSpeed: replayPosition.autoSpeed,
     paused: replayPosition.paused,
+    maxAutoReplaySpeed: state.settings.data.maxAutoReplaySpeed,
   };
 })(ReplayPosition);
