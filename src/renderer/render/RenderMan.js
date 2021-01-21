@@ -6,13 +6,21 @@ import {
   PCFShadowMap,
   PCFSoftShadowMap,
   Vector4,
+  HalfFloatType,
 } from "three";
 // import { log } from "../invoke";
 
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
-import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass";
-import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass";
+import {
+  EffectComposer,
+  EffectPass,
+  RenderPass,
+  DepthOfFieldEffect,
+} from "postprocessing";
+
+// import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+// import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+// import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass";
+// import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass";
 
 const log = () => {};
 class RenderMan {
@@ -20,15 +28,6 @@ class RenderMan {
     this.settings = settings;
     this.isDev = isDev;
     this.renderer = null;
-
-    this.bokehOptions = { aperture: 40, focus: 40, maxblur: 1 };
-
-    this.filmOptions = {
-      noiseIntensity: 0.5,
-      scanlinesIntensity: 0.5,
-      scanlinesCount: 100,
-      grayscale: 0,
-    };
   }
 
   setShadowLevel(shadowLevel) {
@@ -49,8 +48,11 @@ class RenderMan {
     this.renderer.setViewport(
       new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
     );
-    this._composer.setSize(this.canvasTarget.width, this.canvasTarget.height);
-    this._composer.setPixelRatio(canvasTarget.pixelRatio);
+    this._composer.setSize(
+      this.canvasTarget.width,
+      this.canvasTarget.height,
+      false
+    );
   }
 
   renderSplitScreen(scene, camera, viewport) {
@@ -65,40 +67,31 @@ class RenderMan {
     this._postprocessingInitialized = true;
     this._renderPass = new RenderPass(scene, camera);
 
-    this._bokehPass = new BokehPass(scene, camera, {
-      aperture: 40,
-      focus: 40,
-      maxblur: 1,
-
-      width: this.canvasTarget.width,
-      height: this.canvasTarget.height,
+    window.dofPass = this._dofPass = new DepthOfFieldEffect(camera, {
+      focusDistance: 0.05,
+      focalLength: 0.5,
+      bokehScale: 4.0,
+      height: 480,
     });
 
-    this._filmPass = new FilmPass();
+    window.focusFn = (y) => Math.max(y * 0.015, 0.1);
+    this._cinematicPass = new EffectPass(camera, this._dofPass);
 
     this._composer.addPass(this._renderPass);
-    this._composer.addPass(this._bokehPass);
+    this._composer.addPass(this._cinematicPass);
     // this._composer.addPass(this._filmPass);
   }
 
   _render(scene, camera, isCinematic = false) {
-    if (isCinematic) {
-      if (!this._postprocessingInitialized) {
-        this._initPostProcessing(scene, camera);
-      }
-      this._bokehPass.uniforms["focus"].value = this.bokehOptions.focus;
-      this._bokehPass.uniforms["aperture"].value =
-        this.bokehOptions.aperture * 0.00001;
-      this._bokehPass.uniforms["maxblur"].value = this.bokehOptions.maxblur;
+    if (!this._postprocessingInitialized) {
+      this._initPostProcessing(scene, camera);
+    }
 
-      this._filmPass.uniforms["grayscale"].value = this.filmOptions.grayscale;
-      this._filmPass.uniforms[
-        "nIntensity"
-      ].value = this.filmOptions.noiseIntensity;
-      this._filmPass.uniforms[
-        "sIntensity"
-      ].value = this.filmOptions.scanlinesIntensity;
-      this._filmPass.uniforms["sCount"].value = this.filmOptions.scanlinesCount;
+    if (isCinematic) {
+      //@todo change this to delta
+      this._dofPass.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
+        camera.position.y
+      );
       this._composer.render(0.1);
     } else {
       this.renderer.render(scene, camera);
@@ -114,11 +107,14 @@ class RenderMan {
 
   _initRenderer() {
     const renderer = new WebGLRenderer({
-      antialias: this.settings.antialias,
       powerPreference: "high-performance",
       preserveDrawingBuffer: true,
       logarithmicDepthBuffer: false,
+      antialias: this.settings.antialias,
+      stencil: false,
+      depth: false,
     });
+
     renderer.autoClear = false;
     renderer.toneMapping = CineonToneMapping;
     renderer.toneMappingExposure = this.settings.gamma;
@@ -146,7 +142,9 @@ class RenderMan {
     this.renderer = this._initRenderer();
     this.setShadowLevel(this.settings.shadows);
 
-    this._composer = new EffectComposer(this.renderer);
+    this._composer = new EffectComposer(this.renderer, {
+      frameBufferType: HalfFloatType,
+    });
 
     this._contextLostListener = () => {};
     this._contextRestoredListener = () => {

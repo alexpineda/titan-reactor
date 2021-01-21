@@ -44,9 +44,9 @@ export const displacementImage = async (
 
   const base = await chkImage(chk, width, height, baseOptions.colorAtMega);
   // await savePNG(base, width, height, "walkable." + Math.random());
-  // if (baseOptions.post.blendNonZeroPixels) {
-  //   blendPixels(base, width, height);
-  // }
+  if (baseOptions.post.blendNonZeroPixels) {
+    blendPixels(base, width, height);
+  }
   if (baseOptions.post.blur) {
     blurImageSelective(base, width, height, baseOptions.post.blur, [0, 0, 0]);
   }

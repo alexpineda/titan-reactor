@@ -566,7 +566,6 @@ async function TitanReactorReplay(
         cameras.camera.position,
         0.5
       );
-      renderMan.bokehOptions.focus = cameras.control.distance;
       intersectAxesHelper.position.copy(audioListener.position);
       renderMan.render(scene, cameras.camera, cameras.isCinematic());
     }

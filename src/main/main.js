@@ -39,6 +39,8 @@ import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 
+app.commandLine.appendSwitch("disable-frame-rate-limit");
+
 let gameWindow;
 
 function createWindow() {

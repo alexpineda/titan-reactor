@@ -227,10 +227,10 @@ class Cameras {
     this.camera.renderCinematic = cinematicEnabled;
 
     if (cinematicEnabled) {
-      this.renderMan.renderer.toneMappingExposure =
-        this.settings.gamma + this.cinematicOptions.gammaBoost;
+      // this.renderMan.renderer.toneMappingExposure =
+      //   this.settings.gamma + this.cinematicOptions.gammaBoost;
     } else {
-      this.renderMan.renderer.toneMappingExposure = this.settings.gamma;
+      // this.renderMan.renderer.toneMappingExposure = this.settings.gamma;
     }
   }
 

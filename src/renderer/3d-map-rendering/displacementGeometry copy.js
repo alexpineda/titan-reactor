@@ -8,7 +8,11 @@ export const createDisplacementGeometry = (
   heightSegments,
   canvas,
   displacementScale = 2,
-  displacementBias = 1
+  displacementBias = 1,
+  offWidth = canvas.width,
+  offHeight = canvas.height,
+  offX = 0,
+  offY = 0
 ) => {
   const geom =
     existingGeom ||
@@ -27,7 +31,15 @@ export const createDisplacementGeometry = (
     uv.fromBufferAttribute(uvs, i);
     n.fromBufferAttribute(nor, i);
 
-    var displacement = getDisplacement(canvas, ctx, uv);
+    var displacement = getDisplacement(
+      canvas,
+      ctx,
+      uv,
+      offWidth,
+      offHeight,
+      offX,
+      offY
+    );
 
     p.addScaledVector(n, displacement * displacementScale).addScaledVector(
       n,
@@ -41,29 +53,40 @@ export const createDisplacementGeometry = (
   return geom;
 };
 
-function getDisplacement(canvas, context, uv) {
-  var w = canvas.width - 1;
-  var h = canvas.height - 1;
+function getDisplacement(canvas, context, uv, offWidth, offHeight, offX, offY) {
+  var w = offWidth - 1;
+  var h = offHeight - 1;
 
   var uvW = Math.floor(w * uv.x);
   var uvH = Math.floor(h * (1 - uv.y));
-  var uvWnext = uv.x === 1.0 ? uvW : uvW + 1;
-  var uvHnext = uv.y === 0.0 ? uvH : uvH + 1;
+  var uvWnext;
+  var uvHnext;
+
+  if (offWidth != canvas.width) {
+    uvWnext = uv.x === 1.0 ? uvW : uvW + 1;
+    uvHnext = uv.y === 0.0 ? uvH : uvH + 1;
+  } else {
+    uvWnext = uvW + 1;
+    uvHnext = uvH + 1;
+  }
 
   var uvWfract = w * uv.x - uvW;
   var uvHfract = h * (1 - uv.y) - uvH;
 
-  var d0 = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
-  var d1 = context.getImageData(uvWnext, uvH, 1, 1).data[0] / 255.0;
+  var d0 = context.getImageData(uvW + offX, uvH + offY, 1, 1).data[0] / 255.0;
+  var d1 =
+    context.getImageData(uvWnext + offX, uvH + offY, 1, 1).data[0] / 255.0;
   var d01 = d0 + (d1 - d0) * uvWfract;
 
-  var d2 = context.getImageData(uvW, uvHnext, 1, 1).data[0] / 255.0;
-  var d3 = context.getImageData(uvWnext, uvHnext, 1, 1).data[0] / 255.0;
+  var d2 =
+    context.getImageData(uvW + offX, uvHnext + offY, 1, 1).data[0] / 255.0;
+  var d3 =
+    context.getImageData(uvWnext + offX, uvHnext + offY, 1, 1).data[0] / 255.0;
   var d23 = d2 + (d3 - d2) * uvWfract;
 
   var d = d01 + (d23 - d01) * uvHfract;
 
-  var direct = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
+  // var direct = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
 
   return d;
 }

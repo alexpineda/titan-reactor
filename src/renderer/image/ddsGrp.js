@@ -1,27 +1,23 @@
-const { range } = require("ramda");
-const BufferList = require("bl");
+export default (buf, buffersOnly = false) => {
+  const filesize = buf.readUInt32LE(0);
+  const frameCount = buf.readUInt16LE(4);
+  const unknown = buf.readUInt16LE(6);
 
-export const DDSGrp = (buf) => {
-  const bl = new BufferList(buf);
+  let pos = 8;
 
-  const filesize = bl.readUInt32LE(0);
-  const frameCount = bl.readUInt16LE(4);
-  const unknown = bl.readUInt16LE(6);
+  let frames = [];
+  for (let i = 0; i < frameCount; i++) {
+    const w = buf.readUInt16LE(pos + 4);
+    const h = buf.readUInt16LE(pos + 6);
+    const size = buf.readUInt32LE(pos + 8);
+    const dds = buf.slice(pos + 12, pos + 12 + size);
 
-  bl.consume(8);
-
-  return range(0, frameCount).map((frame) => {
-    const w = bl.readUInt16LE(4);
-    const h = bl.readUInt16LE(6);
-    const size = bl.readUInt32LE(8);
-    const dds = bl.slice(12, 12 + size);
-    bl.consume(12 + size);
-
-    return {
-      w,
-      h,
-      size,
-      dds,
-    };
-  });
+    pos = pos + 12 + size;
+    if (buffersOnly) {
+      frames.push(dds);
+    } else {
+      frames.push({ i, w, h, size, dds });
+    }
+  }
+  return frames;
 };

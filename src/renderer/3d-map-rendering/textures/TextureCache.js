@@ -24,7 +24,7 @@ export class TextureCache {
 
   async save(name, data, width, height) {
     console.log("saving", this._name(name));
-    // return await savePNG(data, width, height, this._name(name), this.format);
+    return await savePNG(data, width, height, this._name(name), this.format);
   }
 
   async exists(name) {

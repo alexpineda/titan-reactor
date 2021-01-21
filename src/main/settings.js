@@ -119,7 +119,7 @@ export class Settings extends EventEmitter {
     return {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
-      isDev: true,
+      isDev: false,
       phrases,
       diff: {},
     };

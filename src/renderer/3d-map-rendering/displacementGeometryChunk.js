@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export const createDisplacementGeometry = (
+export const createDisplacementGeometryChunk = (
   existingGeom,
   width,
   height,
@@ -8,7 +8,11 @@ export const createDisplacementGeometry = (
   heightSegments,
   canvas,
   displacementScale = 2,
-  displacementBias = 1
+  displacementBias = 1,
+  scaleWidth = 1,
+  scaleHeight = 1,
+  offX = 0,
+  offY = 0
 ) => {
   const geom =
     existingGeom ||
@@ -27,7 +31,15 @@ export const createDisplacementGeometry = (
     uv.fromBufferAttribute(uvs, i);
     n.fromBufferAttribute(nor, i);
 
-    var displacement = getDisplacement(canvas, ctx, uv);
+    var displacement = getDisplacement(
+      canvas,
+      ctx,
+      uv,
+      scaleWidth,
+      scaleHeight,
+      offX,
+      offY
+    );
 
     p.addScaledVector(n, displacement * displacementScale).addScaledVector(
       n,
@@ -41,14 +53,22 @@ export const createDisplacementGeometry = (
   return geom;
 };
 
-function getDisplacement(canvas, context, uv) {
+function getDisplacement(
+  canvas,
+  context,
+  uv,
+  scaleWidth,
+  scaleHeight,
+  offX,
+  offY
+) {
   var w = canvas.width - 1;
   var h = canvas.height - 1;
 
-  var uvW = Math.floor(w * uv.x);
-  var uvH = Math.floor(h * (1 - uv.y));
-  var uvWnext = uv.x === 1.0 ? uvW : uvW + 1;
-  var uvHnext = uv.y === 0.0 ? uvH : uvH + 1;
+  var uvW = Math.floor(w * scaleWidth * uv.x) + offX;
+  var uvH = Math.floor(h * scaleHeight * (1 - uv.y)) + offY;
+  var uvWnext = uvW + 1;
+  var uvHnext = uvH + 1;
 
   var uvWfract = w * uv.x - uvW;
   var uvHfract = h * (1 - uv.y) - uvH;
@@ -65,7 +85,7 @@ function getDisplacement(canvas, context, uv) {
 
   var direct = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
 
-  return d;
+  return direct;
 }
 
 export const getTerrainY = (
