@@ -101,10 +101,10 @@ const loadMapData = async () => {
     "twilight",
   ];
 
-  const tileset = tilesets.findIndex((s) => s === "jungle");
+  const tileset = tilesets.findIndex((s) => s === "ashworld");
   console.log("tileset", tileset);
   const mapTiles = new Uint16Array(
-    await fetch("/syl.mtxm").then((res) => res.arrayBuffer())
+    await fetch("/cross.mtxm").then((res) => res.arrayBuffer())
   );
   console.log("mapTiles", mapTiles.length);
 
@@ -582,17 +582,58 @@ const load = async () => {
     composer.render(0.01);
   }
 
+  const counterValue = { value: 0 };
   const mat = new THREE.MeshStandardMaterial({
     map,
     dithering: true,
     onBeforeCompile: function (shader) {
       let fs = shader.fragmentShader;
 
+      let index1;
+      let index2;
+      let index3;
+
+      if (tileset === 4 || tileset === 0) {
+        //jungle, badlands
+        index1 = [1, 6];
+        index2 = [7, 6];
+        index3 = [248, 7];
+      } else if (tileset === 3) {
+        //ashworld
+        index1 = [1, 4];
+        index2 = [5, 4];
+        index3 = [9, 5];
+      } else if (tileset > 4) {
+        //desert, ice, twighlight
+        index1 = [1, 13];
+        index2 = [248, 7];
+      }
+
       fs = fs.replace(
         "#include <map_fragment>",
         `
-        float index = float(texture2D(paletteIndices, vUv).r);
-        vec4 paletteColor = texture2D(palette, vec2(index/256.,0));
+        int index = int(texture2D(paletteIndices, vUv).r);
+
+        #ifdef ROTATE_1
+          if (index == index1.x) {
+            index = index + (counter % index1.y);
+          }
+        #endif
+
+        #ifdef ROTATE_2
+          if (index ==  index2.x) {
+            index = index + (counter % index2.y);
+          }
+        #endif
+
+        #ifdef ROTATE_3
+          if (index ==  index3.x) {
+            index = index + (counter % index3.y);
+          }
+        #endif
+
+        float indexF = float(index);
+        vec4 paletteColor = texture2D(palette, vec2(indexF/256.,0));
 
         vec4 texelColor = mapTexelToLinear(paletteColor);
         diffuseColor *= texelColor;
@@ -603,13 +644,32 @@ const load = async () => {
         precision highp usampler2D;
         uniform sampler2D palette;
         uniform usampler2D paletteIndices;
+        uniform ivec2 index1;
+        uniform ivec2 index2;
+        uniform ivec2 index3;
+        uniform int counter;
+
+        ${index1 ? "#define ROTATE_1" : ""}
+        ${index2 ? "#define ROTATE_2" : ""}
+        ${index3 ? "#define ROTATE_3" : ""}
         ${fs}
       `;
 
       shader.uniforms.palette = { value: paletteMap };
       shader.uniforms.paletteIndices = { value: paletteIndicesMap };
+      shader.uniforms.counter = counterValue;
+      if (index1) {
+        shader.uniforms.index1 = { value: index1 };
+      }
+      if (index2) {
+        shader.uniforms.index2 = { value: index2 };
+      }
+      if (index3) {
+        shader.uniforms.index3 = { value: index3 };
+      }
     },
   });
+  mat.userData.counterValue = counterValue;
 
   const displaceCanvas = document.createElement("canvas");
   displaceCanvas.width = mapWidth * options.displaceDimensionScale;
@@ -773,8 +833,19 @@ const load = async () => {
 };
 
 let last = 0;
+let frame = 0;
+let frameElapsed = 0;
+
 const loop = (elapsed) => {
   const delta = elapsed - last;
+  frameElapsed += delta;
+  if (frameElapsed > 42) {
+    frame++;
+    if (frame % 8 === 0) {
+      terrain.userData.mat.userData.counterValue.value++;
+    }
+    frameElapsed = 0;
+  }
   // renderer.render(scene, camera);
   composer.render(delta);
   controls.update(delta);

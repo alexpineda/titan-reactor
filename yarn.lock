@@ -3936,7 +3936,9 @@ dotenv@^8.0.0, dotenv@^8.2.0:
     crc32 "^0.2.2"
     iconv-lite "^0.6.2"
     jssuh "^1.4.0"
+    node-pkware "^0.8.1"
     ramda "^0.27.1"
+    scm-extractor "^1.0.6"
 
 duplexer3@^0.1.4:
   version "0.1.4"
@@ -7922,6 +7924,14 @@ node-notifier@^8.0.0:
     uuid "^8.3.0"
     which "^2.0.2"
 
+node-pkware@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/node-pkware/-/node-pkware-0.8.1.tgz#524655b187de4364afd316c502a5947ee7e70a4d"
+  integrity sha512-dUuciQIwA910l0mTI8pxOXM+OYlTvCEn98DbiPFwwrbTJ9XxPOHteHSm2Ku0VWQ7u7cwbKe9yQ2r5fE0B1tqiA==
+  dependencies:
+    minimist "^1.2.5"
+    ramda "^0.27.1"
+
 node-releases@^1.1.61:
   version "1.1.61"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.61.tgz#707b0fca9ce4e11783612ba4a2fcba09047af16e"
@@ -8925,6 +8935,11 @@ postcss@^7.0.14, postcss@^7.0.32, postcss@^7.0.5, postcss@^7.0.6:
     chalk "^2.4.2"
     source-map "^0.6.1"
     supports-color "^6.1.0"
+
+postprocessing@^6.19.3:
+  version "6.19.3"
+  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.19.3.tgz#e6a87b7e36aebb14c77fedb1b0dd962f367b95aa"
+  integrity sha512-Ti0/cihCj8SKgUef0zPZIZZT2elwdTCPab+o14nkOZUudeH0tASGFVRtYUHR8iIIvxmB88oQmogp+rM0dfU+eQ==
 
 prelude-ls@^1.2.1:
   version "1.2.1"

@@ -66,6 +66,7 @@
     "jssuh": "1.4.0",
     "npm": "^6.14.8",
     "pngjs": "^5.0.0",
+    "postprocessing": "^6.19.3",
     "ramda": "0.27.0",
     "react": "^16.13.1",
     "react-autosuggest": "^10.0.4",
