@@ -10,9 +10,10 @@ uniform usampler2D details;
 uniform usampler2D paletteIndices;
 uniform float detailsMix;
 uniform int ignoreDoodads;
-uniform int processWater;
+uniform bool processWater;
 uniform int tileset;
 uniform mat3 levels;
+uniform mat3 ignoreLevels;
 
 #if defined(ASPECT_CORRECTION) || defined(UV_TRANSFORM)
 
@@ -79,36 +80,38 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
     uint effectiveElevation = elevation;
 
-    // if (!isWater && elevation == uint(0)) {
-    //   effectiveElevation = uint(1);
-    // }
+    if (processWater && !isWater && elevation == uint(0)) {
+      effectiveElevation = uint(1);
+    }
 
     float elevationResult = 0.;
+    bool ignoreLevel = false;
     if (effectiveElevation < uint(3)) {
         elevationResult = levels[effectiveElevation][0];
-    } else if (effectiveElevation > uint(3) && effectiveElevation < uint(6)) {
+        ignoreLevel = ignoreLevels[effectiveElevation][0] == 1.;
+      } else if (effectiveElevation > uint(3) && effectiveElevation < uint(6)) {
         elevationResult = levels[effectiveElevation - uint(3)][1];
+        ignoreLevel = ignoreLevels[effectiveElevation - uint(3)][1] == 1.;
     } else {
         elevationResult = levels[effectiveElevation - uint(6)][2];
+        ignoreLevel = ignoreLevels[effectiveElevation - uint(6)][2] == 1.;
     }
  
-    if (elevation == uint(0) && effectiveElevation == uint(1)) {
-      elevationResult *= 0.8;
-    }
+    bool elevationWasModified = elevation != effectiveElevation;
 
     vec3 res = vec3(elevationResult);
     uint mapTile = texture2D(mapTiles, uv).r;
     
     //if doodad, use previous render
     // if (mapTile > uint(1023) && ignoreDoodads == 1 && elevation > uint(0)) {
-    //   if (elevation == uint(0)) {
-    //     res = inputColor.rgb * (1.-inputColor.b);
-    //   } else {
-    //     res = inputColor.rgb;
-    //   }
+      // if (elevation == uint(0)) {
+      //   res = inputColor.rgb * (1.-inputColor.b);
+      // } else {
+        // res = inputColor.rgb * 0.5 * res * 0.5;
+      // }
     // }
 
-    if (elevationResult < 0. ) {
+    if (ignoreLevel && !elevationWasModified) { //todo: change this to use a custom ignore elevation matrix
       res = inputColor.rgb;
     }
 
@@ -164,6 +167,7 @@ export class MapEffect extends Effect {
     details = null,
     elevations = null,
     levels = null,
+    ignoreLevels = null,
     mapTiles = null,
     ignoreDoodads = null,
     detailsMix = null,
@@ -184,6 +188,8 @@ export class MapEffect extends Effect {
         ["details", new Uniform(null)],
         ["elevations", new Uniform(null)],
         ["levels", new Uniform(null)],
+        ["ignoreLevels", new Uniform(null)],
+
         ["mapTiles", new Uniform(null)],
         ["detailsMix", new Uniform(null)],
         ["ignoreDoodads", new Uniform(null)],
@@ -206,6 +212,7 @@ export class MapEffect extends Effect {
     this.palette = palette;
     this.paletteIndices = paletteIndices;
     this.processWater = processWater;
+    this.ignoreLevels = ignoreLevels;
   }
 
   /**
@@ -332,6 +339,14 @@ export class MapEffect extends Effect {
 
   set palette(value) {
     this.uniforms.get("palette").value = value;
+  }
+
+  get ignoreLevels() {
+    return this.uniforms.get("ignoreLevels").value;
+  }
+
+  set ignoreLevels(value) {
+    this.uniforms.get("ignoreLevels").value = value;
   }
 
   /**

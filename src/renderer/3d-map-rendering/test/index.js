@@ -1,7 +1,6 @@
 import * as THREE from "three";
 // import { DDSLoader } from "three/examples/jsm/loaders/DDSLoader";
 import { Mesh, HalfFloatType, CanvasTexture, CompressedTexture } from "three";
-import ExtendMaterial from "../../utils/ExtendMaterial";
 import CameraControls from "camera-controls";
 import React, { useState } from "react";
 import { render } from "react-dom";
@@ -21,14 +20,13 @@ import {
   EdgeDetectionMode,
   ClearPass,
 } from "postprocessing";
+import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
 import { blendNonZeroPixels } from "./blend";
 import { MapEffect } from "./effects/MapEffect";
 import readDdsGrp from "../../image/ddsGrp";
 import { DDSLoader } from "./DDSLoader";
 
 CameraControls.install({ THREE });
-
-const extendMaterial = ExtendMaterial(THREE);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -64,12 +62,25 @@ const mapWidth = 128;
 const mapHeight = 128;
 
 //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
-// const elevationLevels = [0, 0.3, 0.69, 0.69, 1, 1, 0.85];
-// const elevationLevels = [0, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3];
-const elevationLevels = [0, 0.05, 0.25, 0.25, 0.5, 0.5, 0.25];
-// const elevationLevels = [0, 0.3, 0.69, 0.69, 1, 1, 0.85];
+
+const options = {
+  elevationLevels: [0, 0.05, 0.25, 0.25, 0.4, 0.4, 0.25],
+  ignoreLevels: [0, 1, 0, 1, 0, 0, 1, 0, 0],
+  normalizeLevels: true,
+  displaceDimensionScale: 3,
+  displaceVertexScale: 2,
+  blendNonWalkableBase: true,
+  firstPass: true,
+  secondPass: true,
+  processWater: false,
+  displacementScale: 3,
+  drawMode: { value: 0 },
+};
+
+window.options = options;
 
 const terrain = new Mesh();
+terrain.userData.textures = [];
 const hdTerrains = [];
 document.body.append(renderer.domElement);
 
@@ -93,7 +104,7 @@ const loadMapData = async () => {
   const tileset = tilesets.findIndex((s) => s === "jungle");
   console.log("tileset", tileset);
   const mapTiles = new Uint16Array(
-    await fetch("/poly.mtxm").then((res) => res.arrayBuffer())
+    await fetch("/syl.mtxm").then((res) => res.arrayBuffer())
   );
   console.log("mapTiles", mapTiles.length);
 
@@ -141,7 +152,7 @@ const loadMapData = async () => {
   const fogOfWarArray = new Uint8Array(
     Buffer.alloc(mapWidth * mapHeight * 32 * 32)
   );
-  const displacement = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
+  const roughness = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
   const displacementDetail = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
 
   for (let mapY = 0; mapY < mapHeight; mapY++) {
@@ -227,7 +238,7 @@ const loadMapData = async () => {
                 elevation = 1;
               }
 
-              let elevationNormal = elevationLevels[elevation];
+              let elevationNormal = options.elevationLevels[elevation];
 
               let value = elevationNormal * 255;
 
@@ -245,7 +256,7 @@ const loadMapData = async () => {
               // }
 
               displacementDetail[pixelPos] = details;
-              displacement[pixelPos] = value;
+              roughness[pixelPos] = elevation == 0 ? 0 : details / 3;
 
               layers[pixelPos] = elevation;
             }
@@ -336,7 +347,7 @@ const loadMapData = async () => {
   _mapData = {
     diffuse,
     mapTilesData,
-    displacement,
+    roughness,
     displacementDetail,
     layers,
     palette,
@@ -357,7 +368,7 @@ const load = async () => {
   const {
     diffuse,
     mapTilesData,
-    displacement,
+    roughness,
     displacementDetail,
     layers,
     palette,
@@ -372,12 +383,12 @@ const load = async () => {
     quartileHeight,
   } = await loadMapData();
 
-  if (terrain.userData.textures) {
-    terrain.userData.textures.forEach((t) => t.dispose());
-  }
-
+  terrain.userData.textures.forEach((t) => t.dispose());
   scene.remove(terrain);
-  hdTerrains.forEach((t) => scene.remove(t));
+  hdTerrains.forEach((hdTerrain) => {
+    hdTerrain.userData.textures.forEach((t) => t.dispose());
+    scene.remove(hdTerrain);
+  });
 
   renderer.outputEncoding = THREE.LinearEncoding;
   renderer.shadowMap.enabled = false;
@@ -395,16 +406,16 @@ const load = async () => {
   map.encoding = THREE.sRGBEncoding;
   map.anisotropy = 16;
 
-  const displaceArray = new Uint8Array(displacement);
+  const roughnessArray = new Uint8Array(roughness);
 
-  const displacementMap = new THREE.DataTexture(
-    displaceArray,
+  const roughnessMap = new THREE.DataTexture(
+    roughnessArray,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RedIntegerFormat,
     THREE.UnsignedByteType
   );
-  displacementMap.flipY = true;
+  roughnessMap.flipY = true;
 
   const mapTilesMap = new THREE.DataTexture(
     mapTilesData,
@@ -441,7 +452,10 @@ const load = async () => {
   const nonZeroLayers = Buffer.alloc(layers.byteLength);
   layers.copy(nonZeroLayers);
   const nonZeroLayersArray = new Uint8Array(nonZeroLayers);
-  blendNonZeroPixels(nonZeroLayersArray, mapWidth * 32, mapHeight * 32);
+
+  if (options.blendNonWalkableBase) {
+    blendNonZeroPixels(nonZeroLayersArray, mapWidth * 32, mapHeight * 32);
+  }
 
   const nonZeroElevationsMap = new THREE.DataTexture(
     nonZeroLayersArray,
@@ -463,6 +477,19 @@ const load = async () => {
   paletteIndicesMap.internalFormat = "R8UI";
   paletteIndicesMap.flipY = true;
 
+  console.log("palette.length", palette.length);
+  const floatPalette = new Float32Array(palette.length);
+  for (let i = 0; i < palette.length; i++) {
+    floatPalette[i] = palette[i] / 255;
+  }
+  const paletteMap = new THREE.DataTexture(
+    floatPalette,
+    palette.length / 4,
+    1,
+    THREE.RGBAFormat,
+    THREE.FloatType
+  );
+
   const fogOfWarMap = new THREE.DataTexture(
     fogOfWarArray,
     mapWidth * 32,
@@ -474,22 +501,23 @@ const load = async () => {
   fogOfWarMap.flipY = true;
 
   const levelsMtx = new THREE.Matrix3();
-  const max = elevationLevels.reduce(
+  const max = options.elevationLevels.reduce(
     (memo, val) => (val > memo ? val : memo),
     0
   );
-  const normalLevels = elevationLevels.map((v) => v / max);
+  const normalLevels = options.elevationLevels.map((v) =>
+    options.normalizeLevels ? v / max : v
+  );
   levelsMtx.set(...normalLevels, 0, 0);
-  // levelsMtx.set(1, 0, 0, 0, 0, 0, 0, 0, 0);
 
-  const displaceDimensionScale = 3;
   composer.setSize(
-    mapWidth * displaceDimensionScale,
-    mapHeight * displaceDimensionScale,
+    mapWidth * options.displaceDimensionScale,
+    mapHeight * options.displaceDimensionScale,
     true
   );
   const savePass = new SavePass();
   const blurPassHuge = new BlurPass();
+  blurPassHuge.convolutionMaterial = new BypassingConvolutionMaterial();
   blurPassHuge.kernelSize = KernelSize.SMALL;
   const blurPassMed = new BlurPass();
   blurPassMed.kernelSize = KernelSize.VERY_SMALL;
@@ -507,6 +535,7 @@ const load = async () => {
         details: displacementDetailsMap,
         detailsMix: 0,
         levels: levelsMtx,
+        ignoreLevels: new THREE.Matrix3(),
         mapTiles: mapTilesMap,
         ignoreDoodads: 0,
         tileset,
@@ -519,14 +548,14 @@ const load = async () => {
   composer.addPass(blurPassHuge);
   composer.addPass(savePass);
   composer.addPass(new SavePass());
-  composer.render(0.01);
+  if (options.firstPass) {
+    composer.render(0.01);
+  }
+
   composer.removeAllPasses();
 
-  levelsMtx.set(
-    ...normalLevels.map((v, i) => ([1, 3, 6].includes(i) ? -1 : v)),
-    0,
-    0
-  );
+  const ignoreLevels = new THREE.Matrix3();
+  ignoreLevels.set(...options.ignoreLevels);
 
   composer.addPass(
     new EffectPass(
@@ -539,26 +568,52 @@ const load = async () => {
         mapTiles: mapTilesMap,
         ignoreDoodads: 1,
         levels: levelsMtx,
+        ignoreLevels,
         tileset,
         palette,
+        processWater: options.processWater,
         paletteIndices: paletteIndicesMap,
         blendFunction: BlendFunction.NORMAL,
       })
     )
   );
   // composer.addPass(blurPassMed);
-  composer.render(0.01);
-
-  const displacementScale = 6;
+  if (options.secondPass) {
+    composer.render(0.01);
+  }
 
   const mat = new THREE.MeshStandardMaterial({
     map,
     dithering: true,
+    onBeforeCompile: function (shader) {
+      let fs = shader.fragmentShader;
+
+      fs = fs.replace(
+        "#include <map_fragment>",
+        `
+        float index = float(texture2D(paletteIndices, vUv).r);
+        vec4 paletteColor = texture2D(palette, vec2(index/256.,0));
+
+        vec4 texelColor = mapTexelToLinear(paletteColor);
+        diffuseColor *= texelColor;
+      `
+      );
+
+      shader.fragmentShader = `
+        precision highp usampler2D;
+        uniform sampler2D palette;
+        uniform usampler2D paletteIndices;
+        ${fs}
+      `;
+
+      shader.uniforms.palette = { value: paletteMap };
+      shader.uniforms.paletteIndices = { value: paletteIndicesMap };
+    },
   });
 
   const displaceCanvas = document.createElement("canvas");
-  displaceCanvas.width = mapWidth * displaceDimensionScale;
-  displaceCanvas.height = mapHeight * displaceDimensionScale;
+  displaceCanvas.width = mapWidth * options.displaceDimensionScale;
+  displaceCanvas.height = mapHeight * options.displaceDimensionScale;
 
   displaceCanvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
 
@@ -566,38 +621,63 @@ const load = async () => {
     null,
     mapWidth,
     mapHeight,
-    mapWidth * displaceDimensionScale,
-    mapHeight * displaceDimensionScale,
+    mapWidth * options.displaceVertexScale,
+    mapHeight * options.displaceVertexScale,
     displaceCanvas,
-    // displaceArray,
-    displacementScale,
+    options.displacementScale,
     0
   );
 
   const elevationsMaterial = new THREE.MeshBasicMaterial({
     map,
     onBeforeCompile: function (shader) {
-      THREE.patchShader(shader, {
-        header: `
-      precision highp usampler2D;
-      uniform usampler2D elevations;
-      
-      vec3 heatmapGradient(float t) {
-        return clamp((pow(t, 1.5) * 0.8 + 0.2) * vec3(smoothstep(0.0, 0.35, t) + t * 0.5, smoothstep(0.5, 1.0, t), max(1.0 - t * 1.7, t * 7.0 - 6.0)), 0.0, 1.0);
-      }
-      `,
-        fragment: {
-          "@#include <map_fragment>": `
-        uvec4 elevation = texture2D(elevations, vUv);
-        // vec4 texelColor = texture2D( map, vUv );
-    
-        // texelColor = mapTexelToLinear( texelColor );
-        diffuseColor *= vec4(1., 0., 0., 1.);
-          
-          `,
-        },
-        uniforms: { elevations: { value: elevationsMap } },
-      });
+      let fs = shader.fragmentShader;
+
+      fs = fs.replace(
+        "#include <map_fragment>",
+        `
+        int elevation = int(texture2D(elevations, vUv).r);
+        float elevationF = float(elevation) / 6.;
+
+        bool isWalkable = elevation == 1 || elevation == 3 || elevation == 5 || elevation == 7;
+
+        if (drawMode == 2 && isWalkable) {
+          elevationF = 0.;
+          }
+
+        if (drawMode == 1 && !isWalkable) {
+          elevationF = 0.;
+        }
+
+        if (drawMode >= 3) {
+          elevationF = 1.;
+          if (elevation != drawMode - 3) {
+            elevationF = 0.2;
+          }
+          diffuseColor *= vec4(vec3(elevationF), 1.);
+        } else {
+         diffuseColor *= vec4(heatmapGradient(elevationF), 1.);
+        }
+
+
+      `
+      );
+
+      shader.fragmentShader = `
+        precision highp usampler2D;
+        uniform usampler2D elevations;
+        uniform int drawMode;
+
+        vec3 heatmapGradient(float t) {
+          return clamp((pow(t, 1.5) * 0.8 + 0.2) * vec3(smoothstep(0.0, 0.35, t) + t * 0.5, smoothstep(0.5, 1.0, t), max(1.0 - t * 1.7, t * 7.0 - 6.0)), 0.0, 1.0);
+        }
+        ${fs}
+      `;
+
+      shader.uniforms.elevations = { value: elevationsMap };
+      shader.uniforms.drawMode = options.drawMode;
+
+      console.log(shader);
     },
   });
 
@@ -619,31 +699,20 @@ const load = async () => {
 
   for (let x = 0; x < quartileStrideW; x++) {
     for (let y = 0; y < quartileStrideH; y++) {
-      // const qDisplace = document.createElement("canvas");
-      // qDisplace.width = quartileW * displaceDimensionScale;
-      // qDisplace.height = quartileH * displaceDimensionScale;
-      // qDisplace
-      //   .getContext("2d")
-      //   .drawImage(
-      //     displaceCanvas,
-      //     x * displaceDimensionScale,
-      //     y * displaceDimensionScale
-      //   );
-
       const hdTerrain = new Mesh();
       const geometry = createDisplacementGeometryChunk(
         null,
         quartileWidth,
         quartileHeight,
-        quartileWidth * displaceDimensionScale,
-        quartileHeight * displaceDimensionScale,
+        quartileWidth * options.displaceVertexScale,
+        quartileHeight * options.displaceVertexScale,
         displaceCanvas,
-        displacementScale,
+        options.displacementScale,
         0,
         quartileWidth / mapWidth,
         quartileHeight / mapHeight,
-        x * quartileWidth * displaceDimensionScale,
-        y * quartileHeight * displaceDimensionScale
+        x * quartileWidth * options.displaceDimensionScale,
+        y * quartileHeight * options.displaceDimensionScale
       );
 
       hdTerrain.geometry = geometry;
@@ -662,12 +731,18 @@ const load = async () => {
       hdTerrain.position.z =
         y * quartileHeight + quartileHeight / 2 - mapHeight / 2;
 
+      hdTerrain.userData.map = map;
+      hdTerrain.userData.mat = mat;
+      hdTerrain.userData.elevationsMaterial = elevationsMaterial;
+      hdTerrain.userData.textures = [mat];
+
       hdTerrains.push(hdTerrain);
       hdTerrain.visible = false;
       scene.add(hdTerrain);
     }
   }
 
+  terrain.visible = true;
   scene.add(terrain);
 
   composer.removeAllPasses();
@@ -707,8 +782,6 @@ const loop = (elapsed) => {
 };
 
 const App = () => {
-  const [levels, setLevels] = useState(elevationLevels.join(","));
-
   return (
     <div
       style={{
@@ -742,10 +815,14 @@ const App = () => {
         </button>
         <button
           onClick={() => {
-            terrain.material = terrain.userData.mat;
             terrain.material.wireframe = !terrain.material.wireframe;
             terrain.material.wireframeLinewidth = 5;
             terrain.material.needsUpdate = true;
+
+            hdTerrains.forEach((t) => {
+              t.material.wireframe = terrain.material.wireframe;
+              t.material.needsUpdate = true;
+            });
           }}
         >
           wireframe
@@ -772,23 +849,20 @@ const App = () => {
         >
           background
         </button>
+
+        <button
+          onClick={() => {
+            options.drawMode.value = (options.drawMode.value + 1) % 9;
+          }}
+        >
+          drawMode
+        </button>
       </div>
 
       <div>
         <div>
-          ratios{" "}
-          <input
-            type="text"
-            value={levels}
-            onChange={(evt) => {
-              setLevels(evt.target.value);
-            }}
-          />
           <button
             onClick={() => {
-              levels.split(",").forEach((v, i) => {
-                elevationLevels[i] = Number(v);
-              });
               load();
             }}
           >
@@ -808,7 +882,7 @@ const App = () => {
             SD/HD
           </button>
         </div>
-        <div>
+        <div style={{ color: "white" }}>
           low, walkable, mid, mid-walkable, high, high-walkable,
           mid/high/walkable
         </div>
