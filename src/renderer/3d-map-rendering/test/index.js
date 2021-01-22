@@ -40,6 +40,13 @@ const renderer = new THREE.WebGLRenderer({ depth: true, stencil: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 // renderer.autoClear = false;
+const resetRenderer = () => {
+  renderer.outputEncoding = THREE.LinearEncoding;
+  renderer.shadowMap.enabled = false;
+  renderer.physicallyCorrectLights = false;
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.dithering = false;
+};
 
 const controls = new CameraControls(camera, renderer.domElement);
 controls.verticalDragToForward = true;
@@ -72,9 +79,11 @@ const options = {
   blendNonWalkableBase: true,
   firstPass: true,
   secondPass: true,
-  processWater: false,
-  displacementScale: 3,
+  processWater: true,
+  displacementScale: 5,
   drawMode: { value: 0 },
+  detailsMix: 0.05,
+  bumpScale: 0.1,
 };
 
 window.options = options;
@@ -85,11 +94,26 @@ const hdTerrains = [];
 document.body.append(renderer.domElement);
 
 let _mapData;
+const mappings = {
+  fs: "jungle",
+  poly: "jungle",
+  syl: "jungle",
+  cross: "ashworld",
+  outsider: "ashworld",
+};
 
-const loadMapData = async () => {
-  if (_mapData) {
+const loadMapData = async (override) => {
+  if (_mapData && !override) {
     return _mapData;
   }
+
+  if (override) {
+    _mapData &&
+      _mapData.mapQuartiles.forEach((x) => x.forEach((y) => y.dispose()));
+  }
+
+  resetRenderer();
+
   const tilesets = [
     "badlands",
     "platform",
@@ -101,10 +125,13 @@ const loadMapData = async () => {
     "twilight",
   ];
 
-  const tileset = tilesets.findIndex((s) => s === "ashworld");
+  const defaultmap = "fs";
+  const presentMap = override || defaultmap;
+  const tileset = tilesets.findIndex((s) => s === mappings[presentMap]);
   console.log("tileset", tileset);
+
   const mapTiles = new Uint16Array(
-    await fetch("/cross.mtxm").then((res) => res.arrayBuffer())
+    await fetch(`/${presentMap}.mtxm`).then((res) => res.arrayBuffer())
   );
   console.log("mapTiles", mapTiles.length);
 
@@ -138,13 +165,9 @@ const loadMapData = async () => {
     true
   );
 
-  const normalMap = await new Promise((res) => {
-    new THREE.ImageLoader().load("/sylnorm.jpg", (image) => res(image));
-  });
-
   const mapTilesData = new Uint16Array(mapWidth * mapHeight);
 
-  const diffuse = Buffer.alloc(mapWidth * mapHeight * 32 * 32 * 3, 255);
+  const diffuse = Buffer.alloc(mapWidth * mapHeight * 32 * 32 * 4, 255);
   const layers = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
   const paletteIndices = new Uint8Array(
     Buffer.alloc(mapWidth * mapHeight * 32 * 32)
@@ -154,6 +177,7 @@ const loadMapData = async () => {
   );
   const roughness = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
   const displacementDetail = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
+  const tileGroupDetails = Buffer.alloc(mapWidth * mapHeight * 32 * 32 * 4);
 
   for (let mapY = 0; mapY < mapHeight; mapY++) {
     for (let mapX = 0; mapX < mapWidth; mapX++) {
@@ -250,9 +274,10 @@ const loadMapData = async () => {
               //   diffuse[pixelPos * 3 + 1] = 200;
               //   diffuse[pixelPos * 3 + 2] = b;
               // } else {
-              diffuse[pixelPos * 3] = r;
-              diffuse[pixelPos * 3 + 1] = g;
-              diffuse[pixelPos * 3 + 2] = b;
+              diffuse[pixelPos * 4] = r;
+              diffuse[pixelPos * 4 + 1] = g;
+              diffuse[pixelPos * 4 + 2] = b;
+              diffuse[pixelPos * 4 + 3] = 255;
               // }
 
               displacementDetail[pixelPos] = details;
@@ -353,7 +378,6 @@ const loadMapData = async () => {
     palette,
     paletteIndices,
     fogOfWarArray,
-    normalMap,
     tileset,
     mapQuartiles,
     quartileStrideW,
@@ -364,7 +388,7 @@ const loadMapData = async () => {
   return _mapData;
 };
 
-const load = async () => {
+const load = async (override) => {
   const {
     diffuse,
     mapTilesData,
@@ -374,14 +398,13 @@ const load = async () => {
     palette,
     paletteIndices,
     fogOfWarArray,
-    normalMap,
     tileset,
     mapQuartiles,
     quartileStrideW,
     quartileStrideH,
     quartileWidth,
     quartileHeight,
-  } = await loadMapData();
+  } = await loadMapData(override);
 
   terrain.userData.textures.forEach((t) => t.dispose());
   scene.remove(terrain);
@@ -390,21 +413,18 @@ const load = async () => {
     scene.remove(hdTerrain);
   });
 
-  renderer.outputEncoding = THREE.LinearEncoding;
-  renderer.shadowMap.enabled = false;
-  renderer.physicallyCorrectLights = false;
-  renderer.toneMapping = THREE.NoToneMapping;
+  resetRenderer();
 
   const map = new THREE.DataTexture(
     new Uint8Array(diffuse),
     mapWidth * 32,
     mapHeight * 32,
-    THREE.RGBFormat,
+    THREE.RGBAFormat,
     THREE.UnsignedByteType
   );
   map.flipY = true;
   map.encoding = THREE.sRGBEncoding;
-  map.anisotropy = 16;
+  map.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
   const roughnessArray = new Uint8Array(roughness);
 
@@ -477,7 +497,6 @@ const load = async () => {
   paletteIndicesMap.internalFormat = "R8UI";
   paletteIndicesMap.flipY = true;
 
-  console.log("palette.length", palette.length);
   const floatPalette = new Float32Array(palette.length);
   for (let i = 0; i < palette.length; i++) {
     floatPalette[i] = palette[i] / 255;
@@ -564,7 +583,7 @@ const load = async () => {
         texture: map,
         elevations: elevationsMap,
         details: displacementDetailsMap,
-        detailsMix: 0,
+        detailsMix: options.detailsMix,
         mapTiles: mapTilesMap,
         ignoreDoodads: 1,
         levels: levelsMtx,
@@ -585,7 +604,8 @@ const load = async () => {
   const counterValue = { value: 0 };
   const mat = new THREE.MeshStandardMaterial({
     map,
-    dithering: true,
+    bumpMap: map,
+    bumpScale: options.bumpScale,
     onBeforeCompile: function (shader) {
       let fs = shader.fragmentShader;
 
@@ -632,8 +652,12 @@ const load = async () => {
           }
         #endif
 
-        float indexF = float(index);
-        vec4 paletteColor = texture2D(palette, vec2(indexF/256.,0));
+        // #ifdef NO_ROTATE
+        //   vec4 paletteColor = vec4(triplanarMapping(map, vNormal, vViewPosition) , 1.);
+        // #else
+          float indexF = float(index);
+          vec4 paletteColor = texture2D(palette, vec2(indexF/256.,0));
+        // #endif
 
         vec4 texelColor = mapTexelToLinear(paletteColor);
         diffuseColor *= texelColor;
@@ -649,9 +673,26 @@ const load = async () => {
         uniform ivec2 index3;
         uniform int counter;
 
+        // vec3 blendNormal(vec3 normal){
+        //   vec3 blending = abs(normal);
+        //   blending = normalize(max(blending, 0.00001));
+        //   blending /= vec3(blending.x + blending.y + blending.z);
+        //   return blending;
+        // }
+        
+        // vec3 triplanarMapping (sampler2D texture, vec3 normal, vec3 position) {
+        //   vec3 normalBlend = blendNormal(normal);
+        //   vec3 xColor = texture2D(texture, position.yz).rgb;
+        //   vec3 yColor = texture2D(texture, position.xz).rgb;
+        //   vec3 zColor = texture2D(texture, position.xy).rgb;
+        
+        //   return (xColor * normalBlend.x + yColor * normalBlend.y + zColor * normalBlend.z);
+        // }
+
         ${index1 ? "#define ROTATE_1" : ""}
         ${index2 ? "#define ROTATE_2" : ""}
         ${index3 ? "#define ROTATE_3" : ""}
+        ${!index1 && !index2 && !index3 ? "#define NO_ROTATE" : ""}
         ${fs}
       `;
 
@@ -701,17 +742,23 @@ const load = async () => {
 
         bool isWalkable = elevation == 1 || elevation == 3 || elevation == 5 || elevation == 7;
 
-        if (drawMode == 2 && isWalkable) {
-          elevationF = 0.;
-          }
 
         if (drawMode == 1 && !isWalkable) {
           elevationF = 0.;
         }
 
-        if (drawMode >= 3) {
+        if (drawMode == 2 && isWalkable) {
+         elevationF = 0.;
+        }
+
+        if (drawMode == 3) {
+          uint mapTile = texture2D(mapTiles, vUv).r;
+          elevationF = mapTile > uint(1023) ? 1. : 0.; //doodad
+        }
+
+        if (drawMode >= 4) {
           elevationF = 1.;
-          if (elevation != drawMode - 3) {
+          if (elevation != drawMode - 4) {
             elevationF = 0.2;
           }
           diffuseColor *= vec4(vec3(elevationF), 1.);
@@ -727,6 +774,7 @@ const load = async () => {
         precision highp usampler2D;
         uniform usampler2D elevations;
         uniform int drawMode;
+        uniform usampler2D mapTiles;
 
         vec3 heatmapGradient(float t) {
           return clamp((pow(t, 1.5) * 0.8 + 0.2) * vec3(smoothstep(0.0, 0.35, t) + t * 0.5, smoothstep(0.5, 1.0, t), max(1.0 - t * 1.7, t * 7.0 - 6.0)), 0.0, 1.0);
@@ -736,6 +784,7 @@ const load = async () => {
 
       shader.uniforms.elevations = { value: elevationsMap };
       shader.uniforms.drawMode = options.drawMode;
+      shader.uniforms.mapTiles = { value: mapTilesMap };
 
       console.log(shader);
     },
@@ -779,7 +828,8 @@ const load = async () => {
 
       const mat = new THREE.MeshStandardMaterial({
         map: mapQuartiles[x][y],
-        dithering: true,
+        bumpMap: mapQuartiles[x][y],
+        bumpScale: options.bumpScale,
       });
 
       hdTerrain.material = mat;
@@ -827,6 +877,7 @@ const load = async () => {
   renderer.shadowMap.enabled = true;
   renderer.physicallyCorrectLights = true;
   renderer.toneMapping = THREE.CineonToneMapping;
+  renderer.dithering = true;
 
   renderer.setAnimationLoop(loop);
   console.log("Rendered");
@@ -923,11 +974,22 @@ const App = () => {
 
         <button
           onClick={() => {
-            options.drawMode.value = (options.drawMode.value + 1) % 9;
+            options.drawMode.value = (options.drawMode.value + 1) % 10;
           }}
         >
           drawMode
         </button>
+        <select
+          onChange={(evt) => {
+            load(evt.target.value);
+          }}
+        >
+          <option>fs</option>
+          <option>poly</option>
+          <option>syl</option>
+          <option>cross</option>
+          <option>outsider</option>
+        </select>
       </div>
 
       <div>

@@ -70,16 +70,22 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     int paletteIndex = int(texture2D(paletteIndices, uv).r);
 
     bool isWater = getIsWater(tileset, paletteIndex);
-    if (tileset == 4 || tileset == 0) { //jungle and badlands
-      if (elevation == uint(0) && oColor.b > oColor.r/2. + oColor.g/2.) {
+    bool isWaterByColor = false;
+    if ((tileset == 4 || tileset == 0) && elevation == uint(0)) { //jungle and badlands
+      if (oColor.b > oColor.r/2. + oColor.g/2.) {
         isWater = true;
+        isWaterByColor = true;
+      }
+    } else if (tileset == 3 && elevation == uint(0)) { //ashworld
+      if (oColor.r > oColor.g/2. + oColor.b/2. || (oColor.r < 0.2 && oColor.g < 0.2 && oColor.b < 0.2)) {
+        isWater = true;
+        isWaterByColor = true;
       }
     }
 
-    // todo: if surrounding elevation is sufficiently different, lower the elevation
-
     uint effectiveElevation = elevation;
 
+    //anything that is elevation 0 and is not "water" gets lifted an elevation up
     if (processWater && !isWater && elevation == uint(0)) {
       effectiveElevation = uint(1);
     }
@@ -119,7 +125,6 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     float finalDetailMix = detailsMix;
 
     vec4 texel = vec4(res * (1.-finalDetailMix) + (detail*finalDetailMix), 1.);
-    // vec4 texel = vec4(res , 1.);
     outputColor = TEXEL;
 
 }
