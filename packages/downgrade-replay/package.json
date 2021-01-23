@@ -1,0 +1,18 @@
+{
+  "name": "downgrade-replay",
+  "version": "1.0.0",
+  "description": "Downgrade your Starcraft Remastered replay to version 1.16",
+  "main": "src/index.js",
+  "author": "Alex Pineda <alexpineda@fastmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "bl": "^4.0.3",
+    "concat-stream": "^2.0.0",
+    "crc32": "^0.2.2",
+    "iconv-lite": "^0.6.2",
+    "jssuh": "^1.4.0",
+    "node-pkware": "^0.8.1",
+    "ramda": "^0.27.1",
+    "scm-extractor": "^1.0.6"
+  }
+}
