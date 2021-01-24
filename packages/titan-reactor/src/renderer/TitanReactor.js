@@ -13,7 +13,7 @@ import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import BgMusic from "./audio/BgMusic";
 import { loadReplayFromFile, loadAllDataFiles, openFile, log } from "./invoke";
-import { UnitDAT } from "../main/units/UnitsDAT";
+import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
 import loadSpritePalettes from "./image/palettes";
 import { parseReplay } from "downgrade-replay";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";

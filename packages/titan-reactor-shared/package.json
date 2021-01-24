@@ -1,0 +1,16 @@
+{
+  "name": "titan-reactor-shared",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alex Pineda <alexpineda@fastmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bw-chk-modified": "1.2.1",
+    "ramda": "^0.27.1",
+    "three": "^0.124.0"
+  }
+}

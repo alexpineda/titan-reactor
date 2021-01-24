@@ -1,0 +1,15 @@
+{
+  "name": "pkware-wasm",
+  "version": "1.0.0",
+  "description": "StormLib Implode and Explode algorithms for node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alex Pineda <alexpineda@fastmail.com>",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/imbateam-gg/pkware-wasm.git"
+  },  
+  "license": "MIT"
+}

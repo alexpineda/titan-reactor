@@ -1,6 +1,6 @@
 import { easeCubicOut } from "d3-ease";
-import { unitTypes } from "bwdat/unitTypes";
-import { orders } from "bwdat/orders";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { orders } from "titan-reactor-shared/types/orders";
 
 export default class HeatmapScore {
   constructor(bwDat) {

@@ -1,5 +1,5 @@
 import { DefaultLoadingManager } from "three";
-import { unitTypes } from "common/bwdat/unitTypes";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { DebugLog } from "utils/DebugLog";
 
 export class ImageSD {

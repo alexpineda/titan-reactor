@@ -1,7 +1,7 @@
 import {
   iscriptHeaders as headers,
   headersById,
-} from "../../common/bwdat/iscriptHeaders";
+} from "titan-reactor-shared/types/iscriptHeaders";
 import { DebugLog } from "../utils/DebugLog";
 
 export class IScriptRunner {

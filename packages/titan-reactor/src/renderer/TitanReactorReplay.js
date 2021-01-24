@@ -13,14 +13,14 @@ import MinimapControl from "./camera/MinimapControl";
 import { createMiniMapPlane } from "./mesh/Minimap";
 import { Players } from "./replay/Players";
 import FadingPointers from "./mesh/FadingPointers";
-import { commands } from "bwdat/commands";
+import { commands } from "titan-reactor-shared/types/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
-import { unitTypes } from "../common/bwdat/unitTypes";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import createStats from "utils/createStats";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
-import CanvasTarget from "./render/CanvasTarget";
+import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import { ProducerWindowPosition } from "../common/settings";
 

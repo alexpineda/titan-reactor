@@ -1,7 +1,7 @@
 import { app, ipcMain, Menu, BrowserWindow, shell, dialog } from "electron";
 import isDev from "electron-is-dev";
 import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
-import { openFileBinary } from "./fs";
+import { openFileBinary } from "titan-reactor-shared/utils/fs";
 import path from "path";
 import Parser from "rss-parser";
 import fs from "fs";
@@ -31,7 +31,7 @@ import {
   LOAD_CHK_IMAGE,
   LOAD_SCX,
 } from "../common/handleNames";
-import { loadAllDataFiles } from "./units/loadAllDataFiles";
+import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
 import phrases from "../common/phrases";

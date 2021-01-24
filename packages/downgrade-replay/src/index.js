@@ -3,9 +3,8 @@ const { BufferList } = require("bl");
 const iconv = require("iconv-lite");
 const zlib = require("zlib");
 const { Writable, Readable } = require("stream");
-const pkware = require("../libs/pkware-wasm/pkware");
-const crc32 = require("../libs/crc32");
-const downgradeChk = require("../libs/chk-downgrader/chk-downgrader.js");
+const pkware = require("pkware-wasm");
+const { downgradeChk } = require("downgrade-chk");
 
 const HeaderMagicClassic = 0x53526572;
 const HeaderMagicScrModern = 0x53526573;
@@ -206,7 +205,7 @@ const block = async (buf, blockSize) => {
   if (result.length != blockSize)
     throw new Error(`read bytes, expected:${blockSize} got:${result.length}`);
 
-  const calcChecksum = crc32(result.slice(0));
+  const calcChecksum = pkware.crc32(result.slice(0));
   if (calcChecksum !== checksum) {
     throw new Error(`crc32 mismatch expected:${checksum} got:${calcChecksum}`);
   }
@@ -721,7 +720,7 @@ const convertReplayTo116 = async (buf) => {
 
 const writeBlock = async (out, data, compress) => {
   const numChunks = Math.ceil(data.length / MAX_CHUNK_SIZE);
-  let checksum = crc32(data.slice(0));
+  let checksum = pkware.crc32(data.slice(0));
   let outBlockSize = 0;
 
   out.append(new Uint32Array([checksum]));

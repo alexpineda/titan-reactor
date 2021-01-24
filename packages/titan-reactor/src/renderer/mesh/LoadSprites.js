@@ -13,7 +13,7 @@ import {
   RGBADepthPacking,
   MeshDepthMaterial,
 } from "three";
-import { Grp } from "../../../libs/bw-chk/grp";
+import { Grp } from "bw-chk-modified/grp";
 import { Buffer } from "buffer/";
 import { imageToCanvasTexture } from "../3d-map-rendering/textures/imageToCanvasTexture";
 import { range, groupBy } from "ramda";

@@ -1,4 +1,4 @@
-import CanvasTarget from "./CanvasTarget";
+import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import { GameAspect, ProducerWindowPosition } from "../../common/settings";
 
 class GameCanvasTarget extends CanvasTarget {

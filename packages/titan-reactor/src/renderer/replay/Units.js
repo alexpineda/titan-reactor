@@ -15,11 +15,11 @@ import { path } from "ramda";
 import {
   headersById,
   iscriptHeaders as headers,
-} from "../../common/bwdat/iscriptHeaders";
-import { orders, ordersById } from "../../common/bwdat/orders";
+} from "titan-reactor-shared/types/iscriptHeaders";
+import { orders, ordersById } from "titan-reactor-shared/types/orders";
 import { DebugLog } from "../utils/DebugLog";
 import { angleToDirection } from "../utils/conversions";
-import { unitTypes } from "../../common/bwdat/unitTypes";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { BWAPIUnit } from "./BWAPIFrames";
 import { createMinimapPoint } from "../mesh/Minimap";
 const { zergEgg, mineral1, mineral2, mineral3, geyser } = unitTypes;

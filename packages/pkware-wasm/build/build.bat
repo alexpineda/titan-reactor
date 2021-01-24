@@ -1,0 +1,2 @@
+@echo OFF
+emcc "stormlib.cpp" -I include implode.c -I include explode.c -I include crc32.c -o stormlib-js.js -s EXPORTED_FUNCTIONS="['_Compress_PKLIB', '_Decompress_PKLIB', '_implode', '_malloc', '_free', '_crc32']" -s FILESYSTEM=0 -s CASE_INSENSITIVE_FS=1  -s EXPORT_NAME="createStormLib" -s MODULARIZE=1  -s EXTRA_EXPORTED_RUNTIME_METHODS="['ccall', 'getValue']" -s WASM=0

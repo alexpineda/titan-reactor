@@ -1,0 +1,221 @@
+import React, { useState, useEffect } from "react";
+import { connect } from "react-redux";
+import UnitsAndImages from "./UnitsAndImages";
+const dialog = require("electron").remote.dialog;
+
+import Commands from "./Commands";
+import Animation from "./Animation";
+import Frames from "./Frames";
+import { TitanSprite } from "titan-reactor-shared/image/TitanSprite";
+import { GrpAtlasSD } from "titan-reactor-shared/image/GrpAtlasSD";
+import { GrpAtlasHD } from "titan-reactor-shared/image/GrpAtlasHD";
+import GrpAtlas3D from "titan-reactor-shared/image/GrpAtlas3D";
+import createTitanImage from "../createTitanImage";
+import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
+import BWAPIUnit from "titan-reactor-shared/bwapi/BWAPIUnit";
+import { preloadImageAtlases } from "titan-reactor-shared/image/preloadImageAtlases";
+import { errorOccurred, bwDataPathChanged } from "../appReducer";
+import { blockInitializing, blockFrameCountChanged } from "../iscriptReducer";
+import calculateImagesFromIScript from "titan-reactor-shared/image/calculateImagesFromIScript";
+
+const App = ({
+  surface,
+  cameraDirection,
+  selectedBlock,
+  changeBlockFrameCount,
+  blockFrameCount,
+  initializeBlock,
+  selectedUnit,
+  selectedImage,
+  selectedSprite,
+  error,
+  setError,
+  three,
+  renderMode,
+  bwDataPath,
+  addTitanSpriteCb,
+  bootup,
+}) => {
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("alpha");
+
+  useEffect(() => {
+    if (!selectedBlock) return;
+    const preload = async () => {
+      if (three.atlases) {
+        Object.values(three.atlases).forEach((pl) => pl.dispose());
+      }
+      three.dispose();
+      three.atlases = [];
+
+      const imageIds = calculateImagesFromIScript(
+        three.bwDat,
+        selectedBlock.image,
+        selectedUnit
+      );
+      three.atlases = await preloadImageAtlases(
+        three.bwDat,
+        bwDataPath,
+        three.tileset,
+        imageIds,
+        () => {
+          if (renderMode === "sd") {
+            return new GrpAtlasSD();
+          } else if (renderMode === "hd") {
+            return new GrpAtlasHD();
+          } else if (renderMode === "3d") {
+            return new GrpAtlas3D(three.scene.environment);
+          } else {
+            throw new Error("invalid render mode");
+          }
+        }
+      );
+      const { header } = selectedBlock;
+
+      const titanSprite = new TitanSprite(
+        selectedUnit ? new BWAPIUnit({ id: selectedUnit.index }) : null,
+        three.bwDat,
+        createTitanImage(
+          three.bwDat,
+          three.atlases,
+          createIScriptRunner(three.bwDat, three.tileset),
+          setError
+        ),
+        addTitanSpriteCb
+      );
+
+      titanSprite.addImage(selectedBlock.image.index);
+      titanSprite.run(header);
+      changeBlockFrameCount(
+        three.atlases[selectedBlock.image.index].frames.length
+      );
+    };
+    initializeBlock(preload);
+  }, [selectedBlock, renderMode]);
+
+  useEffect(() => {
+    if (!(selectedUnit || selectedSprite || selectedImage)) return;
+    setError(null);
+    //clear previous image
+    // three.dispose();
+  }, [selectedImage, selectedSprite, selectedUnit]);
+
+  useEffect(() => {
+    if (localStorage.getItem("bwDataPath")) {
+      bootup(localStorage.getItem("bwDataPath"));
+    }
+  }, []);
+  const selectBwDataDirectory = () => {
+    dialog
+      .showOpenDialog({
+        properties: ["openDirectory"],
+      })
+      .then(({ filePaths, canceled }) => {
+        console.log("show open dialog", filePaths);
+        if (canceled) return;
+        bootup(filePaths[0]);
+      })
+      .catch((err) => {
+        dialog.showMessageBox({
+          type: "error",
+          title: "Error Loading File",
+          message: "There was an error selecting path: " + err.message,
+        });
+      });
+  };
+
+  return !bwDataPath ? (
+    <div className="flex w-full h-screen p-2 absolute bg-gray-100 justify-center items-center">
+      <button
+        className="rounded px-2 py-1 bg-blue-300 hover:bg-blue-200 shadow"
+        onClick={selectBwDataDirectory}
+      >
+        Select your BW Data directory
+      </button>
+    </div>
+  ) : (
+    <div className="bg-gray-100">
+      <div className="flex w-full p-2 absolute bg-gray-100 z-10">
+        <section className="text-xs flex ">
+          <div className="pt-1 mr-1">
+            <span
+              aria-label="Sort A-Z"
+              data-balloon-pos="up"
+              onClick={() => {
+                if (sort === "alpha") {
+                  setSort("index");
+                } else {
+                  setSort("alpha");
+                }
+              }}
+            >
+              <i className="material-icons cursor-pointer">sort_by_alpha</i>
+            </span>
+          </div>
+          <input
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type="text"
+            placeholder="Search name or #id"
+            onChange={(e) => setSearch(e.target.value)}
+            value={search}
+          />
+          <button
+            type="button"
+            className=" cursor-pointer"
+            onClick={() => setSearch("")}
+          >
+            {" "}
+            <i className="material-icons ">clear</i>
+          </button>
+          <p className="text-red-700 flex-grow">{error}</p>
+        </section>
+      </div>
+      <div className="flex w-full h-screen items-stretch divide-x-2 text-gray-800 pt-12">
+        <UnitsAndImages bwDat={three.bwDat} search={search} sort={sort} />
+
+        <Commands
+          bwDat={three.bwDat}
+          selectedBlock={selectedBlock}
+          three={three}
+          cameraDirection={cameraDirection}
+        />
+        <Animation
+          selectedBlock={selectedBlock}
+          surface={surface}
+          three={three}
+          bwDat={three.bwDat}
+        />
+        <Frames
+          bwDat={three.bwDat}
+          selectedBlock={selectedBlock}
+          numFrames={blockFrameCount}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default connect(
+  (state) => {
+    return {
+      selectedBlock: state.iscript.block,
+      isBlockInitialized: state.iscript.initializeBlock.fulfilled,
+      blockFrameCount: state.iscript.blockFrameCount,
+      selectedUnit: state.iscript.unit,
+      selectedImage: state.iscript.image,
+      selectedSprite: state.iscript.sprite,
+      gameTick: state.app.gameTick,
+      error: state.app.error,
+      validBwDataPath: state.app.validBwDataPath,
+      bwDataPath: state.app.bwDataPath,
+      cameraDirection: state.app.cameraDirection,
+      renderMode: state.app.renderMode,
+    };
+  },
+  (dispatch) => ({
+    setError: (error) => dispatch(errorOccurred(error)),
+    initializeBlock: (fn) => dispatch(blockInitializing(fn)),
+    changeBlockFrameCount: (val) => dispatch(blockFrameCountChanged(val)),
+    setBwDataPath: (val) => dispatch(bwDataPathChanged(val)),
+  })
+)(App);
