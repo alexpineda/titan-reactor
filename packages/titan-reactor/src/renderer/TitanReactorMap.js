@@ -3,8 +3,6 @@ import * as THREE from "three";
 
 import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
-import { LoadModel } from "./mesh/LoadModels";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import Cameras from "./camera/Cameras";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
@@ -81,12 +79,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
   pointLight.castShadow = true;
   scene.add(pointLight);
 
-  // const loadModel = new LoadModel();
-  // const mineral = await loadModel.load("_alex/mineral1.glb", "mineral", (o) => {
-  //   o.receiveShadow = false;
-  //   o.userData.needsEnvMap = true;
-  // });
-
   // const minerals = chk.units
   //   .filter((unit) =>
   //     [unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
@@ -101,32 +93,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
   //     return m;
   //   });
   // minerals.forEach((m) => scene.add(m));
-
-  // const mouseDownListener = (event) => {
-  //   var raycaster = new Raycaster();
-  //   var mouse = new Vector2();
-
-  //   // calculate mouse position in normalized device coordinates
-  //   // (-1 to +1) for both components
-
-  //   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  //   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  //   raycaster.setFromCamera(mouse, mainCamera.camera);
-
-  //   // calculate objects intersecting the picking ray
-  //   const intersects = raycaster.intersectObjects(zerglings, true);
-
-  //   console.log("1");
-
-  //   if (!intersects.length) return;
-  //   intersects.slice(0, 1).forEach(({ object, distance }) => {
-  //     if (object) {
-  //       console.log("3", object, distance);
-  //       mainCamera.camera.focusAt && mainCamera.camera.focusAt(distance);
-  //     }
-  //   });
-  // };
-  // document.addEventListener("mousedown", mouseDownListener);
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom, focus }) => {

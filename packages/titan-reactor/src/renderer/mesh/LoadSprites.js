@@ -15,7 +15,7 @@ import {
 } from "three";
 import { Grp } from "bw-chk-modified/grp";
 import { Buffer } from "buffer/";
-import { imageToCanvasTexture } from "../3d-map-rendering/textures/imageToCanvasTexture";
+import { imageToCanvasTexture } from "titan-reactor-shared/image/imageToCanvasTexture";
 import { range, groupBy } from "ramda";
 import Worker from "./packbin.worker.js";
 import { asyncFilter } from "../utils/async";

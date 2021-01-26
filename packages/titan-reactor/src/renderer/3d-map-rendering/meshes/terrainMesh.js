@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createDisplacementGeometry } from "../displacementGeometry";
+import { createDisplacementGeometry } from "titan-reactor-shared/map/displacementGeometry";
 
 export function terrainMesh(
   mapWidth,

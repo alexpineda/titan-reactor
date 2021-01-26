@@ -14,6 +14,11 @@ import path from "path";
 import { range } from "ramda";
 import { Grp } from "bw-chk-modified/grp";
 
+import readBwFile, {
+  closeStorage,
+  openStorage,
+} from "titan-reactor-shared/utils/readBwFile";
+
 export async function loadAllDataFiles(bwDataPath) {
   const iscript = parseIscript(
     await openFileBinary(`${bwDataPath}/scripts/iscript.bin`)

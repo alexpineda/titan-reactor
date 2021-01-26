@@ -9,8 +9,10 @@
   "author": "Alex Pineda <alexpineda@fastmail.com>",
   "license": "MIT",
   "dependencies": {
+    "casclib": "^1.0.4",
     "bw-chk-modified": "1.2.1",
     "ramda": "^0.27.1",
-    "three": "^0.124.0"
+    "three": "^0.121.1",
+    "postprocessing": "^6.19.3"
   }
 }

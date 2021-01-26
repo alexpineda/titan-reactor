@@ -13,7 +13,7 @@ import {
   findReplaysPath,
   findStarcraftPath,
 } from "./starcraft/findInstallPath";
-import fileExists from "./utils/fileExists";
+import fileExists from "titan-reactor-shared/utils/fileExists";
 import path from "path";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 

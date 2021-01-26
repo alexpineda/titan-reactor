@@ -5,7 +5,7 @@ import {
   Scene,
 } from "three";
 import { disposeMeshes } from "./utils/dispose";
-import { getTerrainY } from "./3d-map-rendering/displacementGeometry";
+import { getTerrainY } from "titan-reactor-shared/map/displacementGeometry";
 import { fog, sunlight } from "./3d-map-rendering/lights";
 import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
 import { Terrain } from "./3d-map-rendering/Terrain";

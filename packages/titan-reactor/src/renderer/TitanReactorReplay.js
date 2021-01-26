@@ -2,7 +2,7 @@ import { Raycaster, Vector2, AudioListener, AxesHelper } from "three";
 import {
   BWAPIUnitFromBuffer,
   BWAPIBulletFromBuffer,
-} from "./replay/BWAPIFrames";
+} from "titan-reactor-shared/bwapi/BWAPIUnit";
 import { Units } from "./replay/Units";
 import { difference } from "ramda";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";

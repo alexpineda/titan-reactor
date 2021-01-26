@@ -24,6 +24,11 @@ import {
   criticalErrorOccurred,
 } from "./titanReactorReducer";
 
+import readBwFile, {
+  closeStorage,
+  openStorage,
+} from "titan-reactor-shared/utils/readBwFile";
+
 export class TitanReactor {
   constructor(store) {
     this.store = store;
@@ -37,6 +42,8 @@ export class TitanReactor {
       state.titan.processes.preload.started
     )
       return;
+
+    openStorage(state.settings.data.starcraftPath);
 
     const dispatchPreloadLoadingProgress = () =>
       this.store.dispatch(loadingProgress("preload"));
@@ -234,5 +241,6 @@ export class TitanReactor {
       log("disposing previous scene");
       return this.scene.dispose();
     }
+    closeStorage();
   }
 }

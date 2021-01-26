@@ -1,5 +1,5 @@
 import { chkImage } from "image/chkImage";
-import { rgbToCanvas } from "image/canvas";
+import { rgbToCanvas } from "titan-reactor-shared/image/canvas";
 import { colorAtMega } from "image/colorAtMega";
 import dimensions from "./dimensions";
 

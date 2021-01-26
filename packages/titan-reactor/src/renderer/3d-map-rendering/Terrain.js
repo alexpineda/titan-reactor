@@ -2,7 +2,7 @@ import { displacementImage } from "./textures/displacementImage";
 import { roughnessImage } from "./textures/roughnessImage";
 import { mapImage } from "./textures/mapImage";
 import { terrainMesh } from "./meshes/terrainMesh";
-import { imageToCanvasTexture } from "./textures/imageToCanvasTexture";
+import { imageToCanvasTexture } from "titan-reactor-shared/image/imageToCanvasTexture";
 
 export class Terrain {
   constructor(chk, cache, anisotropy) {
