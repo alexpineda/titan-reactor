@@ -1,8 +1,7 @@
-import { TextureCache } from "./3d-map-rendering/textures/TextureCache";
-import { getAppCachePath, loadChk, loadScx } from "./invoke";
-import { LoadSprite } from "./mesh/LoadSprites";
-import { JsonCache } from "./utils/jsonCache";
-import { imageChk } from "./utils/loadChk";
+import createScmExtractor from "scm-extractor";
+import fs from "fs";
+import concat from "concat-stream";
+import Chk from "../../libs/bw-chk";
 import { ImageSD } from "./mesh/ImageSD";
 import { Image3D } from "./mesh/Image3D";
 import EmptyImage from "./mesh/EmptyImage";
@@ -12,9 +11,9 @@ import { DefaultLoadingManager, LoadingManager } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import BgMusic from "./audio/BgMusic";
-import { loadReplayFromFile, loadAllDataFiles, openFile, log } from "./invoke";
+import { openFile, log } from "./invoke";
+import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
-import loadSpritePalettes from "./image/palettes";
 import { parseReplay } from "downgrade-replay";
 import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
 import {
@@ -28,6 +27,18 @@ import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
+
+const loadScx = (filename) =>
+  new Promise((res) =>
+    fs
+      .createReadStream(filename)
+      .pipe(createScmExtractor())
+      .pipe(
+        concat((data) => {
+          res(data);
+        })
+      )
+  );
 
 export class TitanReactor {
   constructor(store) {
@@ -43,58 +54,22 @@ export class TitanReactor {
     )
       return;
 
-    openStorage(state.settings.data.starcraftPath);
-
     const dispatchPreloadLoadingProgress = () =>
       this.store.dispatch(loadingProgress("preload"));
-    this.store.dispatch(loading("preload", state.settings.isDev ? 1 : 3));
+    this.store.dispatch(loading("preload", 1));
 
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
-    const origBwDat = await loadAllDataFiles(state.settings.data.starcraftPath);
+    const origBwDat = await loadAllDataFiles(
+      state.settings.data.starcraftPath,
+      readBwFile
+    );
     this.bwDat = {
       ...origBwDat,
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
     };
     window.bwDat = this.bwDat;
-    dispatchPreloadLoadingProgress();
-    if (state.settings.isDev) {
-      return;
-    }
-
-    this.readStarcraftFile = (file) =>
-      openFile(`${state.settings.data.starcraftPath}/${file}`);
-
-    //load sprite palettes
-    this.palettes = Object.freeze(
-      await loadSpritePalettes(this.readStarcraftFile)
-    );
-
-    dispatchPreloadLoadingProgress();
-
-    log("initializing sprite texture cache");
-    const spritesTextureCache = new TextureCache(
-      "sd",
-      await getAppCachePath(),
-      "rgba"
-    );
-
-    log("initializing json cache");
-    const jsonCache = new JsonCache("sprite-", await getAppCachePath());
-
-    log("loading unit atlas");
-    this.loadSprite = new LoadSprite(
-      this.palettes,
-      this.bwDat.images,
-      (file) => openFile(`${state.settings.data.starcraftPath}/unit/${file}`),
-      spritesTextureCache,
-      jsonCache,
-      8192,
-      DefaultLoadingManager
-    );
-
-    await this.loadSprite.loadAll();
-
+    await readBwFile(`tileset/jungle.cv5`);
     dispatchPreloadLoadingProgress();
   }
 
@@ -113,7 +88,7 @@ export class TitanReactor {
 
     log(`loading replay ${filepath}`);
     log("disposing previous replay resources");
-    await this.dispose();
+    this.scene && this.scene.dispose();
 
     log("parsing replay");
     this.rep = await parseReplay(await openFile(filepath));
@@ -122,8 +97,7 @@ export class TitanReactor {
 
     log("loading chk");
     this.store.dispatch(loading("chk"));
-    this.chk = await imageChk(this.rep.chk, state.settings.data.starcraftPath);
-    this.chkPreviewCanvas = await mapPreviewCanvas(this.chk);
+    this.chk = new Chk(this.rep.chk);
     this.store.dispatch(loadingProgress("chk"));
 
     log("showing loading overlay");
@@ -150,18 +124,12 @@ export class TitanReactor {
       renderImage = new Image3D();
     }
 
-    const textureCache = new TextureCache(
-      this.chk.title,
-      await getAppCachePath()
-    );
-
     const frames = await openFile(`${filepath}.bin`);
     dispatchRepLoadingProgress();
 
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      textureCache,
       state.settings.data.anisotropy,
       loadingManager
     );
@@ -197,29 +165,22 @@ export class TitanReactor {
 
     this.store.dispatch(loading("map", 3));
 
-    await this.dispose();
+    this.scene && this.scene.dispose();
 
     const loadingManager = new LoadingManager();
 
     log("loading chk");
-    this.chk = await imageChk(chkFilepath, state.settings.data.starcraftPath);
+
+    this.chk = new Chk(await loadScx(chkFilepath));
     window.chk = this.chk;
 
-    this.chkPreviewCanvas = await mapPreviewCanvas(this.chk);
     dispatchMapLoadingProgress();
 
     document.title = `Titan Reactor - ${this.chk.title}`;
 
-    log("initializing texture cache");
-    const textureCache = new TextureCache(
-      this.chk.title,
-      await getAppCachePath()
-    );
-
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      textureCache,
       state.settings.data.anisotropy,
       loadingManager
     );
@@ -227,20 +188,11 @@ export class TitanReactor {
 
     dispatchMapLoadingProgress();
 
-    this.scene = await TitanReactorMap(
-      this.store,
-      chkFilepath,
-      this.chk,
-      scene
-    );
+    this.scene = await TitanReactorMap(this.store, this.chk, scene);
     dispatchMapLoadingProgress();
   }
 
   dispose() {
-    if (this.scene) {
-      log("disposing previous scene");
-      return this.scene.dispose();
-    }
     closeStorage();
   }
 }

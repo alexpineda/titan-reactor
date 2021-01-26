@@ -18,3 +18,4 @@ export const LOAD_CHK_FROM_FILE = "LOAD_CHK_FROM_FILE";
 export const LOAD_CHK = "LOAD_CHK";
 export const LOAD_SCX = "LOAD_SCX";
 export const LOAD_CHK_IMAGE = "LOAD_CHK_IMAGE";
+export const LOAD_BW_FILE = "LOAD_BW_FILE";

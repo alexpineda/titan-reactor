@@ -53,7 +53,7 @@ const App = ({
               <LoadingOverlay
                 label={chk.title}
                 description={chk.tilesetName}
-                mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
+                // mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
               />
             )}
           </Visible>
@@ -71,7 +71,7 @@ const App = ({
                 <LoadingOverlay
                   label={chk.title}
                   description={chk.tilesetName}
-                  mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
+                  // mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
                   header={replayHeader}
                 />
               )}

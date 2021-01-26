@@ -40,6 +40,7 @@ import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 
 app.commandLine.appendSwitch("disable-frame-rate-limit");
+app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
 
 let gameWindow;
 

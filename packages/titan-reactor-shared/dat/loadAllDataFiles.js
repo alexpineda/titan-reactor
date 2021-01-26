@@ -19,10 +19,10 @@ import readBwFile, {
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
 
-export async function loadAllDataFiles(bwDataPath) {
-  const iscript = parseIscript(
-    await openFileBinary(`${bwDataPath}/scripts/iscript.bin`)
-  );
+export async function loadAllDataFiles(bwDataPath, readFile = openFileBinary) {
+  openStorage(bwDataPath);
+
+  const iscript = parseIscript(await readFile(`scripts/iscript.bin`));
 
   const imagesDat = new ImagesDAT(bwDataPath);
   const images = await imagesDat.load();
@@ -30,11 +30,8 @@ export async function loadAllDataFiles(bwDataPath) {
   const los = [];
   for (let i = 0; i < imagesDat.stats.length; i++) {
     if (imagesDat.stats[i].includes(".lo")) {
-      const fpath = path.join(
-        `${bwDataPath}/unit/`,
-        imagesDat.stats[i].replace(/\\/g, `/`)
-      );
-      los[i] = await parseLo(await openFileBinary(fpath));
+      const fpath = path.join(`unit/`, imagesDat.stats[i].replace(/\\/g, `/`));
+      los[i] = await parseLo(await readFile(fpath));
     }
   }
   const sprites = await new SpritesDAT(bwDataPath, images).load();
@@ -49,9 +46,7 @@ export async function loadAllDataFiles(bwDataPath) {
   const orders = await new OrdersDAT(bwDataPath).load();
 
   const bufs = await Promise.all(
-    images.map((image) =>
-      openFileBinary(`${bwDataPath}/unit/${image.grpFile.replace(/\\/g, `/`)}`)
-    )
+    images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, `/`)}`))
   );
 
   const grps = bufs.map((buf) => {

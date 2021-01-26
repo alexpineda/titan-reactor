@@ -8,12 +8,9 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./3d-map-rendering/lights";
-import createStats from "utils/createStats";
 export const hot = module.hot ? module.hot.data : null;
 
-async function TitanReactorMap(store, filepath, chk, scene) {
-  const stats = createStats();
-
+async function TitanReactorMap(store, chk, scene) {
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
@@ -27,7 +24,7 @@ async function TitanReactorMap(store, filepath, chk, scene) {
   const state = store.getState();
 
   const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
-  renderMan.initRenderer();
+  await renderMan.initRenderer();
   window.renderMan = renderMan;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
@@ -44,10 +41,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     keyboardShortcuts,
     true
   );
-  if (hot && hot.camera) {
-    mainCamera.camera.position.copy(hot.camera.position);
-    mainCamera.camera.rotation.copy(hot.camera.rotation);
-  }
 
   const terrainY = scene.getTerrainY();
 
@@ -75,10 +68,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     });
   startLocations.forEach((sl) => scene.add(sl));
 
-  const pointLight = new THREE.PointLight();
-  pointLight.castShadow = true;
-  scene.add(pointLight);
-
   // const minerals = chk.units
   //   .filter((unit) =>
   //     [unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
@@ -103,28 +92,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     mainCamera.camera.updateProjectionMatrix();
   });
 
-  gui.controllers.cinematic.onChangeAny(
-    ({
-      focalLength,
-      shaderFocus,
-      fstop,
-
-      showFocus,
-      focalDepth,
-      coc,
-    }) => {}
-  );
-
-  // gui.controllers.camera.rotate.onChange((val) => {
-  //   mainCamera.control.autoRotate = val;
-  //   // startLocations.forEach((sl) => (sl.visible = !val));
-  //   if (val) {
-  //     mainCamera.control.target = scene.terrain.position;
-  //   } else {
-  //     mainCamera.control.target = null;
-  //   }
-  // });
-
   let cameraZoom = {
     start: 1,
     end: 1,
@@ -132,16 +99,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     speed: 0.1,
     active: false,
   };
-
-  const keyDownListener = (e) => {
-    if (e.code === "Digit3") {
-      console.log("go");
-      cameraZoom.start = mainCamera.camera.zoom;
-      cameraZoom.end = 2.8;
-      cameraZoom.active = true;
-    }
-  };
-  document.addEventListener("keydown", keyDownListener);
   //#endregion
 
   // const zerglings = [];
@@ -209,15 +166,6 @@ async function TitanReactorMap(store, filepath, chk, scene) {
   );
   //#endregion
 
-  gui.controllers.pointlight.onChangeAny(
-    ({ color, decay, distance, power }) => {
-      pointLight.color = new THREE.Color(parseInt(color.substr(1), 16));
-      pointLight.decay = decay;
-      pointLight.distance = distance;
-      pointLight.power = power;
-    }
-  );
-
   //#region dirlight controllers
   gui.controllers.dirlight.onChangeAny(
     ({ intensity, color, x, y, z, x2, y2, z2, helper }) => {
@@ -254,22 +202,28 @@ async function TitanReactorMap(store, filepath, chk, scene) {
 
   let running = true;
 
+  const plane = new THREE.PlaneBufferGeometry(128, 128);
+  const mesh = new THREE.Mesh(
+    plane,
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+  );
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = 1;
+  // scene.add(mesh);
+
   function gameLoop() {
     if (!running) return;
-
-    pointLight.position.copy(mainCamera.camera.position);
-    pointLight.position.y += 5;
 
     mainCamera.update();
 
     renderMan.setCanvasTarget(gameSurface);
     renderMan.renderer.clear();
     renderMan.render(scene, mainCamera.camera);
-
-    stats.update();
   }
 
   renderMan.renderer.setAnimationLoop(gameLoop);
+
+  window.scene = scene;
 
   const dispose = () => {
     console.log("disposing");
@@ -282,19 +236,7 @@ async function TitanReactorMap(store, filepath, chk, scene) {
     renderMan.dispose();
     keyboardShortcuts.dispose();
     gui.dispose();
-    stats.dispose();
   };
-
-  if (module.hot) {
-    module.hot.dispose((data) => {
-      data.filepath = filepath;
-      data.camera = {
-        position: mainCamera.camera.position.clone(),
-        rotation: mainCamera.camera.rotation.clone(),
-      };
-      dispose();
-    });
-  }
 
   return {
     gameSurface,

@@ -80,16 +80,18 @@ export class Settings extends EventEmitter {
     }
 
     const dataFolders = [
-      "anim",
-      "arr",
-      "cursor",
-      "game",
-      "music",
-      "portrait",
-      "scripts",
-      "sound",
-      "TileSet",
-      "unit",
+      "Data",
+      "locales",
+      // "anim",
+      // "arr",
+      // "cursor",
+      // "game",
+      // "music",
+      // "portrait",
+      // "scripts",
+      // "sound",
+      // "TileSet",
+      // "unit",
     ];
     if (await fileExists(this._settings["starcraftPath"])) {
       for (let folder of dataFolders) {

@@ -15,6 +15,11 @@ import {
   EffectPass,
   RenderPass,
   DepthOfFieldEffect,
+  SMAAImageLoader,
+  SMAAEffect,
+  SMAAPreset,
+  EdgeDetectionMode,
+  ToneMappingEffect,
 } from "postprocessing";
 
 // import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
@@ -67,35 +72,55 @@ class RenderMan {
     this._postprocessingInitialized = true;
     this._renderPass = new RenderPass(scene, camera);
 
-    window.dofPass = this._dofPass = new DepthOfFieldEffect(camera, {
+    window.dofPass = this._dofEffect = new DepthOfFieldEffect(camera, {
       focusDistance: 0.05,
       focalLength: 0.5,
       bokehScale: 4.0,
       height: 480,
     });
 
+    this._smaaEffect = new SMAAEffect(
+      this._smaaSearchImage,
+      this._smaaAreaImage,
+      SMAAPreset.ULTRA,
+      EdgeDetectionMode.DEPTH
+    );
+
     window.focusFn = (y) => Math.max(y * 0.015, 0.1);
-    this._cinematicPass = new EffectPass(camera, this._dofPass);
+    this._cinematicPass = new EffectPass(
+      camera,
+      this._dofEffect,
+      this._smaaEffect,
+      new ToneMappingEffect()
+    );
+
+    // this._smaaEffect = new EffectPass(
+    //   camera,
+    //   new SMAAEffect(
+    //     this._smaaSearchImage,
+    //     this._smaaAreaImage,
+    //     SMAAPreset.ULTRA,
+    //     EdgeDetectionMode.DEPTH
+    //   )
+    // );
 
     this._composer.addPass(this._renderPass);
     this._composer.addPass(this._cinematicPass);
+    // this._composer.addPass(this._smaaEffect);
     // this._composer.addPass(this._filmPass);
   }
 
-  _render(scene, camera, isCinematic = false) {
+  _render(scene, camera) {
     if (!this._postprocessingInitialized) {
       this._initPostProcessing(scene, camera);
     }
 
-    if (isCinematic) {
-      //@todo change this to delta
-      this._dofPass.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
-        camera.position.y
-      );
-      this._composer.render(0.1);
-    } else {
-      this.renderer.render(scene, camera);
-    }
+    //@todo change this to delta
+    this._dofEffect.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
+      camera.position.y
+    );
+    this._composer.render(0.1);
+
     this.canvasTarget.canvas
       .getContext("2d")
       .drawImage(this.renderer.domElement, 0, 0);
@@ -112,12 +137,12 @@ class RenderMan {
       logarithmicDepthBuffer: false,
       antialias: this.settings.antialias,
       stencil: false,
-      depth: false,
+      depth: true,
     });
 
     renderer.autoClear = false;
-    renderer.toneMapping = CineonToneMapping;
-    renderer.toneMappingExposure = this.settings.gamma;
+    // renderer.toneMapping = CineonToneMapping;
+    // renderer.toneMappingExposure = this.settings.gamma;
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
 
@@ -126,17 +151,10 @@ class RenderMan {
     return renderer;
   }
 
-  initRenderer(force = false) {
-    if (this.renderer && !force) return;
-
-    log(`initializing renderer ${force ? "(forced)" : ""}`);
-
-    if (this.renderer && force) {
-      try {
-        this.renderer.dispose();
-      } catch (err) {
-        log("failed to dispose renderer");
-      }
+  async initRenderer() {
+    log("initializing renderer");
+    if (this.renderer) {
+      throw new Error("renderer already initialized");
     }
 
     this.renderer = this._initRenderer();
@@ -146,9 +164,20 @@ class RenderMan {
       frameBufferType: HalfFloatType,
     });
 
+    if (!this._smaaSearchImage) {
+      await new Promise((res) => {
+        new SMAAImageLoader().load(([searchImage, areaImage]) => {
+          this._smaaSearchImage = searchImage;
+          this._smaaAreaImage = areaImage;
+          res();
+        });
+      });
+    }
+
     this._contextLostListener = () => {};
     this._contextRestoredListener = () => {
-      this.initRenderer(true);
+      this.dispose();
+      this.initRenderer();
     };
     this.renderer.domElement.addEventListener(
       "webglcontextlost",
@@ -173,6 +202,7 @@ class RenderMan {
     );
 
     this.renderer.dispose();
+    this.renderer = null;
   }
 }
 

@@ -8,24 +8,21 @@ import { disposeMeshes } from "./utils/dispose";
 import { getTerrainY } from "titan-reactor-shared/map/displacementGeometry";
 import { fog, sunlight } from "./3d-map-rendering/lights";
 import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
-import { Terrain } from "./3d-map-rendering/Terrain";
+import Terrain from "./3d-map-rendering/Terrain2";
 import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
+import readBwFile from "titan-reactor-shared/utils/readBwFile";
+
+const displacementScale = 5;
 
 export class TitanReactorScene extends Scene {
-  constructor(
-    chk,
-    textureCache,
-    anisotropy,
-    loadingManager = DefaultLoadingManager
-  ) {
+  constructor(chk, anisotropy, loadingManager = DefaultLoadingManager) {
     super();
     this.chk = chk;
-    this.textureCache = textureCache;
     this.loadingManager = loadingManager;
     this.anisotropy = anisotropy;
   }
 
-  async init(isDev) {
+  async init() {
     const [w, h] = this.chk.size;
 
     const gridHelper = new GridHelper(128, 128, 0xff0000, 0x009900);
@@ -44,42 +41,45 @@ export class TitanReactorScene extends Scene {
     this.add(hemi);
 
     const terrainMesh = new Terrain(
+      readBwFile,
       this.chk,
       this.textureCache,
       this.anisotropy
     );
-    const terrain = await terrainMesh.generate(isDev);
-    terrain.matrixAutoUpdate = false;
-    terrain.updateMatrix();
-    const bg = await bgMapCanvasTexture(this.chk);
-    const bgTerrain = backgroundTerrainMesh(w, h, bg);
-    bgTerrain.matrixAutoUpdate = false;
-    bgTerrain.updateMatrix();
+    const [terrain, terrainHD, displaceCanvas] = await terrainMesh.generate({
+      displacementScale,
+    });
 
+    const bgTerrain = backgroundTerrainMesh(w, h, terrain.material.map);
+
+    terrain.visible = false;
     this.add(terrain);
-    this.add(bgTerrain);
+    this.add(terrainHD);
+    // this.add(bgTerrain);
 
     this.fog = fog(w, h);
     this.background = this.fog.color;
 
     this.terrain = terrain;
+    this.terrainHD = terrainHD;
     this.bgTerrain = bgTerrain;
     this.gridHelper = gridHelper;
     this.light = light;
     this.hemi = hemi;
+    this.displaceCanvas = displaceCanvas;
   }
 
   getTerrainY() {
     return getTerrainY(
-      this.terrain.userData.displacementMap.image
+      this.displaceCanvas
         .getContext("2d")
         .getImageData(
           0,
           0,
-          this.terrain.userData.displacementMap.image.width,
-          this.terrain.userData.displacementMap.image.height
+          this.displaceCanvas.width,
+          this.displaceCanvas.height
         ),
-      this.terrain.userData.displacementScale,
+      displacementScale,
       this.chk.size[0],
       this.chk.size[1]
     );

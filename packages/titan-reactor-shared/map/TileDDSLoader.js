@@ -26,9 +26,12 @@ TileDDSLoader.prototype = Object.assign(
       dds.height = 128;
 
       // Extract mipmaps buffers
-      dds.mipmaps[0].data = buffer.slice(
-        128,
-        128 + (((Math.max(4, dds.width) / 4) * Math.max(4, dds.height)) / 4) * 8
+      dds.mipmaps[0].data = new Uint8Array(
+        buffer.slice(
+          128,
+          128 +
+            (((Math.max(4, dds.width) / 4) * Math.max(4, dds.height)) / 4) * 8
+        )
       );
 
       dds.mipmaps[0].width = dds.width;

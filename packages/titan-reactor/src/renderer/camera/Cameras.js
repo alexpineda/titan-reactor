@@ -31,6 +31,7 @@ class Cameras {
     this.settings = settings;
     this.renderMan = renderMan;
     this.gameSurface = gameSurface;
+    this.freeControl = freeControl;
     const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
     this.previewCameras = [
@@ -51,7 +52,7 @@ class Cameras {
       keyboardShortcuts,
       freeControl
     );
-    this.control.setConstraints();
+    this.control.setConstraints(freeControl);
     this.control.initNumpadControls();
     this.control.execNumpad(7);
 
@@ -141,6 +142,9 @@ class Cameras {
   }
 
   _initPerspectiveCamera(aspect) {
+    if (this.freeControl) {
+      return new PerspectiveCamera(22, aspect);
+    }
     return new PerspectiveCamera(22, aspect, 3, 256);
   }
 
@@ -246,11 +250,7 @@ class Cameras {
 
   dispose() {
     this.control.dispose();
-    this.previewControl.dispose();
-    this.gameSurface.canvas.removeEventListener(
-      "wheel",
-      this._fpControlsListener
-    );
+    this.previewControl && this.previewControl.dispose();
   }
 }
 

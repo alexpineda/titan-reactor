@@ -68,7 +68,7 @@ async function TitanReactorReplay(
   const [mapWidth, mapHeight] = chk.size;
 
   const renderMan = new RenderMan(settings);
-  renderMan.initRenderer();
+  await renderMan.initRenderer();
   window.renderMan = renderMan;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
@@ -386,6 +386,15 @@ async function TitanReactorReplay(
 
     replayPosition.update();
     cameras.update();
+
+    //sd tile animations
+    if (
+      scene.terrain.material.userData.counterValue &&
+      replayPosition.frame % 8 === 0 &&
+      !replayPosition.skippingFrames()
+    ) {
+      scene.terrain.material.userData.counterValue.value++;
+    }
 
     if (!replayPosition.paused) {
       for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {

@@ -3,7 +3,7 @@ export class SoundsDAT extends DAT {
   constructor(bwDataPath) {
     super(bwDataPath);
 
-    this.statFile = `${bwDataPath}/arr/sfxdata.tbl`;
+    this.statFile = `arr/sfxdata.tbl`;
 
     this.format = [
       { size: 4, name: "file", get: this._statTxt() },

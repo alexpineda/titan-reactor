@@ -3,7 +3,6 @@ import { ipcRenderer } from "electron";
 import React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import ErrorBoundary from "./react-ui/components/ErrorBoundary";
 import App from "./react-ui/App";
 import { log, setWebGLCapabilities } from "./invoke";
 import version from "../common/version";

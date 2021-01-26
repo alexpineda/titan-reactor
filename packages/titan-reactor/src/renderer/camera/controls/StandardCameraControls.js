@@ -95,8 +95,20 @@ class StandardCameraControls extends CameraControls {
     );
   }
 
-  setConstraints() {
+  setConstraints(freeControl) {
     this.verticalDragToForward = true;
+
+    this.constraints = {
+      azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
+      pol: [4, 10, 16].map((x) => (x * Math.PI) / 64),
+      fov: [22, 40, 55],
+      dollyTo: [70, 30, 20],
+      dollySpeed: [1, 0.5, 0.2],
+      dampingFactor: [0.1, 0.075, 0.025],
+    };
+
+    if (freeControl) return;
+
     this.maxDistance = 200;
     this.minDistance = 15;
 
@@ -109,15 +121,6 @@ class StandardCameraControls extends CameraControls {
     this.cameraShake = new CameraShake(this, 500, 10, 1);
     this.dollyToCursor = true;
     this.zoomFactor = 40;
-
-    this.constraints = {
-      azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
-      pol: [4, 10, 16].map((x) => (x * Math.PI) / 64),
-      fov: [22, 40, 55],
-      dollyTo: [70, 30, 20],
-      dollySpeed: [1, 0.5, 0.2],
-      dampingFactor: [0.1, 0.075, 0.025],
-    };
   }
 
   setMapBoundary(width, height) {

@@ -6,27 +6,16 @@ import { KernelSize, BlendFunction } from "postprocessing";
 import {
   EffectComposer,
   EffectPass,
-  RenderPass,
   BlurPass,
-  TextureEffect,
   SavePass,
-  SMAAImageLoader,
-  SMAAEffect,
-  SMAAPreset,
-  EdgeDetectionMode,
   ClearPass,
 } from "postprocessing";
 import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
 import { blendNonZeroPixels } from "../image/blend";
 import { MapEffect } from "./effects/MapEffect";
-import readDdsGrp from "../image/ddsGrp";
 import { DDSLoader } from "./TileDDSLoader";
 
 //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
-const terrain = new Mesh();
-terrain.userData.textures = [];
-const hdTerrains = [];
-
 const _rendererO = {};
 
 const restoreRenderer = (renderer) => {
@@ -58,37 +47,18 @@ export const generateTileData = (
   hdTiles,
   tilegroup,
   tilegroupBuf,
-  options = {
-    elevationLevels: [0, 0.05, 0.25, 0.25, 0.4, 0.4, 0.25],
-    ignoreLevels: [0, 1, 0, 1, 0, 0, 1, 0, 0],
-    normalizeLevels: true,
-    displaceDimensionScale: 3,
-    displaceVertexScale: 2,
-    blendNonWalkableBase: true,
-    firstPass: true,
-    secondPass: true,
-    processWater: true,
-    displacementScale: 5,
-    drawMode: { value: 0 },
-    detailsMix: 0.05,
-    bumpScale: 0.1,
-  }
+  options
 ) => {
   clearRenderer(renderer);
 
   const mapTilesData = new Uint16Array(mapWidth * mapHeight);
 
-  const diffuse = Buffer.alloc(mapWidth * mapHeight * 32 * 32 * 4, 255);
-  const layers = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
-  const paletteIndices = new Uint8Array(
-    Buffer.alloc(mapWidth * mapHeight * 32 * 32)
-  );
-  const fogOfWarArray = new Uint8Array(
-    Buffer.alloc(mapWidth * mapHeight * 32 * 32)
-  );
-  const roughness = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
-  const displacementDetail = Buffer.alloc(mapWidth * mapHeight * 32 * 32);
-  const tileGroupDetails = Buffer.alloc(mapWidth * mapHeight * 32 * 32 * 4);
+  const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4, 255);
+  const layers = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const fogOfWarArray = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const roughness = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const displacementDetail = new Uint8Array(mapWidth * mapHeight * 32 * 32);
 
   for (let mapY = 0; mapY < mapHeight; mapY++) {
     for (let mapX = 0; mapX < mapWidth; mapX++) {
@@ -236,8 +206,8 @@ export const generateTileData = (
   );
   ortho.position.y = quartileWidth;
   ortho.lookAt(new THREE.Vector3());
-  window.renderer = renderer;
   const startTime = Date.now();
+
   for (let qx = 0; qx < quartileStrideW; qx++) {
     mapQuartiles[qx] = [];
     for (let qy = 0; qy < quartileStrideH; qy++) {
@@ -333,7 +303,7 @@ export const generateMesh = (renderer, tileData) => {
   composer.autoRenderToScreen = true;
 
   const map = new THREE.DataTexture(
-    new Uint8Array(diffuse),
+    diffuse,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RGBAFormat,
@@ -343,10 +313,8 @@ export const generateMesh = (renderer, tileData) => {
   map.encoding = THREE.sRGBEncoding;
   map.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
-  const roughnessArray = new Uint8Array(roughness);
-
   const roughnessMap = new THREE.DataTexture(
-    roughnessArray,
+    roughness,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RedIntegerFormat,
@@ -364,9 +332,8 @@ export const generateMesh = (renderer, tileData) => {
   mapTilesMap.internalFormat = "R16UI";
   mapTilesMap.flipY = true;
 
-  const detailsArray = new Uint8Array(displacementDetail);
   const displacementDetailsMap = new THREE.DataTexture(
-    detailsArray,
+    displacementDetail,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RedIntegerFormat,
@@ -375,9 +342,8 @@ export const generateMesh = (renderer, tileData) => {
   displacementDetailsMap.internalFormat = "R8UI";
   displacementDetailsMap.flipY = true;
 
-  const elevationsArray = new Uint8Array(layers);
   const elevationsMap = new THREE.DataTexture(
-    elevationsArray,
+    layers,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RedIntegerFormat,
@@ -386,16 +352,14 @@ export const generateMesh = (renderer, tileData) => {
   elevationsMap.internalFormat = "R8UI";
   elevationsMap.flipY = true;
 
-  const nonZeroLayers = Buffer.alloc(layers.byteLength);
-  layers.copy(nonZeroLayers);
-  const nonZeroLayersArray = new Uint8Array(nonZeroLayers);
+  const nonZeroLayers = layers.slice(0);
 
   if (options.blendNonWalkableBase) {
-    blendNonZeroPixels(nonZeroLayersArray, mapWidth * 32, mapHeight * 32);
+    blendNonZeroPixels(nonZeroLayers, mapWidth * 32, mapHeight * 32);
   }
 
   const nonZeroElevationsMap = new THREE.DataTexture(
-    nonZeroLayersArray,
+    nonZeroLayers,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RedIntegerFormat,
@@ -454,9 +418,7 @@ export const generateMesh = (renderer, tileData) => {
   const savePass = new SavePass();
   const blurPassHuge = new BlurPass();
   blurPassHuge.convolutionMaterial = new BypassingConvolutionMaterial();
-  blurPassHuge.kernelSize = KernelSize.SMALL;
-  const blurPassMed = new BlurPass();
-  blurPassMed.kernelSize = KernelSize.VERY_SMALL;
+  blurPassHuge.kernelSize = KernelSize.VERY_LARGE;
 
   composer.removeAllPasses();
   composer.addPass(new ClearPass());
@@ -512,12 +474,15 @@ export const generateMesh = (renderer, tileData) => {
       })
     )
   );
+
+  const blurPassMed = new BlurPass();
+  blurPassMed.kernelSize = KernelSize.VERY_SMALL;
   // composer.addPass(blurPassMed);
   if (options.secondPass) {
     composer.render(0.01);
   }
 
-  const counterValue = { value: 0 };
+  const tileAnimationCounter = { value: 0 };
   const mat = new THREE.MeshStandardMaterial({
     map,
     bumpMap: map,
@@ -614,7 +579,7 @@ export const generateMesh = (renderer, tileData) => {
 
       shader.uniforms.palette = { value: paletteMap };
       shader.uniforms.paletteIndices = { value: paletteIndicesMap };
-      shader.uniforms.counter = counterValue;
+      shader.uniforms.counter = tileAnimationCounter;
       if (index1) {
         shader.uniforms.index1 = { value: index1 };
       }
@@ -626,24 +591,13 @@ export const generateMesh = (renderer, tileData) => {
       }
     },
   });
-  mat.userData.counterValue = counterValue;
+  mat.userData.tileAnimationCounter = tileAnimationCounter;
 
   const displaceCanvas = document.createElement("canvas");
   displaceCanvas.width = mapWidth * options.displaceDimensionScale;
   displaceCanvas.height = mapHeight * options.displaceDimensionScale;
 
   displaceCanvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
-
-  const geometry = createDisplacementGeometry(
-    null,
-    mapWidth,
-    mapHeight,
-    mapWidth * options.displaceVertexScale,
-    mapHeight * options.displaceVertexScale,
-    displaceCanvas,
-    options.displacementScale,
-    0
-  );
 
   const elevationsMaterial = new THREE.MeshBasicMaterial({
     map,
@@ -704,6 +658,24 @@ export const generateMesh = (renderer, tileData) => {
     },
   });
 
+  const geometry = createDisplacementGeometry(
+    null,
+    mapWidth,
+    mapHeight,
+    mapWidth * options.displaceVertexScale,
+    mapHeight * options.displaceVertexScale,
+    displaceCanvas,
+    options.displacementScale,
+    0
+  );
+
+  const p = new THREE.PlaneGeometry(
+    mapWidth,
+    mapHeight,
+    mapWidth * options.displaceVertexScale,
+    mapHeight * options.displaceVertexScale
+  );
+  const terrain = new Mesh();
   terrain.geometry = geometry;
   terrain.material = mat;
   terrain.castShadow = true;
@@ -765,10 +737,12 @@ export const generateMesh = (renderer, tileData) => {
       //   hdTerrains.push(hdTerrain);
     }
   }
-  terrain.visible = false;
-  hdTerrainGroup.visible = false;
+  terrain.visible = true;
+  hdTerrainGroup.visible = true;
 
+  terrain.name = "Terrain";
+  hdTerrainGroup.name = "TerrainHD";
   restoreRenderer(renderer);
 
-  return [terrain, hdTerrainGroup];
+  return [terrain, hdTerrainGroup, displaceCanvas];
 };

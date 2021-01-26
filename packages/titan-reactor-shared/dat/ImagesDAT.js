@@ -5,7 +5,7 @@ export class ImagesDAT extends DAT {
   constructor(bwDataPath) {
     super(bwDataPath);
 
-    this.statFile = `${bwDataPath}/arr/images.tbl`;
+    this.statFile = `arr/images.tbl`;
 
     this.format = [
       {
