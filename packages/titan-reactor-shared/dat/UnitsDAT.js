@@ -176,8 +176,8 @@ export class UnitDAT {
 }
 
 export class UnitsDAT extends DAT {
-  constructor(bwDataPath, images = {}, flingy = {}, sounds = []) {
-    super(bwDataPath);
+  constructor(readFile, images = {}, flingy = {}, sounds = []) {
+    super(readFile);
 
     this.format = [
       { size: 1, name: "flingy", get: (i) => flingy[i] },

@@ -8,7 +8,7 @@ import {
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import { Grp } from "bw-chk-modified/grp";
 
-export class GrpAtlasSD {
+export default class GrpSD {
   constructor() {
     this.texture = null;
     this.frames = [];

@@ -1,14 +1,9 @@
 import { TBL } from "./TBL";
-import { openFileBinary, openFileLines } from "../utils/fs";
-import { range, identity, memoizeWith } from "ramda";
-import readBwFile, {
-  closeStorage,
-  openStorage,
-} from "titan-reactor-shared/utils/readBwFile";
+import { range } from "ramda";
 
 export class DAT {
-  constructor(bwDataPath) {
-    this.bwDataPath = bwDataPath;
+  constructor(readFile) {
+    this.readFile = readFile;
     this.entries = [];
     this.info = {};
     this.statFile = `rez/stat_txt.tbl`;
@@ -43,12 +38,12 @@ export class DAT {
   }
 
   async _loadStatFile() {
-    const file = await readBwFile(this.statFile);
+    const file = await this.readFile(this.statFile);
     return TBL.parse(file);
   }
 
   async _loadDatFile(filename) {
-    return await readBwFile(`arr/${filename}`);
+    return await this.readFile(`arr/${filename}`);
   }
 
   _statTxt() {

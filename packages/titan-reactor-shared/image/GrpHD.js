@@ -9,7 +9,7 @@ import {
 import { Anim } from "titan-reactor-shared/image/anim";
 import { DDSLoader } from "titan-reactor-shared/image/DDSLoader";
 
-export class GrpAtlasHD {
+export default class GrpHD {
   constructor() {
     this.frames = [];
   }

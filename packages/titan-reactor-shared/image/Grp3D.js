@@ -1,7 +1,7 @@
-import { GrpAtlasHD } from "./GrpAtlasHD";
+import GrpHD from "./GrpHD";
 import loadGlb from "./loadGlb";
 
-export default class GrpAtlas3D extends GrpAtlasHD {
+export default class Grp3D extends GrpHD {
   constructor(envMap) {
     super();
     this.envMap = envMap;

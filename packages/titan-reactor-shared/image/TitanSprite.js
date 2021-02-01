@@ -15,7 +15,7 @@ const ImageOrder = {
   below: "below",
 };
 
-export class TitanSprite extends Group {
+export default class TitanSprite extends Group {
   constructor(unit, bwDat, createTitanImage, createTitanSpriteCb) {
     super();
     this.unit = unit;
@@ -29,7 +29,6 @@ export class TitanSprite extends Group {
       createBullets: false,
       moveUnit: false,
     };
-    this.createTitanSpriteCb(this);
   }
 
   addImage(image, imageOrder, rel) {

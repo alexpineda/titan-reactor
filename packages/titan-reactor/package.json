@@ -29,7 +29,6 @@
   "homepage": "https://github.com/imbateam-gg/bw-lab#readme",
   "electronWebpack": {
     "commonSourceDirectory": "src/common",
-    "staticSourceDirectory": "bwdata",
     "title": "Titan Reactor",
     "main": {
       "sourceDirectory": "src/main"

@@ -1,24 +1,17 @@
-import {
-  DefaultLoadingManager,
-  GridHelper,
-  HemisphereLight,
-  Scene,
-} from "three";
+import { GridHelper, HemisphereLight, Scene } from "three";
 import { disposeMeshes } from "./utils/dispose";
 import { getTerrainY } from "titan-reactor-shared/map/displacementGeometry";
 import { fog, sunlight } from "./3d-map-rendering/lights";
 import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
 import Terrain from "./3d-map-rendering/Terrain2";
-import { bgMapCanvasTexture } from "./3d-map-rendering/textures/bgMapCanvasTexture";
 import readBwFile from "titan-reactor-shared/utils/readBwFile";
 
-const displacementScale = 5;
+const displacementScale = 4;
 
 export class TitanReactorScene extends Scene {
-  constructor(chk, anisotropy, loadingManager = DefaultLoadingManager) {
+  constructor(chk, anisotropy) {
     super();
     this.chk = chk;
-    this.loadingManager = loadingManager;
     this.anisotropy = anisotropy;
   }
 
@@ -46,6 +39,7 @@ export class TitanReactorScene extends Scene {
       this.textureCache,
       this.anisotropy
     );
+
     const [terrain, terrainHD, displaceCanvas] = await terrainMesh.generate({
       displacementScale,
     });

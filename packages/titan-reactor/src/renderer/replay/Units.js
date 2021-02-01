@@ -27,7 +27,6 @@ const { zergEgg, mineral1, mineral2, mineral3, geyser } = unitTypes;
 export class Units {
   constructor(
     bwDat,
-    renderImage,
     tileset,
     mapSize,
     getTerrainY,
@@ -54,7 +53,6 @@ export class Units {
     this.loadingManager = loadingManager;
     // more of a cache for the moment
     this.audioPool = audioPool;
-    this.renderImage = renderImage;
 
     this.logger = new DebugLog("units");
     // for 2d sprites only
@@ -64,8 +62,6 @@ export class Units {
     };
     this.supplyTaken = [0, 0];
     this.supplyProvided = [0, 0];
-    //@todo refactor out
-    this.renderImage.loadAssets && this.renderImage.loadAssets();
   }
 
   spawnUnitIfNotExists(frameData) {

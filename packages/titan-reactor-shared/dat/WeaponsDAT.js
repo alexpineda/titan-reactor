@@ -1,7 +1,7 @@
 import { DAT } from "./DAT";
 export class WeaponsDAT extends DAT {
-  constructor(bwDataPath, flingy = {}) {
-    super(bwDataPath);
+  constructor(readFile, flingy = {}) {
+    super(readFile);
 
     this.format = [
       { size: 2, name: "name", get: (i) => this.stats[i] },

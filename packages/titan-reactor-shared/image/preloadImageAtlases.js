@@ -134,12 +134,14 @@ const hdRefs = {
   997: 994,
 };
 
-export async function preloadImageAtlases(
+export default async function preloadImageAtlases(
   bwDat,
   bwDataPath,
+  readFile,
   tileset,
   imageIds,
-  createAtlas
+  createAtlas,
+  preloadAtlas = {}
 ) {
   const tnames = [
     "badlands",
@@ -153,28 +155,22 @@ export async function preloadImageAtlases(
   ];
   const tilesetName = tnames[tileset];
   const palettes = [
-    await fsPromises.readFile(`${bwDataPath}/tileset/${tilesetName}.wpe`),
-    await fsPromises.readFile(`${bwDataPath}/palettes/ofire.wpe`),
-    await fsPromises.readFile(`${bwDataPath}/palettes/gfire.wpe`),
-    await fsPromises.readFile(`${bwDataPath}/palettes/bfire.wpe`),
-    await fsPromises.readFile(`${bwDataPath}/palettes/bexpl.wpe`),
+    await readFile(`tileset/${tilesetName}.wpe`),
+    await fsPromises.readFile(`${__static}/palettes/ofire.wpe`),
+    await fsPromises.readFile(`${__static}/palettes/gfire.wpe`),
+    await fsPromises.readFile(`${__static}/palettes/bfire.wpe`),
+    await fsPromises.readFile(`${__static}/palettes/bexpl.wpe`),
   ];
-  palettes.dark = await fsPromises.readFile(`${bwDataPath}/palettes/dark.wpe`);
-  palettes.cloak = await fsPromises.readFile(
-    `${bwDataPath}/tileset/${tilesetName}/trans50.pcx`
-  );
+  palettes.dark = await fsPromises.readFile(`${__static}/palettes/dark.wpe`);
+  palettes.cloak = await readFile(`tileset/${tilesetName}/trans50.pcx`);
 
   const refId = (id) => (hdRefs[id] !== undefined ? hdRefs[id] : id);
 
   const readGrp = (id) =>
-    fsPromises.readFile(
-      `${bwDataPath}/unit/${bwDat.images[id].grpFile.replace("\\", "/")}`
-    );
+    readFile(`unit/${bwDat.images[id].grpFile.replace("\\", "/")}`);
 
   const readAnim = (id) =>
-    fsPromises.readFile(
-      `${bwDataPath}/anim/main_${`00${refId(id)}`.slice(-3)}.anim`
-    );
+    readFile(`anim/main_${`00${refId(id)}`.slice(-3)}.anim`);
 
   const readGlb = (id) =>
     fsPromises
@@ -188,7 +184,7 @@ export async function preloadImageAtlases(
       .then((file) => file)
       .catch(() => null);
 
-  const imgs = [...imageIds].map((id) => ({
+  const imgs = imageIds.map((id) => ({
     imageDef: bwDat.images[id],
     readGrp: () => readGrp(id),
     readAnim: () => readAnim(id),
@@ -198,8 +194,10 @@ export async function preloadImageAtlases(
     palettes,
   }));
 
-  const preloadAtlas = {};
   for (let img of imgs) {
+    if (preloadAtlas[img.imageDef.index]) {
+      continue;
+    }
     const atlas = createAtlas();
     await atlas.load(img);
     preloadAtlas[img.imageDef.index] = atlas;

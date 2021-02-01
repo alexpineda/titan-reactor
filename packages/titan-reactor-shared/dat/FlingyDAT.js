@@ -1,7 +1,7 @@
 import { DAT } from "./DAT";
 export class FlingyDAT extends DAT {
-  constructor(bwDataPath, sprites = {}) {
-    super(bwDataPath);
+  constructor(readFile, sprites = {}) {
+    super(readFile);
 
     this.format = [
       { size: 2, name: "sprite", get: (i) => sprites[i] },

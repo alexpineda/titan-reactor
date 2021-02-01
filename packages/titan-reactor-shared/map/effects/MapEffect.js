@@ -22,10 +22,8 @@ uniform mat3 ignoreLevels;
 #endif
 
 bool getIsWater(const in int tileset, const in int paletteIndex) {
-  if (tileset == 4 || tileset == 0) { //jungle and badlands
-    if (paletteIndex >= 1 && paletteIndex <= 13) {
-      return true;
-    } else if (paletteIndex >= 248 && paletteIndex <= 254 ) {
+  if (tileset > 3 || tileset == 0) { //jungle, badlands, desert, ice, twilight
+    if ((paletteIndex >= 1 && paletteIndex <= 13) || (paletteIndex >= 248 && paletteIndex <= 254) ) {
       return true;
     }
   } else if (tileset == 3) { //ashworld
@@ -71,15 +69,27 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
     bool isWater = getIsWater(tileset, paletteIndex);
     bool isWaterByColor = false;
-    if ((tileset == 4 || tileset == 0) && elevation == uint(0)) { //jungle and badlands
-      if (oColor.b > oColor.r/2. + oColor.g/2.) {
-        isWater = true;
-        isWaterByColor = true;
-      }
-    } else if (tileset == 3 && elevation == uint(0)) { //ashworld
-      if (oColor.r > oColor.g/2. + oColor.b/2. || (oColor.r < 0.2 && oColor.g < 0.2 && oColor.b < 0.2)) {
-        isWater = true;
-        isWaterByColor = true;
+    if (elevation == uint(0)) {
+      if (tileset == 4 || tileset == 0) { //jungle and badlands
+        if (oColor.b > oColor.r/2. + oColor.g/2.) {
+          isWater = true;
+          isWaterByColor = true;
+        }
+      } else if (tileset == 3) { // ashworld
+        if (oColor.r > oColor.g/2. + oColor.b/2. || (oColor.r < 0.2 && oColor.g < 0.2 && oColor.b < 0.2)) {
+          isWater = true;
+          isWaterByColor = true;
+        }
+      } else if (tileset == 5 || tileset == 7) { // desert, twilight
+        if (oColor.r < 0.2 && oColor.g < 0.2 && oColor.b < 0.2) {
+          isWater = true;
+          isWaterByColor = true;
+        }
+      } else if (tileset ==6) { // ic
+        if (oColor.r < 0.2 && oColor.g < 0.2 && oColor.b < 0.4) {
+          isWater = true;
+          isWaterByColor = true;
+        }
       }
     }
 
@@ -94,13 +104,13 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     bool ignoreLevel = false;
     if (effectiveElevation < uint(3)) {
         elevationResult = levels[effectiveElevation][0];
-        ignoreLevel = ignoreLevels[effectiveElevation][0] == 1.;
-      } else if (effectiveElevation > uint(3) && effectiveElevation < uint(6)) {
+        ignoreLevel = ignoreLevels[effectiveElevation][0] > 0.;
+      } else if (effectiveElevation >= uint(3) && effectiveElevation < uint(6)) {
         elevationResult = levels[effectiveElevation - uint(3)][1];
-        ignoreLevel = ignoreLevels[effectiveElevation - uint(3)][1] == 1.;
+        ignoreLevel = ignoreLevels[effectiveElevation - uint(3)][1] > 0.;
     } else {
         elevationResult = levels[effectiveElevation - uint(6)][2];
-        ignoreLevel = ignoreLevels[effectiveElevation - uint(6)][2] == 1.;
+        ignoreLevel = ignoreLevels[effectiveElevation - uint(6)][2] > 0.;
     }
  
     bool elevationWasModified = elevation != effectiveElevation;

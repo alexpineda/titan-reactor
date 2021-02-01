@@ -59,7 +59,7 @@ class StandardCameraControls extends CameraControls {
       }, this._mouseWheelDelay);
     };
 
-    this._domElement.addEventListener("wheel", this._onWheel);
+    domElement.addEventListener("wheel", this._onWheel);
 
     this.keyboardTruckingEnabled = true;
     this.numpadControlEnabled = false;

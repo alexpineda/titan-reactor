@@ -33,6 +33,7 @@ import "../../css/app.css";
 import App from "./ui/App";
 import { ClockMs } from "titan-reactor-shared/utils/ClockMs";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
+import { openFileBinary } from "titan-reactor-shared/utils/fs";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import "titan-reactor-shared/utils/electronFileLoader";
 
@@ -250,7 +251,9 @@ const animLoop = () => {
 
 const bootup = async (bwDataPath) => {
   try {
-    const bwDat = await loadAllDataFiles(bwDataPath);
+    const bwDat = await loadAllDataFiles((file) =>
+      openFileBinary(`${bwDataPath}/${file}`)
+    );
     three.bwDat = Object.keys(bwDat).reduce((memo, key) => {
       memo[key] = Object.freeze(bwDat[key]);
       return memo;
@@ -266,7 +269,7 @@ const bootup = async (bwDataPath) => {
     try {
       const envMap = await loadEnvironmentMap(
         three.renderer,
-        `${bwDataPath}/models/envmap.hdr`
+        `${__static}/envmap.hdr`
       );
       three.scene.environment = envMap;
     } catch (e) {

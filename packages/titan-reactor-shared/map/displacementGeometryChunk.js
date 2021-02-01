@@ -67,25 +67,25 @@ function getDisplacement(
 
   var uvW = Math.floor(w * scaleWidth * uv.x) + offX;
   var uvH = Math.floor(h * scaleHeight * (1 - uv.y)) + offY;
-  var uvWnext = uvW + 1;
-  var uvHnext = uvH + 1;
+  var uvWnext = uvW;
+  var uvHnext = uvH;
 
-  var uvWfract = w * uv.x - uvW;
-  var uvHfract = h * (1 - uv.y) - uvH;
+  if (uv.x === 1.0) {
+    uvWnext = Math.min(w, uvW + 1);
+  } else if (uv.x === 0.0) {
+    uvWnext = Math.max(0, uvW - 1);
+  }
 
-  var d0 = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
-  var d1 = context.getImageData(uvWnext, uvH, 1, 1).data[0] / 255.0;
-  var d01 = d0 + (d1 - d0) * uvWfract;
-
-  var d2 = context.getImageData(uvW, uvHnext, 1, 1).data[0] / 255.0;
-  var d3 = context.getImageData(uvWnext, uvHnext, 1, 1).data[0] / 255.0;
-  var d23 = d2 + (d3 - d2) * uvWfract;
-
-  var d = d01 + (d23 - d01) * uvHfract;
+  if (uv.y === 0.0) {
+    uvHnext = Math.min(h, uvH + 1);
+  } else if (uv.y === 1.0) {
+    uvHnext = Math.max(0, uvH - 1);
+  }
 
   var direct = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
+  var next = context.getImageData(uvWnext, uvHnext, 1, 1).data[0] / 255.0;
 
-  return direct;
+  return (direct + next) / 2;
 }
 
 export const getTerrainY = (

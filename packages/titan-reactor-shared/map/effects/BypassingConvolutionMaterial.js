@@ -6,27 +6,37 @@ const fragmentShader = `
 
 uniform sampler2D inputBuffer;
 
+varying vec2 vUv;
 varying vec2 vUv0;
 varying vec2 vUv1;
 varying vec2 vUv2;
 varying vec2 vUv3;
 
+bool isBlack(in vec4 clr) {
+  return clr.r < 0.3 && clr.g < 0.3 && clr.b < 0.3;
+}
+
 void main() {
 
 	// Sample top left texel.
-	vec4 sum = texture2D(inputBuffer, vUv0);
+	vec4 one = texture2D(inputBuffer, vUv0);
 
 	// Sample top right texel.
-	sum += texture2D(inputBuffer, vUv1);
+	vec4 two = texture2D(inputBuffer, vUv1);
 
 	// Sample bottom right texel.
-	sum += texture2D(inputBuffer, vUv2);
+	vec4 three = texture2D(inputBuffer, vUv2);
 
 	// Sample bottom left texel.
-	sum += texture2D(inputBuffer, vUv3);
+	vec4 four = texture2D(inputBuffer, vUv3);
 
-	// Compute the average.
-	gl_FragColor = sum * 0.25;
+  // Compute the average.
+  vec4 clr = texture2D(inputBuffer, vUv);
+  // if (isBlack(clr) || isBlack(two) || isBlack(three) || isBlack(one) || isBlack(four)) {
+  //   gl_FragColor = clr;
+  // } else {
+    gl_FragColor = (one + two + three + four) * 0.25;
+  // }
 
 	#include <dithering_fragment>
 
@@ -40,6 +50,7 @@ uniform float scale;
 
 /* Packing multiple texture coordinates into one varying and using a swizzle to
 extract them in the fragment shader still causes a dependent texture read. */
+varying vec2 vUv;
 varying vec2 vUv0;
 varying vec2 vUv1;
 varying vec2 vUv2;
@@ -50,6 +61,7 @@ void main() {
 	vec2 uv = position.xy * 0.5 + 0.5;
 	vec2 dUv = (texelSize * vec2(kernel) + halfTexelSize) * scale;
 
+  vUv = uv;
 	vUv0 = vec2(uv.x - dUv.x, uv.y + dUv.y);
 	vUv1 = vec2(uv.x + dUv.x, uv.y + dUv.y);
 	vUv2 = vec2(uv.x + dUv.x, uv.y - dUv.y);

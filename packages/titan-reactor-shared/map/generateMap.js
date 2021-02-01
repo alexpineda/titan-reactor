@@ -9,6 +9,7 @@ import {
   BlurPass,
   SavePass,
   ClearPass,
+  BloomEffect,
 } from "postprocessing";
 import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
 import { blendNonZeroPixels } from "../image/blend";
@@ -54,9 +55,9 @@ export const generateTileData = (
   const mapTilesData = new Uint16Array(mapWidth * mapHeight);
 
   const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4, 255);
-  const layers = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
   const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
-  const fogOfWarArray = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const fogOfWarArray = new Uint8Array(mapWidth * mapHeight);
   const roughness = new Uint8Array(mapWidth * mapHeight * 32 * 32);
   const displacementDetail = new Uint8Array(mapWidth * mapHeight * 32 * 32);
 
@@ -103,6 +104,27 @@ export const generateTileData = (
           const high = meta & 0x04;
           const blocksView = meta & 0x08;
 
+          let elevation = 0;
+
+          if (high && walkable && mid) {
+            elevation = 6;
+          } else if (high && walkable) {
+            elevation = 5;
+          } else if (high) {
+            elevation = 4;
+          } else if (mid && walkable) {
+            elevation = 3;
+          } else if (mid) {
+            elevation = 2;
+          } else if (walkable) {
+            elevation = 1;
+          }
+
+          const miniPos =
+            mapY * 4 * mapWidth * 4 + mapX * 4 + miniY * mapWidth * 4 + miniX;
+
+          layers[miniPos] = elevation;
+
           for (let colorY = 0; colorY < 8; colorY++) {
             for (let colorX = 0; colorX < 8; colorX++) {
               let color = 0;
@@ -113,8 +135,7 @@ export const generateTileData = (
               }
 
               const [r, g, b] = palette.slice(color * 4, color * 4 + 3);
-              // const pixelPos = mapY * mapWidth * 32 + mapX * 32;
-              // console.log(pixelPos);
+
               const pixelPos =
                 mapY * 32 * mapWidth * 32 +
                 mapX * 32 +
@@ -126,26 +147,6 @@ export const generateTileData = (
               paletteIndices[pixelPos] = color;
 
               let details = Math.floor((r + g + b) / 3);
-
-              let elevation = 0;
-
-              if (high && walkable && mid) {
-                elevation = 6;
-              } else if (high && walkable) {
-                elevation = 5;
-              } else if (high) {
-                elevation = 4;
-              } else if (mid && walkable) {
-                elevation = 3;
-              } else if (mid) {
-                elevation = 2;
-              } else if (walkable) {
-                elevation = 1;
-              }
-
-              let elevationNormal = options.elevationLevels[elevation];
-
-              let value = elevationNormal * 255;
 
               // if (
               //   (miniX === 0 && colorX === 0) ||
@@ -163,8 +164,6 @@ export const generateTileData = (
 
               displacementDetail[pixelPos] = details;
               roughness[pixelPos] = elevation == 0 ? 0 : details / 3;
-
-              layers[pixelPos] = elevation;
             }
           }
         }
@@ -194,8 +193,8 @@ export const generateTileData = (
 
   const mapQuartiles = [];
 
-  const quartileStrideW = mapWidth / 32;
-  const quartileStrideH = mapHeight / 32;
+  const quartileStrideW = mapWidth / 16;
+  const quartileStrideH = mapHeight / 16;
   const quartileWidth = Math.floor(mapWidth / quartileStrideW);
   const quartileHeight = Math.floor(mapHeight / quartileStrideH);
   const ortho = new THREE.OrthographicCamera(
@@ -344,8 +343,8 @@ export const generateMesh = (renderer, tileData) => {
 
   const elevationsMap = new THREE.DataTexture(
     layers,
-    mapWidth * 32,
-    mapHeight * 32,
+    mapWidth * 4,
+    mapHeight * 4,
     THREE.RedIntegerFormat,
     THREE.UnsignedByteType
   );
@@ -354,14 +353,23 @@ export const generateMesh = (renderer, tileData) => {
 
   const nonZeroLayers = layers.slice(0);
 
+  for (let x = 0; x < mapWidth * 4; x++) {
+    for (let y = 0; y < mapHeight * 4; y++) {
+      const pos = y * mapWidth * 4 + x;
+      if ([0, 2, 4].includes(nonZeroLayers[pos])) {
+        nonZeroLayers[pos] = 0;
+      }
+    }
+  }
+
   if (options.blendNonWalkableBase) {
-    blendNonZeroPixels(nonZeroLayers, mapWidth * 32, mapHeight * 32);
+    blendNonZeroPixels(nonZeroLayers, mapWidth * 4, mapHeight * 4);
   }
 
   const nonZeroElevationsMap = new THREE.DataTexture(
     nonZeroLayers,
-    mapWidth * 32,
-    mapHeight * 32,
+    mapWidth * 4,
+    mapHeight * 4,
     THREE.RedIntegerFormat,
     THREE.UnsignedByteType
   );
@@ -392,8 +400,8 @@ export const generateMesh = (renderer, tileData) => {
 
   const fogOfWarMap = new THREE.DataTexture(
     fogOfWarArray,
-    mapWidth * 32,
-    mapHeight * 32,
+    mapWidth,
+    mapHeight,
     THREE.RedIntegerFormat,
     THREE.UnsignedByteType
   );
@@ -418,7 +426,7 @@ export const generateMesh = (renderer, tileData) => {
   const savePass = new SavePass();
   const blurPassHuge = new BlurPass();
   blurPassHuge.convolutionMaterial = new BypassingConvolutionMaterial();
-  blurPassHuge.kernelSize = KernelSize.VERY_LARGE;
+  blurPassHuge.kernelSize = options.firstBlur;
 
   composer.removeAllPasses();
   composer.addPass(new ClearPass());
@@ -442,6 +450,7 @@ export const generateMesh = (renderer, tileData) => {
       })
     )
   );
+  // composer.addPass(new EffectPass(camera, new BloomEffect(options.bloom)));
   composer.addPass(blurPassHuge);
   composer.addPass(savePass);
   composer.addPass(new SavePass());
@@ -452,7 +461,7 @@ export const generateMesh = (renderer, tileData) => {
   composer.removeAllPasses();
 
   const ignoreLevels = new THREE.Matrix3();
-  ignoreLevels.set(...options.ignoreLevels);
+  ignoreLevels.set(...options.ignoreLevels, 0, 0);
 
   composer.addPass(
     new EffectPass(
@@ -477,7 +486,7 @@ export const generateMesh = (renderer, tileData) => {
 
   const blurPassMed = new BlurPass();
   blurPassMed.kernelSize = KernelSize.VERY_SMALL;
-  // composer.addPass(blurPassMed);
+  composer.addPass(blurPassMed);
   if (options.secondPass) {
     composer.render(0.01);
   }
@@ -636,6 +645,7 @@ export const generateMesh = (renderer, tileData) => {
          diffuseColor *= vec4(heatmapGradient(elevationF), 1.);
         }
 
+        diffuseColor *= (texture2D(map, vUv));
 
       `
       );
@@ -669,12 +679,6 @@ export const generateMesh = (renderer, tileData) => {
     0
   );
 
-  const p = new THREE.PlaneGeometry(
-    mapWidth,
-    mapHeight,
-    mapWidth * options.displaceVertexScale,
-    mapHeight * options.displaceVertexScale
-  );
   const terrain = new Mesh();
   terrain.geometry = geometry;
   terrain.material = mat;
@@ -696,19 +700,22 @@ export const generateMesh = (renderer, tileData) => {
   for (let x = 0; x < quartileStrideW; x++) {
     for (let y = 0; y < quartileStrideH; y++) {
       const hdTerrain = new Mesh();
+      const w = quartileWidth;
+      const h = quartileHeight;
+
       const geometry = createDisplacementGeometryChunk(
         null,
-        quartileWidth,
-        quartileHeight,
-        quartileWidth * options.displaceVertexScale,
-        quartileHeight * options.displaceVertexScale,
+        w,
+        h,
+        w * options.displaceVertexScale,
+        h * options.displaceVertexScale,
         displaceCanvas,
         options.displacementScale,
         0,
-        quartileWidth / mapWidth,
-        quartileHeight / mapHeight,
-        x * quartileWidth * options.displaceDimensionScale,
-        y * quartileHeight * options.displaceDimensionScale
+        w / mapWidth,
+        h / mapHeight,
+        x * w * options.displaceDimensionScale,
+        y * h * options.displaceDimensionScale
       );
 
       hdTerrain.geometry = geometry;

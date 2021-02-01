@@ -10,8 +10,8 @@ export class SpritesDAT extends DAT {
     };
   }
 
-  constructor(bwDataPath, images = {}) {
-    super(bwDataPath);
+  constructor(readFile, images = {}) {
+    super(readFile);
 
     this.format = [
       { size: 2, name: "image", get: (i) => images[i] },

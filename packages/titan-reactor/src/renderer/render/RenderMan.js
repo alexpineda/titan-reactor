@@ -14,6 +14,7 @@ import {
   EffectComposer,
   EffectPass,
   RenderPass,
+  ClearPass,
   DepthOfFieldEffect,
   SMAAImageLoader,
   SMAAEffect,
@@ -48,8 +49,6 @@ class RenderMan {
   setCanvasTarget(canvasTarget) {
     this.canvasTarget = canvasTarget;
     this.renderer.setPixelRatio(canvasTarget.pixelRatio);
-    // this.renderer.setSizeFromCanvasTarget(canvasTarget);
-    this.renderer.setSize(canvasTarget.width, canvasTarget.height, false);
     this.renderer.setViewport(
       new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
     );
@@ -68,100 +67,18 @@ class RenderMan {
     this.renderer.setScissorTest(false);
   }
 
-  _initPostProcessing(scene, camera) {
-    this._postprocessingInitialized = true;
-    this._renderPass = new RenderPass(scene, camera);
+  async _initPostProcessing(camera) {
+    this._composer = new EffectComposer(this.renderer, {
+      frameBufferType: HalfFloatType,
+    });
+    this._composer.autoRenderToScreen = false;
+    this._renderPass = new RenderPass(camera);
 
     window.dofPass = this._dofEffect = new DepthOfFieldEffect(camera, {
       focusDistance: 0.05,
       focalLength: 0.5,
       bokehScale: 4.0,
       height: 480,
-    });
-
-    this._smaaEffect = new SMAAEffect(
-      this._smaaSearchImage,
-      this._smaaAreaImage,
-      SMAAPreset.ULTRA,
-      EdgeDetectionMode.DEPTH
-    );
-
-    window.focusFn = (y) => Math.max(y * 0.015, 0.1);
-    this._cinematicPass = new EffectPass(
-      camera,
-      this._dofEffect,
-      this._smaaEffect,
-      new ToneMappingEffect()
-    );
-
-    // this._smaaEffect = new EffectPass(
-    //   camera,
-    //   new SMAAEffect(
-    //     this._smaaSearchImage,
-    //     this._smaaAreaImage,
-    //     SMAAPreset.ULTRA,
-    //     EdgeDetectionMode.DEPTH
-    //   )
-    // );
-
-    this._composer.addPass(this._renderPass);
-    this._composer.addPass(this._cinematicPass);
-    // this._composer.addPass(this._smaaEffect);
-    // this._composer.addPass(this._filmPass);
-  }
-
-  _render(scene, camera) {
-    if (!this._postprocessingInitialized) {
-      this._initPostProcessing(scene, camera);
-    }
-
-    //@todo change this to delta
-    this._dofEffect.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
-      camera.position.y
-    );
-    this._composer.render(0.1);
-
-    this.canvasTarget.canvas
-      .getContext("2d")
-      .drawImage(this.renderer.domElement, 0, 0);
-  }
-
-  render(scene, camera, isCinematic) {
-    this._render(scene, camera, isCinematic);
-  }
-
-  _initRenderer() {
-    const renderer = new WebGLRenderer({
-      powerPreference: "high-performance",
-      preserveDrawingBuffer: true,
-      logarithmicDepthBuffer: false,
-      antialias: this.settings.antialias,
-      stencil: false,
-      depth: true,
-    });
-
-    renderer.autoClear = false;
-    // renderer.toneMapping = CineonToneMapping;
-    // renderer.toneMappingExposure = this.settings.gamma;
-    renderer.physicallyCorrectLights = true;
-    renderer.outputEncoding = sRGBEncoding;
-
-    renderer.debug.checkShaderErrors = this.isDev;
-
-    return renderer;
-  }
-
-  async initRenderer() {
-    log("initializing renderer");
-    if (this.renderer) {
-      throw new Error("renderer already initialized");
-    }
-
-    this.renderer = this._initRenderer();
-    this.setShadowLevel(this.settings.shadows);
-
-    this._composer = new EffectComposer(this.renderer, {
-      frameBufferType: HalfFloatType,
     });
 
     if (!this._smaaSearchImage) {
@@ -174,10 +91,94 @@ class RenderMan {
       });
     }
 
+    this._smaaEffect = new SMAAEffect(
+      this._smaaSearchImage,
+      this._smaaAreaImage,
+      SMAAPreset.LOW,
+      EdgeDetectionMode.DEPTH
+    );
+
+    window.focusFn = (y) => Math.max(y * 0.015, 0.1);
+    this._cinematicPass = new EffectPass(
+      camera,
+      this._dofEffect,
+      // this._smaaEffect,
+      new ToneMappingEffect()
+    );
+
+    this._composer.addPass(new ClearPass());
+    this._composer.addPass(this._renderPass);
+    this._composer.addPass(this._cinematicPass);
+    // this._composer.addPass(this._smaaEffect);
+    // this._composer.addPass(this._filmPass);
+    this.allEnabledPasses();
+  }
+
+  onlyRenderPass() {
+    this._cinematicPass.enabled = false;
+    this._cinematicPass.renderToScreen = false;
+    this._renderPass.renderToScreen = true;
+  }
+
+  allEnabledPasses() {
+    this._cinematicPass.enabled = true;
+    this._cinematicPass.renderToScreen = true;
+    this._renderPass.renderToScreen = false;
+  }
+
+  _render(scene, camera) {
+    //@todo change this to delta
+    this._dofEffect.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
+      camera.position.y
+    );
+    this._renderPass.scene = scene;
+    this._renderPass.camera = camera;
+    this._composer.render(0.1);
+
+    this.canvasTarget.canvas
+      .getContext("2d")
+      .drawImage(this.renderer.domElement, 0, 0);
+  }
+
+  render(scene, camera) {
+    this._render(scene, camera);
+  }
+
+  _initRenderer() {
+    const renderer = new WebGLRenderer({
+      powerPreference: "high-performance",
+      preserveDrawingBuffer: true,
+      logarithmicDepthBuffer: false,
+      antialias: false,
+      stencil: false,
+      depth: true,
+    });
+
+    renderer.autoClear = false;
+    renderer.physicallyCorrectLights = true;
+    renderer.outputEncoding = sRGBEncoding;
+    renderer.dithering = false;
+
+    renderer.debug.checkShaderErrors = this.isDev;
+
+    return renderer;
+  }
+
+  async initRenderer(camera) {
+    log("initializing renderer");
+    if (this.renderer) {
+      throw new Error("renderer already initialized");
+    }
+
+    this.renderer = this._initRenderer();
+    this.setShadowLevel(this.settings.shadows);
+
+    await this._initPostProcessing(camera);
+
     this._contextLostListener = () => {};
     this._contextRestoredListener = () => {
       this.dispose();
-      this.initRenderer();
+      this.initRenderer(camera);
     };
     this.renderer.domElement.addEventListener(
       "webglcontextlost",
@@ -201,6 +202,7 @@ class RenderMan {
       this._contextRestoredListener
     );
 
+    this._cinematicPass.dispose();
     this.renderer.dispose();
     this.renderer = null;
   }

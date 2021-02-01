@@ -25,7 +25,7 @@ class Terrain {
     options = Object.assign(
       {
         elevationLevels: [0, 0.05, 0.25, 0.25, 0.4, 0.4, 0.25],
-        ignoreLevels: [0, 1, 0, 1, 0, 0, 1, 0, 0],
+        ignoreLevels: [0, 1, 0, 1, 0, 1, 0],
         normalizeLevels: true,
         displaceDimensionScale: 16,
         displaceVertexScale: 2,
@@ -33,10 +33,11 @@ class Terrain {
         firstPass: true,
         secondPass: true,
         processWater: true,
-        displacementScale: 5,
+        displacementScale: 4,
         drawMode: { value: 0 },
         detailsMix: 0.05,
         bumpScale: 0.1,
+        firstBlur: 4,
       },
       options
     );
@@ -54,7 +55,15 @@ class Terrain {
 
     const tileset = this.chk.tileset;
 
-    const mapTiles = new Uint16Array(toArrayBuffer(this.chk._tiles));
+    let mapTiles;
+    //hitchhiker has odd length buffer??
+    if (this.chk._tiles.byteLength % 2 === 1) {
+      const tiles = Buffer.alloc(this.chk._tiles.byteLength + 1);
+      this.chk._tiles.copy(tiles);
+      mapTiles = new Uint16Array(toArrayBuffer(tiles));
+    } else {
+      mapTiles = new Uint16Array(toArrayBuffer(this.chk._tiles));
+    }
 
     const tilesetName = tilesets[tileset];
     const tilegroupArrayBuffer = await this.readFile(

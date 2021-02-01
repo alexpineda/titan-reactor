@@ -1,7 +1,7 @@
 import { DAT } from "./DAT";
 export class SoundsDAT extends DAT {
-  constructor(bwDataPath) {
-    super(bwDataPath);
+  constructor(readFile) {
+    super(readFile);
 
     this.statFile = `arr/sfxdata.tbl`;
 

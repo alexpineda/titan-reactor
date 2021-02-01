@@ -34,7 +34,6 @@ async function TitanReactorMap(store, chk, scene) {
 
   const mainCamera = new Cameras(
     state.settings.data,
-    renderMan,
     gameSurface,
     null,
     null,
@@ -202,23 +201,32 @@ async function TitanReactorMap(store, chk, scene) {
 
   let running = true;
 
-  const plane = new THREE.PlaneBufferGeometry(128, 128);
-  const mesh = new THREE.Mesh(
-    plane,
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  );
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.position.y = 1;
-  // scene.add(mesh);
+  let last = 0;
+  let frame = 0;
+  let frameElapsed = 0;
 
-  function gameLoop() {
+  function gameLoop(elapsed) {
     if (!running) return;
+
+    const delta = elapsed - last;
+    frameElapsed += delta;
+    if (frameElapsed > 42) {
+      frame++;
+      if (
+        frame % 8 === 0 &&
+        scene.terrain.material.userData.tileAnimationCounter
+      ) {
+        scene.terrain.material.userData.tileAnimationCounter.value++;
+      }
+      frameElapsed = 0;
+    }
 
     mainCamera.update();
 
     renderMan.setCanvasTarget(gameSurface);
     renderMan.renderer.clear();
     renderMan.render(scene, mainCamera.camera);
+    last = elapsed;
   }
 
   renderMan.renderer.setAnimationLoop(gameLoop);

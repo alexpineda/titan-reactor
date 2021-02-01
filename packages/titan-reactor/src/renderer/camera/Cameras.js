@@ -21,7 +21,6 @@ export const CameraControlType = {
 class Cameras {
   constructor(
     settings,
-    renderMan,
     gameSurface,
     previewSurface,
     minimapControl,
@@ -29,7 +28,6 @@ class Cameras {
     freeControl = false
   ) {
     this.settings = settings;
-    this.renderMan = renderMan;
     this.gameSurface = gameSurface;
     this.freeControl = freeControl;
     const aspect = gameSurface.width / gameSurface.height;
@@ -131,8 +129,6 @@ class Cameras {
         );
       });
     }
-
-    this.useCinematic(false);
   }
 
   _createCamera(aspect) {
@@ -220,21 +216,6 @@ class Cameras {
       return Math.floor((a + 2) * 16 + 16);
     } else {
       return Math.floor(a * 16 + 16);
-    }
-  }
-
-  isCinematic() {
-    return this.camera.renderCinematic;
-  }
-
-  useCinematic(cinematicEnabled) {
-    this.camera.renderCinematic = cinematicEnabled;
-
-    if (cinematicEnabled) {
-      // this.renderMan.renderer.toneMappingExposure =
-      //   this.settings.gamma + this.cinematicOptions.gammaBoost;
-    } else {
-      // this.renderMan.renderer.toneMappingExposure = this.settings.gamma;
     }
   }
 

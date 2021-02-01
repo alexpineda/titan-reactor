@@ -1,6 +1,4 @@
 export function blendNonZeroPixels(out, width, height) {
-  const start = Date.now();
-
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const p = y * width + x;
@@ -46,7 +44,6 @@ export function blendNonZeroPixels(out, width, height) {
       }
     }
   }
-  console.log("blend", Date.now() - start);
 }
 
 export function overlayImage(out, overlay) {

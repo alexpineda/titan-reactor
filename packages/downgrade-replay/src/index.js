@@ -668,7 +668,7 @@ const dataToCommand = (id, buf) => {
   }
 };
 
-const convertReplayTo116 = async (buf) => {
+const convertReplayTo116 = async (buf, ignoreCommands = []) => {
   const replay = await parseReplay(buf);
   // if (replay.version === Version.classic) {
   //   return buf;
@@ -685,32 +685,65 @@ const convertReplayTo116 = async (buf) => {
   await writeBlock(bl, uint32le(HeaderMagicClassic), false);
   await writeBlock(bl, replay.rawHeader, true);
 
-  const commands = replay.cmds
+  const writeCommands = (buf, frame, size, commands) => {
+    buf.append(uint32le(frame));
+    buf.append(uint8(size));
+
+    commands.forEach(({ data, player, id }) => {
+      buf.append(uint8(player));
+      buf.append(uint8(id));
+      buf.append(data);
+    });
+  };
+
+  let uniqCmds = {};
+  replay.cmds.forEach((cmds) => {
+    cmds.forEach((cmd) => {
+      uniqCmds[cmd.id] = cmd;
+    });
+  });
+
+  const repCommands = replay.cmds
     .map((commands, i) => ({
-      commands,
+      commands: commands.filter((cmd) => {
+        if (ignoreCommands.includes(cmd.id)) {
+          console.log("ignoring command", cmd);
+          return false;
+        } else {
+          return true;
+        }
+      }),
       frame: i,
     }))
-    .filter(({ commands }) => commands && commands.length >= 0)
+    .filter(({ commands }) => commands && commands.length > 0)
     .reduce((cmdBl, { commands, frame }) => {
-      cmdBl.append(uint32le(frame));
+      let size = 0;
+      for (let i = 0; i < commands.length; i++) {
+        if (size + commands[i].data.byteLength + 2 > 255) {
+          const overflow = commands.splice(i);
+          writeCommands(
+            cmdBl,
+            frame,
+            overflow.reduce((s, v) => s + v.data.byteLength + 2, 0),
+            overflow
+          );
+          break;
+        }
+        size += commands[i].data.byteLength + 2;
+      }
 
-      const size = commands.reduce((size, { data }) => {
-        return size + data.length + 2;
-      }, 0);
-      cmdBl.append(uint8(size));
+      if (size > 255) {
+        console.error("commands size too large");
+      }
 
-      commands.forEach(({ data, player, id }) => {
-        cmdBl.append(uint8(player));
-        cmdBl.append(uint8(id));
-        cmdBl.append(data);
-      });
+      writeCommands(cmdBl, frame, size, commands);
 
       return cmdBl;
     }, new BufferList());
 
   // await writeBlock(bl, uint32le(0), false);
-  await writeBlock(bl, uint32le(commands.length), false);
-  await writeBlock(bl, commands, true);
+  await writeBlock(bl, uint32le(repCommands.length), false);
+  await writeBlock(bl, repCommands, true);
   const chk = downgradeChk(replay.chk.slice(0));
   await writeBlock(bl, uint32le(chk.byteLength), false);
   await writeBlock(bl, chk, true);

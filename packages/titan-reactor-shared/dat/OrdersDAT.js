@@ -1,7 +1,7 @@
 import { DAT } from "./DAT";
 export class OrdersDAT extends DAT {
-  constructor(bwDataPath) {
-    super(bwDataPath);
+  constructor(readFile) {
+    super(readFile);
 
     this.format = [
       { size: 2, name: "name", get: (i) => this.stats[i] },

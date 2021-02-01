@@ -2,8 +2,8 @@ import { DAT } from "./DAT";
 import ImageListDefiniton from "./Data/ImageListDefiniton.js";
 
 export class ImagesDAT extends DAT {
-  constructor(bwDataPath) {
-    super(bwDataPath);
+  constructor(readFile) {
+    super(readFile);
 
     this.statFile = `arr/images.tbl`;
 

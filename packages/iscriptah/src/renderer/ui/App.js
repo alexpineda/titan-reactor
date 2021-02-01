@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
+import { promises as fsPromises } from "fs";
 import UnitsAndImages from "./UnitsAndImages";
 const dialog = require("electron").remote.dialog;
 
 import Commands from "./Commands";
 import Animation from "./Animation";
 import Frames from "./Frames";
-import { TitanSprite } from "titan-reactor-shared/image/TitanSprite";
-import { GrpAtlasSD } from "titan-reactor-shared/image/GrpAtlasSD";
-import { GrpAtlasHD } from "titan-reactor-shared/image/GrpAtlasHD";
-import GrpAtlas3D from "titan-reactor-shared/image/GrpAtlas3D";
-import createTitanImage from "../createTitanImage";
+import TitanSprite from "titan-reactor-shared/image/TitanSprite";
+import GrpSD from "titan-reactor-shared/image/GrpSD";
+import GrpHD from "titan-reactor-shared/image/GrpHD";
+import Grp3D from "titan-reactor-shared/image/GrpAtlas3D";
+import createTitanImage from "titan-reactor-shared/image/createTitanImage";
 import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
 import BWAPIUnit from "titan-reactor-shared/bwapi/BWAPIUnit";
-import { preloadImageAtlases } from "titan-reactor-shared/image/preloadImageAtlases";
+import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
 import { errorOccurred, bwDataPathChanged } from "../appReducer";
 import { blockInitializing, blockFrameCountChanged } from "../iscriptReducer";
 import calculateImagesFromIScript from "titan-reactor-shared/image/calculateImagesFromIScript";
@@ -46,7 +47,6 @@ const App = ({
         Object.values(three.atlases).forEach((pl) => pl.dispose());
       }
       three.dispose();
-      three.atlases = [];
 
       const imageIds = calculateImagesFromIScript(
         three.bwDat,
@@ -56,15 +56,16 @@ const App = ({
       three.atlases = await preloadImageAtlases(
         three.bwDat,
         bwDataPath,
+        (file) => fsPromises.readFile(`${bwDataPath}/${file}`),
         three.tileset,
         imageIds,
         () => {
           if (renderMode === "sd") {
-            return new GrpAtlasSD();
+            return new GrpSD();
           } else if (renderMode === "hd") {
-            return new GrpAtlasHD();
+            return new GrpHD();
           } else if (renderMode === "3d") {
-            return new GrpAtlas3D(three.scene.environment);
+            return new Grp3D(three.scene.environment);
           } else {
             throw new Error("invalid render mode");
           }
@@ -80,9 +81,10 @@ const App = ({
           three.atlases,
           createIScriptRunner(three.bwDat, three.tileset),
           setError
-        ),
-        addTitanSpriteCb
+        )
       );
+      titanSprite.createTitanSpriteCb = addTitanSpriteCb;
+      addTitanSpriteCb(titanSprite);
 
       titanSprite.addImage(selectedBlock.image.index);
       titanSprite.run(header);

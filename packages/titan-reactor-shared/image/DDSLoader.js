@@ -143,10 +143,11 @@ DDSLoader.prototype = Object.assign(
 
       // Parse header
 
-      //   var header = new Int32Array(buffer, 0, headerLengthInt);
-
       const header = new Int32Array(
-        buffer.buffer.slice(buffer.byteOffset),
+        buffer.buffer.slice(
+          buffer.byteOffset,
+          buffer.byteOffset + headerLengthInt * 4
+        ),
         0,
         headerLengthInt
       );
@@ -255,12 +256,15 @@ DDSLoader.prototype = Object.assign(
             var dataLength =
               (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) *
               blockBytes;
+
             byteArray = new Uint8Array(
-              buffer.buffer.slice(buffer.byteOffset),
-              dataOffset,
+              buffer.buffer.slice(
+                buffer.byteOffset + dataOffset,
+                buffer.byteOffset + dataOffset + dataLength
+              ),
+              0,
               dataLength
             );
-            // var byteArray = new Uint8Array(buffer, dataOffset, dataLength);
           }
 
           var mipmap = { data: byteArray, width: width, height: height };

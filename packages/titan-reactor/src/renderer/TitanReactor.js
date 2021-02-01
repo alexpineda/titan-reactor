@@ -2,31 +2,39 @@ import createScmExtractor from "scm-extractor";
 import fs from "fs";
 import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
-import { ImageSD } from "./mesh/ImageSD";
-import { Image3D } from "./mesh/Image3D";
-import EmptyImage from "./mesh/EmptyImage";
 import TitanReactorMap from "./TitanReactorMap";
 import TitanReactorReplay from "./TitanReactorReplay";
-import { DefaultLoadingManager, LoadingManager } from "three";
+import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import BgMusic from "./audio/BgMusic";
 import { openFile, log } from "./invoke";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
+import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
 import { parseReplay } from "downgrade-replay";
-import { mapPreviewCanvas } from "./3d-map-rendering/textures/mapPreviewCanvas";
 import {
   loading,
   loadingProgress,
   loadingError,
   criticalErrorOccurred,
 } from "./titanReactorReducer";
+import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
+import TitanSprite from "titan-reactor-shared/image/TitanSprite";
+import GrpSD from "titan-reactor-shared/image/GrpSD";
+import GrpHD from "titan-reactor-shared/image/GrpHD";
+import Grp3D from "titan-reactor-shared/image/Grp3D";
+import createTitanImage from "titan-reactor-shared/image/createTitanImage";
+import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
+import ReplayReadStream from "./replay/ReplayReadStream";
 
 import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
+import calculateImagesFromIScript, {
+  calculateImagesFromUnitsIscript,
+} from "titan-reactor-shared/image/calculateImagesFromIScript";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -60,16 +68,18 @@ export class TitanReactor {
 
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
-    const origBwDat = await loadAllDataFiles(
-      state.settings.data.starcraftPath,
-      readBwFile
-    );
+    openStorage(state.settings.data.starcraftPath);
+    const origBwDat = await loadAllDataFiles(readBwFile);
     this.bwDat = {
       ...origBwDat,
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
     };
     window.bwDat = this.bwDat;
-    await readBwFile(`tileset/jungle.cv5`);
+
+    const renderer = new WebGLRenderer();
+    // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
+    renderer.dispose();
+
     dispatchPreloadLoadingProgress();
   }
 
@@ -104,48 +114,81 @@ export class TitanReactor {
 
     await this.preload();
 
-    const loadingManager = new LoadingManager();
-
     document.title = "Titan Reactor - Replay";
 
-    let renderImage;
-    if (state.settings.isDev) {
-      renderImage = new EmptyImage();
-    } else if (
-      state.settings.data.renderMode === RenderMode.SD ||
-      state.settings.data.renderMode === RenderMode.HD
-    ) {
-      renderImage = new ImageSD(
-        this.bwDat,
-        state.settings.data.starcraftPath,
-        this.loadSprite
-      );
-    } else {
-      renderImage = new Image3D();
-    }
+    const replayReader = new ReplayReadStream(`${filepath}.bin`);
+    await replayReader.start();
 
-    const frames = await openFile(`${filepath}.bin`);
+    const t = replayReader.frames.flatMap(({ units }) =>
+      units.map((u) => u.typeId)
+    );
+
+    const initialImages = calculateImagesFromUnitsIscript(this.bwDat, t);
+
+    this.atlases = await preloadImageAtlases(
+      this.bwDat,
+      state.settings.data.starcraftPath,
+      readBwFile,
+      this.chk.tileset,
+      initialImages,
+      () => {
+        if (state.settings.data.renderMode === RenderMode.SD) {
+          return new GrpSD();
+        } else if (state.settings.data.renderMode === RenderMode.HD) {
+          return new GrpHD();
+        } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
+          return new Grp3D(this.envMap);
+        } else {
+          throw new Error("invalid render mode");
+        }
+      }
+    );
+
     dispatchRepLoadingProgress();
 
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      state.settings.data.anisotropy,
-      loadingManager
+      state.settings.data.anisotropy
     );
     await scene.init(state.settings.isDev);
     dispatchRepLoadingProgress();
 
+    const createTitanSprite = (unit, addCb) => {
+      const titanSprite = new TitanSprite(
+        unit,
+        this.bwDat,
+        createTitanImage(
+          this.bwDat,
+          this.atlases,
+          createIScriptRunner(this.bwDat, this.chk.tileset),
+          (err) => console.error(err)
+        ),
+        addCb
+      );
+
+      if (unit) {
+        titanSprite.addImage(unit.flingy.sprite.image.index);
+        titanSprite.run(0);
+      }
+
+      if (addCb) {
+        addCb(titanSprite);
+      }
+
+      return titanSprite;
+    };
     log("initializing replay");
     this.scene = await TitanReactorReplay(
       this.store,
       scene,
       this.chk,
       this.rep,
-      new DataView(frames.buffer),
-      renderImage,
+      replayReader,
       this.bwDat,
-      new BgMusic(state.settings.data.starcraftPath)
+      new BgMusic(state.settings.data.starcraftPath),
+      this.atlases,
+      createTitanSprite
     );
     dispatchRepLoadingProgress();
   }
@@ -167,8 +210,6 @@ export class TitanReactor {
 
     this.scene && this.scene.dispose();
 
-    const loadingManager = new LoadingManager();
-
     log("loading chk");
 
     this.chk = new Chk(await loadScx(chkFilepath));
@@ -181,8 +222,7 @@ export class TitanReactor {
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      state.settings.data.anisotropy,
-      loadingManager
+      state.settings.data.anisotropy
     );
     await scene.init();
 

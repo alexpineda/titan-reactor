@@ -1,4 +1,12 @@
-import { app, ipcMain, Menu, BrowserWindow, shell, dialog } from "electron";
+import {
+  app,
+  ipcMain,
+  Menu,
+  BrowserWindow,
+  shell,
+  dialog,
+  protocol,
+} from "electron";
 import isDev from "electron-is-dev";
 import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
 import { openFileBinary } from "titan-reactor-shared/utils/fs";
@@ -41,6 +49,10 @@ import BufferList from "bl";
 
 app.commandLine.appendSwitch("disable-frame-rate-limit");
 app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+
+protocol.registerSchemesAsPrivileged([
+  { scheme: "file", privileges: { standard: true, bypassCSP: true } },
+]);
 
 let gameWindow;
 

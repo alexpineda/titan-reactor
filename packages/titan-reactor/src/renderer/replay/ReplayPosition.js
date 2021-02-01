@@ -59,11 +59,10 @@ export class ClockMs {
 }
 
 export class ReplayPosition {
-  constructor(buf, maxFrame, clock, gameSpeed, heatMapScore) {
-    this.buf = buf;
+  constructor(reader, maxFrame, clock, gameSpeed, heatMapScore) {
+    this.reader = reader;
     this.maxFrame = maxFrame;
     this.frame = 0;
-    this.bwapiBufferPosition = 0;
     this.bwGameFrame = 0;
     this.skipGameFrames = 0;
     this.skipPhysicsFrames = 20;
@@ -94,8 +93,6 @@ export class ReplayPosition {
         );
       } else {
         this.skipGameFrames = Math.min(frame, this._maxSkipSpeed);
-        // skip first 2 uints
-        this.bwapiBufferPosition = 8;
         this.bwGameFrame = 0;
         this.onResetState();
       }
@@ -187,22 +184,6 @@ export class ReplayPosition {
     this.gameSpeed = gameSpeeds.fastest;
     this.skipGameFrames = 0;
     this.lastDelta = 0;
-  }
-
-  readUInt32AndAdvance() {
-    const v = this.buf.getUint32(this.bwapiBufferPosition, true);
-    this.advanceBuffer(4);
-    return v;
-  }
-
-  readInt32AndAdvance() {
-    const v = this.buf.getInt32(this.bwapiBufferPosition, true);
-    this.advanceBuffer(4);
-    return v;
-  }
-
-  advanceBuffer(bytes) {
-    this.bwapiBufferPosition += bytes;
   }
 
   willUpdateAutospeed() {

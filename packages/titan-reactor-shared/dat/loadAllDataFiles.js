@@ -8,23 +8,15 @@ import { OrdersDAT } from "./OrdersDAT";
 import { ImagesDAT } from "./ImagesDAT";
 import { WeaponsDAT } from "./WeaponsDAT";
 import { UnitsDAT } from "./UnitsDAT";
-import { openFileBinary } from "../utils/fs";
 import { parseLo } from "./parseLo";
 import path from "path";
 import { range } from "ramda";
 import { Grp } from "bw-chk-modified/grp";
 
-import readBwFile, {
-  closeStorage,
-  openStorage,
-} from "titan-reactor-shared/utils/readBwFile";
-
-export async function loadAllDataFiles(bwDataPath, readFile = openFileBinary) {
-  openStorage(bwDataPath);
-
+export async function loadAllDataFiles(readFile) {
   const iscript = parseIscript(await readFile(`scripts/iscript.bin`));
 
-  const imagesDat = new ImagesDAT(bwDataPath);
+  const imagesDat = new ImagesDAT(readFile);
   const images = await imagesDat.load();
 
   const los = [];
@@ -34,16 +26,16 @@ export async function loadAllDataFiles(bwDataPath, readFile = openFileBinary) {
       los[i] = await parseLo(await readFile(fpath));
     }
   }
-  const sprites = await new SpritesDAT(bwDataPath, images).load();
-  const flingy = await new FlingyDAT(bwDataPath, sprites).load();
-  const weapons = await new WeaponsDAT(bwDataPath, flingy).load();
-  const sounds = await new SoundsDAT(bwDataPath).load();
+  const sprites = await new SpritesDAT(readFile, images).load();
+  const flingy = await new FlingyDAT(readFile, sprites).load();
+  const weapons = await new WeaponsDAT(readFile, flingy).load();
+  const sounds = await new SoundsDAT(readFile).load();
 
-  const units = await new UnitsDAT(bwDataPath, images, flingy, sounds).load();
+  const units = await new UnitsDAT(readFile, images, flingy, sounds).load();
 
-  const tech = await new TechDataDAT(bwDataPath).load();
-  const upgrades = await new UpgradesDAT(bwDataPath).load();
-  const orders = await new OrdersDAT(bwDataPath).load();
+  const tech = await new TechDataDAT(readFile).load();
+  const upgrades = await new UpgradesDAT(readFile).load();
+  const orders = await new OrdersDAT(readFile).load();
 
   const bufs = await Promise.all(
     images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, `/`)}`))
