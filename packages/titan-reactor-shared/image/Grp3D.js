@@ -8,7 +8,7 @@ export default class Grp3D extends GrpHD {
   }
 
   async load({ glbFileName, readAnim, imageDef }) {
-    await super.load({ readAnim });
+    await super.load({ readAnim, imageDef });
 
     try {
       const { model, animations } = await loadGlb(

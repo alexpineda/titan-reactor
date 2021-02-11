@@ -56,6 +56,7 @@ export default class TitanImageHD extends Sprite {
     );
     this.material.transparent = true;
     this.material.alphaTest = 0.01;
+    this.material.depthTest = false;
 
     this.castShadow = false;
 
@@ -67,6 +68,10 @@ export default class TitanImageHD extends Sprite {
     }
 
     this.setFrame(0, false);
+  }
+
+  get frames() {
+    return this.atlas.frames;
   }
 
   setPositionX(x, scale = this._spriteScale) {

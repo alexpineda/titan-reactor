@@ -12,12 +12,29 @@ export default (bwDat, atlases, createIScriptRunner, onError = () => {}) => {
 
     const imageDef = bwDat.images[image];
 
+    let titanImage;
     if (atlas.model) {
-      return new TitanImage3D(atlas, createIScriptRunner, imageDef, sprite);
+      titanImage = new TitanImage3D(
+        atlas,
+        createIScriptRunner,
+        imageDef,
+        sprite
+      );
     } else if (atlas.diffuse) {
-      return new TitanImageHD(atlas, createIScriptRunner, imageDef, sprite);
+      titanImage = new TitanImageHD(
+        atlas,
+        createIScriptRunner,
+        imageDef,
+        sprite
+      );
     } else {
-      return new TitanImageSD(atlas, createIScriptRunner, imageDef, sprite);
+      titanImage = new TitanImageSD(
+        atlas,
+        createIScriptRunner,
+        imageDef,
+        sprite
+      );
     }
+    return titanImage;
   };
 };

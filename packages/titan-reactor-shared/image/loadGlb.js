@@ -1,5 +1,5 @@
 import { Color, sRGBEncoding } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import GLTFLoader from "../utils/GLTFLoader";
 
 export default function loadGlb(file, envMap, name = "", meshCb = (x) => x) {
   return new Promise((resolve, reject) => {

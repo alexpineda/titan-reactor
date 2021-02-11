@@ -50,3 +50,4 @@ const load = function (url, onLoad, onProgress, onError) {
 };
 
 FileLoader.prototype.load = load;
+export default FileLoader;

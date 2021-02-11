@@ -102,7 +102,7 @@ class RenderMan {
     this._cinematicPass = new EffectPass(
       camera,
       this._dofEffect,
-      // this._smaaEffect,
+      this._smaaEffect,
       new ToneMappingEffect()
     );
 
@@ -133,6 +133,7 @@ class RenderMan {
     );
     this._renderPass.scene = scene;
     this._renderPass.camera = camera;
+    // this.renderer.render(scene, camera);
     this._composer.render(0.1);
 
     this.canvasTarget.canvas

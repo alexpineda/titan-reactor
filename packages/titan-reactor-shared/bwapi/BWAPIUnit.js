@@ -259,6 +259,7 @@ export function BWAPIUnitFromBuffer(dataView, offset) {
       x,
       y,
       angle,
+      angleRad: -angle + Math.PI / 2,
       hp,
       shields,
       energy,

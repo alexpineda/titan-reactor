@@ -1,13 +1,14 @@
 // playground for environment
 import * as THREE from "three";
+import { easeQuadInOut } from "d3-ease";
 
-import { EnvironmentOptionsGui } from "./3d-map-rendering/EnvironmentOptionsGui";
+import { EnvironmentOptionsGui } from "./terrain/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
 import Cameras from "./camera/Cameras";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import { fog } from "./3d-map-rendering/lights";
+import { fog } from "./terrain/lights";
 export const hot = module.hot ? module.hot.data : null;
 
 async function TitanReactorMap(store, chk, scene) {
@@ -32,7 +33,7 @@ async function TitanReactorMap(store, chk, scene) {
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
-  const mainCamera = new Cameras(
+  const cameras = new Cameras(
     state.settings.data,
     gameSurface,
     null,
@@ -84,11 +85,11 @@ async function TitanReactorMap(store, chk, scene) {
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom, focus }) => {
-    mainCamera.camera.fov = fov;
-    mainCamera.camera.zoom = zoom;
-    mainCamera.camera.focus = focus;
+    cameras.camera.fov = fov;
+    cameras.camera.zoom = zoom;
+    cameras.camera.focus = focus;
 
-    mainCamera.camera.updateProjectionMatrix();
+    cameras.camera.updateProjectionMatrix();
   });
 
   let cameraZoom = {
@@ -208,24 +209,25 @@ async function TitanReactorMap(store, chk, scene) {
   function gameLoop(elapsed) {
     if (!running) return;
 
+    renderMan._dofEffect.bokehScale = easeQuadInOut(
+      cameras.control.polarAngle * 2
+    );
+
     const delta = elapsed - last;
     frameElapsed += delta;
     if (frameElapsed > 42) {
       frame++;
-      if (
-        frame % 8 === 0 &&
-        scene.terrain.material.userData.tileAnimationCounter
-      ) {
-        scene.terrain.material.userData.tileAnimationCounter.value++;
+      if (frame % 8 === 0) {
+        scene.terrainSD.material.userData.tileAnimationCounter.value++;
       }
       frameElapsed = 0;
     }
 
-    mainCamera.update();
+    cameras.update();
 
     renderMan.setCanvasTarget(gameSurface);
     renderMan.renderer.clear();
-    renderMan.render(scene, mainCamera.camera);
+    renderMan.render(scene, cameras.camera);
     last = elapsed;
   }
 
@@ -240,7 +242,7 @@ async function TitanReactorMap(store, chk, scene) {
 
     scene.dispose();
 
-    mainCamera.dispose();
+    cameras.dispose();
     renderMan.dispose();
     keyboardShortcuts.dispose();
     gui.dispose();

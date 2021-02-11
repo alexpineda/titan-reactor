@@ -1,18 +1,20 @@
 import { GridHelper, HemisphereLight, Scene } from "three";
 import { disposeMeshes } from "./utils/dispose";
 import { getTerrainY } from "titan-reactor-shared/map/displacementGeometry";
-import { fog, sunlight } from "./3d-map-rendering/lights";
-import { backgroundTerrainMesh } from "./3d-map-rendering/meshes/backgroundTerrainMesh";
-import Terrain from "./3d-map-rendering/Terrain2";
+import { fog, sunlight } from "./terrain/lights";
+import Background from "./terrain/Background";
+import Terrain from "./terrain/Terrain";
 import readBwFile from "titan-reactor-shared/utils/readBwFile";
+import { RenderMode } from "common/settings";
 
 const displacementScale = 4;
 
 export class TitanReactorScene extends Scene {
-  constructor(chk, anisotropy) {
+  constructor(chk, anisotropy, renderMode) {
     super();
     this.chk = chk;
     this.anisotropy = anisotropy;
+    this.renderMode = renderMode;
   }
 
   async init() {
@@ -44,18 +46,22 @@ export class TitanReactorScene extends Scene {
       displacementScale,
     });
 
-    const bgTerrain = backgroundTerrainMesh(w, h, terrain.material.map);
+    const bgTerrain = Background(w, h, terrain.material.map);
 
-    terrain.visible = false;
-    this.add(terrain);
-    this.add(terrainHD);
+    if (this.renderMode === RenderMode.SD) {
+      this.add(terrain);
+      this.terrain = terrain;
+    } else {
+      this.add(terrainHD);
+      this.terrain = terrainHD;
+    }
+
     // this.add(bgTerrain);
+    this.terrainSD = terrain;
+    this.terrainHD = terrainHD;
 
     this.fog = fog(w, h);
     this.background = this.fog.color;
-
-    this.terrain = terrain;
-    this.terrainHD = terrainHD;
     this.bgTerrain = bgTerrain;
     this.gridHelper = gridHelper;
     this.light = light;

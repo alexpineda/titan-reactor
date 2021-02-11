@@ -48,12 +48,17 @@ export default class TitanImageSD extends Sprite {
     );
     this.material.transparent = true;
     this.material.alphaTest = 0.01;
+    this.material.depthTest = false;
 
     this.castShadow = false;
 
     this.atlas = atlas;
 
     this.setFrame(0, false);
+  }
+
+  get frames() {
+    return this.atlas.frames;
   }
 
   setFrame(frame, flip) {
@@ -84,7 +89,6 @@ export default class TitanImageSD extends Sprite {
   _setFrame(frame, flipFrame, uv) {
     if (frame === undefined) debugger;
 
-    // [0, 0, 1, 0, 1, 1, 0, 1]
     if (flipFrame) {
       uv.array[0] = (frame.grpX + this.atlas.grpWidth) / this.atlas.width;
       uv.array[1] = 1 - (frame.grpY + this.atlas.grpHeight) / this.atlas.height;

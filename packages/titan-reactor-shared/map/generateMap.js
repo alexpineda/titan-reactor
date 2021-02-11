@@ -291,6 +291,11 @@ export const generateMesh = (renderer, tileData) => {
     options,
     mapWidth,
     mapHeight,
+    waterMasks,
+    waterMasksDds,
+    waterNormal1,
+    waterNormal2,
+    noise,
   } = tileData;
 
   const camera = new THREE.PerspectiveCamera();
@@ -506,7 +511,7 @@ export const generateMesh = (renderer, tileData) => {
       if (tileset === 4 || tileset === 0) {
         //jungle, badlands
         index1 = [1, 6];
-        index2 = [7, 6];
+        index2 = [7, 7];
         index3 = [248, 7];
       } else if (tileset === 3) {
         //ashworld
@@ -525,20 +530,20 @@ export const generateMesh = (renderer, tileData) => {
         int index = int(texture2D(paletteIndices, vUv).r);
 
         #ifdef ROTATE_1
-          if (index == index1.x) {
-            index = index + (counter % index1.y);
+          if (index >= index1.x && index < index1.x + index1.y) {
+            index = index1.x + ((index - index1.x + counter) % index1.y);
           }
         #endif
 
         #ifdef ROTATE_2
-          if (index ==  index2.x) {
-            index = index + (counter % index2.y);
+          if (index >= index2.x && index < index2.x + index2.y) {
+            index = index2.x + ((index - index2.x + counter) % index2.y);
           }
         #endif
 
         #ifdef ROTATE_3
-          if (index ==  index3.x) {
-            index = index + (counter % index3.y);
+          if (index >= index3.x && index < index3.x + index3.y) {
+            index = index3.x + ((index - index3.x + counter) % index3.y);
           }
         #endif
 
@@ -724,6 +729,12 @@ export const generateMesh = (renderer, tileData) => {
         map: mapQuartiles[x][y],
         bumpMap: mapQuartiles[x][y],
         bumpScale: options.bumpScale,
+        onBeforeCompile: function (shader) {
+          // let fs = shader.fragmentShader;
+          // fs = fs.replace(
+          //   "#include <map_fragment>",
+          //   `
+        },
       });
 
       hdTerrain.material = mat;

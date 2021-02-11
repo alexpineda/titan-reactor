@@ -134,6 +134,8 @@ const hdRefs = {
   997: 994,
 };
 
+let palettes;
+
 export default async function preloadImageAtlases(
   bwDat,
   bwDataPath,
@@ -143,6 +145,10 @@ export default async function preloadImageAtlases(
   createAtlas,
   preloadAtlas = {}
 ) {
+  if (imageIds.length === 0) {
+    return;
+  }
+
   const tnames = [
     "badlands",
     "platform",
@@ -154,15 +160,18 @@ export default async function preloadImageAtlases(
     "twilight",
   ];
   const tilesetName = tnames[tileset];
-  const palettes = [
-    await readFile(`tileset/${tilesetName}.wpe`),
-    await fsPromises.readFile(`${__static}/palettes/ofire.wpe`),
-    await fsPromises.readFile(`${__static}/palettes/gfire.wpe`),
-    await fsPromises.readFile(`${__static}/palettes/bfire.wpe`),
-    await fsPromises.readFile(`${__static}/palettes/bexpl.wpe`),
-  ];
-  palettes.dark = await fsPromises.readFile(`${__static}/palettes/dark.wpe`);
-  palettes.cloak = await readFile(`tileset/${tilesetName}/trans50.pcx`);
+
+  if (!palettes) {
+    palettes = [
+      await readFile(`tileset/${tilesetName}.wpe`),
+      await fsPromises.readFile(`${__static}/palettes/ofire.wpe`),
+      await fsPromises.readFile(`${__static}/palettes/gfire.wpe`),
+      await fsPromises.readFile(`${__static}/palettes/bfire.wpe`),
+      await fsPromises.readFile(`${__static}/palettes/bexpl.wpe`),
+    ];
+    palettes.dark = await fsPromises.readFile(`${__static}/palettes/dark.wpe`);
+    palettes.cloak = await readFile(`tileset/${tilesetName}/trans50.pcx`);
+  }
 
   const refId = (id) => (hdRefs[id] !== undefined ? hdRefs[id] : id);
 

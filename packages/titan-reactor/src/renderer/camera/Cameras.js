@@ -207,15 +207,20 @@ class Cameras {
     return delta.subVectors(this.camera.position, target);
   }
 
-  getDirection32() {
+  updateDirection32() {
+    let dir;
     const target = this.getTarget();
     const adj = target.z - this.camera.position.z;
     const opp = target.x - this.camera.position.x;
     const a = Math.atan2(opp, adj) / Math.PI;
     if (a < 0) {
-      return Math.floor((a + 2) * 16 + 16);
+      dir = Math.floor((a + 2) * 16 + 16);
     } else {
-      return Math.floor(a * 16 + 16);
+      dir = Math.floor(a * 16 + 16);
+    }
+    if (dir != this.camera.userData.direction) {
+      this.camera.userData.prevDirection = this.camera.userData.direction;
+      this.camera.userData.direction = dir;
     }
   }
 

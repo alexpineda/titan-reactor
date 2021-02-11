@@ -1,4 +1,5 @@
-import { Object3D, AnimationMixer, LoopOnce } from "three";
+import { Object3D, AnimationMixer } from "three";
+import { SkeletonUtils } from "three/examples/jsm/utils/SkeletonUtils";
 
 export const createTitanImage3D = (
   bwDat,
@@ -24,10 +25,18 @@ export default class TitanImage3D extends Object3D {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {
     super();
     this.atlas = atlas;
-    this.model = atlas.model;
+    this.model = SkeletonUtils.clone(atlas.model);
+    this.model.traverse((o) => {
+      if (o.type == "Mesh" || o.type == "SkinnedMesh") {
+        o.castShadow = true;
+        o.receiveShadow = true;
+        // o.material.encoding = sRGBEncoding;
+        this.model.userData.mesh = o;
+      }
+    });
+
     this.add(this.model);
-    this.animations = atlas.animations;
-    console.log("animations", imageDef.index, this.animations);
+
     if (this.model && this.animations.length) {
       this.times = this.animations[0].tracks[0].times;
       this.mixer = new AnimationMixer(this);
@@ -36,11 +45,19 @@ export default class TitanImage3D extends Object3D {
     }
 
     this.sprite = sprite;
-    this._spriteScale = 32;
+    this._spriteScale = 128;
     this.imageDef = imageDef;
     this.iscript = createIScriptRunner(this, imageDef);
 
     this.setFrame(0, false);
+  }
+
+  get frames() {
+    return this.atlas.frames;
+  }
+
+  get animations() {
+    return this.atlas.animations;
   }
 
   setPositionX(x, scale = this._spriteScale) {
@@ -56,7 +73,7 @@ export default class TitanImage3D extends Object3D {
     this.setPositionY(y, scale);
   }
 
-  setFrame(frame, flip, framesetIndex) {
+  setFrame(frame, flip) {
     if (!this.mixer) return;
     const effectiveFrame = this.atlas.fixedFrames[frame];
     this.mixer.setTime(this.times[effectiveFrame]);
@@ -70,10 +87,5 @@ export default class TitanImage3D extends Object3D {
         this.model.userData.mesh.material.emissiveIntensity = 0;
       }
     }
-    // if (framesetIndex !== null) {
-    //   this.mixer.setTime(this.times[framesetIndex]);
-    // } else {
-    //   this.mixer.setTime(this.times[frame]);
-    // }
   }
 }

@@ -1,5 +1,6 @@
 import fs from "fs";
 import BufferList from "bl";
+import { angleToDirection } from "titan-reactor-shared/utils/conversions";
 
 const State = {
   Header: 0,
@@ -17,7 +18,25 @@ class ReplayReadStream {
   }
 
   next() {
-    return this.frames.shift();
+    const frame = this.frames.shift();
+
+    return frame;
+  }
+
+  nextBuffer() {
+    if (this.frames.length > this.bufferFrames / 2) {
+      return [];
+    }
+
+    const cur = this.frames.length;
+    let buf;
+    while ((buf = this.stream.read())) {
+      this._buf.append(buf);
+      this._readHeader();
+      this._readFrames();
+    }
+    console.log(`read frames ${cur - this.frames.length}`);
+    return this.frames.slice(cur);
   }
 
   _readInt32(buf) {
@@ -59,15 +78,15 @@ class ReplayReadStream {
       const player1Minerals = this._readInt32(buf);
       const player2Minerals = this._readInt32(buf);
       const numUnitsThisFrame = this._readInt32(buf);
-      const units = [];
+      const unitsFrameData = [];
       for (let i = 0; i < numUnitsThisFrame; i++) {
-        units.push(this.BWAPIUnitFromBuffer(buf));
+        unitsFrameData.push(this.BWAPIUnitFromBuffer(buf));
       }
 
       const numBulletsThisFrame = this._readUInt32(buf);
-      const bullets = [];
+      const bulletsFrameData = [];
       for (let i = 0; i < numBulletsThisFrame; i++) {
-        units.push(this.BWAPIBulletFromBuffer(buf));
+        bulletsFrameData.push(this.BWAPIBulletFromBuffer(buf));
       }
 
       return {
@@ -76,8 +95,8 @@ class ReplayReadStream {
         player1Minerals,
         player2Gas,
         player2Minerals,
-        units,
-        bullets,
+        unitsFrameData,
+        bulletsFrameData,
       };
     } catch (e) {
       this._pos = this._lastPos;
@@ -116,6 +135,9 @@ class ReplayReadStream {
     const flagsE = this._readUInt8(buf);
     const flagsF = this._readUInt8(buf);
 
+    const angleRad = -angle + Math.PI / 2;
+    const direction = angleToDirection(angle);
+
     return {
       playerId,
       repId,
@@ -124,6 +146,8 @@ class ReplayReadStream {
       x,
       y,
       angle,
+      angleRad,
+      direction,
       hp,
       shields,
       energy,
@@ -202,23 +226,11 @@ class ReplayReadStream {
 
   start() {
     return new Promise((res) => {
-      this.stream = fs.createReadStream(this.file);
+      this.stream = fs.createReadStream(this.file, {
+        highWaterMark: 64 * 1024 * 12,
+      });
       this.stream.on("readable", () => {
-        this._readFrames();
-
-        if (this.frames.length >= this.bufferFrames) return;
-
-        let buf;
-
-        while ((buf = this.stream.read())) {
-          this._buf.append(buf);
-          this._readHeader();
-          this._readFrames();
-        }
-
-        if (this.frames.length === 100) {
-          res();
-        }
+        res();
       });
 
       this.stream.on("end", () => {

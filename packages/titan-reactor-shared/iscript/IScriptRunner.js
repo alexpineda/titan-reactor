@@ -13,8 +13,7 @@ export class IScriptRunner {
     this.image = image;
     this.imageDesc = imageDesc;
     this.tileset = tileset;
-    this.logger = { log: (...args) => console.log(...args) };
-    this.logger = { log: (...args) => {} };
+    this.logger = { log: () => {} };
     this.dispatched = [];
     this.iscript = bwDat.iscript.iscripts[imageDesc.iscript];
     this.alreadyRun = {};
@@ -30,8 +29,9 @@ export class IScriptRunner {
       lifted: false,
       noBrkCode: false,
       ignoreRest: false,
-      frameset: null,
+      frameset: 0,
       frame: 0,
+      frameOffset: 0,
       prevFrame: -1,
       //@todo refactor to exclude flip
       flip: false,
@@ -51,12 +51,8 @@ export class IScriptRunner {
     }
   }
 
-  //@todo do we want to include flip in this too?
-  frameHasChanged() {
-    return (
-      this.image.userData.frame !== this.image.userData.prevFrame ||
-      this.image.userData.flip !== this.image.userData.prevFlip
-    );
+  get state() {
+    return this.image.userData;
   }
 
   run(header) {
@@ -82,7 +78,7 @@ export class IScriptRunner {
       if (header >= 0) {
         name = headersById[header];
       }
-      console.error(`animation block - ${name} - does not exist`, this);
+      console.warn(`animation block - ${name} - does not exist`, this);
       this.image.userData.ignoreRest = true;
       return;
     }
@@ -100,9 +96,9 @@ export class IScriptRunner {
     });
 
     if (header === headers.liftOff) {
-      this.image.userData.lifted = true;
+      this.state.lifted = true;
     } else if (header === headers.landing) {
-      this.image.userData.lifted = false;
+      this.state.lifted = false;
     }
 
     let prevAnim = "";
@@ -128,8 +124,8 @@ export class IScriptRunner {
     this.dispatched.length = 0;
 
     // update iscript state
-    if (this.image.userData.waiting !== 0) {
-      this.image.userData.waiting = this.image.userData.waiting - 1;
+    if (this.state.waiting !== 0) {
+      this.state.waiting = this.state.waiting - 1;
       return this.dispatched;
     }
     this.next();
@@ -143,42 +139,36 @@ export class IScriptRunner {
   }
 
   setFrame(frame, flip) {
-    this.image.userData.prevFrame = this.image.userData.frame;
-    this.image.userData.prevFlip = this.image.userData.flip;
-    this.image.userData.flip = flip;
-    this.image.userData.frame = frame;
+    this.state.prevFrame = this.state.frame;
+    this.state.prevFlip = this.state.flip;
+    this.state.flip = flip;
+    this.state.frame = this.state.frameset + frame;
+    this.state.frameOffset = frame;
   }
 
   setDirection(direction) {
-    if (this.image.userData.flDirect) {
+    if (this.state.flDirect) {
       return;
     }
-    this.image.userData.direction = direction;
+    if (direction > 31 || direction < 0) {
+      throw new Error("direction out of bounds");
+    }
+    this.state.direction = direction;
     if (this.imageDesc.gfxTurns) {
       this.setFrameBasedOnDirection();
     }
   }
 
   setFrameBasedOnDirection() {
-    if (this.image.userData.direction > 16) {
-      this.setFrame(
-        this.image.userData.frameset + 32 - this.image.userData.direction,
-        true
-      );
+    if (this.state.direction > 16) {
+      this.setFrame(32 - this.state.direction, true);
     } else {
-      this.setFrame(
-        this.image.userData.frameset + this.image.userData.direction,
-        false
-      );
+      this.setFrame(this.state.direction, false);
     }
-    // this._dispatch(
-    //   "playfram",
-    //   `frame:${this.image.userData.frame} dir:${this.image.userData.direction} frameset:${this.image.userData.frameset} `
-    // );
   }
 
   next() {
-    if (this.image.userData.ignoreRest) {
+    if (this.state.ignoreRest) {
       return true;
     }
     while (true) {
@@ -225,8 +215,6 @@ export class IScriptRunner {
         case "highsprol":
         case "spruluselo":
         case "castspell":
-        case "engframe":
-        case "engset":
         case "attkshiftproj":
         case "creategasoverlays":
         case "trgtrangecondjmp":
@@ -242,34 +230,33 @@ export class IScriptRunner {
           break;
         case "waitrand":
           {
-            this.image.userData.waiting =
-              args[Math.floor(Math.random() * args.length)];
-            this._dispatch(command, this.image.userData.waiting);
+            this.state.waiting = args[Math.floor(Math.random() * args.length)];
+            this._dispatch(command, this.state.waiting);
           }
           return;
         case "wait":
           {
-            this.image.userData.waiting = args[0];
-            this._dispatch(command, this.image.userData.waiting);
+            this.state.waiting = args[0];
+            this._dispatch(command, this.state.waiting);
           }
           return;
         case "ignorerest":
           {
-            this.image.userData.ignoreRest = true;
+            this.state.ignoreRest = true;
             this._dispatch(command);
           }
           return;
 
         case "nobrkcodestart":
           {
-            this.image.userData.noBrkCode = true;
+            this.state.noBrkCode = true;
             this._dispatch(command);
           }
           break;
 
         case "nobrkcodeend":
           {
-            this.image.userData.noBrkCode = false;
+            this.state.noBrkCode = false;
             this._dispatch(command);
           }
           break;
@@ -277,45 +264,62 @@ export class IScriptRunner {
         case "playfram":
           {
             if (this.imageDesc.gfxTurns && args[0] % 17 === 0) {
-              this.image.userData.frameset = args[0];
-              this.image.userData.framesetIndex = Math.floor(args[0] / 17);
+              this.state.frameset = args[0];
               this.setFrameBasedOnDirection();
-              this._dispatch(command, [
-                this.image.userData.frame,
-                this.image.userData.flip,
-                this.image.userData.framesetIndex,
-              ]);
+              if (this.state.frame < 0) {
+                debugger;
+              }
+              this._dispatch(command, [this.state.frame, this.state.flip]);
             } else {
               //@todo see if this matters
-              this.image.userData.frameset = null;
-              this.image.userData.framesetIndex = null;
-              this.setFrame(args[0], this.image.userData.flipState);
-              this._dispatch(command, [
-                args[0],
-                this.image.userData.flipState,
-                null,
-              ]);
+              this.state.frameset = 0;
+              this.setFrame(args[0], this.state.flipState);
+              this._dispatch(command, [args[0], this.state.flipState]);
             }
           }
           break;
         case "playframtile":
           {
+            this.state.frameset = 0;
             this.setFrame(args[0] + this.tileset, false);
             this._dispatch(command, args[0] + this.tileset);
           }
           break;
 
+        case "engframe":
+          {
+            this.state.frameset = args[0];
+            this.state.direction = this.image.sprite.mainImage.userData.direction;
+            this.setFrameBasedOnDirection();
+            this._dispatch(command, [this.state.frame, this.state.flip]);
+          }
+          break;
+
+        case "engset":
+          {
+            this.state.frameset =
+              this.image.sprite.mainImage.userData.frameset +
+              args[0] * this.image.sprite.mainImage.frames.length;
+            this.state.direction = this.image.sprite.mainImage.userData.direction;
+            this.setFrameBasedOnDirection();
+            this._dispatch(command, [this.state.frame, this.state.flip]);
+          }
+          break;
+
         case "setflipstate":
           {
-            this.image.userData.flipState = args[0];
+            this.state.flipState = args[0];
             this._dispatch(command, args);
           }
           break;
 
         case "setfldirect":
           {
-            this.image.userData.flDirect = true;
-            this.image.userData.direction = args[0];
+            this.state.flDirect = true;
+            this.state.direction = args[0];
+            if (this.state.direction < 0 || this.state.direction > 31) {
+              throw new Error("direction out of bounds");
+            }
             this.setFrameBasedOnDirection();
             this._dispatch(command, args);
           }
@@ -331,15 +335,15 @@ export class IScriptRunner {
             }
 
             if (clockwise) {
-              this.image.userData.direction =
-                (this.image.userData.direction += args[0]) % 32;
+              if ((this.state.direction + args[0]) % 32 > 31) {
+                throw new Error("direction out of bounds");
+              }
+              this.state.direction = (this.state.direction += args[0]) % 32;
               this._dispatch(command, args);
             } else {
-              this.image.userData.direction =
-                this.image.userData.direction - args[0];
-              if (this.image.userData.direction < 0) {
-                this.image.userData.direction =
-                  32 - this.image.userData.direction;
+              this.state.direction = this.state.direction - args[0];
+              if (this.state.direction < 0) {
+                this.state.direction = 32 - this.state.direction;
               }
               this._dispatch(command, args);
             }
@@ -349,12 +353,12 @@ export class IScriptRunner {
         case "turn1cwise":
           {
             //			if (iscript_unit && !iscript_unit->order_target.unit)
-            this.image.userData.direction =
-              (this.image.userData.direction += 1) % 32;
+            this.state.direction = (this.state.direction += 1) % 32;
             this._dispatch(command, args);
           }
           break;
         case "followmaingraphic":
+          //carrier, warpflash
           /*
     if (image_t *main_image = image->sprite->main_image)
 					{
@@ -439,7 +443,7 @@ export class IScriptRunner {
           break;
         case "liftoffcondjmp":
           {
-            if (this.image.userData.lifted) {
+            if (this.state.lifted) {
               this._toAnimationBlock(args[0]);
               this._dispatch(command, args[0]);
             } else {
@@ -449,7 +453,7 @@ export class IScriptRunner {
           break;
 
         case "end": {
-          this.image.userData.terminated = true;
+          this.state.terminated = true;
           this._dispatch(command);
           return;
         }

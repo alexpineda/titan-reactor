@@ -37,6 +37,7 @@ const ReplayPosition = ({
   textSize,
   hideReplayPosition,
   maxAutoReplaySpeed,
+  className,
 }) => {
   const progress = Math.ceil(position * 100);
 
@@ -172,7 +173,7 @@ const ReplayPosition = ({
     <div
       className={`replay-parent flex self-end select-none ${
         hideReplayPosition ? "hidden" : ""
-      }`}
+      } ${className}`}
       style={{ width: "24vw" }}
     >
       <div

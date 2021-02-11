@@ -43,11 +43,6 @@ export const Anim = (buf) => {
     throw new Error("hd must have only 1 entry");
   }
 
-  console.log(
-    `v${version.toString()} layers:${numLayers} entries:${numEntries}`,
-    layerNames
-  );
-
   const parseSprite = (sprite) => {
     const numFrames = sprite.readUInt16LE(0);
     // sprite reference

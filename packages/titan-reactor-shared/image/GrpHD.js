@@ -14,7 +14,8 @@ export default class GrpHD {
     this.frames = [];
   }
 
-  async load({ readAnim }) {
+  async load({ readAnim, imageDef }) {
+    console.log(`loading image ${imageDef.index}`);
     const buf = await readAnim();
     const anim = Anim(buf);
 
@@ -27,37 +28,37 @@ export default class GrpHD {
       throw new Error("diffuse map required");
     }
 
-    if (anim.sprite.maps.bright) {
-      const ddsBuf = getBuf(anim.sprite.maps.bright);
-      this.brightness = this._loadDDS(ddsBuf);
-    }
-
     if (anim.sprite.maps.teamcolor) {
       const ddsBuf = getBuf(anim.sprite.maps.teamcolor);
       this.teamcolor = this._loadDDS(ddsBuf);
     }
 
-    if (anim.sprite.maps.normal) {
-      const ddsBuf = getBuf(anim.sprite.maps.normal);
-      this.normal = this._loadDDS(ddsBuf);
-    }
+    // if (anim.sprite.maps.bright) {
+    //   const ddsBuf = getBuf(anim.sprite.maps.bright);
+    //   this.brightness = this._loadDDS(ddsBuf);
+    // }
 
-    if (anim.sprite.maps.specular) {
-      const ddsBuf = getBuf(anim.sprite.maps.specular);
-      this.specular = this._loadDDS(ddsBuf);
-    }
+    // if (anim.sprite.maps.normal) {
+    //   const ddsBuf = getBuf(anim.sprite.maps.normal);
+    //   this.normal = this._loadDDS(ddsBuf);
+    // }
 
-    if (anim.sprite.maps.ao_depth) {
-      const ddsBuf = getBuf(anim.sprite.maps.ao_depth);
-      this.ao_depth = this._loadDDS(ddsBuf);
-    }
+    // if (anim.sprite.maps.specular) {
+    //   const ddsBuf = getBuf(anim.sprite.maps.specular);
+    //   this.specular = this._loadDDS(ddsBuf);
+    // }
+
+    // if (anim.sprite.maps.ao_depth) {
+    //   const ddsBuf = getBuf(anim.sprite.maps.ao_depth);
+    //   this.ao_depth = this._loadDDS(ddsBuf);
+    // }
 
     this.frames = anim.sprite.frames;
     this.width = anim.sprite.maps.diffuse.width;
     this.height = anim.sprite.maps.diffuse.height;
     this.grpWidth = anim.sprite.w;
     this.grpHeight = anim.sprite.h;
-    console.log("anim frames", anim.sprite.w, anim.sprite.h, this.frames);
+    // console.log("anim frames", anim.sprite.w, anim.sprite.h, this.frames);
 
     return this.diffuse;
   }

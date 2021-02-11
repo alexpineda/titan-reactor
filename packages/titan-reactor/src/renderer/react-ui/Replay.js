@@ -177,6 +177,7 @@ const Replay = ({
           }
         >
           <ReplayPosition
+            className="pointer-events-auto"
             replayPosition={replayPosition}
             onTogglePaused={() => replayPosition.togglePlay()}
             onChangePosition={(pos) => {

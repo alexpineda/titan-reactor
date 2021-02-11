@@ -1,6 +1,9 @@
 import { is, pick } from "ramda";
 import { Group } from "three";
-import { iscriptHeaders } from "titan-reactor-shared/types/iscriptHeaders";
+import {
+  iscriptHeaders,
+  headersById,
+} from "titan-reactor-shared/types/iscriptHeaders";
 import { imageTypes } from "titan-reactor-shared/types/imageTypes";
 import {
   overlayTypesById,
@@ -16,19 +19,29 @@ const ImageOrder = {
 };
 
 export default class TitanSprite extends Group {
-  constructor(unit, bwDat, createTitanImage, createTitanSpriteCb) {
+  constructor(
+    unit,
+    bwDat,
+    createTitanSprite,
+    createTitanImage,
+    createTitanSpriteCb,
+    destroyTitanSpriteCb,
+    logger = { log: () => {} }
+  ) {
     super();
     this.unit = unit;
     this.bwDat = bwDat;
     this.images = [];
+    this.createTitanSprite = createTitanSprite;
     this.createTitanSpriteCb = createTitanSpriteCb;
+    this.destroyTitanSpriteCb = destroyTitanSpriteCb;
     this.createTitanImage = createTitanImage;
-    this.userData.elevation = 0;
-    this.userData.direction = null;
     this.iscriptOptions = {
       createBullets: false,
       moveUnit: false,
     };
+    this.logger = logger;
+    this.renderOrder = 4;
   }
 
   addImage(image, imageOrder, rel) {
@@ -65,6 +78,7 @@ export default class TitanSprite extends Group {
       return null;
     }
     this.add(titanImage);
+    titanImage.iscript.logger = this.logger;
     titanImage.iscript.run(iscriptHeaders.init);
     if (this.images.length === 0) {
       this.mainImage = titanImage;
@@ -78,33 +92,51 @@ export default class TitanSprite extends Group {
 
   //it might be that we dont want to change frame if sprite is not on a frameset
   setDirection(direction) {
-    this.userData.direction = direction;
-    for (let image of this.images) {
-      image.iscript.setDirection(direction);
-      image.setFrame(
-        image.userData.frame,
-        image.userData.flip,
-        image.userData.framesetIndex
-      );
-    }
+    if (direction === this.direction) return;
+    this.mainImage.iscript.setDirection(direction);
+    this.mainImage.setFrame(
+      this.mainImage.userData.frame,
+      this.mainImage.userData.flip
+    );
   }
 
   //iscript_execute_sprite
-  update(delta) {
+  update(delta, cameraDirection) {
+    if (this.unit) {
+      this.position.copy(this.unit.position);
+      this.rotation.copy(this.unit.rotation);
+      this.setDirection((this.unit.direction + cameraDirection) % 32);
+      this.visible = this.unit.visible;
+
+      if (
+        this.unit.current.anim !== this.unit.previous.anim &&
+        headersById[this.unit.current.anim]
+      ) {
+        this.run(this.unit.current.anim);
+      }
+    }
+
+    let _terminated = false;
     for (let image of this.images) {
       if (image.mixer) {
         image.mixer.update(0); //3d animation mixer
       }
       this._update(image);
       if (image.userData.terminated) {
+        _terminated = true;
         this.remove(image);
       }
     }
 
-    this.images = this.images.filter((image) => !image.userData.terminated);
-    // if (this.images.length === 0) {
-    //   this.destroyTitanSpriteCb(this);
-    // }
+    if (_terminated) {
+      this.images = this.images.filter((image) => !image.userData.terminated);
+      if (!this.images.find((i) => i === this.mainImage)) {
+        this.mainImage = this.images[this.images.length - 1];
+      }
+      if (this.images.length === 0) {
+        this.destroyTitanSpriteCb(this);
+      }
+    }
     return this.images.length;
   }
 
@@ -121,7 +153,7 @@ export default class TitanSprite extends Group {
       switch (key) {
         case "playfram":
           {
-            image.setFrame(val[0], val[1], val[2]);
+            image.setFrame(val[0], val[1]);
           }
           break;
         case "imgol":
@@ -170,7 +202,7 @@ export default class TitanSprite extends Group {
             if (!titanImage) break;
             const ox = titanImage.image.los[x];
             const oy = titanImage.image.los[y];
-            titanImage.setPosition(ox, oy);
+            titanImage.setPosition(ox, oy, 32);
           }
           break;
         case "imguluselo":
@@ -181,7 +213,7 @@ export default class TitanSprite extends Group {
             if (!titanImage) break;
             const ox = titanImage.image.los[x];
             const oy = titanImage.image.los[y];
-            titanImage.setPosition(ox, oy);
+            titanImage.setPosition(ox, oy, 32);
           }
           break;
         case "imgulnextid":
@@ -192,29 +224,48 @@ export default class TitanSprite extends Group {
               ImageOrder.below
             );
             if (!titanImage) break;
-            titanImage.setPosition(x, y);
+            titanImage.setPosition(x, y, 32);
           }
           break;
 
         case "sprol":
           {
-            //<sprite#> <x> <y> - spawns a sprite one animation level above the current image overlay at a specific offset position.
-            //if is bullet && parent->goliath && charonboosted
-            ///create hailo rocket
-            //else
-            //create sprite val
-            // sprites.push([...val, this.userData.elevation + 1]);
+            const [spriteId, x, y] = val;
+
+            // @todo
+            // if is bullet && parent->goliath && charonboosted
+            // change spriteId to halo rockets trail
+
+            const titanSprite = this.createTitanSprite();
+            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
+            titanSprite.run(iscriptHeaders.init);
+
+            titanSprite.mainImage.setPosition(x, y);
+            titanSprite.position.copy(this.position);
+            this.createTitanSpriteCb(titanSprite);
           }
           break;
         case "sprul":
           {
             //<sprite#> <x> <y> - spawns a sprite one animation level below the current image overlay at a specific offset position. The new sprite inherits the direction of the current sprite.
-            /*
+
+            const [spriteId, x, y] = val;
+
+            /* 
+            @todo
+            "if unit and is cloaked and not always visible dont spawn"
             if (iscript_unit && (u_requires_detector(iscript_unit) || u_cloaked(iscript_unit)) && !sprite->image->always_visible)
-              break;
-              */
-            //set direction
-            // sprites.push([...val, this.userData.elevation - 1]);
+            break;
+            */
+
+            const titanSprite = this.createTitanSprite();
+            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
+            titanSprite.setDirection(this.direction);
+            titanSprite.run(iscriptHeaders.init);
+
+            titanSprite.mainImage.setPosition(x, y);
+            titanSprite.position.copy(this.position);
+            this.createTitanSpriteCb(titanSprite);
           }
           break;
         case "lowsprul":
@@ -225,22 +276,28 @@ export default class TitanSprite extends Group {
             const [spriteId, x, y] = val;
 
             //@todo elevation 1
-            const titanSprite = new TitanSprite(
-              null,
-              this.bwDat,
-              this.createTitanImage,
-              this.createTitanSpriteCb
-            );
+            const titanSprite = this.createTitanSprite();
             titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
+            titanSprite.run(iscriptHeaders.init);
 
-            //titanSprite.setDirection(this.userData.direction);
             titanSprite.mainImage.setPosition(x, y);
-            console.log("lowsprul", [x, y]);
+            titanSprite.position.copy(this.position);
+            this.createTitanSpriteCb(titanSprite);
+            // console.log("lowsprul", [x, y]);
           }
           break;
         case "highsprol":
           {
             //<sprite#> <x> <y> - spawns a sprite at the highest animation level at a specific offset position.
+            const [spriteId, x, y] = val;
+
+            const titanSprite = this.createTitanSprite();
+            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
+            titanSprite.run(iscriptHeaders.init);
+
+            titanSprite.mainImage.setPosition(x, y);
+            titanSprite.position.copy(this.position);
+            this.createTitanSpriteCb(titanSprite);
           }
           break;
         case "sproluselo":
@@ -249,19 +306,19 @@ export default class TitanSprite extends Group {
             // <sprite#> <overlay#> - spawns a sprite one animation level above the current image overlay, using a specified LO* file for the offset position information. The new sprite inherits the direction of the current sprite.
 
             //@todo this.userData.elevation + 1
-            const titanSprite = new TitanSprite(
-              null,
-              this.bwDat,
-              this.createTitanImage,
-              this.createTitanSpriteCb
-            );
+            const titanSprite = this.createTitanSprite();
             titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
-
-            titanSprite.setDirection(this.userData.direction);
+            // titanSprite.run(0);
+            titanSprite.setDirection(this.direction);
             const [ox, oy] = this._getImageLoOffset(image, overlay, 0);
 
             titanSprite.mainImage.setPosition(ox, oy);
-            console.log("sproluselo", [ox, oy, image.userData.frame]);
+            titanSprite.run(iscriptHeaders.init);
+
+            titanSprite.position.copy(this.position);
+            this.createTitanSpriteCb(titanSprite);
+
+            // console.log("sproluselo", [ox, oy, image.userData.frame]);
           }
           break;
         case "spruluselo":
@@ -308,15 +365,69 @@ export default class TitanSprite extends Group {
             const los = this.bwDat.los[image.imageDef.specialOverlay - 1];
             const [ox, oy] = los[titanImage.userData.frame][imageOffset];
 
-            console.log(
-              "geyser",
-              this._getImageLoOffset(image, 2, imageOffset),
-              [ox, oy]
-            );
+            // console.log(
+            //   "geyser",
+            //   this._getImageLoOffset(image, 2, imageOffset),
+            //   [ox, oy]
+            // );
 
             titanImage.setPosition(ox, oy);
           }
           break;
+        case "useweapon":
+          {
+          }
+          break;
+        case "attackwith":
+          {
+          }
+          break;
+        case "attack":
+          {
+          }
+          break;
+        case "domissiledmg":
+          {
+          }
+          break;
+        case "dogrddamage":
+          {
+          }
+          break;
+        case "dogrddamage":
+          {
+          }
+          break;
+        case "castspell":
+          {
+          }
+          break;
+        case "attkshiftproj":
+          {
+          }
+          break;
+        case "trgtrangecondjmp":
+          {
+          }
+          break;
+        case "trgtarccondjmp":
+          {
+          }
+          break;
+        case "curdirectcondjmp":
+          {
+          }
+          break;
+
+        case "grdsprol":
+          {
+          }
+          break;
+        case "warpoverlay":
+          {
+          }
+          break;
+
         case "setpos":
           {
             const [x, y] = val;
@@ -336,13 +447,9 @@ export default class TitanSprite extends Group {
             if (this.mainImage) {
               Object.assign(
                 image.userData,
-                pick(["frameset", "frame", "flip"], this.mainImage.userData)
+                pick(["frame", "flip"], this.mainImage.userData)
               );
-              image.setFrame(
-                image.userData.frame,
-                image.userData.flip,
-                image.userData.framesetIndex
-              );
+              image.setFrame(image.userData.frame, image.userData.flip);
             }
           }
           break;
@@ -361,20 +468,16 @@ export default class TitanSprite extends Group {
 
         case "engframe":
           {
+            image.setFrame(val[0], val[1]);
+            //corsair, scout, wraith
             //engframe - <frame#> - plays a particular frame, often used in engine glow animations.
-            /*
-image->frame_index_base = a;
-					set_image_frame_index_offset(image, image->sprite->main_image->frame_index_offset, i_flag(image->sprite->main_image, image_t::flag_horizontally_flipped));
-    */
           }
           break;
         case "engset":
           {
+            image.setFrame(val[0], val[1]);
+            //arbiter, bc, scv, valk
             //engset - <frameset#> - plays a particular frame set, often used in engine glow animations.
-            /*
-					image->frame_index_base = image->sprite->main_image->frame_index_base + (image->sprite->main_image->grp->frames.size() & 0x7fff) * a;
-					set_image_frame_index_offset(image, image->sprite->main_image->frame_index_offset, i_flag(image->sprite->main_image, image_t::flag_horizontally_flipped));
-    */
           }
           break;
         case "tmprmgraphicstart":
@@ -413,6 +516,10 @@ image->frame_index_base = a;
     for (let image of this.images) {
       image.iscript.run(header);
     }
+  }
+
+  get direction() {
+    return this.mainImage.userData.direction;
   }
 
   dispose() {}

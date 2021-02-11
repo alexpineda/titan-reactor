@@ -49,9 +49,13 @@ import BufferList from "bl";
 
 app.commandLine.appendSwitch("disable-frame-rate-limit");
 app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: "file", privileges: { standard: true, bypassCSP: true } },
+  {
+    scheme: "file",
+    privileges: { standard: true, bypassCSP: true, corsEnabled: false },
+  },
 ]);
 
 let gameWindow;

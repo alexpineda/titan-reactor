@@ -144,7 +144,7 @@ export class ReplayPosition {
     } else {
       this.lastDelta = this.lastDelta + this.clock.getDelta();
       if (this.lastDelta >= this.gameSpeed) {
-        this.skipGameFrames = Math.floor(this.lastDelta / this.gameSpeed);
+        this.skipGameFrames = 1; // Math.floor(this.lastDelta / this.gameSpeed);
         if (this.skipGameFrames > this._maxSkipSpeed) {
           this.goto(this.bwGameFrame + this.skipGameFrames);
         } else {

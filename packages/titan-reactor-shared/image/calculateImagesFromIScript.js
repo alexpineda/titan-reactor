@@ -7,7 +7,7 @@ const calculateImagesFromIScript = (
   preload = new Set()
 ) => {
   const getAllImages = (imageDef) => {
-    console.log(imageDef);
+    // console.log(imageDef);
     preload.add(imageDef.index);
 
     if (!imageDef.iscript) {

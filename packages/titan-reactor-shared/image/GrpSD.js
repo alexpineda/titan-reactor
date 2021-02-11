@@ -1,5 +1,6 @@
 import {
   NearestFilter,
+  LinearFilter,
   ClampToEdgeWrapping,
   RepeatWrapping,
   DataTexture,
@@ -69,13 +70,12 @@ export default class GrpSD {
 
     this.texture = new DataTexture(texData, cw, ch);
     this.texture.flipY = true;
-    this.texture.minFilter = NearestFilter;
-    this.texture.magFilter = NearestFilter;
+    this.texture.minFilter = LinearFilter;
+    this.texture.magFilter = LinearFilter;
     this.texture.wrapT = ClampToEdgeWrapping;
     this.texture.wrapS = RepeatWrapping;
     this.texture.encoding = sRGBEncoding;
 
-    console.log("frames", mw, mh, this.frames);
     return this.texture;
   }
 

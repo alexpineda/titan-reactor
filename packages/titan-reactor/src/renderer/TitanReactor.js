@@ -13,12 +13,7 @@ import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
 import { parseReplay } from "downgrade-replay";
-import {
-  loading,
-  loadingProgress,
-  loadingError,
-  criticalErrorOccurred,
-} from "./titanReactorReducer";
+import { loading, loadingProgress } from "./titanReactorReducer";
 import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
 import GrpSD from "titan-reactor-shared/image/GrpSD";
@@ -32,9 +27,7 @@ import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
-import calculateImagesFromIScript, {
-  calculateImagesFromUnitsIscript,
-} from "titan-reactor-shared/image/calculateImagesFromIScript";
+import { calculateImagesFromUnitsIscript } from "titan-reactor-shared/image/calculateImagesFromIScript";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -119,58 +112,74 @@ export class TitanReactor {
     const replayReader = new ReplayReadStream(`${filepath}.bin`);
     await replayReader.start();
 
-    const t = replayReader.frames.flatMap(({ units }) =>
-      units.map((u) => u.typeId)
-    );
+    this.atlases = {};
 
-    const initialImages = calculateImagesFromUnitsIscript(this.bwDat, t);
+    const preloadAtlas = async (
+      bwapiFrames = null,
+      unitIds = null,
+      imageIds = null
+    ) => {
+      let _imageIds;
 
-    this.atlases = await preloadImageAtlases(
-      this.bwDat,
-      state.settings.data.starcraftPath,
-      readBwFile,
-      this.chk.tileset,
-      initialImages,
-      () => {
-        if (state.settings.data.renderMode === RenderMode.SD) {
-          return new GrpSD();
-        } else if (state.settings.data.renderMode === RenderMode.HD) {
-          return new GrpHD();
-        } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
-          return new Grp3D(this.envMap);
-        } else {
-          throw new Error("invalid render mode");
-        }
+      if (imageIds) {
+        _imageIds = imageIds;
+      } else if (unitIds) {
+        _imageIds = calculateImagesFromUnitsIscript(this.bwDat, unitIds);
+      } else if (bwapiFrames) {
+        const _unitIds = bwapiFrames.flatMap(({ unitsFrameData }) =>
+          unitsFrameData.map((u) => u.typeId)
+        );
+        _imageIds = calculateImagesFromUnitsIscript(this.bwDat, _unitIds);
       }
-    );
+
+      return await preloadImageAtlases(
+        this.bwDat,
+        state.settings.data.communityModelsPath,
+        readBwFile,
+        this.chk.tileset,
+        _imageIds,
+        () => {
+          if (state.settings.data.renderMode === RenderMode.SD) {
+            return new GrpSD();
+          } else if (state.settings.data.renderMode === RenderMode.HD) {
+            return new GrpHD();
+          } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
+            return new Grp3D(this.envMap);
+          } else {
+            throw new Error("invalid render mode");
+          }
+        },
+        this.atlases
+      );
+    };
+
+    await preloadAtlas(replayReader.nextBuffer());
 
     dispatchRepLoadingProgress();
 
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      state.settings.data.anisotropy
+      state.settings.data.anisotropy,
+      state.settings.data.renderMode
     );
     await scene.init(state.settings.isDev);
     dispatchRepLoadingProgress();
 
-    const createTitanSprite = (unit, addCb) => {
+    const createTitanSprite = (addCb, removeCb = () => {}) => (unit) => {
       const titanSprite = new TitanSprite(
         unit,
         this.bwDat,
+        createTitanSprite(addCb, removeCb),
         createTitanImage(
           this.bwDat,
           this.atlases,
           createIScriptRunner(this.bwDat, this.chk.tileset),
           (err) => console.error(err)
         ),
-        addCb
+        addCb,
+        removeCb
       );
-
-      if (unit) {
-        titanSprite.addImage(unit.flingy.sprite.image.index);
-        titanSprite.run(0);
-      }
 
       if (addCb) {
         addCb(titanSprite);
@@ -178,6 +187,7 @@ export class TitanReactor {
 
       return titanSprite;
     };
+
     log("initializing replay");
     this.scene = await TitanReactorReplay(
       this.store,
@@ -188,7 +198,8 @@ export class TitanReactor {
       this.bwDat,
       new BgMusic(state.settings.data.starcraftPath),
       this.atlases,
-      createTitanSprite
+      createTitanSprite,
+      preloadAtlas
     );
     dispatchRepLoadingProgress();
   }
@@ -222,7 +233,8 @@ export class TitanReactor {
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      state.settings.data.anisotropy
+      state.settings.data.anisotropy,
+      state.settings.data.renderMode
     );
     await scene.init();
 

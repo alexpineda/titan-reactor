@@ -1,9 +1,5 @@
 import { Raycaster, Vector2, AudioListener, AxesHelper } from "three";
-import {
-  BWAPIUnitFromBuffer,
-  BWAPIBulletFromBuffer,
-} from "titan-reactor-shared/bwapi/BWAPIUnit";
-import { difference } from "ramda";
+import { easeQuadInOut } from "d3-ease";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
 import { gameSpeeds, pxToMapMeter, onFastestTick } from "./utils/conversions";
 import HeatmapScore from "./react-ui/replay/HeatmapScore";
@@ -26,6 +22,8 @@ import { ProducerWindowPosition } from "../common/settings";
 import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/replay/replayHudReducer";
+import Units from "./replay/Units";
+import Unit from "./replay/Unit";
 
 const { startLocation } = unitTypes;
 
@@ -40,7 +38,8 @@ async function TitanReactorReplay(
   bwDat,
   bgMusic,
   atlases,
-  createTitanSprite
+  createTitanSprite,
+  preloadAtlas
 ) {
   const stats = createStats();
   stats.dom.style.position = "relative";
@@ -86,8 +85,10 @@ async function TitanReactorReplay(
     mapHeight
   );
 
+  window.scene = scene;
+
   scene.add(
-    createMiniMapPlane(scene.terrain.material.map, mapWidth, mapHeight)
+    createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
   );
 
   const cameras = new Cameras(
@@ -95,7 +96,8 @@ async function TitanReactorReplay(
     gameSurface,
     minimapSurface,
     minimapControl,
-    keyboardShortcuts
+    keyboardShortcuts,
+    false
   );
   scene.add(cameras.minimapCameraHelper);
 
@@ -127,18 +129,6 @@ async function TitanReactorReplay(
   scene.add(bgMusic.getAudio());
 
   const getTerrainY = scene.getTerrainY();
-  // const units = new Units(
-  //   bwDat,
-  //   renderImage,
-  //   chk.tileset,
-  //   chk.size,
-  //   getTerrainY,
-  //   audioListener,
-  //   players,
-  //   { main: cameras.camera },
-  //   {}
-  // );
-  // scene.add(units.units);
 
   let replayPosition = new ReplayPosition(
     replayReader,
@@ -175,8 +165,6 @@ async function TitanReactorReplay(
   //   }
   // });
   // #endregion
-  let selectedUnits = [];
-  let followingUnit = false;
 
   const intersectAxesHelper = new AxesHelper(5);
   // scene.add(intersectAxesHelper);
@@ -200,27 +188,29 @@ async function TitanReactorReplay(
     }
 
     // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObjects(units.getUnits(), true);
+    const intersects = raycaster.intersectObjects(sprites, true);
     const getAsUnit = (mesh) => {
       if (!mesh) return null;
-      if (mesh.userData && mesh.userData.typeId !== undefined) {
-        return mesh;
+      if (mesh.unit) {
+        return mesh.unit;
       } else {
         return getAsUnit(mesh.parent);
       }
+      return null;
     };
 
     if (!intersects.length) {
-      selectedUnits = [];
+      units.selected = [];
     } else {
       intersects.slice(0, 1).forEach(({ object }) => {
         const unit = getAsUnit(object);
 
         if (unit) {
-          selectedUnits = [unit];
-          console.log(unit.userData.repId, unit);
+          units.selected = [unit];
+          window.dbg = { repId: unit.repId };
+          console.log(unit.repId, unit);
         } else {
-          selectedUnits = [];
+          units.selected = [];
         }
       });
     }
@@ -274,7 +264,7 @@ async function TitanReactorReplay(
   }
   const hudData = {
     onFollowUnit: () => {
-      followingUnit = !followingUnit;
+      units.followingUnit = !units.followingUnit;
     },
     onUnitDetails: () => {
       if (hudData.showingUnitDetails) {
@@ -283,7 +273,7 @@ async function TitanReactorReplay(
       } else {
         // hudData.showingUnitDetails = createUnitDetails(
         //   bwDat,
-        //   uniq(selectedUnits.map((unit) => unit.userData.typeId)).sort()
+        //   uniq(units.selected.map((unit) => unit.typeId)).sort()
         // );
         keyboardShortcuts.enabled = false;
       }
@@ -352,129 +342,111 @@ async function TitanReactorReplay(
   };
   window.addEventListener("resize", sceneResizeHandler, false);
 
-  let unitsLastFrame = [];
-  let unitsThisFrame = [];
-  // let bulletsLastFrame = [];
-  let bulletsThisFrame = [];
-
   replayPosition.maxFrame = replayReader.maxFrame;
 
-  let thingies = [];
+  let sprites = [];
+  let _spritesToAdd = [];
+  let _spritesToRemove = [];
 
   const addTitanSpriteCb = (titanSprite) => {
     scene.add(titanSprite);
-    thingies = [...thingies, titanSprite];
+    _spritesToAdd.push(titanSprite);
   };
 
-  const updateEntities = (entities, delta) => {
-    let removeEntities = [];
-    removeEntities.length = 0;
+  const removeTitanSpriteCb = (titanSprite) => {
+    _spritesToRemove.push(titanSprite);
+    // const i = sprites.findIndex((t) => t === titanSprite);
+    // if (i === -1) {
+    //   throw new Error("sprite not found");
+    // }
+    // sprites.splice(i, 1);
+    // scene.remove(titanSprite);
+  };
 
-    for (let entity of entities) {
-      if (entity.userData.direction !== cameras.camera.userData.direction) {
-        entity.setDirection(cameras.camera.userData.direction);
-      }
-      entity.update(delta);
-      // if (entity.images.length === 0) {
-      //   removeEntities.push(entity);
-      // }
+  const createSprite = createTitanSprite(addTitanSpriteCb, removeTitanSpriteCb);
+  const createUnit = (frameData) => {
+    const unit = new Unit(
+      bwDat,
+      getTerrainY,
+      createSprite,
+      players,
+      mapWidth,
+      mapHeight
+    );
+    if (frameData) {
+      unit.init(frameData);
     }
-
-    removeEntities.forEach((t) => scene.remove(t));
+    return unit;
   };
+  const units = new Units(createUnit, getTerrainY, createSprite);
+
+  const updateSprites = (delta) => {
+    _spritesToRemove.forEach((t) => scene.remove(t));
+    sprites = sprites.filter((entity) => !_spritesToRemove.includes(entity));
+    _spritesToRemove.length = 0;
+
+    sprites.push(..._spritesToAdd);
+
+    _spritesToAdd.length = 0;
+
+    for (let entity of sprites) {
+      entity.update(delta, cameras.camera.userData.direction);
+    }
+  };
+
+  let _preloading;
 
   function gameLoop() {
-    if (onFastestTick(replayPosition.bwGameFrame, 1)) {
+    if (onFastestTick(replayPosition.bwGameFrame, 2)) {
       // players.updateResources(units);
       store.dispatch(onGameTick());
       //update position
     }
 
     cameras.update();
-
-    //sd tile animations
-    if (
-      scene.terrain.material.userData.counterValue &&
-      replayPosition.bwGameFrame % 8 === 0
-    ) {
-      scene.terrain.material.userData.counterValue.value++;
-    }
+    renderMan._dofEffect.bokehScale = easeQuadInOut(
+      cameras.control.polarAngle * 2
+    );
 
     if (!replayPosition.paused) {
       for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
-        if (replayPosition.bwGameFrame === 0) {
-          const {
-            bwGameFrame,
-            player1Gas,
-            player1Minerals,
-            player2Gas,
-            player2Minerals,
-            units,
-            bullets,
-          } = replayReader.next();
-          replayPosition.bwGameFrame = bwGameFrame;
-
-          players[0].gas = player1Gas;
-          players[1].gas = player2Gas;
-          players[0].minerals = player1Minerals;
-          players[1].minerals = player2Minerals;
-
-          if (replayPosition.isMaxFrame()) {
-            replayPosition.pause();
-            continue;
-          }
-
-          for (const frameData of units) {
-            // const { frameData, frameSize } = BWAPIUnitFromBuffer(
-            //   BWAPIFramesDataView,
-            //   replayPosition.bwapiBufferPosition
-            // );
-
-            const unit = bwDat.units[frameData.typeId];
-            const ts = createTitanSprite(unit, addTitanSpriteCb);
-            const x = frameData.x / 32 - mapWidth / 2;
-            const z = frameData.y / 32 - mapHeight / 2;
-
-            //@todo consider setting frame floor once to the lowest frame
-            ts.position.set(x, getTerrainY(x, z), z);
-            ts.rotation.y = -frameData.angle + Math.PI / 2;
-
-            // units.updateUnit(
-            //   frameData,
-            //   replayPosition.bwGameFrame,
-            //   replayPosition.skippingFrames()
-            // );
-
-            unitsThisFrame.push(frameData.repId);
-          }
-          updateEntities(thingies, replayPosition.lastDelta);
+        if (replayPosition.bwGameFrame % 8 === 0) {
+          scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
-        // const numBulletsThisFrame = replayPosition.readUInt32AndAdvance();
-
-        // bulletsThisFrame = [];
-        // for (let i = 0; i < numBulletsThisFrame; i++) {
-        //   // const { frameData, frameSize } = BWAPIBulletFromBuffer(
-        //   //   BWAPIFramesDataView,
-        //   //   replayPosition.bwapiBufferPosition
-        //   // );
-
-        //   bulletsThisFrame.push(frameData);
-        // }
-
-        const deadUnits = difference(unitsLastFrame, unitsThisFrame);
-        // units.killUnits(deadUnits);
-        unitsLastFrame = [...unitsThisFrame];
-
-        if (selectedUnits.length) {
-          selectedUnits = selectedUnits.filter(
-            (unit) => !deadUnits.includes(unit.userData.repId)
-          );
-          if (selectedUnits.length === 0 && followingUnit) {
-            followingUnit = false;
-          }
+        if (!_preloading) {
+          _preloading = preloadAtlas(replayReader.nextBuffer());
+          _preloading.then(() => (_preloading = null));
         }
-        // units.units.updateMatrixWorld(true);
+        const readFrame = replayReader.next();
+        if (!readFrame) {
+          replayPosition.paused = true;
+          break;
+        }
+        const {
+          bwGameFrame,
+          player1Gas,
+          player1Minerals,
+          player2Gas,
+          player2Minerals,
+          unitsFrameData,
+          bullets,
+        } = readFrame;
+
+        replayPosition.bwGameFrame = bwGameFrame;
+
+        players[0].gas = player1Gas;
+        players[1].gas = player2Gas;
+        players[0].minerals = player1Minerals;
+        players[1].minerals = player2Minerals;
+
+        if (replayPosition.isMaxFrame()) {
+          replayPosition.pause();
+          continue;
+        }
+
+        units.refresh(unitsFrameData);
+        updateSprites(replayPosition.lastDelta);
 
         if (rep.cmds[replayPosition.bwGameFrame]) {
           // #region apm
@@ -560,16 +532,7 @@ async function TitanReactorReplay(
     //   // mainCamera.control.shake(heatMapScore.totalScore(attackingUnits));
     // }
 
-    // units.cameraDirection.previousDirection = units.cameraDirection.direction;
-
-    // units.cameraDirection.direction = cameras.getDirection32();
-    // units.setShear(cameras.getShear());
-
-    const dir = cameras.getDirection32();
-    if (dir != cameras.camera.userData.direction) {
-      cameras.camera.userData.prevDirection = cameras.camera.userData.direction;
-      cameras.camera.userData.direction = dir;
-    }
+    cameras.updateDirection32();
 
     renderMan.setCanvasTarget(gameSurface);
 
@@ -582,17 +545,17 @@ async function TitanReactorReplay(
     } else if (players[1].showPov) {
       renderMan.render(scene, players[1].camera);
     } else {
-      if (followingUnit && selectedUnits.length) {
+      if (units.followingUnit && units.selected.length) {
         const x =
-          selectedUnits.reduce(
+          units.selected.reduce(
             (sum, unit) => sum + unit.getWorldPosition().x,
             0
-          ) / selectedUnits.length;
+          ) / units.selected.length;
         const z =
-          selectedUnits.reduce(
+          units.selected.reduce(
             (sum, unit) => sum + unit.getWorldPosition().z,
             0
-          ) / selectedUnits.length;
+          ) / units.selected.length;
 
         cameras.setTarget(x, getTerrainY(x, z), z, true);
       }
@@ -607,8 +570,10 @@ async function TitanReactorReplay(
     }
 
     if (
-      (!replayPosition.skippingFrames() && replayPosition.bwGameFrame % 500) ||
-      (replayPosition.skippingFrames() && replayPosition.bwGameFrame % 3000)
+      (!replayPosition.skippingFrames() &&
+        replayPosition.bwGameFrame % 24 === 0) ||
+      (replayPosition.skippingFrames() &&
+        replayPosition.bwGameFrame % 240 === 0)
     ) {
       renderMan.onlyRenderPass();
       renderMan.setCanvasTarget(minimapSurface);
