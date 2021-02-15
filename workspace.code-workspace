@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": "titan-reactor (all-packages)",
+			"path": "."
+		},
+		{
+			"path": "packages\\titan-reactor"
+		}
+	],
+	"settings": {}
+}

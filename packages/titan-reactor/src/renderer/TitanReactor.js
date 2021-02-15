@@ -1,6 +1,8 @@
+import { ipcRenderer } from "electron";
 import createScmExtractor from "scm-extractor";
 import fs from "fs";
 import concat from "concat-stream";
+import { uniq } from "ramda";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
 import TitanReactorReplay from "./TitanReactorReplay";
@@ -8,20 +10,23 @@ import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import BgMusic from "./audio/BgMusic";
-import { openFile, log } from "./invoke";
+import {
+  openFile,
+  log,
+  loadReplayFromFile,
+  updateCurrentReplayPosition,
+} from "./invoke";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
 import { parseReplay } from "downgrade-replay";
 import { loading, loadingProgress } from "./titanReactorReducer";
 import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
-import TitanSprite from "titan-reactor-shared/image/TitanSprite";
 import GrpSD from "titan-reactor-shared/image/GrpSD";
 import GrpHD from "titan-reactor-shared/image/GrpHD";
 import Grp3D from "titan-reactor-shared/image/Grp3D";
 import createTitanImage from "titan-reactor-shared/image/createTitanImage";
 import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
-import ReplayReadStream from "./replay/ReplayReadStream";
 
 import readBwFile, {
   closeStorage,
@@ -95,7 +100,6 @@ export class TitanReactor {
 
     log("parsing replay");
     this.rep = await parseReplay(await openFile(filepath));
-    // const rep = await loadReplayFromFile(filepath);
     dispatchRepLoadingProgress();
 
     log("loading chk");
@@ -109,35 +113,27 @@ export class TitanReactor {
 
     document.title = "Titan Reactor - Replay";
 
-    const replayReader = new ReplayReadStream(`${filepath}.bin`);
-    await replayReader.start();
+    await loadReplayFromFile(filepath);
 
     this.atlases = {};
 
-    const preloadAtlas = async (
-      bwapiFrames = null,
-      unitIds = null,
-      imageIds = null
-    ) => {
-      let _imageIds;
+    const preloadAtlas = async (frames) => {
+      const preloadImages = uniq(
+        frames.flatMap((frame) => {
+          return frame.sprites.flatMap((sprites) => {
+            return sprites.images.map((image) => {
+              return image.id;
+            });
+          });
+        })
+      );
 
-      if (imageIds) {
-        _imageIds = imageIds;
-      } else if (unitIds) {
-        _imageIds = calculateImagesFromUnitsIscript(this.bwDat, unitIds);
-      } else if (bwapiFrames) {
-        const _unitIds = bwapiFrames.flatMap(({ unitsFrameData }) =>
-          unitsFrameData.map((u) => u.typeId)
-        );
-        _imageIds = calculateImagesFromUnitsIscript(this.bwDat, _unitIds);
-      }
-
-      return await preloadImageAtlases(
+      await preloadImageAtlases(
         this.bwDat,
         state.settings.data.communityModelsPath,
         readBwFile,
         this.chk.tileset,
-        _imageIds,
+        preloadImages,
         () => {
           if (state.settings.data.renderMode === RenderMode.SD) {
             return new GrpSD();
@@ -153,7 +149,25 @@ export class TitanReactor {
       );
     };
 
-    await preloadAtlas(replayReader.nextBuffer());
+    const availableFrames = [];
+
+    await new Promise((res) => {
+      const _newFramesListener = (evt, frames) => {
+        availableFrames.push(...frames);
+      };
+
+      const _pausedFramesListener = () => {
+        res();
+
+        ipcRenderer.off("new-frames", _newFramesListener);
+        ipcRenderer.off("paused-frames", _pausedFramesListener);
+      };
+
+      ipcRenderer.on("new-frames", _newFramesListener);
+      ipcRenderer.on("paused-frames", _pausedFramesListener);
+    });
+
+    await preloadAtlas(availableFrames);
 
     dispatchRepLoadingProgress();
 
@@ -166,39 +180,22 @@ export class TitanReactor {
     await scene.init(state.settings.isDev);
     dispatchRepLoadingProgress();
 
-    const createTitanSprite = (addCb, removeCb = () => {}) => (unit) => {
-      const titanSprite = new TitanSprite(
-        unit,
-        this.bwDat,
-        createTitanSprite(addCb, removeCb),
-        createTitanImage(
-          this.bwDat,
-          this.atlases,
-          createIScriptRunner(this.bwDat, this.chk.tileset),
-          (err) => console.error(err)
-        ),
-        addCb,
-        removeCb
-      );
-
-      if (addCb) {
-        addCb(titanSprite);
-      }
-
-      return titanSprite;
-    };
-
     log("initializing replay");
     this.scene = await TitanReactorReplay(
       this.store,
       scene,
       this.chk,
       this.rep,
-      replayReader,
+      availableFrames,
       this.bwDat,
       new BgMusic(state.settings.data.starcraftPath),
       this.atlases,
-      createTitanSprite,
+      createTitanImage(
+        this.bwDat,
+        this.atlases,
+        createIScriptRunner(this.bwDat, this.chk.tileset),
+        (err) => console.error(err)
+      ),
       preloadAtlas
     );
     dispatchRepLoadingProgress();

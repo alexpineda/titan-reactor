@@ -3,14 +3,14 @@ import TitanImageHD from "titan-reactor-shared/image/TitanImageHD";
 import TitanImageSD from "titan-reactor-shared/image/TitanImageSD";
 
 export default (bwDat, atlases, createIScriptRunner, onError = () => {}) => {
-  return (image, sprite) => {
-    const atlas = atlases[image];
+  return (imageId, sprite) => {
+    const atlas = atlases[imageId];
     if (!atlas) {
-      onError(`composite ${image} has no atlas, did you forget to load one?`);
+      onError(`composite ${imageId} has no atlas, did you forget to load one?`);
       return null;
     }
 
-    const imageDef = bwDat.images[image];
+    const imageDef = bwDat.images[imageId];
 
     let titanImage;
     if (atlas.model) {

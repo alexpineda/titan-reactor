@@ -1,34 +1,52 @@
-import BufferList from "bl";
+import fs from "fs";
+import { spawn } from "child_process";
+import ReplayReadStream from "./ReplayReadStream";
 
-export default class ReplayReadFile {
-  constructor(file, bufferFrames = 100) {
-    this.bufferFrames = bufferFrames;
-    this.file = file;
-    this.frames = [];
-    this._buf = new BufferList();
-    this._pos = 0;
-    this._state = State.Header;
+export default class ReplayReadFile extends ReplayReadStream {
+  constructor(file, outFile, bwPath, maxFramesLength = 100) {
+    super(file, maxFramesLength);
+    this.outFile = outFile;
+    this.bwPath = bwPath;
+    this.openBwBridgeExePath =
+      "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
   }
 
-  next() {
-    const frame = this.frames.shift();
+  async start() {
+    this.openBwBridge = spawn(this.openBwBridgeExePath, [
+      this.bwPath,
+      this.file,
+      this.outFile,
+    ]);
 
-    return frame;
+    this.openBwBridge.stderr.on("data", (data) => {
+      console.error(`stderr: ${data}`);
+    });
+
+    await new Promise((res, rej) => {
+      this.openBwBridge.stdout.on("data", (data) => {
+        if (data > 100) {
+          res();
+        }
+        this.framesWritten = data;
+        console.log(`written ${data}`);
+      });
+    });
+
+    await new Promise((res) => {
+      this.stream = fs.createReadStream(this.outFile, {
+        highWaterMark: 2000 * 1000,
+      });
+      this.stream.on("readable", () => {
+        res();
+        this.readFrames();
+      });
+    });
   }
 
-  nextBuffer() {
-    if (this.frames.length > this.bufferFrames / 2) {
-      return [];
+  dispose() {
+    this.stream && this.stream.destroy();
+    if (this.openBwBridge.exitCode === null) {
+      this.openBwBridge.kill();
     }
-
-    const cur = this.frames.length;
-    let buf;
-    while ((buf = this.stream.read())) {
-      this._buf.append(buf);
-      this._readHeader();
-      this._readFrames();
-    }
-    console.log(`read frames ${cur - this.frames.length}`);
-    return this.frames.slice(cur);
   }
 }

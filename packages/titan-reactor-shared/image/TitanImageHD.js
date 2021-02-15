@@ -4,7 +4,6 @@ import {
   BufferAttribute,
   DynamicDrawUsage,
 } from "three";
-import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 
 export default class TitanImageHD extends Sprite {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {
@@ -61,11 +60,6 @@ export default class TitanImageHD extends Sprite {
     this.castShadow = false;
 
     this.atlas = atlas;
-
-    if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      this.transparent = true;
-      this.opacity = 0.5;
-    }
 
     this.setFrame(0, false);
   }

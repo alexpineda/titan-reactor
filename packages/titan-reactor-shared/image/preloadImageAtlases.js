@@ -204,6 +204,9 @@ export default async function preloadImageAtlases(
   }));
 
   for (let img of imgs) {
+    if (!img || !img.imageDef) {
+      debugger;
+    }
     if (preloadAtlas[img.imageDef.index]) {
       continue;
     }

@@ -6,17 +6,18 @@ import {
   shell,
   dialog,
   protocol,
+  ipcRenderer,
 } from "electron";
 import isDev from "electron-is-dev";
 import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
 import { openFileBinary } from "titan-reactor-shared/utils/fs";
 import path from "path";
 import Parser from "rss-parser";
-import fs from "fs";
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import { Readable } from "stream";
-import { parseReplay } from "downgrade-replay";
+import ReplayReadFile from "../renderer/replay/ReplayReadFile";
+import ReplayReadSocket from "../renderer/replay/ReplayReadSocket";
 
 import {
   GET_APPCACHE_PATH,
@@ -34,31 +35,22 @@ import {
   SET_WEBGL_CAPABILITIES,
   GET_RSS_FEED,
   LOAD_REPLAY_FROM_FILE,
-  LOAD_CHK_FROM_FILE,
+  UPDATE_CURRENT_REPLAY_POSITION,
   LOAD_CHK,
-  LOAD_CHK_IMAGE,
   LOAD_SCX,
 } from "../common/handleNames";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
-import phrases from "../common/phrases";
 import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 
-app.commandLine.appendSwitch("disable-frame-rate-limit");
-app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
-app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
-
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: "file",
-    privileges: { standard: true, bypassCSP: true, corsEnabled: false },
-  },
-]);
+const gotTheLock = app.requestSingleInstanceLock();
 
 let gameWindow;
+let gameStateReader;
+let settings;
 
 function createWindow() {
   gameWindow = new BrowserWindow({
@@ -78,7 +70,7 @@ function createWindow() {
     },
   });
   gameWindow.maximize();
-  gameWindow.setAutoHideMenuBar(true);
+  gameWindow.autoHideMenuBar = true;
 
   if (isDev) {
     gameWindow.webContents.openDevTools();
@@ -107,295 +99,333 @@ function createWindow() {
   });
 }
 
-app.commandLine.appendSwitch("--disable-xr-sandbox");
+if (gotTheLock) {
+  app.commandLine.appendSwitch("disable-frame-rate-limit");
+  app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+  app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 
-app.on("ready", async () => {
-  const settings = new Settings(path.join(getUserDataPath(), "settings.json"));
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: "file",
+      privileges: { standard: true, bypassCSP: true, corsEnabled: false },
+    },
+  ]);
 
-  const updateFullScreen = (fullscreen) => {
-    gameWindow.setFullScreen(fullscreen);
-    if (fullscreen) {
-      gameWindow.maximize();
+  app.commandLine.appendSwitch("--disable-xr-sandbox");
+
+  app.on("ready", async () => {
+    settings = new Settings(path.join(getUserDataPath(), "settings.json"));
+
+    const updateFullScreen = (fullscreen) => {
+      gameWindow.setFullScreen(fullscreen);
+      if (fullscreen) {
+        gameWindow.maximize();
+      }
+    };
+
+    settings.on("change", (settings) => {
+      gameWindow.webContents.send(SETTINGS_CHANGED, settings);
+      if (settings.diff.fullscreen !== undefined) {
+        updateFullScreen(settings.diff.fullscreen);
+      }
+    });
+
+    ipcMain.handle(GET_SETTINGS, async () => {
+      return await settings.get();
+    });
+
+    ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
+      settings.save(newSettings);
+      return newSettings;
+    });
+
+    ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
+      await settings.init(webGLCapabilities);
+      const s = await settings.get();
+      updateFullScreen(s.data.fullscreen);
+    });
+
+    installExtension(REDUX_DEVTOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log("An error occurred: ", err));
+
+    createWindow();
+  });
+
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      app.quit();
     }
+  });
+
+  ipcMain.on(EXIT, () => app.exit(0));
+
+  app.on("activate", () => {
+    if (gameWindow === null) {
+      createWindow();
+    }
+  });
+
+  app.on("web-contents-created", (event, contents) => {
+    // prevent navigation
+    contents.on("will-navigate", (event) => {
+      event.preventDefault();
+    });
+
+    // prevent new windows
+    contents.on("new-window", async (event) => {
+      event.preventDefault();
+    });
+  });
+
+  const isMac = process.platform === "darwin";
+
+  var showOpen = function (isMap = false, defaultPath = "") {
+    const filters = isMap
+      ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
+      : [{ name: "Starcraft Replay", extensions: ["rep"] }];
+    const command = isMap ? OPEN_MAP_DIALOG : OPEN_REPLAY_DIALOG;
+    const multiSelections = isMap
+      ? ["openFile"]
+      : ["openFile", "multiSelections"];
+    dialog
+      .showOpenDialog({
+        properties: multiSelections,
+        filters,
+        defaultPath,
+      })
+      .then(({ filePaths, canceled }) => {
+        if (canceled) return;
+        gameWindow.webContents.send(command, filePaths);
+      })
+      .catch((err) => {
+        dialog.showMessageBox({
+          type: "error",
+          title: "Error Loading File",
+          message: "There was an error loading this file: " + err.message,
+        });
+      });
   };
 
-  settings.on("change", (settings) => {
-    gameWindow.webContents.send(SETTINGS_CHANGED, settings);
-    if (settings.diff.fullscreen !== undefined) {
-      updateFullScreen(settings.diff.fullscreen);
-    }
-  });
+  const showOpenReplay = showOpen.bind(null, false);
 
-  ipcMain.handle(GET_SETTINGS, async (event) => {
-    return await settings.get();
-  });
+  const showOpenMap = showOpen.bind(null, true);
 
-  ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
-    settings.save(newSettings);
-    return newSettings;
-  });
+  const submenu = [
+    {
+      label: "Open &Map",
+      click: function () {
+        showOpenMap();
+      },
+    },
+  ];
 
-  ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
-    await settings.init(webGLCapabilities);
-    const s = await settings.get();
-    updateFullScreen(s.fullscreen);
-  });
-
-  installExtension(REDUX_DEVTOOLS)
-    .then((name) => console.log(`Added Extension:  ${name}`))
-    .catch((err) => console.log("An error occurred: ", err));
-
-  createWindow();
-});
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
-
-ipcMain.on(EXIT, () => app.exit(0));
-
-app.on("activate", () => {
-  if (gameWindow === null) {
-    createWindow();
-  }
-});
-
-app.on("web-contents-created", (event, contents) => {
-  // prevent navigation
-  contents.on("will-navigate", (event, navigationUrl) => {
-    event.preventDefault();
-  });
-
-  // prevent new windows
-  contents.on("new-window", async (event, navigationUrl) => {
-    event.preventDefault();
-  });
-});
-
-const isMac = process.platform === "darwin";
-
-var showOpen = function (isMap = false, defaultPath = "") {
-  const filters = isMap
-    ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
-    : [{ name: "Starcraft Replay", extensions: ["rep"] }];
-  const command = isMap ? OPEN_MAP_DIALOG : OPEN_REPLAY_DIALOG;
-  const multiSelections = isMap
-    ? ["openFile"]
-    : ["openFile", "multiSelections"];
-  dialog
-    .showOpenDialog({
-      properties: multiSelections,
-      filters,
-      defaultPath,
-    })
-    .then(({ filePaths, canceled }) => {
-      if (canceled) return;
-      gameWindow.webContents.send(command, filePaths);
-    })
-    .catch((err) => {
-      dialog.showMessageBox({
-        type: "error",
-        title: "Error Loading File",
-        message: "There was an error loading this file: " + err.message,
-      });
+  if (true) {
+    submenu.push({
+      label: "&Open Replay",
+      accelerator: "CmdOrCtrl+Shift+O",
+      click: function () {
+        showOpenReplay();
+      },
     });
-};
+  }
 
-const showOpenReplay = showOpen.bind(null, false);
-
-const showOpenMap = showOpen.bind(null, true);
-
-const submenu = [
-  {
-    label: "Open &Map",
-    click: function () {
-      showOpenMap();
+  const template = [
+    // { role: 'appMenu' }
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideothers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
+      : []),
+    // { role: 'fileMenu' }
+    {
+      label: "&File",
+      submenu: submenu.concat([
+        { type: "separator" },
+        { role: isMac ? "close" : "quit" },
+      ]),
     },
-  },
-];
-
-if (true) {
-  submenu.push({
-    label: "&Open Replay",
-    accelerator: "CmdOrCtrl+Shift+O",
-    click: function () {
-      showOpenReplay();
-    },
-  });
-}
-
-const template = [
-  // { role: 'appMenu' }
-  ...(isMac
-    ? [
+    {
+      label: "Edit",
+      submenu: [
+        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+        { type: "separator" },
+        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
         {
-          label: app.name,
-          submenu: [
-            { role: "about" },
-            { type: "separator" },
-            { role: "services" },
-            { type: "separator" },
-            { role: "hide" },
-            { role: "hideothers" },
-            { role: "unhide" },
-            { type: "separator" },
-            { role: "quit" },
-          ],
+          label: "Select All",
+          accelerator: "CmdOrCtrl+A",
+          selector: "selectAll:",
         },
-      ]
-    : []),
-  // { role: 'fileMenu' }
-  {
-    label: "&File",
-    submenu: submenu.concat([
-      { type: "separator" },
-      { role: isMac ? "close" : "quit" },
-    ]),
-  },
-  {
-    label: "Edit",
-    submenu: [
-      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-      { type: "separator" },
-      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-      {
-        label: "Select All",
-        accelerator: "CmdOrCtrl+A",
-        selector: "selectAll:",
-      },
-    ],
-  },
-  {
-    label: "View",
-    submenu: [
-      { role: "reload" },
-      { role: "forcereload" },
-      { role: "toggledevtools" },
-      { type: "separator" },
-      { role: "resetzoom" },
-      { role: "zoomin" },
-      { role: "zoomout" },
-      { type: "separator" },
-      { role: "togglefullscreen" },
-    ],
-  },
-  {
-    label: "Window",
-    submenu: [
-      { role: "minimize" },
-      { role: "zoom" },
-      ...(isMac
-        ? [
-            { type: "separator" },
-            { role: "front" },
-            { type: "separator" },
-            { role: "window" },
-          ]
-        : [{ role: "close" }]),
-    ],
-  },
-  {
-    role: "help",
-    submenu: [
-      {
-        label: "Learn More",
-        click: async () => {
-          await shell.openExternal("https://electronjs.org");
+      ],
+    },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "forcereload" },
+        { role: "toggledevtools" },
+        { type: "separator" },
+        { role: "resetzoom" },
+        { role: "zoomin" },
+        { role: "zoomout" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+      ],
+    },
+    {
+      label: "Window",
+      submenu: [
+        { role: "minimize" },
+        { role: "zoom" },
+        ...(isMac
+          ? [
+              { type: "separator" },
+              { role: "front" },
+              { type: "separator" },
+              { role: "window" },
+            ]
+          : [{ role: "close" }]),
+      ],
+    },
+    {
+      role: "help",
+      submenu: [
+        {
+          label: "Learn More",
+          click: async () => {
+            await shell.openExternal("https://electronjs.org");
+          },
         },
-      },
-    ],
-  },
-];
+      ],
+    },
+  ];
 
-const menu = Menu.buildFromTemplate(template);
-Menu.setApplicationMenu(menu);
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 
-ipcMain.handle(GET_APPCACHE_PATH, async (event, folder = "") => {
-  return path.join(app.getPath("temp"), folder);
-});
+  ipcMain.handle(GET_APPCACHE_PATH, async (event, folder = "") => {
+    return path.join(app.getPath("temp"), folder);
+  });
 
-ipcMain.handle(OPEN_FILE, async (event, filepath = "") => {
-  return await openFileBinary(filepath);
-});
+  ipcMain.handle(OPEN_FILE, async (event, filepath = "") => {
+    return await openFileBinary(filepath);
+  });
 
-ipcMain.handle(OPEN_DATA_FILE, async (event, filepath) => {
-  const dataPath = isDev
-    ? path.join(`./data/${filepath}`)
-    : path.join(process.resourcesPath, "data", filepath);
+  ipcMain.handle(OPEN_DATA_FILE, async (event, filepath) => {
+    const dataPath = isDev
+      ? path.join(`./data/${filepath}`)
+      : path.join(process.resourcesPath, "data", filepath);
 
-  return await openFileBinary(dataPath);
-});
+    return await openFileBinary(dataPath);
+  });
 
-ipcMain.handle(LOAD_ALL_DATA_FILES, async (event, bwDataPath) => {
-  return await loadAllDataFiles(bwDataPath);
-});
+  ipcMain.handle(LOAD_ALL_DATA_FILES, async (event, bwDataPath) => {
+    return await loadAllDataFiles(bwDataPath);
+  });
 
-ipcMain.on(OPEN_MAP_DIALOG, async (event, defaultPath = "") => {
-  showOpenMap(defaultPath);
-});
+  ipcMain.on(OPEN_MAP_DIALOG, async (event, defaultPath = "") => {
+    showOpenMap(defaultPath);
+  });
 
-ipcMain.on(OPEN_REPLAY_DIALOG, async (event, defaultPath = "") => {
-  showOpenReplay(defaultPath);
-});
+  ipcMain.on(OPEN_REPLAY_DIALOG, async (event, defaultPath = "") => {
+    showOpenReplay(defaultPath);
+  });
 
-ipcMain.on(LOG_MESSAGE, (event, { level, message }) => {
-  logger.log(level, message);
-});
+  ipcMain.on(LOG_MESSAGE, (event, { level, message }) => {
+    logger.log(level, message);
+  });
 
-ipcMain.on(EXIT, () => {
-  app.exit(0);
-});
+  ipcMain.on(EXIT, () => {
+    app.exit(0);
+  });
 
-ipcMain.on(SELECT_FOLDER, async (event, key) => {
-  dialog
-    .showOpenDialog({
-      properties: ["openDirectory"],
-    })
-    .then(({ filePaths, canceled }) => {
-      console.log("show open dialog", filePaths);
-      if (canceled) return;
-      event.sender.send(SELECT_FOLDER, { key, filePaths });
-    })
-    .catch((err) => {
-      dialog.showMessageBox({
-        type: "error",
-        title: "Error Loading File",
-        message: "There was an error selecting path: " + err.message,
-      });
-    });
-});
-
-ipcMain.handle(GET_RSS_FEED, async (event, url) => {
-  const parser = new Parser();
-  return await parser.parseURL(url);
-});
-
-ipcMain.handle(LOAD_REPLAY_FROM_FILE, async (event, filepath) => {
-  return await parseReplay(await openFileBinary(filepath));
-});
-
-ipcMain.handle(LOAD_CHK, (event, buf) => {
-  const chk = new Chk(new BufferList(buf));
-  return chk;
-});
-
-ipcMain.handle(LOAD_SCX, async (event, buf) => {
-  const readable = new Readable({ read: () => {} });
-  readable.push(Buffer.from(buf));
-  readable.push(null);
-
-  const chk = await new Promise((res, rej) =>
-    readable.pipe(createScmExtractor()).pipe(
-      concat((data) => {
-        res(data);
+  ipcMain.on(SELECT_FOLDER, async (event, key) => {
+    dialog
+      .showOpenDialog({
+        properties: ["openDirectory"],
       })
-    )
-  );
-  const res = new Chk(chk);
-  return res;
-});
+      .then(({ filePaths, canceled }) => {
+        console.log("show open dialog", filePaths);
+        if (canceled) return;
+        event.sender.send(SELECT_FOLDER, { key, filePaths });
+      })
+      .catch((err) => {
+        dialog.showMessageBox({
+          type: "error",
+          title: "Error Loading File",
+          message: "There was an error selecting path: " + err.message,
+        });
+      });
+  });
+
+  ipcMain.handle(GET_RSS_FEED, async (event, url) => {
+    const parser = new Parser();
+    return await parser.parseURL(url);
+  });
+
+  ipcMain.handle(LOAD_REPLAY_FROM_FILE, async (event, filepath) => {
+    if (gameStateReader) {
+      gameStateReader.dispose();
+    }
+
+    const s = await settings.get();
+
+    const replayReader = new ReplayReadFile(
+      filepath,
+      path.join(app.getPath("temp"), "replay"),
+      s.data.starcraftPath
+    );
+
+    await replayReader.start();
+    gameStateReader.on("new-frames", (frames) => {
+      gameWindow.webContents.send("new-frames", frames);
+    });
+
+    gameStateReader.on("paused", () => {
+      gameWindow.webContents.send("paused-frames");
+    });
+  });
+
+  ipcMain.on(UPDATE_CURRENT_REPLAY_POSITION, async (event, position) => {
+    gameStateReader.replayPosition = position;
+  });
+
+  ipcMain.handle(LOAD_CHK, (event, buf) => {
+    const chk = new Chk(new BufferList(buf));
+    return chk;
+  });
+
+  ipcMain.handle(LOAD_SCX, async (event, buf) => {
+    const readable = new Readable({ read: () => {} });
+    readable.push(Buffer.from(buf));
+    readable.push(null);
+
+    const chk = await new Promise((res) =>
+      readable.pipe(createScmExtractor()).pipe(
+        concat((data) => {
+          res(data);
+        })
+      )
+    );
+    const res = new Chk(chk);
+    return res;
+  });
+} else {
+  app.quit();
+}

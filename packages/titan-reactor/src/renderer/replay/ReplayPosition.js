@@ -59,8 +59,7 @@ export class ClockMs {
 }
 
 export class ReplayPosition {
-  constructor(reader, maxFrame, clock, gameSpeed, heatMapScore) {
-    this.reader = reader;
+  constructor(maxFrame, clock, gameSpeed, heatMapScore) {
     this.maxFrame = maxFrame;
     this.frame = 0;
     this.bwGameFrame = 0;

@@ -45,8 +45,6 @@ export class Settings extends EventEmitter {
     this.webGLCapabilities = webGLCapabilities;
 
     try {
-      // await fsPromises.unlink(this._filepath);
-
       this._settings = JSON.parse(
         await fsPromises.readFile(this._filepath, { encoding: "utf8" })
       );
@@ -79,20 +77,7 @@ export class Settings extends EventEmitter {
       }
     }
 
-    const dataFolders = [
-      "Data",
-      "locales",
-      // "anim",
-      // "arr",
-      // "cursor",
-      // "game",
-      // "music",
-      // "portrait",
-      // "scripts",
-      // "sound",
-      // "TileSet",
-      // "unit",
-    ];
+    const dataFolders = ["Data", "locales"];
     if (await fileExists(this._settings["starcraftPath"])) {
       for (let folder of dataFolders) {
         if (
@@ -121,7 +106,7 @@ export class Settings extends EventEmitter {
     return {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
-      isDev: true,
+      isDev,
       phrases,
       diff: {},
     };

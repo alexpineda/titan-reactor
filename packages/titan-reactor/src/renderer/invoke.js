@@ -12,6 +12,7 @@ import {
   GET_RSS_FEED,
   EXIT,
   LOAD_REPLAY_FROM_FILE,
+  UPDATE_CURRENT_REPLAY_POSITION,
   LOAD_CHK,
   LOAD_SCX,
 } from "../common/handleNames";
@@ -65,8 +66,8 @@ export const loadReplayFromFile = async (filepath) => {
   return await ipcRenderer.invoke(LOAD_REPLAY_FROM_FILE, filepath);
 };
 
-export const loadChkFromFile = async (filepath) => {
-  return await ipcRenderer.invoke(LOAD_REPLAY_FROM_FILE, filepath);
+export const updateCurrentReplayPosition = async (position) => {
+  ipcRenderer.send(UPDATE_CURRENT_REPLAY_POSITION, position);
 };
 
 export const loadScx = async (buf) => {
