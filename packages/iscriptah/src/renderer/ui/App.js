@@ -10,11 +10,10 @@ import Frames from "./Frames";
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
 import GrpSD from "titan-reactor-shared/image/GrpSD";
 import GrpHD from "titan-reactor-shared/image/GrpHD";
-import Grp3D from "titan-reactor-shared/image/GrpAtlas3D";
+import Grp3D from "titan-reactor-shared/image/Grp3D";
 import createTitanImage from "titan-reactor-shared/image/createTitanImage";
 import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
-import BWAPIUnit from "titan-reactor-shared/bwapi/BWAPIUnit";
-import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
+import AtlasPreloader from "titan-reactor-shared/image/AtlasPreloader";
 import { errorOccurred, bwDataPathChanged } from "../appReducer";
 import { blockInitializing, blockFrameCountChanged } from "../iscriptReducer";
 import calculateImagesFromIScript from "titan-reactor-shared/image/calculateImagesFromIScript";
@@ -53,12 +52,14 @@ const App = ({
         selectedBlock.image,
         selectedUnit
       );
-      three.atlases = await preloadImageAtlases(
+
+      three.atlases = {};
+
+      const atlasLoader = new AtlasPreloader(
         three.bwDat,
         bwDataPath,
         (file) => fsPromises.readFile(`${bwDataPath}/${file}`),
         three.tileset,
-        imageIds,
         () => {
           if (renderMode === "sd") {
             return new GrpSD();
@@ -69,21 +70,31 @@ const App = ({
           } else {
             throw new Error("invalid render mode");
           }
-        }
+        },
+        three.atlases
       );
+
+      for (let imageId of imageIds) {
+        await atlasLoader.load(imageId);
+      }
+
       const { header } = selectedBlock;
 
-      const titanSprite = new TitanSprite(
-        selectedUnit ? new BWAPIUnit({ id: selectedUnit.index }) : null,
-        three.bwDat,
-        createTitanImage(
+      const createTitanSprite = (unit) =>
+        new TitanSprite(
+          unit || null,
           three.bwDat,
-          three.atlases,
-          createIScriptRunner(three.bwDat, three.tileset),
-          setError
-        )
-      );
-      titanSprite.createTitanSpriteCb = addTitanSpriteCb;
+          createTitanSprite,
+          createTitanImage(
+            three.bwDat,
+            three.atlases,
+            createIScriptRunner(three.bwDat, three.tileset),
+            setError
+          ),
+          addTitanSpriteCb
+        );
+
+      const titanSprite = createTitanSprite(selectedUnit);
       addTitanSpriteCb(titanSprite);
 
       titanSprite.addImage(selectedBlock.image.index);

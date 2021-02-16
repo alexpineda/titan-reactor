@@ -52,7 +52,7 @@ export default class ContiguousContainer {
 
   *items(count = this.count) {
     for (let i = 0; i < count; i++) {
-      yield this.default;
+      yield this;
       this.offset++;
     }
   }
@@ -61,7 +61,7 @@ export default class ContiguousContainer {
     this.offset = this.offset + count;
     for (let i = 0; i < count; i++) {
       this.offset--;
-      yield this.default;
+      yield this;
     }
     this.offset += count;
   }

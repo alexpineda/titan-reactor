@@ -113,16 +113,15 @@ async function TitanReactorReplay(
     rep.header.players,
     chk.units.filter((u) => u.unitId === startLocation)
   );
-  players[0].camera = new PlayerPovCamera(
-    PovLeft,
-    () => players.activePovs,
-    pxToMeter.xy(players[0].startLocation)
-  );
-  players[1].camera = new PlayerPovCamera(
-    PovRight,
-    () => players.activePovs,
-    pxToMeter.xy(players[1].startLocation)
-  );
+  players.forEach((player, i) => {
+    const pos = i == 0 ? PovLeft : PovRight;
+    player.camera = new PlayerPovCamera(
+      pos,
+      () => players.activePovs,
+      pxToMeter.xy(player.startLocation)
+    );
+  });
+
   // #endregion player initialization
 
   const audioListener = new AudioListener();
@@ -132,8 +131,12 @@ async function TitanReactorReplay(
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
-  const audio = new Audio(bwDat, audioListener, (s) => scene.add(s));
-  const soundsBW = new SoundsBW(mapWidth, mapHeight, getTerrainY);
+  const audio = new Audio(
+    (id) => `sound/${bwDat.sounds[id].file}`,
+    audioListener,
+    (s) => scene.add(s)
+  );
+  const soundsBW = new SoundsBW(bwDat, mapWidth, mapHeight, getTerrainY);
 
   let replayPosition = new ReplayPosition(
     rep.header.frameCount,
@@ -361,11 +364,8 @@ async function TitanReactorReplay(
     }
     if (!_preloading && _preloadFrames.length) {
       _preloading = preloadAtlas(_preloadFrames.shift()).then(() => {
-        if (_preloadFrames.length) {
-          preloadAtlasQueue();
-        } else {
-          _preloading = false;
-        }
+        _preloading = false;
+        preloadAtlasQueue();
       });
     }
   };
@@ -375,7 +375,7 @@ async function TitanReactorReplay(
   function gameLoop(elapsed) {
     if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
       // players.updateResources(units);
-      store.dispatch(onGameTick());
+      // store.dispatch(onGameTick());
       //update position
     }
 
@@ -396,8 +396,9 @@ async function TitanReactorReplay(
 
         soundsBW.buffer = nextFrame.sounds;
         soundsBW.count = nextFrame.soundCount;
-        for (let s of soundsBW.items()) {
-          audio.play(soundsBW.id, soundsBW.x, soundsBW.y, soundsBW.z, elapsed);
+        for (let sound of soundsBW.items()) {
+          if (sound.muted) continue;
+          audio.play(sound, elapsed);
         }
 
         sprites.refresh(nextFrame);
@@ -520,10 +521,12 @@ async function TitanReactorReplay(
       //   cameras.setTarget(x, getTerrainY(x, z), z, true);
       // }
 
+      // audioListener.position.copy(cameras.getTarget());
+
       audioListener.position.lerpVectors(
         cameras.getTarget(),
         cameras.camera.position,
-        0.5
+        0.3
       );
       intersectAxesHelper.position.copy(audioListener.position);
       renderMan.render(scene, cameras.camera);

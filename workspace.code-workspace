@@ -6,6 +6,9 @@
 		},
 		{
 			"path": "packages\\titan-reactor"
+		},
+		{
+			"path": "packages\\iscriptah"
 		}
 	],
 	"settings": {}

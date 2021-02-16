@@ -1,9 +1,9 @@
 import { Color, sRGBEncoding } from "three";
-import GLTFLoader from "../utils/GLTFLoader";
+import ElectronGLTFLoader from "../utils/GLTFLoader";
 
-export default function loadGlb(file, envMap, name = "", meshCb = (x) => x) {
+export default function loadGlb(file, envMap, name = "") {
   return new Promise((resolve, reject) => {
-    new GLTFLoader().load(
+    new ElectronGLTFLoader().load(
       file,
       (glb) => {
         const { scene: model, animations } = glb;

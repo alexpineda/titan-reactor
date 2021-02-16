@@ -8,8 +8,8 @@ const versionHD2 = Symbol("hd2");
 
 const Version = {
   0x0101: versionSD,
-  0x0202: versionHD,
-  0x0204: versionHD2,
+  0x0202: versionHD2,
+  0x0204: versionHD,
 };
 
 export const Anim = (buf) => {
@@ -53,9 +53,9 @@ export const Anim = (buf) => {
         refId,
       };
     }
-    const w = sprite.readInt16LE(4);
-    const h = sprite.readInt16LE(6);
-    const framesOffset = sprite.readInt32LE(8);
+    const w = sprite.readUInt16LE(4);
+    const h = sprite.readUInt16LE(6);
+    const framesOffset = sprite.readUInt32LE(8);
     sprite.consume(12);
     const maps = parseTextures(sprite);
     const frames = parseFrames(numFrames, framesOffset);
@@ -92,8 +92,8 @@ export const Anim = (buf) => {
       const frames = bl.shallowSlice(o + frame * 16);
       const x = frames.readUInt16LE(0);
       const y = frames.readUInt16LE(2);
-      const xoff = frames.readUInt16LE(4);
-      const yoff = frames.readUInt16LE(6);
+      const xoff = frames.readInt16LE(4);
+      const yoff = frames.readInt16LE(6);
       const w = frames.readUInt16LE(8);
       const h = frames.readUInt16LE(10);
       const unk1 = frames.readUInt16LE(12);

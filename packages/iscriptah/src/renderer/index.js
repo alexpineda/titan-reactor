@@ -184,11 +184,13 @@ const updateEntities = (entities, delta) => {
   removeEntities.length = 0;
 
   for (let entity of entities) {
-    if (entity.userData.direction !== three.camera.userData.direction) {
-      entity.setDirection(three.camera.userData.direction);
+    if (entity.mainImage) {
+      if (entity.userData.direction !== three.camera.userData.direction) {
+        entity.setDirection(three.camera.userData.direction);
+      }
+      //@todo return list of new entities and process them!!
+      entity.update(delta);
     }
-    //@todo return list of new entities and process them!!
-    entity.update(delta);
     if (entity.images.length === 0) {
       removeEntities.push(entity);
     }

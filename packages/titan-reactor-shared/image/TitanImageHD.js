@@ -54,7 +54,7 @@ export default class TitanImageHD extends Sprite {
       1
     );
     this.material.transparent = true;
-    this.material.alphaTest = 0.01;
+    // this.material.alphaTest = 0.01;
     this.material.depthTest = false;
 
     this.castShadow = false;

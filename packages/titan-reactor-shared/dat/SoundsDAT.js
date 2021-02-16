@@ -7,10 +7,10 @@ export class SoundsDAT extends DAT {
 
     this.format = [
       { size: 4, name: "file", get: this._statTxt() },
-      { size: 1, name: "unknown1" },
+      { size: 1, name: "priority" },
       { size: 1, name: "flags" },
       { size: 2, name: "race" },
-      { size: 1, name: "volume" },
+      { size: 1, name: "minVolume" },
     ];
 
     this.datname = "sfxdata.dat";

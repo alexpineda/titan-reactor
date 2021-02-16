@@ -25,7 +25,7 @@ export default class TitanSprite extends Group {
     createTitanSprite,
     createTitanImage,
     createTitanSpriteCb,
-    destroyTitanSpriteCb,
+    destroyTitanSpriteCb = () => {},
     logger = { log: () => {} }
   ) {
     super();
@@ -102,19 +102,19 @@ export default class TitanSprite extends Group {
 
   //iscript_execute_sprite
   update(delta, cameraDirection) {
-    if (this.unit) {
-      this.position.copy(this.unit.position);
-      this.rotation.copy(this.unit.rotation);
-      this.setDirection((this.unit.direction + cameraDirection) % 32);
-      this.visible = this.unit.visible;
+    // if (this.unit) {
+    //   this.position.copy(this.unit.position);
+    //   this.rotation.copy(this.unit.rotation);
+    //   this.setDirection((this.unit.direction + cameraDirection) % 32);
+    //   this.visible = this.unit.visible;
 
-      if (
-        this.unit.current.anim !== this.unit.previous.anim &&
-        headersById[this.unit.current.anim]
-      ) {
-        this.run(this.unit.current.anim);
-      }
-    }
+    //   if (
+    //     this.unit.current.anim !== this.unit.previous.anim &&
+    //     headersById[this.unit.current.anim]
+    //   ) {
+    //     this.run(this.unit.current.anim);
+    //   }
+    // }
 
     let _terminated = false;
     for (let image of this.images) {

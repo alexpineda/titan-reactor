@@ -20,37 +20,39 @@ export default class ReplaySprite extends Object3D {
     return Object.values(this._imagesById);
   }
 
-  refresh(spritesBW, imagesBW) {
-    const x = spritesBW.x / 32 - this.mapWidth / 2;
-    const z = spritesBW.y / 32 - this.mapHeight / 2;
+  refresh(sprite, imagesBW) {
+    const x = sprite.x / 32 - this.mapWidth / 2;
+    const z = sprite.y / 32 - this.mapHeight / 2;
     const y = this.getTerrainY(x, z);
 
-    this.renderOrder = spritesBW.order * 10;
+    this.renderOrder = sprite.order * 10;
     this._imageRenderOrder = this.renderOrder;
 
     this.position.set(x, y, z);
 
     this.images.forEach((image) => this.remove(image));
 
-    for (let imageId of imagesBW.reverse(spritesBW.imageCount)) {
-      if (this.bwDat.images[imageId].drawFunction === drawFunctions.rleShadow) {
-        continue;
-      }
+    for (let image of imagesBW.reverse(sprite.imageCount)) {
+      // if (
+      //   this.bwDat.images[image.id].drawFunction === drawFunctions.rleShadow
+      // ) {
+      //   continue;
+      // }
 
       const titanImage =
-        this._imagesById[imageId] || this.createImage(imageId, this);
+        this._imagesById[image.id] || this.createImage(image.id, this);
 
-      titanImage.userData.bwIndex = imagesBW.index;
+      titanImage.userData.bwIndex = image.index;
 
       //@todo optimize with redraw flag?
-      const x = imagesBW.x / 32;
-      const y = imagesBW.y / 32;
+      const x = image.x / 32;
+      const y = image.y / 32;
 
       titanImage.position.set(x, 0, y);
       titanImage.renderOrder = this._imageRenderOrder++;
-      titanImage.setFrame(imagesBW.frameIndex, imagesBW.flipped);
-      titanImage.visible = !imagesBW.hidden;
-      this._imagesById[imageId] = titanImage;
+      titanImage.setFrame(image.frameIndex, image.flipped);
+      titanImage.visible = !image.hidden;
+      this._imagesById[image.id] = titanImage;
       this.add(titanImage);
     }
 

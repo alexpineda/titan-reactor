@@ -141,8 +141,8 @@ export class TitanReactor {
         imagesBW.buffer = frame.images;
         imagesBW.count = frame.imageCount;
 
-        for (let imageId of imagesBW.items()) {
-          await atlasPreloader.load(imageId);
+        for (let image of imagesBW.items()) {
+          await atlasPreloader.load(image.id);
         }
       }
     };

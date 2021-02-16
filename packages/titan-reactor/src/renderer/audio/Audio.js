@@ -3,62 +3,78 @@ import { DebugLog } from "../utils/DebugLog";
 import { range } from "ramda";
 
 export default class Audio {
-  constructor(bwDat, audioListener, addSound) {
-    this.bwDat = bwDat;
+  constructor(getSoundFileName, audioListener, addSound) {
+    this.getSoundFileName = getSoundFileName;
     this.logger = new DebugLog("audio");
     this.audioListener = audioListener;
-    this.audioPool = {};
+    this.audioBuffers = {};
 
     this.volume = 1;
-    this.maxSounds = 10;
-    this.sounds = range(0, this.maxSounds).map(
-      () => new PositionalAudio(this.audioListener)
-    );
-    this.sounds.forEach((s) => addSound(s));
+    this.maxSounds = 30;
+    this.channels = range(0, this.maxSounds).map(() => ({
+      audio: new PositionalAudio(this.audioListener),
+      priority: 0,
+    }));
+    this.channels.forEach(({ audio }) => addSound(audio));
   }
 
   setVolume(volume) {
     this.volume = volume;
   }
 
-  _getFree(soundId, elapsed) {
-    if (
-      this.audioPool[soundId] &&
-      elapsed - this.audioPool[soundId].elapsed < 80
-    ) {
+  // replicate scbw channels
+  _getFreeChannel(priority) {
+    for (const channel of this.channels) {
+      if (!channel.audio.isPlaying) {
+        return channel;
+      }
+    }
+
+    let bestPriority = priority;
+    let c;
+    for (const channel of this.channels) {
+      if (channel.priority < bestPriority) {
+        bestPriority = channel.priority;
+        c = channel;
+      }
+    }
+    return c;
+  }
+
+  play(sound, elapsed) {
+    const { id, priority } = sound;
+
+    if (this.audioBuffers[id] && elapsed - this.audioBuffers[id].elapsed < 80) {
       return;
     }
 
-    return this.sounds.find((sound) => !sound.isPlaying);
-  }
+    //todo if sound volume too low (bwVolume)
 
-  play(soundId, x, y, z, elapsed) {
-    const sound = this._getFree(soundId, elapsed);
-    if (!sound) return;
+    const channel = this._getFreeChannel(priority);
+    if (!channel) return;
 
-    sound.position.set(x, y, z);
+    channel.audio.position.set(sound.mapX, sound.mapY, sound.mapZ);
 
-    if (this.audioPool[soundId]) {
-      this.audioPool[soundId].elapsed = elapsed;
-      sound.setBuffer(this.audioPool[soundId].buffer);
-      sound.setVolume(this.volume);
-      sound.play();
+    if (this.audioBuffers[id]) {
+      this.audioBuffers[id].elapsed = elapsed;
+      channel.priority = priority;
+      channel.audio.setBuffer(this.audioBuffers[id].buffer);
+      channel.audio.setVolume(this.volume);
+      channel.audio.play();
       return;
     }
 
     const audioLoader = new AudioLoader();
-    audioLoader.load(`sound/${this.bwDat.sounds[soundId].file}`, (buffer) => {
-      this.audioPool[soundId] = {
-        buffer,
-        elapsed,
-      };
+    audioLoader.load(this.getSoundFileName(id), (buffer) => {
+      this.audioBuffers[id] = { buffer, elapsed };
 
-      sound.setBuffer(buffer);
-      sound.setRefDistance(10);
-      sound.setRolloffFactor(2.2);
-      sound.setDistanceModel("exponential");
-      sound.setVolume(this.volume);
-      sound.play();
+      channel.priority = priority;
+      channel.audio.setBuffer(buffer);
+      channel.audio.setRefDistance(8);
+      channel.audio.setRolloffFactor(3);
+      channel.audio.setDistanceModel("exponential");
+      channel.audio.setVolume(this.volume);
+      channel.audio.play();
     });
   }
 

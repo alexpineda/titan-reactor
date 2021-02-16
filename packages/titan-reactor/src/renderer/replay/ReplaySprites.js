@@ -42,24 +42,24 @@ class ReplaySprites {
 
     this.imagesBW.buffer = frame.images;
 
-    for (let index of this.spritesBW.items()) {
-      let sprite;
-      if (this._spritesByIndex[index]) {
-        sprite = this._spritesByIndex[index];
+    for (let sprite of this.spritesBW.items()) {
+      let replaySprite;
+      if (this._spritesByIndex[sprite.index]) {
+        replaySprite = this._spritesByIndex[sprite.index];
       } else {
-        sprite = new ReplaySprite(
+        replaySprite = new ReplaySprite(
           this.bwDat,
           this.mapWidth,
           this.mapHeight,
           this.getTerrainY,
           this.createTitanImage
         );
-        this._spritesByIndex[this.spritesBW.index] = sprite;
+        this._spritesByIndex[sprite.index] = replaySprite;
       }
 
-      sprite.refresh(this.spritesBW, this.imagesBW);
-      this.addSprite(sprite);
-      this._spritesThisFrame[index] = sprite;
+      replaySprite.refresh(sprite, this.imagesBW);
+      this.addSprite(replaySprite);
+      this._spritesThisFrame[sprite.index] = replaySprite;
     }
 
     // this._spritesLastFrame = [...this._spritesThisFrame];
