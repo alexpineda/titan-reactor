@@ -16,6 +16,7 @@ import {
 import fileExists from "titan-reactor-shared/utils/fileExists";
 import path from "path";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
+import phrases from "common/phrases";
 
 const VERSION = 1;
 
@@ -101,13 +102,11 @@ export class Settings extends EventEmitter {
       ? this._settings.language
       : localLanguage;
 
-    const phrases = await import(`common/phrases/${this._settings.language}`);
-
     return {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
       isDev,
-      phrases,
+      phrases: phrases[this._settings.language],
       diff: {},
     };
   }

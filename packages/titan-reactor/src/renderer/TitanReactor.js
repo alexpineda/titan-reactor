@@ -3,7 +3,6 @@ import createScmExtractor from "scm-extractor";
 import fs from "fs";
 import path from "path";
 import concat from "concat-stream";
-import { uniq } from "ramda";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
 import TitanReactorReplay from "./TitanReactorReplay";
@@ -11,7 +10,7 @@ import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import BgMusic from "./audio/BgMusic";
-import { openFile, log, loadReplayFromFile } from "./invoke";
+import { openFile, log } from "./invoke";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
@@ -28,7 +27,9 @@ import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
-import ReplayReadFile from "./replay/ReplayReadFile";
+import ReplayReadFile from "./replay/bw/ReplayReadFile";
+import AtlasPreloader from "titan-reactor-shared/image/preloadImageAtlases";
+import ImagesBW from "./replay/bw/ImagesBW";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -111,36 +112,36 @@ export class TitanReactor {
 
     this.atlases = {};
 
-    const preloadAtlas = async (frames) => {
-      const preloadImages = uniq(
-        frames.flatMap((frame) => {
-          return frame.sprites.flatMap((sprites) => {
-            return sprites.images.map((image) => {
-              return image.id;
-            });
-          });
-        })
-      );
+    const atlasPreloader = new AtlasPreloader(
+      this.bwDat,
+      state.settings.data.communityModelsPath,
+      readBwFile,
+      this.chk.tileset,
+      () => {
+        if (state.settings.data.renderMode === RenderMode.SD) {
+          return new GrpSD();
+        } else if (state.settings.data.renderMode === RenderMode.HD) {
+          return new GrpHD();
+        } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
+          return new Grp3D(this.envMap);
+        } else {
+          throw new Error("invalid render mode");
+        }
+      },
+      this.atlases
+    );
 
-      await preloadImageAtlases(
-        this.bwDat,
-        state.settings.data.communityModelsPath,
-        readBwFile,
-        this.chk.tileset,
-        preloadImages,
-        () => {
-          if (state.settings.data.renderMode === RenderMode.SD) {
-            return new GrpSD();
-          } else if (state.settings.data.renderMode === RenderMode.HD) {
-            return new GrpHD();
-          } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
-            return new Grp3D(this.envMap);
-          } else {
-            throw new Error("invalid render mode");
-          }
-        },
-        this.atlases
-      );
+    const imagesBW = new ImagesBW();
+
+    const preloadAtlas = async (frames) => {
+      for (let frame of frames) {
+        imagesBW.buffer = frame.images;
+        imagesBW.count = frame.numImages;
+
+        for (let imageId of imagesBW.items()) {
+          await atlasPreloader.load(imageId);
+        }
+      }
     };
 
     const gameStateReader = new ReplayReadFile(

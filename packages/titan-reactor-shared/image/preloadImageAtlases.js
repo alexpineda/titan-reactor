@@ -134,85 +134,97 @@ const hdRefs = {
   997: 994,
 };
 
-let palettes;
+const tnames = [
+  "badlands",
+  "platform",
+  "install",
+  "ashworld",
+  "jungle",
+  "desert",
+  "ice",
+  "twilight",
+];
 
-export default async function preloadImageAtlases(
-  bwDat,
-  bwDataPath,
-  readFile,
-  tileset,
-  imageIds,
-  createAtlas,
-  preloadAtlas = {}
-) {
-  if (imageIds.length === 0) {
-    return;
+export default class AtlasPreloader {
+  constructor(
+    bwDat,
+    bwDataPath,
+    readFile,
+    tileset,
+    createAtlas,
+    preloadAtlas = {}
+  ) {
+    this.bwDat = bwDat;
+    this.bwDataPath = bwDataPath;
+    this.readFile = readFile;
+    this.tileset = tileset;
+    this.tilesetName = tnames[tileset];
+
+    this.createAtlas = createAtlas;
+    this.preloadAtlas = preloadAtlas;
+    this.palettes = null;
+
+    this.refId = (id) => (hdRefs[id] !== undefined ? hdRefs[id] : id);
+
+    this.readGrp = (id) =>
+      readFile(`unit/${this.bwDat.images[id].grpFile.replace("\\", "/")}`);
+
+    this.readAnim = (id) =>
+      readFile(`anim/main_${`00${this.refId(id)}`.slice(-3)}.anim`);
+
+    this.readGlb = (id) =>
+      fsPromises
+        .readFile(
+          `${this.bwDataPath}/models/${`00${this.refId(id)}`.slice(-3)}.glb`
+        )
+        .then((file) => file)
+        .catch(() => null);
+
+    this.readNebula = (id) =>
+      fsPromises
+        .readFile(
+          `${this.bwDataPath}/models/${`00${this.refId(id)}`.slice(-3)}.json`
+        )
+        .then((file) => file)
+        .catch(() => null);
   }
 
-  const tnames = [
-    "badlands",
-    "platform",
-    "install",
-    "ashworld",
-    "jungle",
-    "desert",
-    "ice",
-    "twilight",
-  ];
-  const tilesetName = tnames[tileset];
-
-  if (!palettes) {
-    palettes = [
-      await readFile(`tileset/${tilesetName}.wpe`),
-      await fsPromises.readFile(`${__static}/palettes/ofire.wpe`),
-      await fsPromises.readFile(`${__static}/palettes/gfire.wpe`),
-      await fsPromises.readFile(`${__static}/palettes/bfire.wpe`),
-      await fsPromises.readFile(`${__static}/palettes/bexpl.wpe`),
-    ];
-    palettes.dark = await fsPromises.readFile(`${__static}/palettes/dark.wpe`);
-    palettes.cloak = await readFile(`tileset/${tilesetName}/trans50.pcx`);
-  }
-
-  const refId = (id) => (hdRefs[id] !== undefined ? hdRefs[id] : id);
-
-  const readGrp = (id) =>
-    readFile(`unit/${bwDat.images[id].grpFile.replace("\\", "/")}`);
-
-  const readAnim = (id) =>
-    readFile(`anim/main_${`00${refId(id)}`.slice(-3)}.anim`);
-
-  const readGlb = (id) =>
-    fsPromises
-      .readFile(`${bwDataPath}/models/${`00${refId(id)}`.slice(-3)}.glb`)
-      .then((file) => file)
-      .catch(() => null);
-
-  const readNebula = (id) =>
-    fsPromises
-      .readFile(`${bwDataPath}/models/${`00${refId(id)}`.slice(-3)}.json`)
-      .then((file) => file)
-      .catch(() => null);
-
-  const imgs = imageIds.map((id) => ({
-    imageDef: bwDat.images[id],
-    readGrp: () => readGrp(id),
-    readAnim: () => readAnim(id),
-    readGlb: () => readGlb(id),
-    glbFileName: `${bwDataPath}/models/${`00${refId(id)}`.slice(-3)}.glb`,
-    readNebula: () => readNebula(id),
-    palettes,
-  }));
-
-  for (let img of imgs) {
-    if (!img || !img.imageDef) {
-      debugger;
+  async load(imageId) {
+    if (this.preloadAtlas[imageId]) {
+      return;
     }
-    if (preloadAtlas[img.imageDef.index]) {
-      continue;
+    this.preloadAtlas[imageId] = true;
+
+    if (!this.palettes) {
+      this.palettes = [
+        await this.readFile(`tileset/${this.tilesetName}.wpe`),
+        await fsPromises.readFile(`${__static}/palettes/ofire.wpe`),
+        await fsPromises.readFile(`${__static}/palettes/gfire.wpe`),
+        await fsPromises.readFile(`${__static}/palettes/bfire.wpe`),
+        await fsPromises.readFile(`${__static}/palettes/bexpl.wpe`),
+      ];
+      this.palettes.dark = await fsPromises.readFile(
+        `${__static}/palettes/dark.wpe`
+      );
+      this.palettes.cloak = await this.readFile(
+        `tileset/${this.tilesetName}/trans50.pcx`
+      );
     }
-    const atlas = createAtlas();
+
+    const img = {
+      imageDef: this.bwDat.images[imageId],
+      readGrp: () => this.readGrp(imageId),
+      readAnim: () => this.readAnim(imageId),
+      readGlb: () => this.readGlb(imageId),
+      glbFileName: `${this.bwDataPath}/models/${`00${this.refId(
+        imageId
+      )}`.slice(-3)}.glb`,
+      readNebula: () => this.readNebula(imageId),
+      palettes: this.palettes,
+    };
+
+    const atlas = this.createAtlas();
     await atlas.load(img);
-    preloadAtlas[img.imageDef.index] = atlas;
+    this.preloadAtlas[imageId] = atlas;
   }
-  return preloadAtlas;
 }

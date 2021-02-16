@@ -16,8 +16,6 @@ import Parser from "rss-parser";
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import { Readable } from "stream";
-import ReplayReadFile from "../renderer/replay/ReplayReadFile";
-import ReplayReadSocket from "../renderer/replay/ReplayReadSocket";
 
 import {
   GET_APPCACHE_PATH,

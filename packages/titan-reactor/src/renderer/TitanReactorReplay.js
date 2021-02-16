@@ -390,8 +390,7 @@ async function TitanReactorReplay(
           break;
         }
 
-        updateCurrentReplayPosition(nextFrame.frame);
-        sprites.refresh(nextFrame.sprites);
+        sprites.refresh(nextFrame);
         replayPosition.bwGameFrame = nextFrame.frame;
 
         if (replayPosition.isMaxFrame()) {
@@ -570,7 +569,6 @@ async function TitanReactorReplay(
   const dispose = () => {
     renderMan.renderer.setAnimationLoop(null);
     renderMan.dispose();
-    ipcRenderer.off("new-frames", _newFramesListener);
     replayPosition.pause();
     bgMusic.dispose();
     window.removeEventListener("resize", sceneResizeHandler, false);
