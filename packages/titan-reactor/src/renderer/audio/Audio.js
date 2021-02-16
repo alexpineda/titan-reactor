@@ -1,70 +1,69 @@
-import { AudioLoader, DefaultLoadingManager, PositionalAudio } from "three";
+import { AudioLoader, PositionalAudio } from "three";
 import { DebugLog } from "../utils/DebugLog";
+import { range } from "ramda";
 
-export class Audio {
-  constructor(
-    bwDataPath,
-    bwDat,
-    audioListener,
-    loadingManager = DefaultLoadingManager
-  ) {
+export default class Audio {
+  constructor(bwDat, audioListener, addSound) {
     this.bwDat = bwDat;
-    this.bwDataPath = bwDataPath;
     this.logger = new DebugLog("audio");
     this.audioListener = audioListener;
     this.audioPool = {};
-    this.loadingManager = loadingManager;
+
     this.volume = 1;
+    this.maxSounds = 10;
+    this.sounds = range(0, this.maxSounds).map(
+      () => new PositionalAudio(this.audioListener)
+    );
+    this.sounds.forEach((s) => addSound(s));
   }
 
   setVolume(volume) {
     this.volume = volume;
   }
 
-  initUnit(unit) {
-    this.logger.assign(unit.userData);
-    const unitSound = new PositionalAudio(this.audioListener);
-    unit.add(unitSound);
+  _getFree(soundId, elapsed) {
+    if (
+      this.audioPool[soundId] &&
+      elapsed - this.audioPool[soundId].elapsed < 80
+    ) {
+      return;
+    }
 
-    const playSound = (soundId) => {
-      if (unitSound.isPlaying) {
-        this.logger.log(
-          `%c 🔊 ${soundId}`,
-          "background: #ffff00; color: #000000"
-        );
-        return;
-      } else {
-        this.logger.log(
-          `%c 🔇 ${soundId}`,
-          "background: #990000; color: #ffffff"
-        );
-      }
-
-      this.logger.log(`play sound ${soundId}`);
-      if (this.audioPool[soundId]) {
-        unitSound.setBuffer(this.audioPool[soundId]);
-        unitSound.setVolume(this.volume);
-        unitSound.play();
-        return;
-      }
-
-      const audioLoader = new AudioLoader(this.loadingManager);
-      audioLoader.load(
-        `${this.bwDataPath}/sound/${this.bwDat.sounds[soundId].file}`,
-        (buffer) => {
-          this.audioPool[soundId] = buffer;
-          unitSound.setBuffer(buffer);
-          unitSound.setRefDistance(10);
-          unitSound.setRolloffFactor(2.2);
-          unitSound.setDistanceModel("exponential");
-          unitSound.setVolume(1);
-          unitSound.play();
-        }
-      );
-    };
-    unit.userData.runner.on("playsnd", playSound);
-    unit.userData.runner.on("playsndbtwn", playSound);
-    unit.userData.runner.on("playsndrand", playSound);
-    unit.userData.runner.on("attackmelee", playSound);
+    return this.sounds.find((sound) => !sound.isPlaying);
   }
+
+  play(soundId, x, y, z, elapsed) {
+    const sound = this._getFree(soundId, elapsed);
+    if (!sound) return;
+
+    sound.position.set(x, y, z);
+
+    if (this.audioPool[soundId]) {
+      this.audioPool[soundId].elapsed = elapsed;
+      sound.setBuffer(this.audioPool[soundId].buffer);
+      sound.setVolume(this.volume);
+      sound.play();
+      return;
+    }
+
+    const audioLoader = new AudioLoader();
+    audioLoader.load(`sound/${this.bwDat.sounds[soundId].file}`, (buffer) => {
+      this.audioPool[soundId] = {
+        buffer,
+        elapsed,
+      };
+
+      sound.setBuffer(buffer);
+      sound.setRefDistance(10);
+      sound.setRolloffFactor(2.2);
+      sound.setDistanceModel("exponential");
+      sound.setVolume(this.volume);
+      sound.play();
+    });
+  }
+
+  // unit.userData.runner.on("playsnd", playSound);
+  // unit.userData.runner.on("playsndbtwn", playSound);
+  // unit.userData.runner.on("playsndrand", playSound);
+  // unit.userData.runner.on("attackmelee", playSound);
 }

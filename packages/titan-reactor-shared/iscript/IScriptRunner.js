@@ -417,8 +417,8 @@ export class IScriptRunner {
 
         case "playsndrand":
           {
-            const [numSounds, ...sounds] = args;
-            const soundId = sounds[Math.floor(Math.random() * numSounds)];
+            const [soundCount, ...sounds] = args;
+            const soundId = sounds[Math.floor(Math.random() * soundCount)];
             this._dispatch(command, soundId);
           }
           break;
@@ -436,8 +436,8 @@ export class IScriptRunner {
           break;
         case "attackmelee":
           {
-            const [numSounds, ...sounds] = args;
-            const soundId = sounds[Math.floor(Math.random() * numSounds)];
+            const [soundCount, ...sounds] = args;
+            const soundId = sounds[Math.floor(Math.random() * soundCount)];
             this._dispatch(command, soundId);
           }
           break;

@@ -22,10 +22,6 @@ export default class ContiguousContainer {
     return null;
   }
 
-  get object() {
-    return {};
-  }
-
   get offset() {
     return Math.floor(this._offset / this.constructor.byteLength);
   }
@@ -34,12 +30,24 @@ export default class ContiguousContainer {
     this._offset = value * this.constructor.byteLength;
   }
 
-  _read32(offset) {
-    return this._buf.readInt32LE(this._offset + offset);
+  _readU8(byteOffset) {
+    return this._buf.readUInt8(this._offset + byteOffset);
   }
 
-  _readU32(offset) {
-    return this._buf.readUInt32LE(this._offset + offset);
+  _readU16(byteOffset) {
+    return this._buf.readUInt16LE(this._offset + byteOffset);
+  }
+
+  _read32(byteOffset) {
+    return this._buf.readInt32LE(this._offset + byteOffset);
+  }
+
+  _readU32(byteOffset) {
+    return this._buf.readUInt32LE(this._offset + byteOffset);
+  }
+
+  _readDouble(byteOffset) {
+    return this._buf.readDoubleLE(this._offset + byteOffset);
   }
 
   *items(count = this.count) {

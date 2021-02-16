@@ -1,6 +1,8 @@
-import ReadType from "./ReadType";
+import SoundsBW from "./SoundsBW";
 import SpritesBW from "./SpritesBW";
 import ImagesBW from "./ImagesBW";
+import TilesBW from "./TilesBW";
+import UnitsBW from "./UnitsBW";
 
 export default class ReadState {
   static get FrameCount() {
@@ -52,29 +54,30 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Frame) {
-      if (buf.length < 20) {
+      if (buf.length < 24) {
         return false;
       }
 
       this.frame = buf.readInt32LE(0);
-      this.numTiles = buf.readUInt32LE(4);
-      this.numUnits = buf.readInt32LE(8);
-      this.numSprites = buf.readInt32LE(12);
-      this.numImages = buf.readInt32LE(16);
+      this.tilesCount = buf.readUInt32LE(4);
+      this.unitCount = buf.readInt32LE(8);
+      this.spriteCount = buf.readInt32LE(12);
+      this.imageCount = buf.readInt32LE(16);
+      this.soundCount = buf.readInt32LE(20);
 
-      this.sprites = Buffer.allocUnsafe(this.numSprites * SpritesBW.byteLength);
-
-      this.images = Buffer.allocUnsafe(this.numImages * ImagesBW.byteLength);
-
-      this.units = Buffer.allocUnsafe(
-        this.numUnits * ReadType.UnitBWByteLength
+      this.sprites = Buffer.allocUnsafe(
+        this.spriteCount * SpritesBW.byteLength
       );
 
-      this.tiles = Buffer.allocUnsafe(
-        this.numTiles * ReadType.TileBWByteLength
-      );
+      this.images = Buffer.allocUnsafe(this.imageCount * ImagesBW.byteLength);
 
-      buf.consume(20);
+      this.units = Buffer.allocUnsafe(this.unitCount * UnitsBW.byteLength);
+
+      this.tiles = Buffer.allocUnsafe(this.tilesCount * TilesBW.byteLength);
+
+      this.sounds = Buffer.allocUnsafe(this.soundCount * SoundsBW.byteLength);
+
+      buf.consume(24);
       this.mode = ReadState.Tile;
       return true;
     }
@@ -124,6 +127,24 @@ export default class ReadState {
 
       buf.copy(this.images, 0, 0, this.images.byteLength);
       buf.consume(this.images.byteLength);
+
+      this.mode = ReadState.Sounds;
+
+      return true;
+    }
+
+    if (this.mode === ReadState.Sounds) {
+      if (buf.length < this.sounds.byteLength) {
+        return false;
+      }
+
+      if (this.soundCount == 0) {
+        this.mode = ReadState.Frame;
+        return true;
+      }
+
+      buf.copy(this.sounds, 0, 0, this.sounds.byteLength);
+      buf.consume(this.sounds.byteLength);
 
       this.mode = ReadState.Frame;
 

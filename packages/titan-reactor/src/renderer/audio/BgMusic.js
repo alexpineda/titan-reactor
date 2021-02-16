@@ -17,7 +17,7 @@ class BgMusic {
   playGame() {
     const race = ["terran", "zerg", "protoss"];
     this.audio.onEnded = this.playGame.bind(this);
-    this._play(`${this.bwDataPath}/music/${race[rand(2)]}${rand(4) + 1}.ogg`);
+    this._play(`music/${race[rand(2)]}${rand(4) + 1}.ogg`);
   }
 
   playMenu() {

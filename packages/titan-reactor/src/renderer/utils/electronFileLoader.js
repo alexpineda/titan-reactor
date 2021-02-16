@@ -1,49 +1,50 @@
 import { FileLoader } from "three";
-import { openFile } from "../invoke";
 
 const loading = {};
 
-FileLoader.prototype.load = function (url, onLoad, onProgress, onError) {
-  if (loading[url] !== undefined) {
+export default (openFile) => {
+  FileLoader.prototype.load = function (url, onLoad, onProgress, onError) {
+    if (loading[url] !== undefined) {
+      loading[url].push({
+        onLoad: onLoad,
+        onProgress: onProgress,
+        onError: onError,
+      });
+
+      return;
+    }
+
+    loading[url] = [];
+
     loading[url].push({
       onLoad: onLoad,
       onProgress: onProgress,
       onError: onError,
     });
 
-    return;
-  }
+    const callbacks = loading[url];
 
-  loading[url] = [];
+    delete loading[url];
 
-  loading[url].push({
-    onLoad: onLoad,
-    onProgress: onProgress,
-    onError: onError,
-  });
+    this.manager.itemStart(url);
 
-  const callbacks = loading[url];
+    openFile(url)
+      .then((buf) => {
+        for (let i = 0, il = callbacks.length; i < il; i++) {
+          const callback = callbacks[i];
+          if (callback.onLoad) callback.onLoad(buf.buffer);
+        }
 
-  delete loading[url];
+        this.manager.itemEnd(url);
+      })
+      .catch((err) => {
+        for (let i = 0, il = callbacks.length; i < il; i++) {
+          const callback = callbacks[i];
+          if (callback.onError) callback.onError(err);
+        }
 
-  this.manager.itemStart(url);
-
-  openFile(url)
-    .then((buf) => {
-      for (let i = 0, il = callbacks.length; i < il; i++) {
-        const callback = callbacks[i];
-        if (callback.onLoad) callback.onLoad(buf.buffer);
-      }
-
-      this.manager.itemEnd(url);
-    })
-    .catch((err) => {
-      for (let i = 0, il = callbacks.length; i < il; i++) {
-        const callback = callbacks[i];
-        if (callback.onError) callback.onError(err);
-      }
-
-      this.manager.itemError(url);
-      this.manager.itemEnd(url);
-    });
+        this.manager.itemError(url);
+        this.manager.itemEnd(url);
+      });
+  };
 };

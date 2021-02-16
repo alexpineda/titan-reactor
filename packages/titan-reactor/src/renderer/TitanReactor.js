@@ -22,6 +22,7 @@ import GrpHD from "titan-reactor-shared/image/GrpHD";
 import Grp3D from "titan-reactor-shared/image/Grp3D";
 import createTitanImage from "titan-reactor-shared/image/createTitanImage";
 import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
+import electronFileLoader from "./utils/electronFileLoader";
 
 import readBwFile, {
   closeStorage,
@@ -64,6 +65,8 @@ export class TitanReactor {
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
     openStorage(state.settings.data.starcraftPath);
+    electronFileLoader(readBwFile);
+
     const origBwDat = await loadAllDataFiles(readBwFile);
     this.bwDat = {
       ...origBwDat,
@@ -136,7 +139,7 @@ export class TitanReactor {
     const preloadAtlas = async (frames) => {
       for (let frame of frames) {
         imagesBW.buffer = frame.images;
-        imagesBW.count = frame.numImages;
+        imagesBW.count = frame.imageCount;
 
         for (let imageId of imagesBW.items()) {
           await atlasPreloader.load(imageId);
@@ -186,7 +189,6 @@ export class TitanReactor {
       gameStateReader,
       this.bwDat,
       new BgMusic(state.settings.data.starcraftPath),
-      this.atlases,
       createTitanImage(
         this.bwDat,
         this.atlases,

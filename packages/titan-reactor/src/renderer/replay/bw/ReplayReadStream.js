@@ -52,14 +52,16 @@ export default class ReplayReadStream extends EventEmitter {
         if (this._state.mode === ReadState.Frame) {
           newFrames.push({
             frame: this._state.frame,
-            numSprites: this._state.numSprites,
-            numTiles: this._state.numTiles,
-            numUnits: this._state.numUnits,
-            numImages: this._state.numImages,
+            spriteCount: this._state.spriteCount,
+            tilesCount: this._state.tilesCount,
+            unitCount: this._state.unitCount,
+            imageCount: this._state.imageCount,
+            soundCount: this._state.soundCount,
             images: this._state.images,
             sprites: this._state.sprites,
             units: this._state.units,
             tiles: this._state.tiles,
+            sounds: this._state.sounds,
           });
           this._lastReadFrame = this._state.frame;
           console.log(this._lastReadFrame);

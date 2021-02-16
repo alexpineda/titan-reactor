@@ -23,6 +23,8 @@ import { updateCurrentReplayPosition } from "./invoke";
 import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/replay/replayHudReducer";
+import Audio from "./audio/Audio";
+import SoundsBW from "./replay/bw/SoundsBW";
 
 import ReplaySprites from "./replay/ReplaySprites";
 
@@ -38,7 +40,6 @@ async function TitanReactorReplay(
   gameStateReader,
   bwDat,
   bgMusic,
-  atlases,
   createTitanImage,
   preloadAtlas
 ) {
@@ -105,6 +106,8 @@ async function TitanReactorReplay(
   await renderMan.initRenderer(cameras.camera);
   window.renderMan = renderMan;
 
+  const getTerrainY = scene.getTerrainY();
+
   // #region player initialization
   const players = new Players(
     rep.header.players,
@@ -129,7 +132,8 @@ async function TitanReactorReplay(
   bgMusic.playGame();
   scene.add(bgMusic.getAudio());
 
-  const getTerrainY = scene.getTerrainY();
+  const audio = new Audio(bwDat, audioListener, (s) => scene.add(s));
+  const soundsBW = new SoundsBW(mapWidth, mapHeight, getTerrainY);
 
   let replayPosition = new ReplayPosition(
     rep.header.frameCount,
@@ -368,7 +372,7 @@ async function TitanReactorReplay(
 
   gameStateReader.on("frames", (frames) => preloadAtlasQueue(frames));
 
-  function gameLoop() {
+  function gameLoop(elapsed) {
     if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
       // players.updateResources(units);
       store.dispatch(onGameTick());
@@ -388,6 +392,12 @@ async function TitanReactorReplay(
         if (!nextFrame) {
           replayPosition.paused = true;
           break;
+        }
+
+        soundsBW.buffer = nextFrame.sounds;
+        soundsBW.count = nextFrame.soundCount;
+        for (let s of soundsBW.items()) {
+          audio.play(soundsBW.id, soundsBW.x, soundsBW.y, soundsBW.z, elapsed);
         }
 
         sprites.refresh(nextFrame);

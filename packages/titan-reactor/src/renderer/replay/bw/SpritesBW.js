@@ -39,7 +39,7 @@ export default class SpritesBW extends ContiguousContainer {
     return this._read32(24);
   }
 
-  get numImages() {
+  get imageCount() {
     return this._read32(28);
   }
 
@@ -48,20 +48,6 @@ export default class SpritesBW extends ContiguousContainer {
   }
 
   get order() {
-    return Math.floor(this._offset / this.constructor.byteLength);
-  }
-
-  get object() {
-    return {
-      index: this._readU32(0),
-      id: this._read32(4),
-      owner: this._read32(8),
-      elevation: this._read32(12),
-      flags: this._read32(16),
-      x: this._read32(20),
-      y: this._read32(24),
-      numImages: this._read32(28),
-      mainImageIndex: this._read32(32),
-    };
+    return this.offset;
   }
 }

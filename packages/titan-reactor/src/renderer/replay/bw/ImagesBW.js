@@ -48,18 +48,6 @@ export default class ImagesBW extends ContiguousContainer {
     return this._read32(24);
   }
 
-  get object() {
-    return {
-      index: this._readU32(0),
-      id: this._read32(4),
-      flags: this._read32(8),
-      modifier: this._read32(12),
-      frameIndex: this._read32(16),
-      x: this._read32(20),
-      y: this._read32(24),
-    };
-  }
-
   get flipped() {
     return (this.flags & flags.flipped) != 0;
   }

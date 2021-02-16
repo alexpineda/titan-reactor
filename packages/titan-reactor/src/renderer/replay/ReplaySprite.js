@@ -32,7 +32,7 @@ export default class ReplaySprite extends Object3D {
 
     this.images.forEach((image) => this.remove(image));
 
-    for (let imageId of imagesBW.reverse(spritesBW.numImages)) {
+    for (let imageId of imagesBW.reverse(spritesBW.imageCount)) {
       if (this.bwDat.images[imageId].drawFunction === drawFunctions.rleShadow) {
         continue;
       }

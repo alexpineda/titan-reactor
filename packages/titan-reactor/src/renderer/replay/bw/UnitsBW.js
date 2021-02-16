@@ -1,31 +1,55 @@
-export default class UnitBW {
+import ContiguousContainer from "./ContiguousContainer";
+
+export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 44;
+    return 48;
   }
 
-  //   unsigned int index;
-  //   int id;
-  //   int owner;
-  //   int x;
-  //   int y;
-  //   int hp;
-  //   int energy;
-  //   int sprite_index = -1;
-  //   int status_flags;
-  //   int direction;
-  //   double angle;
+  get default() {
+    return this.index;
+  }
 
-  constructor(buf) {
-    this.index = buf.readUInt32LE(0);
-    this.id = buf.readInt32LE(4);
-    this.owner = buf.readInt32LE(8);
-    this.x = buf.readInt32LE(12);
-    this.y = buf.readInt32LE(16);
-    this.hp = buf.readInt32LE(20);
-    this.energy = buf.readInt32LE(24);
-    this.spriteIndex = buf.readInt32LE(28);
-    this.statusFlags = buf.readInt32LE(32);
-    this.direction = buf.readInt32LE(36);
-    this.angle = buf.readInt32LE(40);
+  get index() {
+    return this._readU32(0);
+  }
+
+  get id() {
+    return this._read32(4);
+  }
+
+  get owner() {
+    return this._read32(8);
+  }
+
+  get x() {
+    return this._read32(12);
+  }
+
+  get y() {
+    return this._read32(16);
+  }
+
+  get hp() {
+    return this._read32(20);
+  }
+
+  get energy() {
+    return this._read32(24);
+  }
+
+  get spriteIndex() {
+    return this._read32(28);
+  }
+
+  get statusFlags() {
+    return this._read32(32);
+  }
+
+  get direction() {
+    return this._read32(36);
+  }
+
+  get angle() {
+    return this._readDouble(40);
   }
 }

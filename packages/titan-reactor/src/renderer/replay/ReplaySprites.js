@@ -38,7 +38,7 @@ class ReplaySprites {
     this.sprites.forEach(this.removeSprite);
 
     this.spritesBW.buffer = frame.sprites;
-    this.spritesBW.count = frame.numSprites;
+    this.spritesBW.count = frame.spriteCount;
 
     this.imagesBW.buffer = frame.images;
 

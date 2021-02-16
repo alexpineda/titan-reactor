@@ -8,7 +8,6 @@ import { log, setWebGLCapabilities } from "./invoke";
 import version from "../common/version";
 import { TitanReactor } from "./TitanReactor";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
-import "./utils/electronFileLoader";
 import store from "./store";
 import { getRemoteSettings } from "./utils/settingsReducer";
 import {
