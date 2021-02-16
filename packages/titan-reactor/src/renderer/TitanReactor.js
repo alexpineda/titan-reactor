@@ -1,6 +1,7 @@
-import { ipcRenderer } from "electron";
+import { remote } from "electron";
 import createScmExtractor from "scm-extractor";
 import fs from "fs";
+import path from "path";
 import concat from "concat-stream";
 import { uniq } from "ramda";
 import Chk from "../../libs/bw-chk";
@@ -10,12 +11,7 @@ import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import BgMusic from "./audio/BgMusic";
-import {
-  openFile,
-  log,
-  loadReplayFromFile,
-  updateCurrentReplayPosition,
-} from "./invoke";
+import { openFile, log, loadReplayFromFile } from "./invoke";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import preloadImageAtlases from "titan-reactor-shared/image/preloadImageAtlases";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
@@ -32,7 +28,7 @@ import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
-import { calculateImagesFromUnitsIscript } from "titan-reactor-shared/image/calculateImagesFromIScript";
+import ReplayReadFile from "./replay/ReplayReadFile";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -113,8 +109,6 @@ export class TitanReactor {
 
     document.title = "Titan Reactor - Replay";
 
-    await loadReplayFromFile(filepath);
-
     this.atlases = {};
 
     const preloadAtlas = async (frames) => {
@@ -149,25 +143,27 @@ export class TitanReactor {
       );
     };
 
-    const availableFrames = [];
+    const gameStateReader = new ReplayReadFile(
+      filepath,
+      path.join(remote.app.getPath("temp"), "replay"),
+      state.settings.data.starcraftPath
+    );
+
+    await gameStateReader.start();
 
     await new Promise((res) => {
-      const _newFramesListener = (evt, frames) => {
-        availableFrames.push(...frames);
+      const waitForMax = () => {
+        if (gameStateReader.maxed()) {
+          res();
+        } else {
+          setTimeout(waitForMax, 500);
+        }
       };
 
-      const _pausedFramesListener = () => {
-        res();
-
-        ipcRenderer.off("new-frames", _newFramesListener);
-        ipcRenderer.off("paused-frames", _pausedFramesListener);
-      };
-
-      ipcRenderer.on("new-frames", _newFramesListener);
-      ipcRenderer.on("paused-frames", _pausedFramesListener);
+      setTimeout(waitForMax, 500);
     });
 
-    await preloadAtlas(availableFrames);
+    await preloadAtlas(gameStateReader.frames);
 
     dispatchRepLoadingProgress();
 
@@ -186,7 +182,7 @@ export class TitanReactor {
       scene,
       this.chk,
       this.rep,
-      availableFrames,
+      gameStateReader,
       this.bwDat,
       new BgMusic(state.settings.data.starcraftPath),
       this.atlases,

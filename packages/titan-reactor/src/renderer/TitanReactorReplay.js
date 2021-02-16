@@ -35,7 +35,7 @@ async function TitanReactorReplay(
   scene,
   chk,
   rep,
-  availableFrames,
+  gameStateReader,
   bwDat,
   bgMusic,
   atlases,
@@ -356,7 +356,7 @@ async function TitanReactorReplay(
       _preloadFrames.push(frames);
     }
     if (!_preloading && _preloadFrames.length) {
-      preloadAtlas(_preloadFrames.shift()).then(() => {
+      _preloading = preloadAtlas(_preloadFrames.shift()).then(() => {
         if (_preloadFrames.length) {
           preloadAtlasQueue();
         } else {
@@ -366,12 +366,7 @@ async function TitanReactorReplay(
     }
   };
 
-  const _newFramesListener = (evt, frames) => {
-    preloadAtlasQueue(frames);
-    availableFrames.push(...frames);
-  };
-
-  ipcRenderer.on("new-frames", _newFramesListener);
+  gameStateReader.on("frames", (frames) => preloadAtlasQueue(frames));
 
   function gameLoop() {
     if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
@@ -388,7 +383,7 @@ async function TitanReactorReplay(
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
-        const nextFrame = availableFrames.shift();
+        const nextFrame = gameStateReader.next();
 
         if (!nextFrame) {
           replayPosition.paused = true;

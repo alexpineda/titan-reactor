@@ -22,7 +22,7 @@ export default class ReplayReadFile extends ReplayReadStream {
       console.error(`stderr: ${data}`);
     });
 
-    await new Promise((res, rej) => {
+    await new Promise((res) => {
       this.openBwBridge.stdout.on("data", (data) => {
         if (data > 100) {
           res();

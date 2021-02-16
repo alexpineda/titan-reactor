@@ -14,9 +14,11 @@ export default class ImagesBW {
     return (imageBw.flags & flags.flipped) != 0;
   }
 
+  static hidden(imageBw) {
+    return (imageBw.flags & flags.hidden) != 0;
+  }
+
   constructor(buf) {
     this.buf = buf;
   }
-
-  get(index) {}
 }

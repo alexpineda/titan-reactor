@@ -379,33 +379,6 @@ if (gotTheLock) {
     return await parser.parseURL(url);
   });
 
-  ipcMain.handle(LOAD_REPLAY_FROM_FILE, async (event, filepath) => {
-    if (gameStateReader) {
-      gameStateReader.dispose();
-    }
-
-    const s = await settings.get();
-
-    const replayReader = new ReplayReadFile(
-      filepath,
-      path.join(app.getPath("temp"), "replay"),
-      s.data.starcraftPath
-    );
-
-    await replayReader.start();
-    gameStateReader.on("new-frames", (frames) => {
-      gameWindow.webContents.send("new-frames", frames);
-    });
-
-    gameStateReader.on("paused", () => {
-      gameWindow.webContents.send("paused-frames");
-    });
-  });
-
-  ipcMain.on(UPDATE_CURRENT_REPLAY_POSITION, async (event, position) => {
-    gameStateReader.replayPosition = position;
-  });
-
   ipcMain.handle(LOAD_CHK, (event, buf) => {
     const chk = new Chk(new BufferList(buf));
     return chk;

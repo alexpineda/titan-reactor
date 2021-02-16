@@ -3,10 +3,10 @@ import EventEmitter from "events";
 import ReadState from "./ReadState";
 
 export default class ReplayReadStream extends EventEmitter {
-  constructor(file, maxFramesLength = 100) {
+  constructor(file, maxFramesLength = 20) {
     super();
     this.maxFramesLength = maxFramesLength;
-    this.maxBufLength = 4000 * 1000;
+    this.maxBufLength = 2000 * 1000;
     this.file = file;
 
     this._buf = new BufferList();
@@ -14,27 +14,28 @@ export default class ReplayReadStream extends EventEmitter {
     this._stream;
     this._lastReadFrame = 0;
     this._replayPosition = 0;
-    this.paused = false;
+    this.frames = [];
   }
 
-  _pauseReading() {
-    return (
-      this._state.ended() ||
-      this._lastReadFrame - this._replayPosition > this.maxFramesLength ||
-      this.paused
-    );
+  maxed() {
+    return this._state.ended() || this.frames.length > this.maxFramesLength;
   }
 
-  get replayPosition() {
-    return this._replayPosition;
+  next() {
+    const frame = this.frames.shift();
+    this.readFrames();
+    return frame;
   }
 
-  set replayPosition(val) {
-    this._replayPosition = val;
+  all() {
+    const frames = this.frames;
+    this.frames = [];
+    this.readFrames();
+    return frames;
   }
 
   readFrames() {
-    if (this._pauseReading()) {
+    if (this.maxed()) {
       this.emit("paused");
       return;
     }
@@ -45,7 +46,6 @@ export default class ReplayReadStream extends EventEmitter {
 
     let buf;
     while ((buf = this.stream.read())) {
-      console.log(`read ${buf.byteLength}`);
       this._buf.append(buf);
 
       while (this._state.process(this._buf)) {
@@ -60,21 +60,22 @@ export default class ReplayReadStream extends EventEmitter {
             tiles: this._state.tiles,
           });
           this._lastReadFrame = this._state.frame;
-          if (this._pauseReading()) {
+          console.log(this._lastReadFrame);
+          if (this.maxed()) {
             break;
           }
         }
       }
 
-      if (this._pauseReading()) {
+      if (this.maxed()) {
         break;
       }
     }
 
-    //@todo account for possible no listeners here, save backup
-    this.emit("new-frames", newFrames);
+    this.frames.push(...newFrames);
+    this.emit("frames", newFrames);
 
-    if (this._pauseReading()) {
+    if (this.maxed()) {
       this.emit("paused");
     }
   }

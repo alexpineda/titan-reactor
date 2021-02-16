@@ -53,6 +53,7 @@ export default class ReplaySprite extends Object3D {
       titanImage.position.set(x, 0, y);
       titanImage.renderOrder = this._imageRenderOrder++;
       titanImage.setFrame(imageBw.frameIndex, ImagesBW.flipped(imageBw));
+      titanImage.visible = !ImagesBW.hidden(imageBw);
       this._imagesByIndex[imageBw.id] = titanImage;
       this.add(titanImage);
     }
