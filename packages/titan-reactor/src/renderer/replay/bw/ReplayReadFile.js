@@ -40,6 +40,14 @@ export default class ReplayReadFile extends ReplayReadStream {
         res();
         this.readFrames();
       });
+
+      this.stream.on("error", (err) => console.error(err));
+      this.stream.on("end", () => {
+        console.log("There will be no more data.");
+      });
+      this.stream.on("close", () => {
+        console.log("file closed");
+      });
     });
   }
 

@@ -85,12 +85,9 @@ class Units {
       }
     }
 
-    for (let unitIndex of difference(
-      this._unitsLastFrame,
-      this._unitsThisFrame
-    )) {
-      if (this.minimapPoints[unitIndex]) {
-        this.minimapPoints[unitIndex].remove();
+    for (let index of difference(this._unitsLastFrame, this._unitsThisFrame)) {
+      if (this.minimapPoints[index]) {
+        this.minimapPoints[index].remove();
       }
     }
 

@@ -9,6 +9,9 @@
 		},
 		{
 			"path": "packages\\iscriptah"
+		},
+		{
+			"path": "packages\\titan-reactor-shared"
 		}
 	],
 	"settings": {}

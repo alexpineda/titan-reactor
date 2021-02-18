@@ -28,11 +28,6 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
 
   const state = store.getState();
 
-  const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
-  await renderMan.initRenderer();
-  renderMan.onlyRenderPass();
-  window.renderMan = renderMan;
-
   const keyboardShortcuts = new KeyboardShortcuts(document);
 
   const gameSurface = new CanvasTarget();
@@ -46,6 +41,11 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
     keyboardShortcuts,
     true
   );
+
+  const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
+  await renderMan.initRenderer(cameras.camera);
+  // renderMan.onlyRenderPass();
+  window.renderMan = renderMan;
 
   const getTerrainY = scene.getTerrainY();
 
@@ -217,6 +217,7 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
   let last = 0;
   let frame = 0;
   let frameElapsed = 0;
+  renderMan.setCanvasTarget(gameSurface);
 
   function gameLoop(elapsed) {
     if (!running) return;
@@ -236,7 +237,6 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
 
     cameras.update();
 
-    renderMan.setCanvasTarget(gameSurface);
     renderMan.renderer.clear();
     renderMan.render(scene, cameras.camera);
     last = elapsed;

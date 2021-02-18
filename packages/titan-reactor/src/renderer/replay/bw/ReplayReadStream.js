@@ -15,23 +15,26 @@ export default class ReplayReadStream extends EventEmitter {
     this._lastReadFrame = 0;
     this._replayPosition = 0;
     this.frames = [];
+
+    this.waitForMaxed = new Promise((res) => {
+      this.on("paused", () => {
+        console.log(
+          `${this.frames.length} frames byte size`,
+          this.frames.reduce((size, frame) => size + frame.size, 0)
+        );
+        res();
+      });
+    });
   }
 
   maxed() {
     return this._state.ended() || this.frames.length > this.maxFramesLength;
   }
 
-  next() {
-    const frame = this.frames.shift();
+  next(frames = 1) {
+    const frame = this.frames.splice(0, frames);
     this.readFrames();
     return frame;
-  }
-
-  all() {
-    const frames = this.frames;
-    this.frames = [];
-    this.readFrames();
-    return frames;
   }
 
   readFrames() {

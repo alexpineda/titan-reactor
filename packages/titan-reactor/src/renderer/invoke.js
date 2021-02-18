@@ -12,7 +12,8 @@ import {
   GET_RSS_FEED,
   EXIT,
   LOAD_REPLAY_FROM_FILE,
-  UPDATE_CURRENT_REPLAY_POSITION,
+  REQUEST_NEXT_FRAMES,
+  STOP_READING_GAME_STATE,
   LOAD_CHK,
   LOAD_SCX,
 } from "../common/handleNames";
@@ -62,12 +63,21 @@ export const getRssFeed = async (url) => {
   return await ipcRenderer.invoke(GET_RSS_FEED, url);
 };
 
-export const loadReplayFromFile = async (filepath) => {
-  return await ipcRenderer.invoke(LOAD_REPLAY_FROM_FILE, filepath);
+export const loadReplayFromFile = async (repFile, outFile, starcraftPath) => {
+  return await ipcRenderer.invoke(
+    LOAD_REPLAY_FROM_FILE,
+    repFile,
+    outFile,
+    starcraftPath
+  );
 };
 
-export const updateCurrentReplayPosition = async (position) => {
-  ipcRenderer.send(UPDATE_CURRENT_REPLAY_POSITION, position);
+export const requestNextFrames = async (minFrames) => {
+  return await ipcRenderer.invoke(REQUEST_NEXT_FRAMES, minFrames);
+};
+
+export const stopReadingGameState = async () => {
+  return await ipcRenderer.invoke(STOP_READING_GAME_STATE);
 };
 
 export const loadScx = async (buf) => {

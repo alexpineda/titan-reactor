@@ -33,7 +33,8 @@ import {
   SET_WEBGL_CAPABILITIES,
   GET_RSS_FEED,
   LOAD_REPLAY_FROM_FILE,
-  UPDATE_CURRENT_REPLAY_POSITION,
+  REQUEST_NEXT_FRAMES,
+  STOP_READING_GAME_STATE,
   LOAD_CHK,
   LOAD_SCX,
 } from "../common/handleNames";
@@ -43,6 +44,7 @@ import { getUserDataPath } from "./userDataPath";
 import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
+import ReplayReadFile from "../renderer/replay/bw/ReplayReadFile";
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -141,6 +143,24 @@ if (gotTheLock) {
       await settings.init(webGLCapabilities);
       const s = await settings.get();
       updateFullScreen(s.data.fullscreen);
+    });
+
+    ipcMain.handle(
+      LOAD_REPLAY_FROM_FILE,
+      async (event, repFile, outFile, starcraftPath) => {
+        gameStateReader = new ReplayReadFile(repFile, outFile, starcraftPath);
+        await gameStateReader.start();
+        await gameStateReader.waitForMaxed;
+      }
+    );
+
+    ipcMain.handle(REQUEST_NEXT_FRAMES, async (event, frames) => {
+      return gameStateReader.next(frames);
+    });
+
+    ipcMain.handle(STOP_READING_GAME_STATE, async (event) => {
+      gameStateReader.dispose();
+      gameStateReader = null;
     });
 
     installExtension(REDUX_DEVTOOLS)

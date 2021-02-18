@@ -15,13 +15,20 @@ import {
   EffectPass,
   RenderPass,
   ClearPass,
+  DepthEffect,
   DepthOfFieldEffect,
   SMAAImageLoader,
   SMAAEffect,
   SMAAPreset,
   EdgeDetectionMode,
   ToneMappingEffect,
+  OverrideMaterialManager,
 } from "postprocessing";
+
+import FogOfWarEffect from "./effects/FogOfWarEffect";
+
+//https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
+OverrideMaterialManager.workaroundEnabled = true;
 
 // import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 // import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
@@ -98,15 +105,20 @@ class RenderMan {
       EdgeDetectionMode.DEPTH
     );
 
+    const fogOfWarEffect = new FogOfWarEffect(null, null);
+
+    const toneMapping = new ToneMappingEffect();
+    toneMapping.adaptive = true;
+
     window.focusFn = (y) => Math.max(y * 0.015, 0.1);
     this._cinematicPass = new EffectPass(
       camera,
+      fogOfWarEffect,
       this._dofEffect,
       this._smaaEffect,
-      new ToneMappingEffect()
+      toneMapping
     );
 
-    this._composer.addPass(new ClearPass());
     this._composer.addPass(this._renderPass);
     this._composer.addPass(this._cinematicPass);
     // this._composer.addPass(this._smaaEffect);
@@ -160,7 +172,7 @@ class RenderMan {
     renderer.outputEncoding = sRGBEncoding;
     renderer.dithering = false;
 
-    renderer.debug.checkShaderErrors = this.isDev;
+    // renderer.debug.checkShaderErrors = this.isDev;
 
     return renderer;
   }
