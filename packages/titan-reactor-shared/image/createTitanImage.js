@@ -1,3 +1,4 @@
+import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import TitanImage3D from "titan-reactor-shared/image/TitanImage3D";
 import TitanImageHD from "titan-reactor-shared/image/TitanImageHD";
 import TitanImageSD from "titan-reactor-shared/image/TitanImageSD";
@@ -14,6 +15,10 @@ export default (bwDat, atlases, createIScriptRunner, onError = () => {}) => {
 
     let titanImage;
     if (atlas.model) {
+      if (bwDat.images[imageId].drawFunction === drawFunctions.rleShadow) {
+        return null;
+      }
+
       titanImage = new TitanImage3D(
         atlas,
         createIScriptRunner,

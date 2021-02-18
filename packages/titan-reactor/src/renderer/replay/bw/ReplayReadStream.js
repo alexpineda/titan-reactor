@@ -3,7 +3,7 @@ import EventEmitter from "events";
 import ReadState from "./ReadState";
 
 export default class ReplayReadStream extends EventEmitter {
-  constructor(file, maxFramesLength = 50) {
+  constructor(file, maxFramesLength) {
     super();
     this.maxFramesLength = maxFramesLength;
     this.maxBufLength = 2000 * 1000;
@@ -62,6 +62,12 @@ export default class ReplayReadStream extends EventEmitter {
             units: this._state.units,
             tiles: this._state.tiles,
             sounds: this._state.sounds,
+            size:
+              this._state.images.byteLength +
+              this._state.sprites.byteLength +
+              this._state.units.byteLength +
+              this._state.tiles.byteLength +
+              this._state.sounds.byteLength,
           });
           this._lastReadFrame = this._state.frame;
           if (this.maxed()) {

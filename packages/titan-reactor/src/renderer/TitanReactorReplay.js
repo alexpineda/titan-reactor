@@ -1,12 +1,23 @@
 import { ipcRenderer } from "electron";
 
-import { Raycaster, AudioListener, AxesHelper } from "three";
+import {
+  Raycaster,
+  AudioListener,
+  AxesHelper,
+  Group,
+  Color,
+  Scene,
+} from "three";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
-import { gameSpeeds, pxToMapMeter, onFastestTick } from "./utils/conversions";
+import {
+  gameSpeeds,
+  pxToMapMeter,
+  onFastestTick,
+} from "titan-reactor-shared/utils/conversions";
 import HeatmapScore from "./react-ui/replay/HeatmapScore";
 import Cameras from "./camera/Cameras";
 import MinimapControl from "./camera/MinimapControl";
-import { createMiniMapPlane } from "./mesh/Minimap";
+import { createMiniMapPlane, createMinimapPoint } from "./mesh/Minimap";
 import { Players } from "./replay/Players";
 import FadingPointers from "./mesh/FadingPointers";
 import { commands } from "titan-reactor-shared/types/commands";
@@ -25,8 +36,11 @@ import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/replay/replayHudReducer";
 import Audio from "./audio/Audio";
 import SoundsBW from "./replay/bw/SoundsBW";
+import UnitsBW from "./replay/bw/UnitsBW";
+import Units from "./replay/Units";
 
 import ReplaySprites from "./replay/ReplaySprites";
+import { MinimapLayer } from "./camera/Layers";
 
 const { startLocation } = unitTypes;
 
@@ -79,7 +93,7 @@ async function TitanReactorReplay(
   const previewSurfaces = [new CanvasTarget()];
   previewSurfaces.forEach((surf) => surf.setDimensions(300, 200));
 
-  const pxToMeter = pxToMapMeter(chk.size[0], chk.size[1]);
+  const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
   const heatMapScore = new HeatmapScore(bwDat);
   const minimapControl = new MinimapControl(
     minimapSurface,
@@ -89,7 +103,10 @@ async function TitanReactorReplay(
 
   window.scene = scene;
 
-  scene.add(
+  const minimapScene = new Scene();
+  window.minimapScene = minimapScene;
+
+  minimapScene.add(
     createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
   );
 
@@ -101,7 +118,7 @@ async function TitanReactorReplay(
     keyboardShortcuts,
     false
   );
-  scene.add(cameras.minimapCameraHelper);
+  minimapScene.add(cameras.minimapCameraHelper);
 
   await renderMan.initRenderer(cameras.camera);
   window.renderMan = renderMan;
@@ -118,7 +135,7 @@ async function TitanReactorReplay(
     player.camera = new PlayerPovCamera(
       pos,
       () => players.activePovs,
-      pxToMeter.xy(player.startLocation)
+      pxToGameUnit.xy(player.startLocation)
     );
   });
 
@@ -136,7 +153,7 @@ async function TitanReactorReplay(
     audioListener,
     (s) => scene.add(s)
   );
-  const soundsBW = new SoundsBW(bwDat, mapWidth, mapHeight, getTerrainY);
+  const soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
 
   let replayPosition = new ReplayPosition(
     rep.header.frameCount,
@@ -346,10 +363,18 @@ async function TitanReactorReplay(
   };
   window.addEventListener("resize", sceneResizeHandler, false);
 
+  const unitsBW = new UnitsBW(bwDat);
+  const units = new Units(
+    pxToGameUnit,
+    players.map(({ color }) => color.rgb),
+    (o) => minimapScene.add(o)
+  );
+
+  // createMinimapPoint();
+
   const sprites = new ReplaySprites(
     bwDat,
-    mapWidth,
-    mapHeight,
+    pxToGameUnit,
     getTerrainY,
     createTitanImage,
     (s) => scene.add(s),
@@ -375,10 +400,15 @@ async function TitanReactorReplay(
   function gameLoop(elapsed) {
     if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
       // players.updateResources(units);
-      // store.dispatch(onGameTick());
+      store.dispatch(onGameTick());
       //update position
     }
-
+    const updateMinimap =
+      (!replayPosition.skippingFrames() &&
+        replayPosition.bwGameFrame % 24 === 0) ||
+      (replayPosition.skippingFrames() &&
+        replayPosition.bwGameFrame % 240 === 0);
+    const view = cameras.viewSizeWorld();
     cameras.update();
 
     if (!replayPosition.paused) {
@@ -396,12 +426,30 @@ async function TitanReactorReplay(
 
         soundsBW.buffer = nextFrame.sounds;
         soundsBW.count = nextFrame.soundCount;
+
         for (let sound of soundsBW.items()) {
           if (sound.muted) continue;
-          audio.play(sound, elapsed);
+          if (
+            sound.bwVolume(view.left, view.top, view.right, view.bottom) >
+            SoundsBW.minPlayVolume
+          )
+            audio.play(sound, elapsed);
         }
 
-        sprites.refresh(nextFrame);
+        unitsBW.buffer = nextFrame.units;
+        unitsBW.count = nextFrame.unitCount;
+        units.refresh(unitsBW, updateMinimap);
+
+        // bool unit_visble_on_minimap(unit_t* u) {
+        //   if (u->owner < 8 && u->sprite->visibility_flags == 0) return false;
+        //   if (ut_turret(u)) return false;
+        //   if (unit_is_trap_or_door(u)) return false;
+        //   if (unit_is(u, UnitTypes::Spell_Dark_Swarm)) return false;
+        //   if (unit_is(u, UnitTypes::Spell_Disruption_Web)) return false;
+        //   return true;
+        // }
+
+        sprites.refresh(nextFrame, units.spriteUnits);
         replayPosition.bwGameFrame = nextFrame.frame;
 
         if (replayPosition.isMaxFrame()) {
@@ -409,7 +457,7 @@ async function TitanReactorReplay(
           continue;
         }
 
-        if (rep.cmds[replayPosition.bwGameFrame]) {
+        if (rep.cmds[replayPosition.bwGameFrame] && false) {
           // #region apm
           const actions = [];
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
@@ -433,9 +481,9 @@ async function TitanReactorReplay(
           // #region player command pointers
           for (let cmd of rep.cmds[replayPosition.bwGameFrame]) {
             if (players[cmd.player].showPov) {
-              players[cmd.player].camera.update(cmd, pxToMeter);
+              players[cmd.player].camera.update(cmd, pxToGameUnit);
             } else {
-              players[cmd.player].camera.update(cmd, pxToMeter, 1000);
+              players[cmd.player].camera.update(cmd, pxToGameUnit, 1000);
             }
 
             if (players[cmd.player].showActions) {
@@ -443,8 +491,8 @@ async function TitanReactorReplay(
                 case commands.rightClick:
                 case commands.targetedOrder:
                 case commands.build: {
-                  const px = pxToMeter.x(cmd.x);
-                  const py = pxToMeter.y(cmd.y);
+                  const px = pxToGameUnit.x(cmd.x);
+                  const py = pxToGameUnit.y(cmd.y);
                   const pz = getTerrainY(px, py);
 
                   fadingPointers.addPointer(
@@ -532,15 +580,10 @@ async function TitanReactorReplay(
       renderMan.render(scene, cameras.camera);
     }
 
-    if (
-      (!replayPosition.skippingFrames() &&
-        replayPosition.bwGameFrame % 24 === 0) ||
-      (replayPosition.skippingFrames() &&
-        replayPosition.bwGameFrame % 240 === 0)
-    ) {
+    if (updateMinimap) {
       renderMan.onlyRenderPass();
       renderMan.setCanvasTarget(minimapSurface);
-      renderMan.render(scene, cameras.minimapCamera);
+      renderMan.render(minimapScene, cameras.minimapCamera);
 
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
         previewSurfaces.forEach((previewSurface, i) => {

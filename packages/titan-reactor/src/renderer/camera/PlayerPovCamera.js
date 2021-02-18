@@ -31,7 +31,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this.lookAt(this.position.x, 0, this.position.z);
   }
 
-  update(cmd, pxToMeter, debounce = 0) {
+  update(cmd, pxToGameUnit, debounce = 0) {
     // some commands - screen move (right click, attack move, build, research, upgrade, pick up, drop)
     // some commands - minimap action (right click, attack move)
     // some commands - before hand was screen move (observing actions)
@@ -42,8 +42,8 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this._clock.elapsedTime = 0;
 
     if (cmd.x && cmd.y) {
-      this.position.x = pxToMeter.x(cmd.x);
-      this.position.z = pxToMeter.y(cmd.y) + 5;
+      this.position.x = pxToGameUnit.x(cmd.x);
+      this.position.z = pxToGameUnit.y(cmd.y) + 5;
       this.lookAt(this.position.x, 0, this.position.z);
     }
     // switch (cmd.id) {

@@ -1,76 +1,107 @@
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
-import { differenceWith } from "ramda";
+import { difference } from "ramda";
+import { Color } from "three";
+import { createMinimapPoint } from "../mesh/Minimap";
 
 class Units {
-  constructor(createUnit) {
+  constructor(pxToGameUnit, playerColors, add) {
+    this.pxToGameUnit = pxToGameUnit;
+    this.playerColors = playerColors;
+    this.add = add;
     this._unitsByRepId = {};
     this._deadUnitIds = [];
-    this._createUnit = createUnit;
-
-    //@todo quad tree
 
     this.followingUnit = false;
     this.selected = [];
 
     this._unitsThisFrame = [];
     this._unitsLastFrame = [];
+    this.spriteUnits = [];
+    this.minimapPoints = [];
   }
 
   get units() {
     return Object.values(this._unitsByRepId);
   }
 
-  _update(frameData) {
-    let unit = this._unitsByRepId[frameData.repId];
+  _refreshMinimap(unit, isResourceContainer) {
+    let color;
 
-    if (!unit) {
-      unit = this._createUnit(frameData);
-      this._unitsByRepId[unit.repId] = unit;
-    } else if (frameData.typeId !== unit.typeId && unit.typeId >= 0) {
-      // unit morphed
-      unit.sprite.destroyTitanSpriteCb(unit.sprite);
-      unit.init(frameData, unit.previous);
+    let minimapPoint = this.minimapPoints[unit.index];
+    if (minimapPoint) {
+      if (!minimapPoint.matrixAutoUpdate) {
+        return;
+      }
+      minimapPoint.position.x = this.pxToGameUnit.x(unit.x);
+      minimapPoint.position.z = this.pxToGameUnit.y(unit.y);
+      minimapPoint.position.y = 1;
+      return;
     }
 
-    unit.update(frameData);
-    return unit;
+    if (isResourceContainer) {
+      color = new Color(0, 255, 255);
+    } else if (unit.owner < 8) {
+      color = new Color(this.playerColors[unit.owner]);
+    } else {
+      return;
+    }
+
+    let w = unit.unitType.placementWidth / 32;
+    let h = unit.unitType.placementHeight / 32;
+
+    if (unit.unitType.isBuilding) {
+      if (w > 4) w = 4;
+      if (h > 4) h = 4;
+    }
+    if (w < 2) w = 2;
+    if (h < 2) h = 2;
+
+    minimapPoint = createMinimapPoint(color, w, h);
+    minimapPoint.position.x = this.pxToGameUnit.x(unit.x);
+    minimapPoint.position.z = this.pxToGameUnit.y(unit.y);
+    minimapPoint.position.y = 1;
+    if (isResourceContainer) {
+      minimapPoint.matrixAutoUpdate = false;
+      minimapPoint.updateMatrix();
+    }
+    this.minimapPoints[unit.index] = minimapPoint;
+    this.add(minimapPoint);
   }
 
-  refresh(unitsFrameData) {
+  refresh(unitsBW, refreshMinimap) {
     this._unitsThisFrame.length = 0;
+    this.spriteUnits.length = 0;
 
-    for (const frameData of unitsFrameData) {
-      const unit = this._update(frameData);
-      this._unitsThisFrame.push(unit);
-    }
+    for (const unit of unitsBW.items()) {
+      const isResourceContainer = unit.unitType.isResourceContainer;
 
-    const deadUnits = differenceWith(
-      (x, y) => x === y,
-      this._unitsLastFrame,
-      this._unitsThisFrame
-    );
-    this._unitsLastFrame = [...this._unitsThisFrame];
-
-    deadUnits.forEach((unit) => unit.die());
-
-    if (this.selected.length) {
-      this.selected = this.selected.filter(
-        (unit) => !deadUnits.includes(unit.userData.repId)
-      );
-      if (this.selected.length === 0 && this.followingUnit) {
-        this.followingUnit = false;
+      this._unitsThisFrame.push(unit.index);
+      this.spriteUnits[unit.spriteIndex] = {
+        flying: unit.isFlying,
+        resource: isResourceContainer,
+      };
+      if (refreshMinimap) {
+        this._refreshMinimap(unit, isResourceContainer);
       }
     }
-  }
 
-  remove(unit) {
-    const existingUnit = this._unitsByRepId[unit.repId];
-    if (existingUnit) {
-      delete this._unitsByRepId[unit.repId];
-      this._deadUnitIds.push(unit.repId);
-    } else {
-      throw new Error("unit does not exist");
+    for (let unitIndex of difference(
+      this._unitsLastFrame,
+      this._unitsThisFrame
+    )) {
+      if (this.minimapPoints[unitIndex]) {
+        this.minimapPoints[unitIndex].remove();
+      }
     }
+
+    this._unitsLastFrame = [...this._unitsThisFrame];
+
+    // if (this.selected.length) {
+    //   this.selected = this.selected.filter((unit) => !deadUnits.includes(unit));
+    //   if (this.selected.length === 0 && this.followingUnit) {
+    //     this.followingUnit = false;
+    //   }
+    // }
   }
 
   getWorkerCount(player) {

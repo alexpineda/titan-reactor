@@ -4,7 +4,7 @@ const iconv = require("iconv-lite");
 const zlib = require("zlib");
 const { Writable, Readable } = require("stream");
 const pkware = require("pkware-wasm");
-const { downgradeChk } = require("downgrade-chk");
+const { chkDowngrader } = require("downgrade-chk");
 
 const HeaderMagicClassic = 0x53526572;
 const HeaderMagicScrModern = 0x53526573;
@@ -161,7 +161,7 @@ const deflate = async (buf) => {
   return pkware.implode(buf, pkware.ImplodeDictSize1);
 };
 
-const block = async (buf, blockSize) => {
+const block = async (buf, blockSize, skipProcessing = false) => {
   if (blockSize === 0) {
     console.warn("block size 0");
     return;
@@ -180,14 +180,20 @@ const block = async (buf, blockSize) => {
     const chunkSize = buf.readUInt32LE(pos);
     buf.consume(4);
 
-    chunks.push({
-      buf: buf.slice(pos, pos + chunkSize),
-    });
+    if (!skipProcessing) {
+      chunks.push({
+        buf: buf.slice(pos, pos + chunkSize),
+      });
+    }
 
     return pos + chunkSize;
   }, 0);
 
   buf.consume(actualBlockSize);
+
+  if (skipProcessing) {
+    return null;
+  }
 
   const isDeflated = actualBlockSize < blockSize;
 
@@ -241,16 +247,24 @@ const parseReplay = async (buf) => {
   const header = parseHeader(rawHeader);
 
   const cmdsSize = (await block(bl, 4)).readUInt32LE(0);
-  const rawCmds = await block(bl, cmdsSize);
-  const players = [];
-  for (let i = 0; i < 8; i++) {
-    const offset = 0xa1 + 0x24 * i;
-    const stormId = rawHeader.readInt32LE(offset + 0x4);
-    if (stormId >= 0) {
-      players[i] = rawHeader.readUInt32LE(offset);
+
+  // ai reps tend to have MBs of commands so just skip processing these types of reps
+  //@todo enable processing these somehow
+  const skipProcessing = cmdsSize > 500000;
+  let cmds = [];
+  const rawCmds = await block(bl, cmdsSize, skipProcessing);
+
+  if (!skipProcessing) {
+    const players = [];
+    for (let i = 0; i < 8; i++) {
+      const offset = 0xa1 + 0x24 * i;
+      const stormId = rawHeader.readInt32LE(offset + 0x4);
+      if (stormId >= 0) {
+        players[i] = rawHeader.readUInt32LE(offset);
+      }
     }
+    cmds = parseCommands(rawCmds, players);
   }
-  const cmds = parseCommands(rawCmds, players);
 
   const chkSize = (await block(bl, 4)).readUInt32LE(0);
   const chk = await block(bl, chkSize);
@@ -696,13 +710,6 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
     });
   };
 
-  let uniqCmds = {};
-  replay.cmds.forEach((cmds) => {
-    cmds.forEach((cmd) => {
-      uniqCmds[cmd.id] = cmd;
-    });
-  });
-
   const repCommands = replay.cmds
     .map((commands, i) => ({
       commands: commands.filter((cmd) => {
@@ -744,7 +751,7 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
   // await writeBlock(bl, uint32le(0), false);
   await writeBlock(bl, uint32le(repCommands.length), false);
   await writeBlock(bl, repCommands, true);
-  const chk = downgradeChk(replay.chk.slice(0));
+  const chk = chkDowngrader(replay.chk.slice(0));
   await writeBlock(bl, uint32le(chk.byteLength), false);
   await writeBlock(bl, chk, true);
 
@@ -776,4 +783,5 @@ const writeBlock = async (out, data, compress) => {
 module.exports = {
   parseReplay,
   convertReplayTo116,
+  Version,
 };

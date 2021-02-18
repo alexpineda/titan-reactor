@@ -87,7 +87,7 @@ const downgradeStrChunk = (strx) => {
   return out;
 };
 
-const downgradeChk = (buf) => {
+const chkDowngrader = (buf) => {
   const bl = new BufferList(buf);
   const chunks = [];
 
@@ -171,4 +171,4 @@ const downgradeChk = (buf) => {
   }
 };
 
-module.exports = downgradeChk;
+module.exports = chkDowngrader;

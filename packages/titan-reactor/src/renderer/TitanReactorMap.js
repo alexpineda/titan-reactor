@@ -9,9 +9,13 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./terrain/lights";
+import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
 export const hot = module.hot ? module.hot.data : null;
 
-async function TitanReactorMap(store, chk, scene) {
+async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
+  const [mapWidth, mapHeight] = chk.size;
+  const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
+
   const gui = new EnvironmentOptionsGui();
   await gui.load(chk.tilesetName);
 
@@ -26,6 +30,7 @@ async function TitanReactorMap(store, chk, scene) {
 
   const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
   await renderMan.initRenderer();
+  renderMan.onlyRenderPass();
   window.renderMan = renderMan;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
@@ -42,7 +47,7 @@ async function TitanReactorMap(store, chk, scene) {
     true
   );
 
-  const terrainY = scene.getTerrainY();
+  const getTerrainY = scene.getTerrainY();
 
   const playerColors = [
     "#a80808",
@@ -63,25 +68,43 @@ async function TitanReactorMap(store, chk, scene) {
         x,
         y,
         playerColors[unit.player],
-        terrainY(x, y)
+        getTerrainY(x, y)
       );
     });
   startLocations.forEach((sl) => scene.add(sl));
 
-  // const minerals = chk.units
-  //   .filter((unit) =>
-  //     [unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
-  //       unit.unitId
-  //     )
-  //   )
-  //   .map((unit) => {
-  //     const x = unit.x / 32 - chk.size[0] / 2;
-  //     const y = unit.y / 32 - chk.size[1] / 2;
-  //     const m = mineral.clone();
-  //     m.position.set(x, terrainY(x, y), y);
-  //     return m;
-  //   });
-  // minerals.forEach((m) => scene.add(m));
+  let sprites = [];
+
+  for (let unit of chk.units) {
+    const titanSprite = createTitanSprite();
+    const unitDat = bwDat.units[unit.unitId];
+
+    const x = pxToGameUnit.x(unit.x);
+    const z = pxToGameUnit.y(unit.y);
+    const y = getTerrainY(x, z);
+
+    titanSprite.position.set(x, y, z);
+
+    titanSprite.addImage(unitDat.flingy.sprite.image.index);
+    titanSprite.run(0);
+    scene.add(titanSprite);
+    sprites.push(titanSprite);
+  }
+
+  for (let sprite of chk.sprites) {
+    const titanSprite = createTitanSprite();
+    const spriteDat = bwDat.sprites[sprite.spriteId];
+
+    const x = pxToGameUnit.x(sprite.x);
+    const z = pxToGameUnit.y(sprite.y);
+    const y = getTerrainY(x, z);
+
+    titanSprite.position.set(x, y, z);
+    titanSprite.addImage(spriteDat.image.index);
+    titanSprite.run(0);
+    scene.add(titanSprite);
+    sprites.push(titanSprite);
+  }
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom, focus }) => {
@@ -100,17 +123,6 @@ async function TitanReactorMap(store, chk, scene) {
     active: false,
   };
   //#endregion
-
-  // const zerglings = [];
-  // const lm = new LoadModel();
-  // for (let i = 0; i < 1000; i++) {
-  //   const z = await lm.load("_alex/zergling.glb");
-  //   const x = (Math.random() - 0.5) * 128;
-  //   const y = (Math.random() - 0.5) * 128;
-  //   z.position.set(x, getTerrainY(x, y), y);
-  //   // zerglings.push(z);
-  //   // scene.add(z);
-  // }
 
   //#region map controllers
   gui.controllers.map.onChangeAny(
@@ -209,16 +221,15 @@ async function TitanReactorMap(store, chk, scene) {
   function gameLoop(elapsed) {
     if (!running) return;
 
-    renderMan._dofEffect.bokehScale = easeQuadInOut(
-      cameras.control.polarAngle * 2
-    );
-
     const delta = elapsed - last;
     frameElapsed += delta;
     if (frameElapsed > 42) {
       frame++;
       if (frame % 8 === 0) {
         scene.terrainSD.material.userData.tileAnimationCounter.value++;
+      }
+      for (let sprite of sprites) {
+        sprite.update(delta);
       }
       frameElapsed = 0;
     }

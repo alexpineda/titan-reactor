@@ -762,5 +762,11 @@ export const generateMesh = (renderer, tileData) => {
   hdTerrainGroup.name = "TerrainHD";
   restoreRenderer(renderer);
 
+  terrain.matrixAutoUpdate = false;
+  terrain.updateMatrix();
+
+  hdTerrainGroup.matrixAutoUpdate = false;
+  hdTerrainGroup.updateMatrix();
+
   return [terrain, hdTerrainGroup, displaceCanvas];
 };

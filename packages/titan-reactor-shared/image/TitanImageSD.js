@@ -4,6 +4,7 @@ import {
   BufferAttribute,
   DynamicDrawUsage,
 } from "three";
+import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 
 export default class TitanImageSD extends Sprite {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {
@@ -49,6 +50,9 @@ export default class TitanImageSD extends Sprite {
     this.material.transparent = true;
     this.material.alphaTest = 0.01;
     this.material.depthTest = false;
+    if (imageDef.drawFunction === drawFunctions.rleShadow) {
+      this.material.opacity = 0.6;
+    }
 
     this.castShadow = false;
 

@@ -1,15 +1,12 @@
 import { Object3D } from "three";
-import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
-import ImagesBW from "./bw/ImagesBW";
 
 export default class ReplaySprite extends Object3D {
-  constructor(bwDat, mapWidth, mapHeight, getTerrainY, createImage) {
+  constructor(bwDat, pxToGameUnit, getTerrainY, createImage) {
     super();
     this.bwDat = bwDat;
     this.createImage = createImage;
     this._imagesById = {};
-    this.mapWidth = mapWidth;
-    this.mapHeight = mapHeight;
+    this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
 
     this._imagesThisFrame = [];
@@ -20,27 +17,25 @@ export default class ReplaySprite extends Object3D {
     return Object.values(this._imagesById);
   }
 
-  refresh(sprite, imagesBW) {
-    const x = sprite.x / 32 - this.mapWidth / 2;
-    const z = sprite.y / 32 - this.mapHeight / 2;
-    const y = this.getTerrainY(x, z);
-
+  refresh(sprite, imagesBW, spriteUnit) {
     this.renderOrder = sprite.order * 10;
     this._imageRenderOrder = this.renderOrder;
 
+    const x = this.pxToGameUnit.x(sprite.x);
+    const z = this.pxToGameUnit.y(sprite.y);
+    let y = this.getTerrainY(x, z);
+
+    if (spriteUnit && spriteUnit.flying) {
+      y = 5;
+    }
     this.position.set(x, y, z);
 
     this.images.forEach((image) => this.remove(image));
 
     for (let image of imagesBW.reverse(sprite.imageCount)) {
-      // if (
-      //   this.bwDat.images[image.id].drawFunction === drawFunctions.rleShadow
-      // ) {
-      //   continue;
-      // }
-
       const titanImage =
         this._imagesById[image.id] || this.createImage(image.id, this);
+      if (!titanImage) continue;
 
       titanImage.userData.bwIndex = image.index;
 

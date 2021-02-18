@@ -100,7 +100,7 @@ class StandardCameraControls extends CameraControls {
 
     this.constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
-      pol: [4, 10, 16].map((x) => (x * Math.PI) / 64),
+      pol: [8, 12, 18].map((x) => (x * Math.PI) / 64),
       fov: [22, 40, 55],
       dollyTo: [70, 30, 20],
       dollySpeed: [1, 0.5, 0.2],
@@ -274,7 +274,7 @@ class StandardCameraControls extends CameraControls {
 
     this._keypressListener = (evt) => {
       if (this._camera.isPerspectiveCamera) {
-        this.dampingFactor = evt.shiftKey ? 0.005 : 0.05;
+        // this.dampingFactor = evt.shiftKey ? 0.005 : 0.05;
 
         if (evt.code === "NumpadDivide") {
           this.rotate(-(2 * Math.PI) / 64, 0, true);

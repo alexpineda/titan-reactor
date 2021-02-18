@@ -24,37 +24,6 @@ export const createMinimapPoint = (color, w, h) => {
   const plane = new Mesh(geometry, material);
   plane.rotation.x = -Math.PI / 2;
   plane.layers.set(MinimapUnitLayer);
-  Object.assign(plane, {
-    updateMatrix: function () {
-      this.matrix.compose(this.position, this.quaternion, this.scale);
-
-      this.matrixWorldNeedsUpdate = true;
-    },
-
-    updateMatrixWorld: function (force) {
-      if (this.matrixAutoUpdate) this.updateMatrix();
-
-      if (this.matrixWorldNeedsUpdate || force) {
-        if (this.parent === null) {
-          this.matrixWorld.copy(this.matrix);
-        } else {
-          this.matrixWorld.multiplyMatrices(
-            this.parent.matrixWorld,
-            this.matrix
-          );
-        }
-
-        this.matrixWorldNeedsUpdate = false;
-
-        force = true;
-      }
-
-      const children = this.children;
-
-      for (let i = 0, l = children.length; i < l; i++) {
-        children[i].updateMatrixWorld(force);
-      }
-    },
-  });
+  plane.name = "MinimapPoint";
   return plane;
 };

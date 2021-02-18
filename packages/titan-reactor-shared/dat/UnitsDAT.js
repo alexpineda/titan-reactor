@@ -30,131 +30,131 @@ export class UnitDAT {
     return !!(this.specialAbilityFlags & (1 << shift));
   }
 
-  building() {
+  get isBuilding() {
     return this.specialAbilityFlags & 1;
   }
 
-  addon() {
+  get isAddon() {
     return this._flag(1);
   }
 
-  flyer() {
+  get isFlyer() {
     return this._flag(2);
   }
 
-  resourceMiner() {
+  get isResourceMiner() {
     return this._flag(3);
   }
 
-  subunit() {
+  get isSubunit() {
     return this._flag(4);
   }
 
-  flyingbuilding() {
+  get isFlyingBuilding() {
     return this._flag(5);
   }
 
-  hero() {
+  get isHero() {
     return this._flag(6);
   }
 
-  regenerate() {
+  get regenerates() {
     return this._flag(7);
   }
 
-  animatedIdle() {
+  get animatedIdle() {
     return this._flag(8);
   }
 
-  cloakable() {
+  get cloakable() {
     return this._flag(9);
   }
 
-  twoUnitsInOneEgg() {
+  get twoUnitsInOneEgg() {
     return this._flag(10);
   }
 
-  singleEntity() {
+  get singleEntity() {
     return this._flag(11);
   }
 
-  resourceDepot() {
+  get isResourceDepot() {
     return this._flag(12);
   }
 
-  resourceContainer() {
+  get isResourceContainer() {
     return this._flag(13);
   }
 
-  robotic() {
+  get isRobotic() {
     return this._flag(14);
   }
 
-  detector() {
+  get isDetector() {
     return this._flag(15);
   }
 
-  organic() {
+  get isOrganic() {
     return this._flag(16);
   }
 
-  requiresCreep() {
+  get requiresCreep() {
     return this._flag(17);
   }
 
-  unusedFlag() {
+  get unusedFlag() {
     return this._flag(18);
   }
 
-  requiresPsi() {
+  get requiresPsi() {
     return this._flag(19);
   }
 
-  burrowable() {
+  get burrowable() {
     return this._flag(20);
   }
 
-  spellcaster() {
+  get isSpellcaster() {
     return this._flag(21);
   }
 
-  permanentCloak() {
+  get permanentCloak() {
     return this._flag(22);
   }
 
-  pickupItem() {
+  get pickupItem() {
     return this._flag(23);
   }
 
-  ignoreSupplyCheck() {
+  get ignoreSupplyCheck() {
     return this._flag(24);
   }
 
-  useMediumOverlays() {
+  get useMediumOverlays() {
     return this._flag(25);
   }
 
-  useLargeOverlays() {
+  get useLargeOverlays() {
     return this._flag(26);
   }
 
-  battleReactions() {
+  get battleReactions() {
     return this._flag(27);
   }
 
-  fullAutoAttack() {
+  get fullAutoAttack() {
     return this._flag(28);
   }
 
-  invincible() {
+  get invincible() {
     return this._flag(29);
   }
 
-  mechanical() {
+  get isMechanical() {
     return this._flag(30);
   }
 
-  producesUnits() {
+  get producesUnits() {
     return this._flag(31);
   }
 
@@ -162,15 +162,15 @@ export class UnitDAT {
     return !!(this.starEditGroupFlags & bit);
   }
 
-  zerg() {
+  get isZerg() {
     return this._starEditGroupFlag(1);
   }
 
-  terran() {
+  get isTerran() {
     return this._starEditGroupFlag(2);
   }
 
-  protoss() {
+  get isProtoss() {
     return this._starEditGroupFlag(4);
   }
 }
@@ -245,7 +245,7 @@ export class UnitsDAT extends DAT {
       },
       {
         size: 4,
-        names: ["starEditPlacementBoxWidth", "starEditPlacementBoxHeight"],
+        names: ["placementWidth", "placementHeight"],
       },
       {
         size: 4,

@@ -102,4 +102,20 @@ export const calculateImagesFromUnitsIscript = (bwDat, unitIds) => {
   return [...preload].filter((v) => v !== undefined);
 };
 
+export const calculateImagesFromSpritesIscript = (bwDat, spriteIds) => {
+  const preload = new Set();
+
+  uniq(spriteIds).forEach((id) => {
+    const sprite = bwDat.sprites[id];
+    calculateImagesFromIScript(
+      bwDat,
+      bwDat.images[sprite.image.index],
+      null,
+      preload
+    );
+  });
+
+  return [...preload].filter((v) => v !== undefined);
+};
+
 export default calculateImagesFromIScript;

@@ -10,7 +10,7 @@ export default class Audio {
     this.audioBuffers = {};
 
     this.volume = 1;
-    this.maxSounds = 30;
+    this.maxSounds = 64;
     this.channels = range(0, this.maxSounds).map(() => ({
       audio: new PositionalAudio(this.audioListener),
       priority: 0,
@@ -41,19 +41,41 @@ export default class Audio {
     return c;
   }
 
-  play(sound, elapsed) {
-    const { id, priority } = sound;
+  // https://alemangui.github.io/ramp-to-value
+  stop(audio) {
+    audio.gain.gain.setValueAtTime(
+      audio.gain.gain.value,
+      audio.context.currentTime
+    );
+    audio.gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      audio.context.currentTime + 0.03
+    );
+    audio._progress = 0;
+    audio.source.onended = null;
+    audio.isPlaying = false;
+  }
 
-    if (this.audioBuffers[id] && elapsed - this.audioBuffers[id].elapsed < 80) {
+  play(sound, elapsed) {
+    const { id, priority, mapX, mapY, mapZ } = sound;
+
+    if (
+      this.audioBuffers[id] &&
+      elapsed - this.audioBuffers[id].elapsed < 160
+    ) {
       return;
     }
 
-    //todo if sound volume too low (bwVolume)
-
     const channel = this._getFreeChannel(priority);
+
     if (!channel) return;
 
-    channel.audio.position.set(sound.mapX, sound.mapY, sound.mapZ);
+    if (channel.audio.isPlaying) {
+      this.stop(channel.audio);
+    }
+
+    //@todo accomodate for audiolistener time delta transform
+    channel.audio.position.set(mapX, mapY, mapZ);
 
     if (this.audioBuffers[id]) {
       this.audioBuffers[id].elapsed = elapsed;

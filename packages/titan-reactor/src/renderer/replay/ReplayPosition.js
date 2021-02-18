@@ -1,5 +1,8 @@
 import { MathUtils } from "three";
-import { framesBySeconds, gameSpeeds } from "../utils/conversions";
+import {
+  framesBySeconds,
+  gameSpeeds,
+} from "titan-reactor-shared/utils/conversions";
 
 export class ClockMs {
   constructor(autoStart) {

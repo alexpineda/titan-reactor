@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
-import { gameSpeeds, gameSpeedNames } from "../../utils/conversions";
+import {
+  gameSpeeds,
+  gameSpeedNames,
+} from "titan-reactor-shared/utils/conversions";
 import sparkly from "sparkly";
 
 const gameSpeedsArray = [

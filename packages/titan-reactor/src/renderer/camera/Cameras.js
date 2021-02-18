@@ -1,5 +1,15 @@
 import { is } from "ramda";
-import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import {
+  Camera,
+  Clock,
+  Line,
+  Line3,
+  MathUtils,
+  OrthographicCamera,
+  PerspectiveCamera,
+  Plane,
+  Vector3,
+} from "three";
 
 import {
   MinimapLayer,
@@ -232,6 +242,33 @@ class Cameras {
 
   setTarget(x, y, z, enableTransition = false) {
     this.control.setTarget(x, y, z, enableTransition);
+  }
+
+  viewSizeWorld() {
+    const plane = new Plane(new Vector3(0, 1, 0));
+    const _vector = new Vector3();
+    const _intersect = [new Vector3(), new Vector3()];
+    let points = [
+      [-1, -1],
+      [1, 1],
+    ];
+
+    for (let i = 0; i < 2; i++) {
+      _vector.set(points[i][0], points[i][1], 1).unproject(this.camera);
+      plane.intersectLine(
+        new Line3(this.camera.position, _vector),
+        _intersect[i]
+      );
+    }
+
+    return {
+      left: _intersect[0].x,
+      top: _intersect[1].z,
+      right: _intersect[1].x,
+      bottom: _intersect[0].z,
+      width: _intersect[1].x - _intersect[0].x,
+      height: _intersect[0].z - _intersect[1].z,
+    };
   }
 
   dispose() {

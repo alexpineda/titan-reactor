@@ -203,6 +203,8 @@ class RenderMan {
       this._contextRestoredListener
     );
 
+    //bug in cinematic pass dispose requires us to set camera to null before disposing
+    this._dofEffect.camera = null;
     this._cinematicPass.dispose();
     this.renderer.dispose();
     this.renderer = null;

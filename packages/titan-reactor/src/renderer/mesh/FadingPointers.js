@@ -1,6 +1,6 @@
 import { Mesh, ConeGeometry, Group, MeshBasicMaterial, Color } from "three";
 import { easeElasticOut, easeExpOut } from "d3-ease";
-import { framesBySeconds } from "utils/conversions";
+import { framesBySeconds } from "titan-reactor-shared/utils/conversions";
 
 //@todo refactor with pooling + ClockMs()
 class FadingPointers extends Group {

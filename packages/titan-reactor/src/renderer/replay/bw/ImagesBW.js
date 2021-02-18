@@ -1,3 +1,4 @@
+import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import ContiguousContainer from "./ContiguousContainer";
 
 const flags = Object.freeze({
@@ -14,6 +15,11 @@ const flags = Object.freeze({
 export default class ImagesBW extends ContiguousContainer {
   static get byteLength() {
     return 28;
+  }
+
+  constructor(bwDat) {
+    super();
+    this.bwDat = bwDat;
   }
 
   get default() {
@@ -54,5 +60,9 @@ export default class ImagesBW extends ContiguousContainer {
 
   get hidden() {
     return (this.flags & flags.hidden) != 0;
+  }
+
+  get isShadow() {
+    return this.bwDat.images[this.id].drawFunction === drawFunctions.rleShadow;
   }
 }

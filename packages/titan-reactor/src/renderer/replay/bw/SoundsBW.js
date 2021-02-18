@@ -9,11 +9,10 @@ export default class SoundsBW extends ContiguousContainer {
     return 10;
   }
 
-  constructor(bwDat, mapWidth, mapHeight, getTerrainY) {
+  constructor(bwDat, pxToGameUnit, getTerrainY) {
     super();
     this.bwDat = bwDat;
-    this.mapWidth = mapWidth;
-    this.mapHeight = mapHeight;
+    this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
   }
 
@@ -30,7 +29,7 @@ export default class SoundsBW extends ContiguousContainer {
   }
 
   get mapX() {
-    return this.x / 32 - this.mapWidth / 2;
+    return this.pxToGameUnit.x(this.x);
   }
 
   get mapY() {
@@ -38,7 +37,7 @@ export default class SoundsBW extends ContiguousContainer {
   }
 
   get mapZ() {
-    return this.y / 32 - this.mapHeight / 2;
+    return this.pxToGameUnit.y(this.y);
   }
 
   get unitIndex() {
@@ -54,53 +53,24 @@ export default class SoundsBW extends ContiguousContainer {
     return this.bwDat.sounds[this.id].priority;
   }
 
-  bwVolume(screenX, screenY, screenWidth, screenHeight) {
+  bwVolume(left, top, right, bottom) {
     let volume = this.minVolume;
 
-    let distance = 0;
-    if (this.x < screenX) distance += screenX - this.x;
-    else if (this.x > screenX + screenWidth)
-      distance += this.x - (screenX + screenWidth);
-    if (this.y < screenY) distance += screenY - this.y;
-    else if (this.y > screenY + screenHeight)
-      distance += this.y - (screenY + screenHeight);
+    if (this.x !== 0 && this.y !== 0) {
+      let distance = 0;
+      if (this.mapX < left) distance += left - this.mapX;
+      else if (this.mapX > right) distance += this.mapX - right;
+      if (this.mapY < top) distance += top - this.mapY;
+      else if (this.mapY > bottom) distance += this.mapY - bottom;
 
-    let distance_volume = 99 - (99 * distance) / 512;
+      let distance_volume = 99 - (99 * distance) / 512;
 
-    if (distance_volume > volume) volume = distance_volume;
-
+      if (distance_volume > volume) volume = distance_volume;
+    }
     return volume;
   }
 
   get muted() {
     return this.flags & 0x20;
-  }
-
-  nearest(x, y) {
-    const prevOffset = this.offset;
-
-    let sounds = [];
-    for (let i = 0; i < this.count; i++) {
-      sounds.push({ id: this.id, x: this.mapX, z: this.mapZ, y: this.mapZ });
-      this.offset++;
-    }
-
-    sounds.sort((a, b) => {
-      const aX = Math.abs(x - a.x);
-      const bX = Math.abs(x - b.x);
-      const aY = Math.abs(y - a.y);
-      const bY = Math.abs(y - b.y);
-
-      if (aX < bX && aY < bY) {
-        return -1;
-      }
-
-      if (aX > bX && aY > bY) {
-        return 1;
-      }
-      return 0;
-    });
-    this.offset = prevOffset;
-    return sounds;
   }
 }

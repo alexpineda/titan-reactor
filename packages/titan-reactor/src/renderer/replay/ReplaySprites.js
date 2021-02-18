@@ -5,8 +5,7 @@ import ReplaySprite from "./ReplaySprite";
 class ReplaySprites {
   constructor(
     bwDat,
-    mapWidth,
-    mapHeight,
+    pxToGameUnit,
     getTerrainY,
     createTitanImage,
     addSprite,
@@ -14,8 +13,7 @@ class ReplaySprites {
   ) {
     this._spritesByIndex = {};
     this.bwDat = bwDat;
-    this.mapWidth = mapWidth;
-    this.mapHeight = mapHeight;
+    this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
     this.createTitanImage = createTitanImage;
     this.addSprite = addSprite;
@@ -24,15 +22,15 @@ class ReplaySprites {
     this._spritesThisFrame = [];
     this._spritesLastFrame = [];
 
-    this.spritesBW = new SpritesBW();
-    this.imagesBW = new ImagesBW();
+    this.spritesBW = new SpritesBW(bwDat);
+    this.imagesBW = new ImagesBW(bwDat);
   }
 
   get sprites() {
     return Object.values(this._spritesByIndex);
   }
 
-  refresh(frame) {
+  refresh(frame, spriteUnits) {
     this._spritesThisFrame.length = 0;
 
     this.sprites.forEach(this.removeSprite);
@@ -49,15 +47,14 @@ class ReplaySprites {
       } else {
         replaySprite = new ReplaySprite(
           this.bwDat,
-          this.mapWidth,
-          this.mapHeight,
+          this.pxToGameUnit,
           this.getTerrainY,
           this.createTitanImage
         );
         this._spritesByIndex[sprite.index] = replaySprite;
       }
 
-      replaySprite.refresh(sprite, this.imagesBW);
+      replaySprite.refresh(sprite, this.imagesBW, spriteUnits[sprite.index]);
       this.addSprite(replaySprite);
       this._spritesThisFrame[sprite.index] = replaySprite;
     }
