@@ -7,6 +7,7 @@ import {
   Group,
   Color,
   Scene,
+  MathUtils,
 } from "three";
 import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
 import {
@@ -43,6 +44,7 @@ import ReplaySprites from "./replay/ReplaySprites";
 import { MinimapLayer } from "./camera/Layers";
 import { range } from "ramda";
 import BWFrameScene from "./replay/BWFrameScene";
+import { easeCubicOut } from "d3-ease";
 
 const { startLocation } = unitTypes;
 
@@ -411,11 +413,21 @@ async function TitanReactorReplay(
 
     for (let sound of soundsBW.items()) {
       if (sound.muted) continue;
-      if (
-        sound.bwVolume(view.left, view.top, view.right, view.bottom) >
-        SoundsBW.minPlayVolume
-      ) {
-        const channel = audio.get(sound, elapsed);
+      const volume = sound.bwVolume(
+        view.left,
+        view.top,
+        view.right,
+        view.bottom
+      );
+      if (volume > SoundsBW.minPlayVolume) {
+        const channel = audio.get(
+          sound,
+          100,
+          sound.mapX,
+          sound.mapY,
+
+          elapsed
+        );
         if (channel) {
           bwScene.add(channel);
         }
@@ -437,7 +449,7 @@ async function TitanReactorReplay(
     for (const sprite of sprites.refresh(
       nextFrame,
       bwScene.unitsBySpriteId,
-      bwScene.units,
+      bwScene.sprites,
       bwScene.images
     )) {
       bwScene.add(sprite);
@@ -459,19 +471,19 @@ async function TitanReactorReplay(
     cameras.update();
 
     if (!replayPosition.paused) {
-      if (replayPosition.skipGameFrames) {
+      if (!nextFrame) {
+        gameStateReader.next(replayPosition.skipGameFrames - 1);
+        nextFrame = gameStateReader.nextOne();
+        if (nextFrame) {
+          buildFrameScene(nextFrame, view, elapsed, updateMinimap);
+        } else {
+          replayPosition.paused = true;
+        }
+      }
+
+      if (replayPosition.skipGameFrames && nextFrame) {
         if (replayPosition.bwGameFrame % 8 === 0) {
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
-        }
-
-        if (!nextFrame) {
-          gameStateReader.next(replayPosition.skipGameFrames - 1);
-          nextFrame = gameStateReader.nextOne();
-          if (nextFrame) {
-            buildFrameScene(nextFrame, view, elapsed, updateMinimap);
-          } else {
-            replayPosition.paused = true;
-          }
         }
 
         bwScene.activate();
@@ -606,12 +618,13 @@ async function TitanReactorReplay(
 
       // audioListener.position.copy(cameras.getTarget());
 
+      // audioListener.position.setY(cameras.camera.position.y * 0.05);
       audioListener.position.lerpVectors(
         cameras.getTarget(),
         cameras.camera.position,
-        0.3
+        0.05
       );
-      intersectAxesHelper.position.copy(audioListener.position);
+      // intersectAxesHelper.position.copy(audioListener.position);
       renderMan.render(scene, cameras.camera);
     }
 

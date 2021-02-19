@@ -255,10 +255,22 @@ class Cameras {
 
     for (let i = 0; i < 2; i++) {
       _vector.set(points[i][0], points[i][1], 1).unproject(this.camera);
-      plane.intersectLine(
-        new Line3(this.camera.position, _vector),
-        _intersect[i]
-      );
+      if (
+        !plane.intersectLine(
+          new Line3(this.camera.position, _vector),
+          _intersect[i]
+        )
+      ) {
+        _intersect[0] = {
+          x: this.camera.position.x - 16,
+          z: this.camera.position.z + 16,
+        };
+        _intersect[1] = {
+          x: this.camera.position.x + 16,
+          z: this.camera.position.z - 16,
+        };
+        break;
+      }
     }
 
     return {

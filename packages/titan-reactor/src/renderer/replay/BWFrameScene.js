@@ -1,3 +1,4 @@
+import { range } from "ramda";
 import { Group } from "three";
 
 class BWGroup extends Group {
@@ -18,11 +19,7 @@ export default class BWFrameScene {
     this.groups = range(0, count).map(() => new BWGroup());
     this.index = 0;
     this._playSound = (channel) => {
-      channel.audio.play();
-      channel.audio.onEnded = () => {
-        channel.willPlay = false;
-        channel.audio.isPlaying = false;
-      };
+      channel.play();
     };
   }
 

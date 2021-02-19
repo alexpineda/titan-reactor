@@ -2,6 +2,53 @@ import { AudioLoader, PositionalAudio } from "three";
 import { DebugLog } from "../utils/DebugLog";
 import { range } from "ramda";
 
+class Channel {
+  constructor(audio) {
+    this.audio = audio;
+    this.queued = false;
+    this.audio.onEnded = () => {
+      this.queued = false;
+      this.audio.isPlaying = false;
+    };
+  }
+
+  queue(sound) {
+    this.id = sound.id;
+    this.unitTypeId = sound.unitTypeId;
+    this.flags = sound.flags;
+    this.queued = true;
+  }
+
+  get isPlaying() {
+    return this.audio.isPlaying;
+  }
+
+  get position() {
+    return this.audio.position;
+  }
+
+  play() {
+    this.audio.play();
+  }
+
+  // https://alemangui.github.io/ramp-to-value
+  stop() {
+    const audio = this.audio;
+    audio.gain.gain.setValueAtTime(
+      audio.gain.gain.value,
+      audio.context.currentTime
+    );
+    audio.gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      audio.context.currentTime + 0.03
+    );
+    audio._progress = 0;
+    audio.source.onended = null;
+    audio.isPlaying = false;
+    this.queued = false;
+  }
+}
+
 export default class Audio {
   constructor(getSoundFileName, audioListener, addSound) {
     this.getSoundFileName = getSoundFileName;
@@ -10,11 +57,10 @@ export default class Audio {
     this.audioBuffers = {};
 
     this.volume = 1;
-    this.maxSounds = 64;
-    this.channels = range(0, this.maxSounds).map(() => ({
-      audio: new PositionalAudio(this.audioListener),
-      priority: 0,
-    }));
+    this.maxSounds = 8; //original bw
+    this.channels = range(0, this.maxSounds).map(
+      () => new Channel(new PositionalAudio(this.audioListener))
+    );
     this.channels.forEach(({ audio }) => addSound(audio));
   }
 
@@ -25,7 +71,7 @@ export default class Audio {
   // replicate scbw channels
   _getFreeChannel(priority) {
     for (const channel of this.channels) {
-      if (!channel.audio.isPlaying && !channel.willPlay) {
+      if (!channel.audio.isPlaying && !channel.queued) {
         return channel;
       }
     }
@@ -41,33 +87,26 @@ export default class Audio {
     return c;
   }
 
-  // https://alemangui.github.io/ramp-to-value
-  stop(channel) {
-    const audio = channel.audio;
-    audio.gain.gain.setValueAtTime(
-      audio.gain.gain.value,
-      audio.context.currentTime
-    );
-    audio.gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      audio.context.currentTime + 0.03
-    );
-    audio._progress = 0;
-    audio.source.onended = null;
-    audio.isPlaying = false;
-    channel.willPlay = false;
-  }
-
-  play(sound, elapsed) {
-    this.get(sound, elapsed).then((channel) => channel.audio.play());
-  }
-
-  async get(sound, elapsed) {
+  async get(sound, volume, panX, panY, elapsed) {
     if (
       this.audioBuffers[sound.id] &&
-      elapsed - this.audioBuffers[sound.id].elapsed < 160
+      elapsed - this.audioBuffers[sound.id].elapsed <= 80
     ) {
       return;
+    }
+
+    if (sound.flags & 0x10) {
+      const channel = this.channels.find(({ id }) => id === sound.id);
+      if (channel && channel.isPlaying) {
+        return;
+      }
+    } else if (sound.flags & 2 && sound.unitTypeId) {
+      const channel = this.channels.find(
+        ({ unitTypeId, flags }) => unitTypeId === sound.unitTypeId && flags & 2
+      );
+      if (channel && channel.isPlaying) {
+        return;
+      }
     }
 
     const channel = this._getFreeChannel(sound.priority);
@@ -76,24 +115,26 @@ export default class Audio {
       return;
     }
 
-    channel.willPlay = true;
+    channel.queue(sound);
 
     return new Promise((res) => {
-      const { id, priority, mapX, mapY, mapZ } = sound;
+      const { id, priority } = sound;
 
-      if (channel.audio.isPlaying) {
-        this.stop(channel);
+      let delay = 0;
+
+      if (channel.isPlaying) {
+        channel.stop();
+        delay = 30;
       }
 
-      //@todo accomodate for audiolistener time delta transform
-      channel.audio.position.set(mapX, mapY, mapZ);
+      channel.position.set(panX, 0, panY);
 
       if (this.audioBuffers[id]) {
         this.audioBuffers[id].elapsed = elapsed;
         channel.priority = priority;
         channel.audio.setBuffer(this.audioBuffers[id].buffer);
-        channel.audio.setVolume(this.volume);
-        res(channel);
+        channel.audio.setVolume(this.volume * (volume / 100));
+        setTimeout(() => res(channel), delay);
         return;
       }
 
@@ -102,17 +143,12 @@ export default class Audio {
         this.audioBuffers[id] = { buffer, elapsed };
         channel.priority = priority;
         channel.audio.setBuffer(buffer);
-        channel.audio.setRefDistance(8);
-        channel.audio.setRolloffFactor(3);
+        channel.audio.setVolume(this.volume * (volume / 100));
+        channel.audio.setRefDistance(16);
+        channel.audio.setRolloffFactor(0.1);
         channel.audio.setDistanceModel("exponential");
-        channel.audio.setVolume(this.volume);
         res(channel);
       });
     });
   }
-
-  // unit.userData.runner.on("playsnd", playSound);
-  // unit.userData.runner.on("playsndbtwn", playSound);
-  // unit.userData.runner.on("playsndrand", playSound);
-  // unit.userData.runner.on("attackmelee", playSound);
 }
