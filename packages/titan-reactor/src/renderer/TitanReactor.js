@@ -176,7 +176,6 @@ export class TitanReactor {
       outFile,
       state.settings.data.starcraftPath
     );
-
     await gameStateReader.start();
 
     await new Promise((res) => {

@@ -19,22 +19,11 @@ class ReplaySprites {
     this.addSprite = addSprite;
     this.removeSprite = removeSprite;
 
-    this._spritesThisFrame = [];
-    this._spritesLastFrame = [];
-
     this.spritesBW = new SpritesBW(bwDat);
     this.imagesBW = new ImagesBW(bwDat);
   }
 
-  get sprites() {
-    return Object.values(this._spritesByIndex);
-  }
-
-  refresh(frame, spriteUnits) {
-    this._spritesThisFrame.length = 0;
-
-    this.sprites.forEach(this.removeSprite);
-
+  *refresh(frame, unitsBySpriteId, sprites, images) {
     this.spritesBW.buffer = frame.sprites;
     this.spritesBW.count = frame.spriteCount;
 
@@ -42,28 +31,32 @@ class ReplaySprites {
 
     for (let sprite of this.spritesBW.items()) {
       let replaySprite;
-      if (this._spritesByIndex[sprite.index]) {
-        replaySprite = this._spritesByIndex[sprite.index];
-      } else {
-        replaySprite = new ReplaySprite(
+
+      replaySprite =
+        sprites.get(sprite.index) ||
+        new ReplaySprite(
           this.bwDat,
           this.pxToGameUnit,
           this.getTerrainY,
           this.createTitanImage
         );
-        this._spritesByIndex[sprite.index] = replaySprite;
+
+      replaySprite.clear();
+
+      for (const image of replaySprite.refresh(
+        sprite,
+        this.imagesBW,
+        unitsBySpriteId.get(sprite.index),
+        images
+      )) {
+        replaySprite.add(image);
       }
 
-      replaySprite.refresh(sprite, this.imagesBW, spriteUnits[sprite.index]);
-      this.addSprite(replaySprite);
-      this._spritesThisFrame[sprite.index] = replaySprite;
+      if (!sprites.has(sprite.index)) {
+        sprites.set(sprite.index, replaySprite);
+      }
+      yield replaySprite;
     }
-
-    // this._spritesLastFrame = [...this._spritesThisFrame];
-
-    // for (const sprite of unusedSprites) {
-    //   this.removeSprite(sprite);
-    // }
   }
 }
 

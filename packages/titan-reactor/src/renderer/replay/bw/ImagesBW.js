@@ -27,7 +27,7 @@ export default class ImagesBW extends ContiguousContainer {
   }
 
   get index() {
-    return this._readU32(0);
+    return this._read32(0);
   }
 
   get id() {

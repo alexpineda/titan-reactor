@@ -41,6 +41,8 @@ import Units from "./replay/Units";
 
 import ReplaySprites from "./replay/ReplaySprites";
 import { MinimapLayer } from "./camera/Layers";
+import { range } from "ramda";
+import BWFrameScene from "./replay/BWFrameScene";
 
 const { startLocation } = unitTypes;
 
@@ -366,8 +368,7 @@ async function TitanReactorReplay(
   const unitsBW = new UnitsBW(bwDat);
   const units = new Units(
     pxToGameUnit,
-    players.map(({ color }) => color.rgb),
-    (o) => minimapScene.add(o)
+    players.map(({ color }) => color.rgb)
   );
 
   // createMinimapPoint();
@@ -376,9 +377,7 @@ async function TitanReactorReplay(
     bwDat,
     pxToGameUnit,
     getTerrainY,
-    createTitanImage,
-    (s) => scene.add(s),
-    (s) => scene.remove(s)
+    createTitanImage
   );
 
   let _preloadFrames = [];
@@ -397,6 +396,54 @@ async function TitanReactorReplay(
 
   gameStateReader.on("frames", (frames) => preloadAtlasQueue(frames));
 
+  let nextFrame;
+
+  const bwScene = new BWFrameScene(scene, 1);
+  const minimapBwScene = new BWFrameScene(minimapScene, 1);
+
+  function buildFrameScene(nextFrame, view, elapsed, updateMinimap) {
+    bwScene.swap();
+    if (updateMinimap) {
+      minimapBwScene.swap();
+    }
+    soundsBW.buffer = nextFrame.sounds;
+    soundsBW.count = nextFrame.soundCount;
+
+    for (let sound of soundsBW.items()) {
+      if (sound.muted) continue;
+      if (
+        sound.bwVolume(view.left, view.top, view.right, view.bottom) >
+        SoundsBW.minPlayVolume
+      ) {
+        const channel = audio.get(sound, elapsed);
+        if (channel) {
+          bwScene.add(channel);
+        }
+      }
+    }
+
+    unitsBW.buffer = nextFrame.units;
+    unitsBW.count = nextFrame.unitCount;
+    for (const minimapUnit of units.refresh(
+      unitsBW,
+      bwScene.units,
+      bwScene.unitsBySpriteId
+    )) {
+      if (updateMinimap) {
+        minimapBwScene.add(minimapUnit);
+      }
+    }
+
+    for (const sprite of sprites.refresh(
+      nextFrame,
+      bwScene.unitsBySpriteId,
+      bwScene.units,
+      bwScene.images
+    )) {
+      bwScene.add(sprite);
+    }
+  }
+
   function gameLoop(elapsed) {
     if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
       // players.updateResources(units);
@@ -412,34 +459,27 @@ async function TitanReactorReplay(
     cameras.update();
 
     if (!replayPosition.paused) {
-      for (let gf = 0; gf < replayPosition.skipGameFrames; gf++) {
+      if (replayPosition.skipGameFrames) {
         if (replayPosition.bwGameFrame % 8 === 0) {
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
-        const nextFrame = gameStateReader.next();
-
         if (!nextFrame) {
-          replayPosition.paused = true;
-          break;
+          gameStateReader.next(replayPosition.skipGameFrames - 1);
+          nextFrame = gameStateReader.nextOne();
+          if (nextFrame) {
+            buildFrameScene(nextFrame, view, elapsed, updateMinimap);
+          } else {
+            replayPosition.paused = true;
+          }
         }
 
-        soundsBW.buffer = nextFrame.sounds;
-        soundsBW.count = nextFrame.soundCount;
+        bwScene.activate();
+        bwScene.play();
 
-        for (let sound of soundsBW.items()) {
-          if (sound.muted) continue;
-          if (
-            sound.bwVolume(view.left, view.top, view.right, view.bottom) >
-            SoundsBW.minPlayVolume
-          )
-            audio.play(sound, elapsed);
+        if (updateMinimap) {
+          minimapBwScene.activate();
         }
-
-        unitsBW.buffer = nextFrame.units;
-        unitsBW.count = nextFrame.unitCount;
-        units.refresh(unitsBW, updateMinimap);
-
         // bool unit_visble_on_minimap(unit_t* u) {
         //   if (u->owner < 8 && u->sprite->visibility_flags == 0) return false;
         //   if (ut_turret(u)) return false;
@@ -449,13 +489,7 @@ async function TitanReactorReplay(
         //   return true;
         // }
 
-        sprites.refresh(nextFrame, units.spriteUnits);
         replayPosition.bwGameFrame = nextFrame.frame;
-
-        if (replayPosition.isMaxFrame()) {
-          replayPosition.pause();
-          continue;
-        }
 
         if (rep.cmds[replayPosition.bwGameFrame] && false) {
           // #region apm
@@ -510,6 +544,7 @@ async function TitanReactorReplay(
           // #endregion player commandpointers
         }
         fadingPointers.update(replayPosition.bwGameFrame);
+        nextFrame = null;
       }
 
       if (replayPosition.willUpdateAutospeed()) {

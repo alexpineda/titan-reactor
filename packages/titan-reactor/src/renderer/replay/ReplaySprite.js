@@ -8,16 +8,10 @@ export default class ReplaySprite extends Object3D {
     this._imagesById = {};
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
-
-    this._imagesThisFrame = [];
-    this._imagesLastFrame = [];
+    this.images = new Map();
   }
 
-  get images() {
-    return Object.values(this._imagesById);
-  }
-
-  refresh(sprite, imagesBW, spriteUnit) {
+  *refresh(sprite, imagesBW, spriteUnit) {
     this.renderOrder = sprite.order * 10;
     this._imageRenderOrder = this.renderOrder;
 
@@ -30,14 +24,12 @@ export default class ReplaySprite extends Object3D {
     }
     this.position.set(x, y, z);
 
-    this.images.forEach((image) => this.remove(image));
-
     for (let image of imagesBW.reverse(sprite.imageCount)) {
-      const titanImage =
-        this._imagesById[image.id] || this.createImage(image.id, this);
-      if (!titanImage) continue;
+      if (image.hidden) continue;
 
-      titanImage.userData.bwIndex = image.index;
+      const titanImage =
+        this.images.get(image.id) || this.createImage(image.id, this);
+      if (!titanImage) continue;
 
       //@todo optimize with redraw flag?
       const x = image.x / 32;
@@ -47,10 +39,16 @@ export default class ReplaySprite extends Object3D {
       titanImage.renderOrder = this._imageRenderOrder++;
       titanImage.setFrame(image.frameIndex, image.flipped);
       titanImage.visible = !image.hidden;
-      this._imagesById[image.id] = titanImage;
-      this.add(titanImage);
-    }
 
-    this._imagesLastFrame = { ...this._imagesById };
+      if (spriteUnit && !image.isShadow) {
+        titanImage.material.opacity = spriteUnit.cloaked ? 0.5 : 1;
+      }
+
+      if (!this.images.has(image.id)) {
+        this.images.set(image.id, titanImage);
+      }
+
+      yield titanImage;
+    }
   }
 }

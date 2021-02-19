@@ -35,7 +35,12 @@ import ContiguousContainer from "./ContiguousContainer";
 // 		status_flag_lifetime_expired = 0x80000000,
 
 const flags = Object.freeze({
+  groundedBuilding: 2,
   flying: 4,
+  cloaked: 0x200,
+  passivelyCloaked: 0x800,
+  canTurn: 0x10000,
+  canMove: 0x20000,
 });
 
 export default class UnitsBW extends ContiguousContainer {
@@ -49,14 +54,14 @@ export default class UnitsBW extends ContiguousContainer {
   }
 
   get default() {
-    return this.index;
-  }
-
-  get index() {
-    return this._readU32(0);
+    return this.id;
   }
 
   get id() {
+    return this._read32(0);
+  }
+
+  get typeId() {
     return this._read32(4);
   }
 
@@ -97,10 +102,17 @@ export default class UnitsBW extends ContiguousContainer {
   }
 
   get unitType() {
-    return this.bwDat.units[this.id];
+    return this.bwDat.units[this.typeId];
   }
 
   get isFlying() {
     return (this.statusFlags & flags.flying) != 0;
+  }
+
+  get isCloaked() {
+    return (
+      (this.statusFlags & flags.cloaked) != 0 ||
+      (this.statusFlags & flags.passivelyCloaked) != 0
+    );
   }
 }

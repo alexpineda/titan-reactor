@@ -114,7 +114,7 @@ class RenderMan {
     this._cinematicPass = new EffectPass(
       camera,
       fogOfWarEffect,
-      this._dofEffect,
+      // this._dofEffect,
       this._smaaEffect,
       toneMapping
     );
