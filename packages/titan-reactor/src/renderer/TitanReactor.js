@@ -35,6 +35,7 @@ import {
   calculateImagesFromUnitsIscript,
 } from "titan-reactor-shared/image/calculateImagesFromIScript";
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
+import FogOfWar from "./render/effects/FogOfWar";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -177,22 +178,7 @@ export class TitanReactor {
       state.settings.data.starcraftPath
     );
     await gameStateReader.start();
-
-    await new Promise((res) => {
-      const waitForMax = () => {
-        if (gameStateReader.maxed()) {
-          console.log(
-            `${gameStateReader.frames.length} frames byte size`,
-            gameStateReader.frames.reduce((size, frame) => size + frame.size, 0)
-          );
-          res();
-        } else {
-          setTimeout(waitForMax, 500);
-        }
-      };
-
-      setTimeout(waitForMax, 500);
-    });
+    await gameStateReader.waitForMaxed;
 
     await preloadAtlas(gameStateReader.frames);
 

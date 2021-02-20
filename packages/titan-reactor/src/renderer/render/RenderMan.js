@@ -105,7 +105,7 @@ class RenderMan {
       EdgeDetectionMode.DEPTH
     );
 
-    const fogOfWarEffect = new FogOfWarEffect(null, null);
+    this.fogOfWarEffect = new FogOfWarEffect();
 
     const toneMapping = new ToneMappingEffect();
     toneMapping.adaptive = true;
@@ -113,7 +113,7 @@ class RenderMan {
     window.focusFn = (y) => Math.max(y * 0.015, 0.1);
     this._cinematicPass = new EffectPass(
       camera,
-      fogOfWarEffect,
+      // this.fogOfWarEffect,
       // this._dofEffect,
       this._smaaEffect,
       toneMapping

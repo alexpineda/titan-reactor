@@ -144,8 +144,8 @@ export default class Audio {
         channel.priority = priority;
         channel.audio.setBuffer(buffer);
         channel.audio.setVolume(this.volume * (volume / 100));
-        channel.audio.setRefDistance(16);
-        channel.audio.setRolloffFactor(0.1);
+        channel.audio.setRefDistance(1);
+        channel.audio.setRolloffFactor(0.5);
         channel.audio.setDistanceModel("exponential");
         res(channel);
       });

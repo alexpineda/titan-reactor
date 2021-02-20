@@ -1,0 +1,134 @@
+export default class MapData {
+  static generate(
+    mapWidth,
+    mapHeight,
+    {
+      mapTiles,
+      palette,
+      tilegroupU16,
+      tilegroupBuf,
+      megatiles,
+      minitilesFlags,
+      minitiles,
+    }
+  ) {
+    const mapTilesData = new Uint16Array(mapWidth * mapHeight);
+    const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4, 255);
+    const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
+    const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+    const roughness = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+    const displacementDetail = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+
+    for (let mapY = 0; mapY < mapHeight; mapY++) {
+      for (let mapX = 0; mapX < mapWidth; mapX++) {
+        const mapTile = mapY * mapWidth + mapX;
+        let tileId = 0;
+        if (mapTile > mapTiles.length) {
+          tileId = 0;
+        } else {
+          tileId = mapTiles[mapTile];
+        }
+
+        const tileGroup = tileId >> 4;
+        if (tileGroup * 52 < tilegroupBuf.byteLength) {
+          const flags = tilegroupBuf.readUInt8(tileGroup * 52 + 2) & 0x0f;
+          const buildable =
+            tilegroupBuf.readUInt8(tileGroup * 52 + 2) >> 4 !== 8;
+          const leftEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 4);
+          const topEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 6);
+          const rightEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 8);
+          const bottomEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 10);
+          const edgeUp = tilegroupBuf.readUInt16LE(tileGroup * 52 + 14);
+          const edgeDown = tilegroupBuf.readUInt16LE(tileGroup * 52 + 18);
+        }
+        const groupIndex = tileId & 0xf;
+        const groupOffset = tileGroup * 26 + groupIndex + 10;
+        let megatileId = 0;
+        if (groupOffset > tilegroupU16.length) {
+          megatileId = 0;
+        } else {
+          megatileId = tilegroupU16[groupOffset];
+        }
+
+        mapTilesData[mapY * mapWidth + mapX] = megatileId;
+
+        for (let miniY = 0; miniY < 4; miniY++) {
+          for (let miniX = 0; miniX < 4; miniX++) {
+            const mini = megatiles[megatileId * 16 + (miniY * 4 + miniX)];
+            const minitile = mini & 0xfffffffe;
+            const flipped = mini & 1;
+            const meta = minitilesFlags[megatileId * 16 + (miniY * 4 + miniX)];
+            const walkable = meta & 0x01;
+            const mid = meta & 0x02;
+            const high = meta & 0x04;
+            const blocksView = meta & 0x08;
+
+            let elevation = 0;
+
+            if (high && walkable && mid) {
+              elevation = 6;
+            } else if (high && walkable) {
+              elevation = 5;
+            } else if (high) {
+              elevation = 4;
+            } else if (mid && walkable) {
+              elevation = 3;
+            } else if (mid) {
+              elevation = 2;
+            } else if (walkable) {
+              elevation = 1;
+            }
+
+            const miniPos =
+              mapY * 4 * mapWidth * 4 + mapX * 4 + miniY * mapWidth * 4 + miniX;
+
+            layers[miniPos] = elevation;
+
+            for (let colorY = 0; colorY < 8; colorY++) {
+              for (let colorX = 0; colorX < 8; colorX++) {
+                let color = 0;
+                if (flipped) {
+                  color =
+                    minitiles[minitile * 0x20 + colorY * 8 + (7 - colorX)];
+                } else {
+                  color = minitiles[minitile * 0x20 + colorY * 8 + colorX];
+                }
+
+                const [r, g, b] = palette.slice(color * 4, color * 4 + 3);
+
+                const pixelPos =
+                  mapY * 32 * mapWidth * 32 +
+                  mapX * 32 +
+                  miniY * 8 * mapWidth * 32 +
+                  miniX * 8 +
+                  colorY * mapWidth * 32 +
+                  colorX;
+
+                paletteIndices[pixelPos] = color;
+
+                let details = Math.floor((r + g + b) / 3);
+
+                diffuse[pixelPos * 4] = r;
+                diffuse[pixelPos * 4 + 1] = g;
+                diffuse[pixelPos * 4 + 2] = b;
+                diffuse[pixelPos * 4 + 3] = 255;
+
+                displacementDetail[pixelPos] = details;
+                roughness[pixelPos] = elevation == 0 ? 0 : details / 3;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      mapTilesData,
+      diffuse,
+      layers,
+      paletteIndices,
+      roughness,
+      displacementDetail,
+    };
+  }
+}

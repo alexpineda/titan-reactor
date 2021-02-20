@@ -45,6 +45,8 @@ import { MinimapLayer } from "./camera/Layers";
 import { range } from "ramda";
 import BWFrameScene from "./replay/BWFrameScene";
 import { easeCubicOut } from "d3-ease";
+import FogOfWar from "./render/effects/FogOfWar";
+import TilesBW from "./replay/bw/TilesBW";
 
 const { startLocation } = unitTypes;
 
@@ -129,6 +131,8 @@ async function TitanReactorReplay(
 
   const getTerrainY = scene.getTerrainY();
 
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
+
   // #region player initialization
   const players = new Players(
     rep.header.players,
@@ -158,6 +162,7 @@ async function TitanReactorReplay(
     (s) => scene.add(s)
   );
   const soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
+  const tilesBW = new TilesBW();
 
   let replayPosition = new ReplayPosition(
     rep.header.frameCount,
@@ -454,6 +459,14 @@ async function TitanReactorReplay(
     )) {
       bwScene.add(sprite);
     }
+
+    tilesBW.buffer = nextFrame.tiles;
+    tilesBW.count = nextFrame.tilesCount;
+
+    fogOfWar.generate(
+      tilesBW,
+      players.map(({ id }) => id)
+    );
   }
 
   function gameLoop(elapsed) {
@@ -589,6 +602,7 @@ async function TitanReactorReplay(
     // }
 
     cameras.updateDirection32();
+    fogOfWar.update(cameras.camera);
 
     renderMan.setCanvasTarget(gameSurface);
 

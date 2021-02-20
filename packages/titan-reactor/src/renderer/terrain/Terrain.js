@@ -70,7 +70,7 @@ class Terrain {
       `TileSet/${tilesetName}.cv5`
     );
 
-    const tilegroup = new Uint16Array(tilegroupArrayBuffer);
+    const tilegroupU16 = new Uint16Array(tilegroupArrayBuffer);
     const tilegroupBuf = Buffer.from(tilegroupArrayBuffer);
     const megatiles = new Uint32Array(
       await this.readFile(`TileSet/${tilesetName}.vx4ex`)
@@ -96,16 +96,18 @@ class Terrain {
       renderer,
       this.chk.size[0],
       this.chk.size[1],
-      mapTiles,
-      megatiles,
-      minitilesFlags,
-      minitiles,
-      palette,
-      tileset,
-      hdTiles,
-      tilegroup,
-      tilegroupBuf,
-      options
+      {
+        mapTiles,
+        megatiles,
+        minitilesFlags,
+        minitiles,
+        palette,
+        tileset,
+        hdTiles,
+        tilegroupU16,
+        tilegroupBuf,
+        options,
+      }
     );
 
     const [sd, hd, d] = generateMesh(renderer, mapData);
