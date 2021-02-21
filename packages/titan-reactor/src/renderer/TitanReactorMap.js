@@ -218,6 +218,7 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
   let frame = 0;
   let frameElapsed = 0;
   renderMan.setCanvasTarget(gameSurface);
+  renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
 
   function gameLoop(elapsed) {
     if (!running) return;

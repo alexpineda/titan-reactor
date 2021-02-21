@@ -1,5 +1,5 @@
 import { EventDispatcher } from "three";
-import { KeyboardKeyHold } from "hold-event";
+import { KeyboardKeyHold } from "./hold-event";
 import { range } from "ramda";
 import InputEvents from "./InputEvents";
 
@@ -65,17 +65,24 @@ class KeyboardShortcuts extends EventDispatcher {
         dispatch(eventType, event.deltaTime);
       };
       key.addEventListener("holding", listener);
-      return () => {
-        key.removeEventListener("holding", listener);
+      return {
+        update: (delta) => key.update(delta),
+        dispose: () => key.removeEventListener("holding", listener),
       };
     });
 
     document.addEventListener("keydown", this.keyDownListener);
   }
 
+  update(delta) {
+    for (const key of this.holdEvents) {
+      key.update(delta);
+    }
+  }
+
   dispose() {
     document.removeEventListener("keydown", this.keyDownListener);
-    this.holdEvents.forEach((dispose) => dispose());
+    this.holdEvents.forEach((event) => event.dispose());
   }
 }
 

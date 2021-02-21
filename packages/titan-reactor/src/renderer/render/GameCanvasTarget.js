@@ -10,6 +10,7 @@ class GameCanvasTarget extends CanvasTarget {
   }
 
   setDimensions(screenWidth, screenHeight) {
+    this.dirty = true;
     const producerWindowPosition = this.settings.producerWindowPosition;
     const gameAspect = this.settings.gameAspect;
     const producerDockSize = this.settings.producerDockSize;

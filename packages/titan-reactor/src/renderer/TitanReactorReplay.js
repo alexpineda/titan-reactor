@@ -347,6 +347,7 @@ async function TitanReactorReplay(
   window.cameras = cameras;
   const sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+    renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
 
     cameras.updateGameScreenAspect(gameSurface.width, gameSurface.height);
     players.forEach(({ camera }) =>
@@ -425,14 +426,7 @@ async function TitanReactorReplay(
         view.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        const channel = audio.get(
-          sound,
-          100,
-          sound.mapX,
-          sound.mapY,
-
-          elapsed
-        );
+        const channel = audio.get(sound, 100, sound.mapX, sound.mapY, elapsed);
         if (channel) {
           bwScene.add(channel);
         }
@@ -446,7 +440,7 @@ async function TitanReactorReplay(
       bwScene.units,
       bwScene.unitsBySpriteId
     )) {
-      if (updateMinimap) {
+      if (updateMinimap && minimapUnit) {
         minimapBwScene.add(minimapUnit);
       }
     }
@@ -469,7 +463,13 @@ async function TitanReactorReplay(
     );
   }
 
+  let _lastElapsed = 0;
+  let delta = 0;
+
   function gameLoop(elapsed) {
+    delta = elapsed - _lastElapsed;
+    _lastElapsed = elapsed;
+
     if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
       // players.updateResources(units);
       store.dispatch(onGameTick());
@@ -485,7 +485,7 @@ async function TitanReactorReplay(
 
     if (!replayPosition.paused) {
       if (!nextFrame) {
-        gameStateReader.next(replayPosition.skipGameFrames - 1);
+        gameStateReader.next(replayPosition.skipGameFrames).pop();
         nextFrame = gameStateReader.nextOne();
         if (nextFrame) {
           buildFrameScene(nextFrame, view, elapsed, updateMinimap);
@@ -611,9 +611,9 @@ async function TitanReactorReplay(
         renderMan.renderSplitScreen(scene, camera, camera.viewport);
       });
     } else if (players[0].showPov) {
-      renderMan.render(scene, players[0].camera);
+      renderMan.render(scene, players[0].camera, delta);
     } else if (players[1].showPov) {
-      renderMan.render(scene, players[1].camera);
+      renderMan.render(scene, players[1].camera, delta);
     } else {
       // if (units.followingUnit && units.selected.length) {
       //   const x =
@@ -639,13 +639,13 @@ async function TitanReactorReplay(
         0.05
       );
       // intersectAxesHelper.position.copy(audioListener.position);
-      renderMan.render(scene, cameras.camera);
+      renderMan.render(scene, cameras.camera, delta);
     }
 
     if (updateMinimap) {
       renderMan.onlyRenderPass();
       renderMan.setCanvasTarget(minimapSurface);
-      renderMan.render(minimapScene, cameras.minimapCamera);
+      renderMan.render(minimapScene, cameras.minimapCamera, delta);
 
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
         previewSurfaces.forEach((previewSurface, i) => {
@@ -657,9 +657,9 @@ async function TitanReactorReplay(
                 previewSurface.height
               );
 
-              renderMan.render(scene, players[i - 1].camera);
+              renderMan.render(scene, players[i - 1].camera, delta);
             } else {
-              renderMan.render(scene, cameras.previewCameras[i]);
+              renderMan.render(scene, cameras.previewCameras[i], delta);
             }
           } else {
             // previewSurface.canvas
@@ -677,6 +677,7 @@ async function TitanReactorReplay(
       renderMan.allEnabledPasses();
     }
 
+    keyboardShortcuts.update(delta);
     replayPosition.update();
 
     if (state.replay.hud.showFps) {

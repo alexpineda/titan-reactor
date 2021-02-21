@@ -12,6 +12,27 @@ export default class MapData {
       minitiles,
     }
   ) {
+    let tileGroup,
+      groupIndex,
+      groupOffset,
+      megatileId,
+      mapTile,
+      mini,
+      minitile,
+      flipped,
+      meta,
+      walkable,
+      mid,
+      high,
+      blocksView,
+      elevation,
+      miniPos,
+      pixelPos,
+      details,
+      r,
+      g,
+      b;
+
     const mapTilesData = new Uint16Array(mapWidth * mapHeight);
     const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4, 255);
     const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
@@ -21,7 +42,7 @@ export default class MapData {
 
     for (let mapY = 0; mapY < mapHeight; mapY++) {
       for (let mapX = 0; mapX < mapWidth; mapX++) {
-        const mapTile = mapY * mapWidth + mapX;
+        mapTile = mapY * mapWidth + mapX;
         let tileId = 0;
         if (mapTile > mapTiles.length) {
           tileId = 0;
@@ -29,21 +50,21 @@ export default class MapData {
           tileId = mapTiles[mapTile];
         }
 
-        const tileGroup = tileId >> 4;
-        if (tileGroup * 52 < tilegroupBuf.byteLength) {
-          const flags = tilegroupBuf.readUInt8(tileGroup * 52 + 2) & 0x0f;
-          const buildable =
-            tilegroupBuf.readUInt8(tileGroup * 52 + 2) >> 4 !== 8;
-          const leftEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 4);
-          const topEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 6);
-          const rightEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 8);
-          const bottomEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 10);
-          const edgeUp = tilegroupBuf.readUInt16LE(tileGroup * 52 + 14);
-          const edgeDown = tilegroupBuf.readUInt16LE(tileGroup * 52 + 18);
-        }
-        const groupIndex = tileId & 0xf;
-        const groupOffset = tileGroup * 26 + groupIndex + 10;
-        let megatileId = 0;
+        tileGroup = tileId >> 4;
+        // if (tileGroup * 52 < tilegroupBuf.byteLength) {
+        //   const flags = tilegroupBuf.readUInt8(tileGroup * 52 + 2) & 0x0f;
+        //   const buildable =
+        //     tilegroupBuf.readUInt8(tileGroup * 52 + 2) >> 4 !== 8;
+        //   const leftEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 4);
+        //   const topEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 6);
+        //   const rightEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 8);
+        //   const bottomEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 10);
+        //   const edgeUp = tilegroupBuf.readUInt16LE(tileGroup * 52 + 14);
+        //   const edgeDown = tilegroupBuf.readUInt16LE(tileGroup * 52 + 18);
+        // }
+        groupIndex = tileId & 0xf;
+        groupOffset = tileGroup * 26 + groupIndex + 10;
+        megatileId = 0;
         if (groupOffset > tilegroupU16.length) {
           megatileId = 0;
         } else {
@@ -54,16 +75,16 @@ export default class MapData {
 
         for (let miniY = 0; miniY < 4; miniY++) {
           for (let miniX = 0; miniX < 4; miniX++) {
-            const mini = megatiles[megatileId * 16 + (miniY * 4 + miniX)];
-            const minitile = mini & 0xfffffffe;
-            const flipped = mini & 1;
-            const meta = minitilesFlags[megatileId * 16 + (miniY * 4 + miniX)];
-            const walkable = meta & 0x01;
-            const mid = meta & 0x02;
-            const high = meta & 0x04;
-            const blocksView = meta & 0x08;
+            mini = megatiles[megatileId * 16 + (miniY * 4 + miniX)];
+            minitile = mini & 0xfffffffe;
+            flipped = mini & 1;
+            meta = minitilesFlags[megatileId * 16 + (miniY * 4 + miniX)];
+            walkable = meta & 0x01;
+            mid = meta & 0x02;
+            high = meta & 0x04;
+            blocksView = meta & 0x08;
 
-            let elevation = 0;
+            elevation = 0;
 
             if (high && walkable && mid) {
               elevation = 6;
@@ -79,7 +100,7 @@ export default class MapData {
               elevation = 1;
             }
 
-            const miniPos =
+            miniPos =
               mapY * 4 * mapWidth * 4 + mapX * 4 + miniY * mapWidth * 4 + miniX;
 
             layers[miniPos] = elevation;
@@ -94,9 +115,11 @@ export default class MapData {
                   color = minitiles[minitile * 0x20 + colorY * 8 + colorX];
                 }
 
-                const [r, g, b] = palette.slice(color * 4, color * 4 + 3);
+                r = palette[color * 4];
+                g = palette[color * 4 + 1];
+                b = palette[color * 4 + 2];
 
-                const pixelPos =
+                pixelPos =
                   mapY * 32 * mapWidth * 32 +
                   mapX * 32 +
                   miniY * 8 * mapWidth * 32 +
@@ -106,7 +129,7 @@ export default class MapData {
 
                 paletteIndices[pixelPos] = color;
 
-                let details = Math.floor((r + g + b) / 3);
+                details = Math.floor((r + g + b) / 3);
 
                 diffuse[pixelPos * 4] = r;
                 diffuse[pixelPos * 4 + 1] = g;

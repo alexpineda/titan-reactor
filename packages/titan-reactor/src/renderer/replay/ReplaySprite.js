@@ -32,10 +32,9 @@ export default class ReplaySprite extends Object3D {
       if (!titanImage) continue;
 
       //@todo optimize with redraw flag?
-      const x = image.x / 32;
-      const y = image.y / 32;
+      titanImage.position.x = image.x / 32;
+      titanImage.position.z = image.y / 32;
 
-      titanImage.position.set(x, 0, y);
       titanImage.renderOrder = this._imageRenderOrder++;
       titanImage.setFrame(image.frameIndex, image.flipped);
       titanImage.visible = !image.hidden;

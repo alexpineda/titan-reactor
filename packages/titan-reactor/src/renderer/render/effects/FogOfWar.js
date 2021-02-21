@@ -40,6 +40,10 @@ export default class FogOfWar {
     this.effect.fog = texture;
   }
 
+  get imageData() {
+    return this.texture.image.data;
+  }
+
   _setUvTransform() {
     const width = this.fogResolution.x;
     const height = this.fogResolution.y;
@@ -59,44 +63,35 @@ export default class FogOfWar {
 
   set enabled(val) {
     this._enabled = val;
-    this.generate(this._lastTileData, this._lastPlayers);
   }
 
   generate(tileData, players) {
     this._lastTileData = tileData;
     this._lastPlayers = players;
 
-    const data = new Uint8Array(this.fogResolution.x * this.fogResolution.y);
-
-    if (!this.enabled) {
-      data.fill(255);
-    } else {
+    if (this.enabled) {
+      this.imageData.fill(0);
       let idx = 0;
-      for (const tile of tileData.items()) {
+      for (let i = 0; i < this.imageData.length; i++) {
         for (let player of players) {
-          if (tile.visible & (1 << player === 0)) {
-            data[idx] = 255;
+          //visible
+          if ((tileData.buffer[i * 4] & (1 << player)) !== 0) {
+            this.imageData[idx] = 255;
             break;
           }
-          if (tile.explored & (1 << player === 0)) {
-            data[idx] = 155;
+
+          //explored
+          if ((tileData.buffer[i * 4 + 1] & (1 << player)) !== 0) {
+            this.imageData[idx] = 155;
             break;
           }
         }
-        idx++;
       }
+    } else {
+      this.imageData.fill(255);
     }
 
-    this.data = data;
-  }
-
-  set data(value) {
-    this.texture.image.data = value;
     this.texture.needsUpdate = true;
-  }
-
-  get data() {
-    return this.texture.image.data;
   }
 
   get color() {

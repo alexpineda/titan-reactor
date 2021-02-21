@@ -172,6 +172,7 @@ export class TitanReactor {
       }
     };
 
+    let start = Date.now();
     const gameStateReader = new ReplayReadFile(
       repFile,
       outFile,
@@ -180,7 +181,11 @@ export class TitanReactor {
     await gameStateReader.start();
     await gameStateReader.waitForMaxed;
 
+    console.log(`initial replay frames loaded in ${Date.now() - start}`);
+
+    start = Date.now();
     await preloadAtlas(gameStateReader.frames);
+    console.log(`images preloaded in ${Date.now() - start}`);
 
     dispatchRepLoadingProgress();
 

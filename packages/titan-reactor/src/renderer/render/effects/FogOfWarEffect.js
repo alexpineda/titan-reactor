@@ -11,20 +11,6 @@ uniform vec4 fogUvTransform;
 uniform mat4 projectionInverse;
 uniform vec2 fogResolution;
         
-uniform vec4 color;
-
-
-  void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
-
-    vec3 worldPosition = computeWorldPosition(uv, depth);
-    
-    vec2 fogUv = worldPosition.xz * fogUvTransform.zw + fogUvTransform.xy;
-    
-    float fogValue = getFog( fogUv );
-    
-    outputColor = vec4(inputColor.rgb*fogValue, inputColor.a) * vec4(color, 1.);
-  }
-      
   vec3 computeWorldPosition(const in vec2 uv, const in float depth){
     // Convert screen coordinates to normalized device coordinates (NDC)
                     
@@ -66,6 +52,17 @@ uniform vec4 color;
 				sampleFog( uv.xy + vec2( dx1, dy1 ) )
 			) * ( 1.0 / 9.0 );
 	     }
+
+  void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
+
+  vec3 worldPosition = computeWorldPosition(uv, depth);
+  
+  vec2 fogUv = worldPosition.xz * fogUvTransform.zw + fogUvTransform.xy;
+  
+  float fogValue = getFog( fogUv );
+  
+  outputColor = vec4(inputColor.rgb * fogValue * color, inputColor.a);
+}
 `;
 
 export default class FogOfWarEffect extends Effect {

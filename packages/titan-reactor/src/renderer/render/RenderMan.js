@@ -7,6 +7,7 @@ import {
   PCFSoftShadowMap,
   Vector4,
   HalfFloatType,
+  Vector2,
 } from "three";
 // import { log } from "../invoke";
 
@@ -36,11 +37,55 @@ OverrideMaterialManager.workaroundEnabled = true;
 // import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass";
 
 const log = () => {};
+
+class FakeSizingRenderer {
+  constructor() {
+    this.canvasTarget = null;
+    this.size = new Vector2();
+  }
+
+  getSize() {
+    this.size.set(this.canvasTarget.width, this.canvasTarget.height);
+    return this.size;
+  }
+
+  getDrawingBufferSize(target) {
+    if (target === undefined) {
+      console.warn(
+        "WebGLRenderer: .getdrawingBufferSize() now requires a Vector2 as an argument"
+      );
+
+      target = new Vector2();
+    }
+
+    return target
+      .set(
+        this.canvasTarget.width * this.canvasTarget.pixelRatio,
+        this.canvasTarget.height * this.canvasTarget.pixelRatio
+      )
+      .floor();
+  }
+
+  inject(effectComposer, canvasTarget) {
+    this.canvasTarget = canvasTarget;
+    this._renderer = effectComposer.renderer;
+    effectComposer.renderer = this;
+  }
+
+  reset(effectComposer) {
+    effectComposer.renderer = this._renderer;
+    this._renderer = null;
+    this.canvasTarget = null;
+  }
+}
+
 class RenderMan {
   constructor(settings, isDev) {
     this.settings = settings;
     this.isDev = isDev;
     this.renderer = null;
+    // to pass into EffectComposer so we don't actually call the expensive setSize on renderer
+    this.sizingRenderer = new FakeSizingRenderer();
   }
 
   setShadowLevel(shadowLevel) {
@@ -53,16 +98,42 @@ class RenderMan {
     }
   }
 
+  setSize(width, height) {
+    this._composer.setSize(width, height, false);
+  }
+
   setCanvasTarget(canvasTarget) {
     this.canvasTarget = canvasTarget;
-    this.renderer.setPixelRatio(canvasTarget.pixelRatio);
+    // if (canvasTarget.dirty) {
+    //   this.renderer.setPixelRatio(canvasTarget.pixelRatio);
+    //   this.renderer.setSize(
+    //     this.canvasTarget.width,
+    //     this.canvasTarget.height,
+    //     false
+    //   );
+    //   canvasTarget.dirty = false;
+    // } else {
+    //   this.sizingRenderer.inject(this._composer, canvasTarget);
+    //   this._composer.setSize();
+    //   this.sizingRenderer.reset(this._composer);
+
+    //   this.renderer.setViewport(
+    //     new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
+    //   );
+    // }
+
+    // this.renderer.setPixelRatio(canvasTarget.pixelRatio);
+
+    // this.canvasTarget.canvas.disableCanvasResize = true;
+    // this._composer.setSize(
+    //   this.canvasTarget.width,
+    //   this.canvasTarget.height,
+    //   false
+    // );
+    // this.canvasTarget.canvas.disableCanvasResize = false;
+
     this.renderer.setViewport(
       new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
-    );
-    this._composer.setSize(
-      this.canvasTarget.width,
-      this.canvasTarget.height,
-      false
     );
   }
 
@@ -138,7 +209,7 @@ class RenderMan {
     this._renderPass.renderToScreen = false;
   }
 
-  _render(scene, camera) {
+  _render(scene, camera, delta) {
     //@todo change this to delta
     this._dofEffect.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
       camera.position.y
@@ -146,15 +217,23 @@ class RenderMan {
     this._renderPass.scene = scene;
     this._renderPass.camera = camera;
     // this.renderer.render(scene, camera);
-    this._composer.render(0.1);
+    this._composer.render(delta);
 
-    this.canvasTarget.canvas
-      .getContext("2d")
-      .drawImage(this.renderer.domElement, 0, 0);
+    this.canvasTarget.ctx.drawImage(
+      this.renderer.domElement,
+      0,
+      this.renderer.domElement.height - this.canvasTarget.scaledHeight,
+      this.canvasTarget.scaledWidth,
+      this.canvasTarget.scaledHeight,
+      0,
+      0,
+      this.canvasTarget.scaledWidth,
+      this.canvasTarget.scaledHeight
+    );
   }
 
-  render(scene, camera) {
-    this._render(scene, camera);
+  render(scene, camera, delta = 0.1) {
+    this._render(scene, camera, delta);
   }
 
   _initRenderer() {
