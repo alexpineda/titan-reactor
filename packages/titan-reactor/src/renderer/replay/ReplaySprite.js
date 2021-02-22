@@ -11,7 +11,7 @@ export default class ReplaySprite extends Object3D {
     this.images = new Map();
   }
 
-  *refresh(sprite, imagesBW, spriteUnit) {
+  *refresh(sprite, imagesBW, spriteUnit, view) {
     this.renderOrder = sprite.order * 10;
     this._imageRenderOrder = this.renderOrder;
 

@@ -23,13 +23,22 @@ class ReplaySprites {
     this.imagesBW = new ImagesBW(bwDat);
   }
 
-  *refresh(frame, unitsBySpriteId, sprites, images) {
+  *refresh(frame, unitsBySpriteId, sprites, images, { viewBW }) {
     this.spritesBW.buffer = frame.sprites;
     this.spritesBW.count = frame.spriteCount;
 
     this.imagesBW.buffer = frame.images;
 
     for (let sprite of this.spritesBW.items()) {
+      if (
+        sprite.x < viewBW.left ||
+        sprite.y < viewBW.top ||
+        sprite.x > viewBW.right ||
+        sprite.y > viewBW.bottom
+      ) {
+        continue;
+      }
+
       let replaySprite;
 
       replaySprite =

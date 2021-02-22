@@ -22,7 +22,7 @@ export function sunlight(mapWidth, mapHeight) {
   return light;
 }
 
-export function fog(mapWidth, mapHeight, fogColor = 0x020220) {
+export function fog(mapWidth, mapHeight, fogColor = 0x000000) {
   const mapSize = Math.min(mapWidth, mapHeight);
   return new Fog(fogColor, mapSize * 4, mapSize * 6);
 }

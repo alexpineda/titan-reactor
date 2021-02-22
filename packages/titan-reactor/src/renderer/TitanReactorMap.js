@@ -236,10 +236,9 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
       frameElapsed = 0;
     }
 
-    cameras.update();
-
-    renderMan.renderer.clear();
-    renderMan.render(scene, cameras.camera);
+    cameras.update(delta);
+    keyboardShortcuts.update(delta);
+    renderMan.render(scene, cameras.camera, delta);
     last = elapsed;
   }
 

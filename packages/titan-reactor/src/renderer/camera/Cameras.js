@@ -1,10 +1,7 @@
 import { is } from "ramda";
 import {
-  Camera,
   Clock,
-  Line,
   Line3,
-  MathUtils,
   OrthographicCamera,
   PerspectiveCamera,
   Plane,
@@ -64,8 +61,7 @@ class Cameras {
     this.control.initNumpadControls();
     this.control.execNumpad(7);
 
-    this.controlClock = new Clock();
-
+    this.cameraClock = new Clock();
     this._delta = new Vector3();
 
     if (minimapControl) {
@@ -184,7 +180,7 @@ class Cameras {
   }
 
   update() {
-    const delta = this.controlClock.getDelta();
+    const delta = this.cameraClock.getDelta();
     this.control.update(delta);
     this.previewControl && this.previewControl.update(delta);
   }
@@ -242,45 +238,6 @@ class Cameras {
 
   setTarget(x, y, z, enableTransition = false) {
     this.control.setTarget(x, y, z, enableTransition);
-  }
-
-  viewSizeWorld() {
-    const plane = new Plane(new Vector3(0, 1, 0));
-    const _vector = new Vector3();
-    const _intersect = [new Vector3(), new Vector3()];
-    let points = [
-      [-1, -1],
-      [1, 1],
-    ];
-
-    for (let i = 0; i < 2; i++) {
-      _vector.set(points[i][0], points[i][1], 1).unproject(this.camera);
-      if (
-        !plane.intersectLine(
-          new Line3(this.camera.position, _vector),
-          _intersect[i]
-        )
-      ) {
-        _intersect[0] = {
-          x: this.camera.position.x - 16,
-          z: this.camera.position.z + 16,
-        };
-        _intersect[1] = {
-          x: this.camera.position.x + 16,
-          z: this.camera.position.z - 16,
-        };
-        break;
-      }
-    }
-
-    return {
-      left: _intersect[0].x,
-      top: _intersect[1].z,
-      right: _intersect[1].x,
-      bottom: _intersect[0].z,
-      width: _intersect[1].x - _intersect[0].x,
-      height: _intersect[0].z - _intersect[1].z,
-    };
   }
 
   dispose() {

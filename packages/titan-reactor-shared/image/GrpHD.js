@@ -15,7 +15,6 @@ export default class GrpHD {
   }
 
   async load({ readAnim, imageDef }) {
-    console.log(`loading image ${imageDef.index}`);
     const buf = await readAnim();
     const anim = Anim(buf);
 

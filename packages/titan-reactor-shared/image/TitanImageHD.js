@@ -55,8 +55,9 @@ export default class TitanImageHD extends Sprite {
       grpHeight / this._spriteScale,
       1
     );
+    this.material.transparent = false;
     this.material.transparent = true;
-    // this.material.alphaTest = 0.01;
+    // this.material.alphaTest = 0.99;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
       this.material.opacity = 0.6;

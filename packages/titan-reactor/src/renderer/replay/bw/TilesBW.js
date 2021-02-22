@@ -6,19 +6,6 @@ const flags = Object.freeze({
   temporaryCreep: 0x4000,
 });
 
-/*
-bool **player_position_is_visible**(int owner, **xy** position) const {
-
-  return (**tile_visibility**(position) & (1 << owner)) != 0;
-  
-  }
-  
-  bool **player_position_is_explored**(int owner, **xy** position) const {
-  
-  return (**tile_explored**(position) & (1 << owner)) != 0;
-  
-  }
-*/
 export default class TilesBW extends ContiguousContainer {
   static get byteLength() {
     return 4;

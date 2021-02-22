@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import * as THREE from "three";
 
 import {
   Raycaster,
@@ -47,6 +48,8 @@ import BWFrameScene from "./replay/BWFrameScene";
 import { easeCubicOut } from "d3-ease";
 import FogOfWar from "./render/effects/FogOfWar";
 import TilesBW from "./replay/bw/TilesBW";
+import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
+import ProjectedCameraView from "./camera/CameraMapView";
 
 const { startLocation } = unitTypes;
 
@@ -124,6 +127,15 @@ async function TitanReactorReplay(
     keyboardShortcuts,
     false
   );
+
+  // const DrawCallInspector = drawCallInspectorFactory(THREE);
+  // const drawCallInspector = new DrawCallInspector(
+  //   renderMan.renderer,
+  //   scene,
+  //   cameras.camera,
+  //   true
+  // );
+
   minimapScene.add(cameras.minimapCameraHelper);
 
   await renderMan.initRenderer(cameras.camera);
@@ -346,6 +358,7 @@ async function TitanReactorReplay(
   //#endregion hud ui
   window.cameras = cameras;
   const sceneResizeHandler = () => {
+    // drawCallInspector.update();
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
 
@@ -406,6 +419,7 @@ async function TitanReactorReplay(
 
   let nextFrame;
 
+  const projectedCameraView = new ProjectedCameraView(cameras.camera);
   const bwScene = new BWFrameScene(scene, 1);
   const minimapBwScene = new BWFrameScene(minimapScene, 1);
 
@@ -449,7 +463,8 @@ async function TitanReactorReplay(
       nextFrame,
       bwScene.unitsBySpriteId,
       bwScene.sprites,
-      bwScene.images
+      bwScene.images,
+      view
     )) {
       bwScene.add(sprite);
     }
@@ -480,15 +495,21 @@ async function TitanReactorReplay(
         replayPosition.bwGameFrame % 24 === 0) ||
       (replayPosition.skippingFrames() &&
         replayPosition.bwGameFrame % 240 === 0);
-    const view = cameras.viewSizeWorld();
     cameras.update();
 
     if (!replayPosition.paused) {
       if (!nextFrame) {
-        gameStateReader.next(replayPosition.skipGameFrames).pop();
+        projectedCameraView.update();
+
+        gameStateReader.next(replayPosition.skipGameFrames - 1);
         nextFrame = gameStateReader.nextOne();
         if (nextFrame) {
-          buildFrameScene(nextFrame, view, elapsed, updateMinimap);
+          buildFrameScene(
+            nextFrame,
+            projectedCameraView.view,
+            elapsed,
+            updateMinimap
+          );
         } else {
           replayPosition.paused = true;
         }
@@ -638,8 +659,10 @@ async function TitanReactorReplay(
         cameras.camera.position,
         0.05
       );
-      // intersectAxesHelper.position.copy(audioListener.position);
+
+      // drawCallInspector.begin();
       renderMan.render(scene, cameras.camera, delta);
+      // drawCallInspector.end();
     }
 
     if (updateMinimap) {
