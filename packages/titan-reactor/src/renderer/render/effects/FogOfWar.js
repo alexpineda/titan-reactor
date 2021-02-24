@@ -1,9 +1,11 @@
+import { easeExpOut, easeLinear, easeQuadIn, easeQuadOut } from "d3-ease";
 import {
   ClampToEdgeWrapping,
   Color,
   DataTexture,
   LinearFilter,
   LuminanceFormat,
+  MathUtils,
   UnsignedByteType,
   Vector2,
   Vector4,
@@ -19,7 +21,15 @@ export default class FogOfWar {
     this.effect.worldOffset = new Vector2(width / 2, height / 2);
 
     const defaultImageData = new Uint8Array(width * height);
-    defaultImageData.fill(Visible);
+    // defaultImageData.fill(Visible);
+
+    this.fogType = 0; // fade
+
+    // for animation
+    this._toBuffer = new Uint8Array(width * height);
+
+    this._fromBuffer = new Uint8Array(width * height);
+
     const texture = new DataTexture(
       defaultImageData,
       width,
@@ -49,6 +59,10 @@ export default class FogOfWar {
     this._setUvTransform();
   }
 
+  set imageData(val) {
+    this.texture.image.data = val;
+  }
+
   get imageData() {
     return this.texture.image.data;
   }
@@ -72,37 +86,55 @@ export default class FogOfWar {
   }
 
   set enabled(val) {
-    this._enabled = val;
-  }
-
-  generate(tileData, players) {
-    this._lastTileData = tileData;
-    this._lastPlayers = players;
-
-    if (this.enabled) {
-      this.imageData.fill(Unexplored);
-      for (let i = 0; i < this.imageData.length; i++) {
-        for (let player of players) {
-          //explored
-          if ((~tileData.buffer[i * 4] & (1 << player)) !== 0) {
-            this.imageData[i] = Explored;
-            break;
-          }
-        }
-
-        for (let player of players) {
-          //visible
-          if ((~tileData.buffer[i * 4 + 1] & (1 << player)) !== 0) {
-            this.imageData[i] = Visible;
-            break;
-          }
-        }
-      }
+    if (val) {
+      this.imageData = this._toBuffer.slice(0);
     } else {
       this.imageData.fill(Visible);
     }
-
     this.texture.needsUpdate = true;
+
+    this._enabled = val;
+  }
+
+  generate(frame, tileData, players) {
+    this._lastTileData = tileData;
+    this._lastPlayers = players;
+
+    this._toBuffer.fill(Unexplored);
+    for (let i = 0; i < this.imageData.length; i++) {
+      for (let player of players) {
+        //explored
+        if ((~tileData.buffer[i * 4] & (1 << player)) !== 0) {
+          this._toBuffer[i] = Explored;
+          break;
+        }
+      }
+
+      for (let player of players) {
+        //visible
+        if ((~tileData.buffer[i * 4 + 1] & (1 << player)) !== 0) {
+          this._toBuffer[i] = Visible;
+          break;
+        }
+      }
+    }
+
+    if (this.enabled) {
+      for (let i = 0; i < this.imageData.length; i++) {
+        if (this._toBuffer[i] > this.imageData[i]) {
+          this.imageData[i] = Math.min(
+            this._toBuffer[i],
+            this.imageData[i] + 10
+          );
+        } else {
+          this.imageData[i] = Math.max(
+            this._toBuffer[i],
+            this.imageData[i] - 2
+          );
+        }
+      }
+      this.texture.needsUpdate = true;
+    }
   }
 
   get color() {

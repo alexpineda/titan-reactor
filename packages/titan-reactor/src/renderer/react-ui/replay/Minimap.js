@@ -1,13 +1,16 @@
 import React from "react";
+import { connect } from "react-redux";
 import WrappedElement from "../WrappedElement";
+import { toggleFogOfWar } from "./replayHudReducer";
 
-export default ({
+const Minimap = ({
   className = "",
   timeLabel,
   textSize,
-  onRevealMap,
   onDropPings,
   canvas,
+  showFogOfWar,
+  toggleFogOfWar,
   hoveringOverMinimap,
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
@@ -41,15 +44,18 @@ export default ({
           style={{ backgroundColor: "#1a202c99" }}
         >
           <i
-            className="material-icons rounded cursor-pointer hover:text-yellow-500"
+            className={`material-icons rounded cursor-pointer ${
+              showFogOfWar
+                ? "text-gray-600 hover:text-yellow-600"
+                : "text-yellow-600 hover:text-gray-600"
+            }  `}
             style={{ fontSize: smallIconFontSize }}
-            title={`Reveal Entire Map`}
-            data-tip={`Reveal Entire Map`}
-            onClick={() => onRevealMap && onRevealMap()}
+            title={"Reveal Entire Map"}
+            data-tip={"Reveal Entire Map"}
+            onClick={toggleFogOfWar}
           >
             filter_hdr
           </i>
-
           <i
             className="material-icons hover:text-yellow-500 rounded cursor-pointer"
             style={{ fontSize: smallIconFontSize }}
@@ -64,3 +70,12 @@ export default ({
     </div>
   );
 };
+
+export default connect(
+  (state) => ({
+    showFogOfWar: state.replay.hud.showFogOfWar,
+  }),
+  (dispatch) => ({
+    toggleFogOfWar: () => dispatch(toggleFogOfWar()),
+  })
+)(Minimap);

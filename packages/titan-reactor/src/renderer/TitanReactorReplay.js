@@ -81,6 +81,8 @@ async function TitanReactorReplay(
       cameras.control.enabled = true;
       cameras.control.numpadControlEnabled = true;
     }
+
+    fogOfWar.enabled = state.replay.hud.showFogOfWar;
   });
 
   console.log("rep", rep);
@@ -470,6 +472,7 @@ async function TitanReactorReplay(
     tilesBW.count = nextFrame.tilesCount;
 
     fogOfWar.generate(
+      nextFrame.frame,
       tilesBW,
       players.map(({ id }) => id)
     );
@@ -523,14 +526,6 @@ async function TitanReactorReplay(
         if (updateMinimap) {
           minimapBwScene.activate();
         }
-        // bool unit_visble_on_minimap(unit_t* u) {
-        //   if (u->owner < 8 && u->sprite->visibility_flags == 0) return false;
-        //   if (ut_turret(u)) return false;
-        //   if (unit_is_trap_or_door(u)) return false;
-        //   if (unit_is(u, UnitTypes::Spell_Dark_Swarm)) return false;
-        //   if (unit_is(u, UnitTypes::Spell_Disruption_Web)) return false;
-        //   return true;
-        // }
 
         replayPosition.bwGameFrame = nextFrame.frame;
 
@@ -647,11 +642,9 @@ async function TitanReactorReplay(
       //   cameras.setTarget(x, getTerrainY(x, z), z, true);
       // }
 
-      // audioListener.position.copy(cameras.getTarget());
-
-      // audioListener.position.setY(cameras.camera.position.y * 0.05);
+      const target = cameras.getTarget();
       audioListener.position.lerpVectors(
-        cameras.getTarget(),
+        target.setY(getTerrainY(target.x, target.z)),
         cameras.camera.position,
         0.05
       );

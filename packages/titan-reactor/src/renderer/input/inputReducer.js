@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   hoveringOverMinimap: false,
+  revealEntireMap: false,
 };
 
 const inputReducer = createSlice({
@@ -11,8 +12,11 @@ const inputReducer = createSlice({
     hoveringOverMinimap: (state, action) => {
       state.hoveringOverMinimap = action.payload;
     },
+    revealEntireMap: (state, action) => {
+      state.revealEntireMap = action.payload;
+    },
   },
 });
 
-export const { hoveringOverMinimap } = inputReducer.actions;
+export const { hoveringOverMinimap, revealEntireMap } = inputReducer.actions;
 export default inputReducer.reducer;

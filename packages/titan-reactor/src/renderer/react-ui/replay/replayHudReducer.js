@@ -18,6 +18,7 @@ const initialState = {
   showReplayControls: true,
   showUnitSelection: true,
   showFps: true,
+  showFogOfWar: true,
   data: {},
 };
 
@@ -40,6 +41,7 @@ const replayHudReducer = createSlice({
     toggleReplayControls: makeToggle("showReplayControls"),
     toggleUnitSelection: makeToggle("showUnitSelection"),
     toggleFps: makeToggle("showFps"),
+    toggleFogOfWar: makeToggle("showFogOfWar"),
   },
 });
 
@@ -51,5 +53,6 @@ export const {
   toggleReplayControls,
   toggleUnitSelection,
   toggleFps,
+  toggleFogOfWar,
 } = replayHudReducer.actions;
 export default replayHudReducer.reducer;

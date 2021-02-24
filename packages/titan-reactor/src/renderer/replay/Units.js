@@ -25,6 +25,15 @@ class Units {
     return Object.values(this._unitsByRepId);
   }
 
+  // bool unit_visble_on_minimap(unit_t* u) {
+  //   if (u->owner < 8 && u->sprite->visibility_flags == 0) return false;
+  //   if (ut_turret(u)) return false;
+  //   if (unit_is_trap_or_door(u)) return false;
+  //   if (unit_is(u, UnitTypes::Spell_Dark_Swarm)) return false;
+  //   if (unit_is(u, UnitTypes::Spell_Disruption_Web)) return false;
+  //   return true;
+  // }
+
   _refreshMinimap(unitBw, isResourceContainer, unit) {
     let color;
 

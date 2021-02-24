@@ -47,7 +47,6 @@ const Replay = ({
   callbacks,
 }) => {
   const forceUpdate = useForceUpdate();
-  const onRevealMap = () => {};
   const onDropPings = () => {};
   const onUnitDetails = () => {};
   const onShowAttackDetails = () => {};
@@ -134,7 +133,6 @@ const Replay = ({
         {showMinimap && (
           <Minimap
             className="pointer-events-auto"
-            onRevealMap={onRevealMap}
             onDropPings={onDropPings}
             timeLabel={replayPosition.getFriendlyTime()}
             textSize={settings.textSize}
@@ -216,6 +214,7 @@ export default connect(
       showUnitSelection: state.replay.hud.showUnitSelection,
       showFps: state.replay.hud.showFps,
       selectedUnits: state.replay.hud.selectedUnits,
+      showFogOfWar: state.replay.hud.showFogOfWar,
       replayPosition: scene.replayPosition,
       onTogglePlayerPov: scene.callbacks.onTogglePlayerPov,
       callbacks: scene.callbacks,
