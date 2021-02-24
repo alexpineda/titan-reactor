@@ -11,11 +11,11 @@ export default class TilesBW extends ContiguousContainer {
     return 4;
   }
 
-  get visible() {
+  get explored() {
     return this._readU8(0);
   }
 
-  get explored() {
+  get visible() {
     return this._readU8(1);
   }
 

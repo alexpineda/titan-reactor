@@ -111,31 +111,47 @@ class RenderMan {
     toneMapping.adaptive = true;
 
     window.focusFn = (y) => Math.max(y * 0.015, 0.1);
+
+    this._fogPass = new EffectPass(camera, this.fogOfWarEffect);
+
     this._cinematicPass = new EffectPass(
       camera,
-      // this.fogOfWarEffect,
+      this.fogOfWarEffect,
       // this._dofEffect,
       this._smaaEffect,
       toneMapping
     );
 
-    this._composer.addPass(this._renderPass);
-    this._composer.addPass(this._cinematicPass);
-    // this._composer.addPass(this._smaaEffect);
-    // this._composer.addPass(this._filmPass);
-    this.allEnabledPasses();
+    this._passes = [this._renderPass, this._fogPass, this._cinematicPass];
+    this._passes.forEach((p) => this._composer.addPass(p));
+
+    this.enableCinematicPass();
   }
 
-  onlyRenderPass() {
-    this._cinematicPass.enabled = false;
-    this._cinematicPass.renderToScreen = false;
-    this._renderPass.renderToScreen = true;
+  _togglePasses(...passes) {
+    this._passes.forEach((p) => {
+      p.enabled = false;
+      p.renderToScreen = false;
+    });
+
+    let lastPass;
+    passes.forEach((p) => {
+      p.enabled = true;
+      lastPass = p;
+    });
+    lastPass.renderToScreen = true;
   }
 
-  allEnabledPasses() {
-    this._cinematicPass.enabled = true;
-    this._cinematicPass.renderToScreen = true;
-    this._renderPass.renderToScreen = false;
+  enableRenderPass() {
+    this._togglePasses(this._renderPass);
+  }
+
+  enableCinematicPass() {
+    this._togglePasses(this._renderPass, this._cinematicPass);
+  }
+
+  enableRenderFogPass() {
+    this._togglePasses(this._renderPass, this._fogPass);
   }
 
   _render(scene, camera, delta) {

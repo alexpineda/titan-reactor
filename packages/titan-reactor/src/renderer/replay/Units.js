@@ -3,6 +3,8 @@ import { difference } from "ramda";
 import { Color } from "three";
 import { createMinimapPoint } from "../mesh/Minimap";
 
+const resourceColor = new Color(0, 255, 255);
+
 class Units {
   constructor(pxToGameUnit, playerColors) {
     this.pxToGameUnit = pxToGameUnit;
@@ -27,9 +29,9 @@ class Units {
     let color;
 
     if (isResourceContainer) {
-      color = new Color(0, 255, 255);
+      color = resourceColor;
     } else if (unitBw.owner < 8) {
-      color = new Color(this.playerColors[unitBw.owner]);
+      color = this.playerColors[unitBw.owner];
     } else {
       return;
     }

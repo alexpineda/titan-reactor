@@ -3,16 +3,34 @@ import {
   SpriteMaterial,
   BufferAttribute,
   DynamicDrawUsage,
-  SubtractiveBlending,
 } from "three";
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
+import TeamSpriteMaterial from "./TeamSpriteMaterial";
 
 export default class TitanImageHD extends Sprite {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {
     if (!atlas) debugger;
-    const { diffuse, grpWidth, grpHeight } = atlas;
+    const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
 
-    super(new SpriteMaterial({ map: diffuse }));
+    let material;
+    // if (teamcolor) {
+    //   material = TeamSpriteMaterial.clone();
+    //   material.map = diffuse;
+    //   material.uniform("map").value = diffuse;
+    //   material.uniform("teamMask").value = teamcolor;
+    //   material.isTeamSpriteMaterial = true;
+
+    //   // sprite material properties
+    //   material.rotation = 0;
+    //   material.sizeAttenuation = true;
+    //   material.transparent = true;
+    //   material.needsUpdate = true;
+    //   material.type = "SpriteMaterial";
+    // } else {
+    material = new SpriteMaterial({ map: diffuse });
+    // }
+
+    super(material);
 
     this.sprite = sprite;
     this._spriteScale = 128;
@@ -55,9 +73,7 @@ export default class TitanImageHD extends Sprite {
       grpHeight / this._spriteScale,
       1
     );
-    this.material.transparent = false;
     this.material.transparent = true;
-    // this.material.alphaTest = 0.99;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
       this.material.opacity = 0.6;
@@ -72,6 +88,18 @@ export default class TitanImageHD extends Sprite {
 
   get frames() {
     return this.atlas.frames;
+  }
+
+  hasTeamMask() {
+    return this.material.isTeamSpriteMaterial;
+  }
+
+  set teamColor(val) {
+    this.material.uniform("teamColor").value = val;
+  }
+
+  get teamColor() {
+    return this.material.uniform("teamColor").value;
   }
 
   setPositionX(x, scale = this._spriteScale) {

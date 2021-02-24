@@ -24,7 +24,7 @@ export default class ReplayReadFile extends ReplayReadStream {
 
     await new Promise((res) => {
       this.openBwBridge.stdout.on("data", (data) => {
-        if (data > 100) {
+        if (data > this.maxFramesLength) {
           res();
         }
         this.framesWritten = data;

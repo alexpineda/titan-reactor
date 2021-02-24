@@ -88,11 +88,20 @@ class Terrain {
       await this.readFile(`TileSet/${tilesetName}.dds.vr4`, false),
       true
     );
+    const creepGrpHD = readDdsGrp(
+      await this.readFile(`TileSet/${tilesetName}.dds.grp`, false),
+      false
+    );
+    const creepGrpSD = await this.readFile(`TileSet/${tilesetName}.grp`, false);
 
-    const renderer = new WebGLRenderer({ depth: true, stencil: false });
+    const renderer = new WebGLRenderer({
+      depth: false,
+      stencil: false,
+      alpha: true,
+    });
     renderer.autoClear = false;
 
-    const mapData = generateTileData(
+    const mapData = await generateTileData(
       renderer,
       this.chk.size[0],
       this.chk.size[1],
@@ -106,6 +115,8 @@ class Terrain {
         hdTiles,
         tilegroupU16,
         tilegroupBuf,
+        creepGrpSD,
+        creepGrpHD,
         options,
       }
     );

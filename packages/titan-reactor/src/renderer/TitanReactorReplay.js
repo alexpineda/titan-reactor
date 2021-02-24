@@ -19,7 +19,7 @@ import {
 import HeatmapScore from "./react-ui/replay/HeatmapScore";
 import Cameras from "./camera/Cameras";
 import MinimapControl from "./camera/MinimapControl";
-import { createMiniMapPlane, createMinimapPoint } from "./mesh/Minimap";
+import { createMiniMapPlane } from "./mesh/Minimap";
 import { Players } from "./replay/Players";
 import FadingPointers from "./mesh/FadingPointers";
 import { commands } from "titan-reactor-shared/types/commands";
@@ -32,7 +32,6 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import { ProducerWindowPosition } from "../common/settings";
-import { updateCurrentReplayPosition } from "./invoke";
 import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/replay/replayHudReducer";
@@ -42,14 +41,11 @@ import UnitsBW from "./replay/bw/UnitsBW";
 import Units from "./replay/Units";
 
 import ReplaySprites from "./replay/ReplaySprites";
-import { MinimapLayer } from "./camera/Layers";
-import { range } from "ramda";
 import BWFrameScene from "./replay/BWFrameScene";
-import { easeCubicOut } from "d3-ease";
 import FogOfWar from "./render/effects/FogOfWar";
 import TilesBW from "./replay/bw/TilesBW";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
-import ProjectedCameraView from "./camera/CameraMapView";
+import ProjectedCameraView from "./camera/ProjectedCameraView";
 
 const { startLocation } = unitTypes;
 
@@ -389,7 +385,7 @@ async function TitanReactorReplay(
   const unitsBW = new UnitsBW(bwDat);
   const units = new Units(
     pxToGameUnit,
-    players.map(({ color }) => color.rgb)
+    players.map(({ color }) => new Color(color.rgb))
   );
 
   // createMinimapPoint();
@@ -398,7 +394,8 @@ async function TitanReactorReplay(
     bwDat,
     pxToGameUnit,
     getTerrainY,
-    createTitanImage
+    createTitanImage,
+    players.map(({ color }) => new Color(color.rgb))
   );
 
   let _preloadFrames = [];
@@ -482,6 +479,10 @@ async function TitanReactorReplay(
   let delta = 0;
 
   function gameLoop(elapsed) {
+    if (state.replay.hud.showFps) {
+      stats.update();
+    }
+
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
@@ -490,11 +491,7 @@ async function TitanReactorReplay(
       store.dispatch(onGameTick());
       //update position
     }
-    const updateMinimap =
-      (!replayPosition.skippingFrames() &&
-        replayPosition.bwGameFrame % 24 === 0) ||
-      (replayPosition.skippingFrames() &&
-        replayPosition.bwGameFrame % 240 === 0);
+    const updateMinimap = replayPosition.bwGameFrame % 12 === 0;
     cameras.update();
 
     if (!replayPosition.paused) {
@@ -623,7 +620,6 @@ async function TitanReactorReplay(
     // }
 
     cameras.updateDirection32();
-    fogOfWar.update(cameras.camera);
 
     renderMan.setCanvasTarget(gameSurface);
 
@@ -661,13 +657,16 @@ async function TitanReactorReplay(
       );
 
       // drawCallInspector.begin();
+      renderMan.enableCinematicPass();
+      fogOfWar.update(cameras.camera);
       renderMan.render(scene, cameras.camera, delta);
       // drawCallInspector.end();
     }
 
     if (updateMinimap) {
-      renderMan.onlyRenderPass();
+      renderMan.enableRenderFogPass();
       renderMan.setCanvasTarget(minimapSurface);
+      fogOfWar.update(cameras.minimapCamera);
       renderMan.render(minimapScene, cameras.minimapCamera, delta);
 
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
@@ -697,15 +696,10 @@ async function TitanReactorReplay(
           }
         });
       }
-      renderMan.allEnabledPasses();
     }
 
     keyboardShortcuts.update(delta);
     replayPosition.update();
-
-    if (state.replay.hud.showFps) {
-      stats.update();
-    }
   }
 
   const dispose = () => {
@@ -727,7 +721,36 @@ async function TitanReactorReplay(
     cameras.control.removeEventListener("sleep", _controlSleep);
   };
 
+  var limitLoop = function (fn, fps) {
+    // Use var then = Date.now(); if you
+    // don't care about targetting < IE9
+    var then = new Date().getTime();
+
+    // custom fps, otherwise fallback to 60
+    fps = fps || 60;
+    var interval = 1000 / fps;
+
+    return (function loop(time) {
+      requestAnimationFrame(loop);
+
+      // again, Date.now() if it's available
+      var now = new Date().getTime();
+      var delta = now - then;
+
+      if (delta > interval) {
+        // Update time
+        // now - (delta % interval) is an improvement over just
+        // using then = now, which can end up lowering overall fps
+        then = now - (delta % interval);
+
+        // call the fn
+        fn(time);
+      }
+    })(0);
+  };
+
   setTimeout(() => {
+    // limitLoop(gameLoop, 60);
     renderMan.renderer.setAnimationLoop(gameLoop);
     sceneResizeHandler();
   }, 500);

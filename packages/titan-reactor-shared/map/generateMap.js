@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Mesh, HalfFloatType } from "three";
+import { Mesh, HalfFloatType, Vector2 } from "three";
 import { createDisplacementGeometry } from "./displacementGeometry";
 import { createDisplacementGeometryChunk } from "./displacementGeometryChunk";
 import { KernelSize, BlendFunction } from "postprocessing";
@@ -14,7 +14,9 @@ import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMate
 import { blendNonZeroPixels } from "../image/blend";
 import { MapEffect } from "./effects/MapEffect";
 import MapHD from "./MapHD";
+import MapSD from "./MapSD";
 import MapData from "./MapData";
+import { rgbToCanvas } from "../image/canvas";
 
 //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
 const _rendererO = {};
@@ -33,7 +35,7 @@ const clearRenderer = (renderer) => {
   renderer.toneMapping = THREE.NoToneMapping;
 };
 
-export const generateTileData = (
+export const generateTileData = async (
   renderer,
   mapWidth,
   mapHeight,
@@ -47,6 +49,8 @@ export const generateTileData = (
     hdTiles,
     tilegroupU16,
     tilegroupBuf,
+    creepGrpHD,
+    creepGrpSD,
     options,
   }
 ) => {
@@ -67,6 +71,12 @@ export const generateTileData = (
     ...mapData,
   });
 
+  const creepEdgesTextureHD = MapHD.renderCreepTexture(renderer, creepGrpHD);
+  const creepEdgesTextureSD = await MapSD.renderCreepTexture(
+    creepGrpSD,
+    palette
+  );
+
   restoreRenderer(renderer);
 
   return {
@@ -77,6 +87,8 @@ export const generateTileData = (
     mapHeight,
     mapData,
     mapHd,
+    creepEdgesTextureSD,
+    creepEdgesTextureHD,
   };
 };
 
@@ -89,6 +101,8 @@ export const generateMesh = (renderer, tileData) => {
     mapHeight,
     mapData,
     mapHd,
+    creepEdgesTextureSD,
+    creepEdgesTextureHD,
     waterMasks,
     waterMasksDds,
     waterNormal1,
@@ -132,6 +146,16 @@ export const generateMesh = (renderer, tileData) => {
     THREE.UnsignedShortType
   );
   mapTilesMap.internalFormat = "R16UI";
+  mapTilesMap.flipY = true;
+
+  const creepEdgesBytes = new Uint8Array(mapWidth * mapHeight);
+  const creepEdgesValues = new THREE.DataTexture(
+    creepEdgesBytes,
+    mapWidth,
+    mapHeight,
+    THREE.RedIntegerFormat,
+    THREE.UnsignedByteType
+  );
   mapTilesMap.flipY = true;
 
   const displacementDetailsMap = new THREE.DataTexture(
@@ -249,7 +273,6 @@ export const generateMesh = (renderer, tileData) => {
       })
     )
   );
-  // composer.addPass(new EffectPass(camera, new BloomEffect(options.bloom)));
   composer.addPass(blurPassHuge);
   composer.addPass(savePass);
   composer.addPass(new SavePass());
@@ -397,6 +420,17 @@ export const generateMesh = (renderer, tileData) => {
       if (index3) {
         shader.uniforms.index3 = { value: index3 };
       }
+
+      shader.uniforms.creepEdgesValues = { value: creepEdgesValues };
+      shader.uniforms.creepEdgesMap = {
+        value: creepEdgesTextureSD.texture,
+      };
+      shader.uniforms.creepEdgesResolution = {
+        value: new Vector2(
+          creepEdgesTextureSD.width,
+          creepEdgesTextureSD.height
+        ),
+      };
     },
   });
   mat.userData.tileAnimationCounter = tileAnimationCounter;
@@ -533,6 +567,20 @@ export const generateMesh = (renderer, tileData) => {
           // fs = fs.replace(
           //   "#include <map_fragment>",
           //   `
+          //creepEdgesMap
+          shader.uniforms.quartile = {
+            value: new Vector2(w / mapWidth, h / mapHeight),
+          };
+          shader.uniforms.creepEdgesValues = { value: creepEdgesValues };
+          shader.uniforms.creepEdgesMap = {
+            value: creepEdgesTextureHD.texture,
+          };
+          shader.uniforms.creepEdgesResolution = {
+            value: new Vector2(
+              creepEdgesTextureHD.width,
+              creepEdgesTextureHD.height
+            ),
+          };
         },
       });
 
@@ -556,6 +604,13 @@ export const generateMesh = (renderer, tileData) => {
   }
   terrain.visible = true;
   hdTerrainGroup.visible = true;
+
+  // DEBUGGGG
+  hdTerrainGroup.creepEdgesTextureHD = creepEdgesTextureHD;
+  hdTerrainGroup.creepEdgesTextureSD = rgbToCanvas(
+    creepEdgesTextureSD.image,
+    "rgba"
+  );
 
   terrain.name = "Terrain";
   hdTerrainGroup.name = "TerrainHD";

@@ -8,16 +8,14 @@ class ReplaySprites {
     pxToGameUnit,
     getTerrainY,
     createTitanImage,
-    addSprite,
-    removeSprite
+    playerColors
   ) {
     this._spritesByIndex = {};
     this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
     this.createTitanImage = createTitanImage;
-    this.addSprite = addSprite;
-    this.removeSprite = removeSprite;
+    this.playerColors = playerColors;
 
     this.spritesBW = new SpritesBW(bwDat);
     this.imagesBW = new ImagesBW(bwDat);
@@ -56,7 +54,7 @@ class ReplaySprites {
         sprite,
         this.imagesBW,
         unitsBySpriteId.get(sprite.index),
-        images
+        this.playerColors[sprite.owner]
       )) {
         replaySprite.add(image);
       }

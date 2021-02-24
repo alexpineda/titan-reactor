@@ -371,7 +371,9 @@ export default class TitanSprite extends Group {
             //   [ox, oy]
             // );
 
-            titanImage.setPosition(ox, oy);
+            titanImage.position.x = ox / 32;
+            titanImage.position.z = oy / 32;
+            // titanImage.setPosition(ox, oy);
           }
           break;
         case "useweapon":

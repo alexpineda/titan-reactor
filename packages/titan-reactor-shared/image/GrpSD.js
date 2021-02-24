@@ -1,5 +1,4 @@
 import {
-  NearestFilter,
   LinearFilter,
   ClampToEdgeWrapping,
   RepeatWrapping,
@@ -16,7 +15,7 @@ export default class GrpSD {
     this.rez = "SD";
   }
 
-  async load({ readGrp, imageDef, palettes }) {
+  async load({ readGrp, imageDef, palettes }, stride = 20) {
     const grp = new Grp(await readGrp(), Buffer);
 
     const getPalette = () => {
@@ -30,9 +29,7 @@ export default class GrpSD {
 
     const { w: mw, h: mh } = grp.maxDimensions();
 
-    this.canvases = [];
-
-    const grpStride = Math.min(grp.frameCount(), 20);
+    const grpStride = Math.min(grp.frameCount(), stride);
     const cw = mw * grpStride;
     const ch = Math.ceil(grp.frameCount() / grpStride) * mh;
     const texData = new Uint8Array(cw * ch * 4);
@@ -73,7 +70,7 @@ export default class GrpSD {
     this.texture.minFilter = LinearFilter;
     this.texture.magFilter = LinearFilter;
     this.texture.wrapT = ClampToEdgeWrapping;
-    this.texture.wrapS = RepeatWrapping;
+    this.texture.wrapS = ClampToEdgeWrapping;
     this.texture.encoding = sRGBEncoding;
 
     return this.texture;

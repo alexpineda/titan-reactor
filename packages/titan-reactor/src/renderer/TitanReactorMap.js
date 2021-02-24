@@ -9,7 +9,10 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./terrain/lights";
+import FogOfWar from "./render/effects/FogOfWar";
+
 import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
+
 export const hot = module.hot ? module.hot.data : null;
 
 async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
@@ -44,8 +47,11 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
 
   const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
   await renderMan.initRenderer(cameras.camera);
-  // renderMan.onlyRenderPass();
+  renderMan.enableCinematicPass();
   window.renderMan = renderMan;
+
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
+  fogOfWar.enabled = false;
 
   const getTerrainY = scene.getTerrainY();
 
@@ -238,6 +244,7 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
 
     cameras.update(delta);
     keyboardShortcuts.update(delta);
+    fogOfWar.update(cameras.camera);
     renderMan.render(scene, cameras.camera, delta);
     last = elapsed;
   }

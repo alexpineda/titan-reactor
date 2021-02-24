@@ -9,11 +9,19 @@ import {
   Vector4,
 } from "three";
 
+const Unexplored = 25;
+const Explored = 95;
+const Visible = 255;
+
 export default class FogOfWar {
   constructor(width, height, effect) {
     this.effect = effect;
+    this.effect.worldOffset = new Vector2(width / 2, height / 2);
+
+    const defaultImageData = new Uint8Array(width * height);
+    defaultImageData.fill(Visible);
     const texture = new DataTexture(
-      new Uint8Array(width * height),
+      defaultImageData,
       width,
       height,
       LuminanceFormat,
@@ -35,9 +43,10 @@ export default class FogOfWar {
     this.fogResolution = new Vector2(width, height);
     this.size = new Vector2(width, height);
     this.scale = 1;
-    this.color = new Color(0.1, 0.1, 0.1);
+    this.color = new Color(1, 1, 1);
     this._enabled = true;
     this.effect.fog = texture;
+    this._setUvTransform();
   }
 
   get imageData() {
@@ -54,7 +63,8 @@ export default class FogOfWar {
     const offsetX = 1.5 / width;
     const offsetY = 1.5 / height;
 
-    this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
+    // this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
+    this.fogUvTransform = new Vector4(0, 0, 1 / this.size.x, 1 / this.size.y);
   }
 
   get enabled() {
@@ -70,25 +80,26 @@ export default class FogOfWar {
     this._lastPlayers = players;
 
     if (this.enabled) {
-      this.imageData.fill(0);
-      let idx = 0;
+      this.imageData.fill(Unexplored);
       for (let i = 0; i < this.imageData.length; i++) {
         for (let player of players) {
-          //visible
-          if ((tileData.buffer[i * 4] & (1 << player)) !== 0) {
-            this.imageData[idx] = 255;
+          //explored
+          if ((~tileData.buffer[i * 4] & (1 << player)) !== 0) {
+            this.imageData[i] = Explored;
             break;
           }
+        }
 
-          //explored
-          if ((tileData.buffer[i * 4 + 1] & (1 << player)) !== 0) {
-            this.imageData[idx] = 155;
+        for (let player of players) {
+          //visible
+          if ((~tileData.buffer[i * 4 + 1] & (1 << player)) !== 0) {
+            this.imageData[i] = Visible;
             break;
           }
         }
       }
     } else {
-      this.imageData.fill(255);
+      this.imageData.fill(Visible);
     }
 
     this.texture.needsUpdate = true;
