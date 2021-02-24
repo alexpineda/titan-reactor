@@ -11,9 +11,11 @@ import {
   Vector4,
 } from "three";
 
-const Unexplored = 25;
-const Explored = 95;
+const Unexplored = 15;
+const Explored = 70;
 const Visible = 255;
+const RevealSpeed = 10;
+const HideSpeedSlow = 5;
 
 export default class FogOfWar {
   constructor(width, height, effect) {
@@ -57,6 +59,9 @@ export default class FogOfWar {
     this._enabled = true;
     this.effect.fog = texture;
     this._setUvTransform();
+
+    this._revealSpeed = RevealSpeed;
+    this._hideSpeed = HideSpeedSlow;
   }
 
   set imageData(val) {
@@ -86,6 +91,8 @@ export default class FogOfWar {
   }
 
   set enabled(val) {
+    if (val == this._enabled) return;
+
     if (val) {
       this.imageData = this._toBuffer.slice(0);
     } else {
@@ -124,12 +131,12 @@ export default class FogOfWar {
         if (this._toBuffer[i] > this.imageData[i]) {
           this.imageData[i] = Math.min(
             this._toBuffer[i],
-            this.imageData[i] + 10
+            this.imageData[i] + this._revealSpeed
           );
-        } else {
+        } else if (this._toBuffer[i] < this.imageData[i]) {
           this.imageData[i] = Math.max(
             this._toBuffer[i],
-            this.imageData[i] - 2
+            this.imageData[i] - this._hideSpeed
           );
         }
       }

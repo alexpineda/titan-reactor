@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { range } from "ramda";
 import { getSettings } from "../../invoke";
 
 export const getRemoteSettings = createAsyncThunk(
@@ -19,6 +20,7 @@ const initialState = {
   showUnitSelection: true,
   showFps: true,
   showFogOfWar: true,
+  playerVision: range(0, 8).map(() => true),
   data: {},
 };
 
@@ -42,6 +44,9 @@ const replayHudReducer = createSlice({
     toggleUnitSelection: makeToggle("showUnitSelection"),
     toggleFps: makeToggle("showFps"),
     toggleFogOfWar: makeToggle("showFogOfWar"),
+    togglePlayerVision: (state, action) => {
+      state.playerVision[action.payload] = !state.playerVision[action.payload];
+    },
   },
 });
 
@@ -54,5 +59,6 @@ export const {
   toggleUnitSelection,
   toggleFps,
   toggleFogOfWar,
+  togglePlayerVision,
 } = replayHudReducer.actions;
 export default replayHudReducer.reducer;

@@ -1,8 +1,11 @@
 import React, { useState } from "react";
+import { connect } from "react-redux";
 import { RollingNumber } from "./RollingNumber";
+import { togglePlayerVision } from "./replayHudReducer";
 
 const PlayerResources = ({
   index,
+  id,
   name,
   playerNameCache = {},
   minerals,
@@ -15,7 +18,8 @@ const PlayerResources = ({
   apm,
   textSize = "base",
   hideVision,
-  onTogglePlayerVision,
+  playerVision,
+  togglePlayerVision,
   onPlayerNameChange = () => {},
   playerScore = 0,
   showScore = true,
@@ -24,7 +28,6 @@ const PlayerResources = ({
   gameIcons,
 }) => {
   const [showWorkerCount, setShowWorkerCount] = useState(true);
-  const [showArmyCount, setShowArmyCount] = useState(false);
   const [score, setScore] = useState(playerScore);
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(playerNameCache[name] || name);
@@ -71,7 +74,7 @@ const PlayerResources = ({
         data-tip="Toggle Fog of War"
         onMouseDown={(evt) => {
           if (evt.button === 0) {
-            onTogglePlayerVision && onTogglePlayerVision(index);
+            togglePlayerVision(id);
           } else {
             // setIsChangingName(true);
             setTempName(playerName);
@@ -81,7 +84,10 @@ const PlayerResources = ({
         {!isChangingName && (
           <span
             className={`text-${textSize} cursor-pointer`}
-            style={{ color: color.hex, opacity: hideVision ? 0.8 : 1 }}
+            style={{
+              color: playerVision[index] ? color.hex : "rgb(75, 85, 99)",
+              opacity: hideVision ? 0.8 : 1,
+            }}
           >
             {playerName}
           </span>
@@ -144,4 +150,11 @@ const PlayerResources = ({
   );
 };
 
-export default PlayerResources;
+export default connect(
+  (state) => ({
+    playerVision: state.replay.hud.playerVision,
+  }),
+  (dispatch) => ({
+    togglePlayerVision: (id) => dispatch(togglePlayerVision(id)),
+  })
+)(PlayerResources);

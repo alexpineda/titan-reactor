@@ -67,6 +67,8 @@ async function TitanReactorReplay(
   const state = store.getState();
   const settings = state.settings.data;
 
+  let fogChanged = false;
+
   const unsubscribeFromStore = store.subscribe(() => {
     Object.assign(state, store.getState());
 
@@ -82,7 +84,12 @@ async function TitanReactorReplay(
       cameras.control.numpadControlEnabled = true;
     }
 
+    fogChanged = fogOfWar.enabled != state.replay.hud.showFogOfWar;
     fogOfWar.enabled = state.replay.hud.showFogOfWar;
+
+    for (let player of players) {
+      player.vision = state.replay.hud.playerVision[player.id];
+    }
   });
 
   console.log("rep", rep);
@@ -474,7 +481,7 @@ async function TitanReactorReplay(
     fogOfWar.generate(
       nextFrame.frame,
       tilesBW,
-      players.map(({ id }) => id)
+      players.filter((p) => p.vision).map(({ id }) => id)
     );
   }
 
@@ -494,7 +501,7 @@ async function TitanReactorReplay(
       store.dispatch(onGameTick());
       //update position
     }
-    const updateMinimap = replayPosition.bwGameFrame % 12 === 0;
+    const updateMinimap = replayPosition.bwGameFrame % 12 === 0 || fogChanged;
     cameras.update();
 
     if (!replayPosition.paused) {
