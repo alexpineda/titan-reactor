@@ -1,5 +1,37 @@
 import React from "react";
+import charColor from "titan-reactor-shared/types/charColor";
 
+const processString = (str, useColors = true) => {
+  const defaultColor = "white";
+  let currentColor = defaultColor;
+  let currentChunk = "";
+  const chunks = [];
+  const el = (newLine, color, content) =>
+    newLine ? (
+      <div style={{ color }}>{content}</div>
+    ) : (
+      <span style={{ color }}>{content}</span>
+    );
+
+  for (let i = 0; i <= str.length; i++) {
+    const charCode = str.charCodeAt(i);
+    const char = str[i];
+    const nextColor = charColor.get(charCode);
+    const newLine = charCode === 13;
+    if (nextColor || newLine || i === str.length) {
+      // first character won't have current chunk
+      if (currentChunk) {
+        chunks.push(el(newLine, currentColor, currentChunk));
+        currentChunk = "";
+        currentColor = useColors ? nextColor || defaultColor : defaultColor;
+      }
+    } else {
+      currentChunk += char;
+    }
+  }
+
+  return <>{chunks}</>;
+};
 export const LoadingOverlay = ({
   label = "",
   description = "",
@@ -41,7 +73,7 @@ export const LoadingOverlay = ({
               // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
-            {label}
+            {processString(label, false)}
           </p>
           <p
             id="map-description"
@@ -53,7 +85,7 @@ export const LoadingOverlay = ({
               // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
-            {description}
+            {processString(description, false)}
           </p>
           {header && (
             <ul>

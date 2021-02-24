@@ -52,7 +52,7 @@ const App = ({
             {chk && (
               <LoadingOverlay
                 label={chk.title}
-                description={chk.tilesetName}
+                description={chk.description}
                 // mapPreview={<WrappedElement domElement={chkPreviewCanvas} />}
               />
             )}

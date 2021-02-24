@@ -220,6 +220,9 @@ export class TitanReactor {
 
   async spawnMapViewer(chkFilepath) {
     const state = this.store.getState();
+    const startTime = Date.now();
+    const minDisplayTime = 3000;
+
     const dispatchMapLoadingProgress = () =>
       this.store.dispatch(loadingProgress("map"));
 
@@ -311,6 +314,11 @@ export class TitanReactor {
       scene,
       createTitanSprite
     );
+
+    await new Promise((res) =>
+      setTimeout(res, Math.max(0, minDisplayTime - (Date.now() - startTime)))
+    );
+
     dispatchMapLoadingProgress();
   }
 
