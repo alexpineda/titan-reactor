@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 import ReplayReadStream from "./ReplayReadStream";
 
 export default class ReplayReadFile extends ReplayReadStream {
-  constructor(file, outFile, bwPath, maxFramesLength = 100) {
+  constructor(file, outFile, bwPath, maxFramesLength = 50) {
     super(file, maxFramesLength);
     this.outFile = outFile;
     this.bwPath = bwPath;

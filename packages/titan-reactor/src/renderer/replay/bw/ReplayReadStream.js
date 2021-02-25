@@ -63,11 +63,15 @@ export default class ReplayReadStream extends EventEmitter {
 
       while (this._state.process(this._buf, this.frames.currentUnmarked)) {
         if (this._state.mode === ReadState.Frame) {
+          this._lastReadFrame = this._state.currentFrame;
+
           newFrames.push(this.frames.currentUnmarked);
           this.frames.mark();
-          this._lastReadFrame = this._state.currentFrame;
+
+          this._buf = this._buf.duplicate();
+          this._buf.consume(this._state.pos);
+
           if (this.maxed()) {
-            // global.gc();
             break;
           }
         }

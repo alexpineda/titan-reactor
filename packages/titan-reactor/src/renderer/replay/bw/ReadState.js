@@ -66,19 +66,21 @@ export default class ReadState {
       frame.imageCount = buf.readInt32LE(16);
       frame.soundCount = buf.readInt32LE(20);
 
-      buf.consume(24);
+      this.pos = 24;
+
       this.mode = ReadState.Tile;
       return true;
     }
 
     if (this.mode === ReadState.Tile) {
       const size = frame.tilesCount * TilesBW.byteLength;
-      if (buf.length < size) {
+      if (buf.length < this.pos + size) {
         return false;
       }
 
-      frame.setBuffer("tiles", buf, size);
-      buf.consume(size);
+      frame.setBuffer("tiles", buf, this.pos, size);
+      this.pos += size;
+
       this.mode = ReadState.Unit;
 
       return true;
@@ -86,12 +88,12 @@ export default class ReadState {
 
     if (this.mode === ReadState.Unit) {
       const size = frame.unitCount * UnitsBW.byteLength;
-      if (buf.length < size) {
+      if (buf.length < this.pos + size) {
         return false;
       }
 
-      frame.setBuffer("units", buf, size);
-      buf.consume(size);
+      frame.setBuffer("units", buf, this.pos, size);
+      this.pos += size;
 
       this.mode = ReadState.Sprite;
 
@@ -100,12 +102,12 @@ export default class ReadState {
 
     if (this.mode === ReadState.Sprite) {
       const size = frame.spriteCount * SpritesBW.byteLength;
-      if (buf.length < size) {
+      if (buf.length < this.pos + size) {
         return false;
       }
 
-      frame.setBuffer("sprites", buf, size);
-      buf.consume(size);
+      frame.setBuffer("sprites", buf, this.pos, size);
+      this.pos += size;
 
       this.mode = ReadState.Images;
 
@@ -114,12 +116,12 @@ export default class ReadState {
 
     if (this.mode === ReadState.Images) {
       const size = frame.imageCount * ImagesBW.byteLength;
-      if (buf.length < size) {
+      if (buf.length < this.pos + size) {
         return false;
       }
 
-      frame.setBuffer("images", buf, size);
-      buf.consume(size);
+      frame.setBuffer("images", buf, this.pos, size);
+      this.pos += size;
 
       this.mode = ReadState.Sounds;
 
@@ -128,7 +130,7 @@ export default class ReadState {
 
     if (this.mode === ReadState.Sounds) {
       const size = frame.soundCount * SoundsBW.byteLength;
-      if (buf.length < size) {
+      if (buf.length < this.pos + size) {
         return false;
       }
 
@@ -137,8 +139,8 @@ export default class ReadState {
         return true;
       }
 
-      frame.setBuffer("sounds", buf, size);
-      buf.consume(size);
+      frame.setBuffer("sounds", buf, this.pos, size);
+      this.pos += size;
 
       this.mode = ReadState.Frame;
 

@@ -84,6 +84,14 @@ export const getTerrainY = (
   const pyScale = image.height / mapHeight;
 
   return (x, y) => {
+    if (
+      x < -mapWidth / 2 ||
+      x > mapWidth / 2 ||
+      y < -mapWidth / 2 ||
+      y > mapWidth / 2
+    ) {
+      return 0;
+    }
     const px = Math.floor((x + mapWidth / 2) * pxScale);
     const py = Math.floor((y + mapHeight / 2) * pyScale);
 
