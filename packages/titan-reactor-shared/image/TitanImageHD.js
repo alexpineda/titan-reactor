@@ -131,7 +131,10 @@ export default class TitanImageHD extends Sprite {
 
   //dds is flipped y so we don't do it in our uvs
   _setFrame(frame, flipFrame, uv, pos) {
-    if (frame === undefined) debugger;
+    if (frame === undefined) {
+      console.error("frame is undefined");
+      return;
+    }
     if (flipFrame) {
       uv.array[0] = (frame.x + frame.w) / this.atlas.width;
       uv.array[1] = (frame.y + frame.h) / this.atlas.height;

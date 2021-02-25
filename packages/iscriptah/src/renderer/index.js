@@ -31,7 +31,7 @@ import "tailwindcss/dist/tailwind.min.css";
 import "../../css/icon.css";
 import "../../css/app.css";
 import App from "./ui/App";
-import { ClockMs } from "titan-reactor-shared/utils/ClockMs";
+import ClockMs from "titan-reactor-shared/utils/ClockMs";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { openFileBinary } from "titan-reactor-shared/utils/fs";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";

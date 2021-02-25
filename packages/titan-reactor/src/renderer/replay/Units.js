@@ -1,5 +1,4 @@
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
-import { difference } from "ramda";
 import { Color } from "three";
 import { createMinimapPoint } from "../mesh/Minimap";
 
@@ -8,7 +7,7 @@ const resourceColor = new Color(0, 255, 255);
 class Units {
   constructor(pxToGameUnit, playerColors) {
     this.pxToGameUnit = pxToGameUnit;
-    this.playerColors = playerColors;
+    this.playersById = playerColors;
     this._unitsByRepId = {};
     this._deadUnitIds = [];
 
@@ -40,7 +39,7 @@ class Units {
     if (isResourceContainer) {
       color = resourceColor;
     } else if (unitBw.owner < 8) {
-      color = this.playerColors[unitBw.owner];
+      color = this.playersById[unitBw.owner].threeColor;
     } else {
       return;
     }

@@ -11,12 +11,6 @@ export default class FrameBW {
   }
 
   setBuffer(buffer, src, pos, copySize) {
-    // if (copySize > this.buffers[buffer].length) {
-    //   console.log(`resize from ${this.buffers[buffer].length} to ${copySize}`);
-    //   this.buffers[buffer] = Buffer.allocUnsafe(copySize);
-    // }
-    // src.copy(this.buffers[buffer], 0, 0, copySize);
-
     this.buffers[buffer] = src.shallowSlice(pos, pos + copySize);
   }
 

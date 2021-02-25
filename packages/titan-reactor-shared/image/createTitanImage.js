@@ -6,7 +6,7 @@ import TitanImageSD from "titan-reactor-shared/image/TitanImageSD";
 export default (bwDat, atlases, createIScriptRunner, onError = () => {}) => {
   return (imageId, sprite) => {
     const atlas = atlases[imageId];
-    if (!atlas) {
+    if (!atlas || typeof atlas === "boolean") {
       onError(`composite ${imageId} has no atlas, did you forget to load one?`);
       return null;
     }

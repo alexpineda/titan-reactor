@@ -10,7 +10,7 @@ import {
   Scene,
   MathUtils,
 } from "three";
-import { ReplayPosition, ClockMs } from "./replay/ReplayPosition";
+import { ReplayPosition } from "./replay/ReplayPosition";
 import {
   gameSpeeds,
   pxToMapMeter,
@@ -183,7 +183,6 @@ async function TitanReactorReplay(
 
   let replayPosition = new ReplayPosition(
     rep.header.frameCount,
-    new ClockMs(),
     gameSpeeds.fastest,
     heatMapScore
   );
@@ -394,10 +393,7 @@ async function TitanReactorReplay(
   window.addEventListener("resize", sceneResizeHandler, false);
 
   const unitsBW = new UnitsBW(bwDat);
-  const units = new Units(
-    pxToGameUnit,
-    players.map(({ color }) => new Color(color.rgb))
-  );
+  const units = new Units(pxToGameUnit, players.playersById);
 
   // createMinimapPoint();
 
@@ -703,7 +699,7 @@ async function TitanReactorReplay(
     }
 
     keyboardShortcuts.update(delta);
-    replayPosition.update();
+    replayPosition.update(delta);
   }
 
   const dispose = () => {

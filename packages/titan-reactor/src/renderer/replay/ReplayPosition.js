@@ -3,78 +3,46 @@ import {
   framesBySeconds,
   gameSpeeds,
 } from "titan-reactor-shared/utils/conversions";
+import ClockMs from "titan-reactor-shared/utils/ClockMs";
 
-export class ClockMs {
-  constructor(autoStart) {
-    this.autoStart = autoStart !== undefined ? autoStart : true;
-
-    this.startTime = 0;
-    this.oldTime = 0;
-    this.elapsedTime = 0;
-
-    this.running = false;
-  }
-
-  start() {
-    this.startTime = (typeof performance === "undefined"
-      ? Date
-      : performance
-    ).now(); // see #10732
-
-    this.oldTime = this.startTime;
-    this.elapsedTime = 0;
-    this.running = true;
-  }
-
-  stop() {
-    this.getElapsedTime();
-    this.running = false;
-    this.autoStart = false;
-  }
-
-  getElapsedTime() {
-    this.getDelta();
-    return this.elapsedTime;
-  }
-
-  getDelta() {
-    let diff = 0;
-
-    if (this.autoStart && !this.running) {
-      this.start();
-      return 0;
-    }
-
-    if (this.running) {
-      const newTime = (typeof performance === "undefined"
-        ? Date
-        : performance
-      ).now();
-
-      diff = newTime - this.oldTime;
-      this.oldTime = newTime;
-
-      this.elapsedTime += diff;
-    }
-
-    return diff;
-  }
-}
-
+/**
+ * Manages our time bases on bw frame times
+ */
 export class ReplayPosition {
-  constructor(maxFrame, clock, gameSpeed, heatMapScore) {
+  constructor(maxFrame, gameSpeed, heatMapScore) {
+    /**
+     * The difference between last update call in ms
+     */
+    this.lastDelta = 0;
+
+    /**
+     * Maximum number of frames this replay
+     */
     this.maxFrame = maxFrame;
+
+    /**
+     * ticks every update()
+     */
     this.frame = 0;
+
+    /**
+     * ticks every game tick
+     */
     this.bwGameFrame = 0;
+
+    /**
+     * Number of frames to skip (in case of cpu hiccup or seeking)
+     */
     this.skipGameFrames = 0;
-    this.skipPhysicsFrames = 20;
-    this._maxSkipSpeed = 100;
+
+    /**
+     * The current ms per bw frame, may be a standard value like fastest or set by autospeed
+     */
     this.gameSpeed = gameSpeed;
     this.autoSpeed = 0;
     this.autoSpeedLerpClock = new ClockMs();
-    this.maxAutoSpeed = 1.5;
-    this.clock = clock;
-    this.lastDelta = 0;
+    this.maxAutoSpeed = 1.2;
+
     this.paused = true;
     this.destination = undefined;
     this.heatMapScore = heatMapScore;
@@ -86,7 +54,6 @@ export class ReplayPosition {
     if (this.paused) return;
     this.paused = true;
     this.skipGameFrames = 0;
-    this.clock.stop();
   }
 
   resume() {
@@ -94,7 +61,6 @@ export class ReplayPosition {
     if (this.bwGameFrame === this.maxFrame) return;
     this.paused = false;
     this.lastDelta = 0;
-    this.clock.start();
   }
 
   togglePlay() {
@@ -105,11 +71,14 @@ export class ReplayPosition {
     }
   }
 
-  update() {
+  /**
+   * Updates skipGameFrames according to how many frames we want to progress
+   */
+  update(delta) {
     this.frame++;
     if (this.paused) return;
 
-    this.lastDelta = this.lastDelta + this.clock.getDelta();
+    this.lastDelta = this.lastDelta + delta;
     if (this.lastDelta >= this.gameSpeed) {
       this.skipGameFrames = 1;
       // this.skipGameFrames = Math.floor(this.lastDelta / this.gameSpeed);
@@ -124,6 +93,9 @@ export class ReplayPosition {
     return this.bwGameFrame === this.maxFrame;
   }
 
+  /**
+   * Time in fastest seconds
+   */
   getFriendlyTime() {
     const t = (this.bwGameFrame * gameSpeeds.fastest) / 1000;
     const minutes = Math.floor(t / 60);
@@ -136,6 +108,10 @@ export class ReplayPosition {
     return this.skipGameFrames > 1;
   }
 
+  /**
+   * Sets the autospeed value
+   * @param {Number} val
+   */
   setAutoSpeed(val) {
     this.autoSpeed = val;
     this.autoSpeedLerpClock.elapsedTime = 0;
@@ -149,13 +125,19 @@ export class ReplayPosition {
     this.lastDelta = 0;
   }
 
+  /**
+   * To conserve cpu cycles we only update X frames
+   */
   willUpdateAutospeed() {
-    if (!this.autoSpeed || this.destination) {
+    if (!this.autoSpeed) {
       return false;
     }
     return this.frame % this.autoSpeedRefreshRate === 0;
   }
 
+  /**
+   * @param {Number} val
+   */
   setMaxAutoSpeed(val) {
     if (val > 1) {
       this.autoSpeed = gameSpeeds.fastest;
@@ -165,8 +147,11 @@ export class ReplayPosition {
     }
   }
 
+  /**
+   * @param {Array} attackingUnits
+   */
   updateAutoSpeed(attackingUnits) {
-    if (!this.autoSpeed || this.destination) {
+    if (!this.autoSpeed) {
       return;
     }
 

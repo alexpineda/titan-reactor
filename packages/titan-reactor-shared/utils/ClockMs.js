@@ -1,4 +1,4 @@
-export class ClockMs {
+export default class ClockMs {
   constructor(autoStart) {
     this.autoStart = autoStart !== undefined ? autoStart : true;
 

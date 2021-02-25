@@ -2,20 +2,24 @@ import BufferList from "bl";
 import { range } from "ramda";
 import EventEmitter from "events";
 import ReadState from "./ReadState";
-import MarkedList from "./MarkedList";
+import MarkedQueue from "./MarkedQueue";
 import FrameBW from "./FrameBW";
 
+/**
+ * Converts a stream buffer into frames on request
+ */
 export default class ReplayReadStream extends EventEmitter {
-  constructor(file, maxFramesLength) {
+  /**
+   * @param {*} maxFramesLength
+   */
+  constructor(maxFramesLength) {
     super();
     this.maxFramesLength = maxFramesLength;
-    this.maxBufLength = 2000 * 1000;
-    this.file = file;
     this._buf = new BufferList();
     this._state = new ReadState();
     this._lastReadFrame = 0;
     this._bytesRead = 0;
-    this.frames = new MarkedList(
+    this.frames = new MarkedQueue(
       range(0, maxFramesLength).map(() => new FrameBW())
     );
 
@@ -36,13 +40,13 @@ export default class ReplayReadStream extends EventEmitter {
 
   next(frameCount = 1) {
     this.processFrames();
-    const frames = this.frames.free(frameCount);
+    const frames = this.frames.unshift(frameCount);
     return frames;
   }
 
   nextOne() {
     this.processFrames();
-    const frame = this.frames.free(1);
+    const frame = this.frames.unshift(1);
     return frame[0];
   }
 
@@ -64,12 +68,15 @@ export default class ReplayReadStream extends EventEmitter {
       while (this._state.process(this._buf, this.frames.currentUnmarked)) {
         if (this._state.mode === ReadState.Frame) {
           this._lastReadFrame = this._state.currentFrame;
-
+          if (this._lastReadFrame % 40 === 0) {
+            console.log(`read ${this._lastReadFrame}`);
+          }
           newFrames.push(this.frames.currentUnmarked);
           this.frames.mark();
 
           this._buf = this._buf.duplicate();
           this._buf.consume(this._state.pos);
+          console.log(`frame size ${this._state.pos}`);
 
           if (this.maxed()) {
             break;

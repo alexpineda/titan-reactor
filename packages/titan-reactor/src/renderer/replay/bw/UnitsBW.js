@@ -45,7 +45,7 @@ const flags = Object.freeze({
 
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 48;
+    return 22;
   }
 
   constructor(bwDat) {
@@ -53,52 +53,53 @@ export default class UnitsBW extends ContiguousContainer {
     this.bwDat = bwDat;
   }
 
-  get default() {
-    return this.id;
-  }
-
   get id() {
-    return this._read32(0);
+    return this._read16(0);
   }
 
   get typeId() {
-    return this._read32(4);
+    return this._read16(2);
   }
 
   get owner() {
-    return this._read32(8);
+    return this._read16(4);
   }
 
   get x() {
-    return this._read32(12);
+    return this._read16(6);
   }
 
   get y() {
-    return this._read32(16);
+    return this._read16(8);
   }
 
   get hp() {
-    return this._read32(20);
+    return this._read16(10);
   }
 
   get energy() {
-    return this._read32(24);
+    return this._read16(12);
   }
 
   get spriteIndex() {
-    return this._read32(28);
+    return this._read16(14);
   }
 
   get statusFlags() {
-    return this._read32(32);
+    return this._read32(16);
   }
 
   get direction() {
-    return this._read32(36);
+    return this._read16(20);
   }
 
   get angle() {
-    return this._readDouble(40);
+    let d = this.direction();
+    d -= 64;
+    if (d < 0) {
+      d += 256;
+    }
+    return (d * Math.PI) / 128;
   }
 
   get unitType() {

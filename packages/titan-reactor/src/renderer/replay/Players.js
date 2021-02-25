@@ -1,3 +1,5 @@
+import { Color } from "three";
+
 export class Players extends Array {
   constructor(players, startLocations) {
     super();
@@ -14,6 +16,7 @@ export class Players extends Array {
         totalActions: 0,
         apm: 0,
         color: player.color,
+        threeColor: new Color(player.color.rgb),
         units: [],
         showActions: false,
         showPov: false,
@@ -22,6 +25,11 @@ export class Players extends Array {
       }))
     );
     this.activePovs = 0;
+
+    this.playersById = {};
+    for (const player of this) {
+      this.playersById[player.id] = player;
+    }
   }
 
   static get [Symbol.species]() {

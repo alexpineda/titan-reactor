@@ -6,7 +6,7 @@ import {
   shell,
   dialog,
   protocol,
-  ipcRenderer,
+  powerSaveBlocker,
 } from "electron";
 import isDev from "electron-is-dev";
 import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
@@ -16,6 +16,8 @@ import Parser from "rss-parser";
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import { Readable } from "stream";
+
+powerSaveBlocker.start("prevent-display-sleep");
 
 import {
   GET_APPCACHE_PATH,

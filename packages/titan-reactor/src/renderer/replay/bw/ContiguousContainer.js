@@ -30,8 +30,16 @@ export default class ContiguousContainer {
     this._offset = value * this.constructor.byteLength;
   }
 
+  _read8(byteOffset) {
+    return this._buf.readInt8(this._offset + byteOffset);
+  }
+
   _readU8(byteOffset) {
     return this._buf.readUInt8(this._offset + byteOffset);
+  }
+
+  _read16(byteOffset) {
+    return this._buf.readInt16LE(this._offset + byteOffset);
   }
 
   _readU16(byteOffset) {

@@ -1,4 +1,4 @@
-import { DirectionalLight, Object3D, Fog, Color } from "three";
+import { DirectionalLight, Object3D, Fog } from "three";
 
 export function sunlight(mapWidth, mapHeight) {
   const light = new DirectionalLight(0xffffff, 2);
