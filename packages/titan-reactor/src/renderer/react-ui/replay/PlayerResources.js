@@ -85,7 +85,7 @@ const PlayerResources = ({
           <span
             className={`text-${textSize} cursor-pointer`}
             style={{
-              color: playerVision[index] ? color.hex : "rgb(75, 85, 99)",
+              color: playerVision[id] ? color.hex : "rgb(75, 85, 99)",
               opacity: hideVision ? 0.8 : 1,
             }}
           >

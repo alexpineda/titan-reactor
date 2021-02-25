@@ -100,8 +100,8 @@ function createWindow() {
 }
 
 if (gotTheLock) {
-  app.commandLine.appendSwitch("disable-frame-rate-limit");
-  app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+  // app.commandLine.appendSwitch("disable-frame-rate-limit");
+  // app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
   app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 
   protocol.registerSchemesAsPrivileged([

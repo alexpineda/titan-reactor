@@ -194,9 +194,17 @@
         if (event.keyCode !== keyCode) return;
         _this._holdEnd(event);
       };
-      document.addEventListener("keydown", onKeydown);
-      document.addEventListener("keyup", onKeyup);
-      window.addEventListener("blur", _this._holdEnd);
+      document.addEventListener("keydown", onKeydown, {
+        passive: true,
+        capture: true,
+      });
+      document.addEventListener("keyup", onKeyup, {
+        passive: true,
+        capture: true,
+      });
+      window.addEventListener("blur", _this._holdEnd, {
+        passive: true,
+      });
       return _this;
     }
     return KeyboardKeyHold;

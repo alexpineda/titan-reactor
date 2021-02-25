@@ -12,7 +12,7 @@ import {
 } from "three";
 
 const Unexplored = 15;
-const Explored = 70;
+const Explored = 50;
 const Visible = 255;
 const RevealSpeed = 10;
 const HideSpeedSlow = 5;

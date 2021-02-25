@@ -29,6 +29,7 @@ class Channel {
 
   play() {
     this.audio.play();
+    this.delay = 0;
   }
 
   // https://alemangui.github.io/ramp-to-value
@@ -46,6 +47,7 @@ class Channel {
     audio.source.onended = null;
     audio.isPlaying = false;
     this.queued = false;
+    this.delay = 30;
   }
 }
 
@@ -79,6 +81,7 @@ export default class Audio {
     let bestPriority = priority;
     let c;
     for (const channel of this.channels) {
+      if (channel.flags & 0x20) continue;
       if (channel.priority < bestPriority) {
         bestPriority = channel.priority;
         c = channel;
@@ -120,11 +123,8 @@ export default class Audio {
     return new Promise((res) => {
       const { id, priority } = sound;
 
-      let delay = 0;
-
       if (channel.isPlaying) {
         channel.stop();
-        delay = 30;
       }
 
       channel.position.set(panX, 0, panY);
@@ -134,7 +134,7 @@ export default class Audio {
         channel.priority = priority;
         channel.audio.setBuffer(this.audioBuffers[id].buffer);
         channel.audio.setVolume(this.volume * (volume / 100));
-        setTimeout(() => res(channel), delay);
+        setTimeout(() => res(channel), channel.delay);
         return;
       }
 

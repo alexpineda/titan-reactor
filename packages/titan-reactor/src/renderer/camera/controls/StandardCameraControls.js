@@ -59,8 +59,9 @@ class StandardCameraControls extends CameraControls {
       }, this._mouseWheelDelay);
     };
 
-    domElement.addEventListener("wheel", this._onWheel);
+    domElement.addEventListener("wheel", this._onWheel, { passive: true });
 
+    //@todo make this a getter/setter and unsubscribe on false
     this.keyboardTruckingEnabled = true;
     this.numpadControlEnabled = false;
 
@@ -305,7 +306,9 @@ class StandardCameraControls extends CameraControls {
         updateShot(createShot(this.presets[evt.code]));
       }
     };
-    document.addEventListener("keyup", this._keypressListener);
+    document.addEventListener("keyup", this._keypressListener, {
+      passive: true,
+    });
 
     this._createShot = createShot;
     this._updateShot = updateShot;

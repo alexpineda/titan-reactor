@@ -12,7 +12,6 @@ const KeyCode = {
   ArrowUp: 38,
   ArrowRight: 39,
   ArrowDown: 40,
-  ESC: 27,
 };
 
 const keyNumbers = range(48, 59);
@@ -23,35 +22,36 @@ class KeyboardShortcuts extends EventDispatcher {
     super();
     this.domElement = domElement;
     this.enabled = true;
+    this._keyPressDelay = 500;
 
     const dispatch = (type, message) => this.dispatchEvent({ type, message });
 
     this.keyDownListener = (e) => {
-      if (!this.enabled) return;
-      const k = InputEvents;
+      if (!this.enabled || this._keyPressTimeout) return;
 
       [
-        ["KeyP", k.TogglePlay],
-        ["KeyG", k.ToggleGrid],
-        ["KeyA", k.AzimuthLeft],
-        ["KeyD", k.AzimuthRight],
-        ["KeyW", k.PolarUp],
-        ["KeyS", k.PolarDown],
-        ["KeyC", k.PolarDown],
+        ["KeyP", InputEvents.TogglePlay],
+        ["KeyG", InputEvents.ToggleGrid],
+        ["KeyA", InputEvents.AzimuthLeft],
+        ["KeyD", InputEvents.AzimuthRight],
+        ["KeyW", InputEvents.PolarUp],
+        ["KeyS", InputEvents.PolarDown],
+        ["KeyC", InputEvents.PolarDown],
+        ["KeyE", InputEvents.ToggleElevation],
         // ["KeyE", k.ToggleReplayPosition],
         // ["KeyW", k.ToggleUnitSelection],
         // ["KeyQ", k.ToggleMinimap],
         // ["KeyR", k.ToggleProduction],
         // ["KeyT", k.ToggleResources],
         // ["KeyA", k.ToggleAll],
-        ["KeyI", k.ToggleUnitInformation],
-        ["F10", k.ToggleMenu],
+        ["KeyI", InputEvents.ToggleUnitInformation],
+        ["F10", InputEvents.ToggleMenu],
+        ["Escape", InputEvents.ToggleMenu],
       ].forEach(([key, event]) => e.code === key && dispatch(event));
 
-      [
-        [KeyCode.ESC, k.ToggleMenu],
-        ["KeyG", k.ToggleMenu],
-      ].forEach(([key, event]) => e.keyCode === key && dispatch(event));
+      this._keyPressTimeout = setTimeout(() => {
+        this._keyPressTimeout = null;
+      }, this._keyPressDelay);
     };
 
     this.holdEvents = [
@@ -60,7 +60,7 @@ class KeyboardShortcuts extends EventDispatcher {
       [KeyCode.ArrowDown, InputEvents.MoveBackward],
       [KeyCode.ArrowRight, InputEvents.TruckRight],
     ].map(([keyCode, eventType]) => {
-      const key = new KeyboardKeyHold(keyCode, 10);
+      const key = new KeyboardKeyHold(keyCode, 20);
       const listener = (event) => {
         dispatch(eventType, event.deltaTime);
       };
@@ -71,7 +71,10 @@ class KeyboardShortcuts extends EventDispatcher {
       };
     });
 
-    document.addEventListener("keydown", this.keyDownListener);
+    document.addEventListener("keydown", this.keyDownListener, {
+      passive: true,
+      capture: true,
+    });
   }
 
   update(delta) {

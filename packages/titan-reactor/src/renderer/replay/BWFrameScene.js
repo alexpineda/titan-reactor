@@ -33,11 +33,7 @@ export default class BWFrameScene {
 
   clear() {
     this.group.clear();
-    // let toRemove = [...this.group.children];
-    // for (const child of toRemove) {
-    //   this.group.remove(child);
-    // }
-    this.group.sounds = [];
+    this.group.sounds.length = 0;
   }
 
   play() {

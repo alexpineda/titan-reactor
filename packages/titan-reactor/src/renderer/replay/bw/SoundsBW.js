@@ -114,8 +114,4 @@ export default class SoundsBW extends ContiguousContainer {
 
     return pan / 255;
   }
-
-  get muted() {
-    return this.flags & 0x20;
-  }
 }

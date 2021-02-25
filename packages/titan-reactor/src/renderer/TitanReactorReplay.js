@@ -287,7 +287,6 @@ async function TitanReactorReplay(
   const _controlSleep = () => {
     cameras.control.dampingFactor = 0.05;
   };
-
   // cameras.control.addEventListener("sleep", _controlSleep);
 
   //#endregion mouse listener
@@ -296,19 +295,22 @@ async function TitanReactorReplay(
   scene.add(fadingPointers);
 
   //#region hud ui
-  {
-    const ev = (event, handler) =>
-      keyboardShortcuts.addEventListener(event, handler);
-    const k = InputEvents;
-    ev(k.TogglePlay, () => replayPosition.togglePlay());
-    ev(
-      k.ToggleGrid,
-      () => (scene.gridHelper.visible = !scene.gridHelper.visible)
-    );
-    ev(k.ToggleMenu, () => {
-      store.dispatch(toggleMenu());
-    });
-  }
+  keyboardShortcuts.addEventListener(
+    InputEvents.TogglePlay,
+    replayPosition.togglePlay
+  );
+  keyboardShortcuts.addEventListener(
+    InputEvents.ToggleGrid,
+    () => (scene.gridHelper.visible = !scene.gridHelper.visible)
+  );
+  keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, () =>
+    store.dispatch(toggleMenu())
+  );
+  keyboardShortcuts.addEventListener(
+    InputEvents.ToggleElevation,
+    scene.toggleElevation
+  );
+
   const hudData = {
     onFollowUnit: () => {
       // units.followingUnit = !units.followingUnit;
@@ -438,7 +440,6 @@ async function TitanReactorReplay(
     soundsBW.count = nextFrame.soundCount;
 
     for (let sound of soundsBW.items()) {
-      if (sound.muted) continue;
       const volume = sound.bwVolume(
         view.left,
         view.top,
@@ -496,15 +497,18 @@ async function TitanReactorReplay(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    if (onFastestTick(replayPosition.bwGameFrame, 1.5)) {
-      // players.updateResources(units);
-      store.dispatch(onGameTick());
-      //update position
-    }
     const updateMinimap = replayPosition.bwGameFrame % 12 === 0 || fogChanged;
     cameras.update();
 
     if (!replayPosition.paused) {
+      if (
+        onFastestTick(replayPosition.bwGameFrame, 1.5) &&
+        replayPosition.skipGameFrames
+      ) {
+        // players.updateResources(units);
+        store.dispatch(onGameTick());
+      }
+
       if (!nextFrame) {
         projectedCameraView.update();
 
