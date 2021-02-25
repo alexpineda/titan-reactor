@@ -179,7 +179,7 @@ const Replay = ({
             replayPosition={replayPosition}
             onTogglePaused={() => replayPosition.togglePlay()}
             onChangePosition={(pos) => {
-              replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
+              // replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
             }}
             onChangeAutoGameSpeed={(val) => {
               replayPosition.setAutoSpeed(val);

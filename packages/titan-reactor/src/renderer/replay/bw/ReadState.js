@@ -35,14 +35,14 @@ export default class ReadState {
 
   constructor() {
     this.mode = ReadState.FrameCount;
-    this.frame = 0;
+    this.currentFrame = 0;
   }
 
   ended() {
-    return this.frame === this.maxFrame;
+    return this.currentFrame === this.maxFrame;
   }
 
-  process(buf) {
+  process(buf, frame) {
     if (this.mode === ReadState.FrameCount) {
       if (buf.length < 4) {
         return false;
@@ -58,24 +58,13 @@ export default class ReadState {
         return false;
       }
 
-      this.frame = buf.readInt32LE(0);
-      this.tilesCount = buf.readUInt32LE(4);
-      this.unitCount = buf.readInt32LE(8);
-      this.spriteCount = buf.readInt32LE(12);
-      this.imageCount = buf.readInt32LE(16);
-      this.soundCount = buf.readInt32LE(20);
-
-      this.sprites = Buffer.allocUnsafe(
-        this.spriteCount * SpritesBW.byteLength
-      );
-
-      this.images = Buffer.allocUnsafe(this.imageCount * ImagesBW.byteLength);
-
-      this.units = Buffer.allocUnsafe(this.unitCount * UnitsBW.byteLength);
-
-      this.tiles = Buffer.allocUnsafe(this.tilesCount * TilesBW.byteLength);
-
-      this.sounds = Buffer.allocUnsafe(this.soundCount * SoundsBW.byteLength);
+      frame.frame = buf.readInt32LE(0);
+      this.currentFrame = frame.frame;
+      frame.tilesCount = buf.readUInt32LE(4);
+      frame.unitCount = buf.readInt32LE(8);
+      frame.spriteCount = buf.readInt32LE(12);
+      frame.imageCount = buf.readInt32LE(16);
+      frame.soundCount = buf.readInt32LE(20);
 
       buf.consume(24);
       this.mode = ReadState.Tile;
@@ -83,24 +72,26 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Tile) {
-      if (buf.length < this.tiles.byteLength) {
+      const size = frame.tilesCount * TilesBW.byteLength;
+      if (buf.length < size) {
         return false;
       }
 
-      buf.copy(this.tiles, 0, 0, this.tiles.byteLength);
-      buf.consume(this.tiles.byteLength);
+      frame.setBuffer("tiles", buf, size);
+      buf.consume(size);
       this.mode = ReadState.Unit;
 
       return true;
     }
 
     if (this.mode === ReadState.Unit) {
-      if (buf.length < this.units.byteLength) {
+      const size = frame.unitCount * UnitsBW.byteLength;
+      if (buf.length < size) {
         return false;
       }
 
-      buf.copy(this.units, 0, 0, this.units.byteLength);
-      buf.consume(this.units.byteLength);
+      frame.setBuffer("units", buf, size);
+      buf.consume(size);
 
       this.mode = ReadState.Sprite;
 
@@ -108,12 +99,13 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Sprite) {
-      if (buf.length < this.sprites.byteLength) {
+      const size = frame.spriteCount * SpritesBW.byteLength;
+      if (buf.length < size) {
         return false;
       }
 
-      buf.copy(this.sprites, 0, 0, this.sprites.byteLength);
-      buf.consume(this.sprites.byteLength);
+      frame.setBuffer("sprites", buf, size);
+      buf.consume(size);
 
       this.mode = ReadState.Images;
 
@@ -121,12 +113,13 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Images) {
-      if (buf.length < this.images.byteLength) {
+      const size = frame.imageCount * ImagesBW.byteLength;
+      if (buf.length < size) {
         return false;
       }
 
-      buf.copy(this.images, 0, 0, this.images.byteLength);
-      buf.consume(this.images.byteLength);
+      frame.setBuffer("images", buf, size);
+      buf.consume(size);
 
       this.mode = ReadState.Sounds;
 
@@ -134,7 +127,8 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Sounds) {
-      if (buf.length < this.sounds.byteLength) {
+      const size = frame.soundCount * SoundsBW.byteLength;
+      if (buf.length < size) {
         return false;
       }
 
@@ -143,8 +137,8 @@ export default class ReadState {
         return true;
       }
 
-      buf.copy(this.sounds, 0, 0, this.sounds.byteLength);
-      buf.consume(this.sounds.byteLength);
+      frame.setBuffer("sounds", buf, size);
+      buf.consume(size);
 
       this.mode = ReadState.Frame;
 

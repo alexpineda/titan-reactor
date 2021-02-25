@@ -33,21 +33,27 @@ export default class ReplayReadFile extends ReplayReadStream {
     });
 
     await new Promise((res) => {
-      this.stream = fs.createReadStream(this.outFile, {
-        highWaterMark: 2000 * 1000,
-      });
-      this.stream.on("readable", () => {
-        res();
-        this.readFrames();
-      });
+      this.startRead(0, res);
+    });
+  }
 
-      this.stream.on("error", (err) => console.error(err));
-      this.stream.on("end", () => {
-        console.log("There will be no more data.");
-      });
-      this.stream.on("close", () => {
-        console.log("file closed");
-      });
+  startRead(start, cb) {
+    this.stream = fs.createReadStream(this.outFile, {
+      highWaterMark: 2000 * 1000,
+      start,
+    });
+    this.stream.on("readable", () => {
+      cb && cb();
+      this.processFrames();
+    });
+
+    this.stream.on("error", (err) => console.error(err));
+    this.stream.on("end", () => {
+      console.log("Data ended");
+      this.startRead(this._bytesRead);
+    });
+    this.stream.on("close", () => {
+      console.log("file closed");
     });
   }
 

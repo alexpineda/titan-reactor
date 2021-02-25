@@ -184,7 +184,7 @@ export class TitanReactor {
     console.log(`initial replay frames loaded in ${Date.now() - start}`);
 
     start = Date.now();
-    await preloadAtlas(gameStateReader.frames);
+    await preloadAtlas(gameStateReader.frames.items);
     console.log(`images preloaded in ${Date.now() - start}`);
 
     dispatchRepLoadingProgress();

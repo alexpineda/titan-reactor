@@ -82,26 +82,6 @@ export class ReplayPosition {
     this.onResetState = () => {};
   }
 
-  goto(frame) {
-    if (this.destination >= 0) return;
-    this.destination = Math.min(frame, this.maxFrame);
-    this.lastDelta = 0;
-    this.skipGameFrames = 0;
-    this._goto = () => {
-      if (frame > this.bwGameFrame) {
-        this.skipGameFrames = Math.min(
-          frame - this.bwGameFrame,
-          this._maxSkipSpeed
-        );
-      } else {
-        this.skipGameFrames = Math.min(frame, this._maxSkipSpeed);
-        this.bwGameFrame = 0;
-        this.onResetState();
-      }
-      this._goto = null;
-    };
-  }
-
   pause() {
     if (this.paused) return;
     this.paused = true;
@@ -129,33 +109,14 @@ export class ReplayPosition {
     this.frame++;
     if (this.paused) return;
 
-    this._goto && this._goto();
-
-    if (this.destination) {
-      if (this.bwGameFrame === this.destination) {
-        delete this.destination;
-        this.skipGameFrames = 0;
-        this.lastDelta = 0;
-      }
-      if (
-        this.bwGameFrame >= this.destination - this._maxSkipSpeed &&
-        this.bwGameFrame <= this.destination + this._maxSkipSpeed
-      ) {
-        this.skipGameFrames = this.destination - this.bwGameFrame;
-      }
+    this.lastDelta = this.lastDelta + this.clock.getDelta();
+    if (this.lastDelta >= this.gameSpeed) {
+      this.skipGameFrames = 1;
+      // this.skipGameFrames = Math.floor(this.lastDelta / this.gameSpeed);
+      this.lastDelta = 0;
+      // this.lastDelta = this.lastDelta - this.skipGameFrames * this.gameSpeed;
     } else {
-      this.lastDelta = this.lastDelta + this.clock.getDelta();
-      if (this.lastDelta >= this.gameSpeed) {
-        this.skipGameFrames = 1; // Math.floor(this.lastDelta / this.gameSpeed);
-        if (this.skipGameFrames > this._maxSkipSpeed) {
-          this.goto(this.bwGameFrame + this.skipGameFrames);
-        } else {
-          this.lastDelta =
-            this.lastDelta - this.skipGameFrames * this.gameSpeed;
-        }
-      } else {
-        this.skipGameFrames = 0;
-      }
+      this.skipGameFrames = 0;
     }
   }
 
