@@ -3,19 +3,13 @@ import SpritesBW from "./bw/SpritesBW";
 import ReplaySprite from "./ReplaySprite";
 
 class ReplaySprites {
-  constructor(
-    bwDat,
-    pxToGameUnit,
-    getTerrainY,
-    createTitanImage,
-    playerColors
-  ) {
+  constructor(bwDat, pxToGameUnit, getTerrainY, createTitanImage, playersById) {
     this._spritesByIndex = {};
     this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
     this.createTitanImage = createTitanImage;
-    this.playerColors = playerColors;
+    this.playersById = playersById;
 
     this.spritesBW = new SpritesBW(bwDat);
     this.imagesBW = new ImagesBW(bwDat);
@@ -54,7 +48,7 @@ class ReplaySprites {
         sprite,
         this.imagesBW,
         unitsBySpriteId.get(sprite.index),
-        this.playerColors[sprite.owner]
+        this.playersById[sprite.owner]
       )) {
         replaySprite.add(image);
       }

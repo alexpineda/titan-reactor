@@ -402,7 +402,7 @@ async function TitanReactorReplay(
     pxToGameUnit,
     getTerrainY,
     createTitanImage,
-    players.map(({ color }) => new Color(color.rgb))
+    players.playersById
   );
 
   let _preloadFrames = [];
@@ -659,6 +659,7 @@ async function TitanReactorReplay(
       // drawCallInspector.begin();
       renderMan.enableCinematicPass();
       fogOfWar.update(cameras.camera);
+      renderMan.updateFocus(cameras);
       renderMan.render(scene, cameras.camera, delta);
       // drawCallInspector.end();
     }

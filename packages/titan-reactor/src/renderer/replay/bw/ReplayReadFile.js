@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs, { promises as fsPromises } from "fs";
 import { spawn } from "child_process";
 import ReplayReadStream from "./ReplayReadStream";
 
@@ -16,7 +16,7 @@ export default class ReplayReadFile extends ReplayReadStream {
    * @param {String} bwPath Starcraft path
    * @param {Number} maxFramesLength Max number of frames to buffer
    */
-  constructor(file, outFile, bwPath, maxFramesLength = 2) {
+  constructor(file, outFile, bwPath, maxFramesLength = 3) {
     super(maxFramesLength);
     this.file = file;
     this.outFile = outFile;
@@ -27,27 +27,29 @@ export default class ReplayReadFile extends ReplayReadStream {
 
   /**
    * Spawn the process to dump bw frame data
+   * @param {Boolean} withProcess whether or not to spawn a replay bin generating process
    */
-  async start() {
-    this.openBwBridge = spawn(this.openBwBridgeExePath, [
-      this.bwPath,
-      this.file,
-      this.outFile,
-    ]);
+  async start(withProcess = true) {
+    if (withProcess) {
+      this.openBwBridge = spawn(this.openBwBridgeExePath, [
+        this.bwPath,
+        this.file,
+        this.outFile,
+      ]);
 
-    this.openBwBridge.stderr.on("data", (data) => {
-      console.error(`stderr: ${data}`);
-    });
-
-    await new Promise((res) => {
-      this.openBwBridge.stdout.on("data", (data) => {
-        if (data > this.maxFramesLength) {
-          res();
-        }
-        this.framesWritten = data;
-        console.log(`written ${data}`);
+      this.openBwBridge.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`);
       });
-    });
+
+      await new Promise((res) => {
+        this.openBwBridge.stdout.on("data", (data) => {
+          if (data > this.maxFramesLength) {
+            res();
+          }
+          this.framesWritten = data;
+        });
+      });
+    }
 
     await new Promise((res) => {
       this.startRead(0, res);
@@ -74,9 +76,32 @@ export default class ReplayReadFile extends ReplayReadStream {
       // restart read process where we left off on condition
       // that we hit the end of the read and the process is still active
       // @todo other cases? retry limits?
-      this.startRead(this._bytesRead);
+      // this.startRead(this._bytesRead);
+      console.log("ENDED");
     });
-    this.stream.on("close", () => {});
+    this.stream.on("close", () => {
+      console.log("CLOSED");
+      if (this.getSize(this.outFile) > this._bytesRead) {
+        // this.startRead(this._bytesRead);
+      }
+    });
+  }
+
+  //@todo allow canceling promise
+  waitForSize(file, bytes) {
+    return new Promise((res) => {
+      const interval = setInterval(async () => {
+        if ((await this.getSize(file)) > bytes) {
+          clearInterval(interval);
+          res();
+        }
+      }, 500);
+    });
+  }
+
+  async getSize(file) {
+    const { size } = await fsPromises.stat(file);
+    return size;
   }
 
   /**
@@ -84,7 +109,7 @@ export default class ReplayReadFile extends ReplayReadStream {
    */
   dispose() {
     this.stream && this.stream.destroy();
-    if (this.openBwBridge.exitCode === null) {
+    if (this.openBwBridge && this.openBwBridge.exitCode === null) {
       this.openBwBridge.kill();
     }
   }

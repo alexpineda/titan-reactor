@@ -58,8 +58,10 @@ class BgMusic {
   }
 
   dispose() {
-    this.audio.stop();
-    this.audio = null;
+    if (this.audio) {
+      this.audio.stop();
+      this.audio = null;
+    }
   }
 }
 

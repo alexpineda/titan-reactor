@@ -2,7 +2,7 @@ import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { Color } from "three";
 import { createMinimapPoint } from "../mesh/Minimap";
 
-const resourceColor = new Color(0, 255, 255);
+const resourceColor = new Color(0, 155, 155);
 
 class Units {
   constructor(pxToGameUnit, playerColors) {
@@ -24,6 +24,7 @@ class Units {
     return Object.values(this._unitsByRepId);
   }
 
+  // @todo implement openbw logic
   // bool unit_visble_on_minimap(unit_t* u) {
   //   if (u->owner < 8 && u->sprite->visibility_flags == 0) return false;
   //   if (ut_turret(u)) return false;

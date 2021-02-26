@@ -42,8 +42,9 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
     null,
     null,
     keyboardShortcuts,
-    true
+    false
   );
+  window.cameras = cameras;
 
   const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
   await renderMan.initRenderer(cameras.camera);
@@ -243,10 +244,17 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
     }
 
     cameras.update(delta);
+    renderMan.updateFocus(cameras);
     keyboardShortcuts.update(delta);
     fogOfWar.update(cameras.camera);
     renderMan.render(scene, cameras.camera, delta);
     last = elapsed;
+
+    if (window.focusFn) {
+      try {
+        window.focusFn(cameras);
+      } catch (e) {}
+    }
   }
 
   renderMan.renderer.setAnimationLoop(gameLoop);

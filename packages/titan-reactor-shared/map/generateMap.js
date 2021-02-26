@@ -606,11 +606,11 @@ export const generateMesh = (renderer, tileData) => {
   hdTerrainGroup.visible = true;
 
   // DEBUGGGG
-  hdTerrainGroup.creepEdgesTextureHD = creepEdgesTextureHD;
-  hdTerrainGroup.creepEdgesTextureSD = rgbToCanvas(
-    creepEdgesTextureSD.image,
-    "rgba"
-  );
+  // hdTerrainGroup.creepEdgesTextureHD = creepEdgesTextureHD;
+  // hdTerrainGroup.creepEdgesTextureSD = rgbToCanvas(
+  //   creepEdgesTextureSD.image,
+  //   "rgba"
+  // );
 
   terrain.name = "Terrain";
   hdTerrainGroup.name = "TerrainHD";

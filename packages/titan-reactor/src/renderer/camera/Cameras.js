@@ -1,12 +1,5 @@
 import { is } from "ramda";
-import {
-  Clock,
-  Line3,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Plane,
-  Vector3,
-} from "three";
+import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 
 import {
   MinimapLayer,

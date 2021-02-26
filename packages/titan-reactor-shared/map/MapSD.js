@@ -4,7 +4,7 @@ export default class MapSD {
   static async renderCreepTexture(creepGrp, palette) {
     const stride = 7;
     const grpSD = new GrpSD();
-    return await grpSD.load(
+    await grpSD.load(
       {
         readGrp: () => creepGrp,
         imageDef: {},
@@ -12,5 +12,6 @@ export default class MapSD {
       },
       stride
     );
+    return grpSD.texture;
   }
 }

@@ -8,6 +8,9 @@ import {
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import { Grp } from "bw-chk-modified/grp";
 
+/**
+ * Currently decoding the old way, maybe refactor to use anim?
+ */
 export default class GrpSD {
   constructor() {
     this.texture = null;
@@ -27,20 +30,52 @@ export default class GrpSD {
       return palettes[0];
     };
 
+    const palette = getPalette();
+
+    let playerMaskPalette;
+    if (palette === palettes[0]) {
+      playerMaskPalette = Buffer.alloc(palette.byteLength);
+      // using R value of the red player to determine mask alphas (tunit.pcx)
+      // @todo use RGBAInteger format in shader and use tunit.pcx to apply nuances in colors or load from anim
+      const playerColors = [244, 168, 168, 132, 96, 72, 52, 16];
+
+      for (let i = 0; i < 8; i++) {
+        playerMaskPalette[(i + 0x8) * 4 + 0] = playerColors[i];
+        playerMaskPalette[(i + 0x8) * 4 + 1] = playerColors[i];
+        playerMaskPalette[(i + 0x8) * 4 + 2] = playerColors[i];
+      }
+    }
+
     const { w: mw, h: mh } = grp.maxDimensions();
 
     const grpStride = Math.min(grp.frameCount(), stride);
     const cw = mw * grpStride;
     const ch = Math.ceil(grp.frameCount() / grpStride) * mh;
-    const texData = new Uint8Array(cw * ch * 4);
+    const texOut = new Uint8Array(cw * ch * 4);
+
+    let maskOut;
+    if (playerMaskPalette) {
+      maskOut = new Uint8Array(cw * ch * 4);
+    }
 
     for (let i = 0; i < grp.frameCount(); i++) {
       const { data, x, y, w, h } = grp.decode(
         i,
-        getPalette(),
+        palette,
         imageDef.drawFunction === drawFunctions.useRemapping,
         imageDef.drawFunction === drawFunctions.rleShadow
       );
+
+      let maskData;
+      if (maskOut) {
+        maskData = grp.decode(
+          i,
+          playerMaskPalette,
+          imageDef.drawFunction === drawFunctions.useRemapping,
+          imageDef.drawFunction === drawFunctions.rleShadow
+        ).data;
+      }
+
       const grpX = (i % grpStride) * mw;
       const grpY = Math.floor(i / grpStride) * mh;
 
@@ -52,10 +87,17 @@ export default class GrpSD {
           const px = fx + x + grpX;
           const pos = (py * cw + px) * 4;
           const spritePos = (fy * w + fx) * 4;
-          texData[pos] = data[spritePos];
-          texData[pos + 1] = data[spritePos + 1];
-          texData[pos + 2] = data[spritePos + 2];
-          texData[pos + 3] = data[spritePos + 3];
+          texOut[pos] = data[spritePos];
+          texOut[pos + 1] = data[spritePos + 1];
+          texOut[pos + 2] = data[spritePos + 2];
+          texOut[pos + 3] = data[spritePos + 3];
+
+          if (maskOut) {
+            maskOut[pos] = maskData[spritePos];
+            maskOut[pos + 1] = maskData[spritePos + 1];
+            maskOut[pos + 2] = maskData[spritePos + 2];
+            maskOut[pos + 3] = maskData[spritePos + 3];
+          }
         }
       }
     }
@@ -65,7 +107,7 @@ export default class GrpSD {
     this.width = cw;
     this.height = ch;
 
-    this.texture = new DataTexture(texData, cw, ch);
+    this.texture = new DataTexture(texOut, cw, ch);
     this.texture.flipY = true;
     this.texture.minFilter = LinearFilter;
     this.texture.magFilter = LinearFilter;
@@ -73,7 +115,14 @@ export default class GrpSD {
     this.texture.wrapS = ClampToEdgeWrapping;
     this.texture.encoding = sRGBEncoding;
 
-    return this.texture;
+    if (maskOut) {
+      this.teamcolor = new DataTexture(maskOut, cw, ch);
+      this.teamcolor.flipY = true;
+      this.teamcolor.minFilter = LinearFilter;
+      this.teamcolor.magFilter = LinearFilter;
+      this.teamcolor.wrapT = ClampToEdgeWrapping;
+      this.teamcolor.wrapS = ClampToEdgeWrapping;
+    }
   }
 
   dispose() {

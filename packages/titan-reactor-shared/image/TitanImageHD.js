@@ -13,22 +13,9 @@ export default class TitanImageHD extends Sprite {
     const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
 
     let material;
-    // if (teamcolor) {
-    //   material = TeamSpriteMaterial.clone();
-    //   material.map = diffuse;
-    //   material.uniform("map").value = diffuse;
-    //   material.uniform("teamMask").value = teamcolor;
-    //   material.isTeamSpriteMaterial = true;
 
-    //   // sprite material properties
-    //   material.rotation = 0;
-    //   material.sizeAttenuation = true;
-    //   material.transparent = true;
-    //   material.needsUpdate = true;
-    //   material.type = "SpriteMaterial";
-    // } else {
-    material = new SpriteMaterial({ map: diffuse });
-    // }
+    material = new TeamSpriteMaterial({ map: diffuse });
+    material.teamMask = teamcolor;
 
     super(material);
 
@@ -90,16 +77,12 @@ export default class TitanImageHD extends Sprite {
     return this.atlas.frames;
   }
 
-  hasTeamMask() {
-    return this.material.isTeamSpriteMaterial;
-  }
-
   set teamColor(val) {
-    this.material.uniform("teamColor").value = val;
+    this.material.teamColor = val;
   }
 
   get teamColor() {
-    return this.material.uniform("teamColor").value;
+    return this.material.teamColor;
   }
 
   setPositionX(x, scale = this._spriteScale) {

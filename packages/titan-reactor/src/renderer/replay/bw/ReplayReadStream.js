@@ -41,6 +41,7 @@ export default class ReplayReadStream extends EventEmitter {
   next(frameCount = 1) {
     this.processFrames();
     const frames = this.frames.unshift(frameCount);
+    console.log();
     return frames;
   }
 
@@ -48,6 +49,27 @@ export default class ReplayReadStream extends EventEmitter {
     this.processFrames();
     const frame = this.frames.unshift(1);
     return frame[0];
+  }
+
+  _processBuffer(newFrames) {
+    while (this._state.process(this._buf, this.frames.currentUnmarked)) {
+      if (this._state.mode === ReadState.Frame) {
+        this._lastReadFrame = this._state.currentFrame;
+        if (this._lastReadFrame % 40 === 0) {
+          console.log(`read ${this._lastReadFrame}`);
+        }
+        newFrames.push(this.frames.currentUnmarked);
+        this.frames.mark();
+
+        this._buf = this._buf.duplicate();
+        this._buf.consume(this._state.pos);
+
+        if (this.maxed()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   processFrames() {
@@ -60,32 +82,16 @@ export default class ReplayReadStream extends EventEmitter {
 
     let newFrames = [];
 
-    let buf;
-    while ((buf = this.stream.read())) {
-      this._bytesRead += buf.byteLength;
-      this._buf.append(buf);
+    // process what we have
+    if (!this._processBuffer(newFrames)) {
+      let buf;
+      while ((buf = this.stream.read())) {
+        this._bytesRead += buf.byteLength;
+        this._buf.append(buf);
 
-      while (this._state.process(this._buf, this.frames.currentUnmarked)) {
-        if (this._state.mode === ReadState.Frame) {
-          this._lastReadFrame = this._state.currentFrame;
-          if (this._lastReadFrame % 40 === 0) {
-            console.log(`read ${this._lastReadFrame}`);
-          }
-          newFrames.push(this.frames.currentUnmarked);
-          this.frames.mark();
-
-          this._buf = this._buf.duplicate();
-          this._buf.consume(this._state.pos);
-          console.log(`frame size ${this._state.pos}`);
-
-          if (this.maxed()) {
-            break;
-          }
+        if (this._processBuffer(newFrames)) {
+          break;
         }
-      }
-
-      if (this.maxed()) {
-        break;
       }
     }
 

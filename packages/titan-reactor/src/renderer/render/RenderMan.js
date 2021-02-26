@@ -24,17 +24,15 @@ import {
   EdgeDetectionMode,
   ToneMappingEffect,
   OverrideMaterialManager,
+  BloomEffect,
 } from "postprocessing";
 
 import FogOfWarEffect from "./effects/FogOfWarEffect";
+import BWToneMappingEffect from "./effects/BwToneMapping";
+import { easePoly } from "d3-ease";
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
 OverrideMaterialManager.workaroundEnabled = true;
-
-// import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
-// import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
-// import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass";
-// import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass";
 
 const log = () => {};
 
@@ -81,10 +79,10 @@ class RenderMan {
     this._composer.autoRenderToScreen = false;
     this._renderPass = new RenderPass(camera);
 
-    window.dofPass = this._dofEffect = new DepthOfFieldEffect(camera, {
-      focusDistance: 0.05,
-      focalLength: 0.5,
-      bokehScale: 4.0,
+    window.dofEffect = this._dofEffect = new DepthOfFieldEffect(camera, {
+      focusDistance: 0.01,
+      focalLength: 0.01,
+      bokehScale: 1.0,
       height: 480,
     });
 
@@ -98,7 +96,7 @@ class RenderMan {
       });
     }
 
-    this._smaaEffect = new SMAAEffect(
+    window.smaaEffect = this._smaaEffect = new SMAAEffect(
       this._smaaSearchImage,
       this._smaaAreaImage,
       SMAAPreset.LOW,
@@ -108,21 +106,32 @@ class RenderMan {
     this.fogOfWarEffect = new FogOfWarEffect();
 
     const toneMapping = new ToneMappingEffect();
-    toneMapping.adaptive = true;
+    window.toneMappingEffect = toneMapping;
 
-    window.focusFn = (y) => Math.max(y * 0.015, 0.1);
+    // window.focusFn = (y) => Math.max(y * 0.015, 0.1);
 
     this._fogPass = new EffectPass(camera, this.fogOfWarEffect);
 
+    this._bloomEffect = new BloomEffect({
+      luminanceThreshold: 0.85,
+    });
+
+    this._bloomPass = new EffectPass(camera, this._bloomEffect);
+
     this._cinematicPass = new EffectPass(
       camera,
+      this._dofEffect,
       this.fogOfWarEffect,
-      // this._dofEffect,
-      this._smaaEffect,
-      toneMapping
+      this._smaaEffect
+      // toneMapping
     );
 
-    this._passes = [this._renderPass, this._fogPass, this._cinematicPass];
+    this._passes = [
+      this._renderPass,
+      this._bloomPass,
+      this._fogPass,
+      this._cinematicPass,
+    ];
     this._passes.forEach((p) => this._composer.addPass(p));
 
     this.enableCinematicPass();
@@ -147,21 +156,32 @@ class RenderMan {
   }
 
   enableCinematicPass() {
-    this._togglePasses(this._renderPass, this._cinematicPass);
+    this._togglePasses(this._renderPass, this._bloomPass, this._cinematicPass);
   }
 
   enableRenderFogPass() {
     this._togglePasses(this._renderPass, this._fogPass);
   }
 
+  updateFocus(cameras) {
+    const cy =
+      (Math.max(20, Math.min(90, cameras.camera.position.y)) - 20) / 70;
+
+    const cz = 1 - (Math.max(22, Math.min(55, cameras.camera.fov)) - 22) / 33;
+    const min = cz * 0.2 + 0.1;
+
+    const ey = easePoly(cy);
+    const pa = 1 - Math.max(0.2, Math.min(1, cameras.control.polarAngle));
+    const cx = ey * pa;
+    const o = cx * (1 - min) + min;
+
+    this._dofEffect.circleOfConfusionMaterial.uniforms.focalLength.value = o;
+  }
+
   _render(scene, camera, delta) {
-    //@todo change this to delta
-    this._dofEffect.circleOfConfusionMaterial.uniforms.focalLength.value = window.focusFn(
-      camera.position.y
-    );
     this._renderPass.scene = scene;
     this._renderPass.camera = camera;
-    // this.renderer.render(scene, camera);
+
     this._composer.render(delta);
 
     this.canvasTarget.ctx.drawImage(

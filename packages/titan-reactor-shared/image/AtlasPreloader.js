@@ -1,5 +1,8 @@
 import { promises as fsPromises } from "fs";
 
+/**
+ * Can be found in refs via SD anim, however this list was conveniently provided by farty1billion
+ */
 const hdRefs = {
   27: 11,
   90: 89,

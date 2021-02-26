@@ -1,4 +1,4 @@
-import { Color, Object3D } from "three";
+import { Object3D } from "three";
 
 export default class ReplaySprite extends Object3D {
   constructor(bwDat, pxToGameUnit, getTerrainY, createImage) {
@@ -11,7 +11,7 @@ export default class ReplaySprite extends Object3D {
     this.images = new Map();
   }
 
-  *refresh(sprite, imagesBW, spriteUnit, playerColor) {
+  *refresh(sprite, imagesBW, spriteUnit, player) {
     this.renderOrder = sprite.order * 10;
     this._imageRenderOrder = this.renderOrder;
 
@@ -31,8 +31,8 @@ export default class ReplaySprite extends Object3D {
         this.images.get(image.id) || this.createImage(image.id, this);
       if (!titanImage) continue;
 
-      if (playerColor && titanImage.hasTeamMask()) {
-        titanImage.teamColor = playerColor;
+      if (player) {
+        titanImage.teamColor = player.threeColor;
       }
       //@todo optimize with redraw flag?
       titanImage.position.x = image.x / 32;

@@ -57,9 +57,6 @@ export default class GrpHD {
     this.height = anim.sprite.maps.diffuse.height;
     this.grpWidth = anim.sprite.w;
     this.grpHeight = anim.sprite.h;
-    // console.log("anim frames", anim.sprite.w, anim.sprite.h, this.frames);
-
-    return this.diffuse;
   }
 
   _loadDDS(buf, encoding = sRGBEncoding) {
