@@ -39,6 +39,7 @@ class TeamSpriteMaterial extends SpriteMaterial {
     super(opts);
     this.isTeamSpriteMaterial = true;
     this.teamColor = new Color(0xffffff);
+    this.addOnBeforeCompile = () => {};
   }
 
   onBeforeCompile(shader) {
@@ -69,6 +70,8 @@ class TeamSpriteMaterial extends SpriteMaterial {
     shader.uniforms.teamMask = {
       value: this.teamMask,
     };
+
+    this.addOnBeforeCompile(shader);
   }
 }
 

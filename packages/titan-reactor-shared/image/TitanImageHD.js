@@ -1,8 +1,9 @@
 import {
   Sprite,
-  SpriteMaterial,
   BufferAttribute,
   DynamicDrawUsage,
+  MultiplyBlending,
+  SubtractiveBlending,
 } from "three";
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
@@ -63,7 +64,8 @@ export default class TitanImageHD extends Sprite {
     this.material.transparent = true;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      this.material.opacity = 0.6;
+      this.material.opacity = 0.5;
+      this.material.blending = SubtractiveBlending;
     }
 
     this.castShadow = false;

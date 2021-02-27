@@ -13,7 +13,7 @@ class FadingPointers extends Group {
     this.dropHeight = 3;
   }
 
-  addPointer(x, y, z, color, time) {
+  addPointer(x, y, z, color, time, meta) {
     const geo = new ConeGeometry(0.5, 1, 5);
     geo.rotateX(Math.PI);
     geo.translate(0, 0, 0);
@@ -25,13 +25,14 @@ class FadingPointers extends Group {
     const mesh = new Mesh(geo, mat);
 
     mesh.position.x = x;
-    mesh.position.z = y;
-    mesh.position.y = z + easeElasticOut(1) * this.dropHeight;
+    mesh.position.z = z;
+    mesh.position.y = y + this.dropHeight;
     mesh.name = "FadingPointer";
 
     mesh.userData = {
       time,
-      destY: z,
+      destY: y,
+      ...meta,
     };
     this.add(mesh);
   }
@@ -57,7 +58,7 @@ class FadingPointers extends Group {
           }
         } catch (e) {}
         if (lifetime > this.lifespan) {
-          o.visible = false;
+          this.remove(o);
         }
       });
   }

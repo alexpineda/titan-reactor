@@ -36,9 +36,9 @@ export default class BWFrameScene {
     this.group.sounds.length = 0;
   }
 
-  play() {
+  play(elapsed) {
     for (let sound of this.group.sounds) {
-      sound.then(this._playSound).catch(() => {});
+      sound(elapsed);
     }
   }
 

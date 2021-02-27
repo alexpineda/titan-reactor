@@ -1,69 +1,38 @@
 import { AudioLoader, PositionalAudio } from "three";
-import { DebugLog } from "../utils/DebugLog";
 import { range } from "ramda";
-
-class Channel {
-  constructor(audio) {
-    this.audio = audio;
-    this.queued = false;
-    this.audio.onEnded = () => {
-      this.queued = false;
-      this.audio.isPlaying = false;
-    };
-  }
-
-  queue(sound) {
-    this.id = sound.id;
-    this.unitTypeId = sound.unitTypeId;
-    this.flags = sound.flags;
-    this.queued = true;
-  }
-
-  get isPlaying() {
-    return this.audio.isPlaying;
-  }
-
-  get position() {
-    return this.audio.position;
-  }
-
-  play() {
-    this.audio.play();
-    this.delay = 0;
-  }
-
-  // https://alemangui.github.io/ramp-to-value
-  stop() {
-    const audio = this.audio;
-    audio.gain.gain.setValueAtTime(
-      audio.gain.gain.value,
-      audio.context.currentTime
-    );
-    audio.gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      audio.context.currentTime + 0.03
-    );
-    audio._progress = 0;
-    audio.source.onended = null;
-    audio.isPlaying = false;
-    this.queued = false;
-    this.delay = 30;
-  }
-}
+import { DebugLog } from "../utils/DebugLog";
+import Channel from "./Channel";
+import AudioBuffer from "./AudioBuffer";
 
 export default class Audio {
-  constructor(getSoundFileName, audioListener, addSound) {
+  constructor(
+    getSoundFileName,
+    audioListener,
+    addSound,
+    addPointer,
+    removeSound
+  ) {
     this.getSoundFileName = getSoundFileName;
     this.logger = new DebugLog("audio");
     this.audioListener = audioListener;
     this.audioBuffers = {};
 
+    this.addPointer = addPointer;
     this.volume = 1;
     this.maxSounds = 8; //original bw
     this.channels = range(0, this.maxSounds).map(
-      () => new Channel(new PositionalAudio(this.audioListener))
+      () =>
+        new Channel(() => {
+          const audio = new PositionalAudio(this.audioListener);
+          addSound(audio);
+          return audio;
+        }, removeSound)
     );
-    this.channels.forEach(({ audio }) => addSound(audio));
+
+    this.channels.forEach(({ audio, debugVisual }) => {
+      addSound(audio);
+      addSound(debugVisual);
+    });
   }
 
   setVolume(volume) {
@@ -71,9 +40,10 @@ export default class Audio {
   }
 
   // replicate scbw channels
-  _getFreeChannel(priority) {
+  _getFreeChannel(priority, soundId) {
     for (const channel of this.channels) {
-      if (!channel.audio.isPlaying && !channel.queued) {
+      if (!channel.isPlaying) {
+        console.log(`found channel (not playing) #${channel.id} => ${soundId}`);
         return channel;
       }
     }
@@ -83,6 +53,9 @@ export default class Audio {
     for (const channel of this.channels) {
       if (channel.flags & 0x20) continue;
       if (channel.priority < bestPriority) {
+        console.log(
+          `found channel (priority ${channel.priority} < ${bestPriority}) #${channel.id} => ${soundId}`
+        );
         bestPriority = channel.priority;
         c = channel;
       }
@@ -90,65 +63,112 @@ export default class Audio {
     return c;
   }
 
-  async get(sound, volume, panX, panY, elapsed) {
-    if (
-      this.audioBuffers[sound.id] &&
-      elapsed - this.audioBuffers[sound.id].elapsed <= 80
-    ) {
-      return;
+  copyBuffer(audioBuffer) {
+    const buffer = this.audioListener.context.createBuffer(
+      audioBuffer.numberOfChannels,
+      audioBuffer.length,
+      audioBuffer.sampleRate
+    );
+    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+      buffer.copyToChannel(audioBuffer.getChannelData(i), i);
     }
+    return buffer;
+  }
 
-    if (sound.flags & 0x10) {
-      const channel = this.channels.find(({ id }) => id === sound.id);
-      if (channel && channel.isPlaying) {
+  dump(sound, x, y, z, elapsed, reason, color = 0x000000) {
+    this.addPointer(x, y, z, color, {
+      ...sound,
+      elapsed,
+      reason,
+      channels: this.channels.map((c) => ({ ...c, p: c.audio.isPlaying })),
+    });
+    console.log(`%c ${reason}`, `color: #${color.toString(16)}`);
+    console.log({
+      ...sound,
+      elapsed,
+    });
+  }
+
+  get(sound, volume, x, y, z) {
+    const { id: soundId, priority, unitTypeId, flags: soundFlags } = sound;
+
+    return (elapsed) => {
+      //a promise is loading the buffer
+      if (this.audioBuffers[soundId] && !this.audioBuffers[soundId].buffer) {
         return;
       }
-    } else if (sound.flags & 2 && sound.unitTypeId) {
-      const channel = this.channels.find(
-        ({ unitTypeId, flags }) => unitTypeId === sound.unitTypeId && flags & 2
-      );
-      if (channel && channel.isPlaying) {
+
+      if (
+        this.audioBuffers[soundId] &&
+        elapsed - this.audioBuffers[soundId].elapsed <= 80
+      ) {
+        this.dump(sound, x, y, z, elapsed, "buffer < 80", 0x0000ff);
         return;
       }
-    }
 
-    const channel = this._getFreeChannel(sound.priority);
+      if (soundFlags & 0x10) {
+        const channel = this.channels.find(({ id }) => id === soundId);
+        if (channel && channel.isPlaying) {
+          this.dump(sound, x, y, z, elapsed, "0x10 playing", 0x00ff00);
+          return;
+        }
+      } else if (soundFlags & 2 && unitTypeId) {
+        const channel = this.channels.find(
+          ({ unitTypeId, flags }) => unitTypeId === unitTypeId && flags & 2
+        );
+        if (channel && channel.isPlaying) {
+          this.dump(sound, x, y, z, elapsed, "0x2 playing", 0x00ff00);
+          return;
+        }
+      }
 
-    if (!channel) {
-      return;
-    }
+      const channel = this._getFreeChannel(priority, soundId);
 
-    channel.queue(sound);
+      if (!channel) {
+        this.dump(sound, x, y, z, elapsed, "no free channel", 0xffa500);
+        return;
+      }
 
-    return new Promise((res) => {
-      const { id, priority } = sound;
+      if (!this.audioBuffers[soundId]) {
+        this.audioBuffers[soundId] = new AudioBuffer();
+      }
+      this.audioBuffers[soundId].elapsed = elapsed;
 
+      //stop if it's playing OR stop if its queued and already loaded
       if (channel.isPlaying) {
         channel.stop();
       }
 
-      channel.position.set(panX, 0, panY);
+      channel.queue(sound);
 
-      if (this.audioBuffers[id]) {
-        this.audioBuffers[id].elapsed = elapsed;
-        channel.priority = priority;
-        channel.audio.setBuffer(this.audioBuffers[id].buffer);
-        channel.audio.setVolume(this.volume * (volume / 100));
-        setTimeout(() => res(channel), channel.delay);
+      if (this.audioBuffers[soundId].buffer) {
+        this.dump(sound, x, y, z, elapsed, "immediate", 0x999999);
+
+        channel.play(
+          this.audioBuffers[soundId].buffer,
+          this.volume * (volume / 100),
+          x,
+          y,
+          z
+        );
         return;
       }
 
       const audioLoader = new AudioLoader();
-      audioLoader.load(this.getSoundFileName(id), (buffer) => {
-        this.audioBuffers[id] = { buffer, elapsed };
-        channel.priority = priority;
-        channel.audio.setBuffer(buffer);
-        channel.audio.setVolume(this.volume * (volume / 100));
-        channel.audio.setRefDistance(1);
-        channel.audio.setRolloffFactor(0.5);
-        channel.audio.setDistanceModel("exponential");
-        res(channel);
+      const time = performance.now();
+      audioLoader.load(this.getSoundFileName(soundId), (buffer) => {
+        this.dump(sound, x, y, z, elapsed, "deferred", 0x999999);
+
+        this.audioBuffers[soundId].buffer = buffer;
+        this.audioBuffers[soundId].elapsed = elapsed + performance.now() - time;
+        channel.play(
+          this.audioBuffers[soundId].buffer,
+          this.volume * (volume / 100),
+          x,
+          y,
+          z
+        );
       });
-    });
+    };
   }
 }

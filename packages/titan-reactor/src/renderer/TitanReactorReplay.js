@@ -1,14 +1,11 @@
-import { ipcRenderer } from "electron";
-import * as THREE from "three";
-
 import {
   Raycaster,
-  AudioListener,
   AxesHelper,
-  Group,
-  Color,
   Scene,
-  MathUtils,
+  SphereBufferGeometry,
+  Mesh,
+  MeshBasicMaterial,
+  Vector2,
 } from "three";
 import { ReplayPosition } from "./replay/ReplayPosition";
 import {
@@ -46,6 +43,8 @@ import FogOfWar from "./render/effects/FogOfWar";
 import TilesBW from "./replay/bw/TilesBW";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
+import AudioListener from "./audio/AudioListener";
+import BWFrameBuilder from "./replay/BWFrameBuilder";
 
 const { startLocation } = unitTypes;
 
@@ -117,6 +116,9 @@ async function TitanReactorReplay(
 
   window.scene = scene;
 
+  const fadingPointers = new FadingPointers();
+  scene.add(fadingPointers);
+
   const minimapScene = new Scene();
   window.minimapScene = minimapScene;
 
@@ -166,6 +168,12 @@ async function TitanReactorReplay(
 
   // #endregion player initialization
 
+  const targetBall = new Mesh(
+    new SphereBufferGeometry(1),
+    new MeshBasicMaterial({ color: "white" })
+  );
+  scene.add(targetBall);
+
   const audioListener = new AudioListener();
   scene.add(audioListener);
   bgMusic.setListener(audioListener);
@@ -176,7 +184,17 @@ async function TitanReactorReplay(
   const audio = new Audio(
     (id) => `sound/${bwDat.sounds[id].file}`,
     audioListener,
-    (s) => scene.add(s)
+    (s) => scene.add(s),
+    (x, y, z, color, meta) =>
+      fadingPointers.addPointer(
+        x,
+        y,
+        z,
+        color,
+        replayPosition.bwGameFrame,
+        meta
+      ),
+    (s) => scene.remove(s)
   );
   const soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
   const tilesBW = new TilesBW();
@@ -217,51 +235,59 @@ async function TitanReactorReplay(
   const raycaster = new Raycaster();
 
   // #region mouse listener
-  // const mouseDownListener = (event) => {
-  //   return;
-  //   var mouse = new Vector2();
+  const mouseDownListener = (event) => {
+    var mouse = new Vector2();
 
-  //   const [width, height] = [gameSurface.width, gameSurface.height];
+    const [width, height] = [gameSurface.width, gameSurface.height];
 
-  //   mouse.x = (event.offsetX / width) * 2 - 1;
-  //   mouse.y = -(event.offsetY / height) * 2 + 1;
+    mouse.x = (event.offsetX / width) * 2 - 1;
+    mouse.y = -(event.offsetY / height) * 2 + 1;
 
-  //   raycaster.setFromCamera(mouse, cameras.camera);
+    raycaster.setFromCamera(mouse, cameras.camera);
 
-  //   const intersectTerrain = raycaster.intersectObject(scene.terrain, false);
-  //   if (intersectTerrain.length) {
-  //     intersectAxesHelper.position.copy(intersectTerrain[0].point);
-  //   }
+    // const intersectTerrain = raycaster.intersectObject(scene.terrain, false);
+    // if (intersectTerrain.length) {
+    //   intersectAxesHelper.position.copy(intersectTerrain[0].point);
+    // }
 
-  //   // calculate objects intersecting the picking ray
-  //   const intersects = raycaster.intersectObjects(sprites, true);
-  //   const getAsUnit = (mesh) => {
-  //     if (!mesh) return null;
-  //     if (mesh.unit) {
-  //       return mesh.unit;
-  //     } else {
-  //       return getAsUnit(mesh.parent);
-  //     }
-  //     return null;
-  //   };
+    // calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects(
+      fadingPointers.children,
+      true
+    );
+    if (intersects.length) {
+      intersects.forEach(({ object }) => {
+        console.log(object.userData);
+      });
+    }
+    return;
+    const getAsUnit = (mesh) => {
+      if (!mesh) return null;
+      if (mesh.unit) {
+        return mesh.unit;
+      } else {
+        return getAsUnit(mesh.parent);
+      }
+      return null;
+    };
 
-  //   if (!intersects.length) {
-  //     units.selected = [];
-  //   } else {
-  //     intersects.slice(0, 1).forEach(({ object }) => {
-  //       const unit = getAsUnit(object);
+    if (!intersects.length) {
+      units.selected = [];
+    } else {
+      intersects.slice(0, 1).forEach(({ object }) => {
+        const unit = getAsUnit(object);
 
-  //       if (unit) {
-  //         units.selected = [unit];
-  //         window.dbg = { repId: unit.repId };
-  //         console.log(unit.repId, unit);
-  //       } else {
-  //         units.selected = [];
-  //       }
-  //     });
-  //   }
-  // };
-  // gameSurface.canvas.addEventListener("mousedown", mouseDownListener);
+        if (unit) {
+          units.selected = [unit];
+          window.dbg = { repId: unit.repId };
+          console.log(unit.repId, unit);
+        } else {
+          units.selected = [];
+        }
+      });
+    }
+  };
+  gameSurface.canvas.addEventListener("mousedown", mouseDownListener);
 
   let shiftDown = false;
   let lastChangedShiftDown = Date.now();
@@ -289,9 +315,6 @@ async function TitanReactorReplay(
   // cameras.control.addEventListener("sleep", _controlSleep);
 
   //#endregion mouse listener
-
-  const fadingPointers = new FadingPointers();
-  scene.add(fadingPointers);
 
   //#region hud ui
   keyboardShortcuts.addEventListener(
@@ -421,13 +444,43 @@ async function TitanReactorReplay(
 
   gameStateReader.on("frames", (frames) => preloadAtlasQueue(frames));
 
+  window.playSound = (id, priority = 1) => {
+    audio.get(
+      {
+        id,
+        priority,
+        object: {
+          id,
+          priority,
+        },
+      },
+      100,
+      cameras.getTarget().x,
+      cameras.getTarget().y,
+      cameras.getTarget().z
+    )(_lastElapsed);
+  };
+
+  window.playtwo = () => {
+    window.playSound(8, 1);
+    setTimeout(() => window.playSound(99, 1), 500);
+  };
+
+  window.playthree = () => {
+    window.playSound(8, 1);
+    setTimeout(() => window.playSound(99, 1), 500);
+    setTimeout(() => window.playSound(8, 1), 800);
+  };
+
   let nextFrame;
 
   const projectedCameraView = new ProjectedCameraView(cameras.camera);
+  const frameBuilder = new BWFrameBuilder(scene, minimapScene, bwDat);
+
   const bwScene = new BWFrameScene(scene, 1);
   const minimapBwScene = new BWFrameScene(minimapScene, 1);
 
-  function buildFrameScene(nextFrame, view, elapsed, updateMinimap) {
+  function buildFrameScene(nextFrame, view, updateMinimap) {
     bwScene.swap();
     if (updateMinimap) {
       minimapBwScene.swap();
@@ -443,7 +496,17 @@ async function TitanReactorReplay(
         view.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        const channel = audio.get(sound, 100, sound.mapX, sound.mapY, elapsed);
+        const channel = audio.get(
+          sound.object,
+          volume,
+          sound.bwPanX(view.left, view.width),
+          sound.mapY,
+          sound.bwPanY(view.top, view.height)
+          // 100,
+          // sound.mapX,
+          // sound.mapY,
+          // sound.mapZ
+        );
         if (channel) {
           bwScene.add(channel);
         }
@@ -511,12 +574,7 @@ async function TitanReactorReplay(
         gameStateReader.next(replayPosition.skipGameFrames - 1);
         nextFrame = gameStateReader.nextOne();
         if (nextFrame) {
-          buildFrameScene(
-            nextFrame,
-            projectedCameraView.view,
-            elapsed,
-            updateMinimap
-          );
+          buildFrameScene(nextFrame, projectedCameraView.view, updateMinimap);
         } else {
           replayPosition.paused = true;
         }
@@ -528,7 +586,7 @@ async function TitanReactorReplay(
         }
 
         bwScene.activate();
-        bwScene.play();
+        bwScene.play(elapsed);
 
         if (updateMinimap) {
           minimapBwScene.activate();
@@ -650,11 +708,13 @@ async function TitanReactorReplay(
       // }
 
       const target = cameras.getTarget();
-      audioListener.position.lerpVectors(
-        target.setY(getTerrainY(target.x, target.z)),
-        cameras.camera.position,
-        0.05
-      );
+      target.setY(getTerrainY(target.x, target.z));
+      // audioListener.position.lerpVectors(
+      //   target,
+      //   cameras.camera.position,
+      //   0.05
+      // );
+      targetBall.position.copy(target);
 
       // drawCallInspector.begin();
       renderMan.enableCinematicPass();

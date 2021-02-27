@@ -58,7 +58,7 @@ class BgMusic {
   }
 
   dispose() {
-    if (this.audio) {
+    if (this.audio && this.audio.isPlaying) {
       this.audio.stop();
       this.audio = null;
     }

@@ -57,6 +57,21 @@ export default class SoundsBW extends ContiguousContainer {
     return this.bwDat.sounds[this.id].priority;
   }
 
+  get object() {
+    return {
+      id: this.id,
+      unitTypeId: this.unitTypeId,
+      priority: this.priority,
+      minVolume: this.minVolume,
+      x: this.x,
+      y: this.y,
+      mapX: this.mapX,
+      mapY: this.mapY,
+      mapZ: this.mapZ,
+      flags: this.flags,
+    };
+  }
+
   bwVolume(left, top, right, bottom) {
     let volume = this.minVolume;
 

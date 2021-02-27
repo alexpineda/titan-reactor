@@ -113,7 +113,7 @@ class RenderMan {
     this._fogPass = new EffectPass(camera, this.fogOfWarEffect);
 
     this._bloomEffect = new BloomEffect({
-      luminanceThreshold: 0.85,
+      luminanceThreshold: 0.9,
     });
 
     this._bloomPass = new EffectPass(camera, this._bloomEffect);
