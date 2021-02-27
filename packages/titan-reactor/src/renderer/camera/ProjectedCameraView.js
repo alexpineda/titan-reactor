@@ -8,10 +8,25 @@ const _points = [
 const _plane = new Plane(new Vector3(0, 1, 0));
 const _vector = new Vector3();
 
+/**
+ * World position for the four corners of our view
+ */
 export default class ProjectedCameraView {
   constructor(camera) {
     this.camera = camera;
     this._lastFrame = null;
+    this.left = 0;
+    this.top = 0;
+    this.right = 0;
+    this.bottom = 0;
+    this.width = 0;
+    this.height = 0;
+    this.viewBW = {
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+    };
   }
 
   update() {
@@ -37,22 +52,18 @@ export default class ProjectedCameraView {
       }
     }
 
-    const view = {
-      left: _intersect[0].x,
-      top: _intersect[1].z,
-      right: _intersect[1].x,
-      bottom: _intersect[0].z,
-      width: _intersect[1].x - _intersect[0].x,
-      height: _intersect[0].z - _intersect[1].z,
-    };
+    this.left = _intersect[0].x;
+    this.top = _intersect[1].z;
+    this.right = _intersect[1].x;
+    this.bottom = _intersect[0].z;
+    this.width = _intersect[1].x - _intersect[0].x;
+    this.height = _intersect[0].z - _intersect[1].z;
 
-    view.viewBW = {
-      left: (view.left + this.mapWidth / 2) * 32,
-      top: (view.top + this.mapHeight / 2) * 32,
-      right: (view.right + this.mapWidth / 2) * 32,
-      bottom: (view.bottom + this.mapHeight / 2) * 32,
+    this.viewBW = {
+      left: (this.left + this.mapWidth / 2) * 32,
+      top: (this.top + this.mapHeight / 2) * 32,
+      right: (this.right + this.mapWidth / 2) * 32,
+      bottom: (this.bottom + this.mapHeight / 2) * 32,
     };
-
-    this.view = view;
   }
 }

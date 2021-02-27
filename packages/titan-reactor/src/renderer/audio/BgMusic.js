@@ -1,7 +1,7 @@
 import { Audio, AudioLoader } from "three";
 const rand = (n) => Math.floor(Math.random() * n);
 
-class BgMusic {
+class Music {
   constructor(bwDataPath) {
     this.bwDataPath = bwDataPath;
   }
@@ -65,4 +65,4 @@ class BgMusic {
   }
 }
 
-export default BgMusic;
+export default Music;

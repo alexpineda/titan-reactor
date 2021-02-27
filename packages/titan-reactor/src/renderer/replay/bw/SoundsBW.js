@@ -1,4 +1,5 @@
 import ContiguousContainer from "./ContiguousContainer";
+import SoundBWInstance from "./SoundBWInstance";
 
 export default class SoundsBW extends ContiguousContainer {
   static get byteLength() {
@@ -57,7 +58,7 @@ export default class SoundsBW extends ContiguousContainer {
     return this.bwDat.sounds[this.id].priority;
   }
 
-  get object() {
+  object() {
     return {
       id: this.id,
       unitTypeId: this.unitTypeId,
@@ -92,7 +93,7 @@ export default class SoundsBW extends ContiguousContainer {
     return volume;
   }
 
-  bwPanX(left, width) {
+  bwPan(left, width) {
     let pan = 0;
 
     if (this.x !== 0 && this.y !== 0) {
@@ -106,25 +107,6 @@ export default class SoundsBW extends ContiguousContainer {
       else if (pan_x <= 40) pan = 230;
       else pan = 255;
       if (isLeft) pan = -pan;
-    }
-
-    return pan / 255;
-  }
-
-  bwPanY(top, height) {
-    let pan = 0;
-
-    if (this.x !== 0 && this.y !== 0) {
-      let pan_y = this.mapZ - (top + height / 2);
-      const isTop = pan_y < 0;
-      if (isTop) pan_y = -pan_y;
-      if (pan_y <= 2) pan = 0;
-      else if (pan_y <= 5) pan = 52;
-      else if (pan_y <= 10) pan = 127;
-      else if (pan_y <= 20) pan = 191;
-      else if (pan_y <= 40) pan = 230;
-      else pan = 255;
-      if (isTop) pan = -pan;
     }
 
     return pan / 255;

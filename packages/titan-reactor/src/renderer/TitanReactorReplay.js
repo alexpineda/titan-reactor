@@ -32,19 +32,12 @@ import { ProducerWindowPosition } from "../common/settings";
 import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/replay/replayHudReducer";
-import Audio from "./audio/Audio";
-import SoundsBW from "./replay/bw/SoundsBW";
-import UnitsBW from "./replay/bw/UnitsBW";
 import Units from "./replay/Units";
-
 import ReplaySprites from "./replay/ReplaySprites";
-import BWFrameScene from "./replay/BWFrameScene";
 import FogOfWar from "./render/effects/FogOfWar";
-import TilesBW from "./replay/bw/TilesBW";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
-import AudioListener from "./audio/AudioListener";
-import BWFrameBuilder from "./replay/BWFrameBuilder";
+import BWFrameSceneBuilder from "./replay/BWFrameBuilder";
 
 const { startLocation } = unitTypes;
 
@@ -59,7 +52,8 @@ async function TitanReactorReplay(
   bwDat,
   bgMusic,
   createTitanImage,
-  preloadAtlas
+  preloadAtlas,
+  audioMaster
 ) {
   const stats = createStats();
   stats.dom.style.position = "relative";
@@ -174,30 +168,7 @@ async function TitanReactorReplay(
   );
   scene.add(targetBall);
 
-  const audioListener = new AudioListener();
-  scene.add(audioListener);
-  bgMusic.setListener(audioListener);
-  bgMusic.setVolume(settings.musicVolume);
-  bgMusic.playGame();
-  scene.add(bgMusic.getAudio());
-
-  const audio = new Audio(
-    (id) => `sound/${bwDat.sounds[id].file}`,
-    audioListener,
-    (s) => scene.add(s),
-    (x, y, z, color, meta) =>
-      fadingPointers.addPointer(
-        x,
-        y,
-        z,
-        color,
-        replayPosition.bwGameFrame,
-        meta
-      ),
-    (s) => scene.remove(s)
-  );
-  const soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
-  const tilesBW = new TilesBW();
+  audioMaster.music.playGame();
 
   let replayPosition = new ReplayPosition(
     rep.header.frameCount,
@@ -415,7 +386,6 @@ async function TitanReactorReplay(
   };
   window.addEventListener("resize", sceneResizeHandler, false);
 
-  const unitsBW = new UnitsBW(bwDat);
   const units = new Units(pxToGameUnit, players.playersById);
 
   // createMinimapPoint();
@@ -444,103 +414,41 @@ async function TitanReactorReplay(
 
   gameStateReader.on("frames", (frames) => preloadAtlasQueue(frames));
 
-  window.playSound = (id, priority = 1) => {
-    audio.get(
-      {
-        id,
-        priority,
-        object: {
-          id,
-          priority,
-        },
-      },
-      100,
-      cameras.getTarget().x,
-      cameras.getTarget().y,
-      cameras.getTarget().z
-    )(_lastElapsed);
-  };
-
-  window.playtwo = () => {
-    window.playSound(8, 1);
-    setTimeout(() => window.playSound(99, 1), 500);
-  };
-
-  window.playthree = () => {
-    window.playSound(8, 1);
-    setTimeout(() => window.playSound(99, 1), 500);
-    setTimeout(() => window.playSound(8, 1), 800);
-  };
+  // window.playSound = (id, priority = 1) => {
+  //   audio.get(
+  //     {
+  //       id,
+  //       priority,
+  //       object: {
+  //         id,
+  //         priority,
+  //       },
+  //     },
+  //     100,
+  //     cameras.getTarget().x,
+  //     cameras.getTarget().y,
+  //     cameras.getTarget().z
+  //   )(_lastElapsed);
+  // };
 
   let nextFrame;
 
   const projectedCameraView = new ProjectedCameraView(cameras.camera);
-  const frameBuilder = new BWFrameBuilder(scene, minimapScene, bwDat);
+  const frameBuilder = new BWFrameSceneBuilder(
+    scene,
+    minimapScene,
+    bwDat,
+    pxToGameUnit,
+    getTerrainY
+  );
 
-  const bwScene = new BWFrameScene(scene, 1);
-  const minimapBwScene = new BWFrameScene(minimapScene, 1);
-
-  function buildFrameScene(nextFrame, view, updateMinimap) {
-    bwScene.swap();
-    if (updateMinimap) {
-      minimapBwScene.swap();
-    }
-    soundsBW.buffer = nextFrame.sounds;
-    soundsBW.count = nextFrame.soundCount;
-
-    for (let sound of soundsBW.items()) {
-      const volume = sound.bwVolume(
-        view.left,
-        view.top,
-        view.right,
-        view.bottom
-      );
-      if (volume > SoundsBW.minPlayVolume) {
-        const channel = audio.get(
-          sound.object,
-          volume,
-          sound.bwPanX(view.left, view.width),
-          sound.mapY,
-          sound.bwPanY(view.top, view.height)
-          // 100,
-          // sound.mapX,
-          // sound.mapY,
-          // sound.mapZ
-        );
-        if (channel) {
-          bwScene.add(channel);
-        }
-      }
-    }
-
-    unitsBW.buffer = nextFrame.units;
-    unitsBW.count = nextFrame.unitCount;
-    for (const minimapUnit of units.refresh(
-      unitsBW,
-      bwScene.units,
-      bwScene.unitsBySpriteId
-    )) {
-      if (updateMinimap && minimapUnit) {
-        minimapBwScene.add(minimapUnit);
-      }
-    }
-
-    for (const sprite of sprites.refresh(
-      nextFrame,
-      bwScene.unitsBySpriteId,
-      bwScene.sprites,
-      bwScene.images,
-      view
-    )) {
-      bwScene.add(sprite);
-    }
-
-    tilesBW.buffer = nextFrame.tiles;
-    tilesBW.count = nextFrame.tilesCount;
-
-    fogOfWar.generate(
-      nextFrame.frame,
-      tilesBW,
+  function buildFrameScene(nextFrame, view, updateMinimap, elapsed) {
+    frameBuilder.buildStart(nextFrame, updateMinimap);
+    frameBuilder.buildSounds(view, audioMaster, elapsed);
+    frameBuilder.buildUnitsAndMinimap(units);
+    frameBuilder.buildSprites(sprites, view);
+    frameBuilder.buildFog(
+      fogOfWar,
       players.filter((p) => p.vision).map(({ id }) => id)
     );
   }
@@ -574,7 +482,13 @@ async function TitanReactorReplay(
         gameStateReader.next(replayPosition.skipGameFrames - 1);
         nextFrame = gameStateReader.nextOne();
         if (nextFrame) {
-          buildFrameScene(nextFrame, projectedCameraView.view, updateMinimap);
+          audioMaster.channels.play(replayPosition.gameSpeed);
+          buildFrameScene(
+            nextFrame,
+            projectedCameraView,
+            updateMinimap,
+            elapsed
+          );
         } else {
           replayPosition.paused = true;
         }
@@ -585,11 +499,11 @@ async function TitanReactorReplay(
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
-        bwScene.activate();
-        bwScene.play(elapsed);
+        frameBuilder.bwScene.activate();
+        frameBuilder.bwScene.play(elapsed);
 
         if (updateMinimap) {
-          minimapBwScene.activate();
+          frameBuilder.minimapBwScene.activate();
         }
 
         replayPosition.bwGameFrame = nextFrame.frame;
@@ -709,11 +623,7 @@ async function TitanReactorReplay(
 
       const target = cameras.getTarget();
       target.setY(getTerrainY(target.x, target.z));
-      // audioListener.position.lerpVectors(
-      //   target,
-      //   cameras.camera.position,
-      //   0.05
-      // );
+      audioMaster.update(target.x, target.y, target.z, delta);
       targetBall.position.copy(target);
 
       // drawCallInspector.begin();

@@ -36,6 +36,7 @@ import {
 } from "titan-reactor-shared/image/calculateImagesFromIScript";
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
 import FogOfWar from "./render/effects/FogOfWar";
+import AudioMaster from "./audio/AudioMaster";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -198,6 +199,12 @@ export class TitanReactor {
     await scene.init(state.settings.isDev);
     dispatchRepLoadingProgress();
 
+    const audioMaster = new AudioMaster((id) =>
+      readBwFile(`sound/${this.bwDat.sounds[id].file}`)
+    );
+    audioMaster.musicVolume = state.settings.data.musicVolume;
+    audioMaster.soundVolume = state.settings.data.soundVolume;
+
     log("initializing replay");
     this.scene = await TitanReactorReplay(
       this.store,
@@ -213,7 +220,8 @@ export class TitanReactor {
         createIScriptRunner(this.bwDat, this.chk.tileset),
         (err) => console.error(err)
       ),
-      preloadAtlas
+      preloadAtlas,
+      audioMaster
     );
     dispatchRepLoadingProgress();
   }

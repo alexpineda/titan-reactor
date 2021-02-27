@@ -15,10 +15,11 @@ class ReplaySprites {
     this.imagesBW = new ImagesBW(bwDat);
   }
 
-  *refresh(frame, unitsBySpriteId, sprites, images, { viewBW }) {
+  *refresh(frame, unitsBySpriteId, sprites, { viewBW }) {
     this.spritesBW.buffer = frame.sprites;
     this.spritesBW.count = frame.spriteCount;
 
+    //leave the full count since we're iterating through all sprite images
     this.imagesBW.buffer = frame.images;
 
     for (let sprite of this.spritesBW.items()) {

@@ -1,10 +1,16 @@
+import SoundBWInstance from "./bw/SoundBWInstance";
 import SoundsBW from "./bw/SoundsBW";
+import TilesBW from "./bw/TilesBW";
+import UnitsBW from "./bw/UnitsBW";
 import BWFrameScene from "./BWFrameScene";
 
-export default class BWFrameBuilder {
-  constructor(scene, minimapScene) {
+export default class BWFrameSceneBuilder {
+  constructor(scene, minimapScene, bwDat, pxToGameUnit, getTerrainY) {
     this.bwScene = new BWFrameScene(scene, 1);
     this.minimapBwScene = new BWFrameScene(minimapScene, 1);
+    this.unitsBW = new UnitsBW(bwDat);
+    this.tilesBW = new TilesBW();
+    this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
   }
 
   buildStart(nextFrame, updateMinimap) {
@@ -16,8 +22,18 @@ export default class BWFrameBuilder {
     }
   }
 
-  buildSounds(soundsBW, view, audio) {
-    for (let sound of soundsBW.items()) {
+  /**
+   *
+   * @param {ProjectedCameraView} view
+   * @param {AudioMaster} audioMaster
+   * @param {Number} elapsed
+   */
+  buildSounds(view, audioMaster, elapsed) {
+    this.soundsBW.buffer = this.nextFrame.sounds;
+    this.soundsBW.count = this.nextFrame.soundCount;
+
+    const sounds = [];
+    for (let sound of this.soundsBW.items()) {
       const volume = sound.bwVolume(
         view.left,
         view.top,
@@ -25,29 +41,26 @@ export default class BWFrameBuilder {
         view.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        const channel = audio.get(
-          sound.object,
-          volume,
-          sound.bwPanX(view.left, view.width),
-          sound.mapY,
-          sound.bwPanY(view.top, view.height)
-          // 100,
-          // sound.mapX,
-          // sound.mapY,
-          // sound.mapZ
+        sounds.push(
+          new SoundBWInstance({
+            ...sound.object(),
+            volume,
+            pan: sound.bwPan(view.left, view.width),
+          })
         );
-        if (channel) {
-          this.bwScene.add(channel);
-        }
       }
     }
+    audioMaster.channels.queue(sounds, elapsed);
   }
 
-  buildUnitsAndMinimap(unitsBW, units) {
-    unitsBW.buffer = this.nextFrame.units;
-    unitsBW.count = this.nextFrame.unitCount;
+  /**
+   * @param {Units} units
+   */
+  buildUnitsAndMinimap(units) {
+    this.unitsBW.buffer = this.nextFrame.units;
+    this.unitsBW.count = this.nextFrame.unitCount;
     for (const minimapUnit of units.refresh(
-      unitsBW,
+      this.unitsBW,
       this.bwScene.units,
       this.bwScene.unitsBySpriteId
     )) {
@@ -57,26 +70,26 @@ export default class BWFrameBuilder {
     }
   }
 
+  /**
+   * Prerequisite: buildUnitsAndMinimap() to populate unitsBySpriteId
+   * @param {ReplaySprites} sprites
+   * @param {ProjectedCameraView} view
+   */
   buildSprites(sprites, view) {
     for (const sprite of sprites.refresh(
       this.nextFrame,
       this.bwScene.unitsBySpriteId,
       this.bwScene.sprites,
-      this.bwScene.images,
       view
     )) {
       this.bwScene.add(sprite);
     }
   }
 
-  buildFog(tilesBW, fogOfWar, playerVisionIds) {
-    tilesBW.buffer = this.nextFrame.tiles;
-    tilesBW.count = this.nextFrame.tilesCount;
+  buildFog(fogOfWar, playerVisionIds) {
+    this.tilesBW.buffer = this.nextFrame.tiles;
+    this.tilesBW.count = this.nextFrame.tilesCount;
 
-    fogOfWar.generate(
-      this.nextFrame.frame,
-      tilesBW,
-      players.filter((p) => p.vision).map(({ id }) => id)
-    );
+    fogOfWar.generate(this.nextFrame.frame, this.tilesBW, playerVisionIds);
   }
 }
