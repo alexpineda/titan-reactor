@@ -11,6 +11,7 @@ export default class SoundChannels {
     this.buffers = new Map();
     this.loadSoundAsync = loadSoundAsync;
     this.audio = [];
+    this.scheduled = [];
   }
 
   async _load(id) {
@@ -29,52 +30,61 @@ export default class SoundChannels {
 
   _getAvailableChannel(sound) {
     if (sound.flags & 0x10) {
-      const channel = this.channels.find(({ id }) => id === this.sound.id);
-      //@todo native sound playing
-      if (channel && channel.isPlaying) {
-        return false;
+      for (const channel of this.channels) {
+        if (channel.isPlaying && channel.id === sound.id) {
+          if (channel.audio && channel.audio.isPlaying) {
+            return;
+          }
+          channel.isPlaying = false;
+        }
       }
     } else if (sound.flags & 2 && sound.unitTypeId) {
-      const channel = this.channels.find(
-        ({ unitTypeId, flags }) => unitTypeId === sound.unitTypeId && flags & 2
-      );
-      //@todo native sound playing
-      if (channel && channel.isPlaying) {
-        return false;
+      for (const channel of this.channels) {
+        if (
+          channel.isPlaying &&
+          channel.unitTypeId === sound.unitTypeId &&
+          channel.flags & 2
+        ) {
+          if (channel.audio && channel.audio.isPlaying) {
+            return;
+          }
+          channel.isPlaying = false;
+        }
       }
     }
 
+    let availableChannel;
     for (const channel of this.channels) {
-      if (!channel.isPlaying) {
-        return channel;
+      if (channel.isPlaying) {
+        if (channel.audio && !channel.audio.isPlaying) {
+          channel.isPlaying = false;
+          availableChannel = channel;
+        }
+      } else {
+        availableChannel = channel;
       }
+    }
+
+    if (availableChannel) {
+      return availableChannel;
     }
 
     let bestPriority = sound.priority;
-    let c;
     for (const channel of this.channels) {
       if (channel.flags & 0x20) continue;
       if (channel.priority < bestPriority) {
         bestPriority = channel.priority;
-        c = channel;
+        availableChannel = channel;
       }
     }
-    return c;
+    return availableChannel;
   }
 
-  _assignAvailableChannel(audio) {
-    const channel = this._getAvailableChannel(audio);
-    if (channel) {
-      if (channel.audio) {
-        channel.audio.stop();
-      }
-      channel.assign(audio);
-      audio.channel = channel;
-      return true;
-    }
-    return false;
-  }
-
+  /**
+   * We call queue() a few frames ahead of time to get the buffers loading
+   * @param {Object} soundData
+   * @param {Number} elapsed
+   */
   queue(soundData, elapsed) {
     this.audio.push(
       new Audio(
@@ -86,12 +96,23 @@ export default class SoundChannels {
     );
   }
 
+  /**
+   * play the audio, even if not immediately (due to loading buffer)
+   * @param {Number} elapsed
+   */
   play(elapsed) {
     for (const audio of this.audio) {
       if (elapsed - audio.buffer.lastPlayed <= 80) {
         continue;
       }
-      this._assignAvailableChannel(audio);
+      const channel = this._getAvailableChannel(audio.sound);
+      if (channel) {
+        if (channel.audio) {
+          channel.audio.stop();
+        }
+        channel.queue(audio);
+        audio.queue(elapsed);
+      }
     }
 
     this.audio.length = 0;
@@ -99,14 +120,15 @@ export default class SoundChannels {
       if (!channel.audio) {
         continue;
       }
-
-      //channel has audio available
-      if (channel.audio.buffer.buffer) {
-        channel.audio.play(elapsed);
-      } else {
-        // keep audio that is still loading
-        this.audio.push(channel.audio);
-      }
+      this.scheduled.push(channel.audio);
     }
+
+    //channel has audio available
+    for (const audio of this.scheduled.filter((audio) => audio.buffer.buffer)) {
+      audio.play(elapsed);
+    }
+
+    //keep items that are loading for next time, this makes cancelling scheduled audio easier without doing promisey stuff
+    this.scheduled = this.scheduled.filter((audio) => !audio.source);
   }
 }

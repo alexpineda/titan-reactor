@@ -2,11 +2,11 @@
  * Thanks javascript!
  */
 export default class DeferredAudioBuffer {
-  constructor(load, soundId, lastPlayed) {
+  constructor(load, soundId) {
     this.soundId = soundId;
     this._load = load;
     this._buffer = null;
-    this.lastPlayed = lastPlayed;
+    this.lastPlayed = 0;
     this.load();
   }
 

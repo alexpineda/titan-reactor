@@ -11,18 +11,19 @@ export default class Audio {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;
-    this.isPlaying = true;
+    this.isPlaying = false;
     this.queueStartTime = queueStartTime;
   }
 
-  play(elapsed) {
+  queue(elapsed) {
     if (this.source) return;
+    this.isPlaying = true;
+    this.buffer.lastPlayed = elapsed;
+  }
 
-    const offset = (elapsed - this.queueStartTime) * 0.001;
-    if (offset > this.buffer.buffer.duration) {
-      this.isPlaying = false;
-      return;
-    }
+  play(elapsed) {
+    const offset = 0; //(elapsed - this.queueStartTime) * 0.001;
+    if (this.source || offset > this.buffer.buffer.duration) return;
 
     const source = this.mixer.context.createBufferSource();
 
@@ -59,7 +60,11 @@ export default class Audio {
 
   // https://alemangui.github.io/ramp-to-value
   stop() {
-    if (!this.source) return;
+    this.isPlaying = false;
+
+    if (!this.source) {
+      return;
+    }
 
     this.gain.gain.setValueAtTime(
       this.gain.gain.value,
@@ -70,6 +75,5 @@ export default class Audio {
       this.mixer.context.currentTime + stopTime * 0.001
     );
     this.source.onended = null;
-    this.isPlaying = false;
   }
 }

@@ -85,10 +85,10 @@ export const getTerrainY = (
 
   return (x, y) => {
     if (
-      x < -mapWidth / 2 ||
-      x > mapWidth / 2 ||
-      y < -mapWidth / 2 ||
-      y > mapWidth / 2
+      x <= -mapWidth / 2 ||
+      x >= mapWidth / 2 ||
+      y <= -mapWidth / 2 ||
+      y >= mapWidth / 2
     ) {
       return 0;
     }

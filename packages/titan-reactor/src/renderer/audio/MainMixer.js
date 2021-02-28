@@ -7,14 +7,14 @@ export default class MainMixer {
     this.master = this.context.createGain();
     this.master.connect(this.context.destination);
 
-    // this.compressor = this.context.createDynamicsCompressor();
-    // this.compressor.connect(this.master);
+    this.compressor = this.context.createDynamicsCompressor();
+    this.compressor.connect(this.master);
 
     this.sound = this.context.createGain();
-    this.sound.connect(this.master);
+    this.sound.connect(this.compressor);
 
     this.music = this.context.createGain();
-    this.music.connect(this.master);
+    this.music.connect(this.compressor);
   }
 
   // compatibility with THREE.Audio until we change BgMusic
