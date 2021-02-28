@@ -4,17 +4,17 @@ export default class MainMixer {
   constructor() {
     this.context = AudioContext.getContext();
 
-    this.gain = this.context.createGain();
-    this.gain.connect(this.context.destination);
+    this.master = this.context.createGain();
+    this.master.connect(this.context.destination);
+
+    // this.compressor = this.context.createDynamicsCompressor();
+    // this.compressor.connect(this.master);
 
     this.sound = this.context.createGain();
-    this.sound.connect(this.gain);
+    this.sound.connect(this.master);
 
     this.music = this.context.createGain();
-    this.music.connect(this.gain);
-
-    this.input = this.context.createDynamicsCompressor();
-    this.input.connect(this.gain);
+    this.music.connect(this.master);
   }
 
   // compatibility with THREE.Audio until we change BgMusic
@@ -23,7 +23,7 @@ export default class MainMixer {
   }
 
   get soundVolume() {
-    return this.sound.gain.volume;
+    return this.sound.gain.value;
   }
 
   set soundVolume(val) {
@@ -31,7 +31,7 @@ export default class MainMixer {
   }
 
   get musicVolume() {
-    return this.music.gain.volume;
+    return this.music.gain.value;
   }
 
   set musicVolume(val) {
@@ -39,17 +39,10 @@ export default class MainMixer {
   }
 
   get volume() {
-    return this.gain.gain.volume;
+    return this.master.gain.volume;
   }
 
   set volume(val) {
-    this.gain.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
-  }
-
-  play(buffer) {
-    const source = this.context.createBufferSource();
-    source.buffer = buffer;
-    source.connect(this.input);
-    source.start(0);
+    this.master.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
   }
 }

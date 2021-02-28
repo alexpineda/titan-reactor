@@ -1,5 +1,4 @@
 import ContiguousContainer from "./ContiguousContainer";
-import SoundBWInstance from "./SoundBWInstance";
 
 export default class SoundsBW extends ContiguousContainer {
   static get byteLength() {

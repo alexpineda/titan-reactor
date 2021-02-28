@@ -1,4 +1,3 @@
-import SoundBWInstance from "./bw/SoundBWInstance";
 import SoundsBW from "./bw/SoundsBW";
 import TilesBW from "./bw/TilesBW";
 import UnitsBW from "./bw/UnitsBW";
@@ -32,7 +31,6 @@ export default class BWFrameSceneBuilder {
     this.soundsBW.buffer = this.nextFrame.sounds;
     this.soundsBW.count = this.nextFrame.soundCount;
 
-    const sounds = [];
     for (let sound of this.soundsBW.items()) {
       const volume = sound.bwVolume(
         view.left,
@@ -41,16 +39,16 @@ export default class BWFrameSceneBuilder {
         view.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        sounds.push(
-          new SoundBWInstance({
+        audioMaster.channels.queue(
+          {
             ...sound.object(),
             volume,
             pan: sound.bwPan(view.left, view.width),
-          })
+          },
+          elapsed
         );
       }
     }
-    audioMaster.channels.queue(sounds, elapsed);
   }
 
   /**

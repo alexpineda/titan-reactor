@@ -9,7 +9,6 @@ import TitanReactorReplay from "./TitanReactorReplay";
 import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
-import BgMusic from "./audio/BgMusic";
 import { openFile, log } from "./invoke";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
@@ -35,7 +34,6 @@ import {
   calculateImagesFromUnitsIscript,
 } from "titan-reactor-shared/image/calculateImagesFromIScript";
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
-import FogOfWar from "./render/effects/FogOfWar";
 import AudioMaster from "./audio/AudioMaster";
 
 const loadScx = (filename) =>
@@ -213,7 +211,6 @@ export class TitanReactor {
       this.rep,
       gameStateReader,
       this.bwDat,
-      new BgMusic(state.settings.data.starcraftPath),
       createTitanImage(
         this.bwDat,
         this.atlases,

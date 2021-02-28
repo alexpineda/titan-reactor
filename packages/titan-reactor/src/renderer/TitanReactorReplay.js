@@ -50,7 +50,6 @@ async function TitanReactorReplay(
   rep,
   gameStateReader,
   bwDat,
-  bgMusic,
   createTitanImage,
   preloadAtlas,
   audioMaster
@@ -482,7 +481,7 @@ async function TitanReactorReplay(
         gameStateReader.next(replayPosition.skipGameFrames - 1);
         nextFrame = gameStateReader.nextOne();
         if (nextFrame) {
-          audioMaster.channels.play(replayPosition.gameSpeed);
+          //loading?
           buildFrameScene(
             nextFrame,
             projectedCameraView,
@@ -498,6 +497,8 @@ async function TitanReactorReplay(
         if (replayPosition.bwGameFrame % 8 === 0) {
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
+
+        audioMaster.channels.play(elapsed);
 
         frameBuilder.bwScene.activate();
         frameBuilder.bwScene.play(elapsed);
@@ -674,10 +675,10 @@ async function TitanReactorReplay(
   }
 
   const dispose = () => {
+    audioMaster.dispose();
     renderMan.renderer.setAnimationLoop(null);
     renderMan.dispose();
     replayPosition.pause();
-    bgMusic.dispose();
     window.removeEventListener("resize", sceneResizeHandler, false);
 
     minimapControl.dispose();
