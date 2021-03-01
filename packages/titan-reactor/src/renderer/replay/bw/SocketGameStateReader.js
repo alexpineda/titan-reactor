@@ -1,8 +1,8 @@
 import net from "net";
 import { spawn } from "child_process";
-import ReplayReadStream from "./ReplayReadStream";
+import StreamGameStateReader from "./StreamGameStateReader";
 
-export default class ReplayReadSocket extends ReplayReadStream {
+export default class ReplayReadSocket extends StreamGameStateReader {
   constructor(file, bwPath, bufferFrames = 100) {
     super(file, bufferFrames);
     this.bwPath = bwPath;

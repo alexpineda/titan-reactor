@@ -1,6 +1,6 @@
 import fs, { promises as fsPromises } from "fs";
 import { spawn } from "child_process";
-import ReplayReadStream from "./ReplayReadStream";
+import StreamGameStateReader from "./StreamGameStateReader";
 
 const averageFrameSize = 100000;
 
@@ -8,7 +8,7 @@ const averageFrameSize = 100000;
  * Uses a separate process to dump bw data frames for reading
  * @todo: this will likely require more robust handling of errors and edge cases
  */
-export default class ReplayReadFile extends ReplayReadStream {
+export default class FileGameStateReader extends StreamGameStateReader {
   /**
    *
    * @param {String} file The replay file

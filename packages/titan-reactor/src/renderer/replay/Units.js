@@ -93,8 +93,9 @@ class Units {
         unitsBySpriteId.set(unitBw.spriteIndex, unit);
       }
 
-      unit.flying = unitBw.flying;
-      unit.cloaked = unitBw.isCloaked;
+      unit.isFlying = unitBw.isFlying;
+      unit.isCloaked = unitBw.isCloaked;
+      unit.isFlyingBuilding = unitBw.isFlyingBuilding;
 
       yield this._refreshMinimap(unitBw, isResourceContainer, unit);
     }

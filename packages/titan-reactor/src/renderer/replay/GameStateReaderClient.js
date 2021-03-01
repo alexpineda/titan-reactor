@@ -10,7 +10,7 @@ import {
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 import fs from "fs";
 
-export default class ReplayReaderClient extends EventDispatcher {
+export default class GameStateReaderClient extends EventDispatcher {
   constructor(starcraftPath, minFrames = 100) {
     super();
     this.starcraftPath = starcraftPath;

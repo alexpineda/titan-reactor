@@ -8,7 +8,7 @@ import ClockMs from "titan-reactor-shared/utils/ClockMs";
 /**
  * Manages our time bases on bw frame times
  */
-export class ReplayPosition {
+export class GameStatePosition {
   constructor(maxFrame, gameSpeed, heatMapScore) {
     /**
      * The difference between last update call in ms
@@ -149,16 +149,22 @@ export class ReplayPosition {
   /**
    * @param {Array} attackingUnits
    */
-  updateAutoSpeed(attackingUnits) {
+  updateAutoSpeed(attackingUnits, delta) {
     if (!this.autoSpeed) {
       return;
     }
 
-    this.gameSpeed = MathUtils.lerp(
+    this.gameSpeed = MathUtils.damp(
       this.gameSpeed,
       this.autoSpeed,
-      this.autoSpeedLerpClock.getElapsedTime() / 5000
+      0.01,
+      delta
     );
+    // this.gameSpeed = MathUtils.lerp(
+    //   this.gameSpeed,
+    //   this.autoSpeed,
+    //   this.autoSpeedLerpClock.getElapsedTime() / 5000
+    // );
 
     if (this.frame % this.autoSpeedRefreshRate === 0) {
       this.autoSpeed =

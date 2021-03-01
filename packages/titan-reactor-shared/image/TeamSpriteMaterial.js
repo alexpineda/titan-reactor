@@ -39,39 +39,58 @@ class TeamSpriteMaterial extends SpriteMaterial {
     super(opts);
     this.isTeamSpriteMaterial = true;
     this.teamColor = new Color(0xffffff);
-    this.addOnBeforeCompile = () => {};
+    this.defines = {};
   }
 
   onBeforeCompile(shader) {
-    let fs = shader.fragmentShader;
+    function extend(replace, content, header, define) {
+      if (define) {
+        shader.fragmentShader = `
+        #ifdef ${define}
+        ${header}
+        #endif
+        ${shader.fragmentShader.replace(
+          replace,
+          `
+        #ifdef ${define}
+        ${content}
+        #endif
+        `
+        )}`;
+      } else {
+        shader.fragmentShader = `${header}
+        ${shader.fragmentShader.replace(replace, content)}`;
+      }
+    }
 
+    if (this.isShadow) {
+      extend(
+        "#include <map_fragment>",
+        `#include <map_fragment>
+        diffuseColor = vec4(vec3(diffuseColor.r), diffuseColor.a * 0.5);`,
+        ""
+      );
+    }
     //get the diffuseColor from map_fragment and mix with team mask
-    fs = fs.replace(
-      "#include <map_fragment>",
-      `
-      #include <map_fragment>
-      #ifdef TEAM_MASK
+    else if (this.teamMask) {
+      extend(
+        "#include <map_fragment>",
+        `#include <map_fragment>
         float maskValue = texture2D( teamMask, vUv ).r;
-        diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * teamColor, maskValue), diffuseColor.a);
-      #endif
-`
-    );
+        diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * teamColor, maskValue), diffuseColor.a);`,
+        `uniform sampler2D teamMask;
+  uniform vec3 teamColor;`
+      );
+      shader.uniforms.teamColor = { value: this.teamColor };
+      shader.uniforms.teamMask = {
+        value: this.teamMask,
+      };
+    }
+  }
 
-    shader.fragmentShader = `
-    ${this.teamMask ? "#define TEAM_MASK" : ""}
-    #ifdef TEAM_MASK
-      uniform sampler2D teamMask;
-      uniform vec3 teamColor;
-    #endif
-  ${fs}
-`;
-
-    shader.uniforms.teamColor = { value: this.teamColor };
-    shader.uniforms.teamMask = {
-      value: this.teamMask,
-    };
-
-    this.addOnBeforeCompile(shader);
+  customProgramCacheKey() {
+    const flags = [!!this.teamMask, this.isShadow];
+    return flags.join("");
   }
 }
 

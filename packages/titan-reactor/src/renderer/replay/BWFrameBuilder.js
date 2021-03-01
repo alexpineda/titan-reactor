@@ -73,12 +73,13 @@ export default class BWFrameSceneBuilder {
    * @param {ReplaySprites} sprites
    * @param {ProjectedCameraView} view
    */
-  buildSprites(sprites, view) {
+  buildSprites(sprites, view, delta) {
     for (const sprite of sprites.refresh(
       this.nextFrame,
       this.bwScene.unitsBySpriteId,
       this.bwScene.sprites,
-      view
+      view.viewBW,
+      delta
     )) {
       this.bwScene.add(sprite);
     }
@@ -88,6 +89,6 @@ export default class BWFrameSceneBuilder {
     this.tilesBW.buffer = this.nextFrame.tiles;
     this.tilesBW.count = this.nextFrame.tilesCount;
 
-    fogOfWar.generate(this.nextFrame.frame, this.tilesBW, playerVisionIds);
+    fogOfWar.generate(this.tilesBW, playerVisionIds);
   }
 }

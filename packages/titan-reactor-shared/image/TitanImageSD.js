@@ -51,7 +51,7 @@ export default class TitanImageSD extends Sprite {
     this.material.alphaTest = 0.01;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      this.material.opacity = 0.6;
+      this.material.blending = MultiplyBlending;
     }
 
     this.castShadow = false;
@@ -59,6 +59,10 @@ export default class TitanImageSD extends Sprite {
     this.atlas = atlas;
 
     this.setFrame(0, false);
+  }
+
+  setTeamColor(val) {
+    this.material.teamColor = val;
   }
 
   get frames() {

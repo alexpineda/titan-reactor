@@ -1,8 +1,8 @@
 import ImagesBW from "./bw/ImagesBW";
 import SpritesBW from "./bw/SpritesBW";
-import ReplaySprite from "./ReplaySprite";
+import Sprite from "./Sprite";
 
-class ReplaySprites {
+class Sprites {
   constructor(bwDat, pxToGameUnit, getTerrainY, createTitanImage, playersById) {
     this._spritesByIndex = {};
     this.bwDat = bwDat;
@@ -15,7 +15,7 @@ class ReplaySprites {
     this.imagesBW = new ImagesBW(bwDat);
   }
 
-  *refresh(frame, unitsBySpriteId, sprites, { viewBW }) {
+  *refresh(frame, unitsBySpriteId, sprites, viewBW, delta) {
     this.spritesBW.buffer = frame.sprites;
     this.spritesBW.count = frame.spriteCount;
 
@@ -32,11 +32,9 @@ class ReplaySprites {
         continue;
       }
 
-      let replaySprite;
-
-      replaySprite =
+      const replaySprite =
         sprites.get(sprite.index) ||
-        new ReplaySprite(
+        new Sprite(
           this.bwDat,
           this.pxToGameUnit,
           this.getTerrainY,
@@ -49,7 +47,8 @@ class ReplaySprites {
         sprite,
         this.imagesBW,
         unitsBySpriteId.get(sprite.index),
-        this.playersById[sprite.owner]
+        this.playersById[sprite.owner],
+        delta
       )) {
         replaySprite.add(image);
       }
@@ -62,4 +61,4 @@ class ReplaySprites {
   }
 }
 
-export default ReplaySprites;
+export default Sprites;

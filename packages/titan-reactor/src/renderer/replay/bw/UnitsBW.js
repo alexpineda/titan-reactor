@@ -45,7 +45,7 @@ const flags = Object.freeze({
 
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 22;
+    return 24;
   }
 
   constructor(bwDat) {
@@ -91,6 +91,10 @@ export default class UnitsBW extends ContiguousContainer {
 
   get direction() {
     return this._read16(20);
+  }
+
+  get remainingBuildTime() {
+    return this._read16(22);
   }
 
   get angle() {

@@ -65,7 +65,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   vec2 fogUv = (worldPosition.xz + worldOffset) * fogUvTransform.wz + fogUvTransform.xy;
 	float fogValue = getFog(fogUv);
 
-  outputColor = vec4(inputColor.rgb * fogValue * color , inputColor.a);
+  outputColor = vec4(inputColor.rgb * fogValue * color, inputColor.a);
 
 }`;
 

@@ -15,8 +15,11 @@ export default class TitanImageHD extends Sprite {
 
     let material;
 
-    material = new TeamSpriteMaterial({ map: diffuse });
+    material = new TeamSpriteMaterial({
+      map: diffuse,
+    });
     material.teamMask = teamcolor;
+    material.isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
 
     super(material);
 
@@ -64,8 +67,6 @@ export default class TitanImageHD extends Sprite {
     this.material.transparent = true;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      this.material.opacity = 0.5;
-      this.material.blending = SubtractiveBlending;
     }
 
     this.castShadow = false;
@@ -79,12 +80,8 @@ export default class TitanImageHD extends Sprite {
     return this.atlas.frames;
   }
 
-  set teamColor(val) {
+  setTeamColor(val) {
     this.material.teamColor = val;
-  }
-
-  get teamColor() {
-    return this.material.teamColor;
   }
 
   setPositionX(x, scale = this._spriteScale) {

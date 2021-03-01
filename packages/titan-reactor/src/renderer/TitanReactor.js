@@ -5,7 +5,7 @@ import path from "path";
 import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
-import TitanReactorReplay from "./TitanReactorReplay";
+import TitanReactorGame from "./TitanReactorGame";
 import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
@@ -26,7 +26,7 @@ import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
-import ReplayReadFile from "./replay/bw/ReplayReadFile";
+import FileGameStateReader from "./replay/bw/FileGameStateReader";
 import AtlasPreloader from "titan-reactor-shared/image/AtlasPreloader";
 import ImagesBW from "./replay/bw/ImagesBW";
 import {
@@ -172,7 +172,7 @@ export class TitanReactor {
     };
 
     let start = Date.now();
-    const gameStateReader = new ReplayReadFile(
+    const gameStateReader = new FileGameStateReader(
       repFile,
       outFile,
       state.settings.data.starcraftPath
@@ -205,7 +205,7 @@ export class TitanReactor {
     audioMaster.soundVolume = state.settings.data.soundVolume;
 
     log("initializing replay");
-    this.scene = await TitanReactorReplay(
+    this.scene = await TitanReactorGame(
       this.store,
       scene,
       this.chk,

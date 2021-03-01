@@ -30,31 +30,19 @@ class Music {
     console.log(`now playing ${filepath}`);
     const audioLoader = new AudioLoader();
 
-    const { audio, volume } = this;
+    const { audio } = this;
     if (audio.isPlaying) {
       audio.stop();
     }
-    if (volume === 0) return;
 
     audioLoader.load(filepath, function (buffer) {
       audio.setBuffer(buffer);
-      audio.setVolume(volume);
       audio.play();
     });
   }
 
   stop() {
     this.audio.stop();
-  }
-
-  setVolume(volume) {
-    this.volume = volume * 0.2;
-    this.audio.setVolume(this.volume);
-    if (volume < 0.05 && this.audio.isPlaying) {
-      this.audio.stop();
-    } else if (volume > 0.05 && !this.audio.isPlaying) {
-      this.audio.play();
-    }
   }
 
   dispose() {

@@ -8,7 +8,7 @@ import FrameBW from "./FrameBW";
 /**
  * Converts a stream buffer into frames on request
  */
-export default class ReplayReadStream extends EventEmitter {
+export default class StreamGameStateReader extends EventEmitter {
   /**
    * @param {*} maxFramesLength
    */

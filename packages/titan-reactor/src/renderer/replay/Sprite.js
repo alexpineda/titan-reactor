@@ -1,6 +1,8 @@
-import { Object3D } from "three";
+import { MathUtils, Object3D } from "three";
 
-export default class ReplaySprite extends Object3D {
+window.lamda = 0.01;
+
+export default class Sprite extends Object3D {
   constructor(bwDat, pxToGameUnit, getTerrainY, createImage) {
     super();
     this.bwDat = bwDat;
@@ -11,7 +13,7 @@ export default class ReplaySprite extends Object3D {
     this.images = new Map();
   }
 
-  *refresh(sprite, imagesBW, spriteUnit, player) {
+  *refresh(sprite, imagesBW, spriteUnit, player, delta) {
     this.renderOrder = sprite.order * 10;
     this._imageRenderOrder = this.renderOrder;
 
@@ -19,9 +21,22 @@ export default class ReplaySprite extends Object3D {
     const z = this.pxToGameUnit.y(sprite.y);
     let y = this.getTerrainY(x, z);
 
-    if (spriteUnit && spriteUnit.flying) {
-      y = 5;
+    if (spriteUnit && (spriteUnit.isFlying || spriteUnit.isFlyingBuilding)) {
+      //@todo: get max terrain height + 1 for max
+      //use a different step rather than 2? based on elevations?
+      if (!this.initialized) {
+        y = Math.min(6, y + 2);
+      } else {
+        y = MathUtils.damp(
+          this.position.y,
+          Math.min(6, y + 2),
+          window.lamda,
+          delta
+        );
+      }
     }
+    this.initialized = true;
+
     this.position.set(x, y, z);
 
     for (let image of imagesBW.reverse(sprite.imageCount)) {
@@ -32,7 +47,7 @@ export default class ReplaySprite extends Object3D {
       if (!titanImage) continue;
 
       if (player) {
-        titanImage.teamColor = player.threeColor;
+        titanImage.setTeamColor(player.threeColor);
       }
       //@todo optimize with redraw flag?
       titanImage.position.x = image.x / 32;

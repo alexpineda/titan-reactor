@@ -82,8 +82,8 @@ export default class FogOfWar {
     const offsetX = 1.5 / width;
     const offsetY = 1.5 / height;
 
-    // this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
-    this.fogUvTransform = new Vector4(0, 0, 1 / this.size.x, 1 / this.size.y);
+    this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
+    // this.fogUvTransform = new Vector4(0, 0, 1 / this.size.x, 1 / this.size.y);
   }
 
   get enabled() {
@@ -103,7 +103,7 @@ export default class FogOfWar {
     this._enabled = val;
   }
 
-  generate(frame, tileData, players) {
+  generate(tileData, players) {
     this._lastTileData = tileData;
     this._lastPlayers = players;
 

@@ -18,28 +18,16 @@ export default class BWFrameScene {
     this.count = count;
     this.groups = range(0, count).map(() => new BWGroup());
     this.index = 0;
-    this._playSound = (channel) => {
-      channel.play();
-    };
   }
 
   add(object) {
     if (object.isObject3D) {
       this.group.add(object);
-    } else {
-      this.group.sounds.push(object);
     }
   }
 
   clear() {
     this.group.clear();
-    this.group.sounds.length = 0;
-  }
-
-  play(elapsed) {
-    for (let sound of this.group.sounds) {
-      sound(elapsed);
-    }
   }
 
   swap() {

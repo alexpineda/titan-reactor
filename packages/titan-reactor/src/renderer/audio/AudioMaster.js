@@ -24,7 +24,7 @@ export default class AudioMaster {
   }
 
   set musicVolume(val) {
-    this.music.setVolume(val);
+    this.mixer.musicVolume = val;
   }
 
   update(x, y, z, delta) {
