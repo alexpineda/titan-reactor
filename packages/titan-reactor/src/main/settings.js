@@ -156,7 +156,7 @@ export class Settings extends EventEmitter {
       replaysPath: await findReplaysPath(),
       communityModelsPath: "",
       observerLink: "",
-      musicVolume: 0.01,
+      musicVolume: 0.1,
       soundVolume: 1,
       audioPanningStyle: AudioPanningStyle.Spatial,
       antialias: false,

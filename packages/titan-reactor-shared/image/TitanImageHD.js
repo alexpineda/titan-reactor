@@ -67,6 +67,7 @@ export default class TitanImageHD extends Sprite {
     this.material.transparent = true;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
+      // this.material.premultipliedAlpha = true;
     }
 
     this.castShadow = false;
@@ -82,6 +83,10 @@ export default class TitanImageHD extends Sprite {
 
   setTeamColor(val) {
     this.material.teamColor = val;
+  }
+
+  setWarpingIn(val) {
+    this.material.warpingIn = val;
   }
 
   setPositionX(x, scale = this._spriteScale) {

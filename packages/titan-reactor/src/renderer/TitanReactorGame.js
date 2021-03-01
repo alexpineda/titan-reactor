@@ -73,6 +73,7 @@ async function TitanReactorGame(
 
     for (let player of players) {
       if (player.vision !== state.replay.hud.playerVision[player.id]) {
+        //@todo: copy last visible state for each player
         player.vision = state.replay.hud.playerVision[player.id];
         fogOfWar.playerVisionWasToggled = true;
       }
@@ -150,7 +151,6 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
 
-  // #region player initialization
   const players = new Players(
     rep.header.players,
     chk.units.filter((u) => u.unitId === startLocation)
@@ -163,8 +163,6 @@ async function TitanReactorGame(
       pxToGameUnit.xy(player.startLocation)
     );
   });
-
-  // #endregion player initialization
 
   audioMaster.music.playGame();
 
@@ -363,14 +361,6 @@ async function TitanReactorGame(
 
   // createMinimapPoint();
 
-  const sprites = new Sprites(
-    bwDat,
-    pxToGameUnit,
-    getTerrainY,
-    createTitanImage,
-    players.playersById
-  );
-
   let _preloadFrames = [];
   let _preloading = false;
   let preloadAtlasQueue = (frames) => {
@@ -396,6 +386,14 @@ async function TitanReactorGame(
     bwDat,
     pxToGameUnit,
     getTerrainY
+  );
+
+  const sprites = new Sprites(
+    bwDat,
+    pxToGameUnit,
+    getTerrainY,
+    createTitanImage,
+    players.playersById
   );
 
   function buildFrameScene(nextFrame, view, updateMinimap, elapsed, delta) {

@@ -22,18 +22,18 @@ class Sprites {
     //leave the full count since we're iterating through all sprite images
     this.imagesBW.buffer = frame.images;
 
-    for (let sprite of this.spritesBW.items()) {
+    for (let spriteBW of this.spritesBW.items()) {
       if (
-        sprite.x < viewBW.left ||
-        sprite.y < viewBW.top ||
-        sprite.x > viewBW.right ||
-        sprite.y > viewBW.bottom
+        spriteBW.x < viewBW.left ||
+        spriteBW.y < viewBW.top ||
+        spriteBW.x > viewBW.right ||
+        spriteBW.y > viewBW.bottom
       ) {
         continue;
       }
 
-      const replaySprite =
-        sprites.get(sprite.index) ||
+      const sprite =
+        sprites.get(spriteBW.index) ||
         new Sprite(
           this.bwDat,
           this.pxToGameUnit,
@@ -41,22 +41,22 @@ class Sprites {
           this.createTitanImage
         );
 
-      replaySprite.clear();
+      sprite.clear();
 
-      for (const image of replaySprite.refresh(
-        sprite,
+      for (const image of sprite.refresh(
+        spriteBW,
         this.imagesBW,
-        unitsBySpriteId.get(sprite.index),
-        this.playersById[sprite.owner],
+        unitsBySpriteId.get(spriteBW.index),
+        this.playersById[spriteBW.owner],
         delta
       )) {
-        replaySprite.add(image);
+        sprite.add(image);
       }
 
-      if (!sprites.has(sprite.index)) {
-        sprites.set(sprite.index, replaySprite);
+      if (!sprites.has(spriteBW.index)) {
+        sprites.set(spriteBW.index, sprite);
       }
-      yield replaySprite;
+      yield sprite;
     }
   }
 }

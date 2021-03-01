@@ -65,6 +65,10 @@ export default class TitanImageSD extends Sprite {
     this.material.teamColor = val;
   }
 
+  setWarping(val) {
+    this.material.warping = val;
+  }
+
   get frames() {
     return this.atlas.frames;
   }

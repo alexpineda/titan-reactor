@@ -38,54 +38,88 @@ class TeamSpriteMaterial extends SpriteMaterial {
   constructor(opts) {
     super(opts);
     this.isTeamSpriteMaterial = true;
-    this.teamColor = new Color(0xffffff);
     this.defines = {};
+    this._dynamicUniforms = {
+      warpingIn: {
+        value: 0,
+      },
+      teamColor: {
+        value: new Color(0xffffff),
+      },
+    };
+  }
+
+  set teamColor(val) {
+    this._dynamicUniforms.teamColor.value = val;
+  }
+
+  set warpingIn(val) {
+    this._dynamicUniforms.warpingIn.value = val;
   }
 
   onBeforeCompile(shader) {
-    function extend(replace, content, header, define) {
-      if (define) {
-        shader.fragmentShader = `
-        #ifdef ${define}
-        ${header}
-        #endif
-        ${shader.fragmentShader.replace(
-          replace,
-          `
-        #ifdef ${define}
-        ${content}
-        #endif
-        `
-        )}`;
-      } else {
-        shader.fragmentShader = `${header}
-        ${shader.fragmentShader.replace(replace, content)}`;
+    function extend(replace, chunks, keep = true) {
+      if (chunks.length === 0) {
+        return;
       }
+
+      const header = [];
+      const content = [];
+      if (keep) {
+        content.push(replace);
+      }
+
+      for (const [contentChunk, headerChunk] of chunks) {
+        if (contentChunk) {
+          content.push(contentChunk);
+        }
+        if (headerChunk) {
+          header.push(headerChunk);
+        }
+      }
+      shader.fragmentShader = `${header.join("\n")}
+        ${shader.fragmentShader.replace(replace, content.join("\n"))}`;
     }
 
+    const mapFragments = [];
+
     if (this.isShadow) {
-      extend(
-        "#include <map_fragment>",
-        `#include <map_fragment>
-        diffuseColor = vec4(vec3(diffuseColor.r), diffuseColor.a * 0.5);`,
-        ""
-      );
+      mapFragments.push([
+        "\ndiffuseColor = vec4(vec3(diffuseColor.r), diffuseColor.a * 0.5);\n",
+      ]);
     }
     //get the diffuseColor from map_fragment and mix with team mask
     else if (this.teamMask) {
-      extend(
-        "#include <map_fragment>",
-        `#include <map_fragment>
+      mapFragments.push([
+        `
         float maskValue = texture2D( teamMask, vUv ).r;
-        diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * teamColor, maskValue), diffuseColor.a);`,
+        diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * teamColor, maskValue), diffuseColor.a);
+        `,
         `uniform sampler2D teamMask;
-  uniform vec3 teamColor;`
-      );
-      shader.uniforms.teamColor = { value: this.teamColor };
+           uniform vec3 teamColor;`,
+      ]);
+
+      shader.uniforms.teamColor = this._dynamicUniforms.teamColor;
       shader.uniforms.teamMask = {
         value: this.teamMask,
       };
     }
+
+    // mapFragments.push([
+    //   `
+    //   diffuseColor = vec4(mix(vec3(1.), diffuseColor.rgb, warpingIn), diffuseColor.a);
+    //   `,
+    //   `uniform float warpingIn;`,
+    // ]);
+    extend("#include <map_fragment>", mapFragments);
+    // shader.uniforms.warpingIn = this._dynamicUniforms.warpingIn;
+
+    /*
+    // hallucination effect
+    float b = dot(sourceColor, vec3(0.30196078, 0.59215686, 0.10980392));
+    vec3 hallucinateColor = vec3(0.75, 1.125, 2.65) * b;
+    return mix(blendTarget, hallucinateColor, halT);
+    */
   }
 
   customProgramCacheKey() {

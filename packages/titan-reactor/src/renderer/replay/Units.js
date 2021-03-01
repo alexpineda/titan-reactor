@@ -95,7 +95,20 @@ class Units {
 
       unit.isFlying = unitBw.isFlying;
       unit.isCloaked = unitBw.isCloaked;
+      //@todo: possibly simplify this to just assign to isFlying as well
       unit.isFlyingBuilding = unitBw.isFlyingBuilding;
+      unit.warpingIn = 0;
+      if (
+        unitBw.unitType.isBuilding &&
+        unitBw.unitType.isProtoss &&
+        unitBw.remainingBuildTime &&
+        unitBw.remainingBuildTime < 21
+      ) {
+        unit.warpingIn = 1 - unitBw.remainingBuildTime / 19;
+        if (unitBw.remainingBuildTime == 3) {
+          unit.warpingIn = 1;
+        }
+      }
 
       yield this._refreshMinimap(unitBw, isResourceContainer, unit);
     }

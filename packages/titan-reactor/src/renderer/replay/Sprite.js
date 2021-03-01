@@ -57,8 +57,15 @@ export default class Sprite extends Object3D {
       titanImage.setFrame(image.frameIndex, image.flipped);
       titanImage.visible = !image.hidden;
 
-      if (spriteUnit && !image.isShadow) {
-        titanImage.material.opacity = spriteUnit.cloaked ? 0.5 : 1;
+      if (spriteUnit) {
+        //@todo move this to material
+        if (!image.isShadow) {
+          titanImage.material.opacity = spriteUnit.cloaked ? 0.5 : 1;
+        }
+
+        if (sprite.mainImageIndex === image.index) {
+          titanImage.setWarpingIn(spriteUnit.warpingIn);
+        }
       }
 
       if (!this.images.has(image.id)) {

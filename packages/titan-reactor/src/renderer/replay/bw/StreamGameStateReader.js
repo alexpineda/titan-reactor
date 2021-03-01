@@ -55,9 +55,9 @@ export default class StreamGameStateReader extends EventEmitter {
     while (this._state.process(this._buf, this.frames.currentUnmarked)) {
       if (this._state.mode === ReadState.Frame) {
         this._lastReadFrame = this._state.currentFrame;
-        if (this._lastReadFrame % 40 === 0) {
-          console.log(`read ${this._lastReadFrame}`);
-        }
+        // if (this._lastReadFrame % 40 === 0) {
+        //   console.log(`read ${this._lastReadFrame}`);
+        // }
         newFrames.push(this.frames.currentUnmarked);
         this.frames.mark();
 
