@@ -48,6 +48,9 @@
     "SETTINGS_ESPORTS_HUD_STYLE": "E-Sports HUD Style",
     "SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS": "Always Hide Replay Controls",
     "SETTINGS_SHOW_TOOLTIPS": "Show In-Game Tooltips",
+    "SETTINGS_AUDIO_PANNING_STYLE": "Audio Panning Style",
+    "SETTINGS_CLASSIC_STEREO": "Classic (Stereo)",
+    "SETTINGS_SPATIAL_3D": "Spatial (3D)",
 
     "TWITCH_INTEGRATION": "Twitch Integration",
     "LOCAL_MAPS": "Local Maps",

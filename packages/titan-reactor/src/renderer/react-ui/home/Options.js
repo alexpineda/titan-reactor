@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ipcRenderer } from "electron";
 import { selectFolder } from "../../invoke";
 import { SELECT_FOLDER } from "../../../common/handleNames";
+import AudioPanningStyle from "../../../common/AudioPanningStyle";
 import Option from "../components/Option";
 import Toggle from "../components/Toggle";
 import Tab from "../components/Tab";
@@ -182,7 +183,7 @@ export default ({
           <input
             type="range"
             min="1"
-            max="1.8"
+            max="1.25"
             step="0.05"
             value={settings.maxAutoReplaySpeed}
             onChange={(evt) => {
@@ -370,39 +371,6 @@ export default ({
             />
           </ButtonSetContainer>
         </Option>
-
-        <Option label={"2D Camera"}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={!settings.cameraStyle2dOrtho}
-              label={"Perspective"}
-              first
-              onClick={() => updateSettings({ cameraStyle2dOrtho: false })}
-            />
-            <ButtonSet
-              selected={settings.cameraStyle2dOrtho}
-              label={"Orthographic"}
-              last
-              onClick={() => updateSettings({ cameraStyle2dOrtho: true })}
-            />
-          </ButtonSetContainer>
-        </Option>
-        <Option label={"3D Camera"}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={!settings.cameraStyle3dOrtho}
-              label={"Perspective"}
-              first
-              onClick={() => updateSettings({ cameraStyle3dOrtho: false })}
-            />
-            <ButtonSet
-              selected={settings.cameraStyle3dOrtho}
-              label={"Orthographic"}
-              last
-              onClick={() => updateSettings({ cameraStyle3dOrtho: true })}
-            />
-          </ButtonSetContainer>
-        </Option>
       </Tab>
 
       <Tab tabName={Tabs.Audio} activeTab={tab}>
@@ -440,6 +408,36 @@ export default ({
               });
             }}
           />
+        </Option>
+
+        <Option
+          label={phrases["SETTINGS_AUDIO_PANNING_STYLE"]}
+          value={settings.audioPanningStyle}
+        >
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={settings.audioPanningStyle === AudioPanningStyle.Stereo}
+              label={phrases["SETTINGS_CLASSIC_STEREO"]}
+              first
+              onClick={() =>
+                updateSettings({
+                  audioPanningStyle: AudioPanningStyle.Stereo,
+                })
+              }
+            />
+            <ButtonSet
+              selected={
+                settings.audioPanningStyle === AudioPanningStyle.Spatial
+              }
+              last
+              label={phrases["SETTINGS_SPATIAL_3D"]}
+              onClick={() =>
+                updateSettings({
+                  audioPanningStyle: AudioPanningStyle.Spatial,
+                })
+              }
+            />
+          </ButtonSetContainer>
         </Option>
       </Tab>
 

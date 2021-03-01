@@ -197,8 +197,9 @@ export class TitanReactor {
     await scene.init(state.settings.isDev);
     dispatchRepLoadingProgress();
 
-    const audioMaster = new AudioMaster((id) =>
-      readBwFile(`sound/${this.bwDat.sounds[id].file}`)
+    const audioMaster = new AudioMaster(
+      (id) => readBwFile(`sound/${this.bwDat.sounds[id].file}`),
+      state.settings.data.audioPanningStyle
     );
     audioMaster.musicVolume = state.settings.data.musicVolume;
     audioMaster.soundVolume = state.settings.data.soundVolume;

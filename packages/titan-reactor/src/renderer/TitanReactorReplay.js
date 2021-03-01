@@ -80,7 +80,20 @@ async function TitanReactorReplay(
     fogOfWar.enabled = state.replay.hud.showFogOfWar;
 
     for (let player of players) {
-      player.vision = state.replay.hud.playerVision[player.id];
+      if (player.vision !== state.replay.hud.playerVision[player.id]) {
+        player.vision = state.replay.hud.playerVision[player.id];
+        fogOfWar.playerVisionWasToggled = true;
+      }
+    }
+
+    audioMaster.channels.panningStyle = state.settings.data.audioPanningStyle;
+
+    if (audioMaster.musicVolume !== state.settings.data.musicVolume) {
+      audioMaster.musicVolume = state.settings.data.musicVolume;
+    }
+
+    if (audioMaster.soundVolume !== state.settings.data.soundVolume) {
+      audioMaster.soundVolume = state.settings.data.soundVolume;
     }
   });
 
@@ -179,26 +192,6 @@ async function TitanReactorReplay(
 
   replayPosition.onResetState = () => {};
 
-  // #region settings changed
-  // context.addEventListener("settings", ({ message: { diff } }) => {
-  //   if (diff.maxAutoReplaySpeed) {
-  //     replayPosition.setMaxAutoSpeed(diff.maxAutoReplaySpeed);
-  //   }
-  //   if (diff.musicVolume) {
-  //     bgMusic.setVolume(diff.musicVolume);
-  //   }
-  //   if (diff.soundVolume) {
-  //     // audio.setVolume(diff.soundVolume);
-  //   }
-  //   if (diff.gamma) {
-  //     renderMan.renderer.gammaFactor = diff.gamma;
-  //   }
-  //   if (diff.shadows) {
-  //     renderMan.setShadowLevel(diff.shadows);
-  //   }
-  // });
-  // #endregion
-
   const intersectAxesHelper = new AxesHelper(5);
   // scene.add(intersectAxesHelper);
 
@@ -214,11 +207,6 @@ async function TitanReactorReplay(
     mouse.y = -(event.offsetY / height) * 2 + 1;
 
     raycaster.setFromCamera(mouse, cameras.camera);
-
-    // const intersectTerrain = raycaster.intersectObject(scene.terrain, false);
-    // if (intersectTerrain.length) {
-    //   intersectAxesHelper.position.copy(intersectTerrain[0].point);
-    // }
 
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(
@@ -623,7 +611,8 @@ async function TitanReactorReplay(
       // }
 
       const target = cameras.getTarget();
-      target.setY(getTerrainY(target.x, target.z));
+      target.setY((target.y + cameras.camera.position.y) / 2);
+      target.setZ((target.z + cameras.camera.position.z) / 2);
       audioMaster.update(target.x, target.y, target.z, delta);
       targetBall.position.copy(target);
 

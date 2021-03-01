@@ -127,21 +127,28 @@ export default class FogOfWar {
     }
 
     if (this.enabled) {
-      for (let i = 0; i < this.imageData.length; i++) {
-        if (this._toBuffer[i] > this.imageData[i]) {
-          this.imageData[i] = Math.min(
-            this._toBuffer[i],
-            this.imageData[i] + this._revealSpeed
-          );
-        } else if (this._toBuffer[i] < this.imageData[i]) {
-          this.imageData[i] = Math.max(
-            this._toBuffer[i],
-            this.imageData[i] - this._hideSpeed
-          );
+      //instantly reveal if player vision has toggled
+      if (this.playerVisionWasToggled) {
+        this.imageData = this._toBuffer.slice(0);
+      } else {
+        for (let i = 0; i < this.imageData.length; i++) {
+          if (this._toBuffer[i] > this.imageData[i]) {
+            this.imageData[i] = Math.min(
+              this._toBuffer[i],
+              this.imageData[i] + this._revealSpeed
+            );
+          } else if (this._toBuffer[i] < this.imageData[i]) {
+            this.imageData[i] = Math.max(
+              this._toBuffer[i],
+              this.imageData[i] - this._hideSpeed
+            );
+          }
         }
       }
       this.texture.needsUpdate = true;
     }
+
+    this.playerVisionWasToggled = false;
   }
 
   get color() {

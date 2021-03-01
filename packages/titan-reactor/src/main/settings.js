@@ -17,6 +17,7 @@ import fileExists from "titan-reactor-shared/utils/fileExists";
 import path from "path";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 import phrases from "common/phrases";
+import AudioPanningStyle from "common/AudioPanningStyle";
 
 const VERSION = 1;
 
@@ -157,6 +158,7 @@ export class Settings extends EventEmitter {
       observerLink: "",
       musicVolume: 0.01,
       soundVolume: 1,
+      audioPanningStyle: AudioPanningStyle.Spatial,
       antialias: false,
       anisotropy: 1,
       pixelRatio: 1,
@@ -166,9 +168,6 @@ export class Settings extends EventEmitter {
       shadowTextureSize: 0.5,
       keyPanSpeed: 0.5,
       twitch: "",
-      countdownTimer: true,
-      cameraStyle2dOrtho: true,
-      cameraStyle3dOrtho: false,
       producerWindowPosition: ProducerWindowPosition.None,
       producerDockSize: 300,
       gameAspect: GameAspect.Fit,

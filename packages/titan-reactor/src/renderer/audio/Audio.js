@@ -1,4 +1,7 @@
+import AudioPanningStyle from "common/AudioPanningStyle";
+
 const stopTime = 30; //ms
+
 export default class Audio {
   /**
    *
@@ -7,40 +10,47 @@ export default class Audio {
    * @param {DeferredAudioBuffer} buffer
    * @param {SoundChannel} channel
    */
-  constructor(mixer, sound, buffer, queueStartTime) {
+  constructor(mixer, sound, buffer, panningStyle = 0) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;
     this.isPlaying = false;
-    this.queueStartTime = queueStartTime;
+    this.panningStyle = panningStyle;
   }
 
   queue(elapsed) {
     if (this.source) return;
     this.isPlaying = true;
     this.buffer.lastPlayed = elapsed;
+    this.queueStartTime = elapsed;
   }
 
   play(elapsed) {
-    const offset = 0; //(elapsed - this.queueStartTime) * 0.001;
+    const offset = (elapsed - this.queueStartTime) * 0.001;
     if (this.source || offset > this.buffer.buffer.duration) return;
 
     const source = this.mixer.context.createBufferSource();
 
     const gain = this.mixer.context.createGain();
-    // gain.gain.value = this.sound.volume / 100; //@todo allow classic style sounds with pan
 
-    const panner = this.mixer.context.createPanner();
-    panner.panningModel = "HRTF";
-    //refDistance, rolloffFactor, distanceModel
+    let panner;
+    let volume = 1;
+    if (this.panningStyle === AudioPanningStyle.Stereo) {
+      panner = this.mixer.context.createStereoPanner();
+      panner.pan.value = this.sound.pan;
+      volume = this.sound.volume / 100;
+    } else {
+      panner = this.mixer.context.createPanner();
+      panner.panningModel = "HRTF";
 
-    panner.refDistance = 1;
-    panner.rolloffFactor = 0.5;
-    panner.distanceModel = "exponential";
+      panner.refDistance = 20;
+      panner.rolloffFactor = 0.5;
+      panner.distanceModel = "inverse";
 
-    panner.positionX.value = this.sound.mapX;
-    panner.positionY.value = this.sound.mapY;
-    panner.positionZ.value = this.sound.mapZ;
+      panner.positionX.value = this.sound.mapX;
+      panner.positionY.value = this.sound.mapY;
+      panner.positionZ.value = this.sound.mapZ;
+    }
 
     source.buffer = this.buffer.buffer;
 
@@ -51,7 +61,15 @@ export default class Audio {
     source.onended = () => {
       this.isPlaying = false;
     };
-    source.start(this.mixer.context.currentTime - offset);
+    gain.gain.setValueAtTime(
+      Math.min(0.99, volume),
+      this.mixer.context.currentTime
+    );
+    source.start(0);
+    // gain.gain.exponentialRampToValueAtTime(
+    //   volume,
+    //   this.mixer.context.currentTime + offset
+    // );
     this.buffer.lastPlayed = elapsed;
     this.source = source;
     this.gain = gain;
