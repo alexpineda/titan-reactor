@@ -19,18 +19,12 @@ const HideSpeedSlow = 5;
 
 export default class FogOfWar {
   constructor(width, height, effect) {
-    this.effect = effect;
-    this.effect.worldOffset = new Vector2(width / 2, height / 2);
-
     const defaultImageData = new Uint8Array(width * height);
-    // defaultImageData.fill(Visible);
 
     this.fogType = 0; // fade
 
     // for animation
     this._toBuffer = new Uint8Array(width * height);
-
-    this._fromBuffer = new Uint8Array(width * height);
 
     const texture = new DataTexture(
       defaultImageData,
@@ -52,16 +46,24 @@ export default class FogOfWar {
     texture.needsUpdate = true;
 
     this.texture = texture;
-    this.fogResolution = new Vector2(width, height);
-    this.size = new Vector2(width, height);
+    this.width = width;
+    this.height = height;
     this.scale = 1;
-    this.color = new Color(1, 1, 1);
     this._enabled = true;
-    this.effect.fog = texture;
-    this._setUvTransform();
 
     this._revealSpeed = RevealSpeed;
     this._hideSpeed = HideSpeedSlow;
+
+    this.effect = effect;
+    this.effect.worldOffset = new Vector2(width / 2, height / 2);
+    this.effect.fog = texture;
+    this.effect.fogResolution = new Vector2(width, height);
+    this.effect.fogUvTransform = new Vector4(
+      0,
+      0,
+      1 / this.width,
+      1 / this.height
+    );
   }
 
   set imageData(val) {
@@ -72,19 +74,18 @@ export default class FogOfWar {
     return this.texture.image.data;
   }
 
-  _setUvTransform() {
-    const width = this.fogResolution.x;
-    const height = this.fogResolution.y;
+  // _setUvTransform() {
+  //   const width = this.fogResolution.x;
+  //   const height = this.fogResolution.y;
 
-    const scaleX = this.scale * this.size.x * (width / (width - 3));
-    const scaleY = this.scale * this.size.y * (height / (height - 3));
+  //   const scaleX = this.scale * this.size.x * (width / (width - 3));
+  //   const scaleY = this.scale * this.size.y * (height / (height - 3));
 
-    const offsetX = 1.5 / width;
-    const offsetY = 1.5 / height;
+  //   const offsetX = 1.5 / width;
+  //   const offsetY = 1.5 / height;
 
-    this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
-    // this.fogUvTransform = new Vector4(0, 0, 1 / this.size.x, 1 / this.size.y);
-  }
+  //   // this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
+  // }
 
   get enabled() {
     return this._enabled;
@@ -103,11 +104,20 @@ export default class FogOfWar {
     this._enabled = val;
   }
 
+  isVisible(x, y) {
+    return this.imageData[y * this.width + x] > Explored;
+  }
+
+  isExplored(x, y) {
+    return this.imageData[y * this.width + x] > 0;
+  }
+
   generate(tileData, players) {
     this._lastTileData = tileData;
     this._lastPlayers = players;
 
     this._toBuffer.fill(Unexplored);
+
     for (let i = 0; i < this.imageData.length; i++) {
       for (let player of players) {
         //explored
@@ -131,7 +141,7 @@ export default class FogOfWar {
       if (this.playerVisionWasToggled) {
         this.imageData = this._toBuffer.slice(0);
       } else {
-        for (let i = 0; i < this.imageData.length; i++) {
+        for (let i = 0; i < this._toBuffer.length; i++) {
           if (this._toBuffer[i] > this.imageData[i]) {
             this.imageData[i] = Math.min(
               this._toBuffer[i],
@@ -157,22 +167,6 @@ export default class FogOfWar {
 
   set color(val) {
     this.effect.color = val;
-  }
-
-  get fogUvTransform() {
-    return this.effect.fogUvTransform;
-  }
-
-  set fogUvTransform(val) {
-    this.effect.fogUvTransform = val;
-  }
-
-  get fogResolution() {
-    return this.effect.fogResolution;
-  }
-
-  set fogResolution(val) {
-    this.effect.fogResolution = val;
   }
 
   update(camera) {

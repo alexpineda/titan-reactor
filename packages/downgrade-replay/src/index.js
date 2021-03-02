@@ -249,21 +249,15 @@ const parseReplay = async (buf) => {
   const cmdsSize = (await block(bl, 4)).readUInt32LE(0);
 
   // ai reps tend to have MBs of commands so just skip processing these types of reps
-  //@todo enable processing these somehow
+  //@todo maybe have a seperate component to stream these afterward
   const skipProcessing = cmdsSize > 500000;
   let cmds = [];
   const rawCmds = await block(bl, cmdsSize, skipProcessing);
 
   if (!skipProcessing) {
-    const players = [];
-    for (let i = 0; i < 8; i++) {
-      const offset = 0xa1 + 0x24 * i;
-      const stormId = rawHeader.readInt32LE(offset + 0x4);
-      if (stormId >= 0) {
-        players[i] = rawHeader.readUInt32LE(offset);
-      }
-    }
-    cmds = parseCommands(rawCmds, players);
+    const originalTags = new Set();
+    cmds = parseCommands(rawCmds, header.players, originalTags);
+    // version = Version.remastered && console.log(originalTags);
   }
 
   const chkSize = (await block(bl, 4)).readUInt32LE(0);
@@ -474,7 +468,7 @@ const parseHeader = (buf) => {
   };
 };
 
-const parseCommands = (origBuf, players) => {
+const parseCommands = (origBuf, players, originalTags) => {
   if (!origBuf) return;
   const buf = origBuf.duplicate();
   const commands = [];
@@ -516,7 +510,7 @@ const parseCommands = (origBuf, players) => {
             player,
             data,
           },
-          dataToCommand(id, data)
+          dataToCommand(id, data, originalTags)
         )
       );
     }
@@ -524,7 +518,7 @@ const parseCommands = (origBuf, players) => {
   }
 };
 
-const dataToCommand = (id, buf) => {
+const dataToCommand = (id, buf, originalTags) => {
   switch (id) {
     case CMDS.RIGHT_CLICK.id:
       return {
@@ -570,10 +564,17 @@ const dataToCommand = (id, buf) => {
 
       const count = buf.readUInt8(0);
       const unitTags = range(0, count).map((i) => buf.readUInt16LE(1 + i * 4)); //skip 2 bytes in SCR
-      const bwUnitTags = new Uint16Array(count);
-      unitTags.forEach((val, i) => (bwUnitTags[i] = val));
       const data = new BufferList();
-      data.append(buf.slice(0, 1)).append(bwUnitTags);
+      data.append(buf.slice(0, 1));
+
+      if (count) {
+        const bwUnitTags = Buffer.alloc(count * 2);
+        for (let i = 0; i < count; i++) {
+          bwUnitTags.writeUInt16LE(unitTags[i]);
+          originalTags.add(unitTags[i]);
+        }
+        data.append(bwUnitTags);
+      }
       return {
         data,
         id: mapping[id].id,
@@ -676,17 +677,16 @@ const dataToCommand = (id, buf) => {
         unitTypeId: buf.readUInt16LE(0),
       };
     default:
-      return {
-        buf,
-      };
+      //unsupported command
+      return {};
   }
 };
 
 const convertReplayTo116 = async (buf, ignoreCommands = []) => {
   const replay = await parseReplay(buf);
-  // if (replay.version === Version.classic) {
-  //   return buf;
-  // }
+  if (replay.version === Version.classic) {
+    return buf;
+  }
   const bl = new BufferList();
   const alloc = (n, cb) => {
     const b = Buffer.alloc(n);
@@ -702,12 +702,17 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
   const writeCommands = (buf, frame, size, commands) => {
     buf.append(uint32le(frame));
     buf.append(uint8(size));
+    let realsize = 0;
 
     commands.forEach(({ data, player, id }) => {
       buf.append(uint8(player));
       buf.append(uint8(id));
       buf.append(data);
+      realsize += data.length + 2;
     });
+    if (realsize != size) {
+      throw new Error("bad");
+    }
   };
 
   const repCommands = replay.cmds
@@ -727,6 +732,7 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
       let size = 0;
       for (let i = 0; i < commands.length; i++) {
         if (size + commands[i].data.byteLength + 2 > 255) {
+          console.warn("overflow");
           const overflow = commands.splice(i);
           writeCommands(
             cmdBl,
@@ -736,11 +742,11 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
           );
           break;
         }
-        size += commands[i].data.byteLength + 2;
+        size += commands[i].data.length + 2;
       }
 
       if (size > 255) {
-        console.error("commands size too large");
+        throw new Error("commands size too large");
       }
 
       writeCommands(cmdBl, frame, size, commands);

@@ -135,7 +135,7 @@ export class TitanReactor {
 
     await this.preload();
 
-    document.title = "Titan Reactor - Replay";
+    document.title = "Titan Reactor - Observing";
 
     this.atlases = {};
 

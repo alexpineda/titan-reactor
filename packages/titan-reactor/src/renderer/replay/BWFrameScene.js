@@ -20,10 +20,8 @@ export default class BWFrameScene {
     this.index = 0;
   }
 
-  add(object) {
-    if (object.isObject3D) {
-      this.group.add(object);
-    }
+  add(sprite) {
+    this.group.add(sprite);
   }
 
   clear() {

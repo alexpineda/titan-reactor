@@ -2,12 +2,12 @@ import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { Color } from "three";
 import { createMinimapPoint } from "../mesh/Minimap";
 
-const resourceColor = new Color(0, 155, 155);
+const resourceColor = new Color(0, 55, 55);
 
 class Units {
-  constructor(pxToGameUnit, playerColors) {
+  constructor(pxToGameUnit, playersById) {
     this.pxToGameUnit = pxToGameUnit;
-    this.playersById = playerColors;
+    this.playersById = playersById;
     this._unitsByRepId = {};
     this._deadUnitIds = [];
 
@@ -57,17 +57,19 @@ class Units {
 
     if (!unit.minimapPoint) {
       unit.minimapPoint = createMinimapPoint(color, w, h);
-      if (isResourceContainer) {
-        unit.minimapPoint.position.x = this.pxToGameUnit.x(unitBw.x);
-        unit.minimapPoint.position.z = this.pxToGameUnit.y(unitBw.y);
-        unit.minimapPoint.position.y = 1;
-        unit.minimapPoint.matrixAutoUpdate = false;
-        unit.minimapPoint.updateMatrix();
-      }
     }
+
     unit.minimapPoint.position.x = this.pxToGameUnit.x(unitBw.x);
     unit.minimapPoint.position.z = this.pxToGameUnit.y(unitBw.y);
     unit.minimapPoint.position.y = 1;
+    unit.minimapPoint.userData.tileX = Math.floor(unitBw.x / 32);
+    unit.minimapPoint.userData.tileY = Math.floor(unitBw.y / 32);
+    unit.minimapPoint.userData.isResourceContainer = isResourceContainer;
+
+    if (isResourceContainer) {
+      unit.minimapPoint.matrixAutoUpdate = false;
+      unit.minimapPoint.updateMatrix();
+    }
 
     return unit.minimapPoint;
   }
@@ -84,7 +86,7 @@ class Units {
         unit = units.get(unitBw.id);
       } else {
         unit = {
-          resource: isResourceContainer,
+          isResourceContainer: isResourceContainer,
         };
         units.set(unitBw.id, unit);
       }
@@ -93,6 +95,8 @@ class Units {
         unitsBySpriteId.set(unitBw.spriteIndex, unit);
       }
 
+      unit.owner = this.playersById[unitBw.owner];
+      unit.isBuilding = unitBw.unitType.isBuilding;
       unit.isFlying = unitBw.isFlying;
       unit.isCloaked = unitBw.isCloaked;
       //@todo: possibly simplify this to just assign to isFlying as well

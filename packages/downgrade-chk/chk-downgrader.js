@@ -79,9 +79,6 @@ const downgradeStrChunk = (strx) => {
     const outIndex = strxIndex - inHeaderSize + outHeaderSize;
     out.writeUInt16LE(outIndex, i * 2);
     strxBuf.copy(out, outIndex);
-
-    const decoded = iconv.decode(strxBuf, "cp1252");
-    console.log(decoded);
   }
 
   return out;

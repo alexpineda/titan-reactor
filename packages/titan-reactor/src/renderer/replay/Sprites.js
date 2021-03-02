@@ -43,10 +43,12 @@ class Sprites {
 
       sprite.clear();
 
+      const unitSprite = unitsBySpriteId.get(spriteBW.index);
+
       for (const image of sprite.refresh(
         spriteBW,
         this.imagesBW,
-        unitsBySpriteId.get(spriteBW.index),
+        unitSprite,
         this.playersById[spriteBW.owner],
         delta
       )) {

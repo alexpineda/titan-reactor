@@ -357,10 +357,6 @@ async function TitanReactorGame(
   };
   window.addEventListener("resize", sceneResizeHandler, false);
 
-  const units = new Units(pxToGameUnit, players.playersById);
-
-  // createMinimapPoint();
-
   let _preloadFrames = [];
   let _preloading = false;
   let preloadAtlasQueue = (frames) => {
@@ -379,13 +375,16 @@ async function TitanReactorGame(
 
   let nextFrame;
 
+  const units = new Units(pxToGameUnit, players.playersById);
   const projectedCameraView = new ProjectedCameraView(cameras.camera);
   const frameBuilder = new BWFrameSceneBuilder(
     scene,
     minimapScene,
     bwDat,
     pxToGameUnit,
-    getTerrainY
+    getTerrainY,
+    players.playersById,
+    fogOfWar
   );
 
   const sprites = new Sprites(
@@ -401,10 +400,7 @@ async function TitanReactorGame(
     frameBuilder.buildSounds(view, audioMaster, elapsed);
     frameBuilder.buildUnitsAndMinimap(units);
     frameBuilder.buildSprites(sprites, view, delta);
-    frameBuilder.buildFog(
-      fogOfWar,
-      players.filter((p) => p.vision).map(({ id }) => id)
-    );
+    frameBuilder.buildFog(players.filter((p) => p.vision).map(({ id }) => id));
   }
 
   let _lastElapsed = 0;
@@ -437,7 +433,6 @@ async function TitanReactorGame(
         gameStateReader.next(gameStatePosition.skipGameFrames - 1);
         nextFrame = gameStateReader.nextOne();
         if (nextFrame) {
-          //loading?
           buildFrameScene(
             nextFrame,
             projectedCameraView,

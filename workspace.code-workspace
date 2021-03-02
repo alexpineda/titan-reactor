@@ -12,6 +12,9 @@
 		},
 		{
 			"path": "packages\\titan-reactor-shared"
+		},
+		{
+			"path": "packages\\downgrade-replay"
 		}
 	],
 	"settings": {}

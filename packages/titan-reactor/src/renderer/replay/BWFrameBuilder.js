@@ -4,12 +4,22 @@ import UnitsBW from "./bw/UnitsBW";
 import BWFrameScene from "./BWFrameScene";
 
 export default class BWFrameSceneBuilder {
-  constructor(scene, minimapScene, bwDat, pxToGameUnit, getTerrainY) {
+  constructor(
+    scene,
+    minimapScene,
+    bwDat,
+    pxToGameUnit,
+    getTerrainY,
+    playersById,
+    fogOfWar
+  ) {
     this.bwScene = new BWFrameScene(scene, 1);
     this.minimapBwScene = new BWFrameScene(minimapScene, 1);
     this.unitsBW = new UnitsBW(bwDat);
     this.tilesBW = new TilesBW();
     this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
+    this.playersById = playersById;
+    this.fogOfWar = fogOfWar;
   }
 
   buildStart(nextFrame, updateMinimap) {
@@ -39,6 +49,15 @@ export default class BWFrameSceneBuilder {
         view.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
+        if (
+          !this.fogOfWar.isVisible(
+            Math.floor(sound.x / 32),
+            Math.floor(sound.y / 32)
+          )
+        ) {
+          continue;
+        }
+
         audioMaster.channels.queue(
           {
             ...sound.object(),
@@ -63,6 +82,12 @@ export default class BWFrameSceneBuilder {
       this.bwScene.unitsBySpriteId
     )) {
       if (this.updateMinimap && minimapUnit) {
+        minimapUnit.visible = minimapUnit.userData.isResourceContainer
+          ? true
+          : this.fogOfWar.isVisible(
+              minimapUnit.userData.tileX,
+              minimapUnit.userData.tileY
+            );
         this.minimapBwScene.add(minimapUnit);
       }
     }
@@ -81,14 +106,26 @@ export default class BWFrameSceneBuilder {
       view.viewBW,
       delta
     )) {
+      if (
+        sprite.userData.isDoodad ||
+        (sprite.userData.spriteUnit &&
+          sprite.userData.spriteUnit.isResourceContainer)
+      ) {
+        sprite.visible = true;
+      } else {
+        sprite.visible = this.fogOfWar.isVisible(
+          sprite.userData.tileX,
+          sprite.userData.tileY
+        );
+      }
       this.bwScene.add(sprite);
     }
   }
 
-  buildFog(fogOfWar, playerVisionIds) {
+  buildFog(playerVisionIds) {
     this.tilesBW.buffer = this.nextFrame.tiles;
     this.tilesBW.count = this.nextFrame.tilesCount;
 
-    fogOfWar.generate(this.tilesBW, playerVisionIds);
+    this.fogOfWar.generate(this.tilesBW, playerVisionIds);
   }
 }

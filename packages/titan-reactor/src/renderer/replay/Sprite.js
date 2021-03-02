@@ -1,6 +1,6 @@
 import { MathUtils, Object3D } from "three";
 
-window.lamda = 0.01;
+window.lamda = 0.005;
 
 export default class Sprite extends Object3D {
   constructor(bwDat, pxToGameUnit, getTerrainY, createImage) {
@@ -13,23 +13,23 @@ export default class Sprite extends Object3D {
     this.images = new Map();
   }
 
-  *refresh(sprite, imagesBW, spriteUnit, player, delta) {
-    this.renderOrder = sprite.order * 10;
+  *refresh(spriteBW, imagesBW, spriteUnit, player, delta) {
+    this.renderOrder = spriteBW.order * 10;
     this._imageRenderOrder = this.renderOrder;
 
-    const x = this.pxToGameUnit.x(sprite.x);
-    const z = this.pxToGameUnit.y(sprite.y);
+    const x = this.pxToGameUnit.x(spriteBW.x);
+    const z = this.pxToGameUnit.y(spriteBW.y);
     let y = this.getTerrainY(x, z);
 
     if (spriteUnit && (spriteUnit.isFlying || spriteUnit.isFlyingBuilding)) {
       //@todo: get max terrain height + 1 for max
       //use a different step rather than 2? based on elevations?
       if (!this.initialized) {
-        y = Math.min(6, y + 2);
+        y = Math.min(6, y + 3);
       } else {
         y = MathUtils.damp(
           this.position.y,
-          Math.min(6, y + 2),
+          Math.min(6, y + 3),
           window.lamda,
           delta
         );
@@ -38,8 +38,16 @@ export default class Sprite extends Object3D {
     this.initialized = true;
 
     this.position.set(x, y, z);
+    this.userData.spriteUnit = spriteUnit;
+    this.userData.tileX = Math.floor(spriteBW.x / 32);
+    this.userData.tileY = Math.floor(spriteBW.y / 32);
+    this.userData.clickable = false;
+    this.userData.isDoodad = false;
+    if (spriteUnit) {
+      spriteUnit.clickable = false;
+    }
 
-    for (let image of imagesBW.reverse(sprite.imageCount)) {
+    for (let image of imagesBW.reverse(spriteBW.imageCount)) {
       if (image.hidden) continue;
 
       const titanImage =
@@ -57,15 +65,25 @@ export default class Sprite extends Object3D {
       titanImage.setFrame(image.frameIndex, image.flipped);
       titanImage.visible = !image.hidden;
 
+      if (image.index === spriteBW.mainImageIndex) {
+        this.userData.clickable = image.imageType.clickable;
+      }
+
+      if (image.imageType.iscript === 336 || image.imageType.iscript === 337) {
+        this.userData.isDoodad = true;
+      }
+
       if (spriteUnit) {
         //@todo move this to material
         if (!image.isShadow) {
           titanImage.material.opacity = spriteUnit.cloaked ? 0.5 : 1;
         }
 
-        if (sprite.mainImageIndex === image.index) {
+        if (spriteBW.mainImageIndex === image.index) {
           titanImage.setWarpingIn(spriteUnit.warpingIn);
         }
+
+        spriteUnit.clickable = this.userData.clickable;
       }
 
       if (!this.images.has(image.id)) {

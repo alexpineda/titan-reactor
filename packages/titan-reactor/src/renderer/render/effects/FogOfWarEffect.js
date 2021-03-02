@@ -31,7 +31,8 @@ vec3 computeWorldPosition(const in vec2 uv, const in float depth) {
 
 float sampleFog(const in vec2 uv) {
 
-	return texture2D(fog, uv).r;
+	// return texture2D(fog, uv).r;
+	return texture2D(fog, clamp(uv, vec2(0., 0.), vec2(1., 1.))).r;
 
 }
 
@@ -79,7 +80,7 @@ export default class FogOfWarEffect extends Effect {
         ["fogResolution", new Uniform(new Vector2())],
         ["viewInverse", new Uniform(new Matrix4())],
         ["projectionInverse", new Uniform(new Matrix4())],
-        ["color", new Uniform(new Color())],
+        ["color", new Uniform(new Color(1, 1, 1))],
         ["fogUvTransform", new Uniform(new Vector4())],
         ["worldOffset", new Uniform(new Vector2())],
       ]),
