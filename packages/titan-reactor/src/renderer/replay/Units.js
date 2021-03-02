@@ -95,6 +95,7 @@ class Units {
         unitsBySpriteId.set(unitBw.spriteIndex, unit);
       }
 
+      unit.id = unitBw.id;
       unit.owner = this.playersById[unitBw.owner];
       unit.isBuilding = unitBw.unitType.isBuilding;
       unit.isFlying = unitBw.isFlying;

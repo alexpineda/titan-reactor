@@ -1,14 +1,10 @@
 import { range } from "ramda";
 import { Group } from "three";
+import Sprite from "./Sprite";
 
 class BWGroup extends Group {
   constructor() {
     super();
-    this.sounds = [];
-    this.sprites = new Map();
-    this.images = new Map();
-    this.units = new Map();
-    this.unitsBySpriteId = new Map();
   }
 }
 
@@ -43,21 +39,5 @@ export default class BWFrameScene {
     this.scene.remove(this._prevGroup);
     this.scene.add(this.group);
     this.activeGroup = this.group;
-  }
-
-  get sprites() {
-    return this.group.sprites;
-  }
-
-  get images() {
-    return this.group.images;
-  }
-
-  get units() {
-    return this.group.units;
-  }
-
-  get unitsBySpriteId() {
-    return this.group.unitsBySpriteId;
   }
 }

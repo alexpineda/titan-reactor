@@ -25,11 +25,11 @@ import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/replay/replayHudReducer";
 import Units from "./replay/Units";
-import Sprites from "./replay/Sprites";
 import FogOfWar from "./render/effects/FogOfWar";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./replay/BWFrameBuilder";
+import Sprite from "./replay/Sprite";
 
 const { startLocation } = unitTypes;
 
@@ -193,13 +193,13 @@ async function TitanReactorGame(
     raycaster.setFromCamera(mouse, cameras.camera);
 
     // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObjects(
-      fadingPointers.children,
-      true
-    );
+    const intersects = raycaster.intersectObject(scene, true);
+    console.log(intersects);
     if (intersects.length) {
       intersects.forEach(({ object }) => {
-        console.log(object.userData);
+        if (object instanceof Sprite) {
+          console.log(object);
+        }
       });
     }
     return;
@@ -379,6 +379,8 @@ async function TitanReactorGame(
   const projectedCameraView = new ProjectedCameraView(cameras.camera);
   const frameBuilder = new BWFrameSceneBuilder(
     scene,
+    mapWidth,
+    mapHeight,
     minimapScene,
     bwDat,
     pxToGameUnit,
@@ -387,20 +389,13 @@ async function TitanReactorGame(
     fogOfWar
   );
 
-  const sprites = new Sprites(
-    bwDat,
-    pxToGameUnit,
-    getTerrainY,
-    createTitanImage,
-    players.playersById
-  );
-
   function buildFrameScene(nextFrame, view, updateMinimap, elapsed, delta) {
     frameBuilder.buildStart(nextFrame, updateMinimap);
-    frameBuilder.buildSounds(view, audioMaster, elapsed);
     frameBuilder.buildUnitsAndMinimap(units);
-    frameBuilder.buildSprites(sprites, view, delta);
+    frameBuilder.buildSprites(view, delta, createTitanImage);
     frameBuilder.buildFog(players.filter((p) => p.vision).map(({ id }) => id));
+    frameBuilder.buildCreep();
+    frameBuilder.buildSounds(view, audioMaster, elapsed);
   }
 
   let _lastElapsed = 0;

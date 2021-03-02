@@ -63,4 +63,8 @@ export default class SpritesBW extends ContiguousContainer {
   get tileY() {
     return Math.floor(this.y / 32);
   }
+
+  get spriteType() {
+    return this.bwDat.sprites[this.id];
+  }
 }

@@ -22,14 +22,12 @@ export const createDisplacementGeometry = (
   var uv = new THREE.Vector2();
   var n = new THREE.Vector3();
 
-  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
   for (let i = 0; i < pos.count; i++) {
     p.fromBufferAttribute(pos, i);
     uv.fromBufferAttribute(uvs, i);
     n.fromBufferAttribute(nor, i);
 
-    var displacement = getDisplacement(image, uv);
+    var displacement = getDisplacement(canvas, ctx, uv);
 
     p.addScaledVector(n, displacement * displacementScale).addScaledVector(
       n,
@@ -43,9 +41,9 @@ export const createDisplacementGeometry = (
   return geom;
 };
 
-function getDisplacement(image, uv) {
-  var w = image.width - 1;
-  var h = image.height - 1;
+function getDisplacement(canvas, context, uv) {
+  var w = canvas.width - 1;
+  var h = canvas.height - 1;
 
   var uvW = Math.floor(w * uv.x);
   var uvH = Math.floor(h * (1 - uv.y));
@@ -55,12 +53,12 @@ function getDisplacement(image, uv) {
   var uvWfract = w * uv.x - uvW;
   var uvHfract = h * (1 - uv.y) - uvH;
 
-  var d0 = image.data[uvH * image.width + uvW] / 255.0;
-  var d1 = image.data[uvH * image.width + uvWnext] / 255.0;
+  var d0 = context.getImageData(uvW, uvH, 1, 1).data[0] / 255.0;
+  var d1 = context.getImageData(uvWnext, uvH, 1, 1).data[0] / 255.0;
   var d01 = d0 + (d1 - d0) * uvWfract;
 
-  var d2 = image.data[uvHnext * image.width + uvW] / 255.0;
-  var d3 = image.data[uvHnext * image.width + uvWnext] / 255.0;
+  var d2 = context.getImageData(uvW, uvHnext, 1, 1).data[0] / 255.0;
+  var d3 = context.getImageData(uvWnext, uvHnext, 1, 1).data[0] / 255.0;
   var d23 = d2 + (d3 - d2) * uvWfract;
 
   var d = d01 + (d23 - d01) * uvHfract;
@@ -84,14 +82,6 @@ export const getTerrainY = (
   const pyScale = image.height / mapHeight;
 
   return (x, y) => {
-    if (
-      x <= -mapWidth / 2 ||
-      x >= mapWidth / 2 ||
-      y <= -mapWidth / 2 ||
-      y >= mapWidth / 2
-    ) {
-      return 0;
-    }
     const px = Math.floor((x + mapWidth / 2) * pxScale);
     const py = Math.floor((y + mapHeight / 2) * pyScale);
 

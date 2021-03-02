@@ -13,7 +13,6 @@ import {
 } from "three";
 
 import { DDSLoader } from "titan-reactor-shared/image/DDSLoader";
-// import { DDSLoader } from "./TileDDSLoader";
 
 const ddsLoader = new DDSLoader();
 
@@ -138,7 +137,9 @@ export default class MapHD {
         ctx.drawImage(renderer.domElement, 0, 0);
         mapQuartiles[qx][qy] = new CanvasTexture(canvas);
         mapQuartiles[qx][qy].encoding = sRGBEncoding;
-        mapQuartiles[qx][qy].anisotropy = 16;
+        mapQuartiles[qx][
+          qy
+        ].anisotropy = renderer.capabilities.getMaxAnisotropy();
         mapQuartiles[qx][qy].flipY = false;
       }
     }
@@ -156,7 +157,7 @@ export default class MapHD {
     };
   }
 
-  static renderCreepTexture(renderer, creepGrp) {
+  static renderCreepEdgesTexture(renderer, creepGrp) {
     const size = Math.ceil(Math.sqrt(creepGrp.length));
     const width = size;
     const height = size;
@@ -201,11 +202,62 @@ export default class MapHD {
     ctx.drawImage(renderer.domElement, 0, 0);
     const texture = new CanvasTexture(canvas);
     texture.encoding = sRGBEncoding;
-    texture.anisotropy = 1;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     texture.flipY = true;
 
     mat.dispose();
 
-    return { texture, width, height };
+    return { texture, width: width * 128, height: height * 128 };
+  }
+
+  static renderCreepTexture(renderer, hdTiles, tilegroupU16) {
+    const width = 13;
+    const height = 1;
+    const ortho = new OrthographicCamera(
+      -width / 2,
+      width / 2,
+      -height / 2,
+      height / 2
+    );
+    ortho.position.y = width;
+    ortho.lookAt(new Vector3());
+
+    renderer.setSize(width * 128, height * 128);
+
+    const scene = new Scene();
+    const plane = new PlaneBufferGeometry();
+    const mat = new MeshBasicMaterial({});
+    const mesh = new Mesh(plane, mat);
+    mesh.rotation.x = Math.PI / 2;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = width * 128;
+    canvas.height = height * 128;
+
+    for (let i = 0; i < 13; i++) {
+      const x = i % width;
+      const y = Math.floor(i / width);
+      // get the 13 creep tiles in the 2nd tile group
+      const texture = loadHdTile(hdTiles[tilegroupU16[36 + i]]);
+
+      mat.map = texture;
+      mat.needsUpdate = true;
+      mesh.position.x = x - width / 2 + 0.5;
+      mesh.position.z = y - height / 2 + 0.5;
+      scene.add(mesh);
+      renderer.render(scene, ortho);
+      scene.remove(mesh);
+    }
+
+    ctx.drawImage(renderer.domElement, 0, 0);
+    const texture = new CanvasTexture(canvas);
+    texture.encoding = sRGBEncoding;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    texture.flipY = true;
+
+    mat.dispose();
+
+    return { texture, width: width * 128, height: height * 128 };
   }
 }

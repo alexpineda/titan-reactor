@@ -3,6 +3,7 @@ import {
   SpriteMaterial,
   BufferAttribute,
   DynamicDrawUsage,
+  SubtractiveBlending,
 } from "three";
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 
@@ -51,7 +52,7 @@ export default class TitanImageSD extends Sprite {
     this.material.alphaTest = 0.01;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      this.material.blending = MultiplyBlending;
+      this.material.blending = SubtractiveBlending;
     }
 
     this.castShadow = false;

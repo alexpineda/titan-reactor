@@ -1,7 +1,7 @@
 /**
  * Maintains two queues, one marked and the other unmarked moving between the two as mark() and unmark() are called.
  */
-export default class MarkedQueue {
+export default class MarkedObjectPool {
   constructor(items) {
     this.marked = [];
     this.unmarked = items;

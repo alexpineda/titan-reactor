@@ -2,7 +2,7 @@ import BufferList from "bl";
 import { range } from "ramda";
 import EventEmitter from "events";
 import ReadState from "./ReadState";
-import MarkedQueue from "./MarkedQueue";
+import MarkedObjectPool from "./MarkedObjectPool";
 import FrameBW from "./FrameBW";
 
 /**
@@ -19,7 +19,7 @@ export default class StreamGameStateReader extends EventEmitter {
     this._state = new ReadState();
     this._lastReadFrame = 0;
     this._bytesRead = 0;
-    this.frames = new MarkedQueue(
+    this.frames = new MarkedObjectPool(
       range(0, maxFramesLength).map(() => new FrameBW())
     );
 

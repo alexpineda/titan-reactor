@@ -22,16 +22,4 @@ export default class TilesBW extends ContiguousContainer {
   get flags() {
     return this._readU16(2);
   }
-
-  get hasCreep() {
-    return (this.flags & flags.hasCreep) != 0;
-  }
-
-  get hasCreepReceding() {
-    return (this.flags & flags.creepReceding) != 0;
-  }
-
-  get hasTemporaryCreep() {
-    return (this.flags & flags.temporaryCreep) != 0;
-  }
 }

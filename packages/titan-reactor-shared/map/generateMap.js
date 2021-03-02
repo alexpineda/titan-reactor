@@ -71,10 +71,28 @@ export const generateTileData = async (
     ...mapData,
   });
 
-  const creepEdgesTextureHD = MapHD.renderCreepTexture(renderer, creepGrpHD);
-  const creepEdgesTextureSD = await MapSD.renderCreepTexture(
+  const creepEdgesTextureHD = MapHD.renderCreepEdgesTexture(
+    renderer,
+    creepGrpHD
+  );
+
+  const creepTextureHD = MapHD.renderCreepTexture(
+    renderer,
+    hdTiles,
+    tilegroupU16
+  );
+
+  const creepEdgesTextureSD = await MapSD.renderCreepEdgesTexture(
     creepGrpSD,
     palette
+  );
+
+  const creepTextureSD = MapSD.renderCreepTexture(
+    palette,
+    megatiles,
+    minitiles,
+    tilegroupU16,
+    renderer.capabilities.getMaxAnisotropy()
   );
 
   restoreRenderer(renderer);
@@ -89,6 +107,8 @@ export const generateTileData = async (
     mapHd,
     creepEdgesTextureSD,
     creepEdgesTextureHD,
+    creepTextureHD,
+    creepTextureSD,
   };
 };
 
@@ -103,6 +123,8 @@ export const generateMesh = (renderer, tileData) => {
     mapHd,
     creepEdgesTextureSD,
     creepEdgesTextureHD,
+    creepTextureHD,
+    creepTextureSD,
     waterMasks,
     waterMasksDds,
     waterNormal1,
@@ -113,11 +135,7 @@ export const generateMesh = (renderer, tileData) => {
   const camera = new THREE.PerspectiveCamera();
   clearRenderer(renderer);
 
-  const composer = new EffectComposer(renderer, {
-    frameBufferType: HalfFloatType,
-  });
-  composer.autoRenderToScreen = true;
-
+  //#region texture definitions
   const map = new THREE.DataTexture(
     mapData.diffuse,
     mapWidth * 32,
@@ -153,10 +171,20 @@ export const generateMesh = (renderer, tileData) => {
     creepEdgesBytes,
     mapWidth,
     mapHeight,
-    THREE.RedIntegerFormat,
+    THREE.LuminanceFormat,
     THREE.UnsignedByteType
   );
-  mapTilesMap.flipY = true;
+  creepEdgesValues.flipY = true;
+
+  const creepBytes = new Uint8Array(mapWidth * mapHeight);
+  const creepValues = new THREE.DataTexture(
+    creepBytes,
+    mapWidth,
+    mapHeight,
+    THREE.LuminanceFormat,
+    THREE.UnsignedByteType
+  );
+  creepValues.flipY = true;
 
   const displacementDetailsMap = new THREE.DataTexture(
     mapData.displacementDetail,
@@ -225,6 +253,8 @@ export const generateMesh = (renderer, tileData) => {
     THREE.FloatType
   );
 
+  //#endregion texture definitions
+
   const levelsMtx = new THREE.Matrix3();
   const max = options.elevationLevels.reduce(
     (memo, val) => (val > memo ? val : memo),
@@ -240,6 +270,12 @@ export const generateMesh = (renderer, tileData) => {
   );
 
   levelsMtx.set(...normalLevels, 0, 0);
+
+  //#region composer
+  const composer = new EffectComposer(renderer, {
+    frameBufferType: HalfFloatType,
+  });
+  composer.autoRenderToScreen = true;
 
   composer.setSize(
     mapWidth * options.displaceDimensionScale,
@@ -312,8 +348,11 @@ export const generateMesh = (renderer, tileData) => {
   if (options.secondPass) {
     composer.render(0.01);
   }
+  //#endregion composer
 
+  //#region sd map
   const tileAnimationCounter = { value: 0 };
+  const sharedCreepValues = { value: creepValues };
   const mat = new THREE.MeshStandardMaterial({
     map,
     bumpMap: map,
@@ -373,17 +412,55 @@ export const generateMesh = (renderer, tileData) => {
 
         vec4 texelColor = mapTexelToLinear(paletteColor);
         diffuseColor *= texelColor;
+
+
+        //sd creep
+        float creepF = texture2D(creep, vUv).r;
+        float creepEdge = texture2D(creepEdges, vUv).r;
+
+        if (creepF > 0.) {
+
+          //scale and translate creepF to omit first empty tile
+          creepF = creepF * 255./13. * 13./14. + 1./14.;
+          float tilex = mod(vUv.x, invMapResolution.x) * mapToCreepResolution.x + creepF;
+          float tiley = mod(vUv.y, invMapResolution.y) * mapToCreepResolution.y;
+
+          // diffuseColor = vec4(tilex, 0., 0., 1.);
+          diffuseColor = mapTexelToLinear(texture2D(creepTexture, vec2(tilex,tiley)));
+
+        } 
+        // else if (creepEdge > 0.) {
+
+        //   float cy = floor(creepEdge / creepEdgesResolution.x) / creepEdgesResolution.y;
+        //   float cx = mod(creepEdge, creepEdgesResolution.x) / creepEdgesResolution.x;
+        //   vec4 creepColor = texture2D(creepEdgesTexture, vec2(cx,cy));
+        //   diffuseColor = mix(diffuseColor, creepColor, 1. - creepColor.a);
+
+        // }
       `
       );
 
       shader.fragmentShader = `
         precision highp usampler2D;
+        precision highp isampler2D;
         uniform sampler2D palette;
         uniform usampler2D paletteIndices;
         uniform ivec2 index1;
         uniform ivec2 index2;
         uniform ivec2 index3;
         uniform int counter;
+
+
+        // creep
+        uniform vec2 invMapResolution;
+        uniform vec2 mapToCreepResolution;
+        uniform sampler2D creep;
+        uniform sampler2D creepTexture;
+        uniform vec2 creepResolution;
+
+        uniform sampler2D creepEdges;
+        uniform sampler2D creepEdgesTexture;
+        uniform vec2 creepEdgesResolution;
 
         // vec3 blendNormal(vec3 normal){
         //   vec3 blending = abs(normal);
@@ -421,24 +498,39 @@ export const generateMesh = (renderer, tileData) => {
         shader.uniforms.index3 = { value: index3 };
       }
 
-      shader.uniforms.creepEdgesValues = { value: creepEdgesValues };
-      shader.uniforms.creepEdgesMap = {
+      shader.uniforms.invMapResolution = {
+        value: new Vector2(1 / mapWidth, 1 / mapHeight),
+      };
+      shader.uniforms.mapToCreepResolution = {
+        value: new Vector2(
+          mapWidth / (creepTextureSD.width / 32),
+          mapHeight / (creepTextureSD.height / 32)
+        ),
+      };
+      shader.uniforms.creep = sharedCreepValues;
+      shader.uniforms.creepEdges = { value: creepEdgesValues };
+      shader.uniforms.creepEdgesTexture = {
         value: creepEdgesTextureSD.texture,
       };
       shader.uniforms.creepEdgesResolution = {
         value: new Vector2(
-          creepEdgesTextureSD.width,
-          creepEdgesTextureSD.height
+          creepEdgesTextureSD.width / 32,
+          creepEdgesTextureSD.height / 32
         ),
       };
+      shader.uniforms.creepTexture = {
+        value: creepTextureSD.texture,
+      };
+      shader.uniforms.creepResolution = {
+        value: new Vector2(
+          creepTextureSD.width / 32,
+          creepTextureSD.height / 32
+        ),
+      };
+      console.log(shader);
     },
   });
   mat.userData.tileAnimationCounter = tileAnimationCounter;
-
-  // const gl = renderer.getContext();
-  //   //void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, ArrayBufferView? pixels)
-  // const uint8Array = new Uint8Array(width * height * 4);
-  // gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, uint8Array);
 
   const displaceCanvas = document.createElement("canvas");
   displaceCanvas.width = mapWidth * options.displaceDimensionScale;
@@ -533,7 +625,9 @@ export const generateMesh = (renderer, tileData) => {
     terrain.userData.elevationsMaterial,
     terrain.userData.mat,
   ];
+  //#endregion sd map
 
+  //#region hd map
   const hdTerrainGroup = new THREE.Group();
   for (let x = 0; x < mapHd.quartileStrideW; x++) {
     for (let y = 0; y < mapHd.quartileStrideH; y++) {
@@ -563,16 +657,61 @@ export const generateMesh = (renderer, tileData) => {
         bumpMap: mapHd.mapQuartiles[x][y],
         bumpScale: options.bumpScale,
         onBeforeCompile: function (shader) {
-          // let fs = shader.fragmentShader;
-          // fs = fs.replace(
-          //   "#include <map_fragment>",
-          //   `
-          //creepEdgesMap
-          shader.uniforms.quartile = {
+          let fs = shader.fragmentShader;
+          fs = fs.replace(
+            "#include <map_fragment>",
+            `
+            #include <map_fragment>
+
+          // int creepF = texture2D(creep, vUv * quartileResolution + quartileOffset).r;
+          int creepF = texture2D(creep, vUv).r;
+          float creepEdge = texture2D(creepEdges, vUv * quartileResolution + quartileOffset).r;
+  
+          
+          if (creepF > 0) {
+            diffuseColor = vec4(1., 0. , 1., 1.);
+  
+            // creepF = creepF - 1;
+            // float cy = floor(creepF / creepResolution.x) / creepResolution.y;
+            // float cx = mod(creepF, creepResolution.x) / creepResolution.x;
+            // diffuseColor =  texture2D(creepTexture, vec2(cx,cy));
+  
+          } else if (creepEdge > 0.) {
+  
+            float cy = floor(creepEdge / creepEdgesResolution.x) / creepEdgesResolution.y;
+            float cx = mod(creepEdge, creepEdgesResolution.x) / creepEdgesResolution.x;
+            vec4 creepColor = texture2D(creepEdgesTexture, vec2(cx,cy));
+            diffuseColor = mix(diffuseColor, creepColor, 1. - creepColor.a);
+  
+          }
+          
+          `
+          );
+          shader.fragmentShader = `
+            precision highp isampler2D;
+            uniform vec2 quartileResolution;
+            uniform vec2 quartileOffset;
+
+            // creep
+            uniform isampler2D creep;
+            uniform sampler2D creepTexture;
+            uniform vec2 creepResolution;
+
+            uniform sampler2D creepEdges;
+            uniform sampler2D creepEdgesTexture;
+            uniform vec2 creepEdgesResolution;
+
+            ${fs}
+        `;
+          shader.uniforms.quartileResolution = {
             value: new Vector2(w / mapWidth, h / mapHeight),
           };
-          shader.uniforms.creepEdgesValues = { value: creepEdgesValues };
-          shader.uniforms.creepEdgesMap = {
+          shader.uniforms.quartileOffset = {
+            value: new Vector2((w * x) / mapWidth, (h * y) / mapHeight),
+          };
+          shader.uniforms.creepEdges = { value: creepEdgesValues };
+          shader.uniforms.creep = sharedCreepValues;
+          shader.uniforms.creepEdgesTexture = {
             value: creepEdgesTextureHD.texture,
           };
           shader.uniforms.creepEdgesResolution = {
@@ -580,6 +719,12 @@ export const generateMesh = (renderer, tileData) => {
               creepEdgesTextureHD.width,
               creepEdgesTextureHD.height
             ),
+          };
+          shader.uniforms.creepTexture = {
+            value: creepTextureHD.texture,
+          };
+          shader.uniforms.creepResolution = {
+            value: new Vector2(creepTextureHD.width, creepTextureHD.height),
           };
         },
       });
@@ -602,15 +747,22 @@ export const generateMesh = (renderer, tileData) => {
       //   hdTerrains.push(hdTerrain);
     }
   }
+  //#endregion hd map
+
   terrain.visible = true;
   hdTerrainGroup.visible = true;
 
   // DEBUGGGG
-  // hdTerrainGroup.creepEdgesTextureHD = creepEdgesTextureHD;
-  // hdTerrainGroup.creepEdgesTextureSD = rgbToCanvas(
-  //   creepEdgesTextureSD.image,
-  //   "rgba"
-  // );
+  hdTerrainGroup.creepEdgesTextureHD = creepEdgesTextureHD.texture.image;
+  hdTerrainGroup.creepEdgesTextureSD = rgbToCanvas(
+    creepEdgesTextureSD.texture.image,
+    "rgba"
+  );
+  hdTerrainGroup.creepTextureHD = creepTextureHD.texture.image;
+  hdTerrainGroup.creepTextureSD = rgbToCanvas(
+    creepTextureSD.texture.image,
+    "rgba"
+  );
 
   terrain.name = "Terrain";
   hdTerrainGroup.name = "TerrainHD";
@@ -622,5 +774,5 @@ export const generateMesh = (renderer, tileData) => {
   hdTerrainGroup.matrixAutoUpdate = false;
   hdTerrainGroup.updateMatrix();
 
-  return [terrain, hdTerrainGroup, displaceCanvas];
+  return [terrain, hdTerrainGroup, displaceCanvas, sharedCreepValues];
 };

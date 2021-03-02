@@ -105,10 +105,18 @@ export default class FogOfWar {
   }
 
   isVisible(x, y) {
-    return this.imageData[y * this.width + x] > Explored;
+    return this._toBuffer[y * this.width + x] === Visible;
   }
 
   isExplored(x, y) {
+    return this._toBuffer[y * this.width + x] === Explored;
+  }
+
+  isSomewhatVisible(x, y) {
+    return this.imageData[y * this.width + x] > Explored;
+  }
+
+  isSomewhatExplored(x, y) {
     return this.imageData[y * this.width + x] > 0;
   }
 

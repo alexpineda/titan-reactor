@@ -1,11 +1,18 @@
+import { MathUtils } from "three";
+import Creep from "titan-reactor-shared/map/Creep";
+import ImagesBW from "./bw/ImagesBW";
 import SoundsBW from "./bw/SoundsBW";
+import SpritesBW from "./bw/SpritesBW";
 import TilesBW from "./bw/TilesBW";
 import UnitsBW from "./bw/UnitsBW";
 import BWFrameScene from "./BWFrameScene";
+import Sprite from "./Sprite";
 
 export default class BWFrameSceneBuilder {
   constructor(
     scene,
+    mapWidth,
+    mapHeight,
     minimapScene,
     bwDat,
     pxToGameUnit,
@@ -18,8 +25,18 @@ export default class BWFrameSceneBuilder {
     this.unitsBW = new UnitsBW(bwDat);
     this.tilesBW = new TilesBW();
     this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
+    this.spritesBW = new SpritesBW(bwDat);
+    this.imagesBW = new ImagesBW(bwDat);
+    this.pxToGameUnit = pxToGameUnit;
+    this.getTerrainY = getTerrainY;
+    this.creep = new Creep(mapWidth, mapHeight, scene.creepUniform.value);
     this.playersById = playersById;
     this.fogOfWar = fogOfWar;
+
+    this.sprites = new Map();
+    this.images = new Map();
+    this.units = new Map();
+    this.unitsBySpriteId = new Map();
   }
 
   buildStart(nextFrame, updateMinimap) {
@@ -73,8 +90,8 @@ export default class BWFrameSceneBuilder {
     this.unitsBW.count = this.nextFrame.unitCount;
     for (const minimapUnit of units.refresh(
       this.unitsBW,
-      this.bwScene.units,
-      this.bwScene.unitsBySpriteId
+      this.units,
+      this.unitsBySpriteId
     )) {
       if (this.updateMinimap && minimapUnit) {
         minimapUnit.visible = minimapUnit.userData.isResourceContainer
@@ -93,26 +110,117 @@ export default class BWFrameSceneBuilder {
    * @param {ReplaySprites} sprites
    * @param {ProjectedCameraView} view
    */
-  buildSprites(sprites, view, delta) {
-    for (const sprite of sprites.refresh(
-      this.nextFrame,
-      this.bwScene.unitsBySpriteId,
-      this.bwScene.sprites,
-      view.viewBW,
-      delta
-    )) {
-      if (
-        sprite.userData.isDoodad ||
-        (sprite.userData.spriteUnit &&
-          sprite.userData.spriteUnit.isResourceContainer)
-      ) {
-        sprite.visible = true;
+  buildSprites(view, delta, createImage) {
+    this.spritesBW.buffer = this.nextFrame.sprites;
+    this.spritesBW.count = this.nextFrame.spriteCount;
+
+    // we set count below
+    this.imagesBW.buffer = this.nextFrame.images;
+
+    for (const spriteBW of this.spritesBW.items()) {
+      // if (
+      //   spriteBW.x < view.viewBW.left ||
+      //   spriteBW.y < view.viewBW.top ||
+      //   spriteBW.x > view.viewBW.right ||
+      //   spriteBW.y > view.viewBW.bottom
+      // ) {
+      //   continue;
+      // }
+
+      let sprite = this.sprites.get(spriteBW.index);
+      if (!sprite) {
+        sprite = new Sprite(spriteBW.index);
+        this.sprites.set(spriteBW.index, sprite);
       } else {
-        sprite.visible = this.fogOfWar.isVisible(
-          sprite.userData.tileX,
-          sprite.userData.tileY
-        );
+        sprite.clear();
       }
+
+      sprite.renderOrder = spriteBW.order * 10;
+      let _imageRenderOrder = sprite.renderOrder;
+
+      const x = this.pxToGameUnit.x(spriteBW.x);
+      let z = this.pxToGameUnit.y(spriteBW.y);
+      let y = this.getTerrainY(x, z);
+
+      sprite.unit = this.unitsBySpriteId.get(spriteBW.index);
+      if (sprite.unit) {
+        if (sprite.unit.isFlying || sprite.unit.isFlyingBuilding) {
+          //@todo: get max terrain height + 1 for max
+          //use a different step rather than 2? based on elevations?
+
+          // undo the y offset for floating building since we manage that ourselves
+          if (sprite.unit.isFlyingBuilding && sprite.unit.isFlying) {
+            z = z - 42 / 32;
+          }
+
+          const targetY = sprite.unit.isFlying ? Math.min(6, y + 4) : y;
+          if (!sprite.initialized) {
+            y = targetY;
+          } else {
+            y = MathUtils.damp(sprite.position.y, targetY, 0.0001, delta);
+          }
+        }
+      }
+
+      sprite.position.set(x, y, z);
+
+      sprite.initialized = true;
+      const player = this.playersById[spriteBW.owner];
+
+      // const buildingIsExplored =
+      //   sprite.unit &&
+      //   sprite.unit.isBuilding &&
+      //   this.fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
+
+      // doodads and resources are always visible
+      sprite.visible =
+        spriteBW.owner === 11 ||
+        spriteBW.spriteType.image.iscript === 336 ||
+        spriteBW.spriteType.image.iscript === 337 ||
+        this.fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
+
+      // const dontUpdate =
+      //   buildingIsExplored &&
+      //   !this.fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
+
+      for (let image of this.imagesBW.reverse(spriteBW.imageCount)) {
+        if (image.hidden) continue;
+
+        const titanImage =
+          sprite.images.get(image.id) || createImage(image.id, sprite);
+        if (!titanImage) continue;
+        sprite.add(titanImage);
+
+        //don't update the image so that explored fog of war shows last played frame
+        if (!sprite.visible) {
+          continue;
+        }
+
+        if (player) {
+          titanImage.setTeamColor(player.threeColor);
+        }
+        titanImage.position.x = image.x / 32;
+        titanImage.position.z = image.y / 32;
+        titanImage.renderOrder = _imageRenderOrder++;
+
+        if (sprite.unit) {
+          //@todo move this to material
+          if (!image.isShadow) {
+            titanImage.material.opacity = sprite.unit.isCloaked ? 0.5 : 1;
+          }
+
+          // if (spriteBW.mainImageIndex === image.index) {
+          //   titanImage.setWarpingIn(sprite.unit.warpingIn);
+          // }
+        }
+
+        titanImage.setFrame(image.frameIndex, image.flipped);
+
+        if (!sprite.images.has(image.id)) {
+          sprite.images.set(image.id, titanImage);
+        }
+      }
+
       this.bwScene.add(sprite);
     }
   }
@@ -122,5 +230,16 @@ export default class BWFrameSceneBuilder {
     this.tilesBW.count = this.nextFrame.tilesCount;
 
     this.fogOfWar.generate(this.tilesBW, playerVisionIds);
+  }
+
+  buildCreep() {
+    this.tilesBW.buffer = this.nextFrame.tiles;
+    this.tilesBW.count = this.nextFrame.tilesCount;
+
+    this.creep.generate(this.tilesBW);
+  }
+
+  compile(...args) {
+    this.bwScene.compile(...args);
   }
 }

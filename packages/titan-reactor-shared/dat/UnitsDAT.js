@@ -27,7 +27,7 @@ export class UnitDAT {
   }
 
   _flag(shift) {
-    return !!(this.specialAbilityFlags & (1 << shift));
+    return this.specialAbilityFlags & (1 << shift);
   }
 
   get isBuilding() {

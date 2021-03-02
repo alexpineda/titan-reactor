@@ -42,9 +42,16 @@ export class TitanReactorScene extends Scene {
       this.anisotropy
     );
 
-    const [terrain, terrainHD, displaceCanvas] = await terrainMesh.generate({
+    const [
+      terrain,
+      terrainHD,
+      displaceCanvas,
+      creepUniform,
+    ] = await terrainMesh.generate({
       displacementScale,
     });
+
+    this.creepUniform = creepUniform;
 
     const bgTerrain = Background(w, h, terrain.material.map);
 
