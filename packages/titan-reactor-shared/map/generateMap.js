@@ -663,27 +663,34 @@ export const generateMesh = (renderer, tileData) => {
             `
             #include <map_fragment>
 
-          // int creepF = texture2D(creep, vUv * quartileResolution + quartileOffset).r;
-          int creepF = texture2D(creep, vUv).r;
-          float creepEdge = texture2D(creepEdges, vUv * quartileResolution + quartileOffset).r;
+          //creep hd
+
+          //reposition the quartile y offset, yeah shits getting weird :S
+          vec2 qo = vec2(quartileOffset.x, (1. - quartileResolution.y) - quartileOffset.y);
+
+          vec2 creepUv = vUv * quartileResolution + qo;
+          float creepF = texture2D(creep, creepUv).r;
+          float creepEdge = texture2D(creepEdges, creepUv).r;
+
+          if (creepF > 0.) {
+
+            //scale and translate creepF to omit first empty tile
+            float creepX = creepF * 255./13. * 13./14. + 1./14.;
+            float tilex = mod(vUv.x, invMapResolution.x) * mapToCreepResolution.x + creepX;
+            float tiley = mod(vUv.y, invMapResolution.y) * mapToCreepResolution.y;
   
-          
-          if (creepF > 0) {
-            diffuseColor = vec4(1., 0. , 1., 1.);
-  
-            // creepF = creepF - 1;
-            // float cy = floor(creepF / creepResolution.x) / creepResolution.y;
-            // float cx = mod(creepF, creepResolution.x) / creepResolution.x;
-            // diffuseColor =  texture2D(creepTexture, vec2(cx,cy));
-  
-          } else if (creepEdge > 0.) {
-  
-            float cy = floor(creepEdge / creepEdgesResolution.x) / creepEdgesResolution.y;
-            float cx = mod(creepEdge, creepEdgesResolution.x) / creepEdgesResolution.x;
-            vec4 creepColor = texture2D(creepEdgesTexture, vec2(cx,cy));
-            diffuseColor = mix(diffuseColor, creepColor, 1. - creepColor.a);
-  
+            vec4 creepColor = mapTexelToLinear(texture2D(creepTexture, vec2(tilex,tiley)));
+            diffuseColor = creepColor;
+            
           }
+          // if (creepEdge > 0.) {
+  
+          //   float cy = floor(creepEdge / creepEdgesResolution.x) / creepEdgesResolution.y;
+          //   float cx = mod(creepEdge, creepEdgesResolution.x) / creepEdgesResolution.x;
+          //   vec4 creepColor = texture2D(creepEdgesTexture, vec2(cx,cy));
+          //   diffuseColor = mix(diffuseColor, creepColor, 1. - creepColor.a);
+  
+          // }
           
           `
           );
@@ -691,9 +698,11 @@ export const generateMesh = (renderer, tileData) => {
             precision highp isampler2D;
             uniform vec2 quartileResolution;
             uniform vec2 quartileOffset;
+            uniform vec2 invMapResolution;
+            uniform vec2 mapToCreepResolution;
 
             // creep
-            uniform isampler2D creep;
+            uniform sampler2D creep;
             uniform sampler2D creepTexture;
             uniform vec2 creepResolution;
 
@@ -709,6 +718,15 @@ export const generateMesh = (renderer, tileData) => {
           shader.uniforms.quartileOffset = {
             value: new Vector2((w * x) / mapWidth, (h * y) / mapHeight),
           };
+          shader.uniforms.invMapResolution = {
+            value: new Vector2(1 / w, 1 / h),
+          };
+          shader.uniforms.mapToCreepResolution = {
+            value: new Vector2(
+              w / (creepTextureHD.width / 128),
+              h / (creepTextureHD.height / 128)
+            ),
+          };
           shader.uniforms.creepEdges = { value: creepEdgesValues };
           shader.uniforms.creep = sharedCreepValues;
           shader.uniforms.creepEdgesTexture = {
@@ -716,15 +734,18 @@ export const generateMesh = (renderer, tileData) => {
           };
           shader.uniforms.creepEdgesResolution = {
             value: new Vector2(
-              creepEdgesTextureHD.width,
-              creepEdgesTextureHD.height
+              creepEdgesTextureHD.width / 128,
+              creepEdgesTextureHD.height / 128
             ),
           };
           shader.uniforms.creepTexture = {
             value: creepTextureHD.texture,
           };
           shader.uniforms.creepResolution = {
-            value: new Vector2(creepTextureHD.width, creepTextureHD.height),
+            value: new Vector2(
+              creepTextureHD.width / 128,
+              creepTextureHD.height / 128
+            ),
           };
         },
       });
