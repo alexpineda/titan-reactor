@@ -120,4 +120,12 @@ export default class UnitsBW extends ContiguousContainer {
       (this.statusFlags & flags.passivelyCloaked) != 0
     );
   }
+
+  get tileX() {
+    return Math.floor(this.x / 32);
+  }
+
+  get tileY() {
+    return Math.floor(this.y / 32);
+  }
 }

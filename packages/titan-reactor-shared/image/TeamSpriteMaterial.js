@@ -85,7 +85,7 @@ class TeamSpriteMaterial extends SpriteMaterial {
 
     if (this.isShadow) {
       mapFragments.push([
-        "\ndiffuseColor = vec4(vec3(diffuseColor.r), diffuseColor.a * 0.5);\n",
+        "\ndiffuseColor = vec4((vec3(diffuseColor.a)) * 0.5, diffuseColor.a);\n",
       ]);
     }
     //get the diffuseColor from map_fragment and mix with team mask

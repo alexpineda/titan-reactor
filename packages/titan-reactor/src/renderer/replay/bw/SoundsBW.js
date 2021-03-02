@@ -57,6 +57,14 @@ export default class SoundsBW extends ContiguousContainer {
     return this.bwDat.sounds[this.id].priority;
   }
 
+  get tileX() {
+    return Math.floor(this.x / 32);
+  }
+
+  get tileY() {
+    return Math.floor(this.y / 32);
+  }
+
   object() {
     return {
       id: this.id,

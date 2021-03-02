@@ -55,4 +55,12 @@ export default class SpritesBW extends ContiguousContainer {
   get order() {
     return this.offset;
   }
+
+  get tileX() {
+    return Math.floor(this.x / 32);
+  }
+
+  get tileY() {
+    return Math.floor(this.y / 32);
+  }
 }

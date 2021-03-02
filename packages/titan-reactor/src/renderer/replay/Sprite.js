@@ -18,34 +18,32 @@ export default class Sprite extends Object3D {
     this._imageRenderOrder = this.renderOrder;
 
     const x = this.pxToGameUnit.x(spriteBW.x);
-    const z = this.pxToGameUnit.y(spriteBW.y);
+    let z = this.pxToGameUnit.y(spriteBW.y);
     let y = this.getTerrainY(x, z);
 
     if (spriteUnit && (spriteUnit.isFlying || spriteUnit.isFlyingBuilding)) {
       //@todo: get max terrain height + 1 for max
       //use a different step rather than 2? based on elevations?
+
+      // undo the y offset for floating building since we manage that ourselves
+      // if (spriteUnit.isFlyingBuilding && spriteUnit.isFlying) {
+      //   z = z - 42 / 32;
+      // }
+
+      const targetY = spriteUnit.isFlying ? Math.min(6, y + 4) : y;
       if (!this.initialized) {
-        y = Math.min(6, y + 3);
+        y = targetY;
       } else {
-        y = MathUtils.damp(
-          this.position.y,
-          Math.min(6, y + 3),
-          window.lamda,
-          delta
-        );
+        y = MathUtils.damp(this.position.y, targetY, window.lamda, delta);
       }
     }
     this.initialized = true;
 
     this.position.set(x, y, z);
     this.userData.spriteUnit = spriteUnit;
-    this.userData.tileX = Math.floor(spriteBW.x / 32);
-    this.userData.tileY = Math.floor(spriteBW.y / 32);
-    this.userData.clickable = false;
+    this.userData.tileX = spriteBW.tileX;
+    this.userData.tileY = spriteBW.tileY;
     this.userData.isDoodad = false;
-    if (spriteUnit) {
-      spriteUnit.clickable = false;
-    }
 
     for (let image of imagesBW.reverse(spriteBW.imageCount)) {
       if (image.hidden) continue;
@@ -65,10 +63,6 @@ export default class Sprite extends Object3D {
       titanImage.setFrame(image.frameIndex, image.flipped);
       titanImage.visible = !image.hidden;
 
-      if (image.index === spriteBW.mainImageIndex) {
-        this.userData.clickable = image.imageType.clickable;
-      }
-
       if (image.imageType.iscript === 336 || image.imageType.iscript === 337) {
         this.userData.isDoodad = true;
       }
@@ -76,14 +70,12 @@ export default class Sprite extends Object3D {
       if (spriteUnit) {
         //@todo move this to material
         if (!image.isShadow) {
-          titanImage.material.opacity = spriteUnit.cloaked ? 0.5 : 1;
+          titanImage.material.opacity = spriteUnit.isCloaked ? 0.5 : 1;
         }
 
         if (spriteBW.mainImageIndex === image.index) {
           titanImage.setWarpingIn(spriteUnit.warpingIn);
         }
-
-        spriteUnit.clickable = this.userData.clickable;
       }
 
       if (!this.images.has(image.id)) {

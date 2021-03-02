@@ -67,7 +67,7 @@ export default class TitanImageHD extends Sprite {
     this.material.transparent = true;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      // this.material.premultipliedAlpha = true;
+      this.material.blending = SubtractiveBlending;
     }
 
     this.castShadow = false;

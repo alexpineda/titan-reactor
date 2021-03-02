@@ -49,12 +49,7 @@ export default class BWFrameSceneBuilder {
         view.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        if (
-          !this.fogOfWar.isVisible(
-            Math.floor(sound.x / 32),
-            Math.floor(sound.y / 32)
-          )
-        ) {
+        if (!this.fogOfWar.isVisible(sound.tileX, sound.tileY)) {
           continue;
         }
 

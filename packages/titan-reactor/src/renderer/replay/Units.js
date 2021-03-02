@@ -62,8 +62,8 @@ class Units {
     unit.minimapPoint.position.x = this.pxToGameUnit.x(unitBw.x);
     unit.minimapPoint.position.z = this.pxToGameUnit.y(unitBw.y);
     unit.minimapPoint.position.y = 1;
-    unit.minimapPoint.userData.tileX = Math.floor(unitBw.x / 32);
-    unit.minimapPoint.userData.tileY = Math.floor(unitBw.y / 32);
+    unit.minimapPoint.userData.tileX = unitBw.tileX;
+    unit.minimapPoint.userData.tileY = unitBw.tileY;
     unit.minimapPoint.userData.isResourceContainer = isResourceContainer;
 
     if (isResourceContainer) {
@@ -99,8 +99,7 @@ class Units {
       unit.isBuilding = unitBw.unitType.isBuilding;
       unit.isFlying = unitBw.isFlying;
       unit.isCloaked = unitBw.isCloaked;
-      //@todo: possibly simplify this to just assign to isFlying as well
-      unit.isFlyingBuilding = unitBw.isFlyingBuilding;
+      unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
       unit.warpingIn = 0;
       if (
         unitBw.unitType.isBuilding &&

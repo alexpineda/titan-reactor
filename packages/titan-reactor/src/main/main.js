@@ -49,6 +49,7 @@ import BufferList from "bl";
 import ReplayReadFile from "../renderer/replay/bw/ReplayReadFile";
 
 const gotTheLock = app.requestSingleInstanceLock();
+app.commandLine.appendSwitch("disable-frame-rate-limit");
 
 let gameWindow;
 let gameStateReader;
@@ -102,7 +103,6 @@ function createWindow() {
 }
 
 if (gotTheLock) {
-  app.commandLine.appendSwitch("disable-frame-rate-limit");
   // app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
   app.commandLine.appendSwitch("js-flags", "--expose_gc");
   app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
