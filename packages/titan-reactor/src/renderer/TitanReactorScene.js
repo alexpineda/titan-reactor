@@ -47,11 +47,13 @@ export class TitanReactorScene extends Scene {
       terrainHD,
       displaceCanvas,
       creepUniform,
+      creepEdgesUniform,
     ] = await terrainMesh.generate({
       displacementScale,
     });
 
     this.creepUniform = creepUniform;
+    this.creepEdgesUniform = creepEdgesUniform;
 
     const bgTerrain = Background(w, h, terrain.material.map);
 

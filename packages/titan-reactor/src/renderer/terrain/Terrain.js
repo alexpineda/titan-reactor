@@ -121,14 +121,14 @@ class Terrain {
       }
     );
 
-    const [sd, hd, d, creep] = generateMesh(renderer, mapData);
+    const [sd, hd, d, creep, creepEdges] = generateMesh(renderer, mapData);
     // sd.matrixAutoUpdate = false;
     // sd.updateMatrix();
     // hd.matrixAutoUpdate = false;
     // hd.updateMatrix();
 
     renderer.dispose();
-    return [sd, hd, d, creep];
+    return [sd, hd, d, creep, creepEdges];
   }
 }
 

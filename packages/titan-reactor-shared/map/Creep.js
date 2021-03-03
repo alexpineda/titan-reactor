@@ -77,12 +77,18 @@ const dirs = [
 ];
 
 export default class Creep {
-  constructor(mapWidth, mapHeight, creepValuesTexture) {
+  constructor(
+    mapWidth,
+    mapHeight,
+    creepValuesTexture,
+    creepEdgesValuesTexture
+  ) {
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
     this.creep = new Uint8Array(mapWidth * mapHeight);
     this.edges = new Uint8Array(mapWidth * mapHeight);
     this.creepValuesTexture = creepValuesTexture;
+    this.creepEdgesValuesTexture = creepEdgesValuesTexture;
   }
 
   hasCreep(tilesBw, x, y) {
@@ -123,6 +129,9 @@ export default class Creep {
     }
 
     this.creepValuesTexture.image.data = this.creep;
+    this.creepValuesTexture.needsUpdate = true;
+
+    this.creepEdgesValuesTexture.image.data = this.edges;
     this.creepValuesTexture.needsUpdate = true;
   }
 }

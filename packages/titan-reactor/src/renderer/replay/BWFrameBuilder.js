@@ -29,7 +29,12 @@ export default class BWFrameSceneBuilder {
     this.imagesBW = new ImagesBW(bwDat);
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
-    this.creep = new Creep(mapWidth, mapHeight, scene.creepUniform.value);
+    this.creep = new Creep(
+      mapWidth,
+      mapHeight,
+      scene.creepUniform.value,
+      scene.creepEdgesUniform.value
+    );
     this.playersById = playersById;
     this.fogOfWar = fogOfWar;
 

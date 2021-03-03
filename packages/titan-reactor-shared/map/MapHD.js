@@ -159,8 +159,8 @@ export default class MapHD {
 
   static renderCreepEdgesTexture(renderer, creepGrp) {
     const size = Math.ceil(Math.sqrt(creepGrp.length));
-    const width = size;
-    const height = size;
+    const width = 38;
+    const height = 1;
     const ortho = new OrthographicCamera(
       -width / 2,
       width / 2,
@@ -184,8 +184,8 @@ export default class MapHD {
     canvas.height = height * 128;
 
     for (let i = 0; i < creepGrp.length; i++) {
-      const x = i % width;
-      const y = Math.floor(i / width);
+      const x = i + 1;
+      const y = 0;
       const grp = creepGrp[i];
       const texture = loadHdTile(grp.dds);
 
@@ -193,7 +193,12 @@ export default class MapHD {
       mat.needsUpdate = true;
       mesh.scale.set(grp.w / 128, grp.h / 128, 1);
       mesh.position.x = x - width / 2 + grp.w / 256;
+      // if (x >= 1 && x <= 4) {
+      //   mesh.position.z = y - height / 2 + 1;
+      // } else {
       mesh.position.z = y - height / 2 + grp.h / 256;
+      // }
+      mesh.rotation.z = Math.PI;
       scene.add(mesh);
       renderer.render(scene, ortho);
       scene.remove(mesh);
@@ -203,7 +208,7 @@ export default class MapHD {
     const texture = new CanvasTexture(canvas);
     texture.encoding = sRGBEncoding;
     texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    texture.flipY = true;
+    // texture.flipY = true;
 
     mat.dispose();
 

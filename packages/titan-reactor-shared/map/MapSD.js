@@ -1,10 +1,18 @@
-import { DataTexture, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
+import {
+  ClampToEdgeWrapping,
+  DataTexture,
+  LinearFilter,
+  RGBAFormat,
+  sRGBEncoding,
+  UnsignedByteType,
+} from "three";
 import GrpSD from "../image/GrpSD";
 
 export default class MapSD {
   static async renderCreepEdgesTexture(creepGrp, palette) {
-    const stride = 7;
+    const stride = 37;
     const grpSD = new GrpSD();
+
     await grpSD.load(
       {
         readGrp: () => creepGrp,
@@ -13,9 +21,30 @@ export default class MapSD {
       },
       stride
     );
+
+    //extend the grp by 1 tile for empty tile
+    const newWidth = grpSD.width + 32;
+    const extendedImage = new Uint8Array(newWidth * grpSD.height * 4);
+
+    for (let i = 0; i < grpSD.width * grpSD.height * 4; i++) {
+      // if (i % 3 === 0) {
+      //   extendedImage[i] = 0;
+      // }
+      extendedImage[i + 32 * 4 * Math.ceil((i + 1) / (grpSD.width * 4))] =
+        grpSD.texture.image.data[i];
+    }
+
+    const texture = new DataTexture(extendedImage, newWidth, grpSD.height);
+    texture.flipY = true;
+    texture.minFilter = LinearFilter;
+    texture.magFilter = LinearFilter;
+    texture.wrapT = ClampToEdgeWrapping;
+    texture.wrapS = ClampToEdgeWrapping;
+    texture.encoding = sRGBEncoding;
+
     return {
-      texture: grpSD.texture,
-      width: grpSD.width,
+      texture,
+      width: newWidth,
       height: grpSD.height,
     };
   }
@@ -33,10 +62,10 @@ export default class MapSD {
 
     const diffuse = new Uint8Array(width * height * 32 * 32 * 4, 255);
     // draw an extra tile a the beginning, otherwise this offset for creep should be 36(Uint16)
-    let tileIndex = 35;
+    let tileIndex = 36;
 
-    for (let i = 0; i < 14; i++) {
-      const mapX = i;
+    for (let i = 0; i < 13; i++) {
+      const mapX = i + 1;
       const mapY = 0;
 
       // const mapX = i % width;
@@ -89,7 +118,7 @@ export default class MapSD {
       UnsignedByteType
     );
     texture.flipY = true;
-    // texture.encoding = sRGBEncoding;
+    texture.encoding = sRGBEncoding;
     texture.anisotropy = anisotropy;
     return { texture, width: width * 32, height: height * 32 };
   }
