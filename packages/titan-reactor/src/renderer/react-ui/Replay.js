@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import ReactTooltip from "react-tooltip";
 import { connect } from "react-redux";
 import WrappedElement from "./WrappedElement";
 import Minimap from "./replay/Minimap";
@@ -96,7 +95,6 @@ const Replay = ({
           onBackToMainMenu={() => {}}
         />
       )}
-      {settings.showTooltips && <ReactTooltip textColor="#cbd5e0" />}
       {showProduction && (
         <Production
           players={players}

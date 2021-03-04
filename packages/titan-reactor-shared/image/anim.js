@@ -110,12 +110,9 @@ export const Anim = (buf) => {
     });
   };
 
-  const spriteOffsets = [];
-  if (version !== versionSD) {
-    spriteOffsets.push(0x14c);
-  }
+  const offset = version == versionSD ? 0x14c + 999 * 4 : 0x14c;
 
-  const entries = bl.shallowSlice(spriteOffsets[0]);
+  const entries = bl.shallowSlice(offset);
   const sprite = parseSprite(entries);
 
   return {
