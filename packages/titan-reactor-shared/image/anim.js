@@ -36,30 +36,30 @@ export const Anim = (buf) => {
   if (magic !== "ANIM") {
     throw new Error("not an anim file");
   }
-  if (version === versionSD) {
-    throw new Error("sd not supported");
-  }
   if (version !== versionSD && numEntries != 1) {
     throw new Error("hd must have only 1 entry");
   }
 
-  const parseSprite = (sprite) => {
-    const numFrames = sprite.readUInt16LE(0);
+  let lastOffset = version == versionSD ? 0x14c + 999 * 4 : 0x14c;
+  const parseSprite = () => {
+    const data = bl.shallowSlice(lastOffset);
+    const numFrames = data.readUInt16LE(0);
     // sprite reference
     if (numFrames === 0) {
-      const refId = sprite.readInt16LE(2);
-      sprite.consume(4);
+      const refId = data.readInt16LE(2);
+      data.consume(4);
+      lastOffset = lastOffset + 4 + 8;
       return {
         refId,
       };
     }
-    const w = sprite.readUInt16LE(4);
-    const h = sprite.readUInt16LE(6);
-    const framesOffset = sprite.readUInt32LE(8);
-    sprite.consume(12);
-    const maps = parseTextures(sprite);
+    const w = data.readUInt16LE(4);
+    const h = data.readUInt16LE(6);
+    const framesOffset = data.readUInt32LE(8);
+    data.consume(12);
+    const maps = parseTextures(data);
     const frames = parseFrames(numFrames, framesOffset);
-
+    lastOffset = framesOffset + numFrames * 16;
     return {
       w,
       h,
@@ -98,7 +98,6 @@ export const Anim = (buf) => {
       const h = frames.readUInt16LE(10);
       const unk1 = frames.readUInt16LE(12);
       const unk2 = frames.readUInt16LE(14);
-
       return {
         x,
         y,
@@ -110,13 +109,13 @@ export const Anim = (buf) => {
     });
   };
 
-  const offset = version == versionSD ? 0x14c + 999 * 4 : 0x14c;
-
-  const entries = bl.shallowSlice(offset);
-  const sprite = parseSprite(entries);
+  const sprites = range(0, numEntries).map(() => parseSprite());
+  const sprite = sprites[0];
 
   return {
     sprite,
+    sprites,
     version,
+    numEntries,
   };
 };

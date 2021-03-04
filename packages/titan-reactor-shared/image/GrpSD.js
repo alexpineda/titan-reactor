@@ -1,12 +1,16 @@
 import {
   LinearFilter,
   ClampToEdgeWrapping,
-  RepeatWrapping,
+  LuminanceFormat,
   DataTexture,
   sRGBEncoding,
+  UnsignedByteType,
+  CompressedTexture,
 } from "three";
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import { Grp } from "bw-chk-modified/grp";
+import { Anim } from "./anim";
+import { DDSLoader } from "./DDSLoader";
 
 /**
  * Currently decoding the old way, maybe refactor to use anim?
@@ -18,8 +22,43 @@ export default class GrpSD {
     this.rez = "SD";
   }
 
-  async load({ readGrp, imageDef, palettes }, stride = 20) {
+  async load(
+    { readGrp, imageDef, palettes, sdAnim: anim },
+    stride = 20,
+    useOldMethod = true
+  ) {
     const grp = new Grp(await readGrp(), Buffer);
+
+    if (!useOldMethod) {
+      const getBuf = (map, offset = 0) =>
+        buf.slice(map.ddsOffset + offset, map.ddsOffset + offset + map.size);
+
+      if (anim.sprite.maps.diffuse) {
+        const ddsBuf = getBuf(anim.sprite.maps.diffuse);
+        this.diffuse = this._loadDDS(ddsBuf);
+      } else {
+        throw new Error("diffuse map required");
+      }
+
+      if (anim.sprite.maps.teamcolor) {
+        const ddsBuf = getBuf(anim.sprite.maps.teamcolor, 4);
+        const { w, h } = grp.maxDimensions();
+        this.teamcolor = new DataTexture(
+          ddsBuf,
+          w,
+          h,
+          LuminanceFormat,
+          UnsignedByteType
+        );
+      }
+
+      this.frames = anim.sprite.frames;
+      this.width = anim.sprite.maps.diffuse.width;
+      this.height = anim.sprite.maps.diffuse.height;
+      this.grpWidth = anim.sprite.w;
+      this.grpHeight = anim.sprite.h;
+      return;
+    }
 
     const getPalette = () => {
       if (imageDef.drawFunction === drawFunctions.useRemapping) {
@@ -123,6 +162,39 @@ export default class GrpSD {
       this.teamcolor.wrapT = ClampToEdgeWrapping;
       this.teamcolor.wrapS = ClampToEdgeWrapping;
     }
+  }
+
+  _loadDDS(buf, encoding = sRGBEncoding) {
+    const ddsLoader = new DDSLoader();
+
+    const texDatas = ddsLoader.parse(buf, true);
+
+    //ported from https://github.com/mrdoob/three.js/blob/45b0103e4dd9904b341d05ed991113f2f9edcc70/src/loaders/CompressedTextureLoader.js
+    if (texDatas.isCubemap) {
+      throw new Error("cubemap dds not supported");
+    }
+
+    const texture = new CompressedTexture(
+      texDatas.mipmaps,
+      texDatas.width,
+      texDatas.height
+    );
+
+    if (texDatas.mipmapCount === 1) {
+      texture.minFilter = LinearFilter;
+    }
+
+    texture.format = texDatas.format;
+    texture.needsUpdate = true;
+
+    //@todo encoding
+    texture.minFilter = LinearFilter;
+    texture.magFilter = LinearFilter;
+    texture.wrapT = ClampToEdgeWrapping;
+    texture.wrapS = ClampToEdgeWrapping;
+    texture.encoding = encoding;
+    texture.flipY = false;
+    return texture;
   }
 
   dispose() {

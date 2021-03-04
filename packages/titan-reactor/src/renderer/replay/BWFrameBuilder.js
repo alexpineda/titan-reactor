@@ -1,5 +1,6 @@
 import { MathUtils } from "three";
 import Creep from "titan-reactor-shared/map/Creep";
+import CreepBW from "./bw/CreepBW";
 import ImagesBW from "./bw/ImagesBW";
 import SoundsBW from "./bw/SoundsBW";
 import SpritesBW from "./bw/SpritesBW";
@@ -24,6 +25,7 @@ export default class BWFrameSceneBuilder {
     this.minimapBwScene = new BWFrameScene(minimapScene, 1);
     this.unitsBW = new UnitsBW(bwDat);
     this.tilesBW = new TilesBW();
+    this.creepBW = new CreepBW();
     this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
     this.spritesBW = new SpritesBW(bwDat);
     this.imagesBW = new ImagesBW(bwDat);
@@ -238,10 +240,10 @@ export default class BWFrameSceneBuilder {
   }
 
   buildCreep() {
-    this.tilesBW.buffer = this.nextFrame.tiles;
-    this.tilesBW.count = this.nextFrame.tilesCount;
+    this.creepBW.buffer = this.nextFrame.creep;
+    this.creepBW.count = this.nextFrame.creepCount;
 
-    this.creep.generate(this.tilesBW);
+    this.creep.generate(this.creepBW);
   }
 
   compile(...args) {

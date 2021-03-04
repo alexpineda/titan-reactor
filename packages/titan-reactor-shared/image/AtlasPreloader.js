@@ -1,4 +1,5 @@
 import { promises as fsPromises } from "fs";
+import { Anim } from "titan-reactor-shared/image/anim";
 
 /**
  * Can be found in refs via SD anim, however this list was conveniently provided by farty1billion
@@ -167,10 +168,18 @@ export default class AtlasPreloader {
     this.preloadAtlas = preloadAtlas;
     this.palettes = null;
 
-    this.refId = (id) => (hdRefs[id] !== undefined ? hdRefs[id] : id);
+    this.refId = (id) => {
+      if (this.sdAnim.sprites[id].refId !== undefined) {
+        return this.sdAnim.sprites[id].refId;
+      }
+      return id;
+      // (hdRefs[id] !== undefined ? hdRefs[id] : id);
+    };
 
     this.readGrp = (id) =>
       readFile(`unit/${this.bwDat.images[id].grpFile.replace("\\", "/")}`);
+
+    this.readSDAnim = (id) => this.sdAnim.sprites[this.refId(id)];
 
     this.readAnim = (id) =>
       readFile(`anim/main_${`00${this.refId(id)}`.slice(-3)}.anim`);
@@ -190,6 +199,10 @@ export default class AtlasPreloader {
         )
         .then((file) => file)
         .catch(() => null);
+  }
+
+  async init() {
+    this.sdAnim = Anim(await this.readFile("SD/mainSD.anim"));
   }
 
   async load(imageId) {
@@ -224,6 +237,7 @@ export default class AtlasPreloader {
       )}`.slice(-3)}.glb`,
       readNebula: () => this.readNebula(imageId),
       palettes: this.palettes,
+      sdAnim: this.readSDAnim,
     };
 
     const atlas = this.createAtlas();

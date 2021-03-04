@@ -3,6 +3,7 @@ import SpritesBW from "./SpritesBW";
 import ImagesBW from "./ImagesBW";
 import TilesBW from "./TilesBW";
 import UnitsBW from "./UnitsBW";
+import CreepBW from "./CreepBW";
 
 export default class ReadState {
   static get FrameCount() {
@@ -29,8 +30,12 @@ export default class ReadState {
     return 5;
   }
 
-  static get Sounds() {
+  static get Creep() {
     return 6;
+  }
+
+  static get Sounds() {
+    return 7;
   }
 
   constructor() {
@@ -61,6 +66,7 @@ export default class ReadState {
       frame.frame = buf.readInt32LE(0);
       this.currentFrame = frame.frame;
       frame.tilesCount = buf.readUInt32LE(4);
+      frame.creepCount = frame.tilesCount;
       frame.unitCount = buf.readInt32LE(8);
       frame.spriteCount = buf.readInt32LE(12);
       frame.imageCount = buf.readInt32LE(16);
@@ -79,6 +85,20 @@ export default class ReadState {
       }
 
       frame.setBuffer("tiles", buf, this.pos, size);
+      this.pos += size;
+
+      this.mode = ReadState.Creep;
+
+      return true;
+    }
+
+    if (this.mode === ReadState.Creep) {
+      const size = frame.creepCount * CreepBW.byteLength;
+      if (buf.length < this.pos + size) {
+        return false;
+      }
+
+      frame.setBuffer("creep", buf, this.pos, size);
       this.pos += size;
 
       this.mode = ReadState.Unit;

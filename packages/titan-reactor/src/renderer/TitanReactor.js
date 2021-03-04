@@ -158,6 +158,8 @@ export class TitanReactor {
       this.atlases
     );
 
+    await atlasPreloader.init();
+
     const imagesBW = new ImagesBW();
 
     const preloadAtlas = async (frames) => {
@@ -284,6 +286,8 @@ export class TitanReactor {
         this.chk.sprites.map(({ spriteId }) => spriteId)
       ),
     ];
+
+    await atlasPreloader.init();
 
     for (let imageId of imageIds) {
       await atlasPreloader.load(imageId);

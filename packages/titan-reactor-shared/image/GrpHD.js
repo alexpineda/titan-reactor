@@ -32,6 +32,12 @@ export default class GrpHD {
       this.teamcolor = this._loadDDS(ddsBuf);
     }
 
+    this.frames = anim.sprite.frames;
+    this.width = anim.sprite.maps.diffuse.width;
+    this.height = anim.sprite.maps.diffuse.height;
+    this.grpWidth = anim.sprite.w;
+    this.grpHeight = anim.sprite.h;
+
     // if (anim.sprite.maps.bright) {
     //   const ddsBuf = getBuf(anim.sprite.maps.bright);
     //   this.brightness = this._loadDDS(ddsBuf);
@@ -51,12 +57,6 @@ export default class GrpHD {
     //   const ddsBuf = getBuf(anim.sprite.maps.ao_depth);
     //   this.ao_depth = this._loadDDS(ddsBuf);
     // }
-
-    this.frames = anim.sprite.frames;
-    this.width = anim.sprite.maps.diffuse.width;
-    this.height = anim.sprite.maps.diffuse.height;
-    this.grpWidth = anim.sprite.w;
-    this.grpHeight = anim.sprite.h;
   }
 
   _loadDDS(buf, encoding = sRGBEncoding) {

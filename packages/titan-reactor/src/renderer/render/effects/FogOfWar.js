@@ -129,7 +129,7 @@ export default class FogOfWar {
     for (let i = 0; i < this.imageData.length; i++) {
       for (let player of players) {
         //explored
-        if ((~tileData.buffer.get(i * 4) & (1 << player)) !== 0) {
+        if ((~tileData.buffer.get(i * 2) & (1 << player)) !== 0) {
           this._toBuffer[i] = Explored;
           break;
         }
@@ -137,7 +137,7 @@ export default class FogOfWar {
 
       for (let player of players) {
         //visible
-        if ((~tileData.buffer.get(i * 4 + 1) & (1 << player)) !== 0) {
+        if ((~tileData.buffer.get(i * 2 + 1) & (1 << player)) !== 0) {
           this._toBuffer[i] = Visible;
           break;
         }

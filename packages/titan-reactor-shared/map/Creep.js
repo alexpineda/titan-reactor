@@ -91,17 +91,17 @@ export default class Creep {
     this.creepEdgesValuesTexture = creepEdgesValuesTexture;
   }
 
-  hasCreep(tilesBw, x, y) {
-    return tilesBw.buffer.readUInt16LE((y * this.mapWidth + x) * 4 + 2) & 0x40;
-  }
-
-  generate(tilesBw) {
+  /**
+   *
+   * @param {CreepBW} creepBW
+   */
+  generate(creepBW) {
     this.creep.fill(0);
     this.edges.fill(0);
 
     for (let x = 0; x < this.mapWidth; x++) {
       for (let y = 0; y < this.mapHeight; y++) {
-        if (this.hasCreep(tilesBw, x, y)) {
+        if (creepBW.hasCreepAt(y * this.mapWidth + x)) {
           this.creep[x + y * this.mapWidth] =
             creepRandomTileIndices[x + y * this.mapWidth] + 1;
         } else {
@@ -116,7 +116,9 @@ export default class Creep {
             if (x + addX < 0) continue;
             if (y + addY < 0) continue;
 
-            if (this.hasCreep(tilesBw, x + addX, y + addY)) {
+            const tilePos = (y + addY) * this.mapWidth + x + addX;
+
+            if (creepBW.hasCreepAt(tilePos)) {
               creepIndex |= 1 << i;
             } else {
               const creepFrame = creepEdgeFrameIndex[creepIndex];

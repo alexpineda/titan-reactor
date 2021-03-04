@@ -3,6 +3,7 @@ export default class FrameBW {
     this.processed = false;
     this.frame = 0;
     this.tilesCount = 0;
+    this.creepCount = 0;
     this.unitCount = 0;
     this.spriteCount = 0;
     this.imageCount = 0;
@@ -32,5 +33,9 @@ export default class FrameBW {
 
   get sounds() {
     return this.buffers.sounds;
+  }
+
+  get creep() {
+    return this.buffers.creep;
   }
 }

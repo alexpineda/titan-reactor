@@ -74,6 +74,8 @@ const App = ({
         three.atlases
       );
 
+      await atlasLoader.init();
+
       for (let imageId of imageIds) {
         await atlasLoader.load(imageId);
       }
