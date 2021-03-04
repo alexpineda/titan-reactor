@@ -190,19 +190,26 @@ async function TitanReactorGame(
     mouse.x = (event.offsetX / width) * 2 - 1;
     mouse.y = -(event.offsetY / height) * 2 + 1;
 
-    raycaster.setFromCamera(mouse, cameras.camera);
+    // var mouse = new Vector2();
 
-    // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObject(scene, true);
-    console.log(intersects);
-    if (intersects.length) {
-      intersects.forEach(({ object }) => {
-        if (object instanceof Sprite) {
-          console.log(object);
-        }
-      });
-    }
-    return;
+    // const [width, height] = [gameSurface.width, gameSurface.height];
+
+    // mouse.x = (event.offsetX / width) * 2 - 1;
+    // mouse.y = -(event.offsetY / height) * 2 + 1;
+
+    // raycaster.setFromCamera(mouse, cameras.camera);
+
+    // // calculate objects intersecting the picking ray
+    // const intersects = raycaster.intersectObject(scene, true);
+    // console.log(intersects);
+    // if (intersects.length) {
+    //   intersects.forEach(({ object }) => {
+    //     if (object instanceof Sprite) {
+    //       console.log(object);
+    //     }
+    //   });
+    // }
+    // return;
     const getAsUnit = (mesh) => {
       if (!mesh) return null;
       if (mesh.unit) {

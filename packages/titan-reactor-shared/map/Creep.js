@@ -11,7 +11,7 @@ function multiply_uint32(a, b) {
 }
 
 //uint32_t rand_state = (uint32_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
-let randState = 19960360;
+let randState = Date.now();
 
 const rand = () => {
   randState = multiply_uint32(randState, 22695477) + 1;
@@ -26,9 +26,9 @@ const creepRandomTileIndices = range(0, 256 * 256).map(() => {
   }
 });
 
-const creepEdgeNeighborsIndex = [];
-const creepEdgeNeighborsIndexN = [];
-const creepEdgeFrameIndex = [];
+const creepEdgeNeighborsIndex = new Uint8Array(0x100);
+const creepEdgeNeighborsIndexN = new Uint8Array(128);
+const creepEdgeFrameIndex = new Uint8Array(0x100);
 
 for (let i = 0; i != 0x100; i++) {
   let v = 0;
@@ -45,22 +45,22 @@ for (let i = 0; i != 0x100; i++) {
   creepEdgeNeighborsIndex[i] = v;
 }
 
-let n = 0;
-for (let i = 0; i !== 128; i++) {
-  let find;
-  for (const neighbor of creepEdgeNeighborsIndex) {
-    if (neighbor === i) {
-      find = neighbor;
-      break;
-    }
+let n = 1;
+for (let i = 0; i !== 128; ++i) {
+  const neighbour = creepEdgeNeighborsIndex.find(
+    (neighbour) => neighbour === i
+  );
+
+  if (neighbour === undefined) {
+    continue;
   }
-  if (find) {
+  if (neighbour) {
     creepEdgeNeighborsIndexN[i] = n;
     ++n;
   }
 }
 
-for (let i = 0; i !== 0x100; i++) {
+for (let i = 0; i !== 0x100; ++i) {
   creepEdgeFrameIndex[i] = creepEdgeNeighborsIndexN[creepEdgeNeighborsIndex[i]];
 }
 
@@ -106,9 +106,11 @@ export default class Creep {
             creepRandomTileIndices[x + y * this.mapWidth] + 1;
         } else {
           let creepIndex = 0;
-          for (let i = 0; i < 8; i++) {
+
+          for (let i = 0; i < 9; i++) {
             const addX = dirs[i][0];
             const addY = dirs[i][1];
+
             if (x + addX >= this.mapWidth) continue;
             if (y + addY >= this.mapHeight) continue;
             if (x + addX < 0) continue;
@@ -132,6 +134,6 @@ export default class Creep {
     this.creepValuesTexture.needsUpdate = true;
 
     this.creepEdgesValuesTexture.image.data = this.edges;
-    this.creepValuesTexture.needsUpdate = true;
+    this.creepEdgesValuesTexture.needsUpdate = true;
   }
 }
