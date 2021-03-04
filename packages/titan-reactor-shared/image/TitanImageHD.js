@@ -9,7 +9,7 @@ import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
 
 export default class TitanImageHD extends Sprite {
-  constructor(atlas, createIScriptRunner, imageDef, sprite) {
+  constructor(atlas, createIScriptRunner, imageDef, sprite, spriteScale = 128) {
     if (!atlas) debugger;
     const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
 
@@ -24,7 +24,7 @@ export default class TitanImageHD extends Sprite {
     super(material);
 
     this.sprite = sprite;
-    this._spriteScale = 128;
+    this._spriteScale = spriteScale;
 
     this.imageDef = imageDef;
     this.iscript = createIScriptRunner(this, imageDef);

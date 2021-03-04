@@ -2,6 +2,9 @@ import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import TitanImage3D from "titan-reactor-shared/image/TitanImage3D";
 import TitanImageHD from "titan-reactor-shared/image/TitanImageHD";
 import TitanImageSD from "titan-reactor-shared/image/TitanImageSD";
+import TitanImageSD2 from "titan-reactor-shared/image/TitanImageSD2";
+import GrpSD from "./GrpSD";
+import GrpSD2 from "./GrpSD2";
 
 export default (bwDat, atlases, createIScriptRunner, onError = () => {}) => {
   return (imageId, sprite) => {
@@ -14,32 +17,45 @@ export default (bwDat, atlases, createIScriptRunner, onError = () => {}) => {
     const imageDef = bwDat.images[imageId];
 
     let titanImage;
-    if (atlas.model) {
-      if (bwDat.images[imageId].drawFunction === drawFunctions.rleShadow) {
-        return null;
-      }
-
-      titanImage = new TitanImage3D(
-        atlas,
-        createIScriptRunner,
-        imageDef,
-        sprite
-      );
-    } else if (atlas.diffuse) {
-      titanImage = new TitanImageHD(
-        atlas,
-        createIScriptRunner,
-        imageDef,
-        sprite
-      );
-    } else {
+    if (atlas instanceof GrpSD) {
       titanImage = new TitanImageSD(
         atlas,
         createIScriptRunner,
         imageDef,
         sprite
       );
+    } else if (atlas instanceof GrpSD2) {
+      titanImage = new TitanImageSD2(
+        atlas,
+        createIScriptRunner,
+        imageDef,
+        sprite
+      );
+    } else if (
+      //don't load shadow images for 3d
+      atlas instanceof TitanImage3D &&
+      bwDat.images[imageId].drawFunction === drawFunctions.rleShadow
+    ) {
+      if (bwDat.images[imageId].drawFunction === drawFunctions.rleShadow) {
+        return null;
+      }
+    } else if (atlas instanceof TitanImage3D && atlas.model) {
+      // only if the model exists
+      titanImage = new TitanImage3D(
+        atlas,
+        createIScriptRunner,
+        imageDef,
+        sprite
+      );
+    } else {
+      titanImage = new TitanImageHD(
+        atlas,
+        createIScriptRunner,
+        imageDef,
+        sprite
+      );
     }
+
     return titanImage;
   };
 };

@@ -5,6 +5,7 @@ export default class Grp3D extends GrpHD {
   constructor(envMap) {
     super();
     this.envMap = envMap;
+    this.rez = "3d";
   }
 
   async load({ glbFileName, readAnim, imageDef }) {

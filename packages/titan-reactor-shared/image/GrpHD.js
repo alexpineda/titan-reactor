@@ -12,6 +12,7 @@ import { DDSLoader } from "titan-reactor-shared/image/DDSLoader";
 export default class GrpHD {
   constructor() {
     this.frames = [];
+    this.rez = "hd";
   }
 
   async load({ readAnim, imageDef }) {

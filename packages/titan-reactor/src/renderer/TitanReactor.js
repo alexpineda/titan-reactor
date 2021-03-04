@@ -16,6 +16,7 @@ import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 import { loading, loadingProgress } from "./titanReactorReducer";
 import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
 import GrpSD from "titan-reactor-shared/image/GrpSD";
+import GrpSD2 from "titan-reactor-shared/image/GrpSD2";
 import GrpHD from "titan-reactor-shared/image/GrpHD";
 import Grp3D from "titan-reactor-shared/image/Grp3D";
 import createTitanImage from "titan-reactor-shared/image/createTitanImage";
@@ -146,7 +147,7 @@ export class TitanReactor {
       this.chk.tileset,
       () => {
         if (state.settings.data.renderMode === RenderMode.SD) {
-          return new GrpSD();
+          return new GrpSD2();
         } else if (state.settings.data.renderMode === RenderMode.HD) {
           return new GrpHD();
         } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
