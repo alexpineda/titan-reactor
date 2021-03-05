@@ -165,6 +165,7 @@ async function TitanReactorGame(
       pxToGameUnit.xy(player.startLocation)
     );
   });
+  players.changeColors(settings.useCustomColors);
 
   audioMaster.music.playGame();
 
@@ -633,7 +634,9 @@ async function TitanReactorGame(
     gameStatePosition.update(delta);
   }
 
+  let _disposing = false;
   const dispose = () => {
+    _disposing = true;
     audioMaster.dispose();
     renderMan.renderer.setAnimationLoop(null);
     renderMan.dispose();
@@ -653,15 +656,14 @@ async function TitanReactorGame(
   };
 
   var limitLoop = function (fn, fps) {
-    // Use var then = Date.now(); if you
-    // don't care about targetting < IE9
     var then = new Date().getTime();
 
-    // custom fps, otherwise fallback to 60
     fps = fps || 60;
     var interval = 1000 / fps;
 
     return (function loop(time) {
+      if (_disposing) return;
+
       requestAnimationFrame(loop);
 
       // again, Date.now() if it's available
@@ -680,10 +682,11 @@ async function TitanReactorGame(
     })(0);
   };
 
+  sceneResizeHandler();
+
   setTimeout(() => {
-    // limitLoop(gameLoop, 60);
+    // limitLoop(gameLoop, settings.fpsLimit);
     renderMan.renderer.setAnimationLoop(gameLoop);
-    sceneResizeHandler();
   }, 500);
 
   if (settings.startPaused) {

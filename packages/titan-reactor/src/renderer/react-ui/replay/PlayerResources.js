@@ -170,13 +170,13 @@ const PlayerResources = ({
       </td>
       <td className="px-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
         <img src={gameIcons.minerals} className="inline w-5" />
-        <span className={`text-gray-200 text-${textSize}`}>
+        <span className={`ml-2 text-gray-200 text-${textSize}`}>
           <RollingNumber number={minerals} />
         </span>
       </td>
       <td className="px-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
         <img src={gasIcon} className="inline w-5" />
-        <span className={`text-gray-200 text-${textSize}`}>
+        <span className={`ml-2 text-gray-200 text-${textSize}`}>
           <RollingNumber number={gas} />
         </span>
       </td>
@@ -186,19 +186,23 @@ const PlayerResources = ({
           onClick={toggleWorkerCount}
           style={fixedWidthStyle}
         >
-          <span className={`text-gray-200 text-${textSize}`}>{workers}</span>
+          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+            {workers}
+          </span>
         </td>
       )}
       <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
-        <span className={`text-gray-200 text-${textSize}`}>
+        <span className={`ml-2 text-gray-200 text-${textSize}`}>
           {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)}
         </span>
       </td>
       <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
-        <span className={`text-gray-200 text-${textSize} w-10`}>
-          <RollingNumber number={apm} />
-        </span>
-        <span className="text-xs uppercase">APM</span>
+        <div className="flex items-center">
+          <span className={`text-gray-200 inline-block w-6 text-${textSize}`}>
+            <RollingNumber number={apm} />
+          </span>
+          <span className="text-xs uppercase text-gray-400 ml-2">APM</span>
+        </div>
       </td>
     </tr>
   );

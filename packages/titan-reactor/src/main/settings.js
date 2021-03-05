@@ -196,6 +196,7 @@ export class Settings extends EventEmitter {
       replayAndUnitDetailSize: "24vw",
       showWorkerCount: true,
       showArmyCount: true,
+      fpsLimit: 200,
     };
   }
 }
