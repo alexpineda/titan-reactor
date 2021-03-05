@@ -187,6 +187,9 @@ export default class AtlasPreloader {
     this.readAnim = (id) =>
       readFile(`anim/main_${`00${this.refId(id)}`.slice(-3)}.anim`);
 
+    this.readAnimHD2 = (id) =>
+      readFile(`HD2/anim/main_${`00${this.refId(id)}`.slice(-3)}.anim`);
+
     this.readGlb = (id) =>
       fsPromises
         .readFile(
@@ -236,6 +239,7 @@ export default class AtlasPreloader {
       imageDef: this.bwDat.images[imageId],
       readGrp: () => this.readGrp(imageId),
       readAnim: () => this.readAnim(imageId),
+      readAnimHD2: () => this.readAnimHD2(imageId),
       readGlb: () => this.readGlb(imageId),
       glbFileName: `${this.bwDataPath}/models/${`00${this.refId(
         imageId

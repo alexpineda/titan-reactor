@@ -15,15 +15,25 @@ export default class GrpHD {
     this.rez = "hd";
   }
 
-  async load({ readAnim, imageDef }) {
+  async load({ readAnim, readAnimHD2 }) {
     const buf = await readAnim();
     const anim = Anim(buf);
 
+    const buf2 = await readAnimHD2();
+    const animHD2 = Anim(buf2);
+
     const getBuf = (map) => buf.slice(map.ddsOffset, map.ddsOffset + map.size);
+    const getBuf2 = (map) =>
+      buf2.slice(map.ddsOffset, map.ddsOffset + map.size);
 
     if (anim.sprite.maps.diffuse) {
       const ddsBuf = getBuf(anim.sprite.maps.diffuse);
       this.diffuse = this._loadDDS(ddsBuf);
+
+      if (animHD2.sprite.maps.diffuse) {
+        const ddsBuf = getBuf2(animHD2.sprite.maps.diffuse);
+        this.diffuse.mipmaps.push(this._loadDDS(ddsBuf).mipmaps[0]);
+      }
     } else {
       throw new Error("diffuse map required");
     }
@@ -31,6 +41,11 @@ export default class GrpHD {
     if (anim.sprite.maps.teamcolor) {
       const ddsBuf = getBuf(anim.sprite.maps.teamcolor);
       this.teamcolor = this._loadDDS(ddsBuf);
+
+      if (animHD2.sprite.maps.teamcolor) {
+        const ddsBuf = getBuf2(animHD2.sprite.maps.teamcolor);
+        this.teamcolor.mipmaps.push(this._loadDDS(ddsBuf).mipmaps[0]);
+      }
     }
 
     this.frames = anim.sprite.frames;
