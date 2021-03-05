@@ -6,6 +6,7 @@ const ResourcesBar = ({
   textSize,
   fitToContent,
   onTogglePlayerPov,
+  eSportsMode,
   className = "",
   style = {},
 }) => {
@@ -17,7 +18,7 @@ const ResourcesBar = ({
     <div className={`select-none ${className}`} style={style}>
       <div className="resources-parent">
         <div
-          className="rounded mx-1 my-1 py-1 px-2 flex"
+          className="rounded mx-1 my-1 flex"
           style={{ backgroundColor: "#1a202ce6" }}
         >
           <table className="table-auto flex-1 ">
@@ -27,6 +28,7 @@ const ResourcesBar = ({
                   key={player.name}
                   index={i}
                   textSize={textSize}
+                  eSportsMode={eSportsMode}
                   {...player}
                   onTogglePlayerVision={onTogglePlayerVision}
                   fitToContent={fitToContent}

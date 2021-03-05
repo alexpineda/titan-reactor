@@ -29,7 +29,6 @@ import FogOfWar from "./render/effects/FogOfWar";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./replay/BWFrameBuilder";
-import Sprite from "./replay/Sprite";
 
 const { startLocation } = unitTypes;
 
@@ -145,8 +144,6 @@ async function TitanReactorGame(
   //   cameras.camera,
   //   true
   // );
-
-  minimapScene.add(cameras.minimapCameraHelper);
 
   await renderMan.initRenderer(cameras.camera);
   window.renderMan = renderMan;
@@ -696,6 +693,8 @@ async function TitanReactorGame(
   }
 
   return {
+    maxLabelWidth: () => minimapSurface.width,
+    chk,
     gameSurface,
     minimapSurface,
     previewSurfaces,

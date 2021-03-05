@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { connect } from "react-redux";
 import { RollingNumber } from "./RollingNumber";
 import { togglePlayerVision } from "./replayHudReducer";
+import incFontSize from "titan-reactor-shared/utils/incFontSize";
 
 const PlayerResources = ({
   index,
@@ -23,6 +24,7 @@ const PlayerResources = ({
   onPlayerNameChange = () => {},
   playerScore = 0,
   showScore = true,
+  eSportsMode,
   onChangeScore = () => {},
   fitToContent = false,
   gameIcons,
@@ -46,6 +48,9 @@ const PlayerResources = ({
     ? { width: "1%", whiteSpace: "nowrap" }
     : {};
   const fixedWidthStyle = fitToContent ? { width: "6em" } : {};
+  const scoreTextStyle = eSportsMode
+    ? { textShadow: "2px 2px #00000099", fontFamily: "fantasy" }
+    : {};
 
   return (
     <tr>
@@ -62,7 +67,12 @@ const PlayerResources = ({
           }}
         >
           <span
-            className={`text-${textSize} cursor-pointer inline-block px-1 bg-gray-700 text-gray-200 rounded w-full`}
+            className={`${
+              eSportsMode
+                ? `text-${incFontSize(textSize, 2)} w-10`
+                : `text-${textSize} w-full`
+            } cursor-pointer inline-block px-1 bg-gray-700 text-gray-200 rounded text-center`}
+            style={scoreTextStyle}
           >
             {score}
           </span>
@@ -76,17 +86,18 @@ const PlayerResources = ({
           if (evt.button === 0) {
             togglePlayerVision(id);
           } else {
-            // setIsChangingName(true);
-            setTempName(playerName);
+            setIsChangingName(true);
+            // setTempName(playerName);
           }
         }}
       >
         {!isChangingName && (
           <span
-            className={`text-${textSize} cursor-pointer`}
+            className={`text-${textSize} cursor-pointer inline-block font-semibold`}
             style={{
               color: playerVision[id] ? color.hex : "rgb(75, 85, 99)",
               opacity: hideVision ? 0.8 : 1,
+              minWidth: "15rem",
             }}
           >
             {playerName}
@@ -112,13 +123,13 @@ const PlayerResources = ({
           />
         )}
       </td>
-      <td className="pr-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
+      <td className="px-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
         <img src="https://i.imgur.com/ram4CBj.png" className="inline w-4" />
         <span className={`text-gray-200 text-${textSize}`}>
           <RollingNumber number={minerals} />
         </span>
       </td>
-      <td className="pr-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
+      <td className="px-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
         <img src="https://i.imgur.com/NI5ynEw.png" className="inline w-4" />
         <span className={`text-gray-200 text-${textSize}`}>
           <RollingNumber number={gas} />
@@ -126,7 +137,7 @@ const PlayerResources = ({
       </td>
       {showWorkerCount && (
         <td
-          className="pr-2"
+          className="px-2"
           onClick={toggleWorkerCount}
           style={fixedWidthStyle}
         >
@@ -134,13 +145,13 @@ const PlayerResources = ({
           <span className={`text-gray-200 text-${textSize}`}>{workers}</span>
         </td>
       )}
-      <td className="pr-2 pointer-events-none" style={fixedWidthStyle}>
+      <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
         <img src={supplyIcon} className="inline w-4" />
         <span className={`text-gray-200 text-${textSize}`}>
           {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)}
         </span>
       </td>
-      <td className="pr-2 pointer-events-none" style={fixedWidthStyle}>
+      <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
         <img src="https://i.imgur.com/AFgJh3V.png" className="inline w-4" />
         <span className={`text-gray-200 text-${textSize} w-10`}>
           <RollingNumber number={apm} />

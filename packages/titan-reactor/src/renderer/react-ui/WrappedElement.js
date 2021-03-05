@@ -1,18 +1,12 @@
 import React, { useEffect, useRef } from "react";
 
-const WrappedElement = ({
-  domElement,
-  className = "",
-  style = {},
-  ...props
-}) => {
+const WrappedElement = ({ domElement, ...props }) => {
   const canvasRef = useRef();
   useEffect(() => {
     canvasRef.current.appendChild(domElement);
+    return () => canvasRef.current.remove(domElement);
   }, []);
-  return (
-    <div className={className} ref={canvasRef} style={style} {...props}></div>
-  );
+  return <div ref={canvasRef} {...props}></div>;
 };
 
 export default WrappedElement;

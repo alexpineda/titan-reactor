@@ -7,7 +7,6 @@ import {
   MinimapPingLayer,
   MinimapFogLayer,
 } from "./Layers";
-import MinimapCameraHelper from "./MinimapCameraHelper";
 import StandardCameraControls from "./controls/StandardCameraControls";
 
 export const CameraControlType = {
@@ -72,8 +71,6 @@ class Cameras {
         minimapControl.mapWidth,
         minimapControl.mapHeight
       );
-      this.minimapCameraHelper = new MinimapCameraHelper(this.camera);
-      this.minimapCameraHelper.layers.set(MinimapLayer);
 
       minimapControl.addEventListener("start", ({ message: { speed } }) => {
         const target = new Vector3();

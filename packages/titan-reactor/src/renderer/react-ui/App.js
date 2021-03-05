@@ -11,6 +11,7 @@ import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
 import "./css/icon.css";
 import "./css/styles.css";
+import "./css/bevel.css";
 
 import Home from "./home/Home";
 import Visible from "./components/visible";

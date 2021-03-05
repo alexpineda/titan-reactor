@@ -70,8 +70,10 @@ class CanvasTarget {
     this.pixelRatio = pixelRatio;
     this.width = width;
     this.height = height;
-    this.scaledWidth = Math.floor(width * pixelRatio);
-    this.scaledHeight = Math.floor(height * pixelRatio);
+    // this.width = (width * 3) / 4;
+    // this.height = (height * 3) / 4;
+    this.scaledWidth = Math.floor(this.width * pixelRatio);
+    this.scaledHeight = Math.floor(this.height * pixelRatio);
     this.canvas.width = this.scaledWidth;
     this.canvas.height = this.scaledHeight;
     this.canvas.style.width = `${width}px`;

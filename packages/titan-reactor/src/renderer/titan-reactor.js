@@ -23,14 +23,6 @@ log(`electron ${process.versions.electron}`);
 
 let titanReactor = new TitanReactor(store);
 
-WebGLRenderer.prototype.setSizeFromCanvasTarget = function (canvasTarget) {
-  this._width = canvasTarget.width;
-  this._height = canvasTarget.height;
-
-  this._canvas.width = canvasTarget.scaledWidth;
-  this._canvas.height = canvasTarget.scaledHeight;
-};
-
 async function bootup() {
   const renderer = new WebGLRenderer();
 

@@ -43,6 +43,8 @@ const Replay = ({
   onTogglePlayerPov,
   hoveringOverMinimap,
   fpsCanvas,
+  mapLabel,
+  maxLabelWidth,
   callbacks,
 }) => {
   const forceUpdate = useForceUpdate();
@@ -130,6 +132,8 @@ const Replay = ({
       >
         {showMinimap && (
           <Minimap
+            mapLabel={mapLabel}
+            maxLabelWidth={maxLabelWidth}
             className="pointer-events-auto"
             onDropPings={onDropPings}
             timeLabel={replayPosition.getFriendlyTime()}
@@ -140,6 +144,7 @@ const Replay = ({
         )}
         <Visible visible={showResources && settings.esportsHud}>
           <ResourcesBar
+            eSportsMode={settings.esportsHud}
             className="flex-1 self-end pointer-events-auto"
             players={players}
             textSize="lg"
@@ -204,6 +209,8 @@ export default connect(
       gameDimensions: scene.gameSurface.getRect(),
       minimapCanvas: scene.minimapSurface.canvas,
       previewSurfaces: scene.previewSurfaces,
+      mapLabel: scene.chk.title,
+      maxLabelWidth: scene.maxLabelWidth,
       showMenu: state.replay.hud.showMenu,
       showProduction: state.replay.hud.showProduction,
       showResources: state.replay.hud.showResources,
