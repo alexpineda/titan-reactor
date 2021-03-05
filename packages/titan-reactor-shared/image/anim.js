@@ -68,7 +68,6 @@ export const Anim = (buf) => {
     };
   };
 
-  //    // In version 0x0101, the player color mask is in a bitmap format, which is just "BMP " followed by width*height bytes, either 0x00 or 0xFF in a top-to-bottom row order. version 0x0202 uses only DDS files.
   const parseTextures = (texture) =>
     range(0, numLayers).reduce((tex, i) => {
       const ddsOffset = texture.readUInt32LE(0);

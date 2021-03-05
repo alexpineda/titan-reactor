@@ -1,5 +1,6 @@
 import { WebGLRenderer } from "three";
 import readDdsGrp from "titan-reactor-shared/image/ddsGrp";
+import GameIconsHD from "titan-reactor-shared/map/GameIconsHD";
 import {
   generateTileData,
   generateMesh,
@@ -121,6 +122,12 @@ class Terrain {
       }
     );
 
+    const gameIcons = new GameIconsHD();
+    gameIcons.renderGameIcons(
+      renderer,
+      readDdsGrp(await this.readFile("game/icons.dds.grp", false), true)
+    );
+
     const [sd, hd, d, creep, creepEdges] = generateMesh(renderer, mapData);
     // sd.matrixAutoUpdate = false;
     // sd.updateMatrix();
@@ -128,7 +135,7 @@ class Terrain {
     // hd.updateMatrix();
 
     renderer.dispose();
-    return [sd, hd, d, creep, creepEdges];
+    return [sd, hd, d, creep, creepEdges, gameIcons];
   }
 }
 

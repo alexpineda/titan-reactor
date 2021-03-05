@@ -45,6 +45,7 @@ const Replay = ({
   fpsCanvas,
   mapLabel,
   maxLabelWidth,
+  gameIcons,
   callbacks,
 }) => {
   const forceUpdate = useForceUpdate();
@@ -115,6 +116,7 @@ const Replay = ({
           textSize={settings.textSize}
           gameDimensions={gameDimensions}
           onTogglePlayerPov={onTogglePlayerPov}
+          gameIcons={gameIcons}
         />
       </Visible>
 
@@ -150,6 +152,7 @@ const Replay = ({
             textSize="lg"
             gameDimensions={gameDimensions}
             onTogglePlayerPov={onTogglePlayerPov}
+            gameIcons={gameIcons}
             fitToContent
           />
         </Visible>
@@ -209,6 +212,7 @@ export default connect(
       gameDimensions: scene.gameSurface.getRect(),
       minimapCanvas: scene.minimapSurface.canvas,
       previewSurfaces: scene.previewSurfaces,
+      gameIcons: scene.gameIcons,
       mapLabel: scene.chk.title,
       maxLabelWidth: scene.maxLabelWidth,
       showMenu: state.replay.hud.showMenu,

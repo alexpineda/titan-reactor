@@ -91,7 +91,7 @@ export const LoadingOverlay = ({
             <ul>
               {header.players.map((player) => {
                 return (
-                  <li className="block text-gray-200" key={player.name}>
+                  <li className="block text-gray-200" key={player}>
                     {player.name} ({player.race})
                   </li>
                 );

@@ -5,8 +5,7 @@ export class Players extends Array {
     super();
     this.customColors = customColors.map((color) => ({
       hex: color,
-      rgb: parseInt(color.slice(1), 16),
-      three: new Color(parseInt(color.slice(1), 16)),
+      three: new Color().setStyle(color),
     }));
     this.push(
       ...players.map((player) => ({

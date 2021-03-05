@@ -7,6 +7,7 @@ const ResourcesBar = ({
   fitToContent,
   onTogglePlayerPov,
   eSportsMode,
+  gameIcons,
   className = "",
   style = {},
 }) => {
@@ -32,6 +33,7 @@ const ResourcesBar = ({
                   {...player}
                   onTogglePlayerVision={onTogglePlayerVision}
                   fitToContent={fitToContent}
+                  gameIcons={gameIcons}
                 />
               ))}
             </tbody>

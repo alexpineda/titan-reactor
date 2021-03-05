@@ -695,6 +695,7 @@ async function TitanReactorGame(
   return {
     maxLabelWidth: () => minimapSurface.width,
     chk,
+    gameIcons: scene.gameIcons,
     gameSurface,
     minimapSurface,
     previewSurfaces,
