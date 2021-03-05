@@ -19,9 +19,6 @@ export const createMiniMapPlane = (map, mapWidth, mapHeight) => {
 };
 
 export const createMinimapPoint = (color, w, h) => {
-  if (!color) {
-    debugger;
-  }
   const geometry = new PlaneBufferGeometry(w, h);
   const material = new MeshBasicMaterial({ color });
   const plane = new Mesh(geometry, material);

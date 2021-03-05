@@ -1,5 +1,6 @@
 export default class ContiguousContainer {
   constructor(buf, count) {
+    this._onBuffer = () => {};
     this.buffer = buf;
     this.count = count;
     this._offset = 0;
@@ -12,6 +13,7 @@ export default class ContiguousContainer {
   set buffer(val) {
     this._buf = val;
     this._offset = 0;
+    this._onBuffer(val);
   }
 
   static get byteLength() {

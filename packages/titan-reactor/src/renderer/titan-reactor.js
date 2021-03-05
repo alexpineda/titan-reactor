@@ -41,17 +41,6 @@ async function bootup() {
 
   const settings = (await store.dispatch(getRemoteSettings())).payload;
 
-  //drag drop
-  /*
-  (data, file) => {
-    const ext = file.name.split(".").pop();
-    if (ext === "rep") {
-      titanReactor.spawnReplay(file);
-    } else if (["scx", "scm"].includes(ext)) {
-      titanReactor.spawnMapViewer(file);
-    }
-  }*/
-
   try {
     store.dispatch(loading("init"));
     if (!settings.errors.includes("starcraftPath")) {

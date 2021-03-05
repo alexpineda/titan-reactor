@@ -1,8 +1,13 @@
 import { Color } from "three";
 
 export class Players extends Array {
-  constructor(players, startLocations) {
+  constructor(players, startLocations, customColors) {
     super();
+    this.customColors = customColors.map((color) => ({
+      hex: color,
+      rgb: parseInt(color.slice(1), 16),
+      three: new Color(parseInt(color.slice(1), 16)),
+    }));
     this.push(
       ...players.map((player) => ({
         id: player.id,
@@ -15,8 +20,8 @@ export class Players extends Array {
         race: player.race,
         totalActions: 0,
         apm: 0,
-        color: player.color,
-        threeColor: new Color(player.color.rgb),
+        color: { ...player.color, three: new Color(player.color.rgb) },
+        originalColor: { ...player.color, three: new Color(player.color.rgb) },
         units: [],
         showActions: false,
         showPov: false,
@@ -29,6 +34,16 @@ export class Players extends Array {
     this.playersById = {};
     for (const player of this) {
       this.playersById[player.id] = player;
+    }
+  }
+
+  changeColors(useCustom) {
+    for (let i = 0; i < this.length; i++) {
+      if (useCustom) {
+        this[i].color = this.customColors[i];
+      } else {
+        this[i].color = this.originalColor;
+      }
     }
   }
 

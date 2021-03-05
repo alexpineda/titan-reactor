@@ -21,7 +21,7 @@ import { MenuItem } from "../components/MenuItem";
 const Tabs = {
   General: "General",
   Game: "Game",
-  Advanced: "Advanced",
+  Producer: "Producer",
   Camera: "Camera",
   Graphics: "Graphics",
   Audio: "Audio",
@@ -91,9 +91,9 @@ export default ({
 
         <TabSelector
           activeTab={tab}
-          tab={Tabs.Advanced}
+          tab={Tabs.Producer}
           setTab={setTab}
-          label={phrases["SETTINGS_ADVANCED"]}
+          label={phrases["SETTINGS_PRODUCER"]}
         />
         <TabSelector
           activeTab={tab}
@@ -205,16 +205,19 @@ export default ({
           }
         >
           <Visible visible={settings.useCustomColors}>
-            <div className="flex">
-              <ColorPicker
-                color={settings.player1Color}
-                onChange={(value) => console.log(value)}
-                className="mr-4"
-              />
-              <ColorPicker
-                color={settings.player2Color}
-                onChange={(value) => console.log(value)}
-              />
+            <div className="flex flex-wrap">
+              {settings.playerColors.map((color, i) => (
+                <ColorPicker
+                  key={i}
+                  color={`${color}`}
+                  onChange={({ hex }) => {
+                    const clrs = [...settings.playerColors];
+                    clrs[i] = hex;
+                    updateSettings({ playerColors: clrs });
+                  }}
+                  className="mr-4"
+                />
+              ))}
             </div>
           </Visible>
         </Option>
@@ -286,38 +289,7 @@ export default ({
         />
       </Tab>
 
-      <Tab tabName={Tabs.Advanced} activeTab={tab}>
-        <Option label={"Constrain Aspect Ratio"}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.Fit}
-              label={"Available Space"}
-              first
-              onClick={() => updateSettings({ gameAspect: GameAspect.Fit })}
-            />
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.Native}
-              label={"Native Screen Resolution"}
-              onClick={() => updateSettings({ gameAspect: GameAspect.Native })}
-            />
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.FourThree}
-              label={"4:3"}
-              onClick={() =>
-                updateSettings({ gameAspect: GameAspect.FourThree })
-              }
-            />
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.SixteenNine}
-              label={"16:9"}
-              last
-              onClick={() =>
-                updateSettings({ gameAspect: GameAspect.SixteenNine })
-              }
-            />
-          </ButtonSetContainer>
-        </Option>
-
+      <Tab tabName={Tabs.Producer} activeTab={tab}>
         <Option label={"Producer Window Position"}>
           <ButtonSetContainer>
             <ButtonSet
@@ -367,6 +339,37 @@ export default ({
                 updateSettings({
                   producerWindowPosition: ProducerWindowPosition.PopOut,
                 })
+              }
+            />
+          </ButtonSetContainer>
+        </Option>
+
+        <Option label={"Constrain Aspect Ratio"}>
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.Fit}
+              label={"Available Space"}
+              first
+              onClick={() => updateSettings({ gameAspect: GameAspect.Fit })}
+            />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.Native}
+              label={"Native Screen Resolution"}
+              onClick={() => updateSettings({ gameAspect: GameAspect.Native })}
+            />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.FourThree}
+              label={"4:3"}
+              onClick={() =>
+                updateSettings({ gameAspect: GameAspect.FourThree })
+              }
+            />
+            <ButtonSet
+              selected={settings.gameAspect === GameAspect.SixteenNine}
+              label={"16:9"}
+              last
+              onClick={() =>
+                updateSettings({ gameAspect: GameAspect.SixteenNine })
               }
             />
           </ButtonSetContainer>
@@ -496,6 +499,21 @@ export default ({
           />
         </Option>
 
+        <Option label={"Anisotropy TODO"} value={settings.gamma}>
+          <input
+            type="range"
+            min="1"
+            max="2"
+            step="0.02"
+            value={settings.gamma}
+            onChange={(evt) => {
+              updateSettings({
+                gamma: Number(evt.target.value),
+              });
+            }}
+          />
+        </Option>
+
         <Option
           label={phrases["SETTINGS_GRAPHICS_ANTIALIAS"]}
           toggle={
@@ -536,6 +554,34 @@ export default ({
             />
           </ButtonSetContainer>
         </Option>
+
+        <Option
+          label={"Bloom TODO"}
+          toggle={
+            <Toggle
+              value={settings.antialias}
+              onChange={() =>
+                updateSettings({
+                  antialias: !settings.antialias,
+                })
+              }
+            />
+          }
+        />
+
+        <Option
+          label={"Depth Of Field Effect TODO"}
+          toggle={
+            <Toggle
+              value={settings.antialias}
+              onChange={() =>
+                updateSettings({
+                  antialias: !settings.antialias,
+                })
+              }
+            />
+          }
+        />
 
         {/* <Option
           label={lang["SETTINGS_GRAPHICS_ANISOTROPY"]}

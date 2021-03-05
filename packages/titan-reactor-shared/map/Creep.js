@@ -64,16 +64,17 @@ for (let i = 0; i !== 0x100; ++i) {
   creepEdgeFrameIndex[i] = creepEdgeNeighborsIndexN[creepEdgeNeighborsIndex[i]];
 }
 
+const xy = (x, y) => ({ x, y });
 const dirs = [
-  [1, 1],
-  [0, 1],
-  [-1, 1],
-  [1, 0],
-  [-1, 0],
-  [1, -1],
-  [0, -1],
-  [-1, -1],
-  [0, 0],
+  xy(1, 1),
+  xy(0, 1),
+  xy(-1, 1),
+  xy(1, 0),
+  xy(-1, 0),
+  xy(1, -1),
+  xy(0, -1),
+  xy(-1, -1),
+  xy(0, 0),
 ];
 
 export default class Creep {
@@ -101,30 +102,30 @@ export default class Creep {
 
     for (let x = 0; x < this.mapWidth; x++) {
       for (let y = 0; y < this.mapHeight; y++) {
-        if (creepBW.hasCreepAt(y * this.mapWidth + x)) {
-          this.creep[x + y * this.mapWidth] =
-            creepRandomTileIndices[x + y * this.mapWidth] + 1;
+        const tilePos = y * this.mapWidth + x;
+        if (creepBW.hasCreepAt(tilePos)) {
+          this.creep[tilePos] = creepRandomTileIndices[tilePos] + 1;
         } else {
           let creepIndex = 0;
 
           for (let i = 0; i < 9; i++) {
-            const addX = dirs[i][0];
-            const addY = dirs[i][1];
+            const offX = dirs[i].x + x;
+            const offY = dirs[i].y + y;
 
-            if (x + addX >= this.mapWidth) continue;
-            if (y + addY >= this.mapHeight) continue;
-            if (x + addX < 0) continue;
-            if (y + addY < 0) continue;
+            if (offX >= this.mapWidth) continue;
+            if (offY >= this.mapHeight) continue;
+            if (offX < 0) continue;
+            if (offY < 0) continue;
 
-            const tilePos = (y + addY) * this.mapWidth + x + addX;
+            const offTilePos = offY * this.mapWidth + offX;
 
-            if (creepBW.hasCreepAt(tilePos)) {
+            if (creepBW.hasCreepAt(offTilePos)) {
               creepIndex |= 1 << i;
             } else {
               const creepFrame = creepEdgeFrameIndex[creepIndex];
 
               if (creepFrame) {
-                this.edges[x + y * this.mapWidth] = creepFrame;
+                this.edges[tilePos] = creepFrame;
               }
             }
           }

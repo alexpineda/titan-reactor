@@ -49,12 +49,14 @@ async function TitanReactorGame(
   const stats = createStats();
   stats.dom.style.position = "relative";
   const state = store.getState();
-  const settings = state.settings.data;
+  let settings = state.settings.data;
 
   let fogChanged = false;
 
   const unsubscribeFromStore = store.subscribe(() => {
     Object.assign(state, store.getState());
+
+    settings = state.settings.data;
 
     if (state.replay.input.hoveringOverMinimap) {
       cameras.previewControl.enabled = true;
@@ -78,6 +80,8 @@ async function TitanReactorGame(
         fogOfWar.playerVisionWasToggled = true;
       }
     }
+
+    players.changeColors(settings.useCustomColors);
 
     audioMaster.channels.panningStyle = state.settings.data.audioPanningStyle;
 
@@ -153,7 +157,8 @@ async function TitanReactorGame(
 
   const players = new Players(
     rep.header.players,
-    chk.units.filter((u) => u.unitId === startLocation)
+    chk.units.filter((u) => u.unitId === startLocation),
+    settings.playerColors
   );
   players.forEach((player, i) => {
     const pos = i == 0 ? PovLeft : PovRight;
@@ -400,7 +405,11 @@ async function TitanReactorGame(
     frameBuilder.buildStart(nextFrame, updateMinimap);
     frameBuilder.buildUnitsAndMinimap(units);
     frameBuilder.buildSprites(view, delta, createTitanImage);
-    frameBuilder.buildFog(players.filter((p) => p.vision).map(({ id }) => id));
+    frameBuilder.buildFog(
+      players
+        .filter((p) => p.vision)
+        .reduce((flags, { id }) => (flags |= 1 << id), 0)
+    );
     frameBuilder.buildCreep();
     frameBuilder.buildSounds(view, audioMaster, elapsed);
   }

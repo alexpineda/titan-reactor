@@ -31,7 +31,7 @@
     "SETTINGS_GAME": "Game",
     "SETTINGS_AUDIO": "Audio",
     "SETTINGS_GRAPHICS": "Graphics",
-    "SETTINGS_ADVANCED": "Advanced",
+    "SETTINGS_PRODUCER": "Producer Mode",
     "SETTINGS_CAMERA": "Camera",
     "SETTINGS_INTEGRATIONS": "Integrations",
     "SETTINGS_USE_CUSTOM_COLORS": "Use Custom Player Colors",

@@ -40,7 +40,7 @@ class Units {
     if (isResourceContainer) {
       color = resourceColor;
     } else if (unitBw.owner < 8) {
-      color = this.playersById[unitBw.owner].threeColor;
+      color = this.playersById[unitBw.owner].color.three;
     } else {
       return;
     }

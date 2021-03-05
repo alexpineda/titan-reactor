@@ -10,6 +10,18 @@ import BWFrameScene from "./BWFrameScene";
 import Sprite from "./Sprite";
 
 export default class BWFrameSceneBuilder {
+  /**
+   *
+   * @param {TitanReactorScene} scene
+   * @param {Number} mapWidth
+   * @param {Number} mapHeight
+   * @param {Scene} minimapScene
+   * @param {Object} bwDat
+   * @param {Function} pxToGameUnit
+   * @param {Function} getTerrainY
+   * @param {Object} playersById
+   * @param {FogOfWar} fogOfWar
+   */
   constructor(
     scene,
     mapWidth,
@@ -62,8 +74,8 @@ export default class BWFrameSceneBuilder {
    * @param {Number} elapsed
    */
   buildSounds(view, audioMaster, elapsed) {
-    this.soundsBW.buffer = this.nextFrame.sounds;
     this.soundsBW.count = this.nextFrame.soundCount;
+    this.soundsBW.buffer = this.nextFrame.sounds;
 
     for (let sound of this.soundsBW.items()) {
       const volume = sound.bwVolume(
@@ -93,8 +105,8 @@ export default class BWFrameSceneBuilder {
    * @param {Units} units
    */
   buildUnitsAndMinimap(units) {
-    this.unitsBW.buffer = this.nextFrame.units;
     this.unitsBW.count = this.nextFrame.unitCount;
+    this.unitsBW.buffer = this.nextFrame.units;
     for (const minimapUnit of units.refresh(
       this.unitsBW,
       this.units,
@@ -118,8 +130,8 @@ export default class BWFrameSceneBuilder {
    * @param {ProjectedCameraView} view
    */
   buildSprites(view, delta, createImage) {
-    this.spritesBW.buffer = this.nextFrame.sprites;
     this.spritesBW.count = this.nextFrame.spriteCount;
+    this.spritesBW.buffer = this.nextFrame.sprites;
 
     // we set count below
     this.imagesBW.buffer = this.nextFrame.images;
@@ -204,7 +216,7 @@ export default class BWFrameSceneBuilder {
         }
 
         if (player) {
-          titanImage.setTeamColor(player.threeColor);
+          titanImage.setTeamColor(player.color.three);
         }
         titanImage.position.x = image.x / 32;
         titanImage.position.z = image.y / 32;
@@ -232,16 +244,20 @@ export default class BWFrameSceneBuilder {
     }
   }
 
-  buildFog(playerVisionIds) {
-    this.tilesBW.buffer = this.nextFrame.tiles;
+  /**
+   *
+   * @param {Number} playerVisionFlags
+   */
+  buildFog(playerVisionFlags) {
     this.tilesBW.count = this.nextFrame.tilesCount;
+    this.tilesBW.buffer = this.nextFrame.tiles;
 
-    this.fogOfWar.generate(this.tilesBW, playerVisionIds);
+    this.fogOfWar.generate(this.tilesBW, playerVisionFlags);
   }
 
   buildCreep() {
-    this.creepBW.buffer = this.nextFrame.creep;
     this.creepBW.count = this.nextFrame.creepCount;
+    this.creepBW.buffer = this.nextFrame.creep;
 
     this.creep.generate(this.creepBW);
   }

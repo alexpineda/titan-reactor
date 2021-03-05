@@ -3,6 +3,29 @@
 import React, { useState } from "react";
 import { SwatchesPicker } from "react-color";
 
+//add bw color swatches to
+SwatchesPicker.defaultProps.colors.unshift([
+  "#ecc4b0",
+  "#4068d4",
+  "#74a47c",
+  "#9090b8",
+  "#00e4fc",
+]);
+SwatchesPicker.defaultProps.colors.unshift([
+  "#703014",
+  "#cce0d0",
+  "#fcfc38",
+  "#088008",
+  "#fcfc7c",
+]);
+SwatchesPicker.defaultProps.colors.unshift([
+  "#f40404",
+  "#0c48cc",
+  "#2cb494",
+  "#88409c",
+  "#f88c14",
+]);
+
 const ColorPicker = ({ color, onChange, className = "" }) => {
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
@@ -26,6 +49,7 @@ const ColorPicker = ({ color, onChange, className = "" }) => {
           />
           <SwatchesPicker
             color={color}
+            styles={{ default: { body: { background: "rgba(255,0,0,0)" } } }}
             onChangeComplete={(color) => {
               onChange(color);
               setDisplayColorPicker(false);

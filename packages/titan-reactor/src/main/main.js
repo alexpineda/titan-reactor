@@ -46,7 +46,7 @@ import { getUserDataPath } from "./userDataPath";
 import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
-import ReplayReadFile from "../renderer/replay/bw/ReplayReadFile";
+import FileGameStateReader from "../renderer/replay/bw/FileGameStateReader";
 
 app.commandLine.appendSwitch("disable-frame-rate-limit");
 // app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
@@ -150,7 +150,11 @@ if (gotTheLock) {
     ipcMain.handle(
       LOAD_REPLAY_FROM_FILE,
       async (event, repFile, outFile, starcraftPath) => {
-        gameStateReader = new ReplayReadFile(repFile, outFile, starcraftPath);
+        gameStateReader = new FileGameStateReader(
+          repFile,
+          outFile,
+          starcraftPath
+        );
         await gameStateReader.start();
         await gameStateReader.waitForMaxed;
       }

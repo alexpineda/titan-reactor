@@ -120,48 +120,42 @@ export default class FogOfWar {
     return this.imageData[y * this.width + x] > 0;
   }
 
-  generate(tileData, players) {
+  generate(tileData, playerVisionFlags) {
     this._lastTileData = tileData;
-    this._lastPlayers = players;
-
-    this._toBuffer.fill(Unexplored);
+    this._lastPlayers = playerVisionFlags;
 
     for (let i = 0; i < this.imageData.length; i++) {
-      for (let player of players) {
-        //explored
-        if ((~tileData.buffer.get(i * 2) & (1 << player)) !== 0) {
-          this._toBuffer[i] = Explored;
-          break;
+      let val = Unexplored;
+
+      if (~tileData.buffer.get(i * 2) & playerVisionFlags) {
+        val = Explored;
+      }
+
+      if (~tileData.buffer.get(i * 2 + 1) & playerVisionFlags) {
+        val = Visible;
+      }
+
+      if (this.enabled) {
+        if (val > this.imageData[i]) {
+          this.imageData[i] = Math.min(
+            val,
+            this.imageData[i] + this._revealSpeed
+          );
+        } else if (val < this.imageData[i]) {
+          this.imageData[i] = Math.max(
+            val,
+            this.imageData[i] - this._hideSpeed
+          );
         }
       }
 
-      for (let player of players) {
-        //visible
-        if ((~tileData.buffer.get(i * 2 + 1) & (1 << player)) !== 0) {
-          this._toBuffer[i] = Visible;
-          break;
-        }
-      }
+      this._toBuffer[i] = val;
     }
 
     if (this.enabled) {
       //instantly reveal if player vision has toggled
       if (this.playerVisionWasToggled) {
         this.imageData = this._toBuffer.slice(0);
-      } else {
-        for (let i = 0; i < this._toBuffer.length; i++) {
-          if (this._toBuffer[i] > this.imageData[i]) {
-            this.imageData[i] = Math.min(
-              this._toBuffer[i],
-              this.imageData[i] + this._revealSpeed
-            );
-          } else if (this._toBuffer[i] < this.imageData[i]) {
-            this.imageData[i] = Math.max(
-              this._toBuffer[i],
-              this.imageData[i] - this._hideSpeed
-            );
-          }
-        }
       }
       this.texture.needsUpdate = true;
     }

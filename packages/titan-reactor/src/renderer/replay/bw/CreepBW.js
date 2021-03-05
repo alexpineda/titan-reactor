@@ -10,6 +10,6 @@ export default class CreepBW extends ContiguousContainer {
   }
 
   hasCreepAt(i) {
-    return this.buffer.get(i);
+    return this._buf.get(i);
   }
 }
