@@ -39,7 +39,7 @@ const ResourcesBar = ({
             </tbody>
           </table>
 
-          <aside className="flex flex-col justify-around ml-2">
+          <aside className="flex flex-col justify-around mx-2">
             <i
               onClick={() => onTogglePlayerPov(0)}
               className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${

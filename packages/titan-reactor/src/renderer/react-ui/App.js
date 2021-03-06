@@ -18,7 +18,6 @@ import Visible from "./components/visible";
 
 const App = ({
   chk,
-  chkPreviewCanvas,
   criticalError,
   replayLoading,
   replayLoaded,

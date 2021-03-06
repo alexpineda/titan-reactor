@@ -8,8 +8,6 @@ class Units {
   constructor(pxToGameUnit, playersById) {
     this.pxToGameUnit = pxToGameUnit;
     this.playersById = playersById;
-    this._unitsByRepId = {};
-    this._deadUnitIds = [];
 
     this.followingUnit = false;
     this.selected = [];
@@ -18,10 +16,6 @@ class Units {
     this._unitsLastFrame = [];
     this.spriteUnits = [];
     this.minimapPoints = [];
-  }
-
-  get units() {
-    return Object.values(this._unitsByRepId);
   }
 
   // @todo implement openbw logic
@@ -74,7 +68,7 @@ class Units {
     return unit.minimapPoint;
   }
 
-  *refresh(unitsBW, units, unitsBySpriteId) {
+  *refresh(unitsBW, buildQueueBW, units, unitsBySpriteId, production) {
     this.spriteUnits = {};
 
     for (const unitBw of unitsBW.items()) {
@@ -102,6 +96,9 @@ class Units {
       unit.isCloaked = unitBw.isCloaked;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
       unit.warpingIn = 0;
+      unit.queue = null;
+      unit.remainingBuildTime = unitBw.remainingBuildTime;
+
       if (
         unitBw.unitType.isBuilding &&
         unitBw.unitType.isProtoss &&
@@ -115,6 +112,26 @@ class Units {
       }
 
       yield this._refreshMinimap(unitBw, isResourceContainer, unit);
+    }
+
+    production.clear();
+    for (const buildQueue of buildQueueBW.items()) {
+      const unit = units.get(buildQueue.unitId);
+      unit.queue = buildQueue.units;
+      if (!production.has(unit.owner)) {
+        production.set(unit.owner, new Map());
+      }
+
+      const player = production.get(unit.owner);
+      if (player.has(unit.id)) {
+        const queueUnit = player.get(unit.id);
+        if (queueUnit.unit.remainingBuildTime > unit.remainingBuildTime) {
+          queueUnit.unit = unit;
+        }
+        queueUnit.count++;
+      } else {
+        player.set(unit.id, { count: 1, unit });
+      }
     }
 
     // if (this.selected.length) {

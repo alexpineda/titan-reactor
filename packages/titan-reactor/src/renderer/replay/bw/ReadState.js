@@ -4,6 +4,7 @@ import ImagesBW from "./ImagesBW";
 import TilesBW from "./TilesBW";
 import UnitsBW from "./UnitsBW";
 import CreepBW from "./CreepBW";
+import BuildingQueueCountBW from "./BuildingQueueCountBW";
 
 export default class ReadState {
   static get FrameCount() {
@@ -36,6 +37,10 @@ export default class ReadState {
 
   static get Sounds() {
     return 7;
+  }
+
+  static get BuildQueue() {
+    return 8;
   }
 
   constructor() {
@@ -81,7 +86,7 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Frame) {
-      if (buf.length < 24) {
+      if (buf.length < 28) {
         return false;
       }
 
@@ -94,8 +99,14 @@ export default class ReadState {
       frame.spriteCount = buf.readInt32LE(12);
       frame.imageCount = buf.readInt32LE(16);
       frame.soundCount = buf.readInt32LE(20);
+      frame.buildingQueueCount = buf.readInt32LE(24);
 
-      this.pos = 24;
+      for (let i = 0; i < 8; i++) {
+        frame.minerals.push(buf.readUInt16LE(28 + i * 4));
+        frame.gas.push(buf.readUInt16LE(28 + i * 4 + 2));
+      }
+
+      this.pos = 28 + 4 * 8;
 
       this.mode = ReadState.Tile;
       return true;
@@ -125,6 +136,19 @@ export default class ReadState {
       return this.fixedSizeTypeReader(
         "units",
         frame.unitCount * UnitsBW.byteLength,
+        buf,
+        frame,
+        ReadState.BuildQueue
+      );
+    }
+
+    if (this.mode === ReadState.BuildQueue) {
+      //unit id
+      //queue count
+      //type id
+      return this.fixedSizeTypeReader(
+        "buildingQueue",
+        frame.buildingQueueCount * BuildingQueueCountBW.byteLength,
         buf,
         frame,
         ReadState.Sprite

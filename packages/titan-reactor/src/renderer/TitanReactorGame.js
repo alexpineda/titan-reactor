@@ -410,6 +410,10 @@ async function TitanReactorGame(
     );
     frameBuilder.buildCreep();
     frameBuilder.buildSounds(view, audioMaster, elapsed);
+    for (const player of players) {
+      player.minerals = nextFrame.minerals[player.id];
+      player.gas = nextFrame.gas[player.id];
+    }
   }
 
   let _lastElapsed = 0;

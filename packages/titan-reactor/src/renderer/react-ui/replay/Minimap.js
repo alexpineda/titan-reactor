@@ -33,9 +33,20 @@ const Minimap = ({
       >
         {timeLabel}
       </p>
+
       <span className="flex" style={{ maxWidth: `${maxLabelWidth()}px` }}>
         <span className="bg-gray-700 text-gray-400 px-1 uppercase overflow-ellipsis flex-grow">
-          <p style={{ opacity: "0.8" }}>{omitChars(mapLabel)}</p>
+          <p
+            style={{
+              opacity: "0.8",
+              whiteSpace: "nowrap",
+              maxWidth: `${maxLabelWidth() - 30}px`,
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+            }}
+          >
+            {omitChars(mapLabel)}
+          </p>
         </span>
         <span className="bevel-gray-700 w-6 h-6"></span>
       </span>

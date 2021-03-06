@@ -27,6 +27,7 @@ const PlayerResources = ({
   eSportsMode,
   onChangeScore = () => {},
   fitToContent = false,
+
   gameIcons,
 }) => {
   const [showWorkerCount, setShowWorkerCount] = useState(true);

@@ -1,5 +1,6 @@
 import { MathUtils } from "three";
 import Creep from "titan-reactor-shared/map/Creep";
+import BuildingQueueCountBW from "./bw/BuildingQueueCountBW";
 import CreepBW from "./bw/CreepBW";
 import ImagesBW from "./bw/ImagesBW";
 import SoundsBW from "./bw/SoundsBW";
@@ -41,6 +42,7 @@ export default class BWFrameSceneBuilder {
     this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
     this.spritesBW = new SpritesBW(bwDat);
     this.imagesBW = new ImagesBW(bwDat);
+    this.buildQueueBW = new BuildingQueueCountBW(bwDat);
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
     this.creep = new Creep(
@@ -55,7 +57,9 @@ export default class BWFrameSceneBuilder {
     this.sprites = new Map();
     this.images = new Map();
     this.units = new Map();
+    this.unitsByIndex = new Map();
     this.unitsBySpriteId = new Map();
+    this.production = new Map();
   }
 
   buildStart(nextFrame, updateMinimap) {
@@ -107,10 +111,16 @@ export default class BWFrameSceneBuilder {
   buildUnitsAndMinimap(units) {
     this.unitsBW.count = this.nextFrame.unitCount;
     this.unitsBW.buffer = this.nextFrame.units;
+
+    this.buildQueueBW.count = this.nextFrame.buildingQueueCount;
+    this.buildQueueBW.buffer = this.nextFrame.buildingQueue;
+
     for (const minimapUnit of units.refresh(
       this.unitsBW,
+      this.buildQueueBW,
       this.units,
-      this.unitsBySpriteId
+      this.unitsBySpriteId,
+      this.production
     )) {
       if (this.updateMinimap && minimapUnit) {
         minimapUnit.visible = minimapUnit.userData.isResourceContainer

@@ -2,12 +2,15 @@ export default class FrameBW {
   constructor() {
     this.processed = false;
     this.frame = 0;
+    this.minerals = [];
+    this.gas = [];
     this.tilesCount = 0;
     this.creepCount = 0;
     this.unitCount = 0;
     this.spriteCount = 0;
     this.imageCount = 0;
     this.soundCount = 0;
+    this.buildingQueueCount = 0;
     this.buffers = {};
   }
 
@@ -37,5 +40,9 @@ export default class FrameBW {
 
   get creep() {
     return this.buffers.creep;
+  }
+
+  get buildingQueue() {
+    return this.buffers.buildingQueue;
   }
 }
