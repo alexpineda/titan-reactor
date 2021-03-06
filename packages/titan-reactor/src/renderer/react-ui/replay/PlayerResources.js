@@ -5,51 +5,50 @@ import { RollingNumber } from "./RollingNumber";
 import { togglePlayerVision } from "./replayHudReducer";
 import { setRemoteSettings } from "../../utils/settingsReducer";
 import incFontSize from "titan-reactor-shared/utils/incFontSize";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import WrappedElement from "../WrappedElement";
 
 const PlayerResources = ({
   index,
   id,
   name,
   playerNameCache = {},
-  minerals,
-  gas,
-  workers,
-  supply,
-  supplyMax,
   race,
   color,
-  apm,
   textSize,
   playerVision,
   togglePlayerVision,
   onPlayerNameChange = () => {},
   playerScore = 0,
   showScore = true,
-  eSportsHud,
+  esportsHud,
   onChangeScore = () => {},
   fitToContent = false,
-
+  managedDomElements,
   gameIcons,
+  cmdIcons,
 }) => {
-  const [showWorkerCount, setShowWorkerCount] = useState(true);
   const [score, setScore] = useState(playerScore);
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(playerNameCache[name] || name);
   const [tempName, setTempName] = useState("");
-  const toggleWorkerCount = () => setShowWorkerCount(!showWorkerCount);
 
   let gasIcon;
   let raceOffset = "30%";
+  let workerIcon;
 
   switch (race) {
     case "terran":
       gasIcon = gameIcons.vespeneTerran;
+      workerIcon = cmdIcons[unitTypes.scv];
       raceOffset = "25%";
       break;
     case "zerg":
+      workerIcon = cmdIcons[unitTypes.drone];
       gasIcon = gameIcons.vespeneZerg;
       break;
     case "protoss":
+      workerIcon = cmdIcons[unitTypes.probe];
       gasIcon = gameIcons.vespeneProtoss;
       break;
   }
@@ -62,7 +61,7 @@ const PlayerResources = ({
     .offsetHSL(0, 0, 0.1)
     .getHexString()}`;
 
-  const gameIconBgStyle = eSportsHud
+  const gameIconBgStyle = esportsHud
     ? {
         backgroundRepeat: "no-repeat",
         backgroundImage: `url(${gameIcons[`${race}Alpha`]})`,
@@ -75,7 +74,7 @@ const PlayerResources = ({
     ? { width: "1%", whiteSpace: "nowrap" }
     : {};
   const fixedWidthStyle = fitToContent ? { width: "6em" } : {};
-  const scoreTextStyle = eSportsHud
+  const scoreTextStyle = esportsHud
     ? {
         fontFamily: "fantasy",
         marginTop: "-1px",
@@ -85,19 +84,19 @@ const PlayerResources = ({
       }
     : {};
 
-  const bgGradient = eSportsHud
+  const bgGradient = esportsHud
     ? {
         background: `linear-gradient(90deg, ${color.hex} 0%, ${hueShift} 100%)`,
       }
     : {};
 
-  const scoreBgColor = eSportsHud ? { background: color.hex } : {};
+  const scoreBgColor = esportsHud ? { background: color.hex } : {};
 
   return (
     <tr>
       {showScore && (
         <td
-          className={`${eSportsHud ? "" : "pr-2"}`}
+          className={`${esportsHud ? "" : "pr-2"}`}
           style={{ ...fitToContentStyle, ...scoreBgColor }}
           data-tip="Player Score"
           onMouseDown={(evt) => {
@@ -109,7 +108,7 @@ const PlayerResources = ({
         >
           <span
             className={`${
-              eSportsHud
+              esportsHud
                 ? `text-${incFontSize(
                     textSize,
                     2
@@ -127,7 +126,7 @@ const PlayerResources = ({
         style={{
           ...fitToContentStyle,
           ...bgGradient,
-          borderRight: eSportsHud ? `4px solid ${lightShift}66` : "",
+          borderRight: esportsHud ? `4px solid ${lightShift}66` : "",
         }}
         data-tip="Toggle Fog of War"
         onMouseDown={(evt) => {
@@ -145,7 +144,7 @@ const PlayerResources = ({
               className={`text-${textSize} cursor-pointer inline-block text-white ml-3 `}
               style={{
                 opacity: playerVision[id] ? 1 : 0.5,
-                marginRight: eSportsHud ? "112px" : "0",
+                marginRight: esportsHud ? "112px" : "0",
               }}
             >
               {playerName.split(" ").map((str, i) =>
@@ -180,38 +179,57 @@ const PlayerResources = ({
           />
         )}
       </td>
-      <td className="px-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
-        <img src={gameIcons.minerals} className="inline w-5" />
-        <span className={`ml-2 text-gray-200 text-${textSize}`}>
-          <RollingNumber number={minerals} />
-        </span>
-      </td>
-      <td className="px-2" onClick={toggleWorkerCount} style={fixedWidthStyle}>
-        <img src={gasIcon} className="inline w-5" />
-        <span className={`ml-2 text-gray-200 text-${textSize}`}>
-          <RollingNumber number={gas} />
-        </span>
-      </td>
-      {showWorkerCount && (
-        <td
-          className="px-2"
-          onClick={toggleWorkerCount}
-          style={fixedWidthStyle}
-        >
+      <td className="px-2" style={fixedWidthStyle}>
+        <div className="flex items-center">
+          <img src={gameIcons.minerals} className="inline w-5" />
           <span className={`ml-2 text-gray-200 text-${textSize}`}>
-            {workers}
+            <WrappedElement
+              domElement={managedDomElements.minerals[id].domElement}
+              className="inline"
+            />
           </span>
-        </td>
-      )}
+        </div>
+      </td>
+      <td className="px-2" style={fixedWidthStyle}>
+        <div className="flex items-center">
+          <img src={gasIcon} className="inline w-5" />
+          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+            <WrappedElement
+              domElement={managedDomElements.gas[id].domElement}
+              className="inline"
+            />
+          </span>
+        </div>
+      </td>
+
+      <td className="px-2" style={fixedWidthStyle}>
+        <div className="flex items-center">
+          <img src={workerIcon} className="inline w-5" />
+          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+            <WrappedElement
+              domElement={managedDomElements.workerSupply[id].domElement}
+              className="inline"
+            />
+          </span>
+        </div>
+      </td>
+
       <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
-        <span className={`ml-2 text-gray-200 text-${textSize}`}>
-          {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)}
-        </span>
+        <div className="flex items-center">
+          <img src={gameIcons[race]} className="inline w-5" />
+          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+            <WrappedElement
+              domElement={managedDomElements.supply[id].domElement}
+              className="inline"
+            />
+            {/* {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)} */}
+          </span>
+        </div>
       </td>
       <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
         <div className="flex items-center">
           <span className={`text-gray-200 inline-block w-6 text-${textSize}`}>
-            <RollingNumber number={apm} />
+            0
           </span>
           <span className="text-xs uppercase text-gray-400 ml-2">APM</span>
         </div>
@@ -222,9 +240,8 @@ const PlayerResources = ({
 
 export default connect(
   (state) => ({
-    textSize: state.settings.data.textSize,
     playerVision: state.replay.hud.playerVision,
-    eSportsHud: state.settings.data.eSportsHud,
+    esportsHud: state.settings.data.esportsHud,
   }),
   (dispatch) => ({
     togglePlayerVision: (id) => dispatch(togglePlayerVision(id)),

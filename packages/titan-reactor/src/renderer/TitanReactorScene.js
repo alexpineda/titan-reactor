@@ -55,7 +55,7 @@ export class TitanReactorScene extends Scene {
     });
 
     this.gameIcons = gameIcons;
-    this.cmdIcons = cmdIcons;
+    this.cmdIcons = cmdIcons.icons;
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
 

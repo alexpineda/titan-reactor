@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, memo } from "react";
 
 const WrappedElement = ({ domElement, ...props }) => {
   const canvasRef = useRef();
   useEffect(() => {
     canvasRef.current.appendChild(domElement);
-    return () => canvasRef.current.remove(domElement);
+    return () => domElement.remove();
   }, []);
   return <div ref={canvasRef} {...props}></div>;
 };
 
-export default WrappedElement;
+export default memo(WrappedElement);

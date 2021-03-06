@@ -4,6 +4,10 @@ export default class FrameBW {
     this.frame = 0;
     this.minerals = [];
     this.gas = [];
+    this.supplyUsed = [];
+    this.supplyAvailable = [];
+    this.workerSupply = [];
+
     this.tilesCount = 0;
     this.creepCount = 0;
     this.unitCount = 0;

@@ -1,8 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
+import omitChars from "titan-reactor-shared/utils/omitChars";
 import WrappedElement from "../WrappedElement";
 import { toggleFogOfWar } from "./replayHudReducer";
-import omitChars from "titan-reactor-shared/utils/omitChars";
+import { hoveringOverMinimap } from "../../input/inputReducer";
 
 const Minimap = ({
   className = "",
@@ -10,7 +11,6 @@ const Minimap = ({
   mapLabel,
   maxLabelWidth,
   textSize,
-  onDropPings,
   canvas,
   showFogOfWar,
   toggleFogOfWar,
@@ -31,7 +31,7 @@ const Minimap = ({
         className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
         style={{ width: "13rem", maxWidth: `${maxLabelWidth()}px` }}
       >
-        {timeLabel}
+        <WrappedElement domElement={timeLabel} className="inline" />
       </p>
 
       <span className="flex" style={{ maxWidth: `${maxLabelWidth()}px` }}>
@@ -73,15 +73,6 @@ const Minimap = ({
             >
               filter_hdr
             </i>
-            <i
-              className="material-icons hover:text-yellow-500 rounded cursor-pointer"
-              style={{ fontSize: smallIconFontSize }}
-              title={`Drop Pings`}
-              data-tip={`Drop Pings`}
-              onClick={() => onDropPings && onDropPings()}
-            >
-              notifications_active
-            </i>
           </div>
         </aside>
       </div>
@@ -91,10 +82,11 @@ const Minimap = ({
 
 export default connect(
   (state) => ({
+    textSize: state.settings.data.textSize,
     showFogOfWar: state.replay.hud.showFogOfWar,
-    gameTick: state.titan.gameTick,
   }),
   (dispatch) => ({
     toggleFogOfWar: () => dispatch(toggleFogOfWar()),
+    hoveringOverMinimap: (val) => dispatch(hoveringOverMinimap(val)),
   })
 )(Minimap);

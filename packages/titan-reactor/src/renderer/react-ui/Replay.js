@@ -12,7 +12,6 @@ import Visible from "./components/visible";
 import { ProducerWindowPosition } from "common/settings";
 
 import { toggleMenu } from "./replay/replayHudReducer";
-import { hoveringOverMinimap } from "../input/inputReducer";
 
 const Replay = ({
   gameSurface,
@@ -32,13 +31,13 @@ const Replay = ({
   replayPosition,
   toggleMenu,
   onTogglePlayerPov,
-  hoveringOverMinimap,
   fpsCanvas,
   mapLabel,
   maxLabelWidth,
   gameIcons,
+  cmdIcons,
+  managedDomElements,
 }) => {
-  const onDropPings = () => {};
   const onUnitDetails = () => {};
   const onShowAttackDetails = () => {};
   const onFollowUnit = () => {};
@@ -70,13 +69,13 @@ const Replay = ({
       {showMenu && (
         <Menu onClose={() => toggleMenu(false)} onBackToMainMenu={() => {}} />
       )}
-      {showProduction && (
+      {/* {showProduction && (
         <Production
           players={players}
           textSize={settings.textSize}
           gameDimensions={gameDimensions}
         />
-      )}
+      )} */}
       <Visible visible={showResources && !settings.esportsHud}>
         <ResourcesBar
           className="flex absolute"
@@ -88,6 +87,8 @@ const Replay = ({
           gameDimensions={gameDimensions}
           onTogglePlayerPov={onTogglePlayerPov}
           gameIcons={gameIcons}
+          cmdIcons={cmdIcons}
+          managedDomElements={managedDomElements}
         />
       </Visible>
 
@@ -108,11 +109,8 @@ const Replay = ({
             mapLabel={mapLabel}
             maxLabelWidth={maxLabelWidth}
             className="pointer-events-auto"
-            onDropPings={onDropPings}
-            timeLabel={replayPosition.getFriendlyTime()}
-            textSize={settings.textSize}
+            timeLabel={managedDomElements.timeLabel.domElement}
             canvas={minimapCanvas}
-            hoveringOverMinimap={hoveringOverMinimap}
           />
         )}
         <Visible visible={showResources && settings.esportsHud}>
@@ -123,7 +121,9 @@ const Replay = ({
             gameDimensions={gameDimensions}
             onTogglePlayerPov={onTogglePlayerPov}
             gameIcons={gameIcons}
+            cmdIcons={cmdIcons}
             fitToContent
+            managedDomElements={managedDomElements}
           />
         </Visible>
 
@@ -179,6 +179,7 @@ export default connect(
       minimapCanvas: scene.minimapSurface.canvas,
       previewSurfaces: scene.previewSurfaces,
       gameIcons: scene.gameIcons,
+      cmdIcons: scene.cmdIcons,
       mapLabel: scene.chk.title,
       maxLabelWidth: scene.maxLabelWidth,
       showMenu: state.replay.hud.showMenu,
@@ -193,10 +194,10 @@ export default connect(
       replayPosition: scene.replayPosition,
       onTogglePlayerPov: scene.callbacks.onTogglePlayerPov,
       fpsCanvas: scene.fpsCanvas,
+      managedDomElements: scene.managedDomElements,
     };
   },
   (dispatch) => ({
     toggleMenu: (val) => dispatch(toggleMenu(val)),
-    hoveringOverMinimap: (val) => dispatch(hoveringOverMinimap(val)),
   })
 )(Replay);

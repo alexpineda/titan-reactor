@@ -9,6 +9,8 @@ const ResourcesBar = ({
   fitToContent,
   onTogglePlayerPov,
   gameIcons,
+  cmdIcons,
+  managedDomElements,
   className = "",
   style = {},
 }) => {
@@ -34,6 +36,8 @@ const ResourcesBar = ({
                   onTogglePlayerVision={onTogglePlayerVision}
                   fitToContent={fitToContent}
                   gameIcons={gameIcons}
+                  cmdIcons={cmdIcons}
+                  managedDomElements={managedDomElements}
                 />
               ))}
             </tbody>
@@ -96,7 +100,9 @@ export default connect(
       settings: state.settings.data,
       phrases: state.settings.phrases,
       errors: state.settings.errors,
-      textSize: state.settings.data.textSize,
+      textSize: state.settings.data.esportsHud
+        ? state.settings.data.esportsHudSize
+        : state.settings.data.hudFontSize,
       esportsHud: state.settings.data.esportsHud,
     };
   },

@@ -86,7 +86,7 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Frame) {
-      if (buf.length < 28) {
+      if (buf.length < 28 + 8 * 10) {
         return false;
       }
 
@@ -102,13 +102,19 @@ export default class ReadState {
       frame.buildingQueueCount = buf.readInt32LE(24);
       frame.minerals.length = 0;
       frame.gas.length = 0;
+      frame.supplyUsed.length = 0;
+      frame.supplyAvailable.length = 0;
+      frame.workerSupply.length = 0;
 
       for (let i = 0; i < 8; i++) {
-        frame.minerals.push(buf.readUInt16LE(28 + i * 4));
-        frame.gas.push(buf.readUInt16LE(28 + i * 4 + 2));
+        frame.minerals.push(buf.readUInt16LE(28 + i * 10));
+        frame.gas.push(buf.readUInt16LE(28 + i * 10 + 2));
+        frame.supplyUsed.push(buf.readUInt16LE(28 + i * 10 + 4));
+        frame.supplyAvailable.push(buf.readUInt16LE(28 + i * 10 + 6));
+        frame.workerSupply.push(buf.readUInt16LE(28 + i * 10 + 8));
       }
 
-      this.pos = 28 + 4 * 8;
+      this.pos = 28 + 8 * 10;
 
       this.mode = ReadState.Tile;
       return true;
@@ -145,9 +151,6 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.BuildQueue) {
-      //unit id
-      //queue count
-      //type id
       return this.fixedSizeTypeReader(
         "buildingQueue",
         frame.buildingQueueCount * BuildingQueueCountBW.byteLength,

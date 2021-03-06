@@ -29,6 +29,7 @@ import FogOfWar from "./render/effects/FogOfWar";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./replay/BWFrameBuilder";
+import ManagedDomElements from "./replay/ManagedDomElements";
 
 const { startLocation } = unitTypes;
 
@@ -127,6 +128,8 @@ async function TitanReactorGame(
   minimapScene.add(
     createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
   );
+
+  const managedDomElements = new ManagedDomElements();
 
   const cameras = new Cameras(
     settings,
@@ -410,10 +413,6 @@ async function TitanReactorGame(
     );
     frameBuilder.buildCreep();
     frameBuilder.buildSounds(view, audioMaster, elapsed);
-    for (const player of players) {
-      player.minerals = nextFrame.minerals[player.id];
-      player.gas = nextFrame.gas[player.id];
-    }
   }
 
   let _lastElapsed = 0;
@@ -463,10 +462,9 @@ async function TitanReactorGame(
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
+        managedDomElements.update(nextFrame, gameStatePosition);
         audioMaster.channels.play(elapsed);
-
         frameBuilder.bwScene.activate();
-
         if (updateMinimap) {
           frameBuilder.minimapBwScene.activate();
         }
@@ -704,12 +702,14 @@ async function TitanReactorGame(
     maxLabelWidth: () => minimapSurface.width,
     chk,
     gameIcons: scene.gameIcons,
+    cmdIcons: scene.cmdIcons,
     gameSurface,
     minimapSurface,
     previewSurfaces,
     fpsCanvas: stats.dom,
     players,
     replayPosition: gameStatePosition,
+    managedDomElements,
     callbacks,
     dispose,
   };
