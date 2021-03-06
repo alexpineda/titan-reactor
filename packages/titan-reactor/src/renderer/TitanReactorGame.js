@@ -363,7 +363,7 @@ async function TitanReactorGame(
       previewSurfaces.forEach((surf) => surf.setDimensions(pw, ph));
       cameras.updatePreviewScreenAspect(pw, ph);
     }
-    store.dispatch(onGameTick());
+    // store.dispatch(onGameTick());
   };
   window.addEventListener("resize", sceneResizeHandler, false);
 
@@ -433,7 +433,7 @@ async function TitanReactorGame(
         gameStatePosition.skipGameFrames
       ) {
         // players.updateResources(units);
-        store.dispatch(onGameTick());
+        // store.dispatch(onGameTick());
       }
 
       if (!nextFrame) {
@@ -682,13 +682,14 @@ async function TitanReactorGame(
     })(0);
   };
 
-  sceneResizeHandler();
-
-  setTimeout(() => {
-    // limitLoop(gameLoop, settings.fpsLimit);
-    renderMan.renderer.setAnimationLoop(gameLoop);
-  }, 500);
-
+  await new Promise((res) =>
+    setTimeout(() => {
+      // limitLoop(gameLoop, settings.fpsLimit);
+      renderMan.renderer.setAnimationLoop(gameLoop);
+      sceneResizeHandler();
+      res();
+    }, 500)
+  );
   if (settings.startPaused) {
     //@todo run first frame
   } else {

@@ -49,11 +49,13 @@ export class TitanReactorScene extends Scene {
       creepUniform,
       creepEdgesUniform,
       gameIcons,
+      cmdIcons,
     ] = await terrainMesh.generate({
       displacementScale,
     });
 
     this.gameIcons = gameIcons;
+    this.cmdIcons = cmdIcons;
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
 

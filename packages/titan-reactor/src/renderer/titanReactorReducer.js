@@ -1,9 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   criticalError: false,
   replay: null,
-  replays: [],
   map: null,
   processes: {
     map: {},
@@ -64,31 +63,26 @@ const titanReactorReducer = createSlice({
       },
       prepare: (name, error) => ({ payload: { name, error } }),
     },
-    mapFileReady: (state, action) => {
-      state.map = action.map;
-    },
-    replayFileReady: (state, action) => {
-      state.replay = action.replay;
-    },
-    replayFileAdded: (state, action) => {
-      state.replays.push(action.replay);
-    },
-    replayFileRemoved: (state, action) => {
-      const index = state.replays.findIndex(
-        (replay) => replay === action.payload
-      );
-      if (index !== -1) {
-        state.replays.splice(index, 1);
-      } else {
-        return state;
-      }
-    },
+    mapFileReady: (state, action) => ({
+      ...state,
+      map: action.map,
+    }),
+    replayFileReady: (state, action) => ({
+      ...state,
+      replay: action.replay,
+    }),
 
     criticalErrorOccurred: (state) => {
-      state.criticalError = true;
+      return {
+        ...state,
+        criticalError: true,
+      };
     },
     onGameTick: (state) => {
-      state.gameTick = state.gameTick + 1;
+      return {
+        ...state,
+        gameTick: state.gameTick + 1,
+      };
     },
   },
 });

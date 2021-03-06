@@ -37,10 +37,12 @@ const PlayerResources = ({
   const toggleWorkerCount = () => setShowWorkerCount(!showWorkerCount);
 
   let gasIcon;
+  let raceOffset = "30%";
 
   switch (race) {
     case "terran":
       gasIcon = gameIcons.vespeneTerran;
+      raceOffset = "25%";
       break;
     case "zerg":
       gasIcon = gameIcons.vespeneZerg;
@@ -62,7 +64,7 @@ const PlayerResources = ({
     ? {
         backgroundRepeat: "no-repeat",
         backgroundImage: `url(${gameIcons[`${race}Alpha`]})`,
-        backgroundPosition: "right",
+        backgroundPosition: `right ${raceOffset}`,
         mixBlendMode: "color-dodge",
       }
     : {};
@@ -138,13 +140,21 @@ const PlayerResources = ({
         {!isChangingName && (
           <div style={gameIconBgStyle}>
             <span
-              className={`text-${textSize} cursor-pointer inline-block font-semibold text-white ml-3 `}
+              className={`text-${textSize} cursor-pointer inline-block text-white ml-3 `}
               style={{
                 opacity: playerVision[id] ? 1 : 0.5,
                 marginRight: eSportsMode ? "112px" : "0",
               }}
             >
-              <span>{playerName}</span>
+              {playerName.split(" ").map((str, i) =>
+                i === 0 ? (
+                  <span className="font-semibold" key={i}>
+                    {str}
+                  </span>
+                ) : (
+                  <span key={i}>{str}</span>
+                )
+              )}
             </span>
           </div>
         )}

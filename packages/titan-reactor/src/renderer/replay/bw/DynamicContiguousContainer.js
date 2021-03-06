@@ -1,8 +1,7 @@
-export default class ContiguousContainer {
-  constructor(buf, count) {
+export default class DynamicContiguousContainer {
+  constructor(buf) {
     this._onBuffer = () => {};
     this.buffer = buf;
-    this.count = count;
     this._offset = 0;
   }
 
@@ -17,7 +16,11 @@ export default class ContiguousContainer {
   }
 
   static get byteLength() {
-    return 0;
+    throw new Error("cannot be determined statically");
+  }
+
+  get default() {
+    return null;
   }
 
   get offset() {

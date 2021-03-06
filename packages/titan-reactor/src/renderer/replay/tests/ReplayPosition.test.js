@@ -1,4 +1,4 @@
-import { ReplayPosition } from "../ReplayPosition";
+import { GameStatePosition } from "../GameStatePosition";
 
 function DummyClock() {
   this.stop = () => {};
@@ -12,7 +12,7 @@ test("should not skip game frames if delta < gamespeed", () => {
   const maxGameFrame = 100;
   const gameSpeed = 3;
 
-  const rp = new ReplayPosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
   rp.paused = false;
   rp.update();
   expect(rp.skipGameFrames).toBe(0);
@@ -34,7 +34,7 @@ test("should skip game 1 frame if delta === gamespeed", () => {
   const maxGameFrame = 100;
   const gameSpeed = 1;
 
-  const rp = new ReplayPosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
   rp.paused = false;
   rp.update();
   expect(rp.skipGameFrames).toBe(1);
@@ -50,7 +50,7 @@ test("should skip game 2 frame if delta === 2x gamespeed", () => {
   const maxGameFrame = 100;
   const gameSpeed = 1;
 
-  const rp = new ReplayPosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
   rp.paused = false;
   rp.update();
   expect(rp.skipGameFrames).toBe(2);
@@ -66,7 +66,7 @@ test("should skip game 1.5 frame if delta === 1.5x gamespeed", () => {
   const maxGameFrame = 100;
   const gameSpeed = 1;
 
-  const rp = new ReplayPosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
   rp.paused = false;
   rp.update();
   expect(rp.skipGameFrames).toBe(1);

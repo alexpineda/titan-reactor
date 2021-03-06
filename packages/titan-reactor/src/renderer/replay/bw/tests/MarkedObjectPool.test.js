@@ -1,8 +1,8 @@
-import MarkedQueue from "../MarkedQueue";
+import MarkedObjectPool from "../MarkedObjectPool";
 import { range } from "ramda";
 
 test("length should return number of free items", () => {
-  const container = new MarkedQueue(range(0, 10));
+  const container = new MarkedObjectPool(range(0, 10));
   expect(container.marked.length).toBe(0);
   expect(container.unmarked.length).toBe(10);
 
@@ -16,7 +16,7 @@ test("length should return number of free items", () => {
 });
 
 test("marking should throw if no unmarked available", () => {
-  const container = new MarkedQueue(range(0, 2));
+  const container = new MarkedObjectPool(range(0, 2));
 
   container.mark(2);
   expect(container.marked.length).toBe(2);
@@ -26,7 +26,7 @@ test("marking should throw if no unmarked available", () => {
 });
 
 test("unmarking should throw if no marked available", () => {
-  const container = new MarkedQueue(range(0, 2));
+  const container = new MarkedObjectPool(range(0, 2));
 
   container.mark(2);
   expect(container.marked.length).toBe(2);
@@ -40,7 +40,7 @@ test("unmarking should throw if no marked available", () => {
 });
 
 test("getMarkedItems initial values", () => {
-  const container = new MarkedQueue(range(0, 3));
+  const container = new MarkedObjectPool(range(0, 3));
 
   expect(container.unshift().length).toBe(0);
   expect(container.unmarked.length).toBe(3);
@@ -48,7 +48,7 @@ test("getMarkedItems initial values", () => {
 });
 
 test("getMarkedItems cycling index", () => {
-  const container = new MarkedQueue(range(0, 3));
+  const container = new MarkedObjectPool(range(0, 3));
   let marked;
 
   container.mark(2);

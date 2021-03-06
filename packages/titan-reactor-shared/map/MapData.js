@@ -86,6 +86,14 @@ export default class MapData {
 
             elevation = 0;
 
+            // bool tile_can_have_creep(xy_t<size_t> tile_pos) {
+            //   size_t index = tile_pos.y * game_st.map_tile_width + tile_pos.x;
+            //   if (st.tiles[index].flags & (tile_t::flag_unbuildable | tile_t::flag_partially_walkable)) return false;
+            //   if (tile_pos.y == game_st.map_tile_height - 1) return true;
+            //   if (st.tiles[index + game_st.map_tile_width].flags & tile_t::flag_unbuildable) return false;
+            //   return true;
+            // }
+
             if (high && walkable && mid) {
               elevation = 6;
             } else if (high && walkable) {

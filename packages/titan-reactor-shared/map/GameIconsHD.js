@@ -36,50 +36,78 @@ const loadDds = (buf) => {
 };
 
 export default class GameIconsHD {
-  renderGameIcons(renderer, gameIconsDds) {
-    const width = 56;
-    const height = 56;
+  renderCmdIcons(renderer, dds) {
+    return this.renderGameIcons(renderer, 128, 128, dds, undefined, false);
+  }
 
-    const iconNames = [
-      "minerals",
-      "vespeneZerg",
-      "vespeneTerran",
-      "vespeneProtoss",
-      "zerg",
-      "terran",
-      "protoss",
-      "energy",
-    ];
+  renderResourceIcons(renderer, dds) {
+    return this.renderGameIcons(
+      renderer,
+      56,
+      56,
+      dds,
+      [
+        "minerals",
+        "vespeneZerg",
+        "vespeneTerran",
+        "vespeneProtoss",
+        "zerg",
+        "terran",
+        "protoss",
+        "energy",
+      ],
+      true
+    );
+  }
 
+  renderGameIcons(renderer, width, height, dds, aliases, includeAlpha) {
     const ortho = new OrthographicCamera();
 
     renderer.setSize(width, height);
 
     const scene = new Scene();
 
-    for (let i = 0; i < iconNames.length; i++) {
+    if (!aliases) {
+      this.icons = [];
+      this.iconsAlpha = [];
+    }
+
+    for (let i = 0; i < dds.length; i++) {
+      if (aliases && aliases[i] === undefined) {
+        continue;
+      }
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       canvas.width = width;
       canvas.height = height;
 
-      const texture = loadDds(gameIconsDds[i]);
+      const texture = loadDds(dds[i]);
       scene.background = texture;
       renderer.render(scene, ortho);
 
       ctx.scale(1, -1);
       ctx.drawImage(renderer.domElement, 0, 0, width, -height);
-      this[iconNames[i]] = canvas.toDataURL("image/png");
+      if (aliases) {
+        this[aliases[i]] = canvas.toDataURL("image/png");
+      } else {
+        this.icons[i] = canvas.toDataURL("image/png");
+      }
 
-      // create a 50% transparent image for use with css background-image
-      const alphaCanvas = document.createElement("canvas");
-      const actx = alphaCanvas.getContext("2d");
-      alphaCanvas.width = width;
-      alphaCanvas.height = height;
-      actx.scale(1, -1);
-      actx.globalAlpha = 0.5;
-      actx.drawImage(renderer.domElement, 0, 0, width, -height);
-      this[`${iconNames[i]}Alpha`] = alphaCanvas.toDataURL("image/png");
+      if (includeAlpha) {
+        // create a 50% transparent image for use with css background-image
+        const alphaCanvas = document.createElement("canvas");
+        const actx = alphaCanvas.getContext("2d");
+        alphaCanvas.width = width;
+        alphaCanvas.height = height;
+        actx.scale(1, -1);
+        actx.globalAlpha = 0.5;
+        actx.drawImage(renderer.domElement, 0, 0, width, -height);
+        if (aliases) {
+          this[`${aliases[i]}Alpha`] = alphaCanvas.toDataURL("image/png");
+        } else {
+          this.iconsAlpha[i] = alphaCanvas.toDataURL("image/png");
+        }
+      }
     }
   }
 }

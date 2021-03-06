@@ -41,13 +41,35 @@ export default class ReadState {
   constructor() {
     this.mode = ReadState.FrameCount;
     this.currentFrame = 0;
+    this.pos = 0;
   }
 
   ended() {
     return this.currentFrame === this.maxFrame;
   }
 
+  fixedSizeTypeReader(name, size, buf, frame, next) {
+    if (buf.length < this.pos + size) {
+      return false;
+    }
+
+    frame.setBuffer(name, buf, this.pos, size);
+    this.pos += size;
+
+    this.mode = next;
+
+    return true;
+  }
+
+  initType(frame, name, count, type) {
+    return {
+      name,
+      count,
+    };
+  }
+
   process(buf, frame) {
+    //@todo remove this and read from .rep
     if (this.mode === ReadState.FrameCount) {
       if (buf.length < 4) {
         return false;
@@ -65,6 +87,7 @@ export default class ReadState {
 
       frame.frame = buf.readInt32LE(0);
       this.currentFrame = frame.frame;
+
       frame.tilesCount = buf.readUInt32LE(4);
       frame.creepCount = frame.tilesCount;
       frame.unitCount = buf.readInt32LE(8);
@@ -79,92 +102,63 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Tile) {
-      const size = frame.tilesCount * TilesBW.byteLength;
-      if (buf.length < this.pos + size) {
-        return false;
-      }
-
-      frame.setBuffer("tiles", buf, this.pos, size);
-      this.pos += size;
-
-      this.mode = ReadState.Creep;
-
-      return true;
+      return this.fixedSizeTypeReader(
+        "tiles",
+        frame.tilesCount * TilesBW.byteLength,
+        buf,
+        frame,
+        ReadState.Creep
+      );
     }
 
     if (this.mode === ReadState.Creep) {
-      const size = frame.creepCount * CreepBW.byteLength;
-      if (buf.length < this.pos + size) {
-        return false;
-      }
-
-      frame.setBuffer("creep", buf, this.pos, size);
-      this.pos += size;
-
-      this.mode = ReadState.Unit;
-
-      return true;
+      return this.fixedSizeTypeReader(
+        "creep",
+        frame.creepCount * CreepBW.byteLength,
+        buf,
+        frame,
+        ReadState.Unit
+      );
     }
 
     if (this.mode === ReadState.Unit) {
-      const size = frame.unitCount * UnitsBW.byteLength;
-      if (buf.length < this.pos + size) {
-        return false;
-      }
-
-      frame.setBuffer("units", buf, this.pos, size);
-      this.pos += size;
-
-      this.mode = ReadState.Sprite;
-
-      return true;
+      return this.fixedSizeTypeReader(
+        "units",
+        frame.unitCount * UnitsBW.byteLength,
+        buf,
+        frame,
+        ReadState.Sprite
+      );
     }
 
     if (this.mode === ReadState.Sprite) {
-      const size = frame.spriteCount * SpritesBW.byteLength;
-      if (buf.length < this.pos + size) {
-        return false;
-      }
-
-      frame.setBuffer("sprites", buf, this.pos, size);
-      this.pos += size;
-
-      this.mode = ReadState.Images;
-
-      return true;
+      return this.fixedSizeTypeReader(
+        "sprites",
+        frame.spriteCount * SpritesBW.byteLength,
+        buf,
+        frame,
+        ReadState.Images
+      );
     }
 
     if (this.mode === ReadState.Images) {
-      const size = frame.imageCount * ImagesBW.byteLength;
-      if (buf.length < this.pos + size) {
-        return false;
-      }
-
-      frame.setBuffer("images", buf, this.pos, size);
-      this.pos += size;
-
-      this.mode = ReadState.Sounds;
-
-      return true;
+      return this.fixedSizeTypeReader(
+        "images",
+        frame.imageCount * ImagesBW.byteLength,
+        buf,
+        frame,
+        ReadState.Sounds
+      );
     }
 
     if (this.mode === ReadState.Sounds) {
-      const size = frame.soundCount * SoundsBW.byteLength;
-      if (buf.length < this.pos + size) {
-        return false;
-      }
-
-      if (this.soundCount == 0) {
-        this.mode = ReadState.Frame;
-        return true;
-      }
-
-      frame.setBuffer("sounds", buf, this.pos, size);
-      this.pos += size;
-
-      this.mode = ReadState.Frame;
-
-      return true;
+      return this.fixedSizeTypeReader(
+        "sounds",
+        frame.soundCount * SoundsBW.byteLength,
+        buf,
+        frame,
+        ReadState.Frame
+      );
     }
 
     return false;

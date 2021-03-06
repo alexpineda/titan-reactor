@@ -122,10 +122,20 @@ class Terrain {
       }
     );
 
+    // yeah we should probably move this to somewhere but its most convenient here atm
     const gameIcons = new GameIconsHD();
-    gameIcons.renderGameIcons(
+    gameIcons.renderResourceIcons(
       renderer,
       readDdsGrp(await this.readFile("game/icons.dds.grp", false), true)
+    );
+
+    const cmdIcons = new GameIconsHD();
+    cmdIcons.renderCmdIcons(
+      renderer,
+      readDdsGrp(
+        await this.readFile("unit/cmdicons/cmdicons.dds.grp", false),
+        true
+      )
     );
 
     const [sd, hd, d, creep, creepEdges] = generateMesh(renderer, mapData);
@@ -135,7 +145,7 @@ class Terrain {
     // hd.updateMatrix();
 
     renderer.dispose();
-    return [sd, hd, d, creep, creepEdges, gameIcons];
+    return [sd, hd, d, creep, creepEdges, gameIcons, cmdIcons];
   }
 }
 
