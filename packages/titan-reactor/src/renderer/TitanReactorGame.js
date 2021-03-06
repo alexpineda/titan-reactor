@@ -158,7 +158,8 @@ async function TitanReactorGame(
   const players = new Players(
     rep.header.players,
     chk.units.filter((u) => u.unitId === startLocation),
-    settings.playerColors
+    settings.playerColors,
+    settings.randomizeColorOrder
   );
   players.forEach((player, i) => {
     const pos = i == 0 ? PovLeft : PovRight;

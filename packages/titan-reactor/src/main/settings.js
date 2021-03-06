@@ -179,6 +179,7 @@ export class Settings extends EventEmitter {
       mapsRss: "",
       replaysRss: "",
       useCustomColors: false,
+      randomizeColorOrder: false,
       usePlayerColorUnitSelection: true,
       playerColors: [
         "f40404",

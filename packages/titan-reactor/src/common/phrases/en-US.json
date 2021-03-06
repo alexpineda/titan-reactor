@@ -33,6 +33,7 @@
     "SETTINGS_CAMERA": "Camera",
     "SETTINGS_INTEGRATIONS": "Integrations",
     "SETTINGS_USE_CUSTOM_COLORS": "Use Custom Player Colors",
+    "SETTINGS_RANDOMIZE_COLORS": "Randomize Color Order (In-Game)",
     "SETTINGS_CAMERA_SHAKE": "Cinematic Camera Shake",
     "SETTINGS_MUSIC_VOLUME": "Music Volume",
     "SETTINGS_SOUND_VOLUME": "Sound Volume",

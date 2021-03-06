@@ -193,34 +193,49 @@ export default ({
             }}
           />{" "}
         </Option>
-        <Option
-          label={phrases["SETTINGS_USE_CUSTOM_COLORS"]}
-          toggle={
-            <Toggle
-              value={settings.useCustomColors}
-              onChange={() =>
-                updateSettings({ useCustomColors: !settings.useCustomColors })
-              }
-            />
-          }
-        >
-          <Visible visible={settings.useCustomColors}>
-            <div className="flex flex-wrap">
-              {settings.playerColors.map((color, i) => (
-                <ColorPicker
-                  key={i}
-                  color={`${color}`}
-                  onChange={({ hex }) => {
-                    const clrs = [...settings.playerColors];
-                    clrs[i] = hex;
-                    updateSettings({ playerColors: clrs });
-                  }}
-                  className="mr-4"
-                />
-              ))}
-            </div>
-          </Visible>
-        </Option>
+        {!inGame && (
+          <Option
+            label={phrases["SETTINGS_USE_CUSTOM_COLORS"]}
+            toggle={
+              <Toggle
+                value={settings.useCustomColors}
+                onChange={() =>
+                  updateSettings({ useCustomColors: !settings.useCustomColors })
+                }
+              />
+            }
+          >
+            <Visible visible={settings.useCustomColors}>
+              <Option
+                label={phrases["SETTINGS_RANDOMIZE_COLORS"]}
+                toggle={
+                  <Toggle
+                    value={settings.randomizeColorOrder}
+                    onChange={() =>
+                      updateSettings({
+                        randomizeColorOrder: !settings.randomizeColorOrder,
+                      })
+                    }
+                  />
+                }
+              />
+              <div className="flex flex-wrap">
+                {settings.playerColors.map((color, i) => (
+                  <ColorPicker
+                    key={i}
+                    color={`${color}`}
+                    onChange={({ hex }) => {
+                      const clrs = [...settings.playerColors];
+                      clrs[i] = hex;
+                      updateSettings({ playerColors: clrs });
+                    }}
+                    className="mr-4"
+                  />
+                ))}
+              </div>
+            </Visible>
+          </Option>
+        )}
         <Option
           label={phrases["SETTINGS_ENABLE_PLAYER_SCORES"]}
           toggle={

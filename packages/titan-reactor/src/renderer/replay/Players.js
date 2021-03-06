@@ -1,12 +1,15 @@
 import { Color } from "three";
+import shuffle from "lodash.shuffle";
 
 export class Players extends Array {
-  constructor(players, startLocations, customColors) {
+  constructor(players, startLocations, customColors, randomizeColors) {
     super();
-    this.customColors = customColors.map((color) => ({
+    const colors = randomizeColors ? shuffle(customColors) : customColors;
+    this.customColors = colors.map((color) => ({
       hex: color,
       three: new Color().setStyle(color),
     }));
+
     this.push(
       ...players.map((player) => ({
         id: player.id,
