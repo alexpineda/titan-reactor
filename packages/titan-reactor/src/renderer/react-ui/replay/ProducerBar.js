@@ -183,6 +183,8 @@ const ProducerBar = ({
 export default connect(
   (state) => {
     return {
+      position: state.settings.data.producerWindowPosition,
+      size: state.settings.data.producerDockSize,
       isHoveringOverMinimap: state.replay.input.hoveringOverMinimap,
       settings: state.settings.data,
     };

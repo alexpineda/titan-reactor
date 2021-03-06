@@ -1,12 +1,13 @@
 import React from "react";
+import { connect } from "react-redux";
 import PlayerResources from "./PlayerResources";
+import { setRemoteSettings } from "../../utils/settingsReducer";
 
 const ResourcesBar = ({
   players,
   textSize,
   fitToContent,
   onTogglePlayerPov,
-  eSportsMode,
   gameIcons,
   className = "",
   style = {},
@@ -29,7 +30,6 @@ const ResourcesBar = ({
                   key={player.name}
                   index={i}
                   textSize={textSize}
-                  eSportsMode={eSportsMode}
                   {...player}
                   onTogglePlayerVision={onTogglePlayerVision}
                   fitToContent={fitToContent}
@@ -90,4 +90,17 @@ const ResourcesBar = ({
   );
 };
 
-export default ResourcesBar;
+export default connect(
+  (state) => {
+    return {
+      settings: state.settings.data,
+      phrases: state.settings.phrases,
+      errors: state.settings.errors,
+      textSize: state.settings.data.textSize,
+      esportsHud: state.settings.data.esportsHud,
+    };
+  },
+  (dispatch) => ({
+    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
+  })
+)(ResourcesBar);

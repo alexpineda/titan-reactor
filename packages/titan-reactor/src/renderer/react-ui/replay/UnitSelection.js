@@ -1,6 +1,8 @@
 import React from "react";
+import { connect } from "react-redux";
+import { setRemoteSettings } from "../../utils/settingsReducer";
 
-export default ({
+const UnitSelection = ({
   units,
   textSize,
   onUnitDetails,
@@ -68,3 +70,17 @@ export default ({
     </div>
   );
 };
+
+export default connect(
+  (state) => {
+    return {
+      settings: state.settings.data,
+      textSize: state.settings.data.textSize,
+      phrases: state.settings.phrases,
+      errors: state.settings.errors,
+    };
+  },
+  (dispatch) => ({
+    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
+  })
+)(UnitSelection);

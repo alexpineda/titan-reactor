@@ -92,6 +92,7 @@ const Minimap = ({
 export default connect(
   (state) => ({
     showFogOfWar: state.replay.hud.showFogOfWar,
+    gameTick: state.titan.gameTick,
   }),
   (dispatch) => ({
     toggleFogOfWar: () => dispatch(toggleFogOfWar()),

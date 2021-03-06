@@ -325,20 +325,6 @@ const ReplayPosition = ({
           >
             remove_red_eye
           </i>
-          {/* <i
-            className="material-icons text-yellow-700 rounded cursor-pointer"
-            style={{ fontSize: smallIconFontSize }}
-            data-tip="Preview Scrubber"
-          >
-            launch
-          </i> */}
-          {/* <i
-            className="material-icons text-yellow-700 rounded cursor-pointer"
-            style={{ fontSize: "0.75rem" }}
-            data-tip="Allow Cinematics"
-          >
-            voice_chat
-          </i> */}
         </aside>
       </div>
     </div>
@@ -355,5 +341,7 @@ export default connect((state, { replayPosition }) => {
     autoSpeed: replayPosition.autoSpeed,
     paused: replayPosition.paused,
     maxAutoReplaySpeed: state.settings.data.maxAutoReplaySpeed,
+    textSize: state.settings.data.textSize,
+    gameTick: state.titan.gameTick,
   };
 })(ReplayPosition);

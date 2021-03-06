@@ -100,6 +100,8 @@ export default class ReadState {
       frame.imageCount = buf.readInt32LE(16);
       frame.soundCount = buf.readInt32LE(20);
       frame.buildingQueueCount = buf.readInt32LE(24);
+      frame.minerals.length = 0;
+      frame.gas.length = 0;
 
       for (let i = 0; i < 8; i++) {
         frame.minerals.push(buf.readUInt16LE(28 + i * 4));

@@ -10,15 +10,9 @@ import ProducerBar from "./replay/ProducerBar";
 import Menu from "./replay/Menu";
 import Visible from "./components/visible";
 import { ProducerWindowPosition } from "common/settings";
-import { setRemoteSettings } from "../utils/settingsReducer";
 
 import { toggleMenu } from "./replay/replayHudReducer";
 import { hoveringOverMinimap } from "../input/inputReducer";
-
-function useForceUpdate() {
-  const [value, setValue] = useState(0); // integer state
-  return useCallback(() => setValue((value) => ++value), []); // update the state to force render
-}
 
 const Replay = ({
   gameSurface,
@@ -27,9 +21,6 @@ const Replay = ({
   previewSurfaces,
   players,
   settings,
-  errors,
-  saveSettings,
-  phrases,
   showMenu,
   selectedUnits,
   showProduction,
@@ -46,18 +37,11 @@ const Replay = ({
   mapLabel,
   maxLabelWidth,
   gameIcons,
-  callbacks,
 }) => {
-  const forceUpdate = useForceUpdate();
   const onDropPings = () => {};
   const onUnitDetails = () => {};
   const onShowAttackDetails = () => {};
   const onFollowUnit = () => {};
-
-  useEffect(() => {
-    const handle = setTimeout(() => forceUpdate(), 1000);
-    return () => clearTimeout(handle);
-  }, []);
 
   return (
     <>
@@ -79,24 +63,12 @@ const Replay = ({
           gameSurface={gameSurface}
           previewSurfaces={previewSurfaces}
           fpsCanvas={fpsCanvas}
-          position={settings.producerWindowPosition}
-          size={settings.producerDockSize}
           replayPosition={replayPosition}
         />
       )}
 
       {showMenu && (
-        <Menu
-          phrases={phrases}
-          settings={settings}
-          errors={errors}
-          saveSettings={saveSettings}
-          onClose={() => toggleMenu(false)}
-          isReplay={true}
-          hasNextReplay={false}
-          onNextReplay={() => {}}
-          onBackToMainMenu={() => {}}
-        />
+        <Menu onClose={() => toggleMenu(false)} onBackToMainMenu={() => {}} />
       )}
       {showProduction && (
         <Production
@@ -113,7 +85,6 @@ const Replay = ({
             right: `${gameDimensions.right}px`,
           }}
           players={players}
-          textSize={settings.textSize}
           gameDimensions={gameDimensions}
           onTogglePlayerPov={onTogglePlayerPov}
           gameIcons={gameIcons}
@@ -146,7 +117,6 @@ const Replay = ({
         )}
         <Visible visible={showResources && settings.esportsHud}>
           <ResourcesBar
-            eSportsMode={settings.esportsHud}
             className="flex-1 self-end pointer-events-auto"
             players={players}
             textSize="lg"
@@ -170,7 +140,6 @@ const Replay = ({
             onShowAttackDetails={onShowAttackDetails}
             onFollowUnit={onFollowUnit}
             followingUnit={null}
-            textSize={settings.textSize}
           />
         </Visible>
         <Visible
@@ -193,7 +162,6 @@ const Replay = ({
             onChangeGameSpeed={(speed) => {
               replayPosition.gameSpeed = speed;
             }}
-            textSize={settings.textSize}
           />
         </Visible>
       </div>
@@ -205,8 +173,6 @@ export default connect(
   (state, { scene }) => {
     return {
       settings: state.settings.data,
-      phrases: state.settings.phrases,
-      errors: state.settings.errors,
       players: scene.players,
       gameSurface: scene.gameSurface,
       gameDimensions: scene.gameSurface.getRect(),
@@ -226,14 +192,11 @@ export default connect(
       showFogOfWar: state.replay.hud.showFogOfWar,
       replayPosition: scene.replayPosition,
       onTogglePlayerPov: scene.callbacks.onTogglePlayerPov,
-      callbacks: scene.callbacks,
       fpsCanvas: scene.fpsCanvas,
-      gameTick: state.titan.gameTick,
     };
   },
   (dispatch) => ({
     toggleMenu: (val) => dispatch(toggleMenu(val)),
-    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
     hoveringOverMinimap: (val) => dispatch(hoveringOverMinimap(val)),
   })
 )(Replay);

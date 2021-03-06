@@ -1,4 +1,5 @@
 import React from "react";
+import { connect } from "react-redux";
 
 const PlayerProduction = ({ color, units, textSize }) => {
   const w = ["xs"].includes(textSize) ? "w-6" : "w-8";
@@ -20,7 +21,7 @@ const PlayerProduction = ({ color, units, textSize }) => {
   );
 };
 
-export default ({ players, textSize, gameDimensions }) => {
+const Production = ({ players, textSize, gameDimensions }) => {
   return (
     <div
       className="flex absolute select-none"
@@ -49,3 +50,12 @@ export default ({ players, textSize, gameDimensions }) => {
     </div>
   );
 };
+
+export default connect((state) => {
+  return {
+    textSize: state.settings.data.textSize,
+    settings: state.settings.data,
+    phrases: state.settings.phrases,
+    errors: state.settings.errors,
+  };
+})(Production);

@@ -1,13 +1,14 @@
 import React, { useState } from "react";
+import { connect } from "react-redux";
+import { setRemoteSettings } from "../../utils/settingsReducer";
 import { MenuItem } from "../components/MenuItem";
 import Options from "../home/Options";
 
-export default ({
+const Menu = ({
   phrases,
   settings,
   errors,
   saveSettings,
-  isReplay,
   onClose,
   onBackToMainMenu,
 }) => {
@@ -20,14 +21,7 @@ export default ({
     >
       {!showOptions && (
         <ul>
-          {isReplay ? (
-            <MenuItem
-              label={phrases["MENU_RETURN_TO_GAME"]}
-              onClick={onClose}
-            />
-          ) : (
-            <MenuItem label={phrases["MENU_RETURN_TO_MAP"]} onClick={onClose} />
-          )}
+          <MenuItem label={phrases["MENU_RETURN_TO_GAME"]} onClick={onClose} />
 
           <MenuItem
             label={phrases["MENU_OPTIONS"]}
@@ -57,3 +51,16 @@ export default ({
     </div>
   );
 };
+
+export default connect(
+  (state) => {
+    return {
+      settings: state.settings.data,
+      phrases: state.settings.phrases,
+      errors: state.settings.errors,
+    };
+  },
+  (dispatch) => ({
+    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
+  })
+)(Menu);

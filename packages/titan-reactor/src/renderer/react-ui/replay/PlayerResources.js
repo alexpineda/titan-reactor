@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { Color } from "three";
 import { RollingNumber } from "./RollingNumber";
 import { togglePlayerVision } from "./replayHudReducer";
+import { setRemoteSettings } from "../../utils/settingsReducer";
 import incFontSize from "titan-reactor-shared/utils/incFontSize";
 
 const PlayerResources = ({
@@ -18,13 +19,13 @@ const PlayerResources = ({
   race,
   color,
   apm,
-  textSize = "base",
+  textSize,
   playerVision,
   togglePlayerVision,
   onPlayerNameChange = () => {},
   playerScore = 0,
   showScore = true,
-  eSportsMode,
+  eSportsHud,
   onChangeScore = () => {},
   fitToContent = false,
 
@@ -61,7 +62,7 @@ const PlayerResources = ({
     .offsetHSL(0, 0, 0.1)
     .getHexString()}`;
 
-  const gameIconBgStyle = eSportsMode
+  const gameIconBgStyle = eSportsHud
     ? {
         backgroundRepeat: "no-repeat",
         backgroundImage: `url(${gameIcons[`${race}Alpha`]})`,
@@ -74,7 +75,7 @@ const PlayerResources = ({
     ? { width: "1%", whiteSpace: "nowrap" }
     : {};
   const fixedWidthStyle = fitToContent ? { width: "6em" } : {};
-  const scoreTextStyle = eSportsMode
+  const scoreTextStyle = eSportsHud
     ? {
         fontFamily: "fantasy",
         marginTop: "-1px",
@@ -84,19 +85,19 @@ const PlayerResources = ({
       }
     : {};
 
-  const bgGradient = eSportsMode
+  const bgGradient = eSportsHud
     ? {
         background: `linear-gradient(90deg, ${color.hex} 0%, ${hueShift} 100%)`,
       }
     : {};
 
-  const scoreBgColor = eSportsMode ? { background: color.hex } : {};
+  const scoreBgColor = eSportsHud ? { background: color.hex } : {};
 
   return (
     <tr>
       {showScore && (
         <td
-          className={`${eSportsMode ? "" : "pr-2"}`}
+          className={`${eSportsHud ? "" : "pr-2"}`}
           style={{ ...fitToContentStyle, ...scoreBgColor }}
           data-tip="Player Score"
           onMouseDown={(evt) => {
@@ -108,7 +109,7 @@ const PlayerResources = ({
         >
           <span
             className={`${
-              eSportsMode
+              eSportsHud
                 ? `text-${incFontSize(
                     textSize,
                     2
@@ -126,7 +127,7 @@ const PlayerResources = ({
         style={{
           ...fitToContentStyle,
           ...bgGradient,
-          borderRight: eSportsMode ? `4px solid ${lightShift}66` : "",
+          borderRight: eSportsHud ? `4px solid ${lightShift}66` : "",
         }}
         data-tip="Toggle Fog of War"
         onMouseDown={(evt) => {
@@ -144,7 +145,7 @@ const PlayerResources = ({
               className={`text-${textSize} cursor-pointer inline-block text-white ml-3 `}
               style={{
                 opacity: playerVision[id] ? 1 : 0.5,
-                marginRight: eSportsMode ? "112px" : "0",
+                marginRight: eSportsHud ? "112px" : "0",
               }}
             >
               {playerName.split(" ").map((str, i) =>
@@ -221,9 +222,12 @@ const PlayerResources = ({
 
 export default connect(
   (state) => ({
+    textSize: state.settings.data.textSize,
     playerVision: state.replay.hud.playerVision,
+    eSportsHud: state.settings.data.eSportsHud,
   }),
   (dispatch) => ({
     togglePlayerVision: (id) => dispatch(togglePlayerVision(id)),
+    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
   })
 )(PlayerResources);
