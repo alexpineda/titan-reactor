@@ -8,30 +8,29 @@ import incFontSize from "titan-reactor-shared/utils/incFontSize";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import WrappedElement from "../WrappedElement";
 
+const _playerNameCache = {};
+const _playerScoreCache = {};
+
 const PlayerResources = ({
   index,
   id,
   name,
-  playerNameCache = {},
   race,
   color,
   textSize,
   playerVision,
   togglePlayerVision,
-  onPlayerNameChange = () => {},
-  playerScore = 0,
   showScore = true,
   esportsHud,
-  onChangeScore = () => {},
   fitToContent = false,
   managedDomElements,
   gameIcons,
   cmdIcons,
 }) => {
-  const [score, setScore] = useState(playerScore);
   const [isChangingName, setIsChangingName] = useState(false);
-  const [playerName, setPlayerName] = useState(playerNameCache[name] || name);
-  const [tempName, setTempName] = useState("");
+  const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
+  const [tempName, setTempName] = useState(playerName);
+  const [score, setScore] = useState(_playerScoreCache[playerName] || 0);
 
   let gasIcon;
   let raceOffset = "30%";
@@ -103,7 +102,7 @@ const PlayerResources = ({
             const newScore =
               evt.button === 0 ? score + 1 : Math.max(0, score - 1);
             setScore(newScore);
-            onChangeScore(newScore);
+            _playerScoreCache[playerName] = newScore;
           }}
         >
           <span
@@ -134,7 +133,6 @@ const PlayerResources = ({
             togglePlayerVision(id);
           } else {
             setIsChangingName(true);
-            // setTempName(playerName);
           }
         }}
       >
@@ -161,16 +159,17 @@ const PlayerResources = ({
         )}
         {isChangingName && (
           <input
+            autoFocus
             type="text"
             value={tempName}
             onChange={(evt) => {
+              _playerNameCache[playerName] = evt.target.value;
               setTempName(evt.target.value);
             }}
             onKeyDown={(evt) => {
               evt.nativeEvent.stopImmediatePropagation();
               if (evt.key === "Enter") {
                 setPlayerName(tempName);
-                onPlayerNameChange(name, tempName);
                 setIsChangingName(false);
               } else if (evt.key === "Escape") {
                 setIsChangingName(false);
