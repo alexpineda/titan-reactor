@@ -3,14 +3,19 @@ import { gameSpeeds } from "titan-reactor-shared/utils/conversions";
 export default class Apm {
   constructor(players) {
     this.players = players;
-    //1 minute of frames at fastest
-    //@todo add sampling
-    this.maxFrames = 1428;
-    this.maxFramesFactor = (this.maxFrames * gameSpeeds.fastest) / (1000 * 60);
+    this.framesPerMinute = (60 * 1000) / gameSpeeds.fastest;
+    this.sampleRate = 1;
+    this.sampledFPM = Math.floor(this.framesPerMinute / this.sampleRate);
   }
 
   update(cmds, bwGameFrame) {
-    const frame = bwGameFrame % this.maxFrames;
+    if (bwGameFrame % this.sampleRate) {
+      return;
+    }
+
+    const frame = Math.floor(
+      (bwGameFrame % this.framesPerMinute) / this.sampleRate
+    );
 
     for (const player of this.players) {
       player.actions[frame] = 0;
@@ -26,7 +31,7 @@ export default class Apm {
         total += actions;
       }
       player.apm = Math.floor(
-        total * (this.maxFrames / Math.min(bwGameFrame, this.maxFrames))
+        total * (this.framesPerMinute / Math.min(bwGameFrame, this.sampledFPM))
       );
     }
   }

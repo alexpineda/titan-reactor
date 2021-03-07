@@ -3,6 +3,8 @@ import { Line3, Plane, Vector3 } from "three";
 const _points = [
   [-1, -1],
   [1, 1],
+  [1, -1],
+  [-1, 1],
 ];
 
 const _plane = new Plane(new Vector3(0, 1, 0));
@@ -30,9 +32,14 @@ export default class ProjectedCameraView {
   }
 
   update() {
-    const _intersect = [new Vector3(), new Vector3()];
+    const _intersect = [
+      new Vector3(),
+      new Vector3(),
+      new Vector3(),
+      new Vector3(),
+    ];
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 4; i++) {
       _vector.set(_points[i][0], _points[i][1], 1).unproject(this.camera);
       if (
         !_plane.intersectLine(
@@ -51,6 +58,11 @@ export default class ProjectedCameraView {
         break;
       }
     }
+
+    this.bl = [_intersect[0].x, _intersect[0].z];
+    this.tr = [_intersect[1].x, _intersect[1].z];
+    this.br = [_intersect[2].x, _intersect[2].z];
+    this.tl = [_intersect[3].x, _intersect[3].z];
 
     this.left = _intersect[0].x;
     this.top = _intersect[1].z;

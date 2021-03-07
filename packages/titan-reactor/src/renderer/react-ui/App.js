@@ -1,11 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
-import WrappedElement from "./WrappedElement";
 import { LoadingOverlay } from "./LoadingOverlay";
 import Initializing from "./home/Initializing";
 import Map from "./Map";
-import Replay from "./Replay";
-import { LoadingProgress } from "./LoadingProgress";
+import Game from "./Game";
 import FileDropZone from "./components/FileDropZone";
 import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
@@ -42,7 +40,7 @@ const App = ({
           <Visible visible={initialized}>
             {!mapLoaded && !replayLoaded && <Home />}
             {mapLoaded && <Map gameSurface={scene.gameSurface} />}
-            {replayLoaded && <Replay scene={scene} />}
+            {replayLoaded && <Game scene={scene} />}
           </Visible>
 
           <Visible visible={mapLoading}>

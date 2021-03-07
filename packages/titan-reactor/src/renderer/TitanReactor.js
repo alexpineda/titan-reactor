@@ -27,9 +27,9 @@ import readBwFile, {
   closeStorage,
   openStorage,
 } from "titan-reactor-shared/utils/readBwFile";
-import FileGameStateReader from "./replay/bw/FileGameStateReader";
+import FileGameStateReader from "./game/bw/FileGameStateReader";
 import AtlasPreloader from "titan-reactor-shared/image/AtlasPreloader";
-import ImagesBW from "./replay/bw/ImagesBW";
+import ImagesBW from "./game/bw/ImagesBW";
 import {
   calculateImagesFromSpritesIscript,
   calculateImagesFromUnitsIscript,

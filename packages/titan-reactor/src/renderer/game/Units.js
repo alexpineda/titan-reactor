@@ -19,25 +19,22 @@ class Units {
     this.minimapPoints = [];
   }
 
-  // @todo implement openbw logic
-  // bool unit_visble_on_minimap(unit_t* u) {
-  //   if (u->owner < 8 && u->sprite->visibility_flags == 0) return false;
-  //   if (ut_turret(u)) return false;
-  //   if (unit_is_trap_or_door(u)) return false;
-  //   if (unit_is(u, UnitTypes::Spell_Dark_Swarm)) return false;
-  //   if (unit_is(u, UnitTypes::Spell_Disruption_Web)) return false;
-  //   return true;
-  // }
-
   _refreshMinimap(unitBw, isResourceContainer, unit) {
+    if (
+      unitBw.unitType.id === unitTypes.darkSwarm ||
+      unitBw.unitType.id === unitTypes.disruptionWeb
+    ) {
+      return;
+    }
     let color;
 
     if (isResourceContainer) {
       color = resourceColor;
     } else if (unitBw.owner < 8) {
-      color = unit.recievingDamage
-        ? flashColor
-        : this.playersById[unitBw.owner].color.three;
+      color =
+        unit.recievingDamage && unit.recievingDamage % 2 === 0
+          ? flashColor
+          : this.playersById[unitBw.owner].color.three;
     } else {
       return;
     }
@@ -55,7 +52,9 @@ class Units {
     if (!unit.minimapPoint) {
       unit.minimapPoint = createMinimapPoint(color, w, h);
     }
-    unit.minimapPoint.color = color;
+    unit.minimapPoint.scale.x = w;
+    unit.minimapPoint.scale.y = h;
+    unit.minimapPoint.material.color = color;
     unit.minimapPoint.position.x = this.pxToGameUnit.x(unitBw.x);
     unit.minimapPoint.position.z = this.pxToGameUnit.y(unitBw.y);
     unit.minimapPoint.position.y = 1;
@@ -90,7 +89,11 @@ class Units {
         unitsBySpriteId.set(unitBw.spriteIndex, unit);
       }
 
-      unit.recievingDamage = unit.hp > unitBw.hp;
+      if (!unit.recievingDamage && unit.hp > unitBw.hp) {
+        unit.recievingDamage = 16;
+      } else if (unit.recievingDamage) {
+        unit.recievingDamage--;
+      }
       unit.hp = unitBw.hp;
       unit.id = unitBw.id;
       unit.owner = this.playersById[unitBw.owner];
@@ -143,18 +146,6 @@ class Units {
     //     this.followingUnit = false;
     //   }
     // }
-  }
-
-  getWorkerCount(player) {
-    return this.units.reduce((sum, { playerId, typeId }) => {
-      if (
-        playerId === player &&
-        [unitTypes.scv, unitTypes.drone, unitTypes.probe].includes(typeId)
-      ) {
-        return sum + 1;
-      }
-      return sum;
-    }, 0);
   }
 }
 

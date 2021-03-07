@@ -4,7 +4,7 @@ import { combineReducers } from "redux";
 import { SETTINGS_CHANGED } from "common/handleNames";
 import settingsReducer, { setAll } from "./utils/settingsReducer";
 import titanReactorReducer from "./titanReactorReducer";
-import replayReducer from "./react-ui/replay/replayReducer";
+import replayReducer from "./react-ui/game/replayReducer";
 
 const store = configureStore({
   reducer: combineReducers({

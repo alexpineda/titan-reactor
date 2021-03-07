@@ -30,6 +30,8 @@ export class Players extends Array {
     for (const player of this) {
       this.playersById[player.id] = player;
     }
+
+    this.hasZergPlayer = !!this.find((player) => player.race === "zerg");
   }
 
   changeColors(useCustom) {

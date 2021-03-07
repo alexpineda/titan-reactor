@@ -1,5 +1,5 @@
 import { range } from "ramda";
-import RollingNumberDOM from "../react-ui/replay/RollingNumberDOM";
+import RollingNumberDOM from "../react-ui/game/RollingNumberDOM";
 
 class BasicElement {
   constructor() {
@@ -34,6 +34,7 @@ export default class ManagedDomElements {
    *
    * @param {FrameBW} frame
    * @param {GameStatePosition} gameStatePosition
+   * @param {Players} players
    */
   update(frame, gameStatePosition, players) {
     for (let i = 0; i < 8; i++) {
@@ -46,7 +47,7 @@ export default class ManagedDomElements {
     }
     this.timeLabel.value = gameStatePosition.getFriendlyTime();
 
-    for (let player of players) {
+    for (const player of players) {
       this.apm[player.id].value = player.apm;
     }
   }

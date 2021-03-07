@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { connect } from "react-redux";
 import { Color } from "three";
 import { isEmpty } from "ramda";
-import { RollingNumber } from "./RollingNumber";
 import { togglePlayerVision } from "./replayHudReducer";
 import { setRemoteSettings } from "../../utils/settingsReducer";
 import incFontSize from "titan-reactor-shared/utils/incFontSize";

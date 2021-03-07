@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { connect } from "react-redux";
 import WrappedElement from "./WrappedElement";
-import Minimap from "./replay/Minimap";
-import Production from "./replay/Production";
-import ResourcesBar from "./replay/ResourcesBar";
-import UnitSelection from "./replay/UnitSelection";
-import ReplayPosition from "./replay/ReplayPosition";
-import ProducerBar from "./replay/ProducerBar";
-import Menu from "./replay/Menu";
+import Minimap from "./game/Minimap";
+import Production from "./game/Production";
+import ResourcesBar from "./game/ResourcesBar";
+import UnitSelection from "./game/UnitSelection";
+import ReplayPosition from "./game/ReplayPosition";
+import ProducerBar from "./game/ProducerBar";
+import Menu from "./game/Menu";
 import Visible from "./components/visible";
 import { ProducerWindowPosition } from "common/settings";
 
-import { toggleMenu } from "./replay/replayHudReducer";
+import { toggleMenu } from "./game/replayHudReducer";
 
-const Replay = ({
+const Game = ({
   gameSurface,
   gameDimensions,
   minimapCanvas,
@@ -22,11 +22,8 @@ const Replay = ({
   settings,
   showMenu,
   selectedUnits,
-  showProduction,
-  showResources,
   showReplayControls,
   showUnitSelection,
-  showMinimap,
   showFps,
   replayPosition,
   toggleMenu,
@@ -77,7 +74,7 @@ const Replay = ({
           gameDimensions={gameDimensions}
         />
       )} */}
-      <Visible visible={showResources && !settings.esportsHud}>
+      <Visible visible={!settings.esportsHud}>
         <ResourcesBar
           className="flex absolute"
           style={{
@@ -106,16 +103,15 @@ const Replay = ({
           left: `${gameDimensions.left}px`,
         }}
       >
-        {showMinimap && (
-          <Minimap
-            mapLabel={mapLabel}
-            maxLabelWidth={maxLabelWidth}
-            className="pointer-events-auto"
-            timeLabel={managedDomElements.timeLabel.domElement}
-            canvas={minimapCanvas}
-          />
-        )}
-        <Visible visible={showResources && settings.esportsHud}>
+        <Minimap
+          mapLabel={mapLabel}
+          maxLabelWidth={maxLabelWidth}
+          className="pointer-events-auto"
+          timeLabel={managedDomElements.timeLabel.domElement}
+          canvas={minimapCanvas}
+        />
+
+        <Visible visible={settings.esportsHud}>
           <ResourcesBar
             className="flex-1 self-end pointer-events-auto"
             players={players}
@@ -189,7 +185,6 @@ export default connect(
       showMenu: state.replay.hud.showMenu,
       showProduction: state.replay.hud.showProduction,
       showResources: state.replay.hud.showResources,
-      showMinimap: state.replay.hud.showMinimap,
       showReplayControls: state.replay.hud.showReplayControls,
       showUnitSelection: state.replay.hud.showUnitSelection,
       showFps: state.replay.hud.showFps,
@@ -204,4 +199,4 @@ export default connect(
   (dispatch) => ({
     toggleMenu: (val) => dispatch(toggleMenu(val)),
   })
-)(Replay);
+)(Game);

@@ -13,9 +13,7 @@ export const getRemoteSettings = createAsyncThunk(
 const initialState = {
   showMenu: false,
   selectedUnits: [],
-  showProduction: true,
-  showResources: true,
-  showMinimap: true,
+  showProduction: 0,
   showReplayControls: true,
   showUnitSelection: true,
   showFps: true,
@@ -37,9 +35,12 @@ const replayHudReducer = createSlice({
   initialState,
   reducers: {
     toggleMenu: makeToggle("showMenu"),
-    toggleProduction: makeToggle("showProduction"),
-    toggleResources: makeToggle("showResources"),
-    toggleMinimap: makeToggle("showMinimap"),
+    toggleProduction: (state, action) => {
+      return {
+        ...state,
+        showProduction: action.payload,
+      };
+    },
     toggleReplayControls: makeToggle("showReplayControls"),
     toggleUnitSelection: makeToggle("showUnitSelection"),
     toggleFps: makeToggle("showFps"),
@@ -53,8 +54,6 @@ const replayHudReducer = createSlice({
 export const {
   toggleMenu,
   toggleProduction,
-  toggleResources,
-  toggleMinimap,
   toggleReplayControls,
   toggleUnitSelection,
   toggleFps,

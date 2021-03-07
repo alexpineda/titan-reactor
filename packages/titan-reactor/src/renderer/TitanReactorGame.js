@@ -1,15 +1,15 @@
 import { Raycaster, AxesHelper, Scene, Vector2 } from "three";
-import { GameStatePosition } from "./replay/GameStatePosition";
+import { GameStatePosition } from "./game/GameStatePosition";
 import {
   gameSpeeds,
   pxToMapMeter,
   onFastestTick,
 } from "titan-reactor-shared/utils/conversions";
-import HeatmapScore from "./react-ui/replay/HeatmapScore";
+import HeatmapScore from "./react-ui/game/HeatmapScore";
 import Cameras from "./camera/Cameras";
 import MinimapControl from "./camera/MinimapControl";
-import { createMiniMapPlane } from "./mesh/Minimap";
-import { Players } from "./replay/Players";
+import { createMiniMapPlane, MinimapBox } from "./mesh/Minimap";
+import { Players } from "./game/Players";
 import FadingPointers from "./mesh/FadingPointers";
 import { commands } from "titan-reactor-shared/types/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
@@ -23,14 +23,14 @@ import GameCanvasTarget from "./render/GameCanvasTarget";
 import { ProducerWindowPosition } from "../common/settings";
 import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
-import { toggleMenu } from "./react-ui/replay/replayHudReducer";
-import Units from "./replay/Units";
+import { toggleMenu } from "./react-ui/game/replayHudReducer";
+import Units from "./game/Units";
 import FogOfWar from "./render/effects/FogOfWar";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
-import BWFrameSceneBuilder from "./replay/BWFrameBuilder";
-import ManagedDomElements from "./replay/ManagedDomElements";
-import Apm from "./replay/Apm";
+import BWFrameSceneBuilder from "./game/BWFrameBuilder";
+import ManagedDomElements from "./game/ManagedDomElements";
+import Apm from "./game/Apm";
 
 const { startLocation } = unitTypes;
 
@@ -131,6 +131,13 @@ async function TitanReactorGame(
 
   minimapScene.add(
     createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
+  );
+
+  const minimapBox = new MinimapBox(
+    "white",
+    minimapSurface,
+    mapWidth,
+    mapHeight
   );
 
   const managedDomElements = new ManagedDomElements();
@@ -371,6 +378,7 @@ async function TitanReactorGame(
       previewSurfaces.forEach((surf) => surf.setDimensions(pw, ph));
       cameras.updatePreviewScreenAspect(pw, ph);
     }
+
     // store.dispatch(onGameTick());
   };
   window.addEventListener("resize", sceneResizeHandler, false);
@@ -403,7 +411,7 @@ async function TitanReactorGame(
     bwDat,
     pxToGameUnit,
     getTerrainY,
-    players.playersById,
+    players,
     fogOfWar
   );
 
@@ -411,11 +419,7 @@ async function TitanReactorGame(
     frameBuilder.buildStart(nextFrame, updateMinimap);
     frameBuilder.buildUnitsAndMinimap(units);
     frameBuilder.buildSprites(view, delta, createTitanImage);
-    frameBuilder.buildFog(
-      players
-        .filter((p) => p.vision)
-        .reduce((flags, { id }) => (flags |= 1 << id), 0)
-    );
+    frameBuilder.buildFog();
     frameBuilder.buildCreep();
     frameBuilder.buildSounds(view, audioMaster, elapsed);
   }
@@ -426,15 +430,12 @@ async function TitanReactorGame(
   const apm = new Apm(players);
 
   function gameLoop(elapsed) {
-    if (state.replay.hud.showFps) {
-      stats.update();
-    }
+    stats.update();
 
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    const updateMinimap = true;
-    // gameStatePosition.bwGameFrame % 12 === 0 || fogChanged;
+    const updateMinimap = gameStatePosition.bwGameFrame % 8 === 0 || fogChanged;
     cameras.update();
 
     if (!gameStatePosition.paused) {
@@ -594,22 +595,7 @@ async function TitanReactorGame(
       renderMan.setCanvasTarget(minimapSurface);
       fogOfWar.update(cameras.minimapCamera);
       renderMan.render(minimapScene, cameras.minimapCamera, delta);
-      const ctx = minimapSurface.ctx;
-      const x = (projectedCameraView.viewBW.left / 32) * minimapSurface.width;
-      const x2 = (projectedCameraView.viewBW.right / 32) * minimapSurface.width;
-      const y = (projectedCameraView.viewBW.top / 32) * minimapSurface.height;
-      const y2 =
-        (projectedCameraView.viewBW.bottom / 32) * minimapSurface.height;
-      ctx.strokeStyle = "white";
-      ctx.moveTo(x, y);
-      ctx.lineTo(x2, y);
-      ctx.stroke();
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      ctx.lineTo(x, y2);
-      ctx.stroke();
-      ctx.lineTo(x2, y);
-      ctx.stroke();
+      minimapBox.draw(projectedCameraView, minimapSurface.ctx);
 
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
         previewSurfaces.forEach((previewSurface, i) => {

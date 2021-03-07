@@ -20,7 +20,7 @@ export default class BWFrameSceneBuilder {
    * @param {Object} bwDat
    * @param {Function} pxToGameUnit
    * @param {Function} getTerrainY
-   * @param {Object} playersById
+   * @param {Players} players
    * @param {FogOfWar} fogOfWar
    */
   constructor(
@@ -31,9 +31,10 @@ export default class BWFrameSceneBuilder {
     bwDat,
     pxToGameUnit,
     getTerrainY,
-    playersById,
+    players,
     fogOfWar
   ) {
+    this.players = players;
     this.bwScene = new BWFrameScene(scene, 1);
     this.minimapBwScene = new BWFrameScene(minimapScene, 1);
     this.unitsBW = new UnitsBW(bwDat);
@@ -51,7 +52,6 @@ export default class BWFrameSceneBuilder {
       scene.creepUniform.value,
       scene.creepEdgesUniform.value
     );
-    this.playersById = playersById;
     this.fogOfWar = fogOfWar;
 
     this.sprites = new Map();
@@ -194,7 +194,7 @@ export default class BWFrameSceneBuilder {
       sprite.position.set(x, y, z);
 
       sprite.initialized = true;
-      const player = this.playersById[spriteBW.owner];
+      const player = this.players.playersById[spriteBW.owner];
 
       // const buildingIsExplored =
       //   sprite.unit &&
@@ -258,14 +258,23 @@ export default class BWFrameSceneBuilder {
    *
    * @param {Number} playerVisionFlags
    */
-  buildFog(playerVisionFlags) {
+  buildFog() {
     this.tilesBW.count = this.nextFrame.tilesCount;
     this.tilesBW.buffer = this.nextFrame.tiles;
 
-    this.fogOfWar.generate(this.tilesBW, playerVisionFlags);
+    this.fogOfWar.generate(
+      this.tilesBW,
+      this.players
+        .filter((p) => p.vision)
+        .reduce((flags, { id }) => (flags |= 1 << id), 0)
+    );
   }
 
   buildCreep() {
+    //@todo account for mind control
+    if (!this.players.hasZergPlayer) {
+      return;
+    }
     this.creepBW.count = this.nextFrame.creepCount;
     this.creepBW.buffer = this.nextFrame.creep;
 
