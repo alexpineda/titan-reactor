@@ -1,5 +1,6 @@
 import { WebGLRenderer } from "three";
 import { ipcRenderer } from "electron";
+import { promises as fsPromises } from "fs";
 import React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
@@ -21,10 +22,33 @@ log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);
 log(`electron ${process.versions.electron}`);
 
+const loadFont = async (file, family, weight) => {
+  // there's got to be a better way!
+  const conthrax = await fsPromises.readFile(file);
+  let str = "";
+  for (let i = 0; i < conthrax.byteLength; i++) {
+    str += String.fromCharCode(conthrax[i]);
+  }
+  const style = document.createElement("style");
+  document.head.appendChild(style);
+  style.appendChild(
+    document.createTextNode(`
+    @font-face{
+        font-family: ${family};
+        src: url(data:font/otf;base64,${btoa(str)});
+        font-weight: ${weight};
+    }
+  `)
+  );
+};
+
 let titanReactor = new TitanReactor(store);
 
 async function bootup() {
   const renderer = new WebGLRenderer();
+
+  await loadFont(`${__static}/fonts/conthrax-rg.otf`, "conthrax", "100 400");
+  await loadFont(`${__static}/fonts/conthrax-hv.otf`, "conthrax", "500 900");
 
   await setWebGLCapabilities({
     anisotropy: renderer.capabilities.getMaxAnisotropy(),

@@ -87,11 +87,17 @@ const PlayerResources = ({
   const fixedWidthStyle = fitToContent ? { width: "6em" } : {};
   const scoreTextStyle = esportsHud
     ? {
-        fontFamily: "fantasy",
+        fontFamily: "conthrax",
         marginTop: "-1px",
         marginBottom: "-1px",
         borderLeftWidth: "4px",
         borderLeftColor: lightShift,
+      }
+    : {};
+
+  const tdTextStyle = esportsHud
+    ? {
+        fontFamily: "conthrax",
       }
     : {};
 
@@ -108,7 +114,10 @@ const PlayerResources = ({
       {enablePlayerScores && (
         <td
           className={`${esportsHud ? "" : "pr-2"}`}
-          style={{ ...fitToContentStyle, ...scoreBgColor }}
+          style={{
+            ...fitToContentStyle,
+            ...scoreBgColor,
+          }}
           data-tip="Player Score"
           onMouseDown={(evt) => {
             const newScore =
@@ -122,7 +131,7 @@ const PlayerResources = ({
               esportsHud
                 ? `text-${incFontSize(
                     textSize,
-                    2
+                    3
                   )} w-10 ml-1 bg-white text-black text-center font-bold `
                 : `text-${textSize} w-full px-1 bg-gray-700 text-gray-200 rounded`
             } cursor-pointer inline-block`}
@@ -190,7 +199,10 @@ const PlayerResources = ({
           />
         )}
       </td>
-      <td className="px-2" style={fixedWidthStyle}>
+      <td
+        className="px-2 pointer-events-none"
+        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+      >
         <div className="flex items-center">
           <img src={gameIcons.minerals} className="inline w-5" />
           <span className={`ml-2 text-gray-200 text-${textSize}`}>
@@ -201,7 +213,10 @@ const PlayerResources = ({
           </span>
         </div>
       </td>
-      <td className="px-2" style={fixedWidthStyle}>
+      <td
+        className="px-2 pointer-events-none"
+        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+      >
         <div className="flex items-center">
           <img src={gasIcon} className="inline w-5" />
           <span className={`ml-2 text-gray-200 text-${textSize}`}>
@@ -213,7 +228,10 @@ const PlayerResources = ({
         </div>
       </td>
 
-      <td className="px-2" style={fixedWidthStyle}>
+      <td
+        className="px-2 pointer-events-none"
+        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+      >
         <div className="flex items-center">
           <img src={workerIcon} className="inline w-5" />
           <span className={`ml-2 text-gray-200 text-${textSize}`}>
@@ -225,7 +243,10 @@ const PlayerResources = ({
         </div>
       </td>
 
-      <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
+      <td
+        className="px-2 pointer-events-none"
+        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+      >
         <div className="flex items-center">
           <img src={gameIcons[race]} className="inline w-5" />
           <span className={`ml-2 text-gray-200 text-${textSize}`}>
@@ -237,15 +258,18 @@ const PlayerResources = ({
           </span>
         </div>
       </td>
-      <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
+      <td
+        className="px-2 pointer-events-none"
+        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+      >
         <div className="flex items-center">
           <span className={`text-gray-200 inline-block text-${textSize}`}>
+            <span className="text-xs uppercase text-gray-400 ml-2">APM</span>
             <WrappedElement
               domElement={managedDomElements.apm[id].domElement}
               className="inline"
             />
           </span>
-          <span className="text-xs uppercase text-gray-400 ml-2">APM</span>
         </div>
       </td>
     </tr>
