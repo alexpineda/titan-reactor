@@ -15,7 +15,7 @@ export class Players extends Array {
         id: player.id,
         name: player.name,
         race: player.race,
-        totalActions: 0,
+        actions: new Int32Array(1428),
         color: { ...player.color, three: new Color(player.color.rgb) },
         originalColor: { ...player.color, three: new Color(player.color.rgb) },
         showActions: false,

@@ -55,13 +55,13 @@ const PlayerResources = ({
       break;
   }
 
-  let darken = -0.1;
+  let darken = new Color(0.1, 0.1, 0.1);
   if (new Color().setStyle(color.hex).getHSL().l > 0.6) {
-    darken = -0.3;
+    darken = new Color(0.2, 0.2, 0.2);
   }
   const playerColor = `#${new Color()
     .setStyle(color.hex)
-    .offsetHSL(0, 0, darken)
+    .sub(darken)
     .getHexString()}`;
 
   const hueShift = `#${new Color()
