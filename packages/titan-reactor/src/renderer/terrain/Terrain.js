@@ -5,6 +5,7 @@ import {
   generateTileData,
   generateMesh,
 } from "titan-reactor-shared/map/generateMap";
+import MouseCursor from "../game/MouseCursor";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;
@@ -159,14 +160,17 @@ class Terrain {
       palette
     );
 
-    // arrowIcons.renderGameIcons(
-    //   renderer,
-    //   null,
-    //   null,
-    //   readDdsGrp(await this.readFile("cursor/arrow.dds.grp", false), true),
-    //   null,
-    //   null
-    // );
+    const dragIcons = new GameIcons();
+    await dragIcons.renderCenteredCursor(
+      await this.readFile("cursor/Drag.grp", false),
+      palette
+    );
+
+    const cursor = new MouseCursor(
+      arrowIcons.icons,
+      hoverIcons.icons,
+      dragIcons.icons
+    );
 
     const [sd, hd, d, creep, creepEdges, minimapCanvas] = await generateMesh(
       renderer,
@@ -188,8 +192,7 @@ class Terrain {
       cmdIcons.icons,
       raceInsetIcons,
       minimapCanvas,
-      arrowIcons.icons,
-      hoverIcons.icons,
+      cursor,
     ];
   }
 }

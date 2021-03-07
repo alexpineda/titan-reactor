@@ -55,8 +55,8 @@ async function TitanReactorGame(
 
   let fogChanged = false;
 
-  const cursor = new MouseCursor(scene.arrowIcons, scene.hoverIcons);
-  cursor.pointer();
+  const cursor = scene.cursor;
+  cursor.drag();
 
   const unsubscribeFromStore = store.subscribe(() => {
     Object.assign(state, store.getState());
