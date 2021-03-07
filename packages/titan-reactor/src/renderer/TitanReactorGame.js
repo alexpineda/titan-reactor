@@ -30,6 +30,7 @@ import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspect
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./replay/BWFrameBuilder";
 import ManagedDomElements from "./replay/ManagedDomElements";
+import Apm from "./replay/Apm";
 
 const { startLocation } = unitTypes;
 
@@ -58,7 +59,10 @@ async function TitanReactorGame(
 
     settings = state.settings.data;
 
-    if (state.replay.input.hoveringOverMinimap) {
+    if (
+      state.replay.input.hoveringOverMinimap &&
+      settings.producerWindowPosition != ProducerWindowPosition.None
+    ) {
       cameras.previewControl.enabled = true;
       cameras.previewControl.numpadControlEnabled = true;
       cameras.control.enabled = false;
@@ -419,6 +423,8 @@ async function TitanReactorGame(
   let _lastElapsed = 0;
   let delta = 0;
 
+  const apm = new Apm(players);
+
   function gameLoop(elapsed) {
     if (state.replay.hud.showFps) {
       stats.update();
@@ -427,8 +433,8 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    const updateMinimap =
-      gameStatePosition.bwGameFrame % 12 === 0 || fogChanged;
+    const updateMinimap = true;
+    // gameStatePosition.bwGameFrame % 12 === 0 || fogChanged;
     cameras.update();
 
     if (!gameStatePosition.paused) {
@@ -463,7 +469,7 @@ async function TitanReactorGame(
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
-        managedDomElements.update(nextFrame, gameStatePosition);
+        managedDomElements.update(nextFrame, gameStatePosition, players);
         audioMaster.channels.play(elapsed);
         frameBuilder.bwScene.activate();
         if (updateMinimap) {
@@ -472,26 +478,11 @@ async function TitanReactorGame(
 
         gameStatePosition.bwGameFrame = nextFrame.frame;
 
-        if (rep.cmds[gameStatePosition.bwGameFrame] && false) {
-          // #region apm
-          const actions = [];
-          for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
-            if (!actions[cmd.player]) {
-              actions[cmd.player] = 1;
-            } else {
-              actions[cmd.player] = actions[cmd.player] + 1;
-            }
-          }
-          Object.keys(actions).map((player) => {
-            players[player].totalActions =
-              players[player].totalActions + actions[player];
-            players[player].apm = Math.floor(
-              players[player].totalActions /
-                ((gameStatePosition.bwGameFrame * gameSpeeds.fastest) /
-                  (1000 * 60))
-            );
-          });
-          // #endregion
+        if (rep.cmds[gameStatePosition.bwGameFrame]) {
+          apm.update(
+            rep.cmds[gameStatePosition.bwGameFrame],
+            gameStatePosition.bwGameFrame
+          );
 
           // #region player command pointers
           for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
@@ -603,6 +594,22 @@ async function TitanReactorGame(
       renderMan.setCanvasTarget(minimapSurface);
       fogOfWar.update(cameras.minimapCamera);
       renderMan.render(minimapScene, cameras.minimapCamera, delta);
+      const ctx = minimapSurface.ctx;
+      const x = (projectedCameraView.viewBW.left / 32) * minimapSurface.width;
+      const x2 = (projectedCameraView.viewBW.right / 32) * minimapSurface.width;
+      const y = (projectedCameraView.viewBW.top / 32) * minimapSurface.height;
+      const y2 =
+        (projectedCameraView.viewBW.bottom / 32) * minimapSurface.height;
+      ctx.strokeStyle = "white";
+      ctx.moveTo(x, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.lineTo(x, y2);
+      ctx.stroke();
+      ctx.lineTo(x2, y);
+      ctx.stroke();
 
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
         previewSurfaces.forEach((previewSurface, i) => {
@@ -704,6 +711,7 @@ async function TitanReactorGame(
     chk,
     gameIcons: scene.gameIcons,
     cmdIcons: scene.cmdIcons,
+    raceInsetIcons: scene.raceInsetIcons,
     gameSurface,
     minimapSurface,
     previewSurfaces,

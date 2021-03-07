@@ -35,7 +35,7 @@ export default class ManagedDomElements {
    * @param {FrameBW} frame
    * @param {GameStatePosition} gameStatePosition
    */
-  update(frame, gameStatePosition) {
+  update(frame, gameStatePosition, players) {
     for (let i = 0; i < 8; i++) {
       this.minerals[i].value = frame.minerals[i];
       this.gas[i].value = frame.gas[i];
@@ -45,5 +45,9 @@ export default class ManagedDomElements {
       this.workerSupply[i].value = frame.workerSupply[i];
     }
     this.timeLabel.value = gameStatePosition.getFriendlyTime();
+
+    for (let player of players) {
+      this.apm[player.id].value = player.apm;
+    }
   }
 }

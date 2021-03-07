@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { connect } from "react-redux";
 import { Color } from "three";
+import { isEmpty } from "ramda";
 import { RollingNumber } from "./RollingNumber";
 import { togglePlayerVision } from "./replayHudReducer";
 import { setRemoteSettings } from "../../utils/settingsReducer";
@@ -9,7 +10,6 @@ import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import WrappedElement from "../WrappedElement";
 
 const _playerNameCache = {};
-const _playerScoreCache = {};
 
 const PlayerResources = ({
   index,
@@ -20,27 +20,30 @@ const PlayerResources = ({
   textSize,
   playerVision,
   togglePlayerVision,
-  showScore = true,
+  enablePlayerScores,
   esportsHud,
   fitToContent = false,
   managedDomElements,
+  playerScoreCache,
   gameIcons,
   cmdIcons,
+  raceInsetIcons,
 }) => {
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
   const [tempName, setTempName] = useState(playerName);
-  const [score, setScore] = useState(_playerScoreCache[playerName] || 0);
+  if (playerScoreCache[playerName] === undefined) {
+    playerScoreCache[playerName] = 0;
+  }
+  const [score, setScore] = useState(playerScoreCache[playerName]);
 
   let gasIcon;
-  let raceOffset = "30%";
   let workerIcon;
 
   switch (race) {
     case "terran":
       gasIcon = gameIcons.vespeneTerran;
       workerIcon = cmdIcons[unitTypes.scv];
-      raceOffset = "25%";
       break;
     case "zerg":
       workerIcon = cmdIcons[unitTypes.drone];
@@ -51,20 +54,30 @@ const PlayerResources = ({
       gasIcon = gameIcons.vespeneProtoss;
       break;
   }
-  const hueShift = `#${new Color()
+
+  let darken = -0.1;
+  if (new Color().setStyle(color.hex).getHSL().l > 0.6) {
+    darken = -0.3;
+  }
+  const playerColor = `#${new Color()
     .setStyle(color.hex)
+    .offsetHSL(0, 0, darken)
+    .getHexString()}`;
+
+  const hueShift = `#${new Color()
+    .setStyle(playerColor)
     .offsetHSL(0.01, 0, 0)
     .getHexString()}66`;
   const lightShift = `#${new Color()
-    .setStyle(color.hex)
+    .setStyle(playerColor)
     .offsetHSL(0, 0, 0.1)
     .getHexString()}`;
 
   const gameIconBgStyle = esportsHud
     ? {
         backgroundRepeat: "no-repeat",
-        backgroundImage: `url(${gameIcons[`${race}Alpha`]})`,
-        backgroundPosition: `right ${raceOffset}`,
+        backgroundImage: `url(${raceInsetIcons[`${race}Alpha`]})`,
+        backgroundPosition: "120% 25%",
         mixBlendMode: "color-dodge",
       }
     : {};
@@ -85,15 +98,15 @@ const PlayerResources = ({
 
   const bgGradient = esportsHud
     ? {
-        background: `linear-gradient(90deg, ${color.hex} 0%, ${hueShift} 100%)`,
+        background: `linear-gradient(90deg, ${playerColor} 0%, ${hueShift} 100%)`,
       }
     : {};
 
-  const scoreBgColor = esportsHud ? { background: color.hex } : {};
+  const scoreBgColor = esportsHud ? { background: playerColor } : {};
 
   return (
     <tr>
-      {showScore && (
+      {enablePlayerScores && (
         <td
           className={`${esportsHud ? "" : "pr-2"}`}
           style={{ ...fitToContentStyle, ...scoreBgColor }}
@@ -102,7 +115,7 @@ const PlayerResources = ({
             const newScore =
               evt.button === 0 ? score + 1 : Math.max(0, score - 1);
             setScore(newScore);
-            _playerScoreCache[playerName] = newScore;
+            playerScoreCache[playerName] = newScore;
           }}
         >
           <span
@@ -151,7 +164,7 @@ const PlayerResources = ({
                     {str}
                   </span>
                 ) : (
-                  <span key={i}>{str}</span>
+                  <span key={i}>&nbsp;{str}</span>
                 )
               )}
             </span>
@@ -168,7 +181,7 @@ const PlayerResources = ({
             }}
             onKeyDown={(evt) => {
               evt.nativeEvent.stopImmediatePropagation();
-              if (evt.key === "Enter") {
+              if (evt.key === "Enter" && !isEmpty(tempName)) {
                 setPlayerName(tempName);
                 setIsChangingName(false);
               } else if (evt.key === "Escape") {
@@ -227,8 +240,11 @@ const PlayerResources = ({
       </td>
       <td className="px-2 pointer-events-none" style={fixedWidthStyle}>
         <div className="flex items-center">
-          <span className={`text-gray-200 inline-block w-6 text-${textSize}`}>
-            0
+          <span className={`text-gray-200 inline-block text-${textSize}`}>
+            <WrappedElement
+              domElement={managedDomElements.apm[id].domElement}
+              className="inline"
+            />
           </span>
           <span className="text-xs uppercase text-gray-400 ml-2">APM</span>
         </div>
@@ -241,6 +257,7 @@ export default connect(
   (state) => ({
     playerVision: state.replay.hud.playerVision,
     esportsHud: state.settings.data.esportsHud,
+    enablePlayerScores: state.settings.data.enablePlayerScores,
   }),
   (dispatch) => ({
     togglePlayerVision: (id) => dispatch(togglePlayerVision(id)),

@@ -3,6 +3,7 @@ import { Color } from "three";
 import { createMinimapPoint } from "../mesh/Minimap";
 
 const resourceColor = new Color(0, 55, 55);
+const flashColor = new Color(200, 200, 200);
 
 class Units {
   constructor(pxToGameUnit, playersById) {
@@ -34,7 +35,9 @@ class Units {
     if (isResourceContainer) {
       color = resourceColor;
     } else if (unitBw.owner < 8) {
-      color = this.playersById[unitBw.owner].color.three;
+      color = unit.recievingDamage
+        ? flashColor
+        : this.playersById[unitBw.owner].color.three;
     } else {
       return;
     }
@@ -52,7 +55,7 @@ class Units {
     if (!unit.minimapPoint) {
       unit.minimapPoint = createMinimapPoint(color, w, h);
     }
-
+    unit.minimapPoint.color = color;
     unit.minimapPoint.position.x = this.pxToGameUnit.x(unitBw.x);
     unit.minimapPoint.position.z = this.pxToGameUnit.y(unitBw.y);
     unit.minimapPoint.position.y = 1;
@@ -60,10 +63,8 @@ class Units {
     unit.minimapPoint.userData.tileY = unitBw.tileY;
     unit.minimapPoint.userData.isResourceContainer = isResourceContainer;
 
-    if (isResourceContainer) {
-      unit.minimapPoint.matrixAutoUpdate = false;
-      unit.minimapPoint.updateMatrix();
-    }
+    unit.minimapPoint.matrixAutoUpdate = false;
+    unit.minimapPoint.updateMatrix();
 
     return unit.minimapPoint;
   }
@@ -89,6 +90,8 @@ class Units {
         unitsBySpriteId.set(unitBw.spriteIndex, unit);
       }
 
+      unit.recievingDamage = unit.hp > unitBw.hp;
+      unit.hp = unitBw.hp;
       unit.id = unitBw.id;
       unit.owner = this.playersById[unitBw.owner];
       unit.isBuilding = unitBw.unitType.isBuilding;

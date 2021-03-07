@@ -3,6 +3,8 @@ import { connect } from "react-redux";
 import PlayerResources from "./PlayerResources";
 import { setRemoteSettings } from "../../utils/settingsReducer";
 
+const _playerScoreCache = {};
+
 const ResourcesBar = ({
   players,
   textSize,
@@ -10,13 +12,20 @@ const ResourcesBar = ({
   onTogglePlayerPov,
   gameIcons,
   cmdIcons,
+  raceInsetIcons,
   managedDomElements,
   className = "",
   style = {},
 }) => {
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
-  const onTogglePlayerVision = () => {};
+  const cacheKey = players
+    .map(({ name }) => name)
+    .sort()
+    .join(".");
+  if (!_playerScoreCache[cacheKey]) {
+    _playerScoreCache[cacheKey] = {};
+  }
 
   return (
     <div className={`select-none ${className}`} style={style}>
@@ -33,11 +42,12 @@ const ResourcesBar = ({
                   index={i}
                   textSize={textSize}
                   {...player}
-                  onTogglePlayerVision={onTogglePlayerVision}
                   fitToContent={fitToContent}
                   gameIcons={gameIcons}
                   cmdIcons={cmdIcons}
+                  raceInsetIcons={raceInsetIcons}
                   managedDomElements={managedDomElements}
+                  playerScoreCache={_playerScoreCache}
                 />
               ))}
             </tbody>

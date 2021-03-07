@@ -36,6 +36,17 @@ const loadDds = (buf) => {
 };
 
 export default class GameIconsHD {
+  renderRaceInset(renderer, dds) {
+    return this.renderGameIcons(
+      renderer,
+      null,
+      null,
+      dds.filter((dds, i) => i > 2 && i < 6),
+      ["zerg", "terran", "protoss"],
+      0.4
+    );
+  }
+
   renderCmdIcons(renderer, dds) {
     return this.renderGameIcons(renderer, 128, 128, dds, undefined, false);
   }
@@ -56,15 +67,19 @@ export default class GameIconsHD {
         "protoss",
         "energy",
       ],
-      true
+      0.5
     );
   }
 
-  renderGameIcons(renderer, width, height, dds, aliases, includeAlpha) {
+  renderGameIcons(renderer, fixedWidth, fixedHeight, dds, aliases, alpha) {
     const ortho = new OrthographicCamera();
 
-    renderer.setSize(width, height);
+    let width = fixedWidth;
+    let height = fixedHeight;
 
+    if (width) {
+      renderer.setSize(width, height);
+    }
     const scene = new Scene();
 
     if (!aliases) {
@@ -76,12 +91,18 @@ export default class GameIconsHD {
       if (aliases && aliases[i] === undefined) {
         continue;
       }
+      const texture = loadDds(dds[i]);
+
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
+      if (!fixedWidth) {
+        width = texture.image.width;
+        height = texture.image.height;
+        renderer.setSize(width, height);
+      }
       canvas.width = width;
       canvas.height = height;
 
-      const texture = loadDds(dds[i]);
       scene.background = texture;
       renderer.render(scene, ortho);
 
@@ -93,14 +114,14 @@ export default class GameIconsHD {
         this.icons[i] = canvas.toDataURL("image/png");
       }
 
-      if (includeAlpha) {
+      if (alpha) {
         // create a 50% transparent image for use with css background-image
         const alphaCanvas = document.createElement("canvas");
         const actx = alphaCanvas.getContext("2d");
         alphaCanvas.width = width;
         alphaCanvas.height = height;
         actx.scale(1, -1);
-        actx.globalAlpha = 0.5;
+        actx.globalAlpha = alpha;
         actx.drawImage(renderer.domElement, 0, 0, width, -height);
         if (aliases) {
           this[`${aliases[i]}Alpha`] = alphaCanvas.toDataURL("image/png");

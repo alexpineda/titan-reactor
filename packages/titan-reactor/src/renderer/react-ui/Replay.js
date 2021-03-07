@@ -36,6 +36,7 @@ const Replay = ({
   maxLabelWidth,
   gameIcons,
   cmdIcons,
+  raceInsetIcons,
   managedDomElements,
 }) => {
   const onUnitDetails = () => {};
@@ -88,6 +89,7 @@ const Replay = ({
           onTogglePlayerPov={onTogglePlayerPov}
           gameIcons={gameIcons}
           cmdIcons={cmdIcons}
+          raceInsetIcons={raceInsetIcons}
           managedDomElements={managedDomElements}
         />
       </Visible>
@@ -122,6 +124,7 @@ const Replay = ({
             onTogglePlayerPov={onTogglePlayerPov}
             gameIcons={gameIcons}
             cmdIcons={cmdIcons}
+            raceInsetIcons={raceInsetIcons}
             fitToContent
             managedDomElements={managedDomElements}
           />
@@ -180,6 +183,7 @@ export default connect(
       previewSurfaces: scene.previewSurfaces,
       gameIcons: scene.gameIcons,
       cmdIcons: scene.cmdIcons,
+      raceInsetIcons: scene.raceInsetIcons,
       mapLabel: scene.chk.title,
       maxLabelWidth: scene.maxLabelWidth,
       showMenu: state.replay.hud.showMenu,

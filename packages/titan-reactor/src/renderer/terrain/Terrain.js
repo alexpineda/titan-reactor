@@ -138,6 +138,15 @@ class Terrain {
       )
     );
 
+    const raceInsetIcons = new GameIconsHD();
+    raceInsetIcons.renderRaceInset(
+      renderer,
+      readDdsGrp(
+        await this.readFile("glue/scoretd/iScore.dds.grp", false),
+        true
+      )
+    );
+
     const [sd, hd, d, creep, creepEdges] = generateMesh(renderer, mapData);
     // sd.matrixAutoUpdate = false;
     // sd.updateMatrix();
@@ -145,7 +154,7 @@ class Terrain {
     // hd.updateMatrix();
 
     renderer.dispose();
-    return [sd, hd, d, creep, creepEdges, gameIcons, cmdIcons];
+    return [sd, hd, d, creep, creepEdges, gameIcons, cmdIcons, raceInsetIcons];
   }
 }
 

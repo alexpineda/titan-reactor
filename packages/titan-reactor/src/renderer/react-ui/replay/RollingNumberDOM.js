@@ -1,3 +1,5 @@
+import { is } from "ramda";
+
 export default class RollingNumberDOM {
   constructor(upSpeed = 30, downSpeed = 10, domElement) {
     this.domElement = domElement || document.createElement("span");
@@ -17,7 +19,7 @@ export default class RollingNumberDOM {
   }
 
   set value(val) {
-    if (val === this._value) return;
+    if (val === this._value || !is(Number, val)) return;
     this._value = val;
 
     const direction = val > this._displayValue;
