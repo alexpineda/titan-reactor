@@ -21,7 +21,7 @@ export default class MouseCursor {
     } else if (this._pointer === this.hoverIcons) {
       window.document.body.style.cursor = `url(${
         this.hoverIcons[this.hoverIconsIndex]
-      }), auto`;
+      }) ${this.hoverIcons.offX} ${this.hoverIcons.offY}, auto`;
     }
   }
   pointer() {

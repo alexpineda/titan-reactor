@@ -154,7 +154,7 @@ class Terrain {
     );
 
     const hoverIcons = new GameIcons();
-    await hoverIcons.renderCursor(
+    await hoverIcons.renderCenteredCursor(
       await this.readFile("cursor/MagY.grp", false),
       palette
     );

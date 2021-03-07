@@ -61,7 +61,7 @@ const Minimap = ({
             }}
           >
             <i
-              className={`material-icons rounded cursor-pointer ${
+              className={`material-icons rounded ${
                 showFogOfWar
                   ? "text-gray-600 hover:text-yellow-600"
                   : "text-yellow-600 hover:text-gray-600"
