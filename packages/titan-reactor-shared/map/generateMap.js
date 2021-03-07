@@ -112,7 +112,7 @@ export const generateTileData = async (
   };
 };
 
-export const generateMesh = (renderer, tileData) => {
+export const generateMesh = async (renderer, tileData) => {
   const {
     palette,
     tileset,
@@ -549,6 +549,13 @@ export const generateMesh = (renderer, tileData) => {
 
   displaceCanvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
 
+  // small optimization: scale down for getTerrainY
+  const displaceForGetTerrainY = document.createElement("canvas");
+  displaceForGetTerrainY.width = mapWidth * 4;
+  displaceForGetTerrainY.height = mapHeight * 4;
+  displaceForGetTerrainY.getContext("2d").drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
+  
+
   const elevationsMaterial = new THREE.MeshBasicMaterial({
     map,
     onBeforeCompile: function (shader) {
@@ -811,11 +818,18 @@ export const generateMesh = (renderer, tileData) => {
   hdTerrainGroup.matrixAutoUpdate = false;
   hdTerrainGroup.updateMatrix();
 
+  const minimapBitmap = await MapSD.createMinimap(
+    mapData.diffuse,
+    mapWidth,
+    mapHeight
+  );
+
   return [
     terrain,
     hdTerrainGroup,
-    displaceCanvas,
+    displaceForGetTerrainY,
     sharedCreepValues,
     sharedCreepEdgesValues,
+    minimapBitmap,
   ];
 };

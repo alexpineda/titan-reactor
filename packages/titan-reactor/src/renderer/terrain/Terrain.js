@@ -147,14 +147,27 @@ class Terrain {
       )
     );
 
-    const [sd, hd, d, creep, creepEdges] = generateMesh(renderer, mapData);
+    const [sd, hd, d, creep, creepEdges, minimapCanvas] = await generateMesh(
+      renderer,
+      mapData
+    );
     // sd.matrixAutoUpdate = false;
     // sd.updateMatrix();
     // hd.matrixAutoUpdate = false;
     // hd.updateMatrix();
 
     renderer.dispose();
-    return [sd, hd, d, creep, creepEdges, gameIcons, cmdIcons, raceInsetIcons];
+    return [
+      sd,
+      hd,
+      d,
+      creep,
+      creepEdges,
+      gameIcons,
+      cmdIcons,
+      raceInsetIcons,
+      minimapCanvas,
+    ];
   }
 }
 

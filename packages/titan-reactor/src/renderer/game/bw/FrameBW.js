@@ -19,7 +19,7 @@ export default class FrameBW {
   }
 
   setBuffer(buffer, src, pos, copySize) {
-    this.buffers[buffer] = src.shallowSlice(pos, pos + copySize);
+    this.buffers[buffer] = src.slice(pos, pos + copySize);
   }
 
   get sprites() {

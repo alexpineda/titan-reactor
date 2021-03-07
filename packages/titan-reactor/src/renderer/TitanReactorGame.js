@@ -25,7 +25,7 @@ import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/game/replayHudReducer";
 import Units from "./game/Units";
-import FogOfWar from "./render/effects/FogOfWar";
+import FogOfWar from "./game/fogofwar/FogOfWar";
 import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./game/BWFrameBuilder";
@@ -131,13 +131,6 @@ async function TitanReactorGame(
 
   minimapScene.add(
     createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
-  );
-
-  const minimapBox = new MinimapBox(
-    "white",
-    minimapSurface,
-    mapWidth,
-    mapHeight
   );
 
   const managedDomElements = new ManagedDomElements();
@@ -362,6 +355,7 @@ async function TitanReactorGame(
     players.forEach(({ camera }) =>
       camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
     );
+
     minimapSurface.setDimensions(
       Math.floor((gameSurface.height * settings.minimapRatio) / 100),
       Math.floor((gameSurface.height * settings.minimapRatio) / 100)
@@ -401,7 +395,23 @@ async function TitanReactorGame(
 
   let nextFrame;
 
-  const units = new Units(pxToGameUnit, players.playersById);
+  const units = new Units(
+    pxToGameUnit,
+    players.playersById,
+    mapWidth,
+    mapHeight
+  );
+
+  const minimapBox = new MinimapBox(
+    "white",
+    minimapSurface,
+    scene.minimapBitmap,
+    mapWidth,
+    mapHeight,
+    fogOfWar,
+    units
+  );
+
   const projectedCameraView = new ProjectedCameraView(cameras.camera);
   const frameBuilder = new BWFrameSceneBuilder(
     scene,
@@ -435,7 +445,7 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    const updateMinimap = gameStatePosition.bwGameFrame % 8 === 0 || fogChanged;
+    const updateMinimap = true; // gameStatePosition.bwGameFrame % 2 === 0 || fogChanged;
     cameras.update();
 
     if (!gameStatePosition.paused) {
@@ -591,10 +601,10 @@ async function TitanReactorGame(
     }
 
     if (updateMinimap) {
-      renderMan.enableRenderFogPass();
+      renderMan.enableRenderPass();
       renderMan.setCanvasTarget(minimapSurface);
       fogOfWar.update(cameras.minimapCamera);
-      renderMan.render(minimapScene, cameras.minimapCamera, delta);
+      // renderMan.render(minimapScene, cameras.minimapCamera, delta);
       minimapBox.draw(projectedCameraView, minimapSurface.ctx);
 
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {

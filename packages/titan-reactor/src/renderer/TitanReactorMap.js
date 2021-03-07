@@ -9,7 +9,7 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./terrain/lights";
-import FogOfWar from "./render/effects/FogOfWar";
+import FogOfWar from "./game/fogofwar/FogOfWar";
 
 import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
 

@@ -7,11 +7,9 @@ function findDescriptor(obj, prop) {
 }
 
 class CanvasTarget {
-  constructor(style = {}) {
-    const canvas = document.createElement("canvas");
-    Object.assign(canvas.style, style);
+  constructor(defaultCanvas) {
+    const canvas = defaultCanvas || document.createElement("canvas");
     this.ctx = canvas.getContext("2d");
-
     this.canvas = canvas;
   }
 

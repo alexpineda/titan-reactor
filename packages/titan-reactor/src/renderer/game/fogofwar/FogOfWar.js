@@ -1,33 +1,34 @@
-import { easeExpOut, easeLinear, easeQuadIn, easeQuadOut } from "d3-ease";
 import {
   ClampToEdgeWrapping,
-  Color,
   DataTexture,
   LinearFilter,
   LuminanceFormat,
-  MathUtils,
   UnsignedByteType,
   Vector2,
   Vector4,
 } from "three";
+import Worker from "./FogOfWar.worker.js";
 
-const Unexplored = 15;
-const Explored = 50;
-const Visible = 255;
-const RevealSpeed = 10;
-const HideSpeedSlow = 5;
+import {
+  Explored,
+  HideSpeedSlow,
+  Visible,
+  RevealSpeed,
+  Unexplored,
+} from "./fogOfWarShared";
 
 export default class FogOfWar {
   constructor(width, height, effect) {
-    const defaultImageData = new Uint8Array(width * height);
-
     this.fogType = 0; // fade
 
     // for animation
     this._toBuffer = new Uint8Array(width * height);
 
+    // for use with canvas drawing / minimap
+    this.imageData = new ImageData(width, height);
+
     const texture = new DataTexture(
-      defaultImageData,
+      new Uint8Array(new SharedArrayBuffer(width * height)),
       width,
       height,
       LuminanceFormat,
@@ -64,13 +65,15 @@ export default class FogOfWar {
       1 / this.width,
       1 / this.height
     );
+
+    this.worker = new Worker();
   }
 
-  set imageData(val) {
+  set imageBuffer(val) {
     this.texture.image.data = val;
   }
 
-  get imageData() {
+  get imageBuffer() {
     return this.texture.image.data;
   }
 
@@ -95,9 +98,11 @@ export default class FogOfWar {
     if (val == this._enabled) return;
 
     if (val) {
-      this.imageData = this._toBuffer.slice(0);
+      for (let i = 0; i < this.imageBuffer.length; i++) {
+        this.imageBuffer[i] = this._toBuffer[i];
+      }
     } else {
-      this.imageData.fill(Visible);
+      this.imageBuffer.fill(Visible);
     }
     this.texture.needsUpdate = true;
 
@@ -113,52 +118,70 @@ export default class FogOfWar {
   }
 
   isSomewhatVisible(x, y) {
-    return this.imageData[y * this.width + x] > Explored;
+    return this.imageBuffer[y * this.width + x] > Explored;
   }
 
   isSomewhatExplored(x, y) {
-    return this.imageData[y * this.width + x] > 0;
+    return this.imageBuffer[y * this.width + x] > 0;
   }
 
-  generate(tileData, playerVisionFlags) {
+  generate(tileData, playerVisionFlags, frame) {
     this._lastTileData = tileData;
     this._lastPlayers = playerVisionFlags;
 
-    for (let i = 0; i < this.imageData.length; i++) {
-      let val = Unexplored;
+    const msg = {
+      tileBuffer: new Uint8Array(tileData.buffer),
+      playerVisionFlags,
+      frame,
+      imageBuffer: this.imageBuffer,
+      enabled: this.enabled,
+      playerVisionWasToggled: this.playerVisionWasToggled,
+      width: this.width,
+      height: this.height,
+    };
 
-      if (~tileData.buffer.get(i * 2) & playerVisionFlags) {
-        val = Explored;
-      }
+    this.worker.postMessage(msg, [msg.tileBuffer.buffer]);
 
-      if (~tileData.buffer.get(i * 2 + 1) & playerVisionFlags) {
-        val = Visible;
-      }
+    this.worker.onmessage = ({ data }) => {
+      const { toBuffer, frame, imageData } = data;
+      if (frame < this._lastFrame) return;
+      this._lastFrame = frame;
 
-      if (this.enabled) {
-        if (val > this.imageData[i]) {
-          this.imageData[i] = Math.min(
-            val,
-            this.imageData[i] + this._revealSpeed
-          );
-        } else if (val < this.imageData[i]) {
-          this.imageData[i] = Math.max(
-            val,
-            this.imageData[i] - this._hideSpeed
-          );
-        }
-      }
-
-      this._toBuffer[i] = val;
-    }
-
-    if (this.enabled) {
-      //instantly reveal if player vision has toggled
-      if (this.playerVisionWasToggled) {
-        this.imageData = this._toBuffer.slice(0);
-      }
+      this.imageData = imageData;
+      this._toBuffer = toBuffer;
       this.texture.needsUpdate = true;
-    }
+    };
+
+    // for (let i = 0; i < this.imageBuffer.length; i++) {
+    //   let val = Unexplored;
+
+    //   if (~tileData.buffer.get(i * 2) & playerVisionFlags) {
+    //     val = Explored;
+    //   }
+
+    //   if (~tileData.buffer.get(i * 2 + 1) & playerVisionFlags) {
+    //     val = Visible;
+    //   }
+
+    //   if (this.enabled) {
+    //     if (val > this.imageBuffer[i]) {
+    //       this.imageBuffer[i] = Math.min(
+    //         val,
+    //         this.imageBuffer[i] + this._revealSpeed
+    //       );
+    //     } else if (val < this.imageBuffer[i]) {
+    //       this.imageBuffer[i] = Math.max(
+    //         val,
+    //         this.imageBuffer[i] - this._hideSpeed
+    //       );
+    //     }
+    //   }
+
+    //   this._toBuffer[i] = val;
+
+    //   //alpha for minimap
+    //   this.imageData.data[i * 4 - 1] = Math.max(50, 255 - val);
+    // }
 
     this.playerVisionWasToggled = false;
   }
@@ -174,5 +197,9 @@ export default class FogOfWar {
   update(camera) {
     this.effect.projectionInverse.copy(camera.projectionMatrixInverse);
     this.effect.viewInverse.copy(camera.matrixWorld);
+  }
+
+  dispose() {
+    this.worker.terminate();
   }
 }

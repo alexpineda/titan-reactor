@@ -39,16 +39,73 @@ export const createMinimapPoint = (color) => {
 };
 
 export class MinimapBox {
-  constructor(color, { canvas, ctx }, mapWidth, mapHeight) {
+  constructor(
+    color,
+    { canvas, ctx },
+    minimapBitmap,
+    mapWidth,
+    mapHeight,
+    fogOfWar,
+    units
+  ) {
     this.color = color;
     this.canvas = canvas;
     this.ctx = ctx;
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
+    this.fogOfWar = fogOfWar;
+    this.units = units;
+    this.minimapBitmap = minimapBitmap;
   }
 
   draw(view) {
+    //@todo possibly refactor back to webgl rendering
+    //update ImageData alpha for minimap
+    if (!this._generatingMinimapFog) {
+      this._generatingMinimapFog = true;
+      createImageBitmap(this.fogOfWar.imageData).then((ib) => {
+        this.fogBitmap = ib;
+        this._generatingMinimapFog = false;
+      });
+    }
+
+    if (!this._generatingUnits) {
+      this._generatingUnits = true;
+      createImageBitmap(this.units.imageData).then((ib) => {
+        this.unitsBitmap = ib;
+        this._generatingUnits = false;
+      });
+    }
+
     this.ctx.save();
+
+    this.ctx.drawImage(
+      this.minimapBitmap,
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+
+    if (this.unitsBitmap) {
+      this.ctx.drawImage(
+        this.unitsBitmap,
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+      );
+    }
+
+    if (this.fogBitmap && this.fogOfWar.enabled) {
+      this.ctx.drawImage(
+        this.fogBitmap,
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+      );
+    }
     this.ctx.strokeStyle = this.color;
     this.ctx.lineWidth = 0.8;
     this.ctx.setTransform(

@@ -51,6 +51,7 @@ export class TitanReactorScene extends Scene {
       gameIcons,
       cmdIcons,
       raceInsetIcons,
+      minimapBitmap,
     ] = await terrainMesh.generate({
       displacementScale,
     });
@@ -60,6 +61,7 @@ export class TitanReactorScene extends Scene {
     this.raceInsetIcons = raceInsetIcons;
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
+    this.minimapBitmap = minimapBitmap;
 
     const bgTerrain = Background(w, h, terrain.material.map);
 
@@ -81,19 +83,14 @@ export class TitanReactorScene extends Scene {
     this.gridHelper = gridHelper;
     this.light = light;
     this.hemi = hemi;
-    this.displaceCanvas = displaceCanvas;
+    this.displaceImageData = displaceCanvas
+      .getContext("2d")
+      .getImageData(0, 0, displaceCanvas.width, displaceCanvas.height);
   }
 
   getTerrainY() {
     return getTerrainY(
-      this.displaceCanvas
-        .getContext("2d")
-        .getImageData(
-          0,
-          0,
-          this.displaceCanvas.width,
-          this.displaceCanvas.height
-        ),
+      this.displaceImageData,
       displacementScale,
       this.chk.size[0],
       this.chk.size[1]

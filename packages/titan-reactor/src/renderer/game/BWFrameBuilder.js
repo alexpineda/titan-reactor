@@ -1,5 +1,5 @@
 import { MathUtils } from "three";
-import Creep from "titan-reactor-shared/map/Creep";
+import Creep from "./creep/Creep";
 import BuildingQueueCountBW from "./bw/BuildingQueueCountBW";
 import CreepBW from "./bw/CreepBW";
 import ImagesBW from "./bw/ImagesBW";
@@ -266,19 +266,16 @@ export default class BWFrameSceneBuilder {
       this.tilesBW,
       this.players
         .filter((p) => p.vision)
-        .reduce((flags, { id }) => (flags |= 1 << id), 0)
+        .reduce((flags, { id }) => (flags |= 1 << id), 0),
+      this.nextFrame.frame
     );
   }
 
   buildCreep() {
-    //@todo account for mind control
-    if (!this.players.hasZergPlayer) {
-      return;
-    }
     this.creepBW.count = this.nextFrame.creepCount;
     this.creepBW.buffer = this.nextFrame.creep;
 
-    this.creep.generate(this.creepBW);
+    this.creep.generate(this.creepBW, this.nextFrame.frame);
   }
 
   compile(...args) {

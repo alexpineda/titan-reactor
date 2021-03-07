@@ -15,8 +15,6 @@ import {
   EffectComposer,
   EffectPass,
   RenderPass,
-  ClearPass,
-  DepthEffect,
   DepthOfFieldEffect,
   SMAAImageLoader,
   SMAAEffect,
@@ -27,7 +25,7 @@ import {
   BloomEffect,
 } from "postprocessing";
 
-import FogOfWarEffect from "./effects/FogOfWarEffect";
+import FogOfWarEffect from "../game/fogofwar/FogOfWarEffect";
 import BWToneMappingEffect from "./effects/BwToneMapping";
 import { easePoly } from "d3-ease";
 
@@ -209,7 +207,6 @@ class RenderMan {
       stencil: false,
       depth: true,
     });
-
     renderer.autoClear = false;
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
