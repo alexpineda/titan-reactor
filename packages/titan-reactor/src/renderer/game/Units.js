@@ -4,6 +4,8 @@ import { createMinimapPoint } from "../mesh/Minimap";
 
 const resourceColor = new Color(0, 55, 55);
 const flashColor = new Color(200, 200, 200);
+const scannerColor = new Color(0xff0000);
+// const scannerColor = new Color(0x00ffbb);
 const blinkRate = 4;
 
 class Units {
@@ -36,9 +38,11 @@ class Units {
 
     if (isResourceContainer) {
       color = resourceColor;
+    } else if (unitBw.unitType.id === unitTypes.scannerSweep) {
+      color = scannerColor;
     } else if (unitBw.owner < 8) {
       color =
-        unit.recievingDamage && Math.floor(unit.recievingDamage / blinkRate) % blinkRate === 0
+        unit.recievingDamage & 1
           ? flashColor
           : this.playersById[unitBw.owner].color.three;
     } else {
@@ -55,6 +59,11 @@ class Units {
     if (w < 2) w = 2;
     if (h < 2) h = 2;
 
+    if (unitBw.unitType.id === unitTypes.scannerSweep) {
+      w = 6;
+      h = 6;
+    }
+
     const unitX = Math.floor(unitBw.x / 32);
     const unitY = Math.floor(unitBw.y / 32);
     const wX = Math.floor(w / 2);
@@ -68,6 +77,7 @@ class Units {
         if (unitY + y >= this.mapHeight) continue;
 
         const pos = ((unitY + y) * this.mapWidth + unitX + x) * 4;
+        if (this.imageData.data[pos] === 255) continue;
         this.imageData.data[pos] = Math.floor(color.r * 255);
         this.imageData.data[pos + 1] = Math.floor(color.g * 255);
         this.imageData.data[pos + 2] = Math.floor(color.b * 255);
@@ -120,9 +130,9 @@ class Units {
       }
 
       if (!unit.recievingDamage && unit.hp > unitBw.hp) {
-        unit.recievingDamage = blinkRate * 6;
+        unit.recievingDamage = 0b000111000111000111;
       } else if (unit.recievingDamage) {
-        unit.recievingDamage--;
+        unit.recievingDamage = unit.recievingDamage >> 1;
       }
       unit.hp = unitBw.hp;
       unit.id = unitBw.id;

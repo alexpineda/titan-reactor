@@ -1,19 +1,13 @@
 import {
-  MeshBasicMaterial,
   OrthographicCamera,
   Scene,
-  Vector3,
-  PlaneBufferGeometry,
-  Mesh,
-  CanvasTexture,
   CompressedTexture,
   LinearFilter,
   ClampToEdgeWrapping,
-  sRGBEncoding,
-  DoubleSide,
 } from "three";
-
 import { DDSLoader } from "titan-reactor-shared/image/DDSLoader";
+import { rgbToCanvas } from "../image/canvas";
+import GrpSD from "../image/GrpSD";
 
 const ddsLoader = new DDSLoader();
 
@@ -35,7 +29,7 @@ const loadDds = (buf) => {
   return hdTexture;
 };
 
-export default class GameIconsHD {
+export default class GameIcons {
   renderRaceInset(renderer, dds) {
     return this.renderGameIcons(
       renderer,
@@ -130,5 +124,36 @@ export default class GameIconsHD {
         }
       }
     }
+  }
+
+  async renderCursor(grp, palette) {
+    const grpSD = new GrpSD();
+
+    await grpSD.load({
+      readGrp: () => grp,
+      imageDef: {},
+      palettes: [palette],
+    });
+
+    const canvas = rgbToCanvas(
+      {
+        data: grpSD.texture.image.data,
+        width: grpSD.width,
+        height: grpSD.height,
+      },
+      "rgba"
+    );
+
+    // const gw = grpSD.grpWidth;
+    // const gh = grpSD.grpHeight;
+
+    this.icons = grpSD.frames.map(({ x, y, grpX, grpY, w, h }) => {
+      const dest = document.createElement("canvas");
+      dest.width = w;
+      dest.height = h;
+      const ctx = dest.getContext("2d");
+      ctx.drawImage(canvas, grpX + x, grpY + y, w, h, 0, 0, w, h);
+      return dest.toDataURL("image/png");
+    });
   }
 }

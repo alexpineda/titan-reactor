@@ -1,4 +1,4 @@
-import { MathUtils } from "three";
+import { MathUtils, Vector3 } from "three";
 import Creep from "./creep/Creep";
 import BuildingQueueCountBW from "./bw/BuildingQueueCountBW";
 import CreepBW from "./bw/CreepBW";
@@ -212,6 +212,7 @@ export default class BWFrameSceneBuilder {
       //   buildingIsExplored &&
       //   !this.fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
 
+      let _afterMainImage = false;
       for (let image of this.imagesBW.reverse(spriteBW.imageCount)) {
         if (image.hidden) continue;
 
@@ -232,6 +233,10 @@ export default class BWFrameSceneBuilder {
         titanImage.position.z = image.y / 32;
         titanImage.renderOrder = _imageRenderOrder++;
 
+        //@todo: add special overlay to material for certain sprites
+        // if (_afterMainImage) {
+        //   titanImage.setScale(new Vector3(1.01, 1.01, 1));
+        // }
         if (sprite.unit) {
           //@todo move this to material
           if (!image.isShadow) {
@@ -247,6 +252,10 @@ export default class BWFrameSceneBuilder {
 
         if (!sprite.images.has(image.id)) {
           sprite.images.set(image.id, titanImage);
+        }
+
+        if (image.index === spriteBW.mainImageIndex) {
+          _afterMainImage = true;
         }
       }
 

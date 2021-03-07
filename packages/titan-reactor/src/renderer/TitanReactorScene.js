@@ -52,16 +52,20 @@ export class TitanReactorScene extends Scene {
       cmdIcons,
       raceInsetIcons,
       minimapBitmap,
+      arrowIcons,
+      hoverIcons,
     ] = await terrainMesh.generate({
       displacementScale,
     });
 
     this.gameIcons = gameIcons;
-    this.cmdIcons = cmdIcons.icons;
+    this.cmdIcons = cmdIcons;
     this.raceInsetIcons = raceInsetIcons;
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
     this.minimapBitmap = minimapBitmap;
+    this.arrowIcons = arrowIcons;
+    this.hoverIcons = hoverIcons;
 
     const bgTerrain = Background(w, h, terrain.material.map);
 

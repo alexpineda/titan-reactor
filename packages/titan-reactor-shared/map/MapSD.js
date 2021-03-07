@@ -28,9 +28,6 @@ export default class MapSD {
     const extendedImage = new Uint8Array(newWidth * grpSD.height * 4);
 
     for (let i = 0; i < grpSD.width * grpSD.height * 4; i++) {
-      // if (i % 3 === 0) {
-      //   extendedImage[i] = 0;
-      // }
       extendedImage[i + 32 * 4 * Math.ceil((i + 1) / (grpSD.width * 4))] =
         grpSD.texture.image.data[i];
     }

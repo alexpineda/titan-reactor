@@ -50,7 +50,7 @@ onmessage = function ({ data }) {
   if (enabled) {
     //instantly reveal if player vision has toggled
     if (playerVisionWasToggled) {
-      for (let i = 0; i < this.imageBuffer.length; i++) {
+      for (let i = 0; i < imageBuffer.length; i++) {
         imageBuffer[i] = toBuffer[i];
       }
     }

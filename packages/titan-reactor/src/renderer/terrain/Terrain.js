@@ -1,6 +1,6 @@
 import { WebGLRenderer } from "three";
 import readDdsGrp from "titan-reactor-shared/image/ddsGrp";
-import GameIconsHD from "titan-reactor-shared/map/GameIconsHD";
+import GameIcons from "titan-reactor-shared/map/GameIcons";
 import {
   generateTileData,
   generateMesh,
@@ -123,13 +123,13 @@ class Terrain {
     );
 
     // yeah we should probably move this to somewhere but its most convenient here atm
-    const gameIcons = new GameIconsHD();
+    const gameIcons = new GameIcons();
     gameIcons.renderResourceIcons(
       renderer,
       readDdsGrp(await this.readFile("game/icons.dds.grp", false), true)
     );
 
-    const cmdIcons = new GameIconsHD();
+    const cmdIcons = new GameIcons();
     cmdIcons.renderCmdIcons(
       renderer,
       readDdsGrp(
@@ -138,7 +138,7 @@ class Terrain {
       )
     );
 
-    const raceInsetIcons = new GameIconsHD();
+    const raceInsetIcons = new GameIcons();
     raceInsetIcons.renderRaceInset(
       renderer,
       readDdsGrp(
@@ -146,6 +146,27 @@ class Terrain {
         true
       )
     );
+
+    const arrowIcons = new GameIcons();
+    await arrowIcons.renderCursor(
+      await this.readFile("cursor/arrow.grp", false),
+      palette
+    );
+
+    const hoverIcons = new GameIcons();
+    await hoverIcons.renderCursor(
+      await this.readFile("cursor/MagY.grp", false),
+      palette
+    );
+
+    // arrowIcons.renderGameIcons(
+    //   renderer,
+    //   null,
+    //   null,
+    //   readDdsGrp(await this.readFile("cursor/arrow.dds.grp", false), true),
+    //   null,
+    //   null
+    // );
 
     const [sd, hd, d, creep, creepEdges, minimapCanvas] = await generateMesh(
       renderer,
@@ -164,9 +185,11 @@ class Terrain {
       creep,
       creepEdges,
       gameIcons,
-      cmdIcons,
+      cmdIcons.icons,
       raceInsetIcons,
       minimapCanvas,
+      arrowIcons.icons,
+      hoverIcons.icons,
     ];
   }
 }

@@ -1,6 +1,6 @@
 export const rgbToCanvas = (
   { data, width, height, defaultCanvas = null },
-  format = "rgb"
+  format = "rgba"
 ) => {
   const canvas = defaultCanvas || document.createElement("canvas");
   const ctx = canvas.getContext("2d");

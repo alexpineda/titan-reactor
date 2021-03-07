@@ -4,6 +4,7 @@ import {
   DynamicDrawUsage,
   MultiplyBlending,
   SubtractiveBlending,
+  Vector3,
 } from "three";
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
@@ -59,11 +60,13 @@ export default class TitanImageHD extends Sprite {
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
     // this.center = new Vector2(0.5, yOff - 0.1);
-    this.scale.set(
+    this._oScale = new Vector3(
       grpWidth / this._spriteScale,
       grpHeight / this._spriteScale,
       1
     );
+
+    this.scale.copy(this._oScale);
     this.material.transparent = true;
     this.material.depthTest = false;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
@@ -75,6 +78,10 @@ export default class TitanImageHD extends Sprite {
     this.atlas = atlas;
 
     this.setFrame(0, false);
+  }
+
+  setScale(v) {
+    this.scale.copy(this._oScale).multiply(v);
   }
 
   get frames() {

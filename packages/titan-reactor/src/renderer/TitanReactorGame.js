@@ -20,7 +20,7 @@ import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
-import { ProducerWindowPosition } from "../common/settings";
+import { ProducerWindowPosition, RenderMode } from "../common/settings";
 import { onGameTick } from "./titanReactorReducer";
 import { activePovsChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/game/replayHudReducer";
@@ -31,6 +31,7 @@ import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./game/BWFrameBuilder";
 import ManagedDomElements from "./game/ManagedDomElements";
 import Apm from "./game/Apm";
+import MouseCursor from "./game/MouseCursor";
 
 const { startLocation } = unitTypes;
 
@@ -53,6 +54,9 @@ async function TitanReactorGame(
   let settings = state.settings.data;
 
   let fogChanged = false;
+
+  const cursor = new MouseCursor(scene.arrowIcons, scene.hoverIcons);
+  cursor.pointer();
 
   const unsubscribeFromStore = store.subscribe(() => {
     Object.assign(state, store.getState());
@@ -155,6 +159,10 @@ async function TitanReactorGame(
   await renderMan.initRenderer(cameras.camera);
   window.renderMan = renderMan;
 
+  if (settings.renderMode !== RenderMode.ThreeD) {
+    renderMan.renderer.shadowMap.autoUpdate = false;
+    renderMan.renderer.shadowMap.needsUpdate = true;
+  }
   const getTerrainY = scene.getTerrainY();
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
@@ -383,6 +391,7 @@ async function TitanReactorGame(
     if (frames) {
       _preloadFrames.push(frames);
     }
+
     if (!_preloading && _preloadFrames.length) {
       _preloading = preloadAtlas(_preloadFrames.shift()).then(() => {
         _preloading = false;
@@ -659,6 +668,8 @@ async function TitanReactorGame(
     document.removeEventListener("keydown", _keyDown);
     document.removeEventListener("keyup", _keyUp);
     cameras.control.removeEventListener("sleep", _controlSleep);
+
+    window.document.body.style.cursor = "default";
   };
 
   var limitLoop = function (fn, fps) {

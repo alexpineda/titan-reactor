@@ -144,7 +144,7 @@ export class Settings extends EventEmitter {
   async createDefaults() {
     return {
       version: VERSION,
-      renderMode: RenderMode.SD,
+      renderMode: RenderMode.HD,
       maxAutoReplaySpeed: 1.2,
       alwaysHideReplayControls: true,
       startPaused: false,
@@ -165,7 +165,6 @@ export class Settings extends EventEmitter {
       maxAnisotropy: this.webGLCapabilities.anisotropy,
       gamma: 1.2,
       shadows: ShadowLevel.High,
-      shadowTextureSize: 0.5,
       keyPanSpeed: 0.5,
       twitch: "",
       producerWindowPosition: ProducerWindowPosition.None,
