@@ -20,7 +20,7 @@ const Menu = ({
       style={{ minHeight: "100vh", maxHeight: "100vh" }}
     >
       {!showOptions && (
-        <ul>
+        <ul style={{ marginTop: "-20vh" }}>
           <MenuItem label={phrases["MENU_RETURN_TO_GAME"]} onClick={onClose} />
 
           <MenuItem
@@ -36,15 +36,20 @@ const Menu = ({
       )}
       {showOptions && (
         <>
-          <p onClick={() => setShowOptions(false)}>Back</p>
+          <p
+            className="m-6 px-2 py-1 bg-blue-500 rounded"
+            onClick={() => setShowOptions(false)}
+          >
+            Back
+          </p>
           <Options
             phrases={phrases}
             settings={settings}
             errors={errors}
             saveSettings={saveSettings}
             inGame={true}
-            className="bg-gray-900 w-3/4 px-6 pt-3 pb-1"
-            style={{ minHeight: "30vh" }}
+            className="bg-gray-900 w-1/2 px-6 pt-6 pb-1 rounded-lg"
+            style={{ minHeight: "65vh" }}
           />
         </>
       )}

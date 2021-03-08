@@ -5,9 +5,11 @@ const Option = ({
   value = undefined,
   toggle = null,
   children = null,
+  className = "",
+  style = {},
 }) => {
   return (
-    <li>
+    <li className={className} style={style}>
       <p className="flex items-center">
         <span className="mr-2">{label}</span>
         {value !== undefined && <span className="text-gray-500">{value}</span>}

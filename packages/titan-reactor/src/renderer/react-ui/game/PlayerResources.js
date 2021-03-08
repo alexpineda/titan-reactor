@@ -4,7 +4,10 @@ import { Color } from "three";
 import { isEmpty } from "ramda";
 import { togglePlayerVision } from "./replayHudReducer";
 import { setRemoteSettings } from "../../utils/settingsReducer";
-import incFontSize from "titan-reactor-shared/utils/incFontSize";
+import {
+  incFontSize,
+  decFontSize,
+} from "titan-reactor-shared/utils/changeFontSize";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import WrappedElement from "../WrappedElement";
 
@@ -27,6 +30,7 @@ const PlayerResources = ({
   gameIcons,
   cmdIcons,
   raceInsetIcons,
+  gameDimensions,
 }) => {
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
@@ -35,6 +39,9 @@ const PlayerResources = ({
     playerScoreCache[playerName] = 0;
   }
   const [score, setScore] = useState(playerScoreCache[playerName]);
+
+  const scaledTextSize =
+    gameDimensions.width < 1400 ? decFontSize(textSize, 1) : textSize;
 
   let gasIcon;
   let workerIcon;
@@ -76,7 +83,8 @@ const PlayerResources = ({
     ? {
         backgroundRepeat: "no-repeat",
         backgroundImage: `url(${raceInsetIcons[`${race}Alpha`]})`,
-        backgroundPosition: "120% 25%",
+        backgroundPosition: gameDimensions.width <= 1200 ? "right" : "120% 25%",
+        backgroundSize: gameDimensions.width <= 1200 ? "contain" : "auto",
         mixBlendMode: "color-dodge",
       }
     : {};
@@ -84,7 +92,7 @@ const PlayerResources = ({
   const fitToContentStyle = fitToContent
     ? { width: "1%", whiteSpace: "nowrap" }
     : {};
-  const fixedWidthStyle = fitToContent ? { width: "6em" } : {};
+  const fixedWidthStyle = fitToContent ? { width: "6rem" } : {};
   const scoreTextStyle = esportsHud
     ? {
         fontFamily: "conthrax",
@@ -108,6 +116,16 @@ const PlayerResources = ({
     : {};
 
   const scoreBgColor = esportsHud ? { background: playerColor } : {};
+
+  const playerNameStyle = esportsHud
+    ? {
+        opacity: playerVision[id] ? 1 : 0.5,
+        marginRight: gameDimensions.width <= 1200 ? "72px" : "112px",
+      }
+    : {
+        opacity: playerVision[id] ? 1 : 0.5,
+        marginRight: "0",
+      };
 
   return (
     <tr>
@@ -133,7 +151,7 @@ const PlayerResources = ({
                     textSize,
                     3
                   )} w-10 ml-1 bg-white text-black text-center font-bold `
-                : `text-${textSize} w-full px-1 bg-gray-700 text-gray-200 rounded`
+                : `text-${scaledTextSize} w-full px-1 bg-gray-700 text-gray-200 rounded`
             } cursor-pointer inline-block`}
             style={scoreTextStyle}
           >
@@ -160,11 +178,8 @@ const PlayerResources = ({
         {!isChangingName && (
           <div style={gameIconBgStyle}>
             <span
-              className={`text-${textSize} cursor-pointer inline-block text-white ml-3 `}
-              style={{
-                opacity: playerVision[id] ? 1 : 0.5,
-                marginRight: esportsHud ? "112px" : "0",
-              }}
+              className={`text-${scaledTextSize} cursor-pointer inline-block text-white ml-3 `}
+              style={playerNameStyle}
             >
               {playerName.split(" ").map((str, i) =>
                 i === 0 ? (
@@ -204,8 +219,8 @@ const PlayerResources = ({
         style={{ ...fixedWidthStyle, ...tdTextStyle }}
       >
         <div className="flex items-center">
-          <img src={gameIcons.minerals} className="inline w-5" />
-          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+          <img src={gameIcons.minerals} className="inline w-3" />
+          <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
             <WrappedElement
               domElement={managedDomElements.minerals[id].domElement}
               className="inline"
@@ -218,8 +233,8 @@ const PlayerResources = ({
         style={{ ...fixedWidthStyle, ...tdTextStyle }}
       >
         <div className="flex items-center">
-          <img src={gasIcon} className="inline w-5" />
-          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+          <img src={gasIcon} className="inline w-3" />
+          <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
             <WrappedElement
               domElement={managedDomElements.gas[id].domElement}
               className="inline"
@@ -230,11 +245,11 @@ const PlayerResources = ({
 
       <td
         className="px-2 pointer-events-none"
-        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+        style={{ ...fixedWidthStyle, ...tdTextStyle, width: "4rem" }}
       >
         <div className="flex items-center">
           <img src={workerIcon} className="inline w-5" />
-          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+          <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
             <WrappedElement
               domElement={managedDomElements.workerSupply[id].domElement}
               className="inline"
@@ -248,11 +263,12 @@ const PlayerResources = ({
         style={{ ...fixedWidthStyle, ...tdTextStyle }}
       >
         <div className="flex items-center">
-          <img src={gameIcons[race]} className="inline w-5" />
-          <span className={`ml-2 text-gray-200 text-${textSize}`}>
+          <img src={gameIcons[race]} className="inline w-4" />
+          <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
             <WrappedElement
               domElement={managedDomElements.supply[id].domElement}
               className="inline"
+              style={{ whiteSpace: "nowrap" }}
             />
             {/* {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)} */}
           </span>
@@ -260,17 +276,20 @@ const PlayerResources = ({
       </td>
       <td
         className="px-2 pointer-events-none"
-        style={{ ...fixedWidthStyle, ...tdTextStyle }}
+        style={{ ...fixedWidthStyle, ...tdTextStyle, width: "8rem" }}
       >
-        <div className="flex items-center">
-          <span className={`text-gray-200 inline-block text-${textSize}`}>
-            <span className="text-xs uppercase text-gray-400 ml-2">APM</span>
-            <WrappedElement
-              domElement={managedDomElements.apm[id].domElement}
-              className="inline"
-            />
+        <span className="flex items-center">
+          <span
+            className="text-xs uppercase text-gray-400 ml-2"
+            style={{ fontSize: "0.6rem" }}
+          >
+            APM&nbsp;
           </span>
-        </div>
+          <WrappedElement
+            domElement={managedDomElements.apm[id].domElement}
+            className="inline text-${scaledTextSize} text-gray-200"
+          />
+        </span>
       </td>
     </tr>
   );
@@ -281,6 +300,7 @@ export default connect(
     playerVision: state.replay.hud.playerVision,
     esportsHud: state.settings.data.esportsHud,
     enablePlayerScores: state.settings.data.enablePlayerScores,
+    gameDimensions: state.replay.camera.dimensions,
   }),
   (dispatch) => ({
     togglePlayerVision: (id) => dispatch(togglePlayerVision(id)),

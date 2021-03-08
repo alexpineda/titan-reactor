@@ -29,18 +29,18 @@ const Minimap = ({
     >
       <p
         className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
-        style={{ width: "13rem", maxWidth: `${maxLabelWidth()}px` }}
+        style={{ width: "13rem", maxWidth: `${maxLabelWidth}px` }}
       >
         <WrappedElement domElement={timeLabel} className="inline" />
       </p>
 
-      <span className="flex" style={{ maxWidth: `${maxLabelWidth()}px` }}>
+      <span className="flex" style={{ maxWidth: `${maxLabelWidth}px` }}>
         <span className="bg-gray-700 text-gray-400 px-1 uppercase overflow-ellipsis flex-grow">
           <p
             style={{
               opacity: "0.8",
               whiteSpace: "nowrap",
-              maxWidth: `${maxLabelWidth() - 30}px`,
+              maxWidth: `${maxLabelWidth - 30}px`,
               textOverflow: "ellipsis",
               overflow: "hidden",
             }}
@@ -51,30 +51,20 @@ const Minimap = ({
         <span className="bevel-gray-700 w-6 h-6"></span>
       </span>
       <div className="mb-2 flex flex-1">
+        <i
+          className={`material-icons rounded absolute ${
+            showFogOfWar
+              ? "text-gray-600 hover:text-yellow-600"
+              : "text-yellow-600 hover:text-gray-600"
+          }  `}
+          style={{ fontSize: smallIconFontSize, bottom: "2px" }}
+          title={"Reveal Entire Map"}
+          data-tip={"Reveal Entire Map"}
+          onClick={toggleFogOfWar}
+        >
+          filter_hdr
+        </i>
         <WrappedElement domElement={canvas} />
-
-        <aside className="view-controls-parent flex-0 flex flex-col-reverse">
-          <div
-            className="view-controls flex flex-col-reverse p-2 rounded"
-            style={{
-              background: "#4a556899",
-            }}
-          >
-            <i
-              className={`material-icons rounded ${
-                showFogOfWar
-                  ? "text-gray-600 hover:text-yellow-600"
-                  : "text-yellow-600 hover:text-gray-600"
-              }  `}
-              style={{ fontSize: smallIconFontSize }}
-              title={"Reveal Entire Map"}
-              data-tip={"Reveal Entire Map"}
-              onClick={toggleFogOfWar}
-            >
-              filter_hdr
-            </i>
-          </div>
-        </aside>
       </div>
     </div>
   );
@@ -84,6 +74,7 @@ export default connect(
   (state) => ({
     textSize: state.settings.data.textSize,
     showFogOfWar: state.replay.hud.showFogOfWar,
+    maxLabelWidth: state.replay.camera.dimensions.maxLabelWidth,
   }),
   (dispatch) => ({
     toggleFogOfWar: () => dispatch(toggleFogOfWar()),

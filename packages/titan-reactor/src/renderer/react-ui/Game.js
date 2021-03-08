@@ -30,7 +30,6 @@ const Game = ({
   onTogglePlayerPov,
   fpsCanvas,
   mapLabel,
-  maxLabelWidth,
   gameIcons,
   cmdIcons,
   raceInsetIcons,
@@ -105,7 +104,6 @@ const Game = ({
       >
         <Minimap
           mapLabel={mapLabel}
-          maxLabelWidth={maxLabelWidth}
           className="pointer-events-auto"
           timeLabel={managedDomElements.timeLabel.domElement}
           canvas={minimapCanvas}
@@ -174,14 +172,13 @@ export default connect(
       settings: state.settings.data,
       players: scene.players,
       gameSurface: scene.gameSurface,
-      gameDimensions: scene.gameSurface.getRect(),
+      gameDimensions: state.replay.camera.dimensions,
       minimapCanvas: scene.minimapSurface.canvas,
       previewSurfaces: scene.previewSurfaces,
       gameIcons: scene.gameIcons,
       cmdIcons: scene.cmdIcons,
       raceInsetIcons: scene.raceInsetIcons,
       mapLabel: scene.chk.title,
-      maxLabelWidth: scene.maxLabelWidth,
       showMenu: state.replay.hud.showMenu,
       showProduction: state.replay.hud.showProduction,
       showResources: state.replay.hud.showResources,

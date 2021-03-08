@@ -88,75 +88,90 @@ const Home = ({ settings, errors, phrases, saveSettings }) => {
           </ul>
         </div>
 
-        {activePanel === Panels.Credits && (
-          <div className="w-3/4 select-none">
-            <p className="font-bold mb-6">Credits</p>
-            <p className="text-gray-300">
-              Created by <span className="font-medium">Dark Matter</span> aka{" "}
-              <span className="font-medium">
-                Alex Pineda (alexpineda@fastmail.com)
-              </span>
-            </p>
-            <p className="text-gray-300 mb-2">
-              Lead 3D Artist: xiarobear aka Rob Bear ()
-            </p>
-            <p className="text-gray-300 text-sm leading-normal">
-              Thanks to Mike Morheim and Blizzard for the best game ever made.
-              Thanks to the open source community. In particular tec27, neivv,
-              shieldbattery for amazing open source. XYZ for compression algs.
-              Heinerman and BWAPI & SSCAIT discord for possibility of this even
-              happening and support in questions. Staredit net forums archive,
-              FartyB1llion, Pron0go and No Frauds club for their help when I was
-              kicking off the iscript system, ThreeJS community, Graphics
-              Programming discord (thx criven). Authors of PyDAT. Rob Bear
-              (xiarobear). The broader BW community for keeping the game alive,
-              BSL, RSL, CPL, TDR, STPL, BWCL, HAY, Jeez, For Funs Sake League,
-              and anothers I may have missed. Shoop, Queen, JY, Stryker for
-              early support. And All my supporters. Thanks.{" "}
-            </p>
-          </div>
-        )}
-        {activePanel === Panels.Maps && (
-          <div className="w-3/4 flex-col">
-            <p className="font-bold mb-6 select-none">Maps</p>
-            <Maps phrases={phrases} />
-          </div>
-        )}
-        {activePanel === Panels.Replays && (
-          <div className="w-3/4">
-            <p className="font-bold mb-6 select-none">Replays</p>
-            <Replays phrases={phrases} settings={settings} />
-          </div>
-        )}
-        {activePanel === Panels.Options && (
-          <div className="w-3/4">
-            <p className="font-bold mb-6 select-none">Options</p>
-            <Options
-              phrases={phrases}
-              settings={settings}
-              errors={errors}
-              saveSettings={saveSettings}
-            />
-          </div>
-        )}
-        {activePanel === Panels.Legal && (
-          <div className="w-3/4 select-none">
-            <p className="font-bold mb-6">Legal</p>
-            <p>
-              Evolution Complete is released to the Public Domain. The
-              documentation and functionality provided by Evolution Complete may
-              only be utilized with assets provided by ownership of Starcraft.
-              The source code in the public repository is for non-commerical use
-              only. If you use the source code you may not charge others for
-              access to it or any derivative work thereof. Starcraft® -
-              Copyright © 1998 Blizzard Entertainment, Inc. All rights reserved.
-              Starcraft and Blizzard Entertainment are trademarks or registered
-              trademarks of Blizzard Entertainment, Inc. in the U.S. and/or
-              other countries. Evolution Complete and any of its maintainers are
-              in no way associated with or endorsed by Blizzard Entertainment®
-            </p>
-          </div>
-        )}
+        <div className="flex items-center w-3/4 ">
+          {activePanel === Panels.Credits && (
+            <div className="select-none">
+              <p className="font-bold mb-6">Credits</p>
+              <p className="text-gray-300">
+                Created by <span className="font-medium">Dark Matter</span> aka{" "}
+                <span className="font-medium">
+                  Alex Pineda (alexpineda@fastmail.com)
+                </span>
+              </p>
+              <p className="text-gray-300 mb-2">
+                Lead 3D Artist: xiarobear aka Rob Bear ()
+              </p>
+              <p className="text-gray-300 text-sm leading-normal">
+                <p>
+                  Why did I make this? I made this because I could. Because
+                  it&apos;s the gift I can give to the world right now. Because
+                  death is at our door and you have to make the most of it, even
+                  in the littlest way. Because that feeling of hope and awe as a
+                  child is something I miss. Love you all.
+                </p>
+
+                <p>
+                  Thanks to Mike Morheim and Blizzard for the best game ever
+                  made. Thanks to the open source community. Thanks to tec27
+                  (sb/inspiration), heinerman (bwapi), saint of idiocy
+                  (formats), pointy girt (pyms), lazarus (casc/pkware), tcsmoo
+                  (openbw), dakota (screp), sccait community, sen, threejs, and
+                  all others. The broader BW community for keeping the game
+                  alive, BSL, RSL, CPL, TDR, STPL, BWCL, HAY, Jeez, Rogues, and
+                  anothers I may have missed. Shoop, Queen, JY, Stryker for
+                  early support. And All my supporters. Thanks.{" "}
+                </p>
+              </p>
+            </div>
+          )}
+          {activePanel === Panels.Maps && (
+            <div className="flex-col">
+              <p className="font-bold mb-6 select-none">Maps</p>
+              <Maps phrases={phrases} />
+            </div>
+          )}
+          {activePanel === Panels.Replays && (
+            <div className="">
+              <p className="font-bold mb-6 select-none">Replays</p>
+              <Replays phrases={phrases} settings={settings} />
+            </div>
+          )}
+          {activePanel === Panels.Options && (
+            <div className="" style={{ minHeight: "65vh" }}>
+              <p className="font-bold mb-6 select-none">Options</p>
+              <Options
+                phrases={phrases}
+                settings={settings}
+                errors={errors}
+                saveSettings={saveSettings}
+              />
+            </div>
+          )}
+          {activePanel === Panels.Legal && (
+            <div className=" select-none">
+              <p className="font-bold mb-6">Legal</p>
+              <p>
+                Titan Reactor is released to the Public Domain. The
+                documentation and functionality provided by Titan Reactor may
+                only be utilized with assets provided by ownership of Starcraft.
+                If you use the source code you may not charge others for access
+                to it or any derivative work thereof. If you are a
+                broadcaster/organization/company/institution/tournament host
+                delivering/offering/contributing/donating/awarding prizes of
+                over $5,000 USD, an official english speaking broadcast must be
+                available to the public, or replays must be distributed, or
+                clean feeds (stream or vod) must be distributed for broadcasting
+                irrespective of platform/technology/software used. Starcraft® -
+                Copyright © 1998 Blizzard Entertainment, Inc. All rights
+                reserved. Starcraft and Blizzard Entertainment are trademarks or
+                registered trademarks of Blizzard Entertainment, Inc. in the
+                U.S. and/or other countries. Titan Reactor and any of its
+                maintainers are in no way associated with or endorsed by
+                Blizzard Entertainment®
+              </p>
+            </div>
+          )}
+        </div>
       </div>
       <footer className="flex mt-10">
         <ul className="flex">

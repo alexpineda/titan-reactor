@@ -22,7 +22,7 @@ import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import { ProducerWindowPosition, RenderMode } from "../common/settings";
 import { onGameTick } from "./titanReactorReducer";
-import { activePovsChanged } from "./camera/cameraReducer";
+import { activePovsChanged, dimensionChanged } from "./camera/cameraReducer";
 import { toggleMenu } from "./react-ui/game/replayHudReducer";
 import Units from "./game/Units";
 import FogOfWar from "./game/fogofwar/FogOfWar";
@@ -32,6 +32,7 @@ import BWFrameSceneBuilder from "./game/BWFrameBuilder";
 import ManagedDomElements from "./game/ManagedDomElements";
 import Apm from "./game/Apm";
 import MouseCursor from "./game/MouseCursor";
+import { debounce } from "lodash";
 
 const { startLocation } = unitTypes;
 
@@ -49,7 +50,7 @@ async function TitanReactorGame(
   audioMaster
 ) {
   const stats = createStats();
-  stats.dom.style.position = "relative";
+  stats.dom.style.position = "absolute";
   const state = store.getState();
   let settings = state.settings.data;
 
@@ -354,7 +355,7 @@ async function TitanReactorGame(
 
   //#endregion hud ui
   window.cameras = cameras;
-  const sceneResizeHandler = () => {
+  const sceneResizeHandler = debounce(() => {
     // drawCallInspector.update();
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
@@ -381,8 +382,15 @@ async function TitanReactorGame(
       cameras.updatePreviewScreenAspect(pw, ph);
     }
 
+    store.dispatch(
+      dimensionChanged({
+        ...gameSurface.getRect(),
+        maxLabelWidth: minimapSurface.width,
+      })
+    );
+
     // store.dispatch(onGameTick());
-  };
+  }, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
 
   let _preloadFrames = [];
@@ -714,7 +722,6 @@ async function TitanReactorGame(
   }
 
   return {
-    maxLabelWidth: () => minimapSurface.width,
     chk,
     gameIcons: scene.gameIcons,
     cmdIcons: scene.cmdIcons,

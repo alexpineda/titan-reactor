@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import PlayerResources from "./PlayerResources";
 import { setRemoteSettings } from "../../utils/settingsReducer";
+import { incFontSize } from "titan-reactor-shared/utils/changeFontSize";
 
 const _playerScoreCache = {};
 
@@ -111,7 +112,7 @@ export default connect(
       phrases: state.settings.phrases,
       errors: state.settings.errors,
       textSize: state.settings.data.esportsHud
-        ? state.settings.data.esportsHudSize
+        ? incFontSize(state.settings.data.hudFontSize)
         : state.settings.data.hudFontSize,
       esportsHud: state.settings.data.esportsHud,
     };

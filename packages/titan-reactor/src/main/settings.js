@@ -179,7 +179,6 @@ export class Settings extends EventEmitter {
       replaysRss: "",
       useCustomColors: false,
       randomizeColorOrder: false,
-      usePlayerColorUnitSelection: true,
       playerColors: [
         "f40404",
         "0c48cc",
@@ -191,11 +190,8 @@ export class Settings extends EventEmitter {
         "fcfc38",
       ],
       hudFontSize: "sm",
-      esportsHudSize: "lg",
       minimapRatio: 25,
       replayAndUnitDetailSize: "24vw",
-      showWorkerCount: true,
-      showArmyCount: true,
       fpsLimit: 200,
     };
   }

@@ -8,12 +8,26 @@ const initialState = {
   activePreview: false,
   bookmarks: {},
   activePovs: 0,
+  dimensions: {
+    left: 0,
+    top: 0,
+    right: window.innerWidth,
+    bottom: window.innerHeight,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  },
 };
 
 const cameraReducer = createSlice({
   name: "camera",
   initialState,
   reducers: {
+    dimensionChanged: (state, action) => {
+      return {
+        ...state,
+        dimensions: action.payload,
+      };
+    },
     activePovsChanged: (state, action) => {
       state.activePovs = action.payload;
     },
@@ -44,6 +58,7 @@ const cameraReducer = createSlice({
 });
 
 export const {
+  dimensionChanged,
   activePovsChanged,
   cinematic,
   setBookmark,

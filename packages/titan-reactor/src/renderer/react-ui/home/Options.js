@@ -19,7 +19,7 @@ import ContextMenu from "../components/ContextMenu";
 import { MenuItem } from "../components/MenuItem";
 
 const Tabs = {
-  General: "General",
+  Setup: "Setup",
   Game: "Game",
   Producer: "Producer",
   Camera: "Camera",
@@ -34,7 +34,7 @@ export default ({
   settings,
   errors,
   saveSettings,
-  defaultTab = Tabs.General,
+  defaultTab = Tabs.Setup,
   inGame = false,
   className = "",
   style = {},
@@ -60,13 +60,15 @@ export default ({
 
   return (
     <div className={className} style={style}>
-      <ul className="mb-6 flex flex-wrap">
-        <TabSelector
-          activeTab={tab}
-          tab={Tabs.General}
-          setTab={setTab}
-          label={phrases["SETTINGS_GENERAL"]}
-        />
+      <ul className="mb-8 flex flex-wrap">
+        {!inGame && (
+          <TabSelector
+            activeTab={tab}
+            tab={Tabs.Setup}
+            setTab={setTab}
+            label={phrases["SETTINGS_SETUP"]}
+          />
+        )}
 
         <TabSelector
           activeTab={tab}
@@ -109,7 +111,7 @@ export default ({
         />
       </ul>
 
-      <Tab tabName={Tabs.General} activeTab={tab}>
+      <Tab tabName={Tabs.Setup} activeTab={tab}>
         <Option label={phrases["SETTINGS_LANGUAGE"]}>
           <select
             className="rounded text-gray-800"
@@ -207,6 +209,7 @@ export default ({
           >
             <Visible visible={settings.useCustomColors}>
               <Option
+                className="pl-4"
                 label={phrases["SETTINGS_RANDOMIZE_COLORS"]}
                 toggle={
                   <Toggle
@@ -250,6 +253,33 @@ export default ({
           }
         />
         <Option
+          label={phrases["SETTINGS_RESOURCES_FONT_SIZE"]}
+          toggle={
+            <ButtonSetContainer>
+              <ButtonSet
+                selected={settings.hudFontSize === "sm"}
+                label={"Regular"}
+                first
+                onClick={() =>
+                  updateSettings({
+                    hudFontSize: "sm",
+                  })
+                }
+              />
+              <ButtonSet
+                selected={settings.hudFontSize === "base"}
+                label={"Large"}
+                first
+                onClick={() =>
+                  updateSettings({
+                    hudFontSize: "base",
+                  })
+                }
+              />
+            </ButtonSetContainer>
+          }
+        />
+        {/* <Option
           label={phrases["SETTINGS_SHOW_TOOLTIPS"]}
           toggle={
             <Toggle
@@ -261,9 +291,9 @@ export default ({
               }
             />
           }
-        />
+        /> */}
 
-        <Option
+        {/* <Option
           label={"Start Replay Paused"}
           toggle={
             <Toggle
@@ -275,7 +305,7 @@ export default ({
               }
             />
           }
-        />
+        /> */}
         <Option
           label={phrases["SETTINGS_ESPORTS_HUD_STYLE"]}
           toggle={
@@ -289,7 +319,7 @@ export default ({
             />
           }
         />
-        <Option
+        {/* <Option
           label={phrases["SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS"]}
           toggle={
             <Toggle
@@ -301,7 +331,7 @@ export default ({
               }
             />
           }
-        />
+        /> */}
       </Tab>
 
       <Tab tabName={Tabs.Producer} activeTab={tab}>
@@ -426,36 +456,6 @@ export default ({
               });
             }}
           />
-        </Option>
-
-        <Option
-          label={phrases["SETTINGS_AUDIO_PANNING_STYLE"]}
-          value={settings.audioPanningStyle}
-        >
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={settings.audioPanningStyle === AudioPanningStyle.Stereo}
-              label={phrases["SETTINGS_CLASSIC_STEREO"]}
-              first
-              onClick={() =>
-                updateSettings({
-                  audioPanningStyle: AudioPanningStyle.Stereo,
-                })
-              }
-            />
-            <ButtonSet
-              selected={
-                settings.audioPanningStyle === AudioPanningStyle.Spatial
-              }
-              last
-              label={phrases["SETTINGS_SPATIAL_3D"]}
-              onClick={() =>
-                updateSettings({
-                  audioPanningStyle: AudioPanningStyle.Spatial,
-                })
-              }
-            />
-          </ButtonSetContainer>
         </Option>
       </Tab>
 
