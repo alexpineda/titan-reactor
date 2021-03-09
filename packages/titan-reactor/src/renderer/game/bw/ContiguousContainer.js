@@ -76,4 +76,16 @@ export default class ContiguousContainer {
     }
     this.offset += count;
   }
+
+  instances(count = this.count) {
+    if (!this.object) {
+      throw new Error("requires object() method");
+    }
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      arr.push(this.object());
+      this.offset++;
+    }
+    return arr;
+  }
 }

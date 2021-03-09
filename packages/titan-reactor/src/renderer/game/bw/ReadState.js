@@ -15,11 +15,11 @@ export default class ReadState {
     return 1;
   }
 
-  static get Sprite() {
+  static get Tile() {
     return 2;
   }
 
-  static get Images() {
+  static get Creep() {
     return 3;
   }
 
@@ -27,19 +27,19 @@ export default class ReadState {
     return 4;
   }
 
-  static get Tile() {
+  static get BuildQueue() {
     return 5;
   }
 
-  static get Creep() {
+  static get Sprite() {
     return 6;
   }
 
-  static get Sounds() {
+  static get Images() {
     return 7;
   }
 
-  static get BuildQueue() {
+  static get Sounds() {
     return 8;
   }
 

@@ -35,6 +35,7 @@ import ContiguousContainer from "./ContiguousContainer";
 // 		status_flag_lifetime_expired = 0x80000000,
 
 const flags = Object.freeze({
+  completed: 1,
   groundedBuilding: 2,
   flying: 4,
   cloaked: 0x200,
@@ -119,6 +120,10 @@ export default class UnitsBW extends ContiguousContainer {
       (this.statusFlags & flags.cloaked) != 0 ||
       (this.statusFlags & flags.passivelyCloaked) != 0
     );
+  }
+
+  get isComplete() {
+    return (this.statusFlags & flags.completed) != 0;
   }
 
   get tileX() {

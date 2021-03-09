@@ -52,6 +52,7 @@ export default class StreamGameStateReader extends EventEmitter {
   }
 
   _processBuffer(newFrames) {
+    if (this.maxed()) return true;
     while (this._state.process(this._buf, this.frames.currentUnmarked)) {
       if (this._state.mode === ReadState.Frame) {
         this._lastReadFrame = this._state.currentFrame;

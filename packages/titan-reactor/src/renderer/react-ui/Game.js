@@ -128,21 +128,4 @@ const Game = () => {
   );
 };
 
-// export default connect(
-//   (state, { scene }) => {
-//     return {
-//       showMenu: state.replay.hud.showMenu,
-//       showProduction: state.replay.hud.showProduction,
-//       showResources: state.replay.hud.showResources,
-//       showReplayControls: state.replay.hud.showReplayControls,
-//       showUnitSelection: state.replay.hud.showUnitSelection,
-//       showFps: state.replay.hud.showFps,
-//       selectedUnits: state.replay.hud.selectedUnits,
-//       fpsCanvas: scene.fpsCanvas,
-//     };
-//   },
-//   (dispatch) => ({
-//     toggleMenu: (val) => dispatch(toggleMenu(val)),
-//   })
-// )(Game);
 export default Game;

@@ -253,7 +253,7 @@ export default ({
             <ButtonSetContainer>
               <ButtonSet
                 selected={settings.hudFontSize === "sm"}
-                label={"Regular"}
+                label={"Small"}
                 first
                 onClick={() =>
                   save({
@@ -263,11 +263,21 @@ export default ({
               />
               <ButtonSet
                 selected={settings.hudFontSize === "base"}
-                label={"Large"}
+                label={"Medium"}
                 first
                 onClick={() =>
                   save({
                     hudFontSize: "base",
+                  })
+                }
+              />
+              <ButtonSet
+                selected={settings.hudFontSize === "lg"}
+                label={"Large"}
+                first
+                onClick={() =>
+                  save({
+                    hudFontSize: "lg",
                   })
                 }
               />

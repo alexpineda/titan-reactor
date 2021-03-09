@@ -9,6 +9,7 @@ import TilesBW from "./bw/TilesBW";
 import UnitsBW from "./bw/UnitsBW";
 import BWFrameScene from "./BWFrameScene";
 import Sprite from "./Sprite";
+import { range } from "ramda";
 
 export default class BWFrameSceneBuilder {
   /**
@@ -59,7 +60,7 @@ export default class BWFrameSceneBuilder {
     this.units = new Map();
     this.unitsByIndex = new Map();
     this.unitsBySpriteId = new Map();
-    this.production = new Map();
+    this.unitsInProduction = [];
   }
 
   buildStart(nextFrame, updateMinimap) {
@@ -115,23 +116,14 @@ export default class BWFrameSceneBuilder {
     this.buildQueueBW.count = this.nextFrame.buildingQueueCount;
     this.buildQueueBW.buffer = this.nextFrame.buildingQueue;
 
-    for (const minimapUnit of units.refresh(
+    units.refresh(
       this.unitsBW,
       this.buildQueueBW,
       this.units,
       this.unitsBySpriteId,
-      this.production
-    )) {
-      if (this.updateMinimap && minimapUnit) {
-        minimapUnit.visible = minimapUnit.userData.isResourceContainer
-          ? true
-          : this.fogOfWar.isVisible(
-              minimapUnit.userData.tileX,
-              minimapUnit.userData.tileY
-            );
-        this.minimapBwScene.add(minimapUnit);
-      }
-    }
+      this.unitsInProduction,
+      this.nextFrame.frame
+    );
   }
 
   /**

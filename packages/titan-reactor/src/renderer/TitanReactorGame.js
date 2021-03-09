@@ -1,4 +1,5 @@
 import { Raycaster, AxesHelper, Scene, Vector2 } from "three";
+import { unstable_batchedUpdates } from "react-dom";
 import { GameStatePosition } from "./game/GameStatePosition";
 import {
   gameSpeeds,
@@ -54,7 +55,7 @@ async function TitanReactorGame(
   let fogChanged = false;
 
   const cursor = scene.cursor;
-  cursor.drag();
+  cursor.pointer();
 
   console.log("rep", rep);
 
@@ -338,9 +339,11 @@ async function TitanReactorGame(
       cameras.updatePreviewScreenAspect(pw, ph);
     }
 
-    useGameStore.setState({
-      dimensions: gameSurface.getRect(),
-    });
+    unstable_batchedUpdates(() =>
+      useGameStore.setState({
+        dimensions: gameSurface.getRect(),
+      })
+    );
   }, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
 
@@ -364,6 +367,7 @@ async function TitanReactorGame(
   let nextFrame;
 
   const units = new Units(
+    bwDat,
     pxToGameUnit,
     players.playersById,
     mapWidth,
@@ -400,6 +404,12 @@ async function TitanReactorGame(
     frameBuilder.buildFog();
     frameBuilder.buildCreep();
     frameBuilder.buildSounds(view, audioMaster, elapsed);
+
+    unstable_batchedUpdates(() =>
+      useHudStore
+        .getState()
+        .updateUnitsInProduction(frameBuilder.unitsInProduction)
+    );
   }
 
   let _lastElapsed = 0;
@@ -417,14 +427,6 @@ async function TitanReactorGame(
     cameras.update();
 
     if (!gameStatePosition.paused) {
-      if (
-        onFastestTick(gameStatePosition.bwGameFrame, 1.5) &&
-        gameStatePosition.skipGameFrames
-      ) {
-        // players.updateResources(units);
-        // store.dispatch(onGameTick());
-      }
-
       if (!nextFrame) {
         projectedCameraView.update();
 
@@ -560,12 +562,10 @@ async function TitanReactorGame(
       target.setZ((target.z + cameras.camera.position.z) / 2);
       audioMaster.update(target.x, target.y, target.z, delta);
 
-      // drawCallInspector.begin();
       renderMan.enableCinematicPass();
       fogOfWar.update(cameras.camera);
       renderMan.updateFocus(cameras);
       renderMan.render(scene, cameras.camera, delta);
-      // drawCallInspector.end();
     }
 
     if (updateMinimap) {
@@ -578,7 +578,7 @@ async function TitanReactorGame(
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
         previewSurfaces.forEach((previewSurface, i) => {
           renderMan.setCanvasTarget(previewSurface);
-          if (useHudStore.getState().game.hoveringOverMinimap || i > 0) {
+          if (useHudStore.getState().hoveringOverMinimap || i > 0) {
             if (i > 0 && i < 3) {
               players[i - 1].camera.updateGameScreenAspect(
                 previewSurface.width,

@@ -20,4 +20,12 @@ export default class BuildingQueueCountBW extends ContiguousContainer {
     }
     return units;
   }
+
+  object() {
+    return {
+      unitId: this.unitId,
+      queueCount: this.queueCount,
+      units: this.units,
+    };
+  }
 }

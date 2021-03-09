@@ -65,7 +65,7 @@ const Minimap = ({ className = "" }) => {
               ? "text-gray-600 hover:text-yellow-600"
               : "text-yellow-600 hover:text-gray-600"
           }  `}
-          style={{ fontSize: smallIconFontSize, bottom: "2px" }}
+          style={{ fontSize: smallIconFontSize, bottom: "10px", left: "10px" }}
           title={"Reveal Entire Map"}
           data-tip={"Reveal Entire Map"}
           onClick={toggleFogOfWar}

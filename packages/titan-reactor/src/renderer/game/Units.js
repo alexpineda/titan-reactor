@@ -1,6 +1,7 @@
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { Color } from "three";
 import { createMinimapPoint } from "../mesh/Minimap";
+import { range } from "ramda";
 
 const resourceColor = new Color(0, 55, 55);
 const flashColor = new Color(200, 200, 200);
@@ -9,7 +10,8 @@ const scannerColor = new Color(0xff0000);
 const blinkRate = 4;
 
 class Units {
-  constructor(pxToGameUnit, playersById, mapWidth, mapHeight) {
+  constructor(bwDat, pxToGameUnit, playersById, mapWidth, mapHeight) {
+    this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.playersById = playersById;
 
@@ -85,33 +87,35 @@ class Units {
       }
     }
 
-    // if (!unit.minimapPoint) {
-    //   unit.minimapPoint = createMinimapPoint(color, w, h);
-    // }
-    // unit.minimapPoint.scale.x = w;
-    // unit.minimapPoint.scale.y = h;
-    // unit.minimapPoint.material.color = color;
-    // unit.minimapPoint.position.x = this.pxToGameUnit.x(unitBw.x);
-    // unit.minimapPoint.position.z = this.pxToGameUnit.y(unitBw.y);
-    // unit.minimapPoint.position.y = 1;
-    // unit.minimapPoint.userData.tileX = unitBw.tileX;
-    // unit.minimapPoint.userData.tileY = unitBw.tileY;
-    // unit.minimapPoint.userData.isResourceContainer = isResourceContainer;
-
-    // unit.minimapPoint.matrixAutoUpdate = false;
-    // unit.minimapPoint.updateMatrix();
-
-    // return unit.minimapPoint;
+    return;
   }
 
-  *refresh(unitsBW, buildQueueBW, units, unitsBySpriteId, production) {
+  refresh(
+    unitsBW,
+    buildQueueBW,
+    units,
+    unitsBySpriteId,
+    unitsInProduction,
+    frame
+  ) {
     this.spriteUnits = {};
 
     for (let i = 0; i < this.imageData.data.length; i++) {
       this.imageData.data[i] = 0;
     }
 
+    const incompleteUnits = new Map();
+
     for (const unitBw of unitsBW.items()) {
+      if (!unitBw.isComplete) {
+        incompleteUnits.set(unitBw.id, {
+          unitId: unitBw.id,
+          typeId: unitBw.typeId,
+          remainingBuildTime: unitBw.remainingBuildTime,
+          ownerId: unitBw.owner,
+        });
+        continue;
+      }
       const isResourceContainer = unitBw.unitType.isResourceContainer;
 
       let unit;
@@ -157,29 +161,52 @@ class Units {
         }
       }
 
-      yield this._refreshMinimap(unitBw, isResourceContainer, unit);
+      this._refreshMinimap(unitBw, isResourceContainer, unit);
     }
 
-    production.clear();
-    for (const buildQueue of buildQueueBW.items()) {
-      const unit = units.get(buildQueue.unitId);
-      unit.queue = buildQueue.units;
-      if (!production.has(unit.owner)) {
-        production.set(unit.owner, new Map());
-      }
+    if (frame % 8 === 0) {
+      // reset each players production list
+      unitsInProduction.length = 0;
 
-      const player = production.get(unit.owner);
-      if (player.has(unit.id)) {
-        const queueUnit = player.get(unit.id);
-        if (queueUnit.unit.remainingBuildTime > unit.remainingBuildTime) {
-          queueUnit.unit = unit;
+      const buildQueue = buildQueueBW.instances();
+
+      for (const [id, incompleteUnit] of incompleteUnits) {
+        const queued = buildQueue.find(
+          ({ unitId }) => unitId === incompleteUnit.unitId
+        );
+        const typeId = queued ? queued.units[0] : incompleteUnit.typeId;
+        const unitType = this.bwDat.units[typeId];
+        if (unitType.isSubunit) continue;
+
+        const existingUnit = unitsInProduction.find(
+          (u) => u.ownerId === incompleteUnit.ownerId && u.typeId === typeId
+        );
+
+        if (existingUnit) {
+          existingUnit.count++;
+          if (
+            existingUnit.remainingBuildTime >
+              incompleteUnit.remainingBuildTime &&
+            incompleteUnit.remainingBuildTime
+          ) {
+            existingUnit.remainingBuildTime = incompleteUnit.remainingBuildTime;
+          }
+        } else {
+          unitsInProduction.push({
+            ...incompleteUnit,
+            typeId,
+            count: 1,
+            totalBuildTime: unitType.buildTime,
+          });
         }
-        queueUnit.count++;
-      } else {
-        player.set(unit.id, { count: 1, unit });
       }
-    }
+      unitsInProduction.sort((a, b) => {
+        const ax = this.bwDat.units[a.typeId].buildScore;
+        const bx = this.bwDat.units[b.typeId].buildScore;
 
+        return bx - ax;
+      });
+    }
     // if (this.selected.length) {
     //   this.selected = this.selected.filter((unit) => !deadUnits.includes(unit));
     //   if (this.selected.length === 0 && this.followingUnit) {

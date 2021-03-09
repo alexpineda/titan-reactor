@@ -46,6 +46,9 @@ export default class FileGameStateReader extends StreamGameStateReader {
           if (data > this.maxFramesLength) {
             res();
           }
+          if (data % 100 === 0) {
+            console.log(data);
+          }
           this.framesWritten = data;
         });
       });
