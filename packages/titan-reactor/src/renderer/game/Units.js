@@ -167,6 +167,7 @@ class Units {
     if (frame % 8 === 0) {
       // reset each players production list
       unitsInProduction.length = 0;
+      unitsInProduction.needsUpdate = true;
 
       const buildQueue = buildQueueBW.instances();
 
@@ -196,7 +197,7 @@ class Units {
             ...incompleteUnit,
             typeId,
             count: 1,
-            totalBuildTime: unitType.buildTime,
+            buildTime: unitType.buildTime,
           });
         }
       }

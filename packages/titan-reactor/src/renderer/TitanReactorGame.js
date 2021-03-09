@@ -95,8 +95,6 @@ async function TitanReactorGame(
     createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
   );
 
-  const managedDomElements = new ManagedDomElements(scene.cmdIcons);
-
   const cameras = new Cameras(
     settings,
     gameSurface,
@@ -140,6 +138,11 @@ async function TitanReactorGame(
     );
   });
   players.changeColors(settings.useCustomColors);
+
+  const managedDomElements = new ManagedDomElements(
+    scene.cmdIcons,
+    players.playersById
+  );
 
   audioMaster.music.playGame();
 

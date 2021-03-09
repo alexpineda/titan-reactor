@@ -1,3 +1,5 @@
+import { easePolyOut } from "d3-ease";
+
 {
   /* <div key={typeId} className="w-10 relative">
   <img
@@ -22,11 +24,14 @@
 }
 
 export default class UnitProductionElement {
-  constructor(cmdIcons) {
+  constructor(cmdIcons, color) {
     this.cmdIcons = cmdIcons;
+    this.color = color;
     this.image = document.createElement("img");
     this.image.style.mixBlendMode = "screen";
     this.image.style.filter = "brightness(1.5)";
+    this.image.style.borderBottom = "4px solid";
+    this.image.style.borderImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa 0%, rgba(0,0,0,0) 0%) 1`;
 
     this.count = document.createElement("p");
     this.count.classList.add(
@@ -45,14 +50,24 @@ export default class UnitProductionElement {
     this.domElement.classList.add("w-10", "relative");
     this.domElement.append(this.image, this.count);
     this.value = null;
+
+    this.poly = easePolyOut.exponent(0.5);
   }
 
   set value(val) {
     this._value = val;
     if (val) {
       this.domElement.classList.remove("hidden");
-      this.count.innerText = val.count;
+      if (val.count > 2) {
+        this.count.innerText = val.count;
+        this.count.classList.remove("hidden");
+      } else {
+        this.count.classList.add("hidden");
+      }
       this.image.src = this.cmdIcons[val.typeId];
+
+      const pct = this.poly(1 - val.remainingBuildTime / val.buildTime) * 100;
+      this.image.style.borderImage = `linear-gradient(90deg, ${this.color}ee 0%, ${this.color}aa ${pct}%, rgba(0,0,0,0) ${pct}%) 1`;
     } else {
       this.domElement.classList.add("hidden");
     }
