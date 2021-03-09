@@ -1,18 +1,11 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
-import { setRemoteSettings } from "../../utils/settingsReducer";
 import { MenuItem } from "../components/MenuItem";
 import Options from "../home/Options";
+import useSettingsStore from "../../stores/settingsStore";
 
-const Menu = ({
-  phrases,
-  settings,
-  errors,
-  saveSettings,
-  onClose,
-  onBackToMainMenu,
-}) => {
+const Menu = ({ onClose, onBackToMainMenu }) => {
   const [showOptions, setShowOptions] = useState(false);
+  const phrases = useSettingsStore((state) => state.phrases);
 
   return (
     <div
@@ -43,10 +36,6 @@ const Menu = ({
             Back
           </p>
           <Options
-            phrases={phrases}
-            settings={settings}
-            errors={errors}
-            saveSettings={saveSettings}
             inGame={true}
             className="bg-gray-900 w-1/2 px-6 pt-6 pb-1 rounded-lg"
             style={{ minHeight: "65vh" }}
@@ -57,15 +46,4 @@ const Menu = ({
   );
 };
 
-export default connect(
-  (state) => {
-    return {
-      settings: state.settings.data,
-      phrases: state.settings.phrases,
-      errors: state.settings.errors,
-    };
-  },
-  (dispatch) => ({
-    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-  })
-)(Menu);
+export default Menu;

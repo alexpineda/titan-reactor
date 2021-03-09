@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Users\alexp\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js install
+  C:\Program Files\nodejs\node.exe C:\Users\alexp\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js upgrade react
 
 PATH: 
   C:\Program Files\Oculus\Support\oculus-runtime;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files\Git\cmd;C:\Users\alexp\AppData\Local\Microsoft\WindowsApps;C:\Users\alexp\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\alexp\AppData\Roaming\npm;C:\Program Files\CMake\bin;C:\Program Files (x86)\Yarn\bin\;C:\Program Files\Calibre2\;C:\Program Files (x86)\IncrediBuild;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Go\bin;C:\Program Files\nodejs\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\alexp\.cargo\bin;C:\Users\alexp\AppData\Local\Programs\Microsoft VS Code\bin;c:\Python27\;C:\Users\alexp\AppData\Local\Yarn\bin;C:\Users\alexp\.dotnet\tools;C:\Program Files (x86)\GnuWin32\bin;C:\Users\alexp\go\bin;C:\Users\alexp\AppData\Roaming\npm
@@ -76,7 +76,6 @@ npm manifest:
       "concat": "1.0.3",
       "d3-ease": "1.0.6",
       "dat.gui": "0.7.7",
-      "deep-equal": "^2.0.4",
       "downgrade-replay": "^1.0.0",
       "electron-is-dev": "^1.2.0",
       "esm": "^3.2.25",
@@ -84,6 +83,8 @@ npm manifest:
       "iconv-lite": "0.6.1",
       "iscript": "^1.0.2",
       "jssuh": "1.4.0",
+      "lodash.debounce": "^4.0.8",
+      "lodash.shuffle": "^4.2.0",
       "npm": "^6.14.8",
       "pngjs": "^5.0.0",
       "postprocessing": "^6.19.3",
@@ -96,7 +97,6 @@ npm manifest:
       "react-dropzone": "^11.2.0",
       "react-pie-menu": "^0.2.5",
       "react-redux": "6.0.0",
-      "react-tooltip": "^4.2.10",
       "rss-parser": "^3.9.0",
       "sanitize-filename": "^1.6.3",
       "scm-extractor": "^1.0.6",
@@ -108,7 +108,7 @@ npm manifest:
       "typescript": "^4.0.3",
       "webpack": "4.42.1",
       "winreg": "^1.2.4",
-      "ws": "^7.4.3"
+      "zustand": "^3.3.3"
     },
     "devDependencies": {
       "@babel/core": "^7.11.6",
@@ -4032,7 +4032,7 @@ Lockfile:
       object-keys "^1.1.1"
       regexp.prototype.flags "^1.2.0"
   
-  deep-equal@^2.0.4, deep-equal@^2.0.5:
+  deep-equal@^2.0.5:
     version "2.0.5"
     resolved "https://registry.yarnpkg.com/deep-equal/-/deep-equal-2.0.5.tgz#55cd2fe326d83f9cbf7261ef0e060b3f724c5cb9"
     integrity sha512-nPiRgmbAtm1a3JsnLCf6/SLfXcjyN5v8L1TXzdCmHrXJ4hx+gW/w1YCcn7z8gJtSiDArZCgYtbao3QqLm/N1Sw==
@@ -7847,6 +7847,16 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
     integrity sha1-4j8/nE+Pvd6HJSnBBxhXoIblzO8=
   
+  lodash.debounce@^4.0.8:
+    version "4.0.8"
+    resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
+    integrity sha1-gteb/zCmfEAF/9XiUVMArZyk168=
+  
+  lodash.shuffle@^4.2.0:
+    version "4.2.0"
+    resolved "https://registry.yarnpkg.com/lodash.shuffle/-/lodash.shuffle-4.2.0.tgz#145b5053cf875f6f5c2a33f48b6e9948c6ec7b4b"
+    integrity sha1-FFtQU8+HX29cKjP0i26ZSMbse0s=
+  
   lodash.sortby@^4.7.0:
     version "4.7.0"
     resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
@@ -9950,14 +9960,6 @@ Lockfile:
     dependencies:
       object-assign "^3.0.0"
   
-  react-tooltip@^4.2.10:
-    version "4.2.13"
-    resolved "https://registry.yarnpkg.com/react-tooltip/-/react-tooltip-4.2.13.tgz#908db8a41dc10ae2ae9cc1864746cde939aaab0f"
-    integrity sha512-iAZ02wSxChLWb7Vnu0zeQMyAo/jiGHrwFNILWaR3pCKaFVRjKcv/B6TBI4+Xd66xLXVzLngwJ91Tf5D+mqAqVA==
-    dependencies:
-      prop-types "^15.7.2"
-      uuid "^7.0.3"
-  
   react@^16.13.1, react@^16.14.0:
     version "16.14.0"
     resolved "https://registry.yarnpkg.com/react/-/react-16.14.0.tgz#94d776ddd0aaa37da3eda8fc5b6b18a4c9a3114d"
@@ -11683,11 +11685,6 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/three/-/three-0.125.2.tgz#dcba12749a2eb41522e15212b919cd3fbf729b12"
     integrity sha512-7rIRO23jVKWcAPFdW/HREU2NZMGWPBZ4XwEMt0Ak0jwLUKVJhcKM55eCBWyGZq/KiQbeo1IeuAoo/9l2dzhTXA==
   
-  three@^0.121.1:
-    version "0.121.1"
-    resolved "https://registry.yarnpkg.com/three/-/three-0.121.1.tgz#fda39cf4701d02be9c3be5c27ccea24b7a1ea59b"
-    integrity sha512-+rYhNpW5W1aBdLkPQDld/GA4Sj/uOKJJKVpCAZUbpk/HZEiYRUlPt8+s+9nmxRglWmRHdBa3ERvUwqg4nmoA5w==
-  
   throat@^5.0.0:
     version "5.0.0"
     resolved "https://registry.yarnpkg.com/throat/-/throat-5.0.0.tgz#c5199235803aad18754a667d659b5e72ce16764b"
@@ -12248,11 +12245,6 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
     integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
   
-  uuid@^7.0.3:
-    version "7.0.3"
-    resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.3.tgz#c5c9f2c8cf25dc0a372c4df1441c41f5bd0c680b"
-    integrity sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
-  
   uuid@^8.3.0:
     version "8.3.2"
     resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
@@ -12701,11 +12693,6 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.2.tgz#782100048e54eb36fe9843363ab1c68672b261dd"
     integrity sha512-T4tewALS3+qsrpGI/8dqNMLIVdq/g/85U98HPMa6F0m6xTbvhXU6RCQLqPH3+SlomNV/LdY6RXEbBpMH6EOJnA==
   
-  ws@^7.4.3:
-    version "7.4.3"
-    resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.3.tgz#1f9643de34a543b8edb124bdcbc457ae55a6e5cd"
-    integrity sha512-hr6vCR76GsossIRsr8OLR9acVVm1jyfEWvhbNjtgPOrfvAlKzvyeg/P6r8RuDjRyrcQoPQT7K0DGEPc7Ae6jzA==
-  
   xdg-basedir@^3.0.0:
     version "3.0.0"
     resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-3.0.0.tgz#496b2cc109eca8dbacfe2dc72b603c17c5870ad4"
@@ -12914,3 +12901,8 @@ Lockfile:
     dependencies:
       buffer-crc32 "~0.2.3"
       fd-slicer "~1.1.0"
+  
+  zustand@^3.3.3:
+    version "3.3.3"
+    resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.3.3.tgz#88b930a873d0f13e406f96958c1409645ea8b370"
+    integrity sha512-KTN/O76rVc9muDoprsCDe/LQjbuq+GHYt5JdYahuXaGZ+8Gyk44SepzTFeQTF5J+b8+/Q+o90BaSEQ3WImKPog==

@@ -1,22 +1,18 @@
-import { WebGLRenderer } from "three";
 import { ipcRenderer } from "electron";
 import { promises as fsPromises } from "fs";
 import React from "react";
 import { render } from "react-dom";
-import { Provider } from "react-redux";
 import App from "./react-ui/App";
-import { log, setWebGLCapabilities } from "./invoke";
+import { log } from "./invoke";
 import version from "../common/version";
 import { TitanReactor } from "./TitanReactor";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
-import store from "./store";
-import { getRemoteSettings } from "./utils/settingsReducer";
-import {
-  loading,
-  loadingProgress,
-  loadingError,
-  criticalErrorOccurred,
-} from "./titanReactorReducer";
+
+import useTitanReactorStore from "./stores/titanReactorStore";
+import useSettingsStore from "./stores/settingsStore";
+import useLoadingStore from "./stores/loadingStore";
+import "./stores/capabilitiesStore";
+import create from "zustand";
 
 log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);
@@ -42,31 +38,23 @@ const loadFont = async (file, family, weight) => {
   );
 };
 
-let titanReactor = new TitanReactor(store);
+let titanReactor = new TitanReactor();
 
 async function bootup() {
-  const renderer = new WebGLRenderer();
-
   await loadFont(`${__static}/fonts/conthrax-rg.otf`, "conthrax", "100 400");
   await loadFont(`${__static}/fonts/conthrax-hv.otf`, "conthrax", "500 900");
 
-  await setWebGLCapabilities({
-    anisotropy: renderer.capabilities.getMaxAnisotropy(),
-  });
-  renderer.dispose();
-
-  const settings = (await store.dispatch(getRemoteSettings())).payload;
-
   try {
-    store.dispatch(loading("init"));
-    if (!settings.errors.includes("starcraftPath")) {
+    // set initializing
+    await useSettingsStore.getState().load();
+    if (!useSettingsStore.getState().errors.includes("starcraftPath")) {
       await titanReactor.preload();
     }
-    store.dispatch(loadingProgress("init"));
+    useLoadingStore.setState({ initialized: true });
   } catch (err) {
     log(err.message, "error");
-    console.error(err);
-    store.dispatch(criticalErrorOccurred());
+    console.error(err.message);
+    useTitanReactorStore.setState({ criticalError: err });
   }
 }
 
@@ -85,12 +73,15 @@ ipcRenderer.on(OPEN_REPLAY_DIALOG, (event, replays) => {
 async function producerBootup() {
   console.log("hi");
 }
+{
+  /* <App titanReactor={titanReactor} /> */
+}
+// const useOk = create(() => ({}));
+// const Do = () => {
+//   const o = useOk();
+//   return <p>hello</p>;
+// };
 
-render(
-  <Provider store={store}>
-    <App titanReactor={titanReactor} />
-  </Provider>,
-  document.getElementById("app")
-);
+render(<App titanReactor={titanReactor} />, document.getElementById("app"));
 
 window.location.search.includes("producer") ? producerBootup() : bootup();

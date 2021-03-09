@@ -1,7 +1,8 @@
 import { remote } from "electron";
 import createScmExtractor from "scm-extractor";
-import fs from "fs";
+import fs, { promises as fsPromises } from "fs";
 import path from "path";
+import { pick } from "ramda";
 import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
@@ -13,7 +14,6 @@ import { openFile, log } from "./invoke";
 import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
-import { loading, loadingProgress } from "./titanReactorReducer";
 import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
 import GrpSD from "titan-reactor-shared/image/GrpSD";
 import GrpSD2 from "titan-reactor-shared/image/GrpSD2";
@@ -36,6 +36,9 @@ import {
 } from "titan-reactor-shared/image/calculateImagesFromIScript";
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
 import AudioMaster from "./audio/AudioMaster";
+import useLoadingStore from "./stores/loadingStore";
+import useSettingsStore from "./stores/settingsStore";
+import useGameStore from "./stores/gameStore";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -50,27 +53,19 @@ const loadScx = (filename) =>
   );
 
 export class TitanReactor {
-  constructor(store) {
-    this.store = store;
-    this.scene = null;
+  constructor() {
+    this.game = null;
   }
 
   async preload() {
-    const state = this.store.getState();
-    if (
-      state.titan.processes.preload.completed ||
-      state.titan.processes.preload.started
-    )
-      return;
-
-    const dispatchPreloadLoadingProgress = () =>
-      this.store.dispatch(loadingProgress("preload"));
-    this.store.dispatch(loading("preload", 1));
+    if (useLoadingStore.getState().preloaded) return;
 
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
-    openStorage(state.settings.data.starcraftPath);
-    electronFileLoader(readBwFile);
+    openStorage(useSettingsStore.getState().data.starcraftPath);
+    electronFileLoader((file) =>
+      file.includes(".gltf") ? fsPromises.readFile(file) : readBwFile(file)
+    );
 
     const origBwDat = await loadAllDataFiles(readBwFile);
     this.bwDat = {
@@ -83,25 +78,22 @@ export class TitanReactor {
     // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
     renderer.dispose();
 
-    dispatchPreloadLoadingProgress();
+    useLoadingStore.setState({ preloaded: true });
   }
 
   async spawnReplay(filepath) {
-    const state = this.store.getState();
-    const dispatchRepLoadingProgress = () =>
-      this.store.dispatch(loadingProgress("replay"));
-
-    if (!state.titan.processes.preload.completed) {
-      throw new Error("cannot spawn replay before preloading assets");
-    }
+    // const dispatchRepLoadingProgress = () =>
+    //   this.store.dispatch(loadingProgress("replay"));
 
     this.filename = filepath;
 
-    this.store.dispatch(loading("replay", 4));
-
     log(`loading replay ${filepath}`);
     log("disposing previous replay resources");
-    this.scene && this.scene.dispose();
+    this.game && this.game.dispose();
+
+    const settings = useSettingsStore.getState().data;
+    const loadingStore = useLoadingStore.getState();
+    loadingStore.initRep(filepath);
 
     log("parsing replay");
     const repBin = await openFile(filepath);
@@ -124,14 +116,13 @@ export class TitanReactor {
       this.rep = await parseReplay(classicRep);
     }
 
+    loadingStore.updateRep(pick(["header"], this.rep));
+
     // this.rep = await parseReplay(await openFile(filepath));
-    dispatchRepLoadingProgress();
 
     log("loading chk");
-    this.store.dispatch(loading("chk"));
     this.chk = new Chk(this.rep.chk);
-    this.store.dispatch(loadingProgress("chk"));
-
+    loadingStore.updateChk(pick(["title", "description"], this.chk));
     log("showing loading overlay");
 
     await this.preload();
@@ -142,15 +133,15 @@ export class TitanReactor {
 
     const atlasPreloader = new AtlasPreloader(
       this.bwDat,
-      state.settings.data.communityModelsPath,
+      settings.communityModelsPath,
       readBwFile,
       this.chk.tileset,
       () => {
-        if (state.settings.data.renderMode === RenderMode.SD) {
+        if (settings.renderMode === RenderMode.SD) {
           return new GrpSD2();
-        } else if (state.settings.data.renderMode === RenderMode.HD) {
+        } else if (settings.renderMode === RenderMode.HD) {
           return new GrpHD();
-        } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
+        } else if (settings.renderMode === RenderMode.ThreeD) {
           return new Grp3D(this.envMap);
         } else {
           throw new Error("invalid render mode");
@@ -178,7 +169,7 @@ export class TitanReactor {
     const gameStateReader = new FileGameStateReader(
       repFile,
       outFile,
-      state.settings.data.starcraftPath
+      settings.starcraftPath
     );
     await gameStateReader.start();
     await gameStateReader.waitForMaxed;
@@ -189,27 +180,23 @@ export class TitanReactor {
     await preloadAtlas(gameStateReader.frames.items);
     console.log(`images preloaded in ${Date.now() - start}`);
 
-    dispatchRepLoadingProgress();
-
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      state.settings.data.anisotropy,
-      state.settings.data.renderMode
+      settings.anisotropy,
+      settings.renderMode
     );
-    await scene.init(state.settings.isDev);
-    dispatchRepLoadingProgress();
+    await scene.init(settings.isDev);
 
     const audioMaster = new AudioMaster(
       (id) => readBwFile(`sound/${this.bwDat.sounds[id].file}`),
-      state.settings.data.audioPanningStyle
+      settings.audioPanningStyle
     );
-    audioMaster.musicVolume = state.settings.data.musicVolume;
-    audioMaster.soundVolume = state.settings.data.soundVolume;
+    audioMaster.musicVolume = settings.musicVolume;
+    audioMaster.soundVolume = settings.soundVolume;
 
     log("initializing replay");
-    this.scene = await TitanReactorGame(
-      this.store,
+    this.game = await TitanReactorGame(
       scene,
       this.chk,
       this.rep,
@@ -224,35 +211,33 @@ export class TitanReactor {
       preloadAtlas,
       audioMaster
     );
-    dispatchRepLoadingProgress();
+
+    useGameStore.setState({ game: this.game });
+    loadingStore.completeRep();
   }
 
   async spawnMapViewer(chkFilepath) {
-    const state = this.store.getState();
     const startTime = Date.now();
     const minDisplayTime = 3000;
 
-    const dispatchMapLoadingProgress = () =>
-      this.store.dispatch(loadingProgress("map"));
-
-    if (!state.titan.processes.preload.completed) {
-      throw new Error("cannot spawn replay before preloading assets");
-    }
+    // const dispatchMapLoadingProgress = () =>
+    //   this.store.dispatch(loadingProgress("map"));
 
     this.chk = null;
     this.chkPreviewCanvas = null;
     this.filename = chkFilepath;
 
-    this.store.dispatch(loading("map", 3));
+    const loadingStore = useLoadingStore.getState();
+    const settings = useSettingsStore.getState().data;
+    loadingStore.initChk(chkFilepath);
 
-    this.scene && this.scene.dispose();
+    this.game && this.game.dispose();
 
     log("loading chk");
 
     this.chk = new Chk(await loadScx(chkFilepath));
     window.chk = this.chk;
-
-    dispatchMapLoadingProgress();
+    loadingStore.updateChk(pick(["title", "description"], this.chk));
 
     document.title = `Titan Reactor - ${this.chk.title}`;
 
@@ -260,15 +245,15 @@ export class TitanReactor {
 
     const atlasPreloader = new AtlasPreloader(
       this.bwDat,
-      state.settings.data.communityModelsPath,
+      settings.communityModelsPath,
       readBwFile,
       this.chk.tileset,
       () => {
-        if (state.settings.data.renderMode === RenderMode.SD) {
+        if (settings.renderMode === RenderMode.SD) {
           return new GrpSD();
-        } else if (state.settings.data.renderMode === RenderMode.HD) {
+        } else if (settings.renderMode === RenderMode.HD) {
           return new GrpHD();
-        } else if (state.settings.data.renderMode === RenderMode.ThreeD) {
+        } else if (settings.renderMode === RenderMode.ThreeD) {
           return new Grp3D(this.envMap);
         } else {
           throw new Error("invalid render mode");
@@ -297,8 +282,8 @@ export class TitanReactor {
     log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
-      state.settings.data.anisotropy,
-      state.settings.data.renderMode
+      settings.anisotropy,
+      settings.renderMode
     );
     await scene.init();
 
@@ -316,10 +301,7 @@ export class TitanReactor {
         (sprite) => scene.add(sprite)
       );
 
-    dispatchMapLoadingProgress();
-
-    this.scene = await TitanReactorMap(
-      this.store,
+    this.game = await TitanReactorMap(
       this.bwDat,
       this.chk,
       scene,
@@ -330,7 +312,8 @@ export class TitanReactor {
       setTimeout(res, Math.max(0, minDisplayTime - (Date.now() - startTime)))
     );
 
-    dispatchMapLoadingProgress();
+    useGameStore.setState({ game: this.game });
+    loadingStore.completeChk();
   }
 
   dispose() {

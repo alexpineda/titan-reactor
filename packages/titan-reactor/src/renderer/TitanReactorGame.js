@@ -21,25 +21,22 @@ import RenderMan from "./render/RenderMan";
 import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import { ProducerWindowPosition, RenderMode } from "../common/settings";
-import { onGameTick } from "./titanReactorReducer";
-import { activePovsChanged, dimensionChanged } from "./camera/cameraReducer";
-import { toggleMenu } from "./react-ui/game/replayHudReducer";
 import Units from "./game/Units";
 import FogOfWar from "./game/fogofwar/FogOfWar";
-import drawCallInspectorFactory from "titan-reactor-shared/image/DrawCallInspector";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./game/BWFrameBuilder";
 import ManagedDomElements from "./game/ManagedDomElements";
 import Apm from "./game/Apm";
-import MouseCursor from "./game/MouseCursor";
 import { debounce } from "lodash";
+import useSettingsStore from "./stores/settingsStore";
+import useGameStore from "./stores/gameStore";
+import useHudStore from "./stores/hudStore";
 
 const { startLocation } = unitTypes;
 
 export const hot = module.hot ? module.hot.data : null;
 
 async function TitanReactorGame(
-  store,
   scene,
   chk,
   rep,
@@ -51,57 +48,13 @@ async function TitanReactorGame(
 ) {
   const stats = createStats();
   stats.dom.style.position = "absolute";
-  const state = store.getState();
-  let settings = state.settings.data;
+
+  let settings = useSettingsStore.getState().data;
 
   let fogChanged = false;
 
   const cursor = scene.cursor;
   cursor.drag();
-
-  const unsubscribeFromStore = store.subscribe(() => {
-    Object.assign(state, store.getState());
-
-    settings = state.settings.data;
-
-    if (
-      state.replay.input.hoveringOverMinimap &&
-      settings.producerWindowPosition != ProducerWindowPosition.None
-    ) {
-      cameras.previewControl.enabled = true;
-      cameras.previewControl.numpadControlEnabled = true;
-      cameras.control.enabled = false;
-      cameras.control.numpadControlEnabled = false;
-    } else {
-      cameras.previewControl.enabled = false;
-      cameras.previewControl.numpadControlEnabled = false;
-      cameras.control.enabled = true;
-      cameras.control.numpadControlEnabled = true;
-    }
-
-    fogChanged = fogOfWar.enabled != state.replay.hud.showFogOfWar;
-    fogOfWar.enabled = state.replay.hud.showFogOfWar;
-
-    for (let player of players) {
-      if (player.vision !== state.replay.hud.playerVision[player.id]) {
-        //@todo: copy last visible state for each player
-        player.vision = state.replay.hud.playerVision[player.id];
-        fogOfWar.playerVisionWasToggled = true;
-      }
-    }
-
-    players.changeColors(settings.useCustomColors);
-
-    audioMaster.channels.panningStyle = state.settings.data.audioPanningStyle;
-
-    if (audioMaster.musicVolume !== state.settings.data.musicVolume) {
-      audioMaster.musicVolume = state.settings.data.musicVolume;
-    }
-
-    if (audioMaster.soundVolume !== state.settings.data.soundVolume) {
-      audioMaster.soundVolume = state.settings.data.soundVolume;
-    }
-  });
 
   console.log("rep", rep);
 
@@ -113,6 +66,9 @@ async function TitanReactorGame(
 
   const gameSurface = new GameCanvasTarget(settings);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+  useGameStore.setState({
+    dimensions: gameSurface.getRect(),
+  });
 
   const minimapSurface = new CanvasTarget();
   const previewSurfaces = [new CanvasTarget()];
@@ -295,7 +251,7 @@ async function TitanReactorGame(
     () => (scene.gridHelper.visible = !scene.gridHelper.visible)
   );
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, () =>
-    store.dispatch(toggleMenu())
+    useHudStore.getState().toggleInGameMenu()
   );
   keyboardShortcuts.addEventListener(
     InputEvents.ToggleElevation,
@@ -347,7 +303,7 @@ async function TitanReactorGame(
             camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
           );
 
-          store.dispatch(activePovsChanged(activePovs));
+          // store.dispatch(activePovsChanged(activePovs));
         }, 1000);
       };
     })(),
@@ -382,14 +338,9 @@ async function TitanReactorGame(
       cameras.updatePreviewScreenAspect(pw, ph);
     }
 
-    store.dispatch(
-      dimensionChanged({
-        ...gameSurface.getRect(),
-        maxLabelWidth: minimapSurface.width,
-      })
-    );
-
-    // store.dispatch(onGameTick());
+    useGameStore.setState({
+      dimensions: gameSurface.getRect(),
+    });
   }, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
 
@@ -627,7 +578,7 @@ async function TitanReactorGame(
       if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
         previewSurfaces.forEach((previewSurface, i) => {
           renderMan.setCanvasTarget(previewSurface);
-          if (state.replay.input.hoveringOverMinimap || i > 0) {
+          if (useHudStore.getState().game.hoveringOverMinimap || i > 0) {
             if (i > 0 && i < 3) {
               players[i - 1].camera.updateGameScreenAspect(
                 previewSurface.width,
@@ -669,7 +620,6 @@ async function TitanReactorGame(
     minimapControl.dispose();
     scene.dispose();
     cameras.dispose();
-    unsubscribeFromStore();
 
     keyboardShortcuts.dispose();
     // gameSurface.canvas.removeEventListener("mousedown", mouseDownListener);
@@ -678,6 +628,8 @@ async function TitanReactorGame(
     cameras.control.removeEventListener("sleep", _controlSleep);
 
     window.document.body.style.cursor = "default";
+
+    unsubs.forEach((unsubscribe) => unsubscribe());
   };
 
   var limitLoop = function (fn, fps) {
@@ -707,26 +659,61 @@ async function TitanReactorGame(
     })(0);
   };
 
-  await new Promise((res) =>
-    setTimeout(() => {
-      // limitLoop(gameLoop, settings.fpsLimit);
-      renderMan.renderer.setAnimationLoop(gameLoop);
-      sceneResizeHandler();
-      res();
-    }, 500)
-  );
-  if (settings.startPaused) {
-    //@todo run first frame
-  } else {
-    gameStatePosition.resume();
-  }
+  const unsub = useSettingsStore.subscribe((state, prevState) => {
+    settings = state.data;
+    players.changeColors(settings.useCustomColors);
+    audioMaster.channels.panningStyle = settings.audioPanningStyle;
+
+    if (audioMaster.musicVolume !== settings.musicVolume) {
+      audioMaster.musicVolume = settings.musicVolume;
+    }
+
+    if (audioMaster.soundVolume !== settings.soundVolume) {
+      audioMaster.soundVolume = settings.soundVolume;
+    }
+  });
+
+  const unsub2 = useHudStore.subscribe((state, prevState) => {
+    if (
+      state.hoveringOverMinimap &&
+      settings.producerWindowPosition != ProducerWindowPosition.None
+    ) {
+      cameras.previewControl.enabled = true;
+      cameras.previewControl.numpadControlEnabled = true;
+      cameras.control.enabled = false;
+      cameras.control.numpadControlEnabled = false;
+    } else {
+      cameras.previewControl.enabled = false;
+      cameras.previewControl.numpadControlEnabled = false;
+      cameras.control.enabled = true;
+      cameras.control.numpadControlEnabled = true;
+    }
+  });
+
+  const unsub3 = useGameStore.subscribe((state, prevVal) => {
+    fogChanged = fogOfWar.enabled != state.fogOfWar;
+    fogOfWar.enabled = state.fogOfWar;
+
+    for (let player of players) {
+      if (player.vision !== state.playerVision[player.id]) {
+        //@todo: copy last visible state for each player
+        player.vision = state.replay.hud.playerVision[player.id];
+        fogOfWar.playerVisionWasToggled = true;
+      }
+    }
+  });
+  const unsubs = [unsub, unsub2, unsub3];
+
+  renderMan.renderer.setAnimationLoop(gameLoop);
+  sceneResizeHandler();
+  gameStatePosition.resume();
 
   return {
     chk,
     gameIcons: scene.gameIcons,
     cmdIcons: scene.cmdIcons,
     raceInsetIcons: scene.raceInsetIcons,
-    gameSurface,
+    surface: gameSurface,
     minimapSurface,
     previewSurfaces,
     fpsCanvas: stats.dom,
@@ -734,6 +721,7 @@ async function TitanReactorGame(
     replayPosition: gameStatePosition,
     managedDomElements,
     callbacks,
+    selectedUnits: [],
     dispose,
   };
 }

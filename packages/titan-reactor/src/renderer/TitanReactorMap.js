@@ -12,10 +12,11 @@ import { fog } from "./terrain/lights";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 
 import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
+import useSettingsStore from "./stores/settingsStore";
 
 export const hot = module.hot ? module.hot.data : null;
 
-async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
+async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const [mapWidth, mapHeight] = chk.size;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
@@ -29,7 +30,8 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const state = store.getState();
+  const settings = useSettingsStore.getState().data;
+  const isDev = useSettingsStore.getState().isDev;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
 
@@ -37,7 +39,7 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
   const cameras = new Cameras(
-    state.settings.data,
+    settings,
     gameSurface,
     null,
     null,
@@ -46,7 +48,7 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
   );
   window.cameras = cameras;
 
-  const renderMan = new RenderMan(state.settings.data, state.settings.isDev);
+  const renderMan = new RenderMan(settings, isDev);
   await renderMan.initRenderer(cameras.camera);
   renderMan.enableCinematicPass();
   window.renderMan = renderMan;
@@ -275,7 +277,7 @@ async function TitanReactorMap(store, bwDat, chk, scene, createTitanSprite) {
   };
 
   return {
-    gameSurface,
+    surface: gameSurface,
     dispose,
   };
 }

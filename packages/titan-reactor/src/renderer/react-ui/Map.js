@@ -1,16 +1,19 @@
 import React from "react";
 import WrappedElement from "./WrappedElement";
+import useGameStore from "../stores/gameStore";
 
-const Map = ({ gameSurface }) => {
+const Map = () => {
+  const surface = useGameStore((state) => state.game.surface);
+
   return (
     <WrappedElement
       style={{
         position: "absolute",
         zIndex: "-10",
-        left: `${gameSurface.left}px`,
-        top: `${gameSurface.top}px`,
+        left: `${surface.left}px`,
+        top: `${surface.top}px`,
       }}
-      domElement={gameSurface.canvas}
+      domElement={surface.canvas}
     />
   );
 };

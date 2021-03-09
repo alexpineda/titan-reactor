@@ -1,6 +1,9 @@
 import React from "react";
+import useSettingsStore from "../../stores/settingsStore";
 
-export default ({ phrases }) => {
+export default () => {
+  const phrases = useSettingsStore((state) => state.phrases);
+
   return (
     <div
       className="w-full bg-gray-900 text-white px-6 pt-3 pb-1 flex flex-col items-center justify-center"

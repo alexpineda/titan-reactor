@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { connect } from "react-redux";
+import useSettingsStore from "../../stores/settingsStore";
+import useGameStore from "../../stores/gameStore";
+
 import {
   gameSpeeds,
   gameSpeedNames,
@@ -25,23 +27,52 @@ const capitalizeFirst = (str) => {
   return str[0].toUpperCase() + str.substr(1);
 };
 
-const ReplayPosition = ({
-  paused,
-  position,
-  destination,
-  autoSpeed,
-  timeLabel,
-  gameSpeed,
-  maxFrame,
-  onTogglePaused,
-  onChangePosition,
-  onChangeAutoGameSpeed,
-  onChangeGameSpeed,
-  textSize,
-  hideReplayPosition,
-  maxAutoReplaySpeed,
-  className,
-}) => {
+// export default connect((state, { replayPosition }) => {
+
+// })(ReplayPosition);
+
+const ReplayPosition = ({ className }) => {
+  const { textSize, maxAutoReplaySpeed } = useSettingsStore((state) => ({
+    textSize: state.data.textSize,
+    maxAutoReplaySpeed: state.data.maxAutoReplaySpeed,
+  }));
+
+  const {
+    replayPosition,
+    position,
+    gameSpeed,
+    timeLabel,
+    maxFrame,
+    destination,
+    autoSpeed,
+    paused,
+  } = useGameStore((state) => {
+    const p = state.game.replayPosition;
+    return {
+      replayPosition: p,
+      position: p.bwGameFrame / p.maxFrame,
+      gameSpeed: p.gameSpeed,
+      timeLabel: p.getFriendlyTime(),
+      maxFrame: p.maxFrame,
+      destination: p.destination,
+      autoSpeed: p.autoSpeed,
+      paused: p.paused,
+    };
+  });
+
+  const onTogglePaused = () => replayPosition.togglePlay();
+  const onChangePosition = (pos) => {
+    replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
+  };
+
+  const onChangeAutoGameSpeed = (val) => {
+    replayPosition.setAutoSpeed(val);
+  };
+
+  const onChangeGameSpeed = (speed) => {
+    replayPosition.gameSpeed = speed;
+  };
+
   const progress = Math.ceil(position * 100);
 
   const [hideProgress, setHideProgress] = useState(true);
@@ -174,9 +205,7 @@ const ReplayPosition = ({
 
   return (
     <div
-      className={`replay-parent flex self-end select-none ${
-        hideReplayPosition ? "hidden" : ""
-      } ${className}`}
+      className={`replay-parent flex self-end select-none ${className}`}
       style={{ width: "24vw" }}
     >
       <div
@@ -331,17 +360,4 @@ const ReplayPosition = ({
   );
 };
 
-export default connect((state, { replayPosition }) => {
-  return {
-    position: replayPosition.bwGameFrame / replayPosition.maxFrame,
-    gameSpeed: replayPosition.gameSpeed,
-    timeLabel: replayPosition.getFriendlyTime(),
-    maxFrame: replayPosition.maxFrame,
-    destination: replayPosition.destination,
-    autoSpeed: replayPosition.autoSpeed,
-    paused: replayPosition.paused,
-    maxAutoReplaySpeed: state.settings.data.maxAutoReplaySpeed,
-    textSize: state.settings.data.textSize,
-    gameTick: state.titan.gameTick,
-  };
-})(ReplayPosition);
+export default ReplayPosition;

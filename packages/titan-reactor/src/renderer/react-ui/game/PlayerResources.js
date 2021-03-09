@@ -1,37 +1,49 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
 import { Color } from "three";
 import { isEmpty } from "ramda";
-import { togglePlayerVision } from "./replayHudReducer";
-import { setRemoteSettings } from "../../utils/settingsReducer";
 import {
   incFontSize,
   decFontSize,
 } from "titan-reactor-shared/utils/changeFontSize";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import WrappedElement from "../WrappedElement";
+import useSettingsStore from "../../stores/settingsStore";
+import useGameStore from "../../stores/gameStore";
 
 const _playerNameCache = {};
 
 const PlayerResources = ({
-  index,
   id,
   name,
   race,
   color,
   textSize,
-  playerVision,
-  togglePlayerVision,
-  enablePlayerScores,
-  esportsHud,
   fitToContent = false,
-  managedDomElements,
   playerScoreCache,
-  gameIcons,
-  cmdIcons,
-  raceInsetIcons,
-  gameDimensions,
 }) => {
+  const { esportsHud, enablePlayerScores } = useSettingsStore((state) => ({
+    esportsHud: state.data.esportsHud,
+    enablePlayerScores: state.data.enablePlayerScores,
+  }));
+
+  const {
+    dimensions,
+    togglePlayerVision,
+    playerVision,
+    gameIcons,
+    cmdIcons,
+    raceInsetIcons,
+    managedDomElements,
+  } = useGameStore((state) => ({
+    dimensions: state.dimensions,
+    togglePlayerVision: state.togglePlayerVision,
+    playerVision: state.playerVision,
+    gameIcons: state.game.gameIcons,
+    cmdIcons: state.game.cmdIcons,
+    raceInsetIcons: state.game.raceInsetIcons,
+    managedDomElements: state.game.managedDomElements,
+  }));
+
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
   const [tempName, setTempName] = useState(playerName);
@@ -41,7 +53,7 @@ const PlayerResources = ({
   const [score, setScore] = useState(playerScoreCache[playerName]);
 
   const scaledTextSize =
-    gameDimensions.width < 1400 ? decFontSize(textSize, 1) : textSize;
+    dimensions.width < 1400 ? decFontSize(textSize, 1) : textSize;
 
   let gasIcon;
   let workerIcon;
@@ -83,8 +95,8 @@ const PlayerResources = ({
     ? {
         backgroundRepeat: "no-repeat",
         backgroundImage: `url(${raceInsetIcons[`${race}Alpha`]})`,
-        backgroundPosition: gameDimensions.width <= 1200 ? "right" : "120% 25%",
-        backgroundSize: gameDimensions.width <= 1200 ? "contain" : "auto",
+        backgroundPosition: dimensions.width <= 1200 ? "right" : "120% 25%",
+        backgroundSize: dimensions.width <= 1200 ? "contain" : "auto",
         mixBlendMode: "color-dodge",
       }
     : {};
@@ -120,7 +132,7 @@ const PlayerResources = ({
   const playerNameStyle = esportsHud
     ? {
         opacity: playerVision[id] ? 1 : 0.5,
-        marginRight: gameDimensions.width <= 1200 ? "72px" : "112px",
+        marginRight: dimensions.width <= 1200 ? "72px" : "112px",
       }
     : {
         opacity: playerVision[id] ? 1 : 0.5,
@@ -295,15 +307,4 @@ const PlayerResources = ({
   );
 };
 
-export default connect(
-  (state) => ({
-    playerVision: state.replay.hud.playerVision,
-    esportsHud: state.settings.data.esportsHud,
-    enablePlayerScores: state.settings.data.enablePlayerScores,
-    gameDimensions: state.replay.camera.dimensions,
-  }),
-  (dispatch) => ({
-    togglePlayerVision: (id) => dispatch(togglePlayerVision(id)),
-    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-  })
-)(PlayerResources);
+export default PlayerResources;

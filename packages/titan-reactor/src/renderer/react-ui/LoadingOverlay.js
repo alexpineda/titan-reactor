@@ -36,12 +36,16 @@ const processString = (str, useColors = true) => {
 
   return <>{chunks}</>;
 };
-export const LoadingOverlay = ({
-  label = "",
-  description = "",
-  mapPreview = null,
-  header = null,
-}) => {
+export const LoadingOverlay = ({ chk, rep }) => {
+  let label, description;
+  if (chk.loading) {
+    label = chk.title || "Loading Map";
+    description = chk.description || chk.filename;
+  } else if (rep.loading) {
+    label = chk.title || "Loading Replay";
+    description = "";
+  }
+
   return (
     <div
       id="load-overlay"
@@ -68,7 +72,7 @@ export const LoadingOverlay = ({
             filter: "brightness(2) contract(1.2)",
           }}
         >
-          {mapPreview}
+          {/* {mapPreview} */}
           <p
             id="map-name"
             style={{
@@ -91,9 +95,9 @@ export const LoadingOverlay = ({
           >
             {processString(description, false)}
           </p>
-          {header && (
+          {rep.header && (
             <ul>
-              {header.players.map((player, i) => {
+              {rep.header.players.map((player, i) => {
                 return (
                   <li className="block text-gray-200" key={i}>
                     {player.name} ({player.race})

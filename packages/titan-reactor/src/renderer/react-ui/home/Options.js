@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { ipcRenderer } from "electron";
 import { selectFolder } from "../../invoke";
 import { SELECT_FOLDER } from "../../../common/handleNames";
-import AudioPanningStyle from "../../../common/AudioPanningStyle";
 import Option from "../components/Option";
 import Toggle from "../components/Toggle";
 import Tab from "../components/Tab";
@@ -15,8 +14,7 @@ import Visible from "../components/visible";
 import ColorPicker from "../components/ColorPicker";
 import { RenderMode, ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
-import ContextMenu from "../components/ContextMenu";
-import { MenuItem } from "../components/MenuItem";
+import useSettingsStore from "../../stores/settingsStore";
 
 const Tabs = {
   Setup: "Setup",
@@ -30,21 +28,23 @@ const Tabs = {
 };
 
 export default ({
-  phrases,
-  settings,
-  errors,
-  saveSettings,
   defaultTab = Tabs.Setup,
   inGame = false,
   className = "",
   style = {},
 }) => {
   const [tab, setTab] = useState(defaultTab);
-  const [showContext, hideContext] = useState();
+
+  const { phrases, errors, save, settings } = useSettingsStore((state) => ({
+    phrases: state.phrases,
+    errors: state.errors,
+    save: state.save,
+    settings: state.data,
+  }));
 
   useEffect(() => {
     const listener = (event, { key, filePaths: [dir] }) => {
-      updateSettings({
+      save({
         [key]: dir,
       });
     };
@@ -52,11 +52,6 @@ export default ({
 
     return () => ipcRenderer.removeListener(SELECT_FOLDER, listener);
   }, []);
-
-  const updateSettings = (options) => {
-    const newOptions = { ...settings, ...options };
-    saveSettings(newOptions);
-  };
 
   return (
     <div className={className} style={style}>
@@ -116,7 +111,7 @@ export default ({
           <select
             className="rounded text-gray-800"
             onChange={(evt) => {
-              updateSettings({
+              save({
                 language: evt.target.value,
               });
             }}
@@ -189,7 +184,7 @@ export default ({
             step="0.05"
             value={settings.maxAutoReplaySpeed}
             onChange={(evt) => {
-              updateSettings({
+              save({
                 maxAutoReplaySpeed: Number(evt.target.value),
               });
             }}
@@ -202,7 +197,7 @@ export default ({
               <Toggle
                 value={settings.useCustomColors}
                 onChange={() =>
-                  updateSettings({ useCustomColors: !settings.useCustomColors })
+                  save({ useCustomColors: !settings.useCustomColors })
                 }
               />
             }
@@ -230,7 +225,7 @@ export default ({
                     onChange={({ hex }) => {
                       const clrs = [...settings.playerColors];
                       clrs[i] = hex;
-                      updateSettings({ playerColors: clrs });
+                      save({ playerColors: clrs });
                     }}
                     className="mr-4"
                   />
@@ -245,7 +240,7 @@ export default ({
             <Toggle
               value={settings.enablePlayerScores}
               onChange={() =>
-                updateSettings({
+                save({
                   enablePlayerScores: !settings.enablePlayerScores,
                 })
               }
@@ -261,7 +256,7 @@ export default ({
                 label={"Regular"}
                 first
                 onClick={() =>
-                  updateSettings({
+                  save({
                     hudFontSize: "sm",
                   })
                 }
@@ -271,7 +266,7 @@ export default ({
                 label={"Large"}
                 first
                 onClick={() =>
-                  updateSettings({
+                  save({
                     hudFontSize: "base",
                   })
                 }
@@ -312,7 +307,7 @@ export default ({
             <Toggle
               value={settings.esportsHud}
               onChange={() =>
-                updateSettings({
+                save({
                   esportsHud: !settings.esportsHud,
                 })
               }
@@ -344,7 +339,7 @@ export default ({
               label={"Off"}
               first
               onClick={() =>
-                updateSettings({
+                save({
                   producerWindowPosition: ProducerWindowPosition.None,
                 })
               }
@@ -356,7 +351,7 @@ export default ({
               }
               label={"Left"}
               onClick={() =>
-                updateSettings({
+                save({
                   producerWindowPosition: ProducerWindowPosition.DockLeft,
                 })
               }
@@ -368,7 +363,7 @@ export default ({
               }
               label={"Right"}
               onClick={() =>
-                updateSettings({
+                save({
                   producerWindowPosition: ProducerWindowPosition.DockRight,
                 })
               }
@@ -381,7 +376,7 @@ export default ({
               label={"Pop Out Window"}
               last
               onClick={() =>
-                updateSettings({
+                save({
                   producerWindowPosition: ProducerWindowPosition.PopOut,
                 })
               }
@@ -395,27 +390,23 @@ export default ({
               selected={settings.gameAspect === GameAspect.Fit}
               label={"Available Space"}
               first
-              onClick={() => updateSettings({ gameAspect: GameAspect.Fit })}
+              onClick={() => save({ gameAspect: GameAspect.Fit })}
             />
             <ButtonSet
               selected={settings.gameAspect === GameAspect.Native}
               label={"Native Screen Resolution"}
-              onClick={() => updateSettings({ gameAspect: GameAspect.Native })}
+              onClick={() => save({ gameAspect: GameAspect.Native })}
             />
             <ButtonSet
               selected={settings.gameAspect === GameAspect.FourThree}
               label={"4:3"}
-              onClick={() =>
-                updateSettings({ gameAspect: GameAspect.FourThree })
-              }
+              onClick={() => save({ gameAspect: GameAspect.FourThree })}
             />
             <ButtonSet
               selected={settings.gameAspect === GameAspect.SixteenNine}
               label={"16:9"}
               last
-              onClick={() =>
-                updateSettings({ gameAspect: GameAspect.SixteenNine })
-              }
+              onClick={() => save({ gameAspect: GameAspect.SixteenNine })}
             />
           </ButtonSetContainer>
         </Option>
@@ -433,7 +424,7 @@ export default ({
             step="0.01"
             value={settings.musicVolume}
             onChange={(evt) => {
-              updateSettings({
+              save({
                 musicVolume: Number(evt.target.value),
               });
             }}
@@ -451,7 +442,7 @@ export default ({
             step="0.01"
             value={settings.soundVolume}
             onChange={(evt) => {
-              updateSettings({
+              save({
                 soundVolume: Number(evt.target.value),
               });
             }}
@@ -466,18 +457,18 @@ export default ({
               selected={settings.renderMode === RenderMode.SD}
               label={"SD"}
               first
-              onClick={() => updateSettings({ renderMode: RenderMode.SD })}
+              onClick={() => save({ renderMode: RenderMode.SD })}
             />
             <ButtonSet
               selected={settings.renderMode === RenderMode.HD}
               label={"HD"}
-              onClick={() => updateSettings({ renderMode: RenderMode.HD })}
+              onClick={() => save({ renderMode: RenderMode.HD })}
             />
             <ButtonSet
               selected={settings.renderMode === RenderMode.ThreeD}
               label={"3D"}
               last
-              onClick={() => updateSettings({ renderMode: RenderMode.ThreeD })}
+              onClick={() => save({ renderMode: RenderMode.ThreeD })}
             />
           </ButtonSetContainer>
         </Option>
@@ -488,7 +479,7 @@ export default ({
             <Toggle
               value={settings.fullscreen}
               onChange={() =>
-                updateSettings({
+                save({
                   fullscreen: !settings.fullscreen,
                 })
               }
@@ -507,7 +498,7 @@ export default ({
             step="0.02"
             value={settings.gamma}
             onChange={(evt) => {
-              updateSettings({
+              save({
                 gamma: Number(evt.target.value),
               });
             }}
@@ -522,7 +513,7 @@ export default ({
             step="0.02"
             value={settings.gamma}
             onChange={(evt) => {
-              updateSettings({
+              save({
                 gamma: Number(evt.target.value),
               });
             }}
@@ -535,7 +526,7 @@ export default ({
             <Toggle
               value={settings.antialias}
               onChange={() =>
-                updateSettings({
+                save({
                   antialias: !settings.antialias,
                 })
               }
@@ -548,23 +539,23 @@ export default ({
             <ButtonSet
               selected={settings.shadows === ShadowLevel.Off}
               label={phrases["BUTTON_OFF"]}
-              onClick={() => updateSettings({ shadows: ShadowLevel.Off })}
+              onClick={() => save({ shadows: ShadowLevel.Off })}
               first
             />
             <ButtonSet
               selected={settings.shadows === ShadowLevel.Low}
               label={phrases["BUTTON_LOW"]}
-              onClick={() => updateSettings({ shadows: ShadowLevel.Low })}
+              onClick={() => save({ shadows: ShadowLevel.Low })}
             />
             <ButtonSet
               selected={settings.shadows === ShadowLevel.Medium}
               label={phrases["BUTTON_MED"]}
-              onClick={() => updateSettings({ shadows: ShadowLevel.Medium })}
+              onClick={() => save({ shadows: ShadowLevel.Medium })}
             />
             <ButtonSet
               selected={settings.shadows === ShadowLevel.High}
               label={phrases["BUTTON_HIGH"]}
-              onClick={() => updateSettings({ shadows: ShadowLevel.High })}
+              onClick={() => save({ shadows: ShadowLevel.High })}
               last
             />
           </ButtonSetContainer>
@@ -576,7 +567,7 @@ export default ({
             <Toggle
               value={settings.antialias}
               onChange={() =>
-                updateSettings({
+                save({
                   antialias: !settings.antialias,
                 })
               }
@@ -590,7 +581,7 @@ export default ({
             <Toggle
               value={settings.antialias}
               onChange={() =>
-                updateSettings({
+                save({
                   antialias: !settings.antialias,
                 })
               }
@@ -633,7 +624,7 @@ export default ({
             className="w-full h-40 bg-gray-600"
             value={settings.mapsRss}
             onChange={(evt) =>
-              updateSettings({
+              save({
                 mapsRss: evt.target.value,
               })
             }
@@ -645,7 +636,7 @@ export default ({
             className="w-full h-40 bg-gray-600"
             value={settings.replaysRss}
             onChange={(evt) =>
-              updateSettings({
+              save({
                 replaysRss: evt.target.value,
               })
             }

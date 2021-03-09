@@ -1,23 +1,23 @@
 import React from "react";
-import { connect } from "react-redux";
 import PlayerResources from "./PlayerResources";
-import { setRemoteSettings } from "../../utils/settingsReducer";
+import useSettingsStore from "../../stores/settingsStore";
+import useGameStore from "../../stores/gameStore";
 import { incFontSize } from "titan-reactor-shared/utils/changeFontSize";
 
 const _playerScoreCache = {};
 
-const ResourcesBar = ({
-  players,
-  textSize,
-  fitToContent,
-  onTogglePlayerPov,
-  gameIcons,
-  cmdIcons,
-  raceInsetIcons,
-  managedDomElements,
-  className = "",
-  style = {},
-}) => {
+const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
+  const textSize = useSettingsStore((state) =>
+    state.data.esportsHud
+      ? incFontSize(state.data.hudFontSize)
+      : state.data.hudFontSize
+  );
+
+  const { players, onTogglePlayerPov } = useGameStore((state) => ({
+    players: state.game.players,
+    onTogglePlayerPov: state.onTogglePlayerPov,
+  }));
+
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
   const cacheKey = players
@@ -44,10 +44,6 @@ const ResourcesBar = ({
                   textSize={textSize}
                   {...player}
                   fitToContent={fitToContent}
-                  gameIcons={gameIcons}
-                  cmdIcons={cmdIcons}
-                  raceInsetIcons={raceInsetIcons}
-                  managedDomElements={managedDomElements}
                   playerScoreCache={_playerScoreCache}
                 />
               ))}
@@ -105,19 +101,4 @@ const ResourcesBar = ({
   );
 };
 
-export default connect(
-  (state) => {
-    return {
-      settings: state.settings.data,
-      phrases: state.settings.phrases,
-      errors: state.settings.errors,
-      textSize: state.settings.data.esportsHud
-        ? incFontSize(state.settings.data.hudFontSize)
-        : state.settings.data.hudFontSize,
-      esportsHud: state.settings.data.esportsHud,
-    };
-  },
-  (dispatch) => ({
-    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-  })
-)(ResourcesBar);
+export default ResourcesBar;

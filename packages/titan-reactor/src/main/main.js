@@ -133,6 +133,8 @@ if (gotTheLock) {
     });
 
     ipcMain.handle(GET_SETTINGS, async () => {
+      await settings.init();
+
       return await settings.get();
     });
 
@@ -141,11 +143,11 @@ if (gotTheLock) {
       return newSettings;
     });
 
-    ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
-      await settings.init(webGLCapabilities);
-      const s = await settings.get();
-      updateFullScreen(s.data.fullscreen);
-    });
+    // ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
+    //   await settings.init(webGLCapabilities);
+    //   const s = await settings.get();
+    //   updateFullScreen(s.data.fullscreen);
+    // });
 
     ipcMain.handle(
       LOAD_REPLAY_FROM_FILE,

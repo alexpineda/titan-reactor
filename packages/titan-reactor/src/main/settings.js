@@ -40,11 +40,11 @@ export class Settings extends EventEmitter {
     super();
     this._settings = {};
     this._filepath = filepath;
-    this._initialized = false;
+    this.initialized = false;
   }
 
-  async init(webGLCapabilities) {
-    this.webGLCapabilities = webGLCapabilities;
+  async init() {
+    if (this.initialized) return;
 
     try {
       this._settings = JSON.parse(
@@ -58,11 +58,11 @@ export class Settings extends EventEmitter {
         await this.save(await this.createDefaults());
       }
     }
-    this._initialized = true;
+    this.initialized = true;
   }
 
   async get() {
-    if (!this._initialized) {
+    if (!this.initialized) {
       throw new Error("settings not initialized");
     }
     const errors = [];
@@ -113,7 +113,7 @@ export class Settings extends EventEmitter {
   }
 
   async load() {
-    if (!this._initialized) {
+    if (!this.initialized) {
       throw new Error("settings not initialized");
     }
     const contents = await fsPromises.readFile(this._filepath, {
@@ -162,7 +162,6 @@ export class Settings extends EventEmitter {
       antialias: false,
       anisotropy: 1,
       pixelRatio: 1,
-      maxAnisotropy: this.webGLCapabilities.anisotropy,
       gamma: 1.2,
       shadows: ShadowLevel.High,
       keyPanSpeed: 0.5,

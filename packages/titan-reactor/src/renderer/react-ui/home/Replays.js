@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getRssFeed } from "../../invoke";
 import Tab from "../components/Tab";
 import TabSelector from "../components/TabSelector";
+import useSettingsStore from "../../stores/settingsStore";
 
 const Tabs = {
   Local: "Local",
@@ -9,10 +10,12 @@ const Tabs = {
   Community: "Community",
 };
 
-export default ({ settings, phrases }) => {
+export default () => {
   const [tab, setTab] = useState(Tabs.Local);
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const phrases = useSettingsStore((state) => state.phrases);
+  const replaysRss = useSettingsStore((state) => state.data.replaysRss);
 
   const loadFeeds = async (feedUrls) => {
     const feeds = [];
@@ -23,12 +26,11 @@ export default ({ settings, phrases }) => {
       } catch (e) {}
     }
     setFeeds(feeds);
-    console.log(feeds);
     setLoading(false);
   };
 
   useEffect(() => {
-    const feedUrls = settings.replaysRss.split("\n");
+    const feedUrls = replaysRss.split("\n");
     if (feedUrls.length) {
       loadFeeds(feedUrls);
     }
@@ -36,7 +38,6 @@ export default ({ settings, phrases }) => {
 
   return (
     <>
-      {" "}
       <ul className="mb-6 flex">
         <TabSelector
           activeTab={tab}

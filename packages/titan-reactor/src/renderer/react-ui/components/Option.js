@@ -9,14 +9,14 @@ const Option = ({
   style = {},
 }) => {
   return (
-    <li className={className} style={style}>
-      <p className="flex items-center">
+    <div className={className} style={style}>
+      <div className="flex items-center">
         <span className="mr-2">{label}</span>
         {value !== undefined && <span className="text-gray-500">{value}</span>}
         {toggle}
-      </p>
+      </div>
       {children}
-    </li>
+    </div>
   );
 };
 

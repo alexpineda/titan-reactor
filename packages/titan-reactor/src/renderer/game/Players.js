@@ -20,7 +20,7 @@ export class Players extends Array {
         originalColor: { ...player.color, three: new Color(player.color.rgb) },
         showActions: false,
         showPov: false,
-        hideVision: false,
+        vision: true,
         startLocation: startLocations.find((u) => u.player == player.id),
       }))
     );

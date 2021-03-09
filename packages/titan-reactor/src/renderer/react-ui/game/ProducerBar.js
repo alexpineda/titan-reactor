@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
 import TabSelector from "../components/TabSelector";
 import Tab from "../components/Tab";
 import { ProducerWindowPosition } from "common/settings";
-
-import { setRemoteSettings } from "../../utils/settingsReducer";
-import { hoveringOverMinimap } from "../../input/inputReducer";
 import WrappedElement from "../WrappedElement";
+import useSettingsStore from "../../stores/settingsStore";
+import useGameStore from "../../stores/gameStore";
 
 const Tabs = {
   Preview: "Preview",
@@ -15,28 +13,32 @@ const Tabs = {
   Info: "Info",
 };
 
-const ProducerBar = ({
-  replayPosition,
-  position,
-  size,
-  gameSurface,
-  previewSurfaces,
-  fpsCanvas,
-  settings,
-  saveRemoteSettings,
-  className,
-  isHoveringOverMinimap,
-}) => {
+const ProducerBar = ({ className }) => {
   const [tab, setTab] = useState(Tabs.Preview);
+  const { save, producerWindowPosition, producerDockSize } = useSettingsStore(
+    (state) => ({
+      save: state.save,
+      producerWindowPosition: state.data.producerWindowPosition,
+      producerDockSize: state.data.producerDockSize,
+    })
+  );
 
-  const saveSettings = (p) => {
-    saveRemoteSettings({ ...settings, ...p });
-  };
+  const {
+    dimensions,
+    replayPosition,
+    fpsCanvas,
+    previewSurfaces,
+  } = useGameStore((state) => ({
+    dimensions: state.dimensions,
+    replayPosition: state.game.replayPosition,
+    previewSurfaces: state.game.previewSurfaces,
+    fpsCanvas: state.game.fpsCanvas,
+  }));
 
   const style = {
-    width: `${size}px`,
+    width: `${producerDockSize}px`,
   };
-  if (position === ProducerWindowPosition.DockRight) {
+  if (producerWindowPosition === ProducerWindowPosition.DockRight) {
     style.right = "0px";
   }
 
@@ -47,16 +49,15 @@ const ProducerBar = ({
     >
       <div className="flex justify-between">
         <h1>Producer</h1>
-        {isHoveringOverMinimap ? "HOVERING" : ""}
         <span>
           <span
             className={`material-icons ${
-              position == ProducerWindowPosition.DockLeft
+              producerWindowPosition == ProducerWindowPosition.DockLeft
                 ? "text-gray-400"
                 : "text-gray-600"
             }`}
             onClick={() =>
-              saveSettings({
+              save({
                 producerWindowPosition: ProducerWindowPosition.DockLeft,
               })
             }
@@ -65,12 +66,12 @@ const ProducerBar = ({
           </span>
           <span
             className={`material-icons transform rotate-180 ${
-              position == ProducerWindowPosition.DockRight
+              producerWindowPosition == ProducerWindowPosition.DockRight
                 ? "text-gray-400"
                 : "text-gray-600"
             }`}
             onClick={() =>
-              saveSettings({
+              save({
                 producerWindowPosition: ProducerWindowPosition.DockRight,
               })
             }
@@ -79,12 +80,12 @@ const ProducerBar = ({
           </span>
           <span
             className={`material-icons ${
-              position == ProducerWindowPosition.PopOut
+              producerWindowPosition == ProducerWindowPosition.PopOut
                 ? "text-gray-400"
                 : "text-gray-600"
             }`}
             onClick={() =>
-              saveSettings({
+              save({
                 producerWindowPosition: ProducerWindowPosition.PopOut,
               })
             }
@@ -92,9 +93,9 @@ const ProducerBar = ({
             open_in_new
           </span>
           <span
-            className={`material-icons text-gray-600`}
+            className={"material-icons text-gray-600"}
             onClick={() =>
-              saveSettings({
+              save({
                 producerWindowPosition: ProducerWindowPosition.None,
               })
             }
@@ -165,7 +166,7 @@ const ProducerBar = ({
         <div>
           <ul>
             <li>
-              {gameSurface.width}x{gameSurface.height}
+              {dimensions.width}x{dimensions.height}
             </li>
             <li>Frame: {replayPosition.bwGameFrame}</li>
             <li>Time: {replayPosition.getFriendlyTime()}</li>
@@ -180,17 +181,4 @@ const ProducerBar = ({
   );
 };
 
-export default connect(
-  (state) => {
-    return {
-      position: state.settings.data.producerWindowPosition,
-      size: state.settings.data.producerDockSize,
-      isHoveringOverMinimap: state.replay.input.hoveringOverMinimap,
-      settings: state.settings.data,
-    };
-  },
-  (dispatch) => ({
-    saveRemoteSettings: (settings) => dispatch(setRemoteSettings(settings)),
-    hoveringOverMinimap: (val) => dispatch(hoveringOverMinimap(val)),
-  })
-)(ProducerBar);
+export default ProducerBar;

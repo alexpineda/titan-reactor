@@ -1,16 +1,19 @@
 import React from "react";
-import { connect } from "react-redux";
-import { setRemoteSettings } from "../../utils/settingsReducer";
+import useHudStore from "../../stores/hudStore";
+import useGameStore from "../../stores/gameStore";
 
-const UnitSelection = ({
-  units,
-  textSize,
-  onUnitDetails,
-  onShowAttackDetails,
-  onFollowUnit,
-  followingUnit,
-  className = "",
-}) => {
+const UnitSelection = ({ textSize, className = "" }) => {
+  const { units, followUnit } = useGameStore((state) => ({
+    units: state.game.selectedUnits,
+    followUnit: state.followUnit,
+    toggleFollowUnit: state.toggleFollowUnit,
+  }));
+
+  const { toggleUnitDetails, toggleAttackDetails } = useHudStore((state) => ({
+    toggleUnitDetails: state.toggleUnitDetails,
+    toggleAttackDetails: state.toggleAttackDetails,
+  }));
+
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div
@@ -27,18 +30,18 @@ const UnitSelection = ({
           <i
             onClick={(evt) => {
               evt.nativeEvent.stopImmediatePropagation();
-              onUnitDetails && units.length === 1 && onUnitDetails();
+              units.length === 1 && toggleUnitDetails();
             }}
             className={`material-icons rounded cursor-pointer ${
               units.length === 1 ? "text-blue-700" : "text-gray-700"
             }`}
             style={{ fontSize: smallIconFontSize }}
-            data-tip={`Unit Information`}
+            data-tip="Unit Information"
           >
             help
           </i>
           <i
-            onClick={() => onShowAttackDetails && onShowAttackDetails()}
+            onClick={() => toggleAttackDetails()}
             className="material-icons rounded cursor-pointer hover:text-yellow-500"
             style={{ fontSize: smallIconFontSize }}
             data-tip={`Show Attack Details`}
@@ -47,12 +50,12 @@ const UnitSelection = ({
           </i>
 
           <i
-            onClick={() => onFollowUnit && onFollowUnit()}
+            onClick={() => toggleFollowUnit(units[0])}
             className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
-              followingUnit ? "text-yellow-700" : "text-gray-700"
+              followUnit ? "text-yellow-700" : "text-gray-700"
             } `}
             style={{ fontSize: smallIconFontSize, marginTop: "auto" }}
-            data-tip={`Follow Unit`}
+            data-tip="Follow Unit"
           >
             gps_fixed
           </i>
@@ -71,16 +74,17 @@ const UnitSelection = ({
   );
 };
 
-export default connect(
-  (state) => {
-    return {
-      settings: state.settings.data,
-      textSize: state.settings.data.textSize,
-      phrases: state.settings.phrases,
-      errors: state.settings.errors,
-    };
-  },
-  (dispatch) => ({
-    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-  })
-)(UnitSelection);
+export default UnitSelection;
+// export default connect(
+//   (state) => {
+//     return {
+//       settings: state.settings.data,
+//       textSize: state.settings.data.textSize,
+//       phrases: state.settings.phrases,
+//       errors: state.settings.errors,
+//     };
+//   },
+//   (dispatch) => ({
+//     saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
+//   })
+// )(UnitSelection);

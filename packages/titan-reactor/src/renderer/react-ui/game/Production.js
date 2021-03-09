@@ -1,5 +1,4 @@
 import React from "react";
-import { connect } from "react-redux";
 
 const PlayerProduction = ({ color, units, textSize }) => {
   const w = ["xs"].includes(textSize) ? "w-6" : "w-8";
@@ -51,11 +50,13 @@ const Production = ({ players, textSize, gameDimensions }) => {
   );
 };
 
-export default connect((state) => {
-  return {
-    textSize: state.settings.data.textSize,
-    settings: state.settings.data,
-    phrases: state.settings.phrases,
-    errors: state.settings.errors,
-  };
-})(Production);
+// export default connect((state) => {
+//   return {
+//     textSize: state.settings.data.textSize,
+//     settings: state.settings.data,
+//     phrases: state.settings.phrases,
+//     errors: state.settings.errors,
+//   };
+// })(Production);
+
+export default Production;

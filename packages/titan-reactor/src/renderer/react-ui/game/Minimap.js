@@ -1,38 +1,46 @@
 import React from "react";
-import { connect } from "react-redux";
 import omitChars from "titan-reactor-shared/utils/omitChars";
 import WrappedElement from "../WrappedElement";
-import { toggleFogOfWar } from "./replayHudReducer";
-import { hoveringOverMinimap } from "../../input/inputReducer";
+import useSettingsStore from "../../stores/settingsStore";
+import useGameStore from "../../stores/gameStore";
+import useHudStore from "../../stores/hudStore";
+import useLoadingStore from "../../stores/loadingStore";
 
-const Minimap = ({
-  className = "",
-  timeLabel,
-  mapLabel,
-  maxLabelWidth,
-  textSize,
-  canvas,
-  showFogOfWar,
-  toggleFogOfWar,
-  hoveringOverMinimap,
-}) => {
+const Minimap = ({ className = "" }) => {
+  const textSize = useSettingsStore((state) => state.data.textSize);
+  const {
+    fogOfWar,
+    toggleFogOfWar,
+    maxLabelWidth,
+    timeLabel,
+    canvas,
+  } = useGameStore((state) => ({
+    fogOfWar: state.fogOfWar,
+    toggleFogOfWar: state.toggleFogOfWar,
+    maxLabelWidth: state.game.minimapSurface.width,
+    timeLabel: state.game.managedDomElements.timeLabel.domElement,
+    canvas: state.game.minimapSurface.canvas,
+  }));
+
+  const mapLabel = useLoadingStore((state) => state.chk.title);
+
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
     <div
       className={`minimap-parent flex flex-col select-none ${className}`}
       onMouseEnter={() => {
-        hoveringOverMinimap(true);
+        useHudStore.setState({ hoveringOverMinimap: true });
       }}
       onMouseLeave={() => {
-        hoveringOverMinimap(false);
+        useHudStore.setState({ hoveringOverMinimap: false });
       }}
     >
-      <p
+      <div
         className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
         style={{ width: "13rem", maxWidth: `${maxLabelWidth}px` }}
       >
         <WrappedElement domElement={timeLabel} className="inline" />
-      </p>
+      </div>
 
       <span className="flex" style={{ maxWidth: `${maxLabelWidth}px` }}>
         <span className="bg-gray-700 text-gray-400 px-1 uppercase overflow-ellipsis flex-grow">
@@ -53,7 +61,7 @@ const Minimap = ({
       <div className="mb-2 flex flex-1">
         <i
           className={`material-icons rounded absolute ${
-            showFogOfWar
+            fogOfWar
               ? "text-gray-600 hover:text-yellow-600"
               : "text-yellow-600 hover:text-gray-600"
           }  `}
@@ -70,14 +78,4 @@ const Minimap = ({
   );
 };
 
-export default connect(
-  (state) => ({
-    textSize: state.settings.data.textSize,
-    showFogOfWar: state.replay.hud.showFogOfWar,
-    maxLabelWidth: state.replay.camera.dimensions.maxLabelWidth,
-  }),
-  (dispatch) => ({
-    toggleFogOfWar: () => dispatch(toggleFogOfWar()),
-    hoveringOverMinimap: (val) => dispatch(hoveringOverMinimap(val)),
-  })
-)(Minimap);
+export default Minimap;

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
 import Options from "./Options";
 import Maps from "./Maps";
 import Replays from "./Replays";
@@ -8,7 +7,7 @@ import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
 import { MenuItem } from "../components/MenuItem";
 import { OPEN_DATA_FILE } from "../../../common/handleNames";
 import { exit } from "../../invoke";
-import { setRemoteSettings } from "../../utils/settingsReducer";
+import useSettingsStore from "../../stores/settingsStore";
 
 if (module.hot) {
   module.hot.accept();
@@ -22,8 +21,12 @@ const Panels = {
   Legal: "Legal",
 };
 
-const Home = ({ settings, errors, phrases, saveSettings }) => {
+const Home = ({ settings, saveSettings }) => {
   const [activePanel, setActivePanel] = useState(Panels.Home);
+  const { phrases, errors } = useSettingsStore((state) => ({
+    phrases: state.phrases,
+    errors: state.errors,
+  }));
 
   return (
     <div
@@ -114,7 +117,7 @@ const Home = ({ settings, errors, phrases, saveSettings }) => {
                   Thanks to Mike Morheim and Blizzard for the best game ever
                   made. Thanks to the open source community. Thanks to tec27
                   (sb/inspiration), heinerman (bwapi), saint of idiocy
-                  (formats), pointy girt (pyms), lazarus (casc/pkware), tcsmoo
+                  (formats), poiuy qwert (pyms), zezula (casc/pkware), tcsmoo
                   (openbw), dakota (screp), sccait community, sen, threejs, and
                   all others. The broader BW community for keeping the game
                   alive, BSL, RSL, CPL, TDR, STPL, BWCL, HAY, Jeez, Rogues, and
@@ -193,15 +196,16 @@ const Home = ({ settings, errors, phrases, saveSettings }) => {
   );
 };
 
-export default connect(
-  (state) => {
-    return {
-      settings: state.settings.data,
-      errors: state.settings.errors,
-      phrases: state.settings.phrases,
-    };
-  },
-  (dispatch) => ({
-    saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-  })
-)(Home);
+export default Home;
+// export default connect(
+//   (state) => {
+//     return {
+//       settings: state.settings.data,
+//       errors: state.settings.errors,
+//       phrases: state.settings.phrases,
+//     };
+//   },
+//   (dispatch) => ({
+//     saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
+//   })
+// )(Home);

@@ -1,14 +1,4 @@
-import {
-  BufferGeometry,
-  DynamicDrawUsage,
-  Float32BufferAttribute,
-  LineBasicMaterial,
-  LineLoop,
-  Mesh,
-  MeshBasicMaterial,
-  PlaneBufferGeometry,
-  Vector3,
-} from "three";
+import { Mesh, MeshBasicMaterial, PlaneBufferGeometry } from "three";
 import { MinimapLayer, MinimapUnitLayer } from "../camera/Layers";
 
 export const createMiniMapPlane = (map, mapWidth, mapHeight) => {
