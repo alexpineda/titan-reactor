@@ -14,6 +14,8 @@ export default class FrameBW {
     this.spriteCount = 0;
     this.imageCount = 0;
     this.soundCount = 0;
+    this.researchCount = 0;
+    this.upgradeCount = 0;
     this.buildingQueueCount = 0;
     this.buffers = {};
   }
@@ -48,5 +50,13 @@ export default class FrameBW {
 
   get buildingQueue() {
     return this.buffers.buildingQueue;
+  }
+
+  get research() {
+    return this.buffers.research;
+  }
+
+  get upgrades() {
+    return this.buffers.upgrades;
   }
 }

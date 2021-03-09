@@ -88,4 +88,19 @@ export default class ContiguousContainer {
     }
     return arr;
   }
+
+  instancesByOwner(count = this.count) {
+    if (!this.owner) {
+      throw new Error("requires an owner property");
+    }
+
+    return this.instances(count).reduce((owners, item) => {
+      if (owners[item.owner]) {
+        owners[item.owner].push(item);
+      } else {
+        owners[item.owner] = [item];
+      }
+      return owners;
+    }, []);
+  }
 }

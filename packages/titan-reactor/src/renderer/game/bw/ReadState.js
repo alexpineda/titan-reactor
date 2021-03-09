@@ -4,6 +4,8 @@ import ImagesBW from "./ImagesBW";
 import TilesBW from "./TilesBW";
 import UnitsBW from "./UnitsBW";
 import CreepBW from "./CreepBW";
+import UpgradeBW from "./UpgradeBW";
+import ResearchBW from "./ResearchBW";
 import BuildingQueueCountBW from "./BuildingQueueCountBW";
 
 export default class ReadState {
@@ -41,6 +43,14 @@ export default class ReadState {
 
   static get Sounds() {
     return 8;
+  }
+
+  static get Research() {
+    return 9;
+  }
+
+  static get Upgrades() {
+    return 10;
   }
 
   constructor() {
@@ -86,7 +96,7 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Frame) {
-      if (buf.length < 28 + 8 * 10) {
+      if (buf.length < 36 + 8 * 10) {
         return false;
       }
 
@@ -96,10 +106,12 @@ export default class ReadState {
       frame.tilesCount = buf.readUInt32LE(4);
       frame.creepCount = frame.tilesCount;
       frame.unitCount = buf.readInt32LE(8);
-      frame.spriteCount = buf.readInt32LE(12);
-      frame.imageCount = buf.readInt32LE(16);
-      frame.soundCount = buf.readInt32LE(20);
-      frame.buildingQueueCount = buf.readInt32LE(24);
+      frame.upgradeCount = buf.readInt32LE(12);
+      frame.researchCount = buf.readInt32LE(16);
+      frame.spriteCount = buf.readInt32LE(20);
+      frame.imageCount = buf.readInt32LE(24);
+      frame.soundCount = buf.readInt32LE(28);
+      frame.buildingQueueCount = buf.readInt32LE(32);
       frame.minerals.length = 0;
       frame.gas.length = 0;
       frame.supplyUsed.length = 0;
@@ -114,7 +126,7 @@ export default class ReadState {
         frame.workerSupply.push(buf.readUInt16LE(28 + i * 10 + 8));
       }
 
-      this.pos = 28 + 8 * 10;
+      this.pos = 36 + 8 * 10;
 
       this.mode = ReadState.Tile;
       return true;
@@ -154,6 +166,26 @@ export default class ReadState {
       return this.fixedSizeTypeReader(
         "buildingQueue",
         frame.buildingQueueCount * BuildingQueueCountBW.byteLength,
+        buf,
+        frame,
+        ReadState.Upgrades
+      );
+    }
+
+    if (this.mode === ReadState.Upgrades) {
+      return this.fixedSizeTypeReader(
+        "upgrades",
+        frame.upgradeCount * UpgradeBW.byteLength,
+        buf,
+        frame,
+        ReadState.Research
+      );
+    }
+
+    if (this.mode === ReadState.Research) {
+      return this.fixedSizeTypeReader(
+        "research",
+        frame.researchCount * ResearchBW.byteLength,
         buf,
         frame,
         ReadState.Sprite
