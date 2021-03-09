@@ -1,6 +1,6 @@
 import { is } from "ramda";
 
-export default class RollingNumberDOM {
+export default class RollingNumber {
   constructor(upSpeed = 30, downSpeed = 10, domElement) {
     this.domElement = domElement || document.createElement("span");
     this.upSpeed = upSpeed;

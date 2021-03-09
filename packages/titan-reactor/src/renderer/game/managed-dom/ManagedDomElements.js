@@ -1,33 +1,22 @@
 import { range } from "ramda";
-import RollingNumberDOM from "../react-ui/game/RollingNumberDOM";
-
-class BasicElement {
-  constructor() {
-    this.domElement = document.createElement("span");
-    this.value = "";
-  }
-
-  set value(val) {
-    this._value = val;
-    this.domElement.innerText = val;
-  }
-
-  get value() {
-    return this._value;
-  }
-}
+import RollingNumber from "./RollingNumber";
+import BasicElement from "./BasicElement";
+import UnitProductionWrapperElement from "./UnitProductionWrapperElement";
 
 /**
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
  */
 export default class ManagedDomElements {
-  constructor() {
-    this.minerals = range(0, 8).map(() => new RollingNumberDOM());
-    this.gas = range(0, 8).map(() => new RollingNumberDOM());
-    this.apm = range(0, 8).map(() => new RollingNumberDOM());
+  constructor(cmdIcons) {
+    this.minerals = range(0, 8).map(() => new RollingNumber());
+    this.gas = range(0, 8).map(() => new RollingNumber());
+    this.apm = range(0, 8).map(() => new RollingNumber());
     this.supply = range(0, 8).map(() => new BasicElement());
     this.workerSupply = range(0, 8).map(() => new BasicElement());
     this.timeLabel = new BasicElement();
+    this.production = range(0, 8).map(
+      () => new UnitProductionWrapperElement(cmdIcons)
+    );
   }
 
   /**
@@ -36,7 +25,7 @@ export default class ManagedDomElements {
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(frame, gameStatePosition, players) {
+  update(frame, gameStatePosition, players, unitsInProduction) {
     for (let i = 0; i < 8; i++) {
       this.minerals[i].value = frame.minerals[i];
       this.gas[i].value = frame.gas[i];
@@ -48,7 +37,17 @@ export default class ManagedDomElements {
     this.timeLabel.value = gameStatePosition.getFriendlyTime();
 
     for (const player of players) {
+      this.production[player.id].length = 0;
+    }
+    for (const player of players) {
       this.apm[player.id].value = player.apm;
+
+      const units = unitsInProduction
+        .filter((u) => u.ownerId === player.id)
+        .slice(0, 10);
+      for (let i = 0; i < 10; i++) {
+        this.production[player.id].units[i].value = units[i];
+      }
     }
   }
 }
