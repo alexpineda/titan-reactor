@@ -23,7 +23,6 @@ export class Players extends Array {
           id: player.id,
           name: player.name,
           race: player.race,
-          actions: new Int32Array(1428),
           color,
           originalColor: color,
           showActions: false,

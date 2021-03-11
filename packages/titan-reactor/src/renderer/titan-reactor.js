@@ -12,7 +12,6 @@ import useTitanReactorStore from "./stores/titanReactorStore";
 import useSettingsStore from "./stores/settingsStore";
 import useLoadingStore from "./stores/loadingStore";
 import "./stores/capabilitiesStore";
-import create from "zustand";
 
 log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);

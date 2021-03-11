@@ -45,7 +45,7 @@ export default class ManagedDomElements {
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(frame, gameStatePosition, players, frameBuilder) {
+  update(frame, gameStatePosition, players, apm, frameBuilder) {
     for (let i = 0; i < 8; i++) {
       this.minerals[i].value = frame.minerals[i];
       this.gas[i].value = frame.gas[i];
@@ -57,7 +57,7 @@ export default class ManagedDomElements {
     this.timeLabel.value = gameStatePosition.getFriendlyTime();
 
     for (const player of players) {
-      this.apm[player.id].value = player.apm;
+      this.apm[player.id].value = apm[player.id];
 
       if (frameBuilder.unitsInProduction.needsUpdate) {
         const units = frameBuilder.unitsInProduction

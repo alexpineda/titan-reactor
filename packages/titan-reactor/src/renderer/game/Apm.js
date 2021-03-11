@@ -1,3 +1,4 @@
+import { range } from "ramda";
 import { gameSpeeds } from "titan-reactor-shared/utils/conversions";
 
 export default class Apm {
@@ -6,33 +7,34 @@ export default class Apm {
     this.framesPerMinute = (60 * 1000) / gameSpeeds.fastest;
     this.sampleRate = 1;
     this.sampledFPM = Math.floor(this.framesPerMinute / this.sampleRate);
+    this.actions = range(0, 8).map(() => new Uint32Array(this.sampledFPM));
+    this.apm = range(0, 8);
+    this._frame = 0;
   }
 
   update(cmds, bwGameFrame) {
-    if (bwGameFrame % this.sampleRate) {
-      return;
-    }
+    // if (bwGameFrame % this.sampleRate) {
+    //   return;
+    // }
 
-    const frame = Math.floor(
-      (bwGameFrame % this.framesPerMinute) / this.sampleRate
-    );
-
-    for (const player of this.players) {
-      player.actions[frame] = 0;
+    for (let i = 0; i < 8; i++) {
+      this.actions[i][this._frame] = 0;
     }
 
     for (let cmd of cmds) {
-      this.players[cmd.player].actions[frame]++;
+      this.actions[this.players[cmd.player].id][this._frame]++;
     }
 
     for (const player of this.players) {
       let total = 0;
-      for (const actions of player.actions) {
+      for (const actions of this.actions[player.id]) {
         total += actions;
       }
-      player.apm = Math.floor(
-        total * (this.framesPerMinute / Math.min(bwGameFrame, this.sampledFPM))
+      this.apm[player.id] = Math.floor(
+        (total * this.framesPerMinute) / Math.min(bwGameFrame, this.sampledFPM)
       );
     }
+
+    this._frame = (this._frame + 1) % this.sampledFPM;
   }
 }

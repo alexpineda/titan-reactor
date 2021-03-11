@@ -48,7 +48,7 @@ import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 import FileGameStateReader from "../renderer/game/bw/FileGameStateReader";
 
-app.commandLine.appendSwitch("disable-frame-rate-limit");
+// app.commandLine.appendSwitch("disable-frame-rate-limit");
 // app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 const gotTheLock = app.requestSingleInstanceLock();
 

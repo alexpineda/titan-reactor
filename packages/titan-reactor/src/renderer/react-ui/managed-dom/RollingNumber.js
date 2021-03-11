@@ -1,8 +1,11 @@
 import { is } from "ramda";
 
 export default class RollingNumber {
-  constructor(upSpeed = 30, downSpeed = 10, domElement) {
-    this.domElement = domElement || document.createElement("span");
+  constructor(upSpeed = 30, downSpeed = 10) {
+    this.domElement = document.createElement("span");
+    this.textNode = document.createTextNode("");
+    this.domElement.appendChild(this.textNode);
+
     this.upSpeed = upSpeed;
     this.downSpeed = downSpeed;
     this.value = 0;
@@ -11,7 +14,7 @@ export default class RollingNumber {
 
   _setValue(number) {
     this._displayValue = number;
-    this.domElement.innerText = number;
+    this.textNode.nodeValue = number;
   }
 
   get value() {

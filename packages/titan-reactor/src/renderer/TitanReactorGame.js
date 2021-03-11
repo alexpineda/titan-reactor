@@ -386,6 +386,7 @@ async function TitanReactorGame(
           nextFrame,
           gameStatePosition,
           players,
+          apm.apm,
           frameBuilder
         );
         audioMaster.channels.play(elapsed);
