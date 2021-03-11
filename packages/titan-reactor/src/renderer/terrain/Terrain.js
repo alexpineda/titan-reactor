@@ -166,6 +166,27 @@ class Terrain {
       palette
     );
 
+    const workerIcons = {
+      apm: `data:image/png;base64,${(
+        await this.readFile("webui/dist/lib/images/icon_apm.png", false)
+      ).toString("base64")}`,
+      terran: `data:image/png;base64,${(
+        await this.readFile(
+          "webui/dist/lib/images/icon_worker_terran.png",
+          false
+        )
+      ).toString("base64")}`,
+      zerg: `data:image/png;base64,${(
+        await this.readFile("webui/dist/lib/images/icon_worker_zerg.png", false)
+      ).toString("base64")}`,
+      protoss: `data:image/png;base64,${(
+        await this.readFile(
+          "webui/dist/lib/images/icon_worker_protoss.png",
+          false
+        )
+      ).toString("base64")}`,
+    };
+
     const cursor = new MouseCursor(
       arrowIcons.icons,
       hoverIcons.icons,
@@ -191,6 +212,7 @@ class Terrain {
       gameIcons,
       cmdIcons.icons,
       raceInsetIcons,
+      workerIcons,
       minimapCanvas,
       cursor,
     ];

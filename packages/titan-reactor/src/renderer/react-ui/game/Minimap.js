@@ -58,14 +58,14 @@ const Minimap = ({ className = "" }) => {
         </span>
         <span className="bevel-gray-700 w-6 h-6"></span>
       </span>
-      <div className="mb-2 flex flex-1">
+      <div className="mb-1 flex flex-1 relative">
         <i
           className={`material-icons rounded absolute ${
             fogOfWar
               ? "text-gray-600 hover:text-yellow-600"
               : "text-yellow-600 hover:text-gray-600"
           }  `}
-          style={{ fontSize: smallIconFontSize, bottom: "10px", left: "10px" }}
+          style={{ fontSize: smallIconFontSize, top: "-19px", right: "20px" }}
           title={"Reveal Entire Map"}
           data-tip={"Reveal Entire Map"}
           onClick={toggleFogOfWar}

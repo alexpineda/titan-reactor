@@ -96,7 +96,9 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Frame) {
-      if (buf.length < 36 + 8 * 10) {
+      const frameBaseSize = 36;
+
+      if (buf.length < frameBaseSize + 8 * 10) {
         return false;
       }
 
@@ -119,14 +121,16 @@ export default class ReadState {
       frame.workerSupply.length = 0;
 
       for (let i = 0; i < 8; i++) {
-        frame.minerals.push(buf.readUInt16LE(28 + i * 10));
-        frame.gas.push(buf.readUInt16LE(28 + i * 10 + 2));
-        frame.supplyUsed.push(buf.readUInt16LE(28 + i * 10 + 4));
-        frame.supplyAvailable.push(buf.readUInt16LE(28 + i * 10 + 6));
-        frame.workerSupply.push(buf.readUInt16LE(28 + i * 10 + 8));
+        frame.minerals.push(buf.readUInt16LE(frameBaseSize + i * 10));
+        frame.gas.push(buf.readUInt16LE(frameBaseSize + i * 10 + 2));
+        frame.supplyUsed.push(buf.readUInt16LE(frameBaseSize + i * 10 + 4));
+        frame.supplyAvailable.push(
+          buf.readUInt16LE(frameBaseSize + i * 10 + 6)
+        );
+        frame.workerSupply.push(buf.readUInt16LE(frameBaseSize + i * 10 + 8));
       }
 
-      this.pos = 36 + 8 * 10;
+      this.pos = frameBaseSize + 8 * 10;
 
       this.mode = ReadState.Tile;
       return true;
@@ -173,6 +177,10 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Upgrades) {
+      if (!frame.upgradeCount) {
+        this.mode = ReadState.Research;
+        return true;
+      }
       return this.fixedSizeTypeReader(
         "upgrades",
         frame.upgradeCount * UpgradeBW.byteLength,
@@ -183,6 +191,10 @@ export default class ReadState {
     }
 
     if (this.mode === ReadState.Research) {
+      if (!frame.researchCount) {
+        this.mode = ReadState.Sprite;
+        return true;
+      }
       return this.fixedSizeTypeReader(
         "research",
         frame.researchCount * ResearchBW.byteLength,

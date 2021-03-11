@@ -15,7 +15,6 @@ import FadingPointers from "./mesh/FadingPointers";
 import { commands } from "titan-reactor-shared/types/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
-import createStats from "utils/createStats";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
@@ -25,8 +24,8 @@ import { ProducerWindowPosition, RenderMode } from "../common/settings";
 import Units from "./game/Units";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
-import BWFrameSceneBuilder from "./game/BWFrameBuilder";
-import ManagedDomElements from "./game/managed-dom/ManagedDomElements";
+import BWFrameSceneBuilder from "./game/frame-builder/BWFrameBuilder";
+import ManagedDomElements from "./react-ui/managed-dom/ManagedDomElements";
 import Apm from "./game/Apm";
 import { debounce } from "lodash";
 import useSettingsStore from "./stores/settingsStore";
@@ -47,9 +46,6 @@ async function TitanReactorGame(
   preloadAtlas,
   audioMaster
 ) {
-  const stats = createStats();
-  stats.dom.style.position = "absolute";
-
   let settings = useSettingsStore.getState().data;
 
   let fogChanged = false;
@@ -104,14 +100,6 @@ async function TitanReactorGame(
     false
   );
 
-  // const DrawCallInspector = drawCallInspectorFactory(THREE);
-  // const drawCallInspector = new DrawCallInspector(
-  //   renderMan.renderer,
-  //   scene,
-  //   cameras.camera,
-  //   true
-  // );
-
   await renderMan.initRenderer(cameras.camera);
   window.renderMan = renderMan;
 
@@ -160,63 +148,6 @@ async function TitanReactorGame(
   // scene.add(intersectAxesHelper);
 
   const raycaster = new Raycaster();
-
-  // #region mouse listener
-  const mouseDownListener = (event) => {
-    var mouse = new Vector2();
-
-    const [width, height] = [gameSurface.width, gameSurface.height];
-
-    mouse.x = (event.offsetX / width) * 2 - 1;
-    mouse.y = -(event.offsetY / height) * 2 + 1;
-
-    // var mouse = new Vector2();
-
-    // const [width, height] = [gameSurface.width, gameSurface.height];
-
-    // mouse.x = (event.offsetX / width) * 2 - 1;
-    // mouse.y = -(event.offsetY / height) * 2 + 1;
-
-    // raycaster.setFromCamera(mouse, cameras.camera);
-
-    // // calculate objects intersecting the picking ray
-    // const intersects = raycaster.intersectObject(scene, true);
-    // console.log(intersects);
-    // if (intersects.length) {
-    //   intersects.forEach(({ object }) => {
-    //     if (object instanceof Sprite) {
-    //       console.log(object);
-    //     }
-    //   });
-    // }
-    // return;
-    const getAsUnit = (mesh) => {
-      if (!mesh) return null;
-      if (mesh.unit) {
-        return mesh.unit;
-      } else {
-        return getAsUnit(mesh.parent);
-      }
-      return null;
-    };
-
-    if (!intersects.length) {
-      units.selected = [];
-    } else {
-      intersects.slice(0, 1).forEach(({ object }) => {
-        const unit = getAsUnit(object);
-
-        if (unit) {
-          units.selected = [unit];
-          window.dbg = { repId: unit.repId };
-          console.log(unit.repId, unit);
-        } else {
-          units.selected = [];
-        }
-      });
-    }
-  };
-  gameSurface.canvas.addEventListener("mousedown", mouseDownListener);
 
   let shiftDown = false;
   let lastChangedShiftDown = Date.now();
@@ -407,7 +338,7 @@ async function TitanReactorGame(
     frameBuilder.buildFog();
     frameBuilder.buildCreep();
     frameBuilder.buildSounds(view, audioMaster, elapsed);
-
+    frameBuilder.buildResearchAndUpgrades();
     // unstable_batchedUpdates(() =>
     //   useHudStore
     //     .getState()
@@ -421,8 +352,6 @@ async function TitanReactorGame(
   const apm = new Apm(players);
 
   function gameLoop(elapsed) {
-    stats.update();
-
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
@@ -457,7 +386,7 @@ async function TitanReactorGame(
           nextFrame,
           gameStatePosition,
           players,
-          frameBuilder.unitsInProduction
+          frameBuilder
         );
         audioMaster.channels.play(elapsed);
         frameBuilder.bwScene.activate();
@@ -630,7 +559,6 @@ async function TitanReactorGame(
     cameras.dispose();
 
     keyboardShortcuts.dispose();
-    // gameSurface.canvas.removeEventListener("mousedown", mouseDownListener);
     document.removeEventListener("keydown", _keyDown);
     document.removeEventListener("keyup", _keyUp);
     cameras.control.removeEventListener("sleep", _controlSleep);
@@ -705,7 +633,7 @@ async function TitanReactorGame(
     for (let player of players) {
       if (player.vision !== state.playerVision[player.id]) {
         //@todo: copy last visible state for each player
-        player.vision = state.replay.hud.playerVision[player.id];
+        player.vision = state.playerVision[player.id];
         fogOfWar.playerVisionWasToggled = true;
       }
     }
@@ -721,10 +649,10 @@ async function TitanReactorGame(
     gameIcons: scene.gameIcons,
     cmdIcons: scene.cmdIcons,
     raceInsetIcons: scene.raceInsetIcons,
+    workerIcons: scene.workerIcons,
     surface: gameSurface,
     minimapSurface,
     previewSurfaces,
-    fpsCanvas: stats.dom,
     players,
     replayPosition: gameStatePosition,
     managedDomElements,

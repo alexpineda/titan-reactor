@@ -9,19 +9,19 @@ export default class ResearchBW extends ContiguousContainer {
     return this._readU8(0);
   }
 
-  get id() {
+  get typeId() {
     return this._readU8(1);
   }
 
-  get remainingTime() {
+  get remainingBuildTime() {
     return this._readU16(2);
   }
 
   object() {
     return {
       owner: this.owner,
-      id: this.id,
-      remainingTime: this.remainingTime,
+      typeId: this.typeId,
+      remainingBuildTime: this.remainingBuildTime,
     };
   }
 }

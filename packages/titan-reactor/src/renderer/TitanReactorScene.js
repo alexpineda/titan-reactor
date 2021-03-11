@@ -51,6 +51,7 @@ export class TitanReactorScene extends Scene {
       gameIcons,
       cmdIcons,
       raceInsetIcons,
+      workerIcons,
       minimapBitmap,
       cursor,
     ] = await terrainMesh.generate({
@@ -60,6 +61,7 @@ export class TitanReactorScene extends Scene {
     this.gameIcons = gameIcons;
     this.cmdIcons = cmdIcons;
     this.raceInsetIcons = raceInsetIcons;
+    this.workerIcons = workerIcons;
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
     this.minimapBitmap = minimapBitmap;

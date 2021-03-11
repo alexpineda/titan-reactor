@@ -1,18 +1,22 @@
 import React, { useState } from "react";
-import { Color } from "three";
 import { isEmpty } from "ramda";
 import shallow from "zustand/shallow";
 import {
   incFontSize,
   decFontSize,
 } from "titan-reactor-shared/utils/changeFontSize";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
-import WrappedElement from "../WrappedElement";
-import useSettingsStore from "../../stores/settingsStore";
-import useGameStore from "../../stores/gameStore";
-import PlayerProduction from "./PlayerProduction";
+import WrappedElement from "../../WrappedElement";
+import useSettingsStore from "../../../stores/settingsStore";
+import useGameStore from "../../../stores/gameStore";
+import Minerals from "./Minerals";
+import Gas from "./Gas";
+import Workers from "./Workers";
+import Supply from "./Supply";
+import Apm from "./Apm";
 
 const _playerNameCache = {};
+
+//unused first entry but still needs to be valid
 
 const PlayerResources = ({
   id,
@@ -22,6 +26,7 @@ const PlayerResources = ({
   textSize,
   fitToContent = false,
   playerScoreCache,
+  productionView,
 }) => {
   const { esportsHud, enablePlayerScores } = useSettingsStore(
     (state) => ({
@@ -36,8 +41,8 @@ const PlayerResources = ({
     togglePlayerVision,
     playerVision,
     gameIcons,
-    cmdIcons,
     raceInsetIcons,
+    workerIcons,
     managedDomElements,
   } = useGameStore(
     (state) => ({
@@ -45,12 +50,14 @@ const PlayerResources = ({
       togglePlayerVision: state.togglePlayerVision,
       playerVision: state.playerVision,
       gameIcons: state.game.gameIcons,
-      cmdIcons: state.game.cmdIcons,
       raceInsetIcons: state.game.raceInsetIcons,
+      workerIcons: state.game.workerIcons,
       managedDomElements: state.game.managedDomElements,
     }),
     shallow
   );
+
+  const domElements = useGameStore((state) => state.game.managedDomElements);
 
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
@@ -61,45 +68,21 @@ const PlayerResources = ({
   const [score, setScore] = useState(playerScoreCache[playerName]);
 
   const scaledTextSize =
-    dimensions.width < 1400 ? decFontSize(textSize, 1) : textSize;
+    dimensions.width < 1500 ? decFontSize(textSize, 2) : textSize;
 
   let gasIcon;
-  let workerIcon;
-
-  const showingProduction = true;
 
   switch (race) {
     case "terran":
       gasIcon = gameIcons.vespeneTerran;
-      workerIcon = cmdIcons[unitTypes.scv];
       break;
     case "zerg":
-      workerIcon = cmdIcons[unitTypes.drone];
       gasIcon = gameIcons.vespeneZerg;
       break;
     case "protoss":
-      workerIcon = cmdIcons[unitTypes.probe];
       gasIcon = gameIcons.vespeneProtoss;
       break;
   }
-
-  let darken = new Color(0.1, 0.1, 0.1);
-  if (new Color().setStyle(color.hex).getHSL().l > 0.6) {
-    darken = new Color(0.2, 0.2, 0.2);
-  }
-  const playerColor = `#${new Color()
-    .setStyle(color.hex)
-    .sub(darken)
-    .getHexString()}`;
-
-  const hueShift = `#${new Color()
-    .setStyle(playerColor)
-    .offsetHSL(0.01, 0, 0)
-    .getHexString()}66`;
-  const lightShift = `#${new Color()
-    .setStyle(playerColor)
-    .offsetHSL(0, 0, 0.1)
-    .getHexString()}`;
 
   const gameIconBgStyle = esportsHud
     ? {
@@ -107,7 +90,7 @@ const PlayerResources = ({
         backgroundImage: `url(${raceInsetIcons[`${race}Alpha`]})`,
         backgroundPosition: dimensions.width <= 1200 ? "right" : "120% 25%",
         backgroundSize: dimensions.width <= 1200 ? "contain" : "auto",
-        mixBlendMode: "color-dodge",
+        mixBlendMode: "lighten",
       }
     : {};
 
@@ -121,7 +104,7 @@ const PlayerResources = ({
         marginTop: "-1px",
         marginBottom: "-1px",
         borderLeftWidth: "4px",
-        borderLeftColor: lightShift,
+        borderLeftColor: color.alt.lightShift,
       }
     : {};
 
@@ -133,11 +116,11 @@ const PlayerResources = ({
 
   const bgGradient = esportsHud
     ? {
-        background: `linear-gradient(90deg, ${playerColor} 0%, ${hueShift} 100%)`,
+        background: `linear-gradient(90deg, ${color.alt.darker} 0%, ${color.alt.hueShift} 100%)`,
       }
     : {};
 
-  const scoreBgColor = esportsHud ? { background: playerColor } : {};
+  const scoreBgColor = esportsHud ? { background: color.alt.darker } : {};
 
   const playerNameStyle = esportsHud
     ? {
@@ -186,7 +169,7 @@ const PlayerResources = ({
         style={{
           ...fitToContentStyle,
           ...bgGradient,
-          borderRight: esportsHud ? `4px solid ${lightShift}66` : "",
+          borderRight: esportsHud ? `4px solid ${color.alt.lightShift}66` : "",
         }}
         data-tip="Toggle Fog of War"
         onMouseDown={(evt) => {
@@ -236,16 +219,28 @@ const PlayerResources = ({
           />
         )}
       </td>
-      {showingProduction && (
-        <PlayerProduction playerId={id} backgroundColor={playerColor} />
+      {productionView === 1 && (
+        <td>
+          <WrappedElement domElement={domElements.production[id].domElement} />
+        </td>
       )}
-      {!showingProduction && (
+      {productionView === 2 && (
+        <td>
+          <WrappedElement domElement={domElements.research[id].domElement} />
+        </td>
+      )}
+      {productionView === 3 && (
+        <td>
+          <WrappedElement domElement={domElements.upgrades[id].domElement} />
+        </td>
+      )}
+      {!productionView && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
         >
           <div className="flex items-center">
-            <img src={gameIcons.minerals} className="inline w-3" />
+            <Minerals image={gameIcons.minerals} dimensions={dimensions} />
             <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
               <WrappedElement
                 domElement={managedDomElements.minerals[id].domElement}
@@ -255,13 +250,13 @@ const PlayerResources = ({
           </div>
         </td>
       )}
-      {!showingProduction && (
+      {!productionView && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
         >
           <div className="flex items-center">
-            <img src={gasIcon} className="inline w-3" />
+            <Gas image={gasIcon} dimensions={dimensions} />
             <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
               <WrappedElement
                 domElement={managedDomElements.gas[id].domElement}
@@ -272,13 +267,13 @@ const PlayerResources = ({
         </td>
       )}
 
-      {!showingProduction && (
+      {!productionView && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle, width: "4rem" }}
         >
           <div className="flex items-center">
-            <img src={workerIcon} className="inline w-5" />
+            <Workers image={workerIcons[race]} dimensions={dimensions} />
             <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
               <WrappedElement
                 domElement={managedDomElements.workerSupply[id].domElement}
@@ -289,13 +284,13 @@ const PlayerResources = ({
         </td>
       )}
 
-      {!showingProduction && (
+      {!productionView && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
         >
           <div className="flex items-center">
-            <img src={gameIcons[race]} className="inline w-4" />
+            <Supply image={gameIcons[race]} dimensions={dimensions} />
             <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
               <WrappedElement
                 domElement={managedDomElements.supply[id].domElement}
@@ -307,21 +302,17 @@ const PlayerResources = ({
           </div>
         </td>
       )}
-      {!showingProduction && (
+      {!productionView && (
         <td
           className="px-2 pointer-events-none"
-          style={{ ...fixedWidthStyle, ...tdTextStyle, width: "8rem" }}
+          style={{ ...fixedWidthStyle, ...tdTextStyle, width: "5rem" }}
         >
           <span className="flex items-center">
-            <span
-              className="text-xs uppercase text-gray-400 ml-2"
-              style={{ fontSize: "0.6rem" }}
-            >
-              APM&nbsp;
-            </span>
+            <Apm image={workerIcons.apm} dimensions={dimensions} />
+
             <WrappedElement
               domElement={managedDomElements.apm[id].domElement}
-              className="inline text-${scaledTextSize} text-gray-200"
+              className={`inline text-${scaledTextSize} text-gray-200 ml-2 `}
             />
           </span>
         </td>

@@ -1,6 +1,5 @@
 import { range } from "ramda";
 import { Group } from "three";
-import Sprite from "./Sprite";
 
 class BWGroup extends Group {
   constructor() {

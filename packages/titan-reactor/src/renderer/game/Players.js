@@ -8,21 +8,30 @@ export class Players extends Array {
     this.customColors = colors.map((color) => ({
       hex: color,
       three: new Color().setStyle(color),
+      alt: this._createAltColors(color),
     }));
 
     this.push(
-      ...players.map((player) => ({
-        id: player.id,
-        name: player.name,
-        race: player.race,
-        actions: new Int32Array(1428),
-        color: { ...player.color, three: new Color(player.color.rgb) },
-        originalColor: { ...player.color, three: new Color(player.color.rgb) },
-        showActions: false,
-        showPov: false,
-        vision: true,
-        startLocation: startLocations.find((u) => u.player == player.id),
-      }))
+      ...players.map((player) => {
+        const color = {
+          ...player.color,
+          three: new Color(player.color.rgb),
+          alt: this._createAltColors(player.color.hex),
+        };
+
+        return {
+          id: player.id,
+          name: player.name,
+          race: player.race,
+          actions: new Int32Array(1428),
+          color,
+          originalColor: color,
+          showActions: false,
+          showPov: false,
+          vision: true,
+          startLocation: startLocations.find((u) => u.player == player.id),
+        };
+      })
     );
     this.activePovs = 0;
 
@@ -40,6 +49,32 @@ export class Players extends Array {
         this[i].color = this.originalColor;
       }
     }
+  }
+
+  _createAltColors(color) {
+    let darken = new Color(0.1, 0.1, 0.1);
+    const test = new Color();
+    new Color().setStyle(color).getHSL(test);
+
+    if (test.l > 0.6) {
+      darken = new Color(0.2, 0.2, 0.2);
+    }
+    const darker = `#${new Color().setStyle(color).sub(darken).getHexString()}`;
+
+    const hueShift = `#${new Color()
+      .setStyle(darker)
+      .offsetHSL(0.01, 0, 0)
+      .getHexString()}66`;
+    const lightShift = `#${new Color()
+      .setStyle(darker)
+      .offsetHSL(0, 0, 0.1)
+      .getHexString()}`;
+
+    return {
+      darker,
+      hueShift,
+      lightShift,
+    };
   }
 
   static get [Symbol.species]() {

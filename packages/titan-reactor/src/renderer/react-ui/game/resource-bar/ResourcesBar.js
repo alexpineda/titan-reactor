@@ -1,8 +1,8 @@
 import React from "react";
-import PlayerResources from "./resource-bar/PlayerResources";
-import useSettingsStore from "../../stores/settingsStore";
-import useGameStore from "../../stores/gameStore";
-import useHudStore from "../../stores/hudStore";
+import PlayerResources from "./PlayerResources";
+import useSettingsStore from "../../../stores/settingsStore";
+import useGameStore from "../../../stores/gameStore";
+import useHudStore from "../../../stores/hudStore";
 import { incFontSize } from "titan-reactor-shared/utils/changeFontSize";
 
 const _playerScoreCache = {};

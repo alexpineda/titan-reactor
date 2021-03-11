@@ -9,7 +9,7 @@ export default class UpgradeBW extends ContiguousContainer {
     return this._readU8(0);
   }
 
-  get id() {
+  get typeId() {
     return this._readU8(1);
   }
 
@@ -17,16 +17,16 @@ export default class UpgradeBW extends ContiguousContainer {
     return this._readU8(2);
   }
 
-  get remainingTime() {
+  get remainingBuildTime() {
     return this._readU16(3);
   }
 
   object() {
     return {
       owner: this.owner,
-      id: this.id,
+      typeId: this.typeId,
       level: this.level,
-      remainingTime: this.remainingTime,
+      remainingBuildTime: this.remainingBuildTime,
     };
   }
 }

@@ -1,14 +1,16 @@
-import { MathUtils, Vector3 } from "three";
-import Creep from "./creep/Creep";
-import BuildingQueueCountBW from "./bw/BuildingQueueCountBW";
-import CreepBW from "./bw/CreepBW";
-import ImagesBW from "./bw/ImagesBW";
-import SoundsBW from "./bw/SoundsBW";
-import SpritesBW from "./bw/SpritesBW";
-import TilesBW from "./bw/TilesBW";
-import UnitsBW from "./bw/UnitsBW";
+import { MathUtils } from "three";
+import Creep from "../creep/Creep";
+import BuildingQueueCountBW from "../bw/BuildingQueueCountBW";
+import CreepBW from "../bw/CreepBW";
+import ImagesBW from "../bw/ImagesBW";
+import SoundsBW from "../bw/SoundsBW";
+import SpritesBW from "../bw/SpritesBW";
+import TilesBW from "../bw/TilesBW";
+import UnitsBW from "../bw/UnitsBW";
+import ResearchBW from "../bw/ResearchBW";
+import UpgradeBW from "../bw/UpgradeBW";
 import BWFrameScene from "./BWFrameScene";
-import Sprite from "./Sprite";
+import Sprite from "../Sprite";
 import { range } from "ramda";
 
 export default class BWFrameSceneBuilder {
@@ -44,7 +46,10 @@ export default class BWFrameSceneBuilder {
     this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
     this.spritesBW = new SpritesBW(bwDat);
     this.imagesBW = new ImagesBW(bwDat);
+    this.researchBW = new ResearchBW();
+    this.upgradeBW = new UpgradeBW();
     this.buildQueueBW = new BuildingQueueCountBW(bwDat);
+    this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
     this.creep = new Creep(
@@ -61,6 +66,10 @@ export default class BWFrameSceneBuilder {
     this.unitsByIndex = new Map();
     this.unitsBySpriteId = new Map();
     this.unitsInProduction = [];
+    this.research = range(0, 8).map(() => []);
+    this.upgrades = range(0, 8).map(() => []);
+    this.completedResearch = range(0, 8).map(() => []);
+    this.completedUpgrades = range(0, 8).map(() => []);
   }
 
   buildStart(nextFrame, updateMinimap) {
@@ -279,7 +288,56 @@ export default class BWFrameSceneBuilder {
     this.creep.generate(this.creepBW, this.nextFrame.frame);
   }
 
-  compile(...args) {
-    this.bwScene.compile(...args);
+  buildResearchAndUpgrades() {
+    this.researchBW.count = this.nextFrame.researchCount;
+    this.researchBW.buffer = this.nextFrame.research;
+    this.upgradeBW.count = this.nextFrame.upgradeCount;
+    this.upgradeBW.buffer = this.nextFrame.upgrades;
+
+    const researchInProgress = this.researchBW.instances();
+    const upgradesInProgress = this.upgradeBW.instances();
+
+    for (let i = 0; i < 8; i++) {
+      this.research[i] = [...this.completedResearch[i]];
+      this.upgrades[i] = [...this.completedUpgrades[i]];
+
+      for (const research of researchInProgress) {
+        if (research.owner === i) {
+          const researchObj = {
+            ...research,
+            icon: this.bwDat.tech[research.typeId].icon,
+            count: 1,
+            buildTime: this.bwDat.tech[research.typeId].researchTime,
+            isTech: true,
+          };
+          this.research[i].push(researchObj);
+          if (research.remainingBuildTime === 0) {
+            this.completedResearch[i].push(researchObj);
+          }
+        }
+      }
+
+      for (const upgrade of upgradesInProgress) {
+        if (upgrade.owner === i) {
+          const upgradeObj = {
+            ...upgrade,
+            icon: this.bwDat.upgrades[upgrade.typeId].icon,
+            count: upgrade.level,
+            buildTime:
+              this.bwDat.upgrades[upgrade.typeId].researchTimeBase +
+              this.bwDat.upgrades[upgrade.typeId].researchTimeFactor *
+                upgrade.level,
+            isUpgrade: true,
+          };
+          this.upgrades[i].push(upgradeObj);
+          if (upgrade.remainingBuildTime === 0) {
+            this.completedUpgrades[i].push(upgradeObj);
+          }
+        }
+      }
+    }
+
+    this.research.needsUpdate = true;
+    this.upgrades.needsUpdate = true;
   }
 }

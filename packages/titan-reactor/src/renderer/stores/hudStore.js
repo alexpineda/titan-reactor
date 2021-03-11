@@ -8,13 +8,16 @@ const useHudStore = create((set, get) => ({
     unitDetails: false,
     attackDetails: false,
   },
-  production: {
-    unitsInProduction: [],
-    cycleVisible: false,
-    currentlyVisible: 0,
+  productionView: 0,
+  autoToggleProductionView: true,
+  // resources, units, upgrades, research
+  toggleProductionView: (val) => {
+    if (val) {
+      set({ productionView: val });
+    } else {
+      set({ productionView: (get().productionView + 1) % 4 });
+    }
   },
-  updateUnitsInProduction: (unitsInProduction) =>
-    set({ production: { ...get().production, unitsInProduction } }),
   toggleInGameMenu: () => {
     set({ show: { ...get().show, inGameMenu: !get().show.inGameMenu } });
   },

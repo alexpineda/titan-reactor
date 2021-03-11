@@ -9,4 +9,4 @@ const WrappedElement = ({ domElement, ...props }) => {
   return <div ref={canvasRef} {...props}></div>;
 };
 
-export default memo(WrappedElement);
+export default WrappedElement;

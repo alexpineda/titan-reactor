@@ -118,11 +118,11 @@ const Home = ({ settings, saveSettings }) => {
                   made. Thanks to the open source community. Thanks to tec27
                   (sb/inspiration), heinerman (bwapi), saint of idiocy
                   (formats), poiuy qwert (pyms), zezula (casc/pkware), tcsmoo
-                  (openbw), dakota (screp), sccait community, sen, threejs, and
-                  all others. The broader BW community for keeping the game
-                  alive, BSL, RSL, CPL, TDR, STPL, BWCL, HAY, Jeez, Rogues, and
-                  anothers I may have missed. Shoop, Queen, JY, Stryker for
-                  early support. And All my supporters. Thanks.{" "}
+                  (openbw), dakota (screp), neiv (animosity), sccait community,
+                  sen, threejs, and all others. The broader BW community for
+                  keeping the game alive, BSL, RSL, CPL, TDR, STPL, BWCL, HAY,
+                  Jeez, Rogues, and anothers I may have missed. Shoop, Queen,
+                  JY, Stryker for early support. And All my supporters. Thanks.{" "}
                 </p>
               </p>
             </div>

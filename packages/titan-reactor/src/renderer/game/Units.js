@@ -196,6 +196,7 @@ class Units {
           unitsInProduction.push({
             ...incompleteUnit,
             typeId,
+            icon: typeId,
             count: 1,
             buildTime: unitType.buildTime,
           });

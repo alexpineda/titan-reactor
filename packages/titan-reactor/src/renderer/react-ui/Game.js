@@ -2,7 +2,7 @@ import React from "react";
 import WrappedElement from "./WrappedElement";
 import Minimap from "./game/Minimap";
 import Production from "./game/Production";
-import ResourcesBar from "./game/ResourcesBar";
+import ResourcesBar from "./game/resource-bar/ResourcesBar";
 import UnitSelection from "./game/UnitSelection";
 import ReplayPosition from "./game/ReplayPosition";
 import ProducerBar from "./game/ProducerBar";
@@ -15,14 +15,11 @@ import useSettingsStore from "../stores/settingsStore";
 import useHudStore from "../stores/hudStore";
 
 const Game = () => {
-  const { dimensions, canvas, fpsCanvas, selectedUnits } = useGameStore(
-    (state) => ({
-      dimensions: state.dimensions,
-      canvas: state.game.surface.canvas,
-      fpsCanvas: state.game.fpsCanvas,
-      selectedUnits: state.game.selectedUnits,
-    })
-  );
+  const { dimensions, canvas, selectedUnits } = useGameStore((state) => ({
+    dimensions: state.dimensions,
+    canvas: state.game.surface.canvas,
+    selectedUnits: state.game.selectedUnits,
+  }));
 
   const {
     showFps,
@@ -59,9 +56,6 @@ const Game = () => {
         }}
         domElement={canvas}
       />
-      {showFps && producerWindowPosition === ProducerWindowPosition.None && (
-        <WrappedElement domElement={fpsCanvas} />
-      )}
       {producerWindowPosition != ProducerWindowPosition.None && <ProducerBar />}
 
       {showInGameMenu && (

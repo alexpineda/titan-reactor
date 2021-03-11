@@ -23,17 +23,13 @@ const ProducerBar = ({ className }) => {
     })
   );
 
-  const {
-    dimensions,
-    replayPosition,
-    fpsCanvas,
-    previewSurfaces,
-  } = useGameStore((state) => ({
-    dimensions: state.dimensions,
-    replayPosition: state.game.replayPosition,
-    previewSurfaces: state.game.previewSurfaces,
-    fpsCanvas: state.game.fpsCanvas,
-  }));
+  const { dimensions, replayPosition, previewSurfaces } = useGameStore(
+    (state) => ({
+      dimensions: state.dimensions,
+      replayPosition: state.game.replayPosition,
+      previewSurfaces: state.game.previewSurfaces,
+    })
+  );
 
   const style = {
     width: `${producerDockSize}px`,
@@ -126,7 +122,6 @@ const ProducerBar = ({ className }) => {
           />
         </ul>
       </div>
-      {fpsCanvas && <WrappedElement domElement={fpsCanvas} />}
 
       <Tab
         className="flex flex-col h-full pb-10 justify-around"
