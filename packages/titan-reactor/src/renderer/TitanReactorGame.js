@@ -397,12 +397,12 @@ async function TitanReactorGame(
 
         gameStatePosition.bwGameFrame = nextFrame.frame;
 
-        if (rep.cmds[gameStatePosition.bwGameFrame]) {
-          apm.update(
-            rep.cmds[gameStatePosition.bwGameFrame],
-            gameStatePosition.bwGameFrame
-          );
+        apm.update(
+          rep.cmds[gameStatePosition.bwGameFrame],
+          gameStatePosition.bwGameFrame
+        );
 
+        if (rep.cmds[gameStatePosition.bwGameFrame]) {
           // #region player command pointers
           for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
             if (players[cmd.player].showPov) {
