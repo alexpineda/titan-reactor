@@ -27,6 +27,7 @@ export default class FogOfWar {
     // for use with canvas drawing / minimap
     this.imageData = new ImageData(width, height);
 
+    // for shader
     const texture = new DataTexture(
       new Uint8Array(new SharedArrayBuffer(width * height)),
       width,
@@ -56,15 +57,10 @@ export default class FogOfWar {
     this._hideSpeed = HideSpeedSlow;
 
     this.effect = effect;
-    this.effect.worldOffset = new Vector2(width / 2, height / 2);
     this.effect.fog = texture;
     this.effect.fogResolution = new Vector2(width, height);
-    this.effect.fogUvTransform = new Vector4(
-      0,
-      0,
-      1 / this.width,
-      1 / this.height
-    );
+
+    this.effect.fogUvTransform = new Vector4(0.5, 0.5, 1 / height, 1 / width);
 
     this.worker = new Worker();
   }
@@ -149,39 +145,7 @@ export default class FogOfWar {
 
       this.imageData = imageData;
       this._toBuffer = toBuffer;
-      // this.texture.needsUpdate = true;
     };
-
-    // for (let i = 0; i < this.imageBuffer.length; i++) {
-    //   let val = Unexplored;
-
-    //   if (~tileData.buffer.get(i * 2) & playerVisionFlags) {
-    //     val = Explored;
-    //   }
-
-    //   if (~tileData.buffer.get(i * 2 + 1) & playerVisionFlags) {
-    //     val = Visible;
-    //   }
-
-    //   if (this.enabled) {
-    //     if (val > this.imageBuffer[i]) {
-    //       this.imageBuffer[i] = Math.min(
-    //         val,
-    //         this.imageBuffer[i] + this._revealSpeed
-    //       );
-    //     } else if (val < this.imageBuffer[i]) {
-    //       this.imageBuffer[i] = Math.max(
-    //         val,
-    //         this.imageBuffer[i] - this._hideSpeed
-    //       );
-    //     }
-    //   }
-
-    //   this._toBuffer[i] = val;
-
-    //   //alpha for minimap
-    //   this.imageData.data[i * 4 - 1] = Math.max(50, 255 - val);
-    // }
 
     this.playerVisionWasToggled = false;
   }

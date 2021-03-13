@@ -146,6 +146,8 @@ class Units {
       unit.id = unitBw.unitType;
       unit.owner = this.playersById[unitBw.owner];
       unit.isBuilding = unitBw.unitType.isBuilding;
+      unit.wasFlying = unit.isFlying && !unitBw.isFlying;
+      unit.isNowFlying = !unit.isFlying && unitBw.isFlying;
       unit.isFlying = unitBw.isFlying;
       unit.isCloaked = unitBw.isCloaked;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;

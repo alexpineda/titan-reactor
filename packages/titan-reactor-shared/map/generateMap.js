@@ -553,8 +553,9 @@ export const generateMesh = async (renderer, tileData) => {
   const displaceForGetTerrainY = document.createElement("canvas");
   displaceForGetTerrainY.width = mapWidth * 4;
   displaceForGetTerrainY.height = mapHeight * 4;
-  displaceForGetTerrainY.getContext("2d").drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
-  
+  displaceForGetTerrainY
+    .getContext("2d")
+    .drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
 
   const elevationsMaterial = new THREE.MeshBasicMaterial({
     map,
@@ -692,7 +693,7 @@ export const generateMesh = async (renderer, tileData) => {
 
           // scale 0->13 0->1
           float creepS = creepF * 255./creepResolution.x; 
-          float tilex = mod(vUv.x, invMapResolution.x)  * mapToCreepResolution.x + creepS;
+          float tilex = mod(vUv.x, invMapResolution.x)   * mapToCreepResolution.x + creepS;
           float tiley = mod(vUv.y, invMapResolution.y) * mapToCreepResolution.y;
           vec4 creepColor = texture2D(creepTexture, vec2(tilex,tiley));
           vec4 creepLinear = mapTexelToLinear(creepColor);
@@ -700,13 +701,13 @@ export const generateMesh = async (renderer, tileData) => {
       
           //creep edges
           creepS = creepEdge * 255./creepEdgesResolution.x; 
-          tilex = mod(vUv.x, invMapResolution.x)  * mapToCreepEdgesResolution.x + creepS;
-          tiley = mod(vUv.y, invMapResolution.y) * mapToCreepEdgesResolution.y;
+          tilex = mod(vUv.x, invMapResolution.x)  * 1.05 * mapToCreepEdgesResolution.x + creepS;
+          tiley = mod(vUv.y, invMapResolution.y) * 1.05 * mapToCreepEdgesResolution.y;
   
           vec4 creepEdgeColor = texture2D(creepEdgesTexture, vec2(tilex,tiley));
           vec4 creepEdgeLinear = mapTexelToLinear(creepEdgeColor);
           diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
-          
+
           `
           );
           shader.fragmentShader = `

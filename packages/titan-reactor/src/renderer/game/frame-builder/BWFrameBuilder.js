@@ -192,27 +192,21 @@ export default class BWFrameSceneBuilder {
 
       sprite.unit = this.unitsBySpriteId.get(spriteBW.index);
       if (sprite.unit) {
-        if (sprite.unit.isFlying || sprite.unit.isFlyingBuilding) {
-          //@todo: get max terrain height + 1 for max
-          //use a different step rather than 2? based on elevations?
-
-          // undo the y offset for floating building since we manage that ourselves
-          if (sprite.unit.isFlyingBuilding && sprite.unit.isFlying) {
-            z = z - 42 / 32;
-          }
-
-          const targetY = sprite.unit.isFlying ? Math.min(6, y + 4) : y;
-          if (!sprite.initialized) {
+        if (sprite.unit.isFlying) {
+          const targetY = Math.min(6, y + 2);
+          if (sprite.position.y === 0) {
             y = targetY;
           } else {
-            y = MathUtils.damp(sprite.position.y, targetY, 0.0001, delta);
+            y = MathUtils.damp(sprite.position.y, targetY, 0.01, delta);
           }
         }
       }
 
+      // liftoff z - 42, y+
+      // landing z + 42, y-
+
       sprite.position.set(x, y, z);
 
-      sprite.initialized = true;
       const player = this.players.playersById[spriteBW.owner];
 
       let _afterMainImage = false;

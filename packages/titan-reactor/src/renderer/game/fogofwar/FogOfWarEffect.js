@@ -11,7 +11,6 @@ uniform vec4 fogUvTransform;
 
 uniform mat4 projectionInverse;
 uniform vec2 fogResolution;
-uniform vec2 worldOffset;
 
 vec3 computeWorldPosition(const in vec2 uv, const in float depth) {
 
@@ -31,8 +30,7 @@ vec3 computeWorldPosition(const in vec2 uv, const in float depth) {
 
 float sampleFog(const in vec2 uv) {
 
-	// return texture2D(fog, uv).r;
-	return texture2D(fog, clamp(uv, vec2(0., 0.), vec2(1., 1.))).r;
+	return texture2D(fog, uv).r;
 
 }
 
@@ -45,7 +43,7 @@ float getFog(const in vec2 uv) {
 	float dy0 = -texelSize.y * r;
 	float dx1 = texelSize.x * r;
 	float dy1 = texelSize.y * r;
-
+  
 	return (
 		sampleFog(uv + vec2(dx0, dy0)) +
 		sampleFog(uv + vec2(0.0, dy0)) +
@@ -57,16 +55,16 @@ float getFog(const in vec2 uv) {
 		sampleFog(uv + vec2(0.0, dy1)) +
 		sampleFog(uv + vec2(dx1, dy1))
 	) * (1.0 / 9.0);
-
+    
 }
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
 
 	vec3 worldPosition = computeWorldPosition(uv, depth);
-  vec2 fogUv = (worldPosition.xz + worldOffset) * fogUvTransform.wz + fogUvTransform.xy;
+  vec2 fogUv = worldPosition.xz * fogUvTransform.wz + fogUvTransform.xy;
 	float fogValue = getFog(fogUv);
 
-  outputColor = vec4(inputColor.rgb * fogValue * color, inputColor.a);
+  outputColor = vec4(color, 1.-fogValue);
 
 }`;
 
@@ -74,15 +72,14 @@ export default class FogOfWarEffect extends Effect {
   constructor() {
     super("FogOfWarEffect", fragmentShader, {
       attributes: EffectAttribute.DEPTH,
-      blendFunction: BlendFunction.NORMAL,
+      blendFunction: BlendFunction.ALPHA,
       uniforms: new Map([
         ["fog", new Uniform(null)],
         ["fogResolution", new Uniform(new Vector2())],
         ["viewInverse", new Uniform(new Matrix4())],
         ["projectionInverse", new Uniform(new Matrix4())],
-        ["color", new Uniform(new Color(1, 1, 1))],
+        ["color", new Uniform(new Color(0, 0, 0))],
         ["fogUvTransform", new Uniform(new Vector4())],
-        ["worldOffset", new Uniform(new Vector2())],
       ]),
     });
   }
@@ -93,14 +90,6 @@ export default class FogOfWarEffect extends Effect {
 
   set fog(value) {
     this.uniforms.get("fog").value = value;
-  }
-
-  get worldOffset() {
-    return this.uniforms.get("worldOffset").value;
-  }
-
-  set worldOffset(value) {
-    this.uniforms.get("worldOffset").value = value;
   }
 
   get fogResolution() {

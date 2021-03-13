@@ -57,6 +57,10 @@ export default class ImagesBW extends ContiguousContainer {
     return (this.flags & flags.hidden) != 0;
   }
 
+  get frozen() {
+    return (this.flags & flags.frozen) != 0;
+  }
+
   get isShadow() {
     return this.bwDat.images[this.id].drawFunction === drawFunctions.rleShadow;
   }
