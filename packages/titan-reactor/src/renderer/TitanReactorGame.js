@@ -257,9 +257,12 @@ async function TitanReactorGame(
       camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
     );
 
+    const max = Math.max(mapWidth, mapHeight);
+    const wAspect = mapWidth / max;
+    const hAspect = mapHeight / max;
     minimapSurface.setDimensions(
-      Math.floor((gameSurface.height * settings.minimapRatio) / 100),
-      Math.floor((gameSurface.height * settings.minimapRatio) / 100)
+      Math.floor(gameSurface.minimapSize * wAspect),
+      Math.floor(gameSurface.minimapSize * hAspect)
     );
 
     if (settings.producerWindowPosition === ProducerWindowPosition.None) {

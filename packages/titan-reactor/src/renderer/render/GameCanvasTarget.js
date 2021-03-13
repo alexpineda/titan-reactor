@@ -10,7 +10,6 @@ class GameCanvasTarget extends CanvasTarget {
   }
 
   setDimensions(screenWidth, screenHeight) {
-    this.dirty = true;
     const producerWindowPosition = this.settings.producerWindowPosition;
     const gameAspect =
       producerWindowPosition === ProducerWindowPosition.None
@@ -69,6 +68,8 @@ class GameCanvasTarget extends CanvasTarget {
         this.settings.pixelRatio
       );
     }
+
+    this.minimapSize = (this.height * this.settings.minimapRatio) / 100;
   }
 
   getRect() {
@@ -79,6 +80,7 @@ class GameCanvasTarget extends CanvasTarget {
       bottom: window.innerHeight - (this.height + this.top),
       width: this.width,
       height: this.height,
+      minimapSize: this.minimapSize,
     };
   }
 }

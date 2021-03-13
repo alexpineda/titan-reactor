@@ -8,16 +8,17 @@ import useLoadingStore from "../../stores/loadingStore";
 
 const Minimap = ({ className = "" }) => {
   const textSize = useSettingsStore((state) => state.data.textSize);
+
   const {
     fogOfWar,
     toggleFogOfWar,
-    maxLabelWidth,
+    minimapSize,
     timeLabel,
     canvas,
   } = useGameStore((state) => ({
     fogOfWar: state.fogOfWar,
     toggleFogOfWar: state.toggleFogOfWar,
-    maxLabelWidth: state.game.minimapSurface.width,
+    minimapSize: state.dimensions.minimapSize,
     timeLabel: state.game.managedDomElements.timeLabel.domElement,
     canvas: state.game.minimapSurface.canvas,
   }));
@@ -37,18 +38,18 @@ const Minimap = ({ className = "" }) => {
     >
       <div
         className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
-        style={{ width: "13rem", maxWidth: `${maxLabelWidth}px` }}
+        style={{ width: "13rem", maxWidth: `${minimapSize}px` }}
       >
         <WrappedElement domElement={timeLabel} className="inline" />
       </div>
 
-      <span className="flex" style={{ maxWidth: `${maxLabelWidth}px` }}>
+      <span className="flex" style={{ maxWidth: `${minimapSize}px` }}>
         <span className="bg-gray-700 text-gray-400 px-1 uppercase overflow-ellipsis flex-grow">
           <p
             style={{
               opacity: "0.8",
               whiteSpace: "nowrap",
-              maxWidth: `${maxLabelWidth - 30}px`,
+              maxWidth: `${minimapSize - 30}px`,
               textOverflow: "ellipsis",
               overflow: "hidden",
             }}
@@ -72,7 +73,12 @@ const Minimap = ({ className = "" }) => {
         >
           filter_hdr
         </i>
-        <WrappedElement domElement={canvas} />
+
+        <WrappedElement
+          domElement={canvas}
+          className="bg-black  flex items-center justify-center"
+          style={{ width: `${minimapSize}px`, height: `${minimapSize}px` }}
+        />
       </div>
     </div>
   );
