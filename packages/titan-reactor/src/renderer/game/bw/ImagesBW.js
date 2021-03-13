@@ -17,11 +17,6 @@ export default class ImagesBW extends ContiguousContainer {
     return 16;
   }
 
-  constructor(bwDat) {
-    super();
-    this.bwDat = bwDat;
-  }
-
   get default() {
     return this.id;
   }

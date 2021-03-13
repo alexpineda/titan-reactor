@@ -9,8 +9,10 @@ export default class MinimapCanvasDrawer {
     mapWidth,
     mapHeight,
     fogOfWar,
+    creep,
     units
   ) {
+    this.creep = creep;
     this.color = color;
     this.canvas = canvas;
     this.ctx = ctx;
@@ -48,6 +50,14 @@ export default class MinimapCanvasDrawer {
       });
     }
 
+    if (!this._generatingCreep) {
+      this._generatingCreep = true;
+      createImageBitmap(this.creep.creepImageData).then((ib) => {
+        this.creepBitmap = ib;
+        this._generatingCreep = false;
+      });
+    }
+
     this.ctx.save();
 
     this.ctx.drawImage(
@@ -57,6 +67,16 @@ export default class MinimapCanvasDrawer {
       this.canvas.width,
       this.canvas.height
     );
+
+    if (this.creepBitmap) {
+      this.ctx.drawImage(
+        this.creepBitmap,
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+      );
+    }
 
     if (this.unitsBitmap) {
       this.ctx.drawImage(

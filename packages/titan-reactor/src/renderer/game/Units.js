@@ -1,13 +1,9 @@
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { Color } from "three";
-import { createMinimapPoint } from "../mesh/Minimap";
-import { range } from "ramda";
 
 const resourceColor = new Color(0, 55, 55);
 const flashColor = new Color(200, 200, 200);
 const scannerColor = new Color(0xff0000);
-// const scannerColor = new Color(0x00ffbb);
-const blinkRate = 4;
 
 class Units {
   constructor(bwDat, pxToGameUnit, playersById, mapWidth, mapHeight, fogOfWar) {
@@ -84,7 +80,7 @@ class Units {
     let alpha = 255;
     if (isResourceContainer) {
       imageData = this.resourceImageData;
-      alpha = 200;
+      alpha = 150;
     }
 
     for (let x = -wX; x < wX; x++) {
@@ -123,7 +119,7 @@ class Units {
 
     const incompleteUnits = new Map();
 
-    for (const unitBw of unitsBW.items()) {
+    for (const unitBw of unitsBW.instances()) {
       const isResourceContainer = unitBw.unitType.isResourceContainer;
 
       let unit;

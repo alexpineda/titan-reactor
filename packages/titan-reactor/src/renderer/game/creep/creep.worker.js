@@ -10,6 +10,9 @@ onmessage = function ({ data }) {
   const creepData = new Uint8Array(mapWidth * mapHeight);
   const edgesData = new Uint8Array(mapWidth * mapHeight);
 
+  // for minimap
+  const imageData = new ImageData(mapWidth, mapHeight);
+
   for (let x = 0; x < mapWidth; x++) {
     for (let y = 0; y < mapHeight; y++) {
       const tilePos = y * mapWidth + x;
@@ -40,6 +43,16 @@ onmessage = function ({ data }) {
           }
         }
       }
+
+      const pos = (y * mapWidth + x) * 4;
+      if (creepData[tilePos]) {
+        imageData.data[pos] = 82;
+        imageData.data[pos + 1] = 60;
+        imageData.data[pos + 2] = 65;
+        imageData.data[pos + 3] = 200;
+      } else {
+        imageData.data[pos + 3] = 0;
+      }
     }
   }
 
@@ -48,6 +61,7 @@ onmessage = function ({ data }) {
       frame,
       creepData,
       edgesData,
+      imageData,
     },
     [creepData.buffer, edgesData.buffer]
   );

@@ -41,7 +41,6 @@ export default class StreamGameStateReader extends EventEmitter {
   next(frameCount = 1) {
     this.processFrames();
     const frames = this.frames.unshift(frameCount);
-    console.log();
     return frames;
   }
 

@@ -5,15 +5,14 @@ export default class SoundsBW extends ContiguousContainer {
     return 16;
   }
 
-  static get minPlayVolume() {
-    return 10;
-  }
-
-  constructor(bwDat, pxToGameUnit, getTerrainY) {
+  constructor(pxToGameUnit, getTerrainY) {
     super();
-    this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
+  }
+
+  static get minPlayVolume() {
+    return 10;
   }
 
   get id() {

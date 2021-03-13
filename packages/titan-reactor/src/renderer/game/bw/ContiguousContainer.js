@@ -1,9 +1,8 @@
 import BufferList from "bl";
 
 export default class ContiguousContainer {
-  constructor(buf, count) {
+  constructor(count = 0) {
     this._onBuffer = () => {};
-    this.buffer = buf;
     this.count = count;
     this._offset = 0;
   }
@@ -23,6 +22,10 @@ export default class ContiguousContainer {
 
   static get byteLength() {
     return 0;
+  }
+
+  static getSize(count) {
+    return count * this.constructor.byteLength;
   }
 
   get offset() {

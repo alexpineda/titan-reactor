@@ -32,6 +32,7 @@ import { debounce } from "lodash";
 import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import useHudStore from "./stores/hudStore";
+import Creep from "./game/creep/Creep";
 
 const { startLocation } = unitTypes;
 
@@ -247,8 +248,7 @@ async function TitanReactorGame(
 
   //#endregion hud ui
   window.cameras = cameras;
-  const sceneResizeHandler = debounce(() => {
-    // drawCallInspector.update();
+  const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
 
@@ -279,7 +279,8 @@ async function TitanReactorGame(
         dimensions: gameSurface.getRect(),
       })
     );
-  }, 500);
+  };
+  const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
 
   let _preloadFrames = [];
@@ -310,6 +311,13 @@ async function TitanReactorGame(
     fogOfWar
   );
 
+  const creep = new Creep(
+    mapWidth,
+    mapHeight,
+    scene.creepUniform.value,
+    scene.creepEdgesUniform.value
+  );
+
   const minimapCanvasDrawer = new MinimapCanvasDrawer(
     "white",
     minimapSurface,
@@ -317,14 +325,14 @@ async function TitanReactorGame(
     mapWidth,
     mapHeight,
     fogOfWar,
+    creep,
     units
   );
 
   const projectedCameraView = new ProjectedCameraView(cameras.camera);
   const frameBuilder = new BWFrameSceneBuilder(
     scene,
-    mapWidth,
-    mapHeight,
+    creep,
     bwDat,
     pxToGameUnit,
     getTerrainY,
@@ -348,16 +356,19 @@ async function TitanReactorGame(
     cameras.update();
 
     if (!gameStatePosition.paused) {
-      if (gameStatePosition.skipGameFrames) {
-        console.log(gameStatePosition.bwGameFrame);
+      // prepare next frame, skipgameframes may be 1 which tells us we have 1 frame to process
+
+      if (gameStatePosition.skipGameFrames && !currentBwFrame) {
         currentBwFrame = nextBwFrame;
 
         //preload
         projectedCameraView.update();
 
-        gameStateReader.next(gameStatePosition.skipGameFrames - 1);
+        //@todo fix reading multiple frames, since they get unmarked, currentBwFrame gets used
+        // gameStateReader.next(gameStatePosition.skipGameFrames - 1);
         nextBwFrame = gameStateReader.nextOne();
         if (nextBwFrame) {
+          // get creep, fog of war, sounds, etc. ready ahead of time if possible
           frameBuilder.prepare(nextBwFrame, elapsed);
         } else {
           gameStatePosition.paused = true;
@@ -420,7 +431,7 @@ async function TitanReactorGame(
         }
         fadingPointers.update(gameStatePosition.bwGameFrame);
         currentBwFrame = null;
-      }
+      } // end of bwframe update
 
       if (gameStatePosition.willUpdateAutospeed()) {
         const attackingUnits = [];
@@ -530,9 +541,8 @@ async function TitanReactorGame(
     gameStatePosition.update(delta);
   }
 
-  let _disposing = false;
   const dispose = () => {
-    _disposing = true;
+    console.log("disposing");
     audioMaster.dispose();
     renderMan.renderer.setAnimationLoop(null);
     renderMan.dispose();
@@ -550,35 +560,11 @@ async function TitanReactorGame(
 
     window.document.body.style.cursor = "default";
 
+    gameStateReader.dispose();
     unsubs.forEach((unsubscribe) => unsubscribe());
   };
 
-  var limitLoop = function (fn, fps) {
-    var then = new Date().getTime();
-
-    fps = fps || 60;
-    var interval = 1000 / fps;
-
-    return (function loop(time) {
-      if (_disposing) return;
-
-      requestAnimationFrame(loop);
-
-      // again, Date.now() if it's available
-      var now = new Date().getTime();
-      var delta = now - then;
-
-      if (delta > interval) {
-        // Update time
-        // now - (delta % interval) is an improvement over just
-        // using then = now, which can end up lowering overall fps
-        then = now - (delta % interval);
-
-        // call the fn
-        fn(time);
-      }
-    })(0);
-  };
+  window.onbeforeunload = dispose;
 
   const unsub = useSettingsStore.subscribe((state, prevState) => {
     settings = state.data;
@@ -625,11 +611,15 @@ async function TitanReactorGame(
   });
   const unsubs = [unsub, unsub2, unsub3];
 
-  renderMan.renderer.setAnimationLoop(gameLoop);
-  sceneResizeHandler();
+  //run 1 frame
   gameStatePosition.resume();
+  gameStatePosition.skipGameFrames = 1;
+  gameLoop(0);
+  renderMan.renderer.compile(scene, cameras.camera);
+  _sceneResizeHandler();
 
   return {
+    start: () => renderMan.renderer.setAnimationLoop(gameLoop),
     chk,
     gameIcons: scene.gameIcons,
     cmdIcons: scene.cmdIcons,

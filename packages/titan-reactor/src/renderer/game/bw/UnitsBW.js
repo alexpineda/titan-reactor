@@ -49,11 +49,6 @@ export default class UnitsBW extends ContiguousContainer {
     return 24;
   }
 
-  constructor(bwDat) {
-    super();
-    this.bwDat = bwDat;
-  }
-
   get id() {
     return this._read16(0);
   }
@@ -99,7 +94,7 @@ export default class UnitsBW extends ContiguousContainer {
   }
 
   get angle() {
-    let d = this.direction();
+    let d = this.direction;
     d -= 64;
     if (d < 0) {
       d += 256;
@@ -132,5 +127,28 @@ export default class UnitsBW extends ContiguousContainer {
 
   get tileY() {
     return Math.floor(this.y / 32);
+  }
+
+  object() {
+    return {
+      id: this.id,
+      typeId: this.typeId,
+      owner: this.owner,
+      x: this.x,
+      y: this.y,
+      hp: this.hp,
+      energy: this.energy,
+      spriteIndex: this.spriteIndex,
+      statusFlags: this.statusFlags,
+      direction: this.direction,
+      remainingBuildTime: this.remainingBuildTime,
+      angle: this.angle,
+      unitType: this.unitType,
+      isFlying: this.isFlying,
+      isCloaked: this.isCloaked,
+      isComplete: this.isComplete,
+      tileX: this.tileX,
+      tileY: this.tileY,
+    };
   }
 }

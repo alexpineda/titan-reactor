@@ -39,6 +39,7 @@ import AudioMaster from "./audio/AudioMaster";
 import useLoadingStore from "./stores/loadingStore";
 import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
+import ContiguousContainer from "./game/bw/ContiguousContainer";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -73,6 +74,7 @@ export class TitanReactor {
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
     };
     window.bwDat = this.bwDat;
+    ContiguousContainer.prototype.bwDat = this.bwDat;
 
     const renderer = new WebGLRenderer();
     // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
@@ -214,6 +216,8 @@ export class TitanReactor {
 
     useGameStore.setState({ game: this.game });
     loadingStore.completeRep();
+
+    this.game.start();
   }
 
   async spawnMapViewer(chkFilepath) {

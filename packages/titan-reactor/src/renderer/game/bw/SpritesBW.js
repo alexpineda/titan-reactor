@@ -7,11 +7,6 @@ export default class SpritesBW extends ContiguousContainer {
     return 17;
   }
 
-  constructor(bwDat) {
-    super();
-    this.bwDat = bwDat;
-  }
-
   get default() {
     return this.index;
   }

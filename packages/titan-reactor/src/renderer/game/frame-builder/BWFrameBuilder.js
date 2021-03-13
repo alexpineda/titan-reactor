@@ -26,8 +26,7 @@ export default class BWFrameSceneBuilder {
    */
   constructor(
     scene,
-    mapWidth,
-    mapHeight,
+    creep,
     bwDat,
     pxToGameUnit,
     getTerrainY,
@@ -41,24 +40,19 @@ export default class BWFrameSceneBuilder {
     this.audioMaster = audioMaster;
     this.createTitanImage = createTitanImage;
     this.projectedCameraView = projectedCameraView;
-    this.unitsBW = new UnitsBW(bwDat);
+    this.unitsBW = new UnitsBW();
     this.tilesBW = new TilesBW();
     this.creepBW = new CreepBW();
-    this.soundsBW = new SoundsBW(bwDat, pxToGameUnit, getTerrainY);
-    this.spritesBW = new SpritesBW(bwDat);
-    this.imagesBW = new ImagesBW(bwDat);
+    this.soundsBW = new SoundsBW(pxToGameUnit, getTerrainY);
+    this.spritesBW = new SpritesBW();
+    this.imagesBW = new ImagesBW();
     this.researchBW = new ResearchBW();
     this.upgradeBW = new UpgradeBW();
-    this.buildQueueBW = new BuildingQueueCountBW(bwDat);
+    this.buildQueueBW = new BuildingQueueCountBW();
     this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.getTerrainY = getTerrainY;
-    this.creep = new Creep(
-      mapWidth,
-      mapHeight,
-      scene.creepUniform.value,
-      scene.creepEdgesUniform.value
-    );
+    this.creep = creep;
     this.fogOfWar = fogOfWar;
 
     this.sprites = new Map();
