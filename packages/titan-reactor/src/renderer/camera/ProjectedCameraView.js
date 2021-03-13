@@ -23,6 +23,10 @@ export default class ProjectedCameraView {
     this.bottom = 0;
     this.width = 0;
     this.height = 0;
+    this.bl = 0;
+    this.tr = 0;
+    this.br = 0;
+    this.tl = 0;
     this.viewBW = {
       left: 0,
       top: 0,
@@ -71,11 +75,9 @@ export default class ProjectedCameraView {
     this.width = _intersect[1].x - _intersect[0].x;
     this.height = _intersect[0].z - _intersect[1].z;
 
-    this.viewBW = {
-      left: (this.left + this.mapWidth / 2) * 32,
-      top: (this.top + this.mapHeight / 2) * 32,
-      right: (this.right + this.mapWidth / 2) * 32,
-      bottom: (this.bottom + this.mapHeight / 2) * 32,
-    };
+    this.viewBW.left = (this.left + this.mapWidth / 2) * 32;
+    this.viewBW.top = (this.top + this.mapHeight / 2) * 32;
+    this.viewBW.right = (this.right + this.mapWidth / 2) * 32;
+    this.viewBW.bottom = (this.bottom + this.mapHeight / 2) * 32;
   }
 }

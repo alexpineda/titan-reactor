@@ -10,10 +10,11 @@ const scannerColor = new Color(0xff0000);
 const blinkRate = 4;
 
 class Units {
-  constructor(bwDat, pxToGameUnit, playersById, mapWidth, mapHeight) {
+  constructor(bwDat, pxToGameUnit, playersById, mapWidth, mapHeight, fogOfWar) {
     this.bwDat = bwDat;
     this.pxToGameUnit = pxToGameUnit;
     this.playersById = playersById;
+    this.fogOfWar = fogOfWar;
 
     this.followingUnit = false;
     this.selected = [];
@@ -27,6 +28,7 @@ class Units {
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
     this.imageData = new ImageData(mapWidth, mapHeight);
+    this.resourceImageData = new ImageData(mapWidth, mapHeight);
   }
 
   _refreshMinimap(unitBw, isResourceContainer, unit) {
@@ -36,6 +38,13 @@ class Units {
     ) {
       return;
     }
+    if (
+      !isResourceContainer &&
+      !this.fogOfWar.isVisible(unitBw.tileX, unitBw.tileY)
+    ) {
+      return;
+    }
+
     let color;
 
     if (isResourceContainer) {
@@ -71,6 +80,13 @@ class Units {
     const wX = Math.floor(w / 2);
     const wY = Math.floor(w / 2);
 
+    let imageData = this.imageData;
+    let alpha = 255;
+    if (isResourceContainer) {
+      imageData = this.resourceImageData;
+      alpha = 200;
+    }
+
     for (let x = -wX; x < wX; x++) {
       for (let y = -wY; y < wY; y++) {
         if (unitY + y < 0) continue;
@@ -79,11 +95,11 @@ class Units {
         if (unitY + y >= this.mapHeight) continue;
 
         const pos = ((unitY + y) * this.mapWidth + unitX + x) * 4;
-        if (this.imageData.data[pos] === 255) continue;
-        this.imageData.data[pos] = Math.floor(color.r * 255);
-        this.imageData.data[pos + 1] = Math.floor(color.g * 255);
-        this.imageData.data[pos + 2] = Math.floor(color.b * 255);
-        this.imageData.data[pos + 3] = 255;
+
+        imageData.data[pos] = Math.floor(color.r * 255);
+        imageData.data[pos + 1] = Math.floor(color.g * 255);
+        imageData.data[pos + 2] = Math.floor(color.b * 255);
+        imageData.data[pos + 3] = alpha;
       }
     }
 
@@ -102,20 +118,12 @@ class Units {
 
     for (let i = 0; i < this.imageData.data.length; i++) {
       this.imageData.data[i] = 0;
+      this.resourceImageData.data[i] = 0;
     }
 
     const incompleteUnits = new Map();
 
     for (const unitBw of unitsBW.items()) {
-      if (!unitBw.isComplete) {
-        incompleteUnits.set(unitBw.id, {
-          unitId: unitBw.id,
-          typeId: unitBw.typeId,
-          remainingBuildTime: unitBw.remainingBuildTime,
-          ownerId: unitBw.owner,
-        });
-        continue;
-      }
       const isResourceContainer = unitBw.unitType.isResourceContainer;
 
       let unit;
@@ -129,10 +137,9 @@ class Units {
         units.set(unitBw.id, unit);
       }
 
-      if (!unitsBySpriteId.has(unitBw.spriteIndex)) {
-        unitsBySpriteId.set(unitBw.spriteIndex, unit);
-      }
+      unitsBySpriteId.set(unitBw.spriteIndex, unit);
 
+      //if receiving damage, blink 3 times, hold blink 3 frames
       if (!unit.recievingDamage && unit.hp > unitBw.hp) {
         unit.recievingDamage = 0b000111000111000111;
       } else if (unit.recievingDamage) {
@@ -140,6 +147,7 @@ class Units {
       }
       unit.hp = unitBw.hp;
       unit.id = unitBw.id;
+      unit.id = unitBw.unitType;
       unit.owner = this.playersById[unitBw.owner];
       unit.isBuilding = unitBw.unitType.isBuilding;
       unit.isFlying = unitBw.isFlying;
@@ -162,6 +170,15 @@ class Units {
       }
 
       this._refreshMinimap(unitBw, isResourceContainer, unit);
+
+      if (!unitBw.isComplete) {
+        incompleteUnits.set(unitBw.id, {
+          unitId: unitBw.id,
+          typeId: unitBw.typeId,
+          remainingBuildTime: unitBw.remainingBuildTime,
+          ownerId: unitBw.owner,
+        });
+      }
     }
 
     if (frame % 8 === 0) {

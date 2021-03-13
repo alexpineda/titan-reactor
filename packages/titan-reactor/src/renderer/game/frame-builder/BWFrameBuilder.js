@@ -1,4 +1,4 @@
-import { MathUtils } from "three";
+import { Group, MathUtils } from "three";
 import Creep from "../creep/Creep";
 import BuildingQueueCountBW from "../bw/BuildingQueueCountBW";
 import CreepBW from "../bw/CreepBW";
@@ -9,7 +9,6 @@ import TilesBW from "../bw/TilesBW";
 import UnitsBW from "../bw/UnitsBW";
 import ResearchBW from "../bw/ResearchBW";
 import UpgradeBW from "../bw/UpgradeBW";
-import BWFrameScene from "./BWFrameScene";
 import Sprite from "../Sprite";
 import { range } from "ramda";
 
@@ -19,7 +18,6 @@ export default class BWFrameSceneBuilder {
    * @param {TitanReactorScene} scene
    * @param {Number} mapWidth
    * @param {Number} mapHeight
-   * @param {Scene} minimapScene
    * @param {Object} bwDat
    * @param {Function} pxToGameUnit
    * @param {Function} getTerrainY
@@ -30,16 +28,19 @@ export default class BWFrameSceneBuilder {
     scene,
     mapWidth,
     mapHeight,
-    minimapScene,
     bwDat,
     pxToGameUnit,
     getTerrainY,
     players,
-    fogOfWar
+    fogOfWar,
+    audioMaster,
+    createTitanImage,
+    projectedCameraView
   ) {
     this.players = players;
-    this.bwScene = new BWFrameScene(scene, 1);
-    this.minimapBwScene = new BWFrameScene(minimapScene, 1);
+    this.audioMaster = audioMaster;
+    this.createTitanImage = createTitanImage;
+    this.projectedCameraView = projectedCameraView;
     this.unitsBW = new UnitsBW(bwDat);
     this.tilesBW = new TilesBW();
     this.creepBW = new CreepBW();
@@ -70,15 +71,16 @@ export default class BWFrameSceneBuilder {
     this.upgrades = range(0, 8).map(() => []);
     this.completedResearch = range(0, 8).map(() => []);
     this.completedUpgrades = range(0, 8).map(() => []);
+
+    this.scene = scene;
+    this.group = new Group();
+    this.scene.add(this.group);
   }
 
-  buildStart(nextFrame, updateMinimap) {
-    this.nextFrame = nextFrame;
-    this.updateMinimap = updateMinimap;
-    this.bwScene.swap();
-    if (updateMinimap) {
-      this.minimapBwScene.swap();
-    }
+  prepare(bwFrame, elapsed) {
+    this.buildSounds(bwFrame, elapsed);
+    this.buildFog(bwFrame);
+    this.buildCreep(bwFrame);
   }
 
   /**
@@ -87,27 +89,30 @@ export default class BWFrameSceneBuilder {
    * @param {AudioMaster} audioMaster
    * @param {Number} elapsed
    */
-  buildSounds(view, audioMaster, elapsed) {
-    this.soundsBW.count = this.nextFrame.soundCount;
-    this.soundsBW.buffer = this.nextFrame.sounds;
+  buildSounds(bwFrame, elapsed) {
+    this.soundsBW.count = bwFrame.soundCount;
+    this.soundsBW.buffer = bwFrame.sounds;
 
     for (let sound of this.soundsBW.items()) {
       const volume = sound.bwVolume(
-        view.left,
-        view.top,
-        view.right,
-        view.bottom
+        this.projectedCameraView.left,
+        this.projectedCameraView.top,
+        this.projectedCameraView.right,
+        this.projectedCameraView.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
         if (!this.fogOfWar.isVisible(sound.tileX, sound.tileY)) {
           continue;
         }
 
-        audioMaster.channels.queue(
+        this.audioMaster.channels.queue(
           {
             ...sound.object(),
             volume,
-            pan: sound.bwPan(view.left, view.width),
+            pan: sound.bwPan(
+              this.projectedCameraView.left,
+              this.projectedCameraView.width
+            ),
           },
           elapsed
         );
@@ -118,12 +123,12 @@ export default class BWFrameSceneBuilder {
   /**
    * @param {Units} units
    */
-  buildUnitsAndMinimap(units) {
-    this.unitsBW.count = this.nextFrame.unitCount;
-    this.unitsBW.buffer = this.nextFrame.units;
+  buildUnitsAndMinimap(bwFrame, units) {
+    this.unitsBW.count = bwFrame.unitCount;
+    this.unitsBW.buffer = bwFrame.units;
 
-    this.buildQueueBW.count = this.nextFrame.buildingQueueCount;
-    this.buildQueueBW.buffer = this.nextFrame.buildingQueue;
+    this.buildQueueBW.count = bwFrame.buildingQueueCount;
+    this.buildQueueBW.buffer = bwFrame.buildingQueue;
 
     units.refresh(
       this.unitsBW,
@@ -131,7 +136,7 @@ export default class BWFrameSceneBuilder {
       this.units,
       this.unitsBySpriteId,
       this.unitsInProduction,
-      this.nextFrame.frame
+      bwFrame.frame
     );
   }
 
@@ -140,12 +145,12 @@ export default class BWFrameSceneBuilder {
    * @param {ReplaySprites} sprites
    * @param {ProjectedCameraView} view
    */
-  buildSprites(view, delta, createImage) {
-    this.spritesBW.count = this.nextFrame.spriteCount;
-    this.spritesBW.buffer = this.nextFrame.sprites;
+  buildSprites(bwFrame, delta) {
+    this.spritesBW.count = bwFrame.spriteCount;
+    this.spritesBW.buffer = bwFrame.sprites;
 
     // we set count below
-    this.imagesBW.buffer = this.nextFrame.images;
+    this.imagesBW.buffer = bwFrame.images;
 
     for (const spriteBW of this.spritesBW.items()) {
       // if (
@@ -161,9 +166,28 @@ export default class BWFrameSceneBuilder {
       if (!sprite) {
         sprite = new Sprite(spriteBW.index);
         this.sprites.set(spriteBW.index, sprite);
-      } else {
-        sprite.clear();
       }
+
+      const buildingIsExplored =
+        sprite.unit &&
+        sprite.unit.isBuilding &&
+        this.fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
+
+      // doodads and resources are always visible
+      // also show units as fog is lifting from or lowering to explored
+      // also show if a building has been explored
+      sprite.visible =
+        spriteBW.owner === 11 ||
+        spriteBW.spriteType.image.iscript === 336 ||
+        spriteBW.spriteType.image.iscript === 337 ||
+        this.fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
+
+      // don't update explored building frames so viewers only see last built frame
+      const dontUpdate =
+        buildingIsExplored &&
+        !this.fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
+
+      sprite.clear();
 
       sprite.renderOrder = spriteBW.order * 10;
       let _imageRenderOrder = sprite.renderOrder;
@@ -197,33 +221,17 @@ export default class BWFrameSceneBuilder {
       sprite.initialized = true;
       const player = this.players.playersById[spriteBW.owner];
 
-      // const buildingIsExplored =
-      //   sprite.unit &&
-      //   sprite.unit.isBuilding &&
-      //   this.fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
-
-      // doodads and resources are always visible
-      sprite.visible =
-        spriteBW.owner === 11 ||
-        spriteBW.spriteType.image.iscript === 336 ||
-        spriteBW.spriteType.image.iscript === 337 ||
-        this.fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
-
-      // const dontUpdate =
-      //   buildingIsExplored &&
-      //   !this.fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
-
       let _afterMainImage = false;
       for (let image of this.imagesBW.reverse(spriteBW.imageCount)) {
         if (image.hidden) continue;
 
         const titanImage =
-          sprite.images.get(image.id) || createImage(image.id, sprite);
+          sprite.images.get(image.id) ||
+          this.createTitanImage(image.id, sprite);
         if (!titanImage) continue;
         sprite.add(titanImage);
 
-        //don't update the image so that explored fog of war shows last played frame
-        if (!sprite.visible) {
+        if (!sprite.visible || dontUpdate) {
           continue;
         }
 
@@ -260,7 +268,7 @@ export default class BWFrameSceneBuilder {
         }
       }
 
-      this.bwScene.add(sprite);
+      this.group.add(sprite);
     }
   }
 
@@ -268,31 +276,31 @@ export default class BWFrameSceneBuilder {
    *
    * @param {Number} playerVisionFlags
    */
-  buildFog() {
-    this.tilesBW.count = this.nextFrame.tilesCount;
-    this.tilesBW.buffer = this.nextFrame.tiles;
+  buildFog(bwFrame) {
+    this.tilesBW.count = bwFrame.tilesCount;
+    this.tilesBW.buffer = bwFrame.tiles;
 
     this.fogOfWar.generate(
       this.tilesBW,
       this.players
         .filter((p) => p.vision)
         .reduce((flags, { id }) => (flags |= 1 << id), 0),
-      this.nextFrame.frame
+      bwFrame.frame
     );
   }
 
-  buildCreep() {
-    this.creepBW.count = this.nextFrame.creepCount;
-    this.creepBW.buffer = this.nextFrame.creep;
+  buildCreep(bwFrame) {
+    this.creepBW.count = bwFrame.creepCount;
+    this.creepBW.buffer = bwFrame.creep;
 
-    this.creep.generate(this.creepBW, this.nextFrame.frame);
+    this.creep.generate(this.creepBW, bwFrame.frame);
   }
 
-  buildResearchAndUpgrades() {
-    this.researchBW.count = this.nextFrame.researchCount;
-    this.researchBW.buffer = this.nextFrame.research;
-    this.upgradeBW.count = this.nextFrame.upgradeCount;
-    this.upgradeBW.buffer = this.nextFrame.upgrades;
+  buildResearchAndUpgrades(bwFrame) {
+    this.researchBW.count = bwFrame.researchCount;
+    this.researchBW.buffer = bwFrame.research;
+    this.upgradeBW.count = bwFrame.upgradeCount;
+    this.upgradeBW.buffer = bwFrame.upgrades;
 
     const researchInProgress = this.researchBW.instances();
     const upgradesInProgress = this.upgradeBW.instances();
@@ -339,5 +347,16 @@ export default class BWFrameSceneBuilder {
 
     this.research.needsUpdate = true;
     this.upgrades.needsUpdate = true;
+  }
+
+  update(bwFrame, delta, units) {
+    this.group.clear();
+    this.buildUnitsAndMinimap(bwFrame, units);
+    this.buildSprites(bwFrame, delta);
+    this.buildResearchAndUpgrades(bwFrame);
+
+    this.fogOfWar.texture.needsUpdate = true;
+    this.creep.creepValuesTexture.needsUpdate = true;
+    this.creep.creepEdgesValuesTexture.needsUpdate = true;
   }
 }

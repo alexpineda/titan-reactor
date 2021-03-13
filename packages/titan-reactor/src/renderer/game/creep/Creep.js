@@ -36,10 +36,10 @@ export default class Creep {
       this._lastFrame = frame;
 
       this.creepValuesTexture.image.data = creepData;
-      this.creepValuesTexture.needsUpdate = true;
+      // this.creepValuesTexture.needsUpdate = true;
 
       this.creepEdgesValuesTexture.image.data = edgesData;
-      this.creepEdgesValuesTexture.needsUpdate = true;
+      // this.creepEdgesValuesTexture.needsUpdate = true;
     };
     // for (let x = 0; x < this.mapWidth; x++) {
     //   for (let y = 0; y < this.mapHeight; y++) {

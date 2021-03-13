@@ -77,7 +77,7 @@ export class TitanReactorScene extends Scene {
       this.terrain = terrainHD;
     }
 
-    // this.add(bgTerrain);
+    this.add(bgTerrain);
     this.terrainSD = terrain;
     this.terrainHD = terrainHD;
 

@@ -149,7 +149,7 @@ export default class FogOfWar {
 
       this.imageData = imageData;
       this._toBuffer = toBuffer;
-      this.texture.needsUpdate = true;
+      // this.texture.needsUpdate = true;
     };
 
     // for (let i = 0; i < this.imageBuffer.length; i++) {

@@ -9,7 +9,8 @@ import {
 import HeatmapScore from "./react-ui/game/HeatmapScore";
 import Cameras from "./camera/Cameras";
 import MinimapControl from "./camera/MinimapControl";
-import { createMiniMapPlane, MinimapBox } from "./mesh/Minimap";
+import { createMiniMapPlane } from "./mesh/Minimap";
+import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
 import { Players } from "./game/Players";
 import FadingPointers from "./mesh/FadingPointers";
 import { commands } from "titan-reactor-shared/types/commands";
@@ -298,17 +299,18 @@ async function TitanReactorGame(
 
   gameStateReader.on("frames", (frames) => preloadAtlasQueue(frames));
 
-  let nextFrame;
+  let nextBwFrame, currentBwFrame;
 
   const units = new Units(
     bwDat,
     pxToGameUnit,
     players.playersById,
     mapWidth,
-    mapHeight
+    mapHeight,
+    fogOfWar
   );
 
-  const minimapBox = new MinimapBox(
+  const minimapCanvasDrawer = new MinimapCanvasDrawer(
     "white",
     minimapSurface,
     scene.minimapBitmap,
@@ -323,79 +325,61 @@ async function TitanReactorGame(
     scene,
     mapWidth,
     mapHeight,
-    minimapScene,
     bwDat,
     pxToGameUnit,
     getTerrainY,
     players,
-    fogOfWar
+    fogOfWar,
+    audioMaster,
+    createTitanImage,
+    projectedCameraView
   );
-
-  function buildFrameScene(nextFrame, view, updateMinimap, elapsed, delta) {
-    frameBuilder.buildStart(nextFrame, updateMinimap);
-    frameBuilder.buildUnitsAndMinimap(units);
-    frameBuilder.buildSprites(view, delta, createTitanImage);
-    frameBuilder.buildFog();
-    frameBuilder.buildCreep();
-    frameBuilder.buildSounds(view, audioMaster, elapsed);
-    frameBuilder.buildResearchAndUpgrades();
-    // unstable_batchedUpdates(() =>
-    //   useHudStore
-    //     .getState()
-    //     .updateUnitsInProduction(frameBuilder.unitsInProduction)
-    // );
-  }
 
   let _lastElapsed = 0;
   let delta = 0;
 
   const apm = new Apm(players);
+  projectedCameraView.update();
 
   function gameLoop(elapsed) {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    const updateMinimap = true; // gameStatePosition.bwGameFrame % 2 === 0 || fogChanged;
     cameras.update();
 
     if (!gameStatePosition.paused) {
-      if (!nextFrame) {
+      if (gameStatePosition.skipGameFrames) {
+        console.log(gameStatePosition.bwGameFrame);
+        currentBwFrame = nextBwFrame;
+
+        //preload
         projectedCameraView.update();
 
         gameStateReader.next(gameStatePosition.skipGameFrames - 1);
-        nextFrame = gameStateReader.nextOne();
-        if (nextFrame) {
-          buildFrameScene(
-            nextFrame,
-            projectedCameraView,
-            updateMinimap,
-            elapsed,
-            delta
-          );
+        nextBwFrame = gameStateReader.nextOne();
+        if (nextBwFrame) {
+          frameBuilder.prepare(nextBwFrame, elapsed);
         } else {
           gameStatePosition.paused = true;
         }
       }
 
-      if (gameStatePosition.skipGameFrames && nextFrame) {
+      if (currentBwFrame) {
+        gameStatePosition.bwGameFrame = currentBwFrame.frame;
         if (gameStatePosition.bwGameFrame % 8 === 0) {
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
+        frameBuilder.update(currentBwFrame, delta, units);
+
         managedDomElements.update(
-          nextFrame,
+          currentBwFrame,
           gameStatePosition,
           players,
           apm.apm,
           frameBuilder
         );
         audioMaster.channels.play(elapsed);
-        frameBuilder.bwScene.activate();
-        if (updateMinimap) {
-          frameBuilder.minimapBwScene.activate();
-        }
-
-        gameStatePosition.bwGameFrame = nextFrame.frame;
 
         apm.update(
           rep.cmds[gameStatePosition.bwGameFrame],
@@ -435,7 +419,7 @@ async function TitanReactorGame(
           // #endregion player commandpointers
         }
         fadingPointers.update(gameStatePosition.bwGameFrame);
-        nextFrame = null;
+        currentBwFrame = null;
       }
 
       if (gameStatePosition.willUpdateAutospeed()) {
@@ -506,40 +490,40 @@ async function TitanReactorGame(
       renderMan.render(scene, cameras.camera, delta);
     }
 
-    if (updateMinimap) {
+    minimapCanvasDrawer.draw(projectedCameraView, minimapSurface.ctx);
+
+    if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
       renderMan.enableRenderPass();
-      renderMan.setCanvasTarget(minimapSurface);
-      fogOfWar.update(cameras.minimapCamera);
-      // renderMan.render(minimapScene, cameras.minimapCamera, delta);
-      minimapBox.draw(projectedCameraView, minimapSurface.ctx);
+      previewSurfaces.forEach((previewSurface, i) => {
+        renderMan.setCanvasTarget(previewSurface);
+        if (useHudStore.getState().hoveringOverMinimap || i > 0) {
+          if (i > 0 && i < 3) {
+            players[i - 1].camera.updateGameScreenAspect(
+              previewSurface.width,
+              previewSurface.height
+            );
 
-      if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
-        previewSurfaces.forEach((previewSurface, i) => {
-          renderMan.setCanvasTarget(previewSurface);
-          if (useHudStore.getState().hoveringOverMinimap || i > 0) {
-            if (i > 0 && i < 3) {
-              players[i - 1].camera.updateGameScreenAspect(
-                previewSurface.width,
-                previewSurface.height
-              );
-
-              renderMan.render(scene, players[i - 1].camera, delta);
-            } else {
-              renderMan.render(scene, cameras.previewCameras[i], delta);
-            }
+            renderMan.render(scene, players[i - 1].camera, delta);
           } else {
-            // previewSurface.canvas
-            //   .getContext("2d")
-            //   .drawImage(
-            //     gameSurface.canvas,
-            //     0,
-            //     0,
-            //     previewSurface.width,
-            //     previewSurface.width
-            //   );
+            renderMan.render(scene, cameras.previewCameras[i], delta);
           }
-        });
-      }
+        } else {
+          // previewSurface.canvas
+          //   .getContext("2d")
+          //   .drawImage(
+          //     gameSurface.canvas,
+          //     0,
+          //     0,
+          //     previewSurface.width,
+          //     previewSurface.width
+          //   );
+        }
+      });
+    }
+
+    // update camera view box if paused so we can properly update the minimap
+    if (gameStatePosition.paused) {
+      projectedCameraView.update();
     }
 
     keyboardShortcuts.update(delta);

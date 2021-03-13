@@ -1,13 +1,11 @@
 import {
   WebGLRenderer,
-  CineonToneMapping,
   sRGBEncoding,
   BasicShadowMap,
   PCFShadowMap,
   PCFSoftShadowMap,
   Vector4,
   HalfFloatType,
-  Vector2,
 } from "three";
 // import { log } from "../invoke";
 
@@ -26,7 +24,6 @@ import {
 } from "postprocessing";
 
 import FogOfWarEffect from "../game/fogofwar/FogOfWarEffect";
-import BWToneMappingEffect from "./effects/BwToneMapping";
 import { easePoly } from "d3-ease";
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
