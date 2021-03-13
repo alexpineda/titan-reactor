@@ -61,12 +61,11 @@ export class TitanReactor {
   async preload() {
     if (useLoadingStore.getState().preloaded) return;
 
+    const settings = useSettingsStore.getState().data;
+
     //@todo move parsing to renderer so I don't have to reassign shit
     log("loading DAT and ISCRIPT files");
-    openStorage(useSettingsStore.getState().data.starcraftPath);
-    electronFileLoader((file) =>
-      file.includes(".gltf") ? fsPromises.readFile(file) : readBwFile(file)
-    );
+    openStorage(settings.starcraftPath);
 
     const origBwDat = await loadAllDataFiles(readBwFile);
     this.bwDat = {
@@ -83,9 +82,20 @@ export class TitanReactor {
     useLoadingStore.setState({ preloaded: true });
   }
 
+  initElectronFileReader() {
+    electronFileLoader((file) => {
+      if (file.includes(".glb") || file.includes(".hdr")) {
+        return fsPromises.readFile(file);
+      } else {
+        return readBwFile(file);
+      }
+    });
+  }
   async spawnReplay(filepath) {
     // const dispatchRepLoadingProgress = () =>
     //   this.store.dispatch(loadingProgress("replay"));
+
+    this.initElectronFileReader();
 
     this.filename = filepath;
 
@@ -224,8 +234,7 @@ export class TitanReactor {
     const startTime = Date.now();
     const minDisplayTime = 3000;
 
-    // const dispatchMapLoadingProgress = () =>
-    //   this.store.dispatch(loadingProgress("map"));
+    this.initElectronFileReader();
 
     this.chk = null;
     this.chkPreviewCanvas = null;

@@ -46,9 +46,6 @@ async function bootup() {
   try {
     // set initializing
     await useSettingsStore.getState().load();
-    if (!useSettingsStore.getState().errors.includes("starcraftPath")) {
-      await titanReactor.preload();
-    }
     useLoadingStore.setState({ initialized: true });
   } catch (err) {
     log(err.message, "error");

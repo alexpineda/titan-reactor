@@ -25,7 +25,7 @@ export default class ProductionElement {
     this.count.style.opacity = "0.9";
     this.count.style.fontFamily = "conthrax";
     this.count.style.fontWeight = "900";
-    this.count.style.textShadow = "-3px -3px 2px black";
+    this.count.style.textShadow = "-2px -2px 2px black";
 
     this.domElement = document.createElement("div");
     this.domElement.classList.add("w-10", "mr-1", "relative");
@@ -39,7 +39,7 @@ export default class ProductionElement {
     this._value = val;
     if (val) {
       this.domElement.classList.remove("hidden");
-      if (val.count > 2) {
+      if (val.count > 1) {
         this.count.innerText = val.count;
         this.count.classList.remove("hidden");
       } else {

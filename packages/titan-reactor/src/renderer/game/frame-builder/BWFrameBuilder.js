@@ -321,6 +321,20 @@ export default class BWFrameSceneBuilder {
 
       for (const upgrade of upgradesInProgress) {
         if (upgrade.owner === i) {
+          // if completed upgrade exists & remainingBuiltTime == 0, increase count
+          // otherwis ejsut update build time
+
+          const existing = this.upgrades[i].find(
+            (u) => u.typeId === upgrade.typeId
+          );
+          if (existing) {
+            if (existing.remainingBuildTime === 0) {
+              existing.count++;
+            }
+            existing.remainingBuildTime = upgrade.remainingBuildTime;
+            continue;
+          }
+
           const upgradeObj = {
             ...upgrade,
             icon: this.bwDat.upgrades[upgrade.typeId].icon,
