@@ -124,21 +124,6 @@ class StandardCameraControls extends CameraControls {
     this.zoomFactor = 40;
   }
 
-  setMapBoundary(width, height) {
-    if (width === null) {
-      this.boundaryEnclosesCamera = false;
-      return;
-    }
-    this.boundaryEnclosesCamera = true;
-
-    const bb = new THREE.Box3(
-      new THREE.Vector3(-width, 0, -height),
-      new THREE.Vector3(width, 400, height)
-    );
-    this.setBoundary(bb);
-    this.boundaryFriction = 0.5;
-  }
-
   initNumpadControls() {
     this.numpadControlEnabled = true;
     const updateShot = (opts) => {
@@ -199,15 +184,6 @@ class StandardCameraControls extends CameraControls {
             ? this.constraints.dollyTo[dollyTo]
             : dollyTo,
       };
-    };
-
-    const cycle = (v, min, max) => {
-      if (v < min) {
-        v = max;
-      } else if (v > max) {
-        v = min;
-      }
-      return v;
     };
 
     this.presets = {

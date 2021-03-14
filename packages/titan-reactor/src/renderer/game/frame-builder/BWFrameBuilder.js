@@ -69,6 +69,7 @@ export default class BWFrameSceneBuilder {
     this.scene = scene;
     this.group = new Group();
     this.scene.add(this.group);
+    this.scene.unitGroup = this.group;
   }
 
   prepare(bwFrame, elapsed) {
@@ -226,6 +227,8 @@ export default class BWFrameSceneBuilder {
         if (player) {
           titanImage.setTeamColor(player.color.three);
         }
+        titanImage.offsetX = image.x / 32;
+        titanImage.offsetY = image.y / 32;
         titanImage.position.x = image.x / 32;
         titanImage.position.z = image.y / 32;
         titanImage.renderOrder = _imageRenderOrder++;
@@ -252,6 +255,15 @@ export default class BWFrameSceneBuilder {
         }
 
         if (image.index === spriteBW.mainImageIndex) {
+          // sprite.position.y -=
+          //   titanImage.atlas.grpHeight / 2 / titanImage._spriteScale;
+
+          // sprite.position.y =
+          //   sprite.position.y -
+          //   (titanImage.atlas.grpHeight -
+          //     titanImage.lastSetFrame.y -
+          //     titanImage.lastSetFrame.h) /
+          //     titanImage._spriteScale;
           _afterMainImage = true;
         }
       }

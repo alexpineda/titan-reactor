@@ -1,5 +1,11 @@
 import { is } from "ramda";
-import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
+import {
+  Box3,
+  Clock,
+  OrthographicCamera,
+  PerspectiveCamera,
+  Vector3,
+} from "three";
 
 import {
   MinimapLayer,
@@ -8,6 +14,7 @@ import {
   MinimapFogLayer,
 } from "./Layers";
 import StandardCameraControls from "./controls/StandardCameraControls";
+import { ProducerWindowPosition } from "../../common/settings";
 
 export const CameraControlType = {
   none: 0,
@@ -20,6 +27,8 @@ export const CameraControlType = {
 class Cameras {
   constructor(
     settings,
+    mapWidth,
+    mapHeight,
     gameSurface,
     previewSurface,
     minimapControl,
@@ -49,6 +58,7 @@ class Cameras {
       keyboardShortcuts,
       freeControl
     );
+
     this.control.setConstraints(freeControl);
     this.control.initNumpadControls();
     this.control.execNumpad(7);
@@ -67,20 +77,18 @@ class Cameras {
       this.previewControl.execNumpad(7);
       this.previewControl.keyboardTruckingEnabled = false;
 
-      this.minimapCamera = this._initMinimapCamera(
-        minimapControl.mapWidth,
-        minimapControl.mapHeight
-      );
-
       minimapControl.addEventListener("start", ({ message: { speed } }) => {
         const target = new Vector3();
         const position = new Vector3();
+        // preview control is set on hover, copy the values
         this.previewControl.getTarget(target);
         this.previewControl.getPosition(position);
 
         const transition = speed < 2;
         this.control.dampingFactor = speed === 0 ? 0.005 : 0.05;
-        this.camera.fov = this.previewCamera.fov;
+        if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
+          this.camera.fov = this.previewCamera.fov;
+        }
         this.camera.updateProjectionMatrix();
         this.control.setLookAt(
           position.x,
@@ -129,8 +137,6 @@ class Cameras {
 
   _createCamera(aspect) {
     return this._initPerspectiveCamera(aspect);
-    // this.settings.orthoCamera
-    //   ? this._initOrthoCamera()
   }
 
   _initPerspectiveCamera(aspect) {
@@ -138,31 +144,6 @@ class Cameras {
       return new PerspectiveCamera(22, aspect);
     }
     return new PerspectiveCamera(22, aspect, 3, 256);
-  }
-
-  _initOrthoCamera() {
-    return new OrthographicCamera(-16, 16, 16, -16, 1, 10000);
-  }
-
-  _initMinimapCamera(mapWidth, mapHeight) {
-    const maxDim = Math.max(mapWidth, mapHeight);
-    const camera = new OrthographicCamera(
-      -maxDim / 2,
-      maxDim / 2,
-      maxDim / 2,
-      -maxDim / 2,
-      0.1,
-      130
-    );
-    camera.position.set(0, 128, 0);
-    camera.lookAt(new Vector3());
-    camera.layers.disableAll();
-    camera.layers.enable(MinimapLayer);
-    camera.layers.enable(MinimapUnitLayer);
-    camera.layers.enable(MinimapPingLayer);
-    camera.layers.enable(MinimapFogLayer);
-
-    return camera;
   }
 
   enableControls(val) {

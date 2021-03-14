@@ -5,6 +5,7 @@ import {
   MultiplyBlending,
   SubtractiveBlending,
   Vector3,
+  Vector2,
 } from "three";
 import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
@@ -59,7 +60,6 @@ export default class TitanImageHD extends Sprite {
     );
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
-    // this.center = new Vector2(0.5, yOff - 0.1);
     this._oScale = new Vector3(
       grpWidth / this._spriteScale,
       grpHeight / this._spriteScale,
@@ -76,6 +76,7 @@ export default class TitanImageHD extends Sprite {
     this.castShadow = false;
 
     this.atlas = atlas;
+    this.center = new Vector2(0.5, 0.5);
 
     this.setFrame(0, false);
   }
@@ -117,68 +118,65 @@ export default class TitanImageHD extends Sprite {
     pos.needsUpdate = true;
   }
 
-  frameFloorOffset(image, frameId) {
-    const frame = image.frameGroup[frameId].frame;
-
-    return (image.h - frame.h - frame.y) / this._spriteScale;
-  }
-
   //dds is flipped y so we don't do it in our uvs
   _setFrame(frame, flipFrame, uv, pos) {
     if (frame === undefined) {
       console.error("frame is undefined");
       return;
     }
+
+    this.lastSetFrame = frame;
+
+    // this.position.z =
+    //   this.offsetY + this.atlas.grpHeight / 2 / this._spriteScale;
+
+    // this.position.z = this.offsetY + this.atlas.grpHeight / this._spriteScale;
+
+    // this.center.y = (frame.yoff + frame.h) / this.atlas.grpHeight;
+
     if (flipFrame) {
       uv.array[0] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[1] = (frame.y + frame.h) / this.atlas.height;
       uv.array[2] = frame.x / this.atlas.width;
-      uv.array[3] = (frame.y + frame.h) / this.atlas.height;
       uv.array[4] = frame.x / this.atlas.width;
-      uv.array[5] = frame.y / this.atlas.height;
       uv.array[6] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[7] = frame.y / this.atlas.height;
 
       pos.array[0] =
         (this.atlas.grpWidth - (frame.xoff + frame.w)) / this.atlas.grpWidth -
         0.5;
-      pos.array[1] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-      pos.array[2] = 0;
       pos.array[3] =
         (this.atlas.grpWidth - frame.xoff) / this.atlas.grpWidth - 0.5;
-      pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-      pos.array[5] = 0;
       pos.array[6] =
         (this.atlas.grpWidth - frame.xoff) / this.atlas.grpWidth - 0.5;
-      pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
-      pos.array[8] = 0;
       pos.array[9] =
         (this.atlas.grpWidth - (frame.xoff + frame.w)) / this.atlas.grpWidth -
         0.5;
-      pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
-      pos.array[11] = 0;
     } else {
       uv.array[0] = frame.x / this.atlas.width;
-      uv.array[1] = (frame.y + frame.h) / this.atlas.height;
       uv.array[2] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[3] = (frame.y + frame.h) / this.atlas.height;
       uv.array[4] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[5] = frame.y / this.atlas.height;
       uv.array[6] = frame.x / this.atlas.width;
-      uv.array[7] = frame.y / this.atlas.height;
 
       pos.array[0] = frame.xoff / this.atlas.grpWidth - 0.5;
-      pos.array[1] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-      pos.array[2] = 0;
       pos.array[3] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
-      pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-      pos.array[5] = 0;
       pos.array[6] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
-      pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
-      pos.array[8] = 0;
       pos.array[9] = frame.xoff / this.atlas.grpWidth - 0.5;
-      pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
-      pos.array[11] = 0;
     }
+
+    uv.array[1] = (frame.y + frame.h) / this.atlas.height;
+    uv.array[3] = (frame.y + frame.h) / this.atlas.height;
+    uv.array[5] = frame.y / this.atlas.height;
+    uv.array[7] = frame.y / this.atlas.height;
+
+    // pos.array[1] = 0;
+    // pos.array[4] = 0;
+    // pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight;
+    // pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight;
+
+    // this.scale.y = frame.h / this._spriteScale;
+    // this.scale.x = frame.w / this._spriteScale;
+    pos.array[1] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
+    pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
+    pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
+    pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
   }
 }
