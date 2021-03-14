@@ -1,4 +1,8 @@
 import create from "../../../libs/zustand";
+
+let _productionInterval = null;
+window.pInterval = 5000;
+
 const useHudStore = create((set, get) => ({
   show: {
     inGameMenu: false,
@@ -9,7 +13,6 @@ const useHudStore = create((set, get) => ({
     attackDetails: false,
   },
   productionView: 0,
-  autoToggleProductionView: true,
   // resources, units, upgrades, research
   toggleProductionView: (val) => {
     if (val) {
@@ -17,6 +20,23 @@ const useHudStore = create((set, get) => ({
     } else {
       set({ productionView: (get().productionView + 1) % 4 });
     }
+  },
+  setAutoProductionView: (v) => {
+    if (v) {
+      get().startTogglingProduction();
+    } else {
+      get().stopTogglingProduction();
+    }
+    return v;
+  },
+  startTogglingProduction: () => {
+    const fn = () => {
+      set({ productionView: (get().productionView + 1) % 4 });
+    };
+    _productionInterval = setInterval(fn, 5000);
+  },
+  stopTogglingProduction: () => {
+    clearInterval(_productionInterval);
   },
   toggleInGameMenu: () => {
     set({ show: { ...get().show, inGameMenu: !get().show.inGameMenu } });

@@ -24,25 +24,25 @@ export default class MapSD {
     );
 
     //extend the grp by 1 tile for empty tile
-    const newWidth = grpSD.width + 32;
-    const extendedImage = new Uint8Array(newWidth * grpSD.height * 4);
+    // const newWidth = grpSD.width + 32;
+    // const extendedImage = new Uint8Array(newWidth * grpSD.height * 4);
 
-    for (let i = 0; i < grpSD.width * grpSD.height * 4; i++) {
-      extendedImage[i + 32 * 4 * Math.ceil((i + 1) / (grpSD.width * 4))] =
-        grpSD.texture.image.data[i];
-    }
+    // for (let i = 0; i < grpSD.width * grpSD.height * 4; i++) {
+    //   extendedImage[i + 32 * 4 * Math.ceil((i + 1) / (grpSD.width * 4))] =
+    //     grpSD.texture.image.data[i];
+    // }
 
-    const texture = new DataTexture(extendedImage, newWidth, grpSD.height);
-    texture.flipY = true;
-    texture.minFilter = LinearFilter;
-    texture.magFilter = LinearFilter;
-    texture.wrapT = ClampToEdgeWrapping;
-    texture.wrapS = ClampToEdgeWrapping;
-    texture.encoding = sRGBEncoding;
+    // const texture = new DataTexture(extendedImage, newWidth, grpSD.height);
+    // texture.flipY = true;
+    // texture.minFilter = LinearFilter;
+    // texture.magFilter = LinearFilter;
+    // texture.wrapT = ClampToEdgeWrapping;
+    // texture.wrapS = ClampToEdgeWrapping;
+    // texture.encoding = sRGBEncoding;
 
     return {
-      texture,
-      width: newWidth,
+      texture: grpSD.texture,
+      width: grpSD.width,
       height: grpSD.height,
     };
   }
@@ -55,15 +55,15 @@ export default class MapSD {
     anisotropy
   ) {
     // const size = Math.ceil(Math.sqrt(13));
-    const width = 14;
+    const width = 13;
     const height = 1;
 
     const diffuse = new Uint8Array(width * height * 32 * 32 * 4, 255);
     // draw an extra tile a the beginning, otherwise this offset for creep should be 36(Uint16)
-    let tileIndex = 36;
+    let tileIndex = 37;
 
     for (let i = 0; i < 13; i++) {
-      const mapX = i + 1;
+      const mapX = i;
       const mapY = 0;
 
       // const mapX = i % width;

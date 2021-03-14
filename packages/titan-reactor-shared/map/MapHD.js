@@ -167,7 +167,7 @@ export default class MapHD {
       };
     };
 
-    const width = 38;
+    const width = 37;
     const height = 1;
     const ortho = new OrthographicCamera(
       -width / 2,
@@ -192,7 +192,7 @@ export default class MapHD {
     canvas.height = height * 128;
 
     for (let i = 0; i < creepGrp.length; i++) {
-      const x = i + 1;
+      const x = i;
       const y = 0;
       const grp = creepGrp[i];
       const texture = loadHdTile(grp.dds);
@@ -226,7 +226,7 @@ export default class MapHD {
   }
 
   static renderCreepTexture(renderer, hdTiles, tilegroupU16) {
-    const width = 14;
+    const width = 13;
     const height = 1;
     const ortho = new OrthographicCamera(
       -width / 2,
@@ -254,7 +254,7 @@ export default class MapHD {
       const x = i;
       const y = 0;
       // get the 13 creep tiles in the 2nd tile group including a first empty tile
-      const texture = loadHdTile(hdTiles[tilegroupU16[35 + i]]);
+      const texture = loadHdTile(hdTiles[tilegroupU16[36 + i]]);
 
       mat.map = texture;
       mat.needsUpdate = true;

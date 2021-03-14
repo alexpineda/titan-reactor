@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import PlayerResources from "./PlayerResources";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
@@ -8,24 +8,32 @@ import { incFontSize } from "titan-reactor-shared/utils/changeFontSize";
 const _playerScoreCache = {};
 
 const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
-  const textSize = useSettingsStore((state) =>
-    state.data.esportsHud
-      ? incFontSize(state.data.hudFontSize)
-      : state.data.hudFontSize
+  const textSize = useSettingsStore(
+    useCallback((state) =>
+      state.data.esportsHud
+        ? incFontSize(state.data.hudFontSize)
+        : state.data.hudFontSize
+    )
   );
 
-  const productionView = useHudStore((state) => state.productionView);
-  const autoToggleProductionView = useHudStore(
-    (state) => state.autoToggleProductionView
-  );
-  const toggleProductionView = useHudStore(
-    (state) => state.toggleProductionView
+  const save = useSettingsStore(useCallback((state) => state.save));
+  const autoToggleProductionView = useSettingsStore(
+    useCallback((state) => state.data.autoToggleProductionView)
   );
 
-  const { players, onTogglePlayerPov } = useGameStore((state) => ({
-    players: state.game.players,
-    onTogglePlayerPov: state.onTogglePlayerPov,
-  }));
+  const productionView = useHudStore(
+    useCallback((state) => state.productionView)
+  );
+
+  const setAutoProductionView = useHudStore(
+    useCallback((state) => state.setAutoProductionView)
+  );
+  const { players, onTogglePlayerPov } = useGameStore(
+    useCallback((state) => ({
+      players: state.game.players,
+      onTogglePlayerPov: state.onTogglePlayerPov,
+    }))
+  );
 
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
@@ -37,17 +45,33 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
     _playerScoreCache[cacheKey] = {};
   }
 
+  const setAutoToggleProductionView = () => {
+    const v = !autoToggleProductionView;
+    save({
+      autoToggleProductionView: v,
+    });
+    setAutoProductionView(v);
+  };
+
+  useEffect(() => {
+    setAutoProductionView(autoToggleProductionView);
+  }, []);
+
   return (
     <div className={`select-none ${className}`} style={style}>
       <div className="resources-parent">
-        <div
-          className="pointer-events-auto"
-          onClick={() => {
-            console.log("toggle");
-            toggleProductionView();
-          }}
-        >
-          Toggle
+        <div className="pointer-events-none flex flex-row-reverse">
+          <span
+            className={`pointer-events-auto material-icons cursor-pointer hover:text-yellow-500 ${
+              autoToggleProductionView ? "text-yellow-700" : "text-gray-700 "
+            }`}
+            style={{ fontSize: smallIconFontSize }}
+            onClick={() => {
+              setAutoToggleProductionView();
+            }}
+          >
+            update
+          </span>
         </div>
         <div
           className="rounded mx-1 my-1 flex"

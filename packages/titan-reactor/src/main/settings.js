@@ -178,6 +178,7 @@ export class Settings extends EventEmitter {
       replaysRss: "",
       useCustomColors: false,
       randomizeColorOrder: false,
+      classicClock: false,
       playerColors: [
         "f40404",
         "0c48cc",
@@ -192,6 +193,7 @@ export class Settings extends EventEmitter {
       minimapRatio: 25,
       replayAndUnitDetailSize: "24vw",
       fpsLimit: 200,
+      autoToggleProductionView: true,
     };
   }
 }

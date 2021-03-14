@@ -37,10 +37,10 @@ export default class TitanImage3D extends Object3D {
 
     this.add(this.model);
 
-    if (this.model && this.animations.length) {
-      this.times = this.animations[0].tracks[0].times;
+    if (this.model && this.atlas.animations.length) {
+      this.times = this.atlas.animations[0].tracks[0].times;
       this.mixer = new AnimationMixer(this);
-      this.action = this.mixer.clipAction(this.animations[0]);
+      this.action = this.mixer.clipAction(this.atlas.animations[0]);
       this.action.play();
     }
 
@@ -57,10 +57,6 @@ export default class TitanImage3D extends Object3D {
 
   get frames() {
     return this.atlas.frames;
-  }
-
-  get animations() {
-    return this.atlas.animations;
   }
 
   setPositionX(x, scale = this._spriteScale) {

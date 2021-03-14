@@ -1,5 +1,11 @@
 import * as THREE from "three";
-import { Mesh, HalfFloatType, Vector2 } from "three";
+import {
+  Mesh,
+  HalfFloatType,
+  Vector2,
+  NearestFilter,
+  LinearFilter,
+} from "three";
 import { createDisplacementGeometry } from "./displacementGeometry";
 import { createDisplacementGeometryChunk } from "./displacementGeometryChunk";
 import { KernelSize, BlendFunction } from "postprocessing";
@@ -414,29 +420,22 @@ export const generateMesh = async (renderer, tileData) => {
         vec4 texelColor = mapTexelToLinear(paletteColor);
         diffuseColor *= texelColor;
 
-
         //sd creep
-        float creepF = texture2D(creep, vUv).r;
-        float creepEdge = texture2D(creepEdges, vUv).r;
+        float creepF = texture2D(creep, vUv ).r;
+        float creepEdge = texture2D(creepEdges, vUv).r ;
 
-        // scale 0->13 0->1
-        float creepS = creepF * 255./creepResolution.x; 
-        float tilex = mod(vUv.x, invMapResolution.x)  * mapToCreepResolution.x + creepS;
+         if (creepF > 0.) {
+          vec4 creepColor = getCreepColor(vUv, creep, creepResolution, mapToCreepResolution, vec4(0.));
+          vec4 creepLinear = mapTexelToLinear(creepColor);
+          diffuseColor =  creepLinear;
+        }
 
-        float tiley = mod(vUv.y, invMapResolution.y) * mapToCreepResolution.y;
-        vec4 creepColor = texture2D(creepTexture, vec2(tilex,tiley));
-        vec4 creepLinear = mapTexelToLinear(creepColor);
-        diffuseColor =  mix(diffuseColor, creepLinear, creepColor.a);
-
-        //creep edges
-        creepS = creepEdge * 255./creepEdgesResolution.x; 
-        tilex = mod(vUv.x, invMapResolution.x)  * mapToCreepEdgesResolution.x + creepS;
-        tiley = mod(vUv.y, invMapResolution.y) * mapToCreepEdgesResolution.y;
-
-        vec4 creepEdgeColor = texture2D(creepEdgesTexture, vec2(tilex,tiley));
-        vec4 creepEdgeLinear = mapTexelToLinear(creepEdgeColor);
-        diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
-
+        if (creepEdge > 0.) {
+          vec2 creepUv = getCreepUv(vUv, creepEdge, creepEdgesResolution, mapToCreepEdgesResolution);
+          vec4 creepEdgeColor = texture2D(creepEdgesTexture, creepUv);
+          vec4 creepEdgeLinear = mapTexelToLinear(creepEdgeColor);
+          diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
+        }
       `
       );
 
@@ -464,6 +463,55 @@ export const generateMesh = async (renderer, tileData) => {
         uniform vec2 mapToCreepEdgesResolution;
         uniform vec2 creepEdgesResolution;
         
+        vec2 getCreepUv(in vec2 uv, in float value, in vec2 res, in vec2 invRes ) {
+          float creepS = (value - 1./255.) * 255./res.x ; 
+
+          float tilex = mod(uv.x, invMapResolution.x)  * invRes.x + creepS;
+          float tiley = mod(uv.y, invMapResolution.y) * invRes.y;
+
+          return vec2(tilex, tiley);
+        }
+
+        vec4 getCreepColor(in vec2 uv, in sampler2D tex, in vec2 res, in vec2 invRes, in vec4 oColor) {
+          float creepF = texture2D(tex, uv ).r;
+
+          // scale 0->13 0->1
+          if (creepF > 0.) {
+            vec2 creepUv = getCreepUv(uv, creepF, creepResolution, mapToCreepResolution);
+            return texture2D(creepTexture,creepUv);
+          }
+
+          return oColor;
+        }
+
+        vec4 getSampledCreep(const in vec2 uv, in sampler2D tex, in vec2 res, in vec2 invRes) {
+
+          vec2 texelSize = vec2(1.0) / res * 32.;
+          float r = 2.;
+        
+          float dx0 = -texelSize.x * r;
+          float dy0 = -texelSize.y * r;
+          float dx1 = texelSize.x * r;
+          float dy1 = texelSize.y * r;
+          vec4 oColor = vec4(0.);
+          // vec4 oColor = getCreepColor(uv, tex, res, invRes, vec4(0.));
+          return (
+            getCreepColor(uv + vec2(dx0, dy0), tex, res, invRes, oColor) +
+            getCreepColor(uv + vec2(0.0, dy0), tex, res, invRes, oColor) +
+            getCreepColor(uv + vec2(dx1, dy0), tex, res, invRes, oColor) +
+            getCreepColor(uv + vec2(dx0, 0.0), tex, res, invRes, oColor) +
+            getCreepColor(uv, tex, res, invRes, vec4(0.)) +
+            getCreepColor(uv + vec2(dx1, 0.0), tex, res, invRes, oColor) +
+            getCreepColor(uv + vec2(dx0, dy1), tex, res, invRes, oColor) +
+            getCreepColor(uv + vec2(0.0, dy1), tex, res, invRes, oColor) +
+            getCreepColor(uv + vec2(dx1, dy1), tex, res, invRes, oColor)
+          ) * (1.0 / 9.0);
+            
+        }
+
+  
+        
+
         // vec3 blendNormal(vec3 normal){
         //   vec3 blending = abs(normal);
         //   blending = normalize(max(blending, 0.00001));
@@ -691,22 +739,19 @@ export const generateMesh = async (renderer, tileData) => {
           float creepF = texture2D(creep, creepUv).r;
           float creepEdge = texture2D(creepEdges, creepUv).r;
 
-          // scale 0->13 0->1
-          float creepS = creepF * 255./creepResolution.x; 
-          float tilex = mod(vUv.x, invMapResolution.x)   * mapToCreepResolution.x + creepS;
-          float tiley = mod(vUv.y, invMapResolution.y) * mapToCreepResolution.y;
-          vec4 creepColor = texture2D(creepTexture, vec2(tilex,tiley));
-          vec4 creepLinear = mapTexelToLinear(creepColor);
-          diffuseColor =  mix(diffuseColor, creepLinear, creepColor.a);
-      
-          //creep edges
-          creepS = creepEdge * 255./creepEdgesResolution.x; 
-          tilex = mod(vUv.x, invMapResolution.x)  * 1.05 * mapToCreepEdgesResolution.x + creepS;
-          tiley = mod(vUv.y, invMapResolution.y) * 1.05 * mapToCreepEdgesResolution.y;
-  
-          vec4 creepEdgeColor = texture2D(creepEdgesTexture, vec2(tilex,tiley));
-          vec4 creepEdgeLinear = mapTexelToLinear(creepEdgeColor);
-          diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
+          if (creepF > 0.) {
+            vec4 creepColor = getSampledCreep(creepUv, vUv, creep, creepResolution, mapToCreepResolution);
+            vec4 creepLinear = mapTexelToLinear(creepColor);
+            diffuseColor =  creepLinear;
+          }
+
+          if (creepEdge > 0.) {
+            vec2 creepUv = getCreepUv(vUv, creepEdge, creepEdgesResolution, mapToCreepEdgesResolution);
+            vec4 creepEdgeColor = texture2D(creepEdgesTexture, creepUv);
+            vec4 creepEdgeLinear = mapTexelToLinear(creepEdgeColor);
+            diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
+          }
+
 
           `
           );
@@ -726,6 +771,50 @@ export const generateMesh = async (renderer, tileData) => {
             uniform sampler2D creepEdges;
             uniform sampler2D creepEdgesTexture;
             uniform vec2 creepEdgesResolution;
+
+            vec2 getCreepUv( vec2 uv, in float value, in vec2 res, in vec2 invRes ) {
+              float creepS = (value - 1./255.) * 255./res.x ; 
+    
+              float tilex = mod(uv.x, invMapResolution.x)  * invRes.x + creepS;
+              float tiley = mod(uv.y, invMapResolution.y) * invRes.y;
+    
+              return vec2(tilex, tiley);
+            }
+    
+            vec4 getCreepColor( vec2 uv, vec2 mapUv, in sampler2D tex, in vec2 res, in vec2 invRes, in vec4 oColor) {
+              float creepF = texture2D(tex, uv ).r;
+    
+              if (creepF > 0.) {
+                vec2 creepUv = getCreepUv(mapUv, creepF, creepResolution, mapToCreepResolution);
+                return texture2D(creepTexture,creepUv);
+              }
+    
+              return oColor;
+            }
+
+            vec4 getSampledCreep(const in vec2 uv, vec2 mapUv, in sampler2D tex, in vec2 res, in vec2 invRes) {
+
+              vec2 texelSize = vec2(1.0) / res * 128.;
+              float r = 2.;
+            
+              float dx0 = -texelSize.x * r;
+              float dy0 = -texelSize.y * r;
+              float dx1 = texelSize.x * r;
+              float dy1 = texelSize.y * r;
+              vec4 oColor = getCreepColor(uv, mapUv, tex, res, invRes, vec4(0.));
+              return (
+                getCreepColor(uv + vec2(dx0, dy0), mapUv,  tex, res, invRes, oColor) +
+                getCreepColor(uv + vec2(0.0, dy0), mapUv, tex, res, invRes, oColor) +
+                getCreepColor(uv + vec2(dx1, dy0), mapUv, tex, res, invRes, oColor) +
+                getCreepColor(uv + vec2(dx0, 0.0), mapUv, tex, res, invRes, oColor) +
+                oColor +
+                getCreepColor(uv + vec2(dx1, 0.0), mapUv, tex, res, invRes, oColor) +
+                getCreepColor(uv + vec2(dx0, dy1), mapUv, tex, res, invRes, oColor) +
+                getCreepColor(uv + vec2(0.0, dy1), mapUv, tex, res, invRes, oColor) +
+                getCreepColor(uv + vec2(dx1, dy1), mapUv, tex, res, invRes, oColor)
+              ) * (1.0 / 9.0);
+                
+            }
 
             ${fs}
         `;

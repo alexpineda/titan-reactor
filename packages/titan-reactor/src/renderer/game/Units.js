@@ -112,10 +112,8 @@ class Units {
   ) {
     this.spriteUnits = {};
 
-    for (let i = 0; i < this.imageData.data.length; i++) {
-      this.imageData.data[i] = 0;
-      this.resourceImageData.data[i] = 0;
-    }
+    this.imageData.data.fill(0);
+    this.resourceImageData.data.fill(0);
 
     const incompleteUnits = new Map();
 
@@ -154,6 +152,7 @@ class Units {
       unit.warpingIn = 0;
       unit.queue = null;
       unit.remainingBuildTime = unitBw.remainingBuildTime;
+      unit.angle = unitBw.angle;
 
       if (
         unitBw.unitType.isBuilding &&

@@ -283,16 +283,8 @@ async function TitanReactorGame(
 
     cameras.control.setBoundary(
       new Box3(
-        new Vector3(
-          -mapWidth / 2 + projectedCameraView.width / 4,
-          0,
-          -mapHeight / 2 + projectedCameraView.height / 4
-        ),
-        new Vector3(
-          mapWidth / 2 - projectedCameraView.width / 4,
-          100,
-          mapHeight / 2
-        )
+        new Vector3(-mapWidth / 2, 0, -mapHeight / 2),
+        new Vector3(mapWidth / 2, 100, mapHeight / 2)
       )
     );
 

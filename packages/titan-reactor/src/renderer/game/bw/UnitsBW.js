@@ -99,7 +99,7 @@ export default class UnitsBW extends ContiguousContainer {
     if (d < 0) {
       d += 256;
     }
-    return (d * Math.PI) / 128;
+    return -((d * Math.PI) / 128) + Math.PI / 2;
   }
 
   get unitType() {

@@ -240,7 +240,7 @@ export default class BWFrameSceneBuilder {
         if (sprite.unit) {
           //@todo move this to material
           if (!image.isShadow) {
-            titanImage.material.opacity = sprite.unit.isCloaked ? 0.5 : 1;
+            // titanImage.material.opacity = sprite.unit.isCloaked ? 0.5 : 1;
           }
 
           // if (spriteBW.mainImageIndex === image.index) {
@@ -255,6 +255,9 @@ export default class BWFrameSceneBuilder {
         }
 
         if (image.index === spriteBW.mainImageIndex) {
+          if (sprite.unit) {
+            titanImage.rotation.y = sprite.unit.angle;
+          }
           // sprite.position.y -=
           //   titanImage.atlas.grpHeight / 2 / titanImage._spriteScale;
 
