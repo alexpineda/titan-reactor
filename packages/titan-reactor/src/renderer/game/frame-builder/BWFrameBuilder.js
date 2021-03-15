@@ -11,6 +11,8 @@ import ResearchBW from "../bw/ResearchBW";
 import UpgradeBW from "../bw/UpgradeBW";
 import Sprite from "../Sprite";
 import { range } from "ramda";
+import useHudStore from "../../stores/hudStore";
+import { unstable_batchedUpdates } from "react-dom";
 
 export default class BWFrameSceneBuilder {
   /**
@@ -299,6 +301,27 @@ export default class BWFrameSceneBuilder {
     this.creep.generate(this.creepBW, bwFrame.frame);
   }
 
+  _notifyHudOfTech() {
+    if (this._notifiedHudOfTech) return;
+    unstable_batchedUpdates(() =>
+      useHudStore.setState({
+        hasTech: true,
+      })
+    );
+    this._notifiedHudOfTech = true;
+  }
+
+  _notifyHudOfUpgrades() {
+    if (this._notifiedHudOfUpgrades) return;
+    unstable_batchedUpdates(() =>
+      useHudStore.setState({
+        hasUpgrades: true,
+      })
+    );
+    this._notifiedHudOfUpgrades = true;
+  }
+
+  //@todo refactor to re-use objects, maybe web worker
   buildResearchAndUpgrades(bwFrame) {
     this.researchBW.count = bwFrame.researchCount;
     this.researchBW.buffer = bwFrame.research;
@@ -313,6 +336,10 @@ export default class BWFrameSceneBuilder {
       this.upgrades[i] = [...this.completedUpgrades[i]];
 
       for (const research of researchInProgress) {
+        this._notifyHudOfTech();
+        if (research.remainingBuildTime === 100) {
+          useHudStore.getState().onTechNearComplete();
+        }
         if (research.owner === i) {
           const researchObj = {
             ...research,
@@ -329,6 +356,10 @@ export default class BWFrameSceneBuilder {
       }
 
       for (const upgrade of upgradesInProgress) {
+        this._notifyHudOfUpgrades();
+        if (upgrade.remainingBuildTime === 100) {
+          useHudStore.getState().onUpgradeNearComplete();
+        }
         if (upgrade.owner === i) {
           // if completed upgrade exists & remainingBuiltTime == 0, increase count
           // otherwis ejsut update build time

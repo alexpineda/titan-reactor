@@ -62,7 +62,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
       <div className="resources-parent">
         <div className="pointer-events-none flex flex-row-reverse">
           <span
-            className={`pointer-events-auto material-icons cursor-pointer hover:text-yellow-500 ${
+            className={`pointer-events-auto material-icons cursor-pointer hover:text-yellow-500 mr-2 ${
               autoToggleProductionView ? "text-yellow-700" : "text-gray-700 "
             }`}
             style={{ fontSize: smallIconFontSize }}

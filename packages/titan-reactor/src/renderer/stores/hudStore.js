@@ -1,7 +1,8 @@
 import create from "../../../libs/zustand";
 
 let _productionInterval = null;
-window.pInterval = 5000;
+let _cycleTime = 10000;
+const _minCycleTime = 10000;
 
 const useHudStore = create((set, get) => ({
   show: {
@@ -12,6 +13,10 @@ const useHudStore = create((set, get) => ({
     unitDetails: false,
     attackDetails: false,
   },
+  // for auto toggle, whether there is anything to show
+  hasTech: false,
+  hasUpgrades: false,
+
   productionView: 0,
   // resources, units, upgrades, research
   toggleProductionView: (val) => {
@@ -29,14 +34,46 @@ const useHudStore = create((set, get) => ({
     }
     return v;
   },
+  onTechNearComplete: () => {
+    // only do this if we have auto toggling on
+    if (!_productionInterval || _cycleTime > _minCycleTime) return;
+
+    set({ productionView: 2 });
+    _cycleTime = _minCycleTime * 1.25;
+    get().startTogglingProduction();
+  },
+  onUpgradeNearComplete: () => {
+    // only do this if we have auto toggling on and we're not already doing this
+    if (!_productionInterval || _cycleTime > _minCycleTime) return;
+    set({ productionView: 3 });
+    get().startTogglingProduction();
+    _cycleTime = _minCycleTime * 1.25;
+  },
   startTogglingProduction: () => {
+    clearTimeout(_productionInterval);
     const fn = () => {
-      set({ productionView: (get().productionView + 1) % 4 });
+      let nextProductionView = get().productionView + 1;
+      if (nextProductionView === 2 && !get().hasTech) {
+        nextProductionView++;
+      }
+      if (nextProductionView === 3 && !get().hasUpgrades) {
+        nextProductionView++;
+      }
+      nextProductionView = nextProductionView % 4;
+
+      const timeModifier = nextProductionView === 0 ? 1 : 3 / 5;
+
+      set({ productionView: nextProductionView });
+      if (_cycleTime > _minCycleTime) {
+        _cycleTime = _minCycleTime;
+      }
+      _productionInterval = setTimeout(fn, _cycleTime * timeModifier);
     };
-    _productionInterval = setInterval(fn, 5000);
+    _productionInterval = setTimeout(fn, _cycleTime);
   },
   stopTogglingProduction: () => {
-    clearInterval(_productionInterval);
+    clearTimeout(_productionInterval);
+    _productionInterval = null;
   },
   toggleInGameMenu: () => {
     set({ show: { ...get().show, inGameMenu: !get().show.inGameMenu } });
