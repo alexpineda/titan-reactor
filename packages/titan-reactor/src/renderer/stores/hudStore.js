@@ -4,6 +4,11 @@ let _productionInterval = null;
 let _cycleTime = 10000;
 const _minCycleTime = 10000;
 
+export const ResourcesView = 0;
+export const UnitProductionView = 1;
+export const TechProductionView = 2;
+export const UpgradesProductionView = 3;
+
 const useHudStore = create((set, get) => ({
   show: {
     inGameMenu: false,
@@ -38,14 +43,14 @@ const useHudStore = create((set, get) => ({
     // only do this if we have auto toggling on
     if (!_productionInterval || _cycleTime > _minCycleTime) return;
 
-    set({ productionView: 2 });
+    set({ productionView: TechProductionView });
     _cycleTime = _minCycleTime * 1.25;
     get().startTogglingProduction();
   },
   onUpgradeNearComplete: () => {
     // only do this if we have auto toggling on and we're not already doing this
     if (!_productionInterval || _cycleTime > _minCycleTime) return;
-    set({ productionView: 3 });
+    set({ productionView: UpgradesProductionView });
     get().startTogglingProduction();
     _cycleTime = _minCycleTime * 1.25;
   },
@@ -53,15 +58,23 @@ const useHudStore = create((set, get) => ({
     clearTimeout(_productionInterval);
     const fn = () => {
       let nextProductionView = get().productionView + 1;
-      if (nextProductionView === 2 && !get().hasTech) {
+      if (nextProductionView === TechProductionView && !get().hasTech) {
         nextProductionView++;
       }
-      if (nextProductionView === 3 && !get().hasUpgrades) {
+      if (nextProductionView === UpgradesProductionView && !get().hasUpgrades) {
         nextProductionView++;
       }
       nextProductionView = nextProductionView % 4;
 
-      const timeModifier = nextProductionView === 0 ? 1 : 3 / 5;
+      let timeModifier = 1;
+      if (nextProductionView === UnitProductionView) {
+        timeModifier = 3 / 5;
+      } else if (
+        nextProductionView === UpgradesProductionView ||
+        nextProductionView === TechProductionView
+      ) {
+        timeModifier = 1 / 2;
+      }
 
       set({ productionView: nextProductionView });
       if (_cycleTime > _minCycleTime) {

@@ -1,7 +1,7 @@
 import { easePolyOut } from "d3-ease";
 
 export default class ProductionElement {
-  constructor(icons, color) {
+  constructor(icons, color, compact) {
     this.icons = icons;
     this.color = color;
     this.image = document.createElement("img");
@@ -9,8 +9,9 @@ export default class ProductionElement {
     this.image.style.filter = "brightness(1.5)";
     this.image.style.borderBottom = "0.25rem solid";
     this.image.style.borderImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa 0%, rgba(0,0,0,0.5) 0%) 1`;
-    this.image.classList.add("mt-1");
-
+    if (!compact) {
+      this.image.classList.add("mt-1");
+    }
     this.count = document.createElement("p");
     this.count.classList.add(
       "text-white",
@@ -51,6 +52,12 @@ export default class ProductionElement {
       this.image.style.borderImage = `linear-gradient(90deg, ${this.color}ee 0%, ${this.color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%) 1`;
       if (val.remainingBuildTime === 0 && (val.isTech || val.isUpgrade)) {
         this.image.style.outline = `3px groove ${this.color}aa`;
+        // using a property as state to determine whether to add glow (only once)
+        this.image.style.animation = `glow-${val.owner} 0.4s 10 alternate`;
+        //react keeps mounting it so we have to terminate the animation after its done
+        setTimeout(() => {
+          this.image.style.animation = "";
+        }, 3000);
       }
     } else {
       this.domElement.classList.add("hidden");

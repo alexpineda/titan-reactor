@@ -40,6 +40,36 @@ export class Players extends Array {
     }
   }
 
+  _setStyleSheet(content) {
+    let style;
+
+    style = document.querySelector("#player-colors-glow");
+    if (!style) {
+      style = document.createElement("style");
+      style.id = "player-colors-glow";
+      document.head.appendChild(style);
+    }
+    style.textContent = content;
+  }
+
+  injectColorsCss() {
+    this._setStyleSheet(
+      this.reduce((colors, { color }, i) => {
+        return `
+      ${colors}
+      @keyframes glow-${this[i].id} {
+        from {
+          box-shadow: 0 0 8px -8px ${color.hex}55;
+        }
+        to {
+          box-shadow: 0 0 8px 8px ${color.hex}55;
+        }
+      }
+      `;
+      }, "")
+    );
+  }
+
   changeColors(useCustom) {
     for (let i = 0; i < this.length; i++) {
       if (useCustom) {
@@ -48,6 +78,7 @@ export class Players extends Array {
         this[i].color = this.originalColor;
       }
     }
+    this.injectColorsCss();
   }
 
   _createAltColors(color) {

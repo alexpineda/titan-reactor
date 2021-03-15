@@ -8,6 +8,12 @@ import {
 import WrappedElement from "../../WrappedElement";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
+import {
+  ResourcesView,
+  UnitProductionView,
+  TechProductionView,
+  UpgradesProductionView,
+} from "../../../stores/hudStore";
 import Minerals from "./Minerals";
 import Gas from "./Gas";
 import Workers from "./Workers";
@@ -105,6 +111,8 @@ const PlayerResources = ({
         marginBottom: "-1px",
         borderLeftWidth: "4px",
         borderLeftColor: color.alt.lightShift,
+        paddingTop: "2px",
+        paddingBottom: "2px",
       }
     : {};
 
@@ -219,21 +227,23 @@ const PlayerResources = ({
           />
         )}
       </td>
-      {productionView === 1 && (
-        <td>
-          <WrappedElement domElement={domElements.production[id].domElement} />
-        </td>
-      )}
-      {productionView === 2 && (
-        <td>
-          <WrappedElement domElement={domElements.research[id].domElement} />
-        </td>
-      )}
-      {productionView === 3 && (
-        <td>
-          <WrappedElement domElement={domElements.upgrades[id].domElement} />
-        </td>
-      )}
+      <td
+        className={`${productionView !== UnitProductionView ? "hidden" : ""}`}
+      >
+        <WrappedElement domElement={domElements.production[id].domElement} />
+      </td>
+      <td
+        className={`${productionView !== TechProductionView ? "hidden" : ""}`}
+      >
+        <WrappedElement domElement={domElements.research[id].domElement} />
+      </td>
+      <td
+        className={`${
+          productionView !== UpgradesProductionView ? "hidden" : ""
+        }`}
+      >
+        <WrappedElement domElement={domElements.upgrades[id].domElement} />
+      </td>
       {!productionView && (
         <td
           className="px-2 pointer-events-none"

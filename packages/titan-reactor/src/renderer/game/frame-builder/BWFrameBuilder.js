@@ -347,6 +347,7 @@ export default class BWFrameSceneBuilder {
             count: 1,
             buildTime: this.bwDat.tech[research.typeId].researchTime,
             isTech: true,
+            timeAdded: Date.now(),
           };
           this.research[i].push(researchObj);
           if (research.remainingBuildTime === 0) {
@@ -384,6 +385,7 @@ export default class BWFrameSceneBuilder {
               this.bwDat.upgrades[upgrade.typeId].researchTimeFactor *
                 upgrade.level,
             isUpgrade: true,
+            timeAdded: Date.now(),
           };
           this.upgrades[i].push(upgradeObj);
           if (upgrade.remainingBuildTime === 0) {

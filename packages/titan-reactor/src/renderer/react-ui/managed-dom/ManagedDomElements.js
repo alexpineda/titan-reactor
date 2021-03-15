@@ -18,7 +18,8 @@ export default class ManagedDomElements {
       (i) =>
         new ProductionWrapperElement(
           cmdIcons,
-          players[i] ? players[i].color.hex : ""
+          players[i] ? players[i].color.hex : "",
+          true
         )
     );
 

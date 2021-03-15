@@ -80,15 +80,21 @@ class Cameras {
       minimapControl.addEventListener("start", ({ message: { speed } }) => {
         const target = new Vector3();
         const position = new Vector3();
+
         // preview control is set on hover, copy the values
-        this.previewControl.getTarget(target);
-        this.previewControl.getPosition(position);
+        if (settings.producerWindowPosition === ProducerWindowPosition.None) {
+          this.camera.fov = this.previewCamera.fov;
+          this.previewControl.getTarget(target);
+          this.previewControl.getPosition(position);
+        } else {
+          this.camera.fov = this.previewCamera.fov;
+          this.previewControl.getTarget(target);
+          this.previewControl.getPosition(position);
+        }
 
         const transition = speed < 2;
         this.control.dampingFactor = speed === 0 ? 0.005 : 0.05;
-        if (settings.producerWindowPosition !== ProducerWindowPosition.None) {
-          this.camera.fov = this.previewCamera.fov;
-        }
+
         this.camera.updateProjectionMatrix();
         this.control.setLookAt(
           position.x,

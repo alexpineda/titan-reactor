@@ -10,6 +10,15 @@ const HeaderMagicClassic = 0x53526572;
 const HeaderMagicScrModern = 0x53526573;
 const MAX_CHUNK_SIZE = 0x2000;
 
+const alloc = (n, cb) => {
+  const b = Buffer.alloc(n);
+  cb(b);
+  return b;
+};
+const uint32 = (val) => alloc(4, (b) => b.writeUInt32LE(val));
+const uint16 = (val) => alloc(4, (b) => b.writeUInt16LE(val));
+const uint8 = (val) => alloc(1, (b) => b.writeUInt8(val));
+
 const CMDS = (() => {
   const c = (id, len) => ({ id, length: () => len });
   const fun = (id, func) => ({ id, length: func });
@@ -518,6 +527,13 @@ const parseCommands = (origBuf, players, originalTags) => {
   }
 };
 
+const scrTo116Tag = (scrTag) => {
+  const index = scrTag & 0x1fff;
+  const generation = scrTag >> 13;
+
+  return index | (generation << 11);
+};
+
 const dataToCommand = (id, buf, originalTags) => {
   switch (id) {
     case CMDS.RIGHT_CLICK.id:
@@ -531,14 +547,18 @@ const dataToCommand = (id, buf, originalTags) => {
 
     case CMDS.RIGHT_CLICK_EXT.id: {
       const data = new BufferList();
-      data.append(buf.slice(0, 6)).append(buf.slice(8, 11));
+      const unitTag = scrTo116Tag(buf.readUInt16LE(4));
+      data
+        .append(buf.slice(0, 4))
+        .append(uint16(unitTag))
+        .append(buf.slice(8, 11));
 
       return {
         data,
         id: CMDS.RIGHT_CLICK.id,
         x: buf.readUInt16LE(0),
         y: buf.readUInt16LE(2),
-        unitTag: buf.readUInt16LE(4),
+        unitTag,
         unk: buf.readUInt16LE(6),
         unit: buf.readUInt16LE(8),
         queued: buf.readUInt8(10) != 0,
@@ -563,7 +583,9 @@ const dataToCommand = (id, buf, originalTags) => {
       mapping[CMDS.SELECTION_REMOVE_EXT.id] = CMDS.SELECTION_REMOVE;
 
       const count = buf.readUInt8(0);
-      const unitTags = range(0, count).map((i) => buf.readUInt16LE(1 + i * 4)); //skip 2 bytes in SCR
+      const unitTags = range(0, count).map((i) =>
+        scrTo116Tag(buf.readUInt16LE(1 + i * 4))
+      ); //skip 2 bytes in SCR
       const data = new BufferList();
       data.append(buf.slice(0, 1));
 
@@ -600,20 +622,27 @@ const dataToCommand = (id, buf, originalTags) => {
         order: buf.readUInt8(8),
         queued: buf.readUInt8(9) != 0,
       };
-    case CMDS.TARGETED_ORDER_EXT.id:
+    case CMDS.TARGETED_ORDER_EXT.id: {
       const data = new BufferList();
-      data.append(buf.slice(0, 6)).append(buf.slice(8, 12));
+      const unitTag = scrTo116Tag(buf.readUInt16LE(4));
+
+      data
+        .append(buf.slice(0, 4))
+        .append(uint16(unitTag))
+        .append(buf.slice(8, 12));
+
       return {
         data,
         id: CMDS.TARGETED_ORDER.id,
         x: buf.readUInt16LE(0),
         y: buf.readUInt16LE(2),
-        unitTag: buf.readUInt16LE(4),
+        unitTag,
         unk: buf.readUInt16LE(6),
         unitTypeId: buf.readUInt16LE(8),
         order: buf.readUInt8(10),
         queued: buf.readUInt8(11) != 0,
       };
+    }
     case CMDS.BUILD.id:
       return {
         order: buf.readUInt8(0),
@@ -652,12 +681,16 @@ const dataToCommand = (id, buf, originalTags) => {
         unitTag: buf.readInt16LE(0),
       };
     case CMDS.UNLOAD.id:
-    case CMDS.UNLOAD_EXT.id:
-      return {
-        id: CMDS.UNLOAD.id,
-        unitTag: buf.readInt16LE(0),
-      };
+    case CMDS.UNLOAD_EXT.id: {
+      const unitTag = scrTo116Tag(buf.readUInt16LE(0));
+      const data = new BufferList(unitTag);
 
+      return {
+        data,
+        id: CMDS.UNLOAD.id,
+        unitTag,
+      };
+    }
     case CMDS.LIFTOFF.id:
       return {
         x: buf.readInt16LE(0),
@@ -688,19 +721,12 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
     return buf;
   }
   const bl = new BufferList();
-  const alloc = (n, cb) => {
-    const b = Buffer.alloc(n);
-    cb(b);
-    return b;
-  };
-  const uint32le = (val) => alloc(4, (b) => b.writeUInt32LE(val));
-  const uint8 = (val) => alloc(1, (b) => b.writeUInt8(val));
 
-  await writeBlock(bl, uint32le(HeaderMagicClassic), false);
+  await writeBlock(bl, uint32(HeaderMagicClassic), false);
   await writeBlock(bl, replay.rawHeader, true);
 
   const writeCommands = (buf, frame, size, commands) => {
-    buf.append(uint32le(frame));
+    buf.append(uint32(frame));
     buf.append(uint8(size));
     let realsize = 0;
 
@@ -755,10 +781,10 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
     }, new BufferList());
 
   // await writeBlock(bl, uint32le(0), false);
-  await writeBlock(bl, uint32le(repCommands.length), false);
+  await writeBlock(bl, uint32(repCommands.length), false);
   await writeBlock(bl, repCommands, true);
   const chk = chkDowngrader(replay.chk.slice(0));
-  await writeBlock(bl, uint32le(chk.byteLength), false);
+  await writeBlock(bl, uint32(chk.byteLength), false);
   await writeBlock(bl, chk, true);
 
   return bl.slice(0);
