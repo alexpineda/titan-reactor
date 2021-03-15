@@ -54,6 +54,7 @@ export default class TitanImage3D extends Object3D {
 
   setTeamColor(val) {}
   setWarping(val) {}
+  setCloaked(val) {}
 
   get frames() {
     return this.atlas.frames;

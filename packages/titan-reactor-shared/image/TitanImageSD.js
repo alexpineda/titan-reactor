@@ -70,6 +70,10 @@ export default class TitanImageSD extends Sprite {
     this.material.warping = val;
   }
 
+  setCloaked(val) {
+    this.material.opacity = val ? 0.5 : 1;
+  }
+
   get frames() {
     return this.atlas.frames;
   }

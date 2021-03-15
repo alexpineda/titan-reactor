@@ -134,14 +134,18 @@ class Units {
       unitsBySpriteId.set(unitBw.spriteIndex, unit);
 
       //if receiving damage, blink 3 times, hold blink 3 frames
-      if (!unit.recievingDamage && unit.hp > unitBw.hp) {
+      if (
+        !unit.recievingDamage &&
+        unit.hp > unitBw.hp &&
+        unit.typeId !== unitBw.typeId // ignore zerg units change hp from egg hp
+      ) {
         unit.recievingDamage = 0b000111000111000111;
       } else if (unit.recievingDamage) {
         unit.recievingDamage = unit.recievingDamage >> 1;
       }
       unit.hp = unitBw.hp;
       unit.id = unitBw.id;
-      unit.id = unitBw.unitType;
+      unit.typeId = unitBw.typeId;
       unit.owner = this.playersById[unitBw.owner];
       unit.isBuilding = unitBw.unitType.isBuilding;
       unit.wasFlying = unit.isFlying && !unitBw.isFlying;
@@ -157,13 +161,13 @@ class Units {
       if (
         unitBw.unitType.isBuilding &&
         unitBw.unitType.isProtoss &&
-        unitBw.remainingBuildTime &&
         unitBw.remainingBuildTime < 21
       ) {
-        unit.warpingIn = 1 - unitBw.remainingBuildTime / 19;
-        if (unitBw.remainingBuildTime == 3) {
-          unit.warpingIn = 1;
-        }
+        // unit.warpingIn = 1 - unitBw.remainingBuildTime / 19;
+        // if (unitBw.remainingBuildTime == 3) {
+        //   unit.warpingIn = 1;
+        // }
+        unit.warpingIn = unitBw.remainingBuildTime;
       }
 
       this._refreshMinimap(unitBw, isResourceContainer, unit);

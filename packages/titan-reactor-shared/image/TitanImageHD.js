@@ -97,6 +97,10 @@ export default class TitanImageHD extends Sprite {
     this.material.warpingIn = val;
   }
 
+  setCloaked(val) {
+    this.material.opacity = val ? 0.5 : 1;
+  }
+
   setPositionX(x, scale = this._spriteScale) {
     this.position.x = x / scale;
   }

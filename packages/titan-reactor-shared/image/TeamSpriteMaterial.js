@@ -69,13 +69,16 @@ class TeamSpriteMaterial extends SpriteMaterial {
       };
     }
 
-    // mapFragments.push([
-    //   `
-    //   diffuseColor = vec4(mix(vec3(1.), diffuseColor.rgb, warpingIn), diffuseColor.a);
-    //   `,
-    //   `uniform float warpingIn;`,
-    // ]);
+    // if (this.isShadow) {
+    mapFragments.push([
+      `
+      diffuseColor.a = diffuseColor.a * 1. - warpingIn / 21.;
+      // diffuseColor = vec4(mix(vec3(1.), diffuseColor.rgb, ), diffuseColor.a);
+      `,
+      `uniform float warpingIn;`,
+    ]);
     extend("#include <map_fragment>", mapFragments);
+    // }
     // shader.uniforms.warpingIn = this._dynamicUniforms.warpingIn;
 
     /*
@@ -87,7 +90,11 @@ class TeamSpriteMaterial extends SpriteMaterial {
   }
 
   customProgramCacheKey() {
-    const flags = [!!this.teamMask, this.isShadow];
+    const flags = [
+      Boolean(this.teamMask),
+      this.isShadow,
+      Boolean(this.warpingIn),
+    ];
     return flags.join("");
   }
 }

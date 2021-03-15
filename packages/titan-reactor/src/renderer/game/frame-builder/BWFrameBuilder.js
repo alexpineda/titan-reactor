@@ -240,14 +240,13 @@ export default class BWFrameSceneBuilder {
         //   titanImage.setScale(new Vector3(1.01, 1.01, 1));
         // }
         if (sprite.unit) {
-          //@todo move this to material
           if (!image.isShadow) {
-            // titanImage.material.opacity = sprite.unit.isCloaked ? 0.5 : 1;
+            titanImage.setCloaked(sprite.unit.isCloaked);
           }
 
-          // if (spriteBW.mainImageIndex === image.index) {
-          //   titanImage.setWarpingIn(sprite.unit.warpingIn);
-          // }
+          if (spriteBW.mainImageIndex === image.index) {
+            titanImage.setWarpingIn(sprite.unit.warpingIn);
+          }
         }
 
         titanImage.setFrame(image.frameIndex, image.flipped);
@@ -362,9 +361,7 @@ export default class BWFrameSceneBuilder {
           useHudStore.getState().onUpgradeNearComplete();
         }
         if (upgrade.owner === i) {
-          // if completed upgrade exists & remainingBuiltTime == 0, increase count
-          // otherwis ejsut update build time
-
+          // if completed upgrade exists update count once and replace build time
           const existing = this.upgrades[i].find(
             (u) => u.typeId === upgrade.typeId
           );
