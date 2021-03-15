@@ -60,7 +60,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   return (
     <div className={`select-none ${className}`} style={style}>
       <div className="resources-parent">
-        <div className="pointer-events-none flex flex-row-reverse">
+        {/* <div className="pointer-events-none flex flex-row-reverse">
           <span
             className={`pointer-events-auto material-icons cursor-pointer hover:text-yellow-500 mr-2 ${
               autoToggleProductionView ? "text-yellow-700" : "text-gray-700 "
@@ -72,7 +72,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
           >
             update
           </span>
-        </div>
+        </div> */}
         <div
           className="rounded mx-1 my-1 flex"
           style={{ backgroundColor: "#1a202ce6" }}

@@ -8,6 +8,7 @@ import useLoadingStore from "../../stores/loadingStore";
 
 const Minimap = ({ className = "" }) => {
   const textSize = useSettingsStore((state) => state.data.textSize);
+  const classicClock = useSettingsStore((state) => state.data.classicClock);
 
   const {
     fogOfWar,
@@ -36,29 +37,53 @@ const Minimap = ({ className = "" }) => {
         useHudStore.setState({ hoveringOverMinimap: false });
       }}
     >
-      <div
-        className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
-        style={{ width: "13rem", maxWidth: `${minimapSize}px` }}
-      >
-        <WrappedElement domElement={timeLabel} className="inline" />
-      </div>
-
-      <span className="flex" style={{ maxWidth: `${minimapSize}px` }}>
-        <span className="bg-gray-700 text-gray-400 px-1 uppercase overflow-ellipsis flex-grow">
-          <p
-            style={{
-              opacity: "0.8",
-              whiteSpace: "nowrap",
-              maxWidth: `${minimapSize - 30}px`,
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-            }}
+      {classicClock && (
+        <div
+          className="text-gray-300 font-bold text-lg text-center relative"
+          style={{ maxWidth: `${minimapSize}px` }}
+        >
+          <div
+            className="absolute top-0 bottom-0 left-0 bevel-gray-800-reverse w-1/2"
+            style={{ zIndex: -1 }}
           >
-            {omitChars(mapLabel)}
-          </p>
-        </span>
-        <span className="bevel-gray-700 w-6 h-6"></span>
-      </span>
+            &nbsp;
+          </div>
+          <div
+            className="absolute top-0 bottom-0 right-0 bevel-gray-800 w-1/2"
+            style={{ zIndex: -1 }}
+          >
+            &nbsp;
+          </div>
+          <WrappedElement domElement={timeLabel} className="inline" />
+        </div>
+      )}
+      {!classicClock && (
+        <>
+          <div
+            className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
+            style={{ width: "13rem", maxWidth: `${minimapSize}px` }}
+          >
+            <WrappedElement domElement={timeLabel} className="inline" />
+          </div>
+
+          <span className="flex" style={{ maxWidth: `${minimapSize}px` }}>
+            <span className="bg-gray-700 text-gray-400 px-1 uppercase overflow-ellipsis flex-grow">
+              <p
+                style={{
+                  opacity: "0.8",
+                  whiteSpace: "nowrap",
+                  maxWidth: `${minimapSize - 30}px`,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                }}
+              >
+                {omitChars(mapLabel)}
+              </p>
+            </span>
+            <span className="bevel-gray-700 w-6 h-6"></span>
+          </span>
+        </>
+      )}
       <div className="mb-1 flex flex-1 relative">
         <i
           className={`material-icons rounded absolute ${

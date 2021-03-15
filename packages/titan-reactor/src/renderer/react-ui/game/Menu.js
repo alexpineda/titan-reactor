@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MenuItem } from "../components/MenuItem";
-import Options from "../home/Options";
+import Options, { Tabs } from "../home/Options";
 import useSettingsStore from "../../stores/settingsStore";
 
 const Menu = ({ onClose, onBackToMainMenu }) => {
@@ -36,6 +36,7 @@ const Menu = ({ onClose, onBackToMainMenu }) => {
             Back
           </p>
           <Options
+            defaultTab={Tabs.Game}
             inGame={true}
             className="bg-gray-900 w-1/2 px-6 pt-6 pb-1 rounded-lg"
             style={{ minHeight: "65vh" }}

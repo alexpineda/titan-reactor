@@ -157,6 +157,7 @@ export class Settings extends EventEmitter {
       communityModelsPath: "",
       observerLink: "",
       musicVolume: 0.1,
+      musicAllTypes: false,
       soundVolume: 1,
       audioPanningStyle: AudioPanningStyle.Spatial,
       antialias: false,

@@ -414,6 +414,8 @@ async function TitanReactorGame(
         if (rep.cmds[gameStatePosition.bwGameFrame]) {
           // #region player command pointers
           for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
+            //@todo remove once we filter commands
+            if (!players[cmd.player]) continue;
             if (players[cmd.player].showPov) {
               players[cmd.player].camera.update(cmd, pxToGameUnit);
             } else {

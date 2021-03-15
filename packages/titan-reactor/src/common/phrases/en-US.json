@@ -11,7 +11,6 @@
 
     "LOADING": "Loading",
 
-
     "LAUNCH": "Launch",
 
     "SETTINGS_LANGUAGE": "Language",
@@ -37,6 +36,8 @@
     "SETTINGS_CAMERA_SHAKE": "Cinematic Camera Shake",
     "SETTINGS_MUSIC_VOLUME": "Music Volume",
     "SETTINGS_SOUND_VOLUME": "Sound Volume",
+    "SETTINGS_MUSIC_ALL_TYPES": "Music: All Races",
+    "SETTINGS_MUSIC_RACES_TYPES": "Music: Only Races In Game",
     "SETTINGS_GRAPHICS_ANTIALIAS": "Antialias",
     "SETTINGS_GRAPHICS_SHADOWS": "Shadows",
     "SETTINGS_GRAPHICS_ANISOTROPY": "Anisotropy",
@@ -44,7 +45,9 @@
     "SETTINGS_GRAPHICS_GAMMA": "Gamma",
     "SETTINGS_GRAPHICS_FULLSCREEN": "Fullscreen (Windowed)",
     "SETTINGS_ENABLE_PLAYER_SCORES": "Enable Player Scores",
-    "SETTINGS_ESPORTS_HUD_STYLE": "E-Sports HUD Style",
+    "SETTINGS_ESPORTS_HUD_STYLE": "Broadcast HUD Style",
+    "SETTINGS_CLOCK_STYLE": "Classic Clock Style",
+    "SETTINGS_CYCLE_PRODUCTION": "Cycle Production View",
     "SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS": "Always Hide Replay Controls",
     "SETTINGS_RESOURCES_FONT_SIZE": "Resources Font Size",
     "SETTINGS_SHOW_TOOLTIPS": "Show In-Game Tooltips",

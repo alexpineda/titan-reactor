@@ -2,7 +2,7 @@ import { remote } from "electron";
 import createScmExtractor from "scm-extractor";
 import fs, { promises as fsPromises } from "fs";
 import path from "path";
-import { pick } from "ramda";
+import { pick, uniq } from "ramda";
 import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
@@ -200,9 +200,14 @@ export class TitanReactor {
     );
     await scene.init(settings.isDev);
 
+    const races = settings.musicAllTypes
+      ? ["terran", "zerg", "protoss"]
+      : uniq(this.rep.header.players.map(({ race }) => race));
+
     const audioMaster = new AudioMaster(
       (id) => readBwFile(`sound/${this.bwDat.sounds[id].file}`),
-      settings.audioPanningStyle
+      settings.audioPanningStyle,
+      races
     );
     audioMaster.musicVolume = settings.musicVolume;
     audioMaster.soundVolume = settings.soundVolume;

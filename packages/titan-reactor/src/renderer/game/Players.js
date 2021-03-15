@@ -59,10 +59,10 @@ export class Players extends Array {
       ${colors}
       @keyframes glow-${this[i].id} {
         from {
-          box-shadow: 0 0 8px -8px ${color.hex}55;
+          box-shadow: 0 0 10px -10px ${color.hex}55;
         }
         to {
-          box-shadow: 0 0 8px 8px ${color.hex}55;
+          box-shadow: 0 0 10px 10px ${color.hex}55;
         }
       }
       `;

@@ -10,3 +10,6 @@ ramps
 .DS_Store
 static
 test
+packages/casclib/.gitmodules
+packages/casclib/build
+yarn-error.log

@@ -3,10 +3,10 @@ import MainMixer from "./MainMixer";
 import SoundChannels from "./SoundChannels";
 
 export default class AudioMaster {
-  constructor(loadSoundAsync, panningStyle) {
+  constructor(loadSoundAsync, panningStyle, races) {
     this.mixer = new MainMixer();
     this.channels = new SoundChannels(this.mixer, loadSoundAsync, panningStyle);
-    this.music = new Music();
+    this.music = new Music(races);
     this.music.setListener(this.mixer);
     this.queued = [];
   }

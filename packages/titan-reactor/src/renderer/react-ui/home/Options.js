@@ -16,7 +16,7 @@ import { RenderMode, ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 import useSettingsStore from "../../stores/settingsStore";
 
-const Tabs = {
+export const Tabs = {
   Setup: "Setup",
   Game: "Game",
   Producer: "Producer",
@@ -210,7 +210,7 @@ export default ({
                   <Toggle
                     value={settings.randomizeColorOrder}
                     onChange={() =>
-                      updateSettings({
+                      save({
                         randomizeColorOrder: !settings.randomizeColorOrder,
                       })
                     }
@@ -319,6 +319,32 @@ export default ({
               onChange={() =>
                 save({
                   esportsHud: !settings.esportsHud,
+                })
+              }
+            />
+          }
+        />
+        <Option
+          label={phrases["SETTINGS_CLOCK_STYLE"]}
+          toggle={
+            <Toggle
+              value={settings.classicClock}
+              onChange={() =>
+                save({
+                  classicClock: !settings.classicClock,
+                })
+              }
+            />
+          }
+        />
+        <Option
+          label={phrases["SETTINGS_CYCLE_PRODUCTION"]}
+          toggle={
+            <Toggle
+              value={settings.autoToggleProductionView}
+              onChange={() =>
+                save({
+                  autoToggleProductionView: !settings.autoToggleProductionView,
                 })
               }
             />
@@ -440,7 +466,6 @@ export default ({
             }}
           />
         </Option>
-
         <Option
           label={phrases["SETTINGS_SOUND_VOLUME"]}
           value={`${Math.floor(settings.soundVolume * 100)}%`}
@@ -457,6 +482,22 @@ export default ({
               });
             }}
           />
+        </Option>
+        <Option className="pl-4">
+          <ButtonSetContainer>
+            <ButtonSet
+              selected={settings.musicAllTypes}
+              label={phrases["SETTINGS_MUSIC_ALL_TYPES"]}
+              first
+              onClick={() => save({ musicAllTypes: true })}
+            />
+            <ButtonSet
+              selected={!settings.musicAllTypes}
+              label={phrases["SETTINGS_MUSIC_RACES_TYPES"]}
+              last
+              onClick={() => save({ musicAllTypes: false })}
+            />
+          </ButtonSetContainer>
         </Option>
       </Tab>
 

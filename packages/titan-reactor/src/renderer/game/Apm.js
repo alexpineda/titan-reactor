@@ -19,6 +19,8 @@ export default class Apm {
 
     if (cmds) {
       for (let cmd of cmds) {
+        //@todo remove once we filter out commands
+        if (!this.players[cmd.player]) continue;
         this.actions[this.players[cmd.player].id][this._frame]++;
       }
 
