@@ -480,40 +480,40 @@ async function TitanReactorGame(
 
     renderMan.setCanvasTarget(gameSurface);
 
-    if (players[0].showPov && players[1].showPov) {
-      players.forEach(({ camera }) => {
-        renderMan.renderSplitScreen(scene, camera, camera.viewport);
-      });
-    } else if (players[0].showPov) {
-      renderMan.render(scene, players[0].camera, delta);
-    } else if (players[1].showPov) {
-      renderMan.render(scene, players[1].camera, delta);
-    } else {
-      // if (units.followingUnit && units.selected.length) {
-      //   const x =
-      //     units.selected.reduce(
-      //       (sum, unit) => sum + unit.getWorldPosition().x,
-      //       0
-      //     ) / units.selected.length;
-      //   const z =
-      //     units.selected.reduce(
-      //       (sum, unit) => sum + unit.getWorldPosition().z,
-      //       0
-      //     ) / units.selected.length;
+    // if (players[0].showPov && players[1].showPov) {
+    //   players.forEach(({ camera }) => {
+    //     renderMan.renderSplitScreen(scene, camera, camera.viewport);
+    //   });
+    // } else if (players[0].showPov) {
+    //   renderMan.render(scene, players[0].camera, delta);
+    // } else if (players[1].showPov) {
+    //   renderMan.render(scene, players[1].camera, delta);
+    // } else {
+    // if (units.followingUnit && units.selected.length) {
+    //   const x =
+    //     units.selected.reduce(
+    //       (sum, unit) => sum + unit.getWorldPosition().x,
+    //       0
+    //     ) / units.selected.length;
+    //   const z =
+    //     units.selected.reduce(
+    //       (sum, unit) => sum + unit.getWorldPosition().z,
+    //       0
+    //     ) / units.selected.length;
 
-      //   cameras.setTarget(x, getTerrainY(x, z), z, true);
-      // }
+    //   cameras.setTarget(x, getTerrainY(x, z), z, true);
+    // }
 
-      const target = cameras.getTarget();
-      target.setY((target.y + cameras.camera.position.y) / 2);
-      target.setZ((target.z + cameras.camera.position.z) / 2);
-      audioMaster.update(target.x, target.y, target.z, delta);
+    const target = cameras.getTarget();
+    target.setY((target.y + cameras.camera.position.y) / 2);
+    target.setZ((target.z + cameras.camera.position.z) / 2);
+    audioMaster.update(target.x, target.y, target.z, delta);
 
-      renderMan.enableCinematicPass();
-      fogOfWar.update(cameras.camera);
-      renderMan.updateFocus(cameras);
-      renderMan.render(scene, cameras.camera, delta);
-    }
+    renderMan.enableCinematicPass();
+    fogOfWar.update(cameras.camera);
+    renderMan.updateFocus(cameras);
+    renderMan.render(scene, cameras.camera, delta);
+    // }
 
     minimapCanvasDrawer.draw(projectedCameraView, minimapSurface.ctx);
 

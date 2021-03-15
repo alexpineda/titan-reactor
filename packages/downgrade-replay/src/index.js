@@ -9,6 +9,7 @@ const { chkDowngrader } = require("downgrade-chk");
 const HeaderMagicClassic = 0x53526572;
 const HeaderMagicScrModern = 0x53526573;
 const MAX_CHUNK_SIZE = 0x2000;
+const unparsedCommandsDebug = new Set();
 
 const alloc = (n, cb) => {
   const b = Buffer.alloc(n);
@@ -16,8 +17,24 @@ const alloc = (n, cb) => {
   return b;
 };
 const uint32 = (val) => alloc(4, (b) => b.writeUInt32LE(val));
-const uint16 = (val) => alloc(4, (b) => b.writeUInt16LE(val));
+const uint16 = (val) => alloc(2, (b) => b.writeUInt16LE(val));
 const uint8 = (val) => alloc(1, (b) => b.writeUInt8(val));
+
+//return unit_id(u->index + 1, u->unit_id_generation % (1u << 5));
+// index | generation << 11
+
+const scrTo116Tag = (scrTag) => {
+  // const index = scrTag & 0x1fff;
+  const index = 1700 - (3400 - (scrTag & 0x1fff));
+  const generation = scrTag >> 13;
+  const tag = index | (generation << 11);
+
+  if (tag < 0) {
+    console.warn(`scrtag ${scrTag}`);
+    return scrTag;
+  }
+  return tag;
+};
 
 const CMDS = (() => {
   const c = (id, len) => ({ id, length: () => len });
@@ -215,8 +232,6 @@ const block = async (buf, blockSize, skipProcessing = false) => {
     new BufferList()
   );
 
-  // @todo these fail on 2nd last block size for 116 reps, 2nd last block doesn't get
-  // deflated to 8192 but only 4096 :S
   if (result.length != blockSize)
     throw new Error(`read bytes, expected:${blockSize} got:${result.length}`);
 
@@ -266,6 +281,7 @@ const parseReplay = async (buf) => {
   if (!skipProcessing) {
     const originalTags = new Set();
     cmds = parseCommands(rawCmds, header.players, originalTags);
+    console.log(unparsedCommandsDebug);
     // version = Version.remastered && console.log(originalTags);
   }
 
@@ -495,6 +511,9 @@ const parseCommands = (origBuf, players, originalTags) => {
 
     while (pos < frameEnd) {
       const player = buf.readUInt8(pos);
+      if (player === 54) {
+        debugger;
+      }
       pos += 1;
       const id = buf.readUInt8(pos);
       pos += 1;
@@ -525,13 +544,6 @@ const parseCommands = (origBuf, players, originalTags) => {
     }
     buf.consume(frameEnd);
   }
-};
-
-const scrTo116Tag = (scrTag) => {
-  const index = scrTag & 0x1fff;
-  const generation = scrTag >> 13;
-
-  return index | (generation << 11);
 };
 
 const dataToCommand = (id, buf, originalTags) => {
@@ -583,16 +595,15 @@ const dataToCommand = (id, buf, originalTags) => {
       mapping[CMDS.SELECTION_REMOVE_EXT.id] = CMDS.SELECTION_REMOVE;
 
       const count = buf.readUInt8(0);
-      const unitTags = range(0, count).map((i) =>
-        scrTo116Tag(buf.readUInt16LE(1 + i * 4))
-      ); //skip 2 bytes in SCR
+      const scrTags = range(0, count).map((i) => buf.readUInt16LE(1 + i * 4)); //skip 2 bytes in SCR
+      const unitTags = scrTags.map(scrTo116Tag); //skip 2 bytes in SCR
       const data = new BufferList();
       data.append(buf.slice(0, 1));
 
       if (count) {
         const bwUnitTags = Buffer.alloc(count * 2);
         for (let i = 0; i < count; i++) {
-          bwUnitTags.writeUInt16LE(unitTags[i]);
+          bwUnitTags.writeUInt16LE(unitTags[i], i * 2);
           originalTags.add(unitTags[i]);
         }
         data.append(bwUnitTags);
@@ -600,6 +611,7 @@ const dataToCommand = (id, buf, originalTags) => {
       return {
         data,
         id: mapping[id].id,
+        scrTags,
         unitTags,
       };
     }
@@ -683,7 +695,7 @@ const dataToCommand = (id, buf, originalTags) => {
     case CMDS.UNLOAD.id:
     case CMDS.UNLOAD_EXT.id: {
       const unitTag = scrTo116Tag(buf.readUInt16LE(0));
-      const data = new BufferList(unitTag);
+      const data = new BufferList(uint16(unitTag));
 
       return {
         data,
@@ -711,6 +723,7 @@ const dataToCommand = (id, buf, originalTags) => {
       };
     default:
       //unsupported command
+      unparsedCommandsDebug.add(id);
       return {};
   }
 };
@@ -757,6 +770,7 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
     .reduce((cmdBl, { commands, frame }) => {
       let size = 0;
       for (let i = 0; i < commands.length; i++) {
+        //@todo support unlimited overflow writes
         if (size + commands[i].data.byteLength + 2 > 255) {
           console.warn("overflow");
           const overflow = commands.splice(i);
@@ -780,14 +794,30 @@ const convertReplayTo116 = async (buf, ignoreCommands = []) => {
       return cmdBl;
     }, new BufferList());
 
-  // await writeBlock(bl, uint32le(0), false);
   await writeBlock(bl, uint32(repCommands.length), false);
   await writeBlock(bl, repCommands, true);
+
   const chk = chkDowngrader(replay.chk.slice(0));
   await writeBlock(bl, uint32(chk.byteLength), false);
   await writeBlock(bl, chk, true);
 
   return bl.slice(0);
+};
+
+const getBlockSize = async (data) => {
+  const numChunks = Math.ceil(data.length / MAX_CHUNK_SIZE);
+  let outBlockSize = 0;
+
+  for (let i = 0; i < numChunks; i++) {
+    const chunk = data.slice(
+      i * MAX_CHUNK_SIZE,
+      i * MAX_CHUNK_SIZE + Math.min(MAX_CHUNK_SIZE, data.length)
+    );
+    const chunkOut = await deflate(chunk);
+    outBlockSize = outBlockSize + chunkOut.byteLength;
+  }
+
+  return outBlockSize;
 };
 
 const writeBlock = async (out, data, compress) => {

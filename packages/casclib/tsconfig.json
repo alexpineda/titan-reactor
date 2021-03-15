@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "lib": [ "esnext" ],
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./lib",
+    "strict": true,
+    "target": "es2015",
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "include": [
+    "lib/**/*"
+  ]
+}
