@@ -63,7 +63,7 @@ class TeamSpriteMaterial extends SpriteMaterial {
            uniform vec3 teamColor;`,
       ]);
 
-      shader.uniforms.teamColor = this._dynamicUniforms.teamColor;
+      Object.assign(shader.uniforms, this._dynamicUniforms);
       shader.uniforms.teamMask = {
         value: this.teamMask,
       };
@@ -72,7 +72,10 @@ class TeamSpriteMaterial extends SpriteMaterial {
     // if (this.isShadow) {
     mapFragments.push([
       `
-      diffuseColor.a = diffuseColor.a * 1. - warpingIn / 21.;
+      if (warpingIn > 0.) {
+        diffuseColor = vec4(vec3(1.), diffuseColor.a);
+      }
+      // diffuseColor.a = diffuseColor.a * 1. - warpingIn / 21.;
       // diffuseColor = vec4(mix(vec3(1.), diffuseColor.rgb, ), diffuseColor.a);
       `,
       `uniform float warpingIn;`,
@@ -90,11 +93,7 @@ class TeamSpriteMaterial extends SpriteMaterial {
   }
 
   customProgramCacheKey() {
-    const flags = [
-      Boolean(this.teamMask),
-      this.isShadow,
-      Boolean(this.warpingIn),
-    ];
+    const flags = [Boolean(this.teamMask), this.isShadow];
     return flags.join("");
   }
 }

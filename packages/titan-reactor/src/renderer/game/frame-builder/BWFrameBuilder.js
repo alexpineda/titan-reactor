@@ -244,11 +244,15 @@ export default class BWFrameSceneBuilder {
             titanImage.setCloaked(sprite.unit.isCloaked);
           }
 
-          if (spriteBW.mainImageIndex === image.index) {
-            titanImage.setWarpingIn(sprite.unit.warpingIn);
-          }
+          // if (spriteBW.mainImageIndex === image.index) {
+          //   titanImage.setWarpingIn(sprite.unit.warpingIn);
+          // }
+          // titanImage.setWarpingIn(image.warpIn);
         }
 
+        if (image.warpIn) {
+          console.log(image.warpIn);
+        }
         titanImage.setFrame(image.frameIndex, image.flipped);
 
         if (!sprite.images.has(image.id)) {

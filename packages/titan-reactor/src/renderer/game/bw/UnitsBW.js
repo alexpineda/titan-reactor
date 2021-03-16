@@ -46,7 +46,7 @@ const flags = Object.freeze({
 
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 24;
+    return 26;
   }
 
   get id() {
@@ -91,6 +91,10 @@ export default class UnitsBW extends ContiguousContainer {
 
   get remainingBuildTime() {
     return this._read16(22);
+  }
+
+  get shields() {
+    return this._read16(24);
   }
 
   get angle() {
@@ -138,6 +142,7 @@ export default class UnitsBW extends ContiguousContainer {
       y: this.y,
       hp: this.hp,
       energy: this.energy,
+      shields: this.shields,
       spriteIndex: this.spriteIndex,
       statusFlags: this.statusFlags,
       direction: this.direction,

@@ -14,7 +14,7 @@ const flags = Object.freeze({
 
 export default class ImagesBW extends ContiguousContainer {
   static get byteLength() {
-    return 16;
+    return 15;
   }
 
   get default() {
@@ -33,20 +33,20 @@ export default class ImagesBW extends ContiguousContainer {
     return this._read32(4);
   }
 
-  get modifier() {
+  get frameIndex() {
     return this._read16(8);
   }
 
-  get frameIndex() {
+  get x() {
     return this._read16(10);
   }
 
-  get x() {
+  get y() {
     return this._read16(12);
   }
 
-  get y() {
-    return this._read16(14);
+  get warpIn() {
+    return this._readU8(12);
   }
 
   get flipped() {
