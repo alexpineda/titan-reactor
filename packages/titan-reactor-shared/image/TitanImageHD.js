@@ -93,8 +93,9 @@ export default class TitanImageHD extends Sprite {
     this.material.teamColor = val;
   }
 
-  setWarpingIn(val) {
+  setWarpingIn(val, len) {
     this.material.warpingIn = val;
+    this.material.warpingInLen = len;
   }
 
   setCloaked(val) {

@@ -1,4 +1,5 @@
 import { Color, SpriteMaterial } from "three";
+import warp from "./effect/warp";
 
 class TeamSpriteMaterial extends SpriteMaterial {
   constructor(opts) {
@@ -7,6 +8,9 @@ class TeamSpriteMaterial extends SpriteMaterial {
     this.defines = {};
     this._dynamicUniforms = {
       warpingIn: {
+        value: 0,
+      },
+      warpingInLen: {
         value: 0,
       },
       teamColor: {
@@ -19,12 +23,36 @@ class TeamSpriteMaterial extends SpriteMaterial {
     this._dynamicUniforms.teamColor.value = val;
   }
 
+  get teamColor() {
+    return this._dynamicUniforms.teamColor.value;
+  }
+
   set warpingIn(val) {
     this._dynamicUniforms.warpingIn.value = val;
   }
 
+  get warpingIn() {
+    return this._dynamicUniforms.warpingIn.value;
+  }
+
+  set warpingInLen(val) {
+    this._dynamicUniforms.warpingInLen.value = val;
+  }
+
+  get warpingInLen() {
+    return this._dynamicUniforms.warpingInLen.value;
+  }
+
   onBeforeCompile(shader) {
-    function extend(replace, chunks, keep = true) {
+    function extendVertex(replace, chunks, keep = true) {
+      return extend("vertexShader", replace, chunks, (keep = true));
+    }
+
+    function extendFragment(replace, chunks, keep = true) {
+      return extend("fragmentShader", replace, chunks, (keep = true));
+    }
+
+    function extend(prop, replace, chunks, keep = true) {
       if (chunks.length === 0) {
         return;
       }
@@ -43,11 +71,13 @@ class TeamSpriteMaterial extends SpriteMaterial {
           header.push(headerChunk);
         }
       }
-      shader.fragmentShader = `${header.join("\n")}
-        ${shader.fragmentShader.replace(replace, content.join("\n"))}`;
+
+      shader[prop] = `${header.join("\n")}
+        ${shader[prop].replace(replace, content.join("\n"))}`;
     }
 
     const mapFragments = [];
+    const vertFragments = [];
 
     if (this.isShadow) {
       mapFragments.push([
@@ -69,19 +99,46 @@ class TeamSpriteMaterial extends SpriteMaterial {
       };
     }
 
-    // if (this.isShadow) {
-    mapFragments.push([
-      `
-      if (warpingIn > 0.) {
-        diffuseColor = vec4(vec3(1.), diffuseColor.a);
+    if (this.warpingIn) {
+      vertFragments.push(warp.vertex);
+      mapFragments.push(warp.fragment);
+
+      mapFragments.push([
+        `
+      //150-21 = 129
+      if (warpingIn < warpingInLen){
+        // draw warp texture
+        diffuseColor = vec4(
+          mix(diffuseColor.rgb, vec3(1.), warpingIn / 150.),
+          diffuseColor.a
+        );
+      } else {
+        vec3 tPos = warpPosition * 2.5;
+        tPos -= vec3(0, warpingIn, 0);
+        float n1 = snoise(vec3(tPos));
+        n1 = (n1 + 1.0) * 0.5;
+        
+        float n2 = snoise(vec3(n1 * 10., 1, 1));
+        n2 = sin(((n2 + 1.0) * 0.5) * 3.1415926 * 2.);
+        
+        float effect = smoothstep(0.1, 0.125, n1) * (1. - smoothstep(0.375, 0.4, n2));
+        float coef = sin(n2 * 3.141526 * 0.5) * 0.125;
+        float e = effect - abs(coef);
+        e = n1 > 0.25 && n1 < 0.75? e * e : pow(e, 16.);
+
+        diffuseColor = vec4(diffuseColor * e);
       }
-      // diffuseColor.a = diffuseColor.a * 1. - warpingIn / 21.;
-      // diffuseColor = vec4(mix(vec3(1.), diffuseColor.rgb, ), diffuseColor.a);
+
       `,
-      `uniform float warpingIn;`,
-    ]);
-    extend("#include <map_fragment>", mapFragments);
-    // }
+        `
+        uniform float warpingIn;
+        uniform float warpingInLen;
+        `,
+      ]);
+    }
+
+    extendVertex("gl_Position = projectionMatrix * mvPosition;", vertFragments);
+    extendFragment("#include <map_fragment>", mapFragments);
     // shader.uniforms.warpingIn = this._dynamicUniforms.warpingIn;
 
     /*
@@ -93,7 +150,11 @@ class TeamSpriteMaterial extends SpriteMaterial {
   }
 
   customProgramCacheKey() {
-    const flags = [Boolean(this.teamMask), this.isShadow];
+    const flags = [
+      Boolean(this.teamMask),
+      this.isShadow,
+      Boolean(this.warpingIn),
+    ];
     return flags.join("");
   }
 }

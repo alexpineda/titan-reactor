@@ -236,23 +236,19 @@ export default class BWFrameSceneBuilder {
         titanImage.renderOrder = _imageRenderOrder++;
 
         //@todo: add special overlay to material for certain sprites
-        // if (_afterMainImage) {
-        //   titanImage.setScale(new Vector3(1.01, 1.01, 1));
-        // }
         if (sprite.unit) {
           if (!image.isShadow) {
             titanImage.setCloaked(sprite.unit.isCloaked);
           }
 
-          // if (spriteBW.mainImageIndex === image.index) {
-          //   titanImage.setWarpingIn(sprite.unit.warpingIn);
-          // }
-          // titanImage.setWarpingIn(image.warpIn);
+          if (sprite.unit.warpingIn !== undefined) {
+            titanImage.setWarpingIn(
+              sprite.unit.warpingIn,
+              sprite.unit.warpingLen
+            );
+          }
         }
 
-        if (image.warpIn) {
-          console.log(image.warpIn);
-        }
         titanImage.setFrame(image.frameIndex, image.flipped);
 
         if (!sprite.images.has(image.id)) {

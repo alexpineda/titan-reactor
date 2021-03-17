@@ -127,7 +127,6 @@ class Units {
       } else {
         unit = {
           isResourceContainer: isResourceContainer,
-          warpingIn: 0,
         };
         units.set(unitBw.id, unit);
       }
@@ -163,17 +162,13 @@ class Units {
       if (
         unitBw.unitType.isBuilding &&
         unitBw.unitType.isProtoss &&
-        unitBw.remainingBuildTime === 0
+        unitBw.remainingBuildTime < (unitBw.unitType.buildTime * 2) / 5
       ) {
-        // unit.warpingIn = 1 - unitBw.remainingBuildTime / 19;
-        // if (unitBw.remainingBuildTime == 3) {
-        //   unit.warpingIn = 1;
-        // }
-
-        if (unitBw.warpingIn === 0) {
-          unit.warpingIn = 50;
-        } else if (unitBw.warpingIn > 1) {
-          unit.warpingIn = Math.max(1, unit.warpingIn - 1);
+        if (unit.warpingIn === undefined) {
+          unit.warpingLen = (unitBw.unitType.buildTime * 2) / 5;
+          unit.warpingIn = 150 + unit.warpingLen;
+        } else if (unit.warpingIn > 0) {
+          unit.warpingIn = unit.warpingIn - 1;
         }
       }
 

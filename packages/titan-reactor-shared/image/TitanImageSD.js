@@ -66,8 +66,9 @@ export default class TitanImageSD extends Sprite {
     this.material.teamColor = val;
   }
 
-  setWarping(val) {
-    this.material.warping = val;
+  setWarpingIn(val, len) {
+    this.material.warpingIn = val;
+    this.material.warpingInLen = len;
   }
 
   setCloaked(val) {
