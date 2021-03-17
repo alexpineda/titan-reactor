@@ -4,6 +4,11 @@ import {
   CompressedTexture,
   LinearFilter,
   ClampToEdgeWrapping,
+  Color,
+  PlaneBufferGeometry,
+  MeshBasicMaterial,
+  Mesh,
+  DoubleSide,
 } from "three";
 import { DDSLoader } from "titan-reactor-shared/image/DDSLoader";
 import { rgbToCanvas } from "../image/canvas";
@@ -65,7 +70,15 @@ export default class GameIcons {
     );
   }
 
-  renderGameIcons(renderer, fixedWidth, fixedHeight, dds, aliases, alpha) {
+  renderGameIcons(
+    renderer,
+    fixedWidth,
+    fixedHeight,
+    dds,
+    aliases,
+    alpha,
+    color = new Color(1, 1, 1)
+  ) {
     const ortho = new OrthographicCamera();
 
     let width = fixedWidth;
@@ -202,5 +215,75 @@ export default class GameIcons {
 
     this.icons.offX = maxOx;
     this.icons.offY = maxOy;
+  }
+
+  renderWireframes(renderer, dds, color = new Color(1, 0, 0)) {
+    this.wireframes = [];
+
+    const ortho = new OrthographicCamera();
+
+    const scene = new Scene();
+
+    for (let i = 0; i < dds.length; i++) {
+      const texture = loadDds(dds[i]);
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const width = texture.image.width;
+      const height = texture.image.height;
+
+      renderer.setSize(width, height);
+
+      // we dont need the last 2 frames
+      const optWidth = width - 128 * 2;
+
+      canvas.width = optWidth;
+      canvas.height = height;
+      scene.background = texture;
+
+      renderer.render(scene, ortho);
+
+      ctx.save();
+      ctx.scale(1, -1);
+      ctx.drawImage(
+        renderer.domElement,
+        0,
+        0,
+        optWidth,
+        height,
+        0,
+        0,
+        optWidth,
+        -height
+      );
+      ctx.restore();
+
+      // white -> red outlines
+      ctx.save();
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = "red";
+      ctx.fillRect(0, 0, optWidth, height);
+      ctx.restore();
+
+      // restore alpha of original
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-atop";
+      ctx.scale(1, -1);
+      ctx.drawImage(
+        renderer.domElement,
+        0,
+        0,
+        optWidth,
+        height,
+        0,
+        0,
+        optWidth,
+        -height
+      );
+      ctx.restore();
+
+      this.wireframes[i] = canvas.toDataURL("image/png");
+    }
   }
 }

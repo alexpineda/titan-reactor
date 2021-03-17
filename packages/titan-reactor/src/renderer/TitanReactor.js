@@ -79,6 +79,26 @@ export class TitanReactor {
     // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
     renderer.dispose();
 
+    this.atlasPreloader = new AtlasPreloader(
+      this.bwDat,
+      settings.communityModelsPath,
+      readBwFile,
+      () => {
+        if (settings.renderMode === RenderMode.SD) {
+          return new GrpSD2();
+        } else if (settings.renderMode === RenderMode.HD) {
+          return new GrpHD();
+        } else if (settings.renderMode === RenderMode.ThreeD) {
+          return new Grp3D(this.envMap);
+        } else {
+          throw new Error("invalid render mode");
+        }
+      },
+      this.atlases
+    );
+
+    await this.atlasPreloader.init(0);
+
     useLoadingStore.setState({ preloaded: true });
   }
 
@@ -91,10 +111,8 @@ export class TitanReactor {
       }
     });
   }
-  async spawnReplay(filepath) {
-    // const dispatchRepLoadingProgress = () =>
-    //   this.store.dispatch(loadingProgress("replay"));
 
+  async spawnReplay(filepath) {
     this.initElectronFileReader();
 
     this.filename = filepath;
@@ -130,8 +148,6 @@ export class TitanReactor {
 
     loadingStore.updateRep(pick(["header"], this.rep));
 
-    // this.rep = await parseReplay(await openFile(filepath));
-
     log("loading chk");
     this.chk = new Chk(this.rep.chk);
     loadingStore.updateChk(pick(["title", "description"], this.chk));
@@ -143,26 +159,7 @@ export class TitanReactor {
 
     this.atlases = {};
 
-    const atlasPreloader = new AtlasPreloader(
-      this.bwDat,
-      settings.communityModelsPath,
-      readBwFile,
-      this.chk.tileset,
-      () => {
-        if (settings.renderMode === RenderMode.SD) {
-          return new GrpSD2();
-        } else if (settings.renderMode === RenderMode.HD) {
-          return new GrpHD();
-        } else if (settings.renderMode === RenderMode.ThreeD) {
-          return new Grp3D(this.envMap);
-        } else {
-          throw new Error("invalid render mode");
-        }
-      },
-      this.atlases
-    );
-
-    await atlasPreloader.init();
+    await this.atlasPreloader.init(this.chk.tileset, this.atlases);
 
     const imagesBW = new ImagesBW();
 
@@ -172,7 +169,7 @@ export class TitanReactor {
         imagesBW.count = frame.imageCount;
 
         for (let image of imagesBW.items()) {
-          await atlasPreloader.load(image.id);
+          await this.atlasPreloader.load(image.id);
         }
       }
     };
@@ -240,6 +237,7 @@ export class TitanReactor {
     const minDisplayTime = 3000;
 
     this.initElectronFileReader();
+    await this.preload();
 
     this.chk = null;
     this.chkPreviewCanvas = null;
@@ -259,27 +257,6 @@ export class TitanReactor {
 
     document.title = `Titan Reactor - ${this.chk.title}`;
 
-    this.atlases = {};
-
-    const atlasPreloader = new AtlasPreloader(
-      this.bwDat,
-      settings.communityModelsPath,
-      readBwFile,
-      this.chk.tileset,
-      () => {
-        if (settings.renderMode === RenderMode.SD) {
-          return new GrpSD();
-        } else if (settings.renderMode === RenderMode.HD) {
-          return new GrpHD();
-        } else if (settings.renderMode === RenderMode.ThreeD) {
-          return new Grp3D(this.envMap);
-        } else {
-          throw new Error("invalid render mode");
-        }
-      },
-      this.atlases
-    );
-
     const imageIds = [
       ...calculateImagesFromUnitsIscript(
         this.bwDat,
@@ -291,10 +268,12 @@ export class TitanReactor {
       ),
     ];
 
-    await atlasPreloader.init();
+    this.atlases = {};
+
+    await this.atlasPreloader.init(this.chk.tileset, this.atlases);
 
     for (let imageId of imageIds) {
-      await atlasPreloader.load(imageId);
+      await this.atlasPreloader.load(imageId);
     }
 
     log("initializing scene");

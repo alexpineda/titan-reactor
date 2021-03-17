@@ -13,22 +13,12 @@ const tnames = [
 ];
 
 export default class AtlasPreloader {
-  constructor(
-    bwDat,
-    bwDataPath,
-    readFile,
-    tileset,
-    createAtlas,
-    preloadAtlas = {}
-  ) {
+  constructor(bwDat, bwDataPath, readFile, createAtlas) {
     this.bwDat = bwDat;
     this.bwDataPath = bwDataPath;
     this.readFile = readFile;
-    this.tileset = tileset;
-    this.tilesetName = tnames[tileset];
 
     this.createAtlas = createAtlas;
-    this.preloadAtlas = preloadAtlas;
     this.palettes = null;
 
     this.refId = (id) => {
@@ -69,10 +59,16 @@ export default class AtlasPreloader {
         .catch(() => null);
   }
 
-  async init() {
-    const buf = await this.readFile("SD/mainSD.anim");
-    this.sdAnim = Anim(buf);
-    this.sdAnim.buf = buf;
+  async init(tileset, preloadAtlas = {}) {
+    this.tileset = tileset;
+    this.tilesetName = tnames[tileset];
+    this.preloadAtlas = preloadAtlas;
+
+    if (!this.sdAnim) {
+      const buf = await this.readFile("SD/mainSD.anim");
+      this.sdAnim = Anim(buf);
+      this.sdAnim.buf = buf;
+    }
   }
 
   async load(imageId) {

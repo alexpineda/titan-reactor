@@ -54,6 +54,7 @@ export class TitanReactorScene extends Scene {
       workerIcons,
       minimapBitmap,
       cursor,
+      wireframeIcons,
     ] = await terrainMesh.generate({
       displacementScale,
     });
@@ -66,6 +67,7 @@ export class TitanReactorScene extends Scene {
     this.creepEdgesUniform = creepEdgesUniform;
     this.minimapBitmap = minimapBitmap;
     this.cursor = cursor;
+    this.wireframeIcons = wireframeIcons;
 
     const bgTerrain = Background(w, h, terrain.material.map);
 

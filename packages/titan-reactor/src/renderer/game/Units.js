@@ -127,6 +127,7 @@ class Units {
       } else {
         unit = {
           isResourceContainer: isResourceContainer,
+          remainingBuildTime: 0,
         };
         units.set(unitBw.id, unit);
       }
@@ -143,6 +144,13 @@ class Units {
       } else if (unit.recievingDamage) {
         unit.recievingDamage = unit.recievingDamage >> 1;
       }
+
+      //@todo get a better way to detect initial units, probably via chk or marking initial frame units
+      if (!unit.wasConstructing) {
+        unit.wasConstructing =
+          unit.remainingBuildTime !== unitBw.remainingBuildTime;
+      }
+
       unit.hp = unitBw.hp;
       unit.shields = unitBw.shields;
       unit.id = unitBw.id;
@@ -162,7 +170,8 @@ class Units {
       if (
         unitBw.unitType.isBuilding &&
         unitBw.unitType.isProtoss &&
-        unitBw.remainingBuildTime < (unitBw.unitType.buildTime * 2) / 5
+        unitBw.remainingBuildTime < (unitBw.unitType.buildTime * 2) / 5 &&
+        unit.wasConstructing
       ) {
         if (unit.warpingIn === undefined) {
           unit.warpingLen = (unitBw.unitType.buildTime * 2) / 5;

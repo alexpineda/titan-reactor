@@ -1,4 +1,4 @@
-import { WebGLRenderer } from "three";
+import { Color, WebGLRenderer } from "three";
 import readDdsGrp from "titan-reactor-shared/image/ddsGrp";
 import GameIcons from "titan-reactor-shared/map/GameIcons";
 import {
@@ -103,6 +103,16 @@ class Terrain {
     });
     renderer.autoClear = false;
 
+    // const warpInGrpHD = MapHD.renderWarpIn(
+    //   renderer,
+    //   readDdsGrp(await this.readFile("anim/main_210.anim", false), false)
+    // );
+
+    // const warpInGrpSD = readDdsGrp(
+    //   await this.readFile(`anim/main_210.anim`, false),
+    //   false
+    // );
+
     const mapData = await generateTileData(
       renderer,
       this.chk.size[0],
@@ -166,6 +176,16 @@ class Terrain {
       palette
     );
 
+    const wireframeIcons = new GameIcons();
+    await wireframeIcons.renderWireframes(
+      renderer,
+      readDdsGrp(
+        await this.readFile("HD2/unit/wirefram/wirefram.dds.grp", false),
+        true
+      ),
+      new Color(1, 0, 0)
+    );
+
     const workerIcons = {
       apm: `data:image/png;base64,${(
         await this.readFile("webui/dist/lib/images/icon_apm.png", false)
@@ -215,6 +235,7 @@ class Terrain {
       workerIcons,
       minimapCanvas,
       cursor,
+      wireframeIcons,
     ];
   }
 }

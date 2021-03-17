@@ -395,7 +395,7 @@ async function TitanReactorGame(
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
-        frameBuilder.update(currentBwFrame, delta, units);
+        frameBuilder.update(currentBwFrame, delta, elapsed, units);
 
         managedDomElements.update(
           currentBwFrame,

@@ -142,7 +142,7 @@ export default class BWFrameSceneBuilder {
    * @param {ReplaySprites} sprites
    * @param {ProjectedCameraView} view
    */
-  buildSprites(bwFrame, delta) {
+  buildSprites(bwFrame, delta, elapsed) {
     this.spritesBW.count = bwFrame.spriteCount;
     this.spritesBW.buffer = bwFrame.sprites;
 
@@ -239,13 +239,14 @@ export default class BWFrameSceneBuilder {
         if (sprite.unit) {
           if (!image.isShadow) {
             titanImage.setCloaked(sprite.unit.isCloaked);
-          }
 
-          if (sprite.unit.warpingIn !== undefined) {
-            titanImage.setWarpingIn(
-              sprite.unit.warpingIn,
-              sprite.unit.warpingLen
-            );
+            if (sprite.unit.warpingIn !== undefined) {
+              titanImage.setWarpingIn(
+                sprite.unit.warpingIn,
+                sprite.unit.warpingLen,
+                elapsed
+              );
+            }
           }
         }
 
@@ -396,10 +397,10 @@ export default class BWFrameSceneBuilder {
     this.upgrades.needsUpdate = true;
   }
 
-  update(bwFrame, delta, units) {
+  update(bwFrame, delta, elapsed, units) {
     this.group.clear();
     this.buildUnitsAndMinimap(bwFrame, units);
-    this.buildSprites(bwFrame, delta);
+    this.buildSprites(bwFrame, delta, elapsed);
     this.buildResearchAndUpgrades(bwFrame);
 
     this.fogOfWar.texture.needsUpdate = true;

@@ -40,6 +40,8 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   const cameras = new Cameras(
     settings,
+    mapWidth,
+    mapHeight,
     gameSurface,
     null,
     null,
