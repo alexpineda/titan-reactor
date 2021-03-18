@@ -1,5 +1,4 @@
 import { Group, MathUtils } from "three";
-import Creep from "../creep/Creep";
 import BuildingQueueCountBW from "../bw/BuildingQueueCountBW";
 import CreepBW from "../bw/CreepBW";
 import ImagesBW from "../bw/ImagesBW";

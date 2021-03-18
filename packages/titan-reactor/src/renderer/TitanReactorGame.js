@@ -1,4 +1,4 @@
-import { Raycaster, Scene, Vector2, Box3, Vector3 } from "three";
+import { Scene, Box3, Vector3 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import { GameStatePosition } from "./game/GameStatePosition";
 import {
@@ -33,7 +33,6 @@ import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import useHudStore from "./stores/hudStore";
 import Creep from "./game/creep/Creep";
-import GameSprite from "./game/GameSprite";
 
 const { startLocation } = unitTypes;
 
@@ -59,6 +58,8 @@ async function TitanReactorGame(
   console.log("rep", rep);
 
   const [mapWidth, mapHeight] = chk.size;
+  scene.mapWidth = mapWidth;
+  scene.mapHeight = mapHeight;
 
   const renderMan = new RenderMan(settings);
 
@@ -149,8 +150,6 @@ async function TitanReactorGame(
 
   gameStatePosition.onResetState = () => {};
 
-  const raycaster = new Raycaster();
-
   let shiftDown = false;
   let lastChangedShiftDown = Date.now();
   const _keyDown = (evt) => {
@@ -212,58 +211,6 @@ async function TitanReactorGame(
       }
     },
   };
-
-  // #region mouse listener
-  const mouseDownListener = (event) => {
-    if (event.button !== 0) return;
-
-    var mouse = new Vector2();
-
-    const [width, height] = [gameSurface.width, gameSurface.height];
-
-    mouse.x = (event.offsetX / width) * 2 - 1;
-    mouse.y = -(event.offsetY / height) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, cameras.camera);
-
-    // calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObject(scene, true);
-    const selected = new Set();
-    if (intersects.length) {
-      let closestSprite = { renderOrder: -1 };
-      intersects.forEach((intersect) => {
-        const { object, uv } = intersect;
-        if (
-          object.sprite &&
-          object.sprite.unit &&
-          object.sprite.mainImage &&
-          object.sprite.mainImage.lastSetFrame &&
-          object.sprite.renderOrder > closestSprite.renderOrder &&
-          object.sprite.mainImage.intersects(uv.x, uv.y)
-        ) {
-          closestSprite = object.sprite;
-        }
-      });
-      if (closestSprite instanceof GameSprite) {
-        selected.add(closestSprite.unit);
-      }
-      for (const unit of units.selected) {
-        unit.selected = false;
-      }
-      units.selected = [...selected];
-      for (const unit of units.selected) {
-        unit.selected = true;
-      }
-    } else {
-      for (const unit of units.selected) {
-        unit.selected = false;
-      }
-      units.selected = [];
-    }
-  };
-  gameSurface.canvas.addEventListener("pointerdown", mouseDownListener, {
-    passive: true,
-  });
 
   const callbacks = {
     onTogglePlayerPov: (() => {
@@ -405,6 +352,15 @@ async function TitanReactorGame(
     audioMaster,
     createTitanImage,
     projectedCameraView
+  );
+
+  cursor.init(
+    gameSurface,
+    scene,
+    cameras.camera,
+    units,
+    frameBuilder.unitsBySpriteId,
+    scene.terrain
   );
 
   let _lastElapsed = 0;
@@ -618,6 +574,7 @@ async function TitanReactorGame(
 
     gameStateReader.dispose();
     unsubs.forEach((unsubscribe) => unsubscribe());
+    cursor.dispose();
   };
 
   window.onbeforeunload = dispose;

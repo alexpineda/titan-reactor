@@ -10,7 +10,7 @@ export default class SelectionCircle extends Sprite {
             "#include <map_fragment>",
             `
                 #include <map_fragment>
-                diffuseColor = vec4(0., 1., 0., diffuseColor.a);
+                diffuseColor = vec4(0., 1., 0., diffuseColor.a * 0.5);
             `
           );
         },

@@ -12824,6 +12824,11 @@ superagent@^6.1.0:
     readable-stream "^3.6.0"
     semver "^7.3.2"
 
+superquad@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/superquad/-/superquad-1.2.2.tgz#e17a36f412645ab96f21cacfc18b837872e7cb10"
+  integrity sha512-nN0xsFVkXSczRGdnu+Lhbx2jiGLvEaG/IPj+QEqOEnuOG2zDynFtI6jliWT4Aj+d1drM5xw9Il4XbzFpA/XXwQ==
+
 supports-color@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"

@@ -15,8 +15,6 @@ class Units {
     this.followingUnit = false;
     this.selected = [];
 
-    this._unitsThisFrame = [];
-    this._unitsLastFrame = [];
     this.spriteUnits = [];
     this.minimapPoints = [];
 
@@ -28,12 +26,6 @@ class Units {
   }
 
   _refreshMinimap(unitBw, isResourceContainer, unit) {
-    if (
-      unitBw.unitType.id === unitTypes.darkSwarm ||
-      unitBw.unitType.id === unitTypes.disruptionWeb
-    ) {
-      return;
-    }
     if (
       !isResourceContainer &&
       !this.fogOfWar.isVisible(unitBw.tileX, unitBw.tileY)
@@ -110,8 +102,6 @@ class Units {
     unitsInProduction,
     frame
   ) {
-    this.spriteUnits = {};
-
     this.imageData.data.fill(0);
     this.resourceImageData.data.fill(0);
 
@@ -167,6 +157,18 @@ class Units {
       unit.buildTime = unitBw.unitType.buildTime;
       unit.angle = unitBw.angle;
       unit.unitType = unitBw.unitType;
+      unit.tileY = unitBw.tileY;
+      unit.tileX = unitBw.tileX;
+      unit.canSelect =
+        unitBw.unitType.id !== unitTypes.darkSwarm &&
+        unitBw.unitType.id !== unitTypes.disruptionWeb &&
+        unitBw.unitType.id !== unitTypes.spiderMine &&
+        !unitBw.isSubunit;
+
+      unit.showOnMinimap =
+        unitBw.unitType.id !== unitTypes.darkSwarm &&
+        unitBw.unitType.id !== unitTypes.disruptionWeb &&
+        !unitBw.isSubunit;
 
       if (
         unitBw.unitType.isBuilding &&
@@ -183,7 +185,9 @@ class Units {
       }
 
       //@todo move to worker
-      this._refreshMinimap(unitBw, isResourceContainer, unit);
+      if (unit.showOnMinimap) {
+        this._refreshMinimap(unitBw, isResourceContainer, unit);
+      }
 
       if (!unitBw.isComplete) {
         incompleteUnits.set(unitBw.id, {
