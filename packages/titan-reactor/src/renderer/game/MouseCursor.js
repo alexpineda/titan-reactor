@@ -271,7 +271,7 @@ export default class MouseCursor {
       for (const unit of units.selected) {
         unit.selected = false;
       }
-      units.selected = [...selected];
+      units.selected = [...selected].slice(0, 12);
       for (const unit of units.selected) {
         unit.selected = true;
       }

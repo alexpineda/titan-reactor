@@ -1,4 +1,5 @@
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { orders } from "titan-reactor-shared/types/orders";
 import { Color } from "three";
 
 const resourceColor = new Color(0, 55, 55);
@@ -150,7 +151,8 @@ class Units {
       unit.wasFlying = unit.isFlying && !unitBw.isFlying;
       unit.isNowFlying = !unit.isFlying && unitBw.isFlying;
       unit.isFlying = unitBw.isFlying;
-      unit.isCloaked = unitBw.isCloaked;
+      unit.isCloaked =
+        unitBw.isCloaked && !unitBw.typeId === unitTypes.spiderMine;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
       unit.queue = null;
       unit.remainingBuildTime = unitBw.remainingBuildTime;
@@ -159,16 +161,17 @@ class Units {
       unit.unitType = unitBw.unitType;
       unit.tileY = unitBw.tileY;
       unit.tileX = unitBw.tileX;
-      unit.canSelect =
-        unitBw.unitType.id !== unitTypes.darkSwarm &&
-        unitBw.unitType.id !== unitTypes.disruptionWeb &&
-        unitBw.unitType.id !== unitTypes.spiderMine &&
-        !unitBw.isSubunit;
-
       unit.showOnMinimap =
-        unitBw.unitType.id !== unitTypes.darkSwarm &&
-        unitBw.unitType.id !== unitTypes.disruptionWeb &&
-        !unitBw.isSubunit;
+        unitBw.typeId !== unitTypes.darkSwarm &&
+        unitBw.typeId !== unitTypes.disruptionWeb &&
+        unitBw.order !== orders.die &&
+        !unitBw.unitType.isSubunit;
+
+      unit.canSelect =
+        unit.showOnMinimap &&
+        //@todo do not allow unit training selection for terran and protoss
+        // unitBw.remainingBuildTime === 0 &&
+        unitBw.typeId !== unitTypes.spiderMine;
 
       if (
         unitBw.unitType.isBuilding &&
