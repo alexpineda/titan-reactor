@@ -1,4 +1,5 @@
 import React from "react";
+import shallow from "zustand/shallow";
 import WrappedElement from "./WrappedElement";
 import Minimap from "./game/Minimap";
 import Production from "./game/Production";
@@ -15,11 +16,14 @@ import useSettingsStore from "../stores/settingsStore";
 import useHudStore from "../stores/hudStore";
 
 const Game = () => {
-  const { dimensions, canvas, selectedUnits } = useGameStore((state) => ({
-    dimensions: state.dimensions,
-    canvas: state.game.surface.canvas,
-    selectedUnits: state.game.selectedUnits,
-  }));
+  const { dimensions, canvas, selectedUnits } = useGameStore(
+    (state) => ({
+      dimensions: state.dimensions,
+      canvas: state.game.surface.canvas,
+      selectedUnits: state.selectedUnits,
+    }),
+    shallow
+  );
 
   const {
     showFps,
@@ -27,23 +31,29 @@ const Game = () => {
     toggleInGameMenu,
     showReplayControls,
     showUnitSelection,
-  } = useHudStore((state) => ({
-    showFps: state.show.fps,
-    showInGameMenu: state.show.inGameMenu,
-    toggleInGameMenu: state.toggleInGameMenu,
-    showReplayControls: state.show.replayControls,
-    showUnitSelection: state.show.unitSelection,
-  }));
+  } = useHudStore(
+    (state) => ({
+      showFps: state.show.fps,
+      showInGameMenu: state.show.inGameMenu,
+      toggleInGameMenu: state.toggleInGameMenu,
+      showReplayControls: state.show.replayControls,
+      showUnitSelection: state.show.unitSelection,
+    }),
+    shallow
+  );
 
   const {
     esportsHud,
     producerWindowPosition,
     alwaysHideReplayControls,
-  } = useSettingsStore((state) => ({
-    esportsHud: state.data.esportsHud,
-    producerWindowPosition: state.data.producerWindowPosition,
-    alwaysHideReplayControls: state.data.alwaysHideReplayControls,
-  }));
+  } = useSettingsStore(
+    (state) => ({
+      esportsHud: state.data.esportsHud,
+      producerWindowPosition: state.data.producerWindowPosition,
+      alwaysHideReplayControls: state.data.alwaysHideReplayControls,
+    }),
+    shallow
+  );
 
   return (
     <>

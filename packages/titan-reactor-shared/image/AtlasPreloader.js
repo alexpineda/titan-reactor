@@ -1,5 +1,6 @@
 import { promises as fsPromises } from "fs";
 import { Anim } from "titan-reactor-shared/image/anim";
+import GrpHD from "./GrpHD";
 
 const tnames = [
   "badlands",
@@ -68,6 +69,19 @@ export default class AtlasPreloader {
       const buf = await this.readFile("SD/mainSD.anim");
       this.sdAnim = Anim(buf);
       this.sdAnim.buf = buf;
+    }
+
+    if (!this.selectionCirclesHD) {
+      this.selectionCirclesHD = [];
+      for (let i = 561; i < 571; i++) {
+        const selCircleGRP = new GrpHD();
+        const readAnim = async () => await this.readFile(`anim/main_${i}.anim`);
+        const readAnimHD2 = async () =>
+          await this.readFile(`HD2/anim/main_${i}.anim`);
+        await selCircleGRP.load({ readAnim, readAnimHD2 });
+
+        this.selectionCirclesHD.push(selCircleGRP);
+      }
     }
   }
 

@@ -46,7 +46,7 @@ const flags = Object.freeze({
 
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 26;
+    return 27;
   }
 
   get id() {
@@ -95,6 +95,10 @@ export default class UnitsBW extends ContiguousContainer {
 
   get shields() {
     return this._read16(24);
+  }
+
+  get order() {
+    return this._readU8(26);
   }
 
   get angle() {
@@ -154,6 +158,7 @@ export default class UnitsBW extends ContiguousContainer {
       isComplete: this.isComplete,
       tileX: this.tileX,
       tileY: this.tileY,
+      order: this.order,
     };
   }
 }

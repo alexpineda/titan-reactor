@@ -1,4 +1,5 @@
 import React from "react";
+import shallow from "zustand/shallow";
 import omitChars from "titan-reactor-shared/utils/omitChars";
 import WrappedElement from "../WrappedElement";
 import useSettingsStore from "../../stores/settingsStore";
@@ -16,13 +17,16 @@ const Minimap = ({ className = "" }) => {
     minimapSize,
     timeLabel,
     canvas,
-  } = useGameStore((state) => ({
-    fogOfWar: state.fogOfWar,
-    toggleFogOfWar: state.toggleFogOfWar,
-    minimapSize: state.dimensions.minimapSize,
-    timeLabel: state.game.managedDomElements.timeLabel.domElement,
-    canvas: state.game.minimapSurface.canvas,
-  }));
+  } = useGameStore(
+    (state) => ({
+      fogOfWar: state.fogOfWar,
+      toggleFogOfWar: state.toggleFogOfWar,
+      minimapSize: state.dimensions.minimapSize,
+      timeLabel: state.game.managedDomElements.timeLabel.domElement,
+      canvas: state.game.minimapSurface.canvas,
+    }),
+    shallow
+  );
 
   const mapLabel = useLoadingStore((state) => state.chk.title);
 

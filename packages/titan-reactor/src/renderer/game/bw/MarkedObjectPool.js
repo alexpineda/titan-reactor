@@ -1,9 +1,7 @@
-/**
- * Maintains two queues, one marked and the other unmarked moving between the two as mark() and unmark() are called.
- */
 export default class MarkedObjectPool {
   constructor(items) {
     this.marked = [];
+    this.occupied = [];
     this.unmarked = items;
   }
 
@@ -21,11 +19,8 @@ export default class MarkedObjectPool {
     return this.unmarked[0];
   }
 
-  /**
-   * Alias for marked items
-   */
-  get items() {
-    return this.marked;
+  get currentOccupied() {
+    return this.occupied[0];
   }
 
   /**

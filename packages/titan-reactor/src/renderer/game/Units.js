@@ -166,6 +166,7 @@ class Units {
       unit.remainingBuildTime = unitBw.remainingBuildTime;
       unit.buildTime = unitBw.unitType.buildTime;
       unit.angle = unitBw.angle;
+      unit.unitType = unitBw.unitType;
 
       if (
         unitBw.unitType.isBuilding &&
@@ -181,6 +182,7 @@ class Units {
         }
       }
 
+      //@todo move to worker
       this._refreshMinimap(unitBw, isResourceContainer, unit);
 
       if (!unitBw.isComplete) {
@@ -193,6 +195,7 @@ class Units {
       }
     }
 
+    //@todo move to worker
     if (frame % 8 === 0) {
       // reset each players production list
       unitsInProduction.length = 0;

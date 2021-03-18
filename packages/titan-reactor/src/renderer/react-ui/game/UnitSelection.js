@@ -1,18 +1,25 @@
 import React from "react";
+import shallow from "zustand/shallow";
 import useHudStore from "../../stores/hudStore";
 import useGameStore from "../../stores/gameStore";
 
 const UnitSelection = ({ textSize, className = "" }) => {
-  const { units, followUnit } = useGameStore((state) => ({
-    units: state.game.selectedUnits,
-    followUnit: state.followUnit,
-    toggleFollowUnit: state.toggleFollowUnit,
-  }));
+  const { units, followUnit, toggleFollowUnit } = useGameStore(
+    (state) => ({
+      units: state.selectedUnits,
+      followUnit: state.followUnit,
+      toggleFollowUnit: state.toggleFollowUnit,
+    }),
+    shallow
+  );
 
-  const { toggleUnitDetails, toggleAttackDetails } = useHudStore((state) => ({
-    toggleUnitDetails: state.toggleUnitDetails,
-    toggleAttackDetails: state.toggleAttackDetails,
-  }));
+  const { toggleUnitDetails, toggleAttackDetails } = useHudStore(
+    (state) => ({
+      toggleUnitDetails: state.toggleUnitDetails,
+      toggleAttackDetails: state.toggleAttackDetails,
+    }),
+    shallow
+  );
 
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (
@@ -49,7 +56,7 @@ const UnitSelection = ({ textSize, className = "" }) => {
             highlight
           </i>
 
-          <i
+          {/* <i
             onClick={() => toggleFollowUnit(units[0])}
             className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
               followUnit ? "text-yellow-700" : "text-gray-700"
@@ -58,7 +65,7 @@ const UnitSelection = ({ textSize, className = "" }) => {
             data-tip="Follow Unit"
           >
             gps_fixed
-          </i>
+          </i> */}
 
           {/* <i
             onClick={() => onUnitFPV && onUnitFPV()}
@@ -75,16 +82,3 @@ const UnitSelection = ({ textSize, className = "" }) => {
 };
 
 export default UnitSelection;
-// export default connect(
-//   (state) => {
-//     return {
-//       settings: state.settings.data,
-//       textSize: state.settings.data.textSize,
-//       phrases: state.settings.phrases,
-//       errors: state.settings.errors,
-//     };
-//   },
-//   (dispatch) => ({
-//     saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-//   })
-// )(UnitSelection);

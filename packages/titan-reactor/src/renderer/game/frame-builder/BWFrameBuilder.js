@@ -9,7 +9,7 @@ import TilesBW from "../bw/TilesBW";
 import UnitsBW from "../bw/UnitsBW";
 import ResearchBW from "../bw/ResearchBW";
 import UpgradeBW from "../bw/UpgradeBW";
-import Sprite from "../Sprite";
+import GameSprite from "../GameSprite";
 import { range } from "ramda";
 import useHudStore from "../../stores/hudStore";
 import { unstable_batchedUpdates } from "react-dom";
@@ -139,8 +139,6 @@ export default class BWFrameSceneBuilder {
 
   /**
    * Prerequisite: buildUnitsAndMinimap() to populate unitsBySpriteId
-   * @param {ReplaySprites} sprites
-   * @param {ProjectedCameraView} view
    */
   buildSprites(bwFrame, delta, elapsed) {
     this.spritesBW.count = bwFrame.spriteCount;
@@ -161,9 +159,10 @@ export default class BWFrameSceneBuilder {
 
       let sprite = this.sprites.get(spriteBW.index);
       if (!sprite) {
-        sprite = new Sprite(spriteBW.index);
+        sprite = new GameSprite(spriteBW.index);
         this.sprites.set(spriteBW.index, sprite);
       }
+      sprite.spriteType = spriteBW.spriteType;
 
       const buildingIsExplored =
         sprite.unit &&
@@ -196,12 +195,18 @@ export default class BWFrameSceneBuilder {
       sprite.unit = this.unitsBySpriteId.get(spriteBW.index);
       if (sprite.unit) {
         if (sprite.unit.isFlying) {
-          const targetY = Math.min(6, y + 2);
+          const targetY = Math.min(6, y + 2.5);
           if (sprite.position.y === 0) {
             y = targetY;
           } else {
-            y = MathUtils.damp(sprite.position.y, targetY, 0.01, delta);
+            y = MathUtils.damp(sprite.position.y, targetY, 0.001, delta);
           }
+        }
+
+        if (sprite.unit.selected) {
+          sprite.select(spriteBW.spriteType);
+        } else {
+          sprite.unselect();
         }
       }
 
@@ -212,7 +217,8 @@ export default class BWFrameSceneBuilder {
 
       const player = this.players.playersById[spriteBW.owner];
 
-      let _afterMainImage = false;
+      sprite.mainImage = null;
+
       for (let image of this.imagesBW.reverse(spriteBW.imageCount)) {
         if (image.hidden) continue;
 
@@ -222,9 +228,9 @@ export default class BWFrameSceneBuilder {
         if (!titanImage) continue;
         sprite.add(titanImage);
 
-        if (!sprite.visible || dontUpdate) {
-          continue;
-        }
+        // if (!sprite.visible || dontUpdate) {
+        //   continue;
+        // }
 
         if (player) {
           titanImage.setTeamColor(player.color.three);
@@ -257,6 +263,7 @@ export default class BWFrameSceneBuilder {
         }
 
         if (image.index === spriteBW.mainImageIndex) {
+          sprite.mainImage = titanImage;
           if (sprite.unit) {
             titanImage.rotation.y = sprite.unit.angle;
           }
@@ -269,7 +276,6 @@ export default class BWFrameSceneBuilder {
           //     titanImage.lastSetFrame.y -
           //     titanImage.lastSetFrame.h) /
           //     titanImage._spriteScale;
-          _afterMainImage = true;
         }
       }
 

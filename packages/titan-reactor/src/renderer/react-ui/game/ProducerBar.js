@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import shallow from "zustand/shallow";
 import TabSelector from "../components/TabSelector";
 import Tab from "../components/Tab";
 import { ProducerWindowPosition } from "common/settings";
@@ -20,7 +21,8 @@ const ProducerBar = ({ className }) => {
       save: state.save,
       producerWindowPosition: state.data.producerWindowPosition,
       producerDockSize: state.data.producerDockSize,
-    })
+    }),
+    shallow
   );
 
   const { dimensions, replayPosition, previewSurfaces } = useGameStore(
@@ -28,7 +30,8 @@ const ProducerBar = ({ className }) => {
       dimensions: state.dimensions,
       replayPosition: state.game.replayPosition,
       previewSurfaces: state.game.previewSurfaces,
-    })
+    }),
+    shallow
   );
 
   const style = {

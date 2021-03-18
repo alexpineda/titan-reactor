@@ -25,7 +25,7 @@ export class SpritesDAT extends DAT {
       { size: 1, name: "visible" },
       {
         size: 1,
-        name: "selectionCircleImage",
+        name: "selectionCircle",
         get: (i) => selectionCircleSize[i],
         range: () => range(130, 517),
       },

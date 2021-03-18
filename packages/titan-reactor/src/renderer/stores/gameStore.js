@@ -6,6 +6,7 @@ const useGameStore = create((set, get) => ({
   fogOfWar: true,
   followUnit: null,
   dimensions: {},
+  selectedUnits: [],
   playerVision: range(0, 8).map(() => true),
   toggleFogOfWar: () => set({ ...get().game, fogOfWar: !get().fogOfWar }),
   togglePlayerVision: (id) =>

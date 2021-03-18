@@ -78,6 +78,9 @@ export default class TitanImageHD extends Sprite {
     this.atlas = atlas;
     this.center = new Vector2(0.5, 0.5);
 
+    this.uv = this.geometry.getAttribute("uv");
+    this.pos = this.geometry.getAttribute("position");
+
     this.setFrame(0, false);
   }
 
@@ -117,15 +120,25 @@ export default class TitanImageHD extends Sprite {
   }
 
   setFrame(frame, flip) {
-    const uv = this.geometry.getAttribute("uv");
-    const pos = this.geometry.getAttribute("position");
-    this._setFrame(this.atlas.frames[frame], flip, uv, pos);
-    uv.needsUpdate = true;
-    pos.needsUpdate = true;
+    this._setFrame(this.atlas.frames[frame], flip);
+    this.uv.needsUpdate = true;
+    this.pos.needsUpdate = true;
+  }
+
+  intersects(u, v) {
+    const x = u - 0.5;
+    const y = v - 0.5;
+
+    return (
+      x > this.pos.array[0] &&
+      x < this.pos.array[3] &&
+      y > this.pos.array[1] &&
+      y < this.pos.array[7]
+    );
   }
 
   //dds is flipped y so we don't do it in our uvs
-  _setFrame(frame, flipFrame, uv, pos) {
+  _setFrame(frame, flipFrame) {
     if (frame === undefined) {
       console.error("frame is undefined");
       return;
@@ -141,37 +154,37 @@ export default class TitanImageHD extends Sprite {
     // this.center.y = (frame.yoff + frame.h) / this.atlas.grpHeight;
 
     if (flipFrame) {
-      uv.array[0] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[2] = frame.x / this.atlas.width;
-      uv.array[4] = frame.x / this.atlas.width;
-      uv.array[6] = (frame.x + frame.w) / this.atlas.width;
+      this.uv.array[0] = (frame.x + frame.w) / this.atlas.width;
+      this.uv.array[2] = frame.x / this.atlas.width;
+      this.uv.array[4] = frame.x / this.atlas.width;
+      this.uv.array[6] = (frame.x + frame.w) / this.atlas.width;
 
-      pos.array[0] =
+      this.pos.array[0] =
         (this.atlas.grpWidth - (frame.xoff + frame.w)) / this.atlas.grpWidth -
         0.5;
-      pos.array[3] =
+      this.pos.array[3] =
         (this.atlas.grpWidth - frame.xoff) / this.atlas.grpWidth - 0.5;
-      pos.array[6] =
+      this.pos.array[6] =
         (this.atlas.grpWidth - frame.xoff) / this.atlas.grpWidth - 0.5;
-      pos.array[9] =
+      this.pos.array[9] =
         (this.atlas.grpWidth - (frame.xoff + frame.w)) / this.atlas.grpWidth -
         0.5;
     } else {
-      uv.array[0] = frame.x / this.atlas.width;
-      uv.array[2] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[4] = (frame.x + frame.w) / this.atlas.width;
-      uv.array[6] = frame.x / this.atlas.width;
+      this.uv.array[0] = frame.x / this.atlas.width;
+      this.uv.array[2] = (frame.x + frame.w) / this.atlas.width;
+      this.uv.array[4] = (frame.x + frame.w) / this.atlas.width;
+      this.uv.array[6] = frame.x / this.atlas.width;
 
-      pos.array[0] = frame.xoff / this.atlas.grpWidth - 0.5;
-      pos.array[3] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
-      pos.array[6] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
-      pos.array[9] = frame.xoff / this.atlas.grpWidth - 0.5;
+      this.pos.array[0] = frame.xoff / this.atlas.grpWidth - 0.5;
+      this.pos.array[3] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
+      this.pos.array[6] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
+      this.pos.array[9] = frame.xoff / this.atlas.grpWidth - 0.5;
     }
 
-    uv.array[1] = (frame.y + frame.h) / this.atlas.height;
-    uv.array[3] = (frame.y + frame.h) / this.atlas.height;
-    uv.array[5] = frame.y / this.atlas.height;
-    uv.array[7] = frame.y / this.atlas.height;
+    this.uv.array[1] = (frame.y + frame.h) / this.atlas.height;
+    this.uv.array[3] = (frame.y + frame.h) / this.atlas.height;
+    this.uv.array[5] = frame.y / this.atlas.height;
+    this.uv.array[7] = frame.y / this.atlas.height;
 
     // pos.array[1] = 0;
     // pos.array[4] = 0;
@@ -180,9 +193,9 @@ export default class TitanImageHD extends Sprite {
 
     // this.scale.y = frame.h / this._spriteScale;
     // this.scale.x = frame.w / this._spriteScale;
-    pos.array[1] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-    pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-    pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
-    pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
+    this.pos.array[1] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
+    this.pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
+    this.pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
+    this.pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
   }
 }

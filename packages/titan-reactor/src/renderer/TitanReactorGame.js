@@ -1,4 +1,4 @@
-import { Raycaster, AxesHelper, Scene, Vector2, Box3, Vector3 } from "three";
+import { Raycaster, Scene, Vector2, Box3, Vector3 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import { GameStatePosition } from "./game/GameStatePosition";
 import {
@@ -33,6 +33,7 @@ import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import useHudStore from "./stores/hudStore";
 import Creep from "./game/creep/Creep";
+import GameSprite from "./game/GameSprite";
 
 const { startLocation } = unitTypes;
 
@@ -148,9 +149,6 @@ async function TitanReactorGame(
 
   gameStatePosition.onResetState = () => {};
 
-  const intersectAxesHelper = new AxesHelper(5);
-  // scene.add(intersectAxesHelper);
-
   const raycaster = new Raycaster();
 
   let shiftDown = false;
@@ -214,6 +212,58 @@ async function TitanReactorGame(
       }
     },
   };
+
+  // #region mouse listener
+  const mouseDownListener = (event) => {
+    if (event.button !== 0) return;
+
+    var mouse = new Vector2();
+
+    const [width, height] = [gameSurface.width, gameSurface.height];
+
+    mouse.x = (event.offsetX / width) * 2 - 1;
+    mouse.y = -(event.offsetY / height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, cameras.camera);
+
+    // calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObject(scene, true);
+    const selected = new Set();
+    if (intersects.length) {
+      let closestSprite = { renderOrder: -1 };
+      intersects.forEach((intersect) => {
+        const { object, uv } = intersect;
+        if (
+          object.sprite &&
+          object.sprite.unit &&
+          object.sprite.mainImage &&
+          object.sprite.mainImage.lastSetFrame &&
+          object.sprite.renderOrder > closestSprite.renderOrder &&
+          object.sprite.mainImage.intersects(uv.x, uv.y)
+        ) {
+          closestSprite = object.sprite;
+        }
+      });
+      if (closestSprite instanceof GameSprite) {
+        selected.add(closestSprite.unit);
+      }
+      for (const unit of units.selected) {
+        unit.selected = false;
+      }
+      units.selected = [...selected];
+      for (const unit of units.selected) {
+        unit.selected = true;
+      }
+    } else {
+      for (const unit of units.selected) {
+        unit.selected = false;
+      }
+      units.selected = [];
+    }
+  };
+  gameSurface.canvas.addEventListener("pointerdown", mouseDownListener, {
+    passive: true,
+  });
 
   const callbacks = {
     onTogglePlayerPov: (() => {
@@ -412,7 +462,6 @@ async function TitanReactorGame(
         );
 
         if (rep.cmds[gameStatePosition.bwGameFrame]) {
-          // #region player command pointers
           for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
             //@todo remove once we filter commands
             if (!players[cmd.player]) continue;
@@ -442,8 +491,6 @@ async function TitanReactorGame(
               }
             }
           }
-
-          // #endregion player commandpointers
         }
         fadingPointers.update(gameStatePosition.bwGameFrame);
         currentBwFrame = null;
@@ -512,12 +559,12 @@ async function TitanReactorGame(
     audioMaster.update(target.x, target.y, target.z, delta);
 
     renderMan.enableCinematicPass();
-    fogOfWar.update(cameras.camera);
     renderMan.updateFocus(cameras);
+    fogOfWar.update(cameras.camera);
     renderMan.render(scene, cameras.camera, delta);
     // }
 
-    minimapCanvasDrawer.draw(projectedCameraView, minimapSurface.ctx);
+    minimapCanvasDrawer.draw(projectedCameraView);
 
     if (
       settings.producerWindowPosition !== ProducerWindowPosition.None &&
@@ -639,7 +686,6 @@ async function TitanReactorGame(
     replayPosition: gameStatePosition,
     managedDomElements,
     callbacks,
-    selectedUnits: [],
     dispose,
   };
 }

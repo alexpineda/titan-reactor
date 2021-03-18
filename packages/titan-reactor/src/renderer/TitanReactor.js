@@ -40,6 +40,7 @@ import useLoadingStore from "./stores/loadingStore";
 import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import ContiguousContainer from "./game/bw/ContiguousContainer";
+import SelectionCircle from "./game/SelectionCircle";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -73,7 +74,6 @@ export class TitanReactor {
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
     };
     window.bwDat = this.bwDat;
-    ContiguousContainer.prototype.bwDat = this.bwDat;
 
     const renderer = new WebGLRenderer();
     // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
@@ -98,6 +98,8 @@ export class TitanReactor {
     );
 
     await this.atlasPreloader.init(0);
+    SelectionCircle.prototype.selectionCirclesHD = this.atlasPreloader.selectionCirclesHD;
+    ContiguousContainer.prototype.bwDat = this.bwDat;
 
     useLoadingStore.setState({ preloaded: true });
   }
@@ -186,7 +188,7 @@ export class TitanReactor {
     console.log(`initial replay frames loaded in ${Date.now() - start}`);
 
     start = Date.now();
-    await preloadAtlas(gameStateReader.frames.items);
+    await preloadAtlas(gameStateReader.frames.marked);
     console.log(`images preloaded in ${Date.now() - start}`);
 
     log("initializing scene");

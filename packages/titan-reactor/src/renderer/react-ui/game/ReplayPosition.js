@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import shallow from "zustand/shallow";
 import useSettingsStore from "../../stores/settingsStore";
 import useGameStore from "../../stores/gameStore";
 
@@ -32,10 +33,13 @@ const capitalizeFirst = (str) => {
 // })(ReplayPosition);
 
 const ReplayPosition = ({ className }) => {
-  const { textSize, maxAutoReplaySpeed } = useSettingsStore((state) => ({
-    textSize: state.data.textSize,
-    maxAutoReplaySpeed: state.data.maxAutoReplaySpeed,
-  }));
+  const { textSize, maxAutoReplaySpeed } = useSettingsStore(
+    (state) => ({
+      textSize: state.data.textSize,
+      maxAutoReplaySpeed: state.data.maxAutoReplaySpeed,
+    }),
+    shallow
+  );
 
   const {
     replayPosition,
@@ -58,7 +62,7 @@ const ReplayPosition = ({ className }) => {
       autoSpeed: p.autoSpeed,
       paused: p.paused,
     };
-  });
+  }, shallow);
 
   const onTogglePaused = () => replayPosition.togglePlay();
   const onChangePosition = (pos) => {
