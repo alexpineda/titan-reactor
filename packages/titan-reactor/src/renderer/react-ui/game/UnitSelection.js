@@ -2,13 +2,21 @@ import React from "react";
 import shallow from "zustand/shallow";
 import useHudStore from "../../stores/hudStore";
 import useGameStore from "../../stores/gameStore";
+import UnitsDetail from "./unitDetails/UnitsDetail";
+import WrappedElement from "../WrappedElement";
 
 const UnitSelection = ({ textSize, className = "" }) => {
-  const { units, followUnit, toggleFollowUnit } = useGameStore(
+  const {
+    selectedUnits,
+    followUnit,
+    toggleFollowUnit,
+    managedDomElements,
+  } = useGameStore(
     (state) => ({
-      units: state.selectedUnits,
+      selectedUnits: state.selectedUnits,
       followUnit: state.followUnit,
       toggleFollowUnit: state.toggleFollowUnit,
+      managedDomElements: state.game.managedDomElements,
     }),
     shallow
   );
@@ -31,16 +39,26 @@ const UnitSelection = ({ textSize, className = "" }) => {
         className="rounded mb-2 p-2 flex flex-1 border-2 border-yellow-900"
         style={{ backgroundColor: "#1a202c99" }}
       >
-        <article className="flex-1">Building Select</article>
+        <article className="flex-1">
+          {selectedUnits.length === 1 ? (
+            <WrappedElement
+              domElement={managedDomElements.unitDetail.domElement}
+            />
+          ) : (
+            <WrappedElement
+              domElement={managedDomElements.unitDetails.domElement}
+            />
+          )}
+        </article>
 
         <aside className="flex flex-col space-y-2 ml-2">
           <i
             onClick={(evt) => {
               evt.nativeEvent.stopImmediatePropagation();
-              units.length === 1 && toggleUnitDetails();
+              selectedUnits.length === 1 && toggleUnitDetails();
             }}
             className={`material-icons rounded cursor-pointer ${
-              units.length === 1 ? "text-blue-700" : "text-gray-700"
+              selectedUnits.length === 1 ? "text-blue-700" : "text-gray-700"
             }`}
             style={{ fontSize: smallIconFontSize }}
             data-tip="Unit Information"

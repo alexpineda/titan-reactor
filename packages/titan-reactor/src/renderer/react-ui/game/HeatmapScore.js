@@ -23,24 +23,21 @@ export default class HeatmapScore {
         unitTypes.siegeTankSiegeMode,
         unitTypes.darkSwarm,
         unitTypes.scannerSweep,
-      ].includes(unit.userData.typeId)
+      ].includes(unit.typeId)
     ) {
       score = 0;
     }
     // modify
-    else if (unit.userData.typeId === unitTypes.siegeTurretSiegeMode) {
+    else if (unit.typeId === unitTypes.siegeTurretSiegeMode) {
       const arcliteCannon = this.bwDat.weapons[
-        this.bwDat.units[unit.userData.typeId].groundWeapon
+        this.bwDat.units[unit.typeId].groundWeapon
       ];
-      score =
-        1 -
-        unit.userData.current.groundWeaponCooldown /
-          arcliteCannon.weaponCooldown;
+      score = 1 - unit.groundWeaponCooldown / arcliteCannon.weaponCooldown;
       //as is
     } else {
-      score = this.orderScore(unit.userData.current.order);
+      score = this.orderScore(unit.order);
     }
-    unit.userData.heatmapScore = score;
+    unit.heatmapScore = score;
     return score;
   }
 
@@ -79,7 +76,6 @@ export default class HeatmapScore {
       case orders.castPsionicStorm:
       case orders.castRecall:
       case orders.castRestoration:
-      case orders.castScannerSweep:
       case orders.castSpawnBroodlings:
       case orders.castStasisField:
       case orders.scarabAttack:
@@ -91,25 +87,21 @@ export default class HeatmapScore {
   }
 
   unitOfInterestFilter(unit) {
-    const unitType = this.bwDat.units[unit.userData.typeId];
-    if (unitType.resourceMiner()) {
-      return [orders.attackMove, orders.attackUnit].includes(
-        unit.userData.current.order
-      );
+    const unitType = this.bwDat.units[unit.typeId];
+    if (unitType.isResourceMiner) {
+      return [orders.attackMove, orders.attackUnit].includes(unit.order);
     } else if (
       [
         unitTypes.sunkenColony,
         unitTypes.sporeColony,
         unitTypes.bunker,
         unitTypes.photonCannon,
-      ].includes(unit.userData.typeId)
+      ].includes(unit.typeId)
     ) {
       return true;
-    } else if (unitType.building() || unitType.resourceContainer()) {
+    } else if (unitType.isBuilding || unitType.isResourceContainer) {
       return false;
-    } else if (
-      [unitTypes.overlord, unitTypes.larva].includes(unit.userData.typeId)
-    ) {
+    } else if ([unitTypes.overlord, unitTypes.larva].includes(unit.typeId)) {
       return false;
     }
     return true;

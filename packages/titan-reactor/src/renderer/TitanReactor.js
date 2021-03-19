@@ -15,7 +15,6 @@ import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
 import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
-import GrpSD from "titan-reactor-shared/image/GrpSD";
 import GrpSD2 from "titan-reactor-shared/image/GrpSD2";
 import GrpHD from "titan-reactor-shared/image/GrpHD";
 import Grp3D from "titan-reactor-shared/image/Grp3D";

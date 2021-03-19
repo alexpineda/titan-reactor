@@ -1,5 +1,7 @@
 import { Raycaster, Vector2 } from "three";
+import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./GameSprite";
+import useGameStore from "../stores/gameStore";
 
 export default class MouseCursor {
   constructor(arrowIcons, hoverIcons, dragIcons) {
@@ -275,6 +277,12 @@ export default class MouseCursor {
       for (const unit of units.selected) {
         unit.selected = true;
       }
+
+      unstable_batchedUpdates(() =>
+        useGameStore.setState({
+          selectedUnits: units.selected,
+        })
+      );
     };
 
     const mouseLeaveListener = () => {

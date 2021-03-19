@@ -135,6 +135,7 @@ async function TitanReactorGame(
 
   const managedDomElements = new ManagedDomElements(
     scene.cmdIcons,
+    scene.wireframeIcons,
     players.playersById
   );
 
@@ -408,7 +409,8 @@ async function TitanReactorGame(
           gameStatePosition,
           players,
           apm.apm,
-          frameBuilder
+          frameBuilder,
+          units.selected
         );
         audioMaster.channels.play(elapsed);
 

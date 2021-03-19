@@ -169,8 +169,12 @@ class Units {
 
       unit.canSelect =
         unit.showOnMinimap &&
-        //@todo do not allow unit training selection for terran and protoss
-        // unitBw.remainingBuildTime === 0 &&
+        //do not allow unit training selection for terran and protoss
+        !(
+          (unitBw.unitType.isTerran || unitBw.unitType.isProtoss) &&
+          !unitBw.unitType.isBuilding &&
+          unitBw.remainingBuildTime > 0
+        ) &&
         unitBw.typeId !== unitTypes.spiderMine;
 
       if (

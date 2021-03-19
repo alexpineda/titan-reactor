@@ -2,12 +2,17 @@ import { range } from "ramda";
 import RollingNumber from "./RollingNumber";
 import BasicElement from "./BasicElement";
 import ProductionWrapperElement from "./ProductionWrapperElement";
+import LargeUnitDetailElement from "./LargeUnitDetailElement";
+import SmallUnitDetailWrapperElement from "./SmallUnitDetailWrapperElement";
 
 /**
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
  */
 export default class ManagedDomElements {
-  constructor(cmdIcons, players) {
+  constructor(cmdIcons, wireframeIcons, players) {
+    this.wireframeIcons = wireframeIcons;
+    this.unitDetail = new LargeUnitDetailElement();
+    this.unitDetails = new SmallUnitDetailWrapperElement();
     this.minerals = range(0, 8).map(() => new RollingNumber());
     this.gas = range(0, 8).map(() => new RollingNumber());
     this.apm = range(0, 8).map(() => new RollingNumber());
@@ -46,7 +51,7 @@ export default class ManagedDomElements {
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(frame, gameStatePosition, players, apm, frameBuilder) {
+  update(frame, gameStatePosition, players, apm, frameBuilder, selectedUnits) {
     for (let i = 0; i < 8; i++) {
       this.minerals[i].value = frame.minerals[i];
       this.gas[i].value = frame.gas[i];
@@ -88,6 +93,14 @@ export default class ManagedDomElements {
               frameBuilder.upgrades[player.id][i];
           }
         }
+      }
+    }
+
+    if (selectedUnits.length === 1) {
+      this.unitDetail.value = selectedUnits[0];
+    } else if (selectedUnits.length > 1) {
+      for (let i = 0; i < 12; i++) {
+        this.unitDetails.items[i].value = selectedUnits[i];
       }
     }
 
