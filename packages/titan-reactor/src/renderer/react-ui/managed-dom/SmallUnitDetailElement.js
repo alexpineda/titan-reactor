@@ -1,5 +1,6 @@
 export default class SmallUnitDetailElement {
-  constructor() {
+  constructor(wireframeIcons) {
+    this.wireframeIcons = wireframeIcons;
     this.domElement = document.createElement("span");
     this.textNode = document.createTextNode("");
     this.domElement.appendChild(this.textNode);
