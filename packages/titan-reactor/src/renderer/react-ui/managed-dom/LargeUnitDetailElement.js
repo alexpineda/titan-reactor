@@ -1,11 +1,13 @@
-import shuffle from "lodash.shuffle";
-import { range } from "ramda";
+import UnitDetailLayers from "./UnitDetailLayers";
 
-export default class LargeUnitDetailElement {
+export default class LargeUnitDetailElement extends UnitDetailLayers {
   constructor(wireframeIcons) {
+    super();
     this.wireframeIcons = wireframeIcons;
-    this.domElement = document.createElement("span");
+    this.domElement = document.createElement("div");
     this.domElement.style.position = "relative";
+    this.domElement.style.width = "128px";
+    this.domElement.style.height = "128px";
 
     this.layers = [
       document.createElement("div"),
@@ -16,34 +18,13 @@ export default class LargeUnitDetailElement {
       document.createElement("div"),
     ];
 
+    let _zIndex = 10;
     this.layers.forEach((layer) => {
       layer.style.width = "128px";
       layer.style.height = "128px";
       layer.style.position = "absolute";
+      layer.style.zIndex = _zIndex--;
       this.domElement.appendChild(layer);
-    });
-
-    let stepLayers = range(0, 4).map(() => 0);
-
-    const _findRandom = () => {
-      Math.random();
-    };
-
-    const findRandomIndex = (list, pred) => {
-      const eligible = shuffle(range(0, list.length));
-
-      while (eligible.length) {
-        const idx = eligible.shift();
-        if (pred(list[idx])) {
-          return idx;
-        }
-      }
-    };
-
-    this.steps = range(0, 8).map(() => {
-      const idx = findRandomIndex(stepLayers, (layer) => layer < 120);
-      stepLayers[idx] = stepLayers[idx] + 60;
-      return [...stepLayers];
     });
 
     this.hp = document.createElement("p");
@@ -63,22 +44,13 @@ export default class LargeUnitDetailElement {
   set value(unit) {
     this._value = unit;
     if (unit) {
-      let step = 0;
-      if (unit.hp === unit.unitType.hp || unit.unitType.isResourceContainer) {
-        step = 7;
-      } else {
-        step = Math.floor(Math.min(1, unit.hp / (unit.unitType.hp * 0.77)) * 6);
-      }
-
       for (let i = 0; i < 4; i++) {
         const layer = this.layers[i];
         layer.style.backgroundImage = `url(${
           this.wireframeIcons.wireframes[unit.typeId]
         }`;
         layer.style.backgroundPositionX = `-${i * 128}px`;
-        layer.style.filter = `hue-rotate(${this.steps[step][i]}deg) ${
-          this.steps[step][i] > 0 ? "brightness(400%)" : ""
-        }`;
+        layer.style.filter = this.getFilter(unit, i);
       }
 
       this.hp.textContent = `${unit.hp}/${unit.unitType.hp}`;

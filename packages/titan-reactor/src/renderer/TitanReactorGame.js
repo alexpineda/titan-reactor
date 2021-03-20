@@ -179,9 +179,8 @@ async function TitanReactorGame(
   //#endregion mouse listener
 
   //#region hud ui
-  keyboardShortcuts.addEventListener(
-    InputEvents.TogglePlay,
-    gameStatePosition.togglePlay
+  keyboardShortcuts.addEventListener(InputEvents.TogglePlay, () =>
+    gameStatePosition.togglePlay()
   );
   keyboardShortcuts.addEventListener(
     InputEvents.ToggleGrid,

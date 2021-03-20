@@ -36,8 +36,8 @@ const UnitSelection = ({ textSize, className = "" }) => {
       style={{ width: "24vw" }}
     >
       <div
-        className="rounded mb-2 p-2 flex flex-1 border-2 border-yellow-900"
-        style={{ backgroundColor: "#1a202c99" }}
+        className="rounded mb-2 p-2 flex flex-1 "
+        style={{ backgroundColor: "#1a202ce6" }}
       >
         <article className="flex-1 h-64">
           {selectedUnits.length === 1 ? (
