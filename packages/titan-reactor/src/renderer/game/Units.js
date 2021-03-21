@@ -119,6 +119,7 @@ class Units {
         unit = {
           isResourceContainer: isResourceContainer,
           remainingBuildTime: 0,
+          queue: [],
         };
         units.set(unitBw.id, unit);
       }
@@ -154,7 +155,7 @@ class Units {
       unit.isCloaked =
         unitBw.isCloaked && !unitBw.typeId === unitTypes.spiderMine;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
-      unit.queue = null;
+      unit.queue.length = 0;
       unit.remainingBuildTime = unitBw.remainingBuildTime;
       unit.buildTime = unitBw.unitType.buildTime;
       unit.angle = unitBw.angle;
@@ -206,13 +207,18 @@ class Units {
       }
     }
 
+    const buildQueue = buildQueueBW.instances();
+
+    for (const queue of buildQueue) {
+      const unit = units.get(queue.unitId);
+      unit.queue = queue.units;
+    }
+
     //@todo move to worker
     if (frame % 8 === 0) {
       // reset each players production list
       unitsInProduction.length = 0;
       unitsInProduction.needsUpdate = true;
-
-      const buildQueue = buildQueueBW.instances();
 
       for (const [id, incompleteUnit] of incompleteUnits) {
         const queued = buildQueue.find(

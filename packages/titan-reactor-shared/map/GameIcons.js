@@ -263,7 +263,7 @@ export default class GameIcons {
       ctx.save();
       ctx.globalCompositeOperation = "multiply";
       ctx.fillStyle = "red";
-      ctx.fillRect(0, 0, 4 * 128, height);
+      ctx.fillRect(0, 0, optWidth, height);
       ctx.restore();
 
       // restore alpha of original

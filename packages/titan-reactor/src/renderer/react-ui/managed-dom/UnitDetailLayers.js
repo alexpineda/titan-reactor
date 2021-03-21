@@ -25,6 +25,7 @@ export default class UnitDetailLayers {
     this.zergSteps = range(0, 6).map((step) => {
       const layers = range(0, 4);
 
+      //best guesses for zerg layer colors
       switch (step) {
         case 0:
           layers[0] = "hue-rotate(267deg) brightness(177%) saturate(0.4)";
@@ -79,8 +80,23 @@ export default class UnitDetailLayers {
           ? 7
           : Math.floor(Math.min(1, unit.hp / (unit.unitType.hp * 0.77)) * 6);
 
-      return `hue-rotate(${this.steps[step][layerIndex]}deg) ${
-        this.steps[step][layerIndex] > 0 ? "brightness(400%)" : ""
+      let degree;
+      let brightness;
+      if (unit.unitType.isTerran) {
+        brightness = "brightness(400%)";
+        degree = this.steps[step][layerIndex];
+        //protoss yellow needs some different settings
+      } else if (this.steps[step][layerIndex] === 60) {
+        brightness = "brightness(450%)";
+        degree = 70;
+        //protoss brightness lower than terran
+      } else {
+        brightness = "brightness(300%)";
+        degree = this.steps[step][layerIndex];
+      }
+
+      return `hue-rotate(${degree}deg) ${
+        this.steps[step][layerIndex] > 0 ? brightness : ""
       }`;
     }
   }
