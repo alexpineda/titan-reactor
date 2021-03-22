@@ -4,13 +4,18 @@ import SmallUnitDetailElement from "./SmallUnitDetailElement";
 export default class SmallUnitDetailWrapperElement {
   constructor(wireframeIcons) {
     this.domElement = document.createElement("div");
-    // this.domElement.classList.add("flex", "ml-6");
+    this.domElement.classList.add("flex", "justify-center");
+
+    this.itemsContainer = document.createElement("div");
+    this.itemsContainer.classList.add("flex", "flex-wrap");
+    this.domElement.appendChild(this.itemsContainer);
+
     this.items = range(0, 12).map(
       () => new SmallUnitDetailElement(wireframeIcons)
     );
 
-    for (const unit of this.items) {
-      this.domElement.append(unit.domElement);
+    for (const item of this.items) {
+      this.itemsContainer.append(item.domElement);
     }
   }
 }

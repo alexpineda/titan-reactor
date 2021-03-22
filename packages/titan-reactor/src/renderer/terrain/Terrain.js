@@ -144,7 +144,7 @@ class Terrain {
     cmdIcons.renderCmdIcons(
       renderer,
       readDdsGrp(
-        await this.readFile("unit/cmdicons/cmdicons.dds.grp", false),
+        await this.readFile("HD2/unit/cmdicons/cmdicons.dds.grp", false),
         true
       )
     );

@@ -46,11 +46,11 @@ const flags = Object.freeze({
 
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 27;
+    return 29;
   }
 
   get id() {
-    return this._read16(0);
+    return this._readU16(0);
   }
 
   get typeId() {
@@ -99,6 +99,11 @@ export default class UnitsBW extends ContiguousContainer {
 
   get order() {
     return this._readU8(26);
+  }
+
+  get currentBuildUnit() {
+    const v = this._readU16(27);
+    return v === 0 ? null : v - 1;
   }
 
   get angle() {

@@ -11,7 +11,7 @@ import SmallUnitDetailWrapperElement from "./SmallUnitDetailWrapperElement";
 export default class ManagedDomElements {
   constructor(cmdIcons, wireframeIcons, players) {
     this.wireframeIcons = wireframeIcons;
-    this.unitDetail = new LargeUnitDetailElement(wireframeIcons);
+    this.unitDetail = new LargeUnitDetailElement(cmdIcons, wireframeIcons);
     this.unitDetails = new SmallUnitDetailWrapperElement(wireframeIcons);
     this.minerals = range(0, 8).map(() => new RollingNumber());
     this.gas = range(0, 8).map(() => new RollingNumber());

@@ -47,7 +47,15 @@ export default class GameIcons {
   }
 
   renderCmdIcons(renderer, dds) {
-    return this.renderGameIcons(renderer, 128, 128, dds, undefined, false);
+    return this.renderGameIcons(
+      renderer,
+      64,
+      64,
+      dds,
+      undefined,
+      false,
+      "#f0d05b"
+    );
   }
 
   renderResourceIcons(renderer, dds) {
@@ -77,7 +85,7 @@ export default class GameIcons {
     dds,
     aliases,
     alpha,
-    color = new Color(1, 1, 1)
+    color = null
   ) {
     const ortho = new OrthographicCamera();
 
@@ -113,14 +121,32 @@ export default class GameIcons {
       scene.background = texture;
       renderer.render(scene, ortho);
 
+      ctx.save();
       ctx.scale(1, -1);
       ctx.drawImage(renderer.domElement, 0, 0, width, -height);
+      ctx.restore();
+
+      if (color) {
+        // white -> color outlines
+        ctx.save();
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+
+        // restore alpha of original
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-atop";
+        ctx.scale(1, -1);
+        ctx.drawImage(renderer.domElement, 0, 0, width, -height);
+        ctx.restore();
+      }
+
       if (aliases) {
         this[aliases[i]] = canvas.toDataURL("image/png");
       } else {
         this.icons[i] = canvas.toDataURL("image/png");
       }
-
       if (alpha) {
         // create a 50% transparent image for use with css background-image
         const alphaCanvas = document.createElement("canvas");

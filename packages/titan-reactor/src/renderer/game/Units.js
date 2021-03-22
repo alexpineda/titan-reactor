@@ -119,7 +119,7 @@ class Units {
         unit = {
           isResourceContainer: isResourceContainer,
           remainingBuildTime: 0,
-          queue: [],
+          queue: null,
         };
         units.set(unitBw.id, unit);
       }
@@ -155,10 +155,16 @@ class Units {
       unit.isCloaked =
         unitBw.isCloaked && !unitBw.typeId === unitTypes.spiderMine;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
-      unit.queue.length = 0;
-      unit.remainingBuildTime = unitBw.remainingBuildTime;
+      unit.queue = null;
+      //siege mode tank
+      if (unit.typeId === unitTypes.siegeTankSiegeMode) {
+        unit.remainingBuildTime = 0;
+      } else {
+        unit.remainingBuildTime = unitBw.remainingBuildTime;
+      }
       unit.buildTime = unitBw.unitType.buildTime;
       unit.angle = unitBw.angle;
+      unit.order = unitBw.order;
       unit.unitType = unitBw.unitType;
       unit.tileY = unitBw.tileY;
       unit.tileX = unitBw.tileX;
@@ -174,7 +180,7 @@ class Units {
         !(
           (unitBw.unitType.isTerran || unitBw.unitType.isProtoss) &&
           !unitBw.unitType.isBuilding &&
-          unitBw.remainingBuildTime > 0
+          unit.remainingBuildTime > 0
         ) &&
         unitBw.typeId !== unitTypes.spiderMine;
 
@@ -209,61 +215,60 @@ class Units {
 
     const buildQueue = buildQueueBW.instances();
 
+    // for use in unit details section
     for (const queue of buildQueue) {
       const unit = units.get(queue.unitId);
-      unit.queue = queue.units;
+      unit.queue = queue;
     }
 
     //@todo move to worker
-    if (frame % 8 === 0) {
-      // reset each players production list
-      unitsInProduction.length = 0;
-      unitsInProduction.needsUpdate = true;
+    // reset each players production list
+    unitsInProduction.length = 0;
+    unitsInProduction.needsUpdate = true;
 
-      for (const [id, incompleteUnit] of incompleteUnits) {
-        const queued = buildQueue.find(
-          ({ unitId }) => unitId === incompleteUnit.unitId
-        );
-        const typeId = queued ? queued.units[0] : incompleteUnit.typeId;
-        const unitType = this.bwDat.units[typeId];
-        if (unitType.isSubunit) continue;
+    for (const [id, incompleteUnit] of incompleteUnits) {
+      const queued = buildQueue.find(
+        ({ unitId }) => unitId === incompleteUnit.unitId
+      );
+      const typeId = queued ? queued.units[0] : incompleteUnit.typeId;
+      const unitType = this.bwDat.units[typeId];
+      if (unitType.isSubunit) continue;
 
-        const existingUnit = unitsInProduction.find(
-          (u) => u.ownerId === incompleteUnit.ownerId && u.typeId === typeId
-        );
-
-        if (existingUnit) {
-          existingUnit.count++;
-          if (
-            existingUnit.remainingBuildTime >
-              incompleteUnit.remainingBuildTime &&
-            incompleteUnit.remainingBuildTime
-          ) {
-            existingUnit.remainingBuildTime = incompleteUnit.remainingBuildTime;
-          }
-        } else {
-          unitsInProduction.push({
-            ...incompleteUnit,
-            typeId,
-            icon: typeId,
-            count: 1,
-            buildTime: unitType.buildTime,
-          });
-        }
+      // for use in unit details section
+      if (queued) {
+        queued.remainingBuildTime = incompleteUnit.remainingBuildTime;
+        queued.buildTime = unitType.buildTime;
       }
-      unitsInProduction.sort((a, b) => {
-        const ax = this.bwDat.units[a.typeId].buildScore;
-        const bx = this.bwDat.units[b.typeId].buildScore;
 
-        return bx - ax;
-      });
+      const existingUnit = unitsInProduction.find(
+        (u) => u.ownerId === incompleteUnit.ownerId && u.typeId === typeId
+      );
+
+      if (existingUnit) {
+        existingUnit.count++;
+        if (
+          existingUnit.remainingBuildTime > incompleteUnit.remainingBuildTime &&
+          incompleteUnit.remainingBuildTime
+        ) {
+          existingUnit.remainingBuildTime = incompleteUnit.remainingBuildTime;
+        }
+      } else {
+        unitsInProduction.push({
+          ...incompleteUnit,
+          typeId,
+          icon: typeId,
+          count: 1,
+          buildTime: unitType.buildTime,
+        });
+      }
     }
-    // if (this.selected.length) {
-    //   this.selected = this.selected.filter((unit) => !deadUnits.includes(unit));
-    //   if (this.selected.length === 0 && this.followingUnit) {
-    //     this.followingUnit = false;
-    //   }
-    // }
+
+    unitsInProduction.sort((a, b) => {
+      const ax = this.bwDat.units[a.typeId].buildScore;
+      const bx = this.bwDat.units[b.typeId].buildScore;
+
+      return bx - ax;
+    });
   }
 }
 

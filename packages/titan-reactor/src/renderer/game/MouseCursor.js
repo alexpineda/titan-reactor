@@ -179,6 +179,18 @@ export default class MouseCursor {
     // #region mouse listener
     const mouseDownListener = (event) => {
       if (event.button !== 0) return;
+
+      // for (const unit of units.selected) {
+      //   unit.selected = false;
+      // }
+      // units.selected.length = 0;
+
+      // unstable_batchedUpdates(() =>
+      //   useGameStore.setState({
+      //     selectedUnits: units.selected,
+      //   })
+      // );
+
       start.x = event.offsetX;
       start.y = event.offsetY;
 

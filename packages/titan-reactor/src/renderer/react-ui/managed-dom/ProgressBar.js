@@ -1,8 +1,9 @@
 export default class ProgressBar {
   constructor() {
     this.domElement = document.createElement("div");
-    this.domElement.classList.add("relative", "w-40", "h-3.5", "m-6");
+    this.domElement.classList.add("relative", "mt-3");
     this.domElement.style.height = "0.875rem";
+    this.domElement.style.width = "128px";
 
     this.hpBar = document.createElement("div");
     this.hpBar.classList.add(

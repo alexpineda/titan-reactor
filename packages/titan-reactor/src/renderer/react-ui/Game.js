@@ -16,14 +16,15 @@ import useSettingsStore from "../stores/settingsStore";
 import useHudStore from "../stores/hudStore";
 
 const Game = () => {
-  const { dimensions, canvas, selectedUnits } = useGameStore(
+  const { dimensions, canvas } = useGameStore(
     (state) => ({
       dimensions: state.dimensions,
       canvas: state.game.surface.canvas,
-      selectedUnits: state.selectedUnits,
     }),
     shallow
   );
+
+  const selectedUnits = useGameStore((state) => state.selectedUnits);
 
   const {
     showFps,
@@ -116,7 +117,7 @@ const Game = () => {
             (selectedUnits.length || alwaysHideReplayControls)
           }
         >
-          <UnitSelection className="pointer-events-auto" />
+          <UnitSelection className="pointer-events-none" />
         </Visible>
         <Visible
           visible={

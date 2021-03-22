@@ -1,5 +1,6 @@
-import UnitDetailLayers from "./UnitDetailLayers";
+import UnitWireframe from "./UnitWireframe";
 import ProgressBar from "./ProgressBar";
+import UnitQueue from "./UnitQueue";
 
 //todo p probe Building
 const unitStatus = {
@@ -37,48 +38,27 @@ const getRaceString = (unitType) => {
   }
 };
 
-export default class LargeUnitDetailElement extends UnitDetailLayers {
-  constructor(wireframeIcons) {
-    super();
-    this.wireframeIcons = wireframeIcons;
+export default class LargeUnitDetailElement {
+  constructor(cmdIcons, wireframeIcons) {
     this.domElement = document.createElement("div");
-    this.imgWrapper = document.createElement("div");
-    this.imgWrapper.style.position = "relative";
-    this.imgWrapper.style.width = "128px";
-    this.imgWrapper.style.height = "128px";
+    this.domElement.classList.add("flex", "relative");
 
-    this.layers = [
-      document.createElement("div"),
-      document.createElement("div"),
-      document.createElement("div"),
-      document.createElement("div"),
-      document.createElement("div"),
-      document.createElement("div"),
-    ];
+    this.unitSection = document.createElement("div");
+    this.unitSection.classList.add("flex", "flex-col", "items-center", "px-1");
+    this.unitSection.style.width = "180px";
 
-    let _zIndex = 10;
-    this.layers.forEach((layer, i) => {
-      layer.style.width = "128px";
-      layer.style.height = "128px";
-      layer.style.position = "absolute";
-      //   layer.style.zIndex = _zIndex--;
-      layer.style.backgroundPositionX = `-${i * 128}px`;
-      this.imgWrapper.appendChild(layer);
-    });
+    this.statsSection = document.createElement("div");
+    this.queue = new UnitQueue(cmdIcons);
 
-    //shields
-    this.layers[4].style.filter = "hue-rotate(200deg)";
-    this.layers[5].style.filter = "hue-rotate(200deg)";
+    this.wireframe = new UnitWireframe(wireframeIcons);
 
     this.name = document.createElement("p");
-    this.name.style.color = "white";
+    this.name.classList.add("text-white", "text-center");
 
     this.status = document.createElement("p");
-    this.status.style.color = "white";
+    this.status.classList.add("text-sm", "text-gray-400", "absolute");
 
     this.hpAndShields = document.createElement("span");
-    this.hpAndShields.classList.add("flex");
-
     this.hp = document.createElement("p");
     this.shields = document.createElement("p");
     this.shields.style.color = "white";
@@ -87,17 +67,20 @@ export default class LargeUnitDetailElement extends UnitDetailLayers {
     this.hpAndShields.appendChild(this.hp);
 
     this.kills = document.createElement("p");
-    this.construction = document.createElement("div");
 
     this.progress = new ProgressBar();
 
-    this.domElement.appendChild(this.name);
-    this.domElement.appendChild(this.imgWrapper);
-    this.domElement.appendChild(this.status);
-    this.domElement.appendChild(this.hpAndShields);
-    this.domElement.appendChild(this.kills);
-    this.domElement.appendChild(this.construction);
-    this.domElement.appendChild(this.progress.domElement);
+    this.domElement.appendChild(this.unitSection);
+    this.domElement.appendChild(this.statsSection);
+
+    this.unitSection.appendChild(this.name);
+    this.unitSection.appendChild(this.wireframe.domElement);
+    this.unitSection.appendChild(this.kills);
+    this.unitSection.appendChild(this.progress.domElement);
+    this.unitSection.appendChild(this.status);
+    this.unitSection.appendChild(this.queue.domElement);
+
+    this.statsSection.appendChild(this.hpAndShields);
 
     this.domElement.style.display = "none";
     this.value = "";
@@ -106,16 +89,7 @@ export default class LargeUnitDetailElement extends UnitDetailLayers {
   set value(unit) {
     this._value = unit;
     if (unit) {
-      const unitTypeId =
-        unit.unitType.isZerg && unit.unitType.isBuilding && unit.queue.length
-          ? unit.queue[0]
-          : unit.typeId;
-      for (let i = 0; i < 4; i++) {
-        const layer = this.layers[i];
-        layer.style.backgroundImage = `url(${this.wireframeIcons.wireframes[unitTypeId]}`;
-        layer.style.filter = this.getFilter(unit, i);
-      }
-
+      this.wireframe.update(unit);
       this.name.textContent = unit.unitType.name;
 
       if (unit.isResourceContainer) {
@@ -132,8 +106,22 @@ export default class LargeUnitDetailElement extends UnitDetailLayers {
         this.hp.style.color = color;
       }
 
-      if (unit.remainingBuildTime > 0) {
-        this.progress.value = unit.remainingBuildTime / unit.buildTime;
+      let remainingBuildTime = unit.remainingBuildTime;
+      let buildTime = unit.buildTime;
+
+      if (unit.queue) {
+        remainingBuildTime = unit.queue.remainingBuildTime;
+        buildTime = unit.queue.buildTime;
+      }
+
+      if (unit.unitType.isZerg) {
+        this.queue.hide();
+      } else {
+        this.queue.update(unit);
+      }
+
+      if (remainingBuildTime > 0) {
+        this.progress.value = remainingBuildTime / buildTime;
 
         let status = "";
         if (unit.unitType.isBuilding) {
@@ -150,34 +138,16 @@ export default class LargeUnitDetailElement extends UnitDetailLayers {
       if (unit.unitType.shieldsEnabled) {
         this.shields.textContent = `${unit.shields}/${unit.unitType.shields}`;
         this.shields.style.display = "block";
-
-        this.layers[4].style.backgroundImage = `url(${this.wireframeIcons.wireframes[unitTypeId]}`;
-        this.layers[5].style.backgroundImage = `url(${this.wireframeIcons.wireframes[unitTypeId]}`;
-
-        if (unit.shields === 0) {
-          this.layers[4].style.display = "none";
-          this.layers[5].style.display = "none";
-        } else if (unit.shields === unit.unitType.shields) {
-          this.layers[4].style.display = "block";
-          this.layers[5].style.display = "block";
-        } else {
-          this.layers[4].style.display = "block";
-          this.layers[5].style.display = "none";
-        }
       } else {
         this.shields.style.display = "none";
-        this.layers[4].style.display = "none";
-        this.layers[5].style.display = "none";
       }
 
       //   this.kills.textContent = `${unit.kills} kills`;
       //   this.energy.textContent = `${unit.energy}/${unit.unitType.energy}`;
       //shield/maxshield
-      //construction
       //kills
 
-      //   this.textNode.nodeValue = val.id;
-      this.domElement.style.display = "block";
+      this.domElement.style.display = "flex";
     } else {
       this.domElement.style.display = "none";
     }

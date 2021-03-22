@@ -1,8 +1,11 @@
 import shuffle from "lodash.shuffle";
 import { range } from "ramda";
 
-export default class UnitDetailLayers {
-  constructor() {
+export default class UnitWireframe {
+  constructor(wireframeIcons, size = "lg") {
+    this.wireframeIcons = wireframeIcons;
+    this.size = size;
+
     let stepLayers = range(0, 4).map(() => 0);
 
     const findRandomIndex = (list, pred) => {
@@ -66,10 +69,52 @@ export default class UnitDetailLayers {
 
       return layers;
     });
+
+    this.domElement = document.createElement("div");
+    this.domElement.style.position = "relative";
+    if (size === "lg") {
+      this.domElement.style.width = "128px";
+      this.domElement.style.height = "128px";
+    } else {
+      this.domElement.style.width = "56px";
+      this.domElement.style.height = "56px";
+    }
+
+    this.layers = [
+      document.createElement("div"),
+      document.createElement("div"),
+      document.createElement("div"),
+      document.createElement("div"),
+      document.createElement("div"),
+      document.createElement("div"),
+    ];
+
+    this.layers.forEach((layer, i) => {
+      layer.style.width = "128px";
+      layer.style.height = "128px";
+      layer.style.position = "absolute";
+      layer.style.backgroundPositionX = `-${i * 128}px`;
+      if (size === "md") {
+        layer.style.transform = "translate(-38px, -38px) scale(0.4375)";
+      }
+      this.domElement.appendChild(layer);
+    });
+
+    //shields
+    this.layers[4].style.filter = "hue-rotate(200deg)";
+    this.layers[5].style.filter = "hue-rotate(200deg)";
+
+    if (size === "md") {
+      this.domElement.classList.add("border", "rounded");
+      this.domElement.classList.add("mr-1", "mb-1");
+    }
   }
 
   getFilter(unit, layerIndex) {
-    if (unit.unitType.isZerg || unit.unitType.isResourceContainer) {
+    if (
+      unit.unitType.isZerg ||
+      (unit.unitType.isResourceContainer && !unit.owner)
+    ) {
       const step = unit.unitType.isResourceContainer
         ? 5
         : Math.floor((unit.hp / unit.unitType.hp) * 5);
@@ -87,17 +132,56 @@ export default class UnitDetailLayers {
         degree = this.steps[step][layerIndex];
         //protoss yellow needs some different settings
       } else if (this.steps[step][layerIndex] === 60) {
-        brightness = "brightness(450%)";
+        brightness = "brightness(425%)";
         degree = 70;
         //protoss brightness lower than terran
       } else {
-        brightness = "brightness(300%)";
+        brightness = "brightness(250%)";
         degree = this.steps[step][layerIndex];
       }
 
       return `hue-rotate(${degree}deg) ${
         this.steps[step][layerIndex] > 0 ? brightness : ""
       }`;
+    }
+  }
+
+  update(unit) {
+    const unitTypeId =
+      unit.unitType.isZerg &&
+      unit.unitType.isBuilding &&
+      unit.queue &&
+      unit.queue.units.length
+        ? unit.queue.units[0]
+        : unit.typeId;
+
+    for (let i = 0; i < 4; i++) {
+      const layer = this.layers[i];
+      layer.style.backgroundImage = `url(${this.wireframeIcons.wireframes[unitTypeId]}`;
+      layer.style.filter = this.getFilter(unit, i);
+    }
+
+    if (unit.unitType.shieldsEnabled) {
+      this.layers[4].style.backgroundImage = `url(${this.wireframeIcons.wireframes[unitTypeId]}`;
+      this.layers[5].style.backgroundImage = `url(${this.wireframeIcons.wireframes[unitTypeId]}`;
+
+      if (unit.shields === 0) {
+        this.layers[4].style.display = "none";
+        this.layers[5].style.display = "none";
+      } else if (unit.shields === unit.unitType.shields) {
+        this.layers[4].style.display = "block";
+        this.layers[5].style.display = "block";
+      } else {
+        this.layers[4].style.display = "block";
+        this.layers[5].style.display = "none";
+      }
+    } else {
+      this.layers[4].style.display = "none";
+      this.layers[5].style.display = "none";
+    }
+
+    if (this.size === "md" && unit.owner) {
+      this.domElement.style.borderColor = unit.owner.color.hex;
     }
   }
 }

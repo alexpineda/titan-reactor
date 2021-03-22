@@ -1,20 +1,19 @@
+import UnitWireframe from "./UnitWireframe";
+
 export default class SmallUnitDetailElement {
   constructor(wireframeIcons) {
-    this.wireframeIcons = wireframeIcons;
-    this.domElement = document.createElement("span");
-    this.textNode = document.createTextNode("");
-    this.domElement.appendChild(this.textNode);
+    this.wireframe = new UnitWireframe(wireframeIcons, "md");
+    this.domElement = this.wireframe.domElement;
     this.domElement.style.display = "none";
-    this.value = "";
   }
 
   set value(val) {
     this._value = val;
-    if (val) {
-      this.textNode.nodeValue = val.id;
-      this.domElement.style.display = "block";
+    if (val && val.canSelect) {
+      this.wireframe.update(val);
+      this.wireframe.domElement.style.display = "block";
     } else {
-      this.domElement.style.display = "none";
+      this.wireframe.domElement.style.display = "none";
     }
   }
 
