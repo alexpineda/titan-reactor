@@ -175,6 +175,8 @@ class Units {
       unit.order = unitBw.order;
       unit.unitType = unitBw.unitType;
       unit.isComplete = unitBw.isComplete;
+      unit.x = unitBw.x;
+      unit.y = unitBw.y;
       unit.tileY = unitBw.tileY;
       unit.tileX = unitBw.tileX;
       unit.kills = unitBw.kills;

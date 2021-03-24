@@ -3,6 +3,17 @@ import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./GameSprite";
 import useGameStore from "../stores/gameStore";
 
+const setSelectedUnits = useGameStore.getState().setSelectedUnits;
+
+function intersectRect(r1, r2) {
+  return !(
+    r2.left > r1.right ||
+    r2.right < r1.left ||
+    r2.top > r1.bottom ||
+    r2.bottom < r1.top
+  );
+}
+
 export default class MouseCursor {
   constructor(arrowIcons, hoverIcons, dragIcons) {
     this.arrowIcons = arrowIcons;
@@ -176,20 +187,8 @@ export default class MouseCursor {
       this.selectElement.style.display = "none";
     };
 
-    // #region mouse listener
     const mouseDownListener = (event) => {
       if (event.button !== 0) return;
-
-      // for (const unit of units.selected) {
-      //   unit.selected = false;
-      // }
-      // units.selected.length = 0;
-
-      // unstable_batchedUpdates(() =>
-      //   useGameStore.setState({
-      //     selectedUnits: units.selected,
-      //   })
-      // );
 
       start.x = event.offsetX;
       start.y = event.offsetY;
@@ -249,6 +248,15 @@ export default class MouseCursor {
           const endMapX = Math.floor(point2.x + scene.mapWidth / 2);
           const endMapY = Math.floor(point2.z + scene.mapHeight / 2);
 
+          const r1 = {
+            left: startMapX * 32,
+            top: startMapY * 32,
+            right: endMapX * 32,
+            bottom: endMapY * 32,
+          };
+
+          const r2 = { left: 0, right: 0, top: 0, bottom: 0 };
+
           for (let x = startMapX - 1; x < endMapX + 1; x++) {
             for (let y = startMapY - 1; y < endMapY + 1; y++) {
               for (const [spriteId, unit] of unitsBySpriteId) {
@@ -258,7 +266,24 @@ export default class MouseCursor {
                   unit.tileX === x &&
                   unit.tileY === y
                 ) {
-                  selected.add(unit);
+                  // test one tile out of selection bounds since unit tileX/Y is centered
+                  // use placement approximations from UnitsDat for these "slightly out of bounds" units
+                  if (
+                    x === startMapX - 1 ||
+                    x === endMapX + 1 ||
+                    y === startMapY - 1 ||
+                    y === endMapY + 1
+                  ) {
+                    r2.left = unit.x - unit.unitType.unitSizeLeft;
+                    r2.right = unit.x + unit.unitType.unitSizeRight;
+                    r2.top = unit.y - unit.unitType.unitSizeUp;
+                    r2.bottom = unit.y + unit.unitType.unitSizeDown;
+                    if (intersectRect(r1, r2)) {
+                      selected.add(unit);
+                    }
+                  } else {
+                    selected.add(unit);
+                  }
                 }
               }
             }
@@ -290,11 +315,7 @@ export default class MouseCursor {
         unit.selected = true;
       }
 
-      unstable_batchedUpdates(() =>
-        useGameStore.setState({
-          selectedUnits: units.selected,
-        })
-      );
+      unstable_batchedUpdates(() => setSelectedUnits(units.selected));
     };
 
     const mouseLeaveListener = () => {

@@ -12,6 +12,7 @@ const useGameStore = create((set, get) => ({
   chat: [],
   lastChatAdd: Date.now(),
   playerVision: range(0, 8).map(() => true),
+  setSelectedUnits: (selectedUnits) => set({ selectedUnits }),
   toggleFogOfWar: () => set((state) => ({ fogOfWar: !state.fogOfWar })),
   togglePlayerVision: (id) =>
     set((state) => ({

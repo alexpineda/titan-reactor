@@ -5,7 +5,8 @@ import useGameStore from "../../stores/gameStore";
 import WrappedElement from "../WrappedElement";
 
 const UnitSelection = ({ textSize, className = "" }) => {
-  const selectedUnits = useGameStore((state) => state.selectedUnits);
+  const selectedUnitsLen = useGameStore((state) => state.selectedUnits.length);
+  console.log("selectedUnitsLen", selectedUnitsLen);
   const { followUnit, toggleFollowUnit, managedDomElements } = useGameStore(
     (state) => ({
       followUnit: state.followUnit,
@@ -33,11 +34,12 @@ const UnitSelection = ({ textSize, className = "" }) => {
         style={{ backgroundColor: "#1a202ce6" }}
       >
         <article className="flex-1 h-64">
-          {selectedUnits.length === 1 ? (
+          {selectedUnitsLen === 1 && (
             <WrappedElement
               domElement={managedDomElements.unitDetail.domElement}
             />
-          ) : (
+          )}
+          {selectedUnitsLen > 1 && (
             <WrappedElement
               domElement={managedDomElements.unitDetails.domElement}
             />
