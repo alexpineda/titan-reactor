@@ -4,6 +4,7 @@ import BasicElement from "./BasicElement";
 import ProductionWrapperElement from "./ProductionWrapperElement";
 import LargeUnitDetailElement from "./LargeUnitDetailElement";
 import SmallUnitDetailWrapperElement from "./SmallUnitDetailWrapperElement";
+import useGameStore from "../../stores/gameStore";
 
 /**
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
@@ -55,14 +56,9 @@ export default class ManagedDomElements {
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(
-    currentBwFrame,
-    gameStatePosition,
-    players,
-    apm,
-    frameBuilder,
-    selectedUnits
-  ) {
+  update(currentBwFrame, gameStatePosition, players, apm, frameBuilder) {
+    const selectedUnits = useGameStore.getState().selectedUnits;
+
     for (let i = 0; i < 8; i++) {
       this.minerals[i].value = currentBwFrame.minerals[i];
       this.gas[i].value = currentBwFrame.gas[i];

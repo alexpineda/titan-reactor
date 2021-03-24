@@ -307,15 +307,9 @@ export default class MouseCursor {
         selected.add(sprite.unit);
       }
 
-      for (const unit of units.selected) {
-        unit.selected = false;
-      }
-      units.selected = [...selected].slice(0, 12);
-      for (const unit of units.selected) {
-        unit.selected = true;
-      }
-
-      unstable_batchedUpdates(() => setSelectedUnits(units.selected));
+      unstable_batchedUpdates(() =>
+        setSelectedUnits([...selected].slice(0, 12))
+      );
     };
 
     const mouseLeaveListener = () => {

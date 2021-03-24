@@ -30,10 +30,10 @@ const UnitSelection = ({ textSize, className = "" }) => {
       style={{ width: "300px" }}
     >
       <div
-        className="rounded px-3 pt-5 flex flex-1 "
+        className="rounded pl-2 flex flex-1 "
         style={{ backgroundColor: "#1a202ce6" }}
       >
-        <article className="flex-1 h-64">
+        <article className="flex-1 h-64 flex items-center justify-content">
           {selectedUnitsLen === 1 && (
             <WrappedElement
               domElement={managedDomElements.unitDetail.domElement}

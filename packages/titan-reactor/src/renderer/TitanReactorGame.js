@@ -200,18 +200,6 @@ async function TitanReactorGame(
     onFollowUnit: () => {
       // units.followingUnit = !units.followingUnit;
     },
-    onUnitDetails: () => {
-      if (hudData.showingUnitDetails) {
-        hudData.showingUnitDetails = null;
-        keyboardShortcuts.enabled = true;
-      } else {
-        // hudData.showingUnitDetails = createUnitDetails(
-        //   bwDat,
-        //   uniq(units.selected.map((unit) => unit.typeId)).sort()
-        // );
-        keyboardShortcuts.enabled = false;
-      }
-    },
   };
 
   const callbacks = {
@@ -410,8 +398,7 @@ async function TitanReactorGame(
           gameStatePosition,
           players,
           apm.apm,
-          frameBuilder,
-          units.selected
+          frameBuilder
         );
         audioMaster.channels.play(elapsed);
 
