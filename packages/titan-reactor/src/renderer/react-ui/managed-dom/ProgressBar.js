@@ -55,7 +55,7 @@ export default class ProgressBar {
       this.domElement.offsetWidth * (1 - val) + 2
     )}px`;
     if (val > 0) {
-      this.domElement.style.display = "block";
+      this.domElement.style.visibility = "visible";
     }
     this._value = val;
   }
@@ -65,6 +65,6 @@ export default class ProgressBar {
   }
 
   hide() {
-    this.domElement.style.display = "none";
+    this.domElement.style.visibility = "hidden";
   }
 }

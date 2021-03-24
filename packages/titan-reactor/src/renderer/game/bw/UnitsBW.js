@@ -46,7 +46,7 @@ const flags = Object.freeze({
 
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
-    return 29;
+    return 30;
   }
 
   get id() {
@@ -101,9 +101,12 @@ export default class UnitsBW extends ContiguousContainer {
     return this._readU8(26);
   }
 
-  get currentBuildUnit() {
-    const v = this._readU16(27);
-    return v === 0 ? null : v - 1;
+  get remainingTrainTime() {
+    return this._readU8(27);
+  }
+
+  get kills() {
+    return this._read16(28);
   }
 
   get angle() {
@@ -156,6 +159,7 @@ export default class UnitsBW extends ContiguousContainer {
       statusFlags: this.statusFlags,
       direction: this.direction,
       remainingBuildTime: this.remainingBuildTime,
+      remainingTrainTime: this.remainingTrainTime,
       angle: this.angle,
       unitType: this.unitType,
       isFlying: this.isFlying,
@@ -164,6 +168,7 @@ export default class UnitsBW extends ContiguousContainer {
       tileX: this.tileX,
       tileY: this.tileY,
       order: this.order,
+      kills: this.kills,
     };
   }
 }

@@ -3,6 +3,7 @@ import shallow from "zustand/shallow";
 import WrappedElement from "./WrappedElement";
 import Minimap from "./game/Minimap";
 import Production from "./game/Production";
+import Chat from "./game/Chat";
 import ResourcesBar from "./game/resource-bar/ResourcesBar";
 import UnitSelection from "./game/UnitSelection";
 import ReplayPosition from "./game/ReplayPosition";
@@ -67,6 +68,7 @@ const Game = () => {
         }}
         domElement={canvas}
       />
+      <Chat />
       {producerWindowPosition != ProducerWindowPosition.None && <ProducerBar />}
 
       {showInGameMenu && (
@@ -94,7 +96,7 @@ const Game = () => {
         // <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
       )} */}
       <div
-        className="w-full flex absolute divide-x-4 divide-transparent px-2 pointer-events-none"
+        className="w-full flex absolute divide-x-4 divide-transparent pointer-events-none"
         style={{
           bottom: `${dimensions.bottom}px`,
           width: `${dimensions.width}px`,

@@ -28,7 +28,7 @@ const useHudStore = create((set, get) => ({
     if (val) {
       set({ productionView: val });
     } else {
-      set({ productionView: (get().productionView + 1) % 4 });
+      set((state) => ({ productionView: (state.productionView + 1) % 4 }));
     }
   },
   setAutoProductionView: (v) => {
@@ -89,13 +89,19 @@ const useHudStore = create((set, get) => ({
     _productionInterval = null;
   },
   toggleInGameMenu: () => {
-    set({ show: { ...get().show, inGameMenu: !get().show.inGameMenu } });
+    set((state) => ({
+      show: { ...state.show, inGameMenu: !state.show.inGameMenu },
+    }));
   },
   toggleUnitDetails: () => {
-    set({ show: { ...get().show, unitDetails: !get().show.unitDetails } });
+    set((state) => ({
+      show: { ...state.show, unitDetails: !state.show.unitDetails },
+    }));
   },
   toggleAttackDetails: () => {
-    set({ show: { ...get().show, attackDetails: !get().show.attackDetails } });
+    set((state) => ({
+      show: { ...state.show, attackDetails: !state.show.attackDetails },
+    }));
   },
   hoveringOverMinimap: false,
 }));

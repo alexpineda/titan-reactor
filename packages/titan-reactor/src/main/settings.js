@@ -41,19 +41,23 @@ export class Settings extends EventEmitter {
     this._settings = {};
     this._filepath = filepath;
     this.initialized = false;
+    this.firstRun = false;
   }
 
   async init() {
     if (this.initialized) return;
 
+    const noop = () => {};
     try {
       this._settings = JSON.parse(
         await fsPromises.readFile(this._filepath, { encoding: "utf8" })
       );
     } catch (err) {
+      this.firstRun = true;
       try {
         await fsPromises.unlink(this._filepath);
       } catch (err) {
+        noop();
       } finally {
         await this.save(await this.createDefaults());
       }
@@ -113,6 +117,7 @@ export class Settings extends EventEmitter {
         phrases[this._settings.language]
       ),
       diff: {},
+      firstRun: this.firstRun,
     };
   }
 

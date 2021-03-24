@@ -5,7 +5,7 @@ const useSettingsStore = create((set, get) => ({
   data: {},
   phrases: {},
   save: async (settings) => {
-    set({ data: { ...get().data, ...settings } });
+    set((state) => ({ data: { ...state.data, ...settings } }));
     await saveSettings(get().data);
   },
   load: async () => {

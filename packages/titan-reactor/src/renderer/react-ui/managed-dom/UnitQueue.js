@@ -24,11 +24,16 @@ export default class UnitQueue {
     this.items[0].style.height = "40px";
   }
 
-  update(val) {
-    if (val.queue) {
+  update(unit) {
+    if (
+      unit.unitType.isBuilding &&
+      !unit.unitType.isZerg &&
+      unit.unitType.producesUnits &&
+      unit.isComplete
+    ) {
       for (let i = 0; i < 5; i++) {
-        if (val.queue.units[i] !== undefined) {
-          this.items[i].src = this.icons[val.queue.units[i]];
+        if (unit.queue && unit.queue.units[i] !== undefined) {
+          this.items[i].src = this.icons[unit.queue.units[i]];
         } else {
           this.items[i].src = blank64;
         }
@@ -37,7 +42,7 @@ export default class UnitQueue {
     } else {
       this.domElement.style.display = "none";
     }
-    this._value = val;
+    this._value = unit;
   }
 
   hide() {

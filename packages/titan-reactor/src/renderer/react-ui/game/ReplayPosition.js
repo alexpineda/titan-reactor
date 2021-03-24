@@ -213,7 +213,7 @@ const ReplayPosition = ({ className }) => {
       style={{ width: "24vw" }}
     >
       <div
-        className="replay-position rounded mb-1 p-2 flex-1 flex"
+        className="replay-position rounded p-2 flex-1 flex"
         style={{ backgroundColor: "rgba(26, 32, 44, 0.9)" }}
       >
         <article className="flex-1 flex flex-col justify-around">

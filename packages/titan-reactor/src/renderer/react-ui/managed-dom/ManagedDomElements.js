@@ -9,9 +9,13 @@ import SmallUnitDetailWrapperElement from "./SmallUnitDetailWrapperElement";
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
  */
 export default class ManagedDomElements {
-  constructor(cmdIcons, wireframeIcons, players) {
+  constructor(cmdIcons, wireframeIcons, gameIcons, players) {
     this.wireframeIcons = wireframeIcons;
-    this.unitDetail = new LargeUnitDetailElement(cmdIcons, wireframeIcons);
+    this.unitDetail = new LargeUnitDetailElement(
+      cmdIcons,
+      wireframeIcons,
+      gameIcons
+    );
     this.unitDetails = new SmallUnitDetailWrapperElement(wireframeIcons);
     this.minerals = range(0, 8).map(() => new RollingNumber());
     this.gas = range(0, 8).map(() => new RollingNumber());
@@ -47,18 +51,25 @@ export default class ManagedDomElements {
 
   /**
    *
-   * @param {FrameBW} frame
+   * @param {FrameBW} currentBwFrame
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(frame, gameStatePosition, players, apm, frameBuilder, selectedUnits) {
+  update(
+    currentBwFrame,
+    gameStatePosition,
+    players,
+    apm,
+    frameBuilder,
+    selectedUnits
+  ) {
     for (let i = 0; i < 8; i++) {
-      this.minerals[i].value = frame.minerals[i];
-      this.gas[i].value = frame.gas[i];
+      this.minerals[i].value = currentBwFrame.minerals[i];
+      this.gas[i].value = currentBwFrame.gas[i];
       this.supply[
         i
-      ].value = `${frame.supplyUsed[i]} / ${frame.supplyAvailable[i]}`;
-      this.workerSupply[i].value = frame.workerSupply[i];
+      ].value = `${currentBwFrame.supplyUsed[i]} / ${currentBwFrame.supplyAvailable[i]}`;
+      this.workerSupply[i].value = currentBwFrame.workerSupply[i];
     }
     this.timeLabel.value = gameStatePosition.getFriendlyTime();
 
@@ -102,6 +113,7 @@ export default class ManagedDomElements {
       for (let i = 0; i < 12; i++) {
         this.unitDetails.items[i].value = selectedUnits[i];
       }
+      this.unitDetails.updateKillCount(selectedUnits);
     }
 
     frameBuilder.unitsInProduction.needsUpdate = false;

@@ -120,6 +120,7 @@ class Units {
           isResourceContainer: isResourceContainer,
           remainingBuildTime: 0,
           queue: null,
+          idleTime: 0,
         };
         units.set(unitBw.id, unit);
       }
@@ -138,6 +139,7 @@ class Units {
       }
 
       //@todo get a better way to detect initial units, probably via chk or marking initial frame units
+      // for use with protoss warp in buildings
       if (!unit.wasConstructing) {
         unit.wasConstructing =
           unit.remainingBuildTime !== unitBw.remainingBuildTime;
@@ -156,18 +158,27 @@ class Units {
         unitBw.isCloaked && !unitBw.typeId === unitTypes.spiderMine;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
       unit.queue = null;
-      //siege mode tank
-      if (unit.typeId === unitTypes.siegeTankSiegeMode) {
+
+      //tank uses build time for siege transition?
+      if (
+        (unit.typeId === unitTypes.siegeTankSiegeMode ||
+          unit.typeId === unitTypes.siegeTankTankMode) &&
+        unitBw.isComplete
+      ) {
         unit.remainingBuildTime = 0;
       } else {
         unit.remainingBuildTime = unitBw.remainingBuildTime;
       }
       unit.buildTime = unitBw.unitType.buildTime;
+      unit.remainingTrainTime = unitBw.remainingTrainTime;
       unit.angle = unitBw.angle;
       unit.order = unitBw.order;
       unit.unitType = unitBw.unitType;
+      unit.isComplete = unitBw.isComplete;
       unit.tileY = unitBw.tileY;
       unit.tileX = unitBw.tileX;
+      unit.kills = unitBw.kills;
+
       unit.showOnMinimap =
         unitBw.typeId !== unitTypes.darkSwarm &&
         unitBw.typeId !== unitTypes.disruptionWeb &&
@@ -233,12 +244,6 @@ class Units {
       const typeId = queued ? queued.units[0] : incompleteUnit.typeId;
       const unitType = this.bwDat.units[typeId];
       if (unitType.isSubunit) continue;
-
-      // for use in unit details section
-      if (queued) {
-        queued.remainingBuildTime = incompleteUnit.remainingBuildTime;
-        queued.buildTime = unitType.buildTime;
-      }
 
       const existingUnit = unitsInProduction.find(
         (u) => u.ownerId === incompleteUnit.ownerId && u.typeId === typeId

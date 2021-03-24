@@ -1,6 +1,7 @@
 import shuffle from "lodash.shuffle";
 import { range } from "ramda";
 
+const white = "#ffffff";
 export default class UnitWireframe {
   constructor(wireframeIcons, size = "lg") {
     this.wireframeIcons = wireframeIcons;
@@ -181,7 +182,8 @@ export default class UnitWireframe {
     }
 
     if (this.size === "md" && unit.owner) {
-      this.domElement.style.borderColor = unit.owner.color.hex;
+      this.domElement.style.borderColor =
+        unit.recievingDamage & 1 ? white : unit.owner.color.hex;
     }
   }
 }

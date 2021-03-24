@@ -49,6 +49,7 @@ async function TitanReactorGame(
   audioMaster
 ) {
   let settings = useSettingsStore.getState().data;
+  const addChatMessage = useGameStore.getState().addChatMessage;
 
   let fogChanged = false;
 
@@ -136,6 +137,7 @@ async function TitanReactorGame(
   const managedDomElements = new ManagedDomElements(
     scene.cmdIcons,
     scene.wireframeIcons,
+    scene.gameIcons,
     players.playersById
   );
 
@@ -421,14 +423,26 @@ async function TitanReactorGame(
         if (rep.cmds[gameStatePosition.bwGameFrame]) {
           for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
             //@todo remove once we filter commands
-            if (!players[cmd.player]) continue;
-            if (players[cmd.player].showPov) {
-              players[cmd.player].camera.update(cmd, pxToGameUnit);
-            } else {
-              players[cmd.player].camera.update(cmd, pxToGameUnit, 1000);
+            if (!players.playersById[cmd.player]) continue;
+
+            if (cmd.id === commands.chat) {
+              addChatMessage({
+                content: cmd.message,
+                player: players.playersById[cmd.player],
+              });
             }
 
-            if (players[cmd.player].showActions) {
+            if (players.playersById[cmd.player].showPov) {
+              players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
+            } else {
+              players.playersById[cmd.player].camera.update(
+                cmd,
+                pxToGameUnit,
+                1000
+              );
+            }
+
+            if (players.playersById[cmd.player].showActions) {
               switch (cmd.id) {
                 case commands.rightClick:
                 case commands.targetedOrder:
@@ -441,7 +455,7 @@ async function TitanReactorGame(
                     px,
                     py,
                     pz,
-                    players[cmd.player].color.rgb,
+                    players.playersById[cmd.player].color.rgb,
                     gameStatePosition.bwGameFrame
                   );
                 }

@@ -2,7 +2,7 @@ import ContiguousContainer from "./ContiguousContainer";
 
 export default class ResearchBW extends ContiguousContainer {
   static get byteLength() {
-    return 4;
+    return 6;
   }
 
   get owner() {
@@ -17,11 +17,16 @@ export default class ResearchBW extends ContiguousContainer {
     return this._readU16(2);
   }
 
+  get unitId() {
+    return this._readU16(4);
+  }
+
   object() {
     return {
       owner: this.owner,
       typeId: this.typeId,
       remainingBuildTime: this.remainingBuildTime,
+      unitId: this.unitId,
     };
   }
 }

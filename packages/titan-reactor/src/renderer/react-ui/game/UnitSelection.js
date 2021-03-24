@@ -26,10 +26,10 @@ const UnitSelection = ({ textSize, className = "" }) => {
   return (
     <div
       className={`details flex self-end select-none ${className}`}
-      style={{ width: "275px" }}
+      style={{ width: "300px" }}
     >
       <div
-        className="rounded mb-2 p-2 flex flex-1 "
+        className="rounded px-3 pt-5 flex flex-1 "
         style={{ backgroundColor: "#1a202ce6" }}
       >
         <article className="flex-1 h-64">

@@ -5,7 +5,7 @@ const renderer = new WebGLRenderer();
 const anisotropy = renderer.capabilities.getMaxAnisotropy();
 renderer.dispose();
 
-const useCapabilitiesStore = create((set) => ({
+const useCapabilitiesStore = create(() => ({
   anisotropy,
   pixelRatio: window.devicePixelRatio,
 }));

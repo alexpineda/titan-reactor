@@ -2,32 +2,6 @@ import UnitWireframe from "./UnitWireframe";
 import ProgressBar from "./ProgressBar";
 import UnitQueue from "./UnitQueue";
 
-//todo p probe Building
-const unitStatus = {
-  zerg: "Morphing",
-  terran: "Building",
-  protoss: "Opening Warp Gate",
-};
-
-//todo t (main building) addon Adding On
-const buildingStatus = {
-  zerg: "Mutating",
-  terran: "Under Construction",
-  protoss: "Opening Warp Rift",
-};
-
-const upgradeStatus = {
-  zerg: "Evolving",
-  terran: "Upgrading",
-  protoss: "Upgrading",
-};
-
-const techStatus = {
-  zerg: "Evolving",
-  terran: "Researching",
-  protoss: "Developing",
-};
-
 const getRaceString = (unitType) => {
   if (unitType.isZerg) {
     return "zerg";
@@ -39,7 +13,9 @@ const getRaceString = (unitType) => {
 };
 
 export default class LargeUnitDetailElement {
-  constructor(cmdIcons, wireframeIcons) {
+  constructor(cmdIcons, wireframeIcons, gameIcons) {
+    this.frame = 0;
+
     this.domElement = document.createElement("div");
     this.domElement.classList.add("flex", "relative");
 
@@ -55,18 +31,26 @@ export default class LargeUnitDetailElement {
     this.name = document.createElement("p");
     this.name.classList.add("text-white", "text-center");
 
-    this.status = document.createElement("p");
-    this.status.classList.add("text-sm", "text-gray-400", "absolute");
-
     this.hpAndShields = document.createElement("span");
     this.hp = document.createElement("p");
     this.shields = document.createElement("p");
     this.shields.style.color = "white";
 
+    this.energy = document.createElement("span");
+    this.energyImg = document.createElement("img");
+    this.energyImg.classList.add("inline", "w-4");
+    this.energyImg.src = gameIcons.energy;
+
+    this.energyText = document.createElement("p");
+    this.energyText.classList.add("text-gray-300");
+    this.energy.appendChild(this.energyImg);
+    this.energy.appendChild(this.energyText);
+
     this.hpAndShields.appendChild(this.shields);
     this.hpAndShields.appendChild(this.hp);
 
     this.kills = document.createElement("p");
+    this.kills.classList.add("text-gray-400");
 
     this.progress = new ProgressBar();
 
@@ -75,12 +59,12 @@ export default class LargeUnitDetailElement {
 
     this.unitSection.appendChild(this.name);
     this.unitSection.appendChild(this.wireframe.domElement);
-    this.unitSection.appendChild(this.kills);
     this.unitSection.appendChild(this.progress.domElement);
-    this.unitSection.appendChild(this.status);
     this.unitSection.appendChild(this.queue.domElement);
 
     this.statsSection.appendChild(this.hpAndShields);
+    this.statsSection.appendChild(this.energy);
+    this.statsSection.appendChild(this.kills);
 
     this.domElement.style.display = "none";
     this.value = "";
@@ -106,46 +90,39 @@ export default class LargeUnitDetailElement {
         this.hp.style.color = color;
       }
 
-      let remainingBuildTime = unit.remainingBuildTime;
-      let buildTime = unit.buildTime;
+      this.queue.update(unit);
 
-      if (unit.queue) {
-        remainingBuildTime = unit.queue.remainingBuildTime;
-        buildTime = unit.queue.buildTime;
-      }
-
-      if (unit.unitType.isZerg) {
-        this.queue.hide();
-      } else {
-        this.queue.update(unit);
-      }
-
-      if (remainingBuildTime > 0) {
-        this.progress.value = remainingBuildTime / buildTime;
-
-        let status = "";
-        if (unit.unitType.isBuilding) {
-          status = buildingStatus[getRaceString(unit.unitType)];
-        } else {
-          status = unitStatus[getRaceString(unit.unitType)];
-        }
-        this.status.textContent = status;
+      this.progress.frame = this.frame;
+      if (unit.remainingBuildTime > 0 && !unit.unitType.isResourceContainer) {
+        this.progress.value = unit.remainingBuildTime / unit.buildTime;
+      } else if (unit.remainingTrainTime > 0) {
+        this.progress.value = unit.remainingTrainTime / 255;
       } else {
         this.progress.hide();
-        this.status.textContent = "";
       }
 
       if (unit.unitType.shieldsEnabled) {
         this.shields.textContent = `${unit.shields}/${unit.unitType.shields}`;
-        this.shields.style.display = "block";
       } else {
-        this.shields.style.display = "none";
+        this.shields.textContent = "";
+      }
+
+      // const maxEnergy = 200;
+      if (unit.unitType.isSpellcaster) {
+        this.energyText.textContent = `${unit.energy}`;
+        this.energy.style.display = "block";
+      } else {
+        this.energy.style.display = "none";
+      }
+
+      if (unit.unitType.isBuilding) {
+        this.kills.textContent = "";
+      } else {
+        this.kills.textContent = `Kills: ${unit.kills}`;
       }
 
       //   this.kills.textContent = `${unit.kills} kills`;
       //   this.energy.textContent = `${unit.energy}/${unit.unitType.energy}`;
-      //shield/maxshield
-      //kills
 
       this.domElement.style.display = "flex";
     } else {

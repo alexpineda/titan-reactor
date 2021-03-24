@@ -2,7 +2,7 @@ import ContiguousContainer from "./ContiguousContainer";
 
 export default class UpgradeBW extends ContiguousContainer {
   static get byteLength() {
-    return 5;
+    return 7;
   }
 
   get owner() {
@@ -21,12 +21,17 @@ export default class UpgradeBW extends ContiguousContainer {
     return this._readU16(3);
   }
 
+  get unitId() {
+    return this._readU16(5);
+  }
+
   object() {
     return {
       owner: this.owner,
       typeId: this.typeId,
       level: this.level,
       remainingBuildTime: this.remainingBuildTime,
+      unitId: this.unitId,
     };
   }
 }

@@ -281,7 +281,7 @@ const parseReplay = async (buf) => {
   if (!skipProcessing) {
     const originalTags = new Set();
     cmds = parseCommands(rawCmds, header.players, originalTags);
-    console.log(unparsedCommandsDebug);
+    // console.log(unparsedCommandsDebug);
     // version = Version.remastered && console.log(originalTags);
   }
 
