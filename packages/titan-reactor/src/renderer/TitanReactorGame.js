@@ -331,7 +331,11 @@ async function TitanReactorGame(
     units
   );
 
-  const projectedCameraView = new ProjectedCameraView(cameras.camera);
+  const projectedCameraView = new ProjectedCameraView(
+    cameras.camera,
+    mapWidth,
+    mapHeight
+  );
   const frameBuilder = new BWFrameSceneBuilder(
     scene,
     creep,
@@ -346,10 +350,10 @@ async function TitanReactorGame(
   );
 
   cursor.init(
+    projectedCameraView,
     gameSurface,
     scene,
     cameras.camera,
-    units,
     frameBuilder.unitsBySpriteId,
     scene.terrain
   );

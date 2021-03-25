@@ -14,8 +14,11 @@ const _vector = new Vector3();
  * World position for the four corners of our view
  */
 export default class ProjectedCameraView {
-  constructor(camera) {
+  constructor(camera, mapWidth, mapHeight) {
     this.camera = camera;
+    this.mapWidth = mapWidth;
+    this.mapHeight = mapHeight;
+
     this._lastFrame = null;
     this.left = 0;
     this.top = 0;

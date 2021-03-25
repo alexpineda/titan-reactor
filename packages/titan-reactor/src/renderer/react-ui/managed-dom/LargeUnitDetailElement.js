@@ -40,12 +40,14 @@ export default class LargeUnitDetailElement {
     this.shields.classList.add("text-gray-400");
 
     this.energy = document.createElement("span");
+    this.energy.classList.add("items-center");
+
     this.energyImg = document.createElement("img");
-    this.energyImg.classList.add("inline", "w-4");
+    this.energyImg.classList.add("inline", "w-4", "mr-1");
     this.energyImg.src = gameIcons.energy;
 
     this.energyText = document.createElement("p");
-    this.energyText.classList.add("text-gray-300");
+    this.energyText.classList.add("text-gray-300", "inline");
     this.energy.appendChild(this.energyImg);
     this.energy.appendChild(this.energyText);
 
@@ -127,7 +129,7 @@ export default class LargeUnitDetailElement {
 
       if (unit.unitType.isSpellcaster) {
         this.energyText.textContent = unit.energy;
-        this.energy.style.display = "block";
+        this.energy.style.display = "flex";
       } else {
         this.energy.style.display = "none";
       }

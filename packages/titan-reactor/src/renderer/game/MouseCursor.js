@@ -110,7 +110,16 @@ export default class MouseCursor {
     this._pointer = this.dragIcons;
   }
 
-  init(gameSurface, scene, camera, units, unitsBySpriteId, terrain) {
+  init(
+    projectedCameraView,
+    gameSurface,
+    scene,
+    camera,
+    unitsBySpriteId,
+    terrain
+  ) {
+    this.projectedCameraView = projectedCameraView;
+
     const raycaster = new Raycaster();
     const mouse = new Vector2();
     const hover = new Vector2();
@@ -313,11 +322,54 @@ export default class MouseCursor {
             sprite.unit.unitType.isBuilding)
         )
       ) {
-        selected.add(sprite.unit);
+        // ctrl modifier -> select all of unit type in view
+        if (event.ctrlKey) {
+          const startMapX = Math.floor(
+            this.projectedCameraView.viewBW.left / 32
+          );
+          const endMapX = Math.floor(
+            this.projectedCameraView.viewBW.right / 32
+          );
+          const startMapY = Math.floor(
+            this.projectedCameraView.viewBW.top / 32
+          );
+          const endMapY = Math.floor(
+            this.projectedCameraView.viewBW.bottom / 32
+          );
+
+          for (let x = startMapX; x < endMapX; x++) {
+            for (let y = startMapY; y < endMapY; y++) {
+              for (const [spriteId, unit] of unitsBySpriteId) {
+                if (
+                  unit.canSelect &&
+                  unit.tileX === x &&
+                  unit.tileY === y &&
+                  unit.unitType === sprite.unit.unitType
+                ) {
+                  // test one tile out of selection bounds since unit tileX/Y is centered
+                  // use placement approximations from UnitsDat for these "slightly out of bounds" units
+                  selected.add(unit);
+                }
+              }
+            }
+          }
+        }
+        // otherwise do the final select
+        else {
+          selected.add(sprite.unit);
+        }
+      }
+
+      let selectedFinal = [...selected];
+      if (event.shiftKey && useGameStore.getState().selectedUnits.length < 12) {
+        selectedFinal = [
+          ...useGameStore.getState().selectedUnits,
+          ...selectedFinal,
+        ];
       }
 
       unstable_batchedUpdates(() =>
-        setSelectedUnits([...selected].slice(0, 12))
+        setSelectedUnits(selectedFinal.slice(0, 12))
       );
     };
 
