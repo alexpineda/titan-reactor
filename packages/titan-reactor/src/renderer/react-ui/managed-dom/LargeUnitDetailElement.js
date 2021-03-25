@@ -133,9 +133,9 @@ export default class LargeUnitDetailElement {
       }
 
       if (
-        unit.unitType.isBuilding ||
-        unit.unitType.isResourceDepot ||
-        !unit.owner
+        !unit.unitType.isSpellcaster &&
+        unit.unitType.groundWeapon === 130 &&
+        unit.unitType.airWeapon === 130
       ) {
         this.kills.textContent = emptyString;
       } else {
