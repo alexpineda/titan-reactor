@@ -25,7 +25,7 @@ import { ProducerWindowPosition, RenderMode } from "../common/settings";
 import Units from "./game/Units";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
-import BWFrameSceneBuilder from "./game/frame-builder/BWFrameBuilder";
+import BWFrameSceneBuilder from "./game/BWFrameSceneBuilder";
 import ManagedDomElements from "./react-ui/managed-dom/ManagedDomElements";
 import Apm from "./game/Apm";
 import { debounce } from "lodash";

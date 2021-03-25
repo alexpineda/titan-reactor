@@ -144,7 +144,7 @@ const PlayerResources = ({
     <tr>
       {enablePlayerScores && (
         <td
-          className={`${esportsHud ? "" : "pr-2"}`}
+          className={`${esportsHud ? "" : "pr-2"} pointer-events-auto`}
           style={{
             ...fitToContentStyle,
             ...scoreBgColor,
@@ -173,7 +173,7 @@ const PlayerResources = ({
         </td>
       )}
       <td
-        className="pr-2"
+        className="pr-2  pointer-events-auto"
         style={{
           ...fitToContentStyle,
           ...bgGradient,

@@ -2,6 +2,10 @@ import { range } from "ramda";
 import SmallUnitDetailElement from "./SmallUnitDetailElement";
 
 const canSelect = (u) => u.canSelect;
+const hasNonAttackers = (u) =>
+  !u.unitType.isSpellcaster &&
+  u.unitType.groundWeapon === 130 &&
+  u.unitType.airWeapon === 130;
 const sumKills = (tkills, { kills }) => tkills + kills;
 
 export default class SmallUnitDetailWrapperElement {
@@ -27,8 +31,12 @@ export default class SmallUnitDetailWrapperElement {
   }
 
   updateKillCount(units) {
-    this.kills.textContent = `Total Kills ${units
-      .filter(canSelect)
-      .reduce(sumKills, 0)}`;
+    if (units.some(hasNonAttackers)) {
+      this.kills.textContent = "";
+    } else {
+      this.kills.textContent = `Total Kills ${units
+        .filter(canSelect)
+        .reduce(sumKills, 0)}`;
+    }
   }
 }

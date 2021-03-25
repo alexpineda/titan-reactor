@@ -1,17 +1,18 @@
 import { Group, MathUtils } from "three";
-import BuildingQueueCountBW from "../bw/BuildingQueueCountBW";
-import CreepBW from "../bw/CreepBW";
-import ImagesBW from "../bw/ImagesBW";
-import SoundsBW from "../bw/SoundsBW";
-import SpritesBW from "../bw/SpritesBW";
-import TilesBW from "../bw/TilesBW";
-import UnitsBW from "../bw/UnitsBW";
-import ResearchBW from "../bw/ResearchBW";
-import UpgradeBW from "../bw/UpgradeBW";
-import GameSprite from "../GameSprite";
+import BuildingQueueCountBW from "./bw/BuildingQueueCountBW";
+import CreepBW from "./bw/CreepBW";
+import ImagesBW from "./bw/ImagesBW";
+import SoundsBW from "./bw/SoundsBW";
+import SpritesBW from "./bw/SpritesBW";
+import TilesBW from "./bw/TilesBW";
+import UnitsBW from "./bw/UnitsBW";
+import ResearchBW from "./bw/ResearchBW";
+import UpgradeBW from "./bw/UpgradeBW";
+import GameSprite from "./GameSprite";
 import { range } from "ramda";
-import useHudStore from "../../stores/hudStore";
+import useHudStore from "../stores/hudStore";
 import { unstable_batchedUpdates } from "react-dom";
+import TechUpgradesWorker from "./tech-upgrades/TechUpgrades.worker";
 
 export default class BWFrameSceneBuilder {
   /**
@@ -55,6 +56,13 @@ export default class BWFrameSceneBuilder {
     this.getTerrainY = getTerrainY;
     this.creep = creep;
     this.fogOfWar = fogOfWar;
+
+    this.techUpgradesWorker = new TechUpgradesWorker();
+    this.techUpgradesWorker.postMessage({
+      type: "init",
+      techDat: bwDat.tech,
+      upgradesDat: bwDat.upgrades,
+    });
 
     this.sprites = new Map();
     this.images = new Map();
@@ -334,70 +342,49 @@ export default class BWFrameSceneBuilder {
     this.upgradeBW.count = bwFrame.upgradeCount;
     this.upgradeBW.buffer = bwFrame.upgrades;
 
-    const researchInProgress = this.researchBW.instances();
-    const upgradesInProgress = this.upgradeBW.instances();
+    const msg = {
+      frame: bwFrame.frame,
+      researchCount: bwFrame.researchCount,
+      researchBuffer: bwFrame.research,
+      upgradeCount: bwFrame.upgradeCount,
+      upgradeBuffer: bwFrame.upgrades,
+    };
 
-    for (let i = 0; i < 8; i++) {
-      this.research[i] = [...this.completedResearch[i]];
-      this.upgrades[i] = [...this.completedUpgrades[i]];
+    this.techUpgradesWorker.postMessage(msg);
 
-      for (const research of researchInProgress) {
-        this._notifyHudOfTech();
-        if (research.remainingBuildTime === 100) {
-          useHudStore.getState().onTechNearComplete();
-        }
-        if (research.owner === i) {
-          const researchObj = {
-            ...research,
-            icon: this.bwDat.tech[research.typeId].icon,
-            count: 1,
-            buildTime: this.bwDat.tech[research.typeId].researchTime,
-            isTech: true,
-            timeAdded: Date.now(),
-          };
-          this.research[i].push(researchObj);
-          if (research.remainingBuildTime === 0) {
-            this.completedResearch[i].push(researchObj);
-          }
-        }
-      }
+    this.techUpgradesWorker.onmessage = ({ data }) => {
+      const {
+        techNearComplete,
+        upgradeNearComplete,
+        hasTech,
+        hasUpgrade,
+        research,
+        upgrades,
+        completedUpgrades,
+        completedResearch,
+      } = data;
 
-      for (const upgrade of upgradesInProgress) {
+      if (hasUpgrade) {
         this._notifyHudOfUpgrades();
-        if (upgrade.remainingBuildTime === 100) {
-          useHudStore.getState().onUpgradeNearComplete();
-        }
-        if (upgrade.owner === i) {
-          // if completed upgrade exists update count once and replace build time
-          const existing = this.upgrades[i].find(
-            (u) => u.typeId === upgrade.typeId
-          );
-          if (existing) {
-            if (existing.remainingBuildTime === 0) {
-              existing.count++;
-            }
-            existing.remainingBuildTime = upgrade.remainingBuildTime;
-            continue;
-          }
-
-          const upgradeObj = {
-            ...upgrade,
-            icon: this.bwDat.upgrades[upgrade.typeId].icon,
-            count: upgrade.level,
-            buildTime:
-              this.bwDat.upgrades[upgrade.typeId].researchTimeBase +
-              this.bwDat.upgrades[upgrade.typeId].researchTimeFactor *
-                upgrade.level,
-            isUpgrade: true,
-            timeAdded: Date.now(),
-          };
-          this.upgrades[i].push(upgradeObj);
-          if (upgrade.remainingBuildTime === 0) {
-            this.completedUpgrades[i].push(upgradeObj);
-          }
-        }
       }
-    }
+
+      if (upgradeNearComplete) {
+        useHudStore.getState().onUpgradeNearComplete();
+      }
+
+      if (hasTech) {
+        this._notifyHudOfTech();
+      }
+
+      if (techNearComplete) {
+        useHudStore.getState().onTechNearComplete();
+      }
+
+      this.research = research;
+      this.upgrades = upgrades;
+      this.completedUpgrades = completedUpgrades;
+      this.completedResearch = completedResearch;
+    };
 
     this.research.needsUpdate = true;
     this.upgrades.needsUpdate = true;
@@ -412,5 +399,9 @@ export default class BWFrameSceneBuilder {
     this.fogOfWar.texture.needsUpdate = true;
     this.creep.creepValuesTexture.needsUpdate = true;
     this.creep.creepEdgesValuesTexture.needsUpdate = true;
+  }
+
+  dispose() {
+    this.techUpgradesWorker.terminate();
   }
 }

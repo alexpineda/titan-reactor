@@ -41,7 +41,7 @@ export default class ProductionElement {
     if (val) {
       this.domElement.classList.remove("hidden");
       if (val.count > 1) {
-        this.count.innerText = val.count;
+        this.count.textContent = val.count;
         this.count.classList.remove("hidden");
       } else {
         this.count.classList.add("hidden");
