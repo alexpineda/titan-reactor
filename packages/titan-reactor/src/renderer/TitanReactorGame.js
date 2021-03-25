@@ -135,6 +135,7 @@ async function TitanReactorGame(
   players.changeColors(settings.useCustomColors);
 
   const managedDomElements = new ManagedDomElements(
+    bwDat,
     scene.cmdIcons,
     scene.wireframeIcons,
     scene.gameIcons,

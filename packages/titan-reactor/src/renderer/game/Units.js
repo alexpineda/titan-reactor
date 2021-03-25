@@ -26,10 +26,12 @@ class Units {
     this.resourceImageData = new ImageData(mapWidth, mapHeight);
   }
 
-  _refreshMinimap(unitBw, isResourceContainer, unit) {
+  _refreshMinimap(unit) {
+    const isResourceContainer =
+      unit.unitType.isResourceContainer && !unit.owner;
     if (
       !isResourceContainer &&
-      !this.fogOfWar.isVisible(unitBw.tileX, unitBw.tileY)
+      !this.fogOfWar.isVisible(unit.tileX, unit.tileY)
     ) {
       return;
     }
@@ -38,34 +40,31 @@ class Units {
 
     if (isResourceContainer) {
       color = resourceColor;
-    } else if (unitBw.unitType.id === unitTypes.scannerSweep) {
+    } else if (unit.unitType.id === unitTypes.scannerSweep) {
       color = scannerColor;
-    } else if (unitBw.owner < 8) {
-      color =
-        unit.recievingDamage & 1
-          ? flashColor
-          : this.playersById[unitBw.owner].color.three;
+    } else if (unit.owner) {
+      color = unit.recievingDamage & 1 ? flashColor : unit.owner.color.three;
     } else {
       return;
     }
 
-    let w = Math.floor(unitBw.unitType.placementWidth / 32);
-    let h = Math.floor(unitBw.unitType.placementHeight / 32);
+    let w = Math.floor(unit.unitType.placementWidth / 32);
+    let h = Math.floor(unit.unitType.placementHeight / 32);
 
-    if (unitBw.unitType.isBuilding) {
+    if (unit.unitType.isBuilding) {
       if (w > 4) w = 4;
       if (h > 4) h = 4;
     }
     if (w < 2) w = 2;
     if (h < 2) h = 2;
 
-    if (unitBw.unitType.id === unitTypes.scannerSweep) {
+    if (unit.unitType.id === unitTypes.scannerSweep) {
       w = 6;
       h = 6;
     }
 
-    const unitX = Math.floor(unitBw.x / 32);
-    const unitY = Math.floor(unitBw.y / 32);
+    const unitX = Math.floor(unit.x / 32);
+    const unitY = Math.floor(unit.y / 32);
     const wX = Math.floor(w / 2);
     const wY = Math.floor(w / 2);
 
@@ -109,15 +108,12 @@ class Units {
     const incompleteUnits = new Map();
 
     for (const unitBw of unitsBW.instances()) {
-      const isResourceContainer = unitBw.unitType.isResourceContainer;
-
       let unit;
 
       if (units.has(unitBw.id)) {
         unit = units.get(unitBw.id);
       } else {
         unit = {
-          isResourceContainer: isResourceContainer,
           remainingBuildTime: 0,
           queue: null,
           idleTime: 0,
@@ -145,19 +141,16 @@ class Units {
           unit.remainingBuildTime !== unitBw.remainingBuildTime;
       }
 
-      unit.hp = unitBw.hp;
-      unit.shields = unitBw.shields;
-      unit.id = unitBw.id;
-      unit.typeId = unitBw.typeId;
-      unit.owner = this.playersById[unitBw.owner];
-      unit.isBuilding = unitBw.unitType.isBuilding;
       unit.wasFlying = unit.isFlying && !unitBw.isFlying;
       unit.isNowFlying = !unit.isFlying && unitBw.isFlying;
-      unit.isFlying = unitBw.isFlying;
-      unit.isCloaked =
-        unitBw.isCloaked && !unitBw.typeId === unitTypes.spiderMine;
       unit.isFlyingBuilding = unitBw.unitType.isFlyingBuilding;
+
+      // all previous assignments should not be on unitBw, and typically use comparison of old to new values
+      Object.assign(unit, unitBw);
+
+      //following assignments should append new data not relevant to previous value
       unit.queue = null;
+      unit.owner = this.playersById[unit.owner];
 
       //tank uses build time for siege transition?
       if (
@@ -169,42 +162,31 @@ class Units {
       } else {
         unit.remainingBuildTime = unitBw.remainingBuildTime;
       }
-      unit.buildTime = unitBw.unitType.buildTime;
-      unit.remainingTrainTime = unitBw.remainingTrainTime;
-      unit.angle = unitBw.angle;
-      unit.order = unitBw.order;
-      unit.unitType = unitBw.unitType;
-      unit.isComplete = unitBw.isComplete;
-      unit.x = unitBw.x;
-      unit.y = unitBw.y;
-      unit.tileY = unitBw.tileY;
-      unit.tileX = unitBw.tileX;
-      unit.kills = unitBw.kills;
 
       unit.showOnMinimap =
-        unitBw.typeId !== unitTypes.darkSwarm &&
-        unitBw.typeId !== unitTypes.disruptionWeb &&
-        unitBw.order !== orders.die &&
-        !unitBw.unitType.isSubunit;
+        unit.typeId !== unitTypes.darkSwarm &&
+        unit.typeId !== unitTypes.disruptionWeb &&
+        unit.order !== orders.die &&
+        !unit.unitType.isSubunit;
 
       unit.canSelect =
         unit.showOnMinimap &&
         //do not allow unit training selection for terran and protoss
         !(
-          (unitBw.unitType.isTerran || unitBw.unitType.isProtoss) &&
+          (unit.unitType.isTerran || unit.unitType.isProtoss) &&
           !unitBw.unitType.isBuilding &&
           unit.remainingBuildTime > 0
         ) &&
         unitBw.typeId !== unitTypes.spiderMine;
 
       if (
-        unitBw.unitType.isBuilding &&
-        unitBw.unitType.isProtoss &&
-        unitBw.remainingBuildTime < (unitBw.unitType.buildTime * 2) / 5 &&
+        unit.unitType.isBuilding &&
+        unit.unitType.isProtoss &&
+        unit.remainingBuildTime < (unit.unitType.buildTime * 2) / 5 &&
         unit.wasConstructing
       ) {
         if (unit.warpingIn === undefined) {
-          unit.warpingLen = (unitBw.unitType.buildTime * 2) / 5;
+          unit.warpingLen = (unit.unitType.buildTime * 2) / 5;
           unit.warpingIn = 150 + unit.warpingLen;
         } else if (unit.warpingIn > 0) {
           unit.warpingIn = unit.warpingIn - 1;
@@ -213,7 +195,7 @@ class Units {
 
       //@todo move to worker
       if (unit.showOnMinimap) {
-        this._refreshMinimap(unitBw, isResourceContainer, unit);
+        this._refreshMinimap(unit);
       }
 
       if (!unitBw.isComplete) {

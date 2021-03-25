@@ -35,7 +35,7 @@ const useGameStore = create((set, get) => ({
   toggleFollowUnit: (unit) => set({ followUnit: unit }),
   addChatMessage: (msg) =>
     set((state) => ({
-      chat: [...state.chat.slice(1, 10), msg],
+      chat: [...state.chat, msg],
       lastChatAdd: Date.now(),
     })),
   removeOneFromChat: () => {

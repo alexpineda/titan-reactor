@@ -8,8 +8,9 @@ const healthColorGreen = "#00cc00";
 const emptyString = "";
 
 export default class LargeUnitDetailElement {
-  constructor(cmdIcons, wireframeIcons, gameIcons) {
+  constructor(bwDat, cmdIcons, wireframeIcons, gameIcons) {
     this.frame = 0;
+    this.bwDat = bwDat;
 
     this.domElement = document.createElement("div");
     this.domElement.classList.add("flex", "relative");
@@ -75,10 +76,23 @@ export default class LargeUnitDetailElement {
   set value(unit) {
     if (unit && unit.canSelect) {
       this._value = unit;
-      this.wireframe.update(unit);
-      this.name.textContent = unit.unitType.name;
 
-      if (unit.isResourceContainer) {
+      const queuedZergType =
+        unit.unitType.isZerg && unit.queue && unit.queue.units.length
+          ? this.bwDat.units[unit.queue.units[0]]
+          : null;
+      const queuedZergUnitType =
+        queuedZergType && !unit.unitType.isBuilding ? queuedZergType : null;
+      const queuedBuildingZergType =
+        queuedZergType && unit.unitType.isBuilding ? queuedZergType : null;
+
+      this.wireframe.update(unit);
+
+      this.name.textContent = queuedBuildingZergType
+        ? queuedBuildingZergType.name
+        : unit.unitType.name;
+
+      if (unit.unitType.isResourceContainer && !unit.owner) {
         this.hp.textContent = emptyString;
       } else {
         const healthPct = unit.hp / unit.unitType.hp;
@@ -92,11 +106,13 @@ export default class LargeUnitDetailElement {
         this.hp.style.color = color;
       }
 
-      this.queue.update(unit);
+      this.queue.update(unit, queuedZergUnitType);
 
       this.progress.frame = this.frame;
       if (unit.remainingBuildTime > 0 && unit.owner) {
-        this.progress.value = unit.remainingBuildTime / unit.buildTime;
+        this.progress.value =
+          unit.remainingBuildTime /
+          (queuedZergType ? queuedZergType.buildTime : unit.unitType.buildTime);
       } else if (unit.remainingTrainTime > 0) {
         this.progress.value = unit.remainingTrainTime / 255;
       } else {
@@ -116,7 +132,11 @@ export default class LargeUnitDetailElement {
         this.energy.style.display = "none";
       }
 
-      if (unit.unitType.isBuilding) {
+      if (
+        unit.unitType.isBuilding ||
+        unit.unitType.isResourceDepot ||
+        !unit.owner
+      ) {
         this.kills.textContent = emptyString;
       } else {
         this.kills.textContent = `Kills: ${unit.kills}`;

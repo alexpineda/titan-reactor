@@ -257,15 +257,12 @@ export default class MouseCursor {
 
           const r2 = { left: 0, right: 0, top: 0, bottom: 0 };
 
+          const candidates = [];
+
           for (let x = startMapX - 1; x < endMapX + 1; x++) {
             for (let y = startMapY - 1; y < endMapY + 1; y++) {
               for (const [spriteId, unit] of unitsBySpriteId) {
-                if (
-                  unit.canSelect &&
-                  !unit.isBuilding &&
-                  unit.tileX === x &&
-                  unit.tileY === y
-                ) {
+                if (unit.canSelect && unit.tileX === x && unit.tileY === y) {
                   // test one tile out of selection bounds since unit tileX/Y is centered
                   // use placement approximations from UnitsDat for these "slightly out of bounds" units
                   if (
@@ -279,14 +276,25 @@ export default class MouseCursor {
                     r2.top = unit.y - unit.unitType.unitSizeUp;
                     r2.bottom = unit.y + unit.unitType.unitSizeDown;
                     if (intersectRect(r1, r2)) {
-                      selected.add(unit);
+                      candidates.push(unit);
+                      if (!unit.unitType.isBuilding) {
+                        selected.add(unit);
+                      }
                     }
                   } else {
-                    selected.add(unit);
+                    candidates.push(unit);
+                    if (!unit.unitType.isBuilding) {
+                      selected.add(unit);
+                    }
                   }
                 }
               }
             }
+          }
+
+          // select any valid buildings if no units were selected
+          if (!selected.size && candidates.length) {
+            candidates.forEach((building) => selected.add(building));
           }
         }
       }
@@ -301,7 +309,8 @@ export default class MouseCursor {
         sprite.unit.canSelect &&
         !(
           selected.size &&
-          (sprite.unit.isResourceContainer || sprite.unit.isBuilding)
+          (sprite.unit.unitType.isResourceContainer ||
+            sprite.unit.unitType.isBuilding)
         )
       ) {
         selected.add(sprite.unit);

@@ -55,7 +55,6 @@ const useHudStore = create((set, get) => ({
     _cycleTime = _minCycleTime * 1.25;
   },
   startTogglingProduction: () => {
-    return;
     clearTimeout(_productionInterval);
     const fn = () => {
       let nextProductionView = get().productionView + 1;

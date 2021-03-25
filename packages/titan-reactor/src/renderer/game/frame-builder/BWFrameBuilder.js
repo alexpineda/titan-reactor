@@ -165,7 +165,7 @@ export default class BWFrameSceneBuilder {
 
       const buildingIsExplored =
         sprite.unit &&
-        sprite.unit.isBuilding &&
+        sprite.unit.unitType.isBuilding &&
         this.fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
 
       // doodads and resources are always visible

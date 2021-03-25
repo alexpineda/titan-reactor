@@ -10,9 +10,10 @@ import useGameStore from "../../stores/gameStore";
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
  */
 export default class ManagedDomElements {
-  constructor(cmdIcons, wireframeIcons, gameIcons, players) {
+  constructor(bwDat, cmdIcons, wireframeIcons, gameIcons, players) {
     this.wireframeIcons = wireframeIcons;
     this.unitDetail = new LargeUnitDetailElement(
+      bwDat,
       cmdIcons,
       wireframeIcons,
       gameIcons
@@ -56,7 +57,13 @@ export default class ManagedDomElements {
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(currentBwFrame, gameStatePosition, players, apm, frameBuilder) {
+  update(
+    currentBwFrame,
+    gameStatePosition,
+    players,
+    apm,
+    frameBuilder
+  ) {
     const selectedUnits = useGameStore.getState().selectedUnits;
 
     for (let i = 0; i < 8; i++) {

@@ -1,3 +1,4 @@
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import ContiguousContainer from "./ContiguousContainer";
 
 // status_flag_completed = 1,
@@ -128,8 +129,9 @@ export default class UnitsBW extends ContiguousContainer {
 
   get isCloaked() {
     return (
-      (this.statusFlags & flags.cloaked) != 0 ||
-      (this.statusFlags & flags.passivelyCloaked) != 0
+      ((this.statusFlags & flags.cloaked) != 0 ||
+        (this.statusFlags & flags.passivelyCloaked) != 0) &&
+      !this.typeId === unitTypes.spiderMine
     );
   }
 

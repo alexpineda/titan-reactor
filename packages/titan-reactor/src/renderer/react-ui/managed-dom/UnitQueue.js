@@ -24,7 +24,7 @@ export default class UnitQueue {
     this.items[0].style.height = "40px";
   }
 
-  update(unit) {
+  update(unit, queuedZergUnitType) {
     if (
       unit.unitType.isBuilding &&
       !unit.unitType.isZerg &&
@@ -32,12 +32,20 @@ export default class UnitQueue {
       unit.isComplete
     ) {
       for (let i = 0; i < 5; i++) {
+        this.items[i].classList.add("border");
         if (unit.queue && unit.queue.units[i] !== undefined) {
           this.items[i].src = this.icons[unit.queue.units[i]];
         } else {
           this.items[i].src = blank64;
         }
       }
+      this.domElement.style.display = "flex";
+    } else if (queuedZergUnitType) {
+      for (let i = 1; i < 5; i++) {
+        this.items[i].classList.remove("border");
+        this.items[i].src = blank64;
+      }
+      this.items[0].src = this.icons[queuedZergUnitType.index];
       this.domElement.style.display = "flex";
     } else {
       this.domElement.style.display = "none";
