@@ -91,6 +91,9 @@ export default class UnitsBW extends ContiguousContainer {
   }
 
   get remainingBuildTime() {
+    if (this.unitType.isResourceContainer && this.isComplete) {
+      return 0;
+    }
     return this._read16(22);
   }
 
@@ -108,6 +111,14 @@ export default class UnitsBW extends ContiguousContainer {
 
   get kills() {
     return this._read16(28);
+  }
+
+  get resourceAmount() {
+    if (this.unitType.isResourceContainer && this.isComplete) {
+      // remainingBuildTime
+      return this._read16(22);
+    }
+    return null;
   }
 
   get angle() {
@@ -171,6 +182,7 @@ export default class UnitsBW extends ContiguousContainer {
       tileY: this.tileY,
       order: this.order,
       kills: this.kills,
+      resourceAmount: this.resourceAmount,
     };
   }
 }

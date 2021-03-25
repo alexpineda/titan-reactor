@@ -159,8 +159,6 @@ class Units {
         unitBw.isComplete
       ) {
         unit.remainingBuildTime = 0;
-      } else {
-        unit.remainingBuildTime = unitBw.remainingBuildTime;
       }
 
       unit.showOnMinimap =

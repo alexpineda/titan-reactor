@@ -417,10 +417,13 @@ async function TitanReactorGame(
             //@todo remove once we filter commands
             if (!players.playersById[cmd.player]) continue;
 
-            if (cmd.id === commands.chat) {
+            if (
+              cmd.id === commands.chat &&
+              players.playersById[cmd.senderSlot]
+            ) {
               addChatMessage({
                 content: cmd.message,
-                player: players.playersById[cmd.player],
+                player: players.playersById[cmd.senderSlot],
               });
             }
 

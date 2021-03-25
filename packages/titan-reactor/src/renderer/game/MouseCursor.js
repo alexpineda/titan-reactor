@@ -69,7 +69,7 @@ export default class MouseCursor {
     );
 
     this.selectElement = document.createElement("span");
-    this.selectElement.style.outline = "2px solid #00ff007f";
+    this.selectElement.style.outline = "3px solid #00ff007f";
     this.selectElement.style.position = "absolute";
     this.selectElement.style.display = "none";
     this.selectElement.style.pointerEvents = "none";

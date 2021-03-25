@@ -1,6 +1,7 @@
 import UnitWireframe from "./UnitWireframe";
 import ProgressBar from "./ProgressBar";
 import UnitQueue from "./UnitQueue";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 
 const healthColorRed = "#d60000";
 const healthColorYellow = "#aaaa00";
@@ -11,6 +12,7 @@ export default class LargeUnitDetailElement {
   constructor(bwDat, cmdIcons, wireframeIcons, gameIcons) {
     this.frame = 0;
     this.bwDat = bwDat;
+    this.gameIcons = gameIcons;
 
     this.domElement = document.createElement("div");
     this.domElement.classList.add("flex", "relative");
@@ -38,6 +40,15 @@ export default class LargeUnitDetailElement {
     this.hp = document.createElement("p");
     this.shields = document.createElement("p");
     this.shields.classList.add("text-gray-400");
+
+    this.resourceAmount = document.createElement("span");
+    this.resourceAmount.classList.add("items-center");
+    this.resourceImg = document.createElement("img");
+    this.resourceImg.classList.add("inline", "w-4", "mr-1");
+    this.resourceAmountText = document.createElement("p");
+    this.resourceAmountText.classList.add("text-gray-400", "inline");
+    this.resourceAmount.appendChild(this.resourceImg);
+    this.resourceAmount.appendChild(this.resourceAmountText);
 
     this.energy = document.createElement("span");
     this.energy.classList.add("items-center");
@@ -70,6 +81,7 @@ export default class LargeUnitDetailElement {
     this.statsSection.appendChild(this.hpAndShields);
     this.statsSection.appendChild(this.energy);
     this.statsSection.appendChild(this.kills);
+    this.statsSection.appendChild(this.resourceAmount);
 
     this.domElement.style.display = "none";
     this.value = emptyString;
@@ -142,6 +154,31 @@ export default class LargeUnitDetailElement {
         this.kills.textContent = emptyString;
       } else {
         this.kills.textContent = `Kills: ${unit.kills}`;
+      }
+
+      if (unit.resourceAmount !== null) {
+        let icon = this.gameIcons.minerals;
+
+        if (
+          ![
+            unitTypes.mineral1,
+            unitTypes.mineral2,
+            unitTypes.mineral3,
+          ].includes(unit.unitType.index)
+        ) {
+          if (unit.unitType.isZerg) {
+            icon = this.gameIcons.vespeneZerg;
+          } else if (unit.unitType.isProtoss) {
+            icon = this.gameIcons.vespeneProtoss;
+          } else {
+            icon = this.gameIcons.vespeneTerran;
+          }
+        }
+        this.resourceImg.src = icon;
+        this.resourceAmountText.textContent = unit.resourceAmount;
+        this.resourceAmount.style.display = "flex";
+      } else {
+        this.resourceAmount.style.display = "none";
       }
 
       this.domElement.style.display = "flex";

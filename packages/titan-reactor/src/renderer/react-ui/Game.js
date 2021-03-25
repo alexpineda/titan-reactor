@@ -83,7 +83,7 @@ const Game = () => {
       )} */}
       <Visible visible={!esportsHud}>
         <ResourcesBar
-          className="flex absolute"
+          className="flex absolute pointer-events-none"
           style={{
             top: `${dimensions.top}px`,
             right: `${dimensions.right}px`,
@@ -107,7 +107,7 @@ const Game = () => {
 
         <Visible visible={esportsHud}>
           <ResourcesBar
-            className="flex-1 self-end pointer-events-auto"
+            className="flex-1 self-end pointer-events-none"
             textSize="lg"
             fitToContent
           />
