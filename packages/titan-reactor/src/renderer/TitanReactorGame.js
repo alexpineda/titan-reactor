@@ -574,6 +574,7 @@ async function TitanReactorGame(
     minimapControl.dispose();
     scene.dispose();
     cameras.dispose();
+    managedDomElements.dispose();
 
     keyboardShortcuts.dispose();
     document.removeEventListener("keydown", _keyDown);
@@ -642,10 +643,12 @@ async function TitanReactorGame(
   return {
     start: () => renderMan.renderer.setAnimationLoop(gameLoop),
     chk,
+    bwDat,
     gameIcons: scene.gameIcons,
     cmdIcons: scene.cmdIcons,
     raceInsetIcons: scene.raceInsetIcons,
     workerIcons: scene.workerIcons,
+    wireframeIcons: scene.wireframeIcons,
     surface: gameSurface,
     minimapSurface,
     previewSurfaces,

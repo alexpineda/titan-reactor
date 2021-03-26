@@ -3,10 +3,11 @@ import shallow from "zustand/shallow";
 import useHudStore from "../../stores/hudStore";
 import useGameStore from "../../stores/gameStore";
 import WrappedElement from "../WrappedElement";
+import LargeUnitDetail from "../managed-dom/large-unit/LargeUnitDetail";
 
 const UnitSelection = ({ textSize, className = "" }) => {
-  const selectedUnitsLen = useGameStore((state) => state.selectedUnits.length);
-  console.log("selectedUnitsLen", selectedUnitsLen);
+  const selectedUnits = useGameStore((state) => state.selectedUnits, shallow);
+
   const { followUnit, toggleFollowUnit, managedDomElements } = useGameStore(
     (state) => ({
       followUnit: state.followUnit,
@@ -31,15 +32,13 @@ const UnitSelection = ({ textSize, className = "" }) => {
     >
       <div
         className="rounded pl-2 flex flex-1 "
-        style={{ backgroundColor: "#1a202ce6" }}
+        style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}
       >
         <article className="flex-1 h-64 flex items-center justify-content">
-          {selectedUnitsLen === 1 && (
-            <WrappedElement
-              domElement={managedDomElements.unitDetail.domElement}
-            />
+          {selectedUnits.length === 1 && (
+            <LargeUnitDetail unit={selectedUnits[0]} />
           )}
-          {selectedUnitsLen > 1 && (
+          {selectedUnits.length > 1 && (
             <WrappedElement
               domElement={managedDomElements.unitDetails.domElement}
             />

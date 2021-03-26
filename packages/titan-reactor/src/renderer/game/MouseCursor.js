@@ -2,8 +2,10 @@ import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./GameSprite";
 import useGameStore from "../stores/gameStore";
+import useRealtimeStore from "../stores/realtimeStore";
 
 const setSelectedUnits = useGameStore.getState().setSelectedUnits;
+const setSelectedUnitsRealtime = useRealtimeStore.getState().setSelectedUnits;
 
 function intersectRect(r1, r2) {
   return !(
@@ -368,9 +370,9 @@ export default class MouseCursor {
         ];
       }
 
-      unstable_batchedUpdates(() =>
-        setSelectedUnits(selectedFinal.slice(0, 12))
-      );
+      unstable_batchedUpdates(() => {
+        setSelectedUnits(selectedFinal.slice(0, 12));
+      });
     };
 
     const mouseLeaveListener = () => {

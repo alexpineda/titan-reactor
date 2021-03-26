@@ -5,6 +5,9 @@ import ProductionWrapperElement from "./ProductionWrapperElement";
 import LargeUnitDetailElement from "./LargeUnitDetailElement";
 import SmallUnitDetailWrapperElement from "./SmallUnitDetailWrapperElement";
 import useGameStore from "../../stores/gameStore";
+import useRealtimeStore from "../../stores/realtimeStore";
+
+const setSelectedUnits = useRealtimeStore.getState().setSelectedUnits;
 
 /**
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
@@ -57,13 +60,7 @@ export default class ManagedDomElements {
    * @param {GameStatePosition} gameStatePosition
    * @param {Players} players
    */
-  update(
-    currentBwFrame,
-    gameStatePosition,
-    players,
-    apm,
-    frameBuilder
-  ) {
+  update(currentBwFrame, gameStatePosition, players, apm, frameBuilder) {
     const selectedUnits = useGameStore.getState().selectedUnits;
 
     for (let i = 0; i < 8; i++) {
@@ -111,7 +108,8 @@ export default class ManagedDomElements {
     }
 
     if (selectedUnits.length === 1) {
-      this.unitDetail.value = selectedUnits[0];
+      // this.unitDetail.value = selectedUnits[0];
+      setSelectedUnits(selectedUnits);
     } else if (selectedUnits.length > 1) {
       for (let i = 0; i < 12; i++) {
         this.unitDetails.items[i].value = selectedUnits[i];
@@ -122,5 +120,9 @@ export default class ManagedDomElements {
     frameBuilder.unitsInProduction.needsUpdate = false;
     frameBuilder.upgrades.needsUpdate = false;
     frameBuilder.research.needsUpdate = false;
+  }
+
+  dispose() {
+    this.selectedUnitsUnsub();
   }
 }

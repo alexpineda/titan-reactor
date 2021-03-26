@@ -25,7 +25,7 @@ const Game = () => {
     shallow
   );
 
-  const selectedUnits = useGameStore((state) => state.selectedUnits);
+  const selectedUnits = useGameStore((state) => state.selectedUnits, shallow);
 
   const {
     showFps,
@@ -96,7 +96,7 @@ const Game = () => {
         // <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
       )} */}
       <div
-        className="w-full flex absolute divide-x-4 divide-transparent pointer-events-none"
+        className="w-full flex absolute pointer-events-none"
         style={{
           bottom: `${dimensions.bottom}px`,
           width: `${dimensions.width}px`,

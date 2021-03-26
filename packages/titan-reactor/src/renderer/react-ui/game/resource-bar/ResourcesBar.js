@@ -1,38 +1,36 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import PlayerResources from "./PlayerResources";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import useHudStore from "../../../stores/hudStore";
 import { incFontSize } from "titan-reactor-shared/utils/changeFontSize";
+import shallow from "zustand/shallow";
 
 const _playerScoreCache = {};
 
 const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
-  const textSize = useSettingsStore(
-    useCallback((state) =>
-      state.data.esportsHud
-        ? incFontSize(state.data.hudFontSize)
-        : state.data.hudFontSize
-    )
+  const textSize = useSettingsStore((state) =>
+    state.data.esportsHud
+      ? incFontSize(state.data.hudFontSize)
+      : state.data.hudFontSize
   );
 
-  const save = useSettingsStore(useCallback((state) => state.save));
+  const save = useSettingsStore((state) => state.save);
   const autoToggleProductionView = useSettingsStore(
-    useCallback((state) => state.data.autoToggleProductionView)
+    (state) => state.data.autoToggleProductionView
   );
 
-  const productionView = useHudStore(
-    useCallback((state) => state.productionView)
-  );
+  const productionView = useHudStore((state) => state.productionView);
 
   const setAutoProductionView = useHudStore(
-    useCallback((state) => state.setAutoProductionView)
+    (state) => state.setAutoProductionView
   );
   const { players, onTogglePlayerPov } = useGameStore(
-    useCallback((state) => ({
+    (state) => ({
       players: state.game.players,
       onTogglePlayerPov: state.onTogglePlayerPov,
-    }))
+    }),
+    shallow
   );
 
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
@@ -75,7 +73,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
         </div> */}
         <div
           className="rounded mx-1 flex"
-          style={{ backgroundColor: "#1a202ce6" }}
+          style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}
         >
           <table className="table-auto flex-1 ">
             <tbody>
