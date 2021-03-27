@@ -36,7 +36,7 @@ export default ({ unit }) => {
       wrapperRef.current.style.visibility = "hidden";
     } else {
       if (progress < 0 || progress > 1) {
-        throw new Error("value must be 0-1");
+        return;
       }
 
       progressRef.current.style.left = `${Math.floor(
@@ -63,7 +63,7 @@ export default ({ unit }) => {
     <div
       ref={wrapperRef}
       className="relative mt-3"
-      style={{ width: "128px", height: "0.875rem" }}
+      style={{ width: "128px", height: "0.875rem", willChange: "visibility" }}
     >
       <div
         className="rounded-lg border-2 hp-bar absolute top-0 left-0 right-0 bottom-0"
@@ -81,7 +81,13 @@ export default ({ unit }) => {
       <div
         ref={progressRef}
         className="bg-black rounded absolute z-20"
-        style={{ left: "2px", top: "2px", right: "2px", bottom: "2px" }}
+        style={{
+          left: "2px",
+          top: "2px",
+          right: "2px",
+          bottom: "2px",
+          willChange: "left",
+        }}
       ></div>
     </div>
   );

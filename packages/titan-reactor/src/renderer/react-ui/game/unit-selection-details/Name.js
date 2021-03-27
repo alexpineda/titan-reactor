@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from "react";
 import useRealtimeStore from "../../../stores/realtimeStore";
 import useGameStore from "../../../stores/gameStore";
 
+const transformName = (name) => name.split(" ").slice(1).join(" ");
+
 export default ({ unit }) => {
   const bwDat = useGameStore((state) => state.game.bwDat);
   const nameRef = useRef();
@@ -27,7 +29,7 @@ export default ({ unit }) => {
 
   const setDom = (name) => {
     if (!nameRef.current) return;
-    nameRef.current.textContent = name;
+    nameRef.current.textContent = transformName(name);
   };
 
   useEffect(() => {
@@ -38,5 +40,5 @@ export default ({ unit }) => {
     }, selector);
   }, [unit]);
 
-  return <p ref={nameRef} className="text-white text-center"></p>;
+  return <p ref={nameRef} className="text-white uppercase"></p>;
 };

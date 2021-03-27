@@ -72,7 +72,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
           </span>
         </div> */}
         <div
-          className="rounded mx-1 flex"
+          className="flex"
           style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}
         >
           <table className="table-auto flex-1 ">

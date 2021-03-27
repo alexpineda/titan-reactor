@@ -6,7 +6,7 @@ export default class ProductionElement {
     this.color = color;
     this.image = document.createElement("img");
     this.image.style.mixBlendMode = "screen";
-    this.image.style.filter = "brightness(1.5)";
+    this.image.style.filter = "hue-rotate(68deg) brightness(5)";
     this.image.style.borderBottom = "0.25rem solid";
     this.image.style.borderImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa 0%, rgba(0,0,0,0.5) 0%) 1`;
     if (!compact) {

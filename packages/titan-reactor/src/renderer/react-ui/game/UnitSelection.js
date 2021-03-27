@@ -2,8 +2,8 @@ import React from "react";
 import shallow from "zustand/shallow";
 import useHudStore from "../../stores/hudStore";
 import useGameStore from "../../stores/gameStore";
-import WrappedElement from "../WrappedElement";
-import LargeUnitDetail from "../managed-dom/large-unit/LargeUnitDetail";
+import LargeUnitDetail from "./unit-selection-details/LargeUnitDetail";
+import SmallUnitDetail from "./unit-selection-details/SmallUnitDetail";
 
 const UnitSelection = ({ textSize, className = "" }) => {
   const selectedUnits = useGameStore((state) => state.selectedUnits, shallow);
@@ -28,20 +28,18 @@ const UnitSelection = ({ textSize, className = "" }) => {
   return (
     <div
       className={`details flex self-end select-none ${className}`}
-      style={{ width: "300px" }}
+      style={{ width: "28vw" }}
     >
       <div
-        className="rounded pl-2 flex flex-1 "
+        className="pl-2 flex flex-1 "
         style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}
       >
-        <article className="flex-1 h-64 flex items-center justify-content">
+        <article className="flex-1 flex items-center justify-content">
           {selectedUnits.length === 1 && (
             <LargeUnitDetail unit={selectedUnits[0]} />
           )}
           {selectedUnits.length > 1 && (
-            <WrappedElement
-              domElement={managedDomElements.unitDetails.domElement}
-            />
+            <SmallUnitDetail units={selectedUnits} />
           )}
         </article>
       </div>

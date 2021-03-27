@@ -190,7 +190,7 @@ export class UnitsDAT extends DAT {
       },
       { size: 4, name: "constructionAnimation", get: (i) => images[i] },
       { size: 1, name: "direction" },
-      { size: 1, name: "shieldsEnabled" },
+      { size: 1, name: "shieldsEnabled", get: (val) => Boolean(val) },
       { size: 2, name: "shields" },
       { size: 4, name: "hp", get: (value) => value >> 8 },
       {

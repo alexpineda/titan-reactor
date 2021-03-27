@@ -2,8 +2,6 @@ import { range } from "ramda";
 import RollingNumber from "./RollingNumber";
 import BasicElement from "./BasicElement";
 import ProductionWrapperElement from "./ProductionWrapperElement";
-import LargeUnitDetailElement from "./LargeUnitDetailElement";
-import SmallUnitDetailWrapperElement from "./SmallUnitDetailWrapperElement";
 import useGameStore from "../../stores/gameStore";
 import useRealtimeStore from "../../stores/realtimeStore";
 
@@ -15,13 +13,7 @@ const setSelectedUnits = useRealtimeStore.getState().setSelectedUnits;
 export default class ManagedDomElements {
   constructor(bwDat, cmdIcons, wireframeIcons, gameIcons, players) {
     this.wireframeIcons = wireframeIcons;
-    this.unitDetail = new LargeUnitDetailElement(
-      bwDat,
-      cmdIcons,
-      wireframeIcons,
-      gameIcons
-    );
-    this.unitDetails = new SmallUnitDetailWrapperElement(wireframeIcons);
+
     this.minerals = range(0, 8).map(() => new RollingNumber());
     this.gas = range(0, 8).map(() => new RollingNumber());
     this.apm = range(0, 8).map(() => new RollingNumber());
@@ -107,22 +99,12 @@ export default class ManagedDomElements {
       }
     }
 
-    if (selectedUnits.length === 1) {
-      // this.unitDetail.value = selectedUnits[0];
-      setSelectedUnits(selectedUnits);
-    } else if (selectedUnits.length > 1) {
-      for (let i = 0; i < 12; i++) {
-        this.unitDetails.items[i].value = selectedUnits[i];
-      }
-      this.unitDetails.updateKillCount(selectedUnits);
-    }
+    setSelectedUnits(selectedUnits);
 
     frameBuilder.unitsInProduction.needsUpdate = false;
     frameBuilder.upgrades.needsUpdate = false;
     frameBuilder.research.needsUpdate = false;
   }
 
-  dispose() {
-    this.selectedUnitsUnsub();
-  }
+  dispose() {}
 }

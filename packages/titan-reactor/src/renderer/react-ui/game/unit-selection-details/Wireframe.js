@@ -129,17 +129,9 @@ const selector = (state) => {
   };
 };
 
-const selectorForReset = (state) => {
-  if (!state.selectedUnits[0]) return 0;
-  return {
-    unit: state.selectedUnits[0],
-    typeId: calcTypeId(state.selectedUnits[0]),
-  };
-};
-
 const refLayer = (ref) => ({ ref, filter: "", backgroundImage: "", step: 0 });
 
-export default ({ unit, size = "lg" }) => {
+export default ({ unit, size = "lg", className = "" }) => {
   const wireframeIcons = useGameStore((state) => state.game.wireframeIcons);
   const layerRefs = range(0, 4).map(() => refLayer(useRef()));
 
@@ -171,23 +163,19 @@ export default ({ unit, size = "lg" }) => {
   useEffect(() => {
     setDom(selector({ selectedUnits: [unit] }), "filter 0s linear");
 
-    const unsub = useRealtimeStore.subscribe(
+    return useRealtimeStore.subscribe(
       (data) => {
         setDom(data);
       },
       selector,
       shallow
     );
-
-    return () => {
-      unsub();
-    };
   }, [unit]);
 
   const style =
     size === "lg"
       ? { width: "128px", height: "128px" }
-      : { width: "56px", height: "56px" };
+      : { width: "64px", height: "64px" };
 
   const layerStyle = {
     width: "128px",
@@ -195,21 +183,21 @@ export default ({ unit, size = "lg" }) => {
     position: "absolute",
   };
   if (size === "md") {
-    layerStyle.transform = "translate(-38px, -38px) scale(0.4375)";
+    layerStyle.transform = "translate(-32px, -32px) scale(0.5)";
   }
   const shieldStyle = { filter: "hue-rotate(200deg)" };
 
-  const className =
-    size === "md" ? "border rounded mr-1 mb-1 relative" : "relative";
-
   return (
-    <div className={className} style={style}>
+    <div className={`relative ${className}`} style={style}>
       {layerRefs.map(({ ref }, i) => {
         return (
           <div
             key={i}
             ref={ref}
-            style={{ ...layerStyle, backgroundPositionX: `-${i * 128}px` }}
+            style={{
+              ...layerStyle,
+              backgroundPositionX: `-${i * 128}px`,
+            }}
           ></div>
         );
       })}

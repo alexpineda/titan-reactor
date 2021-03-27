@@ -21,19 +21,24 @@ export default ({ unit }) => {
   const showResourceAmount = unit.resourceAmount !== null;
 
   return (
-    <div className="flex relative">
-      <div className="flex flex-col items-center" style={{ width: "190px" }}>
-        <Name unit={unit} />
-        <Wireframe unit={unit} />
-        <Progress unit={unit} />
-        <Queue unit={unit} />
-      </div>
-      <div className="flex-1 pr-1 text-lg text-center pt-6">
-        {showHp && <Health unit={unit} />}
-        {showShields && <Shields unit={unit} />}
-        {showResourceAmount && <Resource unit={unit} />}
-        {showEnergy && <Energy unit={unit} />}
-        {showKills && <Kills unit={unit} />}
+    <div className="flex flex-col relative w-full">
+      <Name unit={unit} />
+      <div className="flex">
+        <div className="flex w-1/2 items-center justify-center">
+          <Wireframe unit={unit} size="md" />
+
+          <div className="flex flex-col flex-1 ">
+            {showHp && <Health unit={unit} />}
+            {showShields && <Shields unit={unit} />}
+            {showResourceAmount && <Resource unit={unit} />}
+            {showEnergy && <Energy unit={unit} />}
+            {showKills && <Kills unit={unit} />}
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <Queue unit={unit} />
+          <Progress unit={unit} />
+        </div>
       </div>
     </div>
   );

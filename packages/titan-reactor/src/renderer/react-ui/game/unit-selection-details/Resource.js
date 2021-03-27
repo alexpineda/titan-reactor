@@ -4,7 +4,7 @@ import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import useGameStore from "../../../stores/gameStore";
 
 const resourceSelector = (state) => {
-  if (!state.selectedUnits[0]) return 0;
+  if (!state.selectedUnits[0]) return "";
   return state.selectedUnits[0].resourceAmount;
 };
 

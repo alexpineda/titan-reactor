@@ -84,8 +84,18 @@ export default ({ unit }) => {
       {itemsRef.map((ref, i) => {
         const style =
           i === 0
-            ? { width: "40px", height: "40px" }
-            : { width: "32px", height: "32px" };
+            ? {
+                width: "40px",
+                height: "40px",
+              }
+            : {
+                width: "32px",
+                height: "32px",
+                display: "none",
+              };
+
+        style.filter = "hue-rotate(68deg) brightness(5)";
+
         const blankSlot = unit.unitType.isZerg && i > 0;
         const border = blankSlot ? "" : "border";
         const margin = i < 4 ? "mr-1" : "";

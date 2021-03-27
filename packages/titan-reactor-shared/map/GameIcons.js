@@ -54,7 +54,7 @@ export default class GameIcons {
       dds,
       undefined,
       false,
-      "#ffe733"
+      "#ff0000"
     );
   }
 

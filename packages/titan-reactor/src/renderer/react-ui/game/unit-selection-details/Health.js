@@ -35,5 +35,5 @@ export default ({ unit }) => {
     }, hpSelector);
   }, [unit]);
 
-  return <p ref={hpRef}></p>;
+  return <p ref={hpRef} style={{ willChange: "content" }}></p>;
 };

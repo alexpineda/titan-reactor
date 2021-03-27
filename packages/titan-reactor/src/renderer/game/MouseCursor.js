@@ -3,6 +3,7 @@ import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./GameSprite";
 import useGameStore from "../stores/gameStore";
 import useRealtimeStore from "../stores/realtimeStore";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 
 const setSelectedUnits = useGameStore.getState().setSelectedUnits;
 const setSelectedUnitsRealtime = useRealtimeStore.getState().setSelectedUnits;
@@ -368,6 +369,16 @@ export default class MouseCursor {
           ...useGameStore.getState().selectedUnits,
           ...selectedFinal,
         ];
+      }
+
+      // since egg has no cmd icon, dont allow multi select
+      if (
+        selectedFinal.length > 1 &&
+        selectedFinal.some((unit) => unit.typeId === unitTypes.zergEgg)
+      ) {
+        selectedFinal = selectedFinal.filter(
+          (unit) => unit.typeId !== unitTypes.zergEgg
+        );
       }
 
       unstable_batchedUpdates(() => {
