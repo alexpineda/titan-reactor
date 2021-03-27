@@ -154,7 +154,7 @@ export class Settings extends EventEmitter {
     return {
       version: VERSION,
       renderMode: RenderMode.HD,
-      maxAutoReplaySpeed: 1.2,
+      maxAutoReplaySpeed: 1,
       alwaysHideReplayControls: true,
       startPaused: false,
       language: supportedLanguages.includes(getEnvLocale())

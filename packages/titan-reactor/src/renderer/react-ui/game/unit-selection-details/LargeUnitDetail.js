@@ -25,7 +25,7 @@ export default ({ unit }) => {
       <Name unit={unit} />
       <div className="flex">
         <div className="flex w-1/2 items-center justify-center">
-          <Wireframe unit={unit} size="md" />
+          <Wireframe unit={unit} size="md" className="m-2" />
 
           <div className="flex flex-col flex-1 ">
             {showHp && <Health unit={unit} />}

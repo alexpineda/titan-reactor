@@ -15,10 +15,11 @@ import ColorPicker from "../components/ColorPicker";
 import { RenderMode, ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 import useSettingsStore from "../../stores/settingsStore";
+import shallow from "zustand/shallow";
 
 export const Tabs = {
   Setup: "Setup",
-  Game: "Game",
+  Layout: "Layout",
   Producer: "Producer",
   Camera: "Camera",
   Graphics: "Graphics",
@@ -35,12 +36,15 @@ export default ({
 }) => {
   const [tab, setTab] = useState(defaultTab);
 
-  const { phrases, errors, save, settings } = useSettingsStore((state) => ({
-    phrases: state.phrases,
-    errors: state.errors,
-    save: state.save,
-    settings: state.data,
-  }));
+  const { phrases, errors, save, settings } = useSettingsStore(
+    (state) => ({
+      phrases: state.phrases,
+      errors: state.errors,
+      save: state.save,
+      settings: state.data,
+    }),
+    shallow
+  );
 
   useEffect(() => {
     const listener = (event, { key, filePaths: [dir] }) => {
@@ -67,9 +71,9 @@ export default ({
 
         <TabSelector
           activeTab={tab}
-          tab={Tabs.Game}
+          tab={Tabs.Layout}
           setTab={setTab}
-          label={phrases["SETTINGS_GAME"]}
+          label={phrases["SETTINGS_LAYOUT"]}
         />
 
         <TabSelector
@@ -168,28 +172,7 @@ export default ({
         </Visible>
       </Tab>
 
-      <Tab tabName={Tabs.Game} activeTab={tab}>
-        <Option
-          label={phrases["SETTINGS_MAX_AUTO_REPLAY_SPEED"]}
-          value={`${
-            settings.maxAutoReplaySpeed > 1
-              ? `${settings.maxAutoReplaySpeed}x`
-              : phrases["BUTTON_OFF"]
-          }`}
-        >
-          <input
-            type="range"
-            min="1"
-            max="1.25"
-            step="0.05"
-            value={settings.maxAutoReplaySpeed}
-            onChange={(evt) => {
-              save({
-                maxAutoReplaySpeed: Number(evt.target.value),
-              });
-            }}
-          />{" "}
-        </Option>
+      <Tab tabName={Tabs.Layout} activeTab={tab}>
         {!inGame && (
           <Option
             label={phrases["SETTINGS_USE_CUSTOM_COLORS"]}
@@ -253,7 +236,7 @@ export default ({
             <ButtonSetContainer>
               <ButtonSet
                 selected={settings.hudFontSize === "sm"}
-                label={"Small"}
+                label={phrases["BUTTON_SMALL"]}
                 first
                 onClick={() =>
                   save({
@@ -263,8 +246,7 @@ export default ({
               />
               <ButtonSet
                 selected={settings.hudFontSize === "base"}
-                label={"Medium"}
-                first
+                label={phrases["BUTTON_MED"]}
                 onClick={() =>
                   save({
                     hudFontSize: "base",
@@ -273,8 +255,8 @@ export default ({
               />
               <ButtonSet
                 selected={settings.hudFontSize === "lg"}
-                label={"Large"}
-                first
+                label={phrases["BUTTON_LARGE"]}
+                last
                 onClick={() =>
                   save({
                     hudFontSize: "lg",
@@ -350,19 +332,19 @@ export default ({
             />
           }
         />
-        {/* <Option
+        <Option
           label={phrases["SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS"]}
           toggle={
             <Toggle
               value={settings.alwaysHideReplayControls}
               onChange={() =>
-                updateSettings({
+                save({
                   alwaysHideReplayControls: !settings.alwaysHideReplayControls,
                 })
               }
             />
           }
-        /> */}
+        />
       </Tab>
 
       <Tab tabName={Tabs.Producer} activeTab={tab}>

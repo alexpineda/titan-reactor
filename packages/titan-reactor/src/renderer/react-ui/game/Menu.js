@@ -36,7 +36,7 @@ const Menu = ({ onClose, onBackToMainMenu }) => {
             Back
           </p>
           <Options
-            defaultTab={Tabs.Game}
+            defaultTab={Tabs.Layout}
             inGame={true}
             className="bg-gray-900 w-1/2 px-6 pt-6 pb-1 rounded-lg"
             style={{ minHeight: "65vh" }}

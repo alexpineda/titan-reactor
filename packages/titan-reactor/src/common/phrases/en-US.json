@@ -25,7 +25,7 @@
     "SETTINGS_MAX_AUTO_REPLAY_SPEED": "Max Auto Replay Speed",
     "SETTINGS_OBSERVER_LINK": "2nd Observer Invite Link",
     "SETTINGS_SETUP": "Setup",
-    "SETTINGS_GAME": "Game",
+    "SETTINGS_LAYOUT": "Layout",
     "SETTINGS_AUDIO": "Audio",
     "SETTINGS_GRAPHICS": "Graphics",
     "SETTINGS_PRODUCER": "Producer Mode",
@@ -45,7 +45,7 @@
     "SETTINGS_GRAPHICS_GAMMA": "Gamma",
     "SETTINGS_GRAPHICS_FULLSCREEN": "Fullscreen (Windowed)",
     "SETTINGS_ENABLE_PLAYER_SCORES": "Enable Player Scores",
-    "SETTINGS_ESPORTS_HUD_STYLE": "Broadcast HUD Style",
+    "SETTINGS_ESPORTS_HUD_STYLE": "E-SPORTS HUD Style",
     "SETTINGS_CLOCK_STYLE": "Classic Clock Style",
     "SETTINGS_CYCLE_PRODUCTION": "Cycle Production View",
     "SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS": "Always Hide Replay Controls",
@@ -77,5 +77,7 @@
     "BUTTON_LAUNCH": "Launch",
     "BUTTON_LOW": "Low",
     "BUTTON_MED": "Medium",
-    "BUTTON_HIGH": "High"
+    "BUTTON_HIGH": "High",
+    "BUTTON_SMALL": "Small",
+    "BUTTON_LARGE": "Large"
 }
