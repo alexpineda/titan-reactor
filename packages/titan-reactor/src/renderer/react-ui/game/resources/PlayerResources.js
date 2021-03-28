@@ -5,7 +5,6 @@ import {
   incFontSize,
   decFontSize,
 } from "titan-reactor-shared/utils/changeFontSize";
-import WrappedElement from "../../WrappedElement";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import {
@@ -13,16 +12,11 @@ import {
   TechProductionView,
   UpgradesProductionView,
 } from "../../../stores/hudStore";
-import Minerals from "./Minerals";
-import Gas from "./Gas";
-import Workers from "./Workers";
-import Supply from "./Supply";
-import Apm from "./Apm";
 import PlayerProduction from "../production/PlayerProduction";
+import RollingResource from "./RollingResource";
+import BasicResource from "./BasicResource";
 
 const _playerNameCache = {};
-
-//unused first entry but still needs to be valid
 
 const PlayerResources = ({
   id,
@@ -50,7 +44,6 @@ const PlayerResources = ({
     gameIcons,
     raceInsetIcons,
     workerIcons,
-    managedDomElements,
   } = useGameStore(
     (state) => ({
       dimensions: state.dimensions,
@@ -59,12 +52,9 @@ const PlayerResources = ({
       gameIcons: state.game.gameIcons,
       raceInsetIcons: state.game.raceInsetIcons,
       workerIcons: state.game.workerIcons,
-      managedDomElements: state.game.managedDomElements,
     }),
     shallow
   );
-
-  const domElements = useGameStore((state) => state.game.managedDomElements);
 
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
@@ -252,15 +242,22 @@ const PlayerResources = ({
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
         >
-          <div className="flex items-center">
-            <Minerals image={gameIcons.minerals} dimensions={dimensions} />
-            <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
-              <WrappedElement
-                domElement={managedDomElements.minerals[id].domElement}
-                className="inline"
+          <RollingResource
+            image={
+              <img
+                src={gameIcons.minerals}
+                className={`inline ${
+                  dimensions.width < 1500 ? "w-4 w-4" : "w-6 w-6"
+                }`}
+                style={{
+                  filter: "contrast(0.5) saturate(2) brightness(1.2)",
+                  mixBlendMode: "hard-light",
+                }}
               />
-            </span>
-          </div>
+            }
+            selector={(state) => state.minerals[id]}
+            scaledTextSize={scaledTextSize}
+          />
         </td>
       )}
       {resourcesEnabled && (
@@ -268,15 +265,22 @@ const PlayerResources = ({
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
         >
-          <div className="flex items-center">
-            <Gas image={gasIcon} dimensions={dimensions} />
-            <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
-              <WrappedElement
-                domElement={managedDomElements.gas[id].domElement}
-                className="inline"
+          <RollingResource
+            image={
+              <img
+                src={gasIcon}
+                className={`inline ${
+                  dimensions.width < 1500 ? "w-4 w-4" : "w-6 w-6"
+                }`}
+                style={{
+                  filter: "contrast(0.5) saturate(2) brightness(1.2)",
+                  mixBlendMode: "hard-light",
+                }}
               />
-            </span>
-          </div>
+            }
+            scaledTextSize={scaledTextSize}
+            selector={(state) => state.gas[id]}
+          />
         </td>
       )}
 
@@ -285,15 +289,22 @@ const PlayerResources = ({
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle, width: "4rem" }}
         >
-          <div className="flex items-center">
-            <Workers image={workerIcons[race]} dimensions={dimensions} />
-            <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
-              <WrappedElement
-                domElement={managedDomElements.workerSupply[id].domElement}
-                className="inline"
+          <BasicResource
+            image={
+              <img
+                src={workerIcons[race]}
+                className={`inline ${
+                  dimensions.width < 1500 ? "w-6 w-6" : "w-8 h-8"
+                }`}
+                style={{
+                  filter: "brightness(1.5)",
+                  mixBlendMode: "luminosity",
+                }}
               />
-            </span>
-          </div>
+            }
+            scaledTextSize={scaledTextSize}
+            selector={(state) => state.workerSupply[id]}
+          />
         </td>
       )}
 
@@ -302,17 +313,25 @@ const PlayerResources = ({
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
         >
-          <div className="flex items-center">
-            <Supply image={gameIcons[race]} dimensions={dimensions} />
-            <span className={`ml-2 text-gray-200 text-${scaledTextSize}`}>
-              <WrappedElement
-                domElement={managedDomElements.supply[id].domElement}
-                className="inline"
-                style={{ whiteSpace: "nowrap" }}
+          <BasicResource
+            image={
+              <img
+                src={gameIcons[race]}
+                className={`inline ${
+                  dimensions.width < 1500 ? "w-4 w-4" : "w-6 w-6"
+                }`}
+                style={{
+                  filter: "grayscale(0.5) contrast(0.5) brightness(1.35)",
+                  mixBlendMode: "hard-light",
+                  transform: "scale(1.2)",
+                }}
               />
-              {/* {Math.floor(supply / 2)} / {Math.floor(supplyMax / 2)} */}
-            </span>
-          </div>
+            }
+            scaledTextSize={scaledTextSize}
+            selector={(state) =>
+              `${state.supplyUsed[id]} / ${state.supplyAvailable[id]}`
+            }
+          />
         </td>
       )}
       {resourcesEnabled && (
@@ -320,14 +339,22 @@ const PlayerResources = ({
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle, width: "5rem" }}
         >
-          <span className="flex items-center">
-            <Apm image={workerIcons.apm} dimensions={dimensions} />
-
-            <WrappedElement
-              domElement={managedDomElements.apm[id].domElement}
-              className={`inline text-${scaledTextSize} text-gray-200 ml-2 `}
-            />
-          </span>
+          <RollingResource
+            image={
+              <img
+                src={workerIcons.apm}
+                className="inline"
+                style={{
+                  filter: "contrast(0.5) saturate(2) brightness(1.2)",
+                  mixBlendMode: "hard-light",
+                  width: dimensions.width < 1500 ? "1.75rem" : "1.25rem",
+                  height: dimensions.width < 1500 ? "1.75rem" : "1.25rem",
+                }}
+              />
+            }
+            scaledTextSize={scaledTextSize}
+            selector={(state) => state.apm[id]}
+          />
         </td>
       )}
     </tr>

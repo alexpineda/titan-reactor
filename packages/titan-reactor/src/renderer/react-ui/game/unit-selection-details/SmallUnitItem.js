@@ -41,13 +41,15 @@ export default ({ index, unit }) => {
 
     if (unitTypeId !== null && canSelect) {
       imgRef.current.src = cmdIcons[unitTypeId];
-      imgRef.current.style.visibility = "visible";
+      imgRef.current.style.display = "block";
       imgRef.current.style.filter = filters[step];
       imgRef.current.style.transition = trans;
+      xRef.current.style.display = "none";
     } else if (unitTypeId !== null) {
       xRef.current.style.display = "block";
     } else {
-      imgRef.current.style.visibility = "hidden";
+      xRef.current.style.display = "none";
+      imgRef.current.style.display = "none";
     }
   };
 
@@ -64,10 +66,11 @@ export default ({ index, unit }) => {
   }, [unit, index]);
 
   return (
-    <div className="pointer-events-auto cursor-pointer w-8 h-8 relative">
+    <div className="pointer-events-auto cursor-pointer w-10 h-10 relative">
       <img
         ref={xRef}
         src={redXIcon}
+        style={{ opacity: "0.6" }}
         className="absolute left-0 top-0 right-0 bottom-0 z-30 hidden"
       />
       <img

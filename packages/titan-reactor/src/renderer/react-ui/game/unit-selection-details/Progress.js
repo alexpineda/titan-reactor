@@ -1,9 +1,17 @@
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
+import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
+import useProductionStore from "../../../stores/realtime/productionStore";
 import useGameStore from "../../../stores/gameStore";
 import React, { useRef, useEffect } from "react";
+import shallow from "zustand/shallow";
 
 const getDisplayText = (unit) => {
-  if (!unit.owner || !unit.unitType.isBuilding || unit.isComplete) return "";
+  if (
+    !unit.owner ||
+    !unit.unitType.isBuilding ||
+    unit.isComplete ||
+    unit.remainingTrainTime
+  )
+    return "";
   if (unit.unitType.isTerran) {
     return "Constructing";
   } else if (unit.unitType.isZerg) {
@@ -13,21 +21,49 @@ const getDisplayText = (unit) => {
   }
 };
 
+const displayTextSelector = (state) => {
+  if (!state.selectedUnits[0]) return "";
+  return getDisplayText(state.selectedUnits[0]);
+};
+
+const researchSelector = (state) => {
+  if (!state.selectedUnits[0]) return 0;
+
+  const unit = state.selectedUnits[0];
+  if (!unit.owner) return;
+
+  const { tech, upgrades } = useProductionStore.getState();
+  const t = tech[unit.owner.id].find(
+    (t) => t && t.unitId === unit.id && !t.timeCompleted
+  );
+  if (t) {
+    return t.remainingBuildTime / t.buildTime;
+  }
+  const u = upgrades[unit.owner.id].find(
+    (t) => t && t.unitId === unit.id && !t.timeCompleted
+  );
+  if (u) {
+    return u.remainingBuildTime / u.buildTime;
+  }
+  return null;
+};
+
+const bwDatSelector = (state) => state.game.bwDat;
+
 export default ({ unit }) => {
-  const bwDat = useGameStore((state) => state.game.bwDat);
+  const bwDat = useGameStore(bwDatSelector);
 
   const progressRef = useRef();
   const wrapperRef = useRef();
+  const displayTextRef = useRef();
 
   const queuedZergType =
     unit.unitType.isZerg && unit.queue && unit.queue.units.length
       ? bwDat.units[unit.queue.units[0]]
       : null;
 
-  const displayText = getDisplayText(unit);
-
-  const selector = (state) => {
-    if (!state.selectedUnits[0]) return 0;
+  const progressSelector = (state) => {
+    if (!state.selectedUnits[0]) return null;
 
     const unit = state.selectedUnits[0];
 
@@ -43,38 +79,43 @@ export default ({ unit }) => {
     }
   };
 
-  const setDom = (progress) => {
-    if (!progressRef.current || !wrapperRef.current) return;
-    if (progress === null) {
-      wrapperRef.current.style.visibility = "hidden";
-    } else {
-      if (progress < 0 || progress > 1) {
-        return;
-      }
+  const selector = (state) => {
+    return [
+      progressSelector(state) || researchSelector(state),
+      displayTextSelector(state),
+    ];
+  };
 
+  const setDom = ([progress, text]) => {
+    if (!progressRef.current || !wrapperRef.current || !displayTextRef.current)
+      return;
+    if (progress > 0 && progress <= 1) {
       progressRef.current.style.left = `${Math.floor(
         wrapperRef.current.offsetWidth * (1 - progress) + 2
       )}px`;
-
-      if (progress > 0) {
-        wrapperRef.current.style.visibility = "visible";
-      } else {
-        wrapperRef.current.style.visibility = "hidden";
-      }
+      wrapperRef.current.style.visibility = "visible";
+      displayTextRef.current.textContent = text;
+    } else {
+      displayTextRef.current.textContent = "";
+      wrapperRef.current.style.visibility = "hidden";
     }
   };
 
   useEffect(() => {
     setDom(selector({ selectedUnits: [unit] }));
 
-    return useRealtimeStore.subscribe((progress) => {
-      setDom(progress);
-    }, selector);
+    return useUnitSelectionStore.subscribe(
+      (progress) => {
+        setDom(progress);
+      },
+      selector,
+      shallow
+    );
   }, [unit]);
 
   return (
     <>
-      <p className="text-gray-300">{displayText}</p>
+      <p ref={displayTextRef} className="text-gray-300"></p>
       <div
         ref={wrapperRef}
         className="relative mt-3"

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
 import omitChars from "titan-reactor-shared/utils/omitChars";
 import WrappedElement from "../WrappedElement";
@@ -6,23 +6,33 @@ import useSettingsStore from "../../stores/settingsStore";
 import useGameStore from "../../stores/gameStore";
 import useHudStore from "../../stores/hudStore";
 import useLoadingStore from "../../stores/loadingStore";
+import useResourcesStore from "../../stores/realtime/resourcesStore";
 
 const Minimap = ({ className = "" }) => {
   const textSize = useSettingsStore((state) => state.data.textSize);
   const classicClock = useSettingsStore((state) => state.data.classicClock);
+  const timeRef = useRef();
+  const classicTimeRef = useRef();
 
-  const {
-    fogOfWar,
-    toggleFogOfWar,
-    minimapSize,
-    timeLabel,
-    canvas,
-  } = useGameStore(
+  useEffect(() => {
+    return useResourcesStore.subscribe(
+      (time) => {
+        if (timeRef.current) {
+          timeRef.current.textContent = time;
+        }
+        if (classicTimeRef.current) {
+          classicTimeRef.current.textContent = time;
+        }
+      },
+      (state) => state.time
+    );
+  });
+
+  const { fogOfWar, toggleFogOfWar, minimapSize, canvas } = useGameStore(
     (state) => ({
       fogOfWar: state.fogOfWar,
       toggleFogOfWar: state.toggleFogOfWar,
       minimapSize: state.dimensions.minimapSize,
-      timeLabel: state.game.managedDomElements.timeLabel.domElement,
       canvas: state.game.minimapSurface.canvas,
     }),
     shallow
@@ -58,7 +68,7 @@ const Minimap = ({ className = "" }) => {
           >
             &nbsp;
           </div>
-          <WrappedElement domElement={timeLabel} className="inline" />
+          <p className="inline" ref={classicTimeRef}></p>
         </div>
       )}
       {!classicClock && (
@@ -67,7 +77,7 @@ const Minimap = ({ className = "" }) => {
             className="text-gray-300 bg-gray-800 font-bold text-lg  pl-1 bevel-gray-800 pb-1"
             style={{ width: "13rem", maxWidth: `${minimapSize}px` }}
           >
-            <WrappedElement domElement={timeLabel} className="inline" />
+            <p className="inline" ref={timeRef}></p>
           </div>
 
           <span className="flex" style={{ maxWidth: `${minimapSize}px` }}>

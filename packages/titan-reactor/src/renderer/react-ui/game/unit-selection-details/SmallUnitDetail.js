@@ -37,7 +37,7 @@ export default ({ units }) => {
   }, [units]);
 
   return (
-    <div className="flex items-center pl-1 pt-1">
+    <div className="flex pl-1 pt-1" style={{ minHeight: "2.75rem" }}>
       <div
         style={{
           display: "grid",
@@ -49,7 +49,7 @@ export default ({ units }) => {
           <SmallUnitItem key={i} index={i} unit={units[i]} />
         ))}
       </div>
-      <div ref={killsRef} className="text-gray-300 p-1"></div>
+      <div ref={killsRef} className="text-gray-300 p-1 self-center"></div>
     </div>
   );
 };

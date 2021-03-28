@@ -272,8 +272,12 @@ export default class BWFrameSceneBuilder {
 
         if (image.index === spriteBW.mainImageIndex) {
           sprite.mainImage = titanImage;
+
           if (sprite.unit) {
             titanImage.rotation.y = sprite.unit.angle;
+            if (!image.imageType.clickable) {
+              sprite.canSelect = false;
+            }
           }
           // sprite.position.y -=
           //   titanImage.atlas.grpHeight / 2 / titanImage._spriteScale;

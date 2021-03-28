@@ -266,19 +266,6 @@ export default ({
             </ButtonSetContainer>
           }
         />
-        {/* <Option
-          label={phrases["SETTINGS_SHOW_TOOLTIPS"]}
-          toggle={
-            <Toggle
-              value={settings.showTooltips}
-              onChange={() =>
-                updateSettings({
-                  showTooltips: !settings.showTooltips,
-                })
-              }
-            />
-          }
-        /> */}
 
         {/* <Option
           label={"Start Replay Paused"}
@@ -309,7 +296,7 @@ export default ({
         {settings.esportsHud && (
           <Option
             className="ml-4"
-            label={phrases["SETTINGS_EMBED_PRODUCTION"]}
+            label={phrases["SETTINGS_INLINE_PRODUCTION"]}
             toggle={
               <Toggle
                 value={settings.embedProduction}
@@ -331,19 +318,6 @@ export default ({
               onChange={() =>
                 save({
                   classicClock: !settings.classicClock,
-                })
-              }
-            />
-          }
-        />
-        <Option
-          label={phrases["SETTINGS_CYCLE_PRODUCTION"]}
-          toggle={
-            <Toggle
-              value={settings.autoToggleProductionView}
-              onChange={() =>
-                save({
-                  autoToggleProductionView: !settings.autoToggleProductionView,
                 })
               }
             />

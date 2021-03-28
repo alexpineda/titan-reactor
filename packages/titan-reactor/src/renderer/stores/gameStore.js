@@ -33,11 +33,16 @@ const useGameStore = create((set, get) => ({
       playerVision: state.playerVision.map((v, i) => (i === id ? !v : v)),
     })),
   toggleFollowUnit: (unit) => set({ followUnit: unit }),
-  addChatMessage: (msg) =>
-    set((state) => ({
-      chat: [...state.chat, msg],
+  addChatMessage: (msg) => {
+    let chat = [...get().chat, msg];
+    if (chat.length > 10) {
+      chat = chat.slice(1);
+    }
+    set({
+      chat,
       lastChatAdd: Date.now(),
-    })),
+    });
+  },
   removeOneFromChat: () => {
     if (Date.now() - get().lastChatAdd < CHAT_INTERVAL) {
       return;

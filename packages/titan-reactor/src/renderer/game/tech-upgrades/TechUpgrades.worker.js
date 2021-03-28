@@ -27,6 +27,9 @@ onmessage = function ({ data }) {
 
   const researchBW = new ResearchBW();
   const upgradeBW = new UpgradeBW();
+  // manually inject bwDat stuff since we're on a worker
+  researchBW.bwDat = { tech: _techDat };
+  upgradeBW.bwDat = { upgrades: _upgradesDat };
 
   researchBW.count = researchCount;
   if (researchCount) {
@@ -87,6 +90,9 @@ onmessage = function ({ data }) {
         if (existing) {
           if (existing.remainingBuildTime === 0) {
             existing.count++;
+            existing.buildTime =
+              _upgradesDat[upgrade.typeId].researchTimeBase +
+              _upgradesDat[upgrade.typeId].researchTimeFactor * upgrade.level;
           }
           existing.remainingBuildTime = upgrade.remainingBuildTime;
           continue;
