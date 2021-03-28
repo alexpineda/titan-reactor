@@ -30,7 +30,7 @@ const researchSelector = (state) => {
   if (!state.selectedUnits[0]) return 0;
 
   const unit = state.selectedUnits[0];
-  if (!unit.owner) return;
+  if (!unit.owner) return null;
 
   const { tech, upgrades } = useProductionStore.getState();
   const t = tech[unit.owner.id].find(
@@ -119,7 +119,7 @@ export default ({ unit }) => {
       <div
         ref={wrapperRef}
         className="relative mt-3"
-        style={{ width: "128px", height: "0.875rem" }}
+        style={{ width: "128px", height: "0.875rem", visibility: "hidden" }}
       >
         <div
           className="rounded-lg border-2 hp-bar absolute top-0 left-0 right-0 bottom-0"

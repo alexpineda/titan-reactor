@@ -32,6 +32,7 @@ export default ({ type, index, color, playerId }) => {
   const wrapperRef = useRef();
   const imgRef = useRef();
   const progressRef = useRef();
+  const outlineRef = useRef();
   const countRef = useRef();
 
   const unitBelongsToPlayer = (u) => u.ownerId === playerId;
@@ -49,7 +50,8 @@ export default ({ type, index, color, playerId }) => {
       !wrapperRef.current ||
       !imgRef.current ||
       !countRef.current ||
-      !progressRef.current
+      !progressRef.current ||
+      !outlineRef.current
     )
       return;
 
@@ -68,13 +70,16 @@ export default ({ type, index, color, playerId }) => {
       progressRef.current.style.backgroundImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%)`;
 
       if (item.remainingBuildTime === 0 && (item.isTech || item.isUpgrade)) {
-        imgRef.current.style.outline = `2px groove ${color}aa`;
+        outlineRef.current.style.outline = `2px groove ${color}aa`;
         // using a property as state to determine whether to add glow (only once)
         if (Date.now() - item.timeCompleted < 4000) {
-          imgRef.current.style.animation = `glow-${item.owner} 0.4s 10 alternate`;
+          outlineRef.current.style.animation = `glow-${item.owner} 0.4s 10 alternate`;
         } else {
-          imgRef.current.style.animation = "";
+          outlineRef.current.style.animation = "";
         }
+      } else {
+        outlineRef.current.style.animation = "";
+        outlineRef.current.style.outline = "";
       }
     } else {
       wrapperRef.current.style.display = "none";
@@ -104,6 +109,10 @@ export default ({ type, index, color, playerId }) => {
       <div
         ref={progressRef}
         className="absolute left-0 bottom-0 right-0 h-1"
+      ></div>
+      <div
+        ref={outlineRef}
+        className="absolute left-0 bottom-0 right-0 top-0"
       ></div>
       <p
         ref={countRef}

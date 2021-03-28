@@ -26,7 +26,7 @@ export default class UpgradeBW extends ContiguousContainer {
   }
 
   get type() {
-    return this.bwDat.tech[this.typeId];
+    return this.bwDat.upgrades[this.typeId];
   }
 
   object() {

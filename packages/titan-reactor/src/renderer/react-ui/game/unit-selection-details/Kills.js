@@ -1,5 +1,13 @@
 import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import React, { useRef, useEffect } from "react";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+
+export const showKillsExtraUnits = [
+  unitTypes.carrier,
+  unitTypes.reaver,
+  unitTypes.siegeTankTankMode,
+  unitTypes.siegeTankSiegeMode,
+];
 
 const selector = (state) => {
   if (!state.selectedUnits[0]) return 0;

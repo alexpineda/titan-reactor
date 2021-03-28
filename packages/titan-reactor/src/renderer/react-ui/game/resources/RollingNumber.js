@@ -11,7 +11,9 @@ export default class RollingNumber {
 
   _setValue(number) {
     this._displayValue = number;
-    this.textRef.current.textContent = number;
+    if (this.textRef.current) {
+      this.textRef.current.textContent = number;
+    }
   }
 
   get value() {

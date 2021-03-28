@@ -1,13 +1,15 @@
 import { range } from "ramda";
 import React, { useRef, useEffect } from "react";
 import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
+import { showKillsExtraUnits } from "./Kills";
 import SmallUnitItem from "./SmallUnitItem";
 
 const canSelect = (u) => u.canSelect;
 const hasNonAttackers = (u) =>
   !u.unitType.isSpellcaster &&
   u.unitType.groundWeapon === 130 &&
-  u.unitType.airWeapon === 130;
+  u.unitType.airWeapon === 130 &&
+  !showKillsExtraUnits.includes(u.typeId);
 const sumKills = (tkills, { kills }) => tkills + kills;
 
 const selector = (state) => {
