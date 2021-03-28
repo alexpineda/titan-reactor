@@ -1,11 +1,12 @@
 import { range } from "ramda";
 import RollingNumber from "./RollingNumber";
 import BasicElement from "./BasicElement";
-import ProductionWrapperElement from "./ProductionWrapperElement";
 import useGameStore from "../../stores/gameStore";
-import useRealtimeStore from "../../stores/realtimeStore";
+import useUnitSelectionStore from "../../stores/realtime/unitSelectionStore";
+import useProductionStore from "../../stores/realtime/productionStore";
 
-const setSelectedUnits = useRealtimeStore.getState().setSelectedUnits;
+const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
+const setAllProduction = useProductionStore.getState().setAllProduction;
 
 /**
  * Usually fast changing data like minerals, supply, where we don't want to go through redux/react
@@ -20,30 +21,6 @@ export default class ManagedDomElements {
     this.supply = range(0, 8).map(() => new BasicElement());
     this.workerSupply = range(0, 8).map(() => new BasicElement());
     this.timeLabel = new BasicElement();
-    this.production = range(0, 8).map(
-      (i) =>
-        new ProductionWrapperElement(
-          cmdIcons,
-          players[i] ? players[i].color.hex : "",
-          true
-        )
-    );
-
-    this.research = range(0, 8).map(
-      (i) =>
-        new ProductionWrapperElement(
-          cmdIcons,
-          players[i] ? players[i].color.hex : ""
-        )
-    );
-
-    this.upgrades = range(0, 8).map(
-      (i) =>
-        new ProductionWrapperElement(
-          cmdIcons,
-          players[i] ? players[i].color.hex : ""
-        )
-    );
   }
 
   /**
@@ -67,38 +44,13 @@ export default class ManagedDomElements {
 
     for (const player of players) {
       this.apm[player.id].value = apm[player.id];
-
-      if (frameBuilder.unitsInProduction.needsUpdate) {
-        const units = frameBuilder.unitsInProduction
-          .filter((u) => u.ownerId === player.id)
-          .slice(0, 10);
-
-        for (let i = 0; i < 10; i++) {
-          this.production[player.id].items[i].value = units[i];
-        }
-      }
-
-      if (frameBuilder.research.needsUpdate) {
-        for (let i = 0; i < 10; i++) {
-          const owner = frameBuilder.research[player.id];
-          if (owner) {
-            this.research[player.id].items[i].value =
-              frameBuilder.research[player.id][i];
-          }
-        }
-      }
-
-      if (frameBuilder.upgrades.needsUpdate) {
-        for (let i = 0; i < 10; i++) {
-          const owner = frameBuilder.upgrades[player.id];
-          if (owner) {
-            this.upgrades[player.id].items[i].value =
-              frameBuilder.upgrades[player.id][i];
-          }
-        }
-      }
     }
 
+    setAllProduction(
+      frameBuilder.unitsInProduction,
+      frameBuilder.research,
+      frameBuilder.upgrades
+    );
     setSelectedUnits(selectedUnits);
 
     frameBuilder.unitsInProduction.needsUpdate = false;

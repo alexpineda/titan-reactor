@@ -2,7 +2,7 @@ import React from "react";
 import shallow from "zustand/shallow";
 import WrappedElement from "./WrappedElement";
 import Minimap from "./game/Minimap";
-import Production from "./game/Production";
+import StandAloneProductionBar from "./game/production/StandAloneProductionBar";
 import Chat from "./game/Chat";
 import ResourcesBar from "./game/resource-bar/ResourcesBar";
 import UnitSelection from "./game/UnitSelection";
@@ -48,11 +48,13 @@ const Game = () => {
     esportsHud,
     producerWindowPosition,
     alwaysHideReplayControls,
+    embedProduction,
   } = useSettingsStore(
     (state) => ({
       esportsHud: state.data.esportsHud,
       producerWindowPosition: state.data.producerWindowPosition,
       alwaysHideReplayControls: state.data.alwaysHideReplayControls,
+      embedProduction: state.data.embedProduction,
     }),
     shallow
   );
@@ -74,13 +76,7 @@ const Game = () => {
       {showInGameMenu && (
         <Menu onClose={() => toggleInGameMenu()} onBackToMainMenu={() => {}} />
       )}
-      {/* {showProduction && (
-        <Production
-          players={players}
-          textSize={settings.textSize}
-          gameDimensions={gameDimensions}
-        />
-      )} */}
+      {(!esportsHud || !embedProduction) && <StandAloneProductionBar />}
       <Visible visible={!esportsHud}>
         <ResourcesBar
           className="flex absolute pointer-events-none"
@@ -96,7 +92,7 @@ const Game = () => {
         // <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
       )} */}
       <div
-        className="w-full flex absolute pointer-events-none"
+        className="w-full flex absolute pointer-events-none justify-between"
         style={{
           bottom: `${dimensions.bottom}px`,
           width: `${dimensions.width}px`,

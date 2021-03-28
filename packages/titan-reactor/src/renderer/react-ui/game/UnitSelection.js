@@ -31,7 +31,7 @@ const UnitSelection = ({ textSize, className = "" }) => {
       style={{ width: "28vw" }}
     >
       <div
-        className="pl-2 flex flex-1 "
+        className="flex flex-1 "
         style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}
       >
         <article className="flex-1 flex items-center justify-content">

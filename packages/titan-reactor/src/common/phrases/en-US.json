@@ -46,6 +46,7 @@
     "SETTINGS_GRAPHICS_FULLSCREEN": "Fullscreen (Windowed)",
     "SETTINGS_ENABLE_PLAYER_SCORES": "Enable Player Scores",
     "SETTINGS_ESPORTS_HUD_STYLE": "E-SPORTS HUD Style",
+    "SETTINGS_EMBED_PRODUCTION": "Embed Production",
     "SETTINGS_CLOCK_STYLE": "Classic Clock Style",
     "SETTINGS_CYCLE_PRODUCTION": "Cycle Production View",
     "SETTINGS_ALWAYS_HIDE_REPLAY_CONTROLS": "Always Hide Replay Controls",

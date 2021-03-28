@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from "react";
-import useRealtimeStore from "../../../stores/realtimeStore";
+import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";
 
 const transformName = (name) => name.split(" ").slice(1).join(" ");
 
-export default ({ unit }) => {
+export default ({ unit, className = "" }) => {
   const bwDat = useGameStore((state) => state.game.bwDat);
   const nameRef = useRef();
 
@@ -22,14 +22,20 @@ export default ({ unit }) => {
     if (!state.selectedUnits[0]) return "";
 
     const zergBuildingType = getZergBuildingType(state.selectedUnits[0]);
-    return zergBuildingType
+    const name = zergBuildingType
       ? zergBuildingType.name
       : state.selectedUnits[0].unitType.name;
+    if (!state.selectedUnits[0].owner) {
+      return name;
+    } else {
+      // remove race prefix
+      return transformName(name);
+    }
   };
 
   const setDom = (name) => {
     if (!nameRef.current) return;
-    nameRef.current.textContent = transformName(name);
+    nameRef.current.textContent = name;
   };
 
   useEffect(() => {
@@ -40,5 +46,5 @@ export default ({ unit }) => {
     }, selector);
   }, [unit]);
 
-  return <p ref={nameRef} className="text-white uppercase"></p>;
+  return <p ref={nameRef} className={`text-white uppercase ${className}`}></p>;
 };

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { range } from "ramda";
-import useRealtimeStore from "../../../stores/realtimeStore";
+import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";
 import shallow from "zustand/shallow";
 

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import useRealtimeStore from "../../../stores/realtimeStore";
+import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 
 const healthColorRed = "#d60000";
 const healthColorYellow = "#aaaa00";

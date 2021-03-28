@@ -9,7 +9,6 @@ import WrappedElement from "../../WrappedElement";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import {
-  ResourcesView,
   UnitProductionView,
   TechProductionView,
   UpgradesProductionView,
@@ -19,6 +18,7 @@ import Gas from "./Gas";
 import Workers from "./Workers";
 import Supply from "./Supply";
 import Apm from "./Apm";
+import PlayerProduction from "../production/PlayerProduction";
 
 const _playerNameCache = {};
 
@@ -34,10 +34,11 @@ const PlayerResources = ({
   playerScoreCache,
   productionView,
 }) => {
-  const { esportsHud, enablePlayerScores } = useSettingsStore(
+  const { esportsHud, enablePlayerScores, embedProduction } = useSettingsStore(
     (state) => ({
       esportsHud: state.data.esportsHud,
       enablePlayerScores: state.data.enablePlayerScores,
+      embedProduction: state.data.embedProduction,
     }),
     shallow
   );
@@ -140,11 +141,14 @@ const PlayerResources = ({
         marginRight: "0",
       };
 
+  const resourcesEnabled = !esportsHud || !embedProduction || !productionView;
+  const productionEnabled = esportsHud && embedProduction;
+
   return (
     <tr>
       {enablePlayerScores && (
         <td
-          className={`${esportsHud ? "" : "pr-2"} pointer-events-auto`}
+          className={`${esportsHud ? "" : "px-2"} pointer-events-auto`}
           style={{
             ...fitToContentStyle,
             ...scoreBgColor,
@@ -227,24 +231,23 @@ const PlayerResources = ({
           />
         )}
       </td>
-      <td
-        className={`${productionView !== UnitProductionView ? "hidden" : ""}`}
-      >
-        <WrappedElement domElement={domElements.production[id].domElement} />
-      </td>
-      <td
-        className={`${productionView !== TechProductionView ? "hidden" : ""}`}
-      >
-        <WrappedElement domElement={domElements.research[id].domElement} />
-      </td>
-      <td
-        className={`${
-          productionView !== UpgradesProductionView ? "hidden" : ""
-        }`}
-      >
-        <WrappedElement domElement={domElements.upgrades[id].domElement} />
-      </td>
-      {!productionView && (
+
+      {productionEnabled && productionView === UnitProductionView && (
+        <td>
+          <PlayerProduction type="units" color={color.hex} playerId={id} />
+        </td>
+      )}
+      {productionEnabled && productionView === TechProductionView && (
+        <td>
+          <PlayerProduction type="tech" color={color.hex} playerId={id} />
+        </td>
+      )}
+      {productionEnabled && productionView === UpgradesProductionView && (
+        <td>
+          <PlayerProduction type="upgrades" color={color.hex} playerId={id} />
+        </td>
+      )}
+      {resourcesEnabled && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
@@ -260,7 +263,7 @@ const PlayerResources = ({
           </div>
         </td>
       )}
-      {!productionView && (
+      {resourcesEnabled && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
@@ -277,7 +280,7 @@ const PlayerResources = ({
         </td>
       )}
 
-      {!productionView && (
+      {resourcesEnabled && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle, width: "4rem" }}
@@ -294,7 +297,7 @@ const PlayerResources = ({
         </td>
       )}
 
-      {!productionView && (
+      {resourcesEnabled && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle }}
@@ -312,7 +315,7 @@ const PlayerResources = ({
           </div>
         </td>
       )}
-      {!productionView && (
+      {resourcesEnabled && (
         <td
           className="px-2 pointer-events-none"
           style={{ ...fixedWidthStyle, ...tdTextStyle, width: "5rem" }}

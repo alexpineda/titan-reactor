@@ -182,6 +182,7 @@ export class Settings extends EventEmitter {
       fullscreen: true,
       enablePlayerScores: true,
       esportsHud: true,
+      embedProduction: true,
       showTooltips: true,
       cameraShake: 1,
       mapsRss: "",

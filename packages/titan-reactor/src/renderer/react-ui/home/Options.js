@@ -187,7 +187,7 @@ export default ({
           >
             <Visible visible={settings.useCustomColors}>
               <Option
-                className="pl-4"
+                className="ml-4"
                 label={phrases["SETTINGS_RANDOMIZE_COLORS"]}
                 toggle={
                   <Toggle
@@ -306,6 +306,23 @@ export default ({
             />
           }
         />
+        {settings.esportsHud && (
+          <Option
+            className="ml-4"
+            label={phrases["SETTINGS_EMBED_PRODUCTION"]}
+            toggle={
+              <Toggle
+                value={settings.embedProduction}
+                onChange={() =>
+                  save({
+                    embedProduction: !settings.embedProduction,
+                  })
+                }
+              />
+            }
+          />
+        )}
+
         <Option
           label={phrases["SETTINGS_CLOCK_STYLE"]}
           toggle={
@@ -484,7 +501,7 @@ export default ({
       </Tab>
 
       <Tab tabName={Tabs.Graphics} activeTab={tab}>
-        <Option label={phrases["SETTINGS_GRAPHICS_RENDER_MODE"]}>
+        {/* <Option label={phrases["SETTINGS_GRAPHICS_RENDER_MODE"]}>
           <ButtonSetContainer>
             <ButtonSet
               selected={settings.renderMode === RenderMode.SD}
@@ -504,7 +521,7 @@ export default ({
               onClick={() => save({ renderMode: RenderMode.ThreeD })}
             />
           </ButtonSetContainer>
-        </Option>
+        </Option> */}
 
         <Option
           label={phrases["SETTINGS_GRAPHICS_FULLSCREEN"]}

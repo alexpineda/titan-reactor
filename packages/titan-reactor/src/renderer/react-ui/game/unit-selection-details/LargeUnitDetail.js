@@ -22,7 +22,7 @@ export default ({ unit }) => {
 
   return (
     <div className="flex flex-col relative w-full">
-      <Name unit={unit} />
+      <Name unit={unit} className="pt-1 pl-1" />
       <div className="flex">
         <div className="flex w-1/2 items-center justify-center">
           <Wireframe unit={unit} size="md" className="m-2" />

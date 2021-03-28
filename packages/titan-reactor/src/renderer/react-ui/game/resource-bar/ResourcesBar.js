@@ -16,8 +16,11 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   );
 
   const save = useSettingsStore((state) => state.save);
-  const autoToggleProductionView = useSettingsStore(
-    (state) => state.data.autoToggleProductionView
+  const { autoToggleProductionView } = useSettingsStore(
+    (state) => ({
+      autoToggleProductionView: state.data.autoToggleProductionView,
+    }),
+    shallow
   );
 
   const productionView = useHudStore((state) => state.productionView);

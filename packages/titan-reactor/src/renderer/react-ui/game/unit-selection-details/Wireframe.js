@@ -1,9 +1,10 @@
 import React, { useRef, useEffect } from "react";
 import { range } from "ramda";
 import { shuffle } from "lodash";
-import useRealtimeStore from "../../../stores/realtimeStore";
+import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";
 import shallow from "zustand/shallow";
+import redXIcon from "../../css/redXIcon.png";
 
 let stepLayers = range(0, 4).map(() => 0);
 
@@ -126,6 +127,7 @@ const selector = (state) => {
     unit: state.selectedUnits[0],
     typeId: calcTypeId(state.selectedUnits[0]),
     step: calcStep(state.selectedUnits[0]),
+    canSelect: state.selectedUnits[0].canSelect,
   };
 };
 
@@ -134,9 +136,11 @@ const refLayer = (ref) => ({ ref, filter: "", backgroundImage: "", step: 0 });
 export default ({ unit, size = "lg", className = "" }) => {
   const wireframeIcons = useGameStore((state) => state.game.wireframeIcons);
   const layerRefs = range(0, 4).map(() => refLayer(useRef()));
+  const xRef = useRef();
 
-  const setDom = ({ unit, typeId, step }, transition) => {
-    if (layerRefs.some(({ ref: { current } }) => !current)) return;
+  const setDom = ({ unit, typeId, step, canSelect }, transition) => {
+    if (layerRefs.some(({ ref: { current } }) => !current) || !xRef.current)
+      return;
 
     const trans =
       transition ||
@@ -157,6 +161,12 @@ export default ({ unit, size = "lg", className = "" }) => {
         layerRefs[i].ref.current.style.backgroundImage = backgroundImage;
         layerRefs[i].backgroundImage = backgroundImage;
       }
+    }
+
+    if (canSelect) {
+      xRef.current.style.display = "none";
+    } else {
+      xRef.current.style.display = "block";
     }
   };
 
@@ -189,6 +199,11 @@ export default ({ unit, size = "lg", className = "" }) => {
 
   return (
     <div className={`relative ${className}`} style={style}>
+      <img
+        ref={xRef}
+        src={redXIcon}
+        className="absolute left-0 top-0 right-0 bottom-0 z-30 hidden"
+      />
       {layerRefs.map(({ ref }, i) => {
         return (
           <div
@@ -202,7 +217,7 @@ export default ({ unit, size = "lg", className = "" }) => {
         );
       })}
 
-      {unit.shields && (
+      {unit.shields > 0 && (
         <>
           <div
             style={{

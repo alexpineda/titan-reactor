@@ -68,7 +68,10 @@ onmessage = function ({ data }) {
         };
         research[i].push(researchObj);
         if (r.remainingBuildTime === 0) {
-          _completedResearch[i].push(researchObj);
+          _completedResearch[i].push({
+            ...researchObj,
+            timeCompleted: Date.now(),
+          });
         }
       }
     }
@@ -101,7 +104,10 @@ onmessage = function ({ data }) {
         };
         upgrades[i].push(upgradeObj);
         if (upgrade.remainingBuildTime === 0) {
-          _completedUpgrades[i].push(upgradeObj);
+          _completedUpgrades[i].push({
+            ...upgradeObj,
+            timeCompleted: Date.now(),
+          });
         }
       }
     }

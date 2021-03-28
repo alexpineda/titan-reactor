@@ -2,8 +2,19 @@ import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./GameSprite";
 import useGameStore from "../stores/gameStore";
-import useRealtimeStore from "../stores/realtimeStore";
+import useRealtimeStore from "../stores/realtime/unitSelectionStore";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+
+const canOnlySelectOne = [
+  unitTypes.larva,
+  unitTypes.zergEgg,
+  unitTypes.geyser,
+  unitTypes.mineral1,
+  unitTypes.mineral2,
+  unitTypes.mineral3,
+  unitTypes.mutaliskCocoon,
+  unitTypes.lurkerEgg,
+];
 
 const setSelectedUnits = useGameStore.getState().setSelectedUnits;
 const setSelectedUnitsRealtime = useRealtimeStore.getState().setSelectedUnits;
@@ -374,10 +385,10 @@ export default class MouseCursor {
       // since egg has no cmd icon, dont allow multi select
       if (
         selectedFinal.length > 1 &&
-        selectedFinal.some((unit) => unit.typeId === unitTypes.zergEgg)
+        selectedFinal.some((unit) => canOnlySelectOne.includes(unit.typeId))
       ) {
         selectedFinal = selectedFinal.filter(
-          (unit) => unit.typeId !== unitTypes.zergEgg
+          (unit) => !canOnlySelectOne.includes(unit.typeId)
         );
       }
 
