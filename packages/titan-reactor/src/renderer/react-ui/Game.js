@@ -4,7 +4,7 @@ import WrappedElement from "./WrappedElement";
 import Minimap from "./game/Minimap";
 import StandAloneProductionBar from "./game/production/StandAloneProductionBar";
 import Chat from "./game/Chat";
-import ResourcesBar from "./game/resource-bar/ResourcesBar";
+import ResourcesBar from "./game/resources/ResourcesBar";
 import UnitSelection from "./game/UnitSelection";
 import ReplayPosition from "./game/ReplayPosition";
 import ProducerBar from "./game/ProducerBar";
@@ -87,10 +87,6 @@ const Game = () => {
         />
       </Visible>
 
-      {/* {UnitDetails && (
-        <p>Nan</p>
-        // <UnitDetails onClose={onUnitDetails} gameDimensions={gameDimensions} />
-      )} */}
       <div
         className="w-full flex absolute pointer-events-none justify-between"
         style={{

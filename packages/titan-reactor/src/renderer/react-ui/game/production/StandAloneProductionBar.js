@@ -6,7 +6,6 @@ import useHudStore, {
   TechProductionView,
   UpgradesProductionView,
 } from "../../../stores/hudStore";
-import useSettingsStore from "../../../stores/settingsStore";
 import PlayerProduction from "./PlayerProduction";
 
 const Production = () => {
@@ -18,13 +17,6 @@ const Production = () => {
     shallow
   );
   const productionView = useHudStore((state) => state.productionView);
-
-  // const { hudFontSize } = useSettingsStore(
-  //   (state) => ({
-  //     hudFontSize: state.data.hudFontSize,
-  //   }),
-  //   shallow
-  // );
 
   return (
     <div
@@ -70,14 +62,5 @@ const Production = () => {
     </div>
   );
 };
-
-// export default connect((state) => {
-//   return {
-//     textSize: state.settings.data.textSize,
-//     settings: state.settings.data,
-//     phrases: state.settings.phrases,
-//     errors: state.settings.errors,
-//   };
-// })(Production);
 
 export default Production;

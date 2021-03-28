@@ -12,7 +12,7 @@ import ButtonSet from "../components/ButtonSet";
 import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
 import ColorPicker from "../components/ColorPicker";
-import { RenderMode, ShadowLevel } from "common/settings";
+import { ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 import useSettingsStore from "../../stores/settingsStore";
 import shallow from "zustand/shallow";

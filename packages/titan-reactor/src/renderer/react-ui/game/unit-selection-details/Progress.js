@@ -2,6 +2,17 @@ import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";
 import React, { useRef, useEffect } from "react";
 
+const getDisplayText = (unit) => {
+  if (!unit.owner || !unit.unitType.isBuilding || unit.isComplete) return "";
+  if (unit.unitType.isTerran) {
+    return "Constructing";
+  } else if (unit.unitType.isZerg) {
+    return "Mutating";
+  } else {
+    return "Warping";
+  }
+};
+
 export default ({ unit }) => {
   const bwDat = useGameStore((state) => state.game.bwDat);
 
@@ -12,6 +23,8 @@ export default ({ unit }) => {
     unit.unitType.isZerg && unit.queue && unit.queue.units.length
       ? bwDat.units[unit.queue.units[0]]
       : null;
+
+  const displayText = getDisplayText(unit);
 
   const selector = (state) => {
     if (!state.selectedUnits[0]) return 0;
@@ -60,35 +73,38 @@ export default ({ unit }) => {
   }, [unit]);
 
   return (
-    <div
-      ref={wrapperRef}
-      className="relative mt-3"
-      style={{ width: "128px", height: "0.875rem", willChange: "visibility" }}
-    >
+    <>
+      <p className="text-gray-300">{displayText}</p>
       <div
-        className="rounded-lg border-2 hp-bar absolute top-0 left-0 right-0 bottom-0"
-        style={{
-          borderColor: "#00ee00",
-          backgroundImage:
-            "linear-gradient(to right, #000000, #000000 2px, #00ee00 2px, #00ee00 )",
-          backgroundSize: "7px 100%",
-        }}
-      ></div>
-      <div
-        className="border-2 rounded border-black absolute z-10"
-        style={{ left: "2px", top: "2px", right: "2px", bottom: "2px" }}
-      ></div>
-      <div
-        ref={progressRef}
-        className="bg-black rounded absolute z-20"
-        style={{
-          left: "2px",
-          top: "2px",
-          right: "2px",
-          bottom: "2px",
-          willChange: "left",
-        }}
-      ></div>
-    </div>
+        ref={wrapperRef}
+        className="relative mt-3"
+        style={{ width: "128px", height: "0.875rem" }}
+      >
+        <div
+          className="rounded-lg border-2 hp-bar absolute top-0 left-0 right-0 bottom-0"
+          style={{
+            borderColor: "#00ee00",
+            backgroundImage:
+              "linear-gradient(to right, #000000, #000000 2px, #00ee00 2px, #00ee00 )",
+            backgroundSize: "7px 100%",
+          }}
+        ></div>
+        <div
+          className="border-2 rounded border-black absolute z-10"
+          style={{ left: "2px", top: "2px", right: "2px", bottom: "2px" }}
+        ></div>
+        <div
+          ref={progressRef}
+          className="bg-black rounded absolute z-20"
+          style={{
+            left: "2px",
+            top: "2px",
+            right: "2px",
+            bottom: "2px",
+            willChange: "left",
+          }}
+        ></div>
+      </div>
+    </>
   );
 };

@@ -15,7 +15,6 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
       : state.data.hudFontSize
   );
 
-  const save = useSettingsStore((state) => state.save);
   const { autoToggleProductionView } = useSettingsStore(
     (state) => ({
       autoToggleProductionView: state.data.autoToggleProductionView,
@@ -46,14 +45,6 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
     _playerScoreCache[cacheKey] = {};
   }
 
-  const setAutoToggleProductionView = () => {
-    const v = !autoToggleProductionView;
-    save({
-      autoToggleProductionView: v,
-    });
-    setAutoProductionView(v);
-  };
-
   useEffect(() => {
     setAutoProductionView(autoToggleProductionView);
   }, []);
@@ -61,19 +52,6 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   return (
     <div className={`select-none ${className}`} style={style}>
       <div className="resources-parent">
-        {/* <div className="pointer-events-none flex flex-row-reverse">
-          <span
-            className={`pointer-events-auto material-icons cursor-pointer hover:text-yellow-500 mr-2 ${
-              autoToggleProductionView ? "text-yellow-700" : "text-gray-700 "
-            }`}
-            style={{ fontSize: smallIconFontSize }}
-            onClick={() => {
-              setAutoToggleProductionView();
-            }}
-          >
-            update
-          </span>
-        </div> */}
         <div
           className="flex"
           style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}

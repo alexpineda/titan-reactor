@@ -31,6 +31,7 @@ export default ({ type, index, color, playerId }) => {
 
   const wrapperRef = useRef();
   const imgRef = useRef();
+  const progressRef = useRef();
   const countRef = useRef();
 
   const unitBelongsToPlayer = (u) => u.ownerId === playerId;
@@ -44,7 +45,13 @@ export default ({ type, index, color, playerId }) => {
   };
 
   const setDom = (item) => {
-    if (!wrapperRef.current || !imgRef.current || !countRef.current) return;
+    if (
+      !wrapperRef.current ||
+      !imgRef.current ||
+      !countRef.current ||
+      !progressRef.current
+    )
+      return;
 
     if (item) {
       wrapperRef.current.style.display = "block";
@@ -58,7 +65,7 @@ export default ({ type, index, color, playerId }) => {
 
       imgRef.current.src = cmdIcons[item.icon];
       const pct = poly(1 - item.remainingBuildTime / item.buildTime) * 100;
-      imgRef.current.style.borderImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%) 1`;
+      progressRef.current.style.backgroundImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%)`;
 
       if (item.remainingBuildTime === 0 && (item.isTech || item.isUpgrade)) {
         imgRef.current.style.outline = `2px groove ${color}aa`;
@@ -87,19 +94,20 @@ export default ({ type, index, color, playerId }) => {
   }, [type, index, color, playerId]);
 
   return (
-    <div ref={wrapperRef} className="w-10 mr-1 relative">
+    <div ref={wrapperRef} className="w-10 h-10 mr-1 relative">
       <img
         ref={imgRef}
         style={{
-          mixBlendMode: "screen",
-          filter: "hue-rotate(68deg) brightness(5)",
-          borderBottom: "0.25rem solid",
-          borderImage: `linear-gradient(90deg, ${color}ee 0%, ${color}aa 0%, rgba(0,0,0,0.5) 0%) 1`,
+          filter: "grayscale(1) brightness(6)",
         }}
       />
+      <div
+        ref={progressRef}
+        className="absolute left-0 bottom-0 right-0 h-1"
+      ></div>
       <p
         ref={countRef}
-        className="text-white absolute text-xs px-1 rounded bottom-0 right-0"
+        className="text-white absolute text-xs px-1 rounded bottom-0 right-0 z-20"
         style={{
           opacity: "0.9",
           fontFamily: "conthrax",
