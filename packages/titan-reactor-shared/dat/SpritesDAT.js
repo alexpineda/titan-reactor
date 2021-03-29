@@ -18,7 +18,7 @@ export class SpritesDAT extends DAT {
       {
         size: 1,
         name: "healthBar",
-        get: this._hpBar(),
+        // get: this._hpBar(),
         range: () => range(130, 517),
       },
       { size: 1, name: "unknown" },

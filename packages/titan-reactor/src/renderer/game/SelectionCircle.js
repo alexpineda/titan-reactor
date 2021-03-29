@@ -28,6 +28,7 @@ export default class SelectionCircle extends Sprite {
       this.material.needsUpdate = true;
       this.position.z = spriteDef.selectionCircleOffset / 32;
       this.scale.set(grp.width / 128, grp.height / 128);
+      this.grp = grp;
     }
     this.spriteDef = spriteDef;
   }

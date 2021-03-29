@@ -212,7 +212,7 @@ export default class BWFrameSceneBuilder {
 
         //if selected show selection sprites, also check canSelect again in case it died
         if (sprite.unit.selected && sprite.unit.canSelect) {
-          sprite.select(spriteBW.spriteType);
+          sprite.select(this.completedUpgrades);
         } else {
           sprite.unselect();
         }

@@ -29,6 +29,10 @@ export default class TitanImageHD extends Sprite {
     this._spriteScale = spriteScale;
 
     this.imageDef = imageDef;
+    if (imageDef.drawFunction === drawFunctions.warpFlash2) {
+      this.material.warpingIn = 150;
+    }
+
     this.iscript = createIScriptRunner(this, imageDef);
     this.geometry = this.geometry.clone();
 
@@ -97,9 +101,9 @@ export default class TitanImageHD extends Sprite {
   }
 
   setWarpingIn(val, len, delta) {
-    this.material.warpingIn = val;
-    this.material.warpingInLen = len;
-    this.material.delta = delta;
+    // this.material.warpingIn = val;
+    // this.material.warpingInLen = len;
+    // this.material.delta = delta;
   }
 
   setCloaked(val) {
@@ -120,9 +124,10 @@ export default class TitanImageHD extends Sprite {
   }
 
   setFrame(frame, flip) {
-    this._setFrame(this.atlas.frames[frame], flip);
-    this.uv.needsUpdate = true;
-    this.pos.needsUpdate = true;
+    if (this._setFrame(this.atlas.frames[frame], flip)) {
+      this.uv.needsUpdate = true;
+      this.pos.needsUpdate = true;
+    }
   }
 
   intersects(u, v) {
@@ -141,10 +146,14 @@ export default class TitanImageHD extends Sprite {
   _setFrame(frame, flipFrame) {
     if (frame === undefined) {
       console.error("frame is undefined");
-      return;
+      return false;
+    }
+    if (frame === this.lastSetFrame && flipFrame === this.lastFlipFrame) {
+      return false;
     }
 
     this.lastSetFrame = frame;
+    this.lastFlipFrame = flipFrame;
 
     // this.position.z =
     //   this.offsetY + this.atlas.grpHeight / 2 / this._spriteScale;
@@ -197,5 +206,7 @@ export default class TitanImageHD extends Sprite {
     this.pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
     this.pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
     this.pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
+
+    return true;
   }
 }
