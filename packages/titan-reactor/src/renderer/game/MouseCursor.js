@@ -1,6 +1,6 @@
 import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
-import GameSprite from "./GameSprite";
+import GameSprite from "./sprite/GameSprite";
 import useGameStore from "../stores/gameStore";
 import useRealtimeStore from "../stores/realtime/unitSelectionStore";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";

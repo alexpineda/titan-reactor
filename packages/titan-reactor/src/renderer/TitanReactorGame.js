@@ -574,7 +574,6 @@ async function TitanReactorGame(
     minimapControl.dispose();
     scene.dispose();
     cameras.dispose();
-    managedDomElements.dispose();
 
     keyboardShortcuts.dispose();
     document.removeEventListener("keydown", _keyDown);

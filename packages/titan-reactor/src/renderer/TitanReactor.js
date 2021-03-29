@@ -39,7 +39,7 @@ import useLoadingStore from "./stores/loadingStore";
 import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import ContiguousContainer from "./game/bw/ContiguousContainer";
-import SelectionCircle from "./game/SelectionCircle";
+import SelectionCircle from "./game/sprite/SelectionCircle";
 
 const loadScx = (filename) =>
   new Promise((res) =>

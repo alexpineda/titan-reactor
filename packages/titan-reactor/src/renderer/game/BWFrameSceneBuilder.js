@@ -8,7 +8,7 @@ import TilesBW from "./bw/TilesBW";
 import UnitsBW from "./bw/UnitsBW";
 import ResearchBW from "./bw/ResearchBW";
 import UpgradeBW from "./bw/UpgradeBW";
-import GameSprite from "./GameSprite";
+import GameSprite from "./sprite/GameSprite";
 import { range } from "ramda";
 import useHudStore from "../stores/hudStore";
 import { unstable_batchedUpdates } from "react-dom";
