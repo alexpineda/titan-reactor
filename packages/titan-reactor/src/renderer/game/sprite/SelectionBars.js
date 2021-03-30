@@ -31,31 +31,51 @@ function onBeforeCompile(shader) {
       uniform float energy;
       uniform vec3 energyColor;
 
+      float barHeight = 0.2;
+
+      vec3 borderize(vec3 color, vec3 darker, vec2 uv) {
+        vec3 newColor = mix(color, darker, pow(uv.x, 50.) );    
+        newColor = mix(newColor, darker, pow(1.-uv.x, 50.) );
+
+        newColor = mix(newColor, darker, pow(uv.y , 40.) );    
+        newColor = mix(newColor, darker, pow(1.-uv.y , 40.) );
+        return newColor;
+      }
+
       ` +
     fs.replace(
       "#include <map_fragment>",
       `
-            // #include <map_fragment>
             vec3 gray = vec3(0.5);
+            float ty = 1. - vUv.y;
+
+            vec2 shieldsPos = vec2(0., barHeight) * hasShields;
+            vec2 hpPos = shieldsPos + vec2(0.33 * hasShields, 0.33);
+            vec2 energyPos = (hpPos + vec2(0.33,  0.33));
+
+            float drawShield = (1. - step(shieldsPos.y, ty));    
+            float drawHp = (step(hpPos.x, ty) * (1. - step(hpPos.y, ty)) );
+            float drawEnergy = (step(energyPos.x, ty) * (1. - step(energyPos.y, ty)));
+
 
             vec3 hpC1 = mix(bwRedColor, bwYellowColor, step(1./3., hp));
             hpC1 = mix(hpC1, bwGreenColor, step(2./3., hp));
             hpC1 =  mix(hpC1, gray, step(hp, vUv.x));
 
-            vec4 hpC = vec4(hpC1, 1.);
-            vec4 shieldC =  vec4(mix(shieldsColor, gray, step(shields, vUv.x)), 1.)  * hasShields;
-            vec4 energyC =  vec4(mix(energyColor, gray, step(energy, vUv.x)), 1.) * hasEnergy;
-
-            vec2 shieldsPos = vec2(0., .25) * hasShields;
-            vec2 hpPos = shieldsPos + vec2(0.33 * hasShields, 0.25);
-            vec2 energyPos = (hpPos + vec2(0.33, 0.25));
+            vec2 borderModifier =  vec2(1., clamp(abs(ty - hpPos.x) / barHeight * abs(ty - hpPos.y)  / barHeight, 0., 1.));
+            hpC1 = borderize(hpC1, hpC1 * 0.3, vUv * borderModifier);
             
-            float ty = 1. - vUv.y;
+            vec4 hpC = vec4(hpC1, 1.);
 
-            vec4 barColor = shieldC * (1. - step(shieldsPos.y, ty)) + 
-              hpC * ((1. - step(hpPos.y, ty)) * step(hpPos.x, ty) ) +
-              energyC * ((1. - step(energyPos.y, ty)) * step(energyPos.x, ty));
+            borderModifier = vec2(1., clamp(abs(ty - shieldsPos.x) / barHeight * abs(ty - shieldsPos.y)  / barHeight, 0., 1.));
+            vec3 shield1C = mix(shieldsColor, gray, step(shields, vUv.x));
+            vec4 shieldC =  vec4(borderize(shield1C, shield1C * 0.3, vUv * borderModifier), 1.)  * hasShields;
 
+            borderModifier = vec2(1., clamp(abs(ty - energyPos.x) / barHeight * abs(ty - energyPos.y)  / barHeight, 0., 1.));
+            vec3 energyC1 = mix(energyColor, gray, step(energy, vUv.x));
+            vec4 energyC =  vec4(borderize(energyC1, energyC1 * 0.3, vUv * borderModifier), 1.) * hasEnergy;
+
+            vec4 barColor = shieldC * drawShield + hpC * drawHp + energyC * drawEnergy;
             diffuseColor = mapTexelToLinear(barColor);
 
         `
@@ -63,7 +83,7 @@ function onBeforeCompile(shader) {
 }
 
 const hpColorGreen = new Color(16 / 255, 115 / 255, 16 / 255);
-const hpColorRed = new Color(204 / 255, 153 / 255, 35 / 255);
+const hpColorRed = new Color(204 / 255, 35 / 255, 35 / 255);
 const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255);
 const shieldsColor = new Color(10 / 255, 51 / 255, 150 / 255);
 const energyColor = new Color(135 / 255, 61 / 255, 153 / 255);
@@ -121,7 +141,7 @@ export default class SelectionBars extends Group {
 
     if (sprite.spriteType !== this.spriteType) {
       this.position.z =
-        sprite.spriteType.selectionCircleOffset / 32 + grpOffset + 0.3;
+        sprite.spriteType.selectionCircleOffset / 32 + grpOffset + 0.4;
       this.scale.set(sprite.spriteType.healthBar / 32, 0.3);
     }
     this.spriteType = sprite.spriteType;
