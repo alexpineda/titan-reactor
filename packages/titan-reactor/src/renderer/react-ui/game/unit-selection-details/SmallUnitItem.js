@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
 import useGameStore from "../../../stores/gameStore";
 import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
-import redXIcon from "../../css/redXIcon.png";
 
 const filters = [
   "brightness(2)",
@@ -16,40 +15,66 @@ const calcStep = (unit) =>
 
 const iconsSelector = (state) => state.game.cmdIcons;
 
-export default ({ index, unit }) => {
+export default ({ index, unit, showLoaded }) => {
   const cmdIcons = useGameStore(iconsSelector);
   const imgRef = useRef();
-  const xRef = useRef();
+  const borderRef = useRef();
+
+  const getUnit = (state) => {
+    if (showLoaded) {
+      return unit.loaded ? unit.loaded[index] : null;
+    }
+
+    return state.selectedUnits[index];
+  };
 
   const selector = (state) => {
-    if (!state.selectedUnits[index])
-      return { unitTypeId: null, step: 0, canSelect: false };
+    const unit = getUnit(state);
+    if (!unit) return { unitType: null, step: 0, canSelect: false };
 
     return {
-      unitTypeId: state.selectedUnits[index].typeId,
-      step: calcStep(state.selectedUnits[index]),
-      canSelect: state.selectedUnits[index].canSelect,
+      unitType: unit.unitType,
+      step: calcStep(unit),
+      canSelect: unit.canSelect,
     };
   };
 
-  const setDom = ({ unitTypeId, step, canSelect }, transition) => {
-    if (!imgRef.current || !xRef.current) {
+  const setDom = ({ unitType, step, canSelect }, transition) => {
+    if (!imgRef.current || !borderRef.current) {
       return;
     }
 
     const trans = transition || "filter 1s linear";
 
-    if (unitTypeId !== null && canSelect) {
-      imgRef.current.src = cmdIcons[unitTypeId];
+    if (unitType !== null && canSelect) {
+      imgRef.current.src = cmdIcons[unitType.index];
       imgRef.current.style.display = "block";
       imgRef.current.style.filter = filters[step];
       imgRef.current.style.transition = trans;
-      xRef.current.style.display = "none";
-    } else if (unitTypeId !== null) {
-      xRef.current.style.display = "block";
+      if (unit.owner) {
+        borderRef.current.style.borderColor = unit.owner.color.hex;
+      } else {
+        borderRef.current.style.borderColor = "";
+      }
+      if (showLoaded && unitType.spaceRequired > 1) {
+        imgRef.current.classList.add("h-16");
+        if (unitType.spaceRequired === 2) {
+          borderRef.current.style.gridRowStart = "span 2";
+          borderRef.current.style.gridColumnStart = "auto";
+        } else if (unitType.spaceRequired === 4) {
+          borderRef.current.style.gridRowStart = "span 2";
+          borderRef.current.style.gridColumnStart = "span 2";
+        }
+      } else {
+        borderRef.current.style.gridRowStart = "auto";
+        borderRef.current.style.gridColumnStart = "auto";
+        imgRef.current.classList.remove("h-16");
+      }
+    } else if (unitType !== null && !showLoaded) {
+      borderRef.current.style.borderColor = "";
     } else {
-      xRef.current.style.display = "none";
       imgRef.current.style.display = "none";
+      borderRef.current.style.borderColor = showLoaded ? "transparent" : "";
     }
   };
 
@@ -66,16 +91,15 @@ export default ({ index, unit }) => {
   }, [unit, index]);
 
   return (
-    <div className="pointer-events-auto cursor-pointer w-10 h-10 relative">
-      <img
-        ref={xRef}
-        src={redXIcon}
-        style={{ opacity: "0.6" }}
-        className="absolute left-0 top-0 right-0 bottom-0 z-30 hidden"
-      />
+    <div
+      ref={borderRef}
+      className="pointer-events-auto cursor-pointer relative border border-gray-700 rounded flex items-center justify-center"
+      style={{ transition: "border 300ms linear" }}
+    >
       <img
         ref={imgRef}
         onClick={(evt) => {
+          const unit = getUnit(useUnitSelectionStore.getState());
           if (evt.ctrlKey) {
             useGameStore.getState().selectOfType(unit.unitType);
           } else {

@@ -1,6 +1,7 @@
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 import { orders } from "titan-reactor-shared/types/orders";
 import { Color } from "three";
+import { TrainingQueueType } from "./bw/BuildingQueueCountBW";
 
 const resourceColor = new Color(0, 55, 55);
 const flashColor = new Color(200, 200, 200);
@@ -150,6 +151,7 @@ class Units {
 
       //following assignments should append new data not relevant to previous value
       unit.queue = null;
+      unit.loaded = null;
       unit.owner = this.playersById[unit.owner];
 
       //tank uses build time for siege transition?
@@ -159,6 +161,10 @@ class Units {
         unitBw.isComplete
       ) {
         unit.remainingBuildTime = 0;
+      }
+
+      if (unit.order == orders.die && !unit.dieTime) {
+        unit.dieTime = Date.now();
       }
 
       unit.showOnMinimap =
@@ -211,7 +217,12 @@ class Units {
     // for use in unit details section
     for (const queue of buildQueue) {
       const unit = units.get(queue.unitId);
-      unit.queue = queue;
+
+      if (queue.queueType === TrainingQueueType) {
+        unit.queue = queue;
+      } else {
+        unit.loaded = queue.units.map((id) => units.get(id));
+      }
     }
 
     //@todo move to worker

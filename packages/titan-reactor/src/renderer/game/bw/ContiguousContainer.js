@@ -1,5 +1,3 @@
-import BufferList from "bl";
-
 export default class ContiguousContainer {
   constructor(count = 0) {
     this._onBuffer = () => {};
@@ -13,9 +11,6 @@ export default class ContiguousContainer {
 
   set buffer(val) {
     this._buf = val;
-    // if (val instanceof Buffer && !(val instanceof BufferList)) {
-    //   this._buf.get = (i) => this._buf[i];
-    // }
     this._offset = 0;
     this._onBuffer(val);
   }

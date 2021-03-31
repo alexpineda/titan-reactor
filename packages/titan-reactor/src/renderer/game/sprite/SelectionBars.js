@@ -50,7 +50,7 @@ function onBeforeCompile(shader) {
             float ty = 1. - vUv.y;
 
             vec2 shieldsPos = vec2(0., barHeight) * hasShields;
-            vec2 hpPos = shieldsPos + vec2(0.33 * hasShields, 0.33);
+            vec2 hpPos = shieldsPos + vec2(0.33 * hasShields,  mix(barHeight, 0.33, hasShields));
             vec2 energyPos = (hpPos + vec2(0.33,  0.33));
 
             float drawShield = (1. - step(shieldsPos.y, ty));    
@@ -85,8 +85,8 @@ function onBeforeCompile(shader) {
 const hpColorGreen = new Color(16 / 255, 115 / 255, 16 / 255);
 const hpColorRed = new Color(204 / 255, 35 / 255, 35 / 255);
 const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255);
-const shieldsColor = new Color(10 / 255, 51 / 255, 150 / 255);
-const energyColor = new Color(135 / 255, 61 / 255, 153 / 255);
+const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255);
+const energyColor = new Color(158 / 255, 34 / 255, 189 / 255);
 
 // dummy map till I figure out how to get uv attribute in shader
 const map = new DataTexture(

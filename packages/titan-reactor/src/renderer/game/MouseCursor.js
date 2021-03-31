@@ -282,6 +282,7 @@ export default class MouseCursor {
 
           const candidates = [];
 
+          //@todo add special logic for flying units since their y object position is offset in threejs
           for (let x = startMapX - 1; x < endMapX + 1; x++) {
             for (let y = startMapY - 1; y < endMapY + 1; y++) {
               for (const [spriteId, unit] of unitsBySpriteId) {
@@ -382,15 +383,25 @@ export default class MouseCursor {
         ];
       }
 
-      // since egg has no cmd icon, dont allow multi select
+      // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
       if (
         selectedFinal.length > 1 &&
         selectedFinal.some((unit) => canOnlySelectOne.includes(unit.typeId))
       ) {
-        selectedFinal = selectedFinal.filter(
-          (unit) => !canOnlySelectOne.includes(unit.typeId)
-        );
+        if (
+          selectedFinal.every((unit) => unit.typeId === selectedFinal[0].typeId)
+        ) {
+          selectedFinal = selectedFinal.slice(-1);
+        } else {
+          selectedFinal = selectedFinal.filter(
+            (unit) => !canOnlySelectOne.includes(unit.typeId)
+          );
+        }
       }
+
+      selectedFinal.sort((a, b) => {
+        return a.typeId - b.typeId;
+      });
 
       unstable_batchedUpdates(() => {
         setSelectedUnits(selectedFinal.slice(0, 12));

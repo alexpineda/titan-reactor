@@ -1,17 +1,25 @@
 import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
 import useProductionStore from "../../../stores/realtime/productionStore";
 import useGameStore from "../../../stores/gameStore";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, forwardRef } from "react";
 import shallow from "zustand/shallow";
 
 const getDisplayText = (unit) => {
-  if (
-    !unit.owner ||
-    !unit.unitType.isBuilding ||
-    unit.isComplete ||
-    unit.remainingTrainTime
-  )
+  if (!unit.owner || !unit.unitType.isBuilding) {
     return "";
+  }
+  if (unit.isComplete || unit.remainingTrainTime) {
+    if (
+      unit.isComplete &&
+      unit.remainingTrainTime &&
+      unit.unitType.isTerran &&
+      !unit.queue &&
+      !unit.unitType.isAddon
+    ) {
+      return "Adding On";
+    }
+    return "";
+  }
   if (unit.unitType.isTerran) {
     return "Constructing";
   } else if (unit.unitType.isZerg) {
@@ -50,7 +58,7 @@ const researchSelector = (state) => {
 
 const bwDatSelector = (state) => state.game.bwDat;
 
-export default ({ unit }) => {
+export default forwardRef(({ unit }, ref) => {
   const bwDat = useGameStore(bwDatSelector);
 
   const progressRef = useRef();
@@ -114,7 +122,7 @@ export default ({ unit }) => {
   }, [unit]);
 
   return (
-    <>
+    <div ref={ref}>
       <p ref={displayTextRef} className="text-gray-300"></p>
       <div
         ref={wrapperRef}
@@ -146,6 +154,6 @@ export default ({ unit }) => {
           }}
         ></div>
       </div>
-    </>
+    </div>
   );
-};
+});

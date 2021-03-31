@@ -39,11 +39,12 @@ export default ({ units }) => {
   }, [units]);
 
   return (
-    <div className="flex pl-1 pt-1" style={{ minHeight: "2.75rem" }}>
+    <div className="flex pl-1 pt-1 flex-1" style={{ minHeight: "2.75rem" }}>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
+          gridTemplateColumns: "repeat(6, 2.5rem)",
+          gridTemplateRows: "repeat(2, 2.5rem)",
           gridGap: ".25rem",
         }}
       >
@@ -51,7 +52,11 @@ export default ({ units }) => {
           <SmallUnitItem key={i} index={i} unit={units[i]} />
         ))}
       </div>
-      <div ref={killsRef} className="text-gray-300 p-1 self-center"></div>
+
+      <div
+        ref={killsRef}
+        className="text-gray-300 p-1 self-center  w-full text-center"
+      ></div>
     </div>
   );
 };

@@ -1,8 +1,11 @@
 import ContiguousContainer from "./ContiguousContainer";
 
+export const TrainingQueueType = 0;
+export const LoadedQueueType = 128;
+
 export default class BuildingQueueCountBW extends ContiguousContainer {
   static get byteLength() {
-    return 8;
+    return 19;
   }
 
   get unitId() {
@@ -10,13 +13,17 @@ export default class BuildingQueueCountBW extends ContiguousContainer {
   }
 
   get queueCount() {
-    return this._read8(2);
+    return this._readU8(2) & 0x7f;
+  }
+
+  get queueType() {
+    return this._readU8(2) & 128;
   }
 
   get units() {
     const units = [];
     for (let i = 0; i < this.queueCount; i++) {
-      units.push(this._readU8(3 + i));
+      units.push(this._readU16(3 + i * 2));
     }
     return units;
   }
@@ -26,6 +33,7 @@ export default class BuildingQueueCountBW extends ContiguousContainer {
       unitId: this.unitId,
       queueCount: this.queueCount,
       units: this.units,
+      queueType: this.queueType,
     };
   }
 }

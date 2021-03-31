@@ -3,6 +3,7 @@ import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";
 import shallow from "zustand/shallow";
 import useProductionStore from "../../../stores/realtime/productionStore";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 
 const blank64 =
   "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
@@ -45,6 +46,14 @@ const unitIconSelector = (state) => {
       unit.queue.units.length)
   ) {
     return unit.queue.units[0];
+  }
+
+  if (unit.isComplete && unit.remainingTrainTime) {
+    if (unit.typeId === unitTypes.reaver) {
+      return unitTypes.scarab;
+    } else if (unit.typeId === unitTypes.carrier) {
+      return unitTypes.interceptor;
+    }
   }
 
   return null;

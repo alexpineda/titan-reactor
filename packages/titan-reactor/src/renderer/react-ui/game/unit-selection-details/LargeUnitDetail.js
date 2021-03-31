@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Health from "./Health";
 import Shields from "./Shields";
 import Resource from "./Resource";
@@ -8,6 +8,11 @@ import Wireframe from "./Wireframe";
 import Progress from "./Progress";
 import Name from "./Name";
 import Queue from "./Queue";
+import Loaded from "./Loaded";
+import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
+
+const selector = (state) =>
+  state.selectedUnits[0] && state.selectedUnits[0].loaded;
 
 export default ({ unit }) => {
   const showHp = !(unit.unitType.isResourceContainer && !unit.owner);
@@ -21,6 +26,23 @@ export default ({ unit }) => {
     ) || showKillsExtraUnits.includes(unit.typeId);
 
   const showResourceAmount = unit.resourceAmount !== null;
+
+  const loadedRef = useRef();
+  const progressRef = useRef();
+
+  const setDom = (hasLoaded) => {
+    if (!loadedRef.current || !progressRef.current) return;
+    loadedRef.current.style.display = hasLoaded ? "flex" : "none";
+    progressRef.current.style.display = hasLoaded ? "none" : "block";
+  };
+
+  useEffect(() => {
+    setDom(selector({ selectedUnits: [unit] }));
+    return useUnitSelectionStore.subscribe(
+      (hasLoaded) => setDom(hasLoaded),
+      selector
+    );
+  });
 
   return (
     <div className="flex flex-col relative w-full">
@@ -38,8 +60,9 @@ export default ({ unit }) => {
           </div>
         </div>
         <div className="flex flex-col">
+          <Loaded unit={unit} ref={loadedRef} />
           <Queue unit={unit} />
-          <Progress unit={unit} />
+          <Progress unit={unit} ref={progressRef} />
         </div>
       </div>
     </div>

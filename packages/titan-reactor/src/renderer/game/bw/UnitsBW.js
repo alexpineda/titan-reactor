@@ -39,6 +39,7 @@ const flags = Object.freeze({
   completed: 1,
   groundedBuilding: 2,
   flying: 4,
+  loaded: 0x40,
   cloaked: 0x200,
   passivelyCloaked: 0x800,
   canTurn: 0x10000,
@@ -148,6 +149,10 @@ export default class UnitsBW extends ContiguousContainer {
 
   get isComplete() {
     return (this.statusFlags & flags.completed) != 0;
+  }
+
+  get isLoaded() {
+    return (this.statusFlags & flags.loaded) != 0;
   }
 
   get tileX() {
