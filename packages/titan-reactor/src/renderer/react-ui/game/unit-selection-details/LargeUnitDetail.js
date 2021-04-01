@@ -10,6 +10,7 @@ import Name from "./Name";
 import Queue from "./Queue";
 import Loaded from "./Loaded";
 import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
+import Upgrades from "./Upgrades";
 
 const selector = (state) =>
   state.selectedUnits[0] && state.selectedUnits[0].loaded;
@@ -42,11 +43,14 @@ export default ({ unit }) => {
       (hasLoaded) => setDom(hasLoaded),
       selector
     );
-  });
+  }, [unit]);
 
   return (
     <div className="flex flex-col relative w-full">
-      <Name unit={unit} className="pt-1 pl-3" />
+      <div className="flex">
+        <Name unit={unit} className="pt-1 pl-3" />
+        <Upgrades unit={unit} />
+      </div>
       <div className="flex">
         <div className="flex w-1/2 items-center justify-center">
           <Wireframe unit={unit} size="md" className="mx-3 my-4" />

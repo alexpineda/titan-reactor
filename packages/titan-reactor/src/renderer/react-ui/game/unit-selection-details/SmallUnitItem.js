@@ -4,6 +4,7 @@ import useGameStore from "../../../stores/gameStore";
 import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
 
 const filters = [
+  "grayscale(1) brightness(2)",
   "brightness(2)",
   "hue-rotate(50deg)   brightness(3)",
   "hue-rotate(66deg)   brightness(5)",
@@ -11,7 +12,9 @@ const filters = [
 ];
 
 const calcStep = (unit) =>
-  Math.floor(Math.min(1, unit.hp / (unit.unitType.hp * 0.8)) * 3);
+  unit.canSelect
+    ? Math.ceil(Math.min(1, unit.hp / (unit.unitType.hp * 0.8)) * 3)
+    : 0;
 
 const iconsSelector = (state) => state.game.cmdIcons;
 

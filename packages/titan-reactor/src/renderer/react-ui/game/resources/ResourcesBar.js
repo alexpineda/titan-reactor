@@ -72,7 +72,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
             </tbody>
           </table>
 
-          <aside className="flex flex-col justify-around mx-2">
+          {/* <aside className="flex flex-col justify-around mx-2">
             <i
               onClick={() => onTogglePlayerPov(0)}
               className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
@@ -93,7 +93,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
             >
               slideshow
             </i>
-          </aside>
+          </aside> */}
           {/* <aside className="flex flex-col justify-between ml-2 b">
             <i
               onClick={() => onTogglePlayerActions && onTogglePlayerActions(0)}

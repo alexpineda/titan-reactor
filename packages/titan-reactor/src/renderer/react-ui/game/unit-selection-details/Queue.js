@@ -53,6 +53,8 @@ const unitIconSelector = (state) => {
       return unitTypes.scarab;
     } else if (unit.typeId === unitTypes.carrier) {
       return unitTypes.interceptor;
+    } else if (unit.typeId === unitTypes.nuclearSilo) {
+      return unitTypes.nuclearMissile;
     }
   }
 

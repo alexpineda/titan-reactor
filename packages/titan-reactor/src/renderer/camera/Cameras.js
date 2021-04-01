@@ -61,7 +61,9 @@ class Cameras {
 
     this.control.setConstraints(freeControl);
     this.control.initNumpadControls();
-    this.control.execNumpad(7);
+    this.control.execNumpad(1);
+
+    // this.lookAtLocation();
 
     this.cameraClock = new Clock();
     this._delta = new Vector3();
@@ -150,6 +152,19 @@ class Cameras {
       return new PerspectiveCamera(22, aspect);
     }
     return new PerspectiveCamera(22, aspect, 3, 256);
+  }
+
+  lookAtLocation(x, y) {
+    const p = new Vector3();
+    const t = new Vector3();
+    const d = new Vector3();
+
+    this.control.getPosition(p);
+    this.control.getTarget(t);
+
+    d.subVectors(t, p);
+    this.control.moveTo(x, 0, y, false);
+    this.control.position.subVectors(p, d);
   }
 
   enableControls(val) {

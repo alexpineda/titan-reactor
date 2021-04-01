@@ -25,6 +25,8 @@ const steps = range(0, 8).map(() => {
   return [...stepLayers];
 });
 
+const zeroStepLayers = range(0, 4).map(() => 0);
+
 const zergSteps = range(0, 6).map((step) => {
   const layers = range(0, 4);
 
@@ -71,6 +73,11 @@ const zergSteps = range(0, 6).map((step) => {
 });
 
 const getFilter = (unit, step, layerIndex) => {
+  let effectiveStep = steps[step][layerIndex];
+  // if (!unit.canSelect) {
+  //   return "grayscale(1) brightness(2)";
+  // }
+
   if (
     unit.unitType.isZerg ||
     (unit.unitType.isResourceContainer && !unit.owner)
@@ -81,20 +88,18 @@ const getFilter = (unit, step, layerIndex) => {
     let brightness;
     if (unit.unitType.isTerran) {
       brightness = "brightness(400%)";
-      degree = steps[step][layerIndex];
+      degree = effectiveStep;
       //protoss yellow needs some different settings
-    } else if (steps[step][layerIndex] === 60) {
+    } else if (effectiveStep === 60) {
       brightness = "brightness(425%)";
       degree = 70;
       //protoss brightness lower than terran
     } else {
       brightness = "brightness(250%)";
-      degree = steps[step][layerIndex];
+      degree = effectiveStep;
     }
 
-    return `hue-rotate(${degree}deg) ${
-      steps[step][layerIndex] > 0 ? brightness : ""
-    }`;
+    return `hue-rotate(${degree}deg) ${effectiveStep > 0 ? brightness : ""}`;
   }
 };
 
@@ -163,11 +168,11 @@ export default ({ unit, size = "lg", className = "" }) => {
       }
     }
 
-    if (canSelect) {
-      xRef.current.style.display = "none";
-    } else {
-      xRef.current.style.display = "block";
-    }
+    // if (canSelect) {
+    //   xRef.current.style.display = "none";
+    // } else {
+    //   xRef.current.style.display = "block";
+    // }
   };
 
   useEffect(() => {

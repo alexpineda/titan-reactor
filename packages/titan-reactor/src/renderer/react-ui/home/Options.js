@@ -267,19 +267,6 @@ export default ({
           }
         />
 
-        {/* <Option
-          label={"Start Replay Paused"}
-          toggle={
-            <Toggle
-              value={settings.startPaused}
-              onChange={() =>
-                updateSettings({
-                  startPaused: !settings.startPaused,
-                })
-              }
-            />
-          }
-        /> */}
         <Option
           label={phrases["SETTINGS_ESPORTS_HUD_STYLE"]}
           toggle={
@@ -557,33 +544,6 @@ export default ({
             />
           }
         />
-
-        <Option label={phrases["SETTINGS_GRAPHICS_SHADOWS"]}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={settings.shadows === ShadowLevel.Off}
-              label={phrases["BUTTON_OFF"]}
-              onClick={() => save({ shadows: ShadowLevel.Off })}
-              first
-            />
-            <ButtonSet
-              selected={settings.shadows === ShadowLevel.Low}
-              label={phrases["BUTTON_LOW"]}
-              onClick={() => save({ shadows: ShadowLevel.Low })}
-            />
-            <ButtonSet
-              selected={settings.shadows === ShadowLevel.Medium}
-              label={phrases["BUTTON_MED"]}
-              onClick={() => save({ shadows: ShadowLevel.Medium })}
-            />
-            <ButtonSet
-              selected={settings.shadows === ShadowLevel.High}
-              label={phrases["BUTTON_HIGH"]}
-              onClick={() => save({ shadows: ShadowLevel.High })}
-              last
-            />
-          </ButtonSetContainer>
-        </Option>
 
         <Option
           label={"Bloom TODO"}

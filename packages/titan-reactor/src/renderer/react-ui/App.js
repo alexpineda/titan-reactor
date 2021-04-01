@@ -1,4 +1,5 @@
 import React from "react";
+import ReactTooltip from "react-tooltip";
 import { LoadingOverlay } from "./LoadingOverlay";
 import Initializing from "./home/Initializing";
 import Map from "./Map";
@@ -27,6 +28,8 @@ const App = () => {
 
   return (
     <>
+      <ReactTooltip id="upgrades" />
+
       {criticalError && (
         <p>There was a critical error. Try deleting your settings file.</p>
       )}

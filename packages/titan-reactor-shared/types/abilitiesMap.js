@@ -161,9 +161,9 @@ export const upgradesByUnitType = Object.keys(unitsByUpgradeType).reduce(
   (memo, upgradeType) => {
     for (const unitType of unitsByUpgradeType[upgradeType]) {
       if (memo[unitType]) {
-        memo[unitType].push(upgradeType);
+        memo[unitType].push(Number(upgradeType));
       } else {
-        memo[unitType] = [upgradeType];
+        memo[unitType] = [Number(upgradeType)];
       }
     }
     return memo;
@@ -221,9 +221,9 @@ export const techTypesByUnitType = Object.keys(unitsByTechType).reduce(
   (memo, techType) => {
     for (const unitType of unitsByTechType[techType]) {
       if (memo[unitType]) {
-        memo[unitType].push(techType);
+        memo[unitType].push(Number(techType));
       } else {
-        memo[unitType] = [techType];
+        memo[unitType] = [Number(techType)];
       }
     }
     return memo;

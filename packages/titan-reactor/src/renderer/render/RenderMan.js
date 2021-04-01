@@ -38,14 +38,9 @@ class RenderMan {
     this.renderer = null;
   }
 
-  setShadowLevel(shadowLevel) {
-    const shadowLevels = [null, BasicShadowMap, PCFShadowMap, PCFSoftShadowMap];
-    if (shadowLevel) {
-      this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = shadowLevels[shadowLevel];
-    } else {
-      this.renderer.shadowMap.enabled = false;
-    }
+  setShadowLevel() {
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
   }
 
   setSize(width, height) {
@@ -221,7 +216,7 @@ class RenderMan {
     }
 
     this.renderer = this._initRenderer();
-    this.setShadowLevel(this.settings.shadows);
+    this.setShadowLevel();
 
     await this._initPostProcessing(camera);
 

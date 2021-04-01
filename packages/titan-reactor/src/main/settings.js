@@ -155,8 +155,7 @@ export class Settings extends EventEmitter {
       version: VERSION,
       renderMode: RenderMode.HD,
       maxAutoReplaySpeed: 1,
-      alwaysHideReplayControls: true,
-      startPaused: false,
+      alwaysHideReplayControls: false,
       language: supportedLanguages.includes(getEnvLocale())
         ? getEnvLocale()
         : "en-US",
@@ -173,7 +172,6 @@ export class Settings extends EventEmitter {
       anisotropy: 1,
       pixelRatio: 1,
       gamma: 1.2,
-      shadows: ShadowLevel.High,
       keyPanSpeed: 0.5,
       twitch: "",
       producerWindowPosition: ProducerWindowPosition.None,
@@ -183,7 +181,6 @@ export class Settings extends EventEmitter {
       enablePlayerScores: true,
       esportsHud: true,
       embedProduction: true,
-      showTooltips: true,
       cameraShake: 1,
       mapsRss: "",
       replaysRss: "",

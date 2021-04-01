@@ -127,6 +127,7 @@ const PlayerResources = ({
         marginRight: dimensions.width <= 1200 ? "72px" : "112px",
       }
     : {
+        color: color.hex,
         opacity: playerVision[id] ? 1 : 0.5,
         marginRight: "0",
       };
