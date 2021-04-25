@@ -14,6 +14,7 @@ const useLoadingStore = create((set) => ({
     set((state) => ({ rep: { ...state.rep, loaded: true, loading: false } })),
   completeChk: () =>
     set((state) => ({ chk: { ...state.chk, loaded: true, loading: false } })),
+  reset: () => set({ chk: {}, rep: {} }),
   complete: false,
   preloaded: false,
   initialized: false,

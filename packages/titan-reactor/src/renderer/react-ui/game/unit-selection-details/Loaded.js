@@ -4,7 +4,7 @@ import SmallUnitItem from "./SmallUnitItem";
 
 export default forwardRef(({ unit }, ref) => {
   return (
-    <div className="flex pl-1 pt-1" ref={ref}>
+    <div className="flex pl-1 pt-1 hidden" ref={ref}>
       <div
         style={{
           display: "grid",

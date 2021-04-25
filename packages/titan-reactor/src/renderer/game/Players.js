@@ -110,13 +110,4 @@ export class Players extends Array {
   static get [Symbol.species]() {
     return Array;
   }
-
-  updateResources(game) {
-    this[0].supply = game.supplyTaken[0];
-    this[1].supply = game.supplyTaken[1];
-    this[0].supplyMax = game.supplyProvided[0];
-    this[1].supplyMax = game.supplyProvided[1];
-    this[0].workers = game.getWorkerCount(0);
-    this[1].workers = game.getWorkerCount(1);
-  }
 }

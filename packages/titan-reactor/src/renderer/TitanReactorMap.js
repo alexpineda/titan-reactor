@@ -1,6 +1,5 @@
 // playground for environment
 import * as THREE from "three";
-import { easeQuadInOut } from "d3-ease";
 
 import { EnvironmentOptionsGui } from "./terrain/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
@@ -10,9 +9,11 @@ import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./terrain/lights";
 import FogOfWar from "./game/fogofwar/FogOfWar";
+import InputEvents from "./input/InputEvents";
 
 import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
 import useSettingsStore from "./stores/settingsStore";
+import useHudStore from "./stores/hudStore";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -35,6 +36,9 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
 
+  const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
+  keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
+
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
@@ -46,9 +50,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     null,
     null,
     keyboardShortcuts,
-    false
+    true
   );
   window.cameras = cameras;
+  window.document.body.style.cursor = "none";
 
   const renderMan = new RenderMan(settings, isDev);
   await renderMan.initRenderer(cameras.camera);
@@ -265,8 +270,12 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   window.scene = scene;
 
+  gui.dispose();
+
   const dispose = () => {
     console.log("disposing");
+    window.document.body.style.cursor = "auto";
+
     renderMan.renderer.setAnimationLoop(null);
     running = false;
 
@@ -274,8 +283,14 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
     cameras.dispose();
     renderMan.dispose();
+
+    keyboardShortcuts.removeEventListener(
+      InputEvents.ToggleMenu,
+      toggleMenuHandler
+    );
+
     keyboardShortcuts.dispose();
-    gui.dispose();
+    // gui.dispose();
   };
 
   return {

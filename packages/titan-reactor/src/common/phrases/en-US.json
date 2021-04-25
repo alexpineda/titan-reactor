@@ -5,6 +5,8 @@
     "MENU_CREDITS": "Credits",
     "MENU_LEGAL": "Legal",
     "MENU_EXIT": "Exit",
+    "OPEN_REPLAY": "Open Replay",
+    "OPEN_MAP": "Open Map",
 
     "MENU_RETURN_TO_GAME": "Return to Game",
     "MENU_BACK_TO_MAIN_MENU": "Back to Main Menu",

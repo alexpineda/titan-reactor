@@ -47,8 +47,8 @@ export default ({ unit }) => {
 
   return (
     <div className="flex flex-col relative w-full">
-      <div className="flex">
-        <Name unit={unit} className="pt-1 pl-3" />
+      <div className="flex items-center pt-1 pl-3">
+        <Name unit={unit} />
         <Upgrades unit={unit} />
       </div>
       <div className="flex">

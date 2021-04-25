@@ -4,7 +4,6 @@ import { GameStatePosition } from "./game/GameStatePosition";
 import {
   gameSpeeds,
   pxToMapMeter,
-  onFastestTick,
 } from "titan-reactor-shared/utils/conversions";
 import HeatmapScore from "./react-ui/game/HeatmapScore";
 import Cameras from "./camera/Cameras";
@@ -182,19 +181,20 @@ async function TitanReactorGame(
   //#endregion mouse listener
 
   //#region hud ui
-  keyboardShortcuts.addEventListener(InputEvents.TogglePlay, () =>
-    gameStatePosition.togglePlay()
-  );
-  keyboardShortcuts.addEventListener(
-    InputEvents.ToggleGrid,
-    () => (scene.gridHelper.visible = !scene.gridHelper.visible)
-  );
-  keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, () =>
-    useHudStore.getState().toggleInGameMenu()
-  );
+  const togglePlayHandler = () => gameStatePosition.togglePlay();
+  keyboardShortcuts.addEventListener(InputEvents.TogglePlay, togglePlayHandler);
+
+  const toggleGridHandler = () =>
+    (scene.gridHelper.visible = !scene.gridHelper.visible);
+  keyboardShortcuts.addEventListener(InputEvents.ToggleGrid, toggleGridHandler);
+
+  const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
+  keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
+
+  const toggleElevationHandler = scene.toggleElevation;
   keyboardShortcuts.addEventListener(
     InputEvents.ToggleElevation,
-    scene.toggleElevation
+    toggleElevationHandler
   );
 
   const hudData = {
@@ -574,6 +574,23 @@ async function TitanReactorGame(
     minimapControl.dispose();
     scene.dispose();
     cameras.dispose();
+
+    keyboardShortcuts.removeEventListener(
+      InputEvents.TogglePlay,
+      togglePlayHandler
+    );
+    keyboardShortcuts.removeEventListener(
+      InputEvents.ToggleGrid,
+      toggleGridHandler
+    );
+    keyboardShortcuts.removeEventListener(
+      InputEvents.ToggleMenu,
+      toggleMenuHandler
+    );
+    keyboardShortcuts.removeEventListener(
+      InputEvents.ToggleElevation,
+      toggleElevationHandler
+    );
 
     keyboardShortcuts.dispose();
     document.removeEventListener("keydown", _keyDown);

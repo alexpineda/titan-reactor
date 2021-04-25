@@ -3,7 +3,7 @@ import { MenuItem } from "../components/MenuItem";
 import Options, { Tabs } from "../home/Options";
 import useSettingsStore from "../../stores/settingsStore";
 
-const Menu = ({ onClose, onBackToMainMenu }) => {
+const Menu = ({ onClose, onBackToMainMenu, onOpenReplay, onOpenMap }) => {
   const [showOptions, setShowOptions] = useState(false);
   const phrases = useSettingsStore((state) => state.phrases);
 
@@ -15,6 +15,8 @@ const Menu = ({ onClose, onBackToMainMenu }) => {
       {!showOptions && (
         <ul style={{ marginTop: "-20vh" }}>
           <MenuItem label={phrases["MENU_RETURN_TO_GAME"]} onClick={onClose} />
+          <MenuItem label={phrases["OPEN_REPLAY"]} onClick={onOpenReplay} />
+          <MenuItem label={phrases["OPEN_MAP"]} onClick={onOpenMap} />
 
           <MenuItem
             label={phrases["MENU_OPTIONS"]}

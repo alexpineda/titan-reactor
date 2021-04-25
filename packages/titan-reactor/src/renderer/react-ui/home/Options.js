@@ -68,35 +68,31 @@ export default ({
             label={phrases["SETTINGS_SETUP"]}
           />
         )}
-
         <TabSelector
           activeTab={tab}
           tab={Tabs.Layout}
           setTab={setTab}
           label={phrases["SETTINGS_LAYOUT"]}
         />
-
         <TabSelector
           activeTab={tab}
           tab={Tabs.Audio}
           setTab={setTab}
           label={phrases["SETTINGS_AUDIO"]}
         />
-
         <TabSelector
           activeTab={tab}
           tab={Tabs.Graphics}
           setTab={setTab}
           label={phrases["SETTINGS_GRAPHICS"]}
         />
-
-        <TabSelector
+        {/* <TabSelector
           activeTab={tab}
           tab={Tabs.Producer}
           setTab={setTab}
-          label={phrases["SETTINGS_PRODUCER"]}
-        />
-        <TabSelector
+          label={phrases["SETTINGS_PRODUCER"]} 
+        />*/}
+        {/* <TabSelector
           activeTab={tab}
           tab={Tabs.Camera}
           setTab={setTab}
@@ -107,7 +103,7 @@ export default ({
           tab={Tabs.Community}
           setTab={setTab}
           label={phrases["SETTINGS_COMMUNITY_MAPS_AND_REPLAYS"]}
-        />
+        /> */}
       </ul>
 
       <Tab tabName={Tabs.Setup} activeTab={tab}>
@@ -160,7 +156,7 @@ export default ({
             />
           </Option>
 
-          <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+          {/* <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
             <PathSelect
               prop={"communityModelsPath"}
               phrases={phrases}
@@ -168,7 +164,7 @@ export default ({
               settings={settings}
               selectFolder={selectFolder}
             />
-          </Option>
+          </Option> */}
         </Visible>
       </Tab>
 
@@ -358,13 +354,14 @@ export default ({
                 ProducerWindowPosition.DockRight
               }
               label={"Right"}
+              last
               onClick={() =>
                 save({
                   producerWindowPosition: ProducerWindowPosition.DockRight,
                 })
               }
             />
-            <ButtonSet
+            {/* <ButtonSet
               selected={
                 settings.producerWindowPosition ===
                 ProducerWindowPosition.PopOut
@@ -376,7 +373,7 @@ export default ({
                   producerWindowPosition: ProducerWindowPosition.PopOut,
                 })
               }
-            />
+            /> */}
           </ButtonSetContainer>
         </Option>
 
@@ -462,28 +459,6 @@ export default ({
       </Tab>
 
       <Tab tabName={Tabs.Graphics} activeTab={tab}>
-        {/* <Option label={phrases["SETTINGS_GRAPHICS_RENDER_MODE"]}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={settings.renderMode === RenderMode.SD}
-              label={"SD"}
-              first
-              onClick={() => save({ renderMode: RenderMode.SD })}
-            />
-            <ButtonSet
-              selected={settings.renderMode === RenderMode.HD}
-              label={"HD"}
-              onClick={() => save({ renderMode: RenderMode.HD })}
-            />
-            <ButtonSet
-              selected={settings.renderMode === RenderMode.ThreeD}
-              label={"3D"}
-              last
-              onClick={() => save({ renderMode: RenderMode.ThreeD })}
-            />
-          </ButtonSetContainer>
-        </Option> */}
-
         <Option
           label={phrases["SETTINGS_GRAPHICS_FULLSCREEN"]}
           toggle={
@@ -498,7 +473,7 @@ export default ({
           }
         />
 
-        <Option
+        {/* <Option
           label={phrases["SETTINGS_GRAPHICS_GAMMA"]}
           value={settings.gamma}
         >
@@ -571,25 +546,7 @@ export default ({
               }
             />
           }
-        />
-
-        {/* <Option
-          label={lang["SETTINGS_GRAPHICS_ANISOTROPY"]}
-          value={settings.anisotropy}
-        >
-          <input
-            type="range"
-            min="0"
-            max={settings.maxAnisotropy}
-            step="1"
-            value={settings.anisotropy}
-            onChange={(evt) => {
-              updateSettings({
-                anisotropy: Number(evt.target.value),
-              });
-            }}
-          />
-        </Option> */}
+        /> */}
       </Tab>
 
       <Tab tabName={Tabs.Integrations} activeTab={tab}>

@@ -1,5 +1,8 @@
 import React from "react";
 import shallow from "zustand/shallow";
+import { ipcRenderer } from "electron";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
+
 import WrappedElement from "./WrappedElement";
 import Minimap from "./game/Minimap";
 import StandAloneProductionBar from "./game/production/StandAloneProductionBar";
@@ -15,49 +18,53 @@ import { ProducerWindowPosition } from "common/settings";
 import useGameStore from "../stores/gameStore";
 import useSettingsStore from "../stores/settingsStore";
 import useHudStore from "../stores/hudStore";
+import useLoadingStore from "../stores/loadingStore";
+
+const gameStoreSelector = (state) => ({
+  dimensions: state.dimensions,
+  canvas: state.game.surface.canvas,
+  selectedUnits: state.selectedUnits,
+});
+
+const hudStoreSelector = (state) => ({
+  showFps: state.show.fps,
+  showInGameMenu: state.show.inGameMenu,
+  toggleInGameMenu: state.toggleInGameMenu,
+  showReplayControls: state.show.replayControls,
+  showUnitSelection: state.show.unitSelection,
+});
+
+const settingsStoreSelector = (state) => ({
+  esportsHud: state.data.esportsHud,
+  producerWindowPosition: state.data.producerWindowPosition,
+  alwaysHideReplayControls: state.data.alwaysHideReplayControls,
+  embedProduction: state.data.embedProduction,
+  mapsPath: state.data.mapsPath,
+  replaysPath: state.data.replaysPath,
+});
 
 const Game = () => {
-  const { dimensions, canvas } = useGameStore(
-    (state) => ({
-      dimensions: state.dimensions,
-      canvas: state.game.surface.canvas,
-    }),
+  const { dimensions, canvas, selectedUnits } = useGameStore(
+    gameStoreSelector,
     shallow
   );
-
-  const selectedUnits = useGameStore((state) => state.selectedUnits, shallow);
-
+  const resetLoadingStore = useLoadingStore((state) => state.reset);
   const {
     showFps,
     showInGameMenu,
     toggleInGameMenu,
     showReplayControls,
     showUnitSelection,
-  } = useHudStore(
-    (state) => ({
-      showFps: state.show.fps,
-      showInGameMenu: state.show.inGameMenu,
-      toggleInGameMenu: state.toggleInGameMenu,
-      showReplayControls: state.show.replayControls,
-      showUnitSelection: state.show.unitSelection,
-    }),
-    shallow
-  );
+  } = useHudStore(hudStoreSelector, shallow);
 
   const {
     esportsHud,
     producerWindowPosition,
     alwaysHideReplayControls,
     embedProduction,
-  } = useSettingsStore(
-    (state) => ({
-      esportsHud: state.data.esportsHud,
-      producerWindowPosition: state.data.producerWindowPosition,
-      alwaysHideReplayControls: state.data.alwaysHideReplayControls,
-      embedProduction: state.data.embedProduction,
-    }),
-    shallow
-  );
+    mapsPath,
+    replaysPath,
+  } = useSettingsStore(settingsStoreSelector, shallow);
 
   return (
     <>
@@ -74,7 +81,21 @@ const Game = () => {
       {producerWindowPosition != ProducerWindowPosition.None && <ProducerBar />}
 
       {showInGameMenu && (
-        <Menu onClose={() => toggleInGameMenu()} onBackToMainMenu={() => {}} />
+        <Menu
+          onClose={() => toggleInGameMenu()}
+          onBackToMainMenu={() => {
+            toggleInGameMenu();
+            resetLoadingStore();
+          }}
+          onOpenMap={() => {
+            toggleInGameMenu();
+            ipcRenderer.send(OPEN_MAP_DIALOG, mapsPath);
+          }}
+          onOpenReplay={() => {
+            toggleInGameMenu();
+            ipcRenderer.send(OPEN_REPLAY_DIALOG, replaysPath);
+          }}
+        />
       )}
       {(!esportsHud || !embedProduction) && <StandAloneProductionBar />}
       <Visible visible={!esportsHud}>

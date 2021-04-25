@@ -321,7 +321,7 @@ const ReplayPosition = ({ className }) => {
                 </i>
               </span>
 
-              <span
+              {/* <span
                 className={`rounded-full flex items-center justify-center  ${
                   autoSpeed ? "bg-yellow-800" : "bg-yellow-900"
                 }`}
@@ -342,7 +342,7 @@ const ReplayPosition = ({ className }) => {
                 >
                   rotate_right
                 </i>
-              </span>
+              </span> */}
             </div>
           </div>
         </article>
