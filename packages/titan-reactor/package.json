@@ -39,16 +39,21 @@
     }
   },
   "build": {
+    "appId": "imbateam.titan-reactor",
+    "productName": "Titan Reactor",
+    "mac": {
+      "category": "starcraft replay viewer"
+    },
     "extraResources": [
       {
-        "from": "data",
-        "to": "data"
+        "from": "static",
+        "to": "static"
       }
     ]
   },
+  
   "dependencies": {
     "@eliasku/binpack": "^1.0.1",
-    "@reduxjs/toolkit": "^1.5.0",
     "bl": "^4.0.3",
     "buffer": "^5.6.0",
     "bw-chk-modified": "1.2.1",
@@ -58,6 +63,7 @@
     "d3-ease": "1.0.6",
     "dat.gui": "0.7.7",
     "downgrade-replay": "^1.0.0",
+    "electron-devtools-installer": "^3.2.0",
     "electron-is-dev": "^1.2.0",
     "esm": "^3.2.25",
     "hold-event": "^0.0.1",
@@ -72,19 +78,14 @@
     "ramda": "0.27.0",
     "react": "17.0.1",
     "react-autosuggest": "^10.0.4",
-    "react-circle": "^1.1.1",
     "react-color": "^2.19.3",
     "react-dom": "17.0.1",
     "react-dropzone": "^11.2.0",
-    "react-pie-menu": "^0.2.5",
     "react-tooltip": "^4.2.17",
     "rss-parser": "^3.9.0",
     "sanitize-filename": "^1.6.3",
     "scm-extractor": "^1.0.6",
     "sparkly": "^5.0.0",
-    "styled-components": "^5.2.1",
-    "superagent": "^6.1.0",
-    "superquad": "^1.2.2",
     "three": "0.125.2",
     "titan-reactor-shared": "^1.0.0",
     "typescript": "^4.0.3",
@@ -101,7 +102,6 @@
     "dotenv": "^8.2.0",
     "electron": "^10.1.2",
     "electron-builder": "^22.8.1",
-    "electron-devtools-installer": "^3.1.1",
     "electron-webpack": "^2.8.2",
     "eslint": "^7.16.0",
     "eslint-config-airbnb": "^18.2.1",
@@ -112,8 +112,6 @@
     "jest": "^26.4.2",
     "parcel-plugin-static-files-copy": "^2.5.0",
     "source-map-support": "^0.5.19",
-    "styled-components": "^5.2.1",
-    "tailwind-styled-components": "^1.0.7",
     "worker-loader": "^2.0.0"
   }
 }

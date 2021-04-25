@@ -47,6 +47,7 @@ export default class MouseCursor {
     }, 250);
 
     const style = document.createElement("style");
+    style.id = "cursor-styles";
     document.head.appendChild(style);
     style.appendChild(
       document.createTextNode(`
@@ -446,7 +447,8 @@ export default class MouseCursor {
 
   dispose() {
     clearInterval(this._interval);
-    window.document.body.style.cursor = "default";
+    window.document.body.style.cursor = null;
+    window.document.getElementById("cursor-styles").remove();
     this._dispose();
   }
 }

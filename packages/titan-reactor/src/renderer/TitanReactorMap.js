@@ -274,7 +274,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   const dispose = () => {
     console.log("disposing");
-    window.document.body.style.cursor = "auto";
+    window.document.body.style.cursor = null;
 
     renderMan.renderer.setAnimationLoop(null);
     running = false;

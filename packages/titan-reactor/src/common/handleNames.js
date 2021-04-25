@@ -2,6 +2,7 @@ export const GET_APPCACHE_PATH = "getAppCachePath";
 export const OPEN_FILE = "openFile";
 export const OPEN_MAP_DIALOG = "OPEN_MAP_DIALOG";
 export const OPEN_REPLAY_DIALOG = "OPEN_REPLAY_DIALOG";
+export const OPEN_DEMO_REPLAY = "OPEN_DEMO_REPLAY";
 export const LOAD_ALL_DATA_FILES = "loadAllDataFiles";
 export const GET_SETTINGS = "GET_SETTINGS";
 export const SET_SETTINGS = "SET_SETTINGS";

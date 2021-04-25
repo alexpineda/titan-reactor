@@ -32,9 +32,8 @@ OverrideMaterialManager.workaroundEnabled = true;
 const log = () => {};
 
 class RenderMan {
-  constructor(settings, isDev) {
+  constructor(settings) {
     this.settings = settings;
-    this.isDev = isDev;
     this.renderer = null;
   }
 
@@ -204,7 +203,7 @@ class RenderMan {
     renderer.outputEncoding = sRGBEncoding;
     renderer.dithering = false;
 
-    // renderer.debug.checkShaderErrors = this.isDev;
+    renderer.debug.checkShaderErrors = false;
 
     return renderer;
   }

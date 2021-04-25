@@ -5,9 +5,9 @@ Titan Reactor is a custom replay viewer for Starcraft and may only be utilized w
 [Join our Discord](http://discord.imbateam.gg/)
 
 ### Requirements
-A purchased copy of Starcraft
-Microsoft Windows
-Suggested 8GB Ram & VRam
+- A purchased copy of Starcraft
+- Microsoft Windows
+- Suggested 8GB Ram & VRam
 
 ### Development Installation
 
@@ -17,9 +17,11 @@ for titan reactor
 
 `yarn workspace titan-reactor dev`
 
-  or for iscriptah *(iscript animation viewer)*
+you will also need openbw-bridge.exe which is included in static directory for you and can also be built (see https://github.com/imbateam-gg/ChkForge).
+
+or for iscriptah *(iscript animation viewer)*
   
-  `yarn workspace iscriptah dev`
+`yarn workspace iscriptah dev`
 
 ### Controls
 #### Replay Viewer
@@ -28,9 +30,9 @@ for titan reactor
 - Camera hotkeys - Numpad 0 - 9
 - Menu - F10
 - Minimap
--- Cut - Left click
--- Pan - Left click hold
--- Slow pan - Shift + Left click hold
+    * Cut - Left click
+    * Pan - Left click hold
+    * Slow pan - Shift + Left click hold
 - Pause - P
 - Full Screen - F11
 
@@ -55,6 +57,7 @@ I'm looking for contributors. Please send me a message on discord or feel free t
 - Improving how rendering is done for regular HD sprites since currently there is no depth testing in order to draw in the same order as BW.
 - Optimizing GLTF loading for battle cam transition.
 - Improvements on terrain and general aesthetics always welcome.
+- Bundling, auto-update, etc.
 - Camera improvements, etc. etc.. Check the roadmap for more.
 
   [Further Roadmap](https://trello.com/b/ieI76i1Z/titan-reactor-roadmap)

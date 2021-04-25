@@ -57,7 +57,7 @@ export const LoadingOverlay = ({ chk, rep }) => {
         bottom: "0",
         justifyContent: "center",
         alignItems: "center",
-        background: "rgba(0,0,0,0.9)",
+        background: "black",
         display: "flex",
       }}
     >

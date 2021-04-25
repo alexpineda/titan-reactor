@@ -3,7 +3,11 @@ import Options from "./Options";
 import Maps from "./Maps";
 import Replays from "./Replays";
 import { ipcRenderer } from "electron";
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
+import {
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+  OPEN_DEMO_REPLAY,
+} from "common/handleNames";
 import { MenuItem } from "../components/MenuItem";
 import { exit } from "../../invoke";
 import useSettingsStore from "../../stores/settingsStore";
@@ -40,13 +44,10 @@ const Home = () => {
         <div className="w-1/4 flex-col-reverse flex">
           <ul className="mt-auto">
             <MenuItem
-              label={phrases["OPEN_MAP"]}
+              label={phrases["OPEN_DEMO_REPLAY"]}
               disabled={errors.includes("starcraftPath")}
-              onClick={() =>
-                ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
-              }
+              onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
             />
-
             <MenuItem
               label={phrases["OPEN_REPLAY"]}
               disabled={errors.includes("starcraftPath")}
@@ -54,6 +55,14 @@ const Home = () => {
                 ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
               }
             />
+            <MenuItem
+              label={phrases["OPEN_MAP"]}
+              disabled={errors.includes("starcraftPath")}
+              onClick={() =>
+                ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
+              }
+            />
+
             {/* 
             <MenuItem
               label={phrases["MENU_MAPS"]}

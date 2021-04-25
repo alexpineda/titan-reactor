@@ -75,7 +75,7 @@ export class Players extends Array {
       if (useCustom) {
         this[i].color = this.customColors[i];
       } else {
-        this[i].color = this.originalColor;
+        this[i].color = this[i].originalColor;
       }
     }
     this.injectColorsCss();

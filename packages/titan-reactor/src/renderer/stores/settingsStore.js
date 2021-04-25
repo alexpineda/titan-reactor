@@ -7,6 +7,7 @@ const useSettingsStore = create((set, get) => ({
   save: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
     await saveSettings(get().data);
+    set(await getSettings());
   },
   load: async () => {
     set(await getSettings());

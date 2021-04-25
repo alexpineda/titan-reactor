@@ -10,6 +10,7 @@ import {
 } from "electron";
 import isDev from "electron-is-dev";
 import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
+import { format as formatUrl } from "url";
 import { openFileBinary } from "titan-reactor-shared/utils/fs";
 import path from "path";
 import Parser from "rss-parser";
@@ -30,9 +31,9 @@ import {
   SETTINGS_CHANGED,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
+  OPEN_DEMO_REPLAY,
   LOG_MESSAGE,
   EXIT,
-  SET_WEBGL_CAPABILITIES,
   GET_RSS_FEED,
   LOAD_REPLAY_FROM_FILE,
   REQUEST_NEXT_FRAMES,
@@ -70,11 +71,12 @@ function createWindow() {
       enableWebSQL: false,
       // contextIsolation: true,
       // worldSafeExecuteJavaScript: true,
-      // enableRemoteModule: false
+      enableRemoteModule: true,
     },
   });
   gameWindow.maximize();
   gameWindow.autoHideMenuBar = true;
+  gameWindow.removeMenu();
 
   if (isDev) {
     gameWindow.webContents.openDevTools();
@@ -143,12 +145,6 @@ if (gotTheLock) {
       return newSettings;
     });
 
-    // ipcMain.handle(SET_WEBGL_CAPABILITIES, async (event, webGLCapabilities) => {
-    //   await settings.init(webGLCapabilities);
-    //   const s = await settings.get();
-    //   updateFullScreen(s.data.fullscreen);
-    // });
-
     ipcMain.handle(
       LOAD_REPLAY_FROM_FILE,
       async (event, repFile, outFile, starcraftPath) => {
@@ -171,9 +167,11 @@ if (gotTheLock) {
       gameStateReader = null;
     });
 
-    installExtension(REDUX_DEVTOOLS)
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log("An error occurred: ", err));
+    if (isDev) {
+      installExtension(REDUX_DEVTOOLS)
+        .then((name) => console.log(`Added Extension:  ${name}`))
+        .catch((err) => console.log("An error occurred: ", err));
+    }
 
     createWindow();
   });
@@ -285,31 +283,10 @@ if (gotTheLock) {
       ]),
     },
     {
-      label: "Edit",
-      submenu: [
-        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-        { type: "separator" },
-        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-        {
-          label: "Select All",
-          accelerator: "CmdOrCtrl+A",
-          selector: "selectAll:",
-        },
-      ],
-    },
-    {
       label: "View",
       submenu: [
         { role: "reload" },
-        { role: "forcereload" },
         { role: "toggledevtools" },
-        { type: "separator" },
-        { role: "resetzoom" },
-        { role: "zoomin" },
-        { role: "zoomout" },
         { type: "separator" },
         { role: "togglefullscreen" },
       ],
@@ -318,7 +295,6 @@ if (gotTheLock) {
       label: "Window",
       submenu: [
         { role: "minimize" },
-        { role: "zoom" },
         ...(isMac
           ? [
               { type: "separator" },
@@ -335,7 +311,13 @@ if (gotTheLock) {
         {
           label: "Learn More",
           click: async () => {
-            await shell.openExternal("https://electronjs.org");
+            await shell.openExternal("http://imbateam.gg");
+          },
+        },
+        {
+          label: "Join Our Discord",
+          click: async () => {
+            await shell.openExternal("http://discord.imbateam.gg");
           },
         },
       ],
@@ -371,6 +353,10 @@ if (gotTheLock) {
 
   ipcMain.on(OPEN_REPLAY_DIALOG, async (event, defaultPath = "") => {
     showOpenReplay(defaultPath);
+  });
+
+  ipcMain.on(OPEN_DEMO_REPLAY, async (event, defaultPath = "") => {
+    gameWindow.webContents.send(OPEN_REPLAY_DIALOG, [`${__static}/demo.rep`]);
   });
 
   ipcMain.on(LOG_MESSAGE, (event, { level, message }) => {

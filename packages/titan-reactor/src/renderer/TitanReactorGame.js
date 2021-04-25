@@ -597,7 +597,7 @@ async function TitanReactorGame(
     document.removeEventListener("keyup", _keyUp);
     cameras.control.removeEventListener("sleep", _controlSleep);
 
-    window.document.body.style.cursor = "default";
+    window.document.body.style.cursor = null;
 
     gameStateReader.dispose();
     unsubs.forEach((unsubscribe) => unsubscribe());
