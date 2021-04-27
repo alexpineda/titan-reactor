@@ -76,7 +76,7 @@ function createWindow() {
   });
   gameWindow.maximize();
   gameWindow.autoHideMenuBar = true;
-  gameWindow.removeMenu();
+  // gameWindow.removeMenu();
 
   if (isDev) {
     gameWindow.webContents.openDevTools();

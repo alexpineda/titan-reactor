@@ -64,7 +64,7 @@ export class TitanReactor {
     const settings = useSettingsStore.getState().data;
 
     //@todo move parsing to renderer so I don't have to reassign shit
-    log("loading DAT and ISCRIPT files");
+    console.log("loading DAT and ISCRIPT files");
     openStorage(settings.starcraftPath);
 
     const origBwDat = await loadAllDataFiles(readBwFile);
@@ -74,10 +74,12 @@ export class TitanReactor {
     };
     window.bwDat = this.bwDat;
 
+    console.log("loading env map");
     const renderer = new WebGLRenderer();
     // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
     renderer.dispose();
 
+    console.log("initializing atlas preloader");
     this.atlasPreloader = new AtlasPreloader(
       this.bwDat,
       settings.communityModelsPath,
@@ -96,10 +98,12 @@ export class TitanReactor {
       this.atlases
     );
 
+    console.log("initializing atlas preloader 2");
     await this.atlasPreloader.init(0);
     SelectionCircle.prototype.selectionCirclesHD = this.atlasPreloader.selectionCirclesHD;
     ContiguousContainer.prototype.bwDat = this.bwDat;
 
+    console.log("preloading complete");
     useLoadingStore.setState({ preloaded: true });
   }
 
@@ -118,15 +122,15 @@ export class TitanReactor {
 
     this.filename = filepath;
 
-    log(`loading replay ${filepath}`);
-    log("disposing previous replay resources");
+    console.log(`loading replay ${filepath}`);
+    console.log("disposing previous replay resources");
     this.game && this.game.dispose();
 
     const settings = useSettingsStore.getState().data;
     const loadingStore = useLoadingStore.getState();
     loadingStore.initRep(filepath);
 
-    log("parsing replay");
+    console.log("parsing replay");
     const repBin = await openFile(filepath);
     let repFile = filepath;
     const outFile = path.join(remote.app.getPath("temp"), "replay.out");
@@ -149,17 +153,19 @@ export class TitanReactor {
 
     loadingStore.updateRep(pick(["header"], this.rep));
 
-    log("loading chk");
+    console.log("loading chk");
     this.chk = new Chk(this.rep.chk);
     loadingStore.updateChk(pick(["title", "description"], this.chk));
-    log("showing loading overlay");
+    console.log("showing loading overlay");
 
+    console.log("preloading");
     await this.preload();
 
     document.title = "Titan Reactor - Observing";
 
     this.atlases = {};
 
+    console.log("initializing preloader with tileset");
     await this.atlasPreloader.init(this.chk.tileset, this.atlases);
 
     const imagesBW = new ImagesBW();
@@ -175,6 +181,7 @@ export class TitanReactor {
       }
     };
 
+    console.log("starting gamestate reader", repFile, outFile);
     let start = Date.now();
     const gameStateReader = new FileGameStateReader(
       repFile,
@@ -182,15 +189,18 @@ export class TitanReactor {
       settings.starcraftPath
     );
     await gameStateReader.start();
+    console.log("waiting for maxed");
+
     await gameStateReader.waitForMaxed;
 
     console.log(`initial replay frames loaded in ${Date.now() - start}`);
 
+    console.log("preloading initial frames");
     start = Date.now();
     await preloadAtlas(gameStateReader.frames.marked);
     console.log(`images preloaded in ${Date.now() - start}`);
 
-    log("initializing scene");
+    console.log("initializing scene");
     const scene = new TitanReactorScene(
       this.chk,
       settings.anisotropy,
@@ -202,6 +212,7 @@ export class TitanReactor {
       ? ["terran", "zerg", "protoss"]
       : uniq(this.rep.header.players.map(({ race }) => race));
 
+    console.log("initializing audio");
     const audioMaster = new AudioMaster(
       (id) => readBwFile(`sound/${this.bwDat.sounds[id].file}`),
       settings.audioPanningStyle,
@@ -210,7 +221,7 @@ export class TitanReactor {
     audioMaster.musicVolume = settings.musicVolume;
     audioMaster.soundVolume = settings.soundVolume;
 
-    log("initializing replay");
+    console.log("initializing replay");
     this.game = await TitanReactorGame(
       scene,
       this.chk,
@@ -230,6 +241,7 @@ export class TitanReactor {
     useGameStore.setState({ game: this.game });
     loadingStore.completeRep();
 
+    console.log("starting replay");
     this.game.start();
   }
 

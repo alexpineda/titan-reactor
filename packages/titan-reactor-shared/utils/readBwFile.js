@@ -1,14 +1,23 @@
 import * as casclib from "casclib";
 
 let _storageHandle;
+let _lastBwPath;
 
 export default (filePath) => {
-  return casclib.readFile(_storageHandle, filePath);
+  try {
+    return casclib.readFile(_storageHandle, filePath);
+  } catch (e) {
+    console.log("failed loading casc file, retrying open casc");
+    openStorage(_lastBwPath);
+    return casclib.readFile(_storageHandle, filePath);
+  }
 };
 
 export const openStorage = (bwPath) => {
+  _lastBwPath = bwPath;
+  console.log("opening CASC storage");
   if (_storageHandle) {
-    closeStorage();
+    closeStorage(_storageHandle);
   }
   _storageHandle = casclib.openStorageSync(bwPath);
 };

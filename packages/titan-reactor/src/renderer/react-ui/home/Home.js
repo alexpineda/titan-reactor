@@ -48,13 +48,13 @@ const Home = () => {
               disabled={errors.includes("starcraftPath")}
               onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
             />
-            <MenuItem
+            {/* <MenuItem
               label={phrases["OPEN_REPLAY"]}
               disabled={errors.includes("starcraftPath")}
               onClick={() =>
                 ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
               }
-            />
+            /> */}
             <MenuItem
               label={phrases["OPEN_MAP"]}
               disabled={errors.includes("starcraftPath")}

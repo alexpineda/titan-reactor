@@ -21,7 +21,9 @@ export default class FileGameStateReader extends StreamGameStateReader {
     this.file = file;
     this.outFile = outFile;
     this.bwPath = bwPath;
+
     this.openBwBridgeExePath = `${__static}/openbw-bridge.exe`;
+    console.log("openbw bridge exe path", this.openBwBridgeExePath);
     // "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
   }
 
@@ -31,11 +33,16 @@ export default class FileGameStateReader extends StreamGameStateReader {
    */
   async start(withProcess = true) {
     if (withProcess) {
+      console.log("spawning openbw-bridge process");
       this.openBwBridge = spawn(this.openBwBridgeExePath, [
         this.bwPath,
         this.file,
         this.outFile,
       ]);
+
+      this.openBwBridge.on("error", (err) => {
+        console.error("Failed to start subprocess.", err.message);
+      });
 
       this.openBwBridge.stderr.on("data", (data) => {
         console.error(`stderr: ${data}`);
@@ -47,6 +54,7 @@ export default class FileGameStateReader extends StreamGameStateReader {
             res();
           }
           this.framesWritten = data;
+          console.log("receiving data", data);
         });
       });
     }
@@ -62,6 +70,8 @@ export default class FileGameStateReader extends StreamGameStateReader {
    * @param {Function} cb
    */
   startRead(start, cb) {
+    console.log("opening read stream");
+
     this.stream = fs.createReadStream(this.outFile, {
       highWaterMark: averageFrameSize * 2,
       start,

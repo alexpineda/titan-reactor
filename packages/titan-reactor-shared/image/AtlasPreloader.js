@@ -66,12 +66,14 @@ export default class AtlasPreloader {
     this.preloadAtlas = preloadAtlas;
 
     if (!this.sdAnim) {
+      console.log("loading sd animation files");
       const buf = await this.readFile("SD/mainSD.anim");
       this.sdAnim = Anim(buf);
       this.sdAnim.buf = buf;
     }
 
     if (!this.selectionCirclesHD) {
+      console.log("loading selection circles");
       this.selectionCirclesHD = [];
       for (let i = 561; i < 571; i++) {
         const selCircleGRP = new GrpHD();
