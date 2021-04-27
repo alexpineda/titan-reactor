@@ -2,6 +2,7 @@
 
 Titan Reactor is a custom replay viewer for Starcraft and may only be utilized with assets provided by ownership of Starcraft. This is INCOMPLETE software and may not work as expected. This has been a hobby project and so improvements should continue to be slow and steady as it gets refined into a great viewer for all of us.
 
+[Website](http://imbateam.gg/)
 [Join our Discord](http://discord.imbateam.gg/)
 
 ### Requirements
