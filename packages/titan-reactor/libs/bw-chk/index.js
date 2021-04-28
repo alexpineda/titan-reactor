@@ -1036,13 +1036,16 @@ export default class Chk {
       const x = spriteData.readUInt16LE(pos + 2);
       const y = spriteData.readUInt16LE(pos + 4);
       if (x < width && y < height) {
+        const isDisabled = Boolean(spriteData.readUInt16LE(pos + 8) & 0x8000);
+
         if ((spriteData.readUInt16LE(pos + 8) & 0x1000) === 0) {
           const unitId = spriteData.readUInt16LE(pos + 0);
           const player = spriteData.readUInt8(pos + 6);
-          units.push({ x, y, unitId, player, sprite: true });
+          units.push({ x, y, unitId, player, sprite: true, isDisabled });
         } else {
           const spriteId = spriteData.readUInt16LE(pos + 0);
-          sprites.push({ x, y, spriteId });
+
+          sprites.push({ x, y, spriteId, isDisabled });
         }
       }
       pos = pos + 10;

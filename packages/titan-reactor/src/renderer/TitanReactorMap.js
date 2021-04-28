@@ -1,5 +1,7 @@
 // playground for environment
 import * as THREE from "three";
+import { debounce } from "lodash";
+import { unstable_batchedUpdates } from "react-dom";
 
 import { EnvironmentOptionsGui } from "./terrain/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
@@ -14,6 +16,8 @@ import InputEvents from "./input/InputEvents";
 import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
 import useSettingsStore from "./stores/settingsStore";
 import useHudStore from "./stores/hudStore";
+import useGameStore from "./stores/gameStore";
+import { iscriptHeaders } from "titan-reactor-shared/types/iscriptHeaders";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -57,7 +61,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   const renderMan = new RenderMan(settings, isDev);
   await renderMan.initRenderer(cameras.camera);
-  renderMan.enableCinematicPass();
+  renderMan.enableRenderPass();
   window.renderMan = renderMan;
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
@@ -102,7 +106,11 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     titanSprite.position.set(x, y, z);
 
     titanSprite.addImage(unitDat.flingy.sprite.image.index);
-    titanSprite.run(0);
+
+    titanSprite.run(
+      unit.isDisabled ? iscriptHeaders.disable : iscriptHeaders.init
+    );
+
     scene.add(titanSprite);
     sprites.push(titanSprite);
   }
@@ -117,10 +125,21 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
     titanSprite.position.set(x, y, z);
     titanSprite.addImage(spriteDat.image.index);
-    titanSprite.run(0);
+    titanSprite.run(
+      sprite.isDisabled ? iscriptHeaders.disable : iscriptHeaders.init
+    );
     scene.add(titanSprite);
     sprites.push(titanSprite);
   }
+
+  const _sceneResizeHandler = () => {
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+    renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
+
+    cameras.updateGameScreenAspect(gameSurface.width, gameSurface.height);
+  };
+  const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
+  window.addEventListener("resize", sceneResizeHandler, false);
 
   //#region camera controllers
   gui.controllers.camera.onChangeAny(({ fov, zoom, focus }) => {
@@ -275,6 +294,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const dispose = () => {
     console.log("disposing");
     window.document.body.style.cursor = null;
+    window.removeEventListener("resize", sceneResizeHandler);
 
     renderMan.renderer.setAnimationLoop(null);
     running = false;

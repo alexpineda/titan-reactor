@@ -197,7 +197,7 @@ export class Settings extends EventEmitter {
         "cce0d0",
         "fcfc38",
       ],
-      hudFontSize: "lg",
+      hudFontSize: "sm",
       minimapRatio: 25,
       replayAndUnitDetailSize: "24vw",
       fpsLimit: 200,

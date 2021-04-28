@@ -132,6 +132,7 @@ async function TitanReactorGame(
     );
   });
   players.changeColors(settings.useCustomColors);
+  console.log("players", players);
 
   const managedDomElements = new ManagedDomElements(
     bwDat,
