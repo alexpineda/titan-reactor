@@ -59,7 +59,6 @@ const App = ({
         three.bwDat,
         bwDataPath,
         (file) => fsPromises.readFile(`${bwDataPath}/${file}`),
-        three.tileset,
         () => {
           if (renderMode === "sd") {
             return new GrpSD();
@@ -70,11 +69,10 @@ const App = ({
           } else {
             throw new Error("invalid render mode");
           }
-        },
-        three.atlases
+        }
       );
 
-      await atlasLoader.init();
+      await atlasLoader.init(three.tileset, three.atlases);
 
       for (let imageId of imageIds) {
         await atlasLoader.load(imageId);

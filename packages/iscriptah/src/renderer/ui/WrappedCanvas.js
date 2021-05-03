@@ -10,7 +10,7 @@ export const WrappedCanvas = ({
   useEffect(() => {
     canvasRef.current.appendChild(canvas);
     return () => {
-      canvasRef.current.remove(canvas);
+      canvas.remove();
     };
   }, []);
   return (
