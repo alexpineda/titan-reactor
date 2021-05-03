@@ -23,6 +23,7 @@ export const Tabs = {
   Producer: "Producer",
   Camera: "Camera",
   Graphics: "Graphics",
+  MapViewer: "MapViewer",
   Audio: "Audio",
   Integrations: "Integrations",
   Community: "Community",
@@ -85,6 +86,12 @@ export default ({
           tab={Tabs.Graphics}
           setTab={setTab}
           label={phrases["SETTINGS_GRAPHICS"]}
+        />
+        <TabSelector
+          activeTab={tab}
+          tab={Tabs.MapViewer}
+          setTab={setTab}
+          label={phrases["SETTINGS_MAP_VIEWER"]}
         />
         {/* <TabSelector
           activeTab={tab}
@@ -403,6 +410,52 @@ export default ({
             />
           </ButtonSetContainer>
         </Option>
+      </Tab>
+
+      <Tab tabName={Tabs.MapViewer} activeTab={tab}>
+        <Option
+          label={phrases["SETTINGS_MAP_VIEWER_SHOW_DISABLED_DOODADS"]}
+          toggle={
+            <Toggle
+              value={settings.showDisabledDoodads}
+              onChange={() =>
+                save({
+                  showDisabledDoodads: !settings.showDisabledDoodads,
+                })
+              }
+            />
+          }
+        />
+
+        {/* <Option
+          label={phrases["SETTINGS_MAP_VIEWER_SHOW_MOUSE_CURSOR"]}
+          toggle={
+            <Toggle
+              value={settings.showDisabledDoodads}
+              onChange={() =>
+                save({
+                  showDisabledDoodads: !settings.showDisabledDoodads,
+                })
+              }
+            />
+          }
+        /> */}
+
+        {/* <Option
+          label={phrases["SETTINGS_MAP_VIEWER_SHOW_ELEVATIONS"]}
+          toggle={
+            <Toggle
+              value={settings.showDisabledDoodads}
+              onChange={() =>
+                save({
+                  showDisabledDoodads: !settings.showDisabledDoodads,
+                })
+              }
+            />
+          }
+        /> */}
+
+        {/** Mouse Rotate Sensitivity */}
       </Tab>
 
       <Tab tabName={Tabs.Audio} activeTab={tab}>

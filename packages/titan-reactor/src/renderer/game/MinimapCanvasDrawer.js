@@ -1,5 +1,5 @@
 /**
- * Using canvas draw operations to update minimap units, fog, resources and camera box
+ * Uses canvas draw operations to update minimap units, fog, resources and camera box
  */
 export default class MinimapCanvasDrawer {
   constructor(

@@ -110,16 +110,27 @@ class RenderMan {
     this._cinematicPass = new EffectPass(
       camera,
       this._dofEffect,
+      this.fogOfWarEffect
+      // toneMapping
+    );
+
+    this._cinematicPassWithAA = new EffectPass(
+      camera,
+      this._dofEffect,
       this.fogOfWarEffect,
       this._smaaEffect
       // toneMapping
     );
+
+    this._smaaPass = new EffectPass(camera, this._smaaEffect, toneMapping);
 
     this._passes = [
       this._renderPass,
       this._bloomPass,
       this._fogPass,
       this._cinematicPass,
+      this._cinematicPassWithAA,
+      this._smaaPass,
     ];
     this._passes.forEach((p) => this._composer.addPass(p));
 
@@ -142,6 +153,10 @@ class RenderMan {
 
   enableRenderPass() {
     this._togglePasses(this._renderPass);
+  }
+
+  enableRenderWithAAPass() {
+    this._togglePasses(this._renderPass, this._smaaPass);
   }
 
   enableCinematicPass() {

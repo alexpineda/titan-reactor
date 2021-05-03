@@ -1,7 +1,6 @@
 // playground for environment
 import * as THREE from "three";
 import { debounce } from "lodash";
-import { unstable_batchedUpdates } from "react-dom";
 
 import { EnvironmentOptionsGui } from "./terrain/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
@@ -16,7 +15,6 @@ import InputEvents from "./input/InputEvents";
 import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
 import useSettingsStore from "./stores/settingsStore";
 import useHudStore from "./stores/hudStore";
-import useGameStore from "./stores/gameStore";
 import { iscriptHeaders } from "titan-reactor-shared/types/iscriptHeaders";
 
 export const hot = module.hot ? module.hot.data : null;
@@ -43,6 +41,12 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
 
+  const toggleElevationHandler = () => scene.toggleElevation();
+  keyboardShortcuts.addEventListener(
+    InputEvents.ToggleElevation,
+    toggleElevationHandler
+  );
+
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
@@ -57,6 +61,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     true
   );
   window.cameras = cameras;
+  cameras.control.execNumpad(3);
+  cameras.control.azimuthRotateSpeed = 0.05;
+  cameras.control.polarRotateSpeed = 0.05;
+
   window.document.body.style.cursor = "none";
 
   const renderMan = new RenderMan(settings, isDev);
@@ -96,6 +104,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   let sprites = [];
 
   for (let unit of chk.units) {
+    if (unit.isDisabled && !settings.showDisabledDoodads) continue;
     const titanSprite = createTitanSprite();
     const unitDat = bwDat.units[unit.unitId];
 
@@ -125,9 +134,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
     titanSprite.position.set(x, y, z);
     titanSprite.addImage(spriteDat.image.index);
-    titanSprite.run(
-      sprite.isDisabled ? iscriptHeaders.disable : iscriptHeaders.init
-    );
+    titanSprite.run(iscriptHeaders.init);
     scene.add(titanSprite);
     sprites.push(titanSprite);
   }
@@ -140,40 +147,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
-
-  //#region camera controllers
-  gui.controllers.camera.onChangeAny(({ fov, zoom, focus }) => {
-    cameras.camera.fov = fov;
-    cameras.camera.zoom = zoom;
-    cameras.camera.focus = focus;
-
-    cameras.camera.updateProjectionMatrix();
-  });
-
-  let cameraZoom = {
-    start: 1,
-    end: 1,
-    i: 0,
-    speed: 0.1,
-    active: false,
-  };
-  //#endregion
-
-  //#region map controllers
-  gui.controllers.map.onChangeAny(
-    ({ showElevations, showWireframe, showBackgroundTerrain }) => {
-      const { terrain, bgTerrain } = scene;
-
-      if (showElevations) {
-        terrain.material.map = terrain.userData.elevationsTexture;
-      } else {
-        terrain.material.map = terrain.userData.originalMap;
-      }
-      terrain.material.wireframe = showWireframe;
-      bgTerrain.visible = showBackgroundTerrain;
-    }
-  );
-  //#endregion
 
   //#region renderer controllers
   gui.controllers.renderer.fogColor.onChange((fogColor) => {
@@ -236,17 +209,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   //#endregion
 
-  //#region
-  gui.controllers.displacementMix.show.onChange((value) => {
-    const { terrain } = scene;
-    if (value) {
-      terrain.material.map = terrain.userData.displacementMap;
-    } else {
-      terrain.material.map = terrain.userData.originalMap;
-    }
-  });
-  //#endregion
-
   let running = true;
 
   let last = 0;
@@ -262,7 +224,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     frameElapsed += delta;
     if (frameElapsed > 42) {
       frame++;
-      if (frame % 8 === 0) {
+      if (
+        frame % 8 === 0 &&
+        scene.terrainSD.material.userData.tileAnimationCounter !== undefined
+      ) {
         scene.terrainSD.material.userData.tileAnimationCounter.value++;
       }
       for (let sprite of sprites) {
@@ -289,10 +254,15 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   window.scene = scene;
 
-  gui.dispose();
+  // gui.dispose();
 
   const dispose = () => {
     console.log("disposing");
+
+    window.cameras = null;
+    window.scene = null;
+    window.renderMan = null;
+
     window.document.body.style.cursor = null;
     window.removeEventListener("resize", sceneResizeHandler);
 
@@ -309,8 +279,15 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
       toggleMenuHandler
     );
 
+    keyboardShortcuts.removeEventListener(
+      InputEvents.ToggleElevation,
+      toggleElevationHandler
+    );
+
+    try {
+      gui.dispose();
+    } catch (e) {}
     keyboardShortcuts.dispose();
-    // gui.dispose();
   };
 
   return {

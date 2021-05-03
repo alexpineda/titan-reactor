@@ -605,6 +605,10 @@ export const generateMesh = async (renderer, tileData) => {
     .getContext("2d")
     .drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
 
+  const elevationOptions = {
+    drawMode: { value: 1 },
+  };
+
   const elevationsMaterial = new THREE.MeshBasicMaterial({
     map,
     onBeforeCompile: function (shader) {
@@ -660,10 +664,11 @@ export const generateMesh = async (renderer, tileData) => {
       `;
 
       shader.uniforms.elevations = { value: elevationsMap };
-      shader.uniforms.drawMode = options.drawMode;
+      shader.uniforms.drawMode = elevationOptions.drawMode;
       shader.uniforms.mapTiles = { value: mapTilesMap };
     },
   });
+  elevationsMaterial.userData = elevationOptions;
 
   const geometry = createDisplacementGeometry(
     null,
@@ -678,7 +683,7 @@ export const generateMesh = async (renderer, tileData) => {
 
   const terrain = new Mesh();
   terrain.geometry = geometry;
-  terrain.material = mat;
+  terrain.material = elevationsMaterial;
   terrain.castShadow = true;
   terrain.receiveShadow = true;
   terrain.rotation.x = -Math.PI / 2;

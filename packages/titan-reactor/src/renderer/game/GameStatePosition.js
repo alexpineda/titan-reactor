@@ -6,7 +6,7 @@ import {
 import ClockMs from "titan-reactor-shared/utils/ClockMs";
 
 /**
- * Manages our time bases on bw frame times
+ * Allows for play/pause of the game and tracks game frame position
  */
 export class GameStatePosition {
   constructor(maxFrame, gameSpeed, heatMapScore) {

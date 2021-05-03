@@ -47,7 +47,7 @@ export class EnvironmentOptionsGui {
       },
     };
 
-    const stateFolder = gui.addFolder("State");
+    // const stateFolder = gui.addFolder("State");
     const scene = gui.addFolder("Scene");
     const textures = gui.addFolder("Textures");
 
@@ -86,26 +86,27 @@ export class EnvironmentOptionsGui {
     });
 
     //special state group
-    stateFolder.add(control.state, "save");
-    stateFolder.add(control.state, "load");
-    controllers["state"] = {
-      tileset: stateFolder.add(control.state, "tileset", [
-        "Badlands",
-        "Space",
-        "Installation",
-        "Ashworld",
-        "Jungle",
-        "Desert",
-        "Ice",
-        "Twilight",
-      ]),
-    };
+    // stateFolder.add(control.state, "save");
+    // stateFolder.add(control.state, "load");
+    // controllers["state"] = {
+    //   tileset: stateFolder.add(control.state, "tileset", [
+    //     "Badlands",
+    //     "Space",
+    //     "Installation",
+    //     "Ashworld",
+    //     "Jungle",
+    //     "Desert",
+    //     "Ice",
+    //     "Twilight",
+    //   ]),
+    // };
 
     // gui.show();
     this.controllers = controllers;
     this.control = control;
-    this._folders = [stateFolder, scene, textures];
+    this._folders = [scene, textures];
     this.gui = gui;
+    gui.hide();
   }
 
   async save() {

@@ -192,7 +192,7 @@ async function TitanReactorGame(
   const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
 
-  const toggleElevationHandler = scene.toggleElevation;
+  const toggleElevationHandler = () => scene.toggleElevation();
   keyboardShortcuts.addEventListener(
     InputEvents.ToggleElevation,
     toggleElevationHandler
@@ -393,7 +393,10 @@ async function TitanReactorGame(
 
       if (currentBwFrame) {
         gameStatePosition.bwGameFrame = currentBwFrame.frame;
-        if (gameStatePosition.bwGameFrame % 8 === 0) {
+        if (
+          gameStatePosition.bwGameFrame % 8 === 0 &&
+          scene.terrainSD.material.userData.tileAnimationCounter !== undefined
+        ) {
           scene.terrainSD.material.userData.tileAnimationCounter.value++;
         }
 
@@ -566,6 +569,11 @@ async function TitanReactorGame(
 
   const dispose = () => {
     console.log("disposing");
+    window.cameras = null;
+    window.scene = null;
+    window.minimapScene = null;
+    window.renderMan = null;
+
     audioMaster.dispose();
     renderMan.renderer.setAnimationLoop(null);
     renderMan.dispose();

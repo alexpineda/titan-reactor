@@ -3,6 +3,10 @@ import SelectionCircle from "./SelectionCircle";
 import SelectionBars from "./SelectionBars";
 
 const typeIds = ({ typeId }) => typeId;
+
+/**
+ * The wrapper object for a bw sprite, contains images as well as selection circles and health bars
+ */
 export default class GameSprite extends Object3D {
   constructor(index) {
     super();

@@ -71,13 +71,14 @@ export class TitanReactorScene extends Scene {
 
     const bgTerrain = Background(w, h, terrain.material.map);
 
-    if (this.renderMode === RenderMode.SD) {
-      this.add(terrain);
-      this.terrain = terrain;
-    } else {
-      this.add(terrainHD);
-      this.terrain = terrainHD;
-    }
+    // if (this.renderMode === RenderMode.SD) {
+    terrain.visible = false;
+    this.add(terrain);
+    // this.terrain = terrain;
+    // } else {
+    this.add(terrainHD);
+    this.terrain = terrainHD;
+    // }
 
     // this.add(bgTerrain);
     this.terrainSD = terrain;
@@ -92,6 +93,11 @@ export class TitanReactorScene extends Scene {
     this.displaceImageData = displaceCanvas
       .getContext("2d")
       .getImageData(0, 0, displaceCanvas.width, displaceCanvas.height);
+  }
+
+  toggleElevation() {
+    this.terrainSD.visible = !this.terrainSD.visible;
+    this.terrainHD.visible = !this.terrainHD.visible;
   }
 
   getTerrainY() {

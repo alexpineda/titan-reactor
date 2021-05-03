@@ -17,7 +17,6 @@ const canOnlySelectOne = [
 ];
 
 const setSelectedUnits = useGameStore.getState().setSelectedUnits;
-const setSelectedUnitsRealtime = useRealtimeStore.getState().setSelectedUnits;
 
 function intersectRect(r1, r2) {
   return !(
@@ -28,6 +27,9 @@ function intersectRect(r1, r2) {
   );
 }
 
+/**
+ * Manages drawing the cursor (currently css :( ) as well as unit selection logic
+ */
 export default class MouseCursor {
   constructor(arrowIcons, hoverIcons, dragIcons) {
     this.arrowIcons = arrowIcons;

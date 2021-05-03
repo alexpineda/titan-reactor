@@ -17,7 +17,7 @@
     "LAUNCH": "Launch",
 
     "SETTINGS_LANGUAGE": "Language",
-    "SETTINGS_STARCRAFT_PATH": "Starcraft Data Directory",
+    "SETTINGS_STARCRAFT_PATH": "Starcraft Directory",
     "SETTINGS_COMMUNITY_3D_MODELS_PATH": "Community 3D Models Directory",
     "SETTINGS_MAPS_PATH": "Maps Directory",
     "SETTINGS_REPLAYS_PATH": "Replays Directory",
@@ -82,5 +82,16 @@
     "BUTTON_MED": "Medium",
     "BUTTON_HIGH": "High",
     "BUTTON_SMALL": "Small",
-    "BUTTON_LARGE": "Large"
+    "BUTTON_LARGE": "Large",
+
+
+    "SETTINGS_MAP_VIEWER": "Map Viewer",
+    "SETTINGS_MAP_VIEWER_SHOW_DISABLED_DOODADS": "Show Disabled Doodads",
+    "SETTINGS_MAP_VIEWER_SHOW_MOUSE_CURSOR": "Show Mouse Cursor (C)",
+    "SETTINGS_MAP_VIEWER_SHOW_ELEVATIONS": "Show Elevations (E)",
+    "SETTINGS_MAP_VIEWER_MOUSE_ROTATE_SPEED": "Mouse Rotate Speed",
+    "SETTINGS_MAP_VIEWER_LIGHTING_CONFIGURATION": "Lighting Configuration",
+
+    "SETTINGS_GRAPHICS_3D_ENABLED": "Enable 3D Game View"
+
 }

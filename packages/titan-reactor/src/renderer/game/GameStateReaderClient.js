@@ -10,6 +10,9 @@ import {
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 import fs from "fs";
 
+/**
+ * This version is currently not used. This is the client version used for IPC with the main process, currently we use integrated node however. See StreamGameStateReader and FileGameStateReader.
+ */
 export default class GameStateReaderClient extends EventDispatcher {
   constructor(starcraftPath, minFrames = 100) {
     super();

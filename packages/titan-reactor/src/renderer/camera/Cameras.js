@@ -222,6 +222,11 @@ class Cameras {
     }
   }
 
+  updateFromSettings() {
+    // .azimuthRotateSpeed	number	1.0	Speed of azimuth rotation.
+    // .polarRotateSpeed	number	1.0	Speed of polar rotation.
+  }
+
   getTarget() {
     const target = new Vector3();
     this.control.getTarget(target);

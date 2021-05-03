@@ -108,7 +108,7 @@ class StandardCameraControls extends CameraControls {
       dampingFactor: [0.1, 0.075, 0.025],
     };
 
-    if (freeControl) return;
+    // if (freeControl) return;
 
     this.maxDistance = 200;
     this.minDistance = 15;

@@ -7,7 +7,6 @@ import {
   SpriteMaterial,
   Uniform,
   UnsignedByteType,
-  Vector2,
 } from "three";
 import getMaxEnergy from "titan-reactor-shared/dat/getMaxEnergy";
 
