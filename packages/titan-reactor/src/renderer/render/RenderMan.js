@@ -145,16 +145,20 @@ class RenderMan {
     lastPass.renderToScreen = true;
   }
 
-  enableRenderPass() {
-    this._togglePasses(this._renderPass);
+  enableRenderPass(antialias = this.settings.antialias) {
+    if (antialias) {
+      this._togglePasses(this._renderPass, this._smaaPass);
+    } else {
+      this._togglePasses(this._renderPass);
+    }
   }
 
-  enableRenderWithAAPass() {
-    this._togglePasses(this._renderPass, this._smaaPass);
-  }
-
-  enableCinematicPass() {
-    this._togglePasses(this._renderPass, this._bloomPass, this._cinematicPass);
+  enableCinematicPass(antialias = this.settings.antialias) {
+    this._togglePasses(
+      this._renderPass,
+      this._bloomPass,
+      antialias ? this._cinematicPassWithAA : this._cinematicPass
+    );
   }
 
   enableRenderFogPass() {

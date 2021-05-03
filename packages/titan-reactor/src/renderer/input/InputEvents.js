@@ -10,6 +10,7 @@ export default {
   ToggleAll: "ToggleAll",
   ToggleUnitInformation: "ToggleUnitInformation",
   ToggleElevation: "ToggleElevation",
+  ToggleCursor: "ToggleCursor",
   TruckLeft: "TruckLeft",
   TruckRight: "TruckRight",
   AzimuthLeft: "AzimuthLeft",

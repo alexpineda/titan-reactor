@@ -203,6 +203,9 @@ export class Settings extends EventEmitter {
       fpsLimit: 200,
       autoToggleProductionView: true,
       showDisabledDoodads: false,
+      showCritters: true,
+      mouseRotateSpeed: 0.1,
+      mouseDollySpeed: 0.1,
     };
   }
 }

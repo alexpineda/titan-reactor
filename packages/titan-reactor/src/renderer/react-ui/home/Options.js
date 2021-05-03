@@ -427,35 +427,37 @@ export default ({
           }
         />
 
-        {/* <Option
-          label={phrases["SETTINGS_MAP_VIEWER_SHOW_MOUSE_CURSOR"]}
+        <Option
+          label={phrases["SETTINGS_MAP_VIEWER_SHOW_CRITTERS"]}
           toggle={
             <Toggle
-              value={settings.showDisabledDoodads}
+              value={settings.showCritters}
               onChange={() =>
                 save({
-                  showDisabledDoodads: !settings.showDisabledDoodads,
+                  showCritters: !settings.showCritters,
                 })
               }
             />
           }
-        /> */}
+        />
 
-        {/* <Option
-          label={phrases["SETTINGS_MAP_VIEWER_SHOW_ELEVATIONS"]}
-          toggle={
-            <Toggle
-              value={settings.showDisabledDoodads}
-              onChange={() =>
-                save({
-                  showDisabledDoodads: !settings.showDisabledDoodads,
-                })
-              }
-            />
-          }
-        /> */}
-
-        {/** Mouse Rotate Sensitivity */}
+        <Option
+          label={phrases["SETTINGS_MAP_VIEWER_MOUSE_ROTATE_SPEED"]}
+          value={settings.mouseRotateSpeed}
+        >
+          <input
+            type="range"
+            min="0.05"
+            max="1"
+            step="0.05"
+            value={settings.mouseRotateSpeed}
+            onChange={(evt) => {
+              save({
+                mouseRotateSpeed: Number(evt.target.value),
+              });
+            }}
+          />
+        </Option>
       </Tab>
 
       <Tab tabName={Tabs.Audio} activeTab={tab}>
@@ -526,6 +528,20 @@ export default ({
           }
         />
 
+        <Option
+          label={phrases["SETTINGS_GRAPHICS_ANTIALIAS"]}
+          toggle={
+            <Toggle
+              value={settings.antialias}
+              onChange={() =>
+                save({
+                  antialias: !settings.antialias,
+                })
+              }
+            />
+          }
+        />
+
         {/* <Option
           label={phrases["SETTINGS_GRAPHICS_GAMMA"]}
           value={settings.gamma}
@@ -559,19 +575,6 @@ export default ({
           />
         </Option>
 
-        <Option
-          label={phrases["SETTINGS_GRAPHICS_ANTIALIAS"]}
-          toggle={
-            <Toggle
-              value={settings.antialias}
-              onChange={() =>
-                save({
-                  antialias: !settings.antialias,
-                })
-              }
-            />
-          }
-        />
 
         <Option
           label={"Bloom TODO"}

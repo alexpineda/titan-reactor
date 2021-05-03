@@ -29,11 +29,7 @@ class KeyboardShortcuts extends EventDispatcher {
       [
         ["KeyP", InputEvents.TogglePlay],
         ["KeyG", InputEvents.ToggleGrid],
-        ["KeyA", InputEvents.AzimuthLeft],
-        ["KeyD", InputEvents.AzimuthRight],
-        ["KeyW", InputEvents.PolarUp],
-        ["KeyS", InputEvents.PolarDown],
-        ["KeyC", InputEvents.PolarDown],
+        ["KeyC", InputEvents.ToggleCursor],
         ["KeyE", InputEvents.ToggleElevation],
         // ["KeyE", k.ToggleReplayPosition],
         // ["KeyW", k.ToggleUnitSelection],

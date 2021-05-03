@@ -2,8 +2,8 @@
 
 Titan Reactor is a custom replay viewer for Starcraft and may only be utilized with assets provided by ownership of Starcraft. This is INCOMPLETE software and may not work as expected. This has been a hobby project and so improvements should continue to be slow and steady as it gets refined into a great viewer for all of us.
 
-[Website](http://imbateam.gg/)
-[Join our Discord](http://discord.imbateam.gg/)
+- [Website](http://imbateam.gg/)
+- [Join our Discord](http://discord.imbateam.gg/)
 
 ### Requirements
 - A purchased copy of Starcraft
@@ -28,6 +28,8 @@ or for iscriptah *(iscript animation viewer)*
 #### Replay Viewer
 - Pan - right click drag or arrow keys
 - Zoom - middle mouse scroll or Numpad +/-
+- Rotate - Numpad / and *
+- Arrow keys - Pan camera
 - Camera hotkeys - Numpad 0 - 9
 - Menu - F10
 - Minimap
@@ -36,12 +38,17 @@ or for iscriptah *(iscript animation viewer)*
     * Slow pan - Shift + Left click hold
 - Pause - P
 - Full Screen - F11
+- E key - Show walkable elevations
 
 #### Map Viewer
 - Pan - right click drag or arrow keys
 - Zoom - middle mouse scroll or Numpad +/-
 - Rotate - middle mouse button
+- Rotate - Numpad / and *
+- Arrow keys - Pan camera
 - Camera hotkeys - Numpad 0 - 9
+- E key - Show walkable elevations
+- C key - Show/hide mouse cursor
 
 ### Contributing
 I'm looking for contributors. Please send me a message on discord or feel free to tackle any of the github issues or issues below. It's not cleanest code base by far so if you have any questions just message. PR's welcome.

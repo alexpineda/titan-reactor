@@ -16,6 +16,7 @@ import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
 import useSettingsStore from "./stores/settingsStore";
 import useHudStore from "./stores/hudStore";
 import { iscriptHeaders } from "titan-reactor-shared/types/iscriptHeaders";
+import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 
 export const hot = module.hot ? module.hot.data : null;
 
@@ -33,7 +34,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   scene.add(lightHelper);
   lightHelper.visible = false;
 
-  const settings = useSettingsStore.getState().data;
+  let settings = useSettingsStore.getState().data;
   const isDev = useSettingsStore.getState().isDev;
 
   const keyboardShortcuts = new KeyboardShortcuts(document);
@@ -45,6 +46,18 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   keyboardShortcuts.addEventListener(
     InputEvents.ToggleElevation,
     toggleElevationHandler
+  );
+
+  const toggleCursorHandler = () => {
+    if (window.document.body.style.cursor === "none") {
+      window.document.body.style.cursor = null;
+    } else {
+      window.document.body.style.cursor = "none";
+    }
+  };
+  keyboardShortcuts.addEventListener(
+    InputEvents.ToggleCursor,
+    toggleCursorHandler
   );
 
   const gameSurface = new CanvasTarget();
@@ -62,10 +75,9 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   );
   window.cameras = cameras;
   cameras.control.execNumpad(3);
-  cameras.control.azimuthRotateSpeed = 0.05;
-  cameras.control.polarRotateSpeed = 0.05;
 
-  window.document.body.style.cursor = "none";
+  cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
+  cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
 
   const renderMan = new RenderMan(settings, isDev);
   await renderMan.initRenderer(cameras.camera);
@@ -102,9 +114,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   startLocations.forEach((sl) => scene.add(sl));
 
   let sprites = [];
+  const critters = [];
+  const disabledDoodads = [];
 
   for (let unit of chk.units) {
-    if (unit.isDisabled && !settings.showDisabledDoodads) continue;
     const titanSprite = createTitanSprite();
     const unitDat = bwDat.units[unit.unitId];
 
@@ -122,6 +135,23 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
     scene.add(titanSprite);
     sprites.push(titanSprite);
+
+    if (unit.isDisabled) {
+      disabledDoodads.push(titanSprite);
+      titanSprite.visible = settings.showDisabledDoodads;
+    } else if (
+      [
+        unitTypes.rhynadon,
+        unitTypes.bengalaas,
+        unitTypes.scantid,
+        unitTypes.kakaru,
+        unitTypes.ragnasaur,
+        unitTypes.ursadon,
+      ].includes(unit.unitId)
+    ) {
+      critters.push(titanSprite);
+      titanSprite.visible = settings.showCritters;
+    }
   }
 
   for (let sprite of chk.sprites) {
@@ -249,8 +279,32 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   window.scene = scene;
 
+  const unsub = useSettingsStore.subscribe((state, prevState) => {
+    settings = state.data;
+    const prevSettings = prevState.data;
+
+    if (prevSettings.showDisabledDoodads !== settings.showDisabledDoodads) {
+      disabledDoodads.forEach((doodad) => {
+        doodad.visible = settings.showDisabledDoodads;
+      });
+    }
+
+    if (prevSettings.showCritters !== settings.showCritters) {
+      critters.forEach((critter) => {
+        critter.visible = settings.showCritters;
+      });
+    }
+
+    if (prevSettings.mouseRotateSpeed !== settings.mouseRotateSpeed) {
+      cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
+      cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
+    }
+  });
+
   const dispose = () => {
     console.log("disposing");
+
+    unsub();
 
     window.cameras = null;
     window.scene = null;
@@ -275,6 +329,11 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     keyboardShortcuts.removeEventListener(
       InputEvents.ToggleElevation,
       toggleElevationHandler
+    );
+
+    keyboardShortcuts.removeEventListener(
+      InputEvents.ToggleCursor,
+      toggleCursorHandler
     );
 
     try {

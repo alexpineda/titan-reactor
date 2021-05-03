@@ -87,8 +87,7 @@
 
     "SETTINGS_MAP_VIEWER": "Map Viewer",
     "SETTINGS_MAP_VIEWER_SHOW_DISABLED_DOODADS": "Show Disabled Doodads",
-    "SETTINGS_MAP_VIEWER_SHOW_MOUSE_CURSOR": "Show Mouse Cursor (C)",
-    "SETTINGS_MAP_VIEWER_SHOW_ELEVATIONS": "Show Elevations (E)",
+    "SETTINGS_MAP_VIEWER_SHOW_CRITTERS": "Show Critters",
     "SETTINGS_MAP_VIEWER_MOUSE_ROTATE_SPEED": "Mouse Rotate Speed",
     "SETTINGS_MAP_VIEWER_LIGHTING_CONFIGURATION": "Lighting Configuration",
 

@@ -10,4 +10,4 @@ Downgrade Starcraft Remastered replays to 1.16
 - Parse header & player information, command information, as well as chk Buffer for use in a library like `shieldbattery/bw-chk`
 
 ### Not working
-- Possibly need to add vx4ex support to openbw, commands not executing correctly
+- Some SCR commands being omitted, new max unit limit still not supported leading to broken SCR reps
