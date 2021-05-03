@@ -19,20 +19,20 @@ export const disposeMesh = (mesh) => {
           mesh.userData[map].dispose();
         }
       } catch (e) {
-        console.error(`error disposing map`, e);
+        console.error("error disposing map", e);
       }
     });
 
     try {
       mesh.material && mesh.material.dispose();
     } catch (e) {
-      console.error(`error disposing material`, e);
+      console.error("error disposing material", e);
     }
   }
   try {
     mesh.geometry && mesh.geometry.dispose();
   } catch (e) {
-    console.error(`error disposing geometry`, e);
+    console.error("error disposing geometry", e);
   }
 };
 

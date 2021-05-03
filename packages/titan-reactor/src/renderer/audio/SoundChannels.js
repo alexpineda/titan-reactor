@@ -3,6 +3,7 @@ import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import Audio from "./Audio";
 import SoundChannel from "./SoundChannel";
 
+// an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export default class SoundChannels {
   constructor(mixer, loadSoundAsync, panningStyle) {
     this.mixer = mixer;
@@ -97,6 +98,14 @@ export default class SoundChannels {
     );
   }
 
+  _channelHasAudioAvailable(audio) {
+    return audio.buffer.buffer;
+  }
+
+  _channelHasNotPlayed(audio) {
+    return !audio.source;
+  }
+
   /**
    * play the audio, even if not immediately (due to loading buffer)
    * @param {Number} elapsed
@@ -122,11 +131,11 @@ export default class SoundChannels {
     }
 
     //channel has audio available
-    for (const audio of this.scheduled.filter((audio) => audio.buffer.buffer)) {
+    for (const audio of this.scheduled.filter(this._channelHasAudioAvailable)) {
       audio.play(elapsed);
     }
 
     //keep items that are loading for next time, this makes cancelling scheduled audio easier without doing promisey stuff
-    this.scheduled = this.scheduled.filter((audio) => !audio.source);
+    this.scheduled = this.scheduled.filter(this._channelHasNotPlayed);
   }
 }

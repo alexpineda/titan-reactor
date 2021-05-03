@@ -1,8 +1,6 @@
 import {
   WebGLRenderer,
   sRGBEncoding,
-  BasicShadowMap,
-  PCFShadowMap,
   PCFSoftShadowMap,
   Vector4,
   HalfFloatType,
@@ -97,8 +95,6 @@ class RenderMan {
     const toneMapping = new ToneMappingEffect();
     window.toneMappingEffect = toneMapping;
 
-    // window.focusFn = (y) => Math.max(y * 0.015, 0.1);
-
     this._fogPass = new EffectPass(camera, this.fogOfWarEffect);
 
     this._bloomEffect = new BloomEffect({
@@ -111,7 +107,6 @@ class RenderMan {
       camera,
       this._dofEffect,
       this.fogOfWarEffect
-      // toneMapping
     );
 
     this._cinematicPassWithAA = new EffectPass(
@@ -119,7 +114,6 @@ class RenderMan {
       this._dofEffect,
       this.fogOfWarEffect,
       this._smaaEffect
-      // toneMapping
     );
 
     this._smaaPass = new EffectPass(camera, this._smaaEffect, toneMapping);

@@ -4,13 +4,16 @@ import {
   creepEdgeFrameIndex,
 } from "./creepShared";
 
+// creep calculations ported from openbw
+
 onmessage = function ({ data }) {
   const { buffer, frame, mapWidth, mapHeight } = data;
 
+  // for shaders
   const creepData = new Uint8Array(mapWidth * mapHeight);
   const edgesData = new Uint8Array(mapWidth * mapHeight);
 
-  // for minimap
+  // for canvas minimap
   const imageData = new ImageData(mapWidth, mapHeight);
 
   for (let x = 0; x < mapWidth; x++) {

@@ -1,5 +1,6 @@
 import ContiguousContainer from "./ContiguousContainer";
 
+// upgrades in progress
 export default class UpgradeBW extends ContiguousContainer {
   static get byteLength() {
     return 7;

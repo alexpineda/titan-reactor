@@ -5,9 +5,6 @@ import shallow from "zustand/shallow";
 import useProductionStore from "../../../stores/realtime/productionStore";
 import { unitTypes } from "titan-reactor-shared/types/unitTypes";
 
-const blank64 =
-  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-
 const researchIconSelector = (state) => {
   if (!state.selectedUnits[0]) return 0;
 

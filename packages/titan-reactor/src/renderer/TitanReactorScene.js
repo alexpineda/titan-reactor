@@ -5,7 +5,6 @@ import { fog, sunlight } from "./terrain/lights";
 import Background from "./terrain/Background";
 import Terrain from "./terrain/Terrain";
 import readBwFile from "titan-reactor-shared/utils/readBwFile";
-import { RenderMode } from "common/settings";
 
 const displacementScale = 4;
 
@@ -71,14 +70,10 @@ export class TitanReactorScene extends Scene {
 
     const bgTerrain = Background(w, h, terrain.material.map);
 
-    // if (this.renderMode === RenderMode.SD) {
     terrain.visible = false;
     this.add(terrain);
-    // this.terrain = terrain;
-    // } else {
     this.add(terrainHD);
     this.terrain = terrainHD;
-    // }
 
     // this.add(bgTerrain);
     this.terrainSD = terrain;

@@ -72,13 +72,11 @@ export const LoadingOverlay = ({ chk, rep }) => {
             filter: "brightness(2) contract(1.2)",
           }}
         >
-          {/* {mapPreview} */}
           <p
             id="map-name"
             style={{
               color: "white",
               fontSize: "32px",
-              // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
             {processString(label, false)}
@@ -90,7 +88,6 @@ export const LoadingOverlay = ({ chk, rep }) => {
               fontSize: "12px",
               width: "100%",
               textAlign: "center",
-              // fontFamily: '"Blizzard Regular", Arial, Helvetica, sans-serif',
             }}
           >
             {processString(description, false)}

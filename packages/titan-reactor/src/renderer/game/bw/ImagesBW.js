@@ -12,6 +12,7 @@ const flags = Object.freeze({
   specialOffset: 0x80,
 });
 
+// all images in a bw frame
 export default class ImagesBW extends ContiguousContainer {
   static get byteLength() {
     return 14;

@@ -28,10 +28,6 @@ const capitalizeFirst = (str) => {
   return str[0].toUpperCase() + str.substr(1);
 };
 
-// export default connect((state, { replayPosition }) => {
-
-// })(ReplayPosition);
-
 const ReplayPosition = ({ className }) => {
   const { textSize, maxAutoReplaySpeed } = useSettingsStore(
     (state) => ({

@@ -1,3 +1,7 @@
+/**
+ An abstract class.
+ A fixed block of binary data that represents some game state (eg units, sprites, etc)
+*/
 export default class ContiguousContainer {
   constructor(count = 0) {
     this._onBuffer = () => {};

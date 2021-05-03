@@ -1,5 +1,6 @@
 import { AudioContext } from "three";
 
+// mixes sound and music volumes
 export default class MainMixer {
   constructor() {
     this.context = AudioContext.getContext();

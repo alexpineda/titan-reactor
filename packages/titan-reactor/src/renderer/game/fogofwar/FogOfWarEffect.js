@@ -2,6 +2,8 @@ import { Color, Matrix4, Uniform, Vector2, Vector4 } from "three";
 
 import { Effect, EffectAttribute, BlendFunction } from "postprocessing";
 
+//shader ported from meep
+
 const fragmentShader = `
 uniform sampler2D fog;
 uniform mat4 viewInverse;

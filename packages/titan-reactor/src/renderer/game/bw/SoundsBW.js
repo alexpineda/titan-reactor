@@ -1,5 +1,9 @@
 import ContiguousContainer from "./ContiguousContainer";
 
+/**
+ * Sounds in a bw frame.
+ * Also contains volume and panning calculations ported from openbw.
+ */
 export default class SoundsBW extends ContiguousContainer {
   static get byteLength() {
     return 16;

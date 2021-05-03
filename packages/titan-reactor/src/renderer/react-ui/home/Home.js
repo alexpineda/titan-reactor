@@ -48,13 +48,13 @@ const Home = () => {
               disabled={errors.includes("starcraftPath")}
               onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
             />
-            {/* <MenuItem
+            <MenuItem
               label={phrases["OPEN_REPLAY"]}
               disabled={errors.includes("starcraftPath")}
               onClick={() =>
                 ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
               }
-            /> */}
+            />
             <MenuItem
               label={phrases["OPEN_MAP"]}
               disabled={errors.includes("starcraftPath")}
@@ -116,32 +116,40 @@ const Home = () => {
                   sen, threejs, and all others. The broader BW community for
                   keeping the game alive, BSL, RSL, CPL, TDR, STPL, BWCL, HAY,
                   Jeez, Rogues, and anothers I may have missed. Stryker, Shoop,
-                  Queen, JY, Snipe for early support. Enjoy.{" "}
+                  Queen, JY, Snipe, Diggty, Doc for early support and
+                  encouraging words and anyone else I may have missed. Enjoy.{" "}
                 </p>
+
+                <p>Initial Translations: AkinStatistic (Spanish)</p>
               </p>
             </div>
           )}
           {activePanel === Panels.Maps && (
             <div className="flex-col">
-              <p className="font-bold mb-6 select-none">Maps</p>
+              <p className="font-bold mb-6 select-none">
+                {phrases["MENU_MAPS"]}
+              </p>
               {/* <Maps phrases={phrases} /> */}
             </div>
           )}
           {activePanel === Panels.Replays && (
             <div className="">
-              <p className="font-bold mb-6 select-none">Replays</p>
-              {/* <Replays phrases={phrases} settings={settings} /> */}
+              <p className="font-bold mb-6 select-none">
+                {phrases["MENU_REPLAYS"]}
+              </p>
             </div>
           )}
           {activePanel === Panels.Options && (
             <div className="" style={{ minHeight: "65vh" }}>
-              <p className="font-bold mb-6 select-none">Options</p>
+              <p className="font-bold mb-6 select-none">
+                {phrases["MENU_OPTIONS"]}
+              </p>
               <Options />
             </div>
           )}
           {activePanel === Panels.Legal && (
             <div className=" select-none">
-              <p className="font-bold mb-6">Legal</p>
+              <p className="font-bold mb-6">{phrases["MENU_LEGAL"]}</p>
               <p>
                 Titan Reactor is released to the Public Domain. The
                 documentation and functionality provided by Titan Reactor may
@@ -179,15 +187,3 @@ const Home = () => {
 };
 
 export default Home;
-// export default connect(
-//   (state) => {
-//     return {
-//       settings: state.settings.data,
-//       errors: state.settings.errors,
-//       phrases: state.settings.phrases,
-//     };
-//   },
-//   (dispatch) => ({
-//     saveSettings: (settings) => dispatch(setRemoteSettings(settings)),
-//   })
-// )(Home);

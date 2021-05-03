@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import useResourcesStore from "../../../stores/realtime/resourcesStore";
 
+// basic resource changes text in a non rolling fashion
 export default ({ image, scaledTextSize, selector }) => {
   const numberRef = useRef();
 

@@ -1,6 +1,5 @@
 import { EventDispatcher } from "three";
 import { KeyboardKeyHold } from "./hold-event";
-import { range } from "ramda";
 import InputEvents from "./InputEvents";
 
 const KeyCode = {
@@ -14,9 +13,7 @@ const KeyCode = {
   ArrowDown: 40,
 };
 
-const keyNumbers = range(48, 59);
-const keyPadNumbers = range(96, 107);
-
+// abstracted event handler
 class KeyboardShortcuts extends EventDispatcher {
   constructor(domElement) {
     super();

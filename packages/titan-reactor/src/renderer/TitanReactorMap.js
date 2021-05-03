@@ -204,11 +204,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   );
   //#endregion
 
-  //#region displacement base controllers
-  // controllers.displacementBase.elevations.onChange;
-
-  //#endregion
-
   let running = true;
 
   let last = 0;
@@ -253,8 +248,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   renderMan.renderer.setAnimationLoop(gameLoop);
 
   window.scene = scene;
-
-  // gui.dispose();
 
   const dispose = () => {
     console.log("disposing");

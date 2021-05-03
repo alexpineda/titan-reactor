@@ -1,5 +1,5 @@
 /**
- * A representation of a sound channel
+ * A representation of a sound channel, one of 8
  */
 export default class SoundChannel {
   queue(audio) {

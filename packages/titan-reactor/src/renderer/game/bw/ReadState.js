@@ -8,6 +8,7 @@ import UpgradeBW from "./UpgradeBW";
 import ResearchBW from "./ResearchBW";
 import BuildingQueueCountBW from "./BuildingQueueCountBW";
 
+// the main processing class for moving stream buffer data into FrameBW instances
 export default class ReadState {
   static get FrameCount() {
     return 0;

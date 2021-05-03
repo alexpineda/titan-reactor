@@ -50,8 +50,6 @@ async function TitanReactorGame(
   let settings = useSettingsStore.getState().data;
   const addChatMessage = useGameStore.getState().addChatMessage;
 
-  let fogChanged = false;
-
   const cursor = scene.cursor;
   cursor.pointer();
 

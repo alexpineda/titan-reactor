@@ -5,7 +5,7 @@ import useGameStore from "../../stores/gameStore";
 import LargeUnitDetail from "./unit-selection-details/LargeUnitDetail";
 import SmallUnitDetail from "./unit-selection-details/SmallUnitDetail";
 
-const UnitSelection = ({ textSize, className = "" }) => {
+const UnitSelection = ({ className = "" }) => {
   const selectedUnits = useGameStore((state) => state.selectedUnits, shallow);
 
   const { followUnit, toggleFollowUnit, managedDomElements } = useGameStore(

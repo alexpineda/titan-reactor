@@ -1,3 +1,4 @@
+// a wrapper for a bw frames entire game state
 export default class FrameBW {
   constructor() {
     this.processed = false;

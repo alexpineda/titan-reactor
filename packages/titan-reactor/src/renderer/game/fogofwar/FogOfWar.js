@@ -14,8 +14,9 @@ import {
   HideSpeedSlow,
   Visible,
   RevealSpeed,
-  Unexplored,
 } from "./fogOfWarShared";
+
+// calculate fog of war tiles using webworkers
 
 export default class FogOfWar {
   constructor(width, height, effect) {
@@ -72,19 +73,6 @@ export default class FogOfWar {
   get imageBuffer() {
     return this.texture.image.data;
   }
-
-  // _setUvTransform() {
-  //   const width = this.fogResolution.x;
-  //   const height = this.fogResolution.y;
-
-  //   const scaleX = this.scale * this.size.x * (width / (width - 3));
-  //   const scaleY = this.scale * this.size.y * (height / (height - 3));
-
-  //   const offsetX = 1.5 / width;
-  //   const offsetY = 1.5 / height;
-
-  //   // this.fogUvTransform = new Vector4(offsetX, offsetY, 1 / scaleX, 1 / scaleY);
-  // }
 
   get enabled() {
     return this._enabled;

@@ -2,6 +2,7 @@ import Music from "./Music";
 import MainMixer from "./MainMixer";
 import SoundChannels from "./SoundChannels";
 
+// central point for sound mixer, and audio channels for game sounds
 export default class AudioMaster {
   constructor(loadSoundAsync, panningStyle, races) {
     this.mixer = new MainMixer();

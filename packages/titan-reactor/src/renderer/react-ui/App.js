@@ -52,24 +52,3 @@ const App = () => {
 };
 
 export default App;
-
-// const mapStateToProps = (state, { titanReactor }) => {
-//   const processes = state.titan.processes;
-//   return {
-//     filename: titanReactor.filename,
-//     initializing: processes.init.started,
-//     initialized: processes.init.completed,
-//     replayLoading: processes.replay.started,
-//     replayLoaded: processes.replay.completed,
-//     mapLoading: processes.map.started,
-//     mapLoaded: processes.map.completed,
-//     chk: titanReactor.chk,
-//     chkPreviewCanvas: titanReactor.chkPreviewCanvas,
-//     replayHeader: titanReactor.rep ? titanReactor.rep.header : null,
-//     criticalError: state.titan.criticalError,
-//     phrases: state.settings.phrases,
-//     scene: titanReactor.scene,
-//   };
-// };
-
-// export default connect(mapStateToProps)(App);

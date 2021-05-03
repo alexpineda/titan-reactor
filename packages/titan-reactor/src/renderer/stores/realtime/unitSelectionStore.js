@@ -1,6 +1,6 @@
 import create from "zustand/vanilla";
 
-const useRealtimeStore = create((set, get) => ({
+const useRealtimeStore = create((set) => ({
   selectedUnits: [],
 
   setSelectedUnits: (selectedUnits) => {

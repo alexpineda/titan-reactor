@@ -2,6 +2,7 @@ import AudioPanningStyle from "common/AudioPanningStyle";
 
 const stopTime = 30; //ms
 
+// an instance of a bw sound
 export default class Audio {
   /**
    *
@@ -10,7 +11,7 @@ export default class Audio {
    * @param {DeferredAudioBuffer} buffer
    * @param {SoundChannel} channel
    */
-  constructor(mixer, sound, buffer, panningStyle = 0) {
+  constructor(mixer, sound, buffer, panningStyle = AudioPanningStyle.Spatial) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;

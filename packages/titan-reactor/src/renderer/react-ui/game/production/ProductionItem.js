@@ -26,6 +26,7 @@ const comparitor = (a, b) => {
   return true;
 };
 
+// an instance of a production item, either unit, research or upgrade
 export default ({ type, index, color, playerId }) => {
   const cmdIcons = useGameStore(iconsSelector);
 

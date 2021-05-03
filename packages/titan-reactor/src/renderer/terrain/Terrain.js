@@ -11,6 +11,7 @@ const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;
 };
 
+// high level class for generating terrain and icons
 class Terrain {
   constructor(readFile, chk, cache, anisotropy) {
     this.readFile = async (file, arrayBuffer = true) => {
@@ -217,10 +218,6 @@ class Terrain {
       renderer,
       mapData
     );
-    // sd.matrixAutoUpdate = false;
-    // sd.updateMatrix();
-    // hd.matrixAutoUpdate = false;
-    // hd.updateMatrix();
 
     renderer.dispose();
     return [

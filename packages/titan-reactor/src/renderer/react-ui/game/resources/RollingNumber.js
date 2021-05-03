@@ -1,5 +1,6 @@
 import { is } from "ramda";
 
+// rolling number "rolls" the number from source to target, used for resources and apm
 export default class RollingNumber {
   constructor(value = 0, textRef) {
     this.upSpeed = 30;

@@ -2,6 +2,7 @@ import net from "net";
 import { spawn } from "child_process";
 import StreamGameStateReader from "./StreamGameStateReader";
 
+// prototype for communicating with openbw-bridge over sockets, incomplete
 export default class ReplayReadSocket extends StreamGameStateReader {
   constructor(file, bwPath, bufferFrames = 100) {
     super(file, bufferFrames);

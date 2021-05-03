@@ -1,3 +1,4 @@
+// a fixed pool of objects that can be marked (occupied) and unmarked
 export default class MarkedObjectPool {
   constructor(items) {
     this.marked = [];

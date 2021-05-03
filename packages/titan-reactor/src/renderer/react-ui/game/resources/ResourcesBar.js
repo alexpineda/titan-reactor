@@ -8,6 +8,7 @@ import shallow from "zustand/shallow";
 
 const _playerScoreCache = {};
 
+// wrapper for showing all participating player information (scores, names, resources, etc)
 const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   const textSize = useSettingsStore((state) =>
     state.data.esportsHud
@@ -27,15 +28,13 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   const setAutoProductionView = useHudStore(
     (state) => state.setAutoProductionView
   );
-  const { players, onTogglePlayerPov } = useGameStore(
+  const { players } = useGameStore(
     (state) => ({
       players: state.game.players,
       onTogglePlayerPov: state.onTogglePlayerPov,
     }),
     shallow
   );
-
-  const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
 
   const cacheKey = players
     .map(({ name }) => name)

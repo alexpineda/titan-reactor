@@ -3,6 +3,7 @@ import React from "react";
 import useSettingsStore from "../../../stores/settingsStore";
 import ProductionItem from "./ProductionItem";
 
+// production bar for one player and one production type
 export default ({ type, color, playerId }) => {
   const largeMargin = useSettingsStore(
     (state) => state.data.esportsHud && state.data.embedProduction

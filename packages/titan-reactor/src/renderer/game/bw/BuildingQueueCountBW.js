@@ -3,6 +3,7 @@ import ContiguousContainer from "./ContiguousContainer";
 export const TrainingQueueType = 0;
 export const LoadedQueueType = 128;
 
+// represents units that are currently building / training
 export default class BuildingQueueCountBW extends ContiguousContainer {
   static get byteLength() {
     return 19;

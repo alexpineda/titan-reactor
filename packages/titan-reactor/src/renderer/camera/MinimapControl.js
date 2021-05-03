@@ -1,9 +1,8 @@
 import { EventDispatcher, Vector3, MathUtils } from "three";
 
 const LeftMouse = 0;
-const MiddleMouse = 1;
-const RightMouse = 2;
 
+// manages and dispatches minimap drag and click events
 class MinimapControl extends EventDispatcher {
   constructor(surface, mapWidth, mapHeight) {
     super();

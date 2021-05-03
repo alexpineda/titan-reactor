@@ -1,5 +1,6 @@
 import ContiguousContainer from "./ContiguousContainer";
 
+// a block of creep data representing w x h map dimensions of creep information
 export default class CreepBW extends ContiguousContainer {
   static get byteLength() {
     return 1;

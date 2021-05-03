@@ -18,6 +18,9 @@ import BasicResource from "./BasicResource";
 
 const _playerNameCache = {};
 
+/**
+ * The primary player bar displaying player score, name, resources and production.
+ */
 const PlayerResources = ({
   id,
   name,

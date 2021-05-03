@@ -1,5 +1,6 @@
 import ContiguousContainer from "./ContiguousContainer";
 
+// research in progress
 export default class ResearchBW extends ContiguousContainer {
   static get byteLength() {
     return 6;

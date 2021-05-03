@@ -1,6 +1,4 @@
-/**
- * Thanks javascript!
- */
+// a reference to an audio buffer to play once it's loaded
 export default class DeferredAudioBuffer {
   constructor(load, soundId) {
     this.soundId = soundId;

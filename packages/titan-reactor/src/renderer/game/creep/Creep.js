@@ -1,5 +1,6 @@
 import Worker from "./creep.worker.js";
 
+// calculate creep tiles using webworkers
 export default class Creep {
   constructor(
     mapWidth,

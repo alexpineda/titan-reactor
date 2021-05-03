@@ -1,18 +1,6 @@
 import { is } from "ramda";
-import {
-  Box3,
-  Clock,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Vector3,
-} from "three";
+import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 
-import {
-  MinimapLayer,
-  MinimapUnitLayer,
-  MinimapPingLayer,
-  MinimapFogLayer,
-} from "./Layers";
 import StandardCameraControls from "./controls/StandardCameraControls";
 import { ProducerWindowPosition } from "../../common/settings";
 
@@ -24,6 +12,7 @@ export const CameraControlType = {
   playerPov: 4,
 };
 
+// manages camera and camera controls as well as updating aspect ratio on screen resize and other camera operations
 class Cameras {
   constructor(
     settings,

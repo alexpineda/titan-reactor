@@ -46,6 +46,7 @@ const flags = Object.freeze({
   canMove: 0x20000,
 });
 
+// all units in a bw frame
 export default class UnitsBW extends ContiguousContainer {
   static get byteLength() {
     return 30;

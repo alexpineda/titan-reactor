@@ -6,7 +6,7 @@ import MarkedObjectPool from "./MarkedObjectPool";
 import FrameBW from "./FrameBW";
 
 /**
- * Converts a stream buffer into frames on request
+ * Abstract class for reading from a stream into ReadState
  */
 export default class StreamGameStateReader extends EventEmitter {
   /**

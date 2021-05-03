@@ -6,6 +6,7 @@ const { PerspectiveCamera } = require("three");
 export const PovLeft = Symbol("povLeft");
 export const PovRight = Symbol("povRight");
 
+// an instance of a players pov camera
 export class PlayerPovCamera extends PerspectiveCamera {
   constructor(side, getActivePovs, { x = 0, y = 0 }) {
     super(30, 1, 5, 100);

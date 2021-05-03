@@ -25,8 +25,6 @@ const steps = range(0, 8).map(() => {
   return [...stepLayers];
 });
 
-const zeroStepLayers = range(0, 4).map(() => 0);
-
 const zergSteps = range(0, 6).map((step) => {
   const layers = range(0, 4);
 
@@ -74,9 +72,6 @@ const zergSteps = range(0, 6).map((step) => {
 
 const getFilter = (unit, step, layerIndex) => {
   let effectiveStep = steps[step][layerIndex];
-  // if (!unit.canSelect) {
-  //   return "grayscale(1) brightness(2)";
-  // }
 
   if (
     unit.unitType.isZerg ||
@@ -143,7 +138,7 @@ export default ({ unit, size = "lg", className = "" }) => {
   const layerRefs = range(0, 4).map(() => refLayer(useRef()));
   const xRef = useRef();
 
-  const setDom = ({ unit, typeId, step, canSelect }, transition) => {
+  const setDom = ({ unit, typeId, step }, transition) => {
     if (layerRefs.some(({ ref: { current } }) => !current) || !xRef.current)
       return;
 
@@ -167,12 +162,6 @@ export default ({ unit, size = "lg", className = "" }) => {
         layerRefs[i].backgroundImage = backgroundImage;
       }
     }
-
-    // if (canSelect) {
-    //   xRef.current.style.display = "none";
-    // } else {
-    //   xRef.current.style.display = "block";
-    // }
   };
 
   useEffect(() => {

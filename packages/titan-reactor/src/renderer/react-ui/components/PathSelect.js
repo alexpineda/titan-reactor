@@ -22,8 +22,8 @@ const PathSelect = ({ prop, phrases, settings, errors, selectFolder }) => {
       {errors.includes(prop) && (
         <span
           className="material-icons text-yellow-700 select-none"
-          title={`This directory either does not exist or contains invalid contents`}
-          data-tip={`This directory either does not exist or contains invalid contents`}
+          title={phrases["ERROR_DIRECTORY_INVALID"]}
+          data-tip={phrases["ERROR_DIRECTORY_INVALID"]}
         >
           error_outline
         </span>

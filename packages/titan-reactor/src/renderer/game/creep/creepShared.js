@@ -1,5 +1,7 @@
 import { range } from "ramda";
 
+// creep neighbour calculations ported from openbw
+
 //https://stackoverflow.com/questions/6232939/is-there-a-way-to-correctly-multiply-two-32-bit-integers-in-javascript/6422061
 function multiply_uint32(a, b) {
   var ah = (a >> 16) & 0xffff,
