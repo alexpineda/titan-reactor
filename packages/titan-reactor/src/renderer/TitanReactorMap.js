@@ -63,6 +63,8 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
+  scene.background = new THREE.Color(settings.mapBackgroundColor);
+
   const cameras = new Cameras(
     settings,
     mapWidth,
@@ -298,6 +300,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     if (prevSettings.mouseRotateSpeed !== settings.mouseRotateSpeed) {
       cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
       cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
+    }
+
+    if (prevSettings.mapBackgroundColor !== settings.mapBackgroundColor) {
+      scene.background = new THREE.Color(settings.mapBackgroundColor);
     }
   });
 

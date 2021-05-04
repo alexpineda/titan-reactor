@@ -375,7 +375,6 @@ async function TitanReactorGame(
       if (gameStatePosition.skipGameFrames && !currentBwFrame) {
         currentBwFrame = nextBwFrame;
 
-        //preload
         projectedCameraView.update();
 
         //@todo fix reading multiple frames, since they get unmarked, currentBwFrame gets used

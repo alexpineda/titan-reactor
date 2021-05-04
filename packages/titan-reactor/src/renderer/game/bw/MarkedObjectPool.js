@@ -2,7 +2,6 @@
 export default class MarkedObjectPool {
   constructor(items) {
     this.marked = [];
-    this.occupied = [];
     this.unmarked = items;
   }
 
@@ -20,16 +19,11 @@ export default class MarkedObjectPool {
     return this.unmarked[0];
   }
 
-  get currentOccupied() {
-    return this.occupied[0];
-  }
-
   /**
    * Get {length} number of items from the marked queue and unmark them
    * @param {Number} length
    */
   unshift(length = 1) {
-    //@todo verify length is valid
     const size = Math.min(length, this.marked.length);
     return this.unmark(size);
   }

@@ -1,7 +1,7 @@
 "use strict";
 
 import React, { useState } from "react";
-import { SwatchesPicker } from "react-color";
+import { SwatchesPicker, CompactPicker } from "react-color";
 
 //add bw color swatches to
 SwatchesPicker.defaultProps.colors.unshift([
@@ -26,7 +26,17 @@ SwatchesPicker.defaultProps.colors.unshift([
   "#f88c14",
 ]);
 
-const ColorPicker = ({ color, onChange, className = "" }) => {
+export const ColorPickerType = {
+  Palette: 0,
+  Compact: 1,
+};
+
+const ColorPicker = ({
+  color,
+  onChange,
+  type = ColorPickerType.Palette,
+  className = "",
+}) => {
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
   return (
@@ -47,14 +57,26 @@ const ColorPicker = ({ color, onChange, className = "" }) => {
             style={{ top: "0px", right: "0px", bottom: "0px", left: "0px" }}
             onClick={() => setDisplayColorPicker(false)}
           />
-          <SwatchesPicker
-            color={color}
-            styles={{ default: { body: { background: "rgba(255,0,0,0)" } } }}
-            onChangeComplete={(color) => {
-              onChange(color);
-              setDisplayColorPicker(false);
-            }}
-          />
+          {type === ColorPickerType.Palette && (
+            <SwatchesPicker
+              color={color}
+              styles={{ default: { body: { background: "rgba(255,0,0,0)" } } }}
+              onChangeComplete={(color) => {
+                onChange(color);
+                setDisplayColorPicker(false);
+              }}
+            />
+          )}
+          {type === ColorPickerType.Compact && (
+            <CompactPicker
+              color={color}
+              styles={{ default: { body: { background: "rgba(255,0,0,0)" } } }}
+              onChangeComplete={(color) => {
+                onChange(color);
+                setDisplayColorPicker(false);
+              }}
+            />
+          )}
         </div>
       ) : null}
     </div>

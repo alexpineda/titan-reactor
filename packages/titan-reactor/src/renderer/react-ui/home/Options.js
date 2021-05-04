@@ -11,7 +11,7 @@ import Button from "../components/Button";
 import ButtonSet from "../components/ButtonSet";
 import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
-import ColorPicker from "../components/ColorPicker";
+import ColorPicker, { ColorPickerType } from "../components/ColorPicker";
 import { ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 import useSettingsStore from "../../stores/settingsStore";
@@ -413,6 +413,17 @@ export default ({
       </Tab>
 
       <Tab tabName={Tabs.MapViewer} activeTab={tab}>
+        <Option label={phrases["SETTINGS_MAP_VIEWER_BACKGROUND_COLOR"]}>
+          <ColorPicker
+            type={ColorPickerType.Compact}
+            color={`${settings.mapBackgroundColor}`}
+            onChange={({ hex }) => {
+              save({ mapBackgroundColor: hex });
+            }}
+            className="mr-4"
+          />
+        </Option>
+
         <Option
           label={phrases["SETTINGS_MAP_VIEWER_SHOW_DISABLED_DOODADS"]}
           toggle={

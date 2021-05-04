@@ -90,6 +90,7 @@
     "SETTINGS_MAP_VIEWER_SHOW_CRITTERS": "Show Critters",
     "SETTINGS_MAP_VIEWER_MOUSE_ROTATE_SPEED": "Mouse Rotate Speed",
     "SETTINGS_MAP_VIEWER_LIGHTING_CONFIGURATION": "Lighting Configuration",
+    "SETTINGS_MAP_VIEWER_BACKGROUND_COLOR": "Background Color",
 
     "SETTINGS_GRAPHICS_3D_ENABLED": "Enable 3D Game View",
     "ERROR_DIRECTORY_INVALID": "This directory either does not exist or contains invalid contents"

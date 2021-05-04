@@ -54,7 +54,6 @@ export default class FileGameStateReader extends StreamGameStateReader {
             res();
           }
           this.framesWritten = data;
-          console.log("receiving data", data);
         });
       });
     }

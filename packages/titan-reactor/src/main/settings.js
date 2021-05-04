@@ -206,6 +206,7 @@ export class Settings extends EventEmitter {
       showCritters: true,
       mouseRotateSpeed: 0.1,
       mouseDollySpeed: 0.1,
+      mapBackgroundColor: "#000000",
     };
   }
 }
