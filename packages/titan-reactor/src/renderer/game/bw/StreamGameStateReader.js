@@ -1,9 +1,7 @@
 import BufferList from "bl";
-import { range } from "ramda";
 import EventEmitter from "events";
 import ReadState from "./ReadState";
 import MarkedObjectPool from "./MarkedObjectPool";
-import FrameBW from "./FrameBW";
 
 /**
  * Abstract class for reading from a stream into ReadState
@@ -19,45 +17,61 @@ export default class StreamGameStateReader extends EventEmitter {
     this._state = new ReadState();
     this._lastReadFrame = 0;
     this._bytesRead = 0;
-    this.frames = new MarkedObjectPool(
-      range(0, maxFramesLength).map(() => new FrameBW())
-    );
+    this.frames = new MarkedObjectPool(maxFramesLength);
 
     this.waitForMaxed = new Promise((res) => {
-      this.on("paused", () => {
-        // console.log(
-        //   `${this.frames.length} frames byte size`,
-        //   this.frames.reduce((size, frame) => size + frame.size, 0)
-        // );
+      const listener = () => {
         res();
-      });
+        this.off("maxed", listener);
+      };
+      this.on("maxed", listener);
     });
   }
 
+  peekAvailableFrames() {
+    return this.frames.marked;
+  }
+
+  currentAvailableFrame() {
+    return this.frames.currentUnmarked;
+  }
+
+  markCurrentAvailableFrame() {
+    this.frames.mark();
+  }
+
+  noUnusedFramesAvailable() {
+    return this.frames.maxed();
+  }
+
+  getAvailableFrames(frameCount) {
+    return this.frames.unmark(frameCount);
+  }
+
   maxed() {
-    return this._state.ended() || this.frames.unmarked.length === 0;
+    return this._state.ended() || this.noUnusedFramesAvailable();
   }
 
   next(frameCount = 1) {
     this.processFrames();
-    const frames = this.frames.unshift(frameCount);
+    const frames = this.getAvailableFrames(frameCount);
     return frames;
   }
 
   nextOne() {
     this.processFrames();
-    const frame = this.frames.unshift(1);
+    const frame = this.getAvailableFrames(1);
     return frame[0];
   }
 
   _processBuffer(newFrames) {
     if (this.maxed()) return true;
-    while (this._state.process(this._buf, this.frames.currentUnmarked)) {
-      if (this._state.mode === ReadState.Frame) {
+    while (this._state.process(this._buf, this.currentAvailableFrame())) {
+      if (this._state.mode === ReadState.FrameComplete) {
         this._lastReadFrame = this._state.currentFrame;
 
-        newFrames.push(this.frames.currentUnmarked);
-        this.frames.mark();
+        newFrames.push(this.currentAvailableFrame());
+        this.markCurrentAvailableFrame();
 
         this._buf = this._buf.duplicate();
         this._buf.consume(this._state.pos);
@@ -72,7 +86,7 @@ export default class StreamGameStateReader extends EventEmitter {
 
   processFrames() {
     if (this.maxed()) {
-      this.emit("paused");
+      this.emit("maxed");
       return;
     }
 
@@ -93,10 +107,11 @@ export default class StreamGameStateReader extends EventEmitter {
       }
     }
 
+    // used by the asset preloader
     this.emit("frames", newFrames);
 
     if (this.maxed()) {
-      this.emit("paused");
+      this.emit("maxed");
     }
   }
 

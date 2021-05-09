@@ -1,8 +1,11 @@
+import FrameBW from "./FrameBW";
+
 // a fixed pool of objects that can be marked (occupied) and unmarked
-export default class MarkedObjectPool {
-  constructor(items) {
+export default class MarkedObjectPool2 {
+  constructor(maxItems) {
+    this.maxItems = maxItems;
     this.marked = [];
-    this.unmarked = items;
+    this.unmarked = new FrameBW();
   }
 
   /**
@@ -16,30 +19,23 @@ export default class MarkedObjectPool {
    * Get the next unmarked item from the unmarked queue
    */
   get currentUnmarked() {
-    return this.unmarked[0];
+    return this.unmarked;
   }
 
-  /**
-   * Get {length} number of items from the marked queue and unmark them
-   * @param {Number} length
-   */
-  unshift(length = 1) {
-    const size = Math.min(length, this.marked.length);
-    return this.unmark(size);
+  maxed() {
+    return this.maxItems - this.marked.length === 0;
   }
 
   /**
    * Mark {amount} number of items.
-   * @param {Number} amount
    * @throws {Error}
    */
-  mark(amount = 1) {
-    if (amount > this.unmarked.length) {
+  mark() {
+    if (this.maxed()) {
       throw new Error("marking out of bounds");
     }
-    const unmarked = this.unmarked.splice(0, amount);
-    this.marked.push(...unmarked);
-    return unmarked;
+    this.marked.push(this.unmarked);
+    this.unmarked = new FrameBW();
   }
 
   /**
@@ -51,8 +47,6 @@ export default class MarkedObjectPool {
     if (amount > this.marked.length) {
       throw new Error("unmarking out of bounds");
     }
-    const marked = this.marked.splice(0, amount);
-    this.unmarked.push(...marked);
-    return marked;
+    return this.marked.splice(0, amount);
   }
 }

@@ -197,7 +197,7 @@ export class TitanReactor {
 
     console.log("preloading initial frames");
     start = Date.now();
-    await preloadAtlas(gameStateReader.frames.marked);
+    await preloadAtlas(gameStateReader.peekAvailableFrames());
     console.log(`images preloaded in ${Date.now() - start}`);
 
     console.log("initializing scene");

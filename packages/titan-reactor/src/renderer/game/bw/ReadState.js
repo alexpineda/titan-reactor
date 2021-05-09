@@ -54,6 +54,10 @@ export default class ReadState {
     return 10;
   }
 
+  static get FrameComplete() {
+    return 11;
+  }
+
   constructor() {
     this.mode = ReadState.FrameCount;
     this.currentFrame = 0;
@@ -231,8 +235,13 @@ export default class ReadState {
         frame.soundCount * SoundsBW.byteLength,
         buf,
         frame,
-        ReadState.Frame
+        ReadState.FrameComplete
       );
+    }
+
+    if (this.mode === ReadState.FrameComplete) {
+      this.mode = ReadState.Frame;
+      return true;
     }
 
     return false;
