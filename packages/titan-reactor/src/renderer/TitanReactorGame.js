@@ -353,7 +353,7 @@ async function TitanReactorGame(
     gameSurface,
     scene,
     cameras.camera,
-    frameBuilder.unitsBySpriteId,
+    frameBuilder,
     scene.terrain
   );
 

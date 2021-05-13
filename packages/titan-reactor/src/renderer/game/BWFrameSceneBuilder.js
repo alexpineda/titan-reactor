@@ -63,6 +63,39 @@ export default class BWFrameSceneBuilder {
       techDat: bwDat.tech,
       upgradesDat: bwDat.upgrades,
     });
+    this.techUpgradesWorker.onmessage = ({ data }) => {
+      const {
+        techNearComplete,
+        upgradeNearComplete,
+        hasTech,
+        hasUpgrade,
+        research,
+        upgrades,
+        completedUpgrades,
+        completedResearch,
+      } = data;
+
+      if (hasUpgrade) {
+        this._notifyHudOfUpgrades();
+      }
+
+      if (upgradeNearComplete) {
+        useHudStore.getState().onUpgradeNearComplete();
+      }
+
+      if (hasTech) {
+        this._notifyHudOfTech();
+      }
+
+      if (techNearComplete) {
+        useHudStore.getState().onTechNearComplete();
+      }
+
+      this.research = research;
+      this.upgrades = upgrades;
+      this.completedUpgrades = completedUpgrades;
+      this.completedResearch = completedResearch;
+    };
 
     this.sprites = new Map();
     this.images = new Map();
@@ -79,6 +112,7 @@ export default class BWFrameSceneBuilder {
     this.group = new Group();
     this.scene.add(this.group);
     this.scene.unitGroup = this.group;
+    this.interactableSprites = [];
   }
 
   prepare(bwFrame, elapsed) {
@@ -153,6 +187,7 @@ export default class BWFrameSceneBuilder {
 
     // we set count below
     this.imagesBW.buffer = bwFrame.images;
+    this.interactableSprites.length = 0;
 
     for (const spriteBW of this.spritesBW.items()) {
       // if (
@@ -276,7 +311,10 @@ export default class BWFrameSceneBuilder {
           if (sprite.unit) {
             titanImage.rotation.y = sprite.unit.angle;
             if (!image.imageType.clickable) {
-              sprite.canSelect = false;
+              sprite.unit.canSelect = false;
+            }
+            if (sprite.unit.canSelect) {
+              this.interactableSprites.push(titanImage);
             }
           }
           // sprite.position.y -=
@@ -355,40 +393,6 @@ export default class BWFrameSceneBuilder {
     };
 
     this.techUpgradesWorker.postMessage(msg);
-
-    this.techUpgradesWorker.onmessage = ({ data }) => {
-      const {
-        techNearComplete,
-        upgradeNearComplete,
-        hasTech,
-        hasUpgrade,
-        research,
-        upgrades,
-        completedUpgrades,
-        completedResearch,
-      } = data;
-
-      if (hasUpgrade) {
-        this._notifyHudOfUpgrades();
-      }
-
-      if (upgradeNearComplete) {
-        useHudStore.getState().onUpgradeNearComplete();
-      }
-
-      if (hasTech) {
-        this._notifyHudOfTech();
-      }
-
-      if (techNearComplete) {
-        useHudStore.getState().onTechNearComplete();
-      }
-
-      this.research = research;
-      this.upgrades = upgrades;
-      this.completedUpgrades = completedUpgrades;
-      this.completedResearch = completedResearch;
-    };
 
     this.research.needsUpdate = true;
     this.upgrades.needsUpdate = true;

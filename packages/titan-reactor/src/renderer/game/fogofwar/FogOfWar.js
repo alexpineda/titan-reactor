@@ -64,6 +64,14 @@ export default class FogOfWar {
     this.effect.fogUvTransform = new Vector4(0.5, 0.5, 1 / height, 1 / width);
 
     this.worker = new Worker();
+    this.worker.onmessage = ({ data }) => {
+      const { toBuffer, frame, imageData } = data;
+      if (frame < this._lastFrame) return;
+      this._lastFrame = frame;
+
+      this.imageData = imageData;
+      this._toBuffer = toBuffer;
+    };
   }
 
   set imageBuffer(val) {
@@ -125,15 +133,6 @@ export default class FogOfWar {
     };
 
     this.worker.postMessage(msg, [msg.tileBuffer.buffer]);
-
-    this.worker.onmessage = ({ data }) => {
-      const { toBuffer, frame, imageData } = data;
-      if (frame < this._lastFrame) return;
-      this._lastFrame = frame;
-
-      this.imageData = imageData;
-      this._toBuffer = toBuffer;
-    };
 
     this.playerVisionWasToggled = false;
   }

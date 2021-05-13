@@ -15,6 +15,17 @@ export default class Creep {
     this.creepImageData = new ImageData(mapWidth, mapHeight);
 
     this.worker = new Worker();
+    this.worker.onmessage = ({ data }) => {
+      const { creepData, edgesData, imageData, frame } = data;
+      if (frame < this._lastFrame) return;
+      this._lastFrame = frame;
+
+      this.creepValuesTexture.image.data = creepData;
+      this.creepEdgesValuesTexture.image.data = edgesData;
+
+      //for minimap
+      this.creepImageData = imageData;
+    };
     this._lastFrame = 0;
   }
 
@@ -31,18 +42,6 @@ export default class Creep {
     };
 
     this.worker.postMessage(msg, [msg.buffer.buffer]);
-
-    this.worker.onmessage = ({ data }) => {
-      const { creepData, edgesData, imageData, frame } = data;
-      if (frame < this._lastFrame) return;
-      this._lastFrame = frame;
-
-      this.creepValuesTexture.image.data = creepData;
-      this.creepEdgesValuesTexture.image.data = edgesData;
-
-      //for minimap
-      this.creepImageData = imageData;
-    };
   }
 
   dispose() {

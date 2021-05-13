@@ -38,14 +38,14 @@ export default class MouseCursor {
     this.dragIcons = dragIcons;
     this.dragIconsIndex = 0;
 
-    this._interval = setInterval(() => {
-      this.arrowIconsIndex =
-        (this.arrowIconsIndex + 1) % this.arrowIcons.length;
-      this.hoverIconsIndex =
-        (this.hoverIconsIndex + 1) % this.hoverIcons.length;
-      this.dragIconsIndex = (this.dragIconsIndex + 1) % this.dragIcons.length;
-      this._updateIcon();
-    }, 250);
+    // this._interval = setInterval(() => {
+    //   this.arrowIconsIndex =
+    //     (this.arrowIconsIndex + 1) % this.arrowIcons.length;
+    //   this.hoverIconsIndex =
+    //     (this.hoverIconsIndex + 1) % this.hoverIcons.length;
+    //   this.dragIconsIndex = (this.dragIconsIndex + 1) % this.dragIcons.length;
+    //   this._updateIcon();
+    // }, 250);
 
     const style = document.createElement("style");
     style.id = "cursor-styles";
@@ -116,6 +116,7 @@ export default class MouseCursor {
 
   pointer() {
     this._pointer = this.arrowIcons;
+    this._updateIcon();
   }
 
   hover() {
@@ -126,76 +127,79 @@ export default class MouseCursor {
     this._pointer = this.dragIcons;
   }
 
-  init(
-    projectedCameraView,
-    gameSurface,
-    scene,
-    camera,
-    unitsBySpriteId,
-    terrain
-  ) {
+  init(projectedCameraView, gameSurface, scene, camera, frameBuilder, terrain) {
     this.projectedCameraView = projectedCameraView;
 
     const raycaster = new Raycaster();
     const mouse = new Vector2();
     const hover = new Vector2();
 
-    let start = { x: 0, y: 0 };
-    let end = { x: 0, y: 0 };
+    let start = { offsetX: 0, offsetY: 0 };
+    let end = { offsetX: 0, offsetY: 0 };
     let mousedown = false;
     let enableHoverIntersecting = false;
 
     const intersectMouse = (clipV, sprites = null) => {
       raycaster.setFromCamera(clipV, camera);
       // calculate objects intersecting the picking ray
-      const intersects = raycaster.intersectObject(scene, true);
+      const intersects = raycaster.intersectObjects(
+        frameBuilder.interactableSprites,
+        false
+      );
       if (intersects.length) {
         let closestSprite = { renderOrder: -1 };
-        intersects.forEach((intersect) => {
-          const { object, uv } = intersect;
+
+        for (const intersect of intersects) {
           if (
-            object.sprite &&
-            object.sprite.unit &&
-            object.sprite.unit.canSelect &&
-            object.sprite.mainImage &&
-            object.sprite.mainImage.lastSetFrame &&
-            object.sprite.mainImage.intersects(uv.x, uv.y)
+            intersect.object.sprite &&
+            intersect.object.sprite.unit &&
+            intersect.object.sprite.unit.canSelect &&
+            intersect.object.sprite.mainImage &&
+            intersect.object.sprite.mainImage.lastSetFrame &&
+            intersect.object.sprite.mainImage.intersects(
+              intersect.uv.x,
+              intersect.uv.y
+            )
           ) {
             if (sprites) {
-              sprites.add(object.sprite);
-            } else if (object.sprite.renderOrder > closestSprite.renderOrder) {
-              closestSprite = object.sprite;
+              sprites.add(intersect.object.sprite);
+            } else if (
+              intersect.object.sprite.renderOrder > closestSprite.renderOrder
+            ) {
+              closestSprite = intersect.object.sprite;
             }
           }
-        });
+        }
+
         if (closestSprite instanceof GameSprite) {
           return closestSprite;
         }
       }
     };
 
-    const _hoverInterval = setInterval(() => {
-      if (!enableHoverIntersecting) return;
+    // const _hoverInterval = setInterval(() => {
+    //   if (!enableHoverIntersecting) return;
 
-      hover.x = (end.x / gameSurface.width) * 2 - 1;
-      hover.y = -(end.y / gameSurface.height) * 2 + 1;
+    //   hover.x = (end.offsetX / gameSurface.width) * 2 - 1;
+    //   hover.y = -(end.offsetY / gameSurface.height) * 2 + 1;
 
-      const sprite = intersectMouse(hover);
-      if (sprite) {
-        this.hover();
-      } else {
-        this.pointer();
-      }
-    }, 60);
+    //   const sprite = intersectMouse(hover);
+    //   if (sprite) {
+    //     this.hover();
+    //   } else {
+    //     this.pointer();
+    //   }
+    // }, 60);
 
     const isMinDragSize = () =>
-      Math.abs(end.x - start.x) > 10 && Math.abs(end.y - start.y) > 10;
+      Math.abs(end.offsetX - start.offsetX) > 10 &&
+      Math.abs(end.offsetY - start.offsetY) > 10;
 
     const updateDragElement = () => {
-      const l = Math.min(start.x, end.x);
-      const r = Math.max(start.x, end.x);
-      const t = Math.min(start.y, end.y);
-      const b = Math.max(start.y, end.y);
+      const l = Math.min(start.offsetX, end.offsetX);
+      const r = Math.max(start.offsetX, end.offsetX);
+      const t = Math.min(start.offsetY, end.offsetY);
+      const b = Math.max(start.offsetY, end.offsetY);
 
       this.selectElement.style.left = `${l}px`;
       this.selectElement.style.top = `${t}px`;
@@ -215,11 +219,12 @@ export default class MouseCursor {
     const mouseDownListener = (event) => {
       if (event.button !== 0) return;
 
-      start.x = event.offsetX;
-      start.y = event.offsetY;
+      start = event;
 
-      end.x = event.offsetX + 1;
-      end.y = event.offsetY + 1;
+      end = {
+        offsetX: start.offsetX + 1,
+        offsetY: start.offsetY + 1,
+      };
 
       mousedown = true;
     };
@@ -232,8 +237,7 @@ export default class MouseCursor {
         initDragElement();
         updateDragElement();
       }
-      end.x = event.offsetX;
-      end.y = event.offsetY;
+      end = event;
     };
 
     const mouseUpListener = (event) => {
@@ -249,10 +253,10 @@ export default class MouseCursor {
         const [width, height] = [gameSurface.width, gameSurface.height];
         const startV = new Vector2();
         const endV = new Vector2();
-        const l = Math.min(start.x, end.x);
-        const r = Math.max(start.x, end.x);
-        const t = Math.min(start.y, end.y);
-        const b = Math.max(start.y, end.y);
+        const l = Math.min(start.offsetX, end.offsetX);
+        const r = Math.max(start.offsetX, end.offsetX);
+        const t = Math.min(start.offsetY, end.offsetY);
+        const b = Math.max(start.offsetY, end.offsetY);
 
         startV.x = (l / width) * 2 - 1;
         startV.y = -(t / height) * 2 + 1;
@@ -287,7 +291,7 @@ export default class MouseCursor {
           //@todo add special logic for flying units since their y object position is offset in threejs
           for (let x = startMapX - 1; x < endMapX + 1; x++) {
             for (let y = startMapY - 1; y < endMapY + 1; y++) {
-              for (const [spriteId, unit] of unitsBySpriteId) {
+              for (const unit of frameBuilder.unitsBySpriteId.values()) {
                 if (unit.canSelect && unit.tileX === x && unit.tileY === y) {
                   // test one tile out of selection bounds since unit tileX/Y is centered
                   // use placement approximations from UnitsDat for these "slightly out of bounds" units
@@ -356,7 +360,7 @@ export default class MouseCursor {
 
           for (let x = startMapX; x < endMapX; x++) {
             for (let y = startMapY; y < endMapY; y++) {
-              for (const [spriteId, unit] of unitsBySpriteId) {
+              for (const unit of frameBuilder.unitsBySpriteId.values()) {
                 if (
                   unit.canSelect &&
                   unit.tileX === x &&
@@ -441,7 +445,7 @@ export default class MouseCursor {
         mouseLeaveListener
       );
 
-      clearInterval(_hoverInterval);
+      // clearInterval(_hoverInterval);
       this.selectElement.remove();
     };
   }
