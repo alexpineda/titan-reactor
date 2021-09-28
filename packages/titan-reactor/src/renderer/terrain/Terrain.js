@@ -1,10 +1,7 @@
 import { Color, WebGLRenderer } from "three";
-import readDdsGrp from "titan-reactor-shared/image/ddsGrp";
-import GameIcons from "titan-reactor-shared/map/GameIcons";
-import {
-  generateTileData,
-  generateMesh,
-} from "titan-reactor-shared/map/generateMap";
+import readDdsGrp from "../../common/image/ddsGrp";
+import GameIcons from "../../common/map/GameIcons";
+import { generateTileData, generateMesh } from "../../common/map/generateMap";
 import MouseCursor from "../game/MouseCursor";
 
 const toArrayBuffer = (nodeBuffer) => {

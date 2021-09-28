@@ -1,5 +1,5 @@
 import React from "react";
-import charColor from "titan-reactor-shared/types/charColor";
+import charColor from "../../common/types/charColor";
 
 const processString = (str, useColors = true) => {
   const defaultColor = "white";

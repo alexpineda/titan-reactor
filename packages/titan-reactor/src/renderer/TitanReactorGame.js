@@ -1,23 +1,20 @@
 import { Scene, Box3, Vector3 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import { GameStatePosition } from "./game/GameStatePosition";
-import {
-  gameSpeeds,
-  pxToMapMeter,
-} from "titan-reactor-shared/utils/conversions";
+import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import HeatmapScore from "./react-ui/game/HeatmapScore";
 import Cameras from "./camera/Cameras";
 import MinimapControl from "./camera/MinimapControl";
 import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
 import { Players } from "./game/Players";
 import FadingPointers from "./mesh/FadingPointers";
-import { commands } from "titan-reactor-shared/types/commands";
+import { commands } from "../common/types/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { unitTypes } from "../common/types/unitTypes";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
-import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
+import CanvasTarget from "../common/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import { ProducerWindowPosition, RenderMode } from "../common/settings";
 import Units from "./game/Units";

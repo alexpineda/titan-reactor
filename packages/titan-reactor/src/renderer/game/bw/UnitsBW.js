@@ -1,4 +1,4 @@
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { unitTypes } from "../../../common/types/unitTypes";
 import ContiguousContainer from "./ContiguousContainer";
 
 // status_flag_completed = 1,

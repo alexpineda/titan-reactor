@@ -8,7 +8,7 @@ import {
   Uniform,
   UnsignedByteType,
 } from "three";
-import getMaxEnergy from "titan-reactor-shared/dat/getMaxEnergy";
+import getMaxEnergy from "../../../common/dat/getMaxEnergy";
 
 window.grpOffset = 10;
 

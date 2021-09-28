@@ -2,7 +2,7 @@ import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./sprite/GameSprite";
 import useGameStore from "../stores/gameStore";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { unitTypes } from "../../common/types/unitTypes";
 
 const canOnlySelectOne = [
   unitTypes.larva,

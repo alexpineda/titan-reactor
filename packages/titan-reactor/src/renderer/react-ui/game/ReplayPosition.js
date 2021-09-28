@@ -3,10 +3,7 @@ import shallow from "zustand/shallow";
 import useSettingsStore from "../../stores/settingsStore";
 import useGameStore from "../../stores/gameStore";
 
-import {
-  gameSpeeds,
-  gameSpeedNames,
-} from "titan-reactor-shared/utils/conversions";
+import { gameSpeeds, gameSpeedNames } from "../../../common/utils/conversions";
 import sparkly from "sparkly";
 
 const gameSpeedsArray = [

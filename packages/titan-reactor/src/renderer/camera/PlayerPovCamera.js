@@ -1,5 +1,5 @@
 import { Vector4 } from "three/src/math/Vector4";
-import ClockMs from "titan-reactor-shared/utils/ClockMs";
+import ClockMs from "../../common/utils/ClockMs";
 
 const { PerspectiveCamera } = require("three");
 

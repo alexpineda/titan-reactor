@@ -1,21 +1,15 @@
 {
-	"folders": [
-		{
-			"name": "titan-reactor (all-packages)",
-			"path": "."
-		},
-		{
-			"path": "packages\\titan-reactor"
-		},
-		{
-			"path": "packages\\iscriptah"
-		},
-		{
-			"path": "packages\\titan-reactor-shared"
-		},
-		{
-			"path": "packages\\downgrade-replay"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "name": "titan-reactor (all-packages)",
+      "path": "."
+    },
+    {
+      "path": "packages\\titan-reactor"
+    },
+    {
+      "path": "packages\\downgrade-replay"
+    }
+  ],
+  "settings": {}
 }

@@ -5,8 +5,8 @@ import useGameStore from "../../../stores/gameStore";
 import {
   techTypesByUnitType,
   upgradesByUnitType,
-} from "titan-reactor-shared/types/abilitiesMap";
-import upgradeTypes from "titan-reactor-shared/types/upgrades";
+} from "../../../../common/types/abilitiesMap";
+import upgradeTypes from "../../../../common/types/upgrades";
 
 const iconSelector = (state) => state.game.cmdIcons;
 const bwDatSelector = (state) => state.game.bwDat;

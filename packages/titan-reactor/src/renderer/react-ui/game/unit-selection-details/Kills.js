@@ -1,6 +1,6 @@
 import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import React, { useRef, useEffect } from "react";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { unitTypes } from "../../../../common/types/unitTypes";
 
 export const showKillsExtraUnits = [
   unitTypes.carrier,

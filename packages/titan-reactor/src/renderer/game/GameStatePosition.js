@@ -1,9 +1,6 @@
 import { MathUtils } from "three";
-import {
-  framesBySeconds,
-  gameSpeeds,
-} from "titan-reactor-shared/utils/conversions";
-import ClockMs from "titan-reactor-shared/utils/ClockMs";
+import { framesBySeconds, gameSpeeds } from "../../common/utils/conversions";
+import ClockMs from "../../common/utils/ClockMs";
 
 /**
  * Allows for play/pause of the game and tracks game frame position

@@ -87,7 +87,6 @@
     "scm-extractor": "^1.0.6",
     "sparkly": "^5.0.0",
     "three": "0.125.2",
-    "titan-reactor-shared": "^1.0.0",
     "typescript": "^4.0.3",
     "webpack": "4.42.1",
     "winreg": "^1.2.4",

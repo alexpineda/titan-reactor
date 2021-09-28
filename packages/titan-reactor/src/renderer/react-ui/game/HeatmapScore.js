@@ -1,6 +1,6 @@
 import { easeCubicOut } from "d3-ease";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
-import { orders } from "titan-reactor-shared/types/orders";
+import { unitTypes } from "../../../common/types/unitTypes";
+import { orders } from "../../../common/types/orders";
 
 export default class HeatmapScore {
   constructor(bwDat) {
@@ -29,9 +29,8 @@ export default class HeatmapScore {
     }
     // modify
     else if (unit.typeId === unitTypes.siegeTurretSiegeMode) {
-      const arcliteCannon = this.bwDat.weapons[
-        this.bwDat.units[unit.typeId].groundWeapon
-      ];
+      const arcliteCannon =
+        this.bwDat.weapons[this.bwDat.units[unit.typeId].groundWeapon];
       score = 1 - unit.groundWeaponCooldown / arcliteCannon.weaponCooldown;
       //as is
     } else {

@@ -11,7 +11,7 @@ import {
 import isDev from "electron-is-dev";
 import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
 import { format as formatUrl } from "url";
-import { openFileBinary } from "titan-reactor-shared/utils/fs";
+import { openFileBinary } from "../common/utils/fs";
 import path from "path";
 import Parser from "rss-parser";
 import createScmExtractor from "scm-extractor";
@@ -40,7 +40,7 @@ import {
   LOAD_CHK,
   LOAD_SCX,
 } from "../common/handleNames";
-import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
+import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
 import logger from "./logger";

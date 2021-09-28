@@ -3,7 +3,7 @@ import PlayerResources from "./PlayerResources";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import useHudStore from "../../../stores/hudStore";
-import { incFontSize } from "titan-reactor-shared/utils/changeFontSize";
+import { incFontSize } from "../../../../common/utils/changeFontSize";
 import shallow from "zustand/shallow";
 
 const _playerScoreCache = {};

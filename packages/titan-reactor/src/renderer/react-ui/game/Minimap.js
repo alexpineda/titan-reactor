@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
-import omitChars from "titan-reactor-shared/utils/omitChars";
+import omitChars from "../../../common/utils/omitChars";
 import WrappedElement from "../WrappedElement";
 import useSettingsStore from "../../stores/settingsStore";
 import useGameStore from "../../stores/gameStore";

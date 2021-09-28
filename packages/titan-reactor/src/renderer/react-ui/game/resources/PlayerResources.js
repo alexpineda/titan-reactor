@@ -4,7 +4,7 @@ import shallow from "zustand/shallow";
 import {
   incFontSize,
   decFontSize,
-} from "titan-reactor-shared/utils/changeFontSize";
+} from "../../../../common/utils/changeFontSize";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import {

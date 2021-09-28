@@ -1,5 +1,5 @@
 import { range } from "ramda";
-import { gameSpeeds } from "titan-reactor-shared/utils/conversions";
+import { gameSpeeds } from "../../common/utils/conversions";
 
 export default class Apm {
   constructor(players) {

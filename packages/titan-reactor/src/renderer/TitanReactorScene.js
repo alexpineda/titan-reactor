@@ -1,10 +1,10 @@
 import { GridHelper, HemisphereLight, Scene } from "three";
 import { disposeMeshes } from "./utils/dispose";
-import { getTerrainY } from "titan-reactor-shared/map/displacementGeometry";
+import { getTerrainY } from "../common/map/displacementGeometry";
 import { fog, sunlight } from "./terrain/lights";
 import BackgroundTerrain from "./terrain/BackgroundTerrain";
 import Terrain from "./terrain/Terrain";
-import readCascFile from "titan-reactor-shared/utils/casclib";
+import readCascFile from "../common/utils/casclib";
 
 const displacementScale = 4;
 

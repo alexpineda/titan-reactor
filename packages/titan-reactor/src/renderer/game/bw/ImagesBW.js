@@ -1,4 +1,4 @@
-import { drawFunctions } from "titan-reactor-shared/types/drawFunctions";
+import { drawFunctions } from "../../../common/types/drawFunctions";
 import ContiguousContainer from "./ContiguousContainer";
 
 const flags = Object.freeze({

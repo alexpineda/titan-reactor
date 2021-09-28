@@ -11,29 +11,29 @@ import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
 import { RenderMode } from "common/settings";
 import { openFile, log } from "./invoke";
-import { loadAllDataFiles } from "titan-reactor-shared/dat/loadAllDataFiles";
-import { UnitDAT } from "titan-reactor-shared/dat/UnitsDAT";
+import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
+import { UnitDAT } from "../common/dat/UnitsDAT";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
-import loadEnvironmentMap from "titan-reactor-shared/image/envMap";
-import GrpSD2 from "titan-reactor-shared/image/GrpSD2";
-import GrpHD from "titan-reactor-shared/image/GrpHD";
-import Grp3D from "titan-reactor-shared/image/Grp3D";
-import createTitanImage from "titan-reactor-shared/image/createTitanImage";
-import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
+import loadEnvironmentMap from "../common/image/envMap";
+import GrpSD2 from "../common/image/GrpSD2";
+import GrpHD from "../common/image/GrpHD";
+import Grp3D from "../common/image/Grp3D";
+import createTitanImage from "../common/image/createTitanImage";
+import { createIScriptRunner } from "../common/iscript/IScriptRunner";
 import electronFileLoader from "./utils/electronFileLoader";
 
 import readCascFile, {
   closeCascStorage,
   openCascStorage,
-} from "titan-reactor-shared/utils/casclib";
+} from "../common/utils/casclib";
 import FileGameStateReader from "./game/bw/FileGameStateReader";
-import AtlasPreloader from "titan-reactor-shared/image/AtlasPreloader";
+import AtlasPreloader from "../common/image/AtlasPreloader";
 import ImagesBW from "./game/bw/ImagesBW";
 import {
   calculateImagesFromSpritesIscript,
   calculateImagesFromUnitsIscript,
-} from "titan-reactor-shared/image/calculateImagesFromIScript";
-import TitanSprite from "titan-reactor-shared/image/TitanSprite";
+} from "../common/image/calculateImagesFromIScript";
+import TitanSprite from "../common/image/TitanSprite";
 import AudioMaster from "./audio/AudioMaster";
 import useLoadingStore from "./stores/loadingStore";
 import { getSettings } from "./stores/settingsStore";

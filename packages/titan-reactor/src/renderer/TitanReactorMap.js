@@ -6,17 +6,17 @@ import { EnvironmentOptionsGui } from "./terrain/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
 import Cameras from "./camera/Cameras";
 import RenderMan from "./render/RenderMan";
-import CanvasTarget from "titan-reactor-shared/image/CanvasTarget";
+import CanvasTarget from "../common/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import { fog } from "./terrain/lights";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 import InputEvents from "./input/InputEvents";
 
-import { pxToMapMeter } from "titan-reactor-shared/utils/conversions";
+import { pxToMapMeter } from "../common/utils/conversions";
 import useSettingsStore from "./stores/settingsStore";
 import useHudStore from "./stores/hudStore";
-import { iscriptHeaders } from "titan-reactor-shared/types/iscriptHeaders";
-import { unitTypes } from "titan-reactor-shared/types/unitTypes";
+import { iscriptHeaders } from "../common/types/iscriptHeaders";
+import { unitTypes } from "../common/types/unitTypes";
 
 export const hot = module.hot ? module.hot.data : null;
 
