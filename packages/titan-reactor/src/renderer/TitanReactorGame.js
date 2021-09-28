@@ -8,7 +8,6 @@ import {
 import HeatmapScore from "./react-ui/game/HeatmapScore";
 import Cameras from "./camera/Cameras";
 import MinimapControl from "./camera/MinimapControl";
-import { createMiniMapPlane } from "./mesh/Minimap";
 import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
 import { Players } from "./game/Players";
 import FadingPointers from "./mesh/FadingPointers";
@@ -25,14 +24,21 @@ import Units from "./game/Units";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import BWFrameSceneBuilder from "./game/BWFrameSceneBuilder";
-import ManagedDomElements from "./react-ui/managed-dom/ManagedDomElements";
 import Apm from "./game/Apm";
 import { debounce } from "lodash";
+
 import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import useHudStore from "./stores/hudStore";
+import useUnitSelectionStore from "./stores/realtime/unitSelectionStore";
+import useProductionStore from "./stores/realtime/productionStore";
+import useResourcesStore from "./stores/realtime/resourcesStore";
+
 import Creep from "./game/creep/Creep";
 
+const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
+const setAllProduction = useProductionStore.getState().setAllProduction;
+const setAllResources = useResourcesStore.getState().setAllResources;
 const { startLocation } = unitTypes;
 
 export const hot = module.hot ? module.hot.data : null;
@@ -86,13 +92,6 @@ async function TitanReactorGame(
   const fadingPointers = new FadingPointers();
   scene.add(fadingPointers);
 
-  const minimapScene = new Scene();
-  window.minimapScene = minimapScene;
-
-  minimapScene.add(
-    createMiniMapPlane(scene.terrainSD.material.map, mapWidth, mapHeight)
-  );
-
   const cameras = new Cameras(
     settings,
     mapWidth,
@@ -131,14 +130,6 @@ async function TitanReactorGame(
   });
   players.changeColors(settings.useCustomColors);
   console.log("players", players);
-
-  const managedDomElements = new ManagedDomElements(
-    bwDat,
-    scene.cmdIcons,
-    scene.wireframeIcons,
-    scene.gameIcons,
-    players.playersById
-  );
 
   audioMaster.music.playGame();
 
@@ -196,6 +187,13 @@ async function TitanReactorGame(
     toggleElevationHandler
   );
 
+  const nextFrameHandler = (evt) => {
+    if (evt.code === "KeyN") {
+      this.skipGameFrames = 1;
+    }
+  };
+  document.addEventListener("keydown", nextFrameHandler);
+
   const hudData = {
     onFollowUnit: () => {
       // units.followingUnit = !units.followingUnit;
@@ -220,8 +218,9 @@ async function TitanReactorGame(
           povState.fns.forEach((fn) => fn());
           povState.fns.length = 0;
 
-          const activePovs = players.filter(({ showPov }) => showPov === true)
-            .length;
+          const activePovs = players.filter(
+            ({ showPov }) => showPov === true
+          ).length;
 
           players.activePovs = activePovs;
 
@@ -399,14 +398,28 @@ async function TitanReactorGame(
 
         frameBuilder.update(currentBwFrame, delta, elapsed, units);
 
-        managedDomElements.update(
-          currentBwFrame,
-          gameStatePosition,
-          players,
-          apm.apm,
-          frameBuilder
-        );
         audioMaster.channels.play(elapsed);
+
+        setAllResources(
+          currentBwFrame.minerals,
+          currentBwFrame.gas,
+          currentBwFrame.supplyUsed,
+          currentBwFrame.supplyAvailable,
+          currentBwFrame.workerSupply,
+          apm.apm,
+          gameStatePosition.getFriendlyTime()
+        );
+
+        setAllProduction(
+          frameBuilder.unitsInProduction,
+          frameBuilder.research,
+          frameBuilder.upgrades
+        );
+        setSelectedUnits(useGameStore.getState().selectedUnits);
+
+        frameBuilder.unitsInProduction.needsUpdate = false;
+        frameBuilder.upgrades.needsUpdate = false;
+        frameBuilder.research.needsUpdate = false;
 
         apm.update(
           rep.cmds[gameStatePosition.bwGameFrame],
@@ -568,7 +581,6 @@ async function TitanReactorGame(
     console.log("disposing");
     window.cameras = null;
     window.scene = null;
-    window.minimapScene = null;
     window.renderMan = null;
 
     audioMaster.dispose();
@@ -581,6 +593,7 @@ async function TitanReactorGame(
     scene.dispose();
     cameras.dispose();
 
+    document.removeEventListener("keydown", nextFrameHandler);
     keyboardShortcuts.removeEventListener(
       InputEvents.TogglePlay,
       togglePlayHandler
@@ -676,7 +689,6 @@ async function TitanReactorGame(
     previewSurfaces,
     players,
     replayPosition: gameStatePosition,
-    managedDomElements,
     callbacks,
     dispose,
   };

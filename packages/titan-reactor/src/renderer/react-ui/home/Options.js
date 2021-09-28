@@ -12,7 +12,6 @@ import ButtonSet from "../components/ButtonSet";
 import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
 import ColorPicker, { ColorPickerType } from "../components/ColorPicker";
-import { ShadowLevel } from "common/settings";
 import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 import useSettingsStore from "../../stores/settingsStore";
 import shallow from "zustand/shallow";
@@ -48,7 +47,7 @@ export default ({
   );
 
   useEffect(() => {
-    const listener = (event, { key, filePaths: [dir] }) => {
+    const listener = (_, { key, filePaths: [dir] }) => {
       save({
         [key]: dir,
       });

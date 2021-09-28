@@ -37,7 +37,7 @@ const loadFont = async (file, family, weight) => {
   );
 };
 
-let titanReactor = new TitanReactor();
+const titanReactor = new TitanReactor();
 
 async function bootup() {
   await loadFont(`${__static}/fonts/conthrax-rg.otf`, "conthrax", "100 400");
@@ -54,30 +54,16 @@ async function bootup() {
   }
 }
 
-ipcRenderer.on(OPEN_MAP_DIALOG, async (event, [map]) => {
-  if (!titanReactor) return;
+ipcRenderer.on(OPEN_MAP_DIALOG, async (_, [map]) => {
   log(`opening map ${map}`);
   titanReactor.spawnMapViewer(map);
 });
 
-ipcRenderer.on(OPEN_REPLAY_DIALOG, (event, replays) => {
-  if (!titanReactor) return;
+ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replays) => {
   log(`opening replay ${replays[0]}`);
   titanReactor.spawnReplay(replays[0]);
 });
 
-async function producerBootup() {
-  console.log("hi");
-}
-{
-  /* <App titanReactor={titanReactor} /> */
-}
-// const useOk = create(() => ({}));
-// const Do = () => {
-//   const o = useOk();
-//   return <p>hello</p>;
-// };
-
 render(<App titanReactor={titanReactor} />, document.getElementById("app"));
 
-window.location.search.includes("producer") ? producerBootup() : bootup();
+bootup();

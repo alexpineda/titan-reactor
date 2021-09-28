@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import Options from "./Options";
-import Maps from "./Maps";
-import Replays from "./Replays";
 import { ipcRenderer } from "electron";
 import {
   OPEN_MAP_DIALOG,
@@ -62,24 +60,6 @@ const Home = () => {
                 ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
               }
             />
-
-            {/* 
-            <MenuItem
-              label={phrases["MENU_MAPS"]}
-              disabled={
-                errors.includes("starcraftPath") || errors.includes("mapsPath")
-              }
-              onClick={() => setActivePanel(Panels.Maps)}
-            />
-
-            <MenuItem
-              label={phrases["MENU_REPLAYS"]}
-              disabled={
-                errors.includes("starcraftPath") ||
-                errors.includes("replaysPath")
-              }
-              onClick={() => setActivePanel(Panels.Replays)}
-            /> */}
 
             <MenuItem
               label={phrases["MENU_OPTIONS"]}

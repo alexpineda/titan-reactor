@@ -1,4 +1,6 @@
 import { Audio, AudioLoader } from "three";
+import { log } from "../invoke";
+
 const rand = (n) => Math.floor(Math.random() * n);
 
 class Music {
@@ -26,7 +28,7 @@ class Music {
   }
 
   _play(filepath) {
-    console.log(`now playing ${filepath}`);
+    log(`now playing ${filepath}`);
     const audioLoader = new AudioLoader();
 
     const { audio } = this;

@@ -23,6 +23,10 @@ export default class FileGameStateReader extends StreamGameStateReader {
     this.bwPath = bwPath;
 
     this.openBwBridgeExePath = `${__static}/openbw-bridge.exe`;
+    // this.openBwBridgeExePath =
+    // "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
+    // this.openBwBridgeExePath =
+    //   "D:\\dev\\ChkForge\\openbw-bridge\\Release\\openbw-bridge.exe";
     console.log("openbw bridge exe path", this.openBwBridgeExePath);
     // "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
   }

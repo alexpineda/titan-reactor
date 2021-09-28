@@ -8,11 +8,10 @@ import SmallUnitDetail from "./unit-selection-details/SmallUnitDetail";
 const UnitSelection = ({ className = "" }) => {
   const selectedUnits = useGameStore((state) => state.selectedUnits, shallow);
 
-  const { followUnit, toggleFollowUnit, managedDomElements } = useGameStore(
+  const { followUnit, toggleFollowUnit } = useGameStore(
     (state) => ({
       followUnit: state.followUnit,
       toggleFollowUnit: state.toggleFollowUnit,
-      managedDomElements: state.game.managedDomElements,
     }),
     shallow
   );

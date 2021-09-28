@@ -21,7 +21,7 @@ export default () => {
 
   return (
     <ul
-      className="absolute pl-2 pointer-events-none"
+      className="absolute pl-2 pointer-events-none select-none"
       style={{ bottom: `${dimensions.minimapSize + 80}px` }}
     >
       {chat.map((msg) => {

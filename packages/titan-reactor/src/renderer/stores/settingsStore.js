@@ -1,6 +1,8 @@
 import { getSettings, saveSettings } from "../invoke";
 import create from "../../../libs/zustand";
 
+//a user settings store which persists to disk
+
 const useSettingsStore = create((set, get) => ({
   data: {},
   phrases: {},

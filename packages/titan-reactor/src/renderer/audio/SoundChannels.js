@@ -135,7 +135,7 @@ export default class SoundChannels {
       audio.play(elapsed);
     }
 
-    //keep items that are loading for next time, this makes cancelling scheduled audio easier without doing promisey stuff
+    //keep items that are loading for next time
     this.scheduled = this.scheduled.filter(this._channelHasNotPlayed);
   }
 }

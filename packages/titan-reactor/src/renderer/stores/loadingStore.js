@@ -1,11 +1,14 @@
 import create from "../../../libs/zustand";
 
+// loading store which contains state on loading status, as well as loaded replay and map data
+
 const useLoadingStore = create((set) => ({
   isReplay: false,
   isGame: false,
   isMap: false,
   chk: { filename: "", loaded: false },
   rep: { filename: "", loaded: false },
+
   initRep: (filename) => set({ rep: { filename, loading: true }, chk: {} }),
   updateRep: (data) => set((state) => ({ rep: { ...state.rep, ...data } })),
   updateChk: (data) => set((state) => ({ chk: { ...state.chk, ...data } })),
