@@ -5,7 +5,7 @@ export default (mapWidth, mapHeight, map) => {
   const material = new THREE.MeshLambertMaterial({
     map,
     transparent: true,
-    opacity: 0.1,
+    opacity: 0.01,
     toneMapped: true,
   });
   const plane = new THREE.Mesh(geometry, material);
