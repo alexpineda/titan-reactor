@@ -13,15 +13,13 @@ const toArrayBuffer = (nodeBuffer) => {
 
 // high level class for generating terrain and icons
 class Terrain {
-  constructor(readFile, chk, cache, anisotropy) {
+  constructor(readFile, chk) {
     this.readFile = async (file, arrayBuffer = true) => {
       const buf = await readFile(file);
       return arrayBuffer ? toArrayBuffer(buf) : buf;
     };
 
     this.chk = chk;
-    this.cache = cache;
-    this.anisotropy = anisotropy;
   }
 
   async generate(options = {}) {

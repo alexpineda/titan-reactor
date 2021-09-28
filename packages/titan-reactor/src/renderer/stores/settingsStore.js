@@ -1,4 +1,4 @@
-import { getSettings, saveSettings } from "../invoke";
+import { getSettings as invokeGetSettings, saveSettings } from "../invoke";
 import create from "../../../libs/zustand";
 
 //a user settings store which persists to disk
@@ -9,11 +9,13 @@ const useSettingsStore = create((set, get) => ({
   save: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
     await saveSettings(get().data);
-    set(await getSettings());
+    set(await invokeGetSettings());
   },
   load: async () => {
-    set(await getSettings());
+    set(await invokeGetSettings());
   },
 }));
 
 export default useSettingsStore;
+
+export const getSettings = () => useSettingsStore.getState().data;

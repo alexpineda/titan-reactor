@@ -1,15 +1,15 @@
-export const disposeMesh = (mesh) => {
-  const maps = [
-    "map",
-    "normalMap",
-    "bumpMap",
-    "displacementMap",
-    "roughnessMap",
-    "emissiveMap",
-  ];
+const maps = [
+  "map",
+  "normalMap",
+  "bumpMap",
+  "displacementMap",
+  "roughnessMap",
+  "emissiveMap",
+];
 
+export const disposeMesh = (mesh) => {
   if (mesh.material) {
-    maps.forEach((map) => {
+    for (const map of maps) {
       try {
         if (mesh.material[map] && mesh.material[map].dispose) {
           mesh.material[map].dispose();
@@ -21,7 +21,7 @@ export const disposeMesh = (mesh) => {
       } catch (e) {
         console.error("error disposing map", e);
       }
-    });
+    }
 
     try {
       mesh.material && mesh.material.dispose();

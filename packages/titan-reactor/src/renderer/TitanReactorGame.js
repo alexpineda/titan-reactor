@@ -100,7 +100,7 @@ async function TitanReactorGame(
     minimapSurface,
     minimapControl,
     keyboardShortcuts,
-    false
+    true
   );
 
   await renderMan.initRenderer(cameras.camera);

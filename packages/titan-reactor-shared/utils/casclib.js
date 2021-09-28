@@ -13,7 +13,7 @@ export default (filePath) => {
   }
 };
 
-export const openStorage = (bwPath) => {
+export const openCascStorage = (bwPath) => {
   _lastBwPath = bwPath;
   console.log("opening CASC storage");
   if (_storageHandle) {
@@ -22,5 +22,5 @@ export const openStorage = (bwPath) => {
   _storageHandle = casclib.openStorageSync(bwPath);
 };
 
-export const closeStorage = () =>
+export const closeCascStorage = () =>
   _storageHandle && casclib.closeStorage(_storageHandle);

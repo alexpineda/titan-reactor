@@ -1,7 +1,7 @@
 import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 
-import StandardCameraControls from "./controls/StandardCameraControls";
+import StandardCameraControls from "./StandardCameraControls";
 import { ProducerWindowPosition } from "../../common/settings";
 
 export const CameraControlType = {

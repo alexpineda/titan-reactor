@@ -2,18 +2,16 @@ import { GridHelper, HemisphereLight, Scene } from "three";
 import { disposeMeshes } from "./utils/dispose";
 import { getTerrainY } from "titan-reactor-shared/map/displacementGeometry";
 import { fog, sunlight } from "./terrain/lights";
-import Background from "./terrain/Background";
+import BackgroundTerrain from "./terrain/BackgroundTerrain";
 import Terrain from "./terrain/Terrain";
-import readBwFile from "titan-reactor-shared/utils/readBwFile";
+import readCascFile from "titan-reactor-shared/utils/casclib";
 
 const displacementScale = 4;
 
 export class TitanReactorScene extends Scene {
-  constructor(chk, anisotropy, renderMode) {
+  constructor(chk) {
     super();
     this.chk = chk;
-    this.anisotropy = anisotropy;
-    this.renderMode = renderMode;
   }
 
   async init() {
@@ -34,12 +32,7 @@ export class TitanReactorScene extends Scene {
     const hemi = new HemisphereLight(0xffffff, 0xffffff, 5);
     this.add(hemi);
 
-    const terrainMesh = new Terrain(
-      readBwFile,
-      this.chk,
-      this.textureCache,
-      this.anisotropy
-    );
+    const terrainMesh = new Terrain(readCascFile, this.chk);
 
     const [
       terrain,
@@ -68,14 +61,14 @@ export class TitanReactorScene extends Scene {
     this.cursor = cursor;
     this.wireframeIcons = wireframeIcons;
 
-    const bgTerrain = Background(w, h, terrain.material.map);
+    const bgTerrain = BackgroundTerrain(w, h, terrain.material.map);
 
     terrain.visible = false;
     this.add(terrain);
     this.add(terrainHD);
     this.terrain = terrainHD;
 
-    // this.add(bgTerrain);
+    this.add(bgTerrain);
     this.terrainSD = terrain;
     this.terrainHD = terrainHD;
 

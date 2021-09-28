@@ -21,7 +21,6 @@ import { Readable } from "stream";
 powerSaveBlocker.start("prevent-display-sleep");
 
 import {
-  GET_APPCACHE_PATH,
   OPEN_FILE,
   OPEN_DATA_FILE,
   LOAD_ALL_DATA_FILES,
@@ -105,312 +104,308 @@ function createWindow() {
   });
 }
 
-if (gotTheLock) {
-  // app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
-
-  protocol.registerSchemesAsPrivileged([
-    {
-      scheme: "file",
-      privileges: { standard: true, bypassCSP: true, corsEnabled: false },
-    },
-  ]);
-
-  app.commandLine.appendSwitch("--disable-xr-sandbox");
-
-  app.on("ready", async () => {
-    settings = new Settings(path.join(getUserDataPath(), "settings.json"));
-
-    const updateFullScreen = (fullscreen) => {
-      gameWindow.setFullScreen(fullscreen);
-      if (fullscreen) {
-        gameWindow.maximize();
-      }
-    };
-
-    settings.on("change", (settings) => {
-      gameWindow.webContents.send(SETTINGS_CHANGED, settings);
-      if (settings.diff.fullscreen !== undefined) {
-        updateFullScreen(settings.diff.fullscreen);
-      }
-    });
-
-    ipcMain.handle(GET_SETTINGS, async () => {
-      await settings.init();
-
-      return await settings.get();
-    });
-
-    ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
-      settings.save(newSettings);
-      return newSettings;
-    });
-
-    ipcMain.handle(
-      LOAD_REPLAY_FROM_FILE,
-      async (event, repFile, outFile, starcraftPath) => {
-        gameStateReader = new FileGameStateReader(
-          repFile,
-          outFile,
-          starcraftPath
-        );
-        await gameStateReader.start();
-        await gameStateReader.waitForMaxed;
-      }
-    );
-
-    ipcMain.handle(REQUEST_NEXT_FRAMES, async (event, frames) => {
-      return gameStateReader.next(frames);
-    });
-
-    ipcMain.handle(STOP_READING_GAME_STATE, async (event) => {
-      gameStateReader.dispose();
-      gameStateReader = null;
-    });
-
-    if (isDev) {
-      installExtension(REDUX_DEVTOOLS)
-        .then((name) => console.log(`Added Extension:  ${name}`))
-        .catch((err) => console.log("An error occurred: ", err));
-    }
-
-    createWindow();
-  });
-
-  app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      app.quit();
-    }
-  });
-
-  ipcMain.on(EXIT, () => app.exit(0));
-
-  app.on("activate", () => {
-    if (gameWindow === null) {
-      createWindow();
-    }
-  });
-
-  app.on("web-contents-created", (event, contents) => {
-    // prevent navigation
-    contents.on("will-navigate", (event) => {
-      event.preventDefault();
-    });
-
-    // prevent new windows
-    contents.on("new-window", async (event) => {
-      event.preventDefault();
-    });
-  });
-
-  const isMac = process.platform === "darwin";
-
-  var showOpen = function (isMap = false, defaultPath = "") {
-    const filters = isMap
-      ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
-      : [{ name: "Starcraft Replay", extensions: ["rep"] }];
-    const command = isMap ? OPEN_MAP_DIALOG : OPEN_REPLAY_DIALOG;
-    const multiSelections = isMap
-      ? ["openFile"]
-      : ["openFile", "multiSelections"];
-    dialog
-      .showOpenDialog({
-        properties: multiSelections,
-        filters,
-        defaultPath,
-      })
-      .then(({ filePaths, canceled }) => {
-        if (canceled) return;
-        gameWindow.webContents.send(command, filePaths);
-      })
-      .catch((err) => {
-        dialog.showMessageBox({
-          type: "error",
-          title: "Error Loading File",
-          message: "There was an error loading this file: " + err.message,
-        });
-      });
-  };
-
-  const showOpenReplay = showOpen.bind(null, false);
-
-  const showOpenMap = showOpen.bind(null, true);
-
-  const submenu = [
-    {
-      label: "Open &Map",
-      click: function () {
-        showOpenMap();
-      },
-    },
-  ];
-
-  if (true) {
-    submenu.push({
-      label: "&Open Replay",
-      accelerator: "CmdOrCtrl+Shift+O",
-      click: function () {
-        showOpenReplay();
-      },
-    });
-  }
-
-  const template = [
-    // { role: 'appMenu' }
-    ...(isMac
-      ? [
-          {
-            label: app.name,
-            submenu: [
-              { role: "about" },
-              { type: "separator" },
-              { role: "services" },
-              { type: "separator" },
-              { role: "hide" },
-              { role: "hideothers" },
-              { role: "unhide" },
-              { type: "separator" },
-              { role: "quit" },
-            ],
-          },
-        ]
-      : []),
-    // { role: 'fileMenu' }
-    {
-      label: "&File",
-      submenu: submenu.concat([
-        { type: "separator" },
-        { role: isMac ? "close" : "quit" },
-      ]),
-    },
-    {
-      label: "View",
-      submenu: [
-        { role: "reload" },
-        { role: "toggledevtools" },
-        { type: "separator" },
-        { role: "togglefullscreen" },
-      ],
-    },
-    {
-      label: "Window",
-      submenu: [
-        { role: "minimize" },
-        ...(isMac
-          ? [
-              { type: "separator" },
-              { role: "front" },
-              { type: "separator" },
-              { role: "window" },
-            ]
-          : [{ role: "close" }]),
-      ],
-    },
-    {
-      role: "help",
-      submenu: [
-        {
-          label: "Learn More",
-          click: async () => {
-            await shell.openExternal("http://imbateam.gg");
-          },
-        },
-        {
-          label: "Join Our Discord",
-          click: async () => {
-            await shell.openExternal("http://discord.imbateam.gg");
-          },
-        },
-      ],
-    },
-  ];
-
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-
-  ipcMain.handle(GET_APPCACHE_PATH, async (event, folder = "") => {
-    return path.join(app.getPath("temp"), folder);
-  });
-
-  ipcMain.handle(OPEN_FILE, async (event, filepath = "") => {
-    return await openFileBinary(filepath);
-  });
-
-  ipcMain.handle(OPEN_DATA_FILE, async (event, filepath) => {
-    const dataPath = isDev
-      ? path.join(`./data/${filepath}`)
-      : path.join(process.resourcesPath, "data", filepath);
-
-    return await openFileBinary(dataPath);
-  });
-
-  ipcMain.handle(LOAD_ALL_DATA_FILES, async (event, bwDataPath) => {
-    return await loadAllDataFiles(bwDataPath);
-  });
-
-  ipcMain.on(OPEN_MAP_DIALOG, async (event, defaultPath = "") => {
-    showOpenMap(defaultPath);
-  });
-
-  ipcMain.on(OPEN_REPLAY_DIALOG, async (event, defaultPath = "") => {
-    showOpenReplay(defaultPath);
-  });
-
-  ipcMain.on(OPEN_DEMO_REPLAY, async (event, defaultPath = "") => {
-    gameWindow.webContents.send(OPEN_REPLAY_DIALOG, [`${__static}/demo.rep`]);
-  });
-
-  ipcMain.on(LOG_MESSAGE, (event, { level, message }) => {
-    logger.log(level, message);
-  });
-
-  ipcMain.on(EXIT, () => {
-    app.exit(0);
-  });
-
-  ipcMain.on(SELECT_FOLDER, async (event, key) => {
-    dialog
-      .showOpenDialog({
-        properties: ["openDirectory"],
-      })
-      .then(({ filePaths, canceled }) => {
-        console.log("show open dialog", filePaths);
-        if (canceled) return;
-        event.sender.send(SELECT_FOLDER, { key, filePaths });
-      })
-      .catch((err) => {
-        dialog.showMessageBox({
-          type: "error",
-          title: "Error Loading File",
-          message: "There was an error selecting path: " + err.message,
-        });
-      });
-  });
-
-  ipcMain.handle(GET_RSS_FEED, async (event, url) => {
-    const parser = new Parser();
-    return await parser.parseURL(url);
-  });
-
-  ipcMain.handle(LOAD_CHK, (event, buf) => {
-    const chk = new Chk(new BufferList(buf));
-    return chk;
-  });
-
-  ipcMain.handle(LOAD_SCX, async (event, buf) => {
-    const readable = new Readable({ read: () => {} });
-    readable.push(Buffer.from(buf));
-    readable.push(null);
-
-    const chk = await new Promise((res) =>
-      readable.pipe(createScmExtractor()).pipe(
-        concat((data) => {
-          res(data);
-        })
-      )
-    );
-    const res = new Chk(chk);
-    return res;
-  });
-} else {
+if (!gotTheLock) {
   app.quit();
 }
+
+// custom node heap size
+// app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "file",
+    privileges: { standard: true, bypassCSP: true, corsEnabled: false },
+  },
+]);
+
+app.commandLine.appendSwitch("--disable-xr-sandbox");
+
+app.on("ready", async () => {
+  settings = new Settings(path.join(getUserDataPath(), "settings.json"));
+
+  const updateFullScreen = (fullscreen) => {
+    gameWindow.setFullScreen(fullscreen);
+    if (fullscreen) {
+      gameWindow.maximize();
+    }
+  };
+
+  settings.on("change", (settings) => {
+    gameWindow.webContents.send(SETTINGS_CHANGED, settings);
+    if (settings.diff.fullscreen !== undefined) {
+      updateFullScreen(settings.diff.fullscreen);
+    }
+  });
+
+  ipcMain.handle(GET_SETTINGS, async () => {
+    await settings.init();
+
+    return await settings.get();
+  });
+
+  ipcMain.handle(SET_SETTINGS, async (event, newSettings) => {
+    settings.save(newSettings);
+    return newSettings;
+  });
+
+  ipcMain.handle(
+    LOAD_REPLAY_FROM_FILE,
+    async (event, repFile, outFile, starcraftPath) => {
+      gameStateReader = new FileGameStateReader(
+        repFile,
+        outFile,
+        starcraftPath
+      );
+      await gameStateReader.start();
+      await gameStateReader.waitForMaxed;
+    }
+  );
+
+  ipcMain.handle(REQUEST_NEXT_FRAMES, async (event, frames) => {
+    return gameStateReader.next(frames);
+  });
+
+  ipcMain.handle(STOP_READING_GAME_STATE, async (event) => {
+    gameStateReader.dispose();
+    gameStateReader = null;
+  });
+
+  if (isDev) {
+    installExtension(REDUX_DEVTOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log("An error occurred: ", err));
+  }
+
+  createWindow();
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+ipcMain.on(EXIT, () => app.exit(0));
+
+app.on("activate", () => {
+  if (gameWindow === null) {
+    createWindow();
+  }
+});
+
+app.on("web-contents-created", (event, contents) => {
+  // prevent navigation
+  contents.on("will-navigate", (event) => {
+    event.preventDefault();
+  });
+
+  // prevent new windows
+  contents.on("new-window", async (event) => {
+    event.preventDefault();
+  });
+});
+
+const isMac = process.platform === "darwin";
+
+var showOpen = function (isMap = false, defaultPath = "") {
+  const filters = isMap
+    ? [{ name: "Starcraft Map", extensions: ["scm", "scx"] }]
+    : [{ name: "Starcraft Replay", extensions: ["rep"] }];
+  const command = isMap ? OPEN_MAP_DIALOG : OPEN_REPLAY_DIALOG;
+  const multiSelections = isMap
+    ? ["openFile"]
+    : ["openFile", "multiSelections"];
+  dialog
+    .showOpenDialog({
+      properties: multiSelections,
+      filters,
+      defaultPath,
+    })
+    .then(({ filePaths, canceled }) => {
+      if (canceled) return;
+      gameWindow.webContents.send(command, filePaths);
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Loading File",
+        message: "There was an error loading this file: " + err.message,
+      });
+    });
+};
+
+const showOpenReplay = showOpen.bind(null, false);
+
+const showOpenMap = showOpen.bind(null, true);
+
+const submenu = [
+  {
+    label: "Open &Map",
+    click: function () {
+      showOpenMap();
+    },
+  },
+];
+
+if (true) {
+  submenu.push({
+    label: "&Open Replay",
+    accelerator: "CmdOrCtrl+Shift+O",
+    click: function () {
+      showOpenReplay();
+    },
+  });
+}
+
+const template = [
+  // { role: 'appMenu' }
+  ...(isMac
+    ? [
+        {
+          label: app.name,
+          submenu: [
+            { role: "about" },
+            { type: "separator" },
+            { role: "services" },
+            { type: "separator" },
+            { role: "hide" },
+            { role: "hideothers" },
+            { role: "unhide" },
+            { type: "separator" },
+            { role: "quit" },
+          ],
+        },
+      ]
+    : []),
+  // { role: 'fileMenu' }
+  {
+    label: "&File",
+    submenu: submenu.concat([
+      { type: "separator" },
+      { role: isMac ? "close" : "quit" },
+    ]),
+  },
+  {
+    label: "View",
+    submenu: [
+      { role: "reload" },
+      { role: "toggledevtools" },
+      { type: "separator" },
+      { role: "togglefullscreen" },
+    ],
+  },
+  {
+    label: "Window",
+    submenu: [
+      { role: "minimize" },
+      ...(isMac
+        ? [
+            { type: "separator" },
+            { role: "front" },
+            { type: "separator" },
+            { role: "window" },
+          ]
+        : [{ role: "close" }]),
+    ],
+  },
+  {
+    role: "help",
+    submenu: [
+      {
+        label: "Learn More",
+        click: async () => {
+          await shell.openExternal("http://imbateam.gg");
+        },
+      },
+      {
+        label: "Join Our Discord",
+        click: async () => {
+          await shell.openExternal("http://discord.imbateam.gg");
+        },
+      },
+    ],
+  },
+];
+
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
+
+ipcMain.handle(OPEN_FILE, async (_, filepath = "") => {
+  return await openFileBinary(filepath);
+});
+
+ipcMain.handle(OPEN_DATA_FILE, async (_, filepath) => {
+  const dataPath = isDev
+    ? path.join(`./data/${filepath}`)
+    : path.join(process.resourcesPath, "data", filepath);
+
+  return await openFileBinary(dataPath);
+});
+
+ipcMain.handle(LOAD_ALL_DATA_FILES, async (_, bwDataPath) => {
+  return await loadAllDataFiles(bwDataPath);
+});
+
+ipcMain.on(OPEN_MAP_DIALOG, async (_, defaultPath = "") => {
+  showOpenMap(defaultPath);
+});
+
+ipcMain.on(OPEN_REPLAY_DIALOG, async (_, defaultPath = "") => {
+  showOpenReplay(defaultPath);
+});
+
+ipcMain.on(OPEN_DEMO_REPLAY, async () => {
+  gameWindow.webContents.send(OPEN_REPLAY_DIALOG, [`${__static}/demo.rep`]);
+});
+
+ipcMain.on(LOG_MESSAGE, (_, { level, message }) => {
+  logger.log(level, message);
+});
+
+ipcMain.on(EXIT, () => {
+  app.exit(0);
+});
+
+ipcMain.on(SELECT_FOLDER, async (event, key) => {
+  dialog
+    .showOpenDialog({
+      properties: ["openDirectory"],
+    })
+    .then(({ filePaths, canceled }) => {
+      if (canceled) return;
+      event.sender.send(SELECT_FOLDER, { key, filePaths });
+    })
+    .catch((err) => {
+      dialog.showMessageBox({
+        type: "error",
+        title: "Error Loading File",
+        message: "There was an error selecting path: " + err.message,
+      });
+    });
+});
+
+ipcMain.handle(GET_RSS_FEED, async (_, url) => {
+  const parser = new Parser();
+  return await parser.parseURL(url);
+});
+
+ipcMain.handle(LOAD_CHK, (_, buf) => {
+  const chk = new Chk(new BufferList(buf));
+  return chk;
+});
+
+ipcMain.handle(LOAD_SCX, async (_, buf) => {
+  const readable = new Readable({ read: () => {} });
+  readable.push(Buffer.from(buf));
+  readable.push(null);
+
+  const chk = await new Promise((res) =>
+    readable.pipe(createScmExtractor()).pipe(
+      concat((data) => {
+        res(data);
+      })
+    )
+  );
+  const res = new Chk(chk);
+  return res;
+});

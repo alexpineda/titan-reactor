@@ -22,10 +22,10 @@ import createTitanImage from "titan-reactor-shared/image/createTitanImage";
 import { createIScriptRunner } from "titan-reactor-shared/iscript/IScriptRunner";
 import electronFileLoader from "./utils/electronFileLoader";
 
-import readBwFile, {
-  closeStorage,
-  openStorage,
-} from "titan-reactor-shared/utils/readBwFile";
+import readCascFile, {
+  closeCascStorage,
+  openCascStorage,
+} from "titan-reactor-shared/utils/casclib";
 import FileGameStateReader from "./game/bw/FileGameStateReader";
 import AtlasPreloader from "titan-reactor-shared/image/AtlasPreloader";
 import ImagesBW from "./game/bw/ImagesBW";
@@ -36,7 +36,7 @@ import {
 import TitanSprite from "titan-reactor-shared/image/TitanSprite";
 import AudioMaster from "./audio/AudioMaster";
 import useLoadingStore from "./stores/loadingStore";
-import useSettingsStore from "./stores/settingsStore";
+import { getSettings } from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
 import ContiguousContainer from "./game/bw/ContiguousContainer";
 import SelectionCircle from "./game/sprite/SelectionCircle";
@@ -61,12 +61,12 @@ export class TitanReactor {
   async preload() {
     if (useLoadingStore.getState().preloaded) return;
 
-    const settings = useSettingsStore.getState().data;
+    const settings = getSettings();
 
     log("loading DAT and ISCRIPT files");
-    openStorage(settings.starcraftPath);
+    openCascStorage(settings.starcraftPath);
 
-    const origBwDat = await loadAllDataFiles(readBwFile);
+    const origBwDat = await loadAllDataFiles(readCascFile);
     this.bwDat = {
       ...origBwDat,
       units: origBwDat.units.map((unit) => new UnitDAT(unit)),
@@ -82,7 +82,7 @@ export class TitanReactor {
     this.atlasPreloader = new AtlasPreloader(
       this.bwDat,
       settings.communityModelsPath,
-      readBwFile,
+      readCascFile,
       () => {
         if (settings.renderMode === RenderMode.SD) {
           return new GrpSD2();
@@ -112,7 +112,7 @@ export class TitanReactor {
       if (file.includes(".glb") || file.includes(".hdr")) {
         return fsPromises.readFile(file);
       } else {
-        return readBwFile(file);
+        return readCascFile(file);
       }
     });
   }
@@ -126,7 +126,7 @@ export class TitanReactor {
     log("disposing previous replay resources");
     this.game && this.game.dispose();
 
-    const settings = useSettingsStore.getState().data;
+    const settings = getSettings();
     const loadingStore = useLoadingStore.getState();
     loadingStore.initRep(filepath);
 
@@ -156,7 +156,6 @@ export class TitanReactor {
     log("loading chk");
     this.chk = new Chk(this.rep.chk);
     loadingStore.updateChk(pick(["title", "description"], this.chk));
-    log("showing loading overlay");
 
     log("preloading");
     await this.preload();
@@ -201,11 +200,7 @@ export class TitanReactor {
     log(`images preloaded in ${Date.now() - start}`);
 
     log("initializing scene");
-    const scene = new TitanReactorScene(
-      this.chk,
-      settings.anisotropy,
-      settings.renderMode
-    );
+    const scene = new TitanReactorScene(this.chk);
     await scene.init(settings.isDev);
 
     const races = settings.musicAllTypes
@@ -214,7 +209,7 @@ export class TitanReactor {
 
     log("initializing audio");
     const audioMaster = new AudioMaster(
-      (id) => readBwFile(`sound/${this.bwDat.sounds[id].file}`),
+      (id) => readCascFile(`sound/${this.bwDat.sounds[id].file}`),
       settings.audioPanningStyle,
       races
     );
@@ -257,7 +252,7 @@ export class TitanReactor {
     this.filename = chkFilepath;
 
     const loadingStore = useLoadingStore.getState();
-    const settings = useSettingsStore.getState().data;
+    const settings = getSettings();
     loadingStore.initChk(chkFilepath);
 
     this.game && this.game.dispose();
@@ -327,6 +322,6 @@ export class TitanReactor {
   }
 
   dispose() {
-    closeStorage();
+    closeCascStorage();
   }
 }
