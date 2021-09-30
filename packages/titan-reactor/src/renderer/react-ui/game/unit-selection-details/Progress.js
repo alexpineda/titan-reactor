@@ -98,9 +98,9 @@ export default forwardRef(({ unit }, ref) => {
     if (!progressRef.current || !wrapperRef.current || !displayTextRef.current)
       return;
     if (progress > 0 && progress <= 1) {
-      progressRef.current.style.left = `${Math.floor(
-        wrapperRef.current.offsetWidth * (1 - progress) + 2
-      )}px`;
+      progressRef.current.style.transformOrigin = "top right";
+
+      progressRef.current.style.transform = `scaleX(${progress})`;
       wrapperRef.current.style.visibility = "visible";
       displayTextRef.current.textContent = text;
     } else {
@@ -150,7 +150,6 @@ export default forwardRef(({ unit }, ref) => {
             top: "2px",
             right: "2px",
             bottom: "2px",
-            willChange: "left",
           }}
         ></div>
       </div>

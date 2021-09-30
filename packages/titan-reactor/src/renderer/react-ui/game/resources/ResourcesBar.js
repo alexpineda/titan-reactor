@@ -7,34 +7,33 @@ import { incFontSize } from "../../../../common/utils/changeFontSize";
 import shallow from "zustand/shallow";
 
 const _playerScoreCache = {};
+const hudStoreSelector = (state) => state.productionView;
+const textSizeSelector = (state) =>
+  state.data.esportsHud
+    ? incFontSize(state.data.hudFontSize)
+    : state.data.hudFontSize;
+const toggleSelector = (state) => ({
+  autoToggleProductionView: state.data.autoToggleProductionView,
+});
+const playerSelector = (state) => ({
+  players: state.game.players,
+  onTogglePlayerPov: state.onTogglePlayerPov,
+});
+
+const setAutoProductionView = useHudStore.getState().setAutoProductionView;
 
 // wrapper for showing all participating player information (scores, names, resources, etc)
 const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
-  const textSize = useSettingsStore((state) =>
-    state.data.esportsHud
-      ? incFontSize(state.data.hudFontSize)
-      : state.data.hudFontSize
-  );
+  const textSize = useSettingsStore(textSizeSelector, shallow);
 
   const { autoToggleProductionView } = useSettingsStore(
-    (state) => ({
-      autoToggleProductionView: state.data.autoToggleProductionView,
-    }),
+    toggleSelector,
     shallow
   );
 
-  const productionView = useHudStore((state) => state.productionView);
+  const productionView = useHudStore(hudStoreSelector);
 
-  const setAutoProductionView = useHudStore(
-    (state) => state.setAutoProductionView
-  );
-  const { players } = useGameStore(
-    (state) => ({
-      players: state.game.players,
-      onTogglePlayerPov: state.onTogglePlayerPov,
-    }),
-    shallow
-  );
+  const { players } = useGameStore(playerSelector, shallow);
 
   const cacheKey = players
     .map(({ name }) => name)
@@ -49,29 +48,27 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   }, []);
 
   return (
-    <div className={`select-none ${className}`} style={style}>
-      <div className="resources-parent">
-        <div
-          className="flex"
-          style={{ backgroundColor: "rgba(18, 20, 24, 0.97)" }}
-        >
-          <table className="table-auto flex-1 ">
-            <tbody>
-              {players.map((player, i) => (
-                <PlayerResources
-                  key={player.name}
-                  index={i}
-                  textSize={textSize}
-                  {...player}
-                  fitToContent={fitToContent}
-                  playerScoreCache={_playerScoreCache}
-                  productionView={productionView}
-                />
-              ))}
-            </tbody>
-          </table>
+    <div
+      className={`resources-parent flex select-none ${className}`}
+      style={{ backgroundColor: "rgba(18, 20, 24)", ...style }}
+    >
+      <table className="table-auto flex-1 ">
+        <tbody>
+          {players.map((player, i) => (
+            <PlayerResources
+              key={player.name}
+              index={i}
+              textSize={textSize}
+              {...player}
+              fitToContent={fitToContent}
+              playerScoreCache={_playerScoreCache}
+              productionView={productionView}
+            />
+          ))}
+        </tbody>
+      </table>
 
-          {/* <aside className="flex flex-col justify-around mx-2">
+      {/* <aside className="flex flex-col justify-around mx-2">
             <i
               onClick={() => onTogglePlayerPov(0)}
               className={`material-icons rounded cursor-pointer hover:text-yellow-500 ${
@@ -93,7 +90,7 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
               slideshow
             </i>
           </aside> */}
-          {/* <aside className="flex flex-col justify-between ml-2 b">
+      {/* <aside className="flex flex-col justify-between ml-2 b">
             <i
               onClick={() => onTogglePlayerActions && onTogglePlayerActions(0)}
               className={`material-icons hover:text-yellow-500 rounded cursor-pointer ${
@@ -116,8 +113,6 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
               room
             </i>
           </aside> */}
-        </div>
-      </div>
     </div>
   );
 };

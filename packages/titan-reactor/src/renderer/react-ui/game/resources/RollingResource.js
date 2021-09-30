@@ -4,26 +4,38 @@ import RollingNumber from "./RollingNumber";
 
 export default ({ image, scaledTextSize, selector }) => {
   const numberRef = useRef();
-  const rollingNumber = new RollingNumber(
-    selector(useResourcesStore.getState()),
-    numberRef
-  );
-
-  const setDom = (value) => {
-    if (!numberRef.current) return;
-    rollingNumber.value = value;
-  };
 
   useEffect(() => {
-    setDom(selector(useResourcesStore.getState()));
+    const rollingNumber = new RollingNumber(
+      selector(useResourcesStore.getState())
+    );
+
+    let lastTime = 0;
+    let animFrame;
+
+    const rafLoop = (time) => {
+      if (numberRef.current && rollingNumber.update(time - lastTime)) {
+        lastTime = time;
+        numberRef.current.textContent = rollingNumber.rollingValue;
+      }
+      if (rollingNumber.isRunning) {
+        requestAnimationFrame(rafLoop);
+      } else {
+        cancelAnimationFrame(animFrame);
+      }
+    };
+
+    rafLoop();
 
     const unsub = useResourcesStore.subscribe((item) => {
-      setDom(item);
+      rollingNumber.start(item);
+      rafLoop();
     }, selector);
 
     return () => {
       unsub();
-      rollingNumber.dispose();
+      rollingNumber.stop();
+      cancelAnimationFrame(animFrame);
     };
   }, []);
 
@@ -31,6 +43,7 @@ export default ({ image, scaledTextSize, selector }) => {
     <div className="flex items-center">
       {image}
       <span
+        style={{ minWidth: "5em", display: "inline-block" }}
         ref={numberRef}
         className={`ml-2 text-gray-200 text-${scaledTextSize}`}
       ></span>

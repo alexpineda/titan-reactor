@@ -278,10 +278,8 @@ export default class BWFrameSceneBuilder {
         if (player) {
           titanImage.setTeamColor(player.color.three);
         }
-        titanImage.offsetX = image.x / 32;
-        titanImage.offsetY = image.y / 32;
-        titanImage.position.x = image.x / 32;
-        titanImage.position.z = image.y / 32;
+        titanImage.offsetX = titanImage.position.x = image.x / 32;
+        titanImage.offsetY = titanImage.position.z = image.y / 32;
         titanImage.renderOrder = _imageRenderOrder++;
 
         //@todo: add special overlay to material for certain sprites

@@ -17,6 +17,22 @@ import RollingResource from "./RollingResource";
 import BasicResource from "./BasicResource";
 
 const _playerNameCache = {};
+const settingsSelector = (state) => ({
+  esportsHud: state.data.esportsHud,
+  enablePlayerScores: state.data.enablePlayerScores,
+  embedProduction: state.data.embedProduction,
+});
+
+const gameStoreSelector = (state) => ({
+  dimensions: state.dimensions,
+  togglePlayerVision: state.togglePlayerVision,
+  playerVision: state.playerVision,
+  gameIcons: state.game.gameIcons,
+  raceInsetIcons: state.game.raceInsetIcons,
+  workerIcons: state.game.workerIcons,
+});
+
+const iconsSelector = (state) => state.game.cmdIcons;
 
 /**
  * The primary player bar displaying player score, name, resources and production.
@@ -32,11 +48,7 @@ const PlayerResources = ({
   productionView,
 }) => {
   const { esportsHud, enablePlayerScores, embedProduction } = useSettingsStore(
-    (state) => ({
-      esportsHud: state.data.esportsHud,
-      enablePlayerScores: state.data.enablePlayerScores,
-      embedProduction: state.data.embedProduction,
-    }),
+    settingsSelector,
     shallow
   );
 
@@ -47,17 +59,7 @@ const PlayerResources = ({
     gameIcons,
     raceInsetIcons,
     workerIcons,
-  } = useGameStore(
-    (state) => ({
-      dimensions: state.dimensions,
-      togglePlayerVision: state.togglePlayerVision,
-      playerVision: state.playerVision,
-      gameIcons: state.game.gameIcons,
-      raceInsetIcons: state.game.raceInsetIcons,
-      workerIcons: state.game.workerIcons,
-    }),
-    shallow
-  );
+  } = useGameStore(gameStoreSelector, shallow);
 
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
@@ -138,8 +140,24 @@ const PlayerResources = ({
   const resourcesEnabled = !esportsHud || !embedProduction || !productionView;
   const productionEnabled = esportsHud && embedProduction;
 
+  const cmdIcons = useGameStore(iconsSelector);
+
   return (
     <tr>
+      <td style={{ width: "1px" }}>
+        {/* 
+          otherwise we'll get expensive layout changes from the entire table changing height
+        */}
+        <img
+          src={cmdIcons[0]}
+          style={{
+            minHeight: "50px",
+            width: "1px",
+            visibility: "hidden",
+          }}
+        />
+      </td>
+
       {enablePlayerScores && (
         <td
           className={`${esportsHud ? "" : "px-2"} pointer-events-auto`}

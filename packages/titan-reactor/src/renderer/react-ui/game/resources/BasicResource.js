@@ -24,6 +24,7 @@ export default ({ image, scaledTextSize, selector }) => {
       <span
         ref={numberRef}
         className={`ml-2 text-gray-200 text-${scaledTextSize}`}
+        style={{ minWidth: "3em" }}
       ></span>
     </div>
   );

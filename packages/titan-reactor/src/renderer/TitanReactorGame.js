@@ -1,4 +1,4 @@
-import { Scene, Box3, Vector3 } from "three";
+import { Box3, Vector3 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import { GameStatePosition } from "./game/GameStatePosition";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";

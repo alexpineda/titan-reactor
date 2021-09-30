@@ -57,6 +57,8 @@ const useHudStore = create((set, get) => ({
   startTogglingProduction: () => {
     clearTimeout(_productionInterval);
     const fn = () => {
+      clearTimeout(_productionInterval);
+
       let nextProductionView = get().productionView + 1;
       if (nextProductionView === TechProductionView && !get().hasTech) {
         nextProductionView++;

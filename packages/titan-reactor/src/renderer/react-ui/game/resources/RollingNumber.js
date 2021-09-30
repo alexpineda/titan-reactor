@@ -2,64 +2,51 @@ import { is } from "ramda";
 
 // rolling number "rolls" the number from source to target, used for resources and apm
 export default class RollingNumber {
-  constructor(value = 0, textRef) {
-    this.upSpeed = 30;
-    this.downSpeed = 10;
-    this.value = value;
-    this._displayValue = value;
-    this.textRef = textRef;
+  constructor(value = 0) {
+    this.upSpeed = 80;
+    this.downSpeed = 30;
+    this._value = value;
+    this._rollingValue = value;
   }
 
-  _setValue(number) {
-    this._displayValue = number;
-    if (this.textRef.current) {
-      this.textRef.current.textContent = number;
+  update(delta) {
+    if (this._running && delta >= this._speed) {
+      this._rollingValue = this._direction
+        ? Math.min(this._value, this._rollingValue + 1)
+        : Math.max(this._value, this._rollingValue - 1);
+
+      if (this._rollingValue === this._value) {
+        this._running = false;
+      }
+      return true;
     }
+    return false;
   }
 
-  get value() {
-    return this._value;
+  get rollingValue() {
+    return this._rollingValue;
   }
 
-  set value(val) {
+  get isRunning() {
+    return this._running;
+  }
+
+  start(val) {
     if (val === this._value || !is(Number, val)) return;
     this._value = val;
 
-    const direction = val > this._displayValue;
+    const direction = val > this._rollingValue;
 
-    if (this._interval && direction === this._lastDirection) {
+    if (this._running && direction === this._direction) {
       return;
     }
-    this.start(direction);
+
+    this._direction = direction;
+    this._speed = direction ? this.upSpeed : this.downSpeed;
+    this._running = true;
   }
 
-  start(direction) {
-    this._lastDirection = direction;
-    const speed = direction ? this.upSpeed : this.downSpeed;
-
-    if (this._interval) {
-      clearInterval(this._interval);
-    }
-
-    this._interval = setInterval(() => {
-      let val;
-
-      if (direction) {
-        val = Math.min(this.value, this._displayValue + 1);
-        this._setValue(val);
-      } else {
-        val = Math.max(this.value, this._displayValue - 1);
-        this._setValue(val);
-      }
-
-      if (val === this.value) {
-        clearInterval(this._interval);
-        this._interval = null;
-      }
-    }, speed);
-  }
-
-  dispose() {
-    clearInterval(this._interval);
+  stop() {
+    this._running = false;
   }
 }

@@ -2,13 +2,15 @@ import React, { useEffect } from "react";
 import shallow from "zustand/shallow";
 import useGameStore, { CHAT_INTERVAL } from "../../stores/gameStore";
 
+const gameStoreSelector = (state) => ({
+  dimensions: state.dimensions,
+  chat: state.chat,
+  removeOneFromChat: state.removeOneFromChat,
+});
+
 export default () => {
   const { dimensions, chat, removeOneFromChat } = useGameStore(
-    (state) => ({
-      dimensions: state.dimensions,
-      chat: state.chat,
-      removeOneFromChat: state.removeOneFromChat,
-    }),
+    gameStoreSelector,
     shallow
   );
 
@@ -20,13 +22,17 @@ export default () => {
   }, []);
 
   return (
-    <ul
-      className="absolute pl-2 pointer-events-none select-none"
-      style={{ bottom: `${dimensions.minimapSize + 80}px` }}
+    <div
+      className="absolute pl-2 pointer-events-none select-none flex flex-col-reverse"
+      style={{
+        bottom: `${dimensions.minimapSize + 80}px`,
+        minHeight: "50vh",
+        width: "40vw",
+      }}
     >
       {chat.map((msg) => {
         return (
-          <li key={msg.content}>
+          <span key={msg.content}>
             <span
               style={{
                 color: msg.player.color.hex,
@@ -43,9 +49,9 @@ export default () => {
             >
               {msg.content}
             </span>
-          </li>
+          </span>
         );
       })}
-    </ul>
+    </div>
   );
 };
