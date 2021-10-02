@@ -4,7 +4,7 @@ import useGameStore from "../../../stores/gameStore";
 
 const transformName = (name) => name.split(" ").slice(1).join(" ");
 
-export default ({ unit, className = "" }) => {
+const Name = ({ unit, className = "" }) => {
   const bwDat = useGameStore((state) => state.game.bwDat);
   const nameRef = useRef();
 
@@ -48,3 +48,4 @@ export default ({ unit, className = "" }) => {
 
   return <p ref={nameRef} className={`text-white uppercase ${className}`}></p>;
 };
+export default Name;

@@ -1,17 +1,40 @@
 import React, { useEffect } from "react";
-import shallow from "zustand/shallow";
 import useGameStore, { CHAT_INTERVAL } from "../../stores/gameStore";
 
-const gameStoreSelector = (state) => ({
-  dimensions: state.dimensions,
-  chat: state.chat,
-  removeOneFromChat: state.removeOneFromChat,
-});
+const simpleEquality = (a, b) => a === b;
+const dimensionsSelector = (state) => state.dimensions.minimapSize;
+const chatSelector = (state) => state.chat;
+const removeOneFromChatSelector = (state) => state.removeOneFromChat;
 
-export default () => {
-  const { dimensions, chat, removeOneFromChat } = useGameStore(
-    gameStoreSelector,
-    shallow
+const renderMessage = (msg) => {
+  return (
+    <span key={msg.content}>
+      <span
+        style={{
+          color: msg.player.color.hex,
+          textShadow: "1px 1px 2px black",
+        }}
+      >
+        {msg.player.name}:
+      </span>{" "}
+      <span
+        className="text-white"
+        style={{
+          textShadow: "1px 1px 2px black",
+        }}
+      >
+        {msg.content}
+      </span>
+    </span>
+  );
+};
+
+const Chat = () => {
+  const minimapSize = useGameStore(dimensionsSelector, simpleEquality);
+  const chat = useGameStore(chatSelector, simpleEquality);
+  const removeOneFromChat = useGameStore(
+    removeOneFromChatSelector,
+    simpleEquality
   );
 
   useEffect(() => {
@@ -25,33 +48,14 @@ export default () => {
     <div
       className="absolute pl-2 pointer-events-none select-none flex flex-col-reverse"
       style={{
-        bottom: `${dimensions.minimapSize + 80}px`,
+        bottom: `${minimapSize + 80}px`,
         minHeight: "50vh",
         width: "40vw",
       }}
     >
-      {chat.map((msg) => {
-        return (
-          <span key={msg.content}>
-            <span
-              style={{
-                color: msg.player.color.hex,
-                textShadow: "1px 1px 2px black",
-              }}
-            >
-              {msg.player.name}:
-            </span>{" "}
-            <span
-              className="text-white"
-              style={{
-                textShadow: "1px 1px 2px black",
-              }}
-            >
-              {msg.content}
-            </span>
-          </span>
-        );
-      })}
+      {chat.map(renderMessage)}
     </div>
   );
 };
+
+export default Chat;

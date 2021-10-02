@@ -7,7 +7,7 @@ const selector = (state) => {
   return Math.floor(state.selectedUnits[0].energy / 2) * 2;
 };
 
-export default ({ unit }) => {
+const Energy = ({ unit }) => {
   const gameIcons = useGameStore((state) => state.game.gameIcons);
   const energyRef = useRef();
 
@@ -31,3 +31,4 @@ export default ({ unit }) => {
     </span>
   );
 };
+export default Energy;

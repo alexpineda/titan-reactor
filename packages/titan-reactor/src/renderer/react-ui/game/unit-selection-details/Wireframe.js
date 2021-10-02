@@ -133,7 +133,7 @@ const selector = (state) => {
 
 const refLayer = (ref) => ({ ref, filter: "", backgroundImage: "", step: 0 });
 
-export default ({ unit, size = "lg", className = "" }) => {
+const Wireframe = ({ unit, size = "lg", className = "" }) => {
   const wireframeIcons = useGameStore((state) => state.game.wireframeIcons);
   const layerRefs = range(0, 4).map(() => refLayer(useRef()));
   const xRef = useRef();
@@ -234,3 +234,4 @@ export default ({ unit, size = "lg", className = "" }) => {
     </div>
   );
 };
+export default Wireframe;

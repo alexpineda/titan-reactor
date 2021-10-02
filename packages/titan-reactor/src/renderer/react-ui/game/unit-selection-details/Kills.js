@@ -14,7 +14,7 @@ const selector = (state) => {
   return state.selectedUnits[0].kills;
 };
 
-export default ({ unit }) => {
+const Kills = ({ unit }) => {
   const killsRef = useRef();
 
   const setDom = (kills) => {
@@ -32,3 +32,5 @@ export default ({ unit }) => {
 
   return <p ref={killsRef} className="text-gray-400"></p>;
 };
+
+export default Kills;

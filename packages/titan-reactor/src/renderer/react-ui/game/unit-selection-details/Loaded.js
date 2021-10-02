@@ -2,7 +2,7 @@ import { range } from "ramda";
 import React, { forwardRef } from "react";
 import SmallUnitItem from "./SmallUnitItem";
 
-export default forwardRef(({ unit }, ref) => {
+const Loaded = forwardRef(({ unit }, ref) => {
   return (
     <div className="flex pl-1 pt-1 hidden" ref={ref}>
       <div
@@ -20,3 +20,4 @@ export default forwardRef(({ unit }, ref) => {
     </div>
   );
 });
+export default Loaded;

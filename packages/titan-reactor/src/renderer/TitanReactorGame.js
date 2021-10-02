@@ -186,7 +186,7 @@ async function TitanReactorGame(
 
   const nextFrameHandler = (evt) => {
     if (evt.code === "KeyN") {
-      this.skipGameFrames = 1;
+      gameStatePosition.skipGameFrames = 1;
     }
   };
   document.addEventListener("keydown", nextFrameHandler);

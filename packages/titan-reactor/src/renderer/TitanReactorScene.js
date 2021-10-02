@@ -1,10 +1,12 @@
 import { GridHelper, HemisphereLight, Scene } from "three";
 import { disposeMeshes } from "./utils/dispose";
 import { getTerrainY } from "../common/map/displacementGeometry";
-import { fog, sunlight } from "./terrain/lights";
-import BackgroundTerrain from "./terrain/BackgroundTerrain";
-import Terrain from "./terrain/Terrain";
+import { fog, sunlight } from "./scene/lights";
+import BackgroundTerrain from "./scene/BackgroundTerrain";
+import generateTerrain from "./scene/generateTerrain";
+import generateIcons from "./scene/generateIcons";
 import readCascFile from "../common/utils/casclib";
+import MouseCursor from "./scene/MouseCursor";
 
 const displacementScale = 4;
 
@@ -32,24 +34,27 @@ export class TitanReactorScene extends Scene {
     const hemi = new HemisphereLight(0xffffff, 0xffffff, 5);
     this.add(hemi);
 
-    const terrainMesh = new Terrain(readCascFile, this.chk);
-
     const [
       terrain,
       terrainHD,
       displaceCanvas,
       creepUniform,
       creepEdgesUniform,
+      minimapBitmap,
+    ] = await generateTerrain(readCascFile, this.chk, {
+      displacementScale,
+    });
+
+    const [
       gameIcons,
       cmdIcons,
       raceInsetIcons,
       workerIcons,
-      minimapBitmap,
-      cursor,
+      arrowIcons,
+      hoverIcons,
+      dragIcons,
       wireframeIcons,
-    ] = await terrainMesh.generate({
-      displacementScale,
-    });
+    ] = await generateIcons(readCascFile);
 
     this.gameIcons = gameIcons;
     this.cmdIcons = cmdIcons;
@@ -58,7 +63,11 @@ export class TitanReactorScene extends Scene {
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
     this.minimapBitmap = minimapBitmap;
-    this.cursor = cursor;
+    this.cursor = new MouseCursor(
+      arrowIcons.icons,
+      hoverIcons.icons,
+      dragIcons.icons
+    );
     this.wireframeIcons = wireframeIcons;
 
     const bgTerrain = BackgroundTerrain(w, h, terrain.material.map);

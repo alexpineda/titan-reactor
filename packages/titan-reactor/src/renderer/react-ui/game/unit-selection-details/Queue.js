@@ -63,7 +63,7 @@ const selector = (state) => {
   return unitIcon !== null ? unitIcon : researchIconSelector(state);
 };
 
-export default ({ unit }) => {
+const Queue = ({ unit }) => {
   const cmdIcons = useGameStore((state) => state.game.cmdIcons);
   const itemRef = useRef();
   const wrapperRef = useRef();
@@ -109,3 +109,4 @@ export default ({ unit }) => {
     </div>
   );
 };
+export default Queue;

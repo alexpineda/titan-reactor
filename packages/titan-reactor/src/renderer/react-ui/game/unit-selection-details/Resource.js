@@ -8,7 +8,7 @@ const resourceSelector = (state) => {
   return state.selectedUnits[0].resourceAmount;
 };
 
-export default ({ unit }) => {
+const Resource = ({ unit }) => {
   const gameIcons = useGameStore((state) => state.game.gameIcons);
 
   const resourceRef = useRef();
@@ -49,3 +49,5 @@ export default ({ unit }) => {
     </span>
   );
 };
+
+export default Resource;

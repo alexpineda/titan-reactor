@@ -9,7 +9,10 @@ import {
   powerSaveBlocker,
 } from "electron";
 import isDev from "electron-is-dev";
-import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer";
+import installExtension, {
+  REDUX_DEVTOOLS,
+  REACT_DEVELOPER_TOOLS,
+} from "electron-devtools-installer";
 import { format as formatUrl } from "url";
 import { openFileBinary } from "../common/utils/fs";
 import path from "path";
@@ -172,6 +175,10 @@ app.on("ready", async () => {
 
   if (isDev) {
     installExtension(REDUX_DEVTOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log("An error occurred: ", err));
+
+    installExtension(REACT_DEVELOPER_TOOLS)
       .then((name) => console.log(`Added Extension:  ${name}`))
       .catch((err) => console.log("An error occurred: ", err));
   }

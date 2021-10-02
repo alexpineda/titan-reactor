@@ -7,7 +7,7 @@ const settingsSelector = (state) =>
   state.data.esportsHud && state.data.embedProduction;
 
 // production bar for one player and one production type
-export default ({ type, color, playerId }) => {
+const PlayerProduction = ({ type, color, playerId }) => {
   const largeMargin = useSettingsStore(settingsSelector);
   const className = largeMargin ? "ml-5" : "ml-1";
 
@@ -25,3 +25,5 @@ export default ({ type, color, playerId }) => {
     </div>
   );
 };
+
+export default PlayerProduction;

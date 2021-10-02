@@ -1,6 +1,6 @@
 import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
-import GameSprite from "./sprite/GameSprite";
+import GameSprite from "../game/sprite/GameSprite";
 import useGameStore from "../stores/gameStore";
 import { unitTypes } from "../../common/types/unitTypes";
 

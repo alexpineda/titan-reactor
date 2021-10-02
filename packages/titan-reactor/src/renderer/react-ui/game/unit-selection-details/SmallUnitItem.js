@@ -18,7 +18,7 @@ const calcStep = (unit) =>
 
 const iconsSelector = (state) => state.game.cmdIcons;
 
-export default ({ index, unit, showLoaded }) => {
+const SmallUnitItem = ({ index, unit, showLoaded }) => {
   const cmdIcons = useGameStore(iconsSelector);
   const imgRef = useRef();
   const borderRef = useRef();
@@ -113,3 +113,4 @@ export default ({ index, unit, showLoaded }) => {
     </div>
   );
 };
+export default SmallUnitItem;

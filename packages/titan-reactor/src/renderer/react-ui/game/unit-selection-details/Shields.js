@@ -6,7 +6,7 @@ const shieldsSelector = (state) => {
   return state.selectedUnits[0].shields;
 };
 
-export default ({ unit }) => {
+const Shields = ({ unit }) => {
   const shieldsRef = useRef();
 
   const setDom = (shields) => {
@@ -24,3 +24,4 @@ export default ({ unit }) => {
 
   return <p ref={shieldsRef} className="text-gray-400"></p>;
 };
+export default Shields;

@@ -10,7 +10,7 @@ const hpSelector = (state) => {
   return state.selectedUnits[0].hp;
 };
 
-export default ({ unit }) => {
+const Health = ({ unit }) => {
   const hpRef = useRef();
 
   const setDom = (hp, transition = "color 4s linear") => {
@@ -37,3 +37,4 @@ export default ({ unit }) => {
 
   return <p ref={hpRef} style={{ willChange: "content" }}></p>;
 };
+export default Health;

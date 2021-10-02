@@ -15,7 +15,7 @@ import Upgrades from "./Upgrades";
 const selector = (state) =>
   state.selectedUnits[0] && state.selectedUnits[0].loaded;
 
-export default ({ unit }) => {
+const LargeUnitDetail = ({ unit }) => {
   const showHp = !(unit.unitType.isResourceContainer && !unit.owner);
   const showShields = unit.unitType.shieldsEnabled;
   const showEnergy = unit.unitType.isSpellcaster;
@@ -72,3 +72,4 @@ export default ({ unit }) => {
     </div>
   );
 };
+export default LargeUnitDetail;

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import useResourcesStore from "../../../stores/realtime/resourcesStore";
 import RollingNumber from "./RollingNumber";
 
-export default ({ image, scaledTextSize, selector }) => {
+const RollingResource = ({ image, scaledTextSize, selector }) => {
   const numberRef = useRef();
 
   useEffect(() => {
@@ -50,3 +50,5 @@ export default ({ image, scaledTextSize, selector }) => {
     </div>
   );
 };
+
+export default RollingResource;

@@ -58,7 +58,7 @@ const researchSelector = (state) => {
 
 const bwDatSelector = (state) => state.game.bwDat;
 
-export default forwardRef(({ unit }, ref) => {
+const Progress = forwardRef(({ unit }, ref) => {
   const bwDat = useGameStore(bwDatSelector);
 
   const progressRef = useRef();
@@ -156,3 +156,4 @@ export default forwardRef(({ unit }, ref) => {
     </div>
   );
 });
+export default Progress;

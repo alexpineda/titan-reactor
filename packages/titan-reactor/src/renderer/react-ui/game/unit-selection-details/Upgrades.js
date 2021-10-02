@@ -11,8 +11,7 @@ import upgradeTypes from "../../../../common/types/upgrades";
 const iconSelector = (state) => state.game.cmdIcons;
 const bwDatSelector = (state) => state.game.bwDat;
 
-//no live updates, todo maybe?
-export default ({ unit }) => {
+const Upgrades = ({ unit }) => {
   const itemsRef = useRef();
   const cmdIcons = useGameStore(iconSelector);
   const bwDat = useGameStore(bwDatSelector);
@@ -97,3 +96,4 @@ export default ({ unit }) => {
     </div>
   );
 };
+export default Upgrades;

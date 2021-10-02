@@ -2,13 +2,13 @@
 import * as THREE from "three";
 import { debounce } from "lodash";
 
-import { EnvironmentOptionsGui } from "./terrain/EnvironmentOptionsGui";
+import { EnvironmentOptionsGui } from "./scene/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
 import Cameras from "./camera/Cameras";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "../common/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import { fog } from "./terrain/lights";
+import { fog } from "./scene/lights";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 import InputEvents from "./input/InputEvents";
 

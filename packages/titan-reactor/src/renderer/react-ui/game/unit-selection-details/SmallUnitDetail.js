@@ -22,7 +22,7 @@ const selector = (state) => {
   }
 };
 
-export default ({ units }) => {
+const SmallUnitDetail = ({ units }) => {
   const killsRef = useRef();
 
   const setDom = (killsText) => {
@@ -60,3 +60,4 @@ export default ({ units }) => {
     </div>
   );
 };
+export default SmallUnitDetail;
