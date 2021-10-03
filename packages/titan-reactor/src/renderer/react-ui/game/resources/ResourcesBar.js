@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import PlayerResources from "./PlayerResources";
+import shallow from "zustand/shallow";
 import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import useHudStore from "../../../stores/hudStore";
 import { incFontSize } from "../../../../common/utils/changeFontSize";
-import shallow from "zustand/shallow";
 
 const _playerScoreCache = {};
 const hudStoreSelector = (state) => state.productionView;
@@ -12,29 +12,29 @@ const textSizeSelector = (state) =>
   state.data.esportsHud
     ? incFontSize(state.data.hudFontSize)
     : state.data.hudFontSize;
-const toggleSelector = (state) => ({
-  autoToggleProductionView: state.data.autoToggleProductionView,
-});
-const playerSelector = (state) => ({
-  players: state.game.players,
-  onTogglePlayerPov: state.onTogglePlayerPov,
+const toggleSelector = (state) => state.data.autoToggleProductionView;
+
+const playerSelector = (state) => state.game.players;
+// in gameStore onTogglePlayerPov: state.onTogglePlayerPov,
+
+const settingsSelector = (state) => ({
+  esportsHud: state.data.esportsHud,
+  enablePlayerScores: state.data.enablePlayerScores,
+  embedProduction: state.data.embedProduction,
 });
 
 const setAutoProductionView = useHudStore.getState().setAutoProductionView;
 
 // wrapper for showing all participating player information (scores, names, resources, etc)
 const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
-  const textSize = useSettingsStore(textSizeSelector, shallow);
-
-  const { autoToggleProductionView } = useSettingsStore(
-    toggleSelector,
+  const textSize = useSettingsStore(textSizeSelector);
+  const autoToggleProductionView = useSettingsStore(toggleSelector);
+  const productionView = useHudStore(hudStoreSelector);
+  const players = useGameStore(playerSelector);
+  const { esportsHud, enablePlayerScores, embedProduction } = useSettingsStore(
+    settingsSelector,
     shallow
   );
-
-  const productionView = useHudStore(hudStoreSelector);
-
-  const { players } = useGameStore(playerSelector, shallow);
-
   const cacheKey = players
     .map(({ name }) => name)
     .sort()
@@ -63,6 +63,9 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
               fitToContent={fitToContent}
               playerScoreCache={_playerScoreCache}
               productionView={productionView}
+              esportsHud={esportsHud}
+              enablePlayerScores={enablePlayerScores}
+              embedProduction={embedProduction}
             />
           ))}
         </tbody>

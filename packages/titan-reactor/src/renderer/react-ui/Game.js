@@ -43,12 +43,14 @@ const settingsStoreSelector = (state) => ({
   replaysPath: state.data.replaysPath,
 });
 
+const resetSelector = (state) => state.reset;
+
 const Game = () => {
   const { dimensions, canvas, selectedUnits } = useGameStore(
     gameStoreSelector,
     shallow
   );
-  const resetLoadingStore = useLoadingStore((state) => state.reset);
+  const resetLoadingStore = useLoadingStore(resetSelector);
   const {
     showFps,
     showInGameMenu,
@@ -77,7 +79,7 @@ const Game = () => {
         }}
         domElement={canvas}
       />
-      <Chat />
+      <Chat minimapSize={dimensions.minimapSize} />
       {producerWindowPosition != ProducerWindowPosition.None && <ProducerBar />}
 
       {showInGameMenu && (

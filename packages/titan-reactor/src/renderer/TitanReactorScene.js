@@ -70,20 +70,19 @@ export class TitanReactorScene extends Scene {
     );
     this.wireframeIcons = wireframeIcons;
 
-    const bgTerrain = BackgroundTerrain(w, h, terrain.material.map);
-
     terrain.visible = false;
     this.add(terrain);
     this.add(terrainHD);
     this.terrain = terrainHD;
 
-    // this.add(bgTerrain);
     this.terrainSD = terrain;
     this.terrainHD = terrainHD;
 
     this.fog = fog(w, h);
     this.background = this.fog.color;
-    this.bgTerrain = bgTerrain;
+    this.bgTerrain = BackgroundTerrain(w, h, terrain.material.map);
+    // this.add(this.bgTerrain);
+
     this.gridHelper = gridHelper;
     this.light = light;
     this.hemi = hemi;

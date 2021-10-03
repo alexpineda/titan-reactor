@@ -3,6 +3,7 @@ import React from "react";
 import useSettingsStore from "../../../stores/settingsStore";
 import ProductionItem from "./ProductionItem";
 
+const tenItems = range(0, 10);
 const settingsSelector = (state) =>
   state.data.esportsHud && state.data.embedProduction;
 
@@ -13,7 +14,7 @@ const PlayerProduction = ({ type, color, playerId }) => {
 
   return (
     <div className={`flex ${className}`}>
-      {range(0, 10).map((i) => (
+      {tenItems.map((i) => (
         <ProductionItem
           key={i}
           type={type}

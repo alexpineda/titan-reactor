@@ -1,30 +1,12 @@
 import { easePolyOut } from "d3-ease";
 import React, { useEffect, useRef } from "react";
+import keysOnly from "../../../stores/comparitors/keysOnly";
 import useProductionStore from "../../../stores/realtime/productionStore";
 import useGameStore from "../../../stores/gameStore";
 
 const poly = easePolyOut.exponent(0.5);
 
 const iconsSelector = (state) => state.game.cmdIcons;
-// check keys since shallow will verify same object
-const comparitor = (a, b) => {
-  if (!a || !b) return false;
-  var keysA = Object.keys(a);
-
-  if (keysA.length !== Object.keys(b).length) {
-    return false;
-  }
-
-  for (var i = 0; i < keysA.length; i++) {
-    if (
-      !Object.prototype.hasOwnProperty.call(a, keysA[i]) ||
-      !Object.is(a[keysA[i]], b[keysA[i]])
-    ) {
-      return false;
-    }
-  }
-  return true;
-};
 
 // an instance of a production item, either unit, research or upgrade
 const ProductionItem = ({ type, index, color, playerId }) => {
@@ -95,7 +77,7 @@ const ProductionItem = ({ type, index, color, playerId }) => {
         setDom(item);
       },
       selector,
-      comparitor
+      keysOnly
     );
   }, [type, index, color, playerId]);
 

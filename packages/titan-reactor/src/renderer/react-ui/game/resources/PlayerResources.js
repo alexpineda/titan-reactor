@@ -17,11 +17,6 @@ import RollingResource from "./RollingResource";
 import BasicResource from "./BasicResource";
 
 const _playerNameCache = {};
-const settingsSelector = (state) => ({
-  esportsHud: state.data.esportsHud,
-  enablePlayerScores: state.data.enablePlayerScores,
-  embedProduction: state.data.embedProduction,
-});
 
 const gameStoreSelector = (state) => ({
   dimensions: state.dimensions,
@@ -46,12 +41,10 @@ const PlayerResources = ({
   fitToContent = false,
   playerScoreCache,
   productionView,
+  esportsHud,
+  enablePlayerScores,
+  embedProduction,
 }) => {
-  const { esportsHud, enablePlayerScores, embedProduction } = useSettingsStore(
-    settingsSelector,
-    shallow
-  );
-
   const {
     dimensions,
     togglePlayerVision,

@@ -1,5 +1,6 @@
 import React from "react";
 import ReactTooltip from "react-tooltip";
+import shallow from "zustand/shallow";
 import { LoadingOverlay } from "./LoadingOverlay";
 import Initializing from "./home/Initializing";
 import Map from "./Map";
@@ -17,14 +18,18 @@ import useTitanReactorStore from "../stores/titanReactorStore";
 import useSettingsStore from "../stores/settingsStore";
 import useLoadingStore from "../stores/loadingStore";
 
+const criticalErrorSelector = (state) => state.criticalError;
+const phrasesSelector = (state) => state.phrases;
+const loadingSelector = (state) => ({
+  initialized: state.initialized,
+  chk: state.chk,
+  rep: state.rep,
+});
+
 const App = () => {
-  const criticalError = useTitanReactorStore((state) => state.criticalError);
-  const phrases = useSettingsStore((state) => state.phrases);
-  const { initialized, chk, rep } = useLoadingStore((state) => ({
-    initialized: state.initialized,
-    chk: state.chk,
-    rep: state.rep,
-  }));
+  const criticalError = useTitanReactorStore(criticalErrorSelector);
+  const phrases = useSettingsStore(phrasesSelector);
+  const { initialized, chk, rep } = useLoadingStore(loadingSelector, shallow);
 
   return (
     <>

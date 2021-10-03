@@ -432,10 +432,12 @@ async function TitanReactorGame(
               cmd.id === commands.chat &&
               players.playersById[cmd.senderSlot]
             ) {
-              addChatMessage({
-                content: cmd.message,
-                player: players.playersById[cmd.senderSlot],
-              });
+              unstable_batchedUpdates(() =>
+                addChatMessage({
+                  content: cmd.message,
+                  player: players.playersById[cmd.senderSlot],
+                })
+              );
             }
 
             if (players.playersById[cmd.player].showPov) {

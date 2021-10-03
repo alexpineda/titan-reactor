@@ -10,6 +10,9 @@ const RollingResource = ({ image, scaledTextSize, selector }) => {
       selector(useResourcesStore.getState())
     );
 
+    if (numberRef.current) {
+      numberRef.current.textContent = rollingNumber.rollingValue;
+    }
     let lastTime = 0;
     let animFrame;
 

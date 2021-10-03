@@ -111,11 +111,10 @@ export class Settings extends EventEmitter {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
       isDev,
-      phrases: Object.assign(
-        {},
-        phrases["en-US"],
-        phrases[this._settings.language]
-      ),
+      phrases: {
+        ...phrases["en-US"],
+        ...phrases[this._settings.language],
+      },
       diff: {},
       firstRun: this.firstRun,
     };

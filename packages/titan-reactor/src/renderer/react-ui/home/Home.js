@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import shallow from "zustand/shallow";
 import Options from "./Options";
 import { ipcRenderer } from "electron";
 import {
@@ -22,13 +23,18 @@ const Panels = {
   Legal: "Legal",
 };
 
+const settingsSelector = (state) => ({
+  phrases: state.phrases,
+  errors: state.errors,
+  settings: state.data,
+});
+
 const Home = () => {
   const [activePanel, setActivePanel] = useState(Panels.Home);
-  const { phrases, errors, settings } = useSettingsStore((state) => ({
-    phrases: state.phrases,
-    errors: state.errors,
-    settings: state.data,
-  }));
+  const { phrases, errors, settings } = useSettingsStore(
+    settingsSelector,
+    shallow
+  );
 
   return (
     <div
@@ -44,7 +50,7 @@ const Home = () => {
             <MenuItem
               label={phrases["OPEN_DEMO_REPLAY"]}
               disabled={errors.includes("starcraftPath")}
-              onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
+              onClick={ () => ipcRenderer.send(OPEN_DEMO_REPLAY),}
             />
             <MenuItem
               label={phrases["OPEN_REPLAY"]}
