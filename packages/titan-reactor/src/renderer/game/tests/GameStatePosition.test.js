@@ -1,77 +1,67 @@
 import { GameStatePosition } from "../GameStatePosition";
 
-function DummyClock() {
-  this.stop = () => {};
-  this.getElapsedTime = () => {};
-  this.getDelta = () => {};
-}
-
 test("should not skip game frames if delta < gamespeed", () => {
-  const clock = new DummyClock();
-  clock.getDelta = () => 2;
   const maxGameFrame = 100;
   const gameSpeed = 3;
+  const delta = 2;
 
-  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
   rp.paused = false;
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(0);
   expect(rp.lastDelta).toBe(2);
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(1);
   expect(rp.lastDelta).toBe(1);
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(1);
   expect(rp.lastDelta).toBe(0);
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(0);
   expect(rp.lastDelta).toBe(2);
 });
 
 test("should skip game 1 frame if delta === gamespeed", () => {
-  const clock = new DummyClock();
-  clock.getDelta = () => 1;
   const maxGameFrame = 100;
   const gameSpeed = 1;
+  const delta = 1;
 
-  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
   rp.paused = false;
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(1);
   expect(rp.lastDelta).toBe(0);
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(1);
   expect(rp.lastDelta).toBe(0);
 });
 
 test("should skip game 2 frame if delta === 2x gamespeed", () => {
-  const clock = new DummyClock();
-  clock.getDelta = () => 2;
   const maxGameFrame = 100;
   const gameSpeed = 1;
+  const delta = 2;
 
-  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
   rp.paused = false;
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(2);
   expect(rp.lastDelta).toBe(0);
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(2);
   expect(rp.lastDelta).toBe(0);
 });
 
 test("should skip game 1.5 frame if delta === 1.5x gamespeed", () => {
-  const clock = new DummyClock();
-  clock.getDelta = () => 1.5;
   const maxGameFrame = 100;
   const gameSpeed = 1;
+  const delta = 1.5;
 
-  const rp = new GameStatePosition(maxGameFrame, clock, gameSpeed);
+  const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
   rp.paused = false;
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(1);
   expect(rp.lastDelta).toBe(0.5);
-  rp.update();
+  rp.update(delta);
   expect(rp.skipGameFrames).toBe(2);
   expect(rp.lastDelta).toBe(0);
 });

@@ -1,63 +1,34 @@
 import MarkedObjectPool from "../MarkedObjectPool";
-import { range } from "ramda";
+import FrameBW from "../FrameBW";
 
 test("length should return number of free items", () => {
-  const container = new MarkedObjectPool(range(0, 10));
+  const container = new MarkedObjectPool(10);
   expect(container.marked.length).toBe(0);
-  expect(container.unmarked.length).toBe(10);
+  expect(container.unmarked).toBeInstanceOf(FrameBW);
 
-  container.mark(5);
-  expect(container.marked.length).toBe(5);
-  expect(container.unmarked.length).toBe(5);
+  container.mark();
+  expect(container.marked.length).toBe(1);
 
-  container.mark(5);
-  expect(container.marked.length).toBe(10);
-  expect(container.unmarked.length).toBe(0);
+  container.mark();
+  expect(container.marked.length).toBe(2);
 });
 
 test("marking should throw if no unmarked available", () => {
-  const container = new MarkedObjectPool(range(0, 2));
+  const container = new MarkedObjectPool(1);
 
-  container.mark(2);
-  expect(container.marked.length).toBe(2);
-  expect(container.unmarked.length).toBe(0);
-
-  expect(() => container.mark(1)).toThrow();
+  container.mark();
+  expect(container.marked.length).toBe(1);
+  expect(() => container.mark()).toThrow();
 });
 
 test("unmarking should throw if no marked available", () => {
-  const container = new MarkedObjectPool(range(0, 2));
+  const container = new MarkedObjectPool(2);
 
-  container.mark(2);
-  expect(container.marked.length).toBe(2);
-  expect(container.unmarked.length).toBe(0);
-
-  container.unmark(1);
+  container.mark();
   expect(container.marked.length).toBe(1);
-  expect(container.unmarked.length).toBe(1);
 
-  expect(() => container.unmark(2)).toThrow();
-});
+  container.unmark();
+  expect(container.marked.length).toBe(0);
 
-test("getMarkedItems initial values", () => {
-  const container = new MarkedObjectPool(range(0, 3));
-
-  expect(container.unshift().length).toBe(0);
-  expect(container.unmarked.length).toBe(3);
-  expect(container.currentUnmarked).toBe(container.unmarked[0]);
-});
-
-test("getMarkedItems cycling index", () => {
-  const container = new MarkedObjectPool(range(0, 3));
-  let marked;
-
-  container.mark(2);
-
-  marked = container.unshift(1);
-  expect(marked.length).toBe(1);
-  expect(marked[0]).toBe(container.unmarked[1]);
-
-  marked = container.unshift(1);
-  expect(marked.length).toBe(1);
-  expect(marked[0]).toBe(container.unmarked[2]);
+  expect(() => container.unmark()).toThrow();
 });

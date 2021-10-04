@@ -7,6 +7,7 @@ import CreepBW from "../CreepBW";
 // const bwUnitTags = Buffer.alloc(count * 2);
 // for (let i = 0; i < count; i++) {
 // bwUnitTags.writeUInt16LE(unitTags[i]);
+const FRAME_HEADER_SIZE = 4 + 36 + 8 * 10;
 
 test("should not read frame count if not enough bytes", () => {
   const frameBw = new FrameBW();
@@ -27,21 +28,7 @@ test("should read frame count first", () => {
   const bl = new BufferList(buf);
   const result = readState.process(bl, frameBw);
 
-  expect(result).toBe(true);
-  expect(bl.length).toBe(0);
-  expect(readState.maxFrame).toBe(99);
-});
-
-test("should read frame count first", () => {
-  const frameBw = new FrameBW();
-  const readState = new ReadState();
-
-  const buf = Buffer.alloc(4);
-  buf.writeInt32LE(99);
-  const bl = new BufferList(buf);
-  const result = readState.process(bl, frameBw);
-
-  expect(result).toBe(true);
+  expect(result).toBe(false);
   expect(bl.length).toBe(0);
   expect(readState.maxFrame).toBe(99);
   expect(readState.mode).toBe(ReadState.Frame);
@@ -66,29 +53,32 @@ test("should start reading frames after frame count 2", () => {
   const frameBw = new FrameBW();
   const readState = new ReadState();
 
-  const buf = Buffer.alloc(4 + 24);
-  buf.writeInt32LE(99);
+  const buf = Buffer.alloc(FRAME_HEADER_SIZE);
+  buf.writeInt32LE(99, 0);
   buf.writeInt32LE(1, 4);
   buf.writeUInt32LE(2, 8);
   buf.writeInt32LE(3, 12);
   buf.writeInt32LE(4, 16);
   buf.writeInt32LE(5, 20);
   buf.writeInt32LE(6, 24);
+  buf.writeInt32LE(7, 28);
+  buf.writeInt32LE(8, 32);
+  buf.writeInt32LE(9, 36);
 
   const bl = new BufferList(buf);
   let result = readState.process(bl, frameBw);
-  expect(readState.mode).toBe(ReadState.Frame);
-
-  result = readState.process(bl, frameBw);
   expect(result).toBe(true);
   expect(readState.mode).toBe(ReadState.Tile);
 
   expect(frameBw.frame).toBe(1);
   expect(frameBw.tilesCount).toBe(2);
   expect(frameBw.unitCount).toBe(3);
-  expect(frameBw.spriteCount).toBe(4);
-  expect(frameBw.imageCount).toBe(5);
-  expect(frameBw.soundCount).toBe(6);
+  expect(frameBw.upgradeCount).toBe(4);
+  expect(frameBw.researchCount).toBe(5);
+  expect(frameBw.spriteCount).toBe(6);
+  expect(frameBw.imageCount).toBe(7);
+  expect(frameBw.soundCount).toBe(8);
+  expect(frameBw.buildingQueueCount).toBe(9);
 });
 
 const writeRandomFrame = () => {
@@ -99,14 +89,20 @@ const writeRandomFrame = () => {
   const spriteCount = rand();
   const imageCount = rand();
   const soundCount = rand();
+  const upgradeCount = rand();
+  const researchCount = rand();
+  const buildingQueueCount = rand();
 
-  const buf = Buffer.alloc(24);
+  const buf = Buffer.alloc(FRAME_HEADER_SIZE);
   buf.writeInt32LE(frame, 0);
   buf.writeUInt32LE(tilesCount, 4);
   buf.writeInt32LE(unitCount, 8);
-  buf.writeInt32LE(spriteCount, 12);
-  buf.writeInt32LE(imageCount, 16);
-  buf.writeInt32LE(soundCount, 20);
+  buf.writeInt32LE(upgradeCount, 12);
+  buf.writeInt32LE(researchCount, 16);
+  buf.writeInt32LE(spriteCount, 20);
+  buf.writeInt32LE(imageCount, 24);
+  buf.writeInt32LE(soundCount, 28);
+  buf.writeInt32LE(buildingQueueCount, 32);
   return {
     buf,
     frame,
@@ -115,6 +111,9 @@ const writeRandomFrame = () => {
     spriteCount,
     imageCount,
     soundCount,
+    buildingQueueCount,
+    upgradeCount,
+    researchCount,
   };
 };
 
@@ -150,6 +149,9 @@ test("full test", () => {
     spriteCount,
     imageCount,
     soundCount,
+    upgradeCount,
+    researchCount,
+    buildingQueueCount,
   } = writeRandomFrame();
 
   bl.append(buf);
@@ -163,6 +165,9 @@ test("full test", () => {
   expect(frameBw.spriteCount).toBe(spriteCount);
   expect(frameBw.imageCount).toBe(imageCount);
   expect(frameBw.soundCount).toBe(soundCount);
+  expect(frameBw.upgradeCount).toBe(upgradeCount);
+  expect(frameBw.researchCount).toBe(researchCount);
+  expect(frameBw.buildingQueueCount).toBe(buildingQueueCount);
 
   let size = TilesBW.byteLength * tilesCount;
   bl.append(Buffer.alloc(size));
