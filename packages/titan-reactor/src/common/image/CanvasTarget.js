@@ -1,11 +1,3 @@
-function findDescriptor(obj, prop) {
-  if (obj != null) {
-    return Object.hasOwnProperty.call(obj, prop)
-      ? Object.getOwnPropertyDescriptor(obj, prop)
-      : findDescriptor(Object.getPrototypeOf(obj), prop);
-  }
-}
-
 class CanvasTarget {
   constructor(defaultCanvas) {
     const canvas = defaultCanvas || document.createElement("canvas");
@@ -18,8 +10,6 @@ class CanvasTarget {
     this.pixelRatio = pixelRatio;
     this.width = width;
     this.height = height;
-    // this.width = (width * 3) / 4;
-    // this.height = (height * 3) / 4;
     this.scaledWidth = Math.floor(this.width * pixelRatio);
     this.scaledHeight = Math.floor(this.height * pixelRatio);
     this.canvas.width = this.scaledWidth;

@@ -23,8 +23,6 @@ const calculateImagesFromIScript = (
           case "imgul":
           case "imgol":
           case "imgolorig":
-          case "imgoluselo":
-          case "imguluselo":
           case "imguluselo":
             {
               const img = bwDat.images[args[0]];
@@ -44,7 +42,6 @@ const calculateImagesFromIScript = (
           case "spruluselo":
           case "sprul":
           case "sproluselo":
-          case "lowsprul":
             {
               const img = bwDat.sprites[args[0]].image;
               getAllImages(img);

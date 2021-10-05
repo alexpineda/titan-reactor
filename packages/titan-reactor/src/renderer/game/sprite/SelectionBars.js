@@ -81,8 +81,8 @@ function onBeforeCompile(shader) {
     );
 }
 
-const hpColorGreen = new Color(16 / 255, 115 / 255, 16 / 255);
-const hpColorRed = new Color(204 / 255, 35 / 255, 35 / 255);
+const hpColorGreen = new Color(16 / 255, 135 / 255, 16 / 255);
+const hpColorRed = new Color(234 / 255, 25 / 255, 25 / 255);
 const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255);
 const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255);
 const energyColor = new Color(158 / 255, 34 / 255, 189 / 255);
