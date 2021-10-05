@@ -22,7 +22,7 @@ export default class MarkedObjectPool2 {
     return this.unmarked;
   }
 
-  maxed() {
+  get isMaxed() {
     return this.maxItems - this.marked.length === 0;
   }
 
@@ -31,7 +31,7 @@ export default class MarkedObjectPool2 {
    * @throws {Error}
    */
   mark() {
-    if (this.maxed()) {
+    if (this.isMaxed) {
       throw new Error("marking out of bounds");
     }
     this.marked.push(this.unmarked);

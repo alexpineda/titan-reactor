@@ -64,7 +64,7 @@ export default class ReadState {
     this.pos = 0;
   }
 
-  ended() {
+  get isEndOfFile() {
     return this.currentFrame === this.maxFrame;
   }
 

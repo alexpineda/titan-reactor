@@ -40,16 +40,12 @@ export default class StreamGameStateReader extends EventEmitter {
     this.frames.mark();
   }
 
-  noUnusedFramesAvailable() {
-    return this.frames.maxed();
-  }
-
   getAvailableFrames(frameCount) {
     return this.frames.unmark(frameCount);
   }
 
-  maxed() {
-    return this._state.ended() || this.noUnusedFramesAvailable();
+  get isMaxed() {
+    return Boolean(this._state.isEndOfFile || this.frames.isMaxed);
   }
 
   next(frameCount = 1) {
@@ -65,7 +61,7 @@ export default class StreamGameStateReader extends EventEmitter {
   }
 
   _processBuffer(newFrames) {
-    if (this.maxed()) return true;
+    if (this.isMaxed) return true;
     while (this._state.process(this._buf, this.currentAvailableFrame())) {
       if (this._state.mode === ReadState.FrameComplete) {
         this._lastReadFrame = this._state.currentFrame;
@@ -76,7 +72,7 @@ export default class StreamGameStateReader extends EventEmitter {
         this._buf = this._buf.duplicate();
         this._buf.consume(this._state.pos);
 
-        if (this.maxed()) {
+        if (this.isMaxed) {
           return true;
         }
       }
@@ -85,7 +81,7 @@ export default class StreamGameStateReader extends EventEmitter {
   }
 
   processFrames() {
-    if (this.maxed()) {
+    if (this.isMaxed) {
       this.emit("maxed");
       return;
     }
@@ -110,7 +106,7 @@ export default class StreamGameStateReader extends EventEmitter {
     // used by the asset preloader
     this.emit("frames", newFrames);
 
-    if (this.maxed()) {
+    if (this.isMaxed) {
       this.emit("maxed");
     }
   }
