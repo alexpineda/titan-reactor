@@ -44,8 +44,8 @@ class GameCanvasTarget extends CanvasTarget {
       this.top = 0;
 
       super.setDimensions(
-        Math.floor(maxWidth),
-        Math.floor(maxHeight),
+        Math.floor(maxWidth - 2),
+        Math.floor(maxHeight - 2),
         this.settings.pixelRatio
       );
     } else {

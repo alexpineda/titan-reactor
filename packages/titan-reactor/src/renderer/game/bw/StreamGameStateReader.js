@@ -69,7 +69,6 @@ export default class StreamGameStateReader extends EventEmitter {
         newFrames.push(this.currentAvailableFrame());
         this.markCurrentAvailableFrame();
 
-        this._buf = this._buf.duplicate();
         this._buf.consume(this._state.pos);
 
         if (this.isMaxed) {

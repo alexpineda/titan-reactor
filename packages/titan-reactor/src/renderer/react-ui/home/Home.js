@@ -50,7 +50,7 @@ const Home = () => {
             <MenuItem
               label={phrases["OPEN_DEMO_REPLAY"]}
               disabled={errors.includes("starcraftPath")}
-              onClick={ () => ipcRenderer.send(OPEN_DEMO_REPLAY),}
+              onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
             />
             <MenuItem
               label={phrases["OPEN_REPLAY"]}
