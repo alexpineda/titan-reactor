@@ -4,7 +4,6 @@ import useSettingsStore from "../../stores/settingsStore";
 import useGameStore from "../../stores/gameStore";
 
 import { gameSpeeds, gameSpeedNames } from "../../../common/utils/conversions";
-import sparkly from "sparkly";
 
 const gameSpeedsArray = [
   gameSpeeds.slowest,
@@ -91,8 +90,6 @@ const ReplayPosition = ({ className }) => {
     ]);
   }, [autoSpeed]);
 
-  const autoSpeedNorm = 1 - (gameSpeeds.fastest - autoSpeed) / deltaSpeeds;
-
   const setPositionHandler = (e) => {
     const rect = e.target.getBoundingClientRect();
     const p = (e.clientX - rect.left) / (rect.right - rect.left);
@@ -170,20 +167,6 @@ const ReplayPosition = ({ className }) => {
                   ((totalSpeeds / autoSpeed) %
                     Math.floor(totalSpeeds / autoSpeed))
                 ).slice(-1)}x`}
-            </span>
-            <span className="text-gray-700 absolute ml-1">
-              {autoSpeedMode == 0 &&
-                sparkly([autoSpeedNorm, autoSpeedNorm, autoSpeedNorm], {
-                  minimum: 0,
-                  maximum: 1,
-                })}
-            </span>
-            <span className="text-gray-600 absolute">
-              {autoSpeedMode == 0 &&
-                sparkly(prevAutoSpeeds, {
-                  minimum: 0,
-                  maximum: 1,
-                })}
             </span>
           </span>
         </span>

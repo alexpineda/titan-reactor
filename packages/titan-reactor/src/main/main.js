@@ -16,7 +16,6 @@ import installExtension, {
 import { format as formatUrl } from "url";
 import { openFileBinary } from "../common/utils/fs";
 import path from "path";
-import Parser from "rss-parser";
 import createScmExtractor from "scm-extractor";
 import concat from "concat-stream";
 import { Readable } from "stream";
@@ -36,7 +35,6 @@ import {
   OPEN_DEMO_REPLAY,
   LOG_MESSAGE,
   EXIT,
-  GET_RSS_FEED,
   LOAD_REPLAY_FROM_FILE,
   REQUEST_NEXT_FRAMES,
   STOP_READING_GAME_STATE,
@@ -389,11 +387,6 @@ ipcMain.on(SELECT_FOLDER, async (event, key) => {
         message: "There was an error selecting path: " + err.message,
       });
     });
-});
-
-ipcMain.handle(GET_RSS_FEED, async (_, url) => {
-  const parser = new Parser();
-  return await parser.parseURL(url);
 });
 
 ipcMain.handle(LOAD_CHK, (_, buf) => {
