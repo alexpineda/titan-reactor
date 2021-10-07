@@ -1,4 +1,3 @@
-import { remote } from "electron";
 import createScmExtractor from "scm-extractor";
 import fs, { promises as fsPromises } from "fs";
 import path from "path";
@@ -133,11 +132,11 @@ export class TitanReactor {
     log("parsing replay");
     const repBin = await openFile(filepath);
     let repFile = filepath;
-    const outFile = path.join(remote.app.getPath("temp"), "replay.out");
+    const outFile = path.join(settings.tempPath, "replay.out");
     this.rep = await parseReplay(repBin);
     if (this.rep.version === Version.remastered) {
       const classicRep = await convertReplayTo116(repBin);
-      repFile = path.join(remote.app.getPath("temp"), "replay.rep");
+      repFile = path.join(settings.tempPath, "replay.rep");
       await new Promise((res) =>
         fs.writeFile(repFile, classicRep, (err) => {
           if (err) {

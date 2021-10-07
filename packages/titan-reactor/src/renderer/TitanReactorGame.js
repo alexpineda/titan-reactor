@@ -38,8 +38,6 @@ const setAllProduction = useProductionStore.getState().setAllProduction;
 const setAllResources = useResourcesStore.getState().setAllResources;
 const { startLocation } = unitTypes;
 
-export const hot = module.hot ? module.hot.data : null;
-
 async function TitanReactorGame(
   scene,
   chk,

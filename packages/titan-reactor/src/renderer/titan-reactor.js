@@ -37,14 +37,16 @@ const loadFont = async (file, family, weight) => {
   );
 };
 
+const loadFonts = async () => {
+  await loadFont(`${__static}/fonts/conthrax-rg.otf`, "conthrax", "100 400");
+  await loadFont(`${__static}/fonts/conthrax-hv.otf`, "conthrax", "500 900");
+};
+
 const titanReactor = new TitanReactor();
 
 async function bootup() {
-  await loadFont(`${__static}/fonts/conthrax-rg.otf`, "conthrax", "100 400");
-  await loadFont(`${__static}/fonts/conthrax-hv.otf`, "conthrax", "500 900");
-
   try {
-    // set initializing
+    await loadFonts();
     await useSettingsStore.getState().load();
     useLoadingStore.setState({ initialized: true });
   } catch (err) {
@@ -65,5 +67,4 @@ ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replays) => {
 });
 
 render(<App titanReactor={titanReactor} />, document.getElementById("app"));
-
 bootup();

@@ -18,8 +18,6 @@ import useHudStore from "./stores/hudStore";
 import { iscriptHeaders } from "../common/types/iscriptHeaders";
 import { unitTypes } from "../common/types/unitTypes";
 
-export const hot = module.hot ? module.hot.data : null;
-
 async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const [mapWidth, mapHeight] = chk.size;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);

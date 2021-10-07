@@ -13,6 +13,7 @@ import {
   findReplaysPath,
   findStarcraftPath,
 } from "./starcraft/findInstallPath";
+import { findTempPath } from "./main";
 import fileExists from "../common/utils/fileExists";
 import path from "path";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
@@ -161,6 +162,7 @@ export class Settings extends EventEmitter {
       starcraftPath: await findStarcraftPath(),
       mapsPath: await findMapsPath(),
       replaysPath: await findReplaysPath(),
+      tempPath: await findTempPath(),
       communityModelsPath: "",
       observerLink: "",
       musicVolume: 0.1,

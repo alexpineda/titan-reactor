@@ -9,10 +9,6 @@ import {
   powerSaveBlocker,
 } from "electron";
 import isDev from "electron-is-dev";
-import installExtension, {
-  REDUX_DEVTOOLS,
-  REACT_DEVELOPER_TOOLS,
-} from "electron-devtools-installer";
 import { format as formatUrl } from "url";
 import { openFileBinary } from "../common/utils/fs";
 import path from "path";
@@ -49,15 +45,16 @@ import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
 import FileGameStateReader from "../renderer/game/bw/FileGameStateReader";
 
-// app.commandLine.appendSwitch("disable-frame-rate-limit");
 // app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
+// app.commandLine.appendSwitch("disable-frame-rate-limit");
+app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 const gotTheLock = app.requestSingleInstanceLock();
 
 let gameWindow;
 let gameStateReader;
 let settings;
 
-function createWindow() {
+function createGameWindow() {
   gameWindow = new BrowserWindow({
     width: 900,
     height: 680,
@@ -69,7 +66,7 @@ function createWindow() {
       webSecurity: true,
       spellcheck: false,
       enableWebSQL: false,
-      // contextIsolation: true,
+      contextIsolation: false,
       // worldSafeExecuteJavaScript: true,
       enableRemoteModule: true,
     },
@@ -162,26 +159,16 @@ app.on("ready", async () => {
     }
   );
 
-  ipcMain.handle(REQUEST_NEXT_FRAMES, async (event, frames) => {
+  ipcMain.handle(REQUEST_NEXT_FRAMES, async (_, frames) => {
     return gameStateReader.next(frames);
   });
 
-  ipcMain.handle(STOP_READING_GAME_STATE, async (event) => {
+  ipcMain.handle(STOP_READING_GAME_STATE, async () => {
     gameStateReader.dispose();
     gameStateReader = null;
   });
 
-  if (isDev) {
-    installExtension(REDUX_DEVTOOLS)
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log("An error occurred: ", err));
-
-    installExtension(REACT_DEVELOPER_TOOLS)
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log("An error occurred: ", err));
-  }
-
-  createWindow();
+  createGameWindow();
 });
 
 app.on("window-all-closed", () => {
@@ -194,7 +181,7 @@ ipcMain.on(EXIT, () => app.exit(0));
 
 app.on("activate", () => {
   if (gameWindow === null) {
-    createWindow();
+    createGameWindow();
   }
 });
 
@@ -251,16 +238,6 @@ const submenu = [
     },
   },
 ];
-
-if (true) {
-  submenu.push({
-    label: "&Open Replay",
-    accelerator: "CmdOrCtrl+Shift+O",
-    click: function () {
-      showOpenReplay();
-    },
-  });
-}
 
 const template = [
   // { role: 'appMenu' }
@@ -409,3 +386,5 @@ ipcMain.handle(LOAD_SCX, async (_, buf) => {
   const res = new Chk(chk);
   return res;
 });
+
+export const findTempPath = () => app.getPath("temp");

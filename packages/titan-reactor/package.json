@@ -12,7 +12,8 @@
     "compile": "electron-webpack",
     "dist": "yarn compile && electron-builder",
     "dist:dir": "yarn dist -- --dir -c.compression=store -c.mac.identity=null",
-    "dev": "electron-webpack dev"
+    "dev": "electron-webpack dev",
+    "dist:run": "yarn compile && electron dist/main/main.js"
   },
   "browserslist": [
     "last 2 Chrome versions"
@@ -35,7 +36,7 @@
     },
     "renderer": {
       "sourceDirectory": "src/renderer",
-      "webpackConfig": "src/build/webpack.renderer.additions.js"
+      "webpackConfig": "src/build/renderer.config.js"
     }
   },
   "build": {
@@ -92,7 +93,7 @@
     "@babel/preset-react": "^7.10.4",
     "babel-jest": "^26.3.0",
     "dotenv": "^8.2.0",
-    "electron": "^10.1.2",
+    "electron": "^15.0.0",
     "electron-builder": "^22.8.1",
     "electron-webpack": "^2.8.2",
     "eslint": "^7.16.0",

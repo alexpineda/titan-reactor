@@ -3,28 +3,21 @@ import { render } from "react-dom";
 import { Provider } from "react-redux";
 import {
   Scene,
-  OrthographicCamera,
   PerspectiveCamera,
   AmbientLight,
   DirectionalLight,
   WebGLRenderer,
   sRGBEncoding,
   MOUSE,
-  LinearFilter,
   Vector3,
   Vector4,
   Mesh,
-  MeshBasicMaterial,
   PlaneBufferGeometry,
   CineonToneMapping,
-  LinearEncoding,
-  ReinhardToneMapping,
   AxesHelper,
   Group,
-  AnimationMixer,
   MeshStandardMaterial,
 } from "three";
-import { remote } from "electron";
 import "balloon-css/balloon.min.css";
 import "pattern.css/dist/pattern.min.css";
 import "tailwindcss/dist/tailwind.min.css";

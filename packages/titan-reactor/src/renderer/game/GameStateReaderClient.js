@@ -1,5 +1,4 @@
 import { EventDispatcher } from "three";
-import { remote } from "electron";
 import path from "path";
 import {
   loadReplayFromFile,
@@ -9,6 +8,7 @@ import {
 } from "../invoke";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 import fs from "fs";
+import { getSettings } from "../stores/settingsStore";
 
 /**
  * This version is currently not used. This is the client version used for IPC with the main process, currently we use integrated node however. See StreamGameStateReader and FileGameStateReader.
@@ -24,13 +24,14 @@ export default class GameStateReaderClient extends EventDispatcher {
   async loadReplay(filepath) {
     const repBin = await openFile(filepath);
     this.repFile = filepath;
-    this.outFile = path.join(remote.app.getPath("temp"), "replay.out");
+    const settings = getSettings();
+    this.outFile = path.join(settings.tempPath, "replay.out");
 
     let rep = await parseReplay(repBin);
 
     if (rep.version === Version.remastered) {
       const classicRep = await convertReplayTo116(repBin);
-      this.repFile = path.join(remote.app.getPath("temp"), "replay.rep");
+      this.repFile = path.join(settings.tempPath, "replay.rep");
       await new Promise((res) =>
         fs.writeFile(this.repFile, classicRep, (err) => {
           if (err) {

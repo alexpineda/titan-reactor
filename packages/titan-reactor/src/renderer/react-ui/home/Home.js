@@ -11,9 +11,6 @@ import { MenuItem } from "../components/MenuItem";
 import { exit } from "../../invoke";
 import useSettingsStore from "../../stores/settingsStore";
 
-if (module.hot) {
-  module.hot.accept();
-}
 const Panels = {
   Home: "Home",
   Maps: "Maps",

@@ -1,22 +1,16 @@
-const webpackRenderer = require("electron-webpack/webpack.renderer.config.js");
+module.exports = function (config) {
+  config.devServer.headers = {
+    "Cache-Control": "no-cache",
+    "Cross-Origin-Resource-Policy": "same-site",
+    "Cross-Origin-Embedder-Policy": "require-corp",
+  };
 
-module.exports = (env) => {
-  return new Promise((resolve, reject) => {
-    /* get provided config */
-    webpackRenderer(env).then((rendererConfig) => {
-      console.log("rendererConfig", rendererConfig);
-      rendererConfig.resolve.extensions.push(".mjs");
-
-      const babelLoader = rendererConfig.module.rules.find(
-        (rule) => rule.use.loader === "babel-loader"
-      );
-
-      //   babelLoader.use.options.plugins.push(
-      //     "@babel/plugin-proposal-class-properties"
-      //   );
-
-      /* return modified config to webpack */
-      resolve(rendererConfig);
-    });
+  config.module.rules.push({
+    test: /\.worker\.js$/,
+    use: { loader: "worker-loader" },
   });
+
+  console.log(JSON.stringify(config, null, 4));
+
+  return config;
 };
