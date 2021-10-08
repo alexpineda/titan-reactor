@@ -36,7 +36,7 @@ class StandardCameraControls extends CameraControls {
     this._onWheel = (evt) => {
       if (this._mouseWheelTimeout || !this.enabled || freeControl) return;
 
-      this.dampingFactor = evt.shiftKey ? 0.005 : 0.05;
+      this.dampingFactor = 0.05;
 
       if (evt.deltaY < 0) {
         if (!evt.altKey) {
@@ -117,11 +117,12 @@ class StandardCameraControls extends CameraControls {
     this.minPolarAngle = (4 * Math.PI) / 64;
     this.maxAzimuthAngle = (24 * Math.PI) / 64;
     this.minAzimuthAngle = -(24 * Math.PI) / 64;
-    this.truckSpeed = 1;
+    this.truckSpeed = 2;
 
     this.cameraShake = new CameraShake(this, 500, 10, 1);
     this.dollyToCursor = true;
     this.zoomFactor = 40;
+    this.draggingDampingFactor = 1;
   }
 
   initNumpadControls() {
@@ -251,8 +252,6 @@ class StandardCameraControls extends CameraControls {
 
     this._keypressListener = (evt) => {
       if (this._camera.isPerspectiveCamera) {
-        // this.dampingFactor = evt.shiftKey ? 0.005 : 0.05;
-
         if (evt.code === "NumpadDivide") {
           this.rotate(-(2 * Math.PI) / 64, 0, true);
         } else if (evt.code === "NumpadMultiply") {

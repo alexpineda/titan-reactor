@@ -9,7 +9,7 @@ import StandAloneProductionBar from "./game/production/StandAloneProductionBar";
 import Chat from "./game/Chat";
 import ResourcesBar from "./game/resources/ResourcesBar";
 import UnitSelection from "./game/UnitSelection";
-import ReplayPosition from "./game/ReplayPosition";
+import ReplayPosition from "./game/NewReplayPosition";
 import ProducerBar from "./game/ProducerBar";
 import Menu from "./game/Menu";
 import Visible from "./components/visible";

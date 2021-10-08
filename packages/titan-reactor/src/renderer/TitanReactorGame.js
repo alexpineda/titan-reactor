@@ -138,35 +138,21 @@ async function TitanReactorGame(
 
   gameStatePosition.onResetState = () => {};
 
-  let shiftDown = false;
-  let lastChangedShiftDown = Date.now();
-  const _keyDown = (evt) => {
-    shiftDown = evt.code === "ShiftLeft";
-    // if (shiftDown && Date.now() - lastChangedShiftDown > 2000) {
-    //   lastChangedShiftDown = Date.now();
-    //   if (cameras.control.dampingFactor > 0.005) {
-    //     cameras.control.dampingFactor = 0.005;
-    //   } else {
-    //     cameras.control.dampingFactor = 0.05;
-    //   }
-    // }
-  };
-
-  document.addEventListener("keydown", _keyDown);
-  const _keyUp = (evt) => {
-    shiftDown = false;
-  };
-  document.addEventListener("keyup", _keyUp);
-
-  const _controlSleep = () => {
-    cameras.control.dampingFactor = 0.05;
-  };
-  // cameras.control.addEventListener("sleep", _controlSleep);
-
   //#endregion mouse listener
 
   //#region hud ui
-  const togglePlayHandler = () => gameStatePosition.togglePlay();
+
+  // todo change this to store
+  const togglePlayHandler = () => {
+    gameStatePosition.togglePlay();
+    if (gameStatePosition.paused) {
+      useHudStore.getState().setAutoProductionView(false);
+    } else {
+      // todo remember last toggle setting or get from settings
+      useHudStore.getState().setAutoProductionView(true);
+    }
+  };
+
   keyboardShortcuts.addEventListener(InputEvents.TogglePlay, togglePlayHandler);
 
   const toggleGridHandler = () =>

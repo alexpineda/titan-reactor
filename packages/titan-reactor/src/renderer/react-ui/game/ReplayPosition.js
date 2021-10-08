@@ -186,7 +186,7 @@ const ReplayPosition = ({ className }) => {
   return (
     <div
       className={`replay-parent flex self-end select-none ${className}`}
-      style={{ width: "24vw" }}
+      style={{ minWidth: "18vw" }}
     >
       <div
         className="replay-position rounded p-2 flex-1 flex"

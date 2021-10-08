@@ -73,7 +73,7 @@ class MinimapControl extends EventDispatcher {
 
           clearInterval(this._lastInterval);
 
-          _start(e, pos, e.shiftKey ? 0 : 1);
+          _start(e, pos, 1);
 
           if (e.button === LeftMouse) {
             this._isDragging = true;

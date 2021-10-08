@@ -1,5 +1,6 @@
 import { Object3D, AnimationMixer } from "three";
-import { SkeletonUtils } from "three/examples/jsm/utils/SkeletonUtils";
+import "three/examples/jsm/utils/SkeletonUtils";
+import THREE from "three";
 
 export const createTitanImage3D = (
   bwDat,
@@ -25,7 +26,7 @@ export default class TitanImage3D extends Object3D {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {
     super();
     this.atlas = atlas;
-    this.model = SkeletonUtils.clone(atlas.model);
+    this.model = THREE.SkeletonUtils.clone(atlas.model);
     this.model.traverse((o) => {
       if (o.type == "Mesh" || o.type == "SkinnedMesh") {
         o.castShadow = true;

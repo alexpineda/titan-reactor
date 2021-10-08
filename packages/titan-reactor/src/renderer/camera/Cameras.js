@@ -84,7 +84,7 @@ class Cameras {
         }
 
         const transition = speed < 2;
-        this.control.dampingFactor = speed === 0 ? 0.005 : 0.05;
+        this.control.dampingFactor = 0.05;
 
         this.camera.updateProjectionMatrix();
         this.control.setLookAt(
