@@ -1,8 +1,7 @@
 ## Titan Reactor 
 
-Titan Reactor is a custom replay viewer for Starcraft and may only be utilized with assets provided by ownership of Starcraft. This is INCOMPLETE software and may not work as expected. This has been a hobby project and so improvements should continue to be slow and steady as it gets refined into a great viewer for all of us.
+Titan Reactor is a custom replay viewer for Starcraft and may only be utilized with assets provided by ownership of Starcraft.
 
-- [Website](http://imbateam.gg/)
 - [Join our Discord](http://discord.imbateam.gg/)
 - [Demo Video (Youtube)](https://www.youtube.com/watch?v=CwzkjboEbqo)
 
@@ -58,18 +57,11 @@ I'm looking for contributors. Please send me a message on discord or feel free t
 
 - Replay generation is done via openbw-bridge. Currently this generates broken replays for some 1.16 replays and many SCR replays, this could use a lot of investigating. For SCR we're using a replay file downgrader  where in fact openbw will need to be changed for unit limit to be fully functional. This area could use improvement for reliability and replay support.
 - The replay state reader needs to be more robust for errors and correcting itself from potential error states.
-- With the recent work done on production tabs we introduced a Major GC issue somewhere, and so evaluating and optimizing object creation has been and will continue to be a priority to ensure we don't trigger Major GC.
-- We'd like to eventually integrate with Shieldbattery for live obsing. Since the data source is just a raw binary dump of unit and sprite state (amongst a few other things) I believe this is doable via the same mechanism. Needs further investigation.
-- Proper clean up. Ensuring all resources are cleaned up and we don't create any memory leaks in between repeat replay and map viewing
+- Integration with Shieldbattery will be necessary for live obsing. Since the data source is just a raw binary dump of unit and sprite state (amongst a few other things) I believe this is doable via the same mechanism.
 - Multiple observers connecting to the same replay.
-- Final touches for HD, protoss building warp in, water effects. Some overlays show surrounding artifacts (command center blink, bunker)
-- Improving how rendering is done for regular HD sprites since currently there is no depth testing in order to draw in the same order as BW.
-- Optimizing GLTF loading for battle cam transition.
 - Improvements on terrain and general aesthetics always welcome.
 - Bundling, auto-update, etc.
-- Camera improvements, etc. etc.. Check the roadmap for more.
 
-  [Further Roadmap](https://trello.com/b/ieI76i1Z/titan-reactor-roadmap)
   
 
 ## LEGAL
