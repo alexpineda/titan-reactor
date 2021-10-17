@@ -52,6 +52,7 @@ export default class GrpSD2 {
     this.height = sprite.maps.diffuse.height;
     this.grpWidth = w;
     this.grpHeight = h;
+    return this;
   }
 
   _loadDDS(buf, encoding = sRGBEncoding) {

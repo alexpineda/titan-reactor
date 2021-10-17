@@ -122,6 +122,7 @@ export default class GrpSD {
       this.teamcolor.wrapT = ClampToEdgeWrapping;
       this.teamcolor.wrapS = ClampToEdgeWrapping;
     }
+    return this;
   }
 
   dispose() {

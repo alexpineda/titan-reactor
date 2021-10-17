@@ -56,7 +56,7 @@ const researchSelector = (state) => {
   return null;
 };
 
-const bwDatSelector = (state) => state.game.bwDat;
+const bwDatSelector = (state) => state.assets.bwDat;
 
 const Progress = forwardRef(({ unit }, ref) => {
   const bwDat = useGameStore(bwDatSelector);

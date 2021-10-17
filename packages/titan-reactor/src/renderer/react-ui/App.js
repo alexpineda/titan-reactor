@@ -2,6 +2,7 @@ import React from "react";
 import ReactTooltip from "react-tooltip";
 import shallow from "zustand/shallow";
 import { LoadingOverlay } from "./LoadingOverlay";
+import BackgroundPreload from "./BackgroundPreload";
 import Initializing from "./home/Initializing";
 import Map from "./Map";
 import Game from "./Game";
@@ -34,7 +35,7 @@ const App = () => {
   return (
     <>
       <ReactTooltip id="upgrades" />
-
+      {!chk.loaded && !rep.loaded && <BackgroundPreload />}
       {criticalError && (
         <p>There was a critical error. Try deleting your settings file.</p>
       )}
@@ -43,12 +44,14 @@ const App = () => {
           {!initialized && <Initializing phrases={phrases} />}
 
           <Visible visible={initialized}>
-            {!chk.loaded && !rep.loaded && <Home />}
-            {chk.loaded && <Map />}
-            {rep.loaded && <Game />}
-            {(chk.loading || rep.loading) && (
-              <LoadingOverlay chk={chk} rep={rep} />
-            )}
+            <React.StrictMode>
+              {!chk.loaded && !rep.loaded && <Home />}
+              {chk.loaded && <Map />}
+              {rep.loaded && <Game />}
+              {(chk.loading || rep.loading) && (
+                <LoadingOverlay chk={chk} rep={rep} />
+              )}
+            </React.StrictMode>
           </Visible>
         </>
       )}

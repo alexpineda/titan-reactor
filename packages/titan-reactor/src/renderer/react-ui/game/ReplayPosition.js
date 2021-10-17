@@ -43,7 +43,7 @@ const ReplayPosition = ({ className }) => {
     autoSpeed,
     paused,
   } = useGameStore((state) => {
-    const p = state.game.replayPosition;
+    const p = state.game.gameStatePosition;
     return {
       replayPosition: p,
       position: p.bwGameFrame / p.maxFrame,

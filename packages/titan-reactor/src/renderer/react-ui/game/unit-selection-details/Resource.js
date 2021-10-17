@@ -9,7 +9,7 @@ const resourceSelector = (state) => {
 };
 
 const Resource = ({ unit }) => {
-  const gameIcons = useGameStore((state) => state.game.gameIcons);
+  const gameIcons = useGameStore((state) => state.assets.icons.gameIcons);
 
   const resourceRef = useRef();
 

@@ -173,7 +173,7 @@ class RenderMan {
     const min = cz * 0.2 + 0.1;
 
     const ey = easePoly(cy);
-    const pa = 1 - Math.max(0.2, Math.min(1, cameras.control.polarAngle));
+    const pa = 1 - Math.max(0.2, Math.min(1, 0)); // cameras.control.polarAngle));
     const cx = ey * pa;
     const o = cx * (1 - min) + min;
 
@@ -249,6 +249,10 @@ class RenderMan {
     );
   }
 
+  get setAnimationLoop() {
+    return this.renderer.setAnimationLoop;
+  }
+
   dispose() {
     this.renderer.domElement.removeEventListener(
       "webglcontextlost",
@@ -258,6 +262,7 @@ class RenderMan {
       "webglcontextrestored",
       this._contextRestoredListener
     );
+    this.renderer.setAnimationLoop(null);
 
     //bug in cinematic pass dispose requires us to set camera to null before disposing
     this._dofEffect.camera = null;

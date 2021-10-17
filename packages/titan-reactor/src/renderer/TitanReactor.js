@@ -1,44 +1,25 @@
 import createScmExtractor from "scm-extractor";
-import fs, { promises as fsPromises } from "fs";
+import fs from "fs";
 import path from "path";
 import { pick, uniq } from "ramda";
 import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
 import TitanReactorGame from "./TitanReactorGame";
-import { WebGLRenderer } from "three";
 import { TitanReactorScene } from "./TitanReactorScene";
-import { RenderMode } from "common/settings";
 import { openFile, log } from "./invoke";
-import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
-import { UnitDAT } from "../common/dat/UnitsDAT";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
-import loadEnvironmentMap from "../common/image/envMap";
-import GrpSD2 from "../common/image/GrpSD2";
-import GrpHD from "../common/image/GrpHD";
-import Grp3D from "../common/image/Grp3D";
+
 import createTitanImage from "../common/image/createTitanImage";
 import { createIScriptRunner } from "../common/iscript/IScriptRunner";
-import electronFileLoader from "./utils/electronFileLoader";
 
-import readCascFile, {
-  closeCascStorage,
-  openCascStorage,
-} from "../common/utils/casclib";
 import FileGameStateReader from "./game/bw/FileGameStateReader";
-import AtlasPreloader from "../common/image/AtlasPreloader";
-import ImagesBW from "./game/bw/ImagesBW";
-import {
-  calculateImagesFromSpritesIscript,
-  calculateImagesFromUnitsIscript,
-} from "../common/image/calculateImagesFromIScript";
+import Assets from "./Assets";
 import TitanSprite from "../common/image/TitanSprite";
 import AudioMaster from "./audio/AudioMaster";
 import useLoadingStore from "./stores/loadingStore";
-import { getSettings } from "./stores/settingsStore";
-import useGameStore from "./stores/gameStore";
-import ContiguousContainer from "./game/bw/ContiguousContainer";
-import SelectionCircle from "./game/sprite/SelectionCircle";
+import useSettingsStore, { getSettings } from "./stores/settingsStore";
+import { setGame, disposeGame, getAssets, setAssets } from "./stores/gameStore";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -54,76 +35,37 @@ const loadScx = (filename) =>
 
 export class TitanReactor {
   constructor() {
-    this.game = null;
+    // preload assets once valid settings are available
+    const unsub = useSettingsStore.subscribe(({ errors, data: settings }) => {
+      if (errors.length) return;
+
+      const assets = new Assets();
+      assets.preload(settings.starcraftPath, settings.communityModelsPath);
+      setAssets(assets);
+      unsub();
+    });
   }
 
-  async preload() {
-    if (useLoadingStore.getState().preloaded) return;
-
-    const settings = getSettings();
-
-    log("loading DAT and ISCRIPT files");
-    openCascStorage(settings.starcraftPath);
-
-    const origBwDat = await loadAllDataFiles(readCascFile);
-    this.bwDat = {
-      ...origBwDat,
-      units: origBwDat.units.map((unit) => new UnitDAT(unit)),
-    };
-    window.bwDat = this.bwDat;
-
-    log("loading env map");
-    const renderer = new WebGLRenderer();
-    // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
-    renderer.dispose();
-
-    log("initializing atlas preloader");
-    this.atlasPreloader = new AtlasPreloader(
-      this.bwDat,
-      settings.communityModelsPath,
-      readCascFile,
-      () => {
-        if (settings.renderMode === RenderMode.SD) {
-          return new GrpSD2();
-        } else if (settings.renderMode === RenderMode.HD) {
-          return new GrpHD();
-        } else if (settings.renderMode === RenderMode.ThreeD) {
-          return new Grp3D(this.envMap);
-        } else {
-          throw new Error("invalid render mode");
-        }
-      },
-      this.atlases
-    );
-
-    log("initializing atlas preloader 2");
-    await this.atlasPreloader.init(0);
-    SelectionCircle.prototype.selectionCirclesHD =
-      this.atlasPreloader.selectionCirclesHD;
-    ContiguousContainer.prototype.bwDat = this.bwDat;
-
-    log("preloading complete");
-    useLoadingStore.setState({ preloaded: true });
-  }
-
-  initElectronFileReader() {
-    electronFileLoader((file) => {
-      if (file.includes(".glb") || file.includes(".hdr")) {
-        return fsPromises.readFile(file);
-      } else {
-        return readCascFile(file);
+  waitForAssets() {
+    log("waiting for assets");
+    return new Promise((res) => {
+      if (useLoadingStore.getState().assetsComplete) {
+        res();
+        return;
       }
+      const unsub = useLoadingStore.subscribe(({ assetsComplete }) => {
+        if (assetsComplete) {
+          unsub();
+          res();
+        }
+      });
     });
   }
 
   async spawnReplay(filepath) {
-    this.initElectronFileReader();
-
-    this.filename = filepath;
-
     log(`loading replay ${filepath}`);
-    log("disposing previous replay resources");
-    this.game && this.game.dispose();
+    disposeGame();
+    document.title = "Titan Reactor - Loading";
 
     const settings = getSettings();
     const loadingStore = useLoadingStore.getState();
@@ -133,8 +75,9 @@ export class TitanReactor {
     const repBin = await openFile(filepath);
     let repFile = filepath;
     const outFile = path.join(settings.tempPath, "replay.out");
-    this.rep = await parseReplay(repBin);
-    if (this.rep.version === Version.remastered) {
+
+    let rep = await parseReplay(repBin);
+    if (rep.version === Version.remastered) {
       const classicRep = await convertReplayTo116(repBin);
       repFile = path.join(settings.tempPath, "replay.rep");
       await new Promise((res) =>
@@ -147,40 +90,20 @@ export class TitanReactor {
         })
       );
 
-      this.rep = await parseReplay(classicRep);
+      rep = await parseReplay(classicRep);
     }
 
-    loadingStore.updateRep(pick(["header"], this.rep));
+    loadingStore.updateRep(pick(["header"], rep));
 
     log("loading chk");
-    this.chk = new Chk(this.rep.chk);
-    loadingStore.updateChk(pick(["title", "description"], this.chk));
+    const chk = new Chk(rep.chk);
+    loadingStore.updateChk(pick(["title", "description"], chk));
 
-    log("preloading");
-    await this.preload();
-
-    document.title = "Titan Reactor - Observing";
-
-    this.atlases = {};
-
-    log("initializing preloader with tileset");
-    await this.atlasPreloader.init(this.chk.tileset, this.atlases);
-
-    const imagesBW = new ImagesBW();
-
-    const preloadAtlas = async (frames) => {
-      for (let frame of frames) {
-        imagesBW.buffer = frame.images;
-        imagesBW.count = frame.imageCount;
-
-        for (let image of imagesBW.items()) {
-          await this.atlasPreloader.load(image.id);
-        }
-      }
-    };
+    log("initializing scene");
+    const scene = new TitanReactorScene(chk);
+    await scene.init(settings.isDev);
 
     log("starting gamestate reader", repFile, outFile);
-    let start = Date.now();
     const gameStateReader = new FileGameStateReader(
       repFile,
       outFile,
@@ -189,26 +112,19 @@ export class TitanReactor {
     await gameStateReader.start();
     log("waiting for maxed");
 
+    await this.waitForAssets();
+
     await gameStateReader.waitForMaxed;
-
-    log(`initial replay frames loaded in ${Date.now() - start}`);
-
-    log("preloading initial frames");
-    start = Date.now();
-    await preloadAtlas(gameStateReader.peekAvailableFrames());
-    log(`images preloaded in ${Date.now() - start}`);
-
-    log("initializing scene");
-    const scene = new TitanReactorScene(this.chk);
-    await scene.init(settings.isDev);
 
     const races = settings.musicAllTypes
       ? ["terran", "zerg", "protoss"]
-      : uniq(this.rep.header.players.map(({ race }) => race));
+      : uniq(rep.header.players.map(({ race }) => race));
+
+    const assets = getAssets();
 
     log("initializing audio");
     const audioMaster = new AudioMaster(
-      (id) => readCascFile(`sound/${this.bwDat.sounds[id].file}`),
+      assets.loadAudioFile,
       settings.audioPanningStyle,
       races
     );
@@ -216,76 +132,52 @@ export class TitanReactor {
     audioMaster.soundVolume = settings.soundVolume;
 
     log("initializing replay");
-    this.game = await TitanReactorGame(
+    const game = await TitanReactorGame(
       scene,
-      this.chk,
-      this.rep,
+      chk,
+      rep,
       gameStateReader,
-      this.bwDat,
+      assets.bwDat,
       createTitanImage(
-        this.bwDat,
-        this.atlases,
-        createIScriptRunner(this.bwDat, this.chk.tileset),
+        assets.bwDat,
+        assets.grps,
+        createIScriptRunner(assets.bwDat, chk.tileset),
         (err) => log(err, "error")
       ),
-      preloadAtlas,
       audioMaster
     );
 
-    useGameStore.setState({ game: this.game });
+    setGame(game);
     loadingStore.completeRep();
 
     log("starting replay");
-    this.game.start();
+    document.title = "Titan Reactor - Observing";
+    game.start();
   }
 
   async spawnMapViewer(chkFilepath) {
     const startTime = Date.now();
     const minDisplayTime = 3000;
 
-    this.initElectronFileReader();
-    await this.preload();
-
-    this.chk = null;
-    this.chkPreviewCanvas = null;
-    this.filename = chkFilepath;
+    disposeGame();
 
     const loadingStore = useLoadingStore.getState();
     const settings = getSettings();
     loadingStore.initChk(chkFilepath);
 
-    this.game && this.game.dispose();
-
     log("loading chk");
+    const chk = new Chk(await loadScx(chkFilepath));
+    window.chk = chk;
+    loadingStore.updateChk(pick(["title", "description"], chk));
 
-    this.chk = new Chk(await loadScx(chkFilepath));
-    window.chk = this.chk;
-    loadingStore.updateChk(pick(["title", "description"], this.chk));
+    document.title = `Titan Reactor - ${chk.title}`;
 
-    document.title = `Titan Reactor - ${this.chk.title}`;
-
-    const imageIds = [
-      ...calculateImagesFromUnitsIscript(
-        this.bwDat,
-        this.chk.units.map(({ unitId }) => unitId)
-      ),
-      ...calculateImagesFromSpritesIscript(
-        this.bwDat,
-        this.chk.sprites.map(({ spriteId }) => spriteId)
-      ),
-    ];
-
-    this.atlases = {};
-
-    await this.atlasPreloader.init(this.chk.tileset, this.atlases);
-
-    for (let imageId of imageIds) {
-      await this.atlasPreloader.load(imageId);
-    }
+    await this.waitForAssets();
+    const assets = getAssets();
 
     log("initializing scene");
     const scene = new TitanReactorScene(
-      this.chk,
+      chk,
       settings.anisotropy,
       settings.renderMode
     );
@@ -294,20 +186,20 @@ export class TitanReactor {
     const createTitanSprite = () =>
       new TitanSprite(
         null,
-        this.bwDat,
+        assets.bwDat,
         createTitanSprite,
         createTitanImage(
-          this.bwDat,
-          this.atlases,
-          createIScriptRunner(this.bwDat, this.chk.tileset),
+          assets.bwDat,
+          assets.grps,
+          createIScriptRunner(assets.bwDat, chk.tileset),
           (err) => log(err, "error")
         ),
         (sprite) => scene.add(sprite)
       );
 
-    this.game = await TitanReactorMap(
-      this.bwDat,
-      this.chk,
+    const game = await TitanReactorMap(
+      assets.bwDat,
+      chk,
       scene,
       createTitanSprite
     );
@@ -316,11 +208,11 @@ export class TitanReactor {
       setTimeout(res, Math.max(0, minDisplayTime - (Date.now() - startTime)))
     );
 
-    useGameStore.setState({ game: this.game });
+    setGame(game);
     loadingStore.completeChk();
   }
 
   dispose() {
-    closeCascStorage();
+    disposeGame();
   }
 }

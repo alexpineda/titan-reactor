@@ -10,10 +10,8 @@ import Chat from "./game/Chat";
 import ResourcesBar from "./game/resources/ResourcesBar";
 import UnitSelection from "./game/UnitSelection";
 import ReplayPosition from "./game/NewReplayPosition";
-import ProducerBar from "./game/ProducerBar";
 import Menu from "./game/Menu";
 import Visible from "./components/visible";
-import { ProducerWindowPosition } from "common/settings";
 
 import useGameStore from "../stores/gameStore";
 import useSettingsStore from "../stores/settingsStore";
@@ -22,7 +20,7 @@ import useLoadingStore from "../stores/loadingStore";
 
 const gameStoreSelector = (state) => ({
   dimensions: state.dimensions,
-  canvas: state.game.surface.canvas,
+  canvas: state.game.gameSurface.canvas,
   selectedUnits: state.selectedUnits,
 });
 
@@ -36,7 +34,6 @@ const hudStoreSelector = (state) => ({
 
 const settingsStoreSelector = (state) => ({
   esportsHud: state.data.esportsHud,
-  producerWindowPosition: state.data.producerWindowPosition,
   alwaysHideReplayControls: state.data.alwaysHideReplayControls,
   embedProduction: state.data.embedProduction,
   mapsPath: state.data.mapsPath,
@@ -61,7 +58,6 @@ const Game = () => {
 
   const {
     esportsHud,
-    producerWindowPosition,
     alwaysHideReplayControls,
     embedProduction,
     mapsPath,
@@ -80,7 +76,6 @@ const Game = () => {
         domElement={canvas}
       />
       <Chat minimapSize={dimensions.minimapSize} />
-      {producerWindowPosition != ProducerWindowPosition.None && <ProducerBar />}
 
       {showInGameMenu && (
         <Menu

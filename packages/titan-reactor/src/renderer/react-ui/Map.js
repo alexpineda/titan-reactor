@@ -20,7 +20,7 @@ const settingsStoreSelector = (state) => ({
 });
 
 const Map = () => {
-  const surface = useGameStore((state) => state.game.surface);
+  const surface = useGameStore((state) => state.game.gameSurface);
   const { showInGameMenu, toggleInGameMenu } = useHudStore(
     hudStoreSelector,
     shallow

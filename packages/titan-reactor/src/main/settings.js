@@ -1,11 +1,6 @@
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
-import {
-  RenderMode,
-  ShadowLevel,
-  ProducerWindowPosition,
-  GameAspect,
-} from "common/settings";
+import { RenderMode, ShadowLevel, GameAspect } from "common/settings";
 import isDev from "electron-is-dev";
 
 import {
@@ -175,7 +170,6 @@ export class Settings extends EventEmitter {
       gamma: 1.2,
       keyPanSpeed: 0.5,
       twitch: "",
-      producerWindowPosition: ProducerWindowPosition.None,
       producerDockSize: 300,
       gameAspect: GameAspect.Fit,
       fullscreen: true,

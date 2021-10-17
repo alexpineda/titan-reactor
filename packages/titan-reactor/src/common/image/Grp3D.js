@@ -42,6 +42,7 @@ export default class Grp3D extends GrpHD {
     //   }
     //   return palettes[0];
     // };
+    return this;
   }
 
   dispose() {

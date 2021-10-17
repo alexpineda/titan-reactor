@@ -8,8 +8,8 @@ import {
 } from "../../../../common/types/abilitiesMap";
 import upgradeTypes from "../../../../common/types/upgrades";
 
-const iconSelector = (state) => state.game.cmdIcons;
-const bwDatSelector = (state) => state.game.bwDat;
+const iconSelector = (state) => state.assets.icons.cmdIcons;
+const bwDatSelector = (state) => state.assets.bwDat;
 
 const Upgrades = ({ unit }) => {
   const itemsRef = useRef();

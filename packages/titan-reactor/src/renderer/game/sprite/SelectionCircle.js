@@ -1,4 +1,5 @@
 import { Sprite, SpriteMaterial } from "three";
+import { getSelectionCircle } from "../../stores/gameStore";
 
 export default class SelectionCircle extends Sprite {
   constructor() {
@@ -23,7 +24,7 @@ export default class SelectionCircle extends Sprite {
   update(spriteDef) {
     const circle = spriteDef.selectionCircle;
     if (spriteDef !== this.spriteDef) {
-      const grp = this.selectionCirclesHD[circle.index];
+      const grp = getSelectionCircle(circle.index);
       this.material.map = grp.diffuse;
       this.material.needsUpdate = true;
       this.position.z = spriteDef.selectionCircleOffset / 32;

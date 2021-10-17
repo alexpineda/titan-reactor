@@ -6,7 +6,7 @@ import useGameStore from "../../../stores/gameStore";
 
 const poly = easePolyOut.exponent(0.5);
 
-const iconsSelector = (state) => state.game.cmdIcons;
+const iconsSelector = (state) => state.assets.icons.cmdIcons;
 
 // an instance of a production item, either unit, research or upgrade
 const ProductionItem = ({ type, index, color, playerId }) => {

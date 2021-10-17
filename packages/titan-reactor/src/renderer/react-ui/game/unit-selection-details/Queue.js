@@ -64,7 +64,7 @@ const selector = (state) => {
 };
 
 const Queue = ({ unit }) => {
-  const cmdIcons = useGameStore((state) => state.game.cmdIcons);
+  const cmdIcons = useGameStore((state) => state.assets.icons.cmdIcons);
   const itemRef = useRef();
   const wrapperRef = useRef();
 

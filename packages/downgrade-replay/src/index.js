@@ -30,7 +30,7 @@ const scrTo116Tag = (scrTag) => {
   const tag = index | (generation << 11);
 
   if (tag < 0) {
-    console.warn(`scrtag ${scrTag}`);
+    console.warn(`scrtag ${scrTag} ${index} ${tag}`);
     return scrTag;
   }
   return tag;

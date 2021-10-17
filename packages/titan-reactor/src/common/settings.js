@@ -11,13 +11,6 @@ export const ShadowLevel = {
   High: 3,
 };
 
-export const ProducerWindowPosition = {
-  None: "None",
-  DockLeft: "DockLeft",
-  DockRight: "DockRight",
-  PopOut: "PopOut",
-};
-
 export const GameAspect = {
   Fit: "Fit",
   Native: "Native",

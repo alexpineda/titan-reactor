@@ -15,7 +15,9 @@ export default class GrpHD {
     this.rez = "hd";
   }
 
-  async load({ readAnim, readAnimHD2 }) {
+  async load({ readAnim, readAnimHD2, imageDef }) {
+    this.imageIndex = imageDef.index;
+
     const buf = await readAnim();
     const anim = Anim(buf);
 
@@ -73,6 +75,7 @@ export default class GrpHD {
     //   const ddsBuf = getBuf(anim.sprite.maps.ao_depth);
     //   this.ao_depth = this._loadDDS(ddsBuf);
     // }
+    return this;
   }
 
   _loadDDS(buf, encoding = sRGBEncoding) {

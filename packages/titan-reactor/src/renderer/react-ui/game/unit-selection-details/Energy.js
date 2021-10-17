@@ -8,7 +8,7 @@ const selector = (state) => {
 };
 
 const Energy = ({ unit }) => {
-  const gameIcons = useGameStore((state) => state.game.gameIcons);
+  const gameIcons = useGameStore((state) => state.assets.icons.gameIcons);
   const energyRef = useRef();
 
   const setDom = (energy) => {

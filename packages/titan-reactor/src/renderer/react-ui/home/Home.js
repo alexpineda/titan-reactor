@@ -46,19 +46,19 @@ const Home = () => {
           <ul className="mt-auto">
             <MenuItem
               label={phrases["OPEN_DEMO_REPLAY"]}
-              disabled={errors.includes("starcraftPath")}
+              disabled={errors.length}
               onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
             />
             <MenuItem
               label={phrases["OPEN_REPLAY"]}
-              disabled={errors.includes("starcraftPath")}
+              disabled={errors.length}
               onClick={() =>
                 ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
               }
             />
             <MenuItem
               label={phrases["OPEN_MAP"]}
-              disabled={errors.includes("starcraftPath")}
+              disabled={errors.length}
               onClick={() =>
                 ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
               }

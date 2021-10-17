@@ -2,13 +2,11 @@
 import * as THREE from "three";
 import { debounce } from "lodash";
 
-import { EnvironmentOptionsGui } from "./scene/EnvironmentOptionsGui";
 import { createStartLocation } from "./mesh/BasicObjects";
-import Cameras from "./camera/Cameras";
+import CameraRig from "./camera/CameraRig";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "../common/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import { fog } from "./scene/lights";
 import FogOfWar from "./game/fogofwar/FogOfWar";
 import InputEvents from "./input/InputEvents";
 
@@ -21,9 +19,6 @@ import { unitTypes } from "../common/types/unitTypes";
 async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const [mapWidth, mapHeight] = chk.size;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
-
-  const gui = new EnvironmentOptionsGui();
-  await gui.load(chk.tilesetName);
 
   var lightCameraHelper = new THREE.CameraHelper(scene.light.shadow.camera);
   lightCameraHelper.visible = false;
@@ -63,7 +58,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
   scene.background = new THREE.Color(settings.mapBackgroundColor);
 
-  const cameras = new Cameras(
+  const cameraRig = new CameraRig(
     settings,
     mapWidth,
     mapHeight,
@@ -73,14 +68,14 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     keyboardShortcuts,
     true
   );
-  window.cameras = cameras;
-  cameras.control.execNumpad(3);
+  window.cameraRig = cameraRig;
+  // cameras.control.execNumpad(3);
 
-  cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
-  cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
+  // cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
+  // cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
 
   const renderMan = new RenderMan(settings, isDev);
-  await renderMan.initRenderer(cameras.camera);
+  await renderMan.initRenderer(cameraRig.camera);
   renderMan.enableRenderPass();
   window.renderMan = renderMan;
 
@@ -173,66 +168,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight, false);
 
-    cameras.updateGameScreenAspect(gameSurface.width, gameSurface.height);
+    cameraRig.updateGameScreenAspect(gameSurface.width, gameSurface.height);
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
-
-  //#region renderer controllers
-  gui.controllers.renderer.fogColor.onChange((fogColor) => {
-    scene.background = new THREE.Color(parseInt(fogColor.substr(1), 16));
-    scene.fog.color = scene.background;
-  });
-
-  gui.controllers.renderer.fogEnabled.onChange((val) => {
-    if (val) {
-      scene.fog = fog(chk.size[0], chk.size[1]);
-    } else {
-      scene.fog = null;
-    }
-  });
-
-  gui.controllers.renderer.onFinishChangeAny(
-    ({ toneMappingExposure, toneMapping }) => {
-      renderMan.renderer.toneMappingExposure = toneMappingExposure;
-      renderMan.renderer.toneMapping = THREE[toneMapping];
-      scene.traverse((o) => {
-        if (o.type === "Mesh") {
-          o.material.needsUpdate = true;
-        }
-      });
-    }
-  );
-  //#endregion
-
-  //#region hemilight controllers
-  gui.controllers.hemilight.onChangeAny(
-    ({ intensity, skyColor, groundColor }) => {
-      const { hemi } = scene;
-      hemi.intensity = intensity;
-      hemi.skyColor = new THREE.Color(parseInt(skyColor.substr(1), 16));
-      hemi.groundColor = new THREE.Color(parseInt(groundColor.substr(1), 16));
-    }
-  );
-  //#endregion
-
-  //#region dirlight controllers
-  gui.controllers.dirlight.onChangeAny(
-    ({ intensity, color, x, y, z, x2, y2, z2, helper }) => {
-      const { light } = scene;
-      light.intensity = intensity;
-      light.color = new THREE.Color(parseInt(color.substr(1), 16));
-      light.position.x = x;
-      light.position.y = y;
-      light.position.z = z;
-      light.target.position.x = x2;
-      light.target.position.y = y2;
-      light.target.position.z = z2;
-      lightCameraHelper.visible = helper;
-      lightHelper.visible = helper;
-    }
-  );
-  //#endregion
 
   let running = true;
 
@@ -261,16 +200,16 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
       frameElapsed = 0;
     }
 
-    cameras.update(delta);
-    renderMan.updateFocus(cameras);
+    cameraRig.update(delta);
+    renderMan.updateFocus(cameraRig);
     keyboardShortcuts.update(delta);
-    fogOfWar.update(cameras.camera);
-    renderMan.render(scene, cameras.camera, delta);
+    fogOfWar.update(cameraRig.camera);
+    renderMan.render(scene, cameraRig.camera, delta);
     last = elapsed;
 
     if (window.focusFn) {
       try {
-        window.focusFn(cameras);
+        window.focusFn(cameraRig);
       } catch (e) {}
     }
   }
@@ -295,10 +234,10 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
       });
     }
 
-    if (prevSettings.mouseRotateSpeed !== settings.mouseRotateSpeed) {
-      cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
-      cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
-    }
+    // if (prevSettings.mouseRotateSpeed !== settings.mouseRotateSpeed) {
+    //   cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
+    //   cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
+    // }
 
     if (prevSettings.mapBackgroundColor !== settings.mapBackgroundColor) {
       scene.background = new THREE.Color(settings.mapBackgroundColor);
@@ -306,8 +245,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   });
 
   const dispose = () => {
-    console.log("disposing");
-
     unsub();
 
     window.cameras = null;
@@ -322,7 +259,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
     scene.dispose();
 
-    cameras.dispose();
+    cameraRig.dispose();
     renderMan.dispose();
 
     keyboardShortcuts.removeEventListener(
@@ -340,9 +277,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
       toggleCursorHandler
     );
 
-    try {
-      gui.dispose();
-    } catch (e) {}
     keyboardShortcuts.dispose();
   };
 

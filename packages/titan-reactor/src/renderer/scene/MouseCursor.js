@@ -2,6 +2,7 @@ import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "../game/sprite/GameSprite";
 import useGameStore from "../stores/gameStore";
+import { getIcons } from "../stores/gameStore";
 import { unitTypes } from "../../common/types/unitTypes";
 
 const canOnlySelectOne = [
@@ -30,12 +31,14 @@ function intersectRect(r1, r2) {
  * Manages drawing the cursor (currently css :( ) as well as unit selection logic
  */
 export default class MouseCursor {
-  constructor(arrowIcons, hoverIcons, dragIcons) {
-    this.arrowIcons = arrowIcons;
+  constructor() {
+    const icons = getIcons();
+
+    this.arrowIcons = icons.arrowIcons.icons;
     this.arrowIconsIndex = 0;
-    this.hoverIcons = hoverIcons;
+    this.hoverIcons = icons.hoverIcons.icons;
     this.hoverIconsIndex = 0;
-    this.dragIcons = dragIcons;
+    this.dragIcons = icons.dragIcons.icons;
     this.dragIconsIndex = 0;
 
     // this._interval = setInterval(() => {

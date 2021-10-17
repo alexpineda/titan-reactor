@@ -12,7 +12,6 @@ import ButtonSet from "../components/ButtonSet";
 import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
 import ColorPicker, { ColorPickerType } from "../components/ColorPicker";
-import { ProducerWindowPosition, GameAspect } from "../../../common/settings";
 import useSettingsStore from "../../stores/settingsStore";
 import shallow from "zustand/shallow";
 
@@ -92,23 +91,12 @@ export default ({
           setTab={setTab}
           label={phrases["SETTINGS_MAP_VIEWER"]}
         />
-        {/* <TabSelector
-          activeTab={tab}
-          tab={Tabs.Producer}
-          setTab={setTab}
-          label={phrases["SETTINGS_PRODUCER"]} 
-        />*/}
+
         {/* <TabSelector
           activeTab={tab}
           tab={Tabs.Camera}
           setTab={setTab}
           label={phrases["SETTINGS_CAMERA"]}
-        />
-        <TabSelector
-          activeTab={tab}
-          tab={Tabs.Community}
-          setTab={setTab}
-          label={phrases["SETTINGS_COMMUNITY_MAPS_AND_REPLAYS"]}
         /> */}
       </ul>
 
@@ -162,7 +150,7 @@ export default ({
             />
           </Option>
 
-          {/* <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+          <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
             <PathSelect
               prop={"communityModelsPath"}
               phrases={phrases}
@@ -170,7 +158,7 @@ export default ({
               settings={settings}
               selectFolder={selectFolder}
             />
-          </Option> */}
+          </Option>
         </Visible>
       </Tab>
 
@@ -325,90 +313,6 @@ export default ({
             />
           }
         />
-      </Tab>
-
-      <Tab tabName={Tabs.Producer} activeTab={tab}>
-        <Option label={"Producer Window Position"}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={
-                settings.producerWindowPosition === ProducerWindowPosition.None
-              }
-              label={"Off"}
-              first
-              onClick={() =>
-                save({
-                  producerWindowPosition: ProducerWindowPosition.None,
-                })
-              }
-            />
-            <ButtonSet
-              selected={
-                settings.producerWindowPosition ===
-                ProducerWindowPosition.DockLeft
-              }
-              label={"Left"}
-              onClick={() =>
-                save({
-                  producerWindowPosition: ProducerWindowPosition.DockLeft,
-                })
-              }
-            />
-            <ButtonSet
-              selected={
-                settings.producerWindowPosition ===
-                ProducerWindowPosition.DockRight
-              }
-              label={"Right"}
-              last
-              onClick={() =>
-                save({
-                  producerWindowPosition: ProducerWindowPosition.DockRight,
-                })
-              }
-            />
-            {/* <ButtonSet
-              selected={
-                settings.producerWindowPosition ===
-                ProducerWindowPosition.PopOut
-              }
-              label={"Pop Out Window"}
-              last
-              onClick={() =>
-                save({
-                  producerWindowPosition: ProducerWindowPosition.PopOut,
-                })
-              }
-            /> */}
-          </ButtonSetContainer>
-        </Option>
-
-        <Option label={"Constrain Aspect Ratio"}>
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.Fit}
-              label={"Available Space"}
-              first
-              onClick={() => save({ gameAspect: GameAspect.Fit })}
-            />
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.Native}
-              label={"Native Screen Resolution"}
-              onClick={() => save({ gameAspect: GameAspect.Native })}
-            />
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.FourThree}
-              label={"4:3"}
-              onClick={() => save({ gameAspect: GameAspect.FourThree })}
-            />
-            <ButtonSet
-              selected={settings.gameAspect === GameAspect.SixteenNine}
-              label={"16:9"}
-              last
-              onClick={() => save({ gameAspect: GameAspect.SixteenNine })}
-            />
-          </ButtonSetContainer>
-        </Option>
       </Tab>
 
       <Tab tabName={Tabs.MapViewer} activeTab={tab}>

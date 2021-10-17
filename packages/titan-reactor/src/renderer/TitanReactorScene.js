@@ -4,9 +4,7 @@ import { getTerrainY } from "../common/map/displacementGeometry";
 import { fog, sunlight } from "./scene/lights";
 import BackgroundTerrain from "./scene/BackgroundTerrain";
 import generateTerrain from "./scene/generateTerrain";
-import generateIcons from "./scene/generateIcons";
 import readCascFile from "../common/utils/casclib";
-import MouseCursor from "./scene/MouseCursor";
 
 const displacementScale = 4;
 
@@ -45,30 +43,9 @@ export class TitanReactorScene extends Scene {
       displacementScale,
     });
 
-    const [
-      gameIcons,
-      cmdIcons,
-      raceInsetIcons,
-      workerIcons,
-      arrowIcons,
-      hoverIcons,
-      dragIcons,
-      wireframeIcons,
-    ] = await generateIcons(readCascFile);
-
-    this.gameIcons = gameIcons;
-    this.cmdIcons = cmdIcons;
-    this.raceInsetIcons = raceInsetIcons;
-    this.workerIcons = workerIcons;
     this.creepUniform = creepUniform;
     this.creepEdgesUniform = creepEdgesUniform;
     this.minimapBitmap = minimapBitmap;
-    this.cursor = new MouseCursor(
-      arrowIcons.icons,
-      hoverIcons.icons,
-      dragIcons.icons
-    );
-    this.wireframeIcons = wireframeIcons;
 
     terrain.visible = false;
     this.add(terrain);

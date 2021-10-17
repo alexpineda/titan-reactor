@@ -3,7 +3,11 @@ import create from "../../../libs/zustand";
 
 export const CHAT_INTERVAL = 4000;
 
+let _chatIndex = 0;
+
 const useGameStore = create((set, get) => ({
+  assets: null,
+
   game: null,
   fogOfWar: true,
   followUnit: null,
@@ -12,6 +16,14 @@ const useGameStore = create((set, get) => ({
   chat: [],
   lastChatAdd: Date.now(),
   playerVision: range(0, 8).map(() => true),
+
+  setGame: (game) => set({ game }),
+  disposeGame: () => {
+    const game = get().game;
+    game && game.dispose();
+    get().setGame(null);
+  },
+
   setSelectedUnits: (selectedUnits) => {
     for (const unit of get().selectedUnits) {
       unit.selected = false;
@@ -34,7 +46,7 @@ const useGameStore = create((set, get) => ({
     })),
   toggleFollowUnit: (unit) => set({ followUnit: unit }),
   addChatMessage: (msg) => {
-    let chat = [...get().chat, msg];
+    let chat = [...get().chat, { ...msg, id: _chatIndex++ }];
     if (chat.length > 10) {
       chat = chat.slice(1);
     }
@@ -52,3 +64,11 @@ const useGameStore = create((set, get) => ({
 }));
 
 export default useGameStore;
+
+//todo figure out which pattern we're using
+export const setGame = useGameStore.getState().setGame;
+export const disposeGame = useGameStore.getState().disposeGame;
+export const getAssets = () => useGameStore.getState().assets;
+export const setAssets = (assets) => useGameStore.setState({ assets });
+export const getSelectionCircle = (id) => getAssets().selectionCirclesHD[id];
+export const getIcons = () => getAssets().icons;

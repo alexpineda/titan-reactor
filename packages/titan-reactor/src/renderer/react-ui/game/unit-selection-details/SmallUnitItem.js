@@ -16,7 +16,7 @@ const calcStep = (unit) =>
     ? Math.ceil(Math.min(1, unit.hp / (unit.unitType.hp * 0.8)) * 3)
     : 0;
 
-const iconsSelector = (state) => state.game.cmdIcons;
+const iconsSelector = (state) => state.assets.icons.cmdIcons;
 
 const SmallUnitItem = ({ index, unit, showLoaded }) => {
   const cmdIcons = useGameStore(iconsSelector);

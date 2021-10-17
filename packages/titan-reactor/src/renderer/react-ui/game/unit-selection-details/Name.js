@@ -5,7 +5,7 @@ import useGameStore from "../../../stores/gameStore";
 const transformName = (name) => name.split(" ").slice(1).join(" ");
 
 const Name = ({ unit, className = "" }) => {
-  const bwDat = useGameStore((state) => state.game.bwDat);
+  const bwDat = useGameStore((state) => state.assets.bwDat);
   const nameRef = useRef();
 
   const getZergBuildingType = (unit) => {

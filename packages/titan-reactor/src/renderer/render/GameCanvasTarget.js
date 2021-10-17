@@ -1,5 +1,5 @@
 import CanvasTarget from "../../common/image/CanvasTarget";
-import { GameAspect, ProducerWindowPosition } from "../../common/settings";
+import { GameAspect } from "../../common/settings";
 
 class GameCanvasTarget extends CanvasTarget {
   constructor(settings) {
@@ -10,18 +10,9 @@ class GameCanvasTarget extends CanvasTarget {
   }
 
   setDimensions(screenWidth, screenHeight) {
-    const producerWindowPosition = this.settings.producerWindowPosition;
-    const gameAspect =
-      producerWindowPosition === ProducerWindowPosition.None
-        ? GameAspect.Fit
-        : this.settings.gameAspect;
-    const producerDockSize = this.settings.producerDockSize;
+    const gameAspect = GameAspect.Fit;
 
-    const maxWidth =
-      producerWindowPosition === ProducerWindowPosition.DockLeft ||
-      producerWindowPosition === ProducerWindowPosition.DockRight
-        ? screenWidth - producerDockSize
-        : screenWidth;
+    const maxWidth = screenWidth;
     const maxHeight = screenHeight;
 
     const aspects = {
@@ -30,15 +21,8 @@ class GameCanvasTarget extends CanvasTarget {
       [GameAspect.SixteenNine]: 16 / 9,
     };
 
-    this.left =
-      producerWindowPosition === ProducerWindowPosition.DockLeft
-        ? producerDockSize
-        : 0;
-
-    this.right =
-      producerWindowPosition === ProducerWindowPosition.DockRight
-        ? producerDockSize
-        : 0;
+    this.left = 0;
+    this.right = 0;
 
     if (gameAspect === GameAspect.Fit) {
       this.top = 0;

@@ -6,7 +6,7 @@ const chatSelector = (state) => state.chat;
 const removeOneFromChatSelector = (state) => state.removeOneFromChat;
 
 const Message = ({ msg }) => (
-  <span key={msg}>
+  <span key={msg.id}>
     <span
       style={{
         color: msg.player.color.hex,
