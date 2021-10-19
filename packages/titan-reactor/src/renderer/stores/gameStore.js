@@ -17,6 +17,12 @@ const useGameStore = create((set, get) => ({
   lastChatAdd: Date.now(),
   playerVision: range(0, 8).map(() => true),
 
+  disposeAssets: () => {
+    const assets = get().assets;
+    assets && assets.dispose();
+    get().setAssets(null);
+  },
+
   setGame: (game) => set({ game }),
   disposeGame: () => {
     const game = get().game;
@@ -68,6 +74,7 @@ export default useGameStore;
 //todo figure out which pattern we're using
 export const setGame = useGameStore.getState().setGame;
 export const disposeGame = useGameStore.getState().disposeGame;
+export const disposeAssets = useGameStore.getState().disposeAssets;
 export const getAssets = () => useGameStore.getState().assets;
 export const setAssets = (assets) => useGameStore.setState({ assets });
 export const getSelectionCircle = (id) => getAssets().selectionCirclesHD[id];

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import ReactTooltip from "react-tooltip";
 import useProductionStore from "../../../stores/realtime/productionStore";
 import useGameStore from "../../../stores/gameStore";
 import {
@@ -25,7 +24,7 @@ const Upgrades = ({ unit }) => {
 
   //todo realtime updates
   const { tech, upgrades } = useProductionStore.getState();
-  useEffect(() => ReactTooltip.rebuild(), [unit]);
+  // useEffect(() => ReactTooltip.rebuild(), [unit]);
 
   if (!validTechs.length && !validUpgrades.length) return null;
   if (!unit.owner) return null;

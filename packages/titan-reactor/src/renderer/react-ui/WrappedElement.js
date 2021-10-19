@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, memo } from "react";
 
 const eventNames = [
   "onPointerDown",
@@ -54,4 +54,4 @@ const WrappedElement = ({ domElement, ...props }) => {
   return <div ref={canvasRef} {...props} {...eventProps}></div>;
 };
 
-export default WrappedElement;
+export default memo(WrappedElement);

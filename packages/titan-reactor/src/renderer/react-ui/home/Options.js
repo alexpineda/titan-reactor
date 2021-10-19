@@ -11,7 +11,7 @@ import Button from "../components/Button";
 import ButtonSet from "../components/ButtonSet";
 import ButtonSetContainer from "../components/ButtonSetContainer";
 import Visible from "../components/visible";
-import ColorPicker, { ColorPickerType } from "../components/ColorPicker";
+import ColorPicker from "../components/ColorPicker";
 import useSettingsStore from "../../stores/settingsStore";
 import shallow from "zustand/shallow";
 
@@ -318,7 +318,6 @@ export default ({
       <Tab tabName={Tabs.MapViewer} activeTab={tab}>
         <Option label={phrases["SETTINGS_MAP_VIEWER_BACKGROUND_COLOR"]}>
           <ColorPicker
-            type={ColorPickerType.Compact}
             color={`${settings.mapBackgroundColor}`}
             onChange={({ hex }) => {
               save({ mapBackgroundColor: hex });

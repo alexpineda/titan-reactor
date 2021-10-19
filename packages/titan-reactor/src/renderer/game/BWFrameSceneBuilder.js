@@ -187,7 +187,7 @@ export default class BWFrameSceneBuilder {
 
     // we set count below
     this.imagesBW.buffer = bwFrame.images;
-    this.interactableSprites.length = 0;
+    this.interactableSprites = [];
 
     for (const spriteBW of this.spritesBW.items()) {
       // if (

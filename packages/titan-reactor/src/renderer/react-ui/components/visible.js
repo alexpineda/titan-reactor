@@ -1,5 +1,5 @@
-import React from "react"
+import React, { memo } from "react";
 
-export default ({ visible, children }) => {
-  return (visible && <>{children}</>) || null
-}
+export default memo(({ visible, children }) => {
+  return (visible && <>{children}</>) || null;
+});

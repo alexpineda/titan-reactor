@@ -51,7 +51,7 @@ or for iscriptah *(iscript animation viewer)*
 - C key - Show/hide mouse cursor
 
 ### Contributing
-I'm looking for contributors. Please send me a message on discord or feel free to tackle any of the github issues or issues below. It's not cleanest code base by far so if you have any questions just message. PR's welcome.
+I'm looking for contributors. Please send me a message on discord or feel free to tackle any of the github issues or issues below. PR's welcome.
 
 ### Thoughts on current state and TODO
 
@@ -59,8 +59,7 @@ I'm looking for contributors. Please send me a message on discord or feel free t
 - The replay state reader needs to be more robust for errors and correcting itself from potential error states.
 - Integration with Shieldbattery will be necessary for live obsing. Since the data source is just a raw binary dump of unit and sprite state (amongst a few other things) I believe this is doable via the same mechanism.
 - Multiple observers connecting to the same replay.
-- Improvements on terrain and general aesthetics always welcome.
-- Bundling, auto-update, etc.
+- HD Water needs to be implemented in the GLSL shader
 
   
 

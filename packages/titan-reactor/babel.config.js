@@ -2,11 +2,13 @@
 module.exports = {
   presets: [
     [
-      "@babel/preset-env",
+      "@babel/preset-react",
       {
-        targets: {
-          node: "current",
-        },
+        runtime: "classic",
+        useBuiltIns: true,
+        development: false,
+        pragma: "h",
+        pragmaFrag: "Fragment",
       },
     ],
   ],

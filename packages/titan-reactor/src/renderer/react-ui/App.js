@@ -1,7 +1,6 @@
 import React from "react";
-import ReactTooltip from "react-tooltip";
 import shallow from "zustand/shallow";
-import { LoadingOverlay } from "./LoadingOverlay";
+import LoadingOverlay from "./LoadingOverlay";
 import BackgroundPreload from "./BackgroundPreload";
 import Initializing from "./home/Initializing";
 import Map from "./Map";
@@ -13,49 +12,49 @@ import "./css/styles.css";
 import "./css/bevel.css";
 
 import Home from "./home/Home";
-import Visible from "./components/visible";
 
 import useTitanReactorStore from "../stores/titanReactorStore";
 import useSettingsStore from "../stores/settingsStore";
 import useLoadingStore from "../stores/loadingStore";
+import useGameStore from "../stores/gameStore";
 
 const criticalErrorSelector = (state) => state.criticalError;
-const phrasesSelector = (state) => state.phrases;
 const loadingSelector = (state) => ({
   initialized: state.initialized,
   chk: state.chk,
   rep: state.rep,
 });
+const gameIsLoadedSelector = (state) => Boolean(state.game);
+const phrasesSelector = (state) => state.phrases;
+const errorsSelector = (state) => state.errors;
 
 const App = () => {
   const criticalError = useTitanReactorStore(criticalErrorSelector);
-  const phrases = useSettingsStore(phrasesSelector);
   const { initialized, chk, rep } = useLoadingStore(loadingSelector, shallow);
+  const gameIsLoaded = useGameStore(gameIsLoadedSelector);
+
+  const phrases = useSettingsStore(phrasesSelector);
+  const errors = useSettingsStore(errorsSelector);
 
   return (
-    <>
-      <ReactTooltip id="upgrades" />
-      {!chk.loaded && !rep.loaded && <BackgroundPreload />}
+    <React.StrictMode>
       {criticalError && (
         <p>There was a critical error. Try deleting your settings file.</p>
       )}
-      {!criticalError && (
-        <>
-          {!initialized && <Initializing phrases={phrases} />}
+      {!criticalError && !initialized && <Initializing phrases={phrases} />}
 
-          <Visible visible={initialized}>
-            <React.StrictMode>
-              {!chk.loaded && !rep.loaded && <Home />}
-              {chk.loaded && <Map />}
-              {rep.loaded && <Game />}
-              {(chk.loading || rep.loading) && (
-                <LoadingOverlay chk={chk} rep={rep} />
-              )}
-            </React.StrictMode>
-          </Visible>
+      {!criticalError && initialized && (
+        <>
+          {errors.length === 0 && !gameIsLoaded && <BackgroundPreload />}
+          {!chk.loaded && !rep.loaded && <Home />}
+          {chk.loaded && <Map />}
+          {rep.loaded && <Game />}
+          {(chk.loading || rep.loading) && (
+            <LoadingOverlay chk={chk} rep={rep} />
+          )}
         </>
       )}
-    </>
+    </React.StrictMode>
   );
 };
 

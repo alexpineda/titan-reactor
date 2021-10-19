@@ -64,10 +64,10 @@ class KeyboardShortcuts extends EventDispatcher {
     //   };
     // });
 
-    // document.addEventListener("keydown", this.keyDownListener, {
-    //   passive: true,
-    //   capture: true,
-    // });
+    document.addEventListener("keydown", this.keyDownListener, {
+      passive: true,
+      capture: true,
+    });
   }
 
   update(delta) {
@@ -77,7 +77,7 @@ class KeyboardShortcuts extends EventDispatcher {
   }
 
   dispose() {
-    // document.removeEventListener("keydown", this.keyDownListener);
+    document.removeEventListener("keydown", this.keyDownListener);
     // this.holdEvents.forEach((event) => event.dispose());
   }
 }

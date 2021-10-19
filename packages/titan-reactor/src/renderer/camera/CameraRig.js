@@ -129,6 +129,15 @@ class CameraRig {
     return new PerspectiveCamera(22, aspect, 3, 256);
   }
 
+  // tall camera to look down at scene for preloading webgl programs
+  get compileCamera() {
+    const aspect = this.gameSurface.width / this.gameSurface.height;
+    const camera = this._initPerspectiveCamera(aspect);
+    camera.position.set(0, 200, 0);
+    camera.lookAt(0, 0, 0);
+    return camera;
+  }
+
   lookAtLocation(x, y) {
     const p = new Vector3();
     const t = new Vector3();
@@ -208,7 +217,7 @@ class CameraRig {
   }
 
   dispose() {
-    this.control.dispose();
+    this.control && this.control.dispose();
     this.previewControl && this.previewControl.dispose();
   }
 }

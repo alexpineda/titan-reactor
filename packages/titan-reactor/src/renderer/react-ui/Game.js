@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import shallow from "zustand/shallow";
 import { ipcRenderer } from "electron";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
@@ -22,6 +22,7 @@ const gameStoreSelector = (state) => ({
   dimensions: state.dimensions,
   canvas: state.game.gameSurface.canvas,
   selectedUnits: state.selectedUnits,
+  players: state.game.players,
 });
 
 const hudStoreSelector = (state) => ({
@@ -43,7 +44,7 @@ const settingsStoreSelector = (state) => ({
 const resetSelector = (state) => state.reset;
 
 const Game = () => {
-  const { dimensions, canvas, selectedUnits } = useGameStore(
+  const { dimensions, canvas, selectedUnits, players } = useGameStore(
     gameStoreSelector,
     shallow
   );
@@ -64,17 +65,30 @@ const Game = () => {
     replaysPath,
   } = useSettingsStore(settingsStoreSelector, shallow);
 
+  const [canvasStyle, topRightResourcesStyle, bottomResourcesStyle] = useMemo(
+    () => [
+      {
+        position: "absolute",
+        zIndex: "-10",
+        left: `${dimensions.left}px`,
+        top: `${dimensions.top}px`,
+      },
+      {
+        top: `${dimensions.top}px`,
+        right: `${dimensions.right}px`,
+      },
+      {
+        bottom: `${dimensions.bottom}px`,
+        width: `${dimensions.width}px`,
+        left: `${dimensions.left}px`,
+      },
+    ],
+    [dimensions]
+  );
+
   return (
     <>
-      <WrappedElement
-        style={{
-          position: "absolute",
-          zIndex: "-10",
-          left: `${dimensions.left}px`,
-          top: `${dimensions.top}px`,
-        }}
-        domElement={canvas}
-      />
+      <WrappedElement style={canvasStyle} domElement={canvas} />
       <Chat minimapSize={dimensions.minimapSize} />
 
       {showInGameMenu && (
@@ -98,20 +112,14 @@ const Game = () => {
       <Visible visible={!esportsHud}>
         <ResourcesBar
           className="flex absolute pointer-events-none"
-          style={{
-            top: `${dimensions.top}px`,
-            right: `${dimensions.right}px`,
-          }}
+          style={topRightResourcesStyle}
+          players={players}
         />
       </Visible>
 
       <div
         className="w-full flex absolute pointer-events-none justify-between"
-        style={{
-          bottom: `${dimensions.bottom}px`,
-          width: `${dimensions.width}px`,
-          left: `${dimensions.left}px`,
-        }}
+        style={bottomResourcesStyle}
       >
         <Minimap className="pointer-events-auto" />
 
@@ -120,6 +128,7 @@ const Game = () => {
             className="flex-1 self-end pointer-events-none"
             textSize="lg"
             fitToContent
+            players={players}
           />
         </Visible>
 

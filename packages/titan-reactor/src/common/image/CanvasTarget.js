@@ -6,7 +6,6 @@ class CanvasTarget {
   }
 
   setDimensions(width, height, pixelRatio = 1) {
-    this.dirty = true;
     this.pixelRatio = pixelRatio;
     this.width = width;
     this.height = height;

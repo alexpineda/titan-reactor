@@ -36,7 +36,7 @@ const processString = (str, useColors = true) => {
 
   return <>{chunks}</>;
 };
-export const LoadingOverlay = ({ chk, rep }) => {
+const LoadingOverlay = ({ chk, rep }) => {
   let label, description;
   if (chk.loading) {
     label = chk.title || "Loading Map";
@@ -49,6 +49,7 @@ export const LoadingOverlay = ({ chk, rep }) => {
   return (
     <div
       id="load-overlay"
+      className="z-20 cursor-wait"
       style={{
         position: "absolute",
         left: "0",
@@ -108,3 +109,5 @@ export const LoadingOverlay = ({ chk, rep }) => {
     </div>
   );
 };
+
+export default LoadingOverlay;

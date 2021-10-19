@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 
 const ReplayPosition = ({ className }) => (
   <div
@@ -7,4 +7,4 @@ const ReplayPosition = ({ className }) => (
   ></div>
 );
 
-export default ReplayPosition;
+export default memo(ReplayPosition);

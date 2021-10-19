@@ -154,11 +154,8 @@ export default class MouseCursor {
 
         for (const intersect of intersects) {
           if (
-            intersect.object.sprite &&
-            intersect.object.sprite.unit &&
-            intersect.object.sprite.unit.canSelect &&
-            intersect.object.sprite.mainImage &&
-            intersect.object.sprite.mainImage.lastSetFrame &&
+            intersect.object.sprite?.unit?.canSelect &&
+            intersect.object.sprite.mainImage?.lastSetFrame &&
             intersect.object.sprite.mainImage.intersects(
               intersect.uv.x,
               intersect.uv.y

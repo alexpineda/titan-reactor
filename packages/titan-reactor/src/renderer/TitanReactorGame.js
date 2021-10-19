@@ -594,6 +594,7 @@ async function TitanReactorGame(
   gameStatePosition.skipGameFrames = 1;
   gameLoop(0);
   _sceneResizeHandler();
+  renderMan.renderer.compile(scene, cameraRig.compileCamera);
 
   return {
     start: () => renderMan.setAnimationLoop(gameLoop),

@@ -1,37 +1,15 @@
 import { WebGLRenderer } from "three";
-import readDdsGrp from "../../common/image/ddsGrp";
-import { generateTileData, generateMesh } from "../../common/map/generateMap";
+import readDdsGrp from "../image/ddsGrp";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;
 };
 
-// high level class for generating terrain and icons
-export default async (readFileFn, chk, options = {}) => {
+export default async (readFileFn, chk) => {
   const readFile = async (file, arrayBuffer = true) => {
     const buf = await readFileFn(file);
     return arrayBuffer ? toArrayBuffer(buf) : buf;
   };
-
-  options = Object.assign(
-    {
-      elevationLevels: [0, 0.05, 0.25, 0.25, 0.4, 0.4, 0.25],
-      ignoreLevels: [0, 1, 0, 1, 0, 1, 0],
-      normalizeLevels: true,
-      displaceDimensionScale: 16,
-      displaceVertexScale: 2,
-      blendNonWalkableBase: true,
-      firstPass: true,
-      secondPass: true,
-      processWater: true,
-      displacementScale: 4,
-      drawMode: { value: 0 },
-      detailsMix: 0.05,
-      bumpScale: 0.1,
-      firstBlur: 4,
-    },
-    options
-  );
 
   const tilesets = [
     "badlands",
@@ -84,13 +62,6 @@ export default async (readFileFn, chk, options = {}) => {
   );
   const creepGrpSD = await readFile(`TileSet/${tilesetName}.grp`, false);
 
-  const renderer = new WebGLRenderer({
-    depth: false,
-    stencil: false,
-    alpha: true,
-  });
-  renderer.autoClear = false;
-
   // const warpInGrpHD = MapHD.renderWarpIn(
   //   renderer,
   //   readDdsGrp(await readFile("anim/main_210.anim", false), false)
@@ -101,7 +72,7 @@ export default async (readFileFn, chk, options = {}) => {
   //   false
   // );
 
-  const mapData = await generateTileData(renderer, chk.size[0], chk.size[1], {
+  return {
     mapTiles,
     megatiles,
     minitilesFlags,
@@ -113,14 +84,5 @@ export default async (readFileFn, chk, options = {}) => {
     tilegroupBuf,
     creepGrpSD,
     creepGrpHD,
-    options,
-  });
-
-  const [sd, hd, d, creep, creepEdges, minimapCanvas] = await generateMesh(
-    renderer,
-    mapData
-  );
-
-  renderer.dispose();
-  return [sd, hd, d, creep, creepEdges, minimapCanvas];
+  };
 };

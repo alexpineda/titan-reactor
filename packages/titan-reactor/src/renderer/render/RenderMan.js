@@ -216,7 +216,7 @@ class RenderMan {
     renderer.outputEncoding = sRGBEncoding;
     renderer.dithering = false;
 
-    renderer.debug.checkShaderErrors = false;
+    renderer.debug.checkShaderErrors = true;
 
     return renderer;
   }

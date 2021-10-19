@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, memo } from "react";
 import { unstable_batchedUpdates } from "react-dom";
 import useGameStore, { CHAT_INTERVAL } from "../../stores/gameStore";
 
@@ -53,4 +53,4 @@ const Chat = ({ minimapSize }) => {
   );
 };
 
-export default Chat;
+export default memo(Chat);

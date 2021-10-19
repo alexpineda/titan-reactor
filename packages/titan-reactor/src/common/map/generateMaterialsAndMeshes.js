@@ -1,11 +1,5 @@
 import * as THREE from "three";
-import {
-  Mesh,
-  HalfFloatType,
-  Vector2,
-  NearestFilter,
-  LinearFilter,
-} from "three";
+import { Mesh, HalfFloatType, Vector2, WebGLRenderer } from "three";
 import { createDisplacementGeometry } from "./displacementGeometry";
 import { createDisplacementGeometryChunk } from "./displacementGeometryChunk";
 import { KernelSize, BlendFunction } from "postprocessing";
@@ -19,114 +13,21 @@ import {
 import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
 import { blendNonZeroPixels } from "../image/blend";
 import { MapEffect } from "./effects/MapEffect";
-import MapHD from "./MapHD";
 import MapSD from "./MapSD";
-import MapData from "./MapData";
 import { rgbToCanvas } from "../image/canvas";
+import {
+  increaseMapGenerationProgress,
+  completeMapGeneration,
+} from "../../renderer/stores/loadingStore";
 
-//low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
-const _rendererO = {};
-
-const restoreRenderer = (renderer) => {
-  Object.assign(renderer, _rendererO);
-};
-
-const clearRenderer = (renderer) => {
-  _rendererO.outputEncoding = renderer.outputEncoding;
-  _rendererO.physicallyCorrectLights = renderer.physicallyCorrectLights;
-  _rendererO.toneMapping = renderer.toneMapping;
-
-  renderer.outputEncoding = THREE.LinearEncoding;
-  renderer.physicallyCorrectLights = false;
-  renderer.toneMapping = THREE.NoToneMapping;
-};
-
-export const generateTileData = async (
-  renderer,
-  mapWidth,
-  mapHeight,
-  {
-    mapTiles,
-    megatiles,
-    minitilesFlags,
-    minitiles,
-    palette,
-    tileset,
-    hdTiles,
-    tilegroupU16,
-    tilegroupBuf,
-    creepGrpHD,
-    creepGrpSD,
-    options,
-  }
-) => {
-  clearRenderer(renderer);
-
-  const mapData = MapData.generate(mapWidth, mapHeight, {
-    mapTiles,
-    palette,
-    megatiles,
-    minitilesFlags,
-    minitiles,
-    tilegroupU16,
-    tilegroupBuf,
-  });
-
-  const mapHd = MapHD.renderTilesToQuartiles(renderer, mapWidth, mapHeight, {
-    hdTiles,
-    ...mapData,
-  });
-
-  const creepEdgesTextureHD = MapHD.renderCreepEdgesTexture(
-    renderer,
-    creepGrpHD
-  );
-
-  const creepTextureHD = MapHD.renderCreepTexture(
-    renderer,
-    hdTiles,
-    tilegroupU16
-  );
-
-  const creepEdgesTextureSD = await MapSD.renderCreepEdgesTexture(
-    creepGrpSD,
-    palette
-  );
-
-  const creepTextureSD = MapSD.renderCreepTexture(
-    palette,
-    megatiles,
-    minitiles,
-    tilegroupU16,
-    renderer.capabilities.getMaxAnisotropy()
-  );
-
-  restoreRenderer(renderer);
-
-  return {
-    palette,
-    tileset,
-    options,
-    mapWidth,
-    mapHeight,
-    mapData,
-    mapHd,
-    creepEdgesTextureSD,
-    creepEdgesTextureHD,
-    creepTextureHD,
-    creepTextureSD,
-  };
-};
-
-export const generateMesh = async (renderer, tileData) => {
+export default async (tileData, geomOptions) => {
   const {
     palette,
     tileset,
-    options,
     mapWidth,
     mapHeight,
     mapData,
-    mapHd,
+    mapHd: hdMaps,
     creepEdgesTextureSD,
     creepEdgesTextureHD,
     creepTextureHD,
@@ -138,20 +39,26 @@ export const generateMesh = async (renderer, tileData) => {
     noise,
   } = tileData;
 
+  const renderer = new WebGLRenderer({
+    depth: false,
+    stencil: false,
+    alpha: true,
+  });
+  renderer.autoClear = false;
+
   const camera = new THREE.PerspectiveCamera();
-  clearRenderer(renderer);
 
   //#region texture definitions
-  const map = new THREE.DataTexture(
+  const sdMap = new THREE.DataTexture(
     mapData.diffuse,
     mapWidth * 32,
     mapHeight * 32,
     THREE.RGBAFormat,
     THREE.UnsignedByteType
   );
-  map.flipY = true;
-  map.encoding = THREE.sRGBEncoding;
-  map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  sdMap.flipY = true;
+  sdMap.encoding = THREE.sRGBEncoding;
+  sdMap.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
   const roughnessMap = new THREE.DataTexture(
     mapData.roughness,
@@ -223,7 +130,7 @@ export const generateMesh = async (renderer, tileData) => {
     }
   }
 
-  if (options.blendNonWalkableBase) {
+  if (geomOptions.blendNonWalkableBase) {
     blendNonZeroPixels(nonZeroLayers, mapWidth * 4, mapHeight * 4);
   }
 
@@ -262,12 +169,12 @@ export const generateMesh = async (renderer, tileData) => {
   //#endregion texture definitions
 
   const levelsMtx = new THREE.Matrix3();
-  const max = options.elevationLevels.reduce(
+  const max = geomOptions.elevationLevels.reduce(
     (memo, val) => (val > memo ? val : memo),
     0
   );
-  const normalLevels = options.elevationLevels.map((v) =>
-    options.normalizeLevels ? v / max : v
+  const normalLevels = geomOptions.elevationLevels.map((v) =>
+    geomOptions.normalizeLevels ? v / max : v
   );
 
   const maxLevel = normalLevels.reduce(
@@ -284,14 +191,14 @@ export const generateMesh = async (renderer, tileData) => {
   composer.autoRenderToScreen = true;
 
   composer.setSize(
-    mapWidth * options.displaceDimensionScale,
-    mapHeight * options.displaceDimensionScale,
+    mapWidth * geomOptions.displaceDimensionScale,
+    mapHeight * geomOptions.displaceDimensionScale,
     true
   );
   const savePass = new SavePass();
   const blurPassHuge = new BlurPass();
   blurPassHuge.convolutionMaterial = new BypassingConvolutionMaterial();
-  blurPassHuge.kernelSize = options.firstBlur;
+  blurPassHuge.kernelSize = geomOptions.firstBlur;
 
   composer.removeAllPasses();
   composer.addPass(new ClearPass());
@@ -300,7 +207,7 @@ export const generateMesh = async (renderer, tileData) => {
     new EffectPass(
       camera,
       new MapEffect({
-        texture: map,
+        texture: sdMap,
         elevations: nonZeroElevationsMap,
         details: displacementDetailsMap,
         detailsMix: 0,
@@ -318,30 +225,30 @@ export const generateMesh = async (renderer, tileData) => {
   composer.addPass(blurPassHuge);
   composer.addPass(savePass);
   composer.addPass(new SavePass());
-  if (options.firstPass) {
+  if (geomOptions.firstPass) {
     composer.render(0.01);
   }
 
   composer.removeAllPasses();
 
   const ignoreLevels = new THREE.Matrix3();
-  ignoreLevels.set(...options.ignoreLevels, 0, 0);
+  ignoreLevels.set(...geomOptions.ignoreLevels, 0, 0);
 
   composer.addPass(
     new EffectPass(
       camera,
       new MapEffect({
-        texture: map,
+        texture: sdMap,
         elevations: elevationsMap,
         details: displacementDetailsMap,
-        detailsMix: options.detailsMix,
+        detailsMix: geomOptions.detailsMix,
         mapTiles: mapTilesMap,
         ignoreDoodads: 1,
         levels: levelsMtx,
         ignoreLevels,
         tileset,
         palette,
-        processWater: options.processWater,
+        processWater: geomOptions.processWater,
         paletteIndices: paletteIndicesMap,
         blendFunction: BlendFunction.NORMAL,
       })
@@ -351,19 +258,34 @@ export const generateMesh = async (renderer, tileData) => {
   const blurPassMed = new BlurPass();
   blurPassMed.kernelSize = KernelSize.VERY_SMALL;
   composer.addPass(blurPassMed);
-  if (options.secondPass) {
+  if (geomOptions.secondPass) {
     composer.render(0.01);
   }
   //#endregion composer
+  increaseMapGenerationProgress();
+
+  const displaceCanvas = document.createElement("canvas");
+  displaceCanvas.width = mapWidth * geomOptions.displaceDimensionScale;
+  displaceCanvas.height = mapHeight * geomOptions.displaceDimensionScale;
+
+  displaceCanvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
+
+  // small optimization: scale down for getTerrainY
+  const displaceForGetTerrainY = document.createElement("canvas");
+  displaceForGetTerrainY.width = mapWidth * 4;
+  displaceForGetTerrainY.height = mapHeight * 4;
+  displaceForGetTerrainY
+    .getContext("2d")
+    .drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
 
   //#region sd map
   const tileAnimationCounter = { value: 0 };
   const sharedCreepValues = { value: creepValues };
   const sharedCreepEdgesValues = { value: creepEdgesValues };
-  const mat = new THREE.MeshStandardMaterial({
-    map,
-    bumpMap: map,
-    bumpScale: options.bumpScale,
+  const sdMapMaterial = new THREE.MeshStandardMaterial({
+    map: sdMap,
+    displacementScale: geomOptions.displacementScale,
+    displacementMap: new THREE.CanvasTexture(displaceCanvas),
     onBeforeCompile: function (shader) {
       let fs = shader.fragmentShader;
 
@@ -589,28 +511,16 @@ export const generateMesh = async (renderer, tileData) => {
       console.log(shader);
     },
   });
-  mat.userData.tileAnimationCounter = tileAnimationCounter;
-
-  const displaceCanvas = document.createElement("canvas");
-  displaceCanvas.width = mapWidth * options.displaceDimensionScale;
-  displaceCanvas.height = mapHeight * options.displaceDimensionScale;
-
-  displaceCanvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
-
-  // small optimization: scale down for getTerrainY
-  const displaceForGetTerrainY = document.createElement("canvas");
-  displaceForGetTerrainY.width = mapWidth * 4;
-  displaceForGetTerrainY.height = mapHeight * 4;
-  displaceForGetTerrainY
-    .getContext("2d")
-    .drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
+  sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounter;
 
   const elevationOptions = {
     drawMode: { value: 1 },
   };
 
-  const elevationsMaterial = new THREE.MeshBasicMaterial({
-    map,
+  const elevationsMaterial = new THREE.MeshStandardMaterial({
+    displacementScale: geomOptions.displacementScale,
+    displacementMap: new THREE.CanvasTexture(displaceCanvas),
+    map: sdMap,
     onBeforeCompile: function (shader) {
       let fs = shader.fragmentShader;
 
@@ -618,34 +528,15 @@ export const generateMesh = async (renderer, tileData) => {
         "#include <map_fragment>",
         `
         int elevation = int(texture2D(elevations, vUv).r);
-        float elevationF = float(elevation) / 6.;
 
         bool isWalkable = elevation == 1 || elevation == 3 || elevation == 5 || elevation == 7;
 
+        float elevationF = float(elevation) / 6.;
 
-        if (drawMode == 1 && !isWalkable) {
+        if (!isWalkable) {
           elevationF = 0.;
         }
-
-        if (drawMode == 2 && isWalkable) {
-         elevationF = 0.;
-        }
-
-        if (drawMode == 3) {
-          uint mapTile = texture2D(mapTiles, vUv).r;
-          elevationF = mapTile > uint(1023) ? 1. : 0.; //doodad
-        }
-
-        if (drawMode >= 4) {
-          elevationF = 1.;
-          if (elevation != drawMode - 4) {
-            elevationF = 0.2;
-          }
-          diffuseColor *= vec4(vec3(elevationF), 1.);
-        } else {
-         diffuseColor *= vec4(heatmapGradient(elevationF), 1.);
-        }
-
+        diffuseColor *= vec4(heatmapGradient(elevationF), 1.);
         diffuseColor *= (texture2D(map, vUv));
 
       `
@@ -670,26 +561,32 @@ export const generateMesh = async (renderer, tileData) => {
   });
   elevationsMaterial.userData = elevationOptions;
 
-  const geometry = createDisplacementGeometry(
-    null,
+  const geometry = new THREE.PlaneBufferGeometry(
     mapWidth,
     mapHeight,
-    mapWidth * options.displaceVertexScale,
-    mapHeight * options.displaceVertexScale,
-    displaceCanvas,
-    options.displacementScale,
-    0
+    mapWidth * geomOptions.displaceVertexScale,
+    mapHeight * geomOptions.displaceVertexScale
   );
+  // const geometry = createDisplacementGeometry(
+  //   null,
+  //   mapWidth,
+  //   mapHeight,
+  // mapWidth * options.displaceVertexScale,
+  // mapHeight * options.displaceVertexScale,
+  //   displaceCanvas,
+  //   options.displacementScale,
+  //   0
+  // );
 
   const terrain = new Mesh();
   terrain.geometry = geometry;
-  terrain.material = elevationsMaterial;
+  terrain.material = sdMapMaterial;
   terrain.castShadow = true;
   terrain.receiveShadow = true;
   terrain.rotation.x = -Math.PI / 2;
   terrain.userData.displace = new THREE.CanvasTexture(displaceCanvas);
-  terrain.userData.map = map;
-  terrain.userData.mat = mat;
+  terrain.userData.map = sdMap;
+  terrain.userData.mat = sdMapMaterial;
   terrain.userData.elevationsMaterial = elevationsMaterial;
   terrain.userData.textures = [
     terrain.userData.displace,
@@ -701,33 +598,37 @@ export const generateMesh = async (renderer, tileData) => {
 
   //#region hd map
   const hdTerrainGroup = new THREE.Group();
-  for (let x = 0; x < mapHd.quartileStrideW; x++) {
-    for (let y = 0; y < mapHd.quartileStrideH; y++) {
+  for (let x = 0; x < hdMaps.quartileStrideW; x++) {
+    for (let y = 0; y < hdMaps.quartileStrideH; y++) {
+      increaseMapGenerationProgress();
       const hdTerrain = new Mesh();
-      const w = mapHd.quartileWidth;
-      const h = mapHd.quartileHeight;
+      const w = hdMaps.quartileWidth;
+      const h = hdMaps.quartileHeight;
+
+      //  new THREE.PlaneBufferGeometry(w, h, 1, 1);
 
       const geometry = createDisplacementGeometryChunk(
         null,
         w,
         h,
-        w * options.displaceVertexScale,
-        h * options.displaceVertexScale,
+        w * geomOptions.displaceVertexScale,
+        h * geomOptions.displaceVertexScale,
         displaceCanvas,
-        options.displacementScale,
+        geomOptions.displacementScale,
         0,
         w / mapWidth,
         h / mapHeight,
-        x * w * options.displaceDimensionScale,
-        y * h * options.displaceDimensionScale
+        x * w * geomOptions.displaceDimensionScale,
+        y * h * geomOptions.displaceDimensionScale
       );
 
       hdTerrain.geometry = geometry;
 
       const mat = new THREE.MeshStandardMaterial({
-        map: mapHd.mapQuartiles[x][y],
-        bumpMap: mapHd.mapQuartiles[x][y],
-        bumpScale: options.bumpScale,
+        map: hdMaps.mapQuartiles[x][y],
+        // bumpMap: hdMaps.mapQuartiles[x][y],
+        // bumpScale: options.bumpScale,
+
         onBeforeCompile: function (shader) {
           let fs = shader.fragmentShader;
           fs = fs.replace(
@@ -873,11 +774,11 @@ export const generateMesh = async (renderer, tileData) => {
       hdTerrain.receiveShadow = true;
       hdTerrain.rotation.x = -Math.PI / 2;
       hdTerrain.position.x =
-        x * mapHd.quartileWidth + mapHd.quartileWidth / 2 - mapWidth / 2;
+        x * hdMaps.quartileWidth + hdMaps.quartileWidth / 2 - mapWidth / 2;
       hdTerrain.position.z =
-        y * mapHd.quartileHeight + mapHd.quartileHeight / 2 - mapHeight / 2;
+        y * hdMaps.quartileHeight + hdMaps.quartileHeight / 2 - mapHeight / 2;
 
-      hdTerrain.userData.map = map;
+      hdTerrain.userData.map = sdMap;
       hdTerrain.userData.mat = mat;
       hdTerrain.userData.elevationsMaterial = elevationsMaterial;
       hdTerrain.userData.textures = [mat];
@@ -905,7 +806,7 @@ export const generateMesh = async (renderer, tileData) => {
 
   terrain.name = "Terrain";
   hdTerrainGroup.name = "TerrainHD";
-  restoreRenderer(renderer);
+  renderer.dispose();
 
   terrain.matrixAutoUpdate = false;
   terrain.updateMatrix();
@@ -918,6 +819,7 @@ export const generateMesh = async (renderer, tileData) => {
     mapWidth,
     mapHeight
   );
+  completeMapGeneration();
 
   return [
     terrain,

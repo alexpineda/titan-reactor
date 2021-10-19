@@ -16,6 +16,9 @@ import useHudStore from "./stores/hudStore";
 import { iscriptHeaders } from "../common/types/iscriptHeaders";
 import { unitTypes } from "../common/types/unitTypes";
 
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { MOUSE } from "three";
+
 async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const [mapWidth, mapHeight] = chk.size;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
@@ -69,10 +72,16 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     true
   );
   window.cameraRig = cameraRig;
-  // cameras.control.execNumpad(3);
+  const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
 
-  // cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
-  // cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
+  orbitControls.screenSpacePanning = false;
+  orbitControls.mouseButtons = {
+    LEFT: MOUSE.PAN,
+    MIDDLE: MOUSE.DOLLY,
+    RIGHT: MOUSE.ROTATE,
+  };
+  cameraRig.camera.position.set(0, 120, 100);
+  cameraRig.camera.lookAt(0, 0, 0);
 
   const renderMan = new RenderMan(settings, isDev);
   await renderMan.initRenderer(cameraRig.camera);
@@ -207,11 +216,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     renderMan.render(scene, cameraRig.camera, delta);
     last = elapsed;
 
-    if (window.focusFn) {
-      try {
-        window.focusFn(cameraRig);
-      } catch (e) {}
-    }
+    orbitControls.update();
   }
 
   renderMan.renderer.setAnimationLoop(gameLoop);
@@ -281,7 +286,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   };
 
   return {
-    surface: gameSurface,
+    gameSurface,
     dispose,
   };
 }

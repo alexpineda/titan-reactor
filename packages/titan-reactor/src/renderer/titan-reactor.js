@@ -13,6 +13,10 @@ import useSettingsStore from "./stores/settingsStore";
 import useLoadingStore from "./stores/loadingStore";
 import "./stores/capabilitiesStore";
 
+if (module.hot) {
+  module.hot.accept();
+}
+
 log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);
 log(`electron ${process.versions.electron}`);

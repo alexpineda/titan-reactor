@@ -131,7 +131,6 @@ export default class MapSD {
       "rgba"
     );
 
-    //grab the context from your destination canvas
     const dst = document.createElement("canvas");
     dst.width = mapWidth * 2;
     dst.height = mapHeight * 2;

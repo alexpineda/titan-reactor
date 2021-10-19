@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, memo } from "react";
 import PlayerResources from "./PlayerResources";
 import shallow from "zustand/shallow";
 import useSettingsStore from "../../../stores/settingsStore";
-import useGameStore from "../../../stores/gameStore";
 import useHudStore from "../../../stores/hudStore";
 import { incFontSize } from "../../../../common/utils/changeFontSize";
 
@@ -14,7 +13,6 @@ const textSizeSelector = (state) =>
     : state.data.hudFontSize;
 const toggleSelector = (state) => state.data.autoToggleProductionView;
 
-const playerSelector = (state) => state.game.players;
 // in gameStore onTogglePlayerPov: state.onTogglePlayerPov,
 
 const settingsSelector = (state) => ({
@@ -26,11 +24,10 @@ const settingsSelector = (state) => ({
 const setAutoProductionView = useHudStore.getState().setAutoProductionView;
 
 // wrapper for showing all participating player information (scores, names, resources, etc)
-const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
+const ResourcesBar = ({ fitToContent, className, style, players }) => {
   const textSize = useSettingsStore(textSizeSelector);
   const autoToggleProductionView = useSettingsStore(toggleSelector);
   const productionView = useHudStore(hudStoreSelector);
-  const players = useGameStore(playerSelector);
   const { esportsHud, enablePlayerScores, embedProduction } = useSettingsStore(
     settingsSelector,
     shallow
@@ -120,4 +117,9 @@ const ResourcesBar = ({ fitToContent, className = "", style = {} }) => {
   );
 };
 
-export default ResourcesBar;
+ResourcesBar.defaultProps = {
+  className: "",
+  style: {},
+};
+
+export default memo(ResourcesBar);

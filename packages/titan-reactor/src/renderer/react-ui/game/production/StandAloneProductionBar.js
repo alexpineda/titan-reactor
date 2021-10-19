@@ -8,6 +8,8 @@ import useHudStore, {
 } from "../../../stores/hudStore";
 import PlayerProduction from "./PlayerProduction";
 
+const playerRowStyle = { backgroundColor: "#1a202c99" };
+
 const Production = () => {
   const { players, dimensions } = useGameStore(
     (state) => ({
@@ -31,7 +33,7 @@ const Production = () => {
           <div
             key={id}
             className="rounded ml-1 mt-1 flex flex-col"
-            style={{ backgroundColor: "#1a202c99" }}
+            style={playerRowStyle}
           >
             {(!productionView || productionView === UnitProductionView) && (
               <td>

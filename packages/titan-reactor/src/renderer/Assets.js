@@ -10,6 +10,7 @@ import Icons from "./scene/Icons";
 import {
   increaseAssetsLoaded,
   completeAssetsLoaded,
+  completeSomeAssets,
 } from "./stores/loadingStore";
 // import loadEnvironmentMap from "../common/image/envMap";
 // import { WebGLRenderer } from "three";

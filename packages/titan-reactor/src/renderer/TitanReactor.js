@@ -6,7 +6,7 @@ import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
 import TitanReactorGame from "./TitanReactorGame";
-import { TitanReactorScene } from "./TitanReactorScene";
+import TitanReactorScene from "./TitanReactorScene";
 import { openFile, log } from "./invoke";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 
@@ -19,7 +19,13 @@ import TitanSprite from "../common/image/TitanSprite";
 import AudioMaster from "./audio/AudioMaster";
 import useLoadingStore from "./stores/loadingStore";
 import useSettingsStore, { getSettings } from "./stores/settingsStore";
-import { setGame, disposeGame, getAssets, setAssets } from "./stores/gameStore";
+import {
+  setGame,
+  disposeGame,
+  getAssets,
+  setAssets,
+  disposeAssets,
+} from "./stores/gameStore";
 
 const loadScx = (filename) =>
   new Promise((res) =>
@@ -36,14 +42,24 @@ const loadScx = (filename) =>
 export class TitanReactor {
   constructor() {
     // preload assets once valid settings are available
-    const unsub = useSettingsStore.subscribe(({ errors, data: settings }) => {
-      if (errors.length) return;
+    useSettingsStore.subscribe(
+      ({ errors, data: settings }, { data: prevSettings }) => {
+        if (errors.length) {
+          return;
+        }
 
-      const assets = new Assets();
-      assets.preload(settings.starcraftPath, settings.communityModelsPath);
-      setAssets(assets);
-      unsub();
-    });
+        // only load assets if we haven't loaded once yet or if the community models path has changed
+        if (
+          settings.communityModelsPath === prevSettings.communityModelsPath &&
+          getAssets()
+        ) {
+          return;
+        }
+        const assets = new Assets();
+        assets.preload(settings.starcraftPath, settings.communityModelsPath);
+        setAssets(assets);
+      }
+    );
   }
 
   waitForAssets() {
@@ -101,7 +117,7 @@ export class TitanReactor {
 
     log("initializing scene");
     const scene = new TitanReactorScene(chk);
-    await scene.init(settings.isDev);
+    const sceneIsLoaded = scene.build();
 
     log("starting gamestate reader", repFile, outFile);
     const gameStateReader = new FileGameStateReader(
@@ -124,13 +140,14 @@ export class TitanReactor {
 
     log("initializing audio");
     const audioMaster = new AudioMaster(
-      assets.loadAudioFile,
+      assets.loadAudioFile.bind(assets),
       settings.audioPanningStyle,
       races
     );
     audioMaster.musicVolume = settings.musicVolume;
     audioMaster.soundVolume = settings.soundVolume;
 
+    await sceneIsLoaded;
     log("initializing replay");
     const game = await TitanReactorGame(
       scene,
@@ -176,12 +193,9 @@ export class TitanReactor {
     const assets = getAssets();
 
     log("initializing scene");
-    const scene = new TitanReactorScene(
-      chk,
-      settings.anisotropy,
-      settings.renderMode
-    );
-    await scene.init();
+    const scene = new TitanReactorScene(chk);
+
+    await scene.build();
 
     const createTitanSprite = () =>
       new TitanSprite(
@@ -214,5 +228,6 @@ export class TitanReactor {
 
   dispose() {
     disposeGame();
+    disposeAssets();
   }
 }
