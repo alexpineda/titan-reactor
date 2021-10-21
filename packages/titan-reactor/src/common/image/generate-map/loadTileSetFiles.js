@@ -1,5 +1,4 @@
-import { WebGLRenderer } from "three";
-import readDdsGrp from "../image/ddsGrp";
+import readDdsGrp from "../ddsGrp";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;

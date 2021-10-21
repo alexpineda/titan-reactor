@@ -1,12 +1,12 @@
 import { GridHelper, HemisphereLight, Scene } from "three";
 import { disposeMeshes } from "./utils/dispose";
-import { getTerrainY } from "../common/map/displacementGeometry";
-import { fog, sunlight } from "./scene/lights";
+import { getTerrainY } from "../common/image/generate-map/displacementGeometry";
+import { sunlight } from "./scene/lights";
 import BackgroundTerrain from "./scene/BackgroundTerrain";
-import loadTileSetFiles from "../common/map/loadTileSetFiles";
+import loadTileSetFiles from "../common/image/generate-map/loadTileSetFiles";
 import readCascFile from "../common/utils/casclib";
-import generateMaterialsAndMeshes from "../common/map/generateMaterialsAndMeshes";
-import generateTextures from "../common/map/generateTextures";
+import generateMaterialsAndMeshes from "../common/image/generate-map/generateMaterialsAndMeshes";
+import generateTextures from "../common/image/generate-map/generateTextures";
 
 const DEFAULT_GEOM_OPTIONS = {
   //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
@@ -63,11 +63,6 @@ export default class TitanReactorScene extends Scene {
     this.add(terrainHD);
     this.terrain = this.terrainHD = terrainHD;
     this.terrainSD = terrainSD;
-
-    this.fog = fog(w, h);
-    this.background = this.fog.color;
-    this.bgTerrain = BackgroundTerrain(w, h, terrainSD.material.map);
-    // this.add(this.bgTerrain);
 
     const gridHelper = new GridHelper(128, 128, 0xff0000, 0x009900);
     gridHelper.position.set(0, 6, 0);

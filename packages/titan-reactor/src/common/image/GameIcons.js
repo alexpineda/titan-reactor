@@ -6,9 +6,9 @@ import {
   ClampToEdgeWrapping,
   Color,
 } from "three";
-import { DDSLoader } from "../image/DDSLoader";
-import { rgbToCanvas } from "../image/canvas";
-import GrpSD from "../image/GrpSD";
+import { DDSLoader } from "./DDSLoader";
+import { rgbToCanvas } from "./canvas";
+import GrpSD from "./GrpSD";
 
 const ddsLoader = new DDSLoader();
 

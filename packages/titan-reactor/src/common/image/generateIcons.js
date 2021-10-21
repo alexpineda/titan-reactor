@@ -1,6 +1,6 @@
 import { Color, WebGLRenderer } from "three";
-import readDdsGrp from "../../common/image/ddsGrp";
-import GameIcons from "../../common/map/GameIcons";
+import readDdsGrp from "./ddsGrp";
+import GameIcons from "./GameIcons";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;

@@ -7,7 +7,7 @@ export function sunlight(mapWidth, mapHeight) {
   light.castShadow = true;
   light.shadow.camera.near = 1;
   light.shadow.camera.far = 200;
-  light.shadow.bias = 0.0001;
+  light.shadow.bias = -0.05;
 
   const sizeW = mapWidth * 0.75;
   const sizeh = mapHeight * 0.75;
@@ -16,8 +16,8 @@ export function sunlight(mapWidth, mapHeight) {
   light.shadow.camera.right = sizeW;
   light.shadow.camera.top = sizeh;
   light.shadow.camera.bottom = -sizeh;
-  light.shadow.mapSize.width = 512 * 4;
-  light.shadow.mapSize.height = 512 * 4;
+  light.shadow.mapSize.width = 512;
+  light.shadow.mapSize.height = 512;
   light.name = "sunlight";
   return light;
 }

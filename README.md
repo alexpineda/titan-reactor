@@ -1,12 +1,13 @@
 ## Titan Reactor 
 
-Titan Reactor is a custom replay viewer for Starcraft and may only be utilized with assets provided by ownership of Starcraft.
+Titan Reactor is a fan made map and replay viewer specifically made for content creators of the best game in the world, Starcraft Remastered.
 
 - [Join our Discord](http://discord.imbateam.gg/)
 - [Demo Video (Youtube)](https://www.youtube.com/watch?v=CwzkjboEbqo)
+- [Development Resources](https://github.com/imbateam-gg/awesome-bw-dev)
 
 ### Requirements
-- A purchased copy of Starcraft
+- A purchased copy of Starcraft Remastered
 - Microsoft Windows
 - Suggested 8GB Ram & VRam
 
@@ -58,8 +59,8 @@ I'm looking for contributors. Please send me a message on discord or feel free t
 - Replay generation is done via openbw-bridge. Currently this generates broken replays for some 1.16 replays and many SCR replays, this could use a lot of investigating. For SCR we're using a replay file downgrader  where in fact openbw will need to be changed for unit limit to be fully functional. This area could use improvement for reliability and replay support.
 - The replay state reader needs to be more robust for errors and correcting itself from potential error states.
 - Integration with Shieldbattery will be necessary for live obsing. Since the data source is just a raw binary dump of unit and sprite state (amongst a few other things) I believe this is doable via the same mechanism.
-- Multiple observers connecting to the same replay.
-- HD Water needs to be implemented in the GLSL shader
+- Multiple observers connecting to the same game.
+- HD Water needs to be implemented in the GLSL shader.
 
   
 

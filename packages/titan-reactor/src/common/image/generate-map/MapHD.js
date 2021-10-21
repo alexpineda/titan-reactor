@@ -14,7 +14,7 @@ import {
   WebGLRenderTarget,
 } from "three";
 
-import { DDSLoader } from "../image/DDSLoader";
+import { DDSLoader } from "../DDSLoader";
 
 const ddsLoader = new DDSLoader();
 

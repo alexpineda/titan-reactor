@@ -6,8 +6,8 @@ import {
   sRGBEncoding,
   UnsignedByteType,
 } from "three";
-import { rgbToCanvas } from "../image/canvas";
-import GrpSD from "../image/GrpSD";
+import { rgbToCanvas } from "../canvas";
+import GrpSD from "../GrpSD";
 
 export default class MapSD {
   static async renderCreepEdgesTexture(creepGrp, palette) {
@@ -23,23 +23,6 @@ export default class MapSD {
       stride
     );
 
-    //extend the grp by 1 tile for empty tile
-    // const newWidth = grpSD.width + 32;
-    // const extendedImage = new Uint8Array(newWidth * grpSD.height * 4);
-
-    // for (let i = 0; i < grpSD.width * grpSD.height * 4; i++) {
-    //   extendedImage[i + 32 * 4 * Math.ceil((i + 1) / (grpSD.width * 4))] =
-    //     grpSD.texture.image.data[i];
-    // }
-
-    // const texture = new DataTexture(extendedImage, newWidth, grpSD.height);
-    // texture.flipY = true;
-    // texture.minFilter = LinearFilter;
-    // texture.magFilter = LinearFilter;
-    // texture.wrapT = ClampToEdgeWrapping;
-    // texture.wrapS = ClampToEdgeWrapping;
-    // texture.encoding = sRGBEncoding;
-
     return {
       texture: grpSD.texture,
       width: grpSD.width,
@@ -54,7 +37,6 @@ export default class MapSD {
     tilegroupU16,
     anisotropy
   ) {
-    // const size = Math.ceil(Math.sqrt(13));
     const width = 13;
     const height = 1;
 
@@ -65,9 +47,6 @@ export default class MapSD {
     for (let i = 0; i < 13; i++) {
       const mapX = i;
       const mapY = 0;
-
-      // const mapX = i % width;
-      // const mapY = Math.floor(i / height);
 
       for (let miniY = 0; miniY < 4; miniY++) {
         for (let miniX = 0; miniX < 4; miniX++) {

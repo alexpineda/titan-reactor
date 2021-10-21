@@ -1,5 +1,11 @@
 import * as THREE from "three";
-import { Mesh, HalfFloatType, Vector2, WebGLRenderer } from "three";
+import {
+  Mesh,
+  HalfFloatType,
+  Vector2,
+  WebGLRenderer,
+  MeshDepthMaterial,
+} from "three";
 import { createDisplacementGeometry } from "./displacementGeometry";
 import { createDisplacementGeometryChunk } from "./displacementGeometryChunk";
 import { KernelSize, BlendFunction } from "postprocessing";
@@ -11,14 +17,14 @@ import {
   ClearPass,
 } from "postprocessing";
 import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
-import { blendNonZeroPixels } from "../image/blend";
+import { blendNonZeroPixels } from "../blend";
 import { MapEffect } from "./effects/MapEffect";
 import MapSD from "./MapSD";
-import { rgbToCanvas } from "../image/canvas";
+import { rgbToCanvas } from "../canvas";
 import {
   increaseMapGenerationProgress,
   completeMapGeneration,
-} from "../../renderer/stores/loadingStore";
+} from "../../../renderer/stores/loadingStore";
 
 export default async (tileData, geomOptions) => {
   const {
@@ -580,7 +586,7 @@ export default async (tileData, geomOptions) => {
 
   const terrain = new Mesh();
   terrain.geometry = geometry;
-  terrain.material = sdMapMaterial;
+  terrain.material = elevationsMaterial;
   terrain.castShadow = true;
   terrain.receiveShadow = true;
   terrain.rotation.x = -Math.PI / 2;
@@ -598,39 +604,106 @@ export default async (tileData, geomOptions) => {
 
   //#region hd map
   const hdTerrainGroup = new THREE.Group();
-  for (let x = 0; x < hdMaps.quartileStrideW; x++) {
-    for (let y = 0; y < hdMaps.quartileStrideH; y++) {
+  for (let qx = 0; qx < hdMaps.quartileStrideW; qx++) {
+    for (let qy = 0; qy < hdMaps.quartileStrideH; qy++) {
       increaseMapGenerationProgress();
       const hdTerrain = new Mesh();
-      const w = hdMaps.quartileWidth;
-      const h = hdMaps.quartileHeight;
+      const qw = hdMaps.quartileWidth;
+      const qh = hdMaps.quartileHeight;
 
       //  new THREE.PlaneBufferGeometry(w, h, 1, 1);
 
-      const geometry = createDisplacementGeometryChunk(
-        null,
-        w,
-        h,
-        w * geomOptions.displaceVertexScale,
-        h * geomOptions.displaceVertexScale,
-        displaceCanvas,
-        geomOptions.displacementScale,
-        0,
-        w / mapWidth,
-        h / mapHeight,
-        x * w * geomOptions.displaceDimensionScale,
-        y * h * geomOptions.displaceDimensionScale
+      const geometry = new THREE.PlaneBufferGeometry(
+        qw,
+        qh,
+        qw * geomOptions.displaceVertexScale,
+        qh * geomOptions.displaceVertexScale
       );
+
+      // createDisplacementGeometryChunk(
+      //   null,
+      //   qw,
+      //   qh,
+      //   qw * geomOptions.displaceVertexScale,
+      //   qh * geomOptions.displaceVertexScale,
+      //   displaceCanvas,
+      //   geomOptions.displacementScale,
+      //   0,
+      //   qw / mapWidth,
+      //   qh / mapHeight,
+      //   qx * qw * geomOptions.displaceDimensionScale,
+      //   qy * qh * geomOptions.displaceDimensionScale
+      // );
 
       hdTerrain.geometry = geometry;
 
+      const hdDisplace = new THREE.CanvasTexture(displaceCanvas);
+      hdDisplace.flipY = false;
+
+      // const hdDepthMaterial = new MeshDepthMaterial({
+      //   displacementScale: geomOptions.displacementScale,
+      //   displacementMap: hdDisplace,
+      //   onBeforeCompile: function (shader) {
+      //     let vs = shader.vertexShader;
+      //     vs = vs.replace(
+      //       "#include <displacementmap_vertex>",
+      //       `
+      //     #ifdef USE_DISPLACEMENTMAP
+
+      //         vec2 duv = (vUv * quartileResolution) ;
+      //         // flip on y axis per quartile
+      //         duv.x += quartileOffset.x;
+      //         duv.y = quartileResolution.y - duv.y + quartileOffset.y;
+      //         transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
+
+      //       #endif
+      //     `
+      //     );
+      //     shader.vertexShader = `
+      //       precision highp isampler2D;
+      //       uniform vec2 quartileResolution;
+      //       uniform vec2 quartileOffset;
+
+      //     ${vs}`;
+      //     shader.uniforms.quartileResolution = {
+      //       value: new Vector2(qw / mapWidth, qh / mapHeight),
+      //     };
+      //     shader.uniforms.quartileOffset = {
+      //       value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
+      //     };
+      //   },
+      // });
+
       const mat = new THREE.MeshStandardMaterial({
-        map: hdMaps.mapQuartiles[x][y],
+        map: hdMaps.mapQuartiles[qx][qy],
         // bumpMap: hdMaps.mapQuartiles[x][y],
         // bumpScale: options.bumpScale,
-
+        displacementScale: geomOptions.displacementScale,
+        displacementMap: hdDisplace,
         onBeforeCompile: function (shader) {
           let fs = shader.fragmentShader;
+          let vs = shader.vertexShader;
+          vs = vs.replace(
+            "#include <displacementmap_vertex>",
+            `
+          #ifdef USE_DISPLACEMENTMAP
+
+              vec2 duv = (vUv * quartileResolution) ;
+              // flip on y axis per quartile
+              duv.x += quartileOffset.x;
+              duv.y = quartileResolution.y - duv.y + quartileOffset.y;
+              transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
+        
+            #endif
+          `
+          );
+          shader.vertexShader = `
+            precision highp isampler2D;
+            uniform vec2 quartileResolution;
+            uniform vec2 quartileOffset;
+          
+          ${vs}`;
+
           fs = fs.replace(
             "#include <map_fragment>",
             `
@@ -725,18 +798,18 @@ export default async (tileData, geomOptions) => {
             ${fs}
         `;
           shader.uniforms.quartileResolution = {
-            value: new Vector2(w / mapWidth, h / mapHeight),
+            value: new Vector2(qw / mapWidth, qh / mapHeight),
           };
           shader.uniforms.quartileOffset = {
-            value: new Vector2((w * x) / mapWidth, (h * y) / mapHeight),
+            value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
           };
           shader.uniforms.invMapResolution = {
-            value: new Vector2(1 / w, 1 / h),
+            value: new Vector2(1 / qw, 1 / qh),
           };
           shader.uniforms.mapToCreepResolution = {
             value: new Vector2(
-              w / (creepTextureHD.width / 128),
-              h / (creepTextureHD.height / 128)
+              qw / (creepTextureHD.width / 128),
+              qh / (creepTextureHD.height / 128)
             ),
           };
           shader.uniforms.creepResolution = {
@@ -748,8 +821,8 @@ export default async (tileData, geomOptions) => {
 
           shader.uniforms.mapToCreepEdgesResolution = {
             value: new Vector2(
-              w / (creepEdgesTextureHD.width / 128),
-              h / (creepEdgesTextureHD.height / 128)
+              qw / (creepEdgesTextureHD.width / 128),
+              qh / (creepEdgesTextureHD.height / 128)
             ),
           };
           shader.uniforms.creepEdges = sharedCreepEdgesValues;
@@ -774,9 +847,9 @@ export default async (tileData, geomOptions) => {
       hdTerrain.receiveShadow = true;
       hdTerrain.rotation.x = -Math.PI / 2;
       hdTerrain.position.x =
-        x * hdMaps.quartileWidth + hdMaps.quartileWidth / 2 - mapWidth / 2;
+        qx * hdMaps.quartileWidth + hdMaps.quartileWidth / 2 - mapWidth / 2;
       hdTerrain.position.z =
-        y * hdMaps.quartileHeight + hdMaps.quartileHeight / 2 - mapHeight / 2;
+        qy * hdMaps.quartileHeight + hdMaps.quartileHeight / 2 - mapHeight / 2;
 
       hdTerrain.userData.map = sdMap;
       hdTerrain.userData.mat = mat;
