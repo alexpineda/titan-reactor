@@ -14,6 +14,7 @@ export default class GameSprite extends Object3D {
     this.images = new Map();
     this.selectionCircle = new SelectionCircle();
     this.selectionBars = new SelectionBars();
+    this.lastZOff = 0;
   }
 
   update() {

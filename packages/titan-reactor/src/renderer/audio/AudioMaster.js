@@ -4,9 +4,9 @@ import SoundChannels from "./SoundChannels";
 
 // central point for sound mixer, and audio channels for game sounds
 export default class AudioMaster {
-  constructor(loadSoundAsync, panningStyle, races) {
+  constructor(loadSoundAsync, races) {
     this.mixer = new MainMixer();
-    this.channels = new SoundChannels(this.mixer, loadSoundAsync, panningStyle);
+    this.channels = new SoundChannels(this.mixer, loadSoundAsync);
     this.music = new Music(races);
     this.music.setListener(this.mixer);
     this.queued = [];

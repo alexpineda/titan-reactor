@@ -1,6 +1,6 @@
 import { is, pick } from "ramda";
 import { Group } from "three";
-import { iscriptHeaders, headersById } from "../types/iscriptHeaders";
+import { iscriptHeaders } from "../types/iscriptHeaders";
 import { imageTypes } from "../types/imageTypes";
 import { overlayTypesById, overlayTypes } from "../types/overlayTypes";
 import { drawFunctions } from "../types/drawFunctions";
@@ -36,6 +36,7 @@ export default class TitanSprite extends Group {
     };
     this.logger = logger;
     this.renderOrder = 4;
+    this.lastZOff = 0;
   }
 
   addImage(image, imageOrder, rel) {
@@ -131,6 +132,13 @@ export default class TitanSprite extends Group {
         this.destroyTitanSpriteCb(this);
       }
     }
+
+    const nextZOff = this.mainImage
+      ? (this.mainImage._zOff * this.mainImage._spriteScale) / 32
+      : 0;
+    this.position.z = this.position.z - this.lastZOff + nextZOff;
+    this.lastZOff = nextZOff;
+
     return this.images.length;
   }
 
@@ -346,10 +354,8 @@ export default class TitanSprite extends Group {
         case "creategasoverlays":
           {
             const imageOffset = val[0];
-            const imageId = true
-              ? // const imageId = this.unit.resources
-                imageTypes.gasOverlay
-              : imageTypes.depletedGasOverlay;
+            const imageId = imageTypes.gasOverlay;
+            //@todo support imageTypes.depletedGasOverlay;
 
             const titanImage = this.addImage(
               imageId + imageOffset,
@@ -359,70 +365,63 @@ export default class TitanSprite extends Group {
             const los = this.bwDat.los[image.imageDef.specialOverlay - 1];
             const [ox, oy] = los[titanImage.userData.frame][imageOffset];
 
-            // console.log(
-            //   "geyser",
-            //   this._getImageLoOffset(image, 2, imageOffset),
-            //   [ox, oy]
-            // );
-
             titanImage.position.x = ox / 32;
             titanImage.position.z = oy / 32;
-            // titanImage.setPosition(ox, oy);
           }
           break;
-        case "useweapon":
-          {
-          }
-          break;
-        case "attackwith":
-          {
-          }
-          break;
-        case "attack":
-          {
-          }
-          break;
-        case "domissiledmg":
-          {
-          }
-          break;
-        case "dogrddamage":
-          {
-          }
-          break;
-        case "dogrddamage":
-          {
-          }
-          break;
-        case "castspell":
-          {
-          }
-          break;
-        case "attkshiftproj":
-          {
-          }
-          break;
-        case "trgtrangecondjmp":
-          {
-          }
-          break;
-        case "trgtarccondjmp":
-          {
-          }
-          break;
-        case "curdirectcondjmp":
-          {
-          }
-          break;
+        // case "useweapon":
+        //   {
+        //   }
+        //   break;
+        // case "attackwith":
+        //   {
+        //   }
+        //   break;
+        // case "attack":
+        //   {
+        //   }
+        //   break;
+        // case "domissiledmg":
+        //   {
+        //   }
+        //   break;
+        // case "dogrddamage":
+        //   {
+        //   }
+        //   break;
+        // case "dogrddamage":
+        //   {
+        //   }
+        //   break;
+        // case "castspell":
+        //   {
+        //   }
+        //   break;
+        // case "attkshiftproj":
+        //   {
+        //   }
+        //   break;
+        // case "trgtrangecondjmp":
+        //   {
+        //   }
+        //   break;
+        // case "trgtarccondjmp":
+        //   {
+        //   }
+        //   break;
+        // case "curdirectcondjmp":
+        //   {
+        //   }
+        //   break;
 
-        case "grdsprol":
-          {
-          }
-          break;
-        case "warpoverlay":
-          {
-          }
-          break;
+        // case "grdsprol":
+        //   {
+        //   }
+        //   break;
+        // case "warpoverlay":
+        //   {
+        //   }
+        //   break;
 
         case "setpos":
           {

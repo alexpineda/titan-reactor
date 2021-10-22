@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
-import { RenderMode, ShadowLevel, GameAspect } from "common/settings";
+import { RenderMode, GameAspect } from "common/settings";
 import isDev from "electron-is-dev";
 
 import {
@@ -13,7 +13,6 @@ import fileExists from "../common/utils/fileExists";
 import path from "path";
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 import phrases from "common/phrases";
-import AudioPanningStyle from "common/AudioPanningStyle";
 
 const VERSION = 1;
 
@@ -163,7 +162,6 @@ export class Settings extends EventEmitter {
       musicVolume: 0.1,
       musicAllTypes: false,
       soundVolume: 1,
-      audioPanningStyle: AudioPanningStyle.Spatial,
       antialias: false,
       anisotropy: 1,
       pixelRatio: 1,

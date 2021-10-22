@@ -1,3 +1,5 @@
+const aliases = require("./aliases");
+
 module.exports = function (config) {
   // config.devServer.headers = {
   //   "Cache-Control": "no-cache",
@@ -12,11 +14,9 @@ module.exports = function (config) {
 
   config.resolve.alias = {
     ...config.resolve.alias,
-    react: "preact/compat",
-    "react-dom/test-utils": "preact/test-utils",
-    "react-dom": "preact/compat", // Must be below test-utils
-    "react/jsx-runtime": "preact/jsx-runtime",
+    ...aliases,
   };
+  //eslint-disable-next-line
   console.log(JSON.stringify(config, null, 4));
 
   return config;

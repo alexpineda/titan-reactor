@@ -1,3 +1,5 @@
+import { Mesh } from "three";
+
 const maps = [
   "map",
   "normalMap",
@@ -7,7 +9,7 @@ const maps = [
   "emissiveMap",
 ];
 
-export const disposeMesh = (mesh) => {
+export const disposeMesh = (mesh: Mesh) => {
   if (mesh.material) {
     for (const map of maps) {
       try {

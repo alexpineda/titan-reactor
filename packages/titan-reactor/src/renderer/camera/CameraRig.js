@@ -1,7 +1,7 @@
 import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 
-import StandardCameraControls from "./StandardCameraControls";
+import StandardCameraControls from "../input/StandardCameraControls";
 
 export const CameraControlType = {
   none: 0,

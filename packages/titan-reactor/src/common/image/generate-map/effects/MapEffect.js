@@ -476,7 +476,7 @@ export class MapEffect extends Effect {
    * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
    */
 
-  update(renderer, inputBuffer, deltaTime) {
+  update() {
     const texture = this.uniforms.get("texture").value;
 
     if (this.uvTransform && texture.matrixAutoUpdate) {

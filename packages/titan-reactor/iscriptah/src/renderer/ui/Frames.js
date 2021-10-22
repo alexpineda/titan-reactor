@@ -33,7 +33,7 @@ const Frames = ({
         <p className="text-xs italic mb-4">
           <p>{numFrames} All Frames</p>
           <p>{Math.floor(numFrames / 17)} Framesets</p>
-          <p>{numFrames % 17} "Loose" Frames</p>
+          <p>{numFrames % 17} Loose Frames</p>
         </p>
         <label>
           <input

@@ -7,7 +7,6 @@ let initialized = isDev;
 
 export function getUserDataPath() {
   if (initialized) {
-    console.log("userDataPath", userDataPath);
     return userDataPath;
   }
 

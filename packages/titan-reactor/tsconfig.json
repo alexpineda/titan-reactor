@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitOverride": true,
+    "strict": true,
+    "outDir": "dist",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact/compat",
+
+    "checkJs": false,
+    "noEmit": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+
+    "isolatedModules": true,
+
+    "inlineSources": true,
+    "sourceMap": true
+  }
+}

@@ -5,7 +5,6 @@ import {
   incFontSize,
   decFontSize,
 } from "../../../../common/utils/changeFontSize";
-import useSettingsStore from "../../../stores/settingsStore";
 import useGameStore from "../../../stores/gameStore";
 import {
   UnitProductionView,

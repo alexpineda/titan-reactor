@@ -1,8 +1,8 @@
 import CameraControls from "camera-controls";
 import { is, range } from "ramda";
 import * as THREE from "three";
-import CameraShake from "./CameraShake";
-import InputEvents from "../input/InputEvents";
+import CameraShake from "../camera/CameraShake";
+import InputEvents from "./InputEvents";
 
 CameraControls.install({ THREE });
 

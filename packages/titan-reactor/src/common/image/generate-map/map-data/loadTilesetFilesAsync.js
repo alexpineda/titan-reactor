@@ -1,10 +1,10 @@
-import readDdsGrp from "../ddsGrp";
+import readDdsGrp from "../../ddsGrp";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;
 };
 
-export default async (readFileFn, chk) => {
+export const loadTilesetFilesAsync = async (readFileFn, chk) => {
   const readFile = async (file, arrayBuffer = true) => {
     const buf = await readFileFn(file);
     return arrayBuffer ? toArrayBuffer(buf) : buf;

@@ -1,12 +1,12 @@
 import {
   CSS2DRenderer,
-  CSS2DObject,
+  // CSS2DObject,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 import {
   CSS3DRenderer,
-  CSS3DObject,
-  CSS3DSprite,
+  // CSS3DObject,
+  // CSS3DSprite,
 } from "three/examples/jsm/renderers/CSS3DRenderer";
 
 class RenderCSS {

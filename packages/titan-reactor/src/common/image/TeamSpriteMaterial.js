@@ -55,12 +55,12 @@ class TeamSpriteMaterial extends SpriteMaterial {
   }
 
   onBeforeCompile(shader) {
-    function extendVertex(replace, chunks, keep = true) {
-      return extend("vertexShader", replace, chunks, (keep = true));
+    function extendVertex(replace, chunks) {
+      return extend("vertexShader", replace, chunks);
     }
 
-    function extendFragment(replace, chunks, keep = true) {
-      return extend("fragmentShader", replace, chunks, (keep = true));
+    function extendFragment(replace, chunks) {
+      return extend("fragmentShader", replace, chunks);
     }
 
     function extend(prop, replace, chunks, keep = true) {

@@ -1,5 +1,5 @@
-import generateIcons from "../../common/image/generateIcons";
-import readCascFile from "../../common/utils/casclib";
+import generateIcons from "./image/generateIcons";
+import readCascFile from "./utils/casclib";
 
 class Icons {
   async generate() {

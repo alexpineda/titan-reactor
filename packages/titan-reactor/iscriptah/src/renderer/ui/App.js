@@ -124,7 +124,6 @@ const App = ({
         properties: ["openDirectory"],
       })
       .then(({ filePaths, canceled }) => {
-        console.log("show open dialog", filePaths);
         if (canceled) return;
         bootup(filePaths[0]);
       })

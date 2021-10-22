@@ -35,7 +35,6 @@ export default class GrpSD2 {
     }
 
     if (sprite.maps.teamcolor) {
-      const test = getBuf(sprite.maps.teamcolor);
       const ddsBuf = getBuf(sprite.maps.teamcolor, 4);
 
       this.teamcolor = new DataTexture(

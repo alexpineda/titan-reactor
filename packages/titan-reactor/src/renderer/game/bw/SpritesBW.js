@@ -1,7 +1,5 @@
 import ContiguousContainer from "./ContiguousContainer";
 
-const flags = Object.freeze({});
-
 // all sprites in a bw frame
 export default class SpritesBW extends ContiguousContainer {
   static get byteLength() {

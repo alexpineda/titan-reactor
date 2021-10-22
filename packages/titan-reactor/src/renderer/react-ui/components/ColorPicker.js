@@ -44,7 +44,10 @@ const ColorPicker = ({ color, onChange, className = "" }) => {
           <div
             className="fixed"
             style={{ top: "0px", right: "0px", bottom: "0px", left: "0px" }}
-            onClick={() => setDisplayColorPicker(false)}
+            onClick={() => {
+              onChange();
+              setDisplayColorPicker(false);
+            }}
           />
         </div>
       ) : null}

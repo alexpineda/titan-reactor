@@ -1,5 +1,3 @@
-import AudioPanningStyle from "common/AudioPanningStyle";
-
 const stopTime = 30; //ms
 
 // an instance of a bw sound
@@ -11,12 +9,11 @@ export default class Audio {
    * @param {DeferredAudioBuffer} buffer
    * @param {SoundChannel} channel
    */
-  constructor(mixer, sound, buffer, panningStyle = AudioPanningStyle.Spatial) {
+  constructor(mixer, sound, buffer) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;
     this.isPlaying = false;
-    this.panningStyle = panningStyle;
   }
 
   queue(elapsed) {
@@ -36,22 +33,17 @@ export default class Audio {
 
     let panner;
     let volume = 1;
-    if (this.panningStyle === AudioPanningStyle.Stereo) {
-      panner = this.mixer.context.createStereoPanner();
-      panner.pan.value = this.sound.pan;
-      volume = this.sound.volume / 100;
-    } else {
-      panner = this.mixer.context.createPanner();
-      panner.panningModel = "HRTF";
 
-      panner.refDistance = 20;
-      panner.rolloffFactor = 0.5;
-      panner.distanceModel = "inverse";
+    panner = this.mixer.context.createPanner();
+    panner.panningModel = "HRTF";
 
-      panner.positionX.value = this.sound.mapX;
-      panner.positionY.value = this.sound.mapY;
-      panner.positionZ.value = this.sound.mapZ;
-    }
+    panner.refDistance = 20;
+    panner.rolloffFactor = 0.5;
+    panner.distanceModel = "inverse";
+
+    panner.positionX.value = this.sound.mapX;
+    panner.positionY.value = this.sound.mapY;
+    panner.positionZ.value = this.sound.mapZ;
 
     source.buffer = this.buffer.buffer;
 

@@ -3,8 +3,9 @@ import AnimationBlocks from "./AnimationBlocks";
 import calculateImagesFromIscript from "titan-reactor-shared/image/calculateImagesFromIScript";
 
 const Unit = ({ unit, bwDat, expanded, ...props }) => {
-  const subUnit1 = unit.subUnit1 !== 228 ? bwDat.units[unit.subUnit1] : null;
-  const subUnit2 = unit.subUnit2 !== 228 ? bwDat.units[unit.subUnit2] : null;
+  //@todo support subunit
+  // const subUnit1 = unit.subUnit1 !== 228 ? bwDat.units[unit.subUnit1] : null;
+  // const subUnit2 = unit.subUnit2 !== 228 ? bwDat.units[unit.subUnit2] : null;
 
   const imagesFromIscript = useCallback(() => {
     return [

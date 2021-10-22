@@ -6,7 +6,7 @@ const TabSelector = ({ activeTab, setTab, tab, label }) => {
       className={`py-2 px-3 hover:bg-gray-700 cursor-pointer ${
         activeTab == tab ? "bg-gray-700" : ""
       }`}
-      onClick={(e) => setTab(tab)}
+      onClick={() => setTab(tab)}
     >
       {label}
     </li>

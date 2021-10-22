@@ -81,13 +81,6 @@ export default class ReadState {
     return true;
   }
 
-  initType(frame, name, count, type) {
-    return {
-      name,
-      count,
-    };
-  }
-
   process(buf, frame) {
     //@todo remove this and read from .rep
     if (this.mode === ReadState.FrameCount) {

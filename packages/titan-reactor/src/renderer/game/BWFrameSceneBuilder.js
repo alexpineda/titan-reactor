@@ -278,8 +278,6 @@ export default class BWFrameSceneBuilder {
         if (player) {
           titanImage.setTeamColor(player.color.three);
         }
-        titanImage.offsetX = titanImage.position.x = image.x / 32;
-        titanImage.offsetY = titanImage.position.z = image.y / 32;
         titanImage.renderOrder = _imageRenderOrder++;
 
         //@todo: add special overlay to material for certain sprites
@@ -303,8 +301,10 @@ export default class BWFrameSceneBuilder {
           sprite.images.set(image.id, titanImage);
         }
 
+        let z = 0;
         if (image.index === spriteBW.mainImageIndex) {
           sprite.mainImage = titanImage;
+          z = titanImage._zOff * (titanImage._spriteScale / 32); //x4 for HD
 
           if (sprite.unit) {
             titanImage.rotation.y = sprite.unit.angle;
@@ -315,16 +315,9 @@ export default class BWFrameSceneBuilder {
               this.interactableSprites.push(titanImage);
             }
           }
-          // sprite.position.y -=
-          //   titanImage.atlas.grpHeight / 2 / titanImage._spriteScale;
-
-          // sprite.position.y =
-          //   sprite.position.y -
-          //   (titanImage.atlas.grpHeight -
-          //     titanImage.lastSetFrame.y -
-          //     titanImage.lastSetFrame.h) /
-          //     titanImage._spriteScale;
         }
+        sprite.position.z += z - sprite.lastZOff;
+        sprite.lastZOff = z;
       }
 
       this.group.add(sprite);

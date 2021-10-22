@@ -1,6 +1,5 @@
 export default {
   TogglePlay: "TogglePlay",
-  ToggleGrid: "ToggleGrid",
   ToggleMenu: "ToggleMenu",
   ToggleReplayPosition: "ToggleReplayPosition",
   ToggleUnitSelection: "ToggleUnitSelection",

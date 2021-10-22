@@ -239,7 +239,7 @@ export default class GameIcons {
     this.icons.offY = maxOy;
   }
 
-  renderWireframes(renderer, dds, color = new Color(1, 0, 0)) {
+  renderWireframes(renderer, dds) {
     this.wireframes = [];
 
     const ortho = new OrthographicCamera();

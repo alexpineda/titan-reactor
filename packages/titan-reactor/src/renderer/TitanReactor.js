@@ -6,11 +6,12 @@ import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
 import TitanReactorGame from "./TitanReactorGame";
-import TitanReactorScene from "./TitanReactorScene";
+import Scene, { generateTerrain } from "./render/Scene";
 import { openFile, log } from "./invoke";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 
 import createTitanImage from "../common/image/createTitanImage";
+import TitanImageHD from "../common/image/TitanImageHD";
 import { createIScriptRunner } from "../common/iscript/IScriptRunner";
 
 import FileGameStateReader from "./game/bw/FileGameStateReader";
@@ -115,9 +116,9 @@ export class TitanReactor {
     const chk = new Chk(rep.chk);
     loadingStore.updateChk(pick(["title", "description"], chk));
 
-    log("initializing scene");
-    const scene = new TitanReactorScene(chk);
-    const sceneIsLoaded = scene.build();
+    log("building terrain");
+    const terrainInfo = await generateTerrain(chk);
+    const scene = new Scene(terrainInfo);
 
     log("starting gamestate reader", repFile, outFile);
     const gameStateReader = new FileGameStateReader(
@@ -141,17 +142,17 @@ export class TitanReactor {
     log("initializing audio");
     const audioMaster = new AudioMaster(
       assets.loadAudioFile.bind(assets),
-      settings.audioPanningStyle,
       races
     );
     audioMaster.musicVolume = settings.musicVolume;
     audioMaster.soundVolume = settings.soundVolume;
 
-    await sceneIsLoaded;
     log("initializing replay");
+    TitanImageHD.useDepth = false;
     const game = await TitanReactorGame(
       scene,
-      chk,
+      terrainInfo,
+      chk.units,
       rep,
       gameStateReader,
       assets.bwDat,
@@ -179,7 +180,6 @@ export class TitanReactor {
     disposeGame();
 
     const loadingStore = useLoadingStore.getState();
-    const settings = getSettings();
     loadingStore.initChk(chkFilepath);
 
     log("loading chk");
@@ -193,9 +193,8 @@ export class TitanReactor {
     const assets = getAssets();
 
     log("initializing scene");
-    const scene = new TitanReactorScene(chk);
-
-    await scene.build();
+    const terrainInfo = await generateTerrain(chk);
+    const scene = new Scene(terrainInfo);
 
     const createTitanSprite = () =>
       new TitanSprite(
@@ -211,9 +210,12 @@ export class TitanReactor {
         (sprite) => scene.add(sprite)
       );
 
+    TitanImageHD.useDepth = true;
     const game = await TitanReactorMap(
       assets.bwDat,
-      chk,
+      chk.units,
+      chk.sprites,
+      terrainInfo,
       scene,
       createTitanSprite
     );

@@ -9,23 +9,7 @@ import { drawFunctions } from "../types/drawFunctions";
 
 export default class TitanImageSD extends Sprite {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {
-    const { texture, grpWidth, grpHeight, frames } = atlas;
-
-    const maxFrameBottom = frames.reduce((max, { h, y }) => {
-      if (grpHeight - h - y > max) {
-        max = grpHeight - h - y;
-      }
-      return max;
-    }, 0);
-
-    const yOff = maxFrameBottom / grpHeight;
-
-    // const sprite = new SDSprite(new MeshStandardMaterial({ map }));
-    // sprite.customDepthMaterial = new MeshDepthMaterial({
-    //   depthPacking: RGBADepthPacking,
-    //   map: this.masks[bucketId],
-    //   alphaTest: 0.5,
-    // });
+    const { texture, grpWidth, grpHeight } = atlas;
 
     super(new SpriteMaterial({ map: texture }));
 
@@ -106,8 +90,6 @@ export default class TitanImageSD extends Sprite {
   }
 
   _setFrame(frame, flipFrame, uv) {
-    if (frame === undefined) debugger;
-
     if (flipFrame) {
       uv.array[0] = (frame.grpX + this.atlas.grpWidth) / this.atlas.width;
       uv.array[1] = 1 - (frame.grpY + this.atlas.grpHeight) / this.atlas.height;

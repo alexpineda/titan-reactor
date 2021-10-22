@@ -1,6 +1,6 @@
+import React from "react";
 import { ipcRenderer } from "electron";
 import { promises as fsPromises } from "fs";
-import React from "react";
 import { render } from "react-dom";
 import App from "./react-ui/App";
 import { log } from "./invoke";
@@ -11,7 +11,6 @@ import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
 import useTitanReactorStore from "./stores/titanReactorStore";
 import useSettingsStore from "./stores/settingsStore";
 import useLoadingStore from "./stores/loadingStore";
-import "./stores/capabilitiesStore";
 
 if (module.hot) {
   module.hot.accept();
@@ -73,12 +72,12 @@ ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replays) => {
 render(<App titanReactor={titanReactor} />, document.getElementById("app"));
 bootup();
 
-let cls = 0;
-new PerformanceObserver((entryList) => {
-  for (const entry of entryList.getEntries()) {
-    if (!entry.hadRecentInput) {
-      cls += entry.value;
-      console.log("Current CLS value:", cls, entry);
-    }
-  }
-}).observe({ type: "layout-shift", buffered: true });
+// let cls = 0;
+// new PerformanceObserver((entryList) => {
+//   for (const entry of entryList.getEntries()) {
+//     if (!entry.hadRecentInput) {
+//       cls += entry.value;
+//       console.log("Current CLS value:", cls, entry);
+//     }
+//   }
+// }).observe({ type: "layout-shift", buffered: true });

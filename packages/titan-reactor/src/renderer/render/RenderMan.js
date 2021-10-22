@@ -184,7 +184,6 @@ class RenderMan {
     this._renderPass.scene = scene;
     this._renderPass.camera = camera;
 
-    console.log(this.renderer.info.render.calls);
     this._composer.render(delta);
 
     this.canvasTarget.ctx.drawImage(

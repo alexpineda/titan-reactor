@@ -3,10 +3,9 @@ import { GameStatePosition } from "./game/GameStatePosition";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import HeatmapScore from "./react-ui/game/HeatmapScore";
 import CameraRig from "./camera/CameraRig";
-import MinimapControl from "./camera/MinimapControl";
+import MinimapControl from "./input/MinimapControl";
 import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
 import { Players } from "./game/Players";
-import FadingPointers from "./mesh/FadingPointers";
 import { commands } from "../common/types/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
 import { unitTypes } from "../common/types/unitTypes";
@@ -25,7 +24,7 @@ import { debounce } from "lodash";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { MOUSE } from "three";
 
-import MouseCursor from "./scene/MouseCursor";
+import MouseCursor from "./game/MouseCursor";
 
 import useSettingsStore from "./stores/settingsStore";
 import useGameStore from "./stores/gameStore";
@@ -45,7 +44,8 @@ const addChatMessage = useGameStore.getState().addChatMessage;
 
 async function TitanReactorGame(
   scene,
-  chk,
+  terrainInfo,
+  preplacedMapUnits,
   rep,
   gameStateReader,
   bwDat,
@@ -57,7 +57,7 @@ async function TitanReactorGame(
   const cursor = new MouseCursor();
   cursor.pointer();
 
-  const [mapWidth, mapHeight] = chk.size;
+  const { mapWidth, mapHeight } = terrainInfo;
   scene.mapWidth = mapWidth;
   scene.mapHeight = mapHeight;
 
@@ -82,9 +82,6 @@ async function TitanReactorGame(
   );
 
   window.scene = scene;
-
-  const fadingPointers = new FadingPointers();
-  scene.add(fadingPointers);
 
   const cameraRig = new CameraRig(
     settings,
@@ -122,13 +119,12 @@ async function TitanReactorGame(
     renderMan.renderer.shadowMap.autoUpdate = false;
     renderMan.renderer.shadowMap.needsUpdate = true;
   }
-  const getTerrainY = scene.getTerrainY();
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
 
   const players = new Players(
     rep.header.players,
-    chk.units.filter((u) => u.unitId === startLocation),
+    preplacedMapUnits.filter((u) => u.unitId === startLocation),
     settings.playerColors,
     settings.randomizeColorOrder
   );
@@ -166,10 +162,6 @@ async function TitanReactorGame(
   };
 
   keyboardShortcuts.addEventListener(InputEvents.TogglePlay, togglePlayHandler);
-
-  const toggleGridHandler = () =>
-    (scene.gridHelper.visible = !scene.gridHelper.visible);
-  keyboardShortcuts.addEventListener(InputEvents.ToggleGrid, toggleGridHandler);
 
   const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
@@ -259,14 +251,14 @@ async function TitanReactorGame(
   const creep = new Creep(
     mapWidth,
     mapHeight,
-    scene.creepUniform.value,
-    scene.creepEdgesUniform.value
+    terrainInfo.creepTextureUniform.value,
+    terrainInfo.creepEdgesTextureUniform.value
   );
 
   const minimapCanvasDrawer = new MinimapCanvasDrawer(
     "white",
     minimapSurface,
-    scene.minimapBitmap,
+    terrainInfo.minimapBitmap,
     mapWidth,
     mapHeight,
     fogOfWar,
@@ -284,7 +276,7 @@ async function TitanReactorGame(
     creep,
     bwDat,
     pxToGameUnit,
-    getTerrainY,
+    terrainInfo.getTerrainY,
     players,
     fogOfWar,
     audioMaster,
@@ -335,11 +327,8 @@ async function TitanReactorGame(
 
       if (currentBwFrame) {
         gameStatePosition.bwGameFrame = currentBwFrame.frame;
-        if (
-          gameStatePosition.bwGameFrame % 8 === 0 &&
-          scene.terrainSD.material.userData.tileAnimationCounter !== undefined
-        ) {
-          scene.terrainSD.material.userData.tileAnimationCounter.value++;
+        if (gameStatePosition.bwGameFrame % 8 === 0) {
+          scene.incrementTileAnimation();
         }
 
         frameBuilder.update(currentBwFrame, delta, elapsed, units);
@@ -406,21 +395,20 @@ async function TitanReactorGame(
                 case commands.build: {
                   const px = pxToGameUnit.x(cmd.x);
                   const py = pxToGameUnit.y(cmd.y);
-                  const pz = getTerrainY(px, py);
+                  const pz = terrainInfo.getTerrainY(px, py);
 
-                  fadingPointers.addPointer(
-                    px,
-                    py,
-                    pz,
-                    players.playersById[cmd.player].color.rgb,
-                    gameStatePosition.bwGameFrame
-                  );
+                  // fadingPointers.addPointer(
+                  //   px,
+                  //   py,
+                  //   pz,
+                  //   players.playersById[cmd.player].color.rgb,
+                  //   gameStatePosition.bwGameFrame
+                  // );
                 }
               }
             }
           }
         }
-        fadingPointers.update(gameStatePosition.bwGameFrame);
         currentBwFrame = null;
       } // end of bwframe update
 
@@ -499,7 +487,6 @@ async function TitanReactorGame(
       projectedCameraView.update();
     }
 
-    keyboardShortcuts.update(delta);
     gameStatePosition.update(delta);
   }
 
@@ -523,10 +510,7 @@ async function TitanReactorGame(
       InputEvents.TogglePlay,
       togglePlayHandler
     );
-    keyboardShortcuts.removeEventListener(
-      InputEvents.ToggleGrid,
-      toggleGridHandler
-    );
+
     keyboardShortcuts.removeEventListener(
       InputEvents.ToggleMenu,
       toggleMenuHandler
@@ -549,7 +533,6 @@ async function TitanReactorGame(
 
   const unsub = useSettingsStore.subscribe((state) => {
     settings = state.data;
-    audioMaster.channels.panningStyle = settings.audioPanningStyle;
 
     if (audioMaster.musicVolume !== settings.musicVolume) {
       audioMaster.musicVolume = settings.musicVolume;
@@ -576,7 +559,7 @@ async function TitanReactorGame(
   //   }
   // });
 
-  const unsub3 = useGameStore.subscribe((state, prevVal) => {
+  const unsub3 = useGameStore.subscribe((state) => {
     // fogChanged = fogOfWar.enabled != state.fogOfWar;
     fogOfWar.enabled = state.fogOfWar;
 

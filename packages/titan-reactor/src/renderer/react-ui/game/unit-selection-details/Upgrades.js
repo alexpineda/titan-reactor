@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import useProductionStore from "../../../stores/realtime/productionStore";
 import useGameStore from "../../../stores/gameStore";
 import {

@@ -1,8 +1,7 @@
 // playground for environment
-import * as THREE from "three";
+import { CircleGeometry, MeshBasicMaterial, Mesh, Color, MOUSE } from "three";
 import { debounce } from "lodash";
 
-import { createStartLocation } from "./mesh/BasicObjects";
 import CameraRig from "./camera/CameraRig";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "../common/image/CanvasTarget";
@@ -15,20 +14,34 @@ import useSettingsStore from "./stores/settingsStore";
 import useHudStore from "./stores/hudStore";
 import { iscriptHeaders } from "../common/types/iscriptHeaders";
 import { unitTypes } from "../common/types/unitTypes";
-
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { MOUSE } from "three";
 
-async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
-  const [mapWidth, mapHeight] = chk.size;
+function createStartLocation(mapX, mapY, color, mapZ = 0) {
+  var geometry = new CircleGeometry(2, 32);
+  var material = new MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0.5,
+  });
+  var circle = new Mesh(geometry, material);
+  circle.rotation.x = Math.PI / -2;
+  circle.position.x = mapX;
+  circle.position.z = mapY;
+  circle.position.y = mapZ;
+  circle.name = "StartPosition";
+  return circle;
+}
+
+async function TitanReactorMap(
+  bwDat,
+  preplacedMapUnits,
+  preplacedMapSprites,
+  terrainInfo,
+  scene,
+  createTitanSprite
+) {
+  const { mapWidth, mapHeight } = terrainInfo;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
-
-  var lightCameraHelper = new THREE.CameraHelper(scene.light.shadow.camera);
-  lightCameraHelper.visible = false;
-  scene.add(lightCameraHelper);
-  var lightHelper = new THREE.DirectionalLightHelper(scene.light, 5);
-  scene.add(lightHelper);
-  lightHelper.visible = false;
 
   let settings = useSettingsStore.getState().data;
   const isDev = useSettingsStore.getState().isDev;
@@ -59,7 +72,7 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
-  scene.background = new THREE.Color(settings.mapBackgroundColor);
+  scene.background = new Color(settings.mapBackgroundColor);
 
   const cameraRig = new CameraRig(
     settings,
@@ -91,8 +104,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
   fogOfWar.enabled = false;
 
-  const getTerrainY = scene.getTerrainY();
-
   const playerColors = [
     "#a80808",
     "#083498",
@@ -103,16 +114,16 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     "#c4c0bc",
     "dcdc3c",
   ];
-  const startLocations = chk.units
+  const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
     .map((unit) => {
-      const x = unit.x / 32 - chk.size[0] / 2;
-      const y = unit.y / 32 - chk.size[1] / 2;
+      const x = unit.x / 32 - mapWidth / 2;
+      const y = unit.y / 32 - mapHeight / 2;
       return createStartLocation(
         x,
         y,
         playerColors[unit.player],
-        getTerrainY(x, y)
+        terrainInfo.getTerrainY(x, y)
       );
     });
   startLocations.forEach((sl) => scene.add(sl));
@@ -121,13 +132,13 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
   const critters = [];
   const disabledDoodads = [];
 
-  for (let unit of chk.units) {
+  for (let unit of preplacedMapUnits) {
     const titanSprite = createTitanSprite();
     const unitDat = bwDat.units[unit.unitId];
 
     const x = pxToGameUnit.x(unit.x);
     const z = pxToGameUnit.y(unit.y);
-    const y = getTerrainY(x, z);
+    const y = terrainInfo.getTerrainY(x, z);
 
     titanSprite.position.set(x, y, z);
 
@@ -158,13 +169,13 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     }
   }
 
-  for (let sprite of chk.sprites) {
+  for (let sprite of preplacedMapSprites) {
     const titanSprite = createTitanSprite();
     const spriteDat = bwDat.sprites[sprite.spriteId];
 
     const x = pxToGameUnit.x(sprite.x);
     const z = pxToGameUnit.y(sprite.y);
-    const y = getTerrainY(x, z);
+    const y = terrainInfo.getTerrainY(x, z);
 
     titanSprite.position.set(x, y, z);
     titanSprite.addImage(spriteDat.image.index);
@@ -197,11 +208,8 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
     frameElapsed += delta;
     if (frameElapsed > 42) {
       frame++;
-      if (
-        frame % 8 === 0 &&
-        scene.terrainSD.material.userData.tileAnimationCounter !== undefined
-      ) {
-        scene.terrainSD.material.userData.tileAnimationCounter.value++;
+      if (frame % 8 === 0) {
+        scene.incrementTileAnimation();
       }
       for (let sprite of sprites) {
         sprite.update(delta);
@@ -211,7 +219,6 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
 
     cameraRig.update(delta);
     renderMan.updateFocus(cameraRig);
-    keyboardShortcuts.update(delta);
     fogOfWar.update(cameraRig.camera);
     renderMan.render(scene, cameraRig.camera, delta);
     last = elapsed;
@@ -239,13 +246,8 @@ async function TitanReactorMap(bwDat, chk, scene, createTitanSprite) {
       });
     }
 
-    // if (prevSettings.mouseRotateSpeed !== settings.mouseRotateSpeed) {
-    //   cameras.control.azimuthRotateSpeed = settings.mouseRotateSpeed;
-    //   cameras.control.polarRotateSpeed = settings.mouseRotateSpeed;
-    // }
-
     if (prevSettings.mapBackgroundColor !== settings.mapBackgroundColor) {
-      scene.background = new THREE.Color(settings.mapBackgroundColor);
+      scene.background = new Color(settings.mapBackgroundColor);
     }
   });
 

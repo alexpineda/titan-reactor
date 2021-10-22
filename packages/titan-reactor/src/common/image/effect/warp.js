@@ -112,7 +112,7 @@ export default {
     vec4 wp = projectionMatrix * mvPosition;
     warpPosition = wp.xyz;
   `,
-    `varying vec3 warpPosition;`,
+    "varying vec3 warpPosition;",
   ],
   fragment: [
     null,

@@ -1,5 +1,4 @@
 import Grp3D from "./Grp3D";
-import GrpHD from "./GrpHD";
 
 export default class GrpFileLoader {
   constructor(bwDat, bwDataPath, readFile, sdAnim) {

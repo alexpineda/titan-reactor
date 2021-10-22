@@ -97,9 +97,7 @@ export default class SoundsBW extends ContiguousContainer {
 
       if (distance_volume > volume) volume = distance_volume;
     }
-    if (volume > 100) {
-      console.warn("volume over 100");
-    }
+
     return volume;
   }
 

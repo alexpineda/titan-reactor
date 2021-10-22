@@ -1,7 +1,5 @@
 export default (buf, buffersOnly = false) => {
-  const filesize = buf.readUInt32LE(0);
   const frameCount = buf.readUInt16LE(4);
-  const unknown = buf.readUInt16LE(6);
 
   let pos = 8;
 

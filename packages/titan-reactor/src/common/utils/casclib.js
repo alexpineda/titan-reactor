@@ -7,7 +7,7 @@ export default (filePath) => {
   try {
     return casclib.readFile(_storageHandle, filePath);
   } catch (e) {
-    console.log("failed loading casc file, retrying open casc");
+    console.error("failed loading casc file, retrying open casc");
     casclib.openStorage(_lastBwPath);
     return casclib.readFile(_storageHandle, filePath);
   }
@@ -15,7 +15,6 @@ export default (filePath) => {
 
 export const openCascStorage = (bwPath) => {
   _lastBwPath = bwPath;
-  console.log("opening CASC storage");
   if (_storageHandle) {
     casclib.closeStorage(_storageHandle);
   }

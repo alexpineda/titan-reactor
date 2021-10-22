@@ -6,11 +6,10 @@ import electronFileLoader from "./utils/electronFileLoader";
 import { UnitDAT } from "../common/dat/UnitsDAT";
 import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
 import ContiguousContainer from "./game/bw/ContiguousContainer";
-import Icons from "./scene/Icons";
+import Icons from "../common/Icons";
 import {
   increaseAssetsLoaded,
   completeAssetsLoaded,
-  completeSomeAssets,
 } from "./stores/loadingStore";
 // import loadEnvironmentMap from "../common/image/envMap";
 // import { WebGLRenderer } from "three";

@@ -14,7 +14,7 @@ import { range } from "ramda";
 import { Grp } from "bw-chk-modified/grp";
 
 export async function loadAllDataFiles(readFile) {
-  const iscript = parseIscript(await readFile(`scripts/iscript.bin`));
+  const iscript = parseIscript(await readFile("scripts/iscript.bin"));
 
   const imagesDat = new ImagesDAT(readFile);
   const images = await imagesDat.load();
@@ -22,7 +22,7 @@ export async function loadAllDataFiles(readFile) {
   const los = [];
   for (let i = 0; i < imagesDat.stats.length; i++) {
     if (imagesDat.stats[i].includes(".lo")) {
-      const fpath = path.join(`unit/`, imagesDat.stats[i].replace(/\\/g, `/`));
+      const fpath = path.join("unit/", imagesDat.stats[i].replace(/\\/g, "/"));
       los[i] = await parseLo(await readFile(fpath));
     }
   }
@@ -38,7 +38,7 @@ export async function loadAllDataFiles(readFile) {
   const orders = await new OrdersDAT(readFile).load();
 
   const bufs = await Promise.all(
-    images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, `/`)}`))
+    images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, "/")}`))
   );
 
   const grps = bufs.map((buf) => {

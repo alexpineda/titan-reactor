@@ -95,14 +95,7 @@ class Units {
     return;
   }
 
-  refresh(
-    unitsBW,
-    buildQueueBW,
-    units,
-    unitsBySpriteId,
-    unitsInProduction,
-    frame
-  ) {
+  refresh(unitsBW, buildQueueBW, units, unitsBySpriteId, unitsInProduction) {
     this.imageData.data.fill(0);
     this.resourceImageData.data.fill(0);
 
@@ -230,7 +223,7 @@ class Units {
     unitsInProduction.length = 0;
     unitsInProduction.needsUpdate = true;
 
-    for (const [id, incompleteUnit] of incompleteUnits) {
+    for (const [_, incompleteUnit] of incompleteUnits) {
       const queued = buildQueue.find(
         ({ unitId }) => unitId === incompleteUnit.unitId
       );

@@ -50,7 +50,6 @@ const Game = () => {
   );
   const resetLoadingStore = useLoadingStore(resetSelector);
   const {
-    showFps,
     showInGameMenu,
     toggleInGameMenu,
     showReplayControls,

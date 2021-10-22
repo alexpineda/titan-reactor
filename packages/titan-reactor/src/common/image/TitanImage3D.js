@@ -1,6 +1,7 @@
 import { Object3D, AnimationMixer } from "three";
 import "three/examples/jsm/utils/SkeletonUtils";
-import THREE from "three";
+// eslint-disable-next-line
+import THREE from "three"; // SkeletonUtils attaches to three
 
 export const createTitanImage3D = (
   bwDat,
@@ -50,6 +51,8 @@ export default class TitanImage3D extends Object3D {
     this.imageDef = imageDef;
     this.iscript = createIScriptRunner(this, imageDef);
 
+    this._zOff = 0;
+
     this.setFrame(0, false);
   }
 
@@ -74,7 +77,7 @@ export default class TitanImage3D extends Object3D {
     this.setPositionY(y, scale);
   }
 
-  setFrame(frame, flip) {
+  setFrame(frame) {
     if (!this.mixer) return;
     const effectiveFrame = this.atlas.fixedFrames[frame];
     this.mixer.setTime(this.times[effectiveFrame]);

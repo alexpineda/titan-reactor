@@ -6,27 +6,49 @@ import {
   WebGLRenderer,
   MeshDepthMaterial,
 } from "three";
-import { createDisplacementGeometry } from "./displacementGeometry";
+
+import { mergeBufferGeometries } from "three/examples/jsm/utils/BufferGeometryUtils";
+
+import { getTerrainY } from "./displacementGeometry";
 import { createDisplacementGeometryChunk } from "./displacementGeometryChunk";
-import { KernelSize, BlendFunction } from "postprocessing";
 import {
   EffectComposer,
   EffectPass,
   BlurPass,
   SavePass,
   ClearPass,
+  KernelSize,
+  BlendFunction,
 } from "postprocessing";
 import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
 import { blendNonZeroPixels } from "../blend";
 import { MapEffect } from "./effects/MapEffect";
-import MapSD from "./MapSD";
-import { rgbToCanvas } from "../canvas";
+import { minimapBitmap as genMinimapBitmap } from "./sd";
+
 import {
   increaseMapGenerationProgress,
   completeMapGeneration,
 } from "../../../renderer/stores/loadingStore";
 
-export default async (tileData, geomOptions) => {
+const DEFAULT_GEOM_OPTIONS = {
+  //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
+  elevationLevels: [0, 0.05, 0.25, 0.25, 0.4, 0.4, 0.25],
+  ignoreLevels: [0, 1, 0, 1, 0, 1, 0],
+  normalizeLevels: true,
+  displaceDimensionScale: 16,
+  displaceVertexScale: 2,
+  blendNonWalkableBase: true,
+  firstPass: true,
+  secondPass: true,
+  processWater: true,
+  displacementScale: 4,
+  drawMode: { value: 1 },
+  detailsMix: 0.05,
+  bumpScale: 0.1,
+  firstBlur: 4,
+};
+
+export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
   const {
     palette,
     tileset,
@@ -277,17 +299,17 @@ export default async (tileData, geomOptions) => {
   displaceCanvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
 
   // small optimization: scale down for getTerrainY
-  const displaceForGetTerrainY = document.createElement("canvas");
-  displaceForGetTerrainY.width = mapWidth * 4;
-  displaceForGetTerrainY.height = mapHeight * 4;
-  displaceForGetTerrainY
+  const displacementCanvasSmall = document.createElement("canvas");
+  displacementCanvasSmall.width = mapWidth * 4;
+  displacementCanvasSmall.height = mapHeight * 4;
+  displacementCanvasSmall
     .getContext("2d")
     .drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
 
   //#region sd map
-  const tileAnimationCounter = { value: 0 };
-  const sharedCreepValues = { value: creepValues };
-  const sharedCreepEdgesValues = { value: creepEdgesValues };
+  const tileAnimationCounterUniform = { value: 0 };
+  const creepTextureUniform = { value: creepValues };
+  const creepEdgesTextureUniform = { value: creepEdgesValues };
   const sdMapMaterial = new THREE.MeshStandardMaterial({
     map: sdMap,
     displacementScale: geomOptions.displacementScale,
@@ -465,7 +487,7 @@ export default async (tileData, geomOptions) => {
 
       shader.uniforms.palette = { value: paletteMap };
       shader.uniforms.paletteIndices = { value: paletteIndicesMap };
-      shader.uniforms.counter = tileAnimationCounter;
+      shader.uniforms.counter = tileAnimationCounterUniform;
       if (index1) {
         shader.uniforms.index1 = { value: index1 };
       }
@@ -506,8 +528,8 @@ export default async (tileData, geomOptions) => {
           mapHeight / (creepEdgesTextureSD.height / 32)
         ),
       };
-      shader.uniforms.creep = sharedCreepValues;
-      shader.uniforms.creepEdges = sharedCreepEdgesValues;
+      shader.uniforms.creep = creepTextureUniform;
+      shader.uniforms.creepEdges = creepEdgesTextureUniform;
       shader.uniforms.creepEdgesTexture = {
         value: creepEdgesTextureSD.texture,
       };
@@ -517,7 +539,7 @@ export default async (tileData, geomOptions) => {
       console.log(shader);
     },
   });
-  sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounter;
+  sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounterUniform;
 
   const elevationOptions = {
     drawMode: { value: 1 },
@@ -584,102 +606,104 @@ export default async (tileData, geomOptions) => {
   //   0
   // );
 
-  const terrain = new Mesh();
-  terrain.geometry = geometry;
-  terrain.material = elevationsMaterial;
-  terrain.castShadow = true;
-  terrain.receiveShadow = true;
-  terrain.rotation.x = -Math.PI / 2;
-  terrain.userData.displace = new THREE.CanvasTexture(displaceCanvas);
-  terrain.userData.map = sdMap;
-  terrain.userData.mat = sdMapMaterial;
-  terrain.userData.elevationsMaterial = elevationsMaterial;
-  terrain.userData.textures = [
-    terrain.userData.displace,
-    terrain.userData.map,
-    terrain.userData.elevationsMaterial,
-    terrain.userData.mat,
+  const sdTerrain = new Mesh();
+  sdTerrain.geometry = geometry;
+  sdTerrain.material = elevationsMaterial;
+  sdTerrain.castShadow = true;
+  sdTerrain.receiveShadow = true;
+  sdTerrain.rotation.x = -Math.PI / 2;
+  sdTerrain.userData.displace = new THREE.CanvasTexture(displaceCanvas);
+  sdTerrain.userData.map = sdMap;
+  sdTerrain.userData.mat = sdMapMaterial;
+  sdTerrain.userData.elevationsMaterial = elevationsMaterial;
+  sdTerrain.userData.textures = [
+    sdTerrain.userData.displace,
+    sdTerrain.userData.map,
+    sdTerrain.userData.elevationsMaterial,
+    sdTerrain.userData.mat,
   ];
   //#endregion sd map
 
   //#region hd map
-  const hdTerrainGroup = new THREE.Group();
-  for (let qx = 0; qx < hdMaps.quartileStrideW; qx++) {
-    for (let qy = 0; qy < hdMaps.quartileStrideH; qy++) {
+  const hdDisplace = new THREE.CanvasTexture(displaceCanvas);
+  hdDisplace.flipY = false;
+  const hdMaterials = [];
+  const hdGeometries = [];
+  const qw = hdMaps.quartileWidth;
+  const qh = hdMaps.quartileHeight;
+
+  const hdDepthMaterial = new MeshDepthMaterial({
+    // displacementScale: geomOptions.displacementScale,
+    map: hdDisplace,
+    // onBeforeCompile: function (shader) {
+    //   let vs = shader.vertexShader;
+    //   vs = vs.replace(
+    //     "#include <displacementmap_vertex>",
+    //     `
+    //   #ifdef USE_DISPLACEMENTMAP
+
+    //       vec2 duv = (vUv * quartileResolution) ;
+    //       // flip on y axis per quartile
+    //       duv.x += quartileOffset.x;
+    //       duv.y = quartileResolution.y - duv.y + quartileOffset.y;
+    //       transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
+
+    //     #endif
+    //   `
+    //   );
+    //   shader.vertexShader = `
+    //     precision highp isampler2D;
+    //     uniform vec2 quartileResolution;
+    //     uniform vec2 quartileOffset;
+
+    //   ${vs}`;
+    //   shader.uniforms.quartileResolution = {
+    //     value: new Vector2(qw / mapWidth, qh / mapHeight),
+    //   };
+    //   shader.uniforms.quartileOffset = {
+    //     value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
+    //   };
+    // },
+  });
+
+  for (let qy = 0; qy < hdMaps.quartileStrideH; qy++) {
+    for (let qx = 0; qx < hdMaps.quartileStrideW; qx++) {
       increaseMapGenerationProgress();
-      const hdTerrain = new Mesh();
-      const qw = hdMaps.quartileWidth;
-      const qh = hdMaps.quartileHeight;
 
-      //  new THREE.PlaneBufferGeometry(w, h, 1, 1);
-
-      const geometry = new THREE.PlaneBufferGeometry(
-        qw,
-        qh,
-        qw * geomOptions.displaceVertexScale,
-        qh * geomOptions.displaceVertexScale
-      );
-
-      // createDisplacementGeometryChunk(
-      //   null,
+      // const g = new THREE.PlaneBufferGeometry(
       //   qw,
       //   qh,
       //   qw * geomOptions.displaceVertexScale,
-      //   qh * geomOptions.displaceVertexScale,
-      //   displaceCanvas,
-      //   geomOptions.displacementScale,
-      //   0,
-      //   qw / mapWidth,
-      //   qh / mapHeight,
-      //   qx * qw * geomOptions.displaceDimensionScale,
-      //   qy * qh * geomOptions.displaceDimensionScale
+      //   qh * geomOptions.displaceVertexScale
       // );
 
-      hdTerrain.geometry = geometry;
+      const g = createDisplacementGeometryChunk(
+        null,
+        qw,
+        qh,
+        qw * geomOptions.displaceVertexScale,
+        qh * geomOptions.displaceVertexScale,
+        displaceCanvas,
+        geomOptions.displacementScale,
+        0,
+        qw / mapWidth,
+        qh / mapHeight,
+        qx * qw * geomOptions.displaceDimensionScale,
+        qy * qh * geomOptions.displaceDimensionScale
+      );
 
-      const hdDisplace = new THREE.CanvasTexture(displaceCanvas);
-      hdDisplace.flipY = false;
+      // g.rotateX(-Math.PI / 2);
+      g.translate(
+        qx * qw + qw / 2 - mapWidth / 2,
+        -(qy * qh + qh / 2) + mapHeight / 2,
+        0
+      );
 
-      // const hdDepthMaterial = new MeshDepthMaterial({
-      //   displacementScale: geomOptions.displacementScale,
-      //   displacementMap: hdDisplace,
-      //   onBeforeCompile: function (shader) {
-      //     let vs = shader.vertexShader;
-      //     vs = vs.replace(
-      //       "#include <displacementmap_vertex>",
-      //       `
-      //     #ifdef USE_DISPLACEMENTMAP
-
-      //         vec2 duv = (vUv * quartileResolution) ;
-      //         // flip on y axis per quartile
-      //         duv.x += quartileOffset.x;
-      //         duv.y = quartileResolution.y - duv.y + quartileOffset.y;
-      //         transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
-
-      //       #endif
-      //     `
-      //     );
-      //     shader.vertexShader = `
-      //       precision highp isampler2D;
-      //       uniform vec2 quartileResolution;
-      //       uniform vec2 quartileOffset;
-
-      //     ${vs}`;
-      //     shader.uniforms.quartileResolution = {
-      //       value: new Vector2(qw / mapWidth, qh / mapHeight),
-      //     };
-      //     shader.uniforms.quartileOffset = {
-      //       value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
-      //     };
-      //   },
-      // });
-
+      hdGeometries.push(g);
       const mat = new THREE.MeshStandardMaterial({
         map: hdMaps.mapQuartiles[qx][qy],
-        // bumpMap: hdMaps.mapQuartiles[x][y],
-        // bumpScale: options.bumpScale,
-        displacementScale: geomOptions.displacementScale,
-        displacementMap: hdDisplace,
+        // displacementScale: geomOptions.displacementScale,
+        // displacementMap: hdDisplace,
         onBeforeCompile: function (shader) {
           let fs = shader.fragmentShader;
           let vs = shader.vertexShader;
@@ -693,7 +717,7 @@ export default async (tileData, geomOptions) => {
               duv.x += quartileOffset.x;
               duv.y = quartileResolution.y - duv.y + quartileOffset.y;
               transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
-        
+
             #endif
           `
           );
@@ -825,8 +849,8 @@ export default async (tileData, geomOptions) => {
               qh / (creepEdgesTextureHD.height / 128)
             ),
           };
-          shader.uniforms.creepEdges = sharedCreepEdgesValues;
-          shader.uniforms.creep = sharedCreepValues;
+          shader.uniforms.creepEdges = creepEdgesTextureUniform;
+          shader.uniforms.creep = creepTextureUniform;
           shader.uniforms.creepEdgesTexture = {
             value: creepEdgesTextureHD.texture,
           };
@@ -842,64 +866,69 @@ export default async (tileData, geomOptions) => {
         },
       });
 
-      hdTerrain.material = mat;
-      hdTerrain.castShadow = true;
-      hdTerrain.receiveShadow = true;
-      hdTerrain.rotation.x = -Math.PI / 2;
-      hdTerrain.position.x =
-        qx * hdMaps.quartileWidth + hdMaps.quartileWidth / 2 - mapWidth / 2;
-      hdTerrain.position.z =
-        qy * hdMaps.quartileHeight + hdMaps.quartileHeight / 2 - mapHeight / 2;
-
-      hdTerrain.userData.map = sdMap;
-      hdTerrain.userData.mat = mat;
-      hdTerrain.userData.elevationsMaterial = elevationsMaterial;
-      hdTerrain.userData.textures = [mat];
-
-      hdTerrainGroup.add(hdTerrain);
-      //   hdTerrains.push(hdTerrain);
+      hdMaterials.push(mat);
     }
   }
+
+  const hdGeometry = mergeBufferGeometries(hdGeometries, true);
+  // new THREE.PlaneBufferGeometry(
+  //   mapWidth,
+  //   mapHeight,
+  //   mapWidth * geomOptions.displaceVertexScale,
+  //   mapHeight * geomOptions.displaceVertexScale
+  // );
+  const hdTerrain = new Mesh(hdGeometry, hdMaterials);
+  // hdTerrain.customDepthMaterial = hdDepthMaterial;
+  hdTerrain.rotation.x = -Math.PI / 2;
+  hdTerrain.castShadow = true;
+  hdTerrain.receiveShadow = true;
+  // const indicesPerMaterial = hdGeometry.index.count / hdMaterials.length;
+  // hdMaterials.forEach((_, i) => {
+  //   hdGeometry.addGroup(i * indicesPerMaterial, indicesPerMaterial, i);
+  // });
+
   //#endregion hd map
 
-  terrain.visible = true;
-  hdTerrainGroup.visible = true;
+  sdTerrain.visible = true;
+  hdTerrain.visible = true;
 
-  // DEBUGGGG
-  hdTerrainGroup.creepEdgesTextureHD = creepEdgesTextureHD.texture.image;
-  hdTerrainGroup.creepEdgesTextureSD = rgbToCanvas(
-    creepEdgesTextureSD.texture.image,
-    "rgba"
-  );
-  hdTerrainGroup.creepTextureHD = creepTextureHD.texture.image;
-  hdTerrainGroup.creepTextureSD = rgbToCanvas(
-    creepTextureSD.texture.image,
-    "rgba"
-  );
-
-  terrain.name = "Terrain";
-  hdTerrainGroup.name = "TerrainHD";
+  sdTerrain.name = "Terrain";
+  hdTerrain.name = "TerrainHD";
   renderer.dispose();
 
-  terrain.matrixAutoUpdate = false;
-  terrain.updateMatrix();
+  sdTerrain.matrixAutoUpdate = false;
+  sdTerrain.updateMatrix();
 
-  hdTerrainGroup.matrixAutoUpdate = false;
-  hdTerrainGroup.updateMatrix();
+  hdTerrain.matrixAutoUpdate = false;
+  hdTerrain.updateMatrix();
 
-  const minimapBitmap = await MapSD.createMinimap(
+  const minimapBitmap = await genMinimapBitmap(
     mapData.diffuse,
     mapWidth,
     mapHeight
   );
   completeMapGeneration();
 
-  return [
-    terrain,
-    hdTerrainGroup,
-    displaceForGetTerrainY,
-    sharedCreepValues,
-    sharedCreepEdgesValues,
+  return {
+    sdTerrain,
+    hdTerrain,
+    creepTextureUniform,
+    creepEdgesTextureUniform,
     minimapBitmap,
-  ];
+    getTerrainY: getTerrainY(
+      displacementCanvasSmall
+        .getContext("2d")
+        .getImageData(
+          0,
+          0,
+          displacementCanvasSmall.width,
+          displacementCanvasSmall.height
+        ),
+      geomOptions.displacementScale,
+      mapWidth,
+      mapHeight
+    ),
+    mapWidth,
+    mapHeight,
+  };
 };

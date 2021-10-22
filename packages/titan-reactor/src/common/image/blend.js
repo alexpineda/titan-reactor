@@ -47,8 +47,6 @@ export function blendNonZeroPixels(out, width, height) {
 }
 
 export function overlayImage(out, overlay) {
-  const start = Date.now();
-
   for (let i = 0; i < out.byteLength; i = i + 3) {
     //add details to walkable layer via blue channel
     if (overlay[i] === 0 && overlay[i + 1] === 0) {
@@ -61,5 +59,4 @@ export function overlayImage(out, overlay) {
       out[i + 2] = overlay[i + 2];
     }
   }
-  console.log("overlay", Date.now() - start);
 }

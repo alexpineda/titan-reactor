@@ -1,4 +1,3 @@
-import { set } from "ramda";
 import React, { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
 import { headersById } from "titan-reactor-shared/types/iscriptHeaders";
@@ -120,7 +119,6 @@ const Commands = ({
                     tabIndex="0"
                     onKeyDown={(evt) => {
                       evt.preventDefault();
-                      console.log(evt.key);
                       if (evt.key === "ArrowDown") {
                         clickNext(i);
                       } else if (evt.key === "ArrowUp") {

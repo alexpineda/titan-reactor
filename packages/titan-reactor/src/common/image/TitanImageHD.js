@@ -4,14 +4,19 @@ import {
   DynamicDrawUsage,
   SubtractiveBlending,
   Vector3,
-  Vector2,
 } from "three";
 import { drawFunctions } from "../types/drawFunctions";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
 
+export const DepthMode = {
+  Ordered: 0, // for top down views
+  Depth: 1, // for angled views
+};
+
 export default class TitanImageHD extends Sprite {
+  static useDepth = false;
+
   constructor(atlas, createIScriptRunner, imageDef, sprite, spriteScale = 128) {
-    if (!atlas) debugger;
     const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
 
     let material;
@@ -60,7 +65,8 @@ export default class TitanImageHD extends Sprite {
 
     this.scale.copy(this._oScale);
     this.material.transparent = true;
-    this.material.depthTest = false;
+    this.material.alphaTest = 0.01;
+    this.material.depthTest = TitanImageHD.useDepth;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
       this.material.blending = SubtractiveBlending;
     }
@@ -68,7 +74,7 @@ export default class TitanImageHD extends Sprite {
     this.castShadow = false;
 
     this.atlas = atlas;
-    this.center = new Vector2(0.5, 0.5);
+    this._zOff = 0;
 
     this.uv = this.geometry.getAttribute("uv");
     this.pos = this.geometry.getAttribute("position");
@@ -143,12 +149,13 @@ export default class TitanImageHD extends Sprite {
     this.lastSetFrame = frame;
     this.lastFlipFrame = flipFrame;
 
-    // this.position.z =
-    //   this.offsetY + this.atlas.grpHeight / 2 / this._spriteScale;
+    // this.position.z = this.yoff + this.atlas.grpHeight / 2 / this._spriteScale;
 
     // this.position.z = this.offsetY + this.atlas.grpHeight / this._spriteScale;
-
-    // this.center.y = (frame.yoff + frame.h) / this.atlas.grpHeight;
+    //vec2 alignedPosition = ( position.xy - ( center - vec2( 0.5 ) ) ) * scale;
+    // this._offsetY = this.material.depthTest
+    // ? frame.h / 2 / this.atlas.grpHeight
+    // : 0.5;
 
     if (flipFrame) {
       this.uv.array[0] = (frame.x + frame.w) / this.atlas.width;
@@ -183,17 +190,20 @@ export default class TitanImageHD extends Sprite {
     this.uv.array[5] = frame.y / this.atlas.height;
     this.uv.array[7] = frame.y / this.atlas.height;
 
-    // pos.array[1] = 0;
-    // pos.array[4] = 0;
-    // pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight;
-    // pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight;
+    const off =
+      (frame.yoff + frame.h - this.atlas.grpHeight / 2) / this.atlas.grpHeight;
+    const yOff = this.material.depthTest ? 0.5 - off : 0.5;
 
-    // this.scale.y = frame.h / this._spriteScale;
-    // this.scale.x = frame.w / this._spriteScale;
-    this.pos.array[1] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-    this.pos.array[4] = 1 - (frame.yoff + frame.h) / this.atlas.grpHeight - 0.5;
-    this.pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
-    this.pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - 0.5;
+    const zOff = this.material.depthTest ? off : 0;
+
+    this.pos.array[1] =
+      1 - (frame.yoff + frame.h) / this.atlas.grpHeight - yOff;
+    this.pos.array[4] =
+      1 - (frame.yoff + frame.h) / this.atlas.grpHeight - yOff;
+    this.pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - yOff;
+    this.pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - yOff;
+
+    this._zOff = zOff;
 
     return true;
   }

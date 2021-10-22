@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import shallow from "zustand/shallow";
 import Options from "./Options";
 import { ipcRenderer } from "electron";

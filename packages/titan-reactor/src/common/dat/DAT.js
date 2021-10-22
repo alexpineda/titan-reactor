@@ -6,7 +6,7 @@ export class DAT {
     this.readFile = readFile;
     this.entries = [];
     this.info = {};
-    this.statFile = `rez/stat_txt.tbl`;
+    this.statFile = "rez/stat_txt.tbl";
   }
 
   init() {

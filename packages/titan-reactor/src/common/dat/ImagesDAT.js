@@ -5,7 +5,7 @@ export class ImagesDAT extends DAT {
   constructor(readFile) {
     super(readFile);
 
-    this.statFile = `arr/images.tbl`;
+    this.statFile = "arr/images.tbl";
 
     this.format = [
       {

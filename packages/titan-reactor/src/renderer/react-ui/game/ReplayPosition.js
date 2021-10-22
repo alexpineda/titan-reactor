@@ -61,10 +61,6 @@ const ReplayPosition = ({ className }) => {
     replayPosition.goto(Math.floor(pos * replayPosition.maxFrame));
   };
 
-  const onChangeAutoGameSpeed = (val) => {
-    replayPosition.setAutoSpeed(val);
-  };
-
   const onChangeGameSpeed = (speed) => {
     replayPosition.gameSpeed = speed;
   };

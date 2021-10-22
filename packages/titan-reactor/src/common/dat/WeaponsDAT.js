@@ -30,7 +30,6 @@ export class WeaponsDAT extends DAT {
       { size: 2, name: "icon" },
     ];
 
-    const flaglens = { TargetFlags: 9 };
     this.datname = "weapons.dat";
     this.filesize = 5460;
     this.count = 130;

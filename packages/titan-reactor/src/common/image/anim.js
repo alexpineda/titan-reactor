@@ -18,7 +18,6 @@ export const Anim = (buf) => {
   const header = bl.shallowSlice(0, 12 + 10 * 32);
   const magic = header.slice(0, 4).toString();
   const version = Version[header.readUInt16LE(4)];
-  const unk2 = header.readUInt16LE(6);
   const numLayers = header.readUInt16LE(8);
   const numEntries = header.readUInt16LE(10);
   header.consume(12);
@@ -28,7 +27,7 @@ export const Anim = (buf) => {
     .map((str, i) => {
       const res = str.substr(0, str.indexOf("\u0000"));
       if (!res) {
-        return `layer_{i}`;
+        return `layer_${i}`;
       }
       return res;
     });
@@ -95,8 +94,6 @@ export const Anim = (buf) => {
       const yoff = frames.readInt16LE(6);
       const w = frames.readUInt16LE(8);
       const h = frames.readUInt16LE(10);
-      const unk1 = frames.readUInt16LE(12);
-      const unk2 = frames.readUInt16LE(14);
       return {
         x,
         y,

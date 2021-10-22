@@ -78,7 +78,7 @@ export class IScriptRunner {
       if (header >= 0) {
         name = headersById[header];
       }
-      console.warn(`animation block - ${name} - does not exist`, this);
+      console.error(`animation block - ${name} - does not exist`, this);
       this.image.userData.ignoreRest = true;
       return;
     }
@@ -171,6 +171,7 @@ export class IScriptRunner {
     if (this.state.ignoreRest) {
       return true;
     }
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (this.commandIndex >= this.commands.length) {
         let nextHeader = this.commands.header;
@@ -184,7 +185,6 @@ export class IScriptRunner {
         );
 
         if (!nextAnimationBlock) {
-          debugger;
           throw new Error("ran out of animation blocks");
         }
       }
@@ -267,7 +267,7 @@ export class IScriptRunner {
               this.state.frameset = args[0];
               this.setFrameBasedOnDirection();
               if (this.state.frame < 0) {
-                debugger;
+                throw new Error("frame < 0");
               }
               this._dispatch(command, [this.state.frame, this.state.flip]);
             } else {
@@ -289,7 +289,8 @@ export class IScriptRunner {
         case "engframe":
           {
             this.state.frameset = args[0];
-            this.state.direction = this.image.sprite.mainImage.userData.direction;
+            this.state.direction =
+              this.image.sprite.mainImage.userData.direction;
             this.setFrameBasedOnDirection();
             this._dispatch(command, [this.state.frame, this.state.flip]);
           }
@@ -300,7 +301,8 @@ export class IScriptRunner {
             this.state.frameset =
               this.image.sprite.mainImage.userData.frameset +
               args[0] * this.image.sprite.mainImage.frames.length;
-            this.state.direction = this.image.sprite.mainImage.userData.direction;
+            this.state.direction =
+              this.image.sprite.mainImage.userData.direction;
             this.setFrameBasedOnDirection();
             this._dispatch(command, [this.state.frame, this.state.flip]);
           }

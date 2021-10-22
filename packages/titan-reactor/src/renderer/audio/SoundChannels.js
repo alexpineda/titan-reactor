@@ -5,7 +5,7 @@ import SoundChannel from "./SoundChannel";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export default class SoundChannels {
-  constructor(mixer, loadSoundAsync, panningStyle) {
+  constructor(mixer, loadSoundAsync) {
     this.mixer = mixer;
     this.maxChannels = 8;
     this.channels = range(0, this.maxChannels).map(() => new SoundChannel());
@@ -13,7 +13,6 @@ export default class SoundChannels {
     this.loadSoundAsync = loadSoundAsync;
     this.audio = [];
     this.scheduled = [];
-    this.panningStyle = panningStyle;
   }
 
   async _load(id) {
@@ -89,12 +88,7 @@ export default class SoundChannels {
    */
   queue(soundData, elapsed) {
     this.audio.push(
-      new Audio(
-        this.mixer,
-        soundData,
-        this._getBuffer(soundData.id, elapsed),
-        this.panningStyle
-      )
+      new Audio(this.mixer, soundData, this._getBuffer(soundData.id, elapsed))
     );
   }
 
