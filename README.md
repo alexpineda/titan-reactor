@@ -15,15 +15,13 @@ Titan Reactor is a fan made map and replay viewer specifically made for content 
 
 `yarn install`
 
-for titan reactor
+and then
 
 `yarn workspace titan-reactor dev`
 
 you will also need openbw-bridge.exe which is included in static directory for you and can also be built (see https://github.com/imbateam-gg/ChkForge).
 
-or for iscriptah *(iscript animation viewer)*
   
-`yarn workspace iscriptah dev`
 
 ### Controls
 #### Replay Viewer

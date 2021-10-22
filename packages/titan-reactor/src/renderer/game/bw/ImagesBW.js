@@ -1,4 +1,4 @@
-import { drawFunctions } from "../../../common/types/drawFunctions";
+import { drawFunctions } from "../../../common/bw-types/drawFunctions";
 import ContiguousContainer from "./ContiguousContainer";
 
 const flags = Object.freeze({

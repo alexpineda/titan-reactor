@@ -12,8 +12,8 @@ import InputEvents from "./input/InputEvents";
 import { pxToMapMeter } from "../common/utils/conversions";
 import useSettingsStore from "./stores/settingsStore";
 import useHudStore from "./stores/hudStore";
-import { iscriptHeaders } from "../common/types/iscriptHeaders";
-import { unitTypes } from "../common/types/unitTypes";
+import { iscriptHeaders } from "../common/bw-types/iscriptHeaders";
+import { unitTypes } from "../common/bw-types/unitTypes";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 function createStartLocation(mapX, mapY, color, mapZ = 0) {
@@ -283,8 +283,6 @@ async function TitanReactorMap(
       InputEvents.ToggleCursor,
       toggleCursorHandler
     );
-
-    keyboardShortcuts.dispose();
   };
 
   return {

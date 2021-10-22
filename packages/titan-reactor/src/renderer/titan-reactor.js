@@ -6,7 +6,7 @@ import App from "./react-ui/App";
 import { log } from "./invoke";
 import version from "../common/version";
 import { TitanReactor } from "./TitanReactor";
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/handleNames";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc/handleNames";
 
 import useTitanReactorStore from "./stores/titanReactorStore";
 import useSettingsStore from "./stores/settingsStore";

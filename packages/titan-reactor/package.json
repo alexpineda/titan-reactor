@@ -46,12 +46,10 @@
     "mac": {
       "category": "starcraft replay viewer"
     },
-    "extraResources": [
-      {
-        "from": "static",
-        "to": "static"
-      }
-    ]
+    "extraResources": [{
+      "from": "static",
+      "to": "static"
+    }]
   },
   "dependencies": {
     "bl": "^5.0.0",
@@ -76,7 +74,7 @@
     "three": "0.133.1",
     "webpack": "4.42.1",
     "winreg": "^1.2.4",
-    "zustand": "^3.3.3"
+    "zustand": "3.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
@@ -85,6 +83,8 @@
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-react": "^7.14.5",
     "@babel/preset-typescript": "^7.15.0",
+    "@types/bl": "^5.0.2",
+    "@types/lodash.shuffle": "^4.2.6",
     "@types/three": "^0.133.1",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",

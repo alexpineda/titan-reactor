@@ -36,7 +36,7 @@ import {
   STOP_READING_GAME_STATE,
   LOAD_CHK,
   LOAD_SCX,
-} from "../common/handleNames";
+} from "../common/ipc/handleNames";
 import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";

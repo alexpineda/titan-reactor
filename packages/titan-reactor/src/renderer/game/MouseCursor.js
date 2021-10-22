@@ -2,7 +2,7 @@ import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
 import GameSprite from "./sprite/GameSprite";
 import useGameStore, { getIcons } from "../stores/gameStore";
-import { unitTypes } from "../../common/types/unitTypes";
+import { unitTypes } from "../../common/bw-types/unitTypes";
 
 const canOnlySelectOne = [
   unitTypes.larva,

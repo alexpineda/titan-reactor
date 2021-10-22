@@ -1,6 +1,6 @@
 // thanks to farty and neiv for references
-const { range } = require("ramda");
-const BufferList = require("bl");
+import {range} from "ramda";
+import BufferList from "bl";
 
 const versionSD = Symbol("sd");
 const versionHD = Symbol("h");

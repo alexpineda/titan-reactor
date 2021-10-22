@@ -1,5 +1,5 @@
-import upgradeTypes from "../types/upgrades";
-import { unitTypes } from "../types/unitTypes";
+import upgradeTypes from "../bw-types/upgrades";
+import { unitTypes } from "../bw-types/unitTypes";
 
 export default (unitType, completedUpgrades) => {
   if (!unitType.isSpellcaster) return 0;

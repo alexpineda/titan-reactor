@@ -1,7 +1,7 @@
 import {
   iscriptHeaders as headers,
   headersById,
-} from "../types/iscriptHeaders";
+} from "../bw-types/iscriptHeaders";
 
 export const createIScriptRunner = (bwDat, tileset) => {
   return (...args) => new IScriptRunner(bwDat, tileset, ...args);

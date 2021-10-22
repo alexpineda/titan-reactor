@@ -6,9 +6,9 @@ import CameraRig from "./camera/CameraRig";
 import MinimapControl from "./input/MinimapControl";
 import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
 import { Players } from "./game/Players";
-import { commands } from "../common/types/commands";
+import { commands } from "../common/bw-types/commands";
 import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
-import { unitTypes } from "../common/types/unitTypes";
+import { unitTypes } from "../common/bw-types/unitTypes";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
 import InputEvents from "./input/InputEvents";
 import RenderMan from "./render/RenderMan";
@@ -23,6 +23,8 @@ import Apm from "./game/Apm";
 import { debounce } from "lodash";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { MOUSE } from "three";
+import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
+import shuffle from "lodash.shuffle";
 
 import MouseCursor from "./game/MouseCursor";
 
@@ -122,12 +124,19 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
 
+  const customColors = settings.randomizeColorOrder
+    ? shuffle(settings.playerColors)
+    : settings.playerColors;
+  const playerColors = rep.header.players.map(({ id, color }, i) =>
+    buildPlayerColor(settings.useCustomColors ? customColors[i] : color.hex, id)
+  );
   const players = new Players(
     rep.header.players,
     preplacedMapUnits.filter((u) => u.unitId === startLocation),
-    settings.playerColors,
-    settings.randomizeColorOrder
+    playerColors
   );
+  injectColorsCss(playerColors);
+
   players.forEach((player, i) => {
     const pos = i == 0 ? PovLeft : PovRight;
     player.camera = new PlayerPovCamera(
@@ -136,7 +145,6 @@ async function TitanReactorGame(
       pxToGameUnit.xy(player.startLocation)
     );
   });
-  players.changeColors(settings.useCustomColors);
 
   audioMaster.music.playGame();
 

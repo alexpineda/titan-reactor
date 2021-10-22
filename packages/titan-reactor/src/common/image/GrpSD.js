@@ -4,7 +4,7 @@ import {
   DataTexture,
   sRGBEncoding,
 } from "three";
-import { drawFunctions } from "../types/drawFunctions";
+import { drawFunctions } from "../bw-types/drawFunctions";
 import { Grp } from "bw-chk-modified/grp";
 
 /**

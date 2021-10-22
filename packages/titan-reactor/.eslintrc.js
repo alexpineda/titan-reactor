@@ -33,9 +33,10 @@ module.exports = {
     "no-console": ["warn", { allow: ["error"] }],
     "react/display-name": 0,
     "react/prop-types": 0,
-    "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "no-empty": ["error", { allowEmptyCatch: true }],
     "import/no-duplicates": 0,
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error"],
   },
   globals: {
     __static: true,

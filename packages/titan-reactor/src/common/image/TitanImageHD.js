@@ -5,7 +5,7 @@ import {
   SubtractiveBlending,
   Vector3,
 } from "three";
-import { drawFunctions } from "../types/drawFunctions";
+import { drawFunctions } from "../bw-types/drawFunctions";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
 
 export const DepthMode = {

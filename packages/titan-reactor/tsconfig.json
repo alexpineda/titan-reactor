@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2017",
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitOverride": true,
@@ -18,11 +18,14 @@
     "noEmit": true,
     "preserveConstEnums": true,
     "skipLibCheck": true,
-
-    "isolatedModules": true,
+    "strictNullChecks": true,
+    "isolatedModules": false,
+    "strictPropertyInitialization": true,
 
     "inlineSources": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": { "common": ["src/common/*"] }
   },
   "include": ["src/**/*"]
 }

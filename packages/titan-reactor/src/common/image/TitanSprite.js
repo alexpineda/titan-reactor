@@ -1,9 +1,9 @@
 import { is, pick } from "ramda";
 import { Group } from "three";
-import { iscriptHeaders } from "../types/iscriptHeaders";
-import { imageTypes } from "../types/imageTypes";
-import { overlayTypesById, overlayTypes } from "../types/overlayTypes";
-import { drawFunctions } from "../types/drawFunctions";
+import { iscriptHeaders } from "../bw-types/iscriptHeaders";
+import { imageTypes } from "../bw-types/imageTypes";
+import { overlayTypesById, overlayTypes } from "../bw-types/overlayTypes";
+import { drawFunctions } from "../bw-types/drawFunctions";
 
 const ImageOrder = {
   bottom: "bottom",

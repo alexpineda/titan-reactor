@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ipcRenderer } from "electron";
 import { selectFolder } from "../../invoke";
-import { SELECT_FOLDER } from "../../../common/handleNames";
+import { SELECT_FOLDER } from "../../../common/ipc/handleNames";
 import Option from "../components/Option";
 import Toggle from "../components/Toggle";
 import Tab from "../components/Tab";

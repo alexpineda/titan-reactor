@@ -1,6 +1,6 @@
 import { DAT } from "./DAT";
 import { range } from "ramda";
-import { selectionCircleSize } from "../types/selectionCircleSize";
+import { selectionCircleSize } from "../bw-types/selectionCircleSize";
 import SpritesListDefinition from "./Data/SpritesListDefinition.js";
 
 export class SpritesDAT extends DAT {

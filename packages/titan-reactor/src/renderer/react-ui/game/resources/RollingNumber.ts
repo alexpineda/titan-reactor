@@ -1,15 +1,20 @@
-import { is } from "ramda";
-
 // rolling number "rolls" the number from source to target, used for resources and apm
 export default class RollingNumber {
+  upSpeed = 80;
+  downSpeed = 30;
+
+  private _value: number;
+  private _rollingValue: number;
+  private _running = false;
+  private _speed = 0;
+  private _direction = false;
+
   constructor(value = 0) {
-    this.upSpeed = 80;
-    this.downSpeed = 30;
     this._value = value;
     this._rollingValue = value;
   }
 
-  update(delta) {
+  update(delta: number) {
     if (this._running && delta >= this._speed) {
       this._rollingValue = this._direction
         ? Math.min(this._value, this._rollingValue + 1)
@@ -31,8 +36,8 @@ export default class RollingNumber {
     return this._running;
   }
 
-  start(val) {
-    if (val === this._value || !is(Number, val)) return;
+  start(val: number) {
+    if (val === this._value) return;
     this._value = val;
 
     const direction = val > this._rollingValue;

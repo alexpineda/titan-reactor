@@ -3,7 +3,7 @@ import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";
 import shallow from "zustand/shallow";
 import useProductionStore from "../../../stores/realtime/productionStore";
-import { unitTypes } from "../../../../common/types/unitTypes";
+import { unitTypes } from "../../../../common/bw-types/unitTypes";
 
 const researchIconSelector = (state) => {
   if (!state.selectedUnits[0]) return 0;

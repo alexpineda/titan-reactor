@@ -1,5 +1,5 @@
-import { unitTypes } from "../../common/types/unitTypes";
-import { orders } from "../../common/types/orders";
+import { unitTypes } from "../../common/bw-types/unitTypes";
+import { orders } from "../../common/bw-types/orders";
 import { Color } from "three";
 import { TrainingQueueType } from "./bw/BuildingQueueCountBW";
 
