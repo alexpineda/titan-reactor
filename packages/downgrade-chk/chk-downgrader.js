@@ -1,5 +1,4 @@
 const BufferList = require("bl");
-const iconv = require("iconv-lite");
 
 const Version = {
   Starcraft: 59,

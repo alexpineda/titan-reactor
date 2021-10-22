@@ -23,5 +23,6 @@
 
     "inlineSources": true,
     "sourceMap": true
-  }
+  },
+  "include": ["src/**/*"]
 }
