@@ -1,6 +1,8 @@
+import { Settings } from "../../common/types/common";
 import { Clock, PerspectiveCamera, Vector3 } from "three";
 
-import GameCanvasTarget from "../render/GameCanvasTarget";
+import CanvasTarget from "../../common/image/CanvasTarget";
+import PreviewCamera from "./PreviewCamera";
 
 export const CameraControlType = {
   none: 0,
@@ -12,17 +14,18 @@ export const CameraControlType = {
 
 // manages camera and camera controls as well as updating aspect ratio on screen resize and other camera operations
 class CameraRig {
-  gameSurface: GameCanvasTarget;
+  gameSurface: CanvasTarget;
   freeControl = false;
   camera: PerspectiveCamera;
   previewCamera: PerspectiveCamera;
 
   private cameraClock = new Clock();
   private _delta = new Vector3();
-
+  private settings: Settings;
+  
   constructor(
-    settings,
-    gameSurface: GameCanvasTarget,
+    settings: Settings,
+    gameSurface: CanvasTarget,
     previewSurface,
     minimapControl,
     keyboardShortcuts,
@@ -33,9 +36,7 @@ class CameraRig {
     this.freeControl = freeControl;
     const aspect = gameSurface.width / gameSurface.height;
     this.camera = this._createCamera(aspect);
-    this.previewCamera = this._createCamera(aspect);
-    this.previewCamera.isPreviewCamera = true;
-
+    this.previewCamera = this._createPreviewCamera(aspect);
     // this.control = new StandardCameraControls(
     //   this.camera,
     //   gameSurface.canvas,
@@ -121,11 +122,15 @@ class CameraRig {
     return this._initPerspectiveCamera(aspect);
   }
 
-  _initPerspectiveCamera(aspect: number) {
+  _createPreviewCamera(aspect: number) {
+    return this._initPerspectiveCamera(aspect, PreviewCamera);
+  }
+
+  _initPerspectiveCamera(aspect: number, constructor = PerspectiveCamera) {
     if (this.freeControl) {
-      return new PerspectiveCamera(22, aspect);
+      return new constructor(22, aspect);
     }
-    return new PerspectiveCamera(22, aspect, 3, 256);
+    return new constructor(22, aspect, 3, 256);
   }
 
   // tall camera to look down at scene for preloading webgl programs

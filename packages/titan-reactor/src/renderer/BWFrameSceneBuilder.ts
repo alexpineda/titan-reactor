@@ -1,6 +1,7 @@
 import { unstable_batchedUpdates } from "react-dom";
 import { Group, MathUtils, Scene } from "three";
 
+import { BwDATType } from "../common/bwdat/core/BwDAT";
 import TitanImageHD from "../common/image/TitanImageHD";
 import { GetTerrainY, PxToGameUnit } from "../common/types/util";
 import range from "../common/utils/range";
@@ -19,7 +20,7 @@ import TilesBW from "./game-data/TilesBW";
 import UnitsBW from "./game-data/UnitsBW";
 import UpgradeBW from "./game-data/UpgradeBW";
 import BuildUnits from "./game/BuildUnits";
-import { GameUnitI, UnitInProduction } from "./game/GameUnit";
+import { GameUnitI, ResearchInProduction, UnitInProduction, UpgradeInProduction } from "./game/GameUnit";
 import { Players } from "./game/Players";
 import SpriteGroup from "./game/SpriteGroup";
 import useHudStore from "./stores/hudStore";
@@ -33,7 +34,7 @@ export default class BWFrameSceneBuilder {
   private readonly scene: Scene;
   private readonly createTitanImage: () => void;
   private readonly players: Players;
-  private readonly bwDat: any;
+  private readonly bwDat: BwDATType;
   private readonly group = new Group();
 
    interactableSprites: TitanImageHD[] = [];
@@ -45,10 +46,10 @@ export default class BWFrameSceneBuilder {
   private readonly units: Map<number, GameUnitI> = new Map();
   private readonly unitsByIndex: Map<number, GameUnitI> = new Map();
    readonly unitsBySpriteId: Map<number, GameUnitI> = new Map();
-  private readonly unitsInProduction: UnitInProduction[] = [];
+   readonly unitsInProduction: UnitInProduction[] = [];
 
-  private research: [][];
-  private upgrades: [][];
+   research: ResearchInProduction[][];
+   upgrades: UpgradeInProduction[][];
   private completedUpgrades: [][];
   private completedResearch: [][];
 
@@ -156,6 +157,9 @@ export default class BWFrameSceneBuilder {
     this.soundsBW.buffer = bwFrame.sounds;
 
     for (const sound of this.soundsBW.items()) {
+      if (!this.fogOfWar.isVisible(sound.tileX, sound.tileY)) {
+        continue;
+      }
       const volume = sound.bwVolume(
         this.projectedCameraView.left,
         this.projectedCameraView.top,
@@ -163,28 +167,14 @@ export default class BWFrameSceneBuilder {
         this.projectedCameraView.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        if (!this.fogOfWar.isVisible(sound.tileX, sound.tileY)) {
-          continue;
-        }
-
         this.audioMaster.channels.queue(
-          {
-            ...sound.object(),
-            volume,
-            pan: sound.bwPan(
-              this.projectedCameraView.left,
-              this.projectedCameraView.width
-            ),
-          },
+          sound.object(),
           elapsed
         );
       }
     }
   }
 
-  /**
-   * @param {BuildUnits} units
-   */
   buildUnitsAndMinimap(bwFrame: FrameBW, units: BuildUnits) {
     this.unitsBW.count = bwFrame.unitCount;
     this.unitsBW.buffer = bwFrame.units;
@@ -213,14 +203,14 @@ export default class BWFrameSceneBuilder {
     this.interactableSprites = [];
 
     for (const spriteBW of this.spritesBW.items()) {
-      // if (
-      //   spriteBW.x < view.viewBW.left ||
-      //   spriteBW.y < view.viewBW.top ||
-      //   spriteBW.x > view.viewBW.right ||
-      //   spriteBW.y > view.viewBW.bottom
-      // ) {
-      //   continue;
-      // }
+      if (
+        spriteBW.x < this.projectedCameraView.viewBW.left ||
+        spriteBW.y < this.projectedCameraView.viewBW.top ||
+        spriteBW.x > this.projectedCameraView.viewBW.right ||
+        spriteBW.y > this.projectedCameraView.viewBW.bottom
+      ) {
+        continue;
+      }
 
       let sprite = this.sprites.get(spriteBW.index);
       if (!sprite) {

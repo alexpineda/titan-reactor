@@ -1,4 +1,4 @@
-import { GrpType } from "./Grp";
+import { GrpType } from "../../types/grp";
 import { ImageDATType } from "./ImagesDAT";
 import { IScriptDATType } from "./IScript";
 import { OrderDATType } from "./OrdersDAT";

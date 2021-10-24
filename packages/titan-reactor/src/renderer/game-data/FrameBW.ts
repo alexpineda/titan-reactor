@@ -4,11 +4,11 @@ import BufferList from "bl";
 export default class FrameBW {
   processed = false;
   frame = 0;
-  minerals: number[] = [];
-  gas: number[] = [];
-  supplyUsed: number[] = [];
-  supplyAvailable: number[] = [];
-  workerSupply: number[] = [];
+  minerals: number[][] = [];
+  gas: number[][] = [];
+  supplyUsed: number[][] = [];
+  supplyAvailable: number[][] = [];
+  workerSupply: number[][] = [];
   tilesCount = 0;
   creepCount = 0;
   unitCount = 0;

@@ -45,10 +45,9 @@ export class GameStatePosition {
     this.lastDelta = this.lastDelta + delta;
     if (this.lastDelta >= this.gameSpeed) {
       // this.skipGameFrames = 1;
-      this.skipGameFrames = Math.min(
-        this.maxSkipFrames,
-        Math.floor(this.lastDelta / this.gameSpeed)
-      );
+      this.skipGameFrames = 
+        Math.floor(this.lastDelta / this.gameSpeed);
+      
       this.lastDelta = this.lastDelta - this.skipGameFrames * this.gameSpeed;
     } else {
       this.skipGameFrames = 0;

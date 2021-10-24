@@ -1,6 +1,7 @@
-import { spawn, ChildProcessWithoutNullStreams } from "child_process";
-import FileGameStateReader from "./FileGameStateReader";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+
 import { EmptyFunc } from "../../../common/types/common";
+import FileGameStateReader from "./FileGameStateReader";
 
 class OpenBwBridgeReader extends FileGameStateReader {
   private readonly bwPath: string;
@@ -8,8 +9,13 @@ class OpenBwBridgeReader extends FileGameStateReader {
   private openBwBridge?: ChildProcessWithoutNullStreams;
   private framesWritten = 0;
 
-  constructor(bwPath: string, ...args: [string, string, number]) {
-    super(...args);
+  constructor(
+    bwPath: string,
+    file: string,
+    outFile: string,
+    maxFramesLength = 3
+  ) {
+    super(file, outFile, maxFramesLength);
     this.bwPath = bwPath;
 
     // this.openBwBridgeExePath =
@@ -17,6 +23,7 @@ class OpenBwBridgeReader extends FileGameStateReader {
     // this.openBwBridgeExePath =
     //   "D:\\dev\\ChkForge\\openbw-bridge\\Release\\openbw-bridge.exe";
     // "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
+    console.log(this.openBwBridgeExePath);
   }
 
   override async start() {

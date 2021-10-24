@@ -347,7 +347,7 @@ export class UnitsDAT extends DAT {
     this.sounds = sounds;
   }
 
-  override async load(): Promise<UnitDATIncomingType[]> {
+  override async load(): Promise<UnitDAT[]> {
     return super.load();
   }
 

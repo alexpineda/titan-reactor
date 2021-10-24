@@ -1,10 +1,12 @@
 import { Grp } from "bw-chk-modified/grp";
 import parseIscriptBin from "iscript";
 import path from "path";
+
+import { GrpFrameType, GrpType } from "../../types/grp";
 import range from "../../utils/range";
+import { BwDATType } from "./BwDAT";
 import { ReadFileType } from "./DAT";
 import { FlingyDAT } from "./FlingyDAT";
-import { GrpFrameType, GrpType } from "./Grp";
 import { ImagesDAT } from "./ImagesDAT";
 import { IScriptDATType } from "./IScript";
 import { OrdersDAT } from "./OrdersDAT";
@@ -49,11 +51,13 @@ export async function loadAllDataFiles(
     images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, "/")}`))
   );
 
+  //@todo remove this
   const grps = bufs.map((buf): GrpType => {
     const grp = new Grp(buf, Buffer);
     const frames = range(0, grp.frameCount()).map((frame): GrpFrameType => {
       const { x, y, w, h } = grp.header(frame);
-      return { x, y, w, h };
+      //@todo calculate xoff, yoff
+      return { x, y, w, h, xoff: 0, yoff: 0 };
     });
     const maxFrameH = frames.reduce((max, { h }) => {
       return h > max ? h : max;

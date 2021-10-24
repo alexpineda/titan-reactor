@@ -5,7 +5,6 @@ import { UnitDAT } from "../../common/bwdat/core/UnitsDAT";
 import { orders } from "../../common/bwdat/enums/orders";
 import { unitTypes } from "../../common/bwdat/enums/unitTypes";
 import { Player } from "../../common/types/player";
-import { PxToGameUnit } from "../../common/types/util";
 import FogOfWar from "../fogofwar/FogOfWar";
 import BuildingQueueCountBW, { BuildingQueueI, TrainingQueueType } from "../game-data/BuildingQueueCountBW";
 import UnitsBW from "../game-data/UnitsBW";
@@ -17,38 +16,24 @@ const scannerColor = new Color(0xff0000);
 
 class BuildUnits {
   private readonly bwDat: BwDATType;
-  private readonly pxToGameUnit: PxToGameUnit;
   private readonly playersById: Record<number, Player>;
   private readonly fogOfWar: FogOfWar;
-  private followingUnit: false;
   private mapWidth: number;
   private mapHeight: number;
-  private selected: [];
-
-  private spriteUnits = [];
-  private minimapPoints = [];
 
   imageData: ImageData;
   resourceImageData: ImageData;
 
   constructor(
-    bwDat: any,
-    pxToGameUnit: PxToGameUnit,
+    bwDat: BwDATType,
     playersById: Record<number, Player>,
     mapWidth: number,
     mapHeight: number,
     fogOfWar: FogOfWar
   ) {
     this.bwDat = bwDat;
-    this.pxToGameUnit = pxToGameUnit;
     this.playersById = playersById;
     this.fogOfWar = fogOfWar;
-
-    this.followingUnit = false;
-    this.selected = [];
-
-    this.spriteUnits = [];
-    this.minimapPoints = [];
 
     // for minimap
     this.mapWidth = mapWidth;

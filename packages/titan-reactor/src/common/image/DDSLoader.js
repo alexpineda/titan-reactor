@@ -1,10 +1,10 @@
 import {
   CompressedTextureLoader,
-  RGBAFormat,
-  RGBA_S3TC_DXT3_Format,
-  RGBA_S3TC_DXT5_Format,
   RGB_ETC1_Format,
   RGB_S3TC_DXT1_Format,
+  RGBA_S3TC_DXT3_Format,
+  RGBA_S3TC_DXT5_Format,
+  RGBAFormat,
 } from "three";
 
 class DDSLoader extends CompressedTextureLoader {
@@ -13,8 +13,9 @@ class DDSLoader extends CompressedTextureLoader {
       mipmaps: [],
       width: 0,
       height: 0,
-      format: null,
+      format: 0,
       mipmapCount: 1,
+      isCubemap: false,
     };
 
     // Adapted from @toji's DDS utils

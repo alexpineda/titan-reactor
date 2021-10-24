@@ -42,8 +42,20 @@ export type IncompleteUnit = {
   ownerId: number;
 };
 
-export type UnitInProduction = IncompleteUnit & {
+type BaseInProduction = {
   count: number;
   icon: number;
   buildTime: number;
+};
+
+export type UnitInProduction = IncompleteUnit & BaseInProduction;
+
+export type ResearchInProduction = BaseInProduction & {
+  isTech: true;
+  timeAdded: number;
+};
+
+export type UpgradeInProduction = BaseInProduction & {
+  isUpgrade: true;
+  timeAdded: number;
 };

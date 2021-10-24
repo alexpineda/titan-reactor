@@ -1,9 +1,9 @@
-import GrpSD from "../../GrpSD";
+import GrpSDLegacy from "../../GrpSDLegacy";
 
 // leverage our SD grp reader to render creep edges in SD
 export const grpToCreepEdgesTextureAsync = async (creepGrp, palette) => {
   const stride = 37;
-  const grpSD = new GrpSD();
+  const grpSD = new GrpSDLegacy();
 
   await grpSD.load(
     {

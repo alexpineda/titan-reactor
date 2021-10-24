@@ -12,19 +12,11 @@ import ContiguousContainer from "./game-data/ContiguousContainer";
 import { completeAssetsLoaded, increaseAssetsLoaded } from "./stores/loadingStore";
 import electronFileLoader from "./utils/electronFileLoader";
 
-// import loadEnvironmentMap from "../common/image/envMap";
-// import { WebGLRenderer } from "three";
-
 class Assets {
   bwDat?: BwDATType;
-  grps?: GrpHD[];
-  icons: any;
-  selectionCirclesHD: any;
-
-  constructor() {
-    this.selectionCirclesHD = null;
-    this.icons = null;
-  }
+  grps: GrpHD[] = [];
+  icons = new Icons();
+  selectionCirclesHD: GrpHD[] = [];
 
   async preload(starcraftPath: string, communityModelsPath: string) {
     electronFileLoader((file: string) => {
@@ -75,7 +67,6 @@ class Assets {
     // // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
     // renderer.dispose();
 
-    this.icons = new Icons();
     await this.icons.generate();
     increaseAssetsLoaded();
 
@@ -83,10 +74,8 @@ class Assets {
       bwDat,
       communityModelsPath,
       readCascFile,
-      sdAnim,
-      sdAnimBuf
+      sdAnim.sprites,
     );
-    this.grps = [];
 
     for (let i = 0; i < 999; i++) {
       this.grps[i] = await grpLoader.load(i);

@@ -1,4 +1,4 @@
-import readDdsGrp from "../../ddsGrp";
+import readDdsGrp, { readDdsGrpWithFrameData } from "../../ddsGrp";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;
@@ -52,12 +52,10 @@ export const loadTilesetFilesAsync = async (readFileFn, chk) => {
   ).slice(0, 1024);
 
   const hdTiles = readDdsGrp(
-    await readFile(`TileSet/${tilesetName}.dds.vr4`, false),
-    true
+    await readFile(`TileSet/${tilesetName}.dds.vr4`, false)
   );
-  const creepGrpHD = readDdsGrp(
-    await readFile(`TileSet/${tilesetName}.dds.grp`, false),
-    false
+  const creepGrpHD = readDdsGrpWithFrameData(
+    await readFile(`TileSet/${tilesetName}.dds.grp`, false)
   );
   const creepGrpSD = await readFile(`TileSet/${tilesetName}.grp`, false);
 

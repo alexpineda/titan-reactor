@@ -39,7 +39,11 @@ const App = () => {
   return (
     <React.StrictMode>
       {criticalError && (
-        <p>There was a critical error. Try deleting your settings file.</p>
+        <div className="w-screen h-screen flex justify-center items-center">
+          <p className="text-white font-xl">
+            There was a critical error. Try deleting your settings file.
+          </p>
+        </div>
       )}
       {!criticalError && !initialized && <Initializing phrases={phrases} />}
 

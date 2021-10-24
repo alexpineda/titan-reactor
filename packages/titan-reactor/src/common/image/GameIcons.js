@@ -1,14 +1,8 @@
-import {
-  OrthographicCamera,
-  Scene,
-  CompressedTexture,
-  LinearFilter,
-  ClampToEdgeWrapping,
-  Color,
-} from "three";
-import { DDSLoader } from "./DDSLoader";
+import { ClampToEdgeWrapping, CompressedTexture, LinearFilter, OrthographicCamera, Scene } from "three";
+
 import { rgbToCanvas } from "./canvas";
-import GrpSD from "./GrpSD";
+import { DDSLoader } from "./DDSLoader";
+import GrpSDLegacy from "./GrpSDLegacy";
 
 const ddsLoader = new DDSLoader();
 
@@ -162,7 +156,7 @@ export default class GameIcons {
   }
 
   async renderCursor(grp, palette) {
-    const grpSD = new GrpSD();
+    const grpSD = new GrpSDLegacy();
 
     await grpSD.load({
       readGrp: () => grp,
@@ -190,7 +184,7 @@ export default class GameIcons {
   }
 
   async renderCenteredCursor(grp, palette) {
-    const grpSD = new GrpSD();
+    const grpSD = new GrpSDLegacy();
 
     await grpSD.load({
       readGrp: () => grp,

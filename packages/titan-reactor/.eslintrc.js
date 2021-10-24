@@ -37,6 +37,9 @@ module.exports = {
     "import/no-duplicates": 0,
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error"],
+    "no-empty-function": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
   },
   globals: {
     __static: true,

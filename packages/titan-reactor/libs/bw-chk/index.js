@@ -1,13 +1,14 @@
 "use strict";
-
 import BufferList from "bl";
-import { Duplex } from "stream";
-import fs, { read } from "fs";
+import fs from "fs";
 import iconv from "iconv-lite";
+import { Duplex } from "stream";
+
 import SpriteGroup from "./grp";
+import { colorAtMega } from "./render";
 import SPRITES from "./sprites.json";
 import UNITS from "./units.json";
-import { colorAtMega } from "./render";
+
 
 // Currently read sections.
 // If a section is not here, it will be ignored by getSections().
@@ -382,6 +383,10 @@ export default class Chk {
       options
     );
 
+    this.title = "";
+    this.tileset = 0;
+    this.sprites = [];
+    this.units = [];
     const sections = getSections(buf);
     // FORC gets zero-padded if it is smaller than 14 bytes.
     // Do any other sections?

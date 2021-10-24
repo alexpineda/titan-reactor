@@ -1,4 +1,4 @@
-import { Mesh, Scene, Object3D, Material, Texture} from "three";
+import { Mesh, Scene, Object3D, Material, Texture } from "three";
 
 const textureKeyNames = [
   "map",
@@ -10,18 +10,22 @@ const textureKeyNames = [
 ];
 
 export const disposeMesh = (mesh: Mesh) => {
-
   // dispose textures first
   if (mesh.material) {
     for (const textureKeyName of textureKeyNames) {
       const textureKey = textureKeyName as keyof Material;
       try {
-        if (mesh.material instanceof Material && textureKey in mesh.material) {
-          (mesh.material[textureKey] as Texture).dispose();
+        if (
+          mesh.material instanceof Material &&
+          mesh.material[textureKey] instanceof Texture
+        ) {
+          mesh.material[textureKey].dispose();
         } else if (Array.isArray(mesh.material)) {
-          mesh.material.forEach(material => textureKey in mesh.material && (material[textureKey] as Texture).dispose());
+          for (const material of mesh.material) {
+            material[textureKey] instanceof Texture &&
+              material[textureKey].dispose();
+          }
         }
-
       } catch (e) {
         console.error("error disposing map", e);
       }
@@ -32,7 +36,7 @@ export const disposeMesh = (mesh: Mesh) => {
       if (mesh.material instanceof Material) {
         mesh.material.dispose();
       } else if (Array.isArray(mesh.material)) {
-        mesh.material.forEach(material => material.dispose());
+        mesh.material.forEach((material) => material.dispose());
       }
     } catch (e) {
       console.error("error disposing material", e);
@@ -46,7 +50,7 @@ export const disposeMesh = (mesh: Mesh) => {
 };
 
 export const disposeMeshes = (scene: Scene) => {
-  const meshes:Array<Mesh> = [];
+  const meshes: Array<Mesh> = [];
 
   scene.traverse((o: Object3D) => {
     if (o instanceof Mesh) {

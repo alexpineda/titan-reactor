@@ -37,6 +37,9 @@ function intersectRect(r1: Rect, r2: Rect) {
   );
 }
 
+type Icons = string[];
+
+
 /**
  * Manages drawing the cursor (currently css :( ) as well as unit selection logic
  */
@@ -47,15 +50,22 @@ export default class MouseCursor {
 
   private _lastClass = "";
   
+  private arrowIcons: Icons;
+  private dragIcons: Icons;
+  private hoverIcons: Icons;
+  private _pointer: Icons;
+  private arrowIconsIndex= 0;
+  private hoverIconsIndex = 0;
+  private dragIconsIndex = 0;
+
   constructor() {
     const icons = getIcons();
 
     this.arrowIcons = icons.arrowIcons.icons;
-    this.arrowIconsIndex = 0;
     this.hoverIcons = icons.hoverIcons.icons;
-    this.hoverIconsIndex = 0;
     this.dragIcons = icons.dragIcons.icons;
-    this.dragIconsIndex = 0;
+
+    this._pointer = this.arrowIcons;
 
     // this._interval = setInterval(() => {
     //   this.arrowIconsIndex =
@@ -192,20 +202,6 @@ export default class MouseCursor {
         }
       }
     };
-
-    // const _hoverInterval = setInterval(() => {
-    //   if (!enableHoverIntersecting) return;
-
-    //   hover.x = (end.offsetX / gameSurface.width) * 2 - 1;
-    //   hover.y = -(end.offsetY / gameSurface.height) * 2 + 1;
-
-    //   const sprite = intersectMouse(hover);
-    //   if (sprite) {
-    //     this.hover();
-    //   } else {
-    //     this.pointer();
-    //   }
-    // }, 60);
 
     const isMinDragSize = () =>
       Math.abs(end.offsetX - start.offsetX) > 10 &&
@@ -361,7 +357,7 @@ export default class MouseCursor {
         )
       ) {
         // ctrl modifier -> select all of unit type in view
-        if (event.ctrlKey) {
+        if (event.ctrlKey && this.projectedCameraView instanceof ProjectedCameraView) {
           const startMapX = Math.floor(
             this.projectedCameraView.viewBW.left / 32
           );

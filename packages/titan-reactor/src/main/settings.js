@@ -1,19 +1,15 @@
+import phrases from "common/phrases";
+import { RenderMode } from "common/settings";
+import isDev from "electron-is-dev";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
-import { RenderMode, GameAspect } from "common/settings";
-import isDev from "electron-is-dev";
-
-import {
-  findMapsPath,
-  findReplaysPath,
-  findStarcraftPath,
-} from "./starcraft/findInstallPath";
-import { findTempPath } from "./main";
-import fileExists from "../common/utils/fileExists";
 import path from "path";
-const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
-import phrases from "common/phrases";
 
+import fileExists from "../common/utils/fileExists";
+import { findTempPath } from "./main";
+import { findMapsPath, findReplaysPath, findStarcraftPath } from "./starcraft/findInstallPath";
+
+const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const VERSION = 1;
 
 const getEnvLocale = (env = process.env) => {
@@ -148,7 +144,6 @@ export class Settings extends EventEmitter {
     return {
       version: VERSION,
       renderMode: RenderMode.HD,
-      maxAutoReplaySpeed: 1,
       alwaysHideReplayControls: false,
       language: supportedLanguages.includes(getEnvLocale())
         ? getEnvLocale()
@@ -168,15 +163,11 @@ export class Settings extends EventEmitter {
       gamma: 1.2,
       keyPanSpeed: 0.5,
       twitch: "",
-      producerDockSize: 300,
-      gameAspect: GameAspect.Fit,
       fullscreen: true,
       enablePlayerScores: true,
       esportsHud: true,
       embedProduction: true,
       cameraShake: 1,
-      mapsRss: "",
-      replaysRss: "",
       useCustomColors: false,
       randomizeColorOrder: false,
       classicClock: false,

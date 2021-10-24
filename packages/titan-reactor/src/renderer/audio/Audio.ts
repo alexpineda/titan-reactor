@@ -1,4 +1,4 @@
-import SoundsBW from "../game-data/SoundsBW";
+import {SoundBWInstance} from "../game-data/SoundsBW";
 import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import MainMixer from "./MainMixer";
 
@@ -12,9 +12,9 @@ export default class Audio {
   queueStartTime = 0;
   source?: AudioBufferSourceNode;
   gain?: GainNode;
-  sound: SoundsBW
+  sound: SoundBWInstance
   
-  constructor(mixer: MainMixer, sound: SoundsBW, buffer: DeferredAudioBuffer) {
+  constructor(mixer: MainMixer, sound: SoundBWInstance, buffer: DeferredAudioBuffer) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;

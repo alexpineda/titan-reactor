@@ -1,5 +1,5 @@
 import range from "../../common/utils/range";
-import SoundsBW from "../game-data/SoundsBW";
+import SoundsBW, {SoundBWInstance} from "../game-data/SoundsBW";
 import Audio from "./Audio";
 import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import MainMixer from "./MainMixer";
@@ -35,7 +35,7 @@ export default class SoundChannels {
     return buffer;
   }
 
-  _getAvailableChannel(sound: SoundsBW) {
+  _getAvailableChannel(sound: SoundBWInstance) {
     if (sound.flags & 0x10) {
       for (const channel of this.channels) {
         if (channel.isPlaying && channel.id === sound.id) {
@@ -92,7 +92,7 @@ export default class SoundChannels {
    * @param {Object} soundData
    * @param {Number} elapsed
    */
-  queue(soundData: SoundsBW, elapsed: number) {
+  queue(soundData: SoundBWInstance, elapsed: number) {
     this.audio.push(
       new Audio(this.mixer, soundData, this._getBuffer(soundData.id))
     );

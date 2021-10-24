@@ -1,11 +1,24 @@
 import ContiguousContainer from "./ContiguousContainer";
-import { PxToGameUnit, GetTerrainY } from "../../../common/types/util";
+import { PxToGameUnit, GetTerrainY } from "../../common/types/util";
 
 export const SOUND_BYTE_LENGTH = 16;
 /**
  * Sounds in a bw frame.
  * Also contains volume and panning calculations ported from openbw.
  */
+export type SoundBWInstance = {
+  id: number;
+  unitTypeId: number;
+  priority: number;
+  minVolume: number;
+  x: number;
+  y: number;
+  mapX: number;
+  mapY: number;
+  mapZ: number;
+  flags: number;
+};
+
 export default class SoundsBW extends ContiguousContainer {
   protected override byteLength = SOUND_BYTE_LENGTH;
 
@@ -40,7 +53,7 @@ export default class SoundsBW extends ContiguousContainer {
   }
 
   get flags() {
-    return this.bwDat.sounds[this.id].flags;
+    return this.bwDat?.sounds[this.id].flags;
   }
 
   get mapX() {
@@ -56,11 +69,11 @@ export default class SoundsBW extends ContiguousContainer {
   }
 
   get minVolume() {
-    return this.bwDat.sounds[this.id].minVolume;
+    return this.bwDat?.sounds[this.id].minVolume;
   }
 
   get priority() {
-    return this.bwDat.sounds[this.id].priority;
+    return this.bwDat?.sounds[this.id].priority;
   }
 
   get tileX() {
@@ -71,23 +84,23 @@ export default class SoundsBW extends ContiguousContainer {
     return Math.floor(this.y / 32);
   }
 
-  override object() {
+  override object(): SoundBWInstance {
     return {
       id: this.id,
-      unitTypeId: this.unitTypeId,
-      priority: this.priority,
-      minVolume: this.minVolume,
+      unitTypeId: this.unitTypeId as number,
+      priority: this.priority as number,
+      minVolume: this.minVolume as number,
       x: this.x,
       y: this.y,
       mapX: this.mapX,
       mapY: this.mapY,
       mapZ: this.mapZ,
-      flags: this.flags,
+      flags: this.flags as number,
     };
   }
 
   bwVolume(left: number, top: number, right: number, bottom: number) {
-    let volume = this.minVolume;
+    let volume = this.minVolume || 0;
 
     if (this.x !== 0 && this.y !== 0) {
       let distance = 0;
