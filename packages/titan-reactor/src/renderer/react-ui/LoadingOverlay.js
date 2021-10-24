@@ -1,5 +1,5 @@
 import React from "react";
-import charColor from "../../common/bw-types/charColor";
+import charColor from "../../common/bwdat/enums/charColor";
 
 const processString = (str, useColors = true) => {
   const defaultColor = "white";

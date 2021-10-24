@@ -1,11 +1,11 @@
 const aliases = require("./aliases");
 
 module.exports = function (config) {
-  config.devServer.headers = {
-    "Cache-Control": "no-cache",
-    "Cross-Origin-Resource-Policy": "same-site",
-    "Cross-Origin-Embedder-Policy": "require-corp",
-  };
+  // config.devServer.headers = {
+  //   "Cache-Control": "no-cache",
+  //   "Cross-Origin-Resource-Policy": "same-site",
+  //   "Cross-Origin-Embedder-Policy": "require-corp",
+  // };
 
   config.module.rules.push({
     test: /\.worker\.js$/,

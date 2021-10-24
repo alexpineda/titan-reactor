@@ -4,8 +4,8 @@ import useGameStore from "../../../stores/gameStore";
 import {
   techTypesByUnitType,
   upgradesByUnitType,
-} from "../../../../common/bw-types/abilitiesMap";
-import upgradeTypes from "../../../../common/bw-types/upgrades";
+} from "../../../../common/bwdat/enums/abilitiesMap";
+import upgradeTypes from "../../../../common/bwdat/enums/upgrades";
 
 const iconSelector = (state) => state.assets.icons.cmdIcons;
 const bwDatSelector = (state) => state.assets.bwDat;

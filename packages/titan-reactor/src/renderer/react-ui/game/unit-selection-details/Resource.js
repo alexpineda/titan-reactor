@@ -1,6 +1,6 @@
 import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import React, { useRef, useEffect } from "react";
-import { unitTypes } from "../../../../common/bw-types/unitTypes";
+import { unitTypes } from "../../../../common/bwdat/enums/unitTypes";
 import useGameStore from "../../../stores/gameStore";
 
 const resourceSelector = (state) => {

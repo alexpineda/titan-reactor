@@ -5,7 +5,7 @@ import {
   DynamicDrawUsage,
   SubtractiveBlending,
 } from "three";
-import { drawFunctions } from "../bw-types/drawFunctions";
+import { drawFunctions } from "../bwdat/enums/drawFunctions";
 
 export default class TitanImageSD extends Sprite {
   constructor(atlas, createIScriptRunner, imageDef, sprite) {

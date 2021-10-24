@@ -1,4 +1,4 @@
-import { SpriteDATType } from "../../common/dat/SpritesDAT";
+import { SpriteDATType } from "../../common/bwdat/core/SpritesDAT";
 import { Sprite, SpriteMaterial } from "three";
 import { getSelectionCircle } from "../stores/gameStore";
 

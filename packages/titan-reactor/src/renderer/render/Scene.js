@@ -1,14 +1,10 @@
-import {
-  HemisphereLight,
-  DirectionalLight,
-  Object3D,
-  Scene as ThreeScene,
-} from "three";
-import { disposeMeshes } from "../utils/dispose";
-import { loadTilesetFilesAsync } from "../../common/image/generate-map/map-data";
-import readCascFile from "../../common/utils/casclib";
+import { DirectionalLight, HemisphereLight, Object3D, Scene as ThreeScene } from "three";
+
 import generateMaterialsAndMeshes from "../../common/image/generate-map/generateMaterialsAndMeshes";
 import generateTextures from "../../common/image/generate-map/generateTextures";
+import { loadTilesetFilesAsync } from "../../common/image/generate-map/map-data";
+import readCascFile from "../../common/utils/casclib";
+import { disposeMeshes } from "../utils/dispose";
 
 export async function generateTerrain(chk) {
   // load all the tile files we need
@@ -48,23 +44,23 @@ function sunlight(mapWidth, mapHeight) {
 }
 
 export default class Scene extends ThreeScene {
-  constructor({ mapWidth, mapHeight, sdTerrain, hdTerrain }) {
+  constructor({ mapWidth, mapHeight, sdTerrain, terrain }) {
     super();
-    this.userData = { sdTerrain, hdTerrain };
+    this.userData = { sdTerrain, terrain };
     sdTerrain.visible = false;
     this.add(sdTerrain);
-    this.add(hdTerrain);
+    this.add(terrain);
     this.add(sunlight(mapWidth, mapHeight));
     this.add(new HemisphereLight(0xffffff, 0xffffff, 5));
   }
 
   toggleElevation() {
     this.userData.sdTerrain.visible = !this.userData.sdTerrain.visible;
-    this.userData.hdTerrain.visible = !this.userData.hdTerrain.visible;
+    this.userData.terrain.visible = !this.userData.terrain.visible;
   }
 
   get terrain() {
-    return this.userData.hdTerrain;
+    return this.userData.terrain;
   }
 
   incrementTileAnimation() {

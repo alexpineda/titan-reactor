@@ -1,4 +1,4 @@
-const { Vector3 } = require("three");
+import { Vector3 } from "three";
 
 const ONE_SECOND = 1000;
 const FPS = 60;

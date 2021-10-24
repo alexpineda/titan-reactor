@@ -1,6 +1,6 @@
 import { easeCubicOut } from "d3-ease";
-import { unitTypes } from "../../../common/bw-types/unitTypes";
-import { orders } from "../../../common/bw-types/orders";
+import { unitTypes } from "../../../common/bwdat/enums/unitTypes";
+import { orders } from "../../../common/bwdat/enums/orders";
 
 export default class HeatmapScore {
   constructor(bwDat) {

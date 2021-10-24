@@ -1,4 +1,4 @@
-import { drawFunctions } from "../bw-types/drawFunctions";
+import { drawFunctions } from "../bwdat/enums/drawFunctions";
 import TitanImage3D from "./TitanImage3D";
 import TitanImageHD from "./TitanImageHD";
 import TitanImageSD from "./TitanImageSD";

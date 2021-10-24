@@ -37,7 +37,7 @@ import {
   LOAD_CHK,
   LOAD_SCX,
 } from "../common/ipc/handleNames";
-import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
+import { loadAllDataFiles } from "../common/bwdat/core/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
 import logger from "./logger";

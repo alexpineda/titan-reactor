@@ -2,7 +2,7 @@ import { Object3D } from "three";
 import SelectionCircle from "./SelectionCircle";
 import SelectionBars from "./SelectionBars";
 import TitanImageHD from "../../common/image/TitanImageHD";
-import { SpriteDATType } from "../../common/dat/SpritesDAT";
+import { SpriteDATType } from "../../common/bwdat/core/SpritesDAT";
 
 const typeIds = ({ typeId }: {typeId: number}) => typeId;
 

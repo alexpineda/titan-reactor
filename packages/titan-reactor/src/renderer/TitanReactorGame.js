@@ -1,41 +1,39 @@
-import { unstable_batchedUpdates } from "react-dom";
-import { GameStatePosition } from "./game/GameStatePosition";
-import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
-import HeatmapScore from "./react-ui/game/HeatmapScore";
-import CameraRig from "./camera/CameraRig";
-import MinimapControl from "./input/MinimapControl";
-import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
-import { Players } from "./game/Players";
-import { commands } from "../common/bw-types/commands";
-import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
-import { unitTypes } from "../common/bw-types/unitTypes";
-import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import InputEvents from "./input/InputEvents";
-import RenderMan from "./render/RenderMan";
-import CanvasTarget from "../common/image/CanvasTarget";
-import GameCanvasTarget from "./render/GameCanvasTarget";
-import { RenderMode } from "../common/settings";
-import Units from "./game/Units";
-import FogOfWar from "./fogofwar/FogOfWar";
-import ProjectedCameraView from "./camera/ProjectedCameraView";
-import BWFrameSceneBuilder from "./BWFrameSceneBuilder";
-import Apm from "./game/Apm";
 import { debounce } from "lodash";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { MOUSE } from "three";
-import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import shuffle from "lodash.shuffle";
+import { unstable_batchedUpdates } from "react-dom";
+import { MOUSE } from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
+import { commands } from "../common/bwdat/enums/commands";
+import { unitTypes } from "../common/bwdat/enums/unitTypes";
+import CanvasTarget from "../common/image/CanvasTarget";
+import { RenderMode } from "../common/settings";
+import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
+import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
+import BWFrameSceneBuilder from "./BWFrameSceneBuilder";
+import CameraRig from "./camera/CameraRig";
+import { PlayerPovCamera, PovLeft, PovRight } from "./camera/PlayerPovCamera";
+import ProjectedCameraView from "./camera/ProjectedCameraView";
+import Creep from "./creep/Creep";
+import FogOfWar from "./fogofwar/FogOfWar";
+import Apm from "./game/Apm";
+import BuildUnits from "./game/BuildUnits";
+import { GameStatePosition } from "./game/GameStatePosition";
+import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
 import MouseCursor from "./game/MouseCursor";
-
-import useSettingsStore from "./stores/settingsStore";
+import { Players } from "./game/Players";
+import InputEvents from "./input/InputEvents";
+import KeyboardShortcuts from "./input/KeyboardShortcuts";
+import MinimapControl from "./input/MinimapControl";
+import HeatmapScore from "./react-ui/game/HeatmapScore";
+import GameCanvasTarget from "./render/GameCanvasTarget";
+import RenderMan from "./render/RenderMan";
 import useGameStore from "./stores/gameStore";
 import useHudStore from "./stores/hudStore";
-import useUnitSelectionStore from "./stores/realtime/unitSelectionStore";
 import useProductionStore from "./stores/realtime/productionStore";
 import useResourcesStore from "./stores/realtime/resourcesStore";
-
-import Creep from "./creep/Creep";
+import useUnitSelectionStore from "./stores/realtime/unitSelectionStore";
+import useSettingsStore from "./stores/settingsStore";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -87,8 +85,6 @@ async function TitanReactorGame(
 
   const cameraRig = new CameraRig(
     settings,
-    mapWidth,
-    mapHeight,
     gameSurface,
     minimapSurface,
     minimapControl,
@@ -242,7 +238,7 @@ async function TitanReactorGame(
 
   let nextBwFrame, currentBwFrame;
 
-  const units = new Units(
+  const units = new BuildUnits(
     bwDat,
     pxToGameUnit,
     players.playersById,
@@ -290,10 +286,9 @@ async function TitanReactorGame(
   cursor.init(
     projectedCameraView,
     gameSurface,
-    scene,
+    terrainInfo,
     cameraRig.camera,
-    frameBuilder,
-    scene.terrain
+    frameBuilder
   );
 
   let _lastElapsed = 0;

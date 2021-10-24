@@ -877,11 +877,11 @@ export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
   //   mapWidth * geomOptions.displaceVertexScale,
   //   mapHeight * geomOptions.displaceVertexScale
   // );
-  const hdTerrain = new Mesh(hdGeometry, hdMaterials);
+  const terrain = new Mesh(hdGeometry, hdMaterials);
   // hdTerrain.customDepthMaterial = hdDepthMaterial;
-  hdTerrain.rotation.x = -Math.PI / 2;
-  hdTerrain.castShadow = true;
-  hdTerrain.receiveShadow = true;
+  terrain.rotation.x = -Math.PI / 2;
+  terrain.castShadow = true;
+  terrain.receiveShadow = true;
   // const indicesPerMaterial = hdGeometry.index.count / hdMaterials.length;
   // hdMaterials.forEach((_, i) => {
   //   hdGeometry.addGroup(i * indicesPerMaterial, indicesPerMaterial, i);
@@ -890,17 +890,17 @@ export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
   //#endregion hd map
 
   sdTerrain.visible = true;
-  hdTerrain.visible = true;
+  terrain.visible = true;
 
   sdTerrain.name = "Terrain";
-  hdTerrain.name = "TerrainHD";
+  terrain.name = "TerrainHD";
   renderer.dispose();
 
   sdTerrain.matrixAutoUpdate = false;
   sdTerrain.updateMatrix();
 
-  hdTerrain.matrixAutoUpdate = false;
-  hdTerrain.updateMatrix();
+  terrain.matrixAutoUpdate = false;
+  terrain.updateMatrix();
 
   const minimapBitmap = await genMinimapBitmap(
     mapData.diffuse,
@@ -911,7 +911,7 @@ export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
 
   return {
     sdTerrain,
-    hdTerrain,
+    terrain,
     creepTextureUniform,
     creepEdgesTextureUniform,
     minimapBitmap,

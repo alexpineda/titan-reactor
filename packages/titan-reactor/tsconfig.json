@@ -5,7 +5,6 @@
     "moduleResolution": "node",
     "noImplicitOverride": true,
     "strict": true,
-    "outDir": "dist",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
@@ -15,7 +14,6 @@
     "jsxImportSource": "preact/compat",
 
     "checkJs": false,
-    "noEmit": true,
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

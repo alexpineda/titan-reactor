@@ -1,4 +1,6 @@
-import { unitTypes } from "../../common/bw-types/unitTypes";
+import { BwDATType } from "../../common/bwdat/core/BwDAT";
+import { UnitDAT } from "../../common/bwdat/core/UnitsDAT";
+import { unitTypes } from "../../common/bwdat/enums/unitTypes";
 import ContiguousContainer from "./ContiguousContainer";
 
 // status_flag_completed = 1,
@@ -62,7 +64,7 @@ export interface UnitBWI {
   remainingBuildTime: number;
   remainingTrainTime: number;
   angle: number;
-  unitType: number;
+  unitType: UnitDAT;
   isFlying: boolean;
   isCloaked: boolean;
   isComplete: boolean;
@@ -70,12 +72,12 @@ export interface UnitBWI {
   tileY: number;
   order: number;
   kills: number;
-  resourceAmount: number;
+  resourceAmount: number | null;
 }
 
 export const UNIT_BYTE_LENGTH = 30;
 // all units in a bw frame
-export default class UnitsBW extends ContiguousContainer {
+export default class UnitsBW extends ContiguousContainer implements UnitBWI {
   protected override byteLength = UNIT_BYTE_LENGTH;
 
   get id() {
@@ -158,8 +160,8 @@ export default class UnitsBW extends ContiguousContainer {
     return -((d * Math.PI) / 128) + Math.PI / 2;
   }
 
-  get unitType() {
-    return this.bwDat.units[this.typeId];
+  get unitType(): UnitDAT {
+    return (this.bwDat as BwDATType).units[this.typeId];
   }
 
   get isFlying() {

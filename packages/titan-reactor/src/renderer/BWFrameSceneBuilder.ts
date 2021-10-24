@@ -1,30 +1,29 @@
-import { Group, MathUtils, Scene } from "three";
 import { unstable_batchedUpdates } from "react-dom";
+import { Group, MathUtils, Scene } from "three";
 
+import TitanImageHD from "../common/image/TitanImageHD";
+import { GetTerrainY, PxToGameUnit } from "../common/types/util";
+import range from "../common/utils/range";
+import AudioMaster from "./audio/AudioMaster";
+import ProjectedCameraView from "./camera/ProjectedCameraView";
+import Creep from "./creep/Creep";
+import FogOfWar from "./fogofwar/FogOfWar";
 import BuildingQueueCountBW from "./game-data/BuildingQueueCountBW";
 import CreepBW from "./game-data/CreepBW";
+import FrameBW from "./game-data/FrameBW";
 import ImagesBW from "./game-data/ImagesBW";
+import ResearchBW from "./game-data/ResearchBW";
 import SoundsBW from "./game-data/SoundsBW";
 import SpritesBW from "./game-data/SpritesBW";
 import TilesBW from "./game-data/TilesBW";
 import UnitsBW from "./game-data/UnitsBW";
-import ResearchBW from "./game-data/ResearchBW";
 import UpgradeBW from "./game-data/UpgradeBW";
-import FrameBW from "./game-data/FrameBW";
+import BuildUnits from "./game/BuildUnits";
+import { GameUnitI, UnitInProduction } from "./game/GameUnit";
+import { Players } from "./game/Players";
 import SpriteGroup from "./game/SpriteGroup";
-import { GameUnitI } from "./game/GameUnit";
-import { GameSpriteI } from "./game/GameSprite";
-import Units from "./game/Units";
 import useHudStore from "./stores/hudStore";
 import TechUpgradesWorker from "./tech-upgrades/TechUpgrades.worker";
-import Creep from "./creep/Creep";
-import { Players } from "./game/Players";
-import AudioMaster from "./audio/AudioMaster";
-import ProjectedCameraView from "./camera/ProjectedCameraView";
-import FogOfWar from "./fogofwar/FogOfWar";
-import { PxToGameUnit, GetTerrainY } from "../common/types/util";
-import TitanImageHD from "../common/image/TitanImageHD";
-import range from "../common/utils/range";
 
 // Prepares the game from a FrameBW state
 // Updates and merges internal unit state
@@ -37,7 +36,7 @@ export default class BWFrameSceneBuilder {
   private readonly bwDat: any;
   private readonly group = new Group();
 
-  private interactableSprites: TitanImageHD[] = [];
+   interactableSprites: TitanImageHD[] = [];
   private _notifiedHudOfUpgrades = false;
   private _notifiedHudOfTech = false;
 
@@ -45,8 +44,8 @@ export default class BWFrameSceneBuilder {
   private readonly images: Map<number, TitanImageHD> = new Map();
   private readonly units: Map<number, GameUnitI> = new Map();
   private readonly unitsByIndex: Map<number, GameUnitI> = new Map();
-  private readonly unitsBySpriteId: Map<number, GameUnitI> = new Map();
-  private readonly unitsInProduction: GameUnitI[] = [];
+   readonly unitsBySpriteId: Map<number, GameUnitI> = new Map();
+  private readonly unitsInProduction: UnitInProduction[] = [];
 
   private research: [][];
   private upgrades: [][];
@@ -184,9 +183,9 @@ export default class BWFrameSceneBuilder {
   }
 
   /**
-   * @param {Units} units
+   * @param {BuildUnits} units
    */
-  buildUnitsAndMinimap(bwFrame: FrameBW, units: Units) {
+  buildUnitsAndMinimap(bwFrame: FrameBW, units: BuildUnits) {
     this.unitsBW.count = bwFrame.unitCount;
     this.unitsBW.buffer = bwFrame.units;
 
@@ -410,7 +409,7 @@ export default class BWFrameSceneBuilder {
     this.techUpgradesWorker.postMessage(msg);
   }
 
-  update(bwFrame: FrameBW, delta: number, elapsed: number, units: Units) {
+  update(bwFrame: FrameBW, delta: number, elapsed: number, units: BuildUnits) {
     this.group.clear();
     this.buildUnitsAndMinimap(bwFrame, units);
     this.buildSprites(bwFrame, delta, elapsed);

@@ -1,35 +1,29 @@
 import { promises as fsPromises } from "fs";
+
+import { BwDATType } from "../common/bwdat/core/BwDAT";
+import { loadAllDataFiles } from "../common/bwdat/core/loadAllDataFiles";
+import { UnitDAT } from "../common/bwdat/core/UnitsDAT";
+import Icons from "../common/Icons";
+import { Anim } from "../common/image/anim";
 import GrpFileLoader from "../common/image/GrpFileLoader";
 import GrpHD from "../common/image/GrpHD";
-import { Anim } from "../common/image/anim";
-import electronFileLoader from "./utils/electronFileLoader";
-import { UnitDAT } from "../common/dat/UnitsDAT";
-import { loadAllDataFiles } from "../common/dat/loadAllDataFiles";
+import readCascFile, { closeCascStorage, openCascStorage } from "../common/utils/casclib";
 import ContiguousContainer from "./game-data/ContiguousContainer";
-import Icons from "../common/Icons";
-import {
-  increaseAssetsLoaded,
-  completeAssetsLoaded,
-} from "./stores/loadingStore";
+import { completeAssetsLoaded, increaseAssetsLoaded } from "./stores/loadingStore";
+import electronFileLoader from "./utils/electronFileLoader";
+
 // import loadEnvironmentMap from "../common/image/envMap";
 // import { WebGLRenderer } from "three";
 
-import readCascFile, {
-  closeCascStorage,
-  openCascStorage,
-} from "../common/utils/casclib";
-
 class Assets {
-  bwDat: any;
-  grps: any;
+  bwDat?: BwDATType;
+  grps?: GrpHD[];
   icons: any;
   selectionCirclesHD: any;
 
   constructor() {
     this.selectionCirclesHD = null;
     this.icons = null;
-    this.grps = null;
-    this.bwDat = null;
   }
 
   async preload(starcraftPath: string, communityModelsPath: string) {
@@ -101,8 +95,8 @@ class Assets {
     completeAssetsLoaded();
   }
 
-  loadAudioFile(id) {
-    return readCascFile(`sound/${this.bwDat.sounds[id].file}`);
+  async loadAudioFile(id: number) {
+    return (await readCascFile(`sound/${this.bwDat?.sounds[id].file}`)).buffer;
   }
 
   dispose() {

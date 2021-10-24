@@ -1,15 +1,7 @@
-import {
-  Color,
-  DataTexture,
-  Group,
-  RedFormat,
-  Sprite,
-  SpriteMaterial,
-  Uniform,
-  UnsignedByteType,
-} from "three";
-import getMaxEnergy from "../../common/dat/getMaxEnergy";
-import { GameSpriteI } from "./GameSprite";
+import { Color, DataTexture, Group, RedFormat, Sprite, SpriteMaterial, Uniform, UnsignedByteType } from "three";
+
+import getMaxEnergy from "../../common/bwdat/core/getMaxEnergy";
+import SpriteGroup from "./SpriteGroup";
 
 window.grpOffset = 10;
 
@@ -126,13 +118,19 @@ const createSprite = () => {
 
 export default class SelectionBars extends Group {
   bar = createSprite();
+  private spriteType = -1;
 
   constructor() {
     super();
     this.add(this.bar);
   }
 
-  update(sprite: GameSpriteI, completedUpgrades, renderOrder: number, grpOffset: number) {
+  update(
+    sprite: SpriteGroup,
+    completedUpgrades,
+    renderOrder: number,
+    grpOffset: number
+  ) {
     if (!sprite.unit || !sprite.unit.owner) {
       this.visible = false;
       return;

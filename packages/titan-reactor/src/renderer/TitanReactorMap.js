@@ -1,20 +1,19 @@
 // playground for environment
-import { CircleGeometry, MeshBasicMaterial, Mesh, Color, MOUSE } from "three";
 import { debounce } from "lodash";
+import { CircleGeometry, Color, Mesh, MeshBasicMaterial, MOUSE } from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import CameraRig from "./camera/CameraRig";
-import RenderMan from "./render/RenderMan";
+import { iscriptHeaders } from "../common/bwdat/enums/iscriptHeaders";
+import { unitTypes } from "../common/bwdat/enums/unitTypes";
 import CanvasTarget from "../common/image/CanvasTarget";
-import KeyboardShortcuts from "./input/KeyboardShortcuts";
+import { pxToMapMeter } from "../common/utils/conversions";
+import CameraRig from "./camera/CameraRig";
 import FogOfWar from "./fogofwar/FogOfWar";
 import InputEvents from "./input/InputEvents";
-
-import { pxToMapMeter } from "../common/utils/conversions";
-import useSettingsStore from "./stores/settingsStore";
+import KeyboardShortcuts from "./input/KeyboardShortcuts";
+import RenderMan from "./render/RenderMan";
 import useHudStore from "./stores/hudStore";
-import { iscriptHeaders } from "../common/bw-types/iscriptHeaders";
-import { unitTypes } from "../common/bw-types/unitTypes";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import useSettingsStore from "./stores/settingsStore";
 
 function createStartLocation(mapX, mapY, color, mapZ = 0) {
   var geometry = new CircleGeometry(2, 32);
@@ -76,8 +75,6 @@ async function TitanReactorMap(
 
   const cameraRig = new CameraRig(
     settings,
-    mapWidth,
-    mapHeight,
     gameSurface,
     null,
     null,

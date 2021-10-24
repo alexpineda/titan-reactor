@@ -1,8 +1,8 @@
 import { Group } from "three";
-import { iscriptHeaders } from "../bw-types/iscriptHeaders";
-import { imageTypes } from "../bw-types/imageTypes";
-import { overlayTypesById, overlayTypes } from "../bw-types/overlayTypes";
-import { drawFunctions } from "../bw-types/drawFunctions";
+import { iscriptHeaders } from "../bwdat/enums/iscriptHeaders";
+import { imageTypes } from "../bwdat/enums/imageTypes";
+import { overlayTypesById, overlayTypes } from "../bwdat/enums/overlayTypes";
+import { drawFunctions } from "../bwdat/enums/drawFunctions";
 import pick from "../utils/pick";
 
 const ImageOrder = {
