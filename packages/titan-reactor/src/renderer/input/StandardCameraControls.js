@@ -1,8 +1,8 @@
 import CameraControls from "camera-controls";
-import { is, range } from "ramda";
 import * as THREE from "three";
 import CameraShake from "../camera/CameraShake";
 import InputEvents from "./InputEvents";
+import range from "../../common/utils/range";
 
 CameraControls.install({ THREE });
 
@@ -129,20 +129,20 @@ class StandardCameraControls extends CameraControls {
     this.numpadControlEnabled = true;
     const updateShot = (opts) => {
       const { azi, pol, fov, dollySpeed, dampingFactor, dollyTo } = opts;
-      if (is(Number, azi) && is(Number, pol)) {
+      if (azi && pol) {
         this.rotateTo(azi, pol, false);
       }
-      if (is(Number, fov)) {
+      if (fov) {
         this._camera.fov = fov;
         this._camera.updateProjectionMatrix();
       }
-      if (is(Number, dollySpeed)) {
+      if (dollySpeed) {
         this.dollySpeed = dollySpeed;
       }
-      if (is(Number, dampingFactor)) {
+      if (dampingFactor) {
         this.dampingFactor = dampingFactor;
       }
-      if (is(Number, dollyTo)) {
+      if (dollyTo) {
         if (this._camera.isPerspectiveCamera) {
           this.dollyTo(dollyTo, false);
         } else {

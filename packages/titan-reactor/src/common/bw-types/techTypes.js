@@ -1,4 +1,4 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
 
 const techTypes = {
   stimPacks: 0x00,

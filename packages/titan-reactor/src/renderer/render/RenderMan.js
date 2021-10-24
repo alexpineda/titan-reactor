@@ -21,7 +21,7 @@ import {
   BloomEffect,
 } from "postprocessing";
 
-import FogOfWarEffect from "../game/fogofwar/FogOfWarEffect";
+import FogOfWarEffect from "../fogofwar/FogOfWarEffect";
 import { easePoly } from "d3-ease";
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes

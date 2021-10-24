@@ -1,4 +1,4 @@
-import { range } from "ramda";
+import range from "../../../../common/utils/range";
 import React, { useRef, useEffect } from "react";
 import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import { showKillsExtraUnits } from "./Kills";

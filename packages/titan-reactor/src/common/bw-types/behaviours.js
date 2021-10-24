@@ -1,4 +1,5 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
+
 export const behaviours = {
   flyAndDontFollowTarget: 0,
   flyAndFollowTarget: 1,

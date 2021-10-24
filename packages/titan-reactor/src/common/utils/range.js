@@ -1,4 +1,17 @@
-//https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
-export default (startAt, size) => {
-  return [...Array(size).keys()].map((i) => i + startAt);
+const range = (start, stop) => {
+  // in this case use start as the count and start = 0
+  if (typeof stop === "undefined") {
+    if (start < 0 || Number.isNaN(start)) {
+      return [];
+    }
+    return [...Array(start).keys()].map((value) => value);
+  }
+
+  const count = stop - start;
+  if (count < 0 || Number.isNaN(count)) {
+    return [];
+  }
+  return [...Array(count).keys()].map((value) => value + start);
 };
+
+export default range;

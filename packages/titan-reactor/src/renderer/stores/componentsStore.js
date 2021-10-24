@@ -1,4 +1,4 @@
-import create from "../../../libs/zustand";
+import create from "zustand";
 
 const useComponentsStore = create((set, get) => ({
   components: new Map(),

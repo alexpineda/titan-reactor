@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { isEmpty } from "ramda";
 import shallow from "zustand/shallow";
 import {
   incFontSize,
@@ -225,7 +224,7 @@ const PlayerResources = ({
             }}
             onKeyDown={(evt) => {
               evt.nativeEvent.stopImmediatePropagation();
-              if (evt.key === "Enter" && !isEmpty(tempName)) {
+              if (evt.key === "Enter" && !tempName) {
                 setPlayerName(tempName);
                 setIsChangingName(false);
               } else if (evt.key === "Escape") {

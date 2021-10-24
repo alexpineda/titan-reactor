@@ -1,6 +1,6 @@
 import { Raycaster, Vector2 } from "three";
 import { unstable_batchedUpdates } from "react-dom";
-import GameSprite from "./sprite/GameSprite";
+import SpriteGroup from "./SpriteGroup";
 import useGameStore, { getIcons } from "../stores/gameStore";
 import { unitTypes } from "../../common/bw-types/unitTypes";
 
@@ -170,7 +170,7 @@ export default class MouseCursor {
           }
         }
 
-        if (closestSprite instanceof GameSprite) {
+        if (closestSprite instanceof SpriteGroup) {
           return closestSprite;
         }
       }

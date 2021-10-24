@@ -1,7 +1,7 @@
 import Grp3D from "./Grp3D";
 
 export default class GrpFileLoader {
-  constructor(bwDat, bwDataPath, readFile, sdAnim) {
+  constructor(bwDat, bwDataPath, readFile, sdAnim, sdAnimBuf) {
     this.bwDat = bwDat;
     this.bwDataPath = bwDataPath;
     this.readFile = readFile;
@@ -20,7 +20,7 @@ export default class GrpFileLoader {
 
     this.readSDAnim = (id) => ({
       ...this.sdAnim.sprites[this.refId(id)],
-      buf: this.sdAnim.buf,
+      buf: sdAnimBuf,
     });
 
     this.readAnim = (id) =>

@@ -1,4 +1,4 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
 
 export const orders = {
   die: 0x0,

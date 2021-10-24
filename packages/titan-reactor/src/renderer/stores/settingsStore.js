@@ -1,5 +1,5 @@
 import { getSettings as invokeGetSettings, saveSettings } from "../invoke";
-import create from "../../../libs/zustand";
+import create from "zustand";
 
 //a user settings store which persists to disk
 

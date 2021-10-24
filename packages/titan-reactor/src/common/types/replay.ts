@@ -10,3 +10,27 @@ export type ReplayPlayer = {
     rgb: ColorRepresentation;
   };
 };
+
+type baseSelection = {
+  player: number;
+  id: number;
+  frame: number;
+};
+type cmdSelection = baseSelection & {
+  unitTags: number[];
+};
+type cmdSelectionAdd = cmdSelection;
+type cmdSelectionRemove = cmdSelectionAdd;
+type cmdRightClick = baseSelection & {
+  x: number;
+  y: number;
+  unitTag: number;
+  unit: number;
+  queued: number;
+};
+
+export type ReplayCommandType =
+  | cmdRightClick
+  | cmdSelectionAdd
+  | cmdSelection
+  | cmdSelectionRemove;

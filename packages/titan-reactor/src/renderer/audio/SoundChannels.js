@@ -1,7 +1,7 @@
-import { range } from "ramda";
 import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import Audio from "./Audio";
 import SoundChannel from "./SoundChannel";
+import range from "../../common/utils/range";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export default class SoundChannels {

@@ -1,4 +1,4 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
 
 const upgrades = {
   terranInfantryArmor: 0x00,

@@ -1,4 +1,4 @@
-import { uniq } from "ramda";
+import uniq from "../utils/uniq";
 
 const calculateImagesFromIScript = (
   bwDat,

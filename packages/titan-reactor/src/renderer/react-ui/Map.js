@@ -7,7 +7,10 @@ import useLoadingStore from "../stores/loadingStore";
 import shallow from "zustand/shallow";
 import Menu from "./game/Menu";
 import { ipcRenderer } from "electron";
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "common/handleNames";
+import {
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+} from "../../common/ipc/handleNames";
 
 const hudStoreSelector = (state) => ({
   showInGameMenu: state.show.inGameMenu,

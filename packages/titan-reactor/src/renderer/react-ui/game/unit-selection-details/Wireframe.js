@@ -1,5 +1,5 @@
+import range from "../../../../common/utils/range";
 import React, { useRef, useEffect } from "react";
-import { range } from "ramda";
 import { shuffle } from "lodash";
 import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
 import useGameStore from "../../../stores/gameStore";

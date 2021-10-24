@@ -1,4 +1,4 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
 
 export const imageTypes = {
   gasOverlay: 430,

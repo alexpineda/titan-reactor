@@ -1,4 +1,4 @@
-import { range } from "ramda";
+import range from "../../../../common/utils/range";
 import React, { forwardRef } from "react";
 import SmallUnitItem from "./SmallUnitItem";
 

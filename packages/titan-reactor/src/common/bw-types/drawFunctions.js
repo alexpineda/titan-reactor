@@ -1,4 +1,4 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
 export const drawFunctions = {
   normal: 0,
   overlayOnTarget: 1,

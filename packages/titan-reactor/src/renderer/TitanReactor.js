@@ -1,7 +1,6 @@
 import createScmExtractor from "scm-extractor";
 import fs from "fs";
 import path from "path";
-import { pick, uniq } from "ramda";
 import concat from "concat-stream";
 import Chk from "../../libs/bw-chk";
 import TitanReactorMap from "./TitanReactorMap";
@@ -10,11 +9,14 @@ import Scene, { generateTerrain } from "./render/Scene";
 import { openFile, log } from "./invoke";
 import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
 
+import pick from "../common/utils/pick";
+import uniq from "../common/utils/uniq";
+
 import createTitanImage from "../common/image/createTitanImage";
 import TitanImageHD from "../common/image/TitanImageHD";
 import { createIScriptRunner } from "../common/iscript/IScriptRunner";
 
-import FileGameStateReader from "./game/bw/FileGameStateReader";
+import OpenBwBridgeReader from "./game-data/readers/OpenBwBridgeReader";
 import Assets from "./Assets";
 import TitanSprite from "../common/image/TitanSprite";
 import AudioMaster from "./audio/AudioMaster";
@@ -121,10 +123,10 @@ export class TitanReactor {
     const scene = new Scene(terrainInfo);
 
     log("starting gamestate reader", repFile, outFile);
-    const gameStateReader = new FileGameStateReader(
+    const gameStateReader = new OpenBwBridgeReader(
+      settings.starcraftPath,
       repFile,
-      outFile,
-      settings.starcraftPath
+      outFile
     );
     await gameStateReader.start();
     log("waiting for maxed");

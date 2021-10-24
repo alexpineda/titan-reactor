@@ -1,9 +1,9 @@
-import { is, pick } from "ramda";
 import { Group } from "three";
 import { iscriptHeaders } from "../bw-types/iscriptHeaders";
 import { imageTypes } from "../bw-types/imageTypes";
 import { overlayTypesById, overlayTypes } from "../bw-types/overlayTypes";
 import { drawFunctions } from "../bw-types/drawFunctions";
+import pick from "../utils/pick";
 
 const ImageOrder = {
   bottom: "bottom",
@@ -40,7 +40,7 @@ export default class TitanSprite extends Group {
   }
 
   addImage(image, imageOrder, rel) {
-    if (!is(Number, image)) {
+    if (typeof image !== "number") {
       throw new Error("image must be Number");
     }
     const relImage =

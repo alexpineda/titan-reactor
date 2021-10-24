@@ -1,4 +1,3 @@
-import { is } from "ramda";
 import { Clock, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 
 import StandardCameraControls from "../input/StandardCameraControls";
@@ -162,7 +161,7 @@ class CameraRig {
   }
 
   updateGameScreenAspect(width, height) {
-    if (is(OrthographicCamera, this.camera)) {
+    if (this.camera instanceof OrthographicCamera) {
       const m = Math.max(width, height);
 
       this.camera.left = (-16 * width) / m;

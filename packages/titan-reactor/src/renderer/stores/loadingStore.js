@@ -1,4 +1,4 @@
-import create from "../../../libs/zustand";
+import create from "zustand";
 
 // loading store which contains state on loading status, as well as loaded replay and map data
 export const ASSETS_MAX = 1010;

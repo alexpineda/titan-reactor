@@ -43,7 +43,7 @@ import { getUserDataPath } from "./userDataPath";
 import logger from "./logger";
 import Chk from "../../libs/bw-chk";
 import BufferList from "bl";
-import FileGameStateReader from "../renderer/game/bw/FileGameStateReader";
+import FileGameStateReader from "../renderer/game-data/readers/FileGameStateReader";
 
 // app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 // app.commandLine.appendSwitch("disable-frame-rate-limit");

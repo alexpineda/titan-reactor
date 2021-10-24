@@ -1,5 +1,4 @@
-import { invertObj, is } from "ramda";
-//bw scales
+import invertObj from "./invertObj";
 
 const transform = (a, b) => a / 32 - b / 2;
 
@@ -8,7 +7,7 @@ export const pxToMapMeter = (mapWidth, mapHeight) => {
     x: (x) => transform(x, mapWidth),
     y: (y) => transform(y, mapHeight),
     xy: (xy) => {
-      if (is(Array, xy)) {
+      if (Array.isArray(xy)) {
         return [transform(xy[0], mapWidth), transform(xy[1], mapHeight)];
       } else {
         return {

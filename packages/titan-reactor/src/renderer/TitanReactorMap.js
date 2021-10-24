@@ -6,7 +6,7 @@ import CameraRig from "./camera/CameraRig";
 import RenderMan from "./render/RenderMan";
 import CanvasTarget from "../common/image/CanvasTarget";
 import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import FogOfWar from "./game/fogofwar/FogOfWar";
+import FogOfWar from "./fogofwar/FogOfWar";
 import InputEvents from "./input/InputEvents";
 
 import { pxToMapMeter } from "../common/utils/conversions";

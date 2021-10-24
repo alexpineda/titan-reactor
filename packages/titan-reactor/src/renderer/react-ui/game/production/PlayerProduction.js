@@ -1,7 +1,7 @@
-import { range } from "ramda";
 import React from "react";
 import useSettingsStore from "../../../stores/settingsStore";
 import ProductionItem from "./ProductionItem";
+import range from "../../../../common/utils/range";
 
 const tenItems = range(0, 10);
 const settingsSelector = (state) =>

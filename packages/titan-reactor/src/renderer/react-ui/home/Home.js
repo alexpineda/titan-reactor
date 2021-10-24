@@ -6,7 +6,7 @@ import {
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   OPEN_DEMO_REPLAY,
-} from "common/handleNames";
+} from "../../../common/ipc/handleNames";
 import { MenuItem } from "../components/MenuItem";
 import { exit } from "../../invoke";
 import useSettingsStore from "../../stores/settingsStore";

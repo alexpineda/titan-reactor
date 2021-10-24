@@ -1,5 +1,5 @@
-import { range } from "ramda";
-import create from "../../../libs/zustand";
+import range from "../../common/utils/range";
+import create from "zustand";
 
 export const CHAT_INTERVAL = 4000;
 

@@ -16,9 +16,9 @@ import CanvasTarget from "../common/image/CanvasTarget";
 import GameCanvasTarget from "./render/GameCanvasTarget";
 import { RenderMode } from "../common/settings";
 import Units from "./game/Units";
-import FogOfWar from "./game/fogofwar/FogOfWar";
+import FogOfWar from "./fogofwar/FogOfWar";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
-import BWFrameSceneBuilder from "./game/BWFrameSceneBuilder";
+import BWFrameSceneBuilder from "./BWFrameSceneBuilder";
 import Apm from "./game/Apm";
 import { debounce } from "lodash";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -35,7 +35,7 @@ import useUnitSelectionStore from "./stores/realtime/unitSelectionStore";
 import useProductionStore from "./stores/realtime/productionStore";
 import useResourcesStore from "./stores/realtime/resourcesStore";
 
-import Creep from "./game/creep/Creep";
+import Creep from "./creep/Creep";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -150,13 +150,8 @@ async function TitanReactorGame(
 
   let gameStatePosition = new GameStatePosition(
     rep.header.frameCount,
-    gameSpeeds.fastest,
-    heatMapScore
+    gameSpeeds.fastest
   );
-
-  gameStatePosition.setMaxAutoSpeed(settings.maxAutoReplaySpeed);
-
-  gameStatePosition.onResetState = () => {};
 
   // todo change this to store
   const togglePlayHandler = () => {
@@ -360,10 +355,6 @@ async function TitanReactorGame(
         );
         setSelectedUnits(useGameStore.getState().selectedUnits);
 
-        frameBuilder.unitsInProduction.needsUpdate = false;
-        frameBuilder.upgrades.needsUpdate = false;
-        frameBuilder.research.needsUpdate = false;
-
         apm.update(
           rep.cmds[gameStatePosition.bwGameFrame],
           gameStatePosition.bwGameFrame
@@ -419,19 +410,6 @@ async function TitanReactorGame(
         }
         currentBwFrame = null;
       } // end of bwframe update
-
-      if (gameStatePosition.willUpdateAutospeed()) {
-        const attackingUnits = [];
-        //  unitsThisFrame
-        //   .map((unitRepId) =>
-        //     units.units.children.find(
-        //       ({ userData }) => userData.repId === unitRepId
-        //     )
-        //   )
-        //   .filter((unit) => heatMapScore.unitOfInterestFilter(unit));
-
-        gameStatePosition.updateAutoSpeed(attackingUnits, delta);
-      }
     }
 
     // if (

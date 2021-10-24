@@ -1,4 +1,4 @@
-import { invertObj } from "ramda";
+import invertObj from "../utils/invertObj";
 
 export const commands = {
   keepAlive: 0x05,

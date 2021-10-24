@@ -1,4 +1,4 @@
-import create from "../../../libs/zustand";
+import create from "zustand";
 
 let _productionInterval = null;
 let _cycleTime = 10000;

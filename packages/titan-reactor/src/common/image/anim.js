@@ -1,5 +1,5 @@
 // thanks to farty and neiv for references
-import {range} from "ramda";
+import range from "../utils/range";
 import BufferList from "bl";
 
 const versionSD = Symbol("sd");
