@@ -1,14 +1,14 @@
 import { DAT, ReadFileType } from "./DAT";
 
 export type SoundDATType = {
-  file: string,
-  priority: number,
-  flags: number,
-  race: number,
-  minVolume: number
-}
+  file: string;
+  priority: number;
+  flags: number;
+  race: number;
+  minVolume: number;
+};
 
-export class SoundsDAT extends DAT {
+export class SoundsDAT extends DAT<SoundDATType> {
   constructor(readFile: ReadFileType) {
     super(readFile);
 
@@ -24,9 +24,5 @@ export class SoundsDAT extends DAT {
 
     this.datname = "sfxdata.dat";
     this.count = 1144;
-  }
-
-  override async load() : Promise<SoundDATType[]> {
-    return super.load();
   }
 }

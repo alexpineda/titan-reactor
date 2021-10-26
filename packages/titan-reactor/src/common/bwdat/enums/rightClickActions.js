@@ -1,4 +1,5 @@
-import invertObj from "../utils/invertObj";
+import invertObj from "../../utils/invertObj";
+
 export const rightClickActions = {
   noCommandsAutoAttack: 0,
   normalMovementNormalAttack: 1,

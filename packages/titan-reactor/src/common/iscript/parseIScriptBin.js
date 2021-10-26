@@ -210,7 +210,7 @@ export default (buf) => {
     }
 
     if (buf.toString("utf8", offset, offset + 4) != "SCPE") {
-      throw new Error(`invalid header`);
+      throw new Error("invalid header");
     }
 
     const iscript = {

@@ -1,11 +1,20 @@
+import SpriteGroup from "src/renderer/game/SpriteGroup";
 import {
-  Sprite,
   BufferAttribute,
+  Color,
   DynamicDrawUsage,
+  InterleavedBufferAttribute,
+  Sprite,
   SubtractiveBlending,
   Vector3,
 } from "three";
+
 import { drawFunctions } from "../bwdat/enums/drawFunctions";
+import { IScriptRunner } from "../iscript";
+import { ImageDATType } from "../types/bwdat";
+import { GrpFrameType } from "../types/grp";
+import { createIScriptRunner } from "../types/iscript";
+import GrpHD from "./GrpHD";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
 
 export const DepthMode = {
@@ -13,21 +22,35 @@ export const DepthMode = {
   Depth: 1, // for angled views
 };
 
+export type constructorArguments = [atlas: GrpHD, createIScriptRunner: createIScriptRunner, imageDef: ImageDATType, sprite: SpriteGroup]
 export default class TitanImageHD extends Sprite {
   static useDepth = false;
+   _spriteScale: number;
+  private _oScale: Vector3;
+  sprite: SpriteGroup;
+  imageDef: ImageDATType;
+  override material: TeamSpriteMaterial;
+  iscript: IScriptRunner;
+   _zOff: number;
+   
+  private atlas: GrpHD;
+  private uv: BufferAttribute | InterleavedBufferAttribute;
+  private pos: BufferAttribute | InterleavedBufferAttribute;
+  private lastSetFrame?: GrpFrameType;
+  private lastFlipFrame?: boolean;
 
-  constructor(atlas, createIScriptRunner, imageDef, sprite, spriteScale = 128) {
+
+  
+  constructor(atlas: GrpHD, createIScriptRunner: createIScriptRunner, imageDef: ImageDATType, sprite: SpriteGroup, spriteScale = 128) {
+    super();
     const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
 
-    let material;
-
-    material = new TeamSpriteMaterial({
+    const material = new TeamSpriteMaterial({
       map: diffuse,
     });
     material.teamMask = teamcolor;
     material.isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
-
-    super(material);
+    this.material = material;
 
     this.sprite = sprite;
     this._spriteScale = spriteScale;
@@ -58,8 +81,8 @@ export default class TitanImageHD extends Sprite {
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
     this._oScale = new Vector3(
-      grpWidth / this._spriteScale,
-      grpHeight / this._spriteScale,
+      grpWidth as number / this._spriteScale,
+      grpHeight as number / this._spriteScale,
       1
     );
 
@@ -90,7 +113,7 @@ export default class TitanImageHD extends Sprite {
     return this.atlas.frames;
   }
 
-  setTeamColor(val) {
+  setTeamColor(val: Color) {
     this.material.teamColor = val;
   }
 
@@ -100,31 +123,31 @@ export default class TitanImageHD extends Sprite {
     // this.material.delta = delta;
   }
 
-  setCloaked(val) {
+  setCloaked(val: boolean) {
     this.material.opacity = val ? 0.5 : 1;
   }
 
-  setPositionX(x, scale = this._spriteScale) {
+  setPositionX(x: number, scale = this._spriteScale) {
     this.position.x = x / scale;
   }
 
-  setPositionY(y, scale = this._spriteScale) {
+  setPositionY(y:number, scale = this._spriteScale) {
     this.position.y = y / scale;
   }
 
-  setPosition(x, y, scale = this._spriteScale) {
+  setPosition(x:number, y:number, scale = this._spriteScale) {
     this.setPositionX(x, scale);
     this.setPositionY(y, scale);
   }
 
-  setFrame(frame, flip) {
+  setFrame(frame:number, flip:boolean) {
     if (this._setFrame(this.atlas.frames[frame], flip)) {
       this.uv.needsUpdate = true;
       this.pos.needsUpdate = true;
     }
   }
 
-  intersects(u, v) {
+  intersects(u:number, v:number) {
     const x = u - 0.5;
     const y = v - 0.5;
 
@@ -137,7 +160,7 @@ export default class TitanImageHD extends Sprite {
   }
 
   //dds is flipped y so we don't do it in our uvs
-  _setFrame(frame, flipFrame) {
+  _setFrame(frame:GrpFrameType, flipFrame:boolean) {
     if (frame === undefined) {
       console.error("frame is undefined");
       return false;
@@ -157,6 +180,7 @@ export default class TitanImageHD extends Sprite {
     // ? frame.h / 2 / this.atlas.grpHeight
     // : 0.5;
 
+    //@todo migrate to use set
     if (flipFrame) {
       this.uv.array[0] = (frame.x + frame.w) / this.atlas.width;
       this.uv.array[2] = frame.x / this.atlas.width;

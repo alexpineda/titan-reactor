@@ -1,4 +1,5 @@
-import invertObj from "../utils/invertObj";
+import invertObj from "../../utils/invertObj";
+
 export const unitSize = {
   Independent: 0,
   small: 1,

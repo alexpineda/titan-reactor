@@ -28,7 +28,7 @@ class MinimapControl extends EventDispatcher {
     this._attach();
   }
 
-  register<K extends keyof WindowEventMap>(event: K, listener: (this: Window, evt: MouseEvent) => any) : [string, EventListener] {
+  register<K extends keyof WindowEventMap>(event: K, listener: (this: Window, evt: MouseEvent) => void) : [string, EventListener] {
     this._listeners.push([event, listener]);
     return [event, listener as EventListener];
   }

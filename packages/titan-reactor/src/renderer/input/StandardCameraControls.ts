@@ -238,7 +238,7 @@ class StandardCameraControls extends CameraControls {
           ? this.constraints.dollyTo[dollyTo]
           : dollyTo,
     };
-  };
+  }
 
   updateShot (opts: ShotOptions) {
     const { azi, pol, fov,  dollyTo } = opts;
@@ -252,7 +252,7 @@ class StandardCameraControls extends CameraControls {
     if (dollyTo) {
         this.dollyTo(dollyTo, false);
     }
-  };
+  }
 
   private _keypressListener (evt: KeyboardEvent) {
     if (evt.code === "NumpadDivide") {
@@ -282,7 +282,7 @@ class StandardCameraControls extends CameraControls {
     if (numpads.includes(evt.code)) {
       this.updateShot(this.createShot(this.presets[evt.code as NumpadKeys]));
     }
-  };
+  }
 
   initNumpadControls() {
     this.numpadControlEnabled = true;
@@ -293,7 +293,7 @@ class StandardCameraControls extends CameraControls {
   }
 
   execNumpad(numpadKey: number) {
-    const numpadKeyCode = `Numpad${numpadKey}`
+    const numpadKeyCode = `Numpad${numpadKey}`;
     this.updateShot(this.createShot(this.presets[numpadKeyCode as NumpadKeys]));
   }
 

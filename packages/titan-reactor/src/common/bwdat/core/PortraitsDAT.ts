@@ -1,5 +1,9 @@
 import { DAT, ReadFileType } from "./DAT";
-export class PortraitsDAT extends DAT {
+
+export type PortraitDatType = {
+  filename: string;
+};
+export class PortraitsDAT extends DAT<PortraitDatType> {
   constructor(readFile: ReadFileType) {
     super(readFile);
 

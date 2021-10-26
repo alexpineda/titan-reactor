@@ -1,5 +1,5 @@
-import upgradeTypes from "../enums/upgrades";
 import { unitTypes } from "../enums/unitTypes";
+import { upgrades } from "../enums/upgrades";
 import { UnitDAT } from "./UnitsDAT";
 
 export default (unitType: UnitDAT, completedUpgrades: number[]) => {
@@ -8,27 +8,27 @@ export default (unitType: UnitDAT, completedUpgrades: number[]) => {
 
   if (
     (unitType.index === unitTypes.arbiter &&
-      completedUpgrades.includes(upgradeTypes.khaydarinCore)) ||
+      completedUpgrades.includes(upgrades.khaydarinCore)) ||
     (unitType.index === unitTypes.corsair &&
-      completedUpgrades.includes(upgradeTypes.argusJewel)) ||
+      completedUpgrades.includes(upgrades.argusJewel)) ||
     (unitType.index === unitTypes.darkArchon &&
-      completedUpgrades.includes(upgradeTypes.argusTalisman)) ||
+      completedUpgrades.includes(upgrades.argusTalisman)) ||
     (unitType.index === unitTypes.highTemplar &&
-      completedUpgrades.includes(upgradeTypes.khaydarinAmulet)) ||
+      completedUpgrades.includes(upgrades.khaydarinAmulet)) ||
     (unitType.index === unitTypes.ghost &&
-      completedUpgrades.includes(upgradeTypes.moebiusReactor)) ||
+      completedUpgrades.includes(upgrades.moebiusReactor)) ||
     (unitType.index === unitTypes.battleCruiser &&
-      completedUpgrades.includes(upgradeTypes.colossusReactor)) ||
+      completedUpgrades.includes(upgrades.colossusReactor)) ||
     (unitType.index === unitTypes.scienceVessel &&
-      completedUpgrades.includes(upgradeTypes.titanReactor)) ||
+      completedUpgrades.includes(upgrades.titanReactor)) ||
     (unitType.index === unitTypes.wraith &&
-      completedUpgrades.includes(upgradeTypes.apolloReactor)) ||
+      completedUpgrades.includes(upgrades.apolloReactor)) ||
     (unitType.index === unitTypes.medic &&
-      completedUpgrades.includes(upgradeTypes.caduceusReactor)) ||
+      completedUpgrades.includes(upgrades.caduceusReactor)) ||
     (unitType.index === unitTypes.defiler &&
-      completedUpgrades.includes(upgradeTypes.metasynapticNode)) ||
+      completedUpgrades.includes(upgrades.metasynapticNode)) ||
     (unitType.index === unitTypes.queen &&
-      completedUpgrades.includes(upgradeTypes.gameteMeiosis))
+      completedUpgrades.includes(upgrades.gameteMeiosis))
   ) {
     energy = energy + 50;
   }

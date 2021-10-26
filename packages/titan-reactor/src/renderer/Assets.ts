@@ -32,6 +32,7 @@ class Assets {
 
     openCascStorage(starcraftPath);
 
+    //@todo move parsing to client and don't cast any shit
     const origBwDat = await loadAllDataFiles(readCascFile);
     const bwDat = {
       ...origBwDat,

@@ -1,10 +1,10 @@
-import { Color, CubeTexture, Mesh, Scene, sRGBEncoding } from "three";
+import { AnimationClip, Color, CubeTexture, Group, Mesh, sRGBEncoding } from "three";
 
 import ElectronGLTFLoader from "../utils/GLTFLoader";
 
-type GlbResponse = {
-  scene: Scene;
-  animations: any;
+export type GlbResponse = {
+  model: Group;
+  animations: AnimationClip[];
 };
 export default function loadGlb(
   file: string,
@@ -16,7 +16,7 @@ export default function loadGlb(
     //@todo refactor GLTF Loader to classes
     new ElectronGLTFLoader().load(
       file,
-      (glb: GlbResponse) => {
+      (glb: any) => {
         const { scene: model, animations } = glb;
         model.traverse((o) => {
           if (o instanceof Mesh) {

@@ -1,11 +1,8 @@
 import React, { useRef } from "react";
-import useProductionStore from "../../../stores/realtime/productionStore";
+
+import { techTypesByUnitType, upgrades, upgradesByUnitType } from "../../../../common/bwdat/enums";
 import useGameStore from "../../../stores/gameStore";
-import {
-  techTypesByUnitType,
-  upgradesByUnitType,
-} from "../../../../common/bwdat/enums/abilitiesMap";
-import upgradeTypes from "../../../../common/bwdat/enums/upgrades";
+import useProductionStore from "../../../stores/realtime/productionStore";
 
 const iconSelector = (state) => state.assets.icons.cmdIcons;
 const bwDatSelector = (state) => state.assets.bwDat;
@@ -19,7 +16,7 @@ const Upgrades = ({ unit }) => {
   const validUpgrades =
     upgradesByUnitType[unit.typeId] ||
     (unit.unitType.isProtoss && unit.unitType.isBuilding
-      ? [upgradeTypes.protossPlasmaShields]
+      ? [upgrades.protossPlasmaShields]
       : []);
 
   //todo realtime updates

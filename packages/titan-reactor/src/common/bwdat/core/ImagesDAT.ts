@@ -2,26 +2,26 @@ import { DAT, ReadFileType } from "./DAT";
 import ImageListDefiniton from "./Data/ImageListDefiniton.js";
 
 export type ImageDATType = {
-  index: number,
-  grpFile: string,
-  name: string,
+  index: number;
+  grpFile: string;
+  name: string;
 
-  grp: number,
-  gfxTurns: number,
-  clickable: number,
-  useFullIscript: number,
-  drawIfCloaked: number,
-  drawFunction: number,
-  remapping: number,
-  iscript: number,
-  shieldOverlay: number,
-  attackOverlay: number,
-  specialOverlay: number,
-  landingDustOverlay: number,
-  liftOffDustOverlay: number,
-}
+  grp: number;
+  gfxTurns: number;
+  clickable: number;
+  useFullIscript: number;
+  drawIfCloaked: number;
+  drawFunction: number;
+  remapping: number;
+  iscript: number;
+  shieldOverlay: number;
+  attackOverlay: number;
+  specialOverlay: number;
+  landingDustOverlay: number;
+  liftOffDustOverlay: number;
+};
 
-export class ImagesDAT extends DAT {
+export class ImagesDAT extends DAT<ImageDATType> {
   constructor(readFile: ReadFileType) {
     super(readFile);
 
@@ -51,16 +51,16 @@ export class ImagesDAT extends DAT {
     this.count = 999;
   }
 
-  override async load() : Promise<ImageDATType[]> {
+  override async load(): Promise<ImageDATType[]> {
     return super.load();
   }
 
   override post(entries: ImageDATType[]): ImageDATType[] {
     return entries.map((entry, i: number) => ({
       ...entry,
-      index : i,
+      index: i,
       grpFile: this._statTxt()(entry.grp),
-      name : ImageListDefiniton[i]
+      name: ImageListDefiniton[i],
     }));
   }
 }

@@ -1,6 +1,6 @@
 import invertObj from "../../utils/invertObj";
 
-const upgrades = {
+export const upgrades = {
   terranInfantryArmor: 0x00,
   terranVehiclePlating: 0x01,
   terranShipPlating: 0x02,
@@ -58,6 +58,4 @@ const upgrades = {
   charonBooster: 0x36,
 };
 
-export const upgradesByTypeId = invertObj(upgrades);
-
-export default upgrades;
+export const upgradesById = invertObj(upgrades);

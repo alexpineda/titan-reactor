@@ -1,4 +1,6 @@
-export default [
+import invertObj from "../../utils/invertObj";
+
+export const tilesetNames = [
   "badlands",
   "platform",
   "install",
@@ -8,3 +10,5 @@ export default [
   "ice",
   "twilight",
 ];
+
+export const tilesetNamesById = invertObj(tilesetNames);

@@ -1,6 +1,6 @@
 import invertObj from "../../utils/invertObj";
 
-const techTypes = {
+export const techTypes = {
   stimPacks: 0x00,
   lockdown: 0x01,
   empShockwave: 0x02,
@@ -38,6 +38,4 @@ const techTypes = {
   healing: 0x22,
 };
 
-export const techTypesByTypeId = invertObj(techTypes);
-
-export default techTypes;
+export const techTypesById = invertObj(techTypes);

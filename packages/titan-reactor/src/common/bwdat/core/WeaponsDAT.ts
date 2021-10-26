@@ -1,31 +1,31 @@
-import { FlingyDATType } from "./FlingyDAT";
 import { DAT, ReadFileType } from "./DAT";
+import { FlingyDATType } from "./FlingyDAT";
 
 export type WeaponDATType = {
-  index: number,
-  name: string,
-  flingy: FlingyDATType,
-  targetFlags: number,
-  minRange: number,
-  maxRange: number,
-  damageUpgrade: number,
-  damageType: number,
-  weaponBehavior: number,
-  explosionType: number,
-  innerSplashRange: number,
-  mediumSplashRange: number,
-  outerSplashRange: number,
-  damageAmount: number,
-  damageBonus: number,
-  weaponCooldown: number,
-  damageFactor: number,
-  attackAngle: number,
-  launchSpin: number,
-  forwardOffset: number,
-  upwardOffset: number,
-}
+  index: number;
+  name: string;
+  flingy: FlingyDATType;
+  targetFlags: number;
+  minRange: number;
+  maxRange: number;
+  damageUpgrade: number;
+  damageType: number;
+  weaponBehavior: number;
+  explosionType: number;
+  innerSplashRange: number;
+  mediumSplashRange: number;
+  outerSplashRange: number;
+  damageAmount: number;
+  damageBonus: number;
+  weaponCooldown: number;
+  damageFactor: number;
+  attackAngle: number;
+  launchSpin: number;
+  forwardOffset: number;
+  upwardOffset: number;
+};
 
-export class WeaponsDAT extends DAT {
+export class WeaponsDAT extends DAT<WeaponDATType> {
   constructor(readFile: ReadFileType, flingy: FlingyDATType[] = []) {
     super(readFile);
 
@@ -58,9 +58,5 @@ export class WeaponsDAT extends DAT {
 
     this.datname = "weapons.dat";
     this.count = 130;
-  }
-
-  override async load() : Promise<WeaponDATType[]> {
-    return super.load();
   }
 }

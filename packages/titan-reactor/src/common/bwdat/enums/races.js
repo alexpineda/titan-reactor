@@ -1,4 +1,5 @@
-import invertObj from "../utils/invertObj";
+import invertObj from "../../utils/invertObj";
+
 export const races = {
   zerg: 0,
   terran: 1,

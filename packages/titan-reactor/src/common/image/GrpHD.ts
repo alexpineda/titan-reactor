@@ -5,11 +5,11 @@ import { AnimTextureType, GrpFrameType, GRPInterface } from "../types/grp";
 import { Anim } from "./anim";
 import loadDDS from "./loadDDS";
 
-export default class GrpHD implements GRPInterface{
+export default class GrpHD implements GRPInterface {
   width = 0;
   height = 0;
-  grpWidth? = 0;
-  grpHeight? = 0;
+  grpWidth = 0;
+  grpHeight = 0;
   imageIndex = -1;
   frames: GrpFrameType[] = [];
   diffuse?: CompressedTexture;
@@ -33,7 +33,8 @@ export default class GrpHD implements GRPInterface{
     const buf2 = await readAnimHD2();
     const animHD2 = Anim(buf2);
 
-    const getBuf = (map: AnimTextureType) => buf.slice(map.ddsOffset, map.ddsOffset + map.size);
+    const getBuf = (map: AnimTextureType) =>
+      buf.slice(map.ddsOffset, map.ddsOffset + map.size);
     const getBuf2 = (map: AnimTextureType) =>
       buf2.slice(map.ddsOffset, map.ddsOffset + map.size);
 
@@ -86,8 +87,6 @@ export default class GrpHD implements GRPInterface{
     // }
     return this;
   }
-
-  
 
   dispose() {
     this.diffuse && this.diffuse.dispose();

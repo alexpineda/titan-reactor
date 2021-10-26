@@ -45,13 +45,14 @@ export const saveSettings = async (settings) => {
 };
 
 export const log = async (message, level = "info") => {
-  if (level === "error") {
-    console.error(message);
-  } else if (level === "warn") {
-    console.warn(message);
-  } else {
-    console.log(message);
-  }
+  //@todo add isDev mode check
+  // if (level === "error") {
+  //   console.error(message);
+  // } else if (level === "warn") {
+  //   console.warn(message);
+  // } else {
+  //   console.log(message);
+  // }
 
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
 };

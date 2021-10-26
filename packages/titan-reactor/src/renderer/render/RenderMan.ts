@@ -1,4 +1,3 @@
-import CanvasTarget, { EmptyFunc } from "common";
 import { easePoly } from "d3-ease";
 import {
   BloomEffect,
@@ -24,6 +23,8 @@ import {
   WebGLRenderer,
 } from "three";
 
+import CanvasTarget from "../../common/image/CanvasTarget";
+import { EmptyFunc, Settings } from "../../common/types/common";
 import FogOfWarEffect from "../fogofwar/FogOfWarEffect";
 
 // import { log } from "../invoke";
@@ -34,11 +35,12 @@ OverrideMaterialManager.workaroundEnabled = true;
 const log = console.log;
 
 class RenderMan {
+  settings: Settings;
+  renderer?: WebGLRenderer;
   _dofEffect: DepthOfFieldEffect;
   _renderPass: RenderPass;
   _composer: EffectComposer;
-  canvasTarget: CanvasTarget;
-  renderer: WebGLRenderer;
+  canvasTarget?: CanvasTarget;
   _smaaSearchImage: any;
   _smaaAreaImage: any;
   _smaaEffect: SMAAEffect;
@@ -62,12 +64,12 @@ class RenderMan {
   _contextLostListener?: () => void;
   _contextRestoredListener?: () => void;
 
-  constructor(settings) {
+  constructor(settings: Settings) {
     this.settings = settings;
-    this.renderer = null;
   }
 
   setShadowLevel() {
+    if (!this.renderer) return;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFSoftShadowMap;
   }
@@ -77,13 +79,15 @@ class RenderMan {
   }
 
   setCanvasTarget(canvasTarget: CanvasTarget) {
+    if (!this.renderer) return;
     this.canvasTarget = canvasTarget;
     this.renderer.setViewport(
       new Vector4(0, 0, canvasTarget.width, canvasTarget.height)
     );
   }
 
-  renderSplitScreen(scene: Scene, camera: PerspectiveCamera, viewport) {
+  renderSplitScreen(scene: Scene, camera: PerspectiveCamera, viewport: Vector4) {
+    if (!this.renderer) return;
     this.renderer.setScissorTest(true);
     this.renderer.setViewport(viewport);
     this.renderer.setScissor(viewport);
@@ -166,7 +170,7 @@ class RenderMan {
   }
 
   _togglePasses(...passes: EffectPass[]) {
-    this._passes.forEach((p) => {
+    this._passes?.forEach((p) => {
       p.enabled = false;
       p.renderToScreen = false;
     });
@@ -214,6 +218,7 @@ class RenderMan {
   }
 
   _render(scene: Scene, camera: PerspectiveCamera, delta: number) {
+    if (!this.renderer || !this.canvasTarget) return;
     this._renderPass.scene = scene;
     this._renderPass.camera = camera;
 
@@ -282,7 +287,7 @@ class RenderMan {
   }
 
   get setAnimationLoop() {
-    return this.renderer.setAnimationLoop;
+    return this.renderer?.setAnimationLoop;
   }
 
   dispose() {
@@ -297,12 +302,12 @@ class RenderMan {
       "webglcontextrestored",
       this._contextRestoredListener
     );
-    this.renderer.setAnimationLoop(null);
+    this.renderer?.setAnimationLoop(null);
 
     //bug in cinematic pass dispose requires us to set camera to null before disposing
     this._dofEffect.camera = null;
     this._cinematicPass.dispose();
-    this.renderer.dispose();
+    this.renderer?.dispose();
   }
 }
 

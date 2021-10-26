@@ -1,9 +1,33 @@
-import { Color, SpriteMaterial } from "three";
+import { Color, SpriteMaterial, SpriteMaterialParameters, Texture } from "three";
+
 import warp from "./effect/warp";
 
+type dynamicUniforms = {
+  delta: {
+    value: number;
+  };
+  warpingIn: {
+    value: number;
+  };
+  warpingInLen: {
+    value: number;
+  };
+  teamColor: {
+    value: Color;
+  };
+  teamMask: {
+    value: Texture | null;
+  };
+};
+
 class TeamSpriteMaterial extends SpriteMaterial {
-  constructor(opts) {
-    super(opts);
+  isTeamSpriteMaterial = true;
+  _dynamicUniforms: dynamicUniforms;
+  isShadow = false;
+  teamMask?: Texture;
+
+  constructor(parameters?: SpriteMaterialParameters) {
+    super(parameters);
     this.isTeamSpriteMaterial = true;
     this.defines = {};
     this._dynamicUniforms = {
@@ -18,6 +42,9 @@ class TeamSpriteMaterial extends SpriteMaterial {
       },
       teamColor: {
         value: new Color(0xffffff),
+      },
+      teamMask: {
+        value: null,
       },
     };
   }
@@ -54,16 +81,22 @@ class TeamSpriteMaterial extends SpriteMaterial {
     return this._dynamicUniforms.delta.value;
   }
 
-  onBeforeCompile(shader) {
-    function extendVertex(replace, chunks) {
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  override onBeforeCompile(shader: any) {
+    function extendVertex(replace: string, chunks: string[][]) {
       return extend("vertexShader", replace, chunks);
     }
 
-    function extendFragment(replace, chunks) {
+    function extendFragment(replace: string, chunks: string[][]) {
       return extend("fragmentShader", replace, chunks);
     }
 
-    function extend(prop, replace, chunks, keep = true) {
+    function extend(
+      prop: string,
+      replace: string,
+      chunks: string[][],
+      keep = true
+    ) {
       if (chunks.length === 0) {
         return;
       }
@@ -167,7 +200,7 @@ class TeamSpriteMaterial extends SpriteMaterial {
     */
   }
 
-  customProgramCacheKey() {
+  override customProgramCacheKey() {
     const flags = [
       Boolean(this.teamMask),
       this.isShadow,

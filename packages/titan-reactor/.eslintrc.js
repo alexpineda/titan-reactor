@@ -36,7 +36,7 @@ module.exports = {
     "no-empty": ["error", { allowEmptyCatch: true }],
     "import/no-duplicates": 0,
     "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error"],
+    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "no-empty-function": "off",
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/ban-ts-comment": "off",
@@ -53,7 +53,7 @@ module.exports = {
     "import/resolver": {
       alias: {
         map: [...aliasList, ["common", "./src/common"]],
-        extensions: [".js", ".jsx", ".ts"],
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
     },
     "import/ignore": [".worker.js"],

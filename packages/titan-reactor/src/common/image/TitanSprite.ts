@@ -1,25 +1,45 @@
 import { Group } from "three";
-import { iscriptHeaders } from "../bwdat/enums/iscriptHeaders";
-import { imageTypes } from "../bwdat/enums/imageTypes";
-import { overlayTypesById, overlayTypes } from "../bwdat/enums/overlayTypes";
-import { drawFunctions } from "../bwdat/enums/drawFunctions";
-import pick from "../utils/pick";
 
-const ImageOrder = {
-  bottom: "bottom",
-  top: "top",
-  above: "above",
-  below: "below",
-};
+import { drawFunctions } from "../bwdat/enums/drawFunctions";
+import { imageTypes } from "../bwdat/enums/imageTypes";
+import { iscriptHeaders } from "../bwdat/enums/iscriptHeaders";
+import { overlayTypes } from "../bwdat/enums/overlayTypes";
+import { BwDATType, ImageDATType } from "../types/bwdat";
+import pick from "../utils/pick";
+import TitanImage3D from "./TitanImage3D";
+import TitanImageHD from "./TitanImageHD";
+
+enum ImageOrder {
+  bottom,
+  top,
+  above,
+  below,
+}
 
 export default class TitanSprite extends Group {
+  private bwDat: BwDATType;
+  images: TitanImageHD[];
+  mainImage?: TitanImageHD;
+  logger: { log: (str: string) => void };
+  lastZOff: number;
+  unit: any | null;
+  createTitanSprite: () => TitanSprite
+    createTitanSpriteCb: (titanSprite: TitanSprite) => void;
+  destroyTitanSpriteCb: (titanSprite: TitanSprite) => void;
+  createTitanImage: (image: number, parent: TitanSprite) => TitanImageHD;
+  
+  iscriptOptions: {
+    createBullets: boolean,
+    moveUnit: boolean,
+  }
+  
   constructor(
-    unit,
-    bwDat,
-    createTitanSprite,
-    createTitanImage,
-    createTitanSpriteCb,
-    destroyTitanSpriteCb = () => {},
+    unit: any = null,
+    bwDat: BwDATType,
+    createTitanSprite: () => TitanSprite,
+    createTitanImage: (image: number, parent: TitanSprite) => TitanImageHD,
+    createTitanSpriteCb: (titanSprite: TitanSprite) => void,
+    destroyTitanSpriteCb: (titanSprite: TitanSprite) => void = () => {},
     logger = { log: () => {} }
   ) {
     super();
@@ -39,12 +59,9 @@ export default class TitanSprite extends Group {
     this.lastZOff = 0;
   }
 
-  addImage(image, imageOrder, rel) {
-    if (typeof image !== "number") {
-      throw new Error("image must be Number");
-    }
+  addImage(image: number, imageOrder: ImageOrder, rel?: number) {
     const relImage =
-      rel === undefined ? this.images.indexOf(this.mainImage) : rel;
+      rel === undefined ? this.images.indexOf(this.mainImage as TitanImageHD) : rel;
     let pos = relImage;
 
     switch (imageOrder) {
@@ -86,7 +103,7 @@ export default class TitanSprite extends Group {
   }
 
   //it might be that we dont want to change frame if sprite is not on a frameset
-  setDirection(direction) {
+  setDirection(direction: number) {
     if (direction === this.direction) return;
     this.mainImage.iscript.setDirection(direction);
     this.mainImage.setFrame(
@@ -96,7 +113,7 @@ export default class TitanSprite extends Group {
   }
 
   //iscript_execute_sprite
-  update(delta, cameraDirection) {
+  update(delta: number, cameraDirection: number) {
     // if (this.unit) {
     //   this.position.copy(this.unit.position);
     //   this.rotation.copy(this.unit.rotation);
@@ -112,8 +129,8 @@ export default class TitanSprite extends Group {
     // }
 
     let _terminated = false;
-    for (let image of this.images) {
-      if (image.mixer) {
+    for (const image of this.images) {
+      if (image instanceof TitanImage3D && image.mixer) {
         image.mixer.update(0); //3d animation mixer
       }
       this._update(image);
@@ -134,7 +151,7 @@ export default class TitanSprite extends Group {
     }
 
     const nextZOff = this.mainImage
-      ? (this.mainImage._zOff * this.mainImage._spriteScale) / 32
+      ? (this.mainImage?._zOff * this.mainImage?._spriteScale) / 32
       : 0;
     this.position.z = this.position.z - this.lastZOff + nextZOff;
     this.lastZOff = nextZOff;
@@ -142,7 +159,7 @@ export default class TitanSprite extends Group {
     return this.images.length;
   }
 
-  _update(image) {
+  _update(image: TitanImageHD) {
     //image modifier == 2 || 5 update cloak
     // 4o r 7 -> decloak
     //17 ? warpin
@@ -150,8 +167,8 @@ export default class TitanSprite extends Group {
     //if destroyed main image, set main image to front most image
     //if no more images terminate this sprite
 
-    const dispatched = image.iscript.update(image);
-    for (let [key, val] of dispatched) {
+    const dispatched = image.iscript.update();
+    for (const [key, val] of dispatched) {
       switch (key) {
         case "playfram":
           {
@@ -491,10 +508,18 @@ export default class TitanSprite extends Group {
     }
   }
 
-  _getImageLoOffset(image, overlay, imageOffset, useFrameset = false) {
+  _getImageLoOffset(
+    image: TitanImageHD,
+    overlay: number,
+    imageOffset: number,
+    useFrameset = false
+  ) {
     const frame = useFrameset ? image.userData.frameset : image.userData.frame;
 
-    const los = this.bwDat.los[image.imageDef[overlayTypesById[overlay]] - 1];
+    const overlayKey = overlayTypes[overlay - 1] as keyof ImageDATType;
+    const losIndex = image.imageDef[overlayKey] as number;
+    const los =
+      this.bwDat.los[losIndex];
     if (!los || los.length == 0) {
       throw new Error("no los here");
     }
@@ -507,8 +532,8 @@ export default class TitanSprite extends Group {
     }
   }
 
-  run(header) {
-    for (let image of this.images) {
+  run(header: number) {
+    for (const image of this.images) {
       image.iscript.run(header);
     }
   }

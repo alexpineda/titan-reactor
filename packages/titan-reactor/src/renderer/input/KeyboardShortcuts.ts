@@ -13,9 +13,6 @@ class KeyboardShortcuts extends EventDispatcher {
     super();
     this.domElement = domElement;
 
-
-    
-
     document.addEventListener("keydown", this.keyDownListener, {
       passive: true,
       capture: true,
@@ -41,4 +38,4 @@ class KeyboardShortcuts extends EventDispatcher {
   };
 }
 
-export default KeyboardShortcuts;
+export default KeyboardShortcuts

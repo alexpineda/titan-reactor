@@ -4,26 +4,6 @@ import { FlingyDATType } from "./FlingyDAT";
 import { ImageDATType } from "./ImagesDAT";
 import { SoundDATType } from "./SoundsDAT";
 
-//@todo use reductions?
-const reductions = {
-  7: 0.25, // SCV
-  41: 0.25, // Drone
-  64: 0.25, // Probe
-
-  13: 0.0, // Spider Mine
-  73: 0.0, // Interceptor
-  85: 0.0, // Scarab
-
-  32: 2.0, // Firebat
-  43: 2.0, // Mutalisk
-  65: 2.0, // Zealot
-
-  47: 1 / 16.0, // Scourge
-  50: 1 / 16.0, // Infested Terran
-
-  83: 0.1, // Reaver
-};
-
 //eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UnitDAT extends UnitDATIncomingType {}
 export class UnitDAT implements UnitDAT {
@@ -237,7 +217,7 @@ export type UnitDATIncomingType = {
   starEditAvailabilityFlags: number;
 };
 
-export class UnitsDAT extends DAT {
+export class UnitsDAT extends DAT<UnitDATIncomingType> {
   sounds: SoundDATType[];
 
   constructor(
@@ -345,10 +325,6 @@ export class UnitsDAT extends DAT {
     this.datname = "units.dat";
     this.count = 228;
     this.sounds = sounds;
-  }
-
-  override async load(): Promise<UnitDAT[]> {
-    return super.load();
   }
 
   override post(entries: UnitDATIncomingType[]) {

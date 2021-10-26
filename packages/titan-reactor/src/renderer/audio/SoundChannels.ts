@@ -1,5 +1,5 @@
 import range from "../../common/utils/range";
-import SoundsBW, {SoundBWInstance} from "../game-data/SoundsBW";
+import {SoundBWInstance} from "../game-data/SoundsBW";
 import Audio from "./Audio";
 import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import MainMixer from "./MainMixer";
@@ -87,12 +87,8 @@ export default class SoundChannels {
     return availableChannel;
   }
 
-  /**
-   * We call queue() a few frames ahead of time to get the buffers loading
-   * @param {Object} soundData
-   * @param {Number} elapsed
-   */
-  queue(soundData: SoundBWInstance, elapsed: number) {
+  
+  queue(soundData: SoundBWInstance) {
     this.audio.push(
       new Audio(this.mixer, soundData, this._getBuffer(soundData.id))
     );
@@ -106,10 +102,6 @@ export default class SoundChannels {
     return !audio.source;
   }
 
-  /**
-   * play the audio, even if not immediately (due to loading buffer)
-   * @param {Number} elapsed
-   */
   play(elapsed: number) {
     for (const audio of this.audio) {
       if (elapsed - audio.buffer.lastPlayed <= 80) {

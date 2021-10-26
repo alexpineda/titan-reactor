@@ -1,4 +1,4 @@
-export default new Map([
+export const charColor = new Map([
   //1 -> default
   [2, "lightblue"],
   [3, "yellow"],

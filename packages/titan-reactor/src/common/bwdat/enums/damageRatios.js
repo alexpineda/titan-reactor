@@ -1,4 +1,4 @@
-export default [
+export const damageRatios = [
   //ind, sm, md, lrg, none, unknown
   [0, 0, 0, 0, 0, 0], //ind
   [0, 1 / 2, 3 / 4, 1, 0, 0], //expl

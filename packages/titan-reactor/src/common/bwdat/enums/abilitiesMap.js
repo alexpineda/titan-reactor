@@ -1,6 +1,6 @@
-import upgrades from "./upgrades";
-import techTypes from "./techTypes";
+import { techTypes } from "./techTypes";
 import { unitTypes } from "./unitTypes";
+import { upgrades } from "./upgrades";
 
 export const unitsByUpgradeType = {
   [upgrades.terranInfantryArmor]: [

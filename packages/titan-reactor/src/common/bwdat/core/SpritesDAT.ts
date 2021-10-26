@@ -1,6 +1,6 @@
 import range from "../../utils/range";
-import { DAT, ReadFileType } from "./DAT";
 import { selectionCircleSize } from "../enums/selectionCircleSize";
+import { DAT, ReadFileType } from "./DAT";
 import SpritesListDefinition from "./Data/SpritesListDefinition.js";
 import { ImageDATType } from "./ImagesDAT";
 
@@ -14,7 +14,7 @@ export type SpriteDATType = {
   selectionCircleOffset: number;
 };
 
-export class SpritesDAT extends DAT {
+export class SpritesDAT extends DAT<SpriteDATType> {
   _hpBar() {
     return (value: number) => {
       return Math.floor((value - 1) / 3);
@@ -45,10 +45,6 @@ export class SpritesDAT extends DAT {
 
     this.datname = "sprites.dat";
     this.count = 517;
-  }
-
-  override async load(): Promise<SpriteDATType[]> {
-    return super.load();
   }
 
   override post(entries: SpriteDATType[]) {

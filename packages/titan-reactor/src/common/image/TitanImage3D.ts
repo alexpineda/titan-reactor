@@ -1,15 +1,20 @@
-import { Object3D, AnimationMixer } from "three";
 import "three/examples/jsm/utils/SkeletonUtils";
-// eslint-disable-next-line
-import THREE from "three"; // SkeletonUtils attaches to three
+
+import THREE, { AnimationAction, AnimationMixer, Object3D } from "three";
+
+import SpriteGroup from "../../renderer/game/SpriteGroup";
+import { IScriptRunner } from "../iscript";
+import { BwDATType, ImageDATType } from "../types/bwdat";
+import { createIScriptRunner } from "../types/iscript";
+import Grp3D from "./Grp3D";
 
 export const createTitanImage3D = (
-  bwDat,
-  atlases,
-  createIScriptRunner,
-  onError = () => {}
+  bwDat: BwDATType,
+  atlases: Grp3D[],
+  createIScriptRunner: createIScriptRunner,
+  onError: (msg: string) => void = () => {}
 ) => {
-  return (image, sprite) => {
+  return (image: number, sprite: SpriteGroup) => {
     if (!atlases[image]) {
       onError(`sd ${image} has no atlas, did you forget to load one?`);
       return null;
@@ -24,7 +29,24 @@ export const createTitanImage3D = (
 };
 
 export default class TitanImage3D extends Object3D {
-  constructor(atlas, createIScriptRunner, imageDef, sprite) {
+  atlas: Grp3D;
+  model: Object3D;
+  sprite: SpriteGroup;
+  imageDef: ImageDATType;
+  iscript: IScriptRunner;
+
+  private times = new Float32Array();
+  private mixer?: AnimationMixer;
+  private action?: AnimationAction;
+  _spriteScale: number;
+  _zOff: number;
+
+  constructor(
+    atlas: Grp3D,
+    createIScriptRunner: createIScriptRunner,
+    imageDef: ImageDATType,
+    sprite: SpriteGroup
+  ) {
     super();
     this.atlas = atlas;
     this.model = THREE.SkeletonUtils.clone(atlas.model);
@@ -53,7 +75,7 @@ export default class TitanImage3D extends Object3D {
 
     this._zOff = 0;
 
-    this.setFrame(0, false);
+    this.setFrame(0);
   }
 
   setTeamColor(val) {}
@@ -64,20 +86,20 @@ export default class TitanImage3D extends Object3D {
     return this.atlas.frames;
   }
 
-  setPositionX(x, scale = this._spriteScale) {
+  setPositionX(x: number, scale = this._spriteScale) {
     this.position.x = x / scale;
   }
 
-  setPositionY(y, scale = this._spriteScale) {
+  setPositionY(y: number, scale = this._spriteScale) {
     this.position.y = y / scale;
   }
 
-  setPosition(x, y, scale = this._spriteScale) {
+  setPosition(x: number, y: number, scale = this._spriteScale) {
     this.setPositionX(x, scale);
     this.setPositionY(y, scale);
   }
 
-  setFrame(frame) {
+  setFrame(frame: number) {
     if (!this.mixer) return;
     const effectiveFrame = this.atlas.fixedFrames[frame];
     this.mixer.setTime(this.times[effectiveFrame]);

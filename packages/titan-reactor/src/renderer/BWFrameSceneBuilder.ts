@@ -20,7 +20,7 @@ import TilesBW from "./game-data/TilesBW";
 import UnitsBW from "./game-data/UnitsBW";
 import UpgradeBW from "./game-data/UpgradeBW";
 import BuildUnits from "./game/BuildUnits";
-import { GameUnitI, ResearchInProduction, UnitInProduction, UpgradeInProduction } from "./game/GameUnit";
+import { GameUnitI, ResearchInProduction, UnitInProduction, UpgradeCompleted, UpgradeInProduction, ResearchCompleted } from "./game/GameUnit";
 import { Players } from "./game/Players";
 import SpriteGroup from "./game/SpriteGroup";
 import useHudStore from "./stores/hudStore";
@@ -50,8 +50,8 @@ export default class BWFrameSceneBuilder {
 
    research: ResearchInProduction[][];
    upgrades: UpgradeInProduction[][];
-  private completedUpgrades: [][];
-  private completedResearch: [][];
+  private completedUpgrades: UpgradeCompleted[][];
+  private completedResearch: ResearchCompleted[][];
 
   private readonly audioMaster: AudioMaster;
   private readonly creep: Creep;
@@ -203,14 +203,14 @@ export default class BWFrameSceneBuilder {
     this.interactableSprites = [];
 
     for (const spriteBW of this.spritesBW.items()) {
-      if (
-        spriteBW.x < this.projectedCameraView.viewBW.left ||
-        spriteBW.y < this.projectedCameraView.viewBW.top ||
-        spriteBW.x > this.projectedCameraView.viewBW.right ||
-        spriteBW.y > this.projectedCameraView.viewBW.bottom
-      ) {
-        continue;
-      }
+      // if (
+      //   spriteBW.x < this.projectedCameraView.viewBW.left ||
+      //   spriteBW.y < this.projectedCameraView.viewBW.top ||
+      //   spriteBW.x > this.projectedCameraView.viewBW.right ||
+      //   spriteBW.y > this.projectedCameraView.viewBW.bottom
+      // ) {
+      //   continue;
+      // }
 
       let sprite = this.sprites.get(spriteBW.index);
       if (!sprite) {

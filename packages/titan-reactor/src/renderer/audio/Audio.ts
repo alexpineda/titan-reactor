@@ -36,10 +36,9 @@ export default class Audio {
 
     const gain = this.mixer.context.createGain();
 
-    let panner;
-    let volume = 1;
+    const volume = 1;
 
-    panner = this.mixer.context.createPanner();
+    const panner = this.mixer.context.createPanner();
     panner.panningModel = "HRTF";
 
     panner.refDistance = 20;

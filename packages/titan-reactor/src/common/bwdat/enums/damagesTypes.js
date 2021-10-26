@@ -1,4 +1,5 @@
-import invertObj from "../utils/invertObj";
+import invertObj from "../../utils/invertObj";
+
 export const damageTypes = {
   independent: 0,
   explosive: 1,

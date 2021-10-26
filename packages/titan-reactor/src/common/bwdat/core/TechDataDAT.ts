@@ -1,18 +1,19 @@
 import { DAT, ReadFileType } from "./DAT";
 
 export type TechDataDATType = {
-  mineralCost: number,
-  vespeneCost: number,
-  researchCost: number,
-  energyRequired: number,
-  researchRequirements: number,
-  useRequirements: number,
-  icon: number,
-  name: string,
-  race: number,
-  researched: number
-}
-export class TechDataDAT extends DAT {
+  mineralCost: number;
+  vespeneCost: number;
+  researchCost: number;
+  energyRequired: number;
+  researchRequirements: number;
+  useRequirements: number;
+  icon: number;
+  name: string;
+  race: number;
+  researched: number;
+};
+
+export class TechDataDAT extends DAT<TechDataDATType> {
   constructor(readFile: ReadFileType) {
     super(readFile);
 
@@ -33,9 +34,4 @@ export class TechDataDAT extends DAT {
     this.datname = "techdata.dat";
     this.count = 44;
   }
-
-  override async load() : Promise<TechDataDATType[]> {
-    return super.load();
-  }
-
 }

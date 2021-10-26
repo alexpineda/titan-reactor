@@ -1,4 +1,4 @@
-import invertObj from "../utils/invertObj";
+import invertObj from "../../utils/invertObj";
 
 export const flingyControl = {
   flingy: 0,

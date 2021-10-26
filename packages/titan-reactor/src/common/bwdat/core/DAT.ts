@@ -1,5 +1,5 @@
-import { TBL } from "./TBL";
 import range from "../../utils/range";
+import { TBL } from "./TBL";
 
 export type ReadFileType = (fname: string) => Promise<Buffer>;
 export type FormatType = {
@@ -10,7 +10,7 @@ export type FormatType = {
   range?: () => number[];
 };
 
-export class DAT {
+export class DAT<Type> {
   private readonly readFile: ReadFileType;
   private initialized?: Promise<string[]>;
   stats: string[] = [];
@@ -19,7 +19,7 @@ export class DAT {
   protected datname = "";
   protected count = 0;
   protected format?: FormatType[];
-  entries = [];
+  entries: Type[] = [];
 
   constructor(readFile: ReadFileType) {
     this.readFile = readFile;
@@ -72,7 +72,7 @@ export class DAT {
     };
   }
 
-  async load() {
+  async load(): Promise<Type[]> {
     if (!this.initialized) {
       this.init();
     }
@@ -85,7 +85,7 @@ export class DAT {
     const formatLen = (fmt: FormatType) => formatRange(fmt).length;
     const formatMin = (fmt: FormatType) => formatRange(fmt)[0];
 
-    const entries = range(0, this.count).map((i) => {
+    const entries = range(0, this.count).map((i): Type => {
       const values = (this.format as FormatType[]).flatMap((fmt, j) => {
         if (!formatRange(fmt).includes(i)) {
           if (fmt.names) {
@@ -114,7 +114,6 @@ export class DAT {
       });
 
       return values.reduce((memo, { name, value }) => {
-        //@ts-ignore
         return { ...memo, [name]: value };
       }, {});
     });
@@ -122,8 +121,8 @@ export class DAT {
     return (this.entries = await this.post(entries));
   }
 
-  protected post(entries: any) {
-    return entries.map((entry: any, i: number) => ({
+  protected post(entries: Type[]) {
+    return entries.map((entry: Type, i: number) => ({
       ...entry,
       index: i,
     }));

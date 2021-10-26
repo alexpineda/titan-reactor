@@ -1,9 +1,9 @@
 import { DAT, ReadFileType } from "./DAT";
 
 export type OrderDATType = {
-  name: string,
-}
-export class OrdersDAT extends DAT {
+  name: string;
+};
+export class OrdersDAT extends DAT<OrderDATType> {
   constructor(readFile: ReadFileType) {
     super(readFile);
 
@@ -31,9 +31,5 @@ export class OrdersDAT extends DAT {
 
     this.datname = "orders.dat";
     this.count = 189;
-  }
-
-  override async load() : Promise<OrderDATType[]> {
-    return super.load();
   }
 }

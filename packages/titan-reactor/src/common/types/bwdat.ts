@@ -1,0 +1,11 @@
+export { ImageDATType } from "../bwdat/core/ImagesDAT";
+export { IScriptDATType } from "../bwdat/core/IScript";
+export { OrderDATType } from "../bwdat/core/OrdersDAT";
+export { LoDATType } from "../bwdat/core/parseLo";
+export { SoundDATType } from "../bwdat/core/SoundsDAT";
+export { SpriteDATType } from "../bwdat/core/SpritesDAT";
+export { TechDataDATType } from "../bwdat/core/TechDataDAT";
+export { UnitDAT } from "../bwdat/core/UnitsDAT";
+export { UpgradeDATType } from "../bwdat/core/UpgradesDAT";
+export { WeaponDATType } from "../bwdat/core/WeaponsDAT";
+export { BwDATType } from "../bwdat/core/BwDAT";

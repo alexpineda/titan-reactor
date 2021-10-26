@@ -1,15 +1,15 @@
+import { DAT, ReadFileType } from "./DAT";
 import { SpriteDATType } from "./SpritesDAT";
-import { DAT, ReadFileType, FormatType } from "./DAT";
 
 export type FlingyDATType = {
-  sprite: SpriteDATType,
-  speed: number,
-  acceleration: number,
-  haltDistance: number,
-  turnRadius: number
-}
+  sprite: SpriteDATType;
+  speed: number;
+  acceleration: number;
+  haltDistance: number;
+  turnRadius: number;
+};
 
-export class FlingyDAT extends DAT {
+export class FlingyDAT extends DAT<FlingyDATType> {
   protected override count = 209;
   constructor(readFile: ReadFileType, sprites: SpriteDATType[] = []) {
     super(readFile);
@@ -28,9 +28,5 @@ export class FlingyDAT extends DAT {
     ];
 
     this.datname = "flingy.dat";
-  }
-
-  override async load() : Promise<FlingyDATType[]> {
-    return super.load();
   }
 }

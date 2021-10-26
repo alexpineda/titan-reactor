@@ -46,6 +46,8 @@ type BaseInProduction = {
   count: number;
   icon: number;
   buildTime: number;
+  owner: number;
+  typeId: number;
 };
 
 export type UnitInProduction = IncompleteUnit & BaseInProduction;
@@ -55,7 +57,15 @@ export type ResearchInProduction = BaseInProduction & {
   timeAdded: number;
 };
 
+export type ResearchCompleted = ResearchInProduction & {
+  timeCompleted: number;
+};
+
 export type UpgradeInProduction = BaseInProduction & {
   isUpgrade: true;
   timeAdded: number;
+};
+
+export type UpgradeCompleted = UpgradeInProduction & {
+  timeCompleted: number;
 };

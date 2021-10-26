@@ -126,4 +126,4 @@ export const unitTypes = {
   none: 0xe4,
 };
 
-export const unitsByTypeId = invertObj(unitTypes);
+export const unitTypesById = invertObj(unitTypes);

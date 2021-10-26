@@ -1,5 +1,6 @@
 import React from "react";
-import charColor from "../../common/bwdat/enums/charColor";
+
+import { charColor } from "../../common/bwdat/enums";
 
 const processString = (str, useColors = true) => {
   const defaultColor = "white";
@@ -48,7 +49,7 @@ const LoadingOverlay = ({ chk, rep }) => {
 
   return (
     <div
-      id="load-overlay"
+      id="load-overlay select-none"
       className="z-20 cursor-wait"
       style={{
         position: "absolute",

@@ -115,7 +115,7 @@ export default {
     "varying vec3 warpPosition;",
   ],
   fragment: [
-    null,
+    "",
     `
     ${noise}
     uniform float time;

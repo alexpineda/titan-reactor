@@ -1,4 +1,5 @@
-import invertObj from "../utils/invertObj";
+import invertObj from "../../utils/invertObj";
+
 export const shieldSize = {
   none: 0,
   small: 1,

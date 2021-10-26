@@ -3,6 +3,7 @@ import SelectionCircle from "./SelectionCircle";
 import SelectionBars from "./SelectionBars";
 import TitanImageHD from "../../common/image/TitanImageHD";
 import { SpriteDATType } from "../../common/bwdat/core/SpritesDAT";
+import { UpgradeCompleted } from "./GameUnit";
 
 const typeIds = ({ typeId }: {typeId: number}) => typeId;
 
@@ -28,7 +29,7 @@ export default class SpriteGroup extends Object3D {
     }
   }
 
-  select(completedUpgrades: any) {
+  select(completedUpgrades: UpgradeCompleted[]) {
     this.selectionCircle.update(this.spriteType as SpriteDATType);
     this.selectionCircle.renderOrder = this.renderOrder - 1;
     this.add(this.selectionCircle);
