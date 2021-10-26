@@ -1,5 +1,7 @@
-import { CompressedTexture, LinearFilter, ClampToEdgeWrapping } from "three";
-import { DDSLoader } from "../../DDSLoader";
+import { ClampToEdgeWrapping, CompressedTexture, LinearFilter } from "three";
+
+import { DDSLoader } from "../../formats/DDSLoader";
+
 const ddsLoader = new DDSLoader();
 
 export const PX_PER_TILE = 128;

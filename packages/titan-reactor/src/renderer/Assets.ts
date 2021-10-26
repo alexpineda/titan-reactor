@@ -4,7 +4,7 @@ import { BwDATType } from "../common/bwdat/core/BwDAT";
 import { loadAllDataFiles } from "../common/bwdat/core/loadAllDataFiles";
 import { UnitDAT } from "../common/bwdat/core/UnitsDAT";
 import Icons from "../common/Icons";
-import { Anim } from "../common/image/anim";
+import { Anim } from "../common/image/formats/anim";
 import GrpFileLoader from "../common/image/GrpFileLoader";
 import GrpHD from "../common/image/GrpHD";
 import readCascFile, { closeCascStorage, openCascStorage } from "../common/utils/casclib";
@@ -75,7 +75,7 @@ class Assets {
       bwDat,
       communityModelsPath,
       readCascFile,
-      sdAnim.sprites,
+      sdAnim.sprites
     );
 
     for (let i = 0; i < 999; i++) {

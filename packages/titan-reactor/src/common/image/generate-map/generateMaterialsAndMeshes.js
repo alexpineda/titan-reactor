@@ -21,7 +21,7 @@ import {
   BlendFunction,
 } from "postprocessing";
 import { BypassingConvolutionMaterial } from "./effects/BypassingConvolutionMaterial";
-import { blendNonZeroPixels } from "../blend";
+import { blendNonZeroPixels } from "../util/blend";
 import { MapEffect } from "./effects/MapEffect";
 import { minimapBitmap as genMinimapBitmap } from "./sd";
 
@@ -48,6 +48,7 @@ const DEFAULT_GEOM_OPTIONS = {
   firstBlur: 4,
 };
 
+//@todo separate sd and hd
 export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
   const {
     palette,
@@ -702,6 +703,9 @@ export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
       hdGeometries.push(g);
       const mat = new THREE.MeshStandardMaterial({
         map: hdMaps.mapQuartiles[qx][qy],
+        roughness: 1,
+        //@todo roughnessMap + shader patch
+        //@todo fix displacementMap shadow issue, requires custom depth material on entire mesh
         // displacementScale: geomOptions.displacementScale,
         // displacementMap: hdDisplace,
         onBeforeCompile: function (shader) {

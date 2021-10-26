@@ -1,4 +1,4 @@
-import { DDSGrpFrameType } from "../types/grp";
+import { DDSGrpFrameType } from "../../types/grp";
 
 export default (buf: Buffer) => {
   const frameCount = buf.readUInt16LE(4);

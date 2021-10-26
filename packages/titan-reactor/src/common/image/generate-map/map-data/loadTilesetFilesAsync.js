@@ -1,4 +1,4 @@
-import readDdsGrp, { readDdsGrpWithFrameData } from "../../ddsGrp";
+import readDdsGrp, { readDdsGrpWithFrameData } from "../../formats/ddsGrp";
 
 const toArrayBuffer = (nodeBuffer) => {
   return new Uint8Array(nodeBuffer).buffer;

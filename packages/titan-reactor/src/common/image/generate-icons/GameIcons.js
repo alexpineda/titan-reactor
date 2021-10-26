@@ -1,8 +1,8 @@
 import { ClampToEdgeWrapping, CompressedTexture, LinearFilter, OrthographicCamera, Scene } from "three";
 
-import { rgbToCanvas } from "./canvas";
-import { DDSLoader } from "./DDSLoader";
-import GrpSDLegacy from "./GrpSDLegacy";
+import { DDSLoader } from "../formats/DDSLoader";
+import GrpSDLegacy from "../GrpSDLegacy";
+import { rgbToCanvas } from "../util/canvas";
 
 const ddsLoader = new DDSLoader();
 

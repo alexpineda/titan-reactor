@@ -1,8 +1,8 @@
 import { AnimationClip, CubeTexture, Group } from "three";
 
 import { ImageDATType } from "../bwdat/core/ImagesDAT";
+import loadGlb, { GlbResponse } from "./formats/loadGlb";
 import GrpHD from "./GrpHD";
-import loadGlb, { GlbResponse } from "./loadGlb";
 
 export default class Grp3D extends GrpHD {
   envMap: CubeTexture | null;

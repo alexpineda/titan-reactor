@@ -2,8 +2,8 @@ import { CompressedTexture } from "three";
 
 import { ImageDATType } from "../bwdat/core/ImagesDAT";
 import { AnimTextureType, GrpFrameType, GRPInterface } from "../types/grp";
-import { Anim } from "./anim";
-import loadDDS from "./loadDDS";
+import { Anim } from "./formats/anim";
+import loadDDS from "./formats/loadDDS";
 
 export default class GrpHD implements GRPInterface {
   width = 0;

@@ -1,6 +1,6 @@
 import { AnimationClip, Color, CubeTexture, Group, Mesh, sRGBEncoding } from "three";
 
-import ElectronGLTFLoader from "../utils/GLTFLoader";
+import ElectronGLTFLoader from "../../utils/GLTFLoader";
 
 export type GlbResponse = {
   model: Group;

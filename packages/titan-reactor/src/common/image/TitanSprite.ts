@@ -6,8 +6,8 @@ import { iscriptHeaders } from "../bwdat/enums/iscriptHeaders";
 import { overlayTypes } from "../bwdat/enums/overlayTypes";
 import { BwDATType, ImageDATType } from "../types/bwdat";
 import pick from "../utils/pick";
+import { TitanImage } from "./TitanImage";
 import TitanImage3D from "./TitanImage3D";
-import TitanImageHD from "./TitanImageHD";
 
 enum ImageOrder {
   bottom,
@@ -18,15 +18,15 @@ enum ImageOrder {
 
 export default class TitanSprite extends Group {
   private bwDat: BwDATType;
-  images: TitanImageHD[];
-  mainImage?: TitanImageHD;
+  images: TitanImage[];
+  mainImage?: TitanImage;
   logger: { log: (str: string) => void };
   lastZOff: number;
   unit: any | null;
   createTitanSprite: () => TitanSprite
     createTitanSpriteCb: (titanSprite: TitanSprite) => void;
   destroyTitanSpriteCb: (titanSprite: TitanSprite) => void;
-  createTitanImage: (image: number, parent: TitanSprite) => TitanImageHD;
+  createTitanImage: (image: number, parent: TitanSprite) => TitanImage;
   
   iscriptOptions: {
     createBullets: boolean,
@@ -37,7 +37,7 @@ export default class TitanSprite extends Group {
     unit: any = null,
     bwDat: BwDATType,
     createTitanSprite: () => TitanSprite,
-    createTitanImage: (image: number, parent: TitanSprite) => TitanImageHD,
+    createTitanImage: (image: number, parent: TitanSprite) => TitanImage,
     createTitanSpriteCb: (titanSprite: TitanSprite) => void,
     destroyTitanSpriteCb: (titanSprite: TitanSprite) => void = () => {},
     logger = { log: () => {} }
@@ -59,9 +59,9 @@ export default class TitanSprite extends Group {
     this.lastZOff = 0;
   }
 
-  addImage(image: number, imageOrder: ImageOrder, rel?: number) {
+  addImage(image: number, imageOrder?: ImageOrder, rel?: number) {
     const relImage =
-      rel === undefined ? this.images.indexOf(this.mainImage as TitanImageHD) : rel;
+      rel === undefined ? this.images.indexOf(this.mainImage as TitanImage) : rel;
     let pos = relImage;
 
     switch (imageOrder) {
@@ -105,8 +105,8 @@ export default class TitanSprite extends Group {
   //it might be that we dont want to change frame if sprite is not on a frameset
   setDirection(direction: number) {
     if (direction === this.direction) return;
-    this.mainImage.iscript.setDirection(direction);
-    this.mainImage.setFrame(
+    this.mainImage?.iscript.setDirection(direction);
+    this.mainImage?.setFrame(
       this.mainImage.userData.frame,
       this.mainImage.userData.flip
     );
@@ -159,7 +159,7 @@ export default class TitanSprite extends Group {
     return this.images.length;
   }
 
-  _update(image: TitanImageHD) {
+  _update(image: TitanImage) {
     //image modifier == 2 || 5 update cloak
     // 4o r 7 -> decloak
     //17 ? warpin
@@ -205,6 +205,7 @@ export default class TitanSprite extends Group {
             const [imageId] = val;
             //get_image_lo_offset(image->sprite->main_image, 2, 0)
             const titanImage = this.addImage(imageId, ImageOrder.above);
+            if (!titanImage) break;
             const [ox, oy] = this._getImageLoOffset(
               this.mainImage,
               overlayTypes.specialOverlay,
@@ -259,7 +260,8 @@ export default class TitanSprite extends Group {
             titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
             titanSprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage.setPosition(x, y);
+            //@todo ensure main image otherwise the sprite is dead
+            titanSprite.mainImage?.setPosition(x, y);
             titanSprite.position.copy(this.position);
             this.createTitanSpriteCb(titanSprite);
           }
@@ -282,7 +284,7 @@ export default class TitanSprite extends Group {
             titanSprite.setDirection(this.direction);
             titanSprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage.setPosition(x, y);
+            titanSprite.mainImage?.setPosition(x, y);
             titanSprite.position.copy(this.position);
             this.createTitanSpriteCb(titanSprite);
           }
@@ -299,7 +301,7 @@ export default class TitanSprite extends Group {
             titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
             titanSprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage.setPosition(x, y);
+            titanSprite.mainImage?.setPosition(x, y);
             titanSprite.position.copy(this.position);
             this.createTitanSpriteCb(titanSprite);
             // console.log("lowsprul", [x, y]);
@@ -314,7 +316,7 @@ export default class TitanSprite extends Group {
             titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
             titanSprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage.setPosition(x, y);
+            titanSprite.mainImage?.setPosition(x, y);
             titanSprite.position.copy(this.position);
             this.createTitanSpriteCb(titanSprite);
           }
@@ -331,7 +333,7 @@ export default class TitanSprite extends Group {
             titanSprite.setDirection(this.direction);
             const [ox, oy] = this._getImageLoOffset(image, overlay, 0);
 
-            titanSprite.mainImage.setPosition(ox, oy);
+            titanSprite.mainImage?.setPosition(ox, oy);
             titanSprite.run(iscriptHeaders.init);
 
             titanSprite.position.copy(this.position);
@@ -378,7 +380,8 @@ export default class TitanSprite extends Group {
               imageId + imageOffset,
               ImageOrder.above
             );
-
+            if (!titanImage) break;
+            
             const los = this.bwDat.los[image.imageDef.specialOverlay - 1];
             const [ox, oy] = los[titanImage.userData.frame][imageOffset];
 
@@ -509,7 +512,7 @@ export default class TitanSprite extends Group {
   }
 
   _getImageLoOffset(
-    image: TitanImageHD,
+    image: TitanImage,
     overlay: number,
     imageOffset: number,
     useFrameset = false
@@ -539,7 +542,7 @@ export default class TitanSprite extends Group {
   }
 
   get direction() {
-    return this.mainImage.userData.direction;
+    return this.mainImage?.userData.direction;
   }
 
   dispose() {}

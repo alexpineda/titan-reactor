@@ -2,6 +2,7 @@ import SpriteGroup from "src/renderer/game/SpriteGroup";
 
 import { BwDATType } from "../bwdat/core/BwDAT";
 import { drawFunctions } from "../bwdat/enums/drawFunctions";
+import { createIScriptRunner } from "../types/iscript";
 import Grp3D from "./Grp3D";
 import GrpHD from "./GrpHD";
 import GrpSD from "./GrpSD";
@@ -12,7 +13,7 @@ import TitanImageSD from "./TitanImageSD";
 export default (
   bwDat: BwDATType,
   atlases: Grp3D[] | GrpHD[] | GrpSD[],
-  createIScriptRunner: () => () => any,
+  createIScriptRunner: createIScriptRunner,
   onError: (msg: string) => void
 ) => {
   return (imageId: number, sprite: SpriteGroup) => {

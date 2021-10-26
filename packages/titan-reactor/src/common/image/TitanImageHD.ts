@@ -16,6 +16,7 @@ import { GrpFrameType } from "../types/grp";
 import { createIScriptRunner } from "../types/iscript";
 import GrpHD from "./GrpHD";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
+import { TitanImage } from "./TitanImage";
 
 export const DepthMode = {
   Ordered: 0, // for top down views
@@ -23,7 +24,7 @@ export const DepthMode = {
 };
 
 export type constructorArguments = [atlas: GrpHD, createIScriptRunner: createIScriptRunner, imageDef: ImageDATType, sprite: SpriteGroup]
-export default class TitanImageHD extends Sprite {
+export default class TitanImageHD  extends Sprite implements TitanImage  {
   static useDepth = false;
    _spriteScale: number;
   private _oScale: Vector3;
@@ -140,7 +141,7 @@ export default class TitanImageHD extends Sprite {
     this.setPositionY(y, scale);
   }
 
-  setFrame(frame:number, flip:boolean) {
+  setFrame(frame:number, flip?:boolean) {
     if (this._setFrame(this.atlas.frames[frame], flip)) {
       this.uv.needsUpdate = true;
       this.pos.needsUpdate = true;
@@ -160,7 +161,7 @@ export default class TitanImageHD extends Sprite {
   }
 
   //dds is flipped y so we don't do it in our uvs
-  _setFrame(frame:GrpFrameType, flipFrame:boolean) {
+  _setFrame(frame:GrpFrameType, flipFrame?:boolean) {
     if (frame === undefined) {
       console.error("frame is undefined");
       return false;

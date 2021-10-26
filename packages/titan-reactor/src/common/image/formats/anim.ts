@@ -1,8 +1,8 @@
 // thanks to farty and neiv for references
 import BufferList from "bl";
 
-import { AnimTextureType } from "../types/grp";
-import range from "../utils/range";
+import { AnimTextureType } from "../../types/grp";
+import range from "../../utils/range";
 
 const versionSD = Symbol("sd");
 const versionHD = Symbol("h");

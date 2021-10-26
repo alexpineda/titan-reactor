@@ -20,7 +20,14 @@ import TilesBW from "./game-data/TilesBW";
 import UnitsBW from "./game-data/UnitsBW";
 import UpgradeBW from "./game-data/UpgradeBW";
 import BuildUnits from "./game/BuildUnits";
-import { GameUnitI, ResearchInProduction, UnitInProduction, UpgradeCompleted, UpgradeInProduction, ResearchCompleted } from "./game/GameUnit";
+import {
+  GameUnitI,
+  ResearchInProduction,
+  UnitInProduction,
+  UpgradeCompleted,
+  UpgradeInProduction,
+  ResearchCompleted,
+} from "./game/GameUnit";
 import { Players } from "./game/Players";
 import SpriteGroup from "./game/SpriteGroup";
 import useHudStore from "./stores/hudStore";
@@ -37,7 +44,7 @@ export default class BWFrameSceneBuilder {
   private readonly bwDat: BwDATType;
   private readonly group = new Group();
 
-   interactableSprites: TitanImageHD[] = [];
+  interactableSprites: TitanImageHD[] = [];
   private _notifiedHudOfUpgrades = false;
   private _notifiedHudOfTech = false;
 
@@ -45,11 +52,11 @@ export default class BWFrameSceneBuilder {
   private readonly images: Map<number, TitanImageHD> = new Map();
   private readonly units: Map<number, GameUnitI> = new Map();
   private readonly unitsByIndex: Map<number, GameUnitI> = new Map();
-   readonly unitsBySpriteId: Map<number, GameUnitI> = new Map();
-   readonly unitsInProduction: UnitInProduction[] = [];
+  readonly unitsBySpriteId: Map<number, GameUnitI> = new Map();
+  readonly unitsInProduction: UnitInProduction[] = [];
 
-   research: ResearchInProduction[][];
-   upgrades: UpgradeInProduction[][];
+  research: ResearchInProduction[][];
+  upgrades: UpgradeInProduction[][];
   private completedUpgrades: UpgradeCompleted[][];
   private completedResearch: ResearchCompleted[][];
 
@@ -167,10 +174,7 @@ export default class BWFrameSceneBuilder {
         this.projectedCameraView.bottom
       );
       if (volume > SoundsBW.minPlayVolume) {
-        this.audioMaster.channels.queue(
-          sound.object(),
-          elapsed
-        );
+        this.audioMaster.channels.queue(sound.object(), elapsed);
       }
     }
   }
@@ -329,7 +333,8 @@ export default class BWFrameSceneBuilder {
             }
           }
         }
-        sprite.position.z += z - sprite.lastZOff;
+        //@todo is this the reason for overlays displaying in 0,0?
+        // sprite.position.z += z - sprite.lastZOff;
         sprite.lastZOff = z;
       }
 

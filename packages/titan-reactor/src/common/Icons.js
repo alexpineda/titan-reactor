@@ -1,4 +1,4 @@
-import generateIcons from "./image/generateIcons";
+import generateIcons from "./image/generate-icons/generateIcons";
 import readCascFile from "./utils/casclib";
 
 class Icons {

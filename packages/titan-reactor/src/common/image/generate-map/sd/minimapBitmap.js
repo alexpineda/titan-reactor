@@ -1,4 +1,4 @@
-import { rgbToCanvas } from "../../canvas";
+import { rgbToCanvas } from "../../util/canvas";
 
 export const minimapBitmap = async (data, mapWidth, mapHeight) => {
   const src = rgbToCanvas(

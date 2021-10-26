@@ -7,6 +7,7 @@ import { IScriptRunner } from "../iscript";
 import { BwDATType, ImageDATType } from "../types/bwdat";
 import { createIScriptRunner } from "../types/iscript";
 import Grp3D from "./Grp3D";
+import { TitanImage } from "./TitanImage";
 
 export const createTitanImage3D = (
   bwDat: BwDATType,
@@ -28,15 +29,15 @@ export const createTitanImage3D = (
   };
 };
 
-export default class TitanImage3D extends Object3D {
+export default class TitanImage3D extends Object3D implements TitanImage {
   atlas: Grp3D;
   model: Object3D;
   sprite: SpriteGroup;
   imageDef: ImageDATType;
   iscript: IScriptRunner;
+  mixer?: AnimationMixer;
 
   private times = new Float32Array();
-  private mixer?: AnimationMixer;
   private action?: AnimationAction;
   _spriteScale: number;
   _zOff: number;

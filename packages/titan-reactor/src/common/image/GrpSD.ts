@@ -2,7 +2,7 @@ import { Grp } from "bw-chk-modified/grp";
 import { CompressedTexture, DataTexture, LuminanceFormat, UnsignedByteType } from "three";
 
 import { AnimTextureType, GrpFrameType, GRPInterface } from "../types/grp";
-import loadDDS from "./loadDDS";
+import loadDDS from "./formats/loadDDS";
 
 /**
  * SD via Anim
