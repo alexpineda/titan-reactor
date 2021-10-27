@@ -1,6 +1,6 @@
 "use strict";
-
 import React, { useState } from "react";
+
 
 //add bw color swatches to
 // SwatchesPicker.defaultProps.colors.unshift([
@@ -25,7 +25,7 @@ import React, { useState } from "react";
 //   "#f88c14",
 // ]);
 
-const ColorPicker = ({ color, onChange, className = "" }) => {
+export const ColorPicker = ({ color, onChange, className = "" }) => {
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
   return (

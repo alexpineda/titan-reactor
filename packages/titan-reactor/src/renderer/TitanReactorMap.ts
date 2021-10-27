@@ -3,24 +3,22 @@ import { debounce } from "lodash";
 import { CircleGeometry, Color, Mesh, MeshBasicMaterial, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import { BwDATType } from "../common/bwdat/core/BwDAT";
-import { iscriptHeaders } from "../common/bwdat/enums/iscriptHeaders";
-import { unitTypes } from "../common/bwdat/enums/unitTypes";
-import CanvasTarget from "../common/image/CanvasTarget";
-import TitanSprite from "../common/image/TitanSprite";
-import { ChkSpriteType, ChkUnitType } from "../common/types/common";
-import { TerrainInfo } from "../common/types/terrain";
+import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
+import { CanvasTarget, TitanSprite } from "../common/image";
+import { BwDATType, ChkSpriteType, ChkUnitType, TerrainInfo } from "../common/types";
 import { pxToMapMeter } from "../common/utils/conversions";
 import CameraRig from "./camera/CameraRig";
 import FogOfWar from "./fogofwar/FogOfWar";
-import InputEvents from "./input/InputEvents";
-import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import RenderMan from "./render/RenderMan";
-import Scene from "./render/Scene";
-import useHudStore from "./stores/hudStore";
-import useSettingsStore from "./stores/settingsStore";
+import { InputEvents, KeyboardShortcuts } from "./input";
+import { RenderMan, Scene } from "./render";
+import { useHudStore, useSettingsStore } from "./stores";
 
-function createStartLocation(mapX: number, mapY: number, color: string, mapZ = 0) {
+function createStartLocation(
+  mapX: number,
+  mapY: number,
+  color: string,
+  mapZ = 0
+) {
   const geometry = new CircleGeometry(2, 32);
   const material = new MeshBasicMaterial({
     color,
@@ -42,7 +40,7 @@ async function TitanReactorMap(
   preplacedMapSprites: ChkSpriteType[],
   terrainInfo: TerrainInfo,
   scene: Scene,
-  createTitanSprite
+  createTitanSprite: () => TitanSprite
 ) {
   const { mapWidth, mapHeight } = terrainInfo;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);

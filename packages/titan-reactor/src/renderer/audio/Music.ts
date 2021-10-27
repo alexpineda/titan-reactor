@@ -1,6 +1,6 @@
 import { Audio, AudioListener, AudioLoader } from "three";
 
-import { log } from "../invoke";
+import { log } from "../ipc";
 
 const rand = (n: number) => Math.floor(Math.random() * n);
 

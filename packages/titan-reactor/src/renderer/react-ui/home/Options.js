@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from "react";
 import { ipcRenderer } from "electron";
-import { selectFolder } from "../../invoke";
-import { SELECT_FOLDER } from "../../../common/ipc/handleNames";
-import Option from "../components/Option";
-import Toggle from "../components/Toggle";
-import Tab from "../components/Tab";
-import TabSelector from "../components/TabSelector";
-import PathSelect from "../components/PathSelect";
-import Button from "../components/Button";
-import ButtonSet from "../components/ButtonSet";
-import ButtonSetContainer from "../components/ButtonSetContainer";
-import Visible from "../components/visible";
-import ColorPicker from "../components/ColorPicker";
-import useSettingsStore from "../../stores/settingsStore";
+import React, { useEffect, useState } from "react";
 import shallow from "zustand/shallow";
+
+import { SELECT_FOLDER } from "../../../common/ipc/handleNames";
+import { selectFolder } from "../../ipc";
+import useSettingsStore from "../../stores/settingsStore";
+import {
+  Button,
+  ButtonSet,
+  ButtonSetContainer,
+  ColorPicker,
+  Option,
+  PathSelect,
+  Tab,
+  TabSelector,
+  Toggle,
+  Visible,
+} from "../components";
 
 export const Tabs = {
   Setup: "Setup",

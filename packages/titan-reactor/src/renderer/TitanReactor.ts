@@ -14,7 +14,7 @@ import uniq from "../common/utils/uniq";
 import Assets from "./Assets";
 import { AudioMaster } from "./audio";
 import OpenBwBridgeReader from "./game-data/readers/OpenBwBridgeReader";
-import { log, openFile } from "./invoke";
+import { log, openFile } from "./ipc";
 import Scene, { generateTerrain } from "./render/Scene";
 import { disposeAssets, disposeGame, getAssets, getSettings, setAssets, setGame, setPreloadMessage } from "./stores";
 import useLoadingStore from "./stores/loadingStore";

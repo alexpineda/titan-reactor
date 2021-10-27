@@ -1,6 +1,6 @@
 import React from "react";
 
-const Toggle = ({ value, onChange }) => {
+export const Toggle = ({ value, onChange }) => {
   return (
     <span
       className={`material-icons font-lg select-none cursor-pointer  ${

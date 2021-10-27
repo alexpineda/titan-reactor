@@ -1,6 +1,6 @@
 import React from "react";
 
-const TabSelector = ({ activeTab, setTab, tab, label }) => {
+export const TabSelector = ({ activeTab, setTab, tab, label }) => {
   return (
     <li
       className={`py-2 px-3 hover:bg-gray-700 cursor-pointer ${

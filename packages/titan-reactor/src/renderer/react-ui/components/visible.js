@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 
-export default memo(({ visible, children }) => {
+export const Visible = memo(({ visible, children }) => {
   return (visible && <>{children}</>) || null;
 });
+export default Visible;

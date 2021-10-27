@@ -1,6 +1,6 @@
 import React from "react";
 
-const Button = ({ label, onClick }) => {
+export const Button = ({ label, onClick }) => {
   return (
     <button
       className="flex-shrink-0 bg-orange-600 text-white text-base font-semibold py-1 px-2 rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-orange-200"
