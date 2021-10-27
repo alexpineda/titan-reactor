@@ -1,6 +1,6 @@
 import React from "react";
 
-const ButtonSet = ({
+export const ButtonSet = ({
   selected,
   onClick,
   label,

@@ -1,6 +1,12 @@
 import React from "react";
 
-const PathSelect = ({ prop, phrases, settings, errors, selectFolder }) => {
+export const PathSelect = ({
+  prop,
+  phrases,
+  settings,
+  errors,
+  selectFolder,
+}) => {
   return (
     <span className="flex items-center">
       {!settings[prop] && (

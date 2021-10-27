@@ -1,6 +1,6 @@
 import React from "react";
 
-const Option = ({
+export const Option = ({
   label,
   value = undefined,
   toggle = null,

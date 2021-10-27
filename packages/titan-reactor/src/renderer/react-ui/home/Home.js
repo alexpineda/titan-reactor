@@ -1,15 +1,10 @@
 import React, { useState } from "react";
 import shallow from "zustand/shallow";
-import Options from "./Options";
-import { ipcRenderer } from "electron";
-import {
-  OPEN_MAP_DIALOG,
-  OPEN_REPLAY_DIALOG,
-  OPEN_DEMO_REPLAY,
-} from "../../../common/ipc/handleNames";
+
+import { exit, openDemoReplay, openMapDialog, openReplayDialog } from "../../ipc";
+import { useSettingsStore } from "../../stores";
 import { MenuItem } from "../components/MenuItem";
-import { exit } from "../../invoke";
-import useSettingsStore from "../../stores/settingsStore";
+import Options from "./Options";
 
 const Panels = {
   Home: "Home",
@@ -47,21 +42,17 @@ const Home = () => {
             <MenuItem
               label={phrases["OPEN_DEMO_REPLAY"]}
               disabled={errors.length}
-              onClick={() => ipcRenderer.send(OPEN_DEMO_REPLAY)}
+              onClick={openDemoReplay}
             />
             <MenuItem
               label={phrases["OPEN_REPLAY"]}
               disabled={errors.length}
-              onClick={() =>
-                ipcRenderer.send(OPEN_REPLAY_DIALOG, settings.replaysPath)
-              }
+              onClick={() => openReplayDialog(settings.replaysPath)}
             />
             <MenuItem
               label={phrases["OPEN_MAP"]}
               disabled={errors.length}
-              onClick={() =>
-                ipcRenderer.send(OPEN_MAP_DIALOG, settings.mapsPath)
-              }
+              onClick={() => openMapDialog(settings.mapsPath)}
             />
 
             <MenuItem

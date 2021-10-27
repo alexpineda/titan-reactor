@@ -1,13 +1,9 @@
-import { EventDispatcher } from "three";
-import path from "path";
-import {
-  loadReplayFromFile,
-  requestNextFrames,
-  stopReadingGameState,
-  openFile,
-} from "../../invoke";
-import { parseReplay, convertReplayTo116, Version } from "downgrade-replay";
+import { convertReplayTo116, parseReplay, Version } from "downgrade-replay";
 import fs from "fs";
+import path from "path";
+import { EventDispatcher } from "three";
+
+import { loadReplayFromFile, openFile, requestNextFrames, stopReadingGameState } from "../../ipc";
 import { getSettings } from "../../stores/settingsStore";
 
 /**

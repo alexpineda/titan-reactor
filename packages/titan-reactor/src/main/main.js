@@ -12,20 +12,14 @@ import isDev from "electron-is-dev";
 import { format as formatUrl } from "url";
 import { openFileBinary } from "../common/utils/fs";
 import path from "path";
-import createScmExtractor from "scm-extractor";
-import concat from "concat-stream";
-import { Readable } from "stream";
 
 powerSaveBlocker.start("prevent-display-sleep");
 
 import {
   OPEN_FILE,
-  OPEN_DATA_FILE,
-  LOAD_ALL_DATA_FILES,
   SELECT_FOLDER,
   GET_SETTINGS,
   SET_SETTINGS,
-  SETTINGS_CHANGED,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   OPEN_DEMO_REPLAY,
@@ -34,15 +28,10 @@ import {
   LOAD_REPLAY_FROM_FILE,
   REQUEST_NEXT_FRAMES,
   STOP_READING_GAME_STATE,
-  LOAD_CHK,
-  LOAD_SCX,
 } from "../common/ipc/handleNames";
-import { loadAllDataFiles } from "../common/bwdat/core/loadAllDataFiles";
 import { Settings } from "./settings";
 import { getUserDataPath } from "./userDataPath";
 import logger from "./logger";
-import Chk from "../../libs/bw-chk";
-import BufferList from "bl";
 import FileGameStateReader from "../renderer/game-data/readers/FileGameStateReader";
 
 // app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
@@ -69,6 +58,7 @@ function createGameWindow() {
       contextIsolation: false,
       // worldSafeExecuteJavaScript: true,
       enableRemoteModule: true,
+      defaultFontSize: 14,
     },
   });
   gameWindow.maximize();
@@ -129,7 +119,6 @@ app.on("ready", async () => {
   };
 
   settings.on("change", (settings) => {
-    gameWindow.webContents.send(SETTINGS_CHANGED, settings);
     if (settings.diff.fullscreen !== undefined) {
       updateFullScreen(settings.diff.fullscreen);
     }
@@ -316,18 +305,6 @@ ipcMain.handle(OPEN_FILE, async (_, filepath = "") => {
   return await openFileBinary(filepath);
 });
 
-ipcMain.handle(OPEN_DATA_FILE, async (_, filepath) => {
-  const dataPath = isDev
-    ? path.join(`./data/${filepath}`)
-    : path.join(process.resourcesPath, "data", filepath);
-
-  return await openFileBinary(dataPath);
-});
-
-ipcMain.handle(LOAD_ALL_DATA_FILES, async (_, bwDataPath) => {
-  return await loadAllDataFiles(bwDataPath);
-});
-
 ipcMain.on(OPEN_MAP_DIALOG, async (_, defaultPath = "") => {
   showOpenMap(defaultPath);
 });
@@ -364,27 +341,6 @@ ipcMain.on(SELECT_FOLDER, async (event, key) => {
         message: "There was an error selecting path: " + err.message,
       });
     });
-});
-
-ipcMain.handle(LOAD_CHK, (_, buf) => {
-  const chk = new Chk(new BufferList(buf));
-  return chk;
-});
-
-ipcMain.handle(LOAD_SCX, async (_, buf) => {
-  const readable = new Readable({ read: () => {} });
-  readable.push(Buffer.from(buf));
-  readable.push(null);
-
-  const chk = await new Promise((res) =>
-    readable.pipe(createScmExtractor()).pipe(
-      concat((data) => {
-        res(data);
-      })
-    )
-  );
-  const res = new Chk(chk);
-  return res;
 });
 
 export const findTempPath = () => app.getPath("temp");

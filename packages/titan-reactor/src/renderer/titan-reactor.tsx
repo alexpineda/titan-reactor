@@ -3,9 +3,9 @@ import { promises as fsPromises } from "fs";
 import React from "react";
 import { render } from "react-dom";
 
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc/handleNames";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc";
 import version from "../common/version";
-import { log } from "./invoke";
+import { log } from "./ipc";
 import App from "./react-ui/App";
 import { useLoadingStore, useSettingsStore, useTitanReactorStore } from "./stores";
 import { TitanReactor } from "./TitanReactor";

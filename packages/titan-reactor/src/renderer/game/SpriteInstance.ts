@@ -1,6 +1,6 @@
 import { Object3D } from "three";
 
-import { ImageInstance } from "../../common/image/ImageInstance";
+import { ImageInstance } from "../../common/image";
 import { SpriteDATType } from "../../common/types";
 import SelectionBars from "./SelectionBars";
 import SelectionCircle from "./SelectionCircle";

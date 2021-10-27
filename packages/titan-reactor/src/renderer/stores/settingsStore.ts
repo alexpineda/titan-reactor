@@ -1,7 +1,7 @@
 import create from "zustand";
 
 import { Settings } from "../../common/types/common";
-import { getSettings as invokeGetSettings, saveSettings } from "../invoke";
+import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
 //a user settings store which persists to disk
 type SettingsStore = {
