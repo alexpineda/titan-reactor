@@ -1,24 +1,26 @@
-import phrases from "common/phrases";
-import { RenderMode } from "common/settings";
+import { app } from "electron";
 import isDev from "electron-is-dev";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 import path from "path";
 
+import phrases from "../common/phrases";
+import { RenderMode } from "../common/settings";
+import { Settings as SettingsType } from "../common/types";
 import fileExists from "../common/utils/fileExists";
-import { findTempPath } from "./main";
 import { findMapsPath, findReplaysPath, findStarcraftPath } from "./starcraft/findInstallPath";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const VERSION = 1;
+export const findTempPath = () => app.getPath("temp");
 
 const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
-const shallowDiff = (a, b) => {
-  const x = {};
-  for (let n of Object.getOwnPropertyNames(a)) {
+const shallowDiff = (a: any, b: any) => {
+  const x: any = {};
+  for (const n of Object.getOwnPropertyNames(a)) {
     if (a[n] !== b[n]) {
       x[n] = b[n];
     }
@@ -27,16 +29,14 @@ const shallowDiff = (a, b) => {
 };
 
 export class Settings extends EventEmitter {
-  constructor(filepath) {
-    super();
-    this._settings = {};
-    this._filepath = filepath;
-    this.initialized = false;
-    this.firstRun = false;
-  }
+  private initialized = false;
+  private _settings: any = {};
+  private _filepath = "";
 
-  async init() {
+  async init(filepath: string) {
     if (this.initialized) return;
+
+    this._filepath = filepath;
 
     const noop = () => {};
     try {
@@ -44,7 +44,6 @@ export class Settings extends EventEmitter {
         await fsPromises.readFile(this._filepath, { encoding: "utf8" })
       );
     } catch (err) {
-      this.firstRun = true;
       try {
         await fsPromises.unlink(this._filepath);
       } catch (err) {
@@ -68,15 +67,15 @@ export class Settings extends EventEmitter {
       "communityModelsPath",
     ];
 
-    for (let file of files) {
-      if (!(await fileExists(this._settings[file]))) {
+    for (const file of files) {
+      if (!(await fileExists(this._settings[file as keyof SettingsType]))) {
         errors.push(file);
       }
     }
 
     const dataFolders = ["Data", "locales"];
     if (await fileExists(this._settings["starcraftPath"])) {
-      for (let folder of dataFolders) {
+      for (const folder of dataFolders) {
         if (
           !(await fileExists(
             path.join(this._settings["starcraftPath"], folder)
@@ -89,8 +88,8 @@ export class Settings extends EventEmitter {
       }
     }
 
-    const localLanguage = supportedLanguages.includes(getEnvLocale())
-      ? getEnvLocale()
+    const localLanguage = supportedLanguages.includes(getEnvLocale() as string)
+      ? (getEnvLocale() as string)
       : "en-US";
     this._settings.language = supportedLanguages.includes(
       this._settings.language
@@ -107,7 +106,6 @@ export class Settings extends EventEmitter {
         ...phrases[this._settings.language],
       },
       diff: {},
-      firstRun: this.firstRun,
     };
   }
 
@@ -123,7 +121,7 @@ export class Settings extends EventEmitter {
     this._emitChanged();
   }
 
-  async save(settings) {
+  async save(settings: any) {
     if (settings.errors) {
       delete settings.errors;
     }

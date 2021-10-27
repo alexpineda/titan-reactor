@@ -1,6 +1,10 @@
 import React, { useRef } from "react";
 
-import { techTypesByUnitType, upgrades, upgradesByUnitType } from "../../../../common/bwdat/enums";
+import {
+  techTypesByUnitType,
+  upgrades as upgradeTypes,
+  upgradesByUnitType,
+} from "../../../../common/bwdat/enums";
 import useGameStore from "../../../stores/gameStore";
 import useProductionStore from "../../../stores/realtime/productionStore";
 
@@ -16,7 +20,7 @@ const Upgrades = ({ unit }) => {
   const validUpgrades =
     upgradesByUnitType[unit.typeId] ||
     (unit.unitType.isProtoss && unit.unitType.isBuilding
-      ? [upgrades.protossPlasmaShields]
+      ? [upgradeTypes.protossPlasmaShields]
       : []);
 
   //todo realtime updates
