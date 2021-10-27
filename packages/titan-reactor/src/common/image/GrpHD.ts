@@ -1,11 +1,10 @@
 import { CompressedTexture } from "three";
 
 import { ImageDATType } from "../bwdat/core/ImagesDAT";
-import { AnimTextureType, GrpFrameType, GRPInterface } from "../types/grp";
-import { Anim } from "./formats/anim";
-import loadDDS from "./formats/loadDDS";
+import { AnimTextureType, GrpFrameType, GRPInterface } from "../types";
+import { Anim, loadDDS } from "./formats";
 
-export default class GrpHD implements GRPInterface {
+export class GrpHD implements GRPInterface {
   width = 0;
   height = 0;
   grpWidth = 0;
@@ -93,3 +92,4 @@ export default class GrpHD implements GRPInterface {
     this.teamcolor && this.teamcolor.dispose();
   }
 }
+export default GrpHD;

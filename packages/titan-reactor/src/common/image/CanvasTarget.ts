@@ -1,4 +1,4 @@
-class CanvasTarget {
+export class CanvasTarget {
   ctx: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
   pixelRatio = 1;

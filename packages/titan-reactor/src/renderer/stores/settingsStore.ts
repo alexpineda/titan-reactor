@@ -12,7 +12,7 @@ type SettingsStore = {
   load: () => Promise<void>;
 };
 
-const useSettingsStore = create<SettingsStore>((set, get) => ({
+export const useSettingsStore = create<SettingsStore>((set, get) => ({
   data: null,
   phrases: {},
   errors: [],

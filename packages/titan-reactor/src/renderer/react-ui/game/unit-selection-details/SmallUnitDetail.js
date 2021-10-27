@@ -1,6 +1,7 @@
+import React, { useEffect, useRef } from "react";
+
 import range from "../../../../common/utils/range";
-import React, { useRef, useEffect } from "react";
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
+import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
 import { showKillsExtraUnits } from "./Kills";
 import SmallUnitItem from "./SmallUnitItem";
 
@@ -33,7 +34,7 @@ const SmallUnitDetail = ({ units }) => {
   useEffect(() => {
     setDom(selector({ selectedUnits: units }));
 
-    return useRealtimeStore.subscribe((killsText) => {
+    return useUnitSelectionStore.subscribe((killsText) => {
       setDom(killsText);
     }, selector);
   }, [units]);

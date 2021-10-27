@@ -18,11 +18,10 @@ class OpenBwBridgeReader extends FileGameStateReader {
     super(file, outFile, maxFramesLength);
     this.bwPath = bwPath;
 
-    // this.openBwBridgeExePath =
-    //   "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
+    this.openBwBridgeExePath =
+      "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
     // this.openBwBridgeExePath =
     //   "D:\\dev\\ChkForge\\openbw-bridge\\Release\\openbw-bridge.exe";
-    // "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
     console.log(this.openBwBridgeExePath);
   }
 

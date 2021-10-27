@@ -1,20 +1,24 @@
-import {SoundBWInstance} from "../game-data/SoundsBW";
+import { SoundBWInstance } from "../game-data/SoundsBW";
 import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import MainMixer from "./MainMixer";
 
 const stopTime = 30; //ms
 
 // an instance of a bw sound
-export default class Audio {
+export class Audio {
   mixer: MainMixer;
   buffer: DeferredAudioBuffer;
   isPlaying = false;
   queueStartTime = 0;
   source?: AudioBufferSourceNode;
   gain?: GainNode;
-  sound: SoundBWInstance
-  
-  constructor(mixer: MainMixer, sound: SoundBWInstance, buffer: DeferredAudioBuffer) {
+  sound: SoundBWInstance;
+
+  constructor(
+    mixer: MainMixer,
+    sound: SoundBWInstance,
+    buffer: DeferredAudioBuffer
+  ) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;
@@ -81,7 +85,6 @@ export default class Audio {
       return;
     }
 
-
     this.gain.gain.setValueAtTime(
       this.gain.gain.value,
       this.mixer.context.currentTime
@@ -93,3 +96,4 @@ export default class Audio {
     this.source.onended = null;
   }
 }
+export default Audio;

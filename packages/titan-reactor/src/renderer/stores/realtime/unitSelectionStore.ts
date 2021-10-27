@@ -1,16 +1,17 @@
-import { GameUnitI } from "../../game/GameUnit";
 import create from "zustand/vanilla";
 
+import { UnitInstance } from "../../game/UnitInstance";
+
 type RealtimeStore = {
-  selectedUnits: GameUnitI[];
-  setSelectedUnits: (selectedUnits: GameUnitI[]) => void;
+  selectedUnits: UnitInstance[];
+  setSelectedUnits: (selectedUnits: UnitInstance[]) => void;
 };
-const useRealtimeStore = create<RealtimeStore>((set) => ({
+export const useUnitSelectionStore = create<RealtimeStore>((set) => ({
   selectedUnits: [],
 
-  setSelectedUnits: (selectedUnits: GameUnitI[]) => {
+  setSelectedUnits: (selectedUnits: UnitInstance[]) => {
     set({ selectedUnits });
   },
 }));
 
-export default useRealtimeStore;
+export default useUnitSelectionStore;

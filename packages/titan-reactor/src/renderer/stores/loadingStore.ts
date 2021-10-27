@@ -30,7 +30,7 @@ type LoadingStore = {
   reset: () => void;
 };
 
-const useLoadingStore = create<LoadingStore>((set) => ({
+export const useLoadingStore = create<LoadingStore>((set) => ({
   isReplay: false,
   isGame: false,
   isMap: false,

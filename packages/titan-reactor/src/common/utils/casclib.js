@@ -3,7 +3,7 @@ import * as casclib from "casclib";
 let _storageHandle;
 let _lastBwPath;
 
-export default (filePath) => {
+export const readCascFile = (filePath) => {
   try {
     return casclib.readFile(_storageHandle, filePath);
   } catch (e) {
@@ -12,6 +12,7 @@ export default (filePath) => {
     return casclib.readFile(_storageHandle, filePath);
   }
 };
+export default readCascFile;
 
 export const openCascStorage = (bwPath) => {
   _lastBwPath = bwPath;

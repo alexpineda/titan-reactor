@@ -1,6 +1,6 @@
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
-import React, { useRef, useEffect } from "react";
-import useGameStore from "../../../stores/gameStore";
+import React, { useEffect, useRef } from "react";
+
+import { useGameStore, useUnitSelectionStore } from "../../../stores";
 
 const selector = (state) => {
   if (!state.selectedUnits[0]) return "";
@@ -19,7 +19,7 @@ const Energy = ({ unit }) => {
   useEffect(() => {
     setDom(unit.energy);
 
-    return useRealtimeStore.subscribe((energy) => {
+    return useUnitSelectionStore.subscribe((energy) => {
       setDom(energy);
     }, selector);
   }, [unit]);

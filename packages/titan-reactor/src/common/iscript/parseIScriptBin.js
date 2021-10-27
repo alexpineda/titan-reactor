@@ -123,7 +123,7 @@ const read = (buf, size, pos) => {
   return value;
 };
 
-export default (buf) => {
+export const parseIScriptBin = (buf) => {
   const iscripts = [];
   const animationBlocks = {};
 
@@ -234,3 +234,4 @@ export default (buf) => {
 
   return { iscripts, animationBlocks };
 };
+export default parseIScriptBin;

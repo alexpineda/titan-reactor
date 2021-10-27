@@ -2,12 +2,12 @@ import "three/examples/jsm/utils/SkeletonUtils";
 
 import THREE, { AnimationAction, AnimationMixer, Object3D } from "three";
 
-import SpriteGroup from "../../renderer/game/SpriteGroup";
+import SpriteInstance from "../../renderer/game/SpriteInstance";
 import { IScriptRunner } from "../iscript";
 import { BwDATType, ImageDATType } from "../types/bwdat";
 import { createIScriptRunner } from "../types/iscript";
 import Grp3D from "./Grp3D";
-import { TitanImage } from "./TitanImage";
+import { ImageInstance } from "./ImageInstance";
 
 export const createTitanImage3D = (
   bwDat: BwDATType,
@@ -15,7 +15,7 @@ export const createTitanImage3D = (
   createIScriptRunner: createIScriptRunner,
   onError: (msg: string) => void = () => {}
 ) => {
-  return (image: number, sprite: SpriteGroup) => {
+  return (image: number, sprite: SpriteInstance) => {
     if (!atlases[image]) {
       onError(`sd ${image} has no atlas, did you forget to load one?`);
       return null;
@@ -29,10 +29,10 @@ export const createTitanImage3D = (
   };
 };
 
-export default class TitanImage3D extends Object3D implements TitanImage {
+export class TitanImage3D extends Object3D implements ImageInstance {
   atlas: Grp3D;
   model: Object3D;
-  sprite: SpriteGroup;
+  sprite: SpriteInstance;
   imageDef: ImageDATType;
   iscript: IScriptRunner;
   mixer?: AnimationMixer;
@@ -46,7 +46,7 @@ export default class TitanImage3D extends Object3D implements TitanImage {
     atlas: Grp3D,
     createIScriptRunner: createIScriptRunner,
     imageDef: ImageDATType,
-    sprite: SpriteGroup
+    sprite: SpriteInstance
   ) {
     super();
     this.atlas = atlas;
@@ -79,9 +79,9 @@ export default class TitanImage3D extends Object3D implements TitanImage {
     this.setFrame(0);
   }
 
-  setTeamColor(val) {}
-  setWarping(val) {}
-  setCloaked(val) {}
+  setTeamColor(val: Color) {}
+  setWarping(val: number) {}
+  setCloaked(val: boolean) {}
 
   get frames() {
     return this.atlas.frames;
@@ -116,3 +116,4 @@ export default class TitanImage3D extends Object3D implements TitanImage {
     }
   }
 }
+export default TitanImage3D;

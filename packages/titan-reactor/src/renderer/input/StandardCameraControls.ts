@@ -10,13 +10,23 @@ import PreviewCamera from "../camera/PreviewCamera";
 CameraControls.install({ THREE });
 
 type ShotOptions = {
-  azi:number,
-  pol:number,
-  fov:number,
-  dollyTo:number,
-}
+  azi: number;
+  pol: number;
+  fov: number;
+  dollyTo: number;
+};
 
-type NumpadKeys = "Numpad0" | "Numpad1" | "Numpad2" | "Numpad3" | "Numpad4" | "Numpad5" | "Numpad6" | "Numpad7" | "Numpad8" | "Numpad9";
+type NumpadKeys =
+  | "Numpad0"
+  | "Numpad1"
+  | "Numpad2"
+  | "Numpad3"
+  | "Numpad4"
+  | "Numpad5"
+  | "Numpad6"
+  | "Numpad7"
+  | "Numpad8"
+  | "Numpad9";
 
 const NUMPAD_PRESETS = {
   Numpad0: {
@@ -81,25 +91,30 @@ const NUMPAD_PRESETS = {
   },
 };
 
-class StandardCameraControls extends CameraControls {
+export class StandardCameraControls extends CameraControls {
   _mouseWheelTimeout: NodeJS.Timeout | null = null;
   _mouseWheelDelay = 500;
-  cameraShake?: CameraShake
+  cameraShake?: CameraShake;
   //@todo make this a getter/setter and unsubscribe on false
   keyboardTruckingEnabled = true;
   numpadControlEnabled = false;
-  presets= NUMPAD_PRESETS;
+  presets = NUMPAD_PRESETS;
 
   private _onWheel: (evt: WheelEvent) => void;
   private constraints: {
-    azi: number[],
-    pol: [number, number, number],
-    fov: [number, number, number],
-    dollyTo: [number, number, number],
-    dollySpeed: [number, number, number],
-    dampingFactor: [number, number, number],
+    azi: number[];
+    pol: [number, number, number];
+    fov: [number, number, number];
+    dollyTo: [number, number, number];
+    dollySpeed: [number, number, number];
+    dampingFactor: [number, number, number];
   };
-  constructor(camera: PerspectiveCamera, domElement: HTMLElement, keyboardShortcuts: KeyboardShortcuts, freeControl = false) {
+  constructor(
+    camera: PerspectiveCamera,
+    domElement: HTMLElement,
+    keyboardShortcuts: KeyboardShortcuts,
+    freeControl = false
+  ) {
     super(camera, domElement);
 
     if (camera instanceof PreviewCamera) {
@@ -150,8 +165,6 @@ class StandardCameraControls extends CameraControls {
 
     domElement.addEventListener("wheel", this._onWheel, { passive: true });
 
-    
-
     keyboardShortcuts.addEventListener(
       InputEvents.TruckLeft,
       ({ message: delta }) => {
@@ -185,7 +198,11 @@ class StandardCameraControls extends CameraControls {
     this.constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),
       // https://github.com/microsoft/TypeScript/issues/44309
-      pol: [8, 12, 18].map((x) => (x * Math.PI) / 64) as [number, number, number],
+      pol: [8, 12, 18].map((x) => (x * Math.PI) / 64) as [
+        number,
+        number,
+        number
+      ],
       fov: [22, 40, 55],
       dollyTo: [70, 30, 20],
       dollySpeed: [1, 0.5, 0.2],
@@ -195,8 +212,6 @@ class StandardCameraControls extends CameraControls {
 
   setConstraints() {
     this.verticalDragToForward = true;
-
-    
 
     // if (freeControl) return;
 
@@ -214,12 +229,7 @@ class StandardCameraControls extends CameraControls {
     this.draggingDampingFactor = 1;
   }
 
-  private createShot({
-    azi,
-    pol,
-    fov,
-    dollyTo,
-  }:ShotOptions) {
+  private createShot({ azi, pol, fov, dollyTo }: ShotOptions) {
     return {
       azi:
         this.constraints.azi[azi + 3] !== undefined
@@ -240,8 +250,8 @@ class StandardCameraControls extends CameraControls {
     };
   }
 
-  updateShot (opts: ShotOptions) {
-    const { azi, pol, fov,  dollyTo } = opts;
+  updateShot(opts: ShotOptions) {
+    const { azi, pol, fov, dollyTo } = opts;
     if (azi && pol) {
       this.rotateTo(azi, pol, false);
     }
@@ -250,11 +260,11 @@ class StandardCameraControls extends CameraControls {
       this._camera.updateProjectionMatrix();
     }
     if (dollyTo) {
-        this.dollyTo(dollyTo, false);
+      this.dollyTo(dollyTo, false);
     }
   }
 
-  private _keypressListener (evt: KeyboardEvent) {
+  private _keypressListener(evt: KeyboardEvent) {
     if (evt.code === "NumpadDivide") {
       this.rotate(-(2 * Math.PI) / 64, 0, true);
     } else if (evt.code === "NumpadMultiply") {

@@ -1,28 +1,23 @@
-export {
-  unitsByUpgradeType,
-  upgradesByUnitType,
-  techTypesByUnitType,
-  unitsByTechType,
-} from "./abilitiesMap";
-export { behaviours, behavioursId } from "./behaviours";
-export { commands, commandsById } from "./commands";
-export { damageRatios } from "./damageRatios";
-export { charColor } from "./charColor";
-export { damageTypes, damageTypesById } from "./damagesTypes";
-export { drawFunctions, drawFunctionsById } from "./drawFunctions";
-export { explosions, explosionsById } from "./explosions";
-export { flingyControl, flingyControlById } from "./flingyControl";
-export { imageTypes, imageTypesById } from "./imageTypes";
-export { iscriptHeaders, headersById } from "./iscriptHeaders";
-export { orders, ordersById } from "./orders";
-export { overlayTypes, overlayTypesById } from "./overlayTypes";
-export { playerColors, playerPallete } from "./playerColors";
-export { races, racesById } from "./races";
-export { rightClickActions, rightClickActionsById } from "./rightClickActions";
-export { selectionCircleSize } from "./selectionCircleSize";
-export { shieldSize, shieldSizeById } from "./shieldSize";
-export { techTypes, techTypesById } from "./techTypes";
-export { tilesetNames, tilesetNamesById } from "./tilesetNames";
-export { unitSize, unitSizeById } from "./unitSize";
-export { unitTypes, unitTypesById } from "./unitTypes";
-export { upgrades, upgradesById } from "./upgrades";
+export * from "./abilitiesMap";
+export * from "./behaviours";
+export * from "./commands";
+export * from "./damageRatios";
+export * from "./charColor";
+export * from "./damagesTypes";
+export * from "./drawFunctions";
+export * from "./explosions";
+export * from "./flingyControl";
+export * from "./imageTypes";
+export * from "./iscriptHeaders";
+export * from "./orders";
+export * from "./overlayTypes";
+export * from "./playerColors";
+export * from "./races";
+export * from "./rightClickActions";
+export * from "./selectionCircleSize";
+export * from "./shieldSize";
+export * from "./techTypes";
+export * from "./tilesetNames";
+export * from "./unitSize";
+export * from "./unitTypes";
+export * from "./upgrades";

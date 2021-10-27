@@ -4,7 +4,7 @@ import { ImageDATType } from "../bwdat/core/ImagesDAT";
 import loadGlb, { GlbResponse } from "./formats/loadGlb";
 import GrpHD from "./GrpHD";
 
-export default class Grp3D extends GrpHD {
+export class Grp3D extends GrpHD {
   envMap: CubeTexture | null;
   model?: Group;
   animations: AnimationClip[] = [];
@@ -57,3 +57,4 @@ export default class Grp3D extends GrpHD {
     return this;
   }
 }
+export default Grp3D;

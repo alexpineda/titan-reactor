@@ -1,7 +1,7 @@
 import FrameBW from "./FrameBW";
 
 // a fixed pool of objects that can be marked (occupied) and unmarked
-export default class MarkedObjectPool {
+export class MarkedObjectPool {
   maxItems: number;
   marked: FrameBW[] = [];
   unmarked = new FrameBW();
@@ -37,3 +37,4 @@ export default class MarkedObjectPool {
     return this.marked.splice(0, amount);
   }
 }
+export default MarkedObjectPool;

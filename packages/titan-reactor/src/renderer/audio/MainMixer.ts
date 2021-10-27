@@ -1,7 +1,7 @@
 import { AudioContext } from "three";
 
 // mixes sound and music volumes
-export default class MainMixer {
+export class MainMixer {
   context: AudioContext;
   master: AudioNode;
   compressor: DynamicsCompressorNode;
@@ -45,3 +45,5 @@ export default class MainMixer {
     this.music.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
   }
 }
+
+export default MainMixer;

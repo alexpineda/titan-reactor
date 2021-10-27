@@ -1,4 +1,4 @@
-export default (dataView, offset = 0, endianness = true) => {
+export const ConsumingDataView = (dataView, offset = 0, endianness = true) => {
   let bytesConsumed = 0;
   return new Proxy(dataView, {
     get: (target, prop, receiver) => {
@@ -18,3 +18,4 @@ export default (dataView, offset = 0, endianness = true) => {
     },
   });
 };
+export default ConsumingDataView;

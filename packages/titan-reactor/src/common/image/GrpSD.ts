@@ -1,13 +1,13 @@
 import { Grp } from "bw-chk-modified/grp";
 import { CompressedTexture, DataTexture, LuminanceFormat, UnsignedByteType } from "three";
 
-import { AnimTextureType, GrpFrameType, GRPInterface } from "../types/grp";
-import loadDDS from "./formats/loadDDS";
+import { AnimTextureType, GrpFrameType, GRPInterface } from "../types";
+import { loadDDS } from "./formats";
 
 /**
  * SD via Anim
  */
-export default class GrpSD implements GRPInterface {
+export class GrpSD implements GRPInterface {
   width = 0;
   height = 0;
   grpWidth? = 0;
@@ -61,3 +61,4 @@ export default class GrpSD implements GRPInterface {
     return this;
   }
 }
+export default GrpSD;

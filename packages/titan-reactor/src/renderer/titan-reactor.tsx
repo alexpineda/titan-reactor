@@ -7,14 +7,13 @@ import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc/handleNames";
 import version from "../common/version";
 import { log } from "./invoke";
 import App from "./react-ui/App";
-import useLoadingStore from "./stores/loadingStore";
-import useSettingsStore from "./stores/settingsStore";
-import useTitanReactorStore from "./stores/titanReactorStore";
+import { useLoadingStore, useSettingsStore, useTitanReactorStore } from "./stores";
 import { TitanReactor } from "./TitanReactor";
 
 if (module.hot) {
   module.hot.accept();
 }
+
 
 log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);

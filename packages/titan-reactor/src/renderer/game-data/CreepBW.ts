@@ -2,7 +2,7 @@ import ContiguousContainer from "./ContiguousContainer";
 
 export const CREEP_BYTE_LENGTH = 1;
 // a block of creep data representing w x h map dimensions of creep information
-export default class CreepBW extends ContiguousContainer {
+export class CreepBW extends ContiguousContainer {
   protected override byteLength = CREEP_BYTE_LENGTH;
 
   get hasCreep() {
@@ -10,6 +10,7 @@ export default class CreepBW extends ContiguousContainer {
   }
 
   hasCreepAt(i: number) {
-    return this._buf.get(i);
+    return this._buf?.get(i);
   }
 }
+export default CreepBW;

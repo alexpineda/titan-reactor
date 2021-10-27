@@ -1,4 +1,4 @@
-export default {
+export const InputEvents = {
   TogglePlay: "TogglePlay",
   ToggleMenu: "ToggleMenu",
   ToggleReplayPosition: "ToggleReplayPosition",
@@ -20,3 +20,4 @@ export default {
   MoveBackward: "MoveBackward",
   ResetCamera: "ResetCamera",
 };
+export default InputEvents;

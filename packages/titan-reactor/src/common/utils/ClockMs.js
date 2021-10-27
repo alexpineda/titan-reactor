@@ -1,4 +1,4 @@
-export default class ClockMs {
+export class ClockMs {
   constructor(autoStart) {
     this.autoStart = autoStart !== undefined ? autoStart : true;
 
@@ -10,9 +10,8 @@ export default class ClockMs {
   }
 
   start() {
-    this.startTime = (typeof performance === "undefined"
-      ? Date
-      : performance
+    this.startTime = (
+      typeof performance === "undefined" ? Date : performance
     ).now(); // see #10732
 
     this.oldTime = this.startTime;
@@ -40,9 +39,8 @@ export default class ClockMs {
     }
 
     if (this.running) {
-      const newTime = (typeof performance === "undefined"
-        ? Date
-        : performance
+      const newTime = (
+        typeof performance === "undefined" ? Date : performance
       ).now();
 
       diff = newTime - this.oldTime;
@@ -54,3 +52,4 @@ export default class ClockMs {
     return diff;
   }
 }
+export default ClockMs;

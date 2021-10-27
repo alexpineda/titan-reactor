@@ -49,7 +49,10 @@ const DEFAULT_GEOM_OPTIONS = {
 };
 
 //@todo separate sd and hd
-export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
+export const generateMaterialsAndMeshes = async (
+  tileData,
+  geomOptions = DEFAULT_GEOM_OPTIONS
+) => {
   const {
     palette,
     tileset,
@@ -936,3 +939,4 @@ export default async (tileData, geomOptions = DEFAULT_GEOM_OPTIONS) => {
     mapHeight,
   };
 };
+export default generateMaterialsAndMeshes;

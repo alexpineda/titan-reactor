@@ -1,11 +1,13 @@
 import create from "zustand";
 
-type State = {
+type TitanReactorStoreState = {
   criticalError: Error | null;
   flashError: Error | null;
 };
 
-export default create<State>(() => ({
+export const useTitanReactorStore = create<TitanReactorStoreState>(() => ({
   criticalError: null,
   flashError: null,
 }));
+
+export default useTitanReactorStore;

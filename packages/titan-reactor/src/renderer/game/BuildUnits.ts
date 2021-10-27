@@ -1,22 +1,18 @@
 import { Color } from "three";
 
-import { BwDATType } from "../../common/bwdat/core/BwDAT";
-import { UnitDAT } from "../../common/bwdat/core/UnitsDAT";
-import { orders } from "../../common/bwdat/enums/orders";
-import { unitTypes } from "../../common/bwdat/enums/unitTypes";
-import { Player } from "../../common/types/player";
+import { orders, unitTypes } from "../../common/bwdat/enums";
+import { BwDATType, OwnerId, Player, SpriteIndex, UnitDAT, UnitTag } from "../../common/types";
 import FogOfWar from "../fogofwar/FogOfWar";
-import BuildingQueueCountBW, { BuildingQueueI, TrainingQueueType } from "../game-data/BuildingQueueCountBW";
-import UnitsBW from "../game-data/UnitsBW";
-import { GameUnitI, IncompleteUnit, UnitInProduction } from "./GameUnit";
+import { BuildingQueueCountBW, BuildingQueueI, TrainingQueueType, UnitsBW } from "../game-data";
+import { IncompleteUnit, UnitInProduction, UnitInstance } from "./UnitInstance";
 
 const resourceColor = new Color(0, 55, 55);
 const flashColor = new Color(200, 200, 200);
 const scannerColor = new Color(0xff0000);
 
-class BuildUnits {
+export class BuildUnits {
   private readonly bwDat: BwDATType;
-  private readonly playersById: Record<number, Player>;
+  private readonly playersById: Record<OwnerId, Player>;
   private readonly fogOfWar: FogOfWar;
   private mapWidth: number;
   private mapHeight: number;
@@ -26,7 +22,7 @@ class BuildUnits {
 
   constructor(
     bwDat: BwDATType,
-    playersById: Record<number, Player>,
+    playersById: Record<OwnerId, Player>,
     mapWidth: number,
     mapHeight: number,
     fogOfWar: FogOfWar
@@ -42,7 +38,7 @@ class BuildUnits {
     this.resourceImageData = new ImageData(mapWidth, mapHeight);
   }
 
-  _refreshMinimap(unit: GameUnitI, unitType: UnitDAT) {
+  _refreshMinimap(unit: UnitInstance, unitType: UnitDAT) {
     const isResourceContainer = unitType.isResourceContainer && !unit.owner;
     if (
       !isResourceContainer &&
@@ -110,22 +106,27 @@ class BuildUnits {
   }
 
   refresh(
+    //prefilled buffer and accessor
     unitsBW: UnitsBW,
     buildQueueBW: BuildingQueueCountBW,
-    units: Map<number, GameUnitI>,
-    unitsBySpriteId: Map<number, GameUnitI>,
+    units: Map<UnitTag, UnitInstance>,
+    unitsBySpriteId: Map<SpriteIndex, UnitInstance>,
     unitsInProduction: UnitInProduction[]
   ) {
+    // reset unit image data for minimap
     this.imageData.data.fill(0);
+
+    // reset resource image data for minimap
     this.resourceImageData.data.fill(0);
 
-    const incompleteUnits: Map<number, IncompleteUnit> = new Map();
+    const incompleteUnits: Map<UnitTag, IncompleteUnit> = new Map();
+    unitsBySpriteId.clear();
 
     for (const unitBw of unitsBW.instances() as UnitsBW[]) {
-      let unit: GameUnitI;
+      let unit: UnitInstance;
 
       if (units.has(unitBw.id)) {
-        unit = units.get(unitBw.id) as GameUnitI;
+        unit = units.get(unitBw.id) as UnitInstance;
       } else {
         unit = {
           remainingBuildTime: 0,
@@ -139,8 +140,10 @@ class BuildUnits {
       // const unitType = this.bwDat.unit[unitBw.type];
       const unitType = unitBw.unitType;
 
+      // @todo any side effects here? lingering sprites?
       unitsBySpriteId.set(unitBw.spriteIndex, unit);
 
+      //@todo move to minimap substructure
       //if receiving damage, blink 3 times, hold blink 3 frames
       if (
         !unit.recievingDamage &&
@@ -154,6 +157,7 @@ class BuildUnits {
 
       //@todo get a better way to detect initial units, probably via chk or marking initial frame units
       // for use with protoss warp in buildings
+      //@todo can be done with prev, current unitbw containers
       if (!unit.wasConstructing) {
         unit.wasConstructing =
           unit.remainingBuildTime !== unitBw.remainingBuildTime;
@@ -201,25 +205,27 @@ class BuildUnits {
         ) &&
         unitBw.typeId !== unitTypes.spiderMine;
 
-      if (
-        unitType.isBuilding &&
-        unitType.isProtoss &&
-        unit.remainingBuildTime < (unitType.buildTime * 2) / 5 &&
-        unit.wasConstructing
-      ) {
-        if (unit.warpingIn === undefined) {
-          unit.warpingLen = (unitType.buildTime * 2) / 5;
-          unit.warpingIn = 150 + unit.warpingLen;
-        } else if (unit.warpingIn > 0) {
-          unit.warpingIn = unit.warpingIn - 1;
-        }
-      }
+      // protoss warping logic
+      // if (
+      //   unitType.isBuilding &&
+      //   unitType.isProtoss &&
+      //   unit.remainingBuildTime < (unitType.buildTime * 2) / 5 &&
+      //   unit.wasConstructing
+      // ) {
+      //   if (unit.warpingIn === undefined) {
+      //     unit.warpingLen = (unitType.buildTime * 2) / 5;
+      //     unit.warpingIn = unit.modifie;
+      //   } else if (unit.warpingIn > 0) {
+      //     unit.warpingIn = unit.warpingIn - 1;
+      //   }
+      // }
 
       //@todo move to worker
       if (unit.showOnMinimap) {
         this._refreshMinimap(unit, unitType);
       }
 
+      //@todo why are we not returning here earlier?
       if (!unitBw.isComplete) {
         incompleteUnits.set(unitBw.id, {
           unitId: unitBw.id,
@@ -229,6 +235,9 @@ class BuildUnits {
         });
       }
     }
+    // end of unit loop
+
+    // merge units with building and training queues
 
     const buildQueue = buildQueueBW.instances() as BuildingQueueI[];
 
@@ -280,10 +289,10 @@ class BuildUnits {
       }
     }
 
+    // sort production units left to right based on build score
     unitsInProduction.sort((a, b) => {
       const ax = this.bwDat.units[a.typeId].buildScore;
       const bx = this.bwDat.units[b.typeId].buildScore;
-
       return bx - ax;
     });
   }

@@ -6,7 +6,7 @@ export type GlbResponse = {
   model: Group;
   animations: AnimationClip[];
 };
-export default function loadGlb(
+export function loadGlb(
   file: string,
   envMap: CubeTexture | null,
   name = "",
@@ -44,3 +44,4 @@ export default function loadGlb(
     );
   });
 }
+export default loadGlb;

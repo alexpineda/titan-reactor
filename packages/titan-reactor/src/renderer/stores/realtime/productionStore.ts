@@ -1,9 +1,6 @@
 import create from "zustand/vanilla";
-import {
-  UpgradeInProduction,
-  ResearchInProduction,
-  UnitInProduction,
-} from "../../game/GameUnit";
+
+import { ResearchInProduction, UnitInProduction, UpgradeInProduction } from "../../game/UnitInstance";
 
 type ProductionStoreState = {
   units: UnitInProduction[];
@@ -15,7 +12,7 @@ type ProductionStoreState = {
     upgrades: UpgradeInProduction[][]
   ) => void;
 };
-const useProductionStore = create<ProductionStoreState>((set) => ({
+export const useProductionStore = create<ProductionStoreState>((set) => ({
   units: [],
   tech: [],
   upgrades: [],

@@ -1,12 +1,9 @@
 import { Group } from "three";
 
-import { drawFunctions } from "../bwdat/enums/drawFunctions";
-import { imageTypes } from "../bwdat/enums/imageTypes";
-import { iscriptHeaders } from "../bwdat/enums/iscriptHeaders";
-import { overlayTypes } from "../bwdat/enums/overlayTypes";
-import { BwDATType, ImageDATType } from "../types/bwdat";
+import { drawFunctions, imageTypes, iscriptHeaders, overlayTypes } from "../bwdat/enums";
+import { BwDATType, ImageDATType } from "../types";
 import pick from "../utils/pick";
-import { TitanImage } from "./TitanImage";
+import { ImageInstance } from "./ImageInstance";
 import TitanImage3D from "./TitanImage3D";
 
 enum ImageOrder {
@@ -16,28 +13,30 @@ enum ImageOrder {
   below,
 }
 
-export default class TitanSprite extends Group {
+export class TitanSprite extends Group {
   private bwDat: BwDATType;
-  images: TitanImage[];
-  mainImage?: TitanImage;
+  images: ImageInstance[];
+  mainImage?: ImageInstance;
   logger: { log: (str: string) => void };
   lastZOff: number;
   unit: any | null;
-  createTitanSprite: () => TitanSprite
-    createTitanSpriteCb: (titanSprite: TitanSprite) => void;
+  createTitanSprite: () => TitanSprite;
+  createTitanSpriteCb: (titanSprite: TitanSprite) => void;
   destroyTitanSpriteCb: (titanSprite: TitanSprite) => void;
-  createTitanImage: (image: number, parent: TitanSprite) => TitanImage;
-  
+
+  //@todo merge this with other createTitanImage that takes SpriteInstance
+  createTitanImage: (image: number, parent: TitanSprite) => ImageInstance;
+
   iscriptOptions: {
-    createBullets: boolean,
-    moveUnit: boolean,
-  }
-  
+    createBullets: boolean;
+    moveUnit: boolean;
+  };
+
   constructor(
     unit: any = null,
     bwDat: BwDATType,
     createTitanSprite: () => TitanSprite,
-    createTitanImage: (image: number, parent: TitanSprite) => TitanImage,
+    createTitanImage: (image: number, parent: TitanSprite) => ImageInstance,
     createTitanSpriteCb: (titanSprite: TitanSprite) => void,
     destroyTitanSpriteCb: (titanSprite: TitanSprite) => void = () => {},
     logger = { log: () => {} }
@@ -61,7 +60,9 @@ export default class TitanSprite extends Group {
 
   addImage(image: number, imageOrder?: ImageOrder, rel?: number) {
     const relImage =
-      rel === undefined ? this.images.indexOf(this.mainImage as TitanImage) : rel;
+      rel === undefined
+        ? this.images.indexOf(this.mainImage as ImageInstance)
+        : rel;
     let pos = relImage;
 
     switch (imageOrder) {
@@ -159,7 +160,7 @@ export default class TitanSprite extends Group {
     return this.images.length;
   }
 
-  _update(image: TitanImage) {
+  _update(image: ImageInstance) {
     //image modifier == 2 || 5 update cloak
     // 4o r 7 -> decloak
     //17 ? warpin
@@ -381,7 +382,7 @@ export default class TitanSprite extends Group {
               ImageOrder.above
             );
             if (!titanImage) break;
-            
+
             const los = this.bwDat.los[image.imageDef.specialOverlay - 1];
             const [ox, oy] = los[titanImage.userData.frame][imageOffset];
 
@@ -512,7 +513,7 @@ export default class TitanSprite extends Group {
   }
 
   _getImageLoOffset(
-    image: TitanImage,
+    image: ImageInstance,
     overlay: number,
     imageOffset: number,
     useFrameset = false
@@ -521,8 +522,7 @@ export default class TitanSprite extends Group {
 
     const overlayKey = overlayTypes[overlay - 1] as keyof ImageDATType;
     const losIndex = image.imageDef[overlayKey] as number;
-    const los =
-      this.bwDat.los[losIndex];
+    const los = this.bwDat.los[losIndex];
     if (!los || los.length == 0) {
       throw new Error("no los here");
     }
@@ -547,3 +547,4 @@ export default class TitanSprite extends Group {
 
   dispose() {}
 }
+export default TitanSprite;

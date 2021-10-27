@@ -1,13 +1,13 @@
-import CanvasTarget from "../../common/image/CanvasTarget";
+import { CanvasTarget } from "../../common/image";
 import { GameAspect } from "../../common/settings";
-import { Settings } from "../../common/types/common";
+import { Settings } from "../../common/types";
 
-class GameCanvasTarget extends CanvasTarget {
+export class GameCanvasTarget extends CanvasTarget {
   minimapSize = 0;
   top = 0;
-  left =0;
+  left = 0;
   right = 0;
-  bottom =0;
+  bottom = 0;
   aspect = 0;
   //@todo refactor out
   private settings: Settings;

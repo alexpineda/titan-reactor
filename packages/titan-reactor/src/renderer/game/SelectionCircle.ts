@@ -1,8 +1,9 @@
-import { SpriteDATType } from "../../common/bwdat/core/SpritesDAT";
 import { Sprite, SpriteMaterial } from "three";
+
+import { SpriteDATType } from "../../common/bwdat/core/SpritesDAT";
 import { getSelectionCircle } from "../stores/gameStore";
 
-export default class SelectionCircle extends Sprite {
+export class SelectionCircle extends Sprite {
   spriteDef?: SpriteDATType;
   grp: any;
 
@@ -39,3 +40,4 @@ export default class SelectionCircle extends Sprite {
     this.spriteDef = spriteDef;
   }
 }
+export default SelectionCircle;

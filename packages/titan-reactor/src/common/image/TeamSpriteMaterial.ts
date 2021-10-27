@@ -20,7 +20,7 @@ type dynamicUniforms = {
   };
 };
 
-class TeamSpriteMaterial extends SpriteMaterial {
+export class TeamSpriteMaterial extends SpriteMaterial {
   isTeamSpriteMaterial = true;
   _dynamicUniforms: dynamicUniforms;
   isShadow = false;
@@ -174,7 +174,7 @@ class TeamSpriteMaterial extends SpriteMaterial {
       if (warpingIn > 0.){
         // draw warp texture
         diffuseColor = vec4(
-          mix(diffuseColor.rgb, vec3(1.), warpingIn / offset),
+          mix(diffuseColor.rgb, vec3(1.), warpingIn),
           diffuseColor.a
         );
       }

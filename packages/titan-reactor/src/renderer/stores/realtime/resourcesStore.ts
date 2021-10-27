@@ -18,7 +18,7 @@ type ResourcesStore = {
     time: string
   ) => void;
 };
-const useResourcesStore = create<ResourcesStore>((set) => ({
+export const useResourcesStore = create<ResourcesStore>((set) => ({
   minerals: [],
   gas: [],
   supplyUsed: [],

@@ -1,6 +1,6 @@
 // thanks to farty
 // HD tileset effects for ashworld, badlands, desert, ice, jungle, twilight
-export default (buf) => {
+export const readHDWaterMask = (buf) => {
   const count = buf.readUInt16LE(6);
 
   let pos = 8;

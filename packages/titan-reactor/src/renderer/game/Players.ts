@@ -1,11 +1,8 @@
-import { Player } from "../../common/types/player";
-import { PlayerColor } from "../../common/types/colors";
-import { StartLocation } from "../../common/types/chk";
-import { ReplayPlayer } from "../../common/types/replay";
+import { OwnerId, Player, PlayerColor, ReplayPlayer, StartLocation } from "../../common/types";
 
 export class Players extends Array<Player> {
   activePovs = 0;
-  playersById: Record<number, Player> = {};
+  playersById: Record<OwnerId, Player> = {};
 
   constructor(
     players: ReplayPlayer[],

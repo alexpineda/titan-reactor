@@ -1,22 +1,26 @@
-import SpriteGroup from "src/renderer/game/SpriteGroup";
-
-import { BwDATType } from "../bwdat/core/BwDAT";
-import { drawFunctions } from "../bwdat/enums/drawFunctions";
-import { createIScriptRunner } from "../types/iscript";
+import { SpriteInstance } from "../../renderer/game";
+import { drawFunctions } from "../bwdat/enums";
+import { BwDATType, createIScriptRunner } from "../types";
 import Grp3D from "./Grp3D";
 import GrpHD from "./GrpHD";
 import GrpSD from "./GrpSD";
+import { ImageInstance } from "./ImageInstance";
 import TitanImage3D from "./TitanImage3D";
 import TitanImageHD from "./TitanImageHD";
 import TitanImageSD from "./TitanImageSD";
 
-export default (
+export type createTitanImage = (
+  imageId: number,
+  sprite: SpriteInstance
+) => ImageInstance;
+
+export const createTitanImageFactory = (
   bwDat: BwDATType,
   atlases: Grp3D[] | GrpHD[] | GrpSD[],
   createIScriptRunner: createIScriptRunner,
   onError: (msg: string) => void
 ) => {
-  return (imageId: number, sprite: SpriteGroup) => {
+  return (imageId: number, sprite: SpriteInstance) => {
     const atlas = atlases[imageId];
     if (!atlas || typeof atlas === "boolean") {
       onError(`composite ${imageId} has no atlas, did you forget to load one?`);
@@ -59,3 +63,4 @@ export default (
     return titanImage;
   };
 };
+export default createTitanImageFactory;

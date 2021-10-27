@@ -2,7 +2,7 @@ import { PerspectiveCamera, Scene } from "three";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer";
 
-class RenderCSS {
+export class RenderCSS {
   domElement: HTMLElement;
   css2dRenderer: CSS2DRenderer;
   css3dRenderer: CSS3DRenderer;

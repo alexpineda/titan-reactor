@@ -4,14 +4,10 @@ import { unstable_batchedUpdates } from "react-dom";
 import { MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import { BwDATType } from "../common/bwdat/core/BwDAT";
-import { commands } from "../common/bwdat/enums/commands";
-import { unitTypes } from "../common/bwdat/enums/unitTypes";
+import { commands, unitTypes } from "../common/bwdat/enums";
 import CanvasTarget from "../common/image/CanvasTarget";
 import { RenderMode } from "../common/settings";
-import { ChkUnitType } from "../common/types/common";
-import { ReplayPlayer } from "../common/types/replay";
-import { TerrainInfo } from "../common/types/terrain";
+import { BwDATType, ChkUnitType, ReplayPlayer, TerrainInfo } from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import AudioMaster from "./audio/AudioMaster";
@@ -20,26 +16,19 @@ import CameraRig from "./camera/CameraRig";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import Creep from "./creep/Creep";
 import FogOfWar from "./fogofwar/FogOfWar";
+import { Apm, BuildUnits, GameStatePosition, MinimapCanvasDrawer, MouseCursor, Players } from "./game";
 import FrameBW from "./game-data/FrameBW";
 import StreamGameStateReader from "./game-data/readers/StreamGameStateReader";
-import Apm from "./game/Apm";
-import BuildUnits from "./game/BuildUnits";
-import { GameStatePosition } from "./game/GameStatePosition";
-import MinimapCanvasDrawer from "./game/MinimapCanvasDrawer";
-import MouseCursor from "./game/MouseCursor";
-import { Players } from "./game/Players";
-import InputEvents from "./input/InputEvents";
-import KeyboardShortcuts from "./input/KeyboardShortcuts";
-import MinimapControl from "./input/MinimapControl";
-import GameCanvasTarget from "./render/GameCanvasTarget";
-import RenderMan from "./render/RenderMan";
-import Scene from "./render/Scene";
-import useGameStore from "./stores/gameStore";
-import useHudStore from "./stores/hudStore";
-import useProductionStore from "./stores/realtime/productionStore";
-import useResourcesStore from "./stores/realtime/resourcesStore";
-import useUnitSelectionStore from "./stores/realtime/unitSelectionStore";
-import useSettingsStore from "./stores/settingsStore";
+import { InputEvents, KeyboardShortcuts, MinimapControl } from "./input";
+import { GameCanvasTarget, RenderMan, Scene } from "./render";
+import {
+  useGameStore,
+  useHudStore,
+  useProductionStore,
+  useResourcesStore,
+  useSettingsStore,
+  useUnitSelectionStore,
+} from "./stores";
 import preloadScene from "./utils/preloadScene";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
@@ -55,12 +44,12 @@ async function TitanReactorGame(
   preplacedMapUnits: ChkUnitType[],
   rep,
   gameStateReader: StreamGameStateReader,
-  bwDat : BwDATType,
+  bwDat: BwDATType,
   createTitanImage,
   audioMaster: AudioMaster
 ) {
   let settings = useSettingsStore.getState().data;
-  if(!settings) {
+  if (!settings) {
     throw new Error("Settings not loaded");
   }
   const cursor = new MouseCursor();
@@ -120,7 +109,7 @@ async function TitanReactorGame(
   //@ts-ignore
   window.renderMan = renderMan;
 
-  if (settings.renderMode !== RenderMode.ThreeD) {
+  if (settings.renderMode !== RenderMode.ThreeD && renderMan.renderer) {
     renderMan.renderer.shadowMap.autoUpdate = false;
     renderMan.renderer.shadowMap.needsUpdate = true;
   }
@@ -130,8 +119,12 @@ async function TitanReactorGame(
   const customColors = settings.randomizeColorOrder
     ? shuffle(settings.playerColors)
     : settings.playerColors;
-  const playerColors = rep.header.players.map(({ id, color } : ReplayPlayer, i:number) =>
-    buildPlayerColor(settings?.useCustomColors ? customColors[i] : color.hex, id)
+  const playerColors = rep.header.players.map(
+    ({ id, color }: ReplayPlayer, i: number) =>
+      buildPlayerColor(
+        settings?.useCustomColors ? customColors[i] : color.hex,
+        id
+      )
   );
   const players = new Players(
     rep.header.players,
@@ -142,7 +135,7 @@ async function TitanReactorGame(
 
   audioMaster.music.playGame();
 
-  let gameStatePosition = new GameStatePosition(
+  const gameStatePosition = new GameStatePosition(
     rep.header.frameCount,
     gameSpeeds.fastest
   );
@@ -338,7 +331,7 @@ async function TitanReactorGame(
         );
 
         if (rep.cmds[gameStatePosition.bwGameFrame]) {
-          for (let cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
+          for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
             //@todo remove once we filter commands
             if (!players.playersById[cmd.player]) continue;
 
@@ -498,7 +491,7 @@ async function TitanReactorGame(
 
   const unsub = useSettingsStore.subscribe((state) => {
     settings = state.data;
-    if (!settings) return
+    if (!settings) return;
 
     if (audioMaster.musicVolume !== settings.musicVolume) {
       audioMaster.musicVolume = settings.musicVolume;
@@ -529,7 +522,7 @@ async function TitanReactorGame(
     // fogChanged = fogOfWar.enabled != state.fogOfWar;
     fogOfWar.enabled = state.fogOfWar;
 
-    for (let player of players) {
+    for (const player of players) {
       if (player.vision !== state.playerVision[player.id]) {
         player.vision = state.playerVision[player.id];
         fogOfWar.playerVisionWasToggled = true;
@@ -544,7 +537,7 @@ async function TitanReactorGame(
   gameLoop(0);
   gameLoop(0);
   _sceneResizeHandler();
-  preloadScene(renderMan.renderer, scene, cameraRig.compileCamera)
+  preloadScene(renderMan.renderer, scene, cameraRig.compileCamera);
 
   //preload scene
 

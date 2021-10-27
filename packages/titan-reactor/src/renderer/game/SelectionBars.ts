@@ -1,11 +1,11 @@
 import { Color, DataTexture, Group, RedFormat, Sprite, SpriteMaterial, Uniform, UnsignedByteType } from "three";
 
 import getMaxEnergy from "../../common/bwdat/core/getMaxEnergy";
-import SpriteGroup from "./SpriteGroup";
+import SpriteInstance from "./SpriteInstance";
 
 window.grpOffset = 10;
 
-function onBeforeCompile(shader) {
+function onBeforeCompile(shader: any) {
   Object.assign(shader.uniforms, this.customUniforms);
   const fs = shader.fragmentShader;
   shader.fragmentShader =
@@ -116,7 +116,7 @@ const createSprite = () => {
   return sprite;
 };
 
-export default class SelectionBars extends Group {
+export class SelectionBars extends Group {
   bar = createSprite();
   private spriteType = -1;
 
@@ -126,7 +126,7 @@ export default class SelectionBars extends Group {
   }
 
   update(
-    sprite: SpriteGroup,
+    sprite: SpriteInstance,
     completedUpgrades,
     renderOrder: number,
     grpOffset: number
@@ -168,3 +168,4 @@ export default class SelectionBars extends Group {
     }
   }
 }
+export default SelectionBars;

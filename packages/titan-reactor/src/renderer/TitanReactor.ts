@@ -6,21 +6,19 @@ import createScmExtractor from "scm-extractor";
 import { Object3D } from "three";
 
 import Chk from "../../libs/bw-chk";
-import createTitanImage from "../common/image/createTitanImage";
-import TitanImageHD from "../common/image/TitanImageHD";
-import TitanSprite from "../common/image/TitanSprite";
-import { createIScriptRunner } from "../common/iscript/IScriptRunner";
-import { ChkType, EmptyFunc } from "../common/types/common";
+import { createTitanImageFactory, TitanImageHD, TitanSprite } from "../common/image";
+import { createIScriptRunnerFactory } from "../common/iscript";
+import { ChkType, EmptyFunc } from "../common/types";
 import pick from "../common/utils/pick";
 import uniq from "../common/utils/uniq";
 import Assets from "./Assets";
-import AudioMaster from "./audio/AudioMaster";
+import { AudioMaster } from "./audio";
 import OpenBwBridgeReader from "./game-data/readers/OpenBwBridgeReader";
 import { log, openFile } from "./invoke";
 import Scene, { generateTerrain } from "./render/Scene";
-import { disposeAssets, disposeGame, getAssets, setAssets, setGame } from "./stores/gameStore";
-import useLoadingStore, {setPreloadMessage} from "./stores/loadingStore";
-import useSettingsStore, { getSettings } from "./stores/settingsStore";
+import { disposeAssets, disposeGame, getAssets, getSettings, setAssets, setGame, setPreloadMessage } from "./stores";
+import useLoadingStore from "./stores/loadingStore";
+import useSettingsStore from "./stores/settingsStore";
 import TitanReactorGame from "./TitanReactorGame";
 import TitanReactorMap from "./TitanReactorMap";
 
@@ -137,7 +135,7 @@ export class TitanReactor {
 
     const races = settings.musicAllTypes
       ? ["terran", "zerg", "protoss"]
-      : uniq(rep.header.players.map(({ race }: {race:string}) => race));
+      : uniq(rep.header.players.map(({ race }: { race: string }) => race));
 
     const assets = getAssets();
     if (!assets || !assets.bwDat) {
@@ -161,10 +159,10 @@ export class TitanReactor {
       rep,
       gameStateReader,
       assets.bwDat,
-      createTitanImage(
+      createTitanImageFactory(
         assets.bwDat,
         assets.grps,
-        createIScriptRunner(assets.bwDat, chk.tileset),
+        createIScriptRunnerFactory(assets.bwDat, chk.tileset),
         (err) => log(err, "error")
       ),
       audioMaster
@@ -177,7 +175,6 @@ export class TitanReactor {
     document.title = "Titan Reactor - Observing";
     game.start();
     setPreloadMessage("");
-
   }
 
   async spawnMapViewer(chkFilepath: string) {
@@ -212,10 +209,10 @@ export class TitanReactor {
         null,
         assets.bwDat,
         createTitanSprite,
-        createTitanImage(
+        createTitanImageFactory(
           assets.bwDat,
           assets.grps,
-          createIScriptRunner(assets.bwDat, chk.tileset),
+          createIScriptRunnerFactory(assets.bwDat, chk.tileset),
           (err) => log(err, "error")
         ),
         (sprite: Object3D) => scene.add(sprite)

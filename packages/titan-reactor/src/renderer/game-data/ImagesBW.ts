@@ -1,4 +1,5 @@
-import { drawFunctions } from "../../common/bwdat/enums/drawFunctions";
+import { drawFunctions } from "../../common/bwdat/enums";
+import { BwDATType } from "../../common/types/bwdat";
 import ContiguousContainer from "./ContiguousContainer";
 
 const flags = Object.freeze({
@@ -12,9 +13,9 @@ const flags = Object.freeze({
   specialOffset: 0x80,
 });
 
-export const IMAGE_BYTE_LENGTH = 14;
+export const IMAGE_BYTE_LENGTH = 26;
 // all images in a bw frame
-export default class ImagesBW extends ContiguousContainer {
+export class ImagesBW extends ContiguousContainer {
   protected override byteLength = IMAGE_BYTE_LENGTH;
   get index() {
     return this._read16(0);
@@ -40,6 +41,21 @@ export default class ImagesBW extends ContiguousContainer {
     return this._read16(12);
   }
 
+  //@todo change this to byte
+  get modifier() {
+    return this._read32(14);
+  }
+
+  //@todo change this to byte
+  get modifierData1() {
+    return this._read32(18);
+  }
+
+  //@todo remove this, not required
+  get modifierData2() {
+    return this._read32(22);
+  }
+
   get flipped() {
     return (this.flags & flags.flipped) != 0;
   }
@@ -53,10 +69,14 @@ export default class ImagesBW extends ContiguousContainer {
   }
 
   get isShadow() {
-    return this.bwDat.images[this.id].drawFunction === drawFunctions.rleShadow;
+    return (
+      (this.bwDat as BwDATType).images[this.id].drawFunction ===
+      drawFunctions.rleShadow
+    );
   }
 
   get imageType() {
-    return this.bwDat.images[this.id];
+    return (this.bwDat as BwDATType).images[this.id];
   }
 }
+export default ImagesBW;

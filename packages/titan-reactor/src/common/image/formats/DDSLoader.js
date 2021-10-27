@@ -7,7 +7,7 @@ import {
   RGBAFormat,
 } from "three";
 
-class DDSLoader extends CompressedTextureLoader {
+export class DDSLoader extends CompressedTextureLoader {
   parse(buffer, loadMipmaps) {
     var dds = {
       mipmaps: [],
@@ -273,5 +273,3 @@ class DDSLoader extends CompressedTextureLoader {
     return dds;
   }
 }
-
-export { DDSLoader };

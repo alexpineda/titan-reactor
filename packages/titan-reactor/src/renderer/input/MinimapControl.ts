@@ -4,9 +4,8 @@ import CanvasTarget from "../../common/image/CanvasTarget";
 
 const LeftMouse = 0;
 
-
 // manages and dispatches minimap drag and click events
-class MinimapControl extends EventDispatcher {
+export class MinimapControl extends EventDispatcher {
   mapWidth: number;
   mapHeight: number;
   surface: CanvasTarget;
@@ -15,7 +14,8 @@ class MinimapControl extends EventDispatcher {
   mouseHoldDelay = 200;
 
   enabled = true;
-  _listeners: [keyof WindowEventMap, (this: Window, ev: MouseEvent) => any][] = [];
+  _listeners: [keyof WindowEventMap, (this: Window, ev: MouseEvent) => any][] =
+    [];
 
   _mouseHoldTicks = 0;
   _lastInterval: NodeJS.Timer | null = null;
@@ -28,7 +28,10 @@ class MinimapControl extends EventDispatcher {
     this._attach();
   }
 
-  register<K extends keyof WindowEventMap>(event: K, listener: (this: Window, evt: MouseEvent) => void) : [string, EventListener] {
+  register<K extends keyof WindowEventMap>(
+    event: K,
+    listener: (this: Window, evt: MouseEvent) => void
+  ): [string, EventListener] {
     this._listeners.push([event, listener]);
     return [event, listener as EventListener];
   }

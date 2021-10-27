@@ -1,9 +1,6 @@
-import {
-  iscriptHeaders as headers,
-  headersById,
-} from "../bwdat/enums/iscriptHeaders";
+import { headersById, iscriptHeaders as headers } from "../bwdat/enums/iscriptHeaders";
 
-export const createIScriptRunner = (bwDat, tileset) => {
+export const createIScriptRunnerFactory = (bwDat, tileset) => {
   return (...args) => new IScriptRunner(bwDat, tileset, ...args);
 };
 

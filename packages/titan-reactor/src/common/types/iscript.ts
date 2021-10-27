@@ -1,6 +1,6 @@
 import { Object3D } from "three";
 
-import { IScriptRunner } from "../iscript/IScriptRunner";
+import { IScriptRunner } from "../iscript";
 import { BwDATType, ImageDATType } from "./bwdat";
 
 export type createIScriptRunner = (

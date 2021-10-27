@@ -1,10 +1,10 @@
 import { WebGLRenderer } from "three";
 
-import * as MapData from "./map-data";
 import * as HD from "./hd";
+import * as MapData from "./map-data";
 import * as SD from "./sd";
 
-export default async (
+export const generateTextures = async (
   mapWidth,
   mapHeight,
   {
@@ -74,3 +74,4 @@ export default async (
     creepTextureSD,
   };
 };
+export default generateTextures;

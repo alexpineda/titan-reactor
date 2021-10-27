@@ -4,7 +4,7 @@ import { log } from "../invoke";
 
 const rand = (n: number) => Math.floor(Math.random() * n);
 
-class Music {
+export class Music {
   audio?: Audio;
   races: string[];
   constructor(races: string[]) {
@@ -60,5 +60,4 @@ class Music {
     }
   }
 }
-
 export default Music;

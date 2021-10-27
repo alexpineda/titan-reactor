@@ -1,7 +1,7 @@
 import BufferList from "bl";
 
 // a wrapper for a bw frames entire game state
-export default class FrameBW {
+export class FrameBW {
   processed = false;
   frame = 0;
   minerals: number[] = [];
@@ -69,3 +69,4 @@ export default class FrameBW {
     return this.buffers.upgrades;
   }
 }
+export default FrameBW;

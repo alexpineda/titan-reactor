@@ -1,5 +1,5 @@
+import { GetTerrainY, PxToGameUnit } from "../../common/types/util";
 import ContiguousContainer from "./ContiguousContainer";
-import { PxToGameUnit, GetTerrainY } from "../../common/types/util";
 
 export const SOUND_BYTE_LENGTH = 16;
 /**
@@ -19,7 +19,7 @@ export type SoundBWInstance = {
   flags: number;
 };
 
-export default class SoundsBW extends ContiguousContainer {
+export class SoundsBW extends ContiguousContainer {
   protected override byteLength = SOUND_BYTE_LENGTH;
 
   private pxToGameUnit: PxToGameUnit;
@@ -136,3 +136,4 @@ export default class SoundsBW extends ContiguousContainer {
     return pan / 255;
   }
 }
+export default SoundsBW;

@@ -7,7 +7,7 @@ import BuildUnits from "./BuildUnits";
 /**
  * Uses canvas draw operations to update minimap units, fog, resources and camera box
  */
-export default class MinimapCanvasDrawer {
+export class MinimapCanvasDrawer {
   color: string;
 
   creep: Creep;
@@ -24,10 +24,10 @@ export default class MinimapCanvasDrawer {
   _generatingResources = false;
   _generatingCreep = false;
 
-  fogBitmap?: ImageBitmap
-  unitsBitmap?: ImageBitmap
-  resourcesBitmap?: ImageBitmap
-  creepBitmap?: ImageBitmap
+  fogBitmap?: ImageBitmap;
+  unitsBitmap?: ImageBitmap;
+  resourcesBitmap?: ImageBitmap;
+  creepBitmap?: ImageBitmap;
 
   constructor(
     color: string,
@@ -155,3 +155,4 @@ export default class MinimapCanvasDrawer {
     this.ctx.restore();
   }
 }
+export default MinimapCanvasDrawer;

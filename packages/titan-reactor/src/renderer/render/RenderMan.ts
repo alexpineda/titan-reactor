@@ -23,8 +23,8 @@ import {
   WebGLRenderer,
 } from "three";
 
-import CanvasTarget from "../../common/image/CanvasTarget";
-import { EmptyFunc, Settings } from "../../common/types/common";
+import { CanvasTarget } from "../../common/image";
+import { EmptyFunc, Settings } from "../../common/types";
 import FogOfWarEffect from "../fogofwar/FogOfWarEffect";
 
 // import { log } from "../invoke";
@@ -34,7 +34,7 @@ OverrideMaterialManager.workaroundEnabled = true;
 
 const log = console.log;
 
-class RenderMan {
+export class RenderMan {
   settings: Settings;
   renderer?: WebGLRenderer;
   _dofEffect: DepthOfFieldEffect;
@@ -86,7 +86,11 @@ class RenderMan {
     );
   }
 
-  renderSplitScreen(scene: Scene, camera: PerspectiveCamera, viewport: Vector4) {
+  renderSplitScreen(
+    scene: Scene,
+    camera: PerspectiveCamera,
+    viewport: Vector4
+  ) {
     if (!this.renderer) return;
     this.renderer.setScissorTest(true);
     this.renderer.setViewport(viewport);

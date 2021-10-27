@@ -12,7 +12,7 @@ export interface BuildingQueueI {
   queueType: number;
 }
 // represents units that are currently building / training
-export default class BuildingQueueCountBW extends ContiguousContainer {
+export class BuildingQueueCountBW extends ContiguousContainer {
   protected override byteLength = BUILDING_BYTE_LENGTH;
 
   get unitId() {
@@ -44,3 +44,4 @@ export default class BuildingQueueCountBW extends ContiguousContainer {
     };
   }
 }
+export default BuildingQueueCountBW;

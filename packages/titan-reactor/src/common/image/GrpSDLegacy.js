@@ -6,7 +6,7 @@ import { drawFunctions } from "../bwdat/enums/drawFunctions";
 /**
  * SD the old way
  */
-export default class GrpSDLegacy {
+export class GrpSDLegacy {
   constructor() {
     this.texture = null;
     this.frames = [];
@@ -125,3 +125,4 @@ export default class GrpSDLegacy {
     this.texture.dispose();
   }
 }
+export default GrpSDLegacy;

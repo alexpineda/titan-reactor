@@ -2,7 +2,7 @@ import ContiguousContainer from "./ContiguousContainer";
 
 export const RESEARCH_BYTE_LENGTH = 6;
 // research in progress
-export default class ResearchBW extends ContiguousContainer {
+export class ResearchBW extends ContiguousContainer {
   protected override byteLength = RESEARCH_BYTE_LENGTH;
 
   get owner() {
@@ -35,3 +35,4 @@ export default class ResearchBW extends ContiguousContainer {
     };
   }
 }
+export default ResearchBW;

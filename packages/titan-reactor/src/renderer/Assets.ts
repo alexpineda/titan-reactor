@@ -1,15 +1,13 @@
 import { promises as fsPromises } from "fs";
 
-import { BwDATType } from "../common/bwdat/core/BwDAT";
 import { loadAllDataFiles } from "../common/bwdat/core/loadAllDataFiles";
-import { UnitDAT } from "../common/bwdat/core/UnitsDAT";
 import Icons from "../common/Icons";
-import { Anim } from "../common/image/formats/anim";
-import GrpFileLoader from "../common/image/GrpFileLoader";
-import GrpHD from "../common/image/GrpHD";
-import readCascFile, { closeCascStorage, openCascStorage } from "../common/utils/casclib";
+import { GrpFileLoader, GrpHD } from "../common/image";
+import { Anim } from "../common/image/formats";
+import { BwDATType } from "../common/types";
+import { closeCascStorage, openCascStorage, readCascFile } from "../common/utils/casclib";
 import ContiguousContainer from "./game-data/ContiguousContainer";
-import { completeAssetsLoaded, increaseAssetsLoaded } from "./stores/loadingStore";
+import { completeAssetsLoaded, increaseAssetsLoaded } from "./stores";
 import electronFileLoader from "./utils/electronFileLoader";
 
 class Assets {
@@ -28,17 +26,10 @@ class Assets {
       }
     });
 
-    // log("loading DAT and ISCRIPT files");
-
     openCascStorage(starcraftPath);
 
-    //@todo move parsing to client and don't cast any shit
-    const origBwDat = await loadAllDataFiles(readCascFile);
-    const bwDat = {
-      ...origBwDat,
-      units: origBwDat.units.map((unit: any) => new UnitDAT(unit)),
-    };
-    window.bwDat = this.bwDat = bwDat;
+    //@todo move parsing to client
+    this.bwDat = await loadAllDataFiles(readCascFile);
     increaseAssetsLoaded();
 
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
@@ -61,7 +52,7 @@ class Assets {
     increaseAssetsLoaded();
 
     // todo compare performance before removing prototype property to useGameStore
-    ContiguousContainer.prototype.bwDat = bwDat;
+    ContiguousContainer.prototype.bwDat = this.bwDat;
 
     // log("loading env map");
     // const renderer = new WebGLRenderer();
@@ -72,7 +63,7 @@ class Assets {
     increaseAssetsLoaded();
 
     const grpLoader = new GrpFileLoader(
-      bwDat,
+      this.bwDat,
       communityModelsPath,
       readCascFile,
       sdAnim.sprites

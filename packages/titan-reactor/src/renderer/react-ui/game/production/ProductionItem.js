@@ -1,8 +1,7 @@
 import { easePolyOut } from "d3-ease";
 import React, { useEffect, useRef } from "react";
-import keysOnly from "../../../stores/comparitors/keysOnly";
-import useProductionStore from "../../../stores/realtime/productionStore";
-import useGameStore from "../../../stores/gameStore";
+
+import { keysOnly, useGameStore, useProductionStore } from "../../../stores";
 
 const poly = easePolyOut.exponent(0.5);
 

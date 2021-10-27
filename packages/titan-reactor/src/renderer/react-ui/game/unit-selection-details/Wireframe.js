@@ -1,9 +1,9 @@
-import range from "../../../../common/utils/range";
-import React, { useRef, useEffect } from "react";
 import { shuffle } from "lodash";
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
-import useGameStore from "../../../stores/gameStore";
+import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
+
+import range from "../../../../common/utils/range";
+import { useGameStore, useUnitSelectionStore } from "../../../stores/";
 import redXIcon from "../../css/redXIcon.png";
 
 let stepLayers = range(0, 4).map(() => 0);
@@ -169,7 +169,7 @@ const Wireframe = ({ unit, size = "lg", className = "" }) => {
   useEffect(() => {
     setDom(selector({ selectedUnits: [unit] }), "filter 0s linear");
 
-    return useRealtimeStore.subscribe(
+    return useUnitSelectionStore.subscribe(
       (data) => {
         setDom(data);
       },

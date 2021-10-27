@@ -3,7 +3,7 @@ import Audio from "./Audio";
 /**
  * A representation of a sound channel, one of 8
  */
-export default class SoundChannel {
+export class SoundChannel {
   audio?: Audio;
   id = -1;
   unitTypeId: number | null = -1;
@@ -21,3 +21,4 @@ export default class SoundChannel {
     this.isPlaying = true;
   }
 }
+export default SoundChannel;

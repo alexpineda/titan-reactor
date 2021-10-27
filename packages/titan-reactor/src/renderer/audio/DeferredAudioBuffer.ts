@@ -1,5 +1,5 @@
 // a reference to an audio buffer to play once it's loaded
-export default class DeferredAudioBuffer {
+export class DeferredAudioBuffer {
   lastPlayed = 0;
   soundId: number;
   private _load: (id: number) => Promise<AudioBuffer>;
@@ -19,3 +19,4 @@ export default class DeferredAudioBuffer {
     return this._buffer;
   }
 }
+export default DeferredAudioBuffer;

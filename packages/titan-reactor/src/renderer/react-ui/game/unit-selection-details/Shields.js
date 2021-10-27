@@ -1,5 +1,6 @@
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+
+import { useUnitSelectionStore } from "../../../stores";
 
 const shieldsSelector = (state) => {
   if (!state.selectedUnits[0]) return 0;
@@ -17,7 +18,7 @@ const Shields = ({ unit }) => {
   useEffect(() => {
     setDom(unit.shields);
 
-    return useRealtimeStore.subscribe((shields) => {
+    return useUnitSelectionStore.subscribe((shields) => {
       setDom(shields);
     }, shieldsSelector);
   }, [unit]);

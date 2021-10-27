@@ -1,9 +1,9 @@
-import range from "../../common/utils/range";
-import { gameSpeeds } from "../../common/utils/conversions";
 import { Player } from "../../common/types/player";
 import { ReplayCommandType } from "../../common/types/replay";
+import { gameSpeeds } from "../../common/utils/conversions";
+import range from "../../common/utils/range";
 
-export default class Apm {
+export class Apm {
   framesPerMinute = (60 * 1000) / gameSpeeds.fastest;
   sampleRate = 4;
   sampledFPM = Math.floor(this.framesPerMinute / this.sampleRate);
@@ -43,3 +43,4 @@ export default class Apm {
     this._frame = (this._frame + 1) % this.sampledFPM;
   }
 }
+export default Apm;

@@ -3,17 +3,19 @@ import Music from "./Music";
 import SoundChannels from "./SoundChannels";
 
 // central point for sound mixer, and audio channels for game sounds
-export default class AudioMaster {
+export class AudioMaster {
   mixer = new MainMixer();
   queued = [];
-  channels:SoundChannels;
-  music:Music;
+  channels: SoundChannels;
+  music: Music;
 
-  constructor(loadSoundAsync: (id:number) => Promise<ArrayBuffer>, races: string[]) {
+  constructor(
+    loadSoundAsync: (id: number) => Promise<ArrayBuffer>,
+    races: string[]
+  ) {
     this.channels = new SoundChannels(this.mixer, loadSoundAsync);
     this.music = new Music(races);
     this.music.setListener(this.mixer);
-    
   }
 
   get soundVolume() {
@@ -43,3 +45,4 @@ export default class AudioMaster {
     this.music.dispose();
   }
 }
+export default AudioMaster;

@@ -1,13 +1,13 @@
-import { TerrainInfo } from "common";
 import { unstable_batchedUpdates } from "react-dom";
 import { PerspectiveCamera, Raycaster, Vector2 } from "three";
 
 import { unitTypes } from "../../common/bwdat/enums/unitTypes";
+import { TerrainInfo } from "../../common/types/terrain";
 import BWFrameSceneBuilder from "../BWFrameSceneBuilder";
 import ProjectedCameraView from "../camera/ProjectedCameraView";
 import GameCanvasTarget from "../render/GameCanvasTarget";
 import useGameStore, { getIcons } from "../stores/gameStore";
-import SpriteGroup from "./SpriteGroup";
+import SpriteInstance from "./SpriteInstance";
 
 const canOnlySelectOne = [
   unitTypes.larva,
@@ -22,12 +22,12 @@ const canOnlySelectOne = [
 
 const setSelectedUnits = useGameStore.getState().setSelectedUnits;
 type Point = { x: number; y: number };
-type Rect= {
+type Rect = {
   left: number;
   right: number;
   top: number;
   bottom: number;
-}
+};
 function intersectRect(r1: Rect, r2: Rect) {
   return !(
     r2.left > r1.right ||
@@ -39,24 +39,25 @@ function intersectRect(r1: Rect, r2: Rect) {
 
 type Icons = string[];
 
-
 /**
  * Manages drawing the cursor (currently css :( ) as well as unit selection logic
  */
-export default class MouseCursor {
+export class MouseCursor {
   selectElement: HTMLSpanElement;
-  
+
   private projectedCameraView?: ProjectedCameraView;
 
   private _lastClass = "";
-  
+
   private arrowIcons: Icons;
   private dragIcons: Icons;
   private hoverIcons: Icons;
   private _pointer: Icons;
-  private arrowIconsIndex= 0;
+  private arrowIconsIndex = 0;
   private hoverIconsIndex = 0;
   private dragIconsIndex = 0;
+  private _dispose?: () => void;
+  private _interval?: NodeJS.Timeout;
 
   constructor() {
     const icons = getIcons();
@@ -93,7 +94,7 @@ export default class MouseCursor {
         
       ${this.hoverIcons
         .map(
-          (icon, i:number) => `
+          (icon, i: number) => `
           .cursor-hover-${i} {
             cursor: url(${icon}), auto
           }
@@ -103,7 +104,7 @@ export default class MouseCursor {
 
       ${this.dragIcons
         .map(
-          (icon, i:number) => `
+          (icon, i: number) => `
           .cursor-drag-${i} {
             cursor: url(${icon}), auto
           }
@@ -156,7 +157,13 @@ export default class MouseCursor {
     this._pointer = this.dragIcons;
   }
 
-  init(projectedCameraView: ProjectedCameraView, gameSurface: GameCanvasTarget, {terrain, mapWidth, mapHeight}: TerrainInfo, camera: PerspectiveCamera, frameBuilder: BWFrameSceneBuilder) {
+  init(
+    projectedCameraView: ProjectedCameraView,
+    gameSurface: GameCanvasTarget,
+    { terrain, mapWidth, mapHeight }: TerrainInfo,
+    camera: PerspectiveCamera,
+    frameBuilder: BWFrameSceneBuilder
+  ) {
     this.projectedCameraView = projectedCameraView;
 
     const raycaster = new Raycaster();
@@ -197,7 +204,7 @@ export default class MouseCursor {
           }
         }
 
-        if (closestSprite instanceof SpriteGroup) {
+        if (closestSprite instanceof SpriteInstance) {
           return closestSprite;
         }
       }
@@ -241,7 +248,7 @@ export default class MouseCursor {
       mousedown = true;
     };
 
-    const mouseMoveListener = (event:MouseEvent) => {
+    const mouseMoveListener = (event: MouseEvent) => {
       enableHoverIntersecting = !mousedown;
 
       if (mousedown && isMinDragSize()) {
@@ -252,7 +259,7 @@ export default class MouseCursor {
       end = event;
     };
 
-    const mouseUpListener = (event:MouseEvent) => {
+    const mouseUpListener = (event: MouseEvent) => {
       this.pointer();
       clearDragElement();
 
@@ -357,7 +364,10 @@ export default class MouseCursor {
         )
       ) {
         // ctrl modifier -> select all of unit type in view
-        if (event.ctrlKey && this.projectedCameraView instanceof ProjectedCameraView) {
+        if (
+          event.ctrlKey &&
+          this.projectedCameraView instanceof ProjectedCameraView
+        ) {
           const startMapX = Math.floor(
             this.projectedCameraView.viewBW.left / 32
           );
@@ -464,9 +474,12 @@ export default class MouseCursor {
   }
 
   dispose() {
-    clearInterval(this._interval);
-    window.document.body.style.cursor = null;
-    window.document.getElementById("cursor-styles").remove();
-    this._dispose();
+    if (this._interval) {
+      clearInterval(this._interval);
+    }
+    window.document.body.style.cursor = "";
+    window.document.getElementById("cursor-styles")?.remove();
+    this._dispose && this._dispose();
   }
 }
+export default MouseCursor;

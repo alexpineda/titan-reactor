@@ -3,7 +3,7 @@ import ContiguousContainer from "./ContiguousContainer";
 export const UPGRADE_BYTE_LENGTH = 7;
 
 // upgrades in progress
-export default class UpgradeBW extends ContiguousContainer {
+export class UpgradeBW extends ContiguousContainer {
   protected override byteLength = UPGRADE_BYTE_LENGTH;
 
   get owner() {
@@ -41,3 +41,4 @@ export default class UpgradeBW extends ContiguousContainer {
     };
   }
 }
+export default UpgradeBW;

@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from "react";
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
+import React, { useEffect, useRef } from "react";
+
+import { useUnitSelectionStore } from "../../../stores";
 
 const healthColorRed = "#d60000";
 const healthColorYellow = "#aaaa00";
@@ -30,7 +31,7 @@ const Health = ({ unit }) => {
 
   useEffect(() => {
     setDom(unit.hp, "color 0s linear");
-    return useRealtimeStore.subscribe((hp) => {
+    return useUnitSelectionStore.subscribe((hp) => {
       setDom(hp);
     }, hpSelector);
   }, [unit]);

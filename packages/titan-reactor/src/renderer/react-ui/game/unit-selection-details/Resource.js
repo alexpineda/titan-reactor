@@ -1,7 +1,7 @@
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
-import React, { useRef, useEffect } from "react";
-import { unitTypes } from "../../../../common/bwdat/enums/unitTypes";
-import useGameStore from "../../../stores/gameStore";
+import React, { useEffect, useRef } from "react";
+
+import { unitTypes } from "../../../../common/bwdat/enums";
+import { useGameStore, useUnitSelectionStore } from "../../../stores";
 
 const resourceSelector = (state) => {
   if (!state.selectedUnits[0]) return "";
@@ -37,7 +37,7 @@ const Resource = ({ unit }) => {
   useEffect(() => {
     setDom(unit.resourceAmount);
 
-    return useRealtimeStore.subscribe((resourceAmount) => {
+    return useUnitSelectionStore.subscribe((resourceAmount) => {
       setDom(resourceAmount);
     }, resourceSelector);
   }, [unit]);

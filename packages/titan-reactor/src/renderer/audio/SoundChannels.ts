@@ -1,28 +1,30 @@
 import range from "../../common/utils/range";
-import {SoundBWInstance} from "../game-data/SoundsBW";
+import { SoundBWInstance } from "../game-data/SoundsBW";
 import Audio from "./Audio";
 import DeferredAudioBuffer from "./DeferredAudioBuffer";
 import MainMixer from "./MainMixer";
 import SoundChannel from "./SoundChannel";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
-export default class SoundChannels {
+export class SoundChannels {
   mixer: MainMixer;
   maxChannels = 8;
   channels = range(0, this.maxChannels).map(() => new SoundChannel());
   buffers = new Map();
   audio: Audio[] = [];
   scheduled: Audio[] = [];
-  loadSoundAsync: (id:number) => Promise<ArrayBuffer>;
+  loadSoundAsync: (id: number) => Promise<ArrayBuffer>;
 
-
-  constructor(mixer: MainMixer, loadSoundAsync: (id:number) => Promise<ArrayBuffer>) {
+  constructor(
+    mixer: MainMixer,
+    loadSoundAsync: (id: number) => Promise<ArrayBuffer>
+  ) {
     this.mixer = mixer;
     this.loadSoundAsync = loadSoundAsync;
   }
 
   async _load(id: number) {
-    const buffer = (await this.loadSoundAsync(id));
+    const buffer = await this.loadSoundAsync(id);
     return await this.mixer.context.decodeAudioData(buffer.slice(0));
   }
 
@@ -87,7 +89,6 @@ export default class SoundChannels {
     return availableChannel;
   }
 
-  
   queue(soundData: SoundBWInstance) {
     this.audio.push(
       new Audio(this.mixer, soundData, this._getBuffer(soundData.id))
@@ -131,3 +132,4 @@ export default class SoundChannels {
     this.scheduled = this.scheduled.filter(this._channelHasNotPlayed);
   }
 }
+export default SoundChannels;

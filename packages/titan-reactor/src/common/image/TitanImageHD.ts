@@ -1,4 +1,4 @@
-import SpriteGroup from "src/renderer/game/SpriteGroup";
+import SpriteInstance from "src/renderer/game/SpriteInstance";
 import {
   BufferAttribute,
   Color,
@@ -15,34 +15,37 @@ import { ImageDATType } from "../types/bwdat";
 import { GrpFrameType } from "../types/grp";
 import { createIScriptRunner } from "../types/iscript";
 import GrpHD from "./GrpHD";
+import { ImageInstance } from "./ImageInstance";
 import TeamSpriteMaterial from "./TeamSpriteMaterial";
-import { TitanImage } from "./TitanImage";
 
 export const DepthMode = {
   Ordered: 0, // for top down views
   Depth: 1, // for angled views
 };
 
-export type constructorArguments = [atlas: GrpHD, createIScriptRunner: createIScriptRunner, imageDef: ImageDATType, sprite: SpriteGroup]
-export default class TitanImageHD  extends Sprite implements TitanImage  {
+export class TitanImageHD extends Sprite implements ImageInstance {
   static useDepth = false;
-   _spriteScale: number;
+  _spriteScale: number;
   private _oScale: Vector3;
-  sprite: SpriteGroup;
+  sprite: SpriteInstance;
   imageDef: ImageDATType;
   override material: TeamSpriteMaterial;
   iscript: IScriptRunner;
-   _zOff: number;
-   
+  _zOff: number;
+
   private atlas: GrpHD;
   private uv: BufferAttribute | InterleavedBufferAttribute;
   private pos: BufferAttribute | InterleavedBufferAttribute;
   private lastSetFrame?: GrpFrameType;
   private lastFlipFrame?: boolean;
 
-
-  
-  constructor(atlas: GrpHD, createIScriptRunner: createIScriptRunner, imageDef: ImageDATType, sprite: SpriteGroup, spriteScale = 128) {
+  constructor(
+    atlas: GrpHD,
+    createIScriptRunner: createIScriptRunner,
+    imageDef: ImageDATType,
+    sprite: SpriteInstance,
+    spriteScale = 128
+  ) {
     super();
     const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
 
@@ -57,9 +60,10 @@ export default class TitanImageHD  extends Sprite implements TitanImage  {
     this._spriteScale = spriteScale;
 
     this.imageDef = imageDef;
-    if (imageDef.drawFunction === drawFunctions.warpFlash2) {
-      this.material.warpingIn = 150;
-    }
+    //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
+    // if (imageDef.drawFunction === drawFunctions.warpFlash2) {
+    //   this.material.warpingIn = 150;
+    // }
 
     this.iscript = createIScriptRunner(this, imageDef);
     this.geometry = this.geometry.clone();
@@ -82,8 +86,8 @@ export default class TitanImageHD  extends Sprite implements TitanImage  {
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
     this._oScale = new Vector3(
-      grpWidth as number / this._spriteScale,
-      grpHeight as number / this._spriteScale,
+      (grpWidth as number) / this._spriteScale,
+      (grpHeight as number) / this._spriteScale,
       1
     );
 
@@ -118,12 +122,12 @@ export default class TitanImageHD  extends Sprite implements TitanImage  {
     this.material.teamColor = val;
   }
 
-  setWarpingIn(val, len, delta) {
-    // this.material.warpingIn = val;
-    // this.material.warpingInLen = len;
-    // this.material.delta = delta;
+  //@todo move calculation to here via modifierData1
+  setWarpingIn(val: number) {
+    this.material.warpingIn = val;
   }
 
+  //@todo move calculation to here via modifierData1
   setCloaked(val: boolean) {
     this.material.opacity = val ? 0.5 : 1;
   }
@@ -132,23 +136,23 @@ export default class TitanImageHD  extends Sprite implements TitanImage  {
     this.position.x = x / scale;
   }
 
-  setPositionY(y:number, scale = this._spriteScale) {
+  setPositionY(y: number, scale = this._spriteScale) {
     this.position.y = y / scale;
   }
 
-  setPosition(x:number, y:number, scale = this._spriteScale) {
+  setPosition(x: number, y: number, scale = this._spriteScale) {
     this.setPositionX(x, scale);
     this.setPositionY(y, scale);
   }
 
-  setFrame(frame:number, flip?:boolean) {
+  setFrame(frame: number, flip?: boolean) {
     if (this._setFrame(this.atlas.frames[frame], flip)) {
       this.uv.needsUpdate = true;
       this.pos.needsUpdate = true;
     }
   }
 
-  intersects(u:number, v:number) {
+  intersects(u: number, v: number) {
     const x = u - 0.5;
     const y = v - 0.5;
 
@@ -161,7 +165,7 @@ export default class TitanImageHD  extends Sprite implements TitanImage  {
   }
 
   //dds is flipped y so we don't do it in our uvs
-  _setFrame(frame:GrpFrameType, flipFrame?:boolean) {
+  _setFrame(frame: GrpFrameType, flipFrame?: boolean) {
     if (frame === undefined) {
       console.error("frame is undefined");
       return false;
@@ -233,3 +237,4 @@ export default class TitanImageHD  extends Sprite implements TitanImage  {
     return true;
   }
 }
+export default TitanImageHD;

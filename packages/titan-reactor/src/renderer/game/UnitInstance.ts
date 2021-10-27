@@ -1,8 +1,8 @@
-import { Player } from "../../common/types/player";
-import { BuildingQueueI } from "../game-data/BuildingQueueCountBW";
+import { Player, UnitTag } from "../../common/types";
+import { BuildingQueueI } from "../game-data";
 
-export interface GameUnitI {
-  id: number;
+export interface UnitInstance {
+  id: UnitTag;
   owner: Player;
   hp: number;
   shields: number;
@@ -15,7 +15,7 @@ export interface GameUnitI {
   tileY: number;
 
   queue: BuildingQueueI | null;
-  loaded: (GameUnitI | undefined)[] | null;
+  loaded: (UnitInstance | undefined)[] | null;
 
   remainingBuildTime: number;
   idleTime: number;

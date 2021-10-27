@@ -2,7 +2,7 @@ import { ClampToEdgeWrapping, CompressedTexture, LinearFilter, RepeatWrapping, s
 
 import { DDSLoader } from "./DDSLoader";
 
-export default (buf: Buffer, encoding = sRGBEncoding) => {
+export const loadDDS = (buf: Buffer, encoding = sRGBEncoding) => {
   const ddsLoader = new DDSLoader();
 
   const texDatas = ddsLoader.parse(buf, true);
@@ -34,3 +34,4 @@ export default (buf: Buffer, encoding = sRGBEncoding) => {
   texture.flipY = false;
   return texture;
 };
+export default loadDDS;

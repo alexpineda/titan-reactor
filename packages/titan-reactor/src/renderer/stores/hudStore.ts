@@ -34,7 +34,7 @@ type HudStoreState = {
   toggleAttackDetails: () => void;
 };
 
-const useHudStore = create<HudStoreState>((set, get) => ({
+export const useHudStore = create<HudStoreState>((set, get) => ({
   show: {
     inGameMenu: false,
     fps: true,

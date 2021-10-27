@@ -36,5 +36,5 @@ export type ReplayCommandType =
   | cmdSelection
   | cmdSelectionRemove;
 
-export const cmdIsRightClick = (tbd: any): tbd is cmdRightClick =>
-  tbd.x && tbd.y;
+export const cmdIsRightClick = (tbd: ReplayCommandType): tbd is cmdRightClick =>
+  "x" in tbd && "y" in tbd;

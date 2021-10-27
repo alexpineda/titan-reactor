@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from "react";
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
-import useGameStore from "../../../stores/gameStore";
+import React, { useEffect, useRef } from "react";
+
+import { useGameStore, useUnitSelectionStore } from "../../../stores/";
 
 const transformName = (name) => name.split(" ").slice(1).join(" ");
 
@@ -41,7 +41,7 @@ const Name = ({ unit, className = "" }) => {
   useEffect(() => {
     setDom(selector({ selectedUnits: [unit] }));
 
-    return useRealtimeStore.subscribe((name) => {
+    return useUnitSelectionStore.subscribe((name) => {
       setDom(name);
     }, selector);
   }, [unit]);

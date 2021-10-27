@@ -4,7 +4,7 @@ import path from "path";
 
 import { GrpFrameType, GrpType } from "../../types/grp";
 import range from "../../utils/range";
-import { BwDATType } from "./BwDAT";
+import { BwDAT, BwDATType } from "./BwDAT";
 import { ReadFileType } from "./DAT";
 import { FlingyDAT } from "./FlingyDAT";
 import { ImagesDAT } from "./ImagesDAT";
@@ -14,7 +14,7 @@ import { LoDATType, parseLo } from "./parseLo";
 import { SoundsDAT } from "./SoundsDAT";
 import { SpritesDAT } from "./SpritesDAT";
 import { TechDataDAT } from "./TechDataDAT";
-import { UnitsDAT } from "./UnitsDAT";
+import { UnitDAT, UnitsDAT } from "./UnitsDAT";
 import { UpgradesDAT } from "./UpgradesDAT";
 import { WeaponsDAT } from "./WeaponsDAT";
 
@@ -41,7 +41,10 @@ export async function loadAllDataFiles(
   const weapons = await new WeaponsDAT(readFile, flingy).load();
   const sounds = await new SoundsDAT(readFile).load();
 
-  const units = await new UnitsDAT(readFile, images, flingy, sounds).load();
+  //@todo define in and out type for DAT
+  const units = (
+    await new UnitsDAT(readFile, images, flingy, sounds).load()
+  ).map((u) => new UnitDAT(u));
 
   const tech = await new TechDataDAT(readFile).load();
   const upgrades = await new UpgradesDAT(readFile).load();
@@ -74,7 +77,7 @@ export async function loadAllDataFiles(
     };
   }) as GrpType[];
 
-  return {
+  return new BwDAT(
     iscript,
     sounds,
     tech,
@@ -85,6 +88,6 @@ export async function loadAllDataFiles(
     los,
     sprites,
     weapons,
-    grps,
-  };
+    grps
+  );
 }

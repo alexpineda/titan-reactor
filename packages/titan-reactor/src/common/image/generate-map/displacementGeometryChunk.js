@@ -87,18 +87,3 @@ function getDisplacement(
 
   return (direct + next) / 2;
 }
-
-export const getTerrainY = (
-  image,
-  scale,
-  mapWidth,
-  mapHeight,
-  offset = 0.1
-) => (x, y) => {
-  const px = Math.floor(((x + mapWidth / 2) / mapWidth) * image.width);
-  const py = Math.floor(((y + mapHeight / 2) / mapHeight) * image.height);
-
-  const p = (py * image.width + px) * 4;
-
-  return (image.data[p] / 255) * scale + offset;
-};

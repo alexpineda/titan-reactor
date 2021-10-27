@@ -3,13 +3,13 @@ import { EventDispatcher } from "three";
 import InputEvents from "./InputEvents";
 
 // manage hotkeys for controlling hud and several options
-class KeyboardShortcuts extends EventDispatcher {
-  domElement:HTMLElement;
+export class KeyboardShortcuts extends EventDispatcher {
+  domElement: HTMLElement;
   enabled = true;
   _keyPressDelay = 500;
   _keyPressTimeout: NodeJS.Timeout | null = null;
 
-  constructor(domElement:HTMLElement) {
+  constructor(domElement: HTMLElement) {
     super();
     this.domElement = domElement;
 
@@ -19,11 +19,11 @@ class KeyboardShortcuts extends EventDispatcher {
     });
   }
 
-  keyDownListener (e: KeyboardEvent) {
+  keyDownListener(e: KeyboardEvent) {
     if (!this.enabled || this._keyPressTimeout) return;
 
     const dispatch = (type: string) => this.dispatchEvent({ type });
-    
+
     [
       ["KeyP", InputEvents.TogglePlay],
       ["KeyC", InputEvents.ToggleCursor],
@@ -35,7 +35,7 @@ class KeyboardShortcuts extends EventDispatcher {
     this._keyPressTimeout = setTimeout(() => {
       this._keyPressTimeout = null;
     }, this._keyPressDelay);
-  };
+  }
 }
 
-export default KeyboardShortcuts
+export default KeyboardShortcuts;

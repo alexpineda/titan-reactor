@@ -1,6 +1,6 @@
-import { BwDATType } from "../../common/bwdat/core/BwDAT";
-import { UnitDAT } from "../../common/bwdat/core/UnitsDAT";
-import { unitTypes } from "../../common/bwdat/enums/unitTypes";
+import { unitTypes } from "../../common/bwdat/enums";
+import { BwDATType, UnitDAT } from "../../common/types/bwdat";
+import { UnitTag } from "../../common/types/replay";
 import ContiguousContainer from "./ContiguousContainer";
 
 // status_flag_completed = 1,
@@ -49,7 +49,7 @@ const flags = Object.freeze({
 });
 
 export interface UnitBWI {
-  id: number;
+  id: UnitTag;
   typeId: number;
   owner: number;
   x: number;
@@ -77,10 +77,10 @@ export interface UnitBWI {
 
 export const UNIT_BYTE_LENGTH = 30;
 // all units in a bw frame
-export default class UnitsBW extends ContiguousContainer implements UnitBWI {
+export class UnitsBW extends ContiguousContainer implements UnitBWI {
   protected override byteLength = UNIT_BYTE_LENGTH;
 
-  get id() {
+  get id(): UnitTag {
     return this._readU16(0);
   }
 
@@ -220,3 +220,4 @@ export default class UnitsBW extends ContiguousContainer implements UnitBWI {
     };
   }
 }
+export default UnitsBW;

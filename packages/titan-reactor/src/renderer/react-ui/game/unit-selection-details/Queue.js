@@ -1,9 +1,8 @@
-import React, { useRef, useEffect } from "react";
-import useRealtimeStore from "../../../stores/realtime/unitSelectionStore";
-import useGameStore from "../../../stores/gameStore";
+import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
-import useProductionStore from "../../../stores/realtime/productionStore";
-import { unitTypes } from "../../../../common/bwdat/enums/unitTypes";
+
+import { unitTypes } from "../../../../common/bwdat/enums";
+import { useGameStore, useProductionStore, useUnitSelectionStore } from "../../../stores";
 
 const researchIconSelector = (state) => {
   if (!state.selectedUnits[0]) return 0;
@@ -85,7 +84,7 @@ const Queue = ({ unit }) => {
   useEffect(() => {
     setDom(selector({ selectedUnits: [unit] }));
 
-    return useRealtimeStore.subscribe(
+    return useUnitSelectionStore.subscribe(
       (units) => {
         setDom(units);
       },

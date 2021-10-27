@@ -1,6 +1,6 @@
-import { DDSGrpFrameType } from "../../types/grp";
+import { DDSGrpFrameType } from "../../types";
 
-export default (buf: Buffer) => {
+export const readDdsGrp = (buf: Buffer) => {
   const frameCount = buf.readUInt16LE(4);
 
   let pos = 8;
@@ -15,6 +15,7 @@ export default (buf: Buffer) => {
   }
   return frames;
 };
+export default readDdsGrp;
 
 export const readDdsGrpWithFrameData = (buf: Buffer) => {
   const frameCount = buf.readUInt16LE(4);

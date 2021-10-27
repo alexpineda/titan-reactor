@@ -4,7 +4,7 @@ import { BwDATType } from "../../common/bwdat/core/BwDAT";
  An abstract class.
  A fixed block of binary data that represents some game state (eg units, sprites, etc)
 */
-export default class ContiguousContainer {
+export class ContiguousContainer {
   count: number;
   protected _offset: number;
   protected _buf?: Buffer;
@@ -93,3 +93,4 @@ export default class ContiguousContainer {
     return arr;
   }
 }
+export default ContiguousContainer;

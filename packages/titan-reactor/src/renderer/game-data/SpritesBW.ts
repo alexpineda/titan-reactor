@@ -1,7 +1,7 @@
 import ContiguousContainer from "./ContiguousContainer";
 
 export const SPRITE_BYTE_LENGTH = 17;
-export default class SpritesBW extends ContiguousContainer {
+export class SpritesBW extends ContiguousContainer {
   protected override byteLength = SPRITE_BYTE_LENGTH;
 
   get default() {
@@ -60,3 +60,4 @@ export default class SpritesBW extends ContiguousContainer {
     return this.bwDat.sprites[this.id];
   }
 }
+export default SpritesBW;

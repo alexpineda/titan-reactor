@@ -1,16 +1,10 @@
 import Chk from "libs/bw-chk";
-import {
-  DirectionalLight,
-  HemisphereLight,
-  Object3D,
-  Scene as ThreeScene,
-} from "three";
+import { DirectionalLight, HemisphereLight, Object3D, Scene as ThreeScene } from "three";
 
-import generateMaterialsAndMeshes from "../../common/image/generate-map/generateMaterialsAndMeshes";
-import generateTextures from "../../common/image/generate-map/generateTextures";
+import { generateMaterialsAndMeshes, generateTextures } from "../../common/image/generate-map";
 import { loadTilesetFilesAsync } from "../../common/image/generate-map/map-data";
-import { TerrainInfo } from "../../common/types/terrain";
-import readCascFile from "../../common/utils/casclib";
+import { TerrainInfo } from "../../common/types";
+import { readCascFile } from "../../common/utils/casclib";
 import { disposeMeshes } from "../utils/dispose";
 
 export async function generateTerrain(chk: Chk) {
@@ -50,7 +44,7 @@ function sunlight(mapWidth: number, mapHeight: number) {
   return light;
 }
 
-export default class Scene extends ThreeScene {
+export class Scene extends ThreeScene {
   constructor({
     mapWidth,
     mapHeight,
@@ -89,3 +83,4 @@ export default class Scene extends ThreeScene {
     this.userData = {};
   }
 }
+export default Scene;
