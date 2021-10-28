@@ -22,7 +22,7 @@ class CameraRig {
   private cameraClock = new Clock();
   private _delta = new Vector3();
   private settings: Settings;
-  
+
   constructor(
     settings: Settings,
     gameSurface: CanvasTarget,
@@ -128,9 +128,9 @@ class CameraRig {
 
   _initPerspectiveCamera(aspect: number, constructor = PerspectiveCamera) {
     if (this.freeControl) {
-      return new constructor(22, aspect);
+      return new constructor(75, aspect);
     }
-    return new constructor(22, aspect, 3, 256);
+    return new constructor(75, aspect, 3, 256);
   }
 
   // tall camera to look down at scene for preloading webgl programs

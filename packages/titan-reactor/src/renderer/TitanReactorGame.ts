@@ -7,7 +7,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { commands, unitTypes } from "../common/bwdat/enums";
 import CanvasTarget from "../common/image/CanvasTarget";
 import { RenderMode } from "../common/settings";
-import { BwDATType, ChkUnitType, ReplayPlayer, TerrainInfo } from "../common/types";
+import {
+  BwDATType,
+  ChkUnitType,
+  ReplayPlayer,
+  TerrainInfo,
+} from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import AudioMaster from "./audio/AudioMaster";
@@ -16,7 +21,14 @@ import CameraRig from "./camera/CameraRig";
 import ProjectedCameraView from "./camera/ProjectedCameraView";
 import Creep from "./creep/Creep";
 import FogOfWar from "./fogofwar/FogOfWar";
-import { Apm, BuildUnits, GameStatePosition, MinimapCanvasDrawer, MouseCursor, Players } from "./game";
+import {
+  Apm,
+  BuildUnits,
+  GameStatePosition,
+  MinimapCanvasDrawer,
+  MouseCursor,
+  Players,
+} from "./game";
 import FrameBW from "./game-data/FrameBW";
 import StreamGameStateReader from "./game-data/readers/StreamGameStateReader";
 import { InputEvents, KeyboardShortcuts, MinimapControl } from "./input";
@@ -59,7 +71,7 @@ async function TitanReactorGame(
 
   const renderMan = new RenderMan(settings);
 
-  const keyboardShortcuts = new KeyboardShortcuts(window.document.body);
+  const keyboardShortcuts = new KeyboardShortcuts(window.document);
 
   const gameSurface = new GameCanvasTarget(settings);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);

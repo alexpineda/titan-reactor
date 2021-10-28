@@ -22,7 +22,9 @@ export class Music {
   playGame() {
     if (!this.audio) return;
     this.audio.onEnded = this.playGame.bind(this);
-    this._play(`music/${this.races[rand(2)]}${rand(4) + 1}.ogg`);
+    this._play(
+      `music/${this.races[rand(this.races.length)]}${rand(4) + 1}.ogg`
+    );
   }
 
   playMenu() {

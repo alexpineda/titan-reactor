@@ -38,7 +38,7 @@ export class SpriteInstance extends Object3D {
       this.selectionCircle.grp.height / 256
     );
     this.selectionCircle.visible = true;
-    this.selectionCircle.visible = true;
+    this.selectionBars.visible = true;
   }
 
   unselect() {

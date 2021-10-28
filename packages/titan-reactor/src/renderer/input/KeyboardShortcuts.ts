@@ -4,12 +4,12 @@ import InputEvents from "./InputEvents";
 
 // manage hotkeys for controlling hud and several options
 export class KeyboardShortcuts extends EventDispatcher {
-  domElement: HTMLElement;
+  domElement: Document;
   enabled = true;
   _keyPressDelay = 500;
   _keyPressTimeout: NodeJS.Timeout | null = null;
 
-  constructor(domElement: HTMLElement) {
+  constructor(domElement: Document) {
     super();
     this.domElement = domElement;
 

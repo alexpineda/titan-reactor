@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { unitTypes } from "../../../../common/bwdat/enums";
 import { useGameStore, useUnitSelectionStore } from "../../../stores";
 
-const resourceSelector = (state) => {
+const selectedUnitAmountSelector = (state) => {
   if (!state.selectedUnits[0]) return "";
   return state.selectedUnits[0].resourceAmount;
 };
@@ -39,7 +39,7 @@ const Resource = ({ unit }) => {
 
     return useUnitSelectionStore.subscribe((resourceAmount) => {
       setDom(resourceAmount);
-    }, resourceSelector);
+    }, selectedUnitAmountSelector);
   }, [unit]);
 
   return (
