@@ -38,7 +38,8 @@ export const createTitanImageFactory = (
         sprite
       );
     } else if (
-      //don't load shadow images for 3d
+      // @todo make a smarter image factory that knows if the mainImage is a Grp3D or GrpHD
+      // don't load shadow images for 3d
       atlas instanceof Grp3D &&
       bwDat.images[imageId].drawFunction === drawFunctions.rleShadow
     ) {

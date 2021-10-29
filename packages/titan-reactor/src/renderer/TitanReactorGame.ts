@@ -4,6 +4,8 @@ import { unstable_batchedUpdates } from "react-dom";
 import { MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
+import { CommandsStream } from "downgrade-replay";
+
 import { commands, unitTypes } from "../common/bwdat/enums";
 import CanvasTarget from "../common/image/CanvasTarget";
 import { RenderMode } from "../common/settings";
@@ -55,6 +57,7 @@ async function TitanReactorGame(
   terrainInfo: TerrainInfo,
   preplacedMapUnits: ChkUnitType[],
   rep,
+  commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,
   bwDat: BwDATType,
   createTitanImage,
@@ -283,7 +286,9 @@ async function TitanReactorGame(
   const apm = new Apm(players);
   projectedCameraView.update();
 
-  function gameLoop(elapsed: number) {
+  const cmds = commandsStream.generate();
+
+  const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
@@ -303,7 +308,7 @@ async function TitanReactorGame(
         nextBwFrame = gameStateReader.nextOne();
         if (nextBwFrame) {
           // get creep, fog of war, sounds, etc. ready ahead of time if possible
-          frameBuilder.prepare(nextBwFrame, elapsed);
+          frameBuilder.prepare(nextBwFrame);
         } else {
           gameStatePosition.paused = true;
         }
@@ -337,59 +342,65 @@ async function TitanReactorGame(
         // @todo why am I transferring this to the store?
         setSelectedUnits(useGameStore.getState().selectedUnits);
 
-        apm.update(
-          rep.cmds[gameStatePosition.bwGameFrame],
-          gameStatePosition.bwGameFrame
-        );
-
-        if (rep.cmds[gameStatePosition.bwGameFrame]) {
-          for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
-            //@todo remove once we filter commands
-            if (!players.playersById[cmd.player]) continue;
-
-            if (
-              cmd.id === commands.chat &&
-              players.playersById[cmd.senderSlot]
-            ) {
-              unstable_batchedUpdates(() =>
-                addChatMessage({
-                  content: cmd.message,
-                  player: players.playersById[cmd.senderSlot],
-                })
-              );
-            }
-
-            // if (players.playersById[cmd.player].showPov) {
-            //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
-            // } else {
-            //   players.playersById[cmd.player].camera.update(
-            //     cmd,
-            //     pxToGameUnit,
-            //     1000
-            //   );
-            // }
-
-            if (players.playersById[cmd.player].showActions) {
-              switch (cmd.id) {
-                case commands.rightClick:
-                case commands.targetedOrder:
-                case commands.build: {
-                  const px = pxToGameUnit.x(cmd.x);
-                  const py = pxToGameUnit.y(cmd.y);
-                  const pz = terrainInfo.getTerrainY(px, py);
-
-                  // fadingPointers.addPointer(
-                  //   px,
-                  //   py,
-                  //   pz,
-                  //   players.playersById[cmd.player].color.rgb,
-                  //   gameStatePosition.bwGameFrame
-                  // );
-                }
-              }
-            }
-          }
+        const cmdsThisFrame = [];
+        let cmd = cmds.next();
+        while (
+          cmd.done ||
+          (typeof cmd === "number" && cmd !== gameStatePosition.bwGameFrame)
+        ) {
+          cmdsThisFrame.push(cmd.value);
+          cmd = cmds.next();
         }
+        apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
+
+        // if (rep.cmds[gameStatePosition.bwGameFrame]) {
+        //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
+        //     //@todo remove once we filter commands
+        //     if (!players.playersById[cmd.player]) continue;
+
+        //     if (
+        //       cmd.id === commands.chat &&
+        //       players.playersById[cmd.senderSlot]
+        //     ) {
+        //       unstable_batchedUpdates(() =>
+        //         addChatMessage({
+        //           content: cmd.message,
+        //           player: players.playersById[cmd.senderSlot],
+        //         })
+        //       );
+        //     }
+
+        //     // if (players.playersById[cmd.player].showPov) {
+        //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
+        //     // } else {
+        //     //   players.playersById[cmd.player].camera.update(
+        //     //     cmd,
+        //     //     pxToGameUnit,
+        //     //     1000
+        //     //   );
+        //     // }
+
+        //     if (players.playersById[cmd.player].showActions) {
+        //       switch (cmd.id) {
+        //         case commands.rightClick:
+        //         case commands.targetedOrder:
+        //         case commands.build: {
+        //           const px = pxToGameUnit.x(cmd.x);
+        //           const py = pxToGameUnit.y(cmd.y);
+        //           const pz = terrainInfo.getTerrainY(px, py);
+
+        //           // fadingPointers.addPointer(
+        //           //   px,
+        //           //   py,
+        //           //   pz,
+        //           //   players.playersById[cmd.player].color.rgb,
+        //           //   gameStatePosition.bwGameFrame
+        //           // );
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
         currentBwFrame = null;
       } // end of bwframe update
     }
@@ -456,7 +467,7 @@ async function TitanReactorGame(
     }
 
     gameStatePosition.update(delta);
-  }
+  };
 
   const dispose = () => {
     console.log("disposing");

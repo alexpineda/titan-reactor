@@ -1,12 +1,21 @@
 import concat from "concat-stream";
-import { convertReplayTo116, parseReplay, Version } from "downgrade-replay";
+import {
+  convertReplayTo116,
+  parseReplay,
+  Version,
+  CommandsStream,
+} from "downgrade-replay";
 import fs from "fs";
 import path from "path";
 import createScmExtractor from "scm-extractor";
 import { Object3D } from "three";
 
 import Chk from "../../libs/bw-chk";
-import { createTitanImageFactory, TitanImageHD, TitanSprite } from "../common/image";
+import {
+  createTitanImageFactory,
+  TitanImageHD,
+  TitanSprite,
+} from "../common/image";
 import { createIScriptRunnerFactory } from "../common/iscript";
 import { ChkType, EmptyFunc } from "../common/types";
 import pick from "../common/utils/pick";
@@ -16,7 +25,15 @@ import { AudioMaster } from "./audio";
 import OpenBwBridgeReader from "./game-data/readers/OpenBwBridgeReader";
 import { log, openFile } from "./ipc";
 import Scene, { generateTerrain } from "./render/Scene";
-import { disposeAssets, disposeGame, getAssets, getSettings, setAssets, setGame, setPreloadMessage } from "./stores";
+import {
+  disposeAssets,
+  disposeGame,
+  getAssets,
+  getSettings,
+  setAssets,
+  setGame,
+  setPreloadMessage,
+} from "./stores";
 import useLoadingStore from "./stores/loadingStore";
 import useSettingsStore from "./stores/settingsStore";
 import TitanReactorGame from "./TitanReactorGame";
@@ -93,7 +110,7 @@ export class TitanReactor {
 
     let rep = await parseReplay(repBin);
     if (rep.version === Version.remastered) {
-      const classicRep = await convertReplayTo116(repBin);
+      const classicRep = await convertReplayTo116(rep);
       repFile = path.join(settings.tempPath, "replay.rep");
       await new Promise((res: EmptyFunc) =>
         fs.writeFile(repFile, classicRep, (err) => {
@@ -157,6 +174,7 @@ export class TitanReactor {
       terrainInfo,
       chk.units,
       rep,
+      new CommandsStream(rep.rawCmds),
       gameStateReader,
       assets.bwDat,
       createTitanImageFactory(
