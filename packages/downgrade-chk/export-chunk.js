@@ -60,33 +60,6 @@ ignoring sections:
 */
 
 //OWNR, SIDE, FORC <- VCOD verification
-
-const downgradeStrChunk = (strx) => {
-  const numStrings = strx.readUInt32LE(0);
-  const inHeaderSize = 4 + numStrings * 4;
-  const outHeaderSize = 2 + numStrings * 2;
-  const out = Buffer.alloc(outHeaderSize + (strx.byteLength - inHeaderSize), 0);
-  out.writeUInt16LE(numStrings, 0);
-
-  for (let i = 1; i < numStrings; i++) {
-    const strxIndex = strx.readUInt32LE(i * 4);
-    const strxBuf = strx.slice(strxIndex, strx.indexOf(0, strxIndex) + 1);
-
-    if (strxBuf.byteLength === 0) {
-      continue;
-    }
-
-    const outIndex = strxIndex - inHeaderSize + outHeaderSize;
-    out.writeUInt16LE(outIndex, i * 2);
-    strxBuf.copy(out, outIndex);
-
-    const decoded = iconv.decode(strxBuf, "cp1252");
-    console.log(decoded);
-  }
-
-  return out;
-};
-
 const exportChunk = (buf, name) => {
   const bl = new BufferList(buf);
   const chunks = new Map();

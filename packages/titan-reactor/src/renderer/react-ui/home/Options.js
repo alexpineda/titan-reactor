@@ -161,6 +161,18 @@ export default ({
               settings={settings}
               selectFolder={selectFolder}
             />
+            <p>A directory containing zero or more 3d models.</p>
+          </Option>
+
+          <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+            <PathSelect
+              prop={"tempPath"}
+              phrases={phrases}
+              errors={errors}
+              settings={settings}
+              selectFolder={selectFolder}
+            />
+            <p>A temporary directory used for large temporary files.</p>
           </Option>
         </Visible>
       </Tab>

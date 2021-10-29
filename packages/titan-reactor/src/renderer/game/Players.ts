@@ -1,4 +1,26 @@
-import { OwnerId, Player, PlayerColor, ReplayPlayer, StartLocation } from "../../common/types";
+import { UnitInstance } from ".";
+import {
+  OwnerId,
+  Player,
+  PlayerColor,
+  ReplayPlayer,
+  StartLocation,
+  PlayerPOVI,
+  POVSelectionI,
+} from "../../common/types";
+
+class POVSelection implements POVSelectionI {
+  lastIssuedCommand?: any;
+  unit: UnitInstance;
+  constructor(unit: UnitInstance) {
+    this.unit = unit;
+  }
+}
+
+class PlayerPOV implements PlayerPOVI {
+  selections: POVSelection[] = [];
+  active = false;
+}
 
 export class Players extends Array<Player> {
   activePovs = 0;
@@ -19,10 +41,9 @@ export class Players extends Array<Player> {
         id: player.id,
         name: player.name,
         race: player.race,
-        showActions: false,
-        showPov: false,
         vision: true,
         startLocation: startLocations.find((u) => u.player == player.id),
+        pov: new PlayerPOV(),
       }))
     );
 
@@ -31,6 +52,10 @@ export class Players extends Array<Player> {
     }
   }
 
+  //  @todo update pov selections based on command
+  // update(cmds) {
+
+  // }
   static override get [Symbol.species]() {
     return Array;
   }

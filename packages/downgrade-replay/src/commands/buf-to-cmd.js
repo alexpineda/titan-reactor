@@ -4,12 +4,12 @@ const cstring = require("../util/cstring");
 
 const _bwTags = new Set();
 const _logUniqBwTag = (bwTag, id) => {
-  if (!_bwTags.has(bwTag)) {
-    console.log(
-      `${id}${CMDS[id]?.name}: ${bwTag} -> ${bwTag & 0x7ff}-${bwTag >> 11}`
-    );
-    _bwTags.add(bwTag);
-  }
+  // if (!_bwTags.has(bwTag)) {
+  //   console.log(
+  //     `${id}${CMDS[id]?.name}: ${bwTag} -> ${bwTag & 0x7ff}-${bwTag >> 11}`
+  //   );
+  //   _bwTags.add(bwTag);
+  // }
 };
 const bufToCommand = (id, data) => {
   switch (id) {
@@ -74,6 +74,7 @@ const bufToCommand = (id, data) => {
     case CMDS.SIEGE.id:
     case CMDS.CLOAK.id:
     case CMDS.DECLOAK.id:
+    case CMDS.CARRIER_STOP.id:
       return {
         queued: data.readUInt8(0),
       };
@@ -101,12 +102,32 @@ const bufToCommand = (id, data) => {
 
     case CMDS.UPGRADE.id:
     case CMDS.TECH.id:
+    case CMDS.LEAVE_GAME.id:
       return {
-        tech: data.readUInt8(0),
+        value: data.readUInt8(0),
       };
 
+    // case CMDS.ALLIANCE.id {
+    //   const value = data.readUInt32LE(0);
+
+    //   for ()
+    // }
+    // 	// There are 2 bits for each slot, 0x00: not allied, 0x1: allied, 0x02: allied victory
+    // 	for i := byte(0); i < 11; i++ { // only 11 slots, 12th is always 0x01 or 0x02
+    // 		if x := data & 0x03; x != 0 {
+    // 			allianceCmd.SlotIDs = append(allianceCmd.SlotIDs, i)
+    // 			if x == 2 {
+    // 				allianceCmd.AlliedVictory = true
+    // 			}
+    // 		}
+    // 		data >>= 2
+    // 	}
+    // 	cmd = allianceCmd
+
+    // commands we don't process
+    // or don't support
     default:
-      return null;
+      return {};
   }
 };
 

@@ -23,9 +23,6 @@ export class SpriteInstance extends Object3D {
   constructor(index: number) {
     super();
     this.index = index;
-    this.add(this.selectionCircle);
-    this.add(this.selectionBars);
-    this.unselect();
   }
 
   select(completedUpgrades: UpgradeCompleted[]) {
@@ -37,13 +34,13 @@ export class SpriteInstance extends Object3D {
       this.renderOrder,
       this.selectionCircle.grp.height / 256
     );
-    this.selectionCircle.visible = true;
-    this.selectionBars.visible = true;
+    this.add(this.selectionCircle);
+    this.add(this.selectionBars);
   }
 
   unselect() {
-    this.selectionBars.visible = false;
-    this.selectionCircle.visible = false;
+    this.remove(this.selectionCircle);
+    this.remove(this.selectionBars);
   }
 }
 export default SpriteInstance;

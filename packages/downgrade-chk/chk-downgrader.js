@@ -83,88 +83,96 @@ const downgradeStrChunk = (strx) => {
   return out;
 };
 
-const chkDowngrader = (buf) => {
-  const bl = new BufferList(buf);
-  const chunks = [];
+class ChkDowngrader {
+  downgrade(buf) {
+    const bl = new BufferList(buf);
+    const chunks = [];
 
-  let pos = 0;
-  while (pos >= 0 && bl.length - pos >= 8) {
-    const chunkName = bl.toString("ascii", pos, pos + 4);
-    const chunkDefinition = _chunkTypes.find((cname) => cname === chunkName);
-    const chunkSize = bl.readInt32LE(pos + 4);
+    let pos = 0;
+    while (pos >= 0 && bl.length - pos >= 8) {
+      const chunkName = bl.toString("ascii", pos, pos + 4);
+      const chunkDefinition = _chunkTypes.find((cname) => cname === chunkName);
+      const chunkSize = bl.readInt32LE(pos + 4);
 
-    if (!chunkDefinition || chunkSize === 0) {
-      if (chunkSize === 0) {
-        console.log(`zero chunk ${chunkName}`);
+      if (!chunkDefinition || chunkSize === 0) {
+        if (chunkSize === 0) {
+          console.log(`zero chunk ${chunkName}`);
+        }
+        pos += chunkSize + 8;
+        continue;
       }
+
+      let buffer = null;
+      if (chunkSize < 0) {
+        buffer = bl.slice(pos + 8);
+      } else {
+        buffer = bl.slice(pos + 8, pos + 8 + chunkSize);
+      }
+
+      chunks.push({ chunkName, chunkSize, pos: pos + 8, buffer });
+
       pos += chunkSize + 8;
-      continue;
     }
 
-    let buffer = null;
-    if (chunkSize < 0) {
-      buffer = bl.slice(pos + 8);
-    } else {
-      buffer = bl.slice(pos + 8, pos + 8 + chunkSize);
-    }
+    const verChunk = chunks.find(({ chunkName }) => chunkName === "VER\x20");
+    const version = buf.readUInt16LE(verChunk.pos);
 
-    chunks.push({ chunkName, chunkSize, pos: pos + 8, buffer });
+    const downgrade =
+      version === Version.SCR || version === Version.BroodwarRemastered;
 
-    pos += chunkSize + 8;
-  }
+    if (downgrade) {
+      const strx = chunks.find(({ chunkName }) => chunkName === "STRx");
 
-  const verChunk = chunks.find(({ chunkName }) => chunkName === "VER\x20");
-  const version = buf.readUInt16LE(verChunk.pos);
+      const chunksToReplace = [
+        "CRGB",
+        "STRx",
+        strx ? "STR\x20" : "NONE",
+        "VER\x20",
+        this.mtxmDowngrader ? "MTXM" : "NONE",
+      ];
 
-  const downgrade =
-    version === Version.SCR || version === Version.BroodwarRemastered;
+      const outChunks = chunks.filter(
+        ({ chunkName }) => !chunksToReplace.includes(chunkName)
+      );
 
-  if (downgrade) {
-    const strx = chunks.find(({ chunkName }) => chunkName === "STRx");
-
-    const outChunks = chunks.filter(
-      ({ chunkName }) =>
-        !["CRGB", "STRx", strx ? "STR\x20" : "NONE", "VER\x20"].includes(
-          chunkName
-        )
-    );
-
-    if (strx) {
-      const strBuf = downgradeStrChunk(strx.buffer);
-      outChunks.push({
-        chunkName: "STR\x20",
-        chunkSize: strBuf.byteLength,
-        buffer: strBuf,
-      });
-    }
-
-    const verBuf = Buffer.alloc(2);
-    verBuf.writeUInt16LE(
-      version === Version.SCR ? Version.Hybrid : Version.Broodwar,
-      0
-    );
-
-    outChunks.push({
-      chunkName: "VER\x20",
-      chunkSize: 2,
-      buffer: verBuf,
-    });
-
-    const out = new BufferList();
-    outChunks.forEach(({ chunkName, chunkSize, buffer }) => {
-      if (buffer.byteLength !== chunkSize) {
-        debugger;
+      if (strx) {
+        const strBuf = downgradeStrChunk(strx.buffer);
+        outChunks.push({
+          chunkName: "STR\x20",
+          chunkSize: strBuf.byteLength,
+          buffer: strBuf,
+        });
       }
-      const chunkHeader = Buffer.from(`${chunkName}    `);
-      chunkHeader.writeUInt32LE(chunkSize, 4);
-      out.append(chunkHeader);
-      out.append(buffer);
-    });
 
-    return out.slice(0);
-  } else {
-    return buf;
+      const verBuf = Buffer.alloc(2);
+      verBuf.writeUInt16LE(
+        version === Version.SCR ? Version.Hybrid : Version.Broodwar,
+        0
+      );
+
+      outChunks.push({
+        chunkName: "VER\x20",
+        chunkSize: 2,
+        buffer: verBuf,
+      });
+
+      if (this.mtxmDowngrader) {
+        // const mtxmBuf = Buffer.alloc(2);
+      }
+
+      const out = new BufferList();
+      outChunks.forEach(({ chunkName, chunkSize, buffer }) => {
+        const chunkHeader = Buffer.from(`${chunkName}    `);
+        chunkHeader.writeUInt32LE(chunkSize, 4);
+        out.append(chunkHeader);
+        out.append(buffer);
+      });
+
+      return out.slice(0);
+    } else {
+      return buf;
+    }
   }
-};
+}
 
-module.exports = chkDowngrader;
+module.exports = ChkDowngrader;

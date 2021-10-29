@@ -110,10 +110,6 @@ export class TitanImageHD extends Sprite implements ImageInstance {
     this.setFrame(0, false);
   }
 
-  setScale(v) {
-    this.scale.copy(this._oScale).multiply(v);
-  }
-
   get frames() {
     return this.atlas.frames;
   }
@@ -233,7 +229,6 @@ export class TitanImageHD extends Sprite implements ImageInstance {
     this.pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - yOff;
 
     this._zOff = zOff;
-
     return true;
   }
 }

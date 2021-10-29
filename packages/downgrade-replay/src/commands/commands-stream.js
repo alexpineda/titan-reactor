@@ -40,8 +40,9 @@ class CommandsStream {
           id,
           player,
           skipped,
-          ...(bwData ? { data, ...bwData } : {}),
-          ...(scrData ? scrData : {}),
+          data,
+          ...bwData,
+          ...scrData,
         };
       }
       this._buffer.consume(frameEnd);

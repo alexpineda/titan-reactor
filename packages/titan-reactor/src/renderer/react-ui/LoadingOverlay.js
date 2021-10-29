@@ -50,18 +50,7 @@ const LoadingOverlay = ({ chk, rep }) => {
   return (
     <div
       id="load-overlay select-none"
-      className="z-20 cursor-wait"
-      style={{
-        position: "absolute",
-        left: "0",
-        top: "0",
-        right: "0",
-        bottom: "0",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "black",
-        display: "flex",
-      }}
+      className="z-20 cursor-wait absolute left-0 top-0 right-0 bottom-0 justify-center items-center bg-gray-900 flex"
     >
       <div id="map-preview">
         <span

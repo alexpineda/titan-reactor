@@ -1,17 +1,14 @@
 const { BufferList } = require("bl");
-const { chkDowngrader } = require("downgrade-chk");
 
 const { HeaderMagicClassic, Version } = require("./common");
-const { writeBlock } = require("./blocks");
+const { writeBlock, getBlockSize } = require("./blocks");
 const { uint32, uint8 } = require("./util/alloc");
 const commandToBuf = require("./commands/cmd-to-buf");
 const { CMDS } = require("./commands/commands");
 const CommandsStream = require("./commands/commands-stream");
+const ChkDowngrader = require("../../downgrade-chk/chk-downgrader");
 
-const downgradeReplay = async (replay) => {
-  if (replay.version === Version.classic) {
-    return replay;
-  }
+const downgradeReplay = async (replay, chkDowngrader) => {
   const bl = new BufferList();
 
   await writeBlock(bl, uint32(HeaderMagicClassic), false);
@@ -24,18 +21,23 @@ const downgradeReplay = async (replay) => {
   };
 
   const commandsBuf = new BufferList();
-  let prevFrame = 0;
+  let currFrame = 0;
   let frameBuf = new BufferList();
   var command;
 
   const cmds = new CommandsStream(replay.rawCmds);
   const g = cmds.generate();
+
+  const isRemastered = replay.version === Version.remastered;
+
   try {
     while ((command = g.next().value)) {
-      if (typeof command === "number" && command !== prevFrame) {
-        dumpFrame(commandsBuf, prevFrame, frameBuf);
-        frameBuf = new BufferList();
-        prevFrame = command;
+      if (typeof command === "number") {
+        if (command !== currFrame) {
+          dumpFrame(commandsBuf, currFrame, frameBuf);
+          frameBuf = new BufferList();
+          currFrame = command;
+        }
         continue;
       }
 
@@ -43,7 +45,7 @@ const downgradeReplay = async (replay) => {
         continue;
       }
 
-      const [id, data] = commandToBuf(command.id, command);
+      const [id, data] = commandToBuf(command.id, command, isRemastered);
       if (data.length !== CMDS[id].length(data)) {
         throw new Error("saved length and command length do not match");
       }
@@ -51,11 +53,7 @@ const downgradeReplay = async (replay) => {
       const overflowed = data.length + 2 + frameBuf.length > 255;
 
       if (overflowed) {
-        dumpFrame(
-          commandsBuf,
-          overflowed ? command.frame : prevFrame,
-          frameBuf
-        );
+        dumpFrame(commandsBuf, currFrame, frameBuf);
         frameBuf = new BufferList();
       }
 
@@ -63,17 +61,19 @@ const downgradeReplay = async (replay) => {
       frameBuf.append(uint8(id));
       frameBuf.append(data);
     }
+
+    if (frameBuf.length) {
+      dumpFrame(commandsBuf, currFrame, frameBuf);
+    }
   } catch (e) {
     console.log("error", e);
   }
-  if (frameBuf.length) {
-    dumpFrame(commandsBuf, cmds.currentFrame, frameBuf);
-  }
-
   await writeBlock(bl, uint32(commandsBuf.length), false);
   await writeBlock(bl, commandsBuf, true);
 
-  const chk = chkDowngrader(replay.chk.slice(0));
+  console.log(commandsBuf.length, await getBlockSize(commandsBuf));
+
+  const chk = chkDowngrader.downgrade(replay.chk.slice(0));
   await writeBlock(bl, uint32(chk.byteLength), false);
   await writeBlock(bl, chk, true);
 

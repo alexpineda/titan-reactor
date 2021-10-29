@@ -81,6 +81,19 @@ describe("commandToBuffer", () => {
     expect(newId).toBe(bwId);
   });
 
+  test.each([[CMDS.CANCEL_TRAIN, CMDS.CANCEL_TRAIN]])(
+    "should not write $name command if SCR flag is off",
+    ({ id }, { id: bwId }) => {
+      const command = {
+        unitTag: 99,
+        data: "alex",
+      };
+      const [newId, buf] = commandToBuf(id, command, false);
+      expect(buf).toEqual(command.data);
+      expect(newId).toBe(bwId);
+    }
+  );
+
   test("should ignore anything with data", () => {
     const id = 77;
     const data = new BufferList();

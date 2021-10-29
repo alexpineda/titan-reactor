@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import shallow from "zustand/shallow";
 
-import { exit, openDemoReplay, openMapDialog, openReplayDialog } from "../../ipc";
+import {
+  exit,
+  openDemoReplay,
+  openMapDialog,
+  openReplayDialog,
+} from "../../ipc";
 import { useSettingsStore } from "../../stores";
 import { MenuItem } from "../components/MenuItem";
 import Options from "./Options";
@@ -34,7 +39,7 @@ const Home = () => {
       style={{ minHeight: "100vh", maxHeight: "100vh" }}
     >
       <header>
-        <p className="text-3xl mb-6 select-none">Titan Reactor</p>
+        <p className="text-3xl mb-6 select-none" >Titan Reactor</p>
       </header>
       <div className="flex flex-1">
         <div className="w-1/4 flex-col-reverse flex">

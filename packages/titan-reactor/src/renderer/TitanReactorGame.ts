@@ -179,7 +179,7 @@ async function TitanReactorGame(
 
   const nextFrameHandler = (evt: KeyboardEvent) => {
     if (evt.code === "KeyN") {
-      gameStatePosition.skipGameFrames = 1;
+      gameStatePosition.advanceGameFrames = 1;
     }
   };
   document.addEventListener("keydown", nextFrameHandler);
@@ -296,9 +296,7 @@ async function TitanReactorGame(
     orbitControls.update();
 
     if (!gameStatePosition.paused) {
-      // prepare next frame, skipgameframes may be 1 which tells us we have 1 frame to process
-
-      if (gameStatePosition.skipGameFrames && !currentBwFrame) {
+      if (gameStatePosition.advanceGameFrames && !currentBwFrame) {
         currentBwFrame = nextBwFrame;
 
         projectedCameraView.update();
@@ -342,16 +340,21 @@ async function TitanReactorGame(
         // @todo why am I transferring this to the store?
         setSelectedUnits(useGameStore.getState().selectedUnits);
 
-        const cmdsThisFrame = [];
-        let cmd = cmds.next();
-        while (
-          cmd.done ||
-          (typeof cmd === "number" && cmd !== gameStatePosition.bwGameFrame)
-        ) {
-          cmdsThisFrame.push(cmd.value);
-          cmd = cmds.next();
+        {
+          const cmdsThisFrame = [];
+          let cmd = cmds.next();
+          while (cmd.done === false) {
+            if (
+              typeof cmd.value === "number" &&
+              cmd.value !== gameStatePosition.bwGameFrame
+            ) {
+              break;
+            }
+            cmdsThisFrame.push(cmd.value);
+            cmd = cmds.next();
+          }
+          apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
         }
-        apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
 
         // if (rep.cmds[gameStatePosition.bwGameFrame]) {
         //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
@@ -556,7 +559,7 @@ async function TitanReactorGame(
 
   //run 1 frame
   gameStatePosition.resume();
-  gameStatePosition.skipGameFrames = 1;
+  gameStatePosition.advanceGameFrames = 1;
   gameLoop(0);
   gameLoop(0);
   _sceneResizeHandler();

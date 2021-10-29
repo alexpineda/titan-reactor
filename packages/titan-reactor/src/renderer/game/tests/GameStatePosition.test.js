@@ -9,16 +9,16 @@ describe("GameStatePosition", () => {
     const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
     rp.paused = false;
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(0);
+    expect(rp.advanceGameFrames).toBe(0);
     expect(rp.lastDelta).toBe(2);
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(1);
+    expect(rp.advanceGameFrames).toBe(1);
     expect(rp.lastDelta).toBe(1);
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(1);
+    expect(rp.advanceGameFrames).toBe(1);
     expect(rp.lastDelta).toBe(0);
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(0);
+    expect(rp.advanceGameFrames).toBe(0);
     expect(rp.lastDelta).toBe(2);
   });
 
@@ -30,10 +30,10 @@ describe("GameStatePosition", () => {
     const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
     rp.paused = false;
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(1);
+    expect(rp.advanceGameFrames).toBe(1);
     expect(rp.lastDelta).toBe(0);
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(1);
+    expect(rp.advanceGameFrames).toBe(1);
     expect(rp.lastDelta).toBe(0);
   });
 
@@ -45,10 +45,10 @@ describe("GameStatePosition", () => {
     const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
     rp.paused = false;
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(2);
+    expect(rp.advanceGameFrames).toBe(2);
     expect(rp.lastDelta).toBe(0);
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(2);
+    expect(rp.advanceGameFrames).toBe(2);
     expect(rp.lastDelta).toBe(0);
   });
 
@@ -60,10 +60,10 @@ describe("GameStatePosition", () => {
     const rp = new GameStatePosition(maxGameFrame, gameSpeed, null);
     rp.paused = false;
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(1);
+    expect(rp.advanceGameFrames).toBe(1);
     expect(rp.lastDelta).toBe(0.5);
     rp.update(delta);
-    expect(rp.skipGameFrames).toBe(2);
+    expect(rp.advanceGameFrames).toBe(2);
     expect(rp.lastDelta).toBe(0);
   });
 });

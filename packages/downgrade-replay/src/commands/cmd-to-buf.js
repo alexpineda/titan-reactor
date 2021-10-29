@@ -3,8 +3,8 @@ const { uint16, uint8 } = require("../util/alloc");
 const BufferList = require("bl/BufferList");
 const scrUnitTag = require("./scr-unit-tag");
 
-const commandToBuf = (id, cmd) => {
-  if (cmd.data) {
+const commandToBuf = (id, cmd, isRemastered) => {
+  if (!isRemastered) {
     return [id, cmd.data];
   }
   switch (id) {
@@ -52,13 +52,11 @@ const commandToBuf = (id, cmd) => {
     case CMDS.UNLOAD_EXT.id: {
       return [CMDS.UNLOAD.id, new BufferList(uint16(scrUnitTag(cmd.unitTag)))];
     }
-    //@todo cancel train is the only command that references a unit tag
-    // yet does not have an extended command
     case CMDS.CANCEL_TRAIN.id: {
       return [id, new BufferList(uint16(scrUnitTag(cmd.unitTag)))];
     }
     default:
-      throw new Error(`Unknown command ${id}`);
+     return [id, cmd.data];
   }
 };
 

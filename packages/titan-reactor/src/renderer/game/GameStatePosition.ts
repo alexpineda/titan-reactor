@@ -3,9 +3,9 @@ import { gameSpeeds } from "../../common/utils/conversions";
 export class GameStatePosition {
   lastDelta = 0;
   maxFrame: number;
-  frame = 0;
+  tick = 0;
   bwGameFrame = 0;
-  skipGameFrames = 0;
+  advanceGameFrames = 0;
   paused = true;
   destination?: number;
   gameSpeed: number;
@@ -20,7 +20,7 @@ export class GameStatePosition {
   pause() {
     if (this.paused) return;
     this.paused = true;
-    this.skipGameFrames = 0;
+    this.advanceGameFrames = 0;
   }
 
   resume() {
@@ -39,18 +39,16 @@ export class GameStatePosition {
   }
 
   update(delta: number) {
-    this.frame++;
+    this.tick++;
     if (this.paused) return;
 
     this.lastDelta = this.lastDelta + delta;
     if (this.lastDelta >= this.gameSpeed) {
-      // this.skipGameFrames = 1;
-      this.skipGameFrames = 
-        Math.floor(this.lastDelta / this.gameSpeed);
-      
-      this.lastDelta = this.lastDelta - this.skipGameFrames * this.gameSpeed;
+      this.advanceGameFrames = Math.floor(this.lastDelta / this.gameSpeed);
+      this.lastDelta = this.lastDelta - this.advanceGameFrames * this.gameSpeed;
+      this.advanceGameFrames = 1;
     } else {
-      this.skipGameFrames = 0;
+      this.advanceGameFrames = 0;
     }
   }
 
@@ -58,9 +56,6 @@ export class GameStatePosition {
     return this.bwGameFrame === this.maxFrame;
   }
 
-  /**
-   * Time in fastest seconds
-   */
   getFriendlyTime() {
     const t = Math.floor((this.bwGameFrame * gameSpeeds.fastest) / 1000);
     const minutes = Math.floor(t / 60);
@@ -70,6 +65,6 @@ export class GameStatePosition {
   }
 
   skippingFrames() {
-    return this.skipGameFrames > 1;
+    return this.advanceGameFrames > 1;
   }
 }

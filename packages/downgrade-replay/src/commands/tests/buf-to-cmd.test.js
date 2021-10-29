@@ -135,13 +135,13 @@ describe("bufferToCommand", () => {
     }
   );
 
-  test.each([CMDS.UPGRADE, CMDS.TECH])(
+  test.each([CMDS.UPGRADE, CMDS.TECH, CMDS.LEAVE_GAME])(
     "should read $name command",
     ({ id }) => {
       const data = new BufferList([uint8(77)]);
       const result = bufferToCommand(id, data);
       expect(result).toMatchObject({
-        tech: 77,
+        value: 77,
       });
     }
   );

@@ -42,16 +42,9 @@ const bufToSCRCommand = (id, data) => {
         unitTag,
       };
     }
-    //@todo cancel train is the only command that references a unit tag
-    // yet does not have an extended command
-    case CMDS.CANCEL_TRAIN.id: {
-      let unitTag = data.readUInt16LE(0);
-      return {
-        unitTag,
-      };
-    }
     default:
-      return null;
+      // ignore remainder
+      return {};
   }
 };
 

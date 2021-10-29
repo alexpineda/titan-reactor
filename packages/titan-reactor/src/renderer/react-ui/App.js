@@ -1,7 +1,7 @@
 import React from "react";
 import shallow from "zustand/shallow";
 import LoadingOverlay from "./LoadingOverlay";
-import BackgroundPreload from "./BackgroundPreload";
+import CornerStatus from "./CornerStatus";
 import Initializing from "./home/Initializing";
 import Map from "./Map";
 import Game from "./Game";
@@ -10,6 +10,7 @@ import "./css/pattern.min.css";
 import "./css/icon.css";
 import "./css/styles.css";
 import "./css/bevel.css";
+import "./css/glitch.css";
 
 import Home from "./home/Home";
 
@@ -49,7 +50,7 @@ const App = () => {
 
       {!criticalError && initialized && (
         <>
-          {errors.length === 0 && !gameIsLoaded && <BackgroundPreload />}
+          {errors.length === 0 && !gameIsLoaded && <CornerStatus />}
           {!chk.loaded && !rep.loaded && <Home />}
           {chk.loaded && <Map />}
           {rep.loaded && <Game />}

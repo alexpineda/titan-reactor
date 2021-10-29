@@ -26,38 +26,49 @@ export class GrpHD implements GRPInterface {
   }) {
     this.imageIndex = imageDef.index;
 
-    const buf = await readAnim();
-    const anim = Anim(buf);
+    // const buf = await readAnim();
+    // const anim = Anim(buf);
 
-    const buf2 = await readAnimHD2();
-    const animHD2 = Anim(buf2);
+    const buf2 = await readAnim();
+    // const buf2 = await readAnimHD2();
+    // const animHD2 = Anim(buf2);
+    const anim = Anim(buf2);
 
-    const getBuf = (map: AnimTextureType) =>
-      buf.slice(map.ddsOffset, map.ddsOffset + map.size);
+    // const getBuf = (map: AnimTextureType) =>
+    //   buf.slice(map.ddsOffset, map.ddsOffset + map.size);
     const getBuf2 = (map: AnimTextureType) =>
       buf2.slice(map.ddsOffset, map.ddsOffset + map.size);
 
     if (anim.sprite.maps?.diffuse) {
-      const ddsBuf = getBuf(anim.sprite.maps.diffuse);
+      const ddsBuf = getBuf2(anim.sprite.maps.diffuse);
       this.diffuse = loadDDS(ddsBuf);
-
-      if (animHD2.sprite.maps?.diffuse) {
-        const ddsBuf = getBuf2(animHD2.sprite.maps.diffuse);
-        this.diffuse.mipmaps.push(loadDDS(ddsBuf).mipmaps[0]);
-      }
-    } else {
-      throw new Error("diffuse map required");
     }
+
+    // if (anim.sprite.maps?.diffuse) {
+    //   const ddsBuf = getBuf(anim.sprite.maps.diffuse);
+    //   this.diffuse = loadDDS(ddsBuf);
+
+    //   if (animHD2.sprite.maps?.diffuse) {
+    //     const ddsBuf = getBuf2(animHD2.sprite.maps.diffuse);
+    //     this.diffuse.mipmaps.push(loadDDS(ddsBuf).mipmaps[0]);
+    //   }
+    // } else {
+    //   throw new Error("diffuse map required");
+    // }
 
     if (anim.sprite.maps?.teamcolor) {
-      const ddsBuf = getBuf(anim.sprite.maps.teamcolor);
+      const ddsBuf = getBuf2(anim.sprite.maps.teamcolor);
       this.teamcolor = loadDDS(ddsBuf);
-
-      if (animHD2.sprite.maps?.teamcolor) {
-        const ddsBuf = getBuf2(animHD2.sprite.maps.teamcolor);
-        this.teamcolor.mipmaps.push(loadDDS(ddsBuf).mipmaps[0]);
-      }
     }
+    // if (anim.sprite.maps?.teamcolor) {
+    //   const ddsBuf = getBuf(anim.sprite.maps.teamcolor);
+    //   this.teamcolor = loadDDS(ddsBuf);
+
+    //   if (animHD2.sprite.maps?.teamcolor) {
+    //     const ddsBuf = getBuf2(animHD2.sprite.maps.teamcolor);
+    //     this.teamcolor.mipmaps.push(loadDDS(ddsBuf).mipmaps[0]);
+    //   }
+    // }
 
     this.frames = anim.sprite.frames;
     this.width = anim.sprite.maps.diffuse.width;

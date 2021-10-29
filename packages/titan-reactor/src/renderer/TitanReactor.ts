@@ -1,10 +1,12 @@
 import concat from "concat-stream";
 import {
-  convertReplayTo116,
+  downgradeReplay,
   parseReplay,
   Version,
   CommandsStream,
+  validateDowngrade,
 } from "downgrade-replay";
+import { ChkDowngrader } from "downgrade-chk";
 import fs from "fs";
 import path from "path";
 import createScmExtractor from "scm-extractor";
@@ -32,7 +34,10 @@ import {
   getSettings,
   setAssets,
   setGame,
-  setPreloadMessage,
+  startLoadingProcess,
+  updateIndeterminateLoadingProcess,
+  completeLoadingProcess,
+  isLoadingProcessComplete,
 } from "./stores";
 import useLoadingStore from "./stores/loadingStore";
 import useSettingsStore from "./stores/settingsStore";
@@ -50,6 +55,21 @@ const loadScx = (filename: string) =>
         })
       )
   );
+
+const funStrings = [
+  "It's a zergling Lester.",
+  "Drop your socks and grab your throttle.",
+  "We shall win through, no matter the cost.",
+  "I got your Zerg right here. hehehehe.",
+  "Taking us into orbit.",
+  "Do you seek knowledge of time travel?",
+  "I see you have an appetite for destruction.",
+  "I like your style, friend.",
+  "Shields up, weapons online.",
+  "You know who the best star fighter in the fleet is?",
+];
+const getFunString = () =>
+  funStrings[Math.floor(Math.random() * funStrings.length)];
 
 export class TitanReactor {
   constructor() {
@@ -78,12 +98,12 @@ export class TitanReactor {
   waitForAssets() {
     log("waiting for assets");
     return new Promise((res: EmptyFunc) => {
-      if (useLoadingStore.getState().assetsComplete) {
+      if (isLoadingProcessComplete("assets")) {
         res();
         return;
       }
-      const unsub = useLoadingStore.subscribe(({ assetsComplete }) => {
-        if (assetsComplete) {
+      const unsub = useLoadingStore.subscribe(() => {
+        if (isLoadingProcessComplete("assets")) {
           unsub();
           res();
         }
@@ -94,38 +114,52 @@ export class TitanReactor {
   async spawnReplay(filepath: string) {
     log(`loading replay ${filepath}`);
     disposeGame();
-    document.title = "Titan Reactor - Loading";
 
     const settings = getSettings();
     if (!settings) {
       throw new Error("settings not loaded");
     }
+    // validate before showing any loading progress
+    const repBin = await openFile(filepath);
+    let rep = await parseReplay(repBin);
+    if (rep.version === Version.remastered) {
+      if (!validateDowngrade(rep)) {
+        alert("This replay file has too many units for downgrading to 1.16 :(");
+        return;
+      }
+    }
+
+    document.title = "Titan Reactor - Loading";
+    startLoadingProcess({
+      id: "replay",
+      label: getFunString(),
+      priority: 1,
+    });
     const loadingStore = useLoadingStore.getState();
     loadingStore.initRep(filepath);
 
     log("parsing replay");
-    const repBin = await openFile(filepath);
     let repFile = filepath;
     const outFile = path.join(settings.tempPath, "replay.out");
 
-    let rep = await parseReplay(repBin);
+    loadingStore.updateRep(pick(["header"], rep));
+
     if (rep.version === Version.remastered) {
-      const classicRep = await convertReplayTo116(rep);
+      const chkDowngrader = new ChkDowngrader();
+      const classicRep = await downgradeReplay(rep, chkDowngrader);
       repFile = path.join(settings.tempPath, "replay.rep");
+      //@todo use fsPromises, bail on error
       await new Promise((res: EmptyFunc) =>
         fs.writeFile(repFile, classicRep, (err) => {
           if (err) {
-            log(err, "error");
+            log(err.message, "error");
             return;
           }
           res();
         })
       );
-
       rep = await parseReplay(classicRep);
     }
-
-    loadingStore.updateRep(pick(["header"], rep));
 
     log("loading chk");
     const chk = new Chk(rep.chk);
@@ -137,7 +171,7 @@ export class TitanReactor {
 
     await this.waitForAssets();
 
-    setPreloadMessage("connecting to bw");
+    updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
 
     log(`starting gamestate reader ${repFile} ${outFile}`);
     const gameStateReader = new OpenBwBridgeReader(
@@ -167,7 +201,7 @@ export class TitanReactor {
     audioMaster.soundVolume = settings.soundVolume;
 
     log("initializing replay");
-    setPreloadMessage("initializing scene");
+    updateIndeterminateLoadingProcess("replay", getFunString());
     TitanImageHD.useDepth = false;
     const game = await TitanReactorGame(
       scene,
@@ -192,7 +226,7 @@ export class TitanReactor {
     log("starting replay");
     document.title = "Titan Reactor - Observing";
     game.start();
-    setPreloadMessage("");
+    completeLoadingProcess("replay");
   }
 
   async spawnMapViewer(chkFilepath: string) {
@@ -200,6 +234,12 @@ export class TitanReactor {
     const minDisplayTime = 3000;
 
     disposeGame();
+
+    startLoadingProcess({
+      id: "map",
+      label: getFunString(),
+      priority: 1,
+    });
 
     const loadingStore = useLoadingStore.getState();
     loadingStore.initChk(chkFilepath);
@@ -217,7 +257,7 @@ export class TitanReactor {
     }
 
     log("initializing scene");
-    setPreloadMessage("initializing scene");
+    updateIndeterminateLoadingProcess("map", getFunString());
 
     const terrainInfo = await generateTerrain(chk);
     const scene = new Scene(terrainInfo);
@@ -237,7 +277,7 @@ export class TitanReactor {
       );
 
     TitanImageHD.useDepth = true;
-    setPreloadMessage("");
+    updateIndeterminateLoadingProcess("map", getFunString());
 
     const game = await TitanReactorMap(
       assets.bwDat,
@@ -252,6 +292,7 @@ export class TitanReactor {
       setTimeout(res, Math.max(0, minDisplayTime - (Date.now() - startTime)))
     );
 
+    completeLoadingProcess("map");
     setGame(game);
     loadingStore.completeChk();
   }

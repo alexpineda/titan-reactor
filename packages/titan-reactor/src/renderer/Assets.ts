@@ -5,9 +5,17 @@ import Icons from "../common/Icons";
 import { GrpFileLoader, GrpHD } from "../common/image";
 import { Anim } from "../common/image/formats";
 import { BwDATType } from "../common/types";
-import { closeCascStorage, openCascStorage, readCascFile } from "../common/utils/casclib";
+import {
+  closeCascStorage,
+  openCascStorage,
+  readCascFile,
+} from "../common/utils/casclib";
 import ContiguousContainer from "./game-data/ContiguousContainer";
-import { completeAssetsLoaded, increaseAssetsLoaded } from "./stores";
+import {
+  startLoadingProcess,
+  updateLoadingProcess,
+  completeLoadingProcess,
+} from "./stores";
 import electronFileLoader from "./utils/electronFileLoader";
 
 class Assets {
@@ -17,6 +25,15 @@ class Assets {
   selectionCirclesHD: GrpHD[] = [];
 
   async preload(starcraftPath: string, communityModelsPath: string) {
+    startLoadingProcess({
+      id: "assets",
+      label: "Loading assets",
+      max: 1010,
+      priority: 10,
+      current: 0,
+      mode: "determinate",
+    });
+
     electronFileLoader((file: string) => {
       if (file.includes(".glb") || file.includes(".hdr")) {
         //todo change to invoke
@@ -30,7 +47,7 @@ class Assets {
 
     //@todo move parsing to client
     this.bwDat = await loadAllDataFiles(readCascFile);
-    increaseAssetsLoaded();
+    updateLoadingProcess("assets");
 
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = Anim(sdAnimBuf);
@@ -49,7 +66,7 @@ class Assets {
 
       this.selectionCirclesHD.push(selCircleGRP);
     }
-    increaseAssetsLoaded();
+    updateLoadingProcess("assets");
 
     // todo compare performance before removing prototype property to useGameStore
     ContiguousContainer.prototype.bwDat = this.bwDat;
@@ -60,7 +77,7 @@ class Assets {
     // renderer.dispose();
 
     await this.icons.generate();
-    increaseAssetsLoaded();
+    updateLoadingProcess("assets");
 
     const grpLoader = new GrpFileLoader(
       this.bwDat,
@@ -71,9 +88,9 @@ class Assets {
 
     for (let i = 0; i < 999; i++) {
       this.grps[i] = await grpLoader.load(i);
-      increaseAssetsLoaded();
+      updateLoadingProcess("assets");
     }
-    completeAssetsLoaded();
+    completeLoadingProcess("assets");
   }
 
   async loadAudioFile(id: number) {

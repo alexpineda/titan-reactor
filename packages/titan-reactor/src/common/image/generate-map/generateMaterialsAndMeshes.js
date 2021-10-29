@@ -26,8 +26,9 @@ import { MapEffect } from "./effects/MapEffect";
 import { minimapBitmap as genMinimapBitmap } from "./sd";
 
 import {
-  increaseMapGenerationProgress,
-  completeMapGeneration,
+  startLoadingProcess,
+  updateLoadingProcess,
+  completeLoadingProcess
 } from "../../../renderer/stores/loadingStore";
 
 const DEFAULT_GEOM_OPTIONS = {
@@ -77,6 +78,15 @@ export const generateMaterialsAndMeshes = async (
     alpha: true,
   });
   renderer.autoClear = false;
+
+  startLoadingProcess({
+    id: "terrain",
+    label: "Generating terrain",
+    priority: 20,
+    max: 50,
+    current: 0,
+    mode: "determinate"
+  });
 
   const camera = new THREE.PerspectiveCamera();
 
@@ -294,7 +304,7 @@ export const generateMaterialsAndMeshes = async (
     composer.render(0.01);
   }
   //#endregion composer
-  increaseMapGenerationProgress();
+  updateLoadingProcess("terrain");
 
   const displaceCanvas = document.createElement("canvas");
   displaceCanvas.width = mapWidth * geomOptions.displaceDimensionScale;
@@ -672,7 +682,7 @@ export const generateMaterialsAndMeshes = async (
 
   for (let qy = 0; qy < hdMaps.quartileStrideH; qy++) {
     for (let qx = 0; qx < hdMaps.quartileStrideW; qx++) {
-      increaseMapGenerationProgress();
+      updateLoadingProcess("terrain");
 
       // const g = new THREE.PlaneBufferGeometry(
       //   qw,
@@ -914,7 +924,7 @@ export const generateMaterialsAndMeshes = async (
     mapWidth,
     mapHeight
   );
-  completeMapGeneration();
+  completeLoadingProcess("terrain");
 
   return {
     sdTerrain,

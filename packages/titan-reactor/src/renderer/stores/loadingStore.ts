@@ -4,6 +4,20 @@ import create from "zustand";
 export const ASSETS_MAX = 1010;
 export const MAP_GENERATION_MAX = 50;
 
+type BaseProcess = {
+  id: string,
+  label: string,
+  priority: number,
+};
+
+type DeterminateProcess = BaseProcess & {
+  max:  number,
+  current: number,
+  mode: "determinate"
+};
+
+type Process = BaseProcess | DeterminateProcess;
+
 type LoadingStore = {
   initialized: boolean;
   isReplay: boolean;
@@ -11,16 +25,13 @@ type LoadingStore = {
   isMap: boolean;
   chk: { filename?: string; loading?: boolean; loaded?: boolean };
   rep: { filename?: string; loading?: boolean; loaded?: boolean };
-  assetsLoaded: number;
-  assetsComplete: boolean;
-  mapGenerationProgress: number;
-  mapGenerationComplete: boolean;
-  preloadMessage: string;
-  setPreloadMessage: (preloadMessage: string) => void;
-  increaseAssetsLoaded: () => void;
-  completeAssetsLoaded: () => void;
-  increaseMapGenerationProgress: () => void;
-  completeMapGeneration: () => void;
+  completedProcesses: Process[];
+  processes: Process[];
+  startProcess: (process: Process) => void;
+  updateProcess: (id: string, current?: number) => void;
+  updateIndeterminateProcess: (id: string, label: string) => void;
+  completeProcess: (id: string) => void;
+  isProcessComplete: (id:string) => boolean;
   initRep: (filename: string) => void;
   updateRep: (rep: any) => void;
   initChk: (filename: string) => void;
@@ -30,28 +41,40 @@ type LoadingStore = {
   reset: () => void;
 };
 
-export const useLoadingStore = create<LoadingStore>((set) => ({
+export const useLoadingStore = create<LoadingStore>((set, get) => ({
   isReplay: false,
   isGame: false,
   isMap: false,
   chk: { filename: "", loaded: false },
   rep: { filename: "", loaded: false },
-  assetsLoaded: 0,
-  assetsComplete: false,
-  mapGenerationComplete: false,
-  mapGenerationProgress: 0,
-  preloadMessage: "",
-  setPreloadMessage: (preloadMessage: string) => set({ preloadMessage }),
-  increaseAssetsLoaded: () =>
-    set((state) => ({ assetsLoaded: state.assetsLoaded + 1 })),
-  completeAssetsLoaded: () => set({ assetsComplete: true, assetsLoaded: 0 }),
-  increaseMapGenerationProgress: () =>
-    set((state) => ({
-      mapGenerationProgress: state.mapGenerationProgress + 1,
-      mapGenerationComplete: false,
-    })),
-  completeMapGeneration: () =>
-    set({ mapGenerationComplete: true, mapGenerationProgress: 0 }),
+  completedProcesses: [],
+  processes: [],
+  startProcess: (process:Process) => {
+    set(({processes, completedProcesses}) => ({
+      processes: [...processes, process],
+      completedProcesses: completedProcesses.filter(p => p.id !== process.id),
+    }));
+
+  },
+  updateProcess: (id: string, current?: number) => 
+    set(state => (
+      {processes: (state.processes as DeterminateProcess[]).map(p => 
+        (p.id === id ? {...p, current: current ?? p.current + 1} : p) 
+      )})),
+  updateIndeterminateProcess: (id: string, label: string) => 
+  set(state => (
+    {processes: (state.processes as BaseProcess[]).map(p => 
+      (p.id === id ? {...p, label} : p) 
+    )})),
+  completeProcess: (id: string) => {
+    const process = get().processes.find(p => p.id === id);
+    if (!process) return;
+     set(({processes, completedProcesses}) => ({
+       processes: processes.filter(p => p.id !== id),
+       completedProcesses: [...completedProcesses, process]
+      }));
+  },
+  isProcessComplete: (id:string) => get().completedProcesses.some(p => p.id === id),
   initRep: (filename: string) =>
     set({ rep: { filename, loading: true }, chk: {} }),
   updateRep: (data: any) =>
@@ -70,13 +93,8 @@ export const useLoadingStore = create<LoadingStore>((set) => ({
 
 export default useLoadingStore;
 
-export const increaseAssetsLoaded =
-  useLoadingStore.getState().increaseAssetsLoaded;
-export const completeAssetsLoaded =
-  useLoadingStore.getState().completeAssetsLoaded;
-
-export const increaseMapGenerationProgress =
-  useLoadingStore.getState().increaseMapGenerationProgress;
-export const completeMapGeneration =
-  useLoadingStore.getState().completeMapGeneration;
-export const setPreloadMessage = useLoadingStore.getState().setPreloadMessage;
+export const startLoadingProcess = useLoadingStore.getState().startProcess;
+export const updateLoadingProcess = useLoadingStore.getState().updateProcess;
+export const updateIndeterminateLoadingProcess = useLoadingStore.getState().updateIndeterminateProcess;
+export const completeLoadingProcess = useLoadingStore.getState().completeProcess;
+export const isLoadingProcessComplete = useLoadingStore.getState().isProcessComplete;
