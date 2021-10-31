@@ -2,6 +2,9 @@
 
 Titan Reactor is a fan made map and replay viewer specifically made for content creators of the best game in the world, Starcraft Remastered.
 
+![image](https://user-images.githubusercontent.com/586716/139562963-493ffd7d-e21a-46e8-a9f6-29b2761ab852.png)
+
+
 - [Join our Discord](http://discord.imbateam.gg/)
 - [Demo Video (Youtube)](https://www.youtube.com/watch?v=CwzkjboEbqo)
 - [Development Resources](https://github.com/imbateam-gg/awesome-bw-dev)
