@@ -8,8 +8,8 @@
   },
   "author": "Alex Pineda <alexpineda@fastmail.com>",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/imbateam-gg/pkware-wasm.git"
-  },  
+    "type": "git",
+    "url": "https://github.com/imbateam-gg/pkware-wasm.git"
+  },
   "license": "MIT"
 }

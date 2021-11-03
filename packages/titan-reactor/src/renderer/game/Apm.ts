@@ -1,7 +1,5 @@
 import { Player } from "../../common/types/player";
 import { ReplayCommandType } from "../../common/types/replay";
-import { gameSpeeds } from "../../common/utils/conversions";
-import range from "../../common/utils/range";
 
 export class Apm {
   actions = new Array(8).fill(0);
@@ -24,7 +22,7 @@ export class Apm {
       }
       for (const player of this.players) {
         this.apm[player.id] = Math.floor(
-          this.actions[player.id] / bwGameFrame / 1000
+          this.actions[player.id] / bwGameFrame / 10
         );
       }
     }

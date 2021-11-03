@@ -3,7 +3,7 @@ const downgradeReplay = require("./downgrade");
 const CommandsStream = require("./commands/commands-stream");
 const { CMDS } = require("./commands/commands");
 const Chk = require("../libs/bw-chk");
-const { ChkDowngrader } = require("downgrade-chk");
+const { ChkDowngrader } = require("./chk");
 
 const areEqualArray = (a, b) =>
   Array.isArray(a) && Array.isArray(b) && areEqual(a, b);
