@@ -3,7 +3,7 @@ import create from "zustand";
 import { UnitDAT } from "../../common/bwdat/core/units-dat";
 import { Player } from "../../common/types/player";
 import range from "../../common/utils/range";
-import Assets from "../assets";
+import Assets from "../render/assets";
 import { UnitInstance } from "../game/unit-instance";
 
 export const CHAT_INTERVAL = 4000;

@@ -34,7 +34,7 @@ import {
 import FrameBW from "./game-data/frame";
 import StreamGameStateReader from "./game-data/readers/stream-game-state-reader";
 import { InputEvents, KeyboardShortcuts, MinimapControl } from "./input";
-import { GameCanvasTarget, RenderMan, Scene } from "./render";
+import { GameCanvasTarget, Renderer, Scene } from "./render";
 import {
   useGameStore,
   useHudStore,
@@ -72,10 +72,7 @@ async function TitanReactorGame(
 
   const { mapWidth, mapHeight } = terrainInfo;
 
-  const renderMan = new RenderMan(settings);
-  if (renderMan.renderer === undefined) {
-    throw new Error("Renderer not initialized");
-  }
+  const renderer = new Renderer(settings);
 
   const keyboardShortcuts = new KeyboardShortcuts(window.document);
 
@@ -123,16 +120,20 @@ async function TitanReactorGame(
     RIGHT: MOUSE.ROTATE,
   };
 
-  await renderMan.initRenderer(cameraRig.camera);
-  //@ts-ignore
-  window.renderMan = renderMan;
-
-  if (settings.renderMode !== RenderMode.ThreeD && renderMan.renderer) {
-    renderMan.renderer.shadowMap.autoUpdate = false;
-    renderMan.renderer.shadowMap.needsUpdate = true;
+  await renderer.init(cameraRig.camera);
+  if (renderer.renderer === undefined) {
+    throw new Error("Renderer not initialized");
   }
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
+  //@ts-ignore
+  window.renderMan = renderer;
+
+  if (settings.renderMode !== RenderMode.ThreeD && renderer.renderer) {
+    renderer.renderer.shadowMap.autoUpdate = false;
+    renderer.renderer.shadowMap.needsUpdate = true;
+  }
+
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
 
   const customColors = settings.randomizeColorOrder
     ? shuffle(settings.playerColors)
@@ -191,7 +192,7 @@ async function TitanReactorGame(
   window.cameras = cameraRig;
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     cameraRig.updateGameScreenAspect(gameSurface.width, gameSurface.height);
     // players.forEach(({ camera }) =>
@@ -428,7 +429,7 @@ async function TitanReactorGame(
 
     cameraRig.updateDirection32();
 
-    renderMan.setCanvasTarget(gameSurface);
+    renderer.setCanvasTarget(gameSurface);
 
     // if (players[0].showPov && players[1].showPov) {
     //   players.forEach(({ camera }) => {
@@ -459,10 +460,10 @@ async function TitanReactorGame(
     // target.setZ((target.z + cameraRig.camera.position.z) / 2);
     // audioMaster.update(target.x, target.y, target.z, delta);
 
-    renderMan.enableCinematicPass();
-    renderMan.updateFocus(cameraRig.camera);
+    renderer.enableCinematicPass();
+    renderer.updateFocus(cameraRig.camera);
     fogOfWar.update(cameraRig.camera);
-    renderMan.render(scene, cameraRig.camera, delta);
+    renderer.render(scene, cameraRig.camera, delta);
     // }
 
     minimapCanvasDrawer.draw(projectedCameraView);
@@ -486,7 +487,7 @@ async function TitanReactorGame(
     window.renderMan = null;
 
     audioMaster.dispose();
-    renderMan.dispose();
+    renderer.dispose();
     gameStatePosition.pause();
     window.removeEventListener("resize", sceneResizeHandler, false);
 
@@ -566,12 +567,12 @@ async function TitanReactorGame(
   gameLoop(0);
   gameLoop(0);
   _sceneResizeHandler();
-  preloadScene(renderMan.renderer, scene, cameraRig.compileCamera);
+  preloadScene(renderer.renderer, scene, cameraRig.compileCamera);
 
   //preload scene
 
   return {
-    start: () => renderMan.renderer?.setAnimationLoop(gameLoop),
+    start: () => renderer.renderer?.setAnimationLoop(gameLoop),
     gameSurface,
     minimapSurface,
     players,

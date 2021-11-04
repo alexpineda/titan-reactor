@@ -1,6 +1,7 @@
 import { Grp } from "bw-chk-modified/grp";
 import parseIscriptBin from "iscript";
 import path from "path";
+import { Buffer } from "buffer";
 
 import { ReadFile } from "../../types";
 import { GrpFrameType, GrpType } from "../../types/grp";
@@ -18,7 +19,7 @@ import { UnitDAT, UnitsDAT } from "./units-dat";
 import { UpgradesDAT } from "./upgrades-dat";
 import { WeaponsDAT } from "./weapons-dat";
 
-export async function loadAllDataFiles(readFile: ReadFile): Promise<BwDATType> {
+export async function loadDATFiles(readFile: ReadFile): Promise<BwDATType> {
   //@todo move parse iscript to common/iscript
   const iscript = parseIscriptBin(
     await readFile("scripts/iscript.bin")

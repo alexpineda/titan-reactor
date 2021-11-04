@@ -22,11 +22,11 @@ import { createIScriptRunnerFactory } from "../common/iscript";
 import { ChkType, EmptyFunc } from "../common/types";
 import pick from "../common/utils/pick";
 import uniq from "../common/utils/uniq";
-import Assets from "./assets";
+import Assets from "./render/assets";
 import { AudioMaster } from "./audio";
 import OpenBwBridgeReader from "./game-data/readers/openbw-bridge-reader";
 import { log, openFile } from "./ipc";
-import Scene, { generateTerrain } from "./render/scene";
+import { Scene, generateTerrain } from "./render";
 import {
   disposeAssets,
   disposeGame,

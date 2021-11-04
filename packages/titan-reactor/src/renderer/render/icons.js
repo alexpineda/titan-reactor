@@ -1,5 +1,5 @@
-import generateIcons from "./image/generate-icons/generate-icons";
-import readCascFile from "./utils/casclib";
+import generateIcons from "../../common/image/generate-icons/generate-icons";
+import { openCasclibFile } from "../ipc";
 
 class Icons {
   async generate() {
@@ -12,7 +12,7 @@ class Icons {
       hoverIcons,
       dragIcons,
       wireframeIcons,
-    ] = await generateIcons(readCascFile);
+    ] = await generateIcons(openCasclibFile);
 
     this.gameIcons = gameIcons;
     this.cmdIcons = cmdIcons;

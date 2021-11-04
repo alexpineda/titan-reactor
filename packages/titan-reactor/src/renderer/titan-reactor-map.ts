@@ -15,7 +15,7 @@ import { pxToMapMeter } from "../common/utils/conversions";
 import CameraRig from "./camera/camera-rig";
 import FogOfWar from "./fogofwar/fog-of-war";
 import { InputEvents, KeyboardShortcuts } from "./input";
-import { RenderMan, Scene } from "./render";
+import { Renderer, Scene } from "./render";
 import { useHudStore, useSettingsStore } from "./stores";
 
 function createStartLocation(
@@ -104,13 +104,13 @@ async function TitanReactorMap(
   cameraRig.camera.position.set(0, 120, 100);
   cameraRig.camera.lookAt(0, 0, 0);
 
-  const renderMan = new RenderMan(settings);
-  await renderMan.initRenderer(cameraRig.camera);
-  renderMan.enableRenderPass();
+  const renderer = new Renderer(settings);
+  await renderer.init(cameraRig.camera);
+  renderer.enableRenderPass();
   //@ts-ignore
-  window.renderMan = renderMan;
+  window.renderMan = renderer;
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderMan.fogOfWarEffect);
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
   fogOfWar.enabled = false;
 
   const playerColors = [
@@ -195,7 +195,7 @@ async function TitanReactorMap(
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     cameraRig.updateGameScreenAspect(gameSurface.width, gameSurface.height);
   };
@@ -207,8 +207,8 @@ async function TitanReactorMap(
   let last = 0;
   let frame = 0;
   let frameElapsed = 0;
-  renderMan.setCanvasTarget(gameSurface);
-  renderMan.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+  renderer.setCanvasTarget(gameSurface);
+  renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
   function gameLoop(elapsed: number) {
     if (!running) return;
@@ -227,15 +227,15 @@ async function TitanReactorMap(
     }
 
     cameraRig.update();
-    renderMan.updateFocus(cameraRig.camera);
+    renderer.updateFocus(cameraRig.camera);
     fogOfWar.update(cameraRig.camera);
-    renderMan.render(scene, cameraRig.camera, delta);
+    renderer.render(scene, cameraRig.camera, delta);
     last = elapsed;
 
     orbitControls.update();
   }
 
-  renderMan.renderer.setAnimationLoop(gameLoop);
+  renderer.renderer.setAnimationLoop(gameLoop);
 
   //@ts-ignore
   window.scene = scene;
@@ -275,13 +275,13 @@ async function TitanReactorMap(
     window.document.body.style.cursor = "";
     window.removeEventListener("resize", sceneResizeHandler);
 
-    renderMan.renderer.setAnimationLoop(null);
+    renderer.renderer.setAnimationLoop(null);
     running = false;
 
     scene.dispose();
 
     cameraRig.dispose();
-    renderMan.dispose();
+    renderer.dispose();
 
     keyboardShortcuts.removeEventListener(
       InputEvents.ToggleMenu,

@@ -34,7 +34,7 @@ OverrideMaterialManager.workaroundEnabled = true;
 
 const log = console.log;
 
-export class RenderMan {
+export class Renderer {
   settings: Settings;
   renderer?: WebGLRenderer;
   _dofEffect: DepthOfFieldEffect;
@@ -262,7 +262,7 @@ export class RenderMan {
     return renderer;
   }
 
-  async initRenderer(camera: Camera) {
+  async init(camera: Camera) {
     log("initializing renderer");
     if (this.renderer) {
       this.dispose();
@@ -276,7 +276,7 @@ export class RenderMan {
     this._contextLostListener = () => {};
     this._contextRestoredListener = () => {
       this.dispose();
-      this.initRenderer(camera);
+      this.init(camera);
     };
     this.renderer.domElement.addEventListener(
       "webglcontextlost",
@@ -308,7 +308,8 @@ export class RenderMan {
     this._dofEffect.camera = null;
     this._cinematicPass.dispose();
     this.renderer?.dispose();
+    this.renderer = undefined;
   }
 }
 
-export default RenderMan;
+export default Renderer;

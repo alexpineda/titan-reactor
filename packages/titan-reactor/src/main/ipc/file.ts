@@ -11,9 +11,56 @@ import {
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   SELECT_FOLDER,
+  OPEN_CASCLIB,
+  OPEN_CASCLIB_FILE,
+  CLOSE_CASCLIB,
 } from "../../common/ipc";
 import { openFileBinary } from "../../common/utils/fs";
 import browserWindows from "../browser-windows";
+
+import * as casclib from "casclib";
+
+let _storageHandle: any = null;
+let _lastBwPath = "";
+
+export const readCascFile = (filePath: string) => {
+  try {
+    return casclib.readFile(_storageHandle, filePath);
+  } catch (e) {
+    console.error("failed loading casc file, retrying open casc");
+    casclib.openStorage(_lastBwPath);
+    return casclib.readFile(_storageHandle, filePath);
+  }
+};
+export default readCascFile;
+
+export const openCascStorage = (bwPath: string) => {
+  _lastBwPath = bwPath;
+  if (_storageHandle) {
+    casclib.closeStorage(_storageHandle);
+  }
+  _storageHandle = casclib.openStorageSync(bwPath);
+};
+
+export const closeCascStorage = () =>
+  _storageHandle && casclib.closeStorage(_storageHandle);
+
+ipcMain.handle(OPEN_CASCLIB, (_, bwPath) => {
+  try {
+    openCascStorage(bwPath);
+    return true;
+  } catch (e) {
+    return false;
+  }
+});
+
+ipcMain.handle(OPEN_CASCLIB_FILE, async (_, filepath) => {
+  return await readCascFile(filepath);
+});
+
+ipcMain.handle(CLOSE_CASCLIB, () => {
+  closeCascStorage();
+});
 
 ipcMain.handle(OPEN_FILE, async (_, filepath = "") => {
   return await openFileBinary(filepath);

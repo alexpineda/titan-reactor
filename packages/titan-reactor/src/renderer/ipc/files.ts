@@ -1,7 +1,28 @@
 import { Buffer } from "buffer/";
 import { ipcRenderer } from "electron";
 
-import { OPEN_DEMO_REPLAY, OPEN_FILE, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, SELECT_FOLDER } from "../../common/ipc";
+import {
+  OPEN_DEMO_REPLAY,
+  OPEN_FILE,
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+  SELECT_FOLDER,
+  OPEN_CASCLIB,
+  OPEN_CASCLIB_FILE,
+  CLOSE_CASCLIB,
+} from "../../common/ipc";
+
+export const openCasclib = async (bwPath: string) => {
+  return await ipcRenderer.invoke(OPEN_CASCLIB, bwPath);
+};
+
+export const closeCasclib = () => {
+  ipcRenderer.invoke(CLOSE_CASCLIB);
+};
+
+export const openCasclibFile = async (filepath: string) => {
+  return new Buffer(await ipcRenderer.invoke(OPEN_CASCLIB_FILE, filepath));
+};
 
 export const openFile = async (filepath: string) => {
   const result = await ipcRenderer.invoke(OPEN_FILE, filepath);
