@@ -14,13 +14,15 @@ const decodeTileGroups = (tilegroupBuf) =>
     );
 
     const groupId = buf.readUInt16LE(0);
-    const flags = buf.readUInt8(2) & 0x0f;
+    const flags = buf.readUInt8(2) & 0xf0;
     const buildable = flags === 0;
-    const creep = Boolean(flags >> 2);
-    const unbuildable = Boolean(flags >> 3);
-    const elevation = buf.readUInt8(3) & 0xf0;
+    const creep = Boolean(flags & 0x40);
+    const unbuildable = Boolean(flags & 0x80);
+    const elevation = buf.readUInt8(3) & 0xf;
     const data = buf.slice(20, 20 + 32);
     const tiles = range(0, 16).map((j) => data.readUInt16LE(j * 2));
+    const zeroBuf = Buffer.alloc(TILEGROUP_SIZE, 0).compare(buf) === 0;
+    const hex = buf.toString("hex");
 
     return {
       index: i,
@@ -30,6 +32,9 @@ const decodeTileGroups = (tilegroupBuf) =>
       unbuildable,
       elevation,
       tiles,
+      zeroBuf,
+      tileBuf: data,
+      hex,
     };
   });
 
@@ -54,6 +59,7 @@ const decodeTiles = (
       return;
     }
     const megatile = megatiles[id];
+    // @todo should I worry about this?
     const flipped = Boolean(megatile & 0x1);
 
     let walkable = 0;
@@ -64,19 +70,17 @@ const decodeTiles = (
     const _scores = [[], [], [], []];
     for (let m = 0; m < 16; m++) {
       const meta = minitilesU16[id * 16 + m];
-      walkable = walkable || (meta & 0x1) << (15 - m);
-      mid = mid || (meta & 0x02) << (15 - m);
-      high = high || (meta & 0x04) << (15 - m);
-      blocksView = blocksView || (meta & 0x08) << (15 - m);
+      walkable = walkable | ((meta & 0x1) << (15 - m));
+      mid = mid | ((meta & 0x02 ? 1 : 0) << (15 - m));
+      high = high | ((meta & 0x04 ? 1 : 0) << (15 - m));
+      blocksView = blocksView | ((meta & 0x08 ? 1 : 0) << (15 - m));
 
       _scores[0].push(meta & 0x1);
       _scores[1].push(meta & 0x02);
       _scores[2].push(meta & 0x04);
       _scores[3].push(meta & 0x08);
     }
-    const scores = _scores.map((type) =>
-      getCenterAndRadius(type, flipXInScore && flipped)
-    );
+    const scores = _scores.map((type) => getCenterAndRadius(type));
 
     const out = {
       id,

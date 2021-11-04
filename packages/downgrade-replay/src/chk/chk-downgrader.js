@@ -6,10 +6,12 @@ const DEFAULT_OPTIONS = {
 };
 
 class ChkDowngrader {
-  downgrade(buf, userOptions) {
-    const opts = Object.assign({}, DEFAULT_OPTIONS, userOptions);
+  constructor(userOptions = {}) {
+    this.opts = Object.assign({}, DEFAULT_OPTIONS, userOptions);
+  }
+  downgrade(buf) {
     const chunks = getChkChunks(buf);
-    const orchestrate = new Orchestrate(chunks, opts);
+    const orchestrate = new Orchestrate(chunks, this.opts);
 
     return orchestrate.downgrade();
   }

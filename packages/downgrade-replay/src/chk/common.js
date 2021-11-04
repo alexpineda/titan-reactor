@@ -6,6 +6,17 @@ const Version = {
   BroodwarRemastered: 206,
 };
 
+const tilesetNames = [
+  "badlands",
+  "platform",
+  "install",
+  "ashworld",
+  "jungle",
+  "desert",
+  "ice",
+  "twilight",
+];
+
 const chunkTypes = [
   "VER\x20",
   "VCOD",
@@ -58,4 +69,4 @@ const chunkTypes = [
 
 //OWNR, SIDE, FORC <- VCOD verification
 
-module.exports = { Version, chunkTypes };
+module.exports = { Version, chunkTypes, tilesetNames };

@@ -1,20 +1,47 @@
+const groupMatch = (scr, bw) => {
+  const mismatches = [];
+  if (scr.index !== bw.index) {
+    mismatches.push(`index: ${scr.index} !== ${bw.index}`);
+  }
+  if (scr.buildable !== bw.buildable) {
+    mismatches.push(`buildable: ${scr.buildable} !== ${bw.buildable}`);
+  }
+  if (scr.unbuildable !== bw.unbuildable) {
+    mismatches.push(`unbuildable: ${scr.unbuildable} !== ${bw.unbuildable}`);
+  }
+  if (scr.elevation !== bw.elevation) {
+    mismatches.push(`elevation: ${scr.elevation} !== ${bw.elevation}`);
+  }
+  if (scr.elevation !== bw.elevation) {
+    mismatches.push(`elevation: ${scr.elevation} !== ${bw.elevation}`);
+  }
+  return [
+    scr.index === bw.index &&
+      scr.buildable === bw.buildable &&
+      scr.creep === bw.creep &&
+      scr.unbuildable === bw.unbuildable &&
+      scr.elevation === bw.elevation &&
+      scr.tileBuf.compare(bw.tileBuf) === 0,
+    mismatches,
+  ];
+  //@todo test tiles in group
+};
+
 const exactMatch = (scr, bw) => {
+  // ignoring flipped vx4 flag
   return (
-    bw.id === scr.id ||
-    (bw.flipped === scr.flipped &&
-      bw.walkable === scr.walkable &&
-      bw.mid === scr.mid &&
-      bw.high === scr.high &&
-      bw.buildable === scr.buildable &&
-      bw.unbuildable === scr.unbuildable &&
-      bw.elevation === scr.elevation &&
-      !bw.creep &&
-      !bw.blocksView)
+    bw.walkable === scr.walkable &&
+    bw.mid === scr.mid &&
+    bw.high === scr.high &&
+    bw.buildable === scr.buildable &&
+    bw.unbuildable === scr.unbuildable &&
+    bw.elevation === scr.elevation &&
+    bw.creep === scr.creep &&
+    bw.blocksView === scr.blocksView
   );
 };
 
 // @todo test all flipped bw tiles the other way as well?
-// @todo include tilegroup flags in search, expand search based on priority
 const scoreMatch = (scr, bwTiles) => {
   // equally weighted amongst all flags
   const flags = ["walkable", "mid", "high"];
@@ -31,8 +58,27 @@ const scoreMatch = (scr, bwTiles) => {
     }
   };
 
+  const test = bwTiles
+    // must be an exact match on tilegroup cv5 flags as well as blocks view vr4 flags
+    .filter(
+      (bwTile) =>
+        bwTile.creep === scr.creep &&
+        bwTile.blocksView === scr.blocksView &&
+        scr.buildable === bwTile.buildable &&
+        scr.unbuildable === bwTile.unbuildable &&
+        scr.elevation === bwTile.elevation
+    );
+
   const nearest = bwTiles
-    .filter((bwTile) => !bwTile.creep && !bwTile.blocksView)
+    // must be an exact match on tilegroup cv5 flags as well as blocks view vr4 flags
+    .filter(
+      (bwTile) =>
+        bwTile.creep === scr.creep &&
+        bwTile.blocksView === scr.blocksView &&
+        scr.buildable === bwTile.buildable &&
+        scr.unbuildable === bwTile.unbuildable &&
+        scr.elevation === bwTile.elevation
+    )
     .reduce(
       (nearest, bwTile) => {
         const score = flags.reduce(
@@ -48,13 +94,17 @@ const scoreMatch = (scr, bwTiles) => {
           return nearest;
         }
       },
-      { scoreFlags: 999 }
+      { scoreFlags: 999, invalid: true }
     );
 
-  return [scr, nearest];
+  if (nearest.invalid) {
+    throw new Error("no partial match was found");
+  }
+  return nearest;
 };
 
 module.exports = {
   exactMatch,
   scoreMatch,
+  groupMatch,
 };
