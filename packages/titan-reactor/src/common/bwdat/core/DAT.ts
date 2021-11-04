@@ -1,7 +1,7 @@
 import range from "../../utils/range";
 import { TBL } from "./tbl";
+import { ReadFile } from "../../types";
 
-export type ReadFileType = (fname: string) => Promise<Buffer>;
 export type FormatType = {
   size: number;
   names?: string[];
@@ -11,7 +11,7 @@ export type FormatType = {
 };
 
 export class DAT<Type> {
-  private readonly readFile: ReadFileType;
+  private readonly readFile: ReadFile;
   private initialized?: Promise<string[]>;
   stats: string[] = [];
 
@@ -21,7 +21,7 @@ export class DAT<Type> {
   protected format?: FormatType[];
   entries: Type[] = [];
 
-  constructor(readFile: ReadFileType) {
+  constructor(readFile: ReadFile) {
     this.readFile = readFile;
     this.statFile = "rez/stat_txt.tbl";
   }

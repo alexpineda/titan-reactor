@@ -1,5 +1,6 @@
-import { DAT, ReadFileType } from "./dat";
+import { DAT } from "./dat";
 import { SpriteDATType } from "./sprites-dat";
+import { ReadFile } from "../../types";
 
 export type FlingyDATType = {
   sprite: SpriteDATType;
@@ -11,7 +12,7 @@ export type FlingyDATType = {
 
 export class FlingyDAT extends DAT<FlingyDATType> {
   protected override count = 209;
-  constructor(readFile: ReadFileType, sprites: SpriteDATType[] = []) {
+  constructor(readFile: ReadFile, sprites: SpriteDATType[] = []) {
     super(readFile);
 
     this.format = [

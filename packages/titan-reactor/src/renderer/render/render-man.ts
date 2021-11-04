@@ -290,10 +290,6 @@ export class RenderMan {
     );
   }
 
-  get setAnimationLoop() {
-    return this.renderer?.setAnimationLoop;
-  }
-
   dispose() {
     // @ts-ignore
     // typescript does not recognize webglcontext events

@@ -73,6 +73,9 @@ async function TitanReactorGame(
   const { mapWidth, mapHeight } = terrainInfo;
 
   const renderMan = new RenderMan(settings);
+  if (renderMan.renderer === undefined) {
+    throw new Error("Renderer not initialized");
+  }
 
   const keyboardShortcuts = new KeyboardShortcuts(window.document);
 
@@ -568,7 +571,7 @@ async function TitanReactorGame(
   //preload scene
 
   return {
-    start: () => renderMan.setAnimationLoop(gameLoop),
+    start: () => renderMan.renderer?.setAnimationLoop(gameLoop),
     gameSurface,
     minimapSurface,
     players,

@@ -1,10 +1,11 @@
-import { DAT, ReadFileType } from "./dat";
+import { DAT } from "./dat";
+import { ReadFile } from "../../types";
 
 export type OrderDATType = {
   name: string;
 };
 export class OrdersDAT extends DAT<OrderDATType> {
-  constructor(readFile: ReadFileType) {
+  constructor(readFile: ReadFile) {
     super(readFile);
 
     this.format = [

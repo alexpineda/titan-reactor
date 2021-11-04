@@ -1,5 +1,6 @@
-import { DAT, ReadFileType } from "./dat";
+import { DAT } from "./dat";
 import imageNames from "./strings/image-names.js";
+import { ReadFile } from "../../types";
 
 export type ImageDATType = {
   index: number;
@@ -22,7 +23,7 @@ export type ImageDATType = {
 };
 
 export class ImagesDAT extends DAT<ImageDATType> {
-  constructor(readFile: ReadFileType) {
+  constructor(readFile: ReadFile) {
     super(readFile);
 
     this.statFile = "arr/images.tbl";

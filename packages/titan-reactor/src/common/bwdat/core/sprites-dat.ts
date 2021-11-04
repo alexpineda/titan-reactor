@@ -1,8 +1,9 @@
 import range from "../../utils/range";
 import { selectionCircleSize } from "../enums/selection-circle-size";
-import { DAT, ReadFileType } from "./dat";
+import { DAT } from "./dat";
 import spriteNames from "./strings/sprite-names.js";
 import { ImageDATType } from "./images-dat";
+import { ReadFile } from "../../types";
 
 export type SpriteDATType = {
   image: ImageDATType;
@@ -21,7 +22,7 @@ export class SpritesDAT extends DAT<SpriteDATType> {
     };
   }
 
-  constructor(readFile: ReadFileType, images: ImageDATType[] = []) {
+  constructor(readFile: ReadFile, images: ImageDATType[] = []) {
     super(readFile);
 
     this.format = [

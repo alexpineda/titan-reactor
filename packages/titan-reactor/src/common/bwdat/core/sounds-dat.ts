@@ -1,4 +1,5 @@
-import { DAT, ReadFileType } from "./dat";
+import { DAT } from "./dat";
+import { ReadFile } from "../../types";
 
 export type SoundDATType = {
   file: string;
@@ -9,7 +10,7 @@ export type SoundDATType = {
 };
 
 export class SoundsDAT extends DAT<SoundDATType> {
-  constructor(readFile: ReadFileType) {
+  constructor(readFile: ReadFile) {
     super(readFile);
 
     this.statFile = "arr/sfxdata.tbl";
