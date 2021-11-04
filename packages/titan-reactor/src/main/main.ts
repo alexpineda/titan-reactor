@@ -4,9 +4,9 @@ import path from "path";
 import "./ipc";
 import "./menu";
 
-import browserWindows, { initializeGameWindow } from "./browserWindows";
+import browserWindows, { initializeGameWindow } from "./browser-windows";
 import { settings } from "./common";
-import { getUserDataPath } from "./userDataPath";
+import { getUserDataPath } from "./user-data-path";
 
 const psbId = powerSaveBlocker.start("prevent-display-sleep");
 

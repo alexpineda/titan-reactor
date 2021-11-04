@@ -1,16 +1,15 @@
 import React from "react";
-import WrappedElement from "./WrappedElement";
-import useGameStore from "../stores/gameStore";
-import useHudStore from "../stores/hudStore";
-import useSettingsStore from "../stores/settingsStore";
-import useLoadingStore from "../stores/loadingStore";
-import shallow from "zustand/shallow";
-import Menu from "./game/Menu";
-import { ipcRenderer } from "electron";
+import WrappedElement from "./wrapped-element";
 import {
-  OPEN_MAP_DIALOG,
-  OPEN_REPLAY_DIALOG,
-} from "../../common/ipc/handleNames";
+  useGameStore,
+  useHudStore,
+  useSettingsStore,
+  useLoadingStore,
+} from "../stores";
+import shallow from "zustand/shallow";
+import Menu from "./game/menu";
+import { ipcRenderer } from "electron";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../../common/ipc";
 
 const hudStoreSelector = (state) => ({
   showInGameMenu: state.show.inGameMenu,

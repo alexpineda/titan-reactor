@@ -1,4 +1,4 @@
 import "./file";
-import "./gameStateReader";
+import "./game-state-reader";
 import "./misc";
 import "./settings";

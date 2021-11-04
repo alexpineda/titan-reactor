@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs";
 
-import { loadAllDataFiles } from "../common/bwdat/core/loadAllDataFiles";
-import Icons from "../common/Icons";
+import { loadAllDataFiles } from "../common/bwdat/core/load-all-dat-files";
+import Icons from "../common/icons";
 import { GrpFileLoader, GrpHD } from "../common/image";
 import { Anim } from "../common/image/formats";
 import { BwDATType } from "../common/types";
@@ -10,13 +10,13 @@ import {
   openCascStorage,
   readCascFile,
 } from "../common/utils/casclib";
-import ContiguousContainer from "./game-data/ContiguousContainer";
+import ContiguousContainer from "./game-data/contiguous-container";
 import {
   startLoadingProcess,
   updateLoadingProcess,
   completeLoadingProcess,
 } from "./stores";
-import electronFileLoader from "./utils/electronFileLoader";
+import electronFileLoader from "./utils/electron-file-loader";
 
 class Assets {
   bwDat?: BwDATType;

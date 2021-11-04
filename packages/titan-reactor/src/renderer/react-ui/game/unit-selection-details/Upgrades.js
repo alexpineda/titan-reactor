@@ -5,8 +5,7 @@ import {
   upgrades as upgradeTypes,
   upgradesByUnitType,
 } from "../../../../common/bwdat/enums";
-import useGameStore from "../../../stores/gameStore";
-import useProductionStore from "../../../stores/realtime/productionStore";
+import { useGameStore, useProductionStore } from "../../../stores";
 
 const iconSelector = (state) => state.assets.icons.cmdIcons;
 const bwDatSelector = (state) => state.assets.bwDat;

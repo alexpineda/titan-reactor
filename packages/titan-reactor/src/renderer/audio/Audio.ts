@@ -1,6 +1,6 @@
-import { SoundBWInstance } from "../game-data/SoundsBW";
-import DeferredAudioBuffer from "./DeferredAudioBuffer";
-import MainMixer from "./MainMixer";
+import { SoundBWInstance } from "../game-data/sounds";
+import DeferredAudioBuffer from "./deferred-audio-buffer";
+import MainMixer from "./main-mixer";
 
 const stopTime = 30; //ms
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { MenuItem } from "../components/MenuItem";
-import Options, { Tabs } from "../home/Options";
-import useSettingsStore from "../../stores/settingsStore";
+import { MenuItem } from "../components/menu-item";
+import Options, { Tabs } from "../home/options";
+import { useSettingsStore } from "../../stores";
 
 const Menu = ({ onClose, onBackToMainMenu, onOpenReplay, onOpenMap }) => {
   const [showOptions, setShowOptions] = useState(false);

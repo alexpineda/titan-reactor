@@ -5,9 +5,15 @@
 // } from "../../common/utils/casclib";
 import { dialog, ipcMain } from "electron";
 
-import { OPEN_DEMO_REPLAY, OPEN_FILE, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, SELECT_FOLDER } from "../../common/ipc";
+import {
+  OPEN_DEMO_REPLAY,
+  OPEN_FILE,
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+  SELECT_FOLDER,
+} from "../../common/ipc";
 import { openFileBinary } from "../../common/utils/fs";
-import browserWindows from "../browserWindows";
+import browserWindows from "../browser-windows";
 
 ipcMain.handle(OPEN_FILE, async (_, filepath = "") => {
   return await openFileBinary(filepath);

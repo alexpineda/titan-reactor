@@ -1,6 +1,6 @@
 import React, { useEffect, memo } from "react";
 import { unstable_batchedUpdates } from "react-dom";
-import useGameStore, { CHAT_INTERVAL } from "../../stores/gameStore";
+import useGameStore, { CHAT_INTERVAL } from "../../stores/game-store";
 
 const chatSelector = (state) => state.chat;
 const removeOneFromChatSelector = (state) => state.removeOneFromChat;

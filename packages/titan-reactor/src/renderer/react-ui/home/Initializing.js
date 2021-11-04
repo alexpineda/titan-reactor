@@ -1,5 +1,5 @@
 import React from "react";
-import useSettingsStore from "../../stores/settingsStore";
+import { useSettingsStore } from "../../stores";
 
 export default () => {
   const phrases = useSettingsStore((state) => state.phrases);

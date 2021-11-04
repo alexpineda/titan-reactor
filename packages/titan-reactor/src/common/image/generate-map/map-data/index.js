@@ -1,2 +1,2 @@
 export * from "./bitmaps";
-export * from "./loadTilesetFilesAsync";
+export * from "./load-tileset-files-async";

@@ -1,6 +1,8 @@
-import useUnitSelectionStore from "../../../stores/realtime/unitSelectionStore";
-import useProductionStore from "../../../stores/realtime/productionStore";
-import useGameStore from "../../../stores/gameStore";
+import {
+  useUnitSelectionStore,
+  useProductionStore,
+  useGameStore,
+} from "../../../stores";
 import React, { useRef, useEffect, forwardRef } from "react";
 import shallow from "zustand/shallow";
 

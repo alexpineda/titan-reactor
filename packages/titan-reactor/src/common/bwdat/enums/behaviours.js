@@ -1,4 +1,4 @@
-import invertObj from "../../utils/invertObj";
+import invertObj from "../../utils/invert-obj";
 
 export const behaviours = {
   flyAndDontFollowTarget: 0,

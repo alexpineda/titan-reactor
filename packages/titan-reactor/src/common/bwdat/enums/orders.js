@@ -1,4 +1,4 @@
-import invertObj from "../../utils/invertObj";
+import invertObj from "../../utils/invert-obj";
 
 export const orders = {
   die: 0x0,

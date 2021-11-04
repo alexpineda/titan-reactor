@@ -1,25 +1,24 @@
 import React, { useMemo } from "react";
 import shallow from "zustand/shallow";
 import { ipcRenderer } from "electron";
-import {
-  OPEN_MAP_DIALOG,
-  OPEN_REPLAY_DIALOG,
-} from "../../common/ipc/handleNames";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../../common/ipc";
 
-import WrappedElement from "./WrappedElement";
-import Minimap from "./game/Minimap";
-import StandAloneProductionBar from "./game/production/StandAloneProductionBar";
-import Chat from "./game/Chat";
-import ResourcesBar from "./game/resources/ResourcesBar";
-import UnitSelection from "./game/UnitSelection";
-import ReplayPosition from "./game/NewReplayPosition";
-import Menu from "./game/Menu";
+import WrappedElement from "./wrapped-element";
+import Minimap from "./game/minimap";
+import StandAloneProductionBar from "./game/production/stand-alone-production-bar";
+import Chat from "./game/chat";
+import ResourcesBar from "./game/resources/resources-bar";
+import UnitSelection from "./game/unit-selection";
+import ReplayPosition from "./game/new-replay-position";
+import Menu from "./game/menu";
 import Visible from "./components/visible";
 
-import useGameStore from "../stores/gameStore";
-import useSettingsStore from "../stores/settingsStore";
-import useHudStore from "../stores/hudStore";
-import useLoadingStore from "../stores/loadingStore";
+import {
+  useGameStore,
+  useSettingsStore,
+  useHudStore,
+  useLoadingStore,
+} from "../stores";
 
 const gameStoreSelector = (state) => ({
   dimensions: state.dimensions,

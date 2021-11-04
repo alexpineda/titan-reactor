@@ -1,4 +1,4 @@
-import invertObj from "../../utils/invertObj";
+import invertObj from "../../utils/invert-obj";
 
 export const upgrades = {
   terranInfantryArmor: 0x00,

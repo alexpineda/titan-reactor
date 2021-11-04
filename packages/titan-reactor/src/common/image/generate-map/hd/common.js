@@ -1,6 +1,6 @@
 import { ClampToEdgeWrapping, CompressedTexture, LinearFilter } from "three";
 
-import { DDSLoader } from "../../formats/DDSLoader";
+import { DDSLoader } from "../../formats/dds-loader";
 
 const ddsLoader = new DDSLoader();
 

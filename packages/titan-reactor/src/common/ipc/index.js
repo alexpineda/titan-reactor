@@ -1,1 +1,1 @@
-export * from "./handleNames";
+export * from "./handle-names";

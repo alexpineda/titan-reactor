@@ -1,6 +1,6 @@
 import range from "../../../../common/utils/range";
 import React, { forwardRef } from "react";
-import SmallUnitItem from "./SmallUnitItem";
+import SmallUnitItem from "./small-unit-item";
 
 const Loaded = forwardRef(({ unit }, ref) => {
   return (

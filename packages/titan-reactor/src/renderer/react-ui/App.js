@@ -1,10 +1,10 @@
 import React from "react";
 import shallow from "zustand/shallow";
-import LoadingOverlay from "./LoadingOverlay";
-import CornerStatus from "./CornerStatus";
-import Initializing from "./home/Initializing";
-import Map from "./Map";
-import Game from "./Game";
+import LoadingOverlay from "./loading-overlay";
+import CornerStatus from "./corner-status";
+import Initializing from "./home/initializing";
+import Map from "./map";
+import Game from "./game";
 import "./css/tailwind.min.css";
 import "./css/pattern.min.css";
 import "./css/icon.css";
@@ -12,12 +12,13 @@ import "./css/styles.css";
 import "./css/bevel.css";
 import "./css/glitch.css";
 
-import Home from "./home/Home";
-
-import useTitanReactorStore from "../stores/titanReactorStore";
-import useSettingsStore from "../stores/settingsStore";
-import useLoadingStore from "../stores/loadingStore";
-import useGameStore from "../stores/gameStore";
+import Home from "./home/home";
+import {
+  useTitanReactorStore,
+  useSettingsStore,
+  useLoadingStore,
+  useGameStore,
+} from "../stores";
 
 const criticalErrorSelector = (state) => state.criticalError;
 const loadingSelector = (state) => ({

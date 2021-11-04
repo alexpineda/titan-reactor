@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
 
 import range from "../../../../common/utils/range";
-import { useGameStore, useUnitSelectionStore } from "../../../stores/";
+import { useGameStore, useUnitSelectionStore } from "../../../stores";
 import redXIcon from "../../css/redXIcon.png";
 
 let stepLayers = range(0, 4).map(() => 0);

@@ -1,5 +1,5 @@
 import range from "../../utils/range";
-import { TBL } from "./TBL";
+import { TBL } from "./tbl";
 
 export type ReadFileType = (fname: string) => Promise<Buffer>;
 export type FormatType = {

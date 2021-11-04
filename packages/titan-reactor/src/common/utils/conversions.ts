@@ -1,5 +1,5 @@
 import { PxToGameUnit } from "../types/util";
-import invertObj from "./invertObj";
+import invertObj from "./invert-obj";
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
 

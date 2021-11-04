@@ -1,7 +1,7 @@
 import path from "path";
 
-import { Settings } from "./Settings";
-import { getUserDataPath } from "./userDataPath";
+import { Settings } from "./settings";
+import { getUserDataPath } from "./user-data-path";
 import createLogger from "./utils/logger";
 
 export const logFilePath = path.join(getUserDataPath(), "logs", "app");

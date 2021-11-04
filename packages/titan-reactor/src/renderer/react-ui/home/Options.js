@@ -2,9 +2,9 @@ import { ipcRenderer } from "electron";
 import React, { useEffect, useState } from "react";
 import shallow from "zustand/shallow";
 
-import { SELECT_FOLDER } from "../../../common/ipc/handleNames";
+import { SELECT_FOLDER } from "../../../common/ipc";
 import { selectFolder } from "../../ipc";
-import useSettingsStore from "../../stores/settingsStore";
+import { useSettingsStore } from "../../stores";
 import {
   Button,
   ButtonSet,

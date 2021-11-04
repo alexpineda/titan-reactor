@@ -7,8 +7,12 @@ import path from "path";
 import phrases from "../common/phrases";
 import { RenderMode } from "../common/settings";
 import { Settings as SettingsType } from "../common/types";
-import fileExists from "../common/utils/fileExists";
-import { findMapsPath, findReplaysPath, findStarcraftPath } from "./starcraft/findInstallPath";
+import fileExists from "../common/utils/file-exists";
+import {
+  findMapsPath,
+  findReplaysPath,
+  findStarcraftPath,
+} from "./starcraft/find-install-path";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const VERSION = 1;

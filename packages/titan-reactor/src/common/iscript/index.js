@@ -1,2 +1,2 @@
-export * from "./IScriptRunner";
-export * from "./parseIScriptBin";
+export * from "./iscript-runner";
+export * from "./parse-iscript";

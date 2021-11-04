@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
-import omitChars from "../../../common/utils/omitChars";
-import WrappedElement from "../WrappedElement";
-import useSettingsStore from "../../stores/settingsStore";
-import useGameStore from "../../stores/gameStore";
-import useHudStore from "../../stores/hudStore";
-import useLoadingStore from "../../stores/loadingStore";
-import useResourcesStore from "../../stores/realtime/resourcesStore";
+import omitChars from "../../../common/utils/omit-chars";
+import WrappedElement from "../wrapped-element";
+import {
+  useSettingsStore,
+  useGameStore,
+  useHudStore,
+  useLoadingStore,
+  useResourcesStore,
+} from "../../stores";
 
 const Minimap = ({ className = "" }) => {
   const textSize = useSettingsStore((state) => state.data.textSize);
