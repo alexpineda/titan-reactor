@@ -5,20 +5,25 @@ import {
   LinearFilter,
   sRGBEncoding,
 } from "three";
+import { ImageDATType } from "../types";
 
 import { drawFunctions } from "../bwdat/enums/draw-functions";
 
+type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
 /**
  * SD the old way
  */
+// @todo refactor to implement GRPInterface
 export class GrpSDLegacy {
-  constructor() {
-    this.texture = null;
-    this.frames = [];
-    this.rez = "sd";
-  }
+  width = 0;
+  height = 0;
+  grpWidth? = 0;
+  grpHeight? = 0;
+  texture?: DataTexture;
+  teamcolor?: DataTexture;
+  frames?: { x: number, y:number, grpX:number, grpY:number, w:number, h:number }[] = [];
 
-  async load({ readGrp, imageDef, palettes }, stride = 20) {
+  async load({ readGrp, imageDef, palettes }: {readGrp: () => Promise<Buffer>, imageDef: ImageDATType, palettes: Palettes}, stride = 20) {
     const grp = new Grp(await readGrp(), Buffer);
 
     const getPalette = () => {
@@ -79,6 +84,9 @@ export class GrpSDLegacy {
       const grpX = (i % grpStride) * mw;
       const grpY = Math.floor(i / grpStride) * mh;
 
+      if (!this.frames) {
+        throw new Error("No frames");
+      }
       this.frames.push({ x, y, grpX, grpY, w, h });
 
       for (let fy = 0; fy < h; fy++) {
@@ -127,7 +135,7 @@ export class GrpSDLegacy {
   }
 
   dispose() {
-    this.texture.dispose();
+    this.texture?.dispose();
   }
 }
 export default GrpSDLegacy;

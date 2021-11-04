@@ -77,4 +77,5 @@ export type ChkType = {
   tileset: number | 0;
   units: ChkUnitType[];
   sprites: ChkSpriteType[];
+  _tiles: Buffer;
 };

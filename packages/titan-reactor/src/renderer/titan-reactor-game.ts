@@ -14,11 +14,12 @@ import {
   ChkUnitType,
   ReplayPlayer,
   TerrainInfo,
+  createTitanImage
 } from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import AudioMaster from "./audio/audio-master";
-import BWFrameSceneBuilder from "./three-game-builder";
+import ThreeGameBuilder from "./three-game-builder";
 import CameraRig from "./camera/camera-rig";
 import ProjectedCameraView from "./camera/projected-camera-view";
 import Creep from "./creep/creep";
@@ -60,7 +61,7 @@ async function TitanReactorGame(
   commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,
   bwDat: BwDATType,
-  createTitanImage,
+  createTitanImage: createTitanImage,
   audioMaster: AudioMaster
 ) {
   let settings = useSettingsStore.getState().data;
@@ -263,7 +264,7 @@ async function TitanReactorGame(
     mapWidth,
     mapHeight
   );
-  const frameBuilder = new BWFrameSceneBuilder(
+  const gameBuilder = new ThreeGameBuilder(
     scene,
     creep,
     bwDat,
@@ -281,7 +282,7 @@ async function TitanReactorGame(
     gameSurface,
     terrainInfo,
     cameraRig.camera,
-    frameBuilder
+    gameBuilder
   );
 
   let _lastElapsed = 0;
@@ -310,7 +311,7 @@ async function TitanReactorGame(
         nextBwFrame = gameStateReader.nextOne();
         if (nextBwFrame) {
           // get creep, fog of war, sounds, etc. ready ahead of time if possible
-          frameBuilder.prepare(nextBwFrame);
+          gameBuilder.prepare(nextBwFrame);
         } else {
           gameStatePosition.paused = true;
         }
@@ -322,7 +323,7 @@ async function TitanReactorGame(
           scene.incrementTileAnimation();
         }
 
-        frameBuilder.update(currentBwFrame, delta, elapsed, units);
+        gameBuilder.update(currentBwFrame, delta, elapsed, units);
 
         audioMaster.channels.play(elapsed);
 
@@ -337,9 +338,9 @@ async function TitanReactorGame(
         );
 
         setAllProduction(
-          frameBuilder.unitsInProduction,
-          frameBuilder.research,
-          frameBuilder.upgrades
+          gameBuilder.unitsInProduction,
+          gameBuilder.research,
+          gameBuilder.upgrades
         );
         // @todo why am I transferring this to the store?
         setSelectedUnits(useGameStore.getState().selectedUnits);

@@ -3,19 +3,17 @@ import { PX_PER_TILE } from "./common";
 
 // draw 13 creep tiles left to right
 export const grpToCreepTexture = (
-  palette,
-  megatiles,
-  minitiles,
-  tilegroupU16,
-  anisotropy
+  palette: Uint8Array,
+  megatiles: Uint32Array,
+  minitiles: Uint8Array,
+  tilegroupU16: Uint16Array,
+  anisotropy: number
 ) => {
   const width = 13;
   const height = 1;
 
   const diffuse = new Uint8Array(
-    width * height * PX_PER_TILE * PX_PER_TILE * 4,
-    255
-  );
+    width * height * PX_PER_TILE * PX_PER_TILE * 4  );
   // draw an extra tile a the beginning, otherwise this offset for creep should be 36(Uint16)
   let tileIndex = 37;
 

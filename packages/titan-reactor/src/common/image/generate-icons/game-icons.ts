@@ -1,37 +1,30 @@
+import { ImageDATType } from "../../types";
 import {
-  ClampToEdgeWrapping,
-  CompressedTexture,
-  LinearFilter,
   OrthographicCamera,
   Scene,
+  WebGLRenderer,
 } from "three";
 
-import { DDSLoader } from "../formats/dds-loader";
+import { loadDDS } from "../formats/load-dds";
 import GrpSDLegacy from "../grp-sd-legacy";
 import { rgbToCanvas } from "../util/canvas";
 
-const ddsLoader = new DDSLoader();
-
-const loadDds = (buf) => {
-  const hdTexture = new CompressedTexture();
-  const texDatas = ddsLoader.parse(buf, false);
-
-  hdTexture.mipmaps = texDatas.mipmaps;
-  hdTexture.image.width = texDatas.width;
-  hdTexture.image.height = texDatas.height;
-
-  hdTexture.format = texDatas.format;
-  hdTexture.minFilter = LinearFilter;
-  hdTexture.magFilter = LinearFilter;
-  hdTexture.wrapT = ClampToEdgeWrapping;
-  hdTexture.wrapS = ClampToEdgeWrapping;
-  hdTexture.needsUpdate = true;
-
-  return hdTexture;
-};
-
+// @todo break this up into multiple files
 export default class GameIcons {
-  renderRaceInset(renderer, dds) {
+  wireframes: string[] = [];
+  icons?: string[] & Partial<{offX:number, offY:number}>;
+  iconsAlpha?: string[];
+
+  zerg = "";
+  terran = "";
+  protoss = "";
+  minerals = "";
+  vespeneZerg = "";
+  vespeneTerran = "";
+  vespeneProtoss = "";
+  energy = "";
+
+  renderRaceInset(renderer: WebGLRenderer, dds: Buffer[]) {
     return this.renderGameIcons(
       renderer,
       null,
@@ -42,19 +35,19 @@ export default class GameIcons {
     );
   }
 
-  renderCmdIcons(renderer, dds) {
+  renderCmdIcons(renderer: WebGLRenderer, dds: Buffer[]) {
     return this.renderGameIcons(
       renderer,
       64,
       64,
       dds,
       undefined,
-      false,
+      0,
       "#ff0000"
     );
   }
 
-  renderResourceIcons(renderer, dds) {
+  renderResourceIcons(renderer: WebGLRenderer, dds: Buffer[]) {
     return this.renderGameIcons(
       renderer,
       56,
@@ -75,22 +68,16 @@ export default class GameIcons {
   }
 
   renderGameIcons(
-    renderer,
-    fixedWidth,
-    fixedHeight,
-    dds,
-    aliases,
-    alpha,
-    color = null
+    renderer: WebGLRenderer,
+    fixedWidth: number|null,
+    fixedHeight: number|null,
+    dds: Buffer[],
+    aliases?: string[],
+    alpha: number = 0,
+    color: string | null = null
   ) {
-    const ortho = new OrthographicCamera();
+    const ortho = new OrthographicCamera(- 1, 1, 1, - 1);
 
-    let width = fixedWidth;
-    let height = fixedHeight;
-
-    if (width) {
-      renderer.setSize(width, height);
-    }
     const scene = new Scene();
 
     if (!aliases) {
@@ -102,15 +89,19 @@ export default class GameIcons {
       if (aliases && aliases[i] === undefined) {
         continue;
       }
-      const texture = loadDds(dds[i]);
+      const texture = loadDDS(dds[i]);
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      if (!fixedWidth) {
-        width = texture.image.width;
-        height = texture.image.height;
-        renderer.setSize(width, height);
+      if (!ctx) {
+        throw new Error("Could not create canvas context");
       }
+
+      const width = fixedWidth ?? texture.image.width;
+      const height = fixedHeight ?? texture.image.height;
+    
+      renderer.setSize(width, height);
+
       canvas.width = width;
       canvas.height = height;
 
@@ -140,13 +131,16 @@ export default class GameIcons {
 
       if (aliases) {
         this[aliases[i]] = canvas.toDataURL("image/png");
-      } else {
+      } else if (this.icons) {
         this.icons[i] = canvas.toDataURL("image/png");
       }
       if (alpha) {
         // create a 50% transparent image for use with css background-image
         const alphaCanvas = document.createElement("canvas");
         const actx = alphaCanvas.getContext("2d");
+        if (!actx) {
+          throw new Error("Could not create canvas context");
+        }
         alphaCanvas.width = width;
         alphaCanvas.height = height;
         actx.scale(1, -1);
@@ -154,22 +148,25 @@ export default class GameIcons {
         actx.drawImage(renderer.domElement, 0, 0, width, -height);
         if (aliases) {
           this[`${aliases[i]}Alpha`] = alphaCanvas.toDataURL("image/png");
-        } else {
+        } else if (this.iconsAlpha) {
           this.iconsAlpha[i] = alphaCanvas.toDataURL("image/png");
         }
       }
     }
   }
 
-  async renderCursor(grp, palette) {
+  async renderCursor(grp: Buffer, palette: Uint8Array) {
     const grpSD = new GrpSDLegacy();
 
     await grpSD.load({
-      readGrp: () => grp,
-      imageDef: {},
+      readGrp: () => Promise.resolve(grp),
+      imageDef: {} as ImageDATType,
       palettes: [palette],
     });
 
+    if (!grpSD.texture || !grpSD.frames) {
+      throw new Error("Could not load grp");
+    }
     const canvas = rgbToCanvas(
       {
         data: grpSD.texture.image.data,
@@ -184,20 +181,26 @@ export default class GameIcons {
       dest.width = w;
       dest.height = h;
       const ctx = dest.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not create canvas context");
+      }
       ctx.drawImage(canvas, grpX + x, grpY + y, w, h, 0, 0, w, h);
       return dest.toDataURL("image/png");
     });
   }
 
-  async renderCenteredCursor(grp, palette) {
+  async renderCenteredCursor(grp: Buffer, palette: Uint8Array) {
     const grpSD = new GrpSDLegacy();
 
     await grpSD.load({
-      readGrp: () => grp,
-      imageDef: {},
+      readGrp: () => Promise.resolve(grp),
+      imageDef: {} as ImageDATType,
       palettes: [palette],
     });
 
+    if (!grpSD.texture || !grpSD.frames || !grpSD.grpHeight || !grpSD.grpWidth) {
+      throw new Error("Could not load grp");
+    }
     const canvas = rgbToCanvas(
       {
         data: grpSD.texture.image.data,
@@ -231,6 +234,9 @@ export default class GameIcons {
       const dy = maxOy - (gh - y);
 
       const ctx = dest.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not create canvas context");
+      }
       ctx.drawImage(canvas, grpX + x, grpY + y, w, h, dx, dy, w, h);
       return dest.toDataURL("image/png");
     });
@@ -239,18 +245,21 @@ export default class GameIcons {
     this.icons.offY = maxOy;
   }
 
-  renderWireframes(renderer, dds) {
+  renderWireframes(renderer: WebGLRenderer, dds: Buffer[]) {
     this.wireframes = [];
 
-    const ortho = new OrthographicCamera();
+    const ortho = new OrthographicCamera(- 1, 1, 1, - 1);
 
     const scene = new Scene();
 
     for (let i = 0; i < dds.length; i++) {
-      const texture = loadDds(dds[i]);
+      const texture = loadDDS(dds[i]);
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not create canvas context");
+      }
 
       const width = texture.image.width;
       const height = texture.image.height;

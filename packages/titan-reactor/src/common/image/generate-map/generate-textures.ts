@@ -3,10 +3,11 @@ import { WebGLRenderer } from "three";
 import * as HD from "./hd";
 import * as MapData from "./map-data";
 import * as SD from "./sd";
+import {TileSetData} from "./map-data"
 
 export const generateTextures = async (
-  mapWidth,
-  mapHeight,
+  mapWidth: number,
+  mapHeight: number,
   {
     mapTiles,
     megatiles,
@@ -19,7 +20,7 @@ export const generateTextures = async (
     tilegroupBuf,
     creepGrpHD,
     creepGrpSD,
-  }
+  }: TileSetData
 ) => {
   const renderer = new WebGLRenderer({
     depth: false,
@@ -35,7 +36,6 @@ export const generateTextures = async (
     minitilesFlags,
     minitiles,
     tilegroupU16,
-    tilegroupBuf,
   });
 
   const mapHd = HD.mapDataToTextures(renderer, mapWidth, mapHeight, {

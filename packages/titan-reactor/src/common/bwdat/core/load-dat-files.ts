@@ -3,13 +3,11 @@ import parseIscript from "../../iscript/parse-iscript";
 import path from "path";
 import { Buffer } from "buffer";
 
-import { ReadFile } from "../../types";
-import { GrpFrameType, GrpType } from "../../types/grp";
+import { ReadFile,  GrpFrameType, GrpType, IScriptDATType } from "../../types";
 import range from "../../utils/range";
 import { BwDAT, BwDATType } from "./bw-dat";
 import { FlingyDAT } from "./flingy-dat";
 import { ImagesDAT } from "./images-dat";
-import { IScriptDATType } from "./iscript";
 import { OrdersDAT } from "./orders-dat";
 import { LoDATType, parseLo } from "./parse-lo";
 import { SoundsDAT } from "./sounds-dat";

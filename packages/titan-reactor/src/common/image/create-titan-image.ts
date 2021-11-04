@@ -7,20 +7,15 @@ import GrpSD from "./grp-sd";
 import { ImageInstance } from "./image-instance";
 import TitanImage3D from "./titan-image-3d";
 import TitanImageHD from "./titan-image-hd";
-import TitanImageSD from "./titan-image-sd";
-
-export type createTitanImage = (
-  imageId: number,
-  sprite: SpriteInstance
-) => ImageInstance;
+import TitanImageSD from "./titan-image-sd2";
 
 export const createTitanImageFactory = (
   bwDat: BwDATType,
   atlases: Grp3D[] | GrpHD[] | GrpSD[],
   createIScriptRunner: createIScriptRunner,
   onError: (msg: string) => void
-) => {
-  return (imageId: number, sprite: SpriteInstance) => {
+): ImageInstance | null => {
+  return (imageId: number, sprite: SpriteInstance): ImageInstance | null => {
     const atlas = atlases[imageId];
     if (!atlas || typeof atlas === "boolean") {
       onError(`composite ${imageId} has no atlas, did you forget to load one?`);

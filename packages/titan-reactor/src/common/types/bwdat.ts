@@ -1,5 +1,4 @@
 export { ImageDATType } from "../bwdat/core/images-dat";
-export { IScriptDATType } from "../bwdat/core/iscript";
 export { OrderDATType } from "../bwdat/core/orders-dat";
 export { LoDATType } from "../bwdat/core/parse-lo";
 export { SoundDATType } from "../bwdat/core/sounds-dat";

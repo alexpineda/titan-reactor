@@ -8,18 +8,19 @@ import {
   CanvasTexture,
   sRGBEncoding,
   DoubleSide,
+  WebGLRenderer
 } from "three";
 
 import { loadHdTile, PX_PER_TILE } from "./common";
 
 // generates a single creep texture for the edges from 0 - 15
-export const ddsToCreepEdgesTexture = (renderer, creepGrp) => {
+export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp) => {
   const bottomEdges = [0, 1, 2, 3];
   const rightEdges = [4];
   const topEdges = [6, 11, 17, 21];
   const leftEdges = [15];
 
-  const getOffset = (grp, tileId) => {
+  const getOffset = (grp, tileId: number) => {
     const x = 0.5;
     const y = 0.5;
 
@@ -78,6 +79,9 @@ export const ddsToCreepEdgesTexture = (renderer, creepGrp) => {
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Could not create canvas context");
+  }
   canvas.width = width * PX_PER_TILE;
   canvas.height = height * PX_PER_TILE;
 

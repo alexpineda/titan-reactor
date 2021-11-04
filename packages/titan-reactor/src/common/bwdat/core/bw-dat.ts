@@ -1,6 +1,5 @@
-import { GrpType } from "../../types/grp";
+import { GrpType, IScriptDATType } from "../../types";
 import { ImageDATType } from "./images-dat";
-import { IScriptDATType } from "./iscript";
 import { OrderDATType } from "./orders-dat";
 import { LoDATType } from "./parse-lo";
 import { SoundDATType } from "./sounds-dat";

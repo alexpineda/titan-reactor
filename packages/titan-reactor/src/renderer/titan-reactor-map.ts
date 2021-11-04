@@ -106,6 +106,9 @@ async function TitanReactorMap(
 
   const renderer = new Renderer(settings);
   await renderer.init(cameraRig.camera);
+  if (!renderer.renderer) {
+    throw new Error("Renderer not initialized");
+  }
   renderer.enableRenderPass();
   //@ts-ignore
   window.renderMan = renderer;
@@ -202,7 +205,6 @@ async function TitanReactorMap(
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
 
-  let running = true;
 
   let last = 0;
   let frame = 0;
@@ -211,7 +213,6 @@ async function TitanReactorMap(
   renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
   function gameLoop(elapsed: number) {
-    if (!running) return;
 
     const delta = elapsed - last;
     frameElapsed += delta;
@@ -274,14 +275,12 @@ async function TitanReactorMap(
 
     window.document.body.style.cursor = "";
     window.removeEventListener("resize", sceneResizeHandler);
-
-    renderer.renderer.setAnimationLoop(null);
-    running = false;
-
-    scene.dispose();
-
-    cameraRig.dispose();
+    
     renderer.dispose();
+    scene.dispose();
+    cameraRig.dispose();
+
+    // @todo call keyboardShortcuts.dispose() ?
 
     keyboardShortcuts.removeEventListener(
       InputEvents.ToggleMenu,

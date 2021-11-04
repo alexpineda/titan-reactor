@@ -7,12 +7,13 @@ import {
   Mesh,
   CanvasTexture,
   sRGBEncoding,
+  WebGLRenderer,
 } from "three";
 
 import { loadHdTile, PX_PER_TILE } from "./common";
 
 // generates a single creep texture from 0 - 13
-export const ddsToCreepTexture = (renderer, hdTiles, tilegroupU16) => {
+export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<number, Buffer>, tilegroupU16: Uint16Array) => {
   const width = 13;
   const height = 1;
   const ortho = new OrthographicCamera(
@@ -34,6 +35,9 @@ export const ddsToCreepTexture = (renderer, hdTiles, tilegroupU16) => {
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Could not create canvas context");
+  }
   canvas.width = width * PX_PER_TILE;
   canvas.height = height * PX_PER_TILE;
 

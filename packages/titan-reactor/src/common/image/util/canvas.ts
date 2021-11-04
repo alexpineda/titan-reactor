@@ -5,7 +5,7 @@ export const rgbToCanvas = (
     height,
     defaultCanvas,
   }: {
-    data: Uint8Array;
+    data: Uint8Array | Uint8ClampedArray;
     width: number;
     height: number;
     defaultCanvas?: HTMLCanvasElement;
@@ -14,11 +14,13 @@ export const rgbToCanvas = (
 ) => {
   const canvas = defaultCanvas || document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (!ctx) {
+    throw new Error("Could not get canvas context");
+  }
 
   canvas.width = width;
   canvas.height = height;
-  writeToContext2d(ctx, data, width, height, format);
+  writeToContext2d(ctx, data as Uint8Array, width, height, format);
   return canvas;
 };
 

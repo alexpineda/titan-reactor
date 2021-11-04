@@ -1,14 +1,14 @@
 import GrpSDLegacy from "../../grp-sd-legacy";
-
+import { ImageDATType } from "../../../types"
 // leverage our SD grp reader to render creep edges in SD
-export const grpToCreepEdgesTextureAsync = async (creepGrp, palette) => {
+export const grpToCreepEdgesTextureAsync = async (creepGrp: Buffer, palette: Uint8Array) => {
   const stride = 37;
   const grpSD = new GrpSDLegacy();
 
   await grpSD.load(
     {
-      readGrp: () => creepGrp,
-      imageDef: {},
+      readGrp: () => Promise.resolve(creepGrp),
+      imageDef: {} as ImageDATType,
       palettes: [palette],
     },
     stride

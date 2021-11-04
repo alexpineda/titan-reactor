@@ -1,12 +1,13 @@
+import { ImageDATType, BwDATType, opArgOne , UnitDAT} from "../../types";
 import uniq from "../../utils/uniq";
 
 const calculateImagesFromIScript = (
-  bwDat,
-  image,
-  unit = null,
+  bwDat: BwDATType,
+  image: ImageDATType,
+  unit?: UnitDAT,
   preload = new Set()
 ) => {
-  const getAllImages = (imageDef) => {
+  const getAllImages = (imageDef: ImageDATType) => {
     // console.log(imageDef);
     preload.add(imageDef.index);
 
@@ -14,10 +15,10 @@ const calculateImagesFromIScript = (
       return;
     }
     const script = bwDat.iscript.iscripts[imageDef.iscript];
-    for (let offset of script.offsets) {
+    for (const offset of script.offsets) {
       if (offset === 0) continue;
-      for (let cmd of bwDat.iscript.animationBlocks[offset]) {
-        const args = cmd[1];
+      for (const cmd of bwDat.iscript.animationBlocks[offset]) {
+        const args = cmd[1] as opArgOne;
 
         switch (cmd[0]) {
           case "imgul":
@@ -83,7 +84,7 @@ const calculateImagesFromIScript = (
   return [...preload].filter((v) => v !== undefined);
 };
 
-export const calculateImagesFromUnitsIscript = (bwDat, unitIds) => {
+export const calculateImagesFromUnitsIscript = (bwDat: BwDATType, unitIds: number[]) => {
   const preload = new Set();
 
   uniq(unitIds).forEach((id) => {
@@ -99,7 +100,7 @@ export const calculateImagesFromUnitsIscript = (bwDat, unitIds) => {
   return [...preload].filter((v) => v !== undefined);
 };
 
-export const calculateImagesFromSpritesIscript = (bwDat, spriteIds) => {
+export const calculateImagesFromSpritesIscript = (bwDat: BwDATType, spriteIds: number[]) => {
   const preload = new Set();
 
   uniq(spriteIds).forEach((id) => {

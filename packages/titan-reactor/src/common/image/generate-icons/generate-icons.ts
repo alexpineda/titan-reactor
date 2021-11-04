@@ -1,13 +1,10 @@
-import { Color, WebGLRenderer } from "three";
+import { ReadFile } from "../../types";
+import { WebGLRenderer } from "three";
 
 import readDdsGrp from "../formats/dds-grp";
 import GameIcons from "./game-icons";
 
-const toArrayBuffer = (nodeBuffer) => {
-  return new Uint8Array(nodeBuffer).buffer;
-};
-
-export default async (readFile) => {
+export default async (readFile: ReadFile) => {
   const renderer = new WebGLRenderer({
     depth: false,
     stencil: false,
@@ -16,25 +13,25 @@ export default async (readFile) => {
   renderer.autoClear = false;
 
   const palette = new Uint8Array(
-    toArrayBuffer(await readFile("TileSet/jungle.wpe"))
+    (await readFile("TileSet/jungle.wpe")).buffer
   ).slice(0, 1024);
 
   const gameIcons = new GameIcons();
   gameIcons.renderResourceIcons(
     renderer,
-    readDdsGrp(await readFile("game/icons.dds.grp"), true)
+    readDdsGrp(await readFile("game/icons.dds.grp"))
   );
 
   const cmdIcons = new GameIcons();
   cmdIcons.renderCmdIcons(
     renderer,
-    readDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"), true)
+    readDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
   );
 
   const raceInsetIcons = new GameIcons();
   raceInsetIcons.renderRaceInset(
     renderer,
-    readDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"), true)
+    readDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );
 
   const arrowIcons = new GameIcons();
@@ -55,8 +52,7 @@ export default async (readFile) => {
   const wireframeIcons = new GameIcons();
   await wireframeIcons.renderWireframes(
     renderer,
-    readDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"), true),
-    new Color(1, 0, 0)
+    readDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp")),
   );
 
   const workerIcons = {
@@ -64,7 +60,7 @@ export default async (readFile) => {
       await readFile("webui/dist/lib/images/icon_apm.png")
     ).toString("base64")}`,
     terran: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_terran.png", false)
+      await readFile("webui/dist/lib/images/icon_worker_terran.png")
     ).toString("base64")}`,
     zerg: `data:image/png;base64,${(
       await readFile("webui/dist/lib/images/icon_worker_zerg.png")

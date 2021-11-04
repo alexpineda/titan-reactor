@@ -26,7 +26,7 @@ const parseReplay = async (buf) => {
   }
 
   if (version === Version.remastered) {
-    // @todo support scr sections
+    // @todo support scr sections, specifically ShieldBattery POV addition
     bl.consume(4);
   }
 
@@ -34,9 +34,6 @@ const parseReplay = async (buf) => {
   const header = parseHeader(rawHeader);
 
   const cmdsSize = (await block(bl, 4)).readUInt32LE(0);
-
-  // ai reps tend to have MBs of commands so just skip processing these types of reps
-  //@todo maybe have a seperate component to stream these afterward
   const rawCmds = await block(bl, cmdsSize);
 
   const chkSize = (await block(bl, 4)).readUInt32LE(0);

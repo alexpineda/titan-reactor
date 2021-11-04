@@ -1,3 +1,6 @@
+import {TileSetData} from "./load-tileset-files-async"
+
+
 // compiles the map tiles binary data to:
 // map tiles bitmap
 // elevation bitmap
@@ -6,9 +9,10 @@
 // roughness bitmap
 
 export const bitmaps = (
-  mapWidth,
-  mapHeight,
-  { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles }
+  mapWidth: number,
+  mapHeight: number,
+  { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles } : 
+  Pick<TileSetData, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
 ) => {
   let tileGroup,
     groupIndex,
@@ -22,7 +26,6 @@ export const bitmaps = (
     walkable,
     mid,
     high,
-    blocksView,
     elevation,
     miniPos,
     pixelPos,
@@ -32,7 +35,7 @@ export const bitmaps = (
     b;
 
   const mapTilesData = new Uint16Array(mapWidth * mapHeight);
-  const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4, 255);
+  const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4);
   const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
   const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
   const roughness = new Uint8Array(mapWidth * mapHeight * 32 * 32);
@@ -80,7 +83,7 @@ export const bitmaps = (
           walkable = meta & 0x01;
           mid = meta & 0x02;
           high = meta & 0x04;
-          blocksView = meta & 0x08;
+          // blocksView = meta & 0x08;
 
           elevation = 0;
 

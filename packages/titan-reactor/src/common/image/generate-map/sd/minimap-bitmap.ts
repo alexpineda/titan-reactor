@@ -1,6 +1,6 @@
 import { rgbToCanvas } from "../../util/canvas";
 
-export const minimapBitmap = async (data, mapWidth, mapHeight) => {
+export const minimapBitmap = async (data: Uint8Array, mapWidth: number, mapHeight: number) => {
   const src = rgbToCanvas(
     {
       data,
@@ -14,6 +14,9 @@ export const minimapBitmap = async (data, mapWidth, mapHeight) => {
   dst.width = mapWidth * 2;
   dst.height = mapHeight * 2;
   const destCtx = dst.getContext("2d");
+  if (!destCtx) {
+    throw new Error("Could not get context");
+  }
   destCtx.drawImage(src, 0, 0, dst.width, dst.height);
 
   const bitmap = await new Promise((res) => {

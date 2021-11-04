@@ -1,14 +1,20 @@
+import { ChkType, DDSGrpFrameType } from "../../../types";
 import readDdsGrp, { readDdsGrpWithFrameData } from "../../formats/dds-grp";
 
-const toArrayBuffer = (nodeBuffer) => {
-  return new Uint8Array(nodeBuffer).buffer;
-};
-
-export const loadTilesetFilesAsync = async (readFileFn, chk) => {
-  const readFile = async (file, arrayBuffer = true) => {
-    const buf = await readFileFn(file);
-    return arrayBuffer ? toArrayBuffer(buf) : buf;
-  };
+export type TileSetData = {
+  mapTiles: Uint16Array,
+  megatiles: Uint32Array,
+  minitilesFlags: Uint16Array,
+  minitiles: Uint8Array,
+  palette: Uint8Array,
+  tileset: number,
+  hdTiles: Buffer[],
+  tilegroupU16: Uint16Array,
+  tilegroupBuf: Buffer,
+  creepGrpSD: Buffer,
+  creepGrpHD: DDSGrpFrameType[],
+}
+export const loadTilesetFilesAsync = async (readFileFn: (filename: string) => Promise<Buffer>, chk: ChkType): Promise<TileSetData> => {
 
   const tilesets = [
     "badlands",
@@ -28,36 +34,35 @@ export const loadTilesetFilesAsync = async (readFileFn, chk) => {
   if (chk._tiles.byteLength % 2 === 1) {
     const tiles = Buffer.alloc(chk._tiles.byteLength + 1);
     chk._tiles.copy(tiles);
-    mapTiles = new Uint16Array(toArrayBuffer(tiles));
+    mapTiles = new Uint16Array(tiles.buffer);
   } else {
-    mapTiles = new Uint16Array(toArrayBuffer(chk._tiles));
+    mapTiles = new Uint16Array(chk._tiles.buffer);
   }
 
   const tilesetName = tilesets[tileset];
-  const tilegroupArrayBuffer = await readFile(`TileSet/${tilesetName}.cv5`);
+  const tilegroupBuf = await readFileFn(`TileSet/${tilesetName}.cv5`);
+  const tilegroupU16 = new Uint16Array(tilegroupBuf.buffer);
 
-  const tilegroupU16 = new Uint16Array(tilegroupArrayBuffer);
-  const tilegroupBuf = Buffer.from(tilegroupArrayBuffer);
   const megatiles = new Uint32Array(
-    await readFile(`TileSet/${tilesetName}.vx4ex`)
+    (await readFileFn(`TileSet/${tilesetName}.vx4ex`)).buffer
   );
   const minitilesFlags = new Uint16Array(
-    await readFile(`TileSet/${tilesetName}.vf4`)
+    (await readFileFn(`TileSet/${tilesetName}.vf4`)).buffer
   );
   const minitiles = new Uint8Array(
-    await readFile(`TileSet/${tilesetName}.vr4`)
+    (await readFileFn(`TileSet/${tilesetName}.vr4`)).buffer
   );
   const palette = new Uint8Array(
-    await readFile(`TileSet/${tilesetName}.wpe`)
+    (await readFileFn(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
   const hdTiles = readDdsGrp(
-    await readFile(`TileSet/${tilesetName}.dds.vr4`, false)
+    await readFileFn(`TileSet/${tilesetName}.dds.vr4`)
   );
   const creepGrpHD = readDdsGrpWithFrameData(
-    await readFile(`TileSet/${tilesetName}.dds.grp`, false)
+    await readFileFn(`TileSet/${tilesetName}.dds.grp`)
   );
-  const creepGrpSD = await readFile(`TileSet/${tilesetName}.grp`, false);
+  const creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
 
   // const warpInGrpHD = MapHD.renderWarpIn(
   //   renderer,

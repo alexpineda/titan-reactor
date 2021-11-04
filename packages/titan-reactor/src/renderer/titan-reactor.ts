@@ -43,6 +43,7 @@ import {
 } from "./stores";
 import TitanReactorGame from "./titan-reactor-game";
 import TitanReactorMap from "./titan-reactor-map";
+import { BwDATType } from "../common/types"
 
 const loadScx = (filename: string) =>
   new Promise((res) =>
@@ -214,7 +215,7 @@ export class TitanReactor {
       createTitanImageFactory(
         assets.bwDat,
         assets.grps,
-        createIScriptRunnerFactory(assets.bwDat, chk.tileset),
+        createIScriptRunnerFactory(assets.bwDat as BwDATType, chk.tileset),
         (err) => log(err, "error")
       ),
       audioMaster
@@ -262,8 +263,11 @@ export class TitanReactor {
     const terrainInfo = await generateTerrain(chk);
     const scene = new Scene(terrainInfo);
 
-    const createTitanSprite = () =>
-      new TitanSprite(
+    const createTitanSprite = () => {
+      if (!assets.bwDat) {
+        throw new Error("assets not loaded");
+      }
+      return new TitanSprite(
         null,
         assets.bwDat,
         createTitanSprite,
@@ -275,8 +279,9 @@ export class TitanReactor {
         ),
         (sprite: Object3D) => scene.add(sprite)
       );
+    }
 
-    TitanImageHD.useDepth = true;
+    TitanImageHD.useDepth = false;
     updateIndeterminateLoadingProcess("map", getFunString());
 
     const game = await TitanReactorMap(

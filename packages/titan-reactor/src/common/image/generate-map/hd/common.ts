@@ -6,15 +6,10 @@ const ddsLoader = new DDSLoader();
 
 export const PX_PER_TILE = 128;
 
-export const loadHdTile = (buf) => {
-  const hdTexture = new CompressedTexture();
-  const texDatas = ddsLoader.parse(buf, false);
+export const loadHdTile = (buf: Buffer) => {
+  const {mipmaps, width, height, format} = ddsLoader.parse(buf, false);
 
-  hdTexture.mipmaps = texDatas.mipmaps;
-  hdTexture.image.width = texDatas.width;
-  hdTexture.image.height = texDatas.height;
-
-  hdTexture.format = texDatas.format;
+  const hdTexture = new CompressedTexture(mipmaps, width, height, format);
   hdTexture.minFilter = LinearFilter;
   hdTexture.magFilter = LinearFilter;
   hdTexture.wrapT = ClampToEdgeWrapping;

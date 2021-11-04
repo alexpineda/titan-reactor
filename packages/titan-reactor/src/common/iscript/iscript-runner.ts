@@ -1,27 +1,41 @@
+import { BwDATType, ImageDATType, IScriptRawType, AnimationBlockType } from "../types";
+import { ImageInstance } from "../image";
+
 import {
-  headersById,
   iscriptHeaders as headers,
 } from "../bwdat/enums/iscript-headers";
 
-export const createIScriptRunnerFactory = (bwDat, tileset) => {
-  return (...args) => new IScriptRunner(bwDat, tileset, ...args);
-};
+type Commands =  AnimationBlockType & { header?: number };
 
 export class IScriptRunner {
-  constructor(bwDat, tileset, image, imageDesc, state = {}) {
+  private bwDat: BwDATType;
+  private iscript: IScriptRawType;
+  private alreadyRun: Record<number, boolean> = {};
+  private commandIndex = 0;
+  private commands: Commands = [];
+  private callStack?: {
+    commands: any,
+    commandIndex: number,
+  };
+
+  image: ImageInstance;
+  imageDesc: ImageDATType;
+  tileset: number;
+  logger: { log: () => void };
+  dispatched = [];
+  dbg: { prevAnimBlock? : {
+    commands: any,
+    commandIndex: number,
+  }} = {}
+  
+
+  constructor(bwDat: BwDATType, tileset: number, image: ImageInstance, imageDesc: ImageDATType, state = {}) {
     this.bwDat = bwDat;
     this.image = image;
     this.imageDesc = imageDesc;
     this.tileset = tileset;
     this.logger = { log: () => {} };
-    this.dispatched = [];
     this.iscript = bwDat.iscript.iscripts[imageDesc.iscript];
-    this.alreadyRun = {};
-    this.commands = [];
-    this.firstHeader = null;
-    this.enabled = false;
-
-    this.dbg = {};
 
     this.image.userData = {
       waiting: 0,
@@ -55,7 +69,7 @@ export class IScriptRunner {
     return this.image.userData;
   }
 
-  run(header) {
+  run(header: number) {
     if (
       !this.imageDesc.useFullIscript &&
       header !== headers.init &&
@@ -71,23 +85,20 @@ export class IScriptRunner {
     return this._toAnimationBlock(this.iscript.offsets[header], header);
   }
 
-  _toAnimationBlock(offset, header = -1) {
+  _toAnimationBlock(offset: number, header = -1) {
     const commands = this.bwDat.iscript.animationBlocks[offset];
     if (!commands) {
       let name = "local";
       if (header >= 0) {
-        name = headersById[header];
+        name = headers[header];
       }
       console.error(`animation block - ${name} - does not exist`, this);
       this.image.userData.ignoreRest = true;
       return;
     }
 
-    if (this.firstHeader === null) {
-      this.firstHeader = header;
-    }
     this.alreadyRun[header] = true;
-    this.commands = commands;
+    this.commands = commands as Commands;
     this.commands.header = header;
     this.commandIndex = 0;
     Object.assign(this.image.userData, {
@@ -107,14 +118,14 @@ export class IScriptRunner {
       if (this.dbg.prevAnimBlock.commands.header === -1) {
         prevAnim = "local";
       } else {
-        prevAnim = headersById[this.dbg.prevAnimBlock.commands.header];
+        prevAnim = headers[this.dbg.prevAnimBlock.commands.header];
       }
     }
 
     if (header === -1) {
       this.logger.log(`📝 local <- ${prevAnim}`, this);
     } else {
-      this.logger.log(`📝 ${headersById[header]} <- ${prevAnim}`, this);
+      this.logger.log(`📝 ${headers[header]} <- ${prevAnim}`, this);
     }
 
     return this;
@@ -132,13 +143,14 @@ export class IScriptRunner {
     return this.dispatched;
   }
 
-  _dispatch(command, event) {
+  //@todo fix types
+  _dispatch(command: any, event? : any) {
     this.logger.log(`🧩 ${command}`, event);
     this.dispatched.push([command, event]);
     return true;
   }
 
-  setFrame(frame, flip) {
+  setFrame(frame: number, flip: boolean) {
     this.state.prevFrame = this.state.frame;
     this.state.prevFlip = this.state.flip;
     this.state.flip = flip;
@@ -146,7 +158,7 @@ export class IScriptRunner {
     this.state.frameOffset = frame;
   }
 
-  setDirection(direction) {
+  setDirection(direction: number) {
     if (this.state.flDirect) {
       return;
     }
@@ -175,6 +187,9 @@ export class IScriptRunner {
     while (true) {
       if (this.commandIndex >= this.commands.length) {
         let nextHeader = this.commands.header;
+        if (!nextHeader){
+          throw new Error("command must have header");
+        }
         let nextAnimationBlock;
         do {
           nextHeader = nextHeader + 1;
@@ -393,6 +408,9 @@ export class IScriptRunner {
 
         case "return":
           {
+            if (!this.callStack) {
+              throw new Error("return without callstack");
+            }
             this.commands = this.callStack.commands;
             this.commandIndex = this.callStack.commandIndex;
             delete this.callStack;
@@ -480,3 +498,7 @@ export class IScriptRunner {
     }
   }
 }
+
+export const createIScriptRunnerFactory = (bwDat: BwDATType, tileset: number) => {
+  return (image: ImageInstance, imageDesc: ImageDATType, state = {}) => new IScriptRunner(bwDat, tileset, image, imageDesc, state);
+};

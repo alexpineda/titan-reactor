@@ -1,4 +1,7 @@
-const IScriptTypes = {
+import range from "../utils/range";
+import { IScriptDATType, IScriptRawType, AnimationBlockType } from "../types";
+
+const IScriptTypes: Record<number, number> = {
   0: 2,
   1: 2,
   2: 4,
@@ -36,7 +39,7 @@ const typeGasOverlay = { size: 1, name: "gasoverlay" };
 const typeShort = { size: 2, name: "short" };
 const typeOverlayId = { size: 1, name: "overlayid" };
 
-const IScriptOPCodes = [
+const IScriptOPCodes: [string, { size: number; name: string }[]][] = [
   ["playfram", [typeFrame]],
   ["playframtile", [typeFrame]],
   ["sethorpos", [typeSByte]],
@@ -108,12 +111,7 @@ const IScriptOPCodes = [
   ["dogrddamage", []],
 ];
 
-//https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
-const range = (startAt, size) => {
-  return [...Array(size).keys()].map((i) => i + startAt);
-};
-
-const read = (buf, size, pos) => {
+const read = (buf: Buffer, size: number, pos: number) => {
   let value = null;
   if (size === 1) {
     value = buf.readUInt8(pos);
@@ -123,15 +121,15 @@ const read = (buf, size, pos) => {
   return value;
 };
 
-export const parseIScriptBin = (buf) => {
-  const iscripts = [];
-  const animationBlocks = {};
+export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
+  const iscripts: Record<number, IScriptRawType> = [];
+  const animationBlocks: Record<number, AnimationBlockType> = {};
 
-  function loadAnimationBlock(offset) {
+  function loadAnimationBlock(offset: number) {
     if (!offset || animationBlocks[offset]) {
       return;
     }
-    let nextOffset = offset;
+    let nextOffset: number | null = offset;
     animationBlocks[offset] = [];
 
     while (nextOffset && nextOffset < buf.byteLength) {
@@ -145,7 +143,12 @@ export const parseIScriptBin = (buf) => {
     }
   }
 
-  function loadCommand(offset) {
+  type LoadCommandResult = [
+    { op: { opName: string }; args: number[] },
+    number | null
+  ];
+
+  function loadCommand(offset: number): LoadCommandResult {
     if (offset === 0) {
       throw new Error("invalid offset");
     }
@@ -157,13 +160,16 @@ export const parseIScriptBin = (buf) => {
     const [opName, params] = IScriptOPCodes[opIndex];
     const op = { opName, opIndex, offset };
     const args = [];
-    let newPos = offset + 1;
+    let newPos: number | null = offset + 1;
     if (params.length) {
       if (params[0].name != "sounds") {
-        newPos = params.reduce((pos, { name, size }) => {
-          args.push({ name, val: read(buf, size, pos), size });
-          return pos + size;
-        }, newPos);
+        newPos = params.reduce(
+          (pos: number, { name, size }: { name: string; size: number }) => {
+            args.push({ name, val: read(buf, size, pos), size });
+            return pos + size;
+          },
+          newPos
+        );
       } else {
         const [sounds, { name, size }] = params;
 
@@ -195,7 +201,7 @@ export const parseIScriptBin = (buf) => {
     return [{ op, args }, newPos];
   }
 
-  function loadNextIScript(pos) {
+  function loadNextIScript(pos: number) {
     if (pos > buf.byteLength - 4) return;
 
     const iscriptIndex = buf.readUInt16LE(pos);
@@ -213,7 +219,7 @@ export const parseIScriptBin = (buf) => {
       throw new Error("invalid header");
     }
 
-    const iscript = {
+    const iscript: IScriptRawType = {
       id: iscriptIndex,
       type: buf.readUInt8(offset + 4),
       offset,

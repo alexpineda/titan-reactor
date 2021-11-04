@@ -3,7 +3,7 @@ import { PerspectiveCamera, Raycaster, Vector2 } from "three";
 
 import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { TerrainInfo } from "../../common/types/terrain";
-import BWFrameSceneBuilder from "../three-game-builder";
+import ThreeGameBuilder from "../three-game-builder";
 import ProjectedCameraView from "../camera/projected-camera-view";
 import GameCanvasTarget from "../render/game-canvas-target";
 import useGameStore, { getIcons } from "../stores/game-store";
@@ -162,7 +162,7 @@ export class MouseCursor {
     gameSurface: GameCanvasTarget,
     { terrain, mapWidth, mapHeight }: TerrainInfo,
     camera: PerspectiveCamera,
-    frameBuilder: BWFrameSceneBuilder
+    frameBuilder: ThreeGameBuilder
   ) {
     this.projectedCameraView = projectedCameraView;
 

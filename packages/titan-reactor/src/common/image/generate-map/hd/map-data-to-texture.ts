@@ -7,6 +7,7 @@ import {
   Mesh,
   CanvasTexture,
   sRGBEncoding,
+  WebGLRenderer,
 } from "three";
 import { loadHdTile, PX_PER_TILE } from "./common";
 
@@ -14,12 +15,12 @@ import { loadHdTile, PX_PER_TILE } from "./common";
 // splits up textures into quadrants if a single texture would be
 // over max supported size
 export const mapDataToTextures = (
-  renderer,
-  mapWidth,
-  mapHeight,
-  { hdTiles, mapTilesData }
+  renderer: WebGLRenderer,
+  mapWidth: number,
+  mapHeight: number,
+  { hdTiles, mapTilesData } : { hdTiles: Record<number, Buffer>, mapTilesData: Record<number, number> },
 ) => {
-  const mapQuartiles = [];
+  const mapQuartiles: CanvasTexture[][] = [];
 
   const webGlMaxTextureSize = renderer.capabilities.maxTextureSize;
   //16384, 8192, 4096
@@ -66,8 +67,12 @@ export const mapDataToTextures = (
     for (let qy = 0; qy < quartileStrideH; qy++) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not get context");
+      }
       canvas.width = renderWidth;
       canvas.height = renderHeight;
+      // @todo use render target, must use same renderer as game?
       // const rt = new WebGLRenderTarget(renderWidth, renderHeight);
 
       for (let x = 0; x < quartileWidth; x++) {
@@ -85,9 +90,7 @@ export const mapDataToTextures = (
             mesh.position.x = x - quartileWidth / 2 + 0.5;
             mesh.position.z = y - quartileHeight / 2 + 0.5;
             mesh.rotation.x = Math.PI / 2;
-            // renderer.setRenderTarget(rt);
             renderer.render(quartileScene, ortho);
-            // renderer.setRenderTarget(null);
           } else {
             console.error("no tile", tile);
           }
@@ -96,7 +99,6 @@ export const mapDataToTextures = (
 
       ctx.drawImage(renderer.domElement, 0, 0);
       mapQuartiles[qx][qy] = new CanvasTexture(canvas);
-      // mapQuartiles[qx][qy] = rt.texture;
       mapQuartiles[qx][qy].encoding = sRGBEncoding;
       mapQuartiles[qx][qy].anisotropy =
         renderer.capabilities.getMaxAnisotropy();

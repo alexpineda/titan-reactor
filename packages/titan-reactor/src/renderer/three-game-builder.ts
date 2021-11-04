@@ -43,7 +43,7 @@ import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 // Updates and merges internal unit state
 // Creates and updates three.js Sprites, minimap bitmap, audio,
 // creep and fog of war
-export default class BWFrameSceneBuilder {
+export default class ThreeGameBuilder {
   private readonly scene: Scene;
   private readonly createTitanImage: (
     id: number,
