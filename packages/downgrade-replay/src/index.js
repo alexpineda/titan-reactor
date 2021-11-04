@@ -4,6 +4,7 @@ const downgradeReplay = require("./downgrade");
 const validateDowngrade = require("./commands/validate");
 const CommandsStream = require("./commands/commands-stream");
 const { Version } = require("./common");
+const { ChkDowngrader } = require("./chk");
 
 module.exports = {
   parseReplay,
@@ -11,4 +12,5 @@ module.exports = {
   Version,
   CommandsStream,
   validateDowngrade,
+  ChkDowngrader,
 };

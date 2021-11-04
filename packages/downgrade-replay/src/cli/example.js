@@ -1,9 +1,10 @@
-const parseReplay = require("./replay");
-const downgradeReplay = require("./downgrade");
-const CommandsStream = require("./commands/commands-stream");
-const { CMDS } = require("./commands/commands");
-const Chk = require("../libs/bw-chk");
-const { ChkDowngrader } = require("downgrade-chk");
+const fs = require("fs");
+const parseReplay = require("../replay");
+const downgradeReplay = require("../downgrade");
+const CommandsStream = require("../commands/commands-stream");
+const { CMDS } = require("../commands/commands");
+const Chk = require("../../libs/bw-chk");
+const { ChkDowngrader } = require("../chk");
 
 const areEqualArray = (a, b) =>
   Array.isArray(a) && Array.isArray(b) && areEqual(a, b);
@@ -38,8 +39,7 @@ const areEqual = (a, b, opts = {}) => {
   }
   return true;
 };
-const fs = require("fs");
-const { format } = require("path");
+
 fs.readFile(
   process.argv[2] || "./test/25555-Star_kras-PvT.rep",
   async (err, buf) => {

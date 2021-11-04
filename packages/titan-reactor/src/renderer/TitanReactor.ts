@@ -5,8 +5,8 @@ import {
   Version,
   CommandsStream,
   validateDowngrade,
+  ChkDowngrader,
 } from "downgrade-replay";
-import { ChkDowngrader } from "downgrade-chk";
 import fs from "fs";
 import path from "path";
 import createScmExtractor from "scm-extractor";

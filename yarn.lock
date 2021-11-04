@@ -3148,16 +3148,7 @@ bl@^1.0.1:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
 
-bl@^4.0.0:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/bl/-/bl-4.0.3.tgz#12d6287adc29080e22a705e5764b2a9522cdc489"
-  integrity sha512-fs4G6/Hu4/EE+F75J8DuN/0IpQqNjAdC7aEQv7Qt8MHGUH7Ckv2MwTEEeN9QehD0pfIDkMI1bkHYkKy7xHyKIg==
-  dependencies:
-    buffer "^5.5.0"
-    inherits "^2.0.4"
-    readable-stream "^3.4.0"
-
-bl@^4.0.3:
+bl@^4.0.0, bl@^4.0.3:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/bl/-/bl-4.1.0.tgz#451535264182bec2fbbc83a62ab98cf11d9f7b3a"
   integrity sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==
@@ -3476,6 +3467,14 @@ builtin-status-codes@^3.0.0:
   resolved "https://registry.yarnpkg.com/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz#85982878e21b98e1c66425e03d0174788f569ee8"
   integrity sha1-hZgoeOIbmOHGZCXgPQF0eI9Wnug=
 
+bw-chk@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/bw-chk/-/bw-chk-1.2.1.tgz#80c5ef96d017bb80ec093117629ba1d42f6101f1"
+  integrity sha512-FL9y8i7TTfu72vkK2qG/RS4grJNFs1WpNddiuI95ck3KP43sJiHZSxnCSrRVvf7itlFhd31Fp3gtyokpR4HjYQ==
+  dependencies:
+    bl "^4.0.3"
+    iconv-lite "^0.6.2"
+
 bytes@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.0.0.tgz#d32815404d689699f85a4ea4fa8755dd13a96048"
@@ -3623,6 +3622,13 @@ capture-exit@^2.0.0:
   integrity sha512-PiT/hQmTonHhl/HFGN+Lx3JJUznrVYJ3+AQsnthneZbvW7x+f08Tk7yLJTLEOUvBTbduLeeBkxEaYXUOUrRq6g==
   dependencies:
     rsvp "^4.8.4"
+
+casclib@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/casclib/-/casclib-1.0.4.tgz#c54a2a4eb8dfde0261609aaccc25ea3861746460"
+  integrity sha1-xUoqTrjf3gJhYJqszCXqOGF0ZGA=
+  dependencies:
+    node-addon-api "^1.1.0"
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -4816,6 +4822,19 @@ dotignore@^0.1.2:
   integrity sha512-UGGGWfSauusaVJC+8fgV+NVvBXkCTmVv7sk6nojDZZvuOUNGUy0Zk4UpHQD6EDjS0jpBwcACvH4eofvyzBcRDw==
   dependencies:
     minimatch "^3.0.4"
+
+downgrade-replay@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/downgrade-replay/-/downgrade-replay-0.0.1.tgz#25243092b08b450b2e2110eaa9fdeb529c1f53dc"
+  integrity sha512-TFbBOc//NQDtI3T/WCQQjDzBBkXgLHA8JF3mrRJl2WqTyiTjDMuE0aa6sE8NLkib/RTTiU0iK8cKBxmCplEszw==
+  dependencies:
+    bl "^5.0.0"
+    concat-stream "^2.0.0"
+    iconv-lite "^0.6.2"
+    jssuh "^1.4.0"
+    pkware-wasm "^1.0.0"
+    ramda "^0.27.1"
+    scm-extractor "^1.0.6"
 
 duplexer3@^0.1.4:
   version "0.1.4"
@@ -10440,6 +10459,11 @@ pngjs@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/pngjs/-/pngjs-2.3.1.tgz#11d1e12b9cb64d63e30c143a330f4c1f567da85f"
   integrity sha1-EdHhK5y2TWPjDBQ6Mw9MH1Z9qF8=
+
+pngjs@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/pngjs/-/pngjs-6.0.0.tgz#ca9e5d2aa48db0228a52c419c3308e87720da821"
+  integrity sha512-TRzzuFRRmEoSW/p1KVAmiOgPco2Irlah+bGFCeNfJXxxYGwSw7YwAOAcd7X28K/m5bjBWKsC29KyoMfHbypayg==
 
 portfinder@^1.0.26:
   version "1.0.28"

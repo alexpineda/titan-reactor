@@ -6,7 +6,6 @@ const { uint32, uint8 } = require("./util/alloc");
 const commandToBuf = require("./commands/cmd-to-buf");
 const { CMDS } = require("./commands/commands");
 const CommandsStream = require("./commands/commands-stream");
-const ChkDowngrader = require("../../downgrade-chk/chk-downgrader");
 
 const downgradeReplay = async (replay, chkDowngrader) => {
   const bl = new BufferList();

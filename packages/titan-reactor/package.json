@@ -46,12 +46,10 @@
     "mac": {
       "category": "starcraft replay viewer"
     },
-    "extraResources": [
-      {
-        "from": "static",
-        "to": "static"
-      }
-    ]
+    "extraResources": [{
+      "from": "static",
+      "to": "static"
+    }]
   },
   "dependencies": {
     "bl": "^5.0.0",
@@ -61,7 +59,7 @@
     "casclib": "^2.0.1",
     "concat": "1.0.3",
     "d3-ease": "1.0.6",
-    "downgrade-replay": "^1.0.0",
+    "downgrade-replay": "^0.0.1",
     "electron-devtools-installer": "^3.2.0",
     "electron-is-dev": "^1.2.0",
     "iconv-lite": "0.6.3",
