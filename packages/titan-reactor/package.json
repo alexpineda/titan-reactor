@@ -46,10 +46,12 @@
     "mac": {
       "category": "3D Map & Replay Viewer for Starcraft Broodwar"
     },
-    "extraResources": [{
-      "from": "static",
-      "to": "static"
-    }]
+    "extraResources": [
+      {
+        "from": "static",
+        "to": "static"
+      }
+    ]
   },
   "dependencies": {
     "bl": "^5.0.0",
@@ -63,7 +65,6 @@
     "electron-devtools-installer": "^3.2.0",
     "electron-is-dev": "^1.2.0",
     "iconv-lite": "0.6.3",
-    "iscript": "^1.0.2",
     "lodash.debounce": "^4.0.8",
     "lodash.shuffle": "^4.2.0",
     "postprocessing": "^6.23.1",
