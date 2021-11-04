@@ -30,11 +30,11 @@ export type cmdRightClick = baseSelection & {
   queued: number;
 };
 
-export type ReplayCommandType =
+export type ReplayCommand =
   | cmdRightClick
   | cmdSelectionAdd
   | cmdSelection
   | cmdSelectionRemove;
 
-export const cmdIsRightClick = (tbd: ReplayCommandType): tbd is cmdRightClick =>
+export const cmdIsRightClick = (tbd: ReplayCommand): tbd is cmdRightClick =>
   "x" in tbd && "y" in tbd;

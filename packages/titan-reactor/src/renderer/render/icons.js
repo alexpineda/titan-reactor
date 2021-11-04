@@ -1,8 +1,7 @@
 import generateIcons from "../../common/image/generate-icons/generate-icons";
-import { openCasclibFile } from "../ipc";
 
 class Icons {
-  async generate() {
+  async generate(readFile) {
     const [
       gameIcons,
       cmdIcons,
@@ -12,7 +11,7 @@ class Icons {
       hoverIcons,
       dragIcons,
       wireframeIcons,
-    ] = await generateIcons(openCasclibFile);
+    ] = await generateIcons(readFile);
 
     this.gameIcons = gameIcons;
     this.cmdIcons = cmdIcons;

@@ -1,7 +1,7 @@
 import { PerspectiveCamera } from "three";
 import { Vector4 } from "three/src/math/Vector4";
 
-import { cmdIsRightClick, ReplayCommandType } from "../../common/types/replay";
+import { cmdIsRightClick, ReplayCommand } from "../../common/types/replay";
 import { PxToGameUnit } from "../../common/types/util";
 import ClockMs from "../../common/utils/clock-ms";
 
@@ -44,7 +44,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this.lookAt(this.position.x, 0, this.position.z);
   }
 
-  update(cmd: ReplayCommandType, pxToGameUnit: PxToGameUnit, debounce = 0) {
+  update(cmd: ReplayCommand, pxToGameUnit: PxToGameUnit, debounce = 0) {
     // some commands - screen move (right click, attack move, build, research, upgrade, pick up, drop)
     // some commands - minimap action (right click, attack move)
     // some commands - before hand was screen move (observing actions)

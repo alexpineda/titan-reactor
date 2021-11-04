@@ -1,5 +1,5 @@
 import Chk from "libs/bw-chk";
-import { openCasclibFile } from "../ipc";
+import { readCascFile } from "../../common/utils/casclib";
 
 import {
   generateMaterialsAndMeshes,
@@ -9,7 +9,7 @@ import { loadTilesetFilesAsync } from "../../common/image/generate-map/map-data"
 
 export async function generateTerrain(chk: Chk) {
   // load all the tile files we need
-  const tileFilesData = await loadTilesetFilesAsync(openCasclibFile, chk);
+  const tileFilesData = await loadTilesetFilesAsync(readCascFile, chk);
 
   // interpret them and create intermediate bitmaps and textures
   const mapData = await generateTextures(

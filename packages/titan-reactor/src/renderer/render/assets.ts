@@ -5,7 +5,11 @@ import Icons from "./icons";
 import { GrpFileLoader, GrpHD } from "../../common/image";
 import { Anim } from "../../common/image/formats";
 import { BwDATType } from "../../common/types";
-import { openCasclib, openCasclibFile, closeCasclib } from "../ipc";
+import {
+  closeCascStorage,
+  openCascStorage,
+  readCascFile,
+} from "../../common/utils/casclib";
 import ContiguousContainer from "../game-data/contiguous-container";
 import {
   startLoadingProcess,
@@ -35,25 +39,25 @@ class Assets {
         //todo change to invoke
         return fsPromises.readFile(file);
       } else {
-        return openCasclibFile(file);
+        return readCascFile(file);
       }
     });
 
-    openCasclib(starcraftPath);
+    openCascStorage(starcraftPath);
 
     //@todo move parsing to client
-    this.bwDat = await loadDATFiles(openCasclibFile);
+    this.bwDat = await loadDATFiles(readCascFile);
     updateLoadingProcess("assets");
 
-    const sdAnimBuf = await openCasclibFile("SD/mainSD.anim");
+    const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = Anim(sdAnimBuf);
 
     this.selectionCirclesHD = [];
     for (let i = 561; i < 571; i++) {
       const selCircleGRP = new GrpHD();
-      const readAnim = async () => await openCasclibFile(`anim/main_${i}.anim`);
+      const readAnim = async () => await readCascFile(`anim/main_${i}.anim`);
       const readAnimHD2 = async () =>
-        await openCasclibFile(`HD2/anim/main_${i}.anim`);
+        await readCascFile(`HD2/anim/main_${i}.anim`);
       await selCircleGRP.load({
         readAnim,
         readAnimHD2,
@@ -72,13 +76,13 @@ class Assets {
     // // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
     // renderer.dispose();
 
-    await this.icons.generate();
+    await this.icons.generate(readCascFile);
     updateLoadingProcess("assets");
 
     const grpLoader = new GrpFileLoader(
       this.bwDat,
       communityModelsPath,
-      openCasclibFile,
+      readCascFile,
       sdAnim.sprites
     );
 
@@ -90,12 +94,11 @@ class Assets {
   }
 
   async loadAudioFile(id: number) {
-    return (await openCasclibFile(`sound/${this.bwDat?.sounds[id].file}`))
-      .buffer;
+    return (await readCascFile(`sound/${this.bwDat?.sounds[id].file}`)).buffer;
   }
 
   dispose() {
-    closeCasclib();
+    closeCascStorage();
   }
 }
 

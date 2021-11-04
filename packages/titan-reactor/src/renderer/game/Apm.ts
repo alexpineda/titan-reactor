@@ -1,28 +1,33 @@
 import { Player } from "../../common/types/player";
-import { ReplayCommandType } from "../../common/types/replay";
+import { ReplayCommand } from "../../common/types/replay";
+
+type PlayerId = Pick<Player, "id">;
+type ReplayCommandPlayer = Pick<ReplayCommand, "player">;
+
+export const MIN_APM_CALCULATION_FRAME = Math.floor(20_000 / 42);
 
 export class Apm {
   actions = new Array(8).fill(0);
   apm = new Array(8).fill(0);
-  players: Player[] = [];
+  players: PlayerId[] = [];
 
-  constructor(players: Player[]) {
+  constructor(players: PlayerId[]) {
     this.players = players;
   }
 
-  update(cmds: ReplayCommandType[], bwGameFrame: number) {
+  update(cmds: ReplayCommandPlayer[], bwGameFrame: number) {
     if (cmds) {
       for (const cmd of cmds) {
         //@todo remove once we filter out commands
         if (!this.players[cmd.player]) continue;
         this.actions[this.players[cmd.player].id]++;
       }
-      if (bwGameFrame < 200) {
+      if (bwGameFrame < MIN_APM_CALCULATION_FRAME) {
         return;
       }
       for (const player of this.players) {
         this.apm[player.id] = Math.floor(
-          this.actions[player.id] / bwGameFrame / 10
+          this.actions[player.id] / ((bwGameFrame * 42) / 60000)
         );
       }
     }
