@@ -3,14 +3,14 @@
 Looking to make a contribution? This is the guide for you! 🥳
 
 ## Primary Tech
-node ^14.
-yarn ^1.0
-three@latest
-electron-webpack@latest
-electron^15.0.0
-preact@latest
-zustand
-openbw
+- node ^14.
+- yarn ^1.0
+- three@latest
+- electron-webpack@latest
+- electron^15.0.0
+- preact@latest
+- zustand
+- openbw
 
 ## Build
 We use `yarn ^1.0` workspaces allowing us to keep seperate packages for interrelated functionality:
