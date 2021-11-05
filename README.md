@@ -53,7 +53,8 @@ you will also need openbw-bridge.exe which is included in static directory for y
 - C key - Show/hide mouse cursor
 
 ### Contributing
-I'm looking for contributors. Please send me a message on discord or feel free to tackle any of the github issues or issues below. PR's welcome.
+
+See our [Contributing Guide](https://github.com/imbateam-gg/titan-reactor/blob/dev/CONTRIBUTING.md).
 
 ### Thoughts on current state and TODO
 
