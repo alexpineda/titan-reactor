@@ -43,7 +43,8 @@ import {
 } from "./stores";
 import TitanReactorGame from "./titan-reactor-game";
 import TitanReactorMap from "./titan-reactor-map";
-import { BwDATType } from "../common/types"
+// import IScriptah from "./react-ui/iscriptah/iscriptah";
+import { BwDATType } from "../common/types";
 
 const loadScx = (filename: string) =>
   new Promise((res) =>
@@ -96,6 +97,7 @@ export class TitanReactor {
     );
   }
 
+  // @todo make async and return assets?
   waitForAssets() {
     log("waiting for assets");
     return new Promise((res: EmptyFunc) => {
@@ -279,7 +281,7 @@ export class TitanReactor {
         ),
         (sprite: Object3D) => scene.add(sprite)
       );
-    }
+    };
 
     TitanImageHD.useDepth = false;
     updateIndeterminateLoadingProcess("map", getFunString());
@@ -300,6 +302,31 @@ export class TitanReactor {
     completeLoadingProcess("map");
     setGame(game);
     loadingStore.completeChk();
+  }
+
+  async spawnIscriptah() {
+    log("loading iscriptah");
+    disposeGame();
+
+    const settings = getSettings();
+    if (!settings) {
+      throw new Error("settings not loaded");
+    }
+    startLoadingProcess({
+      id: "iscriptah",
+      label: getFunString(),
+      priority: 1,
+    });
+
+    await this.waitForAssets();
+    const assets = getAssets();
+    if (!assets || !assets.bwDat) {
+      throw new Error("assets not loaded");
+    }
+
+    // const game = await IScriptah(assets.bwDat);
+    completeLoadingProcess("iscriptah");
+    // setGame(game);
   }
 
   dispose() {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
-import { baseFrameSelected, frameSelected } from "../iscriptReducer";
-import { range } from "ramda";
+import { baseFrameSelected, frameSelected } from "../iscript-reducer";
+import range from "../../../../common/utils/range";
 
 const Frames = ({
   numFrames,
@@ -14,12 +14,12 @@ const Frames = ({
   const [focusElement, setFocusElement] = useState(false);
   const [showOnlyFramesets, setShowOnlyFramesets] = useState(false);
 
-  const elementToFocus = useRef();
+  const elementToFocus = useRef<HTMLLIElement>();
   const looseFrames = numFrames % 17;
 
   useEffect(() => {
     if (focusElement && elementToFocus.current) {
-      elementToFocus.current.focus();
+      (elementToFocus.current as HTMLLIElement).focus();
       setFocusElement(false);
     }
   }, [focusElement]);
@@ -40,7 +40,7 @@ const Frames = ({
             type="checkbox"
             checked={showOnlyFramesets}
             onChange={(evt) => {
-              setShowOnlyFramesets(evt.target.checked);
+              setShowOnlyFramesets((evt.target as HTMLInputElement).checked);
             }}
           />
           Show only framesets
@@ -48,7 +48,7 @@ const Frames = ({
       </header>
       <section className="p-2 relative">
         <ul>
-          {range(0, numFrames).map((frame, i) => {
+          {range(0, numFrames).map((frame: number, i: number) => {
             let isBaseFrame =
               selectedBaseFrame === null
                 ? 0
@@ -60,9 +60,9 @@ const Frames = ({
                 (isBaseFrame === i || i >= numFrames - looseFrames)) ? (
               <li
                 key={i}
-                tabIndex="0"
+                tabIndex={0}
                 ref={(el) => {
-                  if (selectedFrame === i) {
+                  if (selectedFrame === i && el) {
                     elementToFocus.current = el;
                   }
                 }}

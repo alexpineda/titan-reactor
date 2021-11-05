@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { connect } from "react-redux";
-import { headersById } from "titan-reactor-shared/types/iscriptHeaders";
-import { blockSelected } from "../iscriptReducer";
+import { iscriptHeaders } from "../../../../common/bwdat/enums";
+import { blockSelected } from "../iscript-reducer";
 
 const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
   const [expanded, setExpanded] = useState(false);
@@ -35,7 +35,7 @@ const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
         </p>
         {expanded && (
           <ul className="px-2">
-            {iscriptAnimations.offsets.map((offset, i) => {
+            {iscriptAnimations.offsets.map((offset: number, i: number) => {
               return (
                 <li
                   key={i}
@@ -47,7 +47,7 @@ const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
                   }}
                 >
                   <span className={offset ? "font-bold" : ""}>
-                    {headersById[i]}
+                    {iscriptHeaders[i]}
                   </span>
                   <ul>{}</ul>
                 </li>

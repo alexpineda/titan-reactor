@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { combineReducers } from "redux";
-import appReducer from "./appReducer";
-import iscriptReducer from "./iscriptReducer";
+import appReducer from "./app-reducer";
+import iscriptReducer from "./iscript-reducer";
 
 const store = configureStore({
   reducer: combineReducers({

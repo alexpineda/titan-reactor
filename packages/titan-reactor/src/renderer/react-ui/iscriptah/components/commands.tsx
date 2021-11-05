@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
-import { headersById } from "titan-reactor-shared/types/iscriptHeaders";
-import { baseFrameSelected } from "../iscriptReducer";
+import { iscriptHeaders } from "../../../../common/bwdat/enums";
+import { baseFrameSelected } from "../iscript-reducer";
 import { interactiveOpCodes } from "../utils/framesets";
 import useDirectionalFrame from "../utils/useDirectionalFrame";
 
@@ -28,12 +28,12 @@ const Commands = ({
   }
   const [showOnlyPlayFrame, setShowOnlyPlayFrame] = useState(true);
   const [clickEl, setClickEl] = useState(null);
-  const elToClick = useRef();
+  const elToClick = useRef<HTMLLIElement>();
 
   const { offset, header } = selectedBlock;
   const animationBlocks = bwDat.iscript.animationBlocks;
   const cmds = animationBlocks[offset];
-  const headerLabel = headersById[header];
+  const headerLabel = iscriptHeaders[header];
   const [getDirectionalFrame, areFrameSetsEnabled] = useDirectionalFrame(
     cmds,
     selectedBlock,
@@ -47,7 +47,7 @@ const Commands = ({
     setClickEl(null);
   }, [clickEl]);
 
-  const clickNext = (prevIndex) => {
+  const clickNext = (prevIndex: number) => {
     if (!cmds.find(([op]) => interactiveOpCodes.includes(op))) {
       return;
     }
@@ -63,7 +63,7 @@ const Commands = ({
     }
   };
 
-  const clickPrev = (prevIndex) => {
+  const clickPrev = (prevIndex: number) => {
     if (!cmds.find(([op]) => interactiveOpCodes.includes(op))) {
       return;
     }
@@ -109,14 +109,14 @@ const Commands = ({
         <ul>
           {cmds &&
             cmds
-              .map((cmd, i) => [cmd, i])
+              .map((cmd, i: number) => [cmd, i])
               .filter(([[op]]) =>
                 showOnlyPlayFrame ? interactiveOpCodes.includes(op) : true
               )
-              .map(([cmd, i]) => {
+              .map(([cmd, i]: [any,number]) => {
                 return (
                   <li
-                    tabIndex="0"
+                    tabIndex={0}
                     onKeyDown={(evt) => {
                       evt.preventDefault();
                       if (evt.key === "ArrowDown") {
@@ -126,7 +126,7 @@ const Commands = ({
                       }
                     }}
                     ref={(el) => {
-                      if (clickEl === i) {
+                      if (clickEl === i && el) {
                         elToClick.current = el;
                       }
                     }}

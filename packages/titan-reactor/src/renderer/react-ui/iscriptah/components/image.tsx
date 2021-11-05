@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
-import AnimationBlocks from "./AnimationBlocks";
-import calculateImagesFromIscript from "titan-reactor-shared/image/calculateImagesFromIScript";
+import AnimationBlocks from "./animation-blocks";
+import calculateImagesFromIscript from "../../../../common/image/util/images-from-iscript";
 
 const Image = ({ image, bwDat, ...props }) => {
   const imagesFromIscript = useCallback(() => {
@@ -22,7 +22,7 @@ const Image = ({ image, bwDat, ...props }) => {
           {image.index}
         </span>
       </p>
-      {imagesFromIscript().map((i) => (
+      {imagesFromIscript().map((i: number) => (
         <AnimationBlocks key={i} image={bwDat.images[i]} bwDat={bwDat} />
       ))}
       {/* <AnimationBlocks label="" image={sprite.image} bwDat={bwDat} /> */}

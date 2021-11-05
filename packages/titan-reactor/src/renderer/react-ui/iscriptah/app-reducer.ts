@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { gameSpeeds } from "titan-reactor-shared/utils/conversions";
+import { gameSpeeds } from "../../../common/utils/conversions";
 
 const initialState = {
   criticalError: false,
@@ -10,8 +10,6 @@ const initialState = {
   unitImageTab: "units",
   renderMode: "3d",
   cameraDirection: 0,
-  bwDataPath: "",
-  validBwDataPath: false,
   exposure: 2.2,
   transform: "",
   transformEnabled: {
@@ -27,9 +25,6 @@ const appReducer = createSlice({
   reducers: {
     criticalErrorOccurred: (state) => {
       state.criticalError = true;
-    },
-    errorOccurred: (state, action) => {
-      state.error = action.payload;
     },
     onGameTick: (state) => {
       state.gameTick = state.gameTick + 1;
@@ -48,12 +43,6 @@ const appReducer = createSlice({
     },
     cameraDirectionChanged: (state, action) => {
       state.cameraDirection = action.payload;
-    },
-    bwDataPathChanged: (state, action) => {
-      state.bwDataPath = action.payload;
-    },
-    validateBwDataPath: (state, action) => {
-      state.validBwDataPath = action.payload;
     },
     exposureChanged: (state, action) => {
       state.exposure = action.payload;
@@ -75,15 +64,12 @@ const appReducer = createSlice({
 
 export const {
   criticalErrorOccurred,
-  errorOccurred,
   onGameTick,
   autoUpdateChanged,
   gamespeedChanged,
   unitImageTabChanged,
   renderModeChanged,
   cameraDirectionChanged,
-  bwDataPathChanged,
-  validateBwDataPath,
   exposureChanged,
   transformChanged,
   transformEnabledX,

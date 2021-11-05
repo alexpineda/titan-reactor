@@ -5,7 +5,7 @@ export const interactiveOpCodes = [
   "engset",
 ];
 
-export const getDirectionalFrame = (cmd, cameraDirection) => {
+export const getDirectionalFrame = (cmd, cameraDirection: number) => {
   const frameset = Math.floor(cmd[1] / 17) * 17;
 
   if (cameraDirection > 16) {

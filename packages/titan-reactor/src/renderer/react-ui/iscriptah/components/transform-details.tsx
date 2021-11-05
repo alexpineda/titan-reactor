@@ -4,7 +4,7 @@ import {
   transformEnabledX,
   transformEnabledY,
   transformEnabledZ,
-} from "../appReducer";
+} from "../app-reducer";
 
 const TransformDetails = ({
   property,

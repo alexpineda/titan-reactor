@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
-import AnimationBlocks from "./AnimationBlocks";
-import calculateImagesFromIscript from "titan-reactor-shared/image/calculateImagesFromIScript";
+import AnimationBlocks from "./animation-blocks";
+import calculateImagesFromIscript from "../../../../common/image/util/images-from-iscript";
 
 const Sprite = ({ sprite, bwDat, ...props }) => {
   const imagesFromIscript = useCallback(() => {

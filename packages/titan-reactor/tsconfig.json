@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact/compat",
+    "jsxImportSource": "preact",
 
     "checkJs": false,
     "preserveConstEnums": true,

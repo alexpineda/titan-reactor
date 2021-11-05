@@ -1,20 +1,20 @@
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
-import { gameSpeeds } from "titan-reactor-shared/utils/conversions";
+import { gameSpeeds } from "../../../../common/utils/conversions";
 import {
   autoUpdateChanged,
   gamespeedChanged,
   renderModeChanged,
   exposureChanged,
   transformChanged,
-} from "../appReducer";
+} from "../app-reducer";
 import {
   frameSelected,
   baseFrameSelected,
   flipFrameChanged,
-} from "../iscriptReducer";
-import TransformDetails from "./TransformDetails";
-import { WrappedCanvas } from "./WrappedCanvas";
+} from "../iscript-reducer";
+import TransformDetails from "./transform-details";
+import { WrappedCanvas } from "./wrapped-canvas";
 
 const Animation = ({
   surface,
@@ -147,8 +147,8 @@ const Animation = ({
             data-balloon-pos="down"
             checked={three.plane.visible}
             onChange={(evt) => {
-              three.plane.visible = evt.target.checked;
-              three.axes.visible = evt.target.checked;
+              three.plane.visible = (evt.target as HTMLInputElement).checked;
+              three.axes.visible = (evt.target as HTMLInputElement).checked;
             }}
           />
 
@@ -161,7 +161,7 @@ const Animation = ({
             max="4"
             step="0.01"
             value={exposure}
-            onChange={(evt) => changeExposure(evt.target.value)}
+            onChange={(evt) => changeExposure( (evt.target as HTMLInputElement).value)}
           />
         </span>
       </section>
@@ -197,7 +197,7 @@ const Animation = ({
 
         <select
           value={gamespeed}
-          onChange={({ target }) => changeGamespeed(target.value)}
+          onChange={({ target }) => changeGamespeed((target as HTMLInputElement).value)}
         >
           {Object.entries(gameSpeeds).map(([name, val]) => {
             return (
@@ -274,13 +274,13 @@ export default connect(
     transform: state.app.transform,
   }),
   (dispatch) => ({
-    setAutoUpdate: (val) => dispatch(autoUpdateChanged(val)),
-    changeGamespeed: (val) => dispatch(gamespeedChanged(val)),
-    setFrame: (frame) => dispatch(frameSelected(frame)),
-    setBaseFrame: (frame) => dispatch(baseFrameSelected(frame)),
-    setFlipFrame: (val) => dispatch(flipFrameChanged(val)),
-    setRenderMode: (val) => dispatch(renderModeChanged(val)),
-    setTransform: (val) => dispatch(transformChanged(val)),
-    changeExposure: (val) => dispatch(exposureChanged(val)),
+    setAutoUpdate: (val: boolean) => dispatch(autoUpdateChanged(val)),
+    changeGamespeed: (val: number) => dispatch(gamespeedChanged(val)),
+    //@todo make sure number is valid here
+    setBaseFrame: (frame: number|null) => dispatch(baseFrameSelected(frame)),
+    setFlipFrame: (val: boolean) => dispatch(flipFrameChanged(val)),
+    setRenderMode: (val:string) => dispatch(renderModeChanged(val)),
+    setTransform: (val:string) => dispatch(transformChanged(val)),
+    changeExposure: (val:number) => dispatch(exposureChanged(val)),
   })
 )(Animation);

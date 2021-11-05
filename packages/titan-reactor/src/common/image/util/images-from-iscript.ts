@@ -4,9 +4,9 @@ import uniq from "../../utils/uniq";
 const calculateImagesFromIScript = (
   bwDat: BwDATType,
   image: ImageDATType,
-  unit?: UnitDAT,
+  unit?: UnitDAT | null,
   preload = new Set()
-) => {
+): number[] => {
   const getAllImages = (imageDef: ImageDATType) => {
     // console.log(imageDef);
     preload.add(imageDef.index);

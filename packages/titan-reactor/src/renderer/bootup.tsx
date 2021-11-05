@@ -7,19 +7,22 @@ import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc";
 import version from "../common/version";
 import { log } from "./ipc";
 import App from "./react-ui/app";
-import { useLoadingStore, useSettingsStore, useTitanReactorStore } from "./stores";
+import {
+  useLoadingStore,
+  useSettingsStore,
+  useTitanReactorStore,
+} from "./stores";
 import { TitanReactor } from "./titan-reactor";
 
 if (module.hot) {
   module.hot.accept();
 }
 
-
 log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);
 log(`electron ${process.versions.electron}`);
 
-const loadFont = async (file: string, family:string, weight:string) => {
+const loadFont = async (file: string, family: string, weight: string) => {
   const conthrax = (await fsPromises.readFile(file)).toString("base64");
   const style = document.createElement("style");
   document.head.appendChild(style);
@@ -64,5 +67,5 @@ ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replays) => {
 });
 
 //@ts-ignore
-render(<App titanReactor={titanReactor} />, document.getElementById("app"));
+render(<App />, document.getElementById("app"));
 bootup();

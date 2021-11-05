@@ -1,10 +1,10 @@
 import React from "react";
 import { connect } from "react-redux";
-import Unit from "./Unit";
-import Sprite from "./Sprite";
-import Image from "./Image";
-import { imageSelected, spriteSelected, unitSelected } from "../iscriptReducer";
-import { unitImageTabChanged } from "../appReducer";
+import Unit from "./unit";
+import Sprite from "./sprite";
+import Image from "./image";
+import { imageSelected, spriteSelected, unitSelected } from "../iscript-reducer";
+import { unitImageTabChanged } from "../app-reducer";
 
 const UnitsAndImages = ({
   bwDat,
@@ -87,7 +87,7 @@ const UnitsAndImages = ({
                   return true;
                 }
               })
-              .map((sprite, i) => {
+              .map((sprite, i: number) => {
                 return (
                   <li key={sprite.index} className={i === 0 ? "" : "pt-4"}>
                     <Sprite
@@ -114,7 +114,7 @@ const UnitsAndImages = ({
                   return true;
                 }
               })
-              .map((image, i) => {
+              .map((image, i: number) => {
                 return (
                   <li key={image.index} className={i === 0 ? "" : "pt-4"}>
                     <Image

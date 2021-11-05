@@ -5,9 +5,14 @@ export const WrappedCanvas = ({
   className = "",
   style = {},
   ...props
+}: {
+  canvas: HTMLCanvasElement;
+  className: string;
+  style: React.CSSProperties
 }) => {
-  const canvasRef = useRef();
+  const canvasRef = useRef<HTMLDivElement>();
   useEffect(() => {
+    if (!canvasRef.current) return;
     canvasRef.current.appendChild(canvas);
     return () => {
       canvas.remove();

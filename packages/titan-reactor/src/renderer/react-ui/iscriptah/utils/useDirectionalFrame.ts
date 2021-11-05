@@ -4,7 +4,7 @@ import {
   areFrameSetsEnabled as _areFrameSetsEnabled,
 } from "./framesets";
 
-export default (cmds, selectedBlock, blockFrameCount, cameraDirection) => {
+export default (cmds, selectedBlock, blockFrameCount: number, cameraDirection: number) => {
   const dirCache = useRef();
   useEffect(() => {
     dirCache.current = {};

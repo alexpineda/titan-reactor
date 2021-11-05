@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { errorOccurred } from "./appReducer";
 
 const initialState = {
   unit: null,
@@ -15,12 +14,11 @@ const initialState = {
 
 export const blockInitializing = createAsyncThunk(
   "iscript/blockInitializing",
-  async (loader, { dispatch }) => {
+  async (loader) => {
     try {
       await loader();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      dispatch(errorOccurred(e.message));
       throw new Error(e.message);
     }
     return true;
