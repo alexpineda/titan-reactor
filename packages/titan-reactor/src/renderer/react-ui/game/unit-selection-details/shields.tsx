@@ -1,16 +1,20 @@
 import React, { useEffect, useRef } from "react";
+import { UnitInstance } from "../../../game";
 
-import { useUnitSelectionStore } from "../../../stores";
+import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 
-const shieldsSelector = (state) => {
+const shieldsSelector = (state: UnitSelectionStore) => {
   if (!state.selectedUnits[0]) return 0;
   return state.selectedUnits[0].shields;
 };
 
-const Shields = ({ unit }) => {
+interface Props {
+  unit: UnitInstance;
+}
+const Shields = ({ unit }: Props) => {
   const shieldsRef = useRef();
 
-  const setDom = (shields) => {
+  const setDom = (shields: number) => {
     if (!shieldsRef.current) return;
     shieldsRef.current.textContent = `${shields}/${unit.unitType.shields}`;
   };

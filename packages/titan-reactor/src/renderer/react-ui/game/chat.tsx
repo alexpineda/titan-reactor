@@ -1,11 +1,16 @@
 import React, { useEffect, memo } from "react";
 import { unstable_batchedUpdates } from "react-dom";
-import useGameStore, { CHAT_INTERVAL } from "../../stores/game-store";
+import {
+  useGameStore,
+  GameStore,
+  CHAT_INTERVAL,
+  ChatMessage,
+} from "../../stores/game-store";
 
-const chatSelector = (state) => state.chat;
-const removeOneFromChatSelector = (state) => state.removeOneFromChat;
+const chatSelector = (state: GameStore) => state.chat;
+const removeOneFromChatSelector = (state: GameStore) => state.removeOneFromChat;
 
-const Message = ({ msg }) => (
+const Message = ({ msg }: { msg: ChatMessage }) => (
   <span key={msg.id}>
     <span
       style={{
@@ -26,9 +31,9 @@ const Message = ({ msg }) => (
   </span>
 );
 
-const renderMessage = (msg) => <Message msg={msg} />;
+const renderMessage = (msg: ChatMessage) => <Message msg={msg} />;
 
-const Chat = ({ minimapSize }) => {
+const Chat = ({ minimapSize }: { minimapSize: number }) => {
   const chat = useGameStore(chatSelector);
   const removeOneFromChat = useGameStore(removeOneFromChatSelector);
 

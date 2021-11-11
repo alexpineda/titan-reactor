@@ -1,15 +1,26 @@
 import React, { useEffect, useRef } from "react";
-
+import { UnitInstance } from "../../../game";
 import { unitTypes } from "../../../../common/bwdat/enums";
-import { useGameStore, useUnitSelectionStore } from "../../../stores";
+import {
+  useGameStore,
+  useUnitSelectionStore,
+  UnitSelectionStore,
+} from "../../../stores";
+import { AssetsMissingError } from "../../../../common/errors";
 
-const selectedUnitAmountSelector = (state) => {
+const selectedUnitAmountSelector = (state: UnitSelectionStore) => {
   if (!state.selectedUnits[0]) return "";
   return state.selectedUnits[0].resourceAmount;
 };
 
-const Resource = ({ unit }) => {
-  const gameIcons = useGameStore((state) => state.assets.icons.gameIcons);
+interface Props {
+  unit: UnitInstance;
+}
+const Resource = ({ unit }: Props) => {
+  const gameIcons = useGameStore((state) => state?.assets?.icons.gameIcons);
+  if (!gameIcons) {
+    throw new AssetsMissingError("gameIcons");
+  }
 
   const resourceRef = useRef();
 
@@ -29,7 +40,7 @@ const Resource = ({ unit }) => {
     }
   }
 
-  const setDom = (resourceAmount) => {
+  const setDom = (resourceAmount: number | string) => {
     if (!resourceRef.current) return;
     resourceRef.current.textContent = resourceAmount;
   };

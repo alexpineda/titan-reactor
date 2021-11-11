@@ -1,7 +1,20 @@
 import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
-import { useGameStore, useUnitSelectionStore } from "../../../stores";
+import {
+  useGameStore,
+  GameStore,
+  useUnitSelectionStore,
+  UnitSelectionStore,
+} from "../../../stores";
+import { UnitInstance } from "../../../game";
+import { UnitDAT } from "../../../../common/types";
+import { AssetsMissingError } from "../../../../common/errors";
 
+interface Props {
+  unit: UnitInstance;
+  index: number;
+  showLoaded: boolean;
+}
 const filters = [
   "grayscale(1) brightness(2)",
   "brightness(2)",
@@ -10,19 +23,22 @@ const filters = [
   "hue-rotate(91deg)   brightness(4)",
 ];
 
-const calcStep = (unit) =>
+const calcStep = (unit: UnitInstance) =>
   unit.canSelect
     ? Math.ceil(Math.min(1, unit.hp / (unit.unitType.hp * 0.8)) * 3)
     : 0;
 
-const iconsSelector = (state) => state.assets.icons.cmdIcons;
+const iconsSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
 
-const SmallUnitItem = ({ index, unit, showLoaded }) => {
+const SmallUnitItem = ({ index, unit, showLoaded }: Props) => {
   const cmdIcons = useGameStore(iconsSelector);
+  if (!cmdIcons) {
+    throw new AssetsMissingError("cmdIcons");
+  }
   const imgRef = useRef();
   const borderRef = useRef();
 
-  const getUnit = (state) => {
+  const getUnit = (state: UnitSelectionStore) => {
     if (showLoaded) {
       return unit.loaded ? unit.loaded[index] : null;
     }
@@ -30,7 +46,7 @@ const SmallUnitItem = ({ index, unit, showLoaded }) => {
     return state.selectedUnits[index];
   };
 
-  const selector = (state) => {
+  const selector = (state: UnitSelectionStore) => {
     const unit = getUnit(state);
     if (!unit) return { unitType: null, step: 0, canSelect: false };
 
@@ -41,7 +57,14 @@ const SmallUnitItem = ({ index, unit, showLoaded }) => {
     };
   };
 
-  const setDom = ({ unitType, step, canSelect }, transition) => {
+  const setDom = (
+    {
+      unitType,
+      step,
+      canSelect,
+    }: { unitType: UnitDAT | null; step: number; canSelect: boolean },
+    transition = ""
+  ) => {
     if (!imgRef.current || !borderRef.current) {
       return;
     }
@@ -81,7 +104,9 @@ const SmallUnitItem = ({ index, unit, showLoaded }) => {
   };
 
   useEffect(() => {
-    setDom(selector({ selectedUnits: { [index]: unit } }), "filter 0s linear");
+    const selectedUnits = [];
+    selectedUnits[index] = unit;
+    setDom(selector({ selectedUnits }), "filter 0s linear");
 
     return useUnitSelectionStore.subscribe(
       (data) => {
@@ -103,9 +128,9 @@ const SmallUnitItem = ({ index, unit, showLoaded }) => {
         onClick={(evt) => {
           const unit = getUnit(useUnitSelectionStore.getState());
           if (evt.ctrlKey) {
-            useGameStore.getState().selectOfType(unit.unitType);
+            unit && useGameStore.getState().selectOfType(unit.unitType);
           } else {
-            useGameStore.getState().setSelectedUnits([unit]);
+            unit && useGameStore.getState().setSelectedUnits([unit]);
           }
         }}
       />

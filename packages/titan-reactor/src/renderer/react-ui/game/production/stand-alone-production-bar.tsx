@@ -1,3 +1,4 @@
+import { Player } from "common";
 import React from "react";
 import shallow from "zustand/shallow";
 import {
@@ -11,7 +12,7 @@ import PlayerProduction from "./player-production";
 
 const playerRowStyle = { backgroundColor: "#1a202c99" };
 
-const Production = () => {
+const StandAloneProductionBar = () => {
   const { players, dimensions } = useGameStore(
     (state) => ({
       players: state.game.players,
@@ -30,7 +31,7 @@ const Production = () => {
       }}
     >
       <div className="production-parent">
-        {players.map(({ id, color }) => (
+        {players.map(({ id, color }: Pick<Player, "id" | "color">) => (
           <div
             key={id}
             className="rounded ml-1 mt-1 flex flex-col"
@@ -66,4 +67,4 @@ const Production = () => {
   );
 };
 
-export default Production;
+export default StandAloneProductionBar;

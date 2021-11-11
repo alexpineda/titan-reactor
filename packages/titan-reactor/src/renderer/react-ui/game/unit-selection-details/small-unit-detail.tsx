@@ -1,19 +1,25 @@
 import React, { useEffect, useRef } from "react";
 
 import range from "../../../../common/utils/range";
-import { useUnitSelectionStore } from "../../../stores";
+import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 import { showKillsExtraUnits } from "./kills";
 import SmallUnitItem from "./small-unit-item";
+import { UnitInstance } from "../../../game";
 
-const canSelect = (u) => u.canSelect;
-const hasNonAttackers = (u) =>
+interface Props {
+  units: UnitInstance[];
+}
+
+const canSelect = (u: UnitInstance) => u.canSelect;
+const hasNonAttackers = (u: UnitInstance) =>
   !u.unitType.isSpellcaster &&
   u.unitType.groundWeapon === 130 &&
   u.unitType.airWeapon === 130 &&
   !showKillsExtraUnits.includes(u.typeId);
-const sumKills = (tkills, { kills }) => tkills + kills;
+const sumKills = (tkills: number, { kills }: Pick<UnitInstance, "kills">) =>
+  tkills + kills;
 
-const selector = (state) => {
+const selector = (state: UnitSelectionStore) => {
   if (state.selectedUnits.some(hasNonAttackers)) {
     return "";
   } else {
@@ -23,10 +29,10 @@ const selector = (state) => {
   }
 };
 
-const SmallUnitDetail = ({ units }) => {
+const SmallUnitDetail = ({ units }: Props) => {
   const killsRef = useRef();
 
-  const setDom = (killsText) => {
+  const setDom = (killsText: string) => {
     if (!killsRef.current) return;
     killsRef.current.textContent = killsText;
   };
@@ -50,7 +56,7 @@ const SmallUnitDetail = ({ units }) => {
         }}
       >
         {range(0, 12).map((i) => (
-          <SmallUnitItem key={i} index={i} unit={units[i]} />
+          <SmallUnitItem key={i} index={i} unit={units[i]} showLoaded={false} />
         ))}
       </div>
 

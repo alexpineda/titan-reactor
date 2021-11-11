@@ -1,25 +1,60 @@
 import { easePolyOut } from "d3-ease";
 import React, { useEffect, useRef } from "react";
 
-import { keysOnly, useGameStore, useProductionStore } from "../../../stores";
+import {
+  keysOnly,
+  useGameStore,
+  GameStore,
+  useProductionStore,
+  ProductionStore,
+} from "../../../stores";
 
+import {
+  ResearchInProduction,
+  UnitInProduction,
+  UpgradeInProduction,
+  ResearchCompleted,
+  UpgradeCompleted,
+} from "../../../game/unit-instance";
+import { AssetsMissingError } from "../../../../common/errors";
+
+interface Props {
+  type: "units" | "tech" | "upgrades";
+  color: string;
+  playerId: number;
+  index: number;
+}
+
+type ProductionItemType =
+  | ResearchInProduction
+  | UnitInProduction
+  | UpgradeInProduction;
+
+type CompletedType = ResearchCompleted | UpgradeCompleted;
 const poly = easePolyOut.exponent(0.5);
 
-const iconsSelector = (state) => state.assets.icons.cmdIcons;
+const iconsSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
+const isCompletedTech = (item: ProductionItemType): item is CompletedType => {
+  return Boolean(
+    item.remainingBuildTime === 0 && (item.isTech || item.isUpgrade)
+  );
+};
 
 // an instance of a production item, either unit, research or upgrade
-const ProductionItem = ({ type, index, color, playerId }) => {
+const ProductionItem = ({ type, index, color, playerId }: Props) => {
   const cmdIcons = useGameStore(iconsSelector);
-
+  if (!cmdIcons) {
+    throw new AssetsMissingError();
+  }
   const wrapperRef = useRef();
   const imgRef = useRef();
   const progressRef = useRef();
   const outlineRef = useRef();
   const countRef = useRef();
 
-  const unitBelongsToPlayer = (u) => u.ownerId === playerId;
+  const unitBelongsToPlayer = (u: UnitInProduction) => u.ownerId === playerId;
 
-  const selector = (state) => {
+  const selector = (state: ProductionStore): ProductionItemType => {
     if (type === "units") {
       return state[type].filter(unitBelongsToPlayer).slice(0, 10)[index];
     } else {
@@ -27,7 +62,7 @@ const ProductionItem = ({ type, index, color, playerId }) => {
     }
   };
 
-  const setDom = (item) => {
+  const setDom = (item: ProductionItemType) => {
     if (
       !wrapperRef.current ||
       !imgRef.current ||
@@ -51,7 +86,7 @@ const ProductionItem = ({ type, index, color, playerId }) => {
       const pct = poly(1 - item.remainingBuildTime / item.buildTime) * 100;
       progressRef.current.style.backgroundImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%)`;
 
-      if (item.remainingBuildTime === 0 && (item.isTech || item.isUpgrade)) {
+      if (isCompletedTech(item)) {
         outlineRef.current.style.outline = `2px groove ${color}aa`;
         // using a property as state to determine whether to add glow (only once)
         if (Date.now() - item.timeCompleted < 4000) {

@@ -3,7 +3,18 @@ import { MenuItem } from "../components/menu-item";
 import Options, { Tabs } from "../home/options";
 import { useSettingsStore } from "../../stores";
 
-const Menu = ({ onClose, onBackToMainMenu, onOpenReplay, onOpenMap }) => {
+interface Props {
+  onClose: () => void;
+  onBackToMainMenu: () => void;
+  onOpenReplay: () => void;
+  onOpenMap: () => void;
+}
+const Menu = ({
+  onClose,
+  onBackToMainMenu,
+  onOpenReplay,
+  onOpenMap,
+}: Props) => {
   const [showOptions, setShowOptions] = useState(false);
   const phrases = useSettingsStore((state) => state.phrases);
 

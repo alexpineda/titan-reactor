@@ -1,14 +1,27 @@
+import { AssetsMissingError } from "../../../../common/errors";
 import React, { useEffect, useRef } from "react";
+import { UnitInstance } from "../../../game";
 
-import { useGameStore, useUnitSelectionStore } from "../../../stores/";
+import {
+  useGameStore,
+  useUnitSelectionStore,
+  UnitSelectionStore,
+} from "../../../stores";
 
-const transformName = (name) => name.split(" ").slice(1).join(" ");
+interface Props {
+  unit: UnitInstance;
+  className?: string;
+}
+const transformName = (name: string) => name.split(" ").slice(1).join(" ");
 
-const Name = ({ unit, className = "" }) => {
-  const bwDat = useGameStore((state) => state.assets.bwDat);
+const Name = ({ unit, className = "" }: Props) => {
+  const bwDat = useGameStore((state) => state?.assets?.bwDat);
+  if (!bwDat) {
+    throw new AssetsMissingError("bwDat");
+  }
   const nameRef = useRef();
 
-  const getZergBuildingType = (unit) => {
+  const getZergBuildingType = (unit: UnitInstance) => {
     const queuedZergType =
       unit.unitType.isZerg && unit.queue && unit.queue.units.length
         ? bwDat.units[unit.queue.units[0]]
@@ -18,7 +31,7 @@ const Name = ({ unit, className = "" }) => {
     return queuedBuildingZergType || null;
   };
 
-  const selector = (state) => {
+  const selector = (state: UnitSelectionStore) => {
     if (!state.selectedUnits[0]) return "";
 
     const zergBuildingType = getZergBuildingType(state.selectedUnits[0]);
@@ -33,7 +46,7 @@ const Name = ({ unit, className = "" }) => {
     }
   };
 
-  const setDom = (name) => {
+  const setDom = (name: string) => {
     if (!nameRef.current) return;
     nameRef.current.textContent = name;
   };

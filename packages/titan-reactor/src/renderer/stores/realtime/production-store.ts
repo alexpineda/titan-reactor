@@ -6,7 +6,7 @@ import {
   UpgradeInProduction,
 } from "../../game/unit-instance";
 
-type ProductionStoreState = {
+export type ProductionStore = {
   units: UnitInProduction[];
   tech: ResearchInProduction[][];
   upgrades: UpgradeInProduction[][];
@@ -16,7 +16,7 @@ type ProductionStoreState = {
     upgrades: UpgradeInProduction[][]
   ) => void;
 };
-export const useProductionStore = create<ProductionStoreState>((set) => ({
+export const useProductionStore = create<ProductionStore>((set) => ({
   units: [],
   tech: [],
   upgrades: [],

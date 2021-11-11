@@ -20,8 +20,10 @@ import {
   SettingsStore,
   useHudStore,
   HudStore,
-  useLoadingStore,
-  LoadingStore,
+  completeUIType,
+  disposeGame,
+  UITypeHome,
+  initUIType,
 } from "../stores";
 
 const gameStoreSelector = (state: GameStore) => ({
@@ -47,7 +49,11 @@ const settingsStoreSelector = (state: SettingsStore) => ({
   replaysPath: state?.data?.replaysPath,
 });
 
-const resetLoadingStore = useLoadingStore.getState().reset;
+const resetToHome = () => {
+  disposeGame();
+  initUIType({ type: "home" } as UITypeHome);
+  completeUIType();
+};
 
 const Game = () => {
   const { dimensions, canvas, selectedUnits, players } = useGameStore(
@@ -100,7 +106,7 @@ const Game = () => {
           onClose={() => toggleInGameMenu()}
           onBackToMainMenu={() => {
             toggleInGameMenu();
-            resetLoadingStore();
+            resetToHome();
           }}
           onOpenMap={() => {
             toggleInGameMenu();

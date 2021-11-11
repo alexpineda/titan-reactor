@@ -34,7 +34,6 @@ const CornerStatus = () => {
     (max, p) => (p.priority > max.priority ? p : max),
     { priority: -1 } as LoadingStoreProcess
   );
-  console.log("processes", processes, process);
   if (!process.id) {
     return null;
   }

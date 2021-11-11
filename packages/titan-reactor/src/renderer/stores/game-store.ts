@@ -10,7 +10,7 @@ export const CHAT_INTERVAL = 4000;
 
 let _chatIndex = 0;
 
-type CbatMessage = {
+export type ChatMessage = {
   content: string;
   player: Player;
   id?: number;
@@ -23,7 +23,7 @@ export type GameStore = {
   followUnit: UnitInstance | null;
   dimensions: GameCanvasDimensions;
   selectedUnits: UnitInstance[];
-  chat: CbatMessage[];
+  chat: ChatMessage[];
   lastChatAdd: number;
   playerVision: boolean[];
   setAssets: (assets: Assets | null) => void;
@@ -35,7 +35,7 @@ export type GameStore = {
   toggleFogOfWar: () => void;
   togglePlayerVision: (id: number) => void;
   toggleFollowUnit: (unit: UnitInstance) => void;
-  addChatMessage: (message: CbatMessage) => void;
+  addChatMessage: (message: ChatMessage) => void;
   removeOneFromChat: () => void;
 };
 

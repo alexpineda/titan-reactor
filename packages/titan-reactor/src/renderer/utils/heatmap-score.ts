@@ -1,9 +1,12 @@
 import { easeCubicOut } from "d3-ease";
-import { unitTypes } from "../../../common/bwdat/enums/unit-types";
-import { orders } from "../../../common/bwdat/enums/orders";
+import { unitTypes } from "../../common/bwdat/enums/unit-types";
+import { orders } from "../../common/bwdat/enums/orders";
+import { BwDATType } from "../../common/types";
 
 export default class HeatmapScore {
-  constructor(bwDat) {
+  private bwDat: BwDATType;
+
+  constructor(bwDat: BwDATType) {
     this.bwDat = bwDat;
   }
 
@@ -40,7 +43,7 @@ export default class HeatmapScore {
     return score;
   }
 
-  orderScore(order) {
+  orderScore(order: number) {
     switch (order) {
       case orders.castScannerSweep:
         return 0.4;

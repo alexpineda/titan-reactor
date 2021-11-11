@@ -16,6 +16,7 @@ import PlayerProduction from "../production/player-production";
 import RollingResource from "./rolling-resource";
 import BasicResource from "./basic-resource";
 import { Player } from "../../../../common/types";
+import { AssetsMissingError } from "../../../../common/errors";
 
 const _playerNameCache: Record<string, string> = {};
 
@@ -63,6 +64,9 @@ const PlayerResources = ({
     workerIcons,
   } = useGameStore(gameStoreSelector, shallow);
 
+  if (!gameIcons || !raceInsetIcons || !workerIcons) {
+    throw new AssetsMissingError();
+  }
   const [isChangingName, setIsChangingName] = useState(false);
   const [playerName, setPlayerName] = useState<string>(
     _playerNameCache[name] || name
@@ -214,7 +218,7 @@ const PlayerResources = ({
               className={`text-${scaledTextSize} cursor-pointer inline-block text-white ml-3 `}
               style={playerNameStyle}
             >
-              {playerName.split(" ").map((str, i) =>
+              {playerName.split(" ").map((str: string, i: number) =>
                 i === 0 ? (
                   <span className="font-semibold" key={i}>
                     {str}
@@ -232,11 +236,12 @@ const PlayerResources = ({
             type="text"
             value={tempName}
             onChange={(evt) => {
-              _playerNameCache[playerName] = evt.target.value;
-              setTempName(evt.target.value);
+              const target = evt.target as HTMLInputElement;
+              _playerNameCache[playerName] = target.value;
+              setTempName(target.value);
             }}
             onKeyDown={(evt) => {
-              evt.nativeEvent.stopImmediatePropagation();
+              evt.stopImmediatePropagation();
               if (evt.key === "Enter" && !tempName) {
                 setPlayerName(tempName);
                 setIsChangingName(false);

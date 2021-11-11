@@ -1,20 +1,24 @@
 import React, { useEffect, useRef } from "react";
+import { UnitInstance } from "../../../game";
 
-import { useUnitSelectionStore } from "../../../stores";
+import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 
+interface Props {
+  unit: UnitInstance;
+}
 const healthColorRed = "#d60000";
 const healthColorYellow = "#aaaa00";
 const healthColorGreen = "#00cc00";
 
-const hpSelector = (state) => {
+const hpSelector = (state: UnitSelectionStore) => {
   if (!state.selectedUnits[0]) return 0;
   return state.selectedUnits[0].hp;
 };
 
-const Health = ({ unit }) => {
+const Health = ({ unit }: Props) => {
   const hpRef = useRef();
 
-  const setDom = (hp, transition = "color 4s linear") => {
+  const setDom = (hp: number, transition = "color 4s linear") => {
     if (!hpRef.current) return;
 
     const healthPct = hp / unit.unitType.hp;

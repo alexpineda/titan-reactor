@@ -37,7 +37,7 @@ const eventNames = [
   "onKeyPress",
   "onKeyUp",
 ];
-const disableEvent = (e) => {
+const disableEvent = (e: Event) => {
   e.stopPropagation();
 };
 const eventProps = eventNames.reduce(
@@ -45,7 +45,12 @@ const eventProps = eventNames.reduce(
   {}
 );
 
-const WrappedElement = ({ domElement, ...props }) => {
+const WrappedElement = ({
+  domElement,
+  ...props
+}: {
+  domElement: HTMLElement;
+}) => {
   const canvasRef = useRef();
   useEffect(() => {
     canvasRef.current.appendChild(domElement);

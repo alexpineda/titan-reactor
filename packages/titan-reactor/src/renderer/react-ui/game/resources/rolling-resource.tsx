@@ -1,8 +1,15 @@
 import React, { useEffect, useRef } from "react";
-import { useResourcesStore } from "../../../stores";
+import { useResourcesStore, ResourcesStore } from "../../../stores";
 import RollingNumber from "./rolling-number";
 
-const RollingResource = ({ image, scaledTextSize, selector }) => {
+interface Props {
+  image: React.ReactNode;
+  //@todo change to union of supported text sizes
+  scaledTextSize: string;
+  selector: (state: ResourcesStore) => number;
+}
+
+const RollingResource = ({ image, scaledTextSize, selector }: Props) => {
   const numberRef = useRef();
 
   useEffect(() => {
@@ -14,25 +21,25 @@ const RollingResource = ({ image, scaledTextSize, selector }) => {
       numberRef.current.textContent = rollingNumber.rollingValue;
     }
     let lastTime = 0;
-    let animFrame;
+    let animFrame = 0;
 
-    const rafLoop = (time) => {
+    const rafLoop = (time: number) => {
       if (numberRef.current && rollingNumber.update(time - lastTime)) {
         lastTime = time;
         numberRef.current.textContent = rollingNumber.rollingValue;
       }
       if (rollingNumber.isRunning) {
-        requestAnimationFrame(rafLoop);
+        animFrame = requestAnimationFrame(rafLoop);
       } else {
         cancelAnimationFrame(animFrame);
       }
     };
 
-    rafLoop();
+    rafLoop(0);
 
     const unsub = useResourcesStore.subscribe((item) => {
       rollingNumber.start(item);
-      rafLoop();
+      rafLoop(0);
     }, selector);
 
     return () => {

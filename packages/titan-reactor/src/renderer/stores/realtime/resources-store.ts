@@ -1,19 +1,19 @@
 import create from "zustand/vanilla";
 
-type ResourcesStore = {
-  minerals: number[][];
-  gas: number[][];
-  supplyUsed: number[][];
-  supplyAvailable: number[][];
-  workerSupply: number[][];
+export type ResourcesStore = {
+  minerals: number[];
+  gas: number[];
+  supplyUsed: number[];
+  supplyAvailable: number[];
+  workerSupply: number[];
   apm: number[];
   time: string;
   setAllResources: (
-    minerals: number[][],
-    gas: number[][],
-    supplyUsed: number[][],
-    supplyAvailable: number[][],
-    workerSupply: number[][],
+    minerals: number[],
+    gas: number[],
+    supplyUsed: number[],
+    supplyAvailable: number[],
+    workerSupply: number[],
     apm: number[],
     time: string
   ) => void;
@@ -27,11 +27,11 @@ export const useResourcesStore = create<ResourcesStore>((set) => ({
   apm: [],
   time: "",
   setAllResources: (
-    minerals: number[][],
-    gas: number[][],
-    supplyUsed: number[][],
-    supplyAvailable: number[][],
-    workerSupply: number[][],
+    minerals: number[],
+    gas: number[],
+    supplyUsed: number[],
+    supplyAvailable: number[],
+    workerSupply: number[],
     apm: number[],
     time: string
   ) =>

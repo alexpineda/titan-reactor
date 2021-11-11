@@ -1,11 +1,16 @@
 import React, { useEffect, useRef } from "react";
-import { useResourcesStore } from "../../../stores";
+import { useResourcesStore, ResourcesStore } from "../../../stores";
 
-// basic resource changes text in a non rolling fashion
-const BasicResource = ({ image, scaledTextSize, selector }) => {
+interface Props {
+  image: React.ReactNode;
+  //@todo change to union of supported text sizes
+  scaledTextSize: string;
+  selector: (state: ResourcesStore) => number;
+}
+const BasicResource = ({ image, scaledTextSize, selector }: Props) => {
   const numberRef = useRef();
 
-  const setDom = (value) => {
+  const setDom = (value: number | string) => {
     if (!numberRef.current) return;
     numberRef.current.textContent = value;
   };

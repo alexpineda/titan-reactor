@@ -6,7 +6,7 @@ import GrpSDLegacy from "../grp-sd-legacy";
 import { rgbToCanvas } from "../util/canvas";
 
 // @todo break this up into multiple files
-export default class GameIcons {
+export default class GameIcons extends Array {
   wireframes: string[] = [];
   icons?: string[] & Partial<{ offX: number; offY: number }>;
   iconsAlpha?: string[];
@@ -23,6 +23,10 @@ export default class GameIcons {
   vespeneTerran = "";
   vespeneProtoss = "";
   energy = "";
+
+  static override get [Symbol.species]() {
+    return Array;
+  }
 
   renderRaceInset(renderer: WebGLRenderer, dds: Buffer[]) {
     return this.renderGameIcons(

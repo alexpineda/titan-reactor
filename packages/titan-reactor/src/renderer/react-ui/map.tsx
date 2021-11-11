@@ -3,26 +3,40 @@ import WrappedElement from "./wrapped-element";
 import {
   useGameStore,
   useHudStore,
+  HudStore,
   useSettingsStore,
-  useLoadingStore,
+  SettingsStore,
+  disposeGame,
+  initUIType,
+  completeUIType,
+  UITypeHome,
+  GameStore,
 } from "../stores";
 import shallow from "zustand/shallow";
 import Menu from "./game/menu";
 import { ipcRenderer } from "electron";
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../../common/ipc";
 
-const hudStoreSelector = (state) => ({
+const hudStoreSelector = (state: HudStore) => ({
   showInGameMenu: state.show.inGameMenu,
   toggleInGameMenu: state.toggleInGameMenu,
 });
 
-const settingsStoreSelector = (state) => ({
-  mapsPath: state.data.mapsPath,
-  replaysPath: state.data.replaysPath,
+const settingsStoreSelector = (state: SettingsStore) => ({
+  mapsPath: state?.data?.mapsPath,
+  replaysPath: state?.data?.replaysPath,
 });
 
+const surfaceSelector = (state: GameStore) => state.game.gameSurface;
+
+const resetToHome = () => {
+  disposeGame();
+  initUIType({ type: "home" } as UITypeHome);
+  completeUIType();
+};
+
 const Map = () => {
-  const surface = useGameStore((state) => state.game.gameSurface);
+  const surface = useGameStore(surfaceSelector);
   const { showInGameMenu, toggleInGameMenu } = useHudStore(
     hudStoreSelector,
     shallow
@@ -32,8 +46,6 @@ const Map = () => {
     settingsStoreSelector,
     shallow
   );
-
-  const resetLoadingStore = useLoadingStore((state) => state.reset);
 
   return (
     <>
@@ -51,7 +63,7 @@ const Map = () => {
           onClose={() => toggleInGameMenu()}
           onBackToMainMenu={() => {
             toggleInGameMenu();
-            resetLoadingStore();
+            resetToHome();
           }}
           onOpenMap={() => {
             toggleInGameMenu();

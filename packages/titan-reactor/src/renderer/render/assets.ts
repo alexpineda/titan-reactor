@@ -27,7 +27,7 @@ class Assets {
   async preload(starcraftPath: string, communityModelsPath: string) {
     startLoadingProcess({
       id: "assets",
-      label: "Loading assets",
+      label: "Loading initial assets",
       max: 1010,
       priority: 10,
       current: 0,

@@ -9,13 +9,18 @@ import Progress from "./progress";
 import Name from "./name";
 import Queue from "./queue";
 import Loaded from "./loaded";
-import { useUnitSelectionStore } from "../../../stores";
+import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 import Upgrades from "./upgrades";
+import { UnitInstance } from "../../../game";
 
-const selector = (state) =>
-  state.selectedUnits[0] && state.selectedUnits[0].loaded;
+interface Props {
+  unit: UnitInstance;
+}
 
-const LargeUnitDetail = ({ unit }) => {
+const selector = (state: UnitSelectionStore) =>
+  Boolean(state.selectedUnits[0] && state.selectedUnits[0].loaded);
+
+const LargeUnitDetail = ({ unit }: Props) => {
   const showHp = !(unit.unitType.isResourceContainer && !unit.owner);
   const showShields = unit.unitType.shieldsEnabled;
   const showEnergy = unit.unitType.isSpellcaster;
@@ -31,7 +36,7 @@ const LargeUnitDetail = ({ unit }) => {
   const loadedRef = useRef();
   const progressRef = useRef();
 
-  const setDom = (hasLoaded) => {
+  const setDom = (hasLoaded: boolean) => {
     if (!loadedRef.current || !progressRef.current) return;
     loadedRef.current.style.display = hasLoaded ? "flex" : "none";
     progressRef.current.style.display = hasLoaded ? "none" : "block";

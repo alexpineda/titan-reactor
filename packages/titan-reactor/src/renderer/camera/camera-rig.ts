@@ -128,9 +128,9 @@ class CameraRig {
 
   _initPerspectiveCamera(aspect: number, constructor = PerspectiveCamera) {
     if (this.freeControl) {
-      return new constructor(75, aspect);
+      return new constructor(55, aspect);
     }
-    return new constructor(75, aspect, 3, 256);
+    return new constructor(55, aspect, 3, 256);
   }
 
   // tall camera to look down at scene for preloading webgl programs

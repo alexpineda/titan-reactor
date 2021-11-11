@@ -27,13 +27,11 @@ const ErrorState = ({ error }: { error: Error }) => (
 const App = () => {
   const screen = useLoadingStore(screenSelector, shallow);
 
-  console.log("screen", screen);
-
   return (
     <React.StrictMode>
       <>
+        <CornerStatus />
         {screen.error && <ErrorState error={screen.error} />}
-        {screen.loading && <CornerStatus />}
         {screen.loading && <LoadingOverlay screen={screen} />}
         {screen.loaded && (
           <>

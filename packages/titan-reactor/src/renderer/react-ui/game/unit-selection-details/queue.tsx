@@ -2,9 +2,23 @@ import React, { useEffect, useRef } from "react";
 import shallow from "zustand/shallow";
 
 import { unitTypes } from "../../../../common/bwdat/enums";
-import { useGameStore, useProductionStore, useUnitSelectionStore } from "../../../stores";
+import {
+  useGameStore,
+  useProductionStore,
+  useUnitSelectionStore,
+  UnitSelectionStore,
+} from "../../../stores";
+import {
+  ResearchCompleted,
+  UnitInstance,
+  UpgradeCompleted,
+} from "../../../game";
+import { AssetsMissingError } from "../../../../common/errors";
 
-const researchIconSelector = (state) => {
+interface Props {
+  unit: UnitInstance;
+}
+const researchIconSelector = (state: UnitSelectionStore) => {
   if (!state.selectedUnits[0]) return 0;
 
   const unit = state.selectedUnits[0];
@@ -12,13 +26,13 @@ const researchIconSelector = (state) => {
 
   const { tech, upgrades } = useProductionStore.getState();
   const t = tech[unit.owner.id].find(
-    (t) => t && t.unitId === unit.id && !t.timeCompleted
+    (t) => t && t.unitId === unit.id && !(t as ResearchCompleted).timeCompleted
   );
   if (t) {
     return t.icon;
   }
   const u = upgrades[unit.owner.id].find(
-    (t) => t && t.unitId === unit.id && !t.timeCompleted
+    (t) => t && t.unitId === unit.id && !(t as UpgradeCompleted).timeCompleted
   );
   if (u) {
     return u.icon;
@@ -26,7 +40,7 @@ const researchIconSelector = (state) => {
   return null;
 };
 
-const unitIconSelector = (state) => {
+const unitIconSelector = (state: UnitSelectionStore) => {
   if (!state.selectedUnits[0]) return null;
 
   const unit = state.selectedUnits[0];
@@ -57,17 +71,20 @@ const unitIconSelector = (state) => {
   return null;
 };
 
-const selector = (state) => {
+const selector = (state: UnitSelectionStore) => {
   const unitIcon = unitIconSelector(state);
   return unitIcon !== null ? unitIcon : researchIconSelector(state);
 };
 
-const Queue = ({ unit }) => {
-  const cmdIcons = useGameStore((state) => state.assets.icons.cmdIcons);
+const Queue = ({ unit }: Props) => {
+  const cmdIcons = useGameStore((state) => state?.assets?.icons.cmdIcons);
+  if (!cmdIcons) {
+    throw new AssetsMissingError("cmdIcons");
+  }
   const itemRef = useRef();
   const wrapperRef = useRef();
 
-  const setDom = (icon) => {
+  const setDom = (icon: number | null) => {
     if (!itemRef.current || !wrapperRef.current) {
       return;
     }

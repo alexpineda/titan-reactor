@@ -5,15 +5,23 @@ import {
   upgrades as upgradeTypes,
   upgradesByUnitType,
 } from "../../../../common/bwdat/enums";
-import { useGameStore, useProductionStore } from "../../../stores";
+import { useGameStore, GameStore, useProductionStore } from "../../../stores";
+import { UnitInstance } from "../../../game";
+import { AssetsMissingError } from "../../../../common/errors";
 
-const iconSelector = (state) => state.assets.icons.cmdIcons;
-const bwDatSelector = (state) => state.assets.bwDat;
+interface Props {
+  unit: UnitInstance;
+}
+const iconSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
+const bwDatSelector = (state: GameStore) => state?.assets?.bwDat;
 
-const Upgrades = ({ unit }) => {
+const Upgrades = ({ unit }: Props) => {
   const itemsRef = useRef();
   const cmdIcons = useGameStore(iconSelector);
   const bwDat = useGameStore(bwDatSelector);
+  if (!bwDat || !cmdIcons) {
+    throw new AssetsMissingError();
+  }
 
   const validTechs = techTypesByUnitType[unit.typeId] || [];
   const validUpgrades =
@@ -82,11 +90,6 @@ const Upgrades = ({ unit }) => {
               data-tip={`${item.name || item.type.name} ${
                 item.level > 1 ? `Level: ${item.level}` : ""
               }`}
-              getcontent={() =>
-                `${item.name || item.type.name} ${
-                  item.level > 1 ? `Level ${item.level}` : ""
-                }`
-              }
               data-for="upgrades"
             />
           </div>

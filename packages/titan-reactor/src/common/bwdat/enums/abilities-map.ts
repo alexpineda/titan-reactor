@@ -157,8 +157,9 @@ export const unitsByUpgradeType = {
   [upgrades.charonBooster]: [unitTypes.goliath],
 };
 
-export const upgradesByUnitType = Object.keys(unitsByUpgradeType).reduce(
-  (memo, upgradeType) => {
+export const upgradesByUnitType = Object.keys(unitsByUpgradeType)
+  .map((n) => Number(n))
+  .reduce((memo: Record<number, number[]>, upgradeType: number) => {
     for (const unitType of unitsByUpgradeType[upgradeType]) {
       if (memo[unitType]) {
         memo[unitType].push(Number(upgradeType));
@@ -167,9 +168,7 @@ export const upgradesByUnitType = Object.keys(unitsByUpgradeType).reduce(
       }
     }
     return memo;
-  },
-  {}
-);
+  }, {});
 
 export const unitsByTechType = {
   [techTypes.stimPacks]: [unitTypes.marine, unitTypes.firebat],
@@ -217,8 +216,9 @@ export const unitsByTechType = {
   [techTypes.healing]: [unitTypes.medic],
 };
 
-export const techTypesByUnitType = Object.keys(unitsByTechType).reduce(
-  (memo, techType) => {
+export const techTypesByUnitType = Object.keys(unitsByTechType)
+  .map((n) => Number(n))
+  .reduce((memo: Record<number, number[]>, techType: number) => {
     for (const unitType of unitsByTechType[techType]) {
       if (memo[unitType]) {
         memo[unitType].push(Number(techType));
@@ -227,6 +227,4 @@ export const techTypesByUnitType = Object.keys(unitsByTechType).reduce(
       }
     }
     return memo;
-  },
-  {}
-);
+  }, {});
