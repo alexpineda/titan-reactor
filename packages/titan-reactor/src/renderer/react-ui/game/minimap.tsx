@@ -4,15 +4,31 @@ import omitChars from "../../../common/utils/omit-chars";
 import WrappedElement from "../wrapped-element";
 import {
   useSettingsStore,
+  SettingsStore,
   useGameStore,
+  GameStore,
   useHudStore,
   useLoadingStore,
+  LoadingStore,
   useResourcesStore,
+  UITypeReplay,
 } from "../../stores";
 
+const textSizeSelector = (state: SettingsStore) => state?.data?.hudFontSize;
+const classicClockSelector = (state: SettingsStore) =>
+  state?.data?.classicClock;
+const gameStoreSelector = (state: GameStore) => ({
+  fogOfWar: state.fogOfWar,
+  toggleFogOfWar: state.toggleFogOfWar,
+  minimapSize: state.dimensions.minimapSize,
+  canvas: state.game.minimapSurface.canvas,
+});
+const mapLabelSelector = (state: LoadingStore) =>
+  (state.screen as UITypeReplay).chkTitle || "";
+
 const Minimap = ({ className = "" }) => {
-  const textSize = useSettingsStore((state) => state.data.textSize);
-  const classicClock = useSettingsStore((state) => state.data.classicClock);
+  const textSize = useSettingsStore(textSizeSelector);
+  const classicClock = useSettingsStore(classicClockSelector);
   const timeRef = useRef();
   const classicTimeRef = useRef();
 
@@ -31,16 +47,11 @@ const Minimap = ({ className = "" }) => {
   });
 
   const { fogOfWar, toggleFogOfWar, minimapSize, canvas } = useGameStore(
-    (state) => ({
-      fogOfWar: state.fogOfWar,
-      toggleFogOfWar: state.toggleFogOfWar,
-      minimapSize: state.dimensions.minimapSize,
-      canvas: state.game.minimapSurface.canvas,
-    }),
+    gameStoreSelector,
     shallow
   );
 
-  const mapLabel = useLoadingStore((state) => state.chk.title);
+  const mapLabel = useLoadingStore(mapLabelSelector);
 
   const smallIconFontSize = textSize === "xs" ? "0.75rem" : "0.9rem";
   return (

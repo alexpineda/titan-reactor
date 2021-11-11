@@ -7,11 +7,7 @@ import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc";
 import version from "../common/version";
 import { log } from "./ipc";
 import App from "./react-ui/app";
-import {
-  useLoadingStore,
-  useSettingsStore,
-  useTitanReactorStore,
-} from "./stores";
+import { loadSettings, errorUIType, completeUIType } from "./stores";
 import { TitanReactor } from "./titan-reactor";
 
 if (module.hot) {
@@ -47,23 +43,33 @@ const titanReactor = new TitanReactor();
 async function bootup() {
   try {
     await loadFonts();
-    await useSettingsStore.getState().load();
-    useLoadingStore.setState({ initialized: true });
+    await loadSettings();
+    log("bootup complete");
+    completeUIType();
   } catch (err: any) {
     log(err.message, "error");
-    console.error(err.message);
-    useTitanReactorStore.setState({ criticalError: err });
+    errorUIType(err);
   }
 }
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (_, [map]) => {
   log(`opening map ${map}`);
-  titanReactor.spawnMapViewer(map);
+  try {
+    titanReactor.spawnMapViewer(map);
+  } catch (err: any) {
+    log(err.message, "error");
+    errorUIType(err);
+  }
 });
 
 ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replays) => {
   log(`opening replay ${replays[0]}`);
-  titanReactor.spawnReplay(replays[0]);
+  try {
+    titanReactor.spawnReplay(replays[0]);
+  } catch (err: any) {
+    log(err.message, "error");
+    errorUIType(err);
+  }
 });
 
 //@ts-ignore

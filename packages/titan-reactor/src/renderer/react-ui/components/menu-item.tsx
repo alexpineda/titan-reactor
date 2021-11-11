@@ -1,5 +1,15 @@
 import React from "react";
-export const MenuItem = ({ onClick, label, disabled = false, fat }) => {
+export const MenuItem = ({
+  onClick,
+  label,
+  disabled = false,
+  fat,
+}: {
+  onClick: () => void;
+  label: string;
+  disabled?: boolean;
+  fat?: boolean;
+}) => {
   const menuItemStyle = fat ? { width: "24rem" } : {};
 
   return (

@@ -1,4 +1,4 @@
-import { ipcRenderer } from "electron";
+import { ipcRenderer, IpcRendererEvent } from "electron";
 import React, { useEffect, useState } from "react";
 import shallow from "zustand/shallow";
 
@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSet,
   ButtonSetContainer,
-  ColorPicker,
   Option,
   PathSelect,
   Tab,
@@ -49,15 +48,24 @@ export default ({
   );
 
   useEffect(() => {
-    const listener = (_, { key, filePaths: [dir] }) => {
+    const listener = (
+      _: IpcRendererEvent,
+      { key, filePaths: [dir] }: { key: string; filePaths: string[] }
+    ) => {
       save({
         [key]: dir,
       });
     };
     ipcRenderer.on(SELECT_FOLDER, listener);
 
-    return () => ipcRenderer.removeListener(SELECT_FOLDER, listener);
+    return () => {
+      ipcRenderer.removeListener(SELECT_FOLDER, listener);
+    };
   }, []);
+
+  if (!settings) {
+    return null;
+  }
 
   return (
     <div className={className} style={style}>
@@ -109,7 +117,7 @@ export default ({
             className="rounded text-gray-800"
             onChange={(evt) => {
               save({
-                language: evt.target.value,
+                language: (evt.target as HTMLSelectElement).value,
               });
             }}
             value={settings.language}
@@ -205,20 +213,6 @@ export default ({
                   />
                 }
               />
-              <div className="flex flex-wrap">
-                {settings.playerColors.map((color, i) => (
-                  <ColorPicker
-                    key={i}
-                    color={`${color}`}
-                    onChange={({ hex }) => {
-                      const clrs = [...settings.playerColors];
-                      clrs[i] = hex;
-                      save({ playerColors: clrs });
-                    }}
-                    className="mr-4"
-                  />
-                ))}
-              </div>
             </Visible>
           </Option>
         )}
@@ -240,6 +234,16 @@ export default ({
           toggle={
             <ButtonSetContainer>
               <ButtonSet
+                selected={settings.hudFontSize === "xs"}
+                label={phrases["BUTTON_TINY"]}
+                first
+                onClick={() =>
+                  save({
+                    hudFontSize: "xs",
+                  })
+                }
+              />
+              <ButtonSet
                 selected={settings.hudFontSize === "sm"}
                 label={phrases["BUTTON_SMALL"]}
                 first
@@ -250,7 +254,7 @@ export default ({
                 }
               />
               <ButtonSet
-                selected={settings.hudFontSize === "base"}
+                selected={settings.hudFontSize === "md"}
                 label={phrases["BUTTON_MED"]}
                 onClick={() =>
                   save({
@@ -331,16 +335,6 @@ export default ({
       </Tab>
 
       <Tab tabName={Tabs.MapViewer} activeTab={tab}>
-        <Option label={phrases["SETTINGS_MAP_VIEWER_BACKGROUND_COLOR"]}>
-          <ColorPicker
-            color={`${settings.mapBackgroundColor}`}
-            onChange={({ hex }) => {
-              save({ mapBackgroundColor: hex });
-            }}
-            className="mr-4"
-          />
-        </Option>
-
         <Option
           label={phrases["SETTINGS_MAP_VIEWER_SHOW_DISABLED_DOODADS"]}
           toggle={
@@ -381,7 +375,9 @@ export default ({
             value={settings.mouseRotateSpeed}
             onChange={(evt) => {
               save({
-                mouseRotateSpeed: Number(evt.target.value),
+                mouseRotateSpeed: Number(
+                  (evt.target as HTMLInputElement).value
+                ),
               });
             }}
           />
@@ -401,7 +397,7 @@ export default ({
             value={settings.musicVolume}
             onChange={(evt) => {
               save({
-                musicVolume: Number(evt.target.value),
+                musicVolume: Number((evt.target as HTMLInputElement).value),
               });
             }}
           />
@@ -418,7 +414,7 @@ export default ({
             value={settings.soundVolume}
             onChange={(evt) => {
               save({
-                soundVolume: Number(evt.target.value),
+                soundVolume: Number((evt.target as HTMLInputElement).value),
               });
             }}
           />
@@ -535,37 +531,11 @@ export default ({
 
       <Tab tabName={Tabs.Integrations} activeTab={tab}>
         <Option label={phrases["TWITCH_INTEGRATION"]}>
-          <Button label={phrases["BUTTON_CONNECT"]} />
+          <Button label={phrases["BUTTON_CONNECT"]} onClick={() => {}} />
         </Option>
 
         <Option label={phrases["SETTINGS_OBSERVER_LINK"]}>
-          <Button label={phrases["BUTTON_SHOW"]} />
-        </Option>
-      </Tab>
-
-      <Tab tabName={Tabs.Community} activeTab={tab}>
-        <Option label={phrases["SETTINGS_MAPS_RSS_FEEDS"]}>
-          <textarea
-            className="w-full h-40 bg-gray-600"
-            value={settings.mapsRss}
-            onChange={(evt) =>
-              save({
-                mapsRss: evt.target.value,
-              })
-            }
-          />
-        </Option>
-
-        <Option label={phrases["SETTINGS_REPLAYS_RSS_FEEDS"]}>
-          <textarea
-            className="w-full h-40 bg-gray-600"
-            value={settings.replaysRss}
-            onChange={(evt) =>
-              save({
-                replaysRss: evt.target.value,
-              })
-            }
-          />
+          <Button label={phrases["BUTTON_SHOW"]} onClick={() => {}} />
         </Option>
       </Tab>
     </div>

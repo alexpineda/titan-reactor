@@ -1,21 +1,31 @@
 import React from "react";
-import { connect } from "react-redux";
 import Unit from "./unit";
 import Sprite from "./sprite";
 import Image from "./image";
-import { imageSelected, spriteSelected, unitSelected } from "../iscript-reducer";
-import { unitImageTabChanged } from "../app-reducer";
+import {
+  useIScriptahStore,
+  useIscriptStore,
+  setUnitImageTab,
+  setUnit,
+  setSprite,
+  setImage,
+} from "../stores";
+import { useGameStore } from "../../../stores/game-store";
 
-const UnitsAndImages = ({
-  bwDat,
-  search,
-  selectUnit,
-  selectSprite,
-  selectImage,
-  expandedUnit,
-  selectedTab,
-  selectTab,
-}) => {
+export const UnitsAndImages = ({ search }: { search: number | string }) => {
+  const bwDat = useGameStore((state) => state.assets?.bwDat);
+  if (!bwDat) {
+    throw new Error("No bwDat loaded");
+  }
+
+  const { selectedTab } = useIScriptahStore((state) => ({
+    selectedTab: state.unitImageTab,
+  }));
+
+  const { expandedUnit } = useIscriptStore((state) => ({
+    expandedUnit: state.unit,
+  }));
+
   return (
     <aside className="bg-gray-100 flex-0 flex flex-col max-h-screen overflow-y-scroll pb-10">
       <section className="flex-1 p-2" style={{ minWidth: "20rem" }}>
@@ -24,7 +34,7 @@ const UnitsAndImages = ({
             className={`text-sm p-2 cursor-pointer hover:bg-gray-300 flex-grow ${
               selectedTab === "units" ? "bg-gray-300" : ""
             }`}
-            onClick={() => selectTab("units")}
+            onClick={() => setUnitImageTab("units")}
           >
             Units
           </li>
@@ -32,7 +42,7 @@ const UnitsAndImages = ({
             className={`text-sm p-2 cursor-pointer hover:bg-gray-300 flex-grow ${
               selectedTab === "sprites" ? "bg-gray-300" : ""
             }`}
-            onClick={() => selectTab("sprites")}
+            onClick={() => setUnitImageTab("sprites")}
           >
             Sprites
           </li>
@@ -40,7 +50,7 @@ const UnitsAndImages = ({
             className={`text-sm p-2 cursor-pointer hover:bg-gray-300 flex-grow ${
               selectedTab === "images" ? "bg-gray-300" : ""
             }`}
-            onClick={() => selectTab("images")}
+            onClick={() => setUnitImageTab("images")}
           >
             Images
           </li>
@@ -52,7 +62,9 @@ const UnitsAndImages = ({
               .filter((unit) => {
                 if (search) {
                   return (
-                    unit.name.toLowerCase().includes(search.toLowerCase()) ||
+                    unit.name
+                      .toLowerCase()
+                      .includes((search as string).toLowerCase()) ||
                     unit.index == search
                   );
                 } else {
@@ -64,8 +76,7 @@ const UnitsAndImages = ({
                   <li key={unit.index} className={i === 0 ? "" : "pt-4"}>
                     <Unit
                       unit={unit}
-                      bwDat={bwDat}
-                      onClick={() => selectUnit(unit)}
+                      onClick={() => setUnit(unit)}
                       expanded={unit === expandedUnit}
                     />
                   </li>
@@ -80,7 +91,9 @@ const UnitsAndImages = ({
               .filter((sprite) => {
                 if (search) {
                   return (
-                    sprite.name.toLowerCase().includes(search.toLowerCase()) ||
+                    sprite.name
+                      .toLowerCase()
+                      .includes((search as string).toLowerCase()) ||
                     sprite.index == search
                   );
                 } else {
@@ -90,11 +103,7 @@ const UnitsAndImages = ({
               .map((sprite, i: number) => {
                 return (
                   <li key={sprite.index} className={i === 0 ? "" : "pt-4"}>
-                    <Sprite
-                      sprite={sprite}
-                      bwDat={bwDat}
-                      onClick={() => selectSprite(sprite)}
-                    />
+                    <Sprite sprite={sprite} onClick={() => setSprite(sprite)} />
                   </li>
                 );
               })}
@@ -107,7 +116,9 @@ const UnitsAndImages = ({
               .filter((image) => {
                 if (search) {
                   return (
-                    image.name.toLowerCase().includes(search.toLowerCase()) ||
+                    image.name
+                      .toLowerCase()
+                      .includes((search as string).toLowerCase()) ||
                     image.index == search
                   );
                 } else {
@@ -117,11 +128,7 @@ const UnitsAndImages = ({
               .map((image, i: number) => {
                 return (
                   <li key={image.index} className={i === 0 ? "" : "pt-4"}>
-                    <Image
-                      image={image}
-                      bwDat={bwDat}
-                      onClick={() => selectImage(image)}
-                    />
+                    <Image image={image} onClick={() => setImage(image)} />
                   </li>
                 );
               })}
@@ -131,16 +138,4 @@ const UnitsAndImages = ({
     </aside>
   );
 };
-
-export default connect(
-  (state) => ({
-    expandedUnit: state.iscript.unit,
-    selectedTab: state.app.unitImageTab,
-  }),
-  (dispatch) => ({
-    selectUnit: (unit) => dispatch(unitSelected(unit)),
-    selectSprite: (unit) => dispatch(spriteSelected(unit)),
-    selectImage: (unit) => dispatch(imageSelected(unit)),
-    selectTab: (tab) => dispatch(unitImageTabChanged(tab)),
-  })
-)(UnitsAndImages);
+export default UnitsAndImages;

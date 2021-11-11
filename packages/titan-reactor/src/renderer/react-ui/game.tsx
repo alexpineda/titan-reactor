@@ -15,19 +15,23 @@ import Visible from "./components/visible";
 
 import {
   useGameStore,
+  GameStore,
   useSettingsStore,
+  SettingsStore,
   useHudStore,
+  HudStore,
   useLoadingStore,
+  LoadingStore,
 } from "../stores";
 
-const gameStoreSelector = (state) => ({
+const gameStoreSelector = (state: GameStore) => ({
   dimensions: state.dimensions,
   canvas: state.game.gameSurface.canvas,
   selectedUnits: state.selectedUnits,
   players: state.game.players,
 });
 
-const hudStoreSelector = (state) => ({
+const hudStoreSelector = (state: HudStore) => ({
   showFps: state.show.fps,
   showInGameMenu: state.show.inGameMenu,
   toggleInGameMenu: state.toggleInGameMenu,
@@ -35,22 +39,21 @@ const hudStoreSelector = (state) => ({
   showUnitSelection: state.show.unitSelection,
 });
 
-const settingsStoreSelector = (state) => ({
-  esportsHud: state.data.esportsHud,
-  alwaysHideReplayControls: state.data.alwaysHideReplayControls,
-  embedProduction: state.data.embedProduction,
-  mapsPath: state.data.mapsPath,
-  replaysPath: state.data.replaysPath,
+const settingsStoreSelector = (state: SettingsStore) => ({
+  esportsHud: state?.data?.esportsHud,
+  alwaysHideReplayControls: state?.data?.alwaysHideReplayControls,
+  embedProduction: state?.data?.embedProduction,
+  mapsPath: state?.data?.mapsPath,
+  replaysPath: state?.data?.replaysPath,
 });
 
-const resetSelector = (state) => state.reset;
+const resetLoadingStore = useLoadingStore.getState().reset;
 
 const Game = () => {
   const { dimensions, canvas, selectedUnits, players } = useGameStore(
     gameStoreSelector,
     shallow
   );
-  const resetLoadingStore = useLoadingStore(resetSelector);
   const {
     showInGameMenu,
     toggleInGameMenu,
@@ -127,17 +130,16 @@ const Game = () => {
         <Visible visible={esportsHud}>
           <ResourcesBar
             className="flex-1 self-end pointer-events-none"
-            textSize="lg"
             fitToContent
             players={players}
           />
         </Visible>
 
         <Visible
-          visible={
+          visible={Boolean(
             showUnitSelection &&
-            (selectedUnits.length || alwaysHideReplayControls)
-          }
+              (selectedUnits.length || alwaysHideReplayControls)
+          )}
         >
           <UnitSelection className="pointer-events-none" />
         </Visible>

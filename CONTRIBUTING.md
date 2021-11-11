@@ -2,6 +2,8 @@
 
 Looking to make a contribution? This is the guide for you! 🥳
 
+Titan Reactor mostly leverages Typescript, WebGL via three.js, and several ancillary packages to make the magic happen.
+
 ## Primary Tech
 - node ^14.
 - yarn ^1.0
@@ -14,15 +16,15 @@ Looking to make a contribution? This is the guide for you! 🥳
 
 ## Build
 We use `yarn ^1.0` workspaces allowing us to keep seperate packages for interrelated functionality:
+- titan-reactor - The main game package
 - bw-chk-modified - A fork of bw-chk that provides additional data
 - casc-lib - A fork of casclib that allows simultaneous CASC archive access with BW
 - downgrade-replay - A node package to downgrade replays and chk files from SCR to BW
 - pkware-wasm - A node package that implements StormLib compression/decompression
-- titan-reactor - The main game package
 
 For our build we use `electron-webpack` which includes hot reload for both renderer and main process
 
-External packages include openbw-bridge.
+You will also need openbw-bridge.exe which is included in static directory for you and can also be built (see https://github.com/imbateam-gg/ChkForge).
 
 ## package/titan-reactor
 **src/build** - Additional hooks into electron-webpack build process
@@ -30,13 +32,11 @@ External packages include openbw-bridge.
 **src/main** - The electron main process
 
 - Creates browser window and manages settings
-- Manages what little IPC we need to do
-- What more can we offload to this process?
 
 **src/common** - Shared code amongst main process and renderer (browser window)
-- *bwdat* - essentially the database of bw data including DAT parsers
+- *bwdat* - The "database" of bw data including unit stats, image dimensions etc, includes DAT parsers
 - *image* 
-  - image format parsers and image generation of all kinds
+  - image format parsers and image generation
   - it contains the base GRP atlas classes that coincide with an ImageDAT entry
   - it contains the base TitanImage types that render themselves and set image frames
 - *iscript* - iscript parser and intepreter

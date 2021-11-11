@@ -1,21 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { connect } from "react-redux";
-import { baseFrameSelected, frameSelected } from "../iscript-reducer";
+import shallow from "zustand/shallow";
 import range from "../../../../common/utils/range";
+import { useIscriptStore, setFrame, setBaseFrame } from "../stores";
 
-const Frames = ({
-  numFrames,
-  setFrame,
-  selectBaseFrame,
-  selectedBaseFrame,
-  blockFrameCount,
-  selectedFrame,
-}) => {
+export const Frames = ({ numFrames }: { numFrames: number }) => {
   const [focusElement, setFocusElement] = useState(false);
   const [showOnlyFramesets, setShowOnlyFramesets] = useState(false);
 
   const elementToFocus = useRef<HTMLLIElement>();
   const looseFrames = numFrames % 17;
+
+  const { blockFrameCount, selectedBaseFrame, selectedFrame } = useIscriptStore(
+    (store) => ({
+      blockFrameCount: store.blockFrameCount,
+      selectedBaseFrame: store.baseFrame,
+      selectedFrame: store.frame,
+    }),
+    shallow
+  );
 
   useEffect(() => {
     if (focusElement && elementToFocus.current) {
@@ -23,6 +25,13 @@ const Frames = ({
       setFocusElement(false);
     }
   }, [focusElement]);
+
+  if (
+    typeof selectedBaseFrame !== "number" ||
+    typeof selectedFrame !== "number"
+  ) {
+    return null;
+  }
 
   return (
     <aside
@@ -49,11 +58,11 @@ const Frames = ({
       <section className="p-2 relative">
         <ul>
           {range(0, numFrames).map((frame: number, i: number) => {
-            let isBaseFrame =
+            const isBaseFrame =
               selectedBaseFrame === null
                 ? 0
                 : Math.floor(i / 17) * 17 + (selectedBaseFrame % 17);
-            let grey = Math.floor(i / 17) % 2;
+            const grey = Math.floor(i / 17) % 2;
 
             return !showOnlyFramesets ||
               (showOnlyFramesets &&
@@ -81,13 +90,13 @@ const Frames = ({
                     if (i >= numFrames - looseFrames) {
                       setFrame(selectedFrame + 1);
                     } else {
-                      selectBaseFrame(selectedFrame + 1);
+                      setBaseFrame(selectedFrame + 1);
                     }
                   } else if (evt.key === "ArrowUp") {
                     if (i >= numFrames - looseFrames) {
                       setFrame(selectedFrame - 1);
                     } else {
-                      selectBaseFrame(selectedFrame - 1);
+                      setBaseFrame(selectedFrame - 1);
                     }
                   } else if (evt.key === "PageUp") {
                     const f = selectedFrame - 17;
@@ -125,7 +134,7 @@ const Frames = ({
                   if (i >= numFrames - looseFrames) {
                     setFrame(i);
                   } else {
-                    selectBaseFrame(i);
+                    setBaseFrame(i);
                   }
                 }}
               >
@@ -140,14 +149,4 @@ const Frames = ({
   );
 };
 
-export default connect(
-  (state) => ({
-    selectedFrame: state.iscript.frame,
-    selectedBaseFrame: state.iscript.baseFrame,
-    blockFrameCount: state.iscript.blockFrameCount,
-  }),
-  (dispatch) => ({
-    selectBaseFrame: (frame) => dispatch(baseFrameSelected(frame)),
-    setFrame: (frame) => dispatch(frameSelected(frame)),
-  })
-)(Frames);
+export default Frames;

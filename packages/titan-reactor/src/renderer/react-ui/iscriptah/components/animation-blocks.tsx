@@ -1,10 +1,15 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
+import { ImageDATType } from "../../../../common/types";
 import { iscriptHeaders } from "../../../../common/bwdat/enums";
-import { blockSelected } from "../iscript-reducer";
+import { setBlock } from "../stores";
+import { useGameStore } from "../../../stores/game-store";
 
-const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
+export const AnimationBlocks = ({ image }: { image: ImageDATType }) => {
   const [expanded, setExpanded] = useState(false);
+  const bwDat = useGameStore((state) => state.assets?.bwDat);
+  if (!bwDat) {
+    throw new Error("No bwDat loaded");
+  }
 
   const iscriptAnimations = {
     header: 0,
@@ -14,7 +19,7 @@ const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
   const toggleIscript = () => {
     setExpanded(!expanded);
     if (!expanded) {
-      selectBlock(image, iscriptAnimations.offsets[0], 0);
+      setBlock(image, iscriptAnimations.offsets[0], 0);
     }
   };
 
@@ -43,7 +48,7 @@ const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    selectBlock(image, offset, i);
+                    setBlock(image, offset, i);
                   }}
                 >
                   <span className={offset ? "font-bold" : ""}>
@@ -59,13 +64,8 @@ const AnimationBlocks = ({ bwDat, image, selectBlock }) => {
     </ul>
   );
 };
+export default AnimationBlocks;
 
-export default connect(
-  () => ({}),
-  (dispatch) => ({
-    selectBlock: (...args) => dispatch(blockSelected(...args)),
-  })
-)(AnimationBlocks);
 //@todo overlays
 //   grp: 1
 // gfxTurns: 1

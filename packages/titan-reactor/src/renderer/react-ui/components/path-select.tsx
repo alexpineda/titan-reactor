@@ -6,6 +6,12 @@ export const PathSelect = ({
   settings,
   errors,
   selectFolder,
+}: {
+  prop: string;
+  phrases: Record<string, string>;
+  settings: Record<string, any>;
+  errors: string[];
+  selectFolder: (folder: string) => void;
 }) => {
   return (
     <span className="flex items-center">

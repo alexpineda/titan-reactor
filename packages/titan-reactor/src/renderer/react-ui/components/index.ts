@@ -1,7 +1,6 @@
 export * from "./button";
 export * from "./button-set";
 export * from "./button-set-container";
-export * from "./color-picker";
 export * from "./menu-item";
 export * from "./option";
 export * from "./path-select";

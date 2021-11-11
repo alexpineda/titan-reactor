@@ -1,6 +1,10 @@
 import React from "react";
 
-export const ButtonSetContainer = ({ children }) => {
+export const ButtonSetContainer = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   return (
     <div className="flex rounded-lg text-lg" role="group">
       {children}

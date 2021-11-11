@@ -20,7 +20,6 @@ import {
 } from "../common/image";
 import { createIScriptRunnerFactory } from "../common/iscript";
 import { ChkType, EmptyFunc } from "../common/types";
-import pick from "../common/utils/pick";
 import uniq from "../common/utils/uniq";
 import Assets from "./render/assets";
 import { AudioMaster } from "./audio";
@@ -40,11 +39,17 @@ import {
   isLoadingProcessComplete,
   useLoadingStore,
   useSettingsStore,
+  initUIType,
+  updateUIType,
+  completeUIType,
+  UITypeReplay,
+  UITypeMap,
+  UITypeIscriptah,
 } from "./stores";
 import TitanReactorGame from "./titan-reactor-game";
 import TitanReactorMap from "./titan-reactor-map";
-// import IScriptah from "./react-ui/iscriptah/iscriptah";
 import { BwDATType } from "../common/types";
+import IScriptah from "./react-ui/iscriptah/iscriptah";
 
 const loadScx = (filename: string) =>
   new Promise((res) =>
@@ -97,17 +102,24 @@ export class TitanReactor {
     );
   }
 
-  // @todo make async and return assets?
-  waitForAssets() {
+  async waitForAssets() {
     log("waiting for assets");
-    return new Promise((res: EmptyFunc) => {
+    return await new Promise((res: EmptyFunc) => {
       if (isLoadingProcessComplete("assets")) {
+        const assets = getAssets();
+        if (!assets || !assets.bwDat) {
+          throw new Error("assets not loaded");
+        }
         res();
         return;
       }
       const unsub = useLoadingStore.subscribe(() => {
         if (isLoadingProcessComplete("assets")) {
           unsub();
+          const assets = getAssets();
+          if (!assets || !assets.bwDat) {
+            throw new Error("assets not loaded");
+          }
           res();
         }
       });
@@ -119,9 +131,7 @@ export class TitanReactor {
     disposeGame();
 
     const settings = getSettings();
-    if (!settings) {
-      throw new Error("settings not loaded");
-    }
+
     // validate before showing any loading progress
     const repBin = await openFile(filepath);
     let rep = await parseReplay(repBin);
@@ -133,19 +143,23 @@ export class TitanReactor {
     }
 
     document.title = "Titan Reactor - Loading";
+
     startLoadingProcess({
       id: "replay",
       label: getFunString(),
       priority: 1,
     });
-    const loadingStore = useLoadingStore.getState();
-    loadingStore.initRep(filepath);
+
+    initUIType({
+      type: "replay",
+      filename: filepath,
+    } as UITypeReplay);
 
     log("parsing replay");
     let repFile = filepath;
     const outFile = path.join(settings.tempPath, "replay.out");
 
-    loadingStore.updateRep(pick(["header"], rep));
+    updateUIType({ header: rep.header } as UITypeReplay);
 
     if (rep.version === Version.remastered) {
       const chkDowngrader = new ChkDowngrader();
@@ -166,7 +180,7 @@ export class TitanReactor {
 
     log("loading chk");
     const chk = new Chk(rep.chk);
-    loadingStore.updateChk(pick(["title", "description"], chk));
+    updateUIType({ chkTitle: chk.title } as UITypeReplay);
 
     log("building terrain");
     const terrainInfo = await generateTerrain(chk);
@@ -224,7 +238,7 @@ export class TitanReactor {
     );
 
     setGame(game);
-    loadingStore.completeRep();
+    completeUIType();
 
     log("starting replay");
     document.title = "Titan Reactor - Observing";
@@ -244,12 +258,17 @@ export class TitanReactor {
       priority: 1,
     });
 
-    const loadingStore = useLoadingStore.getState();
-    loadingStore.initChk(chkFilepath);
+    initUIType({
+      type: "map",
+      filename: chkFilepath,
+    } as UITypeMap);
 
     log("loading chk");
     const chk = new Chk(await loadScx(chkFilepath)) as ChkType;
-    loadingStore.updateChk(pick(["title", "description"], chk));
+    updateUIType({
+      title: chk.title,
+      description: chk.description,
+    } as UITypeMap);
 
     document.title = `Titan Reactor - ${chk.title}`;
 
@@ -299,24 +318,24 @@ export class TitanReactor {
       setTimeout(res, Math.max(0, minDisplayTime - (Date.now() - startTime)))
     );
 
-    completeLoadingProcess("map");
     setGame(game);
-    loadingStore.completeChk();
+    completeLoadingProcess("map");
+    completeUIType();
   }
 
   async spawnIscriptah() {
     log("loading iscriptah");
     disposeGame();
 
-    const settings = getSettings();
-    if (!settings) {
-      throw new Error("settings not loaded");
-    }
     startLoadingProcess({
       id: "iscriptah",
       label: getFunString(),
       priority: 1,
     });
+
+    initUIType({
+      type: "iscriptah",
+    } as UITypeIscriptah);
 
     await this.waitForAssets();
     const assets = getAssets();
@@ -324,9 +343,10 @@ export class TitanReactor {
       throw new Error("assets not loaded");
     }
 
-    // const game = await IScriptah(assets.bwDat);
+    const game = await IScriptah();
+    setGame(game);
     completeLoadingProcess("iscriptah");
-    // setGame(game);
+    completeUIType();
   }
 
   dispose() {

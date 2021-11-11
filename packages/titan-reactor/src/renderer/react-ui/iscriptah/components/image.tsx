@@ -1,8 +1,20 @@
 import React, { useCallback } from "react";
 import AnimationBlocks from "./animation-blocks";
 import calculateImagesFromIscript from "../../../../common/image/util/images-from-iscript";
+import { ImageDATType } from "../../../../common/types";
+import { useGameStore } from "../../../stores/game-store";
 
-const Image = ({ image, bwDat, ...props }) => {
+const Image = ({
+  image,
+  onClick,
+}: {
+  image: ImageDATType;
+  onClick: () => void;
+}) => {
+  const bwDat = useGameStore((state) => state.assets?.bwDat);
+  if (!bwDat) {
+    throw new Error("No bwDat loaded");
+  }
   const imagesFromIscript = useCallback(() => {
     return [...calculateImagesFromIscript(bwDat, image, null)];
   }, [bwDat, image]);
@@ -11,7 +23,7 @@ const Image = ({ image, bwDat, ...props }) => {
     <div>
       <p
         className="text-lg mt-4 mb-1 text-blue-800 font-medium hover:bg-gray-300 cursor-pointer"
-        {...props}
+        onClick={onClick}
       >
         <span>{image.name}</span>
         <span
@@ -23,9 +35,8 @@ const Image = ({ image, bwDat, ...props }) => {
         </span>
       </p>
       {imagesFromIscript().map((i: number) => (
-        <AnimationBlocks key={i} image={bwDat.images[i]} bwDat={bwDat} />
+        <AnimationBlocks key={i} image={bwDat.images[i]} />
       ))}
-      {/* <AnimationBlocks label="" image={sprite.image} bwDat={bwDat} /> */}
     </div>
   );
 };

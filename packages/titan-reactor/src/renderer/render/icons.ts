@@ -1,7 +1,18 @@
+import GameIcons from "../../common/image/generate-icons/game-icons";
 import generateIcons from "../../common/image/generate-icons/generate-icons";
+import { ReadFile } from "../../common/types";
 
 class Icons {
-  async generate(readFile) {
+  gameIcons?: GameIcons;
+  cmdIcons?: GameIcons;
+  raceInsetIcons?: GameIcons;
+  workerIcons?: GameIcons;
+  arrowIcons?: GameIcons;
+  hoverIcons?: GameIcons;
+  dragIcons?: GameIcons;
+  wireframeIcons?: GameIcons;
+
+  async generate(readFile: ReadFile) {
     const [
       gameIcons,
       cmdIcons,

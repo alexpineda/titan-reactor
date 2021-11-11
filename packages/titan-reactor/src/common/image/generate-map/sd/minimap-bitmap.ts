@@ -1,6 +1,10 @@
 import { rgbToCanvas } from "../../util/canvas";
 
-export const minimapBitmap = async (data: Uint8Array, mapWidth: number, mapHeight: number) => {
+export const minimapBitmap = async (
+  data: Uint8Array,
+  mapWidth: number,
+  mapHeight: number
+): Promise<ImageBitmap> => {
   const src = rgbToCanvas(
     {
       data,

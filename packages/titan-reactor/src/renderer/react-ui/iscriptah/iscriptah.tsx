@@ -1,5 +1,4 @@
 import React from "react";
-import { Provider } from "react-redux";
 import {
   Scene,
   PerspectiveCamera,
@@ -27,16 +26,20 @@ import { ClockMs } from "../../../common/utils/clock-ms";
 import { CanvasTarget } from "../../../common/image";
 import "../../../common/utils/electron-file-loader";
 import TitanSprite from "../../../common/image/titan-sprite";
-
-import store from "./store";
-import { onGameTick, cameraDirectionChanged } from "./app-reducer";
-import { frameSelected } from "./iscript-reducer";
-import { BwDATType } from "../../../common/types";
+import {
+  incGameTick,
+  setFrame,
+  useIScriptahStore,
+  useIscriptStore,
+  setTransformVector,
+} from "./stores";
+import { updateDirection32 } from "./camera";
+import { updateEntities } from "./entities";
 // import loadEnvironmentMap from "../../../common/utils/";
 
 // const state = store.getState();
 
-export const IScriptah = (bwDat: BwDATType) => {
+export const IScriptah = () => {
   const surface = new CanvasTarget();
   surface.setDimensions(300, 300, window.devicePixelRatio);
 
@@ -117,156 +120,123 @@ export const IScriptah = (bwDat: BwDATType) => {
   transformControls.setSpace("local");
   //@todo attach?
   scene.add(transformControls);
-  const runner = {};
+  const thingies: TitanSprite[] = [];
+
+  const disposeThingies = () => {
+    thingies.forEach(removeTitanSprite);
+    thingies.length = 0;
+  };
 
   const clock = new ClockMs(true);
 
   const addTitanSpriteCb = (titanSprite: TitanSprite) => {
     parent.add(titanSprite);
     transformControls.attach(titanSprite);
-    three.thingies = [...three.thingies, titanSprite];
+    thingies.push(titanSprite);
   };
 
   const removeTitanSprite = (titanSprite: TitanSprite) => {
     if (transformControls.object === titanSprite) {
       transformControls.detach();
     }
-    parent.remove(titanSprite);
-  };
-
-  const three = {
-    bwDat,
-    runner,
-    clock,
-    tileset: 0,
-    camera,
-    renderer,
-    controls,
-    scene,
-    plane,
-    axes,
-    parent,
-    transformControls,
-    thingies: [],
-    preload: [],
-    dispose: () => {
-      three.thingies.forEach(removeTitanSprite);
-      three.thingies = [];
-    },
-  };
-  // @ts-ignore
-  window.iscriptah = three;
-
-  const updateDirection32 = () => {
-    let dir;
-    const adj = three.controls.target.z - three.camera.position.z;
-    const opp = three.controls.target.x - three.camera.position.x;
-    const a = Math.atan2(opp, adj) / Math.PI;
-    if (a < 0) {
-      dir = Math.floor((a + 2) * 16);
-    } else {
-      dir = Math.floor(a * 16);
+    const i = thingies.indexOf(titanSprite);
+    if (i >= 0) {
+      thingies.splice(i, 1);
+      parent.remove(titanSprite);
     }
-    if (dir != three.camera.userData.direction) {
-      three.camera.userData.prevDirection = three.camera.userData.direction;
-      three.camera.userData.direction = dir;
-      store.dispatch(cameraDirectionChanged(dir));
-    }
-  };
-
-  const updateEntities = (entities, delta: number) => {
-    const removeEntities = [];
-
-    for (const entity of entities) {
-      if (entity.mainImage) {
-        if (entity.userData.direction !== three.camera.userData.direction) {
-          entity.setDirection(three.camera.userData.direction);
-        }
-        //@todo return list of new entities and process them!!
-        entity.update(delta);
-      }
-      if (entity.images.length === 0) {
-        removeEntities.push(entity);
-      }
-    }
-
-    removeEntities.forEach(removeTitanSprite);
-
-    return entities.filter((entity) => !removeEntities.includes(entity));
   };
 
   const forceRefresh = new ClockMs();
 
   const animLoop = () => {
-    const state = store.getState();
-    updateDirection32();
+    updateDirection32(controls.target, camera);
 
-    if (state.iscript.frame !== null) {
-      three.thingies.forEach((thingy) => {
+    controls.update();
+    renderToCanvas(surface, scene, camera);
+  };
+
+  useIscriptStore.subscribe((state) => {
+    if (typeof state.frame === "number") {
+      thingies.forEach((thingy: TitanSprite) => {
         if (thingy.mainImage) {
           try {
-            thingy.mainImage.setFrame(
-              state.iscript.frame,
-              state.iscript.flipFrame
-            );
+            thingy.mainImage.setFrame(state.frame as number, state.flipFrame);
           } catch (e) {
             // store.dispatch(
             //   errorOccurred(
             //     "can't set frame to this image, try selecting init animation again"
             //   )
             // );
-            store.dispatch(frameSelected(null));
+            setFrame(null);
           }
         }
       });
     } else {
-      if (
-        clock.getElapsedTime() > state.app.gamespeed &&
-        state.app.autoUpdate
-      ) {
-        updateEntities(three.thingies, clock.getElapsedTime());
+      const { autoUpdate, gamespeed } = useIScriptahStore.getState();
+      if (clock.getElapsedTime() > gamespeed && autoUpdate) {
+        updateEntities(
+          thingies,
+          clock.getElapsedTime(),
+          camera.userData.direction,
+          removeTitanSprite
+        );
 
         clock.elapsedTime = 0;
-        store.dispatch(onGameTick());
+        incGameTick();
       }
     }
-    if (state.app.transform) {
-      if (!transformControls.object && three.thingies.length) {
-        transformControls.attach(three.thingies[0]);
-      }
-      transformControls.setMode(state.app.transform);
-      transformControls.showX = state.app.transformEnabled.x;
-      transformControls.showY = state.app.transformEnabled.y;
-      transformControls.showZ = state.app.transformEnabled.z;
-      if (forceRefresh.getElapsedTime() > 500) {
-        forceRefresh.elapsedTime = 0;
-      }
-    } else {
-      transformControls.detach();
-    }
-    three.controls.update();
-    renderToCanvas(surface, three.scene, three.camera);
-  };
+  });
 
-  const bootup = async (bwDataPath: string) => {
-    try {
-      three.renderer.setAnimationLoop(animLoop);
-      // @ts-ignore
-      window.three = three;
+  useIScriptahStore.subscribe((state, prevState) => {
+    renderer.toneMappingExposure = state.exposure;
+    plane.visible = state.showFloorAxes;
+    axes.visible = state.showFloorAxes;
 
-      try {
-        // const envMap = await loadEnvironmentMap(
-        //   three.renderer,
-        //   `${__static}/envmap.hdr`
-        // );
-        // three.scene.environment = envMap;
-      } catch (e) {
-        console.error(e);
+    if (state.transform !== prevState.transform) {
+      if (state.transform) {
+        if (!transformControls.object && thingies.length) {
+          transformControls.attach(thingies[0]);
+        }
+        transformControls.setMode(state.transform);
+        transformControls.showX = state.transformEnabled.x;
+        transformControls.showY = state.transformEnabled.y;
+        transformControls.showZ = state.transformEnabled.z;
+        if (forceRefresh.getElapsedTime() > 500) {
+          forceRefresh.elapsedTime = 0;
+        }
+        if (state.transform === "translate") {
+          setTransformVector(transformControls.object?.position);
+        } else if (state.transform === "rotate") {
+          setTransformVector(transformControls.object?.rotation);
+        } else if (state.transform === "scale") {
+          setTransformVector(transformControls.object?.scale);
+        }
+      } else {
+        setTransformVector(null);
+        transformControls.detach();
       }
-    } catch (e: any) {
-      return;
     }
-  };
+  });
+
+  // const bootup = async () => {
+  //   try {
+  //     three.renderer.setAnimationLoop(animLoop);
+  //     // @ts-ignore
+  //     window.three = three;
+
+  //     try {
+  //       // const envMap = await loadEnvironmentMap(
+  //       //   three.renderer,
+  //       //   `${__static}/envmap.hdr`
+  //       // );
+  //       // three.scene.environment = envMap;
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   } catch (e: any) {
+  //     return;
+  //   }
+  // };
 
   const resizeHandler = () => {
     surface.setDimensions(
@@ -274,23 +244,21 @@ export const IScriptah = (bwDat: BwDATType) => {
       (window.innerHeight * 3) / 4,
       window.devicePixelRatio
     );
-    // const m = Math.max(surface.width, surface.height);
-    // const w = surface.width / m;
-    // const h = surface.height / m;
-    // camera.left = -w;
-    // camera.right = w;
-    // camera.top = h;
-    // camera.bottom = -h;
     camera.aspect = surface.width / surface.height;
     camera.updateProjectionMatrix();
   };
   window.addEventListener("resize", resizeHandler, false);
   resizeHandler();
 
+  renderer.setAnimationLoop(animLoop);
+
+  //@ts-ignore
+  window.iscriptah = three;
+
   const dispose = () => {
-    three.renderer.setAnimationLoop(null);
-    three.renderer.dispose();
-    three.dispose();
+    renderer.setAnimationLoop(null);
+    renderer.dispose();
+    disposeThingies();
     // @ts-ignore
     window.iscriptah = null;
     window.removeEventListener("resize", resizeHandler);
@@ -299,19 +267,13 @@ export const IScriptah = (bwDat: BwDATType) => {
       dragChangedHandler
     );
     transformControls.dispose();
+    controls.dispose();
   };
 
   return {
-    component: (
-      <Provider store={store}>
-        <App
-          surface={surface}
-          three={three}
-          bootup={bootup}
-          addTitanSpriteCb={addTitanSpriteCb}
-        />
-      </Provider>
-    ),
+    component: <App surface={surface} addTitanSpriteCb={addTitanSpriteCb} />,
     dispose,
   };
 };
+
+export default IScriptah;

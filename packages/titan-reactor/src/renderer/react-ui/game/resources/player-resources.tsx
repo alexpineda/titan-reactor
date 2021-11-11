@@ -6,26 +6,29 @@ import {
 } from "../../../../common/utils/change-font-size";
 import {
   useGameStore,
+  GameStore,
   UnitProductionView,
   TechProductionView,
   UpgradesProductionView,
+  ProductionView,
 } from "../../../stores";
 import PlayerProduction from "../production/player-production";
 import RollingResource from "./rolling-resource";
 import BasicResource from "./basic-resource";
+import { Player } from "../../../../common/types";
 
-const _playerNameCache = {};
+const _playerNameCache: Record<string, string> = {};
 
-const gameStoreSelector = (state) => ({
+const gameStoreSelector = (state: GameStore) => ({
   dimensions: state.dimensions,
   togglePlayerVision: state.togglePlayerVision,
   playerVision: state.playerVision,
-  gameIcons: state.assets.icons.gameIcons,
-  raceInsetIcons: state.assets.icons.raceInsetIcons,
-  workerIcons: state.assets.icons.workerIcons,
+  gameIcons: state?.assets?.icons.gameIcons,
+  raceInsetIcons: state?.assets?.icons.raceInsetIcons,
+  workerIcons: state?.assets?.icons.workerIcons,
 });
 
-const iconsSelector = (state) => state.assets.icons.cmdIcons;
+const iconsSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
 
 /**
  * The primary player bar displaying player score, name, resources and production.
@@ -42,6 +45,14 @@ const PlayerResources = ({
   esportsHud,
   enablePlayerScores,
   embedProduction,
+}: Player & {
+  textSize: string;
+  fitToContent: boolean;
+  playerScoreCache: Record<string, number>;
+  productionView: ProductionView;
+  esportsHud: boolean;
+  embedProduction: boolean;
+  enablePlayerScores: boolean;
 }) => {
   const {
     dimensions,
@@ -53,7 +64,9 @@ const PlayerResources = ({
   } = useGameStore(gameStoreSelector, shallow);
 
   const [isChangingName, setIsChangingName] = useState(false);
-  const [playerName, setPlayerName] = useState(_playerNameCache[name] || name);
+  const [playerName, setPlayerName] = useState<string>(
+    _playerNameCache[name] || name
+  );
   const [tempName, setTempName] = useState(playerName);
   if (playerScoreCache[playerName] === undefined) {
     playerScoreCache[playerName] = 0;

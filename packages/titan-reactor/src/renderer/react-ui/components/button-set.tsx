@@ -6,6 +6,12 @@ export const ButtonSet = ({
   label,
   first = false,
   last = false,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  first?: boolean;
+  last?: boolean;
 }) => {
   return (
     <button

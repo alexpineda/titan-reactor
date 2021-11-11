@@ -74,8 +74,10 @@ export type ChkSpriteType = {
 
 export type ChkType = {
   title: string | "";
+  description: string | "";
   tileset: number | 0;
   units: ChkUnitType[];
   sprites: ChkSpriteType[];
   _tiles: Buffer;
+  size: [number, number];
 };

@@ -1,97 +1,110 @@
 import React, { useState, useEffect } from "react";
-import { connect } from "react-redux";
+import shallow from "zustand/shallow";
 import { promises as fsPromises } from "fs";
 import UnitsAndImages from "./units-and-images";
-const dialog = require("electron").remote.dialog;
 
+import { CanvasTarget } from "../../../../common/image";
 import Commands from "./commands";
 import Animation from "./animation";
 import Frames from "./frames";
 import TitanSprite from "../../../../common/image/titan-sprite";
-import {
-  GrpSD,
-  GrpHD,
-  Grp3D,
-  createTitanImageFactory,
-} from "../../../../common/image";
+import { createTitanImageFactory } from "../../../../common/image";
 import { createIScriptRunnerFactory } from "../../../../common/iscript";
 import { GrpFileLoader } from "../../../../common/image";
 import { blockInitializing, blockFrameCountChanged } from "../iscript-reducer";
 import calculateImagesFromIscript from "../../../../common/image/util/images-from-iscript";
 import { UnitDAT } from "../../../../common/types";
+import { useIScriptahStore, useIscriptStore } from "../stores";
 
 const App = ({
   surface,
-  cameraDirection,
-  selectedBlock,
-  changeBlockFrameCount,
-  blockFrameCount,
-  initializeBlock,
-  selectedUnit,
-  selectedImage,
-  selectedSprite,
-  three,
-  renderMode,
   addTitanSpriteCb,
-  bootup,
+}: {
+  surface: CanvasTarget;
+  addTitanSpriteCb: (titanSprite: TitanSprite) => void;
 }) => {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("alpha");
 
-  useEffect(() => {
-    if (!selectedBlock) return;
-    const preload = async () => {
-      if (three.atlases) {
-        Object.values(three.atlases).forEach((pl) => pl.dispose());
-      }
-      three.dispose();
+  const { renderMode, cameraDirection } = useIScriptahStore(
+    (store) => ({
+      renderMode: store.renderMode,
+      cameraDirection: store.cameraDirection,
+    }),
+    shallow
+  );
 
-      const imageIds = calculateImagesFromIscript(
-        three.bwDat,
-        selectedBlock.image,
-        selectedUnit
-      );
+  const {
+    blockFrameCount,
+    selectedImage,
+    selectedSprite,
+    selectedUnit,
+    selectedBlock,
+  } = useIscriptStore(
+    (store) => ({
+      blockFrameCount: store.blockFrameCount,
+      selectedUnit: store.unit,
+      selectedImage: store.image,
+      selectedSprite: store.sprite,
+      selectedBlock: store.block,
+    }),
+    shallow
+  );
 
-      three.atlases = {};
+  // useEffect(() => {
+  //   if (!selectedBlock) return;
+  //   const preload = async () => {
+  //     if (three.atlases) {
+  //       Object.values(three.atlases).forEach((pl) => pl.dispose());
+  //     }
+  //     three.dispose();
 
-      // @todo fix file loading
-      const atlasLoader = new GrpFileLoader(
-        three.bwDat,
-        bwDataPath,
-        (file: string) => fsPromises.readFile(`${bwDataPath}/${file}`)
-      );
+  //     const imageIds = calculateImagesFromIscript(
+  //       three.bwDat,
+  //       selectedBlock.image,
+  //       selectedUnit
+  //     );
 
-      for (let imageId of imageIds) {
-        await atlasLoader.load(imageId);
-      }
+  //     three.atlases = {};
 
-      const { header } = selectedBlock;
+  //     // @todo fix file loading
+  //     const atlasLoader = new GrpFileLoader(
+  //       three.bwDat,
+  //       bwDataPath,
+  //       (file: string) => fsPromises.readFile(`${bwDataPath}/${file}`)
+  //     );
 
-      const createTitanSprite = (unit: UnitDAT | null): TitanSprite =>
-        new TitanSprite(
-          unit,
-          three.bwDat,
-          createTitanSprite,
-          createTitanImageFactory(
-            three.bwDat,
-            three.atlases,
-            createIScriptRunnerFactory(three.bwDat, three.tileset),
-            (msg: string) => console.error(msg)
-          ),
-          addTitanSpriteCb
-        );
+  //     for (let imageId of imageIds) {
+  //       await atlasLoader.load(imageId);
+  //     }
 
-      const titanSprite = createTitanSprite(selectedUnit);
-      addTitanSpriteCb(titanSprite);
+  //     const { header } = selectedBlock;
 
-      titanSprite.addImage(selectedBlock.image.index);
-      titanSprite.run(header);
-      changeBlockFrameCount(
-        three.atlases[selectedBlock.image.index].frames.length
-      );
-    };
-    initializeBlock(preload);
-  }, [selectedBlock, renderMode]);
+  //     const createTitanSprite = (unit: UnitDAT | null): TitanSprite =>
+  //       new TitanSprite(
+  //         unit,
+  //         three.bwDat,
+  //         createTitanSprite,
+  //         createTitanImageFactory(
+  //           three.bwDat,
+  //           three.atlases,
+  //           createIScriptRunnerFactory(three.bwDat, three.tileset),
+  //           (msg: string) => console.error(msg)
+  //         ),
+  //         addTitanSpriteCb
+  //       );
+
+  //     const titanSprite = createTitanSprite(selectedUnit);
+  //     addTitanSpriteCb(titanSprite);
+
+  //     titanSprite.addImage(selectedBlock.image.index);
+  //     titanSprite.run(header);
+  //     setBlockFrameCount(
+  //       three.atlases[selectedBlock.image.index].frames.length
+  //     );
+  //   };
+  //   initializeBlock(preload);
+  // }, [selectedBlock, renderMode]);
 
   useEffect(() => {
     if (!(selectedUnit || selectedSprite || selectedImage)) return;
@@ -138,43 +151,12 @@ const App = ({
         </section>
       </div>
       <div className="flex w-full h-screen items-stretch divide-x-2 text-gray-800 pt-12">
-        <UnitsAndImages bwDat={three.bwDat} search={search} />
-
-        <Commands
-          bwDat={three.bwDat}
-          selectedBlock={selectedBlock}
-          cameraDirection={cameraDirection}
-        />
-        <Animation
-          selectedBlock={selectedBlock}
-          surface={surface}
-          three={three}
-        />
+        <UnitsAndImages search={search} />
+        <Commands />
+        <Animation selectedBlock={selectedBlock} surface={surface} />
         <Frames numFrames={blockFrameCount} />
       </div>
     </div>
   );
 };
-
-export default connect(
-  (state) => {
-    return {
-      selectedBlock: state.iscript.block,
-      isBlockInitialized: state.iscript.initializeBlock.fulfilled,
-      blockFrameCount: state.iscript.blockFrameCount,
-      selectedUnit: state.iscript.unit,
-      selectedImage: state.iscript.image,
-      selectedSprite: state.iscript.sprite,
-      gameTick: state.app.gameTick,
-      validBwDataPath: state.app.validBwDataPath,
-      bwDataPath: state.app.bwDataPath,
-      cameraDirection: state.app.cameraDirection,
-      renderMode: state.app.renderMode,
-    };
-  },
-  (dispatch) => ({
-    initializeBlock: (fn) => dispatch(blockInitializing(fn)),
-    changeBlockFrameCount: (val: number) =>
-      dispatch(blockFrameCountChanged(val)),
-  })
-)(App);
+export default App;

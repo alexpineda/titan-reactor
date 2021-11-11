@@ -10,6 +10,7 @@ export interface UnitDAT extends UnitDATIncomingType {}
 export class UnitDAT implements UnitDAT {
   specialAbilityFlags = 0;
   starEditGroupFlags = 0;
+  name = "";
 
   constructor(data: UnitDATIncomingType) {
     Object.assign(this, data);

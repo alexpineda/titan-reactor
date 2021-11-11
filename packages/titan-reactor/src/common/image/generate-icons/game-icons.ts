@@ -1,9 +1,5 @@
 import { ImageDATType } from "../../types";
-import {
-  OrthographicCamera,
-  Scene,
-  WebGLRenderer,
-} from "three";
+import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 
 import { loadDDS } from "../formats/load-dds";
 import GrpSDLegacy from "../grp-sd-legacy";
@@ -12,12 +8,16 @@ import { rgbToCanvas } from "../util/canvas";
 // @todo break this up into multiple files
 export default class GameIcons {
   wireframes: string[] = [];
-  icons?: string[] & Partial<{offX:number, offY:number}>;
+  icons?: string[] & Partial<{ offX: number; offY: number }>;
   iconsAlpha?: string[];
 
   zerg = "";
   terran = "";
   protoss = "";
+  zergAlpha = "";
+  terranAlpha = "";
+  protossAlpha = "";
+
   minerals = "";
   vespeneZerg = "";
   vespeneTerran = "";
@@ -36,15 +36,7 @@ export default class GameIcons {
   }
 
   renderCmdIcons(renderer: WebGLRenderer, dds: Buffer[]) {
-    return this.renderGameIcons(
-      renderer,
-      64,
-      64,
-      dds,
-      undefined,
-      0,
-      "#ff0000"
-    );
+    return this.renderGameIcons(renderer, 64, 64, dds, undefined, 0, "#ff0000");
   }
 
   renderResourceIcons(renderer: WebGLRenderer, dds: Buffer[]) {
@@ -69,14 +61,14 @@ export default class GameIcons {
 
   renderGameIcons(
     renderer: WebGLRenderer,
-    fixedWidth: number|null,
-    fixedHeight: number|null,
+    fixedWidth: number | null,
+    fixedHeight: number | null,
     dds: Buffer[],
     aliases?: string[],
-    alpha: number = 0,
+    alpha = 0,
     color: string | null = null
   ) {
-    const ortho = new OrthographicCamera(- 1, 1, 1, - 1);
+    const ortho = new OrthographicCamera(-1, 1, 1, -1);
 
     const scene = new Scene();
 
@@ -99,7 +91,7 @@ export default class GameIcons {
 
       const width = fixedWidth ?? texture.image.width;
       const height = fixedHeight ?? texture.image.height;
-    
+
       renderer.setSize(width, height);
 
       canvas.width = width;
@@ -198,7 +190,12 @@ export default class GameIcons {
       palettes: [palette],
     });
 
-    if (!grpSD.texture || !grpSD.frames || !grpSD.grpHeight || !grpSD.grpWidth) {
+    if (
+      !grpSD.texture ||
+      !grpSD.frames ||
+      !grpSD.grpHeight ||
+      !grpSD.grpWidth
+    ) {
       throw new Error("Could not load grp");
     }
     const canvas = rgbToCanvas(
@@ -248,7 +245,7 @@ export default class GameIcons {
   renderWireframes(renderer: WebGLRenderer, dds: Buffer[]) {
     this.wireframes = [];
 
-    const ortho = new OrthographicCamera(- 1, 1, 1, - 1);
+    const ortho = new OrthographicCamera(-1, 1, 1, -1);
 
     const scene = new Scene();
 

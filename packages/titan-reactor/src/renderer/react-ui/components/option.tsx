@@ -1,13 +1,22 @@
 import React from "react";
 
+interface OptionParams {
+  label?: string;
+  value?: any;
+  toggle?: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
 export const Option = ({
   label,
-  value = undefined,
-  toggle = null,
+  value,
+  toggle,
   children = null,
   className = "",
   style = {},
-}) => {
+}: OptionParams) => {
   return (
     <div className={className} style={style}>
       <div className="flex items-center">

@@ -1,13 +1,16 @@
 import React from "react";
+import { ReplayPlayer } from "../../common/types";
+import { UIType } from "../stores";
+import Initializing from "./home/initializing";
 
 import { charColor } from "../../common/bwdat/enums";
 
-const processString = (str, useColors = true) => {
+const processString = (str: string, useColors = true) => {
   const defaultColor = "white";
   let currentColor = defaultColor;
   let currentChunk = "";
   const chunks = [];
-  const el = (newLine, color, content, i) =>
+  const el = (newLine: boolean, color: string, content: string, i: number) =>
     newLine ? (
       <div style={{ color }} key={i}>
         {content}
@@ -37,13 +40,27 @@ const processString = (str, useColors = true) => {
 
   return <>{chunks}</>;
 };
-const LoadingOverlay = ({ chk, rep }) => {
-  let label, description;
-  if (chk.loading) {
-    label = chk.title || "Loading Map";
-    description = chk.description || chk.filename;
-  } else if (rep.loading) {
-    label = chk.title || "Loading Replay";
+const PlayerNames = ({ players }: { players: ReplayPlayer[] }) => (
+  <ul>
+    {players.map((player: ReplayPlayer, i: number) => (
+      <li className="block text-gray-200" key={i}>
+        {player.name} ({player.race})
+      </li>
+    ))}
+  </ul>
+);
+
+const LoadingOverlay = ({ screen }: { screen: UIType }) => {
+  let label = "",
+    description = "";
+
+  if (screen.type === "home") {
+    return <Initializing />;
+  } else if (screen.type === "map") {
+    label = screen.title || "Loading Map";
+    description = screen.description || screen.filename || "";
+  } else if (screen.type === "replay") {
+    label = screen.chkTitle || "Loading Replay";
     description = "";
   }
 
@@ -83,16 +100,8 @@ const LoadingOverlay = ({ chk, rep }) => {
           >
             {processString(description, false)}
           </p>
-          {rep.header && (
-            <ul>
-              {rep.header.players.map((player, i) => {
-                return (
-                  <li className="block text-gray-200" key={i}>
-                    {player.name} ({player.race})
-                  </li>
-                );
-              })}
-            </ul>
+          {screen.type === "replay" && screen.header?.players && (
+            <PlayerNames players={screen.header.players} />
           )}
         </span>
       </div>

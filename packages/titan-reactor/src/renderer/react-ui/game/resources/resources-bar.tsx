@@ -1,31 +1,51 @@
 import React, { useEffect, memo } from "react";
 import PlayerResources from "./player-resources";
 import shallow from "zustand/shallow";
-import { useHudStore, useSettingsStore } from "../../../stores";
+import {
+  useHudStore,
+  HudStore,
+  useSettingsStore,
+  SettingsStore,
+} from "../../../stores";
 import { incFontSize } from "../../../../common/utils/change-font-size";
+import { Player } from "../../../../common/types";
 
-const _playerScoreCache = {};
-const hudStoreSelector = (state) => state.productionView;
-const textSizeSelector = (state) =>
-  state.data.esportsHud
+const _playerScoreCache: Record<
+  string,
+  Record<string, number | undefined>
+> = {};
+const hudStoreSelector = (state: HudStore) => state.productionView;
+const textSizeSelector = (state: SettingsStore) =>
+  state?.data?.esportsHud
     ? incFontSize(state.data.hudFontSize)
-    : state.data.hudFontSize;
-const toggleSelector = (state) => state.data.autoToggleProductionView;
+    : state?.data?.hudFontSize;
+const toggleSelector = (state: SettingsStore) =>
+  state?.data?.autoToggleProductionView;
 
 // in gameStore onTogglePlayerPov: state.onTogglePlayerPov,
 
-const settingsSelector = (state) => ({
-  esportsHud: state.data.esportsHud,
-  enablePlayerScores: state.data.enablePlayerScores,
-  embedProduction: state.data.embedProduction,
+const settingsSelector = (state: SettingsStore) => ({
+  esportsHud: state?.data?.esportsHud,
+  enablePlayerScores: state?.data?.enablePlayerScores,
+  embedProduction: state?.data?.embedProduction,
 });
 
 const setAutoProductionView = useHudStore.getState().setAutoProductionView;
 
 // wrapper for showing all participating player information (scores, names, resources, etc)
-const ResourcesBar = ({ fitToContent, className, style, players }) => {
+const ResourcesBar = ({
+  fitToContent,
+  className,
+  style,
+  players,
+}: {
+  fitToContent: boolean;
+  className: string;
+  style: React.CSSProperties;
+  players: Player[];
+}) => {
   const textSize = useSettingsStore(textSizeSelector);
-  const autoToggleProductionView = useSettingsStore(toggleSelector);
+  const autoToggleProductionView = useSettingsStore(toggleSelector) as boolean;
   const productionView = useHudStore(hudStoreSelector);
   const { esportsHud, enablePlayerScores, embedProduction } = useSettingsStore(
     settingsSelector,
@@ -50,12 +70,14 @@ const ResourcesBar = ({ fitToContent, className, style, players }) => {
     >
       <table className="table-auto flex-1 ">
         <tbody>
-          {players.map((player, i) => (
+          {players.map((player) => (
             <PlayerResources
-              key={player.name}
-              index={i}
+              key={player.id}
+              id={player.id}
+              name={player.name}
+              race={player.race}
+              color={player.color}
               textSize={textSize}
-              {...player}
               fitToContent={fitToContent}
               playerScoreCache={_playerScoreCache}
               productionView={productionView}

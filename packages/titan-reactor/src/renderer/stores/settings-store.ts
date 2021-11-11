@@ -3,13 +3,13 @@ import create from "zustand";
 import { Settings } from "../../common/types/common";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
-//a user settings store which persists to disk
-type SettingsStore = {
+export type SettingsStore = {
   data: Settings | null;
   errors: string[];
-  phrases: any;
+  phrases: Record<string, string>;
   save: (data: any) => Promise<void>;
   load: () => Promise<void>;
+  getSettings: () => Settings;
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
@@ -17,19 +17,24 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   phrases: {},
   errors: [],
   save: async (settings) => {
-    console.log("saving settings data");
     set((state) => ({ data: { ...state.data, ...settings } }));
-    await saveSettings(get().data);
+    await saveSettings(get().data as Settings);
     set(await invokeGetSettings());
   },
   load: async () => {
     const { data, errors, phrases } = await invokeGetSettings();
-    console.log("got settings", data, errors, phrases);
     set({ data, errors, phrases });
-    console.log("set settings", get());
+  },
+  getSettings: () => {
+    const settings = get().data;
+    if (!settings) {
+      throw new Error("Settings not loaded");
+    }
+    return settings;
   },
 }));
 
 export default useSettingsStore;
 
-export const getSettings = () => useSettingsStore.getState().data;
+export const getSettings = useSettingsStore.getState().getSettings;
+export const loadSettings = useSettingsStore.getState().load;

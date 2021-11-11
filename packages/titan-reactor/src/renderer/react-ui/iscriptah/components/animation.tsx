@@ -1,44 +1,59 @@
 import React, { useEffect } from "react";
-import { connect } from "react-redux";
+import shallow from "zustand/shallow";
 import { gameSpeeds } from "../../../../common/utils/conversions";
-import {
-  autoUpdateChanged,
-  gamespeedChanged,
-  renderModeChanged,
-  exposureChanged,
-  transformChanged,
-} from "../app-reducer";
-import {
-  frameSelected,
-  baseFrameSelected,
-  flipFrameChanged,
-} from "../iscript-reducer";
 import TransformDetails from "./transform-details";
 import { WrappedCanvas } from "./wrapped-canvas";
+import {
+  setAutoupdate,
+  setRenderMode,
+  setFlipFrame,
+  setBaseFrame,
+  useIScriptahStore,
+  useIscriptStore,
+  setExposure,
+  setGamespeed,
+  setTransform,
+  setShowFloorAxes,
+} from "../stores";
+import { CanvasTarget } from "../../../../common/image";
 
-const Animation = ({
+export const Animation = ({
   surface,
   selectedBlock,
-  gamespeed,
-  changeGamespeed,
-  cameraDirection,
-  autoUpdate,
-  setAutoUpdate,
-  baseFrame,
-  setBaseFrame,
-  renderMode,
-  setRenderMode,
-  flipFrame,
-  setFlipFrame,
-  changeExposure,
-  exposure,
-  transform,
-  setTransform,
-  three,
+}: {
+  surface: CanvasTarget;
+  selectedBlock: any;
 }) => {
-  useEffect(() => {
-    three.renderer.toneMappingExposure = exposure;
-  }, [exposure]);
+  const {
+    autoUpdate,
+    gamespeed,
+    renderMode,
+    exposure,
+    cameraDirection,
+    transform,
+    transformVector,
+    showFloorAxes,
+  } = useIScriptahStore(
+    (store) => ({
+      autoUpdate: store.autoUpdate,
+      gamespeed: store.gamespeed,
+      renderMode: store.renderMode,
+      exposure: store.exposure,
+      cameraDirection: store.cameraDirection,
+      transform: store.transform,
+      transformVector: store.transformVector,
+      showFloorAxes: store.showFloorAxes,
+    }),
+    shallow
+  );
+
+  const { baseFrame, flipFrame } = useIscriptStore(
+    (store) => ({
+      baseFrame: store.baseFrame,
+      flipFrame: store.flipFrame,
+    }),
+    shallow
+  );
 
   if (!selectedBlock) {
     return (
@@ -145,10 +160,9 @@ const Animation = ({
             type="checkbox"
             aria-label="show floor/axes"
             data-balloon-pos="down"
-            checked={three.plane.visible}
+            checked={showFloorAxes}
             onChange={(evt) => {
-              three.plane.visible = (evt.target as HTMLInputElement).checked;
-              three.axes.visible = (evt.target as HTMLInputElement).checked;
+              setShowFloorAxes((evt.target as HTMLInputElement).checked);
             }}
           />
 
@@ -161,7 +175,9 @@ const Animation = ({
             max="4"
             step="0.01"
             value={exposure}
-            onChange={(evt) => changeExposure( (evt.target as HTMLInputElement).value)}
+            onChange={(evt) =>
+              setExposure(Number((evt.target as HTMLInputElement).value))
+            }
           />
         </span>
       </section>
@@ -171,25 +187,7 @@ const Animation = ({
           className={"flex-1 text-gray-300 pattern-checks-sm"}
         />
         <div className="absolute bottom-0 left-0">
-          {three.transformControls.object && (
-            <div>
-              {three.transformControls.mode === "translate" && (
-                <TransformDetails
-                  property={three.transformControls.object.position}
-                />
-              )}
-              {three.transformControls.mode === "scale" && (
-                <TransformDetails
-                  property={three.transformControls.object.scale}
-                />
-              )}
-              {three.transformControls.mode === "rotate" && (
-                <TransformDetails
-                  property={three.transformControls.object.rotation}
-                />
-              )}
-            </div>
-          )}
+          {transformVector && <TransformDetails property={transformVector} />}
         </div>
       </section>
       <section className="flex mx-auto">
@@ -197,7 +195,9 @@ const Animation = ({
 
         <select
           value={gamespeed}
-          onChange={({ target }) => changeGamespeed((target as HTMLInputElement).value)}
+          onChange={({ target }) =>
+            setGamespeed(Number((target as HTMLInputElement).value))
+          }
         >
           {Object.entries(gameSpeeds).map(([name, val]) => {
             return (
@@ -216,7 +216,7 @@ const Animation = ({
                 {!autoUpdate && (
                   <i
                     className="material-icons cursor-pointer"
-                    onClick={() => setAutoUpdate(true)}
+                    onClick={() => setAutoupdate(true)}
                   >
                     play_arrow
                   </i>
@@ -224,7 +224,7 @@ const Animation = ({
                 {autoUpdate && (
                   <i
                     className="material-icons cursor-pointer "
-                    onClick={() => setAutoUpdate(false)}
+                    onClick={() => setAutoupdate(false)}
                   >
                     pause
                   </i>
@@ -238,7 +238,7 @@ const Animation = ({
                 className="material-icons cursor-pointer"
                 onClick={() => {
                   setBaseFrame(null);
-                  setAutoUpdate(true);
+                  setAutoupdate(true);
                 }}
               >
                 play_arrow
@@ -260,27 +260,4 @@ const Animation = ({
   );
 };
 
-export default connect(
-  (state) => ({
-    autoUpdate: state.app.autoUpdate,
-    gamespeed: state.app.gamespeed,
-    cameraDirection: state.app.cameraDirection,
-    baseFrame: state.iscript.baseFrame,
-    blockFrameCount: state.iscript.blockFrameCount,
-    frame: state.iscript.frame,
-    flipFrame: state.iscript.flipFrame,
-    renderMode: state.app.renderMode,
-    exposure: state.app.exposure,
-    transform: state.app.transform,
-  }),
-  (dispatch) => ({
-    setAutoUpdate: (val: boolean) => dispatch(autoUpdateChanged(val)),
-    changeGamespeed: (val: number) => dispatch(gamespeedChanged(val)),
-    //@todo make sure number is valid here
-    setBaseFrame: (frame: number|null) => dispatch(baseFrameSelected(frame)),
-    setFlipFrame: (val: boolean) => dispatch(flipFrameChanged(val)),
-    setRenderMode: (val:string) => dispatch(renderModeChanged(val)),
-    setTransform: (val:string) => dispatch(transformChanged(val)),
-    changeExposure: (val:number) => dispatch(exposureChanged(val)),
-  })
-)(Animation);
+export default Animation;

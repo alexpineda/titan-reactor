@@ -7,7 +7,7 @@ import {
   openMapDialog,
   openReplayDialog,
 } from "../../ipc";
-import { useSettingsStore } from "../../stores";
+import { useSettingsStore, SettingsStore } from "../../stores";
 import { MenuItem } from "../components/menu-item";
 import Options from "./options";
 
@@ -20,7 +20,7 @@ const Panels = {
   Legal: "Legal",
 };
 
-const settingsSelector = (state) => ({
+const settingsSelector = (state: SettingsStore) => ({
   phrases: state.phrases,
   errors: state.errors,
   settings: state.data,
@@ -32,6 +32,9 @@ const Home = () => {
     settingsSelector,
     shallow
   );
+  if (!settings) {
+    throw new Error("Settings not loaded");
+  }
 
   return (
     <div
@@ -46,17 +49,17 @@ const Home = () => {
           <ul className="mt-auto">
             <MenuItem
               label={phrases["OPEN_DEMO_REPLAY"]}
-              disabled={errors.length}
+              disabled={errors.length > 0}
               onClick={openDemoReplay}
             />
             <MenuItem
               label={phrases["OPEN_REPLAY"]}
-              disabled={errors.length}
+              disabled={errors.length > 0}
               onClick={() => openReplayDialog(settings.replaysPath)}
             />
             <MenuItem
               label={phrases["OPEN_MAP"]}
-              disabled={errors.length}
+              disabled={errors.length > 0}
               onClick={() => openMapDialog(settings.mapsPath)}
             />
 

@@ -9,7 +9,6 @@ import { colorAtMega } from "./render";
 import SPRITES from "./sprites.json";
 import UNITS from "./units.json";
 
-
 // Currently read sections.
 // If a section is not here, it will be ignored by getSections().
 // type defines how multiple sections with same id are read.
@@ -384,9 +383,11 @@ export default class Chk {
     );
 
     this.title = "";
+    this.description = "";
     this.tileset = 0;
     this.sprites = [];
     this.units = [];
+    this.size = [0, 0];
     const sections = getSections(buf);
     // FORC gets zero-padded if it is smaller than 14 bytes.
     // Do any other sections?

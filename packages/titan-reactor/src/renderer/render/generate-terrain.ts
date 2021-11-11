@@ -1,13 +1,14 @@
-import Chk from "libs/bw-chk";
+import { ChkType } from "../../common/types";
 import { readCascFile } from "../../common/utils/casclib";
 
 import {
   generateMaterialsAndMeshes,
   generateTextures,
 } from "../../common/image/generate-map";
+import { TerrainInfo } from "../../common/types";
 import { loadTilesetFilesAsync } from "../../common/image/generate-map/map-data";
 
-export async function generateTerrain(chk: Chk) {
+export async function generateTerrain(chk: ChkType): Promise<TerrainInfo> {
   // load all the tile files we need
   const tileFilesData = await loadTilesetFilesAsync(readCascFile, chk);
 

@@ -1,7 +1,7 @@
 import create from "zustand";
 
 import { UnitDAT } from "../../common/bwdat/core/units-dat";
-import { Player } from "../../common/types/player";
+import { Player, GameCanvasDimensions } from "../../common/types";
 import range from "../../common/utils/range";
 import Assets from "../render/assets";
 import { UnitInstance } from "../game/unit-instance";
@@ -16,12 +16,12 @@ type CbatMessage = {
   id?: number;
 };
 
-type GameStore = {
+export type GameStore = {
   assets: Assets | null;
   game: any;
   fogOfWar: boolean;
   followUnit: UnitInstance | null;
-  dimensions: {};
+  dimensions: GameCanvasDimensions;
   selectedUnits: UnitInstance[];
   chat: CbatMessage[];
   lastChatAdd: number;
@@ -44,7 +44,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
   game: null,
   fogOfWar: true,
   followUnit: null,
-  dimensions: {},
+  dimensions: {
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+    minimapSize: 0,
+  },
   selectedUnits: [],
   chat: [],
   lastChatAdd: Date.now(),

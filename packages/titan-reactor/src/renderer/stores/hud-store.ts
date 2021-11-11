@@ -10,7 +10,9 @@ export const UnitProductionView = 1;
 export const TechProductionView = 2;
 export const UpgradesProductionView = 3;
 
-type HudStoreState = {
+export type ProductionView = 0 | 1 | 2 | 3;
+
+export type HudStore = {
   show: {
     inGameMenu: boolean;
     fps: boolean;
@@ -34,7 +36,7 @@ type HudStoreState = {
   toggleAttackDetails: () => void;
 };
 
-export const useHudStore = create<HudStoreState>((set, get) => ({
+export const useHudStore = create<HudStore>((set, get) => ({
   show: {
     inGameMenu: false,
     fps: true,

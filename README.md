@@ -22,39 +22,13 @@ and then
 
 `yarn workspace titan-reactor dev`
 
-you will also need openbw-bridge.exe which is included in static directory for you and can also be built (see https://github.com/imbateam-gg/ChkForge).
-
-  
-
-### Controls
-#### Replay Viewer
-- Pan - right click drag or arrow keys
-- Zoom - middle mouse scroll or Numpad +/-
-- Rotate - Numpad / and *
-- Arrow keys - Pan camera
-- Camera hotkeys - Numpad 0 - 9
-- Menu - F10
-- Minimap
-    * Cut - Left click
-    * Pan - Left click hold
-    * Slow pan - Shift + Left click hold
-- Pause - P
-- Full Screen - F11
-- E key - Show walkable elevations
-
-#### Map Viewer
-- Pan - right click drag or arrow keys
-- Zoom - middle mouse scroll or Numpad +/-
-- Rotate - middle mouse button
-- Rotate - Numpad / and *
-- Arrow keys - Pan camera
-- Camera hotkeys - Numpad 0 - 9
-- E key - Show walkable elevations
-- C key - Show/hide mouse cursor
 
 ### Contributing
 
 See our [Contributing Guide](https://github.com/imbateam-gg/titan-reactor/blob/dev/CONTRIBUTING.md).
+
+### Mouse and Keyboard Controls
+For Mouse controls and Keyboard shortcut documentation [click here]((https://github.com/imbateam-gg/titan-reactor/blob/dev/CONTROLS.md)).
 
 ### Thoughts on current state and TODO
 
@@ -63,8 +37,6 @@ See our [Contributing Guide](https://github.com/imbateam-gg/titan-reactor/blob/d
 - Integration with Shieldbattery will be necessary for live obsing. Since the data source is just a raw binary dump of unit and sprite state (amongst a few other things) I believe this is doable via the same mechanism.
 - Multiple observers connecting to the same game.
 - HD Water needs to be implemented in the GLSL shader.
-
-  
 
 ## LEGAL
 

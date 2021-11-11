@@ -52,7 +52,7 @@ export default async (readFile: ReadFile) => {
   const wireframeIcons = new GameIcons();
   await wireframeIcons.renderWireframes(
     renderer,
-    readDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp")),
+    readDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
   );
 
   const workerIcons = {
@@ -71,6 +71,7 @@ export default async (readFile: ReadFile) => {
   };
 
   renderer.dispose();
+  //@todo not all of these are GameIcons?
   return [
     gameIcons,
     cmdIcons.icons,

@@ -1,18 +1,30 @@
 import React, { useState, useRef, useEffect } from "react";
-import { connect } from "react-redux";
+import shallow from "zustand/shallow";
 import { iscriptHeaders } from "../../../../common/bwdat/enums";
-import { baseFrameSelected } from "../iscript-reducer";
 import { interactiveOpCodes } from "../utils/framesets";
 import useDirectionalFrame from "../utils/useDirectionalFrame";
+import { useIScriptahStore, useIscriptStore, setBaseFrame } from "../stores";
+import { useGameStore } from "../../../stores/game-store";
 
-const Commands = ({
-  bwDat,
-  selectedBlock,
-  selectBaseFrame,
-  blockFrameCount,
-  frame,
-  cameraDirection,
-}) => {
+export const Commands = () => {
+  const bwDat = useGameStore((state) => state.assets?.bwDat);
+  if (!bwDat) {
+    throw new Error("No bwDat loaded");
+  }
+
+  const { cameraDirection } = useIScriptahStore((state) => ({
+    cameraDirection: state.cameraDirection,
+  }));
+
+  const { blockFrameCount, selectedBlock, frame } = useIscriptStore(
+    (store) => ({
+      blockFrameCount: store.blockFrameCount,
+      selectedBlock: store.block,
+      frame: store.frame,
+    }),
+    shallow
+  );
+
   if (!selectedBlock) {
     return (
       <aside
@@ -27,7 +39,7 @@ const Commands = ({
     );
   }
   const [showOnlyPlayFrame, setShowOnlyPlayFrame] = useState(true);
-  const [clickEl, setClickEl] = useState(null);
+  const [clickEl, setClickEl] = useState<number | null>(null);
   const elToClick = useRef<HTMLLIElement>();
 
   const { offset, header } = selectedBlock;
@@ -113,7 +125,7 @@ const Commands = ({
               .filter(([[op]]) =>
                 showOnlyPlayFrame ? interactiveOpCodes.includes(op) : true
               )
-              .map(([cmd, i]: [any,number]) => {
+              .map((cmd, i: number) => {
                 return (
                   <li
                     tabIndex={0}
@@ -134,9 +146,9 @@ const Commands = ({
                       if (!interactiveOpCodes.includes(cmd[0])) return;
                       if (areFrameSetsEnabled(cmd)) {
                         const [frame, flip] = getDirectionalFrame(cmd);
-                        selectBaseFrame(frame, flip);
+                        setBaseFrame(frame, flip);
                       } else {
-                        selectBaseFrame(cmd[1]);
+                        setBaseFrame(cmd[1]);
                       }
                     }}
                     className={`p-2 rounded select-none flex justify-between ${
@@ -174,16 +186,4 @@ const Commands = ({
     </aside>
   );
 };
-
-export default connect(
-  (state) => {
-    return {
-      blockFrameCount: state.iscript.blockFrameCount,
-      frame: state.iscript.frame,
-    };
-  },
-  (dispatch) => ({
-    selectBaseFrame: (frame, flip = null) =>
-      dispatch(baseFrameSelected(frame, flip, true)),
-  })
-)(Commands);
+export default Commands;
