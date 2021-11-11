@@ -28,7 +28,7 @@ and then
 See our [Contributing Guide](https://github.com/imbateam-gg/titan-reactor/blob/dev/CONTRIBUTING.md).
 
 ### Mouse and Keyboard Controls
-For Mouse controls and Keyboard shortcut documentation [click here]((https://github.com/imbateam-gg/titan-reactor/blob/dev/CONTROLS.md)).
+See our [Mouse controls and Keyboard shortcut documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/CONTROLS.md).
 
 ### Thoughts on current state and TODO
 
