@@ -20,7 +20,7 @@ const groupMatch = (scr, bw) => {
       scr.buildable === bw.buildable &&
       scr.creep === bw.creep &&
       scr.unbuildable === bw.unbuildable &&
-      scr.elevation === bw.elevation &&
+      // scr.elevation === bw.elevation &&
       scr.tileBuf.compare(bw.tileBuf) === 0,
     mismatches,
   ];
@@ -35,9 +35,9 @@ const exactMatch = (scr, bw) => {
     bw.high === scr.high &&
     bw.buildable === scr.buildable &&
     bw.unbuildable === scr.unbuildable &&
-    bw.elevation === scr.elevation &&
+    // bw.elevation === scr.elevation &&
     bw.creep === scr.creep &&
-    bw.blocksView === scr.blocksView
+    Boolean(bw.blocksView) === Boolean(scr.blocksView)
   );
 };
 
@@ -58,26 +58,15 @@ const scoreMatch = (scr, bwTiles) => {
     }
   };
 
-  const test = bwTiles
-    // must be an exact match on tilegroup cv5 flags as well as blocks view vr4 flags
-    .filter(
-      (bwTile) =>
-        bwTile.creep === scr.creep &&
-        bwTile.blocksView === scr.blocksView &&
-        scr.buildable === bwTile.buildable &&
-        scr.unbuildable === bwTile.unbuildable &&
-        scr.elevation === bwTile.elevation
-    );
-
   const nearest = bwTiles
     // must be an exact match on tilegroup cv5 flags as well as blocks view vr4 flags
     .filter(
       (bwTile) =>
         bwTile.creep === scr.creep &&
-        bwTile.blocksView === scr.blocksView &&
+        Boolean(bwTile.blocksView) === Boolean(scr.blocksView) &&
         scr.buildable === bwTile.buildable &&
-        scr.unbuildable === bwTile.unbuildable &&
-        scr.elevation === bwTile.elevation
+        scr.unbuildable === bwTile.unbuildable
+      // scr.elevation === bwTile.elevation
     )
     .reduce(
       (nearest, bwTile) => {

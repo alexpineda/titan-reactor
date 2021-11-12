@@ -1,4 +1,4 @@
-const mappings = require("../../../mappings.json");
+const mappings = require("downgrade-replay-tile-matches/matches.json");
 const BufferList = require("bl/BufferList");
 const { uint16 } = require("../../util/alloc");
 
@@ -10,7 +10,6 @@ class MtxmDowngrader {
     this.mapWidth = dim.readUint16LE(0);
     this.mapHeight = dim.readUint16LE(2);
 
-    this.partial = mappings[this.tileset].partial;
     this.mapping = mappings[this.tileset].matches;
   }
 
@@ -19,13 +18,10 @@ class MtxmDowngrader {
     for (let mapY = 0; mapY < this.mapHeight; mapY++) {
       for (let mapX = 0; mapX < this.mapWidth; mapX++) {
         const tile = buffer.readUint16LE(mapX * 2 + mapY * this.mapWidth * 2);
-        const match = this.mapping.find(([scr]) => scr.id === tile);
+        const [_, match] = this.mapping.find(([scr]) => scr === tile) || [];
 
         if (match) {
-          const group = match[1].groupIndex << 4;
-          const index = match[1].index & 0xf;
-          const newTile = group | index;
-          out.append(uint16(newTile));
+          out.append(uint16(match));
         } else {
           out.append(uint16(tile));
         }

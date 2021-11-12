@@ -9,7 +9,8 @@
     "bl": "^5.0.0",
     "casclib": "^1.0.4",
     "iconv-lite": "^0.6.2",
-    "pkware-wasm": "^1.0.0"
+    "pkware-wasm": "^1.0.0",
+    "downgrade-replay-tile-matches": "^0.0.1"
   },
   "devDependencies": {
     "bw-chk": "^1.2.1",

@@ -17,11 +17,11 @@ const extractChk = (filename) =>
       )
   );
 
-const map = process.argv[2] || "whiteout";
+const map = process.argv[2] || "eclipse";
 extractChk(`./test/${map}.scx`).then(async (chkBuf) => {
   console.log(`extracting ${map}`);
-  const downgrader = new ChkDowngrader();
-  const out = downgrader.downgrade(chkBuf, { mtxm: true });
+  const downgrader = new ChkDowngrader({ mtxm: true });
+  const out = downgrader.downgrade(chkBuf);
 
   const chk = new Chk(out);
   const w = 256 * 8;
@@ -32,6 +32,7 @@ extractChk(`./test/${map}.scx`).then(async (chkBuf) => {
     w,
     h
   );
+
   fs.writeFile(
     `./test/${map}.out.png`,
     PNG.sync.write(
