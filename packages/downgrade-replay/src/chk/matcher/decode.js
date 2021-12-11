@@ -36,6 +36,7 @@ const decodeTileGroups = (tilegroupBuf) => {
 
     const doodad = isDoodad
       ? {
+          isDoodad: true,
           doodad: {
             overlayFlipped: buf.readUInt8(3) & 0x4,
             overlayId: buf.readUInt16LE(4),
@@ -43,11 +44,17 @@ const decodeTileGroups = (tilegroupBuf) => {
             height: buf.readUInt16LE(18),
           },
         }
-      : {};
+      : {
+          isDoodad: false,
+        };
 
     const data = buf.slice(20, 20 + 32);
     const tiles = range(0, 16).map((j) => data.readUInt16LE(j * 2));
     const zeroBuf = Buffer.alloc(TILEGROUP_SIZE, 0).compare(buf) === 0;
+    const emptyTileCount = tiles.reduce(
+      (acc, tile) => (tile === 0 ? acc + 1 : acc),
+      0
+    );
     const hex = buf.toString("hex");
 
     return {
@@ -58,9 +65,11 @@ const decodeTileGroups = (tilegroupBuf) => {
       unbuildable,
       elevation,
       tiles,
+      emptyTileCount,
       zeroBuf,
       tileBuf: data,
       hex,
+      buf,
     };
   });
   const lastIndex = groups.reduce(

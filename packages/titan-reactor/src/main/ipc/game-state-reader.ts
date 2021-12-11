@@ -5,7 +5,7 @@ import {
   REQUEST_NEXT_FRAMES,
   STOP_READING_GAME_STATE,
 } from "../../common/ipc";
-import FileGameStateReader from "../../renderer/game-data/readers/file-game-state-reader";
+import FileGameStateReader from "../../renderer/integration/fixed-data/readers/file-game-state-reader";
 
 let gameStateReader: FileGameStateReader | null;
 

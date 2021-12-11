@@ -1,10 +1,9 @@
 import concat from "concat-stream";
 import {
-  downgradeReplay,
+  sidegradeReplay,
   parseReplay,
   Version,
   CommandsStream,
-  validateDowngrade,
   ChkDowngrader,
 } from "downgrade-replay";
 import fs from "fs";
@@ -23,7 +22,7 @@ import { ChkType, EmptyFunc } from "../common/types";
 import uniq from "../common/utils/uniq";
 import Assets from "./render/assets";
 import { AudioMaster } from "./audio";
-import OpenBwBridgeReader from "./game-data/readers/openbw-bridge-reader";
+import OpenBwBridgeReader from "./integration/fixed-data/readers/openbw-bridge-reader";
 import { log, openFile } from "./ipc";
 import { Scene, generateTerrain } from "./render";
 import {
@@ -135,12 +134,6 @@ export class TitanReactor {
     // validate before showing any loading progress
     const repBin = await openFile(filepath);
     let rep = await parseReplay(repBin);
-    if (rep.version === Version.remastered) {
-      if (!validateDowngrade(rep)) {
-        alert("This replay file has too many units for downgrading to 1.16 :(");
-        return;
-      }
-    }
 
     document.title = "Titan Reactor - Loading";
 
@@ -161,13 +154,13 @@ export class TitanReactor {
 
     updateUIType({ header: rep.header } as UITypeReplay);
 
-    if (rep.version === Version.remastered) {
+    if (rep.version !== Version.TitanReactor) {
       const chkDowngrader = new ChkDowngrader();
-      const classicRep = await downgradeReplay(rep, chkDowngrader);
+      const newrep = await sidegradeReplay(rep, chkDowngrader);
       repFile = path.join(settings.tempPath, "replay.rep");
       //@todo use fsPromises, bail on error
       await new Promise((res: EmptyFunc) =>
-        fs.writeFile(repFile, classicRep, (err) => {
+        fs.writeFile(repFile, newrep, (err) => {
           if (err) {
             log(err.message, "error");
             return;
@@ -175,7 +168,7 @@ export class TitanReactor {
           res();
         })
       );
-      rep = await parseReplay(classicRep);
+      rep = await parseReplay(newrep);
     }
 
     log("loading chk");

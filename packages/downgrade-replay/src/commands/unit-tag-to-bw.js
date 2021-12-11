@@ -1,14 +1,10 @@
-const { CMDS } = require("./commands");
-//return unit_id(u->index + 1, u->unit_id_generation % (1u << 5));
-// index | generation << 11
-const _originalTags = new Set();
+// This utility converts SCR unit tags to 1.16 unit tags
 
 // 1.16 unit tags are encoded 16 bit, counting from 1700 to 0
 // GGGG GIII IIII IIII where I is the index and G is the generation value
 // generation values are incremented everytime a unit object gets re-used
 // SCR Unit limit is at 3400? packed with 12 bit? 13 bit? for indexes?
 // how come some SCR tags are 0 or something like like 254?
-// there is an empty 2 bytes after every scr tag, is that somehow used?
 const scrUnitTag = (scrTag, id) => {
   if (scrTag === 0) {
     return 0;

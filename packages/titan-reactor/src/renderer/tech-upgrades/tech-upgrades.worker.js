@@ -1,7 +1,7 @@
 import { Buffer } from "buffer/";
 import range from "../../common/utils/range";
-import ResearchBW from "../game-data/research";
-import UpgradeBW from "../game-data/upgrade";
+import ResearchBW from "../integration/fixed-data/research";
+import UpgradeBW from "../integration/fixed-data/upgrade";
 
 let _techDat, _upgradesDat, _completedResearch, _completedUpgrades;
 

@@ -10,12 +10,12 @@ import {
   UnitTag,
 } from "../../common/types";
 import FogOfWar from "../fogofwar/fog-of-war";
+import { BuildingQueueRAW } from "../integration/building-queue-raw";
 import {
   BuildingQueueCountBW,
-  BuildingQueueI,
   TrainingQueueType,
   UnitsBW,
-} from "../game-data";
+} from "../integration/fixed-data";
 import {
   IncompleteUnit,
   UnitInProduction,
@@ -255,7 +255,7 @@ export class BuildUnits {
 
     // merge units with building and training queues
 
-    const buildQueue = buildQueueBW.instances() as BuildingQueueI[];
+    const buildQueue = buildQueueBW.instances() as BuildingQueueRAW[];
 
     // for use in unit details section
     for (const queue of buildQueue) {

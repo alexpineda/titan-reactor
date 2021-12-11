@@ -1,5 +1,5 @@
 import { Player, UnitTag, UnitDAT } from "../../common/types";
-import { BuildingQueueI } from "../game-data";
+import { BuildingQueueI } from "../integration/fixed-data";
 
 export interface UnitInstance {
   id: UnitTag;

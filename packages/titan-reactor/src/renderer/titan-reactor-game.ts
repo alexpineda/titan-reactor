@@ -1,12 +1,12 @@
 import { debounce } from "lodash";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { MOUSE } from "three";
+import { Group, MathUtils, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { CommandsStream } from "downgrade-replay";
-
-import { commands, unitTypes } from "../common/bwdat/enums";
+import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
+import { unitTypes } from "../common/bwdat/enums";
 import CanvasTarget from "../common/image/canvas-target";
 import { RenderMode } from "../common/settings";
 import {
@@ -14,12 +14,21 @@ import {
   ChkUnitType,
   ReplayPlayer,
   TerrainInfo,
-  createTitanImage
+  createTitanImage,
+  SpriteIndex,
+  UnitTag,
 } from "../common/types";
+import {
+  ResearchCompleted,
+  ResearchInProduction,
+  UnitInProduction,
+  UnitInstance,
+  UpgradeCompleted,
+  UpgradeInProduction,
+} from "./game/unit-instance";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import AudioMaster from "./audio/audio-master";
-import ThreeGameBuilder from "./three-game-builder";
 import CameraRig from "./camera/camera-rig";
 import ProjectedCameraView from "./camera/projected-camera-view";
 import Creep from "./creep/creep";
@@ -31,9 +40,9 @@ import {
   MinimapCanvasDrawer,
   MouseCursor,
   Players,
+  SpriteInstance,
 } from "./game";
-import FrameBW from "./game-data/frame";
-import StreamGameStateReader from "./game-data/readers/stream-game-state-reader";
+import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
 import { InputEvents, KeyboardShortcuts, MinimapControl } from "./input";
 import { GameCanvasTarget, Renderer, Scene } from "./render";
 import {
@@ -45,6 +54,19 @@ import {
   useUnitSelectionStore,
 } from "./stores";
 import preloadScene from "./utils/preload-scene";
+import {
+  BuildingQueueCountBW,
+  CreepBW,
+  FrameBW,
+  ImagesBW,
+  ResearchBW,
+  SoundsBW,
+  SpritesBW,
+  TilesBW,
+  UnitsBW,
+  UpgradeBW,
+} from "./integration/fixed-data";
+import { ImageInstance } from "../common/image/image-instance";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -233,7 +255,7 @@ async function TitanReactorGame(
 
   let nextBwFrame: FrameBW, currentBwFrame: FrameBW | null;
 
-  const units = new BuildUnits(
+  const buildUnits = new BuildUnits(
     bwDat,
     players.playersById,
     mapWidth,
@@ -256,7 +278,7 @@ async function TitanReactorGame(
     mapHeight,
     fogOfWar,
     creep,
-    units
+    buildUnits
   );
 
   const projectedCameraView = new ProjectedCameraView(
@@ -264,25 +286,307 @@ async function TitanReactorGame(
     mapWidth,
     mapHeight
   );
-  const gameBuilder = new ThreeGameBuilder(
-    scene,
-    creep,
-    bwDat,
-    pxToGameUnit,
-    terrainInfo.getTerrainY,
-    players,
-    fogOfWar,
-    audioMaster,
-    createTitanImage,
-    projectedCameraView
-  );
+
+  const soundsBW = new SoundsBW(pxToGameUnit, terrainInfo.getTerrainY);
+  const buildSounds = (bwFrame: FrameBW) => {
+    soundsBW.count = bwFrame.soundCount;
+    soundsBW.buffer = bwFrame.sounds;
+
+    for (const sound of soundsBW.items()) {
+      if (!fogOfWar.isVisible(sound.tileX, sound.tileY)) {
+        continue;
+      }
+      const volume = sound.bwVolume(
+        projectedCameraView.left,
+        projectedCameraView.top,
+        projectedCameraView.right,
+        projectedCameraView.bottom
+      );
+      if (volume > SoundsBW.minPlayVolume) {
+        audioMaster.channels.queue(sound.object());
+      }
+    }
+  };
+
+  const tilesBW = new TilesBW();
+  const buildFog = (bwFrame: FrameBW): void => {
+    tilesBW.count = bwFrame.tilesCount;
+    tilesBW.buffer = bwFrame.tiles;
+
+    fogOfWar.generate(
+      tilesBW,
+      players
+        .filter((p) => p.vision)
+        .reduce((flags, { id }) => (flags |= 1 << id), 0),
+      bwFrame.frame
+    );
+  };
+
+  const creepBW = new CreepBW();
+  const buildCreep = (bwFrame: FrameBW) => {
+    creepBW.count = bwFrame.creepCount;
+    creepBW.buffer = bwFrame.creep;
+    creep.generate(creepBW, bwFrame.frame);
+  };
+
+  const unitsBW = new UnitsBW();
+  const buildQueueBW = new BuildingQueueCountBW();
+  const units: Map<UnitTag, UnitInstance> = new Map();
+  const unitsBySpriteId: Map<SpriteIndex, UnitInstance> = new Map();
+  const unitsInProduction: UnitInProduction[] = [];
+
+  const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
+    unitsBW.count = bwFrame.unitCount;
+    unitsBW.buffer = bwFrame.units;
+
+    buildQueueBW.count = bwFrame.buildingQueueCount;
+    buildQueueBW.buffer = bwFrame.buildingQueue;
+
+    buildUnits.refresh(
+      unitsBW,
+      buildQueueBW,
+      units,
+      unitsBySpriteId,
+      unitsInProduction
+    );
+  };
+
+  const sprites: Map<SpriteIndex, SpriteInstance> = new Map();
+  const spritesBW = new SpritesBW();
+  const imagesBW = new ImagesBW();
+  let research: ResearchInProduction[][] = [];
+  let upgrades: UpgradeInProduction[][] = [];
+  let completedUpgrades: UpgradeCompleted[][] = [];
+  let completedResearch: ResearchCompleted[][] = [];
+  const group = new Group();
+  scene.add(group);
+
+  const interactableSprites: ImageInstance[] = [];
+  const buildSprites = (bwFrame: FrameBW, delta: number) => {
+    group.clear();
+    spritesBW.count = bwFrame.spriteCount;
+    spritesBW.buffer = bwFrame.sprites;
+
+    // we set count below
+    imagesBW.buffer = bwFrame.images;
+    interactableSprites.length = 0;
+
+    for (const spriteBW of spritesBW.items()) {
+      let sprite = sprites.get(spriteBW.index);
+      if (!sprite) {
+        sprite = new SpriteInstance(spriteBW.index);
+        sprites.set(spriteBW.index, sprite);
+      }
+      sprite.spriteType = spriteBW.spriteType;
+
+      const buildingIsExplored =
+        sprite.unit &&
+        sprite.unit.unitType.isBuilding &&
+        fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
+
+      // doodads and resources are always visible
+      // show units as fog is lifting from or lowering to explored
+      // show if a building has been explored
+      sprite.visible =
+        spriteBW.owner === 11 ||
+        spriteBW.spriteType.image.iscript === 336 ||
+        spriteBW.spriteType.image.iscript === 337 ||
+        fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
+
+      // don't update explored building frames so viewers only see last built frame
+      const dontUpdate =
+        buildingIsExplored &&
+        !fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
+
+      sprite.clear();
+
+      sprite.renderOrder = spriteBW.order * 10;
+      let _imageRenderOrder = sprite.renderOrder;
+
+      const x = pxToGameUnit.x(spriteBW.x);
+      const z = pxToGameUnit.y(spriteBW.y);
+      let y = terrainInfo.getTerrainY(x, z);
+
+      sprite.unit = unitsBySpriteId.get(spriteBW.index);
+      if (sprite.unit) {
+        if (sprite.unit.isFlying) {
+          const targetY = Math.min(6, y + 2.5);
+          if (sprite.position.y === 0) {
+            y = targetY;
+          } else {
+            y = MathUtils.damp(sprite.position.y, targetY, 0.001, delta);
+          }
+        }
+
+        //if selected show selection sprites, also check canSelect again in case it died
+        if (sprite.unit.selected && sprite.unit.canSelect) {
+          sprite.select(completedUpgrades);
+        } else {
+          sprite.unselect();
+        }
+      }
+
+      // liftoff z - 42, y+
+      // landing z + 42, y-
+
+      sprite.position.set(x, y, z);
+
+      const player = players.playersById[spriteBW.owner];
+
+      sprite.mainImage = null;
+
+      for (const image of imagesBW.reverse(spriteBW.imageCount)) {
+        if (image.hidden) continue;
+
+        //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
+        const titanImage =
+          sprite.images.get(image.id) || createTitanImage(image.id, sprite);
+        if (!titanImage) continue;
+        sprite.add(titanImage);
+
+        // if (!sprite.visible || dontUpdate) {
+        //   continue;
+        // }
+
+        if (player) {
+          titanImage.setTeamColor(player.color.three);
+        }
+        // overlay position
+        titanImage.offsetX = titanImage.position.x = image.x / 32;
+        titanImage.offsetY = titanImage.position.z = image.y / 32;
+        titanImage.renderOrder = _imageRenderOrder++;
+
+        // 63-48=15
+        if (image.modifier === 14) {
+          titanImage.setWarpingIn((image.modifierData1 - 48) / 15);
+        } else {
+          //@todo see if we even need this
+          titanImage.setWarpingIn(0);
+        }
+        //@todo use modifier 1 for opacity value
+        titanImage.setCloaked(image.modifier === 2 || image.modifier === 5);
+
+        titanImage.setFrame(image.frameIndex, image.flipped);
+
+        if (!sprite.images.has(image.id)) {
+          sprite.images.set(image.id, titanImage);
+        }
+
+        let z = 0;
+        if (image.index === spriteBW.mainImageIndex) {
+          sprite.mainImage = titanImage;
+          z = titanImage._zOff * (titanImage._spriteScale / 32); //x4 for HD
+
+          if (sprite.unit) {
+            titanImage.rotation.y = sprite.unit.angle;
+            if (!image.imageType.clickable) {
+              sprite.unit.canSelect = false;
+            }
+            if (sprite.unit.canSelect) {
+              //@todo change to layer
+              interactableSprites.push(titanImage);
+            }
+          }
+        }
+        //@todo is this the reason for overlays displaying in 0,0?
+        // sprite.position.z += z - sprite.lastZOff;
+        sprite.lastZOff = z;
+      }
+
+      group.add(sprite);
+    }
+  };
+
+  let _notifiedHudOfTech = false;
+  const _notifyHudOfTech = () => {
+    if (_notifiedHudOfTech) return;
+    unstable_batchedUpdates(() =>
+      useHudStore.setState({
+        hasTech: true,
+      })
+    );
+    _notifiedHudOfTech = true;
+  };
+
+  let _notifiedHudOfUpgrades = false;
+  const _notifyHudOfUpgrades = () => {
+    if (_notifiedHudOfUpgrades) return;
+    unstable_batchedUpdates(() =>
+      useHudStore.setState({
+        hasUpgrades: true,
+      })
+    );
+    _notifiedHudOfUpgrades = true;
+  };
+
+  const techUpgradesWorker = new TechUpgradesWorker();
+  techUpgradesWorker.postMessage({
+    type: "init",
+    techDat: bwDat.tech,
+    upgradesDat: bwDat.upgrades,
+  });
+
+  //@todo type workers
+  techUpgradesWorker.onmessage = ({ data }: any) => {
+    const {
+      techNearComplete,
+      upgradeNearComplete,
+      hasTech,
+      hasUpgrade,
+      research: _research,
+      upgrades: _upgrades,
+      completedUpgrades: _completedUpgrades,
+      completedResearch: _completedResearch,
+    } = data;
+
+    if (hasUpgrade) {
+      _notifyHudOfUpgrades();
+    }
+
+    if (upgradeNearComplete) {
+      useHudStore.getState().onUpgradeNearComplete();
+    }
+
+    if (hasTech) {
+      _notifyHudOfTech();
+    }
+
+    if (techNearComplete) {
+      useHudStore.getState().onTechNearComplete();
+    }
+
+    research = _research;
+    upgrades = _upgrades;
+    completedUpgrades = _completedUpgrades;
+    completedResearch = _completedResearch;
+  };
+
+  const researchBW = new ResearchBW();
+  const upgradeBW = new UpgradeBW();
+  const buildResearchAndUpgrades = (bwFrame: FrameBW) => {
+    researchBW.count = bwFrame.researchCount;
+    researchBW.buffer = bwFrame.research;
+    upgradeBW.count = bwFrame.upgradeCount;
+    upgradeBW.buffer = bwFrame.upgrades;
+
+    const msg = {
+      frame: bwFrame.frame,
+      researchCount: bwFrame.researchCount,
+      researchBuffer: bwFrame.research,
+      upgradeCount: bwFrame.upgradeCount,
+      upgradeBuffer: bwFrame.upgrades,
+    };
+
+    techUpgradesWorker.postMessage(msg);
+  };
 
   cursor.init(
     projectedCameraView,
     gameSurface,
     terrainInfo,
     cameraRig.camera,
-    gameBuilder
+    interactableSprites,
+    unitsBySpriteId
   );
 
   let _lastElapsed = 0;
@@ -311,7 +615,9 @@ async function TitanReactorGame(
         nextBwFrame = gameStateReader.nextOne();
         if (nextBwFrame) {
           // get creep, fog of war, sounds, etc. ready ahead of time if possible
-          gameBuilder.prepare(nextBwFrame);
+          buildSounds(nextBwFrame);
+          buildFog(nextBwFrame);
+          buildCreep(nextBwFrame);
         } else {
           gameStatePosition.paused = true;
         }
@@ -323,7 +629,12 @@ async function TitanReactorGame(
           scene.incrementTileAnimation();
         }
 
-        gameBuilder.update(currentBwFrame, delta, elapsed, units);
+        buildUnitsAndMinimap(currentBwFrame);
+        buildSprites(currentBwFrame, delta);
+        buildResearchAndUpgrades(currentBwFrame);
+        fogOfWar.texture.needsUpdate = true;
+        creep.creepValuesTexture.needsUpdate = true;
+        creep.creepEdgesValuesTexture.needsUpdate = true;
 
         audioMaster.channels.play(elapsed);
 
@@ -337,11 +648,7 @@ async function TitanReactorGame(
           gameStatePosition.getFriendlyTime()
         );
 
-        setAllProduction(
-          gameBuilder.unitsInProduction,
-          gameBuilder.research,
-          gameBuilder.upgrades
-        );
+        setAllProduction(unitsInProduction, research, upgrades);
         // @todo why am I transferring this to the store?
         setSelectedUnits(useGameStore.getState().selectedUnits);
 
@@ -495,6 +802,7 @@ async function TitanReactorGame(
     // minimapControl.dispose();
     scene.dispose();
     cameraRig.dispose();
+    techUpgradesWorker.terminate();
 
     document.removeEventListener("keydown", nextFrameHandler);
     keyboardShortcuts.removeEventListener(
@@ -565,7 +873,6 @@ async function TitanReactorGame(
   //run 1 frame
   gameStatePosition.resume();
   gameStatePosition.advanceGameFrames = 1;
-  gameLoop(0);
   gameLoop(0);
   _sceneResizeHandler();
   preloadScene(renderer.renderer, scene, cameraRig.compileCamera);

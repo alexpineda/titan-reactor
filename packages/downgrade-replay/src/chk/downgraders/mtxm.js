@@ -5,10 +5,10 @@ const { uint16 } = require("../../util/alloc");
 class MtxmDowngrader {
   constructor(getChunks) {
     this.chunkName = "MTXM";
-    this.tileset = getChunks("ERA\x20")[1].readUint16LE(0) & 0x7;
+    this.tileset = getChunks("ERA\x20")[1].readUInt16LE(0) & 0x7;
     const dim = getChunks("DIM\x20")[1];
-    this.mapWidth = dim.readUint16LE(0);
-    this.mapHeight = dim.readUint16LE(2);
+    this.mapWidth = dim.readUInt16LE(0);
+    this.mapHeight = dim.readUInt16LE(2);
 
     this.mapping = mappings[this.tileset].matches;
   }
@@ -17,7 +17,7 @@ class MtxmDowngrader {
     const out = new BufferList();
     for (let mapY = 0; mapY < this.mapHeight; mapY++) {
       for (let mapX = 0; mapX < this.mapWidth; mapX++) {
-        const tile = buffer.readUint16LE(mapX * 2 + mapY * this.mapWidth * 2);
+        const tile = buffer.readUInt16LE(mapX * 2 + mapY * this.mapWidth * 2);
         const [_, match] = this.mapping.find(([scr]) => scr === tile) || [];
 
         if (match) {

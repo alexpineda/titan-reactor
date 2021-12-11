@@ -1,5 +1,5 @@
-import { drawFunctions } from "../../common/bwdat/enums";
-import { BwDATType } from "../../common/types/bwdat";
+import { drawFunctions } from "../../../common/bwdat/enums";
+import { BwDATType } from "../../../common/types/bwdat";
 import ContiguousContainer from "./contiguous-container";
 
 const flags = Object.freeze({

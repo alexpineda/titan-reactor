@@ -1,6 +1,6 @@
 import fs, { promises as fsPromises } from "fs";
 import StreamGameStateReader from "./stream-game-state-reader";
-import { EmptyFunc } from "../../../common/types/common";
+import { EmptyFunc } from "../../../../common/types/common";
 const averageFrameSize = 100000;
 
 /**

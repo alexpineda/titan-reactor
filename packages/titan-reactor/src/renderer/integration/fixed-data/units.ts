@@ -1,7 +1,7 @@
-import { unitTypes } from "../../common/bwdat/enums";
-import { BwDATType, UnitDAT } from "../../common/types/bwdat";
-import { UnitTag } from "../../common/types/replay";
+import { unitTypes } from "../../../common/bwdat/enums";
+import { BwDATType, UnitDAT } from "../../../common/types/bwdat";
 import ContiguousContainer from "./contiguous-container";
+import { UnitRAW } from "../unit-raw";
 
 // status_flag_completed = 1,
 // 		status_flag_grounded_building = 2,
@@ -48,39 +48,12 @@ const flags = Object.freeze({
   canMove: 0x20000,
 });
 
-export interface UnitBWI {
-  id: UnitTag;
-  typeId: number;
-  owner: number;
-  x: number;
-  y: number;
-  hp: number;
-  energy: number;
-  shields: number;
-
-  spriteIndex: number;
-  statusFlags: number;
-  direction: number;
-  remainingBuildTime: number;
-  remainingTrainTime: number;
-  angle: number;
-  unitType: UnitDAT;
-  isFlying: boolean;
-  isCloaked: boolean;
-  isComplete: boolean;
-  tileX: number;
-  tileY: number;
-  order: number;
-  kills: number;
-  resourceAmount: number | null;
-}
-
 export const UNIT_BYTE_LENGTH = 30;
 // all units in a bw frame
-export class UnitsBW extends ContiguousContainer implements UnitBWI {
+export class UnitsBW extends ContiguousContainer implements UnitRAW {
   protected override byteLength = UNIT_BYTE_LENGTH;
 
-  get id(): UnitTag {
+  get id() {
     return this._readU16(0);
   }
 

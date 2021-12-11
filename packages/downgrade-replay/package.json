@@ -1,7 +1,7 @@
 {
   "name": "downgrade-replay",
-  "version": "0.0.2",
-  "description": "Downgrade your Starcraft Remastered replay to version 1.16",
+  "version": "0.0.4",
+  "description": "Sidegrades BW/SCR to TitanReactor format",
   "main": "src/index.js",
   "author": "Alex Pineda <alexpineda@fastmail.com",
   "license": "MIT",

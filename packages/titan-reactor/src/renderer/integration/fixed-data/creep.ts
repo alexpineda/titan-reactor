@@ -8,9 +8,5 @@ export class CreepBW extends ContiguousContainer {
   get hasCreep() {
     return this._readU8(0);
   }
-
-  hasCreepAt(i: number) {
-    return this._buf?.get(i);
-  }
 }
 export default CreepBW;

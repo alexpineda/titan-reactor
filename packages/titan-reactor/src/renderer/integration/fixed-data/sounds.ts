@@ -1,4 +1,5 @@
-import { GetTerrainY, PxToGameUnit } from "../../common/types/util";
+import { GetTerrainY, PxToGameUnit } from "../../../common/types/util";
+import { SoundRAW } from "../sound-raw";
 import ContiguousContainer from "./contiguous-container";
 
 export const SOUND_BYTE_LENGTH = 16;
@@ -6,20 +7,7 @@ export const SOUND_BYTE_LENGTH = 16;
  * Sounds in a bw frame.
  * Also contains volume and panning calculations ported from openbw.
  */
-export type SoundBWInstance = {
-  id: number;
-  unitTypeId: number;
-  priority: number;
-  minVolume: number;
-  x: number;
-  y: number;
-  mapX: number;
-  mapY: number;
-  mapZ: number;
-  flags: number;
-};
-
-export class SoundsBW extends ContiguousContainer {
+export class SoundsBW extends ContiguousContainer implements SoundRAW {
   protected override byteLength = SOUND_BYTE_LENGTH;
 
   private pxToGameUnit: PxToGameUnit;
@@ -84,7 +72,7 @@ export class SoundsBW extends ContiguousContainer {
     return Math.floor(this.y / 32);
   }
 
-  override object(): SoundBWInstance {
+  override object(): SoundRAW {
     return {
       id: this.id,
       unitTypeId: this.unitTypeId as number,

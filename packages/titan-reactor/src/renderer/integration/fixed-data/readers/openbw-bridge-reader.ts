@@ -1,6 +1,6 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 
-import { EmptyFunc } from "../../../common/types/common";
+import { EmptyFunc } from "../../../../common/types/common";
 import FileGameStateReader from "./file-game-state-reader";
 
 class OpenBwBridgeReader extends FileGameStateReader {

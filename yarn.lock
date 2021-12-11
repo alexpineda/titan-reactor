@@ -3148,7 +3148,7 @@ bl@^1.0.1:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
 
-bl@^4.0.0, bl@^4.0.3:
+bl@^4.0.3:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/bl/-/bl-4.1.0.tgz#451535264182bec2fbbc83a62ab98cf11d9f7b3a"
   integrity sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==
@@ -4822,19 +4822,6 @@ dotignore@^0.1.2:
   integrity sha512-UGGGWfSauusaVJC+8fgV+NVvBXkCTmVv7sk6nojDZZvuOUNGUy0Zk4UpHQD6EDjS0jpBwcACvH4eofvyzBcRDw==
   dependencies:
     minimatch "^3.0.4"
-
-downgrade-replay@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/downgrade-replay/-/downgrade-replay-0.0.1.tgz#25243092b08b450b2e2110eaa9fdeb529c1f53dc"
-  integrity sha512-TFbBOc//NQDtI3T/WCQQjDzBBkXgLHA8JF3mrRJl2WqTyiTjDMuE0aa6sE8NLkib/RTTiU0iK8cKBxmCplEszw==
-  dependencies:
-    bl "^5.0.0"
-    concat-stream "^2.0.0"
-    iconv-lite "^0.6.2"
-    jssuh "^1.4.0"
-    pkware-wasm "^1.0.0"
-    ramda "^0.27.1"
-    scm-extractor "^1.0.6"
 
 duplexer3@^0.1.4:
   version "0.1.4"
@@ -6807,13 +6794,6 @@ iconv-lite@0.6.3, iconv-lite@^0.6.2:
   dependencies:
     safer-buffer ">= 2.1.2 < 3.0.0"
 
-iconv-lite@^0.5.1:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.5.2.tgz#af6d628dccfb463b7364d97f715e4b74b8c8c2b8"
-  integrity sha512-kERHXvpSaB4aU3eANwidg79K8FlrN77m8G9V+0vOR3HYaRifrlwMEpT7ZBJqLSEIHnEgJTHcWK82wwLwwKwtag==
-  dependencies:
-    safer-buffer ">= 2.1.2 < 3"
-
 icss-utils@^4.0.0, icss-utils@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/icss-utils/-/icss-utils-4.1.1.tgz#21170b53789ee27447c2f47dd683081403f9a467"
@@ -6846,7 +6826,7 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
-implode-decoder@^1.0.0, implode-decoder@^1.0.1:
+implode-decoder@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/implode-decoder/-/implode-decoder-1.0.1.tgz#6b10d1db3eb54e26d5b9fd95fabce603c94c18af"
   integrity sha1-axDR2z61TibVuf2V+rzmA8lMGK8=
@@ -8974,15 +8954,6 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jssuh@^1.4.0:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/jssuh/-/jssuh-1.4.1.tgz#3ee6c27d0d6755512e521259bdd8e5621052bcbe"
-  integrity sha512-Pwujv3G6lbikfh/J0shuzwfGBmBsPbmtDYSTc1HXsAaQ1KBGLGiZRjJk/ySGKFgNh2ZLwQXo/cbt9v8eEbnHnA==
-  dependencies:
-    bl "^4.0.0"
-    iconv-lite "^0.5.1"
-    implode-decoder "^1.0.1"
-
 "jsx-ast-utils@^2.4.1 || ^3.0.0":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/jsx-ast-utils/-/jsx-ast-utils-3.2.1.tgz#720b97bfe7d901b927d87c3773637ae8ea48781b"
@@ -10778,11 +10749,6 @@ queue-microtask@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
-
-ramda@^0.27.1:
-  version "0.27.1"
-  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.27.1.tgz#66fc2df3ef873874ffc2da6aa8984658abacf5c9"
-  integrity sha512-PgIdVpn5y5Yns8vqb8FzBUEYn98V3xcPgawAkkgj0YJ0qDsnHCiNmZYfOGMgOvoB0eWFLpYbhxUR3mxfDIMvpw==
 
 randomatic@^3.0.0:
   version "3.1.1"

@@ -1,8 +1,5 @@
-const groupMatch = (scr, bw) => {
+const groupMatch = (scr, bw, returnMismatches) => {
   const mismatches = [];
-  if (scr.index !== bw.index) {
-    mismatches.push(`index: ${scr.index} !== ${bw.index}`);
-  }
   if (scr.buildable !== bw.buildable) {
     mismatches.push(`buildable: ${scr.buildable} !== ${bw.buildable}`);
   }
@@ -12,19 +9,16 @@ const groupMatch = (scr, bw) => {
   if (scr.elevation !== bw.elevation) {
     mismatches.push(`elevation: ${scr.elevation} !== ${bw.elevation}`);
   }
-  if (scr.elevation !== bw.elevation) {
+  if (scr.isDoodad !== bw.isDoodad) {
     mismatches.push(`elevation: ${scr.elevation} !== ${bw.elevation}`);
   }
-  return [
-    scr.index === bw.index &&
-      scr.buildable === bw.buildable &&
-      scr.creep === bw.creep &&
-      scr.unbuildable === bw.unbuildable &&
-      // scr.elevation === bw.elevation &&
-      scr.tileBuf.compare(bw.tileBuf) === 0,
-    mismatches,
-  ];
-  //@todo test tiles in group
+  return returnMismatches
+    ? mismatches
+    : scr.buildable === bw.buildable &&
+        scr.creep === bw.creep &&
+        scr.unbuildable === bw.unbuildable &&
+        scr.isDoodad === bw.isDoodad;
+  // scr.elevation === bw.elevation &&
 };
 
 const exactMatch = (scr, bw) => {

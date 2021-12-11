@@ -1,18 +1,16 @@
 import ContiguousContainer from "./contiguous-container";
+import { BuildingQueueRAW } from "../building-queue-raw";
 
 export const TrainingQueueType = 0;
 export const LoadedQueueType = 128;
 
 export const BUILDING_BYTE_LENGTH = 19;
 
-export interface BuildingQueueI {
-  unitId: number;
-  queueCount: number;
-  units: number[];
-  queueType: number;
-}
 // represents units that are currently building / training
-export class BuildingQueueCountBW extends ContiguousContainer {
+export class BuildingQueueCountBW
+  extends ContiguousContainer
+  implements BuildingQueueRAW
+{
   protected override byteLength = BUILDING_BYTE_LENGTH;
 
   get unitId() {

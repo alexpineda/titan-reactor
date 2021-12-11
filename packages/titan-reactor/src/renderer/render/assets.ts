@@ -10,7 +10,7 @@ import {
   openCascStorage,
   readCascFile,
 } from "../../common/utils/casclib";
-import ContiguousContainer from "../game-data/contiguous-container";
+import ContiguousContainer from "../integration/fixed-data/contiguous-container";
 import {
   startLoadingProcess,
   updateLoadingProcess,

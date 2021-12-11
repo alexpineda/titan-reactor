@@ -1,5 +1,4 @@
 const fs = require("fs");
-const util = require("util");
 const { decodeTileGroups, decodeTiles } = require("../matcher/decode");
 const { loadTilesetFilesAsync } = require("../matcher/load-bw-files");
 const { exactMatch, scoreMatch } = require("../matcher/match");
@@ -27,6 +26,7 @@ async function mapTiles(tileset) {
   const scrGroups = decodeTileGroups(Buffer.from(scrData.tilegroupBuf)).slice(
     bwGroups.length + 1
   );
+
   const scrTiles = scrGroups.flatMap((tg) =>
     decodeTiles(tg, scrData.megatiles, scrData.minitilesU16, true)
   );

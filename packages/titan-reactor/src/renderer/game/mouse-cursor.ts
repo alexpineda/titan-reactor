@@ -3,11 +3,12 @@ import { PerspectiveCamera, Raycaster, Vector2 } from "three";
 
 import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { TerrainInfo } from "../../common/types/terrain";
-import ThreeGameBuilder from "../three-game-builder";
 import ProjectedCameraView from "../camera/projected-camera-view";
 import GameCanvasTarget from "../render/game-canvas-target";
 import useGameStore, { getIcons } from "../stores/game-store";
 import SpriteInstance from "./sprite-instance";
+import { ImageInstance } from "../../common/image";
+import { UnitInstance } from "./unit-instance";
 
 const canOnlySelectOne = [
   unitTypes.larva,
@@ -162,7 +163,8 @@ export class MouseCursor {
     gameSurface: GameCanvasTarget,
     { terrain, mapWidth, mapHeight }: TerrainInfo,
     camera: PerspectiveCamera,
-    frameBuilder: ThreeGameBuilder
+    interactableSprites: ImageInstance[],
+    unitsBySpriteId: Map<number, UnitInstance>
   ) {
     this.projectedCameraView = projectedCameraView;
 
@@ -178,10 +180,7 @@ export class MouseCursor {
     const intersectMouse = (clipV: Point, sprites = null) => {
       raycaster.setFromCamera(clipV, camera);
       // calculate objects intersecting the picking ray
-      const intersects = raycaster.intersectObjects(
-        frameBuilder.interactableSprites,
-        false
-      );
+      const intersects = raycaster.intersectObjects(interactableSprites, false);
       if (intersects.length) {
         let closestSprite = { renderOrder: -1 };
 
@@ -311,7 +310,7 @@ export class MouseCursor {
           for (let x = startMapX - 1; x < endMapX + 1; x++) {
             for (let y = startMapY - 1; y < endMapY + 1; y++) {
               //@todo change access method to be more efficient
-              for (const unit of frameBuilder.unitsBySpriteId.values()) {
+              for (const unit of unitsBySpriteId.values()) {
                 if (unit.canSelect && unit.tileX === x && unit.tileY === y) {
                   // test one tile out of selection bounds since unit tileX/Y is centered
                   // use placement approximations from UnitsDat for these "slightly out of bounds" units
@@ -383,7 +382,7 @@ export class MouseCursor {
 
           for (let x = startMapX; x < endMapX; x++) {
             for (let y = startMapY; y < endMapY; y++) {
-              for (const unit of frameBuilder.unitsBySpriteId.values()) {
+              for (const unit of unitsBySpriteId.values()) {
                 if (
                   unit.canSelect &&
                   unit.tileX === x &&

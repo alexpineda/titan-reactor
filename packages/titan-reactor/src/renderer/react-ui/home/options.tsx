@@ -15,6 +15,7 @@ import {
   TabSelector,
   Toggle,
   Visible,
+  Close,
 } from "../components";
 
 export const Tabs = {
@@ -32,6 +33,7 @@ export const Tabs = {
 export default ({
   defaultTab = Tabs.Setup,
   inGame = false,
+  onClose = () => {},
   className = "",
   style = {},
 }) => {
@@ -68,7 +70,8 @@ export default ({
   }
 
   return (
-    <div className={className} style={style}>
+    <div className={`${className}`} style={{ ...style, minWidth: "70vh" }}>
+      <Close onClose={onClose} />
       <ul className="mb-8 flex flex-wrap">
         {!inGame && (
           <TabSelector

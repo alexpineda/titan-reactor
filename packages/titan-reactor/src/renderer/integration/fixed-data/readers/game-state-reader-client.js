@@ -8,8 +8,8 @@ import {
   openFile,
   requestNextFrames,
   stopReadingGameState,
-} from "../../ipc";
-import { getSettings } from "../../stores";
+} from "../../../ipc";
+import { getSettings } from "../../../stores";
 
 /**
  * This version is currently not used. This is the client version used for IPC with the main process, currently we use integrated node however. See StreamGameStateReader and FileGameStateReader.

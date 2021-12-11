@@ -8,7 +8,7 @@ import {
   openReplayDialog,
 } from "../../ipc";
 import { useSettingsStore, SettingsStore } from "../../stores";
-import { MenuItem } from "../components/menu-item";
+import { MenuItem, Close } from "../components";
 import Options from "./options";
 
 const Panels = {
@@ -79,6 +79,8 @@ const Home = () => {
         <div className="flex items-center w-3/4 ">
           {activePanel === Panels.Credits && (
             <div className="select-none">
+              <Close onClose={() => setActivePanel(Panels.Home)} />
+
               <p className="font-bold mb-6">Credits</p>
               <p className="text-gray-300">
                 Created by{" "}
@@ -106,31 +108,17 @@ const Home = () => {
               </p>
             </div>
           )}
-          {activePanel === Panels.Maps && (
-            <div className="flex-col">
-              <p className="font-bold mb-6 select-none">
-                {phrases["MENU_MAPS"]}
-              </p>
-              {/* <Maps phrases={phrases} /> */}
-            </div>
-          )}
-          {activePanel === Panels.Replays && (
-            <div className="">
-              <p className="font-bold mb-6 select-none">
-                {phrases["MENU_REPLAYS"]}
-              </p>
-            </div>
-          )}
           {activePanel === Panels.Options && (
             <div className="" style={{ minHeight: "65vh" }}>
               <p className="font-bold mb-6 select-none">
                 {phrases["MENU_OPTIONS"]}
               </p>
-              <Options />
+              <Options onClose={() => setActivePanel(Panels.Home)} />
             </div>
           )}
           {activePanel === Panels.Legal && (
             <div className=" select-none">
+              <Close onClose={() => setActivePanel(Panels.Home)} />
               <p className="font-bold mb-6">{phrases["MENU_LEGAL"]}</p>
               <p>
                 Titan Reactor is released to the Public Domain. The

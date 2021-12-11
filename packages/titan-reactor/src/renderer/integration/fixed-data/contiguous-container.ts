@@ -1,4 +1,4 @@
-import { BwDATType } from "../../common/bwdat/core/bw-dat";
+import { BwDATType } from "../../../common/bwdat/core/bw-dat";
 
 /**
  An abstract class.

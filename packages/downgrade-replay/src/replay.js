@@ -3,6 +3,7 @@ const { BufferList } = require("bl");
 const {
   HeaderMagicClassic,
   HeaderMagicScrModern,
+  HeaderMagicTitanReactor,
   Version,
 } = require("./common");
 const parseHeader = require("./header");
@@ -21,6 +22,9 @@ const parseReplay = async (buf) => {
   } else if (magic === HeaderMagicScrModern) {
     version = Version.remastered;
     console.log("replay: remastered");
+  } else if (magic === HeaderMagicTitanReactor) {
+    version = Version.titanReactor;
+    console.log("replay: titan reactor");
   } else {
     throw new Error("not a replay");
   }

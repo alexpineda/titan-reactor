@@ -8,3 +8,4 @@ export * from "./tab";
 export * from "./tab-selector";
 export * from "./toggle";
 export * from "./visible";
+export * from "./close";
