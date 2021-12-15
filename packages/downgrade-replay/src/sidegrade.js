@@ -3,7 +3,7 @@ const { BufferList } = require("bl");
 const { HeaderMagicTitanReactor, Version } = require("./common");
 const { writeBlock, getBlockSize } = require("./blocks");
 const { uint32, uint8 } = require("./util/alloc");
-const commandToBuf = require("./commands/cmd-to-buf");
+const commandToBuf = require("./commands/sidegrade/cmd-to-buf");
 const { CMDS } = require("./commands/commands");
 const CommandsStream = require("./commands/commands-stream");
 
