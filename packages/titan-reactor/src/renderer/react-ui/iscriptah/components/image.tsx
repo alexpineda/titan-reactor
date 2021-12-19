@@ -1,14 +1,14 @@
 import React, { useCallback } from "react";
 import AnimationBlocks from "./animation-blocks";
 import calculateImagesFromIscript from "../../../../common/iscript/images-from-iscript";
-import { ImageDATType } from "../../../../common/types";
+import { ImageDAT } from "../../../../common/types";
 import { useGameStore } from "../../../stores/game-store";
 
 const Image = ({
   image,
   onClick,
 }: {
-  image: ImageDATType;
+  image: ImageDAT;
   onClick: () => void;
 }) => {
   const bwDat = useGameStore((state) => state.assets?.bwDat);

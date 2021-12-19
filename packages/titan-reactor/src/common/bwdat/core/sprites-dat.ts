@@ -2,11 +2,11 @@ import range from "../../utils/range";
 import { selectionCircleSize } from "../enums/selection-circle-size";
 import { DAT } from "./dat";
 import spriteNames from "./strings/sprite-names.js";
-import { ImageDATType } from "./images-dat";
+import { ImageDAT } from "./images-dat";
 import { ReadFile } from "../../types";
 
 export type SpriteDATType = {
-  image: ImageDATType;
+  image: ImageDAT;
   name: string;
   index: number;
   healthBar: number;
@@ -22,7 +22,7 @@ export class SpritesDAT extends DAT<SpriteDATType> {
     };
   }
 
-  constructor(readFile: ReadFile, images: ImageDATType[] = []) {
+  constructor(readFile: ReadFile, images: ImageDAT[] = []) {
     super(readFile);
 
     this.format = [

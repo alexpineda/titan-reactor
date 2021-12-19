@@ -1,4 +1,4 @@
-import { ImageDATType } from "../../types";
+import { ImageDAT } from "../../types";
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 
 import { loadDDS } from "../formats/load-dds";
@@ -156,7 +156,7 @@ export default class GameIcons extends Array {
 
     await grpSD.load({
       readGrp: () => Promise.resolve(grp),
-      imageDef: {} as ImageDATType,
+      imageDef: {} as ImageDAT,
       palettes: [palette],
     });
 
@@ -190,7 +190,7 @@ export default class GameIcons extends Array {
 
     await grpSD.load({
       readGrp: () => Promise.resolve(grp),
-      imageDef: {} as ImageDATType,
+      imageDef: {} as ImageDAT,
       palettes: [palette],
     });
 

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { ImageDATType } from "../../../../common/types";
+import { ImageDAT } from "../../../../common/types";
 import { iscriptHeaders } from "../../../../common/bwdat/enums";
 import { setBlock } from "../stores";
 import { useGameStore } from "../../../stores/game-store";
 
-export const AnimationBlocks = ({ image }: { image: ImageDATType }) => {
+export const AnimationBlocks = ({ image }: { image: ImageDAT }) => {
   const [expanded, setExpanded] = useState(false);
   const bwDat = useGameStore((state) => state.assets?.bwDat);
   if (!bwDat) {

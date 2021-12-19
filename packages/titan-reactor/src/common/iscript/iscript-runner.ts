@@ -1,9 +1,4 @@
-import {
-  BwDAT,
-  ImageDATType,
-  IScriptRawType,
-  AnimationBlockType,
-} from "../types";
+import { BwDAT, ImageDAT, IScriptRawType, AnimationBlockType } from "../types";
 import { ImageInstance } from "../image";
 
 import { iscriptHeaders as headers } from "../bwdat/enums/iscript-headers";
@@ -22,7 +17,7 @@ export class IScriptRunner {
   };
 
   image: ImageInstance;
-  imageDesc: ImageDATType;
+  imageDesc: ImageDAT;
   tileset: number;
   logger: { log: () => void };
   dispatched = [];
@@ -37,7 +32,7 @@ export class IScriptRunner {
     bwDat: BwDAT,
     tileset: number,
     image: ImageInstance,
-    imageDesc: ImageDATType,
+    imageDesc: ImageDAT,
     state = {}
   ) {
     this.bwDat = bwDat;
@@ -510,6 +505,6 @@ export class IScriptRunner {
 }
 
 export const createIScriptRunnerFactory = (bwDat: BwDAT, tileset: number) => {
-  return (image: ImageInstance, imageDesc: ImageDATType, state = {}) =>
+  return (image: ImageInstance, imageDesc: ImageDAT, state = {}) =>
     new IScriptRunner(bwDat, tileset, image, imageDesc, state);
 };

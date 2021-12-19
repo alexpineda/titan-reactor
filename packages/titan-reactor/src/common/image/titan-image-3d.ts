@@ -4,7 +4,7 @@ import THREE, { AnimationAction, AnimationMixer, Object3D } from "three";
 
 import SpriteInstance from "../../renderer/game/sprite-instance";
 import { IScriptRunner } from "../iscript";
-import { BwDAT, ImageDATType } from "../types/bwdat";
+import { BwDAT, ImageDAT } from "../types/bwdat";
 import { createIScriptRunner } from "../types/iscript";
 import Atlas3D from "./atlas/atlas-3d";
 import { ImageInstance } from "./image-instance";
@@ -33,7 +33,7 @@ export class TitanImage3D extends Object3D implements ImageInstance {
   atlas: Atlas3D;
   model: Object3D;
   sprite: SpriteInstance;
-  imageDef: ImageDATType;
+  imageDef: ImageDAT;
   iscript: IScriptRunner;
   mixer?: AnimationMixer;
 
@@ -45,7 +45,7 @@ export class TitanImage3D extends Object3D implements ImageInstance {
   constructor(
     atlas: Atlas3D,
     createIScriptRunner: createIScriptRunner,
-    imageDef: ImageDATType,
+    imageDef: ImageDAT,
     sprite: SpriteInstance
   ) {
     super();

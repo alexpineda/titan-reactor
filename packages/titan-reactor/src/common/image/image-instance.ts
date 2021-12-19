@@ -1,10 +1,10 @@
 import { Color, Object3D } from "three";
 
 import { IScriptRunner } from "../iscript/iscript-runner";
-import { ImageDATType } from "../types/bwdat";
+import { ImageDAT } from "../types/bwdat";
 
 export type ImageInstance = Object3D & {
-  imageDef: ImageDATType;
+  imageDef: ImageDAT;
   iscript: IScriptRunner;
   setFrame: (frame: number, flip?: boolean) => void;
 

@@ -6,7 +6,7 @@ import {
   iscriptHeaders,
   overlayTypes,
 } from "../bwdat/enums";
-import { BwDAT, ImageDATType, UnitDAT } from "../types";
+import { BwDAT, ImageDAT, UnitDAT } from "../types";
 import pick from "../utils/pick";
 import { ImageInstance } from "./image-instance";
 import TitanImage3D from "./titan-image-3d";
@@ -531,7 +531,7 @@ export class TitanSprite extends Group {
   ) {
     const frame = useFrameset ? image.userData.frameset : image.userData.frame;
 
-    const overlayKey = overlayTypes[overlay - 1] as keyof ImageDATType;
+    const overlayKey = overlayTypes[overlay - 1] as keyof ImageDAT;
     const losIndex = image.imageDef[overlayKey] as number;
     const los = this.bwDat.los[losIndex];
     if (!los || los.length == 0) {

@@ -1,6 +1,6 @@
 import { CompressedTexture } from "three";
 
-import { ImageDATType } from "../../bwdat/core/images-dat";
+import { ImageDAT } from "../../bwdat/core/images-dat";
 import { AnimTextureType, GrpFrameType, GRPInterface } from "../../types";
 import { Anim, loadDDS } from "../formats";
 
@@ -21,7 +21,7 @@ export class AtlasHD implements GRPInterface {
   }: {
     readAnim: () => Promise<Buffer>;
     readAnimHD2: () => Promise<Buffer>;
-    imageDef: Pick<ImageDATType, "index">;
+    imageDef: Pick<ImageDAT, "index">;
     glbFileName?: string;
   }) {
     this.imageIndex = imageDef.index;

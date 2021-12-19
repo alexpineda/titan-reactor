@@ -11,7 +11,7 @@ import {
 
 import { drawFunctions } from "../bwdat/enums/draw-functions";
 import { IScriptRunner } from "../iscript";
-import { ImageDATType } from "../types/bwdat";
+import { ImageDAT } from "../types/bwdat";
 import { GrpFrameType } from "../types/grp";
 import { createIScriptRunner } from "../types/iscript";
 import AtlasHD from "./atlas/atlas-hd";
@@ -28,7 +28,7 @@ export class TitanImageHD extends Sprite implements ImageInstance {
   _spriteScale: number;
   private _oScale: Vector3;
   sprite: SpriteInstance;
-  imageDef: ImageDATType;
+  imageDef: ImageDAT;
   override material: TeamSpriteMaterial;
   iscript: IScriptRunner;
   _zOff: number;
@@ -42,7 +42,7 @@ export class TitanImageHD extends Sprite implements ImageInstance {
   constructor(
     atlas: AtlasHD,
     createIScriptRunner: createIScriptRunner,
-    imageDef: ImageDATType,
+    imageDef: ImageDAT,
     sprite: SpriteInstance,
     spriteScale = 128
   ) {

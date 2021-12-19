@@ -1,11 +1,11 @@
 import { DAT } from "./dat";
-import { FlingyDATType } from "./flingy-dat";
+import { FlingyDAT } from "./flingy-dat";
 import { ReadFile } from "../../types";
 
-export type WeaponDATType = {
+export type WeaponDAT = {
   index: number;
   name: string;
-  flingy: FlingyDATType;
+  flingy: FlingyDAT;
   targetFlags: number;
   minRange: number;
   maxRange: number;
@@ -26,8 +26,8 @@ export type WeaponDATType = {
   upwardOffset: number;
 };
 
-export class WeaponsDAT extends DAT<WeaponDATType> {
-  constructor(readFile: ReadFile, flingy: FlingyDATType[] = []) {
+export class WeaponsDAT extends DAT<WeaponDAT> {
+  constructor(readFile: ReadFile, flingy: FlingyDAT[] = []) {
     super(readFile);
 
     this.format = [

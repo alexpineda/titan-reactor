@@ -2,7 +2,7 @@ import { DAT } from "./dat";
 import { SpriteDATType } from "./sprites-dat";
 import { ReadFile } from "../../types";
 
-export type FlingyDATType = {
+export type FlingyDAT = {
   sprite: SpriteDATType;
   speed: number;
   acceleration: number;
@@ -10,7 +10,7 @@ export type FlingyDATType = {
   turnRadius: number;
 };
 
-export class FlingyDAT extends DAT<FlingyDATType> {
+export class FlingiesDAT extends DAT<FlingyDAT> {
   protected override count = 209;
   constructor(readFile: ReadFile, sprites: SpriteDATType[] = []) {
     super(readFile);

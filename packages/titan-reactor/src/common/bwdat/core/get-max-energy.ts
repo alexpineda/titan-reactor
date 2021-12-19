@@ -2,6 +2,8 @@ import { unitTypes } from "../enums/unit-types";
 import { upgrades } from "../enums/upgrades";
 import { UnitDAT } from "./units-dat";
 
+// thanks to BWAPI for this
+
 export default (unitType: UnitDAT, completedUpgrades: number[]) => {
   if (!unitType.isSpellcaster) return 0;
   let energy = unitType.isHero ? 250 : 200;

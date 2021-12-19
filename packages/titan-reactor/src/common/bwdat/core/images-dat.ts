@@ -2,7 +2,7 @@ import { DAT } from "./dat";
 import imageNames from "./strings/image-names.js";
 import { ReadFile } from "../../types";
 
-export type ImageDATType = {
+export type ImageDAT = {
   index: number;
   grpFile: string;
   name: string;
@@ -22,7 +22,7 @@ export type ImageDATType = {
   liftOffDustOverlay: number;
 };
 
-export class ImagesDAT extends DAT<ImageDATType> {
+export class ImagesDAT extends DAT<ImageDAT> {
   constructor(readFile: ReadFile) {
     super(readFile);
 
@@ -52,11 +52,11 @@ export class ImagesDAT extends DAT<ImageDATType> {
     this.count = 999;
   }
 
-  override async load(): Promise<ImageDATType[]> {
+  override async load(): Promise<ImageDAT[]> {
     return super.load();
   }
 
-  override post(entries: ImageDATType[]): ImageDATType[] {
+  override post(entries: ImageDAT[]): ImageDAT[] {
     return entries.map((entry, i: number) => ({
       ...entry,
       index: i,

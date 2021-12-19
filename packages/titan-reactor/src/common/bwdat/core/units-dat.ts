@@ -1,8 +1,8 @@
 import range from "../../utils/range";
 import { DAT } from "./dat";
-import { FlingyDATType } from "./flingy-dat";
-import { ImageDATType } from "./images-dat";
-import { SoundDATType } from "./sounds-dat";
+import { FlingyDAT } from "./flingy-dat";
+import { ImageDAT } from "./images-dat";
+import { SoundDAT } from "./sounds-dat";
 import { ReadFile } from "../../types";
 
 //eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -220,13 +220,13 @@ export type UnitDATIncomingType = {
 };
 
 export class UnitsDAT extends DAT<UnitDATIncomingType> {
-  sounds: SoundDATType[];
+  sounds: SoundDAT[];
 
   constructor(
     readFile: ReadFile,
-    images: ImageDATType[] = [],
-    flingy: FlingyDATType[] = [],
-    sounds: SoundDATType[] = []
+    images: ImageDAT[] = [],
+    flingy: FlingyDAT[] = [],
+    sounds: SoundDAT[] = []
   ) {
     super(readFile);
 

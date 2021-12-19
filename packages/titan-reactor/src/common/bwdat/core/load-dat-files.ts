@@ -6,10 +6,10 @@ import { Buffer } from "buffer";
 import { ReadFile, GrpFrameType, GrpType, IScriptDATType } from "../../types";
 import range from "../../utils/range";
 import { BwDAT } from "./bw-dat";
-import { FlingyDAT } from "./flingy-dat";
+import { FlingiesDAT } from "./flingy-dat";
 import { ImagesDAT } from "./images-dat";
 import { OrdersDAT } from "./orders-dat";
-import { LoDATType, parseLo } from "./parse-lo";
+import { LoDAT, parseLo } from "./parse-lo";
 import { SoundsDAT } from "./sounds-dat";
 import { SpritesDAT } from "./sprites-dat";
 import { TechDataDAT } from "./tech-data-dat";
@@ -26,7 +26,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
   const imagesDat = new ImagesDAT(readFile);
   const images = await imagesDat.load();
 
-  const los: LoDATType[] = [];
+  const los: LoDAT[] = [];
   for (let i = 0; i < imagesDat.stats.length; i++) {
     if (imagesDat.stats[i].includes(".lo")) {
       const fpath = path.join("unit/", imagesDat.stats[i].replace(/\\/g, "/"));
@@ -34,7 +34,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     }
   }
   const sprites = await new SpritesDAT(readFile, images).load();
-  const flingy = await new FlingyDAT(readFile, sprites).load();
+  const flingy = await new FlingiesDAT(readFile, sprites).load();
   const weapons = await new WeaponsDAT(readFile, flingy).load();
   const sounds = await new SoundsDAT(readFile).load();
 
@@ -74,7 +74,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     };
   }) as GrpType[];
 
-  return new BwDAT(
+  return {
     iscript,
     sounds,
     tech,
@@ -85,6 +85,6 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     los,
     sprites,
     weapons,
-    grps
-  );
+    grps,
+  };
 }

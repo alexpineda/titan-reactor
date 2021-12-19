@@ -1,7 +1,7 @@
 import { DAT } from "./dat";
 import { ReadFile } from "../../types";
 
-export type SoundDATType = {
+export type SoundDAT = {
   file: string;
   priority: number;
   flags: number;
@@ -9,7 +9,7 @@ export type SoundDATType = {
   minVolume: number;
 };
 
-export class SoundsDAT extends DAT<SoundDATType> {
+export class SoundsDAT extends DAT<SoundDAT> {
   constructor(readFile: ReadFile) {
     super(readFile);
 

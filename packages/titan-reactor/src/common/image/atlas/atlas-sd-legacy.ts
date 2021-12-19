@@ -5,7 +5,7 @@ import {
   LinearFilter,
   sRGBEncoding,
 } from "three";
-import { ImageDATType } from "../../types";
+import { ImageDAT } from "../../types";
 
 import { drawFunctions } from "../../bwdat/enums/draw-functions";
 
@@ -37,7 +37,7 @@ export class GrpSDLegacy {
       palettes,
     }: {
       readGrp: () => Promise<Buffer>;
-      imageDef: ImageDATType;
+      imageDef: ImageDAT;
       palettes: Palettes;
     },
     stride = 20

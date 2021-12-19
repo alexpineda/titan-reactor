@@ -1,6 +1,6 @@
 import { AnimationClip, CubeTexture, Group } from "three";
 
-import { ImageDATType } from "../../bwdat/core/images-dat";
+import { ImageDAT } from "../../bwdat/core/images-dat";
 import loadGlb, { GlbResponse } from "../formats/load-glb";
 import AtlasHD from "./atlas-hd";
 
@@ -25,7 +25,7 @@ export class Atlas3D extends AtlasHD {
     glbFileName?: string;
     readAnim: () => Promise<Buffer>;
     readAnimHD2: () => Promise<Buffer>;
-    imageDef: Pick<ImageDATType, "name" | "index" | "gfxTurns">;
+    imageDef: Pick<ImageDAT, "name" | "index" | "gfxTurns">;
   }) {
     await super.load({ readAnim, readAnimHD2, imageDef });
 

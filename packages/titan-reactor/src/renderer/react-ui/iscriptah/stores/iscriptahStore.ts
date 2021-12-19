@@ -1,4 +1,3 @@
-import { ImageDATType } from "../../../../common/types";
 import { gameSpeeds } from "../../../../common/utils/conversions";
 import create from "zustand";
 import { Euler, Vector3 } from "three";

@@ -1,5 +1,5 @@
 import GrpSDLegacy from "../../atlas/atlas-sd-legacy";
-import { ImageDATType } from "../../../types";
+import { ImageDAT } from "../../../types";
 // leverage our SD grp reader to render creep edges in SD
 export const grpToCreepEdgesTextureAsync = async (
   creepGrp: Buffer,
@@ -11,7 +11,7 @@ export const grpToCreepEdgesTextureAsync = async (
   await grpSD.load(
     {
       readGrp: () => Promise.resolve(creepGrp),
-      imageDef: {} as ImageDATType,
+      imageDef: {} as ImageDAT,
       palettes: [palette],
     },
     stride

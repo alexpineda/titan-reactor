@@ -1,13 +1,13 @@
-import { ImageDATType, BwDAT, opArgOne, UnitDAT } from "../types";
+import { ImageDAT, BwDAT, opArgOne, UnitDAT } from "../types";
 import uniq from "../utils/uniq";
 
 const calculateImagesFromIScript = (
   bwDat: BwDAT,
-  image: ImageDATType,
+  image: ImageDAT,
   unit?: UnitDAT | null,
   preload = new Set()
 ): number[] => {
-  const getAllImages = (imageDef: ImageDATType) => {
+  const getAllImages = (imageDef: ImageDAT) => {
     // console.log(imageDef);
     preload.add(imageDef.index);
 

@@ -1,4 +1,4 @@
-import { ImageDATType, UnitDAT } from "../../../../common/types";
+import { ImageDAT, UnitDAT } from "../../../../common/types";
 import create from "zustand";
 
 //a user settings store which persists to disk
@@ -17,16 +17,16 @@ export type IscriptStore = {
   unit: UnitDAT | null;
   setUnit: (unit: UnitDAT) => void;
 
-  image: ImageDATType | null;
-  setImage: (image: ImageDATType) => void;
+  image: ImageDAT | null;
+  setImage: (image: ImageDAT) => void;
 
   sprite: any;
   setSprite: (sprite: any) => void;
 
   initializeBlock: boolean;
 
-  block: { image: ImageDATType; offset: number; header: number } | null;
-  setBlock: (image: ImageDATType, offset: number, header: number) => void;
+  block: { image: ImageDAT; offset: number; header: number } | null;
+  setBlock: (image: ImageDAT, offset: number, header: number) => void;
 
   frame: number | null;
   setFrame: (frame: number | null) => void;

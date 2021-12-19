@@ -1,8 +1,8 @@
 import range from "../../utils/range";
 
-export type LoDATType = number[][][];
+export type LoDAT = number[][][];
 
-export const parseLo = (buf: Buffer): LoDATType => {
+export const parseLo = (buf: Buffer): LoDAT => {
   const frames = buf.readUInt32LE(0);
   const overlays = buf.readUInt32LE(4);
 
