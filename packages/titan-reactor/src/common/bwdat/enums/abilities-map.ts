@@ -160,7 +160,7 @@ export const unitsByUpgradeType = {
 export const upgradesByUnitType = Object.keys(unitsByUpgradeType)
   .map((n) => Number(n))
   .reduce((memo: Record<number, number[]>, upgradeType: number) => {
-    for (const unitType of unitsByUpgradeType[upgradeType]) {
+    for (const unitType of unitsByUpgradeType[upgradeType as keyof typeof unitsByUpgradeType]) {
       if (memo[unitType]) {
         memo[unitType].push(Number(upgradeType));
       } else {
@@ -219,7 +219,7 @@ export const unitsByTechType = {
 export const techTypesByUnitType = Object.keys(unitsByTechType)
   .map((n) => Number(n))
   .reduce((memo: Record<number, number[]>, techType: number) => {
-    for (const unitType of unitsByTechType[techType]) {
+    for (const unitType of unitsByTechType[techType as keyof typeof unitsByTechType]) {
       if (memo[unitType]) {
         memo[unitType].push(Number(techType));
       } else {

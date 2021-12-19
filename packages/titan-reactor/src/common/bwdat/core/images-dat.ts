@@ -1,5 +1,5 @@
 import { DAT } from "./dat";
-import imageNames from "./strings/image-names.js";
+import imageNames from "./strings/image-names";
 import { ReadFile } from "../../types";
 
 export type ImageDAT = {
