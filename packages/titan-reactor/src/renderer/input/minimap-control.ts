@@ -1,6 +1,5 @@
 import { EventDispatcher, MathUtils, Vector3 } from "three";
-
-import CanvasTarget from "../../common/image/canvas-target";
+import { CanvasTarget } from "../../common/image";
 
 const LeftMouse = 0;
 

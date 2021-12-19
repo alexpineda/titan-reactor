@@ -7,10 +7,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CommandsStream } from "downgrade-replay";
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
-import CanvasTarget from "../common/image/canvas-target";
+import { CanvasTarget } from "../common/image";
 import { RenderMode } from "../common/settings";
 import {
-  BwDATType,
+  BwDAT,
   ChkUnitType,
   ReplayPlayer,
   TerrainInfo,
@@ -82,7 +82,7 @@ async function TitanReactorGame(
   rep,
   commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,
-  bwDat: BwDATType,
+  bwDat: BwDAT,
   createTitanImage: createTitanImage,
   audioMaster: AudioMaster
 ) {

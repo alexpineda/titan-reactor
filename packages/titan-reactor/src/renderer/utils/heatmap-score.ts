@@ -1,12 +1,12 @@
 import { easeCubicOut } from "d3-ease";
 import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { orders } from "../../common/bwdat/enums/orders";
-import { BwDATType } from "../../common/types";
+import { BwDAT } from "../../common/types";
 
 export default class HeatmapScore {
-  private bwDat: BwDATType;
+  private bwDat: BwDAT;
 
-  constructor(bwDat: BwDATType) {
+  constructor(bwDat: BwDAT) {
     this.bwDat = bwDat;
   }
 

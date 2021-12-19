@@ -1,7 +1,7 @@
 import { Settings } from "../../common/types/common";
 import { Clock, PerspectiveCamera, Vector3 } from "three";
 
-import CanvasTarget from "../../common/image/canvas-target";
+import { CanvasTarget } from "../../common/image";
 import PreviewCamera from "./preview-camera";
 
 export const CameraControlType = {

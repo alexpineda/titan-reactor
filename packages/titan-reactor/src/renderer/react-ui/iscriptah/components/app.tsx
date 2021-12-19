@@ -12,7 +12,7 @@ import { createTitanImageFactory } from "../../../../common/image";
 import { createIScriptRunnerFactory } from "../../../../common/iscript";
 import { GrpFileLoader } from "../../../../common/image";
 import { blockInitializing, blockFrameCountChanged } from "../iscript-reducer";
-import calculateImagesFromIscript from "../../../../common/image/util/images-from-iscript";
+import calculateImagesFromIscript from "../../../../common/iscript/images-from-iscript";
 import { UnitDAT } from "../../../../common/types";
 import { useIScriptahStore, useIscriptStore } from "../stores";
 

@@ -2,7 +2,7 @@ import { Color } from "three";
 
 import { orders, unitTypes } from "../../common/bwdat/enums";
 import {
-  BwDATType,
+  BwDAT,
   OwnerId,
   Player,
   SpriteIndex,
@@ -27,7 +27,7 @@ const flashColor = new Color(200, 200, 200);
 const scannerColor = new Color(0xff0000);
 
 export class BuildUnits {
-  private readonly bwDat: BwDATType;
+  private readonly bwDat: BwDAT;
   private readonly playersById: Record<OwnerId, Player>;
   private readonly fogOfWar: FogOfWar;
   private mapWidth: number;
@@ -37,7 +37,7 @@ export class BuildUnits {
   resourceImageData: ImageData;
 
   constructor(
-    bwDat: BwDATType,
+    bwDat: BwDAT,
     playersById: Record<OwnerId, Player>,
     mapWidth: number,
     mapHeight: number,

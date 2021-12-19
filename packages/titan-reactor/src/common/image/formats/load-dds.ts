@@ -7,8 +7,33 @@ import {
 } from "three";
 
 import { DDSLoader } from "./dds-loader";
+import Worker from "./dds-loader.worker.js";
 
-export const loadDDS = (buf: Buffer, encoding = sRGBEncoding) => {
+const _listeners: Set<(data: any) => void> = new Set();
+const worker = new Worker();
+
+worker.onmessage = ({ data }) => {
+  for (const listener of _listeners) {
+    listener(data);
+  }
+};
+
+export const loadDDS = async (buf: Buffer, encoding = sRGBEncoding) => {
+  const _id = Math.floor(Math.random() * 100000);
+
+  // worker.postMessage({ id: _id, buf });
+
+  // const texDatas = await new Promise((resolve) => {
+  //   const listener = (data) => {
+  //     const { id, result } = data;
+  //     if (id === _id) {
+  //       _listeners.delete(listener);
+  //       resolve(result);
+  //     }
+  //   };
+  //   _listeners.add(listener);
+  // });
+
   const ddsLoader = new DDSLoader();
 
   const texDatas = ddsLoader.parse(buf, true);

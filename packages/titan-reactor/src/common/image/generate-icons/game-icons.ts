@@ -2,8 +2,8 @@ import { ImageDATType } from "../../types";
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 
 import { loadDDS } from "../formats/load-dds";
-import GrpSDLegacy from "../grp-sd-legacy";
-import { rgbToCanvas } from "../util/canvas";
+import GrpSDLegacy from "../atlas/atlas-sd-legacy";
+import { rgbToCanvas } from "../canvas";
 
 // @todo break this up into multiple files
 export default class GameIcons extends Array {
@@ -63,7 +63,7 @@ export default class GameIcons extends Array {
     );
   }
 
-  renderGameIcons(
+  async renderGameIcons(
     renderer: WebGLRenderer,
     fixedWidth: number | null,
     fixedHeight: number | null,
@@ -85,7 +85,7 @@ export default class GameIcons extends Array {
       if (aliases && aliases[i] === undefined) {
         continue;
       }
-      const texture = loadDDS(dds[i]);
+      const texture = await loadDDS(dds[i]);
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -246,7 +246,7 @@ export default class GameIcons extends Array {
     this.icons.offY = maxOy;
   }
 
-  renderWireframes(renderer: WebGLRenderer, dds: Buffer[]) {
+  async renderWireframes(renderer: WebGLRenderer, dds: Buffer[]) {
     this.wireframes = [];
 
     const ortho = new OrthographicCamera(-1, 1, 1, -1);
@@ -254,7 +254,7 @@ export default class GameIcons extends Array {
     const scene = new Scene();
 
     for (let i = 0; i < dds.length; i++) {
-      const texture = loadDDS(dds[i]);
+      const texture = await loadDDS(dds[i]);
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");

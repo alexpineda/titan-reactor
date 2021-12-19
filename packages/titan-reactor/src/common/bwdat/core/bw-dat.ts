@@ -9,7 +9,7 @@ import { UnitDAT } from "./units-dat";
 import { UpgradeDATType } from "./upgrades-dat";
 import { WeaponDATType } from "./weapons-dat";
 
-export type BwDATType = {
+export interface BwDAT {
   iscript: IScriptDATType;
   sounds: SoundDATType[];
   tech: TechDataDATType[];
@@ -21,9 +21,9 @@ export type BwDATType = {
   sprites: SpriteDATType[];
   weapons: WeaponDATType[];
   grps: GrpType[];
-};
+}
 
-export class BwDAT implements BwDATType {
+export class BwDAT implements BwDAT {
   iscript: IScriptDATType;
   sounds: SoundDATType[];
   tech: TechDataDATType[];

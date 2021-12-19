@@ -1,5 +1,5 @@
 import { drawFunctions } from "../../../common/bwdat/enums";
-import { BwDATType } from "../../../common/types/bwdat";
+import { BwDAT } from "../../../common/types/bwdat";
 import ContiguousContainer from "./contiguous-container";
 
 const flags = Object.freeze({
@@ -65,13 +65,13 @@ export class ImagesBW extends ContiguousContainer {
 
   get isShadow() {
     return (
-      (this.bwDat as BwDATType).images[this.id].drawFunction ===
+      (this.bwDat as BwDAT).images[this.id].drawFunction ===
       drawFunctions.rleShadow
     );
   }
 
   get imageType() {
-    return (this.bwDat as BwDATType).images[this.id];
+    return (this.bwDat as BwDAT).images[this.id];
   }
 }
 export default ImagesBW;

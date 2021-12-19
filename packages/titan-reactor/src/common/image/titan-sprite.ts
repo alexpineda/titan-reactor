@@ -6,7 +6,7 @@ import {
   iscriptHeaders,
   overlayTypes,
 } from "../bwdat/enums";
-import { BwDATType, ImageDATType, UnitDAT } from "../types";
+import { BwDAT, ImageDATType, UnitDAT } from "../types";
 import pick from "../utils/pick";
 import { ImageInstance } from "./image-instance";
 import TitanImage3D from "./titan-image-3d";
@@ -19,7 +19,7 @@ enum ImageOrder {
 }
 
 export class TitanSprite extends Group {
-  private bwDat: BwDATType;
+  private bwDat: BwDAT;
   images: ImageInstance[];
   mainImage?: ImageInstance;
   logger: { log: (str: string) => void };
@@ -30,7 +30,10 @@ export class TitanSprite extends Group {
   destroyTitanSpriteCb: (titanSprite: TitanSprite) => void;
 
   //@todo merge this with other createTitanImage that takes SpriteInstance
-  createTitanImage: (image: number, parent: TitanSprite) => ImageInstance | null;
+  createTitanImage: (
+    image: number,
+    parent: TitanSprite
+  ) => ImageInstance | null;
 
   iscriptOptions: {
     createBullets: boolean;
@@ -39,9 +42,12 @@ export class TitanSprite extends Group {
 
   constructor(
     unit: any = null,
-    bwDat: BwDATType,
+    bwDat: BwDAT,
     createTitanSprite: (unit: UnitDAT | null) => TitanSprite,
-    createTitanImage: (image: number, parent: TitanSprite) => ImageInstance | null,
+    createTitanImage: (
+      image: number,
+      parent: TitanSprite
+    ) => ImageInstance | null,
     createTitanSpriteCb: (titanSprite: TitanSprite) => void,
     destroyTitanSpriteCb: (titanSprite: TitanSprite) => void = () => {},
     logger = { log: () => {} }

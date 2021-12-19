@@ -2,9 +2,9 @@ import { promises as fsPromises } from "fs";
 
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import Icons from "./icons";
-import { GrpFileLoader, GrpHD } from "../../common/image";
+import { GrpFileLoader, AtlasHD } from "../../common/image";
 import { Anim } from "../../common/image/formats";
-import { BwDATType } from "../../common/types";
+import { BwDAT } from "../../common/types";
 import {
   closeCascStorage,
   openCascStorage,
@@ -19,10 +19,29 @@ import {
 import electronFileLoader from "../utils/electron-file-loader";
 
 class Assets {
-  bwDat?: BwDATType;
-  grps: GrpHD[] = [];
+  bwDat?: BwDAT;
+  grps: AtlasHD[] = [];
   icons = new Icons();
-  selectionCirclesHD: GrpHD[] = [];
+  selectionCirclesHD: AtlasHD[] = [];
+
+  private async _loadSelectionCircles() {
+    this.selectionCirclesHD = [];
+    for (let i = 561; i < 571; i++) {
+      const selCircleGRP = new AtlasHD();
+      const readAnim = async () => await readCascFile(`anim/main_${i}.anim`);
+      const readAnimHD2 = async () =>
+        await readCascFile(`HD2/anim/main_${i}.anim`);
+
+      await selCircleGRP.load({
+        readAnim,
+        readAnimHD2,
+        imageDef: { index: i },
+      });
+
+      this.selectionCirclesHD.push(selCircleGRP);
+    }
+    updateLoadingProcess("assets");
+  }
 
   async preload(starcraftPath: string, communityModelsPath: string) {
     startLoadingProcess({
@@ -52,21 +71,7 @@ class Assets {
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = Anim(sdAnimBuf);
 
-    this.selectionCirclesHD = [];
-    for (let i = 561; i < 571; i++) {
-      const selCircleGRP = new GrpHD();
-      const readAnim = async () => await readCascFile(`anim/main_${i}.anim`);
-      const readAnimHD2 = async () =>
-        await readCascFile(`HD2/anim/main_${i}.anim`);
-      await selCircleGRP.load({
-        readAnim,
-        readAnimHD2,
-        imageDef: { index: i },
-      });
-
-      this.selectionCirclesHD.push(selCircleGRP);
-    }
-    updateLoadingProcess("assets");
+    this._loadSelectionCircles();
 
     // todo compare performance before removing prototype property to useGameStore
     ContiguousContainer.prototype.bwDat = this.bwDat;
@@ -76,8 +81,7 @@ class Assets {
     // // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
     // renderer.dispose();
 
-    await this.icons.generate(readCascFile);
-    updateLoadingProcess("assets");
+    this.icons.generate(readCascFile);
 
     const grpLoader = new GrpFileLoader(
       this.bwDat,
@@ -86,10 +90,13 @@ class Assets {
       sdAnim.sprites
     );
 
+    performance.mark("start");
     for (let i = 0; i < 999; i++) {
       this.grps[i] = await grpLoader.load(i);
-      updateLoadingProcess("assets");
     }
+
+    console.log("atlas load time", performance.measure("start"));
+
     completeLoadingProcess("assets");
   }
 

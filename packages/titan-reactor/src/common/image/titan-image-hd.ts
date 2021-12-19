@@ -14,7 +14,7 @@ import { IScriptRunner } from "../iscript";
 import { ImageDATType } from "../types/bwdat";
 import { GrpFrameType } from "../types/grp";
 import { createIScriptRunner } from "../types/iscript";
-import GrpHD from "./grp-hd";
+import AtlasHD from "./atlas/atlas-hd";
 import { ImageInstance } from "./image-instance";
 import TeamSpriteMaterial from "./team-sprite-material";
 
@@ -33,14 +33,14 @@ export class TitanImageHD extends Sprite implements ImageInstance {
   iscript: IScriptRunner;
   _zOff: number;
 
-  private atlas: GrpHD;
+  private atlas: AtlasHD;
   private uv: BufferAttribute | InterleavedBufferAttribute;
   private pos: BufferAttribute | InterleavedBufferAttribute;
   private lastSetFrame?: GrpFrameType;
   private lastFlipFrame?: boolean;
 
   constructor(
-    atlas: GrpHD,
+    atlas: AtlasHD,
     createIScriptRunner: createIScriptRunner,
     imageDef: ImageDATType,
     sprite: SpriteInstance,

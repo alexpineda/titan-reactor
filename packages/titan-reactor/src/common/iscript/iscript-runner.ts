@@ -1,21 +1,24 @@
-import { BwDATType, ImageDATType, IScriptRawType, AnimationBlockType } from "../types";
+import {
+  BwDAT,
+  ImageDATType,
+  IScriptRawType,
+  AnimationBlockType,
+} from "../types";
 import { ImageInstance } from "../image";
 
-import {
-  iscriptHeaders as headers,
-} from "../bwdat/enums/iscript-headers";
+import { iscriptHeaders as headers } from "../bwdat/enums/iscript-headers";
 
-type Commands =  AnimationBlockType & { header?: number };
+type Commands = AnimationBlockType & { header?: number };
 
 export class IScriptRunner {
-  private bwDat: BwDATType;
+  private bwDat: BwDAT;
   private iscript: IScriptRawType;
   private alreadyRun: Record<number, boolean> = {};
   private commandIndex = 0;
   private commands: Commands = [];
   private callStack?: {
-    commands: any,
-    commandIndex: number,
+    commands: any;
+    commandIndex: number;
   };
 
   image: ImageInstance;
@@ -23,13 +26,20 @@ export class IScriptRunner {
   tileset: number;
   logger: { log: () => void };
   dispatched = [];
-  dbg: { prevAnimBlock? : {
-    commands: any,
-    commandIndex: number,
-  }} = {}
-  
+  dbg: {
+    prevAnimBlock?: {
+      commands: any;
+      commandIndex: number;
+    };
+  } = {};
 
-  constructor(bwDat: BwDATType, tileset: number, image: ImageInstance, imageDesc: ImageDATType, state = {}) {
+  constructor(
+    bwDat: BwDAT,
+    tileset: number,
+    image: ImageInstance,
+    imageDesc: ImageDATType,
+    state = {}
+  ) {
     this.bwDat = bwDat;
     this.image = image;
     this.imageDesc = imageDesc;
@@ -144,7 +154,7 @@ export class IScriptRunner {
   }
 
   //@todo fix types
-  _dispatch(command: any, event? : any) {
+  _dispatch(command: any, event?: any) {
     this.logger.log(`🧩 ${command}`, event);
     this.dispatched.push([command, event]);
     return true;
@@ -187,7 +197,7 @@ export class IScriptRunner {
     while (true) {
       if (this.commandIndex >= this.commands.length) {
         let nextHeader = this.commands.header;
-        if (!nextHeader){
+        if (!nextHeader) {
           throw new Error("command must have header");
         }
         let nextAnimationBlock;
@@ -499,6 +509,7 @@ export class IScriptRunner {
   }
 }
 
-export const createIScriptRunnerFactory = (bwDat: BwDATType, tileset: number) => {
-  return (image: ImageInstance, imageDesc: ImageDATType, state = {}) => new IScriptRunner(bwDat, tileset, image, imageDesc, state);
+export const createIScriptRunnerFactory = (bwDat: BwDAT, tileset: number) => {
+  return (image: ImageInstance, imageDesc: ImageDATType, state = {}) =>
+    new IScriptRunner(bwDat, tileset, image, imageDesc, state);
 };

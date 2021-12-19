@@ -7,4 +7,4 @@ export { TechDataDATType } from "../bwdat/core/tech-data-dat";
 export { UnitDAT } from "../bwdat/core/units-dat";
 export { UpgradeDATType } from "../bwdat/core/upgrades-dat";
 export { WeaponDATType } from "../bwdat/core/weapons-dat";
-export { BwDATType } from "../bwdat/core/bw-dat";
+export { BwDAT } from "../bwdat/core/bw-dat";

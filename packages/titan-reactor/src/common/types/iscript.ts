@@ -1,7 +1,7 @@
 import { Object3D } from "three";
 
 import { IScriptRunner } from "../iscript";
-import { BwDATType, ImageDATType } from "./bwdat";
+import { BwDAT, ImageDATType } from "./bwdat";
 
 export type createIScriptRunner = (
   image: Object3D,
@@ -10,7 +10,7 @@ export type createIScriptRunner = (
 ) => IScriptRunner;
 
 export type createIScriptRunnerFactory = (
-  bwDat: BwDATType,
+  bwDat: BwDAT,
   tileset: number
 ) => createIScriptRunner;
 
@@ -39,7 +39,6 @@ type op__0c = ["__0c", opArgNone];
 type op__2d = ["__2d", opArgNone];
 type op__3e = ["__3e", opArgNone];
 type op__43 = ["__43", opArgNone];
-
 
 type opPlayFrame = ["playfram", opArgOne];
 type opPlayframtile = ["playframtile", opArgOne];
@@ -95,12 +94,10 @@ type opTargetRangeCondJmp = ["trgtrangecondjmp", opArgTwo];
 type opTargetArcCondJmp = ["trgtarccondjmp", opArgThree];
 type opCurDirectCondJump = ["curdirectcondjmp", opArgThree];
 type opImgulNextId = ["imgulnextid", opArgTwo];
-type opLiftOffCondJmp = ["liftoffcondjmp", [ number]];
-type opWarpOverlay = ["warpoverlay", [ number]];
-type opGrdSprol = ["grdsprol", [ number, number, number]];
+type opLiftOffCondJmp = ["liftoffcondjmp", [number]];
+type opWarpOverlay = ["warpoverlay", [number]];
+type opGrdSprol = ["grdsprol", [number, number, number]];
 type opDoGrdDamage = ["dogrddamage", opArgNone];
-
-
 
 type Operations =
   | opGoto

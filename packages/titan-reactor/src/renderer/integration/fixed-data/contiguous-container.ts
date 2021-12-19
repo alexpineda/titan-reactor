@@ -1,4 +1,4 @@
-import { BwDATType } from "../../../common/bwdat/core/bw-dat";
+import { BwDAT } from "../../../common/bwdat/core/bw-dat";
 
 /**
  An abstract class.
@@ -8,7 +8,7 @@ export class ContiguousContainer {
   count: number;
   protected _offset: number;
   protected _buf?: Buffer;
-  bwDat?: BwDATType;
+  bwDat?: BwDAT;
   protected byteLength = 0;
 
   constructor(count = 0) {

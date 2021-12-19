@@ -1,12 +1,12 @@
 import SpriteInstance from "../../renderer/game/sprite-instance";
 
 import { createIScriptRunner, ImageDATType } from "../types";
-import GrpHD from "./grp-hd";
+import AtlasHD from "./atlas/atlas-hd";
 import TitanImageHD from "./titan-image-hd";
 
 export default class TitanImageSD2 extends TitanImageHD {
   constructor(
-    atlas: GrpHD,
+    atlas: AtlasHD,
     createIScriptRunner: createIScriptRunner,
     imageDef: ImageDATType,
     sprite: SpriteInstance

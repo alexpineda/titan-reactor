@@ -1,4 +1,4 @@
-import CanvasTarget from "../../common/image/canvas-target";
+import { CanvasTarget } from "../../common/image";
 import ProjectedCameraView from "../camera/projected-camera-view";
 import Creep from "../creep/creep";
 import FogOfWar from "../fogofwar/fog-of-war";

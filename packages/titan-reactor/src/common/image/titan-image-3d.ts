@@ -4,14 +4,14 @@ import THREE, { AnimationAction, AnimationMixer, Object3D } from "three";
 
 import SpriteInstance from "../../renderer/game/sprite-instance";
 import { IScriptRunner } from "../iscript";
-import { BwDATType, ImageDATType } from "../types/bwdat";
+import { BwDAT, ImageDATType } from "../types/bwdat";
 import { createIScriptRunner } from "../types/iscript";
-import Grp3D from "./grp-3d";
+import Atlas3D from "./atlas/atlas-3d";
 import { ImageInstance } from "./image-instance";
 
 export const createTitanImage3D = (
-  bwDat: BwDATType,
-  atlases: Grp3D[],
+  bwDat: BwDAT,
+  atlases: Atlas3D[],
   createIScriptRunner: createIScriptRunner,
   onError: (msg: string) => void = () => {}
 ) => {
@@ -30,7 +30,7 @@ export const createTitanImage3D = (
 };
 
 export class TitanImage3D extends Object3D implements ImageInstance {
-  atlas: Grp3D;
+  atlas: Atlas3D;
   model: Object3D;
   sprite: SpriteInstance;
   imageDef: ImageDATType;
@@ -43,7 +43,7 @@ export class TitanImage3D extends Object3D implements ImageInstance {
   _zOff: number;
 
   constructor(
-    atlas: Grp3D,
+    atlas: Atlas3D,
     createIScriptRunner: createIScriptRunner,
     imageDef: ImageDATType,
     sprite: SpriteInstance

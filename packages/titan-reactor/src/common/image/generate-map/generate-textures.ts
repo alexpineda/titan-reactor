@@ -1,9 +1,9 @@
 import { WebGLRenderer } from "three";
 
-import * as HD from "./hd";
-import * as MapData from "./map-data";
-import * as SD from "./sd";
-import {TileSetData} from "./map-data"
+import * as hd from "./hd";
+import * as map from "./map-data";
+import * as sd from "./sd";
+import { TileSetData } from "./map-data";
 
 export const generateTextures = async (
   mapWidth: number,
@@ -29,7 +29,7 @@ export const generateTextures = async (
   });
   renderer.autoClear = false;
 
-  const mapBitmaps = MapData.bitmaps(mapWidth, mapHeight, {
+  const mapBitmaps = map.bitmaps(mapWidth, mapHeight, {
     mapTiles,
     palette,
     megatiles,
@@ -38,20 +38,20 @@ export const generateTextures = async (
     tilegroupU16,
   });
 
-  const mapHd = HD.mapDataToTextures(renderer, mapWidth, mapHeight, {
+  const mapHd = hd.mapDataToTextures(renderer, mapWidth, mapHeight, {
     hdTiles,
     ...mapBitmaps,
   });
 
-  const creepEdgesTextureHD = HD.ddsToCreepEdgesTexture(renderer, creepGrpHD);
-  const creepTextureHD = HD.ddsToCreepTexture(renderer, hdTiles, tilegroupU16);
+  const creepEdgesTextureHD = hd.ddsToCreepEdgesTexture(renderer, creepGrpHD);
+  const creepTextureHD = hd.ddsToCreepTexture(renderer, hdTiles, tilegroupU16);
 
-  const creepEdgesTextureSD = await SD.grpToCreepEdgesTextureAsync(
+  const creepEdgesTextureSD = await sd.grpToCreepEdgesTextureAsync(
     creepGrpSD,
     palette
   );
 
-  const creepTextureSD = SD.grpToCreepTexture(
+  const creepTextureSD = sd.grpToCreepTexture(
     palette,
     megatiles,
     minitiles,

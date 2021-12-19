@@ -6,7 +6,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget, TitanSprite } from "../common/image";
 import {
-  BwDATType,
+  BwDAT,
   ChkSpriteType,
   ChkUnitType,
   TerrainInfo,
@@ -40,7 +40,7 @@ function createStartLocation(
 }
 
 async function TitanReactorMap(
-  bwDat: BwDATType,
+  bwDat: BwDAT,
   preplacedMapUnits: ChkUnitType[],
   preplacedMapSprites: ChkSpriteType[],
   terrainInfo: TerrainInfo,
@@ -205,7 +205,6 @@ async function TitanReactorMap(
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
 
-
   let last = 0;
   let frame = 0;
   let frameElapsed = 0;
@@ -213,7 +212,6 @@ async function TitanReactorMap(
   renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
   function gameLoop(elapsed: number) {
-
     const delta = elapsed - last;
     frameElapsed += delta;
     if (frameElapsed > 42) {
@@ -275,7 +273,7 @@ async function TitanReactorMap(
 
     window.document.body.style.cursor = "";
     window.removeEventListener("resize", sceneResizeHandler);
-    
+
     renderer.dispose();
     scene.dispose();
     cameraRig.dispose();

@@ -3,9 +3,9 @@ import parseIscript from "../../iscript/parse-iscript";
 import path from "path";
 import { Buffer } from "buffer";
 
-import { ReadFile,  GrpFrameType, GrpType, IScriptDATType } from "../../types";
+import { ReadFile, GrpFrameType, GrpType, IScriptDATType } from "../../types";
 import range from "../../utils/range";
-import { BwDAT, BwDATType } from "./bw-dat";
+import { BwDAT } from "./bw-dat";
 import { FlingyDAT } from "./flingy-dat";
 import { ImagesDAT } from "./images-dat";
 import { OrdersDAT } from "./orders-dat";
@@ -17,7 +17,7 @@ import { UnitDAT, UnitsDAT } from "./units-dat";
 import { UpgradesDAT } from "./upgrades-dat";
 import { WeaponsDAT } from "./weapons-dat";
 
-export async function loadDATFiles(readFile: ReadFile): Promise<BwDATType> {
+export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
   //@todo move parse iscript to common/iscript
   const iscript = parseIscript(
     await readFile("scripts/iscript.bin")

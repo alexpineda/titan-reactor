@@ -23,13 +23,13 @@ export default async (readFile: ReadFile) => {
   );
 
   const cmdIcons = new GameIcons();
-  cmdIcons.renderCmdIcons(
+  await cmdIcons.renderCmdIcons(
     renderer,
     readDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
   );
 
   const raceInsetIcons = new GameIcons();
-  raceInsetIcons.renderRaceInset(
+  await raceInsetIcons.renderRaceInset(
     renderer,
     readDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );

@@ -1,5 +1,5 @@
 import { unitTypes } from "../../../common/bwdat/enums";
-import { BwDATType, UnitDAT } from "../../../common/types/bwdat";
+import { BwDAT, UnitDAT } from "../../../common/types/bwdat";
 import ContiguousContainer from "./contiguous-container";
 import { UnitRAW } from "../unit-raw";
 
@@ -134,7 +134,7 @@ export class UnitsBW extends ContiguousContainer implements UnitRAW {
   }
 
   get unitType(): UnitDAT {
-    return (this.bwDat as BwDATType).units[this.typeId];
+    return (this.bwDat as BwDAT).units[this.typeId];
   }
 
   get isFlying() {

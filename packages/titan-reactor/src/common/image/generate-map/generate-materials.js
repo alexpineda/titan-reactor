@@ -21,7 +21,7 @@ import {
   BlendFunction,
 } from "postprocessing";
 import { BypassingConvolutionMaterial } from "./effects/bypassing-convolution-material";
-import { blendNonZeroPixels } from "../util/blend";
+import { blendNonZeroPixels } from "../rgb";
 import { MapEffect } from "./effects/map-effect";
 import { minimapBitmap as genMinimapBitmap } from "./sd";
 

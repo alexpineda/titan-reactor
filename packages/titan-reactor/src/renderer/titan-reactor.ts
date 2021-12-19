@@ -47,7 +47,7 @@ import {
 } from "./stores";
 import TitanReactorGame from "./titan-reactor-game";
 import TitanReactorMap from "./titan-reactor-map";
-import { BwDATType } from "../common/types";
+import { BwDAT } from "../common/types";
 import IScriptah from "./react-ui/iscriptah/iscriptah";
 
 const loadScx = (filename: string) =>
@@ -224,7 +224,7 @@ export class TitanReactor {
       createTitanImageFactory(
         assets.bwDat,
         assets.grps,
-        createIScriptRunnerFactory(assets.bwDat as BwDATType, chk.tileset),
+        createIScriptRunnerFactory(assets.bwDat as BwDAT, chk.tileset),
         (err) => log(err, "error")
       ),
       audioMaster
