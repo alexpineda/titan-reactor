@@ -1,5 +1,4 @@
 import { PxToGameUnit } from "../types/util";
-import invertObj from "./invert-obj";
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
 
@@ -22,22 +21,22 @@ export const pxToMapMeter = (
     },
   };
 };
-export const gameSpeeds = {
-  superSlow: 334, // ms/frame
-  slowest: 167, // ms/frame
-  slower: 111,
-  slow: 83,
-  normal: 67,
-  fast: 56,
-  faster: 48,
-  fastest: 42,
-  "1.5x": 31,
-  "2x": 21,
-  "4x": 10,
-  "8x": 5,
-  "16x": 2,
-};
-export const gameSpeedNames = invertObj(gameSpeeds);
+
+export enum gameSpeeds {
+  superSlow = 334, // ms/frame
+  slowest = 167, // ms/frame
+  slower = 111,
+  slow = 83,
+  normal = 67,
+  fast = 56,
+  faster = 48,
+  fastest = 42,
+  "1.5x" = 31,
+  "2x" = 21,
+  "4x" = 10,
+  "8x" = 5,
+  "16x" = 2,
+}
 
 export const framesBySeconds = (frames = 1, roundFn = Math.ceil) =>
   roundFn((frames * 1000) / gameSpeeds.fastest);

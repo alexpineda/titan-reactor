@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import shallow from "zustand/shallow";
 import { useSettingsStore, useGameStore } from "../../stores";
 
-import { gameSpeeds, gameSpeedNames } from "../../../common/utils/conversions";
+import { gameSpeeds } from "../../../common/utils/conversions";
 
 const gameSpeedsArray = [
   gameSpeeds.slowest,
@@ -166,7 +166,7 @@ const ReplayPosition = ({ className }) => {
           </span>
         </span>
       ) : (
-        capitalizeFirst(gameSpeedNames[gameSpeed])
+        capitalizeFirst(gameSpeeds[gameSpeed])
       );
     }
 

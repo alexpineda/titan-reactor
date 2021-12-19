@@ -7,7 +7,7 @@ import {
   sRGBEncoding,
 } from "three";
 
-import ElectronGLTFLoader from "../../utils/gltf-loader";
+import ElectronGLTFLoader from "./gltf-loader";
 
 export type GlbResponse = {
   model: Group;

@@ -1,7 +1,10 @@
 import React, { useMemo } from "react";
 import shallow from "zustand/shallow";
 import { ipcRenderer } from "electron";
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../../common/ipc";
+import {
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+} from "../../common/ipc-handle-names";
 
 import WrappedElement from "./wrapped-element";
 import Minimap from "./game/minimap";

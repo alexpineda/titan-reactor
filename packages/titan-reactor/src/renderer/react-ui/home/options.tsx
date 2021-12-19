@@ -2,7 +2,7 @@ import { ipcRenderer, IpcRendererEvent } from "electron";
 import React, { useEffect, useState } from "react";
 import shallow from "zustand/shallow";
 
-import { SELECT_FOLDER } from "../../../common/ipc";
+import { SELECT_FOLDER } from "../../../common/ipc-handle-names";
 import { selectFolder } from "../../ipc";
 import { useSettingsStore } from "../../stores";
 import {
@@ -175,7 +175,7 @@ export default ({
             <p>A directory containing zero or more 3d models.</p>
           </Option>
 
-          <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+          <Option label={phrases["SETTINGS_TEMP_FILES_PATH"]}>
             <PathSelect
               prop={"tempPath"}
               phrases={phrases}

@@ -15,7 +15,10 @@ import {
 import shallow from "zustand/shallow";
 import Menu from "./game/menu";
 import { ipcRenderer } from "electron";
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../../common/ipc";
+import {
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+} from "../../common/ipc-handle-names";
 
 const hudStoreSelector = (state: HudStore) => ({
   showInGameMenu: state.show.inGameMenu,

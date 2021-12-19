@@ -1,6 +1,10 @@
 import { ipcRenderer } from "electron";
 
-import { LOAD_REPLAY_FROM_FILE, REQUEST_NEXT_FRAMES, STOP_READING_GAME_STATE } from "../../common/ipc";
+import {
+  LOAD_REPLAY_FROM_FILE,
+  REQUEST_NEXT_FRAMES,
+  STOP_READING_GAME_STATE,
+} from "../../common/ipc-handle-names";
 
 export const requestNextFrames = async (minFrames: number) => {
   return await ipcRenderer.invoke(REQUEST_NEXT_FRAMES, minFrames);

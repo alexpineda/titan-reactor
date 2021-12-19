@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { GET_SETTINGS, SET_SETTINGS } from "../../common/ipc";
+import { GET_SETTINGS, SET_SETTINGS } from "../../common/ipc-handle-names";
 import { Settings } from "../../common/types";
 
 export const getSettings = async () => {

@@ -1,8 +1,5 @@
 // ported from ShieldBattery/ShieldBattery/master/app/find-install-path.js
 import Registry from "winreg";
-import { app } from "electron";
-import path from "path";
-import fileExists from "../../common/utils/file-exists";
 
 function readRegValue(hive, key, value) {
   return new Promise((resolve, reject) => {
@@ -15,27 +12,6 @@ function readRegValue(hive, key, value) {
       }
     });
   });
-}
-
-export async function findMapsPath() {
-  const mapsPath = path.join(app.getPath("documents"), "Starcraft", "Maps");
-  if (await fileExists(mapsPath)) {
-    return mapsPath;
-  }
-  return "";
-}
-
-export async function findReplaysPath() {
-  const replaysPath = path.join(
-    app.getPath("documents"),
-    "Starcraft",
-    "Maps",
-    "Replays"
-  );
-  if (await fileExists(replaysPath)) {
-    return replaysPath;
-  }
-  return "";
 }
 
 export async function findStarcraftPath() {

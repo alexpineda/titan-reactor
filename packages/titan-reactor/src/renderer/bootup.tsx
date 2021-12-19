@@ -3,7 +3,10 @@ import { promises as fsPromises } from "fs";
 import React from "react";
 import { render } from "react-dom";
 
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG } from "../common/ipc";
+import {
+  OPEN_MAP_DIALOG,
+  OPEN_REPLAY_DIALOG,
+} from "../common/ipc-handle-names";
 import version from "../common/version";
 import { log } from "./ipc";
 import App from "./react-ui/app";
