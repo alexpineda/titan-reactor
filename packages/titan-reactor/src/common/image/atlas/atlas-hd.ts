@@ -2,7 +2,7 @@ import { CompressedTexture } from "three";
 
 import { ImageDAT } from "../../bwdat/core/images-dat";
 import { AnimDds, AnimSprite, GrpFrameType, GRPInterface } from "../../types";
-import { parseAnim, loadDDS } from "../formats";
+import { parseAnim, createDDSTexture } from "../formats";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
   buf.slice(ddsOffset, ddsOffset + size);
@@ -39,7 +39,7 @@ export class AtlasHD implements GRPInterface {
 
     if (sprite.maps.diffuse) {
       const ddsBuf = getBufDds(buf, sprite.maps.diffuse);
-      this.diffuse = await loadDDS(ddsBuf);
+      this.diffuse = await createDDSTexture(ddsBuf);
     }
 
     // if (anim.sprite.maps?.diffuse) {
@@ -56,7 +56,7 @@ export class AtlasHD implements GRPInterface {
 
     if (sprite.maps.teamcolor) {
       const ddsBuf = getBufDds(buf, sprite.maps.teamcolor);
-      this.teamcolor = await loadDDS(ddsBuf);
+      this.teamcolor = await createDDSTexture(ddsBuf);
     }
     // if (anim.sprite.maps?.teamcolor) {
     //   const ddsBuf = getBuf(anim.sprite.maps.teamcolor);

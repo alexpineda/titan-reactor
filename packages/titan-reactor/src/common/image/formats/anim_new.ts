@@ -110,7 +110,7 @@ const parseFrames = (buf: Buffer, numFrames: number, o: number) => {
   return result;
 };
 
-export default (buf: Buffer) => {
+export const parseAnim = (buf: Buffer) => {
   const header = buf.slice(0, 12 + 10 * 32);
   const magic = header.slice(0, 4).toString();
   const version = Version[header.readUInt16LE(4)];
@@ -144,3 +144,4 @@ export default (buf: Buffer) => {
 
   return sprites;
 };
+export default parseAnim;

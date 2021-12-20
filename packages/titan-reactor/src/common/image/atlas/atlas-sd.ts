@@ -7,7 +7,7 @@ import {
 } from "three";
 
 import { AnimDds, GrpFrameType, GRPInterface } from "../../types";
-import { loadDDS } from "../formats";
+import { createDDSTexture } from "../formats";
 
 /**
  * SD via Anim
@@ -41,7 +41,7 @@ export class AtlasSD implements GRPInterface {
 
     if (sprite.maps.diffuse) {
       const ddsBuf = getBuf(sprite.maps.diffuse);
-      this.diffuse = await loadDDS(ddsBuf);
+      this.diffuse = await createDDSTexture(ddsBuf);
     } else {
       throw new Error("diffuse map required");
     }

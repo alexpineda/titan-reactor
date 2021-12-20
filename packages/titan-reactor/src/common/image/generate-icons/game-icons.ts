@@ -1,7 +1,7 @@
 import { ImageDAT } from "../../types";
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 
-import { loadDDS } from "../formats/load-dds";
+import { createDDSTexture } from "../formats/create-dds-texture";
 import GrpSDLegacy from "../atlas/atlas-sd-legacy";
 import { rgbToCanvas } from "../canvas";
 
@@ -85,7 +85,7 @@ export default class GameIcons extends Array {
       if (aliases && aliases[i] === undefined) {
         continue;
       }
-      const texture = await loadDDS(dds[i]);
+      const texture = await createDDSTexture(dds[i]);
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -254,7 +254,7 @@ export default class GameIcons extends Array {
     const scene = new Scene();
 
     for (let i = 0; i < dds.length; i++) {
-      const texture = await loadDDS(dds[i]);
+      const texture = await createDDSTexture(dds[i]);
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");

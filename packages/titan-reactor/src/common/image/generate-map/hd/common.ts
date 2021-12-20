@@ -1,13 +1,11 @@
 import { ClampToEdgeWrapping, CompressedTexture, LinearFilter } from "three";
 
-import { DDSLoader } from "../../formats/dds-loader";
-
-const ddsLoader = new DDSLoader();
+import parseDDS from "../../formats/parse-dds";
 
 export const PX_PER_TILE = 128;
 
 export const loadHdTile = (buf: Buffer) => {
-  const {mipmaps, width, height, format} = ddsLoader.parse(buf, false);
+  const { mipmaps, width, height, format } = parseDDS(buf, false);
 
   const hdTexture = new CompressedTexture(mipmaps, width, height, format);
   hdTexture.minFilter = LinearFilter;
