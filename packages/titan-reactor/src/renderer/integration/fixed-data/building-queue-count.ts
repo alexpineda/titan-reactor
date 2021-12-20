@@ -8,7 +8,7 @@ export const BUILDING_BYTE_LENGTH = 19;
 
 // represents units that are currently building / training
 export class BuildingQueueCountBW
-  extends ContiguousContainer
+  extends ContiguousContainer<BuildingQueueRAW>
   implements BuildingQueueRAW
 {
   protected override byteLength = BUILDING_BYTE_LENGTH;

@@ -21,14 +21,14 @@ const selector = (state: UnitSelectionStore) =>
   Boolean(state.selectedUnits[0] && state.selectedUnits[0].loaded);
 
 const LargeUnitDetail = ({ unit }: Props) => {
-  const showHp = !(unit.unitType.isResourceContainer && !unit.owner);
-  const showShields = unit.unitType.shieldsEnabled;
-  const showEnergy = unit.unitType.isSpellcaster;
+  const showHp = !(unit.dat.isResourceContainer && !unit.owner);
+  const showShields = unit.dat.shieldsEnabled;
+  const showEnergy = unit.dat.isSpellcaster;
   const showKills =
     !(
-      !unit.unitType.isSpellcaster &&
-      unit.unitType.groundWeapon === 130 &&
-      unit.unitType.airWeapon === 130
+      !unit.dat.isSpellcaster &&
+      unit.dat.groundWeapon === 130 &&
+      unit.dat.airWeapon === 130
     ) || showKillsExtraUnits.includes(unit.typeId);
 
   const showResourceAmount = unit.resourceAmount !== null;

@@ -5,5 +5,5 @@ export interface ResearchRAW {
   typeId: number;
   remainingBuildTime: number;
   unitId: number;
-  type: TechDataDAT;
+  dat: TechDataDAT;
 }

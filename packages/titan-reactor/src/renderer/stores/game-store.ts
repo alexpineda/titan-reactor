@@ -85,7 +85,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   selectOfType: (ut) =>
     get().setSelectedUnits(
-      get().selectedUnits.filter(({ unitType }) => unitType === ut)
+      get().selectedUnits.filter(({ dat: unitType }) => unitType === ut)
     ),
   toggleFogOfWar: () => set((state) => ({ fogOfWar: !state.fogOfWar })),
   togglePlayerVision: (id) =>

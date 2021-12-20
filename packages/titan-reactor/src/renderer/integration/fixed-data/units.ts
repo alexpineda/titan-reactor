@@ -50,7 +50,7 @@ const flags = Object.freeze({
 
 export const UNIT_BYTE_LENGTH = 30;
 // all units in a bw frame
-export class UnitsBW extends ContiguousContainer implements UnitRAW {
+export class UnitsBW extends ContiguousContainer<UnitRAW> implements UnitRAW {
   protected override byteLength = UNIT_BYTE_LENGTH;
 
   get id() {
@@ -94,7 +94,7 @@ export class UnitsBW extends ContiguousContainer implements UnitRAW {
   }
 
   get remainingBuildTime() {
-    if (this.unitType.isResourceContainer && this.isComplete) {
+    if (this.dat.isResourceContainer && this.isComplete) {
       return 0;
     }
     return this._read16(22);
@@ -117,7 +117,7 @@ export class UnitsBW extends ContiguousContainer implements UnitRAW {
   }
 
   get resourceAmount() {
-    if (this.unitType.isResourceContainer && this.isComplete) {
+    if (this.dat.isResourceContainer && this.isComplete) {
       // remainingBuildTime
       return this._read16(22);
     }
@@ -133,7 +133,7 @@ export class UnitsBW extends ContiguousContainer implements UnitRAW {
     return -((d * Math.PI) / 128) + Math.PI / 2;
   }
 
-  get unitType(): UnitDAT {
+  get dat(): UnitDAT {
     return (this.bwDat as BwDAT).units[this.typeId];
   }
 
@@ -181,7 +181,7 @@ export class UnitsBW extends ContiguousContainer implements UnitRAW {
       remainingBuildTime: this.remainingBuildTime,
       remainingTrainTime: this.remainingTrainTime,
       angle: this.angle,
-      unitType: this.unitType,
+      dat: this.dat,
       isFlying: this.isFlying,
       isCloaked: this.isCloaked,
       isComplete: this.isComplete,

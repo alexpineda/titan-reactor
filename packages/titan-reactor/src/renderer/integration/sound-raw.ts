@@ -1,6 +1,6 @@
 export interface SoundRAW {
   id: number;
-  unitTypeId: number;
+  unitTypeId: number | null;
   priority: number;
   minVolume: number;
   x: number;

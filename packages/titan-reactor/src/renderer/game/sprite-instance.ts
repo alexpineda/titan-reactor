@@ -1,12 +1,11 @@
 import { Object3D } from "three";
+import { UnitInstance } from ".";
 
 import { ImageInstance } from "../../common/image";
-import { SpriteDATType } from "../../common/types";
+import { SpriteDAT } from "../../common/types";
 import SelectionBars from "./selection-bars";
 import SelectionCircle from "./selection-circle";
 import { UpgradeCompleted } from "./unit-instance";
-
-const typeIds = ({ typeId }: { typeId: number }) => typeId;
 
 //@todo create interface that TitanSprite can implement
 /**
@@ -18,19 +17,23 @@ export class SpriteInstance extends Object3D {
   selectionCircle = new SelectionCircle();
   selectionBars = new SelectionBars();
   lastZOff = 0;
-  spriteType?: SpriteDATType;
+  spriteDAT: SpriteDAT;
 
-  constructor(index: number) {
+  //@todo refactor
+  unit?: UnitInstance;
+
+  constructor(index: number, spriteDAT: SpriteDAT) {
     super();
     this.index = index;
+    this.spriteDAT = spriteDAT;
   }
 
   select(completedUpgrades: UpgradeCompleted[]) {
-    this.selectionCircle.update(this.spriteType as SpriteDATType);
+    this.selectionCircle.update(this.spriteDAT as SpriteDAT);
     this.selectionCircle.renderOrder = this.renderOrder - 1;
     this.selectionBars.update(
       this,
-      completedUpgrades.map(typeIds),
+      completedUpgrades,
       this.renderOrder,
       this.selectionCircle.grp.height / 256
     );

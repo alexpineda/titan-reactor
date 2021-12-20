@@ -1,7 +1,11 @@
+import { SpriteRAW } from "../sprite-raw";
 import ContiguousContainer from "./contiguous-container";
 
 export const SPRITE_BYTE_LENGTH = 17;
-export class SpritesBW extends ContiguousContainer {
+export class SpritesBW
+  extends ContiguousContainer<SpriteRAW>
+  implements SpriteRAW
+{
   protected override byteLength = SPRITE_BYTE_LENGTH;
 
   get default() {
@@ -56,7 +60,10 @@ export class SpritesBW extends ContiguousContainer {
     return Math.floor(this.y / 32);
   }
 
-  get spriteType() {
+  get dat() {
+    if (!this.bwDat) {
+      throw new Error("bwDat not set");
+    }
     return this.bwDat.sprites[this.id];
   }
 }

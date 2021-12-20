@@ -374,14 +374,14 @@ async function TitanReactorGame(
     for (const spriteBW of spritesBW.items()) {
       let sprite = sprites.get(spriteBW.index);
       if (!sprite) {
-        sprite = new SpriteInstance(spriteBW.index);
+        sprite = new SpriteInstance(spriteBW.index, spriteBW.dat);
         sprites.set(spriteBW.index, sprite);
       }
-      sprite.spriteType = spriteBW.spriteType;
+      sprite.spriteDAT = spriteBW.dat;
 
       const buildingIsExplored =
         sprite.unit &&
-        sprite.unit.unitType.isBuilding &&
+        sprite.unit.dat.isBuilding &&
         fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
 
       // doodads and resources are always visible
@@ -389,8 +389,8 @@ async function TitanReactorGame(
       // show if a building has been explored
       sprite.visible =
         spriteBW.owner === 11 ||
-        spriteBW.spriteType.image.iscript === 336 ||
-        spriteBW.spriteType.image.iscript === 337 ||
+        spriteBW.dat.image.iscript === 336 ||
+        spriteBW.dat.image.iscript === 337 ||
         fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
 
       // don't update explored building frames so viewers only see last built frame
@@ -479,7 +479,7 @@ async function TitanReactorGame(
 
           if (sprite.unit) {
             titanImage.rotation.y = sprite.unit.angle;
-            if (!image.imageType.clickable) {
+            if (!image.dat.clickable) {
               sprite.unit.canSelect = false;
             }
             if (sprite.unit.canSelect) {

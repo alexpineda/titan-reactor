@@ -12,7 +12,7 @@ import { OrdersDAT } from "./orders-dat";
 import { LoDAT, parseLo } from "./parse-lo";
 import { SoundsDAT } from "./sounds-dat";
 import { SpritesDAT } from "./sprites-dat";
-import { TechDataDAT } from "./tech-data-dat";
+import { TechDatasDAT } from "./tech-data-dat";
 import { UnitDAT, UnitsDAT } from "./units-dat";
 import { UpgradesDAT } from "./upgrades-dat";
 import { WeaponsDAT } from "./weapons-dat";
@@ -43,7 +43,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     await new UnitsDAT(readFile, images, flingy, sounds).load()
   ).map((u) => new UnitDAT(u));
 
-  const tech = await new TechDataDAT(readFile).load();
+  const tech = await new TechDatasDAT(readFile).load();
   const upgrades = await new UpgradesDAT(readFile).load();
   const orders = await new OrdersDAT(readFile).load();
 

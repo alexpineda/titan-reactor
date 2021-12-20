@@ -19,24 +19,24 @@ interface Props {
 }
 
 const getDisplayText = (unit: UnitInstance) => {
-  if (!unit.owner || !unit.unitType.isBuilding) {
+  if (!unit.owner || !unit.dat.isBuilding) {
     return "";
   }
   if (unit.isComplete || unit.remainingTrainTime) {
     if (
       unit.isComplete &&
       unit.remainingTrainTime &&
-      unit.unitType.isTerran &&
+      unit.dat.isTerran &&
       !unit.queue &&
-      !unit.unitType.isAddon
+      !unit.dat.isAddon
     ) {
       return "Adding On";
     }
     return "";
   }
-  if (unit.unitType.isTerran) {
+  if (unit.dat.isTerran) {
     return "Constructing";
-  } else if (unit.unitType.isZerg) {
+  } else if (unit.dat.isZerg) {
     return "Mutating";
   } else {
     return "Warping";
@@ -84,7 +84,7 @@ const Progress = forwardRef(
     const displayTextRef = useRef();
 
     const queuedZergType =
-      unit.unitType.isZerg && unit.queue && unit.queue.units.length
+      unit.dat.isZerg && unit.queue && unit.queue.units.length
         ? bwDat.units[unit.queue.units[0]]
         : null;
 
@@ -96,7 +96,7 @@ const Progress = forwardRef(
       if (unit.remainingBuildTime > 0 && unit.owner) {
         return (
           unit.remainingBuildTime /
-          (queuedZergType ? queuedZergType.buildTime : unit.unitType.buildTime)
+          (queuedZergType ? queuedZergType.buildTime : unit.dat.buildTime)
         );
       } else if (unit.remainingTrainTime > 0) {
         return unit.remainingTrainTime / 255;

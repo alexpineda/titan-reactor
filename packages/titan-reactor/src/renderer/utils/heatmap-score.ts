@@ -2,6 +2,7 @@ import { easeCubicOut } from "d3-ease";
 import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { orders } from "../../common/bwdat/enums/orders";
 import { BwDAT } from "../../common/types";
+import { UnitInstance } from "../game/unit-instance";
 
 export default class HeatmapScore {
   private bwDat: BwDAT;
@@ -10,7 +11,7 @@ export default class HeatmapScore {
     this.bwDat = bwDat;
   }
 
-  totalScore(units, easing = easeCubicOut) {
+  totalScore(units: UnitInstance[], easing = easeCubicOut) {
     const n = units.reduce((sum, unit) => {
       return sum + this.unitScore(unit);
     }, 0);
@@ -18,7 +19,7 @@ export default class HeatmapScore {
     return easing(n / (units.length + 1));
   }
 
-  unitScore(unit) {
+  unitScore(unit: UnitInstance) {
     let score = 0;
     // ignore
     if (
@@ -33,13 +34,12 @@ export default class HeatmapScore {
     // modify
     else if (unit.typeId === unitTypes.siegeTurretSiegeMode) {
       const arcliteCannon =
-        this.bwDat.weapons[this.bwDat.units[unit.typeId].groundWeapon];
+        this.bwDat.weapons[unit.dat.groundWeapon];
       score = 1 - unit.groundWeaponCooldown / arcliteCannon.weaponCooldown;
       //as is
     } else {
       score = this.orderScore(unit.order);
     }
-    unit.heatmapScore = score;
     return score;
   }
 
@@ -88,8 +88,8 @@ export default class HeatmapScore {
     }
   }
 
-  unitOfInterestFilter(unit) {
-    const unitType = this.bwDat.units[unit.typeId];
+  unitOfInterestFilter(unit: UnitInstance) {
+    const unitType = unit.dat;
     if (unitType.isResourceMiner) {
       return [orders.attackMove, orders.attackUnit].includes(unit.order);
     } else if (
@@ -109,7 +109,7 @@ export default class HeatmapScore {
     return true;
   }
 
-  unitsOfInterest(units) {
+  unitsOfInterest(units: UnitInstance[]) {
     return units.filter(this.unitOfInterestFilter);
   }
 }

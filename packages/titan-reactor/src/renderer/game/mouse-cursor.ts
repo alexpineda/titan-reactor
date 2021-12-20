@@ -320,19 +320,19 @@ export class MouseCursor {
                     y === startMapY - 1 ||
                     y === endMapY + 1
                   ) {
-                    r2.left = unit.x - unit.unitType.unitSizeLeft;
-                    r2.right = unit.x + unit.unitType.unitSizeRight;
-                    r2.top = unit.y - unit.unitType.unitSizeUp;
-                    r2.bottom = unit.y + unit.unitType.unitSizeDown;
+                    r2.left = unit.x - unit.dat.unitSizeLeft;
+                    r2.right = unit.x + unit.dat.unitSizeRight;
+                    r2.top = unit.y - unit.dat.unitSizeUp;
+                    r2.bottom = unit.y + unit.dat.unitSizeDown;
                     if (intersectRect(r1, r2)) {
                       candidates.push(unit);
-                      if (!unit.unitType.isBuilding) {
+                      if (!unit.dat.isBuilding) {
                         selected.add(unit);
                       }
                     }
                   } else {
                     candidates.push(unit);
-                    if (!unit.unitType.isBuilding) {
+                    if (!unit.dat.isBuilding) {
                       selected.add(unit);
                     }
                   }
@@ -358,8 +358,8 @@ export class MouseCursor {
         sprite.unit.canSelect &&
         !(
           selected.size &&
-          (sprite.unit.unitType.isResourceContainer ||
-            sprite.unit.unitType.isBuilding)
+          (sprite.unit.dat.isResourceContainer ||
+            sprite.unit.dat.isBuilding)
         )
       ) {
         // ctrl modifier -> select all of unit type in view
@@ -387,7 +387,7 @@ export class MouseCursor {
                   unit.canSelect &&
                   unit.tileX === x &&
                   unit.tileY === y &&
-                  unit.unitType === sprite.unit.unitType
+                  unit.dat === sprite.unit.dat
                 ) {
                   // test one tile out of selection bounds since unit tileX/Y is centered
                   // use placement approximations from UnitsDat for these "slightly out of bounds" units

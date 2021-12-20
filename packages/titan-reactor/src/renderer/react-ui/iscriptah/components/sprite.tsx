@@ -3,13 +3,13 @@ import AnimationBlocks from "./animation-blocks";
 import calculateImagesFromIscript from "../../../../common/iscript/images-from-iscript";
 
 import { useGameStore } from "../../../stores/game-store";
-import { SpriteDATType } from "../../../../common/types";
+import { SpriteDAT } from "../../../../common/types";
 
 const Sprite = ({
   sprite,
   onClick,
 }: {
-  sprite: SpriteDATType;
+  sprite: SpriteDAT;
   onClick: () => void;
 }) => {
   const bwDat = useGameStore((state) => state.assets?.bwDat);

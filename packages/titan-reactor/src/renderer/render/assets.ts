@@ -3,7 +3,7 @@ import { promises as fsPromises } from "fs";
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import Icons from "./icons";
 import { AtlasLoader, AtlasHD } from "../../common/image";
-import { parseAnim } from "../../common/image/formats";
+import parseAnim from "../../common/image/formats/anim_new";
 import { BwDAT } from "../../common/types";
 import {
   closeCascStorage,

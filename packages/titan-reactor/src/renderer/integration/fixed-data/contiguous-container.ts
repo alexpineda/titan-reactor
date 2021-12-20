@@ -4,7 +4,7 @@ import { BwDAT } from "../../../common/bwdat/core/bw-dat";
  An abstract class.
  A fixed block of binary data that represents some game state (eg units, sprites, etc)
 */
-export class ContiguousContainer {
+export abstract class ContiguousContainer<T> {
   count: number;
   protected _offset: number;
   protected _buf?: Buffer;
@@ -33,8 +33,8 @@ export class ContiguousContainer {
     this._offset = value * this.byteLength;
   }
 
-  protected object() {
-    return {};
+  object(): T {
+    return {} as T;
   }
 
   _read8(byteOffset: number) {
@@ -65,14 +65,14 @@ export class ContiguousContainer {
     return (this._buf as Buffer).readDoubleLE(this._offset + byteOffset);
   }
 
-  *items(count = this.count) {
+  *items(count = this.count): IterableIterator<typeof this> {
     for (let i = 0; i < count; i++) {
       yield this;
       this.offset++;
     }
   }
 
-  *reverse(count = this.count) {
+  *reverse(count = this.count): IterableIterator<typeof this> {
     this.offset = this.offset + count;
     for (let i = 0; i < count; i++) {
       this.offset--;
@@ -81,10 +81,7 @@ export class ContiguousContainer {
     this.offset += count;
   }
 
-  instances(count = this.count) {
-    if (!this.object) {
-      throw new Error("requires object() method");
-    }
+  instances(count = this.count): T[] {
     const arr = [];
     for (let i = 0; i < count; i++) {
       arr.push(this.object());

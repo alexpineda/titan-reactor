@@ -21,14 +21,14 @@ const Health = ({ unit }: Props) => {
   const setDom = (hp: number, transition = "color 4s linear") => {
     if (!hpRef.current) return;
 
-    const healthPct = hp / unit.unitType.hp;
+    const healthPct = hp / unit.dat.hp;
     let hpColor = healthColorRed;
     if (healthPct > 0.66) {
       hpColor = healthColorGreen;
     } else if (healthPct > 0.33) {
       hpColor = healthColorYellow;
     }
-    hpRef.current.textContent = `${hp}/${unit.unitType.hp}`;
+    hpRef.current.textContent = `${hp}/${unit.dat.hp}`;
     hpRef.current.style.color = hpColor;
     hpRef.current.style.transition = transition;
   };

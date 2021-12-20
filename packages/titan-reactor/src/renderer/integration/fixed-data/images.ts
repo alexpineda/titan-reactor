@@ -1,5 +1,6 @@
 import { drawFunctions } from "../../../common/bwdat/enums";
 import { BwDAT } from "../../../common/types/bwdat";
+import { ImageRAW } from "../image-raw";
 import ContiguousContainer from "./contiguous-container";
 
 const flags = Object.freeze({
@@ -15,7 +16,10 @@ const flags = Object.freeze({
 
 export const IMAGE_BYTE_LENGTH = 22;
 // all images in a bw frame
-export class ImagesBW extends ContiguousContainer {
+export class ImagesBW
+  extends ContiguousContainer<ImageRAW>
+  implements ImageRAW
+{
   protected override byteLength = IMAGE_BYTE_LENGTH;
   get index() {
     return this._read16(0);
@@ -70,7 +74,7 @@ export class ImagesBW extends ContiguousContainer {
     );
   }
 
-  get imageType() {
+  get dat() {
     return (this.bwDat as BwDAT).images[this.id];
   }
 }

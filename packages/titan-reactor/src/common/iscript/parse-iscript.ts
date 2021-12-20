@@ -1,5 +1,5 @@
 import range from "../utils/range";
-import { IScriptDATType, IScriptRawType, AnimationBlockType } from "../types";
+import { IScriptDATType, IScriptRawType, AnimationBlockType, IscriptOperations } from "../types";
 
 const IScriptTypes: Record<number, number> = {
   0: 2,
@@ -112,13 +112,13 @@ const IScriptOPCodes: [string, { size: number; name: string }[]][] = [
 ];
 
 const read = (buf: Buffer, size: number, pos: number) => {
-  let value = null;
   if (size === 1) {
-    value = buf.readUInt8(pos);
+    return buf.readUInt8(pos);
   } else if (size === 2) {
-    value = buf.readUInt16LE(pos);
+    return buf.readUInt16LE(pos);
+  } else {
+    throw new Error("Invalid size");
   }
-  return value;
 };
 
 export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
@@ -137,16 +137,23 @@ export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
       const [cmd, nextPos] = res;
       nextOffset = nextPos;
       animationBlocks[offset].push([
-        cmd.op.opName,
+        cmd.op.opName ,
         cmd.args.map(({ val }) => val),
-      ]);
+      ] as IscriptOperations);
     }
   }
 
   type LoadCommandResult = [
-    { op: { opName: string }; args: number[] },
+    { op: { opName: string }; args: CommandArg[] },
     number | null
   ];
+
+  interface CommandArg {
+    name: string;
+    val: number;
+    size?: number;
+    special?: boolean;
+  }
 
   function loadCommand(offset: number): LoadCommandResult {
     if (offset === 0) {
@@ -159,7 +166,7 @@ export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
 
     const [opName, params] = IScriptOPCodes[opIndex];
     const op = { opName, opIndex, offset };
-    const args = [];
+    const args: CommandArg[]  = [];
     let newPos: number | null = offset + 1;
     if (params.length) {
       if (params[0].name != "sounds") {

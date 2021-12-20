@@ -45,13 +45,13 @@ const unitIconSelector = (state: UnitSelectionStore) => {
 
   const unit = state.selectedUnits[0];
   if (
-    (unit.unitType.isBuilding &&
-      !unit.unitType.isZerg &&
+    (unit.dat.isBuilding &&
+      !unit.dat.isZerg &&
       unit.isComplete &&
       unit.queue &&
       unit.queue.units.length) ||
-    (unit.unitType.isZerg &&
-      !unit.unitType.isBuilding &&
+    (unit.dat.isZerg &&
+      !unit.dat.isBuilding &&
       unit.queue &&
       unit.queue.units.length)
   ) {

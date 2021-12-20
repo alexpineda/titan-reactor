@@ -99,7 +99,7 @@ type opWarpOverlay = ["warpoverlay", [number]];
 type opGrdSprol = ["grdsprol", [number, number, number]];
 type opDoGrdDamage = ["dogrddamage", opArgNone];
 
-type Operations =
+export type IscriptOperations =
   | opGoto
   | opPlayFrame
   | opPlayframtile
@@ -171,7 +171,7 @@ type Operations =
   | opGrdSprol
   | opDoGrdDamage;
 
-export type AnimationBlockType = Operations[];
+export type AnimationBlockType = IscriptOperations[];
 
 export type IScriptDATType = {
   iscripts: Record<number, IScriptRawType>;

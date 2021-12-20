@@ -23,11 +23,11 @@ const Name = ({ unit, className = "" }: Props) => {
 
   const getZergBuildingType = (unit: UnitInstance) => {
     const queuedZergType =
-      unit.unitType.isZerg && unit.queue && unit.queue.units.length
+      unit.dat.isZerg && unit.queue && unit.queue.units.length
         ? bwDat.units[unit.queue.units[0]]
         : null;
     const queuedBuildingZergType =
-      queuedZergType && unit.unitType.isBuilding ? queuedZergType : null;
+      queuedZergType && unit.dat.isBuilding ? queuedZergType : null;
     return queuedBuildingZergType || null;
   };
 
@@ -37,7 +37,7 @@ const Name = ({ unit, className = "" }: Props) => {
     const zergBuildingType = getZergBuildingType(state.selectedUnits[0]);
     const name = zergBuildingType
       ? zergBuildingType.name
-      : state.selectedUnits[0].unitType.name;
+      : state.selectedUnits[0].dat.name;
     if (!state.selectedUnits[0].owner) {
       return name;
     } else {

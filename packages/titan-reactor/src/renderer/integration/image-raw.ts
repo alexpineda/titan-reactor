@@ -1,6 +1,6 @@
 import { ImageDAT } from "../../common/types";
 
-export interface ImagesRAW {
+export interface ImageRAW {
   index: number;
   id: number;
   flags: number;
@@ -13,5 +13,5 @@ export interface ImagesRAW {
   hidden: boolean;
   frozen: boolean;
   isShadow: boolean;
-  imageType: ImageDAT;
+  dat: ImageDAT;
 }

@@ -26,7 +26,7 @@ const Upgrades = ({ unit }: Props) => {
   const validTechs = techTypesByUnitType[unit.typeId] || [];
   const validUpgrades =
     upgradesByUnitType[unit.typeId] ||
-    (unit.unitType.isProtoss && unit.unitType.isBuilding
+    (unit.dat.isProtoss && unit.dat.isBuilding
       ? [upgradeTypes.protossPlasmaShields]
       : []);
 

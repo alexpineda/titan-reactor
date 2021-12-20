@@ -114,8 +114,8 @@ export class DAT<Type> {
       });
 
       return values.reduce((memo, { name, value }) => {
-        return { ...memo, [name]: value };
-      }, {});
+        return { ...memo, [name as keyof Type]: value } as Type;
+      }, {} as Type);
     });
 
     return (this.entries = await this.post(entries));

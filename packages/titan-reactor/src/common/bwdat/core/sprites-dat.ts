@@ -5,7 +5,7 @@ import spriteNames from "./strings/sprite-names";
 import { ImageDAT } from "./images-dat";
 import { ReadFile } from "../../types";
 
-export type SpriteDATType = {
+export type SpriteDAT = {
   image: ImageDAT;
   name: string;
   index: number;
@@ -15,7 +15,7 @@ export type SpriteDATType = {
   selectionCircleOffset: number;
 };
 
-export class SpritesDAT extends DAT<SpriteDATType> {
+export class SpritesDAT extends DAT<SpriteDAT> {
   _hpBar() {
     return (value: number) => {
       return Math.floor((value - 1) / 3);
@@ -48,7 +48,7 @@ export class SpritesDAT extends DAT<SpriteDATType> {
     this.count = 517;
   }
 
-  override post(entries: SpriteDATType[]) {
+  override post(entries: SpriteDAT[]) {
     return entries.map((entry, i: number) => ({
       ...entry,
       index: i,

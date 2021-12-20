@@ -1,10 +1,10 @@
 import { CompressedTexture, Sprite, SpriteMaterial } from "three";
 
-import { SpriteDATType } from "../../common/bwdat/core/sprites-dat";
+import { SpriteDAT } from "../../common/bwdat/core/sprites-dat";
 import { getSelectionCircle } from "../stores/game-store";
 
 export class SelectionCircle extends Sprite {
-  spriteDef?: SpriteDATType;
+  spriteDef?: SpriteDAT;
   grp: any;
 
   constructor() {
@@ -27,7 +27,7 @@ export class SelectionCircle extends Sprite {
     this.material.transparent = true;
   }
 
-  update(spriteDef: SpriteDATType) {
+  update(spriteDef: SpriteDAT) {
     const circle = spriteDef.selectionCircle;
     if (spriteDef !== this.spriteDef) {
       const grp = getSelectionCircle(circle.index);

@@ -73,15 +73,12 @@ const zergSteps = range(0, 6).map((step) => {
 const getFilter = (unit, step, layerIndex) => {
   let effectiveStep = steps[step][layerIndex];
 
-  if (
-    unit.unitType.isZerg ||
-    (unit.unitType.isResourceContainer && !unit.owner)
-  ) {
+  if (unit.dat.isZerg || (unit.dat.isResourceContainer && !unit.owner)) {
     return zergSteps[step][layerIndex];
   } else {
     let degree;
     let brightness;
-    if (unit.unitType.isTerran) {
+    if (unit.dat.isTerran) {
       brightness = "brightness(400%)";
       degree = effectiveStep;
       //protoss yellow needs some different settings
@@ -99,23 +96,21 @@ const getFilter = (unit, step, layerIndex) => {
 };
 
 const calcStepZerg = (unit) =>
-  unit.unitType.isResourceContainer
-    ? 5
-    : Math.floor((unit.hp / unit.unitType.hp) * 5);
+  unit.dat.isResourceContainer ? 5 : Math.floor((unit.hp / unit.dat.hp) * 5);
 
 const calcStepTerranProtoss = (unit) =>
-  unit.hp === unit.unitType.hp
+  unit.hp === unit.dat.hp
     ? 7
-    : Math.floor(Math.min(1, unit.hp / (unit.unitType.hp * 0.77)) * 6);
+    : Math.floor(Math.min(1, unit.hp / (unit.dat.hp * 0.77)) * 6);
 
 const calcStep = (unit) =>
-  unit.unitType.isZerg || (unit.unitType.isResourceContainer && !unit.owner)
+  unit.dat.isZerg || (unit.dat.isResourceContainer && !unit.owner)
     ? calcStepZerg(unit)
     : calcStepTerranProtoss(unit);
 
 const calcTypeId = (unit) =>
-  unit.unitType.isZerg &&
-  unit.unitType.isBuilding &&
+  unit.dat.isZerg &&
+  unit.dat.isBuilding &&
   unit.queue &&
   unit.queue.units.length
     ? unit.queue.units[0]
@@ -146,7 +141,7 @@ const Wireframe = ({ unit, size = "lg", className = "" }) => {
 
     const trans =
       transition ||
-      (unit.unitType.isBuilding ? "filter 4s linear" : "filter 1s linear");
+      (unit.dat.isBuilding ? "filter 4s linear" : "filter 1s linear");
 
     for (let i = 0; i < 4; i++) {
       const filter = getFilter(unit, step, i);
@@ -222,7 +217,7 @@ const Wireframe = ({ unit, size = "lg", className = "" }) => {
               backgroundPositionX: "-512px",
             }}
           ></div>
-          {unit.shields === unit.unitType.shields && (
+          {unit.shields === unit.dat.shields && (
             <div
               style={{
                 ...layerStyle,

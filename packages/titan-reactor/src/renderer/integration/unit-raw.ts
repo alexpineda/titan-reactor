@@ -16,7 +16,7 @@ export interface UnitRAW {
   remainingBuildTime: number;
   remainingTrainTime: number;
   angle: number;
-  unitType: UnitDAT;
+  dat: UnitDAT;
   isFlying: boolean;
   isCloaked: boolean;
   isComplete: boolean;

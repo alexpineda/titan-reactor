@@ -12,9 +12,9 @@ interface Props {
 
 const canSelect = (u: UnitInstance) => u.canSelect;
 const hasNonAttackers = (u: UnitInstance) =>
-  !u.unitType.isSpellcaster &&
-  u.unitType.groundWeapon === 130 &&
-  u.unitType.airWeapon === 130 &&
+  !u.dat.isSpellcaster &&
+  u.dat.groundWeapon === 130 &&
+  u.dat.airWeapon === 130 &&
   !showKillsExtraUnits.includes(u.typeId);
 const sumKills = (tkills: number, { kills }: Pick<UnitInstance, "kills">) =>
   tkills + kills;

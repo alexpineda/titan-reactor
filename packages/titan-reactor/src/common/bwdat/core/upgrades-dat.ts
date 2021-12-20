@@ -1,7 +1,7 @@
 import { DAT } from "./dat";
 import { ReadFile } from "../../types";
 
-export type UpgradeDATType = {
+export type UpgradeDAT = {
   mineralCostBase: number;
   mineralCostFactor: number;
   vespeneCostFactor: number;
@@ -15,7 +15,7 @@ export type UpgradeDATType = {
   race: number;
 };
 
-export class UpgradesDAT extends DAT<UpgradeDATType> {
+export class UpgradesDAT extends DAT<UpgradeDAT> {
   constructor(readFile: ReadFile) {
     super(readFile);
 

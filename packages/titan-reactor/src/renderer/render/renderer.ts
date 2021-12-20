@@ -11,7 +11,10 @@ import {
   SMAAImageLoader,
   SMAAPreset,
   ToneMappingEffect,
-} from "postprocessing";
+} 
+// @ts-ignore
+from "postprocessing";
+
 import {
   Camera,
   HalfFloatType,
@@ -106,6 +109,7 @@ export class Renderer {
     this._composer.autoRenderToScreen = false;
     this._renderPass = new RenderPass(camera);
 
+    // @ts-ignore
     window.dofEffect = this._dofEffect = new DepthOfFieldEffect(camera, {
       focusDistance: 0.01,
       focalLength: 0.01,
@@ -125,6 +129,7 @@ export class Renderer {
       });
     }
 
+    // @ts-ignore
     window.smaaEffect = this._smaaEffect = new SMAAEffect(
       this._smaaSearchImage,
       this._smaaAreaImage,
@@ -135,6 +140,8 @@ export class Renderer {
     this.fogOfWarEffect = new FogOfWarEffect();
 
     const toneMapping = new ToneMappingEffect();
+    
+    // @ts-ignore
     window.toneMappingEffect = toneMapping;
 
     this._fogPass = new EffectPass(camera, this.fogOfWarEffect);

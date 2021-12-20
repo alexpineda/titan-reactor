@@ -1,7 +1,8 @@
 import { Player, UnitTag, UnitDAT } from "../../common/types";
-import { BuildingQueueI } from "../integration/fixed-data";
+import { BuildingQueueRAW } from "../integration/building-queue-raw";
+import { UnitRAW } from "../integration/unit-raw";
 
-export interface UnitInstance {
+export type UnitInstance = UnitRAW & {
   id: UnitTag;
   owner: Player;
   hp: number;
@@ -16,8 +17,8 @@ export interface UnitInstance {
   tileX: number;
   tileY: number;
 
-  unitType: UnitDAT;
-  queue: BuildingQueueI | null;
+  dat: UnitDAT;
+  queue: BuildingQueueRAW | null;
   loaded: (UnitInstance | undefined)[] | null;
 
   remainingBuildTime: number;
@@ -27,6 +28,7 @@ export interface UnitInstance {
   remainingTrainTime: number;
 
   //@todo deprecate
+  groundWeaponCooldown: number;
   isComplete: boolean;
   wasConstructing: boolean;
   wasFlying: boolean;
@@ -39,6 +41,7 @@ export interface UnitInstance {
   warpingLen: number;
   unitId: number;
   ownerId: number;
+  selected: boolean;
 }
 
 export type IncompleteUnit = {

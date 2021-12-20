@@ -1,4 +1,4 @@
-import { SpriteDATType } from "../../common/types";
+import { SpriteDAT } from "../../common/types";
 
 export interface SpriteRAW {
   index: number;
@@ -13,5 +13,5 @@ export interface SpriteRAW {
   order: number;
   tileX: number;
   tileY: number;
-  spriteType: SpriteDATType;
+  dat: SpriteDAT;
 }

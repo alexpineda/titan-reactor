@@ -16,7 +16,7 @@ const Shields = ({ unit }: Props) => {
 
   const setDom = (shields: number) => {
     if (!shieldsRef.current) return;
-    shieldsRef.current.textContent = `${shields}/${unit.unitType.shields}`;
+    shieldsRef.current.textContent = `${shields}/${unit.dat.shields}`;
   };
 
   useEffect(() => {

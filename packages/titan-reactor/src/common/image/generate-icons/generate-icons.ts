@@ -14,7 +14,7 @@ export default async (readFile: ReadFile) => {
 
   const palette = new Uint8Array(
     (await readFile("TileSet/jungle.wpe")).buffer
-  ).slice(0, 1024);
+  ).subarray(0, 1024);
 
   const gameIcons = new GameIcons();
   gameIcons.renderResourceIcons(

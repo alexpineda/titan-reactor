@@ -138,7 +138,7 @@ export class BuildUnits {
     const incompleteUnits: Map<UnitTag, IncompleteUnit> = new Map();
     unitsBySpriteId.clear();
 
-    for (const unitBw of unitsBW.instances() as UnitsBW[]) {
+    for (const unitBw of unitsBW.instances()) {
       let unit: UnitInstance;
 
       if (units.has(unitBw.id)) {
@@ -154,7 +154,7 @@ export class BuildUnits {
       }
 
       // const unitType = this.bwDat.unit[unitBw.type];
-      const unitType = unitBw.unitType;
+      const unitDat = unitBw.dat;
 
       // @todo any side effects here? lingering sprites?
       unitsBySpriteId.set(unitBw.spriteIndex, unit);
@@ -182,7 +182,7 @@ export class BuildUnits {
       //@todo sort this mess out
       // unit.wasFlying = unitBw.isFlying && !unitBw.isFlying;
       // unit.isNowFlying = !unitBw.isFlying && unitBw.isFlying;
-      unit.isFlyingBuilding = unitType.isFlyingBuilding;
+      unit.isFlyingBuilding = unitDat.isFlyingBuilding;
 
       // all previous assignments should not be on unitBw, and typically use comparison of old to new values
       Object.assign(unit, unitBw);
@@ -209,14 +209,14 @@ export class BuildUnits {
         unit.typeId !== unitTypes.darkSwarm &&
         unit.typeId !== unitTypes.disruptionWeb &&
         unit.order !== orders.die &&
-        !unitType.isSubunit;
+        !unitDat.isSubunit;
 
       unit.canSelect =
         unit.showOnMinimap &&
         //do not allow unit training selection for terran and protoss
         !(
-          (unitType.isTerran || unitType.isProtoss) &&
-          !unitType.isBuilding &&
+          (unitDat.isTerran || unitDat.isProtoss) &&
+          !unitDat.isBuilding &&
           unit.remainingBuildTime > 0
         ) &&
         unitBw.typeId !== unitTypes.spiderMine;
@@ -238,7 +238,7 @@ export class BuildUnits {
 
       //@todo move to worker
       if (unit.showOnMinimap) {
-        this._refreshMinimap(unit, unitType);
+        this._refreshMinimap(unit, unitDat);
       }
 
       //@todo why are we not returning here earlier?

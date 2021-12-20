@@ -1,8 +1,12 @@
+import { ResearchRAW } from "../research-raw";
 import ContiguousContainer from "./contiguous-container";
 
 export const RESEARCH_BYTE_LENGTH = 6;
 // research in progress
-export class ResearchBW extends ContiguousContainer {
+export class ResearchBW
+  extends ContiguousContainer<ResearchRAW>
+  implements ResearchRAW
+{
   protected override byteLength = RESEARCH_BYTE_LENGTH;
 
   get owner() {
@@ -21,7 +25,10 @@ export class ResearchBW extends ContiguousContainer {
     return this._readU16(4);
   }
 
-  get type() {
+  get dat() {
+    if (!this.bwDat) {
+      throw new Error("bwDat not set");
+    }
     return this.bwDat.tech[this.typeId];
   }
 
@@ -31,7 +38,7 @@ export class ResearchBW extends ContiguousContainer {
       typeId: this.typeId,
       remainingBuildTime: this.remainingBuildTime,
       unitId: this.unitId,
-      type: this.type,
+      dat: this.dat,
     };
   }
 }

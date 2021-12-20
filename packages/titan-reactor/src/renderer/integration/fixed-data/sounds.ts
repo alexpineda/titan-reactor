@@ -7,7 +7,10 @@ export const SOUND_BYTE_LENGTH = 16;
  * Sounds in a bw frame.
  * Also contains volume and panning calculations ported from openbw.
  */
-export class SoundsBW extends ContiguousContainer implements SoundRAW {
+export class SoundsBW
+  extends ContiguousContainer<SoundRAW>
+  implements SoundRAW
+{
   protected override byteLength = SOUND_BYTE_LENGTH;
 
   private pxToGameUnit: PxToGameUnit;
@@ -41,7 +44,10 @@ export class SoundsBW extends ContiguousContainer implements SoundRAW {
   }
 
   get flags() {
-    return this.bwDat?.sounds[this.id].flags;
+    if (!this.bwDat) {
+      throw new Error("bwDat not set");
+    }
+    return this.bwDat.sounds[this.id].flags;
   }
 
   get mapX() {
@@ -57,11 +63,17 @@ export class SoundsBW extends ContiguousContainer implements SoundRAW {
   }
 
   get minVolume() {
-    return this.bwDat?.sounds[this.id].minVolume;
+    if (!this.bwDat) {
+      throw new Error("bwDat not set");
+    }
+    return this.bwDat.sounds[this.id].minVolume;
   }
 
   get priority() {
-    return this.bwDat?.sounds[this.id].priority;
+    if (!this.bwDat) {
+      throw new Error("bwDat not set");
+    }
+    return this.bwDat.sounds[this.id].priority;
   }
 
   get tileX() {

@@ -1,9 +1,13 @@
+import { UpgradeRAW } from "../upgrade-raw";
 import ContiguousContainer from "./contiguous-container";
 
 export const UPGRADE_BYTE_LENGTH = 7;
 
 // upgrades in progress
-export class UpgradeBW extends ContiguousContainer {
+export class UpgradeBW
+  extends ContiguousContainer<UpgradeRAW>
+  implements UpgradeRAW
+{
   protected override byteLength = UPGRADE_BYTE_LENGTH;
 
   get owner() {
@@ -26,7 +30,10 @@ export class UpgradeBW extends ContiguousContainer {
     return this._readU16(5);
   }
 
-  get type() {
+  get dat() {
+    if (!this.bwDat) {
+      throw new Error("bwDat not set");
+    }
     return this.bwDat.upgrades[this.typeId];
   }
 
@@ -37,7 +44,7 @@ export class UpgradeBW extends ContiguousContainer {
       level: this.level,
       remainingBuildTime: this.remainingBuildTime,
       unitId: this.unitId,
-      type: this.type,
+      dat: this.dat,
     };
   }
 }

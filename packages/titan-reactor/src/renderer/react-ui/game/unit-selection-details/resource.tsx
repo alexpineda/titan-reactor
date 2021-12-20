@@ -28,12 +28,12 @@ const Resource = ({ unit }: Props) => {
 
   if (
     ![unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3].includes(
-      unit.unitType.index
+      unit.dat.index
     )
   ) {
-    if (unit.unitType.isZerg) {
+    if (unit.dat.isZerg) {
       icon = gameIcons.vespeneZerg;
-    } else if (unit.unitType.isProtoss) {
+    } else if (unit.dat.isProtoss) {
       icon = gameIcons.vespeneProtoss;
     } else {
       icon = gameIcons.vespeneTerran;

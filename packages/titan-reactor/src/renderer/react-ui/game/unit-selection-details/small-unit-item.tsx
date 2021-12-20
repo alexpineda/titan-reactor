@@ -25,7 +25,7 @@ const filters = [
 
 const calcStep = (unit: UnitInstance) =>
   unit.canSelect
-    ? Math.ceil(Math.min(1, unit.hp / (unit.unitType.hp * 0.8)) * 3)
+    ? Math.ceil(Math.min(1, unit.hp / (unit.dat.hp * 0.8)) * 3)
     : 0;
 
 const iconsSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
@@ -51,7 +51,7 @@ const SmallUnitItem = ({ index, unit, showLoaded }: Props) => {
     if (!unit) return { unitType: null, step: 0, canSelect: false };
 
     return {
-      unitType: unit.unitType,
+      unitType: unit.dat,
       step: calcStep(unit),
       canSelect: unit.canSelect,
     };
@@ -128,7 +128,7 @@ const SmallUnitItem = ({ index, unit, showLoaded }: Props) => {
         onClick={(evt) => {
           const unit = getUnit(useUnitSelectionStore.getState());
           if (evt.ctrlKey) {
-            unit && useGameStore.getState().selectOfType(unit.unitType);
+            unit && useGameStore.getState().selectOfType(unit.dat);
           } else {
             unit && useGameStore.getState().setSelectedUnits([unit]);
           }

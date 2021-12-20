@@ -1,4 +1,4 @@
-import { UpgradeDATType } from "../../common/types";
+import { UpgradeDAT } from "../../common/types";
 
 export interface UpgradeRAW {
   owner: number;
@@ -6,5 +6,5 @@ export interface UpgradeRAW {
   level: number;
   remainingBuildTime: number;
   unitId: number;
-  type: UpgradeDATType;
+  dat: UpgradeDAT;
 }

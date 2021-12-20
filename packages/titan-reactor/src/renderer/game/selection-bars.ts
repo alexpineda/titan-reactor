@@ -1,3 +1,4 @@
+import { UpgradeCompleted } from "./unit-instance";
 import {
   Color,
   DataTexture,
@@ -12,9 +13,10 @@ import {
 import getMaxEnergy from "../../common/bwdat/core/get-max-energy";
 import SpriteInstance from "./sprite-instance";
 
-window.grpOffset = 10;
+const getTypeIds = ({ typeId }: { typeId: number }) => typeId;
 
 function onBeforeCompile(shader: any) {
+  // @ts-ignore
   Object.assign(shader.uniforms, this.customUniforms);
   const fs = shader.fragmentShader;
   shader.fragmentShader =
@@ -104,19 +106,21 @@ const createSprite = () => {
       map,
     })
   );
-  sprite.customUniforms = {
-    hp: new Uniform(0),
-    bwGreenColor: new Uniform(hpColorGreen),
-    bwRedColor: new Uniform(hpColorRed),
-    bwYellowColor: new Uniform(hpColorYellow),
+  sprite.userData = {
+    customUniforms: {
+      hp: new Uniform(0),
+      bwGreenColor: new Uniform(hpColorGreen),
+      bwRedColor: new Uniform(hpColorRed),
+      bwYellowColor: new Uniform(hpColorYellow),
 
-    hasShields: new Uniform(0),
-    shields: new Uniform(0),
-    shieldsColor: new Uniform(shieldsColor),
+      hasShields: new Uniform(0),
+      shields: new Uniform(0),
+      shieldsColor: new Uniform(shieldsColor),
 
-    energyColor: new Uniform(energyColor),
-    energy: new Uniform(0),
-    hasEnergy: new Uniform(0),
+      energyColor: new Uniform(energyColor),
+      energy: new Uniform(0),
+      hasEnergy: new Uniform(0),
+    },
   };
   sprite.material.onBeforeCompile = onBeforeCompile.bind(sprite);
   sprite.material.depthTest = false;
@@ -127,7 +131,6 @@ const createSprite = () => {
 
 export class SelectionBars extends Group {
   bar = createSprite();
-  private spriteType = -1;
 
   constructor() {
     super();
@@ -136,7 +139,7 @@ export class SelectionBars extends Group {
 
   update(
     sprite: SpriteInstance,
-    completedUpgrades,
+    completedUpgrades: UpgradeCompleted[],
     renderOrder: number,
     grpOffset: number
   ) {
@@ -147,33 +150,31 @@ export class SelectionBars extends Group {
 
     this.visible = true;
 
-    if (sprite.spriteType !== this.spriteType) {
-      this.position.z =
-        sprite.spriteType.selectionCircleOffset / 32 + grpOffset + 0.4;
-      this.scale.set(sprite.spriteType.healthBar / 32, 0.3);
-    }
-    this.spriteType = sprite.spriteType;
+    this.position.z =
+      sprite.spriteDAT.selectionCircleOffset / 32 + grpOffset + 0.4;
+    this.scale.set(sprite.spriteDAT.healthBar / 32, 0.3, 1);
 
     this.bar.material.needsUpdate = true;
     this.bar.renderOrder = renderOrder;
 
-    this.bar.customUniforms.hp.value = sprite.unit.hp / sprite.unit.unitType.hp;
+    this.bar.userData.customUniforms.hp.value =
+      sprite.unit.hp / sprite.unit.dat.hp;
 
-    const hasShields = sprite.unit.unitType.shieldsEnabled;
-    const hasEnergy = sprite.unit.unitType.isSpellcaster;
+    const hasShields = sprite.unit.dat.shieldsEnabled;
+    const hasEnergy = sprite.unit.dat.isSpellcaster;
 
-    this.bar.customUniforms.hasEnergy.value = hasEnergy ? 1 : 0;
-    this.bar.customUniforms.hasShields.value = hasShields ? 1 : 0;
+    this.bar.userData.customUniforms.hasEnergy.value = hasEnergy ? 1 : 0;
+    this.bar.userData.customUniforms.hasShields.value = hasShields ? 1 : 0;
 
     if (hasShields) {
-      this.bar.customUniforms.shields.value =
-        sprite.unit.shields / sprite.unit.unitType.shields;
+      this.bar.userData.customUniforms.shields.value =
+        sprite.unit.shields / sprite.unit.dat.shields;
     }
 
     if (hasEnergy) {
-      this.bar.customUniforms.energy.value =
+      this.bar.userData.customUniforms.energy.value =
         sprite.unit.energy /
-        getMaxEnergy(sprite.unit.unitType, completedUpgrades);
+        getMaxEnergy(sprite.unit.dat, completedUpgrades.map(getTypeIds));
     }
   }
 }
