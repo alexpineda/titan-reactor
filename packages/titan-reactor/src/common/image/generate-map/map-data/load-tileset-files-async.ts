@@ -2,20 +2,22 @@ import { ChkType, DDSGrpFrameType } from "../../../types";
 import readDdsGrp, { readDdsGrpWithFrameData } from "../../formats/dds-grp";
 
 export type TileSetData = {
-  mapTiles: Uint16Array,
-  megatiles: Uint32Array,
-  minitilesFlags: Uint16Array,
-  minitiles: Uint8Array,
-  palette: Uint8Array,
-  tileset: number,
-  hdTiles: Buffer[],
-  tilegroupU16: Uint16Array,
-  tilegroupBuf: Buffer,
-  creepGrpSD: Buffer,
-  creepGrpHD: DDSGrpFrameType[],
-}
-export const loadTilesetFilesAsync = async (readFileFn: (filename: string) => Promise<Buffer>, chk: ChkType): Promise<TileSetData> => {
-
+  mapTiles: Uint16Array;
+  megatiles: Uint32Array;
+  minitilesFlags: Uint16Array;
+  minitiles: Uint8Array;
+  palette: Uint8Array;
+  tileset: number;
+  hdTiles: Buffer[];
+  tilegroupU16: Uint16Array;
+  tilegroupBuf: Buffer;
+  creepGrpSD: Buffer;
+  creepGrpHD: DDSGrpFrameType[];
+};
+export const loadTilesetFilesAsync = async (
+  readFileFn: (filename: string) => Promise<Buffer>,
+  chk: ChkType
+): Promise<TileSetData> => {
   const tilesets = [
     "badlands",
     "platform",

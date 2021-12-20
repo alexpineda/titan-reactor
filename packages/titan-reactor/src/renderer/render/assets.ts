@@ -2,8 +2,8 @@ import { promises as fsPromises } from "fs";
 
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import Icons from "./icons";
-import { GrpFileLoader, AtlasHD } from "../../common/image";
-import { Anim } from "../../common/image/formats";
+import { AtlasLoader, AtlasHD } from "../../common/image";
+import { parseAnim } from "../../common/image/formats";
 import { BwDAT } from "../../common/types";
 import {
   closeCascStorage,
@@ -69,7 +69,7 @@ class Assets {
     updateLoadingProcess("assets");
 
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
-    const sdAnim = Anim(sdAnimBuf);
+    const sdAnim = parseAnim(sdAnimBuf);
 
     this._loadSelectionCircles();
 
@@ -83,16 +83,16 @@ class Assets {
 
     this.icons.generate(readCascFile);
 
-    const grpLoader = new GrpFileLoader(
+    const atlasLoader = new AtlasLoader(
       this.bwDat,
       communityModelsPath,
       readCascFile,
-      sdAnim.sprites
+      sdAnim
     );
 
     performance.mark("start");
     for (let i = 0; i < 999; i++) {
-      this.grps[i] = await grpLoader.load(i);
+      this.grps[i] = await atlasLoader.load(i);
     }
 
     console.log("atlas load time", performance.measure("start"));

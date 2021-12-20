@@ -28,7 +28,7 @@ export type GRPInterface = {
   teamcolor?: Texture;
 };
 
-export type AnimTextureType = {
+export type AnimDds = {
   ddsOffset: number;
   size: number;
   width: number;
@@ -36,11 +36,14 @@ export type AnimTextureType = {
 };
 
 export type AnimSprite = {
-  refId?: number;
   w: number;
   h: number;
-  maps: Record<string, AnimTextureType>;
+  maps: Record<string, AnimDds>;
   frames: GrpFrameType[];
+};
+
+export type AnimSpriteRef = {
+  refId: number;
 };
 
 export type DDSGrpFrameType = {

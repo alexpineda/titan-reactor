@@ -1,4 +1,3 @@
-import { Buffer } from "buffer/";
 import { ipcRenderer } from "electron";
 
 import {
@@ -7,14 +6,14 @@ import {
   CLOSE_CASCLIB,
 } from "../../common/ipc-handle-names";
 
-export const openCasclib = async (bwPath: string) => {
+export const openCascStorage = async (bwPath: string) => {
   return await ipcRenderer.invoke(OPEN_CASCLIB, bwPath);
 };
 
-export const closeCasclib = () => {
+export const closeCascStorage = () => {
   ipcRenderer.invoke(CLOSE_CASCLIB);
 };
 
-export const openCasclibFile = async (filepath: string) => {
-  return new Buffer(await ipcRenderer.invoke(OPEN_CASCLIB_FILE, filepath));
+export const readCascFile = async (filepath: string) => {
+  return await ipcRenderer.invoke(OPEN_CASCLIB_FILE, filepath);
 };

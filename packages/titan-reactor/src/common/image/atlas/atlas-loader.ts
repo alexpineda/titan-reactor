@@ -1,19 +1,22 @@
-import { AnimSprite, BwDAT } from "../../types";
+import { AnimSprite, AnimSpriteRef, BwDAT } from "../../types";
 import Atlas3D from "./atlas-3d";
 
 type ReadFile = (file: string) => Promise<Buffer>;
 
-export class GrpFileLoader {
+function isSpriteRef(sprite: any): sprite is AnimSpriteRef {
+  return "refId" in sprite;
+}
+export class AtlasLoader {
   private bwDat: BwDAT;
   private bwDataPath: string;
   private readFile: ReadFile;
-  private sdAnimSprites: AnimSprite[];
+  private sdAnimSprites: (AnimSprite | AnimSpriteRef)[];
 
   constructor(
     bwDat: BwDAT,
     bwDataPath: string,
     readFile: ReadFile,
-    sdAnimSprites: AnimSprite[]
+    sdAnimSprites: (AnimSprite | AnimSpriteRef)[]
   ) {
     this.bwDat = bwDat;
     this.bwDataPath = bwDataPath;
@@ -22,7 +25,7 @@ export class GrpFileLoader {
   }
 
   private refId(id: number) {
-    if (this.sdAnimSprites[id].refId !== undefined) {
+    if (isSpriteRef(this.sdAnimSprites[id])) {
       return this.sdAnimSprites[id].refId;
     }
     return id;
@@ -50,4 +53,4 @@ export class GrpFileLoader {
     });
   }
 }
-export default GrpFileLoader;
+export default AtlasLoader;

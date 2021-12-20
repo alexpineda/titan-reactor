@@ -6,7 +6,7 @@ import {
   UnsignedByteType,
 } from "three";
 
-import { AnimTextureType, GrpFrameType, GRPInterface } from "../../types";
+import { AnimDds, GrpFrameType, GRPInterface } from "../../types";
 import { loadDDS } from "../formats";
 
 /**
@@ -29,14 +29,14 @@ export class AtlasSD implements GRPInterface {
     readGrp: () => Promise<Buffer>;
     sdAnim: {
       buf: Buffer;
-      maps: Record<string, AnimTextureType>;
+      maps: Record<string, AnimDds>;
       frames: GrpFrameType[];
     };
   }) {
     const grp = new Grp(await readGrp(), Buffer);
     const { w, h } = grp.maxDimensions();
 
-    const getBuf = (map: AnimTextureType, offset = 0) =>
+    const getBuf = (map: AnimDds, offset = 0) =>
       sprite.buf.slice(map.ddsOffset + offset, map.ddsOffset + map.size);
 
     if (sprite.maps.diffuse) {

@@ -1,7 +1,8 @@
+/* eslint-disable linebreak-style */
 // thanks to farty and neiv for references
 import BufferList from "bl";
 
-import { AnimTextureType } from "../../types/grp";
+import { AnimDds, GrpFrameType } from "../../types/grp";
 import range from "../../utils/range";
 
 const versionSD = Symbol("sd");
@@ -12,6 +13,14 @@ const Version: Record<number, symbol> = {
   0x0101: versionSD,
   0x0202: versionHD2,
   0x0204: versionHD,
+};
+
+type MergedSprite = {
+  refId?: number;
+  w: number;
+  h: number;
+  maps: Record<string, AnimDds>;
+  frames: GrpFrameType[];
 };
 
 export const Anim = (buf: Buffer) => {
@@ -59,7 +68,7 @@ export const Anim = (buf: Buffer) => {
     const h = data.readUInt16LE(6);
     const framesOffset = data.readUInt32LE(8);
     data.consume(12);
-    const maps = parseTextures(data) as Record<string, AnimTextureType>;
+    const maps = parseTextures(data) as Record<string, MergedSprite>;
     const frames = parseFrames(numFrames, framesOffset);
     lastOffset = framesOffset + numFrames * 16;
     return {
@@ -78,6 +87,7 @@ export const Anim = (buf: Buffer) => {
       const height = texture.readUInt16LE(10);
       texture.consume(12);
       if (ddsOffset > 0) {
+        // @ts-ignore
         tex[layerNames[i]] = {
           ddsOffset,
           size,
