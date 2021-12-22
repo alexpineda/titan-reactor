@@ -6,12 +6,12 @@ import {
   upgradesByUnitType,
 } from "../../../../common/bwdat/enums";
 import { useGameStore, GameStore, useProductionStore } from "../../../stores";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 import { AssetsMissingError } from "../../../../common/errors";
 import { TechDataDAT, UpgradeDAT } from "../../../../common/types";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 const iconSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
 const bwDatSelector = (state: GameStore) => state?.assets?.bwDat;

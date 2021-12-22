@@ -11,10 +11,10 @@ import Queue from "./queue";
 import Loaded from "./loaded";
 import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 import Upgrades from "./upgrades";
-import { UnitInstance } from "../../../game";
 
+import { Unit } from "../../../core";
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 
 const selector = (state: Pick<UnitSelectionStore, "selectedUnits">) =>

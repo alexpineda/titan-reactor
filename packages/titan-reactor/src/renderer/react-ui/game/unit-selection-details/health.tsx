@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { UnitInstance } from "../../../game";
-
+import { Unit } from "../../../core";
 import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 const healthColorRed = "#d60000";
 const healthColorYellow = "#aaaa00";

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 
 import { unitTypes } from "../../../../common/bwdat/enums";
 import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
@@ -12,7 +12,7 @@ export const showKillsExtraUnits = [
 ];
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 
 const selector = (state: UnitSelectionStore) => {

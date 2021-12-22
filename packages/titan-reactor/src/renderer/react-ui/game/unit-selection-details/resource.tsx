@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 import { unitTypes } from "../../../../common/bwdat/enums";
 import {
   useGameStore,
@@ -14,7 +14,7 @@ const selectedUnitAmountSelector = (state: UnitSelectionStore) => {
 };
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 const Resource = ({ unit }: Props) => {
   const gameIcons = useGameStore((state) => state?.assets?.icons.gameIcons);

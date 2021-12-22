@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 
 import {
   useGameStore,
@@ -8,7 +8,7 @@ import {
 } from "../../../stores";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 const selector = (state: UnitSelectionStore) => {
   if (!state.selectedUnits[0]) return "";

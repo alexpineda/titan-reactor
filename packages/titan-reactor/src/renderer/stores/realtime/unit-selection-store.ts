@@ -1,15 +1,15 @@
 import create from "zustand/vanilla";
 
-import { UnitInstance } from "../../game/unit-instance";
+import { Unit } from "../../core";
 
 export type UnitSelectionStore = {
-  selectedUnits: UnitInstance[];
-  setSelectedUnits: (selectedUnits: UnitInstance[]) => void;
+  selectedUnits: Unit[];
+  setSelectedUnits: (selectedUnits: Unit[]) => void;
 };
 export const useUnitSelectionStore = create<UnitSelectionStore>((set) => ({
   selectedUnits: [],
 
-  setSelectedUnits: (selectedUnits: UnitInstance[]) => {
+  setSelectedUnits: (selectedUnits: Unit[]) => {
     set({ selectedUnits });
   },
 }));

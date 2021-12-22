@@ -1,6 +1,6 @@
 import { Color, SpriteMaterial, SpriteMaterialParameters, Texture } from "three";
 
-import warp from "./effect/warp";
+import warp from "../../common/image/effect/warp";
 
 type dynamicUniforms = {
   delta: {

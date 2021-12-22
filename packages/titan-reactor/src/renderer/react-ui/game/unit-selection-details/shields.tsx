@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 
 import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 
@@ -9,7 +9,7 @@ const shieldsSelector = (state: UnitSelectionStore) => {
 };
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 const Shields = ({ unit }: Props) => {
   const shieldsRef = useRef<HTMLParagraphElement>(null);

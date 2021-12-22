@@ -5,22 +5,16 @@ import BufferList from "bl";
 import { AnimDds, GrpFrameType } from "../../types/grp";
 import range from "../../utils/range";
 
-const versionSD = Symbol("sd");
-const versionHD = Symbol("h");
-const versionHD2 = Symbol("hd2");
-
-const Version: Record<number, symbol> = {
-  0x0101: versionSD,
-  0x0202: versionHD2,
-  0x0204: versionHD,
-};
+const versionSD = 0x0101;
+const versionHD = 0x0204;
+const versionHD2 = 0x0202;
 
 export const parseAnim = (buf: Buffer) => {
   const bl = new BufferList(buf);
 
   const header = bl.shallowSlice(0, 12 + 10 * 32);
   const magic = header.slice(0, 4).toString();
-  const version = Version[header.readUInt16LE(4)];
+  const version = header.readUInt16LE(4);
   const numLayers = header.readUInt16LE(8);
   const numEntries = header.readUInt16LE(10);
   header.consume(12);
@@ -94,7 +88,7 @@ export const parseAnim = (buf: Buffer) => {
 
   const parseFrames = (numFrames: number, o: number) => {
     return range(0, numFrames).map((frame) => {
-      const frames = bl.shallowSlice(o + frame * 16);
+      const frames = buf.slice(o + frame * 16);// bl.shallowSlice(o + frame * 16);
       const x = frames.readUInt16LE(0);
       const y = frames.readUInt16LE(2);
       const xoff = frames.readInt16LE(4);
@@ -112,7 +106,6 @@ export const parseAnim = (buf: Buffer) => {
     });
   };
 
-  const sprites = range(0, numEntries).map(() => parseSprite());
+  return range(0, numEntries).map(() => parseSprite());
 
-  return sprites;
 };

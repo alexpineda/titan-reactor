@@ -4,7 +4,7 @@ import {
   ResearchInProduction,
   UnitInProduction,
   UpgradeInProduction,
-} from "../../game/unit-instance";
+} from "../../../common/types";
 
 export type ProductionStore = {
   units: UnitInProduction[];

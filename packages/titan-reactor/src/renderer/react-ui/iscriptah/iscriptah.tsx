@@ -25,7 +25,7 @@ import App from "./components/app";
 import { ClockMs } from "../../../common/utils/clock-ms";
 import { CanvasTarget } from "../../../common/image";
 import "../../../common/utils/electron-file-loader";
-import TitanSprite from "../../../common/image/titan-sprite";
+import TitanSprite from "../../core/titan-sprite";
 import {
   incGameTick,
   setFrame,

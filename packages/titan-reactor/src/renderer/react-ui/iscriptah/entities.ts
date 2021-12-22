@@ -1,4 +1,4 @@
-import TitanSprite from "../../../common/image/titan-sprite";
+import TitanSprite from "../../core/titan-sprite";
 
 export const updateEntities = (
   entities: TitanSprite[],

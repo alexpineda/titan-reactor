@@ -11,7 +11,7 @@ import {
   ResearchCompleted,
   UnitInstance,
   UpgradeCompleted,
-} from "../../../game";
+} from "../../../run-replay";
 import { AssetsMissingError } from "../../../../common/errors";
 
 interface Props {

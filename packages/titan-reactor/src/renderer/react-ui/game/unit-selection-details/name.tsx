@@ -1,6 +1,6 @@
 import { AssetsMissingError } from "../../../../common/errors";
 import React, { useEffect, useRef } from "react";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 
 import {
   useGameStore,
@@ -9,7 +9,7 @@ import {
 } from "../../../stores";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
   className?: string;
 }
 const transformName = (name: string) => name.split(" ").slice(1).join(" ");
@@ -21,7 +21,7 @@ const Name = ({ unit, className = "" }: Props) => {
   }
   const nameRef = useRef<HTMLParagraphElement>(null);
 
-  const getZergBuildingType = (unit: UnitInstance) => {
+  const getZergBuildingType = (unit: Unit) => {
     const queuedZergType =
       unit.dat.isZerg && unit.queue && unit.queue.units.length
         ? bwDat.units[unit.queue.units[0]]

@@ -10,3 +10,4 @@ export * from "./replay";
 export * from "./terrain";
 export * from "./util";
 export * from "./image";
+export * from "./production";

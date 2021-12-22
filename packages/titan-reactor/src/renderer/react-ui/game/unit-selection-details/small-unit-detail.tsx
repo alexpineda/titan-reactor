@@ -4,19 +4,19 @@ import range from "../../../../common/utils/range";
 import { useUnitSelectionStore, UnitSelectionStore } from "../../../stores";
 import { showKillsExtraUnits } from "./kills";
 import SmallUnitItem from "./small-unit-item";
-import { UnitInstance } from "../../../game";
 
+import { Unit } from "../../../core";
 interface Props {
-  units: UnitInstance[];
+  units: Unit[];
 }
 
-const canSelect = (u: UnitInstance) => u.canSelect;
-const hasNonAttackers = (u: UnitInstance) =>
+const canSelect = (u: Unit) => u.canSelect;
+const hasNonAttackers = (u: Unit) =>
   !u.dat.isSpellcaster &&
   u.dat.groundWeapon === 130 &&
   u.dat.airWeapon === 130 &&
   !showKillsExtraUnits.includes(u.typeId);
-const sumKills = (tkills: number, { kills }: Pick<UnitInstance, "kills">) =>
+const sumKills = (tkills: number, { kills }: Pick<Unit, "kills">) =>
   tkills + kills;
 
 const selector = (state: Pick<UnitSelectionStore, "selectedUnits">) => {

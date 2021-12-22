@@ -2,4 +2,6 @@ export * from "./game-canvas-target";
 export * from "./render-css";
 export * from "./renderer";
 export * from "./scene";
-export * from "./generate-terrain";
+export * from "./layers";
+export * from "./minimap-renderer";
+export * from "./build-units";

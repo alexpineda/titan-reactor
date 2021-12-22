@@ -1,7 +1,7 @@
-import SpriteInstance from "../../renderer/game/sprite-instance";
+import { Sprite } from "./sprite";
 
-import { createIScriptRunner, ImageDAT } from "../types";
-import AtlasHD from "./atlas/atlas-hd";
+import { createIScriptRunner, ImageDAT } from "../../common/types";
+import AtlasHD from "../../common/image/atlas/atlas-hd";
 import TitanImageHD from "./titan-image-hd";
 
 export default class TitanImageSD2 extends TitanImageHD {
@@ -9,7 +9,7 @@ export default class TitanImageSD2 extends TitanImageHD {
     atlas: AtlasHD,
     createIScriptRunner: createIScriptRunner,
     imageDef: ImageDAT,
-    sprite: SpriteInstance
+    sprite: Sprite
   ) {
     super(atlas, createIScriptRunner, imageDef, sprite, 32);
   }

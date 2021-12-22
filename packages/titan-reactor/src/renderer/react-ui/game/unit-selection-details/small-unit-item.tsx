@@ -6,12 +6,12 @@ import {
   useUnitSelectionStore,
   UnitSelectionStore,
 } from "../../../stores";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 import { UnitDAT } from "../../../../common/types";
 import { AssetsMissingError } from "../../../../common/errors";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
   index: number;
   showLoaded: boolean;
 }
@@ -23,7 +23,7 @@ const filters = [
   "hue-rotate(91deg)   brightness(4)",
 ];
 
-const calcStep = (unit: UnitInstance) =>
+const calcStep = (unit: Unit) =>
   unit.canSelect
     ? Math.ceil(Math.min(1, unit.hp / (unit.dat.hp * 0.8)) * 3)
     : 0;

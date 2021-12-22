@@ -1,12 +1,12 @@
 import range from "../../utils/range";
-import { DAT } from "./DAT";
+import { DAT } from "./dat";
 import { FlingyDAT } from "./flingy-dat";
 import { ImageDAT } from "./images-dat";
 import { SoundDAT } from "./sounds-dat";
 import { ReadFile } from "../../types";
 
 //eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface UnitDAT extends UnitDATIncomingType {}
+export interface UnitDAT extends UnitDATIncomingType { }
 export class UnitDAT implements UnitDAT {
   specialAbilityFlags = 0;
   starEditGroupFlags = 0;

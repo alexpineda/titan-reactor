@@ -17,15 +17,12 @@ import {
   createTitanImage,
   SpriteIndex,
   UnitTag,
-} from "../common/types";
-import {
   ResearchCompleted,
   ResearchInProduction,
   UnitInProduction,
-  UnitInstance,
   UpgradeCompleted,
   UpgradeInProduction,
-} from "./game/unit-instance";
+} from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import AudioMaster from "./audio/audio-master";
@@ -35,16 +32,12 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   Apm,
-  BuildUnits,
   GameStatePosition,
-  MinimapCanvasDrawer,
-  MouseCursor,
   Players,
-  SpriteInstance,
-} from "./game";
+} from "./core";
 import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
-import { InputEvents, KeyboardShortcuts, MinimapControl } from "./input";
-import { GameCanvasTarget, Renderer, Scene } from "./render";
+import { InputEvents, KeyboardShortcuts, MinimapControl, MouseInteraction } from "./input";
+import { GameCanvasTarget, Renderer, Scene, MinimapCanvasDrawer, BuildUnits } from "./render";
 import {
   useGameStore,
   useHudStore,
@@ -66,7 +59,7 @@ import {
   UnitsBW,
   UpgradeBW,
 } from "./integration/fixed-data";
-import { ImageInstance } from "../common/image/image-instance";
+import { Image, Unit, Sprite } from "./core";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -90,7 +83,7 @@ async function TitanReactorGame(
   if (!settings) {
     throw new Error("Settings not loaded");
   }
-  const cursor = new MouseCursor();
+  const cursor = new MouseInteraction();
   cursor.pointer();
 
   const { mapWidth, mapHeight } = terrainInfo;
@@ -126,7 +119,7 @@ async function TitanReactorGame(
     true
   );
 
-  
+
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
   orbitControls.listenToKeyEvents(window.document.body);
   orbitControls.dampingFactor = 0.25;
@@ -332,8 +325,8 @@ async function TitanReactorGame(
 
   const unitsBW = new UnitsBW();
   const buildQueueBW = new BuildingQueueCountBW();
-  const units: Map<UnitTag, UnitInstance> = new Map();
-  const unitsBySpriteId: Map<SpriteIndex, UnitInstance> = new Map();
+  const units: Map<UnitTag, Unit> = new Map();
+  const unitsBySpriteId: Map<SpriteIndex, Unit> = new Map();
   const unitsInProduction: UnitInProduction[] = [];
 
   const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
@@ -352,7 +345,7 @@ async function TitanReactorGame(
     );
   };
 
-  const sprites: Map<SpriteIndex, SpriteInstance> = new Map();
+  const sprites: Map<SpriteIndex, Sprite> = new Map();
   const spritesBW = new SpritesBW();
   const imagesBW = new ImagesBW();
   let research: ResearchInProduction[][] = [];
@@ -362,7 +355,7 @@ async function TitanReactorGame(
   const group = new Group();
   scene.add(group);
 
-  const interactableSprites: ImageInstance[] = [];
+  const interactableSprites: Image[] = [];
   const buildSprites = (bwFrame: FrameBW, delta: number) => {
     group.clear();
     spritesBW.count = bwFrame.spriteCount;
@@ -375,7 +368,7 @@ async function TitanReactorGame(
     for (const spriteBW of spritesBW.items()) {
       let sprite = sprites.get(spriteBW.index);
       if (!sprite) {
-        sprite = new SpriteInstance(spriteBW.index, spriteBW.dat);
+        sprite = new Sprite(spriteBW.index, spriteBW.dat);
         sprites.set(spriteBW.index, sprite);
       }
       sprite.spriteDAT = spriteBW.dat;

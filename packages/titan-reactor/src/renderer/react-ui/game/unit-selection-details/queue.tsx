@@ -8,17 +8,14 @@ import {
   useUnitSelectionStore,
   UnitSelectionStore,
 } from "../../../stores";
-import {
-  ResearchCompleted,
-  UnitInstance,
-  UpgradeCompleted,
-} from "../../../game";
+import { ResearchCompleted, UpgradeCompleted } from "../../../../common/types";
 import { AssetsMissingError } from "../../../../common/errors";
+import { Unit } from "../../../core";
 
 type SelectedUnits = Pick<UnitSelectionStore, "selectedUnits">;
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 const researchIconSelector = (state: SelectedUnits) => {
   if (!state.selectedUnits[0]) return 0;

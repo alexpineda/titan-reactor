@@ -1,12 +1,11 @@
 import range from "../../../../common/utils/range";
 import React, { forwardRef } from "react";
 import SmallUnitItem from "./small-unit-item";
-import { UnitInstance } from "../../../game";
+import { Unit } from "../../../core";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
-
 const Loaded = forwardRef<HTMLDivElement, Props>(({ unit }, ref) => {
   return (
     <div className="flex pl-1 pt-1 hidden" ref={ref}>
