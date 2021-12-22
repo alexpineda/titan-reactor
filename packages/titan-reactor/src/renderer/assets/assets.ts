@@ -6,12 +6,13 @@ import {
   readCascFile,
 } from "../../common/utils/casclib";
 
+
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
   grps: AtlasHD[];
   selectionCirclesHD: AtlasHD[];
 
-  resourceIcons: ResourceIcons[];
+  gameIcons: ResourceIcons;
   cmdIcons: string[];
   raceInsetIcons: RaceInsetIcons;
   workerIcons: WorkerIcons;
@@ -39,7 +40,7 @@ class Assets {
     bwDat,
     grps,
     selectionCirclesHD,
-    resourceIcons: gameIcons,
+    gameIcons,
     cmdIcons,
     raceInsetIcons,
     workerIcons,

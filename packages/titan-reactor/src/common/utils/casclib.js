@@ -1,5 +1,5 @@
+// export * from "../../renderer/ipc/casclib";
 import * as casclib from "casclib";
-
 let _storageHandle;
 let _lastBwPath;
 
@@ -14,12 +14,12 @@ export const readCascFile = (filePath) => {
 };
 export default readCascFile;
 
-export const openCascStorage = (bwPath) => {
+export const openCascStorage = async (bwPath) => {
   _lastBwPath = bwPath;
   if (_storageHandle) {
     casclib.closeStorage(_storageHandle);
   }
-  _storageHandle = casclib.openStorageSync(bwPath);
+  _storageHandle = await casclib.openStorage(bwPath);
 };
 
 export const closeCascStorage = () =>

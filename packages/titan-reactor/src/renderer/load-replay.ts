@@ -42,6 +42,14 @@ import waitForAssets from "./bootup/wait-for-assets";
 
 export default async (filepath: string) => {
     log(`loading replay ${filepath}`);
+
+
+    startLoadingProcess({
+        id: "replay",
+        label: getFunString(),
+        priority: 1,
+    });
+
     disposeGame();
 
     const settings = getSettings();
@@ -51,12 +59,6 @@ export default async (filepath: string) => {
     let rep = await parseReplay(repBin);
 
     document.title = "Titan Reactor - Loading";
-
-    startLoadingProcess({
-        id: "replay",
-        label: getFunString(),
-        priority: 1,
-    });
 
     initUIType({
         type: "replay",

@@ -17,59 +17,76 @@ export default async (readFile: ReadFile) => {
   });
   renderer.autoClear = false;
 
-  const palette = new Uint8Array(
-    (await readFile("TileSet/jungle.wpe")).buffer
-  ).subarray(0, 1024);
+  const files = [
+    await readFile("TileSet/jungle.wpe"),
+    await readFile("game/icons.dds.grp"),
+    await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"),
+    await readFile("glue/scoretd/iScore.dds.grp"),
+    await readFile("cursor/arrow.grp"),
+    await readFile("cursor/MagY.grp"),
+    await readFile("cursor/Drag.grp"),
+    await readFile("HD2/unit/wirefram/wirefram.dds.grp"),
+    await readFile("webui/dist/lib/images/icon_apm.png"),
+    await readFile("webui/dist/lib/images/icon_worker_terran.png"),
+    await readFile("webui/dist/lib/images/icon_worker_zerg.png"),
+    await readFile("webui/dist/lib/images/icon_worker_protoss.png")
+  ];
+
+  const palette = new Uint8Array(files[0].buffer).subarray(0, 1024);
 
   const resourceIcons = generateResourceIcons(
     renderer,
-    parseDdsGrp(await readFile("game/icons.dds.grp"))
+    parseDdsGrp(files[1])
   );
 
   const cmdIcons = generateCmdIcons(
     renderer,
-    parseDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
+    parseDdsGrp(files[2])
   );
 
   const raceInsetIcons = generateRaceInsetIcons(
     renderer,
-    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
+    parseDdsGrp(files[3])
   );
 
-  const arrowIcons = await generateCursors(await readFile("cursor/arrow.grp"), palette);
+  const arrowIcons = await generateCursors(
+    files[4],
+    palette
+  );
 
   const hoverIcons = await generateCenteredCursors(
-    await readFile("cursor/MagY.grp"),
+    files[5],
     palette
   );
 
   const dragIcons = await generateCenteredCursors(
-    await readFile("cursor/Drag.grp"),
+    files[6],
     palette
   );
 
   const wireframeIcons = await generateWireframes(
     renderer,
-    parseDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
+    parseDdsGrp(files[7])
   );
+
+  renderer.dispose();
+
 
   const workerIcons = {
     apm: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_apm.png")
+      files[7]
     ).toString("base64")}`,
     terran: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_terran.png")
+      files[8]
     ).toString("base64")}`,
     zerg: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_zerg.png")
+      files[9]
     ).toString("base64")}`,
     protoss: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_protoss.png")
+      files[10]
     ).toString("base64")}`,
   };
 
-  renderer.dispose();
-  //@todo not all of these are GameIcons?
   return {
     resourceIcons,
     cmdIcons,

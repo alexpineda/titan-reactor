@@ -1,11 +1,12 @@
 import { promises as fsPromises } from "fs";
 
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
-import { AtlasLoader, parseAnim } from "../../common/image";
+import { Atlas3D, parseAnim } from "../../common/image";
 import {
     openCascStorage,
     readCascFile,
 } from "../../common/utils/casclib";
+
 import ContiguousContainer from "../integration/fixed-data/contiguous-container";
 import {
     startLoadingProcess,
@@ -16,13 +17,14 @@ import electronFileLoader from "../utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
+import { log } from "../ipc";
 
+class AnimOutOfBoundsError extends Error { }
 export default async (starcraftPath: string, communityModelsPath: string) => {
-    performance.mark("start-load-assets");
     startLoadingProcess({
         id: "assets",
         label: "Loading initial assets",
-        max: 1010,
+        max: 101,
         priority: 10,
         current: 0,
         mode: "determinate",
@@ -37,7 +39,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         }
     });
 
-    openCascStorage(starcraftPath);
+    await openCascStorage(starcraftPath);
 
     //@todo move parsing to client
     const bwDat = await loadDATFiles(readCascFile);
@@ -67,20 +69,33 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         wireframeIcons,
     } = await generateIcons(readCascFile);
 
-    const atlasLoader = new AtlasLoader(
-        bwDat,
-        communityModelsPath,
-        readCascFile,
-        sdAnim
-    );
+    const refId = (id: number) => {
+        if (sdAnim[id] && sdAnim[id].refId) {
+            return sdAnim[id].refId;
+        }
+        return id;
+    };
 
-    const grps = [];
-    for (let i = 0; i < 999; i++) {
-        grps[i] = await atlasLoader.load(i);
+    const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${refId(i)}`.slice(-3)}.anim`;
+
+    const loadImageAtlas = async (imageId: number) => {
+        const grp = new Atlas3D();
+        return await grp.load({
+            imageDef: bwDat.images[imageId],
+            readAnim: async () => readCascFile(genFileName(imageId)),
+            readAnimHD2: () => readCascFile(genFileName(imageId, "HD2/")),
+            glbFileName: `${communityModelsPath}/models/${`00${refId(
+                imageId
+            )}`.slice(-3)}.glb`,
+        });
     }
 
-    const perf = performance.measure("start-load-assets");
-    console.log(`load assets took ${perf.duration}ms`);
+    const grps = [];
+
+    for (let i = 0; i < 999; i++) {
+        i % 100 === 0 && updateLoadingProcess("assets");
+        grps[i] = await loadImageAtlas(i);
+    }
 
     completeLoadingProcess("assets");
 
@@ -88,7 +103,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         bwDat,
         grps,
         selectionCirclesHD,
-        resourceIcons,
+        gameIcons: resourceIcons,
         cmdIcons,
         raceInsetIcons,
         workerIcons,

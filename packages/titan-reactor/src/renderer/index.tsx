@@ -18,20 +18,26 @@ log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);
 log(`electron ${process.versions.electron}`);
 
+let _errored = false;
+
 preloadAssets();
+bootup();
+
+setTimeout(() => {
+  !_errored && completeUIType();
+}, 10000);
 
 async function bootup() {
   try {
     await loadFonts();
     await loadSettings();
     log("bootup complete");
-    completeUIType();
     registerFileDialogHandlers();
   } catch (err: any) {
     log(err.message, "error");
     errorUIType(err);
+    _errored = true;
   }
 }
 
 render(<App />, document.getElementById("app"));
-bootup();

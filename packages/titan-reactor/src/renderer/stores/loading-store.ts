@@ -1,5 +1,6 @@
 import create from "zustand";
 import { ReplayPlayer } from "../../common/types";
+import { log } from "../ipc";
 
 // loading store which contains state on loading status, as well as loaded replay and map data
 export const ASSETS_MAX = 1010;
@@ -68,7 +69,7 @@ export type LoadingStore = {
   startProcess: (process: LoadingStoreProcess) => void;
   updateProcess: (id: string, current?: number) => void;
   updateIndeterminateProcess: (id: string, label: string) => void;
-  completeProcess: (id: string) => void;
+  completeProcess: (id: string, affix?: string) => void;
   isProcessComplete: (id: string) => boolean;
   isProcessInProgress: (id: string) => boolean;
 };
@@ -99,17 +100,21 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
   startProcess: (process: LoadingStoreProcess) => {
+    log("process " + process.id + " start");
+    performance.mark(`process-${process.id}`);
     set(({ processes, completedProcesses }) => ({
       processes: [...processes, process],
       completedProcesses: completedProcesses.filter((p) => p.id !== process.id),
     }));
   },
-  updateProcess: (id: string, current?: number) =>
+  updateProcess: (id: string, current?: number) => {
+    log("process " + id + " update");
     set((state) => ({
       processes: (state.processes as LoadingStoreDeterminateProcess[]).map(
         (p) => (p.id === id ? { ...p, current: current ?? p.current + 1 } : p)
       ),
-    })),
+    }));
+  },
   updateIndeterminateProcess: (id: string, label: string) =>
     set((state) => ({
       processes: (state.processes as LoadingStoreBaseProcess[]).map((p) =>
@@ -117,6 +122,10 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
       ),
     })),
   completeProcess: (id: string) => {
+    const perf = performance.measure(`process-${id}`);
+    performance.clearMarks(`process-${id}`);
+    performance.clearMeasures(`process-${id}`);
+    log(`process ${id} complete ${perf.duration}ms`);
     const process = get().processes.find((p) => p.id === id);
     if (!process) return;
     set(({ processes, completedProcesses }) => ({
