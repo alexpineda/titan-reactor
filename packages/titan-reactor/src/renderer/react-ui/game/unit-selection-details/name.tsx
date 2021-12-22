@@ -19,7 +19,7 @@ const Name = ({ unit, className = "" }: Props) => {
   if (!bwDat) {
     throw new AssetsMissingError("bwDat");
   }
-  const nameRef = useRef();
+  const nameRef = useRef<HTMLParagraphElement>(null);
 
   const getZergBuildingType = (unit: UnitInstance) => {
     const queuedZergType =
@@ -31,7 +31,7 @@ const Name = ({ unit, className = "" }: Props) => {
     return queuedBuildingZergType || null;
   };
 
-  const selector = (state: UnitSelectionStore) => {
+  const selector = (state: Pick<UnitSelectionStore, "selectedUnits">) => {
     if (!state.selectedUnits[0]) return "";
 
     const zergBuildingType = getZergBuildingType(state.selectedUnits[0]);

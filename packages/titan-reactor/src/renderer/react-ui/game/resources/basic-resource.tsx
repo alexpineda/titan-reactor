@@ -5,12 +5,12 @@ interface Props {
   image: React.ReactNode;
   //@todo change to union of supported text sizes
   scaledTextSize: string;
-  selector: (state: ResourcesStore) => number;
+  selector: (state: ResourcesStore) => string;
 }
 const BasicResource = ({ image, scaledTextSize, selector }: Props) => {
-  const numberRef = useRef();
+  const numberRef = useRef<HTMLSpanElement>(null);
 
-  const setDom = (value: number | string) => {
+  const setDom = (value: string) => {
     if (!numberRef.current) return;
     numberRef.current.textContent = value;
   };

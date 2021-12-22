@@ -1,5 +1,5 @@
 import range from "../../utils/range";
-import { DAT } from "./dat";
+import { DAT } from "./DAT";
 import { FlingyDAT } from "./flingy-dat";
 import { ImageDAT } from "./images-dat";
 import { SoundDAT } from "./sounds-dat";
@@ -171,7 +171,7 @@ export type UnitDATIncomingType = {
   subUnit1: number;
   subUnit2: number;
   infestation: number[];
-  // constructionAnimation: any,
+  constructionAnimation: any,
   direction: number;
   shieldsEnabled: boolean;
   shields: number;
@@ -336,10 +336,7 @@ export class UnitsDAT extends DAT<UnitDATIncomingType> {
         end: keyof UnitDATIncomingType
       ): string[] => {
         if (entry[start] && entry[end]) {
-          return range(0, entry[end] - entry[start]).map((s) => ({
-            ...s,
-            file: this.sounds[s + entry[start]],
-          }));
+          return range(0, entry[end] - entry[start]).map((s) => this.sounds[s + entry[start]].file);
         }
         return [];
       };

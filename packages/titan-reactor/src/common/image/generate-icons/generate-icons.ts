@@ -1,7 +1,7 @@
 import { ReadFile } from "../../types";
 import { WebGLRenderer } from "three";
 
-import readDdsGrp from "../formats/dds-grp";
+import parseDdsGrp from "../formats/parse-dds-grp";
 import GameIcons from "./game-icons";
 
 export default async (readFile: ReadFile) => {
@@ -19,19 +19,19 @@ export default async (readFile: ReadFile) => {
   const gameIcons = new GameIcons();
   gameIcons.renderResourceIcons(
     renderer,
-    readDdsGrp(await readFile("game/icons.dds.grp"))
+    parseDdsGrp(await readFile("game/icons.dds.grp"))
   );
 
   const cmdIcons = new GameIcons();
   await cmdIcons.renderCmdIcons(
     renderer,
-    readDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
+    parseDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
   );
 
   const raceInsetIcons = new GameIcons();
   await raceInsetIcons.renderRaceInset(
     renderer,
-    readDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
+    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );
 
   const arrowIcons = new GameIcons();
@@ -52,7 +52,7 @@ export default async (readFile: ReadFile) => {
   const wireframeIcons = new GameIcons();
   await wireframeIcons.renderWireframes(
     renderer,
-    readDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
+    parseDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
   );
 
   const workerIcons = {

@@ -11,8 +11,8 @@ import { incFontSize } from "../../../../common/utils/change-font-size";
 import { Player } from "../../../../common/types";
 
 const _playerScoreCache: Record<
-  string,
-  Record<string, number | undefined>
+  string, // cache key
+  Record<string, number | undefined> // player name -> score
 > = {};
 const hudStoreSelector = (state: HudStore) => state.productionView;
 const textSizeSelector = (state: SettingsStore) =>
@@ -79,7 +79,7 @@ const ResourcesBar = ({
               color={player.color}
               textSize={textSize}
               fitToContent={fitToContent}
-              playerScoreCache={_playerScoreCache}
+              playerScoreCache={_playerScoreCache[cacheKey]}
               productionView={productionView}
               esportsHud={esportsHud}
               enablePlayerScores={enablePlayerScores}

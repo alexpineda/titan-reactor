@@ -21,7 +21,7 @@ const selector = (state: UnitSelectionStore) => {
 };
 
 const Kills = ({ unit }: Props) => {
-  const killsRef = useRef();
+  const killsRef = useRef<HTMLParagraphElement>(null);
 
   const setDom = (kills: number) => {
     if (!killsRef.current) return;

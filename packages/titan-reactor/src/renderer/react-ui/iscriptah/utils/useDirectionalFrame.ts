@@ -3,9 +3,11 @@ import {
   getDirectionalFrame as _getDirectionalFrame,
   areFrameSetsEnabled as _areFrameSetsEnabled,
 } from "./framesets";
+import { AnimationBlockType,  Block } from "../../../../common/types";
 
-export default (cmds, selectedBlock, blockFrameCount: number, cameraDirection: number) => {
-  const dirCache = useRef();
+
+export default (cmds: AnimationBlockType, selectedBlock: Block, blockFrameCount: number, cameraDirection: number) => {
+  const dirCache = useRef<any>();
   useEffect(() => {
     dirCache.current = {};
   }, [selectedBlock, cameraDirection]);

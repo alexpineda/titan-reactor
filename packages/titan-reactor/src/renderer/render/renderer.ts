@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { easePoly } from "d3-ease";
 import {
   BloomEffect,
@@ -12,7 +14,6 @@ import {
   SMAAPreset,
   ToneMappingEffect,
 } 
-// @ts-ignore
 from "postprocessing";
 
 import {
@@ -36,6 +37,14 @@ import FogOfWarEffect from "../fogofwar/fog-of-war-effect";
 OverrideMaterialManager.workaroundEnabled = true;
 
 const log = console.log;
+
+type DepthOfFieldEffect = typeof DepthOfFieldEffect;
+type RenderPass = typeof RenderPass;
+type EffectComposer = typeof EffectComposer;
+type SMAAEffect = typeof SMAAEffect;
+type EffectPass = typeof EffectPass;
+type ToneMappingEffect = typeof ToneMappingEffect;
+type BloomEffect = typeof BloomEffect;
 
 export class Renderer {
   settings: Settings;

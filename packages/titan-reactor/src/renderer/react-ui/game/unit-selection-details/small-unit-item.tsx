@@ -35,10 +35,10 @@ const SmallUnitItem = ({ index, unit, showLoaded }: Props) => {
   if (!cmdIcons) {
     throw new AssetsMissingError("cmdIcons");
   }
-  const imgRef = useRef();
-  const borderRef = useRef();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const borderRef = useRef<HTMLDivElement>(null);
 
-  const getUnit = (state: UnitSelectionStore) => {
+  const getUnit = (state: Pick<UnitSelectionStore, "selectedUnits">) => {
     if (showLoaded) {
       return unit.loaded ? unit.loaded[index] : null;
     }
@@ -46,7 +46,7 @@ const SmallUnitItem = ({ index, unit, showLoaded }: Props) => {
     return state.selectedUnits[index];
   };
 
-  const selector = (state: UnitSelectionStore) => {
+  const selector = (state: Pick<UnitSelectionStore, "selectedUnits">) => {
     const unit = getUnit(state);
     if (!unit) return { unitType: null, step: 0, canSelect: false };
 

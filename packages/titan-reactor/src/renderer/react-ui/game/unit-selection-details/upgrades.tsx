@@ -8,6 +8,7 @@ import {
 import { useGameStore, GameStore, useProductionStore } from "../../../stores";
 import { UnitInstance } from "../../../game";
 import { AssetsMissingError } from "../../../../common/errors";
+import { TechDataDAT, UpgradeDAT } from "../../../../common/types";
 
 interface Props {
   unit: UnitInstance;
@@ -15,8 +16,14 @@ interface Props {
 const iconSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
 const bwDatSelector = (state: GameStore) => state?.assets?.bwDat;
 
+type UpgradeDATWithZeroRemaining = UpgradeDAT & {
+  remainingBuildTime: number;
+};
+type TechDataDATWithZeroRemaining = TechDataDAT & {
+  remainingBuildTime: number;
+};
 const Upgrades = ({ unit }: Props) => {
-  const itemsRef = useRef();
+  const itemsRef = useRef<HTMLDivElement>(null);
   const cmdIcons = useGameStore(iconSelector);
   const bwDat = useGameStore(bwDatSelector);
   if (!bwDat || !cmdIcons) {
@@ -53,7 +60,11 @@ const Upgrades = ({ unit }: Props) => {
         (upgrType) =>
           completedTech.find(
             (item) => item.isUpgrade && item.typeId === upgrType
-          ) || bwDat.upgrades[upgrType]
+          ) ||
+          ({
+            ...bwDat.upgrades[upgrType],
+            remainingBuildTime: 0,
+          } as UpgradeDATWithZeroRemaining)
       )
       .sort((a, b) => a.remainingBuildTime - b.remainingBuildTime),
     ...validTechs
@@ -61,7 +72,11 @@ const Upgrades = ({ unit }: Props) => {
         (techType) =>
           completedTech.find(
             (item) => item.isTech && item.typeId === techType
-          ) || bwDat.tech[techType]
+          ) ||
+          ({
+            ...bwDat.tech[techType],
+            remainingBuildTime: 0,
+          } as TechDataDATWithZeroRemaining)
       )
       .sort((a, b) => a.remainingBuildTime - b.remainingBuildTime),
   ];

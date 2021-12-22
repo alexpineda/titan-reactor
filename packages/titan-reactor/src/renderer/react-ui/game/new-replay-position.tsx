@@ -1,6 +1,6 @@
-import { memo } from "preact/compat";
+import React, { memo } from "preact/compat";
 
-const ReplayPosition = ({ className }) => (
+const ReplayPosition = ({ className }: { className: string }) => (
   <div
     className={`replay-parent flex self-end select-none ${className}`}
     style={{ minWidth: "18vw" }}

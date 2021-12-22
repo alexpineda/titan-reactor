@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import shallow from "zustand/shallow";
-import { promises as fsPromises } from "fs";
 import UnitsAndImages from "./units-and-images";
 
 import { CanvasTarget } from "../../../../common/image";

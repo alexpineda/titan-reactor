@@ -1,4 +1,4 @@
-import { Player } from "common";
+import { Player } from "../../../../common/types";
 import React from "react";
 import shallow from "zustand/shallow";
 import {

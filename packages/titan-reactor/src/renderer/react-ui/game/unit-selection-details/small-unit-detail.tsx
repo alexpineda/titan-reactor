@@ -19,7 +19,7 @@ const hasNonAttackers = (u: UnitInstance) =>
 const sumKills = (tkills: number, { kills }: Pick<UnitInstance, "kills">) =>
   tkills + kills;
 
-const selector = (state: UnitSelectionStore) => {
+const selector = (state: Pick<UnitSelectionStore, "selectedUnits">) => {
   if (state.selectedUnits.some(hasNonAttackers)) {
     return "";
   } else {
@@ -30,7 +30,7 @@ const selector = (state: UnitSelectionStore) => {
 };
 
 const SmallUnitDetail = ({ units }: Props) => {
-  const killsRef = useRef();
+  const killsRef = useRef<HTMLParagraphElement>(null);
 
   const setDom = (killsText: string) => {
     if (!killsRef.current) return;

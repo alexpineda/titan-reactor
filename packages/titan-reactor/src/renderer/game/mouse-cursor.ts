@@ -177,7 +177,7 @@ export class MouseCursor {
     let mousedown = false;
     let enableHoverIntersecting = false;
 
-    const intersectMouse = (clipV: Point, sprites = null) => {
+    const intersectMouse = (clipV: Point) => {
       raycaster.setFromCamera(clipV, camera);
       // calculate objects intersecting the picking ray
       const intersects = raycaster.intersectObjects(interactableSprites, false);
@@ -193,9 +193,7 @@ export class MouseCursor {
               intersect.uv.y
             )
           ) {
-            if (sprites) {
-              sprites.add(intersect.object.sprite);
-            } else if (
+             if (
               intersect.object.sprite.renderOrder > closestSprite.renderOrder
             ) {
               closestSprite = intersect.object.sprite;
@@ -265,7 +263,7 @@ export class MouseCursor {
       if (!mousedown) return;
       mousedown = false;
 
-      const selected = new Set();
+      const selected = new Set<UnitInstance>();
 
       if (isMinDragSize()) {
         const [width, height] = [gameSurface.width, gameSurface.height];
@@ -355,11 +353,11 @@ export class MouseCursor {
       //select last sprite on mouse unless we have a bunch of units selected and the last sprite is a resource container or building
       if (
         sprite &&
-        sprite.unit.canSelect &&
+        sprite.unit?.canSelect &&
         !(
           selected.size &&
-          (sprite.unit.dat.isResourceContainer ||
-            sprite.unit.dat.isBuilding)
+          (sprite.unit?.dat.isResourceContainer ||
+            sprite.unit?.dat.isBuilding)
         )
       ) {
         // ctrl modifier -> select all of unit type in view
@@ -387,7 +385,7 @@ export class MouseCursor {
                   unit.canSelect &&
                   unit.tileX === x &&
                   unit.tileY === y &&
-                  unit.dat === sprite.unit.dat
+                  unit.dat === sprite.unit?.dat
                 ) {
                   // test one tile out of selection bounds since unit tileX/Y is centered
                   // use placement approximations from UnitsDat for these "slightly out of bounds" units

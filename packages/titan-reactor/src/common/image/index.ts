@@ -9,5 +9,6 @@ export * from "./image-instance";
 export * from "./team-sprite-material";
 export * from "./titan-image-3d";
 export * from "./titan-image-hd";
-export * from "./titan-image-sd2";
+export * from "./titan-image-sd";
+export * from "./formats";
 export * from "./titan-sprite";

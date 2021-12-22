@@ -10,7 +10,7 @@ interface Props {
 }
 
 const RollingResource = ({ image, scaledTextSize, selector }: Props) => {
-  const numberRef = useRef();
+  const numberRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const rollingNumber = new RollingNumber(
@@ -18,7 +18,7 @@ const RollingResource = ({ image, scaledTextSize, selector }: Props) => {
     );
 
     if (numberRef.current) {
-      numberRef.current.textContent = rollingNumber.rollingValue;
+      numberRef.current.textContent = String(rollingNumber.rollingValue);
     }
     let lastTime = 0;
     let animFrame = 0;
@@ -26,7 +26,7 @@ const RollingResource = ({ image, scaledTextSize, selector }: Props) => {
     const rafLoop = (time: number) => {
       if (numberRef.current && rollingNumber.update(time - lastTime)) {
         lastTime = time;
-        numberRef.current.textContent = rollingNumber.rollingValue;
+        numberRef.current.textContent = String(rollingNumber.rollingValue);
       }
       if (rollingNumber.isRunning) {
         animFrame = requestAnimationFrame(rafLoop);

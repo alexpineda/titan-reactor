@@ -177,3 +177,5 @@ export type IScriptDATType = {
   iscripts: Record<number, IScriptRawType>;
   animationBlocks: Record<number, AnimationBlockType>;
 };
+
+export type Block = { image: ImageDAT; offset: number; header: number };

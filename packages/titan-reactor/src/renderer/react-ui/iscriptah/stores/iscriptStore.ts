@@ -1,4 +1,4 @@
-import { ImageDAT, UnitDAT } from "../../../../common/types";
+import { ImageDAT, UnitDAT, Block } from "../../../../common/types";
 import create from "zustand";
 
 //a user settings store which persists to disk
@@ -25,7 +25,7 @@ export type IscriptStore = {
 
   initializeBlock: boolean;
 
-  block: { image: ImageDAT; offset: number; header: number } | null;
+  block: Block | null;
   setBlock: (image: ImageDAT, offset: number, header: number) => void;
 
   frame: number | null;

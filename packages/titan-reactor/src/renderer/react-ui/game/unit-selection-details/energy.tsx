@@ -17,11 +17,11 @@ const selector = (state: UnitSelectionStore) => {
 
 const Energy = ({ unit }: Props) => {
   const gameIcons = useGameStore((state) => state?.assets?.icons.gameIcons);
-  const energyRef = useRef();
+  const energyRef = useRef<HTMLParagraphElement>(null);
 
   const setDom = (energy: number | string) => {
     if (!energyRef.current) return;
-    energyRef.current.textContent = `${energy}`;
+    energyRef.current.textContent = String(energy);
   };
 
   useEffect(() => {

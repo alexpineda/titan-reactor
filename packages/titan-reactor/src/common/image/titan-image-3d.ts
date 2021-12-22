@@ -1,6 +1,6 @@
 import "three/examples/jsm/utils/SkeletonUtils";
 
-import THREE, { AnimationAction, AnimationMixer, Object3D } from "three";
+import THREE, { AnimationAction, AnimationMixer, Color, Object3D } from "three";
 
 import SpriteInstance from "../../renderer/game/sprite-instance";
 import { IScriptRunner } from "../iscript";
@@ -50,6 +50,7 @@ export class TitanImage3D extends Object3D implements ImageInstance {
   ) {
     super();
     this.atlas = atlas;
+    // @ts-ignore
     this.model = THREE.SkeletonUtils.clone(atlas.model);
     this.model.traverse((o) => {
       if (o.type == "Mesh" || o.type == "SkinnedMesh") {
@@ -79,8 +80,11 @@ export class TitanImage3D extends Object3D implements ImageInstance {
     this.setFrame(0);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setTeamColor(val: Color) {}
-  setWarping(val: number) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setWarpingIn(val: number) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setCloaked(val: boolean) {}
 
   get frames() {

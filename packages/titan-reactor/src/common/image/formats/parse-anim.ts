@@ -15,15 +15,7 @@ const Version: Record<number, symbol> = {
   0x0204: versionHD,
 };
 
-type MergedSprite = {
-  refId?: number;
-  w: number;
-  h: number;
-  maps: Record<string, AnimDds>;
-  frames: GrpFrameType[];
-};
-
-export const Anim = (buf: Buffer) => {
+export const parseAnim = (buf: Buffer) => {
   const bl = new BufferList(buf);
 
   const header = bl.shallowSlice(0, 12 + 10 * 32);
@@ -68,7 +60,7 @@ export const Anim = (buf: Buffer) => {
     const h = data.readUInt16LE(6);
     const framesOffset = data.readUInt32LE(8);
     data.consume(12);
-    const maps = parseTextures(data) as Record<string, MergedSprite>;
+    const maps = parseTextures(data);
     const frames = parseFrames(numFrames, framesOffset);
     lastOffset = framesOffset + numFrames * 16;
     return {
@@ -79,7 +71,9 @@ export const Anim = (buf: Buffer) => {
     };
   };
 
-  const parseTextures = (texture: BufferList) =>
+  const parseTextures = (texture: BufferList): {
+    [key: string]: AnimDds;
+  } =>
     range(0, numLayers).reduce((tex, i) => {
       const ddsOffset = texture.readUInt32LE(0);
       const size = texture.readUInt32LE(4);
@@ -119,12 +113,6 @@ export const Anim = (buf: Buffer) => {
   };
 
   const sprites = range(0, numEntries).map(() => parseSprite());
-  const sprite = sprites[0];
 
-  return {
-    sprite,
-    sprites,
-    version,
-    numEntries,
-  };
+  return sprites;
 };

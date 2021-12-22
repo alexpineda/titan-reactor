@@ -5,7 +5,7 @@ const calculateImagesFromIScript = (
   bwDat: BwDAT,
   image: ImageDAT,
   unit?: UnitDAT | null,
-  preload = new Set()
+  preload = new Set<number>()
 ): number[] => {
   const getAllImages = (imageDef: ImageDAT) => {
     // console.log(imageDef);
@@ -88,7 +88,7 @@ export const calculateImagesFromUnitsIscript = (
   bwDat: BwDAT,
   unitIds: number[]
 ) => {
-  const preload = new Set();
+  const preload = new Set<number>();
 
   uniq(unitIds).forEach((id) => {
     const unit = bwDat.units[id];
@@ -107,7 +107,7 @@ export const calculateImagesFromSpritesIscript = (
   bwDat: BwDAT,
   spriteIds: number[]
 ) => {
-  const preload = new Set();
+  const preload = new Set<number>();
 
   uniq(spriteIds).forEach((id) => {
     const sprite = bwDat.sprites[id];

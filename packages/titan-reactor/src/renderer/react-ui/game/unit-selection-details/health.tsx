@@ -16,7 +16,7 @@ const hpSelector = (state: UnitSelectionStore) => {
 };
 
 const Health = ({ unit }: Props) => {
-  const hpRef = useRef();
+  const hpRef = useRef<HTMLParagraphElement>(null);
 
   const setDom = (hp: number, transition = "color 4s linear") => {
     if (!hpRef.current) return;

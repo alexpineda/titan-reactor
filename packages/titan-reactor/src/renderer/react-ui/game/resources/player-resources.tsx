@@ -10,7 +10,6 @@ import {
   UnitProductionView,
   TechProductionView,
   UpgradesProductionView,
-  ProductionView,
 } from "../../../stores";
 import PlayerProduction from "../production/player-production";
 import RollingResource from "./rolling-resource";
@@ -49,8 +48,8 @@ const PlayerResources = ({
 }: Player & {
   textSize: string;
   fitToContent: boolean;
-  playerScoreCache: Record<string, number>;
-  productionView: ProductionView;
+  playerScoreCache: Record<string, number | undefined>;
+  productionView: number;
   esportsHud: boolean;
   embedProduction: boolean;
   enablePlayerScores: boolean;
@@ -176,6 +175,8 @@ const PlayerResources = ({
           data-tip="Player Score"
           onMouseDown={(evt) => {
             const newScore =
+              // @ts-ignore
+              // we guarantee score is defined but TS doesn't know that
               evt.button === 0 ? score + 1 : Math.max(0, score - 1);
             setScore(newScore);
             playerScoreCache[playerName] = newScore;
@@ -334,7 +335,7 @@ const PlayerResources = ({
               />
             }
             scaledTextSize={scaledTextSize}
-            selector={(state) => state.workerSupply[id]}
+            selector={(state) => String(state.workerSupply[id])}
           />
         </td>
       )}

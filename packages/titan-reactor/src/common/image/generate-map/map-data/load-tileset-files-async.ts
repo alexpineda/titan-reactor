@@ -1,5 +1,5 @@
 import { ChkType, DDSGrpFrameType } from "../../../types";
-import readDdsGrp, { readDdsGrpWithFrameData } from "../../formats/dds-grp";
+import parseDdsGrp, { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 
 export type TileSetData = {
   mapTiles: Uint16Array;
@@ -58,10 +58,10 @@ export const loadTilesetFilesAsync = async (
     (await readFileFn(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
-  const hdTiles = readDdsGrp(
+  const hdTiles = parseDdsGrp(
     await readFileFn(`TileSet/${tilesetName}.dds.vr4`)
   );
-  const creepGrpHD = readDdsGrpWithFrameData(
+  const creepGrpHD = parseDdsGrpWithFrameData(
     await readFileFn(`TileSet/${tilesetName}.dds.grp`)
   );
   const creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);

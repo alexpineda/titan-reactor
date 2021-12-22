@@ -4,7 +4,7 @@ import Shields from "./shields";
 import Resource from "./resource";
 import Energy from "./energy";
 import Kills, { showKillsExtraUnits } from "./kills";
-import Wireframe from "./wireframe";
+import Wireframe from "./Wireframe";
 import Progress from "./progress";
 import Name from "./name";
 import Queue from "./queue";
@@ -17,7 +17,7 @@ interface Props {
   unit: UnitInstance;
 }
 
-const selector = (state: UnitSelectionStore) =>
+const selector = (state: Pick<UnitSelectionStore, "selectedUnits">) =>
   Boolean(state.selectedUnits[0] && state.selectedUnits[0].loaded);
 
 const LargeUnitDetail = ({ unit }: Props) => {
@@ -33,8 +33,8 @@ const LargeUnitDetail = ({ unit }: Props) => {
 
   const showResourceAmount = unit.resourceAmount !== null;
 
-  const loadedRef = useRef();
-  const progressRef = useRef();
+  const loadedRef = useRef<HTMLElement>(null);
+  const progressRef = useRef<HTMLElement>(null);
 
   const setDom = (hasLoaded: boolean) => {
     if (!loadedRef.current || !progressRef.current) return;

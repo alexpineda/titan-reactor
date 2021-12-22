@@ -1,4 +1,3 @@
-import { Grp } from "bw-chk-modified/grp";
 import {
   CompressedTexture,
   DataTexture,
@@ -7,7 +6,7 @@ import {
 } from "three";
 
 import { AnimDds, GrpFrameType, GRPInterface } from "../../types";
-import { createDDSTexture } from "../formats";
+import { createDDSTexture, Grp } from "../formats";
 
 /**
  * SD via Anim
@@ -33,7 +32,7 @@ export class AtlasSD implements GRPInterface {
       frames: GrpFrameType[];
     };
   }) {
-    const grp = new Grp(await readGrp(), Buffer);
+    const grp = new Grp(await readGrp());
     const { w, h } = grp.maxDimensions();
 
     const getBuf = (map: AnimDds, offset = 0) =>

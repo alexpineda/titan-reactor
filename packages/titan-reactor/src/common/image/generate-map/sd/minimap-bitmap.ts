@@ -4,7 +4,7 @@ export const minimapBitmap = async (
   data: Uint8Array,
   mapWidth: number,
   mapHeight: number
-): Promise<ImageBitmap> => {
+) => {
   const src = rgbToCanvas(
     {
       data,
@@ -29,7 +29,7 @@ export const minimapBitmap = async (
         res(ib);
       }
     );
-  });
+  }) as ImageBitmap;
 
   return bitmap;
 };

@@ -24,7 +24,11 @@
     "inlineSources": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "paths": { "common": ["src/common/*"] }
+    "paths": {
+      "common": ["src/common/*"],
+      "react": ["preact/compat"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["./node_modules/**/*"]
 }

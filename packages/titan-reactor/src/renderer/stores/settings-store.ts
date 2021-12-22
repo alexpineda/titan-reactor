@@ -1,10 +1,11 @@
 import create from "zustand";
 
-import { Settings } from "../../common/types/common";
+import { Settings } from "../../common/types";
+import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
 export type SettingsStore = {
-  data: Settings | null;
+  data: Settings;
   errors: string[];
   phrases: Record<string, string>;
   save: (data: any) => Promise<void>;
@@ -13,7 +14,7 @@ export type SettingsStore = {
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
-  data: null,
+  data: { ... defaultSettings },
   phrases: {},
   errors: [],
   save: async (settings) => {

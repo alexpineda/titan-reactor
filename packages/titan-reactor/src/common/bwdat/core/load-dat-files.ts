@@ -1,7 +1,6 @@
-import { Grp } from "bw-chk-modified/grp";
+import { Grp } from "../../image";
 import parseIscript from "../../iscript/parse-iscript";
 import path from "path";
-import { Buffer } from "buffer";
 
 import { ReadFile, GrpFrameType, GrpType, IScriptDATType } from "../../types";
 import range from "../../utils/range";
@@ -53,7 +52,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
 
   //@todo remove this
   const grps = bufs.map((buf): GrpType => {
-    const grp = new Grp(buf, Buffer);
+    const grp = new Grp(buf);
     const frames = range(0, grp.frameCount()).map((frame): GrpFrameType => {
       const { x, y, w, h } = grp.header(frame);
       //@todo calculate xoff, yoff

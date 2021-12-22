@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, memo } from "react";
+import React, { useEffect, useRef, memo, ComponentProps } from "react";
 
 const eventNames = [
   "onPointerDown",
@@ -45,14 +45,11 @@ const eventProps = eventNames.reduce(
   {}
 );
 
-const WrappedElement = ({
-  domElement,
-  ...props
-}: {
-  domElement: HTMLElement;
-}) => {
-  const canvasRef = useRef();
+const WrappedElement = ({ domElement, ...props }) => {
+  const canvasRef = useRef<HTMLDivElement>();
   useEffect(() => {
+    if (!canvasRef.current) return;
+
     canvasRef.current.appendChild(domElement);
     return () => domElement.remove();
   }, []);

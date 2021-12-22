@@ -1,3 +1,5 @@
+import { Block } from "../../../../common/types";
+
 export const interactiveOpCodes = [
   "playfram",
   "playframtile",
@@ -18,8 +20,8 @@ export const getDirectionalFrame = (cmd, cameraDirection: number) => {
 export const areFrameSetsEnabled = (
   cmd,
   cmds,
-  selectedBlock,
-  blockFrameCount
+  selectedBlock: Block,
+  blockFrameCount: number
 ) =>
   interactiveOpCodes.includes(cmd[0]) &&
   selectedBlock.image.gfxTurns &&

@@ -25,7 +25,7 @@ export class TitanSprite extends Group {
   logger: { log: (str: string) => void };
   lastZOff: number;
   unit: any | null;
-  createTitanSprite: (unit: UnitDAT | null) => TitanSprite;
+  createTitanSprite: (unit: UnitDAT | null | undefined) => TitanSprite;
   createTitanSpriteCb: (titanSprite: TitanSprite) => void;
   destroyTitanSpriteCb: (titanSprite: TitanSprite) => void;
 

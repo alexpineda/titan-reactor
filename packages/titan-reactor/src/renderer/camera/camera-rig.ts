@@ -3,6 +3,8 @@ import { Clock, PerspectiveCamera, Vector3 } from "three";
 
 import { CanvasTarget } from "../../common/image";
 import PreviewCamera from "./preview-camera";
+import StandardCameraControls from "../input/standard-camera-controls";
+import { KeyboardShortcuts } from "../input";
 
 export const CameraControlType = {
   none: 0,
@@ -22,13 +24,15 @@ class CameraRig {
   private cameraClock = new Clock();
   private _delta = new Vector3();
   private settings: Settings;
+  private control: StandardCameraControls;
+  private previewControl?: StandardCameraControls;
 
   constructor(
     settings: Settings,
     gameSurface: CanvasTarget,
-    previewSurface,
-    minimapControl,
-    keyboardShortcuts,
+    previewSurface: CanvasTarget,
+    minimapControl: boolean,
+    keyboardShortcuts: KeyboardShortcuts,
     freeControl = false
   ) {
     this.settings = settings;
@@ -50,12 +54,13 @@ class CameraRig {
 
     // this.lookAtLocation();
 
-    // if (minimapControl) {
-    //   this.previewControl = new StandardCameraControls(
-    //     this.previewCamera,
-    //     previewSurface.canvas,
-    //     keyboardShortcuts
-    //   );
+    if (minimapControl) {
+      this.previewControl = new StandardCameraControls(
+        this.previewCamera,
+        previewSurface.canvas,
+        keyboardShortcuts
+      );
+    }
     //   this.previewControl.setConstraints();
     //   this.previewControl.initNumpadControls();
     //   this.previewControl.execNumpad(7);
@@ -152,11 +157,7 @@ class CameraRig {
 
     d.subVectors(t, p);
     this.control.moveTo(x, 0, y, false);
-    this.control.position.subVectors(p, d);
-  }
-
-  enableControls(val) {
-    // this.control.enabled = val;
+    // this.control.setPosition(position.subVectors(p, d));
   }
 
   update() {
@@ -211,7 +212,7 @@ class CameraRig {
   }
 
   dispose() {
-    this.control && this.control.dispose();
+    this.control.dispose();
     this.previewControl && this.previewControl.dispose();
   }
 }

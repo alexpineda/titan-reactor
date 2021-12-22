@@ -1,4 +1,4 @@
-import { Grp } from "bw-chk-modified/grp";
+import { Grp } from "../../image";
 import {
   ClampToEdgeWrapping,
   DataTexture,
@@ -42,13 +42,13 @@ export class GrpSDLegacy {
     },
     stride = 20
   ) {
-    const grp = new Grp(await readGrp(), Buffer);
+    const grp = new Grp(await readGrp());
 
     const getPalette = () => {
       if (imageDef.drawFunction === drawFunctions.useRemapping) {
         return palettes[imageDef.remapping < 5 ? imageDef.remapping : 0];
-      } else if (imageDef.drawFunction === drawFunctions.rleShadow) {
-        return palettes.dark;
+      } else if (imageDef.drawFunction === drawFunctions.rleShadow && palettes.dark) {
+        return new Uint8Array(palettes.dark);
       }
       return palettes[0];
     };
@@ -90,7 +90,7 @@ export class GrpSDLegacy {
       );
 
       let maskData;
-      if (maskOut) {
+      if (maskOut && playerMaskPalette) {
         maskData = grp.decode(
           i,
           playerMaskPalette,
@@ -118,7 +118,7 @@ export class GrpSDLegacy {
           texOut[pos + 2] = data[spritePos + 2];
           texOut[pos + 3] = data[spritePos + 3];
 
-          if (maskOut) {
+          if (maskOut && maskData) {
             maskOut[pos] = maskData[spritePos];
             maskOut[pos + 1] = maskData[spritePos + 1];
             maskOut[pos + 2] = maskData[spritePos + 2];

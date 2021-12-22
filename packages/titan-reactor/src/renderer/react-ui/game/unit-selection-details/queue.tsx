@@ -15,10 +15,12 @@ import {
 } from "../../../game";
 import { AssetsMissingError } from "../../../../common/errors";
 
+type SelectedUnits = Pick<UnitSelectionStore, "selectedUnits">;
+
 interface Props {
   unit: UnitInstance;
 }
-const researchIconSelector = (state: UnitSelectionStore) => {
+const researchIconSelector = (state: SelectedUnits) => {
   if (!state.selectedUnits[0]) return 0;
 
   const unit = state.selectedUnits[0];
@@ -40,7 +42,7 @@ const researchIconSelector = (state: UnitSelectionStore) => {
   return null;
 };
 
-const unitIconSelector = (state: UnitSelectionStore) => {
+const unitIconSelector = (state: SelectedUnits) => {
   if (!state.selectedUnits[0]) return null;
 
   const unit = state.selectedUnits[0];
@@ -71,7 +73,7 @@ const unitIconSelector = (state: UnitSelectionStore) => {
   return null;
 };
 
-const selector = (state: UnitSelectionStore) => {
+const selector = (state: SelectedUnits) => {
   const unitIcon = unitIconSelector(state);
   return unitIcon !== null ? unitIcon : researchIconSelector(state);
 };
@@ -81,8 +83,8 @@ const Queue = ({ unit }: Props) => {
   if (!cmdIcons) {
     throw new AssetsMissingError("cmdIcons");
   }
-  const itemRef = useRef();
-  const wrapperRef = useRef();
+  const itemRef = useRef<HTMLImageElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const setDom = (icon: number | null) => {
     if (!itemRef.current || !wrapperRef.current) {

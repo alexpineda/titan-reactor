@@ -3,19 +3,17 @@ import { drawFunctions } from "../bwdat/enums";
 import { BwDAT, createIScriptRunner } from "../types";
 import Atlas3D from "./atlas/atlas-3d";
 import AtlasHD from "./atlas/atlas-hd";
-import AtlasSD from "./atlas/atlas-sd";
-import { ImageInstance } from "./image-instance";
 import TitanImage3D from "./titan-image-3d";
 import TitanImageHD from "./titan-image-hd";
-import TitanImageSD from "./titan-image-sd2";
+import { ImageInstance } from "./image-instance";
 
 export const createTitanImageFactory = (
   bwDat: BwDAT,
-  atlases: Atlas3D[] | AtlasHD[] | AtlasSD[],
+  atlases: Atlas3D[] | AtlasHD[],
   createIScriptRunner: createIScriptRunner,
   onError: (msg: string) => void
-): ImageInstance | null => {
-  return (imageId: number, sprite: SpriteInstance): ImageInstance | null => {
+) => {
+  return (imageId: number, sprite: SpriteInstance)  => {
     const atlas = atlases[imageId];
     if (!atlas || typeof atlas === "boolean") {
       onError(`composite ${imageId} has no atlas, did you forget to load one?`);
@@ -25,14 +23,7 @@ export const createTitanImageFactory = (
     const imageDef = bwDat.images[imageId];
 
     let titanImage;
-    if (atlas instanceof AtlasSD) {
-      titanImage = new TitanImageSD(
-        atlas,
-        createIScriptRunner,
-        imageDef,
-        sprite
-      );
-    } else if (
+    if (
       // @todo make a smarter image factory that knows if the mainImage is a Grp3D or GrpHD
       // don't load shadow images for 3d
       atlas instanceof Atlas3D &&
@@ -56,7 +47,7 @@ export const createTitanImageFactory = (
       );
     }
 
-    return titanImage;
+    return titanImage as ImageInstance;
   };
 };
 export default createTitanImageFactory;

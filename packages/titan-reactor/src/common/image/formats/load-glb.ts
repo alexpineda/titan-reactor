@@ -4,6 +4,7 @@ import {
   CubeTexture,
   Group,
   Mesh,
+  Object3D,
   sRGBEncoding,
 } from "three";
 
@@ -21,11 +22,12 @@ export function loadGlb(
 ) {
   return new Promise((resolve, reject) => {
     //@todo refactor GLTF Loader to classes
+    // @ts-ignore
     new ElectronGLTFLoader().load(
       file,
       (glb: any) => {
         const { scene: model, animations } = glb;
-        model.traverse((o) => {
+        model.traverse((o: Object3D) => {
           if (o instanceof Mesh) {
             o.castShadow = true;
             o.receiveShadow = true;

@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 
 import phrases from "../../common/phrases";
-import { RenderMode } from "../../common/settings";
+import { RenderMode, defaultSettings } from "../../common/settings";
 import { Settings as SettingsType } from "../../common/types";
 import fileExists from "../utils/file-exists";
 import { findStarcraftPath } from "../starcraft/find-install-path";
@@ -13,7 +13,6 @@ import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
-const VERSION = 1;
 export const findTempPath = () => app.getPath("temp");
 
 const getEnvLocale = (env = process.env) => {
@@ -142,9 +141,7 @@ export class Settings extends EventEmitter {
 
   async createDefaults() {
     return {
-      version: VERSION,
-      renderMode: RenderMode.HD,
-      alwaysHideReplayControls: false,
+      ...defaultSettings,
       language: supportedLanguages.includes(getEnvLocale())
         ? getEnvLocale()
         : "en-US",
@@ -152,45 +149,6 @@ export class Settings extends EventEmitter {
       mapsPath: await findMapsPath(),
       replaysPath: await findReplaysPath(),
       tempPath: await findTempPath(),
-      communityModelsPath: "",
-      observerLink: "",
-      musicVolume: 0.1,
-      musicAllTypes: false,
-      soundVolume: 1,
-      antialias: false,
-      anisotropy: 1,
-      pixelRatio: 1,
-      gamma: 1.2,
-      keyPanSpeed: 0.5,
-      twitch: "",
-      fullscreen: true,
-      enablePlayerScores: true,
-      esportsHud: true,
-      embedProduction: true,
-      cameraShake: 1,
-      useCustomColors: false,
-      randomizeColorOrder: false,
-      classicClock: false,
-      playerColors: [
-        "#f40404",
-        "#0c48cc",
-        "#2cb494",
-        "#88409c",
-        "#f88c14",
-        "#703014",
-        "#cce0d0",
-        "#fcfc38",
-      ],
-      hudFontSize: "sm",
-      minimapRatio: 25,
-      replayAndUnitDetailSize: "24vw",
-      fpsLimit: 200,
-      autoToggleProductionView: true,
-      showDisabledDoodads: false,
-      showCritters: true,
-      mouseRotateSpeed: 0.1,
-      mouseDollySpeed: 0.1,
-      mapBackgroundColor: "#000000",
     };
   }
 }

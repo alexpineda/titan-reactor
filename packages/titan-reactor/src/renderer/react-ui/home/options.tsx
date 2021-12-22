@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import React, { useEffect, useState } from "react";
 import shallow from "zustand/shallow";
@@ -14,7 +15,6 @@ import {
   Tab,
   TabSelector,
   Toggle,
-  Visible,
   Close,
 } from "../components";
 
@@ -133,59 +133,57 @@ export default ({
           </select>
         </Option>
 
-        <Visible visible={!inGame}>
-          <Option label={phrases["SETTINGS_STARCRAFT_PATH"]}>
-            <PathSelect
-              prop={"starcraftPath"}
-              phrases={phrases}
-              settings={settings}
-              errors={errors}
-              selectFolder={selectFolder}
-            />
-          </Option>
+        <Option label={phrases["SETTINGS_STARCRAFT_PATH"]}>
+          <PathSelect
+            prop={"starcraftPath"}
+            phrases={phrases}
+            settings={settings}
+            errors={errors}
+            selectFolder={selectFolder}
+          />
+        </Option>
 
-          <Option label={phrases["SETTINGS_MAPS_PATH"]}>
-            <PathSelect
-              prop={"mapsPath"}
-              phrases={phrases}
-              settings={settings}
-              errors={errors}
-              selectFolder={selectFolder}
-            />
-          </Option>
+        <Option label={phrases["SETTINGS_MAPS_PATH"]}>
+          <PathSelect
+            prop={"mapsPath"}
+            phrases={phrases}
+            settings={settings}
+            errors={errors}
+            selectFolder={selectFolder}
+          />
+        </Option>
 
-          <Option label={phrases["SETTINGS_REPLAYS_PATH"]}>
-            <PathSelect
-              prop={"replaysPath"}
-              phrases={phrases}
-              errors={errors}
-              settings={settings}
-              selectFolder={selectFolder}
-            />
-          </Option>
+        <Option label={phrases["SETTINGS_REPLAYS_PATH"]}>
+          <PathSelect
+            prop={"replaysPath"}
+            phrases={phrases}
+            errors={errors}
+            settings={settings}
+            selectFolder={selectFolder}
+          />
+        </Option>
 
-          <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
-            <PathSelect
-              prop={"communityModelsPath"}
-              phrases={phrases}
-              errors={errors}
-              settings={settings}
-              selectFolder={selectFolder}
-            />
-            <p>A directory containing zero or more 3d models.</p>
-          </Option>
+        <Option label={phrases["SETTINGS_COMMUNITY_3D_MODELS_PATH"]}>
+          <PathSelect
+            prop={"communityModelsPath"}
+            phrases={phrases}
+            errors={errors}
+            settings={settings}
+            selectFolder={selectFolder}
+          />
+          <p>A directory containing zero or more 3d models.</p>
+        </Option>
 
-          <Option label={phrases["SETTINGS_TEMP_FILES_PATH"]}>
-            <PathSelect
-              prop={"tempPath"}
-              phrases={phrases}
-              errors={errors}
-              settings={settings}
-              selectFolder={selectFolder}
-            />
-            <p>A temporary directory used for large temporary files.</p>
-          </Option>
-        </Visible>
+        <Option label={phrases["SETTINGS_TEMP_FILES_PATH"]}>
+          <PathSelect
+            prop={"tempPath"}
+            phrases={phrases}
+            errors={errors}
+            settings={settings}
+            selectFolder={selectFolder}
+          />
+          <p>A temporary directory used for large temporary files.</p>
+        </Option>
       </Tab>
 
       <Tab tabName={Tabs.Layout} activeTab={tab}>
@@ -201,7 +199,7 @@ export default ({
               />
             }
           >
-            <Visible visible={settings.useCustomColors}>
+            {settings.useCustomColors && (
               <Option
                 className="ml-4"
                 label={phrases["SETTINGS_RANDOMIZE_COLORS"]}
@@ -216,7 +214,7 @@ export default ({
                   />
                 }
               />
-            </Visible>
+            )}
           </Option>
         )}
         <Option

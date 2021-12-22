@@ -12,7 +12,7 @@ interface Props {
   unit: UnitInstance;
 }
 const Shields = ({ unit }: Props) => {
-  const shieldsRef = useRef();
+  const shieldsRef = useRef<HTMLParagraphElement>(null);
 
   const setDom = (shields: number) => {
     if (!shieldsRef.current) return;

@@ -22,7 +22,7 @@ const Resource = ({ unit }: Props) => {
     throw new AssetsMissingError("gameIcons");
   }
 
-  const resourceRef = useRef();
+  const resourceRef = useRef<HTMLParagraphElement>(null);
 
   let icon = gameIcons.minerals;
 
@@ -40,9 +40,9 @@ const Resource = ({ unit }: Props) => {
     }
   }
 
-  const setDom = (resourceAmount: number | string) => {
+  const setDom = (resourceAmount: number | string | null) => {
     if (!resourceRef.current) return;
-    resourceRef.current.textContent = resourceAmount;
+    resourceRef.current.textContent = String(resourceAmount ?? "");
   };
 
   useEffect(() => {

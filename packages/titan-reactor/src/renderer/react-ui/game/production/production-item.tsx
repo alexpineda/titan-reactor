@@ -46,11 +46,11 @@ const ProductionItem = ({ type, index, color, playerId }: Props) => {
   if (!cmdIcons) {
     throw new AssetsMissingError();
   }
-  const wrapperRef = useRef();
-  const imgRef = useRef();
-  const progressRef = useRef();
-  const outlineRef = useRef();
-  const countRef = useRef();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const outlineRef = useRef<HTMLDivElement>(null);
+  const countRef = useRef<HTMLParagraphElement>(null);
 
   const unitBelongsToPlayer = (u: UnitInProduction) => u.ownerId === playerId;
 
@@ -76,7 +76,7 @@ const ProductionItem = ({ type, index, color, playerId }: Props) => {
       wrapperRef.current.style.display = "block";
 
       if (item.count > 1) {
-        countRef.current.textContent = item.count;
+        countRef.current.textContent = String(item.count);
         countRef.current.style.display = "block";
       } else {
         countRef.current.style.display = "hidden";
@@ -90,7 +90,7 @@ const ProductionItem = ({ type, index, color, playerId }: Props) => {
         outlineRef.current.style.outline = `2px groove ${color}aa`;
         // using a property as state to determine whether to add glow (only once)
         if (Date.now() - item.timeCompleted < 4000) {
-          outlineRef.current.style.animation = `glow-${item.owner} 0.4s 10 alternate`;
+          outlineRef.current.style.animation = `glow-${item.ownerId} 0.4s 10 alternate`;
         } else {
           outlineRef.current.style.animation = "";
         }

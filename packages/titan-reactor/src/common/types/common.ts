@@ -28,21 +28,10 @@ export type Settings = {
   esportsHud: boolean;
   embedProduction: boolean;
   cameraShake: number;
-  mapsRss: string;
-  replaysRss: string;
   useCustomColors: boolean;
   randomizeColorOrder: boolean;
   classicClock: boolean;
-  playerColors: [
-    string,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string
-  ];
+  playerColors: string[];
   hudFontSize: "xs" | "sm" | "md" | "lg" | "xl";
   minimapRatio: number;
   replayAndUnitDetailSize: string;

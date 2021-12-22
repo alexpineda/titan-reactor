@@ -126,6 +126,7 @@ async function TitanReactorGame(
     true
   );
 
+  
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
   orbitControls.listenToKeyEvents(window.document.body);
   orbitControls.dampingFactor = 0.25;

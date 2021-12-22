@@ -10,8 +10,6 @@ export const UnitProductionView = 1;
 export const TechProductionView = 2;
 export const UpgradesProductionView = 3;
 
-export type ProductionView = 0 | 1 | 2 | 3;
-
 export type HudStore = {
   show: {
     inGameMenu: boolean;

@@ -24,7 +24,7 @@ export type UnitInstance = UnitRAW & {
   remainingBuildTime: number;
   idleTime: number;
   recievingDamage: number;
-  resourceAmount: number;
+  resourceAmount: number | null;
   remainingTrainTime: number;
 
   //@todo deprecate
@@ -47,6 +47,7 @@ export type UnitInstance = UnitRAW & {
 export type IncompleteUnit = {
   unitId: number;
   typeId: number;
+  remainingBuildTime: number;
   ownerId: number;
 };
 
@@ -57,9 +58,9 @@ type BaseInProduction = {
   icon: number;
   buildTime: number;
   remainingBuildTime: number;
-  owner: number;
   typeId: number;
   unitId: number;
+  ownerId: number;
 };
 
 export type UnitInProduction = IncompleteUnit & BaseInProduction;

@@ -29,12 +29,12 @@ const mapLabelSelector = (state: LoadingStore) =>
 const Minimap = ({ className = "" }) => {
   const textSize = useSettingsStore(textSizeSelector);
   const classicClock = useSettingsStore(classicClockSelector);
-  const timeRef = useRef();
-  const classicTimeRef = useRef();
+  const timeRef = useRef<HTMLParagraphElement>(null);
+  const classicTimeRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     return useResourcesStore.subscribe(
-      (time) => {
+      (time: string) => {
         if (timeRef.current) {
           timeRef.current.textContent = time;
         }

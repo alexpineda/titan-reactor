@@ -148,7 +148,7 @@ export class BuildUnits {
           remainingBuildTime: 0,
           queue: null,
           idleTime: 0,
-        };
+        } as UnitInstance;
 
         units.set(unitBw.id, unit);
       }
@@ -185,12 +185,35 @@ export class BuildUnits {
       unit.isFlyingBuilding = unitDat.isFlyingBuilding;
 
       // all previous assignments should not be on unitBw, and typically use comparison of old to new values
-      Object.assign(unit, unitBw);
+      unit.id = unitBw.id;
+      unit.typeId = unitBw.typeId;
+      unit.shields = unitBw.shields;
+      unit.remainingBuildTime = unitBw.remainingBuildTime;
+      unit.remainingTrainTime = unitBw.remainingTrainTime;
+      unit.x = unitBw.x;
+      unit.y = unitBw.y;
+      unit.hp = unitBw.hp;
+      unit.energy = unitBw.energy;
+      unit.shields = unitBw.shields;
+      unit.tileX = unitBw.tileX;
+      unit.tileY = unitBw.tileY;
+      unit.spriteIndex = unitBw.spriteIndex;
+      unit.statusFlags = unitBw.statusFlags;
+      unit.direction = unitBw.direction;
+      unit.angle = unitBw.angle;
+      unit.dat = unitBw.dat;
+      unit.isFlying = unitBw.isFlying;
+      unit.isCloaked = unitBw.isCloaked;
+      unit.isComplete = unitBw.isComplete;
+      unit.order = unitBw.order;
+      unit.kills = unitBw.kills;
+      unit.resourceAmount = unitBw.resourceAmount;
 
       //following assignments should append new data not relevant to previous value
       unit.queue = null;
       unit.loaded = null;
       unit.owner = this.playersById[unitBw.owner];
+
 
       //tank uses build time for siege transition?
       if (
