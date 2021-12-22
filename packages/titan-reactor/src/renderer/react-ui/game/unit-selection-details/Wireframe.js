@@ -129,9 +129,7 @@ const selector = (state) => {
 const refLayer = (ref) => ({ ref, filter: "", backgroundImage: "", step: 0 });
 
 const Wireframe = ({ unit, size = "lg", className = "" }) => {
-  const wireframeIcons = useGameStore(
-    (state) => state.assets.wireframeIcons
-  );
+  const wireframeIcons = useGameStore((state) => state.assets.wireframeIcons);
   const layerRefs = range(0, 4).map(() => refLayer(useRef()));
   const xRef = useRef();
 
@@ -153,7 +151,7 @@ const Wireframe = ({ unit, size = "lg", className = "" }) => {
         layerRefs[i].filter = filter;
       }
 
-      const backgroundImage = `url(${wireframeIcons.wireframes[typeId]}`;
+      const backgroundImage = wireframeIcons[typeId];
       if (layerRefs[i].backgroundImage !== backgroundImage) {
         layerRefs[i].ref.current.style.backgroundImage = backgroundImage;
         layerRefs[i].backgroundImage = backgroundImage;

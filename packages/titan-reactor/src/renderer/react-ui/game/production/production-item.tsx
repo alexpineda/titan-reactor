@@ -82,7 +82,7 @@ const ProductionItem = ({ type, index, color, playerId }: Props) => {
         countRef.current.style.display = "hidden";
       }
 
-      imgRef.current.src = (cmdIcons.icons as string[])[item.icon];
+      imgRef.current.src = cmdIcons[item.icon];
       const pct = poly(1 - item.remainingBuildTime / item.buildTime) * 100;
       progressRef.current.style.backgroundImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%)`;
 

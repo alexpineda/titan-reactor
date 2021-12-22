@@ -96,7 +96,7 @@ const PlayerResources = ({
   const gameIconBgStyle = esportsHud
     ? {
         backgroundRepeat: "no-repeat",
-        backgroundImage: `url(${raceInsetIcons[`${race}Alpha`]})`,
+        backgroundImage: `url(${raceInsetIcons[race]})`,
         backgroundPosition: dimensions.width <= 1200 ? "right" : "120% 25%",
         backgroundSize: dimensions.width <= 1200 ? "contain" : "auto",
         mixBlendMode: "lighten",
@@ -148,6 +148,9 @@ const PlayerResources = ({
   const productionEnabled = esportsHud && embedProduction;
 
   const cmdIcons = useGameStore(iconsSelector);
+  if (!cmdIcons) {
+    throw new AssetsMissingError();
+  }
 
   return (
     <tr>

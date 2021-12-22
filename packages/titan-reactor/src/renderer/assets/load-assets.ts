@@ -57,7 +57,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
     // renderer.dispose();
 
     const {
-        gameIcons,
+        resourceIcons,
         cmdIcons,
         raceInsetIcons,
         workerIcons,
@@ -88,7 +88,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         bwDat,
         grps,
         selectionCirclesHD,
-        gameIcons,
+        resourceIcons,
         cmdIcons,
         raceInsetIcons,
         workerIcons,

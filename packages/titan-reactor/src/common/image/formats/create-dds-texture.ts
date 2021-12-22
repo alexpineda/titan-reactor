@@ -8,7 +8,7 @@ import {
 
 import parseDDS from "./parse-dds";
 
-export const createDDSTexture = async (
+export const createDDSTexture = (
   buf: Buffer,
   encoding = sRGBEncoding
 ) => {

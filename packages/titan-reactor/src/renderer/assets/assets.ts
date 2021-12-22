@@ -1,6 +1,6 @@
 import { AtlasHD, } from "../../common/image";
 import { BwDAT } from "../../common/types";
-import GameIcons, { WorkerIcons } from "../../common/image/generate-icons/game-icons";
+import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "../../common/types/icons";
 import {
   closeCascStorage,
   readCascFile,
@@ -11,14 +11,14 @@ interface AssetsConstructorArgs {
   grps: AtlasHD[];
   selectionCirclesHD: AtlasHD[];
 
-  gameIcons: GameIcons;
-  cmdIcons: GameIcons;
-  raceInsetIcons: GameIcons;
+  resourceIcons: ResourceIcons[];
+  cmdIcons: string[];
+  raceInsetIcons: RaceInsetIcons;
   workerIcons: WorkerIcons;
-  arrowIcons: GameIcons;
-  hoverIcons: GameIcons;
-  dragIcons: GameIcons;
-  wireframeIcons: GameIcons;
+  arrowIcons: string[];
+  hoverIcons: CenteredCursorIcons;
+  dragIcons: CenteredCursorIcons;
+  wireframeIcons: string[];
 }
 
 class Assets {
@@ -26,20 +26,20 @@ class Assets {
   grps: AtlasHD[] = [];
   selectionCirclesHD: AtlasHD[] = [];
 
-  gameIcons: GameIcons;
-  cmdIcons: GameIcons;
-  raceInsetIcons: GameIcons;
+  gameIcons: ResourceIcons;
+  cmdIcons: string[];
+  raceInsetIcons: RaceInsetIcons;
   workerIcons: WorkerIcons;
-  arrowIcons: GameIcons;
-  hoverIcons: GameIcons;
-  dragIcons: GameIcons;
-  wireframeIcons: GameIcons;
+  arrowIcons: string[];
+  hoverIcons: CenteredCursorIcons;
+  dragIcons: CenteredCursorIcons;
+  wireframeIcons: string[];
 
   constructor({
     bwDat,
     grps,
     selectionCirclesHD,
-    gameIcons,
+    resourceIcons: gameIcons,
     cmdIcons,
     raceInsetIcons,
     workerIcons,

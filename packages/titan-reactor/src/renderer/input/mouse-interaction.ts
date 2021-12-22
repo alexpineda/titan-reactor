@@ -61,7 +61,7 @@ export class MouseInteraction {
   constructor() {
     const icons = getAssets();
 
-    this.arrowIcons = icons.arrowIcons.icons;
+    this.arrowIcons = icons.arrowIcons;
     this.hoverIcons = icons.hoverIcons.icons;
     this.dragIcons = icons.dragIcons.icons;
 

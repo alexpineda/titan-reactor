@@ -2,7 +2,12 @@ import { ReadFile } from "../../common/types";
 import { WebGLRenderer } from "three";
 
 import parseDdsGrp from "../../common/image/formats/parse-dds-grp";
-import GameIcons from "../../common/image/generate-icons/game-icons";
+import generateWireframes from "../../common/image/generate-icons/generate-wireframes";
+import generateCenteredCursors from "../../common/image/generate-icons/generate-centered-cursors";
+import generateCursors from "../../common/image/generate-icons/generate-cursors";
+import generateCmdIcons from "../../common/image/generate-icons/generate-cmds";
+import generateRaceInsetIcons from "../../common/image/generate-icons/generate-races";
+import generateResourceIcons from "../../common/image/generate-icons/generate-resources";
 
 export default async (readFile: ReadFile) => {
   const renderer = new WebGLRenderer({
@@ -16,41 +21,34 @@ export default async (readFile: ReadFile) => {
     (await readFile("TileSet/jungle.wpe")).buffer
   ).subarray(0, 1024);
 
-  const gameIcons = new GameIcons();
-  gameIcons.renderResourceIcons(
+  const resourceIcons = generateResourceIcons(
     renderer,
     parseDdsGrp(await readFile("game/icons.dds.grp"))
   );
 
-  const cmdIcons = new GameIcons();
-  await cmdIcons.renderCmdIcons(
+  const cmdIcons = generateCmdIcons(
     renderer,
     parseDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
   );
 
-  const raceInsetIcons = new GameIcons();
-  await raceInsetIcons.renderRaceInset(
+  const raceInsetIcons = generateRaceInsetIcons(
     renderer,
     parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );
 
-  const arrowIcons = new GameIcons();
-  await arrowIcons.renderCursor(await readFile("cursor/arrow.grp"), palette);
+  const arrowIcons = await generateCursors(await readFile("cursor/arrow.grp"), palette);
 
-  const hoverIcons = new GameIcons();
-  await hoverIcons.renderCenteredCursor(
+  const hoverIcons = await generateCenteredCursors(
     await readFile("cursor/MagY.grp"),
     palette
   );
 
-  const dragIcons = new GameIcons();
-  await dragIcons.renderCenteredCursor(
+  const dragIcons = await generateCenteredCursors(
     await readFile("cursor/Drag.grp"),
     palette
   );
 
-  const wireframeIcons = new GameIcons();
-  await wireframeIcons.renderWireframes(
+  const wireframeIcons = await generateWireframes(
     renderer,
     parseDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
   );
@@ -73,7 +71,7 @@ export default async (readFile: ReadFile) => {
   renderer.dispose();
   //@todo not all of these are GameIcons?
   return {
-    gameIcons,
+    resourceIcons,
     cmdIcons,
     raceInsetIcons,
     workerIcons,
