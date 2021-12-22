@@ -15,7 +15,7 @@ import {
   UpgradeInProduction,
   ResearchCompleted,
   UpgradeCompleted,
-} from "../../../game/unit-instance";
+} from "../../../../common/types";
 import { AssetsMissingError } from "../../../../common/errors";
 
 interface Props {
@@ -33,7 +33,7 @@ type ProductionItemType =
 type CompletedType = ResearchCompleted | UpgradeCompleted;
 const poly = easePolyOut.exponent(0.5);
 
-const iconsSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
+const iconsSelector = (state: GameStore) => state?.assets?.cmdIcons;
 const isCompletedTech = (item: ProductionItemType): item is CompletedType => {
   return Boolean(
     item.remainingBuildTime === 0 && (item.isTech || item.isUpgrade)
@@ -82,7 +82,7 @@ const ProductionItem = ({ type, index, color, playerId }: Props) => {
         countRef.current.style.display = "hidden";
       }
 
-      imgRef.current.src = cmdIcons[item.icon];
+      imgRef.current.src = (cmdIcons.icons as string[])[item.icon];
       const pct = poly(1 - item.remainingBuildTime / item.buildTime) * 100;
       progressRef.current.style.backgroundImage = `linear-gradient(90deg, ${color}ee 0%, ${color}aa ${pct}%, rgba(0,0,0,0.5) ${pct}%)`;
 

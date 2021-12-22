@@ -70,6 +70,7 @@ export type LoadingStore = {
   updateIndeterminateProcess: (id: string, label: string) => void;
   completeProcess: (id: string) => void;
   isProcessComplete: (id: string) => boolean;
+  isProcessInProgress: (id: string) => boolean;
 };
 
 export const useLoadingStore = create<LoadingStore>((set, get) => ({
@@ -123,6 +124,8 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
       completedProcesses: [...completedProcesses, process],
     }));
   },
+  isProcessInProgress: (id: string) =>
+    get().processes.some((p) => p.id === id),
   isProcessComplete: (id: string) =>
     get().completedProcesses.some((p) => p.id === id),
 }));
@@ -135,8 +138,10 @@ export const updateIndeterminateLoadingProcess =
   useLoadingStore.getState().updateIndeterminateProcess;
 export const completeLoadingProcess =
   useLoadingStore.getState().completeProcess;
-export const isLoadingProcessComplete =
+export const isProcessComplete =
   useLoadingStore.getState().isProcessComplete;
+export const isProcessInProgress =
+  useLoadingStore.getState().isProcessInProgress;
 export const initUIType = useLoadingStore.getState().initUIType;
 export const updateUIType = useLoadingStore.getState().updateUIType;
 export const completeUIType = useLoadingStore.getState().completeUIType;

@@ -2,7 +2,7 @@
 import { Color, Object3D } from "three";
 import { IScriptRunner } from "../iscript/iscript-runner";
 import { ImageDAT } from "./bwdat";
-import { SpriteInstance } from "../../renderer/render";
+import { Sprite } from "../../renderer/core/sprite";
 
 export type ImageInstance = Object3D & {
   imageDef: ImageDAT;
@@ -22,7 +22,7 @@ export type ImageInstance = Object3D & {
 
 export type createTitanImage = (
   imageId: number,
-  sprite: SpriteInstance
+  sprite: Sprite
 ) => ImageInstance;
 
 export type CanvasDimensions = {

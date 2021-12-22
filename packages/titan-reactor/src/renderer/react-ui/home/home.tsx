@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import shallow from "zustand/shallow";
+import preload from "../../bootup/preload-assets";
 
 import {
   exit,

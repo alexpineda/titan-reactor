@@ -16,7 +16,7 @@ const selector = (state: UnitSelectionStore) => {
 };
 
 const Energy = ({ unit }: Props) => {
-  const gameIcons = useGameStore((state) => state?.assets?.icons.gameIcons);
+  const gameIcons = useGameStore((state) => state?.assets?.gameIcons);
   const energyRef = useRef<HTMLParagraphElement>(null);
 
   const setDom = (energy: number | string) => {

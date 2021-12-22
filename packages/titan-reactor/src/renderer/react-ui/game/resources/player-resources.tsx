@@ -23,12 +23,12 @@ const gameStoreSelector = (state: GameStore) => ({
   dimensions: state.dimensions,
   togglePlayerVision: state.togglePlayerVision,
   playerVision: state.playerVision,
-  gameIcons: state?.assets?.icons.gameIcons,
-  raceInsetIcons: state?.assets?.icons.raceInsetIcons,
-  workerIcons: state?.assets?.icons.workerIcons,
+  gameIcons: state?.assets?.gameIcons,
+  raceInsetIcons: state?.assets?.raceInsetIcons,
+  workerIcons: state?.assets?.workerIcons,
 });
 
-const iconsSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
+const iconsSelector = (state: GameStore) => state?.assets?.cmdIcons;
 
 /**
  * The primary player bar displaying player score, name, resources and production.

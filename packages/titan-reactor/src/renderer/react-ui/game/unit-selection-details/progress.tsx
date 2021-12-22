@@ -7,20 +7,17 @@ import {
   useGameStore,
   GameStore,
 } from "../../../stores";
-import {
-  ResearchCompleted,
-  UnitInstance,
-  UpgradeCompleted,
-} from "../../../run-replay";
+import { ResearchCompleted, UpgradeCompleted } from "../../../../common/types";
 import { AssetsMissingError } from "../../../../common/errors";
+import { Unit } from "../../../core";
 
 interface Props {
-  unit: UnitInstance;
+  unit: Unit;
 }
 
 type SelectedUnits = Pick<UnitSelectionStore, "selectedUnits">;
 
-const getDisplayText = (unit: UnitInstance) => {
+const getDisplayText = (unit: Unit) => {
   if (!unit.owner || !unit.dat.isBuilding) {
     return "";
   }

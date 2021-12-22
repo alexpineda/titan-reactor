@@ -7,7 +7,7 @@ import App from "./react-ui/app";
 import { loadSettings, errorUIType, completeUIType } from "./stores";
 import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
-import "./bootup/preload-assets";
+import preloadAssets from "./bootup/preload-assets";
 import "./bootup/three-overrides";
 
 if (module.hot) {
@@ -17,6 +17,8 @@ if (module.hot) {
 log(`titan-reactor ${version}`);
 log(`chrome ${process.versions.chrome}`);
 log(`electron ${process.versions.electron}`);
+
+preloadAssets();
 
 async function bootup() {
   try {

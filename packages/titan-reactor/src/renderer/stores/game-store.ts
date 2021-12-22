@@ -57,7 +57,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   chat: [],
   lastChatAdd: Date.now(),
   playerVision: range(0, 8).map(() => true),
-
   setAssets: (assets: Assets | null) => set({ assets }),
   disposeAssets: () => {
     const assets = get().assets;
@@ -120,5 +119,4 @@ export const disposeAssets = useGameStore.getState().disposeAssets;
 export const getAssets = () => useGameStore.getState().assets;
 export const getSelectionCircle = (id: number) =>
   getAssets()?.selectionCirclesHD[id];
-export const getIcons = () => getAssets()?.icons;
 export const setAssets = useGameStore.getState().setAssets;

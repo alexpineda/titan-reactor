@@ -1,5 +1,5 @@
 import { BwDAT, ImageDAT, IScriptRawType, AnimationBlockType } from "../types";
-import { ImageInstance } from "../image";
+import { Image } from "../../renderer/core/image";
 
 import { iscriptHeaders as headers } from "../bwdat/enums/iscript-headers";
 
@@ -16,7 +16,7 @@ export class IScriptRunner {
     commandIndex: number;
   };
 
-  image: ImageInstance;
+  image: Image;
   imageDesc: ImageDAT;
   tileset: number;
   logger: { log: () => void };
@@ -31,7 +31,7 @@ export class IScriptRunner {
   constructor(
     bwDat: BwDAT,
     tileset: number,
-    image: ImageInstance,
+    image: Image,
     imageDesc: ImageDAT,
     state = {}
   ) {
@@ -39,7 +39,7 @@ export class IScriptRunner {
     this.image = image;
     this.imageDesc = imageDesc;
     this.tileset = tileset;
-    this.logger = { log: () => {} };
+    this.logger = { log: () => { } };
     this.iscript = bwDat.iscript.iscripts[imageDesc.iscript];
 
     this.image.userData = {
@@ -383,14 +383,14 @@ export class IScriptRunner {
           //carrier, warpflash
           /*
     if (image_t *main_image = image->sprite->main_image)
-					{
-						auto frame_index = main_image->frame_index;
-						bool flipped = i_flag(main_image, image_t::flag_horizontally_flipped);
-						if (image->frame_index != frame_index || i_flag(image, image_t::flag_horizontally_flipped) != flipped)
-						{
-							image->frame_index_base = main_image->frame_index_base;
-							set_image_frame_index_offset(image, main_image->frame_index_offset, flipped);
-						}
+          {
+            auto frame_index = main_image->frame_index;
+            bool flipped = i_flag(main_image, image_t::flag_horizontally_flipped);
+            if (image->frame_index != frame_index || i_flag(image, image_t::flag_horizontally_flipped) != flipped)
+            {
+              image->frame_index_base = main_image->frame_index_base;
+              set_image_frame_index_offset(image, main_image->frame_index_offset, flipped);
+            }
           }
           */
 
@@ -505,6 +505,6 @@ export class IScriptRunner {
 }
 
 export const createIScriptRunnerFactory = (bwDat: BwDAT, tileset: number) => {
-  return (image: ImageInstance, imageDesc: ImageDAT, state = {}) =>
+  return (image: Image, imageDesc: ImageDAT, state = {}) =>
     new IScriptRunner(bwDat, tileset, image, imageDesc, state);
 };

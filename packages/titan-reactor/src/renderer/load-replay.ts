@@ -35,7 +35,7 @@ import {
     completeUIType,
     UITypeReplay,
 } from "./stores";
-import TitanReactorGame from "./run-replay";
+import TitanReactorGame from "./view-replay";
 import { BwDAT } from "../common/types";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";

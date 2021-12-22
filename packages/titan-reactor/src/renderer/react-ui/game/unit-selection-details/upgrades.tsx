@@ -13,7 +13,7 @@ import { TechDataDAT, UpgradeDAT } from "../../../../common/types";
 interface Props {
   unit: Unit;
 }
-const iconSelector = (state: GameStore) => state?.assets?.icons.cmdIcons;
+const iconSelector = (state: GameStore) => state?.assets?.cmdIcons;
 const bwDatSelector = (state: GameStore) => state?.assets?.bwDat;
 
 type UpgradeDATWithZeroRemaining = UpgradeDAT & {

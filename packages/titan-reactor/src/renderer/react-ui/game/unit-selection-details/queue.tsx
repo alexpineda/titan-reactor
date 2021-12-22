@@ -76,7 +76,7 @@ const selector = (state: SelectedUnits) => {
 };
 
 const Queue = ({ unit }: Props) => {
-  const cmdIcons = useGameStore((state) => state?.assets?.icons.cmdIcons);
+  const cmdIcons = useGameStore((state) => state?.assets?.cmdIcons);
   if (!cmdIcons) {
     throw new AssetsMissingError("cmdIcons");
   }

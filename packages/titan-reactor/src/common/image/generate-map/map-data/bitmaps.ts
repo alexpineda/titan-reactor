@@ -1,4 +1,4 @@
-import {TileSetData} from "./load-tileset-files-async"
+import { TileSetData } from "../../../types";
 
 
 // compiles the map tiles binary data to:
@@ -11,8 +11,8 @@ import {TileSetData} from "./load-tileset-files-async"
 export const bitmaps = (
   mapWidth: number,
   mapHeight: number,
-  { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles } : 
-  Pick<TileSetData, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
+  { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles }:
+    Pick<TileSetData, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
 ) => {
   let tileGroup,
     groupIndex,

@@ -6,11 +6,11 @@ import {
   generateTextures,
 } from "../../common/image/generate-map";
 import { TerrainInfo } from "../../common/types";
-import { loadTilesetFilesAsync } from "../../common/image/generate-map/map-data";
+import { loadTilesetFiles } from "./load-tileset-files";
 
 export async function generateTerrain(chk: ChkType): Promise<TerrainInfo> {
   // load all the tile files we need
-  const tileFilesData = await loadTilesetFilesAsync(readCascFile, chk);
+  const tileFilesData = await loadTilesetFiles(readCascFile, chk);
 
   // interpret them and create intermediate bitmaps and textures
   const mapData = await generateTextures(

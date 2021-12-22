@@ -24,7 +24,7 @@ import {
   completeUIType,
   UITypeMap,
 } from "./stores";
-import TitanReactorMap from "./map";
+import TitanReactorMap from "./view-map";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 

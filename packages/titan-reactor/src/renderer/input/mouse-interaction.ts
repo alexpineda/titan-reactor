@@ -5,7 +5,7 @@ import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { TerrainInfo } from "../../common/types";
 import ProjectedCameraView from "../camera/projected-camera-view";
 import GameCanvasTarget from "../render/game-canvas-target";
-import useGameStore, { getIcons } from "../stores/game-store";
+import useGameStore, { getAssets } from "../stores/game-store";
 import { Image, Sprite, Unit } from "../core";
 
 const canOnlySelectOne = [
@@ -59,7 +59,7 @@ export class MouseInteraction {
   private _interval?: NodeJS.Timeout;
 
   constructor() {
-    const icons = getIcons();
+    const icons = getAssets();
 
     this.arrowIcons = icons.arrowIcons.icons;
     this.hoverIcons = icons.hoverIcons.icons;

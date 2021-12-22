@@ -12,3 +12,18 @@ export type TerrainInfo = {
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
 };
+
+
+export type TileSetData = {
+  mapTiles: Uint16Array;
+  megatiles: Uint32Array;
+  minitilesFlags: Uint16Array;
+  minitiles: Uint8Array;
+  palette: Uint8Array;
+  tileset: number;
+  hdTiles: Buffer[];
+  tilegroupU16: Uint16Array;
+  tilegroupBuf: Buffer;
+  creepGrpSD: Buffer;
+  creepGrpHD: DDSGrpFrameType[];
+};

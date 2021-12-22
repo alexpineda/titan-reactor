@@ -5,6 +5,13 @@ import { createDDSTexture } from "../formats/create-dds-texture";
 import GrpSDLegacy from "../atlas/atlas-sd-legacy";
 import { rgbToCanvas } from "../canvas";
 
+export interface WorkerIcons {
+  apm: string;
+  terran: string;
+  zerg: string;
+  protoss: string;
+}
+
 // @todo break this up into multiple files
 export default class GameIcons extends Array {
   wireframes: string[] = [];

@@ -4,10 +4,10 @@ import THREE, { AnimationAction, AnimationMixer, Color, Object3D } from "three";
 
 import { IScriptRunner } from "../../common/iscript";
 import Atlas3D from "../../common/image/atlas/atlas-3d";
-import { ImageInstance, ImageDAT, createIScriptRunner } from "../../common/types";
-import { Sprite } from ".";
+import { ImageDAT, createIScriptRunner } from "../../common/types";
+import { Sprite, Image } from ".";
 
-export class TitanImage3D extends Object3D implements ImageInstance {
+export class TitanImage3D extends Object3D implements Image {
   atlas: Atlas3D;
   model: Object3D;
   sprite: Sprite;

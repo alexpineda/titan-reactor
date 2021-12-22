@@ -1,6 +1,6 @@
 import {
     getAssets,
-    isLoadingProcessComplete,
+    isProcessComplete,
     useLoadingStore,
 } from "../stores";
 
@@ -11,19 +11,19 @@ import { log } from "../ipc";
 export default async () => {
     log("waiting for assets");
     return await new Promise((res: EmptyFunc) => {
-        if (isLoadingProcessComplete("assets")) {
+        if (isProcessComplete("assets")) {
             const assets = getAssets();
-            if (!assets || !assets.bwDat) {
+            if (!assets) {
                 throw new Error("assets not loaded");
             }
             res();
             return;
         }
         const unsub = useLoadingStore.subscribe(() => {
-            if (isLoadingProcessComplete("assets")) {
+            if (isProcessComplete("assets")) {
                 unsub();
                 const assets = getAssets();
-                if (!assets || !assets.bwDat) {
+                if (!assets) {
                     throw new Error("assets not loaded");
                 }
                 res();

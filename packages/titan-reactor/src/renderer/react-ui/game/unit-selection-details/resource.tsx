@@ -17,7 +17,7 @@ interface Props {
   unit: Unit;
 }
 const Resource = ({ unit }: Props) => {
-  const gameIcons = useGameStore((state) => state?.assets?.icons.gameIcons);
+  const gameIcons = useGameStore((state) => state?.assets?.gameIcons);
   if (!gameIcons) {
     throw new AssetsMissingError("gameIcons");
   }
