@@ -1,6 +1,5 @@
 import { CanvasTarget } from "../../common/image";
-import { GameAspect } from "../../common/settings";
-import { Settings } from "../../common/types";
+import { Settings, GameAspect } from "../../common/types";
 
 export class GameCanvasTarget extends CanvasTarget {
   minimapSize = 0;

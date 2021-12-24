@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 
 import phrases from "../../common/phrases";
-import { RenderMode, defaultSettings } from "../../common/settings";
+import { defaultSettings } from "../../common/settings";
 import { Settings as SettingsType } from "../../common/types";
 import fileExists from "../utils/file-exists";
 import { findStarcraftPath } from "../starcraft/find-install-path";
@@ -31,7 +31,9 @@ const shallowDiff = (a: any, b: any) => {
 
 export class Settings extends EventEmitter {
   private initialized = false;
-  private _settings: any = {};
+  private _settings: SettingsType = {
+    ...defaultSettings
+  };
   private _filepath = "";
 
   async init(filepath: string) {
@@ -39,7 +41,7 @@ export class Settings extends EventEmitter {
 
     this._filepath = filepath;
 
-    const noop = () => {};
+    const noop = () => { };
     try {
       this._settings = JSON.parse(
         await fsPromises.readFile(this._filepath, { encoding: "utf8" })
@@ -54,6 +56,7 @@ export class Settings extends EventEmitter {
       }
     }
     this.initialized = true;
+    this._emitChanged();
   }
 
   async get() {

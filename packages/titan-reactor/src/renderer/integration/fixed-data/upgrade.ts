@@ -6,11 +6,10 @@ export const UPGRADE_BYTE_LENGTH = 7;
 // upgrades in progress
 export class UpgradeBW
   extends ContiguousContainer<UpgradeRAW>
-  implements UpgradeRAW
-{
+  implements UpgradeRAW {
   protected override byteLength = UPGRADE_BYTE_LENGTH;
 
-  get owner() {
+  get ownerId() {
     return this._readU8(0);
   }
 
@@ -39,7 +38,7 @@ export class UpgradeBW
 
   override object() {
     return {
-      owner: this.owner,
+      ownerId: this.ownerId,
       typeId: this.typeId,
       level: this.level,
       remainingBuildTime: this.remainingBuildTime,

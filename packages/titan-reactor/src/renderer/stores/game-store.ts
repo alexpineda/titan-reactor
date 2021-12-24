@@ -59,8 +59,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   playerVision: range(0, 8).map(() => true),
   setAssets: (assets: Assets | null) => set({ assets }),
   disposeAssets: () => {
-    const assets = get().assets;
-    assets && assets.dispose();
     get().setAssets(null);
   },
 

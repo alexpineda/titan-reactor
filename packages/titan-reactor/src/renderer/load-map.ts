@@ -1,7 +1,8 @@
 import { Object3D } from "three";
 import loadScm from "./utils/load-scm";
 
-import Chk from "../../libs/bw-chk";
+import Chk from "bw-chk";
+// import Chk from "../../libs/bw-chk";
 import {
   createTitanImageFactory,
   TitanImageHD,

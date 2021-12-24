@@ -60,7 +60,7 @@ onmessage = function ({ data }) {
       if (r.remainingBuildTime === 100) {
         techNearComplete = true;
       }
-      if (r.owner === i) {
+      if (r.ownerId === i) {
         const researchObj = {
           ...r,
           icon: _techDat[r.typeId].icon,
@@ -84,7 +84,7 @@ onmessage = function ({ data }) {
       if (upgrade.remainingBuildTime === 100) {
         upgradeNearComplete = true;
       }
-      if (upgrade.owner === i) {
+      if (upgrade.ownerId === i) {
         // if completed upgrade exists update count once and replace build time
         const existing = upgrades[i].find((u) => u.typeId === upgrade.typeId);
         if (existing) {

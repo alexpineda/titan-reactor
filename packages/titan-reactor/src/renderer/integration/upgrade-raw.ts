@@ -1,7 +1,7 @@
 import { UpgradeDAT } from "../../common/types";
 
 export interface UpgradeRAW {
-  owner: number;
+  ownerId: number;
   typeId: number;
   level: number;
   remainingBuildTime: number;

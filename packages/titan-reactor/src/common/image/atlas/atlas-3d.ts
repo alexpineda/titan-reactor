@@ -19,15 +19,13 @@ export class Atlas3D extends AtlasHD {
   override async load({
     glbFileName,
     readAnim,
-    readAnimHD2,
     imageDef,
   }: {
     glbFileName?: string;
     readAnim: () => Promise<Buffer>;
-    readAnimHD2: () => Promise<Buffer>;
     imageDef: Pick<ImageDAT, "name" | "index" | "gfxTurns">;
   }) {
-    await super.load({ readAnim, readAnimHD2, imageDef });
+    await super.load({ readAnim, imageDef });
 
     if (!glbFileName) return this;
 
@@ -53,7 +51,7 @@ export class Atlas3D extends AtlasHD {
           return i;
         }
       });
-    } catch (e) {}
+    } catch (e) { }
 
     return this;
   }

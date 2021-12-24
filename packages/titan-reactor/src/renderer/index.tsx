@@ -7,7 +7,7 @@ import App from "./react-ui/app";
 import { loadSettings, errorUIType, completeUIType } from "./stores";
 import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
-import preloadAssets from "./bootup/preload-assets";
+import preloadAssets from "./bootup/load-assets-when-ready";
 import "./bootup/three-overrides";
 
 if (module.hot) {

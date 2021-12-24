@@ -11,6 +11,7 @@ export default () =>
   // preload assets once valid settings are available
   useSettingsStore.subscribe(
     async ({ errors, data: settings }) => {
+      console.log("NOT READY TO LOAD ASSETS")
       if (errors.length || !settings || !settings.starcraftPath || !settings.communityModelsPath) {
         return;
       }
@@ -20,6 +21,7 @@ export default () =>
       if (isProcessComplete("assets") || isProcessInProgress("assets")) {
         return;
       }
+      console.log("READY TO LOAD ASSETS")
       const assets = await loadAssets(settings.starcraftPath, settings.communityModelsPath);
       setAssets(assets);
     }

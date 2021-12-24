@@ -22,9 +22,7 @@ export class AtlasHD implements GRPInterface {
     imageDef,
   }: {
     readAnim: () => Promise<Buffer>;
-    readAnimHD2: () => Promise<Buffer>;
     imageDef: Pick<ImageDAT, "index">;
-    glbFileName?: string;
   }) {
     this.imageIndex = imageDef.index;
 

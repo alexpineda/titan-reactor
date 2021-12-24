@@ -8,7 +8,7 @@ import { CommandsStream } from "downgrade-replay";
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
-import { RenderMode } from "../common/settings";
+import { SpriteTextureResolution } from "../common/types";
 import {
   BwDAT,
   ChkUnitType,
@@ -145,7 +145,7 @@ async function TitanReactorGame(
   //@ts-ignore
   window.renderMan = renderer;
 
-  if (settings.renderMode !== RenderMode.ThreeD && renderer.renderer) {
+  if (settings.renderMode !== SpriteTextureResolution.ThreeD && renderer.renderer) {
     renderer.renderer.shadowMap.autoUpdate = false;
     renderer.renderer.shadowMap.needsUpdate = true;
   }

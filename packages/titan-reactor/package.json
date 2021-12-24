@@ -37,7 +37,7 @@
     },
     "renderer": {
       "sourceDirectory": "src/renderer",
-      "webpackConfig": "src/build/renderer.config.js"
+      "webpackConfig": "build/renderer.config.js"
     }
   },
   "build": {
@@ -55,7 +55,8 @@
   },
   "dependencies": {
     "bl": "^5.0.0",
-    "buffer": "^6.0.3",
+    "bw-chk": "^1.3.0",
+    "byte-size": "^8.1.0",
     "camera-controls": "^1.25.3",
     "casclib": "^2.0.1",
     "concat": "1.0.3",
@@ -95,6 +96,8 @@
     "@typescript-eslint/parser": "^5.1.0",
     "babel-jest": "^26.3.0",
     "babel-loader": "^8.2.2",
+    "benchmark": "^2.1.4",
+    "benny": "^3.7.1",
     "dotenv": "^8.2.0",
     "electron": "15.1.1",
     "electron-builder": "^22.8.1",
@@ -113,6 +116,7 @@
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.19",
     "typescript": "^4.4.4",
+    "webpack-bundle-analyzer": "^4.5.0",
     "worker-loader": "^2.0.0"
   }
 }

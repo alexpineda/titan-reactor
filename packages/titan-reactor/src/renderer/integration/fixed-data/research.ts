@@ -5,11 +5,10 @@ export const RESEARCH_BYTE_LENGTH = 6;
 // research in progress
 export class ResearchBW
   extends ContiguousContainer<ResearchRAW>
-  implements ResearchRAW
-{
+  implements ResearchRAW {
   protected override byteLength = RESEARCH_BYTE_LENGTH;
 
-  get owner() {
+  get ownerId() {
     return this._readU8(0);
   }
 
@@ -34,7 +33,7 @@ export class ResearchBW
 
   override object() {
     return {
-      owner: this.owner,
+      ownerId: this.ownerId,
       typeId: this.typeId,
       remainingBuildTime: this.remainingBuildTime,
       unitId: this.unitId,
