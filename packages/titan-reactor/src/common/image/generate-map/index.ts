@@ -1,4 +1,4 @@
-export * from "./displace-geometry";
-export * from "./displace-geometry-chunk";
+export * from "./create-displacement-geometry";
+export * from "./create-displacement-geometry-quartile";
 export * from "./generate-materials";
-export * from "./generate-textures";
+export * from "./generate-map-tile-textures";

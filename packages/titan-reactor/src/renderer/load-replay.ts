@@ -10,7 +10,6 @@ import fs from "fs";
 import path from "path";
 
 import Chk from "bw-chk";
-// import Chk from "../../libs/bw-chk";
 import {
     createTitanImageFactory,
     TitanImageHD

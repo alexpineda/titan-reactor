@@ -13,8 +13,8 @@ import {
   SMAAImageLoader,
   SMAAPreset,
   ToneMappingEffect,
-} 
-from "postprocessing";
+}
+  from "postprocessing";
 
 import {
   Camera,
@@ -149,7 +149,7 @@ export class Renderer {
     this.fogOfWarEffect = new FogOfWarEffect();
 
     const toneMapping = new ToneMappingEffect();
-    
+
     // @ts-ignore
     window.toneMappingEffect = toneMapping;
 
@@ -273,7 +273,7 @@ export class Renderer {
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = sRGBEncoding;
 
-    renderer.debug.checkShaderErrors = true;
+    renderer.debug.checkShaderErrors = false;
 
     return renderer;
   }
@@ -289,7 +289,7 @@ export class Renderer {
 
     await this._initPostProcessing(camera);
 
-    this._contextLostListener = () => {};
+    this._contextLostListener = () => { };
     this._contextRestoredListener = () => {
       this.dispose();
       this.init(camera);

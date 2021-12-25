@@ -5,7 +5,6 @@ import CornerStatus from "./corner-status";
 import Map from "./map";
 import Game from "./game";
 import "./css/tailwind.min.css";
-import "./css/pattern.min.css";
 import "./css/icon.css";
 import "./css/styles.css";
 import "./css/bevel.css";
@@ -30,7 +29,7 @@ const App = () => {
   return (
     <React.StrictMode>
       <>
-        <CornerStatus />
+        {!(screen.loading && screen.type === "home") && <CornerStatus />}
         {screen.error && <ErrorState error={screen.error} />}
         {screen.loading && <LoadingOverlay screen={screen} />}
         {screen.loaded && (

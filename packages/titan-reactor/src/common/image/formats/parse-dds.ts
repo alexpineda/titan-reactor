@@ -5,6 +5,7 @@ import {
   RGBA_S3TC_DXT3_Format,
   RGBA_S3TC_DXT5_Format,
   RGBAFormat,
+  CompressedPixelFormat
 } from "three";
 
 export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
@@ -19,7 +20,7 @@ export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
     mipmaps: [],
     width: 0,
     height: 0,
-    format: 0,
+    format: RGB_S3TC_DXT1_Format,
     mipmapCount: 1,
     isCubemap: false,
   };

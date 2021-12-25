@@ -1,3 +1,4 @@
+import { DDSGrpFrameType } from "./";
 import { Mesh, Texture } from "three";
 
 import { GetTerrainY } from "./util";

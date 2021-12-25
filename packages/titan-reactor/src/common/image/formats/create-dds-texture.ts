@@ -2,7 +2,6 @@ import {
   ClampToEdgeWrapping,
   CompressedTexture,
   LinearFilter,
-  RepeatWrapping,
   sRGBEncoding,
 } from "three";
 
@@ -36,7 +35,7 @@ export const createDDSTexture = (
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.wrapT = ClampToEdgeWrapping;
-  texture.wrapS = RepeatWrapping;
+  texture.wrapS = ClampToEdgeWrapping;
   texture.encoding = encoding;
   texture.flipY = false;
   return texture;

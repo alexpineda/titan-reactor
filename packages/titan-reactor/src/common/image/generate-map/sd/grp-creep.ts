@@ -1,5 +1,5 @@
 import { DataTexture, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
-import { PX_PER_TILE } from "./common";
+import { PX_PER_TILE_SD } from "./common";
 
 // draw 13 creep tiles left to right
 export const grpToCreepTexture = (
@@ -13,7 +13,7 @@ export const grpToCreepTexture = (
   const height = 1;
 
   const diffuse = new Uint8Array(
-    width * height * PX_PER_TILE * PX_PER_TILE * 4  );
+    width * height * PX_PER_TILE_SD * PX_PER_TILE_SD * 4);
   // draw an extra tile a the beginning, otherwise this offset for creep should be 36(Uint16)
   let tileIndex = 37;
 
@@ -42,11 +42,11 @@ export const grpToCreepTexture = (
             const b = palette[color * 4 + 2];
 
             const pixelPos =
-              mapY * PX_PER_TILE * width * PX_PER_TILE +
-              mapX * PX_PER_TILE +
-              miniY * 8 * width * PX_PER_TILE +
+              mapY * PX_PER_TILE_SD * width * PX_PER_TILE_SD +
+              mapX * PX_PER_TILE_SD +
+              miniY * 8 * width * PX_PER_TILE_SD +
               miniX * 8 +
-              colorY * width * PX_PER_TILE +
+              colorY * width * PX_PER_TILE_SD +
               colorX;
 
             diffuse[pixelPos * 4] = r;
@@ -62,13 +62,13 @@ export const grpToCreepTexture = (
 
   const texture = new DataTexture(
     diffuse,
-    width * PX_PER_TILE,
-    height * PX_PER_TILE,
+    width * PX_PER_TILE_SD,
+    height * PX_PER_TILE_SD,
     RGBAFormat,
     UnsignedByteType
   );
   texture.flipY = true;
   texture.encoding = sRGBEncoding;
   texture.anisotropy = anisotropy;
-  return { texture, width: width * PX_PER_TILE, height: height * PX_PER_TILE };
+  return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD };
 };

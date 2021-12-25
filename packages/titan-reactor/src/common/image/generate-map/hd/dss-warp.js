@@ -9,7 +9,7 @@ import {
   sRGBEncoding,
 } from "three";
 
-import { loadHdTile, PX_PER_TILE } from "./common";
+import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
 //TODO: INCOMPLETE
 export const ddsToWarpInTexture = function (renderer, warpIn) {

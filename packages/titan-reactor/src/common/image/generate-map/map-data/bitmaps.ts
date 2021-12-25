@@ -1,6 +1,14 @@
 import { TileSetData } from "../../../types";
 
 
+export type MapBitmapsResult = {
+  mapTilesData: Uint16Array;
+  diffuse: Uint8Array;
+  layers: Uint8Array;
+  paletteIndices: Uint8Array;
+  roughness: Uint8Array;
+  displacementDetail: Uint8Array;
+}
 // compiles the map tiles binary data to:
 // map tiles bitmap
 // elevation bitmap
@@ -13,7 +21,7 @@ export const bitmaps = (
   mapHeight: number,
   { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles }:
     Pick<TileSetData, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
-) => {
+): MapBitmapsResult => {
   let tileGroup,
     groupIndex,
     groupOffset,

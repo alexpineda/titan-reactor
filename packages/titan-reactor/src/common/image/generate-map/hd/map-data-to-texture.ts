@@ -9,7 +9,7 @@ import {
   sRGBEncoding,
   WebGLRenderer,
 } from "three";
-import { loadHdTile, PX_PER_TILE } from "./common";
+import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
@@ -18,7 +18,7 @@ export const mapDataToTextures = (
   renderer: WebGLRenderer,
   mapWidth: number,
   mapHeight: number,
-  { hdTiles, mapTilesData } : { hdTiles: Record<number, Buffer>, mapTilesData: Record<number, number> },
+  { hdTiles, mapTilesData }: { hdTiles: Record<number, Buffer>, mapTilesData: Record<number, number> },
 ) => {
   const mapQuartiles: CanvasTexture[][] = [];
 
@@ -26,7 +26,7 @@ export const mapDataToTextures = (
   //16384, 8192, 4096
 
   // tile units
-  const maxQuartileSize = Math.min(32, webGlMaxTextureSize / PX_PER_TILE);
+  const maxQuartileSize = Math.min(32, webGlMaxTextureSize / PX_PER_TILE_HD);
   // 64; //64, 64, 32    0.5->1, 1, 2
   // 96; //96, 48, 32    0.75->1, 1.5->2, 3
   // 128; //128, 64, 32   1, 2, 4
@@ -52,8 +52,8 @@ export const mapDataToTextures = (
   ortho.lookAt(new Vector3());
 
   const hdCache = new Map();
-  const renderWidth = quartileWidth * PX_PER_TILE;
-  const renderHeight = quartileHeight * PX_PER_TILE;
+  const renderWidth = quartileWidth * PX_PER_TILE_HD;
+  const renderHeight = quartileHeight * PX_PER_TILE_HD;
   renderer.setSize(renderWidth, renderHeight);
 
   const quartileScene = new Scene();

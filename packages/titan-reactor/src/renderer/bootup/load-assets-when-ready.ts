@@ -6,23 +6,41 @@ import {
   isProcessComplete
 } from "../stores";
 import loadAssets from "../assets/load-assets";
+import { Settings } from "../../common/types";
 
-export default () =>
-  // preload assets once valid settings are available
-  useSettingsStore.subscribe(
+const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => void) => {
+  if (hasErrors || !settings || !settings.starcraftPath || !settings.communityModelsPath) {
+    return;
+  }
+  if (isProcessComplete("assets") || isProcessInProgress("assets")) {
+    return;
+  }
+  const assets = await loadAssets(settings.starcraftPath, settings.communityModelsPath);
+  setAssets(assets);
+  onSuccess();
+  return true;
+};
+
+const tryAndRetry = async (initialSettings: Settings, hasErrors: boolean, res: (value: unknown) => void) => {
+  if (await tryLoad(initialSettings, hasErrors, () => {
+    res(null);
+  })) {
+    return;
+  }
+  const unsub = useSettingsStore.subscribe(
     async ({ errors, data: settings }) => {
-      console.log("NOT READY TO LOAD ASSETS")
-      if (errors.length || !settings || !settings.starcraftPath || !settings.communityModelsPath) {
-        return;
-      }
 
+      tryLoad(settings, errors.length > 0, () => {
+        unsub();
+        res(null);
+      });
 
-      // @todo allow dynamic loading of assets
-      if (isProcessComplete("assets") || isProcessInProgress("assets")) {
-        return;
-      }
-      console.log("READY TO LOAD ASSETS")
-      const assets = await loadAssets(settings.starcraftPath, settings.communityModelsPath);
-      setAssets(assets);
     }
   );
+};
+
+// preload assets once valid settings are available
+// return a promise for convenience to the caller
+export default (initialSettings: Settings, hasErrors: boolean) => new Promise(res => {
+  tryAndRetry(initialSettings, hasErrors, res);
+});

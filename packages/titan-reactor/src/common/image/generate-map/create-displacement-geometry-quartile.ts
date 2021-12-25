@@ -1,7 +1,7 @@
-import { BufferAttribute, BufferGeometry , PlaneBufferGeometry, Vector2, Vector3} from "three";
+import { BufferAttribute, BufferGeometry, PlaneBufferGeometry, Vector2, Vector3 } from "three";
 
-export const createDisplacementGeometryChunk = (
-  existingGeom: BufferGeometry,
+export const createDisplacementGeometryQuartile = (
+  existingGeom: BufferGeometry | null,
   width: number,
   height: number,
   widthSegments: number,
@@ -18,12 +18,12 @@ export const createDisplacementGeometryChunk = (
     existingGeom ||
     new PlaneBufferGeometry(width, height, widthSegments, heightSegments);
   const ctx = canvas.getContext("2d");
-  if (!ctx) { 
+  if (!ctx) {
     throw new Error("Could not get canvas context");
   }
 
   const pos = geom.getAttribute("position");
-  const uvs = geom.getAttribute("uv") as  BufferAttribute;
+  const uvs = geom.getAttribute("uv") as BufferAttribute;
   const nor = geom.getAttribute("normal");
   const p = new Vector3();
   const uv = new Vector2();

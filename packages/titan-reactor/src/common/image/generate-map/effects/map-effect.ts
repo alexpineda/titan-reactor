@@ -1,4 +1,4 @@
-import { LinearEncoding, Matrix3, sRGBEncoding, Uniform } from "three";
+import { LinearEncoding, Matrix3, sRGBEncoding, Uniform, Texture } from "three";
 import { ColorChannel, BlendFunction, Effect } from "postprocessing";
 
 const fragmentShader = `
@@ -167,6 +167,22 @@ void mainSupport(const in vec2 uv) {
 }
 `;
 
+interface MapEffectArgs {
+  blendFunction: number;
+  texture: Texture;
+  details: Texture;
+  detailsMix: number;
+  levels: Matrix3;
+  ignoreLevels: Matrix3;
+  ignoreDoodads: number;
+  tileset: number;
+  palette: Uint8Array;
+  paletteIndices: Texture;
+  elevations: Texture;
+  mapTiles: Texture;
+  processWater: boolean;
+}
+
 export class MapEffect extends Effect {
   /**
    * Constructs a new texture effect.
@@ -177,27 +193,27 @@ export class MapEffect extends Effect {
    */
 
   constructor({
+    palette,
+    paletteIndices,
+    levels,
+    ignoreLevels,
     blendFunction = BlendFunction.NORMAL,
-    texture = null,
-    details = null,
-    elevations = null,
-    levels = null,
-    ignoreLevels = null,
-    mapTiles = null,
-    ignoreDoodads = null,
-    detailsMix = null,
-    tileset = null,
-    palette = null,
-    paletteIndices = null,
-    processWater = null,
-  } = {}) {
+    texture,
+    details,
+    elevations,
+    mapTiles,
+    ignoreDoodads,
+    detailsMix,
+    tileset,
+    processWater = false,
+  }: MapEffectArgs) {
     super("MapEffect", fragmentShader, {
       blendFunction,
 
       defines: new Map([["TEXEL", "texel"]]),
 
       uniforms: new Map([
-        ["texture", new Uniform(null)],
+        ["texture", new Uniform(texture)],
         ["scale", new Uniform(1.0)],
         ["uvTransform", new Uniform(null)],
         ["details", new Uniform(null)],
@@ -230,23 +246,11 @@ export class MapEffect extends Effect {
     this.ignoreLevels = ignoreLevels;
   }
 
-  /**
-   * The texture.
-   *
-   * @type {Texture}
-   */
-
-  get texture() {
+  get texture(): Texture {
     return this.uniforms.get("texture").value;
   }
 
-  /**
-   * Sets the texture.
-   *
-   * @type {Texture}
-   */
-
-  set texture(value) {
+  set texture(value: Texture) {
     const currentTexture = this.texture;
 
     if (currentTexture !== value) {
@@ -276,115 +280,99 @@ export class MapEffect extends Effect {
     }
   }
 
-  get details() {
+  get details(): Texture {
     return this.uniforms.get("details").value;
   }
 
-  set details(value) {
+  set details(value: Texture) {
     this.uniforms.get("details").value = value;
   }
 
-  get elevations() {
+  get elevations(): Texture {
     return this.uniforms.get("elevations").value;
   }
 
-  set elevations(value) {
+  set elevations(value: Texture) {
     this.uniforms.get("elevations").value = value;
   }
 
-  get levels() {
+  get levels(): Matrix3 {
     return this.uniforms.get("levels").value;
   }
 
-  set levels(value) {
+  set levels(value: Matrix3) {
     this.uniforms.get("levels").value = value;
   }
 
-  get mapTiles() {
+  get mapTiles(): Texture {
     return this.uniforms.get("mapTiles").value;
   }
 
-  set mapTiles(value) {
+  set mapTiles(value: Texture) {
     this.uniforms.get("mapTiles").value = value;
   }
 
-  get ignoreDoodads() {
+  get ignoreDoodads(): number {
     return this.uniforms.get("ignoreDoodads").value;
   }
 
-  set ignoreDoodads(value) {
+  set ignoreDoodads(value: number) {
     this.uniforms.get("ignoreDoodads").value = value;
   }
 
-  get detailsMix() {
+  get detailsMix(): number {
     return this.uniforms.get("detailsMix").value;
   }
 
-  set detailsMix(value) {
+  set detailsMix(value: number) {
     this.uniforms.get("detailsMix").value = value;
   }
 
-  get tileset() {
+  get tileset(): number {
     return this.uniforms.get("tileset").value;
   }
 
-  set tileset(value) {
+  set tileset(value: number) {
     this.uniforms.get("tileset").value = value;
   }
 
-  get paletteIndices() {
+  get paletteIndices(): Texture {
     return this.uniforms.get("paletteIndices").value;
   }
 
-  set paletteIndices(value) {
+  set paletteIndices(value: Texture) {
     this.uniforms.get("paletteIndices").value = value;
   }
 
-  get processWater() {
+  get processWater(): boolean {
     return this.uniforms.get("processWater").value;
   }
 
-  set processWater(value) {
+  set processWater(value: boolean) {
     this.uniforms.get("processWater").value = value;
   }
 
-  get palette() {
+  get palette(): Uint8Array {
     return this.uniforms.get("palette").value;
   }
 
-  set palette(value) {
+  set palette(value: Uint8Array) {
     this.uniforms.get("palette").value = value;
   }
 
-  get ignoreLevels() {
+  get ignoreLevels(): Matrix3 {
     return this.uniforms.get("ignoreLevels").value;
   }
 
-  set ignoreLevels(value) {
+  set ignoreLevels(value: Matrix3) {
     this.uniforms.get("ignoreLevels").value = value;
   }
 
-  /**
-   * Indicates whether aspect correction is enabled.
-   *
-   * If enabled, the texture can be scaled using the `scale` uniform.
-   *
-   * @type {Number}
-   * @deprecated Use uvTransform instead for full control over the texture coordinates.
-   */
-
-  get aspectCorrection() {
+  get aspectCorrection(): boolean {
     return this.defines.has("ASPECT_CORRECTION");
   }
 
-  /**
-   * Enables or disables aspect correction.
-   *
-   * @type {Number}
-   * @deprecated Use uvTransform instead for full control over the texture coordinates.
-   */
-
-  set aspectCorrection(value) {
+  set aspectCorrection(value: boolean) {
     if (this.aspectCorrection !== value) {
       if (value) {
         if (this.uvTransform) {
@@ -408,20 +396,18 @@ export class MapEffect extends Effect {
    *
    * Cannot be used if aspect correction is enabled.
    *
-   * @type {Boolean}
    */
 
-  get uvTransform() {
+  get uvTransform(): boolean {
     return this.defines.has("UV_TRANSFORM");
   }
 
   /**
    * Enables or disables texture UV transformation.
    *
-   * @type {Boolean}
    */
 
-  set uvTransform(value) {
+  set uvTransform(value: boolean) {
     if (this.uvTransform !== value) {
       if (value) {
         if (this.aspectCorrection) {
@@ -451,7 +437,7 @@ export class MapEffect extends Effect {
    * @param {ColorChannel} [a=r] - The swizzle for the `a` component.
    */
 
-  setTextureSwizzleRGBA(r, g = r, b = r, a = r) {
+  setTextureSwizzleRGBA(r: number, g = r, b = r, a = r) {
     const rgba = "rgba";
     let swizzle = "";
 

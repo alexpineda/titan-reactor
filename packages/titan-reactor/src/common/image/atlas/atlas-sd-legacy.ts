@@ -17,9 +17,9 @@ type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
 export class GrpSDLegacy {
   width = 0;
   height = 0;
-  grpWidth? = 0;
-  grpHeight? = 0;
-  texture?: DataTexture;
+  grpWidth?= 0;
+  grpHeight?= 0;
+  texture: DataTexture;
   teamcolor?: DataTexture;
   frames?: {
     x: number;
@@ -29,6 +29,10 @@ export class GrpSDLegacy {
     w: number;
     h: number;
   }[] = [];
+
+  constructor() {
+    this.texture = new DataTexture();
+  }
 
   async load(
     {
@@ -102,10 +106,9 @@ export class GrpSDLegacy {
       const grpX = (i % grpStride) * mw;
       const grpY = Math.floor(i / grpStride) * mh;
 
-      if (!this.frames) {
-        throw new Error("No frames");
+      if (this.frames) {
+        this.frames.push({ x, y, grpX, grpY, w, h });
       }
-      this.frames.push({ x, y, grpX, grpY, w, h });
 
       for (let fy = 0; fy < h; fy++) {
         for (let fx = 0; fx < w; fx++) {

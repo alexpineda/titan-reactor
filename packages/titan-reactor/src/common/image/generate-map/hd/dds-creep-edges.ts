@@ -12,7 +12,7 @@ import {
   WebGLRenderer
 } from "three";
 
-import { loadHdTile, PX_PER_TILE } from "./common";
+import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
 // generates a single creep texture for the edges from 0 - 15
 export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrpFrameType[]) => {
@@ -70,7 +70,7 @@ export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrp
   ortho.position.y = width;
   ortho.lookAt(new Vector3());
 
-  renderer.setSize(width * PX_PER_TILE, height * PX_PER_TILE);
+  renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
 
   const scene = new Scene();
   const plane = new PlaneBufferGeometry();
@@ -83,8 +83,8 @@ export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrp
   if (!ctx) {
     throw new Error("Could not create canvas context");
   }
-  canvas.width = width * PX_PER_TILE;
-  canvas.height = height * PX_PER_TILE;
+  canvas.width = width * PX_PER_TILE_HD;
+  canvas.height = height * PX_PER_TILE_HD;
 
   for (let i = 0; i < creepGrp.length; i++) {
     const x = i;
@@ -95,7 +95,7 @@ export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrp
     mat.map = texture;
     mat.needsUpdate = true;
     mat.side = DoubleSide;
-    mesh.scale.set(grp.w / PX_PER_TILE, grp.h / PX_PER_TILE, 1);
+    mesh.scale.set(grp.w / PX_PER_TILE_HD, grp.h / PX_PER_TILE_HD, 1);
     mesh.position.x = x - width / 2 + getOffset(grp, i).x;
     // if (x >= 1 && x <= 4) {
     //   mesh.position.z = y - height / 2 + 1;
@@ -117,5 +117,5 @@ export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrp
 
   mat.dispose();
 
-  return { texture, width: width * PX_PER_TILE, height: height * PX_PER_TILE };
+  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD };
 };

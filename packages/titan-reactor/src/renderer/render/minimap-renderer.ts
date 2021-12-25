@@ -51,8 +51,6 @@ export class MinimapCanvasDrawer {
   }
 
   draw(view: ProjectedCameraView) {
-    //@todo possibly refactor back to webgl rendering
-    //update ImageData alpha for minimap
     if (!this._generatingMinimapFog) {
       this._generatingMinimapFog = true;
       createImageBitmap(this.fogOfWar.imageData).then((ib) => {

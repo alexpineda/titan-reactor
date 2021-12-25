@@ -10,7 +10,7 @@ import {
   WebGLRenderer,
 } from "three";
 
-import { loadHdTile, PX_PER_TILE } from "./common";
+import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
 // generates a single creep texture from 0 - 13
 export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<number, Buffer>, tilegroupU16: Uint16Array) => {
@@ -25,7 +25,7 @@ export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<numbe
   ortho.position.y = width;
   ortho.lookAt(new Vector3());
 
-  renderer.setSize(width * PX_PER_TILE, height * PX_PER_TILE);
+  renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
 
   const scene = new Scene();
   const plane = new PlaneBufferGeometry();
@@ -38,8 +38,8 @@ export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<numbe
   if (!ctx) {
     throw new Error("Could not create canvas context");
   }
-  canvas.width = width * PX_PER_TILE;
-  canvas.height = height * PX_PER_TILE;
+  canvas.width = width * PX_PER_TILE_HD;
+  canvas.height = height * PX_PER_TILE_HD;
 
   for (let i = 0; i < width; i++) {
     const x = i;
@@ -64,5 +64,5 @@ export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<numbe
 
   mat.dispose();
 
-  return { texture, width: width * PX_PER_TILE, height: height * PX_PER_TILE };
+  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD };
 };

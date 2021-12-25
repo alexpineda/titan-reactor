@@ -1,1 +1,1 @@
-export const PX_PER_TILE = 32;
+export const PX_PER_TILE_SD = 32;

@@ -17,9 +17,7 @@ import electronFileLoader from "../utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
-import { log } from "../ipc";
 
-class AnimOutOfBoundsError extends Error { }
 export default async (starcraftPath: string, communityModelsPath: string) => {
     startLoadingProcess({
         id: "assets",
@@ -82,13 +80,13 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         const grp = new Atlas3D();
         return await grp.load({
             imageDef: bwDat.images[imageId],
-            readAnim: async () => readCascFile(genFileName(imageId)),
-            readAnimHD2: () => readCascFile(genFileName(imageId, "HD2/")),
+            // readAnim: async () => readCascFile(genFileName(imageId)),
+            readAnim: () => readCascFile(genFileName(imageId, "HD2/")),
             glbFileName: `${communityModelsPath}/models/${`00${refId(
                 imageId
             )}`.slice(-3)}.glb`,
         });
-    }
+    };
 
     const grps = [];
 
