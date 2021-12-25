@@ -141,8 +141,8 @@ export default async (filepath: string) => {
         createTitanImageFactory(
             assets.bwDat,
             assets.grps,
+            settings.spriteTextureResolution,
             createIScriptRunnerFactory(assets.bwDat as BwDAT, chk.tileset),
-            (err) => log(err, "error")
         ),
         audioMaster
     );

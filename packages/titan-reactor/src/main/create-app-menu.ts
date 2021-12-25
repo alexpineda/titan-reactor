@@ -1,30 +1,45 @@
 import { app, Menu, shell } from "electron";
+import { showOpenMapDialog, showOpenReplayDialog } from "./register-ipc-handlers/dialogs";
 const isMac = process.platform === "darwin";
 
 const template = [
   // { role: 'appMenu' }
   ...(isMac
     ? [
-        {
-          label: app.name,
-          submenu: [
-            { role: "about" },
-            { type: "separator" },
-            { role: "services" },
-            { type: "separator" },
-            { role: "hide" },
-            { role: "hideothers" },
-            { role: "unhide" },
-            { type: "separator" },
-            { role: "quit" },
-          ],
-        },
-      ]
+      {
+        label: app.name,
+        submenu: [
+          { role: "about" },
+          { type: "separator" },
+          { role: "services" },
+          { type: "separator" },
+          { role: "hide" },
+          { role: "hideothers" },
+          { role: "unhide" },
+          { type: "separator" },
+          { role: "quit" },
+        ],
+      },
+    ]
     : []),
   // { role: 'fileMenu' }
   {
     label: "&File",
-    submenu: [{ role: isMac ? "close" : "quit" }],
+    submenu: [
+      {
+        label: "Open &Map",
+        click: function () {
+          showOpenMapDialog();
+        },
+      },
+      {
+        label: "Open &Replay",
+        click: function () {
+          showOpenReplayDialog();
+        },
+      },
+      { role: isMac ? "close" : "quit" }
+    ],
   },
   {
     label: "View",
@@ -41,11 +56,11 @@ const template = [
       { role: "minimize" },
       ...(isMac
         ? [
-            { type: "separator" },
-            { role: "front" },
-            { type: "separator" },
-            { role: "window" },
-          ]
+          { type: "separator" },
+          { role: "front" },
+          { type: "separator" },
+          { role: "window" },
+        ]
         : [{ role: "close" }]),
     ],
   },

@@ -9,22 +9,15 @@ import {
 import browserWindows from "../../windows";
 import { showOpenFileDialog, showOpenFolderDialog } from "./api";
 
-ipcMain.on(OPEN_DEMO_REPLAY, async () => {
-  browserWindows.main?.webContents.send(OPEN_REPLAY_DIALOG, [
-    `${__static}/demo.rep`,
-  ]);
-});
-
-ipcMain.on(OPEN_MAP_DIALOG, async (_, defaultPath = "") => {
+export const showOpenMapDialog = (defaultPath?: string) =>
   showOpenFileDialog({
     title: "Starcraft Map",
     extensions: ["scm", "scx"],
     command: OPEN_MAP_DIALOG,
     defaultPath,
   });
-});
 
-ipcMain.on(OPEN_REPLAY_DIALOG, async (_, defaultPath = "") => {
+export const showOpenReplayDialog = (defaultPath?: string) =>
   showOpenFileDialog({
     title: "Starcraft Replay",
     extensions: ["rep"],
@@ -32,7 +25,15 @@ ipcMain.on(OPEN_REPLAY_DIALOG, async (_, defaultPath = "") => {
     multiSelect: true,
     defaultPath,
   });
+
+ipcMain.on(OPEN_DEMO_REPLAY, async () => {
+  browserWindows.main?.webContents.send(OPEN_REPLAY_DIALOG, [
+    `${__static}/demo.rep`,
+  ]);
 });
+
+ipcMain.on(OPEN_MAP_DIALOG, async (_, defaultPath = "") => showOpenMapDialog(defaultPath));
+ipcMain.on(OPEN_REPLAY_DIALOG, async (_, defaultPath = "") => showOpenReplayDialog(defaultPath));
 
 ipcMain.on(SELECT_FOLDER, async (event, key) =>
   showOpenFolderDialog((filePaths) =>

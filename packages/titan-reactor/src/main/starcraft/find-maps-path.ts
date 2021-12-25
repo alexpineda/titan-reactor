@@ -1,4 +1,4 @@
-import fileExists from "../utils/file-exists";
+import fileExists from "../../common/utils/file-exists";
 import path from "path";
 import { app } from "electron";
 

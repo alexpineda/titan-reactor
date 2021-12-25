@@ -4,7 +4,7 @@ import { createIScriptRunner, ImageDAT } from "../../common/types";
 import AtlasHD from "../../common/image/atlas/atlas-hd";
 import TitanImageHD from "./titan-image-hd";
 
-export default class TitanImageSD2 extends TitanImageHD {
+export default class TitanImageSD extends TitanImageHD {
   constructor(
     atlas: AtlasHD,
     createIScriptRunner: createIScriptRunner,

@@ -43,4 +43,4 @@ async function bootup() {
   }
 }
 
-render(<App />, document.getElementById("app"));
+// render(<App />, document.getElementById("app"));

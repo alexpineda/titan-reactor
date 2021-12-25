@@ -37,6 +37,7 @@ export class Atlas3D extends AtlasHD {
       )) as GlbResponse;
       this.model = model;
       this.animations = animations;
+      console.log(`loaded glb ${imageDef.index}`);
 
       const looseFrames = this.frames.length % 17;
 
@@ -51,7 +52,9 @@ export class Atlas3D extends AtlasHD {
           return i;
         }
       });
-    } catch (e) { }
+    } catch (e) {
+      console.error(e)
+    }
 
     return this;
   }

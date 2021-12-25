@@ -77,8 +77,8 @@ export default async (chkFilepath: string) => {
       createTitanImageFactory(
         assets.bwDat,
         assets.grps,
+        settings.spriteTextureResolution,
         createIScriptRunnerFactory(assets.bwDat, chk.tileset),
-        (err) => log(err, "error")
       ),
       (sprite: Object3D) => scene.add(sprite)
     );

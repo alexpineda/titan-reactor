@@ -7,7 +7,7 @@ import path from "path";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import { Settings as SettingsType } from "../../common/types";
-import fileExists from "../utils/file-exists";
+import fileExists from "../../common/utils/file-exists";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";

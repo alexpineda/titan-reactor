@@ -1,4 +1,6 @@
 import { promises as fsPromises } from "fs";
+import path from "path";
+import fileExists from "../../common/utils/file-exists";
 
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import { Atlas3D, AtlasHD, parseAnim } from "../../common/image";
@@ -39,7 +41,6 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
 
     await openCascStorage(starcraftPath);
 
-    //@todo move parsing to client
     const bwDat = await loadDATFiles(readCascFile);
     updateLoadingProcess("assets");
 
@@ -48,7 +49,6 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
 
     const selectionCirclesHD = await loadSelectionCircles();
 
-    //@todo move to assets
     ContiguousContainer.prototype.bwDat = bwDat;
 
     // log("loading env map");
@@ -78,13 +78,21 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
 
     const loadImageAtlas = (grps: AtlasHD[]) => async (imageId: number) => {
         const grp = new Atlas3D();
+        const glbFileName = path.join(
+            communityModelsPath,
+            `00${refId(
+                imageId
+            )}`.slice(-3) + ".glb"
+        )
+
+        const fs = await fileExists(glbFileName);
+        fs && console.log(`${glbFileName} exists`);
+
         await grp.load({
             imageDef: bwDat.images[imageId],
             // readAnim: async () => readCascFile(genFileName(imageId)),
             readAnim: () => readCascFile(genFileName(imageId, "HD2/")),
-            glbFileName: `${communityModelsPath}/models/${`00${refId(
-                imageId
-            )}`.slice(-3)}.glb`,
+            glbFileName: fs ? glbFileName : undefined,
         });
         grps[imageId] = grp;
     };
@@ -110,6 +118,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         hoverIcons,
         dragIcons,
         wireframeIcons,
+        // for dynamic loading, if we wish
         loadImageAtlas: loadImageAtlasGrp
     });
 };

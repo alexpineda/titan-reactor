@@ -5,6 +5,7 @@ export * from "./unit";
 export * from "./image";
 export * from "./sprite";
 export * from "./titan-image-hd";
+export * from "./titan-image-hd2";
 export * from "./titan-image-3d";
 export * from "./titan-image-sd";
 export * from "./create-titan-image";

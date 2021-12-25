@@ -29,7 +29,6 @@ export class TitanImageHD extends ThreeSprite implements Image {
   sprite: Sprite;
   imageDef: ImageDAT;
   override material: TeamSpriteMaterial;
-  iscript: IScriptRunner;
   _zOff: number;
 
   private atlas: AtlasHD;
@@ -40,7 +39,6 @@ export class TitanImageHD extends ThreeSprite implements Image {
 
   constructor(
     atlas: AtlasHD,
-    createIScriptRunner: createIScriptRunner,
     imageDef: ImageDAT,
     sprite: Sprite,
     spriteScale = 128
@@ -64,7 +62,6 @@ export class TitanImageHD extends ThreeSprite implements Image {
     //   this.material.warpingIn = 150;
     // }
 
-    this.iscript = createIScriptRunner(this, imageDef);
     this.geometry = this.geometry.clone();
 
     const posAttribute = new BufferAttribute(

@@ -98,8 +98,12 @@ async function TitanReactorGame(
   useGameStore.setState({
     dimensions: gameSurface.getRect(),
   });
+  document.body.appendChild(gameSurface.canvas);
 
   const minimapSurface = new CanvasTarget();
+  minimapSurface.canvas.style.position = "absolute";
+  minimapSurface.canvas.style.bottom = "0";
+  document.body.appendChild(minimapSurface.canvas);
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
   const minimapControl = new MinimapControl(

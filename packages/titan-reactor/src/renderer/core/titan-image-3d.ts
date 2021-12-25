@@ -22,7 +22,6 @@ export class TitanImage3D extends Object3D implements Image {
 
   constructor(
     atlas: Atlas3D,
-    createIScriptRunner: createIScriptRunner,
     imageDef: ImageDAT,
     sprite: Sprite
   ) {
@@ -51,7 +50,6 @@ export class TitanImage3D extends Object3D implements Image {
     this.sprite = sprite;
     this._spriteScale = 128;
     this.imageDef = imageDef;
-    this.iscript = createIScriptRunner(this, imageDef);
 
     this._zOff = 0;
 
