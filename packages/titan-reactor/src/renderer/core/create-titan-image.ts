@@ -13,7 +13,7 @@ export const createTitanImageFactory = (
   return (imageId: number, sprite: Sprite) => {
     const atlas = atlases[imageId];
     if (!atlas || typeof atlas === "boolean") {
-      onError(`composite ${imageId} has no atlas, did you forget to load one?`);
+      // onError(`composite ${imageId} has no atlas, did you forget to load one?`);
       return null;
     }
 

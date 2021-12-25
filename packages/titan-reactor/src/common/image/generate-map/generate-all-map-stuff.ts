@@ -37,7 +37,7 @@ export const generateAllMapStuff = async (
 
     const displacementImages = await createDisplacementImages(renderer, tileData, dataTextures, geomOptions, levels);
 
-    const hd = await createHDMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
+    // const hd = await createHDMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
     const sd = await createSDMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
 
     const minimapBitmap = await genMinimapBitmap(
@@ -58,7 +58,7 @@ export const generateAllMapStuff = async (
         mapWidth,
         mapHeight,
         minimapBitmap,
-        ...hd,
+        // ...hd,
         ...sd,
         creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
         creepTextureUniform: dataTextures.creepTextureUniform

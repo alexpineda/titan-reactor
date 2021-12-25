@@ -20,6 +20,7 @@ interface AssetsConstructorArgs {
   hoverIcons: CenteredCursorIcons;
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
+  loadImageAtlas: (imageId: number) => Promise<void>
 }
 
 class Assets {
@@ -35,6 +36,7 @@ class Assets {
   hoverIcons: CenteredCursorIcons;
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
+  loadImageAtlas: (imageId: number) => Promise<void>;
 
   constructor({
     bwDat,
@@ -48,7 +50,7 @@ class Assets {
     hoverIcons,
     dragIcons,
     wireframeIcons,
-
+    loadImageAtlas
   }: AssetsConstructorArgs) {
     this.arrowIcons = arrowIcons;
     this.bwDat = bwDat;
@@ -61,12 +63,13 @@ class Assets {
     this.selectionCirclesHD = selectionCirclesHD;
     this.workerIcons = workerIcons;
     this.wireframeIcons = wireframeIcons;
-
+    this.loadImageAtlas = loadImageAtlas;
   }
 
   async loadAudioFile(id: number) {
     return (await readCascFile(`sound/${this.bwDat.sounds[id].file}`)).buffer;
   }
+
 
   dispose() {
     closeCascStorage();

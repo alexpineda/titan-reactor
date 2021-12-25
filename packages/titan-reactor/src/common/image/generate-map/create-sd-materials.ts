@@ -262,7 +262,7 @@ export const createSDMaterials = async (
   sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounterUniform;
 
   const elevationOptions = {
-    drawMode: { value: 1 },
+    drawMode: { value: 0 },
   };
 
   const elevationsMaterial = new THREE.MeshStandardMaterial({
@@ -285,9 +285,12 @@ export const createSDMaterials = async (
         if (!isWalkable) {
           elevationF = 0.;
         }
-        diffuseColor *= vec4(heatmapGradient(elevationF), 1.);
+
         diffuseColor *= (texture2D(map, vUv));
 
+        if (drawMode == 1) {
+          diffuseColor *= vec4(heatmapGradient(elevationF), 1.);
+        }
       `
       );
 

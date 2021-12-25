@@ -45,12 +45,12 @@ export const loadTilesetFiles = async (
     (await readFileFn(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
-  const hdTiles = parseDdsGrp(
-    await readFileFn(`TileSet/${tilesetName}.dds.vr4`)
-  );
-  const creepGrpHD = parseDdsGrpWithFrameData(
-    await readFileFn(`TileSet/${tilesetName}.dds.grp`)
-  );
+  // const hdTiles = parseDdsGrp(
+  //   await readFileFn(`HD2/TileSet/${tilesetName}.dds.vr4`)
+  // );
+  // const creepGrpHD = parseDdsGrpWithFrameData(
+  //   await readFileFn(`HD2/TileSet/${tilesetName}.dds.grp`)
+  // );
   const creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
 
   // const warpInGrpHD = MapHD.renderWarpIn(
@@ -70,10 +70,10 @@ export const loadTilesetFiles = async (
     minitiles,
     palette,
     tileset,
-    hdTiles,
+    // hdTiles,
     tilegroupU16,
     tilegroupBuf,
     creepGrpSD,
-    creepGrpHD,
+    // creepGrpHD,
   };
 };

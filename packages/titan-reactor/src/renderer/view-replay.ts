@@ -7,7 +7,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CommandsStream } from "downgrade-replay";
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
-import { CanvasTarget } from "../common/image";
+import { AtlasHD, CanvasTarget } from "../common/image";
 import { SpriteTextureResolution } from "../common/types";
 import {
   BwDAT,
@@ -60,6 +60,7 @@ import {
   UpgradeBW,
 } from "./integration/fixed-data";
 import { Image, Unit, Sprite } from "./core";
+import { strict as assert } from "assert";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -591,6 +592,27 @@ async function TitanReactorGame(
 
   const cmds = commandsStream.generate();
 
+  const _loadingGrp: boolean[] = [];
+  const assets = useGameStore.getState().assets;
+  assert(assets);
+  gameStateReader.on("frames", (frames: FrameBW[]) => {
+    const images = new ImagesBW();
+
+    for (const frame of frames) {
+      images.buffer = frame.images;
+      images.count = frame.imageCount;
+
+      for (const image of images.items()) {
+        const index = image.dat.index;
+        if (!assets.grps[index] && !_loadingGrp[index]) {
+          console.log('dynamic loading', index)
+          _loadingGrp[index] = true;
+          assets.loadImageAtlas(index);
+        }
+      }
+    }
+  });
+
   const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
@@ -869,9 +891,8 @@ async function TitanReactorGame(
   gameStatePosition.advanceGameFrames = 1;
   gameLoop(0);
   _sceneResizeHandler();
-  preloadScene(renderer.renderer, scene, cameraRig.compileCamera);
+  // preloadScene(renderer.renderer, scene, cameraRig.compileCamera);
 
-  //preload scene
 
   return {
     start: () => renderer.renderer?.setAnimationLoop(gameLoop),

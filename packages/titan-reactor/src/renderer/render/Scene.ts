@@ -38,10 +38,10 @@ export class Scene extends ThreeScene {
     terrain,
   }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "sdTerrain" | "terrain">) {
     super();
-    this.userData = { sdTerrain, terrain };
-    sdTerrain.visible = false;
+    this.userData = { terrain: sdTerrain, sdTerrain };
+    // sdTerrain.visible = false;
     this.add(sdTerrain);
-    this.add(terrain);
+    // this.add(terrain);
     this.add(sunlight(mapWidth, mapHeight));
     this.add(new HemisphereLight(0xffffff, 0xffffff, 5));
   }

@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs";
 
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
-import { Atlas3D, parseAnim } from "../../common/image";
+import { Atlas3D, AtlasHD, parseAnim } from "../../common/image";
 import {
     openCascStorage,
     readCascFile,
@@ -76,9 +76,9 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
 
     const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${refId(i)}`.slice(-3)}.anim`;
 
-    const loadImageAtlas = async (imageId: number) => {
+    const loadImageAtlas = (grps: AtlasHD[]) => async (imageId: number) => {
         const grp = new Atlas3D();
-        return await grp.load({
+        await grp.load({
             imageDef: bwDat.images[imageId],
             // readAnim: async () => readCascFile(genFileName(imageId)),
             readAnim: () => readCascFile(genFileName(imageId, "HD2/")),
@@ -86,13 +86,14 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
                 imageId
             )}`.slice(-3)}.glb`,
         });
+        grps[imageId] = grp;
     };
 
-    const grps = [];
-
+    const grps: AtlasHD[] = [];
+    const loadImageAtlasGrp = loadImageAtlas(grps);
     for (let i = 0; i < 999; i++) {
         i % 100 === 0 && updateLoadingProcess("assets");
-        grps[i] = await loadImageAtlas(i);
+        await loadImageAtlasGrp(i);
     }
 
     completeLoadingProcess("assets");
@@ -109,5 +110,6 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         hoverIcons,
         dragIcons,
         wireframeIcons,
+        loadImageAtlas: loadImageAtlasGrp
     });
 };

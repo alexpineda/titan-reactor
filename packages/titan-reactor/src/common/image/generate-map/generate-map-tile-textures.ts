@@ -65,13 +65,13 @@ export const generateMapTileTextures = async (
     tilegroupU16,
   });
 
-  const mapHd = hd.mapDataToTextures(renderer, mapWidth, mapHeight, {
-    hdTiles,
-    ...mapBitmaps,
-  });
+  // const mapHd = hd.mapDataToTextures(renderer, mapWidth, mapHeight, {
+  //   hdTiles,
+  //   ...mapBitmaps,
+  // });
 
-  const creepEdgesTextureHD = hd.ddsToCreepEdgesTexture(renderer, creepGrpHD);
-  const creepTextureHD = hd.ddsToCreepTexture(renderer, hdTiles, tilegroupU16);
+  // const creepEdgesTextureHD = hd.ddsToCreepEdgesTexture(renderer, creepGrpHD);
+  // const creepTextureHD = hd.ddsToCreepTexture(renderer, hdTiles, tilegroupU16);
 
   const creepEdgesTextureSD = await sd.grpToCreepEdgesTextureAsync(
     creepGrpSD,
@@ -94,10 +94,10 @@ export const generateMapTileTextures = async (
     mapWidth,
     mapHeight,
     mapData: mapBitmaps,
-    mapHd,
+    // mapHd,
     creepEdgesTextureSD,
-    creepEdgesTextureHD,
-    creepTextureHD,
+    // creepEdgesTextureHD,
+    // creepTextureHD,
     creepTextureSD,
   };
 };
