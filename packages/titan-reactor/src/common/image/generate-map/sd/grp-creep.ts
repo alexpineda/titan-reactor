@@ -70,5 +70,6 @@ export const grpToCreepTexture = (
   texture.flipY = true;
   texture.encoding = sRGBEncoding;
   texture.anisotropy = anisotropy;
+  texture.needsUpdate = true;
   return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD };
 };

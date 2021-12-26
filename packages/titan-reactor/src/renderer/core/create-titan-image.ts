@@ -2,7 +2,7 @@ import { drawFunctions } from "../../common/bwdat/enums";
 import { BwDAT, createIScriptRunner } from "../../common/types";
 import Atlas3D from "../../common/image/atlas/atlas-3d";
 import AtlasHD from "../../common/image/atlas/atlas-hd";
-import { Image, Sprite, TitanImageHD2, TitanImage3D } from ".";
+import { Image, Sprite, TitanImageHD2, TitanImageHD, TitanImage3D } from ".";
 
 export const createTitanImageFactory = (
   bwDat: BwDAT,

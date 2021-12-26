@@ -143,6 +143,7 @@ export class GrpSDLegacy {
     this.texture.wrapT = ClampToEdgeWrapping;
     this.texture.wrapS = ClampToEdgeWrapping;
     this.texture.encoding = sRGBEncoding;
+    this.texture.needsUpdate = true;
 
     if (maskOut) {
       this.teamcolor = new DataTexture(maskOut, cw, ch);
@@ -151,6 +152,7 @@ export class GrpSDLegacy {
       this.teamcolor.magFilter = LinearFilter;
       this.teamcolor.wrapT = ClampToEdgeWrapping;
       this.teamcolor.wrapS = ClampToEdgeWrapping;
+      this.teamcolor.needsUpdate = true;
     }
     return this;
   }

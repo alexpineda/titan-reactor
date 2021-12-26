@@ -99,6 +99,7 @@ const map = new DataTexture(
   RedFormat,
   UnsignedByteType
 );
+map.needsUpdate = true;
 
 const createSprite = () => {
   const sprite = new ThreeSprite(

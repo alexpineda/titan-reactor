@@ -20,6 +20,8 @@ if (!gotTheLock) {
 
 // custom gc size
 // app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+app.commandLine.appendSwitch("--force_high_performance_gpu");
+
 
 protocol.registerSchemesAsPrivileged([
   {

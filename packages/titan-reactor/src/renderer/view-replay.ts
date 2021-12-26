@@ -115,13 +115,14 @@ async function TitanReactorGame(
   //@ts-ignore
   window.scene = scene;
 
-  const cameraRig = new CameraRig(
+  const cameraRig = new CameraRig({
     settings,
     gameSurface,
-    minimapSurface,
+    previewSurface: minimapSurface,
     minimapControl,
     keyboardShortcuts,
-    true
+    freeControl: true
+  }
   );
 
 
@@ -314,9 +315,7 @@ async function TitanReactorGame(
 
     fogOfWar.generate(
       tilesBW,
-      players
-        .filter((p) => p.vision)
-        .reduce((flags, { id }) => (flags |= 1 << id), 0),
+      players.getVisionFlag(),
       bwFrame.frame
     );
   };

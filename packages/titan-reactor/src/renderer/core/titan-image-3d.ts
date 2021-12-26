@@ -1,10 +1,10 @@
 import "three/examples/jsm/utils/SkeletonUtils";
 
-import THREE, { AnimationAction, AnimationMixer, Color, Object3D } from "three";
+import { AnimationAction, AnimationMixer, Color, Object3D } from "three";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
-import { IScriptRunner } from "../../common/iscript";
 import Atlas3D from "../../common/image/atlas/atlas-3d";
-import { ImageDAT, createIScriptRunner } from "../../common/types";
+import { ImageDAT } from "../../common/types";
 import { Sprite, Image } from ".";
 
 export class TitanImage3D extends Object3D implements Image {
@@ -12,7 +12,6 @@ export class TitanImage3D extends Object3D implements Image {
   model: Object3D;
   sprite: Sprite;
   imageDef: ImageDAT;
-  iscript: IScriptRunner;
   mixer?: AnimationMixer;
 
   private times = new Float32Array();
@@ -28,7 +27,7 @@ export class TitanImage3D extends Object3D implements Image {
     super();
     this.atlas = atlas;
     // @ts-ignore
-    this.model = THREE.SkeletonUtils.clone(atlas.model);
+    this.model = SkeletonUtils.clone(atlas.model);
     this.model.traverse((o) => {
       if (o.type == "Mesh" || o.type == "SkinnedMesh") {
         o.castShadow = true;

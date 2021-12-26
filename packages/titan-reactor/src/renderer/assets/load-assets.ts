@@ -15,7 +15,7 @@ import {
     updateLoadingProcess,
     completeLoadingProcess,
 } from "../stores";
-import electronFileLoader from "../utils/electron-file-loader";
+import electronFileLoader from "../../common/utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";

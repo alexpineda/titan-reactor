@@ -80,17 +80,18 @@ async function TitanReactorMap(
 
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+  document.body.appendChild(gameSurface.canvas);
 
   scene.background = new Color(settings.mapBackgroundColor);
 
-  const cameraRig = new CameraRig(
+  const cameraRig = new CameraRig({
     settings,
     gameSurface,
-    null,
-    null,
     keyboardShortcuts,
-    true
+    freeControl: true,
+  }
   );
+
   //@ts-ignore
   window.cameraRig = cameraRig;
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
@@ -145,55 +146,12 @@ async function TitanReactorMap(
   const disabledDoodads: TitanSprite[] = [];
 
   for (const unit of preplacedMapUnits) {
-    const titanSprite = createTitanSprite();
-    const unitDat = bwDat.units[unit.unitId];
-
-    const x = pxToGameUnit.x(unit.x);
-    const z = pxToGameUnit.y(unit.y);
-    const y = terrainInfo.getTerrainY(x, z);
-
-    titanSprite.position.set(x, y, z);
-
-    titanSprite.addImage(unitDat.flingy.sprite.image.index);
-
-    titanSprite.run(
-      unit.isDisabled ? iscriptHeaders.disable : iscriptHeaders.init
-    );
-
-    scene.add(titanSprite);
-    sprites.push(titanSprite);
-
-    if (unit.isDisabled) {
-      disabledDoodads.push(titanSprite);
-      titanSprite.visible = settings.showDisabledDoodads;
-    } else if (
-      [
-        unitTypes.rhynadon,
-        unitTypes.bengalaas,
-        unitTypes.scantid,
-        unitTypes.kakaru,
-        unitTypes.ragnasaur,
-        unitTypes.ursadon,
-      ].includes(unit.unitId)
-    ) {
-      critters.push(titanSprite);
-      titanSprite.visible = settings.showCritters;
-    }
+    continue;
   }
 
   for (const sprite of preplacedMapSprites) {
-    const titanSprite = createTitanSprite();
-    const spriteDat = bwDat.sprites[sprite.spriteId];
+    continue;
 
-    const x = pxToGameUnit.x(sprite.x);
-    const z = pxToGameUnit.y(sprite.y);
-    const y = terrainInfo.getTerrainY(x, z);
-
-    titanSprite.position.set(x, y, z);
-    titanSprite.addImage(spriteDat.image.index);
-    titanSprite.run(iscriptHeaders.init);
-    scene.add(titanSprite);
-    sprites.push(titanSprite);
   }
 
   const _sceneResizeHandler = () => {
@@ -297,6 +255,8 @@ async function TitanReactorMap(
   };
 
   return {
+    isMap: true,
+    scene,
     gameSurface,
     dispose,
   };

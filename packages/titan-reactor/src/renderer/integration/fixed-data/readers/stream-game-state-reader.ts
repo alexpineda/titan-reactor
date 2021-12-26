@@ -8,13 +8,14 @@ import FrameBW from "../frame";
 /**
  * Abstract class for reading from a stream into ReadState
  */
-export default class StreamGameStateReader extends EventEmitter {
+export default abstract class StreamGameStateReader extends EventEmitter {
   private _buf = new BufferList();
   private _state = new ReadState();
   private _lastReadFrame = 0;
   protected _bytesRead = 0;
   protected maxFramesLength: number;
   protected stream?: Readable;
+
 
   frames: MarkedObjectPool;
   waitForMaxed: Promise<void>;
@@ -25,10 +26,6 @@ export default class StreamGameStateReader extends EventEmitter {
   constructor(maxFramesLength: number) {
     super();
     this.maxFramesLength = maxFramesLength;
-    this._buf = new BufferList();
-    this._state = new ReadState();
-    this._lastReadFrame = 0;
-    this._bytesRead = 0;
     this.frames = new MarkedObjectPool(maxFramesLength);
 
     this.waitForMaxed = new Promise((res) => {

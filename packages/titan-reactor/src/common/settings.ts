@@ -4,7 +4,7 @@ export const SETTINGS_VERSION = 1;
 
 export const defaultSettings: Settings = {
   version: SETTINGS_VERSION,
-  spriteTextureResolution: SpriteTextureResolution.High,
+  spriteTextureResolution: SpriteTextureResolution.HD2,
   alwaysHideReplayControls: false,
   language: "en-US",
   starcraftPath: "",
@@ -16,7 +16,7 @@ export const defaultSettings: Settings = {
   musicVolume: 0.1,
   musicAllTypes: false,
   soundVolume: 1,
-  antialias: false,
+  antialias: 4,
   anisotropy: 1,
   pixelRatio: 1,
   gamma: 1.2,

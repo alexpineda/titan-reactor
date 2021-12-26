@@ -22,6 +22,14 @@ class PlayerPOV implements PlayerPOVI {
   active = false;
 }
 
+const _pVision = (p: Player) => {
+  return p.vision;
+}
+
+const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
+  return (flags |= 1 << id);
+}
+
 export class Players extends Array<Player> {
   activePovs = 0;
   playersById: Record<OwnerId, Player> = {};
@@ -58,5 +66,11 @@ export class Players extends Array<Player> {
   // }
   static override get [Symbol.species]() {
     return Array;
+  }
+
+
+  getVisionFlag() {
+    return this.filter(_pVision)
+      .reduce(_gFlags, 0);
   }
 }

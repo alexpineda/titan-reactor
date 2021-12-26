@@ -15,6 +15,7 @@ import { generateTerrain } from "./assets/generate-terrain";
 import {
   disposeGame,
   getAssets,
+  getSettings,
   setGame,
   startLoadingProcess,
   updateIndeterminateLoadingProcess,
@@ -23,14 +24,31 @@ import {
   updateUIType,
   completeUIType,
   UITypeMap,
+  getGame,
 } from "./stores";
 import TitanReactorMap from "./view-map";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 
+const updateWindowTitle = (title: string) => {
+  document.title = `Titan Reactor - ${title}`;
+}
 export default async (chkFilepath: string) => {
   const startTime = Date.now();
   const minDisplayTime = 3000;
+
+  if (getGame()?.isMap) {
+
+    const game = getGame();
+
+    const chk = new Chk(await loadScm(chkFilepath)) as unknown as ChkType;
+    const terrainInfo = await generateTerrain(chk);
+
+    game.scene.replaceTerrain(terrainInfo.sdTerrain, terrainInfo.terrain);
+
+    updateWindowTitle(chk.title);
+    return;
+  }
 
   disposeGame();
 
@@ -52,36 +70,37 @@ export default async (chkFilepath: string) => {
     description: chk.description,
   } as UITypeMap);
 
-  document.title = `Titan Reactor - ${chk.title}`;
+  updateWindowTitle(chk.title);
 
   await waitForAssets();
   const assets = getAssets();
-  if (!assets || !assets.bwDat) {
+  if (!assets) {
     throw new Error("assets not loaded");
   }
 
   log("initializing scene");
   updateIndeterminateLoadingProcess("map", getFunString());
 
+  const settings = getSettings();
   const terrainInfo = await generateTerrain(chk);
   const scene = new Scene(terrainInfo);
 
   const createTitanSprite = () => {
-    if (!assets.bwDat) {
-      throw new Error("assets not loaded");
-    }
-    return new TitanSprite(
-      null,
-      assets.bwDat,
-      createTitanSprite,
-      createTitanImageFactory(
-        assets.bwDat,
-        assets.grps,
-        settings.spriteTextureResolution,
-        createIScriptRunnerFactory(assets.bwDat, chk.tileset),
-      ),
-      (sprite: Object3D) => scene.add(sprite)
-    );
+    // if (!assets.bwDat) {
+    //   throw new Error("assets not loaded");
+    // }
+    // return new TitanSprite(
+    //   null,
+    //   assets.bwDat,
+    //   createTitanSprite,
+    //   createTitanImageFactory(
+    //     assets.bwDat,
+    //     assets.grps,
+    //     settings.spriteTextureResolution,
+    //     createIScriptRunnerFactory(assets.bwDat, chk.tileset),
+    //   ),
+    //   (sprite: Object3D) => scene.add(sprite)
+    // );
   };
 
   TitanImageHD.useDepth = false;
@@ -94,10 +113,6 @@ export default async (chkFilepath: string) => {
     terrainInfo,
     scene,
     createTitanSprite
-  );
-
-  await new Promise((res) =>
-    setTimeout(res, Math.max(0, minDisplayTime - (Date.now() - startTime)))
   );
 
   setGame(game);

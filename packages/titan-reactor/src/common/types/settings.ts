@@ -12,7 +12,7 @@ export type Settings = {
     musicVolume: number;
     musicAllTypes: boolean;
     soundVolume: number;
-    antialias: boolean;
+    antialias: 0 | 1 | 2 | 3 | 4;
     anisotropy: number;
     pixelRatio: number;
     gamma: number;
@@ -40,8 +40,15 @@ export type Settings = {
 };
 
 export enum SpriteTextureResolution {
-    Medium,
-    High
+    SD,
+    HD2,
+    HD,
+}
+
+export enum TerrainTextureResolution {
+    SD,
+    HD2,
+    HD,
 }
 
 export enum ShadowLevel {

@@ -1,10 +1,10 @@
-import { Settings } from "../../common/types/common";
+import { Settings } from "../../common/types";
 import { Clock, PerspectiveCamera, Vector3 } from "three";
 
 import { CanvasTarget } from "../../common/image";
 import PreviewCamera from "./preview-camera";
 import StandardCameraControls from "../input/standard-camera-controls";
-import { KeyboardShortcuts } from "../input";
+import { KeyboardShortcuts, MinimapControl } from "../input";
 
 export const CameraControlType = {
   none: 0,
@@ -14,6 +14,15 @@ export const CameraControlType = {
   playerPov: 4,
 };
 
+interface CameraRigConstructor {
+  settings: Settings,
+  gameSurface: CanvasTarget,
+  previewSurface?: CanvasTarget,
+  minimapControl?: MinimapControl,
+  keyboardShortcuts: KeyboardShortcuts,
+  freeControl?: boolean
+
+}
 // manages camera and camera controls as well as updating aspect ratio on screen resize and other camera operations
 class CameraRig {
   gameSurface: CanvasTarget;
@@ -28,12 +37,12 @@ class CameraRig {
   private previewControl?: StandardCameraControls;
 
   constructor(
-    settings: Settings,
-    gameSurface: CanvasTarget,
-    previewSurface: CanvasTarget,
-    minimapControl: boolean,
-    keyboardShortcuts: KeyboardShortcuts,
-    freeControl = false
+    { settings,
+      gameSurface,
+      previewSurface,
+      minimapControl,
+      keyboardShortcuts,
+      freeControl = false }: CameraRigConstructor
   ) {
     this.settings = settings;
     this.gameSurface = gameSurface;
@@ -54,7 +63,7 @@ class CameraRig {
 
     // this.lookAtLocation();
 
-    if (minimapControl) {
+    if (minimapControl && previewSurface) {
       this.previewControl = new StandardCameraControls(
         this.previewCamera,
         previewSurface.canvas,
@@ -171,7 +180,7 @@ class CameraRig {
     this.camera.updateProjectionMatrix();
   }
 
-  updatePreviewScreenAspect(width: number, height: number) {}
+  updatePreviewScreenAspect(width: number, height: number) { }
 
   getShear() {
     const delta = new Vector3();

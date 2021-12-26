@@ -47,6 +47,7 @@ export const createDataTextures = async (
     sdMap.flipY = true;
     sdMap.encoding = THREE.sRGBEncoding;
     sdMap.anisotropy = anisotropy;
+    sdMap.needsUpdate = true;
 
 
     const roughnessMap = new THREE.DataTexture(
@@ -57,6 +58,7 @@ export const createDataTextures = async (
         THREE.UnsignedByteType
     );
     roughnessMap.flipY = true;
+    roughnessMap.needsUpdate = true;
 
 
     const mapTilesMap = new THREE.DataTexture(
@@ -68,6 +70,7 @@ export const createDataTextures = async (
     );
     mapTilesMap.internalFormat = "R16UI";
     mapTilesMap.flipY = true;
+    mapTilesMap.needsUpdate = true;
 
 
     const creepEdgesBytes = new Uint8Array(mapWidth * mapHeight);
@@ -79,6 +82,7 @@ export const createDataTextures = async (
         THREE.UnsignedByteType
     );
     creepEdgesValues.flipY = true;
+    creepEdgesValues.needsUpdate = true;
 
 
     const creepBytes = new Uint8Array(mapWidth * mapHeight);
@@ -90,7 +94,7 @@ export const createDataTextures = async (
         THREE.UnsignedByteType
     );
     creepValues.flipY = true;
-
+    creepValues.needsUpdate = true;
 
     const displacementDetailsMap = new THREE.DataTexture(
         mapData.displacementDetail,
@@ -101,7 +105,7 @@ export const createDataTextures = async (
     );
     displacementDetailsMap.internalFormat = "R8UI";
     displacementDetailsMap.flipY = true;
-
+    displacementDetailsMap.needsUpdate = true;
 
     // Elevations in terms of the game low mid high etc
     const elevationsMap = new THREE.DataTexture(
@@ -113,6 +117,8 @@ export const createDataTextures = async (
     );
     elevationsMap.internalFormat = "R8UI";
     elevationsMap.flipY = true;
+    elevationsMap.needsUpdate = true;
+
 
     const nonZeroLayers = mapData.layers.slice(0);
 
@@ -138,6 +144,7 @@ export const createDataTextures = async (
     );
     nonZeroElevationsMap.internalFormat = "R8UI";
     nonZeroElevationsMap.flipY = true;
+    nonZeroElevationsMap.needsUpdate = true;
 
     // sd palette rotation
     const paletteIndicesMap = new THREE.DataTexture(
@@ -149,6 +156,7 @@ export const createDataTextures = async (
     );
     paletteIndicesMap.internalFormat = "R8UI";
     paletteIndicesMap.flipY = true;
+    paletteIndicesMap.needsUpdate = true;
 
     const floatPalette = new Float32Array(palette.length);
     for (let i = 0; i < palette.length; i++) {
