@@ -60,12 +60,6 @@ async function TitanReactorMap(
   const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
 
-  const toggleElevationHandler = () => scene.toggleElevation();
-  keyboardShortcuts.addEventListener(
-    InputEvents.ToggleElevation,
-    toggleElevationHandler
-  );
-
   const toggleCursorHandler = () => {
     if (window.document.body.style.cursor === "none") {
       window.document.body.style.cursor = "";

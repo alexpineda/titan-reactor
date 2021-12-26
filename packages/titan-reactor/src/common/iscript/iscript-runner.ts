@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { BwDAT, ImageDAT, IScriptRawType, AnimationBlockType } from "../types";
 import { Image } from "../../renderer/core/image";
 

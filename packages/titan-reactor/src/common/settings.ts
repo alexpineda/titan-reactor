@@ -1,10 +1,11 @@
-import { Settings, SpriteTextureResolution } from "./types";
+import { Settings, AssetTextureResolution } from "./types";
 
 export const SETTINGS_VERSION = 1;
 
 export const defaultSettings: Settings = {
   version: SETTINGS_VERSION,
-  spriteTextureResolution: SpriteTextureResolution.HD2,
+  spriteTextureResolution: AssetTextureResolution.HD2,
+  terrainTextureResolution: AssetTextureResolution.SD,
   alwaysHideReplayControls: false,
   language: "en-US",
   starcraftPath: "",

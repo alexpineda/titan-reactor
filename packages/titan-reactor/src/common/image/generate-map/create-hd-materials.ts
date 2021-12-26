@@ -323,8 +323,6 @@ export const createHDMaterials = async (
     terrain.matrixAutoUpdate = false;
     terrain.updateMatrix();
 
-    return {
-        terrain,
-    };
+    return terrain;
 };
 export default createHDMaterials;

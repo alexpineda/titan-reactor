@@ -356,9 +356,6 @@ export const createSDMaterials = async (
   sdTerrain.matrixAutoUpdate = false;
   sdTerrain.updateMatrix();
 
-
-  return {
-    sdTerrain
-  };
+  return sdTerrain;
 };
 export default createSDMaterials;

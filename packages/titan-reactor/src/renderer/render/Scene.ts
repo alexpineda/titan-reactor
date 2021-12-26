@@ -39,15 +39,14 @@ export class Scene extends ThreeScene {
   constructor({
     mapWidth,
     mapHeight,
-    sdTerrain,
     terrain,
-  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "sdTerrain" | "terrain">) {
+  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "terrain">) {
     super();
     this._mapHeight = mapHeight;
     this._mapWidth = mapWidth;
 
     this.addLights();
-    this.addTerrain(sdTerrain, terrain);
+    this.addTerrain(terrain);
   }
 
   private addLights() {
@@ -59,31 +58,24 @@ export class Scene extends ThreeScene {
   }
 
   addTerrain(
-    sdTerrain: Mesh,
-    terrain?: Mesh,
+    terrain: Mesh
   ) {
-    this.userData = { terrain: sdTerrain, sdTerrain };
+    this.userData = { terrain };
     // sdTerrain.visible = false;
-    this.add(sdTerrain);
+    this.add(terrain);
     // this.add(terrain);
 
-    this._disposable.push(sdTerrain);
+    this._disposable.push(terrain);
     // this._disposable.push(terrain);
   }
 
-  replaceTerrain(sdTerrain: Mesh,
-    terrain?: Mesh,) {
+  replaceTerrain(terrain: Mesh) {
     this._disposable.forEach(mesh => {
       disposeMesh(mesh);
       mesh.removeFromParent()
     });
     this._disposable = [];
-    this.addTerrain(sdTerrain, terrain);
-  }
-
-  toggleElevation() {
-    this.userData.sdTerrain.visible = !this.userData.sdTerrain.visible;
-    this.userData.terrain.visible = !this.userData.terrain.visible;
+    this.addTerrain(terrain);
   }
 
   get terrain() {
@@ -92,10 +84,10 @@ export class Scene extends ThreeScene {
 
   incrementTileAnimation() {
     if (
-      this.userData.sdTerrain.material.userData.tileAnimationCounter !==
+      this.userData.terrain.material.userData.tileAnimationCounter !==
       undefined
     ) {
-      this.userData.sdTerrain.material.userData.tileAnimationCounter.value++;
+      this.userData.terrain.material.userData.tileAnimationCounter.value++;
     }
   }
 

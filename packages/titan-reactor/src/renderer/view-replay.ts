@@ -8,7 +8,7 @@ import { CommandsStream } from "downgrade-replay";
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
 import { AtlasHD, CanvasTarget } from "../common/image";
-import { SpriteTextureResolution } from "../common/types";
+import { AssetTextureResolution } from "../common/types";
 import {
   BwDAT,
   ChkUnitType,
@@ -138,6 +138,7 @@ async function TitanReactorGame(
   orbitControls.minAzimuthAngle = -(24 * Math.PI) / 64;
   orbitControls.screenSpacePanning = false;
   orbitControls.mouseButtons = {
+    // @ts-ignore
     LEFT: null,
     MIDDLE: MOUSE.DOLLY,
     RIGHT: MOUSE.ROTATE,
@@ -151,10 +152,10 @@ async function TitanReactorGame(
   //@ts-ignore
   window.renderMan = renderer;
 
-  if (settings.renderMode !== SpriteTextureResolution.ThreeD && renderer.renderer) {
-    renderer.renderer.shadowMap.autoUpdate = false;
-    renderer.renderer.shadowMap.needsUpdate = true;
-  }
+  // if (settings.renderMode !== SpriteTextureResolution.ThreeD && renderer.renderer) {
+  //   renderer.renderer.shadowMap.autoUpdate = false;
+  //   renderer.renderer.shadowMap.needsUpdate = true;
+  // }
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
 

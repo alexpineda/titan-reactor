@@ -11,12 +11,13 @@ import { GenerateTexturesResult } from "./generate-map-tile-textures";
 import { transformLevelConfiguration } from "./transform-level-configuration";
 import createHDMaterials from "./create-hd-materials";
 import createSDMaterials from "./create-sd-materials";
-import { defaultOptions } from "./geometry-options";
-import { TerrainInfo } from "../../types";
+import { GeometryOptions } from "./geometry-options";
+import { AssetTextureResolution, TerrainInfo, Settings } from "../../types";
 
 export const generateAllMapStuff = async (
     tileData: GenerateTexturesResult,
-    geomOptions = defaultOptions
+    geomOptions: GeometryOptions,
+    settings: Settings
 ): Promise<TerrainInfo> => {
     const {
         mapWidth,
@@ -37,8 +38,9 @@ export const generateAllMapStuff = async (
 
     const displacementImages = await createDisplacementImages(renderer, tileData, dataTextures, geomOptions, levels);
 
-    // const hd = await createHDMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
-    const sd = await createSDMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
+    const genTerrainMaterials = settings.terrainTextureResolution === AssetTextureResolution.SD ? createSDMaterials : createHDMaterials;
+
+    const terrain = await genTerrainMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
 
     const minimapBitmap = await genMinimapBitmap(
         mapData.diffuse,
@@ -58,8 +60,7 @@ export const generateAllMapStuff = async (
         mapWidth,
         mapHeight,
         minimapBitmap,
-        // ...hd,
-        ...sd,
+        terrain,
         creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
         creepTextureUniform: dataTextures.creepTextureUniform
     };

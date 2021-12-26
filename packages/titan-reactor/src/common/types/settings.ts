@@ -1,6 +1,7 @@
 export type Settings = {
     version: number;
-    spriteTextureResolution: SpriteTextureResolution;
+    spriteTextureResolution: AssetTextureResolution;
+    terrainTextureResolution: AssetTextureResolution;
     alwaysHideReplayControls: boolean;
     language: string;
     starcraftPath: string;
@@ -39,13 +40,7 @@ export type Settings = {
     mapBackgroundColor: string;
 };
 
-export enum SpriteTextureResolution {
-    SD,
-    HD2,
-    HD,
-}
-
-export enum TerrainTextureResolution {
+export enum AssetTextureResolution {
     SD,
     HD2,
     HD,

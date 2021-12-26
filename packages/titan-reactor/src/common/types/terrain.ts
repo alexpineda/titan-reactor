@@ -7,7 +7,6 @@ export type TerrainInfo = {
   mapWidth: number;
   mapHeight: number;
   terrain: Mesh;
-  sdTerrain: Mesh;
   getTerrainY: GetTerrainY;
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };

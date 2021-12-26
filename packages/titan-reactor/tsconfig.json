@@ -27,8 +27,9 @@
     "paths": {
       "common": ["src/common/*"],
       "react": ["preact/compat"]
-    }
+    },
+    "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"]
   },
-  "include": ["src/**/*"],
+  // "include": ["src/**/*"],
   "exclude": ["./node_modules/**/*"]
 }

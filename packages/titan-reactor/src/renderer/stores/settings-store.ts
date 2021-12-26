@@ -10,11 +10,10 @@ export type SettingsStore = {
   phrases: Record<string, string>;
   save: (data: any) => Promise<void>;
   load: () => Promise<void>;
-  getSettings: () => Settings;
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
-  data: { ... defaultSettings },
+  data: { ...defaultSettings },
   phrases: {},
   errors: [],
   save: async (settings) => {
@@ -26,16 +25,9 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     const { data, errors, phrases } = await invokeGetSettings();
     set({ data, errors, phrases });
   },
-  getSettings: () => {
-    const settings = get().data;
-    if (!settings) {
-      throw new Error("Settings not loaded");
-    }
-    return settings;
-  },
 }));
 
 export default useSettingsStore;
 
-export const getSettings = useSettingsStore.getState().getSettings;
+export const getSettings = () => useSettingsStore.getState().data;
 export const loadSettings = useSettingsStore.getState().load;
