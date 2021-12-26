@@ -110,8 +110,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
 export default useGameStore;
 
-//todo figure out which pattern we're using
+export const getGame = () => useGameStore.getState().game;
 export const setGame = useGameStore.getState().setGame;
+
+
 export const disposeGame = useGameStore.getState().disposeGame;
 export const disposeAssets = useGameStore.getState().disposeAssets;
 export const getAssets = () => useGameStore.getState().assets;

@@ -5,10 +5,12 @@ import {
   Group,
   Mesh,
   Object3D,
-  sRGBEncoding,
+  sRGBEncoding
 } from "three";
 
-import ElectronGLTFLoader from "./gltf-loader";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+
+// import ElectronGLTFLoader from "./gltf-loader";
 
 export type GlbResponse = {
   model: Group;
@@ -18,12 +20,12 @@ export function loadGlb(
   file: string,
   envMap: CubeTexture | null,
   name = "",
-  meshCb: (mesh: Mesh) => void = () => {}
+  meshCb: (mesh: Mesh) => void = () => { }
 ) {
   return new Promise((resolve, reject) => {
     //@todo refactor GLTF Loader to classes
     // @ts-ignore
-    new ElectronGLTFLoader().load(
+    new GLTFLoader().load(
       file,
       (glb: any) => {
         const { scene: model, animations } = glb;
@@ -46,7 +48,7 @@ export function loadGlb(
         resolve({ model, animations });
       },
       undefined,
-      (error: Error) => {
+      (error: any) => {
         console.error(error);
         reject(error);
       }

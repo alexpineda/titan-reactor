@@ -115,13 +115,14 @@ async function TitanReactorGame(
   //@ts-ignore
   window.scene = scene;
 
-  const cameraRig = new CameraRig(
+  const cameraRig = new CameraRig({
     settings,
     gameSurface,
-    minimapSurface,
+    previewSurface: minimapSurface,
     minimapControl,
     keyboardShortcuts,
-    true
+    freeControl: true
+  }
   );
 
 

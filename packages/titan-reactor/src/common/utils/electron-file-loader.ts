@@ -1,8 +1,13 @@
 import { FileLoader } from "three";
 
-const loading = {};
+type LoadingCallbacks = {
+  onLoad?: (data: string | ArrayBuffer) => void;
+  onProgress?: (request: ProgressEvent<EventTarget>) => void;
+  onError?: (error: ErrorEvent) => void;
+};
+const loading: Record<string, LoadingCallbacks[]> = {};
 
-export default (openFile) => {
+export default (openFile: (file: string) => Promise<Buffer>) => {
   FileLoader.prototype.load = function (url, onLoad, onProgress, onError) {
     if (loading[url] !== undefined) {
       loading[url].push({

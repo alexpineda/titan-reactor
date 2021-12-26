@@ -20,12 +20,23 @@ export const loadTilesetFiles = async (
 
   let mapTiles;
   //hitchhiker has odd length buffer??
-  if (chk._tiles.byteLength % 2 === 1) {
+  if (chk._tiles.buffer.byteLength % 2 === 1) {
     const tiles = Buffer.alloc(chk._tiles.byteLength + 1);
     chk._tiles.copy(tiles);
-    mapTiles = new Uint16Array(tiles.buffer);
+    // mapTiles = new Uint16Array(tiles.buffer);
+    mapTiles = new Uint16Array(
+      tiles.buffer,
+      tiles.byteOffset,
+      tiles.byteLength / Uint16Array.BYTES_PER_ELEMENT
+    );
   } else {
-    mapTiles = new Uint16Array(chk._tiles.buffer);
+
+    mapTiles = new Uint16Array(
+      chk._tiles.buffer,
+      chk._tiles.byteOffset,
+      chk._tiles.byteLength / Uint16Array.BYTES_PER_ELEMENT
+    );
+
   }
 
   const tilesetName = tilesets[tileset];

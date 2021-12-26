@@ -14,8 +14,8 @@ import { createDDSTexture, Grp } from "../formats";
 export class AtlasSD implements GRPInterface {
   width = 0;
   height = 0;
-  grpWidth? = 0;
-  grpHeight? = 0;
+  grpWidth?= 0;
+  grpHeight?= 0;
   imageIndex = -1;
   frames?: GrpFrameType[] = [];
   diffuse?: CompressedTexture;
@@ -55,6 +55,7 @@ export class AtlasSD implements GRPInterface {
         LuminanceFormat,
         UnsignedByteType
       );
+      this.teamcolor.needsUpdate = true;
     }
 
     this.frames = sprite.frames;

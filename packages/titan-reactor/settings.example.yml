@@ -1,0 +1,50 @@
+version: 1
+
+directories:
+  starcraft: ""
+  maps: ""
+  replays: ""
+  models: ""
+  temp: ""
+
+language: "en-US" # supported: en-ES, en-KR
+
+player-colors:
+  ignore-replay-colors: true
+  randomize-order: false
+
+assets:
+  terrain: sd # sd, hd2, hd -  lowest memory/gpu use to highest
+  images: hd2
+
+audio:
+  music: 
+    volume: 0.01
+    races: all # terran, zerg, protoss, all
+  sound: 0.1
+
+graphics:
+  renderer:
+    antialias: true
+    pixel-ratio: 1 # device or <number>
+  fullscreen: true
+
+map:
+  show-disabled-doodads: true
+  show-critters: true
+  background-color: black # color or <hex number>
+
+controls:
+  keyboard:
+    shortcuts:
+      menu: f12
+    speed:
+      pan: 0.4
+      
+  mouse:
+    speed:
+      pan: 0.1
+      zoom: 0.1
+      edge-of-screen-pan: 0.1
+
+

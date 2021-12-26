@@ -2,7 +2,7 @@ import { ChkType } from "../../common/types";
 import { readCascFile } from "../../common/utils/casclib";
 
 import {
-  generateMapTileTextures,
+  generateMapTileTextures
 } from "../../common/image/generate-map";
 
 import { generateAllMapStuff } from "../../common/image/generate-map/generate-all-map-stuff";

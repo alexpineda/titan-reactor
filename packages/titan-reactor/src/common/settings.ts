@@ -4,7 +4,7 @@ export const SETTINGS_VERSION = 1;
 
 export const defaultSettings: Settings = {
   version: SETTINGS_VERSION,
-  spriteTextureResolution: SpriteTextureResolution.High,
+  spriteTextureResolution: SpriteTextureResolution.HD2,
   alwaysHideReplayControls: false,
   language: "en-US",
   starcraftPath: "",

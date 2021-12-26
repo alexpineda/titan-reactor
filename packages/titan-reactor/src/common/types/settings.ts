@@ -40,8 +40,15 @@ export type Settings = {
 };
 
 export enum SpriteTextureResolution {
-    Medium,
-    High
+    SD,
+    HD2,
+    HD,
+}
+
+export enum TerrainTextureResolution {
+    SD,
+    HD2,
+    HD,
 }
 
 export enum ShadowLevel {

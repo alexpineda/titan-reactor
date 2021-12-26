@@ -213,7 +213,7 @@ export class MapEffect extends Effect {
       defines: new Map([["TEXEL", "texel"]]),
 
       uniforms: new Map([
-        ["texture", new Uniform(texture)],
+        ["texture", new Uniform(null)],
         ["scale", new Uniform(1.0)],
         ["uvTransform", new Uniform(null)],
         ["details", new Uniform(null)],

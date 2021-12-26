@@ -1,12 +1,13 @@
 import {
   DirectionalLight,
   HemisphereLight,
+  Mesh,
   Object3D,
   Scene as ThreeScene,
 } from "three";
 
 import { TerrainInfo } from "../../common/types";
-import { disposeMeshes } from "../utils/dispose";
+import { disposeMesh, disposeMeshes, disposeScene } from "../utils/dispose";
 
 function sunlight(mapWidth: number, mapHeight: number) {
   const light = new DirectionalLight(0xffffff, 2);
@@ -31,6 +32,10 @@ function sunlight(mapWidth: number, mapHeight: number) {
 }
 
 export class Scene extends ThreeScene {
+  private _mapWidth: number;
+  private _mapHeight: number;
+  private _disposable: Mesh[] = [];
+
   constructor({
     mapWidth,
     mapHeight,
@@ -38,12 +43,42 @@ export class Scene extends ThreeScene {
     terrain,
   }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "sdTerrain" | "terrain">) {
     super();
+    this._mapHeight = mapHeight;
+    this._mapWidth = mapWidth;
+
+    this.addLights();
+    this.addTerrain(sdTerrain, terrain);
+  }
+
+  private addLights() {
+    const lights = [
+      new HemisphereLight(0xffffff, 0xffffff, 5),
+      sunlight(this._mapWidth, this._mapHeight)
+    ]
+    lights.forEach(light => this.add(light));
+  }
+
+  addTerrain(
+    sdTerrain: Mesh,
+    terrain?: Mesh,
+  ) {
     this.userData = { terrain: sdTerrain, sdTerrain };
     // sdTerrain.visible = false;
     this.add(sdTerrain);
     // this.add(terrain);
-    this.add(sunlight(mapWidth, mapHeight));
-    this.add(new HemisphereLight(0xffffff, 0xffffff, 5));
+
+    this._disposable.push(sdTerrain);
+    // this._disposable.push(terrain);
+  }
+
+  replaceTerrain(sdTerrain: Mesh,
+    terrain?: Mesh,) {
+    this._disposable.forEach(mesh => {
+      disposeMesh(mesh);
+      mesh.removeFromParent()
+    });
+    this._disposable = [];
+    this.addTerrain(sdTerrain, terrain);
   }
 
   toggleElevation() {
@@ -65,7 +100,7 @@ export class Scene extends ThreeScene {
   }
 
   dispose() {
-    disposeMeshes(this);
+    disposeScene(this)
     this.userData = {};
   }
 }

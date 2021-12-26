@@ -1,5 +1,5 @@
 // check keys since shallow will verify same object
-export const keysOnly = (a, b) => {
+export const keysOnly = (a: any, b: any) => {
   if (!a || !b) return false;
   var keysA = Object.keys(a);
 

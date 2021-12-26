@@ -14,8 +14,8 @@ import {
     ClearPass,
     KernelSize,
     BlendFunction,
+    ConvolutionMaterial
 } from "postprocessing";
-import { BypassingConvolutionMaterial } from "./effects/bypassing-convolution-material";
 import { MapEffect } from "./effects/map-effect";
 
 import {
@@ -40,7 +40,6 @@ export const createDisplacementImages = async (
         tileset,
         mapWidth,
         mapHeight,
-        mapData,
         // waterMasks,
         // waterMasksDds,
         // waterNormal1,
@@ -64,7 +63,7 @@ export const createDisplacementImages = async (
     );
     const savePass = new SavePass();
     const blurPassHuge = new BlurPass();
-    blurPassHuge.convolutionMaterial = new BypassingConvolutionMaterial();
+    blurPassHuge.convolutionMaterial = new ConvolutionMaterial();
     blurPassHuge.kernelSize = geomOptions.firstBlur;
 
     composer.removeAllPasses();
