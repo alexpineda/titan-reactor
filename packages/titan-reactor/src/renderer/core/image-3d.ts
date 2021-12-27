@@ -5,24 +5,22 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 import Glb from "../../common/image/atlas/atlas-glb";
 import { ImageDAT } from "../../common/types";
-import { Sprite, Image } from ".";
+import { Image } from ".";
 
 export class Image3D extends Object3D implements Image {
   atlas: Glb;
   model: Object3D;
-  sprite: Sprite;
   imageDef: ImageDAT;
   mixer?: AnimationMixer;
 
   private times = new Float32Array();
   private action?: AnimationAction;
-  _spriteScale: number;
+  readonly imageScale: number;
   _zOff: number;
 
   constructor(
     atlas: Glb,
     imageDef: ImageDAT,
-    sprite: Sprite
   ) {
     super();
     this.atlas = atlas;
@@ -46,8 +44,8 @@ export class Image3D extends Object3D implements Image {
       this.action.play();
     }
 
-    this.sprite = sprite;
-    this._spriteScale = 128;
+    // @todo no longer accurate, needs to be defined by HD2 / HD
+    this.imageScale = 128;
     this.imageDef = imageDef;
 
     this._zOff = 0;
@@ -66,15 +64,15 @@ export class Image3D extends Object3D implements Image {
     return this.atlas.frames;
   }
 
-  setPositionX(x: number, scale = this._spriteScale) {
+  setPositionX(x: number, scale = this.imageScale) {
     this.position.x = x / scale;
   }
 
-  setPositionY(y: number, scale = this._spriteScale) {
+  setPositionY(y: number, scale = this.imageScale) {
     this.position.y = y / scale;
   }
 
-  setPosition(x: number, y: number, scale = this._spriteScale) {
+  setPosition(x: number, y: number, scale = this.imageScale) {
     this.setPositionX(x, scale);
     this.setPositionY(y, scale);
   }

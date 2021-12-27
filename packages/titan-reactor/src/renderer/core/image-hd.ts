@@ -9,12 +9,10 @@ import {
 } from "three";
 
 import { drawFunctions } from "../../common/bwdat/enums/draw-functions";
-import { IScriptRunner } from "../../common/iscript";
 import { ImageDAT } from "../../common/types/bwdat";
 import { GrpFrameType } from "../../common/types/grp";
-import { createIScriptRunner } from "../../common/types/iscript";
 import Anim from "../../common/image/atlas/atlas-anim";
-import { Image, Sprite } from ".";
+import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 
 export const DepthMode = {
@@ -24,9 +22,8 @@ export const DepthMode = {
 
 export class ImageHD extends ThreeSprite implements Image {
   static useDepth = false;
-  _spriteScale: number;
+  readonly imageScale: number;
   private _oScale: Vector3;
-  sprite: Sprite;
   imageDef: ImageDAT;
   override material: TeamSpriteMaterial;
   _zOff: number;
@@ -40,7 +37,6 @@ export class ImageHD extends ThreeSprite implements Image {
   constructor(
     atlas: Anim,
     imageDef: ImageDAT,
-    sprite: Sprite,
     spriteScale = 128
   ) {
     super();
@@ -53,8 +49,7 @@ export class ImageHD extends ThreeSprite implements Image {
     material.isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
     this.material = material;
 
-    this.sprite = sprite;
-    this._spriteScale = spriteScale;
+    this.imageScale = spriteScale;
 
     this.imageDef = imageDef;
     //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
@@ -82,8 +77,8 @@ export class ImageHD extends ThreeSprite implements Image {
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
     this._oScale = new Vector3(
-      (grpWidth as number) / this._spriteScale,
-      (grpHeight as number) / this._spriteScale,
+      (grpWidth as number) / this.imageScale,
+      (grpHeight as number) / this.imageScale,
       1
     );
 
@@ -124,15 +119,15 @@ export class ImageHD extends ThreeSprite implements Image {
     this.material.opacity = val ? 0.5 : 1;
   }
 
-  setPositionX(x: number, scale = this._spriteScale) {
+  setPositionX(x: number, scale = this.imageScale) {
     this.position.x = x / scale;
   }
 
-  setPositionY(y: number, scale = this._spriteScale) {
+  setPositionY(y: number, scale = this.imageScale) {
     this.position.y = y / scale;
   }
 
-  setPosition(x: number, y: number, scale = this._spriteScale) {
+  setPosition(x: number, y: number, scale = this.imageScale) {
     this.setPositionX(x, scale);
     this.setPositionY(y, scale);
   }

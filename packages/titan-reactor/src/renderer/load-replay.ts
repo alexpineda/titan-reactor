@@ -11,7 +11,6 @@ import path from "path";
 
 import Chk from "bw-chk";
 import {
-    createImageFactory,
     ImageHD
 } from "./core";
 import { createIScriptRunnerFactory } from "../common/iscript";

@@ -2,7 +2,7 @@ import { drawFunctions } from "../../common/bwdat/enums";
 import { BwDAT, AssetTextureResolution } from "../../common/types";
 import Glb from "../../common/image/atlas/atlas-glb";
 import Anim from "../../common/image/atlas/atlas-anim";
-import { Image, Sprite, ImageHD2, ImageHD, Image3D } from ".";
+import { ImageHD2, ImageHD, Image3D } from ".";
 
 // @todo include skipShadows: number[] to look up if we don't load shadows in case the parent glb is to be loaded
 export const createImageFactory = (
@@ -10,7 +10,7 @@ export const createImageFactory = (
   atlases: Glb[] | Anim[],
   spriteTextureResolution: AssetTextureResolution,
 ) => {
-  return (imageId: number, sprite: Sprite) => {
+  return (imageId: number) => {
     const atlas = atlases[imageId];
     if (!atlas) {
       throw new Error(`imageId ${imageId} not found`);
@@ -28,8 +28,7 @@ export const createImageFactory = (
       // only if the model exists
       return new Image3D(
         atlas,
-        imageDef,
-        sprite
+        imageDef
       );
     }
 
@@ -37,15 +36,13 @@ export const createImageFactory = (
       console.log(`creating imageHD2 ${atlas.imageIndex}`);
       return new ImageHD2(
         atlas,
-        imageDef,
-        sprite
+        imageDef
       );
     } else {
       console.log(`creating imageHD ${atlas.imageIndex}`);
       return new ImageHD(
         atlas,
-        imageDef,
-        sprite
+        imageDef
       );
     }
 

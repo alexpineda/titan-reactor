@@ -7,7 +7,7 @@ export type Image = Object3D & {
   setFrame: (frame: number, flip?: boolean) => void;
 
   _zOff: number;
-  _spriteScale: number;
+  readonly imageScale: number;
   setPosition: (x: number, y: number, scale?: number) => void;
   setPositionX: (x: number, scale?: number) => void;
   setPositionY: (y: number, scale?: number) => void;

@@ -8,8 +8,7 @@ export class ImageHD2 extends ImageHD {
     constructor(
         atlas: Anim,
         imageDef: ImageDAT,
-        sprite: Sprite
     ) {
-        super(atlas, imageDef, sprite, 64);
+        super(atlas, imageDef, 64);
     }
 }

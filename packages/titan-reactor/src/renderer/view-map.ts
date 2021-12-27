@@ -3,7 +3,6 @@ import { debounce } from "lodash";
 import { Color, MOUSE, Object3D } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { strict as assert } from "assert";
-import type { ChkUnit, ChkSprite } from "bw-chk";
 
 import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -20,6 +19,7 @@ import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
 import Chk from "bw-chk";
+import { IScriptRunner } from "../common/iscript/iscript-runner";
 
 
 async function TitanReactorMap(
@@ -34,21 +34,21 @@ async function TitanReactorMap(
   const preplacedMapUnits = chk.units;
   const preplacedMapSprites = chk.sprites;
 
-  // createIScriptRunnerFactory(assets.bwDat, chk.tileset)
-
-  const createIScriptSprite = () => {
-    return new IScriptSprite(
-      null,
-      assets.bwDat,
-      createIScriptSprite,
-      createImageFactory(
-        assets.bwDat,
-        assets.grps,
-        settings.spriteTextureResolution,
-      ),
-      (sprite: Object3D) => scene.add(sprite)
-    );
-  };
+  // const iscriptRunner = new IScriptRunner(assets.bwDat, chk.tileset);
+  // const createIScriptSprite = () => {
+  //   return new IScriptSprite(
+  //     null,
+  //     assets.bwDat,
+  //     createIScriptSprite,
+  //     createImageFactory(
+  //       assets.bwDat,
+  //       assets.grps,
+  //       settings.spriteTextureResolution,
+  //     ),
+  //     iscriptRunner,
+  //     (sprite: Object3D) => scene.add(sprite)
+  //   );
+  // };
 
   const { mapWidth, mapHeight } = terrainInfo;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);

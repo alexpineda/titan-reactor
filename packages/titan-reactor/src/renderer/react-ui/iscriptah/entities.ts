@@ -16,7 +16,7 @@ export const updateEntities = (
       //@todo return list of new entities and process them!!
       entity.update(delta, cameraDirection);
     }
-    if (entity.images.length === 0) {
+    if (entity.iscriptImages.length === 0) {
       removeEntities.push(entity);
     }
   }

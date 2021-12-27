@@ -466,7 +466,7 @@ async function TitanReactorGame(
 
         //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
         const image =
-          sprite.images.get(imageBW.id) || createImage(imageBW.id, sprite);
+          sprite.images.get(imageBW.id) || createImage(imageBW.id);
         if (!image) continue;
         sprite.add(image);
 
@@ -501,7 +501,7 @@ async function TitanReactorGame(
         let z = 0;
         if (imageBW.index === spriteBW.mainImageIndex) {
           sprite.mainImage = image;
-          z = image._zOff * (image._spriteScale / 32); //x4 for HD
+          z = image._zOff * (image.imageScale / 32); //x4 for HD
 
           if (sprite.unit) {
             image.rotation.y = sprite.unit.angle;

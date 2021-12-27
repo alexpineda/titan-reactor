@@ -1,18 +1,5 @@
-import { Object3D } from "three";
 
-import { IScriptRunner } from "../iscript";
-import { BwDAT, ImageDAT } from "./bwdat";
-
-export type createIScriptRunner = (
-  image: Object3D,
-  imageDesc: ImageDAT,
-  state?: any
-) => IScriptRunner;
-
-export type createIScriptRunnerFactory = (
-  bwDat: BwDAT,
-  tileset: number
-) => createIScriptRunner;
+import { ImageDAT } from "./bwdat";
 
 export type IScriptRawType = {
   id: number;

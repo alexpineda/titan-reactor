@@ -1,105 +1,36 @@
-// @ts-nocheck
-
-import { BwDAT, ImageDAT, IScriptRawType, AnimationBlockType } from "../types";
-import { Image } from "../../renderer/core/image";
-
+import { BwDAT } from "../types";
 import { iscriptHeaders as headers } from "../bwdat/enums/iscript-headers";
-
-type Commands = AnimationBlockType & { header?: number };
-
-
-export const createIScriptRunnerFactory = (bwDat: BwDAT, tileset: number) => {
-  return (image: Image, imageDesc: ImageDAT, state = {}) =>
-    new IScriptRunner(bwDat, tileset, image, imageDesc, state);
-};
-
+import { IScriptState } from "./iscript-state"
 
 export class IScriptRunner {
   private bwDat: BwDAT;
-  private iscript: IScriptRawType;
-  private alreadyRun: Record<number, boolean> = {};
-  private commandIndex = 0;
-  private commands: Commands = [];
-  private callStack?: {
-    commands: any;
-    commandIndex: number;
-  };
-
-  image: Image;
-  imageDesc: ImageDAT;
   tileset: number;
   logger: { log: () => void };
   dispatched = [];
-  dbg: {
-    prevAnimBlock?: {
-      commands: any;
-      commandIndex: number;
-    };
-  } = {};
 
   constructor(
     bwDat: BwDAT,
     tileset: number,
-    image: Image,
-    imageDesc: ImageDAT,
-    state = {}
   ) {
     this.bwDat = bwDat;
-    this.image = image;
-    this.imageDesc = imageDesc;
     this.tileset = tileset;
     this.logger = { log: () => { } };
-    this.iscript = bwDat.iscript.iscripts[imageDesc.iscript];
-
-    this.image.userData = {
-      waiting: 0,
-      terminated: false,
-      lifted: false,
-      noBrkCode: false,
-      ignoreRest: false,
-      frameset: 0,
-      frame: 0,
-      frameOffset: 0,
-      prevFrame: -1,
-      //@todo refactor to exclude flip
-      flip: false,
-      prevFlip: null,
-      //forced flip frame
-      flipState: false,
-      direction: 0,
-      offset: {
-        x: 0,
-        y: 0,
-      },
-      ...state,
-    };
-
-    if (this.imageDesc.gfxTurns) {
-      this.image.userData.frameset = 0;
-    }
   }
 
-  get state() {
-    return this.image.userData;
-  }
-
-  run(header: number) {
+  run(header: number, state: IScriptState) {
     if (
-      !this.imageDesc.useFullIscript &&
+      !state.imageDesc.useFullIscript &&
       header !== headers.init &&
       header !== headers.death
     ) {
       return;
     }
 
-    this.dbg.prevAnimBlock = {
-      commands: this.commands,
-      commandIndex: this.commandIndex,
-    };
-    return this._toAnimationBlock(this.iscript.offsets[header], header);
+    state.debugStorePreviousCommands();
+    return this._toAnimationBlock(state.iscript.offsets[header], header, state);
   }
 
-  _toAnimationBlock(offset: number, header = -1) {
+  _toAnimationBlock(offset: number, header = -1, state: IScriptState) {
     const commands = this.bwDat.iscript.animationBlocks[offset];
     if (!commands) {
       let name = "local";
@@ -107,53 +38,53 @@ export class IScriptRunner {
         name = headers[header];
       }
       console.error(`animation block - ${name} - does not exist`, this);
-      this.image.userData.ignoreRest = true;
+      state.ignoreRest = true;
       return;
     }
 
-    this.alreadyRun[header] = true;
-    this.commands = commands as Commands;
-    this.commands.header = header;
-    this.commandIndex = 0;
-    Object.assign(this.image.userData, {
+    Object.assign(state, {
+      commands,
+      commandIndex: 0,
       waiting: 0,
       ignoreRest: false,
     });
+    state.alreadyRun[header] = true;
+    state.commands.header = header;
 
     if (header === headers.liftOff) {
-      this.state.lifted = true;
+      state.lifted = true;
     } else if (header === headers.landing) {
-      this.state.lifted = false;
+      state.lifted = false;
     }
 
     let prevAnim = "";
 
-    if (this.dbg && this.dbg.prevAnimBlock && this.dbg.prevAnimBlock.commands) {
-      if (this.dbg.prevAnimBlock.commands.header === -1) {
+    if (state.dbg && state.dbg.prevAnimBlock && state.dbg.prevAnimBlock.commands) {
+      if (state.dbg.prevAnimBlock.commands.header === -1) {
         prevAnim = "local";
       } else {
-        prevAnim = headers[this.dbg.prevAnimBlock.commands.header];
+        prevAnim = headers[state.dbg.prevAnimBlock.commands.header];
       }
     }
 
     if (header === -1) {
-      this.logger.log(`📝 local <- ${prevAnim}`, this);
+      this.logger.log(`📝 local <- ${prevAnim}`, state);
     } else {
-      this.logger.log(`📝 ${headers[header]} <- ${prevAnim}`, this);
+      this.logger.log(`📝 ${headers[header]} <- ${prevAnim}`, state);
     }
 
     return this;
   }
 
-  update() {
+  update(state: IScriptState) {
     this.dispatched.length = 0;
 
     // update iscript state
-    if (this.state.waiting !== 0) {
-      this.state.waiting = this.state.waiting - 1;
+    if (state.waiting !== 0) {
+      state.waiting = state.waiting - 1;
       return this.dispatched;
     }
-    this.next();
+    this.next(state);
     return this.dispatched;
   }
 
@@ -164,53 +95,53 @@ export class IScriptRunner {
     return true;
   }
 
-  setFrame(frame: number, flip: boolean) {
-    this.state.prevFrame = this.state.frame;
-    this.state.prevFlip = this.state.flip;
-    this.state.flip = flip;
-    this.state.frame = this.state.frameset + frame;
-    this.state.frameOffset = frame;
+  setFrame(frame: number, flip: boolean, state: IScriptState) {
+    state.prevFrame = state.frame;
+    state.prevFlip = state.flip;
+    state.flip = flip;
+    state.frame = state.frameset + frame;
+    state.frameOffset = frame;
   }
 
-  setDirection(direction: number) {
-    if (this.state.flDirect) {
+  setDirection(direction: number, state: IScriptState) {
+    if (state.flDirect) {
       return;
     }
     if (direction > 31 || direction < 0) {
       throw new Error("direction out of bounds");
     }
-    this.state.direction = direction;
-    if (this.imageDesc.gfxTurns) {
-      this.setFrameBasedOnDirection();
+    state.direction = direction;
+    if (state.imageDesc.gfxTurns) {
+      this.setFrameBasedOnDirection(state);
     }
   }
 
-  setFrameBasedOnDirection() {
-    if (this.state.direction > 16) {
-      this.setFrame(32 - this.state.direction, true);
+  setFrameBasedOnDirection(state: IScriptState) {
+    if (state.direction > 16) {
+      this.setFrame(32 - state.direction, true, state);
     } else {
-      this.setFrame(this.state.direction, false);
+      this.setFrame(state.direction, false, state);
     }
   }
 
-  next() {
-    if (this.state.ignoreRest) {
+  next(state: IScriptState) {
+    if (state.ignoreRest) {
       return true;
     }
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      if (this.commandIndex >= this.commands.length) {
-        let nextHeader = this.commands.header;
+      if (state.commandIndex >= state.commands.length) {
+        let nextHeader = state.commands.header;
         if (!nextHeader) {
           throw new Error("command must have header");
         }
         let nextAnimationBlock;
         do {
           nextHeader = nextHeader + 1;
-          nextAnimationBlock = this.run(nextHeader);
+          nextAnimationBlock = this.run(nextHeader, state);
         } while (
           !nextAnimationBlock &&
-          nextHeader < this.iscript.offsets.length
+          nextHeader < state.iscript.offsets.length
         );
 
         if (!nextAnimationBlock) {
@@ -218,8 +149,8 @@ export class IScriptRunner {
         }
       }
 
-      const [command, args] = this.commands[this.commandIndex];
-      this.commandIndex++;
+      const [command, args] = state.commands[state.commandIndex];
+      state.commandIndex++;
 
       switch (command) {
         case "sproluselo":
@@ -259,57 +190,57 @@ export class IScriptRunner {
           break;
         case "waitrand":
           {
-            this.state.waiting = args[Math.floor(Math.random() * args.length)];
-            this._dispatch(command, this.state.waiting);
+            state.waiting = args[Math.floor(Math.random() * args.length)];
+            this._dispatch(command, state.waiting);
           }
           return;
         case "wait":
           {
-            this.state.waiting = args[0];
-            this._dispatch(command, this.state.waiting);
+            state.waiting = args[0];
+            this._dispatch(command, state.waiting);
           }
           return;
         case "ignorerest":
           {
-            this.state.ignoreRest = true;
+            state.ignoreRest = true;
             this._dispatch(command);
           }
           return;
 
         case "nobrkcodestart":
           {
-            this.state.noBrkCode = true;
+            state.noBrkCode = true;
             this._dispatch(command);
           }
           break;
 
         case "nobrkcodeend":
           {
-            this.state.noBrkCode = false;
+            state.noBrkCode = false;
             this._dispatch(command);
           }
           break;
 
         case "playfram":
           {
-            if (this.imageDesc.gfxTurns && args[0] % 17 === 0) {
-              this.state.frameset = args[0];
-              this.setFrameBasedOnDirection();
-              if (this.state.frame < 0) {
+            if (state.imageDesc.gfxTurns && args[0] % 17 === 0) {
+              state.frameset = args[0];
+              this.setFrameBasedOnDirection(state);
+              if (state.frame < 0) {
                 throw new Error("frame < 0");
               }
-              this._dispatch(command, [this.state.frame, this.state.flip]);
+              this._dispatch(command, [state.frame, state.flip]);
             } else {
               //@todo see if this matters
-              this.state.frameset = 0;
-              this.setFrame(args[0], this.state.flipState);
-              this._dispatch(command, [args[0], this.state.flipState]);
+              state.frameset = 0;
+              this.setFrame(args[0], state.flipState, state);
+              this._dispatch(command, [args[0], state.flipState]);
             }
           }
           break;
         case "playframtile":
           {
-            this.state.frameset = 0;
+            state.frameset = 0;
             this.setFrame(args[0] + this.tileset, false);
             this._dispatch(command, args[0] + this.tileset);
           }
@@ -317,41 +248,41 @@ export class IScriptRunner {
 
         case "engframe":
           {
-            this.state.frameset = args[0];
-            this.state.direction =
+            state.frameset = args[0];
+            state.direction =
               this.image.sprite.mainImage.userData.direction;
-            this.setFrameBasedOnDirection();
-            this._dispatch(command, [this.state.frame, this.state.flip]);
+            this.setFrameBasedOnDirection(state);
+            this._dispatch(command, [state.frame, state.flip]);
           }
           break;
 
         case "engset":
           {
-            this.state.frameset =
-              this.image.sprite.mainImage.userData.frameset +
-              args[0] * this.image.sprite.mainImage.frames.length;
-            this.state.direction =
-              this.image.sprite.mainImage.userData.direction;
-            this.setFrameBasedOnDirection();
-            this._dispatch(command, [this.state.frame, this.state.flip]);
+            // state.frameset =
+            //   state.frameset +
+            //   args[0] * this.image.sprite.mainImage.frames.length;
+            // state.direction =
+            //   this.image.sprite.mainImage.userData.direction;
+            // this.setFrameBasedOnDirection(state);
+            // this._dispatch(command, [state.frame, state.flip]);
           }
           break;
 
         case "setflipstate":
           {
-            this.state.flipState = args[0];
+            state.flipState = Boolean(args[0]);
             this._dispatch(command, args);
           }
           break;
 
         case "setfldirect":
           {
-            this.state.flDirect = true;
-            this.state.direction = args[0];
-            if (this.state.direction < 0 || this.state.direction > 31) {
+            state.flDirect = true;
+            state.direction = args[0];
+            if (state.direction < 0 || state.direction > 31) {
               throw new Error("direction out of bounds");
             }
-            this.setFrameBasedOnDirection();
+            this.setFrameBasedOnDirection(state);
             this._dispatch(command, args);
           }
           break;
@@ -366,15 +297,15 @@ export class IScriptRunner {
             }
 
             if (clockwise) {
-              if ((this.state.direction + args[0]) % 32 > 31) {
+              if ((state.direction + args[0]) % 32 > 31) {
                 throw new Error("direction out of bounds");
               }
-              this.state.direction = (this.state.direction += args[0]) % 32;
+              state.direction = (state.direction += args[0]) % 32;
               this._dispatch(command, args);
             } else {
-              this.state.direction = this.state.direction - args[0];
-              if (this.state.direction < 0) {
-                this.state.direction = 32 - this.state.direction;
+              state.direction = state.direction - args[0];
+              if (state.direction < 0) {
+                state.direction = 32 - state.direction;
               }
               this._dispatch(command, args);
             }
@@ -384,7 +315,7 @@ export class IScriptRunner {
         case "turn1cwise":
           {
             //			if (iscript_unit && !iscript_unit->order_target.unit)
-            this.state.direction = (this.state.direction += 1) % 32;
+            state.direction = (state.direction += 1) % 32;
             this._dispatch(command, args);
           }
           break;
@@ -410,24 +341,24 @@ export class IScriptRunner {
         // should we move commands, commandIndex into state and just create a proper stack?
         case "call":
           {
-            this.callStack = {
-              commands: this.commands,
-              commandIndex: this.commandIndex,
+            state.callStack = {
+              commands: state.commands,
+              commandIndex: state.commandIndex,
             };
-            this.commandIndex = 0;
-            this.commands = this.bwDat.iscript.animationBlocks[args[0]];
+            state.commandIndex = 0;
+            state.commands = this.bwDat.iscript.animationBlocks[args[0]];
             this._dispatch(command, args);
           }
           return;
 
         case "return":
           {
-            if (!this.callStack) {
+            if (!state.callStack) {
               throw new Error("return without callstack");
             }
-            this.commands = this.callStack.commands;
-            this.commandIndex = this.callStack.commandIndex;
-            delete this.callStack;
+            state.commands = state.callStack.commands;
+            state.commandIndex = state.callStack.commandIndex;
+            delete state.callStack;
             this._dispatch(command);
           }
           return;
@@ -435,7 +366,7 @@ export class IScriptRunner {
         case "randcondjmp":
           {
             if (Math.random() <= args[0] / 255) {
-              this._toAnimationBlock(args[1]);
+              this._toAnimationBlock(args[1], undefined, state);
               this._dispatch(command, true);
             } else {
               this._dispatch(command, false);
@@ -444,7 +375,7 @@ export class IScriptRunner {
           break;
         case "goto":
           {
-            this._toAnimationBlock(args[0]);
+            this._toAnimationBlock(args[0], undefined, state);
             this._dispatch(command, args);
           }
           break;
@@ -477,8 +408,8 @@ export class IScriptRunner {
           break;
         case "liftoffcondjmp":
           {
-            if (this.state.lifted) {
-              this._toAnimationBlock(args[0]);
+            if (state.lifted) {
+              this._toAnimationBlock(args[0], undefined, state);
               this._dispatch(command, args[0]);
             } else {
               this._dispatch(command, false);
@@ -487,7 +418,7 @@ export class IScriptRunner {
           break;
 
         case "end": {
-          this.state.terminated = true;
+          state.terminated = true;
           this._dispatch(command);
           return;
         }

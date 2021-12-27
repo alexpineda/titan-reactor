@@ -8,7 +8,9 @@ import {
 } from "../../common/bwdat/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "../../common/types";
 import pick from "../../common/utils/pick";
-import { Image, Image3D } from ".";
+import { ImageSD, Image3D, ImageHD2, ImageHD } from ".";
+import { IScriptRunner } from "../../common/iscript/iscript-runner";
+import { IScriptState } from "../../common/iscript/iscript-state";
 
 enum ImageOrder {
   bottom,
@@ -17,19 +19,37 @@ enum ImageOrder {
   below,
 }
 
+type Image = ImageSD | ImageHD | ImageHD2 | Image3D;
+
+class IScriptImage {
+
+  constructor(
+    public readonly image: Image,
+    public readonly state: IScriptState,
+    public readonly parent: IScriptSprite
+  ) {
+    this.image = image;
+    this.parent = parent;
+    this.state = state;
+  }
+}
+
+/**
+ * A sprite group. It is a group of images each with their own iscript execution.
+ */
 export class IScriptSprite extends Group {
   private bwDat: BwDAT;
-  images: Image[];
-  mainImage?: Image;
-  logger: { log: (str: string) => void };
+  iscriptImages: IScriptImage[] = [];
+  mainImage?: IScriptImage;
   lastZOff: number;
   unit: any | null;
-  createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite;
-  createTitanSpriteCb: (titanSprite: IScriptSprite) => void;
+  createSprite: (unit: UnitDAT | null | undefined) => IScriptSprite;
+  createSpriteCb: (titanSprite: IScriptSprite) => void;
   destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void;
   createTitanImage: (
     image: number
   ) => Image
+  runner: IScriptRunner;
 
   iscriptOptions: {
     createBullets: boolean;
@@ -43,31 +63,30 @@ export class IScriptSprite extends Group {
     createTitanImage: (
       image: number
     ) => Image,
+    runner: IScriptRunner,
     createTitanSpriteCb: (titanSprite: IScriptSprite) => void,
     destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void = () => { },
-    logger = { log: () => { } }
   ) {
     super();
     this.unit = unit;
     this.bwDat = bwDat;
-    this.images = [];
-    this.createTitanSprite = createTitanSprite;
-    this.createTitanSpriteCb = createTitanSpriteCb;
+    this.createSprite = createTitanSprite;
+    this.createSpriteCb = createTitanSpriteCb;
     this.destroyTitanSpriteCb = destroyTitanSpriteCb;
     this.createTitanImage = createTitanImage;
+    this.runner = runner;
     this.iscriptOptions = {
       createBullets: false,
       moveUnit: false,
     };
-    this.logger = logger;
     this.renderOrder = 4;
     this.lastZOff = 0;
   }
 
-  addImage(image: number, imageOrder?: ImageOrder, rel?: number) {
+  spawnIScriptImage(imageIndex: number, imageOrder?: ImageOrder, rel?: number) {
     const relImage =
       rel === undefined
-        ? this.images.indexOf(this.mainImage as Image)
+        ? this.iscriptImages.indexOf(this.mainImage)
         : rel;
     let pos = relImage;
 
@@ -84,39 +103,41 @@ export class IScriptSprite extends Group {
         break;
       case ImageOrder.top:
         {
-          pos = this.images.length - 1;
+          pos = this.iscriptImages.length - 1;
         }
         break;
     }
 
-    const titanImage = this.createTitanImage(image, this);
-    if (!titanImage) {
+    const image = this.createTitanImage(imageIndex);
+    if (!image) {
       return null;
     }
-    if (titanImage.imageDef.drawFunction === drawFunctions.rleShadow) {
+    if (image.imageDef.drawFunction === drawFunctions.rleShadow) {
       return null;
     }
-    this.add(titanImage);
-    titanImage.iscript.logger = this.logger;
-    titanImage.iscript.run(iscriptHeaders.init);
-    if (this.images.length === 0) {
-      this.mainImage = titanImage;
-      this.images.push(titanImage);
+    this.add(image);
+
+    const iscriptState = new IScriptState(this.bwDat.iscript.iscripts[image.imageDef.iscript], image.imageDef);
+    const iscriptImage = new IScriptImage(image, iscriptState, this);
+
+    this.runner.run(iscriptHeaders.init, iscriptState)
+
+    if (this.iscriptImages.length === 0) {
+      this.mainImage = iscriptImage;
+      this.iscriptImages.push(iscriptImage);
     } else {
-      this.images.splice(pos, 0, titanImage);
+      this.iscriptImages.splice(pos, 0, iscriptImage);
     }
-    this._update(titanImage);
-    return titanImage;
+    this._update(iscriptImage);
+    return iscriptImage;
   }
 
   //it might be that we dont want to change frame if sprite is not on a frameset
   setDirection(direction: number) {
-    if (direction === this.direction) return;
-    this.mainImage?.iscript.setDirection(direction);
-    this.mainImage?.setFrame(
-      this.mainImage.userData.frame,
-      this.mainImage.userData.flip
-    );
+    if (direction === this.direction || !this.mainImage) return;
+
+    this.runner.setDirection(direction, this.mainImage.state);
+    this.runner.setFrame(this.mainImage.state.frame, this.mainImage.state.flip, this.mainImage.state);
   }
 
   //iscript_execute_sprite
@@ -136,37 +157,37 @@ export class IScriptSprite extends Group {
     // }
 
     let _terminated = false;
-    for (const image of this.images) {
-      if (image instanceof Image3D && image.mixer) {
-        image.mixer.update(0); //3d animation mixer
+    for (const iscriptImage of this.iscriptImages) {
+      if (iscriptImage.image instanceof Image3D && iscriptImage.image.mixer) {
+        iscriptImage.image.mixer.update(0); //3d animation mixer
       }
-      this._update(image);
-      if (image.userData.terminated) {
+      this._update(iscriptImage);
+      if (iscriptImage.state.terminated) {
         _terminated = true;
-        this.remove(image);
+        this.remove(iscriptImage.image);
       }
     }
 
     if (_terminated) {
-      this.images = this.images.filter((image) => !image.userData.terminated);
-      if (!this.images.find((i) => i === this.mainImage)) {
-        this.mainImage = this.images[this.images.length - 1];
+      this.iscriptImages = this.iscriptImages.filter((image) => !image.state.terminated);
+      if (!this.iscriptImages.find((i) => i === this.mainImage)) {
+        this.mainImage = this.iscriptImages[this.iscriptImages.length - 1];
       }
-      if (this.images.length === 0) {
+      if (this.iscriptImages.length === 0) {
         this.destroyTitanSpriteCb(this);
       }
     }
 
     const nextZOff = this.mainImage
-      ? (this.mainImage?._zOff * this.mainImage?._spriteScale) / 32
+      ? (this.mainImage?.image._zOff * this.mainImage?.image.imageScale) / 32
       : 0;
     this.position.z = this.position.z - this.lastZOff + nextZOff;
     this.lastZOff = nextZOff;
 
-    return this.images.length;
+    return this.iscriptImages.length;
   }
 
-  _update(image: Image) {
+  _update(iscriptImage: IScriptImage) {
     //image modifier == 2 || 5 update cloak
     // 4o r 7 -> decloak
     //17 ? warpin
@@ -174,30 +195,30 @@ export class IScriptSprite extends Group {
     //if destroyed main image, set main image to front most image
     //if no more images terminate this sprite
 
-    const dispatched = image.iscript.update();
+    const dispatched = this.runner.update(iscriptImage.state);
     for (const [key, val] of dispatched) {
       switch (key) {
         case "playfram":
           {
-            image.setFrame(val[0], val[1]);
+            iscriptImage.image.setFrame(val[0], val[1]);
           }
           break;
         case "imgol":
           {
             const [imageId, x, y] = val;
 
-            const titanImage = this.addImage(imageId, ImageOrder.above);
-            if (!titanImage) break;
-            titanImage.setPosition(x, y);
+            const image = this.spawnIScriptImage(imageId, ImageOrder.above);
+            if (!image) break;
+            image.image.setPosition(x, y);
           }
           break;
         case "imgul":
           {
             const [imageId, x, y] = val;
 
-            const titanImage = this.addImage(imageId, ImageOrder.below);
-            if (!titanImage) break;
-            titanImage.setPosition(x, -y);
+            const spawnedImage = this.spawnIScriptImage(imageId, ImageOrder.below);
+            if (!spawnedImage) break;
+            spawnedImage.image.setPosition(x, -y);
           }
           break;
         case "imgolorig":
@@ -211,47 +232,47 @@ export class IScriptSprite extends Group {
             */
             const [imageId] = val;
             //get_image_lo_offset(image->sprite->main_image, 2, 0)
-            const titanImage = this.addImage(imageId, ImageOrder.above);
-            if (!titanImage) break;
+            const image = this.spawnIScriptImage(imageId, ImageOrder.above);
+            if (!image) break;
             const [ox, oy] = this._getImageLoOffset(
               this.mainImage,
               overlayTypes.specialOverlay,
               0
             );
-            titanImage.setPosition(ox, oy, 32);
+            image.image.setPosition(ox, oy, 32);
           }
           break;
         case "imgoluselo":
           {
             const [imageId, x, y] = val;
 
-            const titanImage = this.addImage(imageId, ImageOrder.above);
-            if (!titanImage) break;
-            const ox = titanImage.image.los[x];
-            const oy = titanImage.image.los[y];
-            titanImage.setPosition(ox, oy, 32);
+            const image = this.spawnIScriptImage(imageId, ImageOrder.above);
+            if (!image) break;
+            const ox = image.state.los[x];
+            const oy = image.image.los[y];
+            image.image.setPosition(ox, oy, 32);
           }
           break;
         case "imguluselo":
           {
-            const [imageId, x, y] = val;
+            // const [imageId, x, y] = val;
 
-            const titanImage = this.addImage(imageId, ImageOrder.below);
-            if (!titanImage) break;
-            const ox = titanImage.image.los[x];
-            const oy = titanImage.image.los[y];
-            titanImage.setPosition(ox, oy, 32);
+            // const image = this.spawnIScriptImage(imageId, ImageOrder.below);
+            // if (!image) break;
+            // const ox = image.state.los[x];
+            // const oy = image.image.los[y];
+            // image.image.setPosition(ox, oy, 32);
           }
           break;
         case "imgulnextid":
           {
             const [x, y] = val;
-            const titanImage = this.addImage(
-              image.imageDef.index + 1,
+            const image = this.spawnIScriptImage(
+              iscriptImage.state.imageDesc.index + 1,
               ImageOrder.below
             );
-            if (!titanImage) break;
-            titanImage.setPosition(x, y, 32);
+            if (!image) break;
+            image.image.setPosition(x, y, 32);
           }
           break;
 
@@ -263,14 +284,14 @@ export class IScriptSprite extends Group {
             // if is bullet && parent->goliath && charonboosted
             // change spriteId to halo rockets trail
 
-            const titanSprite = this.createTitanSprite();
-            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
-            titanSprite.run(iscriptHeaders.init);
+            const sprite = this.createSprite(null);
+            sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
+            sprite.run(iscriptHeaders.init);
 
             //@todo ensure main image otherwise the sprite is dead
-            titanSprite.mainImage?.setPosition(x, y);
-            titanSprite.position.copy(this.position);
-            this.createTitanSpriteCb(titanSprite);
+            sprite.mainImage?.image.setPosition(x, y);
+            sprite.position.copy(this.position);
+            this.createSpriteCb(sprite);
           }
           break;
         case "sprul":
@@ -286,14 +307,14 @@ export class IScriptSprite extends Group {
             break;
             */
 
-            const titanSprite = this.createTitanSprite();
-            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
-            titanSprite.setDirection(this.direction);
-            titanSprite.run(iscriptHeaders.init);
+            const sprite = this.createSprite(null);
+            sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
+            sprite.setDirection(this.direction);
+            sprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage?.setPosition(x, y);
-            titanSprite.position.copy(this.position);
-            this.createTitanSpriteCb(titanSprite);
+            sprite.mainImage?.image.setPosition(x, y);
+            sprite.position.copy(this.position);
+            this.createSpriteCb(sprite);
           }
           break;
         case "lowsprul":
@@ -304,13 +325,13 @@ export class IScriptSprite extends Group {
             const [spriteId, x, y] = val;
 
             //@todo elevation 1
-            const titanSprite = this.createTitanSprite();
-            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
-            titanSprite.run(iscriptHeaders.init);
+            const sprite = this.createSprite(null);
+            sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
+            sprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage?.setPosition(x, y);
-            titanSprite.position.copy(this.position);
-            this.createTitanSpriteCb(titanSprite);
+            sprite.mainImage?.image.setPosition(x, y);
+            sprite.position.copy(this.position);
+            this.createSpriteCb(sprite);
             // console.log("lowsprul", [x, y]);
           }
           break;
@@ -319,13 +340,13 @@ export class IScriptSprite extends Group {
             //<sprite#> <x> <y> - spawns a sprite at the highest animation level at a specific offset position.
             const [spriteId, x, y] = val;
 
-            const titanSprite = this.createTitanSprite();
-            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
-            titanSprite.run(iscriptHeaders.init);
+            const sprite = this.createSprite(null);
+            sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
+            sprite.run(iscriptHeaders.init);
 
-            titanSprite.mainImage?.setPosition(x, y);
-            titanSprite.position.copy(this.position);
-            this.createTitanSpriteCb(titanSprite);
+            sprite.mainImage?.image.setPosition(x, y);
+            sprite.position.copy(this.position);
+            this.createSpriteCb(sprite);
           }
           break;
         case "sproluselo":
@@ -334,17 +355,17 @@ export class IScriptSprite extends Group {
             // <sprite#> <overlay#> - spawns a sprite one animation level above the current image overlay, using a specified LO* file for the offset position information. The new sprite inherits the direction of the current sprite.
 
             //@todo this.userData.elevation + 1
-            const titanSprite = this.createTitanSprite();
-            titanSprite.addImage(this.bwDat.sprites[spriteId].image.index);
+            const sprite = this.createSprite(null);
+            sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
             // titanSprite.run(0);
-            titanSprite.setDirection(this.direction);
-            const [ox, oy] = this._getImageLoOffset(image, overlay, 0);
+            sprite.setDirection(this.direction);
+            const [ox, oy] = this._getImageLoOffset(iscriptImage, overlay, 0);
 
-            titanSprite.mainImage?.setPosition(ox, oy);
-            titanSprite.run(iscriptHeaders.init);
+            sprite.mainImage?.image.setPosition(ox, oy);
+            sprite.run(iscriptHeaders.init);
 
-            titanSprite.position.copy(this.position);
-            this.createTitanSpriteCb(titanSprite);
+            sprite.position.copy(this.position);
+            this.createSpriteCb(sprite);
 
             // console.log("sproluselo", [ox, oy, image.userData.frame]);
           }
@@ -363,7 +384,7 @@ export class IScriptSprite extends Group {
         case "sethorpos":
           {
             const [x] = val;
-            image.setPositionX(x);
+            iscriptImage.image.setPositionX(x);
           }
           break;
         case "setvertpos":
@@ -374,7 +395,7 @@ export class IScriptSprite extends Group {
 
             // if (!iscript_unit || (!u_requires_detector(iscript_unit) && !u_cloaked(iscript_unit)))
             //
-            image.setPositionY(y);
+            iscriptImage.image.setPositionY(y);
           }
           break;
         case "creategasoverlays":
@@ -383,17 +404,17 @@ export class IScriptSprite extends Group {
             const imageId = imageTypes.gasOverlay;
             //@todo support imageTypes.depletedGasOverlay;
 
-            const titanImage = this.addImage(
+            const iscriptImage = this.spawnIScriptImage(
               imageId + imageOffset,
               ImageOrder.above
             );
-            if (!titanImage) break;
+            if (!iscriptImage) break;
 
-            const los = this.bwDat.los[image.imageDef.specialOverlay - 1];
-            const [ox, oy] = los[titanImage.userData.frame][imageOffset];
+            const los = this.bwDat.los[iscriptImage.state.imageDesc.specialOverlay - 1];
+            const [ox, oy] = los[iscriptImage.state.frame][imageOffset];
 
-            titanImage.position.x = ox / 32;
-            titanImage.position.z = oy / 32;
+            iscriptImage.image.position.x = ox / 32;
+            iscriptImage.image.position.z = oy / 32;
           }
           break;
         // case "useweapon":
@@ -454,24 +475,24 @@ export class IScriptSprite extends Group {
           {
             const [x, y] = val;
 
-            image.setPosition(x, y);
+            iscriptImage.image.setPosition(x, y);
           }
           break;
 
         case "end":
           {
             //@todo allow_main_image_destruction
-            image.userData.terminated = true;
+            iscriptImage.state.terminated = true;
           }
           break;
         case "followmaingraphic":
           {
             if (this.mainImage) {
               Object.assign(
-                image.userData,
-                pick(["frame", "flip"], this.mainImage.userData)
+                iscriptImage.state,
+                pick(["frame", "flip"], this.mainImage.state)
               );
-              image.setFrame(image.userData.frame, image.userData.flip);
+              iscriptImage.image.setFrame(iscriptImage.state.frame, iscriptImage.state.flip);
             }
           }
           break;
@@ -490,26 +511,26 @@ export class IScriptSprite extends Group {
 
         case "engframe":
           {
-            image.setFrame(val[0], val[1]);
+            iscriptImage.image.setFrame(val[0], val[1]);
             //corsair, scout, wraith
             //engframe - <frame#> - plays a particular frame, often used in engine glow animations.
           }
           break;
         case "engset":
           {
-            image.setFrame(val[0], val[1]);
+            iscriptImage.image.setFrame(val[0], val[1]);
             //arbiter, bc, scv, valk
             //engset - <frameset#> - plays a particular frame set, often used in engine glow animations.
           }
           break;
         case "tmprmgraphicstart":
           {
-            image.visible = false;
+            iscriptImage.image.visible = false;
           }
           break;
         case "tmprmgraphicend":
           {
-            image.visible = true;
+            iscriptImage.image.visible = true;
           }
           break;
         default:
@@ -519,22 +540,22 @@ export class IScriptSprite extends Group {
   }
 
   _getImageLoOffset(
-    image: Image,
+    iscriptImage: IScriptImage,
     overlay: number,
     imageOffset: number,
     useFrameset = false
   ) {
-    const frame = useFrameset ? image.userData.frameset : image.userData.frame;
+    const frame = useFrameset ? iscriptImage.state.frameset : iscriptImage.state.frame;
 
     const overlayKey = overlayTypes[overlay - 1] as keyof ImageDAT;
-    const losIndex = image.imageDef[overlayKey] as number;
+    const losIndex = iscriptImage.state.imageDesc[overlayKey] as number;
     const los = this.bwDat.los[losIndex];
     if (!los || los.length == 0) {
       throw new Error("no los here");
     }
     const [x, y] = los[frame][imageOffset];
 
-    if (image.userData.flip) {
+    if (iscriptImage.state.flip) {
       return [-x, y];
     } else {
       return [x, y];
@@ -542,13 +563,13 @@ export class IScriptSprite extends Group {
   }
 
   run(header: number) {
-    for (const image of this.images) {
-      image.iscript.run(header);
+    for (const image of this.iscriptImages) {
+      this.runner.run(header, image.state);
     }
   }
 
   get direction() {
-    return this.mainImage?.userData.direction;
+    return this.mainImage?.state.direction || 0;
   }
 
   dispose() { }
