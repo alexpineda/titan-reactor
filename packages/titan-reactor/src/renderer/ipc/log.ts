@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 
 import { LOG_MESSAGE } from "../../common/ipc-handle-names";
+import { useSettingsStore } from "../stores";
 
 export const error = (msg: string) => {
   log(msg, "error");
@@ -24,13 +25,14 @@ export const verbose = (msg: string) => {
 
 // @todo return early if disabled
 export const log = async (message: string, level = "info") => {
-  //@todo add isDev mode check
-  if (level === "error") {
-    console.trace(message);
-  } else if (level === "warning") {
-    console.warn(message);
-  } else {
-    console.log(message);
+  if (useSettingsStore.getState().isDev) {
+    if (level === "error") {
+      console.trace(message);
+    } else if (level === "warning") {
+      console.warn(message);
+    } else {
+      console.log(message);
+    }
   }
 
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
