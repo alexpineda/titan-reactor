@@ -1,6 +1,5 @@
 import React from "react";
 import { render } from "react-dom";
-import "./react-ui/css/reset.css";
 
 import version from "../common/version";
 import * as log from "./ipc/log";

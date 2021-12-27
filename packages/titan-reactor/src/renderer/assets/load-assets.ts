@@ -20,8 +20,11 @@ import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
+import { getSettings } from "../ipc";
+import { AssetTextureResolution, Settings } from "../../common/types";
 
-export default async (starcraftPath: string, communityModelsPath: string) => {
+export default async (settings: Settings) => {
+
     startLoadingProcess({
         id: "assets",
         label: "Loading initial assets",
@@ -40,7 +43,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         }
     });
 
-    await openCascStorage(starcraftPath);
+    await openCascStorage(settings.directories.starcraft);
 
     const bwDat = await loadDATFiles(readCascFile);
     updateLoadingProcess("assets");
@@ -80,7 +83,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
     const loadImageAtlas = (grps: Anim[]) => async (imageId: number) => {
         const grp = new Glb();
         const glbFileName = path.join(
-            communityModelsPath,
+            settings.directories.models,
             `00${refId(
                 imageId
             )}`.slice(-3) + ".glb"
@@ -91,8 +94,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
 
         await grp.load({
             imageDef: bwDat.images[imageId],
-            // readAnim: async () => readCascFile(genFileName(imageId)),
-            readAnim: () => readCascFile(genFileName(imageId, "HD2/")),
+            readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
             glbFileName: fs ? glbFileName : undefined,
         });
         if (grp.model) {

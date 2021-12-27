@@ -63,7 +63,7 @@ export class Settings extends EventEmitter {
     ];
 
     for (const file of files) {
-      if (!(await fileExists(this._settings.directories[file as keyof SettingsType] as string))) {
+      if (!(await fileExists(this._settings.directories[file as keyof SettingsType["directories"]]))) {
         errors.push(file);
       }
     }

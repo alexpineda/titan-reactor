@@ -15,7 +15,7 @@ const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => 
   if (isProcessComplete("assets") || isProcessInProgress("assets")) {
     return;
   }
-  const assets = await loadAssets(settings.directories.starcraft, settings.directories.models);
+  const assets = await loadAssets(settings);
   setAssets(assets);
   onSuccess();
   return true;
