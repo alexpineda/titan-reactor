@@ -12,8 +12,9 @@ import { DataTexturesResult } from "./create-data-textures";
 import {
     updateLoadingProcess,
 } from "../../../renderer/stores";
-import { AssetTexturesResult } from "./generate-map-tile-textures";
 import { strict as assert } from "assert";
+import { WrappedTexture } from "common";
+import { WrappedQuartileTextures } from "common";
 
 const DEFAULT_GEOM_OPTIONS = {
     //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
@@ -34,19 +35,17 @@ const DEFAULT_GEOM_OPTIONS = {
 };
 
 //@todo separate sd and hd
-export const createHDMaterials = async (
-    assetTextures: AssetTexturesResult,
+export const createHDMesh = async (
+    tileset: number,
+    mapWidth: number,
+    mapHeight: number,
+    creepTexture: WrappedTexture,
+    creepEdgesTexture: WrappedTexture,
     geomOptions = DEFAULT_GEOM_OPTIONS,
     { creepEdgesTextureUniform, creepTextureUniform }: DataTexturesResult,
-    displaceCanvas: HTMLCanvasElement
+    displaceCanvas: HTMLCanvasElement,
+    hdQuartileTextures: WrappedQuartileTextures
 ) => {
-    const {
-        mapWidth,
-        mapHeight,
-        hdQuartileTextures,
-        creepEdgesTexture,
-        creepTexture,
-    } = assetTextures;
 
     assert(hdQuartileTextures);
 
@@ -328,4 +327,4 @@ export const createHDMaterials = async (
 
     return terrain;
 };
-export default createHDMaterials;
+export default createHDMesh;

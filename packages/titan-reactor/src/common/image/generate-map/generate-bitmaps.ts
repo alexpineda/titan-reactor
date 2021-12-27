@@ -1,4 +1,4 @@
-import { TileSetData } from "../../../types";
+import { TilesetBuffers } from "../../types";
 
 
 export type MapBitmapsResult = {
@@ -16,11 +16,11 @@ export type MapBitmapsResult = {
 // rgb bitmap
 // roughness bitmap
 
-export const bitmaps = (
+export const generateBitmaps = (
   mapWidth: number,
   mapHeight: number,
   { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles }:
-    Pick<TileSetData, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
+    Pick<TilesetBuffers, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
 ): MapBitmapsResult => {
   let tileGroup,
     groupIndex,

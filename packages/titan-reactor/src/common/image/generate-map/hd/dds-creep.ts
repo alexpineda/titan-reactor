@@ -1,3 +1,4 @@
+import { WrappedTexture } from "common";
 import {
   MeshBasicMaterial,
   OrthographicCamera,
@@ -9,13 +10,24 @@ import {
   sRGBEncoding,
   WebGLRenderer,
 } from "three";
+import { parseDdsGrp } from "../../formats/parse-dds-grp";
 
 import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
+const width = 13;
+const height = 1;
+
 // generates a single creep texture from 0 - 13
-export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<number, Buffer>, tilegroupU16: Uint16Array) => {
-  const width = 13;
-  const height = 1;
+export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array): WrappedTexture => {
+  const renderer = new WebGLRenderer({
+    depth: false,
+    stencil: false,
+    alpha: true,
+  });
+  renderer.autoClear = false;
+
+  const hdTiles = parseDdsGrp(buffer);
+
   const ortho = new OrthographicCamera(
     -width / 2,
     width / 2,
@@ -63,6 +75,7 @@ export const ddsToCreepTexture = (renderer: WebGLRenderer, hdTiles: Record<numbe
   texture.flipY = true;
 
   mat.dispose();
+  renderer.dispose();
 
   return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD };
 };

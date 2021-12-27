@@ -1,5 +1,9 @@
+import { WrappedTexture } from "common";
 import { DataTexture, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
 import { PX_PER_TILE_SD } from "./common";
+
+const width = 13;
+const height = 1;
 
 // draw 13 creep tiles left to right
 export const grpToCreepTexture = (
@@ -7,10 +11,8 @@ export const grpToCreepTexture = (
   megatiles: Uint32Array,
   minitiles: Uint8Array,
   tilegroupU16: Uint16Array,
-  anisotropy: number
-) => {
-  const width = 13;
-  const height = 1;
+): WrappedTexture => {
+
 
   const diffuse = new Uint8Array(
     width * height * PX_PER_TILE_SD * PX_PER_TILE_SD * 4);
@@ -69,7 +71,6 @@ export const grpToCreepTexture = (
   );
   texture.flipY = true;
   texture.encoding = sRGBEncoding;
-  texture.anisotropy = anisotropy;
   texture.needsUpdate = true;
   return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD };
 };

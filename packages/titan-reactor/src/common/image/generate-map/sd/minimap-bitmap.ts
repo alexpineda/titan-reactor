@@ -1,6 +1,6 @@
 import { rgbToCanvas } from "../../canvas";
 
-export const minimapBitmap = async (
+export const createMinimapBitmap = async (
   data: Uint8Array,
   mapWidth: number,
   mapHeight: number

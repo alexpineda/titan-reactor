@@ -21,29 +21,38 @@ import { MapEffect } from "./effects/map-effect";
 import {
     updateLoadingProcess,
 } from "../../../renderer/stores";
-import { AssetTexturesResult } from "./generate-map-tile-textures";
 import { DataTexturesResult } from "./create-data-textures";
 import { GeometryOptions } from "./geometry-options";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
 
-export const createDisplacementImages = async (
-    renderer: WebGLRenderer,
-    assetTextures: AssetTexturesResult,
+// @todo dispose effects?
+export const createDisplacementImages = async ({
+    palette,
+    tileset,
+    mapWidth,
+    mapHeight,
+    dataTextures,
+    geomOptions,
+    levels
+}: {
     dataTextures: DataTexturesResult,
     geomOptions: GeometryOptions,
     levels: Matrix3
+    palette: Uint8Array,
+    tileset: number,
+    mapWidth: number,
+    mapHeight: number,
+}
+
 ) => {
-
-    const {
-        palette,
-        tileset,
-        mapWidth,
-        mapHeight,
-    } = assetTextures;
-
+    const renderer = new WebGLRenderer({
+        depth: false,
+        stencil: false,
+        alpha: true,
+    });
+    renderer.autoClear = false;
     const camera = new PerspectiveCamera();
-
 
     //#region composer
     const composer = new EffectComposer(renderer, {
@@ -134,6 +143,7 @@ export const createDisplacementImages = async (
     }
     //#endregion composer
     updateLoadingProcess("terrain");
+    renderer.dispose();
 
     const displaceCanvas = document.createElement("canvas");
     displaceCanvas.width = mapWidth * geomOptions.displaceDimensionScale;

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
-import { AssetTexturesResult } from "./generate-map-tile-textures";
+import { MapBitmapsResult } from "./generate-bitmaps";
 
 export interface DataTexturesResult {
     sdMap: THREE.DataTexture,
@@ -18,19 +18,22 @@ export interface DataTexturesResult {
     paletteIndicesMap: THREE.DataTexture,
     paletteMap: THREE.DataTexture,
 }
-export const createDataTextures = async (
-    anisotropy: number,
-    assetTextures: AssetTexturesResult,
-    blendNonWalkableBase: boolean
+export const createDataTextures = async ({
+    blendNonWalkableBase,
+    palette,
+    mapWidth,
+    mapHeight,
+    mapData,
+
+}:
+    {
+        blendNonWalkableBase: boolean,
+        palette: Uint8Array,
+        mapWidth: number,
+        mapHeight: number,
+        mapData: MapBitmapsResult,
+    }
 ): Promise<DataTexturesResult> => {
-    const {
-        palette,
-        mapWidth,
-        mapHeight,
-        mapData,
-
-    } = assetTextures;
-
 
     //#region texture definitions
     const sdMap = new THREE.DataTexture(
@@ -42,7 +45,6 @@ export const createDataTextures = async (
     );
     sdMap.flipY = true;
     sdMap.encoding = THREE.sRGBEncoding;
-    sdMap.anisotropy = anisotropy;
     sdMap.needsUpdate = true;
 
 

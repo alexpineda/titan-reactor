@@ -9,19 +9,30 @@ import {
   sRGBEncoding,
   WebGLRenderer,
 } from "three";
+import { parseDdsGrp } from "../../formats/parse-dds-grp";
+import { WrappedQuartileTextures } from "../../../types";
+
 import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
 // over max supported size
 export const mapDataToTextures = (
-  renderer: WebGLRenderer,
   mapWidth: number,
   mapHeight: number,
-  { hdTiles, mapTilesData }: { hdTiles: Record<number, Buffer>, mapTilesData: Record<number, number> },
-) => {
-  const mapQuartiles: CanvasTexture[][] = [];
+  buffer: Buffer,
+  mapTilesData: Record<number, number>,
+): WrappedQuartileTextures => {
 
+  const renderer = new WebGLRenderer({
+    depth: false,
+    stencil: false,
+    alpha: true,
+  });
+  renderer.autoClear = false;
+
+  const mapQuartiles: CanvasTexture[][] = [];
+  const hdTiles = parseDdsGrp(buffer);
   const webGlMaxTextureSize = renderer.capabilities.maxTextureSize;
   //16384, 8192, 4096
 
@@ -107,6 +118,7 @@ export const mapDataToTextures = (
   }
 
   mat.dispose();
+  renderer.dispose();
   hdCache.forEach((t) => t.dispose());
 
   return {

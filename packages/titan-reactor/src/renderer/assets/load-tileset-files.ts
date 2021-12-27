@@ -1,10 +1,14 @@
-import { ChkType, TileSetData } from "../../common/types";
+import { AssetTextureResolution, Settings, TilesetBuffers } from "../../common/types";
+import type Chk from "bw-chk";
+
 import parseDdsGrp, { parseDdsGrpWithFrameData } from "../../common/image/formats/parse-dds-grp";
 
 export const loadTilesetFiles = async (
   readFileFn: (filename: string) => Promise<Buffer>,
-  chk: ChkType
-): Promise<TileSetData> => {
+  tileset: number,
+  tilesBuffer: Buffer,
+  terrainTextureResolution: AssetTextureResolution
+): Promise<TilesetBuffers> => {
   const tilesets = [
     "badlands",
     "platform",
@@ -16,13 +20,11 @@ export const loadTilesetFiles = async (
     "twilight",
   ];
 
-  const tileset = chk.tileset;
-
   let mapTiles;
   //hitchhiker has odd length buffer??
-  if (chk._tiles.buffer.byteLength % 2 === 1) {
-    const tiles = Buffer.alloc(chk._tiles.byteLength + 1);
-    chk._tiles.copy(tiles);
+  if (tilesBuffer.buffer.byteLength % 2 === 1) {
+    const tiles = Buffer.alloc(tilesBuffer.byteLength + 1);
+    tilesBuffer.copy(tiles);
     // mapTiles = new Uint16Array(tiles.buffer);
     mapTiles = new Uint16Array(
       tiles.buffer,
@@ -32,9 +34,9 @@ export const loadTilesetFiles = async (
   } else {
 
     mapTiles = new Uint16Array(
-      chk._tiles.buffer,
-      chk._tiles.byteOffset,
-      chk._tiles.byteLength / Uint16Array.BYTES_PER_ELEMENT
+      tilesBuffer.buffer,
+      tilesBuffer.byteOffset,
+      tilesBuffer.byteLength / Uint16Array.BYTES_PER_ELEMENT
     );
 
   }
@@ -56,13 +58,25 @@ export const loadTilesetFiles = async (
     (await readFileFn(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
-  // const hdTiles = parseDdsGrp(
-  //   await readFileFn(`HD2/TileSet/${tilesetName}.dds.vr4`)
-  // );
-  // const creepGrpHD = parseDdsGrpWithFrameData(
-  //   await readFileFn(`HD2/TileSet/${tilesetName}.dds.grp`)
-  // );
-  const creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
+  let hdTiles, creepGrpHD, creepGrpSD;
+
+  if (terrainTextureResolution === AssetTextureResolution.SD) {
+    creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
+  } else if (terrainTextureResolution === AssetTextureResolution.HD2) {
+    hdTiles = await readFileFn(`HD2/TileSet/${tilesetName}.dds.vr4`)
+
+    creepGrpHD =
+      await readFileFn(`HD2/TileSet/${tilesetName}.dds.grp`)
+
+  } else {
+    hdTiles =
+      await readFileFn(`TileSet/${tilesetName}.dds.vr4`)
+    creepGrpHD =
+      await readFileFn(`TileSet/${tilesetName}.dds.grp`)
+
+  }
+
+
 
   // const warpInGrpHD = MapHD.renderWarpIn(
   //   renderer,
@@ -81,10 +95,10 @@ export const loadTilesetFiles = async (
     minitiles,
     palette,
     tileset,
-    // hdTiles,
+    hdTiles,
     tilegroupU16,
     tilegroupBuf,
     creepGrpSD,
-    // creepGrpHD,
+    creepGrpHD,
   };
 };

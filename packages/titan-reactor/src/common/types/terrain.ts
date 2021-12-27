@@ -3,6 +3,21 @@ import { Mesh, Texture } from "three";
 
 import { GetTerrainY } from "./util";
 
+// @todo deprecate? image has it?
+export type WrappedTexture = {
+  texture: Texture;
+  width: number;
+  height: number;
+}
+
+export type WrappedQuartileTextures = {
+  mapQuartiles: Texture[][],
+  quartileHeight: number,
+  quartileStrideH: number,
+  quartileStrideW: number,
+  quartileWidth: number,
+}
+
 export type TerrainInfo = {
   mapWidth: number;
   mapHeight: number;
@@ -14,16 +29,16 @@ export type TerrainInfo = {
 };
 
 
-export type TileSetData = {
+export type TilesetBuffers = {
   mapTiles: Uint16Array;
   megatiles: Uint32Array;
   minitilesFlags: Uint16Array;
   minitiles: Uint8Array;
   palette: Uint8Array;
   tileset: number;
-  hdTiles: Buffer[];
   tilegroupU16: Uint16Array;
   tilegroupBuf: Buffer;
-  creepGrpSD: Buffer;
-  creepGrpHD: DDSGrpFrameType[];
+  hdTiles?: Buffer;
+  creepGrpSD?: Buffer;
+  creepGrpHD?: Buffer;
 };

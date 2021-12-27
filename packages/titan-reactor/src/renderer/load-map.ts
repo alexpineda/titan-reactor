@@ -6,7 +6,7 @@ import {
 } from "./core";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
-import { generateTerrain } from "./assets/generate-terrain";
+import loadTerrain from "./assets/load-terrain";
 import {
   disposeGame,
   setGame,
@@ -33,7 +33,7 @@ export default async (chkFilepath: string) => {
     const game = getGame();
 
     const chk = new Chk(await loadScm(chkFilepath));
-    const terrainInfo = await generateTerrain(chk);
+    const terrainInfo = await loadTerrain(chk);
 
     game.scene.replaceTerrain(terrainInfo.terrain);
 
@@ -68,7 +68,7 @@ export default async (chkFilepath: string) => {
   updateIndeterminateLoadingProcess("map", getFunString());
 
   log.verbose("initializing scene");
-  const terrainInfo = await generateTerrain(chk);
+  const terrainInfo = await loadTerrain(chk);
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;

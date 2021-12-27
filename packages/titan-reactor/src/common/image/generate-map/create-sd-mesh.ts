@@ -5,22 +5,25 @@ import {
   Vector2,
 } from "three";
 
-import { AssetTexturesResult } from "./generate-map-tile-textures";
 import { GeometryOptions } from "./geometry-options";
+import { WrappedTexture } from "../../types";
 
-export const createSDMaterials = async (
-  assetTextures: AssetTexturesResult,
+type Tex = {
+  texture: THREE.Texture,
+  width: number,
+  height: number
+}
+
+export const createSDMesh = async (
+  tileset: number,
+  mapWidth: number,
+  mapHeight: number,
+  creepTexture: WrappedTexture,
+  creepEdgesTexture: WrappedTexture,
   geomOptions: GeometryOptions,
   { paletteIndicesMap, paletteMap, creepEdgesTextureUniform, creepTextureUniform, sdMap, elevationsMap, mapTilesMap }: DataTexturesResult,
   displacementCanvas: HTMLCanvasElement,
 ) => {
-  const {
-    tileset,
-    mapWidth,
-    mapHeight,
-    creepEdgesTexture,
-    creepTexture,
-  } = assetTextures;
 
   //#region sd map
   const tileAnimationCounterUniform = { value: 0 };
@@ -352,4 +355,4 @@ export const createSDMaterials = async (
 
   return sdTerrain;
 };
-export default createSDMaterials;
+export default createSDMesh;

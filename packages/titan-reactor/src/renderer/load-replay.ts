@@ -20,7 +20,7 @@ import OpenBwBridgeReader from "./integration/fixed-data/readers/openbw-bridge-r
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
-import { generateTerrain } from "./assets/generate-terrain";
+import loadTerrain from "./assets/load-terrain";
 import {
     disposeGame,
     getAssets,
@@ -92,7 +92,7 @@ export default async (filepath: string) => {
     updateScreen({ chkTitle: chk.title } as ReplayScreen);
 
     log.verbose("building terrain");
-    const terrainInfo = await generateTerrain(chk);
+    const terrainInfo = await loadTerrain(chk);
     const scene = new Scene(terrainInfo);
     janitor.object3d(scene);
 

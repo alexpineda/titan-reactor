@@ -1,4 +1,5 @@
-import { DDSGrpFrameType } from "../../../types";
+import { DDSGrpFrameType, WrappedTexture } from "../../../types";
+import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 import {
   MeshBasicMaterial,
   OrthographicCamera,
@@ -14,12 +15,21 @@ import {
 
 import { loadHdTile, PX_PER_TILE_HD } from "./common";
 
+const bottomEdges = [0, 1, 2, 3];
+const rightEdges = [4];
+const topEdges = [6, 11, 17, 21];
+const leftEdges = [15];
+
 // generates a single creep texture for the edges from 0 - 15
-export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrpFrameType[]) => {
-  const bottomEdges = [0, 1, 2, 3];
-  const rightEdges = [4];
-  const topEdges = [6, 11, 17, 21];
-  const leftEdges = [15];
+export const ddsToCreepEdgesTexture = (buffer: Buffer): WrappedTexture => {
+  const renderer = new WebGLRenderer({
+    depth: false,
+    stencil: false,
+    alpha: true,
+  });
+  renderer.autoClear = false;
+
+  const creepGrp = parseDdsGrpWithFrameData(buffer);
 
   const getOffset = (grp: DDSGrpFrameType, tileId: number) => {
     const x = 0.5;
@@ -116,6 +126,7 @@ export const ddsToCreepEdgesTexture = (renderer: WebGLRenderer, creepGrp: DDSGrp
   // texture.flipY = true;
 
   mat.dispose();
+  renderer.dispose();
 
   return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD };
 };
