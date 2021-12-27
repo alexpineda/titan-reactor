@@ -21,7 +21,7 @@ import { MapEffect } from "./effects/map-effect";
 import {
     updateLoadingProcess,
 } from "../../../renderer/stores";
-import { GenerateTexturesResult } from "./generate-map-tile-textures";
+import { AssetTexturesResult } from "./generate-map-tile-textures";
 import { DataTexturesResult } from "./create-data-textures";
 import { GeometryOptions } from "./geometry-options";
 
@@ -29,7 +29,7 @@ type Matrix3LevelArgs = [number, number, number, number, number, number, number]
 
 export const createDisplacementImages = async (
     renderer: WebGLRenderer,
-    tileData: GenerateTexturesResult,
+    assetTextures: AssetTexturesResult,
     dataTextures: DataTexturesResult,
     geomOptions: GeometryOptions,
     levels: Matrix3
@@ -40,12 +40,7 @@ export const createDisplacementImages = async (
         tileset,
         mapWidth,
         mapHeight,
-        // waterMasks,
-        // waterMasksDds,
-        // waterNormal1,
-        // waterNormal2,
-        // noise,
-    } = tileData;
+    } = assetTextures;
 
     const camera = new PerspectiveCamera();
 

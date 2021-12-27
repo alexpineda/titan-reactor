@@ -3,7 +3,7 @@ import { render } from "react-dom";
 
 import version from "../common/version";
 import { log } from "./ipc";
-import App from "./react-ui/app";
+// import App from "./react-ui/app";
 import {
   loadSettings,
   useSettingsStore,

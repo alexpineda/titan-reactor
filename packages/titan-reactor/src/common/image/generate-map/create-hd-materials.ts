@@ -12,7 +12,8 @@ import { DataTexturesResult } from "./create-data-textures";
 import {
     updateLoadingProcess,
 } from "../../../renderer/stores";
-import { GenerateTexturesResult } from "./generate-map-tile-textures";
+import { AssetTexturesResult } from "./generate-map-tile-textures";
+import { strict as assert } from "assert";
 
 const DEFAULT_GEOM_OPTIONS = {
     //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
@@ -34,7 +35,7 @@ const DEFAULT_GEOM_OPTIONS = {
 
 //@todo separate sd and hd
 export const createHDMaterials = async (
-    tileData: GenerateTexturesResult,
+    assetTextures: AssetTexturesResult,
     geomOptions = DEFAULT_GEOM_OPTIONS,
     { creepEdgesTextureUniform, creepTextureUniform }: DataTexturesResult,
     displaceCanvas: HTMLCanvasElement
@@ -42,18 +43,20 @@ export const createHDMaterials = async (
     const {
         mapWidth,
         mapHeight,
-        mapHd: hdMaps,
-        creepEdgesTextureHD,
-        creepTextureHD,
-    } = tileData;
+        hdQuartileTextures,
+        creepEdgesTexture,
+        creepTexture,
+    } = assetTextures;
+
+    assert(hdQuartileTextures);
 
     //#region hd map
     const hdDisplace = new THREE.CanvasTexture(displaceCanvas);
     hdDisplace.flipY = false;
     const hdMaterials = [];
     const hdGeometries = [];
-    const qw = hdMaps.quartileWidth;
-    const qh = hdMaps.quartileHeight;
+    const qw = hdQuartileTextures.quartileWidth;
+    const qh = hdQuartileTextures.quartileHeight;
 
     const hdDepthMaterial = new MeshDepthMaterial({
         // displacementScale: geomOptions.displacementScale,
@@ -89,8 +92,8 @@ export const createHDMaterials = async (
         // },
     });
 
-    for (let qy = 0; qy < hdMaps.quartileStrideH; qy++) {
-        for (let qx = 0; qx < hdMaps.quartileStrideW; qx++) {
+    for (let qy = 0; qy < hdQuartileTextures.quartileStrideH; qy++) {
+        for (let qx = 0; qx < hdQuartileTextures.quartileStrideW; qx++) {
             updateLoadingProcess("terrain");
 
             // const g = new THREE.PlaneBufferGeometry(
@@ -124,7 +127,7 @@ export const createHDMaterials = async (
 
             hdGeometries.push(g);
             const mat = new THREE.MeshStandardMaterial({
-                map: hdMaps.mapQuartiles[qx][qy],
+                map: hdQuartileTextures.mapQuartiles[qx][qy],
                 roughness: 1,
                 //@todo roughnessMap + shader patch
                 //@todo fix displacementMap shadow issue, requires custom depth material on entire mesh
@@ -259,36 +262,36 @@ export const createHDMaterials = async (
                     };
                     shader.uniforms.mapToCreepResolution = {
                         value: new Vector2(
-                            qw / (creepTextureHD.width / 128),
-                            qh / (creepTextureHD.height / 128)
+                            qw / (creepTexture.width / 128),
+                            qh / (creepTexture.height / 128)
                         ),
                     };
                     shader.uniforms.creepResolution = {
                         value: new Vector2(
-                            creepTextureHD.width / 128,
-                            creepTextureHD.height / 128
+                            creepTexture.width / 128,
+                            creepTexture.height / 128
                         ),
                     };
 
                     shader.uniforms.mapToCreepEdgesResolution = {
                         value: new Vector2(
-                            qw / (creepEdgesTextureHD.width / 128),
-                            qh / (creepEdgesTextureHD.height / 128)
+                            qw / (creepEdgesTexture.width / 128),
+                            qh / (creepEdgesTexture.height / 128)
                         ),
                     };
                     shader.uniforms.creepEdges = creepEdgesTextureUniform;
                     shader.uniforms.creep = creepTextureUniform;
                     shader.uniforms.creepEdgesTexture = {
-                        value: creepEdgesTextureHD.texture,
+                        value: creepEdgesTexture.texture,
                     };
                     shader.uniforms.creepEdgesResolution = {
                         value: new Vector2(
-                            creepEdgesTextureHD.width / 128,
-                            creepEdgesTextureHD.height / 128
+                            creepEdgesTexture.width / 128,
+                            creepEdgesTexture.height / 128
                         ),
                     };
                     shader.uniforms.creepTexture = {
-                        value: creepTextureHD.texture,
+                        value: creepTexture.texture,
                     };
                 },
             });

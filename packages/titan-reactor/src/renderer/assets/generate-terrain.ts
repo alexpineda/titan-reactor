@@ -13,6 +13,8 @@ import { getSettings } from "../stores/settings-store";
 import { defaultOptions } from "../../common/image/generate-map/geometry-options";
 
 export async function generateTerrain(chk: Chk): Promise<TerrainInfo> {
+  const settings = getSettings();
+
   // load all the tile files we need
   const tileFilesData = await loadTilesetFiles(readCascFile, chk);
 
@@ -20,10 +22,10 @@ export async function generateTerrain(chk: Chk): Promise<TerrainInfo> {
   const mapData = await generateMapTileTextures(
     chk.size[0],
     chk.size[1],
-    tileFilesData
+    tileFilesData,
+    settings
   );
 
-  const settings = getSettings();
 
   // compile bitmaps and textures into shader programs, materials and meshes
   return await generateAllMapStuff(mapData, defaultOptions, settings);

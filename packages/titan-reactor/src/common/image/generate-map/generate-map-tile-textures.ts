@@ -3,7 +3,7 @@ import { Texture, WebGLRenderer } from "three";
 import * as hd from "./hd";
 import * as map from "./map-data";
 import * as sd from "./sd";
-import { TileSetData } from "../../types";
+import { AssetTextureResolution, Settings, TileSetData } from "../../types";
 import { MapBitmapsResult } from "./map-data";
 
 export type QuartiledTextures = {
@@ -20,23 +20,31 @@ export type TextureResult = {
   texture: Texture
 }
 
-export type GenerateTexturesResult = {
+//@todo
+// waterMasks,
+// waterMasksDds,
+// waterNormal1,
+// waterNormal2,
+// noise,
+export type AssetTexturesResult = {
   palette: Uint8Array;
   tileset: number,
   mapWidth: number,
   mapHeight: number,
   mapData: MapBitmapsResult,
-  mapHd: QuartiledTextures,
-  creepEdgesTextureSD: TextureResult,
-  creepEdgesTextureHD: TextureResult,
-  creepTextureHD: TextureResult,
-  creepTextureSD: TextureResult,
+  hdQuartileTextures?: QuartiledTextures,
+  creepEdgesTexture: TextureResult,
+  creepTexture: TextureResult,
 }
 
 export const generateMapTileTextures = async (
   mapWidth: number,
   mapHeight: number,
-  {
+  tilesetData: TileSetData,
+  settings: Settings
+): Promise<AssetTexturesResult> => {
+
+  const {
     mapTiles,
     megatiles,
     minitilesFlags,
@@ -47,8 +55,9 @@ export const generateMapTileTextures = async (
     tilegroupU16,
     creepGrpHD,
     creepGrpSD,
-  }: TileSetData
-): Promise<GenerateTexturesResult> => {
+  } = tilesetData;
+
+
   const renderer = new WebGLRenderer({
     depth: false,
     stencil: false,
@@ -56,7 +65,7 @@ export const generateMapTileTextures = async (
   });
   renderer.autoClear = false;
 
-  const mapBitmaps = map.bitmaps(mapWidth, mapHeight, {
+  const mapData = map.bitmaps(mapWidth, mapHeight, {
     mapTiles,
     palette,
     megatiles,
@@ -65,26 +74,25 @@ export const generateMapTileTextures = async (
     tilegroupU16,
   });
 
-  // const mapHd = hd.mapDataToTextures(renderer, mapWidth, mapHeight, {
-  //   hdTiles,
-  //   ...mapBitmaps,
-  // });
+  const renderSD = settings.terrainTextureResolution === AssetTextureResolution.SD;
 
-  // const creepEdgesTextureHD = hd.ddsToCreepEdgesTexture(renderer, creepGrpHD);
-  // const creepTextureHD = hd.ddsToCreepTexture(renderer, hdTiles, tilegroupU16);
+  const hdQuartileTextures = renderSD ? undefined : hd.mapDataToTextures(renderer, mapWidth, mapHeight, {
+    hdTiles,
+    mapTilesData: mapData.mapTilesData
+  });
 
-  const creepEdgesTextureSD = await sd.grpToCreepEdgesTextureAsync(
+  const creepEdgesTexture = renderSD ? await sd.grpToCreepEdgesTextureAsync(
     creepGrpSD,
     palette
-  );
+  ) : hd.ddsToCreepEdgesTexture(renderer, creepGrpHD)
 
-  const creepTextureSD = sd.grpToCreepTexture(
+  const creepTexture = renderSD ? sd.grpToCreepTexture(
     palette,
     megatiles,
     minitiles,
     tilegroupU16,
-    renderer.capabilities.getMaxAnisotropy()
-  );
+    settings.anisotropy
+  ) : hd.ddsToCreepTexture(renderer, hdTiles, tilegroupU16);
 
   renderer.dispose();
 
@@ -93,12 +101,10 @@ export const generateMapTileTextures = async (
     tileset,
     mapWidth,
     mapHeight,
-    mapData: mapBitmaps,
-    // mapHd,
-    creepEdgesTextureSD,
-    // creepEdgesTextureHD,
-    // creepTextureHD,
-    creepTextureSD,
+    mapData: mapData,
+    hdQuartileTextures,
+    creepEdgesTexture,
+    creepTexture
   };
 };
 export default generateMapTileTextures;

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
-import { GenerateTexturesResult } from "./generate-map-tile-textures";
+import { AssetTexturesResult } from "./generate-map-tile-textures";
 
 export interface DataTexturesResult {
     sdMap: THREE.DataTexture,
@@ -20,7 +20,7 @@ export interface DataTexturesResult {
 }
 export const createDataTextures = async (
     anisotropy: number,
-    tileData: GenerateTexturesResult,
+    assetTextures: AssetTexturesResult,
     blendNonWalkableBase: boolean
 ): Promise<DataTexturesResult> => {
     const {
@@ -28,12 +28,8 @@ export const createDataTextures = async (
         mapWidth,
         mapHeight,
         mapData,
-        // waterMasks,
-        // waterMasksDds,
-        // waterNormal1,
-        // waterNormal2,
-        // noise,
-    } = tileData;
+
+    } = assetTextures;
 
 
     //#region texture definitions

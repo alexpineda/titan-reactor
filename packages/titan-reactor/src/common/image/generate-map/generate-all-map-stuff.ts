@@ -7,7 +7,7 @@ import {
     WebGLRenderer,
 } from "three";
 
-import { GenerateTexturesResult } from "./generate-map-tile-textures";
+import { AssetTexturesResult } from "./generate-map-tile-textures";
 import { transformLevelConfiguration } from "./transform-level-configuration";
 import createHDMaterials from "./create-hd-materials";
 import createSDMaterials from "./create-sd-materials";
@@ -15,7 +15,7 @@ import { GeometryOptions } from "./geometry-options";
 import { AssetTextureResolution, TerrainInfo, Settings } from "../../types";
 
 export const generateAllMapStuff = async (
-    tileData: GenerateTexturesResult,
+    assetTextures: AssetTexturesResult,
     geomOptions: GeometryOptions,
     settings: Settings
 ): Promise<TerrainInfo> => {
@@ -23,7 +23,7 @@ export const generateAllMapStuff = async (
         mapWidth,
         mapHeight,
         mapData,
-    } = tileData;
+    } = assetTextures;
 
     const renderer = new WebGLRenderer({
         depth: false,
@@ -32,15 +32,15 @@ export const generateAllMapStuff = async (
     });
     renderer.autoClear = false;
 
-    const dataTextures = await createDataTextures(renderer.capabilities.getMaxAnisotropy(), tileData, geomOptions.blendNonWalkableBase);
+    const dataTextures = await createDataTextures(renderer.capabilities.getMaxAnisotropy(), assetTextures, geomOptions.blendNonWalkableBase);
 
     const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
 
-    const displacementImages = await createDisplacementImages(renderer, tileData, dataTextures, geomOptions, levels);
+    const displacementImages = await createDisplacementImages(renderer, assetTextures, dataTextures, geomOptions, levels);
 
     const genTerrainMaterials = settings.terrainTextureResolution === AssetTextureResolution.SD ? createSDMaterials : createHDMaterials;
 
-    const terrain = await genTerrainMaterials(tileData, geomOptions, dataTextures, displacementImages.displaceCanvas);
+    const terrain = await genTerrainMaterials(assetTextures, geomOptions, dataTextures, displacementImages.displaceCanvas);
 
     const minimapBitmap = await genMinimapBitmap(
         mapData.diffuse,

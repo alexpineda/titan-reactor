@@ -2,6 +2,7 @@
 import { debounce } from "lodash";
 import { CircleGeometry, Color, Mesh, MeshBasicMaterial, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import type { ChkUnit, ChkSprite } from "bw-chk";
 
 import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget, TitanSprite } from "../common/image";

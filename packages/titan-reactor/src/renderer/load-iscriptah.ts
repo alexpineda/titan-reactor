@@ -10,7 +10,7 @@ import {
     completeUIType,
     UITypeIscriptah,
 } from "./stores";
-import IScriptah from "./react-ui/iscriptah/iscriptah";
+// import IScriptah from "./react-ui/iscriptah/iscriptah";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 
@@ -34,8 +34,8 @@ export default async () => {
         throw new Error("assets not loaded");
     }
 
-    const game = await IScriptah();
-    setGame(game);
+    // const game = await IScriptah();
+    // setGame(game);
     completeLoadingProcess("iscriptah");
     completeUIType();
 };

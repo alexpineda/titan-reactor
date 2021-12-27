@@ -5,11 +5,11 @@ import {
   Vector2,
 } from "three";
 
-import { GenerateTexturesResult } from "./generate-map-tile-textures";
+import { AssetTexturesResult } from "./generate-map-tile-textures";
 import { GeometryOptions } from "./geometry-options";
 
 export const createSDMaterials = async (
-  tileData: GenerateTexturesResult,
+  assetTextures: AssetTexturesResult,
   geomOptions: GeometryOptions,
   { paletteIndicesMap, paletteMap, creepEdgesTextureUniform, creepTextureUniform, sdMap, elevationsMap, mapTilesMap }: DataTexturesResult,
   displacementCanvas: HTMLCanvasElement,
@@ -18,14 +18,9 @@ export const createSDMaterials = async (
     tileset,
     mapWidth,
     mapHeight,
-    creepEdgesTextureSD,
-    creepTextureSD,
-    // waterMasks,
-    // waterMasksDds,
-    // waterNormal1,
-    // waterNormal2,
-    // noise,
-  } = tileData;
+    creepEdgesTexture,
+    creepTexture,
+  } = assetTextures;
 
   //#region sd map
   const tileAnimationCounterUniform = { value: 0 };
@@ -226,35 +221,35 @@ export const createSDMaterials = async (
       };
       shader.uniforms.mapToCreepResolution = {
         value: new Vector2(
-          mapWidth / (creepTextureSD.width / 32),
-          mapHeight / (creepTextureSD.height / 32)
+          mapWidth / (creepTexture.width / 32),
+          mapHeight / (creepTexture.height / 32)
         ),
       };
       shader.uniforms.creepResolution = {
         value: new Vector2(
-          creepTextureSD.width / 32,
-          creepTextureSD.height / 32
+          creepTexture.width / 32,
+          creepTexture.height / 32
         ),
       };
       shader.uniforms.creepEdgesResolution = {
         value: new Vector2(
-          creepEdgesTextureSD.width / 32,
-          creepEdgesTextureSD.height / 32
+          creepEdgesTexture.width / 32,
+          creepEdgesTexture.height / 32
         ),
       };
       shader.uniforms.mapToCreepEdgesResolution = {
         value: new Vector2(
-          mapWidth / (creepEdgesTextureSD.width / 32),
-          mapHeight / (creepEdgesTextureSD.height / 32)
+          mapWidth / (creepEdgesTexture.width / 32),
+          mapHeight / (creepEdgesTexture.height / 32)
         ),
       };
       shader.uniforms.creep = creepTextureUniform;
       shader.uniforms.creepEdges = creepEdgesTextureUniform;
       shader.uniforms.creepEdgesTexture = {
-        value: creepEdgesTextureSD.texture,
+        value: creepEdgesTexture.texture,
       };
       shader.uniforms.creepTexture = {
-        value: creepTextureSD.texture,
+        value: creepTexture.texture,
       };
       console.log(shader);
     },
