@@ -22,7 +22,7 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 // import "balloon-css/balloon.min.css";
 // import "pattern.css/dist/pattern.min.css";
 import App from "./components/app";
-import { ClockMs } from "../../../common/utils/clock-ms";
+import { Clock } from "../../../common/utils/clock";
 import { CanvasTarget } from "../../../common/image";
 import "../../../common/utils/electron-file-loader";
 import IScriptSprite from "../../core/iscript-sprite";
@@ -127,7 +127,7 @@ export const IScriptah = () => {
     thingies.length = 0;
   };
 
-  const clock = new ClockMs(true);
+  const clock = new Clock(true);
 
   const addTitanSpriteCb = (titanSprite: IScriptSprite) => {
     parent.add(titanSprite);
@@ -146,7 +146,7 @@ export const IScriptah = () => {
     }
   };
 
-  const forceRefresh = new ClockMs();
+  const forceRefresh = new Clock();
 
   const animLoop = () => {
     updateDirection32(controls.target, camera);

@@ -3,7 +3,7 @@ import { Vector4 } from "three/src/math/Vector4";
 
 import { cmdIsRightClick, ReplayCommand } from "../../common/types/replay";
 import { PxToGameUnit } from "../../common/types/util";
-import ClockMs from "../../common/utils/clock-ms";
+import Clock from "../../common/utils/clock";
 
 export const PovLeft = Symbol("povLeft");
 export const PovRight = Symbol("povRight");
@@ -17,7 +17,7 @@ export enum Side {
 export class PlayerPovCamera extends PerspectiveCamera {
   side: Side;
   enabled = false;
-  private _clock: ClockMs;
+  private _clock: Clock;
   viewport = new Vector4();
   getActivePovs: () => number;
 
@@ -26,7 +26,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this.position.y = 40;
     this.side = side;
     this.getActivePovs = getActivePovs;
-    this._clock = new ClockMs();
+    this._clock = new Clock();
     this.moveTo(x, y);
   }
 

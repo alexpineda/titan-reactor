@@ -1,5 +1,13 @@
-export class ClockMs {
-  constructor(autoStart) {
+
+// same as THREE.Clock but with millisecodns
+export class Clock {
+  autoStart: boolean;
+  startTime: number;
+  oldTime: number;
+  elapsedTime: number;
+  running: boolean;
+
+  constructor(autoStart?: boolean) {
     this.autoStart = autoStart !== undefined ? autoStart : true;
 
     this.startTime = 0;
@@ -52,4 +60,4 @@ export class ClockMs {
     return diff;
   }
 }
-export default ClockMs;
+export default Clock;

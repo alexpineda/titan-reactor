@@ -7,7 +7,7 @@ import {
 } from "three";
 
 import { TerrainInfo } from "../../common/types";
-import { disposeMesh, disposeMeshes, disposeScene } from "../utils/dispose";
+import Janitor from "../utils/janitor";
 
 function sunlight(mapWidth: number, mapHeight: number) {
   const light = new DirectionalLight(0xffffff, 2);
@@ -34,7 +34,7 @@ function sunlight(mapWidth: number, mapHeight: number) {
 export class Scene extends ThreeScene {
   private _mapWidth: number;
   private _mapHeight: number;
-  private _disposable: Mesh[] = [];
+  private _janitor: Janitor;
 
   constructor({
     mapWidth,
@@ -45,6 +45,7 @@ export class Scene extends ThreeScene {
     this._mapHeight = mapHeight;
     this._mapWidth = mapWidth;
 
+    this._janitor = new Janitor();
     this.addLights();
     this.addTerrain(terrain);
   }
@@ -61,20 +62,13 @@ export class Scene extends ThreeScene {
     terrain: Mesh
   ) {
     this.userData = { terrain };
-    // sdTerrain.visible = false;
     this.add(terrain);
-    // this.add(terrain);
+    this._janitor.object3d(terrain);
 
-    this._disposable.push(terrain);
-    // this._disposable.push(terrain);
   }
 
   replaceTerrain(terrain: Mesh) {
-    this._disposable.forEach(mesh => {
-      disposeMesh(mesh);
-      mesh.removeFromParent()
-    });
-    this._disposable = [];
+    this._janitor.mopUp();
     this.addTerrain(terrain);
   }
 
@@ -89,11 +83,6 @@ export class Scene extends ThreeScene {
     ) {
       this.userData.terrain.material.userData.tileAnimationCounter.value++;
     }
-  }
-
-  dispose() {
-    disposeScene(this)
-    this.userData = {};
   }
 }
 export default Scene;

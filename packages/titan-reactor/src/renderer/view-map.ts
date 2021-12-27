@@ -17,6 +17,7 @@ import FogOfWar from "./fogofwar/fog-of-war";
 import { InputEvents, KeyboardShortcuts } from "./input";
 import { Renderer, Scene } from "./render";
 import { useHudStore, useSettingsStore } from "./stores";
+import Janitor from "./utils/janitor";
 
 function createStartLocation(
   mapX: number,
@@ -47,6 +48,8 @@ async function TitanReactorMap(
   scene: Scene,
   createTitanSprite: () => IScriptSprite
 ) {
+  const janitor = new Janitor();
+
   const { mapWidth, mapHeight } = terrainInfo;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
@@ -55,7 +58,8 @@ async function TitanReactorMap(
     throw new Error("Settings not loaded");
   }
 
-  const keyboardShortcuts = new KeyboardShortcuts(document);
+  const keyboardShortcuts = new KeyboardShortcuts(document.body);
+  janitor.disposable(keyboardShortcuts)
 
   const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
@@ -71,6 +75,7 @@ async function TitanReactorMap(
     InputEvents.ToggleCursor,
     toggleCursorHandler
   );
+  janitor.callback(() => window.document.body.style.cursor = "");
 
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -85,10 +90,14 @@ async function TitanReactorMap(
     freeControl: true,
   }
   );
+  janitor.disposable(cameraRig);
 
   //@ts-ignore
   window.cameraRig = cameraRig;
+  // @ts-ignore
+  janitor.callback(() => cameraRig = null)
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
+  janitor.disposable(orbitControls);
 
   orbitControls.screenSpacePanning = false;
   orbitControls.mouseButtons = {
@@ -100,6 +109,8 @@ async function TitanReactorMap(
   cameraRig.camera.lookAt(0, 0, 0);
 
   const renderer = new Renderer(settings);
+  janitor.disposable(renderer);
+
   await renderer.init(cameraRig.camera);
   if (!renderer.renderer) {
     throw new Error("Renderer not initialized");
@@ -107,8 +118,12 @@ async function TitanReactorMap(
   renderer.enableRenderPass();
   //@ts-ignore
   window.renderMan = renderer;
+  // @ts-ignore
+  janitor.callback(() => renderMan = null)
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
+  janitor.disposable(fogOfWar);
+
   fogOfWar.enabled = false;
 
   const playerColors = [
@@ -156,6 +171,8 @@ async function TitanReactorMap(
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
+  janitor.callback(() => window.removeEventListener("resize", sceneResizeHandler));
+
 
   let last = 0;
   let frame = 0;
@@ -190,6 +207,8 @@ async function TitanReactorMap(
 
   //@ts-ignore
   window.scene = scene;
+  // @ts-ignore
+  janitor.callback(() => scene = null)
 
   const unsub = useSettingsStore.subscribe((state, prevState) => {
     settings = state.data;
@@ -212,35 +231,12 @@ async function TitanReactorMap(
       scene.background = new Color(settings.mapBackgroundColor);
     }
   });
+  janitor.callback(unsub)
 
   const dispose = () => {
-    unsub();
 
-    //@ts-ignore
-    window.cameras = null;
-    //@ts-ignore
-    window.scene = null;
-    //@ts-ignore
-    window.renderMan = null;
+    janitor.mopUp();
 
-    window.document.body.style.cursor = "";
-    window.removeEventListener("resize", sceneResizeHandler);
-
-    renderer.dispose();
-    scene.dispose();
-    cameraRig.dispose();
-
-    // @todo call keyboardShortcuts.dispose() ?
-
-    keyboardShortcuts.removeEventListener(
-      InputEvents.ToggleMenu,
-      toggleMenuHandler
-    );
-
-    keyboardShortcuts.removeEventListener(
-      InputEvents.ToggleCursor,
-      toggleCursorHandler
-    );
   };
 
   return {

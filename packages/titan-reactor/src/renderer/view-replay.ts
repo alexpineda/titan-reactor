@@ -10,12 +10,10 @@ import type { ChkUnit } from "bw-chk";
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
 import { Anim, CanvasTarget } from "../common/image";
-import { AssetTextureResolution } from "../common/types";
 import {
   BwDAT,
   ReplayPlayer,
   TerrainInfo,
-  createTitanImage,
   SpriteIndex,
   UnitTag,
   ResearchCompleted,
@@ -62,6 +60,7 @@ import {
 } from "./integration/fixed-data";
 import { Image, Unit, Sprite } from "./core";
 import { strict as assert } from "assert";
+import Janitor from "./utils/janitor";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -92,14 +91,23 @@ async function TitanReactorGame(
   if (!settings) {
     throw new Error("Settings not loaded");
   }
+
+  const janitor = new Janitor();
+  // @todo inputs should not be managed by view-replay
+  janitor.disposable(audioMaster);
+
   const cursor = new MouseInteraction();
+  janitor.disposable(cursor);
+
   cursor.pointer();
 
   const { mapWidth, mapHeight } = terrainInfo;
 
   const renderer = new Renderer(settings);
+  janitor.disposable(renderer);
 
-  const keyboardShortcuts = new KeyboardShortcuts(window.document);
+  const keyboardShortcuts = new KeyboardShortcuts(window.document.body);
+  janitor.disposable(keyboardShortcuts);
 
   const gameSurface = new GameCanvasTarget(settings);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -119,9 +127,13 @@ async function TitanReactorGame(
     mapWidth,
     mapHeight
   );
+  janitor.disposable(minimapControl);
 
   //@ts-ignore
   window.scene = scene;
+  //@ts-ignore
+  janitor.callback(() => window.scene = null)
+
 
   const cameraRig = new CameraRig({
     settings,
@@ -132,6 +144,7 @@ async function TitanReactorGame(
     freeControl: true
   }
   );
+  janitor.disposable(cameraRig);
 
 
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
@@ -151,6 +164,7 @@ async function TitanReactorGame(
     MIDDLE: MOUSE.DOLLY,
     RIGHT: MOUSE.ROTATE,
   };
+  janitor.disposable(orbitControls);
 
   await renderer.init(cameraRig.camera);
   if (renderer.renderer === undefined) {
@@ -159,6 +173,8 @@ async function TitanReactorGame(
 
   //@ts-ignore
   window.renderMan = renderer;
+  //@ts-ignore
+  janitor.callback(() => window.renderMan = null);
 
   // if (settings.renderMode !== SpriteTextureResolution.ThreeD && renderer.renderer) {
   //   renderer.renderer.shadowMap.autoUpdate = false;
@@ -166,6 +182,7 @@ async function TitanReactorGame(
   // }
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
+  janitor.disposable(fogOfWar);
 
   const customColors = settings.randomizeColorOrder
     ? shuffle(settings.playerColors)
@@ -213,9 +230,13 @@ async function TitanReactorGame(
     }
   };
   document.addEventListener("keydown", nextFrameHandler);
+  janitor.callback(() => document.removeEventListener("keydown", nextFrameHandler));
 
   //@ts-ignore
   window.cameras = cameraRig;
+  //@ts-ignore
+  janitor.callback(() => window.cameras = null);
+
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
@@ -253,8 +274,10 @@ async function TitanReactorGame(
       })
     );
   };
+
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
+  janitor.callback(() => window.removeEventListener("resize", sceneResizeHandler));
 
   let nextBwFrame: FrameBW, currentBwFrame: FrameBW | null;
 
@@ -272,6 +295,7 @@ async function TitanReactorGame(
     terrainInfo.creepTextureUniform.value,
     terrainInfo.creepEdgesTextureUniform.value
   );
+  janitor.disposable(creep)
 
   const minimapCanvasDrawer = new MinimapCanvasDrawer(
     "white",
@@ -521,6 +545,8 @@ async function TitanReactorGame(
   };
 
   const techUpgradesWorker = new TechUpgradesWorker();
+  janitor.callback(() => techUpgradesWorker.terminate());
+
   techUpgradesWorker.postMessage({
     type: "init",
     techDat: bwDat.tech,
@@ -808,40 +834,12 @@ async function TitanReactorGame(
 
   const dispose = () => {
     console.log("disposing");
-
-    //@ts-ignore
-    window.cameras = null;
-    //@ts-ignore
-    window.scene = null;
-    //@ts-ignore
-    window.renderMan = null;
-
-    audioMaster.dispose();
-    renderer.dispose();
     gameStatePosition.pause();
-    window.removeEventListener("resize", sceneResizeHandler, false);
 
-    // minimapControl.dispose();
-    scene.dispose();
-    cameraRig.dispose();
-    techUpgradesWorker.terminate();
+    janitor.mopUp();
 
-    document.removeEventListener("keydown", nextFrameHandler);
-    keyboardShortcuts.removeEventListener(
-      InputEvents.TogglePlay,
-      togglePlayHandler
-    );
-
-    keyboardShortcuts.removeEventListener(
-      InputEvents.ToggleMenu,
-      toggleMenuHandler
-    );
-
-    window.document.body.style.cursor = "";
-
+    // @todo managed by outside is better
     gameStateReader.dispose();
-    unsubs.forEach((unsubscribe) => unsubscribe());
-    cursor.dispose();
   };
 
   window.onbeforeunload = dispose;
@@ -858,6 +856,7 @@ async function TitanReactorGame(
       audioMaster.soundVolume = settings.soundVolume;
     }
   });
+  janitor.callback(unsub);
 
   // const unsub2 = useHudStore.subscribe((state, prevState) => {
   //   if (
@@ -886,7 +885,7 @@ async function TitanReactorGame(
       }
     }
   });
-  const unsubs = [unsub, unsub3];
+  janitor.callback(unsub3);
 
   //run 1 frame
   gameStatePosition.resume();

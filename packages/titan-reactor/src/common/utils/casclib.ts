@@ -1,9 +1,9 @@
 export * from "./casclib-hardfile"
 // import * as casclib from "casclib";
-// let _storageHandle;
-// let _lastBwPath;
+// let _storageHandle: any;
+// let _lastBwPath: string;
 
-// export const readCascFile = (filePath) => {
+// export const readCascFile = (filePath: string) => {
 //   try {
 //     return casclib.readFile(_storageHandle, filePath);
 //   } catch (e) {
@@ -14,7 +14,7 @@ export * from "./casclib-hardfile"
 // };
 // export default readCascFile;
 
-// export const openCascStorage = async (bwPath) => {
+// export const openCascStorage = async (bwPath: string) => {
 //   _lastBwPath = bwPath;
 //   if (_storageHandle) {
 //     casclib.closeStorage(_storageHandle);
