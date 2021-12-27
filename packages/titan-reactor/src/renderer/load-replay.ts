@@ -66,14 +66,14 @@ export default async (filepath: string) => {
 
     log.verbose("parsing replay");
     let repFile = filepath;
-    const outFile = path.join(settings.tempPath, "replay.out");
+    const outFile = path.join(settings.directories.temp, "replay.out");
 
     updateScreen({ header: rep.header } as ReplayScreen);
 
     if (rep.version !== Version.titanReactor) {
         const chkDowngrader = new ChkDowngrader();
         const newrep = await sidegradeReplay(rep, chkDowngrader);
-        repFile = path.join(settings.tempPath, "replay.rep");
+        repFile = path.join(settings.directories.temp, "replay.rep");
         //@todo use fsPromises, bail on error
         await new Promise((res: EmptyFunc) =>
             fs.writeFile(repFile, newrep, (err) => {
@@ -102,7 +102,7 @@ export default async (filepath: string) => {
 
     log.verbose(`starting gamestate reader ${repFile} ${outFile}`);
     const gameStateReader = new OpenBwBridgeReader(
-        settings.starcraftPath,
+        settings.directories.starcraft,
         repFile,
         outFile
     );
@@ -111,9 +111,10 @@ export default async (filepath: string) => {
     await gameStateReader.start();
     await gameStateReader.waitForMaxed;
 
-    const races = settings.musicAllTypes
-        ? ["terran", "zerg", "protoss"]
-        : uniq(rep.header.players.map(({ race }: { race: string }) => race)) as string[];
+    const races = ["terran", "zerg", "protoss"];
+    // const races = settings.musicAllTypes
+    //     ? ["terran", "zerg", "protoss"]
+    //     : uniq(rep.header.players.map(({ race }: { race: string }) => race)) as string[];
 
     const assets = getAssets();
     if (!assets || !assets.bwDat) {
@@ -126,8 +127,9 @@ export default async (filepath: string) => {
         races
     );
     janitor.disposable(audioMaster)
-    audioMaster.musicVolume = settings.musicVolume;
-    audioMaster.soundVolume = settings.soundVolume;
+    audioMaster.mixer.musicVolume = settings.audio.music;
+    audioMaster.mixer.soundVolume = settings.audio.sound;
+    audioMaster.mixer.masterVolume = settings.audio.global;
 
     log.verbose("starting gameloop");
     updateIndeterminateLoadingProcess("replay", getFunString());

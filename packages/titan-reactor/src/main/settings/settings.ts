@@ -3,11 +3,13 @@ import isDev from "electron-is-dev";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 import path from "path";
+import yaml from "js-yaml"
+import { AnyObject, toCamel, toSnake } from "../../common/utils/camel"
 
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
-import { Settings as SettingsType } from "../../common/types";
 import fileExists from "../../common/utils/file-exists";
+import { Settings as SettingsType } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -30,59 +32,48 @@ const shallowDiff = (a: any, b: any) => {
 };
 
 export class Settings extends EventEmitter {
-  private initialized = false;
   private _settings: SettingsType = {
     ...defaultSettings
   };
   private _filepath = "";
 
   async init(filepath: string) {
-    if (this.initialized) return;
-
     this._filepath = filepath;
 
-    const noop = () => { };
     try {
-      this._settings = JSON.parse(
-        await fsPromises.readFile(this._filepath, { encoding: "utf8" })
-      );
+      await this.load();
     } catch (err) {
       try {
         await fsPromises.unlink(this._filepath);
       } catch (err) {
-        noop();
       } finally {
         await this.save(await this.createDefaults());
       }
     }
-    this.initialized = true;
-    this._emitChanged();
   }
 
   async get() {
-    if (!this.initialized) {
-      throw new Error("settings not initialized");
-    }
     const errors = [];
     const files = [
-      "starcraftPath",
-      "mapsPath",
-      "replaysPath",
-      "communityModelsPath",
+      "starcraft",
+      "maps",
+      "replays",
+      "models",
+      "temp",
     ];
 
     for (const file of files) {
-      if (!(await fileExists(this._settings[file as keyof SettingsType] as string))) {
+      if (!(await fileExists(this._settings.directories[file as keyof SettingsType] as string))) {
         errors.push(file);
       }
     }
 
     const dataFolders = ["Data", "locales"];
-    if (await fileExists(this._settings["starcraftPath"])) {
+    if (await fileExists(this._settings.directories["starcraft"])) {
       for (const folder of dataFolders) {
         if (
           !(await fileExists(
-            path.join(this._settings["starcraftPath"], folder)
+            path.join(this._settings.directories["starcraft"], folder)
           ))
         ) {
           if (!errors.includes("starcraftPath")) {
@@ -114,15 +105,13 @@ export class Settings extends EventEmitter {
   }
 
   async load() {
-    if (!this.initialized) {
-      throw new Error("settings not initialized");
-    }
     const contents = await fsPromises.readFile(this._filepath, {
       encoding: "utf8",
     });
-    const newData = JSON.parse(contents);
-    this._settings = newData;
-    this._emitChanged();
+    const d = toCamel(yaml.load(contents) as AnyObject);
+
+    this._settings = d as SettingsType;
+    this._emitChanged(d);
   }
 
   async save(settings: any) {
@@ -132,9 +121,9 @@ export class Settings extends EventEmitter {
 
     const diff = shallowDiff(this._settings, settings);
     this._settings = Object.assign({}, this._settings, settings);
-    await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings), {
-      encoding: "utf8",
-    });
+    // await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings), {
+    //   encoding: "utf8",
+    // });
     this._emitChanged(diff);
   }
 
@@ -142,16 +131,19 @@ export class Settings extends EventEmitter {
     this.emit("change", { ...(await this.get()), diff });
   }
 
-  async createDefaults() {
+  async createDefaults(): Promise<SettingsType> {
     return {
       ...defaultSettings,
-      language: supportedLanguages.includes(String(getEnvLocale()))
-        ? getEnvLocale()
-        : "en-US",
-      starcraftPath: await findStarcraftPath(),
-      mapsPath: await findMapsPath(),
-      replaysPath: await findReplaysPath(),
-      tempPath: await findTempPath(),
+      language: supportedLanguages.find(s => s === String(getEnvLocale()))
+        ??
+        "en-US",
+      directories: {
+        starcraft: await findStarcraftPath(),
+        maps: await findMapsPath(),
+        replays: await findReplaysPath(),
+        temp: await findTempPath(),
+        models: path.join(app.getPath("documents"), "3dModels")
+      }
     };
   }
 }

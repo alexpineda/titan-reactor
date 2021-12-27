@@ -200,7 +200,7 @@ export class Renderer {
     lastPass.renderToScreen = true;
   }
 
-  enableRenderPass(antialias = this.settings.antialias) {
+  enableRenderPass(antialias = this.settings.graphics.antialias) {
     if (antialias) {
       this._togglePasses(this._renderPass, this._smaaPass);
     } else {
@@ -208,7 +208,7 @@ export class Renderer {
     }
   }
 
-  enableCinematicPass(antialias = this.settings.antialias) {
+  enableCinematicPass(antialias = this.settings.graphics.antialias) {
     this._togglePasses(
       this._renderPass,
       this._bloomPass,

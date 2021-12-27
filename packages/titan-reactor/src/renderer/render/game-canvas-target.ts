@@ -1,6 +1,8 @@
 import { CanvasTarget } from "../../common/image";
 import { Settings, GameAspect } from "../../common/types";
 
+const MinimapRatio = .25;
+
 export class GameCanvasTarget extends CanvasTarget {
   minimapSize = 0;
   top = 0;
@@ -37,7 +39,7 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(maxWidth - 2),
         Math.floor(maxHeight - 2),
-        this.settings.pixelRatio
+        this.settings.graphics.pixelRatio
       );
     } else {
       const aspect = aspects[gameAspect];
@@ -56,11 +58,11 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(width),
         Math.floor(height),
-        this.settings.pixelRatio
+        this.settings.graphics.pixelRatio
       );
     }
 
-    this.minimapSize = (this.height * this.settings.minimapRatio) / 100;
+    this.minimapSize = this.height * MinimapRatio;
   }
 
   getRect() {

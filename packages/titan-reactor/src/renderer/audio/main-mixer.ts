@@ -3,7 +3,7 @@ import { AudioContext } from "three";
 // mixes sound and music volumes
 export class MainMixer {
   context: AudioContext;
-  master: AudioNode;
+  master: GainNode;
   compressor: DynamicsCompressorNode;
   sound: GainNode;
   music: GainNode;
@@ -27,6 +27,14 @@ export class MainMixer {
   // compatibility with THREE.Audio until we change BgMusic
   getInput() {
     return this.music;
+  }
+
+  get masterVolume() {
+    return this.master.gain.value;
+  }
+
+  set masterVolume(val) {
+    this.master.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
   }
 
   get soundVolume() {

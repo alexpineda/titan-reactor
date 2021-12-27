@@ -40,7 +40,7 @@ export default async function loadTerrain(chk: Chk): Promise<TerrainInfo> {
   const [mapWidth, mapHeight] = chk.size;
 
   // files -> buffers
-  const { tilesetBuffers, bitmaps } = await loadBuffersAndBitmaps(chk, settings.terrainTextureResolution);
+  const { tilesetBuffers, bitmaps } = await loadBuffersAndBitmaps(chk, settings.assets.terrain);
 
   // options -> data
   const { dataTextures, levels } = await loadDataTexturesAndLevels(chk, geomOptions, tilesetBuffers.palette, bitmaps);
@@ -48,7 +48,7 @@ export default async function loadTerrain(chk: Chk): Promise<TerrainInfo> {
   //sd / hd textures required
   const { creepGrpSD, palette, hdTiles, creepGrpHD, tilegroupU16, tileset, megatiles, minitiles } = tilesetBuffers;
 
-  const renderSD = settings.terrainTextureResolution === AssetTextureResolution.SD;
+  const renderSD = settings.assets.terrain === AssetTextureResolution.SD;
 
   const displacementImages = await createDisplacementImages({
     palette,

@@ -1,4 +1,4 @@
-import { WrappedTexture } from "common";
+import { WrappedTexture } from "../../../types";
 import {
   MeshBasicMaterial,
   OrthographicCamera,

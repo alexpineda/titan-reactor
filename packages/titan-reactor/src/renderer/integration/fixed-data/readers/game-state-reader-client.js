@@ -26,13 +26,13 @@ export default class GameStateReaderClient extends EventDispatcher {
     const repBin = await openFile(filepath);
     this.repFile = filepath;
     const settings = getSettings();
-    this.outFile = path.join(settings.tempPath, "replay.out");
+    this.outFile = path.join(settings.directories.temp, "replay.out");
 
     let rep = await parseReplay(repBin);
 
     if (rep.version === Version.remastered) {
       const classicRep = await convertReplayTo116(repBin);
-      this.repFile = path.join(settings.tempPath, "replay.rep");
+      this.repFile = path.join(settings.directories.temp, "replay.rep");
       await new Promise((res) =>
         fs.writeFile(this.repFile, classicRep, (err) => {
           if (err) {

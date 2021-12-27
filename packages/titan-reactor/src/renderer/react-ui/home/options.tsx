@@ -405,36 +405,20 @@ export default ({
         </Option>
         <Option
           label={phrases["SETTINGS_SOUND_VOLUME"]}
-          value={`${Math.floor(settings.soundVolume * 100)}%`}
+          value={`${Math.floor(settings.audio.sound * 100)}%`}
         >
           <input
             type="range"
             min="0"
             max="1"
             step="0.01"
-            value={settings.soundVolume}
+            value={settings.audio.sound}
             onChange={(evt) => {
               save({
                 soundVolume: Number((evt.target as HTMLInputElement).value),
               });
             }}
           />
-        </Option>
-        <Option className="pl-4">
-          <ButtonSetContainer>
-            <ButtonSet
-              selected={settings.musicAllTypes}
-              label={phrases["SETTINGS_MUSIC_ALL_TYPES"]}
-              first
-              onClick={() => save({ musicAllTypes: true })}
-            />
-            <ButtonSet
-              selected={!settings.musicAllTypes}
-              label={phrases["SETTINGS_MUSIC_RACES_TYPES"]}
-              last
-              onClick={() => save({ musicAllTypes: false })}
-            />
-          </ButtonSetContainer>
         </Option>
       </Tab>
 
@@ -443,10 +427,10 @@ export default ({
           label={phrases["SETTINGS_GRAPHICS_FULLSCREEN"]}
           toggle={
             <Toggle
-              value={settings.fullscreen}
+              value={settings.graphics.fullscreen}
               onChange={() =>
                 save({
-                  fullscreen: !settings.fullscreen,
+                  fullscreen: !settings.graphics.fullscreen,
                 })
               }
             />

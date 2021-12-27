@@ -1,0 +1,34 @@
+version: 1
+
+directories:
+  starcraft: "C:\\Program Files (x86)\\StarCraft"
+  maps: "C:\\Users\\alexp\\Documents\\Starcraft\\Maps"
+  replays: "C:\\Users\\alexp\\Documents\\Starcraft\\Maps\\Replays"
+  models: "D:\\dev\\models\\models"
+  temp: "D:\\"
+
+language: "en-US" # supported: en-ES, en-KR
+
+player-colors:
+  ignore-replay-colors: true
+  randomize-order: false
+
+assets:
+  terrain: sd # sd, hd2, hd -  lowest memory/gpu use to highest
+  images: hd2
+
+audio:
+  global: 1
+  music: 0.01
+  sound: 0.1
+
+graphics:
+  renderer:
+    antialias: true
+    pixel-ratio: 1 # device or <number>
+  fullscreen: true
+
+map:
+  show-disabled-doodads: true
+  show-critters: true
+  background-color: black # color or <hex number>

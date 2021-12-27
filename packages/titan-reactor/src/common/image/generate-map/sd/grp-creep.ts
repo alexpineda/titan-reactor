@@ -1,4 +1,4 @@
-import { WrappedTexture } from "common";
+import { WrappedTexture } from "../../../types";
 import { DataTexture, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
 import { PX_PER_TILE_SD } from "./common";
 

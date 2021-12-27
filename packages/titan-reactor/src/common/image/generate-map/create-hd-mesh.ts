@@ -13,8 +13,7 @@ import {
     updateLoadingProcess,
 } from "../../../renderer/stores";
 import { strict as assert } from "assert";
-import { WrappedTexture } from "common";
-import { WrappedQuartileTextures } from "common";
+import { WrappedTexture, WrappedQuartileTextures } from "../../types";
 
 const DEFAULT_GEOM_OPTIONS = {
     //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable

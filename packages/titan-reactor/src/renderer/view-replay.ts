@@ -6,7 +6,7 @@ import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
 import { Group, MathUtils, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { unitTypes } from "../common/bwdat/enums";
+import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import {
   BwDAT,
@@ -84,7 +84,7 @@ async function TitanReactorGame(
   const createImage = createImageFactory(
     assets.bwDat,
     assets.grps,
-    settings.spriteTextureResolution,
+    settings.assets.images,
   );
 
   // @todo inputs should not be managed by view-replay
@@ -172,30 +172,26 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => window.renderMan = null);
 
-  // if (settings.renderMode !== SpriteTextureResolution.ThreeD && renderer.renderer) {
-  //   renderer.renderer.shadowMap.autoUpdate = false;
-  //   renderer.renderer.shadowMap.needsUpdate = true;
-  // }
-
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
   janitor.disposable(fogOfWar);
 
-  const customColors = settings.randomizeColorOrder
-    ? shuffle(settings.playerColors)
-    : settings.playerColors;
-  const playerColors = rep.header.players.map(
+  const customColors = settings.playerColors.randomizeOrder
+    ? shuffle(playerColors)
+    : playerColors;
+
+  const _playerColors = rep.header.players.map(
     ({ id, color }: ReplayPlayer, i: number) =>
       buildPlayerColor(
-        settings?.useCustomColors ? customColors[i] : color.hex,
+        settings.playerColors.ignoreReplayColors ? customColors[i].hex : color.hex,
         id
       )
   );
   const players = new Players(
     rep.header.players,
     preplacedMapUnits.filter((u) => u.unitId === startLocation),
-    playerColors
+    _playerColors
   );
-  injectColorsCss(playerColors);
+  injectColorsCss(_playerColors);
 
   audioMaster.music.playGame();
 
@@ -838,12 +834,12 @@ async function TitanReactorGame(
     settings = state.data;
     if (!settings) return;
 
-    if (audioMaster.musicVolume !== settings.musicVolume) {
-      audioMaster.musicVolume = settings.musicVolume;
+    if (audioMaster.mixer.musicVolume !== settings.audio.music) {
+      audioMaster.mixer.musicVolume = settings.audio.music;
     }
 
-    if (audioMaster.soundVolume !== settings.soundVolume) {
-      audioMaster.soundVolume = settings.soundVolume;
+    if (audioMaster.mixer.soundVolume !== settings.audio.sound) {
+      audioMaster.mixer.soundVolume = settings.audio.sound;
     }
   });
   janitor.callback(unsub);

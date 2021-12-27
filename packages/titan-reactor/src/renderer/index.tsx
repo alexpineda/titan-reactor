@@ -39,6 +39,12 @@ async function bootup() {
     const settings = getSettings();
     const hasErrors = useSettingsStore.getState().errors.length > 0;
 
+    useSettingsStore.subscribe((state) => {
+      if (state.errors) {
+        log.error(`settings errors: ${state.errors.join(", ")}`);
+      }
+    });
+
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
     completeScreen();
   } catch (err: any) {

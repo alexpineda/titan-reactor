@@ -84,7 +84,7 @@ async function TitanReactorMap(
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
 
-  scene.background = new Color(settings.mapBackgroundColor);
+  // scene.background = new Color(settings.mapBackgroundColor);
 
   const cameraRig = new CameraRig({
     settings,
@@ -216,21 +216,21 @@ async function TitanReactorMap(
     const prevSettings = prevState.data;
     if (settings === null || prevSettings === null) return;
 
-    if (prevSettings.showDisabledDoodads !== settings.showDisabledDoodads) {
-      for (const doodad of disabledDoodads) {
-        doodad.visible = settings.showDisabledDoodads;
-      }
-    }
+    // if (prevSettings.showDisabledDoodads !== settings.showDisabledDoodads) {
+    //   for (const doodad of disabledDoodads) {
+    //     doodad.visible = settings.showDisabledDoodads;
+    //   }
+    // }
 
-    if (prevSettings.showCritters !== settings.showCritters) {
-      for (const critter of critters) {
-        critter.visible = settings.showCritters;
-      }
-    }
+    // if (prevSettings.showCritters !== settings.showCritters) {
+    //   for (const critter of critters) {
+    //     critter.visible = settings.showCritters;
+    //   }
+    // }
 
-    if (prevSettings.mapBackgroundColor !== settings.mapBackgroundColor) {
-      scene.background = new Color(settings.mapBackgroundColor);
-    }
+    // if (prevSettings.mapBackgroundColor !== settings.mapBackgroundColor) {
+    //   scene.background = new Color(settings.mapBackgroundColor);
+    // }
   });
   janitor.callback(unsub)
 

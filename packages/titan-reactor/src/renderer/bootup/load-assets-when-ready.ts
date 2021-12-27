@@ -9,13 +9,13 @@ import loadAssets from "../assets/load-assets";
 import { Settings } from "../../common/types";
 
 const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => void) => {
-  if (hasErrors || !settings || !settings.starcraftPath || !settings.communityModelsPath) {
+  if (hasErrors || !settings || !settings.directories?.starcraft || !settings.directories?.models) {
     return;
   }
   if (isProcessComplete("assets") || isProcessInProgress("assets")) {
     return;
   }
-  const assets = await loadAssets(settings.starcraftPath, settings.communityModelsPath);
+  const assets = await loadAssets(settings.directories.starcraft, settings.directories.models);
   setAssets(assets);
   onSuccess();
   return true;

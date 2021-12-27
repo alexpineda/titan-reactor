@@ -2,12 +2,13 @@ import { app, powerSaveBlocker, protocol } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
-import "./create-app-menu";
+import createAppMenu from "./create-app-menu";
 
 import windows, { createMain } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
 
+const settingsPath = path.join(getUserDataPath(), "settings.yml");
 const psbId = powerSaveBlocker.start("prevent-display-sleep");
 
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
@@ -32,8 +33,11 @@ protocol.registerSchemesAsPrivileged([
 
 app.commandLine.appendSwitch("--disable-xr-sandbox");
 
+
+createAppMenu(settingsPath);
+
 app.on("ready", async () => {
-  await settings.init(path.join(getUserDataPath(), "settings.json"));
+  await settings.init(settingsPath);
   if (!windows.main) {
     createMain();
   }
