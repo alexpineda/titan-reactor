@@ -4,7 +4,6 @@ import {
   OPEN_CASCLIB,
   OPEN_CASCLIB_FILE,
   OPEN_CASCLIB_BATCH,
-  CLOSE_CASCLIB,
 } from "../../../common/ipc-handle-names";
 
 import * as casclib from "./api";
@@ -30,9 +29,4 @@ ipcMain.handle(OPEN_CASCLIB_BATCH, async (_, filepaths: string[]) => {
     buffers.push(buffer);
   }
   return buffers;
-});
-
-
-ipcMain.handle(CLOSE_CASCLIB, () => {
-  casclib.closeCascStorage();
 });

@@ -8,7 +8,6 @@ import {
   TitanSprite,
 } from "./core";
 import { createIScriptRunnerFactory } from "../common/iscript";
-import { ChkType } from "../common/types";
 import { log } from "./ipc";
 import { Scene } from "./render";
 import { generateTerrain } from "./assets/generate-terrain";
@@ -41,10 +40,10 @@ export default async (chkFilepath: string) => {
 
     const game = getGame();
 
-    const chk = new Chk(await loadScm(chkFilepath)) as unknown as ChkType;
+    const chk = new Chk(await loadScm(chkFilepath));
     const terrainInfo = await generateTerrain(chk);
 
-    game.scene.replaceTerrain(terrainInfo.sdTerrain, terrainInfo.terrain);
+    game.scene.replaceTerrain(terrainInfo.terrain);
 
     updateWindowTitle(chk.title);
     return;
@@ -64,7 +63,7 @@ export default async (chkFilepath: string) => {
   } as UITypeMap);
 
   log("loading chk");
-  const chk = new Chk(await loadScm(chkFilepath)) as unknown as ChkType;
+  const chk = new Chk(await loadScm(chkFilepath));
   updateUIType({
     title: chk.title,
     description: chk.description,

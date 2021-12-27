@@ -71,7 +71,7 @@ export default async (filepath: string) => {
 
     updateUIType({ header: rep.header } as UITypeReplay);
 
-    if (rep.version !== Version.TitanReactor) {
+    if (rep.version !== Version.titanReactor) {
         const chkDowngrader = new ChkDowngrader();
         const newrep = await sidegradeReplay(rep, chkDowngrader);
         repFile = path.join(settings.tempPath, "replay.rep");

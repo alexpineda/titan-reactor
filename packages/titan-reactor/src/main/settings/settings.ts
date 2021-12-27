@@ -72,7 +72,7 @@ export class Settings extends EventEmitter {
     ];
 
     for (const file of files) {
-      if (!(await fileExists(this._settings[file as keyof SettingsType]))) {
+      if (!(await fileExists(this._settings[file as keyof SettingsType] as string))) {
         errors.push(file);
       }
     }
@@ -107,7 +107,7 @@ export class Settings extends EventEmitter {
       isDev,
       phrases: {
         ...phrases["en-US"],
-        ...phrases[this._settings.language],
+        ...phrases[this._settings.language as keyof typeof phrases],
       },
       diff: {},
     };
@@ -145,7 +145,7 @@ export class Settings extends EventEmitter {
   async createDefaults() {
     return {
       ...defaultSettings,
-      language: supportedLanguages.includes(getEnvLocale())
+      language: supportedLanguages.includes(String(getEnvLocale()))
         ? getEnvLocale()
         : "en-US",
       starcraftPath: await findStarcraftPath(),

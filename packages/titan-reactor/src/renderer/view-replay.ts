@@ -4,7 +4,7 @@ import { unstable_batchedUpdates } from "react-dom";
 import { Group, MathUtils, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import { CommandsStream } from "downgrade-replay";
+import type { CommandsStream, Replay } from "downgrade-replay";
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
 import { AtlasHD, CanvasTarget } from "../common/image";
@@ -73,7 +73,7 @@ async function TitanReactorGame(
   scene: Scene,
   terrainInfo: TerrainInfo,
   preplacedMapUnits: ChkUnitType[],
-  rep,
+  rep: Replay,
   commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,
   bwDat: BwDAT,
@@ -198,12 +198,6 @@ async function TitanReactorGame(
 
   const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
   keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
-
-  const toggleElevationHandler = () => scene.toggleElevation();
-  keyboardShortcuts.addEventListener(
-    InputEvents.ToggleElevation,
-    toggleElevationHandler
-  );
 
   const nextFrameHandler = (evt: KeyboardEvent) => {
     if (evt.code === "KeyN") {
@@ -833,10 +827,6 @@ async function TitanReactorGame(
     keyboardShortcuts.removeEventListener(
       InputEvents.ToggleMenu,
       toggleMenuHandler
-    );
-    keyboardShortcuts.removeEventListener(
-      InputEvents.ToggleElevation,
-      toggleElevationHandler
     );
 
     window.document.body.style.cursor = "";
