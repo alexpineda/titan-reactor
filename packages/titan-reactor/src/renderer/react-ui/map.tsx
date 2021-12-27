@@ -7,9 +7,9 @@ import {
   useSettingsStore,
   SettingsStore,
   disposeGame,
-  initUIType,
-  completeUIType,
-  UITypeHome,
+  initScreen,
+  completeScreen,
+  HomeScreen,
   GameStore,
 } from "../stores";
 import shallow from "zustand/shallow";
@@ -34,8 +34,8 @@ const surfaceSelector = (state: GameStore) => state.game.gameSurface;
 
 const resetToHome = () => {
   disposeGame();
-  initUIType({ type: "home" } as UITypeHome);
-  completeUIType();
+  initScreen({ type: "home" } as HomeScreen);
+  completeScreen();
 };
 
 const Map = () => {

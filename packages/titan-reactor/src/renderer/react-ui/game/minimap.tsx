@@ -11,7 +11,7 @@ import {
   useLoadingStore,
   LoadingStore,
   useResourcesStore,
-  UITypeReplay,
+  ReplayScreen,
 } from "../../stores";
 
 const textSizeSelector = (state: SettingsStore) => state?.data?.hudFontSize;
@@ -24,7 +24,7 @@ const gameStoreSelector = (state: GameStore) => ({
   canvas: state.game.minimapSurface.canvas,
 });
 const mapLabelSelector = (state: LoadingStore) =>
-  (state.screen as UITypeReplay).chkTitle || "";
+  (state.screen as ReplayScreen).chkTitle || "";
 
 const Minimap = ({ className = "" }) => {
   const textSize = useSettingsStore(textSizeSelector);

@@ -22,21 +22,21 @@ export type LoadingStoreProcess =
   | LoadingStoreBaseProcess
   | LoadingStoreDeterminateProcess;
 
-type BaseUIType = {
+type BaseScreen = {
   type: "map" | "replay" | "iscriptah" | "home";
   loading?: boolean;
   loaded?: boolean;
   error?: Error;
 };
 
-export type UITypeMap = BaseUIType & {
+export type MapScreen = BaseScreen & {
   type: "map";
   filename?: string;
   title?: string;
   description?: string;
 };
 
-export type UITypeReplay = BaseUIType & {
+export type ReplayScreen = BaseScreen & {
   type: "replay";
   filename?: string;
   header?: {
@@ -45,25 +45,25 @@ export type UITypeReplay = BaseUIType & {
   chkTitle?: string;
 };
 
-export type UITypeIscriptah = BaseUIType & {
+export type IScriptahScreen = BaseScreen & {
   type: "iscriptah";
 };
 
-export type UITypeHome = BaseUIType & {
+export type HomeScreen = BaseScreen & {
   type: "home";
 };
 
-export type UIType = UITypeMap | UITypeReplay | UITypeIscriptah | UITypeHome;
+export type UIType = MapScreen | ReplayScreen | IScriptahScreen | HomeScreen;
 
 export type LoadingStore = {
   isReplay: boolean;
   isGame: boolean;
   isMap: boolean;
   screen: UIType;
-  initUIType: (value: UIType) => void;
-  updateUIType: <T extends BaseUIType>(value: T) => void;
-  completeUIType: () => void;
-  errorUIType: (error: Error) => void;
+  initScreen: (value: UIType) => void;
+  updateScreen: <T extends BaseScreen>(value: T) => void;
+  completeScreen: () => void;
+  errorScreen: (error: Error) => void;
   completedProcesses: LoadingStoreProcess[];
   processes: LoadingStoreProcess[];
   startProcess: (process: LoadingStoreProcess) => void;
@@ -79,7 +79,7 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
   isGame: false,
   isMap: false,
   screen: { type: "home", loaded: false, loading: true },
-  initUIType: (value) =>
+  initScreen: (value) =>
     set({
       screen: {
         loading: true,
@@ -87,13 +87,13 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
         ...value,
       },
     }),
-  updateUIType: (value) =>
+  updateScreen: (value) =>
     set((state) => ({ screen: { ...state.screen, ...value } })),
-  completeUIType: () =>
+  completeScreen: () =>
     set(({ screen }) => ({
       screen: { ...screen, loaded: true, loading: false },
     })),
-  errorUIType: (error) =>
+  errorScreen: (error) =>
     set((state) => ({
       screen: { ...state.screen, error, loaded: false, loading: false },
     })),
@@ -151,7 +151,7 @@ export const isProcessComplete =
   useLoadingStore.getState().isProcessComplete;
 export const isProcessInProgress =
   useLoadingStore.getState().isProcessInProgress;
-export const initUIType = useLoadingStore.getState().initUIType;
-export const updateUIType = useLoadingStore.getState().updateUIType;
-export const completeUIType = useLoadingStore.getState().completeUIType;
-export const errorUIType = useLoadingStore.getState().errorUIType;
+export const initScreen = useLoadingStore.getState().initScreen;
+export const updateScreen = useLoadingStore.getState().updateScreen;
+export const completeScreen = useLoadingStore.getState().completeScreen;
+export const errorScreen = useLoadingStore.getState().errorScreen;

@@ -31,6 +31,7 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   Apm,
+  createImageFactory,
   GameStatePosition,
   Players,
 } from "./core";
@@ -38,6 +39,8 @@ import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-
 import { InputEvents, KeyboardShortcuts, MinimapControl, MouseInteraction } from "./input";
 import { GameCanvasTarget, Renderer, Scene, MinimapCanvasDrawer, BuildUnits } from "./render";
 import {
+  getAssets,
+  getSettings,
   useGameStore,
   useHudStore,
   useProductionStore,
@@ -69,13 +72,6 @@ const { startLocation } = unitTypes;
 
 const addChatMessage = useGameStore.getState().addChatMessage;
 
-
-type createTitanImage = (
-  imageId: number,
-  sprite: Sprite
-) => Image;
-
-
 async function TitanReactorGame(
   scene: Scene,
   terrainInfo: TerrainInfo,
@@ -84,15 +80,20 @@ async function TitanReactorGame(
   commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,
   bwDat: BwDAT,
-  createTitanImage: createTitanImage,
   audioMaster: AudioMaster
 ) {
-  let settings = useSettingsStore.getState().data;
-  if (!settings) {
-    throw new Error("Settings not loaded");
-  }
-
   const janitor = new Janitor();
+
+  let settings = getSettings();
+  const assets = getAssets();
+  assert(assets);
+
+  const createImage = createImageFactory(
+    assets.bwDat,
+    assets.grps,
+    settings.spriteTextureResolution,
+  );
+
   // @todo inputs should not be managed by view-replay
   janitor.disposable(audioMaster);
 
@@ -445,7 +446,7 @@ async function TitanReactorGame(
 
         //if selected show selection sprites, also check canSelect again in case it died
         if (sprite.unit.selected && sprite.unit.canSelect) {
-          sprite.select(completedUpgrades);
+          sprite.select(completedUpgrades[sprite.unit.ownerId]);
         } else {
           sprite.unselect();
         }
@@ -460,56 +461,56 @@ async function TitanReactorGame(
 
       sprite.mainImage = null;
 
-      for (const image of imagesBW.reverse(spriteBW.imageCount)) {
-        if (image.hidden) continue;
+      for (const imageBW of imagesBW.reverse(spriteBW.imageCount)) {
+        if (imageBW.hidden) continue;
 
         //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
-        const titanImage =
-          sprite.images.get(image.id) || createTitanImage(image.id, sprite);
-        if (!titanImage) continue;
-        sprite.add(titanImage);
+        const image =
+          sprite.images.get(imageBW.id) || createImage(imageBW.id, sprite);
+        if (!image) continue;
+        sprite.add(image);
 
         // if (!sprite.visible || dontUpdate) {
         //   continue;
         // }
 
         if (player) {
-          titanImage.setTeamColor(player.color.three);
+          image.setTeamColor(player.color.three);
         }
         // overlay position
-        titanImage.offsetX = titanImage.position.x = image.x / 32;
-        titanImage.offsetY = titanImage.position.z = image.y / 32;
-        titanImage.renderOrder = _imageRenderOrder++;
+        image.offsetX = image.position.x = imageBW.x / 32;
+        image.offsetY = image.position.z = imageBW.y / 32;
+        image.renderOrder = _imageRenderOrder++;
 
         // 63-48=15
-        if (image.modifier === 14) {
-          titanImage.setWarpingIn((image.modifierData1 - 48) / 15);
+        if (imageBW.modifier === 14) {
+          image.setWarpingIn((imageBW.modifierData1 - 48) / 15);
         } else {
           //@todo see if we even need this
-          titanImage.setWarpingIn(0);
+          image.setWarpingIn(0);
         }
         //@todo use modifier 1 for opacity value
-        titanImage.setCloaked(image.modifier === 2 || image.modifier === 5);
+        image.setCloaked(imageBW.modifier === 2 || imageBW.modifier === 5);
 
-        titanImage.setFrame(image.frameIndex, image.flipped);
+        image.setFrame(imageBW.frameIndex, imageBW.flipped);
 
-        if (!sprite.images.has(image.id)) {
-          sprite.images.set(image.id, titanImage);
+        if (!sprite.images.has(imageBW.id)) {
+          sprite.images.set(imageBW.id, image);
         }
 
         let z = 0;
-        if (image.index === spriteBW.mainImageIndex) {
-          sprite.mainImage = titanImage;
-          z = titanImage._zOff * (titanImage._spriteScale / 32); //x4 for HD
+        if (imageBW.index === spriteBW.mainImageIndex) {
+          sprite.mainImage = image;
+          z = image._zOff * (image._spriteScale / 32); //x4 for HD
 
           if (sprite.unit) {
-            titanImage.rotation.y = sprite.unit.angle;
-            if (!image.dat.clickable) {
+            image.rotation.y = sprite.unit.angle;
+            if (!imageBW.dat.clickable) {
               sprite.unit.canSelect = false;
             }
             if (sprite.unit.canSelect) {
               //@todo change to layer
-              interactableSprites.push(titanImage);
+              interactableSprites.push(image);
             }
           }
         }
@@ -624,26 +625,24 @@ async function TitanReactorGame(
 
   const cmds = commandsStream.generate();
 
-  const _loadingGrp: boolean[] = [];
-  const assets = useGameStore.getState().assets;
-  assert(assets);
-  gameStateReader.on("frames", (frames: FrameBW[]) => {
-    const images = new ImagesBW();
+  // const _loadingGrp: boolean[] = [];
+  // gameStateReader.on("frames", (frames: FrameBW[]) => {
+  //   const images = new ImagesBW();
 
-    for (const frame of frames) {
-      images.buffer = frame.images;
-      images.count = frame.imageCount;
+  //   for (const frame of frames) {
+  //     images.buffer = frame.images;
+  //     images.count = frame.imageCount;
 
-      for (const image of images.items()) {
-        const index = image.dat.index;
-        if (!assets.grps[index] && !_loadingGrp[index]) {
-          console.log('dynamic loading', index)
-          _loadingGrp[index] = true;
-          assets.loadImageAtlas(index);
-        }
-      }
-    }
-  });
+  //     for (const image of images.items()) {
+  //       const index = image.dat.index;
+  //       if (!assets.grps[index] && !_loadingGrp[index]) {
+  //         console.log('dynamic loading', index)
+  //         _loadingGrp[index] = true;
+  //         assets.loadImageAtlas(index);
+  //       }
+  //     }
+  //   }
+  // });
 
   const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;

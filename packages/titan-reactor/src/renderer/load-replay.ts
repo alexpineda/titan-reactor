@@ -11,7 +11,7 @@ import path from "path";
 
 import Chk from "bw-chk";
 import {
-    createTitanImageFactory,
+    createImageFactory,
     ImageHD
 } from "./core";
 import { createIScriptRunnerFactory } from "../common/iscript";
@@ -30,10 +30,10 @@ import {
     startLoadingProcess,
     updateIndeterminateLoadingProcess,
     completeLoadingProcess,
-    initUIType,
-    updateUIType,
-    completeUIType,
-    UITypeReplay,
+    initScreen,
+    updateScreen,
+    completeScreen,
+    ReplayScreen,
 } from "./stores";
 import TitanReactorGame from "./view-replay";
 import { BwDAT } from "../common/types";
@@ -60,16 +60,16 @@ export default async (filepath: string) => {
 
     document.title = "Titan Reactor - Loading";
 
-    initUIType({
+    initScreen({
         type: "replay",
         filename: filepath,
-    } as UITypeReplay);
+    } as ReplayScreen);
 
     log("parsing replay");
     let repFile = filepath;
     const outFile = path.join(settings.tempPath, "replay.out");
 
-    updateUIType({ header: rep.header } as UITypeReplay);
+    updateScreen({ header: rep.header } as ReplayScreen);
 
     if (rep.version !== Version.titanReactor) {
         const chkDowngrader = new ChkDowngrader();
@@ -90,7 +90,7 @@ export default async (filepath: string) => {
 
     log("loading chk");
     const chk = new Chk(rep.chk);
-    updateUIType({ chkTitle: chk.title } as UITypeReplay);
+    updateScreen({ chkTitle: chk.title } as ReplayScreen);
 
     log("building terrain");
     const terrainInfo = await generateTerrain(chk);
@@ -138,16 +138,11 @@ export default async (filepath: string) => {
         new CommandsStream(rep.rawCmds),
         gameStateReader,
         assets.bwDat,
-        createTitanImageFactory(
-            assets.bwDat,
-            assets.grps,
-            settings.spriteTextureResolution,
-        ),
         audioMaster
     );
 
     setGame(game);
-    completeUIType();
+    completeScreen();
 
     log("starting replay");
     document.title = "Titan Reactor - Observing";

@@ -5,7 +5,7 @@ import Anim from "../../common/image/atlas/atlas-anim";
 import { Image, Sprite, ImageHD2, ImageHD, Image3D } from ".";
 
 // @todo include skipShadows: number[] to look up if we don't load shadows in case the parent glb is to be loaded
-export const createTitanImageFactory = (
+export const createImageFactory = (
   bwDat: BwDAT,
   atlases: Glb[] | Anim[],
   spriteTextureResolution: AssetTextureResolution,
@@ -74,4 +74,4 @@ export const createTitanImageFactory = (
     // return titanImage as Image;
   };
 };
-export default createTitanImageFactory;
+export default createImageFactory;

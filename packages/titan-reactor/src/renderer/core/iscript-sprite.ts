@@ -27,12 +27,9 @@ export class IScriptSprite extends Group {
   createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite;
   createTitanSpriteCb: (titanSprite: IScriptSprite) => void;
   destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void;
-
-  //@todo merge this with other createTitanImage that takes SpriteInstance
   createTitanImage: (
-    image: number,
-    parent: IScriptSprite
-  ) => Image | null;
+    image: number
+  ) => Image
 
   iscriptOptions: {
     createBullets: boolean;
@@ -42,11 +39,10 @@ export class IScriptSprite extends Group {
   constructor(
     unit: any = null,
     bwDat: BwDAT,
-    createTitanSprite: (unit: UnitDAT | null) => IScriptSprite,
+    createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite,
     createTitanImage: (
-      image: number,
-      parent: IScriptSprite
-    ) => Image | null,
+      image: number
+    ) => Image,
     createTitanSpriteCb: (titanSprite: IScriptSprite) => void,
     destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void = () => { },
     logger = { log: () => { } }

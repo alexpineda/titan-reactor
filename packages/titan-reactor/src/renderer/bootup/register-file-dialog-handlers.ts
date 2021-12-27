@@ -4,7 +4,7 @@ import {
 } from "../../common/ipc-handle-names";
 import { ipcRenderer } from "electron";
 import { log } from "../ipc";
-import { errorUIType } from "../stores";
+import { errorScreen } from "../stores";
 import spawnMap from "../load-map";
 import loadReplay from "../load-replay";
 
@@ -15,7 +15,7 @@ export default () => {
       spawnMap(map);
     } catch (err: any) {
       log(err.message, "error");
-      errorUIType(err);
+      errorScreen(err);
     }
   });
 
@@ -25,7 +25,7 @@ export default () => {
       loadReplay(replays[0]);
     } catch (err: any) {
       log(err.message, "error");
-      errorUIType(err);
+      errorScreen(err);
     }
   });
 };

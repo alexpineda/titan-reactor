@@ -7,6 +7,13 @@ import { iscriptHeaders as headers } from "../bwdat/enums/iscript-headers";
 
 type Commands = AnimationBlockType & { header?: number };
 
+
+export const createIScriptRunnerFactory = (bwDat: BwDAT, tileset: number) => {
+  return (image: Image, imageDesc: ImageDAT, state = {}) =>
+    new IScriptRunner(bwDat, tileset, image, imageDesc, state);
+};
+
+
 export class IScriptRunner {
   private bwDat: BwDAT;
   private iscript: IScriptRawType;
@@ -505,8 +512,3 @@ export class IScriptRunner {
     }
   }
 }
-
-export const createIScriptRunnerFactory = (bwDat: BwDAT, tileset: number) => {
-  return (image: Image, imageDesc: ImageDAT, state = {}) =>
-    new IScriptRunner(bwDat, tileset, image, imageDesc, state);
-};

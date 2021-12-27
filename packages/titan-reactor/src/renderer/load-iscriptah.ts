@@ -6,9 +6,9 @@ import {
     setGame,
     startLoadingProcess,
     completeLoadingProcess,
-    initUIType,
-    completeUIType,
-    UITypeIscriptah,
+    initScreen,
+    completeScreen,
+    IScriptahScreen,
 } from "./stores";
 // import IScriptah from "./react-ui/iscriptah/iscriptah";
 import getFunString from "./bootup/get-fun-string";
@@ -24,9 +24,9 @@ export default async () => {
         priority: 1,
     });
 
-    initUIType({
+    initScreen({
         type: "iscriptah",
-    } as UITypeIscriptah);
+    } as IScriptahScreen);
 
     await waitForAssets();
     const assets = getAssets();
@@ -37,5 +37,5 @@ export default async () => {
     // const game = await IScriptah();
     // setGame(game);
     completeLoadingProcess("iscriptah");
-    completeUIType();
+    completeScreen();
 };

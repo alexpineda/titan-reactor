@@ -1,14 +1,14 @@
 // playground for environment
 import { debounce } from "lodash";
-import { CircleGeometry, Color, Mesh, MeshBasicMaterial, MOUSE } from "three";
+import { Color, MOUSE, Object3D } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { strict as assert } from "assert";
 import type { ChkUnit, ChkSprite } from "bw-chk";
 
 import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
-import { IScriptSprite } from "./core"
-import {
-  BwDAT,
+import { createImageFactory, IScriptSprite } from "./core"
+import type {
   TerrainInfo,
 } from "../common/types";
 import { pxToMapMeter } from "../common/utils/conversions";
@@ -16,39 +16,39 @@ import CameraRig from "./camera/camera-rig";
 import FogOfWar from "./fogofwar/fog-of-war";
 import { InputEvents, KeyboardShortcuts } from "./input";
 import { Renderer, Scene } from "./render";
-import { useHudStore, useSettingsStore } from "./stores";
+import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
+import createStartLocation from "./core/create-start-location"
+import Chk from "bw-chk";
 
-function createStartLocation(
-  mapX: number,
-  mapY: number,
-  color: string,
-  mapZ = 0
-) {
-  const geometry = new CircleGeometry(2, 32);
-  const material = new MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity: 0.5,
-  });
-  const circle = new Mesh(geometry, material);
-  circle.rotation.x = Math.PI / -2;
-  circle.position.x = mapX;
-  circle.position.z = mapY;
-  circle.position.y = mapZ;
-  circle.name = "StartPosition";
-  return circle;
-}
 
 async function TitanReactorMap(
-  bwDat: BwDAT,
-  preplacedMapUnits: ChkUnit[],
-  preplacedMapSprites: ChkSprite[],
+  chk: Chk,
   terrainInfo: TerrainInfo,
-  scene: Scene,
-  createTitanSprite: () => IScriptSprite
+  scene: Scene
 ) {
   const janitor = new Janitor();
+  const assets = getAssets();
+  assert(assets);
+
+  const preplacedMapUnits = chk.units;
+  const preplacedMapSprites = chk.sprites;
+
+  // createIScriptRunnerFactory(assets.bwDat, chk.tileset)
+
+  const createIScriptSprite = () => {
+    return new IScriptSprite(
+      null,
+      assets.bwDat,
+      createIScriptSprite,
+      createImageFactory(
+        assets.bwDat,
+        assets.grps,
+        settings.spriteTextureResolution,
+      ),
+      (sprite: Object3D) => scene.add(sprite)
+    );
+  };
 
   const { mapWidth, mapHeight } = terrainInfo;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);

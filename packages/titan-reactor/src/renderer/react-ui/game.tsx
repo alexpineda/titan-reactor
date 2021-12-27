@@ -23,10 +23,10 @@ import {
   SettingsStore,
   useHudStore,
   HudStore,
-  completeUIType,
+  completeScreen,
   disposeGame,
-  UITypeHome,
-  initUIType,
+  HomeScreen,
+  initScreen,
 } from "../stores";
 
 const gameStoreSelector = (state: GameStore) => ({
@@ -54,8 +54,8 @@ const settingsStoreSelector = (state: SettingsStore) => ({
 
 const resetToHome = () => {
   disposeGame();
-  initUIType({ type: "home" } as UITypeHome);
-  completeUIType();
+  initScreen({ type: "home" } as HomeScreen);
+  completeScreen();
 };
 
 const Game = () => {

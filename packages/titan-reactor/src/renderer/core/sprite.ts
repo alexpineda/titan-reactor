@@ -6,9 +6,8 @@ import SelectionCircle from "./selection-circle";
 import { UpgradeCompleted } from "../../common/types/production";
 import { Unit, Image } from ".";
 
-//@todo create interface that TitanSprite can implement
 /**
- * The wrapper object for a bw sprite, contains images as well as selection circles and health bars
+ * Object3D representing a game sprite. Contains images as well as selection circles and health bars
  */
 export class Sprite extends Object3D {
   index: number;

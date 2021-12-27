@@ -7,8 +7,8 @@ import { log } from "./ipc";
 import {
   loadSettings,
   useSettingsStore,
-  errorUIType,
-  completeUIType,
+  errorScreen,
+  completeScreen,
 } from "./stores";
 import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
@@ -38,10 +38,10 @@ async function bootup() {
     const hasErrors = useSettingsStore.getState().errors.length > 0;
 
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
-    completeUIType();
+    completeScreen();
   } catch (err: any) {
     log(err.message, "error");
-    errorUIType(err);
+    errorScreen(err);
   }
 }
 
