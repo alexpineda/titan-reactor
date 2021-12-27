@@ -221,7 +221,7 @@ class CameraRig {
   }
 
   dispose() {
-    this.control.dispose();
+    this.control && this.control.dispose();
     this.previewControl && this.previewControl.dispose();
   }
 }

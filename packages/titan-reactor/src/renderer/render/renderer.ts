@@ -307,6 +307,8 @@ export class Renderer {
   }
 
   dispose() {
+    this.renderer?.setAnimationLoop(null);
+
     // @ts-ignore
     // typescript does not recognize webglcontext events
     (this.renderer.domElement as HTMLCanvasElement).removeEventListener(
@@ -318,7 +320,6 @@ export class Renderer {
       "webglcontextrestored",
       this._contextRestoredListener
     );
-    this.renderer?.setAnimationLoop(null);
 
     //bug in cinematic pass dispose requires us to set camera to null before disposing
     this._dofEffect.camera = null;

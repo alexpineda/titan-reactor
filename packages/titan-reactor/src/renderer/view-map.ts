@@ -80,6 +80,8 @@ async function TitanReactorMap(
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
   document.body.appendChild(gameSurface.canvas);
+  janitor.callback(() => document.body.removeChild(gameSurface.canvas));
+
 
   scene.background = new Color(settings.mapBackgroundColor);
 
@@ -95,7 +97,7 @@ async function TitanReactorMap(
   //@ts-ignore
   window.cameraRig = cameraRig;
   // @ts-ignore
-  janitor.callback(() => cameraRig = null)
+  janitor.callback(() => window.cameraRig = null)
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
   janitor.disposable(orbitControls);
 
@@ -119,7 +121,7 @@ async function TitanReactorMap(
   //@ts-ignore
   window.renderMan = renderer;
   // @ts-ignore
-  janitor.callback(() => renderMan = null)
+  janitor.callback(() => window.renderMan = null)
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
   janitor.disposable(fogOfWar);
@@ -234,7 +236,7 @@ async function TitanReactorMap(
   janitor.callback(unsub)
 
   const dispose = () => {
-
+    console.log("disposing map viewer");
     janitor.mopUp();
 
   };

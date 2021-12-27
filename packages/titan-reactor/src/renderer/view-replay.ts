@@ -80,9 +80,9 @@ async function TitanReactorGame(
   commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,
   bwDat: BwDAT,
-  audioMaster: AudioMaster
+  audioMaster: AudioMaster,
+  janitor: Janitor
 ) {
-  const janitor = new Janitor();
 
   let settings = getSettings();
   const assets = getAssets();
@@ -116,11 +116,13 @@ async function TitanReactorGame(
     dimensions: gameSurface.getRect(),
   });
   document.body.appendChild(gameSurface.canvas);
+  janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
   minimapSurface.canvas.style.bottom = "0";
   document.body.appendChild(minimapSurface.canvas);
+  janitor.callback(() => document.body.removeChild(minimapSurface.canvas));
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
   const minimapControl = new MinimapControl(
@@ -832,13 +834,9 @@ async function TitanReactorGame(
   };
 
   const dispose = () => {
-    console.log("disposing");
+    console.log("disposing replay viewer");
     gameStatePosition.pause();
-
     janitor.mopUp();
-
-    // @todo managed by outside is better
-    gameStateReader.dispose();
   };
 
   window.onbeforeunload = dispose;

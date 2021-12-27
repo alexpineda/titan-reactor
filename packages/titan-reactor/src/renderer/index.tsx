@@ -9,6 +9,7 @@ import {
   useSettingsStore,
   errorScreen,
   completeScreen,
+  getSettings,
 } from "./stores";
 import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
@@ -34,7 +35,7 @@ async function bootup() {
     log("bootup complete");
     registerFileDialogHandlers();
 
-    const settings = useSettingsStore.getState().data;
+    const settings = getSettings();
     const hasErrors = useSettingsStore.getState().errors.length > 0;
 
     await waitUnless(10_000, preloadAssets(settings, hasErrors));

@@ -38,6 +38,7 @@ import TitanReactorGame from "./view-replay";
 import { BwDAT } from "../common/types";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
+import Janitor from "./utils/janitor";
 
 export default async (filepath: string) => {
     log(`loading replay ${filepath}`);
@@ -51,6 +52,7 @@ export default async (filepath: string) => {
 
     disposeGame();
 
+    const janitor = new Janitor();
     const settings = getSettings();
 
     // validate before showing any loading progress
@@ -94,6 +96,7 @@ export default async (filepath: string) => {
     log("building terrain");
     const terrainInfo = await generateTerrain(chk);
     const scene = new Scene(terrainInfo);
+    janitor.object3d(scene);
 
     await waitForAssets();
 
@@ -105,6 +108,8 @@ export default async (filepath: string) => {
         repFile,
         outFile
     );
+    janitor.disposable(gameStateReader);
+
     await gameStateReader.start();
     log("waiting for maxed");
 
@@ -123,6 +128,7 @@ export default async (filepath: string) => {
         assets.loadAudioFile.bind(assets),
         races
     );
+    janitor.disposable(audioMaster)
     audioMaster.musicVolume = settings.musicVolume;
     audioMaster.soundVolume = settings.soundVolume;
 
@@ -137,7 +143,8 @@ export default async (filepath: string) => {
         new CommandsStream(rep.rawCmds),
         gameStateReader,
         assets.bwDat,
-        audioMaster
+        audioMaster,
+        janitor
     );
 
     setGame(game);
