@@ -7,8 +7,6 @@ import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget, TitanSprite } from "../common/image";
 import {
   BwDAT,
-  ChkSpriteType,
-  ChkUnitType,
   TerrainInfo,
 } from "../common/types";
 import { pxToMapMeter } from "../common/utils/conversions";
@@ -41,8 +39,8 @@ function createStartLocation(
 
 async function TitanReactorMap(
   bwDat: BwDAT,
-  preplacedMapUnits: ChkUnitType[],
-  preplacedMapSprites: ChkSpriteType[],
+  preplacedMapUnits: ChkUnit[],
+  preplacedMapSprites: ChkSprite[],
   terrainInfo: TerrainInfo,
   scene: Scene,
   createTitanSprite: () => TitanSprite
