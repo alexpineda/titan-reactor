@@ -1,6 +1,6 @@
 import create from "zustand";
 import { ReplayPlayer } from "../../common/types";
-import { log } from "../ipc";
+import * as log from "../ipc/log";
 
 // loading store which contains state on loading status, as well as loaded replay and map data
 export const ASSETS_MAX = 1010;
@@ -100,7 +100,7 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
   startProcess: (process: LoadingStoreProcess) => {
-    log("process " + process.id + " start");
+    log.info("process " + process.id + " start");
     performance.mark(`process-${process.id}`);
     set(({ processes, completedProcesses }) => ({
       processes: [...processes, process],
@@ -108,7 +108,7 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
     }));
   },
   updateProcess: (id: string, current?: number) => {
-    log("process " + id + " update");
+    log.verbose("process " + id + " update");
     set((state) => ({
       processes: (state.processes as LoadingStoreDeterminateProcess[]).map(
         (p) => (p.id === id ? { ...p, current: current ?? p.current + 1 } : p)
@@ -125,7 +125,7 @@ export const useLoadingStore = create<LoadingStore>((set, get) => ({
     const perf = performance.measure(`process-${id}`);
     performance.clearMarks(`process-${id}`);
     performance.clearMeasures(`process-${id}`);
-    log(`process ${id} complete ${perf.duration}ms`);
+    log.info(`process ${id} complete ${perf.duration}ms`);
     const process = get().processes.find((p) => p.id === id);
     if (!process) return;
     set(({ processes, completedProcesses }) => ({

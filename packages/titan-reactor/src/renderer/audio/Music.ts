@@ -1,6 +1,5 @@
 import { Audio, AudioListener, AudioLoader } from "three";
-
-import { log } from "../ipc";
+import * as log from "../ipc/log"
 
 const rand = (n: number) => Math.floor(Math.random() * n);
 
@@ -36,7 +35,7 @@ export class Music {
 
   _play(filepath: string) {
     if (!this.audio) return;
-    log(`now playing ${filepath}`);
+    log.verbose(`now playing ${filepath}`);
     const audioLoader = new AudioLoader();
 
     const { audio } = this;

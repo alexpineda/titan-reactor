@@ -2,11 +2,32 @@ import { ipcRenderer } from "electron";
 
 import { LOG_MESSAGE } from "../../common/ipc-handle-names";
 
+export const error = (msg: string) => {
+  log(msg, "error");
+};
+
+export const warning = (msg: string) => {
+  log(msg, "warning");
+};
+
+export const info = (msg: string) => {
+  log(msg, "info");
+};
+
+export const debug = (msg: string) => {
+  log(msg, "debug");
+}
+
+export const verbose = (msg: string) => {
+  log(msg, "verbose");
+}
+
+// @todo return early if disabled
 export const log = async (message: string, level = "info") => {
   //@todo add isDev mode check
   if (level === "error") {
-    console.error(message);
-  } else if (level === "warn") {
+    console.trace(message);
+  } else if (level === "warning") {
     console.warn(message);
   } else {
     console.log(message);

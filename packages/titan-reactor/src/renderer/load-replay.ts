@@ -13,12 +13,12 @@ import Chk from "bw-chk";
 import {
     ImageHD
 } from "./core";
-import { createIScriptRunnerFactory } from "../common/iscript";
 import { EmptyFunc } from "../common/types";
 import uniq from "../common/utils/uniq";
 import { AudioMaster } from "./audio";
 import OpenBwBridgeReader from "./integration/fixed-data/readers/openbw-bridge-reader";
-import { log, openFile } from "./ipc";
+import { openFile } from "./ipc";
+import * as log from "./ipc/log";
 import { Scene } from "./render";
 import { generateTerrain } from "./assets/generate-terrain";
 import {
@@ -35,14 +35,12 @@ import {
     ReplayScreen,
 } from "./stores";
 import TitanReactorGame from "./view-replay";
-import { BwDAT } from "../common/types";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 
 export default async (filepath: string) => {
-    log(`loading replay ${filepath}`);
-
+    log.info(`loading replay ${filepath}`);
 
     startLoadingProcess({
         id: "replay",
@@ -66,7 +64,7 @@ export default async (filepath: string) => {
         filename: filepath,
     } as ReplayScreen);
 
-    log("parsing replay");
+    log.verbose("parsing replay");
     let repFile = filepath;
     const outFile = path.join(settings.tempPath, "replay.out");
 
@@ -80,7 +78,7 @@ export default async (filepath: string) => {
         await new Promise((res: EmptyFunc) =>
             fs.writeFile(repFile, newrep, (err) => {
                 if (err) {
-                    log(err.message, "error");
+                    log.error(err.message);
                     return;
                 }
                 res();
@@ -89,11 +87,11 @@ export default async (filepath: string) => {
         rep = await parseReplay(newrep);
     }
 
-    log("loading chk");
+    log.verbose("loading chk");
     const chk = new Chk(rep.chk);
     updateScreen({ chkTitle: chk.title } as ReplayScreen);
 
-    log("building terrain");
+    log.verbose("building terrain");
     const terrainInfo = await generateTerrain(chk);
     const scene = new Scene(terrainInfo);
     janitor.object3d(scene);
@@ -102,7 +100,7 @@ export default async (filepath: string) => {
 
     updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
 
-    log(`starting gamestate reader ${repFile} ${outFile}`);
+    log.verbose(`starting gamestate reader ${repFile} ${outFile}`);
     const gameStateReader = new OpenBwBridgeReader(
         settings.starcraftPath,
         repFile,
@@ -111,8 +109,6 @@ export default async (filepath: string) => {
     janitor.disposable(gameStateReader);
 
     await gameStateReader.start();
-    log("waiting for maxed");
-
     await gameStateReader.waitForMaxed;
 
     const races = settings.musicAllTypes
@@ -123,7 +119,8 @@ export default async (filepath: string) => {
     if (!assets || !assets.bwDat) {
         throw new Error("assets not loaded");
     }
-    log("initializing audio");
+
+    log.verbose("initializing audio");
     const audioMaster = new AudioMaster(
         assets.loadAudioFile.bind(assets),
         races
@@ -132,7 +129,7 @@ export default async (filepath: string) => {
     audioMaster.musicVolume = settings.musicVolume;
     audioMaster.soundVolume = settings.soundVolume;
 
-    log("initializing replay");
+    log.verbose("starting gameloop");
     updateIndeterminateLoadingProcess("replay", getFunString());
     ImageHD.useDepth = false;
     const game = await TitanReactorGame(
@@ -150,8 +147,8 @@ export default async (filepath: string) => {
     setGame(game);
     completeScreen();
 
-    log("starting replay");
-    document.title = "Titan Reactor - Observing";
+    log.verbose("starting replay");
+    document.title = "Titan Reactor"
     game.start();
     completeLoadingProcess("replay");
 };

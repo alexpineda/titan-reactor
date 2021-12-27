@@ -1,4 +1,4 @@
-import { drawFunctions } from "../../common/bwdat/enums";
+import * as log from "../ipc/log";
 import { BwDAT, AssetTextureResolution } from "../../common/types";
 import Glb from "../../common/image/atlas/atlas-glb";
 import Anim from "../../common/image/atlas/atlas-anim";
@@ -24,7 +24,7 @@ export const createImageFactory = (
     }
 
     if (atlas instanceof Glb && atlas.model) {
-      console.log(`creating image3D ${atlas.imageIndex}`);
+      log.verbose(`creating image3D ${atlas.imageIndex}`);
       // only if the model exists
       return new Image3D(
         atlas,
@@ -33,13 +33,13 @@ export const createImageFactory = (
     }
 
     if (spriteTextureResolution === AssetTextureResolution.HD2) {
-      console.log(`creating imageHD2 ${atlas.imageIndex}`);
+      log.verbose(`creating imageHD2 ${atlas.imageIndex}`);
       return new ImageHD2(
         atlas,
         imageDef
       );
     } else {
-      console.log(`creating imageHD ${atlas.imageIndex}`);
+      log.verbose(`creating imageHD ${atlas.imageIndex}`);
       return new ImageHD(
         atlas,
         imageDef
@@ -53,7 +53,6 @@ export const createImageFactory = (
     // ) {
     //   return null;
     // } else if (atlas instanceof Atlas3D && atlas.model) {
-    //   console.log(atlas.imageIndex, "is a 3d atlas");
     //   // only if the model exists
     //   titanImage = new Image3D(
     //     atlas,

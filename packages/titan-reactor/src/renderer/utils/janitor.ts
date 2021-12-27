@@ -1,5 +1,5 @@
-import { Mesh, Object3D, Scene } from "three";
-import { disposeMesh, disposeScene } from "./dispose";
+import { Object3D } from "three";
+import { disposeObject3D } from "./dispose";
 
 interface Disposable {
     dispose: () => void;
@@ -27,12 +27,7 @@ export default class Janitor {
     mopUp() {
 
         for (const obj of this._objects) {
-            if ((obj as Mesh).isMesh) {
-                disposeMesh(obj as Mesh);
-            } else if ((obj as Scene).type === "Scene") {
-                disposeScene(obj as Scene);
-            }
-
+            disposeObject3D(obj);
             obj.removeFromParent();
         }
 

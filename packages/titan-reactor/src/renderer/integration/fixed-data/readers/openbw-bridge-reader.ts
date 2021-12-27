@@ -2,6 +2,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 
 import { EmptyFunc } from "../../../../common/types/common";
 import FileGameStateReader from "./file-game-state-reader";
+import * as log from "../../../ipc/log";
 
 class OpenBwBridgeReader extends FileGameStateReader {
   private readonly bwPath: string;
@@ -22,10 +23,11 @@ class OpenBwBridgeReader extends FileGameStateReader {
       "D:\\dev\\ChkForge\\openbw-bridge\\Debug\\openbw-bridge.exe";
     // this.openBwBridgeExePath =
     //   "D:\\dev\\ChkForge\\openbw-bridge\\Release\\openbw-bridge.exe";
-    console.log(this.openBwBridgeExePath);
   }
 
   override async start() {
+    log.verbose("spawning openbw-bridge");
+    log.verbose(this.openBwBridgeExePath);
     this.openBwBridge = spawn(this.openBwBridgeExePath, [
       this.bwPath,
       this.file,
@@ -33,11 +35,11 @@ class OpenBwBridgeReader extends FileGameStateReader {
     ]);
 
     this.openBwBridge.on("error", (err) => {
-      console.error("Failed to start subprocess.", err.message);
+      log.error(`Failed to start subprocess. ${err.message}`);
     });
 
     this.openBwBridge.stderr.on("data", (data) => {
-      console.error(`stderr: ${data}`);
+      log.error(`stderr: ${data}`);
     });
 
     await new Promise((res: EmptyFunc) => {
@@ -57,6 +59,7 @@ class OpenBwBridgeReader extends FileGameStateReader {
   override dispose() {
     super.dispose();
     if (this.openBwBridge && this.openBwBridge.exitCode === null) {
+      log.verbose("killing openbw-bridge");
       this.openBwBridge.kill();
     }
   }

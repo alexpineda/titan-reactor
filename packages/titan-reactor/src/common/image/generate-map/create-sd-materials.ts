@@ -251,7 +251,6 @@ export const createSDMaterials = async (
       shader.uniforms.creepTexture = {
         value: creepTexture.texture,
       };
-      console.log(shader);
     },
   });
   sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounterUniform;

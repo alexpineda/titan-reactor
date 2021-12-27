@@ -4,7 +4,7 @@ import Chk from "bw-chk";
 import {
   ImageHD,
 } from "./core";
-import { log } from "./ipc";
+import * as log from "./ipc/log";
 import { Scene } from "./render";
 import { generateTerrain } from "./assets/generate-terrain";
 import {
@@ -29,6 +29,7 @@ const updateWindowTitle = (title: string) => {
 export default async (chkFilepath: string) => {
   if (getGame()?.isMap) {
 
+    log.info(`loading map ${chkFilepath}`);
     const game = getGame();
 
     const chk = new Chk(await loadScm(chkFilepath));
@@ -53,7 +54,7 @@ export default async (chkFilepath: string) => {
     filename: chkFilepath,
   } as MapScreen);
 
-  log("loading chk");
+  log.verbose("loading chk");
   const chk = new Chk(await loadScm(chkFilepath));
   updateScreen({
     title: chk.title,
@@ -64,15 +65,16 @@ export default async (chkFilepath: string) => {
 
   await waitForAssets();
 
-  log("initializing scene");
   updateIndeterminateLoadingProcess("map", getFunString());
 
+  log.verbose("initializing scene");
   const terrainInfo = await generateTerrain(chk);
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;
   updateIndeterminateLoadingProcess("map", getFunString());
 
+  log.verbose("initializing gameloop");
   const game = await TitanReactorMap(
     chk,
     terrainInfo,

@@ -37,7 +37,6 @@ export class Glb extends Anim {
       )) as GlbResponse;
       this.model = model;
       this.animations = animations;
-      console.log(`loaded glb ${imageDef.index}`);
 
       const looseFrames = this.frames.length % 17;
 

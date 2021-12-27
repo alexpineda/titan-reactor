@@ -30,13 +30,10 @@ import {
 import { CanvasTarget } from "../../common/image";
 import { EmptyFunc, Settings } from "../../common/types";
 import FogOfWarEffect from "../fogofwar/fog-of-war-effect";
-
-// import { log } from "../invoke";
+import * as log from "../ipc/log"
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
 OverrideMaterialManager.workaroundEnabled = true;
-
-const log = console.log;
 
 type DepthOfFieldEffect = typeof DepthOfFieldEffect;
 type RenderPass = typeof RenderPass;
@@ -279,7 +276,7 @@ export class Renderer {
   }
 
   async init(camera: Camera) {
-    log("initializing renderer");
+    log.info("initializing renderer");
     if (this.renderer) {
       this.dispose();
     }

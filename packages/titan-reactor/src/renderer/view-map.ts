@@ -2,11 +2,13 @@
 import { debounce } from "lodash";
 import { Color, MOUSE, Object3D } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import Chk from "bw-chk";
 import { strict as assert } from "assert";
 
 import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import { createImageFactory, IScriptSprite } from "./core"
+import * as log from "./ipc/log"
 import type {
   TerrainInfo,
 } from "../common/types";
@@ -18,7 +20,6 @@ import { Renderer, Scene } from "./render";
 import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
-import Chk from "bw-chk";
 import { IScriptRunner } from "../common/iscript/iscript-runner";
 
 
@@ -114,9 +115,7 @@ async function TitanReactorMap(
   janitor.disposable(renderer);
 
   await renderer.init(cameraRig.camera);
-  if (!renderer.renderer) {
-    throw new Error("Renderer not initialized");
-  }
+  assert(renderer.renderer)
   renderer.enableRenderPass();
   //@ts-ignore
   window.renderMan = renderer;
@@ -236,7 +235,7 @@ async function TitanReactorMap(
   janitor.callback(unsub)
 
   const dispose = () => {
-    console.log("disposing map viewer");
+    log.info("disposing map viewer");
     janitor.mopUp();
 
   };

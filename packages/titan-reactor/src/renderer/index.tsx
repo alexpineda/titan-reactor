@@ -1,8 +1,9 @@
 import React from "react";
 import { render } from "react-dom";
+import "./react-ui/css/reset.css";
 
 import version from "../common/version";
-import { log } from "./ipc";
+import * as log from "./ipc/log";
 // import App from "./react-ui/app";
 import {
   loadSettings,
@@ -23,16 +24,16 @@ if (module.hot) {
   module.hot.accept();
 }
 
-log(`titan-reactor ${version}`);
-log(`chrome ${process.versions.chrome}`);
-log(`electron ${process.versions.electron}`);
+log.info(`titan-reactor ${version}`);
+log.info(`chrome ${process.versions.chrome}`);
+log.info(`electron ${process.versions.electron}`);
 
 bootup();
 async function bootup() {
   try {
     await loadFonts();
     await loadSettings();
-    log("bootup complete");
+    log.info("bootup complete");
     registerFileDialogHandlers();
 
     const settings = getSettings();
@@ -41,7 +42,7 @@ async function bootup() {
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
     completeScreen();
   } catch (err: any) {
-    log(err.message, "error");
+    log.error(err.message);
     errorScreen(err);
   }
 }

@@ -1,5 +1,4 @@
 
-import { log } from "./ipc";
 import {
     disposeGame,
     getAssets,
@@ -15,7 +14,6 @@ import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 
 export default async () => {
-    log("loading iscriptah");
     disposeGame();
 
     startLoadingProcess({

@@ -5,15 +5,16 @@ import {
 } from "../stores";
 
 import { EmptyFunc } from "../../common/types";
-import { log } from "../ipc";
+import * as log from "../ipc";
 
 
 export default async () => {
-    log("waiting for assets");
+    log.info("waiting for assets");
     return await new Promise((res: EmptyFunc) => {
         if (isProcessComplete("assets")) {
             const assets = getAssets();
             if (!assets) {
+                log.error("assets not loaded");
                 throw new Error("assets not loaded");
             }
             res();
@@ -24,6 +25,7 @@ export default async () => {
                 unsub();
                 const assets = getAssets();
                 if (!assets) {
+                    log.error("assets not loaded");
                     throw new Error("assets not loaded");
                 }
                 res();

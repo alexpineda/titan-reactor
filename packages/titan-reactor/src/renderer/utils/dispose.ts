@@ -61,14 +61,18 @@ export const disposeMeshes = (_meshes: Array<Object3D>) => {
   meshes.forEach(disposeMesh);
 };
 
-export const disposeScene = (scene: Scene) => {
+export const disposeObject3D = (root: Object3D) => {
   const meshes: Array<Mesh> = [];
 
-  scene.traverse((o: Object3D) => {
+  root.traverse((o: Object3D) => {
     if (o instanceof Mesh) {
       meshes.push(o);
     }
   });
 
   meshes.forEach(disposeMesh);
+
+  if (root instanceof Mesh) {
+    disposeMesh(root);
+  }
 };

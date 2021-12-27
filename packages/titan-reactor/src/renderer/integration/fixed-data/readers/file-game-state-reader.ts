@@ -3,9 +3,6 @@ import StreamGameStateReader from "./stream-game-state-reader";
 import { EmptyFunc } from "../../../../common/types/common";
 const averageFrameSize = 100000;
 
-/**
- * Spawns openbw-bridge.exe for replay data reading
- */
 export default class FileGameStateReader extends StreamGameStateReader {
   protected readonly file: string;
   protected readonly outFile: string;

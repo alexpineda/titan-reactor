@@ -1,54 +1,32 @@
+import { strict as assert } from "assert";
+import type { ChkUnit } from "bw-chk";
+import type { CommandsStream, Replay } from "downgrade-replay";
 import { debounce } from "lodash";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
 import { Group, MathUtils, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
-import type { CommandsStream, Replay } from "downgrade-replay";
-import type { ChkUnit } from "bw-chk";
-
-import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
-import { Anim, CanvasTarget } from "../common/image";
+import { CanvasTarget } from "../common/image";
 import {
   BwDAT,
-  ReplayPlayer,
-  TerrainInfo,
-  SpriteIndex,
-  UnitTag,
-  ResearchCompleted,
-  ResearchInProduction,
-  UnitInProduction,
-  UpgradeCompleted,
-  UpgradeInProduction,
+  ReplayPlayer, ResearchCompleted,
+  ResearchInProduction, SpriteIndex, TerrainInfo, UnitInProduction, UnitTag, UpgradeCompleted,
+  UpgradeInProduction
 } from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
 import AudioMaster from "./audio/audio-master";
 import CameraRig from "./camera/camera-rig";
 import ProjectedCameraView from "./camera/projected-camera-view";
-import Creep from "./creep/creep";
-import FogOfWar from "./fogofwar/fog-of-war";
 import {
   Apm,
   createImageFactory,
-  GameStatePosition,
-  Players,
+  GameStatePosition, Image, Players, Sprite, Unit
 } from "./core";
-import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
+import Creep from "./creep/creep";
+import FogOfWar from "./fogofwar/fog-of-war";
 import { InputEvents, KeyboardShortcuts, MinimapControl, MouseInteraction } from "./input";
-import { GameCanvasTarget, Renderer, Scene, MinimapCanvasDrawer, BuildUnits } from "./render";
-import {
-  getAssets,
-  getSettings,
-  useGameStore,
-  useHudStore,
-  useProductionStore,
-  useResourcesStore,
-  useSettingsStore,
-  useUnitSelectionStore,
-} from "./stores";
-import preloadScene from "./utils/preload-scene";
 import {
   BuildingQueueCountBW,
   CreepBW,
@@ -59,11 +37,26 @@ import {
   SpritesBW,
   TilesBW,
   UnitsBW,
-  UpgradeBW,
+  UpgradeBW
 } from "./integration/fixed-data";
-import { Image, Unit, Sprite } from "./core";
-import { strict as assert } from "assert";
+import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
+import * as log from "./ipc/log";
+import { BuildUnits, GameCanvasTarget, MinimapCanvasDrawer, Renderer, Scene } from "./render";
+import {
+  getAssets,
+  getSettings,
+  useGameStore,
+  useHudStore,
+  useProductionStore,
+  useResourcesStore,
+  useSettingsStore,
+  useUnitSelectionStore
+} from "./stores";
+import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import Janitor from "./utils/janitor";
+
+
+
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -638,7 +631,7 @@ async function TitanReactorGame(
   //     for (const image of images.items()) {
   //       const index = image.dat.index;
   //       if (!assets.grps[index] && !_loadingGrp[index]) {
-  //         console.log('dynamic loading', index)
+  //         log.verbose('dynamic loading', index)
   //         _loadingGrp[index] = true;
   //         assets.loadImageAtlas(index);
   //       }
@@ -834,7 +827,7 @@ async function TitanReactorGame(
   };
 
   const dispose = () => {
-    console.log("disposing replay viewer");
+    log.info("disposing replay viewer");
     gameStatePosition.pause();
     janitor.mopUp();
   };

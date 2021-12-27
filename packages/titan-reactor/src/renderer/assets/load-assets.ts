@@ -19,6 +19,7 @@ import electronFileLoader from "../../common/utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
+import * as log from "../ipc/log"
 
 export default async (starcraftPath: string, communityModelsPath: string) => {
     startLoadingProcess({
@@ -86,7 +87,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         )
 
         const fs = await fileExists(glbFileName);
-        fs && console.log(`${glbFileName} exists`);
+        fs && log.verbose(`${glbFileName} exists`);
 
         await grp.load({
             imageDef: bwDat.images[imageId],
@@ -94,6 +95,9 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
             readAnim: () => readCascFile(genFileName(imageId, "HD2/")),
             glbFileName: fs ? glbFileName : undefined,
         });
+        if (grp.model) {
+            log.verbose("successfully loaded glb");
+        }
         grps[imageId] = grp;
     };
 
@@ -110,7 +114,7 @@ export default async (starcraftPath: string, communityModelsPath: string) => {
         bwDat,
         grps,
         selectionCirclesHD,
-        gameIcons: resourceIcons,
+        resourceIcons,
         cmdIcons,
         raceInsetIcons,
         workerIcons,

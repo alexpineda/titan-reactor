@@ -453,20 +453,6 @@ export default ({
           }
         />
 
-        <Option
-          label={phrases["SETTINGS_GRAPHICS_ANTIALIAS"]}
-          toggle={
-            <Toggle
-              value={settings.antialias}
-              onChange={() =>
-                save({
-                  antialias: !settings.antialias,
-                })
-              }
-            />
-          }
-        />
-
         {/* <Option
           label={phrases["SETTINGS_GRAPHICS_GAMMA"]}
           value={settings.gamma}

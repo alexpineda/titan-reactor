@@ -332,7 +332,6 @@ export class IScriptSprite extends Group {
             sprite.mainImage?.image.setPosition(x, y);
             sprite.position.copy(this.position);
             this.createSpriteCb(sprite);
-            // console.log("lowsprul", [x, y]);
           }
           break;
         case "highsprol":
@@ -366,8 +365,6 @@ export class IScriptSprite extends Group {
 
             sprite.position.copy(this.position);
             this.createSpriteCb(sprite);
-
-            // console.log("sproluselo", [ox, oy, image.userData.frame]);
           }
           break;
         case "spruluselo":
