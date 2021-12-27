@@ -1,12 +1,12 @@
-import TitanSprite from "../../core/titan-sprite";
+import IScriptSprite from "../../core/iscript-sprite";
 
 export const updateEntities = (
-  entities: TitanSprite[],
+  entities: IScriptSprite[],
   delta: number,
   cameraDirection: number,
-  removeTitanSprite: (sprite: TitanSprite) => void
+  removeTitanSprite: (sprite: IScriptSprite) => void
 ) => {
-  const removeEntities: TitanSprite[] = [];
+  const removeEntities: IScriptSprite[] = [];
 
   for (const entity of entities) {
     if (entity.mainImage) {

@@ -6,7 +6,7 @@ import { CanvasTarget } from "../../../../common/image";
 import Commands from "./commands";
 import Animation from "./animation";
 import Frames from "./frames";
-import TitanSprite from "../../../core/titan-sprite";
+import IScriptSprite from "../../../core/iscript-sprite";
 // import { createTitanImageFactory } from "../../../../common/image";
 import { createIScriptRunnerFactory } from "../../../../common/iscript";
 import { AtlasLoader } from "../../../../common/image";
@@ -20,7 +20,7 @@ const App = ({
   addTitanSpriteCb,
 }: {
   surface: CanvasTarget;
-  addTitanSpriteCb: (titanSprite: TitanSprite) => void;
+  addTitanSpriteCb: (titanSprite: IScriptSprite) => void;
 }) => {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("alpha");

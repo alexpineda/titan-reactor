@@ -13,7 +13,7 @@ import { IScriptRunner } from "../../common/iscript";
 import { ImageDAT } from "../../common/types/bwdat";
 import { GrpFrameType } from "../../common/types/grp";
 import { createIScriptRunner } from "../../common/types/iscript";
-import AtlasHD from "../../common/image/atlas/atlas-hd";
+import Anim from "../../common/image/atlas/atlas-anim";
 import { Image, Sprite } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 
@@ -22,7 +22,7 @@ export const DepthMode = {
   Depth: 1, // for angled views
 };
 
-export class TitanImageHD extends ThreeSprite implements Image {
+export class ImageHD extends ThreeSprite implements Image {
   static useDepth = false;
   _spriteScale: number;
   private _oScale: Vector3;
@@ -31,14 +31,14 @@ export class TitanImageHD extends ThreeSprite implements Image {
   override material: TeamSpriteMaterial;
   _zOff: number;
 
-  private atlas: AtlasHD;
+  private atlas: Anim;
   private uv: BufferAttribute | InterleavedBufferAttribute;
   private pos: BufferAttribute | InterleavedBufferAttribute;
   private lastSetFrame?: GrpFrameType;
   private lastFlipFrame?: boolean;
 
   constructor(
-    atlas: AtlasHD,
+    atlas: Anim,
     imageDef: ImageDAT,
     sprite: Sprite,
     spriteScale = 128
@@ -90,7 +90,7 @@ export class TitanImageHD extends ThreeSprite implements Image {
     this.scale.copy(this._oScale);
     this.material.transparent = true;
     this.material.alphaTest = 0.01;
-    this.material.depthTest = TitanImageHD.useDepth;
+    this.material.depthTest = ImageHD.useDepth;
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
       this.material.blending = SubtractiveBlending;
     }
@@ -228,4 +228,4 @@ export class TitanImageHD extends ThreeSprite implements Image {
     return true;
   }
 }
-export default TitanImageHD;
+export default ImageHD;

@@ -16,7 +16,9 @@ import preloadAssets from "./bootup/load-assets-when-ready";
 import "./bootup/three-overrides";
 import { waitUnless } from "../common/utils/wait";
 
+// @ts-ignore
 if (module.hot) {
+  // @ts-ignore
   module.hot.accept();
 }
 

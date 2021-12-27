@@ -8,7 +8,7 @@ import {
 } from "../../common/bwdat/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "../../common/types";
 import pick from "../../common/utils/pick";
-import { Image, TitanImage3D } from ".";
+import { Image, Image3D } from ".";
 
 enum ImageOrder {
   bottom,
@@ -17,21 +17,21 @@ enum ImageOrder {
   below,
 }
 
-export class TitanSprite extends Group {
+export class IScriptSprite extends Group {
   private bwDat: BwDAT;
   images: Image[];
   mainImage?: Image;
   logger: { log: (str: string) => void };
   lastZOff: number;
   unit: any | null;
-  createTitanSprite: (unit: UnitDAT | null | undefined) => TitanSprite;
-  createTitanSpriteCb: (titanSprite: TitanSprite) => void;
-  destroyTitanSpriteCb: (titanSprite: TitanSprite) => void;
+  createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite;
+  createTitanSpriteCb: (titanSprite: IScriptSprite) => void;
+  destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void;
 
   //@todo merge this with other createTitanImage that takes SpriteInstance
   createTitanImage: (
     image: number,
-    parent: TitanSprite
+    parent: IScriptSprite
   ) => Image | null;
 
   iscriptOptions: {
@@ -42,13 +42,13 @@ export class TitanSprite extends Group {
   constructor(
     unit: any = null,
     bwDat: BwDAT,
-    createTitanSprite: (unit: UnitDAT | null) => TitanSprite,
+    createTitanSprite: (unit: UnitDAT | null) => IScriptSprite,
     createTitanImage: (
       image: number,
-      parent: TitanSprite
+      parent: IScriptSprite
     ) => Image | null,
-    createTitanSpriteCb: (titanSprite: TitanSprite) => void,
-    destroyTitanSpriteCb: (titanSprite: TitanSprite) => void = () => { },
+    createTitanSpriteCb: (titanSprite: IScriptSprite) => void,
+    destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void = () => { },
     logger = { log: () => { } }
   ) {
     super();
@@ -141,7 +141,7 @@ export class TitanSprite extends Group {
 
     let _terminated = false;
     for (const image of this.images) {
-      if (image instanceof TitanImage3D && image.mixer) {
+      if (image instanceof Image3D && image.mixer) {
         image.mixer.update(0); //3d animation mixer
       }
       this._update(image);
@@ -557,4 +557,4 @@ export class TitanSprite extends Group {
 
   dispose() { }
 }
-export default TitanSprite;
+export default IScriptSprite;

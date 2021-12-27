@@ -1,4 +1,4 @@
-import { AtlasHD, } from "../../common/image";
+import { Anim, } from "../../common/image";
 import { BwDAT } from "../../common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "../../common/types/icons";
 import {
@@ -9,8 +9,8 @@ import {
 
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
-  grps: AtlasHD[];
-  selectionCirclesHD: AtlasHD[];
+  grps: Anim[];
+  selectionCirclesHD: Anim[];
 
   gameIcons: ResourceIcons;
   cmdIcons: string[];
@@ -25,8 +25,8 @@ interface AssetsConstructorArgs {
 
 class Assets {
   bwDat: BwDAT;
-  grps: AtlasHD[] = [];
-  selectionCirclesHD: AtlasHD[] = [];
+  grps: Anim[] = [];
+  selectionCirclesHD: Anim[] = [];
 
   gameIcons: ResourceIcons;
   cmdIcons: string[];

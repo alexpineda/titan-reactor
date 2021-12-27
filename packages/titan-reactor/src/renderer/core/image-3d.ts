@@ -3,12 +3,12 @@ import "three/examples/jsm/utils/SkeletonUtils";
 import { AnimationAction, AnimationMixer, Color, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
-import Atlas3D from "../../common/image/atlas/atlas-3d";
+import Glb from "../../common/image/atlas/atlas-glb";
 import { ImageDAT } from "../../common/types";
 import { Sprite, Image } from ".";
 
-export class TitanImage3D extends Object3D implements Image {
-  atlas: Atlas3D;
+export class Image3D extends Object3D implements Image {
+  atlas: Glb;
   model: Object3D;
   sprite: Sprite;
   imageDef: ImageDAT;
@@ -20,7 +20,7 @@ export class TitanImage3D extends Object3D implements Image {
   _zOff: number;
 
   constructor(
-    atlas: Atlas3D,
+    atlas: Glb,
     imageDef: ImageDAT,
     sprite: Sprite
   ) {
@@ -95,4 +95,4 @@ export class TitanImage3D extends Object3D implements Image {
     }
   }
 }
-export default TitanImage3D;
+export default Image3D;

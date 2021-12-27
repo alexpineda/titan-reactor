@@ -4,8 +4,8 @@ import loadScm from "./utils/load-scm";
 import Chk from "bw-chk";
 import {
   createTitanImageFactory,
-  TitanImageHD,
-  TitanSprite,
+  ImageHD,
+  IScriptSprite,
 } from "./core";
 import { createIScriptRunnerFactory } from "../common/iscript";
 import { log } from "./ipc";
@@ -102,7 +102,7 @@ export default async (chkFilepath: string) => {
     // );
   };
 
-  TitanImageHD.useDepth = false;
+  ImageHD.useDepth = false;
   updateIndeterminateLoadingProcess("map", getFunString());
 
   const game = await TitanReactorMap(

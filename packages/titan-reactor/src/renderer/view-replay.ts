@@ -5,13 +5,14 @@ import { Group, MathUtils, MOUSE } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import type { CommandsStream, Replay } from "downgrade-replay";
+import type { ChkUnit } from "bw-chk";
+
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import { unitTypes } from "../common/bwdat/enums";
-import { AtlasHD, CanvasTarget } from "../common/image";
+import { Anim, CanvasTarget } from "../common/image";
 import { AssetTextureResolution } from "../common/types";
 import {
   BwDAT,
-  ChkUnitType,
   ReplayPlayer,
   TerrainInfo,
   createTitanImage,
@@ -69,10 +70,17 @@ const { startLocation } = unitTypes;
 
 const addChatMessage = useGameStore.getState().addChatMessage;
 
+
+type createTitanImage = (
+  imageId: number,
+  sprite: Sprite
+) => Image;
+
+
 async function TitanReactorGame(
   scene: Scene,
   terrainInfo: TerrainInfo,
-  preplacedMapUnits: ChkUnitType[],
+  preplacedMapUnits: ChkUnit[],
   rep: Replay,
   commandsStream: CommandsStream,
   gameStateReader: StreamGameStateReader,

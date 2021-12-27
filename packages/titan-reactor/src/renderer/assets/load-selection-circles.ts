@@ -1,4 +1,4 @@
-import { AtlasHD } from "../../common/image";
+import { Anim } from "../../common/image";
 import {
     readCascFile,
 } from "../../common/utils/casclib";
@@ -9,7 +9,7 @@ import {
 export default async function () {
     const selectionCirclesHD = [];
     for (let i = 561; i < 571; i++) {
-        const selCircleGRP = new AtlasHD();
+        const selCircleGRP = new Anim();
         const readAnim = async () => await readCascFile(`anim/main_${i}.anim`);
         const readAnimHD2 = async () =>
             await readCascFile(`HD2/anim/main_${i}.anim`);

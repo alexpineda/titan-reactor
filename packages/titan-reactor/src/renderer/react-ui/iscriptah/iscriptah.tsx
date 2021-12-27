@@ -25,7 +25,7 @@ import App from "./components/app";
 import { ClockMs } from "../../../common/utils/clock-ms";
 import { CanvasTarget } from "../../../common/image";
 import "../../../common/utils/electron-file-loader";
-import TitanSprite from "../../core/titan-sprite";
+import IScriptSprite from "../../core/iscript-sprite";
 import {
   incGameTick,
   setFrame,
@@ -120,7 +120,7 @@ export const IScriptah = () => {
   transformControls.setSpace("local");
   //@todo attach?
   scene.add(transformControls);
-  const thingies: TitanSprite[] = [];
+  const thingies: IScriptSprite[] = [];
 
   const disposeThingies = () => {
     thingies.forEach(removeTitanSprite);
@@ -129,13 +129,13 @@ export const IScriptah = () => {
 
   const clock = new ClockMs(true);
 
-  const addTitanSpriteCb = (titanSprite: TitanSprite) => {
+  const addTitanSpriteCb = (titanSprite: IScriptSprite) => {
     parent.add(titanSprite);
     transformControls.attach(titanSprite);
     thingies.push(titanSprite);
   };
 
-  const removeTitanSprite = (titanSprite: TitanSprite) => {
+  const removeTitanSprite = (titanSprite: IScriptSprite) => {
     if (transformControls.object === titanSprite) {
       transformControls.detach();
     }
@@ -157,7 +157,7 @@ export const IScriptah = () => {
 
   useIscriptStore.subscribe((state) => {
     if (typeof state.frame === "number") {
-      thingies.forEach((thingy: TitanSprite) => {
+      thingies.forEach((thingy: IScriptSprite) => {
         if (thingy.mainImage) {
           try {
             thingy.mainImage.setFrame(state.frame as number, state.flipFrame);

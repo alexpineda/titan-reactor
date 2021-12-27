@@ -5,7 +5,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import type { ChkUnit, ChkSprite } from "bw-chk";
 
 import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
-import { CanvasTarget, TitanSprite } from "../common/image";
+import { CanvasTarget } from "../common/image";
+import { IScriptSprite } from "./core"
 import {
   BwDAT,
   TerrainInfo,
@@ -44,7 +45,7 @@ async function TitanReactorMap(
   preplacedMapSprites: ChkSprite[],
   terrainInfo: TerrainInfo,
   scene: Scene,
-  createTitanSprite: () => TitanSprite
+  createTitanSprite: () => IScriptSprite
 ) {
   const { mapWidth, mapHeight } = terrainInfo;
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
@@ -134,9 +135,9 @@ async function TitanReactorMap(
     });
   startLocations.forEach((sl) => scene.add(sl));
 
-  const sprites: TitanSprite[] = [];
-  const critters: TitanSprite[] = [];
-  const disabledDoodads: TitanSprite[] = [];
+  const sprites: IScriptSprite[] = [];
+  const critters: IScriptSprite[] = [];
+  const disabledDoodads: IScriptSprite[] = [];
 
   for (const unit of preplacedMapUnits) {
     continue;
@@ -234,11 +235,6 @@ async function TitanReactorMap(
     keyboardShortcuts.removeEventListener(
       InputEvents.ToggleMenu,
       toggleMenuHandler
-    );
-
-    keyboardShortcuts.removeEventListener(
-      InputEvents.ToggleElevation,
-      toggleElevationHandler
     );
 
     keyboardShortcuts.removeEventListener(

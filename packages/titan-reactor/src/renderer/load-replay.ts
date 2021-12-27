@@ -12,7 +12,7 @@ import path from "path";
 import Chk from "bw-chk";
 import {
     createTitanImageFactory,
-    TitanImageHD
+    ImageHD
 } from "./core";
 import { createIScriptRunnerFactory } from "../common/iscript";
 import { EmptyFunc } from "../common/types";
@@ -129,7 +129,7 @@ export default async (filepath: string) => {
 
     log("initializing replay");
     updateIndeterminateLoadingProcess("replay", getFunString());
-    TitanImageHD.useDepth = false;
+    ImageHD.useDepth = false;
     const game = await TitanReactorGame(
         scene,
         terrainInfo,
@@ -142,7 +142,6 @@ export default async (filepath: string) => {
             assets.bwDat,
             assets.grps,
             settings.spriteTextureResolution,
-            createIScriptRunnerFactory(assets.bwDat as BwDAT, chk.tileset),
         ),
         audioMaster
     );
