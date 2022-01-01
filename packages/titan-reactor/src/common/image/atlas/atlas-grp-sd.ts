@@ -10,9 +10,8 @@ import { ImageDAT } from "../../types";
 import { drawFunctions } from "../../bwdat/enums/draw-functions";
 
 type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
-/**
- * SD the old way
- */
+
+// Load 1.16 GRP into textures and frames
 // @todo refactor to implement GRPInterface
 export class GrpSDLegacy {
   width = 0;

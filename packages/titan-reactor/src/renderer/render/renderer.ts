@@ -209,11 +209,16 @@ export class Renderer {
   }
 
   enableCinematicPass(antialias = this.settings.graphics.antialias) {
-    this._togglePasses(
-      this._renderPass,
-      this._bloomPass,
-      antialias ? this._cinematicPassWithAA : this._cinematicPass
-    );
+    if (antialias) {
+      this._togglePasses(this._renderPass, this._fogPass, this._smaaPass);
+    } else {
+      this._togglePasses(this._renderPass, this._fogPass);
+    }
+    // this._togglePasses(
+    //   this._renderPass,
+    //   this._bloomPass,
+    //   antialias ? this._cinematicPassWithAA : this._cinematicPass
+    // );
   }
 
   enableRenderFogPass() {

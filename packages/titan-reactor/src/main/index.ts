@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, protocol } from "electron";
+import { app, powerSaveBlocker, protocol, BrowserView } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -7,6 +7,7 @@ import createAppMenu from "./create-app-menu";
 import windows, { createMain } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
+import electronIsDev from "electron-is-dev";
 
 const settingsPath = path.join(getUserDataPath(), "settings.yml");
 const psbId = powerSaveBlocker.start("prevent-display-sleep");
@@ -23,6 +24,17 @@ if (!gotTheLock) {
 // app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
 app.commandLine.appendSwitch("--force_high_performance_gpu");
 
+// const bv = new BrowserView({
+//   webPreferences: {
+//     nodeIntegration: false,
+//     contextIsolation: true,
+//     preload: path.join(__dirname, "preload.js"),
+//     devTools: electronIsDev,
+//     disableDialogs: true,
+//     spellcheck: false,
+//     enableWebSQL: false,
+//   },
+// });
 
 protocol.registerSchemesAsPrivileged([
   {

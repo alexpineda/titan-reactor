@@ -5,7 +5,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";
 
-import { iscriptHeaders, unitTypes } from "../common/bwdat/enums";
+import { iscriptHeaders, playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import { createImageFactory, IScriptSprite } from "./core"
 import * as log from "./ipc/log"
@@ -127,16 +127,6 @@ async function TitanReactorMap(
 
   fogOfWar.enabled = false;
 
-  const playerColors = [
-    "#a80808",
-    "#083498",
-    "#209070",
-    "#88409c",
-    "#e87824",
-    "#34200c",
-    "#c4c0bc",
-    "dcdc3c",
-  ];
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
     .map((unit) => {
@@ -145,7 +135,7 @@ async function TitanReactorMap(
       return createStartLocation(
         x,
         y,
-        playerColors[unit.player],
+        playerColors[unit.player].hex,
         terrainInfo.getTerrainY(x, y)
       );
     });
@@ -155,14 +145,58 @@ async function TitanReactorMap(
   const critters: IScriptSprite[] = [];
   const disabledDoodads: IScriptSprite[] = [];
 
-  for (const unit of preplacedMapUnits) {
-    continue;
-  }
+  // for (const unit of preplacedMapUnits) {
+  //   const titanSprite = createTitanSprite();
+  //   const unitDat = bwDat.units[unit.unitId];
 
-  for (const sprite of preplacedMapSprites) {
-    continue;
+  //   const x = pxToGameUnit.x(unit.x);
+  //   const z = pxToGameUnit.y(unit.y);
+  //   const y = terrainInfo.getTerrainY(x, z);
 
-  }
+  //   titanSprite.position.set(x, y, z);
+
+  //   titanSprite.addImage(unitDat.flingy.sprite.image.index);
+
+  //   titanSprite.run(
+  //     unit.isDisabled ? iscriptHeaders.disable : iscriptHeaders.init
+  //   );
+
+  //   scene.add(titanSprite);
+  //   sprites.push(titanSprite);
+
+  //   if (unit.isDisabled) {
+  //     disabledDoodads.push(titanSprite);
+  //     titanSprite.visible = settings.showDisabledDoodads;
+  //   } else if (
+  //     [
+  //       unitTypes.rhynadon,
+  //       unitTypes.bengalaas,
+  //       unitTypes.scantid,
+  //       unitTypes.kakaru,
+  //       unitTypes.ragnasaur,
+  //       unitTypes.ursadon,
+  //     ].includes(unit.unitId)
+  //   ) {
+  //     critters.push(titanSprite);
+  //     titanSprite.visible = settings.showCritters;
+  //   }
+  // }
+
+  // for (const sprite of preplacedMapSprites) {
+  //   const titanSprite = createTitanSprite();
+  //   const spriteDat = bwDat.sprites[sprite.spriteId];
+
+  //   const x = pxToGameUnit.x(sprite.x);
+  //   const z = pxToGameUnit.y(sprite.y);
+  //   const y = terrainInfo.getTerrainY(x, z);
+
+  //   titanSprite.position.set(x, y, z);
+  //   titanSprite.addImage(spriteDat.image.index);
+  //   titanSprite.run(iscriptHeaders.init);
+  //   scene.add(titanSprite);
+  //   sprites.push(titanSprite);
+  // }
+
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);

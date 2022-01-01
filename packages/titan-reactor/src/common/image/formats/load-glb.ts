@@ -10,8 +10,6 @@ import {
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
-// import ElectronGLTFLoader from "./gltf-loader";
-
 export type GlbResponse = {
   model: Group;
   animations: AnimationClip[];
@@ -23,8 +21,6 @@ export function loadGlb(
   meshCb: (mesh: Mesh) => void = () => { }
 ) {
   return new Promise((resolve, reject) => {
-    //@todo refactor GLTF Loader to classes
-    // @ts-ignore
     new GLTFLoader().load(
       file,
       (glb: any) => {

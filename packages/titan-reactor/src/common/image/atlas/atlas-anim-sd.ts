@@ -8,9 +8,7 @@ import {
 import { AnimDds, GrpFrameType, GRPInterface } from "../../types";
 import { createDDSTexture, Grp } from "../formats";
 
-/**
- * SD via Anim
- */
+// Load anim files from the SD folder, with the difference being anim format and in team color bitmap encoding
 export class AnimSD implements GRPInterface {
   width = 0;
   height = 0;

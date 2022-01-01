@@ -1,4 +1,5 @@
 
+import { strict as assert } from "assert";
 import { WebGLRenderer } from "three";
 import renderIcons from "./render-icons";
 
@@ -11,9 +12,15 @@ export default (renderer: WebGLRenderer, dds: Buffer[]) => {
         0.4
     );
 
+    const getNext = () => {
+        const next = renderIcon.next().value;
+        assert(next)
+        return next;
+    }
+
     return {
-        "zerg": renderIcon.next().value,
-        "terran": renderIcon.next().value,
-        "protoss": renderIcon.next().value,
+        "zerg": getNext(),
+        "terran": getNext(),
+        "protoss": getNext(),
     };
 };
