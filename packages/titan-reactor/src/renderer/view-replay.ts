@@ -52,6 +52,7 @@ import {
   useSettingsStore,
   useUnitSelectionStore
 } from "./stores";
+          // @ts-ignore
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import Janitor from "./utils/janitor";
 
@@ -450,6 +451,7 @@ async function TitanReactorGame(
 
       const player = players.playersById[spriteBW.owner];
 
+          // @ts-ignore
       sprite.mainImage = null;
 
       for (const imageBW of imagesBW.reverse(spriteBW.imageCount)) {
@@ -469,7 +471,9 @@ async function TitanReactorGame(
           image.setTeamColor(player.color.three);
         }
         // overlay position
+          // @ts-ignore
         image.offsetX = image.position.x = imageBW.x / 32;
+          // @ts-ignore
         image.offsetY = image.position.z = imageBW.y / 32;
         image.renderOrder = _imageRenderOrder++;
 
@@ -491,6 +495,7 @@ async function TitanReactorGame(
 
         let z = 0;
         if (imageBW.index === spriteBW.mainImageIndex) {
+          // @ts-ignore
           sprite.mainImage = image;
           z = image._zOff * (image.imageScale / 32); //x4 for HD
 

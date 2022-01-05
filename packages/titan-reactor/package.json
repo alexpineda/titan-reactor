@@ -1,7 +1,7 @@
 {
   "name": "titan-reactor",
   "productName": "Titan Reactor",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "3D Map & Replay Viewer for Starcraft Broodwar",
   "main": "src/main/index.js",
   "scripts": {
@@ -24,7 +24,7 @@
     "url": "git+https://github.com/imbateam-gg/titan-reactor.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/imbateam-gg/titan-reactor/issues"
   },

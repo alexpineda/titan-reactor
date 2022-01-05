@@ -210,6 +210,9 @@ export class BuildUnits {
       //following assignments should append new data not relevant to previous value
       unit.queue = null;
       unit.loaded = null;
+
+      //@todo figure out why the fuck ts thinks this is Player & number
+      //@ts-ignore
       unit.owner = this.playersById[unitBw.owner];
 
 

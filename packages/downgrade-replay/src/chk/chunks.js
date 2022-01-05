@@ -46,6 +46,7 @@ const getChkChunks = (buf) => {
           const newBuf = Buffer.concat([buffer, previous.slice(buffer.length)]);
           chunks.splice(chunks.indexOf(previous), 1, [name, newBuf]);
         }
+        //@todo else?
       } else {
         chunks.splice(chunks.indexOf(previous), 1, [name, buffer]);
       }

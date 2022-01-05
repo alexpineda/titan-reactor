@@ -18,7 +18,7 @@ export class DAT<Type> {
   protected statFile: string;
   protected datname = "";
   protected count = 0;
-  protected format?: FormatType[];
+  protected format?: Array<FormatType>;
   entries: Type[] = [];
 
   constructor(readFile: ReadFile) {
@@ -85,11 +85,15 @@ export class DAT<Type> {
     const formatLen = (fmt: FormatType) => formatRange(fmt).length;
     const formatMin = (fmt: FormatType) => formatRange(fmt)[0];
 
+    
     const entries = range(0, this.count).map((i): Type => {
-      const values = (this.format as FormatType[]).flatMap((fmt, j) => {
+      if (!this.format) {
+        throw new Error("Format not set");
+      }
+      const values = this.format.flatMap((fmt: FormatType, j:number) => {
         if (!formatRange(fmt).includes(i)) {
           if (fmt.names) {
-            return fmt.names.map((name) => ({ name, value: 0 }));
+            return fmt.names.map((name: string) => ({ name, value: 0 }));
           }
           return { name: fmt.name, value: 0 };
         }
@@ -103,7 +107,7 @@ export class DAT<Type> {
           fmt.size * (i - formatMin(fmt));
 
         if (Array.isArray(fmt.names)) {
-          return fmt.names.map((name, n) => {
+          return fmt.names.map((name: string, n: number) => {
             const size = fmt.size / (fmt.names as string[]).length;
             const value = this._read(buf, size, pos + n * size);
             return { name, value };
@@ -113,7 +117,7 @@ export class DAT<Type> {
         return { name: fmt.name, value: fmt.get ? fmt.get(data) : data };
       });
 
-      return values.reduce((memo, { name, value }) => {
+      return values.reduce((memo : Type, { name, value }) => {
         return { ...memo, [name as keyof Type]: value } as Type;
       }, {} as Type);
     });

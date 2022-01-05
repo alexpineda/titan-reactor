@@ -160,6 +160,8 @@ export class MinimapControl extends EventDispatcher {
 
   dispose() {
     this._listeners.forEach((l) =>
+     // @todo figure out event listeners once and for all
+     // @ts-ignore
       this.surface.canvas.removeEventListener(...l)
     );
   }

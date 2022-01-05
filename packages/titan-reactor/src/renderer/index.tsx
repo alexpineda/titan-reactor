@@ -1,6 +1,8 @@
 import React from "react";
 import { render } from "react-dom";
 
+import { openBw } from "./openbw";
+
 import version from "../common/version";
 import * as log from "./ipc/log";
 // import App from "./react-ui/app";
@@ -38,13 +40,20 @@ async function bootup() {
     const settings = getSettings();
     const hasErrors = useSettingsStore.getState().errors.length > 0;
 
+    if (hasErrors) {
+    log.error(`settings errors: ${useSettingsStore.getState().errors.join(", ")}`);
+    }
+
+
     useSettingsStore.subscribe((state) => {
       if (state.errors) {
         log.error(`settings errors: ${state.errors.join(", ")}`);
       }
     });
 
+    await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
+    alert("Titan Reactor is ready!");
     completeScreen();
   } catch (err: any) {
     log.error(err.message);

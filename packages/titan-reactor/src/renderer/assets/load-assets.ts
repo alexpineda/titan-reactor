@@ -5,6 +5,7 @@ import fileExists from "../../common/utils/file-exists";
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import { Glb, Anim, parseAnim } from "../../common/image";
 import {
+    findFile,
     openCascStorage,
     readCascFile,
 } from "../../common/utils/casclib";
@@ -20,7 +21,6 @@ import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
-import { getSettings } from "../ipc";
 import { AssetTextureResolution, Settings } from "../../common/types";
 
 export default async (settings: Settings) => {
@@ -45,13 +45,15 @@ export default async (settings: Settings) => {
 
     await openCascStorage(settings.directories.starcraft);
 
+    const f = await findFile("academy.grp");
+    console.log(f);
+    
     const bwDat = await loadDATFiles(readCascFile);
     updateLoadingProcess("assets");
 
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
-
-    const selectionCirclesHD = await loadSelectionCircles();
+    const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);
 
     ContiguousContainer.prototype.bwDat = bwDat;
 
@@ -104,6 +106,8 @@ export default async (settings: Settings) => {
     };
 
     const grps: Anim[] = [];
+    log.info(`Generating image ${settings.assets.images} textures`);
+
     const loadImageAtlasGrp = loadImageAtlas(grps);
     for (let i = 0; i < 999; i++) {
         i % 100 === 0 && updateLoadingProcess("assets");
@@ -116,7 +120,7 @@ export default async (settings: Settings) => {
         bwDat,
         grps,
         selectionCirclesHD,
-        resourceIcons,
+        gameIcons: resourceIcons,
         cmdIcons,
         raceInsetIcons,
         workerIcons,
@@ -125,6 +129,6 @@ export default async (settings: Settings) => {
         dragIcons,
         wireframeIcons,
         // for dynamic loading, if we wish
-        loadImageAtlas: loadImageAtlasGrp
+        loadImageAtlas: loadImageAtlasGrp,
     });
 };

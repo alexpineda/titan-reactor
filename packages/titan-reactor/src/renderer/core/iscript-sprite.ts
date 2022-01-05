@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Group } from "three";
 
 import {
@@ -141,7 +142,7 @@ export class IScriptSprite extends Group {
   }
 
   //iscript_execute_sprite
-  update(delta: number, cameraDirection: number) {
+  update() { //delta: number, cameraDirection: number
     // if (this.unit) {
     //   this.position.copy(this.unit.position);
     //   this.rotation.copy(this.unit.rotation);

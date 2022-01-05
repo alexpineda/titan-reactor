@@ -7,6 +7,7 @@ import ProjectedCameraView from "../camera/projected-camera-view";
 import GameCanvasTarget from "../render/game-canvas-target";
 import useGameStore, { getAssets } from "../stores/game-store";
 import { Image, Sprite, Unit } from "../core";
+import assert from "assert";
 
 const canOnlySelectOne = [
   unitTypes.larva,
@@ -60,7 +61,8 @@ export class MouseInteraction {
 
   constructor() {
     const icons = getAssets();
-
+    assert(icons);
+    
     this.arrowIcons = icons.arrowIcons;
     this.hoverIcons = icons.hoverIcons.icons;
     this.dragIcons = icons.dragIcons.icons;
@@ -182,22 +184,23 @@ export class MouseInteraction {
       if (intersects.length) {
         let closestSprite = { renderOrder: -1 };
 
-        for (const intersect of intersects) {
-          if (
-            intersect.object.sprite?.unit?.canSelect &&
-            intersect.object.sprite.mainImage?.lastSetFrame &&
-            intersect.object.sprite.mainImage.intersects(
-              intersect.uv.x,
-              intersect.uv.y
-            )
-          ) {
-            if (
-              intersect.object.sprite.renderOrder > closestSprite.renderOrder
-            ) {
-              closestSprite = intersect.object.sprite;
-            }
-          }
-        }
+        // @todo, ImageHD no longer has sprite object attached, how do we access this info?
+        // for (const intersect of intersects) {
+        //   if (
+        //     intersect.object.sprite?.unit?.canSelect &&
+        //     intersect.object.sprite.mainImage?.lastSetFrame &&
+        //     intersect.object.sprite.mainImage.intersects(
+        //       intersect.uv.x,
+        //       intersect.uv.y
+        //     )
+        //   ) {
+        //     if (
+        //       intersect.object.sprite.renderOrder > closestSprite.renderOrder
+        //     ) {
+        //       closestSprite = intersect.object.sprite;
+        //     }
+        //   }
+        // }
 
         if (closestSprite instanceof Sprite) {
           return closestSprite;

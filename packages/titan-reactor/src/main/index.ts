@@ -36,15 +36,7 @@ app.commandLine.appendSwitch("--force_high_performance_gpu");
 //   },
 // });
 
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: "file",
-    privileges: { standard: true, bypassCSP: true, corsEnabled: false },
-  },
-]);
-
 app.commandLine.appendSwitch("--disable-xr-sandbox");
-
 
 createAppMenu(settingsPath);
 

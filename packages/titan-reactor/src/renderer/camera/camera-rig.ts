@@ -33,6 +33,9 @@ class CameraRig {
   private cameraClock = new Clock();
   private _delta = new Vector3();
   private settings: Settings;
+
+  //@todo re-implement
+  // @ts-ignore
   private control: StandardCameraControls;
   private previewControl?: StandardCameraControls;
 

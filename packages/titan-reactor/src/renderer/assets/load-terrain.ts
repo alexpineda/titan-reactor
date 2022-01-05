@@ -13,6 +13,7 @@ import * as hd from "../../common/image/generate-map/hd";
 
 import { Mesh, Texture } from "three";
 import assert from "assert";
+import * as log from "../ipc";
 
 export async function loadBuffersAndBitmaps(chk: Chk, terrainTextureResolution: AssetTextureResolution): Promise<{ tilesetBuffers: TilesetBuffers, bitmaps: MapBitmapsResult; }> {
   const tilesetBuffers = await loadTilesetFiles(readCascFile, chk.tileset, chk._tiles, terrainTextureResolution);
@@ -49,6 +50,8 @@ export default async function loadTerrain(chk: Chk): Promise<TerrainInfo> {
   const { creepGrpSD, palette, hdTiles, creepGrpHD, tilegroupU16, tileset, megatiles, minitiles } = tilesetBuffers;
 
   const renderSD = settings.assets.terrain === AssetTextureResolution.SD;
+
+  log.info(`Generating terrain ${settings.assets.terrain} textures`);
 
   const displacementImages = await createDisplacementImages({
     palette,

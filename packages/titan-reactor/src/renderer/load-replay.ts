@@ -68,6 +68,8 @@ export default async (filepath: string) => {
     let repFile = filepath;
     const outFile = path.join(settings.directories.temp, "replay.out");
 
+    // @todo change this to generics
+    // @ts-ignore
     updateScreen({ header: rep.header } as ReplayScreen);
 
     if (rep.version !== Version.titanReactor) {

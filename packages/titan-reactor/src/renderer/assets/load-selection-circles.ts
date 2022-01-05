@@ -1,3 +1,4 @@
+import { AssetTextureResolution } from "../../common/types";
 import { Anim } from "../../common/image";
 import {
     readCascFile,
@@ -6,17 +7,15 @@ import {
     updateLoadingProcess,
 } from "../stores";
 
-export default async function () {
+export default async function (res: AssetTextureResolution) {
     const selectionCirclesHD = [];
     for (let i = 561; i < 571; i++) {
         const selCircleGRP = new Anim();
-        const readAnim = async () => await readCascFile(`anim/main_${i}.anim`);
-        const readAnimHD2 = async () =>
-            await readCascFile(`HD2/anim/main_${i}.anim`);
-
+        const pre = res === AssetTextureResolution.HD2? "HD2/": "";
+         
+        const readAnim = async () => await readCascFile(`${pre}anim/main_${i}.anim`);
         await selCircleGRP.load({
             readAnim,
-            readAnimHD2,
             imageDef: { index: i },
         });
 

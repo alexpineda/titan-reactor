@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @todo document image drawing + update function
 import {
   BufferAttribute,
   Color,

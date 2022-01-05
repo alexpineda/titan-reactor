@@ -121,9 +121,9 @@ export class Settings extends EventEmitter {
 
     const diff = shallowDiff(this._settings, settings);
     this._settings = Object.assign({}, this._settings, settings);
-    // await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings), {
-    //   encoding: "utf8",
-    // });
+    await fsPromises.writeFile(this._filepath, yaml.dump(this._settings), {
+      encoding: "utf8",
+    });
     this._emitChanged(diff);
   }
 

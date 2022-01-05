@@ -1,5 +1,6 @@
 
 import { WebGLRenderer } from "three";
+import { strict as assert } from "assert";
 import renderIcons from "./render-icons";
 
 export default (renderer: WebGLRenderer, dds: Buffer[]) => {
@@ -10,14 +11,20 @@ export default (renderer: WebGLRenderer, dds: Buffer[]) => {
         dds
     );
 
+    const getNext = () => {
+        const next = renderIcon.next().value;
+        assert(next)
+        return next;
+    }
+
     return {
-        "minerals": renderIcon.next().value,
-        "vespeneZerg": renderIcon.next().value,
-        "vespeneTerran": renderIcon.next().value,
-        "vespeneProtoss": renderIcon.next().value,
-        "zerg": renderIcon.next().value,
-        "terran": renderIcon.next().value,
-        "protoss": renderIcon.next().value,
-        "energy": renderIcon.next().value,
+        "minerals": getNext(),
+        "vespeneZerg": getNext(),
+        "vespeneTerran": getNext(),
+        "vespeneProtoss": getNext(),
+        "zerg": getNext(),
+        "terran": getNext(),
+        "protoss": getNext(),
+        "energy": getNext(),
     };
 };
