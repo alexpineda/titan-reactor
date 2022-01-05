@@ -9,6 +9,7 @@ export type SettingsStore = {
   errors: string[];
   phrases: Record<string, string>;
   isDev: boolean;
+  isCascStorage: boolean;
   save: (data: any) => Promise<void>;
   load: () => Promise<void>;
 };
@@ -17,6 +18,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   isDev: false,
   data: { ...defaultSettings },
   phrases: {},
+  isCascStorage: false,
   errors: [],
   save: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
@@ -33,3 +35,4 @@ export default useSettingsStore;
 
 export const getSettings = () => useSettingsStore.getState().data;
 export const loadSettings = useSettingsStore.getState().load;
+export const isCascStorage = () => useSettingsStore.getState().isCascStorage;

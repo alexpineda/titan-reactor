@@ -1,11 +1,9 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "../../common/utils/file-exists";
-
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import { Glb, Anim, parseAnim } from "../../common/image";
 import {
-    findFile,
     openCascStorage,
     readCascFile,
 } from "../../common/utils/casclib";
@@ -22,6 +20,7 @@ import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
 import { AssetTextureResolution, Settings } from "../../common/types";
+import { openBwFiles, openBw } from "../openbw";
 
 export default async (settings: Settings) => {
 
@@ -45,12 +44,15 @@ export default async (settings: Settings) => {
 
     await openCascStorage(settings.directories.starcraft);
 
-    const f = await findFile("academy.grp");
-    console.log(f);
-    
+    log.verbose("Loading assets into openbw");
+    await openBwFiles.loadBuffers(readCascFile);
+    openBw.start();
+
+    log.verbose("Loading dat files");
     const bwDat = await loadDATFiles(readCascFile);
     updateLoadingProcess("assets");
 
+    log.verbose("Loading sd texture");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
     const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);

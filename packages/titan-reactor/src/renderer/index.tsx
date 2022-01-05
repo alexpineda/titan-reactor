@@ -53,7 +53,6 @@ async function bootup() {
 
     await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
-    alert("Titan Reactor is ready!");
     completeScreen();
   } catch (err: any) {
     log.error(err.message);

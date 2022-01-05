@@ -13,6 +13,7 @@ import { Settings as SettingsType } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
+import foldersExist from "./folders-exist";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 export const findTempPath = () => app.getPath("temp");
@@ -68,20 +69,11 @@ export class Settings extends EventEmitter {
       }
     }
 
-    const dataFolders = ["Data", "locales"];
-    if (await fileExists(this._settings.directories["starcraft"])) {
-      for (const folder of dataFolders) {
-        if (
-          !(await fileExists(
-            path.join(this._settings.directories["starcraft"], folder)
-          ))
-        ) {
-          if (!errors.includes("starcraftPath")) {
-            errors.push("starcraftPath");
-          }
-        }
-      }
+    const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
+    if (!isCascStorage && !await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"])) {
+      errors.push("starcraftPath");
     }
+      
 
     const localLanguage = supportedLanguages.includes(getEnvLocale() as string)
       ? (getEnvLocale() as string)
@@ -91,11 +83,12 @@ export class Settings extends EventEmitter {
     )
       ? this._settings.language
       : localLanguage;
-
+    
     return {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
       isDev,
+      isCascStorage,
       phrases: {
         ...phrases["en-US"],
         ...phrases[this._settings.language as keyof typeof phrases],
@@ -104,7 +97,7 @@ export class Settings extends EventEmitter {
     };
   }
 
-  async load() {
+ async load() {
     const contents = await fsPromises.readFile(this._filepath, {
       encoding: "utf8",
     });
