@@ -1,5 +1,10 @@
 import filepaths from "./filepaths";
+import filelist from "./list";
 import * as log from "../ipc/log";
+import { findFiles } from "../../common/utils/casclib";
+import fs from "fs";
+import { isCascStorage } from "../../../src/renderer/stores";
+
 
 interface Callbacks {
   beforeFrame: () => void;
@@ -51,7 +56,7 @@ export default class OpenBWFileList {
     );
   }
 
-  async loadBuffers(readFile: (filename: string) => Promise<Buffer>) {
+  async loadBuffers(readFile: (filename: string) => Promise<Buffer|Uint8Array>) {
     if (this._cleared) {
       throw new Error("File list already cleared");
     }
@@ -59,33 +64,44 @@ export default class OpenBWFileList {
     for (const filepath of filepaths) {
       const buffer = await readFile(filepath);
 
-      const int8 = new Int8Array(
-        buffer.buffer,
-        buffer.byteOffset,
-        buffer.length
-      )
+      let int8 = new Int8Array();
+
+      //@todo casclib madness fix plz
+      if (isCascStorage()) {
+        int8 = Int8Array.from(buffer.subarray(0, buffer.byteLength / 8))
+      }
+      else {
+
+        //@todo why is casclib returning unit8array?
+        //  if (buffer instanceof Buffer) {
+          int8 = new Int8Array(
+            buffer.buffer,
+            buffer.byteOffset,
+            buffer.length
+          )
+    
+      }
 
       this.buffers.push(int8);
+
       log.verbose(
         `pushing ${this.normalize(filepath)} ${this.buffers.length - 1} ${int8.byteLength}`
       );
       this.index[this.normalize(filepath)] = this.buffers.length - 1;
       this.unused.push(this.buffers.length - 1);
     }
+    
+  }
 
-    // const paths = [];
-    // for ( const filename of filelist ) {
-    //   console.log(`Loading ${filename}`);
-    //   const path = await findFile(filename);
-    //   if (!path) {
-    //     throw new Error(`File not found: ${filename}`);
-    //   }
-    //   paths.push(path);
-    //   // const buffer = await readFile(path);
-    //   // this.files.push(buffer);
-    //   // this.index[filename.toLowerCase()] = this.files.length-1;
-    // }
-    // fs.writeFileSync("filelist.json", ["export default", JSON.stringify(paths)].join(" "));
+  // utility
+  async dumpFileList() {
+    const paths: string[] = [];
+    for ( const filename of filelist ) {
+      console.log(`Loading ${filename}`);
+      const _paths = (await findFiles(filename)).filter(n => !n.includes("Carbot"));
+      paths.push(..._paths);
+    }
+    fs.writeFileSync("filelist.json", ["export default", JSON.stringify(paths)].join(" "));
   }
 
   clear() {

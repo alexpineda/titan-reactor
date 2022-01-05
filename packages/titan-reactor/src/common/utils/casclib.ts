@@ -4,17 +4,12 @@ import { isCascStorage } from "../../../src/renderer/stores";
 let _storageHandle: any;
 let _lastBwPath: string;
 
-export const readCascFile = (filePath: string) => {
+export const  readCascFile = async (filePath: string) => {
   if (!isCascStorage()) {
     return hardfile.readCascFile(filePath);
   }
-  try {
-    return casclib.readFile(_storageHandle, filePath);
-  } catch (e) {
-    console.error("failed loading casc file, retrying open casc");
-    casclib.openStorage(_lastBwPath);
-    return casclib.readFile(_storageHandle, filePath);
-  }
+  return await casclib.readFile(_storageHandle, filePath);
+  
 };
 export default readCascFile;
 
@@ -27,6 +22,13 @@ export const findFile = async (fileName: string) => {
       return undefined;
   }
   return files[0].fullName;
+};
+
+export const findFiles = async (fileName: string) => {
+  if (!isCascStorage()) {
+    throw new Error("Not implemented");
+  }
+  return (await casclib.findFiles(_storageHandle, `*${fileName}`)).map(({fullName}) => fullName);
 };
 
 export const openCascStorage = async (bwPath: string) => {
