@@ -25,7 +25,7 @@ export class FrameBW {
   }
 
   setBuffer(
-    buffer: string,
+    buffer: "sprites" | "images" | "units" | "tiles" | "sounds" | "creep" | "buildingQueue" | "research" | "upgrades",
     src: BufferList | Buffer,
     pos: number,
     copySize: number

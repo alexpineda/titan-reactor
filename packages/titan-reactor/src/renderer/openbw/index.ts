@@ -11,8 +11,10 @@ const callbacks = {
   afterFrame: () => {},
 };
 
-interface OpenBWWasmAPI {
+export interface OpenBWWasmAPI {
   callMain: () => void;
+  _next_frame: () => void;
+  _next_frame_exact: () => void;
   getExceptionMessage: (e: unknown) => string;
 }
 
