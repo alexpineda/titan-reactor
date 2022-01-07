@@ -1,3 +1,4 @@
+import { TilesBW } from "../integration/fixed-data";
 import {
   Explored,
   HideSpeedSlow,
@@ -19,17 +20,17 @@ onmessage = function ({ data }) {
   } = data;
 
   const tileData = new Uint8Array(tileBuffer);
-  const toBuffer = new Uint8Array(tileBuffer.length);
+  const toBuffer = new Uint8Array(tileBuffer.length / 2);
   const imageData = new ImageData(width, height);
 
-  for (let i = 0; i < tileData.length; i++) {
+  for (let i = 0; i < toBuffer.length; i++) {
     let val = Unexplored;
 
-    if (~tileData[i * 2] & playerVisionFlags) {
+    if (~tileData[i * TilesBW.STRUCT_SIZE] & playerVisionFlags) {
       val = Explored;
     }
 
-    if (~tileData[i * 2 + 1] & playerVisionFlags) {
+    if (~tileData[i * TilesBW.STRUCT_SIZE + 1] & playerVisionFlags) {
       val = Visible;
     }
 

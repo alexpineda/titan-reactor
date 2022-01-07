@@ -1,6 +1,6 @@
 import { unitTypes } from "../../../common/bwdat/enums";
 import { BwDAT, UnitDAT } from "../../../common/types/bwdat";
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 import { UnitRAW } from "../unit-raw";
 
 // status_flag_completed = 1,
@@ -48,80 +48,88 @@ const flags = Object.freeze({
   canMove: 0x20000,
 });
 
+
+// get dat(): UnitDAT {
+//   return (this.bwDat as BwDAT).units[this.typeId];
+// }
+
+// get remainingBuildTime() {
+//   if (this.dat.isResourceContainer && this.isComplete) {
+//     return 0;
+//   }
+//   return this._read(22);
+// }
+
+// get resourceAmount() {
+//   if (this.dat.isResourceContainer && this.isComplete) {
+//     // remainingBuildTime
+//     return this._read(22);
+//   }
+//   return null;
+// }
+
 export const UNIT_BYTE_LENGTH = 30;
 // all units in a bw frame
-export class UnitsBW extends ContiguousContainer<UnitRAW> implements UnitRAW {
-  protected override byteLength = UNIT_BYTE_LENGTH;
+export class UnitsBW extends BufferView<UnitRAW> implements UnitRAW {
 
   get id() {
-    return this._readU16(0);
+    return this._readU(0);
   }
 
   get typeId() {
-    return this._read16(2);
+    return this._read(2);
   }
 
   get owner() {
-    return this._read16(4);
+    return this._read(4);
   }
 
   get x() {
-    return this._read16(6);
+    return this._read(6);
   }
 
   get y() {
-    return this._read16(8);
+    return this._read(8);
   }
 
   get hp() {
-    return this._read16(10);
+    return this._read(10);
   }
 
   get energy() {
-    return this._read16(12);
+    return this._read(12);
   }
 
   get spriteIndex() {
-    return this._read16(14);
+    return this._read(14);
   }
 
   get statusFlags() {
-    return this._read32(16);
+    return this._read(16);
   }
 
   get direction() {
-    return this._read16(20);
+    return this._read(20);
   }
 
   get remainingBuildTime() {
-    if (this.dat.isResourceContainer && this.isComplete) {
-      return 0;
-    }
-    return this._read16(22);
+    return this._read(22);
   }
 
   get shields() {
-    return this._read16(24);
+    return this._read(24);
   }
 
   get order() {
-    return this._readU8(26);
+    return this._readU(26);
   }
 
   get remainingTrainTime() {
-    return this._readU8(27);
+    return this._readU(27);
   }
 
   get kills() {
-    return this._read16(28);
-  }
-
-  get resourceAmount() {
-    if (this.dat.isResourceContainer && this.isComplete) {
-      // remainingBuildTime
-      return this._read16(22);
-    }
-    return null;
+    return this._read(28);
   }
 
   get angle() {
@@ -131,10 +139,6 @@ export class UnitsBW extends ContiguousContainer<UnitRAW> implements UnitRAW {
       d += 256;
     }
     return -((d * Math.PI) / 128) + Math.PI / 2;
-  }
-
-  get dat(): UnitDAT {
-    return (this.bwDat as BwDAT).units[this.typeId];
   }
 
   get isFlying() {
@@ -181,7 +185,6 @@ export class UnitsBW extends ContiguousContainer<UnitRAW> implements UnitRAW {
       remainingBuildTime: this.remainingBuildTime,
       remainingTrainTime: this.remainingTrainTime,
       angle: this.angle,
-      dat: this.dat,
       isFlying: this.isFlying,
       isCloaked: this.isCloaked,
       isComplete: this.isComplete,
@@ -189,7 +192,6 @@ export class UnitsBW extends ContiguousContainer<UnitRAW> implements UnitRAW {
       tileY: this.tileY,
       order: this.order,
       kills: this.kills,
-      resourceAmount: this.resourceAmount,
     };
   }
 }

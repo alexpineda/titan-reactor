@@ -1,55 +1,53 @@
 import { SpriteRAW } from "../sprite-raw";
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 
-export const SPRITE_BYTE_LENGTH = 17;
+export const STRUCT_SIZE = 17;
 export class SpritesBW
-  extends ContiguousContainer<SpriteRAW>
+  extends BufferView<SpriteRAW>
   implements SpriteRAW
 {
-  protected override byteLength = SPRITE_BYTE_LENGTH;
-
   get default() {
-    return this.index;
+    return this.containerIndex;
   }
 
-  get index() {
-    return this._read16(0);
+  get containerIndex() {
+    return this._read(0);
   }
 
   get id() {
-    return this._read16(2);
+    return this._read(1);
   }
 
   get owner() {
-    return this._read8(4);
+    return this._read(2);
   }
 
   get elevation() {
-    return this._read8(5);
+    return this._read(3);
   }
 
   get flags() {
-    return this._read32(6);
+    return this._read(4);
   }
 
   get x() {
-    return this._read16(10);
+    return this._read(5);
   }
 
   get y() {
-    return this._read16(12);
+    return this._read(6);
   }
 
   get imageCount() {
-    return this._read8(14);
+    return this._read(7);
   }
 
   get mainImageIndex() {
-    return this._read16(15);
+    return this._read(8);
   }
 
   get order() {
-    return this.offset;
+    return this.containerIndex;
   }
 
   get tileX() {
@@ -60,11 +58,5 @@ export class SpritesBW
     return Math.floor(this.y / 32);
   }
 
-  get dat() {
-    if (!this.bwDat) {
-      throw new Error("bwDat not set");
-    }
-    return this.bwDat.sprites[this.id];
-  }
 }
 export default SpritesBW;

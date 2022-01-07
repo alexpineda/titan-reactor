@@ -8,7 +8,7 @@ import {
     readCascFile,
 } from "../../common/utils/casclib";
 
-import ContiguousContainer from "../integration/fixed-data/contiguous-container";
+import BufferView from "../integration/fixed-data/buffer-view";
 import {
     startLoadingProcess,
     updateLoadingProcess,
@@ -56,8 +56,6 @@ export default async (settings: Settings) => {
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
     const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);
-
-    ContiguousContainer.prototype.bwDat = bwDat;
 
     // log("loading env map");
     // const renderer = new WebGLRenderer();

@@ -1,5 +1,3 @@
-import { UnitDAT } from "../../common/types/bwdat";
-
 export interface UnitRAW {
   id: number;
   typeId: number;
@@ -16,7 +14,6 @@ export interface UnitRAW {
   remainingBuildTime: number;
   remainingTrainTime: number;
   angle: number;
-  dat: UnitDAT;
   isFlying: boolean;
   isCloaked: boolean;
   isComplete: boolean;
@@ -24,5 +21,4 @@ export interface UnitRAW {
   tileY: number;
   order: number;
   kills: number;
-  resourceAmount: number | null;
 }

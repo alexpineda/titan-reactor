@@ -1,7 +1,5 @@
-import { SpriteDAT } from "../../common/types";
-
 export interface SpriteRAW {
-  index: number;
+  containerIndex: number;
   id: number;
   owner: number;
   elevation: number;
@@ -13,5 +11,4 @@ export interface SpriteRAW {
   order: number;
   tileX: number;
   tileY: number;
-  dat: SpriteDAT;
 }

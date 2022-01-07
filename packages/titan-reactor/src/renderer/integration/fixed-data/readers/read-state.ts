@@ -1,9 +1,10 @@
+// @ts-nocheck
+
 import { SOUND_BYTE_LENGTH } from "../sounds";
-import { SPRITE_BYTE_LENGTH } from "../sprites";
+import { STRUCT_SIZE } from "../sprites";
 import { IMAGE_BYTE_LENGTH } from "../images";
 import { TILE_BYTE_LENGTH } from "../tiles";
 import { UNIT_BYTE_LENGTH } from "../units";
-import { CREEP_BYTE_LENGTH } from "../creep";
 import { UPGRADE_BYTE_LENGTH } from "../upgrade";
 import { RESEARCH_BYTE_LENGTH } from "../research";
 import { BUILDING_BYTE_LENGTH } from "../building-queue-count";
@@ -178,7 +179,7 @@ export default class ReadState {
     if (this.mode === State.Sprite) {
       return this.fixedSizeTypeReader(
         "sprites",
-        frame.spriteCount * SPRITE_BYTE_LENGTH,
+        frame.spriteCount * STRUCT_SIZE,
         buf,
         frame,
         State.Images

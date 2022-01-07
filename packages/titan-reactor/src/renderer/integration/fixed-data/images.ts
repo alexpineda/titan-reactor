@@ -1,7 +1,7 @@
 import { drawFunctions } from "../../../common/bwdat/enums";
 import { BwDAT } from "../../../common/types/bwdat";
 import { ImageRAW } from "../image-raw";
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 
 const flags = Object.freeze({
   redraw: 1,
@@ -14,45 +14,56 @@ const flags = Object.freeze({
   specialOffset: 0x80,
 });
 
-export const IMAGE_BYTE_LENGTH = 22;
-// all images in a bw frame
+
+// get isShadow() {
+//   return (
+//     (this.bwDat as BwDAT).images[this.id].drawFunction ===
+//     drawFunctions.rleShadow
+//   );
+// }
+
+// get dat() {
+//   return (this.bwDat as BwDAT).images[this.id];
+// }
+
 export class ImagesBW
-  extends ContiguousContainer<ImageRAW>
+  extends BufferView<ImageRAW>
   implements ImageRAW
 {
-  protected override byteLength = IMAGE_BYTE_LENGTH;
-  get index() {
-    return this._read16(0);
-  }
-
-  get id() {
-    return this._read16(2);
-  }
-
+  
   get flags() {
-    return this._read32(4);
-  }
-
-  get frameIndex() {
-    return this._read16(8);
-  }
-
-  get x() {
-    return this._read16(10);
-  }
-
-  get y() {
-    return this._read16(12);
+    return this._read(0);
   }
 
   //@todo change this to byte?
   get modifier() {
-    return this._read32(14);
+    return this._read(1);
   }
 
   //@todo change this to byte?
   get modifierData1() {
-    return this._read32(18);
+    return this._read(2);
+  }
+
+
+  get containerIndex() {
+    return this._read(6);
+  }
+
+  get id() {
+    return this._read(7);
+  }
+
+  get frameIndex() {
+    return this._read(8);
+  }
+
+  get x() {
+    return this._read(9);
+  }
+
+  get y() {
+    return this._read(10);
   }
 
   get flipped() {
@@ -67,15 +78,5 @@ export class ImagesBW
     return (this.flags & flags.frozen) != 0;
   }
 
-  get isShadow() {
-    return (
-      (this.bwDat as BwDAT).images[this.id].drawFunction ===
-      drawFunctions.rleShadow
-    );
-  }
-
-  get dat() {
-    return (this.bwDat as BwDAT).images[this.id];
-  }
 }
 export default ImagesBW;

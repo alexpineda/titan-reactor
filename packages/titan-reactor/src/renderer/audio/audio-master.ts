@@ -2,6 +2,7 @@ import MainMixer from "./main-mixer";
 import Music from "./music";
 import SoundChannels from "./sound-channels";
 import { AudioListener } from "three";
+import { BwDAT } from "../../common/types";
 
 // central point for sound mixer, and audio channels for game sounds
 export class AudioMaster {
@@ -11,10 +12,11 @@ export class AudioMaster {
   music: Music;
 
   constructor(
+    bwDat: BwDAT,
     loadSoundAsync: (id: number) => Promise<ArrayBuffer>,
     races: string[]
   ) {
-    this.channels = new SoundChannels(this.mixer, loadSoundAsync);
+    this.channels = new SoundChannels(bwDat, this.mixer, loadSoundAsync);
     this.music = new Music(races);
     this.music.setListener(this.mixer as unknown as AudioListener);
   }

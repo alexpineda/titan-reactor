@@ -1,34 +1,33 @@
 import { ResearchRAW } from "../research-raw";
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 
-export const RESEARCH_BYTE_LENGTH = 6;
+
+// get dat() {
+//   return this.bwDat.tech[this.typeId];
+// }
+
 // research in progress
 export class ResearchBW
-  extends ContiguousContainer<ResearchRAW>
+  extends BufferView<ResearchRAW>
   implements ResearchRAW {
-  protected override byteLength = RESEARCH_BYTE_LENGTH;
+
+  static STRUCT_SIZE = 6;
+
 
   get ownerId() {
-    return this._readU8(0);
+    return this._readU(0);
   }
 
   get typeId() {
-    return this._readU8(1);
+    return this._readU(1);
   }
 
   get remainingBuildTime() {
-    return this._readU16(2);
+    return this._readU(2);
   }
 
   get unitId() {
-    return this._readU16(4);
-  }
-
-  get dat() {
-    if (!this.bwDat) {
-      throw new Error("bwDat not set");
-    }
-    return this.bwDat.tech[this.typeId];
+    return this._readU(3);
   }
 
   override object() {
@@ -36,8 +35,7 @@ export class ResearchBW
       ownerId: this.ownerId,
       typeId: this.typeId,
       remainingBuildTime: this.remainingBuildTime,
-      unitId: this.unitId,
-      dat: this.dat,
+      unitId: this.unitId
     };
   }
 }

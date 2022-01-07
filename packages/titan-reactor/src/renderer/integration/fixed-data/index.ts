@@ -1,6 +1,5 @@
 export * from "./building-queue-count";
-export * from "./contiguous-container";
-export * from "./creep";
+export * from "./buffer-view";
 export * from "./frame";
 export * from "./images";
 export * from "./marked-object-pool";

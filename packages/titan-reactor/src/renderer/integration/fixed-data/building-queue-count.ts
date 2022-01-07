@@ -1,4 +1,4 @@
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 import { BuildingQueueRAW } from "../building-queue-raw";
 
 export const TrainingQueueType = 0;
@@ -8,27 +8,25 @@ export const BUILDING_BYTE_LENGTH = 19;
 
 // represents units that are currently building / training
 export class BuildingQueueCountBW
-  extends ContiguousContainer<BuildingQueueRAW>
+  extends BufferView<BuildingQueueRAW>
   implements BuildingQueueRAW
 {
-  protected override byteLength = BUILDING_BYTE_LENGTH;
-
   get unitId() {
-    return this._read16(0);
+    return this._read(0);
   }
 
   get queueCount() {
-    return this._readU8(2) & 0x7f;
+    return this._readU(1) & 0x7f;
   }
 
   get queueType() {
-    return this._readU8(2) & 128;
+    return this._readU(1) & 128;
   }
 
   get units() {
     const units = [];
     for (let i = 0; i < this.queueCount; i++) {
-      units.push(this._readU16(3 + i * 2));
+      units.push(this._readU(2 + i * 2));
     }
     return units;
   }

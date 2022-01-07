@@ -1,7 +1,5 @@
-import { ImageDAT } from "../../common/types";
-
 export interface ImageRAW {
-  index: number;
+  containerIndex: number;
   id: number;
   flags: number;
   frameIndex: number;
@@ -12,6 +10,4 @@ export interface ImageRAW {
   flipped: boolean;
   hidden: boolean;
   frozen: boolean;
-  isShadow: boolean;
-  dat: ImageDAT;
 }

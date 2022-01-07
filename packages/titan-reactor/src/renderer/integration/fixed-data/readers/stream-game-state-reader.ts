@@ -57,13 +57,13 @@ export default abstract class StreamGameStateReader extends EventEmitter {
     return Boolean(this._state.isEndOfFile || this.frames.isMaxed);
   }
 
-  next(frameCount = 1) {
+  nextN(frameCount = 1) {
     this.processFrames();
     const frames = this.getAvailableFrames(frameCount);
     return frames;
   }
 
-  nextOne() {
+  next() {
     this.processFrames();
     const frame = this.getAvailableFrames(1);
     return frame[0];

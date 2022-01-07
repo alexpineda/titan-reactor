@@ -3,8 +3,14 @@ import { ipcRenderer } from "electron";
 import { LOG_MESSAGE } from "../../common/ipc-handle-names";
 import { useSettingsStore } from "../stores";
 
-export const error = (msg: string) => {
-  log(msg, "error");
+type ErrorOrUnknown = Error | unknown;
+
+export const error = (msg: string | ErrorOrUnknown) => {
+  if (typeof msg === "string") {
+    log(msg, "error");
+  } else {
+    log((msg as Error)?.message);
+  }
 };
 
 export const warning = (msg: string) => {

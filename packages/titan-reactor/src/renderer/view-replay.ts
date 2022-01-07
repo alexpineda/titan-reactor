@@ -28,16 +28,7 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import { InputEvents, KeyboardShortcuts, MinimapControl, MouseInteraction } from "./input";
 import {
-  BuildingQueueCountBW,
-  CreepBW,
   FrameBW,
-  ImagesBW,
-  ResearchBW,
-  SoundsBW,
-  SpritesBW,
-  TilesBW,
-  UnitsBW,
-  UpgradeBW
 } from "./integration/fixed-data";
 import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
 import * as log from "./ipc/log";
@@ -72,7 +63,7 @@ async function TitanReactorGame(
   preplacedMapUnits: ChkUnit[],
   rep: Replay,
   commandsStream: CommandsStream,
-  gameStateReader: StreamGameStateReader,
+  gameStateReader: { next: () => FrameBW },
   bwDat: BwDAT,
   audioMaster: AudioMaster,
   janitor: Janitor
@@ -307,62 +298,46 @@ async function TitanReactorGame(
     mapHeight
   );
 
-  const soundsBW = new SoundsBW(pxToGameUnit, terrainInfo.getTerrainY);
   const buildSounds = (bwFrame: FrameBW) => {
-    soundsBW.count = bwFrame.soundCount;
-    soundsBW.buffer = bwFrame.sounds;
 
-    for (const sound of soundsBW.items()) {
+    for (const sound of bwFrame.sounds.items()) {
       if (!fogOfWar.isVisible(sound.tileX, sound.tileY)) {
         continue;
       }
-      const volume = sound.bwVolume(
-        projectedCameraView.left,
-        projectedCameraView.top,
-        projectedCameraView.right,
-        projectedCameraView.bottom
-      );
-      if (volume > SoundsBW.minPlayVolume) {
-        audioMaster.channels.queue(sound.object());
-      }
+      // const volume = sound.bwVolume(
+      //   projectedCameraView.left,
+      //   projectedCameraView.top,
+      //   projectedCameraView.right,
+      //   projectedCameraView.bottom
+      // );
+      // if (volume > SoundsBW.minPlayVolume) {
+      //   audioMaster.channels.queue(sound.object());
+      // }
     }
   };
 
-  const tilesBW = new TilesBW();
   const buildFog = (bwFrame: FrameBW): void => {
-    tilesBW.count = bwFrame.tilesCount;
-    tilesBW.buffer = bwFrame.tiles;
 
     fogOfWar.generate(
-      tilesBW,
+      bwFrame.tiles,
       players.getVisionFlag(),
       bwFrame.frame
     );
   };
 
-  const creepBW = new CreepBW();
   const buildCreep = (bwFrame: FrameBW) => {
-    creepBW.count = bwFrame.creepCount;
-    creepBW.buffer = bwFrame.creep;
-    creep.generate(creepBW, bwFrame.frame);
+    creep.generate(bwFrame.creep, bwFrame.frame);
   };
 
-  const unitsBW = new UnitsBW();
-  const buildQueueBW = new BuildingQueueCountBW();
   const units: Map<UnitTag, Unit> = new Map();
   const unitsBySpriteId: Map<SpriteIndex, Unit> = new Map();
   const unitsInProduction: UnitInProduction[] = [];
 
   const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
-    unitsBW.count = bwFrame.unitCount;
-    unitsBW.buffer = bwFrame.units;
-
-    buildQueueBW.count = bwFrame.buildingQueueCount;
-    buildQueueBW.buffer = bwFrame.buildingQueue;
 
     buildUnits.refresh(
-      unitsBW,
-      buildQueueBW,
+      bwFrame.units,
+      bwFrame.buildingQueue,
       units,
       unitsBySpriteId,
       unitsInProduction
@@ -370,8 +345,6 @@ async function TitanReactorGame(
   };
 
   const sprites: Map<SpriteIndex, Sprite> = new Map();
-  const spritesBW = new SpritesBW();
-  const imagesBW = new ImagesBW();
   let research: ResearchInProduction[][] = [];
   let upgrades: UpgradeInProduction[][] = [];
   let completedUpgrades: UpgradeCompleted[][] = [];
@@ -382,20 +355,16 @@ async function TitanReactorGame(
   const interactableSprites: Image[] = [];
   const buildSprites = (bwFrame: FrameBW, delta: number) => {
     group.clear();
-    spritesBW.count = bwFrame.spriteCount;
-    spritesBW.buffer = bwFrame.sprites;
-
     // we set count below
-    imagesBW.buffer = bwFrame.images;
     interactableSprites.length = 0;
 
-    for (const spriteBW of spritesBW.items()) {
-      let sprite = sprites.get(spriteBW.index);
+    for (const spriteBW of bwFrame.sprites.items()) {
+      let sprite = sprites.get(spriteBW.containerIndex);
       if (!sprite) {
-        sprite = new Sprite(spriteBW.index, spriteBW.dat);
-        sprites.set(spriteBW.index, sprite);
+        sprite = new Sprite(spriteBW.containerIndex, bwDat.sprites[spriteBW.id]);
+        sprites.set(spriteBW.containerIndex, sprite);
       }
-      sprite.spriteDAT = spriteBW.dat;
+      sprite.spriteDAT = bwDat.sprites[spriteBW.id];
 
       const buildingIsExplored =
         sprite.unit &&
@@ -407,8 +376,8 @@ async function TitanReactorGame(
       // show if a building has been explored
       sprite.visible =
         spriteBW.owner === 11 ||
-        spriteBW.dat.image.iscript === 336 ||
-        spriteBW.dat.image.iscript === 337 ||
+        // spriteBW.dat.image.iscript === 336 ||
+        // spriteBW.dat.image.iscript === 337 ||
         fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
 
       // don't update explored building frames so viewers only see last built frame
@@ -425,7 +394,7 @@ async function TitanReactorGame(
       const z = pxToGameUnit.y(spriteBW.y);
       let y = terrainInfo.getTerrainY(x, z);
 
-      sprite.unit = unitsBySpriteId.get(spriteBW.index);
+      sprite.unit = unitsBySpriteId.get(spriteBW.containerIndex);
       if (sprite.unit) {
         if (sprite.unit.isFlying) {
           const targetY = Math.min(6, y + 2.5);
@@ -454,7 +423,7 @@ async function TitanReactorGame(
           // @ts-ignore
       sprite.mainImage = null;
 
-      for (const imageBW of imagesBW.reverse(spriteBW.imageCount)) {
+      for (const imageBW of bwFrame.images.reverse(spriteBW.imageCount)) {
         if (imageBW.hidden) continue;
 
         //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
@@ -494,14 +463,15 @@ async function TitanReactorGame(
         }
 
         let z = 0;
-        if (imageBW.index === spriteBW.mainImageIndex) {
+        if (imageBW.containerIndex === spriteBW.mainImageIndex) {
           // @ts-ignore
           sprite.mainImage = image;
           z = image._zOff * (image.imageScale / 32); //x4 for HD
 
           if (sprite.unit) {
             image.rotation.y = sprite.unit.angle;
-            if (!imageBW.dat.clickable) {
+            
+            if (!bwDat.images[imageBW.id].clickable) {
               sprite.unit.canSelect = false;
             }
             if (sprite.unit.canSelect) {
@@ -585,20 +555,13 @@ async function TitanReactorGame(
     completedResearch = _completedResearch;
   };
 
-  const researchBW = new ResearchBW();
-  const upgradeBW = new UpgradeBW();
   const buildResearchAndUpgrades = (bwFrame: FrameBW) => {
-    researchBW.count = bwFrame.researchCount;
-    researchBW.buffer = bwFrame.research;
-    upgradeBW.count = bwFrame.upgradeCount;
-    upgradeBW.buffer = bwFrame.upgrades;
-
     const msg = {
       frame: bwFrame.frame,
-      researchCount: bwFrame.researchCount,
-      researchBuffer: bwFrame.research,
-      upgradeCount: bwFrame.upgradeCount,
-      upgradeBuffer: bwFrame.upgrades,
+      researchCount: bwFrame.research.count,
+      researchBuffer: bwFrame.research.buffer,
+      upgradeCount: bwFrame.upgrades.count,
+      upgradeBuffer: bwFrame.upgrades.buffer,
     };
 
     techUpgradesWorker.postMessage(msg);
@@ -655,7 +618,7 @@ async function TitanReactorGame(
 
         //@todo fix reading multiple frames, since they get unmarked, currentBwFrame gets used
         // gameStateReader.next(gameStatePosition.skipGameFrames - 1);
-        nextBwFrame = gameStateReader.nextOne();
+        nextBwFrame = gameStateReader.next();
         if (nextBwFrame) {
           // get creep, fog of war, sounds, etc. ready ahead of time if possible
           buildSounds(nextBwFrame);

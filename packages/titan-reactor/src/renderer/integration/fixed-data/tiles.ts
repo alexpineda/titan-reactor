@@ -1,18 +1,21 @@
 import { TileRAW } from "../tile-raw";
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 
-export const TILE_BYTE_LENGTH = 2;
 
 // a block of fog of war data representing w x h map dimensions of fog of war information
-export class TilesBW extends ContiguousContainer<TileRAW> implements TileRAW {
-  protected override byteLength = TILE_BYTE_LENGTH;
-
+export class TilesBW extends BufferView<TileRAW> implements TileRAW {
+  static STRUCT_SIZE = 4;
+  
   get explored() {
-    return this._readU8(0);
+    return this._readU(0);
   }
 
   get visible() {
-    return this._readU8(1);
+    return this._readU(1);
+  }
+
+  get flags() {
+    return this._readU(2);
   }
 }
 export default TilesBW;

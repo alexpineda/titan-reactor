@@ -14,9 +14,8 @@ import {
     ImageHD
 } from "./core";
 import { EmptyFunc } from "../common/types";
-import uniq from "../common/utils/uniq";
 import { AudioMaster } from "./audio";
-import OpenBwBridgeReader from "./integration/fixed-data/readers/openbw-bridge-reader";
+import OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
@@ -38,6 +37,8 @@ import TitanReactorGame from "./view-replay";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
+import { openBw } from "./openbw";
+import { strict as assert } from "assert";
 
 export default async (filepath: string) => {
     log.info(`loading replay ${filepath}`);
@@ -54,7 +55,7 @@ export default async (filepath: string) => {
     const settings = getSettings();
 
     // validate before showing any loading progress
-    const repBin = await openFile(filepath);
+    let repBin = await openFile(filepath);
     let rep = await parseReplay(repBin);
 
     document.title = "Titan Reactor - Loading";
@@ -74,11 +75,11 @@ export default async (filepath: string) => {
 
     if (rep.version !== Version.titanReactor) {
         const chkDowngrader = new ChkDowngrader();
-        const newrep = await sidegradeReplay(rep, chkDowngrader);
+        repBin = await sidegradeReplay(rep, chkDowngrader);
         repFile = path.join(settings.directories.temp, "replay.rep");
         //@todo use fsPromises, bail on error
         await new Promise((res: EmptyFunc) =>
-            fs.writeFile(repFile, newrep, (err) => {
+            fs.writeFile(repFile, repBin, (err) => {
                 if (err) {
                     log.error(err.message);
                     return;
@@ -86,7 +87,7 @@ export default async (filepath: string) => {
                 res();
             })
         );
-        rep = await parseReplay(newrep);
+        rep = await parseReplay(repBin);
     }
 
     log.verbose("loading chk");
@@ -102,16 +103,19 @@ export default async (filepath: string) => {
 
     updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
 
-    log.verbose(`starting gamestate reader ${repFile} ${outFile}`);
-    const gameStateReader = new OpenBwBridgeReader(
-        settings.directories.starcraft,
-        repFile,
-        outFile
+    assert(openBw.api)
+    const gameStateReader = new OpenBwWasmReader(
+        openBw.api
     );
     janitor.disposable(gameStateReader);
 
-    await gameStateReader.start();
-    await gameStateReader.waitForMaxed;
+    try {
+        gameStateReader.loadReplay(repBin);
+    } catch (e: unknown) {
+        log.error(e);
+    }
+    gameStateReader.next();
+
 
     const races = ["terran", "zerg", "protoss"];
     // const races = settings.musicAllTypes
@@ -125,6 +129,7 @@ export default async (filepath: string) => {
 
     log.verbose("initializing audio");
     const audioMaster = new AudioMaster(
+        assets.bwDat,
         assets.loadAudioFile.bind(assets),
         races
     );

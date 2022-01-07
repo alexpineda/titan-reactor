@@ -151,8 +151,7 @@ export class BuildUnits {
         units.set(unitBw.id, unit);
       }
 
-      // const unitType = this.bwDat.unit[unitBw.type];
-      const unitDat = unitBw.dat;
+      const unitDat = this.bwDat.units[unitBw.typeId];
 
       // @todo any side effects here? lingering sprites?
       unitsBySpriteId.set(unitBw.spriteIndex, unit);
@@ -199,13 +198,13 @@ export class BuildUnits {
       unit.statusFlags = unitBw.statusFlags;
       unit.direction = unitBw.direction;
       unit.angle = unitBw.angle;
-      unit.dat = unitBw.dat;
+      // unit.dat = unitBw.dat;
       unit.isFlying = unitBw.isFlying;
       unit.isCloaked = unitBw.isCloaked;
       unit.isComplete = unitBw.isComplete;
       unit.order = unitBw.order;
       unit.kills = unitBw.kills;
-      unit.resourceAmount = unitBw.resourceAmount;
+      // unit.resourceAmount = unitBw.resourceAmount;
 
       //following assignments should append new data not relevant to previous value
       unit.queue = null;

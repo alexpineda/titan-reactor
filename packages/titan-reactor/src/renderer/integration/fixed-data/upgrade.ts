@@ -1,40 +1,41 @@
 import { UpgradeRAW } from "../upgrade-raw";
-import ContiguousContainer from "./contiguous-container";
+import BufferView from "./buffer-view";
 
 export const UPGRADE_BYTE_LENGTH = 7;
 
+
+// get dat() {
+//   if (!this.bwDat) {
+//     throw new Error("bwDat not set");
+//   }
+//   return this.bwDat.upgrades[this.typeId];
+// }
+
 // upgrades in progress
 export class UpgradeBW
-  extends ContiguousContainer<UpgradeRAW>
+  extends BufferView<UpgradeRAW>
   implements UpgradeRAW {
-  protected override byteLength = UPGRADE_BYTE_LENGTH;
 
   get ownerId() {
-    return this._readU8(0);
+    return this._readU(0);
   }
 
   get typeId() {
-    return this._readU8(1);
+    return this._readU(1);
   }
 
   get level() {
-    return this._readU8(2);
+    return this._readU(2);
   }
 
   get remainingBuildTime() {
-    return this._readU16(3);
+    return this._readU(3);
   }
 
   get unitId() {
-    return this._readU16(5);
+    return this._readU(5);
   }
 
-  get dat() {
-    if (!this.bwDat) {
-      throw new Error("bwDat not set");
-    }
-    return this.bwDat.upgrades[this.typeId];
-  }
 
   override object() {
     return {
@@ -43,7 +44,6 @@ export class UpgradeBW
       level: this.level,
       remainingBuildTime: this.remainingBuildTime,
       unitId: this.unitId,
-      dat: this.dat,
     };
   }
 }

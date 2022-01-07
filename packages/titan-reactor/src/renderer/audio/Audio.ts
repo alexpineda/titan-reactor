@@ -1,3 +1,4 @@
+import { SoundDAT } from "../../common/types";
 import { SoundRAW } from "../integration/sound-raw";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
@@ -13,11 +14,13 @@ export class Audio {
   source?: AudioBufferSourceNode;
   gain?: GainNode;
   sound: SoundRAW;
+  dat: SoundDAT;
 
-  constructor(mixer: MainMixer, sound: SoundRAW, buffer: DeferredAudioBuffer) {
+  constructor(mixer: MainMixer, sound: SoundRAW, buffer: DeferredAudioBuffer, soundDat: SoundDAT) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;
+    this.dat = soundDat;
   }
 
   queue(elapsed: number) {
@@ -45,9 +48,9 @@ export class Audio {
     panner.rolloffFactor = 0.5;
     panner.distanceModel = "inverse";
 
-    panner.positionX.value = this.sound.mapX;
-    panner.positionY.value = this.sound.mapY;
-    panner.positionZ.value = this.sound.mapZ;
+    // panner.positionX.value = this.sound.mapX;
+    // panner.positionY.value = this.sound.mapY;
+    // panner.positionZ.value = this.sound.mapZ;
 
     source.buffer = this.buffer.buffer;
 

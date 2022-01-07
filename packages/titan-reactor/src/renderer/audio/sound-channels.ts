@@ -1,3 +1,5 @@
+import {strict as assert} from "assert";
+import { BwDAT } from "../../common/types";
 import range from "../../common/utils/range";
 import { SoundRAW } from "../integration/sound-raw";
 import Audio from "./audio";
@@ -14,13 +16,16 @@ export class SoundChannels {
   audio: Audio[] = [];
   scheduled: Audio[] = [];
   loadSoundAsync: (id: number) => Promise<ArrayBuffer>;
+  bwDat: BwDAT;
 
   constructor(
+    bwDat: BwDAT,
     mixer: MainMixer,
     loadSoundAsync: (id: number) => Promise<ArrayBuffer>
   ) {
     this.mixer = mixer;
     this.loadSoundAsync = loadSoundAsync;
+    this.bwDat = bwDat;
   }
 
   async _load(id: number) {
@@ -37,8 +42,10 @@ export class SoundChannels {
     return buffer;
   }
 
-  _getAvailableChannel(sound: SoundRAW) {
-    if (sound.flags & 0x10) {
+  _getAvailableChannel(audio: Audio) {
+    const sound = audio.sound;
+
+    if (audio.dat.flags & 0x10) {
       for (const channel of this.channels) {
         if (channel.isPlaying && channel.id === sound.id) {
           if (channel.audio && channel.audio.isPlaying) {
@@ -47,12 +54,13 @@ export class SoundChannels {
           channel.isPlaying = false;
         }
       }
-    } else if (sound.flags & 2 && sound.unitTypeId) {
+    } else if (audio.dat.flags & 2 && sound.unitTypeId) {
       for (const channel of this.channels) {
         if (
           channel.isPlaying &&
           channel.unitTypeId === sound.unitTypeId &&
-          channel.flags & 2
+          channel.audio &&
+          channel.audio.dat.flags & 2
         ) {
           if (channel.audio && channel.audio.isPlaying) {
             return;
@@ -78,20 +86,27 @@ export class SoundChannels {
       return availableChannel;
     }
 
-    let bestPriority = sound.priority;
+    let bestPriority = audio.dat.priority;
     for (const channel of this.channels) {
-      if (channel.flags & 0x20) continue;
-      if (channel.priority < bestPriority) {
-        bestPriority = channel.priority;
+      //@todo refactor as this could cause a bug
+      if (!channel.audio) {
+        continue;
+      }
+      if (channel.audio?.dat.flags & 0x20) continue;
+      if (channel.audio?.dat.priority < bestPriority) {
+        bestPriority = channel.audio?.dat.priority;
         availableChannel = channel;
       }
     }
+    assert(availableChannel);
     return availableChannel;
   }
 
   queue(soundData: SoundRAW) {
+    const dat =  this.bwDat.sounds[soundData.id];
+
     this.audio.push(
-      new Audio(this.mixer, soundData, this._getBuffer(soundData.id))
+      new Audio(this.mixer, soundData, this._getBuffer(soundData.id), dat)
     );
   }
 
@@ -108,7 +123,7 @@ export class SoundChannels {
       if (elapsed - audio.buffer.lastPlayed <= 80) {
         continue;
       }
-      const channel = this._getAvailableChannel(audio.sound);
+      const channel = this._getAvailableChannel(audio);
       if (channel) {
         channel.queue(audio);
         audio.queue(elapsed);

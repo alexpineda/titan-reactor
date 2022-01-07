@@ -1,4 +1,3 @@
-import { Buffer } from "buffer/";
 import range from "../../common/utils/range";
 import ResearchBW from "../integration/fixed-data/research";
 import UpgradeBW from "../integration/fixed-data/upgrade";
@@ -25,20 +24,13 @@ onmessage = function ({ data }) {
     return;
   }
 
-  const researchBW = new ResearchBW();
-  const upgradeBW = new UpgradeBW();
-  // manually inject bwDat stuff since we're on a worker
-  researchBW.bwDat = { tech: _techDat };
-  upgradeBW.bwDat = { upgrades: _upgradesDat };
+  const researchBW = new ResearchBW(ResearchBW.STRUCT_SIZE, 0, researchCount, Int8Array.from(researchBuffer), Uint8Array.from(researchBuffer));
 
-  researchBW.count = researchCount;
-  if (researchCount) {
-    researchBW.buffer = Buffer.from(researchBuffer);
-  }
-  upgradeBW.count = upgradeCount;
-  if (upgradeCount) {
-    upgradeBW.buffer = Buffer.from(upgradeBuffer);
-  }
+  const upgradeBW = new UpgradeBW(UpgradeBW.STRUCT_SIZE, 0, upgradeCount, Int8Array.from(upgradeBuffer), Uint8Array.from(upgradeBuffer));
+
+  // manually inject bwDat stuff since we're on a worker
+  // researchBW.bwDat = { tech: _techDat };
+  // upgradeBW.bwDat = { upgrades: _upgradesDat };
 
   const researchInProgress = researchBW.instances();
   const upgradesInProgress = upgradeBW.instances();
