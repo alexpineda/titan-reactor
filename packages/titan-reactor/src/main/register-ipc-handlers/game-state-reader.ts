@@ -18,8 +18,8 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle(REQUEST_NEXT_FRAMES, async (_, frames) => {
-  return gameStateReader?.next(frames);
+ipcMain.handle(REQUEST_NEXT_FRAMES, async (_) => {
+  return gameStateReader?.next();
 });
 
 //@todo dispose on other main process driven events, eg lost window?

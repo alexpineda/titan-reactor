@@ -12,10 +12,25 @@ const callbacks = {
 };
 
 export interface OpenBWWasmAPI {
-  callMain: () => void;
+  _reset: () => void;
+  _load_replay: (buffer:number, length: number ) => void;
   _next_frame: () => void;
   _next_frame_exact: () => void;
+  _counts: (player:number, index:number) => number;
+  _get_buffer: (index:number) => number;
+  _replay_get_value: (index:number) => number;
+
+  callMain: () => void;
+  HEAP8: Int8Array;
+  HEAPU8: Uint8Array;
+  HEAP16: Int16Array;
+  HEAPU16: Uint16Array;
+  HEAP32: Int32Array;
+  HEAPU32: Uint32Array;
   getExceptionMessage: (e: unknown) => string;
+  allocate: (buffer: ArrayBuffer, flags: number) => number;
+  _free: (buffer: number) => void;
+  ALLOC_NORMAL: number;
 }
 
 interface OpenBWWasmWrapper {
