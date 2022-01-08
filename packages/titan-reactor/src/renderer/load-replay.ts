@@ -14,7 +14,7 @@ import {
     ImageHD
 } from "./core";
 import { EmptyFunc } from "../common/types";
-import { AudioMaster } from "./audio";
+import { MainMixer, SoundChannels, Music} from "./audio";
 import OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
@@ -39,6 +39,8 @@ import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import { strict as assert } from "assert";
+import { SoundStruct } from "./integration/sound-struct";
+import { pxToMapMeter } from "../common/utils/conversions";
 
 export default async (filepath: string) => {
     log.info(`loading replay ${filepath}`);
@@ -95,7 +97,7 @@ export default async (filepath: string) => {
     updateScreen({ chkTitle: chk.title } as ReplayScreen);
 
     log.verbose("building terrain");
-    const terrainInfo = await loadTerrain(chk);
+    const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
     const scene = new Scene(terrainInfo);
     janitor.object3d(scene);
 
@@ -128,15 +130,21 @@ export default async (filepath: string) => {
     }
 
     log.verbose("initializing audio");
-    const audioMaster = new AudioMaster(
-        assets.bwDat,
-        assets.loadAudioFile.bind(assets),
-        races
-    );
-    janitor.disposable(audioMaster)
-    audioMaster.mixer.musicVolume = settings.audio.music;
-    audioMaster.mixer.soundVolume = settings.audio.sound;
-    audioMaster.mixer.masterVolume = settings.audio.global;
+    const getSoundMetadata = (sound: SoundStruct) => ({
+        dat: assets.bwDat.sounds[sound.id],
+        mapCoords: terrainInfo.getMapCoords(sound.x, sound.y)
+    })
+    const mixer = new MainMixer();
+    const soundChannels = new SoundChannels(getSoundMetadata, mixer, assets.loadAudioFile.bind(assets));
+    const music = new Music(races);
+    //@todo refactor music outside of three Audio
+    //@ts-ignore
+    music.setListener(mixer as unknown as AudioListener);
+    janitor.disposable(music);
+
+    mixer.musicVolume = settings.audio.music;
+    mixer.soundVolume = settings.audio.sound;
+    mixer.masterVolume = settings.audio.global;
 
     log.verbose("starting gameloop");
     updateIndeterminateLoadingProcess("replay", getFunString());
@@ -149,7 +157,9 @@ export default async (filepath: string) => {
         new CommandsStream(rep.rawCmds),
         gameStateReader,
         assets.bwDat,
-        audioMaster,
+        mixer,
+        music,
+        soundChannels,
         janitor
     );
 

@@ -1,9 +1,9 @@
 // @ts-nocheck
 
-import { SOUND_BYTE_LENGTH } from "../sounds";
+import { SOUND_BYTE_LENGTH } from "../sounds-buffer-view";
 import { STRUCT_SIZE } from "../sprites";
 import { IMAGE_BYTE_LENGTH } from "../images";
-import { TILE_BYTE_LENGTH } from "../tiles";
+import { TILE_BYTE_LENGTH } from "../tiles-buffer-view";
 import { UNIT_BYTE_LENGTH } from "../units";
 import { UPGRADE_BYTE_LENGTH } from "../upgrade";
 import { RESEARCH_BYTE_LENGTH } from "../research";

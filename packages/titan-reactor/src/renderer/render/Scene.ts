@@ -31,6 +31,7 @@ function sunlight(mapWidth: number, mapHeight: number) {
   return light;
 }
 
+//@todo remove this class
 export class Scene extends ThreeScene {
   private _mapWidth: number;
   private _mapHeight: number;

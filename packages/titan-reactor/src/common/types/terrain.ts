@@ -26,7 +26,14 @@ export type TerrainInfo = {
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
+  getMapCoords: (x: number, y: number) => MapCoords;
 };
+
+export type MapCoords = {
+  x: number;
+  y: number;
+  z: number;
+}
 
 
 export type TilesetBuffers = {

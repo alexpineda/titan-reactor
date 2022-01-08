@@ -1,7 +1,7 @@
 import {strict as assert} from "assert";
-import { BwDAT } from "../../common/types";
+import { MapCoords, SoundDAT } from "../../common/types";
 import range from "../../common/utils/range";
-import { SoundRAW } from "../integration/sound-raw";
+import { SoundStruct } from "../integration/sound-struct";
 import Audio from "./audio";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
@@ -16,16 +16,16 @@ export class SoundChannels {
   audio: Audio[] = [];
   scheduled: Audio[] = [];
   loadSoundAsync: (id: number) => Promise<ArrayBuffer>;
-  bwDat: BwDAT;
+  getSoundMetadata: (sound: SoundStruct) => {dat: SoundDAT, mapCoords: MapCoords};
 
   constructor(
-    bwDat: BwDAT,
+    getSoundMetadata: (sound: SoundStruct) => {dat: SoundDAT, mapCoords: MapCoords},
     mixer: MainMixer,
     loadSoundAsync: (id: number) => Promise<ArrayBuffer>
   ) {
     this.mixer = mixer;
     this.loadSoundAsync = loadSoundAsync;
-    this.bwDat = bwDat;
+    this.getSoundMetadata = getSoundMetadata;
   }
 
   async _load(id: number) {
@@ -102,11 +102,10 @@ export class SoundChannels {
     return availableChannel;
   }
 
-  queue(soundData: SoundRAW) {
-    const dat =  this.bwDat.sounds[soundData.id];
-
+  queue(soundData: SoundStruct) {
+    const {dat, mapCoords} = this.getSoundMetadata(soundData);
     this.audio.push(
-      new Audio(this.mixer, soundData, this._getBuffer(soundData.id), dat)
+      new Audio(this.mixer, soundData, this._getBuffer(soundData.id), dat, mapCoords)
     );
   }
 

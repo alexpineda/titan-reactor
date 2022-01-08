@@ -1,4 +1,4 @@
-import { TilesBW } from "../integration/fixed-data";
+import { TilesBufferView } from "../integration/fixed-data";
 import {
   Explored,
   HideSpeedSlow,
@@ -26,11 +26,11 @@ onmessage = function ({ data }) {
   for (let i = 0; i < toBuffer.length; i++) {
     let val = Unexplored;
 
-    if (~tileData[i * TilesBW.STRUCT_SIZE] & playerVisionFlags) {
+    if (~tileData[i * TilesBufferView.STRUCT_SIZE] & playerVisionFlags) {
       val = Explored;
     }
 
-    if (~tileData[i * TilesBW.STRUCT_SIZE + 1] & playerVisionFlags) {
+    if (~tileData[i * TilesBufferView.STRUCT_SIZE + 1] & playerVisionFlags) {
       val = Visible;
     }
 

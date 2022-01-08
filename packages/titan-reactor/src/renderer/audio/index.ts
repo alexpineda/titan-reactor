@@ -1,5 +1,4 @@
 export * from "./audio";
-export * from "./audio-master";
 export * from "./deferred-audio-buffer";
 export * from "./main-mixer";
 export * from "./music";

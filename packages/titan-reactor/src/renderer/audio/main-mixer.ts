@@ -52,6 +52,13 @@ export class MainMixer {
   set musicVolume(val) {
     this.music.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
   }
+
+  update(x: number, y: number, z: number, delta: number) {
+    const endTime = this.context.currentTime + delta * 0.001;
+    this.context.listener.positionX.linearRampToValueAtTime(x, endTime);
+    this.context.listener.positionY.linearRampToValueAtTime(y, endTime);
+    this.context.listener.positionZ.linearRampToValueAtTime(z, endTime);
+  }
 }
 
 export default MainMixer;

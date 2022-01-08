@@ -10,29 +10,48 @@ import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import {
   BwDAT,
-  ReplayPlayer, ResearchCompleted,
-  ResearchInProduction, SpriteIndex, TerrainInfo, UnitInProduction, UnitTag, UpgradeCompleted,
-  UpgradeInProduction
+  ReplayPlayer,
+  ResearchCompleted,
+  ResearchInProduction,
+  SpriteIndex,
+  TerrainInfo,
+  UnitInProduction,
+  UnitTag,
+  UpgradeCompleted,
+  UpgradeInProduction,
 } from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
-import AudioMaster from "./audio/audio-master";
+import { MainMixer, Music, SoundChannels } from "./audio";
 import CameraRig from "./camera/camera-rig";
 import ProjectedCameraView from "./camera/projected-camera-view";
 import {
   Apm,
   createImageFactory,
-  GameStatePosition, Image, Players, Sprite, Unit
+  GameStatePosition,
+  Image,
+  Players,
+  Sprite,
+  Unit,
 } from "./core";
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
-import { InputEvents, KeyboardShortcuts, MinimapControl, MouseInteraction } from "./input";
 import {
-  FrameBW,
-} from "./integration/fixed-data";
+  InputEvents,
+  KeyboardShortcuts,
+  MinimapControl,
+  MouseInteraction,
+} from "./input";
+import { FrameBW, SoundsBufferView } from "./integration/fixed-data";
 import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
 import * as log from "./ipc/log";
-import { BuildUnits, GameCanvasTarget, MinimapCanvasDrawer, Renderer, Scene } from "./render";
+import {
+  BuildUnits,
+  GameCanvasTarget,
+  MinimapCanvasDrawer,
+  Renderer,
+  Scene,
+} from "./render";
 import {
   getAssets,
   getSettings,
@@ -41,14 +60,11 @@ import {
   useProductionStore,
   useResourcesStore,
   useSettingsStore,
-  useUnitSelectionStore
+  useUnitSelectionStore,
 } from "./stores";
-          // @ts-ignore
+// @ts-ignore
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import Janitor from "./utils/janitor";
-
-
-
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -65,10 +81,11 @@ async function TitanReactorGame(
   commandsStream: CommandsStream,
   gameStateReader: { next: () => FrameBW },
   bwDat: BwDAT,
-  audioMaster: AudioMaster,
+  audioMixer: MainMixer,
+  music: Music,
+  soundChannels: SoundChannels,
   janitor: Janitor
 ) {
-
   let settings = getSettings();
   const assets = getAssets();
   assert(assets);
@@ -76,11 +93,8 @@ async function TitanReactorGame(
   const createImage = createImageFactory(
     assets.bwDat,
     assets.grps,
-    settings.assets.images,
+    settings.assets.images
   );
-
-  // @todo inputs should not be managed by view-replay
-  janitor.disposable(audioMaster);
 
   const cursor = new MouseInteraction();
   janitor.disposable(cursor);
@@ -120,8 +134,7 @@ async function TitanReactorGame(
   //@ts-ignore
   window.scene = scene;
   //@ts-ignore
-  janitor.callback(() => window.scene = null)
-
+  janitor.callback(() => (window.scene = null));
 
   const cameraRig = new CameraRig({
     settings,
@@ -129,11 +142,9 @@ async function TitanReactorGame(
     previewSurface: minimapSurface,
     minimapControl,
     keyboardShortcuts,
-    freeControl: true
-  }
-  );
+    freeControl: true,
+  });
   janitor.disposable(cameraRig);
-
 
   const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
   orbitControls.listenToKeyEvents(window.document.body);
@@ -162,7 +173,7 @@ async function TitanReactorGame(
   //@ts-ignore
   window.renderMan = renderer;
   //@ts-ignore
-  janitor.callback(() => window.renderMan = null);
+  janitor.callback(() => (window.renderMan = null));
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
   janitor.disposable(fogOfWar);
@@ -174,7 +185,9 @@ async function TitanReactorGame(
   const _playerColors = rep.header.players.map(
     ({ id, color }: ReplayPlayer, i: number) =>
       buildPlayerColor(
-        settings.playerColors.ignoreReplayColors ? customColors[i].hex : color.hex,
+        settings.playerColors.ignoreReplayColors
+          ? customColors[i].hex
+          : color.hex,
         id
       )
   );
@@ -185,7 +198,7 @@ async function TitanReactorGame(
   );
   injectColorsCss(_playerColors);
 
-  audioMaster.music.playGame();
+  music.playGame();
 
   const gameStatePosition = new GameStatePosition(
     rep.header.frameCount,
@@ -214,12 +227,14 @@ async function TitanReactorGame(
     }
   };
   document.addEventListener("keydown", nextFrameHandler);
-  janitor.callback(() => document.removeEventListener("keydown", nextFrameHandler));
+  janitor.callback(() =>
+    document.removeEventListener("keydown", nextFrameHandler)
+  );
 
   //@ts-ignore
   window.cameras = cameraRig;
   //@ts-ignore
-  janitor.callback(() => window.cameras = null);
+  janitor.callback(() => (window.cameras = null));
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -261,7 +276,9 @@ async function TitanReactorGame(
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
-  janitor.callback(() => window.removeEventListener("resize", sceneResizeHandler));
+  janitor.callback(() =>
+    window.removeEventListener("resize", sceneResizeHandler)
+  );
 
   let nextBwFrame: FrameBW, currentBwFrame: FrameBW | null;
 
@@ -279,7 +296,7 @@ async function TitanReactorGame(
     terrainInfo.creepTextureUniform.value,
     terrainInfo.creepEdgesTextureUniform.value
   );
-  janitor.disposable(creep)
+  janitor.disposable(creep);
 
   const minimapCanvasDrawer = new MinimapCanvasDrawer(
     "white",
@@ -299,30 +316,27 @@ async function TitanReactorGame(
   );
 
   const buildSounds = (bwFrame: FrameBW) => {
-
     for (const sound of bwFrame.sounds.items()) {
       if (!fogOfWar.isVisible(sound.tileX, sound.tileY)) {
         continue;
       }
-      // const volume = sound.bwVolume(
-      //   projectedCameraView.left,
-      //   projectedCameraView.top,
-      //   projectedCameraView.right,
-      //   projectedCameraView.bottom
-      // );
-      // if (volume > SoundsBW.minPlayVolume) {
-      //   audioMaster.channels.queue(sound.object());
-      // }
+      const metadata = soundChannels.getSoundMetadata(sound);
+      const volume = SoundsBufferView.getBwVolume(
+        metadata,
+        sound,
+        projectedCameraView.left,
+        projectedCameraView.top,
+        projectedCameraView.right,
+        projectedCameraView.bottom
+      );
+      if (volume > SoundsBufferView.minPlayVolume) {
+        soundChannels.queue(sound.object());
+      }
     }
   };
 
   const buildFog = (bwFrame: FrameBW): void => {
-
-    fogOfWar.generate(
-      bwFrame.tiles,
-      players.getVisionFlag(),
-      bwFrame.frame
-    );
+    fogOfWar.generate(bwFrame.tiles, players.getVisionFlag(), bwFrame.frame);
   };
 
   const buildCreep = (bwFrame: FrameBW) => {
@@ -334,7 +348,6 @@ async function TitanReactorGame(
   const unitsInProduction: UnitInProduction[] = [];
 
   const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
-
     buildUnits.refresh(
       bwFrame.units,
       bwFrame.buildingQueue,
@@ -361,7 +374,10 @@ async function TitanReactorGame(
     for (const spriteBW of bwFrame.sprites.items()) {
       let sprite = sprites.get(spriteBW.containerIndex);
       if (!sprite) {
-        sprite = new Sprite(spriteBW.containerIndex, bwDat.sprites[spriteBW.id]);
+        sprite = new Sprite(
+          spriteBW.containerIndex,
+          bwDat.sprites[spriteBW.id]
+        );
         sprites.set(spriteBW.containerIndex, sprite);
       }
       sprite.spriteDAT = bwDat.sprites[spriteBW.id];
@@ -420,15 +436,14 @@ async function TitanReactorGame(
 
       const player = players.playersById[spriteBW.owner];
 
-          // @ts-ignore
+      // @ts-ignore
       sprite.mainImage = null;
 
       for (const imageBW of bwFrame.images.reverse(spriteBW.imageCount)) {
         if (imageBW.hidden) continue;
 
         //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
-        const image =
-          sprite.images.get(imageBW.id) || createImage(imageBW.id);
+        const image = sprite.images.get(imageBW.id) || createImage(imageBW.id);
         if (!image) continue;
         sprite.add(image);
 
@@ -440,9 +455,9 @@ async function TitanReactorGame(
           image.setTeamColor(player.color.three);
         }
         // overlay position
-          // @ts-ignore
+        // @ts-ignore
         image.offsetX = image.position.x = imageBW.x / 32;
-          // @ts-ignore
+        // @ts-ignore
         image.offsetY = image.position.z = imageBW.y / 32;
         image.renderOrder = _imageRenderOrder++;
 
@@ -470,7 +485,7 @@ async function TitanReactorGame(
 
           if (sprite.unit) {
             image.rotation.y = sprite.unit.angle;
-            
+
             if (!bwDat.images[imageBW.id].clickable) {
               sprite.unit.canSelect = false;
             }
@@ -558,9 +573,9 @@ async function TitanReactorGame(
   const buildResearchAndUpgrades = (bwFrame: FrameBW) => {
     const msg = {
       frame: bwFrame.frame,
-      researchCount: bwFrame.research.count,
+      researchCount: bwFrame.research.itemsCount,
       researchBuffer: bwFrame.research.buffer,
-      upgradeCount: bwFrame.upgrades.count,
+      upgradeCount: bwFrame.upgrades.itemsCount,
       upgradeBuffer: bwFrame.upgrades.buffer,
     };
 
@@ -612,117 +627,110 @@ async function TitanReactorGame(
 
     if (!gameStatePosition.paused) {
       if (gameStatePosition.advanceGameFrames && !currentBwFrame) {
-        currentBwFrame = nextBwFrame;
-
         projectedCameraView.update();
 
-        //@todo fix reading multiple frames, since they get unmarked, currentBwFrame gets used
-        // gameStateReader.next(gameStatePosition.skipGameFrames - 1);
-        nextBwFrame = gameStateReader.next();
-        if (nextBwFrame) {
-          // get creep, fog of war, sounds, etc. ready ahead of time if possible
-          buildSounds(nextBwFrame);
-          buildFog(nextBwFrame);
-          buildCreep(nextBwFrame);
-        } else {
+        currentBwFrame = gameStateReader.next();
+        if (!currentBwFrame) {
           gameStatePosition.paused = true;
-        }
-      }
+        } else {
+          buildSounds(currentBwFrame);
+          buildFog(currentBwFrame);
+          buildCreep(currentBwFrame);
 
-      if (currentBwFrame) {
-        gameStatePosition.bwGameFrame = currentBwFrame.frame;
-        if (gameStatePosition.bwGameFrame % 8 === 0) {
-          scene.incrementTileAnimation();
-        }
-
-        buildUnitsAndMinimap(currentBwFrame);
-        buildSprites(currentBwFrame, delta);
-        buildResearchAndUpgrades(currentBwFrame);
-        fogOfWar.texture.needsUpdate = true;
-        creep.creepValuesTexture.needsUpdate = true;
-        creep.creepEdgesValuesTexture.needsUpdate = true;
-
-        audioMaster.channels.play(elapsed);
-
-        setAllResources(
-          currentBwFrame.minerals,
-          currentBwFrame.gas,
-          currentBwFrame.supplyUsed,
-          currentBwFrame.supplyAvailable,
-          currentBwFrame.workerSupply,
-          apm.apm,
-          gameStatePosition.getFriendlyTime()
-        );
-
-        setAllProduction(unitsInProduction, research, upgrades);
-        // @todo why am I transferring this to the store?
-        setSelectedUnits(useGameStore.getState().selectedUnits);
-
-        {
-          const cmdsThisFrame = [];
-          let cmd = cmds.next();
-          while (cmd.done === false) {
-            if (
-              typeof cmd.value === "number" &&
-              cmd.value !== gameStatePosition.bwGameFrame
-            ) {
-              break;
-            }
-            cmdsThisFrame.push(cmd.value);
-            cmd = cmds.next();
+          gameStatePosition.bwGameFrame = currentBwFrame.frame;
+          if (gameStatePosition.bwGameFrame % 8 === 0) {
+            scene.incrementTileAnimation();
           }
-          apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
+
+          buildUnitsAndMinimap(currentBwFrame);
+          buildSprites(currentBwFrame, delta);
+          buildResearchAndUpgrades(currentBwFrame);
+          fogOfWar.texture.needsUpdate = true;
+          creep.creepValuesTexture.needsUpdate = true;
+          creep.creepEdgesValuesTexture.needsUpdate = true;
+
+          soundChannels.play(elapsed);
+
+          setAllResources(
+            currentBwFrame.minerals,
+            currentBwFrame.gas,
+            currentBwFrame.supplyUsed,
+            currentBwFrame.supplyAvailable,
+            currentBwFrame.workerSupply,
+            apm.apm,
+            gameStatePosition.getFriendlyTime()
+          );
+
+          setAllProduction(unitsInProduction, research, upgrades);
+          // @todo why am I transferring this to the store?
+          setSelectedUnits(useGameStore.getState().selectedUnits);
+
+          {
+            const cmdsThisFrame = [];
+            let cmd = cmds.next();
+            while (cmd.done === false) {
+              if (
+                typeof cmd.value === "number" &&
+                cmd.value !== gameStatePosition.bwGameFrame
+              ) {
+                break;
+              }
+              cmdsThisFrame.push(cmd.value);
+              cmd = cmds.next();
+            }
+            apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
+          }
+
+          // if (rep.cmds[gameStatePosition.bwGameFrame]) {
+          //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
+          //     //@todo remove once we filter commands
+          //     if (!players.playersById[cmd.player]) continue;
+
+          //     if (
+          //       cmd.id === commands.chat &&
+          //       players.playersById[cmd.senderSlot]
+          //     ) {
+          //       unstable_batchedUpdates(() =>
+          //         addChatMessage({
+          //           content: cmd.message,
+          //           player: players.playersById[cmd.senderSlot],
+          //         })
+          //       );
+          //     }
+
+          //     // if (players.playersById[cmd.player].showPov) {
+          //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
+          //     // } else {
+          //     //   players.playersById[cmd.player].camera.update(
+          //     //     cmd,
+          //     //     pxToGameUnit,
+          //     //     1000
+          //     //   );
+          //     // }
+
+          //     if (players.playersById[cmd.player].showActions) {
+          //       switch (cmd.id) {
+          //         case commands.rightClick:
+          //         case commands.targetedOrder:
+          //         case commands.build: {
+          //           const px = pxToGameUnit.x(cmd.x);
+          //           const py = pxToGameUnit.y(cmd.y);
+          //           const pz = terrainInfo.getTerrainY(px, py);
+
+          //           // fadingPointers.addPointer(
+          //           //   px,
+          //           //   py,
+          //           //   pz,
+          //           //   players.playersById[cmd.player].color.rgb,
+          //           //   gameStatePosition.bwGameFrame
+          //           // );
+          //         }
+          //       }
+          //     }
+          //   }
+          // }
+          currentBwFrame = null;
         }
-
-        // if (rep.cmds[gameStatePosition.bwGameFrame]) {
-        //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
-        //     //@todo remove once we filter commands
-        //     if (!players.playersById[cmd.player]) continue;
-
-        //     if (
-        //       cmd.id === commands.chat &&
-        //       players.playersById[cmd.senderSlot]
-        //     ) {
-        //       unstable_batchedUpdates(() =>
-        //         addChatMessage({
-        //           content: cmd.message,
-        //           player: players.playersById[cmd.senderSlot],
-        //         })
-        //       );
-        //     }
-
-        //     // if (players.playersById[cmd.player].showPov) {
-        //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
-        //     // } else {
-        //     //   players.playersById[cmd.player].camera.update(
-        //     //     cmd,
-        //     //     pxToGameUnit,
-        //     //     1000
-        //     //   );
-        //     // }
-
-        //     if (players.playersById[cmd.player].showActions) {
-        //       switch (cmd.id) {
-        //         case commands.rightClick:
-        //         case commands.targetedOrder:
-        //         case commands.build: {
-        //           const px = pxToGameUnit.x(cmd.x);
-        //           const py = pxToGameUnit.y(cmd.y);
-        //           const pz = terrainInfo.getTerrainY(px, py);
-
-        //           // fadingPointers.addPointer(
-        //           //   px,
-        //           //   py,
-        //           //   pz,
-        //           //   players.playersById[cmd.player].color.rgb,
-        //           //   gameStatePosition.bwGameFrame
-        //           // );
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        currentBwFrame = null;
       } // end of bwframe update
     }
 
@@ -802,12 +810,12 @@ async function TitanReactorGame(
     settings = state.data;
     if (!settings) return;
 
-    if (audioMaster.mixer.musicVolume !== settings.audio.music) {
-      audioMaster.mixer.musicVolume = settings.audio.music;
+    if (audioMixer.musicVolume !== settings.audio.music) {
+      audioMixer.musicVolume = settings.audio.music;
     }
 
-    if (audioMaster.mixer.soundVolume !== settings.audio.sound) {
-      audioMaster.mixer.soundVolume = settings.audio.sound;
+    if (audioMixer.soundVolume !== settings.audio.sound) {
+      audioMixer.soundVolume = settings.audio.sound;
     }
   });
   janitor.callback(unsub);
@@ -847,7 +855,6 @@ async function TitanReactorGame(
   gameLoop(0);
   _sceneResizeHandler();
   // preloadScene(renderer.renderer, scene, cameraRig.compileCamera);
-
 
   return {
     start: () => renderer.renderer?.setAnimationLoop(gameLoop),

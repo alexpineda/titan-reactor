@@ -1,5 +1,5 @@
-import { BwDAT } from "../../../common/types";
-import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBW, SpritesBW, TilesBW, UnitsBW, UpgradeBW } from ".";
+import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBufferView, SpritesBW, TilesBufferView, UnitsBW, UpgradeBW } from ".";
+import { Heaps } from "../openbw-wasm/openbw-reader";
 
 // a wrapper for a bw frames entire game state
 export class FrameBW {
@@ -13,23 +13,25 @@ export class FrameBW {
   private _sprites: SpritesBW;
   private _images : ImagesBW;
   private _units : UnitsBW;
-  private _tiles : TilesBW;
-  private _sounds : SoundsBW;
+  private _tiles : TilesBufferView;
+  private _sounds : SoundsBufferView;
   private _creep : Uint8Array;
   private _buildingQueue : BuildingQueueCountBW;
   private _research : ResearchBW;
   private _upgrades : UpgradeBW;
+  private readonly _heaps : Heaps;
 
-  constructor() {
-     this._sprites = new SpritesBW(0, 0, new Int8Array(), new Uint8Array());
-     this._images = new ImagesBW(0, 0, new Int8Array(), new Uint8Array());
-     this._units = new UnitsBW(0, 0, new Int8Array(), new Uint8Array());
-     this._tiles = new TilesBW(0, 0, new Int8Array(), new Uint8Array());
-     this._sounds = new SoundsBW(0, 0, new Int8Array(), new Uint8Array());
+  constructor(heaps: Heaps) {
+     this._heaps = heaps;
+     this._sprites = new SpritesBW(0, 0, 0, new Int8Array(), new Uint8Array());
+     this._images = new ImagesBW(0, 0, 0, new Int8Array(), new Uint8Array());
+     this._units = new UnitsBW(0, 0, 0, new Int8Array(), new Uint8Array());
+     this._tiles = new TilesBufferView(0, 0, 0, new Int8Array(), new Uint8Array());
+     this._sounds = new SoundsBufferView(0, 0, 0, new Int8Array(), new Uint8Array());
      this._creep = new Uint8Array();
-     this._buildingQueue = new BuildingQueueCountBW(0, 0, new Int8Array(), new Uint8Array());
-     this._research = new ResearchBW(0, 0, new Int8Array(), new Uint8Array());
-     this._upgrades = new UpgradeBW(0, 0, new Int8Array(), new Uint8Array());
+     this._buildingQueue = new BuildingQueueCountBW(0, 0, 0, new Int8Array(), new Uint8Array());
+     this._research = new ResearchBW(0, 0, 0, new Int8Array(), new Uint8Array());
+     this._upgrades = new UpgradeBW(0, 0, 0, new Int8Array(), new Uint8Array());
   }
 
   set sprites(sprites: SpritesBW) {
@@ -55,16 +57,28 @@ export class FrameBW {
     return this._units;
   }
 
-  set tiles(tiles: TilesBW) {
-    this._tiles = tiles;
+  setTilesView(ptr: number, count: number) {
+    this._tiles = new TilesBufferView(
+      TilesBufferView.STRUCT_SIZE,
+      ptr,
+      count,
+      this._heaps.HEAP8,
+      this._heaps.HEAPU8,
+    );
   }
 
   get tiles() {
     return this._tiles;
   }
 
-  set sounds(sounds: SoundsBW) {
-    this._sounds = sounds;
+  setSoundsView(ptr:number, count: number) {
+    this._sounds = new SoundsBufferView(
+      SoundsBufferView.STRUCT_SIZE,
+      ptr,
+      count,
+      this._heaps.HEAP32,
+      this._heaps.HEAPU32,
+    );
   }
 
   get sounds() {

@@ -5,7 +5,7 @@ import {
   createDataTextures, createHDMesh, createSDMesh, generateBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, GeometryOptions, MapBitmapsResult, getTerrainY as genTerrainY
 } from "../../common/image/generate-map";
 
-import { AssetTextureResolution, TerrainInfo, TilesetBuffers } from "../../common/types";
+import { AssetTextureResolution, PxToGameUnit, TerrainInfo, TilesetBuffers } from "../../common/types";
 import { loadTilesetFiles } from "./load-tileset-files";
 import { getSettings } from "../stores/settings-store";
 import * as sd from "../../common/image/generate-map/sd";
@@ -35,7 +35,7 @@ export async function loadDataTexturesAndLevels(chk: Chk, geomOptions: GeometryO
   return { dataTextures, levels };
 }
 
-export default async function loadTerrain(chk: Chk): Promise<TerrainInfo> {
+export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
   const settings = getSettings();
   const geomOptions = defaultOptions;
   const [mapWidth, mapHeight] = chk.size;
@@ -101,6 +101,16 @@ export default async function loadTerrain(chk: Chk): Promise<TerrainInfo> {
     minimapBitmap,
     terrain,
     creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
-    creepTextureUniform: dataTextures.creepTextureUniform
+    creepTextureUniform: dataTextures.creepTextureUniform,
+    getMapCoords: (x,y) => {
+      const mapX = pxToMap.x(x);
+      const mapZ = pxToMap.y(y);
+      const mapY = getTerrainY(mapX, mapZ);
+      return {
+        x: mapX,
+        y: mapY,
+        z: mapZ
+      }
+    }
   }
 }

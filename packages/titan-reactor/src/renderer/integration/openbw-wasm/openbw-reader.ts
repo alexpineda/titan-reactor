@@ -1,12 +1,30 @@
 import fs from 'fs';
 import type {  OpenBWWasmAPI} from '../../openbw';
-import { FrameBW, TilesBW } from '../fixed-data';
+import { FrameBW, SoundsBufferView, TilesBufferView } from '../fixed-data';
+
+export interface Heaps {
+    HEAP8: Int8Array,
+    HEAP16: Int16Array,
+    HEAP32: Int32Array,
+    HEAPU8: Uint8Array,
+    HEAPU16: Uint16Array,
+    HEAPU32: Uint32Array,
+}
 
 export default class OpenBwWasmReader {
     openBw: OpenBWWasmAPI;
+    heaps: Heaps;
 
     constructor(api: OpenBWWasmAPI) {
         this.openBw = api;
+        this.heaps = {
+            HEAP8: this.openBw.HEAP8,
+            HEAP16: this.openBw.HEAP16,
+            HEAP32: this.openBw.HEAP32,
+            HEAPU8: this.openBw.HEAPU8,
+            HEAPU16: this.openBw.HEAPU16,
+            HEAPU32: this.openBw.HEAPU32,
+        }
     }
 
     loadReplay(buffer: Buffer) {
@@ -16,37 +34,28 @@ export default class OpenBwWasmReader {
     }
 
     next() {
-        this.openBw._next_frame_exact();
-        const frame = new FrameBW();
+        this.openBw._next_frame();
+        const frame = new FrameBW(this.heaps);
         frame.frame = this.openBw._replay_get_value(2);
-        // frame.creepCount = this.tilesCount;
-        // frame.unitCount = this.openBw._counts(1);
-        // frame.upgradeCount = this.openBw._counts(2);
-        // frame.researchCount = this.openBw._counts(3);
-        // frame.spriteCount = this.openBw._counts(4);
-        // frame.imageCount = this.openBw._counts(5);
-        // frame.soundCount = this.openBw._counts(6);
-        // frame.buildingQueueCount = this.openBw._counts(7);
-        // for (let i = 0; i < 8; i++) {
-        //     frame.minerals[i] = this.openBw._resources(0);
-        //     frame.gas[i] = this.openBw._resources(1);
-        //     frame.supplyUsed[i] = this.openBw._resources(2);
-        //     frame.supplyAvailable[i] = this.openBw._resources(3);
-        //     frame.workerSupply[i] = this.openBw._resources(4);
+        // console.log("units", openBw._counts(0, 1));
+        // console.log("upgrades", openBw._counts(0, 2));
+        // console.log("research", openBw._counts(0, 3));
+        // console.log("sprite", openBw._counts(0, 4));
+        // console.log("image", openBw._counts(0, 5));
+        // console.log("sound", openBw._counts(0, 6));
+        // console.log("building queue", openBw._counts(0, 7));
+        // for (let i = 0; i < 8; ++i) {
+        //     console.log("minerals", openBw._counts(i, 8));
+        //     console.log("gas", openBw._counts(i, 9));
+        //     console.log("workers", openBw._counts(i, 12));
+        //     console.log("army", openBw._counts(i, 13));
         // }
 
-        const tilesPtr = this.openBw._get_buffer(0);
-        frame.tiles = new TilesBW(
-            TilesBW.STRUCT_SIZE,
-            tilesPtr,
-            this.openBw._counts(0, 0),
-            this.openBw.HEAP8,
-            this.openBw.HEAPU8,
-        )
+        frame.setTilesView(this.openBw._get_buffer(0), this.openBw._counts(0, 0));
+            
+        frame.setSoundsView(this.openBw._get_buffer(8), this.openBw._counts(0, 6));
 
-        if (frame.frame === 0) {
-            fs.writeFileSync("fog.bin", frame.tiles.ubuffer)
-        }
+
         // const creep = this.openBw._get_buffer(1);
         // frame.setBuffer("creep", creep, 0, creep.byteLength);
 

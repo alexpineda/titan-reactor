@@ -22,6 +22,8 @@ import {
 import TitanReactorMap from "./view-map";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
+import { pxToMapMeter } from "../common/utils/conversions";
+
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
@@ -33,7 +35,7 @@ export default async (chkFilepath: string) => {
     const game = getGame();
 
     const chk = new Chk(await loadScm(chkFilepath));
-    const terrainInfo = await loadTerrain(chk);
+    const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
 
     game.scene.replaceTerrain(terrainInfo.terrain);
 
@@ -68,7 +70,7 @@ export default async (chkFilepath: string) => {
   updateIndeterminateLoadingProcess("map", getFunString());
 
   log.verbose("initializing scene");
-  const terrainInfo = await loadTerrain(chk);
+  const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;
