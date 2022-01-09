@@ -71,11 +71,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setSelectedUnits: (selectedUnits: CrapUnit[]) => {
     for (const unit of get().selectedUnits) {
-      unit.selected = false;
+      unit.extra.selected = false;
     }
 
     for (const unit of selectedUnits) {
-      unit.selected = true;
+      unit.extra.selected = true;
     }
 
     set({ selectedUnits });

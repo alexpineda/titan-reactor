@@ -40,6 +40,6 @@ export default class OpenBwWasmReader {
     }
 
     dispose() {
-        this.openBw._reset();
+        // this.openBw._reset();
     }
 }

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { UpgradeCompleted } from "../../common/types";
 import {
   Color,
@@ -152,8 +153,8 @@ export class SelectionBars extends Group {
     this.visible = true;
 
     this.position.z =
-      sprite.spriteDAT.selectionCircleOffset / 32 + grpOffset + 0.4;
-    this.scale.set(sprite.spriteDAT.healthBar / 32, 0.3, 1);
+      sprite.dat.selectionCircleOffset / 32 + grpOffset + 0.4;
+    this.scale.set(sprite.dat.healthBar / 32, 0.3, 1);
 
     this.bar.material.needsUpdate = true;
     this.bar.renderOrder = renderOrder;

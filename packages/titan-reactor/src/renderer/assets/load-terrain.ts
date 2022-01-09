@@ -10,7 +10,7 @@ import { loadTilesetFiles } from "./load-tileset-files";
 import { getSettings } from "../stores/settings-store";
 import * as sd from "../../common/image/generate-map/sd";
 import * as hd from "../../common/image/generate-map/hd";
-
+import { Layers } from "../render"
 import { Mesh, Texture } from "three";
 import assert from "assert";
 import * as log from "../ipc";
@@ -85,6 +85,8 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
 
   }
 
+  terrain.layers.enable(Layers.Clickable);
+
   const getTerrainY = genTerrainY(
     displacementImages.displacementImage,
     geomOptions.displacementScale,
@@ -102,7 +104,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     terrain,
     creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
     creepTextureUniform: dataTextures.creepTextureUniform,
-    getMapCoords: (x,y) => {
+    getMapCoords: (x, y) => {
       const mapX = pxToMap.x(x);
       const mapZ = pxToMap.y(y);
       const mapY = getTerrainY(mapX, mapZ);

@@ -1,6 +1,6 @@
 import { OpenBWWasmAPI } from "src/renderer/openbw";
 import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBufferView, SpritesBW, TilesBufferView, UnitsBufferView, UpgradeBW } from ".";
-import { ImageStruct, SpriteStruct } from "../data-transfer";
+import { ImageStruct, SoundStruct, SpriteStruct } from "../data-transfer";
 import { Heaps } from "../openbw-wasm/openbw-reader";
 import { UnitStruct } from "../data-transfer";
 import { EmbindEntityInterator, EntityIterator } from "./entity-iterator";
@@ -18,15 +18,15 @@ export class FrameBW {
   private _sprites : EntityIterator<SpriteStruct>;
   private _images : EntityIterator<ImageStruct>;
   private _units : EntityIterator<UnitStruct>;
+  private _sounds : EntityIterator<SoundStruct>;
   private _tiles : TilesBufferView;
-  private _sounds : SoundsBufferView;
   private _buildingQueue : BuildingQueueCountBW;
   private _research : ResearchBW;
   private _upgrades : UpgradeBW;
 
   constructor(heaps: Heaps) {
      this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP8, heaps.HEAPU8);
-     this._sounds = new SoundsBufferView(SoundsBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP32, heaps.HEAPU32);
+     this._sounds = new EmbindEntityInterator<SoundStruct>();
      this._units = new EmbindEntityInterator<UnitStruct>();
      this._sprites = new EmbindEntityInterator<SpriteStruct>();
 
@@ -38,6 +38,7 @@ export class FrameBW {
 
   update(openBw: OpenBWWasmAPI) {
     openBw._next_frame();
+    const funcs = openBw.get_util_funcs();
 
     //@todo change one new build is avail
     // this.frame = openBw._next_frame();
@@ -52,15 +53,20 @@ export class FrameBW {
     this.tiles.ptrIndex = openBw._get_buffer(0);
     this.tiles.itemsCount = openBw._counts(0, 0);
 
-    this.sounds.ptrIndex = openBw._get_buffer(8);
-    this.sounds.itemsCount = openBw._counts(0, 6);
+    if (this.sounds instanceof EmbindEntityInterator && openBw._counts(0, 6)) {
+      this.sounds.assign(funcs.get_sounds());
+    } else if (this.sounds instanceof SoundsBufferView) {
+      this.sounds.ptrIndex = openBw._get_buffer(8);
+      this.sounds.itemsCount = openBw._counts(0, 6);
+    }
+    
 
     if (this.units instanceof EmbindEntityInterator){
-      this.units.assign(openBw.get_util_funcs().get_all_units());
+      this.units.assign(funcs.get_units());
     }
 
     if (this.sprites instanceof EmbindEntityInterator) {
-      this.sprites.assign(openBw.get_util_funcs().get_all_sprites());
+      this.sprites.assign(funcs.get_sprites());
     }
     
   }

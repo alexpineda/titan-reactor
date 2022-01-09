@@ -1,22 +1,15 @@
 import { Color } from "three";
 
-import { orders, UnitFlags, unitTypes } from "../../common/bwdat/enums";
+import { orders, unitTypes } from "../../common/bwdat/enums";
 import {
   BwDAT,
   OwnerId,
   Player,
-  SpriteIndex,
   UnitDAT,
   UnitTag,
-  IncompleteUnit,
-  UnitInProduction,
 } from "../../common/types";
 import FogOfWar from "../fogofwar/fog-of-war";
-import { BuildingQueueStruct , UnitStruct} from "../integration/data-transfer";
-import {
-  BuildingQueueCountBW,
-  TrainingQueueType,
-} from "../integration/fixed-data";
+import { UnitStruct } from "../integration/data-transfer";
 import { CrapUnit } from "../core";
 import { EntityIterator } from "../integration/fixed-data/entity-iterator";
 import { tile32 } from "../../common/utils/conversions";
@@ -68,8 +61,8 @@ export class BuildUnits {
       color = resourceColor;
     } else if (unitType.index === unitTypes.scannerSweep) {
       color = scannerColor;
-    } else if (unit.owner) {
-      color = unit.recievingDamage & 1 ? flashColor : unit.owner.color.three;
+    } else if (unit.extra.player) {
+      color = unit.extra.recievingDamage & 1 ? flashColor : unit.extra.player.color.three;
     } else {
       return;
     }
@@ -120,13 +113,25 @@ export class BuildUnits {
     return;
   }
 
+  private _getUnit(units: Map<UnitTag, CrapUnit>, unitData: UnitStruct) {
+    const unit = units.get(unitData.id);
+    if (unit) {
+      return unit;
+    } else {
+      const unit = unitData as CrapUnit;
+      unit.extra = {
+        recievingDamage: 0
+      };
+      units.set(unitData.id, unit);
+      return unit;
+    }
+  }
+
   refresh(
     //prefilled buffer and accessor
     unitsBW: EntityIterator<UnitStruct>,
-    buildQueueBW: BuildingQueueCountBW,
     units: Map<UnitTag, CrapUnit>,
-    unitsBySpriteId: Map<SpriteIndex, CrapUnit>,
-    unitsInProduction: UnitInProduction[]
+    unitsBySpriteId: Map<number, CrapUnit>
   ) {
     // reset unit image data for minimap
     this.imageData.data.fill(0);
@@ -134,110 +139,62 @@ export class BuildUnits {
     // reset resource image data for minimap
     this.resourceImageData.data.fill(0);
 
-    const incompleteUnits: Map<UnitTag, IncompleteUnit> = new Map();
-    unitsBySpriteId.clear();
+    for (const unitData of unitsBW.instances()) {
 
-    for (const unitBw of unitsBW.instances()) {
-      let unit: CrapUnit;
+      const unit = this._getUnit(units, unitData);
+      const dat = this.bwDat.units[unitData.typeId];
+      unitsBySpriteId.set(unit.spriteTitanIndex, unit);
 
-      if (units.has(unitBw.id)) {
-        unit = units.get(unitBw.id) as CrapUnit;
-      } else {
-        unit = {
-          remainingBuildTime: 0,
-          queue: null,
-        } as CrapUnit;
-
-        units.set(unitBw.id, unit);
-      }
-
-      const unitDat = this.bwDat.units[unitBw.typeId];
-
-      // @todo any side effects here? lingering sprites?
-      unitsBySpriteId.set(unitBw.spriteTitanIndex, unit);
-
-      //@todo move to minimap substructure
       //if receiving damage, blink 3 times, hold blink 3 frames
       if (
-        !unit.recievingDamage &&
-        (unit.hp > unitBw.hp || unit.shields > unitBw.shields) &&
-        unit.typeId === unitBw.typeId // ignore zerg units change hp from egg hp
+        !unit.extra.recievingDamage &&
+        (unit.hp > unitData.hp || unit.shields > unitData.shields) &&
+        unit.typeId === unitData.typeId // ignore zerg units change hp from egg hp
       ) {
-        unit.recievingDamage = 0b000111000111000111;
-      } else if (unit.recievingDamage) {
-        unit.recievingDamage = unit.recievingDamage >> 1;
-      }
-
-      //@todo get a better way to detect initial units, probably via chk or marking initial frame units
-      // for use with protoss warp in buildings
-      //@todo can be done with prev, current unitbw containers
-      if (!unit.wasConstructing) {
-        unit.wasConstructing =
-          unit.remainingBuildTime !== unitBw.remainingBuildTime;
+        unit.extra.recievingDamage = 0b000111000111000111;
+      } else if (unit.extra.recievingDamage) {
+        unit.extra.recievingDamage = unit.extra.recievingDamage >> 1;
       }
 
       //@todo sort this mess out
       // unit.wasFlying = unitBw.isFlying && !unitBw.isFlying;
       // unit.isNowFlying = !unitBw.isFlying && unitBw.isFlying;
-      unit.isFlyingBuilding = unitDat.isFlyingBuilding;
-
-      // all previous assignments should not be on unitBw, and typically use comparison of old to new values
-      unit.id = unitBw.id;
-      unit.typeId = unitBw.typeId;
-      unit.shields = unitBw.shields;
-      unit.remainingBuildTime = unitBw.remainingBuildTime;
-      unit.remainingTrainTime = unitBw.remainingTrainTime;
-      unit.x = unitBw.x;
-      unit.y = unitBw.y;
-      unit.hp = unitBw.hp;
-      unit.energy = unitBw.energy;
-      unit.shields = unitBw.shields;
-      unit.spriteTitanIndex = unitBw.spriteTitanIndex;
-      unit.statusFlags = unitBw.statusFlags;
-      unit.direction = unitBw.direction;
-      unit.angle = unitBw.angle;
-      // unit.dat = unitBw.dat;
-      unit.order = unitBw.order;
-      unit.kills = unitBw.kills;
-      // unit.resourceAmount = unitBw.resourceAmount;
 
       //following assignments should append new data not relevant to previous value
-      unit.queue = null;
-      unit.loaded = null;
+      // unit.queue = null;
+      // unit.loaded = null;
 
-      //@todo figure out why the fuck ts thinks this is Player & number
-      //@ts-ignore
-      unit.owner = this.playersById[unitBw.owner];
+      unit.extra.player = this.playersById[unitData.owner];
 
 
       //tank uses build time for siege transition?
-      if (
-        (unit.typeId === unitTypes.siegeTankSiegeMode ||
-          unit.typeId === unitTypes.siegeTankTankMode) &&
-        unitBw.statusFlags & UnitFlags.Completed
-      ) {
-        unit.remainingBuildTime = 0;
+      // if (
+      //   (unit.typeId === unitTypes.siegeTankSiegeMode ||
+      //     unit.typeId === unitTypes.siegeTankTankMode) &&
+      //   unitData.statusFlags & UnitFlags.Completed
+      // ) {
+      //   unit.remainingBuildTime = 0;
+      // }
+
+      if (unit.order == orders.die && !unit.extra.dieTime) {
+        unit.extra.dieTime = Date.now();
       }
 
-      if (unit.order == orders.die && !unit.dieTime) {
-        unit.dieTime = Date.now();
-      }
+      const showOnMinimap =
+        unitData.typeId !== unitTypes.darkSwarm &&
+        unitData.typeId !== unitTypes.disruptionWeb &&
+        unitData.order !== orders.die &&
+        !dat.isSubunit;
 
-      unit.showOnMinimap =
-        unit.typeId !== unitTypes.darkSwarm &&
-        unit.typeId !== unitTypes.disruptionWeb &&
-        unit.order !== orders.die &&
-        !unitDat.isSubunit;
-
-      unit.canSelect =
-        unit.showOnMinimap &&
-        //do not allow unit training selection for terran and protoss
-        !(
-          (unitDat.isTerran || unitDat.isProtoss) &&
-          !unitDat.isBuilding &&
-          unit.remainingBuildTime > 0
-        ) &&
-        unitBw.typeId !== unitTypes.spiderMine;
+      // unit.canSelect =
+      //   unit.showOnMinimap &&
+      //   //do not allow unit training selection for terran and protoss
+      //   !(
+      //     (unitDat.isTerran || unitDat.isProtoss) &&
+      //     !unitDat.isBuilding &&
+      //     unit.remainingBuildTime > 0
+      //   ) &&
+      //   unitData.typeId !== unitTypes.spiderMine;
 
       // protoss warping logic
       // if (
@@ -255,80 +212,80 @@ export class BuildUnits {
       // }
 
       //@todo move to worker
-      if (unit.showOnMinimap) {
-        this._refreshMinimap(unit, unitDat);
+      if (showOnMinimap) {
+        this._refreshMinimap(unit, dat);
       }
 
       //@todo why are we not returning here earlier?
-      if (!(unitBw.statusFlags & UnitFlags.Completed)) {
-        incompleteUnits.set(unitBw.id, {
-          unitId: unitBw.id,
-          typeId: unitBw.typeId,
-          remainingBuildTime: unitBw.remainingBuildTime,
-          ownerId: unitBw.owner,
-        });
-      }
+      // if (!(unitData.statusFlags & UnitFlags.Completed)) {
+      //   incompleteUnits.set(unitData.id, {
+      //     unitId: unitData.id,
+      //     typeId: unitData.typeId,
+      //     remainingBuildTime: unitData.remainingBuildTime,
+      //     ownerId: unitData.owner,
+      //   });
+      // }
     }
     // end of unit loop
 
     // merge units with building and training queues
 
-    const buildQueue = buildQueueBW.instances() as BuildingQueueStruct[];
+    // const buildQueue = buildQueueBW.instances() as BuildingQueueStruct[];
 
     // for use in unit details section
-    for (const queue of buildQueue) {
-      const unit = units.get(queue.unitId);
+    // for (const queue of buildQueue) {
+    //   const unit = units.get(queue.unitId);
 
-      if (!unit) continue;
+    //   if (!unit) continue;
 
-      if (queue.queueType === TrainingQueueType) {
-        unit.queue = queue;
-      } else {
-        unit.loaded = queue.units.map((id) => units.get(id));
-      }
-    }
+    //   if (queue.queueType === TrainingQueueType) {
+    //     unit.queue = queue;
+    //   } else {
+    //     unit.loaded = queue.units.map((id) => units.get(id));
+    //   }
+    // }
 
     //@todo move to worker
     // reset each players production list
-    unitsInProduction.length = 0;
+    // unitsInProduction.length = 0;
 
-    for (const [, incompleteUnit] of incompleteUnits) {
-      const queued = buildQueue.find(
-        ({ unitId }) => unitId === incompleteUnit.unitId
-      );
-      const typeId = queued ? queued.units[0] : incompleteUnit.typeId;
-      const unitType = this.bwDat.units[typeId];
-      if (unitType.isSubunit) continue;
+    // for (const [, incompleteUnit] of incompleteUnits) {
+    //   const queued = buildQueue.find(
+    //     ({ unitId }) => unitId === incompleteUnit.unitId
+    //   );
+    //   const typeId = queued ? queued.units[0] : incompleteUnit.typeId;
+    //   const unitType = this.bwDat.units[typeId];
+    //   if (unitType.isSubunit) continue;
 
-      const existingUnit = unitsInProduction.find(
-        (u) => u.ownerId === incompleteUnit.ownerId && u.typeId === typeId
-      );
+    //   const existingUnit = unitsInProduction.find(
+    //     (u) => u.ownerId === incompleteUnit.ownerId && u.typeId === typeId
+    //   );
 
-      if (existingUnit) {
-        existingUnit.count++;
-        if (
-          existingUnit.remainingBuildTime > incompleteUnit.remainingBuildTime &&
-          incompleteUnit.remainingBuildTime
-        ) {
-          existingUnit.remainingBuildTime = incompleteUnit.remainingBuildTime;
-        }
-      } else {
-        unitsInProduction.push({
-          ...incompleteUnit,
-          typeId,
-          icon: typeId,
-          count: 1,
-          buildTime: unitType.buildTime,
-        });
-      }
-    }
+    //   if (existingUnit) {
+    //     existingUnit.count++;
+    //     if (
+    //       existingUnit.remainingBuildTime > incompleteUnit.remainingBuildTime &&
+    //       incompleteUnit.remainingBuildTime
+    //     ) {
+    //       existingUnit.remainingBuildTime = incompleteUnit.remainingBuildTime;
+    //     }
+    //   } else {
+    //     unitsInProduction.push({
+    //       ...incompleteUnit,
+    //       typeId,
+    //       icon: typeId,
+    //       count: 1,
+    //       buildTime: unitType.buildTime,
+    //     });
+    //   }
+    // }
 
-    // sort production units left to right based on build score
-    unitsInProduction.sort((a, b) => {
-      const ax = this.bwDat.units[a.typeId].buildScore;
-      const bx = this.bwDat.units[b.typeId].buildScore;
-      return bx - ax;
-    });
+    // // sort production units left to right based on build score
+    // unitsInProduction.sort((a, b) => {
+    //   const ax = this.bwDat.units[a.typeId].buildScore;
+    //   const bx = this.bwDat.units[b.typeId].buildScore;
+    //   return bx - ax;
+    // });
   }
 }
 

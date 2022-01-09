@@ -16,16 +16,13 @@ export class SoundChannels {
   audio: Audio[] = [];
   scheduled: Audio[] = [];
   loadSoundAsync: (id: number) => Promise<ArrayBuffer>;
-  getSoundMetadata: (sound: SoundStruct) => {dat: SoundDAT, mapCoords: MapCoords};
 
   constructor(
-    getSoundMetadata: (sound: SoundStruct) => {dat: SoundDAT, mapCoords: MapCoords},
     mixer: MainMixer,
     loadSoundAsync: (id: number) => Promise<ArrayBuffer>
   ) {
     this.mixer = mixer;
     this.loadSoundAsync = loadSoundAsync;
-    this.getSoundMetadata = getSoundMetadata;
   }
 
   async _load(id: number) {
@@ -47,7 +44,7 @@ export class SoundChannels {
 
     if (audio.dat.flags & 0x10) {
       for (const channel of this.channels) {
-        if (channel.isPlaying && channel.id === sound.id) {
+        if (channel.isPlaying && channel.id === sound.typeId) {
           if (channel.audio && channel.audio.isPlaying) {
             return;
           }
@@ -102,10 +99,9 @@ export class SoundChannels {
     return availableChannel;
   }
 
-  queue(soundData: SoundStruct) {
-    const {dat, mapCoords} = this.getSoundMetadata(soundData);
+  queue(soundData: SoundStruct, dat: SoundDAT, mapCoords: MapCoords) {
     this.audio.push(
-      new Audio(this.mixer, soundData, this._getBuffer(soundData.id), dat, mapCoords)
+      new Audio(this.mixer, soundData, this._getBuffer(soundData.typeId), dat, mapCoords)
     );
   }
 

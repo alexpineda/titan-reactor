@@ -35,8 +35,8 @@ export class SelectionCircle extends Sprite {
       this.material.needsUpdate = true;
       this.position.z = spriteDef.selectionCircleOffset / 32;
       this.scale.set(
-        (grp?.width as number) / 128,
-        (grp?.height as number) / 128,
+        (grp?.textureWidth as number) / 128,
+        (grp?.textureHeight as number) / 128,
         1
       );
       this.grp = grp;

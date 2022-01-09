@@ -1,13 +1,13 @@
 
 import { ImageDAT } from "../../common/types";
-import Anim from "../../common/image/atlas/atlas-anim";
+import AnimSD from "../../common/image/atlas/atlas-anim-sd";
 import ImageHD from "./image-hd";
 
 export class ImageSD extends ImageHD {
   constructor(
-    atlas: Anim,
+    atlas: AnimSD,
     imageDef: ImageDAT,
   ) {
-    super(atlas, imageDef, 32);
+    super(atlas, imageDef);
   }
 }

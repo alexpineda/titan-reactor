@@ -1,10 +1,14 @@
+import { UnitTileScale } from "src/renderer/core";
 import { AnimationClip, CubeTexture, Group } from "three";
 
 import { ImageDAT } from "../../bwdat/core/images-dat";
 import loadGlb, { GlbResponse } from "../formats/load-glb";
 import Anim from "./atlas-anim";
 
-// Glb will include the HD image assets as well as an optional model property signifying there is a 3d model
+/**
+ * Glb will include the HD image assets as well as an optional model 
+ * property signifying there is a 3d model
+ */
 export class Glb extends Anim {
   envMap: CubeTexture | null;
   model?: Group;
@@ -20,12 +24,14 @@ export class Glb extends Anim {
     glbFileName,
     readAnim,
     imageDef,
+    scale
   }: {
     glbFileName?: string;
     readAnim: () => Promise<Buffer>;
-    imageDef: Pick<ImageDAT, "name" | "index" | "gfxTurns">;
+    imageDef: ImageDAT;
+    scale: UnitTileScale
   }) {
-    await super.load({ readAnim, imageDef });
+    await super.load({ readAnim, imageDef, scale });
 
     if (!glbFileName) return this;
 

@@ -21,6 +21,7 @@ import Assets from "./assets";
 import * as log from "../ipc/log"
 import { AssetTextureResolution, Settings } from "../../common/types";
 import { openBwFiles, openBw } from "../openbw";
+import { UnitTileScale } from "../core";
 
 export default async (settings: Settings) => {
 
@@ -98,6 +99,7 @@ export default async (settings: Settings) => {
             imageDef: bwDat.images[imageId],
             readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
             glbFileName: fs ? glbFileName : undefined,
+            scale: AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD
         });
         if (grp.model) {
             log.verbose("successfully loaded glb");

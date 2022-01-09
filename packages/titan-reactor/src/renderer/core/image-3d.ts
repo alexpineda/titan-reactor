@@ -4,19 +4,28 @@ import { AnimationAction, AnimationMixer, Color, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 import Glb from "../../common/image/atlas/atlas-glb";
-import { ImageDAT } from "../../common/types";
-import { Image } from ".";
+import type { ImageDAT } from "../../common/types";
+import type { Image } from ".";
+import Sprite from "./sprite";
 
+/**
+ * An image instance that may include a 3d model
+ */
 export class Image3D extends Object3D implements Image {
   atlas: Glb;
   model: Object3D;
-  imageDef: ImageDAT;
+  dat: ImageDAT;
   mixer?: AnimationMixer;
 
   private times = new Float32Array();
   private action?: AnimationAction;
-  readonly imageScale: number;
+
   _zOff: number;
+
+  // unused, only for 2d
+  offsetX = 0;
+  // unused, only for 2d
+  offsetY = 0;
 
   constructor(
     atlas: Glb,
@@ -44,13 +53,16 @@ export class Image3D extends Object3D implements Image {
       this.action.play();
     }
 
-    // @todo no longer accurate, needs to be defined by HD2 / HD
-    this.imageScale = 128;
-    this.imageDef = imageDef;
+    this.dat = imageDef;
 
     this._zOff = 0;
 
     this.setFrame(0);
+  }
+  sprite?: Sprite | undefined;
+
+  get unitTileScale() {
+    return this.atlas.unitTileScale;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,25 +76,12 @@ export class Image3D extends Object3D implements Image {
     return this.atlas.frames;
   }
 
-  setPositionX(x: number, scale = this.imageScale) {
-    this.position.x = x / scale;
-  }
-
-  setPositionY(y: number, scale = this.imageScale) {
-    this.position.y = y / scale;
-  }
-
-  setPosition(x: number, y: number, scale = this.imageScale) {
-    this.setPositionX(x, scale);
-    this.setPositionY(y, scale);
-  }
-
   setFrame(frame: number) {
     if (!this.mixer) return;
     const effectiveFrame = this.atlas.fixedFrames[frame];
     this.mixer.setTime(this.times[effectiveFrame]);
 
-    if (this.imageDef.index === 239) {
+    if (this.dat.index === 239) {
       //marine
       if (effectiveFrame === 3) {
         //fire

@@ -1,5 +1,5 @@
 export interface SoundStruct {
-  id: number;
+  typeId: number;
   unitTypeId: number | null;
   x: number;
   y: number;

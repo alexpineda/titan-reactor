@@ -113,12 +113,12 @@ export class IScriptSprite extends Group {
     if (!image) {
       return null;
     }
-    if (image.imageDef.drawFunction === drawFunctions.rleShadow) {
+    if (image.dat.drawFunction === drawFunctions.rleShadow) {
       return null;
     }
     this.add(image);
 
-    const iscriptState = new IScriptState(this.bwDat.iscript.iscripts[image.imageDef.iscript], image.imageDef);
+    const iscriptState = new IScriptState(this.bwDat.iscript.iscripts[image.dat.iscript], image.dat);
     const iscriptImage = new IScriptImage(image, iscriptState, this);
 
     this.runner.run(iscriptHeaders.init, iscriptState)
@@ -180,7 +180,7 @@ export class IScriptSprite extends Group {
     }
 
     const nextZOff = this.mainImage
-      ? (this.mainImage?.image._zOff * this.mainImage?.image.imageScale) / 32
+      ? (this.mainImage?.image._zOff * this.mainImage?.image.unitTileScale) / 32
       : 0;
     this.position.z = this.position.z - this.lastZOff + nextZOff;
     this.lastZOff = nextZOff;

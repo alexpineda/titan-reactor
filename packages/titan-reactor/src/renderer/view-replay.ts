@@ -41,7 +41,7 @@ import {
   InputEvents,
   KeyboardShortcuts,
   MinimapControl,
-  MouseInteraction,
+  MouseInput,
 } from "./input";
 import { FrameBW, SoundsBufferView } from "./integration/fixed-data";
 import StreamGameStateReader from "./integration/fixed-data/readers/stream-game-state-reader";
@@ -49,6 +49,7 @@ import * as log from "./ipc/log";
 import {
   BuildUnits,
   GameCanvasTarget,
+  Layers,
   MinimapCanvasDrawer,
   Renderer,
   Scene,
@@ -69,6 +70,7 @@ import Janitor from "./utils/janitor";
 import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/data-transfer";
 import { EntityIterator } from "./integration/fixed-data/entity-iterator";
 import { isFlipped, isHidden } from "./utils/image-utils";
+import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -100,10 +102,9 @@ async function TitanReactorGame(
     settings.assets.images
   );
 
-  const cursor = new MouseInteraction();
-  janitor.disposable(cursor);
+  const mouseInput = new MouseInput(bwDat);
+  janitor.disposable(mouseInput);
 
-  cursor.pointer();
 
   const { mapWidth, mapHeight } = terrainInfo;
 
@@ -324,17 +325,19 @@ async function TitanReactorGame(
       if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
         continue;
       }
-      const metadata = soundChannels.getSoundMetadata(sound);
-      const volume = SoundsBufferView.getBwVolume(
-        metadata,
+      const dat = assets.bwDat.sounds[sound.typeId];
+      const mapCoords = terrainInfo.getMapCoords(sound.x, sound.y)
+      const volume = getBwVolume(
+        dat,
+        mapCoords,
         sound,
         projectedCameraView.left,
         projectedCameraView.top,
         projectedCameraView.right,
         projectedCameraView.bottom
       );
-      if (volume > SoundsBufferView.minPlayVolume) {
-        soundChannels.queue(sound);
+      if (volume > SoundPlayMinVolume) {
+        soundChannels.queue(sound, dat, mapCoords);
       }
     }
   };
@@ -348,32 +351,31 @@ async function TitanReactorGame(
   };
 
   const units: Map<UnitTag, CrapUnit> = new Map();
-  const unitsBySpriteId: Map<SpriteIndex, CrapUnit> = new Map();
-  const unitsInProduction: UnitInProduction[] = [];
-
-  // @todo remove, mostly crap
-  const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
-    buildUnits.refresh(
-      bwFrame.units,
-      bwFrame.buildingQueue,
-      units,
-      unitsBySpriteId,
-      unitsInProduction
-    );
-  };
 
   const sprites: Map<number, Sprite> = new Map();
   const images: Map<number, Image> = new Map();
+  const unitsBySpriteId: Map<number, CrapUnit> = new Map();
   // let research: ResearchInProduction[][] = [];
   // let upgrades: UpgradeInProduction[][] = [];
   // let completedUpgrades: UpgradeCompleted[][] = [];
   // let completedResearch: ResearchCompleted[][] = [];
-  const group = new Group();
-  scene.add(group);
+  const unitsGroup = new Group();
+  scene.add(unitsGroup);
+
+
+  const _getImage = ({ titanIndex, typeId }: Pick<ImageStruct, "titanIndex" | "typeId">) => {
+    const image = images.get(titanIndex);
+    if (image) {
+      return image
+    } else {
+      const newImage = createImage(typeId);
+      images.set(titanIndex, newImage);
+      return newImage
+    }
+  }
 
   const buildSprites = (spritesBW: EntityIterator<SpriteStruct>, delta: number) => {
-    group.clear();
-    // we set count below
+    unitsGroup.clear();
 
     let order = 0;
     for (const spriteData of spritesBW.items()) {
@@ -386,6 +388,8 @@ async function TitanReactorGame(
         );
         sprites.set(spriteData.titanIndex, sprite);
       }
+
+      const unit = unitsBySpriteId.get(sprite.titanIndex);
 
       // const buildingIsExplored =
       //   sprite.unit &&
@@ -414,23 +418,22 @@ async function TitanReactorGame(
       const z = pxToGameUnit.y(spriteData.position.y);
       let y = terrainInfo.getTerrainY(x, z);
 
-      sprite.unit = unitsBySpriteId.get(spriteData.titanIndex);
-      if (sprite.unit) {
-        if (sprite.unit.statusFlags & UnitFlags.Flying) {
-          const targetY = Math.min(6, y + 2.5);
-          if (sprite.position.y === 0) {
-            y = targetY;
-          } else {
-            y = MathUtils.damp(sprite.position.y, targetY, 0.001, delta);
-          }
-        }
+      // sprite.unit = unitsBySpriteId.get(spriteData.titanIndex);
+      // if (sprite.unit) {
+      //   if (sprite.unit.statusFlags & UnitFlags.Flying) {
+      //     const targetY = Math.min(6, y + 2.5);
+      //     if (sprite.position.y === 0) {
+      //       y = targetY;
+      //     } else {
+      //       y = MathUtils.damp(sprite.position.y, targetY, 0.001, delta);
+      //     }
+      //   }
 
-        //if selected show selection sprites, also check canSelect again in case it died
-        // if (sprite.unit.selected && sprite.unit.canSelect) {
-        //   sprite.select(completedUpgrades[sprite.unit.ownerId]);
-        // } else {
-        //   sprite.unselect();
-        // }
+      //if selected show selection sprites, also check canSelect again in case it died
+      if (unit?.extra.selected) {
+        sprite.select();
+      } else {
+        sprite.unselect();
       }
 
       // liftoff z - 42, y+
@@ -441,27 +444,21 @@ async function TitanReactorGame(
       const player = players.playersById[spriteData.owner];
 
       for (const imageData of spriteData.images) {
-        //@todo remove
-        if (isHidden(imageData)) continue;
+        if (!sprite.visible) {
+          continue;
+        }
 
-        //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
-        const image = sprite.images.get(imageData.typeId) || createImage(imageData.typeId);
-        if (!image) continue;
+        const image = _getImage(imageData);
         sprite.add(image);
-
-        // if (!sprite.visible || dontUpdate) {
-        //   continue;
-        // }
 
         if (player) {
           image.setTeamColor(player.color.three);
         }
         // overlay position
-        // @ts-ignore
-        image.offsetX = image.position.x = imageData.offset.x / 32;
-        // @ts-ignore
-        image.offsetY = image.position.z = imageData.offset.y / 32;
+        // image.offsetX = image.position.x = imageData.offset.x / 32;
+        // image.offsetY = image.position.z = imageData.offset.y / 32;
         image.renderOrder = _imageRenderOrder++;
+        image.sprite = sprite;
 
         // 63-48=15
         if (imageData.modifier === 14) {
@@ -475,33 +472,30 @@ async function TitanReactorGame(
 
         image.setFrame(imageData.frameIndex, isFlipped(imageData));
 
-        if (!sprite.images.has(imageData.typeId)) {
-          sprite.images.set(imageData.typeId, image);
-        }
-
         let z = 0;
+
+
         if (imageData.titanIndex === spriteData.mainImageTitanIndex) {
-          // @ts-ignore
-          z = image._zOff * (image.imageScale / 32); //x4 for HD
-
-          if (sprite.unit) {
-            image.rotation.y = sprite.unit.angle;
-
-            if (!bwDat.images[imageData.typeId].clickable) {
-              sprite.unit.canSelect = false;
-            }
-            // if (sprite.unit.canSelect) {
-            //   //@todo change to layer
-            //   interactableSprites.push(image);
-            // }
+          z = image._zOff * image.unitTileScale;
+          const unit = unitsBySpriteId.get(sprite.titanIndex);
+          if (unit) {
+            // for 3d models
+            image.rotation.y = unit.angle;
           }
+
+          if (bwDat.images[imageData.typeId].clickable) {
+            sprite.layers.enable(Layers.Clickable);
+            image.layers.enable(Layers.Clickable);
+          }
+          sprite.mainImage = image;
         }
+
         //@todo is this the reason for overlays displaying in 0,0?
         // sprite.position.z += z - sprite.lastZOff;
         sprite.lastZOff = z;
       }
 
-      group.add(sprite);
+      unitsGroup.add(sprite);
     }
   };
 
@@ -583,7 +577,8 @@ async function TitanReactorGame(
     techUpgradesWorker.postMessage(msg);
   };
 
-  cursor.init(
+  mouseInput.bind(
+    unitsGroup,
     projectedCameraView,
     gameSurface,
     terrainInfo,
@@ -622,7 +617,7 @@ async function TitanReactorGame(
   window.pause = () => {
     gameStatePosition.togglePlay();
   }
-  
+
   const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
@@ -647,7 +642,11 @@ async function TitanReactorGame(
             scene.incrementTileAnimation();
           }
 
-          buildUnitsAndMinimap(currentBwFrame);
+          buildUnits.refresh(
+            currentBwFrame.units,
+            units,
+            unitsBySpriteId
+          );
           buildSprites(currentBwFrame.sprites, delta);
           // buildResearchAndUpgrades(currentBwFrame);
           fogOfWar.texture.needsUpdate = true;

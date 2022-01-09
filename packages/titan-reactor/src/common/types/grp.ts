@@ -18,14 +18,15 @@ export type GrpType = {
 };
 
 export type GRPInterface = {
-  width: number;
-  height: number;
-  grpWidth?: number;
-  grpHeight?: number;
+  textureWidth: number;
+  textureHeight: number;
+  spriteWidth: number;
+  spriteHeight: number;
   imageIndex: number;
-  frames?: GrpFrameType[];
+  frames: GrpFrameType[];
   diffuse?: Texture;
   teamcolor?: Texture;
+  unitTileScale: number;
 };
 
 export type AnimDds = {

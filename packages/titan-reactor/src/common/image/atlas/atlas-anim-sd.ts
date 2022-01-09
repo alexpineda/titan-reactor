@@ -1,3 +1,4 @@
+import { UnitTileScale } from "../../../renderer/core";
 import {
   CompressedTexture,
   DataTexture,
@@ -10,12 +11,13 @@ import { createDDSTexture, Grp } from "../formats";
 
 // Load anim files from the SD folder, with the difference being anim format and in team color bitmap encoding
 export class AnimSD implements GRPInterface {
-  width = 0;
-  height = 0;
-  grpWidth?= 0;
-  grpHeight?= 0;
+  unitTileScale = UnitTileScale.SD;
+  textureWidth = 0;
+  textureHeight = 0;
+  spriteWidth = 0;
+  spriteHeight = 0;
   imageIndex = -1;
-  frames?: GrpFrameType[] = [];
+  frames: GrpFrameType[] = [];
   diffuse?: CompressedTexture;
   teamcolor?: DataTexture;
 
@@ -57,11 +59,16 @@ export class AnimSD implements GRPInterface {
     }
 
     this.frames = sprite.frames;
-    this.width = sprite.maps.diffuse.width;
-    this.height = sprite.maps.diffuse.height;
-    this.grpWidth = w;
-    this.grpHeight = h;
+    this.textureWidth = sprite.maps.diffuse.width;
+    this.textureHeight = sprite.maps.diffuse.height;
+    this.spriteWidth = w;
+    this.spriteHeight = h;
     return this;
+  }
+
+  dispose() {
+    this.diffuse && this.diffuse.dispose();
+    this.teamcolor && this.teamcolor.dispose();
   }
 }
 export default AnimSD;

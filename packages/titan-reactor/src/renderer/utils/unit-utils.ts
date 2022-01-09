@@ -5,7 +5,7 @@ export const isCloaked=(unit: UnitStruct) => {
     return (
       ((unit.statusFlags & UnitFlags.Cloaked) != 0 ||
         (unit.statusFlags & UnitFlags.PassivelyCloaked) != 0) &&
-      unit.typeId !== unitTypes.spiderMine
+      unit.typeId !== unitTypes.spiderMine && !(unit.statusFlags & UnitFlags.Burrowed)
     );
 }
 

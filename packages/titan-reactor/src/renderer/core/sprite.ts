@@ -11,32 +11,31 @@ import { CrapUnit, Image } from ".";
  */
 export class Sprite extends Object3D {
   titanIndex: number;
-  images: Map<number, Image> = new Map();
   selectionCircle = new SelectionCircle();
   selectionBars = new SelectionBars();
   lastZOff = 0;
-  spriteDAT: SpriteDAT;
+  dat: SpriteDAT;
 
-  //@todo refactor
-  unit?: CrapUnit;
+  // used for mouse interaction
+  mainImage?: Image;
 
   constructor(titanIndex: number, spriteDAT: SpriteDAT) {
     super();
     this.titanIndex = titanIndex;
-    this.spriteDAT = spriteDAT;
+    this.dat = spriteDAT;
   }
 
-  select(completedUpgrades: UpgradeCompleted[]) {
-    this.selectionCircle.update(this.spriteDAT as SpriteDAT);
+  select() {
+    this.selectionCircle.update(this.dat as SpriteDAT);
     this.selectionCircle.renderOrder = this.renderOrder - 1;
-    this.selectionBars.update(
-      this,
-      completedUpgrades,
-      this.renderOrder,
-      this.selectionCircle.grp.height / 256
-    );
+    // this.selectionBars.update(
+    //   this,
+    //   completedUpgrades,
+    //   this.renderOrder,
+    //   this.selectionCircle.grp.height / 256
+    // );
     this.add(this.selectionCircle);
-    this.add(this.selectionBars);
+    // this.add(this.selectionBars);
   }
 
   unselect() {

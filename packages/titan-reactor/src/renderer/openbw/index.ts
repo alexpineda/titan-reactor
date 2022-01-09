@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import path from "path";
 import { UnitStruct } from "../integration/data-transfer/unit-struct.js";
 import { SpriteStruct } from "../integration/data-transfer/sprite-struct.js";
+import { SoundStruct } from "../integration/data-transfer/sound-struct.js";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
@@ -22,8 +23,9 @@ export interface OpenBWWasmAPI {
   _get_buffer: (index:number) => number;
   _replay_get_value: (index:number) => number;
   get_util_funcs: () => ({
-    get_all_units: () => UnitStruct[],
-    get_all_sprites: () => SpriteStruct[],
+    get_units: () => UnitStruct[],
+    get_sprites: () => SpriteStruct[],
+    get_sounds: () => SoundStruct[],
   })
 
   callMain: () => void;

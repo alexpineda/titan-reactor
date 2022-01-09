@@ -1,43 +1,20 @@
-import { Player, UnitTag } from "../../common/types";
-import { BuildingQueueStruct } from "../integration/data-transfer/building-queue-struct";
+import { Player } from "../../common/types";
 import { UnitStruct } from "../integration/data-transfer/unit-struct";
+import { Sprite } from "."
 
 export type CrapUnit = UnitStruct & {
-    id: UnitTag;
-    owner: Player;
-    hp: number;
-    shields: number;
-    typeId: number;
-    order: number;
-    energy: number;
-    kills: number;
-
-    x: number;
-    y: number;
-    tileX: number;
-    tileY: number;
-
-    queue: BuildingQueueStruct | null;
-    loaded: (CrapUnit | undefined)[] | null;
-
-    remainingBuildTime: number;
-    recievingDamage: number;
-    resourceAmount: number | null;
-    remainingTrainTime: number;
-
-    //@todo deprecate
-    groundWeaponCooldown: number;
-    isComplete: boolean;
-    wasConstructing: boolean;
-    wasFlying: boolean;
-    isNowFlying: boolean;
-    isFlyingBuilding: boolean;
-    dieTime: number;
-    showOnMinimap: boolean;
-    canSelect: boolean;
-    warpingIn?: number;
-    warpingLen: number;
-    unitId: number;
-    ownerId: number;
-    selected: boolean;
+    extra: {
+        sprite: Sprite;
+        player?: Player;
+        recievingDamage: number;
+        isComplete?: boolean;
+        wasFlying?: boolean;
+        isNowFlying?: boolean;
+        dieTime?: number;
+        showOnMinimap?: boolean;
+        canSelect?: boolean;
+        warpingIn?: number;
+        warpingLen?: number;
+        selected?: boolean;
+    }
 }

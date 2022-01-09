@@ -1,5 +1,3 @@
-// @ts-nocheck
-// @todo document image drawing + update function
 import {
   BufferAttribute,
   Color,
@@ -12,9 +10,8 @@ import {
 
 import { drawFunctions } from "../../common/bwdat/enums/draw-functions";
 import { ImageDAT } from "../../common/types/bwdat";
-import { GrpFrameType } from "../../common/types/grp";
-import Anim from "../../common/image/atlas/atlas-anim";
-import { Image } from ".";
+import { GrpFrameType, GRPInterface } from "../../common/types/grp";
+import { Image, Sprite } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 
 export const DepthMode = {
@@ -22,27 +19,34 @@ export const DepthMode = {
   Depth: 1, // for angled views
 };
 
+/**
+ * An image instance that uses HD assets
+ */
 export class ImageHD extends ThreeSprite implements Image {
   static useDepth = false;
-  readonly imageScale: number;
   private _oScale: Vector3;
-  imageDef: ImageDAT;
   override material: TeamSpriteMaterial;
-  _zOff: number;
 
-  private atlas: Anim;
+  private atlas: GRPInterface;
   private uv: BufferAttribute | InterleavedBufferAttribute;
   private pos: BufferAttribute | InterleavedBufferAttribute;
   private lastSetFrame?: GrpFrameType;
   private lastFlipFrame?: boolean;
 
+  dat: ImageDAT;
+  _zOff: number;
+
+  sprite?: Sprite;
+  offsetX = 0;
+  offsetY = 0;
+
   constructor(
-    atlas: Anim,
+    atlas: GRPInterface,
     imageDef: ImageDAT,
-    spriteScale = 128
   ) {
     super();
-    const { diffuse, teamcolor, grpWidth, grpHeight } = atlas;
+    const { diffuse, teamcolor, spriteWidth, spriteHeight } = atlas;
+    this.atlas = atlas;
 
     const material = new TeamSpriteMaterial({
       map: diffuse,
@@ -51,9 +55,7 @@ export class ImageHD extends ThreeSprite implements Image {
     material.isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
     this.material = material;
 
-    this.imageScale = spriteScale;
-
-    this.imageDef = imageDef;
+    this.dat = imageDef;
     //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
     // if (imageDef.drawFunction === drawFunctions.warpFlash2) {
     //   this.material.warpingIn = 150;
@@ -79,8 +81,8 @@ export class ImageHD extends ThreeSprite implements Image {
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
     this._oScale = new Vector3(
-      (grpWidth as number) / this.imageScale,
-      (grpHeight as number) / this.imageScale,
+      spriteWidth / (32 * this.unitTileScale),
+      spriteHeight / (32 * this.unitTileScale),
       1
     );
 
@@ -94,13 +96,16 @@ export class ImageHD extends ThreeSprite implements Image {
 
     this.castShadow = false;
 
-    this.atlas = atlas;
     this._zOff = 0;
 
     this.uv = this.geometry.getAttribute("uv");
     this.pos = this.geometry.getAttribute("position");
 
     this.setFrame(0, false);
+  }
+
+  get unitTileScale() {
+    return this.atlas.unitTileScale;
   }
 
   get frames() {
@@ -119,19 +124,6 @@ export class ImageHD extends ThreeSprite implements Image {
   //@todo move calculation to here via modifierData1
   setCloaked(val: boolean) {
     this.material.opacity = val ? 0.5 : 1;
-  }
-
-  setPositionX(x: number, scale = this.imageScale) {
-    this.position.x = x / scale;
-  }
-
-  setPositionY(y: number, scale = this.imageScale) {
-    this.position.y = y / scale;
-  }
-
-  setPosition(x: number, y: number, scale = this.imageScale) {
-    this.setPositionX(x, scale);
-    this.setPositionY(y, scale);
   }
 
   setFrame(frame: number, flip?: boolean) {
@@ -156,7 +148,7 @@ export class ImageHD extends ThreeSprite implements Image {
   //dds is flipped y so we don't do it in our uvs
   _setFrame(frame: GrpFrameType, flipFrame?: boolean) {
     if (frame === undefined) {
-      console.error("frame is undefined");
+      debugger;
       return false;
     }
     if (frame === this.lastSetFrame && flipFrame === this.lastFlipFrame) {
@@ -176,50 +168,50 @@ export class ImageHD extends ThreeSprite implements Image {
 
     //@todo migrate to use set
     if (flipFrame) {
-      this.uv.array[0] = (frame.x + frame.w) / this.atlas.width;
-      this.uv.array[2] = frame.x / this.atlas.width;
-      this.uv.array[4] = frame.x / this.atlas.width;
-      this.uv.array[6] = (frame.x + frame.w) / this.atlas.width;
+      this.uv.array[0] = (frame.x + frame.w) / this.atlas.textureWidth;
+      this.uv.array[2] = frame.x / this.atlas.textureWidth;
+      this.uv.array[4] = frame.x / this.atlas.textureWidth;
+      this.uv.array[6] = (frame.x + frame.w) / this.atlas.textureWidth;
 
       this.pos.array[0] =
-        (this.atlas.grpWidth - (frame.xoff + frame.w)) / this.atlas.grpWidth -
+        (this.atlas.spriteWidth - (frame.xoff + frame.w)) / this.atlas.spriteWidth -
         0.5;
       this.pos.array[3] =
-        (this.atlas.grpWidth - frame.xoff) / this.atlas.grpWidth - 0.5;
+        (this.atlas.spriteWidth - frame.xoff) / this.atlas.spriteWidth - 0.5;
       this.pos.array[6] =
-        (this.atlas.grpWidth - frame.xoff) / this.atlas.grpWidth - 0.5;
+        (this.atlas.spriteWidth - frame.xoff) / this.atlas.spriteWidth - 0.5;
       this.pos.array[9] =
-        (this.atlas.grpWidth - (frame.xoff + frame.w)) / this.atlas.grpWidth -
+        (this.atlas.spriteWidth - (frame.xoff + frame.w)) / this.atlas.spriteWidth -
         0.5;
     } else {
-      this.uv.array[0] = frame.x / this.atlas.width;
-      this.uv.array[2] = (frame.x + frame.w) / this.atlas.width;
-      this.uv.array[4] = (frame.x + frame.w) / this.atlas.width;
-      this.uv.array[6] = frame.x / this.atlas.width;
+      this.uv.array[0] = frame.x / this.atlas.textureWidth;
+      this.uv.array[2] = (frame.x + frame.w) / this.atlas.textureWidth;
+      this.uv.array[4] = (frame.x + frame.w) / this.atlas.textureWidth;
+      this.uv.array[6] = frame.x / this.atlas.textureWidth;
 
-      this.pos.array[0] = frame.xoff / this.atlas.grpWidth - 0.5;
-      this.pos.array[3] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
-      this.pos.array[6] = (frame.xoff + frame.w) / this.atlas.grpWidth - 0.5;
-      this.pos.array[9] = frame.xoff / this.atlas.grpWidth - 0.5;
+      this.pos.array[0] = frame.xoff / this.atlas.spriteWidth - 0.5;
+      this.pos.array[3] = (frame.xoff + frame.w) / this.atlas.spriteWidth - 0.5;
+      this.pos.array[6] = (frame.xoff + frame.w) / this.atlas.spriteWidth - 0.5;
+      this.pos.array[9] = frame.xoff / this.atlas.spriteWidth - 0.5;
     }
 
-    this.uv.array[1] = (frame.y + frame.h) / this.atlas.height;
-    this.uv.array[3] = (frame.y + frame.h) / this.atlas.height;
-    this.uv.array[5] = frame.y / this.atlas.height;
-    this.uv.array[7] = frame.y / this.atlas.height;
+    this.uv.array[1] = (frame.y + frame.h) / this.atlas.textureHeight;
+    this.uv.array[3] = (frame.y + frame.h) / this.atlas.textureHeight;
+    this.uv.array[5] = frame.y / this.atlas.textureHeight;
+    this.uv.array[7] = frame.y / this.atlas.textureHeight;
 
     const off =
-      (frame.yoff + frame.h - this.atlas.grpHeight / 2) / this.atlas.grpHeight;
+      (frame.yoff + frame.h - this.atlas.spriteHeight / 2) / this.atlas.spriteHeight;
     const yOff = this.material.depthTest ? 0.5 - off : 0.5;
 
     const zOff = this.material.depthTest ? off : 0;
 
     this.pos.array[1] =
-      1 - (frame.yoff + frame.h) / this.atlas.grpHeight - yOff;
+      1 - (frame.yoff + frame.h) / this.atlas.spriteHeight - yOff;
     this.pos.array[4] =
-      1 - (frame.yoff + frame.h) / this.atlas.grpHeight - yOff;
-    this.pos.array[7] = 1 - frame.yoff / this.atlas.grpHeight - yOff;
-    this.pos.array[10] = 1 - frame.yoff / this.atlas.grpHeight - yOff;
+      1 - (frame.yoff + frame.h) / this.atlas.spriteHeight - yOff;
+    this.pos.array[7] = 1 - frame.yoff / this.atlas.spriteHeight - yOff;
+    this.pos.array[10] = 1 - frame.yoff / this.atlas.spriteHeight - yOff;
 
     this._zOff = zOff;
     return true;

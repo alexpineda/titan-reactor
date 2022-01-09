@@ -130,12 +130,9 @@ startLoadingProcess({
     }
 
     log.verbose("initializing audio");
-    const getSoundMetadata = (sound: SoundStruct) => ({
-        dat: assets.bwDat.sounds[sound.id],
-        mapCoords: terrainInfo.getMapCoords(sound.x, sound.y)
-    })
+    
     const mixer = new MainMixer();
-    const soundChannels = new SoundChannels(getSoundMetadata, mixer, assets.loadAudioFile.bind(assets));
+    const soundChannels = new SoundChannels(mixer, assets.loadAudioFile.bind(assets));
     const music = new Music(races);
     //@todo refactor music outside of three Audio
     //@ts-ignore

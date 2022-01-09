@@ -37,6 +37,7 @@ export enum UnitFlags{
     Completed = 1,
     GroundedBuilding= 2,
     Flying= 4,
+    Burrowed = 0x10,
     InBunker = 0x20,
     Loaded= 0x40,
     Cloaked= 0x200,
