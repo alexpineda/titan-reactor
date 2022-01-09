@@ -9,6 +9,7 @@ import {
 onmessage = function ({ data }) {
   const { buffer, frame, mapWidth, mapHeight } = data;
 
+  const creepBuffer = new Uint16Array(buffer);
   // for shaders
   const creepData = new Uint8Array(mapWidth * mapHeight);
   const edgesData = new Uint8Array(mapWidth * mapHeight);
@@ -19,7 +20,8 @@ onmessage = function ({ data }) {
   for (let x = 0; x < mapWidth; x++) {
     for (let y = 0; y < mapHeight; y++) {
       const tilePos = y * mapWidth + x;
-      if (buffer[tilePos]) {
+      const bufPos = y * mapWidth * 2 + x * 2 + 1;
+      if (creepBuffer[bufPos] & 0x40) {
         creepData[tilePos] = creepRandomTileIndices[tilePos] + 1;
       } else {
         let creepIndex = 0;
@@ -34,8 +36,9 @@ onmessage = function ({ data }) {
           if (offY < 0) continue;
 
           const offTilePos = offY * mapWidth + offX;
+          const offBufTilePos = offY * mapWidth * 2 + offX *2 +1;
 
-          if (buffer[offTilePos]) {
+          if (creepBuffer[offBufTilePos] & 0x40) {
             creepIndex |= 1 << i;
           } else {
             const creepFrame = creepEdgeFrameIndex[creepIndex];

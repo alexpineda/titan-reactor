@@ -1,12 +1,24 @@
+import { Texture } from "three";
+import TilesBufferView from "../integration/fixed-data/tiles-buffer-view.js";
+
+//@ts-ignore
 import Worker from "./creep.worker.js";
 
 // calculate creep tiles using webworkers
 export default class Creep {
+  mapWidth: number;
+  mapHeight: number;
+  creepValuesTexture: Texture;
+  creepEdgesValuesTexture: Texture;
+  creepImageData: ImageData;
+  
+  private _lastFrame = 0;
+  
   constructor(
-    mapWidth,
-    mapHeight,
-    creepValuesTexture,
-    creepEdgesValuesTexture
+    mapWidth: number,
+    mapHeight: number,
+    creepValuesTexture: Texture,
+    creepEdgesValuesTexture: Texture
   ) {
     this.mapWidth = mapWidth;
     this.mapHeight = mapHeight;
@@ -14,7 +26,10 @@ export default class Creep {
     this.creepEdgesValuesTexture = creepEdgesValuesTexture;
     this.creepImageData = new ImageData(mapWidth, mapHeight);
 
+    // @ts-ignore
     this.worker = new Worker();
+    // @ts-ignore
+
     this.worker.onmessage = ({ data }) => {
       const { creepData, edgesData, imageData, frame } = data;
       if (frame < this._lastFrame) return;
@@ -31,20 +46,22 @@ export default class Creep {
 
   /**
    *
-   * @param {CreepBW} creepBW
+   * @param {CreepBW} tiles
    */
-  generate(creepBW, frame) {
+  generate(tiles: TilesBufferView, frame : number) {
     const msg = {
-      buffer: new Uint8Array(creepBW.buffer),
+      buffer: tiles.copy(),
       mapWidth: this.mapWidth,
       mapHeight: this.mapHeight,
       frame,
     };
 
+    //@ts-ignore
     this.worker.postMessage(msg, [msg.buffer.buffer]);
   }
 
   dispose() {
+    //@ts-ignore
     this.worker.terminate();
   }
 }

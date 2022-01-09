@@ -22,7 +22,7 @@ export default class OpenBWFileList {
     return path.toLowerCase().replace(/\//g, "\\");
   }
 
-  init(openBw: any, callbacks: Callbacks) {
+  setup(openBw: any, callbacks: Callbacks) {
     openBw.setupCallbacks(
       (ptr: any) => {
         throw new Error(openBw.UTF8ToString(ptr));

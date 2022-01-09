@@ -1,5 +1,7 @@
 import { AudioContext } from "three";
 
+const MUSIC_REDUCTION_RATIO = 0.1;
+
 // mixes sound and music volumes
 export class MainMixer {
   context: AudioContext;
@@ -50,7 +52,7 @@ export class MainMixer {
   }
 
   set musicVolume(val) {
-    this.music.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
+    this.music.gain.setTargetAtTime(val * MUSIC_REDUCTION_RATIO, this.context.currentTime, 0.01);
   }
 
   update(x: number, y: number, z: number, delta: number) {

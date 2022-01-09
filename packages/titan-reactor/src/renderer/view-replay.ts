@@ -280,7 +280,7 @@ async function TitanReactorGame(
     window.removeEventListener("resize", sceneResizeHandler)
   );
 
-  let nextBwFrame: FrameBW, currentBwFrame: FrameBW | null;
+  let currentBwFrame: FrameBW | null;
 
   const buildUnits = new BuildUnits(
     bwDat,
@@ -340,7 +340,7 @@ async function TitanReactorGame(
   };
 
   const buildCreep = (bwFrame: FrameBW) => {
-    creep.generate(bwFrame.creep, bwFrame.frame);
+    creep.generate(bwFrame.tiles, bwFrame.frame);
   };
 
   const units: Map<UnitTag, Unit> = new Map();
@@ -574,9 +574,9 @@ async function TitanReactorGame(
     const msg = {
       frame: bwFrame.frame,
       researchCount: bwFrame.research.itemsCount,
-      researchBuffer: bwFrame.research.buffer,
+      researchBuffer: bwFrame.research.copy(),
       upgradeCount: bwFrame.upgrades.itemsCount,
-      upgradeBuffer: bwFrame.upgrades.buffer,
+      upgradeBuffer: bwFrame.upgrades.copy(),
     };
 
     techUpgradesWorker.postMessage(msg);
@@ -643,8 +643,8 @@ async function TitanReactorGame(
           }
 
           buildUnitsAndMinimap(currentBwFrame);
-          buildSprites(currentBwFrame, delta);
-          buildResearchAndUpgrades(currentBwFrame);
+          // buildSprites(currentBwFrame, delta);
+          // buildResearchAndUpgrades(currentBwFrame);
           fogOfWar.texture.needsUpdate = true;
           creep.creepValuesTexture.needsUpdate = true;
           creep.creepEdgesValuesTexture.needsUpdate = true;

@@ -3,68 +3,100 @@ type UTypedArray = Uint8Array | Uint16Array | Uint32Array;
 /**
  A template for representing game struct(s) (eg units, sprites, etc)
 */
+// @todo allow reading of any heap type
 export abstract class BufferView<T> {
-  readonly itemsCount: number;
-  private index: number;
+  itemsCount: number;
 
-  private readonly _structSize;
+  private _itemIndex = 0;
+  private _ptrIndex = 0;
+
+  private readonly _structSizeInBytes;
   private readonly _buffer: TypedArray;
   private readonly _ubuffer: UTypedArray;
 
-  constructor(structSize:number, ptr = 0, itemsCount = 0, buffer: TypedArray, ubuffer: UTypedArray) {
+  constructor(structSizeInBytes:number, ptr = 0, itemsCount = 0, buffer: TypedArray, ubuffer: UTypedArray) {
     this._buffer = buffer;
     this._ubuffer = ubuffer;
     this.itemsCount = itemsCount;
-    this._structSize = structSize / buffer.BYTES_PER_ELEMENT;
-    this.index = ptr / buffer.BYTES_PER_ELEMENT;
+    this._structSizeInBytes = structSizeInBytes / buffer.BYTES_PER_ELEMENT;
+    this.ptrIndex = ptr;
   }
 
-  get buffer() {
-    return this._buffer.slice(this.index, this.index + this.itemsCount * this._structSize);
+  set ptrIndex(index: number) {
+    this._itemIndex = index / this._buffer.BYTES_PER_ELEMENT;
+    this._ptrIndex = index;
   }
 
-  get ubuffer() {
-    return this._ubuffer.slice(this.index, this.index + this.itemsCount * this._structSize);
+  get ptrIndex() {
+    return this._ptrIndex;
+  }
+
+  copy() {
+    return this._buffer.slice(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
   }
 
   object(): T {
     throw new Error("Not implemented");
   }
 
-  _read(offset: number) {
-    return this._buffer[this.index + offset];
+  protected _read(offset: number) {
+    return this._buffer[this._itemIndex + offset];
   }
 
-  _readU(offset: number) {
-    return this._ubuffer[this.index + offset];
+  protected _readU(offset: number) {
+    return this._ubuffer[this._itemIndex + offset];
   }
+
+  // protected _read8(offset: number) {
+  //   return this.heaps.HEAP8[this._ptrIndex + offset];
+  // }
+
+  // protected _readU8(offset: number) {
+  //   return this.heaps.HEAPU8[this._ptrIndex + offset];
+  // }
+
+  // protected _read16(offset: number) {
+  //   return this.heaps.HEAP16[this._ptrIndex / 2 + offset];
+  // }
+
+  // protected _readU16(offset: number) {
+  //   return this.heaps.HEAPU16[this._ptrIndex / 2 + offset];
+  // }
+
+  // protected _read32(offset: number) {
+  //   return this.heaps.HEAP32[this._ptrIndex / 4 + offset];
+  // }
+
+  // protected _readU32(offset: number) {
+  //   return this.heaps.HEAPU32[this._ptrIndex / 4 + offset];
+  // }
 
   *items(count = this.itemsCount): IterableIterator<typeof this> {
-    const _index = this.index;
+    const _index = this._itemIndex;
     for (let i = 0; i < count; i++) {
       yield this;
-      this.index++;
+      this._itemIndex++;
     }
-    this.index = _index;
+    this._itemIndex = _index;
   }
 
   *reverse(count = this.itemsCount): IterableIterator<typeof this> {
-    this.index = this.index + count;
+    this._itemIndex = this._itemIndex + count;
     for (let i = 0; i < count; i++) {
-      this.index--;
+      this._itemIndex--;
       yield this;
     }
-    this.index += count;
+    this._itemIndex += count;
   }
 
   instances(count = this.itemsCount): T[] {
     const arr = [];
-    const _index = this.index;
+    const _index = this._itemIndex;
     for (let i = 0; i < count; i++) {
       arr.push(this.object());
-      this.index++;
+      this._itemIndex++;
     }
-    this.index = _index;
+    this._itemIndex = _index;
     return arr;
   }
 }

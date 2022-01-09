@@ -40,7 +40,7 @@ interface OpenBWWasmWrapper {
     afterFrame: () => void;
   };
   loaded: Promise<boolean>;
-  start: () => void;
+  callMain: () => void;
 }
 const openBw: OpenBWWasmWrapper = {
   callbacks,
@@ -48,10 +48,12 @@ const openBw: OpenBWWasmWrapper = {
     wasmBinary: readFileSync(wasmFileLocation),
   }).then((_api: OpenBWWasmAPI) => {
     openBw.api = _api;
-    openBwFiles.init(_api, callbacks);
+    openBwFiles.setup(_api, callbacks);
+    //@ts-ignore
+    window.openBw = openBw.api;
     return true;
   }),
-  start: () => {
+  callMain: () => {
     try {
       openBw.api?.callMain();
     } catch (e) {

@@ -121,7 +121,7 @@ export default class FogOfWar {
     this._lastPlayers = playerVisionFlags;
 
     const msg = {
-      tileBuffer: tileData.ubuffer,
+      tileBuffer: tileData.copy(),
       playerVisionFlags,
       frame,
       imageBuffer: this.imageBuffer,
@@ -131,7 +131,7 @@ export default class FogOfWar {
       height: this.height,
     };
 
-    this.worker.postMessage(msg, [tileData.ubuffer.buffer]);
+    this.worker.postMessage(msg, [msg.tileBuffer.buffer]);
 
     this.playerVisionWasToggled = false;
   }
