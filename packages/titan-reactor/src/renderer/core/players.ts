@@ -1,4 +1,4 @@
-import { Unit } from ".";
+import { CrapUnit } from ".";
 import {
   OwnerId,
   Player,
@@ -11,8 +11,8 @@ import {
 
 class POVSelection implements POVSelectionI {
   lastIssuedCommand?: any;
-  unit: Unit;
-  constructor(unit: Unit) {
+  unit: CrapUnit;
+  constructor(unit: CrapUnit) {
     this.unit = unit;
   }
 }

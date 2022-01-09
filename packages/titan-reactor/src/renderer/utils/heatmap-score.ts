@@ -2,7 +2,7 @@ import { easeCubicOut } from "d3-ease";
 import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { orders } from "../../common/bwdat/enums/orders";
 import { BwDAT } from "../../common/types";
-import { Unit } from "../core";
+import { CrapUnit } from "../core";
 
 export default class HeatmapScore {
   private bwDat: BwDAT;
@@ -11,7 +11,7 @@ export default class HeatmapScore {
     this.bwDat = bwDat;
   }
 
-  totalScore(units: Unit[], easing = easeCubicOut) {
+  totalScore(units: CrapUnit[], easing = easeCubicOut) {
     const n = units.reduce((sum, unit) => {
       return sum + this.unitScore(unit);
     }, 0);
@@ -19,7 +19,7 @@ export default class HeatmapScore {
     return easing(n / (units.length + 1));
   }
 
-  unitScore(unit: Unit) {
+  unitScore(unit: CrapUnit) {
     let score = 0;
     // ignore
     if (
@@ -88,7 +88,7 @@ export default class HeatmapScore {
     }
   }
 
-  unitOfInterestFilter(unit: Unit) {
+  unitOfInterestFilter(unit: CrapUnit) {
     const unitType = unit.dat;
     if (unitType.isResourceMiner) {
       return [orders.attackMove, orders.attackUnit].includes(unit.order);
@@ -109,7 +109,7 @@ export default class HeatmapScore {
     return true;
   }
 
-  unitsOfInterest(units: Unit[]) {
+  unitsOfInterest(units: CrapUnit[]) {
     return units.filter(this.unitOfInterestFilter);
   }
 }

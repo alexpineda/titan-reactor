@@ -1,6 +1,6 @@
 import { Color } from "three";
 
-import { orders, unitTypes } from "../../common/bwdat/enums";
+import { orders, UnitFlags, unitTypes } from "../../common/bwdat/enums";
 import {
   BwDAT,
   OwnerId,
@@ -16,9 +16,11 @@ import { BuildingQueueRAW } from "../integration/building-queue-raw";
 import {
   BuildingQueueCountBW,
   TrainingQueueType,
-  UnitsBW,
 } from "../integration/fixed-data";
-import { Unit } from "../core";
+import { CrapUnit as CrapUnit } from "../core";
+import { UnitRAW } from "../integration/unit-raw";
+import { EntityIterator } from "../integration/fixed-data/entity-iterator";
+import { tile32 } from "../../common/utils/conversions";
 
 const resourceColor = new Color(0, 55, 55);
 const flashColor = new Color(200, 200, 200);
@@ -52,11 +54,11 @@ export class BuildUnits {
     this.resourceImageData = new ImageData(mapWidth, mapHeight);
   }
 
-  _refreshMinimap(unit: Unit, unitType: UnitDAT) {
+  _refreshMinimap(unit: CrapUnit, unitType: UnitDAT) {
     const isResourceContainer = unitType.isResourceContainer && !unit.owner;
     if (
       !isResourceContainer &&
-      !this.fogOfWar.isVisible(unit.tileX, unit.tileY)
+      !this.fogOfWar.isVisible(tile32(unit.x), tile32(unit.y))
     ) {
       return;
     }
@@ -121,10 +123,10 @@ export class BuildUnits {
 
   refresh(
     //prefilled buffer and accessor
-    unitsBW: UnitsBW,
+    unitsBW: EntityIterator<UnitRAW>,
     buildQueueBW: BuildingQueueCountBW,
-    units: Map<UnitTag, Unit>,
-    unitsBySpriteId: Map<SpriteIndex, Unit>,
+    units: Map<UnitTag, CrapUnit>,
+    unitsBySpriteId: Map<SpriteIndex, CrapUnit>,
     unitsInProduction: UnitInProduction[]
   ) {
     // reset unit image data for minimap
@@ -137,16 +139,15 @@ export class BuildUnits {
     unitsBySpriteId.clear();
 
     for (const unitBw of unitsBW.instances()) {
-      let unit: Unit;
+      let unit: CrapUnit;
 
       if (units.has(unitBw.id)) {
-        unit = units.get(unitBw.id) as Unit;
+        unit = units.get(unitBw.id) as CrapUnit;
       } else {
         unit = {
           remainingBuildTime: 0,
           queue: null,
-          idleTime: 0,
-        } as Unit;
+        } as CrapUnit;
 
         units.set(unitBw.id, unit);
       }
@@ -192,16 +193,11 @@ export class BuildUnits {
       unit.hp = unitBw.hp;
       unit.energy = unitBw.energy;
       unit.shields = unitBw.shields;
-      unit.tileX = unitBw.tileX;
-      unit.tileY = unitBw.tileY;
       unit.spriteIndex = unitBw.spriteIndex;
       unit.statusFlags = unitBw.statusFlags;
       unit.direction = unitBw.direction;
       unit.angle = unitBw.angle;
       // unit.dat = unitBw.dat;
-      unit.isFlying = unitBw.isFlying;
-      unit.isCloaked = unitBw.isCloaked;
-      unit.isComplete = unitBw.isComplete;
       unit.order = unitBw.order;
       unit.kills = unitBw.kills;
       // unit.resourceAmount = unitBw.resourceAmount;
@@ -219,7 +215,7 @@ export class BuildUnits {
       if (
         (unit.typeId === unitTypes.siegeTankSiegeMode ||
           unit.typeId === unitTypes.siegeTankTankMode) &&
-        unitBw.isComplete
+        unitBw.statusFlags & UnitFlags.Completed
       ) {
         unit.remainingBuildTime = 0;
       }
@@ -265,7 +261,7 @@ export class BuildUnits {
       }
 
       //@todo why are we not returning here earlier?
-      if (!unitBw.isComplete) {
+      if (!(unitBw.statusFlags & UnitFlags.Completed)) {
         incompleteUnits.set(unitBw.id, {
           unitId: unitBw.id,
           typeId: unitBw.typeId,

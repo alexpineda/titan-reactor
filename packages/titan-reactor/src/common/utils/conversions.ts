@@ -2,6 +2,8 @@ import { PxToGameUnit } from "../types/util";
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
 
+export const tile32 = (x: number) => Math.floor(x / 32);
+
 export const pxToMapMeter = (
   mapWidth: number,
   mapHeight: number

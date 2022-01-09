@@ -6,8 +6,9 @@ import { TerrainInfo } from "../../common/types";
 import ProjectedCameraView from "../camera/projected-camera-view";
 import GameCanvasTarget from "../render/game-canvas-target";
 import useGameStore, { getAssets } from "../stores/game-store";
-import { Image, Sprite, Unit } from "../core";
+import { Image, Sprite, CrapUnit } from "../core";
 import assert from "assert";
+import { tile32 } from "../../common/utils/conversions";
 
 const canOnlySelectOne = [
   unitTypes.larva,
@@ -164,7 +165,7 @@ export class MouseInteraction {
     { terrain, mapWidth, mapHeight }: TerrainInfo,
     camera: PerspectiveCamera,
     interactableSprites: Image[],
-    unitsBySpriteId: Map<number, Unit>
+    unitsBySpriteId: Map<number, CrapUnit>
   ) {
     this.projectedCameraView = projectedCameraView;
 
@@ -264,7 +265,7 @@ export class MouseInteraction {
       if (!mousedown) return;
       mousedown = false;
 
-      const selected = new Set<Unit>();
+      const selected = new Set<CrapUnit>();
 
       if (isMinDragSize()) {
         const [width, height] = [gameSurface.width, gameSurface.height];
@@ -310,7 +311,7 @@ export class MouseInteraction {
             for (let y = startMapY - 1; y < endMapY + 1; y++) {
               //@todo change access method to be more efficient
               for (const unit of unitsBySpriteId.values()) {
-                if (unit.canSelect && unit.tileX === x && unit.tileY === y) {
+                if (unit.canSelect && tile32(unit.x) === x && tile32(y) === y) {
                   // test one tile out of selection bounds since unit tileX/Y is centered
                   // use placement approximations from UnitsDat for these "slightly out of bounds" units
                   if (
@@ -384,8 +385,8 @@ export class MouseInteraction {
               for (const unit of unitsBySpriteId.values()) {
                 if (
                   unit.canSelect &&
-                  unit.tileX === x &&
-                  unit.tileY === y &&
+                  tile32(unit.x) === x &&
+                  tile32(unit.y) === y &&
                   unit.dat === sprite.unit?.dat
                 ) {
                   // test one tile out of selection bounds since unit tileX/Y is centered

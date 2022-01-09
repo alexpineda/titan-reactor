@@ -1,6 +1,9 @@
 import { OpenBWWasmAPI } from "src/renderer/openbw";
 import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBufferView, SpritesBW, TilesBufferView, UnitsBW, UpgradeBW } from ".";
 import { Heaps } from "../openbw-wasm/openbw-reader";
+import { UnitRAW } from "../unit-raw";
+import { EntityIterator } from "./entity-iterator";
+import UnitsEmbind from "./units-embind";
 
 // a wrapper for a bw frames entire game state
 export class FrameBW {
@@ -13,7 +16,7 @@ export class FrameBW {
 
   private _sprites: SpritesBW;
   private _images : ImagesBW;
-  private _units : UnitsBW;
+  private _units : EntityIterator<UnitRAW>;
   private _tiles : TilesBufferView;
   private _sounds : SoundsBufferView;
   private _buildingQueue : BuildingQueueCountBW;
@@ -26,10 +29,11 @@ export class FrameBW {
 
      this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP8, heaps.HEAPU8);
      this._sounds = new SoundsBufferView(SoundsBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP32, heaps.HEAPU32);
+     this._units = new UnitsEmbind();
+
 
      this._sprites = new SpritesBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._images = new ImagesBW(0, 0, 0, new Int8Array(), new Uint8Array());
-     this._units = new UnitsBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._buildingQueue = new BuildingQueueCountBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._research = new ResearchBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._upgrades = new UpgradeBW(0, 0, 0, new Int8Array(), new Uint8Array());
@@ -54,6 +58,10 @@ export class FrameBW {
     this.sounds.ptrIndex = openBw._get_buffer(8);
     this.sounds.itemsCount = openBw._counts(0, 6);
 
+    if (this.units instanceof UnitsEmbind) {
+      this.units.embindUnits = openBw.get_util_funcs().get_all_units();
+    }
+    
   }
 
   get sprites() {
@@ -64,7 +72,7 @@ export class FrameBW {
     return this._images;
   }
 
-  get units() {
+  get units(): EntityIterator<UnitRAW> {
     return this._units;
   }
 

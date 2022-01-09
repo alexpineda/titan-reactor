@@ -1,5 +1,6 @@
 import { strict as assert } from "assert";
 import type { ChkUnit } from "bw-chk";
+import { UnitFlags } from "../common/bwdat/enums";
 import type { CommandsStream, Replay } from "downgrade-replay";
 import { debounce } from "lodash";
 import shuffle from "lodash.shuffle";
@@ -21,7 +22,7 @@ import {
   UpgradeInProduction,
 } from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
-import { gameSpeeds, pxToMapMeter } from "../common/utils/conversions";
+import { gameSpeeds, pxToMapMeter, tile32 } from "../common/utils/conversions";
 import { MainMixer, Music, SoundChannels } from "./audio";
 import CameraRig from "./camera/camera-rig";
 import ProjectedCameraView from "./camera/projected-camera-view";
@@ -32,7 +33,7 @@ import {
   Image,
   Players,
   Sprite,
-  Unit,
+  CrapUnit,
 } from "./core";
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
@@ -65,6 +66,8 @@ import {
 // @ts-ignore
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import Janitor from "./utils/janitor";
+import { SoundStruct } from "./integration/sound-struct";
+import { EntityIterator } from "./integration/fixed-data/entity-iterator";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -315,9 +318,9 @@ async function TitanReactorGame(
     mapHeight
   );
 
-  const buildSounds = (bwFrame: FrameBW) => {
-    for (const sound of bwFrame.sounds.items()) {
-      if (!fogOfWar.isVisible(sound.tileX, sound.tileY)) {
+  const buildSounds = (sounds: EntityIterator<SoundStruct>) => {
+    for (const sound of sounds.instances()) {
+      if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
         continue;
       }
       const metadata = soundChannels.getSoundMetadata(sound);
@@ -330,7 +333,7 @@ async function TitanReactorGame(
         projectedCameraView.bottom
       );
       if (volume > SoundsBufferView.minPlayVolume) {
-        soundChannels.queue(sound.object());
+        soundChannels.queue(sound);
       }
     }
   };
@@ -343,8 +346,8 @@ async function TitanReactorGame(
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
 
-  const units: Map<UnitTag, Unit> = new Map();
-  const unitsBySpriteId: Map<SpriteIndex, Unit> = new Map();
+  const units: Map<UnitTag, CrapUnit> = new Map();
+  const unitsBySpriteId: Map<SpriteIndex, CrapUnit> = new Map();
   const unitsInProduction: UnitInProduction[] = [];
 
   const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
@@ -412,7 +415,7 @@ async function TitanReactorGame(
 
       sprite.unit = unitsBySpriteId.get(spriteBW.containerIndex);
       if (sprite.unit) {
-        if (sprite.unit.isFlying) {
+        if (sprite.unit.statusFlags & UnitFlags.Flying) {
           const targetY = Math.min(6, y + 2.5);
           if (sprite.position.y === 0) {
             y = targetY;
@@ -618,6 +621,10 @@ async function TitanReactorGame(
   //   }
   // });
 
+  window.pause = () => {
+    gameStatePosition.togglePlay();
+  }
+  
   const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
@@ -633,7 +640,7 @@ async function TitanReactorGame(
         if (!currentBwFrame) {
           gameStatePosition.paused = true;
         } else {
-          buildSounds(currentBwFrame);
+          buildSounds(currentBwFrame.sounds);
           buildFog(currentBwFrame);
           buildCreep(currentBwFrame);
 

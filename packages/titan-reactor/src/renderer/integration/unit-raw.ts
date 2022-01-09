@@ -12,13 +12,9 @@ export interface UnitRAW {
   statusFlags: number;
   direction: number;
   remainingBuildTime: number;
-  remainingTrainTime: number;
   angle: number;
-  isFlying: boolean;
-  isCloaked: boolean;
-  isComplete: boolean;
-  tileX: number;
-  tileY: number;
+  remainingTrainTime: number;
+  resourceAmount: number;
   order: number;
   kills: number;
 }

@@ -1,10 +1,12 @@
+import { EntityIterator } from "./entity-iterator";
+
 type TypedArray = Int8Array | Int16Array | Int32Array;
 type UTypedArray = Uint8Array | Uint16Array | Uint32Array;
 /**
  A template for representing game struct(s) (eg units, sprites, etc)
 */
 // @todo allow reading of any heap type
-export abstract class BufferView<T> {
+export abstract class BufferView<T> implements EntityIterator<T> {
   itemsCount: number;
 
   private _itemIndex = 0;
@@ -71,20 +73,20 @@ export abstract class BufferView<T> {
   //   return this.heaps.HEAPU32[this._ptrIndex / 4 + offset];
   // }
 
-  *items(count = this.itemsCount): IterableIterator<typeof this> {
+  *items(count = this.itemsCount) {
     const _index = this._itemIndex;
     for (let i = 0; i < count; i++) {
-      yield this;
+      yield this as unknown as T;
       this._itemIndex++;
     }
     this._itemIndex = _index;
   }
 
-  *reverse(count = this.itemsCount): IterableIterator<typeof this> {
+  *reverse(count = this.itemsCount) {
     this._itemIndex = this._itemIndex + count;
     for (let i = 0; i < count; i++) {
       this._itemIndex--;
-      yield this;
+      yield this as unknown as T;
     }
     this._itemIndex += count;
   }

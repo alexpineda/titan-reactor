@@ -1,7 +1,7 @@
 import { StartLocation } from "./chk";
 import { Race } from "./common";
 import { PlayerColor } from "./colors";
-import { Unit } from "../../renderer/core";
+import { CrapUnit } from "../../renderer/core";
 
 export type Player = {
   id: number;
@@ -16,7 +16,7 @@ export type Player = {
 
 export interface POVSelectionI {
   lastIssuedCommand?: any;
-  unit: Unit;
+  unit: CrapUnit;
 }
 
 export interface PlayerPOVI {

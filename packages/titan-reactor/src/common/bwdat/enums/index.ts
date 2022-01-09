@@ -21,4 +21,5 @@ export * from "./tech-types";
 export * from "./tileset-names";
 export * from "./unit-size";
 export * from "./unit-types";
+export * from "./unit-flags";
 export * from "./upgrades";

@@ -2,7 +2,7 @@ import { Player, UnitTag, UnitDAT } from "../../common/types";
 import { BuildingQueueRAW } from "../integration/building-queue-raw";
 import { UnitRAW } from "../integration/unit-raw";
 
-export type Unit = UnitRAW & {
+export type CrapUnit = UnitRAW & {
     id: UnitTag;
     owner: Player;
     hp: number;
@@ -17,12 +17,10 @@ export type Unit = UnitRAW & {
     tileX: number;
     tileY: number;
 
-    dat: UnitDAT;
     queue: BuildingQueueRAW | null;
-    loaded: (Unit | undefined)[] | null;
+    loaded: (CrapUnit | undefined)[] | null;
 
     remainingBuildTime: number;
-    idleTime: number;
     recievingDamage: number;
     resourceAmount: number | null;
     remainingTrainTime: number;

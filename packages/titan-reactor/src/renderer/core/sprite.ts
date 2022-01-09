@@ -4,7 +4,7 @@ import { SpriteDAT } from "../../common/types";
 import SelectionBars from "./selection-bars";
 import SelectionCircle from "./selection-circle";
 import { UpgradeCompleted } from "../../common/types/production";
-import { Unit, Image } from ".";
+import { CrapUnit, Image } from ".";
 
 /**
  * Object3D representing a game sprite. Contains images as well as selection circles and health bars
@@ -18,7 +18,7 @@ export class Sprite extends Object3D {
   spriteDAT: SpriteDAT;
 
   //@todo refactor
-  unit?: Unit;
+  unit?: CrapUnit;
 
   constructor(index: number, spriteDAT: SpriteDAT) {
     super();
