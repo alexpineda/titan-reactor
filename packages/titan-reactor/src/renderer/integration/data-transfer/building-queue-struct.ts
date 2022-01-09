@@ -1,4 +1,4 @@
-export interface BuildingQueueRAW {
+export interface BuildingQueueStruct {
   unitId: number;
   queueCount: number;
   units: number[];

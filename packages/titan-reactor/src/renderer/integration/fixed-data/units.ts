@@ -1,10 +1,10 @@
 // @ts-nocheck
 import BufferView from "./buffer-view";
-import { UnitRAW } from "../unit-raw";
+import { UnitStruct } from "../unit-struct";
 
 export const UNIT_BYTE_LENGTH = 30;
 // all units in a bw frame
-export class UnitsBW extends BufferView<UnitRAW> implements UnitRAW {
+export class UnitsBufferView extends BufferView<UnitStruct> implements UnitStruct {
   resourceAmount: number;
 
   get id() {
@@ -97,4 +97,4 @@ export class UnitsBW extends BufferView<UnitRAW> implements UnitRAW {
     };
   }
 }
-export default UnitsBW;
+export default UnitsBufferView;

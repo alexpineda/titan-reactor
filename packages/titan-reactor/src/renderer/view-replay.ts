@@ -66,8 +66,9 @@ import {
 // @ts-ignore
 import TechUpgradesWorker from "./tech-upgrades/tech-upgrades.worker";
 import Janitor from "./utils/janitor";
-import { SoundStruct } from "./integration/sound-struct";
+import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/data-transfer";
 import { EntityIterator } from "./integration/fixed-data/entity-iterator";
+import { isFlipped, isHidden } from "./utils/image-utils";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -350,6 +351,7 @@ async function TitanReactorGame(
   const unitsBySpriteId: Map<SpriteIndex, CrapUnit> = new Map();
   const unitsInProduction: UnitInProduction[] = [];
 
+  // @todo remove, mostly crap
   const buildUnitsAndMinimap = (bwFrame: FrameBW) => {
     buildUnits.refresh(
       bwFrame.units,
@@ -360,60 +362,59 @@ async function TitanReactorGame(
     );
   };
 
-  const sprites: Map<SpriteIndex, Sprite> = new Map();
-  let research: ResearchInProduction[][] = [];
-  let upgrades: UpgradeInProduction[][] = [];
-  let completedUpgrades: UpgradeCompleted[][] = [];
-  let completedResearch: ResearchCompleted[][] = [];
+  const sprites: Map<number, Sprite> = new Map();
+  const images: Map<number, Image> = new Map();
+  // let research: ResearchInProduction[][] = [];
+  // let upgrades: UpgradeInProduction[][] = [];
+  // let completedUpgrades: UpgradeCompleted[][] = [];
+  // let completedResearch: ResearchCompleted[][] = [];
   const group = new Group();
   scene.add(group);
 
-  const interactableSprites: Image[] = [];
-  const buildSprites = (bwFrame: FrameBW, delta: number) => {
+  const buildSprites = (spritesBW: EntityIterator<SpriteStruct>, delta: number) => {
     group.clear();
     // we set count below
-    interactableSprites.length = 0;
 
-    for (const spriteBW of bwFrame.sprites.items()) {
-      let sprite = sprites.get(spriteBW.containerIndex);
+    let order = 0;
+    for (const spriteData of spritesBW.items()) {
+      order++;
+      let sprite = sprites.get(spriteData.titanIndex);
       if (!sprite) {
         sprite = new Sprite(
-          spriteBW.containerIndex,
-          bwDat.sprites[spriteBW.id]
+          spriteData.titanIndex,
+          bwDat.sprites[spriteData.typeId]
         );
-        sprites.set(spriteBW.containerIndex, sprite);
+        sprites.set(spriteData.titanIndex, sprite);
       }
-      sprite.spriteDAT = bwDat.sprites[spriteBW.id];
 
-      const buildingIsExplored =
-        sprite.unit &&
-        sprite.unit.dat.isBuilding &&
-        fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
+      // const buildingIsExplored =
+      //   sprite.unit &&
+      //   sprite.unit.dat.isBuilding &&
+      //   fogOfWar.isExplored(spriteBW.tileX, spriteBW.tileY);
 
       // doodads and resources are always visible
       // show units as fog is lifting from or lowering to explored
       // show if a building has been explored
       sprite.visible =
-        spriteBW.owner === 11 ||
+        spriteData.owner === 11 ||
         // spriteBW.dat.image.iscript === 336 ||
         // spriteBW.dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(spriteBW.tileX, spriteBW.tileY);
+        fogOfWar.isSomewhatVisible(tile32(spriteData.position.x), tile32(spriteData.position.y));
 
       // don't update explored building frames so viewers only see last built frame
-      const dontUpdate =
-        buildingIsExplored &&
-        !fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
+      // const dontUpdate =
+      //   buildingIsExplored &&
+      //   !fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
 
       sprite.clear();
 
-      sprite.renderOrder = spriteBW.order * 10;
-      let _imageRenderOrder = sprite.renderOrder;
+      let _imageRenderOrder = sprite.renderOrder = order * 10;
 
-      const x = pxToGameUnit.x(spriteBW.x);
-      const z = pxToGameUnit.y(spriteBW.y);
+      const x = pxToGameUnit.x(spriteData.position.x);
+      const z = pxToGameUnit.y(spriteData.position.y);
       let y = terrainInfo.getTerrainY(x, z);
 
-      sprite.unit = unitsBySpriteId.get(spriteBW.containerIndex);
+      sprite.unit = unitsBySpriteId.get(spriteData.titanIndex);
       if (sprite.unit) {
         if (sprite.unit.statusFlags & UnitFlags.Flying) {
           const targetY = Math.min(6, y + 2.5);
@@ -425,11 +426,11 @@ async function TitanReactorGame(
         }
 
         //if selected show selection sprites, also check canSelect again in case it died
-        if (sprite.unit.selected && sprite.unit.canSelect) {
-          sprite.select(completedUpgrades[sprite.unit.ownerId]);
-        } else {
-          sprite.unselect();
-        }
+        // if (sprite.unit.selected && sprite.unit.canSelect) {
+        //   sprite.select(completedUpgrades[sprite.unit.ownerId]);
+        // } else {
+        //   sprite.unselect();
+        // }
       }
 
       // liftoff z - 42, y+
@@ -437,16 +438,14 @@ async function TitanReactorGame(
 
       sprite.position.set(x, y, z);
 
-      const player = players.playersById[spriteBW.owner];
+      const player = players.playersById[spriteData.owner];
 
-      // @ts-ignore
-      sprite.mainImage = null;
-
-      for (const imageBW of bwFrame.images.reverse(spriteBW.imageCount)) {
-        if (imageBW.hidden) continue;
+      for (const imageData of spriteData.images) {
+        //@todo remove
+        if (isHidden(imageData)) continue;
 
         //@todo we should clear sprite.images, and somehow incorporate "free images" for re-use
-        const image = sprite.images.get(imageBW.id) || createImage(imageBW.id);
+        const image = sprite.images.get(imageData.typeId) || createImage(imageData.typeId);
         if (!image) continue;
         sprite.add(image);
 
@@ -459,43 +458,42 @@ async function TitanReactorGame(
         }
         // overlay position
         // @ts-ignore
-        image.offsetX = image.position.x = imageBW.x / 32;
+        image.offsetX = image.position.x = imageData.offset.x / 32;
         // @ts-ignore
-        image.offsetY = image.position.z = imageBW.y / 32;
+        image.offsetY = image.position.z = imageData.offset.y / 32;
         image.renderOrder = _imageRenderOrder++;
 
         // 63-48=15
-        if (imageBW.modifier === 14) {
-          image.setWarpingIn((imageBW.modifierData1 - 48) / 15);
+        if (imageData.modifier === 14) {
+          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
         } else {
           //@todo see if we even need this
           image.setWarpingIn(0);
         }
         //@todo use modifier 1 for opacity value
-        image.setCloaked(imageBW.modifier === 2 || imageBW.modifier === 5);
+        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
 
-        image.setFrame(imageBW.frameIndex, imageBW.flipped);
+        image.setFrame(imageData.frameIndex, isFlipped(imageData));
 
-        if (!sprite.images.has(imageBW.id)) {
-          sprite.images.set(imageBW.id, image);
+        if (!sprite.images.has(imageData.typeId)) {
+          sprite.images.set(imageData.typeId, image);
         }
 
         let z = 0;
-        if (imageBW.containerIndex === spriteBW.mainImageIndex) {
+        if (imageData.titanIndex === spriteData.mainImageTitanIndex) {
           // @ts-ignore
-          sprite.mainImage = image;
           z = image._zOff * (image.imageScale / 32); //x4 for HD
 
           if (sprite.unit) {
             image.rotation.y = sprite.unit.angle;
 
-            if (!bwDat.images[imageBW.id].clickable) {
+            if (!bwDat.images[imageData.typeId].clickable) {
               sprite.unit.canSelect = false;
             }
-            if (sprite.unit.canSelect) {
-              //@todo change to layer
-              interactableSprites.push(image);
-            }
+            // if (sprite.unit.canSelect) {
+            //   //@todo change to layer
+            //   interactableSprites.push(image);
+            // }
           }
         }
         //@todo is this the reason for overlays displaying in 0,0?
@@ -567,10 +565,10 @@ async function TitanReactorGame(
       useHudStore.getState().onTechNearComplete();
     }
 
-    research = _research;
-    upgrades = _upgrades;
-    completedUpgrades = _completedUpgrades;
-    completedResearch = _completedResearch;
+    // research = _research;
+    // upgrades = _upgrades;
+    // completedUpgrades = _completedUpgrades;
+    // completedResearch = _completedResearch;
   };
 
   const buildResearchAndUpgrades = (bwFrame: FrameBW) => {
@@ -590,7 +588,6 @@ async function TitanReactorGame(
     gameSurface,
     terrainInfo,
     cameraRig.camera,
-    interactableSprites,
     unitsBySpriteId
   );
 
@@ -621,6 +618,7 @@ async function TitanReactorGame(
   //   }
   // });
 
+  //@ts-ignore
   window.pause = () => {
     gameStatePosition.togglePlay();
   }
@@ -650,7 +648,7 @@ async function TitanReactorGame(
           }
 
           buildUnitsAndMinimap(currentBwFrame);
-          // buildSprites(currentBwFrame, delta);
+          buildSprites(currentBwFrame.sprites, delta);
           // buildResearchAndUpgrades(currentBwFrame);
           fogOfWar.texture.needsUpdate = true;
           creep.creepValuesTexture.needsUpdate = true;
@@ -668,9 +666,9 @@ async function TitanReactorGame(
             gameStatePosition.getFriendlyTime()
           );
 
-          setAllProduction(unitsInProduction, research, upgrades);
+          // setAllProduction(unitsInProduction, research, upgrades);
           // @todo why am I transferring this to the store?
-          setSelectedUnits(useGameStore.getState().selectedUnits);
+          // setSelectedUnits(useGameStore.getState().selectedUnits);
 
           {
             const cmdsThisFrame = [];

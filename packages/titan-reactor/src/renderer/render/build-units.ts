@@ -12,13 +12,12 @@ import {
   UnitInProduction,
 } from "../../common/types";
 import FogOfWar from "../fogofwar/fog-of-war";
-import { BuildingQueueRAW } from "../integration/building-queue-raw";
+import { BuildingQueueStruct , UnitStruct} from "../integration/data-transfer";
 import {
   BuildingQueueCountBW,
   TrainingQueueType,
 } from "../integration/fixed-data";
-import { CrapUnit as CrapUnit } from "../core";
-import { UnitRAW } from "../integration/unit-raw";
+import { CrapUnit } from "../core";
 import { EntityIterator } from "../integration/fixed-data/entity-iterator";
 import { tile32 } from "../../common/utils/conversions";
 
@@ -123,7 +122,7 @@ export class BuildUnits {
 
   refresh(
     //prefilled buffer and accessor
-    unitsBW: EntityIterator<UnitRAW>,
+    unitsBW: EntityIterator<UnitStruct>,
     buildQueueBW: BuildingQueueCountBW,
     units: Map<UnitTag, CrapUnit>,
     unitsBySpriteId: Map<SpriteIndex, CrapUnit>,
@@ -155,7 +154,7 @@ export class BuildUnits {
       const unitDat = this.bwDat.units[unitBw.typeId];
 
       // @todo any side effects here? lingering sprites?
-      unitsBySpriteId.set(unitBw.spriteIndex, unit);
+      unitsBySpriteId.set(unitBw.spriteTitanIndex, unit);
 
       //@todo move to minimap substructure
       //if receiving damage, blink 3 times, hold blink 3 frames
@@ -193,7 +192,7 @@ export class BuildUnits {
       unit.hp = unitBw.hp;
       unit.energy = unitBw.energy;
       unit.shields = unitBw.shields;
-      unit.spriteIndex = unitBw.spriteIndex;
+      unit.spriteTitanIndex = unitBw.spriteTitanIndex;
       unit.statusFlags = unitBw.statusFlags;
       unit.direction = unitBw.direction;
       unit.angle = unitBw.angle;
@@ -274,7 +273,7 @@ export class BuildUnits {
 
     // merge units with building and training queues
 
-    const buildQueue = buildQueueBW.instances() as BuildingQueueRAW[];
+    const buildQueue = buildQueueBW.instances() as BuildingQueueStruct[];
 
     // for use in unit details section
     for (const queue of buildQueue) {

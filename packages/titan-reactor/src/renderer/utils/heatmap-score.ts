@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { easeCubicOut } from "d3-ease";
 import { unitTypes } from "../../common/bwdat/enums/unit-types";
 import { orders } from "../../common/bwdat/enums/orders";

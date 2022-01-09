@@ -39,13 +39,13 @@ import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import { strict as assert } from "assert";
-import { SoundStruct } from "./integration/sound-struct";
+import { SoundStruct } from "./integration/data-transfer";
 import { pxToMapMeter } from "../common/utils/conversions";
 
 export default async (filepath: string) => {
     log.info(`loading replay ${filepath}`);
 
-    startLoadingProcess({
+startLoadingProcess({
         id: "replay",
         label: getFunString(),
         priority: 1,

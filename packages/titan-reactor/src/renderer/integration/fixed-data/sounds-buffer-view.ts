@@ -1,11 +1,11 @@
 import { SoundDAT,MapCoords } from "../../../common/types";
-import { SoundStruct } from "../sound-struct";
+import { SoundStruct } from "../data-transfer";
 import BufferView from "./buffer-view";
 
 
 export class SoundsBufferView
   extends BufferView<SoundStruct>
-  implements SoundStruct
+implements SoundStruct
 {
   static STRUCT_SIZE = 16;
 

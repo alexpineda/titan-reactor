@@ -1,7 +1,7 @@
 import { UnitFlags, unitTypes } from "../../common/bwdat/enums";
-import { UnitRAW } from "../integration/unit-raw";
+import { UnitStruct } from "../integration/data-transfer/unit-struct";
 
-export const isCloaked=(unit: UnitRAW) => {
+export const isCloaked=(unit: UnitStruct) => {
     return (
       ((unit.statusFlags & UnitFlags.Cloaked) != 0 ||
         (unit.statusFlags & UnitFlags.PassivelyCloaked) != 0) &&
@@ -9,6 +9,6 @@ export const isCloaked=(unit: UnitRAW) => {
     );
 }
 
-export const isFlying = (unit: UnitRAW) => {
+export const isFlying = (unit: UnitStruct) => {
   return unit.statusFlags & UnitFlags.Flying
 }

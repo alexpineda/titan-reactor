@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { unstable_batchedUpdates } from "react-dom";
 import { PerspectiveCamera, Raycaster, Vector2 } from "three";
 
@@ -164,7 +165,6 @@ export class MouseInteraction {
     gameSurface: GameCanvasTarget,
     { terrain, mapWidth, mapHeight }: TerrainInfo,
     camera: PerspectiveCamera,
-    interactableSprites: Image[],
     unitsBySpriteId: Map<number, CrapUnit>
   ) {
     this.projectedCameraView = projectedCameraView;
@@ -181,7 +181,7 @@ export class MouseInteraction {
     const intersectMouse = (clipV: Point) => {
       raycaster.setFromCamera(clipV, camera);
       // calculate objects intersecting the picking ray
-      const intersects = raycaster.intersectObjects(interactableSprites, false);
+      const intersects = raycaster.intersectObjects([], false);
       if (intersects.length) {
         let closestSprite = { renderOrder: -1 };
 

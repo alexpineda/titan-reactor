@@ -1,5 +1,5 @@
 import BufferView from "./buffer-view";
-import { BuildingQueueRAW } from "../building-queue-raw";
+import { BuildingQueueStruct } from "../data-transfer/building-queue-struct";
 
 export const TrainingQueueType = 0;
 export const LoadedQueueType = 128;
@@ -8,8 +8,8 @@ export const BUILDING_BYTE_LENGTH = 19;
 
 // represents units that are currently building / training
 export class BuildingQueueCountBW
-  extends BufferView<BuildingQueueRAW>
-  implements BuildingQueueRAW
+  extends BufferView<BuildingQueueStruct>
+  implements BuildingQueueStruct
 {
   get unitId() {
     return this._read(0);

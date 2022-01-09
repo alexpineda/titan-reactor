@@ -1,34 +1,9 @@
-import { drawFunctions } from "../../../common/bwdat/enums";
-import { BwDAT } from "../../../common/types/bwdat";
-import { ImageRAW } from "../image-raw";
+import { ImageStruct } from "../data-transfer/image-struct";
 import BufferView from "./buffer-view";
 
-const flags = Object.freeze({
-  redraw: 1,
-  flipped: 2,
-  frozen: 4,
-  directional: 8,
-  iscript: 0x10,
-  clickable: 0x20,
-  hidden: 0x40,
-  specialOffset: 0x80,
-});
-
-
-// get isShadow() {
-//   return (
-//     (this.bwDat as BwDAT).images[this.id].drawFunction ===
-//     drawFunctions.rleShadow
-//   );
-// }
-
-// get dat() {
-//   return (this.bwDat as BwDAT).images[this.id];
-// }
-
 export class ImagesBW
-  extends BufferView<ImageRAW>
-  implements ImageRAW
+  extends BufferView<ImageStruct>
+  implements ImageStruct
 {
   
   get flags() {
@@ -46,36 +21,27 @@ export class ImagesBW
   }
 
 
-  get containerIndex() {
+  get index() {
     return this._read(6);
   }
 
-  get id() {
+  get typeId() {
     return this._read(7);
+  }
+
+  get titanIndex() {
+    return 0
   }
 
   get frameIndex() {
     return this._read(8);
   }
 
-  get x() {
-    return this._read(9);
-  }
-
-  get y() {
-    return this._read(10);
-  }
-
-  get flipped() {
-    return (this.flags & flags.flipped) != 0;
-  }
-
-  get hidden() {
-    return (this.flags & flags.hidden) != 0;
-  }
-
-  get frozen() {
-    return (this.flags & flags.frozen) != 0;
+  get offset() {
+    return  {
+      x: this._read(9),
+      y: this._read(10),
+    }
   }
 
 }

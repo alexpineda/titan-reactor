@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import FrameBW from "./frame";
 
 // a fixed pool of objects that can be marked (occupied) and unmarked

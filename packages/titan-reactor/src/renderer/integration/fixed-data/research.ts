@@ -1,4 +1,4 @@
-import { ResearchRAW } from "../research-raw";
+import { ResearchStruct } from "../data-transfer";
 import BufferView from "./buffer-view";
 
 
@@ -8,8 +8,8 @@ import BufferView from "./buffer-view";
 
 // research in progress
 export class ResearchBW
-  extends BufferView<ResearchRAW>
-  implements ResearchRAW {
+  extends BufferView<ResearchStruct>
+  implements ResearchStruct {
 
   static STRUCT_SIZE = 6;
 

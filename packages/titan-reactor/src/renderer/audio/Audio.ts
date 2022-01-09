@@ -1,5 +1,5 @@
 import { MapCoords, SoundDAT } from "../../common/types";
-import { SoundStruct } from "../integration/sound-struct";
+import { SoundStruct } from "../integration/data-transfer";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
 

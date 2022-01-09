@@ -1,8 +1,9 @@
 import { OpenBWWasmAPI } from "src/renderer/openbw";
-import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBufferView, SpritesBW, TilesBufferView, UnitsBW, UpgradeBW } from ".";
+import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBufferView, SpritesBW, TilesBufferView, UnitsBufferView, UpgradeBW } from ".";
+import { ImageStruct, SpriteStruct } from "../data-transfer";
 import { Heaps } from "../openbw-wasm/openbw-reader";
-import { UnitRAW } from "../unit-raw";
-import { EntityIterator } from "./entity-iterator";
+import { UnitStruct } from "../data-transfer";
+import { EmbindEntityInterator, EntityIterator } from "./entity-iterator";
 import UnitsEmbind from "./units-embind";
 
 // a wrapper for a bw frames entire game state
@@ -14,25 +15,21 @@ export class FrameBW {
   supplyAvailable: number[] = [];
   workerSupply: number[] = [];
 
-  private _sprites: SpritesBW;
-  private _images : ImagesBW;
-  private _units : EntityIterator<UnitRAW>;
+  private _sprites : EntityIterator<SpriteStruct>;
+  private _images : EntityIterator<ImageStruct>;
+  private _units : EntityIterator<UnitStruct>;
   private _tiles : TilesBufferView;
   private _sounds : SoundsBufferView;
   private _buildingQueue : BuildingQueueCountBW;
   private _research : ResearchBW;
   private _upgrades : UpgradeBW;
-  private readonly _heaps : Heaps;
 
   constructor(heaps: Heaps) {
-     this._heaps = heaps;
-
      this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP8, heaps.HEAPU8);
      this._sounds = new SoundsBufferView(SoundsBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP32, heaps.HEAPU32);
-     this._units = new UnitsEmbind();
+     this._units = new EmbindEntityInterator<UnitStruct>();
+     this._sprites = new EmbindEntityInterator<SpriteStruct>();
 
-
-     this._sprites = new SpritesBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._images = new ImagesBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._buildingQueue = new BuildingQueueCountBW(0, 0, 0, new Int8Array(), new Uint8Array());
      this._research = new ResearchBW(0, 0, 0, new Int8Array(), new Uint8Array());
@@ -58,8 +55,12 @@ export class FrameBW {
     this.sounds.ptrIndex = openBw._get_buffer(8);
     this.sounds.itemsCount = openBw._counts(0, 6);
 
-    if (this.units instanceof UnitsEmbind) {
-      this.units.embindUnits = openBw.get_util_funcs().get_all_units();
+    if (this.units instanceof EmbindEntityInterator){
+      this.units.assign(openBw.get_util_funcs().get_all_units());
+    }
+
+    if (this.sprites instanceof EmbindEntityInterator) {
+      this.sprites.assign(openBw.get_util_funcs().get_all_sprites());
     }
     
   }
@@ -72,7 +73,7 @@ export class FrameBW {
     return this._images;
   }
 
-  get units(): EntityIterator<UnitRAW> {
+  get units(): EntityIterator<UnitStruct> {
     return this._units;
   }
 

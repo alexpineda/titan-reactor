@@ -1,4 +1,4 @@
-import { UpgradeRAW } from "../upgrade-raw";
+import { UpgradeStruct } from "../data-transfer";
 import BufferView from "./buffer-view";
 
 export const UPGRADE_BYTE_LENGTH = 7;
@@ -13,8 +13,8 @@ export const UPGRADE_BYTE_LENGTH = 7;
 
 // upgrades in progress
 export class UpgradeBW
-  extends BufferView<UpgradeRAW>
-  implements UpgradeRAW {
+  extends BufferView<UpgradeStruct>
+  implements UpgradeStruct {
 
   get ownerId() {
     return this._readU(0);

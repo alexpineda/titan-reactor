@@ -10,7 +10,7 @@ import { CrapUnit, Image } from ".";
  * Object3D representing a game sprite. Contains images as well as selection circles and health bars
  */
 export class Sprite extends Object3D {
-  index: number;
+  titanIndex: number;
   images: Map<number, Image> = new Map();
   selectionCircle = new SelectionCircle();
   selectionBars = new SelectionBars();
@@ -20,9 +20,9 @@ export class Sprite extends Object3D {
   //@todo refactor
   unit?: CrapUnit;
 
-  constructor(index: number, spriteDAT: SpriteDAT) {
+  constructor(titanIndex: number, spriteDAT: SpriteDAT) {
     super();
-    this.index = index;
+    this.titanIndex = titanIndex;
     this.spriteDAT = spriteDAT;
   }
 

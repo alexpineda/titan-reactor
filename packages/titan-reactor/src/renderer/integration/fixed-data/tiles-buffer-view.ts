@@ -1,4 +1,4 @@
-import { TileStruct } from "../tile-struct";
+import { TileStruct } from "../data-transfer";
 import BufferView from "./buffer-view";
 
 
