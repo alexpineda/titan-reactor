@@ -40,18 +40,20 @@ export class ImageHD extends ThreeSprite implements Image {
   offsetX = 0;
   offsetY = 0;
 
+  private _normalizedSpriteWidth = 0;
+  private _normalizedSpriteHeight = 0;
+
   constructor(
     atlas: GRPInterface,
     imageDef: ImageDAT,
   ) {
     super();
-    const { diffuse, teamcolor, spriteWidth, spriteHeight } = atlas;
     this.atlas = atlas;
 
     const material = new TeamSpriteMaterial({
-      map: diffuse,
+      map: atlas.diffuse,
     });
-    material.teamMask = teamcolor;
+    material.teamMask = atlas.teamcolor;
     material.isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
     this.material = material;
 
@@ -80,13 +82,20 @@ export class ImageHD extends ThreeSprite implements Image {
     );
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
+
+    // spriteWidth is the same for HD and HD2
     this._oScale = new Vector3(
-      spriteWidth / (32 * this.unitTileScale),
-      spriteHeight / (32 * this.unitTileScale),
+      atlas.spriteWidth / 128,
+      atlas.spriteHeight / 128,
       1
     );
 
     this.scale.copy(this._oScale);
+
+    // spriteWidth is only valid with HD, have to scale to HD2 if applicable
+    this._normalizedSpriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
+    this._normalizedSpriteHeight = atlas.spriteHeight * (atlas.unitTileScale / 4);
+
     this.material.transparent = true;
     this.material.alphaTest = 0.01;
     this.material.depthTest = ImageHD.useDepth;
@@ -103,6 +112,7 @@ export class ImageHD extends ThreeSprite implements Image {
 
     this.setFrame(0, false);
   }
+
 
   get unitTileScale() {
     return this.atlas.unitTileScale;
@@ -158,6 +168,15 @@ export class ImageHD extends ThreeSprite implements Image {
     this.lastSetFrame = frame;
     this.lastFlipFrame = flipFrame;
 
+
+
+    const off =
+      (frame.yoff + frame.h - this._normalizedSpriteHeight / 2) / this._normalizedSpriteHeight;
+    const yOff = this.material.depthTest ? 0.5 - off : 0.5;
+
+    // const zOff = this.material.depthTest ? off : 0;
+    // this._zOff = zOff;
+
     // this.position.z = this.yoff + this.atlas.grpHeight / 2 / this._spriteScale;
 
     // this.position.z = this.offsetY + this.atlas.grpHeight / this._spriteScale;
@@ -166,54 +185,48 @@ export class ImageHD extends ThreeSprite implements Image {
     // ? frame.h / 2 / this.atlas.grpHeight
     // : 0.5;
 
-    //@todo migrate to use set
+    const _leftU = frame.x / this.atlas.textureWidth;
+    const _rightU = (frame.x + frame.w) / this.atlas.textureWidth;
+    const u0 = flipFrame ? _rightU : _leftU;
+    const u1 = flipFrame ? _leftU : _rightU;
+
+    const v1 = frame.y / this.atlas.textureHeight;
+    const v0 = (frame.y + frame.h) / this.atlas.textureHeight;
+
+    const _leftX = frame.xoff / this._normalizedSpriteWidth - 0.5;
+    const _rightX = (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5;
+
+    const px0 = flipFrame ? _rightX : _leftX;
+    const px1 = flipFrame ? _leftX : _rightX;
+
+    const py0 = 1 - (frame.yoff + frame.h) / this._normalizedSpriteHeight - yOff;
+    const py1 = 1 - frame.yoff / this._normalizedSpriteHeight - yOff
+
     if (flipFrame) {
-      this.uv.array[0] = (frame.x + frame.w) / this.atlas.textureWidth;
-      this.uv.array[2] = frame.x / this.atlas.textureWidth;
-      this.uv.array[4] = frame.x / this.atlas.textureWidth;
-      this.uv.array[6] = (frame.x + frame.w) / this.atlas.textureWidth;
-
-      this.pos.array[0] =
-        (this.atlas.spriteWidth - (frame.xoff + frame.w)) / this.atlas.spriteWidth -
-        0.5;
-      this.pos.array[3] =
-        (this.atlas.spriteWidth - frame.xoff) / this.atlas.spriteWidth - 0.5;
-      this.pos.array[6] =
-        (this.atlas.spriteWidth - frame.xoff) / this.atlas.spriteWidth - 0.5;
-      this.pos.array[9] =
-        (this.atlas.spriteWidth - (frame.xoff + frame.w)) / this.atlas.spriteWidth -
-        0.5;
+      this.pos.setX(0, (this._normalizedSpriteWidth - (frame.xoff + frame.w)) / this._normalizedSpriteWidth -
+        0.5);
+      this.pos.setX(1, (this._normalizedSpriteWidth - frame.xoff) / this._normalizedSpriteWidth - 0.5);
+      this.pos.setX(2, (this._normalizedSpriteWidth - frame.xoff) / this._normalizedSpriteWidth - 0.5);
+      this.pos.setX(3, (this._normalizedSpriteWidth - (frame.xoff + frame.w)) / this._normalizedSpriteWidth -
+        0.5);
     } else {
-      this.uv.array[0] = frame.x / this.atlas.textureWidth;
-      this.uv.array[2] = (frame.x + frame.w) / this.atlas.textureWidth;
-      this.uv.array[4] = (frame.x + frame.w) / this.atlas.textureWidth;
-      this.uv.array[6] = frame.x / this.atlas.textureWidth;
-
-      this.pos.array[0] = frame.xoff / this.atlas.spriteWidth - 0.5;
-      this.pos.array[3] = (frame.xoff + frame.w) / this.atlas.spriteWidth - 0.5;
-      this.pos.array[6] = (frame.xoff + frame.w) / this.atlas.spriteWidth - 0.5;
-      this.pos.array[9] = frame.xoff / this.atlas.spriteWidth - 0.5;
+      this.pos.setX(0, frame.xoff / this._normalizedSpriteWidth - 0.5);
+      this.pos.setX(1, (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5);
+      this.pos.setX(2, (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5);
+      this.pos.setX(3, frame.xoff / this._normalizedSpriteWidth - 0.5);
     }
 
-    this.uv.array[1] = (frame.y + frame.h) / this.atlas.textureHeight;
-    this.uv.array[3] = (frame.y + frame.h) / this.atlas.textureHeight;
-    this.uv.array[5] = frame.y / this.atlas.textureHeight;
-    this.uv.array[7] = frame.y / this.atlas.textureHeight;
+    //0,0 bottom left -> 0,1 bottom right -> 1,1 top right ->0,1 top left
+    this.uv.setXY(0, u0, v0);
+    this.uv.setXY(1, u1, v0);
+    this.uv.setXY(2, u1, v1);
+    this.uv.setXY(3, u0, v1);
 
-    const off =
-      (frame.yoff + frame.h - this.atlas.spriteHeight / 2) / this.atlas.spriteHeight;
-    const yOff = this.material.depthTest ? 0.5 - off : 0.5;
+    this.pos.setY(0, py0);
+    this.pos.setY(1, py0);
+    this.pos.setY(2, py1);
+    this.pos.setY(3, py1);
 
-    const zOff = this.material.depthTest ? off : 0;
-
-    this.pos.array[1] =
-      1 - (frame.yoff + frame.h) / this.atlas.spriteHeight - yOff;
-    this.pos.array[4] =
-      1 - (frame.yoff + frame.h) / this.atlas.spriteHeight - yOff;
-    this.pos.array[7] = 1 - frame.yoff / this.atlas.spriteHeight - yOff;
-    this.pos.array[10] = 1 - frame.yoff / this.atlas.spriteHeight - yOff;
-
-    this._zOff = zOff;
     return true;
   }
 }

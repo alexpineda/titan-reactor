@@ -455,8 +455,8 @@ async function TitanReactorGame(
           image.setTeamColor(player.color.three);
         }
         // overlay position
-        // image.offsetX = image.position.x = imageData.offset.x / 32;
-        // image.offsetY = image.position.z = imageData.offset.y / 32;
+        image.offsetX = image.position.x = imageData.offset.x / 32;
+        image.offsetY = image.position.z = imageData.offset.y / 32;
         image.renderOrder = _imageRenderOrder++;
         image.sprite = sprite;
 

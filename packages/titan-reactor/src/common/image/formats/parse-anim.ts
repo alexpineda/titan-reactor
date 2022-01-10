@@ -42,6 +42,7 @@ export const parseAnim = (buf: Buffer) => {
     const data = bl.shallowSlice(lastOffset);
     const numFrames = data.readUInt16LE(0);
     // sprite reference
+
     if (numFrames === 0) {
       const refId = data.readInt16LE(2);
       data.consume(4);

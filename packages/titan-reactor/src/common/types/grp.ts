@@ -27,6 +27,7 @@ export type GRPInterface = {
   diffuse?: Texture;
   teamcolor?: Texture;
   unitTileScale: number;
+  grp: GrpType;
 };
 
 export type AnimDds = {

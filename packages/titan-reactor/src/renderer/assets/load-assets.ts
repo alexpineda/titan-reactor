@@ -35,7 +35,6 @@ export default async (settings: Settings) => {
 
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr")) {
-            //todo change to invoke
             return fsPromises.readFile(file);
         } else {
             return readCascFile(file);
@@ -91,19 +90,25 @@ export default async (settings: Settings) => {
             )}`.slice(-3) + ".glb"
         )
         const fs = await fileExists(glbFileName);
+        const loadAnimBuffer = () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : ""));
+        const scale = settings.assets.images === AssetTextureResolution.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
+
+        const imageDat = bwDat.images[imageId];
         if (fs) {
-            atlas = await loadGlbAtlas({
-                imageDef: bwDat.images[imageId],
-                readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
+            atlas = await loadGlbAtlas(
                 glbFileName,
-                scale: AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD
-            });
+                loadAnimBuffer,
+                imageDat,
+                scale,
+                bwDat.grps[imageDat.grp]
+            );
         } else {
-            atlas = await loadAnimAtlas({
-                imageDef: bwDat.images[imageId],
-                readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
-                scale: AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD
-            })
+            atlas = await loadAnimAtlas(
+                loadAnimBuffer,
+                imageDat,
+                scale,
+                bwDat.grps[imageDat.grp]
+            )
         }
         atlases[imageId] = atlas;
     };

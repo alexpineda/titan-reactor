@@ -1,4 +1,4 @@
-import {strict as assert} from "assert";
+import { strict as assert } from "assert";
 import { MapCoords, SoundDAT } from "../../common/types";
 import range from "../../common/utils/range";
 import { SoundStruct } from "../integration/data-transfer";
@@ -95,7 +95,6 @@ export class SoundChannels {
         availableChannel = channel;
       }
     }
-    assert(availableChannel);
     return availableChannel;
   }
 

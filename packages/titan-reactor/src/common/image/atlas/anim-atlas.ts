@@ -1,10 +1,10 @@
 import { UnitTileScale } from "../../../renderer/core";
-import { CompressedTexture, Texture } from "three";
+import { Texture } from "three";
 
-import { GrpFrameType, GRPInterface } from "../../types";
+import { GrpFrameType, GRPInterface, GrpType } from "../../types";
 
 
-export class NewAnimAtlas implements GRPInterface {
+export class AnimAtlas implements GRPInterface {
     unitTileScale: UnitTileScale = UnitTileScale.HD;
     textureWidth = 0;
     textureHeight = 0;
@@ -14,11 +14,13 @@ export class NewAnimAtlas implements GRPInterface {
     frames: GrpFrameType[] = [];
     diffuse: Texture;
     teamcolor?: Texture;
+    grp: GrpType;
 
     constructor(diffuse: Texture, vals: GRPInterface, teamcolor?: Texture,) {
         this.diffuse = diffuse;
         this.teamcolor = teamcolor;
 
+        this.grp = vals.grp;
         this.unitTileScale = vals.unitTileScale;
         this.textureWidth = vals.textureWidth;
         this.textureHeight = vals.textureHeight;

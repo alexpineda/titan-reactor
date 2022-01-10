@@ -50,7 +50,6 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, "/")}`))
   );
 
-  //@todo remove this
   const grps = bufs.map((buf): GrpType => {
     const grp = new Grp(buf);
     const frames = range(0, grp.frameCount()).map((frame): GrpFrameType => {
@@ -65,8 +64,9 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
       return w > max ? w : max;
     }, 0);
 
+    const { w, h } = grp.maxDimensions();
     return {
-      ...(grp.maxDimensions() as Pick<GrpType, "w" | "h">),
+      w, h,
       frames,
       maxFrameH,
       maxFramew,

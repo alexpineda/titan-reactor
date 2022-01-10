@@ -1,24 +1,21 @@
 import { UnitTileScale } from "../../../renderer/core";
 
-import { NewAnimAtlas } from "./new-anim"
+import { AnimAtlas } from "./anim-atlas"
 import { ImageDAT } from "../../bwdat/core/images-dat";
-import { AnimDds, AnimSprite } from "../../types";
+import { AnimDds, AnimSprite, GrpType } from "../../types";
 import { parseAnim, createDDSTexture } from "../formats";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);
 
-export const loadAnimAtlas = async ({
-    readAnim,
-    imageDef,
-    scale
-}: {
-    readAnim: () => Promise<Buffer>;
-    imageDef: ImageDAT;
-    scale: Exclude<UnitTileScale, "SD">;
-}) => {
+export const loadAnimAtlas = async (
+    loadAnimBuffer: () => Promise<Buffer>,
+    imageDef: ImageDAT,
+    scale: Exclude<UnitTileScale, "SD">,
+    grp: GrpType
+) => {
 
-    const buf = await readAnim();
+    const buf = await loadAnimBuffer();
     const [sprite] = parseAnim(buf) as AnimSprite[];
 
     if (!sprite.maps) {
@@ -34,11 +31,23 @@ export const loadAnimAtlas = async ({
         teamcolor = await createDDSTexture(ddsBuf);
     }
 
-    return new NewAnimAtlas(
+    // only HD is accurate in terms of frame and spriteWidth data
+    // @todo handle SD properly
+    const uvScale = UnitTileScale.HD / scale;
+
+    return new AnimAtlas(
         diffuse,
         {
+            grp,
             imageIndex: imageDef.index,
-            frames: sprite.frames,
+            frames: sprite.frames.map(frame => ({
+                x: frame.x / uvScale,
+                y: frame.y / uvScale,
+                w: frame.w / uvScale,
+                h: frame.h / uvScale,
+                xoff: frame.xoff / uvScale,
+                yoff: frame.yoff / uvScale,
+            })),
             textureWidth: sprite.maps.diffuse.width,
             textureHeight: sprite.maps.diffuse.height,
             spriteWidth: sprite.w,

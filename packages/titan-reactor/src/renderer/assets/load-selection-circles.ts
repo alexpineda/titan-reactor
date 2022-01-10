@@ -16,11 +16,11 @@ export default async function (res: AssetTextureResolution) {
 
         const readAnim = async () => await readCascFile(`${pre}anim/main_${i}.anim`);
 
-        const selCircleGRP = await loadAnimAtlas({
+        const selCircleGRP = await loadAnimAtlas(
             readAnim,
-            imageDef: { index: i } as ImageDAT,
+            { index: i } as ImageDAT,
             scale
-        })
+        )
 
         selectionCirclesHD.push(selCircleGRP);
     }

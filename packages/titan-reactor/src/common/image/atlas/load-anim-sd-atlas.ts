@@ -7,7 +7,7 @@ import {
 
 import { AnimDds, GrpFrameType, GRPInterface, ImageDAT } from "../../types";
 import { createDDSTexture, Grp } from "../formats";
-import { NewAnimAtlas } from "./new-anim";
+import { AnimAtlas } from "./anim-atlas";
 
 export const loadAnimSdAtlas = async ({
     readGrp,
@@ -45,7 +45,7 @@ export const loadAnimSdAtlas = async ({
         teamcolor.needsUpdate = true;
     }
 
-    return new NewAnimAtlas(diffuse, {
+    return new AnimAtlas(diffuse, {
         imageIndex: imageDef.index,
         frames: sprite.frames,
         textureWidth: sprite.maps.diffuse.width,

@@ -1,23 +1,19 @@
 import { loadAnimAtlas } from "./load-anim-atlas";
-import { GlbAtlas } from "./new-glb";
+import { GlbAtlas } from "./glb-atlas";
 import { UnitTileScale } from "../../../renderer/core";
 
 import { ImageDAT } from "../../bwdat/core/images-dat";
 import loadGlb, { GlbResponse } from "../formats/load-glb";
+import { GrpType } from "../../types";
 
-export const loadGlbAtlas = async ({
-    glbFileName,
-    readAnim,
-    imageDef,
-    scale
-}: {
-    glbFileName: string;
-    readAnim: () => Promise<Buffer>;
-    imageDef: ImageDAT;
-    scale: UnitTileScale
-}) => {
+export const loadGlbAtlas = async (glbFileName: string,
+    loadAnimBuffer: () => Promise<Buffer>,
+    imageDef: ImageDAT,
+    scale: UnitTileScale,
+    grp: GrpType
+) => {
 
-    const anim = await loadAnimAtlas({ readAnim, imageDef, scale });
+    const anim = await loadAnimAtlas(loadAnimBuffer, imageDef, scale, grp);
 
     try {
         const { model, animations } = (await loadGlb(

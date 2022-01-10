@@ -1,13 +1,13 @@
-import { NewAnimAtlas } from "./new-anim";
+import { AnimAtlas } from "./anim-atlas";
 import { AnimationClip, CubeTexture, Group } from "three";
 
-export class GlbAtlas extends NewAnimAtlas {
+export class GlbAtlas extends AnimAtlas {
     envMap: CubeTexture | null = null;
     model: Group;
     animations: AnimationClip[] = [];
     fixedFrames: number[] = [];
 
-    constructor(atlas: NewAnimAtlas, model: Group, animations: AnimationClip[], fixedFrames: number[]) {
+    constructor(atlas: AnimAtlas, model: Group, animations: AnimationClip[], fixedFrames: number[]) {
         super(atlas.diffuse, atlas, atlas.teamcolor);
         this.model = model;
         this.animations = animations;

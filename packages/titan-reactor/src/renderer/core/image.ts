@@ -20,7 +20,7 @@ export type Image = Object3D & {
   // for mouse input
   sprite?: Sprite;
 
-  // for useDepth
+  // for image overlays
   offsetX: number;
   offsetY: number;
 
