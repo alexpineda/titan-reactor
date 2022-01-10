@@ -1,6 +1,6 @@
 
 import { ImageDAT } from "../../types";
-import GrpSDLegacy from "../atlas/atlas-grp-sd";
+import GrpSDLegacy from "../atlas/grp-sd-legacy";
 import { rgbToCanvas } from "../canvas";
 
 export default async (grp: Buffer, palette: Uint8Array) => {

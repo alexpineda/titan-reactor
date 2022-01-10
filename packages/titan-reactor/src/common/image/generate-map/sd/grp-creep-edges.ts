@@ -1,4 +1,4 @@
-import GrpSDLegacy from "../../atlas/atlas-grp-sd";
+import GrpSDLegacy from "../../atlas/grp-sd-legacy";
 import { ImageDAT, WrappedTexture } from "../../../types";
 // leverage our SD grp reader to render creep edges in SD
 export const grpToCreepEdgesTextureAsync = async (

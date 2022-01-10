@@ -1,16 +1,14 @@
 import { UnitTileScale } from "../../../renderer/core";
-import { CompressedTexture, Texture } from "three";
 
+import { NewAnimAtlas } from "./new-anim"
 import { ImageDAT } from "../../bwdat/core/images-dat";
-import { AnimDds, AnimSprite, GrpFrameType, GRPInterface } from "../../types";
+import { AnimDds, AnimSprite } from "../../types";
 import { parseAnim, createDDSTexture } from "../formats";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);
 
-// Load anim files as textures and frames
-
-export default async load = ({
+export const loadAnimAtlas = async ({
     readAnim,
     imageDef,
     scale
@@ -36,14 +34,17 @@ export default async load = ({
         teamcolor = await createDDSTexture(ddsBuf);
     }
 
-    return new Anim({
-        this.frames = sprite.frames;
-        this.textureWidth = sprite.maps.diffuse.width;
-        this.textureHeight = sprite.maps.diffuse.height;
-        this.spriteWidth = sprite.w;
-        this.spriteHeight = sprite.h;
-        this.unitTileScale = scale;
-    })
+    return new NewAnimAtlas(
+        diffuse,
+        {
+            imageIndex: imageDef.index,
+            frames: sprite.frames,
+            textureWidth: sprite.maps.diffuse.width,
+            textureHeight: sprite.maps.diffuse.height,
+            spriteWidth: sprite.w,
+            spriteHeight: sprite.h,
+            unitTileScale: scale,
+        }, teamcolor);
 
 
 

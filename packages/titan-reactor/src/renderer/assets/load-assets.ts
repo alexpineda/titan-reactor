@@ -2,13 +2,12 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "../../common/utils/file-exists";
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
-import { Glb, Anim, parseAnim } from "../../common/image";
+import { loadAnimAtlas, loadGlbAtlas, parseAnim } from "../../common/image";
 import {
     openCascStorage,
     readCascFile,
 } from "../../common/utils/casclib";
 
-import BufferView from "../integration/fixed-data/buffer-view";
 import {
     startLoadingProcess,
     updateLoadingProcess,
@@ -19,7 +18,7 @@ import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
-import { AssetTextureResolution, Settings } from "../../common/types";
+import { AssetTextureResolution, GRPInterface, Settings } from "../../common/types";
 import { openBwFiles, openBw } from "../openbw";
 import { UnitTileScale } from "../core";
 
@@ -83,31 +82,33 @@ export default async (settings: Settings) => {
 
     const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${refId(i)}`.slice(-3)}.anim`;
 
-    const loadImageAtlas = (grps: Anim[]) => async (imageId: number) => {
-        const grp = new Glb();
+    const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number) => {
+        let atlas: GRPInterface;
         const glbFileName = path.join(
             settings.directories.models,
             `00${refId(
                 imageId
             )}`.slice(-3) + ".glb"
         )
-
         const fs = await fileExists(glbFileName);
-        fs && log.verbose(`${glbFileName} exists`);
-
-        await grp.load({
-            imageDef: bwDat.images[imageId],
-            readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
-            glbFileName: fs ? glbFileName : undefined,
-            scale: AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD
-        });
-        if (grp.model) {
-            log.verbose("successfully loaded glb");
+        if (fs) {
+            atlas = await loadGlbAtlas({
+                imageDef: bwDat.images[imageId],
+                readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
+                glbFileName,
+                scale: AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD
+            });
+        } else {
+            atlas = await loadAnimAtlas({
+                imageDef: bwDat.images[imageId],
+                readAnim: () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : "")),
+                scale: AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD
+            })
         }
-        grps[imageId] = grp;
+        atlases[imageId] = atlas;
     };
 
-    const grps: Anim[] = [];
+    const grps: GRPInterface[] = [];
     log.info(`Generating image ${settings.assets.images} textures`);
 
     const loadImageAtlasGrp = loadImageAtlas(grps);

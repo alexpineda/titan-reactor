@@ -1,5 +1,5 @@
 import { ImageDAT } from "../../types";
-import GrpSDLegacy from "../atlas/atlas-grp-sd";
+import GrpSDLegacy from "../atlas/grp-sd-legacy";
 import { rgbToCanvas } from "../canvas";
 
 

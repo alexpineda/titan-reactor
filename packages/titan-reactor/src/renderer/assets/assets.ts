@@ -1,5 +1,4 @@
-import { Anim, } from "../../common/image";
-import { BwDAT } from "../../common/types";
+import { BwDAT, GRPInterface } from "../../common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "../../common/types/icons";
 import {
   closeCascStorage,
@@ -9,8 +8,8 @@ import {
 
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
-  grps: Anim[];
-  selectionCirclesHD: Anim[];
+  grps: GRPInterface[];
+  selectionCirclesHD: GRPInterface[];
 
   gameIcons: ResourceIcons;
   cmdIcons: string[];
@@ -25,8 +24,8 @@ interface AssetsConstructorArgs {
 
 class Assets {
   bwDat: BwDAT;
-  grps: Anim[] = [];
-  selectionCirclesHD: Anim[] = [];
+  grps: GRPInterface[] = [];
+  selectionCirclesHD: GRPInterface[] = [];
 
   gameIcons: ResourceIcons;
   cmdIcons: string[];

@@ -6,6 +6,5 @@ export * from "./image";
 export * from "./sprite";
 export * from "./image-hd";
 export * from "./image-3d";
-export * from "./image-sd";
 export * from "./create-image-factory";
 export * from "./iscript-sprite";

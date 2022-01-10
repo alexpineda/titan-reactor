@@ -1,11 +1,9 @@
-import { BwDAT, AssetTextureResolution } from "../../common/types";
-import Glb from "../../common/image/atlas/atlas-glb";
-import Anim from "../../common/image/atlas/atlas-anim";
+import { BwDAT, AssetTextureResolution, GRPInterface } from "../../common/types";
 import { ImageHD, Image3D, Image } from ".";
 
 export const createImageFactory = (
   bwDat: BwDAT,
-  atlases: Glb[] | Anim[],
+  atlases: GRPInterface[],
   spriteTextureResolution: AssetTextureResolution,
 ) => {
   return (imageTypeId: number) => {
