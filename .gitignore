@@ -14,3 +14,4 @@ packages/casclib/.gitmodules
 packages/casclib/build
 yarn-error.log
 matches.json
+titan.js
