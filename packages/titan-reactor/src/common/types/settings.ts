@@ -1,5 +1,5 @@
 export type Settings = {
-    version: number;
+    version: 2;
     language: string;
     directories: {
         starcraft: string;

@@ -1,5 +1,10 @@
 import { gameSpeeds } from "../../common/utils/conversions";
 
+export enum GameStatePlayMode {
+  Continuous = 0,
+  SingleStep = 1,
+}
+
 export class GameStatePosition {
   lastDelta = 0;
   maxFrame: number;
@@ -10,6 +15,7 @@ export class GameStatePosition {
   destination?: number;
   gameSpeed: number;
   maxSkipFrames: number;
+  mode = GameStatePlayMode.SingleStep;
 
   constructor(maxFrame: number, gameSpeed: number, maxSkipFrames = 1) {
     this.maxFrame = maxFrame;

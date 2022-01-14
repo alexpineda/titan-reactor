@@ -125,6 +125,8 @@ export class Settings extends EventEmitter {
   }
 
   async createDefaults(): Promise<SettingsType> {
+    //@todo load existing settings.json for path and then delete it if it exists
+
     return {
       ...defaultSettings,
       language: supportedLanguages.find(s => s === String(getEnvLocale()))

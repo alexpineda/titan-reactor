@@ -14,7 +14,7 @@ import {
     ImageHD
 } from "./core";
 import { EmptyFunc } from "../common/types";
-import { MainMixer, SoundChannels, Music} from "./audio";
+import { MainMixer, SoundChannels, Music } from "./audio";
 import OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
@@ -45,7 +45,7 @@ import { pxToMapMeter } from "../common/utils/conversions";
 export default async (filepath: string) => {
     log.info(`loading replay ${filepath}`);
 
-startLoadingProcess({
+    startLoadingProcess({
         id: "replay",
         label: getFunString(),
         priority: 1,
@@ -69,28 +69,18 @@ startLoadingProcess({
 
     log.verbose("parsing replay");
     let repFile = filepath;
-    const outFile = path.join(settings.directories.temp, "replay.out");
 
     // @todo change this to generics
     // @ts-ignore
     updateScreen({ header: rep.header } as ReplayScreen);
 
     if (rep.version !== Version.titanReactor) {
+        log.verbose(`changing replay format from ${Version[rep.version]} to titan reactor`);
         const chkDowngrader = new ChkDowngrader();
         repBin = await sidegradeReplay(rep, chkDowngrader);
-        repFile = path.join(settings.directories.temp, "replay.rep");
-        //@todo use fsPromises, bail on error
-        await new Promise((res: EmptyFunc) =>
-            fs.writeFile(repFile, repBin, (err) => {
-                if (err) {
-                    log.error(err.message);
-                    return;
-                }
-                res();
-            })
-        );
         rep = await parseReplay(repBin);
     }
+    log.verbose(`players ${rep.header.players.map(p => p.name).join(", ")}`);
 
     log.verbose("loading chk");
     const chk = new Chk(rep.chk);
@@ -130,7 +120,7 @@ startLoadingProcess({
     }
 
     log.verbose("initializing audio");
-    
+
     const mixer = new MainMixer();
     const soundChannels = new SoundChannels(mixer, assets.loadAudioFile.bind(assets));
     const music = new Music(races);

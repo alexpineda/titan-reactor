@@ -34,6 +34,7 @@ import {
   Players,
   Sprite,
   CrapUnit,
+  GameStatePlayMode,
 } from "./core";
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
@@ -617,6 +618,15 @@ async function TitanReactorGame(
   window.pause = () => {
     gameStatePosition.togglePlay();
   }
+  janitor.callback(() => { window.pause = null });
+
+  const _stepperListener = (evt: KeyboardEvent) => {
+    if (evt.key === "n" && gameStatePosition.mode === GameStatePlayMode.SingleStep) {
+      gameStatePosition.paused = false;
+    }
+  };
+  window.addEventListener("keypress", _stepperListener);
+  janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
   const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
@@ -626,116 +636,120 @@ async function TitanReactorGame(
     orbitControls.update();
 
     if (!gameStatePosition.paused) {
-      if (gameStatePosition.advanceGameFrames && !currentBwFrame) {
+      if (!currentBwFrame) {
         projectedCameraView.update();
 
         currentBwFrame = gameStateReader.next();
-        if (!currentBwFrame) {
+        if (!currentBwFrame || gameStatePosition.mode == GameStatePlayMode.SingleStep) {
           gameStatePosition.paused = true;
-        } else {
-          buildSounds(currentBwFrame.sounds);
-          buildFog(currentBwFrame);
-          buildCreep(currentBwFrame);
-
-          gameStatePosition.bwGameFrame = currentBwFrame.frame;
-          if (gameStatePosition.bwGameFrame % 8 === 0) {
-            scene.incrementTileAnimation();
-          }
-
-          buildUnits.refresh(
-            currentBwFrame.units,
-            units,
-            unitsBySpriteId
-          );
-          buildSprites(currentBwFrame.sprites, delta);
-          // buildResearchAndUpgrades(currentBwFrame);
-          fogOfWar.texture.needsUpdate = true;
-          creep.creepValuesTexture.needsUpdate = true;
-          creep.creepEdgesValuesTexture.needsUpdate = true;
-
-          soundChannels.play(elapsed);
-
-          setAllResources(
-            currentBwFrame.minerals,
-            currentBwFrame.gas,
-            currentBwFrame.supplyUsed,
-            currentBwFrame.supplyAvailable,
-            currentBwFrame.workerSupply,
-            apm.apm,
-            gameStatePosition.getFriendlyTime()
-          );
-
-          // setAllProduction(unitsInProduction, research, upgrades);
-          // @todo why am I transferring this to the store?
-          // setSelectedUnits(useGameStore.getState().selectedUnits);
-
-          {
-            const cmdsThisFrame = [];
-            let cmd = cmds.next();
-            while (cmd.done === false) {
-              if (
-                typeof cmd.value === "number" &&
-                cmd.value !== gameStatePosition.bwGameFrame
-              ) {
-                break;
-              }
-              cmdsThisFrame.push(cmd.value);
-              cmd = cmds.next();
-            }
-            apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
-          }
-
-          // if (rep.cmds[gameStatePosition.bwGameFrame]) {
-          //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
-          //     //@todo remove once we filter commands
-          //     if (!players.playersById[cmd.player]) continue;
-
-          //     if (
-          //       cmd.id === commands.chat &&
-          //       players.playersById[cmd.senderSlot]
-          //     ) {
-          //       unstable_batchedUpdates(() =>
-          //         addChatMessage({
-          //           content: cmd.message,
-          //           player: players.playersById[cmd.senderSlot],
-          //         })
-          //       );
-          //     }
-
-          //     // if (players.playersById[cmd.player].showPov) {
-          //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
-          //     // } else {
-          //     //   players.playersById[cmd.player].camera.update(
-          //     //     cmd,
-          //     //     pxToGameUnit,
-          //     //     1000
-          //     //   );
-          //     // }
-
-          //     if (players.playersById[cmd.player].showActions) {
-          //       switch (cmd.id) {
-          //         case commands.rightClick:
-          //         case commands.targetedOrder:
-          //         case commands.build: {
-          //           const px = pxToGameUnit.x(cmd.x);
-          //           const py = pxToGameUnit.y(cmd.y);
-          //           const pz = terrainInfo.getTerrainY(px, py);
-
-          //           // fadingPointers.addPointer(
-          //           //   px,
-          //           //   py,
-          //           //   pz,
-          //           //   players.playersById[cmd.player].color.rgb,
-          //           //   gameStatePosition.bwGameFrame
-          //           // );
-          //         }
-          //       }
-          //     }
-          //   }
-          // }
-          currentBwFrame = null;
         }
-      } // end of bwframe update
+      }
+    }
+
+    if (gameStatePosition.advanceGameFrames && currentBwFrame) {
+      buildSounds(currentBwFrame.sounds);
+      buildFog(currentBwFrame);
+      buildCreep(currentBwFrame);
+
+      gameStatePosition.bwGameFrame = currentBwFrame.frame;
+      if (gameStatePosition.bwGameFrame % 8 === 0) {
+        scene.incrementTileAnimation();
+      }
+
+      buildUnits.refresh(
+        currentBwFrame.units,
+        units,
+        unitsBySpriteId
+      );
+      buildSprites(currentBwFrame.sprites, delta);
+      // buildResearchAndUpgrades(currentBwFrame);
+      fogOfWar.texture.needsUpdate = true;
+      creep.creepValuesTexture.needsUpdate = true;
+      creep.creepEdgesValuesTexture.needsUpdate = true;
+
+      soundChannels.play(elapsed);
+
+      setAllResources(
+        currentBwFrame.minerals,
+        currentBwFrame.gas,
+        currentBwFrame.supplyUsed,
+        currentBwFrame.supplyAvailable,
+        currentBwFrame.workerSupply,
+        apm.apm,
+        gameStatePosition.getFriendlyTime()
+      );
+
+      // setAllProduction(unitsInProduction, research, upgrades);
+      // @todo why am I transferring this to the store?
+      // setSelectedUnits(useGameStore.getState().selectedUnits);
+
+      {
+        const cmdsThisFrame = [];
+        let cmd = cmds.next();
+        while (cmd.done === false) {
+          if (
+            typeof cmd.value === "number" &&
+            cmd.value !== gameStatePosition.bwGameFrame
+          ) {
+            break;
+          }
+          cmdsThisFrame.push(cmd.value);
+          console.log(cmd.value)
+          cmd = cmds.next();
+        }
+        console.log(currentBwFrame.units);
+        apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
+      }
+
+      // if (rep.cmds[gameStatePosition.bwGameFrame]) {
+      //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
+      //     //@todo remove once we filter commands
+      //     if (!players.playersById[cmd.player]) continue;
+
+      //     if (
+      //       cmd.id === commands.chat &&
+      //       players.playersById[cmd.senderSlot]
+      //     ) {
+      //       unstable_batchedUpdates(() =>
+      //         addChatMessage({
+      //           content: cmd.message,
+      //           player: players.playersById[cmd.senderSlot],
+      //         })
+      //       );
+      //     }
+
+      //     // if (players.playersById[cmd.player].showPov) {
+      //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
+      //     // } else {
+      //     //   players.playersById[cmd.player].camera.update(
+      //     //     cmd,
+      //     //     pxToGameUnit,
+      //     //     1000
+      //     //   );
+      //     // }
+
+      //     if (players.playersById[cmd.player].showActions) {
+      //       switch (cmd.id) {
+      //         case commands.rightClick:
+      //         case commands.targetedOrder:
+      //         case commands.build: {
+      //           const px = pxToGameUnit.x(cmd.x);
+      //           const py = pxToGameUnit.y(cmd.y);
+      //           const pz = terrainInfo.getTerrainY(px, py);
+
+      //           // fadingPointers.addPointer(
+      //           //   px,
+      //           //   py,
+      //           //   pz,
+      //           //   players.playersById[cmd.player].color.rgb,
+      //           //   gameStatePosition.bwGameFrame
+      //           // );
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
+      currentBwFrame = null;
     }
 
     // if (
@@ -793,12 +807,7 @@ async function TitanReactorGame(
     // }
 
     minimapCanvasDrawer.draw(projectedCameraView);
-
-    // update camera view box if paused so we can properly update the minimap
-    if (gameStatePosition.paused) {
-      projectedCameraView.update();
-    }
-
+    projectedCameraView.update();
     gameStatePosition.update(delta);
   };
 

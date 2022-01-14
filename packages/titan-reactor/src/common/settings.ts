@@ -1,16 +1,14 @@
 import { Settings, AssetTextureResolution } from "./types";
 
-export const SETTINGS_VERSION = 1;
 
 export const defaultSettings: Settings = {
-  version: SETTINGS_VERSION,
+  version: 2,
   language: "en-US",
   directories: {
     starcraft: "",
     maps: "",
     replays: "",
     models: "",
-    temp: "",
   },
   playerColors: {
     ignoreReplayColors: true,
