@@ -2,20 +2,10 @@ const { CMDS } = require("./commands");
 const range = require("../util/range");
 const cstring = require("../util/cstring");
 
-const _bwTags = new Set();
-const _logUniqBwTag = (bwTag, id) => {
-  // if (!_bwTags.has(bwTag)) {
-  //   console.log(
-  //     `${id}${CMDS[id]?.name}: ${bwTag} -> ${bwTag & 0x7ff}-${bwTag >> 11}`
-  //   );
-  //   _bwTags.add(bwTag);
-  // }
-};
 const bufToCommand = (id, data) => {
   switch (id) {
     case CMDS.RIGHT_CLICK.id: {
       const unitTag = data.readUInt16LE(4);
-      _logUniqBwTag(unitTag, id);
       return {
         x: data.readUInt16LE(0),
         y: data.readUInt16LE(2),
@@ -29,7 +19,6 @@ const bufToCommand = (id, data) => {
     case CMDS.SELECTION_REMOVE.id: {
       const count = data.readUInt8(0);
       const unitTags = range(0, count).map((i) => data.readUInt16LE(1 + i * 2));
-      unitTags.forEach((x) => _logUniqBwTag(x, id));
       return {
         unitTags,
       };
@@ -47,7 +36,6 @@ const bufToCommand = (id, data) => {
       };
     case CMDS.TARGETED_ORDER.id: {
       const unitTag = data.readUInt16LE(4);
-      _logUniqBwTag(unitTag, id);
       return {
         x: data.readUInt16LE(0),
         y: data.readUInt16LE(2),
@@ -95,7 +83,6 @@ const bufToCommand = (id, data) => {
     case CMDS.CANCEL_TRAIN.id:
     case CMDS.UNLOAD.id:
       const unitTag = data.readUInt16LE(0);
-      _logUniqBwTag(unitTag, id);
       return {
         unitTag,
       };

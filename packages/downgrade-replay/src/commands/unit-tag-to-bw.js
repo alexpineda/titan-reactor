@@ -19,17 +19,8 @@ const scrUnitTag = (scrTag, id) => {
 
   // write the unit tag back to 116
   const tag = index | (generation << 11);
-  // if (!_originalTags.has(scrTag)) {
-  //   console.log(
-  //     `${id}${CMDS[id]?.name}: ${scrTag} -> ${scrTag & 0x1fff}-${
-  //       scrTag >> 13
-  //     } => ${tag} -> ${tag & 0x7ff}-${tag >> 11}`
-  //   );
-  //   _originalTags.add(scrTag);
-  // }
 
   if (tag < 0) {
-    // console.warn(`scrtag ${scrTag} ${index} ${tag}`);
     return scrTag;
   }
   return tag;

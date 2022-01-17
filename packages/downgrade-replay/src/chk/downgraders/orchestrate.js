@@ -35,9 +35,7 @@ class Orchestrate {
     const _omit = [];
     const _add = [];
 
-    // this.downgraders = [];
     this.downgraders.forEach((downgrader) => {
-      console.log(`Downgrading ${downgrader.chunkName}`);
       const chunk = this._getChunk(downgrader.chunkName);
       // if the chunk exists, downgrade it
       if (chunk) {

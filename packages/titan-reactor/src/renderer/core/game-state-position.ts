@@ -15,7 +15,7 @@ export class GameStatePosition {
   destination?: number;
   gameSpeed: number;
   maxSkipFrames: number;
-  mode = GameStatePlayMode.SingleStep;
+  mode = GameStatePlayMode.Continuous;
 
   constructor(maxFrame: number, gameSpeed: number, maxSkipFrames = 1) {
     this.maxFrame = maxFrame;

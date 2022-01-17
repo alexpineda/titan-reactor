@@ -32,7 +32,6 @@ export const findFiles = async (fileName: string) => {
 };
 
 export const openCascStorage = async (bwPath: string) => {
-    console.log("isCascStorage", isCascStorage());
   if (!isCascStorage()) {
     return hardfile.openCascStorage(bwPath);
   }

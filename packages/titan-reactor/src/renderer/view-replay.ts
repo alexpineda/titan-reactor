@@ -698,10 +698,8 @@ async function TitanReactorGame(
             break;
           }
           cmdsThisFrame.push(cmd.value);
-          console.log(cmd.value)
           cmd = cmds.next();
         }
-        console.log(currentBwFrame.units);
         apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
       }
 
