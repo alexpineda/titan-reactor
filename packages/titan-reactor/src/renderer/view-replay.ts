@@ -171,7 +171,7 @@ async function TitanReactorGame(
   };
   janitor.disposable(orbitControls);
 
-  cameraRig.camera.position.set(0, 100, 0);
+  cameraRig.camera.position.set(0, 10, 0);
   cameraRig.camera.lookAt(0, 0, 0);
   orbitControls.update()
 
@@ -448,11 +448,12 @@ async function TitanReactorGame(
 
       const player = players.playersById[spriteData.owner];
 
-      for (const imageData of spriteData.images) {
-        if (!sprite.visible) {
+      for (const imageData of spriteData.images.reverse()) {
+        if (!sprite.visible || isHidden(imageData)) {
           continue;
         }
 
+        // @todo recycle dead similar images
         const image = _getImage(imageData);
         sprite.add(image);
 

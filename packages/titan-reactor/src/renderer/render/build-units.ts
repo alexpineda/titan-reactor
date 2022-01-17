@@ -176,8 +176,8 @@ export class BuildUnits {
       //   unit.remainingBuildTime = 0;
       // }
 
-      if (unit.order == orders.die && !unit.extra.dieTime) {
-        unit.extra.dieTime = Date.now();
+      if (unit.order == orders.die && !unit.extra.timeOfDeath) {
+        unit.extra.timeOfDeath = Date.now();
       }
 
       const showOnMinimap =
@@ -215,6 +215,9 @@ export class BuildUnits {
       if (showOnMinimap) {
         this._refreshMinimap(unit, dat);
       }
+
+      //bulk assign ok?
+      Object.assign(unit, unitData);
 
       //@todo why are we not returning here earlier?
       // if (!(unitData.statusFlags & UnitFlags.Completed)) {

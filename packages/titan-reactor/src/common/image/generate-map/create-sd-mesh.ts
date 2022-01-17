@@ -348,7 +348,7 @@ export const createSDMesh = async (
 
   sdTerrain.visible = true;
 
-  sdTerrain.name = "Terrain";
+  sdTerrain.name = "SDTerrain";
 
   sdTerrain.matrixAutoUpdate = false;
   sdTerrain.updateMatrix();

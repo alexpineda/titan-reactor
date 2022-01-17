@@ -4,7 +4,6 @@ import TilesBufferView from "../integration/fixed-data/tiles-buffer-view.js";
 //@ts-ignore
 import Worker from "./creep.worker.js";
 
-// calculate creep tiles using webworkers
 export default class Creep {
   mapWidth: number;
   mapHeight: number;
@@ -29,7 +28,6 @@ export default class Creep {
     // @ts-ignore
     this.worker = new Worker();
     // @ts-ignore
-
     this.worker.onmessage = ({ data }) => {
       const { creepData, edgesData, imageData, frame } = data;
       if (frame < this._lastFrame) return;
@@ -44,10 +42,6 @@ export default class Creep {
     this._lastFrame = 0;
   }
 
-  /**
-   *
-   * @param {CreepBW} tiles
-   */
   generate(tiles: TilesBufferView, frame : number) {
     const msg = {
       buffer: tiles.copy(),

@@ -10,7 +10,7 @@ export type CrapUnit = UnitStruct & {
         isComplete?: boolean;
         wasFlying?: boolean;
         isNowFlying?: boolean;
-        dieTime?: number;
+        timeOfDeath?: number;
         showOnMinimap?: boolean;
         canSelect?: boolean;
         warpingIn?: number;

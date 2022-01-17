@@ -79,8 +79,7 @@ export class Scene extends ThreeScene {
 
   incrementTileAnimation() {
     if (
-      this.userData.terrain.material.userData.tileAnimationCounter !==
-      undefined
+      this.userData.terrain.name === "SDTerrain"
     ) {
       this.userData.terrain.material.userData.tileAnimationCounter.value++;
     }
