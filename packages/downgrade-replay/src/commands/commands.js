@@ -1,3 +1,4 @@
+//lifted straight from jssuh
 const CMDS = (() => {
   const c = (id, len) => ({ id, length: () => len });
   const fun = (id, func) => ({ id, length: func });

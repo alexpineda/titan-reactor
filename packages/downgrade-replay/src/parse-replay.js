@@ -18,13 +18,10 @@ const parseReplay = async (buf) => {
 
   if (magic === HeaderMagicClassic) {
     version = Version.classic;
-    console.log("replay: classic");
   } else if (magic === HeaderMagicScrModern) {
     version = Version.remastered;
-    console.log("replay: remastered");
   } else if (magic === HeaderMagicTitanReactor) {
     version = Version.titanReactor;
-    console.log("replay: titan reactor");
   } else {
     throw new Error("not a replay");
   }
@@ -32,6 +29,9 @@ const parseReplay = async (buf) => {
   if (version === Version.remastered) {
     // @todo support scr sections, specifically ShieldBattery POV addition
     bl.consume(4);
+  } else if (version === Version.titanReactor) {
+    const scrSection = await block(bl, 4);
+    const containerSize = await block(bl, 4);
   }
 
   const rawHeader = await block(bl, 0x279);

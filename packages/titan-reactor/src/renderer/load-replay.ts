@@ -1,6 +1,6 @@
 
 import {
-    sidegradeReplay,
+    convertReplay,
     parseReplay,
     Version,
     CommandsStream,
@@ -77,7 +77,7 @@ export default async (filepath: string) => {
     if (rep.version !== Version.titanReactor) {
         log.verbose(`changing replay format from ${Version[rep.version]} to titan reactor`);
         const chkDowngrader = new ChkDowngrader();
-        repBin = await sidegradeReplay(rep, chkDowngrader);
+        repBin = await convertReplay(rep, chkDowngrader);
         rep = await parseReplay(repBin);
     }
     log.verbose(`players ${rep.header.players.map(p => p.name).join(", ")}`);
@@ -106,6 +106,7 @@ export default async (filepath: string) => {
     } catch (e: unknown) {
         log.error(e);
     }
+
     gameStateReader.next();
 
 

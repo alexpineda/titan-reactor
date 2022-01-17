@@ -171,6 +171,10 @@ async function TitanReactorGame(
   };
   janitor.disposable(orbitControls);
 
+  cameraRig.camera.position.set(0, 100, 0);
+  cameraRig.camera.lookAt(0, 0, 0);
+  orbitControls.update()
+
   await renderer.init(cameraRig.camera);
   if (renderer.renderer === undefined) {
     throw new Error("Renderer not initialized");

@@ -11,6 +11,19 @@ export interface Heaps {
     HEAPU32: Uint32Array,
 }
 
+// @todo move this up to api level
+const tryCatch = (cb: Function, openBw: OpenBWWasmAPI) => {
+    try {
+        cb();
+    } catch( e) {
+        if (typeof e === 'number') {
+            throw new Error(openBw.getExceptionMessage(e));
+        } else {
+            throw e;
+        }
+    }
+}
+
 export default class OpenBwWasmReader {
     openBw: OpenBWWasmAPI;
     heaps: Heaps;
@@ -28,14 +41,18 @@ export default class OpenBwWasmReader {
     }
 
     loadReplay(buffer: Buffer) {
-        const buf = this.openBw.allocate(buffer, this.openBw.ALLOC_NORMAL);
-        this.openBw._load_replay(buf, buffer.length);
-        this.openBw._free(buf);
+        tryCatch(() => {
+            const buf = this.openBw.allocate(buffer, this.openBw.ALLOC_NORMAL);
+            this.openBw._load_replay(buf, buffer.length);
+            this.openBw._free(buf);
+        }, this.openBw);
     }
 
     next() {
         const frame = new FrameBW(this.heaps);
-        frame.update(this.openBw);
+        tryCatch(() => {
+            frame.update(this.openBw);
+        }, this.openBw)
         return frame;
     }
 
