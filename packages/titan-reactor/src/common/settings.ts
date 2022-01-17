@@ -9,6 +9,7 @@ export const defaultSettings: Settings = {
     maps: "",
     replays: "",
     models: "",
+    temp: ""
   },
   playerColors: {
     ignoreReplayColors: true,
@@ -28,6 +29,13 @@ export const defaultSettings: Settings = {
     pixelRatio: 1,
     fullscreen: true,
   },
+  controls: {
+    keyboard: {
+      pause: "KeyP",
+      speedUp: "KeyU",
+      speedDown: "KeyD",
+    }
+  }
   // alwaysHideReplayControls: false,
   // language: "en-US",
   // starcraftPath: "",

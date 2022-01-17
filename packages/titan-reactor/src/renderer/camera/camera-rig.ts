@@ -4,7 +4,7 @@ import { Clock, PerspectiveCamera, Vector3 } from "three";
 import { CanvasTarget } from "../../common/image";
 import PreviewCamera from "./preview-camera";
 import StandardCameraControls from "../input/standard-camera-controls";
-import { KeyboardShortcuts, MinimapControl } from "../input";
+import { MinimapControl } from "../input";
 
 export const CameraControlType = {
   none: 0,
@@ -19,7 +19,6 @@ interface CameraRigConstructor {
   gameSurface: CanvasTarget,
   previewSurface?: CanvasTarget,
   minimapControl?: MinimapControl,
-  keyboardShortcuts: KeyboardShortcuts,
   freeControl?: boolean
 
 }
@@ -44,7 +43,6 @@ class CameraRig {
       gameSurface,
       previewSurface,
       minimapControl,
-      keyboardShortcuts,
       freeControl = false }: CameraRigConstructor
   ) {
     this.settings = settings;
@@ -70,7 +68,6 @@ class CameraRig {
       this.previewControl = new StandardCameraControls(
         this.previewCamera,
         previewSurface.canvas,
-        keyboardShortcuts
       );
     }
     //   this.previewControl.setConstraints();

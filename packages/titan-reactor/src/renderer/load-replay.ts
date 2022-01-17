@@ -6,14 +6,12 @@ import {
     CommandsStream,
     ChkDowngrader,
 } from "downgrade-replay";
-import fs from "fs";
 import path from "path";
 
 import Chk from "bw-chk";
 import {
     ImageHD
 } from "./core";
-import { EmptyFunc } from "../common/types";
 import { MainMixer, SoundChannels, Music } from "./audio";
 import OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
 import { openFile } from "./ipc";

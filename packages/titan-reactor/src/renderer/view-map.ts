@@ -15,7 +15,7 @@ import type {
 import { pxToMapMeter } from "../common/utils/conversions";
 import CameraRig from "./camera/camera-rig";
 import FogOfWar from "./fogofwar/fog-of-war";
-import { InputEvents, KeyboardShortcuts } from "./input";
+import { KeyboardShortcuts } from "./input";
 import { Renderer, Scene } from "./render";
 import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
@@ -62,21 +62,7 @@ async function TitanReactorMap(
   const keyboardShortcuts = new KeyboardShortcuts(document.body);
   janitor.disposable(keyboardShortcuts)
 
-  const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
-  keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
-
-  const toggleCursorHandler = () => {
-    if (window.document.body.style.cursor === "none") {
-      window.document.body.style.cursor = "";
-    } else {
-      window.document.body.style.cursor = "none";
-    }
-  };
-  keyboardShortcuts.addEventListener(
-    InputEvents.ToggleCursor,
-    toggleCursorHandler
-  );
-  janitor.callback(() => window.document.body.style.cursor = "");
+  // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);

@@ -1,10 +1,8 @@
 import CameraControls from "camera-controls";
 import * as THREE from "three";
 import CameraShake from "../camera/camera-shake";
-import InputEvents from "./input-events";
 import range from "../../common/utils/range";
 import { PerspectiveCamera } from "three";
-import KeyboardShortcuts from "./keyboard-shortcuts";
 import PreviewCamera from "../camera/preview-camera";
 
 CameraControls.install({ THREE });
@@ -112,7 +110,6 @@ export class StandardCameraControls extends CameraControls {
   constructor(
     camera: PerspectiveCamera,
     domElement: HTMLElement,
-    keyboardShortcuts: KeyboardShortcuts,
     freeControl = false
   ) {
     super(camera, domElement);
@@ -165,35 +162,35 @@ export class StandardCameraControls extends CameraControls {
 
     domElement.addEventListener("wheel", this._onWheel, { passive: true });
 
-    keyboardShortcuts.addEventListener(
-      InputEvents.TruckLeft,
-      ({ message: delta }) => {
-        if (!this.keyboardTruckingEnabled) return;
-        this.truck(-0.01 * delta, 0, true);
-      }
-    );
-    keyboardShortcuts.addEventListener(
-      InputEvents.TruckRight,
-      ({ message: delta }) => {
-        if (!this.keyboardTruckingEnabled) return;
+    // keyboardShortcuts.addEventListener(
+    //   InputEvents.TruckLeft,
+    //   ({ message: delta }) => {
+    //     if (!this.keyboardTruckingEnabled) return;
+    //     this.truck(-0.01 * delta, 0, true);
+    //   }
+    // );
+    // keyboardShortcuts.addEventListener(
+    //   InputEvents.TruckRight,
+    //   ({ message: delta }) => {
+    //     if (!this.keyboardTruckingEnabled) return;
 
-        this.truck(0.01 * delta, 0, true);
-      }
-    );
-    keyboardShortcuts.addEventListener(
-      InputEvents.MoveForward,
-      ({ message: delta }) => {
-        if (!this.keyboardTruckingEnabled) return;
-        this.forward(0.01 * delta, true);
-      }
-    );
-    keyboardShortcuts.addEventListener(
-      InputEvents.MoveBackward,
-      ({ message: delta }) => {
-        if (!this.keyboardTruckingEnabled) return;
-        this.forward(-0.01 * delta, true);
-      }
-    );
+    //     this.truck(0.01 * delta, 0, true);
+    //   }
+    // );
+    // keyboardShortcuts.addEventListener(
+    //   InputEvents.MoveForward,
+    //   ({ message: delta }) => {
+    //     if (!this.keyboardTruckingEnabled) return;
+    //     this.forward(0.01 * delta, true);
+    //   }
+    // );
+    // keyboardShortcuts.addEventListener(
+    //   InputEvents.MoveBackward,
+    //   ({ message: delta }) => {
+    //     if (!this.keyboardTruckingEnabled) return;
+    //     this.forward(-0.01 * delta, true);
+    //   }
+    // );
 
     this.constraints = {
       azi: [-14, -10, -4, 0, 4, 10, 14].map((x) => (x * Math.PI) / 64),

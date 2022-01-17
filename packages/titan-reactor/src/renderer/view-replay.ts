@@ -40,7 +40,7 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   InputEvents,
-  KeyboardShortcuts,
+  KeyboardManager,
   MinimapControl,
   MouseInput,
 } from "./input";
@@ -72,6 +72,7 @@ import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/data-trans
 import { EntityIterator } from "./integration/fixed-data/entity-iterator";
 import { isFlipped, isHidden } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
+import { openBw } from "./openbw";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -112,8 +113,8 @@ async function TitanReactorGame(
   const renderer = new Renderer(settings);
   janitor.disposable(renderer);
 
-  const keyboardShortcuts = new KeyboardShortcuts(window.document.body);
-  janitor.disposable(keyboardShortcuts);
+  const keyboardManager = new KeyboardManager(window.document.body);
+  janitor.disposable(keyboardManager);
 
   const gameSurface = new GameCanvasTarget(settings);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -147,7 +148,6 @@ async function TitanReactorGame(
     gameSurface,
     previewSurface: minimapSurface,
     minimapControl,
-    keyboardShortcuts,
     freeControl: true,
   });
   janitor.disposable(cameraRig);
@@ -225,11 +225,29 @@ async function TitanReactorGame(
       useHudStore.getState().setAutoProductionView(true);
     }
   };
+  keyboardManager.on(InputEvents.TogglePlay, togglePlayHandler);
 
-  keyboardShortcuts.addEventListener(InputEvents.TogglePlay, togglePlayHandler);
+  const skipHandler = (dir: number) => () => {
+    assert(openBw.api);
+    const currentFrame = openBw.api._replay_get_value(3);
+    openBw.api._replay_set_value(3, currentFrame + 1000 * dir);
+    if (dir < 1) {
+      sprites.clear();
+      images.clear();
+    }
+  }
+  keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
+  keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
 
-  const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
-  keyboardShortcuts.addEventListener(InputEvents.ToggleMenu, toggleMenuHandler);
+  const speedHandler = (scale:number) => () => {
+    assert(openBw.api);
+    const currentSpeed  = openBw.api._replay_get_value(0);
+    openBw.api._replay_set_value(0, currentSpeed * scale)
+  }
+  keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
+  keyboardManager.on(InputEvents.SpeedDown, speedHandler(1/2));
+
+  // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
   const nextFrameHandler = (evt: KeyboardEvent) => {
     if (evt.code === "KeyN") {

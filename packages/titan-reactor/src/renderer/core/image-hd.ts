@@ -158,7 +158,7 @@ export class ImageHD extends ThreeSprite implements Image {
   //dds is flipped y so we don't do it in our uvs
   _setFrame(frame: GrpFrameType, flipFrame?: boolean) {
     if (frame === undefined) {
-      debugger;
+      console.warn("frame is undefined");
       return false;
     }
     if (frame === this.lastSetFrame && flipFrame === this.lastFlipFrame) {

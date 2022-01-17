@@ -26,6 +26,15 @@ export type Settings = {
         pixelRatio: number;
         fullscreen: boolean;
     },
+    controls: {
+        keyboard: {
+            pause?: string;
+            speedUp?: string;
+            speedDown?: string;
+            skipForward?: string;
+            skipBackward?: string;
+        }
+    }
     // spriteTextureResolution: AssetTextureResolution;
     // terrainTextureResolution: AssetTextureResolution;
     // alwaysHideReplayControls: boolean;

@@ -329,7 +329,7 @@ export const createSDMesh = async (
 
   const sdTerrain = new Mesh();
   sdTerrain.geometry = geometry;
-  sdTerrain.material = elevationsMaterial;
+  sdTerrain.material = sdMapMaterial;
   sdTerrain.castShadow = true;
   sdTerrain.receiveShadow = true;
   sdTerrain.rotation.x = -Math.PI / 2;

@@ -22,6 +22,7 @@ export interface OpenBWWasmAPI {
   _counts: (player:number, index:number) => number;
   _get_buffer: (index:number) => number;
   _replay_get_value: (index:number) => number;
+  _replay_set_value: (index:number, value: number) => void;
   get_util_funcs: () => ({
     get_units: () => UnitStruct[],
     get_sprites: () => SpriteStruct[],
