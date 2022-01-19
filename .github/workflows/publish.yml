@@ -52,8 +52,14 @@ jobs:
           files: packages/titan-reactor/dist/win-unpacked
           dest: titan-reactor.zip
           
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "::set-output name=release_tag::UserBuild_$(date +"%Y.%m.%d_%H-%M")"
+          
       - name: Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: "titan-reactor.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.tag.outputs.release_tag }}
