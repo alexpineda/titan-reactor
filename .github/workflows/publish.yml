@@ -43,6 +43,8 @@ jobs:
         
       - name: Build Titan Reactor TS application / Electorn
         run: yarn workspace titan-reactor dist
+        env: #satisfy electron-builder even though we're not using their publish function (yet?)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Zip Assets
         uses: vimtor/action-zip@v1
