@@ -1,5 +1,5 @@
 import * as hardfile from "./casclib-hardfile";
-import * as casclib from "casclib";
+import * as casclib from "bw-casclib";
 import { isCascStorage } from "../../../src/renderer/stores";
 let _storageHandle: any;
 let _lastBwPath: string;
