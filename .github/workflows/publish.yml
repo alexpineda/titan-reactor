@@ -63,3 +63,4 @@ jobs:
           artifacts: "titan-reactor.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.tag.outputs.release_tag }}
+          prerelease: true
