@@ -1,5 +1,6 @@
 {
     "name": "titan-reactor-mono",
+    "private": true,
     "workspaces": [
         "packages/*"
     ]
