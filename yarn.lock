@@ -3407,13 +3407,6 @@ capture-exit@^2.0.0:
   dependencies:
     rsvp "^4.8.4"
 
-casclib@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/casclib/-/casclib-1.0.4.tgz#c54a2a4eb8dfde0261609aaccc25ea3861746460"
-  integrity sha1-xUoqTrjf3gJhYJqszCXqOGF0ZGA=
-  dependencies:
-    node-addon-api "^1.1.0"
-
 chalk@^2.0.0, chalk@^2.3.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"

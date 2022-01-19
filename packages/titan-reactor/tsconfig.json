@@ -28,8 +28,9 @@
       "common": ["src/common/*"],
       "react": ["preact/compat"]
     },
-    "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"]
+    "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
+    "outDir": "generated"
   },
   // "include": ["src/**/*"],
-  "exclude": ["./node_modules/**/*"]
+  "exclude": ["./node_modules/**/*", "generated"]
 }

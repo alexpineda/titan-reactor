@@ -1,4 +1,4 @@
-import * as casclib from "casclib";
+import * as casclib from "bw-casclib";
 
 let _lastBwPath = "";
 
