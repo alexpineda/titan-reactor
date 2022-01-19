@@ -53,6 +53,7 @@ jobs:
           dest: titan-reactor.zip
           
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          files: titan-reactor.zip
+          artifacts: "titan-reactor.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
