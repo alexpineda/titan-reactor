@@ -13,7 +13,7 @@
     "dist": "yarn build && electron-builder",
     "dist:dir": "yarn dist -- --dir -c.compression=store -c.mac.identity=null",
     "dev": "electron-webpack dev",
-    "dist:run": "yarn compile && electron dist/main/main.js",
+    "dist:run": "yarn build && electron dist/main/main.js",
     "lint": "yarn eslint ."
   },
   "browserslist": [
