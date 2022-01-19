@@ -641,6 +641,7 @@ async function TitanReactorGame(
   window.pause = () => {
     gameStatePosition.togglePlay();
   }
+  // @ts-ignore
   janitor.callback(() => { window.pause = null });
 
   const _stepperListener = (evt: KeyboardEvent) => {

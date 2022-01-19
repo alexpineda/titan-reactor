@@ -3,7 +3,7 @@ import "three/examples/jsm/utils/SkeletonUtils";
 import { AnimationAction, AnimationMixer, Color, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
-import Glb from "../../common/image/atlas/atlas-glb";
+import { GlbAtlas } from "../../common/image/atlas/glb-atlas";
 import type { ImageDAT } from "../../common/types";
 import type { Image } from ".";
 import Sprite from "./sprite";
@@ -12,7 +12,7 @@ import Sprite from "./sprite";
  * An image instance that may include a 3d model
  */
 export class Image3D extends Object3D implements Image {
-  atlas: Glb;
+  atlas: GlbAtlas;
   model: Object3D;
   dat: ImageDAT;
   mixer?: AnimationMixer;
@@ -28,7 +28,7 @@ export class Image3D extends Object3D implements Image {
   offsetY = 0;
 
   constructor(
-    atlas: Glb,
+    atlas: GlbAtlas,
     imageDef: ImageDAT,
   ) {
     super();

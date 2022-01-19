@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { UnitTileScale } from "../../../renderer/core";
 import {
     DataTexture,

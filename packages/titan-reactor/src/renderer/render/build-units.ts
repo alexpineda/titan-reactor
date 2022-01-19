@@ -119,6 +119,7 @@ export class BuildUnits {
       return unit;
     } else {
       const unit = unitData as CrapUnit;
+      // @ts-ignore
       unit.extra = {
         recievingDamage: 0
       };

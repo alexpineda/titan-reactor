@@ -15,7 +15,7 @@ import type {
 import { pxToMapMeter } from "../common/utils/conversions";
 import CameraRig from "./camera/camera-rig";
 import FogOfWar from "./fogofwar/fog-of-war";
-import { KeyboardShortcuts } from "./input";
+import { KeyboardManager } from "./input";
 import { Renderer, Scene } from "./render";
 import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
@@ -59,8 +59,8 @@ async function TitanReactorMap(
     throw new Error("Settings not loaded");
   }
 
-  const keyboardShortcuts = new KeyboardShortcuts(document.body);
-  janitor.disposable(keyboardShortcuts)
+  const keyboardManager = new KeyboardManager(document.body);
+  janitor.disposable(keyboardManager)
 
   // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
@@ -75,7 +75,6 @@ async function TitanReactorMap(
   const cameraRig = new CameraRig({
     settings,
     gameSurface,
-    keyboardShortcuts,
     freeControl: true,
   }
   );

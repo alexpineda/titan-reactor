@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AssetTextureResolution, ImageDAT } from "../../common/types";
 import { loadAnimAtlas } from "../../common/image";
 import {
