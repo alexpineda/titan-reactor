@@ -2,7 +2,6 @@ const BufferList = require("bl/BufferList");
 const VersionDowngrader = require("./version");
 const StringDowngrader = require("./string");
 const CRGBDowngrader = require("./crgb");
-const MtxmDowngrader = require("./mtxm");
 const { Version } = require("../common");
 const { uint32 } = require("../../util/alloc");
 
@@ -16,9 +15,6 @@ class Orchestrate {
       new StringDowngrader(),
       new CRGBDowngrader(),
     ];
-    if (opts.mtxm) {
-      this.downgraders.push(new MtxmDowngrader(this._getChunk.bind(this)));
-    }
 
     const version = versionDowngrader.read(
       this._getChunk(versionDowngrader.chunkName)[1]

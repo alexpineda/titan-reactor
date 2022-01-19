@@ -1,13 +1,12 @@
 {
   "name": "downgrade-replay",
-  "version": "0.0.4",
-  "description": "Sidegrades BW/SCR to TitanReactor format",
+  "version": "0.0.5",
+  "description": "Downgrades SCR to TitanReactor format",
   "main": "src/index.js",
   "author": "Alex Pineda <alexpineda@fastmail.com",
   "license": "MIT",
   "dependencies": {
     "bl": "^5.0.0",
-    "downgrade-replay-tile-matches": "^0.0.1",
     "iconv-lite": "^0.6.2",
     "pkware-wasm": "^1.0.0"
   },

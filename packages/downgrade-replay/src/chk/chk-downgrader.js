@@ -1,9 +1,7 @@
 const { getChkChunks } = require("./chunks");
 const { Orchestrate } = require("./downgraders");
 
-const DEFAULT_OPTIONS = {
-  mtxm: false,
-};
+const DEFAULT_OPTIONS = {};
 
 class ChkDowngrader {
   constructor(userOptions = {}) {

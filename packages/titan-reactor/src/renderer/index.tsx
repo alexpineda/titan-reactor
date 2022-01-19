@@ -3,7 +3,7 @@ import { render } from "react-dom";
 
 import { openBw } from "./openbw";
 
-import version from "../common/version";
+import {version} from "../../package.json";
 import * as log from "./ipc/log";
 // import App from "./react-ui/app";
 import {
