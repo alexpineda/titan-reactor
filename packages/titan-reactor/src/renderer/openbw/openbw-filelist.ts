@@ -98,7 +98,7 @@ export default class OpenBWFileList {
     const paths: string[] = [];
     for ( const filename of filelist ) {
       console.log(`Loading ${filename}`);
-      const _paths = (await findFiles(filename)).filter(n => !n.includes("Carbot"));
+      const _paths = (await findFiles(filename)).filter((n:string) => !n.includes("Carbot"));
       paths.push(..._paths);
     }
     fs.writeFileSync("filelist.json", ["export default", JSON.stringify(paths)].join(" "));
