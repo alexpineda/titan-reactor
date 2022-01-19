@@ -1,4 +1,4 @@
-import createOpenBw from "./titan.js";
+import createOpenBw from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";

@@ -16,6 +16,8 @@ Titan Reactor is a fan made map and replay viewer specifically made for content 
 
 ### Development Installation
 
+`git lfs fetch --all`
+
 `yarn install`
 
 and then
