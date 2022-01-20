@@ -34,6 +34,8 @@ export const defaultSettings: Settings = {
       pause: "KeyP",
       speedUp: "KeyU",
       speedDown: "KeyD",
+      skipForward: "BracketRight",
+      skipBackward: "BracketLeft",
     }
   }
   // alwaysHideReplayControls: false,

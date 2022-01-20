@@ -4,10 +4,8 @@ export interface ImageStruct {
   typeId: number;
   flags: number;
   frameIndex: number;
-  offset: {
-    x: number;
-    y: number;
-  }
+  x: number;
+  y: number;
   modifier: number;
   modifierData1: number;
 }

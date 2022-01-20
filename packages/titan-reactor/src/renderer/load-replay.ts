@@ -105,9 +105,6 @@ export default async (filepath: string) => {
         log.error(e);
     }
 
-    gameStateReader.next();
-
-
     const races = ["terran", "zerg", "protoss"];
     // const races = settings.musicAllTypes
     //     ? ["terran", "zerg", "protoss"]

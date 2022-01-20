@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import type { ChkUnit } from "bw-chk";
-import { UnitFlags } from "../common/bwdat/enums";
+import { UnitFlags, unitsByTechType } from "../common/bwdat/enums";
 import type { CommandsStream, Replay } from "downgrade-replay";
 import { debounce } from "lodash";
 import shuffle from "lodash.shuffle";
@@ -227,25 +227,29 @@ async function TitanReactorGame(
   };
   keyboardManager.on(InputEvents.TogglePlay, togglePlayHandler);
 
+  const reset = () => {
+    sprites.clear();
+    images.clear();
+    units.clear();
+    unitsBySpriteId.clear();
+  }
+
   const skipHandler = (dir: number) => () => {
     assert(openBw.api);
     const currentFrame = openBw.api._replay_get_value(3);
     openBw.api._replay_set_value(3, currentFrame + 1000 * dir);
-    if (dir < 1) {
-      sprites.clear();
-      images.clear();
-    }
+    reset();
   }
   keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
   keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
 
-  const speedHandler = (scale:number) => () => {
+  const speedHandler = (scale: number) => () => {
     assert(openBw.api);
-    const currentSpeed  = openBw.api._replay_get_value(0);
+    const currentSpeed = openBw.api._replay_get_value(0);
     openBw.api._replay_set_value(0, currentSpeed * scale)
   }
   keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
-  keyboardManager.on(InputEvents.SpeedDown, speedHandler(1/2));
+  keyboardManager.on(InputEvents.SpeedDown, speedHandler(1 / 2));
 
   // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
@@ -479,8 +483,8 @@ async function TitanReactorGame(
           image.setTeamColor(player.color.three);
         }
         // overlay position
-        image.offsetX = image.position.x = imageData.offset.x / 32;
-        image.offsetY = image.position.z = imageData.offset.y / 32;
+        image.offsetX = image.position.x = imageData.x / 32;
+        image.offsetY = image.position.z = imageData.y / 32;
         image.renderOrder = _imageRenderOrder++;
         image.sprite = sprite;
 
@@ -504,7 +508,7 @@ async function TitanReactorGame(
           const unit = unitsBySpriteId.get(sprite.titanIndex);
           if (unit) {
             // for 3d models
-            image.rotation.y = unit.angle;
+            // image.rotation.y = unit.angle;
           }
 
           if (bwDat.images[imageData.typeId].clickable) {

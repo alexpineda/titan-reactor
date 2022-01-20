@@ -12,7 +12,6 @@ export interface UnitStruct {
   statusFlags: number;
   direction: number;
   remainingBuildTime: number;
-  angle: number;
   remainingTrainTime: number;
   resourceAmount: number;
   order: number;

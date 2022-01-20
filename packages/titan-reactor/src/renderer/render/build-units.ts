@@ -47,7 +47,7 @@ export class BuildUnits {
   }
 
   _refreshMinimap(unit: CrapUnit, unitType: UnitDAT) {
-    const isResourceContainer = unitType.isResourceContainer && !unit.owner;
+    const isResourceContainer = unitType.isResourceContainer && !unit.extra.player;
     if (
       !isResourceContainer &&
       !this.fogOfWar.isVisible(tile32(unit.x), tile32(unit.y))
@@ -131,7 +131,7 @@ export class BuildUnits {
   refresh(
     //prefilled buffer and accessor
     unitsBW: EntityIterator<UnitStruct>,
-    units: Map<UnitTag, CrapUnit>,
+    units: Map<number, CrapUnit>,
     unitsBySpriteId: Map<number, CrapUnit>
   ) {
     // reset unit image data for minimap
@@ -143,14 +143,15 @@ export class BuildUnits {
     for (const unitData of unitsBW.instances()) {
 
       const unit = this._getUnit(units, unitData);
-      const dat = this.bwDat.units[unitData.typeId];
-      unitsBySpriteId.set(unit.spriteTitanIndex, unit);
+
+      if (unitData.spriteTitanIndex !== undefined)
+        unitsBySpriteId.set(unit.spriteTitanIndex, unit);
 
       //if receiving damage, blink 3 times, hold blink 3 frames
       if (
         !unit.extra.recievingDamage &&
         (unit.hp > unitData.hp || unit.shields > unitData.shields) &&
-        unit.typeId === unitData.typeId // ignore zerg units change hp from egg hp
+        unitData.typeId === undefined// ignore zerg units change hp from egg hp
       ) {
         unit.extra.recievingDamage = 0b000111000111000111;
       } else if (unit.extra.recievingDamage) {
@@ -165,7 +166,8 @@ export class BuildUnits {
       // unit.queue = null;
       // unit.loaded = null;
 
-      unit.extra.player = this.playersById[unitData.owner];
+      if (unitData.owner !== undefined)
+        unit.extra.player = this.playersById[unitData.owner];
 
 
       //tank uses build time for siege transition?
@@ -177,15 +179,11 @@ export class BuildUnits {
       //   unit.remainingBuildTime = 0;
       // }
 
-      if (unit.order == orders.die && !unit.extra.timeOfDeath) {
+      if (unitData.order == orders.die) {
         unit.extra.timeOfDeath = Date.now();
       }
 
-      const showOnMinimap =
-        unitData.typeId !== unitTypes.darkSwarm &&
-        unitData.typeId !== unitTypes.disruptionWeb &&
-        unitData.order !== orders.die &&
-        !dat.isSubunit;
+      
 
       // unit.canSelect =
       //   unit.showOnMinimap &&
@@ -212,10 +210,6 @@ export class BuildUnits {
       //   }
       // }
 
-      //@todo move to worker
-      if (showOnMinimap) {
-        this._refreshMinimap(unit, dat);
-      }
 
       //bulk assign ok?
       Object.assign(unit, unitData);
@@ -230,7 +224,19 @@ export class BuildUnits {
       //   });
       // }
     }
-    // end of unit loop
+
+    for (const [_, unit] of units) {
+      const dat = this.bwDat.units[unit.typeId];
+
+      const showOnMinimap =
+          unit.typeId !== unitTypes.darkSwarm &&
+          unit.typeId !== unitTypes.disruptionWeb &&
+          unit.order !== orders.die;
+
+      if (showOnMinimap) {
+        this._refreshMinimap(unit, dat);
+      }
+    }
 
     // merge units with building and training queues
 
