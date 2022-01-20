@@ -27,6 +27,8 @@ export interface OpenBWWasmAPI {
     get_units: (dirtyChecking: boolean) => UnitStruct[],
     get_sprites: (dirtyChecking: boolean) => SpriteStruct[],
     get_sounds: () => SoundStruct[],
+    get_deleted_images: () => number[],
+    get_deleted_sprites: () => number[],
   })
 
   callMain: () => void;

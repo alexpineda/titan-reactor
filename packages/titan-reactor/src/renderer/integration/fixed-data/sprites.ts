@@ -4,8 +4,9 @@ import BufferView from "./buffer-view";
 export const STRUCT_SIZE = 17;
 export class SpritesBW
   extends BufferView<SpriteStruct>
-  implements SpriteStruct
-{
+  implements SpriteStruct {
+  x: number;
+  y: number;
 
   get index() {
     return this._read(0);
@@ -47,7 +48,7 @@ export class SpritesBW
   }
 
 
-  get mainImageTitanIndex() {
+  get mainImageIndex() {
     return this._read(8);
   }
 

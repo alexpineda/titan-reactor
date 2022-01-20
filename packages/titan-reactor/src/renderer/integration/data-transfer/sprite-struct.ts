@@ -10,6 +10,6 @@ export interface SpriteStruct {
   x: number;
   y: number;
   images: ImageStruct[];
-  mainImageTitanIndex: number;
+  mainImageIndex: number;
   order: number;
 }

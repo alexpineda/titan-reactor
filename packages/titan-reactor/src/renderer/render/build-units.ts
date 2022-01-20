@@ -144,8 +144,8 @@ export class BuildUnits {
 
       const unit = this._getUnit(units, unitData);
 
-      if (unitData.spriteTitanIndex !== undefined)
-        unitsBySpriteId.set(unit.spriteTitanIndex, unit);
+      if (unitData.spriteIndex !== undefined)
+        unitsBySpriteId.set(unit.spriteIndex, unit);
 
       //if receiving damage, blink 3 times, hold blink 3 frames
       if (
@@ -183,7 +183,7 @@ export class BuildUnits {
         unit.extra.timeOfDeath = Date.now();
       }
 
-      
+
 
       // unit.canSelect =
       //   unit.showOnMinimap &&
@@ -229,9 +229,9 @@ export class BuildUnits {
       const dat = this.bwDat.units[unit.typeId];
 
       const showOnMinimap =
-          unit.typeId !== unitTypes.darkSwarm &&
-          unit.typeId !== unitTypes.disruptionWeb &&
-          unit.order !== orders.die;
+        unit.typeId !== unitTypes.darkSwarm &&
+        unit.typeId !== unitTypes.disruptionWeb &&
+        unit.order !== orders.die;
 
       if (showOnMinimap) {
         this._refreshMinimap(unit, dat);

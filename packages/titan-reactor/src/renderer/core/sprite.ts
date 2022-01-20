@@ -10,7 +10,7 @@ import { CrapUnit, Image } from ".";
  * Object3D representing a game sprite. Contains images as well as selection circles and health bars
  */
 export class Sprite extends Object3D {
-  titanIndex: number;
+  index: number;
   selectionCircle = new SelectionCircle();
   selectionBars = new SelectionBars();
   lastZOff = 0;
@@ -19,9 +19,9 @@ export class Sprite extends Object3D {
   // used for mouse interaction
   mainImage?: Image;
 
-  constructor(titanIndex: number, spriteDAT: SpriteDAT) {
+  constructor(index: number, spriteDAT: SpriteDAT) {
     super();
-    this.titanIndex = titanIndex;
+    this.index = index;
     this.dat = spriteDAT;
   }
 
@@ -39,8 +39,8 @@ export class Sprite extends Object3D {
   }
 
   unselect() {
-    this.remove(this.selectionCircle);
-    this.remove(this.selectionBars);
+    this.selectionCircle.removeFromParent();
+    this.selectionBars.removeFromParent();
   }
 }
 export default Sprite;

@@ -239,6 +239,7 @@ async function TitanReactorGame(
       sprites.clear();
       images.clear();
       units.clear();
+      spritesGroup.clear();
       unitsBySpriteId.clear();
       currentBwFrame = null;
       reset = null;
@@ -390,37 +391,42 @@ async function TitanReactorGame(
   // let upgrades: UpgradeInProduction[][] = [];
   // let completedUpgrades: UpgradeCompleted[][] = [];
   // let completedResearch: ResearchCompleted[][] = [];
-  const unitsGroup = new Group();
-  scene.add(unitsGroup);
-
-
-  const _getImage = ({ titanIndex, typeId }: Pick<ImageStruct, "titanIndex" | "typeId">) => {
-    const image = images.get(titanIndex);
-    if (image) {
-      return image
-    } else {
-      const newImage = createImage(typeId);
-      images.set(titanIndex, newImage);
-      return newImage
-    }
-  }
+  const spritesGroup = new Group();
+  scene.add(spritesGroup);
 
   const buildSprites = (spritesBW: EntityIterator<SpriteStruct>, delta: number) => {
-    unitsGroup.clear();
+    assert(openBw.api);
+    const deletedImages = openBw.api.get_util_funcs().get_deleted_images();
+    const deletedSprites = openBw.api.get_util_funcs().get_deleted_sprites();
 
-    let order = 0;
+    for (const spriteId of deletedSprites) {
+      const sprite = sprites.get(spriteId);
+      if (!sprite) continue;
+      sprite.removeFromParent();
+      sprites.delete(spriteId);
+      unitsBySpriteId.delete(spriteId);
+    }
+
+    for (const imageId of deletedImages) {
+      const image = images.get(imageId);
+      if (!image) continue;
+      image.removeFromParent();
+      images.delete(imageId);
+    }
+
     for (const spriteData of spritesBW.items()) {
-      order++;
-      let sprite = sprites.get(spriteData.titanIndex);
+      let sprite = sprites.get(spriteData.index);
       if (!sprite) {
         sprite = new Sprite(
-          spriteData.titanIndex,
+          spriteData.index,
           bwDat.sprites[spriteData.typeId]
         );
-        sprites.set(spriteData.titanIndex, sprite);
+        sprites.set(sprite.index, sprite);
+        spritesGroup.add(sprite);
       }
+      Object.assign(sprite.userData, spriteData);
 
-      const unit = unitsBySpriteId.get(sprite.titanIndex);
+      const unit = unitsBySpriteId.get(sprite.index);
 
       // const buildingIsExplored =
       //   sprite.unit &&
@@ -431,26 +437,24 @@ async function TitanReactorGame(
       // show units as fog is lifting from or lowering to explored
       // show if a building has been explored
       sprite.visible =
-        spriteData.owner === 11 ||
+        sprite.userData.owner === 11 ||
         // spriteBW.dat.image.iscript === 336 ||
         // spriteBW.dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
+        fogOfWar.isSomewhatVisible(tile32(sprite.userData.x), tile32(sprite.userData.y));
 
       // don't update explored building frames so viewers only see last built frame
       // const dontUpdate =
       //   buildingIsExplored &&
       //   !fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
 
-      sprite.clear();
+      sprite.renderOrder = spriteSortOrder(sprite.userData as SpriteStruct) * 10;
 
-      let _imageRenderOrder = sprite.renderOrder = spriteSortOrder(spriteData) * 10;
-
-      const x = pxToGameUnit.x(spriteData.x);
-      const z = pxToGameUnit.y(spriteData.y);
+      const x = pxToGameUnit.x(sprite.userData.x);
+      const z = pxToGameUnit.y(sprite.userData.y);
       let y = terrainInfo.getTerrainY(x, z);
       sprite.position.set(x, y, z);
 
-      // sprite.unit = unitsBySpriteId.get(spriteData.titanIndex);
+      // sprite.unit = unitsBySpriteId.get(spriteData.index);
       // if (sprite.unit) {
       //   if (sprite.unit.statusFlags & UnitFlags.Flying) {
       //     const targetY = Math.min(6, y + 2.5);
@@ -472,50 +476,56 @@ async function TitanReactorGame(
       // landing z + 42, y-
 
 
-      const player = players.playersById[spriteData.owner];
+      const player = players.playersById[sprite.userData.owner];
 
-      for (const imageData of spriteData.images.reverse()) {
+      for (const imageData of sprite.userData.images.reverse()) {
         if (!sprite.visible || isHidden(imageData)) {
           continue;
         }
 
         // @todo recycle dead similar images
-        const image = _getImage(imageData);
-        sprite.add(image);
+        let image = images.get(imageData.index);
+        if (!image) {
+          image = createImage(imageData.typeId);
+          images.set(imageData.index, image);
+          sprite.add(image);
+          image.sprite = sprite;
+        }
+
+        Object.assign(image.userData, imageData);
 
         if (player) {
           image.setTeamColor(player.color.three);
         }
         // overlay position
-        image.offsetX = image.position.x = imageData.x / 32;
-        image.offsetY = image.position.z = imageData.y / 32;
-        image.renderOrder = _imageRenderOrder++;
-        image.sprite = sprite;
+        image.offsetX = image.position.x = image.userData.x / 32;
+        image.offsetY = image.position.z = image.userData.y / 32;
+        image.renderOrder = sprite.renderOrder + image.userData.order;
 
         // 63-48=15
-        if (imageData.modifier === 14) {
-          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
+        if (image.userData.modifier === 14) {
+          image.setWarpingIn((image.userData.modifierData1 - 48) / 15);
         } else {
           //@todo see if we even need this
           image.setWarpingIn(0);
         }
         //@todo use modifier 1 for opacity value
-        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
+        image.setCloaked(image.userData.modifier === 2 || image.userData.modifier === 5);
 
-        image.setFrame(imageData.frameIndex, isFlipped(imageData));
+        image.setFrame(image.userData.frameIndex, isFlipped(image.userData as ImageStruct));
 
         let z = 0;
 
 
-        if (imageData.titanIndex === spriteData.mainImageTitanIndex) {
+        if (image.userData.index === sprite.userData.mainImageIndex) {
           z = image._zOff * image.unitTileScale;
-          const unit = unitsBySpriteId.get(sprite.titanIndex);
+          const unit = unitsBySpriteId.get(sprite.index);
           if (unit) {
             // for 3d models
             // image.rotation.y = unit.angle;
           }
 
-          if (bwDat.images[imageData.typeId].clickable) {
+          if (bwDat.images[image.userData.typeId].clickable) {
             sprite.layers.enable(Layers.Clickable);
             image.layers.enable(Layers.Clickable);
           }
@@ -526,8 +536,6 @@ async function TitanReactorGame(
         // sprite.position.z += z - sprite.lastZOff;
         sprite.lastZOff = z;
       }
-
-      unitsGroup.add(sprite);
     }
   };
 
@@ -610,7 +618,7 @@ async function TitanReactorGame(
   };
 
   mouseInput.bind(
-    unitsGroup,
+    spritesGroup,
     projectedCameraView,
     gameSurface,
     terrainInfo,

@@ -242,7 +242,7 @@ export class MouseInput {
 
       let unit;
       if (sprite) {
-        unit = unitsBySpriteId.get(sprite.titanIndex);
+        unit = unitsBySpriteId.get(sprite.index);
       }
 
       //select last sprite on mouse unless we have a bunch of units selected and the last sprite is a resource container or building

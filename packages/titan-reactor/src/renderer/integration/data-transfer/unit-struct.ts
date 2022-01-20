@@ -8,7 +8,7 @@ export interface UnitStruct {
   energy: number;
   shields: number;
 
-  spriteTitanIndex: number;
+  spriteIndex: number;
   statusFlags: number;
   direction: number;
   remainingBuildTime: number;
