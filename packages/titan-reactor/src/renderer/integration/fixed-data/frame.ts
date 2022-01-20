@@ -15,25 +15,25 @@ export class FrameBW {
   supplyAvailable: number[] = [];
   workerSupply: number[] = [];
 
-  private _sprites : EntityIterator<SpriteStruct>;
-  private _images : EntityIterator<ImageStruct>;
-  private _units : EntityIterator<UnitStruct>;
-  private _sounds : EntityIterator<SoundStruct>;
-  private _tiles : TilesBufferView;
-  private _buildingQueue : BuildingQueueCountBW;
-  private _research : ResearchBW;
-  private _upgrades : UpgradeBW;
+  private _sprites: EntityIterator<SpriteStruct>;
+  private _images: EntityIterator<ImageStruct>;
+  private _units: EntityIterator<UnitStruct>;
+  private _sounds: EntityIterator<SoundStruct>;
+  private _tiles: TilesBufferView;
+  private _buildingQueue: BuildingQueueCountBW;
+  private _research: ResearchBW;
+  private _upgrades: UpgradeBW;
 
   constructor(heaps: Heaps) {
-     this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP8, heaps.HEAPU8);
-     this._sounds = new EmbindEntityInterator<SoundStruct>();
-     this._units = new EmbindEntityInterator<UnitStruct>();
-     this._sprites = new EmbindEntityInterator<SpriteStruct>();
+    this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP8, heaps.HEAPU8);
+    this._sounds = new EmbindEntityInterator<SoundStruct>();
+    this._units = new EmbindEntityInterator<UnitStruct>();
+    this._sprites = new EmbindEntityInterator<SpriteStruct>();
 
-     this._images = new ImagesBW(0, 0, 0, new Int8Array(), new Uint8Array());
-     this._buildingQueue = new BuildingQueueCountBW(0, 0, 0, new Int8Array(), new Uint8Array());
-     this._research = new ResearchBW(0, 0, 0, new Int8Array(), new Uint8Array());
-     this._upgrades = new UpgradeBW(0, 0, 0, new Int8Array(), new Uint8Array());
+    this._images = new ImagesBW(0, 0, 0, new Int8Array(), new Uint8Array());
+    this._buildingQueue = new BuildingQueueCountBW(0, 0, 0, new Int8Array(), new Uint8Array());
+    this._research = new ResearchBW(0, 0, 0, new Int8Array(), new Uint8Array());
+    this._upgrades = new UpgradeBW(0, 0, 0, new Int8Array(), new Uint8Array());
   }
 
   update(openBw: OpenBWWasmAPI) {
@@ -59,16 +59,16 @@ export class FrameBW {
       this.sounds.ptrIndex = openBw._get_buffer(8);
       this.sounds.itemsCount = openBw._counts(0, 6);
     }
-    
 
-    if (this.units instanceof EmbindEntityInterator){
-      this.units.assign(funcs.get_units());
+
+    if (this.units instanceof EmbindEntityInterator) {
+      this.units.assign(funcs.get_units(true));
     }
 
     if (this.sprites instanceof EmbindEntityInterator) {
-      this.sprites.assign(funcs.get_sprites());
+      this.sprites.assign(funcs.get_sprites(false));
     }
-    
+
   }
 
   get sprites() {

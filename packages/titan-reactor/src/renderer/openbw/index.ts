@@ -10,22 +10,22 @@ const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
 
 const callbacks = {
-  beforeFrame: () => {},
-  afterFrame: () => {},
+  beforeFrame: () => { },
+  afterFrame: () => { },
 };
 
 export interface OpenBWWasmAPI {
   _reset: () => void;
-  _load_replay: (buffer:number, length: number ) => void;
+  _load_replay: (buffer: number, length: number) => void;
   _next_frame: () => void;
   _next_frame_exact: () => void;
-  _counts: (player:number, index:number) => number;
-  _get_buffer: (index:number) => number;
-  _replay_get_value: (index:number) => number;
-  _replay_set_value: (index:number, value: number) => void;
+  _counts: (player: number, index: number) => number;
+  _get_buffer: (index: number) => number;
+  _replay_get_value: (index: number) => number;
+  _replay_set_value: (index: number, value: number) => void;
   get_util_funcs: () => ({
-    get_units: () => UnitStruct[],
-    get_sprites: () => SpriteStruct[],
+    get_units: (dirtyChecking: boolean) => UnitStruct[],
+    get_sprites: (dirtyChecking: boolean) => SpriteStruct[],
     get_sounds: () => SoundStruct[],
   })
 

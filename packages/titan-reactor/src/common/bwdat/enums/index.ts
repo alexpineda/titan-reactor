@@ -24,4 +24,5 @@ export * from "./unit-types";
 export * from "./unit-flags";
 export * from "./upgrades";
 export * from "./image-flags";
+export * from "./sprite-flags";
 

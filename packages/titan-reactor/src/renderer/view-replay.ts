@@ -73,6 +73,7 @@ import { EntityIterator } from "./integration/fixed-data/entity-iterator";
 import { isFlipped, isHidden } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
+import { spriteSortOrder } from "./utils/sprite-utils";
 
 const setSelectedUnits = useUnitSelectionStore.getState().setSelectedUnits;
 const setAllProduction = useProductionStore.getState().setAllProduction;
@@ -227,18 +228,21 @@ async function TitanReactorGame(
   };
   keyboardManager.on(InputEvents.TogglePlay, togglePlayHandler);
 
-  const reset = () => {
-    sprites.clear();
-    images.clear();
-    units.clear();
-    unitsBySpriteId.clear();
-  }
+  let reset: (() => void) | null = null;
 
   const skipHandler = (dir: number) => () => {
-    assert(openBw.api);
-    const currentFrame = openBw.api._replay_get_value(3);
-    openBw.api._replay_set_value(3, currentFrame + 1000 * dir);
-    reset();
+    if (reset) return;
+    reset = () => {
+      assert(openBw.api);
+      const currentFrame = openBw.api._replay_get_value(3);
+      openBw.api._replay_set_value(3, currentFrame + 1000 * dir);
+      sprites.clear();
+      images.clear();
+      units.clear();
+      unitsBySpriteId.clear();
+      currentBwFrame = null;
+      reset = null;
+    }
   }
   keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
   keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
@@ -430,7 +434,7 @@ async function TitanReactorGame(
         spriteData.owner === 11 ||
         // spriteBW.dat.image.iscript === 336 ||
         // spriteBW.dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(tile32(spriteData.position.x), tile32(spriteData.position.y));
+        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
 
       // don't update explored building frames so viewers only see last built frame
       // const dontUpdate =
@@ -439,11 +443,12 @@ async function TitanReactorGame(
 
       sprite.clear();
 
-      let _imageRenderOrder = sprite.renderOrder = order * 10;
+      let _imageRenderOrder = sprite.renderOrder = spriteSortOrder(spriteData) * 10;
 
-      const x = pxToGameUnit.x(spriteData.position.x);
-      const z = pxToGameUnit.y(spriteData.position.y);
+      const x = pxToGameUnit.x(spriteData.x);
+      const z = pxToGameUnit.y(spriteData.y);
       let y = terrainInfo.getTerrainY(x, z);
+      sprite.position.set(x, y, z);
 
       // sprite.unit = unitsBySpriteId.get(spriteData.titanIndex);
       // if (sprite.unit) {
@@ -466,7 +471,6 @@ async function TitanReactorGame(
       // liftoff z - 42, y+
       // landing z + 42, y-
 
-      sprite.position.set(x, y, z);
 
       const player = players.playersById[spriteData.owner];
 
@@ -662,6 +666,8 @@ async function TitanReactorGame(
 
     cameraRig.update();
     orbitControls.update();
+
+    if (reset) reset();
 
     if (!gameStatePosition.paused) {
       if (!currentBwFrame) {

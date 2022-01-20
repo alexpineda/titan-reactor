@@ -7,10 +7,8 @@ export interface SpriteStruct {
   owner: number;
   elevation: number;
   flags: number;
-  position: {
-    x: number;
-    y: number;
-  };
+  x: number;
+  y: number;
   images: ImageStruct[];
   mainImageTitanIndex: number;
   order: number;
