@@ -5,8 +5,6 @@ export const STRUCT_SIZE = 17;
 export class SpritesBW
   extends BufferView<SpriteStruct>
   implements SpriteStruct {
-  x: number;
-  y: number;
 
   get index() {
     return this._read(0);
@@ -53,6 +51,14 @@ export class SpritesBW
   }
 
   get order() {
+    return 0;
+  }
+
+  get x() {
+    return this.index;
+  }
+
+  get y() {
     return this.index;
   }
 

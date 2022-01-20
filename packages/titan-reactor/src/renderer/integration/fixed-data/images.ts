@@ -3,9 +3,8 @@ import BufferView from "./buffer-view";
 
 export class ImagesBW
   extends BufferView<ImageStruct>
-  implements ImageStruct
-{
-  
+  implements ImageStruct {
+
   get flags() {
     return this._read(0);
   }
@@ -37,12 +36,18 @@ export class ImagesBW
     return this._read(8);
   }
 
-  get offset() {
-    return  {
-      x: this._read(9),
-      y: this._read(10),
-    }
+  get x() {
+    return this._read(8);
   }
+
+  get y() {
+    return this._read(8);
+  }
+
+  get order() {
+    return this._read(8);
+  }
+
 
 }
 export default ImagesBW;
