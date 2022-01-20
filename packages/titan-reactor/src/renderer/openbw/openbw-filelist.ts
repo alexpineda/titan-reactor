@@ -5,7 +5,6 @@ import { findFiles } from "../../common/utils/casclib";
 import fs from "fs";
 import { isCascStorage } from "../../../src/renderer/stores";
 
-
 interface Callbacks {
   beforeFrame: () => void;
   afterFrame: () => void;
@@ -23,27 +22,27 @@ export default class OpenBWFileList {
   }
 
   setup(openBw: any, callbacks: Callbacks) {
-    openBw.setupCallbacks(
-      (ptr: any) => {
+    openBw.setupCallbacks({
+      js_fatal_error: (ptr: any) => {
         throw new Error(openBw.UTF8ToString(ptr));
       },
-      callbacks.beforeFrame, // pre-mainloop
-      callbacks.afterFrame, // post-mainloop,
-      (index: number) => {
+      js_pre_main_loop: callbacks.beforeFrame, // pre-mainloop
+      js_post_main_loop: callbacks.afterFrame, // post-mainloop,
+      js_file_size: (index: number) => {
         return this.buffers[index].byteLength; // get file size: ;
       },
-      (index: number, dst: number, offset:number, size:number) =>  { // get file buffer
+      js_read_data: (index: number, dst: number, offset: number, size: number) => { // get file buffer
         var data = this.buffers[index];
         for (var i2 = 0; i2 != size; ++i2) {
           openBw.HEAP8[dst + i2] = data[offset + i2];
         }
-      }, 
-      () => {
+      },
+      js_load_done: () => {
         this.clear(); // done loading, openbw has its own memory now
         log.verbose("openbw complete loading");
         log.verbose(`${this.unused.length} unused assets`);
       },
-      (ptr: any) => {
+      js_file_index: (ptr: any) => {
         const filepath = openBw.UTF8ToString(ptr);
         if (filepath === undefined) {
           throw new Error("Filename is undefined");
@@ -53,10 +52,10 @@ export default class OpenBWFileList {
         log.verbose(`pulling ${this.normalize(filepath)} ${index}`);
         return index >= 0 ? index : 9999;
       }
-    );
+    });
   }
 
-  async loadBuffers(readFile: (filename: string) => Promise<Buffer|Uint8Array>) {
+  async loadBuffers(readFile: (filename: string) => Promise<Buffer | Uint8Array>) {
     if (this._cleared) {
       throw new Error("File list already cleared");
     }
@@ -74,12 +73,12 @@ export default class OpenBWFileList {
 
         //@todo why is casclib returning unit8array?
         //  if (buffer instanceof Buffer) {
-          int8 = new Int8Array(
-            buffer.buffer,
-            buffer.byteOffset,
-            buffer.length
-          )
-    
+        int8 = new Int8Array(
+          buffer.buffer,
+          buffer.byteOffset,
+          buffer.length
+        )
+
       }
 
       this.buffers.push(int8);
@@ -90,15 +89,15 @@ export default class OpenBWFileList {
       this.index[this.normalize(filepath)] = this.buffers.length - 1;
       this.unused.push(this.buffers.length - 1);
     }
-    
+
   }
 
   // utility
   async dumpFileList() {
     const paths: string[] = [];
-    for ( const filename of filelist ) {
+    for (const filename of filelist) {
       console.log(`Loading ${filename}`);
-      const _paths = (await findFiles(filename)).filter((n:string) => !n.includes("Carbot"));
+      const _paths = (await findFiles(filename)).filter((n: string) => !n.includes("Carbot"));
       paths.push(..._paths);
     }
     fs.writeFileSync("filelist.json", ["export default", JSON.stringify(paths)].join(" "));
