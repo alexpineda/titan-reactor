@@ -150,7 +150,7 @@ export default async (filepath: string) => {
     completeScreen();
 
     log.verbose("starting replay");
-    document.title = `Titan Reactor - ${path.basename(filepath)} - ${rep.header.players.map(({ name }) => name).join(", ")}`;
+    document.title = `Titan Reactor - ${chk.title} - ${rep.header.players.map(({ name }) => name).join(", ")}`;
     game.start();
     completeLoadingProcess("replay");
 };

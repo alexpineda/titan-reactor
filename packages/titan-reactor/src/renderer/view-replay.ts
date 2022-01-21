@@ -738,7 +738,6 @@ async function TitanReactorGame(
           cmdsThisFrame.push(cmd.value);
           cmd = cmds.next();
         }
-        apm.update(cmdsThisFrame, gameStatePosition.bwGameFrame);
       }
 
       // if (rep.cmds[gameStatePosition.bwGameFrame]) {
