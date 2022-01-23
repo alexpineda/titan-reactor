@@ -1,6 +1,7 @@
 import EventEmitter from "events";
 import { InputEvents } from ".";
 import { getSettings } from "../stores"
+import { testKey } from "../utils/key-utils";
 
 export class KeyboardManager extends EventEmitter {
     private _domElement: HTMLElement;
@@ -16,24 +17,19 @@ export class KeyboardManager extends EventEmitter {
         });
     }
 
-    private _testKey(e: KeyboardEvent, key: string | undefined) {
-        if (!key) return false;
-        return e.code === key.trim().slice(-e.code.length);
-    }
-
     private _keyDownListener(e: KeyboardEvent) {
         const settings = getSettings();
 
         const visit: [string, string | undefined][] = [
-            [InputEvents.TogglePlay, settings.controls.keyboard.pause],
-            [InputEvents.SpeedUp, settings.controls.keyboard.speedUp],
-            [InputEvents.SpeedDown, settings.controls.keyboard.speedDown],
-            [InputEvents.SkipForward, settings.controls.keyboard.skipForward],
-            [InputEvents.SkipBackwards, settings.controls.keyboard.skipBackward],
+            [InputEvents.TogglePlay, settings.controls.keyboard.replay.pause],
+            [InputEvents.SpeedUp, settings.controls.keyboard.replay.speedUp],
+            [InputEvents.SpeedDown, settings.controls.keyboard.replay.speedDown],
+            [InputEvents.SkipForward, settings.controls.keyboard.replay.skipForward],
+            [InputEvents.SkipBackwards, settings.controls.keyboard.replay.skipBackward],
         ]
 
         for (const [event, key] of visit) {
-            if (this._testKey(e, key)) {
+            if (testKey(e, key)) {
                 this.emit(event);
                 break;
             }

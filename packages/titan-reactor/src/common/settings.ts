@@ -31,11 +31,21 @@ export const defaultSettings: Settings = {
   },
   controls: {
     keyboard: {
-      pause: "KeyP",
-      speedUp: "KeyU",
-      speedDown: "KeyD",
-      skipForward: "BracketRight",
-      skipBackward: "BracketLeft",
+      replay: {
+        pause: "KeyP",
+        speedUp: "KeyU",
+        speedDown: "KeyD",
+        skipForward: "BracketRight",
+        skipBackward: "BracketLeft",
+      },
+      camera: {
+        truckLeft: "ArrowLeft, KeyA",
+        truckRight: "ArrowRight, KeyD",
+        forward: "ArrowUp, KeyW",
+        backward: "ArrowDown, KeyS",
+        focus: "KeyF"
+      }
+
     }
   }
   // alwaysHideReplayControls: false,

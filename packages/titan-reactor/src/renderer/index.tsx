@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-
+import "./reset.css";
 import { openBw } from "./openbw";
 
 import {version} from "../../package.json";

@@ -28,13 +28,25 @@ export type Settings = {
     },
     controls: {
         keyboard: {
-            pause?: string;
-            speedUp?: string;
-            speedDown?: string;
-            skipForward?: string;
-            skipBackward?: string;
+            replay: {
+                pause?: string;
+                speedUp?: string;
+                speedDown?: string;
+                skipForward?: string;
+                skipBackward?: string;
+            },
+            camera: {
+                truckLeft: string,
+                truckRight: string,
+                forward: string,
+                backward: string,
+                focus: string
+            }
         }
     }
+
+
+
     // spriteTextureResolution: AssetTextureResolution;
     // terrainTextureResolution: AssetTextureResolution;
     // alwaysHideReplayControls: boolean;
