@@ -79,7 +79,7 @@ export class MouseInput {
     gameSurface: GameCanvasTarget,
     { terrain, mapWidth, mapHeight }: TerrainInfo,
     camera: PerspectiveCamera,
-    unitsBySpriteId: WeakMap<Sprite, CrapUnit>
+    unitsBySpriteId: Map<number, CrapUnit>
   ) {
     this.projectedCameraView = projectedCameraView;
 
