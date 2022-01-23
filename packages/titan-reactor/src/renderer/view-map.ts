@@ -213,7 +213,7 @@ async function TitanReactorMap(
     }
 
     control.update(delta / 1000);
-    renderer.updateFocus(camera);
+    renderer.updateFocus(camera, control.polarAngle);
     fogOfWar.update(camera);
     renderer.render(scene, camera, delta);
     last = elapsed;

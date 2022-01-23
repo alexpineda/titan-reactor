@@ -3,7 +3,7 @@ import { orders, UnitFlags, unitsByTechType } from "../common/bwdat/enums";
 import { debounce } from "lodash";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Box3, Camera, Color, Group, MathUtils, MOUSE, PerspectiveCamera, Vector3 } from "three";
+import { Box3, Camera, Color, Group, MathUtils, MOUSE, PerspectiveCamera, Raycaster, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -55,7 +55,7 @@ import { spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
 import { constrainControls, getDirection32 } from "./utils/camera-utils";
-import { ArrowKeys } from "./input/arrow-keys";
+import { CameraKeys } from "./input/camera-keys";
 
 CameraControls.install({ THREE: THREE });
 
@@ -208,8 +208,17 @@ async function TitanReactorGame(
   janitor.callback(() => (window.scene = null));
 
 
-  const arrowKeys = new ArrowKeys(window.document.body, control, settings);
-  janitor.disposable(arrowKeys);
+  const cameraKeys = new CameraKeys(window.document.body, control, settings);
+  cameraKeys.onFocusPress = () => {
+    const t = new Vector3();
+    camera.getWorldDirection(t);
+    const r = new Raycaster(camera.position, t);
+    const intersection = r.intersectObject(terrain.terrain)
+    if (intersection.length > 0) {
+      renderer._dofEffect.target = intersection[0].point;
+    }
+  }
+  janitor.disposable(cameraKeys);
 
   await renderer.init(camera);
   if (renderer.renderer === undefined) {
@@ -842,14 +851,12 @@ async function TitanReactorGame(
   window.addEventListener("keypress", _stepperListener);
   janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
-  window.WAEADWAA = 100;
-
   const gameLoop = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
     control.update(delta / 1000);
-    arrowKeys.update(delta / window.WAEADWAA);
+    cameraKeys.update(delta / 100);
 
     if (reset) reset();
 
@@ -1011,7 +1018,7 @@ async function TitanReactorGame(
     // audioMixer.update(target.x, target.y, target.z, delta);
 
     renderer.enableCinematicPass();
-    renderer.updateFocus(camera);
+    renderer.updateFocus(camera, control.polarAngle);
     fogOfWar.update(camera);
     renderer.render(scene, camera, delta);
     // }

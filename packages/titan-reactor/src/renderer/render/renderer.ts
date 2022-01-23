@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import { easePoly } from "d3-ease";
+import { easePoly, easeExpIn } from "d3-ease";
 import {
   BloomEffect,
   DepthOfFieldEffect,
@@ -55,7 +55,6 @@ export class Renderer {
   _smaaEffect: SMAAEffect;
   fogOfWarEffect?: FogOfWarEffect;
   toneMappingEffect: ToneMappingEffect;
-  _fogPass = EffectPass;
   _bloomEffect: BloomEffect;
   _bloomPass = EffectPass;
   _cinematicPass: EffectPass;
@@ -145,12 +144,10 @@ export class Renderer {
 
     this.fogOfWarEffect = new FogOfWarEffect();
 
-    const toneMapping = new ToneMappingEffect();
+    const toneMapping = new ToneMappingEffect({ middleGrey: 10 });
 
     // @ts-ignore
     window.toneMappingEffect = toneMapping;
-
-    this._fogPass = new EffectPass(camera, this.fogOfWarEffect);
 
     this._bloomEffect = new BloomEffect({
       luminanceThreshold: 0.9,
@@ -161,14 +158,16 @@ export class Renderer {
     this._cinematicPass = new EffectPass(
       camera,
       this._dofEffect,
-      this.fogOfWarEffect
+      this.fogOfWarEffect,
+      toneMapping
     );
 
     this._cinematicPassWithAA = new EffectPass(
       camera,
       this._dofEffect,
       this.fogOfWarEffect,
-      this._smaaEffect
+      this._smaaEffect,
+      toneMapping
     );
 
     this._smaaPass = new EffectPass(camera, this._smaaEffect, toneMapping);
@@ -176,7 +175,6 @@ export class Renderer {
     this._passes = [
       this._renderPass,
       this._bloomPass,
-      this._fogPass,
       this._cinematicPass,
       this._cinematicPassWithAA,
       this._smaaPass,
@@ -215,11 +213,8 @@ export class Renderer {
     );
   }
 
-  enableRenderFogPass() {
-    this._togglePasses(this._renderPass, this._fogPass);
-  }
 
-  updateFocus(camera: PerspectiveCamera) {
+  updateFocus(camera: PerspectiveCamera, polarAngle: number) {
     const cy = (Math.max(20, Math.min(90, camera.position.y)) - 20) / 70;
 
     const cz = 1 - (Math.max(22, Math.min(55, camera.fov)) - 22) / 33;
@@ -261,6 +256,7 @@ export class Renderer {
     const renderer = new WebGLRenderer({
       powerPreference: "high-performance",
       preserveDrawingBuffer: true,
+      physicallyCorrectLights: true,
       antialias: false,
       stencil: false,
       depth: true,
