@@ -10,7 +10,7 @@ import {
 } from "../../common/types";
 import FogOfWar from "../fogofwar/fog-of-war";
 import { UnitStruct } from "../integration/data-transfer";
-import { CrapUnit } from "../core";
+import { CrapUnit, Sprite } from "../core";
 import { EntityIterator } from "../integration/fixed-data/entity-iterator";
 import { tile32 } from "../../common/utils/conversions";
 
@@ -132,7 +132,7 @@ export class BuildUnits {
     //prefilled buffer and accessor
     unitsBW: EntityIterator<UnitStruct>,
     units: Map<number, CrapUnit>,
-    unitsBySpriteId: Map<number, CrapUnit>
+    unitsBySpriteId: WeakMap<Sprite, CrapUnit>
   ) {
     // reset unit image data for minimap
     this.imageData.data.fill(0);

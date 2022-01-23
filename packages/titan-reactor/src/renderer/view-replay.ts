@@ -27,7 +27,7 @@ import FogOfWar from "./fogofwar/fog-of-war";
 import {
   InputEvents,
   KeyboardManager,
-  MinimapControl,
+  MinimapEventListener,
   MouseInput,
 } from "./input";
 import { FrameBW } from "./integration/fixed-data";
@@ -106,17 +106,6 @@ async function TitanReactorGame(
   janitor.callback(() => document.body.removeChild(minimapSurface.canvas));
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
-  const minimapControl = new MinimapControl(
-    minimapSurface,
-    mapWidth,
-    mapHeight
-  );
-  janitor.disposable(minimapControl);
-
-  //@ts-ignore
-  window.scene = scene;
-  //@ts-ignore
-  janitor.callback(() => (window.scene = null));
 
   const camera = new PerspectiveCamera(55, gameSurface.width / gameSurface.height, 3, 256);
   const control = new CameraControls(
@@ -129,6 +118,90 @@ async function TitanReactorGame(
   control.dollyToCursor = true;
   control.verticalDragToForward = true;
   constrainControls(control, Math.max(mapWidth, mapHeight));
+  janitor.disposable(control);
+  control.setLookAt(0, 20, 0, 0, 0, 0, true);
+  //@ts-ignore
+  window.control = control;
+  //@ts-ignore
+  window.camera = camera;
+  //@ts-ignore
+  janitor.callback(() => { window.control = null; window.camera = null; });
+
+  const previewControl = new CameraControls(camera, minimapSurface.canvas);
+  previewControl.mouseButtons.left = CameraControls.ACTION.TRUCK;
+  previewControl.mouseButtons.right = CameraControls.ACTION.ROTATE;
+  previewControl.mouseButtons.middle = CameraControls.ACTION.DOLLY;
+  previewControl.dollyToCursor = true;
+  previewControl.verticalDragToForward = true;
+  previewControl.setLookAt(0, 20, 0, 0, 0, 0, true);
+
+  const minimapEvents = new MinimapEventListener(
+    minimapSurface,
+    mapWidth,
+    mapHeight
+  );
+  janitor.disposable(minimapEvents);
+
+  minimapEvents.onStart = () => {
+    const target = new Vector3();
+    const position = new Vector3();
+
+    // camera.fov = previewCamera.fov;
+    previewControl.getTarget(target);
+    previewControl.getPosition(position);
+
+    camera.updateProjectionMatrix();
+    control.setLookAt(
+      position.x,
+      position.y,
+      position.z,
+      target.x,
+      target.y,
+      target.z,
+      false
+    );
+  };
+
+  const cameraTargetDelta = new Vector3();
+  minimapEvents.onMove = ({ pos }) => {
+    control.moveTo(pos.x, pos.y, pos.z, true);
+    camera.position.subVectors(pos, cameraTargetDelta);
+  };
+
+  minimapEvents.onHover = ({ pos, e }) => {
+    const target = new Vector3();
+    control.getTarget(target);
+    cameraTargetDelta.subVectors(target, camera.position);
+    previewControl.moveTo(pos.x, pos.y, pos.z, false);
+    // previewCamera.position.subVectors(pos, cameraTargetDelta);
+  };
+
+  minimapEvents.onEnter = () => {
+    const target = new Vector3();
+    const position = new Vector3();
+    control.getTarget(target);
+    control.getPosition(position);
+
+    // this.previewCamera.fov = this.camera.fov;
+    // this.previewCamera.updateProjectionMatrix();
+    previewControl.setLookAt(
+      position.x,
+      position.y,
+      position.z,
+      target.x,
+      target.y,
+      target.z,
+      false
+    );
+  };
+
+
+
+  //@ts-ignore
+  window.scene = scene;
+  //@ts-ignore
+  janitor.callback(() => (window.scene = null));
+
 
 
   // keyboardShortcuts.addEventListener(
@@ -162,15 +235,6 @@ async function TitanReactorGame(
   // );
 
 
-  janitor.disposable(control);
-
-  control.setLookAt(0, 20, 0, 0, 0, 0, true);
-  //@ts-ignore
-  window.control = control;
-  //@ts-ignore
-  window.camera = camera;
-  //@ts-ignore
-  janitor.callback(() => { window.control = null; window.camera = null; });
 
   await renderer.init(camera);
   if (renderer.renderer === undefined) {
@@ -232,11 +296,13 @@ async function TitanReactorGame(
       assert(openBw.api);
       const currentFrame = openBw.api._replay_get_value(3);
       openBw.api._replay_set_value(3, currentFrame + 1000 * dir);
+      for (const [_, sprite] of sprites) {
+        unitsBySprite.delete(sprite);
+      }
       sprites.clear();
       images.clear();
       units.clear();
       spritesGroup.clear();
-      unitsBySpriteId.clear();
       // cmds.next(openBw.api._replay_get_value(3));
       currentBwFrame = null;
       reset = null;
@@ -382,7 +448,7 @@ async function TitanReactorGame(
   const units: Map<number, CrapUnit> = new Map();
   const sprites: Map<number, Sprite> = new Map();
   const images: Map<number, Image> = new Map();
-  const unitsBySpriteId: Map<number, CrapUnit> = new Map();
+  const unitsBySprite: WeakMap<Sprite, CrapUnit> = new Map();
   // let research: ResearchInProduction[][] = [];
   // let upgrades: UpgradeInProduction[][] = [];
   // let completedUpgrades: UpgradeCompleted[][] = [];
@@ -400,7 +466,7 @@ async function TitanReactorGame(
       if (!sprite) continue;
       sprite.removeFromParent();
       sprites.delete(spriteId);
-      unitsBySpriteId.delete(spriteId);
+      unitsBySprite.delete(sprite);
     }
 
     for (const imageId of deletedImages) {
@@ -422,7 +488,8 @@ async function TitanReactorGame(
       }
       Object.assign(sprite.userData, spriteData);
 
-      const unit = unitsBySpriteId.get(sprite.index);
+      const unit = unitsBySprite.get(sprite);
+      const dat = bwDat.sprites[spriteData.typeId];
 
       // const buildingIsExplored =
       //   sprite.unit &&
@@ -434,8 +501,8 @@ async function TitanReactorGame(
       // show if a building has been explored
       sprite.visible =
         sprite.userData.owner === 11 ||
-        // spriteBW.dat.image.iscript === 336 ||
-        // spriteBW.dat.image.iscript === 337 ||
+        dat.image.iscript === 336 ||
+        dat.image.iscript === 337 ||
         fogOfWar.isSomewhatVisible(tile32(sprite.userData.x), tile32(sprite.userData.y));
 
       // don't update explored building frames so viewers only see last built frame
@@ -515,7 +582,7 @@ async function TitanReactorGame(
 
         if (image.userData.index === sprite.userData.mainImageIndex) {
           z = image._zOff * image.unitTileScale;
-          const unit = unitsBySpriteId.get(sprite.index);
+          const unit = unitsBySprite.get(sprite);
           if (unit) {
             // for 3d models
             // image.rotation.y = unit.angle;
@@ -541,7 +608,7 @@ async function TitanReactorGame(
     gameSurface,
     terrain,
     camera,
-    unitsBySpriteId
+    unitsBySprite
   );
 
   let _lastElapsed = 0;
@@ -597,7 +664,7 @@ async function TitanReactorGame(
       buildUnits.refresh(
         currentBwFrame.units,
         units,
-        unitsBySpriteId
+        unitsBySprite
       );
       buildSprites(currentBwFrame.sprites, delta);
       // buildResearchAndUpgrades(currentBwFrame);
