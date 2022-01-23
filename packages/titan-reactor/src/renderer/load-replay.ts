@@ -1,17 +1,14 @@
-
 import {
-    convertReplay,
-    parseReplay,
-    Version,
-    CommandsStream,
-    ChkDowngrader,
+  convertReplay,
+  parseReplay,
+  Version,
+  CommandsStream,
+  ChkDowngrader,
 } from "downgrade-replay";
-import path from "path";
+import fs from "fs";
 
 import Chk from "bw-chk";
-import {
-    ImageHD
-} from "./core";
+import { ImageHD } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
 import OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
 import { openFile } from "./ipc";
@@ -19,17 +16,17 @@ import * as log from "./ipc/log";
 import { Scene } from "./render";
 import loadTerrain from "./assets/load-terrain";
 import {
-    disposeGame,
-    getAssets,
-    getSettings,
-    setGame,
-    startLoadingProcess,
-    updateIndeterminateLoadingProcess,
-    completeLoadingProcess,
-    initScreen,
-    updateScreen,
-    completeScreen,
-    ReplayScreen,
+  disposeGame,
+  getAssets,
+  getSettings,
+  setGame,
+  startLoadingProcess,
+  updateIndeterminateLoadingProcess,
+  completeLoadingProcess,
+  initScreen,
+  updateScreen,
+  completeScreen,
+  ReplayScreen,
 } from "./stores";
 import TitanReactorGame from "./view-replay";
 import getFunString from "./bootup/get-fun-string";
@@ -37,120 +34,126 @@ import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import { strict as assert } from "assert";
-import { SoundStruct } from "./integration/data-transfer";
 import { pxToMapMeter } from "../common/utils/conversions";
+import { setWorld } from "./world";
 
 export default async (filepath: string) => {
-    log.info(`loading replay ${filepath}`);
+  log.info(`loading replay ${filepath}`);
 
-    startLoadingProcess({
-        id: "replay",
-        label: getFunString(),
-        priority: 1,
-    });
+  startLoadingProcess({
+    id: "replay",
+    label: getFunString(),
+    priority: 1,
+  });
 
-    disposeGame();
+  disposeGame();
 
-    const janitor = new Janitor();
-    const settings = getSettings();
+  const janitor = new Janitor();
+  const settings = getSettings();
 
-    // validate before showing any loading progress
-    let repBin = await openFile(filepath);
-    let rep = await parseReplay(repBin);
+  // validate before showing any loading progress
+  let repBin = await openFile(filepath);
+  let replay = await parseReplay(repBin);
 
-    document.title = "Titan Reactor - Loading";
+  document.title = "Titan Reactor - Loading";
 
-    initScreen({
-        type: "replay",
-        filename: filepath,
-    } as ReplayScreen);
+  initScreen({
+    type: "replay",
+    filename: filepath,
+  } as ReplayScreen);
 
-    log.verbose("parsing replay");
-    let repFile = filepath;
+  log.verbose("parsing replay");
 
-    // @todo change this to generics
-    // @ts-ignore
-    updateScreen({ header: rep.header } as ReplayScreen);
+  // @todo change this to generics
+  // @ts-ignore
+  updateScreen({ header: replay.header } as ReplayScreen);
 
-    if (rep.version !== Version.titanReactor) {
-        log.verbose(`changing replay format from ${Version[rep.version]} to titan reactor`);
-        const chkDowngrader = new ChkDowngrader();
-        repBin = await convertReplay(rep, chkDowngrader);
-        rep = await parseReplay(repBin);
-    }
-    log.verbose(`players ${rep.header.players.map(p => p.name).join(", ")}`);
-
-    log.verbose("loading chk");
-    const chk = new Chk(rep.chk);
-    updateScreen({ chkTitle: chk.title } as ReplayScreen);
-
-    log.verbose("building terrain");
-    const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
-    const scene = new Scene(terrainInfo);
-    janitor.object3d(scene);
-
-    await waitForAssets();
-
-    updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
-
-    assert(openBw.api)
-    const gameStateReader = new OpenBwWasmReader(
-        openBw.api
+  if (replay.version !== Version.titanReactor) {
+    log.verbose(
+      `changing replay format from ${Version[replay.version]} to titan reactor`
     );
-    janitor.disposable(gameStateReader);
+    const chkDowngrader = new ChkDowngrader();
+    repBin = await convertReplay(replay, chkDowngrader);
+    fs.writeFileSync(`D:\\last_replay.rep`, repBin);
+    replay = await parseReplay(repBin);
+  }
 
-    try {
-        gameStateReader.loadReplay(repBin);
-    } catch (e: unknown) {
-        log.error(e);
-    }
+  log.verbose("loading chk");
+  const chk = new Chk(replay.chk);
+  updateScreen({ chkTitle: chk.title } as ReplayScreen);
 
-    const races = ["terran", "zerg", "protoss"];
-    // const races = settings.musicAllTypes
-    //     ? ["terran", "zerg", "protoss"]
-    //     : uniq(rep.header.players.map(({ race }: { race: string }) => race)) as string[];
+  log.verbose("building terrain");
+  const terrain = await loadTerrain(
+    chk,
+    pxToMapMeter(chk.size[0], chk.size[1])
+  );
+  const scene = new Scene(terrain);
+  janitor.object3d(scene);
 
-    const assets = getAssets();
-    if (!assets || !assets.bwDat) {
-        throw new Error("assets not loaded");
-    }
+  await waitForAssets();
 
-    log.verbose("initializing audio");
+  updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
 
-    const mixer = new MainMixer();
-    const soundChannels = new SoundChannels(mixer, assets.loadAudioFile.bind(assets));
-    const music = new Music(races);
-    //@todo refactor music outside of three Audio
-    //@ts-ignore
-    music.setListener(mixer as unknown as AudioListener);
-    janitor.disposable(music);
+  assert(openBw.api);
+  const gameStateReader = new OpenBwWasmReader(openBw.api);
+  janitor.disposable(gameStateReader);
 
-    mixer.musicVolume = settings.audio.music;
-    mixer.soundVolume = settings.audio.sound;
-    mixer.masterVolume = settings.audio.global;
+  try {
+    gameStateReader.loadReplay(repBin);
+  } catch (e: unknown) {
+    log.error(e);
+  }
 
-    log.verbose("starting gameloop");
-    updateIndeterminateLoadingProcess("replay", getFunString());
-    ImageHD.useDepth = false;
-    const game = await TitanReactorGame(
-        scene,
-        terrainInfo,
-        chk.units,
-        rep,
-        new CommandsStream(rep.rawCmds),
-        gameStateReader,
-        assets.bwDat,
-        mixer,
-        music,
-        soundChannels,
-        janitor
-    );
+  const races = ["terran", "zerg", "protoss"];
 
-    setGame(game);
-    completeScreen();
+  const assets = getAssets();
+  if (!assets || !assets.bwDat) {
+    throw new Error("assets not loaded");
+  }
 
-    log.verbose("starting replay");
-    document.title = `Titan Reactor - ${chk.title} - ${rep.header.players.map(({ name }) => name).join(", ")}`;
-    game.start();
-    completeLoadingProcess("replay");
+  log.verbose("initializing audio");
+
+  const audioMixer = new MainMixer();
+  const soundChannels = new SoundChannels(
+    audioMixer,
+    assets.loadAudioFile.bind(assets)
+  );
+  const music = new Music(races);
+  //@todo refactor music outside of three Audio
+  //@ts-ignore
+  music.setListener(audioMixer as unknown as AudioListener);
+  janitor.disposable(music);
+
+  audioMixer.musicVolume = settings.audio.music;
+  audioMixer.soundVolume = settings.audio.sound;
+  audioMixer.masterVolume = settings.audio.global;
+
+  log.verbose("starting gameloop");
+  updateIndeterminateLoadingProcess("replay", getFunString());
+  ImageHD.useDepth = false;
+
+  const world = {
+    scene,
+    terrain,
+    chk,
+    replay,
+    commandsStream: new CommandsStream(replay.rawCmds),
+    gameStateReader,
+    assets,
+    audioMixer,
+    music,
+    soundChannels,
+    janitor,
+  };
+  const game = await TitanReactorGame(world);
+
+  setGame(game);
+  completeScreen();
+
+  log.verbose("starting replay");
+  document.title = `Titan Reactor - ${chk.title} - ${replay.header.players
+    .map(({ name }) => name)
+    .join(", ")}`;
+  game.start();
+  completeLoadingProcess("replay");
 };

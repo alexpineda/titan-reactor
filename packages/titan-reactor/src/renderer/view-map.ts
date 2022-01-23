@@ -1,7 +1,6 @@
 // playground for environment
 import { debounce } from "lodash";
-import { Color, MOUSE, Object3D } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";
 
@@ -13,7 +12,6 @@ import type {
   TerrainInfo,
 } from "../common/types";
 import { pxToMapMeter } from "../common/utils/conversions";
-import CameraRig from "./camera/camera-rig";
 import FogOfWar from "./fogofwar/fog-of-war";
 import { KeyboardManager } from "./input";
 import { Renderer, Scene } from "./render";
@@ -21,6 +19,8 @@ import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
 import { IScriptRunner } from "../common/iscript/iscript-runner";
+import CameraControls from "camera-controls";
+import { constrainControls } from "./utils/camera-utils";
 
 
 async function TitanReactorMap(
@@ -71,35 +71,32 @@ async function TitanReactorMap(
 
 
   // scene.background = new Color(settings.mapBackgroundColor);
-
-  const cameraRig = new CameraRig({
-    settings,
-    gameSurface,
-    freeControl: true,
-  }
+  const camera = new PerspectiveCamera(55, gameSurface.width / gameSurface.height, 3, 256);
+  const control = new CameraControls(
+    camera,
+    gameSurface.canvas,
   );
-  janitor.disposable(cameraRig);
+  control.mouseButtons.left = CameraControls.ACTION.TRUCK;
+  control.mouseButtons.right = CameraControls.ACTION.ROTATE;
+  control.mouseButtons.middle = CameraControls.ACTION.DOLLY;
+  control.dollyToCursor = true;
+  control.verticalDragToForward = true;
+  constrainControls(control, Math.max(mapWidth, mapHeight));
+  janitor.disposable(control);
 
+  control.setLookAt(0, 20, 0, 0, 0, 0, true);
   //@ts-ignore
-  window.cameraRig = cameraRig;
-  // @ts-ignore
-  janitor.callback(() => window.cameraRig = null)
-  const orbitControls = new OrbitControls(cameraRig.camera, gameSurface.canvas);
-  janitor.disposable(orbitControls);
+  window.control = control;
+  //@ts-ignore
+  window.camera = camera;
+  //@ts-ignore
+  janitor.callback(() => { window.control = null; window.camera = null; });
 
-  orbitControls.screenSpacePanning = false;
-  orbitControls.mouseButtons = {
-    LEFT: MOUSE.PAN,
-    MIDDLE: MOUSE.DOLLY,
-    RIGHT: MOUSE.ROTATE,
-  };
-  cameraRig.camera.position.set(0, 120, 100);
-  cameraRig.camera.lookAt(0, 0, 0);
 
   const renderer = new Renderer(settings);
   janitor.disposable(renderer);
 
-  await renderer.init(cameraRig.camera);
+  await renderer.init(camera);
   assert(renderer.renderer)
   renderer.enableRenderPass();
   //@ts-ignore
@@ -187,7 +184,8 @@ async function TitanReactorMap(
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
-    cameraRig.updateGameScreenAspect(gameSurface.width, gameSurface.height);
+    camera.aspect = gameSurface.width / gameSurface.height;
+    camera.updateProjectionMatrix();
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
@@ -214,13 +212,12 @@ async function TitanReactorMap(
       frameElapsed = 0;
     }
 
-    cameraRig.update();
-    renderer.updateFocus(cameraRig.camera);
-    fogOfWar.update(cameraRig.camera);
-    renderer.render(scene, cameraRig.camera, delta);
+    control.update(delta / 1000);
+    renderer.updateFocus(camera);
+    fogOfWar.update(camera);
+    renderer.render(scene, camera, delta);
     last = elapsed;
 
-    orbitControls.update();
   }
 
   renderer.renderer.setAnimationLoop(gameLoop);

@@ -3,6 +3,69 @@ import { CanvasTarget } from "../../common/image";
 
 const LeftMouse = 0;
 
+
+    // if (minimapControl && previewSurface) {
+    //   this.previewControl = new StandardCameraControls(
+    //     this.previewCamera,
+    //     previewSurface.canvas,
+    //   );
+    // }
+    //   minimapControl.addEventListener("start", ({ message: { speed } }) => {
+    //     const target = new Vector3();
+    //     const position = new Vector3();
+
+    //       this.camera.fov = this.previewCamera.fov;
+    //       this.previewControl.getTarget(target);
+    //       this.previewControl.getPosition(position);
+
+    //     const transition = speed < 2;
+    //     this.control.dampingFactor = 0.05;
+
+    //     this.camera.updateProjectionMatrix();
+    //     this.control.setLookAt(
+    //       position.x,
+    //       position.y,
+    //       position.z,
+    //       target.x,
+    //       target.y,
+    //       target.z,
+    //       transition
+    //     );
+    //   });
+
+    //   minimapControl.addEventListener("update", ({ message: { pos, e } }) => {
+    //     this.control.moveTo(pos.x, pos.y, pos.z, true);
+    //     this.camera.position.subVectors(pos, this._delta);
+    //   });
+
+    //   minimapControl.addEventListener("hover", ({ message: { pos, e } }) => {
+    //     const target = new Vector3();
+    //     this.control.getTarget(target);
+    //     this._delta.subVectors(target, this.camera.position);
+    //     this.previewControl.moveTo(pos.x, pos.y, pos.z, false);
+    //     this.previewCamera.position.subVectors(pos, this._delta);
+    //   });
+
+    //   minimapControl.addEventListener("enter", () => {
+    //     const target = new Vector3();
+    //     const position = new Vector3();
+    //     this.control.getTarget(target);
+    //     this.control.getPosition(position);
+
+    //     this.previewCamera.fov = this.camera.fov;
+    //     this.previewCamera.updateProjectionMatrix();
+    //     this.previewControl.setLookAt(
+    //       position.x,
+    //       position.y,
+    //       position.z,
+    //       target.x,
+    //       target.y,
+    //       target.z,
+    //       false
+    //     );
+    //   });
+    // }
+    
 // manages and dispatches minimap drag and click events
 export class MinimapControl extends EventDispatcher {
   mapWidth: number;
