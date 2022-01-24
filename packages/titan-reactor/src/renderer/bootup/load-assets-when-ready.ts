@@ -15,8 +15,7 @@ const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => 
   if (isProcessComplete("assets") || isProcessInProgress("assets")) {
     return;
   }
-  const assets = await loadAssets(settings);
-  setAssets(assets);
+  await loadAssets(settings);
   onSuccess();
   return true;
 };

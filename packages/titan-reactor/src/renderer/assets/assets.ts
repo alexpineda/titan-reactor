@@ -19,6 +19,7 @@ interface AssetsConstructorArgs {
   hoverIcons: CenteredCursorIcons;
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
+  smaaImages: any[];
   loadImageAtlas: (imageId: number) => Promise<void>
 }
 
@@ -35,6 +36,7 @@ class Assets {
   hoverIcons: CenteredCursorIcons;
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
+  smaaImages: any[];
   loadImageAtlas: (imageId: number) => Promise<void>;
 
   constructor({
@@ -49,7 +51,8 @@ class Assets {
     hoverIcons,
     dragIcons,
     wireframeIcons,
-    loadImageAtlas
+    loadImageAtlas,
+    smaaImages
   }: AssetsConstructorArgs) {
     this.arrowIcons = arrowIcons;
     this.bwDat = bwDat;
@@ -63,6 +66,7 @@ class Assets {
     this.workerIcons = workerIcons;
     this.wireframeIcons = wireframeIcons;
     this.loadImageAtlas = loadImageAtlas;
+    this.smaaImages = smaaImages;
   }
 
   async loadAudioFile(id: number) {

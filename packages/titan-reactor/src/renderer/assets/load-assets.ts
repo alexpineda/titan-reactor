@@ -1,5 +1,5 @@
 import { promises as fsPromises } from "fs";
-import path from "path";
+import path, { resolve } from "path";
 import fileExists from "../../common/utils/file-exists";
 import { loadDATFiles } from "../../common/bwdat/core/load-dat-files";
 import { loadAnimAtlas, loadGlbAtlas, parseAnim } from "../../common/image";
@@ -9,9 +9,16 @@ import {
 } from "../../common/utils/casclib";
 
 import {
+    // @ts-ignore
+    SMAAImageLoader,
+  }
+    from "postprocessing";
+  
+import {
     startLoadingProcess,
     updateLoadingProcess,
     completeLoadingProcess,
+    setAssets,
 } from "../stores";
 import electronFileLoader from "../../common/utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
@@ -122,9 +129,9 @@ export default async (settings: Settings) => {
         await loadImageAtlasGrp(i);
     }
 
-    completeLoadingProcess("assets");
+   const smaaImages = (await new Promise(resolve => new SMAAImageLoader().load(resolve))) as any[]
 
-    return new Assets({
+    setAssets(new Assets({
         bwDat,
         grps,
         selectionCirclesHD,
@@ -138,5 +145,7 @@ export default async (settings: Settings) => {
         wireframeIcons,
         // for dynamic loading, if we wish
         loadImageAtlas: loadImageAtlasGrp,
-    });
+        smaaImages
+    }));
+    completeLoadingProcess("assets");
 };
