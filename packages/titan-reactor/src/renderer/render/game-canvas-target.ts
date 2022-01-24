@@ -33,13 +33,19 @@ export class GameCanvasTarget extends CanvasTarget {
     this.left = 0;
     this.right = 0;
 
+    const pixelRatios = {
+      max: window.devicePixelRatio,
+      mid: 1,
+      low: 0.75
+    };
+
     if (gameAspect === GameAspect.Fit) {
       this.top = 0;
 
       super.setDimensions(
         Math.floor(maxWidth - 2),
         Math.floor(maxHeight - 2),
-        this.settings.graphics.pixelRatio === "device" ? window.devicePixelRatio : this.settings.graphics.pixelRatio
+        pixelRatios[this.settings.graphics.pixelRatio]
       );
     } else {
       const aspect = aspects[gameAspect];
@@ -58,7 +64,7 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(width),
         Math.floor(height),
-        this.settings.graphics.pixelRatio
+        pixelRatios[this.settings.graphics.pixelRatio]
       );
     }
 

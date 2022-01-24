@@ -11,9 +11,10 @@ import { getSettings } from "../stores/settings-store";
 import * as sd from "../../common/image/generate-map/sd";
 import * as hd from "../../common/image/generate-map/hd";
 import { Layers } from "../render"
-import { Mesh, Texture } from "three";
+import { Mesh } from "three";
 import assert from "assert";
 import * as log from "../ipc";
+import renderer from "../render/renderer";
 
 export async function loadBuffersAndBitmaps(chk: Chk, terrainTextureResolution: AssetTextureResolution): Promise<{ tilesetBuffers: TilesetBuffers, bitmaps: MapBitmapsResult; }> {
   const tilesetBuffers = await loadTilesetFiles(readCascFile, chk.tileset, chk._tiles, terrainTextureResolution);
@@ -65,12 +66,24 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
 
   let terrain = new Mesh();
 
+  const max = renderer.getWebGLRenderer().capabilities.getMaxAnisotropy();
+  const anisotropies = {
+    max,
+    mid: Math.floor(max / 2),
+    low: 1
+  };
+
+  const anisotropy = anisotropies[settings.graphics.anisotropy];
+
   if (renderSD) {
     assert(creepGrpSD);
     const creepTexture = sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16);
     const creepEdgesTexture = await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette);
     terrain = await createSDMesh(tileset, mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas);
 
+    creepTexture.texture.anisotropy = anisotropy;
+    creepEdgesTexture.texture.anisotropy = anisotropy;
+    dataTextures.sdMap.anisotropy = anisotropy;
   } else {
     assert(hdTiles);
     assert(creepGrpHD);
@@ -83,6 +96,13 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     );
     terrain = await createHDMesh(tileset, mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, hdQuartileTextures);
 
+    creepTexture.texture.anisotropy = anisotropy;
+    creepEdgesTexture.texture.anisotropy = anisotropy;
+    for (const row of hdQuartileTextures.mapQuartiles) {
+      for (const texture of row) {
+        texture.anisotropy = anisotropy;
+      }
+    }
   }
 
   terrain.layers.enable(Layers.Clickable);
