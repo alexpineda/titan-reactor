@@ -23,7 +23,7 @@ export type Settings = {
     },
     graphics: {
         antialias: boolean;
-        pixelRatio: number;
+        pixelRatio: "device" | number;
         fullscreen: boolean;
     },
     controls: {

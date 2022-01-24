@@ -39,7 +39,7 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(maxWidth - 2),
         Math.floor(maxHeight - 2),
-        this.settings.graphics.pixelRatio
+        this.settings.graphics.pixelRatio === "device" ? window.devicePixelRatio : this.settings.graphics.pixelRatio
       );
     } else {
       const aspect = aspects[gameAspect];

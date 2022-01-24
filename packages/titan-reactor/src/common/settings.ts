@@ -26,7 +26,7 @@ export const defaultSettings: Settings = {
   },
   graphics: {
     antialias: true,
-    pixelRatio: 1,
+    pixelRatio: "device",
     fullscreen: true,
   },
   controls: {
