@@ -3,7 +3,7 @@ import { orders, UnitFlags, unitsByTechType } from "../common/bwdat/enums";
 import { debounce } from "lodash";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Box3, Camera, Color, Group, MathUtils, MOUSE, PerspectiveCamera, Raycaster, Vector3 } from "three";
+import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -41,14 +41,11 @@ import {
   getSettings,
   useGameStore,
   useHudStore,
-  useProductionStore,
-  useResourcesStore,
   useSettingsStore,
-  useUnitSelectionStore,
 } from "./stores";
 import { SoundStruct, SpriteStruct, ImageStruct, UnitStruct } from "./integration/data-transfer";
 import { EntityIterator } from "./integration/fixed-data/entity-iterator";
-import { isFlipped, isHidden } from "./utils/image-utils";
+import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteSortOrder } from "./utils/sprite-utils";
@@ -112,6 +109,10 @@ async function TitanReactorGame(
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
   const camera = new PerspectiveCamera(55, gameSurface.width / gameSurface.height, 3, 256);
+  camera.userData = {
+    direction: 0,
+    prevDirection: -1
+  };
   const control = new CameraControls(
     camera,
     gameSurface.canvas,
@@ -209,15 +210,6 @@ async function TitanReactorGame(
 
 
   const cameraKeys = new CameraKeys(window.document.body, control, settings);
-  cameraKeys.onFocusPress = () => {
-    const t = new Vector3();
-    camera.getWorldDirection(t);
-    const r = new Raycaster(camera.position, t);
-    const intersection = r.intersectObject(terrain.terrain)
-    if (intersection.length > 0) {
-      renderer._dofEffect.target = intersection[0].point;
-    }
-  }
   janitor.disposable(cameraKeys);
 
   await renderer.init(camera);
@@ -279,7 +271,7 @@ async function TitanReactorGame(
     reset = () => {
       assert(openBw.api);
       const currentFrame = openBw.api._replay_get_value(3);
-      openBw.api._replay_set_value(3, currentFrame + 1000 * dir);
+      openBw.api._replay_set_value(3, currentFrame + 100 * dir);
       sprites.clear();
       images.clear();
       units.clear();
@@ -736,34 +728,33 @@ async function TitanReactorGame(
       let y = terrain.getTerrainY(x, z);
       sprite.position.set(x, y, z);
 
-      // sprite.unit = unitsBySpriteId.get(spriteData.index);
-      // if (sprite.unit) {
-      //   if (sprite.unit.statusFlags & UnitFlags.Flying) {
-      //     const targetY = Math.min(6, y + 2.5);
-      //     if (sprite.position.y === 0) {
-      //       y = targetY;
-      //     } else {
-      //       y = MathUtils.damp(sprite.position.y, targetY, 0.001, delta);
-      //     }
-      //   }
+      if (unit) {
+        if (unit.statusFlags & UnitFlags.Flying) {
+          const targetY = Math.min(6, y + 2.5);
+          if (sprite.position.y === 0) {
+            y = targetY;
+          } else {
+            y = MathUtils.damp(sprite.position.y, targetY, 0.001, delta);
+          }
+        }
 
-      //if selected show selection sprites, also check canSelect again in case it died
-      if (unit?.extra.selected) {
-        sprite.select();
-      } else {
-        sprite.unselect();
+        if (unit.extra.selected) {
+          sprite.select();
+        } else {
+          sprite.unselect();
+        }
       }
 
       // liftoff z - 42, y+
       // landing z + 42, y-
 
-
       const player = players.playersById[sprite.userData.owner];
 
       for (const imageData of sprite.userData.images.reverse()) {
-        if (!sprite.visible || isHidden(imageData)) {
+        if (!sprite.visible || isHidden(imageData) || (!redraw(imageData) && !updateImagesDirection)) {
           continue;
         }
+        updateImagesDirection = false;
 
         // @todo recycle dead similar images
         let image = images.get(imageData.index);
@@ -794,12 +785,24 @@ async function TitanReactorGame(
         //@todo use modifier 1 for opacity value
         image.setCloaked(image.userData.modifier === 2 || image.userData.modifier === 5);
 
-        image.setFrame(image.userData.frameIndex, isFlipped(image.userData as ImageStruct));
-
         let z = 0;
 
+        if (hasDirectionalFrames(image.userData as ImageStruct)) {
+          const flipped = isFlipped(image.userData as ImageStruct);
+          const direction = flipped ? 32 - image.userData.frameIndexOffset : image.userData.frameIndexOffset;
+          const newFrameOffset = (direction + camera.userData.direction) % 32;
+
+          if (newFrameOffset > 16) {
+            image.setFrame(image.userData.frameIndexBase + 32 - newFrameOffset, true);
+          } else {
+            image.setFrame(image.userData.frameIndexBase + newFrameOffset, false);
+          }
+        } else {
+          image.setFrame(image.userData.frameIndex, isFlipped(image.userData as ImageStruct));
+        }
 
         if (image.userData.index === sprite.userData.mainImageIndex) {
+
           z = image._zOff * image.unitTileScale;
           const unit = unitsBySprite.get(sprite.index);
           if (unit) {
@@ -807,7 +810,7 @@ async function TitanReactorGame(
             // image.rotation.y = unit.angle;
           }
 
-          if (bwDat.images[image.userData.typeId].clickable) {
+          if (isClickable(image.userData as ImageStruct)) {
             sprite.layers.enable(Layers.Clickable);
             image.layers.enable(Layers.Clickable);
           }
@@ -832,6 +835,7 @@ async function TitanReactorGame(
 
   let _lastElapsed = 0;
   let delta = 0;
+  let updateImagesDirection = false;
 
   projectedCameraView.update();
   const cmds = commandsStream.generate();
@@ -984,6 +988,7 @@ async function TitanReactorGame(
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
+        updateImagesDirection = true;
       }
     }
 
@@ -1017,7 +1022,7 @@ async function TitanReactorGame(
     target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
 
-    renderer.enableCinematicPass();
+    renderer._togglePasses(renderer._renderPass);
     renderer.updateFocus(camera, control.polarAngle);
     fogOfWar.update(camera);
     renderer.render(scene, camera, delta);

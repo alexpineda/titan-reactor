@@ -9,12 +9,10 @@ export class ImagesBW
     return this._read(0);
   }
 
-  //@todo change this to byte?
   get modifier() {
     return this._read(1);
   }
 
-  //@todo change this to byte?
   get modifierData1() {
     return this._read(2);
   }
@@ -35,6 +33,16 @@ export class ImagesBW
   get frameIndex() {
     return this._read(8);
   }
+
+  get frameIndexOffset() {
+    return this._read(8);
+  }
+
+
+  get frameIndexBase() {
+    return this._read(8);
+  }
+
 
   get x() {
     return this._read(8);

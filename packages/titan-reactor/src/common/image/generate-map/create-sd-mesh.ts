@@ -2,7 +2,6 @@ import { DataTexturesResult } from "./create-data-textures";
 import * as THREE from "three";
 import {
   Mesh,
-  sRGBEncoding,
   Vector2,
 } from "three";
 
@@ -258,7 +257,6 @@ export const createSDMesh = async (
     },
   });
   sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounterUniform;
-  sdMap.encoding = sRGBEncoding;
 
   const elevationOptions = {
     drawMode: { value: 0 },

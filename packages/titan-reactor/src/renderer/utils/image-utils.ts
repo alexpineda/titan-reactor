@@ -10,13 +10,25 @@ export const isShadow = (image: ImageStruct, bwDat: BwDAT) => {
 }
 
 export const isFlipped = (image: ImageStruct) => {
-    return (image.flags & ImageFlags.Flipped) !== 0;
+  return (image.flags & ImageFlags.Flipped) !== 0;
 }
 
 export const isHidden = (image: ImageStruct) => {
-    return image.flags & ImageFlags.Hidden;
+  return image.flags & ImageFlags.Hidden;
 }
 
 export const isFrozen = (image: ImageStruct) => {
-    return image.flags & ImageFlags.Frozen;
+  return image.flags & ImageFlags.Frozen;
+}
+
+export const redraw = (image: ImageStruct) => {
+  return image.flags & ImageFlags.Redraw;
+}
+
+export const hasDirectionalFrames = (image: ImageStruct) => {
+  return image.flags & ImageFlags.Directional;
+}
+
+export const isClickable = (image: ImageStruct) => {
+  return image.flags & ImageFlags.Clickable;
 }
