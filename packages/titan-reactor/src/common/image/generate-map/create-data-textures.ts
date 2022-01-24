@@ -45,6 +45,7 @@ export const createDataTextures = async ({
     );
     sdMap.flipY = true;
     sdMap.encoding = THREE.sRGBEncoding;
+    sdMap.generateMipmaps = true;
     sdMap.needsUpdate = true;
 
 

@@ -14,7 +14,8 @@ import type {
 import { pxToMapMeter } from "../common/utils/conversions";
 import FogOfWar from "./fogofwar/fog-of-war";
 import { KeyboardManager } from "./input";
-import { Renderer, Scene } from "./render";
+import { Scene } from "./render";
+import renderer from "./render/renderer";
 import { getAssets, useHudStore, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
@@ -92,22 +93,8 @@ async function TitanReactorMap(
   //@ts-ignore
   janitor.callback(() => { window.control = null; window.camera = null; });
 
-
-  const renderer = new Renderer(settings);
-  janitor.disposable(renderer);
-
-  await renderer.init(camera);
-  assert(renderer.renderer)
-  renderer.enableRenderPass();
-  //@ts-ignore
-  window.renderMan = renderer;
   // @ts-ignore
   janitor.callback(() => window.renderMan = null)
-
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
-  janitor.disposable(fogOfWar);
-
-  fogOfWar.enabled = false;
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
@@ -195,7 +182,7 @@ async function TitanReactorMap(
   let last = 0;
   let frame = 0;
   let frameElapsed = 0;
-  renderer.setCanvasTarget(gameSurface);
+  renderer.targetSurface = gameSurface;
   renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
   function gameLoop(elapsed: number) {
@@ -213,14 +200,13 @@ async function TitanReactorMap(
     }
 
     control.update(delta / 1000);
-    renderer.updateFocus(camera, control.polarAngle);
-    fogOfWar.update(camera);
     renderer.render(scene, camera, delta);
     last = elapsed;
 
   }
 
-  renderer.renderer.setAnimationLoop(gameLoop);
+  renderer.getWebGLRenderer().setAnimationLoop(gameLoop);
+  janitor.callback(() => renderer.getWebGLRenderer().setAnimationLoop(null));
 
   //@ts-ignore
   window.scene = scene;

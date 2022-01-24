@@ -33,10 +33,12 @@ import {
 import { FrameBW } from "./integration/fixed-data";
 import * as log from "./ipc/log";
 import {
+  Effects,
   GameCanvasTarget,
   Layers,
-  Renderer,
+  Passes,
 } from "./render";
+import renderer from "./render/renderer";
 import {
   getSettings,
   useGameStore,
@@ -51,7 +53,7 @@ import { openBw } from "./openbw";
 import { spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
-import { constrainControls, getDirection32 } from "./utils/camera-utils";
+import { constrainControls, getDirection32, getDOFFocalLength } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 
 CameraControls.install({ THREE: THREE });
@@ -85,9 +87,6 @@ async function TitanReactorGame(
   janitor.disposable(mouseInput);
 
   const { mapWidth, mapHeight } = terrain;
-
-  const renderer = new Renderer(settings);
-  janitor.disposable(renderer);
 
   const keyboardManager = new KeyboardManager(window.document.body);
   janitor.disposable(keyboardManager);
@@ -212,17 +211,10 @@ async function TitanReactorGame(
   const cameraKeys = new CameraKeys(window.document.body, control, settings);
   janitor.disposable(cameraKeys);
 
-  await renderer.init(camera);
-  if (renderer.renderer === undefined) {
-    throw new Error("Renderer not initialized");
-  }
-
-  //@ts-ignore
-  window.renderMan = renderer;
   //@ts-ignore
   janitor.callback(() => (window.renderMan = null));
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.fogOfWarEffect);
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.composerPasses.effects[Effects.FogOfWar]);
   janitor.disposable(fogOfWar);
 
   const customColors = settings.playerColors.randomizeOrder
@@ -992,7 +984,7 @@ async function TitanReactorGame(
       }
     }
 
-    renderer.setCanvasTarget(gameSurface);
+    renderer.targetSurface = gameSurface;
 
     // if (players[0].showPov && players[1].showPov) {
     //   players.forEach(({ camera }) => {
@@ -1022,8 +1014,8 @@ async function TitanReactorGame(
     target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
 
-    renderer._togglePasses(renderer._renderPass);
-    renderer.updateFocus(camera, control.polarAngle);
+    renderer.togglePasses(Passes.Render);
+    renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, control.polarAngle);
     fogOfWar.update(camera);
     renderer.render(scene, camera, delta);
     // }
@@ -1090,7 +1082,7 @@ async function TitanReactorGame(
   gameLoop(0);
   _sceneResizeHandler();
   return {
-    start: () => renderer.renderer?.setAnimationLoop(gameLoop),
+    start: () => renderer.getWebGLRenderer().setAnimationLoop(gameLoop),
     gameSurface,
     minimapSurface,
     players,
