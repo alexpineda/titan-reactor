@@ -9,7 +9,7 @@ import {
   sRGBEncoding,
 } from "three";
 
-import { loadHdTile, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
 
 //TODO: INCOMPLETE
 export const ddsToWarpInTexture = function (renderer, warpIn) {
@@ -41,7 +41,7 @@ export const ddsToWarpInTexture = function (renderer, warpIn) {
     const x = i;
     const y = 0;
     // get the 13 creep tiles in the 2nd tile group including a first empty tile
-    const texture = loadHdTile(hdTiles[tilegroupU16[36 + i]]);
+    const texture = createCompressedTexture(hdTiles[tilegroupU16[36 + i]]);
 
     mat.map = texture;
     mat.needsUpdate = true;

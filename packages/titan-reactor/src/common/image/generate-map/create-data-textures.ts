@@ -45,7 +45,6 @@ export const createDataTextures = async ({
     );
     sdMap.flipY = true;
     sdMap.encoding = THREE.sRGBEncoding;
-    sdMap.generateMipmaps = true;
     sdMap.needsUpdate = true;
 
 
@@ -168,6 +167,7 @@ export const createDataTextures = async ({
         THREE.RGBAFormat,
         THREE.FloatType
     );
+    paletteMap.encoding = THREE.sRGBEncoding;
 
     return {
         sdMap,

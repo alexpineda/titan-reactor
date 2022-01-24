@@ -60,17 +60,6 @@ export const generateBitmaps = (
       }
 
       tileGroup = tileId >> 4;
-      // if (tileGroup * 52 < tilegroupBuf.byteLength) {
-      //   const flags = tilegroupBuf.readUInt8(tileGroup * 52 + 2) & 0x0f;
-      //   const buildable =
-      //     tilegroupBuf.readUInt8(tileGroup * 52 + 2) >> 4 !== 8;
-      //   const leftEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 4);
-      //   const topEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 6);
-      //   const rightEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 8);
-      //   const bottomEdge = tilegroupBuf.readUInt16LE(tileGroup * 52 + 10);
-      //   const edgeUp = tilegroupBuf.readUInt16LE(tileGroup * 52 + 14);
-      //   const edgeDown = tilegroupBuf.readUInt16LE(tileGroup * 52 + 18);
-      // }
       groupIndex = tileId & 0xf;
       groupOffset = tileGroup * 26 + groupIndex + 10;
       megatileId = 0;

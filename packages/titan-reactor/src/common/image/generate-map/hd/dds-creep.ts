@@ -12,7 +12,7 @@ import {
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 
-import { loadHdTile, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
 
 const width = 13;
 const height = 1;
@@ -26,7 +26,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array): Wr
   });
   renderer.autoClear = false;
 
-  const hdTiles = parseDdsGrp(buffer);
+  const tiles = parseDdsGrp(buffer);
 
   const ortho = new OrthographicCamera(
     -width / 2,
@@ -57,7 +57,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array): Wr
     const x = i;
     const y = 0;
     // get the 13 creep tiles in the 2nd tile group including a first empty tile
-    const texture = loadHdTile(hdTiles[tilegroupU16[36 + i]]);
+    const texture = createCompressedTexture(tiles[tilegroupU16[36 + i]]);
 
     mat.map = texture;
     mat.needsUpdate = true;

@@ -85,7 +85,10 @@ export const createSDMesh = async (
           vec4 paletteColor = texture2D(palette, vec2(indexF/256.,0));
         // #endif
 
-        vec4 texelColor = mapTexelToLinear(paletteColor);
+        // vec4 texelColor = mapTexelToLinear(paletteColor);
+        // vec4 texelColor = paletteColor;
+        vec4 texelColor = texture2D(map, vUv);
+
         diffuseColor *= texelColor;
 
         //sd creep

@@ -1014,9 +1014,10 @@ async function TitanReactorGame(
     target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
 
-    renderer.togglePasses(Passes.Render);
-    renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, control.polarAngle);
     fogOfWar.update(camera);
+    renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, control.polarAngle);
+
+    renderer.togglePasses(Passes.Render, Passes.Cinematic);
     renderer.render(scene, camera, delta);
     // }
     drawMinimap(projectedCameraView);

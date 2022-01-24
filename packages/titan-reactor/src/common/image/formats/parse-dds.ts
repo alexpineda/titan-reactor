@@ -87,7 +87,9 @@ export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
     height: number
   ) {
     const dataLength = width * height * 4;
-    const srcBuffer = new Uint8Array(buffer, dataOffset, dataLength);
+    const srcBuffer = new Uint8Array(buffer.buffer,
+      buffer.byteOffset + dataOffset,
+      dataLength);
     const byteArray = new Uint8ClampedArray(dataLength);
     let dst = 0;
     let src = 0;
@@ -147,16 +149,6 @@ export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
   // var off_caps4 = 30;
 
   // Parse header
-
-  // const header = new Int32Array(
-  //   buffer.buffer.slice(
-  //     buffer.byteOffset,
-  //     buffer.byteOffset + headerLengthInt * 4
-  //   ),
-  //   0,
-  //   headerLengthInt
-  // );
-
   const header = new Int32Array(
     buffer.buffer,
     buffer.byteOffset,
@@ -268,9 +260,9 @@ export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
 
         byteArray = new Uint8ClampedArray(
           buffer.buffer,
-          buffer.byteOffset,
-          buffer.length
-        ).subarray(dataOffset, dataOffset + dataLength);
+          buffer.byteOffset + dataOffset,
+          dataLength
+        );
       }
 
       const mipmap = {

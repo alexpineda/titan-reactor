@@ -16,6 +16,7 @@ export const grpToCreepTexture = (
 
   const diffuse = new Uint8Array(
     width * height * PX_PER_TILE_SD * PX_PER_TILE_SD * 4);
+  diffuse.fill(255);
   // draw an extra tile a the beginning, otherwise this offset for creep should be 36(Uint16)
   let tileIndex = 37;
 

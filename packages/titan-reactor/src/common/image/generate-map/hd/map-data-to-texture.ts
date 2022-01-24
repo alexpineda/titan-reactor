@@ -12,7 +12,7 @@ import {
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures } from "../../../types";
 
-import { loadHdTile, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
@@ -92,7 +92,7 @@ export const mapDataToTextures = (
           const mx = x + qx * quartileWidth;
           const tile = mapTilesData[my * mapWidth + mx];
           if (hdTiles[tile]) {
-            const texture = hdCache.get(tile) || loadHdTile(hdTiles[tile]);
+            const texture = hdCache.get(tile) || createCompressedTexture(hdTiles[tile]);
             if (!hdCache.has(tile)) {
               hdCache.set(tile, texture);
             }
@@ -111,8 +111,6 @@ export const mapDataToTextures = (
       ctx.drawImage(renderer.domElement, 0, 0);
       mapQuartiles[qx][qy] = new CanvasTexture(canvas);
       mapQuartiles[qx][qy].encoding = sRGBEncoding;
-      mapQuartiles[qx][qy].anisotropy =
-        renderer.capabilities.getMaxAnisotropy();
       mapQuartiles[qx][qy].flipY = false;
     }
   }

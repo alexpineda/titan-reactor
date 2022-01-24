@@ -13,7 +13,7 @@ import {
   WebGLRenderer
 } from "three";
 
-import { loadHdTile, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
 
 const bottomEdges = [0, 1, 2, 3];
 const rightEdges = [4];
@@ -100,7 +100,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer): WrappedTexture => {
     const x = i;
     const y = 0;
     const grp = creepGrp[i];
-    const texture = loadHdTile(grp.dds);
+    const texture = createCompressedTexture(grp.dds);
 
     mat.map = texture;
     mat.needsUpdate = true;
