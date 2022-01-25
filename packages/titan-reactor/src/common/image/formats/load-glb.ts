@@ -5,7 +5,8 @@ import {
   Group,
   Mesh,
   Object3D,
-  sRGBEncoding
+  sRGBEncoding,
+  Texture
 } from "three";
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -16,7 +17,7 @@ export type GlbResponse = {
 };
 export function loadGlb(
   file: string,
-  envMap: CubeTexture | null,
+  envMap: Texture | null,
   name = "",
   meshCb: (mesh: Mesh) => void = () => { }
 ) {

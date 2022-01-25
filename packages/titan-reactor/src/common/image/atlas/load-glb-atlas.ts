@@ -5,12 +5,14 @@ import { UnitTileScale } from "../../../renderer/core";
 import { ImageDAT } from "../../bwdat/core/images-dat";
 import loadGlb, { GlbResponse } from "../formats/load-glb";
 import { GrpType } from "../../types";
+import { Texture } from "three";
 
 export const loadGlbAtlas = async (glbFileName: string,
     loadAnimBuffer: () => Promise<Buffer>,
     imageDef: ImageDAT,
     scale: UnitTileScale,
-    grp: GrpType
+    grp: GrpType,
+    envMap: Texture
 ) => {
 
     const anim = await loadAnimAtlas(loadAnimBuffer, imageDef, scale, grp);
@@ -18,7 +20,7 @@ export const loadGlbAtlas = async (glbFileName: string,
     try {
         const { model, animations } = (await loadGlb(
             glbFileName,
-            null,
+            envMap,
             imageDef.name
         )) as GlbResponse;
 

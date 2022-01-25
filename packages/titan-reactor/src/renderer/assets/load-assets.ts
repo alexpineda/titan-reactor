@@ -28,6 +28,7 @@ import * as log from "../ipc/log"
 import { AssetTextureResolution, GRPInterface, Settings } from "../../common/types";
 import { openBwFiles, openBw } from "../openbw";
 import { UnitTileScale } from "../core";
+import loadEnvironmentMap from "../../common/image/env-map";
 
 export default async (settings: Settings) => {
 
@@ -63,10 +64,7 @@ export default async (settings: Settings) => {
     const sdAnim = parseAnim(sdAnimBuf);
     const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);
 
-    // log("loading env map");
-    // const renderer = new WebGLRenderer();
-    // // this.envMap = await loadEnvironmentMap(renderer, `${__static}/envmap.hdr`);
-    // renderer.dispose();
+    const envMap = await loadEnvironmentMap(`${__static}/envmap.hdr`);
 
     const {
         resourceIcons,
@@ -107,7 +105,8 @@ export default async (settings: Settings) => {
                 loadAnimBuffer,
                 imageDat,
                 scale,
-                bwDat.grps[imageDat.grp]
+                bwDat.grps[imageDat.grp],
+                envMap
             );
         } else {
             atlas = await loadAnimAtlas(
@@ -145,7 +144,8 @@ export default async (settings: Settings) => {
         wireframeIcons,
         // for dynamic loading, if we wish
         loadImageAtlas: loadImageAtlasGrp,
-        smaaImages
+        smaaImages,
+        envMap
     }));
     completeLoadingProcess("assets");
 };

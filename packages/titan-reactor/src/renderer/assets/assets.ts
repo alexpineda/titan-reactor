@@ -1,3 +1,4 @@
+import { Texture } from "three";
 import { BwDAT, GRPInterface } from "../../common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "../../common/types/icons";
 import {
@@ -21,6 +22,7 @@ interface AssetsConstructorArgs {
   wireframeIcons: string[];
   smaaImages: any[];
   loadImageAtlas: (imageId: number) => Promise<void>
+  envMap: Texture;
 }
 
 class Assets {
@@ -38,6 +40,7 @@ class Assets {
   wireframeIcons: string[];
   smaaImages: any[];
   loadImageAtlas: (imageId: number) => Promise<void>;
+  envMap: Texture;
 
   constructor({
     bwDat,
@@ -52,7 +55,8 @@ class Assets {
     dragIcons,
     wireframeIcons,
     loadImageAtlas,
-    smaaImages
+    smaaImages,
+    envMap
   }: AssetsConstructorArgs) {
     this.arrowIcons = arrowIcons;
     this.bwDat = bwDat;
@@ -67,6 +71,7 @@ class Assets {
     this.wireframeIcons = wireframeIcons;
     this.loadImageAtlas = loadImageAtlas;
     this.smaaImages = smaaImages;
+    this.envMap = envMap;
   }
 
   async loadAudioFile(id: number) {

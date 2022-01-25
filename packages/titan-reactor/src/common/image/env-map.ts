@@ -1,10 +1,10 @@
-import { PMREMGenerator, UnsignedByteType, WebGLRenderer } from "three";
+import { PMREMGenerator, Texture, UnsignedByteType, WebGLRenderer } from "three";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 export default function loadEnvironmentMap(
-  renderer: WebGLRenderer,
   filepath: string
-) {
+): Promise<Texture> {
+  const renderer = new WebGLRenderer();
   const pmremGenerator = new PMREMGenerator(renderer);
   pmremGenerator.compileEquirectangularShader();
 
