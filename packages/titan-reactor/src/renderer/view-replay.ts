@@ -154,24 +154,9 @@ async function TitanReactorGame(
     control.moveTo(pos.x, pos.y, pos.z, false);
   };
 
-  // const cameraTargetDelta = (() => {
-  //   const _cameraTargetDelta = new Vector3();
-  //   return () => {
-  //     const target = new Vector3();
-  //     control.getTarget(target);
-  //     _cameraTargetDelta.subVectors(target, camera.position);
-  //   }
-  // })();
-
   minimapEvents.onMove = ({ pos }) => {
-    control.moveTo(pos.x, pos.y, pos.z, false);
+    control.moveTo(pos.x, pos.y, pos.z, true);
   };
-
-  //@ts-ignore
-  window.previewControl = previewControl;
-  //@ts-ignore
-  janitor.callback(() => { window.previewControl = null; });
-
 
   //@ts-ignore
   window.scene = scene;

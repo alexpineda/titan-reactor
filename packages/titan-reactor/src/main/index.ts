@@ -8,6 +8,7 @@ import windows, { createMain } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
 import electronIsDev from "electron-is-dev";
+import { strict as assert } from "assert";
 
 const settingsPath = path.join(getUserDataPath(), "settings.yml");
 const psbId = powerSaveBlocker.start("prevent-display-sleep");
@@ -46,15 +47,17 @@ app.on("ready", async () => {
     createMain();
   }
   const updateFullScreen = (fullscreen: boolean) => {
-    windows.main?.setFullScreen(fullscreen);
+    assert(windows.main)
+    windows.main.setFullScreen(fullscreen);
+    windows.main.autoHideMenuBar = fullscreen;
     if (fullscreen) {
       windows.main?.maximize();
     }
   };
 
   settings.on("change", (settings) => {
-    if (settings.diff.fullscreen !== undefined) {
-      updateFullScreen(settings.diff.fullscreen);
+    if (settings.diff?.graphics?.fullscreen !== undefined) {
+      updateFullScreen(settings.diff.graphics.fullscreen);
     }
   });
 });
