@@ -1,5 +1,6 @@
 import CanvasTarget from "../../common/image/canvas/canvas-target";
 import {
+    CineonToneMapping,
     HalfFloatType,
     PCFSoftShadowMap,
     PerspectiveCamera,
@@ -24,13 +25,14 @@ const createWebGLRenderer = () => {
         stencil: false,
         depth: false,
     });
-    renderer.autoClear = false;
     renderer.outputEncoding = sRGBEncoding;
-    renderer.toneMapping = ReinhardToneMapping;
     renderer.debug.checkShaderErrors = true;
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
+
+    renderer.toneMapping = CineonToneMapping;
+    renderer.toneMappingExposure = 0.9;
 
     return renderer;
 };

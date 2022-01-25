@@ -10,7 +10,7 @@ import { TerrainInfo } from "../../common/types";
 import Janitor from "../utils/janitor";
 
 function sunlight(mapWidth: number, mapHeight: number) {
-  const light = new DirectionalLight(0xffffff, 3);
+  const light = new DirectionalLight(0xffffff, 2);
   light.position.set(-32, 13, -26);
   light.target = new Object3D();
   light.castShadow = true;
@@ -53,8 +53,8 @@ export class Scene extends ThreeScene {
 
   private addLights() {
     const lights = [
-      new HemisphereLight(0xffffff, 0xffffff, 5)
-      ,sunlight(this._mapWidth, this._mapHeight)
+      new HemisphereLight(0xffffff, 0xffffff, 1)
+      , sunlight(this._mapWidth, this._mapHeight)
     ]
     lights.forEach(light => this.add(light));
   }

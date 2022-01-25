@@ -100,7 +100,7 @@ export const createPasses = () => {
   passes[Passes.Cinematic] = new EffectPass(
     throwAwayCamera,
     dofEffect,
-    fowEffect,
+    fowEffect
   );
 
 

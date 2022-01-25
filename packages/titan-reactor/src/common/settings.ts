@@ -29,6 +29,7 @@ export const defaultSettings: Settings = {
     pixelRatio: "max",
     anisotropy: "max",
     fullscreen: true,
+    gamma: 0.9
   },
   controls: {
     keyboard: {

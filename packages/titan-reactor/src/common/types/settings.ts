@@ -26,6 +26,7 @@ export type Settings = {
         pixelRatio: "max" | "mid" | "low";
         anisotropy: "max" | "mid" | "low";
         fullscreen: boolean;
+        gamma: number;
     },
     controls: {
         keyboard: {
