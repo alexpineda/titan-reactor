@@ -21,7 +21,7 @@ export class MinimapEventListener {
   _mouseHoldTicks = 0;
   _lastInterval: NodeJS.Timer | null = null;
 
-  onStart?: () => void;
+  onStart?: (e: MinimapEvent) => void;
   onStop?: () => void;
   onEnter?: (e: MinimapEvent) => void;
   onHover?: (e: MinimapEvent) => void;
@@ -77,7 +77,7 @@ export class MinimapEventListener {
         if (this._lastInterval) {
           clearInterval(this._lastInterval);
         }
-        this.onStart && this.onStart();
+        this.onStart && this.onStart({ e, pos });
 
         if (e.button === LeftMouse) {
           this._isDragging = true;
@@ -97,7 +97,11 @@ export class MinimapEventListener {
 
       this._isDragging = false;
       if (this._mouseHoldTicks === 0) {
-        this.onStart && this.onStart();
+        const x = getX(e.offsetX);
+        const y = getY(e.offsetY);
+        const pos = new Vector3(x, 0, y);
+
+        this.onStart && this.onStart({ e, pos });
       }
     };
     this.surface.canvas.addEventListener("mouseup", _mu);

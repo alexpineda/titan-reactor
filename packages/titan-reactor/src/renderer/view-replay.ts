@@ -139,6 +139,7 @@ async function TitanReactorGame(
   previewControl.dollyToCursor = true;
   previewControl.verticalDragToForward = true;
   previewControl.setLookAt(0, 20, 0, 0, 0, 0, true);
+  constrainControls(previewControl, Math.max(mapWidth, mapHeight));
 
   const minimapEvents = new MinimapEventListener(
     minimapSurface,
@@ -147,59 +148,29 @@ async function TitanReactorGame(
   );
   janitor.disposable(minimapEvents);
 
-  minimapEvents.onStart = () => {
-    const target = new Vector3();
-    const position = new Vector3();
+  const normalizedAzimuthAngle = (c: CameraControls) => MathUtils.euclideanModulo(c.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD);
 
-    // camera.fov = previewCamera.fov;
-    previewControl.getTarget(target);
-    previewControl.getPosition(position);
-
-    camera.updateProjectionMatrix();
-    control.setLookAt(
-      position.x,
-      position.y,
-      position.z,
-      target.x,
-      target.y,
-      target.z,
-      false
-    );
+  minimapEvents.onStart = ({ pos }) => {
+    control.moveTo(pos.x, pos.y, pos.z, false);
   };
 
-  const cameraTargetDelta = new Vector3();
+  // const cameraTargetDelta = (() => {
+  //   const _cameraTargetDelta = new Vector3();
+  //   return () => {
+  //     const target = new Vector3();
+  //     control.getTarget(target);
+  //     _cameraTargetDelta.subVectors(target, camera.position);
+  //   }
+  // })();
+
   minimapEvents.onMove = ({ pos }) => {
-    control.moveTo(pos.x, pos.y, pos.z, true);
-    camera.position.subVectors(pos, cameraTargetDelta);
+    control.moveTo(pos.x, pos.y, pos.z, false);
   };
 
-  minimapEvents.onHover = ({ pos, e }) => {
-    const target = new Vector3();
-    control.getTarget(target);
-    cameraTargetDelta.subVectors(target, camera.position);
-    previewControl.moveTo(pos.x, pos.y, pos.z, false);
-    // previewCamera.position.subVectors(pos, cameraTargetDelta);
-  };
-
-  minimapEvents.onEnter = () => {
-    const target = new Vector3();
-    const position = new Vector3();
-    control.getTarget(target);
-    control.getPosition(position);
-
-    // this.previewCamera.fov = this.camera.fov;
-    // this.previewCamera.updateProjectionMatrix();
-    previewControl.setLookAt(
-      position.x,
-      position.y,
-      position.z,
-      target.x,
-      target.y,
-      target.z,
-      false
-    );
-  };
-
+  //@ts-ignore
+  window.previewControl = previewControl;
+  //@ts-ignore
+  janitor.callback(() => { window.previewControl = null; });
 
 
   //@ts-ignore

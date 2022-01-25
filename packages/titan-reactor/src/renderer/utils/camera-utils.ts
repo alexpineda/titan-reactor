@@ -16,15 +16,15 @@ export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
 
 
 export const constrainControls = (controls: CameraControls, maxMapDim: number) => {
-  controls.maxDistance = maxMapDim * 0.75;
+  controls.maxDistance = maxMapDim * 0.35;
   controls.minDistance = 10;
 
   controls.dollySpeed = 0.2
 
   controls.maxPolarAngle = (20 * Math.PI) / 64; // bottom
   controls.minPolarAngle = (2 * Math.PI) / 64; // top
-  controls.maxAzimuthAngle = (16 * Math.PI) / 64;
-  controls.minAzimuthAngle = -(16 * Math.PI) / 64;
+  controls.maxAzimuthAngle = (12 * Math.PI) / 64;
+  controls.minAzimuthAngle = -(12 * Math.PI) / 64;
 }
 
 
