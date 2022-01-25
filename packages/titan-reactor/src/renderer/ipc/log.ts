@@ -32,13 +32,13 @@ export const verbose = (msg: string) => {
 // @todo return early if disabled
 export const log = async (message: string, level = "info") => {
   // if (useSettingsStore.getState().isDev) {
-    if (level === "error") {
-      console.trace(message);
-    } else if (level === "warning") {
-      console.warn(message);
-    } else {
-      console.log(message);
-    }
+  if (level === "error") {
+    console.trace(message);
+  } else if (level === "warning") {
+    console.warn(message);
+  } else {
+    console.log(message);
+  }
   // }
 
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });

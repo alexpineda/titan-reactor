@@ -49,7 +49,6 @@ export default class OpenBWFileList {
         }
         const index = this.index[this.normalize(filepath)];
         this.unused.splice(this.unused.indexOf(index), 1);
-        log.verbose(`pulling ${this.normalize(filepath)} ${index}`);
         return index >= 0 ? index : 9999;
       }
     });
@@ -65,14 +64,12 @@ export default class OpenBWFileList {
 
       let int8 = new Int8Array();
 
-      //@todo casclib madness fix plz
       if (isCascStorage()) {
+        //@todo why is casclib returning unit8array?
         int8 = Int8Array.from(buffer.subarray(0, buffer.byteLength / 8))
       }
       else {
 
-        //@todo why is casclib returning unit8array?
-        //  if (buffer instanceof Buffer) {
         int8 = new Int8Array(
           buffer.buffer,
           buffer.byteOffset,
@@ -82,10 +79,6 @@ export default class OpenBWFileList {
       }
 
       this.buffers.push(int8);
-
-      log.verbose(
-        `pushing ${this.normalize(filepath)} ${this.buffers.length - 1} ${int8.byteLength}`
-      );
       this.index[this.normalize(filepath)] = this.buffers.length - 1;
       this.unused.push(this.buffers.length - 1);
     }

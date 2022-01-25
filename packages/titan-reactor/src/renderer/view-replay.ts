@@ -214,8 +214,7 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => (window.renderMan = null));
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, renderer.composerPasses.effects[Effects.FogOfWar]);
-  janitor.disposable(fogOfWar);
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw, renderer.composerPasses.effects[Effects.FogOfWar]);
 
   const customColors = settings.playerColors.randomizeOrder
     ? shuffle(playerColors)
@@ -261,9 +260,9 @@ async function TitanReactorGame(
   const skipHandler = (dir: number) => () => {
     if (reset) return;
     reset = () => {
-      assert(openBw.api);
-      const currentFrame = openBw.api._replay_get_value(3);
-      openBw.api._replay_set_value(3, currentFrame + 100 * dir);
+      assert(openBw.wasm);
+      const currentFrame = openBw.wasm._replay_get_value(3);
+      openBw.wasm._replay_set_value(3, currentFrame + 100 * dir);
       sprites.clear();
       images.clear();
       units.clear();
@@ -278,9 +277,9 @@ async function TitanReactorGame(
   keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
 
   const speedHandler = (scale: number) => () => {
-    assert(openBw.api);
-    const currentSpeed = openBw.api._replay_get_value(0);
-    openBw.api._replay_set_value(0, currentSpeed * scale)
+    assert(openBw.wasm);
+    const currentSpeed = openBw.wasm._replay_get_value(0);
+    openBw.wasm._replay_set_value(0, currentSpeed * scale)
   }
   keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
   keyboardManager.on(InputEvents.SpeedDown, speedHandler(1 / 2));
@@ -511,6 +510,7 @@ async function TitanReactorGame(
     return (view: ProjectedCameraView) => {
       if (!_generatingMinimapFog) {
         _generatingMinimapFog = true;
+
         createImageBitmap(fogOfWar.imageData).then((ib) => {
           fogBitmap = ib;
           _generatingMinimapFog = false;
@@ -640,10 +640,6 @@ async function TitanReactorGame(
     }
   };
 
-  const buildFog = (bwFrame: FrameBW): void => {
-    fogOfWar.generate(bwFrame.tiles, players.getVisionFlag(), bwFrame.frame);
-  };
-
   const buildCreep = (bwFrame: FrameBW) => {
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
@@ -660,9 +656,9 @@ async function TitanReactorGame(
   scene.add(spritesGroup);
 
   const buildSprites = (spritesBW: EntityIterator<SpriteStruct>, delta: number) => {
-    assert(openBw.api);
-    const deletedImages = openBw.api.get_util_funcs().get_deleted_images();
-    const deletedSprites = openBw.api.get_util_funcs().get_deleted_sprites();
+    assert(openBw.wasm);
+    const deletedImages = openBw.wasm.get_util_funcs().get_deleted_images();
+    const deletedSprites = openBw.wasm.get_util_funcs().get_deleted_sprites();
 
     for (const spriteId of deletedSprites) {
       const sprite = sprites.get(spriteId);
@@ -869,7 +865,7 @@ async function TitanReactorGame(
 
     if (gameStatePosition.advanceGameFrames && currentBwFrame) {
       buildSounds(currentBwFrame.sounds);
-      buildFog(currentBwFrame);
+      fogOfWar.update(players.getVisionFlag(), camera);
       buildCreep(currentBwFrame);
 
       gameStatePosition.bwGameFrame = currentBwFrame.frame;
@@ -1013,10 +1009,9 @@ async function TitanReactorGame(
     target.setY((target.y + camera.position.y) / 2);
     target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
-
-    fogOfWar.update(camera);
     renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, control.polarAngle);
 
+    // renderer.togglePasses(Passes.Render);
     renderer.togglePasses(Passes.Render, Passes.Cinematic);
     renderer.render(scene, camera, delta);
     // }

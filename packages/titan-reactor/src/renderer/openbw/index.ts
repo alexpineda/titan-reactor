@@ -14,7 +14,7 @@ const callbacks = {
   afterFrame: () => { },
 };
 
-export interface OpenBWWasmAPI {
+export interface OpenBWWasm {
   _reset: () => void;
   _load_replay: (buffer: number, length: number) => void;
   _next_frame: () => void;
@@ -23,6 +23,7 @@ export interface OpenBWWasmAPI {
   _get_buffer: (index: number) => number;
   _replay_get_value: (index: number) => number;
   _replay_set_value: (index: number, value: number) => void;
+  _get_fow_ptr: (visiblity: number, instant: boolean) => number;
   get_util_funcs: () => ({
     get_units: (dirtyChecking: boolean) => UnitStruct[],
     get_sprites: (dirtyChecking: boolean) => SpriteStruct[],
@@ -44,33 +45,47 @@ export interface OpenBWWasmAPI {
   ALLOC_NORMAL: number;
 }
 
-interface OpenBWWasmWrapper {
-  api?: OpenBWWasmAPI;
+export interface OpenBWAPI {
+  wasm?: OpenBWWasm;
   callbacks: {
     beforeFrame: () => void;
     afterFrame: () => void;
   };
+  call: {
+    getFowSize: () => number;
+    getFowPtr: (visibility: number, instant: boolean) => number;
+    main: () => void;
+  }
   loaded: Promise<boolean>;
-  callMain: () => void;
-}
-const openBw: OpenBWWasmWrapper = {
+};
+
+const openBw: OpenBWAPI = {
   callbacks,
   loaded: createOpenBw({
     wasmBinary: readFileSync(wasmFileLocation),
-  }).then((_api: OpenBWWasmAPI) => {
-    openBw.api = _api;
-    openBwFiles.setup(_api, callbacks);
+  }).then((_wasm: OpenBWWasm) => {
+    openBw.wasm = _wasm;
+    openBwFiles.setup(_wasm, callbacks);
+    openBw.call = {
+      getFowSize: () => _wasm._counts(0, 10),
+      getFowPtr: (visibility: number, instant: boolean) => _wasm._get_fow_ptr(visibility, instant),
+      main: () => {
+        try {
+          _wasm.callMain();
+        } catch (e) {
+          throw new Error(_wasm.getExceptionMessage(e));
+        }
+      }
+    };
     //@ts-ignore
-    window.openBw = openBw.api;
+    window.openBw = openBw.wasm;
     return true;
   }),
-  callMain: () => {
-    try {
-      openBw.api?.callMain();
-    } catch (e) {
-      throw new Error(openBw.api?.getExceptionMessage(e));
-    }
-  },
+  call: {
+    main: () => { },
+    getFowSize: () => 0,
+    getFowPtr: (visibility: number, instant: boolean) => 0
+  }
 };
 
 export { openBw, openBwFiles };

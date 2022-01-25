@@ -2,11 +2,8 @@ import type { TerrainInfo } from "../common/types";
 import type { CommandsStream, Replay } from "downgrade-replay";
 import type { Scene } from "./render/Scene";
 import type { MainMixer, Music, SoundChannels } from "./audio";
-import type Creep from "./creep/creep";
-import type FogOfWar from "./fogofwar/fog-of-war";
 import type OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
 import type Janitor from "./utils/janitor";
-import type { OpenBWWasmAPI } from "./openbw";
 import { strict as assert } from "assert";
 import type Assets from "./assets/assets";
 import type Chk from "bw-chk";
@@ -33,11 +30,11 @@ export interface ReplayWorld extends World {
 }
 
 let _world: any;
-export function setWorld<T extends World> (world: T){ 
+export function setWorld<T extends World>(world: T) {
     _world = world;
     return world;
 }
-export function getWorld<T extends World> () : T{
+export function getWorld<T extends World>(): T {
     assert(_world)
     return _world;
 }

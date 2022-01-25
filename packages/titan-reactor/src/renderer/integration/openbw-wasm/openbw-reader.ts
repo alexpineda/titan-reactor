@@ -1,5 +1,5 @@
 import fs from 'fs';
-import type {  OpenBWWasmAPI} from '../../openbw';
+import type { OpenBWWasm } from '../../openbw';
 import { FrameBW, SoundsBufferView, TilesBufferView } from '../fixed-data';
 
 export interface Heaps {
@@ -12,10 +12,10 @@ export interface Heaps {
 }
 
 // @todo move this up to api level
-const tryCatch = (cb: Function, openBw: OpenBWWasmAPI) => {
+const tryCatch = (cb: Function, openBw: OpenBWWasm) => {
     try {
         cb();
-    } catch( e) {
+    } catch (e) {
         if (typeof e === 'number') {
             throw new Error(openBw.getExceptionMessage(e));
         } else {
@@ -25,10 +25,10 @@ const tryCatch = (cb: Function, openBw: OpenBWWasmAPI) => {
 }
 
 export default class OpenBwWasmReader {
-    openBw: OpenBWWasmAPI;
+    openBw: OpenBWWasm;
     heaps: Heaps;
 
-    constructor(api: OpenBWWasmAPI) {
+    constructor(api: OpenBWWasm) {
         this.openBw = api;
         this.heaps = {
             HEAP8: this.openBw.HEAP8,

@@ -12,7 +12,6 @@ import type {
   TerrainInfo,
 } from "../common/types";
 import { pxToMapMeter } from "../common/utils/conversions";
-import FogOfWar from "./fogofwar/fog-of-war";
 import { KeyboardManager } from "./input";
 import { Scene } from "./render";
 import renderer from "./render/renderer";

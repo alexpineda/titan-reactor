@@ -11,9 +11,9 @@ import {
 import {
     // @ts-ignore
     SMAAImageLoader,
-  }
+}
     from "postprocessing";
-  
+
 import {
     startLoadingProcess,
     updateLoadingProcess,
@@ -52,7 +52,7 @@ export default async (settings: Settings) => {
 
     log.verbose("Loading assets into openbw");
     await openBwFiles.loadBuffers(readCascFile);
-    openBw.callMain();
+    openBw.call.main();
 
     log.verbose("Loading dat files");
     const bwDat = await loadDATFiles(readCascFile);
@@ -129,7 +129,7 @@ export default async (settings: Settings) => {
         await loadImageAtlasGrp(i);
     }
 
-   const smaaImages = (await new Promise(resolve => new SMAAImageLoader().load(resolve))) as any[]
+    const smaaImages = (await new Promise(resolve => new SMAAImageLoader().load(resolve))) as any[]
 
     setAssets(new Assets({
         bwDat,

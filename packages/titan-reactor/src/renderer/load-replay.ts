@@ -94,8 +94,8 @@ export default async (filepath: string) => {
 
   updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
 
-  assert(openBw.api);
-  const gameStateReader = new OpenBwWasmReader(openBw.api);
+  assert(openBw.wasm);
+  const gameStateReader = new OpenBwWasmReader(openBw.wasm);
   janitor.disposable(gameStateReader);
 
   try {

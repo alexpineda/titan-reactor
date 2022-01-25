@@ -1,4 +1,4 @@
-import { OpenBWWasmAPI } from "src/renderer/openbw";
+import { OpenBWWasm } from "src/renderer/openbw";
 import { BuildingQueueCountBW, ImagesBW, ResearchBW, SoundsBufferView, SpritesBW, TilesBufferView, UnitsBufferView, UpgradeBW } from ".";
 import { ImageStruct, SoundStruct, SpriteStruct } from "../data-transfer";
 import { Heaps } from "../openbw-wasm/openbw-reader";
@@ -36,7 +36,7 @@ export class FrameBW {
     this._upgrades = new UpgradeBW(0, 0, 0, new Int8Array(), new Uint8Array());
   }
 
-  update(openBw: OpenBWWasmAPI) {
+  update(openBw: OpenBWWasm) {
     openBw._next_frame();
     const funcs = openBw.get_util_funcs();
 
