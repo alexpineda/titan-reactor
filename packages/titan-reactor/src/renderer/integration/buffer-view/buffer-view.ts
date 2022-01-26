@@ -11,17 +11,17 @@ export abstract class BufferView<T> implements EntityIterator<T> {
   private _ptrIndex = 0;
 
   private readonly _structSizeInBytes;
-  private readonly _buffer: TypedArray;
+  readonly buffer: TypedArray;
 
   constructor(structSizeInBytes: number, ptr = 0, itemsCount = 0, buffer: TypedArray) {
-    this._buffer = buffer;
+    this.buffer = buffer;
     this.itemsCount = itemsCount;
     this._structSizeInBytes = structSizeInBytes / buffer.BYTES_PER_ELEMENT;
     this.ptrIndex = ptr;
   }
 
   set ptrIndex(index: number) {
-    this._itemIndex = index / this._buffer.BYTES_PER_ELEMENT;
+    this._itemIndex = index / this.buffer.BYTES_PER_ELEMENT;
     this._ptrIndex = index;
   }
 
@@ -30,11 +30,11 @@ export abstract class BufferView<T> implements EntityIterator<T> {
   }
 
   copy() {
-    return this._buffer.slice(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
+    return this.buffer.slice(this._itemIndex, this._itemIndex + this.itemsCount);
   }
 
   shallowCopy() {
-    return this._buffer.subarray(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
+    return this.buffer.subarray(this._itemIndex, this._itemIndex + this.itemsCount);
   }
 
   object(): T {
@@ -42,7 +42,7 @@ export abstract class BufferView<T> implements EntityIterator<T> {
   }
 
   protected _read(offset: number) {
-    return this._buffer[this._itemIndex + offset];
+    return this.buffer[this._itemIndex + offset];
   }
 
   *items(count = this.itemsCount) {
