@@ -768,14 +768,14 @@ async function TitanReactorGame(
     }
   };
 
-  mouseInput.bind(
-    spritesGroup,
-    projectedCameraView,
-    gameSurface,
-    terrain,
-    camera,
-    unitsBySprite
-  );
+  // mouseInput.bind(
+  //   spritesGroup,
+  //   projectedCameraView,
+  //   gameSurface,
+  //   terrain,
+  //   camera,
+  //   unitsBySprite
+  // );
 
   let _lastElapsed = 0;
   let delta = 0;
