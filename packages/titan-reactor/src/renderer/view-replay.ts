@@ -53,7 +53,7 @@ import { openBw } from "./openbw";
 import { spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
-import { constrainControls, getDirection32, getDOFFocalLength } from "./utils/camera-utils";
+import { constrainAzimuth, constrainControls, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 
 CameraControls.install({ THREE: THREE });
@@ -123,7 +123,10 @@ async function TitanReactorGame(
   control.verticalDragToForward = true;
   constrainControls(control, Math.max(mapWidth, mapHeight));
   janitor.disposable(control);
-  control.setLookAt(0, 20, 0, 0, 0, 0, true);
+  (async () => {
+    await control.setLookAt(0, 20, 0, 0, 0, 0, true);
+    control.rotatePolarTo(POLAR_MIN, true);
+  })();
   control.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
   //@ts-ignore
   window.control = control;
@@ -147,8 +150,6 @@ async function TitanReactorGame(
     mapHeight
   );
   janitor.disposable(minimapEvents);
-
-  const normalizedAzimuthAngle = (c: CameraControls) => MathUtils.euclideanModulo(c.azimuthAngle, 360 * THREE.MathUtils.DEG2RAD);
 
   minimapEvents.onStart = ({ pos }) => {
     control.moveTo(pos.x, pos.y, pos.z, false);
@@ -928,6 +929,10 @@ async function TitanReactorGame(
     control.getTarget(target);
 
     {
+      const azi = constrainAzimuth(control.polarAngle);
+      control.minAzimuthAngle = -azi / 2;
+      control.maxAzimuthAngle = azi / 2;
+
       const dir = control.polarAngle < 0.25 ? 0 : getDirection32(target, camera.position);
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;

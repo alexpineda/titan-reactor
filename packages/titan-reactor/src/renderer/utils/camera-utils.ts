@@ -14,6 +14,9 @@ export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
   }
 }
 
+export const POLAR_MAX = (20 * Math.PI) / 64;
+export const POLAR_MIN = (2 * Math.PI) / 64;
+export const AZI_RANGE = (24 * Math.PI) / 64;
 
 export const constrainControls = (controls: CameraControls, maxMapDim: number) => {
   controls.maxDistance = maxMapDim * 0.35;
@@ -21,12 +24,16 @@ export const constrainControls = (controls: CameraControls, maxMapDim: number) =
 
   controls.dollySpeed = 0.2
 
-  controls.maxPolarAngle = (20 * Math.PI) / 64; // bottom
-  controls.minPolarAngle = (2 * Math.PI) / 64; // top
-  controls.maxAzimuthAngle = (12 * Math.PI) / 64;
-  controls.minAzimuthAngle = -(12 * Math.PI) / 64;
+  controls.maxPolarAngle = POLAR_MAX; // bottom
+  controls.minPolarAngle = POLAR_MIN; // top
+  controls.maxAzimuthAngle = AZI_RANGE / 2;
+  controls.minAzimuthAngle = -AZI_RANGE / 2;
 }
 
+export const constrainAzimuth = (polarAngle: number) => {
+  const np = (polarAngle - POLAR_MIN) / (POLAR_MAX - POLAR_MIN);
+  return (np * np * AZI_RANGE);
+}
 
 export const getDOFFocalLength = (camera: PerspectiveCamera, polarAngle: number) => {
   const cy = (Math.max(20, Math.min(90, camera.position.y)) - 20) / 70;
