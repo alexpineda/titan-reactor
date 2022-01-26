@@ -2,7 +2,7 @@ import type { TerrainInfo } from "../common/types";
 import type { CommandsStream, Replay } from "downgrade-replay";
 import type { Scene } from "./render/Scene";
 import type { MainMixer, Music, SoundChannels } from "./audio";
-import type OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
+import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Janitor from "./utils/janitor";
 import { strict as assert } from "assert";
 import type Assets from "./assets/assets";

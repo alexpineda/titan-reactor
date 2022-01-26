@@ -1,11 +1,9 @@
 import { EntityIterator } from "./entity-iterator";
 
-type TypedArray = Int8Array | Int16Array | Int32Array;
-type UTypedArray = Uint8Array | Uint16Array | Uint32Array;
+type TypedArray = Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array;
 /**
  A template for representing game struct(s) (eg units, sprites, etc)
 */
-// @todo allow reading of any heap type
 export abstract class BufferView<T> implements EntityIterator<T> {
   itemsCount: number;
 
@@ -14,11 +12,9 @@ export abstract class BufferView<T> implements EntityIterator<T> {
 
   private readonly _structSizeInBytes;
   private readonly _buffer: TypedArray;
-  private readonly _ubuffer: UTypedArray;
 
-  constructor(structSizeInBytes:number, ptr = 0, itemsCount = 0, buffer: TypedArray, ubuffer: UTypedArray) {
+  constructor(structSizeInBytes: number, ptr = 0, itemsCount = 0, buffer: TypedArray) {
     this._buffer = buffer;
-    this._ubuffer = ubuffer;
     this.itemsCount = itemsCount;
     this._structSizeInBytes = structSizeInBytes / buffer.BYTES_PER_ELEMENT;
     this.ptrIndex = ptr;
@@ -37,6 +33,10 @@ export abstract class BufferView<T> implements EntityIterator<T> {
     return this._buffer.slice(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
   }
 
+  shallowCopy() {
+    return this._buffer.subarray(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
+  }
+
   object(): T {
     throw new Error("Not implemented");
   }
@@ -44,34 +44,6 @@ export abstract class BufferView<T> implements EntityIterator<T> {
   protected _read(offset: number) {
     return this._buffer[this._itemIndex + offset];
   }
-
-  protected _readU(offset: number) {
-    return this._ubuffer[this._itemIndex + offset];
-  }
-
-  // protected _read8(offset: number) {
-  //   return this.heaps.HEAP8[this._ptrIndex + offset];
-  // }
-
-  // protected _readU8(offset: number) {
-  //   return this.heaps.HEAPU8[this._ptrIndex + offset];
-  // }
-
-  // protected _read16(offset: number) {
-  //   return this.heaps.HEAP16[this._ptrIndex / 2 + offset];
-  // }
-
-  // protected _readU16(offset: number) {
-  //   return this.heaps.HEAPU16[this._ptrIndex / 2 + offset];
-  // }
-
-  // protected _read32(offset: number) {
-  //   return this.heaps.HEAP32[this._ptrIndex / 4 + offset];
-  // }
-
-  // protected _readU32(offset: number) {
-  //   return this.heaps.HEAPU32[this._ptrIndex / 4 + offset];
-  // }
 
   *items(count = this.itemsCount) {
     const _index = this._itemIndex;

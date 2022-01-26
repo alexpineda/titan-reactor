@@ -1,5 +1,4 @@
 export interface TileStruct {
   explored: number;
   visible: number;
-  flags: number;
-}
+  flags: number | void;

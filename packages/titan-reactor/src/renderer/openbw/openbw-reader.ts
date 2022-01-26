@@ -1,6 +1,5 @@
-import fs from 'fs';
-import type { OpenBWWasm } from '../../openbw';
-import { FrameBW, SoundsBufferView, TilesBufferView } from '../fixed-data';
+import type { OpenBWWasm } from '.';
+import { FrameBW } from '../integration/fixed-data';
 
 export interface Heaps {
     HEAP8: Int8Array,

@@ -2,14 +2,13 @@ import { ImageStruct } from ".";
 
 export interface SpriteStruct {
   index: number;
-  titanIndex: number;
-  typeId: number;
   owner: number;
+  typeId: number;
   elevation: number;
   flags: number;
   x: number;
   y: number;
-  images: ImageStruct[];
   mainImageIndex: number;
-  order: number;
+  imageCount: number;
+  images: ImageStruct[];
 }

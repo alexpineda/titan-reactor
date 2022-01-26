@@ -10,7 +10,7 @@ import fs from "fs";
 import Chk from "bw-chk";
 import { ImageHD } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
-import OpenBwWasmReader from "./integration/openbw-wasm/openbw-reader";
+import OpenBwWasmReader from "./openbw/openbw-reader";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
