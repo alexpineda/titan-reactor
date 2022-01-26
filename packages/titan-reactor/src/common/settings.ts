@@ -26,8 +26,8 @@ export const defaultSettings: Settings = {
   },
   graphics: {
     antialias: true,
-    pixelRatio: "max",
-    anisotropy: "max",
+    pixelRatio: "med",
+    anisotropy: "high",
     fullscreen: true,
     gamma: 0.9
   },

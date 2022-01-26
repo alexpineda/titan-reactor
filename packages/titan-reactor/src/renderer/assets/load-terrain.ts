@@ -66,14 +66,14 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
 
   let terrain = new Mesh();
 
-  const max = renderer.getWebGLRenderer().capabilities.getMaxAnisotropy();
+  const high = renderer.getWebGLRenderer().capabilities.getMaxAnisotropy();
   const anisotropies = {
-    max,
-    mid: Math.floor(max / 2),
+    max: high,
+    med: Math.floor(high / 2),
     low: 1
   };
 
-  const anisotropy = anisotropies[settings.graphics.anisotropy];
+  const anisotropy = anisotropies[settings.graphics.anisotropy as keyof typeof anisotropies];
 
   if (renderSD) {
     assert(creepGrpSD);

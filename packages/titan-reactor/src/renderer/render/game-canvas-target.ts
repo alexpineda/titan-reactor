@@ -34,8 +34,8 @@ export class GameCanvasTarget extends CanvasTarget {
     this.right = 0;
 
     const pixelRatios = {
-      max: window.devicePixelRatio,
-      mid: 1,
+      high: window.devicePixelRatio,
+      med: 1,
       low: 0.75
     };
 
