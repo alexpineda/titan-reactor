@@ -8,7 +8,7 @@ export default function loadEnvironmentMap(
   const pmremGenerator = new PMREMGenerator(renderer);
   pmremGenerator.compileEquirectangularShader();
 
-  function getCubeMapTexture(file: string) {
+  function getCubeMapTexture(file: string): Promise<Texture> {
     return new Promise((resolve, reject) => {
       new RGBELoader().setDataType(UnsignedByteType).load(
         file,

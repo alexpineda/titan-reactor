@@ -1,10 +1,9 @@
-import { SoundStruct } from "../data-transfer";
+import { SoundStruct } from "../structs";
 import BufferView from "./buffer-view";
 
 export class SoundsBufferView
   extends BufferView<SoundStruct>
-implements SoundStruct
-{
+  implements SoundStruct {
   static STRUCT_SIZE = 16;
 
   get typeId() {

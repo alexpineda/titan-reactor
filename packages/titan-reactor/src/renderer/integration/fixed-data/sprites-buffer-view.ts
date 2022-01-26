@@ -1,4 +1,4 @@
-import { SpriteStruct } from "../data-transfer/sprite-struct";
+import { SpriteStruct } from "../structs";
 import BufferView from "./buffer-view";
 
 export class SpritesBufferView

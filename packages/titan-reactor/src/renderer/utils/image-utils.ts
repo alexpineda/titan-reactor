@@ -1,6 +1,6 @@
 import { BwDAT } from "../../common/types";
 import { ImageFlags, drawFunctions } from "../../common/bwdat/enums";
-import { ImageStruct } from "../integration/data-transfer";
+import { ImageStruct } from "../integration/structs";
 
 export const isShadow = (image: ImageStruct, bwDat: BwDAT) => {
   return (

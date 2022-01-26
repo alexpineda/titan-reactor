@@ -1,8 +1,8 @@
 import { OpenBWWasm } from "src/renderer/openbw";
 import { SpritesBufferView, TilesBufferView } from ".";
-import { SoundStruct, SpriteStruct } from "../data-transfer";
+import { SoundStruct, SpriteStruct } from "../structs";
 import { Heaps } from "../../openbw/openbw-reader";
-import { UnitStruct } from "../data-transfer";
+import { UnitStruct } from "../structs";
 import { EmbindEntityInterator, EntityIterator } from "./entity-iterator";
 
 // a wrapper for a bw frames entire game state

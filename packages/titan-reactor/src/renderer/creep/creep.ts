@@ -1,5 +1,5 @@
 import { Texture } from "three";
-import TilesBufferView from "../integration/fixed-data/tiles-buffer-view.js";
+import TilesBufferView from "../integration/fixed-data/tiles-buffer-view";
 
 //@ts-ignore
 import Worker from "./creep.worker.js";
@@ -10,9 +10,9 @@ export default class Creep {
   creepValuesTexture: Texture;
   creepEdgesValuesTexture: Texture;
   creepImageData: ImageData;
-  
+
   private _lastFrame = 0;
-  
+
   constructor(
     mapWidth: number,
     mapHeight: number,
@@ -42,7 +42,7 @@ export default class Creep {
     this._lastFrame = 0;
   }
 
-  generate(tiles: TilesBufferView, frame : number) {
+  generate(tiles: TilesBufferView, frame: number) {
     const msg = {
       buffer: tiles.copy(),
       mapWidth: this.mapWidth,

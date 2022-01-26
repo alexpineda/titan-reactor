@@ -1,4 +1,4 @@
-import { TileStruct } from "../data-transfer";
+import { TileStruct } from "../structs";
 import BufferView from "./buffer-view";
 
 export class TilesBufferView extends BufferView<TileStruct> implements TileStruct {

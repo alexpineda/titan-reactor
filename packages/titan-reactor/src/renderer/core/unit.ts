@@ -1,5 +1,5 @@
 import { Player } from "../../common/types";
-import { UnitStruct } from "../integration/data-transfer/unit-struct";
+import { UnitStruct } from "../integration/structs";
 import { Sprite } from "."
 
 export type CrapUnit = UnitStruct & {

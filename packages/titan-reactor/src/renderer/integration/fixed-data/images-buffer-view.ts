@@ -1,4 +1,4 @@
-import { ImageStruct } from "../data-transfer/image-struct";
+import { ImageStruct } from "../structs";
 import BufferView from "./buffer-view";
 
 export class ImagesBufferView

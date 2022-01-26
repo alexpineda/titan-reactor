@@ -1,10 +1,10 @@
 import { SoundDAT, MapCoords } from "../../common/types";
-import { SoundStruct } from "../integration/data-transfer";
+import { SoundStruct } from "../integration/structs";
 
 export const MinPlayVolume = 10;
 
 // Calculate the volume using the openbw algorithm
-export const getBwVolume = ( dat: SoundDAT, mapCoords: MapCoords, sound: SoundStruct, left: number, top: number, right: number, bottom: number) => {
+export const getBwVolume = (dat: SoundDAT, mapCoords: MapCoords, sound: SoundStruct, left: number, top: number, right: number, bottom: number) => {
     let volume = dat.minVolume || 0;
 
     if (sound.x !== 0 && sound.y !== 0) {

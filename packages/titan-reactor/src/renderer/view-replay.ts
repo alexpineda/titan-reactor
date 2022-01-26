@@ -45,7 +45,7 @@ import {
   useHudStore,
   useSettingsStore,
 } from "./stores";
-import { SoundStruct, SpriteStruct, ImageStruct, UnitStruct } from "./integration/data-transfer";
+import { SoundStruct, SpriteStruct, ImageStruct, UnitStruct } from "./integration/structs";
 import { EntityIterator } from "./integration/fixed-data/entity-iterator";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";

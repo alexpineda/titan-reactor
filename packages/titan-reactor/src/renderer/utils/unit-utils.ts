@@ -1,5 +1,5 @@
 import { UnitFlags, unitTypes } from "../../common/bwdat/enums";
-import { UnitStruct } from "../integration/data-transfer/unit-struct";
+import { UnitStruct } from "../integration/structs";
 
 export const isCloaked = (unit: UnitStruct) => {
   return (

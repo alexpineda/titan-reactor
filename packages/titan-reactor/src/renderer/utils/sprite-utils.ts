@@ -1,5 +1,5 @@
 import { SpriteFlags } from "../../common/bwdat/enums";
-import { SpriteStruct } from "../integration/data-transfer";
+import { SpriteStruct } from "../integration/structs";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
     let score = 0;

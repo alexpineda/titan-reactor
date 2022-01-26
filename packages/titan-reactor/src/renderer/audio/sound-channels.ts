@@ -1,7 +1,7 @@
 import { strict as assert } from "assert";
 import { MapCoords, SoundDAT } from "../../common/types";
 import range from "../../common/utils/range";
-import { SoundStruct } from "../integration/data-transfer";
+import { SoundStruct } from "../integration/structs";
 import Audio from "./audio";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
