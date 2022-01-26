@@ -928,7 +928,7 @@ async function TitanReactorGame(
     control.getTarget(target);
 
     {
-      const dir = getDirection32(target, camera.position);
+      const dir = control.polarAngle < 0.25 ? 0 : getDirection32(target, camera.position);
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;

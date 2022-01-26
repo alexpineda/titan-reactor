@@ -42,7 +42,6 @@ export type Settings = {
                 truckRight: string,
                 forward: string,
                 backward: string,
-                focus: string
             }
         }
     }

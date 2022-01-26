@@ -41,11 +41,10 @@ export const defaultSettings: Settings = {
         skipBackward: "BracketLeft",
       },
       camera: {
-        truckLeft: "ArrowLeft, KeyA",
-        truckRight: "ArrowRight, KeyD",
-        forward: "ArrowUp, KeyW",
-        backward: "ArrowDown, KeyS",
-        focus: "KeyF"
+        truckLeft: "ArrowLeft",
+        truckRight: "ArrowRight",
+        forward: "ArrowUp",
+        backward: "ArrowDown",
       }
 
     }
