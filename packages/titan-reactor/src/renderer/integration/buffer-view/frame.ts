@@ -53,7 +53,7 @@ export class FrameBW {
     }
 
     if (this.sprites instanceof EmbindEntityInterator) {
-      this.sprites.assign(funcs.get_sprites(false));
+      this.sprites.assign(funcs.get_sprites(true));
     } else if (this.sprites instanceof SpritesBufferView) {
       this.sprites.ptrIndex = openBw._get_buffer(1);
       this.sprites.itemsCount = openBw._counts(0, 7);

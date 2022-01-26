@@ -644,7 +644,7 @@ async function TitanReactorGame(
       Object.assign(sprite.userData, spriteData);
 
       const unit = unitsBySprite.get(sprite.index);
-      const dat = bwDat.sprites[spriteData.typeId];
+      const dat = bwDat.sprites[sprite.userData.typeId];
 
       // const buildingIsExplored =
       //   sprite.unit &&
@@ -695,9 +695,7 @@ async function TitanReactorGame(
       const player = players.playersById[sprite.userData.owner];
 
       for (const imageData of sprite.userData.images.reverse()) {
-        if (!sprite.visible || isHidden(imageData) || (!redraw(imageData) && !updateImagesDirection)) {
-          continue;
-        }
+
         updateImagesDirection = false;
 
         // @todo recycle dead similar images
@@ -711,9 +709,11 @@ async function TitanReactorGame(
 
         Object.assign(image.userData, imageData);
 
-        if (player) {
-          image.setTeamColor(player.color.three);
-        }
+        if (!sprite.visible || isHidden(image.userData as ImageStruct) || (!redraw(image.userData as ImageStruct) && !updateImagesDirection))
+
+          if (player) {
+            image.setTeamColor(player.color.three);
+          }
         // overlay position
         image.offsetX = image.position.x = image.userData.x / 32;
         image.offsetY = image.position.z = image.userData.y / 32;
