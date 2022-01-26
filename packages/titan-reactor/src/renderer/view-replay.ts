@@ -30,7 +30,7 @@ import {
   MinimapEventListener,
   MouseInput,
 } from "./input";
-import { FrameBW } from "./integration/fixed-data";
+import { FrameBW } from "./integration/buffer-view";
 import * as log from "./ipc/log";
 import {
   Effects,
@@ -46,7 +46,7 @@ import {
   useSettingsStore,
 } from "./stores";
 import { SoundStruct, SpriteStruct, ImageStruct, UnitStruct } from "./integration/structs";
-import { EntityIterator } from "./integration/fixed-data/entity-iterator";
+import { EntityIterator } from "./integration/buffer-view/entity-iterator";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";

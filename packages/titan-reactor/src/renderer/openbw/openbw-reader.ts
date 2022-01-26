@@ -1,5 +1,5 @@
 import type { OpenBWWasm } from '.';
-import { FrameBW } from '../integration/fixed-data';
+import { FrameBW } from '../integration/buffer-view';
 
 export interface Heaps {
     HEAP8: Int8Array,
