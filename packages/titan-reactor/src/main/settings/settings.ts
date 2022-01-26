@@ -65,15 +65,15 @@ export class Settings extends EventEmitter {
 
     for (const file of files) {
       if (!(await fileExists(this._settings.directories[file as keyof SettingsType["directories"]]))) {
-        errors.push(file);
+        errors.push(`${file} directory is not a valid path`);
       }
     }
 
     const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
     if (!isCascStorage && !await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"])) {
-      errors.push("starcraftPath");
+      errors.push("starcraft directory is not a valid path");
     }
-      
+
 
     const localLanguage = supportedLanguages.includes(getEnvLocale() as string)
       ? (getEnvLocale() as string)
@@ -83,7 +83,7 @@ export class Settings extends EventEmitter {
     )
       ? this._settings.language
       : localLanguage;
-    
+
     return {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
@@ -97,7 +97,7 @@ export class Settings extends EventEmitter {
     };
   }
 
- async load() {
+  async load() {
     const contents = await fsPromises.readFile(this._filepath, {
       encoding: "utf8",
     });

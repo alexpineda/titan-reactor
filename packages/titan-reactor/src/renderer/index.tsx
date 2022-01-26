@@ -62,6 +62,13 @@ log.info(`electron ${process.versions.electron}`);
   log.verbose(`device pixel ratio: ${window.devicePixelRatio}`);
 }
 
+const logDiv = document.createElement("div");
+logDiv.id = "log";
+logDiv.style.color = "white";
+logDiv.style.display = "flex";
+logDiv.style.flexDirection = "column-reverse";
+document.body.appendChild(logDiv);
+
 bootup();
 async function bootup() {
   try {

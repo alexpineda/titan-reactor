@@ -84,6 +84,10 @@ export default async (chkFilepath: string) => {
   );
 
   setGame(game);
+  const logDiv = document.getElementById("log");
+  if (logDiv) {
+    logDiv.remove();
+  }
   completeLoadingProcess("map");
   completeScreen();
 };

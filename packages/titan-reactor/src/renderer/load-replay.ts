@@ -155,5 +155,10 @@ export default async (filepath: string) => {
     .map(({ name }) => name)
     .join(", ")}`;
   game.start();
+
+  const logDiv = document.getElementById("log");
+  if (logDiv) {
+    logDiv.remove();
+  }
   completeLoadingProcess("replay");
 };
