@@ -59,17 +59,14 @@ export class CameraKeys {
             }
 
             // @todo split into two functions, big-zoom-in/out, small-zoom-in/out
-            if (testKeys(e, "NumpadAdd")) {
-                control.dolly(e.shiftKey ? 5 : 10, true);
+            if (testKeys(e, settings.controls.keyboard.camera.zoomIn)) {
+                control.dolly(e.shiftKey ? 5 : 3, true);
                 control.rotate(0, (2 * Math.PI) / 64, true);
-            } else if (testKeys(e, "NumpadSubtract")) {
+            } else if (testKeys(e, settings.controls.keyboard.camera.zoomOut)) {
                 control.rotate(0, -(2 * Math.PI) / 64, true);
-                control.dolly(e.shiftKey ? -5 : -10, true);
+                control.dolly(e.shiftKey ? -5 : -3, true);
             }
 
-            if (testKeys(e, settings.controls.keyboard.camera.focus)) {
-                this.onFocusPress && this.onFocusPress();
-            }
         }
         this._el.addEventListener("keyup", ku);
         this._janitor.callback(() => this._el.removeEventListener("keyup", ku));

@@ -42,6 +42,8 @@ export type Settings = {
                 truckRight: string,
                 forward: string,
                 backward: string,
+                zoomIn: string,
+                zoomOut: string,
             }
         }
     }

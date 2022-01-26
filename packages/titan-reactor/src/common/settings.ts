@@ -45,6 +45,8 @@ export const defaultSettings: Settings = {
         truckRight: "ArrowRight",
         forward: "ArrowUp",
         backward: "ArrowDown",
+        zoomIn: "NumpadAdd",
+        zoomOut: "NumpadSubtract",
       }
 
     }
