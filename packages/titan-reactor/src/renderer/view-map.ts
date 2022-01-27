@@ -81,10 +81,8 @@ async function TitanReactorMap(
   control.mouseButtons.middle = CameraControls.ACTION.DOLLY;
   control.dollyToCursor = true;
   control.verticalDragToForward = true;
-  constrainControls(control, Math.max(mapWidth, mapHeight));
   janitor.disposable(control);
-
-  control.setLookAt(0, 20, 0, 0, 0, 0, true);
+  control.setLookAt(0, 50, 0, 0, 0, 0, true);
   //@ts-ignore
   window.control = control;
   //@ts-ignore

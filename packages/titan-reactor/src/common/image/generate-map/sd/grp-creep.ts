@@ -1,5 +1,5 @@
 import { WrappedTexture } from "../../../types";
-import { DataTexture, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
+import { DataTexture, NearestFilter, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
 import { PX_PER_TILE_SD } from "./common";
 
 const width = 13;
@@ -73,5 +73,7 @@ export const grpToCreepTexture = (
   texture.flipY = true;
   texture.encoding = sRGBEncoding;
   texture.needsUpdate = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
   return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD };
 };

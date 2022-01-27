@@ -9,6 +9,7 @@ import {
   CanvasTexture,
   sRGBEncoding,
   WebGLRenderer,
+  NearestFilter,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 
@@ -73,6 +74,8 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array): Wr
   texture.encoding = sRGBEncoding;
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   texture.flipY = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
 
   mat.dispose();
   renderer.dispose();

@@ -10,7 +10,8 @@ import {
   CanvasTexture,
   sRGBEncoding,
   DoubleSide,
-  WebGLRenderer
+  WebGLRenderer,
+  NearestFilter
 } from "three";
 
 import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
@@ -124,6 +125,8 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer): WrappedTexture => {
   texture.encoding = sRGBEncoding;
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   // texture.flipY = true;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
 
   mat.dispose();
   renderer.dispose();

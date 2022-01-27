@@ -1,5 +1,6 @@
 import GrpSDLegacy from "../../atlas/grp-sd-legacy";
 import { ImageDAT, WrappedTexture } from "../../../types";
+import { NearestFilter } from "three";
 // leverage our SD grp reader to render creep edges in SD
 export const grpToCreepEdgesTextureAsync = async (
   creepGrp: Buffer,
@@ -16,6 +17,9 @@ export const grpToCreepEdgesTextureAsync = async (
     },
     stride
   );
+
+  grpSD.texture.minFilter = NearestFilter;
+  grpSD.texture.magFilter = NearestFilter;
 
   return {
     texture: grpSD.texture,

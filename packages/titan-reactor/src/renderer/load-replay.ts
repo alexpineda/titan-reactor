@@ -70,7 +70,7 @@ export default async (filepath: string) => {
 
   if (replay.version !== Version.titanReactor) {
     log.verbose(
-      `changing replay format from ${Version[replay.version]} to titan reactor`
+      `changing replay format`
     );
     const chkDowngrader = new ChkDowngrader();
     repBin = await convertReplay(replay, chkDowngrader);
