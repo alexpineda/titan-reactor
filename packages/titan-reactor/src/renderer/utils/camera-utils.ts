@@ -19,9 +19,8 @@ export const POLAR_MIN = (2 * Math.PI) / 64;
 export const AZI_RANGE = (24 * Math.PI) / 64;
 
 export const constrainControls = (controls: CameraControls, maxMapDim: number) => {
-  controls.maxDistance = maxMapDim * 0.35;
+  controls.maxDistance = maxMapDim * 0.4;
   controls.minDistance = 10;
-
   controls.dollySpeed = 0.2
 
   controls.maxPolarAngle = POLAR_MAX; // bottom

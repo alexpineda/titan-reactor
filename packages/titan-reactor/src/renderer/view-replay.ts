@@ -107,7 +107,7 @@ async function TitanReactorGame(
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const camera = new PerspectiveCamera(55, gameSurface.width / gameSurface.height, 3, 256);
+  const camera = new PerspectiveCamera(35, gameSurface.width / gameSurface.height, 3, 256);
   camera.userData = {
     direction: 0,
     prevDirection: -1
@@ -124,7 +124,7 @@ async function TitanReactorGame(
   constrainControls(control, Math.max(mapWidth, mapHeight));
   janitor.disposable(control);
   (async () => {
-    await control.setLookAt(0, 20, 0, 0, 0, 0, true);
+    await control.setLookAt(0, 20, 0, 0, 0, 0, false);
     control.rotatePolarTo(POLAR_MIN, true);
   })();
   control.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
@@ -605,10 +605,6 @@ async function TitanReactorGame(
   const sprites: Map<number, Sprite> = new Map();
   const images: Map<number, Image> = new Map();
   const unitsBySprite: Map<number, CrapUnit> = new Map();
-  // let research: ResearchInProduction[][] = [];
-  // let upgrades: UpgradeInProduction[][] = [];
-  // let completedUpgrades: UpgradeCompleted[][] = [];
-  // let completedResearch: ResearchCompleted[][] = [];
   const spritesGroup = new Group();
   scene.add(spritesGroup);
 
@@ -710,11 +706,14 @@ async function TitanReactorGame(
 
         Object.assign(image.userData, imageData);
 
-        if (!sprite.visible || isHidden(image.userData as ImageStruct) || (!redraw(image.userData as ImageStruct) && !updateImagesDirection))
+        if (!sprite.visible || isHidden(image.userData as ImageStruct) || (!redraw(image.userData as ImageStruct) && !updateImagesDirection)) {
+          continue;
+        }
 
-          if (player) {
-            image.setTeamColor(player.color.three);
-          }
+        if (player) {
+          image.setTeamColor(player.color.three);
+        }
+
         // overlay position
         image.offsetX = image.position.x = image.userData.x / 32;
         image.offsetY = image.position.z = image.userData.y / 32;
