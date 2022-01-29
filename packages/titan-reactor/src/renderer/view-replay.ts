@@ -417,6 +417,15 @@ async function TitanReactorGame(
     units: Map<number, CrapUnit>,
     unitsBySprite: Map<number, CrapUnit>
   ) => {
+    assert(openBw.wasm);
+    const deletedUnits = openBw.wasm.get_util_funcs().get_deleted_units();
+
+    for (const unitId of deletedUnits) {
+      const unit = units.get(unitId);
+      if (!unit) continue;
+      units.delete(unitId);
+    }
+
     for (const unitData of unitsBW.instances()) {
 
       const unit = getUnit(units, unitData);

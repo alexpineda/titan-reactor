@@ -29,6 +29,7 @@ export interface OpenBWWasm {
     get_sounds: () => SoundStruct[],
     get_deleted_images: () => number[],
     get_deleted_sprites: () => number[],
+    get_deleted_units: () => number[],
   })
 
   callMain: () => void;
