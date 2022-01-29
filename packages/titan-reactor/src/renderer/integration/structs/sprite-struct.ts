@@ -9,6 +9,4 @@ export interface SpriteStruct {
   x: number;
   y: number;
   mainImageIndex: number;
-  imageCount: number;
-  images: ImageStruct[];
 }

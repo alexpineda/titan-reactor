@@ -30,7 +30,7 @@ import {
   MinimapEventListener,
   MouseInput,
 } from "./input";
-import { FrameBW } from "./integration/buffer-view";
+import { FrameBW, ImageBufferView, SpritesBufferView } from "./integration/buffer-view";
 import * as log from "./ipc/log";
 import {
   Effects,
@@ -608,8 +608,13 @@ async function TitanReactorGame(
   const spritesGroup = new Group();
   scene.add(spritesGroup);
 
+  assert(openBw.wasm)
+  const spriteBufferView = new SpritesBufferView(openBw.wasm);
+  const imageBufferView = new ImageBufferView(openBw.wasm);
+
   const buildSprites = (spritesBW: EntityIterator<SpriteStruct>, delta: number) => {
     assert(openBw.wasm);
+    assert(currentBwFrame)
     const deletedImages = openBw.wasm.get_util_funcs().get_deleted_images();
     const deletedSprites = openBw.wasm.get_util_funcs().get_deleted_sprites();
 
@@ -628,7 +633,10 @@ async function TitanReactorGame(
       images.delete(imageId);
     }
 
-    for (const spriteData of spritesBW.items()) {
+    // for (const spriteData of spritesBW.items()) {
+    for (const spriteAddr of currentBwFrame.getSprites()) {
+      const spriteData = spriteBufferView.get(spriteAddr);
+
       let sprite = sprites.get(spriteData.index);
       if (!sprite) {
         sprite = new Sprite(
@@ -638,10 +646,9 @@ async function TitanReactorGame(
         sprites.set(sprite.index, sprite);
         spritesGroup.add(sprite);
       }
-      Object.assign(sprite.userData, spriteData);
 
       const unit = unitsBySprite.get(sprite.index);
-      const dat = bwDat.sprites[sprite.userData.typeId];
+      const dat = bwDat.sprites[spriteData.typeId];
 
       // const buildingIsExplored =
       //   sprite.unit &&
@@ -652,20 +659,20 @@ async function TitanReactorGame(
       // show units as fog is lifting from or lowering to explored
       // show if a building has been explored
       sprite.visible =
-        sprite.userData.owner === 11 ||
+        spriteData.owner === 11 ||
         dat.image.iscript === 336 ||
         dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(tile32(sprite.userData.x), tile32(sprite.userData.y));
+        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
 
       // don't update explored building frames so viewers only see last built frame
       // const dontUpdate =
       //   buildingIsExplored &&
       //   !fogOfWar.isVisible(spriteBW.tileX, spriteBW.tileY);
 
-      sprite.renderOrder = spriteSortOrder(sprite.userData as SpriteStruct) * 10;
+      sprite.renderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
 
-      const x = pxToGameUnit.x(sprite.userData.x);
-      const z = pxToGameUnit.y(sprite.userData.y);
+      const x = pxToGameUnit.x(spriteData.x);
+      const z = pxToGameUnit.y(spriteData.y);
       let y = terrain.getTerrainY(x, z);
       sprite.position.set(x, y, z);
 
@@ -689,10 +696,12 @@ async function TitanReactorGame(
       // liftoff z - 42, y+
       // landing z + 42, y-
 
-      const player = players.playersById[sprite.userData.owner];
+      const player = players.playersById[spriteData.owner];
 
-      for (const imageData of sprite.userData.images.reverse()) {
-
+      let imageCounter = 0;
+      const imageAddresses = openBw.wasm.get_util_funcs().get_images(spriteAddr);
+      for (const imgAddr of imageAddresses) {
+        const imageData = imageBufferView.get(imgAddr);
         updateImagesDirection = false;
 
         // @todo recycle dead similar images
@@ -704,9 +713,7 @@ async function TitanReactorGame(
           image.sprite = sprite;
         }
 
-        Object.assign(image.userData, imageData);
-
-        if (!sprite.visible || isHidden(image.userData as ImageStruct) || (!redraw(image.userData as ImageStruct) && !updateImagesDirection)) {
+        if (!sprite.visible || isHidden(imageData as ImageStruct) || (!redraw(imageData as ImageStruct) && !updateImagesDirection)) {
           continue;
         }
 
@@ -715,37 +722,37 @@ async function TitanReactorGame(
         }
 
         // overlay position
-        image.offsetX = image.position.x = image.userData.x / 32;
-        image.offsetY = image.position.z = image.userData.y / 32;
-        image.renderOrder = sprite.renderOrder + image.userData.order;
+        image.offsetX = image.position.x = imageData.x / 32;
+        image.offsetY = image.position.z = imageData.y / 32;
+        image.renderOrder = sprite.renderOrder + (imageAddresses.length - imageCounter);
 
         // 63-48=15
-        if (image.userData.modifier === 14) {
-          image.setWarpingIn((image.userData.modifierData1 - 48) / 15);
+        if (imageData.modifier === 14) {
+          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
         } else {
           //@todo see if we even need this
           image.setWarpingIn(0);
         }
         //@todo use modifier 1 for opacity value
-        image.setCloaked(image.userData.modifier === 2 || image.userData.modifier === 5);
+        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
 
         let z = 0;
 
-        if (hasDirectionalFrames(image.userData as ImageStruct)) {
-          const flipped = isFlipped(image.userData as ImageStruct);
-          const direction = flipped ? 32 - image.userData.frameIndexOffset : image.userData.frameIndexOffset;
+        if (hasDirectionalFrames(imageData as ImageStruct)) {
+          const flipped = isFlipped(imageData as ImageStruct);
+          const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
           const newFrameOffset = (direction + camera.userData.direction) % 32;
 
           if (newFrameOffset > 16) {
-            image.setFrame(image.userData.frameIndexBase + 32 - newFrameOffset, true);
+            image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
           } else {
-            image.setFrame(image.userData.frameIndexBase + newFrameOffset, false);
+            image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
           }
         } else {
-          image.setFrame(image.userData.frameIndex, isFlipped(image.userData as ImageStruct));
+          image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
         }
 
-        if (image.userData.index === sprite.userData.mainImageIndex) {
+        if (imageData.index === spriteData.mainImageIndex) {
 
           z = image._zOff * image.unitTileScale;
           const unit = unitsBySprite.get(sprite.index);
@@ -754,7 +761,7 @@ async function TitanReactorGame(
             // image.rotation.y = unit.angle;
           }
 
-          if (isClickable(image.userData as ImageStruct)) {
+          if (isClickable(imageData as ImageStruct)) {
             sprite.layers.enable(Layers.Clickable);
             image.layers.enable(Layers.Clickable);
           }
@@ -764,6 +771,7 @@ async function TitanReactorGame(
         //@todo is this the reason for overlays displaying in 0,0?
         // sprite.position.z += z - sprite.lastZOff;
         sprite.lastZOff = z;
+        imageCounter++;
       }
     }
   };

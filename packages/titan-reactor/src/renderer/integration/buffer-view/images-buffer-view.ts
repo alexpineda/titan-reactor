@@ -1,61 +1,75 @@
+import { OpenBWWasm } from "src/renderer/openbw";
 import { ImageStruct } from "../structs";
-import BufferView from "./buffer-view";
-
-export class ImagesBufferView
-  extends BufferView<ImageStruct>
+export class ImageBufferView
   implements ImageStruct {
 
-  get flags() {
-    return this._read(0);
+  _address = 0;
+  _bw: OpenBWWasm;
+
+  get(address: number) {
+    this._address = address;
+    return this;
   }
 
-  get modifier() {
-    return this._read(1);
+  constructor(bw: OpenBWWasm) {
+    this._bw = bw;
   }
 
-  get modifierData1() {
-    return this._read(2);
+  private get _index32() {
+    return (this._address >> 2);
   }
-
 
   get index() {
-    return this._read(6);
+    return this._bw.HEAPU32[this._index32 + 2];
   }
 
   get typeId() {
-    return this._read(7);
+    const addr = this._bw.HEAPU32[this._index32 + 3];
+    return this._bw.HEAP32[addr >> 2];
   }
 
-  get titanIndex() {
-    return 0
+  get modifier() {
+    return this._bw.HEAP32[this._index32 + 4];
+  }
+
+  get modifierData1() {
+    return this._bw.HEAP32[this._index32 + 5];
   }
 
   get frameIndex() {
-    return this._read(8);
+    return this._bw.HEAPU32[this._index32 + 7];
+  }
+
+  get frameIndexBase() {
+    return this._bw.HEAPU32[this._index32 + 8];
   }
 
   get frameIndexOffset() {
-    return this._read(8);
+    return this._bw.HEAPU32[this._index32 + 9];
   }
 
-
-  get frameIndexBase() {
-    return this._read(8);
+  get flags() {
+    return this._bw.HEAP32[this._index32 + 10];
   }
-
 
   get x() {
-    return this._read(8);
+    return this._bw.HEAP32[this._index32 + 11];
   }
 
   get y() {
-    return this._read(8);
+    return this._bw.HEAP32[this._index32 + 12];
   }
 
-  get order() {
-    return this._read(8);
+  get nextNode() {
+    return this._bw.HEAPU32[this._index32];
   }
 
-
+  *[Symbol.iterator]() {
+    const header = this._address;
+    do {
+      yield this;
+      this._address = this.nextNode;
+    } while (header !== this._address); // intrusive list
+  }
 }
-export default ImagesBufferView;
+export default ImageBufferView;

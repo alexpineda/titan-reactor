@@ -48,9 +48,9 @@ export default class OpenBwWasmReader {
     }
 
     next() {
-        const frame = new FrameBW(this.heaps);
+        const frame = new FrameBW(this.openBw);
         tryCatch(() => {
-            frame.update(this.openBw);
+            frame.update();
         }, this.openBw)
         return frame;
     }

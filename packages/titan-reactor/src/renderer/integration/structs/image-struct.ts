@@ -1,6 +1,5 @@
 export interface ImageStruct {
   index: number;
-  titanIndex: number;
   typeId: number;
   flags: number;
   frameIndex: number;
@@ -10,5 +9,4 @@ export interface ImageStruct {
   y: number;
   modifier: number;
   modifierData1: number;
-  order: number;
 }

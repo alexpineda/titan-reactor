@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, protocol, BrowserView } from "electron";
+import { app, powerSaveBlocker } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -13,7 +13,6 @@ import { strict as assert } from "assert";
 const settingsPath = path.join(getUserDataPath(), "settings.yml");
 const psbId = powerSaveBlocker.start("prevent-display-sleep");
 
-app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
@@ -21,22 +20,8 @@ if (!gotTheLock) {
   app.quit();
 }
 
-// custom gc size
-// app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
+app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 app.commandLine.appendSwitch("--force_high_performance_gpu");
-
-// const bv = new BrowserView({
-//   webPreferences: {
-//     nodeIntegration: false,
-//     contextIsolation: true,
-//     preload: path.join(__dirname, "preload.js"),
-//     devTools: electronIsDev,
-//     disableDialogs: true,
-//     spellcheck: false,
-//     enableWebSQL: false,
-//   },
-// });
-
 app.commandLine.appendSwitch("--disable-xr-sandbox");
 
 createAppMenu(settingsPath);

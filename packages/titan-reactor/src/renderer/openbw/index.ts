@@ -2,7 +2,7 @@ import createOpenBw from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
-import { UnitStruct, SpriteStruct, SoundStruct } from "../integration/structs";
+import { UnitStruct, SpriteStruct, SoundStruct, ImageStruct } from "../integration/structs";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
@@ -24,7 +24,8 @@ export interface OpenBWWasm {
   _get_fow_ptr: (visiblity: number, instant: boolean) => number;
   get_util_funcs: () => ({
     get_units: (dirtyChecking: boolean) => UnitStruct[],
-    get_sprites: (dirtyChecking: boolean) => SpriteStruct[],
+    get_sprites: () => number[],
+    get_images: (spriteAddr: number) => number[],
     get_sounds: () => SoundStruct[],
     get_deleted_images: () => number[],
     get_deleted_sprites: () => number[],

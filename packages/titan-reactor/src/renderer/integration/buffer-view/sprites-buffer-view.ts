@@ -1,67 +1,64 @@
+import { OpenBWWasm } from "src/renderer/openbw";
 import { SpriteStruct } from "../structs";
-import BufferView from "./buffer-view";
 
+/**
+ * Maps to openbw sprite_t starting from index address
+ */
 export class SpritesBufferView
-  extends BufferView<SpriteStruct>
   implements SpriteStruct {
 
-  static STRUCT_SIZE = 17;
+  _address = 0;
+  _bw: OpenBWWasm;
+
+  get(address: number) {
+    this._address = address;
+    return this;
+  }
+
+  constructor(bw: OpenBWWasm) {
+    this._bw = bw;
+  }
+
+  private get _index32() {
+    return (this._address >> 2) + 2; //skip link base
+  }
 
   get index() {
-    return this._read(0);
+    return this._bw.HEAPU32[this._index32];
   }
 
   get typeId() {
-    return this._read(1);
-  }
-
-  get titanIndex() {
-    return 0;
+    const addr = this._bw.HEAPU32[this._index32 + 1];
+    return this._bw.HEAP32[addr >> 2];
   }
 
   get owner() {
-    return this._read(2);
+    return this._bw.HEAP32[this._index32 + 2];
   }
 
   get elevation() {
-    return this._read(3);
+    return this._bw.HEAP32[this._index32 + 5];
   }
 
   get flags() {
-    return this._read(4);
-  }
-
-  get position() {
-    return {
-      x: this._read(5),
-      y: this._read(6),
-    }
-  }
-
-  get imageCount() {
-    return this._read(7);
-  }
-
-  get images() {
-    return [];
-  }
-
-
-  get mainImageIndex() {
-    return this._read(8);
-  }
-
-  get order() {
-    return 0;
+    return this._bw.HEAP32[this._index32 + 6];
   }
 
   get x() {
-    return this.index;
+    return this._bw.HEAP32[this._index32 + 10];
   }
 
   get y() {
-    return this.index;
+    return this._bw.HEAP32[this._index32 + 11];
   }
 
+  get mainImageIndex() {
+    const addr = this._bw.HEAPU32[this._index32 + 12];
+    return this._bw.HEAPU32[(addr >> 2) + 2];
+  }
+
+  get imagesAddr() {
+    return this._bw.HEAPU32[this._index32 + 13];
+  }
 }
 export default SpritesBufferView;
