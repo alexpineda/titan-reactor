@@ -2,7 +2,7 @@ import createOpenBw from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
-import { UnitStruct, SpriteStruct, SoundStruct, ImageStruct } from "../integration/structs";
+import { UnitStruct, SoundStruct } from "../integration/structs";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");

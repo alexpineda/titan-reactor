@@ -7,10 +7,17 @@ module.exports = function (config) {
   //   "Cross-Origin-Embedder-Policy": "require-corp",
   // };
 
-  config.module.rules.push({
-    test: /\.worker\.js$/,
-    use: { loader: "worker-loader" },
-  });
+  config.module.rules.push(
+    {
+      test: /\.worker\.js$/,
+      use: { loader: "worker-loader" },
+    },
+    {
+      test: /\.(glsl|vs|fs|vert|frag)$/,
+      exclude: /node_modules/,
+      use: ["raw-loader", "glslify-loader"],
+    }
+  );
 
   config.resolve.alias = {
     ...config.resolve.alias,

@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, LuminanceFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
+import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, LuminanceFormat, RedIntegerFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
 import { OpenBWAPI } from "../openbw";
 
 export default class FogOfWar {
@@ -20,19 +20,16 @@ export default class FogOfWar {
 
         // for shader
         const texture = new DataTexture(
-            new Uint8Array(width * height),
+            new Uint8ClampedArray(width * height),
             width,
             height,
             LuminanceFormat,
-            UnsignedByteType
+            UnsignedByteType,
         );
 
-        texture.flipY = false;
+
         texture.wrapS = ClampToEdgeWrapping;
         texture.wrapT = ClampToEdgeWrapping;
-
-        texture.generateMipmaps = false;
-
         texture.magFilter = LinearFilter;
         texture.minFilter = LinearFilter;
 
@@ -43,7 +40,6 @@ export default class FogOfWar {
         this.effect.fog = texture;
         this.effect.fogResolution = new Vector2(width, height);
         this.effect.fogUvTransform = new Vector4(0.5, 0.5, 1 / height, 1 / width);
-
     }
 
     update(playerVision: number, camera: Camera) {
@@ -52,7 +48,7 @@ export default class FogOfWar {
         const ptr = this._bw.call.getFowPtr(playerVision, this.playerVisionWasToggled);
 
         this._buffer = this._bw.wasm.HEAPU8.subarray(ptr, ptr + tilesize);
-        this.texture.image.data = this._buffer;
+        this.texture.image.data.set(this._buffer);
         this.texture.needsUpdate = true;
 
         this.effect.projectionInverse.copy(camera.projectionMatrixInverse);
