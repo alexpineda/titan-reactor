@@ -15,6 +15,8 @@ interface SpriteDump {
 // a wrapper for a bw frames entire game state
 export class FrameBW {
   frame = 0;
+  prevFrame = -1;
+  needsUpdate = false;
   minerals: number[] = [];
   gas: number[] = [];
   supplyUsed: number[] = [];
@@ -36,12 +38,17 @@ export class FrameBW {
   }
 
   update() {
-    this._bw._next_frame();
+
     const funcs = this._bw.get_util_funcs();
 
-    //@todo change one new build is avail
-    // this.frame = this._bw._next_frame();
+    this._bw._next_frame();
     this.frame = this._bw._replay_get_value(2);
+    this.needsUpdate = this.frame !== this.prevFrame;
+    if (this.needsUpdate === false) {
+      return;
+    }
+    this.prevFrame = this.frame;
+
     // for (let i = 0; i < 8; ++i) {
     //     console.log("minerals", this._bw._counts(i, 8));
     //     console.log("gas", this._bw._counts(i, 9));
@@ -59,6 +66,7 @@ export class FrameBW {
     if (this.units instanceof EmbindEntityInterator) {
       this.units.assign(funcs.get_units(true));
     }
+
 
   }
 

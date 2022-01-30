@@ -11,11 +11,9 @@ import {
     WebGLRenderer,
 } from "three";
 import {
-    //@ts-ignore
     EffectComposer,
 } from "postprocessing";
 import { createPasses, Passes } from "./composer-passes";
-import Janitor from "../utils/janitor";
 
 const createWebGLRenderer = () => {
     const renderer = new WebGLRenderer({
@@ -70,6 +68,7 @@ export class TitanRenderer {
 
         this.composer.autoRenderToScreen = false;
         for (const pass of this.composerPasses.passes) {
+            if (pass === undefined) continue;
             this.composer.addPass(pass);
         }
         this.togglePasses(Passes.Render);

@@ -17,8 +17,9 @@ import {
   SMAAImageLoader,
   // @ts-ignore
   SMAAPreset,
-  // @ts-ignore
   ToneMappingEffect,
+  PixelationEffect,
+  DepthEffect
 }
   from "postprocessing";
 
@@ -35,7 +36,8 @@ export enum Passes {
   Bloom,
   Cinematic,
   CinematicWithAA,
-  SMAA
+  SMAA,
+  Pixelate,
 };
 
 export enum Effects {
@@ -43,7 +45,8 @@ export enum Effects {
   SMAA,
   FogOfWar,
   ToneMapping,
-  Bloom
+  Bloom,
+  Pixelate,
 };
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
@@ -88,32 +91,33 @@ export const createPasses = () => {
 
 
 
-  const fowEffect = effects[Effects.FogOfWar] = new FogOfWarEffect();
+  const fogEffect = effects[Effects.FogOfWar] = new FogOfWarEffect();
   const toneMapping = effects[Effects.ToneMapping] = new ToneMappingEffect();
   const bloomEffect = effects[Effects.Bloom] = new BloomEffect({
     luminanceThreshold: 0.9,
   });
-
+  const pixelEffect = new PixelationEffect(20);
+  const debugDepthEffect = new DepthEffect();
 
   passes[Passes.Render] = new RenderPass(throwAwayCamera);
   passes[Passes.Bloom] = new EffectPass(throwAwayCamera, bloomEffect);
+  passes[Passes.Pixelate] = new EffectPass(throwAwayCamera, pixelEffect);
   passes[Passes.Cinematic] = new EffectPass(
     throwAwayCamera,
     dofEffect,
-    fowEffect
+    fogEffect,
   );
-
 
   return {
 
     passes,
     effects,
-    // onPassesReady,
 
     togglePasses: (...whichOnes: Passes[]) => {
       let i = 0;
       let lastPass: any = null;
       for (const pass of passes) {
+        if (pass === undefined) continue;
         pass.enabled = false;
         pass.renderToScreen = false;
         if (whichOnes.includes(i)) {
@@ -130,6 +134,7 @@ export const createPasses = () => {
       passes[Passes.Render].camera = camera;
       passes[Passes.Bloom].camera = camera;
       passes[Passes.Cinematic].camera = camera;
+      passes[Passes.Pixelate].camera = camera;
       // passes[Passes.CinematicWithAA].camera = camera;
       // passes[Passes.SMAA].camera = camera;
       passes[Passes.Render].scene = scene;

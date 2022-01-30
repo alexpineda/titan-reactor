@@ -26,6 +26,7 @@ const tryCatch = (cb: Function, openBw: OpenBWWasm) => {
 export default class OpenBwWasmReader {
     openBw: OpenBWWasm;
     heaps: Heaps;
+    private _frame: FrameBW;
 
     constructor(api: OpenBWWasm) {
         this.openBw = api;
@@ -37,6 +38,7 @@ export default class OpenBwWasmReader {
             HEAPU16: this.openBw.HEAPU16,
             HEAPU32: this.openBw.HEAPU32,
         }
+        this._frame = new FrameBW(api);
     }
 
     loadReplay(buffer: Buffer) {
@@ -48,11 +50,10 @@ export default class OpenBwWasmReader {
     }
 
     next() {
-        const frame = new FrameBW(this.openBw);
         tryCatch(() => {
-            frame.update();
+            this._frame.update();
         }, this.openBw)
-        return frame;
+        return this._frame;
     }
 
     dispose() {

@@ -107,7 +107,7 @@ async function TitanReactorGame(
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const camera = new PerspectiveCamera(35, gameSurface.width / gameSurface.height, 3, 256);
+  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 3, 256);
   camera.userData = {
     direction: 0,
     prevDirection: -1
@@ -124,7 +124,7 @@ async function TitanReactorGame(
   constrainControls(control, Math.max(mapWidth, mapHeight));
   janitor.disposable(control);
   (async () => {
-    await control.setLookAt(0, 20, 0, 0, 0, 0, false);
+    await control.setLookAt(0, 80, 0, 0, 0, 0, false);
     control.rotatePolarTo(POLAR_MIN, true);
   })();
   control.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
@@ -621,7 +621,7 @@ async function TitanReactorGame(
   const spriteBufferView = new SpritesBufferView(openBw.wasm);
   const imageBufferView = new ImageBufferView(openBw.wasm);
 
-  const buildSprites = (spritesBW: EntityIterator<SpriteStruct>, delta: number) => {
+  const buildSprites = (delta: number) => {
     assert(openBw.wasm);
     assert(currentBwFrame)
     const deletedImages = openBw.wasm.get_util_funcs().get_deleted_images();
@@ -832,6 +832,8 @@ async function TitanReactorGame(
         currentBwFrame = gameStateReader.next();
         if (!currentBwFrame || gameStatePosition.mode == GameStatePlayMode.SingleStep) {
           gameStatePosition.paused = true;
+        } else if (currentBwFrame.needsUpdate === false) {
+          currentBwFrame = null;
         }
       }
     }
@@ -852,7 +854,7 @@ async function TitanReactorGame(
         unitsBySprite
       );
       buildMinimap(units, minimapImageData, minimapResourceImageData)
-      buildSprites(currentBwFrame.sprites, delta);
+      buildSprites(delta);
       // buildResearchAndUpgrades(currentBwFrame);
       fogOfWar.texture.needsUpdate = true;
       creep.creepValuesTexture.needsUpdate = true;
@@ -954,6 +956,9 @@ async function TitanReactorGame(
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
         updateImagesDirection = true;
+        if (currentBwFrame) {
+          currentBwFrame.needsUpdate = true;
+        }
       }
     }
 
