@@ -30,11 +30,11 @@ export abstract class BufferView<T> implements EntityIterator<T> {
   }
 
   copy() {
-    return this.buffer.slice(this._itemIndex, this._itemIndex + this.itemsCount);
+    return this.buffer.slice(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
   }
 
   shallowCopy() {
-    return this.buffer.subarray(this._itemIndex, this._itemIndex + this.itemsCount);
+    return this.buffer.subarray(this._itemIndex, this._itemIndex + this.itemsCount * this._structSizeInBytes);
   }
 
   object(): T {
