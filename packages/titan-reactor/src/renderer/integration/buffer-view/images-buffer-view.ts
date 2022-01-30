@@ -5,6 +5,7 @@ export class ImageBufferView
 
   _address = 0;
   _bw: OpenBWWasm;
+  _debug = 1;
 
   get(address: number) {
     this._address = address;
@@ -20,44 +21,44 @@ export class ImageBufferView
   }
 
   get index() {
-    return this._bw.HEAPU32[this._index32 + 2];
+    return this._bw.HEAPU32[this._index32 + 2 + this._debug];
   }
 
   get typeId() {
-    const addr = this._bw.HEAPU32[this._index32 + 3];
+    const addr = this._bw.HEAPU32[this._index32 + 3 + this._debug];
     return this._bw.HEAP32[addr >> 2];
   }
 
   get modifier() {
-    return this._bw.HEAP32[this._index32 + 4];
+    return this._bw.HEAP32[this._index32 + 4 + this._debug];
   }
 
   get modifierData1() {
-    return this._bw.HEAP32[this._index32 + 5];
+    return this._bw.HEAP32[this._index32 + 5 + this._debug];
   }
 
   get frameIndex() {
-    return this._bw.HEAPU32[this._index32 + 7];
+    return this._bw.HEAPU32[this._index32 + 7 + this._debug];
   }
 
   get frameIndexBase() {
-    return this._bw.HEAPU32[this._index32 + 8];
+    return this._bw.HEAPU32[this._index32 + 8 + this._debug];
   }
 
   get frameIndexOffset() {
-    return this._bw.HEAPU32[this._index32 + 9];
+    return this._bw.HEAPU32[this._index32 + 9 + this._debug];
   }
 
   get flags() {
-    return this._bw.HEAP32[this._index32 + 10];
+    return this._bw.HEAP32[this._index32 + 10 + this._debug];
   }
 
   get x() {
-    return this._bw.HEAP32[this._index32 + 11];
+    return this._bw.HEAP32[this._index32 + 11 + this._debug];
   }
 
   get y() {
-    return this._bw.HEAP32[this._index32 + 12];
+    return this._bw.HEAP32[this._index32 + 12 + this._debug];
   }
 
   get nextNode() {

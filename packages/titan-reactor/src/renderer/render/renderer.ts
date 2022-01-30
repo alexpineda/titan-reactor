@@ -37,7 +37,6 @@ const createWebGLRenderer = () => {
 export class TitanRenderer {
     private _renderer?: WebGLRenderer;
     private _targetSurface = new CanvasTarget();
-    private _rendererJanitor = new Janitor();
     readonly composerPasses = createPasses();
     composer = new EffectComposer(null, {
         frameBufferType: HalfFloatType,

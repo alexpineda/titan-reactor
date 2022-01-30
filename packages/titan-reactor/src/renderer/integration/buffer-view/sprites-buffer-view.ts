@@ -57,8 +57,17 @@ export class SpritesBufferView
     return this._bw.HEAPU32[(addr >> 2) + 2];
   }
 
-  get imagesAddr() {
+  get lastImage() {
     return this._bw.HEAPU32[this._index32 + 13];
   }
+
+  get firstImage() {
+    return this._bw.HEAPU32[this._index32 + 14];
+  }
+
+  get endImageIterate() {
+    return (this._index32 + 13) * 4;
+  }
+
 }
 export default SpritesBufferView;

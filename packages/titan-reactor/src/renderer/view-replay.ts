@@ -642,9 +642,9 @@ async function TitanReactorGame(
       images.delete(imageId);
     }
 
-    // for (const spriteData of spritesBW.items()) {
     for (const spriteAddr of currentBwFrame.getSprites()) {
       const spriteData = spriteBufferView.get(spriteAddr);
+      // const imageAddresses = openBw.wasm.get_util_funcs().get_images(spriteAddr);
 
       let sprite = sprites.get(spriteData.index);
       if (!sprite) {
@@ -673,6 +673,7 @@ async function TitanReactorGame(
         dat.image.iscript === 337 ||
         fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
 
+      if (!sprite.visible && !currentBwFrame?.needsUpdate) continue;
       // don't update explored building frames so viewers only see last built frame
       // const dontUpdate =
       //   buildingIsExplored &&
@@ -708,8 +709,9 @@ async function TitanReactorGame(
       const player = players.playersById[spriteData.owner];
 
       let imageCounter = 0;
-      const imageAddresses = openBw.wasm.get_util_funcs().get_images(spriteAddr);
-      for (const imgAddr of imageAddresses) {
+      // const imageAddresses = openBw.wasm.get_util_funcs().get_images(spriteAddr);
+      let imgAddr = spriteData.lastImage; // start from "top" image
+      do {
         const imageData = imageBufferView.get(imgAddr);
         updateImagesDirection = false;
 
@@ -722,66 +724,66 @@ async function TitanReactorGame(
           image.sprite = sprite;
         }
 
-        if (!sprite.visible || isHidden(imageData as ImageStruct) || (!redraw(imageData as ImageStruct) && !updateImagesDirection)) {
-          continue;
-        }
+        if (!isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct || currentBwFrame?.needsUpdate)) {
 
-        if (player) {
-          image.setTeamColor(player.color.three);
-        }
+          if (player) {
+            image.setTeamColor(player.color.three);
+          }
 
-        // overlay position
-        image.offsetX = image.position.x = imageData.x / 32;
-        image.offsetY = image.position.z = imageData.y / 32;
-        image.renderOrder = sprite.renderOrder + (imageAddresses.length - imageCounter);
+          // overlay position
+          image.offsetX = image.position.x = imageData.x / 32;
+          image.offsetY = image.position.z = imageData.y / 32;
+          image.renderOrder = sprite.renderOrder + imageCounter;
 
-        // 63-48=15
-        if (imageData.modifier === 14) {
-          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
-        } else {
-          //@todo see if we even need this
-          image.setWarpingIn(0);
-        }
-        //@todo use modifier 1 for opacity value
-        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
-
-        let z = 0;
-
-        if (hasDirectionalFrames(imageData as ImageStruct)) {
-          const flipped = isFlipped(imageData as ImageStruct);
-          const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
-          const newFrameOffset = (direction + camera.userData.direction) % 32;
-
-          if (newFrameOffset > 16) {
-            image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+          // 63-48=15
+          if (imageData.modifier === 14) {
+            image.setWarpingIn((imageData.modifierData1 - 48) / 15);
           } else {
-            image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+            //@todo see if we even need this
+            image.setWarpingIn(0);
           }
-        } else {
-          image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
+          //@todo use modifier 1 for opacity value
+          image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
+
+          let z = 0;
+
+          if (hasDirectionalFrames(imageData as ImageStruct)) {
+            const flipped = isFlipped(imageData as ImageStruct);
+            const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
+            const newFrameOffset = (direction + camera.userData.direction) % 32;
+
+            if (newFrameOffset > 16) {
+              image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+            } else {
+              image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+            }
+          } else {
+            image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
+          }
+
+          if (imageData.index === spriteData.mainImageIndex) {
+
+            z = image._zOff * image.unitTileScale;
+            const unit = unitsBySprite.get(sprite.index);
+            if (unit) {
+              // for 3d models
+              // image.rotation.y = unit.angle;
+            }
+
+            if (isClickable(imageData as ImageStruct)) {
+              sprite.layers.enable(Layers.Clickable);
+              image.layers.enable(Layers.Clickable);
+            }
+            sprite.mainImage = image;
+          }
+
+          //@todo is this the reason for overlays displaying in 0,0?
+          // sprite.position.z += z - sprite.lastZOff;
+          sprite.lastZOff = z;
         }
-
-        if (imageData.index === spriteData.mainImageIndex) {
-
-          z = image._zOff * image.unitTileScale;
-          const unit = unitsBySprite.get(sprite.index);
-          if (unit) {
-            // for 3d models
-            // image.rotation.y = unit.angle;
-          }
-
-          if (isClickable(imageData as ImageStruct)) {
-            sprite.layers.enable(Layers.Clickable);
-            image.layers.enable(Layers.Clickable);
-          }
-          sprite.mainImage = image;
-        }
-
-        //@todo is this the reason for overlays displaying in 0,0?
-        // sprite.position.z += z - sprite.lastZOff;
-        sprite.lastZOff = z;
         imageCounter++;
-      }
+        imgAddr = imageData.nextNode;
+      } while (imgAddr !== spriteData.endImageIterate);
     }
   };
 
