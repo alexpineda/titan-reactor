@@ -40,7 +40,7 @@ export class TitanRenderer {
     readonly composerPasses = createPasses();
     composer = new EffectComposer(null, {
         frameBufferType: HalfFloatType,
-        multisampling: 4
+        multisampling: 0
     });
 
     constructor() {

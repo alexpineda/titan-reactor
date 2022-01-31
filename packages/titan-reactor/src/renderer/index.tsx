@@ -69,6 +69,13 @@ logDiv.style.display = "flex";
 logDiv.style.flexDirection = "column-reverse";
 document.body.appendChild(logDiv);
 
+const fps = document.createElement("div");
+fps.id = "fps";
+fps.style.color = "white";
+fps.style.position = "absolute";
+fps.style.zIndex = "10";
+document.body.appendChild(fps);
+
 bootup();
 async function bootup() {
   try {

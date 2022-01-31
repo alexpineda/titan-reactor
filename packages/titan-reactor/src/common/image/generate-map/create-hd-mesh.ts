@@ -172,14 +172,14 @@ export const createHDMesh = async (
 
           if (creepF > 0.) {
             vec4 creepColor = getSampledCreep(creepUv, vUv, creep, creepResolution, mapToCreepResolution);
-            vec4 creepLinear = mapTexelToLinear(creepColor);
+            vec4 creepLinear = creepColor;
             diffuseColor =  creepLinear;
           }
 
           if (creepEdge > 0.) {
             vec2 creepUv = getCreepUv(vUv, creepEdge, creepEdgesResolution, mapToCreepEdgesResolution);
             vec4 creepEdgeColor = texture2D(creepEdgesTexture, creepUv);
-            vec4 creepEdgeLinear = mapTexelToLinear(creepEdgeColor);
+            vec4 creepEdgeLinear = creepEdgeColor;
             diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
           }
 

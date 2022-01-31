@@ -10,7 +10,7 @@ export default function loadEnvironmentMap(
 
   function getCubeMapTexture(file: string): Promise<Texture> {
     return new Promise((resolve, reject) => {
-      new RGBELoader().setDataType(UnsignedByteType).load(
+      new RGBELoader().load(
         file,
         (texture) => {
           const envMap = pmremGenerator.fromEquirectangular(texture).texture;

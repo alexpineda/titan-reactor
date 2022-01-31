@@ -261,7 +261,7 @@ export class MapEffect extends Effect {
       if (value !== null) {
         switch (value.encoding) {
           case sRGBEncoding:
-            this.defines.set("texelToLinear(texel)", "sRGBToLinear(texel)");
+            this.defines.set("texelToLinear(texel)", "texel");
             break;
 
           case LinearEncoding:

@@ -76,7 +76,7 @@ export const createDataTextures = async ({
         creepEdgesBytes,
         mapWidth,
         mapHeight,
-        THREE.LuminanceFormat,
+        THREE.RedFormat,
         THREE.UnsignedByteType
     );
     creepEdgesValues.flipY = true;
@@ -88,7 +88,7 @@ export const createDataTextures = async ({
         creepBytes,
         mapWidth,
         mapHeight,
-        THREE.LuminanceFormat,
+        THREE.RedFormat,
         THREE.UnsignedByteType
     );
     creepValues.flipY = true;

@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, LuminanceFormat, RedIntegerFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
+import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, LuminanceFormat, RedFormat, RedIntegerFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
 import { OpenBWAPI } from "../openbw";
 
 export default class FogOfWar {
@@ -23,7 +23,7 @@ export default class FogOfWar {
             new Uint8ClampedArray(width * height),
             width,
             height,
-            LuminanceFormat,
+            RedFormat,
             UnsignedByteType,
         );
 

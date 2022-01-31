@@ -31,7 +31,6 @@ export const createDDSTexture = (
   texture.format = texDatas.format;
   texture.needsUpdate = true;
 
-  //@todo encoding
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.wrapT = ClampToEdgeWrapping;

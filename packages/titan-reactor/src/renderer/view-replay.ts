@@ -1,9 +1,9 @@
-import { strict as assert } from "assert";
 import { orders, UnitFlags, unitsByTechType } from "../common/bwdat/enums";
 import { debounce } from "lodash";
+import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector3 } from "three";
+import { Box3, Color, Group, MathUtils, Object3D, PerspectiveCamera, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -55,6 +55,7 @@ import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
 import { constrainAzimuth, constrainControls, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
+import { FPSMeter } from "./utils/fps-meter";
 
 CameraControls.install({ THREE: THREE });
 
@@ -69,6 +70,9 @@ async function TitanReactorGame(
   const { scene, terrain, chk, replay, gameStateReader, commandsStream, assets, audioMixer, music, soundChannels, janitor } = world;
   const preplacedMapUnits = chk.units;
   const bwDat = assets.bwDat;
+  const fps = new FPSMeter();
+  const fpsEl = document.getElementById("fps");
+  assert(fpsEl !== null);
 
   // @ts-ignore
   window.world = world;
@@ -615,6 +619,11 @@ async function TitanReactorGame(
   const images: Map<number, Image> = new Map();
   const unitsBySprite: Map<number, CrapUnit> = new Map();
   const spritesGroup = new Group();
+  //@ts-ignore
+  window.spritesGroup = spritesGroup;
+  //@ts-ignore
+  janitor.callback(() => { window.spritesGroup = undefined; });
+
   scene.add(spritesGroup);
 
   assert(openBw.wasm)
@@ -644,7 +653,6 @@ async function TitanReactorGame(
 
     for (const spriteAddr of currentBwFrame.getSprites()) {
       const spriteData = spriteBufferView.get(spriteAddr);
-      // const imageAddresses = openBw.wasm.get_util_funcs().get_images(spriteAddr);
 
       let sprite = sprites.get(spriteData.index);
       if (!sprite) {
@@ -807,6 +815,7 @@ async function TitanReactorGame(
   window.pause = () => {
     gameStatePosition.togglePlay();
   }
+
   // @ts-ignore
   janitor.callback(() => { window.pause = null });
 
@@ -815,10 +824,11 @@ async function TitanReactorGame(
       gameStatePosition.paused = false;
     }
   };
+
   window.addEventListener("keypress", _stepperListener);
   janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
-  const gameLoop = (elapsed: number) => {
+  const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
@@ -995,15 +1005,24 @@ async function TitanReactorGame(
     // audioMixer.update(target.x, target.y, target.z, delta);
     renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, control.polarAngle);
 
-    // renderer.togglePasses(Passes.Render);
-    renderer.togglePasses(Passes.Render, Passes.Cinematic);
+    renderer.togglePasses(Passes.Render);
     renderer.render(scene, camera, delta);
     // }
     drawMinimap(projectedCameraView);
 
     projectedCameraView.update();
     gameStatePosition.update(delta);
+
+    fps.update(elapsed);
+    if (fps.frames === 0) {
+      fpsEl.textContent = fps.fps;
+    }
   };
+
+  // @ts-ignore
+  window.GAME_LOOP = GAME_LOOP;
+  // @ts-ignore
+  janitor.callback(() => { window.GAME_LOOP = null; });
 
   const dispose = () => {
     log.info("disposing replay viewer");
@@ -1059,10 +1078,10 @@ async function TitanReactorGame(
   //run 1 frame
   gameStatePosition.resume();
   gameStatePosition.advanceGameFrames = 1;
-  gameLoop(0);
+  // GAME_LOOP(0);
   _sceneResizeHandler();
   return {
-    start: () => renderer.getWebGLRenderer().setAnimationLoop(gameLoop),
+    start: () => renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP),
     gameSurface,
     minimapSurface,
     players,
