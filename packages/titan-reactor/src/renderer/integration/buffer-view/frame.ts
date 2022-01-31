@@ -1,16 +1,9 @@
-import { OpenBWWasm } from "src/renderer/openbw";
-import { SpritesBufferView, TilesBufferView } from ".";
-import { SoundStruct, SpriteStruct } from "../structs";
-import { Heaps } from "../../openbw/openbw-reader";
+import { strict as assert } from "assert";
+import { OpenBWAPI, OpenBWWasm } from "src/renderer/openbw";
+import { TilesBufferView } from ".";
+import { SoundStruct } from "../structs";
 import { UnitStruct } from "../structs";
 import { EmbindEntityInterator, EntityIterator } from "./entity-iterator";
-
-interface SpriteDump {
-  spriteAddr: number;
-  imageCount: number;
-  imageAddr: number;
-}
-
 
 // a wrapper for a bw frames entire game state
 export class FrameBW {
@@ -27,22 +20,19 @@ export class FrameBW {
   private _sounds: EntityIterator<SoundStruct>;
   private _tiles: TilesBufferView;
 
-  private _bw: OpenBWWasm;
+  private _bw: OpenBWAPI;
 
-  constructor(bw: OpenBWWasm) {
+  constructor(bw: OpenBWAPI) {
+    assert(bw.wasm);
     this._bw = bw;
-    this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, bw.HEAPU8);
+    this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, bw.wasm.HEAPU8);
     this._sounds = new EmbindEntityInterator<SoundStruct>();
     this._units = new EmbindEntityInterator<UnitStruct>();
-    // this._sprites = new SpritesBufferView(SpritesBufferView.STRUCT_SIZE, 0, 0, heaps.HEAP32);
   }
 
   update() {
 
-    const funcs = this._bw.get_util_funcs();
-
-    this._bw._next_frame();
-    this.frame = this._bw._replay_get_value(2);
+    this.frame = this._bw.call.nextFrame();
     this.needsUpdate = this.frame !== this.prevFrame;
     if (this.needsUpdate === false) {
       return;
@@ -56,22 +46,22 @@ export class FrameBW {
     //     console.log("army", this._bw._counts(i, 13));
     // }
 
-    this.tiles.ptrIndex = this._bw._get_buffer(0);
-    this.tiles.itemsCount = this._bw._counts(0, 0);
+    this.tiles.ptrIndex = this._bw.call.getTilesPtr();
+    this.tiles.itemsCount = this._bw.call.getTilesSize();
 
     if (this.sounds instanceof EmbindEntityInterator) {
-      this.sounds.assign(funcs.get_sounds());
+      this.sounds.assign(this._bw.call.getSoundObjects());
     }
 
     if (this.units instanceof EmbindEntityInterator) {
-      this.units.assign(funcs.get_units(true));
+      this.units.assign(this._bw.call.getUnitsObjects());
     }
 
 
   }
 
   getSprites() {
-    return this._bw.get_util_funcs().get_sprites()
+    return this._bw.call.getSpriteAddresses();
   }
 
   get units(): EntityIterator<UnitStruct> {

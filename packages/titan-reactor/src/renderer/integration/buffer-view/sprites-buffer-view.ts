@@ -66,7 +66,7 @@ export class SpritesBufferView
   }
 
   get endImageIterate() {
-    return (this._index32 + 13) * 4;
+    return (this._index32 + 13) << 2;
   }
 
 }

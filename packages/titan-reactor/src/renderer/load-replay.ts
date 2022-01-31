@@ -95,7 +95,7 @@ export default async (filepath: string) => {
   updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
 
   assert(openBw.wasm);
-  const gameStateReader = new OpenBwWasmReader(openBw.wasm);
+  const gameStateReader = new OpenBwWasmReader(openBw);
   janitor.disposable(gameStateReader);
 
   try {
@@ -128,7 +128,6 @@ export default async (filepath: string) => {
   audioMixer.soundVolume = settings.audio.sound;
   audioMixer.masterVolume = settings.audio.global;
 
-  log.verbose("starting gameloop");
   updateIndeterminateLoadingProcess("replay", getFunString());
   ImageHD.useDepth = false;
 
@@ -145,6 +144,7 @@ export default async (filepath: string) => {
     soundChannels,
     janitor,
   };
+  log.verbose("initializing game interface");
   const game = await TitanReactorGame(world);
 
   setGame(game);
