@@ -18,9 +18,17 @@ export class SpritesBufferView
     return this;
   }
 
+  tryGet(index: number) {
+    return this._bw.HEAP32[this._index32 + index];
+  }
+
+  tryUGet(index: number) {
+    return this._bw.HEAPU32[this._index32 + index];
+  }
+
   constructor(bw: OpenBWWasm) {
     this._bw = bw;
-    this.images = new IntrusiveList(bw, 0 , 13);
+    this.images = new IntrusiveList(bw, 0, 13);
   }
 
   private get _index32() {

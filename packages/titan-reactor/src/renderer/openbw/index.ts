@@ -2,7 +2,7 @@ import createOpenBw from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
-import { UnitStruct, SoundStruct } from "../integration/structs";
+import { UnitStruct, SoundStruct, ImageStruct } from "../integration/structs";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
@@ -22,9 +22,9 @@ export interface OpenBWWasm {
   _replay_set_value: (index: number, value: number) => void;
   _get_fow_ptr: (visiblity: number, instant: boolean) => number;
   get_util_funcs: () => ({
-    get_units: (dirtyChecking: boolean) => UnitStruct[],
+    get_units_debug: () => UnitStruct[],
     get_sprites: () => number[],
-    get_images: (spriteAddr: number) => number[],
+    get_sprites_debug: () => ImageStruct[],
     get_sounds: () => SoundStruct[],
     get_deleted_images: () => number[],
     get_deleted_sprites: () => number[],
@@ -56,10 +56,9 @@ export interface OpenBWAPI {
     getTilesPtr: () => number;
     getTilesSize: () => number;
     getSoundObjects: () => SoundStruct[];
-    getUnitsObjects: () => UnitStruct[];
-    getUnitAddresses: () => number[];
     getSpriteAddresses: () => number[];
     getSpritesOnTileLineSize: () => number;
+    getSpritesOnTileLineAddress: () => number;
     getUnitsAddr: () => number;
     nextFrame: () => number;
     tryCatch: (callback: () => void) => void;
@@ -94,11 +93,9 @@ const openBw: OpenBWAPI = {
       getTilesPtr: () => _wasm._get_buffer(0),
       getTilesSize: () => _wasm._counts(0, 0),
       getSoundObjects: () => _wasm.get_util_funcs().get_sounds(),
-      getUnitsObjects: () => _wasm.get_util_funcs().get_units(true),
-      getUnitAddresses: () => [],
-      // getSpriteAddresses: () => _wasm._get_buffer(1),
       getSpriteAddresses: () => _wasm.get_util_funcs().get_sprites(),
       getSpritesOnTileLineSize: () => _wasm._counts(0, 14),
+      getSpritesOnTileLineAddress: () => _wasm._get_buffer(1),
       getUnitsAddr: () => _wasm._get_buffer(2),
       nextFrame: () => _wasm._next_frame(),
       loadReplay: (buffer: Buffer) => {
@@ -128,10 +125,9 @@ const openBw: OpenBWAPI = {
     getTilesPtr: () => 0,
     getTilesSize: () => 0,
     getSoundObjects: () => [],
-    getUnitsObjects: () => [],
-    getUnitAddresses: () => [],
     getSpriteAddresses: () => [],
     getSpritesOnTileLineSize: () => 0,
+    getSpritesOnTileLineAddress: () => 0,
     nextFrame: () => 0,
     tryCatch: () => { },
     loadReplay: (buffer: Buffer) => { },

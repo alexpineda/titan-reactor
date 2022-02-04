@@ -15,11 +15,13 @@ export class RenderCSS {
     this.css2dRenderer.domElement.style.position = "absolute";
     this.css2dRenderer.domElement.style.top = "0px";
     this.css2dRenderer.domElement.style.pointerEvents = "none";
+    this.css2dRenderer.domElement.style.zIndex = "20";
     domElement.appendChild(this.css2dRenderer.domElement);
 
     this.css3dRenderer.domElement.style.position = "absolute";
     this.css3dRenderer.domElement.style.top = "0px";
     this.css3dRenderer.domElement.style.pointerEvents = "none";
+    this.css3dRenderer.domElement.style.zIndex = "30";
     domElement.appendChild(this.css3dRenderer.domElement);
   }
 

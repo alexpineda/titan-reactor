@@ -87,7 +87,7 @@ export class UnitsBufferView
 
     // flingy_t
     get index() {
-        return this._bw.HEAP32[this._index32 + 2];
+        return this._bw.HEAPU32[this._index32 + 2];
     }
 
     // target = 3

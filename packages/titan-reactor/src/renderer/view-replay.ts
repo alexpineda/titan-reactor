@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Box3, Color, Group, MathUtils, Object3D, PerspectiveCamera, Vector3 } from "three";
+import { Box3, Color, Group, Material, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -37,6 +37,7 @@ import {
   GameCanvasTarget,
   Layers,
   Passes,
+  RenderCSS,
 } from "./render";
 import renderer from "./render/renderer";
 import {
@@ -50,7 +51,7 @@ import { EntityIterator } from "./integration/buffer-view/entity-iterator";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
-import { spriteSortOrder } from "./utils/sprite-utils";
+import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
 import { constrainAzimuth, constrainControls, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN } from "./utils/camera-utils";
@@ -58,6 +59,8 @@ import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
 import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
 import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer";
 
 CameraControls.install({ THREE: THREE });
 
@@ -105,6 +108,10 @@ async function TitanReactorGame(
   });
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
+
+  const css = new RenderCSS(document.body);
+  css.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+  janitor.disposable(css);
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
@@ -224,15 +231,18 @@ async function TitanReactorGame(
   const skipHandler = (dir: number) => () => {
     if (reset) return;
     reset = () => {
-      assert(openBw.wasm);
-      const currentFrame = openBw.wasm._replay_get_value(3);
-      openBw.wasm._replay_set_value(3, currentFrame + 100 * dir);
+      const currentFrame = openBw.wasm!._replay_get_value(3);
+      openBw.wasm!._replay_set_value(3, currentFrame + 100 * dir);
+      for (const unit of iterateUnits()) {
+        unit.extra.highlight.removeFromParent();
+      }
       sprites.clear();
       images.clear();
       units.clear();
       spritesGroup.clear();
       unitsBySprite.clear();
       // cmds.next(openBw.api._replay_get_value(3));
+
       currentBwFrame = null;
       reset = null;
     }
@@ -241,9 +251,8 @@ async function TitanReactorGame(
   keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
 
   const speedHandler = (scale: number) => () => {
-    assert(openBw.wasm);
-    const currentSpeed = openBw.wasm._replay_get_value(0);
-    openBw.wasm._replay_set_value(0, currentSpeed * scale)
+    const currentSpeed = openBw.wasm!._replay_get_value(0);
+    openBw.wasm!._replay_set_value(0, currentSpeed * scale)
   }
   keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
   keyboardManager.on(InputEvents.SpeedDown, speedHandler(1 / 2));
@@ -265,7 +274,9 @@ async function TitanReactorGame(
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+    // @todo use scaled sizes here?
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    css.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
@@ -390,13 +401,13 @@ async function TitanReactorGame(
   const buildMinimap = (units: Map<number, CrapUnit>, imageData: ImageData, resourceImageData: ImageData) => {
     imageData.data.fill(0);
     resourceImageData.data.fill(0);
-    for (const [_, unit] of units) {
+
+    for (const unit of iterateUnits()) {
       const dat = bwDat.units[unit.typeId];
 
       const showOnMinimap =
         unit.typeId !== unitTypes.darkSwarm &&
-        unit.typeId !== unitTypes.disruptionWeb &&
-        unit.order !== orders.die;
+        unit.typeId !== unitTypes.disruptionWeb;
 
       if (showOnMinimap) {
         _buildMinimap(unit, dat);
@@ -409,11 +420,22 @@ async function TitanReactorGame(
     if (unit) {
       return unit;
     } else {
+      const highlight = new THREE.Mesh(new THREE.SphereBufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+      if (unitData.owner < 8) {
+        const div = document.createElement("div");
+        div.innerText = unitData.id.toString();
+        div.style.color = "white";
+        div.style.fontWeight = "500"
+        const debuglabel = new CSS2DObject(div);
+        highlight.add(debuglabel)
+      }
+      scene.add(highlight);
       const unit = {
         extra: {
-          recievingDamage: 0
+          recievingDamage: 0,
+          highlight,
         }
-      } as CrapUnit;
+      } as unknown as CrapUnit;
       unitData.copyTo(unit)
       units.set(unitData.id, unit);
       return unit;
@@ -433,23 +455,22 @@ async function TitanReactorGame(
         if (unit) {
           yield unit;
         } else {
-          throw new Error(`invalid access ${unitData.id}`);
+          log.error(`invalid access ${unitData.id}`);
         }
       }
     }
   }
 
   const buildUnits = (
-    unitsBW: EntityIterator<UnitStruct>,
     units: Map<number, CrapUnit>,
     unitsBySprite: Map<number, CrapUnit>
   ) => {
-    assert(openBw.wasm);
-    const deletedUnits = openBw.wasm.get_util_funcs().get_deleted_units();
+    const deletedUnits = openBw.wasm!.get_util_funcs().get_deleted_units();
 
     for (const unitId of deletedUnits) {
       const unit = units.get(unitId);
       if (!unit) continue;
+      unit.extra.highlight.removeFromParent();
       units.delete(unitId);
     }
 
@@ -465,8 +486,7 @@ async function TitanReactorGame(
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
           !unit.extra.recievingDamage &&
-          (unit.hp > unitData.hp || unit.shields > unitData.shields) &&
-          unitData.typeId === undefined// ignore zerg units change hp from egg hp
+          (unit.hp > unitData.hp || unit.shields > unitData.shields)// @todo ignore zerg units change hp from egg hp
         ) {
           unit.extra.recievingDamage = 0b000111000111000111;
         } else if (unit.extra.recievingDamage) {
@@ -474,7 +494,13 @@ async function TitanReactorGame(
         }
 
         unit.extra.player = players.playersById[unitData.owner];
-
+        unit.extra.highlight.visible = unit.extra.player !== undefined;
+        if (unit.extra.player) {
+          const mx = pxToGameUnit.x(unitData.x);
+          const my = pxToGameUnit.y(unitData.y);
+          unit.extra.highlight.position.set(mx, terrain.getTerrainY(mx, my), my);
+          (unit.extra.highlight.material as MeshBasicMaterial).color.set(unit.extra.player.color.three);
+        }
         // if (unitData.order == orders.die) {
         //   unit.extra.timeOfDeath = Date.now();
         // }
@@ -653,10 +679,8 @@ async function TitanReactorGame(
   const imageBufferView = new ImageBufferView(openBw.wasm);
 
   const buildSprites = (delta: number) => {
-    assert(openBw.wasm);
-    assert(currentBwFrame)
-    const deletedImages = openBw.wasm.get_util_funcs().get_deleted_images();
-    const deletedSprites = openBw.wasm.get_util_funcs().get_deleted_sprites();
+    const deletedImages = openBw.wasm!.get_util_funcs().get_deleted_images();
+    const deletedSprites = openBw.wasm!.get_util_funcs().get_deleted_sprites();
 
     for (const spriteId of deletedSprites) {
       const sprite = sprites.get(spriteId);
@@ -673,8 +697,21 @@ async function TitanReactorGame(
       images.delete(imageId);
     }
 
-    for (const spriteAddr of currentBwFrame.getSprites()) {
+    const spriteList = new IntrusiveList(openBw.wasm!);
+    let debug_sprite_count = 0;
+    const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
+    const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
+    const spritesDebug = openBw.wasm!.get_util_funcs().get_sprites_debug();
+    // for (let l = 0; l < spriteTileLineSize; l++) {
+    //   spriteList.addr = spritetileAddr + (l << 3)
+    //   for (const spriteAddr of spriteList) {
+    //     debug_sprite_count++;
+    for (const spriteAddr of openBw.call.getSpriteAddresses()) {
       const spriteData = spriteBufferView.get(spriteAddr);
+      // const debugSpriteData = spritesDebug.find(o => o._addr == spriteAddr);
+      if (spriteAddr === 0) {
+        continue;
+      }
 
       let sprite = sprites.get(spriteData.index);
       if (!sprite) {
@@ -701,9 +738,9 @@ async function TitanReactorGame(
         spriteData.owner === 11 ||
         dat.image.iscript === 336 ||
         dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
+        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y)) || spriteIsHidden(spriteData);
 
-      if (!sprite.visible && !currentBwFrame?.needsUpdate) continue;
+      // if (!sprite.visible && !currentBwFrame?.needsUpdate) continue;
       // don't update explored building frames so viewers only see last built frame
       // const dontUpdate =
       //   buildingIsExplored &&
@@ -740,12 +777,11 @@ async function TitanReactorGame(
 
       let imageCounter = 0;
 
-      let imgAddr = spriteData.lastImage; // start from "top" image
+      let imgAddr = spriteData.lastImage;
       do {
         const imageData = imageBufferView.get(imgAddr);
         updateImagesDirection = false;
 
-        // @todo recycle dead similar images
         let image = images.get(imageData.index);
         if (!image) {
           image = createImage(imageData.typeId);
@@ -753,8 +789,9 @@ async function TitanReactorGame(
           sprite.add(image);
           image.sprite = sprite;
         }
+        image.visible = !isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct);
 
-        if (!isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct || currentBwFrame?.needsUpdate)) {
+        if (image.visible || currentBwFrame!.needsUpdate) {
 
           if (player) {
             image.setTeamColor(player.color.three);
@@ -815,6 +852,7 @@ async function TitanReactorGame(
         imgAddr = imageData.nextNode;
       } while (imgAddr !== spriteData.endImageIterate);
     }
+    // }
   };
 
   // mouseInput.bind(
@@ -883,7 +921,6 @@ async function TitanReactorGame(
       }
 
       buildUnits(
-        currentBwFrame.units,
         units,
         unitsBySprite
       );
@@ -1029,6 +1066,9 @@ async function TitanReactorGame(
 
     renderer.togglePasses(Passes.Render);
     renderer.render(scene, camera, delta);
+
+    //@todo use separate scene for css objects
+    css.render(scene, camera);
     // }
     drawMinimap(projectedCameraView);
 

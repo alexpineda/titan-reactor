@@ -16,7 +16,6 @@ export class FrameBW {
   supplyAvailable: number[] = [];
   workerSupply: number[] = [];
 
-  private _units: EntityIterator<UnitStruct>;
   private _sounds: EntityIterator<SoundStruct>;
   private _tiles: TilesBufferView;
 
@@ -27,7 +26,6 @@ export class FrameBW {
     this._bw = bw;
     this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, bw.wasm.HEAPU8);
     this._sounds = new EmbindEntityInterator<SoundStruct>();
-    this._units = new EmbindEntityInterator<UnitStruct>();
   }
 
   update() {
@@ -53,19 +51,6 @@ export class FrameBW {
       this.sounds.assign(this._bw.call.getSoundObjects());
     }
 
-    if (this.units instanceof EmbindEntityInterator) {
-      this.units.assign(this._bw.call.getUnitsObjects());
-    }
-
-
-  }
-
-  getSprites() {
-    return this._bw.call.getSpriteAddresses();
-  }
-
-  get units(): EntityIterator<UnitStruct> {
-    return this._units;
   }
 
   get tiles() {

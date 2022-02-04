@@ -10,3 +10,7 @@ export const spriteSortOrder = (sprite: SpriteStruct) => {
     score |= sprite.flags & SpriteFlags.Turret ? 1 : 0;
     return score;
 }
+
+export const spriteIsHidden = (sprite: SpriteStruct) => {
+    return !!(sprite.flags & SpriteFlags.Hidden);
+}
