@@ -3,6 +3,7 @@ import { Settings } from "../../common/types";
 import { Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { testKeys } from "../utils/key-utils";
+import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 
 const MAX_ACCELERATION = 2;
 const ACCELERATION = 1.01;
@@ -60,11 +61,9 @@ export class CameraKeys {
 
             // @todo split into two functions, big-zoom-in/out, small-zoom-in/out
             if (testKeys(e, settings.controls.keyboard.camera.zoomIn)) {
-                control.dolly(e.shiftKey ? 5 : 3, true);
-                control.rotate(0, (Math.PI) / 96, true);
+                smoothDollyIn(control);
             } else if (testKeys(e, settings.controls.keyboard.camera.zoomOut)) {
-                control.rotate(0, -(Math.PI) / 96, true);
-                control.dolly(e.shiftKey ? -5 : -3, true);
+                smoothDollyOut(control);
             }
 
         }

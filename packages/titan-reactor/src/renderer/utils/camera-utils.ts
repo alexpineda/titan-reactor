@@ -1,6 +1,6 @@
 import CameraControls from "camera-controls";
 import { PerspectiveCamera, Vector3 } from "three";
-import { easePoly, easeExpIn } from "d3-ease";
+import { easePoly } from "d3-ease";
 
 export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
   const adj = target.z - cameraPosition.z;
@@ -19,7 +19,7 @@ export const POLAR_MIN = (2 * Math.PI) / 64;
 export const AZI_RANGE = (20 * Math.PI) / 64;
 
 export const constrainControls = (controls: CameraControls, maxMapDim: number) => {
-  controls.maxDistance = maxMapDim * 0.8;
+  controls.maxDistance = maxMapDim;
   controls.minDistance = 20;
   controls.dollySpeed = 0.2
 

@@ -61,6 +61,7 @@ import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
 import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer";
+import { CameraMouse } from "./input/camera-mouse";
 
 CameraControls.install({ THREE: THREE });
 
@@ -130,9 +131,9 @@ async function TitanReactorGame(
     camera,
     gameSurface.canvas,
   );
-  control.mouseButtons.left = CameraControls.ACTION.TRUCK;
-  control.mouseButtons.right = CameraControls.ACTION.ROTATE;
-  control.mouseButtons.middle = CameraControls.ACTION.DOLLY;
+  control.mouseButtons.left = CameraControls.ACTION.NONE;
+  control.mouseButtons.right = CameraControls.ACTION.TRUCK;
+  control.mouseButtons.middle = CameraControls.ACTION.NONE;
   control.dollyToCursor = true;
   control.verticalDragToForward = true;
   constrainControls(control, Math.max(mapWidth, mapHeight));
@@ -144,6 +145,10 @@ async function TitanReactorGame(
   control.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
   //@ts-ignore
   window.control = control;
+
+  const cameraMouse = new CameraMouse(control, document.body);
+  janitor.disposable(cameraMouse);
+
   //@ts-ignore
   window.camera = camera;
   //@ts-ignore
@@ -233,9 +238,7 @@ async function TitanReactorGame(
     reset = () => {
       const currentFrame = openBw.wasm!._replay_get_value(3);
       openBw.wasm!._replay_set_value(3, currentFrame + 100 * dir);
-      for (const unit of iterateUnits()) {
-        unit.extra.highlight.removeFromParent();
-      }
+      cssGroup.clear();
       sprites.clear();
       images.clear();
       units.clear();
@@ -275,7 +278,7 @@ async function TitanReactorGame(
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     // @todo use scaled sizes here?
-    renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    renderer.setSize(gameSurface.width, gameSurface.height);
     css.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
@@ -429,7 +432,7 @@ async function TitanReactorGame(
         const debuglabel = new CSS2DObject(div);
         highlight.add(debuglabel)
       }
-      scene.add(highlight);
+      cssGroup.add(highlight);
       const unit = {
         extra: {
           recievingDamage: 0,
@@ -668,12 +671,15 @@ async function TitanReactorGame(
   const images: Map<number, Image> = new Map();
   const unitsBySprite: Map<number, CrapUnit> = new Map();
   const spritesGroup = new Group();
+  const cssGroup = new Group();
+
   //@ts-ignore
   window.spritesGroup = spritesGroup;
   //@ts-ignore
   janitor.callback(() => { window.spritesGroup = undefined; });
 
   scene.add(spritesGroup);
+  scene.add(cssGroup);
 
   const spriteBufferView = new SpritesBufferView(openBw.wasm);
   const imageBufferView = new ImageBufferView(openBw.wasm);
@@ -1018,9 +1024,9 @@ async function TitanReactorGame(
     control.getTarget(target);
 
     {
-      const azi = constrainAzimuth(control.polarAngle);
-      control.minAzimuthAngle = -azi / 2;
-      control.maxAzimuthAngle = azi / 2;
+      // const azi = constrainAzimuth(control.polarAngle);
+      // control.minAzimuthAngle = -azi / 2;
+      // control.maxAzimuthAngle = azi / 2;
 
       const dir = control.polarAngle < 0.25 ? 0 : getDirection32(target, camera.position);
       if (dir != camera.userData.direction) {
