@@ -25,8 +25,8 @@ export const constrainControls = (controls: CameraControls, maxMapDim: number) =
 
   controls.maxPolarAngle = POLAR_MAX; // bottom
   controls.minPolarAngle = POLAR_MIN; // top
-  controls.maxAzimuthAngle = AZI_RANGE / 2;
-  controls.minAzimuthAngle = -AZI_RANGE / 2;
+  controls.maxAzimuthAngle = 0//AZI_RANGE / 2;
+  controls.minAzimuthAngle = 0//-AZI_RANGE / 2;
 }
 
 export const constrainAzimuth = (polarAngle: number) => {

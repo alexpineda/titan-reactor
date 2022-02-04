@@ -61,9 +61,9 @@ export class CameraKeys {
             // @todo split into two functions, big-zoom-in/out, small-zoom-in/out
             if (testKeys(e, settings.controls.keyboard.camera.zoomIn)) {
                 control.dolly(e.shiftKey ? 5 : 3, true);
-                control.rotate(0, (Math.PI) / 64, true);
+                control.rotate(0, (Math.PI) / 96, true);
             } else if (testKeys(e, settings.controls.keyboard.camera.zoomOut)) {
-                control.rotate(0, -(Math.PI) / 64, true);
+                control.rotate(0, -(Math.PI) / 96, true);
                 control.dolly(e.shiftKey ? -5 : -3, true);
             }
 
