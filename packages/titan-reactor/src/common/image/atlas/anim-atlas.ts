@@ -14,11 +14,22 @@ export class AnimAtlas implements GRPInterface {
     frames: GrpFrameType[] = [];
     diffuse: Texture;
     teamcolor?: Texture;
+    brightness?: Texture;
+    normal?: Texture;
+    specular?: Texture;
+    aoDepth?: Texture;
+    emissive?: Texture;
+
     grp: GrpType;
 
-    constructor(diffuse: Texture, vals: GRPInterface, teamcolor?: Texture,) {
+    constructor(diffuse: Texture, vals: GRPInterface, teamcolor?: Texture, brightness?: Texture, normal?: Texture, specular?: Texture, aoDepth?: Texture, emissive?: Texture) {
         this.diffuse = diffuse;
         this.teamcolor = teamcolor;
+        this.brightness = brightness;
+        this.normal = normal;
+        this.specular = specular;
+        this.aoDepth = aoDepth;
+        this.emissive = emissive;
 
         this.grp = vals.grp;
         this.unitTileScale = vals.unitTileScale;

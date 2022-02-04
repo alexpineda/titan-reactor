@@ -25,15 +25,25 @@ export const loadAnimAtlas = async (
     const ddsBuf = getBufDds(buf, sprite.maps.diffuse);
     const diffuse = await createDDSTexture(ddsBuf);
 
-    let teamcolor;
-    if (sprite.maps.teamcolor) {
+    const optionalLoad = async (layer: any) => {
+        if (layer === undefined) {
+            return undefined;
+        }
         const ddsBuf = getBufDds(buf, sprite.maps.teamcolor);
-        teamcolor = await createDDSTexture(ddsBuf);
+        return await createDDSTexture(ddsBuf);
     }
 
-    // only HD is accurate in terms of frame and spriteWidth data
+    const teamcolor = await optionalLoad(sprite.maps.teamcolor);
+
     // @todo handle SD properly
     const uvScale = UnitTileScale.HD / scale;
+
+
+    // const brightness = await optionalLoad(sprite.maps.bright);
+    // const normal = await optionalLoad(sprite.maps.normal);
+    // const specular = await optionalLoad(sprite.maps.specular);
+    // const aoDepth = await optionalLoad(sprite.maps.ao_depth);
+    // const emissive = await optionalLoad(sprite.maps.emissive);
 
     return new AnimAtlas(
         diffuse,
@@ -55,25 +65,4 @@ export const loadAnimAtlas = async (
             unitTileScale: scale,
         }, teamcolor);
 
-
-
-    // if (anim.sprite.maps.bright) {
-    //   const ddsBuf = getBuf(anim.sprite.maps.bright);
-    //   this.brightness = this._loadDDS(ddsBuf);
-    // }
-
-    // if (anim.sprite.maps.normal) {
-    //   const ddsBuf = getBuf(anim.sprite.maps.normal);
-    //   this.normal = this._loadDDS(ddsBuf);
-    // }
-
-    // if (anim.sprite.maps.specular) {
-    //   const ddsBuf = getBuf(anim.sprite.maps.specular);
-    //   this.specular = this._loadDDS(ddsBuf);
-    // }
-
-    // if (anim.sprite.maps.ao_depth) {
-    //   const ddsBuf = getBuf(anim.sprite.maps.ao_depth);
-    //   this.ao_depth = this._loadDDS(ddsBuf);
-    // }
 }
