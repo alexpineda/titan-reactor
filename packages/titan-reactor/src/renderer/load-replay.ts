@@ -36,6 +36,7 @@ import { openBw } from "./openbw";
 import { strict as assert } from "assert";
 import { pxToMapMeter } from "../common/utils/conversions";
 import { setWorld } from "./world";
+import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 
 export default async (filepath: string) => {
   log.info(`loading replay ${filepath}`);
@@ -74,9 +75,11 @@ export default async (filepath: string) => {
     );
     const chkDowngrader = new ChkDowngrader();
     repBin = await convertReplay(replay, chkDowngrader);
-    // fs.writeFileSync(`D:\\last_replay.rep`, repBin);
+    fs.writeFileSync(`D:\\last_replay.rep`, repBin);
     replay = await parseReplay(repBin);
   }
+
+  UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;
 
   log.verbose("loading chk");
   const chk = new Chk(replay.chk);

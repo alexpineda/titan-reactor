@@ -56,6 +56,8 @@ import CameraControls from "camera-controls";
 import { constrainAzimuth, constrainControls, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
+import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
+import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 
 CameraControls.install({ THREE: THREE });
 
@@ -73,6 +75,7 @@ async function TitanReactorGame(
   const fps = new FPSMeter();
   const fpsEl = document.getElementById("fps");
   assert(fpsEl !== null);
+  assert(openBw.wasm);
 
   // @ts-ignore
   window.world = world;
@@ -401,18 +404,38 @@ async function TitanReactorGame(
     }
   }
 
-  const getUnit = (units: Map<number, CrapUnit>, unitData: UnitStruct) => {
+  const getUnit = (units: Map<number, CrapUnit>, unitData: UnitsBufferView) => {
     const unit = units.get(unitData.id);
     if (unit) {
       return unit;
     } else {
-      const unit = unitData as CrapUnit;
-      // @ts-ignore
-      unit.extra = {
-        recievingDamage: 0
-      };
+      const unit = {
+        extra: {
+          recievingDamage: 0
+        }
+      } as CrapUnit;
+      unitData.copyTo(unit)
       units.set(unitData.id, unit);
       return unit;
+    }
+  }
+
+  const unitBufferView = new UnitsBufferView(openBw.wasm);
+  const unitList = new IntrusiveList(openBw.wasm, 0, 43);
+
+  function* iterateUnits() {
+    const playersUnitAddr = openBw.call.getUnitsAddr();
+    for (let p = 0; p < 12; p++) {
+      unitList.addr = playersUnitAddr + (p << 3);
+      for (const unitAddr of unitList) {
+        const unitData = unitBufferView.get(unitAddr);
+        const unit = units.get(unitData.id);
+        if (unit) {
+          yield unit;
+        } else {
+          throw new Error(`invalid access ${unitData.id}`);
+        }
+      }
     }
   }
 
@@ -430,35 +453,35 @@ async function TitanReactorGame(
       units.delete(unitId);
     }
 
-    for (const unitData of unitsBW.instances()) {
+    const playersUnitAddr = openBw.call.getUnitsAddr();
+    for (let p = 0; p < 12; p++) {
+      unitList.addr = playersUnitAddr + (p << 3);
+      for (const unitAddr of unitList) {
+        const unitData = unitBufferView.get(unitAddr);
+        const unit = getUnit(units, unitData);
 
-      const unit = getUnit(units, unitData);
-
-      if (unitData.spriteIndex !== undefined) {
         unitsBySprite.set(unit.spriteIndex, unit);
-      }
 
-      //if receiving damage, blink 3 times, hold blink 3 frames
-      if (
-        !unit.extra.recievingDamage &&
-        (unit.hp > unitData.hp || unit.shields > unitData.shields) &&
-        unitData.typeId === undefined// ignore zerg units change hp from egg hp
-      ) {
-        unit.extra.recievingDamage = 0b000111000111000111;
-      } else if (unit.extra.recievingDamage) {
-        unit.extra.recievingDamage = unit.extra.recievingDamage >> 1;
-      }
+        //if receiving damage, blink 3 times, hold blink 3 frames
+        if (
+          !unit.extra.recievingDamage &&
+          (unit.hp > unitData.hp || unit.shields > unitData.shields) &&
+          unitData.typeId === undefined// ignore zerg units change hp from egg hp
+        ) {
+          unit.extra.recievingDamage = 0b000111000111000111;
+        } else if (unit.extra.recievingDamage) {
+          unit.extra.recievingDamage = unit.extra.recievingDamage >> 1;
+        }
 
-      if (unitData.owner !== undefined)
         unit.extra.player = players.playersById[unitData.owner];
 
-      if (unitData.order == orders.die) {
-        unit.extra.timeOfDeath = Date.now();
+        // if (unitData.order == orders.die) {
+        //   unit.extra.timeOfDeath = Date.now();
+        // }
+
+        unitData.copyTo(unit);
+
       }
-
-      //bulk assign ok?
-      Object.assign(unit, unitData);
-
     }
   }
 
@@ -626,7 +649,6 @@ async function TitanReactorGame(
 
   scene.add(spritesGroup);
 
-  assert(openBw.wasm)
   const spriteBufferView = new SpritesBufferView(openBw.wasm);
   const imageBufferView = new ImageBufferView(openBw.wasm);
 
@@ -717,7 +739,7 @@ async function TitanReactorGame(
       const player = players.playersById[spriteData.owner];
 
       let imageCounter = 0;
-      // const imageAddresses = openBw.wasm.get_util_funcs().get_images(spriteAddr);
+
       let imgAddr = spriteData.lastImage; // start from "top" image
       do {
         const imageData = imageBufferView.get(imgAddr);

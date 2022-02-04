@@ -5,7 +5,7 @@ export class ImageBufferView
 
   _address = 0;
   _bw: OpenBWWasm;
-  _debug = 1;
+  _debug = 0;
 
   get(address: number) {
     this._address = address;

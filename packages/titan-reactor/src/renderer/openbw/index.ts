@@ -57,7 +57,10 @@ export interface OpenBWAPI {
     getTilesSize: () => number;
     getSoundObjects: () => SoundStruct[];
     getUnitsObjects: () => UnitStruct[];
+    getUnitAddresses: () => number[];
     getSpriteAddresses: () => number[];
+    getSpritesOnTileLineSize: () => number;
+    getUnitsAddr: () => number;
     nextFrame: () => number;
     tryCatch: (callback: () => void) => void;
     loadReplay: (buffer: Buffer) => void;
@@ -92,7 +95,11 @@ const openBw: OpenBWAPI = {
       getTilesSize: () => _wasm._counts(0, 0),
       getSoundObjects: () => _wasm.get_util_funcs().get_sounds(),
       getUnitsObjects: () => _wasm.get_util_funcs().get_units(true),
+      getUnitAddresses: () => [],
+      // getSpriteAddresses: () => _wasm._get_buffer(1),
       getSpriteAddresses: () => _wasm.get_util_funcs().get_sprites(),
+      getSpritesOnTileLineSize: () => _wasm._counts(0, 14),
+      getUnitsAddr: () => _wasm._get_buffer(2),
       nextFrame: () => _wasm._next_frame(),
       loadReplay: (buffer: Buffer) => {
         tryCatch(() => {
@@ -122,10 +129,13 @@ const openBw: OpenBWAPI = {
     getTilesSize: () => 0,
     getSoundObjects: () => [],
     getUnitsObjects: () => [],
+    getUnitAddresses: () => [],
     getSpriteAddresses: () => [],
+    getSpritesOnTileLineSize: () => 0,
     nextFrame: () => 0,
     tryCatch: () => { },
     loadReplay: (buffer: Buffer) => { },
+    getUnitsAddr: () => 0,
   }
 };
 

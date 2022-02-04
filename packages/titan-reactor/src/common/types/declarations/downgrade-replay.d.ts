@@ -10,7 +10,8 @@ declare module "downgrade-replay" {
         header: {
             frameCount: number;
             players: Player[];
-        }
+        },
+        containerSize: 1700 | 3400
     }
 
     export class CommandsStream {

@@ -1,5 +1,6 @@
 import { OpenBWWasm } from "src/renderer/openbw";
 import { SpriteStruct } from "../structs";
+import { IntrusiveList } from "./intrusive-list";
 
 /**
  * Maps to openbw sprite_t starting from index address
@@ -9,14 +10,17 @@ export class SpritesBufferView
 
   _address = 0;
   _bw: OpenBWWasm;
+  readonly images: IntrusiveList;
 
   get(address: number) {
     this._address = address;
+    this.images.addr = address;
     return this;
   }
 
   constructor(bw: OpenBWWasm) {
     this._bw = bw;
+    this.images = new IntrusiveList(bw, 0 , 13);
   }
 
   private get _index32() {
