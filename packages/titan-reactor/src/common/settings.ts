@@ -33,6 +33,9 @@ export const defaultSettings: Settings = {
   },
   controls: {
     keyboard: {
+      game: {
+        battleCam: "F5"
+      },
       replay: {
         pause: "KeyP",
         speedUp: "KeyU",

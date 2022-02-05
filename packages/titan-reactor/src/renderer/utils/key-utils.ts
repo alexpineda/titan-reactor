@@ -1,4 +1,7 @@
-export const testKeys = (e: KeyboardEvent, keys: string) => {
+export const testKeys = (e: KeyboardEvent, keys: string | undefined) => {
+    if (keys === undefined) {
+        return false;
+    }
     return keys.split(",").some(key => testKey(e, key));
 }
 

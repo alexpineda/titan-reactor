@@ -1,5 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
+import fs from "fs";
 import "./reset.css";
 import { openBw } from "./openbw";
 
@@ -111,3 +112,9 @@ async function bootup() {
 }
 
 // render(<App />, document.getElementById("app"));
+
+// window.writeBuf = (buf: Uint8Array) => {
+
+//   fs.writeFileSync("D:\\test.bin", buf);
+
+// };

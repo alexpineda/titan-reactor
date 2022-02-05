@@ -30,6 +30,9 @@ export type Settings = {
     },
     controls: {
         keyboard: {
+            game: {
+                battleCam?: string;
+            },
             replay: {
                 pause?: string;
                 speedUp?: string;
@@ -38,12 +41,12 @@ export type Settings = {
                 skipBackward?: string;
             },
             camera: {
-                truckLeft: string,
-                truckRight: string,
-                forward: string,
-                backward: string,
-                zoomIn: string,
-                zoomOut: string,
+                truckLeft?: string,
+                truckRight?: string,
+                forward?: string,
+                backward?: string,
+                zoomIn?: string,
+                zoomOut?: string,
             }
         }
     }

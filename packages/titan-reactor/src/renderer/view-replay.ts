@@ -54,7 +54,7 @@ import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
-import { constrainAzimuth, constrainControls, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN } from "./utils/camera-utils";
+import { constrainAzimuth, constrainControls, constrainControlsBattleCam, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN, resetToBattleCam, resetToRegularCam } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
 import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
@@ -122,7 +122,7 @@ async function TitanReactorGame(
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 3, 256);
+  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 1, 256);
   camera.userData = {
     direction: 0,
     prevDirection: -1
@@ -136,12 +136,11 @@ async function TitanReactorGame(
   control.mouseButtons.middle = CameraControls.ACTION.NONE;
   control.dollyToCursor = true;
   control.verticalDragToForward = true;
+  control.setLookAt(0, 80, 0, 0, 0, 0, false);
   constrainControls(control, Math.max(mapWidth, mapHeight));
   janitor.disposable(control);
-  (async () => {
-    await control.setLookAt(0, 80, 0, 0, 0, 0, false);
-    control.rotatePolarTo(POLAR_MIN, true);
-  })();
+
+
   control.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
   //@ts-ignore
   window.control = control;
@@ -186,6 +185,24 @@ async function TitanReactorGame(
 
   const cameraKeys = new CameraKeys(window.document.body, control, settings);
   janitor.disposable(cameraKeys);
+
+  cameraKeys.onToggleBattleCam = () => {
+    if (camera.userData.battleCam) {
+      resetToRegularCam(control, camera);
+      camera.userData.battleCam = false;
+      cameraMouse.enabled = true;
+      control.mouseButtons.right = CameraControls.ACTION.TRUCK;
+      control.mouseButtons.middle = CameraControls.ACTION.NONE;
+      constrainControls(control, Math.max(mapWidth, mapHeight));
+    } else {
+      resetToBattleCam(control, camera);
+      camera.userData.battleCam = true;
+      cameraMouse.enabled = false;
+      control.mouseButtons.right = CameraControls.ACTION.ROTATE;
+      control.mouseButtons.middle = CameraControls.ACTION.ZOOM;
+      constrainControlsBattleCam(control, Math.max(mapWidth, mapHeight));
+    }
+  }
 
   //@ts-ignore
   janitor.callback(() => (window.renderMan = null));
@@ -432,7 +449,7 @@ async function TitanReactorGame(
         const debuglabel = new CSS2DObject(div);
         highlight.add(debuglabel)
       }
-      cssGroup.add(highlight);
+      // cssGroup.add(highlight);
       const unit = {
         extra: {
           recievingDamage: 0,
@@ -784,9 +801,9 @@ async function TitanReactorGame(
       let imageCounter = 0;
 
       let imgAddr = spriteData.lastImage;
+      // for (const imgAddr of spriteData.images.reverse()) {
       do {
         const imageData = imageBufferView.get(imgAddr);
-        updateImagesDirection = false;
 
         let image = images.get(imageData.index);
         if (!image) {
@@ -795,7 +812,7 @@ async function TitanReactorGame(
           sprite.add(image);
           image.sprite = sprite;
         }
-        image.visible = !isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct);
+        // image.visible = !isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct);
 
         if (image.visible || currentBwFrame!.needsUpdate) {
 
@@ -872,7 +889,6 @@ async function TitanReactorGame(
 
   let _lastElapsed = 0;
   let delta = 0;
-  let updateImagesDirection = false;
 
   projectedCameraView.update();
   const cmds = commandsStream.generate();
@@ -1032,7 +1048,6 @@ async function TitanReactorGame(
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
-        updateImagesDirection = true;
         if (currentBwFrame) {
           currentBwFrame.needsUpdate = true;
         }

@@ -1,8 +1,4 @@
-
 declare module "downgrade-replay" {
-
-    // import Chk from "bw-chk";
-
     export class Replay {
         version: Version;
         rawCmds: Buffer;
@@ -10,8 +6,8 @@ declare module "downgrade-replay" {
         header: {
             frameCount: number;
             players: Player[];
-        },
-        containerSize: 1700 | 3400
+        };
+        containerSize: 1700 | 3400;
     }
 
     export class CommandsStream {

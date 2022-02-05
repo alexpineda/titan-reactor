@@ -14,7 +14,7 @@ export class SpritesBufferView
 
   get(address: number) {
     this._address = address;
-    this.images.addr = address;
+    this.images.addr = address + (15 << 2);
     return this;
   }
 
@@ -28,7 +28,7 @@ export class SpritesBufferView
 
   constructor(bw: OpenBWWasm) {
     this._bw = bw;
-    this.images = new IntrusiveList(bw, 0, 13);
+    this.images = new IntrusiveList(bw, 0);
   }
 
   private get _index32() {

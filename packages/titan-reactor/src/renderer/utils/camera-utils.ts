@@ -16,18 +16,54 @@ export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
 
 export const POLAR_MAX = (10 * Math.PI) / 64;
 export const POLAR_MIN = (2 * Math.PI) / 64;
-export const AZI_RANGE = (20 * Math.PI) / 64;
+export const AZI_RANGE = (24 * Math.PI) / 64;
+
+export const BATTLE_POLAR_MAX = (20 * Math.PI) / 64;
+export const BATTLE_POLAR_MIN = (Math.PI) / 64;
 
 export const constrainControls = (controls: CameraControls, maxMapDim: number) => {
   controls.maxDistance = maxMapDim;
   controls.minDistance = 20;
   controls.dollySpeed = 0.2
 
-  controls.maxPolarAngle = POLAR_MAX; // bottom
-  controls.minPolarAngle = POLAR_MIN; // top
-  controls.maxAzimuthAngle = 0//AZI_RANGE / 2;
-  controls.minAzimuthAngle = 0//-AZI_RANGE / 2;
+  controls.maxPolarAngle = POLAR_MAX;
+  controls.minPolarAngle = POLAR_MIN;
+  controls.maxAzimuthAngle = 0;
+  controls.minAzimuthAngle = 0;
+
+  controls.rotatePolarTo(POLAR_MIN, true);
+  controls.rotateAzimuthTo(0, true);
+  // @todo calculate optimal distance
+  controls.dollyTo(controls.distance * 4, true);
 }
+
+export const resetToRegularCam = (controls: CameraControls, camera: PerspectiveCamera) => {
+  camera.zoom = 1;
+  camera.fov = 15;
+  camera.updateProjectionMatrix();
+}
+
+export const resetToBattleCam = (controls: CameraControls, camera: PerspectiveCamera) => {
+  camera.zoom = 1;
+  camera.fov = 115;
+  camera.updateProjectionMatrix();
+}
+
+export const constrainControlsBattleCam = (controls: CameraControls, maxMapDim: number) => {
+  controls.maxDistance = maxMapDim * 2;
+  controls.minDistance = 5;
+  controls.dollySpeed = 0.2
+
+  controls.maxPolarAngle = BATTLE_POLAR_MAX; // bottom: ;
+  controls.minPolarAngle = BATTLE_POLAR_MIN; // top: ;
+  controls.maxAzimuthAngle = AZI_RANGE / 2;
+  controls.minAzimuthAngle = -AZI_RANGE / 2;
+  controls.rotatePolarTo(BATTLE_POLAR_MIN, true);
+  controls.rotateAzimuthTo(0, true);
+  // @todo calculate optimal distance
+  controls.dollyTo(controls.distance / 4, true);
+}
+
 
 export const constrainAzimuth = (polarAngle: number) => {
   const np = (polarAngle - POLAR_MIN) / (POLAR_MAX - POLAR_MIN);

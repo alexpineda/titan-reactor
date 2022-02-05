@@ -75,7 +75,7 @@ export default async (filepath: string) => {
     );
     const chkDowngrader = new ChkDowngrader();
     repBin = await convertReplay(replay, chkDowngrader);
-    fs.writeFileSync(`D:\\last_replay.rep`, repBin);
+    // fs.writeFileSync(`D:\\last_replay.rep`, repBin);
     replay = await parseReplay(repBin);
   }
 

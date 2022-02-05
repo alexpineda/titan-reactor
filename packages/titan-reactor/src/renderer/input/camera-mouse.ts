@@ -32,11 +32,8 @@ export class CameraMouse {
         });
     }
 
-
-
     dispose() {
         this._janitor.mopUp();
     }
-
 
 }

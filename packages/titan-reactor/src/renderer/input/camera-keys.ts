@@ -12,12 +12,12 @@ const ACCELERATION = 1.01;
 export class CameraKeys {
     private _el: HTMLElement;
     private _vector = new Vector3();
-    private _readjustmentTarget = new Vector3();
     private _janitor: Janitor;
     private _control: CameraControls;
     private _accel = 1;
 
     onFocusPress?: () => void;
+    onToggleBattleCam?: () => void;
 
     constructor(el: HTMLElement, control: CameraControls, settings: Settings) {
         this._el = el;
@@ -25,7 +25,6 @@ export class CameraKeys {
         this._control = control;
 
         const kd = (e: KeyboardEvent) => {
-
 
             if (this._vector.y == 0) {
                 if (testKeys(e, settings.controls.keyboard.camera.forward)) {
@@ -43,8 +42,6 @@ export class CameraKeys {
                 }
             }
 
-
-
         }
 
         this._el.addEventListener("keydown", kd);
@@ -59,13 +56,15 @@ export class CameraKeys {
                 this._vector.x = 0;
             }
 
-            // @todo split into two functions, big-zoom-in/out, small-zoom-in/out
             if (testKeys(e, settings.controls.keyboard.camera.zoomIn)) {
                 smoothDollyIn(control);
             } else if (testKeys(e, settings.controls.keyboard.camera.zoomOut)) {
                 smoothDollyOut(control);
             }
 
+            if (testKeys(e, settings.controls.keyboard.game.battleCam)) {
+                this.onToggleBattleCam && this.onToggleBattleCam();
+            }
         }
         this._el.addEventListener("keyup", ku);
         this._janitor.callback(() => this._el.removeEventListener("keyup", ku));

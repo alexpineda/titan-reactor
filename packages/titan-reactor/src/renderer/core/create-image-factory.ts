@@ -1,5 +1,6 @@
 import { BwDAT, AssetTextureResolution, GRPInterface } from "../../common/types";
 import { ImageHD, Image3D, Image } from ".";
+import { GlbAtlas } from "../../common/image";
 
 export const createImageFactory = (
   bwDat: BwDAT,
@@ -20,17 +21,20 @@ export const createImageFactory = (
 
     let image;
 
-    // if (atlas instanceof Glb && atlas.model) {
-    //   image = new Image3D(
-    //     atlas,
-    //     imageDef
-    //   );
-    // } else 
+    // if is shadow, check if prevous atlas is 3d,then don't load it!!
 
-    image = new ImageHD(
-      atlas,
-      imageDef
-    );
+    if (atlas instanceof GlbAtlas && atlas.model) {
+      image = new Image3D(
+        atlas,
+        imageDef
+      );
+    } else {
+
+      image = new ImageHD(
+        atlas,
+        imageDef
+      );
+    }
 
     return image as Image;
 
