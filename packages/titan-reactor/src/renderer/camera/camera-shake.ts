@@ -1,3 +1,4 @@
+import CameraControls from "camera-controls";
 import { Vector3 } from "three";
 
 const ONE_SECOND = 1000;
@@ -6,9 +7,21 @@ const FPS = 60;
 const _vec3b = new Vector3();
 
 class CameraShake {
+  private _cameraControls: CameraControls;
+  private _duration: number;
+  strength: number;
+  private _noiseX: number[] = [];
+  private _noiseY: number[] = [];
+  private _noiseZ: number[] = [];
+
+  private _lastOffsetX = 0;
+  private _lastOffsetY = 0;
+  private _lastOffsetZ = 0;
+  isShaking = false;
+
   // frequency: cycle par second
   constructor(
-    cameraControls,
+    cameraControls: CameraControls,
     duration = ONE_SECOND,
     frequency = 10,
     strength = 1
@@ -16,6 +29,11 @@ class CameraShake {
     this._cameraControls = cameraControls;
     this._duration = duration;
     this.strength = strength;
+
+    this.setParams(duration, frequency);
+  }
+
+  setParams(duration: number, frequency: number) {
     this._noiseX = makePNoise1D(
       (duration / ONE_SECOND) * frequency,
       (duration / ONE_SECOND) * FPS
@@ -28,14 +46,11 @@ class CameraShake {
       (duration / ONE_SECOND) * frequency,
       (duration / ONE_SECOND) * FPS
     );
-
-    this._lastOffsetX = 0;
-    this._lastOffsetY = 0;
-    this._lastOffsetZ = 0;
-    this.isShaking = false;
   }
 
   shake() {
+    if (this.isShaking) return;
+
     const startTime = performance.now();
     this.isShaking = true;
 
@@ -53,12 +68,12 @@ class CameraShake {
         // 	false
         // );
 
-        this._cameraControls.setTarget(
-          _vec3b.x - this._lastOffsetX,
-          _vec3b.y - this._lastOffsetY,
-          _vec3b.z - this._lastOffsetZ,
-          false
-        );
+        // this._cameraControls.setTarget(
+        //   _vec3b.x - this._lastOffsetX,
+        //   _vec3b.y - this._lastOffsetY,
+        //   _vec3b.z - this._lastOffsetZ,
+        //   false
+        // );
 
         this._lastOffsetX = 0;
         this._lastOffsetY = 0;
@@ -100,7 +115,7 @@ class CameraShake {
   }
 }
 
-function makePNoise1D(length /* : int */, step /* : int */) {
+function makePNoise1D(length: number, step: number) {
   const noise = [];
   const gradients = [];
 
@@ -129,13 +144,13 @@ function makePNoise1D(length /* : int */, step /* : int */) {
   return noise;
 }
 
-function fade(t) {
+function fade(t: number) {
   return t * t * t * (t * (6 * t - 15) + 10);
 }
 
 const HALF_PI = Math.PI * 0.5;
 
-function sineOut(t) {
+function sineOut(t: number) {
   return Math.sin(t * HALF_PI);
 }
 

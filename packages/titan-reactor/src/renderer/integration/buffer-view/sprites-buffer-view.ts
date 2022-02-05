@@ -1,4 +1,5 @@
 import { OpenBWWasm } from "src/renderer/openbw";
+import { ImageBufferView } from ".";
 import { SpriteStruct } from "../structs";
 import { IntrusiveList } from "./intrusive-list";
 
@@ -10,6 +11,7 @@ export class SpritesBufferView
 
   _address = 0;
   _bw: OpenBWWasm;
+  _mainImage: ImageBufferView;
   readonly images: IntrusiveList;
 
   get(address: number) {
@@ -29,6 +31,7 @@ export class SpritesBufferView
   constructor(bw: OpenBWWasm) {
     this._bw = bw;
     this.images = new IntrusiveList(bw, 0);
+    this._mainImage = new ImageBufferView(bw);
   }
 
   private get _index32() {
@@ -62,6 +65,11 @@ export class SpritesBufferView
 
   get y() {
     return this._bw.HEAP32[this._index32 + 11];
+  }
+
+  get mainImage() {
+    const addr = this._bw.HEAPU32[this._index32 + 12];
+    return this._mainImage.get(addr);
   }
 
   get mainImageIndex() {

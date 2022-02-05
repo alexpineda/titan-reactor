@@ -1,3 +1,5 @@
+import { SpritesBufferView } from "../buffer-view";
+
 export interface UnitStruct {
   id: number;
   typeId: number;
@@ -14,6 +16,14 @@ export interface UnitStruct {
   remainingBuildTime: number;
   remainingTrainTime: number;
   resourceAmount: number;
-  order: number;
+  order: number | null;
   kills: number;
+
+  orderTargetAddr: number;
+  orderTargetX: number;
+  orderTargetY: number;
+  orderTargetUnit: number;
+
+  subunit: UnitStruct | null;
+  owSprite: SpritesBufferView;
 }

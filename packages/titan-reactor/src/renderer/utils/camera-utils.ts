@@ -1,6 +1,8 @@
 import CameraControls from "camera-controls";
 import { PerspectiveCamera, Vector3 } from "three";
 import { easePoly } from "d3-ease";
+import { CameraMouse } from "../input/camera-mouse";
+import { CameraKeys } from "../input/camera-keys";
 
 export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
   const adj = target.z - cameraPosition.z;
@@ -21,7 +23,24 @@ export const AZI_RANGE = (24 * Math.PI) / 64;
 export const BATTLE_POLAR_MAX = (20 * Math.PI) / 64;
 export const BATTLE_POLAR_MIN = (Math.PI) / 64;
 
-export const constrainControls = (controls: CameraControls, maxMapDim: number) => {
+export const constrainControls = (controls: CameraControls, cameraMouse: CameraMouse, cameraKeys: CameraKeys, camera: PerspectiveCamera, maxMapDim: number) => {
+  camera.zoom = 1;
+  camera.fov = 15;
+  camera.updateProjectionMatrix();
+
+  camera.userData.battleCam = false;
+  cameraMouse.wheelDollyEnabled = true;
+  cameraMouse.lookAtMouseEnabled = false;
+
+  controls.mouseButtons.left = CameraControls.ACTION.NONE;
+  controls.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+  controls.mouseButtons.middle = CameraControls.ACTION.NONE;
+  controls.mouseButtons.wheel = CameraControls.ACTION.NONE;
+  controls.mouseButtons.right = CameraControls.ACTION.TRUCK;
+
+  controls.dollyToCursor = true;
+  controls.verticalDragToForward = true;
+
   controls.maxDistance = maxMapDim;
   controls.minDistance = 20;
   controls.dollySpeed = 0.2
@@ -31,37 +50,48 @@ export const constrainControls = (controls: CameraControls, maxMapDim: number) =
   controls.maxAzimuthAngle = 0;
   controls.minAzimuthAngle = 0;
 
-  controls.rotatePolarTo(POLAR_MIN, true);
-  controls.rotateAzimuthTo(0, true);
-  // @todo calculate optimal distance
-  controls.dollyTo(controls.distance * 4, true);
+  controls.normalizeRotations();
+  controls.updateCameraUp();
+  controls.rotatePolarTo(POLAR_MIN, false);
+  controls.rotateAzimuthTo(0, false);
+  controls.zoomTo(1, false);
+  controls.dollyTo(80, false);
+
 }
 
-export const resetToRegularCam = (controls: CameraControls, camera: PerspectiveCamera) => {
-  camera.zoom = 1;
-  camera.fov = 15;
-  camera.updateProjectionMatrix();
-}
-
-export const resetToBattleCam = (controls: CameraControls, camera: PerspectiveCamera) => {
-  camera.zoom = 1;
+export const constrainControlsBattleCam = (controls: CameraControls, cameraMouse: CameraMouse, cameraKeys: CameraKeys, camera: PerspectiveCamera, maxMapDim: number) => {
   camera.fov = 115;
   camera.updateProjectionMatrix();
-}
 
-export const constrainControlsBattleCam = (controls: CameraControls, maxMapDim: number) => {
+  camera.userData.battleCam = true;
+  cameraMouse.wheelDollyEnabled = false;
+  cameraMouse.lookAtMouseEnabled = true;
+
+  controls.mouseButtons.left = CameraControls.ACTION.NONE;
+  controls.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+  controls.mouseButtons.middle = CameraControls.ACTION.NONE;
+  controls.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
+  controls.mouseButtons.right = CameraControls.ACTION.NONE;
+
+  controls.dollyToCursor = false;
+
   controls.maxDistance = maxMapDim * 2;
-  controls.minDistance = 5;
-  controls.dollySpeed = 0.2
+  controls.minDistance = 3;
+  controls.dollySpeed = 2;
+  controls.maxZoom = 10;
+  controls.minZoom = 0.3;
 
-  controls.maxPolarAngle = BATTLE_POLAR_MAX; // bottom: ;
-  controls.minPolarAngle = BATTLE_POLAR_MIN; // top: ;
+  controls.maxPolarAngle = BATTLE_POLAR_MAX;
+  controls.minPolarAngle = BATTLE_POLAR_MIN;
   controls.maxAzimuthAngle = AZI_RANGE / 2;
   controls.minAzimuthAngle = -AZI_RANGE / 2;
-  controls.rotatePolarTo(BATTLE_POLAR_MIN, true);
-  controls.rotateAzimuthTo(0, true);
-  // @todo calculate optimal distance
-  controls.dollyTo(controls.distance / 4, true);
+
+  controls.normalizeRotations();
+  controls.updateCameraUp();
+  controls.rotatePolarTo(BATTLE_POLAR_MIN, false);
+  controls.rotateAzimuthTo(0, false);
+  controls.zoomTo(2, false);
+  controls.dollyTo(8, false);
 }
 
 
@@ -83,7 +113,6 @@ export const getDOFFocalLength = (camera: PerspectiveCamera, polarAngle: number)
 
   return o;
 }
-
 
 const DEG2RAD = Math.PI / 180.0;
 const RAD2DEG = 180.0 / Math.PI;

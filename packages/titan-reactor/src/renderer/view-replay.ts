@@ -46,22 +46,23 @@ import {
   useHudStore,
   useSettingsStore,
 } from "./stores";
-import { SoundStruct, SpriteStruct, ImageStruct, UnitStruct } from "./integration/structs";
+import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/structs";
 import { EntityIterator } from "./integration/buffer-view/entity-iterator";
-import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
+import { hasDirectionalFrames, isClickable, isFlipped } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
-import { constrainAzimuth, constrainControls, constrainControlsBattleCam, getDirection32, getDOFFocalLength, POLAR_MAX, POLAR_MIN, resetToBattleCam, resetToRegularCam } from "./utils/camera-utils";
+import { constrainControls, constrainControlsBattleCam, getDirection32, getDOFFocalLength } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
 import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
 import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
-import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
+import { isAttacking } from "./utils/unit-utils";
+import CameraShake from "./camera/camera-shake";
 
 CameraControls.install({ THREE: THREE });
 
@@ -72,6 +73,7 @@ const addChatMessage = useGameStore.getState().addChatMessage;
 async function TitanReactorGame(
   world: ReplayWorld
 ) {
+  let settings = getSettings();
 
   const { scene, terrain, chk, replay, gameStateReader, commandsStream, assets, audioMixer, music, soundChannels, janitor } = world;
   const preplacedMapUnits = chk.units;
@@ -80,13 +82,12 @@ async function TitanReactorGame(
   const fpsEl = document.getElementById("fps");
   assert(fpsEl !== null);
   assert(openBw.wasm);
-
   // @ts-ignore
   window.world = world;
   // @ts-ignore
   janitor.callback(() => { window.world = null });
 
-  let settings = getSettings();
+  fpsEl.style.display = settings.graphics.showFps ? "block" : "none";
 
   const createImage = createImageFactory(
     assets.bwDat,
@@ -127,40 +128,39 @@ async function TitanReactorGame(
     direction: 0,
     prevDirection: -1
   };
-  const control = new CameraControls(
+  const controls = new CameraControls(
     camera,
     gameSurface.canvas,
   );
-  control.mouseButtons.left = CameraControls.ACTION.NONE;
-  control.mouseButtons.right = CameraControls.ACTION.TRUCK;
-  control.mouseButtons.middle = CameraControls.ACTION.NONE;
-  control.dollyToCursor = true;
-  control.verticalDragToForward = true;
-  control.setLookAt(0, 80, 0, 0, 0, 0, false);
-  constrainControls(control, Math.max(mapWidth, mapHeight));
-  janitor.disposable(control);
+  controls.setLookAt(0, 80, 0, 0, 0, 0, false);
+  janitor.disposable(controls);
 
 
-  control.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
+  controls.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
   //@ts-ignore
-  window.control = control;
+  window.control = controls;
 
-  const cameraMouse = new CameraMouse(control, document.body);
+  const cameraMouse = new CameraMouse(controls, document.body);
   janitor.disposable(cameraMouse);
+
+  const cameraKeys = new CameraKeys(window.document.body, controls, settings);
+  janitor.disposable(cameraKeys);
+
+  constrainControls(controls, cameraMouse, cameraKeys, camera, Math.max(mapWidth, mapHeight));
 
   //@ts-ignore
   window.camera = camera;
   //@ts-ignore
   janitor.callback(() => { window.control = null; window.camera = null; });
 
-  const previewControl = new CameraControls(camera, minimapSurface.canvas);
-  previewControl.mouseButtons.left = CameraControls.ACTION.TRUCK;
-  previewControl.mouseButtons.right = CameraControls.ACTION.ROTATE;
-  previewControl.mouseButtons.middle = CameraControls.ACTION.DOLLY;
-  previewControl.dollyToCursor = true;
-  previewControl.verticalDragToForward = true;
-  previewControl.setLookAt(0, 20, 0, 0, 0, 0, true);
-  constrainControls(previewControl, Math.max(mapWidth, mapHeight));
+  // const previewControl = new CameraControls(camera, minimapSurface.canvas);
+  // previewControl.mouseButtons.left = CameraControls.ACTION.TRUCK;
+  // previewControl.mouseButtons.right = CameraControls.ACTION.ROTATE;
+  // previewControl.mouseButtons.middle = CameraControls.ACTION.DOLLY;
+  // previewControl.dollyToCursor = true;
+  // previewControl.verticalDragToForward = true;
+  // previewControl.setLookAt(0, 20, 0, 0, 0, 0, true);
+  // constrainControls(previewControl, Math.max(mapWidth, mapHeight));
 
   const minimapEvents = new MinimapEventListener(
     minimapSurface,
@@ -170,11 +170,11 @@ async function TitanReactorGame(
   janitor.disposable(minimapEvents);
 
   minimapEvents.onStart = ({ pos }) => {
-    control.moveTo(pos.x, pos.y, pos.z, false);
+    controls.moveTo(pos.x, pos.y, pos.z, false);
   };
 
   minimapEvents.onMove = ({ pos }) => {
-    control.moveTo(pos.x, pos.y, pos.z, true);
+    controls.moveTo(pos.x, pos.y, pos.z, true);
   };
 
   //@ts-ignore
@@ -182,27 +182,23 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => (window.scene = null));
 
-
-  const cameraKeys = new CameraKeys(window.document.body, control, settings);
-  janitor.disposable(cameraKeys);
-
   cameraKeys.onToggleBattleCam = () => {
+    openBw.call.resetGameSpeed();
     if (camera.userData.battleCam) {
-      resetToRegularCam(control, camera);
-      camera.userData.battleCam = false;
-      cameraMouse.enabled = true;
-      control.mouseButtons.right = CameraControls.ACTION.TRUCK;
-      control.mouseButtons.middle = CameraControls.ACTION.NONE;
-      constrainControls(control, Math.max(mapWidth, mapHeight));
+      constrainControls(controls, cameraMouse, cameraKeys, camera, Math.max(mapWidth, mapHeight));
+      cameraMouse.resetTarget();
+      // @todo change all objects to use depth
     } else {
-      resetToBattleCam(control, camera);
-      camera.userData.battleCam = true;
-      cameraMouse.enabled = false;
-      control.mouseButtons.right = CameraControls.ACTION.ROTATE;
-      control.mouseButtons.middle = CameraControls.ACTION.ZOOM;
-      constrainControlsBattleCam(control, Math.max(mapWidth, mapHeight));
+      constrainControlsBattleCam(controls, cameraMouse, cameraKeys, camera, Math.max(mapWidth, mapHeight));
+      // @todo change all objects to use depth
     }
   }
+
+  const projectedCameraView = new ProjectedCameraView(
+    camera,
+    mapWidth,
+    mapHeight
+  );
 
   //@ts-ignore
   janitor.callback(() => (window.renderMan = null));
@@ -481,6 +477,8 @@ async function TitanReactorGame(
     }
   }
 
+  let unitAttackScore = 0;
+
   const buildUnits = (
     units: Map<number, CrapUnit>,
     unitsBySprite: Map<number, CrapUnit>
@@ -495,6 +493,8 @@ async function TitanReactorGame(
     }
 
     const playersUnitAddr = openBw.call.getUnitsAddr();
+
+    unitAttackScore = 0;
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
       for (const unitAddr of unitList) {
@@ -502,6 +502,16 @@ async function TitanReactorGame(
         const unit = getUnit(units, unitData);
 
         unitsBySprite.set(unit.spriteIndex, unit);
+
+        const mx = pxToGameUnit.x(unitData.x);
+        const my = pxToGameUnit.y(unitData.y);
+
+        if (camera.userData.battleCam && mx > projectedCameraView.left && mx < projectedCameraView.right && my > projectedCameraView.top && my < projectedCameraView.bottom) {
+          // @todo only ranged and scale by weapon type
+          if (isAttacking(unitData, bwDat)) {
+            unitAttackScore++;
+          }
+        }
 
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
@@ -516,8 +526,7 @@ async function TitanReactorGame(
         unit.extra.player = players.playersById[unitData.owner];
         unit.extra.highlight.visible = unit.extra.player !== undefined;
         if (unit.extra.player) {
-          const mx = pxToGameUnit.x(unitData.x);
-          const my = pxToGameUnit.y(unitData.y);
+
           unit.extra.highlight.position.set(mx, terrain.getTerrainY(mx, my), my);
           (unit.extra.highlight.material as MeshBasicMaterial).color.set(unit.extra.player.color.three);
         }
@@ -651,11 +660,6 @@ async function TitanReactorGame(
     }
   })();
 
-  const projectedCameraView = new ProjectedCameraView(
-    camera,
-    mapWidth,
-    mapHeight
-  );
 
   const buildSounds = (sounds: EntityIterator<SoundStruct>) => {
     for (const sound of sounds.instances()) {
@@ -910,12 +914,15 @@ async function TitanReactorGame(
   window.addEventListener("keypress", _stepperListener);
   janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
+  const cameraShake = new CameraShake(controls, 200, 12);
+
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    control.update(delta / 1000);
+    controls.update(delta / 1000);
     cameraKeys.update(delta / 100);
+    cameraMouse.update(camera, terrain.terrain);
 
     if (reset) reset();
 
@@ -954,6 +961,10 @@ async function TitanReactorGame(
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
       soundChannels.play(elapsed);
+
+      if (camera.userData.battleCam && unitAttackScore) {
+        cameraShake.shake();
+      }
 
       {
         const cmdsThisFrame = [];
@@ -1037,14 +1048,14 @@ async function TitanReactorGame(
     // }
 
     const target = new Vector3();
-    control.getTarget(target);
+    controls.getTarget(target);
 
     {
       // const azi = constrainAzimuth(control.polarAngle);
       // control.minAzimuthAngle = -azi / 2;
       // control.maxAzimuthAngle = azi / 2;
 
-      const dir = control.polarAngle < 0.25 ? 0 : getDirection32(target, camera.position);
+      const dir = controls.polarAngle < 0.25 ? 0 : getDirection32(target, camera.position);
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
@@ -1083,7 +1094,7 @@ async function TitanReactorGame(
     target.setY((target.y + camera.position.y) / 2);
     target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
-    renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, control.polarAngle);
+    renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, controls.polarAngle);
 
     renderer.togglePasses(Passes.Render);
     renderer.render(scene, camera, delta);

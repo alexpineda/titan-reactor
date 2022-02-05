@@ -1,6 +1,5 @@
 import { Settings, AssetTextureResolution } from "./types";
 
-
 export const defaultSettings: Settings = {
   version: 2,
   language: "en-US",
@@ -29,7 +28,8 @@ export const defaultSettings: Settings = {
     pixelRatio: "med",
     anisotropy: "high",
     fullscreen: false,
-    gamma: 0.9
+    gamma: 0.9,
+    showFps: true
   },
   controls: {
     keyboard: {

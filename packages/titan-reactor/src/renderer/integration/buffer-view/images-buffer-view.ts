@@ -21,44 +21,48 @@ export class ImageBufferView
   }
 
   get index() {
-    return this._bw.HEAPU32[this._index32 + 2 + this._debug];
+    return this._bw.HEAPU32[this._index32 + 2];
   }
 
   get typeId() {
-    const addr = this._bw.HEAPU32[this._index32 + 3 + this._debug];
+    const addr = this._bw.HEAPU32[this._index32 + 3];
     return this._bw.HEAP32[addr >> 2];
   }
 
   get modifier() {
-    return this._bw.HEAP32[this._index32 + 4 + this._debug];
+    return this._bw.HEAP32[this._index32 + 4];
   }
 
   get modifierData1() {
-    return this._bw.HEAP32[this._index32 + 5 + this._debug];
+    return this._bw.HEAP32[this._index32 + 5];
   }
 
   get frameIndex() {
-    return this._bw.HEAPU32[this._index32 + 7 + this._debug];
+    return this._bw.HEAPU32[this._index32 + 7];
   }
 
   get frameIndexBase() {
-    return this._bw.HEAPU32[this._index32 + 8 + this._debug];
+    return this._bw.HEAPU32[this._index32 + 8];
   }
 
   get frameIndexOffset() {
-    return this._bw.HEAPU32[this._index32 + 9 + this._debug];
+    return this._bw.HEAPU32[this._index32 + 9];
   }
 
   get flags() {
-    return this._bw.HEAP32[this._index32 + 10 + this._debug];
+    return this._bw.HEAP32[this._index32 + 10];
   }
 
   get x() {
-    return this._bw.HEAP32[this._index32 + 11 + this._debug];
+    return this._bw.HEAP32[this._index32 + 11];
   }
 
   get y() {
-    return this._bw.HEAP32[this._index32 + 12 + this._debug];
+    return this._bw.HEAP32[this._index32 + 12];
+  }
+
+  get iscriptAnimation() {
+    return this._bw.HEAP32[this._index32 + 16];
   }
 
   get nextNode() {

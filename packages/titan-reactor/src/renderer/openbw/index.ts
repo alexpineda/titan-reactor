@@ -60,6 +60,7 @@ export interface OpenBWAPI {
     getSpritesOnTileLineSize: () => number;
     getSpritesOnTileLineAddress: () => number;
     getUnitsAddr: () => number;
+    resetGameSpeed: () => void;
     nextFrame: () => number;
     tryCatch: (callback: () => void) => void;
     loadReplay: (buffer: Buffer) => void;
@@ -98,6 +99,7 @@ const openBw: OpenBWAPI = {
       getSpritesOnTileLineAddress: () => _wasm._get_buffer(1),
       getUnitsAddr: () => _wasm._get_buffer(2),
       nextFrame: () => _wasm._next_frame(),
+      resetGameSpeed: () => _wasm._replay_set_value(0, 1),
       loadReplay: (buffer: Buffer) => {
         tryCatch(() => {
           const buf = _wasm.allocate(buffer, _wasm.ALLOC_NORMAL);
@@ -128,6 +130,7 @@ const openBw: OpenBWAPI = {
     getSpriteAddresses: () => [],
     getSpritesOnTileLineSize: () => 0,
     getSpritesOnTileLineAddress: () => 0,
+    resetGameSpeed: () => { },
     nextFrame: () => 0,
     tryCatch: () => { },
     loadReplay: (buffer: Buffer) => { },

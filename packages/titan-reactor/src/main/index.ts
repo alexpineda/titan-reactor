@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker } from "electron";
+import { app, powerSaveBlocker, globalShortcut } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -68,4 +68,13 @@ app.on("web-contents-created", (_, contents) => {
 
   // prevent new windows
   contents.setWindowOpenHandler(() => ({ action: "deny" }));
+});
+
+app.on('browser-window-focus', function () {
+  globalShortcut.register("CommandOrControl+R", () => {
+    console.log("CommandOrControl+R is pressed: Shortcut Disabled");
+  });
+  globalShortcut.register("F5", () => {
+    console.log("F5 is pressed: Shortcut Disabled");
+  });
 });

@@ -27,6 +27,7 @@ export type Settings = {
         anisotropy: "high" | "med" | "low";
         fullscreen: boolean;
         gamma: number;
+        showFps: boolean;
     },
     controls: {
         keyboard: {

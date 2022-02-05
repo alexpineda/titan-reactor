@@ -1,4 +1,5 @@
 import { OpenBWWasm } from "src/renderer/openbw";
+import { SpritesBufferView } from ".";
 import { SpriteStruct, UnitStruct } from "../structs";
 import { FP8 } from "./fixed-point";
 import { IntrusiveList } from "./intrusive-list";
@@ -12,6 +13,8 @@ export class UnitsBufferView
 
     _address = 0;
     _bw: OpenBWWasm;
+    _sprite: SpritesBufferView;
+    _subunit?: UnitsBufferView;
 
     get(address: number) {
         this._address = address;
@@ -20,6 +23,7 @@ export class UnitsBufferView
 
     constructor(bw: OpenBWWasm) {
         this._bw = bw;
+        this._sprite = new SpritesBufferView(bw);
     }
     // if (dumping->unit_type->flags & dumping->unit_type->flag_resource && dumping->status_flags & dumping->status_flag_completed)
     // 	{
@@ -79,6 +83,11 @@ export class UnitsBufferView
         return FP8(this._bw.HEAPU32[this._index32]);
     }
 
+    get owSprite() {
+        const spriteAddr = this._bw.HEAPU32[this._index32 + 1];
+        return this._sprite.get(spriteAddr);
+    }
+
     get spriteIndex() {
         const spriteAddr = this._bw.HEAPU32[this._index32 + 1];
         const spriteTypeAddr = this._bw.HEAPU32[(spriteAddr >> 2) + 3];
@@ -122,8 +131,36 @@ export class UnitsBufferView
 
     get order() {
         const _order = this._bw.HEAPU32[this._index32 + 32];
-        if (_order === 0) return -1;
+        if (_order === 0) return null;
         return this._bw.HEAP32[_order >> 2];
+    }
+
+    get groundWeaponCooldown() {
+        return this._bw.HEAPU32[this._index32 + 35];
+    }
+
+    get airWeaponCooldown() {
+        return this._bw.HEAPU32[this._index32 + 36];
+    }
+
+    get spellCooldown() {
+        return this._bw.HEAPU32[this._index32 + 37];
+    }
+
+    get orderTargetAddr() {
+        return this._bw.HEAPU32[this._index32 + 38];
+    }
+
+    get orderTargetX() {
+        return this._bw.HEAP32[(this.orderTargetAddr >> 2)];
+    }
+
+    get orderTargetY() {
+        return this._bw.HEAP32[(this.orderTargetAddr >> 2) + 1];
+    }
+
+    get orderTargetUnit() {
+        return this._bw.HEAPU32[(this.orderTargetAddr >> 2) + 2];
     }
 
     get shields() {
@@ -141,7 +178,16 @@ export class UnitsBufferView
     }
 
     // player_units_link 2
-    // subunit
+
+    get subunit(): UnitStruct | null {
+        const addr = this._bw.HEAPU32[this._index32 + 43];
+        if (addr === 0) return null;
+        if (this._subunit === undefined) {
+            this._subunit = new UnitsBufferView(this._bw);
+        }
+        return this._subunit.get(addr);
+    }
+
     // order_queue 2
     // 	unit_t *auto_target_unit
     // 	unit_t *connected_unit
@@ -182,6 +228,7 @@ export class UnitsBufferView
     get statusFlags() {
         return this._bw.HEAP32[this._index32 + 88];
     }
+
 
 
     copyTo(dest: any) {

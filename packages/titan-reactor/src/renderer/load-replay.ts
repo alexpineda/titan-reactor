@@ -35,7 +35,6 @@ import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import { strict as assert } from "assert";
 import { pxToMapMeter } from "../common/utils/conversions";
-import { setWorld } from "./world";
 import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 
 export default async (filepath: string) => {

@@ -36,7 +36,7 @@ export class UnitDAT implements UnitDAT {
     return this._flag(3);
   }
 
-  get isSubunit() {
+  get isTurret() {
     return this._flag(4);
   }
 
