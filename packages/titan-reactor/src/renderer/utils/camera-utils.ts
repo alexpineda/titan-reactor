@@ -1,5 +1,5 @@
 import CameraControls from "camera-controls";
-import { PerspectiveCamera, Vector3 } from "three";
+import { Box3, PerspectiveCamera, Vector3 } from "three";
 import { easePoly } from "d3-ease";
 import { CameraMouse } from "../input/camera-mouse";
 import { CameraKeys } from "../input/camera-keys";
@@ -23,7 +23,7 @@ export const AZI_RANGE = (24 * Math.PI) / 64;
 export const BATTLE_POLAR_MAX = (20 * Math.PI) / 64;
 export const BATTLE_POLAR_MIN = (Math.PI) / 64;
 
-export const constrainControls = (controls: CameraControls, cameraMouse: CameraMouse, cameraKeys: CameraKeys, camera: PerspectiveCamera, maxMapDim: number) => {
+export const constrainControls = (controls: CameraControls, cameraMouse: CameraMouse, cameraKeys: CameraKeys, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
   camera.zoom = 1;
   camera.fov = 15;
   camera.updateProjectionMatrix();
@@ -31,6 +31,7 @@ export const constrainControls = (controls: CameraControls, cameraMouse: CameraM
   camera.userData.battleCam = false;
   cameraMouse.wheelDollyEnabled = true;
   cameraMouse.lookAtMouseEnabled = false;
+  cameraMouse.edgeScrollEnabled = true;
 
   controls.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
@@ -41,31 +42,34 @@ export const constrainControls = (controls: CameraControls, cameraMouse: CameraM
   controls.dollyToCursor = true;
   controls.verticalDragToForward = true;
 
-  controls.maxDistance = maxMapDim;
+  controls.maxDistance = Math.max(mapWidth, mapHeight);
   controls.minDistance = 20;
   controls.dollySpeed = 0.2
+  controls.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
 
   controls.maxPolarAngle = POLAR_MAX;
   controls.minPolarAngle = POLAR_MIN;
   controls.maxAzimuthAngle = 0;
   controls.minAzimuthAngle = 0;
+  controls.dampingFactor = 0.05;
 
+  controls.cancel();
   controls.normalizeRotations();
   controls.updateCameraUp();
   controls.rotatePolarTo(POLAR_MIN, false);
   controls.rotateAzimuthTo(0, false);
   controls.zoomTo(1, false);
   controls.dollyTo(80, false);
-
 }
 
-export const constrainControlsBattleCam = (controls: CameraControls, cameraMouse: CameraMouse, cameraKeys: CameraKeys, camera: PerspectiveCamera, maxMapDim: number) => {
+export const constrainControlsBattleCam = (controls: CameraControls, cameraMouse: CameraMouse, cameraKeys: CameraKeys, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
   camera.fov = 115;
   camera.updateProjectionMatrix();
 
   camera.userData.battleCam = true;
   cameraMouse.wheelDollyEnabled = false;
   cameraMouse.lookAtMouseEnabled = true;
+  cameraMouse.edgeScrollEnabled = false;
 
   controls.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
@@ -75,23 +79,28 @@ export const constrainControlsBattleCam = (controls: CameraControls, cameraMouse
 
   controls.dollyToCursor = false;
 
-  controls.maxDistance = maxMapDim * 2;
+  //@ts-ignore unset boundary using undefined as per docs
+  controls.setBoundary();
+
+  controls.maxDistance = Math.max(mapWidth, mapHeight) * 2;
   controls.minDistance = 3;
-  controls.dollySpeed = 2;
+  controls.dollySpeed = 1;
   controls.maxZoom = 10;
   controls.minZoom = 0.3;
+  controls.dampingFactor = 0.01;
 
-  controls.maxPolarAngle = BATTLE_POLAR_MAX;
-  controls.minPolarAngle = BATTLE_POLAR_MIN;
-  controls.maxAzimuthAngle = AZI_RANGE / 2;
-  controls.minAzimuthAngle = -AZI_RANGE / 2;
+  controls.maxPolarAngle = Infinity;
+  controls.minPolarAngle = -Infinity
+  controls.maxAzimuthAngle = Infinity;
+  controls.minAzimuthAngle = -Infinity;
 
+  controls.cancel();
   controls.normalizeRotations();
   controls.updateCameraUp();
   controls.rotatePolarTo(BATTLE_POLAR_MIN, false);
   controls.rotateAzimuthTo(0, false);
-  controls.zoomTo(2, false);
   controls.dollyTo(8, false);
+  controls.zoomTo(2, false);
 }
 
 

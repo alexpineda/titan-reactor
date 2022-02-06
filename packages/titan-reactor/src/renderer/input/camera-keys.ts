@@ -15,6 +15,7 @@ export class CameraKeys {
     private _janitor: Janitor;
     private _control: CameraControls;
     private _accel = 1;
+    battleCam = false;
 
     onFocusPress?: () => void;
     onToggleBattleCam?: () => void;

@@ -3,7 +3,7 @@ import { Vector3 } from "three";
 
 const ONE_SECOND = 1000;
 const FPS = 60;
-// const _vec3a = new THREE.Vector3();
+const _vec3a = new Vector3();
 const _vec3b = new Vector3();
 
 class CameraShake {
@@ -85,25 +85,25 @@ class CameraShake {
 
       requestAnimationFrame(anim);
 
-      // this._cameraControls.getPosition( _vec3a );
+      this._cameraControls.getPosition(_vec3a);
       this._cameraControls.getTarget(_vec3b);
 
       const offsetX = this._noiseX[frameNumber] * this.strength * ease;
       const offsetY = this._noiseY[frameNumber] * this.strength * ease;
       const offsetZ = this._noiseZ[frameNumber] * this.strength * ease;
 
-      // this._cameraControls.setPosition(
-      // 	_vec3a.x + offsetX - this._lastOffsetX,
-      // 	_vec3a.y + offsetY - this._lastOffsetY,
-      // 	_vec3a.z + offsetZ - this._lastOffsetZ,
-      // 	false
-      // );
+      this._cameraControls.setPosition(
+        _vec3a.x + offsetX - this._lastOffsetX,
+        _vec3a.y + offsetY - this._lastOffsetY,
+        _vec3a.z + offsetZ - this._lastOffsetZ,
+        false
+      );
 
       this._cameraControls.setTarget(
         _vec3b.x + offsetX - this._lastOffsetX,
         _vec3b.y + offsetY - this._lastOffsetY,
         _vec3b.z + offsetZ - this._lastOffsetZ,
-        false
+        true
       );
 
       this._lastOffsetX = offsetX;

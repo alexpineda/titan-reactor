@@ -63,6 +63,7 @@ import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
 import { isAttacking } from "./utils/unit-utils";
 import CameraShake from "./camera/camera-shake";
+import Janitor from "./utils/janitor";
 
 CameraControls.install({ THREE: THREE });
 
@@ -123,11 +124,19 @@ async function TitanReactorGame(
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 1, 256);
+  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 0.1, 1000);
   camera.userData = {
     direction: 0,
     prevDirection: -1
   };
+  // const createControls = () => {
+  //   const janitor = new Janitor()
+  //   const controls = new CameraControls(
+  //     camera,
+  //     gameSurface.canvas,
+  //   );
+  //   janitor.disposable(controls);
+  // }
   const controls = new CameraControls(
     camera,
     gameSurface.canvas,
@@ -136,7 +145,7 @@ async function TitanReactorGame(
   janitor.disposable(controls);
 
 
-  controls.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
+
   //@ts-ignore
   window.control = controls;
 
@@ -146,21 +155,12 @@ async function TitanReactorGame(
   const cameraKeys = new CameraKeys(window.document.body, controls, settings);
   janitor.disposable(cameraKeys);
 
-  constrainControls(controls, cameraMouse, cameraKeys, camera, Math.max(mapWidth, mapHeight));
+  constrainControls(controls, cameraMouse, cameraKeys, camera, mapWidth, mapHeight);
 
   //@ts-ignore
   window.camera = camera;
   //@ts-ignore
   janitor.callback(() => { window.control = null; window.camera = null; });
-
-  // const previewControl = new CameraControls(camera, minimapSurface.canvas);
-  // previewControl.mouseButtons.left = CameraControls.ACTION.TRUCK;
-  // previewControl.mouseButtons.right = CameraControls.ACTION.ROTATE;
-  // previewControl.mouseButtons.middle = CameraControls.ACTION.DOLLY;
-  // previewControl.dollyToCursor = true;
-  // previewControl.verticalDragToForward = true;
-  // previewControl.setLookAt(0, 20, 0, 0, 0, 0, true);
-  // constrainControls(previewControl, Math.max(mapWidth, mapHeight));
 
   const minimapEvents = new MinimapEventListener(
     minimapSurface,
@@ -185,11 +185,13 @@ async function TitanReactorGame(
   cameraKeys.onToggleBattleCam = () => {
     openBw.call.resetGameSpeed();
     if (camera.userData.battleCam) {
-      constrainControls(controls, cameraMouse, cameraKeys, camera, Math.max(mapWidth, mapHeight));
-      cameraMouse.resetTarget();
+      constrainControls(controls, cameraMouse, cameraKeys, camera, mapWidth, mapHeight);
+      cameraMouse.resetTarget(camera);
+      cameraKeys.battleCam = false;
       // @todo change all objects to use depth
     } else {
-      constrainControlsBattleCam(controls, cameraMouse, cameraKeys, camera, Math.max(mapWidth, mapHeight));
+      constrainControlsBattleCam(controls, cameraMouse, cameraKeys, camera, mapWidth, mapHeight);
+      cameraKeys.battleCam = true;
       // @todo change all objects to use depth
     }
   }
@@ -921,8 +923,8 @@ async function TitanReactorGame(
     _lastElapsed = elapsed;
 
     controls.update(delta / 1000);
+    cameraMouse.update(camera, terrain.terrain, delta / 100);
     cameraKeys.update(delta / 100);
-    cameraMouse.update(camera, terrain.terrain);
 
     if (reset) reset();
 
@@ -963,7 +965,7 @@ async function TitanReactorGame(
       soundChannels.play(elapsed);
 
       if (camera.userData.battleCam && unitAttackScore) {
-        cameraShake.shake();
+        // cameraShake.shake();
       }
 
       {

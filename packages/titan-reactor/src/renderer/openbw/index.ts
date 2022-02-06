@@ -78,7 +78,7 @@ const openBw: OpenBWAPI = {
     openBwFiles.setup(_wasm, callbacks);
     const tryCatch = (cb: Function) => {
       try {
-        cb();
+        return cb();
       } catch (e) {
         if (typeof e === 'number') {
           throw new Error(_wasm.getExceptionMessage(e));
@@ -87,6 +87,8 @@ const openBw: OpenBWAPI = {
         }
       }
     };
+
+    const _nextFrame = () => _wasm._next_frame();
 
     openBw.call = {
       getFowSize: () => _wasm._counts(0, 10),
@@ -98,7 +100,7 @@ const openBw: OpenBWAPI = {
       getSpritesOnTileLineSize: () => _wasm._counts(0, 14),
       getSpritesOnTileLineAddress: () => _wasm._get_buffer(1),
       getUnitsAddr: () => _wasm._get_buffer(2),
-      nextFrame: () => _wasm._next_frame(),
+      nextFrame: () => tryCatch(_nextFrame),
       resetGameSpeed: () => _wasm._replay_set_value(0, 1),
       loadReplay: (buffer: Buffer) => {
         tryCatch(() => {
