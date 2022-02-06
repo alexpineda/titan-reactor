@@ -756,11 +756,11 @@ async function TitanReactorGame(
       images.delete(imageId);
     }
 
-    const spriteList = new IntrusiveList(openBw.wasm!);
-    let debug_sprite_count = 0;
-    const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
-    const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
-    const spritesDebug = openBw.wasm!.get_util_funcs().get_sprites_debug();
+    // const spriteList = new IntrusiveList(openBw.wasm!);
+    // let debug_sprite_count = 0;
+    // const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
+    // const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
+    // const spritesDebug = openBw.wasm!.get_util_funcs().get_sprites_debug();
     // for (let l = 0; l < spriteTileLineSize; l++) {
     //   spriteList.addr = spritetileAddr + (l << 3)
     //   for (const spriteAddr of spriteList) {
@@ -1004,7 +1004,7 @@ async function TitanReactorGame(
       soundChannels.play(elapsed);
 
       if (camera.userData.battleCam && unitAttackScore) {
-        // cameraShake.shake();
+        controls.cameraShake.shake();
       }
 
       {
@@ -1135,6 +1135,9 @@ async function TitanReactorGame(
     target.setY((target.y + camera.position.y) / 2);
     target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
+
+    controls.cameraShake.update(camera);
+
     renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, controls.standard.polarAngle);
 
     renderer.togglePasses(Passes.Render);
@@ -1142,6 +1145,8 @@ async function TitanReactorGame(
 
     css.render(camera);
     drawMinimap(projectedCameraView);
+
+    controls.cameraShake.restore(camera);
 
     projectedCameraView.update();
     gameStatePosition.update(delta);

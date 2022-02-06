@@ -1,5 +1,5 @@
 import CameraControls from "camera-controls";
-import { Vector3 } from "three";
+import { Camera, Vector3 } from "three";
 
 const ONE_SECOND = 1000;
 const FPS = 60;
@@ -18,6 +18,8 @@ class CameraShake {
   private _lastOffsetY = 0;
   private _lastOffsetZ = 0;
   isShaking = false;
+
+  private _prevCameraPosition = new Vector3();
 
   // frequency: cycle par second
   constructor(
@@ -39,11 +41,11 @@ class CameraShake {
       (duration / ONE_SECOND) * FPS
     );
     this._noiseY = makePNoise1D(
-      (duration / ONE_SECOND) * frequency,
+      (duration / ONE_SECOND) * frequency * 2,
       (duration / ONE_SECOND) * FPS
     );
     this._noiseZ = makePNoise1D(
-      (duration / ONE_SECOND) * frequency,
+      (duration / ONE_SECOND) * frequency * 0.75,
       (duration / ONE_SECOND) * FPS
     );
   }
@@ -61,20 +63,6 @@ class CameraShake {
       const ease = sineOut(1 - progress);
 
       if (progress >= 1) {
-        // this._cameraControls.setPosition(
-        // 	_vec3a.x - this._lastOffsetX,
-        // 	_vec3a.y - this._lastOffsetY,
-        // 	_vec3a.z - this._lastOffsetZ,
-        // 	false
-        // );
-
-        // this._cameraControls.setTarget(
-        //   _vec3b.x - this._lastOffsetX,
-        //   _vec3b.y - this._lastOffsetY,
-        //   _vec3b.z - this._lastOffsetZ,
-        //   false
-        // );
-
         this._lastOffsetX = 0;
         this._lastOffsetY = 0;
         this._lastOffsetZ = 0;
@@ -92,26 +80,25 @@ class CameraShake {
       const offsetY = this._noiseY[frameNumber] * this.strength * ease;
       const offsetZ = this._noiseZ[frameNumber] * this.strength * ease;
 
-      this._cameraControls.setPosition(
-        _vec3a.x + offsetX - this._lastOffsetX,
-        _vec3a.y + offsetY - this._lastOffsetY,
-        _vec3a.z + offsetZ - this._lastOffsetZ,
-        false
-      );
-
-      this._cameraControls.setTarget(
-        _vec3b.x + offsetX - this._lastOffsetX,
-        _vec3b.y + offsetY - this._lastOffsetY,
-        _vec3b.z + offsetZ - this._lastOffsetZ,
-        true
-      );
-
       this._lastOffsetX = offsetX;
       this._lastOffsetY = offsetY;
       this._lastOffsetZ = offsetZ;
     };
 
     anim();
+  }
+
+  update(camera: Camera) {
+    if (this.isShaking) {
+      this._prevCameraPosition.copy(camera.position);
+      camera.position.set(this._prevCameraPosition.x + this._lastOffsetX, this._prevCameraPosition.y + this._lastOffsetY, this._prevCameraPosition.z + this._lastOffsetZ);
+    }
+  }
+
+  restore(camera: Camera) {
+    if (this.isShaking) {
+      camera.position.copy(this._prevCameraPosition);
+    }
   }
 }
 
