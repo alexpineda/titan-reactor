@@ -6,8 +6,11 @@ export class RenderCSS {
   domElement: HTMLElement;
   css2dRenderer: CSS2DRenderer;
   css3dRenderer: CSS3DRenderer;
+  scene: Scene;
 
   constructor(domElement: HTMLElement) {
+    this.scene = new Scene();
+
     this.domElement = domElement;
     this.css2dRenderer = new CSS2DRenderer();
     this.css3dRenderer = new CSS3DRenderer();
@@ -30,9 +33,9 @@ export class RenderCSS {
     this.css3dRenderer.setSize(width, height);
   }
 
-  render(scene: Scene, camera: PerspectiveCamera) {
-    this.css2dRenderer.render(scene, camera);
-    this.css3dRenderer.render(scene, camera);
+  render(camera: PerspectiveCamera) {
+    this.css2dRenderer.render(this.scene, camera);
+    this.css3dRenderer.render(this.scene, camera);
   }
 
   dispose() {

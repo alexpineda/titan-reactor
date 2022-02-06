@@ -58,9 +58,9 @@ export class CameraKeys {
             }
 
             if (testKeys(e, settings.controls.keyboard.camera.zoomIn)) {
-                smoothDollyIn(control);
+                smoothDollyIn(control, 1, !this.battleCam);
             } else if (testKeys(e, settings.controls.keyboard.camera.zoomOut)) {
-                smoothDollyOut(control);
+                smoothDollyOut(control, 1, !this.battleCam);
             }
 
             if (testKeys(e, settings.controls.keyboard.game.battleCam)) {

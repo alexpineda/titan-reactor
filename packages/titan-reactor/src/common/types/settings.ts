@@ -48,6 +48,7 @@ export type Settings = {
                 backward?: string,
                 zoomIn?: string,
                 zoomOut?: string,
+                debug: boolean
             }
         }
     }

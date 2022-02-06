@@ -1,5 +1,6 @@
 
 import CameraControls from "camera-controls";
+import { TerrainInfo } from "common";
 import { Camera, Event, Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
@@ -20,6 +21,7 @@ export class CameraMouse {
     wheelDollyEnabled = true;
     lookAtMouseEnabled = false;
     edgeScrollEnabled = true;
+    battleCam = false;
     direction = new Vector3();
 
     constructor(controls: CameraControls, domElement: HTMLElement) {
@@ -91,7 +93,7 @@ export class CameraMouse {
         this._janitor.callback(() => domElement.removeEventListener("pointerup", ptrUp));
     }
 
-    update(camera: Camera, terrain: Mesh, delta: number) {
+    update(camera: Camera, terrain: TerrainInfo, delta: number) {
         if (this.edgeScrollEnabled) {
             if (this._vector.x !== 0) {
                 this._controls.truck(this._vector.x * delta * this._accel, 0, true);
@@ -110,18 +112,12 @@ export class CameraMouse {
 
         if (this.lookAtMouseEnabled && this._mouseDown) {
             this._rayCaster.setFromCamera(this._mouseCoords, camera);
-
             this.direction.copy(this._rayCaster.ray.direction);
             const v = new Vector3();
             v.copy(this.direction);
-            v.multiplyScalar(50);
+            v.multiplyScalar(20);
             v.add(camera.position);
             this._controls.setTarget(v.x, v.y, v.z, true);
-            // this._mouseIntersection.length = 0;
-            // this._rayCaster.intersectObject(terrain, false, this._mouseIntersection);
-            // if (this._mouseIntersection.length) {
-            //     this._controls.setTarget(this._mouseIntersection[0].point.x, this._mouseIntersection[0].point.y, this._mouseIntersection[0].point.z, true);
-            // }
         }
     }
 

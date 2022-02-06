@@ -50,6 +50,7 @@ export const defaultSettings: Settings = {
         backward: "ArrowDown",
         zoomIn: "NumpadAdd",
         zoomOut: "NumpadSubtract",
+        debug: false
       }
 
     }
