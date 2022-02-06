@@ -544,7 +544,8 @@ async function TitanReactorGame(
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
           !unit.extra.recievingDamage &&
-          (unit.hp > unitData.hp || unit.shields > unitData.shields)// @todo ignore zerg units change hp from egg hp
+          (unit.hp > unitData.hp || unit.shields > unitData.shields)
+          && unit.typeId === unitData.typeId // ignore morphs
         ) {
           unit.extra.recievingDamage = 0b000111000111000111;
         } else if (unit.extra.recievingDamage) {
@@ -947,7 +948,7 @@ async function TitanReactorGame(
   janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
   const targetObj = new Mesh(new SphereBufferGeometry(), new MeshBasicMaterial({ color: 0xffffff }));
-  if (settings.controls.keyboard.camera.debug) {
+  if (settings.controls.debug) {
     scene.add(targetObj);
   }
 
@@ -959,7 +960,7 @@ async function TitanReactorGame(
     controls.mouse.update(camera, terrain.terrain, delta / 100);
     controls.keys.update(delta / 100);
 
-    if (settings.controls.keyboard.camera.debug) {
+    if (settings.controls.debug) {
       //@ts-ignore
       const _tobj = controls.standard.getTarget();
       targetObj.position.set(_tobj.x, _tobj.y, _tobj.z);

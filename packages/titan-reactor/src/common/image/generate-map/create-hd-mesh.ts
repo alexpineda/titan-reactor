@@ -1,19 +1,17 @@
 import * as THREE from "three";
-import {
-    Mesh,
-    Vector2,
-    MeshDepthMaterial,
-} from "three";
+import { Mesh, Vector2, MeshDepthMaterial } from "three";
 
 import { mergeBufferGeometries } from "three/examples/jsm/utils/BufferGeometryUtils";
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
-import { DataTexturesResult } from "./create-data-textures";
+import { DataTexturesResult } from "./generate-map-data-textures";
 
-import {
-    updateLoadingProcess,
-} from "../../../renderer/stores";
+import { updateLoadingProcess } from "../../../renderer/stores";
 import { strict as assert } from "assert";
 import { WrappedTexture, WrappedQuartileTextures } from "../../types";
+import hdMapFrag from "./glsl/hd.frag";
+import hdHeaderFrag from "./glsl/hd-header.frag";
+import hdDisplaceVert from "./glsl/hd-displace.vert";
+import hdDisplaceVertHeader from "./glsl/hd-displace-header.vert";
 
 const DEFAULT_GEOM_OPTIONS = {
     //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
@@ -45,7 +43,6 @@ export const createHDMesh = async (
     displaceCanvas: HTMLCanvasElement,
     hdQuartileTextures: WrappedQuartileTextures
 ) => {
-
     assert(hdQuartileTextures);
 
     //#region hd map
@@ -135,120 +132,17 @@ export const createHDMesh = async (
                 onBeforeCompile: function (shader) {
                     let fs = shader.fragmentShader;
                     let vs = shader.vertexShader;
-                    vs = vs.replace(
-                        "#include <displacementmap_vertex>",
-                        `
-          #ifdef USE_DISPLACEMENTMAP
 
-              vec2 duv = (vUv * quartileResolution) ;
-              // flip on y axis per quartile
-              duv.x += quartileOffset.x;
-              duv.y = quartileResolution.y - duv.y + quartileOffset.y;
-              transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
+                    //@todo chop up map rather than customize shader
+                    // vs = vs.replace(
+                    //     "#include <displacementmap_vertex>",
+                    //     hdDisplaceVert
+                    // );
+                    // shader.vertexShader = [hdDisplaceVertHeader, vs].join("\n");
 
-            #endif
-          `
-                    );
-                    shader.vertexShader = `
-            precision highp isampler2D;
-            uniform vec2 quartileResolution;
-            uniform vec2 quartileOffset;
-          
-          ${vs}`;
+                    fs = fs.replace("#include <map_fragment>", hdMapFrag);
+                    shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
 
-                    fs = fs.replace(
-                        "#include <map_fragment>",
-                        `
-            #include <map_fragment>
-
-          //creep hd
-
-          //reposition the quartile y offset, yeah shits getting weird :S
-          vec2 qo = vec2(quartileOffset.x, (1. - quartileResolution.y) - quartileOffset.y);
-
-          vec2 creepUv = vUv * quartileResolution + qo;
-          float creepF = texture2D(creep, creepUv).r;
-          float creepEdge = texture2D(creepEdges, creepUv).r;
-
-          if (creepF > 0.) {
-            vec4 creepColor = getSampledCreep(creepUv, vUv, creep, creepResolution, mapToCreepResolution);
-            vec4 creepLinear = creepColor;
-            diffuseColor =  creepLinear;
-          }
-
-          if (creepEdge > 0.) {
-            vec2 creepUv = getCreepUv(vUv, creepEdge, creepEdgesResolution, mapToCreepEdgesResolution);
-            vec4 creepEdgeColor = texture2D(creepEdgesTexture, creepUv);
-            vec4 creepEdgeLinear = creepEdgeColor;
-            diffuseColor = mix(diffuseColor, creepEdgeLinear, creepEdgeColor.a);
-          }
-
-
-          `
-                    );
-                    shader.fragmentShader = `
-            precision highp isampler2D;
-            uniform vec2 quartileResolution;
-            uniform vec2 quartileOffset;
-            uniform vec2 invMapResolution;
-            uniform vec2 mapToCreepResolution;
-            
-            // creep
-            uniform sampler2D creep;
-            uniform sampler2D creepTexture;
-            uniform vec2 creepResolution;
-            uniform vec2 mapToCreepEdgesResolution;
-
-            uniform sampler2D creepEdges;
-            uniform sampler2D creepEdgesTexture;
-            uniform vec2 creepEdgesResolution;
-
-            vec2 getCreepUv( vec2 uv, in float value, in vec2 res, in vec2 invRes ) {
-              float creepS = (value - 1./255.) * 255./res.x ; 
-    
-              float tilex = mod(uv.x, invMapResolution.x)  * invRes.x + creepS;
-              float tiley = mod(uv.y, invMapResolution.y) * invRes.y;
-    
-              return vec2(tilex, tiley);
-            }
-    
-            vec4 getCreepColor( vec2 uv, vec2 mapUv, in sampler2D tex, in vec2 res, in vec2 invRes, in vec4 oColor) {
-              float creepF = texture2D(tex, uv ).r;
-    
-              if (creepF > 0.) {
-                vec2 creepUv = getCreepUv(mapUv, creepF, creepResolution, mapToCreepResolution);
-                return texture2D(creepTexture,creepUv);
-              }
-    
-              return oColor;
-            }
-
-            vec4 getSampledCreep(const in vec2 uv, vec2 mapUv, in sampler2D tex, in vec2 res, in vec2 invRes) {
-
-              vec2 texelSize = vec2(1.0) / res * 128.;
-              float r = 2.;
-            
-              float dx0 = -texelSize.x * r;
-              float dy0 = -texelSize.y * r;
-              float dx1 = texelSize.x * r;
-              float dy1 = texelSize.y * r;
-              vec4 oColor = getCreepColor(uv, mapUv, tex, res, invRes, vec4(0.));
-              return (
-                getCreepColor(uv + vec2(dx0, dy0), mapUv,  tex, res, invRes, oColor) +
-                getCreepColor(uv + vec2(0.0, dy0), mapUv, tex, res, invRes, oColor) +
-                getCreepColor(uv + vec2(dx1, dy0), mapUv, tex, res, invRes, oColor) +
-                getCreepColor(uv + vec2(dx0, 0.0), mapUv, tex, res, invRes, oColor) +
-                oColor +
-                getCreepColor(uv + vec2(dx1, 0.0), mapUv, tex, res, invRes, oColor) +
-                getCreepColor(uv + vec2(dx0, dy1), mapUv, tex, res, invRes, oColor) +
-                getCreepColor(uv + vec2(0.0, dy1), mapUv, tex, res, invRes, oColor) +
-                getCreepColor(uv + vec2(dx1, dy1), mapUv, tex, res, invRes, oColor)
-              ) * (1.0 / 9.0);
-                
-            }
-
-            ${fs}
-        `;
                     shader.uniforms.quartileResolution = {
                         value: new Vector2(qw / mapWidth, qh / mapHeight),
                     };

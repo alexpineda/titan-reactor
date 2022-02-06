@@ -9,3 +9,18 @@ declare module "*!worker" {
     }
     export default Worker;
 }
+
+declare module '*.frag' {
+    const contents: { default: string }
+    export = contents
+}
+
+declare module '*.vert' {
+    const contents: { default: string }
+    export = contents
+}
+
+declare module '*.glsl' {
+    const contents: { default: string }
+    export = contents
+}

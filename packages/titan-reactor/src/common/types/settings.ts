@@ -29,7 +29,12 @@ export type Settings = {
         gamma: number;
         showFps: boolean;
     },
+    battleCam?: {
+        changeSpeedOnStart?: number;
+        camShakeStrength?: number;
+    },
     controls: {
+        debug?: boolean,
         keyboard: {
             game: {
                 battleCam?: string;
@@ -48,7 +53,6 @@ export type Settings = {
                 backward?: string,
                 zoomIn?: string,
                 zoomOut?: string,
-                debug: boolean
             }
         }
     }

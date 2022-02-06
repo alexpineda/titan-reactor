@@ -16,7 +16,7 @@ export type MapBitmapsResult = {
 // rgb bitmap
 // roughness bitmap
 
-export const generateBitmaps = (
+export const generateMapDataBitmaps = (
   mapWidth: number,
   mapHeight: number,
   { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles }:

@@ -2,7 +2,7 @@ import type Chk from "bw-chk";
 import { readCascFile } from "../../common/utils/casclib";
 
 import {
-  createDataTextures, createHDMesh, createSDMesh, generateBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, GeometryOptions, MapBitmapsResult, getTerrainY as genTerrainY
+  generateMapDataTextures, createHDMesh, createSDMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, GeometryOptions, MapBitmapsResult, getTerrainY as genTerrainY
 } from "../../common/image/generate-map";
 
 import { AssetTextureResolution, PxToGameUnit, TerrainInfo, TilesetBuffers } from "../../common/types";
@@ -16,25 +16,6 @@ import assert from "assert";
 import * as log from "../ipc";
 import renderer from "../render/renderer";
 
-export async function loadBuffersAndBitmaps(chk: Chk, terrainTextureResolution: AssetTextureResolution): Promise<{ tilesetBuffers: TilesetBuffers, bitmaps: MapBitmapsResult; }> {
-  const tilesetBuffers = await loadTilesetFiles(readCascFile, chk.tileset, chk._tiles, terrainTextureResolution);
-  const bitmaps = await generateBitmaps(chk.size[0], chk.size[1], tilesetBuffers);
-
-  return {
-    tilesetBuffers,
-    bitmaps
-  }
-}
-
-export async function loadDataTexturesAndLevels(chk: Chk, geomOptions: GeometryOptions, palette: Uint8Array, bitmaps: MapBitmapsResult) {
-  const dataTextures = await createDataTextures({
-    blendNonWalkableBase: geomOptions.blendNonWalkableBase,
-    palette: palette, mapWidth: chk.size[0], mapHeight: chk.size[1], mapData: bitmaps,
-  }
-  );
-  const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
-  return { dataTextures, levels };
-}
 
 export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
   const settings = getSettings();
@@ -42,10 +23,16 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
   const [mapWidth, mapHeight] = chk.size;
 
   // files -> buffers
-  const { tilesetBuffers, bitmaps } = await loadBuffersAndBitmaps(chk, settings.assets.terrain);
+  const tilesetBuffers = await loadTilesetFiles(readCascFile, chk.tileset, chk._tiles, settings.assets.terrain);
+  const bitmaps = await generateMapDataBitmaps(chk.size[0], chk.size[1], tilesetBuffers);
 
   // options -> data
-  const { dataTextures, levels } = await loadDataTexturesAndLevels(chk, geomOptions, tilesetBuffers.palette, bitmaps);
+  const dataTextures = await generateMapDataTextures({
+    blendNonWalkableBase: geomOptions.blendNonWalkableBase,
+    palette: tilesetBuffers.palette, mapWidth: chk.size[0], mapHeight: chk.size[1], mapData: bitmaps,
+  }
+  );
+  const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
 
   //sd / hd textures required
   const { creepGrpSD, palette, hdTiles, creepGrpHD, tilegroupU16, tileset, megatiles, minitiles } = tilesetBuffers;

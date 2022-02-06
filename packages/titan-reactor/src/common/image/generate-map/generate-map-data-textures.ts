@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
-import { MapBitmapsResult } from "./generate-bitmaps";
+import { MapBitmapsResult } from "./generate-map-data-bitmaps";
 
 export interface DataTexturesResult {
     sdMap: THREE.DataTexture,
@@ -18,7 +18,7 @@ export interface DataTexturesResult {
     paletteIndicesMap: THREE.DataTexture,
     paletteMap: THREE.DataTexture,
 }
-export const createDataTextures = async ({
+export const generateMapDataTextures = async ({
     blendNonWalkableBase,
     palette,
     mapWidth,
@@ -182,4 +182,4 @@ export const createDataTextures = async ({
         paletteMap,
     };
 };
-export default createDataTextures;
+export default generateMapDataTextures;

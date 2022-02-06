@@ -1,6 +1,5 @@
 
 import CameraControls from "camera-controls";
-import { TerrainInfo } from "common";
 import { Camera, Event, Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
@@ -93,7 +92,7 @@ export class CameraMouse {
         this._janitor.callback(() => domElement.removeEventListener("pointerup", ptrUp));
     }
 
-    update(camera: Camera, terrain: TerrainInfo, delta: number) {
+    update(camera: Camera, terrain: any, delta: number) {
         if (this.edgeScrollEnabled) {
             if (this._vector.x !== 0) {
                 this._controls.truck(this._vector.x * delta * this._accel, 0, true);

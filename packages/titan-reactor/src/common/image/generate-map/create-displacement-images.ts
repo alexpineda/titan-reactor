@@ -21,7 +21,7 @@ import { MapEffect } from "./effects/map-effect";
 import {
     updateLoadingProcess,
 } from "../../../renderer/stores";
-import { DataTexturesResult } from "./create-data-textures";
+import { DataTexturesResult } from "./generate-map-data-textures";
 import { GeometryOptions } from "./geometry-options";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];

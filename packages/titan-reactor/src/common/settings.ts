@@ -32,6 +32,7 @@ export const defaultSettings: Settings = {
     showFps: true
   },
   controls: {
+    debug: false,
     keyboard: {
       game: {
         battleCam: "F5"
@@ -50,7 +51,6 @@ export const defaultSettings: Settings = {
         backward: "ArrowDown",
         zoomIn: "NumpadAdd",
         zoomOut: "NumpadSubtract",
-        debug: false
       }
 
     }
