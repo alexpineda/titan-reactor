@@ -3601,10 +3601,10 @@ camelcase@^6.2.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.2.0.tgz#924af881c9d525ac9d87f40d964e5cea982a1809"
   integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
-camera-controls@^1.25.3:
-  version "1.33.0"
-  resolved "https://registry.yarnpkg.com/camera-controls/-/camera-controls-1.33.0.tgz#e8efe4b2ee28f73bd3d2f598bbdd4582132a8555"
-  integrity sha512-QTXwz/XbLCPGf7l6u9cWKfR3WwKulnNAahfg+RE+dFOAQ40KKvwTIvBs3Q29kqntJlKvY79ZVsmPUEUA6LoF2A==
+camera-controls@^1.33.2:
+  version "1.34.1"
+  resolved "https://registry.yarnpkg.com/camera-controls/-/camera-controls-1.34.1.tgz#e67d759e5df6cd1119273e1910419ba62951c27b"
+  integrity sha512-cw1zfO3pVB87VHz0TVTtfBpv3C7hMi11Ia7utGiskDOJRngOtm8U9JPDqD7QGpJL1f+M8y7aZXRDJtGkRGTHsQ==
 
 caniuse-lite@^1.0.30001264:
   version "1.0.30001265"
