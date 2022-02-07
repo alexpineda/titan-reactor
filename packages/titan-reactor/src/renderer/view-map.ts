@@ -12,7 +12,6 @@ import type {
   TerrainInfo,
 } from "../common/types";
 import { pxToMapMeter } from "../common/utils/conversions";
-import { KeyboardManager } from "./input";
 import { Scene } from "./render";
 import renderer from "./render/renderer";
 import { getAssets, useHudStore, useSettingsStore } from "./stores";
@@ -58,10 +57,6 @@ async function TitanReactorMap(
   if (!settings) {
     throw new Error("Settings not loaded");
   }
-
-  const keyboardManager = new KeyboardManager(document.body);
-  janitor.disposable(keyboardManager)
-
   // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
   const gameSurface = new CanvasTarget();

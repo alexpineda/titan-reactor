@@ -29,31 +29,26 @@ export type Settings = {
         gamma: number;
         showFps: boolean;
     },
-    battleCam?: {
-        changeSpeedOnStart?: number;
-        camShakeStrength?: number;
-    },
     controls: {
         debug?: boolean,
-        keyboard: {
-            game: {
-                battleCam?: string;
-            },
-            replay: {
-                pause?: string;
-                speedUp?: string;
-                speedDown?: string;
-                skipForward?: string;
-                skipBackward?: string;
-            },
-            camera: {
-                truckLeft?: string,
-                truckRight?: string,
-                forward?: string,
-                backward?: string,
-                zoomIn?: string,
-                zoomOut?: string,
-            }
+        mode: {
+            default?: string;
+            battle?: string;
+        },
+        replay: {
+            pause?: string;
+            speedUp?: string;
+            speedDown?: string;
+            skipForward?: string;
+            skipBackward?: string;
+        },
+        camera: {
+            truckLeft?: string,
+            truckRight?: string,
+            forward?: string,
+            backward?: string,
+            zoomIn?: string,
+            zoomOut?: string,
         }
     }
 

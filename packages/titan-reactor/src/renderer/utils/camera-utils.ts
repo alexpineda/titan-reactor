@@ -35,14 +35,6 @@ export const constrainControls = async (controls: Controls, camera: PerspectiveC
   camera.fov = 15;
   camera.updateProjectionMatrix();
 
-  camera.userData.battleCam = false;
-  controls.mouse.wheelDollyEnabled = true;
-  controls.mouse.lookAtMouseEnabled = false;
-  controls.mouse.edgeScrollEnabled = true;
-  controls.mouse.battleCam = false;
-
-  controls.keys.battleCam = false;
-
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.middle = CameraControls.ACTION.NONE;
@@ -72,13 +64,6 @@ export const constrainControls = async (controls: Controls, camera: PerspectiveC
 export const constrainControlsBattleCam = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
   camera.fov = 115;
   camera.updateProjectionMatrix();
-
-  camera.userData.battleCam = true;
-  controls.mouse.wheelDollyEnabled = true;
-  controls.mouse.lookAtMouseEnabled = true;
-  controls.mouse.edgeScrollEnabled = false;
-  controls.mouse.battleCam = true;
-  controls.keys.battleCam = true;
 
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;

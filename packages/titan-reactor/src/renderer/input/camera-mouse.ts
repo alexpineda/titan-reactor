@@ -1,96 +1,74 @@
 
 import CameraControls from "camera-controls";
-import { Camera, Vector3 } from "three";
+import { Camera, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
+import { CameraMode, Controls } from "./camera-mode";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 
 const MAX_ACCELERATION = 2;
 const ACCELERATION = 1.01;
+const passive = { passive: true };
 export class CameraMouse {
     private _mouseWheelTimeout?: NodeJS.Timeout;
     private _mouseWheelDelay = 200;
     private _janitor = new Janitor();
     private _vector = new Vector3();
-    private _controls: CameraControls;
     private _accel = 1;
-    wheelDollyEnabled = true;
-    lookAtMouseEnabled = false;
-    edgeScrollEnabled = true;
-    battleCam = false;
+    private _zoomFactor = 0;
+    private _lookAt = new Vector2()
+    private _deltaY = 0;
+
     direction = new Vector3();
 
-    constructor(controls: CameraControls, domElement: HTMLElement) {
+    constructor(domElement: HTMLElement) {
 
-        this._controls = controls;
 
         const onWheel = (evt: WheelEvent) => {
-            if (this._mouseWheelTimeout || !this.wheelDollyEnabled || this._controls.mouseButtons.wheel !== CameraControls.ACTION.NONE) return;
-
-            if (this.battleCam) {
-                const p = this._controls.getPosition();
-
-                if (evt.deltaY < 0) {
-                    this._controls.setPosition(p.x, p.y - 2, p.z, true);
-                } else {
-                    this._controls.setPosition(p.x, p.y + 2, p.z, true);
-                }
-            } else {
-                if (evt.deltaY < 0) {
-                    smoothDollyIn(controls, 3);
-                } else {
-                    smoothDollyOut(controls, 3);
-                }
-            }
-
+            if (this._mouseWheelTimeout) return;
+            this._deltaY = evt.deltaY;
             this._mouseWheelTimeout = setTimeout(() => {
                 this._mouseWheelTimeout = undefined;
             }, this._mouseWheelDelay);
         };
 
-        domElement.addEventListener("wheel", onWheel, { passive: true });
+        domElement.addEventListener("wheel", onWheel, passive);
         this._janitor.callback(() => {
             domElement.removeEventListener("wheel", onWheel);
             this._mouseWheelTimeout && clearTimeout(this._mouseWheelTimeout);
         });
 
         const onMouseMove = (evt: MouseEvent) => {
-            if (this.edgeScrollEnabled) {
-                const x = evt.clientX / window.innerWidth;
-                const y = evt.clientY / window.innerHeight;
+            const x = evt.clientX / window.innerWidth;
+            const y = evt.clientY / window.innerHeight;
 
-                if (x < 0.01 && x > -0.01) {
-                    this._vector.x = -1;
-                } else if (x > 0.99 && x < 1.01) {
-                    this._vector.x = 1;
-                } else {
-                    this._vector.x = 0;
-                }
+            if (x < 0.01 && x > -0.01) {
+                this._vector.x = -1;
+            } else if (x > 0.99 && x < 1.01) {
+                this._vector.x = 1;
+            } else {
+                this._vector.x = 0;
+            }
 
-                if (y < 0.01 && y > -0.01) {
-                    this._vector.y = 1;
-                } else if (y > 0.99 && y < 1.01) {
-                    this._vector.y = -1;
-                } else {
-                    this._vector.y = 0;
-                }
+            if (y < 0.01 && y > -0.01) {
+                this._vector.y = 1;
+            } else if (y > 0.99 && y < 1.01) {
+                this._vector.y = -1;
+            } else {
+                this._vector.y = 0;
             }
-            if (this.lookAtMouseEnabled) {
-                this._controls.rotate(-evt.movementX / 1000, -evt.movementY / 1000, this._controls.mouseButtons.wheel === CameraControls.ACTION.NONE);
-            }
+
+            this._lookAt.x = evt.movementX;
+            this._lookAt.y = evt.movementY;
         }
-        domElement.addEventListener("pointermove", onMouseMove, { passive: true });
+        domElement.addEventListener("pointermove", onMouseMove, passive);
         this._janitor.callback(() => {
             domElement.removeEventListener("pointermove", onMouseMove);
         });
 
         const pointerUp = (evt: PointerEvent) => {
-
-            if (this.battleCam) {
-                const factor = evt.button === 0 ? 2 : 1 / 2;
-                this._controls.zoomTo(this._controls.camera.zoom * factor, false);
-            }
+            this._zoomFactor = evt.button === 0 ? 2 : 1 / 2;
         }
-        domElement.addEventListener("pointerup", pointerUp, { passive: true });
+        domElement.addEventListener("pointerup", pointerUp, passive);
         this._janitor.callback(() => {
             domElement.removeEventListener("pointerup", pointerUp);
         }
@@ -98,15 +76,46 @@ export class CameraMouse {
 
     }
 
-    update(camera: Camera, terrain: any, delta: number) {
-        if (this.edgeScrollEnabled) {
+    update(delta: number, controls: Controls) {
+
+        if (controls.cameraMode === CameraMode.Battle) {
+            if (this._zoomFactor) {
+                controls.standard.zoomTo(controls.standard.camera.zoom * this._zoomFactor, false);
+                this._zoomFactor = 0;
+            }
+            if (this._lookAt.x || this._lookAt.y) {
+                controls.standard.rotate(-this._lookAt.x / 1000, -this._lookAt.y / 1000, true);
+                this._lookAt.x = 0;
+                this._lookAt.y = 0;
+            }
+
+            if (this._deltaY) {
+                const p = controls.standard.getPosition();
+
+                if (this._deltaY < 0) {
+                    controls.standard.setPosition(p.x, p.y - 2, p.z, true);
+                } else {
+                    controls.standard.setPosition(p.x, p.y + 2, p.z, true);
+                }
+                this._deltaY = 0;
+            }
+        } else if (controls.cameraMode === CameraMode.Default) {
+
+            if (this._deltaY) {
+                if (this._deltaY < 0) {
+                    smoothDollyIn(controls.standard, 3);
+                } else {
+                    smoothDollyOut(controls.standard, 3);
+                }
+                this._deltaY = 0;
+            }
 
             if (this._vector.x !== 0) {
-                this._controls.truck(this._vector.x * delta * this._accel, 0, true);
+                controls.standard.truck(this._vector.x * delta * this._accel, 0, true);
             }
 
             if (this._vector.y !== 0) {
-                this._controls.forward(this._vector.y * delta * this._accel, true);
+                controls.standard.forward(this._vector.y * delta * this._accel, true);
             }
 
 
@@ -119,6 +128,7 @@ export class CameraMouse {
     }
 
     dispose() {
+        this._mouseWheelTimeout && clearTimeout(this._mouseWheelTimeout);
         this._janitor.mopUp();
     }
 

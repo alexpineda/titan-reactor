@@ -33,26 +33,24 @@ export const defaultSettings: Settings = {
   },
   controls: {
     debug: false,
-    keyboard: {
-      game: {
-        battleCam: "F5"
-      },
-      replay: {
-        pause: "KeyP",
-        speedUp: "KeyU",
-        speedDown: "KeyD",
-        skipForward: "BracketRight",
-        skipBackward: "BracketLeft",
-      },
-      camera: {
-        truckLeft: "ArrowLeft",
-        truckRight: "ArrowRight",
-        forward: "ArrowUp",
-        backward: "ArrowDown",
-        zoomIn: "NumpadAdd",
-        zoomOut: "NumpadSubtract",
-      }
-
+    mode: {
+      default: "F2, Escape",
+      battle: "F5"
+    },
+    replay: {
+      pause: "KeyP",
+      speedUp: "KeyU",
+      speedDown: "KeyD",
+      skipForward: "BracketRight",
+      skipBackward: "BracketLeft",
+    },
+    camera: {
+      truckLeft: "ArrowLeft",
+      truckRight: "ArrowRight",
+      forward: "ArrowUp",
+      backward: "ArrowDown",
+      zoomIn: "NumpadAdd",
+      zoomOut: "NumpadSubtract",
     }
   }
 };

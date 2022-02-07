@@ -25,5 +25,5 @@ export enum InputEvents {
   MoveForward = "MoveForward",
   MoveBackward = "MoveBackward",
   ResetCamera = "ResetCamera",
-  ToggleBattleCam = "ToggleBattleCam",
+  ToggleCameraMode = "ToggleCameraMode",
 };

@@ -3,7 +3,7 @@ import { InputEvents } from ".";
 import { getSettings } from "../stores"
 import { testKey } from "../utils/key-utils";
 
-export class KeyboardManager extends EventEmitter {
+export class ReplayKeys extends EventEmitter {
     private _domElement: HTMLElement;
     private _keyDownListenerInstance: (e: KeyboardEvent) => void;
 
@@ -21,11 +21,11 @@ export class KeyboardManager extends EventEmitter {
         const settings = getSettings();
 
         const visit: [string, string | undefined][] = [
-            [InputEvents.TogglePlay, settings.controls.keyboard.replay.pause],
-            [InputEvents.SpeedUp, settings.controls.keyboard.replay.speedUp],
-            [InputEvents.SpeedDown, settings.controls.keyboard.replay.speedDown],
-            [InputEvents.SkipForward, settings.controls.keyboard.replay.skipForward],
-            [InputEvents.SkipBackwards, settings.controls.keyboard.replay.skipBackward],
+            [InputEvents.TogglePlay, settings.controls.replay.pause],
+            [InputEvents.SpeedUp, settings.controls.replay.speedUp],
+            [InputEvents.SpeedDown, settings.controls.replay.speedDown],
+            [InputEvents.SkipForward, settings.controls.replay.skipForward],
+            [InputEvents.SkipBackwards, settings.controls.replay.skipBackward],
         ]
 
         for (const [event, key] of visit) {

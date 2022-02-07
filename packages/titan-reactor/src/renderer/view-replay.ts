@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Box3, Color, Group, Material, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
+import { Box3, Camera, Color, Group, Material, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -26,9 +26,9 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   InputEvents,
-  KeyboardManager,
   MinimapEventListener,
   MouseInput,
+  ReplayKeys
 } from "./input";
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./integration/buffer-view";
 import * as log from "./ipc/log";
@@ -36,7 +36,6 @@ import {
   Effects,
   GameCanvasTarget,
   Layers,
-  Passes,
   RenderCSS,
 } from "./render";
 import renderer from "./render/renderer";
@@ -64,6 +63,7 @@ import { CameraMouse } from "./input/camera-mouse";
 import { isAttacking } from "./utils/unit-utils";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
+import { CameraMode, RegularCameraMode } from "./input/camera-mode";
 // import cameraIconSvg from "./camera-icon.svg";
 
 CameraControls.install({ THREE: THREE });
@@ -71,16 +71,6 @@ CameraControls.install({ THREE: THREE });
 const { startLocation } = unitTypes;
 
 const addChatMessage = useGameStore.getState().addChatMessage;
-
-enum CameraMode {
-  Regular,
-  Battle,
-  Overview,
-  Split,
-  FPS
-}
-
-const cameraMode = CameraMode.Regular;
 
 async function TitanReactorGame(
   world: ReplayWorld
@@ -112,7 +102,7 @@ async function TitanReactorGame(
 
   const { mapWidth, mapHeight } = terrain;
 
-  const keyboardManager = new KeyboardManager(window.document.body);
+  const keyboardManager = new ReplayKeys(window.document.body);
   janitor.disposable(keyboardManager);
 
   const gameSurface = new GameCanvasTarget(settings);
@@ -143,7 +133,8 @@ async function TitanReactorGame(
 
   renderer.composerPasses.presetRegularCam();
 
-  const createControls = () => {
+  const createControls = (oldCameraMode?: CameraMode) => {
+    const cameraMode = oldCameraMode || CameraMode.Default;
     const janitor = new Janitor()
     const controls = new CameraControls(
       camera,
@@ -151,15 +142,16 @@ async function TitanReactorGame(
     );
     janitor.disposable(controls);
 
-    const cameraMouse = new CameraMouse(controls, document.body);
+    const cameraMouse = new CameraMouse(document.body);
     janitor.disposable(cameraMouse);
 
-    const cameraKeys = new CameraKeys(window.document.body, controls, settings);
+    const cameraKeys = new CameraKeys(window.document.body, settings);
     janitor.disposable(cameraKeys);
 
     const cameraShake = new CameraShake(controls, 200, 12);
 
     return {
+      cameraMode,
       standard: controls,
       mouse: cameraMouse,
       keys: cameraKeys,
@@ -188,7 +180,6 @@ async function TitanReactorGame(
   janitor.disposable(minimapEvents);
 
   minimapEvents.onStart = ({ pos }) => {
-    onToggleBattleCam(true);
     controls.standard.moveTo(pos.x, pos.y, pos.z, false);
   };
 
@@ -201,8 +192,8 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => (window.scene = null));
 
-  const onToggleBattleCam = async (escape?: boolean) => {
-    if (camera.userData.battleCam === false && escape) {
+  const onToggleCameraMode = async (cm: CameraMode) => {
+    if (controls.cameraMode === cm) {
       return;
     }
     // @ts-ignore
@@ -210,26 +201,26 @@ async function TitanReactorGame(
     // @ts-ignore
     const oldPosition = controls.standard.getPosition();
     controls.dispose();
-    controls = createControls();
-    controls.keys.onToggleBattleCam = onToggleBattleCam;
+    controls = createControls(cm);
+    controls.keys.onToggleCameraMode = onToggleCameraMode;
 
     //@ts-ignore
     window.control = controls;
-    if (camera.userData.battleCam || escape) {
+    if (controls.cameraMode === CameraMode.Default) {
       gameSurface.exitPointerLock();
       const t = new Vector3();
       t.lerpVectors(oldTarget, oldPosition, 0.8);
       await controls.standard.setTarget(t.x, 0, t.z, false);
       await constrainControls(controls, camera, mapWidth, mapHeight);
 
-    } else {
+    } else if (controls.cameraMode === CameraMode.Battle) {
       gameSurface.requestPointerLock();
       await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
       await constrainControlsBattleCam(controls, camera, mapWidth, mapHeight);
     }
   }
 
-  controls.keys.onToggleBattleCam = onToggleBattleCam;
+  controls.keys.onToggleCameraMode = onToggleCameraMode;
 
   const projectedCameraView = new ProjectedCameraView(
     camera
@@ -526,7 +517,7 @@ async function TitanReactorGame(
         const mx = pxToGameUnit.x(unitData.x);
         const my = pxToGameUnit.y(unitData.y);
 
-        if (camera.userData.battleCam && mx > projectedCameraView.left && mx < projectedCameraView.right && my > projectedCameraView.top && my < projectedCameraView.bottom) {
+        if (controls.cameraMode === CameraMode.Battle && mx > projectedCameraView.left && mx < projectedCameraView.right && my > projectedCameraView.top && my < projectedCameraView.bottom) {
           // @todo only ranged and scale by weapon type
           if (isAttacking(unitData, bwDat)) {
             unitAttackScore++;
@@ -671,7 +662,7 @@ async function TitanReactorGame(
         canvas.width / 2,
         canvas.height / 2
       );
-      if (camera.userData.battleCam) {
+      if (controls.cameraMode === CameraMode.Battle) {
         ctx.beginPath();
         const fov2 = calculateHorizontalFoV(MathUtils.degToRad(camera.getEffectiveFOV()), camera.aspect) / 2;
         const a = Math.PI - controls.standard.azimuthAngle;
@@ -955,8 +946,8 @@ async function TitanReactorGame(
     _lastElapsed = elapsed;
 
     controls.standard.update(delta / 1000);
-    controls.mouse.update(camera, terrain.terrain, delta / 100);
-    controls.keys.update(delta / 100);
+    controls.mouse.update(delta / 100, controls);
+    controls.keys.update(delta / 100, controls);
 
     if (settings.controls.debug) {
       //@ts-ignore
@@ -1002,7 +993,7 @@ async function TitanReactorGame(
 
       soundChannels.play(elapsed);
 
-      if (camera.userData.battleCam && unitAttackScore) {
+      if (controls.cameraMode === CameraMode.Battle && unitAttackScore) {
         controls.cameraShake.shake();
       }
 
