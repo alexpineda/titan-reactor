@@ -18,7 +18,7 @@ export class CameraKeys {
     battleCam = false;
 
     onFocusPress?: () => void;
-    onToggleBattleCam?: () => void;
+    onToggleBattleCam?: (escape?: boolean) => void;
 
     constructor(el: HTMLElement, control: CameraControls, settings: Settings) {
         this._el = el;
@@ -65,7 +65,10 @@ export class CameraKeys {
 
             if (testKeys(e, settings.controls.keyboard.game.battleCam)) {
                 this.onToggleBattleCam && this.onToggleBattleCam();
+            } else if (testKeys(e, "Escape")) { // bonus helper key for users who forget the other key
+                this.onToggleBattleCam && this.onToggleBattleCam(true);
             }
+
         }
         this._el.addEventListener("keyup", ku);
         this._janitor.callback(() => this._el.removeEventListener("keyup", ku));

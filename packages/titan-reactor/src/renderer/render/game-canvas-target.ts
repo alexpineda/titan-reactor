@@ -71,6 +71,14 @@ export class GameCanvasTarget extends CanvasTarget {
     this.minimapSize = this.height * MinimapRatio;
   }
 
+  requestPointerLock() {
+    this.canvas.requestPointerLock();
+  }
+
+  exitPointerLock() {
+    document.exitPointerLock();
+  }
+
   getRect() {
     return {
       left: this.left,

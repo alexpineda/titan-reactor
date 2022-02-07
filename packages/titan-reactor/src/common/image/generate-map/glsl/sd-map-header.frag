@@ -7,7 +7,6 @@ uniform ivec2 index2;
 uniform ivec2 index3;
 uniform int counter;
 
-
 //sd creep
 uniform vec2 invMapResolution;
 uniform vec2 mapResolution;

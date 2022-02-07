@@ -261,18 +261,10 @@ export class MouseInput {
             event.ctrlKey &&
             this.projectedCameraView instanceof ProjectedCameraView
           ) {
-            const startMapX = Math.floor(
-              this.projectedCameraView.viewBW.left / 32
-            );
-            const endMapX = Math.floor(
-              this.projectedCameraView.viewBW.right / 32
-            );
-            const startMapY = Math.floor(
-              this.projectedCameraView.viewBW.top / 32
-            );
-            const endMapY = Math.floor(
-              this.projectedCameraView.viewBW.bottom / 32
-            );
+            const startMapX = 0;
+            const endMapX = 0;
+            const startMapY = 0;
+            const endMapY = 0;
 
             for (let x = startMapX; x < endMapX; x++) {
               for (let y = startMapY; y < endMapY; y++) {

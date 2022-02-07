@@ -1,5 +1,5 @@
 import CameraControls from "camera-controls";
-import { Box3, PerspectiveCamera, Vector3 } from "three";
+import { Box3, MathUtils, PerspectiveCamera, Vector3 } from "three";
 import { easePoly } from "d3-ease";
 import { CameraMouse } from "../input/camera-mouse";
 import { CameraKeys } from "../input/camera-keys";
@@ -74,7 +74,7 @@ export const constrainControlsBattleCam = async (controls: Controls, camera: Per
   camera.updateProjectionMatrix();
 
   camera.userData.battleCam = true;
-  controls.mouse.wheelDollyEnabled = false;
+  controls.mouse.wheelDollyEnabled = true;
   controls.mouse.lookAtMouseEnabled = true;
   controls.mouse.edgeScrollEnabled = false;
   controls.mouse.battleCam = true;
@@ -83,7 +83,7 @@ export const constrainControlsBattleCam = async (controls: Controls, camera: Per
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.middle = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.wheel = CameraControls.ACTION.ZOOM;
+  controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
 
   controls.standard.dollyToCursor = false;
@@ -127,17 +127,14 @@ export const getDOFFocalLength = (camera: PerspectiveCamera, polarAngle: number)
   return o;
 }
 
-const DEG2RAD = Math.PI / 180.0;
-const RAD2DEG = 180.0 / Math.PI;
-
 export function calculateVerticalFoV(horizontalFoV: number, aspect = 16 / 9) {
 
-  return Math.atan(Math.tan(horizontalFoV * DEG2RAD * 0.5) / aspect) * RAD2DEG * 2.0;
+  return Math.atan(Math.tan(horizontalFoV * MathUtils.DEG2RAD * 0.5) / aspect) * MathUtils.RAD2DEG * 2.0;
 
 }
 
 export function calculateHorizontalFoV(verticalFoV: number, aspect = 16 / 9) {
 
-  return Math.atan(Math.tan(verticalFoV * DEG2RAD * 0.5) * aspect) * RAD2DEG * 2.0;
+  return Math.atan(Math.tan(verticalFoV * MathUtils.DEG2RAD * 0.5) * aspect) * MathUtils.RAD2DEG * 2.0;
 
 }

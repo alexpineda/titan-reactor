@@ -28,14 +28,9 @@ vec4 texelColor = texture2D(map, vUv);
 diffuseColor *= texelColor;
 
 //sd creep
-float creepF = texture2D(creep, vUv ).r;
 float creepEdge = texture2D(creepEdges, vUv).r ;
 
-if (creepF > 0.) {
-    vec4 creepColor = getCreepColor(vUv, creep, creepResolution, mapToCreepResolution, vec4(0.));
-    vec4 creepLinear = creepColor;
-    diffuseColor =  creepLinear;
-}
+diffuseColor = getCreepColor(vUv, creep, creepResolution, mapToCreepResolution, diffuseColor);
 
 if (creepEdge > 0.) {
     vec2 creepUv = getCreepUv(vUv, creepEdge, creepEdgesResolution, mapToCreepEdgesResolution);

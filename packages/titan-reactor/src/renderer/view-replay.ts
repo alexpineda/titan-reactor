@@ -54,7 +54,7 @@ import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
-import { constrainControls, constrainControlsBattleCam, getDirection32, getDOFFocalLength } from "./utils/camera-utils";
+import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, getDirection32, getDOFFocalLength } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
 import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
@@ -113,9 +113,9 @@ async function TitanReactorGame(
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
-  const css = new RenderCSS(document.body);
-  css.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
-  janitor.disposable(css);
+  const cssRenderer = new RenderCSS(document.body);
+  cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+  janitor.disposable(cssRenderer);
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
@@ -191,11 +191,10 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => (window.scene = null));
 
-  const onToggleBattleCam = async (reset = false) => {
-    if (camera.userData.battleCam === false && reset) {
+  const onToggleBattleCam = async (escape?: boolean) => {
+    if (camera.userData.battleCam === false && escape) {
       return;
     }
-    openBw.call.resetGameSpeed();
     // @ts-ignore
     const oldTarget = controls.standard.getTarget();
     // @ts-ignore
@@ -206,13 +205,15 @@ async function TitanReactorGame(
 
     //@ts-ignore
     window.control = controls;
-    if (camera.userData.battleCam || reset) {
+    if (camera.userData.battleCam || escape) {
+      gameSurface.exitPointerLock();
       const t = new Vector3();
       t.lerpVectors(oldTarget, oldPosition, 0.8);
       await controls.standard.setTarget(t.x, 0, t.z, false);
       await constrainControls(controls, camera, mapWidth, mapHeight);
 
     } else {
+      gameSurface.requestPointerLock();
       const t = new Vector3();
       t.lerpVectors(oldTarget, oldPosition, 0.8);
       await controls.standard.setTarget(t.x, 0, t.z, false);
@@ -223,9 +224,7 @@ async function TitanReactorGame(
   controls.keys.onToggleBattleCam = onToggleBattleCam;
 
   const projectedCameraView = new ProjectedCameraView(
-    camera,
-    mapWidth,
-    mapHeight
+    camera
   );
 
   //@ts-ignore
@@ -319,8 +318,8 @@ async function TitanReactorGame(
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     // @todo use scaled sizes here?
-    renderer.setSize(gameSurface.width, gameSurface.height);
-    css.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
@@ -337,19 +336,7 @@ async function TitanReactorGame(
       Math.floor(gameSurface.minimapSize * hAspect)
     );
 
-    // cameraRig.updatePreviewScreenAspect(
-    //   minimapSurface.width,
-    //   minimapSurface.height
-    // );
-
     projectedCameraView.update();
-
-    // cameras.control.setBoundary(
-    //   new Box3(
-    //     new Vector3(-mapWidth / 2, 0, -mapHeight / 2),
-    //     new Vector3(mapWidth / 2, 100, mapHeight / 2)
-    //   )
-    // );
 
     unstable_batchedUpdates(() =>
       useGameStore.setState({
@@ -668,19 +655,24 @@ async function TitanReactorGame(
         );
       }
 
-      if (camera.userData.battleCam) {
 
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.8;
+      ctx.setTransform(
+        canvas.width / mapWidth,
+        0,
+        0,
+        canvas.height / mapHeight,
+        canvas.width / 2,
+        canvas.height / 2
+      );
+      if (camera.userData.battleCam) {
+        ctx.beginPath();
+        const fov2 = calculateHorizontalFoV(MathUtils.degToRad(camera.getEffectiveFOV()), camera.aspect) / 2;
+        const a = Math.PI - controls.standard.azimuthAngle;
+        ctx.arc(camera.position.x, camera.position.z, 10, a, a + fov2);
+        ctx.stroke();
       } else {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 0.8;
-        ctx.setTransform(
-          canvas.width / mapWidth,
-          0,
-          0,
-          canvas.height / mapHeight,
-          canvas.width / 2,
-          canvas.height / 2
-        );
         ctx.beginPath();
         ctx.moveTo(...view.tl);
         ctx.lineTo(...view.tr);
@@ -688,8 +680,9 @@ async function TitanReactorGame(
         ctx.lineTo(...view.bl);
         ctx.lineTo(...view.tl);
         ctx.stroke();
-        ctx.restore();
       }
+      ctx.restore();
+
     }
   })();
 
@@ -1144,7 +1137,7 @@ async function TitanReactorGame(
     renderer.togglePasses(Passes.Render);
     renderer.render(scene, camera, delta);
 
-    css.render(camera);
+    cssRenderer.render(camera);
     drawMinimap(projectedCameraView);
 
     controls.cameraShake.restore(camera);
