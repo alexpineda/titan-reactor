@@ -33,11 +33,11 @@ import FogOfWarEffect from "../fogofwar/fog-of-war-effect";
 
 export enum Passes {
   Render,
+  Regular,
   Bloom,
   Cinematic,
   CinematicWithAA,
   SMAA,
-  Pixelate,
 };
 
 export enum Effects {
@@ -46,11 +46,10 @@ export enum Effects {
   FogOfWar,
   ToneMapping,
   Bloom,
-  Pixelate,
 };
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
-OverrideMaterialManager.workaroundEnabled = true;
+// OverrideMaterialManager.workaroundEnabled = true;
 
 export const createPasses = () => {
 
@@ -87,54 +86,57 @@ export const createPasses = () => {
   //   );
   // });
 
-
-
-
-
   const fogEffect = effects[Effects.FogOfWar] = new FogOfWarEffect();
   const toneMapping = effects[Effects.ToneMapping] = new ToneMappingEffect();
   const bloomEffect = effects[Effects.Bloom] = new BloomEffect({
     luminanceThreshold: 0.9,
   });
-  const pixelEffect = new PixelationEffect(20);
-  const debugDepthEffect = new DepthEffect();
 
   passes[Passes.Render] = new RenderPass(throwAwayCamera);
-  passes[Passes.Bloom] = new EffectPass(throwAwayCamera, bloomEffect);
-  passes[Passes.Pixelate] = new EffectPass(throwAwayCamera, pixelEffect);
   passes[Passes.Cinematic] = new EffectPass(
     throwAwayCamera,
     dofEffect,
     fogEffect,
   );
+  passes[Passes.Bloom] = new EffectPass(throwAwayCamera, bloomEffect);
+  passes[Passes.Regular] = new EffectPass(throwAwayCamera, fogEffect);
+
+  const togglePasses = (...whichOnes: Passes[]) => {
+    let i = 0;
+    let lastPass: any = null;
+    for (const pass of passes) {
+      if (pass === undefined) continue;
+      pass.enabled = false;
+      pass.renderToScreen = false;
+      if (whichOnes.includes(i)) {
+        pass.enabled = true;
+        lastPass = pass;
+      }
+      i++;
+    }
+    lastPass.renderToScreen = true;
+  };
 
   return {
 
     passes,
     effects,
 
-    togglePasses: (...whichOnes: Passes[]) => {
-      let i = 0;
-      let lastPass: any = null;
-      for (const pass of passes) {
-        if (pass === undefined) continue;
-        pass.enabled = false;
-        pass.renderToScreen = false;
-        if (whichOnes.includes(i)) {
-          pass.enabled = true;
-          lastPass = pass;
-        }
-        i++;
-      }
-      lastPass.renderToScreen = true;
+    presetRegularCam() {
+      togglePasses(Passes.Render, Passes.Regular);
     },
 
+    presetBattleCam() {
+      togglePasses(Passes.Render, Passes.Cinematic);
+    },
+
+    togglePasses,
     update: (scene: Scene, camera: Camera) => {
       effects[Effects.DepthOfField].camera = camera;
       passes[Passes.Render].camera = camera;
       passes[Passes.Bloom].camera = camera;
       passes[Passes.Cinematic].camera = camera;
-      passes[Passes.Pixelate].camera = camera;
+      passes[Passes.Regular].camera = camera;
       // passes[Passes.CinematicWithAA].camera = camera;
       // passes[Passes.SMAA].camera = camera;
       passes[Passes.Render].scene = scene;

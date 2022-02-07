@@ -14,17 +14,18 @@ import {
     EffectComposer,
 } from "postprocessing";
 import { createPasses, Passes } from "./composer-passes";
+import rendererIsDev from "../utils/renderer-is-dev";
 
 const createWebGLRenderer = () => {
     const renderer = new WebGLRenderer({
         powerPreference: "high-performance",
-        preserveDrawingBuffer: true,
+        preserveDrawingBuffer: false,
         antialias: false,
         stencil: false,
         depth: false,
     });
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = true;
+    renderer.debug.checkShaderErrors = rendererIsDev;
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
@@ -52,31 +53,21 @@ export class TitanRenderer {
             return this._renderer;
         }
         const renderer = this._renderer = createWebGLRenderer();
-        this.composer.renderer = renderer;
-        this.composer.renderer.autoClear = false;
-
-        this.composer.inputBuffer = this.composer.createBuffer(
-            true,
-            false,
-            HalfFloatType,
-            4
-        );
-
-        this.composer.outputBuffer = this.composer.inputBuffer.clone();
-
-
+        this.composer.setRenderer(renderer);
         this.composer.autoRenderToScreen = false;
+
         for (const pass of this.composerPasses.passes) {
             if (pass === undefined) continue;
             this.composer.addPass(pass);
         }
-        this.togglePasses(Passes.Render);
+        this.composerPasses.togglePasses(Passes.Render);
 
         renderer.domElement.addEventListener(
             "webglcontextlost",
             () => {
                 this._renderer?.setAnimationLoop(null);
-                this._renderer = undefined;
+                // this.getWebGLRenderer();
+                // this._renderer = undefined;
             }
         );
 
@@ -128,10 +119,6 @@ export class TitanRenderer {
         );
 
 
-    }
-
-    togglePasses(...whichOnes: Passes[]) {
-        this.composerPasses.togglePasses(...whichOnes);
     }
 
     setSize(width: number, height: number) {

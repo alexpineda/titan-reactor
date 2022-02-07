@@ -1,6 +1,6 @@
 
 import CameraControls from "camera-controls";
-import { Camera, Event, Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
+import { Camera, Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 
@@ -24,7 +24,7 @@ export class CameraMouse {
         this._controls = controls;
 
         const onWheel = (evt: WheelEvent) => {
-            if (this._mouseWheelTimeout || !this.wheelDollyEnabled) return;
+            if (this._mouseWheelTimeout || !this.wheelDollyEnabled || this._controls.mouseButtons.wheel !== CameraControls.ACTION.NONE) return;
 
             if (this.battleCam) {
                 const p = this._controls.getPosition();
@@ -75,7 +75,7 @@ export class CameraMouse {
                 }
             }
             if (this.lookAtMouseEnabled) {
-                this._controls.rotate(-evt.movementX / 1000, -evt.movementY / 1000, true);
+                this._controls.rotate(-evt.movementX / 1000, -evt.movementY / 1000, this._controls.mouseButtons.wheel === CameraControls.ACTION.NONE);
             }
         }
         domElement.addEventListener("pointermove", onMouseMove, { passive: true });
@@ -83,10 +83,24 @@ export class CameraMouse {
             domElement.removeEventListener("pointermove", onMouseMove);
         });
 
+        const pointerUp = (evt: PointerEvent) => {
+
+            if (this.battleCam) {
+                const factor = evt.button === 0 ? 2 : 1 / 2;
+                this._controls.zoomTo(this._controls.camera.zoom * factor, false);
+            }
+        }
+        domElement.addEventListener("pointerup", pointerUp, { passive: true });
+        this._janitor.callback(() => {
+            domElement.removeEventListener("pointerup", pointerUp);
+        }
+        );
+
     }
 
     update(camera: Camera, terrain: any, delta: number) {
         if (this.edgeScrollEnabled) {
+
             if (this._vector.x !== 0) {
                 this._controls.truck(this._vector.x * delta * this._accel, 0, true);
             }
@@ -94,6 +108,7 @@ export class CameraMouse {
             if (this._vector.y !== 0) {
                 this._controls.forward(this._vector.y * delta * this._accel, true);
             }
+
 
             if (this._vector.y === 0 && this._vector.x === 0) {
                 this._accel = 1;

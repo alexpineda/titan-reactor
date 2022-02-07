@@ -72,6 +72,16 @@ const { startLocation } = unitTypes;
 
 const addChatMessage = useGameStore.getState().addChatMessage;
 
+enum CameraMode {
+  Regular,
+  Battle,
+  Overview,
+  Split,
+  FPS
+}
+
+const cameraMode = CameraMode.Regular;
+
 async function TitanReactorGame(
   world: ReplayWorld
 ) {
@@ -131,7 +141,7 @@ async function TitanReactorGame(
     prevDirection: -1
   };
 
-
+  renderer.composerPasses.presetRegularCam();
 
   const createControls = () => {
     const janitor = new Janitor()
@@ -160,7 +170,7 @@ async function TitanReactorGame(
 
   let controls = createControls();
   //@ts-ignore
-  window.control = controls;
+  window.controls = controls;
 
 
   constrainControls(controls, camera, mapWidth, mapHeight);
@@ -168,7 +178,7 @@ async function TitanReactorGame(
   //@ts-ignore
   window.camera = camera;
   //@ts-ignore
-  janitor.callback(() => { window.control = null; window.camera = null; });
+  janitor.callback(() => { window.controls = null; window.camera = null; });
 
   const minimapEvents = new MinimapEventListener(
     minimapSurface,
@@ -214,9 +224,7 @@ async function TitanReactorGame(
 
     } else {
       gameSurface.requestPointerLock();
-      const t = new Vector3();
-      t.lerpVectors(oldTarget, oldPosition, 0.8);
-      await controls.standard.setTarget(t.x, 0, t.z, false);
+      await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
       await constrainControlsBattleCam(controls, camera, mapWidth, mapHeight);
     }
   }
@@ -226,9 +234,6 @@ async function TitanReactorGame(
   const projectedCameraView = new ProjectedCameraView(
     camera
   );
-
-  //@ts-ignore
-  janitor.callback(() => (window.renderMan = null));
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw, renderer.composerPasses.effects[Effects.FogOfWar]);
 
@@ -1132,9 +1137,8 @@ async function TitanReactorGame(
 
     controls.cameraShake.update(camera);
 
-    renderer.composerPasses.effects[Effects.DepthOfField].circleOfConfusionMaterial.uniforms.focalLength.value = getDOFFocalLength(camera, controls.standard.polarAngle);
+    renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().uniforms.focalLength.value = getDOFFocalLength(camera, controls.standard.polarAngle);
 
-    renderer.togglePasses(Passes.Render);
     renderer.render(scene, camera, delta);
 
     cssRenderer.render(camera);

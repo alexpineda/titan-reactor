@@ -9421,10 +9421,10 @@ postcss@^7.0.14, postcss@^7.0.32, postcss@^7.0.5, postcss@^7.0.6:
     picocolors "^0.2.1"
     source-map "^0.6.1"
 
-postprocessing@6.23.5:
-  version "6.23.5"
-  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.23.5.tgz#b4e68d9f5be7dfa2fa886ce8a4d99d7eab56317a"
-  integrity sha512-WpzKg6nUbRWVOISCfup/1rzJjYtxj8kCow/YOkzYq+/879mISewWZAUXwfXaRO8Mu3yM6dH+WAWzxWROjrxM7A==
+postprocessing@6.24.0:
+  version "6.24.0"
+  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.24.0.tgz#d821387e716160756bcd89ee0b4f0f47c118a6ca"
+  integrity sha512-DzqA1+3L63kGwnllD0Un9pHfURD9lw7j0vnh4anapwdbIULMD/LLwLZdOS7ADEb2+L5lf1Q8Aj1dhcqhn2BUug==
 
 preact@^10.5.15:
   version "10.5.15"

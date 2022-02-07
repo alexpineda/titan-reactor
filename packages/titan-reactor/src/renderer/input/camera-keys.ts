@@ -8,13 +8,13 @@ import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 const MAX_ACCELERATION = 2;
 const ACCELERATION = 1.01;
 
-
 export class CameraKeys {
     private _el: HTMLElement;
     private _vector = new Vector3();
     private _janitor: Janitor;
-    private _control: CameraControls;
+    private _controls: CameraControls;
     private _accel = 1;
+    private _keyOnce = false;
     battleCam = false;
 
     onFocusPress?: () => void;
@@ -23,9 +23,13 @@ export class CameraKeys {
     constructor(el: HTMLElement, control: CameraControls, settings: Settings) {
         this._el = el;
         this._janitor = new Janitor();
-        this._control = control;
+        this._controls = control;
+
 
         const kd = (e: KeyboardEvent) => {
+            if (!this._keyOnce) {
+                this._keyOnce = true;
+            }
 
             if (this._vector.y == 0) {
                 if (testKeys(e, settings.controls.keyboard.camera.forward)) {
@@ -48,7 +52,9 @@ export class CameraKeys {
         this._el.addEventListener("keydown", kd);
         this._janitor.callback(() => this._el.removeEventListener("keydown", kd));
 
-        const ku = (e: KeyboardEvent) => {
+        const keyUp = (e: KeyboardEvent) => {
+            this._keyOnce = false;
+
             if (testKeys(e, settings.controls.keyboard.camera.forward) || testKeys(e, settings.controls.keyboard.camera.backward)) {
                 this._vector.y = 0;
             }
@@ -63,6 +69,7 @@ export class CameraKeys {
                 smoothDollyOut(control, 1, !this.battleCam);
             }
 
+            // @todo battle cam on / off keys specifically
             if (testKeys(e, settings.controls.keyboard.game.battleCam)) {
                 this.onToggleBattleCam && this.onToggleBattleCam();
             } else if (testKeys(e, "Escape")) { // bonus helper key for users who forget the other key
@@ -70,17 +77,17 @@ export class CameraKeys {
             }
 
         }
-        this._el.addEventListener("keyup", ku);
-        this._janitor.callback(() => this._el.removeEventListener("keyup", ku));
+        this._el.addEventListener("keyup", keyUp);
+        this._janitor.callback(() => this._el.removeEventListener("keyup", keyUp));
     }
 
     update(delta: number) {
         if (this._vector.x !== 0) {
-            this._control.truck(this._vector.x * delta * this._accel, 0, true);
+            this._controls.truck(this._vector.x * delta * this._accel, 0, this._controls.mouseButtons.wheel === CameraControls.ACTION.NONE);
         }
 
         if (this._vector.y !== 0) {
-            this._control.forward(this._vector.y * delta * this._accel, true);
+            this._controls.forward(this._vector.y * delta * this._accel, this._controls.mouseButtons.wheel === CameraControls.ACTION.NONE);
         }
 
         if (this._vector.y === 0 && this._vector.x === 0) {
