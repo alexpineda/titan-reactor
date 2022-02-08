@@ -7,7 +7,6 @@ import createAppMenu from "./create-app-menu";
 import windows, { createMain } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
-import electronIsDev from "electron-is-dev";
 import { strict as assert } from "assert";
 
 const settingsPath = path.join(getUserDataPath(), "settings.yml");

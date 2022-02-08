@@ -42,7 +42,7 @@ export default async (settings: Settings) => {
     });
 
     electronFileLoader((file: string) => {
-        if (file.includes(".glb") || file.includes(".hdr")) {
+        if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png")) {
             return fsPromises.readFile(file);
         } else {
             return readCascFile(file);

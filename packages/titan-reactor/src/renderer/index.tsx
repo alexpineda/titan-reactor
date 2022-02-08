@@ -1,12 +1,8 @@
-import React from "react";
-import { render } from "react-dom";
-import fs from "fs";
 import "./reset.css";
 import { openBw } from "./openbw";
 
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
-// import App from "./react-ui/app";
 import {
   loadSettings,
   useSettingsStore,
@@ -110,8 +106,6 @@ async function bootup() {
     errorScreen(err);
   }
 }
-
-// render(<App />, document.getElementById("app"));
 
 // window.writeBuf = (buf: Uint8Array) => {
 

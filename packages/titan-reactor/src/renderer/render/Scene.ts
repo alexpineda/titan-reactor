@@ -1,7 +1,11 @@
+import path from "path";
 import {
+  CubeTextureLoader,
   DirectionalLight,
   HemisphereLight,
   Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
   Object3D,
   Scene as ThreeScene,
 } from "three";
@@ -57,6 +61,23 @@ export class Scene extends ThreeScene {
       , sunlight(this._mapWidth, this._mapHeight)
     ]
     lights.forEach(light => this.add(light));
+  }
+
+  skybox(key: string) {
+    const loader = new CubeTextureLoader();
+    const rootPath = path.join(__static, "skybox", key);
+    loader.setPath(rootPath);
+
+    const textureCube = loader.load([
+      'right.png',
+      'left.png',
+      'top.png',
+      'bot.png',
+      'front.png',
+      'back.png',
+    ]);
+
+    this.background = textureCube;
   }
 
   addTerrain(
