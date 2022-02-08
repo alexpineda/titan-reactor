@@ -30,8 +30,8 @@ const createWebGLRenderer = () => {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
 
-    renderer.toneMapping = CineonToneMapping;
-    renderer.toneMappingExposure = 0.9;
+    // renderer.toneMapping = CineonToneMapping;
+    // renderer.toneMappingExposure = 0.9;
 
     return renderer;
 };
@@ -39,6 +39,8 @@ export class TitanRenderer {
     private _renderer?: WebGLRenderer;
     private _targetSurface = new CanvasTarget();
     readonly composerPasses = createPasses();
+    private _gamma = 0.9;
+
     composer = new EffectComposer(null, {
         frameBufferType: HalfFloatType,
         multisampling: 0
@@ -48,11 +50,24 @@ export class TitanRenderer {
         this.getWebGLRenderer();
     }
 
+    get gamma() {
+        return this._gamma;
+    }
+
+    set gamma(value: number) {
+        this._gamma = value;
+        if (this._renderer) {
+            this._renderer.toneMappingExposure = value;
+        }
+    }
+
     getWebGLRenderer() {
         if (this._renderer) {
             return this._renderer;
         }
         const renderer = this._renderer = createWebGLRenderer();
+        renderer.toneMappingExposure = this._gamma;
+
         this.composer.setRenderer(renderer);
         this.composer.autoRenderToScreen = false;
 
@@ -60,7 +75,7 @@ export class TitanRenderer {
             if (pass === undefined) continue;
             this.composer.addPass(pass);
         }
-        this.composerPasses.togglePasses(Passes.Render);
+        this.composerPasses.enable(Passes.Render);
 
         renderer.domElement.addEventListener(
             "webglcontextlost",

@@ -8,6 +8,9 @@ import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 const MAX_ACCELERATION = 2;
 const ACCELERATION = 1.01;
 const passive = { passive: true };
+
+const deltaYP = new Vector3();
+
 export class CameraMouse {
     private _mouseWheelTimeout?: NodeJS.Timeout;
     private _mouseWheelDelay = 200;
@@ -17,6 +20,7 @@ export class CameraMouse {
     private _zoomFactor = 0;
     private _lookAt = new Vector2()
     private _deltaY = 0;
+
 
     direction = new Vector3();
 
@@ -90,12 +94,12 @@ export class CameraMouse {
             }
 
             if (this._deltaY) {
-                const p = controls.standard.getPosition();
+                controls.standard.getPosition(deltaYP);
 
                 if (this._deltaY < 0) {
-                    controls.standard.setPosition(p.x, p.y - 2, p.z, true);
+                    controls.standard.setPosition(deltaYP.x, deltaYP.y - 2, deltaYP.z, true);
                 } else {
-                    controls.standard.setPosition(p.x, p.y + 2, p.z, true);
+                    controls.standard.setPosition(deltaYP.x, deltaYP.y + 2, deltaYP.z, true);
                 }
                 this._deltaY = 0;
             }

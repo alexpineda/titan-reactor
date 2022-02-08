@@ -39,7 +39,7 @@ export const constrainControls = async (controls: Controls, camera: PerspectiveC
   controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.middle = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.right = CameraControls.ACTION.TRUCK;
+  controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
 
   controls.standard.dollyToCursor = true;
   controls.standard.verticalDragToForward = true;

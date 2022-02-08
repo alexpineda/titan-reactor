@@ -18,8 +18,7 @@ import {
   // @ts-ignore
   SMAAPreset,
   ToneMappingEffect,
-  PixelationEffect,
-  DepthEffect
+  ToneMappingMode
 }
   from "postprocessing";
 
@@ -87,7 +86,9 @@ export const createPasses = () => {
   // });
 
   const fogEffect = effects[Effects.FogOfWar] = new FogOfWarEffect();
-  const toneMapping = effects[Effects.ToneMapping] = new ToneMappingEffect();
+  const toneMapping = effects[Effects.ToneMapping] = new ToneMappingEffect({ mode: ToneMappingMode.ACES_FILMIC });
+  const toneMappingCinema = effects[Effects.ToneMapping] = new ToneMappingEffect({ mode: ToneMappingMode.OPTIMIZED_CINEON });
+
   const bloomEffect = effects[Effects.Bloom] = new BloomEffect({
     luminanceThreshold: 0.9,
   });
@@ -97,11 +98,12 @@ export const createPasses = () => {
     throwAwayCamera,
     dofEffect,
     fogEffect,
+    toneMappingCinema
   );
   passes[Passes.Bloom] = new EffectPass(throwAwayCamera, bloomEffect);
-  passes[Passes.Regular] = new EffectPass(throwAwayCamera, fogEffect);
+  passes[Passes.Regular] = new EffectPass(throwAwayCamera, fogEffect, toneMapping);
 
-  const togglePasses = (...whichOnes: Passes[]) => {
+  const enable = (...whichOnes: Passes[]) => {
     let i = 0;
     let lastPass: any = null;
     for (const pass of passes) {
@@ -123,14 +125,14 @@ export const createPasses = () => {
     effects,
 
     presetRegularCam() {
-      togglePasses(Passes.Render, Passes.Regular);
+      enable(Passes.Render, Passes.Regular);
     },
 
     presetBattleCam() {
-      togglePasses(Passes.Render, Passes.Cinematic);
+      enable(Passes.Render, Passes.Cinematic);
     },
 
-    togglePasses,
+    enable,
     update: (scene: Scene, camera: Camera) => {
       effects[Effects.DepthOfField].camera = camera;
       passes[Passes.Render].camera = camera;

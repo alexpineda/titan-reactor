@@ -21,6 +21,7 @@ import {
   Sprite,
   CrapUnit,
   GameStatePlayMode,
+  ImageHD,
 } from "./core";
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
@@ -71,6 +72,8 @@ CameraControls.install({ THREE: THREE });
 const { startLocation } = unitTypes;
 
 const addChatMessage = useGameStore.getState().addChatMessage;
+
+const _cameraTarget = new Vector3();
 
 async function TitanReactorGame(
   world: ReplayWorld
@@ -164,7 +167,6 @@ async function TitanReactorGame(
   //@ts-ignore
   window.controls = controls;
 
-
   constrainControls(controls, camera, mapWidth, mapHeight);
 
   //@ts-ignore
@@ -192,10 +194,17 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => (window.scene = null));
 
-  const onToggleCameraMode = async (cm: CameraMode) => {
-    if (controls.cameraMode === cm) {
-      return;
+  const setUseDepth = (useDepth: boolean) => {
+    ImageHD.useDepth = useDepth;
+    for (const [, image] of images) {
+      if (image instanceof ImageHD) {
+        image.material.depthTest = ImageHD.useDepth;
+        image.setFrame(image.frame, image.flip);
+      }
     }
+  }
+
+  const onToggleCameraMode = async (cm: CameraMode) => {
     // @ts-ignore
     const oldTarget = controls.standard.getTarget();
     // @ts-ignore
@@ -203,20 +212,23 @@ async function TitanReactorGame(
     controls.dispose();
     controls = createControls(cm);
     controls.keys.onToggleCameraMode = onToggleCameraMode;
+    gameSurface.exitPointerLock();
 
     //@ts-ignore
-    window.control = controls;
+    window.controls = controls;
     if (controls.cameraMode === CameraMode.Default) {
-      gameSurface.exitPointerLock();
       const t = new Vector3();
       t.lerpVectors(oldTarget, oldPosition, 0.8);
       await controls.standard.setTarget(t.x, 0, t.z, false);
       await constrainControls(controls, camera, mapWidth, mapHeight);
-
+      renderer.composerPasses.presetRegularCam();
+      // setUseDepth(false);
     } else if (controls.cameraMode === CameraMode.Battle) {
       gameSurface.requestPointerLock();
       await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
       await constrainControlsBattleCam(controls, camera, mapWidth, mapHeight);
+      renderer.composerPasses.presetBattleCam();
+      // setUseDepth(true);
     }
   }
 
@@ -1078,15 +1090,14 @@ async function TitanReactorGame(
     //   // mainCamera.control.shake(heatMapScore.totalScore(attackingUnits));
     // }
 
-    const target = new Vector3();
-    controls.standard.getTarget(target);
+    controls.standard.getTarget(_cameraTarget);
 
     {
       // const azi = constrainAzimuth(control.polarAngle);
       // control.minAzimuthAngle = -azi / 2;
       // control.maxAzimuthAngle = azi / 2;
 
-      const dir = controls.standard.polarAngle < 0.25 ? 0 : getDirection32(target, camera.position);
+      const dir = controls.standard.polarAngle < 0.25 ? 0 : getDirection32(projectedCameraView.center, camera.position);
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
@@ -1094,6 +1105,12 @@ async function TitanReactorGame(
           currentBwFrame.needsUpdate = true;
         }
       }
+
+      if (controls.cameraMode === CameraMode.Battle) {
+        renderer.composerPasses.effects[Effects.DepthOfField].setTarget(projectedCameraView.center);
+        renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().adoptCameraSettings(camera);
+      }
+
     }
 
     renderer.targetSurface = gameSurface;
@@ -1122,13 +1139,12 @@ async function TitanReactorGame(
     //   cameras.setTarget(x, getTerrainY(x, z), z, true);
     // }
 
-    target.setY((target.y + camera.position.y) / 2);
-    target.setZ((target.z + camera.position.z) / 2);
+    // target.setY((target.y + camera.position.y) / 2);
+    // target.setZ((target.z + camera.position.z) / 2);
     // audioMixer.update(target.x, target.y, target.z, delta);
 
     controls.cameraShake.update(camera);
 
-    renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().uniforms.focalLength.value = getDOFFocalLength(camera, controls.standard.polarAngle);
 
     renderer.render(scene, camera, delta);
 
@@ -1142,7 +1158,7 @@ async function TitanReactorGame(
 
     fps.update(elapsed);
     if (fps.frames === 0) {
-      fpsEl.textContent = fps.fps;
+      fpsEl!.textContent = fps.fps;
     }
   };
 

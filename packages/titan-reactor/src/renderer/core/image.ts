@@ -1,6 +1,6 @@
-import { Color, Object3D } from "three";
-import { ImageDAT } from "../../common/types/bwdat";
-import { Sprite } from "../../renderer/core";
+import type { Color, Object3D } from "three";
+import type { ImageDAT } from "../../common/types/bwdat";
+import type { Sprite } from "../../renderer/core";
 
 export enum UnitTileScale {
   SD = 1,

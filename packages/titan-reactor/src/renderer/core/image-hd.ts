@@ -33,6 +33,9 @@ export class ImageHD extends ThreeSprite implements Image {
   private lastSetFrame?: GrpFrameType;
   private lastFlipFrame?: boolean;
 
+  frame = 0;
+  flip = false;
+
   dat: ImageDAT;
   _zOff: number;
 
@@ -138,6 +141,8 @@ export class ImageHD extends ThreeSprite implements Image {
 
   setFrame(frame: number, flip?: boolean) {
     if (this._setFrame(this.atlas.frames[frame], flip)) {
+      this.frame = frame;
+      this.flip = flip;
       this.uv.needsUpdate = true;
       this.pos.needsUpdate = true;
     }
@@ -156,11 +161,11 @@ export class ImageHD extends ThreeSprite implements Image {
   }
 
   //dds is flipped y so we don't do it in our uvs
-  _setFrame(frame: GrpFrameType, flipFrame?: boolean) {
+  _setFrame(frame: GrpFrameType, flipFrame?: boolean, force?: boolean) {
     if (frame === undefined) {
       return false;
     }
-    if (frame === this.lastSetFrame && flipFrame === this.lastFlipFrame) {
+    if (frame === this.lastSetFrame && flipFrame === this.lastFlipFrame && !force) {
       return false;
     }
 
