@@ -8,8 +8,6 @@ It's also a fresh take on observing and interacting with our beloved game, so ch
 
 
 - [Join our Discord](http://discord.imbateam.gg/)
-- [Demo Video (Youtube)](https://www.youtube.com/watch?v=CwzkjboEbqo)
-- [Development Resources](https://github.com/imbateam-gg/awesome-bw-dev)
 
 ### Requirements
 - A purchased copy of Starcraft Remastered
