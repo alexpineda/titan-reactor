@@ -1,7 +1,7 @@
 {
   "name": "titan-reactor",
   "productName": "Titan Reactor",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "3D Map & Replay Viewer for Starcraft Broodwar",
   "main": "src/main/index.js",
   "scripts": {
