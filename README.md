@@ -4,8 +4,7 @@ Titan Reactor is a love affair between @darkmatter and Starcraft Brood War. Bewa
 
 It's also a fresh take on observing and interacting with our beloved game, so check it out and enjoy! 😃
 
-![image](https://user-images.githubusercontent.com/586716/139562963-493ffd7d-e21a-46e8-a9f6-29b2761ab852.png)
-
+![ezgif-5-c2c910945a](https://user-images.githubusercontent.com/586716/153120765-4fa4faf4-0e46-42b9-ba08-10ab5ace2f20.gif)
 
 - [Join our Discord](http://discord.imbateam.gg/)
 
