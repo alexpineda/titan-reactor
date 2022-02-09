@@ -34,6 +34,7 @@ export type Settings = {
         mode: {
             default?: string;
             battle?: string;
+            overview?: string;
         },
         replay: {
             pause?: string;

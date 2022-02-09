@@ -1,14 +1,18 @@
 import CameraControls from "camera-controls";
 import { Box3, MathUtils, PerspectiveCamera, Vector3 } from "three";
 import { easePoly } from "d3-ease";
-import { CameraMouse } from "../input/camera-mouse";
-import { CameraKeys } from "../input/camera-keys";
+import type { CameraMouse } from "../input/camera-mouse";
+import type { CameraKeys } from "../input/camera-keys";
+import type CameraShake from "../camera/camera-shake";
 
 type Controls = {
   standard: CameraControls,
   mouse: CameraMouse,
   keys: CameraKeys,
-  dispose: () => void
+  cameraShake: CameraShake,
+  dispose: () => void,
+  enableAll: () => void,
+  disableAll: () => void
 }
 
 export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
@@ -30,7 +34,14 @@ export const AZI_RANGE = (24 * Math.PI) / 64;
 export const BATTLE_POLAR_MAX = (20 * Math.PI) / 64;
 export const BATTLE_POLAR_MIN = (Math.PI) / 64;
 
+const setBoundary = (controls: Controls, mapWidth: number, mapHeight: number) => {
+  controls.standard.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
+};
+
 export const constrainControls = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+  controls.enableAll();
+  controls.cameraShake.enabled = false;
+
   camera.zoom = 1;
   camera.fov = 15;
   camera.updateProjectionMatrix();
@@ -47,13 +58,14 @@ export const constrainControls = async (controls: Controls, camera: PerspectiveC
   controls.standard.maxDistance = Math.max(mapWidth, mapHeight);
   controls.standard.minDistance = 20;
   controls.standard.dollySpeed = 0.2
-  controls.standard.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
 
   controls.standard.maxPolarAngle = POLAR_MAX;
   controls.standard.minPolarAngle = POLAR_MIN;
   controls.standard.maxAzimuthAngle = 0;
   controls.standard.minAzimuthAngle = 0;
   controls.standard.dampingFactor = 0.05;
+
+  setBoundary(controls, mapWidth, mapHeight);
 
   await controls.standard.rotatePolarTo(POLAR_MIN, false);
   await controls.standard.rotateAzimuthTo(0, false);
@@ -62,6 +74,8 @@ export const constrainControls = async (controls: Controls, camera: PerspectiveC
 }
 
 export const constrainControlsBattleCam = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+  controls.enableAll();
+
   camera.fov = 115;
   camera.updateProjectionMatrix();
 
@@ -74,7 +88,7 @@ export const constrainControlsBattleCam = async (controls: Controls, camera: Per
   controls.standard.dollyToCursor = false;
 
   //@ts-ignore unset boundary using undefined as per docs
-  controls.standard.setBoundary(undefined);
+  setBoundary(controls, mapWidth, mapHeight);
 
   controls.standard.maxDistance = Math.max(mapWidth, mapHeight) * 2;
   controls.standard.minDistance = 3;
@@ -92,6 +106,22 @@ export const constrainControlsBattleCam = async (controls: Controls, camera: Per
   await controls.standard.zoomTo(1.2, false);
 }
 
+export const constrainControlsOverviewCam = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+  controls.disableAll();
+
+  controls.standard.setBoundary(undefined);
+
+  controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
+  controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+  controls.standard.mouseButtons.middle = CameraControls.ACTION.ZOOM;
+  controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
+  controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
+  controls.standard.enabled = true;
+
+  camera.fov = 15;
+  camera.updateProjectionMatrix();
+  controls.standard.setLookAt(0, Math.max(mapWidth, mapHeight) * 4, 0, 0, 0, 0, false);
+}
 
 export const constrainAzimuth = (polarAngle: number) => {
   const np = (polarAngle - POLAR_MIN) / (POLAR_MAX - POLAR_MIN);

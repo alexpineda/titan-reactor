@@ -8,6 +8,7 @@ import {
   MeshStandardMaterial,
   Object3D,
   Scene as ThreeScene,
+  Texture,
 } from "three";
 
 import { TerrainInfo } from "../../common/types";
@@ -35,24 +36,39 @@ function sunlight(mapWidth: number, mapHeight: number) {
   return light;
 }
 
-//@todo remove this class
 export class Scene extends ThreeScene {
   private _mapWidth: number;
   private _mapHeight: number;
-  private _janitor: Janitor;
+  private _terrainJanitor: Janitor;
+  private _skybox: Texture;
 
   constructor({
     mapWidth,
     mapHeight,
     terrain,
-  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "terrain">) {
+    tileset
+  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "terrain" | "tileset">) {
     super();
     this._mapHeight = mapHeight;
     this._mapWidth = mapWidth;
 
-    this._janitor = new Janitor();
+    this._terrainJanitor = new Janitor();
     this.addLights();
     this.addTerrain(terrain);
+    this._skybox = this.skybox("sparse");
+
+    // const m = new MeshBasicMaterial();
+    // if (terrain.material instanceof MeshStandardMaterial && terrain.material.map) {
+    //   m.map = terrain.material.map.clone();
+    // }
+    // // const t1 = new Mesh();
+    // // t1.geometry = terrain.geometry.clone();
+    // // t1.material = m;
+    // // t1.rotation.x = -Math.PI / 2;
+    // // t1.position.set(0, 0, mapHeight);
+    // // t1.scale.setY(-1);
+    // // this.friend = t1;
+    // // this.add(t1)
   }
 
   private addLights() {
@@ -77,7 +93,15 @@ export class Scene extends ThreeScene {
       'back.png',
     ]);
 
-    this.background = textureCube;
+    return textureCube;
+  }
+
+  disableSkybox() {
+    this.background = null;
+  }
+
+  enableSkybox() {
+    this.background = this._skybox;
   }
 
   addTerrain(
@@ -85,12 +109,12 @@ export class Scene extends ThreeScene {
   ) {
     this.userData = { terrain };
     this.add(terrain);
-    this._janitor.object3d(terrain);
+    this._terrainJanitor.object3d(terrain);
 
   }
 
   replaceTerrain(terrain: Mesh) {
-    this._janitor.mopUp();
+    this._terrainJanitor.mopUp();
     this.addTerrain(terrain);
   }
 
@@ -104,6 +128,11 @@ export class Scene extends ThreeScene {
     ) {
       this.terrain.material.userData.tileAnimationCounter.value++;
     }
+  }
+
+  dispose() {
+    this._skybox.dispose();
+    this._terrainJanitor.mopUp();
   }
 }
 export default Scene;

@@ -19,6 +19,7 @@ export type WrappedQuartileTextures = {
 }
 
 export type TerrainInfo = {
+  tileset: number;
   mapWidth: number;
   mapHeight: number;
   terrain: Mesh;

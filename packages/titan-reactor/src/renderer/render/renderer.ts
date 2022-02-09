@@ -1,10 +1,8 @@
 import CanvasTarget from "../../common/image/canvas/canvas-target";
 import {
-    CineonToneMapping,
+    Camera,
     HalfFloatType,
     PCFSoftShadowMap,
-    PerspectiveCamera,
-    ReinhardToneMapping,
     Scene,
     sRGBEncoding,
     Vector4,
@@ -29,9 +27,6 @@ const createWebGLRenderer = () => {
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
-
-    // renderer.toneMapping = CineonToneMapping;
-    // renderer.toneMappingExposure = 0.9;
 
     return renderer;
 };
@@ -101,7 +96,7 @@ export class TitanRenderer {
         this.setSize(this._targetSurface.scaledWidth, this._targetSurface.scaledHeight);
     }
 
-    render(scene: Scene, camera: PerspectiveCamera, delta: number, viewport?: Vector4) {
+    render(scene: Scene, camera: Camera, delta: number, viewport?: Vector4) {
         const renderer = this.getWebGLRenderer();
 
         if (viewport) {

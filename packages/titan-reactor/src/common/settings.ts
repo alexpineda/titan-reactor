@@ -35,7 +35,8 @@ export const defaultSettings: Settings = {
     debug: false,
     mode: {
       default: "F2, Escape",
-      battle: "F5"
+      battle: "F5",
+      overview: "F7",
     },
     replay: {
       pause: "KeyP",

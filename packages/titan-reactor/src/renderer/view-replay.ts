@@ -1,9 +1,9 @@
-import { orders, UnitFlags, unitsByTechType } from "../common/bwdat/enums";
+import { UnitFlags } from "../common/bwdat/enums";
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Box3, Camera, Color, Group, Material, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
+import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -54,7 +54,7 @@ import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
 import CameraControls from "camera-controls";
-import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, getDirection32, getDOFFocalLength } from "./utils/camera-utils";
+import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, constrainControlsOverviewCam, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
 import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
@@ -136,8 +136,7 @@ async function TitanReactorGame(
 
   renderer.composerPasses.presetRegularCam();
 
-  const createControls = (oldCameraMode?: CameraMode) => {
-    const cameraMode = oldCameraMode || CameraMode.Default;
+  const createControls = (cameraMode: CameraMode) => {
     const janitor = new Janitor()
     const controls = new CameraControls(
       camera,
@@ -153,17 +152,28 @@ async function TitanReactorGame(
 
     const cameraShake = new CameraShake(controls, 200, 12);
 
+    const toggle = (enabled: boolean) => {
+      controls.enabled = enabled;
+      cameraMouse.enabled = enabled;
+      cameraKeys.enabled = enabled;
+      cameraShake.enabled = enabled;
+    }
+    const enableAll = () => toggle(true);
+    const disableAll = () => toggle(false);
+
     return {
       cameraMode,
       standard: controls,
       mouse: cameraMouse,
       keys: cameraKeys,
       cameraShake,
-      dispose: () => janitor.mopUp()
+      dispose: () => janitor.mopUp(),
+      enableAll,
+      disableAll
     };
   }
 
-  let controls = createControls();
+  let controls = createControls(CameraMode.Default);
   //@ts-ignore
   window.controls = controls;
 
@@ -182,6 +192,7 @@ async function TitanReactorGame(
   janitor.disposable(minimapEvents);
 
   minimapEvents.onStart = ({ pos }) => {
+    onToggleCameraMode(CameraMode.Default);
     controls.standard.moveTo(pos.x, pos.y, pos.z, false);
   };
 
@@ -199,12 +210,40 @@ async function TitanReactorGame(
     for (const [, image] of images) {
       if (image instanceof ImageHD) {
         image.material.depthTest = ImageHD.useDepth;
-        image.setFrame(image.frame, image.flip);
+        image.setFrame(image.frame, image.flip, true);
+      }
+    }
+  }
+
+  const setUseScale = (enable: boolean | number) => {
+    if (typeof enable === "number") {
+      ImageHD.useScale = enable;
+    } else {
+      ImageHD.useScale = enable ? 2 : 1;
+    }
+    for (const [, image] of images) {
+      if (image instanceof ImageHD) {
+
+        if (ImageHD.useScale === 1) {
+          image.scale.copy(image.originalScale);
+        } else {
+          image.scale.multiplyScalar(ImageHD.useScale);
+        }
       }
     }
   }
 
   const onToggleCameraMode = async (cm: CameraMode) => {
+    if (controls.cameraMode === CameraMode.Default && cm === controls.cameraMode) {
+      return;
+    }
+    // default -> any mode, any mode -> default
+    if (cm !== CameraMode.Default) {
+      controls.cameraMode = CameraMode.Default;
+    } else {
+      controls.cameraMode = cm;
+    }
+
     // @ts-ignore
     const oldTarget = controls.standard.getTarget();
     // @ts-ignore
@@ -213,6 +252,7 @@ async function TitanReactorGame(
     controls = createControls(cm);
     controls.keys.onToggleCameraMode = onToggleCameraMode;
     gameSurface.exitPointerLock();
+    setUseScale(false);
 
     //@ts-ignore
     window.controls = controls;
@@ -229,6 +269,10 @@ async function TitanReactorGame(
       await constrainControlsBattleCam(controls, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetBattleCam();
       // setUseDepth(true);
+    } else if (controls.cameraMode === CameraMode.Overview) {
+      await constrainControlsOverviewCam(controls, camera, mapWidth, mapHeight);
+      renderer.composerPasses.presetOverviewCam();
+      setUseScale(true);
     }
   }
 
@@ -677,7 +721,7 @@ async function TitanReactorGame(
       if (controls.cameraMode === CameraMode.Battle) {
         ctx.beginPath();
         const fov2 = calculateHorizontalFoV(MathUtils.degToRad(camera.getEffectiveFOV()), camera.aspect) / 2;
-        const a = Math.PI - controls.standard.azimuthAngle;
+        const a = Math.PI - controls.standard.azimuthAngle / 2;
         ctx.arc(camera.position.x, camera.position.z, 10, a, a + fov2);
         ctx.stroke();
       } else {
@@ -1005,7 +1049,7 @@ async function TitanReactorGame(
 
       soundChannels.play(elapsed);
 
-      if (controls.cameraMode === CameraMode.Battle && unitAttackScore) {
+      if (unitAttackScore) {
         controls.cameraShake.shake();
       }
 
@@ -1075,21 +1119,6 @@ async function TitanReactorGame(
       currentBwFrame = null;
     }
 
-    // if (
-    //   cameras.control.distance < 50 &&
-    //   !cameras.control.cameraShake.isShaking
-    // ) {
-    //   const attackingUnits = unitsThisFrame
-    //     .map((unitRepId) =>
-    //       units.units.children.find(
-    //         ({ userData }) => userData.repId === unitRepId
-    //       )
-    //     )
-    //     .filter((unit) => heatMapScore.unitOfInterestFilter(unit));
-
-    //   // mainCamera.control.shake(heatMapScore.totalScore(attackingUnits));
-    // }
-
     controls.standard.getTarget(_cameraTarget);
 
     {
@@ -1145,9 +1174,7 @@ async function TitanReactorGame(
 
     controls.cameraShake.update(camera);
 
-
     renderer.render(scene, camera, delta);
-
     cssRenderer.render(camera);
     drawMinimap(projectedCameraView);
 

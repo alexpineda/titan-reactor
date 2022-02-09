@@ -104,6 +104,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 
   return {
+    tileset: chk.tileset,
     getTerrainY,
     mapWidth,
     mapHeight,

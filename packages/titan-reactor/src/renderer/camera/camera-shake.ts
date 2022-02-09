@@ -17,9 +17,21 @@ class CameraShake {
   private _lastOffsetX = 0;
   private _lastOffsetY = 0;
   private _lastOffsetZ = 0;
+
+  private _enabled = true;
+
   isShaking = false;
 
   private _prevCameraPosition = new Vector3();
+
+  set enabled(val: boolean) {
+    this._enabled = val;
+    this.isShaking = val === false ? false : this.isShaking;
+  }
+
+  get enabled() {
+    return this._enabled;
+  }
 
   // frequency: cycle par second
   constructor(
@@ -36,6 +48,7 @@ class CameraShake {
   }
 
   setParams(duration: number, frequency: number) {
+    this._duration = duration;
     this._noiseX = makePNoise1D(
       (duration / ONE_SECOND) * frequency,
       (duration / ONE_SECOND) * FPS
@@ -50,8 +63,24 @@ class CameraShake {
     );
   }
 
+  setEachParams(duration0: number, frequency0: number, duration1: number, frequency1: number, duration2: number, frequency2: number) {
+    this._noiseX = makePNoise1D(
+      (duration0 / ONE_SECOND) * frequency0,
+      (duration0 / ONE_SECOND) * FPS
+    );
+    this._noiseY = makePNoise1D(
+      (duration1 / ONE_SECOND) * frequency1 * 2,
+      (duration1 / ONE_SECOND) * FPS
+    );
+    this._noiseZ = makePNoise1D(
+      (duration2 / ONE_SECOND) * frequency2 * 0.75,
+      (duration2 / ONE_SECOND) * FPS
+    );
+    this._duration = Math.max(duration0, duration1, duration2);
+  }
+
   shake() {
-    if (this.isShaking) return;
+    if (this.isShaking || !this.enabled) return;
 
     const startTime = performance.now();
     this.isShaking = true;

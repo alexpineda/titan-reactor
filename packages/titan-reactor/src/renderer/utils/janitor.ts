@@ -26,22 +26,28 @@ export default class Janitor {
 
     mopUp() {
 
-        for (const obj of this._objects) {
-            disposeObject3D(obj);
-            obj.removeFromParent();
+        if (this._objects.size) {
+            for (const obj of this._objects) {
+                disposeObject3D(obj);
+                obj.removeFromParent();
+            }
+            this._objects.clear();
         }
 
-        for (const cb of this._callbacks) {
-            cb();
+        if (this._callbacks.size) {
+            for (const cb of this._callbacks) {
+                cb();
+            }
+            this._callbacks.clear();
         }
 
-        for (const disposable of this._disposable) {
-            disposable.dispose();
-        }
+        if (this._disposable.size) {
+            for (const disposable of this._disposable) {
+                disposable.dispose();
+            }
 
-        this._objects.clear();
-        this._disposable.clear();
-        this._callbacks.clear();
+            this._disposable.clear();
+        }
 
     }
 

@@ -10,7 +10,7 @@ export enum UnitTileScale {
 
 export type Image = Object3D & {
   dat: ImageDAT;
-  setFrame: (frame: number, flip?: boolean) => void;
+  setFrame: (frame: number, flip: boolean) => void;
 
   _zOff: number;
 

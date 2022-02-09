@@ -24,7 +24,9 @@ export const DepthMode = {
  */
 export class ImageHD extends ThreeSprite implements Image {
   static useDepth = false;
-  private _oScale: Vector3;
+  static useScale = 1;
+
+  readonly originalScale: Vector3;
   override material: TeamSpriteMaterial;
 
   private atlas: GRPInterface;
@@ -87,13 +89,13 @@ export class ImageHD extends ThreeSprite implements Image {
     this.geometry.setAttribute("uv", uvAttribute);
 
     // spriteWidth is the same for HD and HD2
-    this._oScale = new Vector3(
+    this.originalScale = new Vector3(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
       1
     );
 
-    this.scale.copy(this._oScale);
+    this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
 
     // spriteWidth is only valid with HD, have to scale to HD2 if applicable
     this._normalizedSpriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
@@ -139,8 +141,8 @@ export class ImageHD extends ThreeSprite implements Image {
     this.material.opacity = val ? 0.5 : 1;
   }
 
-  setFrame(frame: number, flip?: boolean) {
-    if (this._setFrame(this.atlas.frames[frame], flip)) {
+  setFrame(frame: number, flip: boolean, force = false) {
+    if (this._setFrame(this.atlas.frames[frame], flip, force)) {
       this.frame = frame;
       this.flip = flip;
       this.uv.needsUpdate = true;

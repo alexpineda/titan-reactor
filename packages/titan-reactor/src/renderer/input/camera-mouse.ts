@@ -20,6 +20,7 @@ export class CameraMouse {
     private _zoomFactor = 0;
     private _lookAt = new Vector2()
     private _deltaY = 0;
+    enabled = true;
 
 
     direction = new Vector3();
@@ -81,6 +82,7 @@ export class CameraMouse {
     }
 
     update(delta: number, controls: Controls) {
+        if (!this.enabled) return;
 
         if (controls.cameraMode === CameraMode.Battle) {
             if (this._zoomFactor) {

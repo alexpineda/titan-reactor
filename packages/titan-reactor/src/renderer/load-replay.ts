@@ -91,6 +91,7 @@ export default async (filepath: string) => {
   );
   const scene = new Scene(terrain);
   janitor.object3d(scene);
+  janitor.disposable(scene);
 
   await waitForAssets();
 

@@ -16,6 +16,7 @@ export class CameraKeys {
     private _accel = 1;
     private _keyOnce = false;
     private _dolly = 0;
+    enabled = true;
 
     onFocusPress?: () => void;
     onToggleCameraMode?: (cm: CameraMode) => void;
@@ -73,6 +74,10 @@ export class CameraKeys {
             if (testKeys(e, settings.controls.mode.default)) { // bonus helper key for users who forget the other key
                 this.onToggleCameraMode && this.onToggleCameraMode(CameraMode.Default);
             }
+            if (testKeys(e, settings.controls.mode.overview)) { // bonus helper key for users who forget the other key
+                this.onToggleCameraMode && this.onToggleCameraMode(CameraMode.Overview);
+            }
+
 
         }
         this._el.addEventListener("keyup", keyUp);
@@ -80,6 +85,8 @@ export class CameraKeys {
     }
 
     update(delta: number, controls: Controls) {
+        if (!this.enabled) return;
+
         if (this._vector.x !== 0) {
             controls.standard.truck(this._vector.x * delta * this._accel, 0, controls.standard.mouseButtons.wheel === CameraControls.ACTION.NONE);
         }

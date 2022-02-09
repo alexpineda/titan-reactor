@@ -1,24 +1,11 @@
 import {
-  // @ts-ignore
   BloomEffect,
-  // @ts-ignore
   DepthOfFieldEffect,
-  // @ts-ignore
-  EdgeDetectionMode,
-  // @ts-ignore
   EffectPass,
-  // @ts-ignore
-  OverrideMaterialManager,
-  // @ts-ignore
   RenderPass,
-  // @ts-ignore
-  SMAAEffect,
-  // @ts-ignore
-  SMAAImageLoader,
-  // @ts-ignore
-  SMAAPreset,
   ToneMappingEffect,
-  ToneMappingMode
+  ToneMappingMode,
+  ScanlineEffect
 }
   from "postprocessing";
 
@@ -43,7 +30,6 @@ export enum Effects {
   DepthOfField,
   SMAA,
   FogOfWar,
-  ToneMapping,
   Bloom,
 };
 
@@ -64,40 +50,23 @@ export const createPasses = () => {
     height: 480,
   });
 
-  // const onPassesReady = new Promise((resolve) => {
-  //   new SMAAImageLoader().load(
-  //     ([searchImage, areaImage]: [any, any]) => {
-  //       const smaaEffect = effects[Effects.SMAA] = new SMAAEffect(
-  //         searchImage,
-  //         areaImage,
-  //         SMAAPreset.LOW,
-  //         EdgeDetectionMode.DEPTH
-  //       );
-  //       passes[Passes.SMAA] = new EffectPass(throwAwayCamera, smaaEffect);
-  //       passes[Passes.CinematicWithAA] = new EffectPass(
-  //         throwAwayCamera,
-  //         dofEffect,
-  //         fowEffect,
-  //         smaaEffect,
-  //       );
-  //       resolve(passes);
-  //     }
-  //   );
-  // });
-
   const fogEffect = effects[Effects.FogOfWar] = new FogOfWarEffect();
-  const toneMapping = effects[Effects.ToneMapping] = new ToneMappingEffect({ mode: ToneMappingMode.ACES_FILMIC });
-  const toneMappingCinema = effects[Effects.ToneMapping] = new ToneMappingEffect({ mode: ToneMappingMode.OPTIMIZED_CINEON });
+  const toneMapping = new ToneMappingEffect({ mode: ToneMappingMode.ACES_FILMIC });
+  const toneMappingCinema = new ToneMappingEffect({ mode: ToneMappingMode.OPTIMIZED_CINEON });
 
   const bloomEffect = effects[Effects.Bloom] = new BloomEffect({
     luminanceThreshold: 0.9,
   });
+
+  const scanlineEffect = new ScanlineEffect({ density: 0.75 });
+  scanlineEffect.blendMode.opacity.value = 0.2
 
   passes[Passes.Render] = new RenderPass(throwAwayCamera);
   passes[Passes.Cinematic] = new EffectPass(
     throwAwayCamera,
     dofEffect,
     fogEffect,
+    scanlineEffect,
     toneMappingCinema
   );
   passes[Passes.Bloom] = new EffectPass(throwAwayCamera, bloomEffect);
@@ -125,11 +94,18 @@ export const createPasses = () => {
     effects,
 
     presetRegularCam() {
+      fogEffect.blendMode.opacity.value = 1;
       enable(Passes.Render, Passes.Regular);
     },
 
     presetBattleCam() {
+      fogEffect.blendMode.opacity.value = 1;
       enable(Passes.Render, Passes.Cinematic);
+    },
+
+    presetOverviewCam() {
+      fogEffect.blendMode.opacity.value = 0.7;
+      enable(Passes.Render, Passes.Regular);
     },
 
     enable,
@@ -139,8 +115,6 @@ export const createPasses = () => {
       passes[Passes.Bloom].camera = camera;
       passes[Passes.Cinematic].camera = camera;
       passes[Passes.Regular].camera = camera;
-      // passes[Passes.CinematicWithAA].camera = camera;
-      // passes[Passes.SMAA].camera = camera;
       passes[Passes.Render].scene = scene;
     },
 
