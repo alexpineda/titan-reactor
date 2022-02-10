@@ -28,7 +28,6 @@ import FogOfWar from "./fogofwar/fog-of-war";
 import {
   InputEvents,
   MinimapEventListener,
-  MouseInput,
   ReplayKeys
 } from "./input";
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./integration/buffer-view";
@@ -959,15 +958,6 @@ async function TitanReactorGame(
     }
     // }
   };
-
-  // mouseInput.bind(
-  //   spritesGroup,
-  //   projectedCameraView,
-  //   gameSurface,
-  //   terrain,
-  //   camera,
-  //   unitsBySprite
-  // );
 
   let _lastElapsed = 0;
   let delta = 0;
