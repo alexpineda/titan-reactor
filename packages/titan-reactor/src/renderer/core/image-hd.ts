@@ -11,7 +11,7 @@ import {
 import { drawFunctions } from "../../common/bwdat/enums/draw-functions";
 import { ImageDAT } from "../../common/types/bwdat";
 import { GrpFrameType, GRPInterface } from "../../common/types/grp";
-import { Image, Sprite } from ".";
+import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 
 export const DepthMode = {
@@ -26,8 +26,8 @@ export class ImageHD extends ThreeSprite implements Image {
   static useDepth = false;
   static useScale = 1;
 
-  readonly originalScale: Vector3;
-  override material: TeamSpriteMaterial;
+  readonly originalScale = new Vector3();
+  override material: TeamSpriteMaterial = new TeamSpriteMaterial();
 
   private atlas: GRPInterface;
   private uv: BufferAttribute | InterleavedBufferAttribute;
@@ -41,12 +41,46 @@ export class ImageHD extends ThreeSprite implements Image {
   dat: ImageDAT;
   _zOff: number;
 
-  sprite?: Sprite;
   offsetX = 0;
   offsetY = 0;
 
   private _normalizedSpriteWidth = 0;
   private _normalizedSpriteHeight = 0;
+
+  changeImage(atlas: GRPInterface, imageDef: ImageDAT) {
+    this.atlas = atlas;
+    this.material.map = atlas.diffuse;
+    this.material.needsUpdate = true;
+    this.material.teamMask = atlas.teamcolor;
+    this.material.isShadow = this.dat.drawFunction === drawFunctions.rleShadow;
+    this.dat = imageDef;
+
+    this.originalScale.set(
+      atlas.spriteWidth / 128,
+      atlas.spriteHeight / 128,
+      1
+    );
+
+    this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
+
+    // spriteWidth is only valid with HD, have to scale to HD2 if applicable
+    this._normalizedSpriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
+    this._normalizedSpriteHeight = atlas.spriteHeight * (atlas.unitTileScale / 4);
+
+    if (imageDef.drawFunction === drawFunctions.rleShadow) {
+      this.material.blending = SubtractiveBlending;
+    }
+
+    this.material.transparent = true;
+    this.material.alphaTest = 0.01;
+    this.material.depthTest = ImageHD.useDepth;
+
+    this.lastFlipFrame = undefined;
+    this.lastSetFrame = undefined;
+    this.frame = 0;
+    this.flip = false;
+
+  }
 
   constructor(
     atlas: GRPInterface,
@@ -54,14 +88,6 @@ export class ImageHD extends ThreeSprite implements Image {
   ) {
     super();
     this.atlas = atlas;
-
-    const material = new TeamSpriteMaterial({
-      map: atlas.diffuse,
-    });
-    material.teamMask = atlas.teamcolor;
-    material.isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
-    this.material = material;
-
     this.dat = imageDef;
     //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
     // if (imageDef.drawFunction === drawFunctions.warpFlash2) {
@@ -88,34 +114,12 @@ export class ImageHD extends ThreeSprite implements Image {
     uvAttribute.usage = DynamicDrawUsage;
     this.geometry.setAttribute("uv", uvAttribute);
 
-    // spriteWidth is the same for HD and HD2
-    this.originalScale = new Vector3(
-      atlas.spriteWidth / 128,
-      atlas.spriteHeight / 128,
-      1
-    );
-
-    this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
-
-    // spriteWidth is only valid with HD, have to scale to HD2 if applicable
-    this._normalizedSpriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
-    this._normalizedSpriteHeight = atlas.spriteHeight * (atlas.unitTileScale / 4);
-
-    this.material.transparent = true;
-    this.material.alphaTest = 0.01;
-    this.material.depthTest = ImageHD.useDepth;
-    if (imageDef.drawFunction === drawFunctions.rleShadow) {
-      this.material.blending = SubtractiveBlending;
-    }
-
-    this.castShadow = false;
-
     this._zOff = 0;
 
     this.uv = this.geometry.getAttribute("uv");
     this.pos = this.geometry.getAttribute("position");
+    this.changeImage(atlas, imageDef);
 
-    this.setFrame(0, false);
   }
 
 
@@ -131,12 +135,12 @@ export class ImageHD extends ThreeSprite implements Image {
     this.material.teamColor = val;
   }
 
-  //@todo move calculation to here via modifierData1
+  //FIXME: move calculation to here via modifierData1
   setWarpingIn(val: number) {
     this.material.warpingIn = val;
   }
 
-  //@todo move calculation to here via modifierData1
+  //FIXME: move calculation to here via modifierData1
   setCloaked(val: boolean) {
     this.material.opacity = val ? 0.5 : 1;
   }

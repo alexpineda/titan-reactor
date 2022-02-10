@@ -4,9 +4,9 @@ import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";
 
-import { iscriptHeaders, playerColors, unitTypes } from "../common/bwdat/enums";
+import { playerColors } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
-import { createImageFactory, IScriptSprite } from "./core"
+import { IScriptSprite } from "./core"
 import * as log from "./ipc/log"
 import type {
   TerrainInfo,
@@ -14,12 +14,10 @@ import type {
 import { pxToMapMeter } from "../common/utils/conversions";
 import { Scene } from "./render";
 import renderer from "./render/renderer";
-import { getAssets, useHudStore, useSettingsStore } from "./stores";
+import { getAssets, useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
-import { IScriptRunner } from "../common/iscript/iscript-runner";
 import CameraControls from "camera-controls";
-import { constrainControls } from "./utils/camera-utils";
 
 
 async function TitanReactorMap(

@@ -1,6 +1,5 @@
 import { BwDAT } from "../../common/types";
 import { UnitFlags, unitTypes, iscriptHeaders } from "../../common/bwdat/enums";
-import { CrapUnit, Sprite } from "../core";
 import { UnitStruct } from "../integration/structs";
 import UnitsBufferView from "../integration/buffer-view/units-buffer-view";
 

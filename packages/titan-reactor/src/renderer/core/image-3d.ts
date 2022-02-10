@@ -6,7 +6,6 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 import { GlbAtlas } from "../../common/image/atlas/glb-atlas";
 import type { ImageDAT } from "../../common/types";
 import type { Image } from ".";
-import Sprite from "./sprite";
 
 /**
  * An image instance that may include a 3d model
@@ -26,6 +25,14 @@ export class Image3D extends Object3D implements Image {
   offsetX = 0;
   // unused, only for 2d
   offsetY = 0;
+
+  // FIXME: Implement
+  changeImage(
+    atlas: GlbAtlas,
+    imageDef: ImageDAT,
+  ) {
+
+  }
 
   constructor(
     atlas: GlbAtlas,
@@ -59,7 +66,6 @@ export class Image3D extends Object3D implements Image {
 
     this.setFrame(0);
   }
-  sprite?: Sprite | undefined;
 
   get unitTileScale() {
     return this.atlas.unitTileScale;

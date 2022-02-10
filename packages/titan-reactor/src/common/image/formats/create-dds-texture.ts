@@ -1,3 +1,4 @@
+import * as log from "../../../renderer/ipc/log";
 import {
   ClampToEdgeWrapping,
   CompressedTexture,
@@ -15,7 +16,7 @@ export const createDDSTexture = (
 
   //ported from https://github.com/mrdoob/three.js/blob/45b0103e4dd9904b341d05ed991113f2f9edcc70/src/loaders/CompressedTextureLoader.js
   if (texDatas.isCubemap) {
-    throw new Error("cubemap dds not supported");
+    log.error("cubemap dds not supported");
   }
 
   const texture = new CompressedTexture(

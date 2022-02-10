@@ -24,7 +24,7 @@ export type GRPInterface = {
   spriteHeight: number;
   imageIndex: number;
   frames: GrpFrameType[];
-  diffuse?: Texture;
+  diffuse: Texture;
   teamcolor?: Texture;
   unitTileScale: number;
   grp: GrpType;

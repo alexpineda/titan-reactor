@@ -45,9 +45,11 @@ export const loadAnimAtlas = async (
     // const aoDepth = await optionalLoad(sprite.maps.ao_depth);
     // const emissive = await optionalLoad(sprite.maps.emissive);
 
+    //FIXME: diffuse is used twice
     return new AnimAtlas(
         diffuse,
         {
+            diffuse,
             grp,
             imageIndex: imageDef.index,
             frames: sprite.frames.map(frame => ({
