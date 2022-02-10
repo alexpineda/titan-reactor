@@ -8,7 +8,7 @@ export class GlbAtlas extends AnimAtlas {
     fixedFrames: number[] = [];
 
     constructor(atlas: AnimAtlas, model: Group, animations: AnimationClip[], fixedFrames: number[]) {
-        super(atlas.diffuse, atlas, atlas.teamcolor);
+        super(atlas.diffuse, atlas, atlas.teammask);
         this.model = model;
         this.animations = animations;
         this.fixedFrames = fixedFrames;

@@ -100,11 +100,11 @@ async function TitanReactorGame(
 
     const imageDef = bwDat.images[imageTypeId];
 
-    // const freeImage = freeImages.pop();
-    // if (freeImage) {
-    //   freeImage.changeImage(atlas, imageDef);
-    //   return freeImage;
-    // }
+    const freeImage = freeImages.pop();
+    if (freeImage) {
+      freeImage.changeImage(atlas, imageDef);
+      return freeImage;
+    }
 
     return new ImageHD(
       atlas,
@@ -265,6 +265,7 @@ async function TitanReactorGame(
 
     //@ts-ignore
     window.controls = controls;
+    minimapSurface.canvas.style.display = "block";
     if (controls.cameraMode === CameraMode.Default) {
       const t = new Vector3();
       t.lerpVectors(oldTarget, oldPosition, 0.8);
@@ -282,6 +283,7 @@ async function TitanReactorGame(
       await constrainControlsOverviewCam(controls, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetOverviewCam();
       setUseScale(true);
+      minimapSurface.canvas.style.display = "none";
     }
   }
 
@@ -857,53 +859,57 @@ async function TitanReactorGame(
         }
         image.visible = spriteIsVisible && (!isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct));
 
+        if (image.visible) {
+          if (player) {
+            image.setTeamColor(player.color.three);
+          }
 
-        if (player) {
-          image.setTeamColor(player.color.three);
-        }
+          image.offsetX = image.position.x = imageData.x / 32 + spriteX;
+          image.offsetY = image.position.z = imageData.y / 32 + spriteZ;
+          image.position.y = spriteY;
+          image.renderOrder = spriteRenderOrder + imageCounter;
 
-        image.offsetX = image.position.x = imageData.x / 32 + spriteX;
-        image.offsetY = image.position.z = imageData.y / 32 + spriteZ;
-        image.position.y = spriteY;
-        image.renderOrder = spriteRenderOrder + imageCounter;
-
-        // 63-48=15
-        if (imageData.modifier === 14) {
-          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
-        } else {
-          //FIXME: see if we even need this
-          image.setWarpingIn(0);
-        }
-        //FIXME: use modifier 1 for opacity value
-        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
-
-        if (hasDirectionalFrames(imageData as ImageStruct)) {
-          const flipped = isFlipped(imageData as ImageStruct);
-          const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
-          const newFrameOffset = (direction + camera.userData.direction) % 32;
-
-          if (newFrameOffset > 16) {
-            image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+          // 63-48=15
+          if (imageData.modifier === 14) {
+            image.setWarpingIn((imageData.modifierData1 - 48) / 15);
           } else {
-            image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+            //FIXME: see if we even need this
+            image.setWarpingIn(0);
           }
-        } else {
-          image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
+          //FIXME: use modifier 1 for opacity value
+          image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
+
+          if (hasDirectionalFrames(imageData as ImageStruct)) {
+            const flipped = isFlipped(imageData as ImageStruct);
+            const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
+            const newFrameOffset = (direction + camera.userData.direction) % 32;
+
+            if (newFrameOffset > 16) {
+              image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+            } else {
+              image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+            }
+          } else {
+            image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
+          }
+
+          if (imageData.index === spriteData.mainImageIndex) {
+
+            // const z = image._zOff * image.unitTileScale;
+            if (unit) {
+              // for 3d models
+              // image.rotation.y = unit.angle;
+            }
+
+            if (isClickable(imageData as ImageStruct)) {
+              image.layers.enable(Layers.Clickable);
+            }
+          }
+
+          if (redraw(imageData as ImageStruct)) {
+            image.updateMatrix();
+          }
         }
-
-        if (imageData.index === spriteData.mainImageIndex) {
-
-          // const z = image._zOff * image.unitTileScale;
-          if (unit) {
-            // for 3d models
-            // image.rotation.y = unit.angle;
-          }
-
-          if (isClickable(imageData as ImageStruct)) {
-            image.layers.enable(Layers.Clickable);
-          }
-        }
-
         //FIXME: is this the reason for overlays displaying in 0,0?
         // sprite.position.z += z - sprite.lastZOff;
         // sprite.lastZOff = z;

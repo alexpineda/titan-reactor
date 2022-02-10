@@ -178,6 +178,7 @@ export class TeamSpriteMaterial extends SpriteMaterial {
     */
   }
 
+  //FIXME: compute when updating fields rather than ehre
   override customProgramCacheKey() {
     const flags = [
       Boolean(this.teamMask),

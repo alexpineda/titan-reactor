@@ -13,7 +13,7 @@ export class AnimAtlas implements GRPInterface {
     imageIndex = -1;
     frames: GrpFrameType[] = [];
     diffuse: Texture;
-    teamcolor?: Texture;
+    teammask?: Texture;
     brightness?: Texture;
     normal?: Texture;
     specular?: Texture;
@@ -24,7 +24,7 @@ export class AnimAtlas implements GRPInterface {
 
     constructor(diffuse: Texture, vals: GRPInterface, teamcolor?: Texture, brightness?: Texture, normal?: Texture, specular?: Texture, aoDepth?: Texture, emissive?: Texture) {
         this.diffuse = diffuse;
-        this.teamcolor = teamcolor;
+        this.teammask = teamcolor;
         this.brightness = brightness;
         this.normal = normal;
         this.specular = specular;
@@ -43,6 +43,6 @@ export class AnimAtlas implements GRPInterface {
 
     dispose() {
         this.diffuse && this.diffuse.dispose();
-        this.teamcolor && this.teamcolor.dispose();
+        this.teammask && this.teammask.dispose();
     }
 }

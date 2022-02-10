@@ -27,7 +27,6 @@ export class ImageHD extends ThreeSprite implements Image {
   static useScale = 1;
 
   readonly originalScale = new Vector3();
-  override material: TeamSpriteMaterial = new TeamSpriteMaterial();
 
   private atlas: GRPInterface;
   private uv: BufferAttribute | InterleavedBufferAttribute;
@@ -49,11 +48,10 @@ export class ImageHD extends ThreeSprite implements Image {
 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT) {
     this.atlas = atlas;
-    this.material.map = atlas.diffuse;
-    this.material.needsUpdate = true;
-    this.material.teamMask = atlas.teamcolor;
-    this.material.isShadow = this.dat.drawFunction === drawFunctions.rleShadow;
     this.dat = imageDef;
+    this.material.map = atlas.diffuse;
+    (this.material as TeamSpriteMaterial).teamMask = atlas.teammask;
+    (this.material as TeamSpriteMaterial).isShadow = this.dat.drawFunction === drawFunctions.rleShadow;
 
     this.originalScale.set(
       atlas.spriteWidth / 128,
@@ -71,14 +69,7 @@ export class ImageHD extends ThreeSprite implements Image {
       this.material.blending = SubtractiveBlending;
     }
 
-    this.material.transparent = true;
-    this.material.alphaTest = 0.01;
-    this.material.depthTest = ImageHD.useDepth;
-
-    this.lastFlipFrame = undefined;
-    this.lastSetFrame = undefined;
-    this.frame = 0;
-    this.flip = false;
+    this.resetParams();
 
   }
 
@@ -86,13 +77,19 @@ export class ImageHD extends ThreeSprite implements Image {
     atlas: GRPInterface,
     imageDef: ImageDAT,
   ) {
-    super();
+    super(new TeamSpriteMaterial({
+      map: atlas.diffuse
+    }));
     this.atlas = atlas;
     this.dat = imageDef;
     //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
     // if (imageDef.drawFunction === drawFunctions.warpFlash2) {
     //   this.material.warpingIn = 150;
     // }
+
+    this.material.transparent = true;
+    this.material.alphaTest = 0.01;
+    this.material.depthTest = ImageHD.useDepth;
 
     this.geometry = this.geometry.clone();
 
@@ -120,8 +117,24 @@ export class ImageHD extends ThreeSprite implements Image {
     this.pos = this.geometry.getAttribute("position");
     this.changeImage(atlas, imageDef);
 
+    this.matrixAutoUpdate = false;
   }
 
+
+  resetParams() {
+    this.lastFlipFrame = undefined;
+    this.lastSetFrame = undefined;
+    this.frame = 0;
+    this.flip = false;
+
+    this.setWarpingIn(0);
+    this.setCloaked(false);
+    this.setDelta(0);
+
+    this.visible = true;
+    this.material.needsUpdate = true;
+    this.setFrame(0, false, true);
+  }
 
   get unitTileScale() {
     return this.atlas.unitTileScale;
@@ -132,17 +145,21 @@ export class ImageHD extends ThreeSprite implements Image {
   }
 
   setTeamColor(val: Color) {
-    this.material.teamColor = val;
+    (this.material as TeamSpriteMaterial).teamColor = val;
   }
 
   //FIXME: move calculation to here via modifierData1
   setWarpingIn(val: number) {
-    this.material.warpingIn = val;
+    (this.material as TeamSpriteMaterial).warpingIn = val;
   }
 
   //FIXME: move calculation to here via modifierData1
   setCloaked(val: boolean) {
     this.material.opacity = val ? 0.5 : 1;
+  }
+
+  setDelta(delta: number) {
+    (this.material as TeamSpriteMaterial).delta = delta;
   }
 
   setFrame(frame: number, flip: boolean, force = false) {

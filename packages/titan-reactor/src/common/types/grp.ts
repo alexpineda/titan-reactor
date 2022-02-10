@@ -25,7 +25,7 @@ export type GRPInterface = {
   imageIndex: number;
   frames: GrpFrameType[];
   diffuse: Texture;
-  teamcolor?: Texture;
+  teammask?: Texture;
   unitTileScale: number;
   grp: GrpType;
 };
