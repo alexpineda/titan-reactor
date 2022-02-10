@@ -10,7 +10,6 @@ export interface UnitStruct {
   energy: number;
   shields: number;
 
-  spriteIndex: number;
   statusFlags: number;
   direction: number;
   remainingBuildTime: number;

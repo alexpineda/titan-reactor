@@ -87,13 +87,6 @@ export class UnitsBufferView
         const spriteAddr = this._bw.HEAPU32[this._index32 + 1];
         return this._sprite.get(spriteAddr);
     }
-
-    get spriteIndex() {
-        const spriteAddr = this._bw.HEAPU32[this._index32 + 1];
-        const spriteTypeAddr = this._bw.HEAPU32[(spriteAddr >> 2) + 3];
-        return this._bw.HEAPU32[(spriteTypeAddr >> 2)];
-    }
-
     // flingy_t
     get index() {
         return this._bw.HEAPU32[this._index32 + 2];
@@ -234,7 +227,6 @@ export class UnitsBufferView
     copyTo(dest: any) {
         dest.id = this.id;
         dest.hp = this.hp;
-        dest.spriteIndex = this.spriteIndex;
         dest.direction = this.direction;
         dest.typeId = this.typeId;
         dest.owner = this.owner;

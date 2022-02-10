@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
+import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -577,7 +577,7 @@ async function TitanReactorGame(
         const unitData = unitBufferView.get(unitAddr);
         const unit = getUnit(units, unitData);
 
-        unitsBySprite.set(unit.spriteIndex, unit);
+        unitsBySprite.set(unitData.owSprite.index, unit);
 
         const mx = pxToGameUnit.x(unitData.x);
         const my = pxToGameUnit.y(unitData.y);
@@ -820,15 +820,20 @@ async function TitanReactorGame(
       const unit = unitsBySprite.get(spriteData.index);
       const dat = bwDat.sprites[spriteData.typeId];
 
-
       // doodads and resources are always visible
       // show units as fog is lifting from or lowering to explored
       // show if a building has been explored
-      const spriteIsVisible =
+      let spriteIsVisible = spriteIsHidden(spriteData) ||
         spriteData.owner === 11 ||
         dat.image.iscript === 336 ||
         dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y)) || spriteIsHidden(spriteData);
+        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
+
+      // hide addons in battle cam as they look awkward, and overview as it takes too much space
+      if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
+        spriteIsVisible = false;
+      }
+
 
       // FIXME: short circuit this when sprite is not visible by setting all images
       //        to invisible
@@ -979,7 +984,6 @@ async function TitanReactorGame(
 
     if (gameStatePosition.advanceGameFrames && currentBwFrame) {
       buildSounds(currentBwFrame.sounds);
-      fogOfWar.update(players.getVisionFlag(), camera);
       buildCreep(currentBwFrame);
 
       gameStatePosition.bwGameFrame = currentBwFrame.frame;
@@ -1124,6 +1128,7 @@ async function TitanReactorGame(
     // audioMixer.update(target.x, target.y, target.z, delta);
 
     controls.cameraShake.update(camera);
+    fogOfWar.update(players.getVisionFlag(), camera);
 
     renderer.render(scene, camera, delta);
     cssRenderer.render(camera);
