@@ -16,7 +16,7 @@ export class IntrusiveList {
     }
 
     *[Symbol.iterator]() {
-        const end = this._bw.HEAPU32[ (this.addr >> 2)];
+        const end = this._bw.HEAPU32[(this.addr >> 2)];
         const begin = this._bw.HEAPU32[(this.addr >> 2) + 1];
 
         if (end === begin) {
@@ -24,27 +24,24 @@ export class IntrusiveList {
         }
 
         this._current = begin;
-        
+
         do {
             yield this._current;
-            this._current =  this._bw.HEAPU32[(this._current >> 2) + this._pairOffset + 1];
+            this._current = this._bw.HEAPU32[(this._current >> 2) + this._pairOffset + 1];
         } while (this._current !== end);
     }
 
     *reverse() {
-        const end = this._bw.HEAPU32[ (this.addr >> 2) + 1];
+        const end = this._bw.HEAPU32[(this.addr >> 2) + 1];
         const begin = this._bw.HEAPU32[(this.addr >> 2)];
-
-        if (end === begin) {
-            return;
-        }
-
         this._current = begin;
 
-        do {
+        yield this._current;
+
+        while (this._current !== end) {
+            this._current = this._bw.HEAPU32[(this._current >> 2) + this._pairOffset];
             yield this._current;
-            this._current =  this._bw.HEAPU32[(this._current >> 2) + this._pairOffset];
-        } while (this._current !== end);
+        }
     }
 
 }

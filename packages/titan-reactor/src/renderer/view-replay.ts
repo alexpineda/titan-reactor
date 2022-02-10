@@ -851,9 +851,7 @@ async function TitanReactorGame(
 
       let imageCounter = 0;
 
-      let imgAddr = spriteData.lastImage;
-      // for (const imgAddr of spriteData.images.reverse()) {
-      do {
+      for (const imgAddr of spriteData.images.reverse()) {
         const imageData = imageBufferView.get(imgAddr);
 
         let image = images.get(imageData.index);
@@ -919,8 +917,7 @@ async function TitanReactorGame(
         // sprite.position.z += z - sprite.lastZOff;
         // sprite.lastZOff = z;
         imageCounter++;
-        imgAddr = imageData.nextNode;
-      } while (imgAddr !== spriteData.endImageIterate);
+      }
     }
     // }
   };
