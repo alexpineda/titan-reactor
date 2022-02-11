@@ -18,24 +18,28 @@ export class IntrusiveList {
     *[Symbol.iterator]() {
         const end = this._bw.HEAPU32[(this.addr >> 2)];
         const begin = this._bw.HEAPU32[(this.addr >> 2) + 1];
-
-        if (end === begin) {
+        if (this._bw.HEAPU32[(end >> 2)] === end) {
             return;
         }
 
         this._current = begin;
+        yield this._current;
 
-        do {
-            yield this._current;
+        while (this._current !== end) {
             this._current = this._bw.HEAPU32[(this._current >> 2) + this._pairOffset + 1];
-        } while (this._current !== end);
+            yield this._current;
+        }
     }
 
     *reverse() {
         const end = this._bw.HEAPU32[(this.addr >> 2) + 1];
         const begin = this._bw.HEAPU32[(this.addr >> 2)];
-        this._current = begin;
 
+        if (this._bw.HEAPU32[(end >> 2)] === end) {
+            return;
+        }
+
+        this._current = begin;
         yield this._current;
 
         while (this._current !== end) {

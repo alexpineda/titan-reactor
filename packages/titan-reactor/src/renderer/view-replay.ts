@@ -801,125 +801,121 @@ async function TitanReactorGame(
       // freeImages.push(image);
     }
 
-    // const spriteList = new IntrusiveList(openBw.wasm!);
-    // let debug_sprite_count = 0;
-    // const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
-    // const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
-    // const spritesDebug = openBw.wasm!.get_util_funcs().get_sprites_debug();
-    // for (let l = 0; l < spriteTileLineSize; l++) {
-    //   spriteList.addr = spritetileAddr + (l << 3)
-    //   for (const spriteAddr of spriteList) {
-    //     debug_sprite_count++;
-    for (const spriteAddr of openBw.call.getSpriteAddresses()) {
-      const spriteData = spriteBufferView.get(spriteAddr);
-      // const debugSpriteData = spritesDebug.find(o => o._addr == spriteAddr);
-      if (spriteAddr === 0) {
-        continue;
-      }
-
-      const unit = unitsBySprite.get(spriteData.index);
-      const dat = bwDat.sprites[spriteData.typeId];
-
-      // doodads and resources are always visible
-      // show units as fog is lifting from or lowering to explored
-      // show if a building has been explored
-      let spriteIsVisible = spriteIsHidden(spriteData) ||
-        spriteData.owner === 11 ||
-        dat.image.iscript === 336 ||
-        dat.image.iscript === 337 ||
-        fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
-
-      // hide addons in battle cam as they look awkward, and overview as it takes too much space
-      if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
-        spriteIsVisible = false;
-      }
-
-
-      // FIXME: short circuit this when sprite is not visible by setting all images
-      //        to invisible
-      // if (!sprite.visible) continue;
-
-
-      const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
-
-      const spriteX = pxToGameUnit.x(spriteData.x);
-      const spriteZ = pxToGameUnit.y(spriteData.y);
-      //FIXME: use Y coord for floating units, buildings and bullets
-      let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-
-      const player = players.playersById[spriteData.owner];
-
-      let imageCounter = 0;
-
-      for (const imgAddr of spriteData.images.reverse()) {
-        const imageData = imageBufferView.get(imgAddr);
-
-        let image = images.get(imageData.index);
-        if (!image) {
-          image = createImage(imageData.typeId);
-          images.set(imageData.index, image);
-          imagesGroup.add(image);
+    const spriteList = new IntrusiveList(openBw.wasm!);
+    const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
+    const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
+    for (let l = 0; l < spriteTileLineSize; l++) {
+      spriteList.addr = spritetileAddr + (l << 3)
+      for (const spriteAddr of spriteList) {
+        if (spriteAddr === 0) {
+          continue;
         }
-        image.visible = spriteIsVisible && (!isHidden(imageData as ImageStruct) || redraw(imageData as ImageStruct));
 
-        if (image.visible) {
-          if (player) {
-            image.setTeamColor(player.color.three);
+        const spriteData = spriteBufferView.get(spriteAddr);
+
+        const unit = unitsBySprite.get(spriteData.index);
+        const dat = bwDat.sprites[spriteData.typeId];
+
+        // doodads and resources are always visible
+        // show units as fog is lifting from or lowering to explored
+        // show if a building has been explored
+        let spriteIsVisible = spriteIsHidden(spriteData) ||
+          spriteData.owner === 11 ||
+          dat.image.iscript === 336 ||
+          dat.image.iscript === 337 ||
+          fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
+
+        // hide addons in battle cam as they look awkward, and overview as it takes too much space
+        if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
+          spriteIsVisible = false;
+        }
+
+
+        // FIXME: short circuit this when sprite is not visible by setting all images
+        //        to invisible
+        // if (!sprite.visible) continue;
+
+
+        const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
+
+        const spriteX = pxToGameUnit.x(spriteData.x);
+        const spriteZ = pxToGameUnit.y(spriteData.y);
+        //FIXME: use Y coord for floating units, buildings and bullets
+        let spriteY = terrain.getTerrainY(spriteX, spriteZ);
+
+        const player = players.playersById[spriteData.owner];
+
+        let imageCounter = 0;
+
+        for (const imgAddr of spriteData.images.reverse()) {
+          const imageData = imageBufferView.get(imgAddr);
+
+          let image = images.get(imageData.index);
+          if (!image) {
+            image = createImage(imageData.typeId);
+            images.set(imageData.index, image);
+            imagesGroup.add(image);
           }
+          image.visible = spriteIsVisible && (!isHidden(imageData as ImageStruct));
 
-          image.offsetX = image.position.x = imageData.x / 32 + spriteX;
-          image.offsetY = image.position.z = imageData.y / 32 + spriteZ;
-          image.position.y = spriteY;
-          image.renderOrder = spriteRenderOrder + imageCounter;
+          if (image.visible) {
+            if (player) {
+              image.setTeamColor(player.color.three);
+            }
 
-          // 63-48=15
-          if (imageData.modifier === 14) {
-            image.setWarpingIn((imageData.modifierData1 - 48) / 15);
-          } else {
-            //FIXME: see if we even need this
-            image.setWarpingIn(0);
-          }
-          //FIXME: use modifier 1 for opacity value
-          image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
+            image.offsetX = image.position.x = imageData.x / 32 + spriteX;
+            image.offsetY = image.position.z = imageData.y / 32 + spriteZ;
+            image.position.y = spriteY;
+            image.renderOrder = spriteRenderOrder + imageCounter;
 
-          if (hasDirectionalFrames(imageData as ImageStruct)) {
-            const flipped = isFlipped(imageData as ImageStruct);
-            const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
-            const newFrameOffset = (direction + camera.userData.direction) % 32;
-
-            if (newFrameOffset > 16) {
-              image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+            // 63-48=15
+            if (imageData.modifier === 14) {
+              image.setWarpingIn((imageData.modifierData1 - 48) / 15);
             } else {
-              image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+              //FIXME: see if we even need this
+              image.setWarpingIn(0);
             }
-          } else {
-            image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
-          }
+            //FIXME: use modifier 1 for opacity value
+            image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
 
-          if (imageData.index === spriteData.mainImageIndex) {
+            if (hasDirectionalFrames(imageData as ImageStruct)) {
+              const flipped = isFlipped(imageData as ImageStruct);
+              const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
+              const newFrameOffset = (direction + camera.userData.direction) % 32;
 
-            // const z = image._zOff * image.unitTileScale;
-            if (unit) {
-              // for 3d models
-              // image.rotation.y = unit.angle;
+              if (newFrameOffset > 16) {
+                image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+              } else {
+                image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+              }
+            } else {
+              image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
             }
 
-            if (isClickable(imageData as ImageStruct)) {
-              image.layers.enable(Layers.Clickable);
+            if (imageData.index === spriteData.mainImageIndex) {
+
+              // const z = image._zOff * image.unitTileScale;
+              if (unit) {
+                // for 3d models
+                // image.rotation.y = unit.angle;
+              }
+
+              if (isClickable(imageData as ImageStruct)) {
+                image.layers.enable(Layers.Clickable);
+              }
+            }
+
+            if (redraw(imageData as ImageStruct)) {
+              image.updateMatrix();
             }
           }
-
-          if (redraw(imageData as ImageStruct)) {
-            image.updateMatrix();
-          }
+          //FIXME: is this the reason for overlays displaying in 0,0?
+          // sprite.position.z += z - sprite.lastZOff;
+          // sprite.lastZOff = z;
+          imageCounter++;
         }
-        //FIXME: is this the reason for overlays displaying in 0,0?
-        // sprite.position.z += z - sprite.lastZOff;
-        // sprite.lastZOff = z;
-        imageCounter++;
       }
     }
-    // }
   };
 
   let _lastElapsed = 0;
