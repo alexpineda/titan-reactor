@@ -426,8 +426,6 @@ async function TitanReactorGame(
   const minimapResourceImageData = new ImageData(mapWidth, mapHeight);
   const resourceColor = new Color(0, 55, 55);
   const flashColor = new Color(200, 200, 200);
-  const scannerColor = new Color(0, 0, 0);
-
 
   const _buildMinimap = (unit: CrapUnit, unitType: UnitDAT) => {
     const isResourceContainer = unitType.isResourceContainer && !unit.extra.player;
@@ -437,13 +435,14 @@ async function TitanReactorGame(
     ) {
       return;
     }
+    if (unitType.index === unitTypes.scannerSweep) {
+      return;
+    }
 
     let color;
 
     if (isResourceContainer) {
       color = resourceColor;
-    } else if (unitType.index === unitTypes.scannerSweep) {
-      color = scannerColor;
     } else if (unit.extra.player) {
       color = unit.extra.recievingDamage & 1 ? flashColor : unit.extra.player.color.three;
     } else {
@@ -459,11 +458,6 @@ async function TitanReactorGame(
     }
     if (w < 2) w = 2;
     if (h < 2) h = 2;
-
-    if (unitType.index === unitTypes.scannerSweep) {
-      w = 6;
-      h = 6;
-    }
 
     const unitX = Math.floor(unit.x / 32);
     const unitY = Math.floor(unit.y / 32);

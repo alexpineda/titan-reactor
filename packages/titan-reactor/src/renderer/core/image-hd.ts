@@ -3,6 +3,7 @@ import {
   Color,
   DynamicDrawUsage,
   InterleavedBufferAttribute,
+  NormalBlending,
   Sprite as ThreeSprite,
   SubtractiveBlending,
   Vector3,
@@ -18,6 +19,8 @@ export const DepthMode = {
   Ordered: 0, // for top down views
   Depth: 1, // for angled views
 };
+
+const white = new Color(0xffffff);
 
 /**
  * An image instance that uses HD assets
@@ -46,13 +49,15 @@ export class ImageHD extends ThreeSprite implements Image {
   private _normalizedSpriteWidth = 0;
   private _normalizedSpriteHeight = 0;
 
-  changeImage(atlas: GRPInterface, imageDef: ImageDAT) {
+  changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean) {
+    if (this.dat.index === imageDef.index && !force) {
+      return;
+    }
     this.atlas = atlas;
     this.dat = imageDef;
     this.material.map = atlas.diffuse;
     (this.material as TeamSpriteMaterial).teamMask = atlas.teammask;
     (this.material as TeamSpriteMaterial).isShadow = this.dat.drawFunction === drawFunctions.rleShadow;
-
     this.originalScale.set(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
@@ -67,6 +72,8 @@ export class ImageHD extends ThreeSprite implements Image {
 
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
       this.material.blending = SubtractiveBlending;
+    } else {
+      this.material.blending = NormalBlending;
     }
 
     this.resetParams();
@@ -80,6 +87,7 @@ export class ImageHD extends ThreeSprite implements Image {
     super(new TeamSpriteMaterial({
       map: atlas.diffuse
     }));
+
     this.atlas = atlas;
     this.dat = imageDef;
     //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
@@ -115,9 +123,9 @@ export class ImageHD extends ThreeSprite implements Image {
 
     this.uv = this.geometry.getAttribute("uv");
     this.pos = this.geometry.getAttribute("position");
-    this.changeImage(atlas, imageDef);
 
     this.matrixAutoUpdate = false;
+    this.changeImage(atlas, imageDef, true);
   }
 
 
@@ -130,6 +138,7 @@ export class ImageHD extends ThreeSprite implements Image {
     this.setWarpingIn(0);
     this.setCloaked(false);
     this.setDelta(0);
+    this.setTeamColor(white);
 
     this.visible = true;
     this.material.needsUpdate = true;
