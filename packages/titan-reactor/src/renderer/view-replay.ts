@@ -559,9 +559,11 @@ async function TitanReactorGame(
     units: Map<number, CrapUnit>,
     unitsBySprite: Map<number, CrapUnit>
   ) => {
-    const deletedUnits = openBw.wasm!.get_util_funcs().get_deleted_units();
+    const deletedUnitCount = openBw.wasm!._counts(0, 17);
+    const deletedUnitAddr = openBw.wasm!._get_buffer(5);
 
-    for (const unitId of deletedUnits) {
+    for (let i = 0; i < deletedUnitCount; i++) {
+      const unitId = openBw.wasm!.HEAP32[(deletedUnitAddr >> 2) + i];
       const unit = units.get(unitId);
       if (!unit) continue;
       unit.extra.highlight.removeFromParent();
@@ -786,14 +788,17 @@ async function TitanReactorGame(
   const imageBufferView = new ImageBufferView(openBw.wasm);
 
   const buildImages = (delta: number) => {
-    const deletedImages = openBw.wasm!.get_util_funcs().get_deleted_images();
-    const deletedSprites = openBw.wasm!.get_util_funcs().get_deleted_sprites();
+    const deleteImageCount = openBw.wasm!._counts(0, 15);
+    const deletedSpriteCount = openBw.wasm!._counts(0, 16);
+    const deletedImageAddr = openBw.wasm!._get_buffer(3);
+    const deletedSpriteAddr = openBw.wasm!._get_buffer(4);
 
-    for (const spriteId of deletedSprites) {
-      unitsBySprite.delete(spriteId);
+    for (let i = 0; i < deletedSpriteCount; i++) {
+      unitsBySprite.delete(openBw.wasm!.HEAP32[(deletedSpriteAddr >> 2) + i]);
     }
 
-    for (const imageId of deletedImages) {
+    for (let i = 0; i < deleteImageCount; i++) {
+      const imageId = openBw.wasm!.HEAP32[(deletedImageAddr >> 2) + i];
       const image = images.get(imageId);
       if (!image) continue;
       image.removeFromParent();
@@ -819,7 +824,7 @@ async function TitanReactorGame(
         // doodads and resources are always visible
         // show units as fog is lifting from or lowering to explored
         // show if a building has been explored
-        let spriteIsVisible = spriteIsHidden(spriteData) ||
+        let spriteIsVisible =
           spriteData.owner === 11 ||
           dat.image.iscript === 336 ||
           dat.image.iscript === 337 ||
@@ -827,6 +832,10 @@ async function TitanReactorGame(
 
         // hide addons in battle cam as they look awkward, and overview as it takes too much space
         if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
+          spriteIsVisible = false;
+        }
+
+        if (spriteIsHidden(spriteData)) {
           spriteIsVisible = false;
         }
 
@@ -856,7 +865,7 @@ async function TitanReactorGame(
             images.set(imageData.index, image);
             imagesGroup.add(image);
           }
-          image.visible = spriteIsVisible && (!isHidden(imageData as ImageStruct));
+          image.visible = spriteIsVisible && !isHidden(imageData as ImageStruct);
 
           if (image.visible) {
             if (player) {

@@ -14,7 +14,7 @@ export const isFlipped = (image: ImageStruct) => {
 }
 
 export const isHidden = (image: ImageStruct) => {
-  return !!(image.flags & ImageFlags.Hidden);
+  return (image.flags & ImageFlags.Hidden) !== 0;
 }
 
 export const isFrozen = (image: ImageStruct) => {

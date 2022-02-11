@@ -12,5 +12,5 @@ export const spriteSortOrder = (sprite: SpriteStruct) => {
 }
 
 export const spriteIsHidden = (sprite: SpriteStruct) => {
-    return !!(sprite.flags & SpriteFlags.Hidden);
+    return (sprite.flags & SpriteFlags.Hidden) !== 0;
 }
