@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { unstable_batchedUpdates } from "react-dom";
-import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereBufferGeometry, Vector3 } from "three";
+import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereBufferGeometry, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
@@ -24,7 +24,7 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   InputEvents,
-  MinimapEventListener,
+  MinimapMouse,
   ReplayKeys
 } from "./input";
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./integration/buffer-view";
@@ -70,6 +70,8 @@ const { startLocation } = unitTypes;
 const addChatMessage = useGameStore.getState().addChatMessage;
 
 const _cameraTarget = new Vector3();
+
+
 
 async function TitanReactorGame(
   world: ReplayWorld
@@ -145,6 +147,28 @@ async function TitanReactorGame(
 
   renderer.composerPasses.presetRegularCam();
 
+  const minimapMouse = new MinimapMouse(
+    minimapSurface,
+    mapWidth,
+    mapHeight
+  );
+  janitor.disposable(minimapMouse);
+
+  const _PIP = {
+    enabled: false,
+    camera: new PerspectiveCamera(15, 1, 0.1, 1000),
+    viewport: new Vector4(0, 0, 300, 200),
+    setSize: (renderWidth: number, aspect: number) => {
+      // FIXME: add a setting for pip size
+      const pipHeight = 200;
+      const pipWidth = pipHeight * aspect;
+      const margin = 20;
+      _PIP.viewport.set(renderWidth - pipWidth - margin, margin, pipWidth, pipHeight);
+      _PIP.camera.aspect = aspect;
+      _PIP.camera.updateProjectionMatrix();
+    }
+  }
+
   const createControls = (cameraMode: CameraMode) => {
     const janitor = new Janitor()
     const controls = new CameraControls(
@@ -170,6 +194,10 @@ async function TitanReactorGame(
     const enableAll = () => toggle(true);
     const disableAll = () => toggle(false);
 
+    _PIP.camera.position.set(0, 30, 0);
+    _PIP.camera.lookAt(0, 0, 0);
+    _PIP.enabled = false;
+
     return {
       cameraMode,
       standard: controls,
@@ -178,7 +206,8 @@ async function TitanReactorGame(
       cameraShake,
       dispose: () => janitor.mopUp(),
       enableAll,
-      disableAll
+      disableAll,
+      PIP: _PIP
     };
   }
 
@@ -186,28 +215,13 @@ async function TitanReactorGame(
   //@ts-ignore
   window.controls = controls;
 
-  constrainControls(controls, camera, mapWidth, mapHeight);
+  constrainControls(controls, minimapMouse, camera, mapWidth, mapHeight);
 
   //@ts-ignore
   window.camera = camera;
   //@ts-ignore
   janitor.callback(() => { window.controls = null; window.camera = null; });
 
-  const minimapEvents = new MinimapEventListener(
-    minimapSurface,
-    mapWidth,
-    mapHeight
-  );
-  janitor.disposable(minimapEvents);
-
-  minimapEvents.onStart = ({ pos }) => {
-    onToggleCameraMode(CameraMode.Default);
-    controls.standard.moveTo(pos.x, pos.y, pos.z, false);
-  };
-
-  minimapEvents.onMove = ({ pos }) => {
-    controls.standard.moveTo(pos.x, pos.y, pos.z, true);
-  };
 
   //@ts-ignore
   window.scene = scene;
@@ -274,17 +288,17 @@ async function TitanReactorGame(
       } else {
         await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
       }
-      await constrainControls(controls, camera, mapWidth, mapHeight);
+      await constrainControls(controls, minimapMouse, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetRegularCam();
       // setUseDepth(false);
     } else if (controls.cameraMode === CameraMode.Battle) {
       gameSurface.requestPointerLock();
       await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
-      await constrainControlsBattleCam(controls, camera, mapWidth, mapHeight);
+      await constrainControlsBattleCam(controls, minimapMouse, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetBattleCam();
       // setUseDepth(true);
     } else if (controls.cameraMode === CameraMode.Overview) {
-      await constrainControlsOverviewCam(controls, camera, mapWidth, mapHeight);
+      await constrainControlsOverviewCam(controls, minimapMouse, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetOverviewCam();
       setUseScale(true);
       minimapSurface.canvas.style.display = "none";
@@ -382,12 +396,12 @@ async function TitanReactorGame(
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    // @todo use scaled sizes here?
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
     cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
+
 
     // players.forEach(({ camera }) =>
     //   camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
@@ -401,6 +415,8 @@ async function TitanReactorGame(
       Math.floor(gameSurface.minimapSize * hAspect)
     );
 
+
+    controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
     projectedCameraView.update();
 
     unstable_batchedUpdates(() =>
@@ -960,6 +976,7 @@ async function TitanReactorGame(
     controls.standard.update(delta / 1000);
     controls.mouse.update(delta / 100, controls, settings, terrain.terrain);
     controls.keys.update(delta / 100, controls);
+    minimapMouse.update(controls);
 
     if (settings.controls.debug) {
       //@ts-ignore
@@ -1127,6 +1144,10 @@ async function TitanReactorGame(
     fogOfWar.update(players.getVisionFlag(), camera);
 
     renderer.render(scene, camera, delta);
+    if (controls.PIP.enabled) {
+      fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
+      renderer.render(scene, controls.PIP.camera, delta, controls.PIP.viewport);
+    }
     cssRenderer.render(camera);
     drawMinimap(projectedCameraView);
 
@@ -1198,10 +1219,8 @@ async function TitanReactorGame(
   });
   janitor.callback(unsub3);
 
-  //run 1 frame
   gameStatePosition.resume();
   gameStatePosition.advanceGameFrames = 1;
-  // GAME_LOOP(0);
   _sceneResizeHandler();
   return {
     start: () => renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP),

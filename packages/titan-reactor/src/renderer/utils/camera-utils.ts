@@ -1,9 +1,10 @@
 import CameraControls from "camera-controls";
-import { Box3, MathUtils, PerspectiveCamera, Vector3 } from "three";
+import { Box3, MathUtils, MinEquation, PerspectiveCamera, Vector3 } from "three";
 import { easePoly } from "d3-ease";
 import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
+import { MinimapMouse } from "../input";
 
 type Controls = {
   standard: CameraControls,
@@ -38,7 +39,9 @@ const setBoundary = (controls: Controls, mapWidth: number, mapHeight: number) =>
   controls.standard.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
 };
 
-export const constrainControls = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+export const constrainControls = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+  minimapMouse.enabled = true;
+
   controls.enableAll();
   controls.cameraShake.enabled = false;
 
@@ -73,7 +76,8 @@ export const constrainControls = async (controls: Controls, camera: PerspectiveC
   await controls.standard.dollyTo(80, false);
 }
 
-export const constrainControlsBattleCam = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+export const constrainControlsBattleCam = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+  minimapMouse.enabled = false;
   controls.enableAll();
 
   camera.fov = 115;
@@ -106,7 +110,9 @@ export const constrainControlsBattleCam = async (controls: Controls, camera: Per
   await controls.standard.zoomTo(1.2, false);
 }
 
-export const constrainControlsOverviewCam = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+export const constrainControlsOverviewCam = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
+  minimapMouse.enabled = false;
+
   controls.disableAll();
   controls.mouse.enabled = true;
 

@@ -1,3 +1,3 @@
 export * from "./input-events";
-export * from "./minimap-listener";
+export * from "./minimap-mouse";
 export * from "./replay-keys";

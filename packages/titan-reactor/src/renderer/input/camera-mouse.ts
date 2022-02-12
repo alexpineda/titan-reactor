@@ -21,11 +21,10 @@ export class CameraMouse {
     private _janitor = new Janitor();
     private _vector = new Vector3();
     private _accel = 1;
-    private _zoomFactor = 0;
     private _lookAt = new Vector2()
     private _deltaY = 0;
-    private _mouseIsDown = false;
     private _clicked?: Vector3;
+    private _mouse = new Vector3(0, 0, -1)
     enabled = true;
 
     direction = new Vector3();
@@ -69,6 +68,9 @@ export class CameraMouse {
 
             this._lookAt.x = evt.movementX;
             this._lookAt.y = evt.movementY;
+
+            this._mouse.x = (evt.clientX / window.innerWidth) * 2 - 1;
+            this._mouse.y = - (evt.clientY / window.innerHeight) * 2 + 1;
         }
         domElement.addEventListener("pointermove", onMouseMove, passive);
         this._janitor.callback(() => {
@@ -76,7 +78,7 @@ export class CameraMouse {
         });
 
         const pointerDown = (evt: PointerEvent) => {
-            this._mouseIsDown = true;
+            this._mouse.z = evt.button;
         }
         domElement.addEventListener("pointerdown", pointerDown, passive);
         this._janitor.callback(() => {
@@ -84,13 +86,9 @@ export class CameraMouse {
         });
 
         const pointerUp = (evt: PointerEvent) => {
-            this._mouseIsDown = false;
-            this._clicked = clicked;
-            clicked.x = (evt.clientX / window.innerWidth) * 2 - 1;
-            clicked.y = - (evt.clientY / window.innerHeight) * 2 + 1;
-            clicked.z = evt.button;
-
-            this._zoomFactor = evt.button === 0 ? 2 : 1 / 2;
+            this._clicked = clicked.copy(this._mouse);
+            this._clicked.z = evt.button;
+            this._mouse.z = -1;
         }
         domElement.addEventListener("pointerup", pointerUp, passive);
         this._janitor.callback(() => {
@@ -104,9 +102,8 @@ export class CameraMouse {
         if (!this.enabled) return;
 
         if (controls.cameraMode === CameraMode.Battle) {
-            if (this._zoomFactor) {
-                controls.standard.zoomTo(controls.standard.camera.zoom * this._zoomFactor, false);
-                this._zoomFactor = 0;
+            if (this._clicked) {
+                controls.standard.zoomTo(controls.standard.camera.zoom * this._clicked.z === 0 ? 2 : 1 / 2, false);
             }
             if (this._lookAt.x || this._lookAt.y) {
                 controls.standard.rotate((-this._lookAt.x / 1000) * settings.controls.camera.helicopterRotateSpeed, (-this._lookAt.y / 1000) * settings.controls.camera.helicopterRotateSpeed, true);
@@ -150,7 +147,7 @@ export class CameraMouse {
                 this._accel = Math.min(MAX_ACCELERATION, this._accel * ACCELERATION);
             }
         } else if (controls.cameraMode === CameraMode.Overview) {
-            if (this._clicked) {
+            if (this._clicked && this._clicked.z === 0) {
                 rayCaster.setFromCamera(this._clicked, controls.standard.camera);
                 intersections.length = 0;
                 rayCaster.intersectObject(terrain, false, intersections);
@@ -158,6 +155,19 @@ export class CameraMouse {
                     controls.standard.moveTo(intersections[0].point.x, 0, intersections[0].point.z, false);
                     controls.keys.onToggleCameraMode(CameraMode.Default);
                 }
+            }
+
+            if (!this._clicked && this._mouse.z === 2) {
+                controls.PIP.enabled = true;
+                rayCaster.setFromCamera(this._mouse, controls.standard.camera);
+                intersections.length = 0;
+                rayCaster.intersectObject(terrain, false, intersections);
+                if (intersections.length) {
+                    controls.PIP.camera.position.set(intersections[0].point.x, controls.PIP.camera.position.y, intersections[0].point.z);
+                    controls.PIP.camera.lookAt(intersections[0].point.x, 0, intersections[0].point.z)
+                }
+            } else {
+                controls.PIP.enabled = false;
             }
         }
 
