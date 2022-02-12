@@ -954,7 +954,7 @@ async function TitanReactorGame(
     _lastElapsed = elapsed;
 
     controls.standard.update(delta / 1000);
-    controls.mouse.update(delta / 100, controls);
+    controls.mouse.update(delta / 100, controls, settings);
     controls.keys.update(delta / 100, controls);
 
     if (settings.controls.debug) {

@@ -31,7 +31,6 @@ export const verbose = (msg: string) => {
 
 // @todo return early if disabled
 export const log = async (message: string, level = "info") => {
-  // if (useSettingsStore.getState().isDev) {
   const logDiv = document.getElementById("log");
   const p = document.createElement("p");
   p.textContent = message;
@@ -46,7 +45,6 @@ export const log = async (message: string, level = "info") => {
     console.log(message);
   }
   logDiv?.appendChild(p);
-  // }
 
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
 };

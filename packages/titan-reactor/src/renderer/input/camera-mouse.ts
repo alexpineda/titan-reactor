@@ -1,5 +1,6 @@
 
 import CameraControls from "camera-controls";
+import { Settings } from "../../common/types";
 import { Camera, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { CameraMode, Controls } from "./camera-mode";
@@ -81,7 +82,7 @@ export class CameraMouse {
 
     }
 
-    update(delta: number, controls: Controls) {
+    update(delta: number, controls: Controls, settings: Settings) {
         if (!this.enabled) return;
 
         if (controls.cameraMode === CameraMode.Battle) {
@@ -90,7 +91,7 @@ export class CameraMouse {
                 this._zoomFactor = 0;
             }
             if (this._lookAt.x || this._lookAt.y) {
-                controls.standard.rotate(-this._lookAt.x / 1000, -this._lookAt.y / 1000, true);
+                controls.standard.rotate((-this._lookAt.x / 1000) * settings.controls.camera.helicopterRotateSpeed, (-this._lookAt.y / 1000) * settings.controls.camera.helicopterRotateSpeed, true);
                 this._lookAt.x = 0;
                 this._lookAt.y = 0;
             }

@@ -4,18 +4,22 @@ import { Settings } from "../../common/types";
 import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
-export type SettingsStore = {
+export type SettingsMeta = {
   data: Settings;
   errors: string[];
   phrases: Record<string, string>;
-  isDev: boolean;
+  /**
+   * Whether the starcraft directory is a CASC storage or direct filesystem
+   */
   isCascStorage: boolean;
+};
+
+export type SettingsStore = SettingsMeta & {
   save: (data: any) => Promise<void>;
   load: () => Promise<void>;
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
-  isDev: false,
   data: { ...defaultSettings },
   phrases: {},
   isCascStorage: false,

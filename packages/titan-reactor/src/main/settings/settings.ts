@@ -1,5 +1,4 @@
 import { app } from "electron";
-import isDev from "electron-is-dev";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 import path from "path";
@@ -14,6 +13,8 @@ import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
+import { SettingsMeta } from "src/renderer/stores";
+import migrate from "./migrate";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 export const findTempPath = () => app.getPath("temp");
@@ -22,38 +23,38 @@ const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
-const shallowDiff = (a: any, b: any) => {
-  const x: any = {};
-  for (const n of Object.getOwnPropertyNames(a)) {
-    if (a[n] !== b[n]) {
-      x[n] = b[n];
-    }
-  }
-  return x;
-};
-
+/**
+ * A settings management utility which saves and loads settings from a file.
+ * It will also emit a "change" event whenever the settings are loaded or saved.
+ */
 export class Settings extends EventEmitter {
   private _settings: SettingsType = {
     ...defaultSettings
   };
   private _filepath = "";
 
+  /**
+   * Loads the existing settings file from disk.
+   * It will migrate the settings if they are not compatible with the current version.
+   * It will create a new settings file if it does not exist.
+   * @param filepath 
+   */
   async init(filepath: string) {
     this._filepath = filepath;
 
-    try {
-      await this.load();
-    } catch (err) {
-      try {
-        await fsPromises.unlink(this._filepath);
-      } catch (err) {
-      } finally {
-        await this.save(await this.createDefaults());
-      }
+    if (await fileExists(filepath)) {
+      await this.loadAndMigrate();
+    } else {
+      await this.save(await this.createDefaults());
     }
   }
 
-  async get() {
+  /**
+   * 
+   * @returns a JS object with the current settings and metadata
+   */
+  async get(): Promise<SettingsMeta> {
+    //FIXME: use Error objects so we can contain and id as well as message
     const errors = [];
     const files = [
       "starcraft",
@@ -74,7 +75,6 @@ export class Settings extends EventEmitter {
       errors.push("starcraft directory is not a valid path");
     }
 
-
     const localLanguage = supportedLanguages.includes(getEnvLocale() as string)
       ? (getEnvLocale() as string)
       : "en-US";
@@ -87,46 +87,61 @@ export class Settings extends EventEmitter {
     return {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
-      isDev,
       isCascStorage,
       phrases: {
         ...phrases["en-US"],
         ...phrases[this._settings.language as keyof typeof phrases],
       },
-      diff: {},
     };
   }
 
+  /**
+   * Loads the settings.yml file from disk and parses the contents into a JS object.
+   * Emits the "change" event.
+   */
   async load() {
     const contents = await fsPromises.readFile(this._filepath, {
       encoding: "utf8",
     });
-    const d = toCamel(yaml.load(contents) as AnyObject);
-
-    this._settings = d as SettingsType;
-    this._emitChanged(d);
+    return toCamel(yaml.load(contents) as any);
   }
 
+  async loadAndMigrate() {
+    const settings = await this.load();
+    const [migrated, migratedSettings] = migrate(settings);
+    if (migrated) {
+      await this.save(migratedSettings);
+      this._settings = migratedSettings;
+    }
+    this._emitChanged();
+  }
+
+  /**
+   * Saves the settings to disk. Will ignore any existing errors.
+   * Emits the "change" event.
+   * @param settings 
+   */
   async save(settings: any) {
     if (settings.errors) {
       delete settings.errors;
     }
 
-    const diff = shallowDiff(this._settings, settings);
     this._settings = Object.assign({}, this._settings, settings);
     await fsPromises.writeFile(this._filepath, yaml.dump(this._settings), {
       encoding: "utf8",
     });
-    this._emitChanged(diff);
+    this._emitChanged();
   }
 
-  async _emitChanged(diff = {}) {
-    this.emit("change", { ...(await this.get()), diff });
+  async _emitChanged() {
+    this.emit("change", await this.get());
   }
 
+  /**
+   * Creates default settings for the user.
+   * @returns a JS object with default settings
+   */
   async createDefaults(): Promise<SettingsType> {
-    //@todo load existing settings.json for path and then delete it if it exists
-
     return {
       ...defaultSettings,
       language: supportedLanguages.find(s => s === String(getEnvLocale()))
@@ -137,7 +152,7 @@ export class Settings extends EventEmitter {
         maps: await findMapsPath(),
         replays: await findReplaysPath(),
         temp: await findTempPath(),
-        models: path.join(app.getPath("documents"), "3dModels")
+        models: app.getPath("documents")
       }
     };
   }

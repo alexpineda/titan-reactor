@@ -1,7 +1,7 @@
 import { Settings, AssetTextureResolution } from "./types";
 
 export const defaultSettings: Settings = {
-  version: 2,
+  version: 3,
   language: "en-US",
   directories: {
     starcraft: "",
@@ -52,6 +52,7 @@ export const defaultSettings: Settings = {
       backward: "ArrowDown",
       zoomIn: "NumpadAdd",
       zoomOut: "NumpadSubtract",
+      helicopterRotateSpeed: 100,
     }
   }
 };

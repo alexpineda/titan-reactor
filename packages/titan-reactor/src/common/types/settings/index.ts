@@ -1,5 +1,5 @@
 export type Settings = {
-    version: 2;
+    version: 3;
     language: string;
     directories: {
         starcraft: string;
@@ -50,48 +50,19 @@ export type Settings = {
             backward?: string,
             zoomIn?: string,
             zoomOut?: string,
+            helicopterRotateSpeed: number,
         }
     }
 
-
-
-    // spriteTextureResolution: AssetTextureResolution;
-    // terrainTextureResolution: AssetTextureResolution;
     // alwaysHideReplayControls: boolean;
-    // language: string;
-    // starcraftPath: string;
-    // mapsPath: string;
-    // replaysPath: string;
-    // tempPath: string;
-    // communityModelsPath: string;
-    // observerLink: string;
-    // musicVolume: number;
-    // musicAllTypes: boolean;
-    // soundVolume: number;
-    // antialias: 0 | 1 | 2 | 3 | 4;
-    // anisotropy: number;
-    // pixelRatio: number;
-    // gamma: number;
-    // keyPanSpeed: number;
-    // twitch: string;
     // fullscreen: boolean;
     // enablePlayerScores: boolean;
     // esportsHud: boolean;
     // embedProduction: boolean;
-    // cameraShake: number;
-    // useCustomColors: boolean;
-    // randomizeColorOrder: boolean;
-    // classicClock: boolean;
     // hudFontSize: "xs" | "sm" | "md" | "lg" | "xl";
-    // minimapRatio: number;
-    // replayAndUnitDetailSize: string;
-    // fpsLimit: number;
     // autoToggleProductionView: boolean;
     // showDisabledDoodads: boolean;
     // showCritters: boolean;
-    // mouseRotateSpeed: number;
-    // mouseDollySpeed: number;
-    // mapBackgroundColor: string;
 };
 
 export enum AssetTextureResolution {
@@ -113,3 +84,4 @@ export enum GameAspect {
     FourThree = "FourThree",
     SixteenNine = "SixteenNine",
 };
+
