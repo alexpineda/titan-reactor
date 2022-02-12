@@ -108,6 +108,7 @@ export const constrainControlsBattleCam = async (controls: Controls, camera: Per
 
 export const constrainControlsOverviewCam = async (controls: Controls, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
   controls.disableAll();
+  controls.mouse.enabled = true;
 
   controls.standard.setBoundary(undefined);
 
@@ -116,7 +117,7 @@ export const constrainControlsOverviewCam = async (controls: Controls, camera: P
   controls.standard.mouseButtons.middle = CameraControls.ACTION.ZOOM;
   controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
-  controls.standard.enabled = true;
+  // controls.standard.enabled = true;
 
   camera.fov = 15;
   camera.updateProjectionMatrix();

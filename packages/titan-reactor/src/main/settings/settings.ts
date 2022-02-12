@@ -112,6 +112,8 @@ export class Settings extends EventEmitter {
     if (migrated) {
       await this.save(migratedSettings);
       this._settings = migratedSettings;
+    } else {
+      this._settings = settings;
     }
     this._emitChanged();
   }

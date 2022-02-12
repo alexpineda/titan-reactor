@@ -247,7 +247,7 @@ async function TitanReactorGame(
       return;
     }
     // default -> any mode, any mode -> default
-    if (cm !== CameraMode.Default) {
+    if (cm !== CameraMode.Default && controls.cameraMode !== CameraMode.Default) {
       controls.cameraMode = CameraMode.Default;
     } else {
       controls.cameraMode = cm;
@@ -258,7 +258,7 @@ async function TitanReactorGame(
     // @ts-ignore
     const oldPosition = controls.standard.getPosition();
     controls.dispose();
-    controls = createControls(cm);
+    controls = createControls(controls.cameraMode);
     controls.keys.onToggleCameraMode = onToggleCameraMode;
     gameSurface.exitPointerLock();
     setUseScale(false);
@@ -267,9 +267,13 @@ async function TitanReactorGame(
     window.controls = controls;
     minimapSurface.canvas.style.display = "block";
     if (controls.cameraMode === CameraMode.Default) {
-      const t = new Vector3();
-      t.lerpVectors(oldTarget, oldPosition, 0.8);
-      await controls.standard.setTarget(t.x, 0, t.z, false);
+      if (cm === CameraMode.Battle) {
+        const t = new Vector3();
+        t.lerpVectors(oldTarget, oldPosition, 0.8);
+        await controls.standard.setTarget(t.x, 0, t.z, false);
+      } else {
+        await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
+      }
       await constrainControls(controls, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetRegularCam();
       // setUseDepth(false);
@@ -726,7 +730,7 @@ async function TitanReactorGame(
       if (controls.cameraMode === CameraMode.Battle) {
         ctx.beginPath();
         const fov2 = calculateHorizontalFoV(MathUtils.degToRad(camera.getEffectiveFOV()), camera.aspect) / 2;
-        const a = Math.PI - controls.standard.azimuthAngle / 2;
+        const a = Math.PI - controls.standard.azimuthAngle;
         ctx.arc(camera.position.x, camera.position.z, 10, a, a + fov2);
         ctx.stroke();
       } else {
@@ -954,7 +958,7 @@ async function TitanReactorGame(
     _lastElapsed = elapsed;
 
     controls.standard.update(delta / 1000);
-    controls.mouse.update(delta / 100, controls, settings);
+    controls.mouse.update(delta / 100, controls, settings, terrain.terrain);
     controls.keys.update(delta / 100, controls);
 
     if (settings.controls.debug) {
@@ -1118,10 +1122,6 @@ async function TitanReactorGame(
 
     //   cameras.setTarget(x, getTerrainY(x, z), z, true);
     // }
-
-    // target.setY((target.y + camera.position.y) / 2);
-    // target.setZ((target.z + camera.position.z) / 2);
-    // audioMixer.update(target.x, target.y, target.z, delta);
 
     controls.cameraShake.update(camera);
     fogOfWar.update(players.getVisionFlag(), camera);

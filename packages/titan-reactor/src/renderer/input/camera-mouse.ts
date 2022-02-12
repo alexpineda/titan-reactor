@@ -1,7 +1,7 @@
 
 import CameraControls from "camera-controls";
 import { Settings } from "../../common/types";
-import { Camera, Vector2, Vector3 } from "three";
+import { Camera, Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { CameraMode, Controls } from "./camera-mode";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
@@ -11,7 +11,10 @@ const ACCELERATION = 1.01;
 const passive = { passive: true };
 
 const deltaYP = new Vector3();
+const clicked = new Vector3();
 
+const rayCaster = new Raycaster();
+const intersections: Intersection<Object3D<Event>>[] = [];
 export class CameraMouse {
     private _mouseWheelTimeout?: NodeJS.Timeout;
     private _mouseWheelDelay = 200;
@@ -21,8 +24,9 @@ export class CameraMouse {
     private _zoomFactor = 0;
     private _lookAt = new Vector2()
     private _deltaY = 0;
+    private _mouseIsDown = false;
+    private _clicked?: Vector3;
     enabled = true;
-
 
     direction = new Vector3();
 
@@ -71,7 +75,21 @@ export class CameraMouse {
             domElement.removeEventListener("pointermove", onMouseMove);
         });
 
+        const pointerDown = (evt: PointerEvent) => {
+            this._mouseIsDown = true;
+        }
+        domElement.addEventListener("pointerdown", pointerDown, passive);
+        this._janitor.callback(() => {
+            domElement.removeEventListener("pointerdown", pointerDown);
+        });
+
         const pointerUp = (evt: PointerEvent) => {
+            this._mouseIsDown = false;
+            this._clicked = clicked;
+            clicked.x = (evt.clientX / window.innerWidth) * 2 - 1;
+            clicked.y = - (evt.clientY / window.innerHeight) * 2 + 1;
+            clicked.z = evt.button;
+
             this._zoomFactor = evt.button === 0 ? 2 : 1 / 2;
         }
         domElement.addEventListener("pointerup", pointerUp, passive);
@@ -82,7 +100,7 @@ export class CameraMouse {
 
     }
 
-    update(delta: number, controls: Controls, settings: Settings) {
+    update(delta: number, controls: Controls, settings: Settings, terrain: Mesh) {
         if (!this.enabled) return;
 
         if (controls.cameraMode === CameraMode.Battle) {
@@ -131,7 +149,19 @@ export class CameraMouse {
             } else {
                 this._accel = Math.min(MAX_ACCELERATION, this._accel * ACCELERATION);
             }
+        } else if (controls.cameraMode === CameraMode.Overview) {
+            if (this._clicked) {
+                rayCaster.setFromCamera(this._clicked, controls.standard.camera);
+                intersections.length = 0;
+                rayCaster.intersectObject(terrain, false, intersections);
+                if (intersections.length) {
+                    controls.standard.moveTo(intersections[0].point.x, 0, intersections[0].point.z, false);
+                    controls.keys.onToggleCameraMode(CameraMode.Default);
+                }
+            }
         }
+
+        this._clicked = undefined;
     }
 
     dispose() {

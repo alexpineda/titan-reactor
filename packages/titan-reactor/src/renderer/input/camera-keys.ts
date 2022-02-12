@@ -19,7 +19,7 @@ export class CameraKeys {
     enabled = true;
 
     onFocusPress?: () => void;
-    onToggleCameraMode?: (cm: CameraMode) => void;
+    onToggleCameraMode: (cm: CameraMode) => void = () => { }
 
     constructor(el: HTMLElement, settings: Settings) {
         this._el = el;
