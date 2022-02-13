@@ -99,11 +99,11 @@ export class Settings extends EventEmitter {
    * Loads the settings.yml file from disk and parses the contents into a JS object.
    * Emits the "change" event.
    */
-  async load() {
+  async load(): Promise<SettingsType> {
     const contents = await fsPromises.readFile(this._filepath, {
       encoding: "utf8",
     });
-    return toCamel(yaml.load(contents) as any);
+    return toCamel(yaml.load(contents) as any) as SettingsType;
   }
 
   async loadAndMigrate() {
