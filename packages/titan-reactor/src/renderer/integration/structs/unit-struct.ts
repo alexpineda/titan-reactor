@@ -1,17 +1,14 @@
 import { SpritesBufferView } from "../buffer-view";
+import { FlingyStruct } from "./flingy-struct";
 
-export interface UnitStruct {
+export interface UnitStruct extends FlingyStruct {
   id: number;
   typeId: number;
   owner: number;
-  x: number;
-  y: number;
-  hp: number;
   energy: number;
   shields: number;
 
   statusFlags: number;
-  direction: number;
   remainingBuildTime: number;
   remainingTrainTime: number;
   resourceAmount: number;
@@ -24,5 +21,4 @@ export interface UnitStruct {
   orderTargetUnit: number;
 
   subunit: UnitStruct | null;
-  owSprite: SpritesBufferView;
 }

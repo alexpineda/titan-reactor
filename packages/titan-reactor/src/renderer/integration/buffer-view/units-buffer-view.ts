@@ -1,30 +1,16 @@
-import { OpenBWWasm } from "src/renderer/openbw";
-import { SpritesBufferView } from ".";
-import { SpriteStruct, UnitStruct } from "../structs";
+import { UnitStruct } from "../structs";
 import { FP8 } from "./fixed-point";
-import { IntrusiveList } from "./intrusive-list";
+import FlingyBufferView from "./flingy-buffer-view";
 
 /**
  * Maps to openbw unit_t starting from index address
  */
-export class UnitsBufferView
+export class UnitsBufferView extends FlingyBufferView
     implements UnitStruct {
     static unit_generation_size = 0;
 
-    _address = 0;
-    _bw: OpenBWWasm;
-    _sprite: SpritesBufferView;
     _subunit?: UnitsBufferView;
 
-    get(address: number) {
-        this._address = address;
-        return this;
-    }
-
-    constructor(bw: OpenBWWasm) {
-        this._bw = bw;
-        this._sprite = new SpritesBufferView(bw);
-    }
     // if (dumping->unit_type->flags & dumping->unit_type->flag_resource && dumping->status_flags & dumping->status_flag_completed)
     // 	{
     // 		// DUMP_RAW(resourceAmount, dumping->building.resource.resource_count);
@@ -57,67 +43,11 @@ export class UnitsBufferView
         return 0;
     }
 
-    private get _index32() {
-        return (this._address >> 2) + 2; //skip link base
-    }
-
     get id() {
         const gen = this.generation % (1 << UnitsBufferView.unit_generation_size);
         return (this.index + 1) | (gen << (16 - UnitsBufferView.unit_generation_size));
     }
 
-    tryGet(index: number) {
-        return this._bw.HEAP32[this._index32 + index];
-    }
-
-    tryUGet(index: number) {
-        return this._bw.HEAPU32[this._index32 + index];
-    }
-
-    tryFPGet(index: number) {
-        return FP8(this._bw.HEAPU32[this._index32 + index]);
-    }
-
-    //thingy_t
-    get hp() {
-        return FP8(this._bw.HEAPU32[this._index32]);
-    }
-
-    get owSprite() {
-        const spriteAddr = this._bw.HEAPU32[this._index32 + 1];
-        return this._sprite.get(spriteAddr);
-    }
-    // flingy_t
-    get index() {
-        return this._bw.HEAPU32[this._index32 + 2];
-    }
-
-    // target = 3
-    // movement waypoint = 2
-    // target waypoint= 2
-    // movement flags = 1
-
-    get direction() {
-        const heading = this._bw.HEAP32[this._index32 + 10];
-        // auto v = dir.fractional_part();
-        // if (v < 0) return 256 + v;
-        // else return v;
-
-        // raw_type fractional_part() const {
-        //     return raw_value & (((raw_type)1 << fractional_bits) - 1);
-        // }
-        return 0;
-    }
-
-    get x() {
-        return this._bw.HEAP32[this._index32 + 16];
-    }
-
-    get y() {
-        return this._bw.HEAP32[this._index32 + 17];
-    }
-
-    // unit_t
     get owner() {
         return this._bw.HEAP32[this._index32 + 28];
     }
@@ -238,7 +168,6 @@ export class UnitsBufferView
         dest.x = this.x;
         dest.y = this.y;
     }
-
 
 }
 export default UnitsBufferView;

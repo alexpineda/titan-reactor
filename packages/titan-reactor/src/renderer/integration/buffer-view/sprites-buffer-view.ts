@@ -20,14 +20,6 @@ export class SpritesBufferView
     return this;
   }
 
-  tryGet(index: number) {
-    return this._bw.HEAP32[this._index32 + index];
-  }
-
-  tryUGet(index: number) {
-    return this._bw.HEAPU32[this._index32 + index];
-  }
-
   constructor(bw: OpenBWWasm) {
     this._bw = bw;
     this.images = new IntrusiveList(bw, 0);
@@ -75,18 +67,6 @@ export class SpritesBufferView
   get mainImageIndex() {
     const addr = this._bw.HEAPU32[this._index32 + 12];
     return this._bw.HEAPU32[(addr >> 2) + 2];
-  }
-
-  get lastImage() {
-    return this._bw.HEAPU32[this._index32 + 13];
-  }
-
-  get firstImage() {
-    return this._bw.HEAPU32[this._index32 + 14];
-  }
-
-  get endImageIterate() {
-    return (this._index32 + 13) << 2;
   }
 
 }
