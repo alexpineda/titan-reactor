@@ -2,7 +2,7 @@ import { Color, SpriteMaterial, SpriteMaterialParameters, Texture } from "three"
 
 import warp from "../../common/image/effect/warp";
 
-type dynamicUniforms = {
+type DynamicUniforms = {
   delta: {
     value: number;
   };
@@ -16,15 +16,15 @@ type dynamicUniforms = {
     value: Color;
   };
   teamMask: {
-    value: Texture | null;
+    value?: Texture;
   };
 };
 
 export class TeamSpriteMaterial extends SpriteMaterial {
+  private _dynamicUniforms: DynamicUniforms;
   isTeamSpriteMaterial = true;
-  _dynamicUniforms: dynamicUniforms;
   isShadow = false;
-  teamMask?: Texture;
+  imageId = 0;
 
   constructor(parameters?: SpriteMaterialParameters) {
     super(parameters);
@@ -44,9 +44,17 @@ export class TeamSpriteMaterial extends SpriteMaterial {
         value: new Color(0xffffff),
       },
       teamMask: {
-        value: null,
+        value: undefined,
       },
     };
+  }
+
+  set teamMask(val: Texture | undefined) {
+    this._dynamicUniforms.teamMask.value = val;
+  }
+
+  get teamMask() {
+    return this._dynamicUniforms.teamMask.value;
   }
 
   set teamColor(val) {
@@ -138,9 +146,7 @@ export class TeamSpriteMaterial extends SpriteMaterial {
       ]);
 
       Object.assign(shader.uniforms, this._dynamicUniforms);
-      shader.uniforms.teamMask = {
-        value: this.teamMask,
-      };
+
     }
 
     if (this.warpingIn) {
@@ -184,6 +190,8 @@ export class TeamSpriteMaterial extends SpriteMaterial {
       Boolean(this.teamMask),
       this.isShadow,
       Boolean(this.warpingIn),
+      //FIXME: do we need to recompile if team mask is changed (due to different image)?
+      this.imageId
     ];
     return flags.join("");
   }

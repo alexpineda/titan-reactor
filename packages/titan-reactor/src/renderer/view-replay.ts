@@ -1,7 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
-import { unstable_batchedUpdates } from "react-dom";
 import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereBufferGeometry, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { playerColors, unitTypes } from "../common/bwdat/enums";
@@ -92,9 +91,9 @@ async function TitanReactorGame(
 
   fpsEl.style.display = settings.graphics.showFps ? "block" : "none";
 
+  openBw.call.resetGameSpeed();
+
   const createImage = (imageTypeId: number) => {
-
-
     const atlas = assets.grps[imageTypeId];
     if (!atlas) {
       throw new Error(`imageId ${imageTypeId} not found`);
@@ -102,8 +101,8 @@ async function TitanReactorGame(
 
     const imageDef = bwDat.images[imageTypeId];
 
-    const freeImage = freeImages.pop();
-    if (freeImage) {
+    if (freeImages.length > 0) {
+      const freeImage = freeImages.pop() as Image;
       freeImage.changeImage(atlas, imageDef);
       return freeImage;
     }
@@ -374,7 +373,7 @@ async function TitanReactorGame(
 
   const speedHandler = (scale: number) => () => {
     const currentSpeed = openBw.wasm!._replay_get_value(0);
-    openBw.wasm!._replay_set_value(0, currentSpeed * scale)
+    openBw.wasm!._replay_set_value(0, Math.min(16, currentSpeed * scale))
   }
   keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
   keyboardManager.on(InputEvents.SpeedDown, speedHandler(1 / 2));
@@ -418,12 +417,6 @@ async function TitanReactorGame(
 
     controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
     projectedCameraView.update();
-
-    unstable_batchedUpdates(() =>
-      useGameStore.setState({
-        dimensions: gameSurface.getRect(),
-      })
-    );
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
@@ -806,6 +799,13 @@ async function TitanReactorGame(
   const units: Map<number, CrapUnit> = new Map();
   const images: Map<number, Image> = new Map();
   const freeImages: Image[] = [];
+  janitor.callback(() => {
+    const _janitor = new Janitor();
+    for (const image of freeImages) {
+      _janitor.object3d(image);
+    }
+    _janitor.mopUp();
+  });
   const unitsBySprite: Map<number, CrapUnit> = new Map();
   const imagesGroup = new Group();
 
@@ -830,7 +830,7 @@ async function TitanReactorGame(
       if (!image) continue;
       image.removeFromParent();
       images.delete(imageId);
-      // freeImages.push(image);
+      freeImages.push(image);
     }
 
     const spriteList = new IntrusiveList(openBw.wasm!);
@@ -1155,12 +1155,19 @@ async function TitanReactorGame(
 
     controls.cameraShake.update(camera);
     fogOfWar.update(players.getVisionFlag(), camera);
-
     renderer.render(scene, camera, delta);
     if (controls.PIP.enabled) {
+      if (controls.cameraMode === CameraMode.Overview) {
+        setUseScale(1);
+      }
       fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
       renderer.render(scene, controls.PIP.camera, delta, controls.PIP.viewport);
+      if (controls.cameraMode === CameraMode.Overview) {
+        setUseScale(true);
+      }
     }
+
+
     cssRenderer.render(camera);
     drawMinimap(projectedCameraView);
 
@@ -1202,22 +1209,6 @@ async function TitanReactorGame(
     }
   });
   janitor.callback(unsub);
-
-  // const unsub2 = useHudStore.subscribe((state, prevState) => {
-  //   if (
-  //     state.hoveringOverMinimap
-  //   ) {
-  //     cameras.previewControl.enabled = true;
-  //     cameras.previewControl.numpadControlEnabled = true;
-  //     cameras.control.enabled = false;
-  //     cameras.control.numpadControlEnabled = false;
-  //   } else {
-  //     cameras.previewControl.enabled = false;
-  //     cameras.previewControl.numpadControlEnabled = false;
-  //     cameras.control.enabled = true;
-  //     cameras.control.numpadControlEnabled = true;
-  //   }
-  // });
 
   const unsub3 = useGameStore.subscribe((state) => {
     // fogChanged = fogOfWar.enabled != state.fogOfWar;

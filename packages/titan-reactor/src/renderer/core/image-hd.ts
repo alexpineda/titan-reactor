@@ -58,6 +58,7 @@ export class ImageHD extends ThreeSprite implements Image {
     this.material.map = atlas.diffuse;
     (this.material as TeamSpriteMaterial).teamMask = atlas.teammask;
     (this.material as TeamSpriteMaterial).isShadow = this.dat.drawFunction === drawFunctions.rleShadow;
+    (this.material as TeamSpriteMaterial).imageId = imageDef.index;
     this.originalScale.set(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
@@ -130,19 +131,12 @@ export class ImageHD extends ThreeSprite implements Image {
 
 
   resetParams() {
-    this.lastFlipFrame = undefined;
-    this.lastSetFrame = undefined;
-    this.frame = 0;
-    this.flip = false;
-
     this.setWarpingIn(0);
     this.setCloaked(false);
     this.setDelta(0);
-    this.setTeamColor(white);
-
-    this.visible = true;
-    this.material.needsUpdate = true;
     this.setFrame(0, false, true);
+
+    this.material.needsUpdate = true;
   }
 
   get unitTileScale() {

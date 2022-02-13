@@ -3,10 +3,7 @@
     "module": "esnext",
     "target": "esnext",
     "moduleResolution": "node",
-
     "jsx": "react-jsx",
-    "jsxImportSource": "preact/compat",
-
     "strictFunctionTypes": true
   },
   "include": ["src/**/*"]

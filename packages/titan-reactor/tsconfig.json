@@ -11,7 +11,6 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "noImplicitAny": true,
 
     "checkJs": false,
@@ -25,8 +24,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "common": ["src/common/*"],
-      "react": ["preact/compat"]
+      "common": ["src/common/*"]
     },
     "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
     "outDir": "generated",

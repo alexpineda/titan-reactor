@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] - 2022-01-26
+### Added 
+  - Picture In Picture mode
+    - Right click the minimap to enable/disable PIP
+    - Right click in Overview Cam to enable/disable PIP
+  - Automatic settings migrations
+  - Customizable `helicopter rotate speed` setting
+### Changed
+- Don't show scanner in minimap
+- Several optimizations to reduce GC use
+- Saner default `models` directory so things don't fail on first run
 
 ## [0.4.0] - 2022-01-26
 ### Added 

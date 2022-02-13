@@ -1,4 +1,4 @@
-import React, { memo } from "preact/compat";
+import React, { memo } from "react";
 
 const ReplayPosition = ({ className }: { className: string }) => (
   <div

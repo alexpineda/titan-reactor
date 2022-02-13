@@ -56,7 +56,6 @@ export class Scene extends ThreeScene {
     this.addLights();
     this.addTerrain(terrain);
     this._skybox = this.skybox("sparse");
-
     // const m = new MeshBasicMaterial();
     // if (terrain.material instanceof MeshStandardMaterial && terrain.material.map) {
     //   m.map = terrain.material.map.clone();
@@ -76,7 +75,9 @@ export class Scene extends ThreeScene {
       new HemisphereLight(0xffffff, 0xffffff, 1)
       , sunlight(this._mapWidth, this._mapHeight)
     ]
-    lights.forEach(light => this.add(light));
+    lights.forEach(light => {
+      this.add(light)
+    });
   }
 
   skybox(key: string) {

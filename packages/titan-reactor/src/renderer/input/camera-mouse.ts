@@ -103,7 +103,7 @@ export class CameraMouse {
 
         if (controls.cameraMode === CameraMode.Battle) {
             if (this._clicked) {
-                controls.standard.zoomTo(controls.standard.camera.zoom * this._clicked.z === 0 ? 2 : 1 / 2, false);
+                controls.standard.zoomTo(controls.standard.camera.zoom * (this._clicked.z === 0 ? 2 : 1 / 2), false);
             }
             if (this._lookAt.x || this._lookAt.y) {
                 controls.standard.rotate((-this._lookAt.x / 1000) * settings.controls.camera.helicopterRotateSpeed, (-this._lookAt.y / 1000) * settings.controls.camera.helicopterRotateSpeed, true);

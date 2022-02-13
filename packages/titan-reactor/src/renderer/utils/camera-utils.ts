@@ -7,7 +7,7 @@ import type CameraShake from "../camera/camera-shake";
 import { MinimapMouse } from "../input";
 
 const DEFAULT_FAR = 1000;
-const BATTLE_FAR = 100;
+const BATTLE_FAR = 1000;
 
 type Controls = {
   standard: CameraControls,
