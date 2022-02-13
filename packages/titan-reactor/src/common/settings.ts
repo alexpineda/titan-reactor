@@ -52,7 +52,7 @@ export const defaultSettings: Settings = {
       backward: "ArrowDown",
       zoomIn: "NumpadAdd",
       zoomOut: "NumpadSubtract",
-      helicopterRotateSpeed: 100,
+      helicopterRotateSpeed: 0.9,
     }
   }
 };

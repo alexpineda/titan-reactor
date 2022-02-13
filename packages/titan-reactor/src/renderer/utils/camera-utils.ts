@@ -6,6 +6,9 @@ import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
 import { MinimapMouse } from "../input";
 
+const DEFAULT_FAR = 1000;
+const BATTLE_FAR = 100;
+
 type Controls = {
   standard: CameraControls,
   mouse: CameraMouse,
@@ -45,6 +48,7 @@ export const constrainControls = async (controls: Controls, minimapMouse: Minima
   controls.enableAll();
   controls.cameraShake.enabled = false;
 
+  camera.far = DEFAULT_FAR;
   camera.zoom = 1;
   camera.fov = 15;
   camera.updateProjectionMatrix();
@@ -80,6 +84,7 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
   minimapMouse.enabled = false;
   controls.enableAll();
 
+  camera.far = BATTLE_FAR;
   camera.fov = 115;
   camera.updateProjectionMatrix();
 
@@ -125,6 +130,7 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
   controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
   // controls.standard.enabled = true;
 
+  camera.far = DEFAULT_FAR;
   camera.fov = 15;
   camera.updateProjectionMatrix();
   controls.standard.setLookAt(0, Math.max(mapWidth, mapHeight) * 4, 0, 0, 0, 0, false);

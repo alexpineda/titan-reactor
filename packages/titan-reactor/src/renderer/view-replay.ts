@@ -635,6 +635,7 @@ async function TitanReactorGame(
 
   const drawMinimap = (() => {
     const color = "white";
+    const pipColor = "#aaaaaa"
 
     let _generatingMinimapFog = false;
     let _generatingUnits = false;
@@ -757,6 +758,18 @@ async function TitanReactorGame(
         ctx.lineTo(...view.bl);
         ctx.lineTo(...view.tl);
         ctx.stroke();
+        if (controls.PIP.enabled) {
+          const h = 5;
+          const w = h * controls.PIP.camera.aspect;
+          ctx.strokeStyle = pipColor;
+          ctx.beginPath();
+          ctx.moveTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
+          ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z - h);
+          ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z + h);
+          ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z + h);
+          ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
+          ctx.stroke();
+        }
       }
       ctx.restore();
 

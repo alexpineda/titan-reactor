@@ -26,6 +26,8 @@ if (module.hot) {
 log.info(`titan-reactor ${version}`);
 log.info(`chrome ${process.versions.chrome}`);
 log.info(`electron ${process.versions.electron}`);
+log.info(`resolution ${window.innerWidth}x${window.innerHeight}`);
+
 {
   const r = renderer.getWebGLRenderer();
   log.verbose(`webgl capabilities`);

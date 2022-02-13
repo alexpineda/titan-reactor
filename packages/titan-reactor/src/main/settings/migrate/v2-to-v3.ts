@@ -1,5 +1,6 @@
 import { SettingsV2 } from "../../../common/types/settings/settings.old.v2";
 import { Settings } from "../../../common/types/settings";
+import { defaultSettings } from "../../../common/settings";
 
 export default (oldSettings: SettingsV2): [boolean, any] => {
     if (oldSettings.version !== 2) {
@@ -11,7 +12,7 @@ export default (oldSettings: SettingsV2): [boolean, any] => {
             ...oldSettings.controls,
             camera: {
                 ...oldSettings.controls.camera,
-                helicopterRotateSpeed: 100,
+                helicopterRotateSpeed: defaultSettings.controls.camera.helicopterRotateSpeed,
             }
         }
     });
