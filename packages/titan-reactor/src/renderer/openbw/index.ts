@@ -3,6 +3,7 @@ import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
 import { UnitStruct, SoundStruct, ImageStruct } from "../integration/structs";
+import { Vector } from "../integration/buffer-view/vector.js";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
@@ -23,12 +24,8 @@ export interface OpenBWWasm {
   _get_fow_ptr: (visiblity: number, instant: boolean) => number;
   get_util_funcs: () => ({
     get_units_debug: () => UnitStruct[],
-    get_sprites: () => number[],
     get_sprites_debug: () => ImageStruct[],
     get_sounds: () => SoundStruct[],
-    get_deleted_images: () => number[],
-    get_deleted_sprites: () => number[],
-    get_deleted_units: () => number[],
   })
 
   callMain: () => void;
@@ -56,10 +53,12 @@ export interface OpenBWAPI {
     getTilesPtr: () => number;
     getTilesSize: () => number;
     getSoundObjects: () => SoundStruct[];
-    getSpriteAddresses: () => number[];
     getSpritesOnTileLineSize: () => number;
     getSpritesOnTileLineAddress: () => number;
     getUnitsAddr: () => number;
+    getBulletsAddress: () => number,
+    getBulletsDeletedCount: () => number,
+    getBulletsDeletedAddress: () => number,
     resetGameSpeed: () => void;
     nextFrame: () => number;
     tryCatch: (callback: () => void) => void;
@@ -96,10 +95,12 @@ const openBw: OpenBWAPI = {
       getTilesPtr: () => _wasm._get_buffer(0),
       getTilesSize: () => _wasm._counts(0, 0),
       getSoundObjects: () => _wasm.get_util_funcs().get_sounds(),
-      getSpriteAddresses: () => _wasm.get_util_funcs().get_sprites(),
       getSpritesOnTileLineSize: () => _wasm._counts(0, 14),
       getSpritesOnTileLineAddress: () => _wasm._get_buffer(1),
       getUnitsAddr: () => _wasm._get_buffer(2),
+      getBulletsAddress: () => _wasm._get_buffer(6),
+      getBulletsDeletedCount: () => _wasm._counts(0, 18),
+      getBulletsDeletedAddress: () => _wasm._get_buffer(7),
       nextFrame: () => tryCatch(_nextFrame),
       resetGameSpeed: () => _wasm._replay_set_value(0, 1),
       loadReplay: (buffer: Buffer) => {
@@ -119,7 +120,7 @@ const openBw: OpenBWAPI = {
       }
     };
     //@ts-ignore
-    window.openBw = openBw.wasm;
+    window.openBw = openBw;
     return true;
   }),
   call: {
@@ -129,9 +130,11 @@ const openBw: OpenBWAPI = {
     getTilesPtr: () => 0,
     getTilesSize: () => 0,
     getSoundObjects: () => [],
-    getSpriteAddresses: () => [],
     getSpritesOnTileLineSize: () => 0,
     getSpritesOnTileLineAddress: () => 0,
+    getBulletsAddress: () => 0,
+    getBulletsDeletedCount: () => 0,
+    getBulletsDeletedAddress: () => 0,
     resetGameSpeed: () => { },
     nextFrame: () => 0,
     tryCatch: () => { },

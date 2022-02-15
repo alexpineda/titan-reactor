@@ -27,7 +27,8 @@ const createWebGLRenderer = () => {
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
-
+    renderer.shadowMap.autoUpdate = false;
+    renderer.sortObjects = true;
     return renderer;
 };
 export class TitanRenderer {

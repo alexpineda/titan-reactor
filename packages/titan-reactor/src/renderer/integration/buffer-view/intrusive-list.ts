@@ -1,24 +1,22 @@
-import { OpenBWWasm } from "src/renderer/openbw";
-
 /**
  * Represents an openbw intrusive_list
  */
 export class IntrusiveList {
-    private _bw: OpenBWWasm;
+    private _heapU32: Uint32Array;
     private _pairOffset: number;
     private _current = 0;
     addr: number;
 
-    constructor(bw: OpenBWWasm, addr = 0, pairOffset = 0) {
-        this._bw = bw;
+    constructor(heap: Uint32Array, addr = 0, pairOffset = 0) {
+        this._heapU32 = heap;
         this.addr = addr;
         this._pairOffset = pairOffset;
     }
 
     *[Symbol.iterator]() {
-        const end = this._bw.HEAPU32[(this.addr >> 2)];
-        const begin = this._bw.HEAPU32[(this.addr >> 2) + 1];
-        if (this._bw.HEAPU32[(end >> 2)] === end) {
+        const end = this._heapU32[(this.addr >> 2)];
+        const begin = this._heapU32[(this.addr >> 2) + 1];
+        if (this._heapU32[(end >> 2)] === end) {
             return;
         }
 
@@ -26,16 +24,16 @@ export class IntrusiveList {
         yield this._current;
 
         while (this._current !== end) {
-            this._current = this._bw.HEAPU32[(this._current >> 2) + this._pairOffset + 1];
+            this._current = this._heapU32[(this._current >> 2) + this._pairOffset + 1];
             yield this._current;
         }
     }
 
     *reverse() {
-        const end = this._bw.HEAPU32[(this.addr >> 2) + 1];
-        const begin = this._bw.HEAPU32[(this.addr >> 2)];
+        const end = this._heapU32[(this.addr >> 2) + 1];
+        const begin = this._heapU32[(this.addr >> 2)];
 
-        if (this._bw.HEAPU32[(end >> 2)] === end) {
+        if (this._heapU32[(end >> 2)] === end) {
             return;
         }
 
@@ -43,7 +41,7 @@ export class IntrusiveList {
         yield this._current;
 
         while (this._current !== end) {
-            this._current = this._bw.HEAPU32[(this._current >> 2) + this._pairOffset];
+            this._current = this._heapU32[(this._current >> 2) + this._pairOffset];
             yield this._current;
         }
     }

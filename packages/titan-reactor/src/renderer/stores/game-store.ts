@@ -4,7 +4,7 @@ import { UnitDAT } from "../../common/bwdat/core/units-dat";
 import { Player, GameCanvasDimensions } from "../../common/types";
 import range from "../../common/utils/range";
 import Assets from "../assets/assets";
-import { CrapUnit } from "../core";
+import { Unit } from "../core";
 
 export const CHAT_INTERVAL = 4000;
 
@@ -20,9 +20,9 @@ export type GameStore = {
   assets: Assets | null;
   game: any;
   fogOfWar: boolean;
-  followUnit: CrapUnit | null;
+  followUnit: Unit | null;
   dimensions: GameCanvasDimensions;
-  selectedUnits: CrapUnit[];
+  selectedUnits: Unit[];
   chat: ChatMessage[];
   lastChatAdd: number;
   playerVision: boolean[];
@@ -30,11 +30,11 @@ export type GameStore = {
   disposeAssets: () => void;
   setGame: (game: any) => void;
   disposeGame: () => void;
-  setSelectedUnits: (unit: CrapUnit[]) => void;
+  setSelectedUnits: (unit: Unit[]) => void;
   selectOfType: (type: UnitDAT) => void;
   toggleFogOfWar: () => void;
   togglePlayerVision: (id: number) => void;
-  toggleFollowUnit: (unit: CrapUnit) => void;
+  toggleFollowUnit: (unit: Unit) => void;
   addChatMessage: (message: ChatMessage) => void;
   removeOneFromChat: () => void;
 };
@@ -69,7 +69,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().setGame(null);
   },
 
-  setSelectedUnits: (selectedUnits: CrapUnit[]) => {
+  setSelectedUnits: (selectedUnits: Unit[]) => {
     for (const unit of get().selectedUnits) {
       unit.extra.selected = false;
     }
@@ -90,7 +90,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => ({
       playerVision: state.playerVision.map((v, i) => (i === id ? !v : v)),
     })),
-  toggleFollowUnit: (unit: CrapUnit) => set({ followUnit: unit }),
+  toggleFollowUnit: (unit: Unit) => set({ followUnit: unit }),
   addChatMessage: (msg) => {
     let chat = [...get().chat, { ...msg, id: _chatIndex++ }];
     if (chat.length > 10) {

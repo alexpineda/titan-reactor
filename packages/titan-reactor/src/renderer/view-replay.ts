@@ -15,7 +15,7 @@ import {
   GameStatePosition,
   Image,
   Players,
-  CrapUnit,
+  Unit,
   GameStatePlayMode,
   ImageHD,
 } from "./core";
@@ -60,6 +60,9 @@ import { isAttacking } from "./utils/unit-utils";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import { CameraMode, RegularCameraMode } from "./input/camera-mode";
+import { Vector } from "./integration/buffer-view/vector";
+import { BulletStruct } from "./integration/structs/bullet-struct";
+import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
 // import cameraIconSvg from "./camera-icon.svg";
 
 CameraControls.install({ THREE: THREE });
@@ -251,6 +254,7 @@ async function TitanReactorGame(
         } else {
           image.scale.multiplyScalar(ImageHD.useScale);
         }
+        image.updateMatrix();
       }
     }
   }
@@ -440,7 +444,7 @@ async function TitanReactorGame(
   const resourceColor = new Color(0, 55, 55);
   const flashColor = new Color(200, 200, 200);
 
-  const _buildMinimap = (unit: CrapUnit, unitType: UnitDAT) => {
+  const _buildMinimap = (unit: Unit, unitType: UnitDAT) => {
     const isResourceContainer = unitType.isResourceContainer && !unit.extra.player;
     if (
       (!isResourceContainer &&
@@ -497,7 +501,7 @@ async function TitanReactorGame(
     }
   }
 
-  const buildMinimap = (units: Map<number, CrapUnit>, imageData: ImageData, resourceImageData: ImageData) => {
+  const buildMinimap = (units: Map<number, Unit>, imageData: ImageData, resourceImageData: ImageData) => {
     imageData.data.fill(0);
     resourceImageData.data.fill(0);
 
@@ -514,7 +518,9 @@ async function TitanReactorGame(
     }
   }
 
-  const getUnit = (units: Map<number, CrapUnit>, unitData: UnitsBufferView) => {
+  const freeUnits: Unit[] = [];
+
+  const getUnit = (units: Map<number, Unit>, unitData: UnitsBufferView) => {
     const unit = units.get(unitData.id);
     if (unit) {
       return unit;
@@ -529,12 +535,12 @@ async function TitanReactorGame(
         highlight.add(debuglabel)
       }
       // cssGroup.add(highlight);
-      const unit = {
+      const unit = Object.assign(freeUnits.pop() || {}, {
         extra: {
           recievingDamage: 0,
           highlight,
         }
-      } as unknown as CrapUnit;
+      }) as unknown as Unit;
       unitData.copyTo(unit)
       units.set(unitData.id, unit);
       return unit;
@@ -542,7 +548,7 @@ async function TitanReactorGame(
   }
 
   const unitBufferView = new UnitsBufferView(openBw.wasm);
-  const unitList = new IntrusiveList(openBw.wasm, 0, 43);
+  const unitList = new IntrusiveList(openBw.wasm.HEAPU32, 0, 43);
 
   function* iterateUnits() {
     const playersUnitAddr = openBw.call.getUnitsAddr();
@@ -563,8 +569,8 @@ async function TitanReactorGame(
   let unitAttackScore = 0;
 
   const buildUnits = (
-    units: Map<number, CrapUnit>,
-    unitsBySprite: Map<number, CrapUnit>
+    units: Map<number, Unit>,
+    unitsBySprite: Map<number, Unit>
   ) => {
     const deletedUnitCount = openBw.wasm!._counts(0, 17);
     const deletedUnitAddr = openBw.wasm!._get_buffer(5);
@@ -575,6 +581,7 @@ async function TitanReactorGame(
       if (!unit) continue;
       unit.extra.highlight.removeFromParent();
       units.delete(unitId);
+      freeUnits.push(unit);
     }
 
     const playersUnitAddr = openBw.call.getUnitsAddr();
@@ -586,7 +593,7 @@ async function TitanReactorGame(
         const unitData = unitBufferView.get(unitAddr);
         const unit = getUnit(units, unitData);
 
-        unitsBySprite.set(unitData.owSprite.index, unit);
+        unitsBySprite.set(unitData.spriteIndex, unit);
 
         const mx = pxToGameUnit.x(unitData.x);
         const my = pxToGameUnit.y(unitData.y);
@@ -622,6 +629,27 @@ async function TitanReactorGame(
 
         unitData.copyTo(unit);
 
+      }
+    }
+  }
+
+  /**
+   * Sprite Index mapping to Bullet for Y position lerping on flying units/buildings
+   */
+  const spriteToBullet = new Map<number, BulletsBufferView>();
+  const bulletBufferView = new BulletsBufferView(openBw.wasm);
+  const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
+
+  const buildBullets = () => {
+    bulletList.addr = openBw.call.getBulletsAddress();
+    for (const bulletAddr of bulletList) {
+      const bulletData = bulletBufferView.get(bulletAddr);
+      const bullet = spriteToBullet.get(bulletData.spriteIndex)
+      if (bullet) {
+        bullet.copy(bulletData);
+      } else {
+        const newBullet = new BulletsBufferView(openBw.wasm!);
+        spriteToBullet.set(bulletData.spriteIndex, newBullet.copy(bulletData));
       }
     }
   }
@@ -770,8 +798,8 @@ async function TitanReactorGame(
   })();
 
 
-  const buildSounds = (sounds: EntityIterator<SoundStruct>) => {
-    for (const sound of sounds.instances()) {
+  const buildSounds = (sounds: SoundStruct[]) => {
+    for (const sound of sounds) {
       if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
         continue;
       }
@@ -796,7 +824,7 @@ async function TitanReactorGame(
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
 
-  const units: Map<number, CrapUnit> = new Map();
+  const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
   const freeImages: Image[] = [];
   janitor.callback(() => {
@@ -806,7 +834,7 @@ async function TitanReactorGame(
     }
     _janitor.mopUp();
   });
-  const unitsBySprite: Map<number, CrapUnit> = new Map();
+  const unitsBySprite: Map<number, Unit> = new Map();
   const imagesGroup = new Group();
 
   scene.add(imagesGroup);
@@ -833,7 +861,7 @@ async function TitanReactorGame(
       freeImages.push(image);
     }
 
-    const spriteList = new IntrusiveList(openBw.wasm!);
+    const spriteList = new IntrusiveList(openBw.wasm!.HEAPU32);
     const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
     const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
     for (let l = 0; l < spriteTileLineSize; l++) {
@@ -1013,7 +1041,7 @@ async function TitanReactorGame(
     }
 
     if (gameStatePosition.advanceGameFrames && currentBwFrame) {
-      buildSounds(currentBwFrame.sounds);
+      buildSounds(openBw.call.getSoundObjects());
       buildCreep(currentBwFrame);
 
       gameStatePosition.bwGameFrame = currentBwFrame.frame;
@@ -1025,7 +1053,8 @@ async function TitanReactorGame(
         units,
         unitsBySprite
       );
-      buildMinimap(units, minimapImageData, minimapResourceImageData)
+      buildMinimap(units, minimapImageData, minimapResourceImageData);
+      buildBullets();
       buildImages(delta);
       // buildResearchAndUpgrades(currentBwFrame);
       fogOfWar.texture.needsUpdate = true;
@@ -1101,6 +1130,7 @@ async function TitanReactorGame(
       //     }
       //   }
       // }
+      renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
       currentBwFrame = null;
     }
 

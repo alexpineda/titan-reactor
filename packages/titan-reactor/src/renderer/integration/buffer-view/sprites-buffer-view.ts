@@ -22,7 +22,7 @@ export class SpritesBufferView
 
   constructor(bw: OpenBWWasm) {
     this._bw = bw;
-    this.images = new IntrusiveList(bw, 0);
+    this.images = new IntrusiveList(bw.HEAPU32, 0);
     this._mainImage = new ImageBufferView(bw);
   }
 

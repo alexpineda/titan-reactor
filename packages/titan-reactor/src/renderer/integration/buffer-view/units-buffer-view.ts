@@ -3,7 +3,7 @@ import { FP8 } from "./fixed-point";
 import FlingyBufferView from "./flingy-buffer-view";
 
 /**
- * Maps to openbw unit_t starting from index address
+ * Maps to openbw unit_t
  */
 export class UnitsBufferView extends FlingyBufferView
     implements UnitStruct {
@@ -154,10 +154,9 @@ export class UnitsBufferView extends FlingyBufferView
 
 
 
-    copyTo(dest: any) {
+    override copyTo(dest: UnitStruct) {
+        super.copyTo(dest);
         dest.id = this.id;
-        dest.hp = this.hp;
-        dest.direction = this.direction;
         dest.typeId = this.typeId;
         dest.owner = this.owner;
         dest.order = this.order;
@@ -165,8 +164,10 @@ export class UnitsBufferView extends FlingyBufferView
         dest.energy = this.energy;
         dest.kills = this.kills;
         dest.statusFlags = this.statusFlags;
-        dest.x = this.x;
-        dest.y = this.y;
+    }
+
+    copy(bufferView = new UnitsBufferView(this._bw)) {
+        return bufferView.get(this._address);
     }
 
 }

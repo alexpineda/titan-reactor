@@ -2,7 +2,7 @@ import { FlingyStruct } from "../structs/flingy-struct";
 import ThingyBufferView from "./thingy-buffer-view";
 
 /**
- * Maps to openbw unit_t starting from index address
+ * Maps to openbw flingy_t
  */
 export class FlingyBufferView extends ThingyBufferView
     implements FlingyStruct {
@@ -36,5 +36,11 @@ export class FlingyBufferView extends ThingyBufferView
         return this._bw.HEAP32[this._index32 + 17];
     }
 
+    override copyTo(dest: FlingyStruct) {
+        super.copyTo(dest);
+        dest.direction = this.direction;
+        dest.x = this.x;
+        dest.y = this.y;
+    }
 }
 export default FlingyBufferView;

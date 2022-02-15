@@ -1,15 +1,15 @@
 import create from "zustand/vanilla";
 
-import { CrapUnit } from "../../core";
+import { Unit } from "../../core";
 
 export type UnitSelectionStore = {
-  selectedUnits: CrapUnit[];
-  setSelectedUnits: (selectedUnits: CrapUnit[]) => void;
+  selectedUnits: Unit[];
+  setSelectedUnits: (selectedUnits: Unit[]) => void;
 };
 export const useUnitSelectionStore = create<UnitSelectionStore>((set) => ({
   selectedUnits: [],
 
-  setSelectedUnits: (selectedUnits: CrapUnit[]) => {
+  setSelectedUnits: (selectedUnits: Unit[]) => {
     set({ selectedUnits });
   },
 }));

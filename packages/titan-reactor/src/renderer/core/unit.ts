@@ -3,7 +3,7 @@ import { UnitStruct } from "../integration/structs";
 import { Mesh, Object3D } from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
-export type CrapUnit = UnitStruct & {
+export type Unit = UnitStruct & {
     extra: {
         player?: Player;
         recievingDamage: number;

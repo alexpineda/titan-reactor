@@ -1,9 +1,6 @@
 import { strict as assert } from "assert";
-import { OpenBWAPI, OpenBWWasm } from "src/renderer/openbw";
+import { OpenBWAPI } from "src/renderer/openbw";
 import { TilesBufferView } from ".";
-import { SoundStruct } from "../structs";
-import { UnitStruct } from "../structs";
-import { EmbindEntityInterator, EntityIterator } from "./entity-iterator";
 
 // a wrapper for a bw frames entire game state
 export class FrameBW {
@@ -16,7 +13,6 @@ export class FrameBW {
   supplyAvailable: number[] = [];
   workerSupply: number[] = [];
 
-  private _sounds: EntityIterator<SoundStruct>;
   private _tiles: TilesBufferView;
 
   private _bw: OpenBWAPI;
@@ -25,7 +21,6 @@ export class FrameBW {
     assert(bw.wasm);
     this._bw = bw;
     this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, bw.wasm.HEAPU8);
-    this._sounds = new EmbindEntityInterator<SoundStruct>();
   }
 
   update() {
@@ -47,18 +42,10 @@ export class FrameBW {
     this.tiles.ptrIndex = this._bw.call.getTilesPtr();
     this.tiles.itemsCount = this._bw.call.getTilesSize();
 
-    if (this.sounds instanceof EmbindEntityInterator) {
-      this.sounds.assign(this._bw.call.getSoundObjects());
-    }
-
   }
 
   get tiles() {
     return this._tiles;
-  }
-
-  get sounds() {
-    return this._sounds;
   }
 
 }

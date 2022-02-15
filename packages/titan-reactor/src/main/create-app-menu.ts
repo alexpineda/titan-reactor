@@ -63,13 +63,13 @@ export default (settingsPath: string) => {
       role: "help",
       submenu: [
         {
-          label: "Visit ImbaTeam.GG",
+          label: "Github",
           click: async () => {
-            await shell.openExternal("http://imbateam.gg");
+            await shell.openExternal("https://github.com/imbateam-gg/titan-reactor");
           },
         },
         {
-          label: "Join Our Discord",
+          label: "Discord",
           click: async () => {
             await shell.openExternal("http://discord.imbateam.gg");
           },

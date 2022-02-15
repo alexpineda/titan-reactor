@@ -4,14 +4,18 @@ import { FP8 } from "./fixed-point";
 import SpritesBufferView from "./sprites-buffer-view";
 
 /**
- * Maps to openbw unit_t starting from index address
+ * Maps to openbw thingy_t
  */
 export class ThingyBufferView
     implements ThingyStruct {
 
-    _address = 0;
-    _bw: OpenBWWasm;
-    _sprite: SpritesBufferView;
+    protected _address = 0;
+    protected _bw: OpenBWWasm;
+    protected _sprite: SpritesBufferView;
+
+    get address() {
+        return this._address;
+    }
 
     get(address: number) {
         this._address = address;
@@ -37,5 +41,13 @@ export class ThingyBufferView
         return this._sprite.get(spriteAddr);
     }
 
+    get spriteIndex() {
+        return this.owSprite.index;
+    }
+
+    copyTo(dest: ThingyStruct) {
+        dest.hp = this.hp;
+        dest.spriteIndex = this.spriteIndex;
+    }
 }
 export default ThingyBufferView;
