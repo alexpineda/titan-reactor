@@ -1,12 +1,12 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
-import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereBufferGeometry, Vector3, Vector4 } from "three";
+import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
-import { playerColors, unitTypes } from "../common/bwdat/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import {
-  ReplayPlayer, UnitDAT,
+  ReplayPlayer, UnitDAT, WeaponDAT,
 } from "../common/types";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "../common/utils/conversions";
@@ -42,7 +42,6 @@ import {
   useSettingsStore,
 } from "./stores";
 import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/structs";
-import { EntityIterator } from "./integration/buffer-view/entity-iterator";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
@@ -60,9 +59,9 @@ import { isAttacking } from "./utils/unit-utils";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import { CameraMode, RegularCameraMode } from "./input/camera-mode";
-import { Vector } from "./integration/buffer-view/vector";
-import { BulletStruct } from "./integration/structs/bullet-struct";
 import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
+import { WeaponType, WeaponBehavior } from "../common/bwdat/enums";
+import { easeCubicIn } from "d3-ease";
 // import cameraIconSvg from "./camera-icon.svg";
 
 CameraControls.install({ THREE: THREE });
@@ -129,10 +128,6 @@ async function TitanReactorGame(
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
-  const cssRenderer = new RenderCSS(document.body);
-  cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
-  janitor.disposable(cssRenderer);
-
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
   minimapSurface.canvas.style.bottom = "0";
@@ -196,7 +191,7 @@ async function TitanReactorGame(
     const enableAll = () => toggle(true);
     const disableAll = () => toggle(false);
 
-    _PIP.camera.position.set(0, 30, 0);
+    _PIP.camera.position.set(0, 50, 0);
     _PIP.camera.lookAt(0, 0, 0);
     _PIP.enabled = false;
 
@@ -240,20 +235,17 @@ async function TitanReactorGame(
     }
   }
 
-  const setUseScale = (enable: boolean | number) => {
-    if (typeof enable === "number") {
-      ImageHD.useScale = enable;
-    } else {
-      ImageHD.useScale = enable ? 2 : 1;
-    }
+  const setUseScale = (enable: boolean) => {
+    ImageHD.useScale = enable ? 2.5 : 1;
     for (const [, image] of images) {
       if (image instanceof ImageHD) {
 
-        if (ImageHD.useScale === 1) {
-          image.scale.copy(image.originalScale);
-        } else {
+        image.scale.copy(image.originalScale);
+
+        if (enable) {
           image.scale.multiplyScalar(ImageHD.useScale);
         }
+
         image.updateMatrix();
       }
     }
@@ -356,6 +348,7 @@ async function TitanReactorGame(
   keyboardManager.on(InputEvents.TogglePlay, togglePlayHandler);
 
   let reset: (() => void) | null = null;
+  let _wasReset = false;
 
   const skipHandler = (dir: number) => () => {
     if (reset) return;
@@ -364,12 +357,19 @@ async function TitanReactorGame(
       openBw.wasm!._replay_set_value(3, currentFrame + 100 * dir);
       images.clear();
       units.clear();
-      imagesGroup.clear();
       unitsBySprite.clear();
+      const highlights: Object3D[] = [];
+      scene.children.forEach((obj) => {
+        if (obj.parent === scene && obj.name === "Highlight") {
+          highlights.push(obj)
+        }
+      });
+      highlights.forEach(h => h.removeFromParent());
       // cmds.next(openBw.api._replay_get_value(3));
 
       currentBwFrame = null;
       reset = null;
+      _wasReset = true;
     }
   }
   keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
@@ -400,7 +400,6 @@ async function TitanReactorGame(
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
-    cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
@@ -525,7 +524,9 @@ async function TitanReactorGame(
     if (unit) {
       return unit;
     } else {
-      const highlight = new THREE.Mesh(new THREE.SphereBufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+      const existingUnit = freeUnits.pop();
+      const highlight = existingUnit?.extra.highlight ?? new THREE.Mesh(new THREE.SphereBufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+      highlight.name = "Highlight";
       if (unitData.owner < 8) {
         const div = document.createElement("div");
         div.innerText = unitData.id.toString();
@@ -534,16 +535,16 @@ async function TitanReactorGame(
         const debuglabel = new CSS2DObject(div);
         highlight.add(debuglabel)
       }
-      // cssGroup.add(highlight);
-      const unit = Object.assign(freeUnits.pop() || {}, {
+      const unit = Object.assign(existingUnit || {}, {
         extra: {
           recievingDamage: 0,
           highlight,
+          dat: bwDat.units[unitData.typeId]
         }
-      }) as unknown as Unit;
+      });
       unitData.copyTo(unit)
-      units.set(unitData.id, unit);
-      return unit;
+      units.set(unitData.id, unit as unknown as Unit);
+      return unit as unknown as Unit;
     }
   }
 
@@ -566,7 +567,18 @@ async function TitanReactorGame(
     }
   }
 
-  let unitAttackScore = 0;
+  let unitAttackScore = {
+    frequency: new Vector3(10, 20, 7.5),
+    duration: new Vector3(1000, 1000, 1000),
+    strength: 0,
+    minDistance: Infinity,
+    reset: () => {
+      unitAttackScore.strength = 0;
+      unitAttackScore.minDistance = Infinity;
+      unitAttackScore.duration.set(1000, 1000, 1000);
+      unitAttackScore.frequency.set(10, 20, 7.5);
+    }
+  }
 
   const buildUnits = (
     units: Map<number, Unit>,
@@ -586,7 +598,6 @@ async function TitanReactorGame(
 
     const playersUnitAddr = openBw.call.getUnitsAddr();
 
-    unitAttackScore = 0;
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
       for (const unitAddr of unitList) {
@@ -597,13 +608,6 @@ async function TitanReactorGame(
 
         const mx = pxToGameUnit.x(unitData.x);
         const my = pxToGameUnit.y(unitData.y);
-
-        if (controls.cameraMode === CameraMode.Battle && mx > projectedCameraView.left && mx < projectedCameraView.right && my > projectedCameraView.top && my < projectedCameraView.bottom) {
-          // @todo only ranged and scale by weapon type
-          if (isAttacking(unitData, bwDat)) {
-            unitAttackScore++;
-          }
-        }
 
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
@@ -627,32 +631,20 @@ async function TitanReactorGame(
         //   unit.extra.timeOfDeath = Date.now();
         // }
 
+        // unit morph
+        if (unit.typeId !== unitData.typeId) {
+          unit.extra.dat = bwDat.units[unitData.typeId];
+        }
+
         unitData.copyTo(unit);
 
       }
     }
   }
 
-  /**
-   * Sprite Index mapping to Bullet for Y position lerping on flying units/buildings
-   */
-  const spriteToBullet = new Map<number, BulletsBufferView>();
-  const bulletBufferView = new BulletsBufferView(openBw.wasm);
   const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
 
-  const buildBullets = () => {
-    bulletList.addr = openBw.call.getBulletsAddress();
-    for (const bulletAddr of bulletList) {
-      const bulletData = bulletBufferView.get(bulletAddr);
-      const bullet = spriteToBullet.get(bulletData.spriteIndex)
-      if (bullet) {
-        bullet.copy(bulletData);
-      } else {
-        const newBullet = new BulletsBufferView(openBw.wasm!);
-        spriteToBullet.set(bulletData.spriteIndex, newBullet.copy(bulletData));
-      }
-    }
-  }
+
 
   const drawMinimap = (() => {
     const color = "white";
@@ -804,6 +796,7 @@ async function TitanReactorGame(
         continue;
       }
       const dat = assets.bwDat.sounds[sound.typeId];
+      console.log(dat.file)
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
       const volume = getBwVolume(
         dat,
@@ -839,14 +832,214 @@ async function TitanReactorGame(
 
   scene.add(imagesGroup);
 
+  const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlyer?: boolean) => {
+    const spriteX = pxToGameUnit.x(x);
+    const spriteZ = pxToGameUnit.y(y);
+    let spriteY = terrain.getTerrainY(spriteX, spriteZ);
+    const flyingY = isFlyer ? Math.min(6, spriteY + 2.5) : spriteY;
+
+    v2.set(spriteX, spriteZ);
+    v.set(spriteX, flyingY, spriteZ);
+  }
+  const calcSpriteCoords = (sprite: SpritesBufferView, v: Vector3, v2: Vector2, isFlyer?: boolean) => {
+    calcSpriteCoordsXY(sprite.x, sprite.y, v, v2, isFlyer);
+  }
+  const _spritePos = new Vector3();
+  const _spritePos2d = new Vector2();
+  const _targetSpritePos2d = new Vector2();
+  const _targetSpritePos = new Vector3();
+  const _ownerSpritePos = new Vector3();
+  const _ownerSpritePos2d = new Vector2();
+
+  // frequency, duration, strength multiplier
+  const explosionFrequencyDuration = {
+    [Explosion.Splash_Radial]: [6, 1.25, 1],
+    [Explosion.Splash_Enemy]: [6, 1.25, 1],
+    [Explosion.SplashAir]: [6, 1, 1],
+    [Explosion.CorrosiveAcid]: [20, 0.75, 1],
+    [Explosion.Normal]: [10, 0.75, 1],
+    [Explosion.NuclearMissile]: [2, 3, 2],
+    [Explosion.YamatoGun]: [4, 2, 1],
+  };
+  const bulletStrength = {
+    [DamageType.Explosive]: 1,
+    [DamageType.Concussive]: 0.5,
+    [DamageType.Normal]: 0.25,
+  };
+  const MaxShakeDistance = 30;
+
+  const buildSprite = (spriteData: SpritesBufferView, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
+
+    const unit = unitsBySprite.get(spriteData.index);
+    const dat = bwDat.sprites[spriteData.typeId];
+
+    // doodads and resources are always visible
+    // show units as fog is lifting from or lowering to explored
+    // show if a building has been explored
+    let spriteIsVisible =
+      spriteData.owner === 11 ||
+      dat.image.iscript === 336 ||
+      dat.image.iscript === 337 ||
+      fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
+
+    // hide addons in battle cam as they look awkward, and overview as it takes too much space
+    if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
+      spriteIsVisible = false;
+    }
+
+    if (spriteIsHidden(spriteData)) {
+      spriteIsVisible = false;
+    }
+
+    const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
+
+    calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit?.extra.dat.isFlyer);
+    let bulletY: number | undefined;
+
+    const player = players.playersById[spriteData.owner];
+
+    if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
+
+      const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
+
+      if (controls.cameraMode === CameraMode.Battle && controls.cameraShake.isShaking === false && bullet.state === BulletState.Dying && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
+        const distance = camera.position.distanceTo(_spritePos);
+        const thisBulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength] || 0;
+        if (distance < 30) {
+          const distanceNorm = easeCubicIn(1 - distance / 30);
+          if (thisBulletStrength * distanceNorm > unitAttackScore.strength) {
+            unitAttackScore.strength = thisBulletStrength * distanceNorm;
+            unitAttackScore.duration.setScalar(exp[1] * 1000);
+            unitAttackScore.frequency.setScalar(exp[0]);
+          }
+        }
+      }
+
+      if (weapon.weaponBehavior === WeaponBehavior.AppearOnTargetUnit && bullet.targetUnit) {
+        calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, bwDat.units[bullet.targetUnit.typeId].isFlyer);
+        bulletY = _targetSpritePos.y;
+        // appear on attacker: dark swarm/scarab/stasis field (visible?)
+      } else if ((weapon.weaponBehavior === WeaponBehavior.AppearOnAttacker || weapon.weaponBehavior === WeaponBehavior.AttackTarget_3x3Area) && bullet.ownerUnit) {
+        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, bwDat.units[bullet.ownerUnit.typeId].isFlyer);
+        bulletY = _ownerSpritePos.y;
+      } else if (weapon.weaponBehavior === WeaponBehavior.FlyAndDontFollowTarget && bullet.targetUnit && bullet.ownerUnit) {
+        calcSpriteCoordsXY(bullet.targetPosX, bullet.targetPosY, _targetSpritePos, _targetSpritePos2d, bwDat.units[bullet.targetUnit.typeId].isFlyer);
+        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, bwDat.units[bullet.ownerUnit.typeId].isFlyer);
+
+        const unitDistances = _ownerSpritePos2d.distanceTo(_targetSpritePos2d);
+        const bulletDistanceToTarget = _spritePos2d.distanceTo(_targetSpritePos2d);
+
+        bulletY = MathUtils.lerp(_targetSpritePos.y, _ownerSpritePos.y, bulletDistanceToTarget / unitDistances);
+      }
+      else if ((weapon.weaponBehavior === WeaponBehavior.FlyAndFollowTarget || weapon.weaponBehavior === WeaponBehavior.Bounce) && bullet.targetUnit) {
+        const prevUnit = bullet.prevBounceUnit ?? bullet.ownerUnit;
+        if (prevUnit) {
+          calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, bwDat.units[bullet.targetUnit.typeId].isFlyer);
+          calcSpriteCoords(prevUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, bwDat.units[prevUnit.typeId].isFlyer);
+
+          const unitDistances = _ownerSpritePos2d.distanceTo(_targetSpritePos2d);
+          const bulletDistanceToTarget = _spritePos2d.distanceTo(_targetSpritePos2d);
+
+          bulletY = MathUtils.lerp(_targetSpritePos.y, _ownerSpritePos.y, bulletDistanceToTarget / unitDistances);
+        }
+      }
+    }
+
+    let imageCounter = 0;
+
+    for (const imgAddr of spriteData.images.reverse()) {
+      const imageData = imageBufferView.get(imgAddr);
+
+      let image = images.get(imageData.index);
+      if (!image) {
+        image = createImage(imageData.typeId);
+        images.set(imageData.index, image);
+        imagesGroup.add(image);
+      }
+      image.visible = spriteIsVisible && !isHidden(imageData as ImageStruct);
+
+      if (image.visible) {
+        if (player) {
+          image.setTeamColor(player.color.three);
+        }
+
+        image.offsetX = image.position.x = imageData.x / 32 + _spritePos.x;
+        image.offsetY = image.position.z = imageData.y / 32 + _spritePos.z;
+        if (bulletY !== undefined) {
+          image.position.y = bulletY;
+        } else if (image.dat.drawFunction === drawFunctions.rleShadow) {
+          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
+
+        } else {
+          image.position.y = _spritePos.y;
+        }
+
+        image.renderOrder = spriteRenderOrder + imageCounter;
+
+        // 63-48=15
+        if (imageData.modifier === 14) {
+          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
+        } else {
+          //FIXME: see if we even need this
+          image.setWarpingIn(0);
+        }
+        //FIXME: use modifier 1 for opacity value
+        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
+
+        if (hasDirectionalFrames(imageData as ImageStruct)) {
+          const flipped = isFlipped(imageData as ImageStruct);
+          const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
+          const newFrameOffset = (direction + camera.userData.direction) % 32;
+
+          if (newFrameOffset > 16) {
+            image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
+          } else {
+            image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
+          }
+        } else {
+          image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
+        }
+
+        if (imageData.index === spriteData.mainImageIndex) {
+
+          // const z = image._zOff * image.unitTileScale;
+          if (unit) {
+            // for 3d models
+            // image.rotation.y = unit.angle;
+          }
+
+          if (isClickable(imageData as ImageStruct)) {
+            image.layers.enable(Layers.Clickable);
+          }
+        }
+
+        if (redraw(imageData as ImageStruct)) {
+          image.updateMatrix();
+        }
+      }
+      //FIXME: is this the reason for overlays displaying in 0,0?
+      // sprite.position.z += z - sprite.lastZOff;
+      // sprite.lastZOff = z;
+      imageCounter++;
+    }
+  }
+
   const spriteBufferView = new SpritesBufferView(openBw.wasm);
   const imageBufferView = new ImageBufferView(openBw.wasm);
+  const bulletBufferView = new BulletsBufferView(openBw.wasm);
+  const _ignoreSprites: number[] = [];
 
-  const buildImages = (delta: number) => {
+  const buildImages = () => {
     const deleteImageCount = openBw.wasm!._counts(0, 15);
     const deletedSpriteCount = openBw.wasm!._counts(0, 16);
     const deletedImageAddr = openBw.wasm!._get_buffer(3);
     const deletedSpriteAddr = openBw.wasm!._get_buffer(4);
+
+    // avoid image flashing by clearing the group here when user is scrubbing through a replay
+    if (_wasReset) {
+      imagesGroup.clear();
+      _wasReset = false;
+    }
 
     for (let i = 0; i < deletedSpriteCount; i++) {
       unitsBySprite.delete(openBw.wasm!.HEAP32[(deletedSpriteAddr >> 2) + i]);
@@ -861,6 +1054,24 @@ async function TitanReactorGame(
       freeImages.push(image);
     }
 
+    // build bullet sprites first since they need special Y calculations
+    bulletList.addr = openBw.call.getBulletsAddress();
+    _ignoreSprites.length = 0;
+    for (const bulletAddr of bulletList) {
+      if (bulletAddr === 0) continue;
+
+      const bullet = bulletBufferView.get(bulletAddr);
+      const weapon = bwDat.weapons[bullet.weaponTypeId];
+
+      if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
+        continue;
+      }
+
+      buildSprite(bullet.owSprite, bullet, weapon);
+      _ignoreSprites.push(bullet.spriteIndex);
+    }
+
+    // build all remaining sprites
     const spriteList = new IntrusiveList(openBw.wasm!.HEAPU32);
     const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
     const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
@@ -872,112 +1083,11 @@ async function TitanReactorGame(
         }
 
         const spriteData = spriteBufferView.get(spriteAddr);
-
-        const unit = unitsBySprite.get(spriteData.index);
-        const dat = bwDat.sprites[spriteData.typeId];
-
-        // doodads and resources are always visible
-        // show units as fog is lifting from or lowering to explored
-        // show if a building has been explored
-        let spriteIsVisible =
-          spriteData.owner === 11 ||
-          dat.image.iscript === 336 ||
-          dat.image.iscript === 337 ||
-          fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
-
-        // hide addons in battle cam as they look awkward, and overview as it takes too much space
-        if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
-          spriteIsVisible = false;
+        if (_ignoreSprites.includes(spriteData.index)) {
+          continue;
         }
 
-        if (spriteIsHidden(spriteData)) {
-          spriteIsVisible = false;
-        }
-
-
-        // FIXME: short circuit this when sprite is not visible by setting all images
-        //        to invisible
-        // if (!sprite.visible) continue;
-
-
-        const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
-
-        const spriteX = pxToGameUnit.x(spriteData.x);
-        const spriteZ = pxToGameUnit.y(spriteData.y);
-        //FIXME: use Y coord for floating units, buildings and bullets
-        let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-
-        const player = players.playersById[spriteData.owner];
-
-        let imageCounter = 0;
-
-        for (const imgAddr of spriteData.images.reverse()) {
-          const imageData = imageBufferView.get(imgAddr);
-
-          let image = images.get(imageData.index);
-          if (!image) {
-            image = createImage(imageData.typeId);
-            images.set(imageData.index, image);
-            imagesGroup.add(image);
-          }
-          image.visible = spriteIsVisible && !isHidden(imageData as ImageStruct);
-
-          if (image.visible) {
-            if (player) {
-              image.setTeamColor(player.color.three);
-            }
-
-            image.offsetX = image.position.x = imageData.x / 32 + spriteX;
-            image.offsetY = image.position.z = imageData.y / 32 + spriteZ;
-            image.position.y = spriteY;
-            image.renderOrder = spriteRenderOrder + imageCounter;
-
-            // 63-48=15
-            if (imageData.modifier === 14) {
-              image.setWarpingIn((imageData.modifierData1 - 48) / 15);
-            } else {
-              //FIXME: see if we even need this
-              image.setWarpingIn(0);
-            }
-            //FIXME: use modifier 1 for opacity value
-            image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
-
-            if (hasDirectionalFrames(imageData as ImageStruct)) {
-              const flipped = isFlipped(imageData as ImageStruct);
-              const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
-              const newFrameOffset = (direction + camera.userData.direction) % 32;
-
-              if (newFrameOffset > 16) {
-                image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
-              } else {
-                image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
-              }
-            } else {
-              image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
-            }
-
-            if (imageData.index === spriteData.mainImageIndex) {
-
-              // const z = image._zOff * image.unitTileScale;
-              if (unit) {
-                // for 3d models
-                // image.rotation.y = unit.angle;
-              }
-
-              if (isClickable(imageData as ImageStruct)) {
-                image.layers.enable(Layers.Clickable);
-              }
-            }
-
-            if (redraw(imageData as ImageStruct)) {
-              image.updateMatrix();
-            }
-          }
-          //FIXME: is this the reason for overlays displaying in 0,0?
-          // sprite.position.z += z - sprite.lastZOff;
-          // sprite.lastZOff = z;
-          imageCounter++;
-        }
+        buildSprite(spriteData);
       }
     }
   };
@@ -1054,8 +1164,7 @@ async function TitanReactorGame(
         unitsBySprite
       );
       buildMinimap(units, minimapImageData, minimapResourceImageData);
-      buildBullets();
-      buildImages(delta);
+      buildImages();
       // buildResearchAndUpgrades(currentBwFrame);
       fogOfWar.texture.needsUpdate = true;
       creep.creepValuesTexture.needsUpdate = true;
@@ -1063,8 +1172,10 @@ async function TitanReactorGame(
 
       soundChannels.play(elapsed);
 
-      if (unitAttackScore) {
-        controls.cameraShake.shake();
+      if (unitAttackScore.strength) {
+        controls.cameraShake.setParamsV(unitAttackScore.duration, unitAttackScore.frequency, unitAttackScore.strength);
+        controls.cameraShake.shake(elapsed);
+        unitAttackScore.reset();
       }
 
       {
@@ -1137,11 +1248,7 @@ async function TitanReactorGame(
     controls.standard.getTarget(_cameraTarget);
 
     {
-      // const azi = constrainAzimuth(control.polarAngle);
-      // control.minAzimuthAngle = -azi / 2;
-      // control.maxAzimuthAngle = azi / 2;
-
-      const dir = controls.standard.polarAngle < 0.25 ? 0 : getDirection32(projectedCameraView.center, camera.position);
+      const dir = (controls.cameraMode !== CameraMode.Battle) ? 0 : getDirection32(projectedCameraView.center, camera.position);
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
@@ -1188,7 +1295,7 @@ async function TitanReactorGame(
     renderer.render(scene, camera, delta);
     if (controls.PIP.enabled) {
       if (controls.cameraMode === CameraMode.Overview) {
-        setUseScale(1);
+        setUseScale(false);
       }
       fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
       renderer.render(scene, controls.PIP.camera, delta, controls.PIP.viewport);
@@ -1196,9 +1303,6 @@ async function TitanReactorGame(
         setUseScale(true);
       }
     }
-
-
-    cssRenderer.render(camera);
     drawMinimap(projectedCameraView);
 
     controls.cameraShake.restore(camera);

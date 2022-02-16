@@ -1,5 +1,4 @@
-import { DDSGrpFrameType } from "./";
-import { Mesh, Texture } from "three";
+import { Mesh, Texture, Vector3 } from "three";
 
 import { GetTerrainY } from "./util";
 
@@ -27,15 +26,8 @@ export type TerrainInfo = {
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
-  getMapCoords: (x: number, y: number) => MapCoords;
+  getMapCoords: (x: number, y: number) => Vector3;
 };
-
-export type MapCoords = {
-  x: number;
-  y: number;
-  z: number;
-}
-
 
 export type TilesetBuffers = {
   mapTiles: Uint16Array;

@@ -1,4 +1,5 @@
-import { MapCoords, SoundDAT } from "../../common/types";
+import { Vector3 } from "three";
+import { SoundDAT } from "../../common/types";
 import { SoundStruct } from "../integration/structs";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
@@ -15,9 +16,9 @@ export class Audio {
   gain?: GainNode;
   sound: SoundStruct;
   dat: SoundDAT;
-  mapCoords: MapCoords;
+  mapCoords: Vector3;
 
-  constructor(mixer: MainMixer, sound: SoundStruct, buffer: DeferredAudioBuffer, soundDat: SoundDAT, mapCoords: MapCoords) {
+  constructor(mixer: MainMixer, sound: SoundStruct, buffer: DeferredAudioBuffer, soundDat: SoundDAT, mapCoords: Vector3) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;

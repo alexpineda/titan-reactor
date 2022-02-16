@@ -36,7 +36,7 @@ export class FlingyBufferView extends ThingyBufferView
         return this._bw.HEAP32[this._index32 + 17];
     }
 
-    override copyTo(dest: FlingyStruct) {
+    override copyTo(dest: Partial<FlingyStruct>) {
         super.copyTo(dest);
         dest.direction = this.direction;
         dest.x = this.x;

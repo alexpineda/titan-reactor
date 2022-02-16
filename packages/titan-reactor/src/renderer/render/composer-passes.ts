@@ -59,7 +59,7 @@ export const createPasses = () => {
   });
 
   const scanlineEffect = new ScanlineEffect({ density: 0.75 });
-  scanlineEffect.blendMode.opacity.value = 0.2
+  scanlineEffect.blendMode.opacity.value = 0.15;
 
   passes[Passes.Render] = new RenderPass(throwAwayCamera);
   passes[Passes.Cinematic] = new EffectPass(

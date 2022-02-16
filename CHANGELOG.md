@@ -11,10 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Right click in Overview Cam to enable/disable PIP
   - Automatic settings migrations
   - Customizable `helicopter rotate speed` setting
+  - Flying units and buildings are now "higher" than the other units
+  - Bullets are tracked and correctly follow different elevation units
 ### Changed
-- Don't show scanner in minimap
+- Scanner no longer shows in minimap
 - Several optimizations to reduce GC use
 - Saner default `models` directory so things don't fail on first run
+- Scrubbing through a replay won't flash the images any more
+- The camera shaking logic has drastically improved when in battle cam mode
+- Battle cam isn't so extreme in it's field of view any longer resulting in more pleasant views
+- Units in overview mode are now 2.5x the size (previously 2x) and 1x when viewed in PIP
 
 ## [0.4.0] - 2022-01-26
 ### Added 

@@ -45,7 +45,7 @@ export class ThingyBufferView
         return this.owSprite.index;
     }
 
-    copyTo(dest: ThingyStruct) {
+    copyTo(dest: Partial<ThingyStruct>) {
         dest.hp = this.hp;
         dest.spriteIndex = this.spriteIndex;
     }

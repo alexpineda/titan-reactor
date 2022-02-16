@@ -1,3 +1,4 @@
+import { Unit } from "../../core";
 import { UnitStruct } from "../structs";
 import { FP8 } from "./fixed-point";
 import FlingyBufferView from "./flingy-buffer-view";
@@ -154,7 +155,7 @@ export class UnitsBufferView extends FlingyBufferView
 
 
 
-    override copyTo(dest: UnitStruct) {
+    override copyTo(dest: Partial<Unit>) {
         super.copyTo(dest);
         dest.id = this.id;
         dest.typeId = this.typeId;

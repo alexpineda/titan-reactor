@@ -9,7 +9,8 @@ const _vec3b = new Vector3();
 class CameraShake {
   private _cameraControls: CameraControls;
   private _duration: number;
-  strength: number;
+  strength = 1;
+  private _actualStrength = 0;
   private _noiseX: number[] = [];
   private _noiseY: number[] = [];
   private _noiseZ: number[] = [];
@@ -19,6 +20,9 @@ class CameraShake {
   private _lastOffsetZ = 0;
 
   private _enabled = true;
+
+  private _lastShakeTime = 0;
+  private _randomizedWaitTime = 0;
 
   isShaking = false;
 
@@ -42,19 +46,19 @@ class CameraShake {
   ) {
     this._cameraControls = cameraControls;
     this._duration = duration;
-    this.strength = strength;
 
-    this.setParams(duration, frequency);
+    this.setParams(duration, frequency, strength);
   }
 
-  setParams(duration: number, frequency: number) {
+  setParams(duration: number, frequency: number, strength: number) {
+    this.strength = strength;
     this._duration = duration;
     this._noiseX = makePNoise1D(
       (duration / ONE_SECOND) * frequency,
       (duration / ONE_SECOND) * FPS
     );
     this._noiseY = makePNoise1D(
-      (duration / ONE_SECOND) * frequency * 2,
+      (duration / ONE_SECOND) * frequency * 1.25,
       (duration / ONE_SECOND) * FPS
     );
     this._noiseZ = makePNoise1D(
@@ -63,24 +67,35 @@ class CameraShake {
     );
   }
 
-  setEachParams(duration0: number, frequency0: number, duration1: number, frequency1: number, duration2: number, frequency2: number) {
+  setParamsV(duration: Vector3, frequency: Vector3, strength: number) {
+    this.strength = strength;
     this._noiseX = makePNoise1D(
-      (duration0 / ONE_SECOND) * frequency0,
-      (duration0 / ONE_SECOND) * FPS
+      (duration.x / ONE_SECOND) * frequency.x,
+      (duration.x / ONE_SECOND) * FPS
     );
     this._noiseY = makePNoise1D(
-      (duration1 / ONE_SECOND) * frequency1 * 2,
-      (duration1 / ONE_SECOND) * FPS
+      (duration.y / ONE_SECOND) * frequency.y * 1.25,
+      (duration.y / ONE_SECOND) * FPS
     );
     this._noiseZ = makePNoise1D(
-      (duration2 / ONE_SECOND) * frequency2 * 0.75,
-      (duration2 / ONE_SECOND) * FPS
+      (duration.z / ONE_SECOND) * frequency.z * 0.75,
+      (duration.z / ONE_SECOND) * FPS
     );
-    this._duration = Math.max(duration0, duration1, duration2);
+    this._duration = Math.max(duration.x, duration.y, duration.z);
   }
 
-  shake() {
+  shake(elapsed: number) {
     if (this.isShaking || !this.enabled) return;
+
+    if (elapsed - this._lastShakeTime < this._randomizedWaitTime) {
+      this._actualStrength = this.strength * 0.2;
+    } else {
+      this._actualStrength = this.strength;
+      this._lastShakeTime = elapsed;
+      this._randomizedWaitTime = Math.random() * (this._duration / 2);
+    }
+
+
 
     const startTime = performance.now();
     this.isShaking = true;
@@ -105,9 +120,9 @@ class CameraShake {
       this._cameraControls.getPosition(_vec3a);
       this._cameraControls.getTarget(_vec3b);
 
-      const offsetX = this._noiseX[frameNumber] * this.strength * ease;
-      const offsetY = this._noiseY[frameNumber] * this.strength * ease;
-      const offsetZ = this._noiseZ[frameNumber] * this.strength * ease;
+      const offsetX = this._noiseX[frameNumber] * this._actualStrength * ease;
+      const offsetY = this._noiseY[frameNumber] * this._actualStrength * ease;
+      const offsetZ = this._noiseZ[frameNumber] * this._actualStrength * ease;
 
       this._lastOffsetX = offsetX;
       this._lastOffsetY = offsetY;

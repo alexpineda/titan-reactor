@@ -11,11 +11,12 @@ import { getSettings } from "../stores/settings-store";
 import * as sd from "../../common/image/generate-map/sd";
 import * as hd from "../../common/image/generate-map/hd";
 import { Layers } from "../render"
-import { Mesh } from "three";
+import { Mesh, Vector3 } from "three";
 import assert from "assert";
 import * as log from "../ipc";
 import renderer from "../render/renderer";
 
+const _mapCoords = new Vector3();
 
 export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
   const settings = getSettings();
@@ -116,11 +117,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
       const mapX = pxToMap.x(x);
       const mapZ = pxToMap.y(y);
       const mapY = getTerrainY(mapX, mapZ);
-      return {
-        x: mapX,
-        y: mapY,
-        z: mapZ
-      }
+      return new Vector3(mapX, mapY, mapZ);
     }
   }
 }

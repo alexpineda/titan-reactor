@@ -111,8 +111,8 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
   controls.standard.maxAzimuthAngle = Infinity;
   controls.standard.minAzimuthAngle = -Infinity;
 
-  await controls.standard.dollyTo(8, false);
-  await controls.standard.zoomTo(1.2, false);
+  await controls.standard.dollyTo(10, false);
+  await controls.standard.zoomTo(1, false);
 }
 
 export const constrainControlsOverviewCam = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
@@ -134,6 +134,7 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
   camera.fov = 15;
   camera.updateProjectionMatrix();
   controls.standard.setLookAt(0, Math.max(mapWidth, mapHeight) * 4, 0, 0, 0, 0, false);
+  await controls.standard.zoomTo(1, false);
 }
 
 export const constrainAzimuth = (polarAngle: number) => {

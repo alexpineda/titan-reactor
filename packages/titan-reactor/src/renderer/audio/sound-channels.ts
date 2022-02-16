@@ -1,5 +1,6 @@
-import { strict as assert } from "assert";
-import { MapCoords, SoundDAT } from "../../common/types";
+
+import { Vector3 } from "three";
+import { SoundDAT } from "../../common/types";
 import range from "../../common/utils/range";
 import { SoundStruct } from "../integration/structs";
 import Audio from "./audio";
@@ -98,7 +99,7 @@ export class SoundChannels {
     return availableChannel;
   }
 
-  queue(soundData: SoundStruct, dat: SoundDAT, mapCoords: MapCoords) {
+  queue(soundData: SoundStruct, dat: SoundDAT, mapCoords: Vector3) {
     this.audio.push(
       new Audio(this.mixer, soundData, this._getBuffer(soundData.typeId), dat, mapCoords)
     );

@@ -2,10 +2,11 @@ import UnitsBufferView from "../buffer-view/units-buffer-view";
 import { FlingyStruct } from "./flingy-struct";
 
 export interface BulletStruct extends FlingyStruct {
-    bulletState: number;
-    bulletTarget?: UnitsBufferView;
-    bulletTargetPosX: number;
-    bulletTargetPosY: number;
+    state: number;
+    targetUnit?: UnitsBufferView;
+    targetPosX: number;
+    targetPosY: number;
     weaponTypeId: number;
-    bulletOwnerUnit?: UnitsBufferView;
+    ownerUnit?: UnitsBufferView;
+    prevBounceUnit?: UnitsBufferView;
 }
