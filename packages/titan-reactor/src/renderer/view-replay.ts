@@ -784,6 +784,7 @@ async function TitanReactorGame(
   })();
 
 
+  const SoundPlayMaxDistance = 60;
   const buildSounds = (sounds: SoundStruct[]) => {
     for (const sound of sounds) {
       if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
@@ -791,16 +792,25 @@ async function TitanReactorGame(
       }
       const dat = assets.bwDat.sounds[sound.typeId];
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
-      const volume = getBwVolume(
-        dat,
-        mapCoords,
-        sound,
-        projectedCameraView.left,
-        projectedCameraView.top,
-        projectedCameraView.right,
-        projectedCameraView.bottom
-      );
-      if (volume > SoundPlayMinVolume) {
+      let playSound = true;
+
+      if (controls.cameraMode === CameraMode.Default) {
+        const volume = getBwVolume(
+          dat,
+          mapCoords,
+          sound,
+          projectedCameraView.left,
+          projectedCameraView.top,
+          projectedCameraView.right,
+          projectedCameraView.bottom
+        );
+        playSound = volume > SoundPlayMinVolume;
+      } else if (controls.cameraMode === CameraMode.Battle) {
+        if (camera.position.distanceTo(mapCoords) > SoundPlayMaxDistance) {
+          playSound = false;
+        }
+      }
+      if (dat.minVolume || playSound) {
         soundChannels.queue(sound, dat, mapCoords);
       }
     }
