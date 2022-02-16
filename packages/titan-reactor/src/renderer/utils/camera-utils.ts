@@ -111,7 +111,7 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
   controls.standard.maxAzimuthAngle = Infinity;
   controls.standard.minAzimuthAngle = -Infinity;
 
-  await controls.standard.dollyTo(10, false);
+  await controls.standard.dollyTo(15, false);
   await controls.standard.zoomTo(1, false);
 }
 

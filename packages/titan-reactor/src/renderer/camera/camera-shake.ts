@@ -1,148 +1,98 @@
-import CameraControls from "camera-controls";
+import shuffle from "lodash.shuffle";
 import { Camera, Vector3 } from "three";
 
 const ONE_SECOND = 1000;
 const FPS = 60;
-const _vec3a = new Vector3();
-const _vec3b = new Vector3();
-
+let _remap = [0, 1, 2] as (0 | 1 | 2)[];
 class CameraShake {
-  private _cameraControls: CameraControls;
-  private _duration: number;
-  strength = 1;
-  private _actualStrength = 0;
-  private _noiseX: number[] = [];
-  private _noiseY: number[] = [];
-  private _noiseZ: number[] = [];
+  private _noise: number[][] = [];
 
-  private _lastOffsetX = 0;
-  private _lastOffsetY = 0;
-  private _lastOffsetZ = 0;
+  private offset = new Vector3();
 
   private _enabled = true;
 
-  private _lastShakeTime = 0;
-  private _randomizedWaitTime = 0;
-
-  isShaking = false;
+  _duration = new Vector3();
+  _startTime = [0, 0, 0];
+  _strength = new Vector3();
 
   private _prevCameraPosition = new Vector3();
 
   set enabled(val: boolean) {
     this._enabled = val;
-    this.isShaking = val === false ? false : this.isShaking;
+    this._strength.setScalar(0);
   }
 
   get enabled() {
     return this._enabled;
   }
 
-  // frequency: cycle par second
   constructor(
-    cameraControls: CameraControls,
     duration = ONE_SECOND,
     frequency = 10,
     strength = 1
   ) {
-    this._cameraControls = cameraControls;
-    this._duration = duration;
-
-    this.setParams(duration, frequency, strength);
+    this.setParams(0, duration, frequency, strength);
+    this.setParams(1, duration, frequency, strength);
+    this.setParams(2, duration, frequency, strength);
   }
 
-  setParams(duration: number, frequency: number, strength: number) {
-    this.strength = strength;
-    this._duration = duration;
-    this._noiseX = makePNoise1D(
+  setParams(component: 0 | 1 | 2, duration: number, frequency: number, strength: number) {
+    this._strength.setComponent(component, strength);
+    this._duration.setComponent(component, duration);
+    this._noise[component] = makePNoise1D(
       (duration / ONE_SECOND) * frequency,
       (duration / ONE_SECOND) * FPS
     );
-    this._noiseY = makePNoise1D(
-      (duration / ONE_SECOND) * frequency * 1.25,
-      (duration / ONE_SECOND) * FPS
-    );
-    this._noiseZ = makePNoise1D(
-      (duration / ONE_SECOND) * frequency * 0.75,
-      (duration / ONE_SECOND) * FPS
-    );
   }
 
-  setParamsV(duration: Vector3, frequency: Vector3, strength: number) {
-    this.strength = strength;
-    this._noiseX = makePNoise1D(
-      (duration.x / ONE_SECOND) * frequency.x,
-      (duration.x / ONE_SECOND) * FPS
-    );
-    this._noiseY = makePNoise1D(
-      (duration.y / ONE_SECOND) * frequency.y * 1.25,
-      (duration.y / ONE_SECOND) * FPS
-    );
-    this._noiseZ = makePNoise1D(
-      (duration.z / ONE_SECOND) * frequency.z * 0.75,
-      (duration.z / ONE_SECOND) * FPS
-    );
-    this._duration = Math.max(duration.x, duration.y, duration.z);
-  }
+  _update(component: 0 | 1 | 2, elapsed: number) {
+    if (this._strength.getComponent(component) === 0) return;
+    const elapsedTime = elapsed - this._startTime[component];
+    const frameNumber = ((elapsedTime / ONE_SECOND) * FPS) | 0;
+    const progress = elapsedTime / this._duration.getComponent(component);
+    const ease = sineOut(1 - progress);
 
-  shake(elapsed: number) {
-    if (this.isShaking || !this.enabled) return;
-
-    if (elapsed - this._lastShakeTime < this._randomizedWaitTime) {
-      this._actualStrength = this.strength * 0.2;
-    } else {
-      this._actualStrength = this.strength;
-      this._lastShakeTime = elapsed;
-      this._randomizedWaitTime = Math.random() * (this._duration / 2);
-    }
-
-
-
-    const startTime = performance.now();
-    this.isShaking = true;
-
-    const anim = () => {
-      const elapsedTime = performance.now() - startTime;
-      const frameNumber = ((elapsedTime / ONE_SECOND) * FPS) | 0;
-      const progress = elapsedTime / this._duration;
-      const ease = sineOut(1 - progress);
-
-      if (progress >= 1) {
-        this._lastOffsetX = 0;
-        this._lastOffsetY = 0;
-        this._lastOffsetZ = 0;
-
-        this.isShaking = false;
-        return;
+    if (progress >= 1) {
+      this.offset.setComponent(component, 0)
+      this._strength.setComponent(component, 0);
+      if (this._strength.length() === 0) {
+        _remap = shuffle(_remap);
       }
+      return 0;
+    }
 
-      requestAnimationFrame(anim);
-
-      this._cameraControls.getPosition(_vec3a);
-      this._cameraControls.getTarget(_vec3b);
-
-      const offsetX = this._noiseX[frameNumber] * this._actualStrength * ease;
-      const offsetY = this._noiseY[frameNumber] * this._actualStrength * ease;
-      const offsetZ = this._noiseZ[frameNumber] * this._actualStrength * ease;
-
-      this._lastOffsetX = offsetX;
-      this._lastOffsetY = offsetY;
-      this._lastOffsetZ = offsetZ;
-    };
-
-    anim();
+    const offset = this._noise[component][frameNumber] * this._strength.getComponent(component) * ease;
+    this.offset.setComponent(component, offset);
+    return offset;
   }
 
-  update(camera: Camera) {
-    if (this.isShaking) {
-      this._prevCameraPosition.copy(camera.position);
-      camera.position.set(this._prevCameraPosition.x + this._lastOffsetX, this._prevCameraPosition.y + this._lastOffsetY, this._prevCameraPosition.z + this._lastOffsetZ);
-    }
+  _shake(component: 0 | 1 | 2, elapsed: number, duration: number, frequency: number, strength: number) {
+    // don't shake if we're already shaking or if the new shake value is 0
+    if (this._strength.getComponent(component)) return;
+    this._startTime[component] = elapsed;
+    this.setParams(component, duration, frequency, strength);
+  }
+
+  shake(elapsed: number, duration: Vector3, frequency: Vector3, strength: Vector3) {
+    if (this.enabled === false) return;
+
+    strength.getComponent(0) && this._shake(_remap[0], elapsed, duration.getComponent(0), frequency.getComponent(0), strength.getComponent(0));
+    strength.getComponent(1) && this._shake(_remap[1], elapsed, duration.getComponent(1), frequency.getComponent(1), strength.getComponent(1));
+    strength.getComponent(2) && this._shake(_remap[2], elapsed, duration.getComponent(2), frequency.getComponent(2), strength.getComponent(2));
+  }
+
+  update(elapsed: number, camera: Camera) {
+    if (this.enabled === false) return;
+    this._update(_remap[0], elapsed);
+    this._update(_remap[1], elapsed);
+    this._update(_remap[2], elapsed);
+    this._prevCameraPosition.copy(camera.position);
+    camera.position.add(this.offset)
   }
 
   restore(camera: Camera) {
-    if (this.isShaking) {
-      camera.position.copy(this._prevCameraPosition);
-    }
+    if (this.enabled === false) return;
+    camera.position.copy(this._prevCameraPosition);
   }
 }
 

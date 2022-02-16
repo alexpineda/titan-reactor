@@ -180,7 +180,7 @@ async function TitanReactorGame(
     const cameraKeys = new CameraKeys(window.document.body, settings);
     janitor.disposable(cameraKeys);
 
-    const cameraShake = new CameraShake(controls, 200, 12);
+    const cameraShake = new CameraShake();
 
     const toggle = (enabled: boolean) => {
       controls.enabled = enabled;
@@ -570,14 +570,8 @@ async function TitanReactorGame(
   let unitAttackScore = {
     frequency: new Vector3(10, 20, 7.5),
     duration: new Vector3(1000, 1000, 1000),
-    strength: 0,
-    minDistance: Infinity,
-    reset: () => {
-      unitAttackScore.strength = 0;
-      unitAttackScore.minDistance = Infinity;
-      unitAttackScore.duration.set(1000, 1000, 1000);
-      unitAttackScore.frequency.set(10, 20, 7.5);
-    }
+    strength: new Vector3(),
+    needsUpdate: false
   }
 
   const buildUnits = (
@@ -796,7 +790,6 @@ async function TitanReactorGame(
         continue;
       }
       const dat = assets.bwDat.sounds[sound.typeId];
-      console.log(dat.file)
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
       const volume = getBwVolume(
         dat,
@@ -854,17 +847,18 @@ async function TitanReactorGame(
   // frequency, duration, strength multiplier
   const explosionFrequencyDuration = {
     [Explosion.Splash_Radial]: [6, 1.25, 1],
-    [Explosion.Splash_Enemy]: [6, 1.25, 1],
-    [Explosion.SplashAir]: [6, 1, 1],
+    [Explosion.Splash_Enemy]: [8, 1.25, 1],
+    [Explosion.SplashAir]: [10, 1, 1],
     [Explosion.CorrosiveAcid]: [20, 0.75, 1],
-    [Explosion.Normal]: [10, 0.75, 1],
+    [Explosion.Normal]: [15, 0.75, 1],
     [Explosion.NuclearMissile]: [2, 3, 2],
     [Explosion.YamatoGun]: [4, 2, 1],
   };
+  // strength, xyz index
   const bulletStrength = {
-    [DamageType.Explosive]: 1,
-    [DamageType.Concussive]: 0.5,
-    [DamageType.Normal]: 0.25,
+    [DamageType.Explosive]: [1, 0],
+    [DamageType.Concussive]: [0.5, 1],
+    [DamageType.Normal]: [0.25, 2],
   };
   const MaxShakeDistance = 30;
 
@@ -901,16 +895,17 @@ async function TitanReactorGame(
     if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
 
       const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
+      const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
 
-      if (controls.cameraMode === CameraMode.Battle && controls.cameraShake.isShaking === false && bullet.state === BulletState.Dying && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
+      if (controls.cameraMode === CameraMode.Battle && bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
         const distance = camera.position.distanceTo(_spritePos);
-        const thisBulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength] || 0;
-        if (distance < 30) {
-          const distanceNorm = easeCubicIn(1 - distance / 30);
-          if (thisBulletStrength * distanceNorm > unitAttackScore.strength) {
-            unitAttackScore.strength = thisBulletStrength * distanceNorm;
-            unitAttackScore.duration.setScalar(exp[1] * 1000);
-            unitAttackScore.frequency.setScalar(exp[0]);
+        if (distance < MaxShakeDistance) {
+          const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / MaxShakeDistance) * exp[2];
+          if (calcStrength > unitAttackScore.strength.getComponent(_bulletStrength[1])) {
+            unitAttackScore.strength.setComponent(_bulletStrength[1], calcStrength);
+            unitAttackScore.duration.setComponent(_bulletStrength[1], exp[1] * 1000);
+            unitAttackScore.frequency.setComponent(_bulletStrength[1], exp[0]);
+            unitAttackScore.needsUpdate = true;
           }
         }
       }
@@ -1172,10 +1167,10 @@ async function TitanReactorGame(
 
       soundChannels.play(elapsed);
 
-      if (unitAttackScore.strength) {
-        controls.cameraShake.setParamsV(unitAttackScore.duration, unitAttackScore.frequency, unitAttackScore.strength);
-        controls.cameraShake.shake(elapsed);
-        unitAttackScore.reset();
+      if (unitAttackScore.needsUpdate) {
+        controls.cameraShake.shake(elapsed, unitAttackScore.duration, unitAttackScore.frequency, unitAttackScore.strength);
+        unitAttackScore.needsUpdate = false;
+        unitAttackScore.strength.setScalar(0);
       }
 
       {
@@ -1290,7 +1285,7 @@ async function TitanReactorGame(
     //   cameras.setTarget(x, getTerrainY(x, z), z, true);
     // }
 
-    controls.cameraShake.update(camera);
+    controls.cameraShake.update(elapsed, camera);
     fogOfWar.update(players.getVisionFlag(), camera);
     renderer.render(scene, camera, delta);
     if (controls.PIP.enabled) {
