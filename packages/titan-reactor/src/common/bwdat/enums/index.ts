@@ -26,3 +26,4 @@ export * from "./upgrades";
 export * from "./image-flags";
 export * from "./sprite-flags";
 export * from "./bullet-state";
+export * from "./weapon-types";
