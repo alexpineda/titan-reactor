@@ -85,7 +85,7 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
   controls.enableAll();
 
   camera.far = BATTLE_FAR;
-  camera.fov = 115;
+  camera.fov = 75;
   camera.updateProjectionMatrix();
 
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
