@@ -22,3 +22,22 @@ export const getBwVolume = (dat: SoundDAT, mapCoords: Vector3, sound: SoundStruc
 
     return volume;
 }
+
+export const getBwPanning = (sound: SoundStruct, mapCoords: Vector3, left: number, width: number) => {
+    let pan = 0;
+
+    if (sound.x !== 0 && sound.y !== 0) {
+        let pan_x = mapCoords.x - (left + width / 2);
+        const isLeft = pan_x < 0;
+        if (isLeft) pan_x = -pan_x;
+        if (pan_x <= 2) pan = 0;
+        else if (pan_x <= 5) pan = 52;
+        else if (pan_x <= 10) pan = 127;
+        else if (pan_x <= 20) pan = 191;
+        else if (pan_x <= 40) pan = 230;
+        else pan = 255;
+        if (isLeft) pan = -pan;
+    }
+
+    return pan / 255;
+}

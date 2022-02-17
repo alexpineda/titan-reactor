@@ -1,42 +1,35 @@
-import { AudioContext } from "three";
+import { AudioListener, Vector3 } from "three";
 
 const MUSIC_REDUCTION_RATIO = 0.1;
-
+const _lerp = new Vector3;
 // mixes sound and music volumes
-export class MainMixer {
-  context: AudioContext;
-  master: GainNode;
-  compressor: DynamicsCompressorNode;
+export class MainMixer extends AudioListener {
   sound: GainNode;
   music: GainNode;
 
   constructor() {
-    this.context = AudioContext.getContext();
-
-    this.master = this.context.createGain();
-    this.master.connect(this.context.destination);
-
-    this.compressor = this.context.createDynamicsCompressor();
-    this.compressor.connect(this.master);
+    super();
 
     this.sound = this.context.createGain();
-    this.sound.connect(this.compressor);
+    this.sound.connect(this.gain);
 
     this.music = this.context.createGain();
-    this.music.connect(this.compressor);
+    this.music.connect(this.gain);
   }
 
-  // compatibility with THREE.Audio until we change BgMusic
-  getInput() {
+  // For compatibility with THREE.Audio, which is used for Music.
+  // getInput() is called on the THREE.Audio constructor.
+  // If in the future, we want audio for our menu, we'll need to dynamically swap this.
+  override getInput() {
     return this.music;
   }
 
   get masterVolume() {
-    return this.master.gain.value;
+    return this.gain.gain.value;
   }
 
   set masterVolume(val) {
-    this.master.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
+    this.gain.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
   }
 
   get soundVolume() {
@@ -55,7 +48,15 @@ export class MainMixer {
     this.music.gain.setTargetAtTime(val * MUSIC_REDUCTION_RATIO, this.context.currentTime, 0.01);
   }
 
+  lerp(a: Vector3, b: Vector3, alpha: number, delta: number) {
+    _lerp.lerpVectors(a, b, alpha)
+    this.update(_lerp.x, _lerp.y, _lerp.z, delta);
+  }
+
   update(x: number, y: number, z: number, delta: number) {
+    if (this.parent) {
+      throw new Error("This method should not be called on a parented object.");
+    }
     const endTime = this.context.currentTime + delta * 0.001;
     this.context.listener.positionX.linearRampToValueAtTime(x, endTime);
     this.context.listener.positionY.linearRampToValueAtTime(y, endTime);

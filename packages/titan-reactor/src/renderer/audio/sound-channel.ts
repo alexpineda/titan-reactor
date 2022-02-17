@@ -13,7 +13,6 @@ export class SoundChannel {
     this.audio = audio;
     this.id = audio.sound.typeId;
     this.unitTypeId = audio.sound.unitTypeId;
-    // @todo can probably be refactored to a getter for audio.isPlaying
     this.isPlaying = true;
   }
 }

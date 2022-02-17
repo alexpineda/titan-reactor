@@ -1,13 +1,14 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
-import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
+import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
 } from "../common/types";
+import { Audio } from "./audio";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "../common/utils/conversions";
 import ProjectedCameraView from "./camera/projected-camera-view";
@@ -32,7 +33,6 @@ import {
   Effects,
   GameCanvasTarget,
   Layers,
-  RenderCSS,
 } from "./render";
 import renderer from "./render/renderer";
 import {
@@ -43,7 +43,7 @@ import {
 } from "./stores";
 import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/structs";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
-import { getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
+import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
@@ -55,7 +55,6 @@ import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
 import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
-import { isAttacking } from "./utils/unit-utils";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import { CameraMode, RegularCameraMode } from "./input/camera-mode";
@@ -251,6 +250,8 @@ async function TitanReactorGame(
     }
   }
 
+  window.TitanAudio = Audio;
+
   const onToggleCameraMode = async (cm: CameraMode) => {
     if (controls.cameraMode === CameraMode.Default && cm === controls.cameraMode) {
       return;
@@ -275,6 +276,10 @@ async function TitanReactorGame(
     //@ts-ignore
     window.controls = controls;
     minimapSurface.canvas.style.display = "block";
+
+    Audio.rolloffFactor = 1;
+    Audio.refDistance = 10;
+
     if (controls.cameraMode === CameraMode.Default) {
       if (cm === CameraMode.Battle) {
         const t = new Vector3();
@@ -784,7 +789,7 @@ async function TitanReactorGame(
   })();
 
 
-  const SoundPlayMaxDistance = 60;
+  const SoundPlayMaxDistance = 40;
   const buildSounds = (sounds: SoundStruct[]) => {
     for (const sound of sounds) {
       if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
@@ -792,9 +797,13 @@ async function TitanReactorGame(
       }
       const dat = assets.bwDat.sounds[sound.typeId];
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
-      let playSound = true;
 
-      if (controls.cameraMode === CameraMode.Default) {
+      if (controls.cameraMode === CameraMode.Battle) {
+        if (dat.minVolume || camera.position.distanceTo(mapCoords) < SoundPlayMaxDistance) {
+          soundChannels.queue(sound, dat, mapCoords);
+        }
+      }
+      else {
         const volume = getBwVolume(
           dat,
           mapCoords,
@@ -804,14 +813,17 @@ async function TitanReactorGame(
           projectedCameraView.right,
           projectedCameraView.bottom
         );
-        playSound = volume > SoundPlayMinVolume;
-      } else if (controls.cameraMode === CameraMode.Battle) {
-        if (camera.position.distanceTo(mapCoords) > SoundPlayMaxDistance) {
-          playSound = false;
+
+        const pan = getBwPanning(sound, mapCoords, projectedCameraView.left, projectedCameraView.width);
+        const classicSound = Object.assign({}, sound, {
+          extra: {
+            volume,
+            pan
+          }
+        });
+        if (volume > SoundPlayMinVolume) {
+          soundChannels.queue(classicSound, dat, mapCoords);
         }
-      }
-      if (dat.minVolume || playSound) {
-        soundChannels.queue(sound, dat, mapCoords);
       }
     }
   };
@@ -1129,6 +1141,7 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
+    controls.standard.getTarget(_cameraTarget);
     controls.standard.update(delta / 1000);
     controls.mouse.update(delta / 100, controls, settings, terrain.terrain);
     controls.keys.update(delta / 100, controls);
@@ -1175,6 +1188,13 @@ async function TitanReactorGame(
       creep.creepValuesTexture.needsUpdate = true;
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
+      if (controls.cameraMode === CameraMode.Battle) {
+        audioMixer.lerp(_cameraTarget, camera.position, 0.75, delta);
+      } else if (controls.cameraMode === CameraMode.Default) {
+        audioMixer.lerp(_cameraTarget, camera.position, 0, delta);
+      } else {
+        audioMixer.update(0, 0, 0, delta);
+      }
       soundChannels.play(elapsed);
 
       if (unitAttackScore.needsUpdate) {
@@ -1250,7 +1270,6 @@ async function TitanReactorGame(
       currentBwFrame = null;
     }
 
-    controls.standard.getTarget(_cameraTarget);
 
     {
       const dir = (controls.cameraMode !== CameraMode.Battle) ? 0 : getDirection32(projectedCameraView.center, camera.position);

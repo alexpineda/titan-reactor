@@ -1,24 +1,32 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "../../common/types";
 import { SoundStruct } from "../integration/structs";
+import { ClassicSound } from "./classic-sound";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
 
 const stopTime = 30; //ms
 
+const isClassicSound = (sound: any): sound is ClassicSound => {
+  return sound.extra !== undefined;
+}
+
 // an instance of a bw sound
 export class Audio {
+  static rolloffFactor = 0.5;
+  static refDistance = 20;
+
   mixer: MainMixer;
   buffer: DeferredAudioBuffer;
   isPlaying = false;
   queueStartTime = 0;
   source?: AudioBufferSourceNode;
   gain?: GainNode;
-  sound: SoundStruct;
+  sound: SoundStruct | ClassicSound;
   dat: SoundDAT;
   mapCoords: Vector3;
 
-  constructor(mixer: MainMixer, sound: SoundStruct, buffer: DeferredAudioBuffer, soundDat: SoundDAT, mapCoords: Vector3) {
+  constructor(mixer: MainMixer, sound: SoundStruct | ClassicSound, buffer: DeferredAudioBuffer, soundDat: SoundDAT, mapCoords: Vector3) {
     this.mixer = mixer;
     this.buffer = buffer;
     this.sound = sound;
@@ -43,19 +51,26 @@ export class Audio {
 
     const gain = this.mixer.context.createGain();
 
-    const volume = 1;
+    let volume = 1;
+    let panner;
 
-    const panner = this.mixer.context.createPanner();
-    panner.panningModel = "HRTF";
+    if (isClassicSound(this.sound)) {
+      panner = this.mixer.context.createStereoPanner();
+      panner.pan.value = this.sound.extra.pan;
+      volume = this.sound.extra.volume / 100;
+    } else {
 
-    panner.refDistance = 20;
-    panner.rolloffFactor = 0.5;
-    panner.distanceModel = "inverse";
+      panner = this.mixer.context.createPanner();
+      panner.panningModel = "HRTF";
 
-    panner.positionX.value = this.mapCoords.x;
-    panner.positionY.value = this.mapCoords.y;
-    panner.positionZ.value = this.mapCoords.z;
+      panner.refDistance = Audio.refDistance;
+      panner.rolloffFactor = Audio.rolloffFactor;
+      panner.distanceModel = "inverse";
 
+      panner.positionX.value = this.mapCoords.x;
+      panner.positionY.value = this.mapCoords.y;
+      panner.positionZ.value = this.mapCoords.z;
+    }
     source.buffer = this.buffer.buffer;
 
     gain.connect(this.mixer.sound);
@@ -65,15 +80,15 @@ export class Audio {
     source.onended = () => {
       this.isPlaying = false;
     };
-    gain.gain.setValueAtTime(
-      Math.min(0.99, volume),
-      this.mixer.context.currentTime
-    );
-    source.start(0);
+
     // gain.gain.exponentialRampToValueAtTime(
-    //   volume,
-    //   this.mixer.context.currentTime + offset
+    //   Math.min(0.99, volume),
+    //   this.mixer.context.currentTime
     // );
+    gain.gain.value = 0;
+    gain.gain.linearRampToValueAtTime(Math.min(0.99, volume), this.mixer.context.currentTime + 0.01);
+    source.start(0);
+
     this.buffer.lastPlayed = elapsed;
     this.source = source;
     this.gain = gain;

@@ -4,6 +4,7 @@ import { SoundDAT } from "../../common/types";
 import range from "../../common/utils/range";
 import { SoundStruct } from "../integration/structs";
 import Audio from "./audio";
+import { ClassicSound } from "./classic-sound";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";
 import SoundChannel from "./sound-channel";
@@ -86,9 +87,8 @@ export class SoundChannels {
 
     let bestPriority = audio.dat.priority;
     for (const channel of this.channels) {
-      //@todo refactor as this could cause a bug
       if (!channel.audio) {
-        continue;
+        return channel;
       }
       if (channel.audio?.dat.flags & 0x20) continue;
       if (channel.audio?.dat.priority < bestPriority) {
@@ -99,7 +99,7 @@ export class SoundChannels {
     return availableChannel;
   }
 
-  queue(soundData: SoundStruct, dat: SoundDAT, mapCoords: Vector3) {
+  queue(soundData: SoundStruct | ClassicSound, dat: SoundDAT, mapCoords: Vector3) {
     this.audio.push(
       new Audio(this.mixer, soundData, this._getBuffer(soundData.typeId), dat, mapCoords)
     );
@@ -133,7 +133,6 @@ export class SoundChannels {
       this.scheduled.push(channel.audio);
     }
 
-    //channel has audio available
     for (const audio of this.scheduled.filter(this._channelHasAudioAvailable)) {
       audio.play(elapsed);
     }
