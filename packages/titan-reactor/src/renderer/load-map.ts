@@ -10,15 +10,10 @@ import loadTerrain from "./assets/load-terrain";
 import {
   disposeGame,
   setGame,
-  startLoadingProcess,
-  updateIndeterminateLoadingProcess,
-  completeLoadingProcess,
-  initScreen,
-  updateScreen,
-  completeScreen,
-  MapScreen,
   getGame,
 } from "./stores";
+import processStore, { Process } from "./stores/process-store";
+import screenStore, { ScreenType } from "./stores/screen-store";
 import TitanReactorMap from "./view-map";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
@@ -45,36 +40,33 @@ export default async (chkFilepath: string) => {
 
   disposeGame();
 
-  startLoadingProcess({
-    id: "map",
+  processStore().init({
+    id: Process.MapInitialization,
     label: getFunString(),
     priority: 1,
   });
 
-  initScreen({
-    type: "map",
-    filename: chkFilepath,
-  } as MapScreen);
+  screenStore().init(ScreenType.Map);
 
   log.verbose("loading chk");
   const chk = new Chk(await loadScm(chkFilepath));
-  updateScreen({
+  screenStore().updateLoadingInformation({
     title: chk.title,
     description: chk.description,
-  } as MapScreen);
+  });
 
   updateWindowTitle(chk.title);
 
   await waitForAssets();
 
-  updateIndeterminateLoadingProcess("map", getFunString());
+  processStore().updateIndeterminate(Process.MapInitialization, getFunString());
 
   log.verbose("initializing scene");
   const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;
-  updateIndeterminateLoadingProcess("map", getFunString());
+  processStore().updateIndeterminate(Process.MapInitialization, getFunString());
 
   log.verbose("initializing gameloop");
   const game = await TitanReactorMap(
@@ -88,6 +80,6 @@ export default async (chkFilepath: string) => {
   if (logDiv) {
     logDiv.remove();
   }
-  completeLoadingProcess("map");
-  completeScreen();
+  processStore().complete(Process.MapInitialization);
+  screenStore().complete();
 };

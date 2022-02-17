@@ -1,12 +1,8 @@
-// @ts-nocheck
 import { AssetTextureResolution, ImageDAT } from "../../common/types";
 import { loadAnimAtlas } from "../../common/image";
 import {
     readCascFile,
 } from "../../common/utils/casclib";
-import {
-    updateLoadingProcess,
-} from "../stores";
 import { UnitTileScale } from "../core";
 
 export default async function (res: AssetTextureResolution) {
@@ -20,11 +16,17 @@ export default async function (res: AssetTextureResolution) {
         const selCircleGRP = await loadAnimAtlas(
             readAnim,
             { index: i } as ImageDAT,
-            scale
+            scale,
+            {
+                w: 0,
+                h: 0,
+                frames: [],
+                maxFrameH: 0,
+                maxFramew: 0
+            }
         )
 
         selectionCirclesHD.push(selCircleGRP);
     }
-    updateLoadingProcess("assets");
     return selectionCirclesHD;
 }

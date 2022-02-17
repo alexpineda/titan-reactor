@@ -15,11 +15,9 @@ import {
     from "postprocessing";
 
 import {
-    startLoadingProcess,
-    updateLoadingProcess,
-    completeLoadingProcess,
     setAssets,
 } from "../stores";
+import processStore, { Process } from "../stores/process-store";
 import electronFileLoader from "../../common/utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
@@ -32,10 +30,10 @@ import loadEnvironmentMap from "../../common/image/env-map";
 
 export default async (settings: Settings) => {
 
-    startLoadingProcess({
-        id: "assets",
+    processStore().init({
+        id: Process.AssetLoading,
         label: "Loading initial assets",
-        max: 101,
+        max: 11,
         priority: 10,
         current: 0,
         mode: "determinate",
@@ -57,7 +55,7 @@ export default async (settings: Settings) => {
 
     log.verbose("Loading dat files");
     const bwDat = await loadDATFiles(readCascFile);
-    updateLoadingProcess("assets");
+    processStore().increment(Process.AssetLoading);
 
     log.verbose("Loading sd texture");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
@@ -124,7 +122,7 @@ export default async (settings: Settings) => {
 
     const loadImageAtlasGrp = loadImageAtlas(grps);
     for (let i = 0; i < 999; i++) {
-        i % 100 === 0 && updateLoadingProcess("assets");
+        i % 100 === 0 && processStore().increment(Process.AssetLoading);
         await loadImageAtlasGrp(i);
     }
 
@@ -147,5 +145,5 @@ export default async (settings: Settings) => {
         smaaImages,
         envMap
     }));
-    completeLoadingProcess("assets");
+    processStore().complete(Process.AssetLoading);
 };

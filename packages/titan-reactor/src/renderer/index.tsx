@@ -3,13 +3,8 @@ import { openBw } from "./openbw";
 
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
-import {
-  loadSettings,
-  useSettingsStore,
-  errorScreen,
-  completeScreen,
-  getSettings,
-} from "./stores";
+import { loadSettings, useSettingsStore, getSettings } from "./stores";
+import screenStore from "./stores/screen-store";
 import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
 import preloadAssets from "./bootup/load-assets-when-ready";
@@ -102,10 +97,10 @@ async function bootup() {
 
     await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
-    completeScreen();
+    screenStore().complete();
   } catch (err: any) {
     log.error(err.message);
-    errorScreen(err);
+    screenStore().setError(err);
   }
 }
 

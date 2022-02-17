@@ -1,9 +1,8 @@
 import {
     getAssets,
-    isProcessComplete,
     useLoadingStore,
 } from "../stores";
-
+import processStore, { Process } from "../stores/process-store";
 import { EmptyFunc } from "../../common/types";
 import * as log from "../ipc";
 
@@ -11,7 +10,7 @@ import * as log from "../ipc";
 export default async () => {
     log.info("waiting for assets");
     return await new Promise((res: EmptyFunc) => {
-        if (isProcessComplete("assets")) {
+        if (processStore().isComplete(Process.AssetLoading)) {
             const assets = getAssets();
             if (!assets) {
                 log.error("assets not loaded");
@@ -21,7 +20,7 @@ export default async () => {
             return;
         }
         const unsub = useLoadingStore.subscribe(() => {
-            if (isProcessComplete("assets")) {
+            if (processStore().isComplete(Process.AssetLoading)) {
                 unsub();
                 const assets = getAssets();
                 if (!assets) {

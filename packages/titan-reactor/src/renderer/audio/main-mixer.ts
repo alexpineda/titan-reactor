@@ -1,4 +1,4 @@
-import { AudioListener, Vector3 } from "three";
+import { AudioListener, Camera, Vector3 } from "three";
 
 const MUSIC_REDUCTION_RATIO = 0.1;
 const _lerp = new Vector3;
@@ -15,6 +15,8 @@ export class MainMixer extends AudioListener {
 
     this.music = this.context.createGain();
     this.music.connect(this.gain);
+
+    this.matrixAutoUpdate = false;
   }
 
   // For compatibility with THREE.Audio, which is used for Music.
@@ -61,6 +63,14 @@ export class MainMixer extends AudioListener {
     this.context.listener.positionX.linearRampToValueAtTime(x, endTime);
     this.context.listener.positionY.linearRampToValueAtTime(y, endTime);
     this.context.listener.positionZ.linearRampToValueAtTime(z, endTime);
+  }
+
+  updateFromCamera(camera: Camera) {
+    if (this.parent) {
+      throw new Error("This method should not be called on a parented object.");
+    }
+    this.matrixWorld.multiplyMatrices(camera.matrixWorld, this.matrix)
+    this.updateMatrixWorld(false);
   }
 }
 

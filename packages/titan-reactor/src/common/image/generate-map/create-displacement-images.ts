@@ -18,9 +18,7 @@ import {
 } from "postprocessing";
 import { MapEffect } from "./effects/map-effect";
 
-import {
-    updateLoadingProcess,
-} from "../../../renderer/stores";
+import processStore, { Process } from "../../../renderer/stores/process-store";
 import { DataTexturesResult } from "./generate-map-data-textures";
 import { GeometryOptions } from "./geometry-options";
 
@@ -142,7 +140,7 @@ export const createDisplacementImages = async ({
         composer.render(0.01);
     }
     //#endregion composer
-    updateLoadingProcess("terrain");
+    processStore().increment(Process.TerrainGeneration);
     renderer.dispose();
 
     const displaceCanvas = document.createElement("canvas");

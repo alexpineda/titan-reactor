@@ -1,14 +1,13 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
-import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
+import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/bwdat/enums";
 import { CanvasTarget } from "../common/image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
 } from "../common/types";
-import { Audio } from "./audio";
 import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "../common/utils/conversions";
 import ProjectedCameraView from "./camera/projected-camera-view";
@@ -250,14 +249,11 @@ async function TitanReactorGame(
     }
   }
 
-  window.TitanAudio = Audio;
-
   const onToggleCameraMode = async (cm: CameraMode) => {
     if (controls.cameraMode === CameraMode.Default && cm === controls.cameraMode) {
       return;
     }
-    // default -> any mode, any mode -> default
-    if (cm !== CameraMode.Default && controls.cameraMode !== CameraMode.Default) {
+    if (controls.cameraMode === CameraMode.Overview) {
       controls.cameraMode = CameraMode.Default;
     } else {
       controls.cameraMode = cm;
@@ -276,9 +272,6 @@ async function TitanReactorGame(
     //@ts-ignore
     window.controls = controls;
     minimapSurface.canvas.style.display = "block";
-
-    Audio.rolloffFactor = 1;
-    Audio.refDistance = 10;
 
     if (controls.cameraMode === CameraMode.Default) {
       if (cm === CameraMode.Battle) {
@@ -798,12 +791,7 @@ async function TitanReactorGame(
       const dat = assets.bwDat.sounds[sound.typeId];
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
 
-      if (controls.cameraMode === CameraMode.Battle) {
-        if (dat.minVolume || camera.position.distanceTo(mapCoords) < SoundPlayMaxDistance) {
-          soundChannels.queue(sound, dat, mapCoords);
-        }
-      }
-      else {
+      if (controls.cameraMode === CameraMode.Default) {
         const volume = getBwVolume(
           dat,
           mapCoords,
@@ -825,6 +813,12 @@ async function TitanReactorGame(
           soundChannels.queue(classicSound, dat, mapCoords);
         }
       }
+      else {
+        if (dat.minVolume || camera.position.distanceTo(mapCoords) < SoundPlayMaxDistance) {
+          soundChannels.queue(sound, dat, mapCoords);
+        }
+      }
+
     }
   };
 
@@ -1189,11 +1183,11 @@ async function TitanReactorGame(
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
       if (controls.cameraMode === CameraMode.Battle) {
-        audioMixer.lerp(_cameraTarget, camera.position, 0.75, delta);
+        audioMixer.updateFromCamera(camera);
       } else if (controls.cameraMode === CameraMode.Default) {
-        audioMixer.lerp(_cameraTarget, camera.position, 0, delta);
+        audioMixer.update(_cameraTarget.x, _cameraTarget.y, _cameraTarget.z, delta);
       } else {
-        audioMixer.update(0, 0, 0, delta);
+        audioMixer.update(camera.position.x, camera.position.y, camera.position.z, delta);
       }
       soundChannels.play(elapsed);
 

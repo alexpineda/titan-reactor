@@ -10,11 +10,10 @@ const stopTime = 30; //ms
 const isClassicSound = (sound: any): sound is ClassicSound => {
   return sound.extra !== undefined;
 }
-
 // an instance of a bw sound
 export class Audio {
-  static rolloffFactor = 0.5;
-  static refDistance = 20;
+  static rolloffFactor = 1;
+  static refDistance = 10;
 
   mixer: MainMixer;
   buffer: DeferredAudioBuffer;
@@ -81,11 +80,8 @@ export class Audio {
       this.isPlaying = false;
     };
 
-    // gain.gain.exponentialRampToValueAtTime(
-    //   Math.min(0.99, volume),
-    //   this.mixer.context.currentTime
-    // );
     gain.gain.value = 0;
+    // quick fade in since some sounds are clipping at the start (eg probe harvest)
     gain.gain.linearRampToValueAtTime(Math.min(0.99, volume), this.mixer.context.currentTime + 0.01);
     source.start(0);
 

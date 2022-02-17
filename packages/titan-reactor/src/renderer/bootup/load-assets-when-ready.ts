@@ -2,9 +2,8 @@
 import {
   setAssets,
   useSettingsStore,
-  isProcessInProgress,
-  isProcessComplete
 } from "../stores";
+import processStore, { Process } from "../stores/process-store";
 import loadAssets from "../assets/load-assets";
 import { Settings } from "../../common/types";
 
@@ -12,7 +11,7 @@ const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => 
   if (hasErrors || !settings || !settings.directories?.starcraft || !settings.directories?.models) {
     return;
   }
-  if (isProcessComplete("assets") || isProcessInProgress("assets")) {
+  if (processStore().isComplete(Process.AssetLoading) || processStore().isInProgress(Process.AssetLoading)) {
     return;
   }
   await loadAssets(settings);

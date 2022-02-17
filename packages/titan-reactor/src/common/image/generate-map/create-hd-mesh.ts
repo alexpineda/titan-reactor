@@ -5,7 +5,7 @@ import { mergeBufferGeometries } from "three/examples/jsm/utils/BufferGeometryUt
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { DataTexturesResult } from "./generate-map-data-textures";
 
-import { updateLoadingProcess } from "../../../renderer/stores";
+import processStore, { Process } from "../../../renderer/stores/process-store";
 import { strict as assert } from "assert";
 import { WrappedTexture, WrappedQuartileTextures } from "../../types";
 import hdMapFrag from "./glsl/hd.frag";
@@ -89,7 +89,7 @@ export const createHDMesh = async (
 
     for (let qy = 0; qy < hdQuartileTextures.quartileStrideH; qy++) {
         for (let qx = 0; qx < hdQuartileTextures.quartileStrideW; qx++) {
-            updateLoadingProcess("terrain");
+            processStore().increment(Process.TerrainGeneration);
 
             // const g = new THREE.PlaneBufferGeometry(
             //   qw,

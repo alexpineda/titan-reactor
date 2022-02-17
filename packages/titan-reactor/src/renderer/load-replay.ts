@@ -20,14 +20,9 @@ import {
   getAssets,
   getSettings,
   setGame,
-  startLoadingProcess,
-  updateIndeterminateLoadingProcess,
-  completeLoadingProcess,
-  initScreen,
-  updateScreen,
-  completeScreen,
-  ReplayScreen,
 } from "./stores";
+import screenStore, { ScreenType } from "./stores/screen-store";
+import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
@@ -40,8 +35,8 @@ import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
 export default async (filepath: string) => {
   log.info(`loading replay ${filepath}`);
 
-  startLoadingProcess({
-    id: "replay",
+  processStore().init({
+    id: Process.ReplayInitialization,
     label: getFunString(),
     priority: 1,
   });
@@ -57,16 +52,16 @@ export default async (filepath: string) => {
 
   document.title = "Titan Reactor - Loading";
 
-  initScreen({
-    type: "replay",
-    filename: filepath,
-  } as ReplayScreen);
+  screenStore().init(ScreenType.Replay);
+  screenStore().updateLoadingInformation({
+    type: ScreenType.Map,
+  });
 
   log.verbose("parsing replay");
 
   // @todo change this to generics
   // @ts-ignore
-  updateScreen({ header: replay.header } as ReplayScreen);
+  screenStore().updateLoadingInformation({ header: replay.header })
 
   if (replay.version !== Version.titanReactor) {
     log.verbose(
@@ -82,7 +77,7 @@ export default async (filepath: string) => {
 
   log.verbose("loading chk");
   const chk = new Chk(replay.chk);
-  updateScreen({ chkTitle: chk.title } as ReplayScreen);
+  screenStore().updateLoadingInformation({ chkTitle: chk.title });
 
   log.verbose("building terrain");
   const terrain = await loadTerrain(
@@ -95,7 +90,7 @@ export default async (filepath: string) => {
 
   await waitForAssets();
 
-  updateIndeterminateLoadingProcess("replay", "Connecting to the hivemind");
+  processStore().updateIndeterminate(Process.ReplayInitialization, "Connecting to the hivemind");
 
   assert(openBw.wasm);
   const gameStateReader = new OpenBwWasmReader(openBw);
@@ -131,7 +126,7 @@ export default async (filepath: string) => {
   audioMixer.soundVolume = settings.audio.sound;
   audioMixer.masterVolume = settings.audio.global;
 
-  updateIndeterminateLoadingProcess("replay", getFunString());
+  processStore().updateIndeterminate(Process.ReplayInitialization, getFunString());
   ImageHD.useDepth = false;
 
   const world = {
@@ -151,7 +146,7 @@ export default async (filepath: string) => {
   const game = await TitanReactorGame(world);
 
   setGame(game);
-  completeScreen();
+  screenStore().complete();
 
   log.verbose("starting replay");
   document.title = `Titan Reactor - ${chk.title} - ${replay.header.players
@@ -163,5 +158,5 @@ export default async (filepath: string) => {
   if (logDiv) {
     logDiv.remove();
   }
-  completeLoadingProcess("replay");
+  processStore().complete(Process.ReplayInitialization);
 };
