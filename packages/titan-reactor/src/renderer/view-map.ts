@@ -14,7 +14,8 @@ import type {
 import { pxToMapMeter } from "../common/utils/conversions";
 import { Scene } from "./render";
 import renderer from "./render/renderer";
-import { getAssets, useSettingsStore } from "./stores";
+import gameStore from "./stores/game-store";
+import { useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
 import CameraControls from "camera-controls";
@@ -26,7 +27,7 @@ async function TitanReactorMap(
   scene: Scene
 ) {
   const janitor = new Janitor();
-  const assets = getAssets();
+  const assets = gameStore().assets;
   assert(assets);
 
   const preplacedMapUnits = chk.units;
@@ -232,12 +233,7 @@ async function TitanReactorMap(
 
   };
 
-  return {
-    isMap: true,
-    scene,
-    gameSurface,
-    dispose,
-  };
+  return dispose;
 }
 
 export default TitanReactorMap;

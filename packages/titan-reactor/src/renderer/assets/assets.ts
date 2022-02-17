@@ -25,6 +25,7 @@ interface AssetsConstructorArgs {
   envMap: Texture;
 }
 
+// FIXME: remove this class its just an object
 class Assets {
   bwDat: BwDAT;
   grps: GRPInterface[] = [];

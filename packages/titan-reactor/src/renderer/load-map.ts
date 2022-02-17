@@ -7,11 +7,7 @@ import {
 import * as log from "./ipc/log";
 import { Scene } from "./render";
 import loadTerrain from "./assets/load-terrain";
-import {
-  disposeGame,
-  setGame,
-  getGame,
-} from "./stores";
+import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store";
 import screenStore, { ScreenType } from "./stores/screen-store";
 import TitanReactorMap from "./view-map";
@@ -24,21 +20,8 @@ const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
 }
 export default async (chkFilepath: string) => {
-  if (getGame()?.isMap) {
 
-    log.info(`loading map ${chkFilepath}`);
-    const game = getGame();
-
-    const chk = new Chk(await loadScm(chkFilepath));
-    const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
-
-    game.scene.replaceTerrain(terrainInfo.terrain);
-
-    updateWindowTitle(chk.title);
-    return;
-  }
-
-  disposeGame();
+  gameStore().disposeGame();
 
   processStore().init({
     id: Process.MapInitialization,
@@ -69,17 +52,13 @@ export default async (chkFilepath: string) => {
   processStore().updateIndeterminate(Process.MapInitialization, getFunString());
 
   log.verbose("initializing gameloop");
-  const game = await TitanReactorMap(
+  const disposeGame = await TitanReactorMap(
     chk,
     terrainInfo,
     scene
   );
 
-  setGame(game);
-  const logDiv = document.getElementById("log");
-  if (logDiv) {
-    logDiv.remove();
-  }
+  gameStore().setDisposeGame(disposeGame);
   processStore().complete(Process.MapInitialization);
   screenStore().complete();
 };

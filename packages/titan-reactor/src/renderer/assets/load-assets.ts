@@ -14,9 +14,7 @@ import {
 }
     from "postprocessing";
 
-import {
-    setAssets,
-} from "../stores";
+import gameStore from "../stores/game-store";
 import processStore, { Process } from "../stores/process-store";
 import electronFileLoader from "../../common/utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
@@ -128,7 +126,7 @@ export default async (settings: Settings) => {
 
     const smaaImages = (await new Promise(resolve => new SMAAImageLoader().load(resolve))) as any[]
 
-    setAssets(new Assets({
+    gameStore().setAssets(new Assets({
         bwDat,
         grps,
         selectionCirclesHD,
@@ -140,7 +138,6 @@ export default async (settings: Settings) => {
         hoverIcons,
         dragIcons,
         wireframeIcons,
-        // for dynamic loading, if we wish
         loadImageAtlas: loadImageAtlasGrp,
         smaaImages,
         envMap

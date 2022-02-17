@@ -2,6 +2,7 @@ import { ipcRenderer } from "electron";
 
 import { LOG_MESSAGE } from "../../common/ipc-handle-names";
 import { useSettingsStore } from "../stores";
+import gameStore from "../stores/game-store";
 
 type ErrorOrUnknown = Error | unknown;
 
@@ -31,20 +32,16 @@ export const verbose = (msg: string) => {
 
 // @todo return early if disabled
 export const log = async (message: string, level = "info") => {
-  const logDiv = document.getElementById("log");
-  const p = document.createElement("p");
-  p.textContent = message;
-
   if (level === "error") {
-    p.style.color = "red";
+    gameStore().addLog(message, "red");
     console.trace(message);
   } else if (level === "warning") {
-    p.style.color = "yellow";
+    gameStore().addLog(message, "yellow");
     console.warn(message);
   } else {
+    gameStore().addLog(message);
     console.log(message);
   }
-  logDiv?.appendChild(p);
 
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
 };

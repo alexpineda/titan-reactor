@@ -1,9 +1,8 @@
 import React from "react";
 import { ReplayPlayer } from "../../common/types";
-import { UIType } from "../stores";
-import Initializing from "./home/initializing";
 
 import { charColor } from "../../common/bwdat/enums";
+import { isMapLoadingInformation, ScreenStore, ScreenType } from "../stores";
 
 const processString = (str: string, useColors = true) => {
   const defaultColor = "white";
@@ -43,31 +42,52 @@ const processString = (str: string, useColors = true) => {
 const PlayerNames = ({ players }: { players: ReplayPlayer[] }) => (
   <ul>
     {players.map((player: ReplayPlayer, i: number) => (
-      <li className="block text-gray-200" key={i}>
+      <li
+        style={{
+          display: "block",
+          color: "gray",
+        }}
+        key={i}
+      >
         {player.name} ({player.race})
       </li>
     ))}
   </ul>
 );
 
-const LoadingOverlay = ({ screen }: { screen: UIType }) => {
-  let label = "",
+const LoadingOverlay = ({ screen }: { screen: ScreenStore }) => {
+  let label = "Loading",
     description = "";
 
-  if (screen.type === "home") {
-    return <Initializing />;
-  } else if (screen.type === "map") {
-    label = screen.title || "Loading Map";
-    description = screen.description || screen.filename || "";
-  } else if (screen.type === "replay") {
-    label = screen.chkTitle || "Loading Replay";
-    description = "";
+  if (
+    screen.type === ScreenType.Map &&
+    isMapLoadingInformation(screen?.loadingInfo)
+  ) {
+    label = screen.loadingInfo.title;
+    description = screen.loadingInfo.description;
+  } else if (
+    screen.type === ScreenType.Replay &&
+    screen.loadingInfo &&
+    !isMapLoadingInformation(screen?.loadingInfo)
+  ) {
+    label = screen.loadingInfo.chkTitle;
   }
 
   return (
     <div
-      id="load-overlay select-none"
-      className="z-20 cursor-wait absolute left-0 top-0 right-0 bottom-0 justify-center items-center bg-gray-900 flex"
+      style={{
+        zIndex: "20",
+        cursor: "wait",
+        position: "absolute",
+        top: "0",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+      }}
     >
       <div id="map-preview">
         <span
@@ -77,20 +97,18 @@ const LoadingOverlay = ({ screen }: { screen: UIType }) => {
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "column",
-            filter: "brightness(2) contract(1.2)",
+            filter: "brightness(2) contrast(1.2)",
           }}
         >
-          <p
-            id="map-name"
+          <div
             style={{
               color: "white",
               fontSize: "32px",
             }}
           >
             {processString(label, false)}
-          </p>
-          <p
-            id="map-description"
+          </div>
+          <div
             style={{
               color: "white",
               fontSize: "12px",
@@ -99,10 +117,12 @@ const LoadingOverlay = ({ screen }: { screen: UIType }) => {
             }}
           >
             {processString(description, false)}
-          </p>
-          {screen.type === "replay" && screen.header?.players && (
-            <PlayerNames players={screen.header.players} />
-          )}
+          </div>
+          {screen.type === ScreenType.Replay &&
+            screen.loadingInfo &&
+            !isMapLoadingInformation(screen.loadingInfo) && (
+              <PlayerNames players={screen.loadingInfo.header.players} />
+            )}
         </span>
       </div>
     </div>

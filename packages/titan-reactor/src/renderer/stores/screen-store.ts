@@ -15,20 +15,19 @@ export enum ScreenType {
     Home
 }
 
+export const isMapLoadingInformation = (information: any): information is MapLoadingInformation => {
+    return information && information.title !== undefined;
+}
 export interface MapLoadingInformation {
-    type: ScreenType.Map;
-    filename?: string;
-    title?: string;
-    description?: string;
+    title: string;
+    description: string;
 };
 
 export interface ReplayLoadingInformation {
-    type: ScreenType.Replay;
-    filename?: string;
-    header?: {
+    header: {
         players: ReplayPlayer[];
     };
-    chkTitle?: string;
+    chkTitle: string;
 };
 
 export type ScreenStore = {
@@ -37,7 +36,7 @@ export type ScreenStore = {
     loadingInfo?: ReplayLoadingInformation | MapLoadingInformation;
     error?: Error;
     init: (value: ScreenType) => void;
-    updateLoadingInformation: (value: Partial<ReplayLoadingInformation> | Partial<MapLoadingInformation>) => void;
+    updateLoadingInformation: (value: ReplayLoadingInformation | MapLoadingInformation) => void;
     complete: () => void;
     setError: (error: Error) => void;
 };
@@ -54,8 +53,7 @@ export const useScreenStore = create<ScreenStore>((set) => ({
     setError: (error: Error) => {
         set({ status: ScreenStatus.Error, error });
     },
-    updateLoadingInformation: (loadingInfo: Partial<ReplayLoadingInformation> | Partial<MapLoadingInformation>) => {
-        // @ts-ignore
+    updateLoadingInformation: (loadingInfo: ReplayLoadingInformation | MapLoadingInformation) => {
         set({ loadingInfo });
     }
 }));

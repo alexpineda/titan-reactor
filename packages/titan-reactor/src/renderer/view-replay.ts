@@ -60,17 +60,12 @@ import { CameraMode, RegularCameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
 import { WeaponType, WeaponBehavior } from "../common/bwdat/enums";
 import { easeCubicIn } from "d3-ease";
-// import cameraIconSvg from "./camera-icon.svg";
+import { useToggleStore } from "./stores/toggle-store";
 
 CameraControls.install({ THREE: THREE });
 
 const { startLocation } = unitTypes;
-
-const addChatMessage = useGameStore.getState().addChatMessage;
-
 const _cameraTarget = new Vector3();
-
-
 
 async function TitanReactorGame(
   world: ReplayWorld
@@ -892,14 +887,12 @@ async function TitanReactorGame(
       dat.image.iscript === 337 ||
       fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
 
+    // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
     // hide addons in battle cam as they look awkward, and overview as it takes too much space
-    if (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon) {
+    if (spriteIsHidden(spriteData) || (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon)) {
       spriteIsVisible = false;
     }
 
-    if (spriteIsHidden(spriteData)) {
-      spriteIsVisible = false;
-    }
 
     const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
 
@@ -1362,7 +1355,7 @@ async function TitanReactorGame(
   });
   janitor.callback(unsub);
 
-  const unsub3 = useGameStore.subscribe((state) => {
+  const unsub3 = useToggleStore.subscribe((state) => {
     // fogChanged = fogOfWar.enabled != state.fogOfWar;
     fogOfWar.enabled = state.fogOfWar;
 
@@ -1378,14 +1371,8 @@ async function TitanReactorGame(
   gameStatePosition.resume();
   gameStatePosition.advanceGameFrames = 1;
   _sceneResizeHandler();
-  return {
-    start: () => renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP),
-    gameSurface,
-    minimapSurface,
-    players,
-    gameStatePosition,
-    dispose,
-  };
+  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+  return dispose;
 }
 
 export default TitanReactorGame;

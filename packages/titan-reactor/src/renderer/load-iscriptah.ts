@@ -1,16 +1,11 @@
-
-import {
-    disposeGame,
-    getAssets,
-} from "./stores";
+import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store"
 import screenStore, { ScreenType } from "./stores/screen-store"
-// import IScriptah from "./react-ui/iscriptah/iscriptah";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 
 export default async () => {
-    disposeGame();
+    gameStore().disposeGame();
 
     processStore().init({
         id: Process.IScriptahInitialization,
@@ -21,13 +16,11 @@ export default async () => {
     screenStore().init(ScreenType.IScriptah)
 
     await waitForAssets();
-    const assets = getAssets();
+    const assets = gameStore().assets;
     if (!assets || !assets.bwDat) {
         throw new Error("assets not loaded");
     }
 
-    // const game = await IScriptah();
-    // setGame(game);
     processStore().complete(Process.IScriptahInitialization);
     screenStore().complete();
 };

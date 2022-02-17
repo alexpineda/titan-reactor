@@ -11,6 +11,8 @@ import preloadAssets from "./bootup/load-assets-when-ready";
 import "./bootup/three-overrides";
 import { waitUnless } from "../common/utils/wait";
 import renderer from "./render/renderer";
+import App from "./ui/index";
+import { render } from "react-dom";
 
 // @ts-ignore
 if (module.hot) {
@@ -109,3 +111,4 @@ async function bootup() {
 //   fs.writeFileSync("D:\\test.bin", buf);
 
 // };
+render(<App />, document.getElementById("app"));

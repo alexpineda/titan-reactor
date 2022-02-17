@@ -16,11 +16,9 @@ import * as log from "./ipc/log";
 import { Scene } from "./render";
 import loadTerrain from "./assets/load-terrain";
 import {
-  disposeGame,
-  getAssets,
   getSettings,
-  setGame,
 } from "./stores";
+import gameStore from "./stores/game-store";
 import screenStore, { ScreenType } from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
@@ -41,7 +39,7 @@ export default async (filepath: string) => {
     priority: 1,
   });
 
-  disposeGame();
+  gameStore().disposeGame();
 
   const janitor = new Janitor();
   const settings = getSettings();
@@ -53,15 +51,11 @@ export default async (filepath: string) => {
   document.title = "Titan Reactor - Loading";
 
   screenStore().init(ScreenType.Replay);
-  screenStore().updateLoadingInformation({
-    type: ScreenType.Map,
-  });
 
   log.verbose("parsing replay");
 
   // @todo change this to generics
   // @ts-ignore
-  screenStore().updateLoadingInformation({ header: replay.header })
 
   if (replay.version !== Version.titanReactor) {
     log.verbose(
@@ -77,7 +71,7 @@ export default async (filepath: string) => {
 
   log.verbose("loading chk");
   const chk = new Chk(replay.chk);
-  screenStore().updateLoadingInformation({ chkTitle: chk.title });
+  screenStore().updateLoadingInformation({ header: replay.header, chkTitle: chk.title });
 
   log.verbose("building terrain");
   const terrain = await loadTerrain(
@@ -104,7 +98,7 @@ export default async (filepath: string) => {
 
   const races = ["terran", "zerg", "protoss"];
 
-  const assets = getAssets();
+  const assets = gameStore().assets;
   if (!assets || !assets.bwDat) {
     throw new Error("assets not loaded");
   }
@@ -143,20 +137,14 @@ export default async (filepath: string) => {
     janitor,
   };
   log.verbose("initializing game interface");
-  const game = await TitanReactorGame(world);
-
-  setGame(game);
-  screenStore().complete();
+  const disposeGame = await TitanReactorGame(world);
+  gameStore().setDisposeGame(disposeGame);
 
   log.verbose("starting replay");
   document.title = `Titan Reactor - ${chk.title} - ${replay.header.players
     .map(({ name }) => name)
     .join(", ")}`;
-  game.start();
 
-  const logDiv = document.getElementById("log");
-  if (logDiv) {
-    logDiv.remove();
-  }
   processStore().complete(Process.ReplayInitialization);
+  screenStore().complete();
 };
