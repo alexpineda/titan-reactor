@@ -5,13 +5,28 @@ import { ScreenStatus } from ".";
 
 export type PluginLayoutPreset = "left-bottom" | "left-top" | "left" | "hide";
 
+export interface BaseLayoutPluginConfig {
+    layout: {
+        pointerEvents: boolean,
+        textSelectable: boolean,
+        string: string
+    },
+    string: any
+}
+
+export interface GameBridgePluginConfig extends BaseLayoutPluginConfig {
+    gameBridge: {
+        "read": string[],
+        "write": string[],
+    }
+}
 export interface PluginConfig {
     url: string;
     name: string;
     author?: string;
     read: string[];
     write: string[];
-    config: any;
+    config: GameBridgePluginConfig;
     userConfig: any;
 }
 
@@ -19,10 +34,10 @@ export interface Plugin extends PluginConfig {
     src: string;
     iframe?: HTMLIFrameElement | null;
     import?: string;
-    api: RealtimePluginAPI;
+    api: PluginAPI;
 }
 
-export interface RealtimePluginAPI {
+export interface PluginAPI {
     onInitialized(config: any, userConfig: any): void;
     onBeforeConnect(screenType: ScreenType, screenStatus: ScreenStatus): boolean;
     onConnected(iframe: HTMLIFrameElement | null | undefined, screenType: ScreenType, screenStatus: ScreenStatus): void;

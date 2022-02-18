@@ -1,6 +1,6 @@
 import { Plugin } from "../../common/types";
 import * as log from "../ipc/log";
-import DefaultPluginAPI from "./default-plugin-api";
+import GameBridgePlugin from "./game-bridge-plugin";
 import settingsStore from "../stores/settings-store";
 import { GameStatePosition, Unit } from "../core";
 import { Scene } from "../render";
@@ -13,7 +13,7 @@ export const initializePlugins = (plugins: Plugin[]) => {
                 plugin.api = Function(plugin.import)();
                 plugin.import = undefined;
             } else {
-                plugin.api = new DefaultPluginAPI();
+                plugin.api = new GameBridgePlugin();
             }
             plugin.api.onInitialized(plugin.config, plugin.userConfig);
 

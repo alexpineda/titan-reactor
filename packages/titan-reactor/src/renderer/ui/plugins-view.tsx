@@ -79,22 +79,36 @@ const PluginsView = ({ screenType, screenStatus }: PluginsViewProps) => {
   itemEls.current.length = 0;
   return (
     <>
-      {enabledPlugins.map((plugin) => (
-        <iframe
-          key={plugin.name}
-          style={{
-            backgroundColor: "transparent",
-            position: "absolute",
-            border: 0,
-          }}
-          ref={(element) => {
-            if (element) {
-              itemEls.current.push({ element, plugin });
-            }
-          }}
-          src={plugin.src}
-        />
-      ))}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          bottom: dimensions.minimap.height,
+          width: dimensions.minimap.width,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+        }}
+      >
+        {enabledPlugins.map((plugin) => (
+          <iframe
+            key={plugin.name}
+            style={{
+              backgroundColor: "transparent",
+              pointerEvents: "none",
+              userSelect: "none",
+              border: 0,
+              flex: "0 1 auto",
+            }}
+            ref={(element) => {
+              if (element) {
+                itemEls.current.push({ element, plugin });
+              }
+            }}
+            src={plugin.src}
+          />
+        ))}
+      </div>
     </>
   );
 };

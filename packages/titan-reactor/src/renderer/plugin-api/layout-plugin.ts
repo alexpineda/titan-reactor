@@ -1,5 +1,5 @@
 import { MathUtils } from "three";
-import { GameCanvasDimensions, Plugin, RealtimePluginAPI, ScreenStatus, ScreenType } from "../../common/types";
+import { BaseLayoutPluginConfig, PluginAPI, ScreenStatus, ScreenType } from "../../common/types";
 import { GameStatePosition, Unit } from "../core";
 import { Scene } from "../render";
 import gameStore, { useGameStore } from "../stores/game-store";
@@ -11,9 +11,8 @@ export const RW_DISCONNECTED = "disconnected";
 
 const anyOrigin = "*";
 
-// TODO: move to a layout manager
 // track connected plugins for layout purposes
-const _connectedPlugins: Map<string, DefaultPluginAPI> = new Map();
+const _connectedPlugins: Map<string, BaseLayoutPlugin> = new Map();
 useGameStore.subscribe((newValue, oldValue) => {
     if (newValue.dimensions !== oldValue.dimensions) {
         for (const [, p] of _connectedPlugins) {
@@ -27,24 +26,23 @@ type PluginSizing = {
     height: number;
     mode?: "fit-size" | "set-size";
 }
+
 // TODO: userland apis: onshow, onhide, onresize, onfullscreen, onunfullscreen, setvisibility
-class DefaultPluginAPI implements RealtimePluginAPI {
+class BaseLayoutPlugin implements PluginAPI {
+    onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void {
+        throw new Error("Method not implemented.");
+    }
 
-    private _read: string[] = [];
-    private _write: string[] = [];
-    private _lastSent: Record<string, any> = {};
-    private _config: any;
-    private _userConfig: any;
-    private _iframe?: HTMLIFrameElement;
-    private _id = MathUtils.generateUUID();
-    private _janitor = new Janitor();
-    private _sizing: PluginSizing = { width: 0, height: 0 };
+    protected _config: any;
+    protected _userConfig: any;
+    protected _iframe?: HTMLIFrameElement;
+    protected _id = MathUtils.generateUUID();
+    protected _janitor = new Janitor();
+    protected _sizing: PluginSizing = { width: 0, height: 0 };
 
-    onInitialized(config: any, userConfig: any): void {
+    onInitialized(config: BaseLayoutPluginConfig, userConfig: any): void {
         this._config = config;
         this._userConfig = userConfig;
-        this._read = this._config.read || [];
-        this._write = this._config.write || [];
     }
 
     onBeforeConnect(screenType: ScreenType, screenStatus: ScreenStatus): boolean {
@@ -101,10 +99,12 @@ class DefaultPluginAPI implements RealtimePluginAPI {
                 height = this._sizing.height;
             }
 
-            this._iframe.style.left = "0px";
-            this._iframe.style.width = `${width}px`;
-            this._iframe.style.bottom = `${dimensions.minimap.height}px`;
+            // this._iframe.style.width = `${width}px`;
             this._iframe.style.height = `${height}px`;
+            // this._iframe.style.left = "0px";
+            // this._iframe.style.width = `${width}px`;
+            // this._iframe.style.bottom = `${dimensions.minimap.height}px`;
+            // this._iframe.style.height = `${height}px`;
         }
     }
 
@@ -121,23 +121,6 @@ class DefaultPluginAPI implements RealtimePluginAPI {
         this._janitor.mopUp();
     }
 
-    onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>) {
-        if (this._iframe?.contentWindow) {
-            if (this._read.includes(RW_REPLAY_POSITION)) {
-                const time = gameStatePosition.getSecond();
-                if (this._lastSent[RW_REPLAY_POSITION] !== time) {
-                    this._iframe.contentWindow.postMessage({
-                        type: RW_REPLAY_POSITION,
-                        frame: gameStatePosition.bwGameFrame,
-                        maxFrame: gameStatePosition.maxFrame,
-                        time: gameStatePosition.getFriendlyTime(),
-                    }, anyOrigin);
-                    this._lastSent[RW_REPLAY_POSITION] = time;
-                }
-            }
-        }
-    }
-
 }
 
-export default DefaultPluginAPI;
+export default BaseLayoutPlugin;
