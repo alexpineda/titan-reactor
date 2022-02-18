@@ -1,21 +1,23 @@
 import { CanvasTarget } from "../../common/image";
-import { Settings, GameAspect } from "../../common/types";
+import { Settings, GameAspect, GameCanvasDimensions } from "../../common/types";
 
 const MinimapRatio = .25;
 
 export class GameCanvasTarget extends CanvasTarget {
-  minimapSize = 0;
   top = 0;
   left = 0;
   right = 0;
   bottom = 0;
   aspect = 0;
-  //@todo refactor out
-  private settings: Settings;
+  private _settings: Settings;
+  private _mapWidth: number;
+  private _mapHeight: number;
 
-  constructor(settings: Settings) {
+  constructor(settings: Settings, mapWidth: number, mapHeight: number) {
     super();
-    this.settings = settings;
+    this._settings = settings;
+    this._mapHeight = mapHeight;
+    this._mapWidth = mapWidth;
   }
 
   override setDimensions(screenWidth: number, screenHeight: number) {
@@ -45,8 +47,9 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(maxWidth - 2),
         Math.floor(maxHeight - 2),
-        pixelRatios[this.settings.graphics.pixelRatio]
+        pixelRatios[this._settings.graphics.pixelRatio]
       );
+
     } else {
       const aspect = aspects[gameAspect];
       this.aspect = aspect;
@@ -64,11 +67,9 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(width),
         Math.floor(height),
-        pixelRatios[this.settings.graphics.pixelRatio]
+        pixelRatios[this._settings.graphics.pixelRatio]
       );
     }
-
-    this.minimapSize = this.height * MinimapRatio;
   }
 
   requestPointerLock() {
@@ -79,7 +80,12 @@ export class GameCanvasTarget extends CanvasTarget {
     document.exitPointerLock();
   }
 
-  getRect() {
+  getRect(): GameCanvasDimensions {
+    const max = Math.max(this._mapWidth, this._mapHeight);
+    const wAspect = this._mapWidth / max;
+    const hAspect = this._mapHeight / max;
+    const minimapSize = this.height * MinimapRatio;
+
     return {
       left: this.left,
       top: this.top,
@@ -87,7 +93,10 @@ export class GameCanvasTarget extends CanvasTarget {
       bottom: window.innerHeight - (this.height + this.top),
       width: this.width,
       height: this.height,
-      minimapSize: this.minimapSize,
+      minimap: {
+        width: Math.floor(minimapSize * wAspect),
+        height: Math.floor(minimapSize * hAspect)
+      }
     };
   }
 }

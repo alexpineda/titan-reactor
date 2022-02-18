@@ -39,6 +39,7 @@ export class MainMixer extends AudioListener {
   }
 
   set soundVolume(val) {
+    if (val === this.sound.gain.value) return;
     this.sound.gain.setTargetAtTime(val, this.context.currentTime, 0.01);
   }
 
@@ -47,6 +48,7 @@ export class MainMixer extends AudioListener {
   }
 
   set musicVolume(val) {
+    if (val === this.music.gain.value) return;
     this.music.gain.setTargetAtTime(val * MUSIC_REDUCTION_RATIO, this.context.currentTime, 0.01);
   }
 

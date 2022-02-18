@@ -7,6 +7,7 @@ import {
 
 const selector = (state: GameStore) => state.log;
 const errorSelector = (state: ScreenStore) => state.error;
+let _id = 0;
 const LogDisplay = () => {
   const log = useGameStore(selector);
   const error = useScreenStore(errorSelector);
@@ -20,7 +21,9 @@ const LogDisplay = () => {
     >
       {error && <div style={{ color: "red" }}>{error.message}</div>}
       {log.map((entry) => (
-        <p style={{ color: entry[1] }}>{entry[0]}</p>
+        <p key={_id++} style={{ color: entry[1] }}>
+          {entry[0]}
+        </p>
       ))}
     </div>
   );

@@ -13,7 +13,6 @@ export const UpgradesProductionView = 3;
 export type HudStore = {
   show: {
     inGameMenu: boolean;
-    fps: boolean;
     replayControls: boolean;
     unitSelection: boolean;
     unitDetails: boolean;
@@ -37,7 +36,6 @@ export type HudStore = {
 export const useHudStore = create<HudStore>((set, get) => ({
   show: {
     inGameMenu: false,
-    fps: true,
     replayControls: true,
     unitSelection: true,
     unitDetails: false,

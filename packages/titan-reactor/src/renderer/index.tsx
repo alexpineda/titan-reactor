@@ -58,20 +58,6 @@ log.info(`resolution ${window.innerWidth}x${window.innerHeight}`);
   log.verbose(`device pixel ratio: ${window.devicePixelRatio}`);
 }
 
-const logDiv = document.createElement("div");
-logDiv.id = "log";
-logDiv.style.color = "white";
-logDiv.style.display = "flex";
-logDiv.style.flexDirection = "column-reverse";
-document.body.appendChild(logDiv);
-
-const fps = document.createElement("div");
-fps.id = "fps";
-fps.style.color = "white";
-fps.style.position = "absolute";
-fps.style.zIndex = "10";
-document.body.appendChild(fps);
-
 bootup();
 async function bootup() {
   try {
@@ -106,9 +92,4 @@ async function bootup() {
   }
 }
 
-// window.writeBuf = (buf: Uint8Array) => {
-
-//   fs.writeFileSync("D:\\test.bin", buf);
-
-// };
 render(<App />, document.getElementById("app"));

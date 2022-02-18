@@ -1,9 +1,9 @@
 import React from "react";
-import shallow from "zustand/shallow";
 import LoadingOverlay from "./loading-overlay";
 import { useScreenStore } from "../stores";
 import { ScreenStatus, ScreenType } from "../stores/screen-store";
 import LogDisplay from "./log-display";
+import GameView from "./game-view";
 
 const ErrorState = ({ error }: { error: Error }) => (
   <div
@@ -39,16 +39,9 @@ const App = () => {
           screen.status === ScreenStatus.Loading && (
             <LoadingOverlay screen={screen} />
           )}
-        {/* {!(screen.loading && screen.type === "home") && <CornerStatus />}
-        {screen.error && <ErrorState error={screen.error} />}
-        {screen.loading && <LoadingOverlay screen={screen} />}
-        {screen.loaded && (
-          <>
-            {screen.type === "home" && <Home />}
-            {screen.type === "map" && <Map />}
-            {screen.type === "replay" && <Game />}
-          </>
-        )} */}
+        {/* {screen.type === ScreenType.Map && <Map />} */}
+        {screen.type === ScreenType.Replay &&
+          screen.status === ScreenStatus.Ready && <GameView />}
       </>
     </React.StrictMode>
   );

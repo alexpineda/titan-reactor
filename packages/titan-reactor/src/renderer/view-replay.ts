@@ -61,6 +61,7 @@ import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
 import { WeaponType, WeaponBehavior } from "../common/bwdat/enums";
 import { easeCubicIn } from "d3-ease";
 import { useToggleStore } from "./stores/toggle-store";
+import gameStore from "./stores/game-store";
 
 CameraControls.install({ THREE: THREE });
 
@@ -76,15 +77,11 @@ async function TitanReactorGame(
   const preplacedMapUnits = chk.units;
   const bwDat = assets.bwDat;
   const fps = new FPSMeter();
-  const fpsEl = document.getElementById("fps");
-  assert(fpsEl !== null);
   assert(openBw.wasm);
   // @ts-ignore
   window.world = world;
   // @ts-ignore
   janitor.callback(() => { window.world = null });
-
-  fpsEl.style.display = settings.graphics.showFps ? "block" : "none";
 
   openBw.call.resetGameSpeed();
 
@@ -113,13 +110,14 @@ async function TitanReactorGame(
   const keyboardManager = new ReplayKeys(window.document.body);
   janitor.disposable(keyboardManager);
 
-  const gameSurface = new GameCanvasTarget(settings);
+  const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
   useGameStore.setState({
     dimensions: gameSurface.getRect(),
   });
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
+  gameStore().setDimensions(gameSurface.getRect());
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
@@ -320,6 +318,7 @@ async function TitanReactorGame(
     _playerColors
   );
   injectColorsCss(_playerColors);
+  gameStore().setPlayers(players);
 
   music.playGame();
 
@@ -392,24 +391,22 @@ async function TitanReactorGame(
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+    const rect = gameSurface.getRect();
+    gameStore().setDimensions(rect);
+
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
 
-
     // players.forEach(({ camera }) =>
     //   camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
     // );
 
-    const max = Math.max(mapWidth, mapHeight);
-    const wAspect = mapWidth / max;
-    const hAspect = mapHeight / max;
     minimapSurface.setDimensions(
-      Math.floor(gameSurface.minimapSize * wAspect),
-      Math.floor(gameSurface.minimapSize * hAspect)
+      rect.minimap.width,
+      rect.minimap.height,
     );
-
 
     controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
     projectedCameraView.update();
@@ -1323,7 +1320,7 @@ async function TitanReactorGame(
 
     fps.update(elapsed);
     if (fps.frames === 0) {
-      fpsEl!.textContent = fps.fps;
+      gameStore().setFps(fps.fps);
     }
   };
 
@@ -1341,32 +1338,31 @@ async function TitanReactorGame(
 
   window.onbeforeunload = dispose;
 
-  const unsub = useSettingsStore.subscribe((state) => {
-    settings = state.data;
-    if (!settings) return;
+  {
+    const unsub = useSettingsStore.subscribe((state) => {
+      settings = state.data;
+      if (!settings) return;
 
-    if (audioMixer.musicVolume !== settings.audio.music) {
       audioMixer.musicVolume = settings.audio.music;
-    }
-
-    if (audioMixer.soundVolume !== settings.audio.sound) {
       audioMixer.soundVolume = settings.audio.sound;
-    }
-  });
-  janitor.callback(unsub);
+    });
+    janitor.callback(unsub);
+  }
 
-  const unsub3 = useToggleStore.subscribe((state) => {
-    // fogChanged = fogOfWar.enabled != state.fogOfWar;
-    fogOfWar.enabled = state.fogOfWar;
+  {
+    const unsub = useToggleStore.subscribe((state) => {
+      // fogChanged = fogOfWar.enabled != state.fogOfWar;
+      fogOfWar.enabled = state.fogOfWar;
 
-    for (const player of players) {
-      if (player.vision !== state.playerVision[player.id]) {
-        player.vision = state.playerVision[player.id];
-        fogOfWar.playerVisionWasToggled = true;
+      for (const player of players) {
+        if (player.vision !== state.playerVision[player.id]) {
+          player.vision = state.playerVision[player.id];
+          fogOfWar.playerVisionWasToggled = true;
+        }
       }
-    }
-  });
-  janitor.callback(unsub3);
+    });
+    janitor.callback(unsub);
+  }
 
   gameStatePosition.resume();
   gameStatePosition.advanceGameFrames = 1;

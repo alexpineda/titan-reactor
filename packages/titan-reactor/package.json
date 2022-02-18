@@ -47,10 +47,12 @@
     "mac": {
       "category": "3D Map & Replay Viewer for Starcraft Broodwar"
     },
-    "extraResources": [{
-      "from": "static",
-      "to": "static"
-    }]
+    "extraResources": [
+      {
+        "from": "static",
+        "to": "static"
+      }
+    ]
   },
   "dependencies": {
     "assert": "^2.0.0",
@@ -69,6 +71,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.shuffle": "^4.2.0",
     "mkdirp": "^1.0.4",
+    "node-static": "^0.7.11",
     "postprocessing": "6.24.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

@@ -14,7 +14,8 @@ export default ({ onClose }: CreateGameWindowArgs) => {
     show: false,
     webPreferences: {
       nodeIntegration: true,
-      nodeIntegrationInWorker: true,
+      nodeIntegrationInWorker: false,
+      nodeIntegrationInSubFrames: false,
       webSecurity: true,
       spellcheck: false,
       enableWebSQL: false,
