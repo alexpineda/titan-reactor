@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, PluginConfig } from "../../common/types";
+import { Settings as SettingsType, PluginConfig, Plugin } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -22,7 +22,7 @@ const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
-let _plugins: PluginConfig[];
+let _plugins: Plugin[];
 /**
  * A settings management utility which saves and loads settings from a file.
  * It will also emit a "change" event whenever the settings are loaded or saved.
@@ -62,17 +62,19 @@ export class Settings extends EventEmitter {
     const folders = await readFolder(path.join(__static, "plugins"));
     for (const folder of folders) {
       if (folder.isFolder) {
-        const files = await readFolder(folder.path);
+        const filePath = path.join(folder.path, "plugin.json");
+        if (await fileExists(filePath)) {
+          const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
+          const plugin = JSON.parse(contents) as Plugin;
+          plugin.src = plugin.url.startsWith("http") ? plugin.url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${plugin.url}`;
 
-        for (const file of files) {
-          if (file.extension === "json") {
-            const contents = await fsPromises.readFile(file.path, { encoding: "utf8" });
-            const plugin = JSON.parse(contents) as PluginConfig;
-            plugin.src = plugin.url.startsWith("http") ? plugin.url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${plugin.url}`;
-            _plugins.push(plugin);
+          const importfilePath = path.join(folder.path, "realtime.js");
+          if (await fileExists(importfilePath)) {
+            plugin.import = await fsPromises.readFile(importfilePath, { encoding: "utf8" });;
           }
-        }
 
+          _plugins.push(plugin);
+        }
       }
 
     }
