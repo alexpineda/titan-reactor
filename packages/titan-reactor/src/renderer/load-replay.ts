@@ -19,7 +19,8 @@ import {
   getSettings,
 } from "./stores";
 import gameStore from "./stores/game-store";
-import screenStore, { ScreenType } from "./stores/screen-store";
+import screenStore from "./stores/screen-store";
+import { ScreenType } from "../common/types";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
 import getFunString from "./bootup/get-fun-string";
@@ -63,7 +64,7 @@ export default async (filepath: string) => {
     );
     const chkDowngrader = new ChkDowngrader();
     repBin = await convertReplay(replay, chkDowngrader);
-    // fs.writeFileSync(`D:\\last_replay.rep`, repBin);
+    fs.writeFileSync(`D:\\last_replay.rep`, repBin);
     replay = await parseReplay(repBin);
   }
 

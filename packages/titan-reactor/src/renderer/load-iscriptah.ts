@@ -1,9 +1,9 @@
 import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store"
-import screenStore, { ScreenType } from "./stores/screen-store"
+import screenStore from "./stores/screen-store"
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
-
+import { ScreenType } from "../common/types";
 export default async () => {
     gameStore().disposeGame();
 

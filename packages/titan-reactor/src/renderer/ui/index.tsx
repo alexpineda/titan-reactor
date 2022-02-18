@@ -1,37 +1,20 @@
 import React from "react";
 import LoadingOverlay from "./loading-overlay";
 import { useScreenStore } from "../stores";
-import { ScreenStatus, ScreenType } from "../stores/screen-store";
 import LogDisplay from "./log-display";
 import GameView from "./game-view";
-
-const ErrorState = ({ error }: { error: Error }) => (
-  <div
-    style={{
-      position: "absolute",
-      width: "100%",
-      height: "100%",
-      backgroundColor: "black",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    <p
-      style={{
-        color: "white",
-      }}
-    >
-      There was a critical error: {error.message}
-    </p>
-  </div>
-);
+import PluginsView from "./plugins-view";
+import { ScreenStatus, ScreenType } from "../../common/types";
 
 const App = () => {
   const screen = useScreenStore();
+
   return (
     <React.StrictMode>
       <>
+        {/* {screen.status !== ScreenStatus.Error && (
+          <PluginsView screenStatus={screen.status} screenType={screen.type} />
+        )} */}
         {screen.status === ScreenStatus.Error && <LogDisplay />}
         {screen.type === ScreenType.Home && <LogDisplay />}
         {(screen.type === ScreenType.Map ||

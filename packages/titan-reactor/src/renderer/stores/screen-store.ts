@@ -1,19 +1,7 @@
 import create from "zustand";
-import { ReplayPlayer } from "../../common/types";
+import { ReplayPlayer, ScreenStatus, ScreenType } from "../../common/types";
 
 
-export enum ScreenStatus {
-    Loading,
-    Ready,
-    Error
-}
-
-export enum ScreenType {
-    Map,
-    Replay,
-    IScriptah,
-    Home
-}
 
 export const isMapLoadingInformation = (information: any): information is MapLoadingInformation => {
     return information && information.title !== undefined;

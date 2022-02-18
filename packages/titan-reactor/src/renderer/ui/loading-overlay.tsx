@@ -2,7 +2,8 @@ import React from "react";
 import { ReplayPlayer } from "../../common/types";
 
 import { charColor } from "../../common/bwdat/enums";
-import { isMapLoadingInformation, ScreenStore, ScreenType } from "../stores";
+import { isMapLoadingInformation, ScreenStore } from "../stores";
+import { ScreenType } from "../../common/types";
 
 const processString = (str: string, useColors = true) => {
   const defaultColor = "white";
