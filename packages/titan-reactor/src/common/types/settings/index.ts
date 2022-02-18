@@ -8,6 +8,7 @@ export type Settings = {
         models: string;
         temp: string;
     },
+    pluginServerPort: number;
     playerColors: {
         ignoreReplayColors: boolean;
         randomizeOrder: boolean;
@@ -52,15 +53,13 @@ export type Settings = {
             zoomOut?: string,
             helicopterRotateSpeed: number,
         }
+    },
+    battleCam: {
+        shakeMultiplier: number;
+        fogofwar: false;
+        scanlines: true;
     }
 
-    // alwaysHideReplayControls: boolean;
-    // fullscreen: boolean;
-    // enablePlayerScores: boolean;
-    // esportsHud: boolean;
-    // embedProduction: boolean;
-    // hudFontSize: "xs" | "sm" | "md" | "lg" | "xl";
-    // autoToggleProductionView: boolean;
     // showDisabledDoodads: boolean;
     // showCritters: boolean;
 };

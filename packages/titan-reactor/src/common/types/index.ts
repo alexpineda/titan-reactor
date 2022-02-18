@@ -12,3 +12,4 @@ export * from "./util";
 export * from "./image";
 export * from "./production";
 export * from "./settings";
+export * from "./plugin";

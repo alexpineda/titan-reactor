@@ -28,7 +28,7 @@ export default (settingsPath: string) => {
       label: "&File",
       submenu: [
         {
-          label: "Open &Preferences (settings.yml)",
+          label: "Open &Preferences (settings.json)",
           click: function () {
             shell.showItemInFolder(settingsPath)
           },

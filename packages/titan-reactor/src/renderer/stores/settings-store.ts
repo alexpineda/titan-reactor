@@ -1,6 +1,6 @@
 import create from "zustand";
 
-import { Settings } from "../../common/types";
+import { Settings, Plugin } from "../../common/types";
 import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
@@ -8,6 +8,7 @@ export type SettingsMeta = {
   data: Settings;
   errors: string[];
   phrases: Record<string, string>;
+  plugins: Plugin[];
   /**
    * Whether the starcraft directory is a CASC storage or direct filesystem
    */
@@ -24,6 +25,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   phrases: {},
   isCascStorage: false,
   errors: [],
+  plugins: [],
   save: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
     await saveSettings(get().data);

@@ -10,6 +10,7 @@ export const defaultSettings: Settings = {
     models: "",
     temp: ""
   },
+  pluginServerPort: 8080,
   playerColors: {
     ignoreReplayColors: true,
     randomizeOrder: false
@@ -20,7 +21,7 @@ export const defaultSettings: Settings = {
   },
   audio: {
     global: 1,
-    music: 0.1,
+    music: 0.5,
     sound: 1
   },
   graphics: {
@@ -54,5 +55,10 @@ export const defaultSettings: Settings = {
       zoomOut: "NumpadSubtract",
       helicopterRotateSpeed: 0.9,
     }
+  },
+  battleCam: {
+    shakeMultiplier: 1,
+    fogofwar: false,
+    scanlines: true,
   }
 };

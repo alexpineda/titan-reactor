@@ -7,10 +7,10 @@ import createAppMenu from "./create-app-menu";
 import windows, { createMain } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
-import "./plugins/server";
+import pluginServer from "./plugins/server";
 import { strict as assert } from "assert";
 
-const settingsPath = path.join(getUserDataPath(), "settings.yml");
+const settingsPath = path.join(getUserDataPath(), "settings.json");
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -50,6 +50,7 @@ if (!gotTheLock) {
     if (!windows.main) {
       createMain();
     }
+    pluginServer.listen(settings.get().pluginServerPort);
     const updateFullScreen = (fullscreen: boolean) => {
       assert(windows.main)
       windows.main.setFullScreen(fullscreen);

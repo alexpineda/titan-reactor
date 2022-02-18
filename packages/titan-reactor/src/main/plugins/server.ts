@@ -3,10 +3,8 @@ import nodeStatic from "node-static";
 import path from "path";
 
 const _p = path.join(__static, "plugins");
-console.log(_p);
 var file = new nodeStatic.Server(_p);
-
-export default http.createServer(function (req, res) {
+const server = http.createServer(function (req, res) {
     req.addListener('end', function () {
         file.serve(req, res, function (err, result) {
             if (err) { // There was an error serving the file
@@ -18,4 +16,5 @@ export default http.createServer(function (req, res) {
             }
         });
     }).resume();
-}).listen(8080);
+});
+export default server;
