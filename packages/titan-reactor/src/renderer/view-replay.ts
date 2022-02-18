@@ -62,6 +62,7 @@ import { WeaponType, WeaponBehavior } from "../common/bwdat/enums";
 import { easeCubicIn } from "d3-ease";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
+import * as pluginApi from "./plugin-api";
 
 CameraControls.install({ THREE: THREE });
 
@@ -1187,8 +1188,9 @@ async function TitanReactorGame(
         unitAttackScore.strength.setScalar(0);
       }
 
+      const cmdsThisFrame = [];
+
       {
-        const cmdsThisFrame = [];
         let cmd = cmds.next();
         while (cmd.done === false) {
           if (
@@ -1251,6 +1253,7 @@ async function TitanReactorGame(
       //   }
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
+      pluginApi.onFrame(gameStatePosition, scene, cmdsThisFrame, units);
       currentBwFrame = null;
     }
 

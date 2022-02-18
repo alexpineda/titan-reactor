@@ -3,7 +3,7 @@ import create from "zustand";
 import { Settings, Plugin } from "../../common/types";
 import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
-import { initializePlugins, disposePlugins } from "../plugin-api/initialize-api";
+import { initializePlugins, disposePlugins } from "../plugin-api";
 
 export type SettingsMeta = {
   data: Settings;
@@ -40,7 +40,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 }));
 
 
-export default useSettingsStore;
+export default () => useSettingsStore.getState();
 
 export const getSettings = () => useSettingsStore.getState().data;
 export const loadSettings = useSettingsStore.getState().load;

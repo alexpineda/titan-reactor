@@ -62,6 +62,10 @@ export class GameStatePosition {
     return this.bwGameFrame === this.maxFrame;
   }
 
+  getSecond() {
+    return Math.floor((this.bwGameFrame * gameSpeeds.fastest) / 1000);
+  }
+
   getFriendlyTime() {
     const t = Math.floor((this.bwGameFrame * gameSpeeds.fastest) / 1000);
     const minutes = Math.floor(t / 60);

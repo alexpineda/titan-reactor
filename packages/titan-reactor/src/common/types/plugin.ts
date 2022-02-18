@@ -1,3 +1,5 @@
+import { GameStatePosition, Unit } from "../../renderer/core";
+import { Scene } from "../../renderer/render";
 import { ScreenType } from ".";
 import { ScreenStatus } from ".";
 
@@ -26,4 +28,6 @@ export interface RealtimePluginAPI {
     onConnected(iframe: HTMLIFrameElement | null | undefined, screenType: ScreenType, screenStatus: ScreenStatus): void;
     onDisconnected(): void;
     onDispose?(): void;
+
+    onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void;
 }

@@ -1,6 +1,9 @@
 import { Plugin } from "../../common/types";
 import * as log from "../ipc/log";
 import DefaultPluginAPI from "./default-plugin-api";
+import settingsStore from "../stores/settings-store";
+import { GameStatePosition, Unit } from "../core";
+import { Scene } from "../render";
 
 export const initializePlugins = (plugins: Plugin[]) => {
 
@@ -31,5 +34,11 @@ export const disposePlugins = (plugins: Plugin[]) => {
                 log.error(`plugin:dispose "${plugin.name}" - ${e.message}`);
             }
         }
+    }
+}
+
+export const onFrame = (gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>) => {
+    for (const plugin of settingsStore().plugins) {
+        plugin.api.onFrame(gameStatePosition, scene, cmdsThisFrame, units);
     }
 }
