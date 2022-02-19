@@ -3,7 +3,6 @@ export * from "./hud-store";
 export * from "./process-store";
 export * from "./screen-store";
 export * from "./settings-store";
-export * from "./plugin-layout-store";
 export * from "./realtime/production-store";
 export * from "./realtime/resources-store";
 export * from "./realtime/unit-selection-store";

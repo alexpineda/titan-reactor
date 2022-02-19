@@ -9,30 +9,27 @@ export type PluginContentSize = {
     width: number; height: number;
 };
 
-export type PluginWithContentRect = {
-    plugin: PluginInstance;
+export type PositionedPlugin = {
+    plugin: Plugin;
+    index: number;
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
     contentRect?: PluginContentSize;
 };
 
-export type PluginPositions = {
-    topLeft: PluginWithContentRect[];
-    topRight: PluginWithContentRect[];
-    bottomLeft: PluginWithContentRect[];
-    bottomRight: PluginWithContentRect[];
-    left: PluginWithContentRect[];
-    right: PluginWithContentRect[];
-    top: PluginWithContentRect[];
-    bottom: PluginWithContentRect[];
-    hidden: PluginWithContentRect[];
-};
+export type PluginPositions = "topLeft" | "topRight" | "bottomLeft" | "bottomRight" | "top" | "bottom" | "left" | "right" | "hidden" | "inactive";
 export interface PluginPositioning {
-    position: keyof PluginPositions;
-    align: string;
-    stretch: boolean;
+    position: PluginPositions;
+    align?: string;
+    stretch?: boolean;
+    width?: number;
+    height?: number;
 }
 export interface PluginConfigLifecycle {
     pointerInteraction: boolean;
-    lifecycle: Record<string, PluginPositioning | keyof PluginPositions>;
+    lifecycle: Record<string, PluginPositioning | PluginPositions>;
     string: any
 }
 
@@ -52,18 +49,25 @@ export interface PluginJSON {
     userConfig: any;
 }
 
-export interface PluginInstance extends PluginJSON {
+export interface PluginConfig extends PluginJSON {
     src: string;
     iframe?: HTMLIFrameElement | null;
     import?: string;
-    api: PluginLifecycle;
 }
 
 export interface PluginLifecycle {
-    onInitialized(config: PluginConfigLifecycle, userConfig: any, onContentSize: (size: PluginContentSize) => void): void;
-    onConnected(iframe: HTMLIFrameElement | null | undefined, screenType: ScreenType, screenStatus: ScreenStatus): void;
+    onInitialized(config: PluginConfig): void;
+    onConnected(screenType: ScreenType, screenStatus: ScreenStatus): void;
     onDisconnected(): void;
     onDispose?(): void;
 
     onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void;
+}
+
+export interface Plugin extends PluginLifecycle {
+    iframe: HTMLIFrameElement;
+    name: string;
+    src: string;
+    config?: PluginConfigLifecycle;
+    userConfig: any;
 }
