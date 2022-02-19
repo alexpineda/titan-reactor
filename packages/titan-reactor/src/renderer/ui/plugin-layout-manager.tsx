@@ -4,20 +4,19 @@ import shallow from "zustand/shallow";
 import {
   useGameStore,
   GameStore,
-  useSettingsStore,
-  SettingsStore,
+  usePluginLayoutStore,
+  PluginLayoutStore,
 } from "../stores";
-import { Plugin, ScreenType, ScreenStatus } from "../../common/types";
+import { ScreenType, ScreenStatus, PluginInstance } from "../../common/types";
 
 const gameStoreSelector = (state: GameStore) => ({
   dimensions: state.dimensions,
   players: state.players,
 });
-const pluginSelector = (state: SettingsStore) => state.plugins;
 
-type PluginInstance = {
+type Plugin = {
   element: HTMLIFrameElement;
-  plugin: Plugin;
+  plugin: PluginInstance;
 };
 
 interface PluginsViewProps {
@@ -27,10 +26,13 @@ interface PluginsViewProps {
 
 const _alreadyLoaded: WeakMap<HTMLIFrameElement, boolean> = new WeakMap();
 
-const PluginsView = ({ screenType, screenStatus }: PluginsViewProps) => {
+const PluginLayoutManager = ({
+  screenType,
+  screenStatus,
+}: PluginsViewProps) => {
   const { dimensions, players } = useGameStore(gameStoreSelector, shallow);
-  const plugins = useSettingsStore(pluginSelector);
-  const itemEls: React.MutableRefObject<PluginInstance[]> = useRef([]);
+  const plugins = usePluginLayoutStore((state) => state, shallow);
+  const itemEls: React.MutableRefObject<Plugin[]> = useRef([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,11 +74,8 @@ const PluginsView = ({ screenType, screenStatus }: PluginsViewProps) => {
     };
   }, [screenType, screenStatus, plugins]);
 
-  const enabledPlugins = plugins.filter((plugin) =>
-    plugin.api.onBeforeConnect(screenType, screenStatus)
-  );
-
   itemEls.current.length = 0;
+
   return (
     <>
       <div
@@ -88,29 +87,36 @@ const PluginsView = ({ screenType, screenStatus }: PluginsViewProps) => {
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
+          zIndex: "10",
         }}
       >
-        {enabledPlugins.map((plugin) => (
-          <iframe
-            key={plugin.name}
-            style={{
-              backgroundColor: "transparent",
-              pointerEvents: "none",
-              userSelect: "none",
-              border: 0,
-              flex: "0 1 auto",
-            }}
-            ref={(element) => {
-              if (element) {
-                itemEls.current.push({ element, plugin });
-              }
-            }}
-            src={plugin.src}
-          />
-        ))}
+        {plugins.left.map(({ plugin, contentRect }) => {
+          return (
+            <iframe
+              key={plugin.name}
+              style={{
+                backgroundColor: "transparent",
+                pointerEvents: plugin.config.pointerInteraction
+                  ? "auto"
+                  : "none",
+                userSelect: plugin.config.pointerInteraction ? "auto" : "none",
+                border: 0,
+                flex: "0 1 auto",
+                width: contentRect?.width || "auto",
+                height: contentRect?.height || "auto",
+              }}
+              ref={(element) => {
+                if (element) {
+                  itemEls.current.push({ element, plugin });
+                }
+              }}
+              src={plugin.src}
+            />
+          );
+        })}
       </div>
     </>
   );
 };
 
-export default PluginsView;
+export default PluginLayoutManager;

@@ -1,11 +1,12 @@
-import { Plugin } from "../../common/types";
+import { PluginInstance } from "../../common/types";
 import * as log from "../ipc/log";
-import GameBridgePlugin from "./game-bridge-plugin";
+import GameAccessPlugin from "./game-access-plugin";
 import settingsStore from "../stores/settings-store";
+import pluginLayoutStore from "../stores/plugin-layout-store";
 import { GameStatePosition, Unit } from "../core";
 import { Scene } from "../render";
 
-export const initializePlugins = (plugins: Plugin[]) => {
+export const initializePlugins = (plugins: PluginInstance[]) => {
 
     for (const plugin of plugins) {
         try {
@@ -13,9 +14,11 @@ export const initializePlugins = (plugins: Plugin[]) => {
                 plugin.api = Function(plugin.import)();
                 plugin.import = undefined;
             } else {
-                plugin.api = new GameBridgePlugin();
+                plugin.api = new GameAccessPlugin();
             }
-            plugin.api.onInitialized(plugin.config, plugin.userConfig);
+            plugin.api.onInitialized(plugin.config, plugin.userConfig, (size) => {
+                pluginLayoutStore().updatePlugin(plugin, size);
+            });
 
         } catch (e: unknown) {
             if (e instanceof Error) {
@@ -25,7 +28,7 @@ export const initializePlugins = (plugins: Plugin[]) => {
     }
 }
 
-export const disposePlugins = (plugins: Plugin[]) => {
+export const disposePlugins = (plugins: PluginInstance[]) => {
     for (const plugin of plugins) {
         try {
             plugin.api.onDispose && plugin.api.onDispose();

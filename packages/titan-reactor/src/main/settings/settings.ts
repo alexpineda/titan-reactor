@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, PluginConfig, Plugin } from "../../common/types";
+import { Settings as SettingsType, PluginInstance } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -22,7 +22,7 @@ const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
-let _plugins: Plugin[];
+let _plugins: PluginInstance[];
 /**
  * A settings management utility which saves and loads settings from a file.
  * It will also emit a "change" event whenever the settings are loaded or saved.
@@ -65,7 +65,7 @@ export class Settings extends EventEmitter {
         const filePath = path.join(folder.path, "plugin.json");
         if (await fileExists(filePath)) {
           const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
-          const plugin = JSON.parse(contents) as Plugin;
+          const plugin = JSON.parse(contents) as PluginInstance;
           plugin.src = plugin.url.startsWith("http") ? plugin.url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${plugin.url}`;
 
           const importfilePath = path.join(folder.path, "realtime.js");

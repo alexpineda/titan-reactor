@@ -3,7 +3,7 @@ import LoadingOverlay from "./loading-overlay";
 import { useScreenStore } from "../stores";
 import LogDisplay from "./log-display";
 import GameView from "./game-view";
-import PluginsView from "./plugins-view";
+import PluginLayoutManager from "./plugin-layout-manager";
 import { ScreenStatus, ScreenType } from "../../common/types";
 
 const App = () => {
@@ -13,7 +13,10 @@ const App = () => {
     <React.StrictMode>
       <>
         {screen.status !== ScreenStatus.Error && (
-          <PluginsView screenStatus={screen.status} screenType={screen.type} />
+          <PluginLayoutManager
+            screenStatus={screen.status}
+            screenType={screen.type}
+          />
         )}
         {screen.status === ScreenStatus.Error && <LogDisplay />}
         {screen.type === ScreenType.Home && <LogDisplay />}

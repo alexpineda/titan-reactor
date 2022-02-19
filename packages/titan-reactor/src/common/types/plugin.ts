@@ -5,41 +5,62 @@ import { ScreenStatus } from ".";
 
 export type PluginLayoutPreset = "left-bottom" | "left-top" | "left" | "hide";
 
-export interface BaseLayoutPluginConfig {
-    layout: {
-        pointerEvents: boolean,
-        textSelectable: boolean,
-        string: string
-    },
+export type PluginContentSize = {
+    width: number; height: number;
+};
+
+export type PluginWithContentRect = {
+    plugin: PluginInstance;
+    contentRect?: PluginContentSize;
+};
+
+export type PluginPositions = {
+    topLeft: PluginWithContentRect[];
+    topRight: PluginWithContentRect[];
+    bottomLeft: PluginWithContentRect[];
+    bottomRight: PluginWithContentRect[];
+    left: PluginWithContentRect[];
+    right: PluginWithContentRect[];
+    top: PluginWithContentRect[];
+    bottom: PluginWithContentRect[];
+    hidden: PluginWithContentRect[];
+};
+export interface PluginPositioning {
+    position: keyof PluginPositions;
+    align: string;
+    stretch: boolean;
+}
+export interface PluginConfigLifecycle {
+    pointerInteraction: boolean;
+    lifecycle: Record<string, PluginPositioning | keyof PluginPositions>;
     string: any
 }
 
-export interface GameBridgePluginConfig extends BaseLayoutPluginConfig {
-    gameBridge: {
+export interface PluginConfigAccess extends PluginConfigLifecycle {
+    access: {
         "read": string[],
         "write": string[],
     }
 }
-export interface PluginConfig {
+export interface PluginJSON {
     url: string;
     name: string;
     author?: string;
     read: string[];
     write: string[];
-    config: GameBridgePluginConfig;
+    config: PluginConfigAccess;
     userConfig: any;
 }
 
-export interface Plugin extends PluginConfig {
+export interface PluginInstance extends PluginJSON {
     src: string;
     iframe?: HTMLIFrameElement | null;
     import?: string;
-    api: PluginAPI;
+    api: PluginLifecycle;
 }
 
-export interface PluginAPI {
-    onInitialized(config: any, userConfig: any): void;
-    onBeforeConnect(screenType: ScreenType, screenStatus: ScreenStatus): boolean;
+export interface PluginLifecycle {
+    onInitialized(config: PluginConfigLifecycle, userConfig: any, onContentSize: (size: PluginContentSize) => void): void;
     onConnected(iframe: HTMLIFrameElement | null | undefined, screenType: ScreenType, screenStatus: ScreenStatus): void;
     onDisconnected(): void;
     onDispose?(): void;
