@@ -46,8 +46,12 @@ type ScreenData = {
     screenStatus: ScreenStatus;
 }
 
-export type InitializedIFramePluginConfig = IFramePluginConfig & ScreenData;
-export type InitializedWorkerPluginConfig = IFramePluginConfig & ScreenData;
+export type InitializedIFramePluginConfig = IFramePluginConfig & ScreenData & {
+    url: string
+};
+export type InitializedWorkerPluginConfig = IFramePluginConfig & ScreenData & {
+    url: string
+};
 export interface InitializedPluginJSON extends Omit<PluginJSON, "channels"> {
     native?: string;
     channels: (InitializedIFramePluginConfig | InitializedWorkerPluginConfig)[];

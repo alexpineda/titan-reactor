@@ -17,13 +17,15 @@ abstract class PluginChannel {
     protected _janitor = new Janitor();
     protected _lastSend: { [key: string]: any } = {};
     private _getUserConfig: () => any;
+    private _broadcastMessage: (message: any) => void;
 
-    constructor(pluginId: string, getUserConfig: () => any) {
+    constructor(pluginId: string, getUserConfig: () => any, broadcastMessage: (message: any) => void) {
         this._pluginId = pluginId;
         this._getUserConfig = getUserConfig;
+        this._broadcastMessage = broadcastMessage;
     }
 
-    protected postMessage(message: any, transferable?: Transferable[]): void {
+    postMessage(message: any, transferable?: Transferable[]): void {
     }
 
     onInitialized(config: InitializedPluginJSON): void {
@@ -49,7 +51,7 @@ abstract class PluginChannel {
 
 
         const _onMessage = (event: MessageEvent) => {
-            if (event.data.pluginId === this._pluginId || event.data.channelId === this.id) {
+            if ((event.data.pluginId === this._pluginId && event.data.channelId !== this.id) || event.data.channelId === this.id) {
                 this._onMessage(event.data);
             }
         };
@@ -68,6 +70,10 @@ abstract class PluginChannel {
     }
 
     protected _onMessage(message: any) {
+        // broadcast message to all channels
+        if (message.pluginId === this._pluginId && message.channelId === this.id) {
+            this._broadcastMessage(message);
+        }
     }
 }
 

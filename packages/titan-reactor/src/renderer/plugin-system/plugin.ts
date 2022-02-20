@@ -19,11 +19,20 @@ class Plugin {
 
     constructor(config: InitializedPluginJSON) {
         this._config = config;
+
+        const broadcastMessage = (message: any) => {
+            for (const channel of this.channels) {
+                channel.postMessage(message);
+            }
+        }
+
+        const getUserConfig = () => this._config.userConfig;
+
         this.channels = config.channels.map(channelConfig => {
             if (channelConfig.type === "iframe") {
-                return new PluginIFrameChannel(this._id, channelConfig, () => this._config.userConfig);
+                return new PluginIFrameChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
             } else {
-                return new PluginWorkerChannel(this._id, channelConfig, () => this._config.userConfig);
+                return new PluginWorkerChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
             }
         })
     }

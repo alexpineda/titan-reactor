@@ -1,4 +1,5 @@
 
+//@ts-ignore its' not recognizing lodash.debounce
 import debounce from "lodash.debounce";
 import gameStore from "../..//stores/game-store";
 import { InitializedIFramePluginConfig } from "../../../common/types";
@@ -8,7 +9,7 @@ class PluginIFrameChannel extends PluginChannel {
     config: InitializedIFramePluginConfig;
     iframe = document.createElement("iframe");
     private _updateContentSize: (width?: string, height?: string) => void;
-    private _updatedContentSize = false;
+    private _contentReady = false;
 
     override postMessage(message: any, transferable?: Transferable[]) {
         if (this.iframe.contentWindow) {
@@ -16,8 +17,8 @@ class PluginIFrameChannel extends PluginChannel {
         }
     }
 
-    constructor(pluginId: string, config: InitializedIFramePluginConfig, getUserConfig: () => {}) {
-        super(pluginId, getUserConfig);
+    constructor(pluginId: string, config: InitializedIFramePluginConfig, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
+        super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;
 
         const iframe = this.iframe;
@@ -28,15 +29,16 @@ class PluginIFrameChannel extends PluginChannel {
 
         iframe.src = config.url || "";
 
-        this._updateContentSize = (width?: string, height?: string) => {
+        this._updateContentSize = debounce((width?: string, height?: string) => {
             gameStore().setLatestPluginContentSize(this.id, width, height);
-        };
+        }, 1000, { leading: true });
     }
 
     protected override _onMessage(message: any) {
-        if (message.type === "content.size" && !this._updatedContentSize) {
+        super._onMessage(message);
+        if (message.type === "content.ready" && !this._contentReady) {
             this._updateContentSize(message.width, message.height);
-            this._updatedContentSize = true;
+            this._contentReady = true;
         }
     }
 }

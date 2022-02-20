@@ -32,14 +32,10 @@ export const initializePlugins = (pluginConfigs: InitializedPluginJSON[]) => {
 
         try {
             if (pluginConfig.native) {
-                plugin = Function(pluginConfig.native)();
+                plugin = Object.create(Plugin, Function(pluginConfig.native)());
                 pluginConfig.native = undefined;
-                if (plugin.extends) {
-                    //plugin.prototype
-                }
                 assert(plugin.onInitialized, "onInitialized is required");
                 assert(plugin.onFrame, "onFrame is required");
-                plugin.iframe = document.createElement("iframe");
                 plugin.onInitialized(pluginConfig);
             } else {
                 plugin = new Plugin(pluginConfig);

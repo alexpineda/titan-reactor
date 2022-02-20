@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useEffect, useRef } from "react";
+import React, { memo, MutableRefObject, useEffect, useRef } from "react";
 import { GameCanvasDimensions } from "../../common/types";
 import PluginIFrameChannel from "../plugin-system/channel/iframe-channel";
 import { useGameStore } from "../stores";
@@ -12,9 +12,11 @@ const dims = ["left", "top", "right", "bottom", "width", "height"];
 const IFrameChannelContainer = ({
   channel,
   dimensions,
+  visible,
 }: {
   channel: PluginIFrameChannel;
   dimensions: GameCanvasDimensions;
+  visible: boolean;
 }) => {
   const latestUpdateSize = useGameStore(
     (state) => state.latestPluginContentSize
@@ -94,8 +96,20 @@ const IFrameChannelContainer = ({
   }, []);
 
   return (
-    <div style={{ width: "fit-content", display: "flex" }} ref={divRef}></div>
+    <div
+      style={{
+        position: "absolute",
+        pointerEvents: "none",
+        userSelect: "none",
+        left: 0,
+        top: 0,
+        width: "100%",
+        height: "100%",
+        visibility: visible ? "visible" : "hidden",
+      }}
+      ref={divRef}
+    ></div>
   );
 };
 
-export default IFrameChannelContainer;
+export default memo(IFrameChannelContainer);
