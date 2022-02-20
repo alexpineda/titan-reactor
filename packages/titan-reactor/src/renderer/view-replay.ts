@@ -62,7 +62,7 @@ import { WeaponType, WeaponBehavior } from "../common/bwdat/enums";
 import { easeCubicIn } from "d3-ease";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
-import * as pluginSystem from "./plugin-system/system";
+import * as pluginSystem from "./plugin-system";
 
 CameraControls.install({ THREE: THREE });
 
@@ -405,8 +405,8 @@ async function TitanReactorGame(
     // );
 
     minimapSurface.setDimensions(
-      rect.minimap.width,
-      rect.minimap.height,
+      rect.minimapWidth,
+      rect.minimapHeight,
     );
 
     controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)

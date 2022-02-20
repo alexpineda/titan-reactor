@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, PluginConfig } from "../../common/types";
+import { Settings as SettingsType, InitializedPluginJSON, AvailableLifecycles, PluginJSON, ScreenType, ScreenStatus, WorkerPluginConfig, InitializedWorkerPluginConfig, InitializedIFramePluginConfig } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -16,13 +16,29 @@ import readFolder from "../starcraft/get-files";
 import path from "path";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
-export const findTempPath = () => app.getPath("temp");
+const screenDataMap = {
+  "@replay/loading": {
+    screenType: ScreenType.Replay,
+    screenStatus: ScreenStatus.Loading,
+  }, "@replay/ready": {
+    screenType: ScreenType.Replay,
+    screenStatus: ScreenStatus.Ready,
+
+  }, "@map/loading": {
+    screenType: ScreenType.Map,
+    screenStatus: ScreenStatus.Loading,
+
+  }, "@map/ready": {
+    screenType: ScreenType.Map,
+    screenStatus: ScreenStatus.Ready,
+  }
+} as Record<AvailableLifecycles, { screenType: ScreenType, screenStatus: ScreenStatus }>;
 
 const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
-let _pluginConfigs: PluginConfig[];
+let _pluginConfigs: InitializedPluginJSON[];
 /**
  * A settings management utility which saves and loads settings from a file.
  * It will also emit a "change" event whenever the settings are loaded or saved.
@@ -65,15 +81,34 @@ export class Settings extends EventEmitter {
         const filePath = path.join(folder.path, "plugin.json");
         if (await fileExists(filePath)) {
           const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
-          const pluginConfig = JSON.parse(contents) as PluginConfig;
-          pluginConfig.src = pluginConfig.url.startsWith("http") ? pluginConfig.url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${pluginConfig.url}`;
+          const pluginConfig = JSON.parse(contents) as PluginJSON;
+          //TODO: improve types cause this is bs
+          const pluginOut = pluginConfig as unknown as InitializedPluginJSON;
 
-          const importfilePath = path.join(folder.path, "realtime.js");
+          const importfilePath = path.join(folder.path, "native.js");
           if (await fileExists(importfilePath)) {
-            pluginConfig.import = await fsPromises.readFile(importfilePath, { encoding: "utf8" });;
+            pluginOut.native = await fsPromises.readFile(importfilePath, { encoding: "utf8" });;
           }
 
-          _pluginConfigs.push(pluginConfig);
+          const channels: (InitializedWorkerPluginConfig | InitializedIFramePluginConfig)[] = [];
+
+          for (const channelKey in pluginConfig.channels) {
+            const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
+            for (const channel of channelsConfig) {
+              const url = channel.url ?? channel.type === "worker" ? pluginConfig["worker.url"] : pluginConfig["iframe.url"];
+              if (url) {
+                channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
+              }
+
+              channels.push({
+                ...channel,
+                ...screenDataMap[channelKey as AvailableLifecycles]
+              });
+            }
+          }
+
+          pluginOut.channels = channels;
+          _pluginConfigs.push(pluginOut);
         }
       }
 
@@ -184,7 +219,7 @@ export class Settings extends EventEmitter {
         starcraft: await findStarcraftPath(),
         maps: await findMapsPath(),
         replays: await findReplaysPath(),
-        temp: await findTempPath(),
+        temp: app.getPath("temp"),
         models: app.getPath("documents")
       }
     };

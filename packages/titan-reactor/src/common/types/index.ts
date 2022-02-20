@@ -2,7 +2,6 @@ export * from "./bwdat";
 export * from "./chk";
 export * from "./colors";
 export * from "./common";
-export * from "./game-state";
 export * from "./grp";
 export * from "./iscript";
 export * from "./player";

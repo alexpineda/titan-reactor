@@ -9,8 +9,6 @@ export type CanvasDimensions = {
 };
 
 export type GameCanvasDimensions = CanvasDimensions & {
-  minimap: {
-    width: number;
-    height: number;
-  }
+  minimapWidth: number;
+  minimapHeight: number;
 };

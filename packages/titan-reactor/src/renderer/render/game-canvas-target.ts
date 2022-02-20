@@ -93,10 +93,8 @@ export class GameCanvasTarget extends CanvasTarget {
       bottom: window.innerHeight - (this.height + this.top),
       width: this.width,
       height: this.height,
-      minimap: {
-        width: Math.floor(minimapSize * wAspect),
-        height: Math.floor(minimapSize * hAspect)
-      }
+      minimapWidth: Math.floor(minimapSize * wAspect),
+      minimapHeight: Math.floor(minimapSize * hAspect)
     };
   }
 }

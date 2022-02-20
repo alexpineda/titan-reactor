@@ -4,6 +4,7 @@ import { useScreenStore } from "../stores";
 import LogDisplay from "./log-display";
 import GameView from "./game-view";
 import { ScreenStatus, ScreenType } from "../../common/types";
+import IFrameChannelsLayout from "./iframe-channels-layout";
 
 const App = () => {
   const screen = useScreenStore();
@@ -11,6 +12,12 @@ const App = () => {
   return (
     <React.StrictMode>
       <>
+        {screen.status !== ScreenStatus.Error && (
+          <IFrameChannelsLayout
+            screenType={screen.type}
+            screenStatus={screen.status}
+          />
+        )}
         {screen.status === ScreenStatus.Error && <LogDisplay />}
         {screen.type === ScreenType.Home && <LogDisplay />}
         {(screen.type === ScreenType.Map ||

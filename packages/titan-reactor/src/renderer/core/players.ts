@@ -1,6 +1,5 @@
 import { Unit } from ".";
 import {
-  OwnerId,
   Player,
   PlayerColor,
   ReplayPlayer,
@@ -32,7 +31,7 @@ const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
 
 export class Players extends Array<Player> {
   activePovs = 0;
-  playersById: Record<OwnerId, Player> = {};
+  playersById: Record<number, Player> = {};
 
   constructor(
     players: ReplayPlayer[],
