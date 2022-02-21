@@ -1,6 +1,6 @@
 import create from "zustand";
 
-import { Settings, InitializedPluginJSON } from "../../common/types";
+import { Settings, InitializedPluginJSON, GlobalPluginConfig as PluginSystemConfig } from "../../common/types";
 import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
@@ -8,7 +8,8 @@ export type SettingsMeta = {
   data: Settings;
   errors: string[];
   phrases: Record<string, string>;
-  pluginConfigs: InitializedPluginJSON[];
+  pluginsConfigs: InitializedPluginJSON[];
+  pluginSystemConfig: PluginSystemConfig;
   /**
    * Whether the starcraft directory is a CASC storage or direct filesystem
    */
@@ -25,7 +26,13 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   phrases: {},
   isCascStorage: false,
   errors: [],
-  pluginConfigs: [],
+  pluginsConfigs: [],
+  pluginSystemConfig: {
+    respository: [],
+    disabled: [],
+    slots: [],
+    theme: []
+  },
   save: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
     await saveSettings(get().data);
@@ -38,7 +45,3 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
 
 export default () => useSettingsStore.getState();
-
-export const getSettings = () => useSettingsStore.getState().data;
-export const loadSettings = useSettingsStore.getState().load;
-export const isCascStorage = () => useSettingsStore.getState().isCascStorage;

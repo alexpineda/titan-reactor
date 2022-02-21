@@ -3,7 +3,7 @@ import filelist from "./list";
 import * as log from "../ipc/log";
 import { findFiles } from "../../common/utils/casclib";
 import fs from "fs";
-import { isCascStorage } from "../../../src/renderer/stores";
+import settingsStore from "../../../src/renderer/stores/settings-store";
 
 interface Callbacks {
   beforeFrame: () => void;
@@ -64,7 +64,7 @@ export default class OpenBWFileList {
 
       let int8 = new Int8Array();
 
-      if (isCascStorage()) {
+      if (settingsStore().isCascStorage) {
         //@todo why is casclib returning unit8array?
         int8 = Int8Array.from(buffer.subarray(0, buffer.byteLength / 8))
       }

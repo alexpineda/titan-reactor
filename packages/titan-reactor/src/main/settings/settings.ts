@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, InitializedPluginJSON, AvailableLifecycles, PluginJSON, ScreenType, ScreenStatus, WorkerPluginConfig, InitializedWorkerPluginConfig, InitializedIFramePluginConfig } from "../../common/types";
+import { Settings as SettingsType, InitializedPluginJSON, AvailableLifecycles, PluginJSON, ScreenType, ScreenStatus, InitializedPluginConfig, GlobalPluginConfig, PluginConfigBase, IFramePluginConfig } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -14,6 +14,8 @@ import { SettingsMeta } from "src/renderer/stores";
 import migrate from "./migrate";
 import readFolder from "../starcraft/get-files";
 import path from "path";
+import logger from "../logger/singleton";
+import { isIFrameChannelConfig, isWorkerChannelConfig } from "src/renderer/plugin-system";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {
@@ -38,7 +40,10 @@ const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
-let _pluginConfigs: InitializedPluginJSON[];
+
+let _pluginsConfigs: InitializedPluginJSON[];
+let _globalPluginsConfig: GlobalPluginConfig;
+
 /**
  * A settings management utility which saves and loads settings from a file.
  * It will also emit a "change" event whenever the settings are loaded or saved.
@@ -72,8 +77,31 @@ export class Settings extends EventEmitter {
   }
 
   async loadPluginsConfiguration() {
-    if (_pluginConfigs) return;
-    _pluginConfigs = [];
+    if (_pluginsConfigs) return;
+    _pluginsConfigs = [];
+
+
+    const globalConfigFilePath = path.join(__static, "plugins", "plugins.json");
+    if (await fileExists(globalConfigFilePath)) {
+      const pluginConfigs = await fsPromises.readFile(globalConfigFilePath, { encoding: "utf-8" });
+      _globalPluginsConfig = JSON.parse(pluginConfigs) as GlobalPluginConfig;
+
+      const defaultIndex = _globalPluginsConfig.slots.findIndex(slot => slot.name === "default");
+      if (defaultIndex >= 0) {
+        _globalPluginsConfig.slots.splice(defaultIndex, 1);
+        logger.warn("`default` slot is reserved.");
+      }
+      _globalPluginsConfig.slots.push({
+        name: "default",
+        direction: "none",
+        overflow: "hidden",
+        "layout.left": "0",
+        "layout.top": "0",
+        "layout.right": "0",
+        "layout.bottom": "0",
+      });
+    }
+
 
     const folders = await readFolder(path.join(__static, "plugins"));
     for (const folder of folders) {
@@ -82,33 +110,41 @@ export class Settings extends EventEmitter {
         if (await fileExists(filePath)) {
           const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
           const pluginConfig = JSON.parse(contents) as PluginJSON;
-          //TODO: improve types cause this is bs
           const pluginOut = pluginConfig as unknown as InitializedPluginJSON;
 
           const importfilePath = path.join(folder.path, "native.js");
           if (await fileExists(importfilePath)) {
-            pluginOut.native = await fsPromises.readFile(importfilePath, { encoding: "utf8" });;
+            try {
+              pluginOut.nativeSource = await fsPromises.readFile(importfilePath, { encoding: "utf8" });
+            } catch (e) {
+              continue;
+            }
           }
 
-          const channels: (InitializedWorkerPluginConfig | InitializedIFramePluginConfig)[] = [];
+          const channels: (InitializedPluginConfig<PluginConfigBase>)[] = [];
 
           for (const channelKey in pluginConfig.channels) {
             const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
             for (const channel of channelsConfig) {
-              const url = channel.url ?? channel.type === "worker" ? pluginConfig["worker.url"] : pluginConfig["iframe.url"];
+              const url = channel.url ?? isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.template?.url);
               if (url) {
+                //TODO: load html-template.html instead of fetching from url like others
                 channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
+              }
+
+              if (isIFrameChannelConfig(channel) && channel["layout.slot"] === undefined) {
+                channel["layout.slot"] = "default";
               }
 
               channels.push({
                 ...channel,
                 ...screenDataMap[channelKey as AvailableLifecycles]
-              });
+              } as InitializedPluginConfig<PluginConfigBase>);
             }
           }
 
           pluginOut.channels = channels;
-          _pluginConfigs.push(pluginOut);
+          _pluginsConfigs.push(pluginOut);
         }
       }
 
@@ -153,7 +189,8 @@ export class Settings extends EventEmitter {
       data: { ...(await this.createDefaults()), ...this._settings },
       errors,
       isCascStorage,
-      pluginConfigs: _pluginConfigs,
+      pluginsConfigs: _pluginsConfigs,
+      pluginSystemConfig: _globalPluginsConfig,
       phrases: {
         ...phrases["en-US"],
         ...phrases[this._settings.language as keyof typeof phrases],

@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import { InputEvents } from ".";
-import { getSettings } from "../stores"
+import settingsStore from "../stores/settings-store"
 import { testKey } from "../utils/key-utils";
 
 export class ReplayKeys extends EventEmitter {
@@ -18,7 +18,7 @@ export class ReplayKeys extends EventEmitter {
     }
 
     private _keyDownListener(e: KeyboardEvent) {
-        const settings = getSettings();
+        const settings = settingsStore().data;
 
         const visit: [string, string | undefined][] = [
             [InputEvents.TogglePlay, settings.controls.replay.pause],

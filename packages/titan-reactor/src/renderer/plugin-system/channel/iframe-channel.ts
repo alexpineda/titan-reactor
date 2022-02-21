@@ -1,12 +1,11 @@
 
 //@ts-ignore its' not recognizing lodash.debounce
-import debounce from "lodash.debounce";
 import gameStore from "../..//stores/game-store";
-import { InitializedIFramePluginConfig } from "../../../common/types";
+import { IFramePluginConfig, InitializedPluginConfig } from "../../../common/types";
 import PluginChannel from "./plugin-channel";
 
 class PluginIFrameChannel extends PluginChannel {
-    config: InitializedIFramePluginConfig;
+    config: InitializedPluginConfig<IFramePluginConfig>;
     iframe = document.createElement("iframe");
     private _updateContentSize: (width?: string, height?: string) => void;
     private _contentReady = false;
@@ -17,7 +16,7 @@ class PluginIFrameChannel extends PluginChannel {
         }
     }
 
-    constructor(pluginId: string, config: InitializedIFramePluginConfig, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
+    constructor(pluginId: string, config: InitializedPluginConfig<IFramePluginConfig>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
         super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;
 
@@ -25,13 +24,15 @@ class PluginIFrameChannel extends PluginChannel {
         iframe.style.backgroundColor = "transparent";
         iframe.style.border = "none";
         iframe.style.pointerEvents = config.pointerInteraction ? "auto" : "none";
-        iframe.style.userSelect = config?.pointerInteraction ? "auto" : "none";
-
+        iframe.style.userSelect = config.pointerInteraction ? "auto" : "none";
         iframe.src = config.url || "";
 
-        this._updateContentSize = debounce((width?: string, height?: string) => {
+        iframe.sandbox.add("allow-scripts");
+        iframe.sandbox.add("allow-downloads");
+
+        this._updateContentSize = (width?: string, height?: string) => {
             gameStore().setLatestPluginContentSize(this.id, width, height);
-        }, 1000, { leading: true });
+        };
     }
 
     protected override _onMessage(message: any) {

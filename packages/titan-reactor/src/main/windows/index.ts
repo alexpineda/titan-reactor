@@ -1,8 +1,9 @@
 import { BrowserWindow } from "electron";
-import createGameWindow from "./create-game-window";
+import createGameWindow, { createWindow } from "./create-game-window";
 
 const browserWindows = {} as {
   main: null | BrowserWindow;
+  config: null | BrowserWindow;
 };
 
 export const createMain = () => {
@@ -15,5 +16,16 @@ export const createMain = () => {
     },
   });
 };
+
+export const createConfig = () => {
+  if (browserWindows.config) {
+    throw new Error("Config window already exists");
+  }
+  browserWindows.config = createWindow({
+    onClose: () => {
+      browserWindows.config = null;
+    },
+  });
+}
 
 export default browserWindows;

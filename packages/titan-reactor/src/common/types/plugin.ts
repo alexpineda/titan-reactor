@@ -1,44 +1,67 @@
 import { GameStatePosition, Unit } from "../../renderer/core";
 import { Scene } from "../../renderer/render";
 import { ScreenType } from ".";
-import { ScreenStatus } from ".";
+import { ScreenStatus, GameCanvasDimensions } from ".";
+import { url } from "inspector";
 
 export type PluginContentSize = {
     width: number; height: number;
 };
 
-export type AvailableDimensions = "content" | "minimapWidth" | "minimapHeight" | "width" | "height" | "left" | "bottom" | "top" | "right";
+
+export type AvailableDimensions = "content" | keyof GameCanvasDimensions
+export type LayoutValue = AvailableDimensions | number | string;
+export type LayoutRect = {
+    "layout.top"?: LayoutValue;
+    "layout.left"?: LayoutValue;
+    "layout.right"?: LayoutValue;
+    "layout.bottom"?: LayoutValue;
+    "layout.width"?: LayoutValue;
+    "layout.height"?: LayoutValue;
+}
+
+export type PluginConfigBase = {
+    type: string;
+    url?: string,
+    "access.read"?: string;
+    "access.write"?: string[];
+    "access.assets"?: string[];
+}
+export type HTMLPluginConfig = PluginConfigBase & LayoutRect & {
+    type: "html",
+    pointerInteraction: boolean;
+    "layout.slot"?: string;
+    "layout.slot.order"?: number | string;
+}
+
+export type WorkerPluginConfig = PluginConfigBase & {
+    type: "worker",
+}
+
+export type IFramePluginConfig = Omit<HTMLPluginConfig, "type"> & LayoutRect & {
+    type: "iframe",
+}
 
 export type AvailableLifecycles = "@replay/loading" | "@replay/ready" | "@map/loading" | "@map/ready";
-export type PluginPositioning = {
-    "layout.top"?: AvailableDimensions | number | string;
-    "layout.left"?: AvailableDimensions | number | string;
-    "layout.right"?: AvailableDimensions | number | string;
-    "layout.bottom"?: AvailableDimensions | number | string;
-    "layout.width"?: AvailableDimensions | number | string;
-    "layout.height"?: AvailableDimensions | number | string;
-    "layout.stack"?: AvailableDimensions | number | string;
-}
 
-export type WorkerPluginConfig = {
-    type: "worker",
-    url?: string,
-    "access.read"?: [];
-    "access.write"?: [];
-}
-export type IFramePluginConfig = PluginPositioning & Omit<WorkerPluginConfig, "type"> & {
-    type: "iframe",
-    pointerInteraction: boolean;
-}
 export interface PluginJSON {
     name: string;
+    version: string;
     author?: string;
-    "worker.url"?: string;
-    "iframe.url"?: string;
-    "iframe.keepAlive"?: boolean,
-    "worker.keepAlive"?: boolean,
+    worker?: {
+        url?: string;
+        keepAlive?: boolean;
+    },
+    iframe?: {
+        url?: string;
+        keepAlive?: boolean;
+    },
+    template?: {
+        url?: string;
+    },
+    native?: "isolated" | "inherited";
     userConfig: any;
-    channels: Record<AvailableLifecycles, (IFramePluginConfig | WorkerPluginConfig)[]>
+    channels: Record<AvailableLifecycles, PluginConfigBase[]>
 }
 
 type ScreenData = {
@@ -46,15 +69,11 @@ type ScreenData = {
     screenStatus: ScreenStatus;
 }
 
-export type InitializedIFramePluginConfig = IFramePluginConfig & ScreenData & {
-    url: string
-};
-export type InitializedWorkerPluginConfig = IFramePluginConfig & ScreenData & {
-    url: string
-};
+export type InitializedPluginConfig<T extends PluginConfigBase> = T & ScreenData & { url: string };
+
 export interface InitializedPluginJSON extends Omit<PluginJSON, "channels"> {
-    native?: string;
-    channels: (InitializedIFramePluginConfig | InitializedWorkerPluginConfig)[];
+    nativeSource?: string;
+    channels: InitializedPluginConfig<PluginConfigBase>[];
 }
 
 export interface PluginLifecycle {
@@ -63,4 +82,18 @@ export interface PluginLifecycle {
     onDisconnected(): void;
     onDispose?(): void;
     onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void;
+}
+
+export interface SlotConfig extends LayoutRect {
+    name: string;
+    description?: string;
+    direction: "none" | "horizontal-left" | "horizontal-right" | "vertical-up" | "vertical-down";
+    overflow: "scroll" | "hidden";
+}
+
+export interface GlobalPluginConfig {
+    "respository": string[],
+    "disabled": string[],
+    "slots": SlotConfig[],
+    "theme": string[]
 }

@@ -35,7 +35,6 @@ import {
 } from "./render";
 import renderer from "./render/renderer";
 import {
-  getSettings,
   useGameStore,
   useHudStore,
   useSettingsStore,
@@ -63,6 +62,7 @@ import { easeCubicIn } from "d3-ease";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
 import * as pluginSystem from "./plugin-system";
+import settingsStore from "./stores/settings-store";
 
 CameraControls.install({ THREE: THREE });
 
@@ -72,7 +72,7 @@ const _cameraTarget = new Vector3();
 async function TitanReactorGame(
   world: ReplayWorld
 ) {
-  let settings = getSettings();
+  let settings = settingsStore().data;
 
   const { scene, terrain, chk, replay, gameStateReader, commandsStream, assets, audioMixer, music, soundChannels, janitor } = world;
   const preplacedMapUnits = chk.units;

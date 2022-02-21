@@ -7,7 +7,7 @@ import {
 
 import { AssetTextureResolution, PxToGameUnit, TerrainInfo, TilesetBuffers } from "../../common/types";
 import { loadTilesetFiles } from "./load-tileset-files";
-import { getSettings } from "../stores/settings-store";
+import settingsStore from "../stores/settings-store";
 import * as sd from "../../common/image/generate-map/sd";
 import * as hd from "../../common/image/generate-map/hd";
 import { Layers } from "../render"
@@ -19,7 +19,7 @@ import renderer from "../render/renderer";
 const _mapCoords = new Vector3();
 
 export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
-  const settings = getSettings();
+  const settings = settingsStore().data;
   const geomOptions = defaultOptions;
   const [mapWidth, mapHeight] = chk.size;
 

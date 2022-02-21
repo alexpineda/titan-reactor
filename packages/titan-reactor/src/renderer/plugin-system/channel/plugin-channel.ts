@@ -49,7 +49,6 @@ abstract class PluginChannel {
 
     onConnected(screenType: ScreenType, screenStatus: ScreenStatus) {
 
-
         const _onMessage = (event: MessageEvent) => {
             if ((event.data.pluginId === this._pluginId && event.data.channelId !== this.id) || event.data.channelId === this.id) {
                 this._onMessage(event.data);

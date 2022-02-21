@@ -5,6 +5,9 @@ import path from "path";
 const _p = path.join(__static, "plugins");
 var file = new nodeStatic.Server(_p, { cache: 0 });
 const server = http.createServer(function (req, res) {
+    //https://web.dev/origin-agent-cluster/
+    res.setHeader("Origin-Agent-Cluster", "?1")
+
     req.addListener('end', function () {
         file.serve(req, res, function (err, result) {
             if (err) { // There was an error serving the file

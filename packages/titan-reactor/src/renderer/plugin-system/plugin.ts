@@ -5,11 +5,13 @@ import { Scene } from "../render";
 
 import PluginWorkerChannel from "./channel/worker-channel";
 import PluginIFrameChannel from "./channel/iframe-channel";
+import PluginHTMLChannel from "./channel/html-channel";
+import { isHTMLChannelConfig, isIFrameChannelConfig, isWorkerChannelConfig } from ".";
 
 
 // TODO: userland apis: onshow, onhide, onresize, onfullscreen, onunfullscreen, setvisibility
 class Plugin {
-    channels: (PluginIFrameChannel | PluginWorkerChannel)[];
+    channels: (PluginIFrameChannel | PluginWorkerChannel | PluginHTMLChannel)[];
     private _config: InitializedPluginJSON;
     protected _id = MathUtils.generateUUID();
     protected _contentSize?: PluginContentSize;
@@ -29,12 +31,15 @@ class Plugin {
         const getUserConfig = () => this._config.userConfig;
 
         this.channels = config.channels.map(channelConfig => {
-            if (channelConfig.type === "iframe") {
+            if (isIFrameChannelConfig(channelConfig)) {
                 return new PluginIFrameChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
-            } else {
+            } else if (isWorkerChannelConfig(channelConfig)) {
                 return new PluginWorkerChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
+            } else if (isHTMLChannelConfig(channelConfig)) {
+                return new PluginHTMLChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
             }
-        })
+            throw new Error(`Unknown channel type: ${channelConfig.type}`);
+        });
     }
 
     onInitialized(config: InitializedPluginJSON): void {

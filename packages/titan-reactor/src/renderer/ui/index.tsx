@@ -4,20 +4,24 @@ import { useScreenStore } from "../stores";
 import LogDisplay from "./log-display";
 import GameView from "./game-view";
 import { ScreenStatus, ScreenType } from "../../common/types";
-import IFrameChannelsLayout from "./iframe-channels-layout";
+import PluginsChannelsSlot from "./plugin-channels-slot";
+import * as pluginSystem from "../plugin-system";
 
 const App = () => {
   const screen = useScreenStore();
+  const slots = pluginSystem.getSlots();
 
   return (
     <React.StrictMode>
       <>
-        {screen.status !== ScreenStatus.Error && (
-          <IFrameChannelsLayout
-            screenType={screen.type}
-            screenStatus={screen.status}
-          />
-        )}
+        {screen.status !== ScreenStatus.Error &&
+          slots.map((slot) => (
+            <PluginsChannelsSlot
+              screenType={screen.type}
+              screenStatus={screen.status}
+              slotConfig={slot}
+            />
+          ))}
         {screen.status === ScreenStatus.Error && <LogDisplay />}
         {screen.type === ScreenType.Home && <LogDisplay />}
         {(screen.type === ScreenType.Map ||

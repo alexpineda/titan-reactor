@@ -15,9 +15,7 @@ import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
 import loadTerrain from "./assets/load-terrain";
-import {
-  getSettings,
-} from "./stores";
+import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
 import { ScreenType } from "../common/types";
@@ -43,7 +41,7 @@ export default async (filepath: string) => {
   gameStore().disposeGame();
 
   const janitor = new Janitor();
-  const settings = getSettings();
+  const settings = settingsStore().data;
 
   // validate before showing any loading progress
   let repBin = await openFile(filepath);
