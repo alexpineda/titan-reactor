@@ -1,7 +1,8 @@
 import { StartLocation } from "./chk";
-import { Race } from "./common";
 import { PlayerColor } from "./colors";
 import { Unit } from "../../renderer/core";
+
+export type Race = "zerg" | "terran" | "protoss";
 
 export type Player = {
   id: number;

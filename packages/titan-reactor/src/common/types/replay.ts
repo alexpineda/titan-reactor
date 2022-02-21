@@ -1,6 +1,5 @@
 import { ColorRepresentation } from "three";
-
-import { Race } from "./common";
+import { Race } from "./player";
 
 export type ReplayPlayer = {
   id: number;

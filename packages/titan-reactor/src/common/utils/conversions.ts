@@ -25,8 +25,8 @@ export const pxToMapMeter = (
 };
 
 export enum gameSpeeds {
-  superSlow = 334, // ms/frame
-  slowest = 167, // ms/frame
+  superSlow = 334,
+  slowest = 167,
   slower = 111,
   slow = 83,
   normal = 67,
