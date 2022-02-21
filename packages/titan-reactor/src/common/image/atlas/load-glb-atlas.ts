@@ -2,7 +2,7 @@ import { loadAnimAtlas } from "./load-anim-atlas";
 import { GlbAtlas } from "./glb-atlas";
 import { UnitTileScale } from "../../../renderer/core";
 
-import { ImageDAT } from "../../bwdat/core/images-dat";
+import { ImageDAT } from "../../bwdat/images-dat";
 import loadGlb, { GlbResponse } from "../formats/load-glb";
 import { GrpType } from "../../types";
 import { Texture } from "three";

@@ -1,4 +1,4 @@
-import range from "../../utils/range";
+import range from "../utils/range";
 
 export class TBL {
   static parse(buf: Buffer) {

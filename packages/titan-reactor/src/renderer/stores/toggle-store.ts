@@ -1,5 +1,5 @@
 import create from "zustand";
-import { UnitDAT } from "../../common/bwdat/core/units-dat";
+import { UnitDAT } from "../../common/bwdat/units-dat";
 import range from "../../common/utils/range";
 import { Unit } from "../core";
 

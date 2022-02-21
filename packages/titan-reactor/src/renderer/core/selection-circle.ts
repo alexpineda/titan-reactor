@@ -1,6 +1,6 @@
 import { CompressedTexture, Sprite, SpriteMaterial } from "three";
 
-import { SpriteDAT } from "../../common/bwdat/core/sprites-dat";
+import { SpriteDAT } from "../../common/bwdat/sprites-dat";
 import gameStore from "../stores/game-store";
 
 export class SelectionCircle extends Sprite {

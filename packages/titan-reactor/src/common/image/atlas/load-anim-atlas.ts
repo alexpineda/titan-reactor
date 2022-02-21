@@ -1,7 +1,7 @@
 import { UnitTileScale } from "../../../renderer/core";
 
 import { AnimAtlas } from "./anim-atlas"
-import { ImageDAT } from "../../bwdat/core/images-dat";
+import { ImageDAT } from "../../bwdat/images-dat";
 import { AnimDds, AnimSprite, GrpType } from "../../types";
 import { parseAnim, createDDSTexture } from "../formats";
 
