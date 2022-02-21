@@ -1,6 +1,6 @@
 import create from "zustand";
 
-import { Settings, InitializedPluginJSON, GlobalPluginConfig as PluginSystemConfig } from "../../common/types";
+import { Settings, InitializedPluginConfiguration, GlobalPluginConfiguration as PluginSystemConfig } from "../../common/types";
 import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
@@ -8,7 +8,7 @@ export type SettingsMeta = {
   data: Settings;
   errors: string[];
   phrases: Record<string, string>;
-  pluginsConfigs: InitializedPluginJSON[];
+  pluginsConfigs: InitializedPluginConfiguration[];
   pluginSystemConfig: PluginSystemConfig;
   /**
    * Whether the starcraft directory is a CASC storage or direct filesystem

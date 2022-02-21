@@ -17,6 +17,7 @@ const App = () => {
         {screen.status !== ScreenStatus.Error &&
           slots.map((slot) => (
             <PluginsChannelsSlot
+              key={slot.name}
               screenType={screen.type}
               screenStatus={screen.status}
               slotConfig={slot}

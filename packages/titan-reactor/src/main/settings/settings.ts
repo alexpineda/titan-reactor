@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, InitializedPluginJSON, AvailableLifecycles, PluginJSON, ScreenType, ScreenStatus, InitializedPluginConfig, GlobalPluginConfig, PluginConfigBase, IFramePluginConfig } from "../../common/types";
+import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, GlobalPluginConfiguration, PluginChannelConfigurationBase, IFramePluginChannelConfiguration } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -15,7 +15,7 @@ import migrate from "./migrate";
 import readFolder from "../starcraft/get-files";
 import path from "path";
 import logger from "../logger/singleton";
-import { isIFrameChannelConfig, isWorkerChannelConfig } from "src/renderer/plugin-system";
+import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {
@@ -41,8 +41,8 @@ const getEnvLocale = (env = process.env) => {
 };
 
 
-let _pluginsConfigs: InitializedPluginJSON[];
-let _globalPluginsConfig: GlobalPluginConfig;
+let _pluginsConfigs: InitializedPluginConfiguration[];
+let _globalPluginsConfig: GlobalPluginConfiguration;
 
 /**
  * A settings management utility which saves and loads settings from a file.
@@ -84,12 +84,12 @@ export class Settings extends EventEmitter {
     const globalConfigFilePath = path.join(__static, "plugins", "plugins.json");
     if (await fileExists(globalConfigFilePath)) {
       const pluginConfigs = await fsPromises.readFile(globalConfigFilePath, { encoding: "utf-8" });
-      _globalPluginsConfig = JSON.parse(pluginConfigs) as GlobalPluginConfig;
+      _globalPluginsConfig = JSON.parse(pluginConfigs) as GlobalPluginConfiguration;
 
       const defaultIndex = _globalPluginsConfig.slots.findIndex(slot => slot.name === "default");
       if (defaultIndex >= 0) {
         _globalPluginsConfig.slots.splice(defaultIndex, 1);
-        logger.warn("`default` slot is reserved.");
+        logger.warn("@settings/load-plugins: `default` slot is reserved.");
       }
       _globalPluginsConfig.slots.push({
         name: "default",
@@ -109,19 +109,20 @@ export class Settings extends EventEmitter {
         const filePath = path.join(folder.path, "plugin.json");
         if (await fileExists(filePath)) {
           const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
-          const pluginConfig = JSON.parse(contents) as PluginJSON;
-          const pluginOut = pluginConfig as unknown as InitializedPluginJSON;
+          const pluginConfig = JSON.parse(contents) as PluginConfiguration;
+          const pluginOut = pluginConfig as unknown as InitializedPluginConfiguration;
 
           const importfilePath = path.join(folder.path, "native.js");
           if (await fileExists(importfilePath)) {
             try {
               pluginOut.nativeSource = await fsPromises.readFile(importfilePath, { encoding: "utf8" });
             } catch (e) {
+              logger.error("@settings/load-plugins: native source file failed to load.");
               continue;
             }
           }
 
-          const channels: (InitializedPluginConfig<PluginConfigBase>)[] = [];
+          const channels: (InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>)[] = [];
 
           for (const channelKey in pluginConfig.channels) {
             const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
@@ -139,11 +140,13 @@ export class Settings extends EventEmitter {
               channels.push({
                 ...channel,
                 ...screenDataMap[channelKey as AvailableLifecycles]
-              } as InitializedPluginConfig<PluginConfigBase>);
+              } as InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>);
             }
           }
 
           pluginOut.channels = channels;
+          pluginOut.tag = folder.name;
+
           _pluginsConfigs.push(pluginOut);
         }
       }

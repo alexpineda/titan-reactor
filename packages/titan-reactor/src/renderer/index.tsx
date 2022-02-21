@@ -1,4 +1,4 @@
-if (window.location.search.includes("?config")) {
+if (window.location.search.includes("?plugins")) {
 } else {
   import("./titan-reactor");
 }

@@ -1,38 +1,18 @@
 import { app, Menu, shell } from "electron";
 import { showOpenMapDialog, showOpenReplayDialog } from "./register-ipc-handlers/dialogs";
-const isMac = process.platform === "darwin";
+import getUserDataPath from "./get-user-data-path";
+import path from "path";
+import logger from "./logger/singleton";
 
-export default (settingsPath: string) => {
+const settingsPath = path.join(getUserDataPath(), "settings.json");
+export const logFilePath = path.join(getUserDataPath(), "logs", "app");
+
+export default (onOpenPluginManager: () => void) => {
+
   const template = [
-    // { role: 'appMenu' }
-    ...(isMac
-      ? [
-        {
-          label: app.name,
-          submenu: [
-            { role: "about" },
-            { type: "separator" },
-            { role: "services" },
-            { type: "separator" },
-            { role: "hide" },
-            { role: "hideothers" },
-            { role: "unhide" },
-            { type: "separator" },
-            { role: "quit" },
-          ],
-        },
-      ]
-      : []),
-    // { role: 'fileMenu' }
     {
       label: "&File",
       submenu: [
-        {
-          label: "Open &Preferences (settings.json)",
-          click: function () {
-            shell.showItemInFolder(settingsPath)
-          },
-        },
         { type: "separator" },
         {
           label: "Open &Map",
@@ -47,20 +27,39 @@ export default (settingsPath: string) => {
           },
         },
         { type: "separator" },
-        { role: isMac ? "close" : "quit" }
+        {
+          label: "&Preferences (settings.json)",
+          click: function () {
+            shell.showItemInFolder(settingsPath)
+          },
+        },
+        { type: "separator" },
+        { role: "quit" }
       ],
     },
     {
-      label: "View",
+      label: "&View",
       submenu: [
-        { role: "reload" },
-        { role: "toggledevtools" },
+        {
+          label: "&Plugin Manager",
+          click: function () {
+            onOpenPluginManager();
+          },
+        },
+        { type: "separator" },
+        {
+          label: "View &Log File(s)",
+          click: function () {
+            shell.showItemInFolder(logFilePath);
+          },
+        },
         { type: "separator" },
         { role: "togglefullscreen" },
       ],
     },
     {
-      role: "help",
+      label: "&DarkMatter",
+      // role: "help",
       submenu: [
         {
           label: "Github",

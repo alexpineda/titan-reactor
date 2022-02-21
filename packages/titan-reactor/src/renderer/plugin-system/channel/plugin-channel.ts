@@ -1,4 +1,4 @@
-import { InitializedPluginJSON, ScreenStatus, ScreenType } from "../../../common/types";
+import { InitializedPluginConfiguration, ScreenStatus, ScreenType } from "../../../common/types";
 import { MathUtils } from "three";
 import { GameStatePosition, Unit } from "../../core";
 import { Scene } from "../../render";
@@ -28,7 +28,7 @@ abstract class PluginChannel {
     postMessage(message: any, transferable?: Transferable[]): void {
     }
 
-    onInitialized(config: InitializedPluginJSON): void {
+    onInitialized(config: InitializedPluginConfiguration): void {
         throw new Error("Method not implemented.");
     }
     onDisconnected(): void {

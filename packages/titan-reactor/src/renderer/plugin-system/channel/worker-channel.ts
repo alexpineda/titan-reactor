@@ -1,11 +1,11 @@
-import { InitializedPluginConfig, WorkerPluginConfig } from "../../../common/types";
+import { InitializedPluginChannelConfiguration, WorkerPluginChannelConfiguration } from "../../../common/types";
 import PluginChannel from "./plugin-channel";
 
 class PluginWorkerChannel extends PluginChannel {
-    config: InitializedPluginConfig<WorkerPluginConfig>;
+    config: InitializedPluginChannelConfiguration<WorkerPluginChannelConfiguration>;
     worker: Worker;
 
-    constructor(pluginId: string, config: InitializedPluginConfig<WorkerPluginConfig>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
+    constructor(pluginId: string, config: InitializedPluginChannelConfiguration<WorkerPluginChannelConfiguration>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
         super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;
         this.worker = new Worker(config.url);

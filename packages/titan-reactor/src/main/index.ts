@@ -20,10 +20,11 @@ if (!gotTheLock) {
   const psbId = powerSaveBlocker.start("prevent-display-sleep");
 
   app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
-  app.commandLine.appendSwitch("--force_high_performance_gpu");
-  app.commandLine.appendSwitch("--disable-xr-sandbox");
+  app.commandLine.appendSwitch("force_high_performance_gpu");
+  app.commandLine.appendSwitch("disable-xr-sandbox");
+  app.commandLine.appendSwitch("strict-origin-isolation");
 
-  createAppMenu(settingsPath);
+  createAppMenu(() => { });
 
   if (process.defaultApp) {
     if (process.argv.length >= 2) {
@@ -90,10 +91,17 @@ if (!gotTheLock) {
     contents.setWindowOpenHandler(() => ({ action: "deny" }));
   });
 
-  app.on('browser-window-focus', function () {
-    globalShortcut.register("CommandOrControl+R", () => {
-      console.log("CommandOrControl+R is pressed: Shortcut Disabled");
+  app.on('browser-window-focus', function (event) {
+
+    globalShortcut.register('CommandOrControl+Shift+I', () => {
+      // @ts-ignore
+      event.sender.webContents.openDevTools();
     });
+    globalShortcut.register("CommandOrControl+R", () => {
+      // @ts-ignore
+      event.sender.webContents.reload();
+    });
+
     globalShortcut.register("F5", () => {
       console.log("F5 is pressed: Shortcut Disabled");
     });

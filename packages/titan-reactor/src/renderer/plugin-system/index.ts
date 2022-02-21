@@ -1,4 +1,4 @@
-import { HTMLPluginConfig, IFramePluginConfig, InitializedPluginJSON, WorkerPluginConfig } from "../../common/types";
+import { InitializedPluginConfiguration } from "../../common/types";
 import * as log from "../ipc/log";
 import { GameStatePosition, Unit } from "../core";
 import { Scene } from "../render";
@@ -15,24 +15,28 @@ let pluginsInitialized = false;
 
 useSettingsStore.subscribe((settings) => {
     if (_plugins && pluginsInitialized) {
-        console.warn("plugins already initialized");
+        log.warning("plugins already initialized");
         return;
     }
     pluginsInitialized = true;
     _plugins = initializePlugins(settings.pluginsConfigs);
+
+    for (const plugin of _plugins) {
+        log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version} - ${plugin.enabled}`);
+    }
 });
 
-export const getPlugins = () => [..._plugins];
+export const getPlugins = (all?: boolean) => _plugins.filter(p => all ?? p.enabled);
 
-export const getWorkerChannels = () => _plugins.flatMap(p => p.channels.filter(channel => channel instanceof PluginWorkerChannel)) as PluginWorkerChannel[];
+export const getWorkerChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWorkerChannel)) as PluginWorkerChannel[];
 
-export const getIFrameChannels = () => _plugins.flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel)) as PluginIFrameChannel[];
+export const getIFrameChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel)) as PluginIFrameChannel[];
 
-export const getHTMLChannels = () => _plugins.flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel)) as PluginHTMLChannel[];
+export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel)) as PluginHTMLChannel[];
 
 export const getSlots = () => settingsStore().pluginSystemConfig.slots;
 
-export const initializePlugins = (pluginConfigs: InitializedPluginJSON[]) => {
+export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[]) => {
 
     const plugins = pluginConfigs.map(pluginConfig => {
         let plugin;
@@ -52,9 +56,11 @@ export const initializePlugins = (pluginConfigs: InitializedPluginJSON[]) => {
                 plugin = new Plugin(pluginConfig);
             }
 
+            plugin.enabled = settingsStore().pluginSystemConfig.disabled.includes(plugin.tag) ? false : true;
+
         } catch (e: unknown) {
             if (e instanceof Error) {
-                log.error(`plugin:initialize "${pluginConfig.name}" - ${e.message}`);
+                log.error(`@plugin-system: failed to initialize "${pluginConfig.name}" - ${e.message}`);
             }
         }
         return plugin;
@@ -69,7 +75,7 @@ export const disposePlugins = (plugins: Plugin[]) => {
             plugin.onDispose && plugin.onDispose();
         } catch (e: unknown) {
             if (e instanceof Error) {
-                log.error(`plugin:dispose "${plugin.name}" - ${e.message}`);
+                log.error(`@plugin-system: error disposing "${plugin.name}" - ${e.message}`);
             }
         }
     }
@@ -79,17 +85,4 @@ export const onFrame = (gameStatePosition: GameStatePosition, scene: Scene, cmds
     for (const plugin of _plugins) {
         plugin.onFrame(gameStatePosition, scene, cmdsThisFrame, units);
     }
-}
-
-
-export const isIFrameChannelConfig = (channel: any): channel is IFramePluginConfig => {
-    return channel.type === "iframe";
-}
-
-export const isHTMLChannelConfig = (channel: any): channel is HTMLPluginConfig => {
-    return channel.type === "html";
-}
-
-export const isWorkerChannelConfig = (channel: any): channel is WorkerPluginConfig => {
-    return channel.type === "html";
 }

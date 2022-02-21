@@ -21,14 +21,14 @@ if (module.hot) {
   module.hot.accept();
 }
 
-log.info(`titan-reactor ${version}`);
-log.info(`chrome ${process.versions.chrome}`);
-log.info(`electron ${process.versions.electron}`);
-log.info(`resolution ${window.innerWidth}x${window.innerHeight}`);
+log.info(`@init: titan-reactor ${version}`);
+log.info(`@init: chrome ${process.versions.chrome}`);
+log.info(`@init: electron ${process.versions.electron}`);
+log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
 
 {
   const r = renderer.getWebGLRenderer();
-  log.verbose(`webgl capabilities`);
+  log.verbose(`@init: webgl capabilities`);
   for (const prop of Object.getOwnPropertyNames(r.capabilities)) {
     const value = r.capabilities[prop as keyof typeof r.capabilities];
     if (typeof value === "function") continue;
@@ -56,15 +56,16 @@ log.info(`resolution ${window.innerWidth}x${window.innerHeight}`);
 
   r.extensions.init(r.capabilities);
 
-  log.verbose(`device pixel ratio: ${window.devicePixelRatio}`);
+  log.verbose(`@init: device pixel ratio: ${window.devicePixelRatio}`);
 }
 
 bootup();
+
 async function bootup() {
   try {
+    log.info("@init");
     await loadFonts();
     await settingsStore().load();
-    log.info("bootup complete");
     registerFileDialogHandlers();
 
     const settings = settingsStore().data;
@@ -72,19 +73,21 @@ async function bootup() {
 
     if (hasErrors) {
       log.error(
-        `settings errors: ${useSettingsStore.getState().errors.join(", ")}`
+        `@init: error with settings - ${useSettingsStore
+          .getState()
+          .errors.join(", ")}`
       );
-    }
-
-    for (const plugin of settingsStore().pluginsConfigs) {
-      log.verbose(`plugin ${plugin.name} ${plugin.version}`);
     }
 
     renderer.getWebGLRenderer().toneMappingExposure = settings.graphics.gamma;
 
     useSettingsStore.subscribe((state) => {
       if (state.errors) {
-        log.error(`settings errors: ${state.errors.join(", ")}`);
+        log.error(
+          `@init/settings.changed: error with settings -  ${state.errors.join(
+            ", "
+          )}`
+        );
       }
     });
 

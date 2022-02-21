@@ -1,11 +1,11 @@
 
 //@ts-ignore its' not recognizing lodash.debounce
 import gameStore from "../..//stores/game-store";
-import { IFramePluginConfig, InitializedPluginConfig } from "../../../common/types";
+import { IFramePluginChannelConfiguration, InitializedPluginChannelConfiguration } from "../../../common/types";
 import PluginChannel from "./plugin-channel";
 
 class PluginIFrameChannel extends PluginChannel {
-    config: InitializedPluginConfig<IFramePluginConfig>;
+    config: InitializedPluginChannelConfiguration<IFramePluginChannelConfiguration>;
     iframe = document.createElement("iframe");
     private _updateContentSize: (width?: string, height?: string) => void;
     private _contentReady = false;
@@ -16,7 +16,7 @@ class PluginIFrameChannel extends PluginChannel {
         }
     }
 
-    constructor(pluginId: string, config: InitializedPluginConfig<IFramePluginConfig>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
+    constructor(pluginId: string, config: InitializedPluginChannelConfiguration<IFramePluginChannelConfiguration>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
         super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;
 

@@ -2,12 +2,10 @@ import { GameStatePosition, Unit } from "../../renderer/core";
 import { Scene } from "../../renderer/render";
 import { ScreenType } from ".";
 import { ScreenStatus, GameCanvasDimensions } from ".";
-import { url } from "inspector";
 
 export type PluginContentSize = {
     width: number; height: number;
 };
-
 
 export type AvailableDimensions = "content" | keyof GameCanvasDimensions
 export type LayoutValue = AvailableDimensions | number | string;
@@ -20,31 +18,31 @@ export type LayoutRect = {
     "layout.height"?: LayoutValue;
 }
 
-export type PluginConfigBase = {
+export type PluginChannelConfigurationBase = {
     type: string;
     url?: string,
-    "access.read"?: string;
+    "access.read"?: string[];
     "access.write"?: string[];
     "access.assets"?: string[];
 }
-export type HTMLPluginConfig = PluginConfigBase & LayoutRect & {
+export type HTMLPluginChannelConfiguration = PluginChannelConfigurationBase & LayoutRect & {
     type: "html",
     pointerInteraction: boolean;
     "layout.slot"?: string;
     "layout.slot.order"?: number | string;
 }
 
-export type WorkerPluginConfig = PluginConfigBase & {
+export type WorkerPluginChannelConfiguration = PluginChannelConfigurationBase & {
     type: "worker",
 }
 
-export type IFramePluginConfig = Omit<HTMLPluginConfig, "type"> & LayoutRect & {
+export type IFramePluginChannelConfiguration = Omit<HTMLPluginChannelConfiguration, "type"> & LayoutRect & {
     type: "iframe",
 }
 
 export type AvailableLifecycles = "@replay/loading" | "@replay/ready" | "@map/loading" | "@map/ready";
 
-export interface PluginJSON {
+export interface PluginConfiguration {
     name: string;
     version: string;
     author?: string;
@@ -61,7 +59,7 @@ export interface PluginJSON {
     },
     native?: "isolated" | "inherited";
     userConfig: any;
-    channels: Record<AvailableLifecycles, PluginConfigBase[]>
+    channels: Record<AvailableLifecycles, PluginChannelConfigurationBase[]>
 }
 
 type ScreenData = {
@@ -69,15 +67,16 @@ type ScreenData = {
     screenStatus: ScreenStatus;
 }
 
-export type InitializedPluginConfig<T extends PluginConfigBase> = T & ScreenData & { url: string };
+export type InitializedPluginChannelConfiguration<T extends PluginChannelConfigurationBase> = T & ScreenData & { url: string };
 
-export interface InitializedPluginJSON extends Omit<PluginJSON, "channels"> {
+export interface InitializedPluginConfiguration extends Omit<PluginConfiguration, "channels"> {
+    tag: string;
     nativeSource?: string;
-    channels: InitializedPluginConfig<PluginConfigBase>[];
+    channels: InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>[];
 }
 
 export interface PluginLifecycle {
-    onInitialized(config: InitializedPluginJSON): void;
+    onInitialized(config: InitializedPluginConfiguration): void;
     onConnected(screenType: ScreenType, screenStatus: ScreenStatus): void;
     onDisconnected(): void;
     onDispose?(): void;
@@ -91,7 +90,7 @@ export interface SlotConfig extends LayoutRect {
     overflow: "scroll" | "hidden";
 }
 
-export interface GlobalPluginConfig {
+export interface GlobalPluginConfiguration {
     "respository": string[],
     "disabled": string[],
     "slots": SlotConfig[],
