@@ -63,7 +63,7 @@ bootup();
 
 async function bootup() {
   try {
-    log.info("@init");
+    log.info("@init: loading settings");
     await loadFonts();
     await settingsStore().load();
     registerFileDialogHandlers();

@@ -1,9 +1,10 @@
+import electronIsDev from "electron-is-dev";
 import http from "http";
 import nodeStatic from "node-static";
 import path from "path";
 
 const _p = path.join(__static, "plugins");
-var file = new nodeStatic.Server(_p, { cache: 0 });
+var file = new nodeStatic.Server(_p, { cache: electronIsDev ? 0 : 3600 });
 const server = http.createServer(function (req, res) {
     //https://web.dev/origin-agent-cluster/
     res.setHeader("Origin-Agent-Cluster", "?1")
