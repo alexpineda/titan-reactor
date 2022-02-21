@@ -8,7 +8,7 @@ export const defaultSettings: Settings = {
     maps: "",
     replays: "",
     models: "",
-    temp: ""
+    plugins: ""
   },
   pluginServerPort: 8080,
   playerColors: {

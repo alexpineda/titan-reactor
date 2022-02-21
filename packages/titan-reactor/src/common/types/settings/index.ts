@@ -6,7 +6,7 @@ export type Settings = {
         maps: string;
         replays: string;
         models: string;
-        temp: string;
+        plugins: string;
     },
     pluginServerPort: number;
     playerColors: {
