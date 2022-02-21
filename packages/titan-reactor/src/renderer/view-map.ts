@@ -4,7 +4,7 @@ import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";
 
-import { playerColors } from "../common/bwdat/enums";
+import { playerColors } from "../common/enums";
 import { CanvasTarget } from "../common/image";
 import { IScriptSprite } from "./core"
 import * as log from "./ipc/log"

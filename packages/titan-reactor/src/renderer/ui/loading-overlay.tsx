@@ -1,7 +1,7 @@
 import React from "react";
 import { ReplayPlayer } from "../../common/types";
 
-import { charColor } from "../../common/bwdat/enums";
+import { charColor } from "../../common/enums";
 import { isMapLoadingInformation, ScreenStore } from "../stores";
 import { ScreenType } from "../../common/types";
 

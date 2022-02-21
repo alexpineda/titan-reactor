@@ -1,7 +1,7 @@
 
 // @ts-nocheck
 import { BwDAT } from "../types";
-import { iscriptHeaders as headers } from "../bwdat/enums/iscript-headers";
+import { iscriptHeaders as headers } from "../enums/iscript-headers";
 import { IScriptState } from "./iscript-state"
 
 export class IScriptRunner {

@@ -7,7 +7,7 @@ import {
 } from "three";
 import { ImageDAT } from "../../types";
 
-import { drawFunctions } from "../../bwdat/enums/draw-functions";
+import { drawFunctions } from "../../enums/draw-functions";
 
 type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
 

@@ -8,7 +8,7 @@ import * as log from "../ipc";
 
 export default async () => {
     log.info("waiting for assets");
-    return await new Promise((res: (value: unknown) => void) => {
+    return await new Promise((res: (value?: unknown) => void) => {
         if (processStore().isComplete(Process.AssetLoading)) {
             const assets = gameStore().assets;
             if (!assets) {

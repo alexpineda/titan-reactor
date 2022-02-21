@@ -1,0 +1,18 @@
+export const playerColors = [
+  { name: "Red", id: 0x00, rgb: 0xf40404, hex: "#f40404" },
+  { name: "Blue", id: 0x01, rgb: 0x0c48cc, hex: "#0c48cc" },
+  { name: "Teal", id: 0x02, rgb: 0x2cb494, hex: "#2cb494" },
+  { name: "Purple", id: 0x03, rgb: 0x88409c, hex: "#88409c" },
+  { name: "Orange", id: 0x04, rgb: 0xf88c14, hex: "#f88c14" },
+  { name: "Brown", id: 0x05, rgb: 0x703014, hex: "#703014" },
+  { name: "White", id: 0x06, rgb: 0xcce0d0, hex: "#cce0d0" },
+  { name: "Yellow", id: 0x07, rgb: 0xfcfc38, hex: "#fcfc38" },
+  { name: "Green", id: 0x08, rgb: 0x088008, hex: "#088008" },
+  { name: "Pale Yellow", id: 0x09, rgb: 0xfcfc7c, hex: "#fcfc7c" },
+  { name: "Tan", id: 0x0a, rgb: 0xecc4b0, hex: "#ecc4b0" },
+  { name: "Aqua", id: 0x0b, rgb: 0x4068d4, hex: "#4068d4" },
+  { name: "Pale Green", id: 0x0c, rgb: 0x74a47c, hex: "#74a47c" },
+  { name: "Blueish Grey", id: 0x0d, rgb: 0x9090b8, hex: "#9090b8" },
+  { name: "Pale Yellow2", id: 0x0e, rgb: 0xfcfc7c, hex: "#fcfc7c" },
+  { name: "Cyan", id: 0x0f, rgb: 0x00e4fc, hex: "#00e4fc" },
+];

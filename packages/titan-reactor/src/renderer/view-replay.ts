@@ -3,7 +3,7 @@ import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
-import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/bwdat/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/enums";
 import { CanvasTarget } from "../common/image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
@@ -57,7 +57,7 @@ import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import { CameraMode, RegularCameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
-import { WeaponType, WeaponBehavior } from "../common/bwdat/enums";
+import { WeaponType, WeaponBehavior } from "../common/enums";
 import { easeCubicIn } from "d3-ease";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";

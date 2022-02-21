@@ -1,4 +1,4 @@
-import { SpriteFlags } from "../../common/bwdat/enums";
+import { SpriteFlags } from "../../common/enums";
 import { SpriteStruct } from "../integration/structs";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {

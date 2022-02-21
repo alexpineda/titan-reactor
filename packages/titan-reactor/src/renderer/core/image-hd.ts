@@ -9,9 +9,8 @@ import {
   Vector3,
 } from "three";
 
-import { drawFunctions } from "../../common/bwdat/enums/draw-functions";
-import { ImageDAT } from "../../common/types/bwdat";
-import { GrpFrameType, GRPInterface } from "../../common/types/grp";
+import { drawFunctions } from "../../common/enums";
+import { ImageDAT, GrpFrameType, GRPInterface } from "../../common/types";
 import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 

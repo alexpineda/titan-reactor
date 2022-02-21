@@ -1,5 +1,5 @@
 import range from "../../utils/range";
-import { selectionCircleSize } from "../enums/selection-circle-size";
+import { selectionCircleSize } from "../../enums/selection-circle-size";
 import { DAT } from "./dat";
 import spriteNames from "./strings/sprite-names";
 import { ImageDAT } from "./images-dat";

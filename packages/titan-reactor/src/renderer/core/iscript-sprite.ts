@@ -6,7 +6,7 @@ import {
   imageTypes,
   iscriptHeaders,
   overlayTypes,
-} from "../../common/bwdat/enums";
+} from "../../common/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "../../common/types";
 import pick from "../../common/utils/pick";
 import { ImageSD, Image3D, ImageHD2, ImageHD } from ".";
