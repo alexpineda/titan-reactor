@@ -3,22 +3,22 @@ import { debounce } from "lodash";
 import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";
+import CameraControls from "camera-controls";
 
-import { playerColors } from "../common/enums";
-import { CanvasTarget } from "../common/image";
-import { IScriptSprite } from "./core"
-import * as log from "./ipc/log"
+import { playerColors } from "common/enums";
 import type {
   TerrainInfo,
-} from "../common/types";
+} from "common/types";
+
+import { CanvasTarget } from "./image";
+import { IScriptSprite } from "./core"
+import * as log from "./ipc/log"
 import { Scene } from "./render";
 import renderer from "./render/renderer";
 import gameStore from "./stores/game-store";
 import { useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
-import CameraControls from "camera-controls";
-
 
 async function TitanReactorMap(
   chk: Chk,

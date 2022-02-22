@@ -1,8 +1,8 @@
-import { AssetTextureResolution, ImageDAT } from "../../common/types";
-import { loadAnimAtlas } from "../../common/image";
+import { AssetTextureResolution, ImageDAT } from "common/types";
+import { loadAnimAtlas } from "../image";
 import {
     readCascFile,
-} from "../../common/utils/casclib";
+} from "common/utils/casclib";
 import { UnitTileScale } from "../core";
 
 export default async function (res: AssetTextureResolution) {

@@ -7,7 +7,7 @@ import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 
 import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "common/enums";
-import { CanvasTarget } from "common/image";
+import { CanvasTarget } from "./image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
 } from "common/types";

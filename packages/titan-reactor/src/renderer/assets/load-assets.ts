@@ -1,30 +1,32 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
-import fileExists from "../../common/utils/file-exists";
-import { loadDATFiles } from "../../common/bwdat/load-dat-files";
-import { loadAnimAtlas, loadGlbAtlas, parseAnim } from "../../common/image";
-import {
-    openCascStorage,
-    readCascFile,
-} from "../../common/utils/casclib";
-
 import {
     // @ts-ignore
     SMAAImageLoader,
-}
-    from "postprocessing";
+} from "postprocessing";
+
+import fileExists from "common/utils/file-exists";
+import { loadDATFiles } from "common/bwdat/load-dat-files";
+import { AssetTextureResolution, GRPInterface, Settings } from "common/types";
+import electronFileLoader from "common/utils/electron-file-loader";
+
+import {
+    openCascStorage,
+    readCascFile,
+} from "common/utils/casclib";
+
+import { loadAnimAtlas, loadGlbAtlas, parseAnim } from "../image";
+
 
 import gameStore from "../stores/game-store";
 import processStore, { Process } from "../stores/process-store";
-import electronFileLoader from "../../common/utils/electron-file-loader";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
-import { AssetTextureResolution, GRPInterface, Settings } from "../../common/types";
 import { openBwFiles, openBw } from "../openbw";
 import { UnitTileScale } from "../core";
-import loadEnvironmentMap from "../../common/image/env-map";
+import loadEnvironmentMap from "../image/env-map";
 
 export default async (settings: Settings) => {
 

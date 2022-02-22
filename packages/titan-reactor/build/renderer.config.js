@@ -1,4 +1,5 @@
 const aliases = require("./aliases");
+const path = require("path");
 
 module.exports = function (config) {
   config.module.rules.push(
@@ -12,6 +13,10 @@ module.exports = function (config) {
       use: ["raw-loader", "glslify-loader"],
     }
   );
+
+  for (const alias in aliases) {
+    aliases[alias] = path.resolve(__dirname, "..", aliases[alias]);
+  }
 
   config.resolve.alias = {
     ...config.resolve.alias,

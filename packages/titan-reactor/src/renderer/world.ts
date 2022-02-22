@@ -1,6 +1,6 @@
 import type { TerrainInfo } from "../common/types";
 import type { CommandsStream, Replay } from "downgrade-replay";
-import type { Scene } from "./render/Scene";
+import type { Scene } from "./render/scene";
 import type { MainMixer, Music, SoundChannels } from "./audio";
 import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Janitor from "./utils/janitor";

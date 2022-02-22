@@ -16,16 +16,22 @@
     "skipLibCheck": false,
     "isolatedModules": false,
     "strictPropertyInitialization": true,
+    "forceConsistentCasingInFileNames": true,
 
     "noUnusedLocals": true,
     "noUnusedParameters": true,
 
     "inlineSources": true,
     "sourceMap": true,
+    "removeComments": true,
 
     "baseUrl": "src",
     "paths": {
       "common": ["common/*"],
+      "@image/*": ["renderer/image/*"],
+      "@image": ["renderer/image/index.ts"],
+      "@core/*": ["renderer/core/*"],
+      "@core": ["renderer/core/index.ts"],
       "@stores/*": ["renderer/stores/*"],
       "@stores": ["renderer/stores/index.ts"],
       "@utils/*": ["renderer/utils/*"],

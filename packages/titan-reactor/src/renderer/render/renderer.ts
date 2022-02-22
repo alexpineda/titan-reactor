@@ -1,4 +1,3 @@
-import CanvasTarget from "../../common/image/canvas/canvas-target";
 import {
     Camera,
     HalfFloatType,
@@ -13,6 +12,7 @@ import {
 } from "postprocessing";
 import { createPasses, Passes } from "./composer-passes";
 import rendererIsDev from "../utils/renderer-is-dev";
+import CanvasTarget from "../image/canvas/canvas-target";
 
 const createWebGLRenderer = () => {
     const renderer = new WebGLRenderer({

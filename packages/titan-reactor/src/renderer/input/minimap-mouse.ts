@@ -1,5 +1,5 @@
 import { MathUtils, Vector3 } from "three";
-import { CanvasTarget } from "../../common/image";
+import { CanvasTarget } from "../image";
 import Janitor from "../utils/janitor";
 import { CameraMode, Controls } from "./camera-mode";
 

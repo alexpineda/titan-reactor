@@ -1,15 +1,15 @@
 import type Chk from "bw-chk";
-import { readCascFile } from "../../common/utils/casclib";
+import { readCascFile } from "common/utils/casclib";
+import { AssetTextureResolution, PxToGameUnit, TerrainInfo } from "common/types";
 
 import {
   generateMapDataTextures, createHDMesh, createSDMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
-} from "../../common/image/generate-map";
+} from "../image/generate-map";
 
-import { AssetTextureResolution, PxToGameUnit, TerrainInfo } from "../../common/types";
 import { loadTilesetFiles } from "./load-tileset-files";
 import settingsStore from "../stores/settings-store";
-import * as sd from "../../common/image/generate-map/sd";
-import * as hd from "../../common/image/generate-map/hd";
+import * as sd from "../image/generate-map/sd";
+import * as hd from "../image/generate-map/hd";
 import { Layers } from "../render"
 import { Mesh, Vector3 } from "three";
 import assert from "assert";
