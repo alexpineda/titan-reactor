@@ -1,3 +1,4 @@
+import * as log from "@ipc/log";
 import create from "zustand";
 import { ReplayPlayer, ScreenStatus, ScreenType } from "../../common/types";
 
@@ -39,6 +40,7 @@ export const useScreenStore = create<ScreenStore>((set) => ({
         set({ status: ScreenStatus.Ready, error: undefined });
     },
     setError: (error: Error) => {
+        log.error(error.message);
         set({ status: ScreenStatus.Error, error });
     },
     updateLoadingInformation: (loadingInfo: ReplayLoadingInformation | MapLoadingInformation) => {

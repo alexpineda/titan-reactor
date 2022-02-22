@@ -1,10 +1,12 @@
+
+import fs from "fs";
+import { findFiles } from "common/utils/casclib";
+
+import * as log from "@ipc/log";
+import settingsStore from "@stores/settings-store";
+
 import filepaths from "./filepaths";
 import filelist from "./list";
-import * as log from "../ipc/log";
-import { findFiles } from "../../common/utils/casclib";
-import fs from "fs";
-import settingsStore from "../../../src/renderer/stores/settings-store";
-
 interface Callbacks {
   beforeFrame: () => void;
   afterFrame: () => void;
@@ -39,8 +41,8 @@ export default class OpenBWFileList {
       },
       js_load_done: () => {
         this.clear(); // done loading, openbw has its own memory now
-        log.verbose("openbw complete loading");
-        log.verbose(`${this.unused.length} unused assets`);
+        log.verbose("@openbw-filelist: complete");
+        log.verbose(`@openbw-filelist: ${this.unused.length} unused assets`);
       },
       js_file_index: (ptr: any) => {
         const filepath = openBw.UTF8ToString(ptr);

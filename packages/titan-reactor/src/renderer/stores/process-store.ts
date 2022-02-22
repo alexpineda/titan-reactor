@@ -1,3 +1,4 @@
+import { snake } from "common/utils/camel";
 import create from "zustand";
 import * as log from "../ipc/log";
 
@@ -9,7 +10,7 @@ export enum Process {
   IScriptahInitialization,
   ReplayInitialization,
   MapInitialization,
-  AssetLoading
+  AtlasPreload
 }
 
 export type LoadingStoreBaseProcess = {
@@ -47,17 +48,22 @@ export const useLoadingStore = create<ProcessStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
   init: (process: LoadingStoreProcess) => {
-    log.info("Initialize " + Process[process.id]);
+    log.info("@process/init: " + snake(Process[process.id]));
+
     performance.mark(`process-${process.id}`);
+
     set(({ processes, completedProcesses }) => ({
       processes: [...processes, process],
       completedProcesses: completedProcesses.filter((p) => p.id !== process.id),
     }));
+
   },
   increment: (id: Process, current?: number) => {
     const process = get().processes.find((p) => p.id === id);
+
     if (process && isDeterminateProcess(process)) {
-      log.verbose(Process[id] + " " + (process.current / process.max).toFixed(2));
+      log.verbose("@process/" + snake(Process[id]) + ": " + (process.current / process.max).toFixed(2));
+
       set((state) => ({
         processes: (state.processes as LoadingStoreDeterminateProcess[]).map(
           (p) => (p.id === id ? { ...p, current: current ?? p.current + 1 } : p)
@@ -75,9 +81,12 @@ export const useLoadingStore = create<ProcessStore>((set, get) => ({
     const perf = performance.measure(`process-${id}`);
     performance.clearMarks(`process-${id}`);
     performance.clearMeasures(`process-${id}`);
-    log.info(`Complete ${Process[id]} ${perf.duration}ms`);
+
+    log.info(`@process/complete: ${snake(Process[id])} ${perf.duration}ms`);
+
     const process = get().processes.find((p) => p.id === id);
     if (!process) return;
+
     set(({ processes, completedProcesses }) => ({
       processes: processes.filter((p) => p.id !== id),
       completedProcesses: [...completedProcesses, process],

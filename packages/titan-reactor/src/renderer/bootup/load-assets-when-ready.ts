@@ -10,7 +10,7 @@ const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => 
   if (hasErrors || !settings || !settings.directories?.starcraft || !settings.directories?.models) {
     return;
   }
-  if (processStore().isComplete(Process.AssetLoading) || processStore().isInProgress(Process.AssetLoading)) {
+  if (processStore().isComplete(Process.AtlasPreload) || processStore().isInProgress(Process.AtlasPreload)) {
     return;
   }
   await loadAssets(settings);

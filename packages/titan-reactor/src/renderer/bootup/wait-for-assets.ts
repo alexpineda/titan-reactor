@@ -9,7 +9,7 @@ import * as log from "../ipc";
 export default async () => {
     log.info("waiting for assets");
     return await new Promise((res: (value?: unknown) => void) => {
-        if (processStore().isComplete(Process.AssetLoading)) {
+        if (processStore().isComplete(Process.AtlasPreload)) {
             const assets = gameStore().assets;
             if (!assets) {
                 log.error("assets not loaded");
@@ -19,7 +19,7 @@ export default async () => {
             return;
         }
         const unsub = useLoadingStore.subscribe(() => {
-            if (processStore().isComplete(Process.AssetLoading)) {
+            if (processStore().isComplete(Process.AtlasPreload)) {
                 unsub();
                 const assets = gameStore().assets;;
                 if (!assets) {

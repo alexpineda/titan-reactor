@@ -30,14 +30,7 @@ import loadEnvironmentMap from "../image/env-map";
 
 export default async (settings: Settings) => {
 
-    processStore().init({
-        id: Process.AssetLoading,
-        label: "Loading initial assets",
-        max: 11,
-        priority: 10,
-        current: 0,
-        mode: "determinate",
-    });
+
 
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png")) {
@@ -49,17 +42,18 @@ export default async (settings: Settings) => {
 
     await openCascStorage(settings.directories.starcraft);
 
-    log.verbose("Loading assets into openbw");
+    log.verbose("@load-assets/openbw: ready buffers");
     await openBwFiles.loadBuffers(readCascFile);
     openBw.call!.main!();
 
-    log.verbose("Loading dat files");
+    log.verbose("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);
-    processStore().increment(Process.AssetLoading);
 
-    log.verbose("Loading sd texture");
+    log.verbose("@load-assets/sd");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
+
+    log.verbose("@load-assets/selection-circles");
     const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);
 
     const envMap = await loadEnvironmentMap(`${__static}/envmap.hdr`);
@@ -118,11 +112,20 @@ export default async (settings: Settings) => {
     };
 
     const grps: GRPInterface[] = [];
-    log.info(`Generating image ${settings.assets.images} textures`);
+    log.info(`@load-assets/atlas: ${settings.assets.images}`);
+
+    processStore().init({
+        id: Process.AtlasPreload,
+        label: "Loading initial assets",
+        max: 11,
+        priority: 10,
+        current: 0,
+        mode: "determinate",
+    });
 
     const loadImageAtlasGrp = loadImageAtlas(grps);
     for (let i = 0; i < 999; i++) {
-        i % 100 === 0 && processStore().increment(Process.AssetLoading);
+        i % 100 === 0 && processStore().increment(Process.AtlasPreload);
         await loadImageAtlasGrp(i);
     }
 
@@ -144,5 +147,5 @@ export default async (settings: Settings) => {
         smaaImages,
         envMap
     }));
-    processStore().complete(Process.AssetLoading);
+    processStore().complete(Process.AtlasPreload);
 };

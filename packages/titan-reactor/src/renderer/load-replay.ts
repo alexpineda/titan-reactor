@@ -4,6 +4,7 @@ import {
   Version,
   CommandsStream,
   ChkDowngrader,
+  Replay,
 } from "downgrade-replay";
 import fs from "fs";
 import Chk from "bw-chk";
@@ -31,7 +32,7 @@ import { openBw } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 
 export default async (filepath: string) => {
-  log.info(`loading replay ${filepath}`);
+  log.info(`@load-replay/file: ${filepath}`);
 
   processStore().init({
     id: Process.ReplayInitialization,
@@ -45,35 +46,45 @@ export default async (filepath: string) => {
   const settings = settingsStore().data;
 
   // validate before showing any loading progress
-  let repBin = await openFile(filepath);
-  let replay = await parseReplay(repBin);
+  let repBin: Buffer;
+  let replay: Replay;
+
+  try {
+    repBin = await openFile(filepath);
+    replay = await parseReplay(repBin);
+  } catch (e) {
+    screenStore().setError(e instanceof Error ? e : new Error("Invalid replay"));
+    return;
+  }
 
   document.title = "Titan Reactor - Loading";
 
   screenStore().init(ScreenType.Replay);
 
-  log.verbose("parsing replay");
-
-  // @todo change this to generics
-  // @ts-ignore
-
   if (replay.version !== Version.titanReactor) {
-    log.verbose(
-      `changing replay format`
-    );
-    const chkDowngrader = new ChkDowngrader();
-    repBin = await convertReplay(replay, chkDowngrader);
-    fs.writeFileSync(`D:\\last_replay.rep`, repBin);
-    replay = await parseReplay(repBin);
+    try {
+      const chkDowngrader = new ChkDowngrader();
+      repBin = await convertReplay(replay, chkDowngrader);
+      fs.writeFileSync(`D:\\last_replay.rep`, repBin);
+      replay = await parseReplay(repBin);
+    } catch (e) {
+      screenStore().setError(e instanceof Error ? e : new Error("Failed to downgrade"));
+      return;
+    }
   }
 
   UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;
 
-  log.verbose("loading chk");
-  const chk = new Chk(replay.chk);
+  let chk: Chk;
+  try {
+    chk = new Chk(replay.chk);
+  } catch (e) {
+    screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
+    return;
+  }
+
   screenStore().updateLoadingInformation({ header: replay.header, chkTitle: chk.title });
 
-  log.verbose("building terrain");
   const terrain = await loadTerrain(
     chk,
     pxToMapMeter(chk.size[0], chk.size[1])
@@ -102,8 +113,6 @@ export default async (filepath: string) => {
   if (!assets || !assets.bwDat) {
     throw new Error("assets not loaded");
   }
-
-  log.verbose("initializing audio");
 
   const audioMixer = new MainMixer();
   const soundChannels = new SoundChannels(
