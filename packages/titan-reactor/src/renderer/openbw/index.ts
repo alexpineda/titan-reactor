@@ -3,7 +3,6 @@ import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
 import { UnitStruct, SoundStruct, ImageStruct } from "../integration/structs";
-import { Vector } from "../integration/buffer-view/vector.js";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");

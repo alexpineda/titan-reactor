@@ -10,8 +10,8 @@ import {
 import { BwDAT, ImageDAT, UnitDAT } from "../../common/types";
 import pick from "../../common/utils/pick";
 import { ImageSD, Image3D, ImageHD2, ImageHD } from ".";
-import { IScriptRunner } from "../../common/iscript/iscript-runner";
-import { IScriptState } from "../../common/iscript/iscript-state";
+import { IScriptRunner } from "../iscript/iscript-runner";
+import { IScriptState } from "../iscript/iscript-state";
 
 enum ImageOrder {
   bottom,

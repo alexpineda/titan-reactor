@@ -1,5 +1,5 @@
 import { Grp } from "../image";
-import parseIscript from "../iscript/parse-iscript";
+import parseIscript from "./parse-iscript-bin";
 import path from "path";
 
 import { ReadFile, GrpFrameType, GrpType, IScriptDATType } from "../types";

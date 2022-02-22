@@ -1,4 +1,4 @@
-import { ImageDAT, IScriptRawType, AnimationBlockType } from "../types";
+import { ImageDAT, IScriptRawType, AnimationBlockType } from "../../common/types";
 
 type Commands = AnimationBlockType & { header?: number };
 

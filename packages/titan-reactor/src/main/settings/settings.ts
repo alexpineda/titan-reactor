@@ -15,7 +15,8 @@ import migrate from "./migrate";
 import readFolder from "../starcraft/get-files";
 import path from "path";
 import logger from "../logger/singleton";
-import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+import { isHTMLChannelConfig, isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+import get from "lodash.get";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {
@@ -131,9 +132,26 @@ export class Settings extends EventEmitter {
               const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
               for (const channel of channelsConfig) {
                 const url = channel.url ?? isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.template?.url);
-                if (url) {
-                  //TODO: load html-template.html instead of fetching from url like others
-                  channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
+
+                if (!url) {
+                  logger.error(`@settings/load-channel: channel url is missing - ${folder.name}`);
+                  continue;
+                }
+
+                channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
+
+
+
+
+                if (pluginConfig.userConfig) {
+                  const userPropRegex = /{(([a-zA-Z0-9_]+\.?)+)}/g;
+                  const matches = userPropRegex.exec(channel.url);
+
+                  // allow userConfig properties to be used in the url eg {myProp}.html or {}
+                  if (matches) {
+                    const propPath = matches[1].split(".");
+                    channel.url.replace(userPropRegex, get(pluginConfig.userConfig, propPath, ""));
+                  }
                 }
 
                 if (isIFrameChannelConfig(channel) && channel["layout.slot"] === undefined) {

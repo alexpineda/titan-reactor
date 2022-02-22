@@ -1,5 +1,5 @@
-import { unitTypes, upgrades } from "../enums";
-import { UnitDAT } from "./units-dat";
+import { unitTypes, upgrades } from "../../common/enums";
+import { UnitDAT } from "../../common/bwdat/units-dat";
 
 // thanks to BWAPI for this
 

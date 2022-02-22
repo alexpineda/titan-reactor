@@ -20,11 +20,13 @@
     "isolatedModules": false,
     "strictPropertyInitialization": true,
 
-    "inlineSources": true,
+    "inlineSources": false,
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "common": ["src/common/*"]
+      "common": ["src/common/*"],
+      "ipc/*": ["src/renderer/ipc/*"],
+      "ipc": ["src/renderer/ipc/index.ts"]
     },
     "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
     "outDir": "generated",

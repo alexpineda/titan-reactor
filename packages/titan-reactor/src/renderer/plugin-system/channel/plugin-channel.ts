@@ -9,6 +9,13 @@ export const MSG_CONNECTED = "connected";
 export const MSG_DISCONNECTED = "disconnected";
 export const MSG_REPLAY_POSITION = "replay.position";
 
+const _replayPosition = {
+    type: MSG_REPLAY_POSITION,
+    frame: 0,
+    maxFrame: 0,
+    time: "",
+}
+
 const _disconnected = { type: MSG_DISCONNECTED }
 
 abstract class PluginChannel {
@@ -19,7 +26,8 @@ abstract class PluginChannel {
     private _getUserConfig: () => any;
     private _broadcastMessage: (message: any) => void;
 
-    constructor(pluginId: string, getUserConfig: () => any, broadcastMessage: (message: any) => void) {
+    constructor(pluginId: string,
+        getUserConfig: () => any, broadcastMessage: (message: any) => void) {
         this._pluginId = pluginId;
         this._getUserConfig = getUserConfig;
         this._broadcastMessage = broadcastMessage;
@@ -31,18 +39,20 @@ abstract class PluginChannel {
     onInitialized(config: InitializedPluginConfiguration): void {
         throw new Error("Method not implemented.");
     }
+
     onDisconnected(): void {
         this.postMessage(_disconnected);
     }
+
+    //FIXME: lift this up to plugin level
     onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void {
         const time = gameStatePosition.getSecond();
         if (this._lastSend[MSG_REPLAY_POSITION] !== time) {
-            this.postMessage({
-                type: MSG_REPLAY_POSITION,
-                frame: gameStatePosition.bwGameFrame,
-                maxFrame: gameStatePosition.maxFrame,
-                time: gameStatePosition.getFriendlyTime(),
-            });
+            _replayPosition.frame = gameStatePosition.bwGameFrame;
+            _replayPosition.maxFrame = gameStatePosition.maxFrame;
+            _replayPosition.time = gameStatePosition.getFriendlyTime();
+
+            this.postMessage(_replayPosition);
             this._lastSend[MSG_REPLAY_POSITION] = time;
         }
     }
@@ -57,6 +67,7 @@ abstract class PluginChannel {
         window.addEventListener('message', _onMessage);
         this._janitor.callback(() => window.removeEventListener('message', _onMessage));
 
+        //FIXME: lift this up to plugin level
         this.postMessage({
             type: MSG_CONNECTED,
             pluginId: this._pluginId,

@@ -43,15 +43,12 @@ export class PlayerPovCamera extends PerspectiveCamera {
     this.lookAt(this.position.x, 0, this.position.z);
   }
 
-  update(delta: number, cmd: ReplayCommand, pxToGameUnit: PxToGameUnit, debounce = 0) {
+  update(cmd: ReplayCommand, pxToGameUnit: PxToGameUnit) {
     // some commands - screen move (right click, attack move, build, research, upgrade, pick up, drop)
     // some commands - minimap action (right click, attack move)
     // some commands - before hand was screen move (observing actions)
-    this._elapsed += delta
-    if (this._elapsed < debounce) {
-      return;
-    }
-    this._elapsed = 0;
+
+    //TODO: throttle
 
     if (cmdIsRightClick(cmd))
       if (cmd.x && cmd.y) {

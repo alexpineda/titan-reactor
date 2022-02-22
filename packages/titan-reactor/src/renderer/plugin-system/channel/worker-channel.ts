@@ -5,7 +5,9 @@ class PluginWorkerChannel extends PluginChannel {
     config: InitializedPluginChannelConfiguration<WorkerPluginChannelConfiguration>;
     worker: Worker;
 
-    constructor(pluginId: string, config: InitializedPluginChannelConfiguration<WorkerPluginChannelConfiguration>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
+    constructor(pluginId: string,
+        pluginName: string,
+        config: InitializedPluginChannelConfiguration<WorkerPluginChannelConfiguration>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
         super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;
         this.worker = new Worker(config.url);

@@ -33,11 +33,11 @@ class Plugin {
 
         this.channels = config.channels.map(channelConfig => {
             if (isIFrameChannelConfig(channelConfig)) {
-                return new PluginIFrameChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
+                return new PluginIFrameChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
             } else if (isWorkerChannelConfig(channelConfig)) {
-                return new PluginWorkerChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
+                return new PluginWorkerChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
             } else if (isHTMLChannelConfig(channelConfig)) {
-                return new PluginHTMLChannel(this._id, channelConfig, getUserConfig, broadcastMessage);
+                return new PluginHTMLChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
             }
             throw new Error(`Unknown channel type: ${channelConfig.type}`);
         });

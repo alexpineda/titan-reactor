@@ -41,7 +41,9 @@
       "sourceDirectory": "src/renderer",
       "webpackConfig": "build/renderer.config.js"
     },
-    "whiteListedModules": ["zustand"]
+    "whiteListedModules": [
+      "zustand"
+    ]
   },
   "build": {
     "appId": "imbateam.titan-reactor",
@@ -49,10 +51,12 @@
     "mac": {
       "category": "3D Map & Replay Viewer for Starcraft Broodwar"
     },
-    "extraResources": [{
-      "from": "bundled",
-      "to": "bundled"
-    }]
+    "extraResources": [
+      {
+        "from": "bundled",
+        "to": "bundled"
+      }
+    ]
   },
   "dependencies": {
     "assert": "^2.0.0",
@@ -77,6 +81,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-error-boundary": "^3.1.3",
+    "react-jsx-parser": "^1.29.0",
     "scm-extractor": "^1.0.6",
     "three": "0.137.0",
     "valtio": "^1.3.0",
