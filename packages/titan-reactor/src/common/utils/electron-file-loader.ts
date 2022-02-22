@@ -1,5 +1,5 @@
 import path from "path";
-import { FileLoader, Cache, ImageLoader } from "three";
+import { FileLoader, ImageLoader } from "three";
 
 function createElementNS(name: string) {
 

@@ -1,5 +1,4 @@
 import { SettingsV2 } from "../../../common/types/settings/settings.old.v2";
-import { Settings } from "../../../common/types/settings";
 import { defaultSettings } from "../../../common/settings";
 
 export default (oldSettings: SettingsV2): [boolean, any] => {

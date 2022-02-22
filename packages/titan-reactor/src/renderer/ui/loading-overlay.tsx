@@ -1,4 +1,3 @@
-import React from "react";
 import { ReplayPlayer } from "../../common/types";
 
 import { charColor } from "../../common/enums";

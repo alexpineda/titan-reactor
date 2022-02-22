@@ -1,16 +1,6 @@
 type TypedArray = Uint8Array | Uint16Array | Uint32Array | Int8Array | Int16Array | Int32Array;
 
-interface Get<T> {
-    get: (address: number) => T;
-}
-
-class ValueBufferView<T> {
-    get(address: T) {
-        return address;
-    }
-};
-
-export class Vector<R, T extends Get<R>> {
+export class Vector {
     private _heap: TypedArray;
     private _size = 0;
     count = 0;

@@ -8,7 +8,6 @@ import screenStore from "./stores/screen-store";
 import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
 import preloadAssets from "./bootup/load-assets-when-ready";
-import "./bootup/three-overrides";
 import { waitUnless } from "../common/utils/wait";
 import renderer from "./render/renderer";
 import App from "./ui/index";

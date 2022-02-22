@@ -1,8 +1,8 @@
 import { ipcRenderer } from "electron";
 
 import { LOG_MESSAGE } from "../../common/ipc-handle-names";
-import { useSettingsStore } from "../stores";
 import gameStore from "../stores/game-store";
+import rendererIsDev from "../utils/renderer-is-dev";
 
 type ErrorOrUnknown = Error | unknown;
 
@@ -32,16 +32,19 @@ export const verbose = (msg: string) => {
 
 // @todo return early if disabled
 export const log = async (message: string, level = "info") => {
-  if (level === "error") {
-    gameStore().addLog(message, "red");
-    console.trace(message);
-  } else if (level === "warning") {
-    gameStore().addLog(message, "yellow");
-    console.warn(message);
-  } else {
-    gameStore().addLog(message);
-    console.log(message);
-  }
-
+  logClient(message, level);
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
 };
+
+export const logClient = (message: string, level = "info") => {
+  if (level === "error") {
+    gameStore().addLog(message, "red");
+    rendererIsDev && console.trace(message);
+  } else if (level === "warning") {
+    gameStore().addLog(message, "yellow");
+    rendererIsDev && console.warn(message);
+  } else {
+    gameStore().addLog(message);
+    rendererIsDev && console.log(message);
+  }
+}

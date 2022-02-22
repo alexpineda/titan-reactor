@@ -1,4 +1,4 @@
-import { Mesh, Scene, Object3D, Material, Texture } from "three";
+import { Mesh, Object3D, Material, Texture } from "three";
 
 const textureKeyNames = [
   "map",

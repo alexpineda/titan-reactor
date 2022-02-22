@@ -19,8 +19,6 @@ export class PlayerPovCamera extends PerspectiveCamera {
   viewport = new Vector4();
   getActivePovs: () => number;
 
-  private _elapsed = 0;
-
   constructor(side: Side, getActivePovs: () => number, { x = 0, y = 0 }) {
     super(30, 1, 5, 100);
     this.position.y = 40;

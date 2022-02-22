@@ -11,7 +11,6 @@ import * as log from "./ipc/log"
 import type {
   TerrainInfo,
 } from "../common/types";
-import { pxToMapMeter } from "../common/utils/conversions";
 import { Scene } from "./render";
 import renderer from "./render/renderer";
 import gameStore from "./stores/game-store";
@@ -31,7 +30,7 @@ async function TitanReactorMap(
   assert(assets);
 
   const preplacedMapUnits = chk.units;
-  const preplacedMapSprites = chk.sprites;
+  // const preplacedMapSprites = chk.sprites;
 
   // const iscriptRunner = new IScriptRunner(assets.bwDat, chk.tileset);
   // const createIScriptSprite = () => {
@@ -50,7 +49,7 @@ async function TitanReactorMap(
   // };
 
   const { mapWidth, mapHeight } = terrainInfo;
-  const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
+  // const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
   let settings = useSettingsStore.getState().data;
   if (!settings) {
@@ -102,8 +101,8 @@ async function TitanReactorMap(
   startLocations.forEach((sl) => scene.add(sl));
 
   const sprites: IScriptSprite[] = [];
-  const critters: IScriptSprite[] = [];
-  const disabledDoodads: IScriptSprite[] = [];
+  // const critters: IScriptSprite[] = [];
+  // const disabledDoodads: IScriptSprite[] = [];
 
   // for (const unit of preplacedMapUnits) {
   //   const titanSprite = createTitanSprite();

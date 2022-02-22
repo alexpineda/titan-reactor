@@ -4,8 +4,6 @@ import {
   DirectionalLight,
   HemisphereLight,
   Mesh,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
   Object3D,
   Scene as ThreeScene,
   Texture,

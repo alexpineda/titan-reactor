@@ -2,10 +2,10 @@ import type Chk from "bw-chk";
 import { readCascFile } from "../../common/utils/casclib";
 
 import {
-  generateMapDataTextures, createHDMesh, createSDMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, GeometryOptions, MapBitmapsResult, getTerrainY as genTerrainY
+  generateMapDataTextures, createHDMesh, createSDMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
 } from "../../common/image/generate-map";
 
-import { AssetTextureResolution, PxToGameUnit, TerrainInfo, TilesetBuffers } from "../../common/types";
+import { AssetTextureResolution, PxToGameUnit, TerrainInfo } from "../../common/types";
 import { loadTilesetFiles } from "./load-tileset-files";
 import settingsStore from "../stores/settings-store";
 import * as sd from "../../common/image/generate-map/sd";
@@ -15,8 +15,6 @@ import { Mesh, Vector3 } from "three";
 import assert from "assert";
 import * as log from "../ipc";
 import renderer from "../render/renderer";
-
-const _mapCoords = new Vector3();
 
 export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
   const settings = settingsStore().data;

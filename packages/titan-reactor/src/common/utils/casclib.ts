@@ -2,7 +2,6 @@ import * as hardfile from "./casclib-hardfile";
 import * as casclib from "bw-casclib";
 import settingsStore from "../../../src/renderer/stores/settings-store";
 let _storageHandle: any;
-let _lastBwPath: string;
 
 export const readCascFile = async (filePath: string) => {
   if (!settingsStore().isCascStorage) {
@@ -32,9 +31,8 @@ export const findFiles = async (fileName: string) => {
 
 export const openCascStorage = async (bwPath: string) => {
   if (!settingsStore().isCascStorage) {
-    return hardfile.openCascStorage(bwPath);
+    return;
   }
-  _lastBwPath = bwPath;
   if (_storageHandle) {
     casclib.closeStorage(_storageHandle);
   }
@@ -43,7 +41,7 @@ export const openCascStorage = async (bwPath: string) => {
 
 export const closeCascStorage = () => {
   if (!settingsStore().isCascStorage) {
-    return hardfile.closeCascStorage();
+    return;
   }
   _storageHandle && casclib.closeStorage(_storageHandle);
 };

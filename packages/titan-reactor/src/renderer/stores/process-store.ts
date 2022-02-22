@@ -1,5 +1,4 @@
 import create from "zustand";
-import { ReplayPlayer } from "../../common/types";
 import * as log from "../ipc/log";
 
 // loading store which contains state on loading status, as well as loaded replay and map data

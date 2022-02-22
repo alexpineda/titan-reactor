@@ -1,5 +1,3 @@
-import { ImageStruct } from ".";
-
 export interface SpriteStruct {
   index: number;
   owner: number;

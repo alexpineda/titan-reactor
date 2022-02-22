@@ -2,12 +2,10 @@
 // thanks to farty and neiv for references
 import BufferList from "bl";
 
-import { AnimDds, GrpFrameType } from "../../types/grp";
+import { AnimDds } from "../../types/grp";
 import range from "../../utils/range";
 
 const versionSD = 0x0101;
-const versionHD = 0x0204;
-const versionHD2 = 0x0202;
 
 export const parseAnim = (buf: Buffer) => {
   const bl = new BufferList(buf);

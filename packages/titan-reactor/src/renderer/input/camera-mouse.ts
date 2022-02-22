@@ -1,7 +1,6 @@
 
-import CameraControls from "camera-controls";
 import { Settings } from "../../common/types";
-import { Camera, Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
+import { Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { CameraMode, Controls } from "./camera-mode";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";

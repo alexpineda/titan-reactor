@@ -1,7 +1,7 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
-import { Camera, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
+import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/enums";
 import { CanvasTarget } from "../common/image";
@@ -55,7 +55,7 @@ import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
-import { CameraMode, RegularCameraMode } from "./input/camera-mode";
+import { CameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
 import { WeaponType, WeaponBehavior } from "../common/enums";
 import { easeCubicIn } from "d3-ease";
@@ -217,15 +217,15 @@ async function TitanReactorGame(
   //@ts-ignore
   janitor.callback(() => (window.scene = null));
 
-  const setUseDepth = (useDepth: boolean) => {
-    ImageHD.useDepth = useDepth;
-    for (const [, image] of images) {
-      if (image instanceof ImageHD) {
-        image.material.depthTest = ImageHD.useDepth;
-        image.setFrame(image.frame, image.flip, true);
-      }
-    }
-  }
+  // const setUseDepth = (useDepth: boolean) => {
+  //   ImageHD.useDepth = useDepth;
+  //   for (const [, image] of images) {
+  //     if (image instanceof ImageHD) {
+  //       image.material.depthTest = ImageHD.useDepth;
+  //       image.setFrame(image.frame, image.flip, true);
+  //     }
+  //   }
+  // }
 
   const setUseScale = (enable: boolean) => {
     ImageHD.useScale = enable ? 2.5 : 1;

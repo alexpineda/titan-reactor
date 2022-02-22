@@ -19,8 +19,6 @@ export const DepthMode = {
   Depth: 1, // for angled views
 };
 
-const white = new Color(0xffffff);
-
 /**
  * An image instance that uses HD assets
  */
@@ -222,11 +220,11 @@ export class ImageHD extends ThreeSprite implements Image {
     const v1 = frame.y / this.atlas.textureHeight;
     const v0 = (frame.y + frame.h) / this.atlas.textureHeight;
 
-    const _leftX = frame.xoff / this._normalizedSpriteWidth - 0.5;
-    const _rightX = (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5;
+    // const _leftX = frame.xoff / this._normalizedSpriteWidth - 0.5;
+    // const _rightX = (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5;
 
-    const px0 = flipFrame ? _rightX : _leftX;
-    const px1 = flipFrame ? _leftX : _rightX;
+    // const px0 = flipFrame ? _rightX : _leftX;
+    // const px1 = flipFrame ? _leftX : _rightX;
 
     const py0 = 1 - (frame.yoff + frame.h) / this._normalizedSpriteHeight - yOff;
     const py1 = 1 - frame.yoff / this._normalizedSpriteHeight - yOff

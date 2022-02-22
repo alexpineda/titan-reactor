@@ -1,5 +1,5 @@
 import { promises as fsPromises } from "fs";
-import path, { resolve } from "path";
+import path from "path";
 import fileExists from "../../common/utils/file-exists";
 import { loadDATFiles } from "../../common/bwdat/load-dat-files";
 import { loadAnimAtlas, loadGlbAtlas, parseAnim } from "../../common/image";

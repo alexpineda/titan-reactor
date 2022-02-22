@@ -1,10 +1,4 @@
-import React, {
-  memo,
-  MutableRefObject,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { memo, MutableRefObject, useEffect, useRef, useState } from "react";
 import {
   ScreenType,
   ScreenStatus,

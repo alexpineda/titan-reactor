@@ -1,4 +1,4 @@
-import { Camera, Line3, Plane, Vector2, Vector3 } from "three";
+import { Camera, Line3, Plane, Vector3 } from "three";
 
 const _points = [
   [-1, -1],

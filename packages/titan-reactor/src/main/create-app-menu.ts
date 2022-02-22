@@ -1,8 +1,7 @@
-import { app, Menu, shell } from "electron";
+import { Menu, shell } from "electron";
 import { showOpenMapDialog, showOpenReplayDialog } from "./register-ipc-handlers/dialogs";
 import getUserDataPath from "./get-user-data-path";
 import path from "path";
-import logger from "./logger/singleton";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs", "app");

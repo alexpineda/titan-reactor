@@ -1,5 +1,5 @@
 import CameraControls from "camera-controls";
-import { Box3, MathUtils, MinEquation, PerspectiveCamera, Vector3 } from "three";
+import { Box3, MathUtils, PerspectiveCamera, Vector3 } from "three";
 import { easePoly } from "d3-ease";
 import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";

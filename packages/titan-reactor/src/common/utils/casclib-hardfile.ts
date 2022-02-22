@@ -1,16 +1,13 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
 import * as log from "../../../src/renderer/ipc";
-//D: \dev\bwdata
-
-let _lastBwPath = `D:/dev/bwdata/`;
 
 export const readCascFile = (filePath: string) => {
   return fsPromises.readFile(`D:/dev/bwdata/${filePath}`);
 };
 export default readCascFile;
 
-const _fileMatches = async (files: string[], fileName: string, dir: string, relDir:string) => {
+const _fileMatches = async (files: string[], fileName: string, dir: string, relDir: string) => {
   for (const file of files) {
     try {
       const fsStat = await fsPromises.stat(path.join(dir, file));
@@ -21,8 +18,8 @@ const _fileMatches = async (files: string[], fileName: string, dir: string, relD
         return path.join(relDir, file);
       }
     } catch (e: unknown) {
-        log.error((e as Error).message);
-      }
+      log.error((e as Error).message);
+    }
   }
 };
 
@@ -42,7 +39,7 @@ const _getSubdirectories = async (dir: string) => {
   return dirs;
 };
 
-const _findFile = async (fileName: string, dir: string, relDir="") :Promise< string | undefined> => {
+const _findFile = async (fileName: string, dir: string, relDir = ""): Promise<string | undefined> => {
   const files = await fsPromises.readdir(dir);
   let match = await _fileMatches(files, fileName, dir, relDir);
   if (match) {
@@ -59,11 +56,5 @@ const _findFile = async (fileName: string, dir: string, relDir="") :Promise< str
 };
 
 export const findFile = async (fileName: string) => {
-  return await _findFile(fileName,  `D:/dev/bwdata/`);
+  return await _findFile(fileName, `D:/dev/bwdata/`);
 };
-
-export const openCascStorage = async (bwPath: string) => {
-  _lastBwPath = bwPath;
-};
-
-export const closeCascStorage = () => {};

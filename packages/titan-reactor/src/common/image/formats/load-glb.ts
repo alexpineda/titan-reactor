@@ -1,7 +1,6 @@
 import {
   AnimationClip,
   Color,
-  CubeTexture,
   Group,
   Mesh,
   Object3D,

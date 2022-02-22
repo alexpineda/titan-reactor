@@ -7,8 +7,8 @@ type ReplayCommandPlayer = Pick<ReplayCommand, "player">;
 export const MIN_APM_CALCULATION_FRAME = Math.floor(20_000 / 42);
 
 export class Apm {
-  actions = new Array(8).fill(0);
-  apm = new Array(8).fill(0);
+  actions: number[] = new Array(8).fill(0);
+  apm: number[] = new Array(8).fill(0);
   players: PlayerId[] = [];
 
   constructor(players: PlayerId[]) {

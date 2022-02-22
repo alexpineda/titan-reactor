@@ -1,4 +1,4 @@
-import { CircleGeometry, Color, Mesh, MeshBasicMaterial, MOUSE } from "three";
+import { CircleGeometry, Mesh, MeshBasicMaterial } from "three";
 
 
 export default function createStartLocation(

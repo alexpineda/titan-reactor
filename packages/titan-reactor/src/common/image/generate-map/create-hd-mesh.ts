@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Mesh, Vector2, MeshDepthMaterial } from "three";
+import { Mesh, Vector2 } from "three";
 
 import { mergeBufferGeometries } from "three/examples/jsm/utils/BufferGeometryUtils";
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
@@ -10,8 +10,6 @@ import { strict as assert } from "assert";
 import { WrappedTexture, WrappedQuartileTextures } from "../../types";
 import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
-import hdDisplaceVert from "./glsl/hd-displace.vert";
-import hdDisplaceVertHeader from "./glsl/hd-displace-header.vert";
 
 const DEFAULT_GEOM_OPTIONS = {
     //low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
@@ -52,40 +50,6 @@ export const createHDMesh = async (
     const hdGeometries = [];
     const qw = hdQuartileTextures.quartileWidth;
     const qh = hdQuartileTextures.quartileHeight;
-
-    const hdDepthMaterial = new MeshDepthMaterial({
-        // displacementScale: geomOptions.displacementScale,
-        map: hdDisplace,
-        // onBeforeCompile: function (shader) {
-        //   let vs = shader.vertexShader;
-        //   vs = vs.replace(
-        //     "#include <displacementmap_vertex>",
-        //     `
-        //   #ifdef USE_DISPLACEMENTMAP
-
-        //       vec2 duv = (vUv * quartileResolution) ;
-        //       // flip on y axis per quartile
-        //       duv.x += quartileOffset.x;
-        //       duv.y = quartileResolution.y - duv.y + quartileOffset.y;
-        //       transformed += normalize( objectNormal ) * ( texture2D( displacementMap, duv ).x * displacementScale + displacementBias );
-
-        //     #endif
-        //   `
-        //   );
-        //   shader.vertexShader = `
-        //     precision highp isampler2D;
-        //     uniform vec2 quartileResolution;
-        //     uniform vec2 quartileOffset;
-
-        //   ${vs}`;
-        //   shader.uniforms.quartileResolution = {
-        //     value: new Vector2(qw / mapWidth, qh / mapHeight),
-        //   };
-        //   shader.uniforms.quartileOffset = {
-        //     value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
-        //   };
-        // },
-    });
 
     for (let qy = 0; qy < hdQuartileTextures.quartileStrideH; qy++) {
         for (let qx = 0; qx < hdQuartileTextures.quartileStrideW; qx++) {
@@ -131,7 +95,6 @@ export const createHDMesh = async (
                 // @ts-ignore
                 onBeforeCompile: function (shader) {
                     let fs = shader.fragmentShader;
-                    let vs = shader.vertexShader;
 
                     //@todo chop up map rather than customize shader
                     // vs = vs.replace(

@@ -1,4 +1,3 @@
-import { Settings } from "../../common/types";
 import { MathUtils, Vector3 } from "three";
 import { CanvasTarget } from "../../common/image";
 import Janitor from "../utils/janitor";

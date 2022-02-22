@@ -17,7 +17,7 @@ export class FlingyBufferView extends ThingyBufferView
     // movement flags = 1
 
     get direction() {
-        const heading = this._bw.HEAP32[this._index32 + 10];
+        // const heading = this._bw.HEAP32[this._index32 + 10];
         // auto v = dir.fractional_part();
         // if (v < 0) return 256 + v;
         // else return v;
