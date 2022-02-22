@@ -1,6 +1,6 @@
 import { BwDAT } from "../../common/types";
 import { UnitFlags, unitTypes, iscriptHeaders } from "../../common/enums";
-import { UnitStruct } from "../integration/structs";
+import { UnitStruct } from "../../common/types/structs";
 import UnitsBufferView from "../integration/buffer-view/units-buffer-view";
 
 export const isCloaked = (unit: UnitStruct) => {

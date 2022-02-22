@@ -1,5 +1,5 @@
 import { Unit } from "../../core";
-import { UnitStruct } from "../structs";
+import { UnitStruct } from "../../../common/types/structs";
 import { FP8 } from "./fixed-point";
 import FlingyBufferView from "./flingy-buffer-view";
 

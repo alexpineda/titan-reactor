@@ -1,4 +1,3 @@
-import { SpritesBufferView } from "../buffer-view";
 import { FlingyStruct } from "./flingy-struct";
 
 export interface UnitStruct extends FlingyStruct {

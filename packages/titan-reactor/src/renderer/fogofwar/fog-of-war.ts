@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
-import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, LuminanceFormat, RedFormat, RedIntegerFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
-import { OpenBWAPI } from "../openbw";
+import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
+import { OpenBWAPI } from "../../common/types";
 
 export default class FogOfWar {
     private _bw: OpenBWAPI;
@@ -44,8 +44,8 @@ export default class FogOfWar {
 
     update(playerVision: number, camera: Camera) {
         assert(this._bw.wasm)
-        const tilesize = this._bw.call.getFowSize();
-        const ptr = this._bw.call.getFowPtr(playerVision, this.playerVisionWasToggled);
+        const tilesize = this._bw.call!.getFowSize!();
+        const ptr = this._bw.call!.getFowPtr!(playerVision, this.playerVisionWasToggled);
 
         this._buffer = this._bw.wasm.HEAPU8.subarray(ptr, ptr + tilesize);
         this.texture.image.data.set(this._buffer);

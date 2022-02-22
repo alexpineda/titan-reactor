@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "../../common/types";
-import { SoundStruct } from "../integration/structs";
+import { SoundStruct } from "../../common/types/structs";
 
 export const MinPlayVolume = 10;
 

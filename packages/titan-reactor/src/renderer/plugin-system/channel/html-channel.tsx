@@ -1,5 +1,5 @@
 import JsxParser from "react-jsx-parser";
-import * as log from "ipc/log";
+import * as log from "../../ipc/log";
 import {
   HTMLPluginChannelConfiguration,
   InitializedPluginChannelConfiguration,

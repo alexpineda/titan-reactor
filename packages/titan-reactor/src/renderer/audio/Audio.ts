@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "../../common/types";
-import { SoundStruct } from "../integration/structs";
+import { SoundStruct } from "../../common/types/structs";
 import { ClassicSound } from "./classic-sound";
 import DeferredAudioBuffer from "./deferred-audio-buffer";
 import MainMixer from "./main-mixer";

@@ -2,7 +2,7 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "../../common/types";
 import range from "../../common/utils/range";
-import { SoundStruct } from "../integration/structs";
+import { SoundStruct } from "../../common/types/structs";
 import Audio from "./audio";
 import { ClassicSound } from "./classic-sound";
 import DeferredAudioBuffer from "./deferred-audio-buffer";

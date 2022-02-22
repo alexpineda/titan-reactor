@@ -39,7 +39,7 @@ import {
   useHudStore,
   useSettingsStore,
 } from "./stores";
-import { SoundStruct, SpriteStruct, ImageStruct } from "./integration/structs";
+import { SoundStruct, SpriteStruct, ImageStruct } from "../common/types/structs";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
@@ -84,7 +84,7 @@ async function TitanReactorGame(
   // @ts-ignore
   janitor.callback(() => { window.world = null });
 
-  openBw.call.resetGameSpeed();
+  openBw.call!.resetGameSpeed!();
 
   const createImage = (imageTypeId: number) => {
     const atlas = assets.grps[imageTypeId];
@@ -543,7 +543,7 @@ async function TitanReactorGame(
   const unitList = new IntrusiveList(openBw.wasm.HEAPU32, 0, 43);
 
   function* iterateUnits() {
-    const playersUnitAddr = openBw.call.getUnitsAddr();
+    const playersUnitAddr = openBw.call!.getUnitsAddr!();
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
       for (const unitAddr of unitList) {
@@ -581,7 +581,7 @@ async function TitanReactorGame(
       freeUnits.push(unit);
     }
 
-    const playersUnitAddr = openBw.call.getUnitsAddr();
+    const playersUnitAddr = openBw.call!.getUnitsAddr!();
 
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
@@ -1057,7 +1057,7 @@ async function TitanReactorGame(
     }
 
     // build bullet sprites first since they need special Y calculations
-    bulletList.addr = openBw.call.getBulletsAddress();
+    bulletList.addr = openBw.call!.getBulletsAddress!();
     _ignoreSprites.length = 0;
     for (const bulletAddr of bulletList) {
       if (bulletAddr === 0) continue;
@@ -1075,8 +1075,8 @@ async function TitanReactorGame(
 
     // build all remaining sprites
     const spriteList = new IntrusiveList(openBw.wasm!.HEAPU32);
-    const spriteTileLineSize = openBw.call.getSpritesOnTileLineSize();
-    const spritetileAddr = openBw.call.getSpritesOnTileLineAddress();
+    const spriteTileLineSize = openBw.call!.getSpritesOnTileLineSize!();
+    const spritetileAddr = openBw.call!.getSpritesOnTileLineAddress!();
     for (let l = 0; l < spriteTileLineSize; l++) {
       spriteList.addr = spritetileAddr + (l << 3)
       for (const spriteAddr of spriteList) {
@@ -1154,7 +1154,7 @@ async function TitanReactorGame(
     }
 
     if (gameStatePosition.advanceGameFrames && currentBwFrame) {
-      buildSounds(openBw.call.getSoundObjects());
+      buildSounds(openBw.call!.getSoundObjects!());
       buildCreep(currentBwFrame);
 
       gameStatePosition.bwGameFrame = currentBwFrame.frame;

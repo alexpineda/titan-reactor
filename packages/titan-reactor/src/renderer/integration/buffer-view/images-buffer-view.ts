@@ -1,5 +1,5 @@
-import { OpenBWWasm } from "src/renderer/openbw";
-import { ImageStruct } from "../structs";
+import { OpenBWWasm } from "../../../common/types";
+import { ImageStruct } from "../../../common/types/structs";
 export class ImageBufferView
   implements ImageStruct {
 

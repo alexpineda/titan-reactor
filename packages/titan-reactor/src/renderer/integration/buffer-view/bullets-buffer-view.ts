@@ -1,5 +1,5 @@
-import { OpenBWWasm } from "src/renderer/openbw";
-import { BulletStruct } from "../structs/bullet-struct";
+import { OpenBWWasm } from "../../../common/types";
+import { BulletStruct } from "../../../common/types/structs/bullet-struct";
 import FlingyBufferView from "./flingy-buffer-view";
 import UnitsBufferView from "./units-buffer-view";
 

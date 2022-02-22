@@ -1,6 +1,6 @@
-import { OpenBWWasm } from "src/renderer/openbw";
+import { OpenBWWasm } from "../../../common/types";
 import { ImageBufferView } from ".";
-import { SpriteStruct } from "../structs";
+import { SpriteStruct } from "../../../common/types/structs";
 import { IntrusiveList } from "./intrusive-list";
 
 /**

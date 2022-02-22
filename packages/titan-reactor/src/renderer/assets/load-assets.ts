@@ -49,7 +49,7 @@ export default async (settings: Settings) => {
 
     log.verbose("Loading assets into openbw");
     await openBwFiles.loadBuffers(readCascFile);
-    openBw.call.main();
+    openBw.call!.main!();
 
     log.verbose("Loading dat files");
     const bwDat = await loadDATFiles(readCascFile);

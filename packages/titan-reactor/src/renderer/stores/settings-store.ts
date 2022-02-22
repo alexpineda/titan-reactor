@@ -1,20 +1,9 @@
 import create from "zustand";
 
-import { Settings, InitializedPluginConfiguration, GlobalPluginConfiguration as PluginSystemConfig } from "../../common/types";
+import { SettingsMeta } from "../../common/types";
 import { defaultSettings } from "../../common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
-export type SettingsMeta = {
-  data: Settings;
-  errors: string[];
-  phrases: Record<string, string>;
-  pluginsConfigs: InitializedPluginConfiguration[];
-  pluginSystemConfig: PluginSystemConfig;
-  /**
-   * Whether the starcraft directory is a CASC storage or direct filesystem
-   */
-  isCascStorage: boolean;
-};
 
 export type SettingsStore = SettingsMeta & {
   save: (data: any) => Promise<void>;

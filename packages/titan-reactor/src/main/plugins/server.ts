@@ -3,6 +3,7 @@ import http from "http";
 import nodeStatic from "node-static";
 import path from "path";
 
+// TODO: verify it exists
 const _p = path.join(__static, "plugins");
 var file = new nodeStatic.Server(_p, { cache: electronIsDev ? 0 : 3600 });
 const server = http.createServer(function (req, res) {

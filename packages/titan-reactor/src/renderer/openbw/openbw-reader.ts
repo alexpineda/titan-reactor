@@ -1,4 +1,4 @@
-import type { OpenBWAPI, OpenBWWasm } from '.';
+import type { OpenBWAPI } from '../../common/types';
 import { FrameBW } from '../integration/buffer-view';
 
 export default class OpenBwWasmReader {
@@ -11,7 +11,7 @@ export default class OpenBwWasmReader {
     }
 
     loadReplay(buffer: Buffer) {
-        this.openBw.call.loadReplay(buffer);
+        this.openBw.call!.loadReplay!(buffer);
     }
 
     next() {

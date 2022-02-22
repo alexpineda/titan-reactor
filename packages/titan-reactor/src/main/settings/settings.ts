@@ -5,17 +5,17 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, GlobalPluginConfiguration, PluginChannelConfigurationBase, IFramePluginChannelConfiguration } from "../../common/types";
+import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, GlobalPluginConfiguration, PluginChannelConfigurationBase } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
-import { SettingsMeta } from "src/renderer/stores";
+import { SettingsMeta } from "../../common/types";
 import migrate from "./migrate";
 import readFolder from "../starcraft/get-files";
 import path from "path";
 import logger from "../logger/singleton";
-import { isHTMLChannelConfig, isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
 import get from "lodash.get";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
@@ -139,9 +139,6 @@ export class Settings extends EventEmitter {
                 }
 
                 channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
-
-
-
 
                 if (pluginConfig.userConfig) {
                   const userPropRegex = /{(([a-zA-Z0-9_]+\.?)+)}/g;

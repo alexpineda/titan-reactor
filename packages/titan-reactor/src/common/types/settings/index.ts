@@ -1,3 +1,5 @@
+import type { InitializedPluginConfiguration, GlobalPluginConfiguration } from "../plugin";
+
 export type Settings = {
     version: 3;
     language: string;
@@ -84,3 +86,14 @@ export enum GameAspect {
     SixteenNine = "SixteenNine",
 };
 
+export type SettingsMeta = {
+    data: Settings;
+    errors: string[];
+    phrases: Record<string, string>;
+    pluginsConfigs: InitializedPluginConfiguration[];
+    pluginSystemConfig: GlobalPluginConfiguration;
+    /**
+     * Whether the starcraft directory is a CASC storage or direct filesystem
+     */
+    isCascStorage: boolean;
+};

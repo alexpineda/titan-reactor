@@ -1,4 +1,4 @@
-import { FlingyStruct } from "../structs/flingy-struct";
+import { FlingyStruct } from "../../../common/types/structs/flingy-struct";
 import ThingyBufferView from "./thingy-buffer-view";
 
 /**

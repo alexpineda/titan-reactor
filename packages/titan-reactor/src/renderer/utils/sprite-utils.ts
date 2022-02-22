@@ -1,5 +1,5 @@
 import { SpriteFlags } from "../../common/enums";
-import { SpriteStruct } from "../integration/structs";
+import { SpriteStruct } from "../../common/types/structs";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
     let score = 0;

@@ -1,4 +1,4 @@
-import { SpritesBufferView } from "../buffer-view";
+import { SpritesBufferView } from "../../../renderer/integration/buffer-view";
 
 export interface ThingyStruct {
     hp: number;

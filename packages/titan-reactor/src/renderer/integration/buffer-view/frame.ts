@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { OpenBWAPI } from "src/renderer/openbw";
+import { OpenBWAPI } from "../../../common/types";
 import { TilesBufferView } from ".";
 
 // a wrapper for a bw frames entire game state
@@ -25,7 +25,7 @@ export class FrameBW {
 
   update() {
 
-    this.frame = this._bw.call.nextFrame();
+    this.frame = this._bw.call!.nextFrame!();
     this.needsUpdate = this.frame !== this.prevFrame;
     if (this.needsUpdate === false) {
       return;
@@ -39,8 +39,8 @@ export class FrameBW {
     //     console.log("army", this._bw._counts(i, 13));
     // }
 
-    this.tiles.ptrIndex = this._bw.call.getTilesPtr();
-    this.tiles.itemsCount = this._bw.call.getTilesSize();
+    this.tiles.ptrIndex = this._bw.call!.getTilesPtr!();
+    this.tiles.itemsCount = this._bw.call!.getTilesSize!();
 
   }
 

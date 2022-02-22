@@ -1,4 +1,4 @@
-import UnitsBufferView from "../buffer-view/units-buffer-view";
+import UnitsBufferView from "../../../renderer/integration/buffer-view/units-buffer-view";
 import { FlingyStruct } from "./flingy-struct";
 
 export interface BulletStruct extends FlingyStruct {

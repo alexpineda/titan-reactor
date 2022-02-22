@@ -1,4 +1,4 @@
-import { SoundStruct } from "../integration/structs";
+import { SoundStruct } from "../../common/types/structs";
 
 export interface ClassicSound extends SoundStruct {
     extra: {
