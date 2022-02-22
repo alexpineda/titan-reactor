@@ -17,6 +17,8 @@ It's also a fresh take on observing and interacting with our beloved game, so ch
 - Get the latest windows executable via the [releases page](https://github.com/imbateam-gg/titan-reactor/releases)
 ### Development Installation
 
+*Using node 16 and yarn 1.22*
+
 `git lfs fetch --all`
 
 `yarn install`
