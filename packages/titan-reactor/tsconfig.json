@@ -20,12 +20,15 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
 
-    "inlineSources": false,
+    "inlineSources": true,
     "sourceMap": true,
 
     "baseUrl": "src",
     "paths": {
       "common": ["common/*"],
+      "@stores/*": ["renderer/stores/*"],
+      "@stores": ["renderer/stores/index.ts"],
+      "@utils/*": ["renderer/utils/*"],
       "@ipc/*": ["renderer/ipc/*"],
       "@ipc": ["renderer/ipc/index.ts"]
     },

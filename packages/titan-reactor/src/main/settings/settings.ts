@@ -12,9 +12,9 @@ import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import { SettingsMeta } from "../../common/types";
 import migrate from "./migrate";
-import readFolder from "../starcraft/get-files";
+import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import path from "path";
-import logger from "../logger/singleton";
+import log from "../logger/singleton";
 import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
 import get from "lodash.get";
 
@@ -89,14 +89,19 @@ export class Settings extends EventEmitter {
 
     const globalConfigFilePath = path.join(this._settings.directories.plugins, "plugins.json");
     if (await fileExists(globalConfigFilePath)) {
-      const pluginConfigs = await fsPromises.readFile(globalConfigFilePath, { encoding: "utf-8" });
-      _globalPluginsConfig = JSON.parse(pluginConfigs) as GlobalPluginConfiguration;
+      try {
+        const pluginConfigs = await fsPromises.readFile(globalConfigFilePath, { encoding: "utf-8" });
+        _globalPluginsConfig = JSON.parse(pluginConfigs) as GlobalPluginConfiguration;
+      } catch (_) {
+        log.error(`@settings/load-plugins: Error reading plugins.json file`);
+      }
 
       const defaultIndex = _globalPluginsConfig.slots.findIndex(slot => slot.name === "default");
       if (defaultIndex >= 0) {
         _globalPluginsConfig.slots.splice(defaultIndex, 1);
-        logger.warn("@settings/load-plugins: `default` slot is reserved.");
+        log.warn("@settings/load-plugins: `default` slot is reserved.");
       }
+
       _globalPluginsConfig.slots.push({
         name: "default",
         direction: "none",
@@ -107,13 +112,27 @@ export class Settings extends EventEmitter {
         "layout.bottom": "0",
       });
 
-      const folders = await readFolder(this._settings.directories.plugins);
+      let folders: ReadFolderResult[] = [];
+      try {
+        folders = await readFolder(this._settings.directories.plugins);
+      } catch (_) {
+        log.error(`@settings/load-plugins: Error reading plugins folder`);
+      }
+
       for (const folder of folders) {
         if (folder.isFolder) {
           const filePath = path.join(folder.path, "plugin.json");
           if (await fileExists(filePath)) {
-            const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
-            const pluginConfig = JSON.parse(contents) as PluginConfiguration;
+            let pluginConfig: PluginConfiguration;
+
+            try {
+              const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
+              pluginConfig = JSON.parse(contents) as PluginConfiguration;
+            } catch (_) {
+              log.error(`@settings/load-plugins: Error reading plugin.json file - ${filePath}`);
+              continue;
+            }
+
             const pluginOut = pluginConfig as unknown as InitializedPluginConfiguration;
 
             const importfilePath = path.join(folder.path, "native.js");
@@ -121,7 +140,7 @@ export class Settings extends EventEmitter {
               try {
                 pluginOut.nativeSource = await fsPromises.readFile(importfilePath, { encoding: "utf8" });
               } catch (e) {
-                logger.error("@settings/load-plugins: native source file failed to load.");
+                log.error("@settings/load-plugins: native source file failed to load.");
                 continue;
               }
             }
@@ -134,7 +153,7 @@ export class Settings extends EventEmitter {
                 const url = channel.url ?? isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.template?.url);
 
                 if (!url) {
-                  logger.error(`@settings/load-channel: channel url is missing - ${folder.name}`);
+                  log.error(`@settings/load-channel: channel url is missing - ${folder.name}`);
                   continue;
                 }
 
@@ -171,7 +190,7 @@ export class Settings extends EventEmitter {
 
       }
     } else {
-      logger.warn("@settings/load-plugins: plugins.json file not found.");
+      log.warn("@settings/load-plugins: plugins.json file not found.");
     }
   }
   /**

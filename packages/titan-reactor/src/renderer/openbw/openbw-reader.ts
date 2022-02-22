@@ -1,5 +1,5 @@
-import type { OpenBWAPI } from '../../common/types';
-import { FrameBW } from '../integration/buffer-view';
+import type { OpenBWAPI } from 'common/types';
+import { FrameBW } from '../buffer-view';
 
 export default class OpenBwWasmReader {
     openBw: OpenBWAPI;

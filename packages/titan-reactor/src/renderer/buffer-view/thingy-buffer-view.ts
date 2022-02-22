@@ -1,5 +1,5 @@
-import { OpenBWWasm } from "../../../common/types";
-import { ThingyStruct } from "../../../common/types/structs/thingy-struct";
+import { OpenBWWasm } from "common/types";
+import { ThingyStruct } from "common/types/structs/thingy-struct";
 import { FP8 } from "./fixed-point";
 import SpritesBufferView from "./sprites-buffer-view";
 

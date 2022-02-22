@@ -3,13 +3,18 @@ import { strict as assert } from "assert";
 import shuffle from "lodash.shuffle";
 import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
-import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "../common/enums";
-import { CanvasTarget } from "../common/image";
+import { easeCubicIn } from "d3-ease";
+import CameraControls from "camera-controls";
+
+import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "common/enums";
+import { CanvasTarget } from "common/image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
-} from "../common/types";
-import { buildPlayerColor, injectColorsCss } from "../common/utils/colors";
-import { gameSpeeds, pxToMapMeter, tile32 } from "../common/utils/conversions";
+} from "common/types";
+import { buildPlayerColor, injectColorsCss } from "common/utils/colors";
+import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
+import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
+
 import ProjectedCameraView from "./camera/projected-camera-view";
 import {
   GameStatePosition,
@@ -26,7 +31,7 @@ import {
   MinimapMouse,
   ReplayKeys
 } from "./input";
-import { FrameBW, ImageBufferView, SpritesBufferView } from "./integration/buffer-view";
+import { FrameBW, ImageBufferView, SpritesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
   Effects,
@@ -39,26 +44,23 @@ import {
   useHudStore,
   useSettingsStore,
 } from "./stores";
-import { SoundStruct, SpriteStruct, ImageStruct } from "../common/types/structs";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { ReplayWorld } from "./world";
-import CameraControls from "camera-controls";
 import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, constrainControlsOverviewCam, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
-import { IntrusiveList } from "./integration/buffer-view/intrusive-list";
-import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
+import { IntrusiveList } from "./buffer-view/intrusive-list";
+import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import { CameraMode } from "./input/camera-mode";
-import BulletsBufferView from "./integration/buffer-view/bullets-buffer-view";
+import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponType, WeaponBehavior } from "../common/enums";
-import { easeCubicIn } from "d3-ease";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
 import * as pluginSystem from "./plugin-system";

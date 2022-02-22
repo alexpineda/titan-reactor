@@ -1,5 +1,5 @@
 import { strict as assert } from "assert";
-import { OpenBWAPI } from "../../../common/types";
+import { OpenBWAPI } from "common/types";
 import { TilesBufferView } from ".";
 
 // a wrapper for a bw frames entire game state

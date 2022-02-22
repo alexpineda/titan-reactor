@@ -6,8 +6,12 @@ import {
   ChkDowngrader,
 } from "downgrade-replay";
 import fs from "fs";
-
 import Chk from "bw-chk";
+import { strict as assert } from "assert";
+
+import { ScreenType } from "common/types";
+import { pxToMapMeter } from "common/utils/conversions";
+
 import { ImageHD } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
 import OpenBwWasmReader from "./openbw/openbw-reader";
@@ -18,16 +22,13 @@ import loadTerrain from "./assets/load-terrain";
 import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
-import { ScreenType } from "../common/types";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
 import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
-import { strict as assert } from "assert";
-import { pxToMapMeter } from "../common/utils/conversions";
-import UnitsBufferView from "./integration/buffer-view/units-buffer-view";
+import UnitsBufferView from "./buffer-view/units-buffer-view";
 
 export default async (filepath: string) => {
   log.info(`loading replay ${filepath}`);

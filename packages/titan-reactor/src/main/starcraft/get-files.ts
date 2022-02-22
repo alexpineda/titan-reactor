@@ -1,9 +1,17 @@
 // ported from https://github.com/ShieldBattery/ShieldBattery
 
 import { promises as fsPromises, Stats } from "fs";
-import path from "path";
+import path from "path"
 
-export default async function readFolder(folderPath: string) {
+export interface ReadFolderResult {
+  isFolder: boolean;
+  name: string;
+  path: string;
+  extension: string;
+  date: Date;
+};
+
+export default async function readFolder(folderPath: string): Promise<ReadFolderResult[]> {
   const names = await fsPromises.readdir(folderPath);
   const stats = await Promise.all(
     names.map(async (name) => {

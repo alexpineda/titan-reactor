@@ -1,5 +1,5 @@
 import { Texture } from "three";
-import { TilesBufferView } from "../integration/buffer-view";
+import { TilesBufferView } from "../buffer-view";
 
 //@ts-ignore
 import Worker from "./creep.worker.js";
