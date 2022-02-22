@@ -12,7 +12,6 @@ import processStore, { Process } from "./stores/process-store";
 import screenStore from "./stores/screen-store";
 import { ScreenType } from "../common/types";
 import TitanReactorMap from "./view-map";
-import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 import { pxToMapMeter } from "../common/utils/conversions";
 
@@ -24,16 +23,20 @@ export default async (chkFilepath: string) => {
 
   gameStore().disposeGame();
 
-  processStore().init({
-    id: Process.MapInitialization,
-    label: getFunString(),
-    priority: 1,
-  });
+  processStore().start(Process.MapInitialization, 3);
 
   screenStore().init(ScreenType.Map);
 
   log.verbose("loading chk");
-  const chk = new Chk(await loadScm(chkFilepath));
+  let chk: Chk;
+
+  try {
+    chk = new Chk(await loadScm(chkFilepath));
+  } catch (e) {
+    screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
+    return;
+  }
+
   screenStore().updateLoadingInformation({
     title: chk.title,
     description: chk.description,
@@ -43,14 +46,14 @@ export default async (chkFilepath: string) => {
 
   await waitForAssets();
 
-  processStore().updateIndeterminate(Process.MapInitialization, getFunString());
+  processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing scene");
   const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;
-  processStore().updateIndeterminate(Process.MapInitialization, getFunString());
+  processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing gameloop");
   const disposeGame = await TitanReactorMap(
@@ -58,6 +61,7 @@ export default async (chkFilepath: string) => {
     terrainInfo,
     scene
   );
+  processStore().increment(Process.MapInitialization);
 
   gameStore().setDisposeGame(disposeGame);
   processStore().complete(Process.MapInitialization);

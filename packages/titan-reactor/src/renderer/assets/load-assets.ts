@@ -114,14 +114,7 @@ export default async (settings: Settings) => {
     const grps: GRPInterface[] = [];
     log.info(`@load-assets/atlas: ${settings.assets.images}`);
 
-    processStore().init({
-        id: Process.AtlasPreload,
-        label: "Loading initial assets",
-        max: 11,
-        priority: 10,
-        current: 0,
-        mode: "determinate",
-    });
+    processStore().start(Process.AtlasPreload, 11);
 
     const loadImageAtlasGrp = loadImageAtlas(grps);
     for (let i = 0; i < 999; i++) {

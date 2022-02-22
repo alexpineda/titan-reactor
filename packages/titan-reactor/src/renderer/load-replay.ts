@@ -25,7 +25,6 @@ import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
-import getFunString from "./bootup/get-fun-string";
 import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
@@ -34,11 +33,7 @@ import UnitsBufferView from "./buffer-view/units-buffer-view";
 export default async (filepath: string) => {
   log.info(`@load-replay/file: ${filepath}`);
 
-  processStore().init({
-    id: Process.ReplayInitialization,
-    label: getFunString(),
-    priority: 1,
-  });
+  processStore().start(Process.ReplayInitialization);
 
   gameStore().disposeGame();
 
@@ -57,6 +52,7 @@ export default async (filepath: string) => {
     return;
   }
 
+  processStore().increment(Process.ReplayInitialization);
   document.title = "Titan Reactor - Loading";
 
   screenStore().init(ScreenType.Replay);
@@ -73,6 +69,8 @@ export default async (filepath: string) => {
     }
   }
 
+
+  processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;
 
   let chk: Chk;
@@ -84,6 +82,7 @@ export default async (filepath: string) => {
   }
 
   screenStore().updateLoadingInformation({ header: replay.header, chkTitle: chk.title });
+  processStore().increment(Process.ReplayInitialization);
 
   const terrain = await loadTerrain(
     chk,
@@ -95,7 +94,7 @@ export default async (filepath: string) => {
 
   await waitForAssets();
 
-  processStore().updateIndeterminate(Process.ReplayInitialization, "Connecting to the hivemind");
+  processStore().increment(Process.ReplayInitialization);
 
   assert(openBw.wasm);
   const gameStateReader = new OpenBwWasmReader(openBw);
@@ -107,12 +106,14 @@ export default async (filepath: string) => {
     log.error(e);
   }
 
+  processStore().increment(Process.ReplayInitialization);
   const races = ["terran", "zerg", "protoss"];
 
   const assets = gameStore().assets;
   if (!assets || !assets.bwDat) {
     throw new Error("assets not loaded");
   }
+  processStore().increment(Process.ReplayInitialization);
 
   const audioMixer = new MainMixer();
   const soundChannels = new SoundChannels(
@@ -129,7 +130,7 @@ export default async (filepath: string) => {
   audioMixer.soundVolume = settings.audio.sound;
   audioMixer.masterVolume = settings.audio.global;
 
-  processStore().updateIndeterminate(Process.ReplayInitialization, getFunString());
+  processStore().increment(Process.ReplayInitialization);
   ImageHD.useDepth = false;
 
   const world = {
@@ -145,9 +146,9 @@ export default async (filepath: string) => {
     soundChannels,
     janitor,
   };
-  log.verbose("initializing game interface");
   const disposeGame = await TitanReactorGame(world);
   gameStore().setDisposeGame(disposeGame);
+  processStore().increment(Process.ReplayInitialization);
 
   log.verbose("starting replay");
   document.title = `Titan Reactor - ${chk.title} - ${replay.header.players
