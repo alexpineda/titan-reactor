@@ -491,7 +491,7 @@ async function TitanReactorGame(
     }
   }
 
-  const buildMinimap = (units: Map<number, Unit>, imageData: ImageData, resourceImageData: ImageData) => {
+  const buildMinimap = (imageData: ImageData, resourceImageData: ImageData) => {
     imageData.data.fill(0);
     resourceImageData.data.fill(0);
 
@@ -1166,7 +1166,7 @@ async function TitanReactorGame(
         units,
         unitsBySprite
       );
-      buildMinimap(units, minimapImageData, minimapResourceImageData);
+      buildMinimap(minimapImageData, minimapResourceImageData);
       buildImages();
       // buildResearchAndUpgrades(currentBwFrame);
       fogOfWar.texture.needsUpdate = true;
@@ -1253,7 +1253,7 @@ async function TitanReactorGame(
       //   }
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-      pluginSystem.onFrame(gameStatePosition, scene, cmdsThisFrame, units);
+      pluginSystem.onFrame(gameStatePosition);
       currentBwFrame = null;
     }
 

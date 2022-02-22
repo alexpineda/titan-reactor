@@ -12,22 +12,22 @@
     "jsx": "react-jsx",
 
     "strict": true,
-    "checkJs": false,
     "preserveConstEnums": true,
     "skipLibCheck": false,
     "isolatedModules": false,
     "strictPropertyInitialization": true,
 
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
 
     "inlineSources": false,
     "sourceMap": true,
+
     "baseUrl": "src",
     "paths": {
       "common": ["common/*"],
-      "ipc/*": ["renderer/ipc/*"],
-      "ipc": ["renderer/ipc/index.ts"]
+      "@ipc/*": ["renderer/ipc/*"],
+      "@ipc": ["renderer/ipc/index.ts"]
     },
     "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
     "outDir": "generated",

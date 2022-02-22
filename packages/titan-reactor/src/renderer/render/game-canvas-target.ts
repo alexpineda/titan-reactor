@@ -1,4 +1,4 @@
-import { CanvasTarget } from "../../common/image";
+import { CanvasTarget } from "common/image";
 import { Settings, GameAspect, GameCanvasDimensions } from "../../common/types";
 
 const MinimapRatio = .25;

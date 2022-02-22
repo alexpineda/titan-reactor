@@ -44,7 +44,6 @@ export class Scene extends ThreeScene {
     mapWidth,
     mapHeight,
     terrain,
-    tileset
   }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "terrain" | "tileset">) {
     super();
     this._mapHeight = mapHeight;

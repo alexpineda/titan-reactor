@@ -1,7 +1,6 @@
 import { MathUtils } from "three";
 import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginConfiguration } from "../../common/types";
-import { GameStatePosition, Unit } from "../core";
-import { Scene } from "../render";
+import { GameStatePosition } from "../core";
 
 import PluginWorkerChannel from "./channel/worker-channel";
 import PluginIFrameChannel from "./channel/iframe-channel";
@@ -59,9 +58,9 @@ class Plugin {
         return this._config.version;
     }
 
-    onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void {
+    onFrame(gameStatePosition: GameStatePosition): void {
         for (const channel of this.channels) {
-            channel.onFrame(gameStatePosition, scene, cmdsThisFrame, units);
+            channel.onFrame(gameStatePosition);
         }
     }
 

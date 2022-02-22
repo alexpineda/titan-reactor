@@ -65,7 +65,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     assert(creepGrpSD);
     const creepTexture = sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16);
     const creepEdgesTexture = await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette);
-    terrain = await createSDMesh(tileset, mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas);
+    terrain = await createSDMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas);
 
     creepTexture.texture.anisotropy = anisotropy;
     creepEdgesTexture.texture.anisotropy = anisotropy;
@@ -80,7 +80,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
       hdTiles,
       bitmaps.mapTilesData
     );
-    terrain = await createHDMesh(tileset, mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, hdQuartileTextures);
+    terrain = await createHDMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, hdQuartileTextures);
 
     creepTexture.texture.anisotropy = anisotropy;
     creepEdgesTexture.texture.anisotropy = anisotropy;

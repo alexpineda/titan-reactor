@@ -36,7 +36,7 @@ class PluginHTMLChannel extends PluginChannel {
     fetch(this.config.url)
       .then(
         (response) => response.text(),
-        (error) => {
+        () => {
           log.error(
             `@html-channel: could not fetch plugin markup from ${this.config.url} for ${pluginName}`
           );
@@ -48,7 +48,7 @@ class PluginHTMLChannel extends PluginChannel {
       });
   }
 
-  override postMessage(message: any, transferable?: Transferable[]): void {
+  override postMessage(message: any): void {
     if (
       this.config["access.read"] &&
       message.type === this.config["access.read"][0] &&

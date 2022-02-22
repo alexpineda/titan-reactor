@@ -10,7 +10,7 @@ export function initACLs() {
     return new Promise(resolve => {
         if (process.platform == 'win32') {
             // Check working directory's existing ACLs against our list of ACL strings
-            child_process.exec('icacls .', null, (err, output) => {
+            child_process.exec('icacls .', null, (_, output) => {
                 let existing_acls = output.toString();
                 let missing_acls = ACL_STRINGS.filter(acl => existing_acls.indexOf(acl) == -1);
                 if (missing_acls.length > 0) {

@@ -31,7 +31,6 @@ const DEFAULT_GEOM_OPTIONS = {
 
 //@todo separate sd and hd
 export const createHDMesh = async (
-    tileset: number,
     mapWidth: number,
     mapHeight: number,
     creepTexture: WrappedTexture,

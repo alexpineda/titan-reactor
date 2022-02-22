@@ -34,15 +34,14 @@ if (!gotTheLock) {
     app.setAsDefaultProtocolClient('titan-reactor')
   }
 
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
+  app.on('second-instance', () => {
     if (windows.main) {
       if (windows.main.isMinimized()) windows.main.restore()
       windows.main.focus()
     }
   });
 
-  app.on('open-url', (event, url) => {
+  app.on('open-url', (_, url) => {
     dialog.showErrorBox('Welcome Back', `You arrived from: ${url}`)
   })
 

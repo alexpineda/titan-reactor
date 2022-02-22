@@ -1,7 +1,7 @@
 export interface EntityIterator<T> {
-    items: (count?:number) => IterableIterator<T>;
-    reverse: (count?:number) => IterableIterator<T>;
-    instances: (count?:number) => T[];
+    items: (count?: number) => IterableIterator<T>;
+    reverse: (count?: number) => IterableIterator<T>;
+    instances: (count?: number) => T[];
 }
 
 // mostly for compatibility with the old API (BufferView)
@@ -19,12 +19,12 @@ export class EmbindEntityInterator<T> implements EntityIterator<T> {
     }
 
     *reverse(count = this._items.length) {
-        for (let i = count -1; i > 0; i--) {
+        for (let i = count - 1; i > 0; i--) {
             yield this._items[i];
         }
     }
 
-    instances(count = this._items.length) {
+    instances() {
         return this._items;
     }
 }

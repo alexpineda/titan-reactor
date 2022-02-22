@@ -1,6 +1,5 @@
 import CameraControls from "camera-controls";
 import { Box3, MathUtils, PerspectiveCamera, Vector3 } from "three";
-import { easePoly } from "d3-ease";
 import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
@@ -122,13 +121,11 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
   controls.mouse.enabled = true;
 
   controls.standard.setBoundary(undefined);
-
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.middle = CameraControls.ACTION.ZOOM;
   controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
-  // controls.standard.enabled = true;
 
   camera.far = DEFAULT_FAR;
   camera.fov = 15;
@@ -140,20 +137,6 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
 export const constrainAzimuth = (polarAngle: number) => {
   const np = (polarAngle - POLAR_MIN) / (POLAR_MAX - POLAR_MIN);
   return (np * np * AZI_RANGE);
-}
-
-export const getDOFFocalLength = (camera: PerspectiveCamera, polarAngle: number) => {
-  const cy = (Math.max(20, Math.min(90, camera.position.y)) - 20) / 70;
-
-  const cz = 1 - (Math.max(22, Math.min(55, camera.fov)) - 22) / 33;
-  const min = cz * 0.2 + 0.1;
-
-  const ey = easePoly(cy);
-  const pa = 1 - Math.max(0.2, Math.min(1, 0)); // cameras.control.polarAngle));
-  const cx = ey * pa;
-  const o = cx * (1 - min) + min;
-
-  return o;
 }
 
 export function calculateVerticalFoV(horizontalFoV: number, aspect = 16 / 9) {

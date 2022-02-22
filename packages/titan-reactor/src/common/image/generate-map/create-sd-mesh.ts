@@ -14,7 +14,6 @@ import elevationHeader from "./glsl/elevation-header.frag";
 
 
 export const createSDMesh = async (
-  tileset: number,
   mapWidth: number,
   mapHeight: number,
   creepTexture: WrappedTexture,

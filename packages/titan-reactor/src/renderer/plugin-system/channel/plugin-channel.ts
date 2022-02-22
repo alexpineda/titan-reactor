@@ -1,7 +1,6 @@
-import { InitializedPluginConfiguration, ScreenStatus, ScreenType } from "../../../common/types";
+import { ScreenStatus, ScreenType } from "../../../common/types";
 import { MathUtils } from "three";
-import { GameStatePosition, Unit } from "../../core";
-import { Scene } from "../../render";
+import { GameStatePosition } from "../../core";
 import Janitor from "../../utils/janitor";
 
 
@@ -33,19 +32,14 @@ abstract class PluginChannel {
         this._broadcastMessage = broadcastMessage;
     }
 
-    postMessage(message: any, transferable?: Transferable[]): void {
-    }
-
-    onInitialized(config: InitializedPluginConfiguration): void {
-        throw new Error("Method not implemented.");
-    }
+    abstract postMessage(message: any, transferable?: Transferable[]): void;
 
     onDisconnected(): void {
         this.postMessage(_disconnected);
     }
 
     //FIXME: lift this up to plugin level
-    onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void {
+    onFrame(gameStatePosition: GameStatePosition): void {
         const time = gameStatePosition.getSecond();
         if (this._lastSend[MSG_REPLAY_POSITION] !== time) {
             _replayPosition.frame = gameStatePosition.bwGameFrame;
@@ -79,8 +73,12 @@ abstract class PluginChannel {
 
     }
 
+    /**
+     * @param message Message from the channel
+     */
     protected _onMessage(message: any) {
-        // broadcast message to all channels
+        // if the channel assigns pluginId and channelId, 
+        // then the intention is to broadcast message to all channels
         if (message.pluginId === this._pluginId && message.channelId === this.id) {
             this._broadcastMessage(message);
         }

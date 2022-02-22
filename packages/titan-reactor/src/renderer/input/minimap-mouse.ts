@@ -18,7 +18,6 @@ export interface MinimapPreviewEvent extends MinimapEvent {
 const pos = new Vector3();
 const _target = new Vector3();
 
-// manages and dispatches minimap drag and click events
 export class MinimapMouse {
   mapWidth: number;
   mapHeight: number;
@@ -88,18 +87,12 @@ export class MinimapMouse {
     this.surface.canvas.addEventListener("mousedown", onMouseDown);
     this.janitor.callback(() => this.surface.canvas.removeEventListener("mousedown", onMouseDown));
 
-    const onMouseUp = (e: MouseEvent) => {
+    const onMouseUp = () => {
       if (!this.enabled) return;
-
 
       this._mouseDown = false;
       this._isDragging = false;
 
-      // if (e.button === LeftMouse) {
-      //   const x = getX(e.offsetX);
-      //   const y = getY(e.offsetY);
-      //   this._start = pos.set(x, 0, y);
-      // }
     };
     this.surface.canvas.addEventListener("mouseup", onMouseUp);
     this.janitor.callback(() => this.surface.canvas.removeEventListener("mouseup", onMouseUp));

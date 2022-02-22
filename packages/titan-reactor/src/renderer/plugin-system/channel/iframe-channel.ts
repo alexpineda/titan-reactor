@@ -17,7 +17,7 @@ class PluginIFrameChannel extends PluginChannel {
     }
 
     constructor(pluginId: string,
-        pluginName: string,
+        _: string,
         config: InitializedPluginChannelConfiguration<IFramePluginChannelConfiguration>, getUserConfig: () => {}, broadcastMessage: (message: any) => void) {
         super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;

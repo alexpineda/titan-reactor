@@ -26,7 +26,7 @@ export const loadGlbAtlas = async (glbFileName: string,
 
         const looseFrames = anim.frames.length % 17;
 
-        const fixedFrames = anim.frames.map((f, i) => {
+        const fixedFrames = anim.frames.map((_, i) => {
             if (imageDef.gfxTurns) {
                 if (i < anim.frames.length - looseFrames) {
                     return Math.floor(i / 17);

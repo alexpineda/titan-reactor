@@ -1,10 +1,10 @@
 import "three/examples/jsm/utils/SkeletonUtils";
 
-import { AnimationAction, AnimationMixer, Color, Object3D } from "three";
+import { AnimationAction, AnimationMixer, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 import { GlbAtlas } from "../../common/image/atlas/glb-atlas";
-import type { ImageDAT } from "../../common/types";
+import type { GRPInterface, ImageDAT } from "../../common/types";
 import type { Image } from ".";
 
 /**
@@ -25,14 +25,6 @@ export class Image3D extends Object3D implements Image {
   offsetX = 0;
   // unused, only for 2d
   offsetY = 0;
-
-  // FIXME: Implement
-  changeImage(
-    atlas: GlbAtlas,
-    imageDef: ImageDAT,
-  ) {
-
-  }
 
   constructor(
     atlas: GlbAtlas,
@@ -67,16 +59,18 @@ export class Image3D extends Object3D implements Image {
     this.setFrame(0);
   }
 
+  //@ts-ignore
+  changeImage(atlas: GRPInterface, imageDef: ImageDAT): void {
+    throw new Error("Method not implemented.");
+  }
+
   get unitTileScale() {
     return this.atlas.unitTileScale;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setTeamColor(val: Color) { }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setWarpingIn(val: number) { }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setCloaked(val: boolean) { }
+  setTeamColor() { }
+  setWarpingIn() { }
+  setCloaked() { }
 
   get frames() {
     return this.atlas.frames;
