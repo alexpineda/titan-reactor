@@ -11,10 +11,6 @@ export type Settings = {
         plugins: string;
     },
     pluginServerPort: number;
-    playerColors: {
-        ignoreReplayColors: boolean;
-        randomizeOrder: boolean;
-    },
     assets: {
         images: AssetTextureResolution;
         terrain: AssetTextureResolution;

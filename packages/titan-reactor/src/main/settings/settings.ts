@@ -16,7 +16,6 @@ import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import path from "path";
 import log from "../logger/singleton";
 import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
-import get from "lodash.get";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {
@@ -68,8 +67,11 @@ export class Settings extends EventEmitter {
    */
   async init(filepath: string) {
     this._filepath = filepath;
+    this.initialize();
+  }
 
-    if (await fileExists(filepath)) {
+  async initialize() {
+    if (await fileExists(this._filepath)) {
       await this.loadAndMigrate();
     } else {
       await this.save(await this.createDefaults());
@@ -159,17 +161,6 @@ export class Settings extends EventEmitter {
 
                 channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
 
-                if (pluginConfig.userConfig) {
-                  const userPropRegex = /{(([a-zA-Z0-9_]+\.?)+)}/g;
-                  const matches = userPropRegex.exec(channel.url);
-
-                  // allow userConfig properties to be used in the url eg {myProp}.html or {}
-                  if (matches) {
-                    const propPath = matches[1].split(".");
-                    channel.url.replace(userPropRegex, get(pluginConfig.userConfig, propPath, ""));
-                  }
-                }
-
                 if (isIFrameChannelConfig(channel) && channel["layout.slot"] === undefined) {
                   channel["layout.slot"] = "default";
                 }
@@ -229,7 +220,7 @@ export class Settings extends EventEmitter {
       : localLanguage;
 
     return {
-      data: { ...(await this.createDefaults()), ...this._settings },
+      data: this._settings,
       errors,
       isCascStorage,
       pluginsConfigs: _pluginsConfigs,
@@ -257,9 +248,9 @@ export class Settings extends EventEmitter {
     const [migrated, migratedSettings] = migrate(settings);
     if (migrated) {
       await this.save(migratedSettings);
-      this._settings = migratedSettings;
+      this._settings = { ...(await this.createDefaults()), ...migratedSettings };
     } else {
-      this._settings = settings;
+      this._settings = { ...(await this.createDefaults()), ...settings };
     }
     this._emitChanged();
   }

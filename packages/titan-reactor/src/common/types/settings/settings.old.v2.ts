@@ -10,10 +10,6 @@ export type SettingsV2 = {
         models: string;
         temp: string;
     },
-    playerColors: {
-        ignoreReplayColors: boolean;
-        randomizeOrder: boolean;
-    },
     assets: {
         images: AssetTextureResolution;
         terrain: AssetTextureResolution;

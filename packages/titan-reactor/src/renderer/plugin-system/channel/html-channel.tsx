@@ -5,12 +5,14 @@ import {
   InitializedPluginChannelConfiguration,
 } from "../../../common/types";
 import PluginChannel from "./plugin-channel";
+import get from "lodash.get";
 
 class PluginHTMLChannel extends PluginChannel {
   private _markup = "<div>Empty</div>";
 
   Component?: JSX.Element;
   config: InitializedPluginChannelConfiguration<HTMLPluginChannelConfiguration>;
+  private _getUrl = () => "";
 
   constructor(
     pluginId: string,
@@ -33,12 +35,29 @@ class PluginHTMLChannel extends PluginChannel {
       return;
     }
 
-    fetch(this.config.url)
+    this._getUrl = () => {
+      if (getUserConfig()) {
+        const userPropRegex = /{(([a-zA-Z0-9_]+\.?)+)}/g;
+        const matches = userPropRegex.exec(config.url);
+
+        // allow userConfig properties to be used in the url eg {myProp}.html or {}
+        if (matches) {
+          const propPath = matches[1].split(".");
+          return config.url.replace(
+            userPropRegex,
+            get(getUserConfig(), propPath, "")
+          );
+        }
+      }
+      return config.url;
+    };
+
+    fetch(this._getUrl())
       .then(
         (response) => response.text(),
         () => {
           log.error(
-            `@html-channel: could not fetch plugin markup from ${this.config.url} for ${pluginName}`
+            `@html-channel: could not fetch plugin markup from ${this._getUrl()} for ${pluginName}`
           );
           return "";
         }

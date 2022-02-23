@@ -39,8 +39,9 @@ export default (onOpenPluginManager: () => void) => {
     {
       label: "&View",
       submenu: [
+        { role: "reload" },
         {
-          label: "&Plugin Manager",
+          label: "&Settings \& Plugin Manager",
           click: function () {
             onOpenPluginManager();
           },
@@ -72,6 +73,24 @@ export default (onOpenPluginManager: () => void) => {
             await shell.openExternal("http://discord.imbateam.gg");
           },
         },
+        {
+          label: "Patreon",
+          click: async () => {
+            await shell.openExternal("http://discord.imbateam.gg");
+          },
+        },
+        {
+          label: "Merchandise",
+          click: async () => {
+            await shell.openExternal("http://discord.imbateam.gg");
+          },
+        },
+        {
+          label: "Bittip",
+          click: async () => {
+            await shell.openExternal("http://discord.imbateam.gg");
+          },
+        }
       ],
     },
   ];

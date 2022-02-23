@@ -2,8 +2,6 @@ import * as log from "@ipc/log";
 import create from "zustand";
 import { ReplayPlayer, ScreenStatus, ScreenType } from "../../common/types";
 
-
-
 export const isMapLoadingInformation = (information: any): information is MapLoadingInformation => {
     return information && information.title !== undefined;
 }

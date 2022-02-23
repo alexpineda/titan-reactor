@@ -1,12 +1,11 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import shuffle from "lodash.shuffle";
 import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 
-import { BulletState, DamageType, drawFunctions, Explosion, playerColors, unitTypes } from "common/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
@@ -302,16 +301,10 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw, renderer.composerPasses.effects[Effects.FogOfWar]);
 
-  const customColors = settings.playerColors.randomizeOrder
-    ? shuffle(playerColors)
-    : playerColors;
-
   const _playerColors = replay.header.players.map(
-    ({ id, color }: ReplayPlayer, i: number) =>
+    ({ id, color }: ReplayPlayer) =>
       buildPlayerColor(
-        settings.playerColors.ignoreReplayColors
-          ? customColors[i].hex
-          : color.hex,
+        color.hex,
         id
       )
   );

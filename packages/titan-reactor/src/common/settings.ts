@@ -11,10 +11,6 @@ export const defaultSettings: Settings = {
     plugins: ""
   },
   pluginServerPort: 8080,
-  playerColors: {
-    ignoreReplayColors: true,
-    randomizeOrder: false
-  },
   assets: {
     images: AssetTextureResolution.HD2,
     terrain: AssetTextureResolution.SD,

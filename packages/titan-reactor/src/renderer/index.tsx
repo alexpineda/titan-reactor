@@ -1,4 +1,5 @@
-if (window.location.search.includes("?plugins")) {
+if (window.location.search.includes("?config")) {
+  import("./ui/configuration/index");
 } else {
-  import("./titan-reactor");
+  import("./ui/titan-reactor");
 }

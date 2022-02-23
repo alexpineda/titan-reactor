@@ -42,7 +42,8 @@
       "webpackConfig": "build/renderer.config.js"
     },
     "whiteListedModules": [
-      "zustand"
+      "zustand",
+      "leva"
     ]
   },
   "build": {
@@ -59,6 +60,7 @@
     ]
   },
   "dependencies": {
+    "@stitches/react": "^1.2.6",
     "assert": "^2.0.0",
     "bl": "^5.0.0",
     "bw-casclib": "^2.0.0",
@@ -71,6 +73,7 @@
     "electron-devtools-installer": "^3.2.0",
     "electron-is-dev": "^1.2.0",
     "iconv-lite": "0.6.3",
+    "leva": "^0.9.23",
     "lodash.debounce": "^4.0.8",
     "lodash.get": "^4.4.2",
     "lodash.groupby": "^4.6.0",

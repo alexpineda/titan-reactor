@@ -1,18 +1,18 @@
-import "./ui/reset.css";
-import { openBw } from "./openbw";
+import "./reset.css";
+import { openBw } from "../openbw";
+import { waitUnless } from "common/utils/wait";
 
-import { version } from "../../package.json";
-import * as log from "./ipc/log";
-import { useSettingsStore } from "./stores";
-import screenStore from "./stores/screen-store";
-import loadFonts from "./bootup/load-fonts";
-import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
-import preloadAssets from "./bootup/load-assets-when-ready";
-import { waitUnless } from "../common/utils/wait";
-import renderer from "./render/renderer";
-import App from "./ui/index";
+import { version } from "../../../package.json";
+import * as log from "../ipc/log";
+import { useSettingsStore } from "../stores";
+import screenStore from "../stores/screen-store";
+import loadFonts from "../bootup/load-fonts";
+import registerFileDialogHandlers from "../bootup/register-file-dialog-handlers";
+import preloadAssets from "../bootup/load-assets-when-ready";
+import renderer from "../render/renderer";
+import App from "./index";
 import { render } from "react-dom";
-import settingsStore from "./stores/settings-store";
+import settingsStore from "../stores/settings-store";
 
 // @ts-ignore
 if (module.hot) {
