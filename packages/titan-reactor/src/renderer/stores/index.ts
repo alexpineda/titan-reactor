@@ -6,4 +6,5 @@ export * from "./settings-store";
 export * from "./realtime/production-store";
 export * from "./realtime/resources-store";
 export * from "./realtime/unit-selection-store";
+export * from "./on-frame-store";
 export * from "./comparitors/keys-only";

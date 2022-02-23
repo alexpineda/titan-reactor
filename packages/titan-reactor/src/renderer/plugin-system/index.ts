@@ -1,13 +1,19 @@
-import { InitializedPluginConfiguration } from "../../common/types";
-import * as log from "../ipc/log";
-import { GameStatePosition } from "../core";
-import { useSettingsStore } from "../stores";
+
 import assert from "assert";
+
+import { InitializedPluginConfiguration } from "common/types";
+
+import * as log from "@ipc/log";
+import { GameStatePosition } from "@core";
+import settingsStore from "@stores/settings-store";
+import { useSettingsStore, useOnFrameStore } from "@stores";
+
+import "./web-components"
 import Plugin from "./plugin";
 import PluginWorkerChannel from "./channel/worker-channel";
 import PluginIFrameChannel from "./channel/iframe-channel";
-import settingsStore from "../stores/settings-store";
-import PluginHTMLChannel from "./channel/html-channel";
+import PluginWebComponentChannel from "./channel/web-component-channel";
+import { MSG_REPLAY_POSITION } from "./messages";
 
 let _plugins: Plugin[] = [];
 let pluginsInitialized = false;
@@ -31,7 +37,7 @@ export const getWorkerChannels = () => getPlugins().flatMap(p => p.channels.filt
 
 export const getIFrameChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel) as PluginIFrameChannel[]);
 
-export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginHTMLChannel) as PluginHTMLChannel[]);
+export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWebComponentChannel) as PluginWebComponentChannel[]);
 
 export const getSlots = () => settingsStore().pluginSystemConfig.slots;
 
@@ -78,8 +84,38 @@ export const disposePlugins = (plugins: Plugin[]) => {
     }
 }
 
+let _lastSend: { [key: string]: any } = {};
+const _replayPosition = {
+    type: MSG_REPLAY_POSITION,
+    frame: 0,
+    maxFrame: 0,
+    time: "",
+}
+
 export const onFrame = (gameStatePosition: GameStatePosition) => {
-    for (const plugin of _plugins) {
-        plugin.onFrame(gameStatePosition);
+    const time = gameStatePosition.getSecond();
+
+    if (_lastSend[MSG_REPLAY_POSITION] !== time) {
+        _lastSend[MSG_REPLAY_POSITION] = time;
+
+        // for web worker and iframe messaging
+        for (const plugin of _plugins) {
+            _replayPosition.frame = gameStatePosition.bwGameFrame;
+            _replayPosition.maxFrame = gameStatePosition.maxFrame;
+            _replayPosition.time = gameStatePosition.getFriendlyTime();
+
+            plugin.postMessage(_replayPosition);
+        }
+
+        // for web-components mesaging
+        useOnFrameStore.setState({
+            friendlyTime: gameStatePosition.getFriendlyTime(),
+            maxFrame: gameStatePosition.maxFrame,
+            currentFrame: gameStatePosition.bwGameFrame,
+        });
     }
+}
+
+export const resetSendStates = () => {
+    _lastSend = {};
 }

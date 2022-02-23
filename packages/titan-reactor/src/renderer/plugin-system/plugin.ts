@@ -1,16 +1,15 @@
 import { MathUtils } from "three";
 import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginConfiguration } from "../../common/types";
-import { GameStatePosition } from "../core";
 
 import PluginWorkerChannel from "./channel/worker-channel";
 import PluginIFrameChannel from "./channel/iframe-channel";
-import PluginHTMLChannel from "./channel/html-channel";
-import { isHTMLChannelConfig, isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+import PluginWebComponentChannel from "./channel/web-component-channel";
+import { isWebComponentChannelConfig, isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
 
 
 // TODO: userland apis: onshow, onhide, onresize, onfullscreen, onunfullscreen, setvisibility
 class Plugin {
-    channels: (PluginIFrameChannel | PluginWorkerChannel | PluginHTMLChannel)[];
+    channels: (PluginIFrameChannel | PluginWorkerChannel | PluginWebComponentChannel)[];
     enabled = true;
     private _config: InitializedPluginConfiguration;
     private _id = MathUtils.generateUUID();
@@ -35,8 +34,8 @@ class Plugin {
                 return new PluginIFrameChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
             } else if (isWorkerChannelConfig(channelConfig)) {
                 return new PluginWorkerChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
-            } else if (isHTMLChannelConfig(channelConfig)) {
-                return new PluginHTMLChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
+            } else if (isWebComponentChannelConfig(channelConfig)) {
+                return new PluginWebComponentChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage, config.extraStylesheet);
             }
             throw new Error(`Unknown channel type: ${channelConfig.type}`);
         });
@@ -58,9 +57,9 @@ class Plugin {
         return this._config.version;
     }
 
-    onFrame(gameStatePosition: GameStatePosition): void {
+    postMessage(message: any, transferable?: Transferable[]): void {
         for (const channel of this.channels) {
-            channel.onFrame(gameStatePosition);
+            channel.postMessage(message, transferable);
         }
     }
 

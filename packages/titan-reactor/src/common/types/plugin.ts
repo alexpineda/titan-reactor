@@ -25,8 +25,8 @@ export type PluginChannelConfigurationBase = {
     "access.write"?: string[];
     "access.assets"?: string[];
 }
-export type HTMLPluginChannelConfiguration = PluginChannelConfigurationBase & LayoutRect & {
-    type: "html",
+export type WebComponentPluginChannelConfiguration = PluginChannelConfigurationBase & LayoutRect & {
+    type: "web-component";
     pointerInteraction: boolean;
     "layout.slot"?: string;
     "layout.slot.order"?: number | string;
@@ -36,7 +36,7 @@ export type WorkerPluginChannelConfiguration = PluginChannelConfigurationBase & 
     type: "worker",
 }
 
-export type IFramePluginChannelConfiguration = Omit<HTMLPluginChannelConfiguration, "type"> & LayoutRect & {
+export type IFramePluginChannelConfiguration = Omit<WebComponentPluginChannelConfiguration, "type"> & LayoutRect & {
     type: "iframe",
 }
 
@@ -55,7 +55,7 @@ export interface PluginConfiguration {
         url?: string;
         keepAlive?: boolean;
     },
-    template?: {
+    webComponent?: {
         url?: string;
     },
     native?: "isolated" | "inherited";
@@ -73,6 +73,7 @@ export type InitializedPluginChannelConfiguration<T extends PluginChannelConfigu
 export interface InitializedPluginConfiguration extends Omit<PluginConfiguration, "channels"> {
     tag: string;
     nativeSource?: string;
+    extraStylesheet?: string;
     channels: InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>[];
 }
 

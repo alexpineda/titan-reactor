@@ -1,25 +1,26 @@
-import JsxParser from "react-jsx-parser";
 import * as log from "../../ipc/log";
 import {
-  HTMLPluginChannelConfiguration,
+  WebComponentPluginChannelConfiguration,
   InitializedPluginChannelConfiguration,
 } from "../../../common/types";
 import PluginChannel from "./plugin-channel";
 import get from "lodash.get";
+import { TitanComponent } from "../web-components/titan-component";
 
-class PluginHTMLChannel extends PluginChannel {
+class PluginWebComponentChannel extends PluginChannel {
   private _markup = "<div>Empty</div>";
 
-  Component?: JSX.Element;
-  config: InitializedPluginChannelConfiguration<HTMLPluginChannelConfiguration>;
+  domElement?: TitanComponent;
+  config: InitializedPluginChannelConfiguration<WebComponentPluginChannelConfiguration>;
   private _getUrl = () => "";
 
   constructor(
     pluginId: string,
     pluginName: string,
-    config: InitializedPluginChannelConfiguration<HTMLPluginChannelConfiguration>,
+    config: InitializedPluginChannelConfiguration<WebComponentPluginChannelConfiguration>,
     getUserConfig: () => {},
-    broadcastMessage: (message: any) => void
+    broadcastMessage: (message: any) => void,
+    extraStylesheet?: string
   ) {
     super(pluginId, getUserConfig, broadcastMessage);
     this.config = config;
@@ -52,31 +53,45 @@ class PluginHTMLChannel extends PluginChannel {
       return config.url;
     };
 
-    fetch(this._getUrl())
-      .then(
-        (response) => response.text(),
-        () => {
-          log.error(
-            `@html-channel: could not fetch plugin markup from ${this._getUrl()} for ${pluginName}`
-          );
-          return "";
-        }
-      )
-      .then((text) => {
-        this._markup = text;
-      });
+    this._loadMarkup(extraStylesheet);
+  }
+
+  private async _loadMarkup(extraStylesheet?: string) {
+    let text: string;
+
+    try {
+      const response = await fetch(this._getUrl());
+      text = await response.text();
+    } catch (e) {
+      log.error(
+        `@html-channel: could not fetch plugin markup from ${this._getUrl()} for ${pluginName}`
+      );
+      return "";
+    }
+
+    this._markup = text;
+    this.domElement = document.createElement(
+      "titan-component"
+    ) as TitanComponent;
+    this.domElement.setMarkup(this._markup);
+
+    if (extraStylesheet) {
+      console.log("setting stylesheet");
+      this.domElement.setStylesheet(extraStylesheet);
+    } else {
+      console.log("no stylesheet");
+    }
   }
 
   override postMessage(message: any): void {
     if (
-      this.config["access.read"] &&
-      message.type === this.config["access.read"][0] &&
+      // this.config["access.read"] &&
+      // message.type === this.config["access.read"][0] &&
       this._markup
     ) {
       // TODO: render content from message
-      this.Component = <JsxParser bindings={message} jsx={this._markup} />;
     }
   }
 }
 
-export default PluginHTMLChannel;
+export default PluginWebComponentChannel;

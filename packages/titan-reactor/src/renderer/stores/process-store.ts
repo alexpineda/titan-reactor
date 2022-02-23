@@ -33,7 +33,7 @@ export type ProcessStore = {
   isInProgress: (id: Process) => boolean;
 };
 
-export const useLoadingStore = create<ProcessStore>((set, get) => ({
+export const useProcessStore = create<ProcessStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
   start: (id: Process, max = PROCESS_MAX) => {
@@ -55,8 +55,9 @@ export const useLoadingStore = create<ProcessStore>((set, get) => ({
   },
   increment: (id: Process, current?: number) => {
     const process = get().processes.find((p) => p.id === id);
+
     if (process) {
-      const next = Math.min(process.current++, process.max);
+      const next = Math.min(++process.current, process.max);
 
       log.verbose("@process/" + snake(Process[id]) + ": " + (next / process.max).toFixed(2));
 
@@ -88,4 +89,4 @@ export const useLoadingStore = create<ProcessStore>((set, get) => ({
     get().completedProcesses.some((p) => p.id === id),
 }));
 
-export default () => useLoadingStore.getState();
+export default () => useProcessStore.getState();

@@ -1,19 +1,7 @@
 import { ScreenStatus, ScreenType } from "../../../common/types";
 import { MathUtils } from "three";
-import { GameStatePosition } from "../../core";
 import Janitor from "../../utils/janitor";
-
-
-export const MSG_CONNECTED = "connected";
-export const MSG_DISCONNECTED = "disconnected";
-export const MSG_REPLAY_POSITION = "replay.position";
-
-const _replayPosition = {
-    type: MSG_REPLAY_POSITION,
-    frame: 0,
-    maxFrame: 0,
-    time: "",
-}
+import { MSG_CONNECTED, MSG_DISCONNECTED } from "../messages";
 
 const _disconnected = { type: MSG_DISCONNECTED }
 
@@ -21,7 +9,6 @@ abstract class PluginChannel {
     id = MathUtils.generateUUID();
     private _pluginId: string;
     protected _janitor = new Janitor();
-    protected _lastSend: { [key: string]: any } = {};
     private _getUserConfig: () => any;
     private _broadcastMessage: (message: any) => void;
 
@@ -36,19 +23,6 @@ abstract class PluginChannel {
 
     onDisconnected(): void {
         this.postMessage(_disconnected);
-    }
-
-    //FIXME: lift this up to plugin level
-    onFrame(gameStatePosition: GameStatePosition): void {
-        const time = gameStatePosition.getSecond();
-        if (this._lastSend[MSG_REPLAY_POSITION] !== time) {
-            _replayPosition.frame = gameStatePosition.bwGameFrame;
-            _replayPosition.maxFrame = gameStatePosition.maxFrame;
-            _replayPosition.time = gameStatePosition.getFriendlyTime();
-
-            this.postMessage(_replayPosition);
-            this._lastSend[MSG_REPLAY_POSITION] = time;
-        }
     }
 
     onConnected(screenType: ScreenType, screenStatus: ScreenStatus) {

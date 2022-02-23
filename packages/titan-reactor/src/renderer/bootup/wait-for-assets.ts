@@ -1,5 +1,5 @@
 import {
-    useLoadingStore,
+    useProcessStore,
 } from "../stores";
 import gameStore from "../stores/game-store";
 import processStore, { Process } from "../stores/process-store";
@@ -18,7 +18,7 @@ export default async () => {
             res();
             return;
         }
-        const unsub = useLoadingStore.subscribe(() => {
+        const unsub = useProcessStore.subscribe(() => {
             if (processStore().isComplete(Process.AtlasPreload)) {
                 unsub();
                 const assets = gameStore().assets;;

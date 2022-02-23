@@ -155,6 +155,15 @@ export class Settings extends EventEmitter {
               }
             }
 
+            const extraStylesheet = path.join(folder.path, "component.css");
+            if (await fileExists(extraStylesheet)) {
+              try {
+                pluginOut.extraStylesheet = await fsPromises.readFile(extraStylesheet, { encoding: "utf8" });
+              } catch (e) {
+                log.error(`@settings/load-extra: component stylesheet failed to load ${extraStylesheet}.`);
+              }
+            }
+
             const channels: (InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>)[] = [];
 
             for (const channelKey in pluginConfig.channels) {
