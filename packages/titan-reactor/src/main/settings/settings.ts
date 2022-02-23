@@ -19,6 +19,10 @@ import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {
+  "@home/ready": {
+    screenType: ScreenType.Home,
+    screenStatus: ScreenStatus.Ready,
+  },
   "@replay/loading": {
     screenType: ScreenType.Replay,
     screenStatus: ScreenStatus.Loading,
@@ -44,7 +48,6 @@ const getEnvLocale = (env = process.env) => {
 let _pluginsConfigs: InitializedPluginConfiguration[];
 let _globalPluginsConfig: GlobalPluginConfiguration = {
   respository: [],
-  disabled: [],
   slots: [],
   theme: []
 };
@@ -135,6 +138,11 @@ export class Settings extends EventEmitter {
               continue;
             }
 
+            if (pluginConfig.enabled === false) {
+              log.info(`@settings/load-plugins: ${folder.name} disabled in plugin.json, skipping.`);
+              continue;
+            }
+
             const pluginOut = pluginConfig as unknown as InitializedPluginConfiguration;
 
             const importfilePath = path.join(folder.path, "native.js");
@@ -150,9 +158,13 @@ export class Settings extends EventEmitter {
             const channels: (InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>)[] = [];
 
             for (const channelKey in pluginConfig.channels) {
+              if (!Object.keys(screenDataMap).includes(channelKey)) {
+                log.error(`@settings/load-channel: channel ${channelKey} is invalid, must be one of ${Object.keys(screenDataMap)}.`);
+                continue;
+              }
               const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
               for (const channel of channelsConfig) {
-                const url = channel.url ?? isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.template?.url);
+                const url = channel.url ?? (isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.template?.url));
 
                 if (!url) {
                   log.error(`@settings/load-channel: channel url is missing - ${folder.name}`);

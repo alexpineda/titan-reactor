@@ -40,12 +40,13 @@ export type IFramePluginChannelConfiguration = Omit<HTMLPluginChannelConfigurati
     type: "iframe",
 }
 
-export type AvailableLifecycles = "@replay/loading" | "@replay/ready" | "@map/loading" | "@map/ready";
+export type AvailableLifecycles = "@home/ready" | "@replay/loading" | "@replay/ready" | "@map/loading" | "@map/ready";
 
 export interface PluginConfiguration {
     name: string;
     version: string;
     author?: string;
+    enabled?: boolean;
     worker?: {
         url?: string;
         keepAlive?: boolean;
@@ -92,7 +93,6 @@ export interface SlotConfig extends LayoutRect {
 
 export interface GlobalPluginConfiguration {
     "respository": string[],
-    "disabled": string[],
     "slots": SlotConfig[],
     "theme": string[]
 }

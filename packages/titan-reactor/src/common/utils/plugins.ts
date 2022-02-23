@@ -9,5 +9,5 @@ export const isHTMLChannelConfig = (channel: any): channel is HTMLPluginChannelC
 }
 
 export const isWorkerChannelConfig = (channel: any): channel is WorkerPluginChannelConfiguration => {
-    return channel.type === "html";
+    return channel.type === "worker";
 }

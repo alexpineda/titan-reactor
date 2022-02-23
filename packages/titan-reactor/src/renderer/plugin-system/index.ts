@@ -27,11 +27,11 @@ useSettingsStore.subscribe((settings) => {
 
 export const getPlugins = (all?: boolean) => _plugins.filter(p => all ?? p.enabled);
 
-export const getWorkerChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWorkerChannel)) as PluginWorkerChannel[];
+export const getWorkerChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWorkerChannel) as PluginWorkerChannel[]);
 
-export const getIFrameChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel)) as PluginIFrameChannel[];
+export const getIFrameChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel) as PluginIFrameChannel[]);
 
-export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel)) as PluginHTMLChannel[];
+export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginHTMLChannel) as PluginHTMLChannel[]);
 
 export const getSlots = () => settingsStore().pluginSystemConfig.slots;
 
@@ -54,8 +54,6 @@ export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[
             } else {
                 plugin = new Plugin(pluginConfig);
             }
-
-            plugin.enabled = settingsStore().pluginSystemConfig.disabled.includes(plugin.tag) ? false : true;
 
         } catch (e: unknown) {
             if (e instanceof Error) {

@@ -1,6 +1,6 @@
 import "../reset.css";
 import { render } from "react-dom";
-import { css, styled, theme } from "../stitches";
+import { styled, theme } from "../stitches";
 
 import settingsStore, { useSettingsStore } from "../../stores/settings-store";
 import { useState } from "react";

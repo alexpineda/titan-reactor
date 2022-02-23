@@ -6,6 +6,7 @@ import GameView from "./game-view";
 import { ScreenStatus, ScreenType } from "../../common/types";
 import PluginsChannelsSlot from "./plugin-channels-slot";
 import * as pluginSystem from "../plugin-system";
+import PluginsHTMLChannelsSlot from "./plugin-html-channels-slot";
 
 const App = () => {
   const screen = useScreenStore();
@@ -17,6 +18,15 @@ const App = () => {
         {screen.status !== ScreenStatus.Error &&
           slots.map((slot) => (
             <PluginsChannelsSlot
+              key={slot.name}
+              screenType={screen.type}
+              screenStatus={screen.status}
+              slotConfig={slot}
+            />
+          ))}
+        {screen.status !== ScreenStatus.Error &&
+          slots.map((slot) => (
+            <PluginsHTMLChannelsSlot
               key={slot.name}
               screenType={screen.type}
               screenStatus={screen.status}

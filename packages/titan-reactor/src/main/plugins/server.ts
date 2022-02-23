@@ -10,7 +10,9 @@ var file = new nodeStatic.Server(_p, { cache: electronIsDev ? 0 : 3600 });
 const server = http.createServer(function (req, res) {
     //https://web.dev/origin-agent-cluster/
     res.setHeader("Origin-Agent-Cluster", "?1")
-
+    if (electronIsDev) {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+    }
     req.addListener('end', function () {
         file.serve(req, res, function (err) {
             if (err) {

@@ -137,7 +137,8 @@ if (!gotTheLock) {
       // @ts-ignore
       event.sender.webContents.openDevTools();
     });
-    globalShortcut.register("CommandOrControl+R", () => {
+    globalShortcut.register("CommandOrControl+R", async () => {
+      await settings.initialize();
       // @ts-ignore
       event.sender.webContents.reload();
     });

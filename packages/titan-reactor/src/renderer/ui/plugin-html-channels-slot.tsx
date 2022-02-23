@@ -2,7 +2,7 @@ import { memo, useEffect } from "react";
 import { ScreenType, ScreenStatus, SlotConfig } from "../../common/types";
 import * as pluginSystem from "../plugin-system";
 
-const PluginsChannelsSlot = ({
+const PluginsHTMLChannelsSlot = ({
   screenType,
   screenStatus,
   slotConfig,
@@ -11,18 +11,17 @@ const PluginsChannelsSlot = ({
   screenStatus: ScreenStatus;
   slotConfig: SlotConfig;
 }) => {
-  const channels = pluginSystem
-    .getHTMLChannels()
-    .filter(
-      (channel) =>
-        channel.config.screenType === screenType &&
-        channel.config.screenStatus === screenStatus
-    );
+  const htmlChannels = pluginSystem.getHTMLChannels();
+
+  const channels = htmlChannels.filter(
+    (channel) =>
+      channel.config.screenType === screenType &&
+      channel.config.screenStatus === screenStatus
+  );
 
   useEffect(() => {
     for (const channel of channels) {
       channel.onConnected(screenType, screenStatus);
-      console.log(slotConfig);
     }
     return () => {
       for (const channel of channels) {
@@ -49,4 +48,4 @@ const PluginsChannelsSlot = ({
   );
 };
 
-export default memo(PluginsChannelsSlot);
+export default memo(PluginsHTMLChannelsSlot);

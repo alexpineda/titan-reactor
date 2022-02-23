@@ -5,8 +5,8 @@ export enum ScreenStatus {
 }
 
 export enum ScreenType {
-    Map,
+    Home,
     Replay,
+    Map,
     IScriptah,
-    Home
 }
