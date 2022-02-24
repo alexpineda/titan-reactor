@@ -1,5 +1,4 @@
 import React from "react";
-import LoadingOverlay from "./loading-overlay";
 import { useScreenStore } from "../stores";
 import LogDisplay from "./log-display";
 import { ScreenStatus, ScreenType } from "../../common/types";
@@ -22,14 +21,11 @@ const App = () => {
               slotConfig={slot}
             />
           ))}
-        {screen.status === ScreenStatus.Error && <LogDisplay />}
-        {screen.type === ScreenType.Home && <LogDisplay />}
-        {(screen.type === ScreenType.Map ||
-          screen.type === ScreenType.Replay) &&
-          screen.status === ScreenStatus.Loading && (
-            <LoadingOverlay screen={screen} />
-          )}
-        {/* {screen.type === ScreenType.Map && <Map />} */}
+        {!(
+          (screen.type === ScreenType.Map ||
+            screen.type === ScreenType.Replay) &&
+          screen.status === ScreenStatus.Ready
+        ) && <LogDisplay />}
       </>
     </React.StrictMode>
   );

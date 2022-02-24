@@ -11,7 +11,7 @@ import { CanvasTarget } from "./image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
 } from "common/types";
-import { buildPlayerColor, injectColorsCss } from "common/utils/colors";
+import { buildPlayerColor, injectColorsCss, setStyleSheet } from "common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
 import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
 
@@ -408,14 +408,15 @@ async function TitanReactorGame(
     controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
     projectedCameraView.update();
 
-    globalCss({
-      ":root": {
-        "--game-width": gameSurface.width,
-        "--game-height": gameSurface.height,
-        "--minimap-width": minimapSurface.width,
-        "--minimap-height": minimapSurface.height,
-      }
-    })
+    setStyleSheet(
+      "game-dimension-css-vars",
+      `:root {
+        --game-width: ${gameSurface.width}px,
+        --game-height: ${gameSurface.height}px,
+        --minimap-width: ${minimapSurface.width}px,
+        --minimap-height: ${minimapSurface.height}px,
+      }`
+    )
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);

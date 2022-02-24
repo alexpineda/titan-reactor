@@ -19,8 +19,10 @@ declare module "bw-chk" {
     };
 
     export default class Chk {
-        title: string | "";
-        description: string | "";
+        title: string;
+        _originalTitle: string;
+        description: string;
+        _originalDescription: string;
         tileset: number;
         units: ChkUnit[];
         sprites: ChkSprite[];

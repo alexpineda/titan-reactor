@@ -66,7 +66,7 @@ const Configuration = () => {
         <aside
           style={{
             marginRight: "2rem",
-            width: "30%",
+            maxWidth: "30%",
           }}
         >
           <PluginTitle>Plugin Settings</PluginTitle>

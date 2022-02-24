@@ -1,13 +1,13 @@
 import { Color } from "three";
 import { PlayerColor, AltColors } from "../types/colors";
 
-const setStyleSheet = (content: string) => {
+export const setStyleSheet = (id: string, content: string) => {
   let style;
 
-  style = document.querySelector("#player-colors-glow");
+  style = document.getElementById(id);
   if (!style) {
     style = document.createElement("style");
-    style.id = "player-colors-glow";
+    style.id = id;
     document.head.appendChild(style);
   }
   style.textContent = content;
@@ -15,6 +15,7 @@ const setStyleSheet = (content: string) => {
 
 export const injectColorsCss = (colors: PlayerColor[]) => {
   setStyleSheet(
+    "player-colors-glow",
     colors.reduce((css: string, color) => {
       return `
     ${css}

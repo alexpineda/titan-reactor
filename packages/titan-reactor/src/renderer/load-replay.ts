@@ -30,6 +30,7 @@ import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { useWorldStore } from "@stores";
+import { cleanMapTitles, omitCharacters } from "@utils/map-string-utils";
 
 export default async (filepath: string) => {
   log.info(`@load-replay/file: ${filepath}`);
@@ -83,6 +84,7 @@ export default async (filepath: string) => {
     screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
     return;
   }
+  cleanMapTitles(chk);
 
   screenStore().updateLoadingInformation({ header: replay.header, chkTitle: chk.title });
   processStore().increment(Process.ReplayInitialization);

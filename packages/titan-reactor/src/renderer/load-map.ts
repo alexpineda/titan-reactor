@@ -14,6 +14,7 @@ import { ScreenType } from "../common/types";
 import TitanReactorMap from "./view-map";
 import waitForAssets from "./bootup/wait-for-assets";
 import { pxToMapMeter } from "../common/utils/conversions";
+import { cleanMapTitles } from "@utils/map-string-utils";
 
 
 const updateWindowTitle = (title: string) => {
@@ -36,6 +37,8 @@ export default async (chkFilepath: string) => {
     screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
     return;
   }
+  cleanMapTitles(chk);
+
 
   screenStore().updateLoadingInformation({
     title: chk.title,
