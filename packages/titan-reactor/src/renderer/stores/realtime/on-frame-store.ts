@@ -7,7 +7,7 @@ export type OnFrameStore = {
     maxFrame: number,
 };
 
-export const useOnFrameStore = create<OnFrameStore>((set, get) => ({
+export const useOnFrameStore = create<OnFrameStore>(() => ({
     friendlyTime: "",
     currentFrame: 0,
     maxFrame: 0

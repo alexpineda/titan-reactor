@@ -7,7 +7,7 @@ export const defaultSettings: Settings = {
     starcraft: "",
     maps: "",
     replays: "",
-    models: "",
+    assets: "",
     plugins: ""
   },
   pluginServerPort: 8080,
@@ -56,5 +56,11 @@ export const defaultSettings: Settings = {
     shakeMultiplier: 1,
     fogofwar: false,
     scanlines: true,
+  },
+  plugins: {
+    disabled: [],
+    hidden: [],
+    allowFullAccess: [],
+    configureOnMainWindow: []
   }
 };

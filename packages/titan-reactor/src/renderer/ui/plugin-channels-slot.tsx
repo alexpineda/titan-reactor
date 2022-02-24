@@ -9,8 +9,8 @@ import {
 } from "../../common/types";
 import * as pluginSystem from "../plugin-system";
 import { useGameStore } from "../stores";
-import PluginIFrameChannel from "../plugin-system/channel/iframe-channel";
 import screenStore from "../stores/screen-store";
+import { isIFrameChannel } from "common/utils/plugins";
 
 const pluginLayoutRectProp = [
   "left",
@@ -42,7 +42,7 @@ const PluginsChannelsSlot = ({
   }, [latestUpdateSize]);
 
   const channels = pluginSystem
-    .getIFrameChannels()
+    .getUIChannels()
     .filter(
       (channel) =>
         channel.config.screenType === screenType &&
@@ -68,13 +68,17 @@ const PluginsChannelsSlot = ({
   const latestUpdatedChannel = channels.find(
     (channel) => latestUpdateSize && channel.id === latestUpdateSize.channelId
   );
-  if (latestUpdatedChannel && latestUpdateSize) {
+  if (
+    latestUpdatedChannel &&
+    isIFrameChannel(latestUpdatedChannel) &&
+    latestUpdateSize
+  ) {
     if (
       latestUpdateSize.width &&
       (!latestUpdatedChannel.config["layout.width"] ||
         latestUpdatedChannel.config["layout.width"] === "content")
     ) {
-      latestUpdatedChannel.iframe.style.width = pluginValueToCss(
+      latestUpdatedChannel.domElement.style.width = pluginValueToCss(
         latestUpdateSize.width
       );
     }
@@ -83,23 +87,20 @@ const PluginsChannelsSlot = ({
       (!latestUpdatedChannel.config["layout.height"] ||
         latestUpdatedChannel.config["layout.height"] === "content")
     ) {
-      latestUpdatedChannel.iframe.style.height = pluginValueToCss(
+      latestUpdatedChannel.domElement.style.height = pluginValueToCss(
         latestUpdateSize.height
       );
     }
   }
 
-  const setStyle = (channel: PluginIFrameChannel) => {
-    const iframe = channel.iframe;
-    iframe.style.position = "absolute";
-    iframe.style.border = "none";
-    iframe.style.zIndex = "10";
+  const setStyle = (domElement: HTMLElement, config: LayoutRect) => {
+    domElement.style.position = "absolute";
+    domElement.style.border = "none";
+    domElement.style.zIndex = "10";
 
     for (const prop of pluginLayoutRectProp) {
-      const size = channel.config[
-        `layout.${prop}` as keyof LayoutRect
-      ] as LayoutValue;
-      iframe.style.setProperty(prop, pluginValueToCss(size));
+      const size = config[`layout.${prop}` as keyof LayoutRect] as LayoutValue;
+      domElement.style.setProperty(prop, pluginValueToCss(size));
     }
   };
 
@@ -117,17 +118,17 @@ const PluginsChannelsSlot = ({
     const chunk = document.createDocumentFragment();
 
     for (const channel of channels) {
-      chunk.appendChild(channel.iframe);
-      if (!channel.iframe.parentElement) {
-        setStyle(channel);
-        chunk.appendChild(channel.iframe);
-        channel.iframe.onload = () => {
+      chunk.appendChild(channel.domElement);
+      if (!channel.domElement.parentElement) {
+        setStyle(channel.domElement, channel.config);
+        chunk.appendChild(channel.domElement);
+        channel.domElement.onload = () => {
           channel.onConnected(screen.type, screen.status);
         };
-      } else if (channel.iframe.parentElement !== slotRef.current) {
-        setStyle(channel);
-        chunk.appendChild(channel.iframe);
-        channel.iframe.onload = () => {
+      } else if (channel.domElement.parentElement !== slotRef.current) {
+        setStyle(channel.domElement, channel.config);
+        chunk.appendChild(channel.domElement);
+        channel.domElement.onload = () => {
           channel.onConnected(screen.type, screen.status);
         };
       } else {
@@ -138,10 +139,10 @@ const PluginsChannelsSlot = ({
 
     return () => {
       for (const channel of channels) {
-        if (channel.iframe.parentElement) {
-          channel.iframe.remove();
+        if (channel.domElement.parentElement) {
+          channel.domElement.remove();
         }
-        channel.iframe.onload = null;
+        channel.domElement.onload = null;
         channel.onDisconnected();
       }
     };

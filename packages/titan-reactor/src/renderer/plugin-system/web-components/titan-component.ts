@@ -17,8 +17,13 @@ export class TitanComponent extends HTMLElement {
         this._content.innerHTML = markup;
     }
 
-    setStylesheet(stylesheet: string) {
-        this._stylesheet.textContent = stylesheet;
+    setStylesheet(stylesheet: string, useConfig: any) {
+        let cssVars = ':host {';
+        for (const prop in useConfig) {
+            cssVars += `--${prop}: ${useConfig[prop].value};\n`;
+        }
+        cssVars += '}\n\n';
+        this._stylesheet.textContent = `${cssVars}${stylesheet}`;
     }
 
     connectedCallback() {

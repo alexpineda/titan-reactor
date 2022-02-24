@@ -39,6 +39,8 @@ export const getIFrameChannels = () => getPlugins().flatMap(p => p.channels.filt
 
 export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWebComponentChannel) as PluginWebComponentChannel[]);
 
+export const getUIChannels = () => [...getIFrameChannels(), ...getHTMLChannels()];
+
 export const getSlots = () => settingsStore().pluginSystemConfig.slots;
 
 export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[]) => {

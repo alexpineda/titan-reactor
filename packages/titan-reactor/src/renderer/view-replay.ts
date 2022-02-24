@@ -4,6 +4,7 @@ import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, Perspective
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
+import { globalCss } from "./ui/stitches";
 
 import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
@@ -75,8 +76,8 @@ async function TitanReactorGame(
 ) {
   let settings = settingsStore().data;
 
-  const { scene, terrain, chk, replay, gameStateReader, commandsStream, assets, audioMixer, music, soundChannels, janitor } = world;
-  const preplacedMapUnits = chk.units;
+  const { scene, terrain, map, replay, gameStateReader, commandsStream, assets, audioMixer, music, soundChannels, janitor } = world;
+  const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
   const fps = new FPSMeter();
   assert(openBw.wasm);
@@ -406,6 +407,15 @@ async function TitanReactorGame(
 
     controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
     projectedCameraView.update();
+
+    globalCss({
+      ":root": {
+        "--game-width": gameSurface.width,
+        "--game-height": gameSurface.height,
+        "--minimap-width": minimapSurface.width,
+        "--minimap-height": minimapSurface.height,
+      }
+    })
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);

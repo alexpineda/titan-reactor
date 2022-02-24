@@ -9,6 +9,7 @@ export type PluginContentSize = {
 
 export type AvailableDimensions = "content" | keyof GameCanvasDimensions
 export type LayoutValue = AvailableDimensions | number | string;
+
 export type LayoutRect = {
     "layout.top"?: LayoutValue;
     "layout.left"?: LayoutValue;

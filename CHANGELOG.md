@@ -6,13 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2022-01-26
 ### Added 
-  - Picture In Picture mode
+  - Bullet Y Tracking. Watch as flying units and ground units exchange fire from their different elevations!
+  - All new and extensive plugin system:
+    - Create custom HUD and UI elements using live data from the game and game files.
+    - Examples: Custom player color plugins, twitch interaction plugins, day/night cycle, etc. The sky is the limit!
+  - Picture In Picture mode allowing more action to be captured by a single observer!
     - Right click the minimap to enable/disable PIP
     - Right click in Overview Cam to enable/disable PIP
   - Automatic settings migrations
   - Customizable `helicopter rotate speed` setting
-  - Flying units and buildings are now "higher" than the other units
-  - Bullets are tracked and correctly follow different elevation units
+  
 ### Changed
 - Scanner no longer shows in minimap
 - Several optimizations to reduce GC use

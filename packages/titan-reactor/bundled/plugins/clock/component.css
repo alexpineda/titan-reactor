@@ -1,0 +1,35 @@
+.bevel-gray-700 {
+    background: #4a5568;
+    background: linear-gradient(45deg, #4a5568 0%, #4a5568 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%);
+}
+
+.bg-gray-700 {
+    background: #4a5568;
+}
+
+.bevel-gray-800 {
+    background: #2d3748;
+    background: linear-gradient(45deg, #2d3748 0%, #2d3748 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%);
+}
+
+.bevel-gray-800-reverse {
+    background: #2d3748;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 50%, #2d3748 50%, #2d3748 100%);
+}
+
+.bevel-gray-900 {
+    background: #1a202c;
+    background: linear-gradient(45deg, #1a202c 0%, #1a202c 50%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0) 100%);
+}
+
+.text-gray {
+    color: rgb(203 213 225);
+}
+
+.text-gray-400 {
+    color: rgb(148 163 184);
+}
+
+.time-label { 
+    color: white;
+}

@@ -173,7 +173,7 @@ export class Settings extends EventEmitter {
               }
               const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
               for (const channel of channelsConfig) {
-                const url = channel.url ?? (isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.template?.url));
+                const url = channel.url ?? (isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.webComponent?.url));
 
                 if (!url) {
                   log.error(`@settings/load-channel: channel url is missing - ${folder.name}`);
@@ -216,8 +216,8 @@ export class Settings extends EventEmitter {
       "starcraft",
       "maps",
       "replays",
-      "models",
-      "temp",
+      "assets",
+      "plugins",
     ];
 
     for (const file of files) {
@@ -311,7 +311,7 @@ export class Settings extends EventEmitter {
         starcraft: await findStarcraftPath(),
         maps: await findMapsPath(),
         replays: await findReplaysPath(),
-        models: app.getPath("documents"),
+        assets: app.getPath("documents"),
         plugins: path.join(__static, "plugins")
       }
     };

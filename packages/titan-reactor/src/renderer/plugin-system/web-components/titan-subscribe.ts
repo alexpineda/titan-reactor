@@ -1,9 +1,14 @@
 import * as log from "@ipc/log";
 import * as stores from "@stores";
 import Janitor from "@utils/janitor";
+import get from "lodash.get";
+import { UseStore } from "zustand";
 
 const blacklistStores = ["useSettingsStore"];
 
+const isStore = (store: any): store is UseStore<any> => {
+    return 'setState' in store;
+}
 class SubscribeWebComponent extends HTMLElement {
     private _janitor = new Janitor;
 
@@ -11,23 +16,31 @@ class SubscribeWebComponent extends HTMLElement {
         super();
     }
 
-    connectedCallback() {
-        const storeKey = `use${this.getAttribute("store")}Store`;
+    private _getStore(storeKey: string): UseStore<any> | undefined {
         if (blacklistStores.includes(storeKey)) {
             log.error(`@titan-subscribe/web-component: ${storeKey} is not available for use.`);
             return;
         }
 
-        const valueKey = this.getAttribute("value") || "";
         const store = stores[storeKey as keyof typeof stores];
 
+        if (isStore(store)) {
+            return store;
+        }
+    }
+
+    connectedCallback() {
+        const storeKey = `use${this.getAttribute("store")}Store`;
+        const store = this._getStore(storeKey);
+
+        const valueKey = this.getAttribute("value") || "";
+
         if (store) {
+            const initialState = store.getState();
+            this.textContent = get(initialState, valueKey, "");
+
             const unsub = store.subscribe((values: any) => {
-                if (valueKey in values) {
-                    if (typeof valueKey === "number" || typeof valueKey === "string") {
-                        this.textContent = values[valueKey];
-                    }
-                }
+                this.textContent = get(values, valueKey, "");
             });
             this._janitor.callback(unsub);
 

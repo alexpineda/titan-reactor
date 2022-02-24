@@ -7,7 +7,7 @@ export type Settings = {
         starcraft: string;
         maps: string;
         replays: string;
-        models: string;
+        assets: string;
         plugins: string;
     },
     pluginServerPort: number;
@@ -56,6 +56,12 @@ export type Settings = {
         shakeMultiplier: number;
         fogofwar: false;
         scanlines: true;
+    },
+    plugins: {
+        disabled: string[],
+        hidden: string[],
+        allowFullAccess: string[],
+        configureOnMainWindow: string[]
     }
 
     // showDisabledDoodads: boolean;

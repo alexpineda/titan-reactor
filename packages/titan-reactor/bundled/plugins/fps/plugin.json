@@ -1,0 +1,20 @@
+{
+    "name": "FPS Meter",
+    "version": "0.1",
+    "author": "DarkMatter",
+    "channels": {
+        "@replay/ready": [{
+            "type": "web-component",
+            "url": "fps.html",
+            "pointerInteraction": false,
+            "layout.top": "top",
+            "layout.left": "left",
+            "access.read": ["replay.position"]
+        }]
+    },
+    "userConfig": {
+        "fontSize": {
+            "value": "16px"
+        }
+    }
+}

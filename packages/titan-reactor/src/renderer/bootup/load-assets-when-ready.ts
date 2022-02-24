@@ -7,7 +7,7 @@ import loadAssets from "../assets/load-assets";
 import { Settings } from "../../common/types";
 
 const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => void) => {
-  if (hasErrors || !settings || !settings.directories?.starcraft || !settings.directories?.models) {
+  if (hasErrors || !settings || !settings.directories?.starcraft || !settings.directories?.assets) {
     return;
   }
   if (processStore().isComplete(Process.AtlasPreload) || processStore().isInProgress(Process.AtlasPreload)) {

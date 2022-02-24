@@ -6,13 +6,13 @@ import PluginChannel from "./plugin-channel";
 
 class PluginIFrameChannel extends PluginChannel {
     config: InitializedPluginChannelConfiguration<IFramePluginChannelConfiguration>;
-    iframe = document.createElement("iframe");
+    domElement = document.createElement("iframe");
     private _updateContentSize: (width?: string, height?: string) => void;
     private _contentReady = false;
 
     override postMessage(message: any, transferable?: Transferable[]) {
-        if (this.iframe.contentWindow) {
-            this.iframe.contentWindow.postMessage(message, "*", transferable);
+        if (this.domElement.contentWindow) {
+            this.domElement.contentWindow.postMessage(message, "*", transferable);
         }
     }
 
@@ -22,7 +22,7 @@ class PluginIFrameChannel extends PluginChannel {
         super(pluginId, getUserConfig, broadcastMessage);
         this.config = config;
 
-        const iframe = this.iframe;
+        const iframe = this.domElement;
         iframe.style.backgroundColor = "transparent";
         iframe.style.border = "none";
         iframe.style.pointerEvents = config.pointerInteraction ? "auto" : "none";

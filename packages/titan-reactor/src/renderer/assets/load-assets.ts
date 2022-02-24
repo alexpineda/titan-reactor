@@ -81,7 +81,7 @@ export default async (settings: Settings) => {
     const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number) => {
         let atlas: GRPInterface;
         const glbFileName = path.join(
-            settings.directories.models,
+            settings.directories.assets,
             `00${refId(
                 imageId
             )}`.slice(-3) + ".glb"

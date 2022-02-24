@@ -1,16 +1,18 @@
-import * as log from "../../ipc/log";
+import DOMPurify from "dompurify";
+import get from "lodash.get";
+
+import * as log from "@ipc/log";
 import {
   WebComponentPluginChannelConfiguration,
   InitializedPluginChannelConfiguration,
-} from "../../../common/types";
+} from "common/types";
 import PluginChannel from "./plugin-channel";
-import get from "lodash.get";
 import { TitanComponent } from "../web-components/titan-component";
 
 class PluginWebComponentChannel extends PluginChannel {
   private _markup = "<div>Empty</div>";
 
-  domElement?: TitanComponent;
+  domElement = document.createElement("titan-component") as TitanComponent;
   config: InitializedPluginChannelConfiguration<WebComponentPluginChannelConfiguration>;
   private _getUrl = () => "";
 
@@ -53,10 +55,13 @@ class PluginWebComponentChannel extends PluginChannel {
       return config.url;
     };
 
-    this._loadMarkup(extraStylesheet);
+    this._loadMarkup(getUserConfig, extraStylesheet);
   }
 
-  private async _loadMarkup(extraStylesheet?: string) {
+  private async _loadMarkup(
+    getUserConfig: () => any,
+    extraStylesheet?: string
+  ) {
     let text: string;
 
     try {
@@ -64,26 +69,26 @@ class PluginWebComponentChannel extends PluginChannel {
       text = await response.text();
     } catch (e) {
       log.error(
-        `@html-channel: could not fetch plugin markup from ${this._getUrl()} for ${pluginName}`
+        `@html-channel: could not fetch plugin markup from ${this._getUrl()}`
       );
       return "";
     }
 
-    this._markup = text;
-    this.domElement = document.createElement(
-      "titan-component"
-    ) as TitanComponent;
+    this._markup = DOMPurify.sanitize(text, {
+      CUSTOM_ELEMENT_HANDLING: {
+        tagNameCheck: /^titan-/, // allow all tags starting with "titan-"
+        attributeNameCheck: /.*/, // allow all attributes
+        allowCustomizedBuiltInElements: false,
+      },
+      USE_PROFILES: { html: true },
+      KEEP_CONTENT: false,
+      FORBID_TAGS: ["style", "script"],
+    });
     this.domElement.setMarkup(this._markup);
-
-    if (extraStylesheet) {
-      console.log("setting stylesheet");
-      this.domElement.setStylesheet(extraStylesheet);
-    } else {
-      console.log("no stylesheet");
-    }
+    this.domElement.setStylesheet(extraStylesheet ?? "", getUserConfig());
   }
 
-  override postMessage(message: any): void {
+  override postMessage(): void {
     if (
       // this.config["access.read"] &&
       // message.type === this.config["access.read"][0] &&

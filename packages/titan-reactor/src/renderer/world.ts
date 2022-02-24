@@ -9,7 +9,7 @@ import type Assets from "./assets/assets";
 import type Chk from "bw-chk";
 
 export interface World {
-    readonly chk: Chk;
+    readonly map: Chk;
     readonly terrain: TerrainInfo;
     readonly scene: Scene;
     readonly assets: Assets;

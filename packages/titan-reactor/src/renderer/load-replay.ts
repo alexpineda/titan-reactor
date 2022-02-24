@@ -29,6 +29,7 @@ import waitForAssets from "./bootup/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
+import { useWorldStore } from "@stores";
 
 export default async (filepath: string) => {
   log.info(`@load-replay/file: ${filepath}`);
@@ -123,9 +124,7 @@ export default async (filepath: string) => {
     assets.loadAudioFile.bind(assets)
   );
   const music = new Music(races);
-  //@todo refactor music outside of three Audio
-  //@ts-ignore
-  music.setListener(audioMixer as unknown as AudioListener);
+  music.setListener(audioMixer);
   janitor.disposable(music);
 
   audioMixer.musicVolume = settings.audio.music;
@@ -138,7 +137,7 @@ export default async (filepath: string) => {
   const world = {
     scene,
     terrain,
-    chk,
+    map: chk,
     replay,
     commandsStream: new CommandsStream(replay.rawCmds),
     gameStateReader,
@@ -152,10 +151,17 @@ export default async (filepath: string) => {
   gameStore().setDisposeGame(disposeGame);
   processStore().increment(Process.ReplayInitialization);
 
-  log.verbose("starting replay");
   document.title = `Titan Reactor - ${chk.title} - ${replay.header.players
     .map(({ name }) => name)
     .join(", ")}`;
+
+
+  // FIXME: standard process for world state? assigned to screen states?
+  useWorldStore.setState({
+    replay,
+    map: chk
+  });
+  janitor.callback(() => useWorldStore.setState({}, true));
 
   processStore().complete(Process.ReplayInitialization);
   screenStore().complete();
