@@ -1,4 +1,4 @@
-import type { InitializedPluginConfiguration, GlobalPluginConfiguration } from "../plugin";
+import type { InitializedPluginConfiguration, SlotConfig } from "../plugin";
 
 export type Settings = {
     version: 3;
@@ -10,7 +10,6 @@ export type Settings = {
         assets: string;
         plugins: string;
     },
-    pluginServerPort: number;
     assets: {
         images: AssetTextureResolution;
         terrain: AssetTextureResolution;
@@ -58,10 +57,9 @@ export type Settings = {
         scanlines: true;
     },
     plugins: {
-        disabled: string[],
-        hidden: string[],
-        allowFullAccess: string[],
-        configureOnMainWindow: string[]
+        serverPort: number;
+        enabled: string[],
+        slots: SlotConfig[],
     }
 
     // showDisabledDoodads: boolean;
@@ -93,7 +91,6 @@ export type SettingsMeta = {
     errors: string[];
     phrases: Record<string, string>;
     pluginsConfigs: InitializedPluginConfiguration[];
-    pluginSystemConfig: GlobalPluginConfiguration;
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */

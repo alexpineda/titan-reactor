@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 import phrases from "../../common/phrases";
 import { defaultSettings } from "../../common/settings";
 import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, GlobalPluginConfiguration, PluginChannelConfigurationBase } from "../../common/types";
+import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, PluginChannelConfigurationBase } from "../../common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
@@ -16,6 +16,8 @@ import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import path from "path";
 import log from "../logger/singleton";
 import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+import browserWindows from "main/windows";
+import { LOG_MESSAGE } from "common";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {
@@ -46,11 +48,6 @@ const getEnvLocale = (env = process.env) => {
 
 
 let _pluginsConfigs: InitializedPluginConfiguration[];
-let _globalPluginsConfig: GlobalPluginConfiguration = {
-  respository: [],
-  slots: [],
-  theme: []
-};
 
 /**
  * A settings management utility which saves and loads settings from a file.
@@ -74,6 +71,8 @@ export class Settings extends EventEmitter {
   }
 
   async initialize() {
+    browserWindows.main?.webContents.send(LOG_MESSAGE, "@settings/initialize: hello world", "info");
+
     if (await fileExists(this._filepath)) {
       await this.loadAndMigrate();
     } else {
@@ -91,118 +90,106 @@ export class Settings extends EventEmitter {
     if (_pluginsConfigs) return;
     _pluginsConfigs = [];
 
+    const defaultIndex = this._settings.plugins.slots.findIndex(slot => slot.name === "default");
+    if (defaultIndex >= 0) {
+      this._settings.plugins.slots.splice(defaultIndex, 1);
+      log.warn("@settings/load-plugins: `default` slot is reserved.");
+      browserWindows.main?.webContents.send(LOG_MESSAGE, "@settings/load-plugins: `default` slot is reserved.", "warn");
+    }
 
-    const globalConfigFilePath = path.join(this._settings.directories.plugins, "plugins.json");
-    if (await fileExists(globalConfigFilePath)) {
-      try {
-        const pluginConfigs = await fsPromises.readFile(globalConfigFilePath, { encoding: "utf-8" });
-        _globalPluginsConfig = JSON.parse(pluginConfigs) as GlobalPluginConfiguration;
-      } catch (_) {
-        log.error(`@settings/load-plugins: Error reading plugins.json file`);
-      }
+    this._settings.plugins.slots.push({
+      name: "default",
+      direction: "none",
+      overflow: "hidden",
+      "layout.left": "0",
+      "layout.top": "0",
+      "layout.right": "0",
+      "layout.bottom": "0",
+    });
 
-      const defaultIndex = _globalPluginsConfig.slots.findIndex(slot => slot.name === "default");
-      if (defaultIndex >= 0) {
-        _globalPluginsConfig.slots.splice(defaultIndex, 1);
-        log.warn("@settings/load-plugins: `default` slot is reserved.");
-      }
+    let folders: ReadFolderResult[] = [];
+    try {
+      folders = await readFolder(this._settings.directories.plugins);
+    } catch (_) {
+      log.error(`@settings/load-plugins: Error reading plugins folder`);
+    }
 
-      _globalPluginsConfig.slots.push({
-        name: "default",
-        direction: "none",
-        overflow: "hidden",
-        "layout.left": "0",
-        "layout.top": "0",
-        "layout.right": "0",
-        "layout.bottom": "0",
-      });
+    for (const folder of folders) {
+      if (folder.isFolder) {
+        const filePath = path.join(folder.path, "plugin.json");
+        if (await fileExists(filePath)) {
+          let pluginConfig: PluginConfiguration;
 
-      let folders: ReadFolderResult[] = [];
-      try {
-        folders = await readFolder(this._settings.directories.plugins);
-      } catch (_) {
-        log.error(`@settings/load-plugins: Error reading plugins folder`);
-      }
-
-      for (const folder of folders) {
-        if (folder.isFolder) {
-          const filePath = path.join(folder.path, "plugin.json");
-          if (await fileExists(filePath)) {
-            let pluginConfig: PluginConfiguration;
-
-            try {
-              const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
-              pluginConfig = JSON.parse(contents) as PluginConfiguration;
-            } catch (_) {
-              log.error(`@settings/load-plugins: Error reading plugin.json file - ${filePath}`);
-              continue;
-            }
-
-            if (pluginConfig.enabled === false) {
-              log.info(`@settings/load-plugins: ${folder.name} disabled in plugin.json, skipping.`);
-              continue;
-            }
-
-            const pluginOut = pluginConfig as unknown as InitializedPluginConfiguration;
-
-            const importfilePath = path.join(folder.path, "native.js");
-            if (await fileExists(importfilePath)) {
-              try {
-                pluginOut.nativeSource = await fsPromises.readFile(importfilePath, { encoding: "utf8" });
-              } catch (e) {
-                log.error("@settings/load-plugins: native source file failed to load.");
-                continue;
-              }
-            }
-
-            const extraStylesheet = path.join(folder.path, "component.css");
-            if (await fileExists(extraStylesheet)) {
-              try {
-                pluginOut.extraStylesheet = await fsPromises.readFile(extraStylesheet, { encoding: "utf8" });
-              } catch (e) {
-                log.error(`@settings/load-extra: component stylesheet failed to load ${extraStylesheet}.`);
-              }
-            }
-
-            const channels: (InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>)[] = [];
-
-            for (const channelKey in pluginConfig.channels) {
-              if (!Object.keys(screenDataMap).includes(channelKey)) {
-                log.error(`@settings/load-channel: channel ${channelKey} is invalid, must be one of ${Object.keys(screenDataMap)}.`);
-                continue;
-              }
-              const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
-              for (const channel of channelsConfig) {
-                const url = channel.url ?? (isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.webComponent?.url));
-
-                if (!url) {
-                  log.error(`@settings/load-channel: channel url is missing - ${folder.name}`);
-                  continue;
-                }
-
-                channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.pluginServerPort}/${folder.name}/${url}`
-
-                if (isIFrameChannelConfig(channel) && channel["layout.slot"] === undefined) {
-                  channel["layout.slot"] = "default";
-                }
-
-                channels.push({
-                  ...channel,
-                  ...screenDataMap[channelKey as AvailableLifecycles]
-                } as InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>);
-              }
-            }
-
-            pluginOut.channels = channels;
-            pluginOut.tag = folder.name;
-
-            _pluginsConfigs.push(pluginOut);
+          try {
+            const contents = await fsPromises.readFile(filePath, { encoding: "utf8" });
+            pluginConfig = JSON.parse(contents) as PluginConfiguration;
+          } catch (_) {
+            log.error(`@settings/load-plugins: Error reading plugin.json file - ${filePath}`);
+            continue;
           }
-        }
 
+          if (!this._settings.plugins.enabled.includes(folder.name)) {
+            log.info(`@settings/load-plugins: ${folder.name} is not enabled, skipping.`);
+            continue;
+          }
+
+          const pluginOut = pluginConfig as unknown as InitializedPluginConfiguration;
+
+          const importfilePath = path.join(folder.path, "native.js");
+          if (await fileExists(importfilePath)) {
+            try {
+              pluginOut.nativeSource = await fsPromises.readFile(importfilePath, { encoding: "utf8" });
+            } catch (e) {
+              log.error("@settings/load-plugins: native source file failed to load.");
+              continue;
+            }
+          }
+
+          const extraStylesheet = path.join(folder.path, "component.css");
+          if (await fileExists(extraStylesheet)) {
+            try {
+              pluginOut.extraStylesheet = await fsPromises.readFile(extraStylesheet, { encoding: "utf8" });
+            } catch (e) {
+              log.error(`@settings/load-extra: component stylesheet failed to load ${extraStylesheet}.`);
+            }
+          }
+
+          const channels: (InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>)[] = [];
+
+          for (const channelKey in pluginConfig.channels) {
+            if (!Object.keys(screenDataMap).includes(channelKey)) {
+              log.error(`@settings/load-channel: channel ${channelKey} is invalid, must be one of ${Object.keys(screenDataMap)}.`);
+              continue;
+            }
+            const channelsConfig = pluginConfig.channels[channelKey as AvailableLifecycles];
+            for (const channel of channelsConfig) {
+              const url = channel.url ?? (isWorkerChannelConfig(channel) ? pluginConfig.worker?.url : (isIFrameChannelConfig(channel) ? pluginConfig.iframe?.url : pluginConfig.webComponent?.url));
+
+              if (!url) {
+                log.error(`@settings/load-channel: channel url is missing - ${folder.name}`);
+                continue;
+              }
+
+              channel.url = url.startsWith("http") ? url : `http://localhost:${this._settings.plugins.serverPort}/${folder.name}/${url}`
+
+              if (isIFrameChannelConfig(channel) && channel["layout.slot"] === undefined) {
+                channel["layout.slot"] = "default";
+              }
+
+              channels.push({
+                ...channel,
+                ...screenDataMap[channelKey as AvailableLifecycles]
+              } as InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>);
+            }
+          }
+
+          pluginOut.channels = channels;
+          pluginOut.tag = folder.name;
+
+          _pluginsConfigs.push(pluginOut);
+        }
       }
-    } else {
-      log.warn("@settings/load-plugins: plugins.json file not found.");
+
     }
   }
   /**
@@ -245,7 +232,6 @@ export class Settings extends EventEmitter {
       errors,
       isCascStorage,
       pluginsConfigs: _pluginsConfigs,
-      pluginSystemConfig: _globalPluginsConfig,
       phrases: {
         ...phrases["en-US"],
         ...phrases[this._settings.language as keyof typeof phrases],

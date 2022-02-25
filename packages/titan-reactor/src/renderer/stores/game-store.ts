@@ -50,7 +50,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ gameDisposer: undefined });
   },
   addLog: (item, color = "white") => {
-    set({ log: [...get().log, [item, color]] });
+    set({ log: [...get().log, [item, color]].slice(-10) });
   },
   clearLog: () => set({ log: [] }),
 }));

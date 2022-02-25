@@ -58,7 +58,44 @@ export default (onOpenPluginManager: () => void) => {
       ],
     },
     {
-      label: "&DarkMatter",
+      label: "&Debug",
+      submenu: [
+        { role: "reload" },
+        {
+          label: "@home/loading",
+          click: function () {
+          },
+        },
+        {
+          label: "@home/ready",
+          click: function () {
+          },
+        },
+        {
+          label: "@replay/loading",
+          click: function () {
+          },
+        },
+        {
+          label: "@replay/ready",
+          click: function () {
+          },
+        },
+        ,
+        {
+          label: "@map/loading",
+          click: function () {
+          },
+        },
+        {
+          label: "@map/ready",
+          click: function () {
+          }
+        }
+      ],
+    },
+    {
+      label: "&About",
       // role: "help",
       submenu: [
         {

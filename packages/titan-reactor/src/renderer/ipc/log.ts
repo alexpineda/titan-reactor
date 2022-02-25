@@ -30,7 +30,6 @@ export const verbose = (msg: string) => {
   log(msg, "verbose");
 }
 
-// @todo return early if disabled
 export const log = async (message: string, level = "info") => {
   logClient(message, level);
   return await ipcRenderer.send(LOG_MESSAGE, { level, message });
@@ -48,3 +47,7 @@ export const logClient = (message: string, level = "info") => {
     rendererIsDev && console.log(message);
   }
 }
+
+ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
+  logClient(message, level);
+});

@@ -19,7 +19,7 @@ declare module "downgrade-replay" {
 
     }
 
-    export function convertReplay(replay: Replay, chkDowngrader?: ChkDowngrader);
+    export function convertReplay(replay: Replay, chkDowngrader?: ChkDowngrader): Buffer;
     export function parseReplay(buf: Buffer): Promise<Replay>;
     export enum Version {
         classic,

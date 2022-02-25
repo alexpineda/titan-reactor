@@ -47,7 +47,6 @@ export interface PluginConfiguration {
     name: string;
     version: string;
     author?: string;
-    enabled?: boolean;
     worker?: {
         url?: string;
         keepAlive?: boolean;
@@ -61,6 +60,7 @@ export interface PluginConfiguration {
     },
     native?: "isolated" | "inherited";
     userConfig: any;
+    stores: string[];
     channels: Record<AvailableLifecycles, PluginChannelConfigurationBase[]>
 }
 
@@ -91,10 +91,4 @@ export interface SlotConfig extends LayoutRect {
     description?: string;
     direction: "none" | "horizontal-left" | "horizontal-right" | "vertical-up" | "vertical-down";
     overflow: "scroll" | "hidden";
-}
-
-export interface GlobalPluginConfiguration {
-    "respository": string[],
-    "slots": SlotConfig[],
-    "theme": string[]
 }

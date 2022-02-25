@@ -30,7 +30,10 @@ const Container = styled("div", {
 
 const ListButton = styled("div", {
   marginBottom: "$2",
-  padding: "$4",
+  paddingLeft: "$4",
+  paddingRight: "$4",
+  paddingTop: "$1",
+  paddingBottom: "$1",
   border: "1px solid",
   borderRadius: "$md",
   cursor: "pointer",

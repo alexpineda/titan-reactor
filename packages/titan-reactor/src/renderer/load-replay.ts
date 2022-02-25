@@ -30,7 +30,7 @@ import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { useWorldStore } from "@stores";
-import { cleanMapTitles, omitCharacters } from "@utils/map-string-utils";
+import { cleanMapTitles } from "@utils/map-string-utils";
 
 export default async (filepath: string) => {
   log.info(`@load-replay/file: ${filepath}`);
@@ -54,7 +54,7 @@ export default async (filepath: string) => {
     return;
   }
 
-  processStore().increment(Process.ReplayInitialization);
+  processStore().increment(Process.ReplayInitialization, 8);
   document.title = "Titan Reactor - Loading";
 
   screenStore().init(ScreenType.Replay);
@@ -77,21 +77,23 @@ export default async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;
 
-  let chk: Chk;
+  let map: Chk;
   try {
-    chk = new Chk(replay.chk);
+    map = new Chk(replay.chk);
   } catch (e) {
     screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
     return;
   }
-  cleanMapTitles(chk);
+  cleanMapTitles(map);
 
-  screenStore().updateLoadingInformation({ header: replay.header, chkTitle: chk.title });
+  useWorldStore.setState({ replay, map }, true);
+  janitor.callback(() => useWorldStore.setState({}, true));
+
   processStore().increment(Process.ReplayInitialization);
 
   const terrain = await loadTerrain(
-    chk,
-    pxToMapMeter(chk.size[0], chk.size[1])
+    map,
+    pxToMapMeter(map.size[0], map.size[1])
   );
   const scene = new Scene(terrain);
   janitor.object3d(scene);
@@ -139,7 +141,7 @@ export default async (filepath: string) => {
   const world = {
     scene,
     terrain,
-    map: chk,
+    map,
     replay,
     commandsStream: new CommandsStream(replay.rawCmds),
     gameStateReader,
@@ -153,17 +155,11 @@ export default async (filepath: string) => {
   gameStore().setDisposeGame(disposeGame);
   processStore().increment(Process.ReplayInitialization);
 
-  document.title = `Titan Reactor - ${chk.title} - ${replay.header.players
+  document.title = `Titan Reactor - ${map.title} - ${replay.header.players
     .map(({ name }) => name)
     .join(", ")}`;
 
 
-  // FIXME: standard process for world state? assigned to screen states?
-  useWorldStore.setState({
-    replay,
-    map: chk
-  });
-  janitor.callback(() => useWorldStore.setState({}, true));
 
   processStore().complete(Process.ReplayInitialization);
   screenStore().complete();

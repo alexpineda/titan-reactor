@@ -10,7 +10,6 @@ export const defaultSettings: Settings = {
     assets: "",
     plugins: ""
   },
-  pluginServerPort: 8080,
   assets: {
     images: AssetTextureResolution.HD2,
     terrain: AssetTextureResolution.SD,
@@ -58,9 +57,8 @@ export const defaultSettings: Settings = {
     scanlines: true,
   },
   plugins: {
-    disabled: [],
-    hidden: [],
-    allowFullAccess: [],
-    configureOnMainWindow: []
+    serverPort: 8080,
+    enabled: [],
+    slots: []
   }
 };
