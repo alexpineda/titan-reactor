@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import shallow from "zustand/shallow";
 import {
-  incFontSize,
-  decFontSize,
-} from "../../../../common/utils/change-font-size";
-import {
   useGameStore,
   GameStore,
   UnitProductionView,
@@ -63,22 +59,6 @@ const PlayerResources = ({
     workerIcons,
   } = useGameStore(gameStoreSelector, shallow);
 
-  if (!gameIcons || !raceInsetIcons || !workerIcons) {
-    throw new AssetsMissingError();
-  }
-  const [isChangingName, setIsChangingName] = useState(false);
-  const [playerName, setPlayerName] = useState<string>(
-    _playerNameCache[name] || name
-  );
-  const [tempName, setTempName] = useState(playerName);
-  if (playerScoreCache[playerName] === undefined) {
-    playerScoreCache[playerName] = 0;
-  }
-  const [score, setScore] = useState(playerScoreCache[playerName]);
-
-  const scaledTextSize =
-    dimensions.width < 1500 ? decFontSize(textSize, 2) : textSize;
-
   let gasIcon;
 
   switch (race) {
@@ -96,23 +76,29 @@ const PlayerResources = ({
   const gameIconBgStyle = esportsHud
     ? {
         backgroundRepeat: "no-repeat",
+        //style attr
         backgroundImage: `url(${raceInsetIcons[race]})`,
+        // media query
         backgroundPosition: dimensions.width <= 1200 ? "right" : "120% 25%",
         backgroundSize: dimensions.width <= 1200 ? "contain" : "auto",
         mixBlendMode: "lighten",
       }
     : {};
 
+  //css class
   const fitToContentStyle = fitToContent
     ? { width: "1%", whiteSpace: "nowrap" }
     : {};
   const fixedWidthStyle = fitToContent ? { width: "6rem" } : {};
+
+  //css class
   const scoreTextStyle = esportsHud
     ? {
         fontFamily: "conthrax",
         marginTop: "-1px",
         marginBottom: "-1px",
         borderLeftWidth: "4px",
+        //style attr
         borderLeftColor: color.alt.lightShift,
         paddingTop: "2px",
         paddingBottom: "2px",
@@ -233,27 +219,6 @@ const PlayerResources = ({
               )}
             </span>
           </div>
-        )}
-        {isChangingName && (
-          <input
-            autoFocus
-            type="text"
-            value={tempName}
-            onChange={(evt) => {
-              const target = evt.target as HTMLInputElement;
-              _playerNameCache[playerName] = target.value;
-              setTempName(target.value);
-            }}
-            onKeyDown={(evt) => {
-              evt.stopImmediatePropagation();
-              if (evt.key === "Enter" && !tempName) {
-                setPlayerName(tempName);
-                setIsChangingName(false);
-              } else if (evt.key === "Escape") {
-                setIsChangingName(false);
-              }
-            }}
-          />
         )}
       </td>
 

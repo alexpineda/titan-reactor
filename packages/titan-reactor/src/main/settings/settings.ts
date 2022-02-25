@@ -2,22 +2,22 @@ import { app } from "electron";
 import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 
-import phrases from "../../common/phrases";
-import { defaultSettings } from "../../common/settings";
-import fileExists from "../../common/utils/file-exists";
-import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, PluginChannelConfigurationBase } from "../../common/types";
+import phrases from "common/phrases";
+import { defaultSettings } from "common/settings";
+import fileExists from "common/utils/file-exists";
+import { Settings as SettingsType, InitializedPluginConfiguration, AvailableLifecycles, PluginConfiguration, ScreenType, ScreenStatus, InitializedPluginChannelConfiguration, PluginChannelConfigurationBase } from "common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
-import { SettingsMeta } from "../../common/types";
+import { SettingsMeta } from "common/types";
 import migrate from "./migrate";
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import path from "path";
 import log from "../logger/singleton";
-import { isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+import { isIFrameChannelConfig, isWorkerChannelConfig } from "common/utils/plugins";
 import browserWindows from "main/windows";
-import { LOG_MESSAGE } from "common";
+import { LOG_MESSAGE } from "common/ipc-handle-names";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 const screenDataMap = {

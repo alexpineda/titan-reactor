@@ -1,17 +1,21 @@
 // convenience store for plugin subscriptions
 import create from "zustand/vanilla";
 
-export type OnFrameStore = {
+/**
+ * We're calling this GameTick but it's really every game second.
+ * This is to be consumed by plugins looking to update semi-realtime.
+ */
+export type GameTickStore = {
     friendlyTime: string,
     currentFrame: number,
     maxFrame: number,
 };
 
-export const useOnFrameStore = create<OnFrameStore>(() => ({
+export const useGameTickStore = create<GameTickStore>(() => ({
     friendlyTime: "",
     currentFrame: 0,
     maxFrame: 0
 }));
 
-export default () => useOnFrameStore.getState();
+export default () => useGameTickStore.getState();
 

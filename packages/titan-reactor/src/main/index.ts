@@ -93,7 +93,7 @@ if (!gotTheLock) {
     createMainWindow();
     createConfigurationWindow();
 
-    pluginServer.listen(settings.get().pluginServerPort);
+    pluginServer.listen(settings.get().plugins.serverPort);
     const updateFullScreen = (fullscreen: boolean) => {
       assert(windows.main)
       windows.main.setFullScreen(fullscreen);

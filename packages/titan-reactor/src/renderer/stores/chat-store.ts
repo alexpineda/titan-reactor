@@ -19,6 +19,8 @@ export type ChatStore = {
     removeOneFromChat: () => void;
 };
 
+let _interval: number | undefined;
+
 export const useChatStore = create<ChatStore>((set, get) => ({
     chat: [],
     lastChatAdd: Date.now(),
@@ -33,12 +35,23 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         });
     },
     removeOneFromChat: () => {
-        if (Date.now() - get().lastChatAdd < CHAT_INTERVAL) {
+        if (Date.now() - get().lastChatAdd < CHAT_INTERVAL || get().chat.length === 0) {
             return;
         }
         set((state) => ({ chat: state.chat.slice(1) }));
     },
+    reset() {
+        if (_interval) {
+            clearInterval(_interval);
+        }
+
+        _interval = window.setInterval(() => {
+            useChatStore().removeOneFromChat()
+        }, CHAT_INTERVAL);
+    }
 }));
+
+
 
 export default () => useChatStore.getState();
 

@@ -4,7 +4,6 @@ import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, Perspective
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
-import { globalCss } from "./ui/stitches";
 
 import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";

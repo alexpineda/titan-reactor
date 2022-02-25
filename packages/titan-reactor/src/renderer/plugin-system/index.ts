@@ -6,7 +6,7 @@ import { InitializedPluginConfiguration } from "common/types";
 import * as log from "@ipc/log";
 import { GameStatePosition } from "@core";
 import settingsStore from "@stores/settings-store";
-import { useSettingsStore, useOnFrameStore } from "@stores";
+import { useSettingsStore, useGameTickStore } from "@stores";
 
 import "./web-components"
 import Plugin from "./plugin";
@@ -41,7 +41,7 @@ export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter
 
 export const getUIChannels = () => [...getIFrameChannels(), ...getHTMLChannels()];
 
-export const getSlots = () => settingsStore().pluginSystemConfig.slots;
+export const getSlots = () => settingsStore().data.plugins.slots;
 
 export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[]) => {
 
@@ -110,7 +110,7 @@ export const onFrame = (gameStatePosition: GameStatePosition) => {
         }
 
         // for web-components mesaging
-        useOnFrameStore.setState({
+        useGameTickStore.setState({
             friendlyTime: gameStatePosition.getFriendlyTime(),
             maxFrame: gameStatePosition.maxFrame,
             currentFrame: gameStatePosition.bwGameFrame,

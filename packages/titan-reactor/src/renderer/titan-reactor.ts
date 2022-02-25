@@ -1,4 +1,4 @@
-import "./reset.css";
+import "./ui/reset.css";
 import { openBw } from "./openbw";
 import { waitUnless } from "common/utils/wait";
 

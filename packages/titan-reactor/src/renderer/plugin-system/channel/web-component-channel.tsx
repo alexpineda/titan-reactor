@@ -58,6 +58,19 @@ class PluginWebComponentChannel extends PluginChannel {
     this._loadMarkup(getUserConfig, extraStylesheet);
   }
 
+  private _sanitizeMarkup(markup: string) {
+    return DOMPurify.sanitize(markup, {
+      CUSTOM_ELEMENT_HANDLING: {
+        tagNameCheck: /^titan-/, // allow all tags starting with "titan-"
+        attributeNameCheck: /.*/, // allow all attributes
+        allowCustomizedBuiltInElements: false,
+      },
+      USE_PROFILES: { html: true },
+      KEEP_CONTENT: false,
+      FORBID_TAGS: ["style", "script", "a"],
+    });
+  }
+
   private async _loadMarkup(
     getUserConfig: () => any,
     extraStylesheet?: string
@@ -74,29 +87,12 @@ class PluginWebComponentChannel extends PluginChannel {
       return "";
     }
 
-    this._markup = DOMPurify.sanitize(text, {
-      CUSTOM_ELEMENT_HANDLING: {
-        tagNameCheck: /^titan-/, // allow all tags starting with "titan-"
-        attributeNameCheck: /.*/, // allow all attributes
-        allowCustomizedBuiltInElements: false,
-      },
-      USE_PROFILES: { html: true },
-      KEEP_CONTENT: false,
-      FORBID_TAGS: ["style", "script"],
-    });
+    this._markup = this._sanitizeMarkup(text);
     this.domElement.setMarkup(this._markup);
     this.domElement.setStylesheet(extraStylesheet ?? "", getUserConfig());
   }
 
-  override postMessage(): void {
-    if (
-      // this.config["access.read"] &&
-      // message.type === this.config["access.read"][0] &&
-      this._markup
-    ) {
-      // TODO: render content from message
-    }
-  }
+  override postMessage(): void {}
 }
 
 export default PluginWebComponentChannel;

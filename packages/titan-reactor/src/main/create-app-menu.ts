@@ -96,8 +96,8 @@ export default (onOpenPluginManager: () => void) => {
     },
     {
       label: "&About",
-      // role: "help",
       submenu: [
+
         {
           label: "Github",
           click: async () => {

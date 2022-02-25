@@ -15,6 +15,7 @@ import TitanReactorMap from "./view-map";
 import waitForAssets from "./bootup/wait-for-assets";
 import { pxToMapMeter } from "../common/utils/conversions";
 import { cleanMapTitles } from "@utils/map-string-utils";
+import { useWorldStore } from "./stores";
 
 
 const updateWindowTitle = (title: string) => {
@@ -39,10 +40,9 @@ export default async (chkFilepath: string) => {
   }
   cleanMapTitles(chk);
 
-
-  screenStore().updateLoadingInformation({
-    title: chk.title,
-    description: chk.description,
+  //FIXME: add janitor
+  useWorldStore.setState({
+    map: chk
   });
 
   updateWindowTitle(chk.title);
