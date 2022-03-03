@@ -78,11 +78,11 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
 
 
 export const createBrowserView = (createWindowArgs: CreateWindowArgs) => {
-  const { query } = createDefaultArgs(createWindowArgs);
+  const { query, backgroundColor, nodeIntegration } = createDefaultArgs(createWindowArgs);
 
   const view = new BrowserView({
     webPreferences: {
-      nodeIntegration: false,
+      nodeIntegration,
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
       webSecurity: true,
@@ -93,9 +93,9 @@ export const createBrowserView = (createWindowArgs: CreateWindowArgs) => {
       backgroundThrottling: true,
     }
   });
-  view.setBackgroundColor("transparent")
-  view.setBounds({ x: 0, y: 0, width: 800, height: 600 });
-  view.setAutoResize({ width: true, height: true });
+  view.setBackgroundColor(backgroundColor);
+  view.setBounds({ x: 0, y: 0, width: 600, height: 400 });
+  // view.setAutoResize({ width: true, height: true });
 
   if (isDev) {
     view.webContents.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}${query}`);

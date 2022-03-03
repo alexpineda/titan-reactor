@@ -1,52 +1,74 @@
-import { MathUtils } from "three";
-import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginConfiguration } from "../../common/types";
+import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginConfiguration } from "common/types";
 
-import PluginWorkerChannel from "./channel/worker-channel";
-import PluginIFrameChannel from "./channel/iframe-channel";
-import PluginWebComponentChannel from "./channel/web-component-channel";
-import { isWebComponentChannelConfig, isIFrameChannelConfig, isWorkerChannelConfig } from "../../common/utils/plugins";
+const _sharedContainer = document.createElement("iframe");
+_sharedContainer.style.backgroundColor = "transparent";
+_sharedContainer.style.border = "none";
+_sharedContainer.style.pointerEvents = "none";
+_sharedContainer.style.userSelect = "none";
+_sharedContainer.style.left = "0";
+_sharedContainer.style.top = "0";
+_sharedContainer.style.width = "100%";
+_sharedContainer.style.height = "100%";
+_sharedContainer.style.position = "absolute";
+
+_sharedContainer.sandbox.add("allow-scripts");
+_sharedContainer.sandbox.add("allow-downloads");
+
+_sharedContainer.src = "http://localhost:8080/runtime.html"
+document.body.appendChild(_sharedContainer)
 
 
-// TODO: userland apis: onshow, onhide, onresize, onfullscreen, onunfullscreen, setvisibility
 class Plugin {
-    channels: (PluginIFrameChannel | PluginWorkerChannel | PluginWebComponentChannel)[];
     enabled = true;
     private _config: InitializedPluginConfiguration;
-    private _id = MathUtils.generateUUID();
     protected _contentSize?: PluginContentSize;
 
     protected _screenType: ScreenType = ScreenType.Home;
     protected _screenStatus: ScreenStatus = ScreenStatus.Loading;
 
+    private _isolatedContainer?: HTMLIFrameElement;
+
+    static get sharedContainer() {
+        return _sharedContainer;
+    }
+
+    get isolatedContainer() {
+        return this._isolatedContainer;
+    }
+
     constructor(config: InitializedPluginConfiguration) {
         this._config = config;
 
-        const broadcastMessage = (message: any) => {
-            for (const channel of this.channels) {
-                channel.postMessage(message);
-            }
+        if (config.iframe === "isolated") {
+            const iframe = document.createElement("iframe");
+            iframe.style.backgroundColor = "transparent";
+            iframe.style.border = "none";
+            iframe.style.pointerEvents = "none";
+            iframe.style.userSelect = "none";
+            iframe.style.left = "0";
+            iframe.style.top = "0";
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+
+            // iframe.src = config.markup || "";
+
+            iframe.sandbox.add("allow-scripts");
+            iframe.sandbox.add("allow-downloads");
+            this._isolatedContainer = iframe;
         }
 
-        const getUserConfig = () => this._config.userConfig;
-
-        this.channels = config.channels.map(channelConfig => {
-            if (isIFrameChannelConfig(channelConfig)) {
-                return new PluginIFrameChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
-            } else if (isWorkerChannelConfig(channelConfig)) {
-                return new PluginWorkerChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage);
-            } else if (isWebComponentChannelConfig(channelConfig)) {
-                return new PluginWebComponentChannel(this._id, this.tag, channelConfig, getUserConfig, broadcastMessage, config.extraStylesheet);
-            }
-            throw new Error(`Unknown channel type: ${channelConfig.type}`);
-        });
     }
 
+    /**
+     * For native.js plugins
+     * @param config 
+     */
     onInitialized(config: InitializedPluginConfiguration): void {
         this._config = config;
     }
 
-    get tag() {
-        return this._config.tag;
+    get id() {
+        return this._config.id;
     }
 
     get name() {
@@ -57,14 +79,13 @@ class Plugin {
         return this._config.version;
     }
 
-    postMessage(message: any, transferable?: Transferable[]): void {
-        for (const channel of this.channels) {
-            channel.postMessage(message, transferable);
+
+    onMessage(message: any) {
+        if (message.type === "content.ready") {
+            // this._updateContentSize(message.width, message.height);
         }
     }
 
-    onDispose() {
-    }
 
 }
 

@@ -11,6 +11,7 @@ import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
 import preloadAssets from "./bootup/load-assets-when-ready";
 import renderer from "./render/renderer";
 import settingsStore from "./stores/settings-store";
+import "./plugin-system";
 
 // @ts-ignore
 if (module.hot) {

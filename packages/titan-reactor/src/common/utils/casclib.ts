@@ -3,7 +3,7 @@ import * as casclib from "bw-casclib";
 import settingsStore from "../../../src/renderer/stores/settings-store";
 let _storageHandle: any;
 
-export const readCascFile = async (filePath: string) => {
+export const readCascFile = async (filePath: string)/*: Promise<Uint8Array>*/ => {
   if (!settingsStore().isCascStorage) {
     return hardfile.readCascFile(filePath);
   }

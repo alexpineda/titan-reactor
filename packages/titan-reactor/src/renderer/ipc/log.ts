@@ -38,7 +38,7 @@ export const log = async (message: string, level = "info") => {
 export const logClient = (message: string, level = "info") => {
   if (level === "error") {
     gameStore().addLog(message, "red");
-    rendererIsDev && console.trace(message);
+    rendererIsDev && console.error(message);
   } else if (level === "warning") {
     gameStore().addLog(message, "yellow");
     rendererIsDev && console.warn(message);

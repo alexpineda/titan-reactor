@@ -91,7 +91,7 @@ const Configuration = () => {
         >
           {settingsStore.pluginsConfigs.map((pluginConfig) => (
             <ListButton
-              key={pluginConfig.tag}
+              key={pluginConfig.id}
               color={
                 selectedPluginConfig === pluginConfig ? "selected" : "default"
               }
@@ -146,41 +146,10 @@ const Configuration = () => {
                   <span style={{ fontWeight: "bold" }}>Author:</span>{" "}
                   {selectedPluginConfig.author ?? "unknown"}
                 </p>
-                <span>
-                  <span style={{ fontWeight: "bold" }}>Warnings:</span>
-                </span>
-                <ul>
-                  {selectedPluginConfig.channels.find(
-                    (channel) => channel.type === "iframe"
-                  ) && (
-                    <li>
-                      This plugin uses iframes, which may or may not cause
-                      slowdowns, so keep an eye out!
-                    </li>
-                  )}
-                  {selectedPluginConfig.nativeSource && (
-                    <li>
-                      This plugin uses native.js, which allows advanced features
-                      not possible with other plugin types, however it has full
-                      application and operating system access.
-                    </li>
-                  )}
-                </ul>
                 <p>
-                  <span style={{ fontWeight: "bold" }}>
-                    Read Permissions Requested:
-                  </span>
-                  {selectedPluginConfig.channels
-                    .flatMap((c) => c["access.read"])
-                    .join(", ")}
-                </p>
-                <p>
-                  <span style={{ fontWeight: "bold" }}>
-                    Write Permissions Requested:
-                  </span>
-                  {selectedPluginConfig.channels
-                    .flatMap((c) => c["access.write"])
-                    .join(", ")}
+                  <span style={{ fontWeight: "bold" }}>ID:</span>{" "}
+                  {selectedPluginConfig.id ??
+                    "error: id is required in plugin.json"}
                 </p>
                 <p>
                   <span style={{ fontWeight: "bold" }}>Update Status:</span>

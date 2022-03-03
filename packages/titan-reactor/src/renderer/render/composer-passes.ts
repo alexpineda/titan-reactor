@@ -5,7 +5,8 @@ import {
   RenderPass,
   ToneMappingEffect,
   ToneMappingMode,
-  ScanlineEffect
+  ScanlineEffect,
+  ClearPass
 }
   from "postprocessing";
 
@@ -18,6 +19,7 @@ import {
 import FogOfWarEffect from "../fogofwar/fog-of-war-effect";
 
 export enum Passes {
+  Clear,
   Render,
   Regular,
   Bloom,
@@ -61,6 +63,7 @@ export const createPasses = () => {
   const scanlineEffect = new ScanlineEffect({ density: 0.75 });
   scanlineEffect.blendMode.opacity.value = 0.15;
 
+  passes[Passes.Clear] = new ClearPass(true, true, true);
   passes[Passes.Render] = new RenderPass(throwAwayCamera);
   passes[Passes.Cinematic] = new EffectPass(
     throwAwayCamera,
@@ -79,7 +82,7 @@ export const createPasses = () => {
       if (pass === undefined) continue;
       pass.enabled = false;
       pass.renderToScreen = false;
-      if (whichOnes.includes(i)) {
+      if (whichOnes.includes(i) || pass === passes[Passes.Clear]) {
         pass.enabled = true;
         lastPass = pass;
       }

@@ -4,12 +4,10 @@ import Assets from "../assets/assets";
 
 export type GameStore = {
   assets: Assets | null;
-  fps: string;
   dimensions: GameCanvasDimensions;
   latestPluginContentSize?: { channelId: string, width?: string | number; height?: string | number };
   setLatestPluginContentSize: (channelId: string, width?: string | number, height?: string | number) => void;
   players: Player[];
-  setFps: (fps: string) => void;
   setAssets: (assets: Assets | null) => void;
   setDimensions: (dimensions: GameCanvasDimensions) => void;
   setPlayers: (players: Player[]) => void;
@@ -24,7 +22,6 @@ export type GameStore = {
 export const useGameStore = create<GameStore>((set, get) => ({
   log: [],
   players: [],
-  fps: "0",
   assets: null,
   dimensions: {
     left: 0,
@@ -36,7 +33,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     minimapWidth: 0,
     minimapHeight: 0
   },
-  setFps: (fps: string) => set({ fps }),
   setAssets: (assets: Assets | null) => set({ assets }),
   setDisposeGame: (gameDisposer) => set({ gameDisposer }),
   setDimensions: (dimensions: GameCanvasDimensions) => set({ dimensions }),

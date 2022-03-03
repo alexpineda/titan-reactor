@@ -10,7 +10,7 @@ import { CanvasTarget } from "./image";
 import {
   ReplayPlayer, UnitDAT, WeaponDAT,
 } from "common/types";
-import { buildPlayerColor, injectColorsCss, setStyleSheet } from "common/utils/colors";
+import { buildPlayerColor, injectColorsCss } from "common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
 import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
 
@@ -407,15 +407,6 @@ async function TitanReactorGame(
     controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
     projectedCameraView.update();
 
-    setStyleSheet(
-      "game-dimension-css-vars",
-      `:root {
-        --game-width: ${gameSurface.width}px,
-        --game-height: ${gameSurface.height}px,
-        --minimap-width: ${minimapSurface.width}px,
-        --minimap-height: ${minimapSurface.height}px,
-      }`
-    )
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
@@ -1258,7 +1249,7 @@ async function TitanReactorGame(
       //   }
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-      pluginSystem.onFrame(gameStatePosition);
+      pluginSystem.onFrame(gameStatePosition, fps.fps);
       currentBwFrame = null;
     }
 
@@ -1327,9 +1318,6 @@ async function TitanReactorGame(
     gameStatePosition.update(delta);
 
     fps.update(elapsed);
-    if (fps.frames === 0) {
-      gameStore().setFps(fps.fps);
-    }
   };
 
   // @ts-ignore

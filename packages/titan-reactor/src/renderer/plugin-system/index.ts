@@ -5,15 +5,10 @@ import { InitializedPluginConfiguration } from "common/types";
 
 import * as log from "@ipc/log";
 import { GameStatePosition } from "@core";
-import settingsStore from "@stores/settings-store";
-import { useSettingsStore, useGameTickStore } from "@stores";
+import { useSettingsStore, useGameStore, useScreenStore, useWorldStore } from "@stores";
 
-import "./web-components"
 import Plugin from "./plugin";
-import PluginWorkerChannel from "./channel/worker-channel";
-import PluginIFrameChannel from "./channel/iframe-channel";
-import PluginWebComponentChannel from "./channel/web-component-channel";
-import { MSG_REPLAY_POSITION } from "./messages";
+import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED } from "./messages";
 
 let _plugins: Plugin[] = [];
 let pluginsInitialized = false;
@@ -28,20 +23,86 @@ useSettingsStore.subscribe((settings) => {
 
     for (const plugin of _plugins) {
         log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version} - ${plugin.enabled}`);
+        if (plugin.isolatedContainer) {
+            plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
+                type: MSG_PLUGINS_LOADED,
+                plugins: [settings.pluginsConfigs.find((p) => p.id === plugin.id)]
+            }, "*");
+        }
+    }
+
+    Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
+        type: MSG_PLUGINS_LOADED,
+        plugins: settings.pluginsConfigs
+    }, "*");
+});
+
+useGameStore.subscribe((game, prev) => {
+    if (game.dimensions !== prev.dimensions) {
+        _sendMessage({
+            type: MSG_DIMENSIONS_CHANGED,
+            payload: game.dimensions
+        });
     }
 });
 
-export const getPlugins = (all?: boolean) => _plugins.filter(p => all ?? p.enabled);
+useScreenStore.subscribe((screen) => {
+    _sendMessage({
+        type: MSG_SCREEN_CHANGED,
+        payload: {
+            type: screen.type,
+            status: screen.status,
+            error: screen.error
+        }
+    });
+});
 
-export const getWorkerChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWorkerChannel) as PluginWorkerChannel[]);
+useWorldStore.subscribe((world) => {
+    _sendMessage({
+        type: MSG_WORLD_CHANGED,
+        payload: world
+    });
+});
 
-export const getIFrameChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginIFrameChannel) as PluginIFrameChannel[]);
 
-export const getHTMLChannels = () => getPlugins().flatMap(p => p.channels.filter(channel => channel instanceof PluginWebComponentChannel) as PluginWebComponentChannel[]);
+let _lastSend: { [key: string]: any } = {};
+const _replayPosition = {
+    type: MSG_ON_FRAME,
+    payload: {
+        frame: 0,
+        maxFrame: 0,
+        time: "",
+        fps: "0"
+    }
+}
 
-export const getUIChannels = () => [...getIFrameChannels(), ...getHTMLChannels()];
+export const onFrame = (gameStatePosition: GameStatePosition, fps: string) => {
+    const time = gameStatePosition.getSecond();
 
-export const getSlots = () => settingsStore().data.plugins.slots;
+    if (_lastSend[MSG_ON_FRAME] !== time) {
+        _lastSend[MSG_ON_FRAME] = time;
+        _replayPosition.payload.frame = gameStatePosition.bwGameFrame;
+        _replayPosition.payload.maxFrame = gameStatePosition.maxFrame;
+        _replayPosition.payload.time = gameStatePosition.getFriendlyTime();
+        _replayPosition.payload.fps = fps;
+
+        _sendMessage(_replayPosition);
+    }
+}
+
+export const resetSendStates = () => {
+    _lastSend = {};
+}
+
+const _sendMessage = (message: any) => {
+    for (const plugin of _plugins) {
+        if (plugin.isolatedContainer) {
+            plugin.isolatedContainer.contentWindow?.postMessage(message, "*");
+        }
+    }
+
+    Plugin.sharedContainer.contentWindow?.postMessage(message, "*");
+}
 
 export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[]) => {
 
@@ -49,13 +110,10 @@ export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[
         let plugin;
 
         try {
-            if (pluginConfig.native) {
-                if (pluginConfig.native === "isolated") {
-                    plugin = (Function(pluginConfig.nativeSource!)());
-                } else {
-                    plugin = Object.create(Plugin, Function(pluginConfig.nativeSource!)());
-                }
-                pluginConfig.native = undefined;
+            if (pluginConfig.nativeSource) {
+                plugin = Object.create(Plugin, Function(pluginConfig.nativeSource!)());
+                pluginConfig.nativeSource = undefined;
+
                 assert(plugin.onInitialized, "onInitialized is required");
                 assert(plugin.onFrame, "onFrame is required");
                 plugin.onInitialized(pluginConfig);
@@ -72,52 +130,4 @@ export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[
     }).filter(plugin => plugin !== undefined) as Plugin[];
 
     return plugins;
-}
-
-export const disposePlugins = (plugins: Plugin[]) => {
-    for (const plugin of plugins) {
-        try {
-            plugin.onDispose && plugin.onDispose();
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                log.error(`@plugin-system: error disposing "${plugin.name}" - ${e.message}`);
-            }
-        }
-    }
-}
-
-let _lastSend: { [key: string]: any } = {};
-const _replayPosition = {
-    type: MSG_REPLAY_POSITION,
-    frame: 0,
-    maxFrame: 0,
-    time: "",
-}
-
-export const onFrame = (gameStatePosition: GameStatePosition) => {
-    const time = gameStatePosition.getSecond();
-
-    if (_lastSend[MSG_REPLAY_POSITION] !== time) {
-        _lastSend[MSG_REPLAY_POSITION] = time;
-
-        // for web worker and iframe messaging
-        for (const plugin of _plugins) {
-            _replayPosition.frame = gameStatePosition.bwGameFrame;
-            _replayPosition.maxFrame = gameStatePosition.maxFrame;
-            _replayPosition.time = gameStatePosition.getFriendlyTime();
-
-            plugin.postMessage(_replayPosition);
-        }
-
-        // for web-components mesaging
-        useGameTickStore.setState({
-            friendlyTime: gameStatePosition.getFriendlyTime(),
-            maxFrame: gameStatePosition.maxFrame,
-            currentFrame: gameStatePosition.bwGameFrame,
-        });
-    }
-}
-
-export const resetSendStates = () => {
-    _lastSend = {};
 }

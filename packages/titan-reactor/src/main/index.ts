@@ -9,6 +9,10 @@ import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
 import pluginServer from "./plugins/server";
 import { strict as assert } from "assert";
+import { SettingsMeta } from "common/types";
+import browserWindows from "./windows";
+import { bootupLogs } from "./settings/settings";
+import { LOG_MESSAGE } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 
@@ -31,6 +35,7 @@ const createMainWindow = () => {
     backgroundThrottling: false
   });
   windows.main.maximize();
+
 }
 
 const createConfigurationWindow = () => {
@@ -42,7 +47,7 @@ const createConfigurationWindow = () => {
 
 
   windows.config = createWindow({
-    query: "?config=true",
+    query: "?config",
     onClose: () => {
       windows.config = null;
     },
@@ -52,6 +57,7 @@ const createConfigurationWindow = () => {
     devTools: true
   });
   windows.config.title = "Configuration Panel";
+  windows.config.minimize();
 }
 
 if (!gotTheLock) {
@@ -93,6 +99,16 @@ if (!gotTheLock) {
     createMainWindow();
     createConfigurationWindow();
 
+    // on window ready send bootup logs
+    const _readyToShowLogs = () => {
+      for (const log of bootupLogs) {
+        browserWindows.main?.webContents.send(LOG_MESSAGE, log.message, log.level);
+      }
+      browserWindows.main?.off("ready-to-show", _readyToShowLogs);
+    }
+    browserWindows.main?.on("ready-to-show", _readyToShowLogs);
+
+
     pluginServer.listen(settings.get().plugins.serverPort);
     const updateFullScreen = (fullscreen: boolean) => {
       assert(windows.main)
@@ -103,9 +119,9 @@ if (!gotTheLock) {
       }
     };
 
-    settings.on("change", (settings) => {
-      if (settings.diff?.graphics?.fullscreen !== undefined) {
-        updateFullScreen(settings.diff.graphics.fullscreen);
+    settings.on("change", (settings: SettingsMeta) => {
+      if (settings.data.graphics.fullscreen !== undefined) {
+        updateFullScreen(settings.data.graphics.fullscreen);
       }
     });
   });

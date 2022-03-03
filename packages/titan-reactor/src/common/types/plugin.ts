@@ -19,63 +19,35 @@ export type LayoutRect = {
     "layout.height"?: LayoutValue;
 }
 
-export type PluginChannelConfigurationBase = {
-    type: string;
-    url?: string,
-    "access.read"?: string[];
-    "access.write"?: string[];
-    "access.assets"?: string[];
-}
-export type WebComponentPluginChannelConfiguration = PluginChannelConfigurationBase & LayoutRect & {
-    type: "web-component";
-    pointerInteraction: boolean;
-    "layout.slot"?: string;
-    "layout.slot.order"?: number | string;
-}
-
-export type WorkerPluginChannelConfiguration = PluginChannelConfigurationBase & {
-    type: "worker",
-}
-
-export type IFramePluginChannelConfiguration = Omit<WebComponentPluginChannelConfiguration, "type"> & LayoutRect & {
-    type: "iframe",
-}
-
 export type AvailableLifecycles = "@home/ready" | "@replay/loading" | "@replay/ready" | "@map/loading" | "@map/ready";
 
 export interface PluginConfiguration {
     name: string;
+    id: string;
     version: string;
     author?: string;
-    worker?: {
-        url?: string;
-        keepAlive?: boolean;
-    },
-    iframe?: {
-        url?: string;
-        keepAlive?: boolean;
-    },
-    webComponent?: {
-        url?: string;
-    },
-    native?: "isolated" | "inherited";
-    userConfig: any;
-    stores: string[];
-    channels: Record<AvailableLifecycles, PluginChannelConfigurationBase[]>
+    iframe?: "isolated" | "shared";
 }
 
-type ScreenData = {
-    screenType: ScreenType;
-    screenStatus: ScreenStatus;
+export type ScreenData = {
+    type: ScreenType;
+    status: ScreenStatus;
 }
 
-export type InitializedPluginChannelConfiguration<T extends PluginChannelConfigurationBase> = T & ScreenData & { url: string };
+export type InitializedPluginChannelConfiguration = {
+    id: string;
+    position?: string;
+    "position.order"?: number | string;
+    style: string;
+    markup: string;
+    reactive: string[];
+    screens: ScreenData[];
+};
 
-export interface InitializedPluginConfiguration extends Omit<PluginConfiguration, "channels"> {
-    tag: string;
+export interface InitializedPluginConfiguration extends PluginConfiguration {
     nativeSource?: string;
-    extraStylesheet?: string;
-    channels: InitializedPluginChannelConfiguration<PluginChannelConfigurationBase>[];
+    channels: InitializedPluginChannelConfiguration[];
+    userConfig: any;
 }
 
 export interface PluginLifecycle {
