@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 
-export const useStore = create((set) => ({}));
+export const useStore = create(() => ({}));
 const _components = {};
 const _channels = [];
 
@@ -18,16 +18,15 @@ const setStyleSheet = (id, content) => {
   style.textContent = content;
 };
 
-/**
- * 1. Create web components, assign channel ids
- * 2. Create script modules and wait for register calls
- * 3. Assign registered callbacks to channels
- */
 const _messageListener = function (event) {
   if (event.data.type === "plugins") {
+    useStore.setState(event.data.initialStore, true);
+    console.log("initial store", event.data.initialStore);
+
     for (const plugin of event.data.plugins) {
       for (const channel of plugin.channels) {
         if (channel.scriptContent) {
+          channel.getUserConfig = () => plugin.userConfig;
           _channels.push(channel);
           // initialize the plugin channels custom script and we'll later wait for it to register
           const script = document.createElement("script");
@@ -43,15 +42,12 @@ const _messageListener = function (event) {
       setStyleSheet(
         "game-dimension-css-vars",
         `:root {
-            --game-width: ${event.data.payload.width}px,
-            --game-height: ${event.data.payload.height}px,
-            --minimap-width: ${event.data.payload.minimapWidth}px,
-            --minimap-height: ${event.data.payload.minimapHeight}px,
+            --game-width: ${event.data.payload.width}px;
+            --game-height: ${event.data.payload.height}px;
+            --minimap-width: ${event.data.payload.minimapWidth}px;
+            --minimap-height: ${event.data.payload.minimapHeight}px;
           }`
       );
-    } else if (event.data.type === "screen") {
-      //     event.data.payload.type,
-      //     event.data.payload.status
     }
 
     useStore.setState({ [event.data.type]: event.data.payload });
@@ -86,7 +82,12 @@ const App = ({ components }) => {
         {components["top"] &&
           components["top"]
             .filter(screenFilter)
-            .map(({ JSXElement, channel }) => <JSXElement key={channel.id} />)}
+            .map(({ JSXElement, channel }) => (
+              <JSXElement
+                key={channel.id}
+                userConfig={channel.getUserConfig()}
+              />
+            ))}
       </div>
       <div
         id="left_right"
@@ -94,17 +95,24 @@ const App = ({ components }) => {
           width: "100%",
           display: "flex",
           justifyContent: "space-between",
+          flexGrow: 1,
         }}
       >
         <div
           id="left"
-          style={{ display: "flex", flexDirection: "column-reverse" }}
+          style={{
+            display: "flex",
+            flexDirection: "column-reverse",
+          }}
         >
           {components["left"] &&
             components["left"]
               .filter(screenFilter)
               .map(({ JSXElement, channel }) => (
-                <JSXElement key={channel.id} />
+                <JSXElement
+                  key={channel.id}
+                  userConfig={channel.getUserConfig()}
+                />
               ))}
         </div>
         <div
@@ -112,13 +120,19 @@ const App = ({ components }) => {
           style={{
             display: "flex",
             justifyContent: "center",
-            alignContent: "center",
+            alignItems: "center",
+            flexGrow: 1,
           }}
         >
           {components["center"] &&
             components["center"]
               .filter(screenFilter)
-              .map(({ JSXElement }) => <JSXElement key={JSXElement.key} />)}
+              .map(({ JSXElement, channel }) => (
+                <JSXElement
+                  key={JSXElement.key}
+                  userConfig={channel.getUserConfig()}
+                />
+              ))}
         </div>
         <div
           id="right"
@@ -128,7 +142,10 @@ const App = ({ components }) => {
             components["right"]
               .filter(screenFilter)
               .map(({ JSXElement, channel }) => (
-                <JSXElement key={channel.id} />
+                <JSXElement
+                  key={channel.id}
+                  userConfig={channel.getUserConfig()}
+                />
               ))}
         </div>
       </div>
@@ -139,12 +156,19 @@ const App = ({ components }) => {
         {components["bottom"] &&
           components["bottom"]
             .filter(screenFilter)
-            .map(({ JSXElement, channel }) => <JSXElement key={channel.id} />)}
+            .map(({ JSXElement, channel }) => (
+              <JSXElement
+                key={channel.id}
+                userConfig={channel.getUserConfig()}
+              />
+            ))}
       </div>
       {components["loose"] &&
         components["loose"]
           .filter(screenFilter)
-          .map(({ JSXElement, channel }) => <JSXElement key={channel.id} />)}
+          .map(({ JSXElement, channel }) => (
+            <JSXElement key={channel.id} userConfig={channel.getUserConfig()} />
+          ))}
     </div>
   );
 };

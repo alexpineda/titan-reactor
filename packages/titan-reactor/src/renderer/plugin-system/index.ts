@@ -21,19 +21,38 @@ useSettingsStore.subscribe((settings) => {
     pluginsInitialized = true;
     _plugins = initializePlugins(settings.pluginsConfigs);
 
+    //FIXME: each message should have a create function
+    const initialStore = {
+        [MSG_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
+        [MSG_SCREEN_CHANGED]: {
+            type: useScreenStore.getState().type,
+            status: useScreenStore.getState().status,
+            error: useScreenStore.getState().error
+        },
+        [MSG_WORLD_CHANGED]: useWorldStore.getState(),
+        [MSG_ON_FRAME]: {
+            frame: 0,
+            maxFrame: 0,
+            time: "",
+            fps: "0"
+        }
+    }
+
     for (const plugin of _plugins) {
         log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version} - ${plugin.enabled}`);
         if (plugin.isolatedContainer) {
             plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
                 type: MSG_PLUGINS_LOADED,
-                plugins: [settings.pluginsConfigs.find((p) => p.id === plugin.id)]
+                plugins: [settings.pluginsConfigs.find((p) => p.id === plugin.id)],
+                initialStore
             }, "*");
         }
     }
 
     Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
         type: MSG_PLUGINS_LOADED,
-        plugins: settings.pluginsConfigs
+        plugins: settings.pluginsConfigs,
+        initialStore
     }, "*");
 });
 
