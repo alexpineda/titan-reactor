@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import create from "zustand";
 
-const _state = {};
-let _plugins = [];
-const _channels = [];
+export const useStore = create((set) => ({}));
+const _components = [];
 
 const setStyleSheet = (id, content) => {
   let style;
@@ -17,16 +17,100 @@ const setStyleSheet = (id, content) => {
   style.textContent = content;
 };
 
+class TitanChannelComponent extends HTMLElement {
+  constructor(plugin, channel) {
+    super();
+    this.attachShadow({
+      mode: "open",
+    });
+
+    this._container = document.createElement("div");
+    this._stylesheet = document.createElement("style");
+    this._userConfigStylesheet = document.createElement("style");
+    this.shadowRoot.append(
+      this._stylesheet,
+      this._userConfigStylesheet,
+      this._container
+    );
+
+    this.id = channel.id;
+    this.pluginId = plugin.id;
+    this.config = channel;
+    this._userConfig = plugin.userConfig;
+    this.setStylesheet(channel.style || "", plugin.userConfig || {});
+
+    // this.style.display = "none";
+    this.style.position = "absolute";
+  }
+
+  setStylesheet(stylesheet, userConfig) {
+    let cssVars = ":host {";
+    for (const prop in userConfig) {
+      cssVars += `--${prop}: ${userConfig[prop].value};\n`;
+    }
+    cssVars += "}\n\n";
+    this._userConfigStylesheet.textContent = cssVars;
+    this._stylesheet.textContent = stylesheet;
+  }
+
+  //TODO: use request anim frame
+  updateSnapPosition(screenType, screenStatus) {
+    // if (this.config.screens.length) {
+    //   if (
+    //     this.config.screens.find(
+    //       (screen) =>
+    //         screen.type === screenType && screen.status === screenStatus
+    //     )
+    //   ) {
+    //     if (this.config.position === "fullscreen") {
+    //       this.style.left = "0";
+    //       this.style.top = "0";
+    //       this.style.right = "0";
+    //       this.style.bottom = "0";
+    //     } else if (this.config.position === "top-left") {
+    //       this.style.left = "0";
+    //       this.style.top = "0";
+    //       this.style.right = "auto";
+    //       this.style.bottom = "auto";
+    //     }
+    //     this.style.display = "block";
+    //   } else {
+    //     this.style.display = "none";
+    //   }
+    // }
+  }
+
+  connectedCallback() {}
+  disconnectedCallback() {}
+
+  render(element) {
+    ReactDOM.render(element, this._container);
+  }
+}
+customElements.define("titan-plugin", TitanChannelComponent);
+
+/**
+ * 1. Create web components, assign channel ids
+ * 2. Create script modules and wait for register calls
+ * 3. Assign registered callbacks to channels
+ */
 const _messageListener = function (event) {
-  //TODO: check location search for plugin id if isolated
   if (event.data.type === "plugins") {
-    _plugins = event.data.plugins;
     for (const plugin of event.data.plugins) {
-      if (plugin.jsx) {
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = plugin.jsx;
-        document.body.appendChild(script);
+      for (const channel of plugin.channels) {
+        if (channel.scriptContent) {
+          // create an encapsulating web component
+          const component = new TitanChannelComponent(plugin, channel);
+          _components.push(component);
+          document.body.appendChild(component);
+
+          // initialize the plugin channels custom script and we'll later wait for it to register
+          const script = document.createElement("script");
+          script.type = "module";
+          script.async = true;
+          script.innerHTML = channel.scriptContent;
+          document.head.appendChild(script);
+        }
       }
     }
   } else {
@@ -40,57 +124,25 @@ const _messageListener = function (event) {
             --minimap-height: ${event.data.payload.minimapHeight}px,
           }`
       );
+    } else if (event.data.type === "screen") {
+      for (const component of _components) {
+        component.updateSnapPosition(
+          event.data.payload.type,
+          event.data.payload.status
+        );
+      }
     }
 
-    _state[event.data.type] = event.data.payload;
-    ReactDOM.render(
-      <App state={_state} event={event.data} />,
-      document.getElementById("app")
-    );
-
-    // for (const channel of _channels) {
-    //   if (event.data.type === "screen") {
-    //     if (
-    //       channel.config.screens.length === 0 ||
-    //       channel.config.screens.find(
-    //         (screen) =>
-    //           screen.type === event.data.payload.type &&
-    //           screen.status === event.data.payload.status
-    //       )
-    //     ) {
-    //       if (channel.config.position === "fullscreen") {
-    //         channel.style.left = "0";
-    //         channel.style.top = "0";
-    //         channel.style.right = "0";
-    //         channel.style.bottom = "0";
-    //       } else if (channel.config.position === "top-left") {
-    //         channel.style.left = "0";
-    //         channel.style.top = "0";
-    //         channel.style.right = "auto";
-    //         channel.style.bottom = "auto";
-    //       }
-    //       channel.style.display = "block";
-    //     } else {
-    //       channel.style.display = "none";
-    //     }
-    //   }
-
-    //   channel.render();
-    // }
+    useStore.setState({ [event.data.type]: event.data.payload });
   }
 };
 window.addEventListener("message", _messageListener);
 
-const App = ({ state, event }) => {
-  return <div>{_channels.map((c) => c.render({ state, event }))}</div>;
-};
-
-// useOnFrame
-// useScreen
-// useWorld
-
-export default (id, config) => {
-  for (const channel of config) {
-    _channels.push(channel);
+export const registerChannel = (channelId, JSXElement) => {
+  const component = _components.find((component) => component.id === channelId);
+  if (component) {
+    component.render(<JSXElement component={component} />);
+  } else {
+    console.warn(`Channel ${channelId} not found`);
   }
 };

@@ -56,8 +56,8 @@ let _pluginsConfigs: InitializedPluginConfiguration[];
 export const getPluginConfigs = () => _pluginsConfigs;
 export const getPluginChannelConfigs = () => _pluginsConfigs.flatMap(p => p.channels);
 
-const PLUGIN_PATH_MACRO = "tr_plugin_path";
-const CHANNEL_ID_MACRO = "tr_channel_id";
+const PLUGIN_PATH_MACRO = "_plugin_path_";
+const CHANNEL_ID_MACRO = "_channel_id_";
 
 export const replacePluginContent = (content: string, pluginPath: string, channelId: string) => {
     return content.replace(new RegExp(PLUGIN_PATH_MACRO, "g"), pluginPath).replace(new RegExp(CHANNEL_ID_MACRO, "g"), channelId);
