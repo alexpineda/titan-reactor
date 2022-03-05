@@ -59,6 +59,5 @@ export const defaultSettings: Settings = {
   plugins: {
     serverPort: 8080,
     enabled: [],
-    slots: []
   }
 };

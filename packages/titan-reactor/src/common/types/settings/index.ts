@@ -1,4 +1,4 @@
-import type { InitializedPluginConfiguration, SlotConfig } from "../plugin";
+import type { InitializedPluginConfiguration } from "../plugin";
 
 export type Settings = {
     version: 3;
@@ -59,7 +59,6 @@ export type Settings = {
     plugins: {
         serverPort: number;
         enabled: string[],
-        slots: SlotConfig[],
     }
 
     // showDisabledDoodads: boolean;

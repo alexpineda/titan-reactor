@@ -26,6 +26,7 @@ export interface PluginConfiguration {
     id: string;
     version: string;
     author?: string;
+    description?: string;
     iframe?: "isolated" | "shared";
 }
 
@@ -36,18 +37,17 @@ export type ScreenData = {
 
 export type InitializedPluginChannelConfiguration = {
     id: string;
-    position?: string;
-    "position.order"?: number | string;
+    snap?: string;
     style: string;
-    markup: string;
-    reactive: string[];
+    scriptContent: string | null;
     screens: ScreenData[];
 };
 
 export interface InitializedPluginConfiguration extends PluginConfiguration {
-    nativeSource?: string;
-    channels: InitializedPluginChannelConfiguration[];
+    nativeSource?: string | null;
     userConfig: any;
+    path: string;
+    channels: InitializedPluginChannelConfiguration[];
 }
 
 export interface PluginLifecycle {
@@ -56,11 +56,4 @@ export interface PluginLifecycle {
     onDisconnected(): void;
     onDispose?(): void;
     onFrame(gameStatePosition: GameStatePosition, scene: Scene, cmdsThisFrame: any[], units: Map<number, Unit>): void;
-}
-
-export interface SlotConfig extends LayoutRect {
-    name: string;
-    description?: string;
-    direction: "none" | "horizontal-left" | "horizontal-right" | "vertical-up" | "vertical-down";
-    overflow: "scroll" | "hidden";
 }

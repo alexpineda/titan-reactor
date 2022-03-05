@@ -11,7 +11,7 @@ import pluginServer from "./plugins/server";
 import { strict as assert } from "assert";
 import { SettingsMeta } from "common/types";
 import browserWindows from "./windows";
-import { bootupLogs } from "./settings/settings";
+import { bootupLogs } from "./settings/load-plugins";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");

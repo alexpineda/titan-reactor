@@ -21,6 +21,7 @@ document.body.appendChild(_sharedContainer)
 class Plugin {
     enabled = true;
     private _config: InitializedPluginConfiguration;
+
     protected _contentSize?: PluginContentSize;
 
     protected _screenType: ScreenType = ScreenType.Home;
@@ -79,6 +80,9 @@ class Plugin {
         return this._config.version;
     }
 
+    get channels() {
+        return this._config.channels;
+    }
 
     onMessage(message: any) {
         if (message.type === "content.ready") {
