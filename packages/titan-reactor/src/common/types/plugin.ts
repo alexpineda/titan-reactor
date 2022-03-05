@@ -38,9 +38,8 @@ export type ScreenData = {
 export type InitializedPluginChannelConfiguration = {
     id: string;
     snap?: string;
-    style: string;
     scriptContent: string | null;
-    screens: ScreenData[];
+    screen?: ScreenData;
 };
 
 export interface InitializedPluginConfiguration extends PluginConfiguration {

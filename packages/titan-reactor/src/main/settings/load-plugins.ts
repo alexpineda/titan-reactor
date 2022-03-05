@@ -101,18 +101,20 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
 
                 const pluginEl = $("plugin");
                 const pluginId = pluginEl.prop("id");
+                const pluginName = pluginEl.attr("name");
+                const pluginVersion = pluginEl.attr("version");
 
                 if (!pluginId) {
                     log.error(`@settings/load-plugins: Undefined plugin id - ${folder.name}`);
                     continue;
                 }
 
-                if (!pluginEl.prop("version")) {
+                if (pluginVersion === undefined) {
                     log.error(`@settings/load-plugins: Undefined plugin version - ${folder.name}`);
                     continue;
                 }
 
-                if (!pluginEl.prop("name")) {
+                if (pluginName === undefined) {
                     log.error(`@settings/load-plugins: Undefined plugin name - ${folder.name}`);
                     continue;
                 }
@@ -131,44 +133,46 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
                 const channels: InitializedPluginChannelConfiguration[] = [];
 
                 templateLoop:
-                for (const channelEl of $("channel", pluginEl)) {
-                    const channelKeys = ($(channelEl).prop("screen") ?? "").split(",").map(s => s.trim()).filter(s => s !== "");
+                for (const channelEl of $("panel", pluginEl)) {
 
+                    const screenKey = ($(channelEl).prop("screen") ?? "");
                     const screenDataKeys = Object.keys(screenDataMap);
-                    for (const key of channelKeys) {
-                        if (!screenDataKeys.includes(key)) {
-                            log.error(`@settings/load-channel: channel ${channelKeys} is invalid, must be one of ${Object.keys(screenDataMap).join(",")}.`);
-                            continue templateLoop;
-                        }
-                    }
-
-                    const screens = channelKeys.map(keys => screenDataMap[keys as keyof typeof screenDataMap]);
-                    const style = $("style", channelEl).html()?.toString() ?? "";
                     const scriptContent = $("script", channelEl).html()?.toString() ?? null;
 
-                    const transpileErrors: TransformSyntaxError[] = [];
-                    const channelId = MathUtils.generateUUID();
-                    const channel: InitializedPluginChannelConfiguration = {
-                        id: channelId,
-                        snap: $(channelEl).prop("snap") ?? "",
-                        screens,
-                        style: replacePluginContent(style, folder.name, channelId),
-                        scriptContent: scriptContent ? transpile(replacePluginContent(scriptContent, folder.name, channelId), transpileErrors) : null,
+                    if (!scriptContent) {
+                        log.error(`@settings/load-channel: Undefined script content - ${folder.name}`);
+                        continue;
                     }
+
+                    if (screenKey && !screenDataKeys.includes(screenKey)) {
+                        log.error(`@settings/load-channel: screen ${screenKey} is invalid, must be one of ${Object.keys(screenDataMap).join(",")}.`);
+                        continue templateLoop;
+                    }
+
+                    const channelId = MathUtils.generateUUID();
+                    const transpileErrors: TransformSyntaxError[] = [];
+
+                    const transpiledContent = transpile(replacePluginContent(scriptContent, folder.name, channelId), transpileErrors)?.code ?? null;
+
                     if (transpileErrors.length > 0) {
                         log.error(`@settings/load-plugins: ${pluginId} - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`);
                         continue;
                     }
 
-                    channels.push(channel);
+                    channels.push({
+                        id: channelId,
+                        snap: $(channelEl).prop("snap") ?? "",
+                        screen: screenDataMap[screenKey as keyof typeof screenDataMap],
+                        scriptContent: transpiledContent
+                    });
                 }
 
                 _pluginsConfigs.push({
                     id: pluginId,
-                    name: pluginEl.prop("name"),
-                    version: pluginEl.prop("version"),
-                    description: pluginEl.prop("description"),
-                    author: pluginEl.prop("author"),
+                    name: pluginName,
+                    version: pluginVersion,
+                    description: pluginEl.attr("description"),
+                    author: pluginEl.attr("author"),
                     path: folder.name,
                     userConfig,
                     channels,

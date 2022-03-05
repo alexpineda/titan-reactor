@@ -38,10 +38,10 @@ export default (content: string, transpileErrors: TransformSyntaxError[]) => {
             file: `out.js`,
             source: `source.jsx`,
             namedFunctionExpressions: false,
-        }).code;
+        });
     } catch (e) {
         transpileErrors.push(e as TransformSyntaxError);
-        return "";
+        return null;
     }
 }
 

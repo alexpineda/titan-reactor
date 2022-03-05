@@ -3,8 +3,8 @@ import ReactDOM from "react-dom";
 import create from "zustand";
 
 export const useStore = create((set) => ({}));
-const _components = [];
-const _loose = [];
+const _components = {};
+const _channels = [];
 
 const setStyleSheet = (id, content) => {
   let style;
@@ -18,78 +18,6 @@ const setStyleSheet = (id, content) => {
   style.textContent = content;
 };
 
-class TitanChannelComponent extends HTMLElement {
-  constructor(plugin, channel) {
-    super();
-    this.attachShadow({
-      mode: "open",
-    });
-
-    this._container = document.createElement("main");
-    this._stylesheet = document.createElement("style");
-    this._userConfigStylesheet = document.createElement("style");
-    this.shadowRoot.append(
-      this._stylesheet,
-      this._userConfigStylesheet,
-      this._container
-    );
-
-    this.id = channel.id;
-    this.pluginId = plugin.id;
-    this.config = channel;
-    this._userConfig = plugin.userConfig;
-    this.setStylesheet(channel.style || "", plugin.userConfig || {});
-
-    // this.style.display = "none";
-    this.style.position = "absolute";
-  }
-
-  setStylesheet(stylesheet, userConfig) {
-    let cssVars = ":host {";
-    for (const prop in userConfig) {
-      cssVars += `--${prop}: ${userConfig[prop].value};\n`;
-    }
-    cssVars += "}\n\n";
-    this._userConfigStylesheet.textContent = cssVars;
-    this._stylesheet.textContent = stylesheet;
-  }
-
-  //TODO: use request anim frame
-  updateSnapPosition(screenType, screenStatus) {
-    // if (this.config.screens.length) {
-    //   if (
-    //     this.config.screens.find(
-    //       (screen) =>
-    //         screen.type === screenType && screen.status === screenStatus
-    //     )
-    //   ) {
-    //     if (this.config.position === "fullscreen") {
-    //       this.style.left = "0";
-    //       this.style.top = "0";
-    //       this.style.right = "0";
-    //       this.style.bottom = "0";
-    //     } else if (this.config.position === "top-left") {
-    //       this.style.left = "0";
-    //       this.style.top = "0";
-    //       this.style.right = "auto";
-    //       this.style.bottom = "auto";
-    //     }
-    //     this.style.display = "block";
-    //   } else {
-    //     this.style.display = "none";
-    //   }
-    // }
-  }
-
-  connectedCallback() {}
-  disconnectedCallback() {}
-
-  render(element) {
-    ReactDOM.render(element, this._container);
-  }
-}
-customElements.define("titan-plugin", TitanChannelComponent);
-
 /**
  * 1. Create web components, assign channel ids
  * 2. Create script modules and wait for register calls
@@ -100,12 +28,7 @@ const _messageListener = function (event) {
     for (const plugin of event.data.plugins) {
       for (const channel of plugin.channels) {
         if (channel.scriptContent) {
-          // create an encapsulating web component
-          if (channel.snap) {
-            const component = new TitanChannelComponent(plugin, channel);
-            _components.push(component);
-            document.body.appendChild(component);
-          }
+          _channels.push(channel);
           // initialize the plugin channels custom script and we'll later wait for it to register
           const script = document.createElement("script");
           script.type = "module";
@@ -127,12 +50,8 @@ const _messageListener = function (event) {
           }`
       );
     } else if (event.data.type === "screen") {
-      for (const component of _components) {
-        component.updateSnapPosition(
-          event.data.payload.type,
-          event.data.payload.status
-        );
-      }
+      //     event.data.payload.type,
+      //     event.data.payload.status
     }
 
     useStore.setState({ [event.data.type]: event.data.payload });
@@ -140,15 +59,107 @@ const _messageListener = function (event) {
 };
 window.addEventListener("message", _messageListener);
 
+const _screenSelector = (store) => store.screen;
+
+const App = ({ components }) => {
+  const screen = useStore(_screenSelector);
+
+  const screenFilter = ({ channel }) =>
+    channel.screen === undefined ||
+    (screen &&
+      channel.screen.type === screen.type &&
+      channel.screen.status === screen.status);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div id="top">
+        {components["top"] &&
+          components["top"]
+            .filter(screenFilter)
+            .map(({ JSXElement, channel }) => <JSXElement key={channel.id} />)}
+      </div>
+      <div
+        id="left_right"
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <div
+          id="left"
+          style={{ display: "flex", flexDirection: "column-reverse" }}
+        >
+          {components["left"] &&
+            components["left"]
+              .filter(screenFilter)
+              .map(({ JSXElement, channel }) => (
+                <JSXElement key={channel.id} />
+              ))}
+        </div>
+        <div
+          id="center"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignContent: "center",
+          }}
+        >
+          {components["center"] &&
+            components["center"]
+              .filter(screenFilter)
+              .map(({ JSXElement }) => <JSXElement key={JSXElement.key} />)}
+        </div>
+        <div
+          id="right"
+          style={{ display: "flex", flexDirection: "column-reverse" }}
+        >
+          {components["right"] &&
+            components["right"]
+              .filter(screenFilter)
+              .map(({ JSXElement, channel }) => (
+                <JSXElement key={channel.id} />
+              ))}
+        </div>
+      </div>
+      <div
+        id="bottom"
+        style={{ height: "var(--minimap-height)", display: "flex" }}
+      >
+        {components["bottom"] &&
+          components["bottom"]
+            .filter(screenFilter)
+            .map(({ JSXElement, channel }) => <JSXElement key={channel.id} />)}
+      </div>
+      {components["loose"] &&
+        components["loose"]
+          .filter(screenFilter)
+          .map(({ JSXElement, channel }) => <JSXElement key={channel.id} />)}
+    </div>
+  );
+};
 export const registerChannel = (channelId, JSXElement) => {
-  const component = _components.find((component) => component.id === channelId);
-  if (component) {
-    component.render(<JSXElement component={component} />);
+  const channel = _channels.find((channel) => channel.id === channelId);
+  if (channel) {
+    const pos = channel.snap || "loose";
+    const val = { channel, JSXElement };
+    if (!_components[pos]) {
+      _components[pos] = [];
+    }
+    _components[pos].push(val);
+
+    ReactDOM.render(<App components={_components} />, document.body);
   } else {
-    _loose.push({ channelId, JSXElement });
-    ReactDOM.render(
-      _loose.map((loose) => <loose.JSXElement key={loose.channelId} />),
-      document.getElementById("loose")
-    );
+    console.error(`Channel ${channelId} not found`);
   }
 };

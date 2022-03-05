@@ -27,13 +27,15 @@ app.get('*', function (req, res) {
     const filepath = path.join(_p, req.path);
 
     if (filepath.startsWith(_p)) {
+        //todo: return source map
         if (filepath.endsWith(".jsx")) {
-            let content = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
+            let result = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
+            let content = result?.code ?? "";
 
             // convenience mechanism to populate MACROs in external scripts, requires channel-id query param
             const channel = getPluginChannelConfigs().find(c => c.id === req.query["channel-id"]);
             const plugin = getPluginConfigs().find(({ channels }) => channels.includes(channel as InitializedPluginChannelConfiguration));
-            if (plugin && channel) {
+            if (plugin && channel && content) {
                 content = replacePluginContent(content, plugin.path, channel.id);
             }
 
