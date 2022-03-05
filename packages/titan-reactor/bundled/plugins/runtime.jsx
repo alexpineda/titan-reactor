@@ -4,6 +4,7 @@ import create from "zustand";
 
 export const useStore = create((set) => ({}));
 const _components = [];
+const _loose = [];
 
 const setStyleSheet = (id, content) => {
   let style;
@@ -24,7 +25,7 @@ class TitanChannelComponent extends HTMLElement {
       mode: "open",
     });
 
-    this._container = document.createElement("div");
+    this._container = document.createElement("main");
     this._stylesheet = document.createElement("style");
     this._userConfigStylesheet = document.createElement("style");
     this.shadowRoot.append(
@@ -100,10 +101,11 @@ const _messageListener = function (event) {
       for (const channel of plugin.channels) {
         if (channel.scriptContent) {
           // create an encapsulating web component
-          const component = new TitanChannelComponent(plugin, channel);
-          _components.push(component);
-          document.body.appendChild(component);
-
+          if (channel.snap) {
+            const component = new TitanChannelComponent(plugin, channel);
+            _components.push(component);
+            document.body.appendChild(component);
+          }
           // initialize the plugin channels custom script and we'll later wait for it to register
           const script = document.createElement("script");
           script.type = "module";
@@ -143,6 +145,10 @@ export const registerChannel = (channelId, JSXElement) => {
   if (component) {
     component.render(<JSXElement component={component} />);
   } else {
-    console.warn(`Channel ${channelId} not found`);
+    _loose.push({ channelId, JSXElement });
+    ReactDOM.render(
+      _loose.map((loose) => <loose.JSXElement key={loose.channelId} />),
+      document.getElementById("loose")
+    );
   }
 };
