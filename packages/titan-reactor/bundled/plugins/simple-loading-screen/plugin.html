@@ -1,0 +1,24 @@
+<plugin name="Titan Loading Screen" id="darkmatter.titan-loading-screen" author="Dark Matter" version="0.1"
+    description="A simple loading screen">
+
+    <panel screen="@replay/loading">
+        <script async type="module">
+            import "./_plugin_path_/loader.jsx?channel-id=_channel_id_";
+        </script>
+    </panel>
+
+    <panel screen="@map/loading">
+        <script async type="module">
+            import "./_plugin_path_/loader.jsx?channel-id=_channel_id_";
+        </script>
+    </panel>
+
+    <panel screen="@home/ready" snap="center">
+        <script async type="module">
+            import React from 'react';
+            import { registerChannel } from "titan-reactor";
+
+            registerChannel("_channel_id_", () => <h1 style={{color: "white"}}>Welcome to Titan Reactor</h1>);
+        </script>
+    </panel>
+</plugin>

@@ -1,0 +1,9 @@
+{
+    "style": {
+        "value": "classic",
+        "options": ["classic", "modern"]
+    },
+    "fontSize": {
+        "value": "16px"
+    }
+}
