@@ -1,9 +1,12 @@
 {
     "style": {
-        "value": "classic",
+        "value": "modern",
         "options": ["classic", "modern"]
     },
     "fontSize": {
         "value": "16px"
+    },
+    "textColor": {
+        "value": "rgb(203 213 225)"
     }
 }

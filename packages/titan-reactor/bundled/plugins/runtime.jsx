@@ -187,3 +187,34 @@ export const registerChannel = (channelId, JSXElement) => {
     console.error(`Channel ${channelId} not found`);
   }
 };
+
+/**
+ * For plugins with iframe = "isolated".
+ * With IFrame based plugins, we need to wait for the iframe to load
+ * in order for us to report the document content size to Titan Reactor so it can be placed optimally.
+ *
+ * Call pluginContentReady *once* with your plugins outer most container element.
+ */
+export const pluginContentReady = (outerElement, channelId) => {
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (let entry of entries) {
+      const contentBoxSize = entry.contentBoxSize[0];
+
+      // we can only send content.ready once, so make sure our div is actually sized
+      if (contentBoxSize.inlineSize > 0 && contentBoxSize.blockSize > 0) {
+        parent.postMessage(
+          {
+            type: "content.ready",
+            channelId,
+            height: `${contentBoxSize.blockSize}px`,
+            width: `${contentBoxSize.inlineSize}px`,
+          },
+          "*"
+        );
+        resizeObserver.unobserve(outerElement);
+      }
+    }
+  });
+
+  resizeObserver.observe(outerElement);
+};

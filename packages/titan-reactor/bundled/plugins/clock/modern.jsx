@@ -7,16 +7,16 @@ export default ({ userConfig, time, styles }) => {
   const map = useStore(_mapSelector);
 
   return (
-    <>
+    <div style={{ width: "var(--minimap-width)" }}>
       <div
         style={{
-          color: styles.textGray,
+          color: userConfig.textColor.value,
           background: styles.bevelGray800,
           fontWeight: "bold",
           fontSize: userConfig.fontSize.value,
           paddingLeft: "0.2rem",
           paddingBottom: "0.2rem",
-          width: "var(--minimap-width)",
+          width: "100%",
         }}
       >
         <span style={{ display: "inline" }}>{time}</span>
@@ -54,6 +54,6 @@ export default ({ userConfig, time, styles }) => {
           }}
         ></span>
       </span>
-    </>
+    </div>
   );
 };

@@ -3,7 +3,6 @@ import { registerChannel, useStore } from "titan-reactor";
 import ModernClock from "./modern.jsx";
 
 const styles = {
-  textGray: "rgb(203 213 225)",
   textGray400: "rgb(148 163 184)",
   timeLabel: "white",
   bevelGray800Reverse:
@@ -26,14 +25,16 @@ registerChannel("_channel_id_", ({ userConfig }) => {
   return (
     <div
       style={{
-        color: styles.textGray,
+        color: userConfig.textColor.value,
         fontWeight: "bold",
         fontSize: userConfig.fontSize.value,
         textAlign: "center",
         position: "relative",
         width: "var(--minimap-width)",
         pointerEvents: "auto",
+        lineHeight: "1.2rem",
       }}
+      onClick={() => alert("hi")}
     >
       <div
         style={{
@@ -41,6 +42,7 @@ registerChannel("_channel_id_", ({ userConfig }) => {
           position: "absolute",
           top: 0,
           left: 0,
+          bottom: 0,
           width: "50%",
           zIndex: -1,
         }}

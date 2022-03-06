@@ -10,6 +10,7 @@ _sharedContainer.style.top = "0";
 _sharedContainer.style.width = "100%";
 _sharedContainer.style.height = "100%";
 _sharedContainer.style.position = "absolute";
+_sharedContainer.style.zIndex = "10";
 
 _sharedContainer.sandbox.add("allow-scripts");
 _sharedContainer.sandbox.add("allow-downloads");
