@@ -15,7 +15,6 @@ _sharedContainer.style.zIndex = "10";
 _sharedContainer.sandbox.add("allow-scripts");
 _sharedContainer.sandbox.add("allow-downloads");
 
-_sharedContainer.src = "http://localhost:8080/runtime.html"
 document.body.appendChild(_sharedContainer)
 
 
@@ -40,6 +39,14 @@ class Plugin {
 
     constructor(config: InitializedPluginConfiguration) {
         this._config = config;
+    }
+
+    /**
+     * For native.js plugins
+     * @param config 
+     */
+    onInitialized(config: InitializedPluginConfiguration): void {
+        this._config = config;
 
         if (config.iframe === "isolated") {
             const iframe = document.createElement("iframe");
@@ -58,15 +65,6 @@ class Plugin {
             iframe.sandbox.add("allow-downloads");
             this._isolatedContainer = iframe;
         }
-
-    }
-
-    /**
-     * For native.js plugins
-     * @param config 
-     */
-    onInitialized(config: InitializedPluginConfiguration): void {
-        this._config = config;
     }
 
     get id() {

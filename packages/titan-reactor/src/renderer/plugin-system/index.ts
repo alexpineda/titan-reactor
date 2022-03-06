@@ -46,14 +46,18 @@ useSettingsStore.subscribe((settings) => {
                 plugins: [settings.pluginsConfigs.find((p) => p.id === plugin.id)],
                 initialStore
             }, "*");
+            plugin.isolatedContainer.src = `http://localhost:${settings.data.plugins.serverPort}/runtime.html`;
         }
     }
 
     Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
         type: MSG_PLUGINS_LOADED,
-        plugins: settings.pluginsConfigs,
+        plugins: settings.pluginsConfigs.filter(config => config.iframe !== "isolated"),
         initialStore
     }, "*");
+
+    Plugin.sharedContainer.src = `http://localhost:${settings.data.plugins.serverPort}/runtime.html`;
+
 });
 
 useGameStore.subscribe((game, prev) => {
@@ -135,10 +139,11 @@ export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[
 
                 assert(plugin.onInitialized, "onInitialized is required");
                 assert(plugin.onFrame, "onFrame is required");
-                plugin.onInitialized(pluginConfig);
             } else {
                 plugin = new Plugin(pluginConfig);
             }
+
+            plugin.onInitialized(pluginConfig);
 
         } catch (e: unknown) {
             if (e instanceof Error) {

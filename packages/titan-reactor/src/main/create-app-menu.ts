@@ -39,18 +39,10 @@ export default (onOpenPluginManager: () => void) => {
     {
       label: "&View",
       submenu: [
-        { role: "reload" },
         {
           label: "&Settings \& Plugin Manager",
           click: function () {
             onOpenPluginManager();
-          },
-        },
-        { type: "separator" },
-        {
-          label: "View &Log File(s)",
-          click: function () {
-            shell.showItemInFolder(logFilePath);
           },
         },
         { type: "separator" },
@@ -61,6 +53,13 @@ export default (onOpenPluginManager: () => void) => {
       label: "&Debug",
       submenu: [
         { role: "reload" },
+        { role: "toggledevtools" },
+        {
+          label: "View &Log File(s)",
+          click: function () {
+            shell.showItemInFolder(logFilePath);
+          },
+        },
         {
           label: "@home/loading",
           click: function () {
@@ -106,24 +105,6 @@ export default (onOpenPluginManager: () => void) => {
         },
         {
           label: "Discord",
-          click: async () => {
-            await shell.openExternal("http://discord.imbateam.gg");
-          },
-        },
-        {
-          label: "Patreon",
-          click: async () => {
-            await shell.openExternal("http://discord.imbateam.gg");
-          },
-        },
-        {
-          label: "Merchandise",
-          click: async () => {
-            await shell.openExternal("http://discord.imbateam.gg");
-          },
-        },
-        {
-          label: "Bittip",
           click: async () => {
             await shell.openExternal("http://discord.imbateam.gg");
           },

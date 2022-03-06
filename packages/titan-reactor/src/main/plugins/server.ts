@@ -9,7 +9,8 @@ import { getPluginChannelConfigs, getPluginConfigs, replacePluginContent } from 
 import { InitializedPluginChannelConfiguration } from "common/types";
 
 // TODO: verify it exists
-const _p = path.resolve(__static, "plugins");
+const _pluginsPath = path.resolve(__static, "plugins");
+const _runtimePath = path.resolve(__static, "plugins-runtime");
 
 const app = express();
 
@@ -24,37 +25,39 @@ app.use(function (_, res, next) {
 const transpileErrors: TransformSyntaxError[] = [];
 
 app.get('*', function (req, res) {
-    const filepath = path.join(_p, req.path);
+    const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(_pluginsPath, req.path);
 
-    if (filepath.startsWith(_p)) {
-        //todo: return source map
-        if (filepath.endsWith(".jsx")) {
-            let result = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
-            let content = result?.code ?? "";
-
-            // convenience mechanism to populate MACROs in external scripts, requires channel-id query param
-            const channel = getPluginChannelConfigs().find(c => c.id === req.query["channel-id"]);
-            const plugin = getPluginConfigs().find(({ channels }) => channels.includes(channel as InitializedPluginChannelConfiguration));
-            if (plugin && channel && content) {
-                content = replacePluginContent(content, plugin.path, channel.id);
-            }
-
-            res.setHeader("Content-Type", "application/javascript");
-
-            transpileErrors.length = 0;
-            if (transpileErrors.length === 0) {
-                res.send(content);
-            } else {
-                browserWindows.main?.webContents?.send(LOG_MESSAGE, `@plugin-server: transpile error - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`, "error");
-                res.status(400);
-            }
-
-        } else {
-            res.sendFile(filepath);
-        }
-    } else {
+    if (!(filepath.startsWith(_pluginsPath) || filepath.startsWith(_runtimePath))) {
         res.status(404);
+        return;
     }
+
+    //todo: return source map
+    if (filepath.endsWith(".jsx")) {
+        let result = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
+        let content = result?.code ?? "";
+
+        // convenience mechanism to populate MACROs in external scripts, requires channel-id query param
+        const channel = getPluginChannelConfigs().find(c => c.id === req.query["channel-id"]);
+        const plugin = getPluginConfigs().find(({ channels }) => channels.includes(channel as InitializedPluginChannelConfiguration));
+        if (plugin && channel && content) {
+            content = replacePluginContent(content, plugin.path, channel.id);
+        }
+
+        res.setHeader("Content-Type", "application/javascript");
+
+        transpileErrors.length = 0;
+        if (transpileErrors.length === 0) {
+            res.send(content);
+        } else {
+            browserWindows.main?.webContents?.send(LOG_MESSAGE, `@plugin-server: transpile error - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`, "error");
+            res.status(400);
+        }
+
+    } else {
+        res.sendFile(filepath);
+    }
+
 });
 
 

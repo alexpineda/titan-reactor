@@ -6,7 +6,6 @@ import { version } from "../../package.json";
 import * as log from "./ipc/log";
 import { useSettingsStore } from "./stores";
 import screenStore from "./stores/screen-store";
-import loadFonts from "./bootup/load-fonts";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
 import preloadAssets from "./bootup/load-assets-when-ready";
 import renderer from "./render/renderer";
@@ -62,7 +61,6 @@ bootup();
 async function bootup() {
   try {
     log.info("@init: loading settings");
-    await loadFonts();
     await settingsStore().load();
     registerFileDialogHandlers();
 

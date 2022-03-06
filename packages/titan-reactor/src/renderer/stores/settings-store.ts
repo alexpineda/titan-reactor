@@ -16,12 +16,6 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   isCascStorage: false,
   errors: [],
   pluginsConfigs: [],
-  pluginSystemConfig: {
-    respository: [],
-    disabled: [],
-    slots: [],
-    theme: []
-  },
   save: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
     await saveSettings(get().data);

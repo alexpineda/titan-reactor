@@ -56,7 +56,14 @@ const ListButton = styled("div", {
   },
 });
 
-console.log(theme);
+const onChange = (
+  config: InitializedPluginConfiguration,
+  key: string,
+  value: any
+) => {
+  console.log(`${config.id} changed ${key}: ${value}`);
+};
+
 const Configuration = () => {
   const settingsStore = useSettingsStore();
   const [selectedPluginConfig, setSelectedPluginConfig] = useState<
@@ -136,7 +143,12 @@ const Configuration = () => {
           />
           {selectedPluginConfig && (
             <>
-              <PluginConfigurationUI pluginConfig={selectedPluginConfig} />
+              <PluginConfigurationUI
+                pluginConfig={selectedPluginConfig}
+                onChange={(key, value) =>
+                  onChange(selectedPluginConfig, key, value)
+                }
+              />
               <div>
                 <p>
                   <span style={{ fontWeight: "bold" }}>Version:</span>{" "}

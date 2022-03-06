@@ -1,7 +1,31 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="runtime.css">
+  <link rel="stylesheet" href="runtime/reset.css">
+  <style>
+    @font-face {
+      font-family: 'Conthrax';
+      src: url("runtime/fonts/conthrax-rg.otf") format("opentype");
+      font-style: normal;
+      font-weight: 100 400;
+    }
+
+    @font-face {
+      font-family: 'Conthrax-Bold';
+      src: url("runtime/fonts/conthrax-hv.otf") format("opentype");
+      font-style: normal;
+      font-weight: 500 900;
+    }
+
+    @font-face {
+      font-family: "Inter";
+      src: url("runtime/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype");
+    }
+
+    body {
+      font-family: Inter, sans-serif;
+    }
+  </style>
   <script type="importmap">
     {
       "imports": {

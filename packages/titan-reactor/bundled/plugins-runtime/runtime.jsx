@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 
@@ -55,16 +55,47 @@ const _messageListener = function (event) {
 };
 window.addEventListener("message", _messageListener);
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <>☠️</>;
+    }
+
+    return this.props.children;
+  }
+}
+
 const _screenSelector = (store) => store.screen;
 
 const App = ({ components }) => {
+  const [appLoaded, setAppLoaded] = useState(false);
   const screen = useStore(_screenSelector);
 
+  useEffect(() => {
+    if (!appLoaded && screen.type === 0 && screen.status === 1) {
+      setAppLoaded(true);
+    }
+  }, [screen]);
+
   const screenFilter = ({ channel }) =>
-    channel.screen === undefined ||
-    (screen &&
-      channel.screen.type === screen.type &&
-      channel.screen.status === screen.status);
+    appLoaded &&
+    (channel.screen === undefined ||
+      (screen &&
+        channel.screen.type === screen.type &&
+        channel.screen.status === screen.status));
 
   return (
     <div
@@ -83,10 +114,9 @@ const App = ({ components }) => {
           components["top"]
             .filter(screenFilter)
             .map(({ JSXElement, channel }) => (
-              <JSXElement
-                key={channel.id}
-                userConfig={channel.getUserConfig()}
-              />
+              <ErrorBoundary key={channel.id}>
+                <JSXElement userConfig={channel.getUserConfig()} />
+              </ErrorBoundary>
             ))}
       </div>
       <div
@@ -109,10 +139,9 @@ const App = ({ components }) => {
             components["left"]
               .filter(screenFilter)
               .map(({ JSXElement, channel }) => (
-                <JSXElement
-                  key={channel.id}
-                  userConfig={channel.getUserConfig()}
-                />
+                <ErrorBoundary key={channel.id}>
+                  <JSXElement userConfig={channel.getUserConfig()} />
+                </ErrorBoundary>
               ))}
         </div>
         <div
@@ -128,10 +157,9 @@ const App = ({ components }) => {
             components["center"]
               .filter(screenFilter)
               .map(({ JSXElement, channel }) => (
-                <JSXElement
-                  key={JSXElement.key}
-                  userConfig={channel.getUserConfig()}
-                />
+                <ErrorBoundary key={channel.id}>
+                  <JSXElement userConfig={channel.getUserConfig()} />
+                </ErrorBoundary>
               ))}
         </div>
         <div
@@ -142,10 +170,9 @@ const App = ({ components }) => {
             components["right"]
               .filter(screenFilter)
               .map(({ JSXElement, channel }) => (
-                <JSXElement
-                  key={channel.id}
-                  userConfig={channel.getUserConfig()}
-                />
+                <ErrorBoundary key={channel.id}>
+                  <JSXElement userConfig={channel.getUserConfig()} />
+                </ErrorBoundary>
               ))}
         </div>
       </div>
@@ -157,17 +184,18 @@ const App = ({ components }) => {
           components["bottom"]
             .filter(screenFilter)
             .map(({ JSXElement, channel }) => (
-              <JSXElement
-                key={channel.id}
-                userConfig={channel.getUserConfig()}
-              />
+              <ErrorBoundary key={channel.id}>
+                <JSXElement userConfig={channel.getUserConfig()} />
+              </ErrorBoundary>
             ))}
       </div>
       {components["loose"] &&
         components["loose"]
           .filter(screenFilter)
           .map(({ JSXElement, channel }) => (
-            <JSXElement key={channel.id} userConfig={channel.getUserConfig()} />
+            <ErrorBoundary key={channel.id}>
+              <JSXElement userConfig={channel.getUserConfig()} />
+            </ErrorBoundary>
           ))}
     </div>
   );

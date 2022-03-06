@@ -8,6 +8,8 @@
   - [Store Reference](#store-reference)
   - [Plugin.html Reference](#pluginhtml-reference)
   - [native.js](#nativejs)
+  - [CSS Variables](#css-variables)
+  - [CSS Fonts](#css-fonts)
   - [Debugging](#debugging)
   - [Request For Plugin](#request-for-plugin)
 
@@ -48,7 +50,7 @@ Your plugin directory will be scanned for `plugin.html`, `userConfig.json` and `
 
 `native.js` provides plugin developers higher privileges at the cost of user security, but allows you to access full Titan Reactor game state, where as `plugin.html` React based plugins only get a partial copy of the game state in an isolated iframe.
 
-`userConfig.json` is specifically for users to modify in order to customize settings for your plugin. The values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), since that is the component we use internally to allow users to customize their userSettings. At a minimum each value must be a wrapper around a `value` property:
+`userConfig.json` is specifically for users to modify in order to customize settings for your plugin. The values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). We use Leva internally to allow users to customize their userSettings. At a minimum each value must be a wrapper around a `value` property:
 ```json
 {
     customProp: {
@@ -82,7 +84,7 @@ Your script will be treated by the browser as an ES6 module, meaning you have fu
 Now we can start writing our Panel JSX:
 ```jsx
 import React from "react";
-import { registerChannel, useStore } from "titan-reactor";
+import { registerChannel } from "titan-reactor";
 
 registerChannel("_channel_id_", ({ userConfig }) => {
     return <h1>Hello { userConfig.name.value }</h1>
@@ -99,34 +101,40 @@ The plugin runtime provides a useStore hook for channels to access game state. T
 
 **Regular Use**
 ```jsx
+    import { useStore } from "titan-reactor";
+
+    ...
+
+    // in our component, useStore(selector)
     const players = useStore(store => store.world.replay.players);
-    console.log(players);
 ```
 
-Note: It's best to [keep the "selector" function memoized](https://github.com/pmndrs/zustand#memoizing-selectors) with useCallback or kept outside the function to minimize object allocation.
+It's best to [keep the "selector" function memoized](https://github.com/pmndrs/zustand#memoizing-selectors) with useCallback or kept outside the function to minimize object allocation. If a selector isn't provided your component will re-render every game second since that is when `store.frame` gets updated which is the most frequently updated.
 
 **Optimized (Transient) Use**
 
-See `FPS Meter plugin` and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
+This method is a small optimization minimizing virtual dom diffing and re-renders. See `FPS Meter plugin` and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
 
 
 ## Store Reference
 
-TODO.
 - **frame**
   - **fps**: frames per second
   - **time**: game time label `eg, "12:00"`
   - **frame**: current replay frame
   - **maxFrame**: max replay frame
 
-- **world**
-  - **map**: Map
-  - **replay**: Replay (if replay)
+- **world** : Partial<[WorldStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/renderer/stores/realtime/world-store.ts#L6)>
+  - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/bw-chk.d.ts#L21)
+  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/downgrade-replay.d.ts#L2) (if replay)
 
-- **scene**
-  - **type**: SceneType
-  - **status**: SceneStatus
+
+- **scene** : Partial<[ScreenStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/renderer/stores/screen-store.ts#L8)>
+  - **type**: [ScreenType](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/screen.ts#L1)
+  - **status**: [ScreenStatus](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/screen.ts#L1)
   - **error**: An object if there is an application critical error
+
+- **dimensions** [GameCanvasDimensions](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/image.ts#L11)
 
 ## Plugin.html Reference
 ```html
@@ -159,34 +167,57 @@ If multiple panels are snapped into the same location, we use `userConfig.order.
 
 If snap is omitted, positioning is upto the plugin author and the root node must have style `position: absolute`.
 
+A panel can have atmost one script element. `async` and `type` attributes will be added for you in practice and so are optional to include in the template. Currently the `src` attribute is not supported, but you may use the `import` statement along with plugin macros to include an external jsx file rather than inline it.
+
 ```html
-<!-- embedded example -->
+<!-- inline example -->
 <script async type="module">
     /// ...panel implementation
 </script>
 
-<!-- external example -->
-<script async type="module" src="./plugin.jsx">
+<!-- external example my-plugin.jsx -->
+<script async type="module">
+  import "./_plugin_path_/my-plugin.jsx?channel-id=_channel_id_";
+
 </script>
 ```
-A panel can have atmost one script element. `async` and `type` attributes will be added for you in practice and so are optional to include in the template. You may also use the `src` attribute if you wish to use an external `.jsx` file.
 
 ## native.js
 
-TODO.
 Native.js lives at the application level and so has access to the real javascript objects of Titan Reactor. Below are the hooks available to native.js
 
 ```js
 return {
+    onInitialized(config) {
+      super.onInitialized(config);
+
+    },
+
     onScreenChange(type, status) {
 
     },
 
-    onFrame() {
+    onFrame(gameStatePosition) {
 
     }
 }
 ```
+
+## CSS Variables
+
+The following css variables are available to your styles:
+- --game-width
+- --game-height
+- --minimap-width
+- --minimap-height
+
+## CSS Fonts
+
+Additional font-families available to your styles:
+
+`Inter` the default body font.
+
+`Conthrax` and `Conthrax-Bold` are good for scores and numbers.
 
 ## Debugging
 
