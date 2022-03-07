@@ -7,18 +7,16 @@ Titan Reactor is a fresh take on observing matchups in our favorite game, built 
 - [Join our Discord](http://discord.imbateam.gg/)
 
 ### Requirements
-- In order to use graphics/audio assets you'll need a purchased copy of Starcraft Remastered
+- A purchased copy of Starcraft Remastered
 - Microsoft Windows
 - Suggested 4GB Ram & VRam
 
 ### Downloads
-- Get the latest windows executable via the [releases page](https://github.com/imbateam-gg/titan-reactor/releases)
+- Available via the [Releases Page](https://github.com/imbateam-gg/titan-reactor/releases)
 
 ### Developing Plugins
 
-Developing plugins for Titan Reactor is easy and requires no build tools, just a text editor is fine :)
-
-[Details here in CREATING_PLUGINS.md](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
+Developing plugins for Titan Reactor is easy and requires no build tools, just a text editor is fine :) [Details here in CREATING_PLUGINS.md](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
 
 ### Development Installation
 

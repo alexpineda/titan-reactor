@@ -11,6 +11,7 @@
   - [native.js](#nativejs)
   - [CSS Variables](#css-variables)
   - [CSS Fonts](#css-fonts)
+  - [Supported package.json fields](#supported-packagejson-fields)
   - [Debugging](#debugging)
   - [Request For Plugin](#request-for-plugin)
 
@@ -25,7 +26,7 @@ Plugins in Titan Reactor allow you to create custom menus, score cards and many 
 
 ## Plugin Examples
 
-Titan Reactor comes with [official plugins under `bundled/plugins`](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins) so poke around and get an idea of how they work. **For a plugin to be enabled the user must also have the plugin id in their global settings.json in the `plugins.enabled` array.**
+Titan Reactor comes with [official plugins under `bundled/plugins`](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins) so poke around and get an idea of how they work. **For a plugin to be enabled the user must also have the plugin name in their global settings.json in the `plugins.enabled` array.**
 
 ## Your first plugin package.json
 
@@ -99,7 +100,7 @@ Titan Reactor provides a useStore hook for channels to access game state. This i
     ...
 
     // outside our component
-    const selector = store => store.world.replay.players;
+    const selector = store => store.world.replay.header.players;
 
     // inside our component, useStore(selector)
     const players = useStore(selector);
@@ -194,6 +195,20 @@ Additional font-families available to your styles:
 `Inter` the default body font.
 
 `Conthrax` and `Conthrax-Bold` are good for scores and numbers.
+
+## Supported package.json fields
+
+`name` - your plugin name, must be globally unique.
+
+`version` - your plugin version, using semver.
+
+`author` - your name (string format only)
+
+`description` - a further description of your plugin
+
+`config` - user editable config object
+
+`repository` - npm or github repository url or object to determine whether new versions are available
 
 ## Debugging
 

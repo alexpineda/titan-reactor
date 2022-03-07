@@ -92,6 +92,7 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
                     version: packageJSON.version,
                     description: packageJSON.description,
                     author: packageJSON.author,
+                    repository: packageJSON.repository,
                     path: folder.name,
                     config: packageJSON.config,
                     nativeSource: pluginNative
@@ -100,4 +101,32 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
         }
 
     }
+}
+
+export const savePluginsConfig = async (pluginDirectory: string, pluginId: string, config: any) => {
+    const pluginConfig = _pluginsConfigs.find(p => p.id === pluginId);
+    if (!pluginConfig) {
+        log.error(`@settings/load-plugins: Could not find plugin with id ${pluginId}`);
+        return;
+    }
+
+    const existingConfigPath = path.join(pluginDirectory, pluginConfig.path, "package.json");
+    const existingConfig = await _tryLoadUtf8(existingConfigPath, "json");
+
+    if (!existingConfig) {
+        console.error(`@save-plugins-config: Error reading plugin package.json`);
+        return false;
+    }
+
+    existingConfig.config = config;
+    pluginConfig.config = config;
+
+    try {
+        await fsPromises.writeFile(existingConfigPath, JSON.stringify(existingConfig, null, 4));
+    } catch (e) {
+        console.error(`@save-plugins-config: Error writing plugin package.json`);
+        return false;
+    }
+
+    return true;
 }

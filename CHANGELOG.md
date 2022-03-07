@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Bullet Y Tracking. Watch as flying units and ground units exchange fire from their different elevations!
   - All new and extensive plugin system:
     - Create custom HUD and UI elements using live data from the game and game files.
-    - Easy to develop with no build tools required
-  - Picture In Picture mode allowing more action to be captured by a single observer!
+    - Easy to develop with no build tools required!
+  - Picture In Picture mode allowing more action to be captured by a single observer
     - Right click the minimap to enable/disable PIP
     - Right click in Overview Cam to enable/disable PIP
   - Automatic settings migrations

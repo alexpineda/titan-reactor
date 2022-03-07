@@ -1,12 +1,14 @@
 import "../reset.css";
 import { render } from "react-dom";
-import { styled, theme } from "../stitches";
+import { styled, theme } from "./stitches";
 
-import settingsStore, { useSettingsStore } from "../../stores/settings-store";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { useState } from "react";
 import { InitializedPluginPackage } from "common/types";
-import PluginConfigurationUI from "./plugins";
+import PluginConfigurationUI from "./plugin-configuration-ui";
 import { Leva } from "leva";
+import { updatePluginsConfig } from "@ipc/plugins";
+import { debounce } from "lodash";
 
 // @ts-ignore
 if (module.hot) {
@@ -56,13 +58,9 @@ const ListButton = styled("div", {
   },
 });
 
-const onChange = (
-  config: InitializedPluginPackage,
-  key: string,
-  value: any
-) => {
-  console.log(`${config.id} changed ${key}: ${value}`);
-};
+const onChange = debounce(async (pluginId: string, config: any) => {
+  updatePluginsConfig(pluginId, config);
+}, 1000);
 
 const Configuration = () => {
   const settingsStore = useSettingsStore();
@@ -100,7 +98,9 @@ const Configuration = () => {
             <ListButton
               key={pluginConfig.id}
               color={
-                selectedPluginConfig === pluginConfig ? "selected" : "default"
+                selectedPluginConfig?.id === pluginConfig.id
+                  ? "selected"
+                  : "default"
               }
               onClick={() => {
                 setSelectedPluginConfig(pluginConfig);
@@ -142,33 +142,10 @@ const Configuration = () => {
             }}
           />
           {selectedPluginConfig && (
-            <>
-              <PluginConfigurationUI
-                pluginConfig={selectedPluginConfig}
-                onChange={(key, value) =>
-                  onChange(selectedPluginConfig, key, value)
-                }
-              />
-              <div>
-                <p>
-                  <span style={{ fontWeight: "bold" }}>Version:</span>{" "}
-                  {selectedPluginConfig.version}
-                </p>
-                <p>
-                  <span style={{ fontWeight: "bold" }}>Author:</span>{" "}
-                  {selectedPluginConfig.author ?? "unknown"}
-                </p>
-                <p>
-                  <span style={{ fontWeight: "bold" }}>ID:</span>{" "}
-                  {selectedPluginConfig.id ??
-                    "error: id is required in plugin.json"}
-                </p>
-                <p>
-                  <span style={{ fontWeight: "bold" }}>Update Status:</span>
-                  This is the latest version
-                </p>
-              </div>
-            </>
+            <PluginConfigurationUI
+              pluginConfig={selectedPluginConfig}
+              onChange={onChange}
+            />
           )}
         </main>
       </div>
