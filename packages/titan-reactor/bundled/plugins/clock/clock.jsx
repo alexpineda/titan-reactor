@@ -15,7 +15,7 @@ const styles = {
 };
 
 const _selector = (store) => store.frame.time;
-registerComponent("_channel_id_", ({ userConfig }) => {
+registerComponent({ channelId: "_channel_id_" }, ({ userConfig }) => {
   const time = useStore(_selector);
 
   if (userConfig.style.value === "modern") {

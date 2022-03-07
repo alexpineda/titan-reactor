@@ -4,7 +4,7 @@
         import React, { useRef, useEffect } from 'react';
         import { registerComponent, useStore } from "titan-reactor";
 
-        registerComponent("_channel_id_", ({ userConfig }) => {
+        registerComponent({ channelId: "_channel_id_" }, ({ userConfig }) => {
 
           const fpsElRef = useRef();
 

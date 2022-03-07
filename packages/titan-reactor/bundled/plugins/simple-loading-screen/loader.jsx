@@ -1,7 +1,7 @@
 import { registerComponent, useStore } from "titan-reactor";
 import React from "react";
 
-registerComponent("_channel_id_", () => {
+registerComponent({ channelId: "_channel_id_" }, () => {
   const world = useStore((store) => store.world);
 
   return (

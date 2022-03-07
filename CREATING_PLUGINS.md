@@ -86,7 +86,7 @@ Now we can start writing our React Component:
 import React from "react";
 import { registerComponent } from "titan-reactor";
 
-registerComponent("_channel_id_", ({ userConfig }) => {
+registerComponent({ channelId: "_channel_id_" } , ({ userConfig }) => {
     return <h1>Hello { userConfig.name.value }</h1>
 })
 ```
