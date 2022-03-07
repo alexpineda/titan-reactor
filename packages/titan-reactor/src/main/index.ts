@@ -8,8 +8,6 @@ import windows, { createWindow } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
 import pluginServer from "./plugins/server";
-import { strict as assert } from "assert";
-import { SettingsMeta } from "common/types";
 import browserWindows from "./windows";
 import { bootupLogs } from "./settings/load-plugins";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
@@ -32,7 +30,9 @@ const createMainWindow = () => {
     },
     nodeIntegration: true,
     devTools: true,
-    backgroundThrottling: false
+    backgroundThrottling: false,
+    hideMenu: true,
+    removeMenu: false
   });
   windows.main.maximize();
 
@@ -52,7 +52,7 @@ const createConfigurationWindow = () => {
       windows.config = null;
     },
     nodeIntegration: true,
-    // removeMenu: true,
+    removeMenu: true,
     backgroundColor: "#ffaa99",
     devTools: true
   });
@@ -110,20 +110,7 @@ if (!gotTheLock) {
 
 
     pluginServer.listen(settings.get().plugins.serverPort);
-    const updateFullScreen = (fullscreen: boolean) => {
-      assert(windows.main)
-      windows.main.setFullScreen(fullscreen);
-      windows.main.autoHideMenuBar = fullscreen;
-      if (fullscreen) {
-        windows.main?.maximize();
-      }
-    };
 
-    settings.on("change", (settings: SettingsMeta) => {
-      if (settings.data.graphics.fullscreen !== undefined) {
-        updateFullScreen(settings.data.graphics.fullscreen);
-      }
-    });
   });
 
   app.on("window-all-closed", () => {

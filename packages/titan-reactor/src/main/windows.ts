@@ -13,16 +13,17 @@ interface CreateWindowArgs {
   onClose?: () => void;
   query?: string;
   removeMenu?: boolean;
+  hideMenu?: boolean;
   devTools?: boolean;
   backgroundColor?: string;
   nodeIntegration?: boolean;
   backgroundThrottling?: boolean;
 }
 
-const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true }, args);
+const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true }, args);
 
 export const createWindow = (createWindowArgs: CreateWindowArgs) => {
-  const { onClose, query, removeMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling } = createDefaultArgs(createWindowArgs);
+  const { onClose, query, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling } = createDefaultArgs(createWindowArgs);
 
   const w = new BrowserWindow({
     width: 800,
@@ -42,7 +43,11 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
     },
   });
 
-  removeMenu && w.removeMenu();
+  w.setAutoHideMenuBar(hideMenu)
+
+  if (removeMenu) {
+    w.removeMenu();
+  }
 
   if (isDev) {
     w.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}${query}`);

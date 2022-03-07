@@ -1,4 +1,4 @@
-import type { InitializedPluginConfiguration } from "../plugin";
+import type { InitializedPluginPackage } from "../plugin";
 
 export type Settings = {
     version: 3;
@@ -23,9 +23,7 @@ export type Settings = {
         antialias: boolean;
         pixelRatio: "high" | "med" | "low";
         anisotropy: "high" | "med" | "low";
-        fullscreen: boolean;
         gamma: number;
-        showFps: boolean;
     },
     controls: {
         debug?: boolean,
@@ -89,7 +87,7 @@ export type SettingsMeta = {
     data: Settings;
     errors: string[];
     phrases: Record<string, string>;
-    pluginsConfigs: InitializedPluginConfiguration[];
+    pluginsConfigs: InitializedPluginPackage[];
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */

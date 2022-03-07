@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
-
+import App from "./runtime/app.jsx";
 export const useStore = create(() => ({}));
 const _components = {};
-const _channels = [];
 
 const setStyleSheet = (id, content) => {
   let style;
@@ -18,24 +17,21 @@ const setStyleSheet = (id, content) => {
   style.textContent = content;
 };
 
+const _plugins = [];
+
 const _messageListener = function (event) {
   if (event.data.type === "plugins") {
-    useStore.setState(event.data.initialStore, true);
-    console.log("initial store", event.data.initialStore);
+    useStore.setState(event.data.initialStore);
 
     for (const plugin of event.data.plugins) {
-      for (const channel of plugin.channels) {
-        if (channel.scriptContent) {
-          channel.getUserConfig = () => plugin.userConfig;
-          _channels.push(channel);
-          // initialize the plugin channels custom script and we'll later wait for it to register
-          const script = document.createElement("script");
-          script.type = "module";
-          script.async = true;
-          script.innerHTML = channel.scriptContent;
-          document.head.appendChild(script);
-        }
-      }
+      _plugins.push(plugin);
+
+      // initialize the plugin channels custom script and we'll later wait for it to register
+      const script = document.createElement("script");
+      script.type = "module";
+      script.async = true;
+      script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
+      document.head.appendChild(script);
     }
   } else {
     if (event.data.type === "dimensions") {
@@ -55,165 +51,21 @@ const _messageListener = function (event) {
 };
 window.addEventListener("message", _messageListener);
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
+let _channelIds = 0;
+export const registerComponent = (component, JSXElement) => {
+  component.id = `${component.pluginId}_${++_channelIds}`;
+
+  const plugin = _plugins.find((p) => p.id === component.pluginId);
+  component.getConfig = () => (plugin ? plugin.config : {});
+
+  const pos = component.snap || "loose";
+  const val = { component, JSXElement };
+  if (!_components[pos]) {
+    _components[pos] = [];
   }
+  _components[pos].push(val);
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error(error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <>☠️</>;
-    }
-
-    return this.props.children;
-  }
-}
-
-const _screenSelector = (store) => store.screen;
-
-const App = ({ components }) => {
-  const [appLoaded, setAppLoaded] = useState(false);
-  const screen = useStore(_screenSelector);
-
-  useEffect(() => {
-    if (!appLoaded && screen.type === 0 && screen.status === 1) {
-      setAppLoaded(true);
-    }
-  }, [screen]);
-
-  const screenFilter = ({ channel }) =>
-    appLoaded &&
-    (channel.screen === undefined ||
-      (screen &&
-        channel.screen.type === screen.type &&
-        channel.screen.status === screen.status));
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: 0,
-        top: 0,
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <div id="top">
-        {components["top"] &&
-          components["top"]
-            .filter(screenFilter)
-            .map(({ JSXElement, channel }) => (
-              <ErrorBoundary key={channel.id}>
-                <JSXElement userConfig={channel.getUserConfig()} />
-              </ErrorBoundary>
-            ))}
-      </div>
-      <div
-        id="left_right"
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          flexGrow: 1,
-        }}
-      >
-        <div
-          id="left"
-          style={{
-            display: "flex",
-            flexDirection: "column-reverse",
-          }}
-        >
-          {components["left"] &&
-            components["left"]
-              .filter(screenFilter)
-              .map(({ JSXElement, channel }) => (
-                <ErrorBoundary key={channel.id}>
-                  <JSXElement userConfig={channel.getUserConfig()} />
-                </ErrorBoundary>
-              ))}
-        </div>
-        <div
-          id="center"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexGrow: 1,
-          }}
-        >
-          {components["center"] &&
-            components["center"]
-              .filter(screenFilter)
-              .map(({ JSXElement, channel }) => (
-                <ErrorBoundary key={channel.id}>
-                  <JSXElement userConfig={channel.getUserConfig()} />
-                </ErrorBoundary>
-              ))}
-        </div>
-        <div
-          id="right"
-          style={{ display: "flex", flexDirection: "column-reverse" }}
-        >
-          {components["right"] &&
-            components["right"]
-              .filter(screenFilter)
-              .map(({ JSXElement, channel }) => (
-                <ErrorBoundary key={channel.id}>
-                  <JSXElement userConfig={channel.getUserConfig()} />
-                </ErrorBoundary>
-              ))}
-        </div>
-      </div>
-      <div
-        id="bottom"
-        style={{ height: "var(--minimap-height)", display: "flex" }}
-      >
-        {components["bottom"] &&
-          components["bottom"]
-            .filter(screenFilter)
-            .map(({ JSXElement, channel }) => (
-              <ErrorBoundary key={channel.id}>
-                <JSXElement userConfig={channel.getUserConfig()} />
-              </ErrorBoundary>
-            ))}
-      </div>
-      {components["loose"] &&
-        components["loose"]
-          .filter(screenFilter)
-          .map(({ JSXElement, channel }) => (
-            <ErrorBoundary key={channel.id}>
-              <JSXElement userConfig={channel.getUserConfig()} />
-            </ErrorBoundary>
-          ))}
-    </div>
-  );
-};
-export const registerComponent = ({ channelId }, JSXElement) => {
-  const channel = _channels.find((channel) => channel.id === channelId);
-  if (channel) {
-    const pos = channel.snap || "loose";
-    const val = { channel, JSXElement };
-    if (!_components[pos]) {
-      _components[pos] = [];
-    }
-    _components[pos].push(val);
-
-    ReactDOM.render(<App components={_components} />, document.body);
-  } else {
-    console.error(`Channel ${channelId} not found`);
-  }
+  ReactDOM.render(<App components={_components} />, document.body);
 };
 
 /**

@@ -1,0 +1,44 @@
+import { registerComponent, useStore } from "titan-reactor";
+import React from "react";
+
+const LoadingScreen = () => {
+  const world = useStore((store) => store.world);
+
+  return (
+    <h1
+      style={{
+        color: "white",
+      }}
+    >
+      <p>{world && world.map && world.map.title}</p>
+      {world &&
+        world.replay &&
+        world.replay.header.players.map((player) => (
+          <p key={player.id}>{player.name}</p>
+        ))}
+    </h1>
+  );
+};
+
+registerComponent(
+  { pluginId: "_plugin_id_", screen: "@replay/loading", snap: "center" },
+  LoadingScreen
+);
+
+registerComponent(
+  { pluginId: "_plugin_id_", screen: "@map/loading", snap: "center" },
+  LoadingScreen
+);
+
+registerComponent(
+  { pluginId: "_plugin_id_", screen: "@home/ready", snap: "center" },
+  () => (
+    <div style={{ display: "flex", flexDirection: "column", color: "white" }}>
+      <p>Welcome to </p>
+      <h1 style={{ fontFamily: "Conthrax" }}>Titan Reactor</h1>
+      <p style={{ marginTop: "2rem", opacity: "0.75" }}>
+        Menu: ALT, Fullscreen: F11
+      </p>
+    </div>
+  )
+);

@@ -1,11 +1,11 @@
 
 import assert from "assert";
 
-import { InitializedPluginConfiguration } from "common/types";
+import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
 
 import * as log from "@ipc/log";
 import { GameStatePosition } from "@core";
-import { useSettingsStore, useGameStore, useScreenStore, useWorldStore } from "@stores";
+import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenStore } from "@stores";
 
 import Plugin from "./plugin";
 import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED } from "./messages";
@@ -14,21 +14,15 @@ let _plugins: Plugin[] = [];
 let pluginsInitialized = false;
 
 useSettingsStore.subscribe((settings) => {
-    if (_plugins && pluginsInitialized) {
-        log.warning("plugins already initialized");
+    if (pluginsInitialized) {
         return;
     }
     pluginsInitialized = true;
     _plugins = initializePlugins(settings.pluginsConfigs);
 
-    //FIXME: each message should have a create function
     const initialStore = {
         [MSG_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
-        [MSG_SCREEN_CHANGED]: {
-            type: useScreenStore.getState().type,
-            status: useScreenStore.getState().status,
-            error: useScreenStore.getState().error
-        },
+        [MSG_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()),
         [MSG_WORLD_CHANGED]: useWorldStore.getState(),
         [MSG_ON_FRAME]: {
             frame: 0,
@@ -39,7 +33,7 @@ useSettingsStore.subscribe((settings) => {
     }
 
     for (const plugin of _plugins) {
-        log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version} - ${plugin.enabled}`);
+        log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version}`);
         if (plugin.isolatedContainer) {
             plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
                 type: MSG_PLUGINS_LOADED,
@@ -60,6 +54,8 @@ useSettingsStore.subscribe((settings) => {
 
 });
 
+
+
 useGameStore.subscribe((game, prev) => {
     if (game.dimensions !== prev.dimensions) {
         _sendMessage({
@@ -69,15 +65,15 @@ useGameStore.subscribe((game, prev) => {
     }
 });
 
-useScreenStore.subscribe((screen) => {
-    _sendMessage({
+const screenChanged = (screen: ScreenStore) => {
+    return {
         type: MSG_SCREEN_CHANGED,
-        payload: {
-            type: screen.type,
-            status: screen.status,
-            error: screen.error
-        }
-    });
+        payload: `@${ScreenType[screen.type]}/${ScreenStatus[screen.status]}`.toLowerCase()
+    }
+}
+
+useScreenStore.subscribe((screen) => {
+    _sendMessage(screenChanged(screen));
 });
 
 useWorldStore.subscribe((world) => {
@@ -127,7 +123,7 @@ const _sendMessage = (message: any) => {
     Plugin.sharedContainer.contentWindow?.postMessage(message, "*");
 }
 
-export const initializePlugins = (pluginConfigs: InitializedPluginConfiguration[]) => {
+export const initializePlugins = (pluginConfigs: InitializedPluginPackage[]) => {
 
     const plugins = pluginConfigs.map(pluginConfig => {
         let plugin;

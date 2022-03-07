@@ -1,15 +1,15 @@
-import { InitializedPluginConfiguration } from "common/types";
+import { InitializedPluginPackage } from "common/types";
 import { useControls } from "leva";
 
 interface PluginConfigurationProps {
-  pluginConfig: InitializedPluginConfiguration;
+  pluginConfig: InitializedPluginPackage;
   onChange: (key: string, value: any) => void;
 }
 const PluginConfigurationUI = ({
   pluginConfig,
   onChange,
 }: PluginConfigurationProps) => {
-  const userConfig = pluginConfig.userConfig ?? {
+  const userConfig = pluginConfig.config ?? {
     "N/A": {
       value: "This plugin has no user configuration.",
       editable: false,

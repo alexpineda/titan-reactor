@@ -23,9 +23,7 @@ export const defaultSettings: Settings = {
     antialias: true,
     pixelRatio: "med",
     anisotropy: "high",
-    fullscreen: false,
     gamma: 0.9,
-    showFps: true
   },
   controls: {
     debug: false,

@@ -1,4 +1,4 @@
-import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginConfiguration } from "common/types";
+import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginPackage } from "common/types";
 
 const _sharedContainer = document.createElement("iframe");
 _sharedContainer.style.backgroundColor = "transparent";
@@ -20,7 +20,7 @@ document.body.appendChild(_sharedContainer)
 
 class Plugin {
     enabled = true;
-    private _config: InitializedPluginConfiguration;
+    private _config: InitializedPluginPackage;
 
     protected _contentSize?: PluginContentSize;
 
@@ -37,7 +37,7 @@ class Plugin {
         return this._isolatedContainer;
     }
 
-    constructor(config: InitializedPluginConfiguration) {
+    constructor(config: InitializedPluginPackage) {
         this._config = config;
     }
 
@@ -45,7 +45,7 @@ class Plugin {
      * For native.js plugins
      * @param config 
      */
-    onInitialized(config: InitializedPluginConfiguration): void {
+    onInitialized(config: InitializedPluginPackage): void {
         this._config = config;
 
         if (config.iframe === "isolated") {
@@ -77,10 +77,6 @@ class Plugin {
 
     get version() {
         return this._config.version;
-    }
-
-    get channels() {
-        return this._config.channels;
     }
 
     onMessage(message: any) {

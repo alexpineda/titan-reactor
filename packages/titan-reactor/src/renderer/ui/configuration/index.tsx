@@ -4,7 +4,7 @@ import { styled, theme } from "../stitches";
 
 import settingsStore, { useSettingsStore } from "../../stores/settings-store";
 import { useState } from "react";
-import { InitializedPluginConfiguration } from "common/types";
+import { InitializedPluginPackage } from "common/types";
 import PluginConfigurationUI from "./plugins";
 import { Leva } from "leva";
 
@@ -57,7 +57,7 @@ const ListButton = styled("div", {
 });
 
 const onChange = (
-  config: InitializedPluginConfiguration,
+  config: InitializedPluginPackage,
   key: string,
   value: any
 ) => {
@@ -67,7 +67,7 @@ const onChange = (
 const Configuration = () => {
   const settingsStore = useSettingsStore();
   const [selectedPluginConfig, setSelectedPluginConfig] = useState<
-    InitializedPluginConfiguration | undefined
+    InitializedPluginPackage | undefined
   >(undefined);
 
   return (

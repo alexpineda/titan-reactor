@@ -2,15 +2,15 @@
 - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Plugin Examples](#plugin-examples)
+  - [Your first plugin package.json](#your-first-plugin-packagejson)
   - [How it works](#how-it-works)
   - [Writing a React Component](#writing-a-react-component)
   - [useStore hook](#usestore-hook)
   - [Store Reference](#store-reference)
-  - [Plugin.html Reference](#pluginhtml-reference)
+  - [registerComponent reference](#registercomponent-reference)
   - [native.js](#nativejs)
   - [CSS Variables](#css-variables)
   - [CSS Fonts](#css-fonts)
-  - [Advanced Examples](#advanced-examples)
   - [Debugging](#debugging)
   - [Request For Plugin](#request-for-plugin)
 
@@ -27,77 +27,70 @@ Plugins in Titan Reactor allow you to create custom menus, score cards and many 
 
 Titan Reactor comes with [official plugins under `bundled/plugins`](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins) so poke around and get an idea of how they work. **For a plugin to be enabled the user must also have the plugin id in their global settings.json in the `plugins.enabled` array.**
 
-Minimal plugin:
+## Your first plugin package.json
 
-```html
-<plugin id="unique.id" name="My Plugin" version="0.1">
-    <channel>
-        <script type="module">
-            console.log("hello world");
-        </script>
-    </channel>
-</plugin>
+
+*plugins/my-cool-plugin/package.json*
+```json
+{
+  "name": "my-cool-plugin",
+  "version": "v1"
+}
 ```
 
-You can have as many channels as you like. This channel is considered a "plugin channel", ie one method of utilizing/consuming your plugin. It'll be activated as soon as Titan Reactor starts.
+You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for most of our conventions here. For your version number it is recommended to use `v1`, `v2`, `v3` etc for updates. 
 
-
-
+As for displaying things to the user, we'll later use an `index.jsx` file.
 
 ## How it works
 
-Your plugin directory will be scanned for `plugin.html`, `userConfig.json` and `native.js` files. Out of these three files, `plugin.html` is the only file that must be present. 
+Your plugin directory will be scanned for `package.json`, `index.jsx` and `native.js` files. All are optional, but without `package.json` the others will not be loaded.
 
-`native.js` provides plugin developers higher privileges at the cost of user security, but allows you to access full Titan Reactor game state, where as `plugin.html` React based plugins only get a partial copy of the game state in an isolated iframe.
+`index.jsx` allows you to access game state and create React components to be displayed for your plugin, **most plugin developers will want to use this**. Your code and component will live in a shared iframe environment with other plugins in a separate process.
 
-`userConfig.json` is specifically for users to modify in order to customize settings for your plugin. The values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). We use Leva internally to allow users to customize their userSettings. At a minimum each value must be a wrapper around a `value` property:
+`native.js` provides plugin developers higher privileges at the cost of user security, but allows you to access full Titan Reactor game state on the main Chromium process.
+
+We use the `config` value in `package.json` specifically for users to modify in order to customize settings for your plugin. The values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). We use Leva internally to allow users to customize their userSettings. At a minimum each value must be a wrapper around a `value` property:
 ```json
 {
-    customProp: {
-        value: "user config value here!"
+    "config": {
+      "customProp": {
+          "value": "user config value here!"
+      }
     }
 }
 ```
 
-Your `<script></script>` html and any `.jsx` file under your plugin directory will get transpiled by Titan Reactor. Special macro strings `_plugin_path_` and `_channel_id_` will get replaced with the relative path to your plugin (eg. "my-plugin") and your channel id respectively.
+Your `.jsx` files under your plugin directory will get transpiled by Titan Reactor. Special macro string `_plugin_id_` will get replaced with a uniquely generated plugin id.
 
 ## Writing a React Component
 
 This section provides additonal information on writing a React component for the Titan Reactor ecosystem. **This section does not cover React basics, for that please seek alternative learning resources!**
 
-So we've written our basic `plugin.html` and we're ready to develop a visual plugin channel.
+Once we've got our basic `package.json` we can start with `index.jsx`:
 
-```html
-<plugin id="unique.id" name="My Plugin" version="0.1">
-    <channel screen="@home/ready">
-        <script async type="module">
-            // ... let's write code here ...
-        </script>
-    </channel>
-</plugin>
-```
-
-Here we've added the screen option to our channel. Every screen has both "loading" and "ready" states. In this case **our React component which we will develop will be mounted when the home screen is ready (loaded), and unmounted on any other state**.
-
-Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
-
-Now we can start writing our React Component:
 ```jsx
 import React from "react";
 import { registerComponent } from "titan-reactor";
 
-registerComponent({ channelId: "_channel_id_" } , ({ userConfig }) => {
-    return <h1>Hello { userConfig.name.value }</h1>
+registerComponent({ pluginId: "_plugin_id_", screen: "@home/ready" } , ({ config }) => {
+    return <h1>Hello { config.name.value }</h1>
 })
 ```
 
-`registerComponent` lets Titan Reactor know about our new React Component, and will mount it and unmount it according to the screen rules. Remember that the `_channel_id_` macro will be replaced with our appropriate channel identifier for us. 
+There is a good amount going on here. We're importing React in order to render out JSX and we're importing `registerComponent` from titan-reactor in order to get our component managed by the plugin system.
 
-Every component will be provided with their plugin `userConfig` object which corresponds with `userConfig.json` for read only access. The component will re-render if the userConfig gets updated.
+`registerComponent` lets Titan Reactor know about our new React Component, and will mount it and unmount it according to the screen and layout rules. Remember that the `_plugin_id_` macro will be replaced with our actual unique plugin id for us. 
+
+Additional properties in the first argument allow us to tap into layout and screen rules. In this case **our React component will be mounted when the home screen is ready (loaded), and unmounted on any other state**.
+
+Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
+
+Every component will be provided with their plugin `config` object which corresponds with `config` field of our `package.json`. The component will re-render on any config update.
 
 ## useStore hook
 
-The plugin runtime provides a useStore hook for channels to access game state. This is a zustand store, [please see zustand for complete details](https://github.com/pmndrs/zustand). This brief section will illustrate two uses:
+Titan Reactor provides a useStore hook for channels to access game state. This is a zustand store, [please see zustand for complete details](https://github.com/pmndrs/zustand). This brief section will illustrate two uses:
 
 **Regular Use**
 ```jsx
@@ -132,58 +125,38 @@ This method is a small optimization minimizing virtual dom diffing and re-render
   - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/downgrade-replay.d.ts#L2)
 
 
-- **scene** : Partial<[ScreenStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/renderer/stores/screen-store.ts#L8)>
-  - **type**: [ScreenType](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/screen.ts#L1)
-  - **status**: [ScreenStatus](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/screen.ts#L1)
-  - **error**: An object if there is an application critical error
+- **scene** : "screenType/screenStatus"
+
 
 - **dimensions** [GameCanvasDimensions](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/image.ts#L11)
 
-## Plugin.html Reference
-```html
-<plugin id="unique.id" version="0.1" name="Plugins Name" author="optional Author" details="optional details" package-url="optional repository url">
-```
-- id: *required* unique identifier for your plugin, eg. `author-name.plugin-name`
-- version: *required* in order to determine version and update availability
-- name: *required* user friendly name for your plugin
-- author: *optional* author name
-- description: *optional* further description of your plugin
-- package-url: *optional* github repository url or npm package url for detecting updates
+## registerComponent reference
 
-```html
-<channel>
-<channel screen="screenType/screenStatus">
-<channel snap="location">
+Example: 
+```js
+registerComponent({
+  pluginId: "_plugin_id_",
+  screen: "@home/ready",
+  snap: "center"
+}, MyElement)
+
 ```
-screen
+
+**screen** = "screenType/screenStatus"
 - screenType = `@home` | `@replay` | `@map`
 
 - screenStatus = `loading` | `ready`
 
-`@home/loading` is not available to plugins. if `screen` is omitted, the plugin channel will be mounted `@home/ready` and remain mounted.
+`@home/loading` is not available to plugins. if `screen` is omitted, the plugin channel will be mounted on `@home/ready` and will remain mounted until the application is closed.
 
-
-snap
+**snap**
 - `top` | `left` | `right` | `bottom` | `center`
 
-If multiple channels are snapped into the same location, we use `userConfig.order.value` to determine an ordering. 
+If multiple components are snapped into the same location, we use `config.order.value` to determine an ordering. 
+
+If multiple components are snapped to the center we provide a tabbing system.
 
 If snap is omitted, positioning is upto the plugin author and the root node must have style `position: absolute`.
-
-A channel can have atmost one script element. `async` and `type` attributes will be added for you in practice and so are optional to include in the template. Currently the `src` attribute is not supported, but you may use the `import` statement along with plugin macros to include an external jsx file rather than inline it.
-
-```html
-<!-- inline example -->
-<script async type="module">
-    /// ...channel implementation
-</script>
-
-<!-- external example my-plugin.jsx -->
-<script async type="module">
-  import "./_plugin_path_/my-plugin.jsx?channel-id=_channel_id_";
-
-</script>
-```
 
 ## native.js
 
@@ -221,10 +194,6 @@ Additional font-families available to your styles:
 `Inter` the default body font.
 
 `Conthrax` and `Conthrax-Bold` are good for scores and numbers.
-
-## Advanced Examples
-
-A channel script doesn't necessarily need a visual React component, it could simply read replay data and relay it to a server for archiving for example. Additionally a plugin doesn't necessarily even need a `script` element if using `native.js` for more control. If using `native.js` you can still communicate with your channels if you require the visual element as well.
 
 ## Debugging
 

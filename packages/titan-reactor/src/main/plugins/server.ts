@@ -5,8 +5,7 @@ import fs from "fs"
 import transpile, { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
-import { getPluginChannelConfigs, getPluginConfigs, replacePluginContent } from "../settings/load-plugins";
-import { InitializedPluginChannelConfiguration } from "common/types";
+import { getPluginConfigs, replacePluginContent } from "../settings/load-plugins";
 
 // TODO: verify it exists
 const _pluginsPath = path.resolve(__static, "plugins");
@@ -32,16 +31,14 @@ app.get('*', function (req, res) {
         return;
     }
 
-    //todo: return source map
     if (filepath.endsWith(".jsx")) {
         let result = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
         let content = result?.code ?? "";
 
-        // convenience mechanism to populate MACROs in external scripts, requires channel-id query param
-        const channel = getPluginChannelConfigs().find(c => c.id === req.query["channel-id"]);
-        const plugin = getPluginConfigs().find(({ channels }) => channels.includes(channel as InitializedPluginChannelConfiguration));
-        if (plugin && channel && content) {
-            content = replacePluginContent(content, plugin.path, channel.id);
+        //TODO: verify correctness
+        const plugin = getPluginConfigs().find(p => p.id === req.query["plugin-id"]);
+        if (plugin && content) {
+            content = replacePluginContent(content, plugin.id);
         }
 
         res.setHeader("Content-Type", "application/javascript");

@@ -21,7 +21,7 @@ export type LayoutRect = {
 
 export type AvailableLifecycles = "@home/ready" | "@replay/loading" | "@replay/ready" | "@map/loading" | "@map/ready";
 
-export interface PluginConfiguration {
+export interface PluginPackage {
     name: string;
     id: string;
     version: string;
@@ -35,22 +35,14 @@ export type ScreenData = {
     status: ScreenStatus;
 }
 
-export type InitializedPluginChannelConfiguration = {
-    id: string;
-    snap?: string;
-    scriptContent: string | null;
-    screen?: ScreenData;
-};
-
-export interface InitializedPluginConfiguration extends PluginConfiguration {
+export interface InitializedPluginPackage extends PluginPackage {
     nativeSource?: string | null;
-    userConfig: any;
+    config: any;
     path: string;
-    channels: InitializedPluginChannelConfiguration[];
 }
 
 export interface PluginLifecycle {
-    onInitialized(config: InitializedPluginConfiguration): void;
+    onInitialized(config: InitializedPluginPackage): void;
     onConnected(screenType: ScreenType, screenStatus: ScreenStatus): void;
     onDisconnected(): void;
     onDispose?(): void;
