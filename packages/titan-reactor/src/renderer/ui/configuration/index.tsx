@@ -9,6 +9,7 @@ import PluginConfigurationUI from "./plugin-configuration-ui";
 import { Leva } from "leva";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { debounce } from "lodash";
+import DetailSheet from "./detail-sheet";
 
 // @ts-ignore
 if (module.hot) {
@@ -19,6 +20,24 @@ if (module.hot) {
 const PluginTitle = styled("h1", {
   color: "$foreground",
   padding: "$8",
+});
+
+const Button = styled("button", {
+  background: "$buttonBackground",
+  color: "$buttonText",
+  cursor: "pointer",
+  variants: {
+    color: {
+      danger: {
+        background: "$cerise700",
+        color: "$cerise200",
+      },
+      alternate: {
+        background: "$gray200",
+        color: "$gray700",
+      },
+    },
+  },
 });
 
 const Container = styled("div", {
@@ -54,6 +73,14 @@ const ListButton = styled("div", {
         borderColor: "$controlRecessedBorder",
         color: "$controlRecessedForeground",
       },
+      disabled: {
+        backgroundColor: "$controlBackground",
+        color: "$controlRecessedForeground",
+        borderColor: "transparent",
+        "&:hover": {
+          borderColor: "$controlRecessedBorder",
+        },
+      },
     },
   },
 });
@@ -66,7 +93,7 @@ const Configuration = () => {
   const settingsStore = useSettingsStore();
   const [selectedPluginConfig, setSelectedPluginConfig] = useState<
     InitializedPluginPackage | undefined
-  >(undefined);
+  >(settingsStore.enabledPlugins[0] ?? settingsStore.disabledPlugins[0]);
 
   return (
     <Container css={{}}>
@@ -96,6 +123,18 @@ const Configuration = () => {
             width: "30%",
           }}
         >
+          <div
+            style={{
+              display: "flex",
+              justifyItems: "stretch",
+              marginBottom: "1rem",
+            }}
+          >
+            <Button css={{ flexGrow: "1" }}>Available</Button>
+            <Button color="alternate" css={{ flexGrow: "1" }}>
+              Marketplace
+            </Button>
+          </div>
           {settingsStore.enabledPlugins.map((pluginConfig) => (
             <ListButton
               key={pluginConfig.id}
@@ -103,6 +142,21 @@ const Configuration = () => {
                 selectedPluginConfig?.id === pluginConfig.id
                   ? "selected"
                   : "default"
+              }
+              onClick={() => {
+                setSelectedPluginConfig(pluginConfig);
+              }}
+            >
+              {pluginConfig.name}
+            </ListButton>
+          ))}
+          {settingsStore.disabledPlugins.map((pluginConfig) => (
+            <ListButton
+              key={pluginConfig.id}
+              color={
+                selectedPluginConfig?.id === pluginConfig.id
+                  ? "selected"
+                  : "disabled"
               }
               onClick={() => {
                 setSelectedPluginConfig(pluginConfig);
@@ -143,17 +197,35 @@ const Configuration = () => {
               },
             }}
           />
-          {selectedPluginConfig && (
-            <PluginConfigurationUI
-              pluginConfig={selectedPluginConfig}
-              onChange={onChange}
-            />
-          )}
+          {selectedPluginConfig &&
+            settingsStore.enabledPlugins.includes(selectedPluginConfig) && (
+              <>
+                <PluginConfigurationUI
+                  pluginConfig={selectedPluginConfig}
+                  onChange={onChange}
+                />
+                <Button>Disable Plugin</Button>
+                <Button color="danger">Delete Plugin</Button>
+                <p>
+                  Note: Not all plugins may be smoothly disabled/deleted. If you
+                  find the app is not working as it should after
+                  disabling/deleting, use the Debug menu to do a full plugin
+                  reload, or a full app reload.
+                </p>
+              </>
+            )}
+          {selectedPluginConfig &&
+            settingsStore.disabledPlugins.includes(selectedPluginConfig) && (
+              <>
+                <p>
+                  Warning: Ensure you trust the authors of this plugin before
+                  enabling it.
+                </p>
+                <Button color="danger">Enable Plugin</Button>
+                <DetailSheet pluginConfig={selectedPluginConfig} />
+              </>
+            )}
         </main>
-      </div>
-      <div style={{ position: "sticky", bottom: "0" }}>
-        <button>Force Reload</button>
-        <button>Open Plugins Folder</button>
       </div>
     </Container>
   );

@@ -80,6 +80,7 @@
     "express": "^4.17.3",
     "iconv-lite": "0.6.3",
     "leva": "^0.9.23",
+    "libnpmsearch": "^5.0.0",
     "lodash.debounce": "^4.0.8",
     "lodash.get": "^4.4.2",
     "lodash.groupby": "^4.6.0",

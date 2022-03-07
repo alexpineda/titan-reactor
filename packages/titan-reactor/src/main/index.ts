@@ -149,5 +149,9 @@ if (!gotTheLock) {
     globalShortcut.register("F5", () => {
       console.log("F5 is pressed: Shortcut Disabled");
     });
+
+    globalShortcut.register("F12", () => {
+      createConfigurationWindow();
+    });
   });
 }

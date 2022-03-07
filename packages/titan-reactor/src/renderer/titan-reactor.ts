@@ -68,24 +68,16 @@ async function bootup() {
     const hasErrors = settingsStore().errors.length > 0;
 
     if (hasErrors) {
+      const error = `@init: error with settings - ${useSettingsStore
+        .getState()
+        .errors.join(", ")}`
       log.error(
-        `@init: error with settings - ${useSettingsStore
-          .getState()
-          .errors.join(", ")}`
+        error
       );
+      throw new Error(error);
     }
 
     renderer.getWebGLRenderer().toneMappingExposure = settings.graphics.gamma;
-
-    useSettingsStore.subscribe((state) => {
-      if (state.errors) {
-        log.error(
-          `@init/settings.changed: error with settings -  ${state.errors.join(
-            ", "
-          )}`
-        );
-      }
-    });
 
     await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));

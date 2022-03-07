@@ -3,6 +3,7 @@ import { showOpenMapDialog, showOpenReplayDialog } from "./register-ipc-handlers
 import getUserDataPath from "./get-user-data-path";
 import path from "path";
 import browserWindows from "./windows";
+import settings from "./settings/singleton"
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
@@ -54,7 +55,13 @@ export default (onOpenPluginManager: () => void) => {
     {
       label: "&Debug",
       submenu: [
-        { role: "reload" },
+        {
+          label: "Reload Settings",
+          click: async () => {
+            await settings.initialize();
+            browserWindows.main?.webContents.reload();
+          }
+        },
         {
           label: "Reload All Plugins",
           click: function () {

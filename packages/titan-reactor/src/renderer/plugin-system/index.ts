@@ -86,7 +86,10 @@ useGameStore.subscribe((game, prev) => {
 const screenChanged = (screen: ScreenStore) => {
     return {
         type: MSG_SCREEN_CHANGED,
-        payload: `@${ScreenType[screen.type]}/${ScreenStatus[screen.status]}`.toLowerCase()
+        payload: {
+            screen: `@${ScreenType[screen.type]}/${ScreenStatus[screen.status]}`.toLowerCase(),
+            error: screen.error?.message
+        }
     }
 }
 

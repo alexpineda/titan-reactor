@@ -14,7 +14,7 @@ const Component = ({ component, JSXElement }) => {
 
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
-  const screen = useStore(_screenSelector);
+  const { screen, error } = useStore(_screenSelector);
   const [[logoOpacity, logoScale], setLogoVals] = useState([0.5, 1.5]);
 
   useEffect(() => {
@@ -58,8 +58,6 @@ export default ({ components }) => {
               transition: "all 30s ease-out",
             }}
           />
-
-          {screen.endsWith("error") && <div>error</div>}
         </>
       )}
       {!appLoaded && (
@@ -77,7 +75,15 @@ export default ({ components }) => {
             fontFamily: "Conthrax",
           }}
         >
-          DarkMatter
+          {error && (
+            <div>
+              <p>Uh oh!</p>
+              <p style={{ fontFamily: "Inter, sans-serif", color: "#aa6677" }}>
+                {error}
+              </p>
+            </div>
+          )}
+          {!error && <>DarkMatter</>}
         </p>
       )}
       <div id="top">
