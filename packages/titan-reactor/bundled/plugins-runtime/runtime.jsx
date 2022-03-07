@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
 export const useStore = create(() => ({}));
+export const useConfig = create(() => ({}));
 const _components = {};
 
 const setStyleSheet = (id, content) => {
@@ -20,18 +21,25 @@ const setStyleSheet = (id, content) => {
 const _plugins = [];
 
 const _messageListener = function (event) {
-  if (event.data.type === "plugins") {
-    useStore.setState(event.data.initialStore);
+  if (event.data.type.startsWith("system:")) {
+    if (event.data.type === "system:ready") {
+      useStore.setState(event.data.initialStore);
 
-    for (const plugin of event.data.plugins) {
-      _plugins.push(plugin);
+      for (const plugin of event.data.plugins) {
+        _plugins.push(plugin);
 
-      // initialize the plugin channels custom script and we'll later wait for it to register
-      const script = document.createElement("script");
-      script.type = "module";
-      script.async = true;
-      script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
-      document.head.appendChild(script);
+        // initialize the plugin channels custom script and we'll later wait for it to register
+        const script = document.createElement("script");
+        script.type = "module";
+        script.async = true;
+        script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
+        document.head.appendChild(script);
+
+        console.log(plugin);
+        useConfig.setState({ [plugin.id]: plugin.config });
+      }
+    } else if (event.data.type === "system:plugin-config-changed") {
+      useConfig.setState({ [event.data.pluginId]: event.data.config });
     }
   } else {
     if (event.data.type === "dimensions") {
@@ -54,9 +62,6 @@ window.addEventListener("message", _messageListener);
 let _channelIds = 0;
 export const registerComponent = (component, JSXElement) => {
   component.id = `${component.pluginId}_${++_channelIds}`;
-
-  const plugin = _plugins.find((p) => p.id === component.pluginId);
-  component.getConfig = () => (plugin ? plugin.config : {});
 
   const pos = component.snap || "loose";
   const val = { component, JSXElement };

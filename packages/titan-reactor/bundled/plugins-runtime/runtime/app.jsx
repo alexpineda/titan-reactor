@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useStore } from "titan-reactor";
+import { useStore, useConfig } from "titan-reactor";
 const _screenSelector = (store) => store.screen;
+
+const Component = ({ component, JSXElement }) => {
+  const config = useConfig((store) => store[component.pluginId]);
+
+  return (
+    <ErrorBoundary key={component.id}>
+      <JSXElement config={config} />
+    </ErrorBoundary>
+  );
+};
 
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
@@ -33,9 +43,11 @@ export default ({ components }) => {
           components["top"]
             .filter(screenFilter)
             .map(({ JSXElement, component }) => (
-              <ErrorBoundary key={component.id}>
-                <JSXElement config={component.getConfig()} />
-              </ErrorBoundary>
+              <Component
+                key={component.id}
+                component={component}
+                JSXElement={JSXElement}
+              />
             ))}
       </div>
       <div
@@ -58,9 +70,11 @@ export default ({ components }) => {
             components["left"]
               .filter(screenFilter)
               .map(({ JSXElement, component }) => (
-                <ErrorBoundary key={component.id}>
-                  <JSXElement config={component.getConfig()} />
-                </ErrorBoundary>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                />
               ))}
         </div>
         <div
@@ -76,9 +90,11 @@ export default ({ components }) => {
             components["center"]
               .filter(screenFilter)
               .map(({ JSXElement, component }) => (
-                <ErrorBoundary key={component.id}>
-                  <JSXElement config={component.getConfig()} />
-                </ErrorBoundary>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                />
               ))}
         </div>
         <div
@@ -89,9 +105,11 @@ export default ({ components }) => {
             components["right"]
               .filter(screenFilter)
               .map(({ JSXElement, component }) => (
-                <ErrorBoundary key={component.id}>
-                  <JSXElement config={component.getConfig()} />
-                </ErrorBoundary>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                />
               ))}
         </div>
       </div>
@@ -103,18 +121,22 @@ export default ({ components }) => {
           components["bottom"]
             .filter(screenFilter)
             .map(({ JSXElement, component }) => (
-              <ErrorBoundary key={component.id}>
-                <JSXElement config={component.getConfig()} />
-              </ErrorBoundary>
+              <Component
+                key={component.id}
+                component={component}
+                JSXElement={JSXElement}
+              />
             ))}
       </div>
       {components["loose"] &&
         components["loose"]
           .filter(screenFilter)
           .map(({ JSXElement, component }) => (
-            <ErrorBoundary key={component.id}>
-              <JSXElement config={component.getConfig()} />
-            </ErrorBoundary>
+            <Component
+              key={component.id}
+              component={component}
+              JSXElement={JSXElement}
+            />
           ))}
     </div>
   );

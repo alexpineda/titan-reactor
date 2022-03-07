@@ -27,6 +27,7 @@ export interface PluginPackage {
     version: string;
     author?: string;
     description?: string;
+    repository?: string;
     iframe?: "isolated" | "shared";
 }
 

@@ -4,6 +4,8 @@ import path from "path";
 import logService from "../logger/singleton";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
+import browserWindows from "../windows";
+import { UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
 
 
 export const bootupLogs: LogMessage[] = [];
@@ -115,7 +117,7 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
 
     if (!existingConfig) {
         console.error(`@save-plugins-config: Error reading plugin package.json`);
-        return false;
+        return;
     }
 
     existingConfig.config = config;
@@ -125,8 +127,9 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
         await fsPromises.writeFile(existingConfigPath, JSON.stringify(existingConfig, null, 4));
     } catch (e) {
         console.error(`@save-plugins-config: Error writing plugin package.json`);
-        return false;
+        return;
     }
 
-    return true;
+    // main window needs to update the iframe plugins
+    browserWindows.main?.webContents.send(UPDATE_PLUGIN_CONFIG, pluginId, config);
 }

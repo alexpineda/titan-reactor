@@ -8,7 +8,18 @@ import { GameStatePosition } from "@core";
 import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenStore } from "@stores";
 
 import Plugin from "./plugin";
-import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED } from "./messages";
+import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED, MSG_PLUGIN_CONFIG_CHANGED } from "./messages";
+import { ipcRenderer } from "electron";
+import { UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+
+// settings from main will reach out to us to relay iframe config data per plugin
+ipcRenderer.on(UPDATE_PLUGIN_CONFIG, (_, pluginId: string, config: any) => {
+    _sendMessage({
+        type: MSG_PLUGIN_CONFIG_CHANGED,
+        pluginId,
+        config
+    })
+});
 
 let _plugins: Plugin[] = [];
 let pluginsInitialized = false;
