@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useStore, useConfig } from "titan-reactor";
+import { useStore, usePluginConfig } from "titan-reactor";
 const _screenSelector = (store) => store.screen;
 
 const Component = ({ component, JSXElement }) => {
-  const config = useConfig((store) => store[component.pluginId]);
+  const config = usePluginConfig(component.pluginId);
 
   return (
     <ErrorBoundary key={component.id}>
@@ -15,6 +15,11 @@ const Component = ({ component, JSXElement }) => {
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const screen = useStore(_screenSelector);
+  const [[logoOpacity, logoScale], setLogoVals] = useState([0.5, 1.5]);
+
+  useEffect(() => {
+    setLogoVals([0.1, 3.5]);
+  }, []);
 
   useEffect(() => {
     if (!appLoaded && screen === "@home/ready") {
@@ -38,6 +43,43 @@ export default ({ components }) => {
         flexDirection: "column",
       }}
     >
+      {(screen.startsWith("@home") || screen.endsWith("error")) && (
+        <>
+          <img
+            src="runtime/logo.png"
+            alt="logo"
+            style={{
+              position: "absolute",
+              zIndex: "-1000",
+              left: "50%",
+              top: "50%",
+              transform: `translate(-50%, -50%) scale(${logoScale})`,
+              opacity: logoOpacity,
+              transition: "all 30s ease-out",
+            }}
+          />
+
+          {screen.endsWith("error") && <div>error</div>}
+        </>
+      )}
+      {!appLoaded && (
+        <p
+          style={{
+            position: "absolute",
+            zIndex: "-999",
+            left: "50%",
+            top: "50%",
+            transform: `translate(-50%, -50%) scale(${logoScale / 2})`,
+            transition: "all 3s ease-out",
+            cursor: "wait",
+            pointerEvents: "auto",
+            color: "#ffeedd",
+            fontFamily: "Conthrax",
+          }}
+        >
+          DarkMatter
+        </p>
+      )}
       <div id="top">
         {components["top"] &&
           components["top"]

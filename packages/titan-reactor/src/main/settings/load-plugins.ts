@@ -31,8 +31,10 @@ const log = {
 
 
 let _pluginsConfigs: InitializedPluginPackage[];
+let _disabledPluginConfigs: InitializedPluginPackage[];
 
 export const getPluginConfigs = () => _pluginsConfigs;
+export const getDisabledPluginConfigs = () => _disabledPluginConfigs;
 
 const PLUGIN_ID_MACRO = "_plugin_id_";
 
@@ -56,6 +58,7 @@ const _tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = 
 export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
     if (_pluginsConfigs) return;
     _pluginsConfigs = [];
+    _disabledPluginConfigs = [];
 
     let folders: ReadFolderResult[] = [];
     try {
@@ -83,12 +86,7 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
                     continue;
                 }
 
-                if (!enabledPluginIds.includes(packageJSON.name)) {
-                    log.info(`@settings/load-plugins: ${packageJSON.name} is not enabled in settings, skipping.`);
-                    continue;
-                }
-
-                _pluginsConfigs.push({
+                const plugin = {
                     id: pluginId,
                     name: packageJSON.name,
                     version: packageJSON.version,
@@ -98,11 +96,41 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
                     path: folder.name,
                     config: packageJSON.config,
                     nativeSource: pluginNative
-                });
+                };
+
+                if (enabledPluginIds.includes(packageJSON.name)) {
+                    _pluginsConfigs.push(plugin);
+                } else {
+                    _disabledPluginConfigs.push(plugin);
+                }
             }
         }
 
     }
+}
+
+export const enablePlugin = (pluginId: string) => {
+    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
+}
+
+export const disablePlugin = (pluginId: string) => {
+    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
+
+}
+
+export const uninstallPlugin = (pluginId: string) => {
+    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
+
+}
+
+export const updatePlugin = (pluginId: string) => {
+    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
+
+}
+
+export const installPlugin = (repository: string) => {
+    console.log(`@settings/load-plugins: Enabling plugin ${repository}`);
+
 }
 
 export const savePluginsConfig = async (pluginDirectory: string, pluginId: string, config: any) => {

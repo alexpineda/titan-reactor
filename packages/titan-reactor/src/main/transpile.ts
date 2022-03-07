@@ -34,6 +34,9 @@ export default (content: string, transpileErrors: TransformSyntaxError[]) => {
                 reservedProperties: false,
                 trailingFunctionCommas: false,
                 unicodeRegExp: false,
+
+                //@ts-ignore valid but not in types
+                asyncAwait: false
             },
             file: `out.js`,
             source: `source.jsx`,

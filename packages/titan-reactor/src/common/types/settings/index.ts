@@ -87,7 +87,8 @@ export type SettingsMeta = {
     data: Settings;
     errors: string[];
     phrases: Record<string, string>;
-    pluginsConfigs: InitializedPluginPackage[];
+    enabledPlugins: InitializedPluginPackage[];
+    disabledPlugins: InitializedPluginPackage[];
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */

@@ -13,7 +13,7 @@ import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import migrate from "./migrate";
 import path from "path";
-import loadPlugins, { getPluginConfigs } from "./load-plugins";
+import loadPlugins, { getDisabledPluginConfigs, getPluginConfigs } from "./load-plugins";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -95,7 +95,8 @@ export class Settings extends EventEmitter {
       data: this._settings,
       errors,
       isCascStorage,
-      pluginsConfigs: getPluginConfigs(),
+      enabledPlugins: getPluginConfigs(),
+      disabledPlugins: getDisabledPluginConfigs(),
       phrases: {
         ...phrases["en-US"],
         ...phrases[this._settings.language as keyof typeof phrases],

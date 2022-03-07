@@ -33,9 +33,13 @@ app.get('*', function (req, res) {
 
     if (filepath.endsWith(".jsx")) {
         let result = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
-        let content = result?.code ?? "";
+        let content = "";
 
-        //TODO: verify correctness
+        if (result?.code) {
+            content = result.code;
+            content += `\n//# sourceMappingURL=${result.map.toUrl()}`;
+        }
+
         const plugin = getPluginConfigs().find(p => p.id === req.query["plugin-id"]);
         if (plugin && content) {
             content = replacePluginContent(content, plugin.id);

@@ -10,7 +10,8 @@ import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenSt
 import Plugin from "./plugin";
 import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED, MSG_PLUGIN_CONFIG_CHANGED } from "./messages";
 import { ipcRenderer } from "electron";
-import { UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+import { UPDATE_PLUGIN_CONFIG, RELOAD_PLUGINS } from "common/ipc-handle-names";
+import settingsStore from "@stores/settings-store";
 
 // settings from main will reach out to us to relay iframe config data per plugin
 ipcRenderer.on(UPDATE_PLUGIN_CONFIG, (_, pluginId: string, config: any) => {
@@ -21,6 +22,18 @@ ipcRenderer.on(UPDATE_PLUGIN_CONFIG, (_, pluginId: string, config: any) => {
     })
 });
 
+const reloadPlugins = () => {
+    const settings = settingsStore().data;
+
+    Plugin.sharedContainer.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
+    for (const plugin of _plugins) {
+        if (plugin.isolatedContainer) {
+            plugin.isolatedContainer.src = `http://localhost:${settings.data.plugins.serverPort}/runtime.html`;
+        }
+    }
+}
+ipcRenderer.on(RELOAD_PLUGINS, reloadPlugins);
+
 let _plugins: Plugin[] = [];
 let pluginsInitialized = false;
 
@@ -29,11 +42,11 @@ useSettingsStore.subscribe((settings) => {
         return;
     }
     pluginsInitialized = true;
-    _plugins = initializePlugins(settings.pluginsConfigs);
+    _plugins = initializePlugins(settings.enabledPlugins);
 
     const initialStore = {
         [MSG_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
-        [MSG_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()),
+        [MSG_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
         [MSG_WORLD_CHANGED]: useWorldStore.getState(),
         [MSG_ON_FRAME]: {
             frame: 0,
@@ -48,20 +61,19 @@ useSettingsStore.subscribe((settings) => {
         if (plugin.isolatedContainer) {
             plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
                 type: MSG_PLUGINS_LOADED,
-                plugins: [settings.pluginsConfigs.find((p) => p.id === plugin.id)],
+                plugins: [settings.enabledPlugins.find((p) => p.id === plugin.id)],
                 initialStore
             }, "*");
-            plugin.isolatedContainer.src = `http://localhost:${settings.data.plugins.serverPort}/runtime.html`;
         }
     }
 
     Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
         type: MSG_PLUGINS_LOADED,
-        plugins: settings.pluginsConfigs.filter(config => config.iframe !== "isolated"),
+        plugins: settings.enabledPlugins.filter(config => config.iframe !== "isolated"),
         initialStore
     }, "*");
 
-    Plugin.sharedContainer.src = `http://localhost:${settings.data.plugins.serverPort}/runtime.html`;
+    reloadPlugins();
 
 });
 

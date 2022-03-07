@@ -52,7 +52,7 @@ const createConfigurationWindow = () => {
       windows.config = null;
     },
     nodeIntegration: true,
-    removeMenu: true,
+    // removeMenu: true,
     backgroundColor: "#ffaa99",
     devTools: true
   });

@@ -3,11 +3,16 @@
     "version": "v1",
     "description": "Titan Clock",
     "author": "Dark Matter",
-    "keywords": ["titan-reactor-plugin"],
+    "keywords": [
+        "titan-reactor-plugin"
+    ],
     "config": {
         "style": {
             "value": "modern",
-            "options": ["classic", "modern"]
+            "options": [
+                "classic",
+                "modern"
+            ]
         },
         "fontSize": {
             "value": "16px"

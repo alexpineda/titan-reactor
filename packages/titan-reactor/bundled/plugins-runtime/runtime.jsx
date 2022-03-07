@@ -2,8 +2,18 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
+
+document.body.style.pointerEvents = "none";
+document.body.style.userSelect = "none";
+
+// game state
 export const useStore = create(() => ({}));
-export const useConfig = create(() => ({}));
+
+// plugin specific configuration
+const useConfig = create(() => ({}));
+export const usePluginConfig = (pluginId) =>
+  useConfig((store) => store[pluginId]);
+
 const _components = {};
 
 const setStyleSheet = (id, content) => {

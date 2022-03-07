@@ -1,5 +1,5 @@
 import { registerComponent, useStore } from "titan-reactor";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const LoadingScreen = () => {
   const world = useStore((store) => store.world);
@@ -32,13 +32,32 @@ registerComponent(
 
 registerComponent(
   { pluginId: "_plugin_id_", screen: "@home/ready", snap: "center" },
-  () => (
-    <div style={{ display: "flex", flexDirection: "column", color: "white" }}>
-      <p>Welcome to </p>
-      <h1 style={{ fontFamily: "Conthrax" }}>Titan Reactor</h1>
-      <p style={{ marginTop: "2rem", opacity: "0.75" }}>
-        Menu: ALT, Fullscreen: F11
-      </p>
-    </div>
-  )
+  () => {
+    const [[logoOpacity, logoScale], setLogoVals] = useState([0.1, 2]);
+
+    useEffect(() => {
+      setLogoVals([1, 1]);
+    }, []);
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          zIndex: "-999",
+          left: "50%",
+          top: "50%",
+          transform: `translate(-50%, -50%) scale(${logoScale})`,
+          opacity: logoOpacity,
+          transition: "all 2s ease-in",
+          color: "#ffeedd",
+        }}
+      >
+        <p>New Realms Are Possible</p>
+        <h1 style={{ fontFamily: "Conthrax" }}>Titan Reactor</h1>
+        <p style={{ marginTop: "2rem", opacity: "0.75" }}>
+          Menu: ALT, Fullscreen: F11, Plugins: F12
+        </p>
+      </div>
+    );
+  }
 );

@@ -124,6 +124,7 @@ async function TitanReactorGame(
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
   minimapSurface.canvas.style.bottom = "0";
+  minimapSurface.canvas.style.zIndex = "20";
   document.body.appendChild(minimapSurface.canvas);
   janitor.callback(() => document.body.removeChild(minimapSurface.canvas));
 

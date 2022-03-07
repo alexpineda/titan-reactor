@@ -81,7 +81,9 @@ const Configuration = () => {
         </aside>
         <section style={{ flexGrow: 1 }}>
           {selectedPluginConfig && (
-            <PluginTitle>{selectedPluginConfig.name}</PluginTitle>
+            <PluginTitle>
+              {selectedPluginConfig.description ?? selectedPluginConfig.name}
+            </PluginTitle>
           )}
         </section>
       </div>
@@ -94,7 +96,7 @@ const Configuration = () => {
             width: "30%",
           }}
         >
-          {settingsStore.pluginsConfigs.map((pluginConfig) => (
+          {settingsStore.enabledPlugins.map((pluginConfig) => (
             <ListButton
               key={pluginConfig.id}
               color={

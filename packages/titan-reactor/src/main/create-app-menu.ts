@@ -2,6 +2,8 @@ import { Menu, shell } from "electron";
 import { showOpenMapDialog, showOpenReplayDialog } from "./register-ipc-handlers/dialogs";
 import getUserDataPath from "./get-user-data-path";
 import path from "path";
+import browserWindows from "./windows";
+import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs", "app");
@@ -53,43 +55,55 @@ export default (onOpenPluginManager: () => void) => {
       label: "&Debug",
       submenu: [
         { role: "reload" },
+        {
+          label: "Reload All Plugins",
+          click: function () {
+            browserWindows.main?.webContents.send(RELOAD_PLUGINS);
+          }
+        },
+        { type: "separator" },
         { role: "toggledevtools" },
+        { type: "separator" },
         {
           label: "View &Log File(s)",
           click: function () {
             shell.showItemInFolder(logFilePath);
           },
         },
+        { type: "separator" },
         {
-          label: "@home/loading",
-          click: function () {
-          },
-        },
-        {
-          label: "@home/ready",
-          click: function () {
-          },
-        },
-        {
-          label: "@replay/loading",
-          click: function () {
-          },
-        },
-        {
-          label: "@replay/ready",
-          click: function () {
-          },
-        },
-        ,
-        {
-          label: "@map/loading",
-          click: function () {
-          },
-        },
-        {
-          label: "@map/ready",
-          click: function () {
-          }
+          label: "Change Screen", submenu: [
+            {
+              label: "@home/loading",
+              click: function () {
+              },
+            },
+            {
+              label: "@home/ready",
+              click: function () {
+              },
+            },
+            {
+              label: "@replay/loading",
+              click: function () {
+              },
+            },
+            {
+              label: "@replay/ready",
+              click: function () {
+              },
+            },
+            ,
+            {
+              label: "@map/loading",
+              click: function () {
+              },
+            },
+            {
+              label: "@map/ready",
+              click: function () {
+              }
+            }]
         }
       ],
     },

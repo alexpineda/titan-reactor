@@ -3,8 +3,6 @@ import { PluginContentSize, ScreenStatus, ScreenType, InitializedPluginPackage }
 const _sharedContainer = document.createElement("iframe");
 _sharedContainer.style.backgroundColor = "transparent";
 _sharedContainer.style.border = "none";
-_sharedContainer.style.pointerEvents = "none";
-_sharedContainer.style.userSelect = "none";
 _sharedContainer.style.left = "0";
 _sharedContainer.style.top = "0";
 _sharedContainer.style.width = "100%";
@@ -52,14 +50,11 @@ class Plugin {
             const iframe = document.createElement("iframe");
             iframe.style.backgroundColor = "transparent";
             iframe.style.border = "none";
-            iframe.style.pointerEvents = "none";
-            iframe.style.userSelect = "none";
             iframe.style.left = "0";
             iframe.style.top = "0";
             iframe.style.width = "100%";
             iframe.style.height = "100%";
-
-            // iframe.src = config.markup || "";
+            iframe.style.zIndex = "10";
 
             iframe.sandbox.add("allow-scripts");
             iframe.sandbox.add("allow-downloads");
