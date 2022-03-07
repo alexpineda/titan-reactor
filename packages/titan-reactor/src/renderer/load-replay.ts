@@ -159,8 +159,6 @@ export default async (filepath: string) => {
     .map(({ name }) => name)
     .join(", ")}`;
 
-
-
   processStore().complete(Process.ReplayInitialization);
   screenStore().complete();
 };

@@ -114,9 +114,7 @@ async function TitanReactorGame(
 
   const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-  useGameStore.setState({
-    dimensions: gameSurface.getRect(),
-  });
+
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getRect());
@@ -1365,6 +1363,7 @@ async function TitanReactorGame(
   gameStatePosition.advanceGameFrames = 1;
   _sceneResizeHandler();
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+
   return dispose;
 }
 

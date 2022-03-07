@@ -60,6 +60,7 @@
     ]
   },
   "dependencies": {
+    "@npmcli/package-json": "^1.0.1",
     "@stitches/react": "^1.2.6",
     "assert": "^2.0.0",
     "bl": "^5.0.0",

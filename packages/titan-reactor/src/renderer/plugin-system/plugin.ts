@@ -9,6 +9,8 @@ _sharedContainer.style.width = "100%";
 _sharedContainer.style.height = "100%";
 _sharedContainer.style.position = "absolute";
 _sharedContainer.style.zIndex = "10";
+_sharedContainer.style.pointerEvents = "none";
+_sharedContainer.style.userSelect = "none";
 
 _sharedContainer.sandbox.add("allow-scripts");
 _sharedContainer.sandbox.add("allow-downloads");
@@ -55,6 +57,8 @@ class Plugin {
             iframe.style.width = "100%";
             iframe.style.height = "100%";
             iframe.style.zIndex = "10";
+            iframe.style.pointerEvents = "none";
+            iframe.style.userSelect = "none";
 
             iframe.sandbox.add("allow-scripts");
             iframe.sandbox.add("allow-downloads");

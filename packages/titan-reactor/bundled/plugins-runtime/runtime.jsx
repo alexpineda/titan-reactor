@@ -3,9 +3,6 @@ import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
 
-document.body.style.pointerEvents = "none";
-document.body.style.userSelect = "none";
-
 // game state
 export const useStore = create(() => ({}));
 

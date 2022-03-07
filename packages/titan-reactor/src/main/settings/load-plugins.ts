@@ -1,11 +1,14 @@
-import { InitializedPluginPackage } from "common/types";
-import readFolder, { ReadFolderResult } from "../starcraft/get-files";
+import PackageJson from '@npmcli/package-json';
 import path from "path";
-import logService from "../logger/singleton";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import browserWindows from "../windows";
+
+import { InitializedPluginPackage } from "common/types";
 import { UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+
+import readFolder, { ReadFolderResult } from "../starcraft/get-files";
+import logService from "../logger/singleton";
+import browserWindows from "../windows";
 
 
 export const bootupLogs: LogMessage[] = [];
@@ -140,19 +143,27 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
         return;
     }
 
-    const existingConfigPath = path.join(pluginDirectory, pluginConfig.path, "package.json");
-    const existingConfig = await _tryLoadUtf8(existingConfigPath, "json");
+    const existingConfigPath = path.join(pluginDirectory, pluginConfig.path);
 
-    if (!existingConfig) {
+    let pkgJson;
+
+    try {
+        pkgJson = await PackageJson.load(existingConfigPath)
+    } catch (e) {
         console.error(`@save-plugins-config: Error reading plugin package.json`);
         return;
     }
 
-    existingConfig.config = config;
+
     pluginConfig.config = config;
+    pkgJson.update({
+        config
+    })
+
 
     try {
-        await fsPromises.writeFile(existingConfigPath, JSON.stringify(existingConfig, null, 4));
+        await pkgJson.save()
+        //   await fsPromises.writeFile(existingConfigPath, JSON.stringify(existingConfig, null, 4));
     } catch (e) {
         console.error(`@save-plugins-config: Error writing plugin package.json`);
         return;

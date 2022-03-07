@@ -28,7 +28,7 @@ const reloadPlugins = () => {
     Plugin.sharedContainer.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
     for (const plugin of _plugins) {
         if (plugin.isolatedContainer) {
-            plugin.isolatedContainer.src = `http://localhost:${settings.data.plugins.serverPort}/runtime.html`;
+            plugin.isolatedContainer.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
     }
 }
@@ -44,17 +44,12 @@ useSettingsStore.subscribe((settings) => {
     pluginsInitialized = true;
     _plugins = initializePlugins(settings.enabledPlugins);
 
-    const initialStore = {
+    const initialStore = () => ({
         [MSG_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
         [MSG_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
         [MSG_WORLD_CHANGED]: useWorldStore.getState(),
-        [MSG_ON_FRAME]: {
-            frame: 0,
-            maxFrame: 0,
-            time: "",
-            fps: "0"
-        }
-    }
+        [MSG_ON_FRAME]: _replayPosition.payload
+    })
 
     for (const plugin of _plugins) {
         log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version}`);
@@ -62,7 +57,7 @@ useSettingsStore.subscribe((settings) => {
             plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
                 type: MSG_PLUGINS_LOADED,
                 plugins: [settings.enabledPlugins.find((p) => p.id === plugin.id)],
-                initialStore
+                initialStore: initialStore()
             }, "*");
         }
     }
@@ -70,7 +65,7 @@ useSettingsStore.subscribe((settings) => {
     Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
         type: MSG_PLUGINS_LOADED,
         plugins: settings.enabledPlugins.filter(config => config.iframe !== "isolated"),
-        initialStore
+        initialStore: initialStore()
     }, "*");
 
     reloadPlugins();

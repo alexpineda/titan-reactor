@@ -30,34 +30,34 @@ registerComponent(
   LoadingScreen
 );
 
-registerComponent(
-  { pluginId: "_plugin_id_", screen: "@home/ready", snap: "center" },
-  () => {
-    const [[logoOpacity, logoScale], setLogoVals] = useState([0.1, 2]);
+registerComponent({ pluginId: "_plugin_id_", screen: "@home/ready" }, () => {
+  const [[logoOpacity, logoScale], setLogoVals] = useState([0.1, 3]);
 
-    useEffect(() => {
-      setLogoVals([1, 1]);
-    }, []);
+  useEffect(() => {
+    setLogoVals([1, 1]);
+  }, []);
 
-    return (
-      <div
-        style={{
-          position: "absolute",
-          zIndex: "-999",
-          left: "50%",
-          top: "50%",
-          transform: `translate(-50%, -50%) scale(${logoScale})`,
-          opacity: logoOpacity,
-          transition: "all 2s ease-in",
-          color: "#ffeedd",
-        }}
-      >
-        <p>New Realms Are Possible</p>
-        <h1 style={{ fontFamily: "Conthrax" }}>Titan Reactor</h1>
-        <p style={{ marginTop: "2rem", opacity: "0.75" }}>
-          Menu: ALT, Fullscreen: F11, Plugins: F12
-        </p>
-      </div>
-    );
-  }
-);
+  console.log("loader", logoOpacity, logoScale);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        zIndex: "-999",
+        left: "50%",
+        top: "50%",
+        transform: `translate(-50%, -50%) scale(${logoScale})`,
+        opacity: `${logoOpacity}`,
+        transition: "all ease-in 10s",
+        color: "#ffeedd",
+        fontSize: "130%",
+      }}
+    >
+      <p>What world will you create?</p>
+      <h1 style={{ fontFamily: "Conthrax" }}>Titan Reactor</h1>
+      <p style={{ marginTop: "2rem", opacity: "0.9" }}>
+        Menu: ALT, Fullscreen: F11, Plugins: F12
+      </p>
+    </div>
+  );
+});
