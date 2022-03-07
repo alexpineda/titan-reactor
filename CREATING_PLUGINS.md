@@ -10,6 +10,7 @@
   - [native.js](#nativejs)
   - [CSS Variables](#css-variables)
   - [CSS Fonts](#css-fonts)
+  - [Advanced Examples](#advanced-examples)
   - [Debugging](#debugging)
   - [Request For Plugin](#request-for-plugin)
 
@@ -24,23 +25,22 @@ Plugins in Titan Reactor allow you to create custom menus, score cards and many 
 
 ## Plugin Examples
 
-Titan Reactor comes with existing plugins under `bundled/plugins` so poke around and get an idea of how they work. It's not enough that a plugin lives under the plugins directory, but it's **`id` must also be present in the user settings.json under `plugins.enabled`**.
+Titan Reactor comes with [official plugins under `bundled/plugins`](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins) so poke around and get an idea of how they work. **For a plugin to be enabled the user must also have the plugin id in their global settings.json in the `plugins.enabled` array.**
 
 Minimal plugin:
 
 ```html
 <plugin id="unique.id" name="My Plugin" version="0.1">
-    <panel>
-        <script>
+    <channel>
+        <script type="module">
             console.log("hello world");
         </script>
-    </panel>
+    </channel>
 </plugin>
 ```
 
-You can have as many panels as you like. This panel is considered a "plugin channel", ie one method of utilizing/consuming your plugin. Other channels may be additional panels, or workers.
+You can have as many channels as you like. This channel is considered a "plugin channel", ie one method of utilizing/consuming your plugin. It'll be activated as soon as Titan Reactor starts.
 
-Note: A plugin doens't necessarily need a channel if it uses `native.js`.
 
 
 
@@ -65,33 +65,33 @@ Your `<script></script>` html and any `.jsx` file under your plugin directory wi
 
 This section provides additonal information on writing a React component for the Titan Reactor ecosystem. **This section does not cover React basics, for that please seek alternative learning resources!**
 
-So we've written our basic `plugin.html` and we're ready to develop a plugin channel, in this case a React `panel`.
+So we've written our basic `plugin.html` and we're ready to develop a visual plugin channel.
 
 ```html
 <plugin id="unique.id" name="My Plugin" version="0.1">
-    <panel screen="@home/ready">
+    <channel screen="@home/ready">
         <script async type="module">
             // ... let's write code here ...
         </script>
-    </panel>
+    </channel>
 </plugin>
 ```
 
-Here we've added the screen option to our panel. Every screen has both "loading" and "ready" states. In this case **our panel will be mounted when the home screen is ready (loaded), and unmounted on any other state**.
+Here we've added the screen option to our channel. Every screen has both "loading" and "ready" states. In this case **our React component which we will develop will be mounted when the home screen is ready (loaded), and unmounted on any other state**.
 
-Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system.  Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
+Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
 
-Now we can start writing our Panel JSX:
+Now we can start writing our React Component:
 ```jsx
 import React from "react";
-import { registerChannel } from "titan-reactor";
+import { registerComponent } from "titan-reactor";
 
-registerChannel("_channel_id_", ({ userConfig }) => {
+registerComponent("_channel_id_", ({ userConfig }) => {
     return <h1>Hello { userConfig.name.value }</h1>
 })
 ```
 
-`registerChannel` lets Titan Reactor know about our new JSX panel, and will mount it and unmount it according to the screen rules. Remember that the `_channel_id_` macro will be replaced with our appropriate channel identifier for us. 
+`registerComponent` lets Titan Reactor know about our new React Component, and will mount it and unmount it according to the screen rules. Remember that the `_channel_id_` macro will be replaced with our appropriate channel identifier for us. 
 
 Every component will be provided with their plugin `userConfig` object which corresponds with `userConfig.json` for read only access. The component will re-render if the userConfig gets updated.
 
@@ -105,15 +105,18 @@ The plugin runtime provides a useStore hook for channels to access game state. T
 
     ...
 
-    // in our component, useStore(selector)
-    const players = useStore(store => store.world.replay.players);
+    // outside our component
+    const selector = store => store.world.replay.players;
+
+    // inside our component, useStore(selector)
+    const players = useStore(selector);
 ```
 
 It's best to [keep the "selector" function memoized](https://github.com/pmndrs/zustand#memoizing-selectors) with useCallback or kept outside the function to minimize object allocation. If a selector isn't provided your component will re-render every game second since that is when `store.frame` gets updated which is the most frequently updated.
 
 **Optimized (Transient) Use**
 
-This method is a small optimization minimizing virtual dom diffing and re-renders. See `FPS Meter plugin` and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
+This method is a small optimization minimizing virtual dom diffing and re-renders. See [FPS Meter plugin](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins/fps) and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
 
 
 ## Store Reference
@@ -126,7 +129,7 @@ This method is a small optimization minimizing virtual dom diffing and re-render
 
 - **world** : Partial<[WorldStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/renderer/stores/realtime/world-store.ts#L6)>
   - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/bw-chk.d.ts#L21)
-  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/downgrade-replay.d.ts#L2) (if replay)
+  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/downgrade-replay.d.ts#L2)
 
 
 - **scene** : Partial<[ScreenStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/renderer/stores/screen-store.ts#L8)>
@@ -148,31 +151,31 @@ This method is a small optimization minimizing virtual dom diffing and re-render
 - package-url: *optional* github repository url or npm package url for detecting updates
 
 ```html
-<panel>
-<panel screen="screenType/screenStatus">
-<panel snap="location">
+<channel>
+<channel screen="screenType/screenStatus">
+<channel snap="location">
 ```
 screen
 - screenType = `@home` | `@replay` | `@map`
 
 - screenStatus = `loading` | `ready`
 
-`@home/loading` is not available to plugins. if `screen` is omitted, the plugin panel will be mounted `@home/ready` and remain mounted.
+`@home/loading` is not available to plugins. if `screen` is omitted, the plugin channel will be mounted `@home/ready` and remain mounted.
 
 
 snap
 - `top` | `left` | `right` | `bottom` | `center`
 
-If multiple panels are snapped into the same location, we use `userConfig.order.value` to determine an ordering. 
+If multiple channels are snapped into the same location, we use `userConfig.order.value` to determine an ordering. 
 
 If snap is omitted, positioning is upto the plugin author and the root node must have style `position: absolute`.
 
-A panel can have atmost one script element. `async` and `type` attributes will be added for you in practice and so are optional to include in the template. Currently the `src` attribute is not supported, but you may use the `import` statement along with plugin macros to include an external jsx file rather than inline it.
+A channel can have atmost one script element. `async` and `type` attributes will be added for you in practice and so are optional to include in the template. Currently the `src` attribute is not supported, but you may use the `import` statement along with plugin macros to include an external jsx file rather than inline it.
 
 ```html
 <!-- inline example -->
 <script async type="module">
-    /// ...panel implementation
+    /// ...channel implementation
 </script>
 
 <!-- external example my-plugin.jsx -->
@@ -218,6 +221,10 @@ Additional font-families available to your styles:
 `Inter` the default body font.
 
 `Conthrax` and `Conthrax-Bold` are good for scores and numbers.
+
+## Advanced Examples
+
+A channel script doesn't necessarily need a visual React component, it could simply read replay data and relay it to a server for archiving for example. Additionally a plugin doesn't necessarily even need a `script` element if using `native.js` for more control. If using `native.js` you can still communicate with your channels if you require the visual element as well.
 
 ## Debugging
 

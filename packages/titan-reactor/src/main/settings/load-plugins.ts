@@ -133,7 +133,7 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
                 const channels: InitializedPluginChannelConfiguration[] = [];
 
                 templateLoop:
-                for (const channelEl of $("panel", pluginEl)) {
+                for (const channelEl of $("channel", pluginEl)) {
 
                     const screenKey = ($(channelEl).prop("screen") ?? "");
                     const screenDataKeys = Object.keys(screenDataMap);

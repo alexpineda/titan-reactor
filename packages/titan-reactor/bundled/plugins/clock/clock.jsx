@@ -1,5 +1,5 @@
 import React from "react";
-import { registerChannel, useStore } from "titan-reactor";
+import { registerComponent, useStore } from "titan-reactor";
 import ModernClock from "./modern.jsx";
 
 const styles = {
@@ -15,7 +15,7 @@ const styles = {
 };
 
 const _selector = (store) => store.frame.time;
-registerChannel("_channel_id_", ({ userConfig }) => {
+registerComponent("_channel_id_", ({ userConfig }) => {
   const time = useStore(_selector);
 
   if (userConfig.style.value === "modern") {

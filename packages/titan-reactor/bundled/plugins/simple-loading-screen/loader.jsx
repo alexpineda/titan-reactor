@@ -1,7 +1,7 @@
-import { registerChannel, useStore } from "titan-reactor";
+import { registerComponent, useStore } from "titan-reactor";
 import React from "react";
 
-registerChannel("_channel_id_", () => {
+registerComponent("_channel_id_", () => {
   const world = useStore((store) => store.world);
 
   return (

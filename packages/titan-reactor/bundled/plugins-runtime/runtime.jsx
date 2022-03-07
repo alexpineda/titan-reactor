@@ -200,7 +200,7 @@ const App = ({ components }) => {
     </div>
   );
 };
-export const registerChannel = (channelId, JSXElement) => {
+export const registerComponent = (channelId, JSXElement) => {
   const channel = _channels.find((channel) => channel.id === channelId);
   if (channel) {
     const pos = channel.snap || "loose";

@@ -1,10 +1,10 @@
   <plugin id="darkmatter.fps" name="FPS Meter" version="0.1" author="Dark Matter">
-    <panel screen="@replay/ready" snap="top">
+    <channel screen="@replay/ready" snap="top">
       <script async type="module">
         import React, { useRef, useEffect } from 'react';
-        import { registerChannel, useStore } from "titan-reactor";
+        import { registerComponent, useStore } from "titan-reactor";
 
-        registerChannel("_channel_id_", ({ userConfig }) => {
+        registerComponent("_channel_id_", ({ userConfig }) => {
 
           const fpsElRef = useRef();
 
@@ -24,5 +24,5 @@
           return <p ref={fpsElRef} style={{ fontSize: userConfig.fontSize.value, color: "white" }}></p>
         });
         </script>
-    </panel>
+    </channel>
   </plugin>
