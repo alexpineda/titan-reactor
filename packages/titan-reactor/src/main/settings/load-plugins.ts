@@ -9,7 +9,8 @@ import { UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import logService from "../logger/singleton";
 import browserWindows from "../windows";
-
+import settings from "../settings/singleton"
+import { shell } from 'electron';
 
 export const bootupLogs: LogMessage[] = [];
 type LogMessage = {
@@ -36,7 +37,7 @@ const log = {
 let _pluginsConfigs: InitializedPluginPackage[];
 let _disabledPluginConfigs: InitializedPluginPackage[];
 
-export const getPluginConfigs = () => _pluginsConfigs;
+export const getEnabledPluginConfigs = () => _pluginsConfigs;
 export const getDisabledPluginConfigs = () => _disabledPluginConfigs;
 
 const PLUGIN_ID_MACRO = "_plugin_id_";
@@ -57,11 +58,13 @@ const _tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = 
     }
 }
 
+let _pluginDirectory = "";
 
-export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
+export default async (pluginDirectory: string, enabledPluginNames: string[]) => {
     if (_pluginsConfigs) return;
     _pluginsConfigs = [];
     _disabledPluginConfigs = [];
+    _pluginDirectory = pluginDirectory;
 
     let folders: ReadFolderResult[] = [];
     try {
@@ -101,7 +104,7 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
                     nativeSource: pluginNative
                 };
 
-                if (enabledPluginIds.includes(packageJSON.name)) {
+                if (enabledPluginNames.includes(packageJSON.name)) {
                     _pluginsConfigs.push(plugin);
                 } else {
                     _disabledPluginConfigs.push(plugin);
@@ -112,29 +115,56 @@ export default async (pluginDirectory: string, enabledPluginIds: string[]) => {
     }
 }
 
-export const enablePlugin = (pluginId: string) => {
-    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
-}
-
-export const disablePlugin = (pluginId: string) => {
-    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
-
-}
-
-export const uninstallPlugin = (pluginId: string) => {
-    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
-
-}
-
-export const updatePlugin = (pluginId: string) => {
-    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
-
-}
 
 export const installPlugin = (repository: string) => {
     console.log(`@settings/load-plugins: Enabling plugin ${repository}`);
 
+    return false;
+
 }
+export const enablePlugin = (pluginId: string) => {
+    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
+}
+
+// note: requires restart for user to see changes
+export const disablePlugin = (pluginId: string) => {
+    const plugin = _pluginsConfigs.find(p => p.id === pluginId);
+    if (!plugin) {
+        log.info(`@load-plugins/disable: Plugin ${pluginId} not found`);
+        return;
+    };
+
+    log.info(`@load-plugins/disable: Disabling plugin ${pluginId}`);
+    _pluginsConfigs = _pluginsConfigs.filter(plugin => plugin !== plugin);
+    _disabledPluginConfigs.push(plugin);
+
+    settings.disablePlugin(plugin.name);
+
+    return true;
+}
+
+// note: requires restart for user to see changes
+export const uninstallPlugin = async (pluginId: string) => {
+    const plugin = _disabledPluginConfigs.find(p => p.id === pluginId);
+    if (!plugin) {
+        log.error(`@load-plugins/uninstall: Plugin ${pluginId} not found`);
+        return;
+    };
+
+    log.info(`@load-plugins/uninstall: Uninstalling plugin ${pluginId}`);
+    _disabledPluginConfigs = _disabledPluginConfigs.filter(plugin => plugin !== plugin);
+
+    const delPath = path.join(_pluginDirectory, plugin.path);
+    try {
+        shell.trashItem(delPath);
+    } catch {
+        log.error(`@load-plugins/uninstall: Failed to delete plugin ${plugin.name} on folder ${delPath}`);
+        return false;
+    }
+    return true;
+}
+
+
 
 export const savePluginsConfig = async (pluginDirectory: string, pluginId: string, config: any) => {
     const pluginConfig = _pluginsConfigs.find(p => p.id === pluginId);

@@ -5,10 +5,10 @@ import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types
 
 import * as log from "@ipc/log";
 import { GameStatePosition } from "@core";
-import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenStore } from "@stores";
+import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
 
 import Plugin from "./plugin";
-import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED, MSG_PLUGIN_CONFIG_CHANGED } from "./messages";
+import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED, MSG_PLUGIN_CONFIG_CHANGED, MSG_LOG_ENTRY } from "./messages";
 import { ipcRenderer } from "electron";
 import { UPDATE_PLUGIN_CONFIG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import settingsStore from "@stores/settings-store";
@@ -48,7 +48,8 @@ useSettingsStore.subscribe((settings) => {
         [MSG_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
         [MSG_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
         [MSG_WORLD_CHANGED]: useWorldStore.getState(),
-        [MSG_ON_FRAME]: _replayPosition.payload
+        [MSG_ON_FRAME]: _replayPosition.payload,
+        [MSG_LOG_ENTRY]: logChanged(useGameStore.getState()).payload
     })
 
     for (const plugin of _plugins) {
@@ -73,6 +74,12 @@ useSettingsStore.subscribe((settings) => {
 });
 
 
+const logChanged = (game: GameStore) => {
+    return {
+        type: MSG_LOG_ENTRY,
+        payload: game.log
+    }
+}
 
 useGameStore.subscribe((game, prev) => {
     if (game.dimensions !== prev.dimensions) {
@@ -80,6 +87,10 @@ useGameStore.subscribe((game, prev) => {
             type: MSG_DIMENSIONS_CHANGED,
             payload: game.dimensions
         });
+    }
+
+    if (game.log !== prev.log) {
+        _sendMessage(logChanged(game));
     }
 });
 

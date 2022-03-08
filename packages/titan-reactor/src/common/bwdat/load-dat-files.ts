@@ -17,7 +17,6 @@ import { UpgradesDAT } from "./upgrades-dat";
 import { WeaponsDAT } from "./weapons-dat";
 
 export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
-  //@todo move parse iscript to common/iscript
   const iscript = parseIscript(
     await readFile("scripts/iscript.bin")
   ) as IScriptDATType;
@@ -37,7 +36,6 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
   const weapons = await new WeaponsDAT(readFile, flingy).load();
   const sounds = await new SoundsDAT(readFile).load();
 
-  //@todo define in and out type for DAT
   const units = (
     await new UnitsDAT(readFile, images, flingy, sounds).load()
   ).map((u) => new UnitDAT(u));

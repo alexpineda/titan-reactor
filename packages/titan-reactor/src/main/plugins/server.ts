@@ -5,7 +5,7 @@ import fs from "fs"
 import transpile, { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
-import { getPluginConfigs, replacePluginContent } from "../settings/load-plugins";
+import { getEnabledPluginConfigs, replacePluginContent } from "../settings/load-plugins";
 
 // TODO: verify it exists
 const _pluginsPath = path.resolve(__static, "plugins");
@@ -40,7 +40,7 @@ app.get('*', function (req, res) {
             content += `\n//# sourceMappingURL=${result.map.toUrl()}`;
         }
 
-        const plugin = getPluginConfigs().find(p => p.id === req.query["plugin-id"]);
+        const plugin = getEnabledPluginConfigs().find(p => p.id === req.query["plugin-id"]);
         if (plugin && content) {
             content = replacePluginContent(content, plugin.id);
         }

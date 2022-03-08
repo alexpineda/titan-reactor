@@ -53,9 +53,13 @@ registerComponent({ pluginId: "_plugin_id_", screen: "@home/ready" }, () => {
         fontSize: "130%",
       }}
     >
-      <p>What world will you create?</p>
-      <h1 style={{ fontFamily: "Conthrax" }}>Titan Reactor</h1>
-      <p style={{ marginTop: "2rem", opacity: "0.9" }}>
+      <p style={{ opacity: 0.5, fontSize: "1rem" }}>
+        Your Advanced Starcraft Broodwar Observing Tool
+      </p>
+      <h1 style={{ fontFamily: "Conthrax", fontSize: "4rem" }}>
+        Titan Reactor
+      </h1>
+      <p style={{ marginTop: "2rem", opacity: "0.9", textAlign: "center" }}>
         Menu: ALT, Fullscreen: F11, Plugins: F12
       </p>
     </div>

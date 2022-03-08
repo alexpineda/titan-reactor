@@ -2,6 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useStore, usePluginConfig } from "titan-reactor";
 const _screenSelector = (store) => store.screen;
 
+const _style_ErrorCenterText = {
+  position: "absolute",
+  zIndex: "-999",
+  left: "50%",
+  top: "50%",
+  transform: `translate(-50%, -50%)`,
+  transition: "all 3s ease-out",
+  cursor: "wait",
+  color: "#ffeedd",
+  fontFamily: "Conthrax",
+};
+
+const GlobalErrorState = ({ error }) => {
+  return (
+    <div style={_style_ErrorCenterText}>
+      <p style={{ fontSize: "150%" }}>Uh oh!</p>
+      <p
+        style={{
+          fontFamily: "Inter, sans-serif",
+          color: "#aa6677",
+          fontSize: "150%",
+        }}
+      >
+        {error}
+      </p>
+    </div>
+  );
+};
+
 const Component = ({ component, JSXElement }) => {
   const config = usePluginConfig(component.pluginId);
 
@@ -30,6 +59,18 @@ export default ({ components }) => {
   const screenFilter = ({ component }) =>
     appLoaded &&
     (component.screen === undefined || component.screen === screen);
+
+  const styleCenterText = {
+    position: "absolute",
+    zIndex: "-999",
+    left: "50%",
+    top: "50%",
+    transform: `translate(-50%, -50%) scale(${logoScale / 2})`,
+    transition: "all 3s ease-out",
+    cursor: "wait",
+    color: "#ffeedd",
+    fontFamily: "Conthrax",
+  };
 
   return (
     <div
@@ -60,32 +101,8 @@ export default ({ components }) => {
           />
         </>
       )}
-      {!appLoaded && (
-        <p
-          style={{
-            position: "absolute",
-            zIndex: "-999",
-            left: "50%",
-            top: "50%",
-            transform: `translate(-50%, -50%) scale(${logoScale / 2})`,
-            transition: "all 3s ease-out",
-            cursor: "wait",
-            pointerEvents: "auto",
-            color: "#ffeedd",
-            fontFamily: "Conthrax",
-          }}
-        >
-          {error && (
-            <div>
-              <p>Uh oh!</p>
-              <p style={{ fontFamily: "Inter, sans-serif", color: "#aa6677" }}>
-                {error}
-              </p>
-            </div>
-          )}
-          {!error && <>DarkMatter</>}
-        </p>
-      )}
+      {!appLoaded && !error && <p style={styleCenterText}>DarkMatter</p>}
+      {error && <GlobalErrorState error={error} />}
       <div id="top">
         {components["top"] &&
           components["top"]

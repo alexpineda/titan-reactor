@@ -39,7 +39,6 @@ import {
 } from "./render";
 import renderer from "./render/renderer";
 import {
-  useGameStore,
   useHudStore,
   useSettingsStore,
 } from "./stores";

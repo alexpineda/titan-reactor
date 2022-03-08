@@ -53,7 +53,7 @@ const createConfigurationWindow = () => {
     },
     nodeIntegration: true,
     // removeMenu: true,
-    backgroundColor: "#ffaa99",
+    backgroundColor: "#000000",
     devTools: true
   });
   windows.config.title = "Configuration Panel";

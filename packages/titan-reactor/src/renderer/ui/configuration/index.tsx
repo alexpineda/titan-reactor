@@ -1,14 +1,16 @@
 import "../reset.css";
+import "../mui.min.css";
+import { useEffect, useState } from "react";
 import { render } from "react-dom";
-import { styled, theme } from "./stitches";
-
-import settingsStore, { useSettingsStore } from "@stores/settings-store";
-import { useState } from "react";
-import { InitializedPluginPackage } from "common/types";
-import PluginConfigurationUI from "./plugin-configuration-ui";
+import { Container, Button, Tabs, Tab } from "muicss/react";
+import search from "libnpmsearch";
 import { Leva } from "leva";
-import { updatePluginsConfig } from "@ipc/plugins";
 import { debounce } from "lodash";
+
+import { InitializedPluginPackage } from "common/types";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import { deletePlugin, disablePlugin, updatePluginsConfig } from "@ipc/plugins";
+import PluginConfigurationUI from "./plugin-configuration-ui";
 import DetailSheet from "./detail-sheet";
 
 // @ts-ignore
@@ -17,77 +19,12 @@ if (module.hot) {
   module.hot.accept();
 }
 
-const PluginTitle = styled("h1", {
-  color: "$foreground",
-  padding: "$8",
-});
-
-const Button = styled("button", {
-  background: "$buttonBackground",
-  color: "$buttonText",
-  cursor: "pointer",
-  variants: {
-    color: {
-      danger: {
-        background: "$cerise700",
-        color: "$cerise200",
-      },
-      alternate: {
-        background: "$gray200",
-        color: "$gray700",
-      },
-    },
-  },
-});
-
-const Container = styled("div", {
-  width: "100%",
-  height: "100%",
-  backgroundColor: "$background",
-  color: "$foreground",
-  position: "absolute",
-  fontFamily: "sans-serif",
-});
-
-const ListButton = styled("div", {
-  marginBottom: "$2",
-  paddingLeft: "$4",
-  paddingRight: "$4",
-  paddingTop: "$1",
-  paddingBottom: "$1",
-  border: "1px solid",
-  borderRadius: "$md",
-  cursor: "pointer",
-  userSelect: "none",
-  variants: {
-    color: {
-      default: {
-        backgroundColor: "$controlBackground",
-        color: "$controlForeground",
-        borderColor: "transparent",
-        "&:hover": {
-          borderColor: "$controlRecessedBorder",
-        },
-      },
-      selected: {
-        borderColor: "$controlRecessedBorder",
-        color: "$controlRecessedForeground",
-      },
-      disabled: {
-        backgroundColor: "$controlBackground",
-        color: "$controlRecessedForeground",
-        borderColor: "transparent",
-        "&:hover": {
-          borderColor: "$controlRecessedBorder",
-        },
-      },
-    },
-  },
-});
-
 const onChange = debounce(async (pluginId: string, config: any) => {
   updatePluginsConfig(pluginId, config);
 }, 1000);
+
+const LIMIT = 100;
+const RESTART_REQUIRED = "Restart required for new settings to take effect";
 
 const Configuration = () => {
   const settingsStore = useSettingsStore();
@@ -95,137 +32,221 @@ const Configuration = () => {
     InitializedPluginPackage | undefined
   >(settingsStore.enabledPlugins[0] ?? settingsStore.disabledPlugins[0]);
 
+  const [selectedOnlinePlugin, setSelectedOnlinePlugin] = useState<
+    search.Result | undefined
+  >(undefined);
+
+  const [npmPlugins, setNpmPlugins] = useState<search.Result[]>([]);
+  const [pagination, setPagination] = useState(0);
+  const [banner, setBanner] = useState("");
+
+  useEffect(() => {
+    if (banner) {
+      const t = setTimeout(() => setBanner(""), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [banner]);
+
+  const searchPackages = async () => {
+    const results = await search("keywords:titan-plugin", {
+      limit: LIMIT,
+      from: pagination * LIMIT,
+    });
+    console.log(results);
+    setNpmPlugins(results);
+  };
+
+  useEffect(() => {
+    searchPackages();
+  }, []);
+
   return (
-    <Container css={{}}>
-      <div style={{ width: "100%", display: "flex" }}>
-        <aside
-          style={{
-            marginRight: "2rem",
-            maxWidth: "30%",
-          }}
-        >
-          <PluginTitle>Plugin Settings</PluginTitle>
-        </aside>
-        <section style={{ flexGrow: 1 }}>
-          {selectedPluginConfig && (
-            <PluginTitle>
-              {selectedPluginConfig.description ?? selectedPluginConfig.name}
-            </PluginTitle>
-          )}
-        </section>
-      </div>
-      <div style={{ width: "100%", display: "flex" }}>
-        <aside
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            marginRight: "2rem",
-            width: "30%",
-          }}
-        >
+    <Container>
+      <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
+        {banner && <p className="mui--bg-accent mui--text-light">{banner}</p>}
+        <div style={{ display: "flex" }}>
           <div
             style={{
-              display: "flex",
-              justifyItems: "stretch",
-              marginBottom: "1rem",
+              marginRight: "2rem",
+              maxWidth: "30%",
             }}
           >
-            <Button css={{ flexGrow: "1" }}>Available</Button>
-            <Button color="alternate" css={{ flexGrow: "1" }}>
-              Marketplace
-            </Button>
+            <h2>Plugin Settings</h2>
           </div>
-          {settingsStore.enabledPlugins.map((pluginConfig) => (
-            <ListButton
-              key={pluginConfig.id}
-              color={
-                selectedPluginConfig?.id === pluginConfig.id
-                  ? "selected"
-                  : "default"
-              }
-              onClick={() => {
-                setSelectedPluginConfig(pluginConfig);
-              }}
-            >
-              {pluginConfig.name}
-            </ListButton>
-          ))}
-          {settingsStore.disabledPlugins.map((pluginConfig) => (
-            <ListButton
-              key={pluginConfig.id}
-              color={
-                selectedPluginConfig?.id === pluginConfig.id
-                  ? "selected"
-                  : "disabled"
-              }
-              onClick={() => {
-                setSelectedPluginConfig(pluginConfig);
-              }}
-            >
-              {pluginConfig.name}
-            </ListButton>
-          ))}
-        </aside>
-        <main style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-          <Leva
-            fill
-            flat
-            hideCopyButton
-            titleBar={false}
-            theme={{
-              colors: {
-                elevation1: theme.colors.background.value,
-                elevation2: theme.colors.controlBackground.value,
-                elevation3: theme.colors.beaver700.value,
-                accent1: theme.colors.blue100.value,
-                accent2: theme.colors.blue300.value,
-                accent3: theme.colors.lemon500.value,
-                highlight1: theme.colors.lemon100.value,
-                highlight2: theme.colors.lemon200.value,
-                highlight3: theme.colors.lemon300.value,
-                vivid1: theme.colors.beaver500.value,
-                folderWidgetColor: theme.colors.cerise500.value,
-                folderTextColor: theme.colors.cerise500.value,
-                toolTipBackground: theme.colors.cerise500.value,
-                toolTipText: theme.colors.cerise500.value,
-              },
-              sizes: {
-                controlWidth: "40vw",
-              },
-              fontSizes: {
-                root: "14px",
-              },
+          <div style={{ flexGrow: 1 }}>
+            {selectedPluginConfig && (
+              <h2>
+                {selectedPluginConfig.description ?? selectedPluginConfig.name}
+              </h2>
+            )}
+          </div>
+        </div>
+        <div style={{ display: "flex" }}>
+          <aside
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              marginRight: "2rem",
+              width: "30%",
             }}
-          />
-          {selectedPluginConfig &&
-            settingsStore.enabledPlugins.includes(selectedPluginConfig) && (
-              <>
-                <PluginConfigurationUI
-                  pluginConfig={selectedPluginConfig}
-                  onChange={onChange}
-                />
-                <Button>Disable Plugin</Button>
-                <Button color="danger">Delete Plugin</Button>
-                <p>
-                  Note: Not all plugins may be smoothly disabled/deleted. If you
-                  find the app is not working as it should after
-                  disabling/deleting, use the Debug menu to do a full plugin
-                  reload, or a full app reload.
-                </p>
-              </>
-            )}
-          {selectedPluginConfig &&
-            settingsStore.disabledPlugins.includes(selectedPluginConfig) && (
-              <>
-                <p>
-                  Warning: Ensure you trust the authors of this plugin before
-                  enabling it.
-                </p>
-                <Button color="danger">Enable Plugin</Button>
-                <DetailSheet pluginConfig={selectedPluginConfig} />
-              </>
-            )}
-        </main>
+          >
+            <Tabs>
+              <Tab value="local" label="Local">
+                {settingsStore.enabledPlugins.map((pluginConfig) => (
+                  <Button
+                    variant="flat"
+                    size="small"
+                    key={pluginConfig.id}
+                    color={
+                      selectedPluginConfig?.id === pluginConfig.id
+                        ? "primary"
+                        : "default"
+                    }
+                    onClick={() => {
+                      setSelectedPluginConfig(pluginConfig);
+                    }}
+                  >
+                    {pluginConfig.name}
+                  </Button>
+                ))}
+                {settingsStore.disabledPlugins.map((pluginConfig) => (
+                  <Button
+                    variant="flat"
+                    size="small"
+                    key={pluginConfig.id}
+                    color={
+                      selectedPluginConfig?.id === pluginConfig.id
+                        ? "primary"
+                        : "default"
+                    }
+                    style={{ opacity: "0.8" }}
+                    onClick={() => {
+                      setSelectedPluginConfig(pluginConfig);
+                    }}
+                  >
+                    {pluginConfig.name}
+                  </Button>
+                ))}
+              </Tab>
+              <Tab value="online" label="Online">
+                {npmPlugins.map((plugin) => (
+                  <Button
+                    variant="flat"
+                    size="small"
+                    key={plugin.name}
+                    color={
+                      selectedOnlinePlugin?.name === plugin.name
+                        ? "primary"
+                        : "default"
+                    }
+                    style={{ opacity: "0.8" }}
+                    onClick={() => {
+                      setSelectedOnlinePlugin(plugin);
+                    }}
+                  >
+                    {plugin.name}
+                  </Button>
+                ))}
+              </Tab>
+            </Tabs>
+          </aside>
+          <main
+            style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
+          >
+            <Leva
+              fill
+              flat
+              hideCopyButton
+              titleBar={false}
+              theme={{
+                colors: {
+                  accent1: "blue",
+                  accent2: "red",
+                  accent3: "red",
+                  elevation1: "red",
+                  elevation2: "#f5f5f5",
+                  elevation3: "#d9e0f0",
+                  highlight1: "black",
+                  highlight2: "#222",
+                  highlight3: "#333",
+                  vivid1: "red",
+                  // toolTipBackground: theme.colors.cerise500.value,
+                  // toolTipText: theme.colors.cerise500.value,
+                },
+                sizes: {
+                  controlWidth: "40vw",
+                },
+                fontSizes: {
+                  root: "14px",
+                },
+              }}
+            />
+            {selectedPluginConfig &&
+              settingsStore.enabledPlugins.includes(selectedPluginConfig) && (
+                <>
+                  <PluginConfigurationUI
+                    pluginConfig={selectedPluginConfig}
+                    onChange={onChange}
+                  />
+                  <Button
+                    onClick={async () => {
+                      if (
+                        confirm("Are you sure you want to disable this plugin?")
+                      ) {
+                        if (await disablePlugin(selectedPluginConfig.id)) {
+                          setBanner(RESTART_REQUIRED);
+                          useSettingsStore.setState({
+                            disabledPlugins: [
+                              ...settingsStore.disabledPlugins,
+                              selectedPluginConfig,
+                            ],
+                            enabledPlugins: settingsStore.enabledPlugins.filter(
+                              (p) => p.id !== selectedPluginConfig.id
+                            ),
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    Disable Plugin
+                  </Button>
+                </>
+              )}
+            {selectedPluginConfig &&
+              settingsStore.disabledPlugins.includes(selectedPluginConfig) && (
+                <>
+                  <p>
+                    Warning: Ensure you trust the authors of this plugin before
+                    enabling it.
+                  </p>
+                  <Button color="danger">Enable Plugin</Button>
+                  <Button
+                    color="danger"
+                    onClick={async () => {
+                      if (
+                        confirm(
+                          "Are you sure you want to DELETE this plugin and all it's FILES?"
+                        )
+                      ) {
+                        if (await deletePlugin(selectedPluginConfig.id)) {
+                          setBanner("Plugin files were placed in trash bin");
+                          useSettingsStore.setState({
+                            disabledPlugins:
+                              settingsStore.disabledPlugins.filter(
+                                (p) => p.id !== selectedPluginConfig.id
+                              ),
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    Delete Plugin
+                  </Button>
+                  <DetailSheet pluginConfig={selectedPluginConfig} />
+                </>
+              )}
+          </main>
+        </div>
       </div>
     </Container>
   );

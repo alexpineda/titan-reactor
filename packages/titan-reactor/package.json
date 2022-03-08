@@ -50,7 +50,7 @@
     "appId": "imbateam.titan-reactor",
     "productName": "Titan Reactor",
     "mac": {
-      "category": "3D Map & Replay Viewer for Starcraft Broodwar"
+      "category": "The Advanced Observing App"
     },
     "extraResources": [
       {
@@ -61,7 +61,6 @@
   },
   "dependencies": {
     "@npmcli/package-json": "^1.0.1",
-    "@stitches/react": "^1.2.6",
     "assert": "^2.0.0",
     "bl": "^5.0.0",
     "buble": "^0.20.0",
@@ -69,11 +68,9 @@
     "bw-chk": "^1.3.0",
     "byte-size": "^8.1.0",
     "camera-controls": "^1.33.2",
-    "cheerio": "^1.0.0-rc.10",
     "concat": "1.0.3",
     "d3-ease": "1.0.6",
     "deepmerge": "^4.2.2",
-    "dompurify": "^2.3.6",
     "downgrade-replay": "^0.0.7",
     "electron-devtools-installer": "^3.2.0",
     "electron-is-dev": "^1.2.0",
@@ -86,6 +83,7 @@
     "lodash.groupby": "^4.6.0",
     "lodash.shuffle": "^4.2.0",
     "mkdirp": "^1.0.4",
+    "muicss": "^0.10.3",
     "postprocessing": "6.24.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -111,11 +109,13 @@
     "@types/express": "^4.17.13",
     "@types/jest": "^27.0.3",
     "@types/js-yaml": "^4.0.5",
+    "@types/libnpmsearch": "^2.0.3",
     "@types/lodash.debounce": "^4.0.6",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.groupby": "^4.6.6",
     "@types/lodash.shuffle": "^4.2.6",
     "@types/mkdirp": "^1.0.2",
+    "@types/muicss": "^0.9.4",
     "@types/react": "^17.0.37",
     "@types/react-dom": "^17.0.11",
     "@types/three": "^0.133.1",

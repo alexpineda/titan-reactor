@@ -13,7 +13,7 @@ import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import migrate from "./migrate";
 import path from "path";
-import loadPlugins, { getDisabledPluginConfigs, getPluginConfigs } from "./load-plugins";
+import loadPlugins, { getDisabledPluginConfigs, getEnabledPluginConfigs } from "./load-plugins";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -56,6 +56,23 @@ export class Settings extends EventEmitter {
     return this._settings;
   }
 
+  disablePlugin(pluginName: string) {
+    this.save({
+      plugins: {
+        ...this._settings.plugins,
+        enabled: this._settings.plugins.enabled.filter(p => p !== pluginName),
+      }
+    })
+  }
+
+  enablePlugin(pluginName: string) {
+    this.save({
+      plugins: {
+        ...this._settings.plugins,
+        enabled: [...this._settings.plugins.enabled, pluginName],
+      }
+    })
+  }
   /**
    * 
    * @returns a JS object with the current settings and metadata
@@ -95,7 +112,7 @@ export class Settings extends EventEmitter {
       data: this._settings,
       errors,
       isCascStorage,
-      enabledPlugins: getPluginConfigs(),
+      enabledPlugins: getEnabledPluginConfigs(),
       disabledPlugins: getDisabledPluginConfigs(),
       phrases: {
         ...phrases["en-US"],
@@ -132,11 +149,7 @@ export class Settings extends EventEmitter {
    * Emits the "change" event.
    * @param settings 
    */
-  async save(settings: any) {
-    if (settings.errors) {
-      delete settings.errors;
-    }
-
+  async save(settings: Partial<SettingsType>) {
     this._settings = Object.assign({}, this._settings, settings);
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {
       encoding: "utf8",
