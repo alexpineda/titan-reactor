@@ -11,7 +11,7 @@ const useConfig = create(() => ({}));
 export const usePluginConfig = (pluginId) =>
   useConfig((store) => store[pluginId]);
 
-const _components = {};
+const useComponents = create(() => ({}));
 
 const setStyleSheet = (id, content) => {
   let style;
@@ -27,26 +27,30 @@ const setStyleSheet = (id, content) => {
 
 const _plugins = [];
 
+const _addPlugin = (plugin) => {
+  _plugins.push(plugin);
+
+  // initialize the plugin channels custom script and we'll later wait for it to register
+  const script = document.createElement("script");
+  script.type = "module";
+  script.async = true;
+  script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
+  document.head.appendChild(script);
+
+  console.log(plugin);
+  useConfig.setState({ [plugin.id]: plugin.config });
+};
+
 const _messageListener = function (event) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
       useStore.setState(event.data.initialStore);
-
-      for (const plugin of event.data.plugins) {
-        _plugins.push(plugin);
-
-        // initialize the plugin channels custom script and we'll later wait for it to register
-        const script = document.createElement("script");
-        script.type = "module";
-        script.async = true;
-        script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
-        document.head.appendChild(script);
-
-        console.log(plugin);
-        useConfig.setState({ [plugin.id]: plugin.config });
-      }
+      ReactDOM.render(<AppWrapper />, document.body);
+      event.data.plugins.forEach(_addPlugin);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({ [event.data.pluginId]: event.data.config });
+    } else if (event.data.type === "system:add-plugin") {
+      _addPlugin(event.data.plugin);
     }
   } else {
     if (event.data.type === "dimensions") {
@@ -72,12 +76,18 @@ export const registerComponent = (component, JSXElement) => {
 
   const pos = component.snap || "loose";
   const val = { component, JSXElement };
+
+  const _components = useComponents.getState();
   if (!_components[pos]) {
     _components[pos] = [];
   }
   _components[pos].push(val);
+  useComponents.setState({ ..._components });
+};
 
-  ReactDOM.render(<App components={_components} />, document.body);
+const AppWrapper = () => {
+  const components = useComponents();
+  return <App components={components} />;
 };
 
 /**

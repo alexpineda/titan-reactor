@@ -4,7 +4,7 @@ import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
 
 import { InitializedPluginPackage } from "common/types";
-import { UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+import { ON_PLUGIN_ENABLED, UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import logService from "../logger/singleton";
@@ -123,7 +123,22 @@ export const installPlugin = (repository: string) => {
 
 }
 export const enablePlugin = (pluginId: string) => {
-    console.log(`@settings/load-plugins: Enabling plugin ${pluginId}`);
+    const plugin = _disabledPluginConfigs.find(p => p.id === pluginId);
+    if (!plugin) {
+        log.info(`@load-plugins/enable: Plugin ${pluginId} not found`);
+        return;
+    };
+
+    log.info(`@load-plugins/enable: Enabling plugin ${plugin.name}`);
+    _disabledPluginConfigs = _disabledPluginConfigs.filter(plugin => plugin !== plugin);
+    _pluginsConfigs.push(plugin);
+
+    settings.enablePlugin(plugin.name);
+
+    // notify main
+    browserWindows.main?.webContents.send(ON_PLUGIN_ENABLED, plugin);
+
+    return true;
 }
 
 // note: requires restart for user to see changes
@@ -131,16 +146,19 @@ export const disablePlugin = (pluginId: string) => {
     const plugin = _pluginsConfigs.find(p => p.id === pluginId);
     if (!plugin) {
         log.info(`@load-plugins/disable: Plugin ${pluginId} not found`);
-        return;
+        return false;
     };
 
-    log.info(`@load-plugins/disable: Disabling plugin ${pluginId}`);
+    log.info(`@load-plugins/disable: Disabling plugin ${plugin.name}`);
     _pluginsConfigs = _pluginsConfigs.filter(plugin => plugin !== plugin);
     _disabledPluginConfigs.push(plugin);
 
-    settings.disablePlugin(plugin.name);
-
-    return true;
+    try {
+        settings.disablePlugin(plugin.name);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 // note: requires restart for user to see changes
@@ -151,7 +169,7 @@ export const uninstallPlugin = async (pluginId: string) => {
         return;
     };
 
-    log.info(`@load-plugins/uninstall: Uninstalling plugin ${pluginId}`);
+    log.info(`@load-plugins/uninstall: Uninstalling plugin ${plugin.name}`);
     _disabledPluginConfigs = _disabledPluginConfigs.filter(plugin => plugin !== plugin);
 
     const delPath = path.join(_pluginDirectory, plugin.path);
@@ -180,7 +198,7 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
     try {
         pkgJson = await PackageJson.load(existingConfigPath)
     } catch (e) {
-        console.error(`@save-plugins-config: Error reading plugin package.json`);
+        log.error(`@save-plugins-config: Error reading plugin package.json`);
         return;
     }
 
@@ -193,9 +211,8 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
 
     try {
         await pkgJson.save()
-        //   await fsPromises.writeFile(existingConfigPath, JSON.stringify(existingConfig, null, 4));
     } catch (e) {
-        console.error(`@save-plugins-config: Error writing plugin package.json`);
+        log.error(`@save-plugins-config: Error writing plugin package.json`);
         return;
     }
 

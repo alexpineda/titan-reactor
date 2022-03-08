@@ -8,17 +8,24 @@ import { GameStatePosition } from "@core";
 import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
 
 import Plugin from "./plugin";
-import { MSG_DIMENSIONS_CHANGED, MSG_PLUGINS_LOADED, MSG_ON_FRAME, MSG_SCREEN_CHANGED, MSG_WORLD_CHANGED, MSG_PLUGIN_CONFIG_CHANGED, MSG_LOG_ENTRY } from "./messages";
+import { EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_PLUGINS_LOADED, EVENT_ON_FRAME, EVENT_SCREEN_CHANGED, EVENT_WORLD_CHANGED, SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, EVENT_LOG_ENTRY, SYSTEM_EVENT_ADD_PLUGIN } from "./messages";
 import { ipcRenderer } from "electron";
-import { UPDATE_PLUGIN_CONFIG, RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { UPDATE_PLUGIN_CONFIG, RELOAD_PLUGINS, ON_PLUGIN_ENABLED } from "common/ipc-handle-names";
 import settingsStore from "@stores/settings-store";
 
 // settings from main will reach out to us to relay iframe config data per plugin
 ipcRenderer.on(UPDATE_PLUGIN_CONFIG, (_, pluginId: string, config: any) => {
     _sendMessage({
-        type: MSG_PLUGIN_CONFIG_CHANGED,
+        type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
         pluginId,
         config
+    })
+});
+
+ipcRenderer.on(ON_PLUGIN_ENABLED, (_, plugin: InitializedPluginPackage) => {
+    _sendMessage({
+        type: SYSTEM_EVENT_ADD_PLUGIN,
+        plugin
     })
 });
 
@@ -45,18 +52,18 @@ useSettingsStore.subscribe((settings) => {
     _plugins = initializePlugins(settings.enabledPlugins);
 
     const initialStore = () => ({
-        [MSG_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
-        [MSG_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
-        [MSG_WORLD_CHANGED]: useWorldStore.getState(),
-        [MSG_ON_FRAME]: _replayPosition.payload,
-        [MSG_LOG_ENTRY]: logChanged(useGameStore.getState()).payload
+        [EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
+        [EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
+        [EVENT_WORLD_CHANGED]: useWorldStore.getState(),
+        [EVENT_ON_FRAME]: _replayPosition.payload,
+        [EVENT_LOG_ENTRY]: logChanged(useGameStore.getState()).payload
     })
 
     for (const plugin of _plugins) {
         log.info(`@plugin-system: plugin initialized - "${plugin.name}" - ${plugin.version}`);
         if (plugin.isolatedContainer) {
             plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
-                type: MSG_PLUGINS_LOADED,
+                type: SYSTEM_EVENT_PLUGINS_LOADED,
                 plugins: [settings.enabledPlugins.find((p) => p.id === plugin.id)],
                 initialStore: initialStore()
             }, "*");
@@ -64,7 +71,7 @@ useSettingsStore.subscribe((settings) => {
     }
 
     Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
-        type: MSG_PLUGINS_LOADED,
+        type: SYSTEM_EVENT_PLUGINS_LOADED,
         plugins: settings.enabledPlugins.filter(config => config.iframe !== "isolated"),
         initialStore: initialStore()
     }, "*");
@@ -76,7 +83,7 @@ useSettingsStore.subscribe((settings) => {
 
 const logChanged = (game: GameStore) => {
     return {
-        type: MSG_LOG_ENTRY,
+        type: EVENT_LOG_ENTRY,
         payload: game.log
     }
 }
@@ -84,7 +91,7 @@ const logChanged = (game: GameStore) => {
 useGameStore.subscribe((game, prev) => {
     if (game.dimensions !== prev.dimensions) {
         _sendMessage({
-            type: MSG_DIMENSIONS_CHANGED,
+            type: EVENT_DIMENSIONS_CHANGED,
             payload: game.dimensions
         });
     }
@@ -96,7 +103,7 @@ useGameStore.subscribe((game, prev) => {
 
 const screenChanged = (screen: ScreenStore) => {
     return {
-        type: MSG_SCREEN_CHANGED,
+        type: EVENT_SCREEN_CHANGED,
         payload: {
             screen: `@${ScreenType[screen.type]}/${ScreenStatus[screen.status]}`.toLowerCase(),
             error: screen.error?.message
@@ -110,7 +117,7 @@ useScreenStore.subscribe((screen) => {
 
 useWorldStore.subscribe((world) => {
     _sendMessage({
-        type: MSG_WORLD_CHANGED,
+        type: EVENT_WORLD_CHANGED,
         payload: world
     });
 });
@@ -118,7 +125,7 @@ useWorldStore.subscribe((world) => {
 
 let _lastSend: { [key: string]: any } = {};
 const _replayPosition = {
-    type: MSG_ON_FRAME,
+    type: EVENT_ON_FRAME,
     payload: {
         frame: 0,
         maxFrame: 0,
@@ -130,8 +137,8 @@ const _replayPosition = {
 export const onFrame = (gameStatePosition: GameStatePosition, fps: string) => {
     const time = gameStatePosition.getSecond();
 
-    if (_lastSend[MSG_ON_FRAME] !== time) {
-        _lastSend[MSG_ON_FRAME] = time;
+    if (_lastSend[EVENT_ON_FRAME] !== time) {
+        _lastSend[EVENT_ON_FRAME] = time;
         _replayPosition.payload.frame = gameStatePosition.bwGameFrame;
         _replayPosition.payload.maxFrame = gameStatePosition.maxFrame;
         _replayPosition.payload.time = gameStatePosition.getFriendlyTime();
@@ -155,31 +162,30 @@ const _sendMessage = (message: any) => {
     Plugin.sharedContainer.contentWindow?.postMessage(message, "*");
 }
 
-export const initializePlugins = (pluginConfigs: InitializedPluginPackage[]) => {
+const initializePlugin = (pluginConfig: InitializedPluginPackage) => {
+    let plugin;
 
-    const plugins = pluginConfigs.map(pluginConfig => {
-        let plugin;
+    try {
+        if (pluginConfig.nativeSource) {
+            plugin = Object.create(Plugin, Function(pluginConfig.nativeSource!)());
+            pluginConfig.nativeSource = undefined;
 
-        try {
-            if (pluginConfig.nativeSource) {
-                plugin = Object.create(Plugin, Function(pluginConfig.nativeSource!)());
-                pluginConfig.nativeSource = undefined;
-
-                assert(plugin.onInitialized, "onInitialized is required");
-                assert(plugin.onFrame, "onFrame is required");
-            } else {
-                plugin = new Plugin(pluginConfig);
-            }
-
-            plugin.onInitialized(pluginConfig);
-
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                log.error(`@plugin-system: failed to initialize "${pluginConfig.name}" - ${e.message}`);
-            }
+            assert(plugin.onInitialized, "onInitialized is required");
+            assert(plugin.onFrame, "onFrame is required");
+        } else {
+            plugin = new Plugin(pluginConfig);
         }
-        return plugin;
-    }).filter(plugin => plugin !== undefined) as Plugin[];
 
-    return plugins;
+        plugin.onInitialized(pluginConfig);
+
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            log.error(`@plugin-system: failed to initialize "${pluginConfig.name}" - ${e.message}`);
+        }
+    }
+    return plugin;
+};
+
+const initializePlugins = (pluginConfigs: InitializedPluginPackage[]) => {
+    return pluginConfigs.map(initializePlugin).filter(plugin => plugin !== undefined) as Plugin[];
 }

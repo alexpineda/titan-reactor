@@ -2,16 +2,20 @@ import "../reset.css";
 import "../mui.min.css";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
-import { Container, Button, Tabs, Tab } from "muicss/react";
+import { Container, Button, Tabs, Tab, Divider } from "muicss/react";
 import search from "libnpmsearch";
 import { Leva } from "leva";
 import { debounce } from "lodash";
 
 import { InitializedPluginPackage } from "common/types";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
-import { deletePlugin, disablePlugin, updatePluginsConfig } from "@ipc/plugins";
+import {
+  deletePlugin,
+  disablePlugin,
+  enablePlugin,
+  updatePluginsConfig,
+} from "@ipc/plugins";
 import PluginConfigurationUI from "./plugin-configuration-ui";
-import DetailSheet from "./detail-sheet";
 
 // @ts-ignore
 if (module.hot) {
@@ -61,26 +65,10 @@ const Configuration = () => {
   }, []);
 
   return (
-    <Container>
+    <Container fluid>
       <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
         {banner && <p className="mui--bg-accent mui--text-light">{banner}</p>}
-        <div style={{ display: "flex" }}>
-          <div
-            style={{
-              marginRight: "2rem",
-              maxWidth: "30%",
-            }}
-          >
-            <h2>Plugin Settings</h2>
-          </div>
-          <div style={{ flexGrow: 1 }}>
-            {selectedPluginConfig && (
-              <h2>
-                {selectedPluginConfig.description ?? selectedPluginConfig.name}
-              </h2>
-            )}
-          </div>
-        </div>
+
         <div style={{ display: "flex" }}>
           <aside
             style={{
@@ -88,45 +76,52 @@ const Configuration = () => {
               flexDirection: "column",
               marginRight: "2rem",
               width: "30%",
+              maxHeight: "100vh",
+              overflowY: "auto",
             }}
           >
+            <h3>Manage Plugins</h3>
+
             <Tabs>
               <Tab value="local" label="Local">
-                {settingsStore.enabledPlugins.map((pluginConfig) => (
-                  <Button
-                    variant="flat"
-                    size="small"
-                    key={pluginConfig.id}
-                    color={
-                      selectedPluginConfig?.id === pluginConfig.id
-                        ? "primary"
-                        : "default"
-                    }
-                    onClick={() => {
-                      setSelectedPluginConfig(pluginConfig);
-                    }}
-                  >
-                    {pluginConfig.name}
-                  </Button>
-                ))}
-                {settingsStore.disabledPlugins.map((pluginConfig) => (
-                  <Button
-                    variant="flat"
-                    size="small"
-                    key={pluginConfig.id}
-                    color={
-                      selectedPluginConfig?.id === pluginConfig.id
-                        ? "primary"
-                        : "default"
-                    }
-                    style={{ opacity: "0.8" }}
-                    onClick={() => {
-                      setSelectedPluginConfig(pluginConfig);
-                    }}
-                  >
-                    {pluginConfig.name}
-                  </Button>
-                ))}
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {settingsStore.enabledPlugins.map((pluginConfig) => (
+                    <Button
+                      variant="flat"
+                      size="small"
+                      key={pluginConfig.id}
+                      color={
+                        selectedPluginConfig?.id === pluginConfig.id
+                          ? "primary"
+                          : "default"
+                      }
+                      onClick={() => {
+                        setSelectedPluginConfig(pluginConfig);
+                      }}
+                    >
+                      {pluginConfig.name}
+                    </Button>
+                  ))}
+                  <Divider />
+                  {settingsStore.disabledPlugins.map((pluginConfig) => (
+                    <Button
+                      variant="flat"
+                      size="small"
+                      key={pluginConfig.id}
+                      color={
+                        selectedPluginConfig?.id === pluginConfig.id
+                          ? "primary"
+                          : "default"
+                      }
+                      style={{ opacity: "0.8" }}
+                      onClick={() => {
+                        setSelectedPluginConfig(pluginConfig);
+                      }}
+                    >
+                      {pluginConfig.name}
+                    </Button>
+                  ))}
+                </div>
               </Tab>
               <Tab value="online" label="Online">
                 {npmPlugins.map((plugin) => (
@@ -153,6 +148,11 @@ const Configuration = () => {
           <main
             style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
           >
+            {selectedPluginConfig && (
+              <h2>
+                {selectedPluginConfig.description ?? selectedPluginConfig.name}
+              </h2>
+            )}
             <Leva
               fill
               flat
@@ -170,8 +170,6 @@ const Configuration = () => {
                   highlight2: "#222",
                   highlight3: "#333",
                   vivid1: "red",
-                  // toolTipBackground: theme.colors.cerise500.value,
-                  // toolTipText: theme.colors.cerise500.value,
                 },
                 sizes: {
                   controlWidth: "40vw",
@@ -215,17 +213,37 @@ const Configuration = () => {
             {selectedPluginConfig &&
               settingsStore.disabledPlugins.includes(selectedPluginConfig) && (
                 <>
-                  <p>
-                    Warning: Ensure you trust the authors of this plugin before
-                    enabling it.
-                  </p>
-                  <Button color="danger">Enable Plugin</Button>
+                  <Button
+                    color="primary"
+                    onClick={async () => {
+                      if (
+                        confirm(
+                          "Make sure you trust the authors of this plugin before enabling it. Do you wish to continue and enable this plugin?"
+                        )
+                      ) {
+                        if (await enablePlugin(selectedPluginConfig.id)) {
+                          useSettingsStore.setState({
+                            enabledPlugins: [
+                              ...settingsStore.enabledPlugins,
+                              selectedPluginConfig,
+                            ],
+                            disabledPlugins:
+                              settingsStore.disabledPlugins.filter(
+                                (p) => p.id !== selectedPluginConfig.id
+                              ),
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    Enable Plugin
+                  </Button>
                   <Button
                     color="danger"
                     onClick={async () => {
                       if (
                         confirm(
-                          "Are you sure you want to DELETE this plugin and all it's FILES?"
+                          "Are you sure you wish to place this plugin in the trashbin?"
                         )
                       ) {
                         if (await deletePlugin(selectedPluginConfig.id)) {
@@ -236,13 +254,17 @@ const Configuration = () => {
                                 (p) => p.id !== selectedPluginConfig.id
                               ),
                           });
+                          setSelectedPluginConfig(undefined);
                         }
                       }
                     }}
                   >
                     Delete Plugin
                   </Button>
-                  <DetailSheet pluginConfig={selectedPluginConfig} />
+                  <PluginConfigurationUI
+                    pluginConfig={selectedPluginConfig}
+                    onChange={onChange}
+                  />
                 </>
               )}
           </main>
