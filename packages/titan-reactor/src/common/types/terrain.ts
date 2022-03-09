@@ -2,7 +2,7 @@ import { Mesh, Texture, Vector3 } from "three";
 
 import { GetTerrainY } from "./util";
 
-// @todo deprecate? image has it?
+// FIXME: deprecate? image has it?
 export type WrappedTexture = {
   texture: Texture;
   width: number;

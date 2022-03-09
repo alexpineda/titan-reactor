@@ -32,4 +32,4 @@ and then
 
 ### Legal
 
-Titan Reactor is released to the Public Domain. The documentation and functionality provided by Titan Reactor may only be utilized with assets provided by ownership of Starcraft. If you use the source code you may not charge others for access to it or any derivative work thereof. Starcraft® - Copyright © 1998 Blizzard Entertainment, Inc. All rights reserved. Starcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries. Titan Reactor and any of its maintainers are in no way associated with or endorsed by Blizzard Entertainment®
+Titan Reactor is made available via the GPL3 license. The documentation and functionality provided by Titan Reactor may only be utilized with assets provided by ownership of Starcraft. Starcraft® - Copyright © 1998 Blizzard Entertainment, Inc. All rights reserved. Starcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries. Titan Reactor and any of its maintainers are in no way associated with or endorsed by Blizzard Entertainment®

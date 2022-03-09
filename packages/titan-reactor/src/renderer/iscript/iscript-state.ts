@@ -23,7 +23,7 @@ export class IScriptState {
     frame = 0;
     frameOffset = 0;
     prevFrame = -1;
-    //@todo refactor to exclude flip
+    //FIXME: refactor to exclude flip
     flip = false;
     prevFlip: boolean | null = null;
     //forced flip frame

@@ -53,9 +53,6 @@ registerComponent({ pluginId: "_plugin_id_", screen: "@home/ready" }, () => {
         fontSize: "130%",
       }}
     >
-      <p style={{ opacity: 0.5, fontSize: "1rem" }}>
-        Your Advanced Starcraft Broodwar Observing Tool
-      </p>
       <h1 style={{ fontFamily: "Conthrax", fontSize: "4rem" }}>
         Titan Reactor
       </h1>

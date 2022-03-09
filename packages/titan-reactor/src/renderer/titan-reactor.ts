@@ -11,6 +11,7 @@ import preloadAssets from "./bootup/load-assets-when-ready";
 import renderer from "./render/renderer";
 import settingsStore from "./stores/settings-store";
 import "./plugin-system";
+import { initializePluginSystem } from "./plugin-system";
 
 // @ts-ignore
 if (module.hot) {
@@ -78,6 +79,8 @@ async function bootup() {
     }
 
     renderer.getWebGLRenderer().toneMappingExposure = settings.graphics.gamma;
+
+    initializePluginSystem(settingsStore().enabledPlugins);
 
     await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));

@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 
-import { DELETE_PLUGIN, DISABLE_PLUGIN, ENABLE_PLUGIN, UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+import { DELETE_PLUGIN, DISABLE_PLUGIN, ENABLE_PLUGIN, INSTALL_PLUGIN, UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+import { InitializedPluginPackage } from "common/types";
 
 export const updatePluginsConfig = async (pluginId: string, config: any) => {
     return await ipcRenderer.invoke(UPDATE_PLUGIN_CONFIG, pluginId, config);
@@ -16,4 +17,8 @@ export const deletePlugin = async (pluginId: string) => {
 
 export const enablePlugin = async (pluginId: string) => {
     return await ipcRenderer.invoke(ENABLE_PLUGIN, pluginId);
+}
+
+export const installPlugin = async (repository: string): Promise<null | InitializedPluginPackage> => {
+    return await ipcRenderer.invoke(INSTALL_PLUGIN, repository);
 }

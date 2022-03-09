@@ -11,7 +11,7 @@ import {
 
 import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
 
-//TODO: INCOMPLETE
+//FIXME: INCOMPLETE
 export const ddsToWarpInTexture = function (renderer, warpIn) {
   const width = 5;
   const height = 5;

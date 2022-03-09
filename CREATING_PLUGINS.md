@@ -12,7 +12,7 @@
   - [CSS Variables](#css-variables)
   - [CSS Fonts](#css-fonts)
   - [Supported package.json fields](#supported-packagejson-fields)
-  - [Debugging](#debugging)
+  - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
 
 
@@ -35,7 +35,8 @@ Titan Reactor comes with [official plugins under `bundled/plugins`](https://gith
 ```json
 {
   "name": "my-cool-plugin",
-  "version": "v1"
+  "version": "v1",
+  "keywords": ["titan-reactor-plugin"]
 }
 ```
 
@@ -202,6 +203,8 @@ Additional font-families available to your styles:
 
 `version` - your plugin version, using semver.
 
+`keywords` - an array which **must** include "titan-reactor-plugin".
+
 `author` - your name (string format only)
 
 `description` - a further description of your plugin
@@ -210,10 +213,9 @@ Additional font-families available to your styles:
 
 `repository` - npm or github repository url or object to determine whether new versions are available
 
-## Debugging
+## Publishing Your Plugin
 
-TODO.
-
+In order to make your plugin available to others, simply publish your package to `npm` and ensure you have `titan-reactor-plugin` in keywords. If you'd like to publish under the **@titan-reactor-community** scope please see the [Titan Reactor Community](https://github.com/imbateam-gg/titan-reactor-community) repository.
 ## Request For Plugin
 
 This is a list of plugins that I'd personally like to see come to life by the community:

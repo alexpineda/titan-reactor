@@ -46,7 +46,7 @@ export class PlayerPovCamera extends PerspectiveCamera {
     // some commands - minimap action (right click, attack move)
     // some commands - before hand was screen move (observing actions)
 
-    //TODO: throttle
+    //FIXME: throttle
 
     if (cmdIsRightClick(cmd))
       if (cmd.x && cmd.y) {

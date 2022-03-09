@@ -49,7 +49,7 @@ export class Settings extends EventEmitter {
       await this.save(await this.createDefaults());
     }
 
-    loadPlugins(this._settings.directories.plugins, this._settings.plugins.enabled)
+    loadPlugins(this._settings.directories.plugins);
   }
 
   get() {

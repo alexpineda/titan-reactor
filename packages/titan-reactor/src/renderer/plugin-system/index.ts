@@ -1,20 +1,22 @@
 
 import assert from "assert";
 
-import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
+import { InitializedPluginPackage, ScreenStatus, ScreenType, Settings, SettingsMeta } from "common/types";
 
 import * as log from "@ipc/log";
 import { GameStatePosition } from "@core";
-import { useSettingsStore, useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
+import { useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
 
 import Plugin from "./plugin";
 import { EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_PLUGINS_LOADED, EVENT_ON_FRAME, EVENT_SCREEN_CHANGED, EVENT_WORLD_CHANGED, SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, EVENT_LOG_ENTRY, SYSTEM_EVENT_ADD_PLUGIN } from "./messages";
 import { ipcRenderer } from "electron";
-import { UPDATE_PLUGIN_CONFIG, RELOAD_PLUGINS, ON_PLUGIN_ENABLED } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, ON_PLUGIN_ENABLED } from "common/ipc-handle-names";
 import settingsStore from "@stores/settings-store";
+import {
+    installPlugin
+} from "@ipc/plugins";
 
-// settings from main will reach out to us to relay iframe config data per plugin
-ipcRenderer.on(UPDATE_PLUGIN_CONFIG, (_, pluginId: string, config: any) => {
+ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
     _sendMessage({
         type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
         pluginId,
@@ -42,14 +44,11 @@ const reloadPlugins = () => {
 ipcRenderer.on(RELOAD_PLUGINS, reloadPlugins);
 
 let _plugins: Plugin[] = [];
-let pluginsInitialized = false;
 
-useSettingsStore.subscribe((settings) => {
-    if (pluginsInitialized) {
-        return;
-    }
-    pluginsInitialized = true;
-    _plugins = initializePlugins(settings.enabledPlugins);
+// TODO: 1) Remove isolatedContainers and treat them as unique systems
+//       2) Move all event handlers into initializeSystem or create PluginSystem Class
+export const initializePluginSystem = (pluginPackages: InitializedPluginPackage[]) => {
+    _plugins = pluginPackages.map(initializePlugin).filter(plugin => plugin !== undefined) as Plugin[];
 
     const initialStore = () => ({
         [EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
@@ -64,7 +63,7 @@ useSettingsStore.subscribe((settings) => {
         if (plugin.isolatedContainer) {
             plugin.isolatedContainer.onload = () => plugin.isolatedContainer?.contentWindow?.postMessage({
                 type: SYSTEM_EVENT_PLUGINS_LOADED,
-                plugins: [settings.enabledPlugins.find((p) => p.id === plugin.id)],
+                plugins: [pluginPackages.find((p) => p.id === plugin.id)],
                 initialStore: initialStore()
             }, "*");
         }
@@ -72,14 +71,15 @@ useSettingsStore.subscribe((settings) => {
 
     Plugin.sharedContainer.onload = () => Plugin.sharedContainer.contentWindow?.postMessage({
         type: SYSTEM_EVENT_PLUGINS_LOADED,
-        plugins: settings.enabledPlugins.filter(config => config.iframe !== "isolated"),
+        plugins: pluginPackages.filter(config => config.iframe !== "isolated"),
         initialStore: initialStore()
     }, "*");
 
+    document.body.appendChild(Plugin.sharedContainer);
+
     reloadPlugins();
 
-});
-
+};
 
 const logChanged = (game: GameStore) => {
     return {
@@ -162,7 +162,7 @@ const _sendMessage = (message: any) => {
     Plugin.sharedContainer.contentWindow?.postMessage(message, "*");
 }
 
-const initializePlugin = (pluginConfig: InitializedPluginPackage) => {
+const initializePlugin = (pluginConfig: InitializedPluginPackage): Plugin | undefined => {
     let plugin;
 
     try {
@@ -186,6 +186,17 @@ const initializePlugin = (pluginConfig: InitializedPluginPackage) => {
     return plugin;
 };
 
-const initializePlugins = (pluginConfigs: InitializedPluginPackage[]) => {
-    return pluginConfigs.map(initializePlugin).filter(plugin => plugin !== undefined) as Plugin[];
+export const installPluginLocal = async (repository: string) => {
+    const pluginPackage = await installPlugin(repository);
+    if (pluginPackage) {
+        const plugin = initializePlugin(pluginPackage);
+        if (plugin) {
+            _plugins.push(plugin);
+            return pluginPackage;
+        } else {
+            return null
+        }
+    } else {
+        return null;
+    }
 }

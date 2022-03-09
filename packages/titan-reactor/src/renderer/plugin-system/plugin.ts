@@ -15,7 +15,6 @@ _sharedContainer.style.userSelect = "none";
 _sharedContainer.sandbox.add("allow-scripts");
 _sharedContainer.sandbox.add("allow-downloads");
 
-document.body.appendChild(_sharedContainer)
 
 
 class Plugin {

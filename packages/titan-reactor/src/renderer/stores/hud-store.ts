@@ -1,6 +1,5 @@
 import create from "zustand";
 
-//@todo create a wrapper so we can null out interval without ts errors
 let _productionInterval: NodeJS.Timeout;
 let _cycleTime = 10000;
 const _minCycleTime = 10000;

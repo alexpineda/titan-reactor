@@ -201,7 +201,7 @@ export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
       newPos = null;
     } else if ([30, 53, 57, 58, 59, 60, 63].includes(opIndex)) {
       //randcondjump,call,pwrupcondjmp,trgtrangecondjmp,trgtarccondjmp,curdirectcondjmp,liftoffcondjump
-      //@todo probably need to understand what else is getting loaded
+      //FIXME: probably need to understand what else is getting loaded
       loadAnimationBlock(args[args.length - 1].val);
     }
 

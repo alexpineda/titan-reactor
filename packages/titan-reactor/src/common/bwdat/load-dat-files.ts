@@ -52,7 +52,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     const grp = new Grp(buf);
     const frames = range(0, grp.frameCount()).map((frame): GrpFrameType => {
       const { x, y, w, h } = grp.header(frame);
-      //@todo calculate xoff, yoff
+      //FIXME: calculate xoff, yoff
       return { x, y, w, h, xoff: 0, yoff: 0 };
     });
     const maxFrameH = frames.reduce((max, { h }) => {

@@ -90,7 +90,7 @@ export class IScriptRunner {
     return this.dispatched;
   }
 
-  //@todo fix types
+  //FIXME: fix types
   _dispatch(command: any, event?: any) {
     this.logger.log(`🧩 ${command}`, event);
     this.dispatched.push([command, event]);
@@ -233,7 +233,7 @@ export class IScriptRunner {
               }
               this._dispatch(command, [state.frame, state.flip]);
             } else {
-              //@todo see if this matters
+              //FIXME: see if this matters
               state.frameset = 0;
               this.setFrame(args[0], state.flipState, state);
               this._dispatch(command, [args[0], state.flipState]);

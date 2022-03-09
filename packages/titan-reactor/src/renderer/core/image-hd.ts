@@ -88,7 +88,7 @@ export class ImageHD extends ThreeSprite implements Image {
 
     this.atlas = atlas;
     this.dat = imageDef;
-    //@todo what does warp flash 2 mean? do we want to use warpFlash as well?
+    //FIXME: what does warp flash 2 mean? do we want to use warpFlash as well?
     // if (imageDef.drawFunction === drawFunctions.warpFlash2) {
     //   this.material.warpingIn = 150;
     // }

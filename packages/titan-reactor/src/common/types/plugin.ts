@@ -25,9 +25,13 @@ export interface PluginPackage {
     name: string;
     id: string;
     version: string;
-    author?: string;
+    author?: string | {
+        name?: string;
+        email?: string;
+        username?: string;
+    };
     description?: string;
-    repository?: string;
+    repository?: string | { type?: string; url?: string };
     iframe?: "isolated" | "shared";
 }
 
@@ -40,6 +44,7 @@ export interface InitializedPluginPackage extends PluginPackage {
     nativeSource?: string | null;
     config: any;
     path: string;
+    date?: Date;
 }
 
 export interface PluginLifecycle {

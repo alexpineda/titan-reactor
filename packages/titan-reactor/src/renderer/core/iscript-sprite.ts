@@ -281,7 +281,7 @@ export class IScriptSprite extends Group {
           {
             const [spriteId, x, y] = val;
 
-            // @todo
+            // FIXME:
             // if is bullet && parent->goliath && charonboosted
             // change spriteId to halo rockets trail
 
@@ -289,7 +289,7 @@ export class IScriptSprite extends Group {
             sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
             sprite.run(iscriptHeaders.init);
 
-            //@todo ensure main image otherwise the sprite is dead
+            //FIXME: ensure main image otherwise the sprite is dead
             sprite.mainImage?.image.setPosition(x, y);
             sprite.position.copy(this.position);
             this.createSpriteCb(sprite);
@@ -302,7 +302,7 @@ export class IScriptSprite extends Group {
             const [spriteId, x, y] = val;
 
             /* 
-            @todo
+            FIXME:
             "if unit and is cloaked and not always visible dont spawn"
             if (iscript_unit && (u_requires_detector(iscript_unit) || u_cloaked(iscript_unit)) && !sprite->image->always_visible)
             break;
@@ -320,12 +320,12 @@ export class IScriptSprite extends Group {
           break;
         case "lowsprul":
           {
-            //@todo check if we set direction
+            //FIXME: check if we set direction
             //<sprite#> <x> <y> - spawns a sprite at the lowest animation level at a specific offset position.
             // sprites.push([...val, 1]);
             const [spriteId, x, y] = val;
 
-            //@todo elevation 1
+            //FIXME: elevation 1
             const sprite = this.createSprite(null);
             sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
             sprite.run(iscriptHeaders.init);
@@ -354,7 +354,7 @@ export class IScriptSprite extends Group {
             const [spriteId, overlay] = val;
             // <sprite#> <overlay#> - spawns a sprite one animation level above the current image overlay, using a specified LO* file for the offset position information. The new sprite inherits the direction of the current sprite.
 
-            //@todo this.userData.elevation + 1
+            //FIXME: this.userData.elevation + 1
             const sprite = this.createSprite(null);
             sprite.spawnIScriptImage(this.bwDat.sprites[spriteId].image.index);
             // titanSprite.run(0);
@@ -400,7 +400,7 @@ export class IScriptSprite extends Group {
           {
             const imageOffset = val[0];
             const imageId = imageTypes.gasOverlay;
-            //@todo support imageTypes.depletedGasOverlay;
+            //FIXME: support imageTypes.depletedGasOverlay;
 
             const iscriptImage = this.spawnIScriptImage(
               imageId + imageOffset,
@@ -479,7 +479,7 @@ export class IScriptSprite extends Group {
 
         case "end":
           {
-            //@todo allow_main_image_destruction
+            //FIXME: allow_main_image_destruction
             iscriptImage.state.terminated = true;
           }
           break;

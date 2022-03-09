@@ -59,7 +59,7 @@ export class Players extends Array<Player> {
     }
   }
 
-  //  @todo update pov selections based on command
+  //  FIXME: update pov selections based on command
   // update(cmds) {
 
   // }

@@ -30,7 +30,6 @@ const DEFAULT_GEOM_OPTIONS = {
     firstBlur: 4,
 };
 
-//@todo separate sd and hd
 export const createHDMesh = async (
     mapWidth: number,
     mapHeight: number,
@@ -88,15 +87,15 @@ export const createHDMesh = async (
             const mat = new THREE.MeshStandardMaterial({
                 map: hdQuartileTextures.mapQuartiles[qx][qy],
                 roughness: 1,
-                //@todo roughnessMap + shader patch
-                //@todo fix displacementMap shadow issue, requires custom depth material on entire mesh
+                //FIXME: roughnessMap + shader patch
+                //FIXME: fix displacementMap shadow issue, requires custom depth material on entire mesh
                 // displacementScale: geomOptions.displacementScale,
                 // displacementMap: hdDisplace,
                 // @ts-ignore
                 onBeforeCompile: function (shader) {
                     let fs = shader.fragmentShader;
 
-                    //@todo chop up map rather than customize shader
+                    //FIXME: chop up map rather than customize shader
                     // vs = vs.replace(
                     //     "#include <displacementmap_vertex>",
                     //     hdDisplaceVert

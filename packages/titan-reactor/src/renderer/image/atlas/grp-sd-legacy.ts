@@ -12,7 +12,7 @@ import { drawFunctions } from "common/enums/draw-functions";
 type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
 
 // Load 1.16 GRP into textures and frames
-// @todo refactor to implement GRPInterface
+// FIXME: refactor to implement GRPInterface
 export class GrpSDLegacy {
   width = 0;
   height = 0;
@@ -62,7 +62,7 @@ export class GrpSDLegacy {
     if (palette === palettes[0]) {
       playerMaskPalette = Buffer.alloc(palette.byteLength);
       // using R value of the red player to determine mask alphas (tunit.pcx)
-      // @todo use RGBAInteger format in shader and use tunit.pcx to apply nuances in colors or load from anim
+      // FIXME: use RGBAInteger format in shader and use tunit.pcx to apply nuances in colors or load from anim
       const playerColors = [244, 168, 168, 132, 96, 72, 52, 16];
 
       for (let i = 0; i < 8; i++) {

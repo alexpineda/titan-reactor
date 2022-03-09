@@ -83,7 +83,7 @@ export const mapDataToTextures = (
       }
       canvas.width = renderWidth;
       canvas.height = renderHeight;
-      // @todo use render target, must use same renderer as game?
+      // FIXME: use render target, must use same renderer as game?
       // const rt = new WebGLRenderTarget(renderWidth, renderHeight);
 
       for (let x = 0; x < quartileWidth; x++) {

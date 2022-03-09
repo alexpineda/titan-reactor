@@ -2,15 +2,19 @@ import PackageJson from '@npmcli/package-json';
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
+import { shell } from 'electron';
+import pacote from "pacote";
+import sanitizeFilename from "sanitize-filename";
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_ENABLED, UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGIN_ENABLED } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import logService from "../logger/singleton";
 import browserWindows from "../windows";
 import settings from "../settings/singleton"
-import { shell } from 'electron';
+import withErrorMessage from 'common/utils/with-error-message';
+
 
 export const bootupLogs: LogMessage[] = [];
 type LogMessage = {
@@ -60,68 +64,98 @@ const _tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = 
 
 let _pluginDirectory = "";
 
-export default async (pluginDirectory: string, enabledPluginNames: string[]) => {
+const loadPluginPackage = async (folderPath: string, folderName: string): Promise<null | InitializedPluginPackage> => {
+
+    const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
+    const pluginNative = await _tryLoadUtf8(path.join(folderPath, "native.js")) as string | null;
+
+    if (!packageJSON) {
+        return null
+    }
+
+    if (packageJSON.name === undefined) {
+        log.error(`@load-plugins/load-configs: Undefined plugin name - ${folderName}`);
+        return null;
+    }
+
+    if (packageJSON.version === undefined) {
+        log.error(`@load-plugins/load-configs: Undefined plugin version - ${folderName}`);
+        return null;
+    }
+
+    return {
+        id: MathUtils.generateUUID(),
+        name: packageJSON.name,
+        version: packageJSON.version,
+        description: packageJSON.description,
+        author: packageJSON.author,
+        repository: packageJSON.repository,
+        path: folderName,
+        config: packageJSON.config,
+        nativeSource: pluginNative
+    };
+
+}
+
+const loadPluginPackages = async (folders: ReadFolderResult[]) => {
+    for (const folder of folders) {
+        if (!folder.isFolder) {
+            return null;
+        }
+        const plugin = await loadPluginPackage(folder.path, folder.name);
+        if (plugin === null) {
+            continue;
+        }
+        if (settings.get().plugins.enabled.includes(plugin.name)) {
+            _pluginsConfigs.push(plugin);
+        } else {
+            _disabledPluginConfigs.push(plugin);
+        }
+    }
+}
+
+export default async (pluginDirectory: string) => {
     if (_pluginsConfigs) return;
     _pluginsConfigs = [];
     _disabledPluginConfigs = [];
     _pluginDirectory = pluginDirectory;
 
-    let folders: ReadFolderResult[] = [];
     try {
-        folders = await readFolder(pluginDirectory);
-    } catch {
-        log.error(`@settings/load-plugins: Error reading plugins folder`);
+        await loadPluginPackages(await readFolder(pluginDirectory));
+    } catch (e) {
+        log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
     }
 
-    for (const folder of folders) {
-        if (folder.isFolder) {
-            const packageJSON = await _tryLoadUtf8(path.join(folder.path, "package.json"), "json");
-            const pluginNative = await _tryLoadUtf8(path.join(folder.path, "native.js")) as string | null;
+}
 
-            if (packageJSON) {
 
-                const pluginId = MathUtils.generateUUID();
+export const installPlugin = async (repository: string) => {
+    log.info(`@load-plugins/install: Installing plugin ${repository}`);
 
-                if (packageJSON.name === undefined) {
-                    log.error(`@settings/load-plugins: Undefined plugin name - ${folder.name}`);
-                    continue;
-                }
+    try {
 
-                if (packageJSON.version === undefined) {
-                    log.error(`@settings/load-plugins: Undefined plugin version - ${folder.name}`);
-                    continue;
-                }
+        const manifest = await pacote.manifest(repository);
+        const folderName = sanitizeFilename(manifest.name);
+        const folderPath = path.join(_pluginDirectory, folderName);
+        await pacote.extract(repository, folderPath);
 
-                const plugin = {
-                    id: pluginId,
-                    name: packageJSON.name,
-                    version: packageJSON.version,
-                    description: packageJSON.description,
-                    author: packageJSON.author,
-                    repository: packageJSON.repository,
-                    path: folder.name,
-                    config: packageJSON.config,
-                    nativeSource: pluginNative
-                };
-
-                if (enabledPluginNames.includes(packageJSON.name)) {
-                    _pluginsConfigs.push(plugin);
-                } else {
-                    _disabledPluginConfigs.push(plugin);
-                }
+        try {
+            const loadedPackage = await loadPluginPackage(folderPath, folderName);
+            if (loadedPackage) {
+                _disabledPluginConfigs.push(loadedPackage);
             }
+            return loadedPackage;
+        } catch (e) {
+            log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
         }
 
+    } catch (e) {
+        log.error(withErrorMessage(`@load-plugins/default: Error loading plugin ${repository}`, e));
     }
+
+    return null;
 }
 
-
-export const installPlugin = (repository: string) => {
-    console.log(`@settings/load-plugins: Enabling plugin ${repository}`);
-
-    return false;
-
-}
 export const enablePlugin = (pluginId: string) => {
     const plugin = _disabledPluginConfigs.find(p => p.id === pluginId);
     if (!plugin) {
@@ -130,15 +164,17 @@ export const enablePlugin = (pluginId: string) => {
     };
 
     log.info(`@load-plugins/enable: Enabling plugin ${plugin.name}`);
-    _disabledPluginConfigs = _disabledPluginConfigs.filter(plugin => plugin !== plugin);
-    _pluginsConfigs.push(plugin);
 
-    settings.enablePlugin(plugin.name);
+    try {
+        settings.enablePlugin(plugin.name);
+        _disabledPluginConfigs = _disabledPluginConfigs.filter(otherPlugin => otherPlugin !== plugin);
+        _pluginsConfigs.push(plugin);
+        browserWindows.main?.webContents.send(ON_PLUGIN_ENABLED, plugin);
+        return true;
+    } catch (e) {
+        log.info(`@load-plugins/enable: Error enabling plugin ${plugin.name}`);
+    }
 
-    // notify main
-    browserWindows.main?.webContents.send(ON_PLUGIN_ENABLED, plugin);
-
-    return true;
 }
 
 // note: requires restart for user to see changes
@@ -150,13 +186,14 @@ export const disablePlugin = (pluginId: string) => {
     };
 
     log.info(`@load-plugins/disable: Disabling plugin ${plugin.name}`);
-    _pluginsConfigs = _pluginsConfigs.filter(plugin => plugin !== plugin);
-    _disabledPluginConfigs.push(plugin);
 
     try {
         settings.disablePlugin(plugin.name);
+        _pluginsConfigs = _pluginsConfigs.filter(otherPlugin => otherPlugin !== plugin);
+        _disabledPluginConfigs.push(plugin);
         return true;
     } catch {
+        log.info(`@load-plugins/disable: Error disabling plugin ${plugin.name}`);
         return false;
     }
 }
@@ -170,11 +207,11 @@ export const uninstallPlugin = async (pluginId: string) => {
     };
 
     log.info(`@load-plugins/uninstall: Uninstalling plugin ${plugin.name}`);
-    _disabledPluginConfigs = _disabledPluginConfigs.filter(plugin => plugin !== plugin);
 
     const delPath = path.join(_pluginDirectory, plugin.path);
     try {
         shell.trashItem(delPath);
+        _disabledPluginConfigs = _disabledPluginConfigs.filter(otherPlugin => otherPlugin.id !== pluginId);
     } catch {
         log.error(`@load-plugins/uninstall: Failed to delete plugin ${plugin.name} on folder ${delPath}`);
         return false;
@@ -202,12 +239,10 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
         return;
     }
 
-
     pluginConfig.config = config;
     pkgJson.update({
         config
     })
-
 
     try {
         await pkgJson.save()
@@ -216,6 +251,5 @@ export const savePluginsConfig = async (pluginDirectory: string, pluginId: strin
         return;
     }
 
-    // main window needs to update the iframe plugins
-    browserWindows.main?.webContents.send(UPDATE_PLUGIN_CONFIG, pluginId, config);
+    browserWindows.main?.webContents.send(ON_PLUGIN_CONFIG_UPDATED, pluginId, config);
 }

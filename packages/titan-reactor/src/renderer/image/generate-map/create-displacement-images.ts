@@ -24,7 +24,7 @@ import { GeometryOptions } from "./geometry-options";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
 
-// @todo dispose effects?
+// TODO: dispose effects?
 export const createDisplacementImages = async ({
     palette,
     tileset,

@@ -35,7 +35,7 @@ export const loadAnimAtlas = async (
 
     const teamcolor = await optionalLoad(sprite.maps.teamcolor);
 
-    // @todo handle SD properly
+    // FIXME: handle SD properly
     const uvScale = UnitTileScale.HD / scale;
 
 

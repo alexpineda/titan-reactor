@@ -67,7 +67,7 @@ export default class OpenBWFileList {
       let int8 = new Int8Array();
 
       if (settingsStore().isCascStorage) {
-        //@todo why is casclib returning unit8array?
+        //FIXME: why is casclib returning unit8array?
         int8 = Int8Array.from(buffer.subarray(0, buffer.byteLength / 8))
       }
       else {
