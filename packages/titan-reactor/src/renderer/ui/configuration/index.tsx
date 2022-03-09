@@ -12,7 +12,7 @@ import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import {
   deletePlugin,
   disablePlugin,
-  enablePlugin,
+  enablePlugins,
   updatePluginsConfig,
 } from "@ipc/plugins";
 import PluginConfigurationUI from "./plugin-configuration-ui";
@@ -32,18 +32,22 @@ const onChange = debounce(async (pluginId: string, config: any) => {
 
 const LIMIT = 1000;
 const RESTART_REQUIRED = "Restart required for new settings to take effect";
-const SEARCH_KEYWORDS = "keywords:chart";
-const SEARCH_COMMUNITY = "@titan-reactor-community";
-// const SEARCH_ROOT = "keywords:titan-reactor-plugin";
+const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
+const SEARCH_COMMUNITY = "@titan-reactor-plugins";
+const NPM_READONLY_TOKEN = "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";
 
-const searchPackages = async (
-  pagination: number,
-  cb: (val: search.Result[]) => void
-) => {
-  const results = await search(SEARCH_KEYWORDS, {
+const searchPackages = async (cb: (val: search.Result[]) => void) => {
+  const communityPackages = await search(SEARCH_COMMUNITY, {
     limit: LIMIT,
-    from: pagination * LIMIT,
+    token: NPM_READONLY_TOKEN,
   });
+  const publicPackages = (
+    await search(SEARCH_KEYWORDS, {
+      limit: LIMIT,
+    })
+  ).filter((pkg) => !communityPackages.some((p) => p.name === pkg.name));
+
+  const results = [...communityPackages, ...publicPackages];
   cb(results);
 };
 
@@ -90,7 +94,7 @@ const Configuration = () => {
   });
 
   const [remotePackages, setRemotePackages] = useState<search.Result[]>([]);
-  const [pagination, setPagination] = useState(0);
+  const [pagination] = useState(0);
   const [banner, setBanner] = useState("");
 
   const [tabIndex, setTabIndex] = useState(0);
@@ -106,8 +110,13 @@ const Configuration = () => {
     if (!selectedPluginPackage.plugin) {
       setSelectedPluginPackage({ onlinePackage: undefined });
     }
-    searchPackages(pagination, setRemotePackages);
+    searchPackages(setRemotePackages);
   }, [pagination]);
+
+  // Safety precaution: If the plugin is not remotely hosted don't allow deletion on disk
+  const canDelete = Boolean(
+    remotePackages.find((p) => p.name === selectedPluginPackage.plugin?.name)
+  );
 
   return (
     <Container fluid>
@@ -179,12 +188,6 @@ const Configuration = () => {
                     </Button>
                   ))}
                 </div>
-              </Tab>
-              <Tab value="community" label="Official Community">
-                <p style={{ padding: "1rem" }}>
-                  Official Community plugins have been manually reviewed by
-                  DarkMatter to ensure a standard of quality.
-                </p>
               </Tab>
               <Tab value="online" label="Online">
                 <p style={{ padding: "1rem" }}>
@@ -368,7 +371,9 @@ const Configuration = () => {
                           )
                         ) {
                           if (
-                            await enablePlugin(selectedPluginPackage.plugin!.id)
+                            await enablePlugins([
+                              selectedPluginPackage.plugin!.id,
+                            ])
                           ) {
                             useSettingsStore.setState({
                               enabledPlugins: [
@@ -389,34 +394,40 @@ const Configuration = () => {
                     >
                       Enable Plugin
                     </Button>
-                    <Button
-                      color="danger"
-                      onClick={async () => {
-                        if (
-                          confirm(
-                            "Are you sure you wish to place this plugin in the trashbin?"
-                          )
-                        ) {
+                    {canDelete && (
+                      <Button
+                        color="danger"
+                        onClick={async () => {
                           if (
-                            await deletePlugin(selectedPluginPackage.plugin!.id)
+                            confirm(
+                              "Are you sure you wish to place this plugin in the trashbin?"
+                            )
                           ) {
-                            setBanner("Plugin files were placed in trash bin");
-                            useSettingsStore.setState({
-                              disabledPlugins:
-                                settingsStore.disabledPlugins.filter(
-                                  (p) =>
-                                    p.id !== selectedPluginPackage.plugin!.id
-                                ),
-                            });
-                            setSelectedPluginPackage({ plugin: undefined });
-                          } else {
-                            setBanner("Failed to delete plugin");
+                            if (
+                              await deletePlugin(
+                                selectedPluginPackage.plugin!.id
+                              )
+                            ) {
+                              setBanner(
+                                "Plugin files were placed in trash bin"
+                              );
+                              useSettingsStore.setState({
+                                disabledPlugins:
+                                  settingsStore.disabledPlugins.filter(
+                                    (p) =>
+                                      p.id !== selectedPluginPackage.plugin!.id
+                                  ),
+                              });
+                              setSelectedPluginPackage({ plugin: undefined });
+                            } else {
+                              setBanner("Failed to delete plugin");
+                            }
                           }
-                        }
-                      }}
-                    >
-                      Delete Plugin
-                    </Button>
+                        }}
+                      >
+                        Delete Plugin
+                      </Button>
+                    )}
                     <PluginConfigurationUI
                       pluginConfig={selectedPluginPackage.plugin!}
                       onChange={onChange}

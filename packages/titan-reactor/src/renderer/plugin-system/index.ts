@@ -1,16 +1,16 @@
 
 import assert from "assert";
 
-import { InitializedPluginPackage, ScreenStatus, ScreenType, Settings, SettingsMeta } from "common/types";
+import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
 
 import * as log from "@ipc/log";
 import { GameStatePosition } from "@core";
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
 
 import Plugin from "./plugin";
-import { EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_PLUGINS_LOADED, EVENT_ON_FRAME, EVENT_SCREEN_CHANGED, EVENT_WORLD_CHANGED, SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, EVENT_LOG_ENTRY, SYSTEM_EVENT_ADD_PLUGIN } from "./messages";
+import { EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_PLUGINS_LOADED, EVENT_ON_FRAME, EVENT_SCREEN_CHANGED, EVENT_WORLD_CHANGED, SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, EVENT_LOG_ENTRY, SYSTEM_EVENT_ADD_PLUGINS } from "./messages";
 import { ipcRenderer } from "electron";
-import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, ON_PLUGIN_ENABLED } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, ON_PLUGINS_ENABLED } from "common/ipc-handle-names";
 import settingsStore from "@stores/settings-store";
 import {
     installPlugin
@@ -24,10 +24,10 @@ ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
     })
 });
 
-ipcRenderer.on(ON_PLUGIN_ENABLED, (_, plugin: InitializedPluginPackage) => {
+ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
     _sendMessage({
-        type: SYSTEM_EVENT_ADD_PLUGIN,
-        plugin
+        type: SYSTEM_EVENT_ADD_PLUGINS,
+        plugins
     })
 });
 

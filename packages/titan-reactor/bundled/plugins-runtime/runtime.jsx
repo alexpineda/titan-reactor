@@ -49,8 +49,10 @@ const _messageListener = function (event) {
       event.data.plugins.forEach(_addPlugin);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({ [event.data.pluginId]: event.data.config });
-    } else if (event.data.type === "system:add-plugin") {
-      _addPlugin(event.data.plugin);
+    } else if (event.data.type === "system:add-plugins") {
+      for (const plugin of event.data.plugins) {
+        _addPlugin(plugin);
+      }
     }
   } else {
     if (event.data.type === "dimensions") {

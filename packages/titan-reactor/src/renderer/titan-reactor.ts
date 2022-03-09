@@ -65,6 +65,8 @@ async function bootup() {
     await settingsStore().load();
     registerFileDialogHandlers();
 
+    initializePluginSystem(settingsStore().enabledPlugins);
+
     const settings = settingsStore().data;
     const hasErrors = settingsStore().errors.length > 0;
 
@@ -80,7 +82,6 @@ async function bootup() {
 
     renderer.getWebGLRenderer().toneMappingExposure = settings.graphics.gamma;
 
-    initializePluginSystem(settingsStore().enabledPlugins);
 
     await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));

@@ -56,7 +56,7 @@ export default (onOpenPluginManager: () => void) => {
       label: "&Debug",
       submenu: [
         {
-          label: "Reload Settings",
+          label: "Reload App",
           click: async () => {
             await settings.initialize();
             browserWindows.main?.webContents.reload();
@@ -72,9 +72,15 @@ export default (onOpenPluginManager: () => void) => {
         { role: "toggledevtools" },
         { type: "separator" },
         {
+          label: "View &Plugin File(s)",
+          click: function () {
+            shell.openPath(settings.get().directories.plugins);
+          },
+        },
+        {
           label: "View &Log File(s)",
           click: function () {
-            shell.showItemInFolder(logFilePath);
+            shell.openPath(logFilePath);
           },
         },
         { type: "separator" },

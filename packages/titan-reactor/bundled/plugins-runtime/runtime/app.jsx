@@ -72,6 +72,10 @@ export default ({ components }) => {
     fontFamily: "Conthrax",
   };
 
+  const hasAnyComponents = Object.keys(components).reduce((acc, key) => {
+    return acc || Boolean(components[key]);
+  }, false);
+
   return (
     <div
       style={{
@@ -102,6 +106,9 @@ export default ({ components }) => {
         </>
       )}
       {!appLoaded && !error && <p style={styleCenterText}>DarkMatter</p>}
+      {appLoaded && !error && !hasAnyComponents && (
+        <p style={styleCenterText}>First Run: Installing Default Plugins....</p>
+      )}
       {error && <GlobalErrorState error={error} />}
       <div id="top">
         {components["top"] &&

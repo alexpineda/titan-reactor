@@ -7,7 +7,7 @@ import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGIN_ENABLED } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import logService from "../logger/singleton";
@@ -114,6 +114,9 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
     }
 }
 
+const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock", "@titan-reactor-plugins/fps", "@titan-reactor-plugins/default-screens"];
+
+
 export default async (pluginDirectory: string) => {
     if (_pluginsConfigs) return;
     _pluginsConfigs = [];
@@ -122,6 +125,21 @@ export default async (pluginDirectory: string) => {
 
     try {
         await loadPluginPackages(await readFolder(pluginDirectory));
+
+
+        if (_pluginsConfigs.length === 0 && _disabledPluginConfigs.length === 0) {
+            const enablePluginIds = [];
+            for (const defaultPackage of DEFAULT_PACKAGES) {
+                const plugin = await installPlugin(defaultPackage);
+                if (plugin) {
+                    enablePluginIds.push(plugin.id);
+                } else {
+                    log.error(`@load-plugins/default: Failed to install default plugin ${defaultPackage}`);
+                }
+            }
+            enablePlugins(enablePluginIds);
+
+        }
     } catch (e) {
         log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
     }
@@ -156,26 +174,27 @@ export const installPlugin = async (repository: string) => {
     return null;
 }
 
-export const enablePlugin = (pluginId: string) => {
-    const plugin = _disabledPluginConfigs.find(p => p.id === pluginId);
-    if (!plugin) {
-        log.info(`@load-plugins/enable: Plugin ${pluginId} not found`);
-        return;
-    };
-
-    log.info(`@load-plugins/enable: Enabling plugin ${plugin.name}`);
+export const enablePlugins = (pluginIds: string[]) => {
+    const plugins = pluginIds.map(pluginId => {
+        const plugin = _disabledPluginConfigs.find(plugin => plugin.id === pluginId);
+        if (!plugin) {
+            log.info(`@load-plugins/enable: Plugin ${pluginId} not found`);
+        };
+        return plugin;
+    }).filter(plugin => plugin !== undefined) as InitializedPluginPackage[];
 
     try {
-        settings.enablePlugin(plugin.name);
-        _disabledPluginConfigs = _disabledPluginConfigs.filter(otherPlugin => otherPlugin !== plugin);
-        _pluginsConfigs.push(plugin);
-        browserWindows.main?.webContents.send(ON_PLUGIN_ENABLED, plugin);
+        settings.enablePlugins(plugins.map(plugin => plugin.name));
+        _disabledPluginConfigs = _disabledPluginConfigs.filter(otherPlugin => !plugins.includes(otherPlugin));
+        _pluginsConfigs.push(...plugins);
+        browserWindows.main?.webContents.send(ON_PLUGINS_ENABLED, plugins);
+        browserWindows.config?.reload();
         return true;
     } catch (e) {
-        log.info(`@load-plugins/enable: Error enabling plugin ${plugin.name}`);
+        log.info(`@load-plugins/enable: Error enabling plugins ${plugins.map(plugin => plugin.name).join(", ")}`);
     }
 
-}
+};
 
 // note: requires restart for user to see changes
 export const disablePlugin = (pluginId: string) => {

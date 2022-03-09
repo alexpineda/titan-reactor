@@ -6,9 +6,8 @@ import transpile, { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
 import { getEnabledPluginConfigs, replacePluginContent } from "../settings/load-plugins";
+import settings from "../settings/singleton"
 
-// TODO: verify it exists
-const _pluginsPath = path.resolve(__static, "plugins");
 const _runtimePath = path.resolve(__static, "plugins-runtime");
 
 const app = express();
@@ -24,9 +23,9 @@ app.use(function (_, res, next) {
 const transpileErrors: TransformSyntaxError[] = [];
 
 app.get('*', function (req, res) {
-    const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(_pluginsPath, req.path);
+    const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(settings.get().directories.plugins, req.path);
 
-    if (!(filepath.startsWith(_pluginsPath) || filepath.startsWith(_runtimePath))) {
+    if (!(filepath.startsWith(settings.get().directories.plugins) || filepath.startsWith(_runtimePath))) {
         res.status(404);
         return;
     }
@@ -60,8 +59,6 @@ app.get('*', function (req, res) {
     }
 
 });
-
-
 
 
 export default app;

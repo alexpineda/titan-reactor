@@ -1,7 +1,6 @@
 # Table of Contents
 - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
-  - [Plugin Examples](#plugin-examples)
   - [Your first plugin package.json](#your-first-plugin-packagejson)
   - [How it works](#how-it-works)
   - [Writing a React Component](#writing-a-react-component)
@@ -24,23 +23,19 @@ Plugins in Titan Reactor allow you to create custom menus, score cards and many 
 - A plugin can have custom user configuration, for which Titan Reactor automatically provides a configuration UI.
 - Allows the community to provide more integrated experiences
 
-## Plugin Examples
-
-Titan Reactor comes with [official plugins under `bundled/plugins`](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins) so poke around and get an idea of how they work. **For a plugin to be enabled the user must also have the plugin name in their global settings.json in the `plugins.enabled` array.**
-
 ## Your first plugin package.json
 
 
 *plugins/my-cool-plugin/package.json*
 ```json
 {
-  "name": "my-cool-plugin",
+  "name": "@titan-reactor-plugin/my-cool-plugin",
   "version": "v1",
   "keywords": ["titan-reactor-plugin"]
 }
 ```
 
-You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for most of our conventions here. For your version number it is recommended to use `v1`, `v2`, `v3` etc for updates. 
+You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. For your version number it is recommended to use semver `1.0.0`, `2.0.0` etc for updates. 
 
 As for displaying things to the user, we'll later use an `index.jsx` file.
 
@@ -215,7 +210,7 @@ Additional font-families available to your styles:
 
 ## Publishing Your Plugin
 
-In order to make your plugin available to others, simply publish your package to `npm` and ensure you have `titan-reactor-plugin` in keywords. If you'd like to publish under the **@titan-reactor-community** scope please see the [Titan Reactor Community](https://github.com/imbateam-gg/titan-reactor-community) repository.
+In order to make your plugin available to others, simply publish your package to `npm` and ensure you have `titan-reactor-plugin` in keywords. If you'd like to publish under the **@titan-reactor-plugins** scope please see the [Titan Reactor Community](https://github.com/imbateam-gg/titan-reactor-community) repository.
 ## Request For Plugin
 
 This is a list of plugins that I'd personally like to see come to life by the community:

@@ -12,8 +12,8 @@ import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import migrate from "./migrate";
-import path from "path";
 import loadPlugins, { getDisabledPluginConfigs, getEnabledPluginConfigs } from "./load-plugins";
+import { findPluginsPath } from "../starcraft/find-plugins-path";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -65,11 +65,11 @@ export class Settings extends EventEmitter {
     })
   }
 
-  enablePlugin(pluginName: string) {
+  enablePlugins(pluginNames: string[]) {
     this.save({
       plugins: {
         ...this._settings.plugins,
-        enabled: [...this._settings.plugins.enabled, pluginName],
+        enabled: [...this._settings.plugins.enabled, ...pluginNames],
       }
     })
   }
@@ -166,7 +166,7 @@ export class Settings extends EventEmitter {
    * @returns a JS object with default settings
    */
   async createDefaults(): Promise<SettingsType> {
-    return {
+    const derivedSettings = {
       ...defaultSettings,
       language: supportedLanguages.find(s => s === String(getEnvLocale()))
         ??
@@ -176,8 +176,9 @@ export class Settings extends EventEmitter {
         maps: await findMapsPath(),
         replays: await findReplaysPath(),
         assets: app.getPath("documents"),
-        plugins: path.join(__static, "plugins")
+        plugins: await findPluginsPath(),
       }
     };
+    return derivedSettings;
   }
 }
