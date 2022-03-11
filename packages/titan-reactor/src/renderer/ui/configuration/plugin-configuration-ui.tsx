@@ -19,14 +19,16 @@ const PluginConfigurationUI = ({
     const obj: any = {};
 
     for (const k in config) {
-      obj[k] = { ...config[k] };
-      obj[k].onChange = (value: any) => {
-        if (config[k].value !== value) {
-          config[k].value = value;
-          obj[k].value = value;
-          onChange(pluginConfig.id, config);
-        }
-      };
+      if (typeof config[k] === "object" && "value" in config[k]) {
+        obj[k] = { ...config[k] };
+        obj[k].onChange = (value: any) => {
+          if (config[k].value !== value) {
+            config[k].value = value;
+            obj[k].value = value;
+            onChange(pluginConfig.id, config);
+          }
+        };
+      }
     }
     return obj;
   };

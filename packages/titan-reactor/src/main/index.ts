@@ -9,7 +9,7 @@ import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
 import pluginServer from "./plugins/server";
 import browserWindows from "./windows";
-import { bootupLogs } from "./settings/load-plugins";
+import { getBootupLogs } from "./log";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
@@ -101,7 +101,7 @@ if (!gotTheLock) {
 
     // on window ready send bootup logs
     const _readyToShowLogs = () => {
-      for (const log of bootupLogs) {
+      for (const log of getBootupLogs()) {
         browserWindows.main?.webContents.send(LOG_MESSAGE, log.message, log.level);
       }
       browserWindows.main?.off("ready-to-show", _readyToShowLogs);

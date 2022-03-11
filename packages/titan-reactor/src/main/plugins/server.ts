@@ -5,7 +5,7 @@ import fs from "fs"
 import transpile, { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
-import { getEnabledPluginConfigs, replacePluginContent } from "../settings/load-plugins";
+import { getEnabledPluginConfigs, replacePluginContent } from "./load-plugins";
 import settings from "../settings/singleton"
 
 const _runtimePath = path.resolve(__static, "plugins-runtime");

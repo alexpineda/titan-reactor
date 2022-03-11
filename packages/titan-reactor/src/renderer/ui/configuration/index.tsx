@@ -6,6 +6,8 @@ import { Container, Button, Tabs, Tab, Divider } from "muicss/react";
 import search from "libnpmsearch";
 import { Leva } from "leva";
 import { debounce } from "lodash";
+import React from "react";
+import semver from "semver";
 
 import { InitializedPluginPackage } from "common/types";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
@@ -18,7 +20,6 @@ import {
 import PluginConfigurationUI from "./plugin-configuration-ui";
 import DetailSheet from "./detail-sheet";
 import { installPluginLocal } from "../../plugin-system";
-import React from "react";
 
 // @ts-ignore
 if (module.hot) {
@@ -114,9 +115,18 @@ const Configuration = () => {
   }, [pagination]);
 
   // Safety precaution: If the plugin is not remotely hosted don't allow deletion on disk
-  const canDelete = Boolean(
-    remotePackages.find((p) => p.name === selectedPluginPackage.plugin?.name)
+  const matchingRemotePlugin = remotePackages.find(
+    (p) => p.name === selectedPluginPackage.plugin?.name
   );
+
+  const canDelete = Boolean(matchingRemotePlugin);
+
+  const hasUpdate = semver.gt(
+    matchingRemotePlugin?.version ?? "0.0.0",
+    selectedPluginPackage.plugin?.version ?? "0.0.0"
+  )
+    ? matchingRemotePlugin?.version
+    : undefined;
 
   return (
     <Container fluid>
@@ -252,7 +262,7 @@ const Configuration = () => {
                 theme={{
                   colors: {
                     accent1: "blue",
-                    accent2: "red",
+                    accent2: "orange",
                     accent3: "red",
                     elevation1: "red",
                     elevation2: "#f5f5f5",
@@ -319,6 +329,37 @@ const Configuration = () => {
                       pluginConfig={selectedPluginPackage.plugin}
                       onChange={onChange}
                     />
+                    {hasUpdate && (
+                      <Button
+                        color="primary"
+                        onClick={async () => {
+                          if (
+                            confirm(
+                              "This will update the plugin in your plugins folder. Continue?"
+                            )
+                          ) {
+                            const plugin = await installPluginLocal(
+                              selectedPluginPackage.plugin!.name
+                            );
+                            if (plugin) {
+                              console.log(
+                                `Succesfully updated ${
+                                  selectedPluginPackage.plugin!.name
+                                }`
+                              );
+                            } else {
+                              setBanner(
+                                `Failed to update ${
+                                  selectedPluginPackage.plugin!.name
+                                }`
+                              );
+                            }
+                          }
+                        }}
+                      >
+                        Update to {hasUpdate}
+                      </Button>
+                    )}
                     <Button
                       onClick={async () => {
                         if (

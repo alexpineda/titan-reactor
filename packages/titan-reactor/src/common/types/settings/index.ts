@@ -56,6 +56,7 @@ export type Settings = {
     },
     plugins: {
         serverPort: number;
+        developmentDirectory?: string;
         enabled: string[],
     }
 

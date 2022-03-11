@@ -12,8 +12,10 @@ import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import migrate from "./migrate";
-import loadPlugins, { getDisabledPluginConfigs, getEnabledPluginConfigs } from "./load-plugins";
+import loadPlugins, { getDisabledPluginConfigs, getEnabledPluginConfigs } from "../plugins/load-plugins";
 import { findPluginsPath } from "../starcraft/find-plugins-path";
+import withErrorMessage from "common/utils/with-error-message";
+import log from "../log";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -49,7 +51,7 @@ export class Settings extends EventEmitter {
       await this.save(await this.createDefaults());
     }
 
-    loadPlugins(this._settings.directories.plugins);
+    await loadPlugins(this._settings.directories.plugins);
   }
 
   get() {
@@ -126,22 +128,31 @@ export class Settings extends EventEmitter {
    * Emits the "change" event.
    */
   async load(): Promise<SettingsType> {
-    const contents = await fsPromises.readFile(this._filepath, {
-      encoding: "utf8",
-    });
-    return JSON.parse(contents) as SettingsType;
+    try {
+      const contents = await fsPromises.readFile(this._filepath, {
+        encoding: "utf8",
+      });
+      const json = JSON.parse(contents) as SettingsType;
+      return json;
+    } catch (e) {
+      throw new Error(withErrorMessage(`@settings/load: Error loading settings.json from ${this._filepath}`, e));
+    }
   }
 
   async loadAndMigrate() {
-    const settings = await this.load();
-    const [migrated, migratedSettings] = migrate(settings);
-    if (migrated) {
-      await this.save(migratedSettings);
-      this._settings = { ...(await this.createDefaults()), ...migratedSettings };
-    } else {
-      this._settings = { ...(await this.createDefaults()), ...settings };
+    try {
+      const settings = await this.load();
+      const [migrated, migratedSettings] = migrate(settings);
+      if (migrated) {
+        await this.save(migratedSettings);
+        this._settings = { ...(await this.createDefaults()), ...migratedSettings };
+      } else {
+        this._settings = { ...(await this.createDefaults()), ...settings };
+      }
+      this._emitChanged();
+    } catch (e) {
+      log.error(withErrorMessage("@settings/load-and-migrate", e));
     }
-    this._emitChanged();
   }
 
   /**

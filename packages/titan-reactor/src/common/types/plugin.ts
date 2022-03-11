@@ -42,7 +42,7 @@ export type ScreenData = {
 
 export interface InitializedPluginPackage extends PluginPackage {
     nativeSource?: string | null;
-    config: any;
+    config: {};
     path: string;
     date?: Date;
 }

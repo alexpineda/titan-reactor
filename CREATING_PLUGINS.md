@@ -50,10 +50,12 @@ Your plugin directory will be scanned for `package.json`, `index.jsx` and `nativ
 We use the `config` value in `package.json` specifically for users to modify in order to customize settings for your plugin. The values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). We use Leva internally to allow users to customize their userSettings. At a minimum each value must be a wrapper around a `value` property:
 ```json
 {
+    ...other plugin fields ...
     "config": {
-      "customProp": {
-          "value": "user config value here!"
-      }
+      "usersFavoriteColor": {
+          "value": "this value can be changed by the user since I have a value field!"
+      },
+      "privateProp": "this prop is for plugin author since it's not an object and/or doesn't have a value field"
     }
 }
 ```

@@ -5,44 +5,23 @@ import { promises as fsPromises } from "fs";
 import { shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
+import deepMerge from "deepmerge"
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
-import logService from "../logger/singleton";
 import browserWindows from "../windows";
 import settings from "../settings/singleton"
 import withErrorMessage from 'common/utils/with-error-message';
+import log from "../log"
 
 
-export const bootupLogs: LogMessage[] = [];
-type LogMessage = {
-    level: "info" | "warning" | "error" | "debug" | "verbose";
-    message: string;
-}
+let _enabledPluginPackages: InitializedPluginPackage[];
+let _disabledPluginPackages: InitializedPluginPackage[];
 
-const log = {
-    info: (message: string) => {
-        logService.info(message);
-        bootupLogs.push({ level: "info", message });
-    },
-    warning: (message: string) => {
-        logService.warning(message);
-        bootupLogs.push({ level: "warning", message });
-    },
-    error: (message: string) => {
-        logService.error(message);
-        bootupLogs.push({ level: "error", message });
-    }
-}
-
-
-let _pluginsConfigs: InitializedPluginPackage[];
-let _disabledPluginConfigs: InitializedPluginPackage[];
-
-export const getEnabledPluginConfigs = () => _pluginsConfigs;
-export const getDisabledPluginConfigs = () => _disabledPluginConfigs;
+export const getEnabledPluginConfigs = () => _enabledPluginPackages;
+export const getDisabledPluginConfigs = () => _disabledPluginPackages;
 
 const PLUGIN_ID_MACRO = "_plugin_id_";
 
@@ -91,7 +70,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         author: packageJSON.author,
         repository: packageJSON.repository,
         path: folderName,
-        config: packageJSON.config,
+        config: packageJSON.config ?? {},
         nativeSource: pluginNative
     };
 
@@ -107,9 +86,9 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
             continue;
         }
         if (settings.get().plugins.enabled.includes(plugin.name)) {
-            _pluginsConfigs.push(plugin);
+            _enabledPluginPackages.push(plugin);
         } else {
-            _disabledPluginConfigs.push(plugin);
+            _disabledPluginPackages.push(plugin);
         }
     }
 }
@@ -118,16 +97,15 @@ const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock", "@titan-reac
 
 
 export default async (pluginDirectory: string) => {
-    if (_pluginsConfigs) return;
-    _pluginsConfigs = [];
-    _disabledPluginConfigs = [];
+    if (_enabledPluginPackages) return;
+    _enabledPluginPackages = [];
+    _disabledPluginPackages = [];
     _pluginDirectory = pluginDirectory;
 
     try {
         await loadPluginPackages(await readFolder(pluginDirectory));
 
-
-        if (_pluginsConfigs.length === 0 && _disabledPluginConfigs.length === 0) {
+        if (_enabledPluginPackages.length === 0 && _disabledPluginPackages.length === 0) {
             const enablePluginIds = [];
             for (const defaultPackage of DEFAULT_PACKAGES) {
                 const plugin = await installPlugin(defaultPackage);
@@ -155,12 +133,29 @@ export const installPlugin = async (repository: string) => {
         const manifest = await pacote.manifest(repository);
         const folderName = sanitizeFilename(manifest.name);
         const folderPath = path.join(_pluginDirectory, folderName);
+
         await pacote.extract(repository, folderPath);
 
         try {
             const loadedPackage = await loadPluginPackage(folderPath, folderName);
+
             if (loadedPackage) {
-                _disabledPluginConfigs.push(loadedPackage);
+                const enabledPlugin = _enabledPluginPackages.find(p => p.name === loadedPackage.name);
+                // if  a plugin is enabled, it means we're updating since the update function is only available
+                // when the plugin is enabled
+                if (enabledPlugin) {
+                    const oldConfig = enabledPlugin.config;
+                    _enabledPluginPackages.splice(_enabledPluginPackages.indexOf(enabledPlugin), 1, loadedPackage);
+                    savePluginsConfig(loadedPackage.id, oldConfig, false);
+                    browserWindows.main?.webContents.send(RELOAD_PLUGINS);
+                    browserWindows.config?.webContents.reloadIgnoringCache();
+
+                    //TODO: if plugin has native.js, requires full app restart
+                }
+                // otherwise this is a fresh install in which plugins get placed in the disabled plugins list
+                else {
+                    _disabledPluginPackages.push(loadedPackage);
+                }
             }
             return loadedPackage;
         } catch (e) {
@@ -176,7 +171,7 @@ export const installPlugin = async (repository: string) => {
 
 export const enablePlugins = (pluginIds: string[]) => {
     const plugins = pluginIds.map(pluginId => {
-        const plugin = _disabledPluginConfigs.find(plugin => plugin.id === pluginId);
+        const plugin = _disabledPluginPackages.find(plugin => plugin.id === pluginId);
         if (!plugin) {
             log.info(`@load-plugins/enable: Plugin ${pluginId} not found`);
         };
@@ -185,8 +180,8 @@ export const enablePlugins = (pluginIds: string[]) => {
 
     try {
         settings.enablePlugins(plugins.map(plugin => plugin.name));
-        _disabledPluginConfigs = _disabledPluginConfigs.filter(otherPlugin => !plugins.includes(otherPlugin));
-        _pluginsConfigs.push(...plugins);
+        _disabledPluginPackages = _disabledPluginPackages.filter(otherPlugin => !plugins.includes(otherPlugin));
+        _enabledPluginPackages.push(...plugins);
         browserWindows.main?.webContents.send(ON_PLUGINS_ENABLED, plugins);
         browserWindows.config?.reload();
         return true;
@@ -198,7 +193,7 @@ export const enablePlugins = (pluginIds: string[]) => {
 
 // note: requires restart for user to see changes
 export const disablePlugin = (pluginId: string) => {
-    const plugin = _pluginsConfigs.find(p => p.id === pluginId);
+    const plugin = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!plugin) {
         log.info(`@load-plugins/disable: Plugin ${pluginId} not found`);
         return false;
@@ -208,8 +203,8 @@ export const disablePlugin = (pluginId: string) => {
 
     try {
         settings.disablePlugin(plugin.name);
-        _pluginsConfigs = _pluginsConfigs.filter(otherPlugin => otherPlugin !== plugin);
-        _disabledPluginConfigs.push(plugin);
+        _enabledPluginPackages = _enabledPluginPackages.filter(otherPlugin => otherPlugin !== plugin);
+        _disabledPluginPackages.push(plugin);
         return true;
     } catch {
         log.info(`@load-plugins/disable: Error disabling plugin ${plugin.name}`);
@@ -219,7 +214,7 @@ export const disablePlugin = (pluginId: string) => {
 
 // note: requires restart for user to see changes
 export const uninstallPlugin = async (pluginId: string) => {
-    const plugin = _disabledPluginConfigs.find(p => p.id === pluginId);
+    const plugin = _disabledPluginPackages.find(p => p.id === pluginId);
     if (!plugin) {
         log.error(`@load-plugins/uninstall: Plugin ${pluginId} not found`);
         return;
@@ -230,7 +225,7 @@ export const uninstallPlugin = async (pluginId: string) => {
     const delPath = path.join(_pluginDirectory, plugin.path);
     try {
         shell.trashItem(delPath);
-        _disabledPluginConfigs = _disabledPluginConfigs.filter(otherPlugin => otherPlugin.id !== pluginId);
+        _disabledPluginPackages = _disabledPluginPackages.filter(otherPlugin => otherPlugin.id !== pluginId);
     } catch {
         log.error(`@load-plugins/uninstall: Failed to delete plugin ${plugin.name} on folder ${delPath}`);
         return false;
@@ -240,35 +235,29 @@ export const uninstallPlugin = async (pluginId: string) => {
 
 
 
-export const savePluginsConfig = async (pluginDirectory: string, pluginId: string, config: any) => {
-    const pluginConfig = _pluginsConfigs.find(p => p.id === pluginId);
+export const savePluginsConfig = async (pluginId: string, config: any, updateMainWindow = true) => {
+    const pluginConfig = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!pluginConfig) {
         log.error(`@settings/load-plugins: Could not find plugin with id ${pluginId}`);
         return;
     }
 
-    const existingConfigPath = path.join(pluginDirectory, pluginConfig.path);
-
-    let pkgJson;
+    const existingConfigPath = path.join(_pluginDirectory, pluginConfig.path);
 
     try {
-        pkgJson = await PackageJson.load(existingConfigPath)
-    } catch (e) {
-        log.error(`@save-plugins-config: Error reading plugin package.json`);
-        return;
-    }
+        const pkgJson = await PackageJson.load(existingConfigPath)
 
-    pluginConfig.config = config;
-    pkgJson.update({
-        config
-    })
-
-    try {
+        pluginConfig.config = deepMerge(pluginConfig.config, config);
+        pkgJson.update({
+            config
+        })
         await pkgJson.save()
     } catch (e) {
-        log.error(`@save-plugins-config: Error writing plugin package.json`);
+        log.error(withErrorMessage(`@save-plugins-config: Error writing plugin package.json`, e));
         return;
     }
 
-    browserWindows.main?.webContents.send(ON_PLUGIN_CONFIG_UPDATED, pluginId, config);
+    if (updateMainWindow) {
+        browserWindows.main?.webContents.send(ON_PLUGIN_CONFIG_UPDATED, pluginId, config);
+    }
 }
