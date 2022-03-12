@@ -52,12 +52,10 @@
     "mac": {
       "category": "The Advanced Observing App"
     },
-    "extraResources": [
-      {
-        "from": "bundled",
-        "to": "bundled"
-      }
-    ]
+    "extraResources": [{
+      "from": "bundled",
+      "to": "bundled"
+    }]
   },
   "dependencies": {
     "@npmcli/package-json": "^1.0.1",
@@ -71,7 +69,7 @@
     "concat": "1.0.3",
     "d3-ease": "1.0.6",
     "deepmerge": "^4.2.2",
-    "downgrade-replay": "^0.0.7",
+    "downgrade-replay": "^0.0.8",
     "electron-devtools-installer": "^3.2.0",
     "electron-is-dev": "^1.2.0",
     "express": "^4.17.3",
@@ -90,6 +88,7 @@
     "react-dom": "^17.0.2",
     "react-jsx-parser": "^1.29.0",
     "react-markdown": "^8.0.0",
+    "remark-gfm": "^3.0.1",
     "sanitize-filename": "^1.6.3",
     "scm-extractor": "^1.0.6",
     "semver": "^7.3.5",

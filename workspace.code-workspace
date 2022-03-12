@@ -3,12 +3,6 @@
     {
       "name": "titan-reactor (all-packages)",
       "path": "."
-    },
-    {
-      "path": "packages\\titan-reactor"
-    },
-    {
-      "path": "packages\\downgrade-replay"
     }
   ],
   "settings": {}

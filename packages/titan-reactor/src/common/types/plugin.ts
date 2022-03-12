@@ -45,6 +45,7 @@ export interface InitializedPluginPackage extends PluginPackage {
     config: {};
     path: string;
     date?: Date;
+    readme?: string
 }
 
 export interface PluginLifecycle {

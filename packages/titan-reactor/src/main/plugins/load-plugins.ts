@@ -47,6 +47,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
 
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
     const pluginNative = await _tryLoadUtf8(path.join(folderPath, "native.js")) as string | null;
+    const readme = await _tryLoadUtf8(path.join(folderPath, "readme")) as string | null;
 
     if (!packageJSON) {
         return null
@@ -71,7 +72,8 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         repository: packageJSON.repository,
         path: folderName,
         config: packageJSON.config ?? {},
-        nativeSource: pluginNative
+        nativeSource: pluginNative,
+        readme: readme ?? undefined
     };
 
 }
