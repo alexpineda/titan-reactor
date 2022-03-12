@@ -1,0 +1,71 @@
+From 2e73cb21b2c0820045d080fa984ce47f5fc64339 Mon Sep 17 00:00:00 2001
+From: Markus Heikkinen <ittevien@gmail.com>
+Date: Thu, 11 Nov 2021 00:57:26 +0200
+Subject: [PATCH 1/2] Don't use deprecated Buffer constructor
+
+---
+ index.js | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/index.js b/index.js
+index 454078d..17249f6 100644
+--- a/index.js
++++ b/index.js
+@@ -88,7 +88,7 @@ class DecrypterStream extends Transform {
+     this.buffer.append(block)
+ 
+     const dwordLength = this.buffer.length >> 2
+-    const output = new Buffer(dwordLength * 4)
++    const output = Buffer.allocUnsafe(dwordLength * 4)
+     for (let i = 0; i < dwordLength; i++) {
+       output.writeUInt32LE(this.decrypter.decrypt(this.buffer.readUInt32LE(i * 4)), i * 4)
+     }
+@@ -568,9 +568,8 @@ class ScmExtractor extends Transform {
+           // possibly, for the very last sector). This is never verified, however, which means map
+           // protection schemes can compress less data. When reading it back out, Storm will always
+           // give sectorSize bytes anyway, so we need to pad the buffer in those cases.
+-          toPush = new Buffer(sectorSize)
++          toPush = Buffer.alloc(sectorSize, 0)
+           buf.copy(toPush)
+-          toPush.fill(0, buf.length)
+         }
+         fileSizeLeft -= toPush.length
+         this.push(toPush)
+
+From 6414129d9e80e6a67ae112632e582318c9956bed Mon Sep 17 00:00:00 2001
+From: Markus Heikkinen <ittevien@gmail.com>
+Date: Wed, 5 Jan 2022 18:53:01 +0200
+Subject: [PATCH 2/2] Discard high bits of hash table entry count and block
+ index
+
+This matches what storm ends up unintentionally doing due to
+multiplication overflows.
+---
+ index.js | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/index.js b/index.js
+index 17249f6..a32b4dc 100644
+--- a/index.js
++++ b/index.js
+@@ -323,7 +323,9 @@ class ScmExtractor extends Transform {
+       this._error('Invalid block table offset')
+       return
+     }
+-    this._header.hashTableEntries = this._buffer.readUInt32LE(24)
++    // Discard high 4 bits of hashTableEntries, as C code multiplying that u32 by
++    // hash table entry size (0x10) will cause them to overflow out of u32 range.
++    this._header.hashTableEntries = this._buffer.readUInt32LE(24) & 0x0FFFFFFF
+     this._header.blockTableEntries = this._buffer.readUInt32LE(28)
+ 
+     // Notes:
+@@ -623,7 +625,8 @@ class ScmExtractor extends Transform {
+         const cur = this._hashTable[i]
+         if (cur.hashA === CHK_NAME_A && cur.hashB === CHK_NAME_B &&
+             cur.langPlatform === CHK_LANG_PLATFORM) {
+-          index = cur.blockIndex
++          // Mask out high bits that will overflow out when doing uint32 multiplication by 0x10
++          index = cur.blockIndex & 0x0FFFFFFF
+         }
+       }
+ 
