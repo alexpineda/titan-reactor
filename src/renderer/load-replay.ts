@@ -31,6 +31,10 @@ import { openBw } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { useWorldStore } from "@stores";
 import { cleanMapTitles } from "@utils/map-string-utils";
+import rendererIsDev from "@utils/renderer-is-dev";
+import {
+  readCascFile,
+} from "common/utils/casclib";
 
 export default async (filepath: string) => {
   log.info(`@load-replay/file: ${filepath}`);
@@ -63,7 +67,7 @@ export default async (filepath: string) => {
     try {
       const chkDowngrader = new ChkDowngrader();
       repBin = await convertReplay(replay, chkDowngrader);
-      if (process.env.ALEX) {
+      if (rendererIsDev) {
         fs.writeFileSync(`D:\\last_replay.rep`, repBin);
       }
       replay = await parseReplay(repBin);
@@ -72,7 +76,6 @@ export default async (filepath: string) => {
       return;
     }
   }
-
 
   processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;
@@ -122,10 +125,14 @@ export default async (filepath: string) => {
   }
   processStore().increment(Process.ReplayInitialization);
 
+  const loadAudioFile = async (id: number) => {
+    return (await readCascFile(`sound/${assets.bwDat.sounds[id].file}`)).buffer;
+  }
+
   const audioMixer = new MainMixer();
   const soundChannels = new SoundChannels(
     audioMixer,
-    assets.loadAudioFile.bind(assets)
+    loadAudioFile
   );
   const music = new Music(races);
   music.setListener(audioMixer);

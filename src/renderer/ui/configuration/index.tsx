@@ -35,12 +35,10 @@ const LIMIT = 1000;
 const RESTART_REQUIRED = "Restart required for new settings to take effect";
 const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
 const SEARCH_COMMUNITY = "@titan-reactor-plugins";
-const NPM_READONLY_TOKEN = "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";
 
 const searchPackages = async (cb: (val: search.Result[]) => void) => {
   const communityPackages = await search(SEARCH_COMMUNITY, {
     limit: LIMIT,
-    token: NPM_READONLY_TOKEN,
   });
   const publicPackages = (
     await search(SEARCH_KEYWORDS, {
@@ -88,6 +86,14 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const getUpdateVersion = (remoteVersion: string, localVersion: string) => {
+  try {
+    return semver.gt(remoteVersion, localVersion) ? remoteVersion : undefined;
+  } catch (e) {
+    return undefined;
+  }
+};
+
 const Configuration = () => {
   const settingsStore = useSettingsStore();
   const [selectedPluginPackage, setSelectedPluginPackage] = useState<Plugin>({
@@ -121,12 +127,10 @@ const Configuration = () => {
 
   const canDelete = Boolean(matchingRemotePlugin);
 
-  const hasUpdate = semver.gt(
+  const updateVersion = getUpdateVersion(
     matchingRemotePlugin?.version ?? "0.0.0",
     selectedPluginPackage.plugin?.version ?? "0.0.0"
-  )
-    ? matchingRemotePlugin?.version
-    : undefined;
+  );
 
   return (
     <Container fluid>
@@ -329,7 +333,7 @@ const Configuration = () => {
                       pluginConfig={selectedPluginPackage.plugin}
                       onChange={onChange}
                     />
-                    {hasUpdate && (
+                    {updateVersion && (
                       <Button
                         color="primary"
                         onClick={async () => {
@@ -357,7 +361,7 @@ const Configuration = () => {
                           }
                         }}
                       >
-                        Update to {hasUpdate}
+                        Update to {updateVersion}
                       </Button>
                     )}
                     <Button

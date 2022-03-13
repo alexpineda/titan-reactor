@@ -47,7 +47,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
 
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
     const pluginNative = await _tryLoadUtf8(path.join(folderPath, "native.js")) as string | null;
-    const readme = await _tryLoadUtf8(path.join(folderPath, "readme")) as string | null;
+    const readme = await _tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
 
     if (!packageJSON) {
         return null
@@ -133,7 +133,7 @@ export const installPlugin = async (repository: string) => {
     try {
 
         const manifest = await pacote.manifest(repository);
-        const folderName = sanitizeFilename(manifest.name);
+        const folderName = sanitizeFilename(manifest.name.replace("/", "_"));
         const folderPath = path.join(_pluginDirectory, folderName);
 
         await pacote.extract(repository, folderPath);

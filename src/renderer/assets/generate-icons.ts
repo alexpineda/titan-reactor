@@ -17,56 +17,41 @@ export default async (readFile: ReadFile) => {
   });
   renderer.autoClear = false;
 
-  const files = [
-    await readFile("TileSet/jungle.wpe"),
-    await readFile("game/icons.dds.grp"),
-    await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"),
-    await readFile("glue/scoretd/iScore.dds.grp"),
-    await readFile("cursor/arrow.grp"),
-    await readFile("cursor/MagY.grp"),
-    await readFile("cursor/Drag.grp"),
-    await readFile("HD2/unit/wirefram/wirefram.dds.grp"),
-    await readFile("webui/dist/lib/images/icon_apm.png"),
-    await readFile("webui/dist/lib/images/icon_worker_terran.png"),
-    await readFile("webui/dist/lib/images/icon_worker_zerg.png"),
-    await readFile("webui/dist/lib/images/icon_worker_protoss.png")
-  ];
-
-  const palette = new Uint8Array(files[0].buffer).subarray(0, 1024);
+  const palette = new Uint8Array((await readFile("TileSet/jungle.wpe")).buffer).subarray(0, 1024);
 
   const resourceIcons = generateResourceIcons(
     renderer,
-    parseDdsGrp(files[1])
+    parseDdsGrp(await readFile("game/icons.dds.grp"))
   );
 
   const cmdIcons = generateCmdIcons(
     renderer,
-    parseDdsGrp(files[2])
+    parseDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
   );
 
   const raceInsetIcons = generateRaceInsetIcons(
     renderer,
-    parseDdsGrp(files[3])
+    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );
 
   const arrowIcons = await generateCursors(
-    files[4],
+    await readFile("cursor/arrow.grp"),
     palette
   );
 
   const hoverIcons = await generateCenteredCursors(
-    files[5],
+    await readFile("cursor/MagY.grp"),
     palette
   );
 
   const dragIcons = await generateCenteredCursors(
-    files[6],
+    await readFile("cursor/Drag.grp"),
     palette
   );
 
   const wireframeIcons = await generateWireframes(
     renderer,
-    parseDdsGrp(files[7])
+    parseDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
   );
 
   renderer.dispose();
@@ -74,16 +59,16 @@ export default async (readFile: ReadFile) => {
 
   const workerIcons = {
     apm: `data:image/png;base64,${(
-      files[7]
+      await readFile("webui/dist/lib/images/icon_apm.png")
     ).toString("base64")}`,
     terran: `data:image/png;base64,${(
-      files[8]
+      await readFile("webui/dist/lib/images/icon_worker_terran.png")
     ).toString("base64")}`,
     zerg: `data:image/png;base64,${(
-      files[9]
+      await readFile("webui/dist/lib/images/icon_worker_zerg.png")
     ).toString("base64")}`,
     protoss: `data:image/png;base64,${(
-      files[10]
+      await readFile("webui/dist/lib/images/icon_worker_protoss.png")
     ).toString("base64")}`,
   };
 

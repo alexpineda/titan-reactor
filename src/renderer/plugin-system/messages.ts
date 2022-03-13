@@ -1,5 +1,6 @@
 
-export const SYSTEM_EVENT_PLUGINS_LOADED = "system:ready";
+export const SYSTEM_EVENT_READY = "system:ready";
+export const SYSTEM_EVENT_ASSETS = "system:assets";
 export const SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED = "system:plugin-config-changed";
 export const SYSTEM_EVENT_ADD_PLUGINS = "system:add-plugins";
 

@@ -40,12 +40,111 @@ const _addPlugin = (plugin) => {
   useConfig.setState({ [plugin.id]: plugin.config });
 };
 
+export let assets = {};
+
+export class RollingNumber {
+  constructor(value = 0) {
+    this.upSpeed = 80;
+    this.downSpeed = 30;
+    this._value = value;
+    this._rollingValue = value;
+  }
+  update(delta) {
+    if (this._running && delta >= this._speed) {
+      this._rollingValue = this._direction
+        ? Math.min(this._value, this._rollingValue + 1)
+        : Math.max(this._value, this._rollingValue - 1);
+
+      if (this._rollingValue === this._value) {
+        this._running = false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  get rollingValue() {
+    return this._rollingValue;
+  }
+
+  get isRunning() {
+    return this._running;
+  }
+
+  start(val) {
+    if (val === this._value) return;
+    this._value = val;
+
+    const direction = val > this._rollingValue;
+
+    if (this._running && direction === this._direction) {
+      return;
+    }
+
+    this._direction = direction;
+    this._speed = direction ? this.upSpeed : this.downSpeed;
+    this._running = true;
+  }
+
+  stop() {
+    this._running = false;
+  }
+}
+
+class PlayerInfo {
+  constructor() {
+    this._struct_size = 7;
+    this.playerId = 0;
+  }
+
+  get _offset() {
+    return this._struct_size * this.playerId;
+  }
+
+  get minerals() {
+    return this.playerData[this._offset + 0];
+  }
+
+  get vespeneGas() {
+    return this.playerData[this._offset + 1];
+  }
+  get supply() {
+    return this.playerData[this._offset + 2];
+  }
+
+  get supplyMax() {
+    return this.playerData[this._offset + 3];
+  }
+
+  get workerSupply() {
+    return this.playerData[this._offset + 4];
+  }
+
+  get armySupply() {
+    return this.playerData[this._offset + 5];
+  }
+
+  get apm() {
+    return this.playerData[this._offset + 6];
+  }
+}
+
+const playerInfo = new PlayerInfo();
+export const getPlayerInfo = (playerId, playerData) => {
+  playerInfo.playerData = playerData;
+  playerInfo.playerId = playerId;
+  return playerInfo;
+};
+
 const _messageListener = function (event) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
       useStore.setState(event.data.initialStore);
-      ReactDOM.render(<AppWrapper />, document.body);
       event.data.plugins.forEach(_addPlugin);
+      ReactDOM.render(<AppWrapper />, document.body);
+    } else if (event.data.type === "system:assets") {
+      Object.assign(assets, event.data.assets);
+      ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({ [event.data.pluginId]: event.data.config });
     } else if (event.data.type === "system:add-plugins") {
@@ -65,7 +164,6 @@ const _messageListener = function (event) {
           }`
       );
     }
-
     useStore.setState({ [event.data.type]: event.data.payload });
   }
 };

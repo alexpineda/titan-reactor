@@ -1,7 +1,9 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="runtime/reset.css">
+  <link rel="stylesheet" href="https://unpkg.com/open-props" />
+  <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css" />
+
   <style>
     @font-face {
       font-family: 'Conthrax';
@@ -22,8 +24,19 @@
       src: url("runtime/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype");
     }
 
+    :root {
+      --font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+    }
+
+    html {
+      background-color: transparent;
+    }
+
     body {
-      font-family: Inter, sans-serif;
+      font-family: var(--font-sans);
+      max-block-size: 100%;
+      max-inline-size: 100%;
+      overflow: hidden;
     }
   </style>
   <script type="importmap">
@@ -36,7 +49,6 @@
       }
     }
   </script>
-  <!-- https://cdn.skypack.dev/pin/react@v17.0.1-yH0aYV1FOvoIPeKBbHxg/mode=imports,min/optimized/react.js -->
   <script type="module" src="https://cdn.skypack.dev/react@17.0.2"> </script>
   <script type="module" src="https://cdn.skypack.dev/react-dom@17.0.2">
   </script>

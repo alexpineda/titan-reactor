@@ -15,7 +15,7 @@ const clicked = new Vector3();
 const rayCaster = new Raycaster();
 const intersections: Intersection<Object3D<Event>>[] = [];
 export class CameraMouse {
-    private _mouseWheelTimeout?: NodeJS.Timeout;
+    #_mouseWheelTimeout?: NodeJS.Timeout;
     private _mouseWheelDelay = 200;
     private _janitor = new Janitor();
     private _vector = new Vector3();
@@ -32,17 +32,17 @@ export class CameraMouse {
 
 
         const onWheel = (evt: WheelEvent) => {
-            if (this._mouseWheelTimeout) return;
+            if (this.#_mouseWheelTimeout) return;
             this._deltaY = evt.deltaY;
-            this._mouseWheelTimeout = setTimeout(() => {
-                this._mouseWheelTimeout = undefined;
+            this.#_mouseWheelTimeout = setTimeout(() => {
+                this.#_mouseWheelTimeout = undefined;
             }, this._mouseWheelDelay);
         };
 
         domElement.addEventListener("wheel", onWheel, passive);
         this._janitor.callback(() => {
             domElement.removeEventListener("wheel", onWheel);
-            this._mouseWheelTimeout && clearTimeout(this._mouseWheelTimeout);
+            this.#_mouseWheelTimeout && clearTimeout(this.#_mouseWheelTimeout);
         });
 
         const onMouseMove = (evt: MouseEvent) => {
@@ -174,7 +174,7 @@ export class CameraMouse {
     }
 
     dispose() {
-        this._mouseWheelTimeout && clearTimeout(this._mouseWheelTimeout);
+        this.#_mouseWheelTimeout && clearTimeout(this.#_mouseWheelTimeout);
         this._janitor.mopUp();
     }
 

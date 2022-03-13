@@ -1,11 +1,24 @@
 declare module "downgrade-replay" {
+    export interface ReplayPlayer {
+        color: {
+            hex: string;
+            id: number;
+            name: string;
+            rgb: number;
+        },
+        id: number;
+        isComputer: boolean;
+        name: string;
+        race: "zerg" | "protoss" | "terran";
+        team: number;
+    }
     export class Replay {
         version: Version;
         rawCmds: Buffer;
         chk: Buffer;
         header: {
             frameCount: number;
-            players: Player[];
+            players: ReplayPlayer[];
         };
         containerSize: 1700 | 3400;
     }

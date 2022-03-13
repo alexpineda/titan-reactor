@@ -136,7 +136,6 @@ export default async (settings: Settings) => {
         hoverIcons,
         dragIcons,
         wireframeIcons,
-        loadImageAtlas: loadImageAtlasGrp,
         smaaImages,
         envMap
     }));

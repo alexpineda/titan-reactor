@@ -1,11 +1,6 @@
 import { Texture } from "three";
 import { BwDAT, GRPInterface } from "../../common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "../../common/types/icons";
-import {
-  closeCascStorage,
-  readCascFile,
-} from "../../common/utils/casclib";
-
 
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
@@ -21,7 +16,6 @@ interface AssetsConstructorArgs {
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
   smaaImages: any[];
-  loadImageAtlas: (imageId: number) => Promise<void>
   envMap: Texture;
 }
 
@@ -40,7 +34,6 @@ class Assets {
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
   smaaImages: any[];
-  loadImageAtlas: (imageId: number) => Promise<void>;
   envMap: Texture;
 
   constructor({
@@ -55,7 +48,6 @@ class Assets {
     hoverIcons,
     dragIcons,
     wireframeIcons,
-    loadImageAtlas,
     smaaImages,
     envMap
   }: AssetsConstructorArgs) {
@@ -70,19 +62,10 @@ class Assets {
     this.selectionCirclesHD = selectionCirclesHD;
     this.workerIcons = workerIcons;
     this.wireframeIcons = wireframeIcons;
-    this.loadImageAtlas = loadImageAtlas;
     this.smaaImages = smaaImages;
     this.envMap = envMap;
   }
 
-  async loadAudioFile(id: number) {
-    return (await readCascFile(`sound/${this.bwDat.sounds[id].file}`)).buffer;
-  }
-
-
-  dispose() {
-    closeCascStorage();
-  }
 }
 
 export default Assets;

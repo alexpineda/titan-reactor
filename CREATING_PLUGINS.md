@@ -70,7 +70,7 @@ Once we've got our basic `package.json` we can start with `index.jsx`:
 
 ```jsx
 import React from "react";
-import { registerComponent } from "titan-reactor";
+import { registerComponent, assets, util  } from "titan-reactor";
 
 registerComponent({ pluginId: "_plugin_id_", screen: "@home/ready" } , ({ config }) => {
     return <h1>Hello { config.name.value }</h1>
@@ -85,7 +85,7 @@ Additional properties in the first argument allow us to tap into layout and scre
 
 Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
 
-Every component will be provided with their plugin `config` object which corresponds with `config` field of our `package.json`. The component will re-render on any config update.
+Every component will be provided with their plugin `config` object which corresponds with `config` field of our `package.json`. The component will re-render on any config update. `titan-reactor` also exports `getPlayerInfo`  which is useful for simplifying access to certain values (see player-bar), and `assets` which provides several in game graphics for you to use such as icons.
 
 ## useStore hook
 

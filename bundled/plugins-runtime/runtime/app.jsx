@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStore, usePluginConfig } from "titan-reactor";
+import { useStore, usePluginConfig, assets } from "titan-reactor";
 const _screenSelector = (store) => store.screen;
 
 const _style_ErrorCenterText = {
@@ -51,7 +51,7 @@ export default ({ components }) => {
   }, []);
 
   useEffect(() => {
-    if (!appLoaded && screen === "@home/ready") {
+    if (!appLoaded && screen !== "@home/loading") {
       setAppLoaded(true);
     }
   }, [screen]);

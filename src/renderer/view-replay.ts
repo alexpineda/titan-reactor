@@ -832,7 +832,7 @@ async function TitanReactorGame(
     const spriteX = pxToGameUnit.x(x);
     const spriteZ = pxToGameUnit.y(y);
     let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-    const flyingY = isFlyer ? Math.min(6, spriteY + 2.5) : spriteY;
+    const flyingY = isFlyer ? 5.5 : spriteY;
 
     v2.set(spriteX, spriteZ);
     v.set(spriteX, flyingY, spriteZ);
@@ -1247,7 +1247,12 @@ async function TitanReactorGame(
       //   }
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-      pluginSystem.onFrame(gameStatePosition, fps.fps);
+
+      if (pluginSystem.hasOnFrame(gameStatePosition)) {
+        const playerDataIndex = openBw.wasm!._get_buffer(8) >> 2;
+        const playerData = openBw.wasm!.HEAP32.slice(playerDataIndex, playerDataIndex + (7 * 8));
+        pluginSystem.onFrame(gameStatePosition, fps.fps, playerData);
+      }
       currentBwFrame = null;
     }
 
