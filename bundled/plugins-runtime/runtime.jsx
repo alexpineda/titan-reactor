@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef, useEffect} from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
@@ -71,7 +71,7 @@ export class RollingNumber {
     return this._running;
   }
 
-  start(val) {
+  start(val, onUpdate) {
     if (val === this._value) return;
     this._value = val;
 
@@ -84,12 +84,52 @@ export class RollingNumber {
     this._direction = direction;
     this._speed = direction ? this.upSpeed : this.downSpeed;
     this._running = true;
+
+    let lastTime = 0;
+    const raf = (elapsed) => {
+      const delta = elapsed - lastTime;
+      this.update(delta);
+      onUpdate(this._rollingValue);
+
+      if(this.isRunning) {
+        requestAnimationFrame(raf);
+      }
+    };
+
+    requestAnimationFrame(raf);
   }
 
   stop() {
     this._running = false;
   }
 }
+
+export const RollingResource = ({ value, ...props }) => {
+  const numberRef = useRef(null);
+  const rollingNumber = useRef(new RollingNumber(value));
+
+  useEffect(() => {
+    
+    rollingNumber.current.start(value, (val) => {
+        if (numberRef.current) {
+          numberRef.current.textContent = val;
+        } 
+    });
+
+    return () => {
+      rollingNumber.current.stop();
+    };
+
+  }, [value]);
+
+  return (
+      <span
+        ref={numberRef}
+        {...props}
+      ></span>
+  );
+};
+
 
 class PlayerInfo {
   constructor() {

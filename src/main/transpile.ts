@@ -1,50 +1,36 @@
-import { transform } from "buble";
+import { transformAsync } from "@babel/core";
 
 export interface TransformSyntaxError extends Error {
-    message: string;
-    loc: {
-        line: number;
-        column: number;
-    };
-    snippet: string;
+  message: string;
+  loc: {
+    line: number;
+    column: number;
+  };
+  snippet: string;
 }
 
-export default (content: string, transpileErrors: TransformSyntaxError[]) => {
-    try {
-        return transform(content, {
-            transforms: {
-                arrow: false,
-                modules: false,
-                dangerousForOf: false,
-                classes: false,
-                computedProperty: false,
-                templateString: false,
-                dangerousTaggedTemplateString: false,
-                letConst: false,
-                generator: false,
-                destructuring: false,
-                spreadRest: false,
-                defaultParameter: false,
-                forOf: false,
-                objectRestSpread: false,
-                exponentiation: false,
-                conciseMethodProperty: false,
-                numericLiteral: false,
-                parameterDestructuring: false,
-                reservedProperties: false,
-                trailingFunctionCommas: false,
-                unicodeRegExp: false,
+export default async (
+  content: string,
+  transpileErrors: TransformSyntaxError[]
+) => {
+  try {
+    const result = await transformAsync(content, {
+      presets: [
+        
+        "@babel/preset-react",
+      ],
+      configFile: false,
+      browserslistConfigFile: false,
+      sourceMaps: "inline",
+      sourceType: "module",
+      babelrc: false,
+      
+    });
 
-                //@ts-ignore valid but not in types
-                asyncAwait: false
-            },
-            file: `out.js`,
-            source: `source.jsx`,
-            namedFunctionExpressions: false,
-        });
-    } catch (e) {
-        transpileErrors.push(e as TransformSyntaxError);
-        return null;
-    }
-}
-
+    return result;
+  } catch (e) {
+    //@ts-ignore
+    transpileErrors.push(e);
+    return null;
+  }
+};

@@ -22,7 +22,7 @@ app.use(function (_, res, next) {
 
 const transpileErrors: TransformSyntaxError[] = [];
 
-app.get('*', function (req, res) {
+app.get('*', async function (req, res) {
     const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(settings.get().directories.plugins, req.path);
 
     if (!(filepath.startsWith(settings.get().directories.plugins) || filepath.startsWith(_runtimePath))) {
@@ -31,12 +31,11 @@ app.get('*', function (req, res) {
     }
 
     if (filepath.endsWith(".jsx")) {
-        let result = transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
+        let result = await transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
         let content = "";
 
         if (result?.code) {
             content = result.code;
-            content += `\n//# sourceMappingURL=${result.map.toUrl()}`;
         }
 
         const plugin = getEnabledPluginConfigs().find(p => p.id === req.query["plugin-id"]);
@@ -46,7 +45,6 @@ app.get('*', function (req, res) {
 
         res.setHeader("Content-Type", "application/javascript");
 
-        transpileErrors.length = 0;
         if (transpileErrors.length === 0) {
             res.send(content);
         } else {
