@@ -95,7 +95,7 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
     }
 }
 
-const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock", "@titan-reactor-plugins/fps", "@titan-reactor-plugins/default-screens"];
+const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock", "@titan-reactor-plugins/fps", "@titan-reactor-plugins/default-screens", "@titan-reactor-plugins/players-bar"];
 
 
 export default async (pluginDirectory: string) => {
