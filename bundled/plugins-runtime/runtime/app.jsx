@@ -110,17 +110,69 @@ export default ({ components }) => {
         <p style={styleCenterText}>First Run: Installing Default Plugins....</p>
       )}
       {error && <GlobalErrorState error={error} />}
-      <div id="top">
-        {components["top"] &&
-          components["top"]
-            .filter(screenFilter)
-            .map(({ JSXElement, component }) => (
-              <Component
-                key={component.id}
-                component={component}
-                JSXElement={JSXElement}
-              />
-            ))}
+      <div
+        id="top-container"
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          flexGrow: 1,
+        }}
+      >
+        <div
+          id="top-left"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {components["top-left"] &&
+            components["top-left"]
+              .filter(screenFilter)
+              .map(({ JSXElement, component }) => (
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                />
+              ))}
+        </div>
+        <div
+          id="top"
+          style={{
+            display: "flex",
+            flexGrow: 1,
+          }}
+        >
+          {components["top"] &&
+            components["top"]
+              .filter(screenFilter)
+              .map(({ JSXElement, component }) => (
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                />
+              ))}
+        </div>
+        <div
+          id="top-right"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {components["top-right"] &&
+            components["top-right"]
+              .filter(screenFilter)
+              .map(({ JSXElement, component }) => (
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                />
+              ))}
+        </div>
       </div>
       <div
         id="left_right"

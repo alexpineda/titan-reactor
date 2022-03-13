@@ -28,7 +28,7 @@ Developing plugins for Titan Reactor is easy and requires no build tools, just a
 
 and then
 
-`yarn workspace titan-reactor dev`
+`yarn dev`
 
 ### Legal
 
