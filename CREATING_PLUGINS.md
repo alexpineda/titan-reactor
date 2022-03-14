@@ -43,9 +43,9 @@ As for displaying things to the user, we'll later use an `index.jsx` file.
 
 Your plugin directory will be scanned for `package.json`, `index.jsx` and `native.js` files. All are optional, but without `package.json` the others will not be loaded.
 
-`index.jsx` allows you to access game state and create React components to be displayed for your plugin, **most plugin developers will want to use this**. Your code and component will live in a shared iframe environment with other plugins in a separate process.
+`index.jsx` allows you to easily access game state along with your React components. Your code and component will live in a shared iframe environment with other plugins in a separate process. This will mostly be used for displaying things to the user, either loading screens or HUD type elements.
 
-`native.js` provides plugin developers higher privileges at the cost of user security, but allows you to access full Titan Reactor game state on the main Chromium process.
+`native.js` provides plugin developers higher privileges at the cost of user security, but allows you to access full Titan Reactor game state on the main Chromium process. This will mostly be used for modifying game state, such as player colors.
 
 We use the `config` value in `package.json` specifically for users to modify in order to customize settings for your plugin. The values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). We use Leva internally to allow users to customize their userSettings. At a minimum each value must be a wrapper around a `value` property:
 ```json
@@ -108,7 +108,7 @@ It's best to [keep the "selector" function memoized](https://github.com/pmndrs/z
 
 **Optimized (Transient) Use**
 
-This method is a small optimization minimizing virtual dom diffing and re-renders. See [FPS Meter plugin](https://github.com/imbateam-gg/titan-reactor/tree/dev/packages/titan-reactor/bundled/plugins/fps) and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
+This method is a small optimization minimizing virtual dom diffing and re-renders. See [FPS Meter plugin](https://github.com/imbateam-gg/titan-reactor-community/tree/main/plugins/fps) and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
 
 
 ## Store Reference
@@ -118,16 +118,19 @@ This method is a small optimization minimizing virtual dom diffing and re-render
   - **time**: game time label `eg, "12:00"`
   - **frame**: current replay frame
   - **maxFrame**: max replay frame
+  - **unitProduction**: Int32Array for each player (8 total), with [unitId, count]
+  - **upgrades**: Int32Array for each player (8 total), with [upgradeId, level, progress]
+  - **research**: Int32Array for each player (8 total), with [researchId, progress]
 
-- **world** : Partial<[WorldStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/renderer/stores/realtime/world-store.ts#L6)>
-  - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/bw-chk.d.ts#L21)
-  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/declarations/downgrade-replay.d.ts#L2)
+- **world** : Partial<[WorldStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/stores/realtime/world-store.ts)>
+  - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/bw-chk.d.ts#L21)
+  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/downgrade-replay.d.ts#L15)
 
 
 - **scene** : "screenType/screenStatus"
 
 
-- **dimensions** [GameCanvasDimensions](https://github.com/imbateam-gg/titan-reactor/blob/dev/packages/titan-reactor/src/common/types/image.ts#L11)
+- **dimensions** [GameCanvasDimensions](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/image.ts#L11)
 
 ## registerComponent reference
 
@@ -185,6 +188,8 @@ The following css variables are available to your styles:
 - --game-height
 - --minimap-width
 - --minimap-height
+
+Included in the "runtime" environment is also the full set of open prop variables for use in your CSS. [See Open Props for more details.](https://open-props.style/)
 
 ## CSS Fonts
 
