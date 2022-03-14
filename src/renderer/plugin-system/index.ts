@@ -17,6 +17,8 @@ import {
 } from "@ipc/plugins";
 import Janitor from "@utils/janitor";
 import waitForAssets from "../bootup/wait-for-assets";
+import { openBw } from "../openbw";
+import { StdVector } from "../buffer-view/std-vector";
 
 ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
     _sendMessage({
@@ -193,7 +195,10 @@ const _replayPosition = {
         maxFrame: 0,
         time: "",
         fps: "0",
-        playerData: new Int32Array()
+        playerData: new Int32Array(),
+        unitProduction: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
+        research: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
+        upgrades: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
     }
 }
 
@@ -202,11 +207,29 @@ export const hasOnFrame = (gameStatePosition: GameStatePosition) => {
     return _lastSend[EVENT_ON_FRAME] !== time;
 }
 
-export const onFrame = (gameStatePosition: GameStatePosition, fps: string, playerData: Int32Array) => {
+
+export const onFrame = (gameStatePosition: GameStatePosition, fps: string, playerDataAddr: number, productionDataAddr: number) => {
     const time = gameStatePosition.getSecond();
 
     if (_lastSend[EVENT_ON_FRAME] !== time) {
         _lastSend[EVENT_ON_FRAME] = time;
+
+        const playerData = openBw.wasm!.HEAP32.slice((playerDataAddr >> 2), (playerDataAddr >> 2) + (7 * 8));
+        const productionData = new StdVector(openBw.wasm!.HEAP32, productionDataAddr >> 2);
+
+        // production data is a series of 3 vectors (unit, research, upgrades), 
+        // each of which are each represented in wasm as 3 ints (addresses)
+
+        //FIXME: copy the data into the replay position with resizing rather than overwrite
+        for (let player = 0; player < 8; player++) {
+            _replayPosition.payload.unitProduction[player] = productionData.copyData();
+            productionData.index += 3;
+            _replayPosition.payload.upgrades[player] = productionData.copyData();
+            productionData.index += 3;
+            _replayPosition.payload.research[player] = productionData.copyData();
+            productionData.index += 3;
+        }
+
         _replayPosition.payload.frame = gameStatePosition.bwGameFrame;
         _replayPosition.payload.maxFrame = gameStatePosition.maxFrame;
         _replayPosition.payload.time = gameStatePosition.getFriendlyTime();

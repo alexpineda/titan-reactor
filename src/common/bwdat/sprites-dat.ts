@@ -26,7 +26,7 @@ export class SpritesDAT extends DAT<SpriteDAT> {
     super(readFile);
 
     this.format = [
-      { size: 2, name: "image", get: (i) => images[i + 1] },
+      { size: 2, name: "image", get: (i) => images[i] },
       {
         size: 1,
         name: "healthBar",

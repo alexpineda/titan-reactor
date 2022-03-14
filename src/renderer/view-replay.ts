@@ -1249,9 +1249,9 @@ async function TitanReactorGame(
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
 
       if (pluginSystem.hasOnFrame(gameStatePosition)) {
-        const playerDataIndex = openBw.wasm!._get_buffer(8) >> 2;
-        const playerData = openBw.wasm!.HEAP32.slice(playerDataIndex, playerDataIndex + (7 * 8));
-        pluginSystem.onFrame(gameStatePosition, fps.fps, playerData);
+        const playerDataAddr = openBw.wasm!._get_buffer(8);
+        const productionDataAddr = openBw.wasm!._get_buffer(9);
+        pluginSystem.onFrame(gameStatePosition, fps.fps, playerDataAddr, productionDataAddr);
       }
       currentBwFrame = null;
     }
