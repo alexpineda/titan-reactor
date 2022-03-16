@@ -4700,10 +4700,10 @@ dotenv@^9.0.2:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-9.0.2.tgz#dacc20160935a37dea6364aa1bef819fb9b6ab05"
   integrity sha512-I9OvvrHp4pIARv4+x9iuewrWycX6CcZtoAu1XrzPxc5UygMJXJZYmBsynku8IkrJwgypE5DGNjDPmPRhDCptUg==
 
-downgrade-replay@^0.0.8:
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/downgrade-replay/-/downgrade-replay-0.0.8.tgz#2ec1f0ba3d47b0db857f4c2f942138d01126e48c"
-  integrity sha512-qcsuCZcOMXZWpnHQ1b0bxEzVInd/TtJY7UTO0rfLElkCT/2z1sEi2D1NfQhcCWuDMJ3sGpdyY60oLBW7PCQnAQ==
+downgrade-replay@0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/downgrade-replay/-/downgrade-replay-0.0.9.tgz#bc1e2139d47636de2e8d517cf04e24312c2c77ac"
+  integrity sha512-Qk1izk92rTgb50e/8mqAnDQytJXl9IujdTAqOEl0Vmkm21ubnlrrSBQNHHtG5PC1jeT7VMjogb02P4zyDDiGrg==
   dependencies:
     bl "^5.0.0"
     iconv-lite "^0.6.2"

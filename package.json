@@ -74,7 +74,7 @@
         "concat": "1.0.3",
         "d3-ease": "1.0.6",
         "deepmerge": "^4.2.2",
-        "downgrade-replay": "^0.0.8",
+        "downgrade-replay": "0.0.9",
         "electron-devtools-installer": "^3.2.0",
         "electron-is-dev": "^1.2.0",
         "express": "^4.17.3",
