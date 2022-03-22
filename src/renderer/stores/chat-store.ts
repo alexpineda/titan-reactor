@@ -46,7 +46,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
 
         _interval = window.setInterval(() => {
-            useChatStore().removeOneFromChat()
+            useChatStore.getState().removeOneFromChat()
         }, CHAT_INTERVAL);
     }
 }));

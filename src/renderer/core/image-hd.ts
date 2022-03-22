@@ -3,11 +3,9 @@ import {
   BufferGeometry,
   Color,
   DynamicDrawUsage,
-  InterleavedBuffer,
   InterleavedBufferAttribute,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
   NormalBlending,
   SubtractiveBlending,
   Vector3,
@@ -86,9 +84,9 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     atlas: GRPInterface,
     imageDef: ImageDAT,
   ) {
-     const _geometry = new BufferGeometry();
+    const _geometry = new BufferGeometry();
 
-			_geometry.setIndex( [ 0, 1, 2,	0, 2, 3 ] );
+    _geometry.setIndex([0, 1, 2, 0, 2, 3]);
 
     super(_geometry, new TeamSpriteMaterial);
 
