@@ -207,6 +207,7 @@ export const disablePlugin = (pluginId: string) => {
         settings.disablePlugin(plugin.name);
         _enabledPluginPackages = _enabledPluginPackages.filter(otherPlugin => otherPlugin !== plugin);
         _disabledPluginPackages.push(plugin);
+        browserWindows.main?.webContents.send(RELOAD_PLUGINS);
         return true;
     } catch {
         log.info(`@load-plugins/disable: Error disabling plugin ${plugin.name}`);

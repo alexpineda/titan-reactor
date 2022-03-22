@@ -162,6 +162,8 @@ export class Settings extends EventEmitter {
    */
   async save(settings: Partial<SettingsType>) {
     this._settings = Object.assign({}, this._settings, settings);
+    this._settings.plugins.enabled = [...new Set(this._settings.plugins.enabled)];
+    
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {
       encoding: "utf8",
     });

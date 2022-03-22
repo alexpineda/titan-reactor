@@ -2,19 +2,13 @@ import { strict as assert } from "assert";
 import { OpenBWAPI } from "common/types";
 import { TilesBufferView } from ".";
 
-// a wrapper for a bw frames entire game state
+//FIXME: deprecate this class
 export class FrameBW {
   frame = 0;
   prevFrame = -1;
   needsUpdate = false;
-  minerals: number[] = [];
-  gas: number[] = [];
-  supplyUsed: number[] = [];
-  supplyAvailable: number[] = [];
-  workerSupply: number[] = [];
 
   private _tiles: TilesBufferView;
-
   private _bw: OpenBWAPI;
 
   constructor(bw: OpenBWAPI) {
@@ -31,13 +25,6 @@ export class FrameBW {
       return;
     }
     this.prevFrame = this.frame;
-
-    // for (let i = 0; i < 8; ++i) {
-    //     console.log("minerals", this._bw._counts(i, 8));
-    //     console.log("gas", this._bw._counts(i, 9));
-    //     console.log("workers", this._bw._counts(i, 12));
-    //     console.log("army", this._bw._counts(i, 13));
-    // }
 
     this.tiles.ptrIndex = this._bw.call!.getTilesPtr!();
     this.tiles.itemsCount = this._bw.call!.getTilesSize!();

@@ -1,4 +1,4 @@
-import create from "zustand";
+import create from "zustand/vanilla";
 
 import { Player } from "../../common/types";
 

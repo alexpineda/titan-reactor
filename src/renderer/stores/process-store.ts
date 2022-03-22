@@ -1,5 +1,5 @@
 import { snake } from "common/utils/camel";
-import create from "zustand";
+import create from "zustand/vanilla";
 import * as log from "../ipc/log";
 
 const PROCESS_MAX = 10;

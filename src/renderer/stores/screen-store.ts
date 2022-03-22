@@ -1,5 +1,5 @@
 import * as log from "@ipc/log";
-import create from "zustand";
+import create from "zustand/vanilla";
 import { ScreenStatus, ScreenType } from "../../common/types";
 
 /**

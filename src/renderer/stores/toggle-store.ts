@@ -1,4 +1,4 @@
-import create from "zustand";
+import create from "zustand/vanilla";
 import { UnitDAT } from "../../common/bwdat/units-dat";
 import range from "../../common/utils/range";
 import { Unit } from "../core";

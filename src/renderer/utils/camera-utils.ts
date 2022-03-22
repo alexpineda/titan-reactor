@@ -5,8 +5,9 @@ import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
 import { MinimapMouse } from "../input";
 
-const DEFAULT_FAR = 1000;
-const BATTLE_FAR = 1000;
+const DEFAULT_FAR = 128;
+const OVERVIEW_FAR = 1000;
+const BATTLE_FAR = 128;
 
 type Controls = {
   standard: CameraControls,
@@ -46,6 +47,7 @@ export const constrainControls = async (controls: Controls, minimapMouse: Minima
 
   controls.enableAll();
   controls.cameraShake.enabled = false;
+  controls.standard.boundaryFriction = 1;
 
   camera.far = DEFAULT_FAR;
   camera.zoom = 1;
@@ -61,7 +63,7 @@ export const constrainControls = async (controls: Controls, minimapMouse: Minima
   controls.standard.dollyToCursor = true;
   controls.standard.verticalDragToForward = true;
 
-  controls.standard.maxDistance = Math.max(mapWidth, mapHeight);
+  controls.standard.maxDistance = DEFAULT_FAR;
   controls.standard.minDistance = 20;
   controls.standard.dollySpeed = 0.2
 
@@ -86,6 +88,7 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
   camera.far = BATTLE_FAR;
   camera.fov = 75;
   camera.updateProjectionMatrix();
+  controls.standard.boundaryFriction = 0;
 
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
@@ -95,7 +98,6 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
 
   controls.standard.dollyToCursor = false;
 
-  //@ts-ignore unset boundary using undefined as per docs
   setBoundary(controls, mapWidth, mapHeight);
 
   controls.standard.maxDistance = Math.max(mapWidth, mapHeight) * 2;
@@ -119,6 +121,7 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
 
   controls.disableAll();
   controls.mouse.enabled = true;
+  controls.standard.boundaryFriction = 0;
 
   controls.standard.setBoundary(undefined);
   controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
@@ -127,7 +130,7 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
   controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
   controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
 
-  camera.far = DEFAULT_FAR;
+  camera.far = OVERVIEW_FAR;
   camera.fov = 15;
   camera.updateProjectionMatrix();
   controls.standard.setLookAt(0, Math.max(mapWidth, mapHeight) * 4, 0, 0, 0, 0, false);

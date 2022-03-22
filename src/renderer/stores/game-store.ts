@@ -1,4 +1,4 @@
-import create from "zustand";
+import create from "zustand/vanilla";
 import { GameCanvasDimensions, Player } from "../../common/types";
 import Assets from "../assets/assets";
 

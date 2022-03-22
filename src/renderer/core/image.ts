@@ -17,9 +17,6 @@ export type Image = Object3D & {
   // for iscript sprite
   readonly unitTileScale: UnitTileScale;
 
-  offsetX: number;
-  offsetY: number;
-
   setWarpingIn: (warpingIn: number) => void;
   setCloaked: (cloaked: boolean) => void;
   setTeamColor: (color: Color) => void;

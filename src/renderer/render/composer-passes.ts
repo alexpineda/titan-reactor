@@ -47,7 +47,7 @@ export const createPasses = () => {
 
   const dofEffect = effects[Effects.DepthOfField] = new DepthOfFieldEffect(throwAwayCamera, {
     focusDistance: 0.01,
-    focalLength: 0.01,
+    focalLength: 0.1,
     bokehScale: 1.0,
     height: 480,
   });
@@ -61,7 +61,7 @@ export const createPasses = () => {
   });
 
   const scanlineEffect = new ScanlineEffect({ density: 0.75 });
-  scanlineEffect.blendMode.opacity.value = 0.15;
+  scanlineEffect.blendMode.opacity.value = 0.1;
 
   passes[Passes.Clear] = new ClearPass(true, true, true);
   passes[Passes.Render] = new RenderPass(throwAwayCamera);
@@ -102,7 +102,7 @@ export const createPasses = () => {
     },
 
     presetBattleCam() {
-      fogEffect.blendMode.opacity.value = 1;
+      fogEffect.blendMode.opacity.value = 0.2;
       enable(Passes.Render, Passes.Cinematic);
     },
 

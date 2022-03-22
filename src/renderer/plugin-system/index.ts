@@ -1,5 +1,6 @@
 
 import assert from "assert";
+import * as THREE from "three";
 
 import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
 
@@ -19,6 +20,7 @@ import Janitor from "@utils/janitor";
 import waitForAssets from "../bootup/wait-for-assets";
 import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
+
 
 ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
     _sendMessage({
@@ -57,7 +59,7 @@ class PluginSystem {
                 plugin = new Plugin(pluginConfig);
             }
 
-            plugin.onInitialized(pluginConfig);
+            plugin.onInitialized(pluginConfig, THREE);
 
         } catch (e: unknown) {
             if (e instanceof Error) {

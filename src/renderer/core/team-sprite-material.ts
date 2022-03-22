@@ -1,4 +1,4 @@
-import { Color, SpriteMaterial, SpriteMaterialParameters, Texture } from "three";
+import { Color, DoubleSide, MeshBasicMaterial, MeshStandardMaterial, SpriteMaterialParameters, Texture } from "three";
 
 import warp from "../image/effect/warp";
 
@@ -20,7 +20,7 @@ type DynamicUniforms = {
   };
 };
 
-export class TeamSpriteMaterial extends SpriteMaterial {
+export class TeamSpriteMaterial extends MeshBasicMaterial {
   private _dynamicUniforms: DynamicUniforms;
   isTeamSpriteMaterial = true;
   isShadow = false;
@@ -28,6 +28,7 @@ export class TeamSpriteMaterial extends SpriteMaterial {
 
   constructor(parameters?: SpriteMaterialParameters) {
     super(parameters);
+    // this.side = DoubleSide;
     this.isTeamSpriteMaterial = true;
     this.defines = {};
     this._dynamicUniforms = {

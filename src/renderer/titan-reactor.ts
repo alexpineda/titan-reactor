@@ -62,10 +62,10 @@ bootup();
 async function bootup() {
   try {
     log.info("@init: loading settings");
-    await settingsStore().load();
+    await (settingsStore().load());
     registerFileDialogHandlers();
 
-    initializePluginSystem(settingsStore().enabledPlugins);
+    await initializePluginSystem(settingsStore().enabledPlugins);
 
     const settings = settingsStore().data;
     const hasErrors = settingsStore().errors.length > 0;

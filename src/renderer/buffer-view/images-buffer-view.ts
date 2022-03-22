@@ -60,6 +60,10 @@ export class ImageBufferView
     return this._bw.HEAP32[this._index32 + 12];
   }
 
+  get iscriptProgramCounter() {
+    return this._bw.HEAPU32[this._index32 + 13];
+  }
+
   get iscriptAnimation() {
     return this._bw.HEAP32[this._index32 + 16];
   }

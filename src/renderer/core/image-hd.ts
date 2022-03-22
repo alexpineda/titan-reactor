@@ -1,10 +1,14 @@
 import {
   BufferAttribute,
+  BufferGeometry,
   Color,
   DynamicDrawUsage,
+  InterleavedBuffer,
   InterleavedBufferAttribute,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
   NormalBlending,
-  Sprite as ThreeSprite,
   SubtractiveBlending,
   Vector3,
 } from "three";
@@ -22,7 +26,7 @@ export const DepthMode = {
 /**
  * An image instance that uses HD assets
  */
-export class ImageHD extends ThreeSprite implements Image {
+export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements Image {
   static useDepth = false;
   static useScale = 1;
 
@@ -82,9 +86,11 @@ export class ImageHD extends ThreeSprite implements Image {
     atlas: GRPInterface,
     imageDef: ImageDAT,
   ) {
-    super(new TeamSpriteMaterial({
-      map: atlas.diffuse
-    }));
+     const _geometry = new BufferGeometry();
+
+			_geometry.setIndex( [ 0, 1, 2,	0, 2, 3 ] );
+
+    super(_geometry, new TeamSpriteMaterial);
 
     this.atlas = atlas;
     this.dat = imageDef;
@@ -97,7 +103,7 @@ export class ImageHD extends ThreeSprite implements Image {
     this.material.alphaTest = 0.01;
     this.material.depthTest = ImageHD.useDepth;
 
-    this.geometry = this.geometry.clone();
+    // this.geometry = this.geometry.clone();
 
     const posAttribute = new BufferAttribute(
       new Float32Array([

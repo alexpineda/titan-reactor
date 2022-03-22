@@ -1,4 +1,4 @@
-import create from "zustand";
+import create from "zustand/vanilla";
 
 let _productionInterval: NodeJS.Timeout;
 let _cycleTime = 10000;

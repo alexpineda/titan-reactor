@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
+import { Box3, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
@@ -39,7 +39,6 @@ import {
 } from "./render";
 import renderer from "./render/renderer";
 import {
-  useHudStore,
   useSettingsStore,
 } from "./stores";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
@@ -58,7 +57,7 @@ import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import { CameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
-import { WeaponType, WeaponBehavior } from "../common/enums";
+import { WeaponBehavior } from "../common/enums";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
 import * as pluginSystem from "./plugin-system";
@@ -127,7 +126,7 @@ async function TitanReactorGame(
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 0.1, 1000);
+  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 0.1, 500);
   camera.userData = {
     direction: 0,
     prevDirection: -1
@@ -148,7 +147,7 @@ async function TitanReactorGame(
     viewport: new Vector4(0, 0, 300, 200),
     setSize: (renderWidth: number, aspect: number) => {
       // FIXME: add a setting for pip size
-      const pipHeight = 200;
+      const pipHeight = 300;
       const pipWidth = pipHeight * aspect;
       const margin = 20;
       _PIP.viewport.set(renderWidth - pipWidth - margin, margin, pipWidth, pipHeight);
@@ -267,6 +266,7 @@ async function TitanReactorGame(
     minimapSurface.canvas.style.display = "block";
 
     if (controls.cameraMode === CameraMode.Default) {
+      setUseScale(false);
       if (cm === CameraMode.Battle) {
         const t = new Vector3();
         t.lerpVectors(oldTarget, oldPosition, 0.8);
@@ -278,6 +278,7 @@ async function TitanReactorGame(
       renderer.composerPasses.presetRegularCam();
       // setUseDepth(false);
     } else if (controls.cameraMode === CameraMode.Battle) {
+      setUseScale(false);
       gameSurface.requestPointerLock();
       await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
       await constrainControlsBattleCam(controls, minimapMouse, camera, mapWidth, mapHeight);
@@ -324,39 +325,36 @@ async function TitanReactorGame(
   // todo change this to store
   const togglePlayHandler = () => {
     gameStatePosition.togglePlay();
-    if (gameStatePosition.paused) {
-      useHudStore.getState().setAutoProductionView(false);
-    } else {
-      // todo remember last toggle setting or get from settings
-      useHudStore.getState().setAutoProductionView(true);
-    }
   };
   keyboardManager.on(InputEvents.TogglePlay, togglePlayHandler);
 
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
+  const refreshScene = () => {
+    images.clear();
+    units.clear();
+    unitsBySprite.clear();
+    sprites.clear();
+    const highlights: Object3D[] = [];
+    scene.children.forEach((obj) => {
+      if (obj.parent === scene && obj.name === "Highlight") {
+        highlights.push(obj)
+      }
+    });
+    highlights.forEach(h => h.removeFromParent());
+    // cmds.next(openBw.api._replay_get_value(3));
+
+    currentBwFrame = null;
+    reset = null;
+    _wasReset = true;
+  }
+
   const skipHandler = (dir: number) => () => {
     if (reset) return;
-    reset = () => {
-      const currentFrame = openBw.wasm!._replay_get_value(3);
-      openBw.wasm!._replay_set_value(3, currentFrame + 100 * dir);
-      images.clear();
-      units.clear();
-      unitsBySprite.clear();
-      const highlights: Object3D[] = [];
-      scene.children.forEach((obj) => {
-        if (obj.parent === scene && obj.name === "Highlight") {
-          highlights.push(obj)
-        }
-      });
-      highlights.forEach(h => h.removeFromParent());
-      // cmds.next(openBw.api._replay_get_value(3));
-
-      currentBwFrame = null;
-      reset = null;
-      _wasReset = true;
-    }
+    const currentFrame = openBw.wasm!._replay_get_value(3);
+    openBw.wasm!._replay_set_value(3, currentFrame + 100 * dir);
+    reset = refreshScene;
   }
   keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
   keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
@@ -823,10 +821,12 @@ async function TitanReactorGame(
     }
     _janitor.mopUp();
   });
-  const unitsBySprite: Map<number, Unit> = new Map();
-  const imagesGroup = new Group();
 
-  scene.add(imagesGroup);
+  const unitsBySprite: Map<number, Unit> = new Map();
+  const sprites: Map<number, Group> = new Map();
+  const spritesGroup = new Group();
+
+  scene.add(spritesGroup);
 
   const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlyer?: boolean) => {
     const spriteX = pxToGameUnit.x(x);
@@ -865,9 +865,18 @@ async function TitanReactorGame(
   };
   const MaxShakeDistance = 30;
 
-  const buildSprite = (spriteData: SpritesBufferView, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
+  const _cameraWorldDirection = new Vector3();
+
+  const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
     const unit = unitsBySprite.get(spriteData.index);
+    let sprite = sprites.get(spriteData.index);
+    if (!sprite) {
+      sprite = new Group();
+      sprites.set(spriteData.index, sprite);
+      spritesGroup.add(sprite);
+    }
+
     const dat = bwDat.sprites[spriteData.typeId];
 
     // doodads and resources are always visible
@@ -885,6 +894,7 @@ async function TitanReactorGame(
       spriteIsVisible = false;
     }
 
+    //TODO: cull ahead of time via projected camera view
 
     const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
 
@@ -942,6 +952,12 @@ async function TitanReactorGame(
     }
 
     let imageCounter = 0;
+    sprite.position.x = _spritePos.x;
+    sprite.position.z = _spritePos.z;
+    sprite.position.y = bulletY ?? _spritePos.y;
+    sprite.renderOrder = spriteRenderOrder;
+    sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
+
 
     for (const imgAddr of spriteData.images.reverse()) {
       const imageData = imageBufferView.get(imgAddr);
@@ -950,7 +966,6 @@ async function TitanReactorGame(
       if (!image) {
         image = createImage(imageData.typeId);
         images.set(imageData.index, image);
-        imagesGroup.add(image);
       }
       image.visible = spriteIsVisible && !isHidden(imageData as ImageStruct);
 
@@ -959,18 +974,29 @@ async function TitanReactorGame(
           image.setTeamColor(player.color.three);
         }
 
-        image.offsetX = image.position.x = imageData.x / 32 + _spritePos.x;
-        image.offsetY = image.position.z = imageData.y / 32 + _spritePos.z;
-        if (bulletY !== undefined) {
-          image.position.y = bulletY;
-        } else if (image.dat.drawFunction === drawFunctions.rleShadow) {
-          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
+        image.position.x = imageData.x / 32;
+        image.position.z = 0;
+        image.position.y = -imageData.y / 32;
 
+        // if we're a shadow, we act independently from a sprite since our Y coordinate
+        // needs to be in world space
+        if (image.dat.drawFunction === drawFunctions.rleShadow) {
+          image.position.x = _spritePos.x;
+          image.position.z = _spritePos.z;
+          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
+          image.rotation.copy(sprite.rotation);
+          image.renderOrder = spriteRenderOrder - 1;
+          if (image.parent !== spritesGroup) {
+            spritesGroup.add(image);
+          }
         } else {
-          image.position.y = _spritePos.y;
+          image.rotation.set(0, 0, 0);
+          image.renderOrder = imageCounter;
+          if (image.parent !== sprite) {
+            sprite.add(image);
+          }
         }
 
-        image.renderOrder = spriteRenderOrder + imageCounter;
 
         // 63-48=15
         if (imageData.modifier === 14) {
@@ -1025,28 +1051,37 @@ async function TitanReactorGame(
   const bulletBufferView = new BulletsBufferView(openBw.wasm);
   const _ignoreSprites: number[] = [];
 
-  const buildImages = () => {
+  const buildSprites = (delta: number) => {
     const deleteImageCount = openBw.wasm!._counts(0, 15);
     const deletedSpriteCount = openBw.wasm!._counts(0, 16);
     const deletedImageAddr = openBw.wasm!._get_buffer(3);
     const deletedSpriteAddr = openBw.wasm!._get_buffer(4);
 
+    camera.getWorldDirection(_cameraWorldDirection);
+
+
     // avoid image flashing by clearing the group here when user is scrubbing through a replay
     if (_wasReset) {
-      imagesGroup.clear();
+      spritesGroup.clear();
       _wasReset = false;
     }
 
     for (let i = 0; i < deletedSpriteCount; i++) {
-      unitsBySprite.delete(openBw.wasm!.HEAP32[(deletedSpriteAddr >> 2) + i]);
+      const spriteIndex = openBw.wasm!.HEAP32[(deletedSpriteAddr >> 2) + i];
+      unitsBySprite.delete(spriteIndex);
+
+      const sprite = sprites.get(spriteIndex);
+      if (!sprite) continue;
+      sprite.removeFromParent();
+      sprites.delete(spriteIndex);
     }
 
     for (let i = 0; i < deleteImageCount; i++) {
-      const imageId = openBw.wasm!.HEAP32[(deletedImageAddr >> 2) + i];
-      const image = images.get(imageId);
+      const imageIndex = openBw.wasm!.HEAP32[(deletedImageAddr >> 2) + i];
+      const image = images.get(imageIndex);
       if (!image) continue;
       image.removeFromParent();
-      images.delete(imageId);
+      images.delete(imageIndex);
       freeImages.push(image);
     }
 
@@ -1059,11 +1094,11 @@ async function TitanReactorGame(
       const bullet = bulletBufferView.get(bulletAddr);
       const weapon = bwDat.weapons[bullet.weaponTypeId];
 
-      if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
-        continue;
-      }
+      // if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
+      //   continue;
+      // }
 
-      buildSprite(bullet.owSprite, bullet, weapon);
+      buildSprite(bullet.owSprite, delta, bullet, weapon);
       _ignoreSprites.push(bullet.spriteIndex);
     }
 
@@ -1083,7 +1118,7 @@ async function TitanReactorGame(
           continue;
         }
 
-        buildSprite(spriteData);
+        buildSprite(spriteData, delta);
       }
     }
   };
@@ -1115,6 +1150,10 @@ async function TitanReactorGame(
   if (settings.controls.debug) {
     scene.add(targetObj);
   }
+
+  const _boundaryMin = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
+  const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
+  const _cameraBoundaryBox = new Box3(_boundaryMin, _boundaryMax)
 
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
@@ -1161,7 +1200,7 @@ async function TitanReactorGame(
         unitsBySprite
       );
       buildMinimap(minimapImageData, minimapResourceImageData);
-      buildImages();
+      buildSprites(delta);
       // buildResearchAndUpgrades(currentBwFrame);
       fogOfWar.texture.needsUpdate = true;
       creep.creepValuesTexture.needsUpdate = true;
@@ -1271,6 +1310,13 @@ async function TitanReactorGame(
         renderer.composerPasses.effects[Effects.DepthOfField].setTarget(projectedCameraView.center);
         renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().adoptCameraSettings(camera);
       }
+
+
+      if (controls.cameraMode === CameraMode.Default) {
+        _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2, 0, -mapHeight / 2 + projectedCameraView.height / 2), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2, 0, mapHeight / 2 - projectedCameraView.height / 2));
+        controls.standard.setBoundary(_cameraBoundaryBox);
+      }
+
 
     }
 
