@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from "react";
+import React, { useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
@@ -91,7 +91,7 @@ export class RollingNumber {
       this.update(delta);
       onUpdate(this._rollingValue);
 
-      if(this.isRunning) {
+      if (this.isRunning) {
         requestAnimationFrame(raf);
       }
     };
@@ -109,27 +109,19 @@ export const RollingResource = ({ value, ...props }) => {
   const rollingNumber = useRef(new RollingNumber(value));
 
   useEffect(() => {
-    
     rollingNumber.current.start(value, (val) => {
-        if (numberRef.current) {
-          numberRef.current.textContent = val;
-        } 
+      if (numberRef.current) {
+        numberRef.current.textContent = val;
+      }
     });
 
     return () => {
       rollingNumber.current.stop();
     };
-
   }, [value]);
 
-  return (
-      <span
-        ref={numberRef}
-        {...props}
-      ></span>
-  );
+  return <span ref={numberRef} {...props}></span>;
 };
-
 
 class PlayerInfo {
   constructor() {
@@ -179,18 +171,22 @@ export const getPlayerInfo = (playerId, playerData) => {
 const _messageListener = function (event) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
-      useStore.setState(event.data.initialStore);
-      event.data.plugins.forEach(_addPlugin);
+      useStore.setState(event.data.payload.initialStore);
+      event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:assets") {
-      Object.assign(assets, event.data.assets);
+      Object.assign(assets, event.data.payload.assets);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
-      useConfig.setState({ [event.data.pluginId]: event.data.config });
-    } else if (event.data.type === "system:add-plugins") {
-      for (const plugin of event.data.plugins) {
+      useConfig.setState({ [event.data.pluginId]: event.data.payload.config });
+    } else if (event.data.type === "system:plugins-enabled") {
+      for (const plugin of event.data.payload.plugins) {
         _addPlugin(plugin);
       }
+    } else if (event.data.type === "system:mouse.click") {
+      document
+        .elementFromPoint(event.data.payload.x, event.data.payload.y)
+        .click();
     }
   } else {
     if (event.data.type === "dimensions") {

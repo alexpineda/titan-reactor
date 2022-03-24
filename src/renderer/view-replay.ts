@@ -60,7 +60,7 @@ import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
-import * as pluginSystem from "./plugin-system";
+import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
 
 CameraControls.install({ THREE: THREE });
@@ -1287,10 +1287,10 @@ async function TitanReactorGame(
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
 
-      if (pluginSystem.hasOnFrame(gameStatePosition)) {
+      {
         const playerDataAddr = openBw.wasm!._get_buffer(8);
         const productionDataAddr = openBw.wasm!._get_buffer(9);
-        pluginSystem.onFrame(gameStatePosition, fps.fps, playerDataAddr, productionDataAddr);
+        plugins.onFrame(gameStatePosition, fps.fps, playerDataAddr, productionDataAddr);
       }
       currentBwFrame = null;
     }

@@ -19,7 +19,7 @@ import {
 } from "@ipc/plugins";
 import PluginConfigurationUI from "./plugin-configuration-ui";
 import DetailSheet from "./detail-sheet";
-import { installPluginLocal } from "../../plugin-system";
+import { installPluginLocal } from "../../plugins";
 
 // @ts-ignore
 if (module.hot) {

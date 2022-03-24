@@ -10,8 +10,8 @@ import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
 import preloadAssets from "./bootup/load-assets-when-ready";
 import renderer from "./render/renderer";
 import settingsStore from "./stores/settings-store";
-import "./plugin-system";
-import { initializePluginSystem } from "./plugin-system";
+import * as pluginSystem from "./plugins";
+import { initializePluginSystem } from "./plugins";
 
 // @ts-ignore
 if (module.hot) {
@@ -66,6 +66,7 @@ async function bootup() {
     registerFileDialogHandlers();
 
     await initializePluginSystem(settingsStore().enabledPlugins);
+    document.body.addEventListener("click", evt => pluginSystem.onClick(evt));
 
     const settings = settingsStore().data;
     const hasErrors = settingsStore().errors.length > 0;
