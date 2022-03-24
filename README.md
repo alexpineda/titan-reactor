@@ -20,7 +20,7 @@ Developing plugins for Titan Reactor is easy and requires no build tools, just a
 
 ### Development Installation
 
-*Using node 16 and yarn 1.22*
+*Using node 16 and yarn*
 
 `git lfs fetch --all`
 
