@@ -4,15 +4,18 @@ import { Box3, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, Persp
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
+import type { CommandsStream, Replay } from "downgrade-replay";
+import type Chk from "bw-chk";
 
 import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  ReplayPlayer, UnitDAT, WeaponDAT,
+  ReplayPlayer, UnitDAT, WeaponDAT, TerrainInfo
 } from "common/types";
-import { buildPlayerColor, injectColorsCss } from "common/utils/colors";
+import { buildPlayerColor } from "common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
 import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
+import type { MainMixer, Music, SoundChannels } from "./audio";
 
 import ProjectedCameraView from "./camera/projected-camera-view";
 import {
@@ -39,13 +42,12 @@ import {
 } from "./render";
 import renderer from "./render/renderer";
 import {
-  useSettingsStore,
+  useSettingsStore, useWorldStore,
 } from "./stores";
 import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
-import { ReplayWorld } from "./world";
 import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, constrainControlsOverviewCam, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { FPSMeter } from "./utils/fps-meter";
@@ -62,6 +64,9 @@ import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
+import type { Scene } from "./render/scene";
+import type OpenBwWasmReader from "./openbw/openbw-reader";
+import type Assets from "./assets/assets";
 
 CameraControls.install({ THREE: THREE });
 
@@ -69,19 +74,24 @@ const { startLocation } = unitTypes;
 const _cameraTarget = new Vector3();
 
 async function TitanReactorGame(
-  world: ReplayWorld
+  map: Chk,
+  terrain: TerrainInfo,
+  scene: Scene,
+  assets: Assets,
+  janitor: Janitor,
+  replay: Replay,
+  audioMixer: MainMixer,
+  soundChannels: SoundChannels,
+  music: Music,
+  gameStateReader: OpenBwWasmReader,
+  commandsStream: CommandsStream
 ) {
   let settings = settingsStore().data;
 
-  const { scene, terrain, map, replay, gameStateReader, commandsStream, assets, audioMixer, music, soundChannels, janitor } = world;
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
   const fps = new FPSMeter();
   assert(openBw.wasm);
-  // @ts-ignore
-  window.world = world;
-  // @ts-ignore
-  janitor.callback(() => { window.world = null });
 
   openBw.call!.resetGameSpeed!();
 
@@ -300,20 +310,30 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw, renderer.composerPasses.effects[Effects.FogOfWar]);
 
-  const _playerColors = replay.header.players.map(
-    ({ id, color }: ReplayPlayer) =>
-      buildPlayerColor(
-        color.hex,
-        id
-      )
-  );
+  const updatePlayerColors = (replay: Replay) => {
+    return replay.header.players.map(
+      ({ id, color }: ReplayPlayer) =>
+        buildPlayerColor(
+          color.hex,
+          id
+        )
+    );
+  }
+
+  janitor.callback(useWorldStore.subscribe(world => {
+    if (world.replay) {
+      const colors = updatePlayerColors(world.replay);
+      for (let i = 0; i < players.length; i++) {
+        players[i].color = colors[i];
+      }
+    }
+  }));
+
   const players = new Players(
     replay.header.players,
     preplacedMapUnits.filter((u) => u.unitId === startLocation),
-    _playerColors
+    updatePlayerColors(replay)
   );
-  injectColorsCss(_playerColors);
-  gameStore().setPlayers(players);
 
   music.playGame();
 
@@ -337,7 +357,7 @@ async function TitanReactorGame(
     unitsBySprite.clear();
     sprites.clear();
     const highlights: Object3D[] = [];
-    scene.children.forEach((obj) => {
+    scene.children.forEach((obj: Object3D) => {
       if (obj.parent === scene && obj.name === "Highlight") {
         highlights.push(obj)
       }
@@ -1413,6 +1433,7 @@ async function TitanReactorGame(
   gameStatePosition.advanceGameFrames = 1;
   _sceneResizeHandler();
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+  plugins.onGameReady();
 
   return dispose;
 }

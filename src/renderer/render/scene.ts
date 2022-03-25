@@ -11,8 +11,10 @@ import {
   Texture,
 } from "three";
 
-import { TerrainInfo } from "../../common/types";
-import Janitor from "../utils/janitor";
+import { TerrainInfo } from "common/types";
+import Janitor from "@utils/janitor";
+import { onTerrainGenerated } from "../plugins";
+
 
 function sunlight(mapWidth: number, mapHeight: number) {
   const light = new DirectionalLight(0xffffff, 2);
@@ -56,6 +58,7 @@ export class Scene extends ThreeScene {
     this.addTerrain(terrain);
     this._skybox = this.skybox("sparse");
 
+    onTerrainGenerated(this, terrain, mapWidth, mapHeight);
     // this.enableSkybox();
 
     const edgeMaterial = new MeshBasicMaterial({

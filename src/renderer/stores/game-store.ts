@@ -1,16 +1,13 @@
 import create from "zustand/vanilla";
-import { GameCanvasDimensions, Player } from "../../common/types";
+import { GameCanvasDimensions } from "common/types";
 import Assets from "../assets/assets";
+import { onGameDisposed } from "../plugins";
 
 export type GameStore = {
   assets: Assets | null;
   dimensions: GameCanvasDimensions;
-  latestPluginContentSize?: { channelId: string, width?: string | number; height?: string | number };
-  setLatestPluginContentSize: (channelId: string, width?: string | number, height?: string | number) => void;
-  players: Player[];
   setAssets: (assets: Assets | null) => void;
   setDimensions: (dimensions: GameCanvasDimensions) => void;
-  setPlayers: (players: Player[]) => void;
   setDisposeGame: (game: () => void) => void;
   disposeGame: () => void;
   log: string[][],
@@ -21,7 +18,6 @@ export type GameStore = {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   log: [],
-  players: [],
   assets: null,
   dimensions: {
     left: 0,
@@ -36,13 +32,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setAssets: (assets: Assets | null) => set({ assets }),
   setDisposeGame: (gameDisposer) => set({ gameDisposer }),
   setDimensions: (dimensions: GameCanvasDimensions) => set({ dimensions }),
-  setPlayers: (players: Player[]) => set({ players }),
-  setLatestPluginContentSize: (channelId: string, width?: string | number, height?: string | number) => {
-    set({ latestPluginContentSize: { channelId, width, height } })
-  },
   disposeGame: () => {
     const gameDisposer = get().gameDisposer;
     gameDisposer && gameDisposer();
+    onGameDisposed();
     set({ gameDisposer: undefined });
   },
   addLog: (item, color = "white") => {

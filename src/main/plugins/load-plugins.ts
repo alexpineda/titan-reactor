@@ -8,7 +8,7 @@ import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import browserWindows from "../windows";
@@ -207,7 +207,7 @@ export const disablePlugin = (pluginId: string) => {
         settings.disablePlugin(plugin.name);
         _enabledPluginPackages = _enabledPluginPackages.filter(otherPlugin => otherPlugin !== plugin);
         _disabledPluginPackages.push(plugin);
-        browserWindows.main?.webContents.send(RELOAD_PLUGINS);
+        browserWindows.main?.webContents.send(DISABLE_PLUGIN, plugin.id);
         return true;
     } catch {
         log.info(`@load-plugins/disable: Error disabling plugin ${plugin.name}`);

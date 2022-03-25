@@ -9,7 +9,6 @@ export type Player = {
   name: string;
   race: Race;
   color: PlayerColor;
-  originalColor: PlayerColor;
   vision: boolean;
   startLocation?: StartLocation;
   pov: PlayerPOVI;

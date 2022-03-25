@@ -5,7 +5,7 @@ import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_LOG_ENTRY } from "./messages";
+import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_LOG_ENTRY } from "./events";
 import waitForAssets from "../bootup/wait-for-assets";
 import { ipcRenderer } from "electron";
 import { GameStatePosition } from "@core";
@@ -51,6 +51,7 @@ const _replayPosition = {
 export class PluginSystemUI {
     #_iframe: HTMLIFrameElement = document.createElement("iframe");
     #_janitor = new Janitor();
+    reload: () => void;
 
 
     constructor(pluginPackages: InitializedPluginPackage[]) {
@@ -105,12 +106,12 @@ export class PluginSystemUI {
         document.body.appendChild(this.#_iframe);
         this.#_janitor.callback(() => document.body.removeChild(this.#_iframe));
 
-        const _reload = () => {
+        this.reload = () => {
             const settings = settingsStore().data;
             this.#_iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
-        ipcRenderer.on(RELOAD_PLUGINS, _reload);
-        this.#_janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, _reload));
+        ipcRenderer.on(RELOAD_PLUGINS, this.reload);
+        this.#_janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, this.reload));
 
 
         this.#_janitor.callback(useGameStore.subscribe((game, prev) => {
@@ -126,11 +127,7 @@ export class PluginSystemUI {
             }
         }));
 
-
-        this.#_janitor.callback(useScreenStore.subscribe((screen, prev) => {
-            if (screen.type !== prev.type) {
-                this.reset();
-            }
+        this.#_janitor.callback(useScreenStore.subscribe((screen) => {
             this.sendMessage(screenChanged(screen));
         }));
 
@@ -141,7 +138,7 @@ export class PluginSystemUI {
             });
         }));
 
-        _reload();
+        this.reload();
 
     }
 

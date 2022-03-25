@@ -6,7 +6,7 @@ import {
   StartLocation,
   PlayerPOVI,
   POVSelectionI,
-} from "../../common/types";
+} from "common/types";
 
 class POVSelection implements POVSelectionI {
   lastIssuedCommand?: any;
@@ -44,7 +44,6 @@ export class Players extends Array<Player> {
     this.push(
       ...players.map((player, i) => ({
         color: colors[i],
-        originalColor: colors[i],
         id: player.id,
         name: player.name,
         race: player.race,

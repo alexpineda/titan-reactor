@@ -145,20 +145,20 @@ export default async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
   ImageHD.useDepth = false;
 
-  const world = {
-    scene,
-    terrain,
+  const disposeGame = await TitanReactorGame(
     map,
-    replay,
-    commandsStream: new CommandsStream(replay.rawCmds),
-    gameStateReader,
+    terrain,
+    scene,
     assets,
-    audioMixer,
-    music,
-    soundChannels,
     janitor,
-  };
-  const disposeGame = await TitanReactorGame(world);
+    replay,
+    audioMixer,
+    soundChannels,
+    music,
+    gameStateReader,
+    new CommandsStream(replay.rawCmds),
+  );
+
   gameStore().setDisposeGame(disposeGame);
   processStore().increment(Process.ReplayInitialization);
 
