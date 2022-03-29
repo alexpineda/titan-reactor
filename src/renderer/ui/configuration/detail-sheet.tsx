@@ -18,7 +18,7 @@ export default ({
 }) => (
   <Tabs>
     <Tab value="details" label="Details">
-      <div>
+      <div style={{ marginTop: "1rem" }}>
         <p>
           <span style={{ fontWeight: "bold" }}>Version:</span>{" "}
           {pluginConfig.version}
@@ -70,7 +70,9 @@ export default ({
     </Tab>
     {pluginConfig.readme && (
       <Tab value="readme" label="Read Me">
-        <ReactMarkdown children={pluginConfig.readme} />
+        <div style={{ marginTop: "1rem" }}>
+          <ReactMarkdown children={pluginConfig.readme} />
+        </div>
       </Tab>
     )}
   </Tabs>

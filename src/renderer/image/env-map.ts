@@ -1,5 +1,5 @@
 import { PMREMGenerator, Texture, WebGLRenderer } from "three";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 
 export default function loadEnvironmentMap(
   filepath: string

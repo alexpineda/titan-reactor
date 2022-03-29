@@ -35,7 +35,6 @@ const _makeReplayPosition = () => ({
     frame: 0,
     maxFrame: 0,
     time: "",
-    fps: "0",
     playerData: new Int32Array(),
     unitProduction: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
     research: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
@@ -155,7 +154,7 @@ export class PluginSystemUI {
         _replayPosition.payload = _makeReplayPosition();
     }
 
-    onFrame(gameStatePosition: GameStatePosition, fps: string, playerDataAddr: number, productionDataAddr: number) {
+    onFrame(gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) {
         const time = gameStatePosition.getSecond();
 
         if (_lastSend[UI_PLUGIN_EVENT_ON_FRAME] !== time) {
@@ -179,7 +178,6 @@ export class PluginSystemUI {
             _replayPosition.payload.frame = gameStatePosition.bwGameFrame;
             _replayPosition.payload.maxFrame = gameStatePosition.maxFrame;
             _replayPosition.payload.time = gameStatePosition.getFriendlyTime();
-            _replayPosition.payload.fps = fps;
             _replayPosition.payload.playerData = playerData;
 
             //TODO: add transferables

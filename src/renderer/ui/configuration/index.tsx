@@ -29,7 +29,7 @@ if (module.hot) {
 
 const onChange = debounce(async (pluginId: string, config: any) => {
   updatePluginsConfig(pluginId, config);
-}, 1000);
+}, 100);
 
 const LIMIT = 1000;
 const RESTART_REQUIRED = "Restart required for new settings to take effect";
@@ -177,7 +177,7 @@ const Configuration = () => {
                         });
                       }}
                     >
-                      {plugin.name}
+                      {plugin.description}
                     </Button>
                   ))}
                   <Divider />
@@ -198,7 +198,7 @@ const Configuration = () => {
                         });
                       }}
                     >
-                      {plugin.name}
+                      {plugin.description}
                     </Button>
                   ))}
                 </div>

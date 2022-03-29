@@ -50,7 +50,6 @@ import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, constrainControlsOverviewCam, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
-import { FPSMeter } from "./utils/fps-meter";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
@@ -90,7 +89,6 @@ async function TitanReactorGame(
 
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
-  const fps = new FPSMeter();
   assert(openBw.wasm);
 
   openBw.call!.resetGameSpeed!();
@@ -425,7 +423,7 @@ async function TitanReactorGame(
 
   };
 
-  const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
+  const sceneResizeHandler = debounce(_sceneResizeHandler, 100);
   window.addEventListener("resize", sceneResizeHandler, false);
   janitor.callback(() =>
     window.removeEventListener("resize", sceneResizeHandler)
@@ -925,6 +923,8 @@ async function TitanReactorGame(
 
     if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
 
+      //TODO: onBulletUpdate
+
       const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
       const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
 
@@ -1149,14 +1149,6 @@ async function TitanReactorGame(
   projectedCameraView.update();
   const cmds = commandsStream.generate();
 
-  //@ts-ignore
-  window.pause = () => {
-    gameStatePosition.togglePlay();
-  }
-
-  // @ts-ignore
-  janitor.callback(() => { window.pause = null });
-
   const _stepperListener = (evt: KeyboardEvent) => {
     if (evt.key === "n" && gameStatePosition.mode === GameStatePlayMode.SingleStep) {
       gameStatePosition.paused = false;
@@ -1310,7 +1302,7 @@ async function TitanReactorGame(
       {
         const playerDataAddr = openBw.wasm!._get_buffer(8);
         const productionDataAddr = openBw.wasm!._get_buffer(9);
-        plugins.onFrame(gameStatePosition, fps.fps, playerDataAddr, productionDataAddr);
+        plugins.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
       }
       currentBwFrame = null;
     }
@@ -1365,7 +1357,11 @@ async function TitanReactorGame(
 
     //   cameras.setTarget(x, getTerrainY(x, z), z, true);
     // }
+    projectedCameraView.update();
+    gameStatePosition.update(delta);
+    drawMinimap(projectedCameraView);
 
+    plugins.callHook("onBeforeRender", delta, elapsed);
     controls.cameraShake.update(elapsed, camera);
     fogOfWar.update(players.getVisionFlag(), camera);
     renderer.render(scene, camera, delta);
@@ -1379,14 +1375,9 @@ async function TitanReactorGame(
         setUseScale(true);
       }
     }
-    drawMinimap(projectedCameraView);
+    plugins.callHook("onRender", delta, elapsed);
 
     controls.cameraShake.restore(camera);
-
-    projectedCameraView.update();
-    gameStatePosition.update(delta);
-
-    fps.update(elapsed);
   };
 
   // @ts-ignore
@@ -1408,6 +1399,7 @@ async function TitanReactorGame(
       settings = state.data;
       if (!settings) return;
 
+      audioMixer.masterVolume = settings.audio.global;
       audioMixer.musicVolume = settings.audio.music;
       audioMixer.soundVolume = settings.audio.sound;
     });
@@ -1433,7 +1425,7 @@ async function TitanReactorGame(
   gameStatePosition.advanceGameFrames = 1;
   _sceneResizeHandler();
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
-  plugins.onGameReady();
+  plugins.callHook("onGameReady");
 
   return dispose;
 }

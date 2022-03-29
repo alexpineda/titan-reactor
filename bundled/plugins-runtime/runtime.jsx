@@ -204,7 +204,7 @@ const _messageListener = function (event) {
       Object.assign(assets, event.data.payload.assets);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
-      useConfig.setState({ [event.data.pluginId]: event.data.payload.config });
+      useConfig.setState({ [event.data.payload.pluginId]: event.data.payload.config });
     } else if (event.data.type === "system:plugins-enabled") {
       for (const plugin of event.data.payload.plugins) {
         _addPlugin(plugin);

@@ -9,7 +9,7 @@ import {
     installPlugin
 } from "@ipc/plugins";
 
-import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_PLUGINS_ENABLED, SYSTEM_EVENT_MOUSE_CLICK } from "./events";
+import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 
@@ -28,18 +28,13 @@ ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
 });
 
 ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
-    uiPluginSystem.sendMessage({
-        type: SYSTEM_EVENT_PLUGINS_ENABLED,
-        payload: {
-            plugins
-        }
-    })
-    nativePluginSystem.onPluginsEnabled(plugins);
+    uiPluginSystem.reload();
+    nativePluginSystem.enableAdditionalPlugins(plugins);
 });
 
 
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
-    nativePluginSystem.onDispose(pluginId);
+    nativePluginSystem.onDisable(pluginId);
     //FIXME: only reload if plugin has ui
     uiPluginSystem.reload();
 });
@@ -59,22 +54,18 @@ export const onClick = (event: MouseEvent) => {
     })
 }
 
-export const onFrame = (gameStatePosition: GameStatePosition, fps: string, playerDataAddr: number, productionDataAddr: number) => {
-    uiPluginSystem.onFrame(gameStatePosition, fps, playerDataAddr, productionDataAddr);
+export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) => {
+    uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
     // nativePluginSystem.onFrame()
-}
-
-export const onGameReady = (...args: Parameters<PluginSystemNative["onGameReady"]>) => {
-    nativePluginSystem.onGameReady(...args);
 }
 
 export const onGameDisposed = () => {
     uiPluginSystem.reset();
-    nativePluginSystem.onGameDisposed();
+    nativePluginSystem.callHook("onGameDisposed");
 }
 
-export const onTerrainGenerated = (...args: Parameters<PluginSystemNative["onTerrainGenerated"]>) => {
-    nativePluginSystem.onTerrainGenerated(...args);
+export const callHook = (...args: Parameters<PluginSystemNative["callHook"]>) => {
+    nativePluginSystem.callHook(...args);
 }
 
 export const installPluginLocal = async (repository: string) => {

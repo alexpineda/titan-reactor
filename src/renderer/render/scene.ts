@@ -13,7 +13,7 @@ import {
 
 import { TerrainInfo } from "common/types";
 import Janitor from "@utils/janitor";
-import { onTerrainGenerated } from "../plugins";
+import { callHook } from "../plugins";
 
 
 function sunlight(mapWidth: number, mapHeight: number) {
@@ -58,7 +58,8 @@ export class Scene extends ThreeScene {
     this.addTerrain(terrain);
     this._skybox = this.skybox("sparse");
 
-    onTerrainGenerated(this, terrain, mapWidth, mapHeight);
+    //TODO: move to init() async
+    callHook("onTerrainGenerated", this, terrain, mapWidth, mapHeight);
     // this.enableSkybox();
 
     const edgeMaterial = new MeshBasicMaterial({
