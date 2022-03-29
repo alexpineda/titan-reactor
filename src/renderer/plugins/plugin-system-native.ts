@@ -1,5 +1,4 @@
 import * as log from "@ipc/log";
-import assert from "assert";
 import { InitializedPluginPackage } from "common/types";
 import * as THREE from "three";
 import * as stores from "@stores"

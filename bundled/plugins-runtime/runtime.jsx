@@ -72,8 +72,9 @@ export class RollingNumber {
   constructor(value = 0) {
     this.upSpeed = 80;
     this.downSpeed = 30;
-    this._value = value;
-    this._rollingValue = value;
+
+    this._value = typeof value === "number" ? value : 0;
+    this._rollingValue = this._value;
   }
   update(delta) {
     if (this._running && delta >= this._speed) {
@@ -97,11 +98,11 @@ export class RollingNumber {
     return this._running;
   }
 
-  start(val, onUpdate) {
-    if (val === this._value) return;
-    this._value = val;
+  start(value, onUpdate) {
+    if (value === this._value) return;
+    this._value = typeof value === "number" ? value : 0;
 
-    const direction = val > this._rollingValue;
+    const direction = this._value > this._rollingValue;
 
     if (this._running && direction === this._direction) {
       return;
@@ -194,17 +195,32 @@ export const getPlayerInfo = (playerId, playerData) => {
   return playerInfo;
 };
 
+const updateDimensionsCss = (dimensions) => {
+  setStyleSheet(
+    "game-dimension-css-vars",
+    `:root {
+        --game-width: ${dimensions.width}px;
+        --game-height: ${dimensions.height}px;
+        --minimap-width: ${dimensions.minimapWidth}px;
+        --minimap-height: ${dimensions.minimapHeight}px;
+      }`
+  );
+};
+
 const _messageListener = function (event) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
       useStore.setState(event.data.payload.initialStore);
+      updateDimensionsCss(event.data.payload.initialStore.dimensions);
       event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:assets") {
       Object.assign(assets, event.data.payload.assets);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
-      useConfig.setState({ [event.data.payload.pluginId]: event.data.payload.config });
+      useConfig.setState({
+        [event.data.payload.pluginId]: event.data.payload.config,
+      });
     } else if (event.data.type === "system:plugins-enabled") {
       for (const plugin of event.data.payload.plugins) {
         _addPlugin(plugin);
@@ -216,15 +232,7 @@ const _messageListener = function (event) {
     }
   } else {
     if (event.data.type === "dimensions") {
-      setStyleSheet(
-        "game-dimension-css-vars",
-        `:root {
-            --game-width: ${event.data.payload.width}px;
-            --game-height: ${event.data.payload.height}px;
-            --minimap-width: ${event.data.payload.minimapWidth}px;
-            --minimap-height: ${event.data.payload.minimapHeight}px;
-          }`
-      );
+      updateDimensionsCss(event.data.payload);
     }
     useStore.setState({ [event.data.type]: event.data.payload });
   }

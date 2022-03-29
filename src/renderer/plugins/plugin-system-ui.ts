@@ -3,22 +3,15 @@ import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types
 import settingsStore from "@stores/settings-store";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
-import { useGameStore, useScreenStore, useWorldStore, ScreenStore, GameStore } from "@stores";
+import { useGameStore, useScreenStore, useWorldStore, ScreenStore } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_LOG_ENTRY } from "./events";
+import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED } from "./events";
 import waitForAssets from "../bootup/wait-for-assets";
 import { ipcRenderer } from "electron";
 import { GameStatePosition } from "@core";
 import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
 
-
-const logChanged = (game: GameStore) => {
-    return {
-        type: UI_PLUGIN_EVENT_LOG_ENTRY,
-        payload: game.log
-    }
-}
 
 const screenChanged = (screen: ScreenStore) => {
     return {
@@ -50,7 +43,7 @@ const _replayPosition = {
 export class PluginSystemUI {
     #_iframe: HTMLIFrameElement = document.createElement("iframe");
     #_janitor = new Janitor();
-    reload: () => void;
+    refresh: () => void;
 
 
     constructor(pluginPackages: InitializedPluginPackage[]) {
@@ -71,8 +64,7 @@ export class PluginSystemUI {
             [UI_PLUGIN_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
             [UI_PLUGIN_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
             [UI_PLUGIN_EVENT_WORLD_CHANGED]: useWorldStore.getState(),
-            [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload,
-            [UI_PLUGIN_EVENT_LOG_ENTRY]: logChanged(useGameStore.getState()).payload
+            [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload
         })
 
         this.#_iframe.onload = async () => {
@@ -105,12 +97,16 @@ export class PluginSystemUI {
         document.body.appendChild(this.#_iframe);
         this.#_janitor.callback(() => document.body.removeChild(this.#_iframe));
 
-        this.reload = () => {
+        this.refresh = () => {
             const settings = settingsStore().data;
             this.#_iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
-        ipcRenderer.on(RELOAD_PLUGINS, this.reload);
-        this.#_janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, this.reload));
+        const reload = () => {
+            this.reset();
+            this.refresh();
+        }
+        ipcRenderer.on(RELOAD_PLUGINS, reload);
+        this.#_janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, reload));
 
 
         this.#_janitor.callback(useGameStore.subscribe((game, prev) => {
@@ -119,10 +115,6 @@ export class PluginSystemUI {
                     type: UI_PLUGIN_EVENT_DIMENSIONS_CHANGED,
                     payload: game.dimensions
                 });
-            }
-
-            if (game.log !== prev.log) {
-                this.sendMessage(logChanged(game));
             }
         }));
 
@@ -137,7 +129,7 @@ export class PluginSystemUI {
             });
         }));
 
-        this.reload();
+        this.refresh();
 
     }
 

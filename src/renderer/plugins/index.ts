@@ -28,7 +28,7 @@ ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
 });
 
 ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
-    uiPluginSystem.reload();
+    uiPluginSystem.refresh();
     nativePluginSystem.enableAdditionalPlugins(plugins);
 });
 
@@ -36,7 +36,7 @@ ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
     nativePluginSystem.onDisable(pluginId);
     //FIXME: only reload if plugin has ui
-    uiPluginSystem.reload();
+    uiPluginSystem.refresh();
 });
 
 export const initializePluginSystem = async (pluginPackages: InitializedPluginPackage[]) => {

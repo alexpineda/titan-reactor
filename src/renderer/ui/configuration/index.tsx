@@ -176,6 +176,9 @@ const Configuration = () => {
                           plugin,
                         });
                       }}
+                      style={{
+                        textAlign: "left",
+                      }}
                     >
                       {plugin.description}
                     </Button>
@@ -191,7 +194,7 @@ const Configuration = () => {
                           ? "primary"
                           : "default"
                       }
-                      style={{ opacity: "0.8" }}
+                      style={{ opacity: "0.8", textAlign: "left" }}
                       onClick={() => {
                         setSelectedPluginPackage({
                           plugin,
