@@ -8,9 +8,8 @@
   - [registerComponent reference](#registercomponent-reference)
   - [CSS for React Components](#css-for-react-components)
   - [native.js](#nativejs)
-  - [Supported package.json fields](#supported-packagejson-fields)
   - [useStore reference](#usestore-reference)
-- [titan-reactor exports reference](#titan-reactor-exports-reference)
+  - [titan-reactor exports reference](#titan-reactor-exports-reference)
   - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
 
@@ -24,17 +23,17 @@ Plugins in Titan Reactor allow you to connect to the game to display custom char
 
 ## Your first plugin package.json
 
-
 *plugins/my-cool-plugin/package.json*
 ```json
 {
   "name": "@titan-reactor-plugin/my-cool-plugin",
+  "description": "My Cool Plugin",
   "version": "1.0.0",
   "keywords": ["titan-reactor-plugin"]
 }
 ```
 
-You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. For your version number it is recommended to use semver `1.0.0`, `2.0.0` etc for updates. 
+You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. For your version number it is required you use semver `1.0.0`, `2.0.0` etc for updates. 
 
 
 ## How it works
@@ -49,8 +48,12 @@ We use the `config` value in `package.json` to define user configuration options
 
 ```json
 {
-    ...other plugin fields ...
-    "config": {
+  "name": "@titan-reactor-plugin/my-cool-plugin",
+  "description": "My Cool Plugin",
+  "version": "1.0.0",
+  "keywords": ["titan-reactor-plugin"]
+
+   "config": {
       "userName": {
           "value": "this value can be changed by the user since I have a value property!"
       },
@@ -58,6 +61,7 @@ We use the `config` value in `package.json` to define user configuration options
     }
 }
 ```
+![image](https://user-images.githubusercontent.com/586716/160561170-b7eea6be-742e-4a8d-b21d-46f885d2b8bf.png)
 
 ## Writing a React Component
 
@@ -152,20 +156,19 @@ The following css variables are available to your styles:
 - --minimap-width
 - --minimap-height
 
-Included in the "runtime" environment is also the full set of open prop variables for use in your CSS. [See Open Props for more details.](https://open-props.style/)
-
-
 These additional font-families are available for your styles:
 
 `Inter` the default body font.
 
 `Conthrax` and `Conthrax-Bold` are good for scores and numbers.
 
+Finally, included in the "runtime" environment is also the full set of open prop variables for use in your CSS. [See Open Props for more details.](https://open-props.style/)
+
 ## native.js
 
 You can create really powerful plugins by using a `native.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
-Checkout the official plugins for several examples, and see here for the list of default hooks.
+Checkout the official plugins for several examples, and see here for the [list of default hooks](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/plugins/plugin-system-native.ts#L56).
 
 Simple example listening to arguably the most important hooks:
 ```js
@@ -205,21 +208,6 @@ return {
     
 }
 ```
-## Supported package.json fields
-
-`name` - your plugin name, must be globally unique.
-
-`version` - your plugin version, using semver.
-
-`keywords` - an array which **must** include "titan-reactor-plugin".
-
-`author` - your name (string format only)
-
-`description` - a further description of your plugin
-
-`config` - user editable config object
-
-`repository` - npm or github repository url or object to determine whether new versions are available
 
 ## useStore reference
 
@@ -244,7 +232,8 @@ This method is a small optimization minimizing virtual dom diffing and re-render
 
 ## Publishing Your Plugin
 
-In order to make your plugin available to others, simply publish your package to `npm` and ensure you have `titan-reactor-plugin` in keywords. If you'd like to publish under the **@titan-reactor-plugins** scope please see the [Titan Reactor Community](https://github.com/imbateam-gg/titan-reactor-community) repository.
+In order to make your plugin available to others, simply publish your package to `npm` and ensure you have `titan-reactor-plugin` in keywords. If you'd like to publish under the official **@titan-reactor-plugins** scope please see the [Titan Reactor Plugins](https://github.com/imbateam-gg/titan-reactor-community) repository.
+
 ## Request For Plugin
 
 This is a list of plugins that I'd personally like to see come to life by the community:
