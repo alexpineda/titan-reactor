@@ -540,11 +540,17 @@ async function TitanReactorGame(
         extra: {
           recievingDamage: 0,
           highlight,
-          dat: bwDat.units[unitData.typeId]
+          dat: bwDat.units[unitData.typeId],
+          player: undefined,
+          timeOfDeath: undefined,
+          warpingIn: undefined,
+          warpingLen: undefined,
+          selected: undefined,
         }
       });
       unitData.copyTo(unit)
       units.set(unitData.id, unit as unknown as Unit);
+      plugins.callHook("onUnitCreated", unit);
       return unit as unknown as Unit;
     }
   }
@@ -589,6 +595,8 @@ async function TitanReactorGame(
       unit.extra.highlight.removeFromParent();
       units.delete(unitId);
       freeUnits.push(unit);
+
+      plugins.callHook("onUnitKilled", unit);
     }
 
     const playersUnitAddr = openBw.call!.getUnitsAddr!();
@@ -1380,11 +1388,6 @@ async function TitanReactorGame(
     controls.cameraShake.restore(camera);
   };
 
-  // @ts-ignore
-  window.GAME_LOOP = GAME_LOOP;
-  // @ts-ignore
-  janitor.callback(() => { window.GAME_LOOP = null; });
-
   const dispose = () => {
     log.info("disposing replay viewer");
     gameStatePosition.pause();
@@ -1397,7 +1400,6 @@ async function TitanReactorGame(
   {
     const unsub = useSettingsStore.subscribe((state) => {
       settings = state.data;
-      if (!settings) return;
 
       audioMixer.masterVolume = settings.audio.global;
       audioMixer.musicVolume = settings.audio.music;
@@ -1407,10 +1409,8 @@ async function TitanReactorGame(
   }
 
   {
+    //TODO: move to fog of war plugin
     const unsub = useToggleStore.subscribe((state) => {
-      // fogChanged = fogOfWar.enabled != state.fogOfWar;
-      fogOfWar.enabled = state.fogOfWar;
-
       for (const player of players) {
         if (player.vision !== state.playerVision[player.id]) {
           player.vision = state.playerVision[player.id];
@@ -1421,11 +1421,12 @@ async function TitanReactorGame(
     janitor.callback(unsub);
   }
 
-  gameStatePosition.resume();
-  gameStatePosition.advanceGameFrames = 1;
+  // force layout recalc
   _sceneResizeHandler();
-  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+
+  gameStatePosition.resume();
   plugins.callHook("onGameReady");
+  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
   return dispose;
 }

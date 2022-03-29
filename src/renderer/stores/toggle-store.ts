@@ -1,18 +1,13 @@
 import create from "zustand/vanilla";
-import { UnitDAT } from "../../common/bwdat/units-dat";
-import range from "../../common/utils/range";
-import { Unit } from "../core";
+import { UnitDAT } from "common/bwdat/units-dat";
+import range from "common/utils/range";
+import { Unit } from "@core";
 
 export type ToggleStore = {
-    fogOfWar: boolean;
-    followUnit: Unit | null;
     selectedUnits: Unit[];
     playerVision: boolean[];
     setSelectedUnits: (unit: Unit[]) => void;
     selectOfType: (type: UnitDAT) => void;
-    toggleFogOfWar: () => void;
-    togglePlayerVision: (id: number) => void;
-    toggleFollowUnit: (unit: Unit) => void;
 };
 
 export const useToggleStore = create<ToggleStore>((set, get) => ({
@@ -35,12 +30,10 @@ export const useToggleStore = create<ToggleStore>((set, get) => ({
         get().setSelectedUnits(
             get().selectedUnits.filter(({ extra: { dat: unitType } }) => unitType === ut)
         ),
-    toggleFogOfWar: () => set((state) => ({ fogOfWar: !state.fogOfWar })),
-    togglePlayerVision: (id) =>
-        set((state) => ({
-            playerVision: state.playerVision.map((v, i) => (i === id ? !v : v)),
-        })),
-    toggleFollowUnit: (unit: Unit) => set({ followUnit: unit }),
+    // togglePlayerVision: (id) =>
+    //     set((state) => ({
+    //         playerVision: state.playerVision.map((v, i) => (i === id ? !v : v)),
+    //     })),
 }));
 
 export default () => useToggleStore.getState();

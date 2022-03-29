@@ -1,7 +1,7 @@
 import create from "zustand";
 
-import { SettingsMeta } from "../../common/types";
-import { defaultSettings } from "../../common/settings";
+import { SettingsMeta } from "common/types";
+import { defaultSettings } from "common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
 
