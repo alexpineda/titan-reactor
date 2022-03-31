@@ -56,9 +56,11 @@ We use the `config` value in `package.json` to define user configuration options
 
    "config": {
       "userName": {
-          "value": "this value can be changed by the user since I have a value property!"
+          "value": "this value will be modifiable by the user since I have a value property!"
       },
-      "privateProp": "this prop can be considered `private` and not for user consumption since it is not an object and does not have a value property"
+      "system": {
+        "foo": "anything in the system object does not get shown to users and does not need a value field"
+      }
     }
 }
 ```
@@ -213,17 +215,20 @@ return {
 
 ## Communicating between native.js and index.jx
 
-You can send one way messages from native.js to your react components. For a full working example see the official FPS plugin.
+You can messages from native.js to your react components. For a full working example see the official FPS plugin.
 
 In your `index.jsx`:
 ```jsx
 import React from "react";
 
 // useMessage is a hook passed in as a prop for your component
-const MyComponent = ({ config, useMessage }) => {
+const MyComponent = ({ config, useMessage, sendMessage }) => {
 
   // any messages sent from native.js are received here
   const message = useMessage();
+
+  // here we just render the message, but you could also respond to events
+  // and use sendMessage({bar: "foo"}) to respond
   return <p>{message.foo}</p>
 });
 
@@ -241,6 +246,11 @@ return {
 
   onGameStart() {
     _sendUIMessage({ foo : "bar!" });
+  }
+
+  // you may respond to ui sent messages here
+  onUIMessage(message) {
+
   }
 }
 ```

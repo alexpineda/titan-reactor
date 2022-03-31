@@ -264,8 +264,21 @@ export const registerComponent = (component, JSXElement) => {
     return message;
   };
 
+  const sendMessage = (message) => {
+    window.parent.postMessage(
+      {
+        type: "system:custom-message",
+        payload: {
+          pluginId: component.pluginId,
+          message,
+        },
+      },
+      "*"
+    );
+  };
+
   const pos = component.snap || "loose";
-  const val = { component, JSXElement, useMessage };
+  const val = { component, JSXElement, useMessage, sendMessage };
 
   const _components = useComponents.getState();
   if (!_components[pos]) {

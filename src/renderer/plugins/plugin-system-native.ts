@@ -53,6 +53,7 @@ class Hook {
             }
         }
     }
+
 }
 
 const createDefaultHooks = () => ({
@@ -63,6 +64,7 @@ const createDefaultHooks = () => ({
     onTerrainGenerated: new Hook("onTerrainGenerated", ["scene", "terrain", "mapWidth", "mapHeight"]),
     onUnitCreated: new Hook("onUnitCreated", ["unit"]),
     onUnitKilled: new Hook("onUnitKilled", ["unit"]),
+    //onGetImage, onAfterGetImage, onBulletUpdate, onImageUpdate
 });
 
 const defaultHookNamesArray = Object.keys(createDefaultHooks());
@@ -120,6 +122,17 @@ export class PluginSystemNative {
         }
     }
 
+    onUIMessage(pluginId: string, message: any) {
+        const plugin = this.#plugins.find(p => p.id === pluginId);
+        if (plugin) {
+            try {
+                plugin.onUIMessage && plugin.onUIMessage(message);
+            } catch (e) {
+                log.error(withErrorMessage(`@plugin-system-native: onUIMessage "${plugin.name}"`, e));
+            }
+        }
+    }
+
     #registerDefaultHooks(plugin: any) {
         for (const hookName of defaultHookNamesArray) {
             if (typeof plugin[hookName] === "function") {
@@ -140,14 +153,6 @@ export class PluginSystemNative {
                 );
             }
         }
-    }
-
-    registerCustomHook() {
-
-    }
-
-    destroyCustomHook() {
-
     }
 
     // master hook

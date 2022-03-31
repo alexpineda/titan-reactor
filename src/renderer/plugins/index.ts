@@ -35,14 +35,20 @@ ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
 
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
     nativePluginSystem.onDisable(pluginId);
-    //FIXME: only reload if plugin has ui
     uiPluginSystem.refresh();
 });
+
+const _messageListener = function (event: MessageEvent) {
+    if (event.data.type === "system:custom-message") {
+        const { pluginId, message } = event.data.payload;
+        nativePluginSystem.onUIMessage(pluginId, message);
+    }
+}
+window.addEventListener("message", _messageListener);
 
 export const initializePluginSystem = async (pluginPackages: InitializedPluginPackage[]) => {
     uiPluginSystem = new PluginSystemUI(pluginPackages);
     nativePluginSystem = new PluginSystemNative(pluginPackages, uiPluginSystem);
-
 }
 
 export const onClick = (event: MouseEvent) => {
