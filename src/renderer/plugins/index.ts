@@ -41,7 +41,8 @@ ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
 
 export const initializePluginSystem = async (pluginPackages: InitializedPluginPackage[]) => {
     uiPluginSystem = new PluginSystemUI(pluginPackages);
-    nativePluginSystem = new PluginSystemNative(pluginPackages);
+    nativePluginSystem = new PluginSystemNative(pluginPackages, uiPluginSystem);
+
 }
 
 export const onClick = (event: MouseEvent) => {

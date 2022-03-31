@@ -3,6 +3,8 @@ import { InitializedPluginPackage } from "common/types";
 import * as THREE from "three";
 import * as stores from "@stores"
 import withErrorMessage from "common/utils/with-error-message";
+import { PluginSystemUI } from "./plugin-system-ui";
+import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 
 type HookOptions = {
     postFn?: Function;
@@ -67,9 +69,11 @@ const defaultHookNamesArray = Object.keys(createDefaultHooks());
 
 export class PluginSystemNative {
     #plugins: any[] = [];
+    #uiPlugins: PluginSystemUI;
+
     readonly hooks: Record<string, Hook> = createDefaultHooks();
 
-    static initializePlugin(pluginPackage: InitializedPluginPackage) {
+    initializePlugin(pluginPackage: InitializedPluginPackage) {
 
         try {
             if (!pluginPackage.nativeSource) {
@@ -78,7 +82,9 @@ export class PluginSystemNative {
             const plugin = Function(pluginPackage.nativeSource!)();
             pluginPackage.nativeSource = undefined;
 
-            plugin.onInitialized(pluginPackage.config, { THREE, stores });
+            const sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
+
+            plugin.onInitialized(pluginPackage.config, { THREE, stores, sendUIMessage });
             plugin.id = pluginPackage.id;
             plugin.name = pluginPackage.name;
 
@@ -90,10 +96,28 @@ export class PluginSystemNative {
         }
     };
 
-    constructor(pluginPackages: InitializedPluginPackage[]) {
-        this.#plugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(PluginSystemNative.initializePlugin).filter(Boolean);
+    constructor(pluginPackages: InitializedPluginPackage[], uiPlugins: PluginSystemUI) {
+        this.#plugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#plugins.forEach(plugin => this.#registerDefaultHooks(plugin));
+        this.#uiPlugins = uiPlugins;
+    }
+
+    sendCustomUIMessage(pluginId: string, message: any) {
+        const plugin = this.#plugins.find(p => p.id === pluginId);
+        if (plugin) {
+            try {
+                this.#uiPlugins.sendMessage({
+                    type: SYSTEM_EVENT_CUSTOM_MESSAGE,
+                    payload: {
+                        pluginId,
+                        message
+                    }
+                });
+            } catch (e) {
+                log.error(withErrorMessage(`@plugin-system-native: sendCustomUIMessage "${plugin.name}"`, e));
+            }
+        }
     }
 
     #registerDefaultHooks(plugin: any) {
@@ -118,7 +142,7 @@ export class PluginSystemNative {
         }
     }
 
-    createCustomHook() {
+    registerCustomHook() {
 
     }
 
@@ -153,7 +177,7 @@ export class PluginSystemNative {
     }
 
     enableAdditionalPlugins(pluginPackages: InitializedPluginPackage[]) {
-        const additionalPlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(PluginSystemNative.initializePlugin).filter(Boolean);
+        const additionalPlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#plugins = [...this.#plugins, ...additionalPlugins];
     }

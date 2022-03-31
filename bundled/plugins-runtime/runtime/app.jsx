@@ -31,12 +31,12 @@ const GlobalErrorState = ({ error }) => {
   );
 };
 
-const Component = ({ component, JSXElement }) => {
+const Component = ({ component, JSXElement, useMessage }) => {
   const config = usePluginConfig(component.pluginId);
 
   return (
     <ErrorBoundary key={component.id}>
-      <JSXElement config={config} />
+      <JSXElement config={config} useMessage={useMessage} />
     </ErrorBoundary>
   );
 };
@@ -105,7 +105,7 @@ export default ({ components }) => {
           />
         </>
       )}
-      {!appLoaded && !error && <p style={styleCenterText}>DarkMatter</p>}
+      {!appLoaded && !error && <p style={styleCenterText}>암흑 물질</p>}
       {appLoaded && !error && !hasAnyComponents && (
         <p style={styleCenterText}>First Run: Installing Default Plugins....</p>
       )}
@@ -129,11 +129,12 @@ export default ({ components }) => {
           {components["top-left"] &&
             components["top-left"]
               .filter(screenFilter)
-              .map(({ JSXElement, component }) => (
+              .map(({ JSXElement, component, useMessage }) => (
                 <Component
                   key={component.id}
                   component={component}
                   JSXElement={JSXElement}
+                  useMessage={useMessage}
                 />
               ))}
         </div>
@@ -147,11 +148,12 @@ export default ({ components }) => {
           {components["top"] &&
             components["top"]
               .filter(screenFilter)
-              .map(({ JSXElement, component }) => (
+              .map(({ JSXElement, component, useMessage }) => (
                 <Component
                   key={component.id}
                   component={component}
                   JSXElement={JSXElement}
+                  useMessage={useMessage}
                 />
               ))}
         </div>
@@ -165,11 +167,12 @@ export default ({ components }) => {
           {components["top-right"] &&
             components["top-right"]
               .filter(screenFilter)
-              .map(({ JSXElement, component }) => (
+              .map(({ JSXElement, component, useMessage }) => (
                 <Component
                   key={component.id}
                   component={component}
                   JSXElement={JSXElement}
+                  useMessage={useMessage}
                 />
               ))}
         </div>
@@ -193,11 +196,12 @@ export default ({ components }) => {
           {components["left"] &&
             components["left"]
               .filter(screenFilter)
-              .map(({ JSXElement, component }) => (
+              .map(({ JSXElement, component, useMessage }) => (
                 <Component
                   key={component.id}
                   component={component}
                   JSXElement={JSXElement}
+                  useMessage={useMessage}
                 />
               ))}
         </div>
@@ -213,11 +217,12 @@ export default ({ components }) => {
           {components["center"] &&
             components["center"]
               .filter(screenFilter)
-              .map(({ JSXElement, component }) => (
+              .map(({ JSXElement, component, useMessage }) => (
                 <Component
                   key={component.id}
                   component={component}
                   JSXElement={JSXElement}
+                  useMessage={useMessage}
                 />
               ))}
         </div>
@@ -228,11 +233,12 @@ export default ({ components }) => {
           {components["right"] &&
             components["right"]
               .filter(screenFilter)
-              .map(({ JSXElement, component }) => (
+              .map(({ JSXElement, component, useMessage }) => (
                 <Component
                   key={component.id}
                   component={component}
                   JSXElement={JSXElement}
+                  useMessage={useMessage}
                 />
               ))}
         </div>
@@ -244,22 +250,24 @@ export default ({ components }) => {
         {components["bottom"] &&
           components["bottom"]
             .filter(screenFilter)
-            .map(({ JSXElement, component }) => (
+            .map(({ JSXElement, component, useMessage }) => (
               <Component
                 key={component.id}
                 component={component}
                 JSXElement={JSXElement}
+                useMessage={useMessage}
               />
             ))}
       </div>
       {components["loose"] &&
         components["loose"]
           .filter(screenFilter)
-          .map(({ JSXElement, component }) => (
+          .map(({ JSXElement, component, useMessage }) => (
             <Component
               key={component.id}
               component={component}
               JSXElement={JSXElement}
+              useMessage={useMessage}
             />
           ))}
     </div>

@@ -8,7 +8,8 @@
   - [registerComponent reference](#registercomponent-reference)
   - [CSS for React Components](#css-for-react-components)
   - [native.js](#nativejs)
-  - [useStore reference](#usestore-reference)
+  - [Communicating between native.js and index.jx](#communicating-between-nativejs-and-indexjx)
+  - [useStore advanced](#usestore-advanced)
   - [titan-reactor exports reference](#titan-reactor-exports-reference)
   - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
@@ -95,6 +96,8 @@ Additional properties in the first argument allow us to tap into layout and scre
 Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
 
 Every component will be provided with their plugin `config` object which corresponds with `config` field of our `package.json`. The component will re-render on any config update.
+
+Note that only mouse clicks events (`onClick`) will be available for listening to any of your react components. This is due to a limitation with having a full screen iframe mostly non-interactable on-top of the game canvas.
 
 
 
@@ -204,12 +207,45 @@ return {
     onGameDisposed() {
 
     },
-
     
 }
 ```
 
-## useStore reference
+## Communicating between native.js and index.jx
+
+You can send one way messages from native.js to your react components. For a full working example see the official FPS plugin.
+
+In your `index.jsx`:
+```jsx
+import React from "react";
+
+// useMessage is a hook passed in as a prop for your component
+const MyComponent = ({ config, useMessage }) => {
+
+  // any messages sent from native.js are received here
+  const message = useMessage();
+  return <p>{message.foo}</p>
+});
+
+```
+
+In your `native.js`:
+```js
+let _sendUIMessage;
+
+return {
+  onInitialized(config, { sendUIMessage }) {
+    // assign it for later use
+    _sendUIMessage = sendUIMessage;
+  },
+
+  onGameStart() {
+    _sendUIMessage({ foo : "bar!" });
+  }
+}
+```
+
+## useStore advanced
 
 Titan Reactor provides a useStore hook for channels to access game state. This is a zustand store, [please see zustand for complete details](https://github.com/pmndrs/zustand). This brief section will illustrate two uses:
 
@@ -220,7 +256,7 @@ It's best to [keep the "selector" function memoized](https://github.com/pmndrs/z
 
 This method is a small optimization minimizing virtual dom diffing and re-renders. See [FPS Meter plugin](https://github.com/imbateam-gg/titan-reactor-community/tree/main/plugins/fps) and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
 
-# titan-reactor exports reference
+## titan-reactor exports reference
 
 - useStore
 - getPlayerInfo

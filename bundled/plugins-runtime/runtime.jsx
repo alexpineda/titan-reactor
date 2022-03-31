@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
@@ -25,10 +25,13 @@ export const setStyleSheet = (id, content) => {
   style.textContent = content;
 };
 
-const _plugins = [];
+const _plugins = {};
 
 const _addPlugin = (plugin) => {
-  _plugins.push(plugin);
+  _plugins[plugin.id] = {
+    id: plugin.id,
+    messageHandler: new EventTarget(),
+  };
 
   // initialize the plugin channels custom script and we'll later wait for it to register
   const script = document.createElement("script");
@@ -221,14 +224,17 @@ const _messageListener = function (event) {
       useConfig.setState({
         [event.data.payload.pluginId]: event.data.payload.config,
       });
-    } else if (event.data.type === "system:plugins-enabled") {
-      for (const plugin of event.data.payload.plugins) {
-        _addPlugin(plugin);
-      }
-    } else if (event.data.type === "system:mouse.click") {
+    } else if (event.data.type === "system:mouse-click") {
       document
         .elementFromPoint(event.data.payload.x, event.data.payload.y)
         .click();
+    } else if (event.data.type === "system:custom-message") {
+      const { message, pluginId } = event.data.payload;
+      const plugin = _plugins[pluginId];
+      if (plugin) {
+        const event = new CustomEvent("message", { detail: message });
+        plugin.messageHandler.dispatchEvent(event);
+      }
     }
   } else {
     if (event.data.type === "dimensions") {
@@ -241,10 +247,25 @@ window.addEventListener("message", _messageListener);
 
 let _channelIds = 0;
 export const registerComponent = (component, JSXElement) => {
+  const plugin = _plugins[component.pluginId];
+  if (!plugin) {
+    return;
+  }
+
   component.id = `${component.pluginId}_${++_channelIds}`;
 
+  // native to react communication channel
+  const useMessage = () => {
+    const [message, setMessage] = useState(null);
+    plugin.messageHandler.addEventListener("message", ({ detail }) => {
+      setMessage(detail);
+      component.onMessage && component.onMessage(detail);
+    });
+    return message;
+  };
+
   const pos = component.snap || "loose";
-  const val = { component, JSXElement };
+  const val = { component, JSXElement, useMessage };
 
   const _components = useComponents.getState();
   if (!_components[pos]) {
