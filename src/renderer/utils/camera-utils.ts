@@ -1,19 +1,26 @@
 import CameraControls from "camera-controls";
-import { Box3, MathUtils, PerspectiveCamera, Vector3 } from "three";
+import { Box3, Camera, MathUtils, PerspectiveCamera, Vector3, Vector4 } from "three";
 import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
 import { MinimapMouse } from "../input";
+import { CameraMode } from "../input/camera-mode";
 
 const DEFAULT_FAR = 256;
 const OVERVIEW_FAR = 1000;
 const BATTLE_FAR = 128;
 
-type Controls = {
-  standard: CameraControls,
+export type Controls = {
+  orbit: CameraControls,
   mouse: CameraMouse,
   keys: CameraKeys,
   cameraShake: CameraShake,
+  cameraMode: CameraMode,
+  PIP: {
+    enabled: boolean;
+    camera: Camera;
+    viewport: Vector4;
+  }
   dispose: () => void,
   enableAll: () => void,
   disableAll: () => void
@@ -39,7 +46,7 @@ export const BATTLE_POLAR_MAX = (20 * Math.PI) / 64;
 export const BATTLE_POLAR_MIN = (Math.PI) / 64;
 
 const setBoundary = (controls: Controls, mapWidth: number, mapHeight: number) => {
-  controls.standard.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
+  controls.orbit.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
 };
 
 export const constrainControls = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
@@ -47,38 +54,38 @@ export const constrainControls = async (controls: Controls, minimapMouse: Minima
 
   controls.enableAll();
   controls.cameraShake.enabled = false;
-  controls.standard.boundaryFriction = 1;
+  controls.orbit.boundaryFriction = 1;
 
   camera.far = DEFAULT_FAR;
   camera.zoom = 1;
   camera.fov = 15;
   camera.updateProjectionMatrix();
 
-  controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.middle = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
-  controls.standard.dollyToCursor = true;
-  controls.standard.verticalDragToForward = true;
+  controls.orbit.dollyToCursor = true;
+  controls.orbit.verticalDragToForward = true;
 
-  controls.standard.maxDistance = DEFAULT_FAR;
-  controls.standard.minDistance = 20;
-  controls.standard.dollySpeed = 0.2
+  controls.orbit.maxDistance = DEFAULT_FAR;
+  controls.orbit.minDistance = 20;
+  controls.orbit.dollySpeed = 0.2
 
-  controls.standard.maxPolarAngle = POLAR_MAX;
-  controls.standard.minPolarAngle = POLAR_MIN;
-  controls.standard.maxAzimuthAngle = 0;
-  controls.standard.minAzimuthAngle = 0;
-  controls.standard.dampingFactor = 0.05;
+  controls.orbit.maxPolarAngle = POLAR_MAX;
+  controls.orbit.minPolarAngle = POLAR_MIN;
+  controls.orbit.maxAzimuthAngle = 0;
+  controls.orbit.minAzimuthAngle = 0;
+  controls.orbit.dampingFactor = 0.05;
 
   setBoundary(controls, mapWidth, mapHeight);
 
-  await controls.standard.rotatePolarTo(POLAR_MIN, false);
-  await controls.standard.rotateAzimuthTo(0, false);
-  await controls.standard.zoomTo(1, false);
-  await controls.standard.dollyTo(80, false);
+  await controls.orbit.rotatePolarTo(POLAR_MIN, false);
+  await controls.orbit.rotateAzimuthTo(0, false);
+  await controls.orbit.zoomTo(1, false);
+  await controls.orbit.dollyTo(80, false);
 }
 
 export const constrainControlsBattleCam = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
@@ -88,32 +95,32 @@ export const constrainControlsBattleCam = async (controls: Controls, minimapMous
   camera.far = BATTLE_FAR;
   camera.fov = 85;
   camera.updateProjectionMatrix();
-  controls.standard.boundaryFriction = 0;
+  controls.orbit.boundaryFriction = 0;
 
-  controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.middle = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
-  controls.standard.dollyToCursor = false;
+  controls.orbit.dollyToCursor = false;
 
   setBoundary(controls, mapWidth, mapHeight);
 
-  controls.standard.maxDistance = Math.max(mapWidth, mapHeight) * 2;
-  controls.standard.minDistance = 3;
-  controls.standard.dollySpeed = 1;
-  controls.standard.maxZoom = 20;
-  controls.standard.minZoom = 0.3;
-  controls.standard.dampingFactor = 0.01;
+  controls.orbit.maxDistance = Math.max(mapWidth, mapHeight) * 2;
+  controls.orbit.minDistance = 3;
+  controls.orbit.dollySpeed = 1;
+  controls.orbit.maxZoom = 20;
+  controls.orbit.minZoom = 0.3;
+  controls.orbit.dampingFactor = 0.01;
 
-  controls.standard.maxPolarAngle = Infinity;
-  controls.standard.minPolarAngle = -Infinity
-  controls.standard.maxAzimuthAngle = Infinity;
-  controls.standard.minAzimuthAngle = -Infinity;
+  controls.orbit.maxPolarAngle = Infinity;
+  controls.orbit.minPolarAngle = -Infinity
+  controls.orbit.maxAzimuthAngle = Infinity;
+  controls.orbit.minAzimuthAngle = -Infinity;
 
-  await controls.standard.dollyTo(13, false);
-  await controls.standard.zoomTo(1, false);
+  await controls.orbit.dollyTo(13, false);
+  await controls.orbit.zoomTo(1, false);
 }
 
 export const constrainControlsOverviewCam = async (controls: Controls, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => {
@@ -121,20 +128,20 @@ export const constrainControlsOverviewCam = async (controls: Controls, minimapMo
 
   controls.disableAll();
   controls.mouse.enabled = true;
-  controls.standard.boundaryFriction = 0;
+  controls.orbit.boundaryFriction = 0;
 
-  controls.standard.setBoundary(undefined);
-  controls.standard.mouseButtons.left = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.middle = CameraControls.ACTION.ZOOM;
-  controls.standard.mouseButtons.wheel = CameraControls.ACTION.NONE;
-  controls.standard.mouseButtons.right = CameraControls.ACTION.NONE;
+  controls.orbit.setBoundary(undefined);
+  controls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.middle = CameraControls.ACTION.ZOOM;
+  controls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
+  controls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
   camera.far = OVERVIEW_FAR;
   camera.fov = 15;
   camera.updateProjectionMatrix();
-  controls.standard.setLookAt(0, Math.max(mapWidth, mapHeight) * 4, 0, 0, 0, 0, false);
-  await controls.standard.zoomTo(1, false);
+  controls.orbit.setLookAt(0, Math.max(mapWidth, mapHeight) * 4, 0, 0, 0, 0, false);
+  await controls.orbit.zoomTo(1, false);
 }
 
 export const constrainAzimuth = (polarAngle: number) => {

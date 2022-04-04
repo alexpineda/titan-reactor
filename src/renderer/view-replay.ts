@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3, Vector4 } from "three";
+import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
@@ -195,7 +195,7 @@ async function TitanReactorGame(
 
     return {
       cameraMode,
-      standard: controls,
+      orbit: controls,
       mouse: cameraMouse,
       keys: cameraKeys,
       cameraShake,
@@ -233,6 +233,7 @@ async function TitanReactorGame(
   //   }
   // }
 
+  //TODO: change to standard visitImage fn
   const setUseScale = (enable: boolean) => {
     ImageHD.useScale = enable ? 2.5 : 1;
     for (const [, image] of images) {
@@ -260,11 +261,12 @@ async function TitanReactorGame(
     }
 
     // @ts-ignore
-    const oldTarget = controls.standard.getTarget();
+    const oldTarget = controls.orbit.getTarget();
     // @ts-ignore
-    const oldPosition = controls.standard.getPosition();
+    const oldPosition = controls.orbit.getPosition();
     controls.dispose();
     controls = createControls(controls.cameraMode);
+    //FIXME: change to standard key listener device
     controls.keys.onToggleCameraMode = onToggleCameraMode;
     gameSurface.exitPointerLock();
     setUseScale(false);
@@ -278,9 +280,9 @@ async function TitanReactorGame(
       if (cm === CameraMode.Battle) {
         const t = new Vector3();
         t.lerpVectors(oldTarget, oldPosition, 0.8);
-        await controls.standard.setTarget(t.x, 0, t.z, false);
+        await controls.orbit.setTarget(t.x, 0, t.z, false);
       } else {
-        await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
+        await controls.orbit.setTarget(oldTarget.x, 0, oldTarget.z, false);
       }
       await constrainControls(controls, minimapMouse, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetRegularCam();
@@ -288,7 +290,7 @@ async function TitanReactorGame(
     } else if (controls.cameraMode === CameraMode.Battle) {
       setUseScale(false);
       gameSurface.requestPointerLock();
-      await controls.standard.setTarget(oldTarget.x, 0, oldTarget.z, false);
+      await controls.orbit.setTarget(oldTarget.x, 0, oldTarget.z, false);
       await constrainControlsBattleCam(controls, minimapMouse, camera, mapWidth, mapHeight);
       renderer.composerPasses.presetBattleCam();
       // setUseDepth(true);
@@ -361,7 +363,6 @@ async function TitanReactorGame(
       }
     });
     highlights.forEach(h => h.removeFromParent());
-    // cmds.next(openBw.api._replay_get_value(3));
 
     currentBwFrame = null;
     reset = null;
@@ -534,6 +535,7 @@ async function TitanReactorGame(
         div.style.color = "white";
         div.style.fontWeight = "500"
         const debuglabel = new CSS2DObject(div);
+        debuglabel.name = "debug-label";
         highlight.add(debuglabel)
       }
       const unit = Object.assign(existingUnit || {}, {
@@ -761,7 +763,7 @@ async function TitanReactorGame(
       if (controls.cameraMode === CameraMode.Battle) {
         ctx.beginPath();
         const fov2 = calculateHorizontalFoV(MathUtils.degToRad(camera.getEffectiveFOV()), camera.aspect) / 2;
-        const a = Math.PI - controls.standard.azimuthAngle;
+        const a = Math.PI - controls.orbit.azimuthAngle;
         ctx.arc(camera.position.x, camera.position.z, 10, a, a + fov2);
         ctx.stroke();
       } else {
@@ -849,6 +851,7 @@ async function TitanReactorGame(
   const unitsBySprite: Map<number, Unit> = new Map();
   const sprites: Map<number, Group> = new Map();
   const spritesGroup = new Group();
+  spritesGroup.name = "sprites";
 
   scene.add(spritesGroup);
 
@@ -897,6 +900,7 @@ async function TitanReactorGame(
     let sprite = sprites.get(spriteData.index);
     if (!sprite) {
       sprite = new Group();
+      sprite.name = "sprite";
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
     }
@@ -976,6 +980,8 @@ async function TitanReactorGame(
         }
       }
     }
+
+    // floating terran buildings
 
     let imageCounter = 0;
     sprite.position.x = _spritePos.x;
@@ -1164,11 +1170,6 @@ async function TitanReactorGame(
   window.addEventListener("keypress", _stepperListener);
   janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
-  const targetObj = new Mesh(new SphereBufferGeometry(), new MeshBasicMaterial({ color: 0xffffff }));
-  if (settings.controls.debug) {
-    scene.add(targetObj);
-  }
-
   const _boundaryMin = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
   const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
   const _cameraBoundaryBox = new Box3(_boundaryMin, _boundaryMax)
@@ -1177,17 +1178,11 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    controls.standard.getTarget(_cameraTarget);
-    controls.standard.update(delta / 1000);
+    controls.orbit.getTarget(_cameraTarget);
+    controls.orbit.update(delta / 1000);
     controls.mouse.update(delta / 100, controls, settings, terrain.terrain);
     controls.keys.update(delta / 100, controls);
     minimapMouse.update(controls);
-
-    if (settings.controls.debug) {
-      //@ts-ignore
-      const _tobj = controls.standard.getTarget();
-      targetObj.position.set(_tobj.x, _tobj.y, _tobj.z);
-    }
 
     if (reset) reset();
 
@@ -1332,7 +1327,7 @@ async function TitanReactorGame(
 
       if (controls.cameraMode === CameraMode.Default) {
         _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2, 0, -mapHeight / 2 + projectedCameraView.height / 2), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2, 0, mapHeight / 2 - projectedCameraView.height / 2));
-        controls.standard.setBoundary(_cameraBoundaryBox);
+        controls.orbit.setBoundary(_cameraBoundaryBox);
       }
 
 

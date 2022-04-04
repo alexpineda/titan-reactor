@@ -1,7 +1,8 @@
 import { MathUtils, Vector3 } from "three";
 import { CanvasTarget } from "../image";
 import Janitor from "../utils/janitor";
-import { CameraMode, Controls } from "./camera-mode";
+import { CameraMode } from "./camera-mode";
+import { Controls } from "../utils/camera-utils";
 
 const LeftMouse = 0;
 const RightMouse = 2;
@@ -121,13 +122,13 @@ export class MinimapMouse {
 
     if (this._isDragStart) {
       controls.keys.onToggleCameraMode(CameraMode.Default);
-      controls.standard.moveTo(pos.x, 0, pos.z, false);
-      if (this._isPreviewing && controls.standard.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
+      controls.orbit.moveTo(pos.x, 0, pos.z, false);
+      if (this._isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
         this._isPreviewing = false;
       }
     } else if (this._isDragging) {
-      controls.standard.moveTo(pos.x, 0, pos.z, true);
-      if (this._isPreviewing && controls.standard.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
+      controls.orbit.moveTo(pos.x, 0, pos.z, true);
+      if (this._isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
         this._isPreviewing = false;
       }
     } else if (this._isPreviewStart) {

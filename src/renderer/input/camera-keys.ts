@@ -4,7 +4,8 @@ import { Vector3 } from "three";
 import Janitor from "../utils/janitor";
 import { testKeys } from "../utils/key-utils";
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
-import { CameraMode, Controls } from "./camera-mode";
+import { CameraMode } from "./camera-mode";
+import { Controls } from "../utils/camera-utils";
 
 const MAX_ACCELERATION = 2;
 const ACCELERATION = 1.01;
@@ -88,11 +89,11 @@ export class CameraKeys {
         if (!this.enabled) return;
 
         if (this._vector.x !== 0) {
-            controls.standard.truck(this._vector.x * delta * this._accel, 0, controls.standard.mouseButtons.wheel === CameraControls.ACTION.NONE);
+            controls.orbit.truck(this._vector.x * delta * this._accel, 0, controls.orbit.mouseButtons.wheel === CameraControls.ACTION.NONE);
         }
 
         if (this._vector.y !== 0) {
-            controls.standard.forward(this._vector.y * delta * this._accel, controls.standard.mouseButtons.wheel === CameraControls.ACTION.NONE);
+            controls.orbit.forward(this._vector.y * delta * this._accel, controls.orbit.mouseButtons.wheel === CameraControls.ACTION.NONE);
         }
 
         if (this._vector.y === 0 && this._vector.x === 0) {
@@ -102,10 +103,10 @@ export class CameraKeys {
         }
 
         if (this._dolly === 1) {
-            smoothDollyIn(controls.standard, 1, controls.cameraMode === CameraMode.Default);
+            smoothDollyIn(controls.orbit, 1, controls.cameraMode === CameraMode.Default);
             this._dolly = 0;
         } else if (this._dolly === -1) {
-            smoothDollyOut(controls.standard, 1, controls.cameraMode === CameraMode.Default);
+            smoothDollyOut(controls.orbit, 1, controls.cameraMode === CameraMode.Default);
             this._dolly = 0;
         }
     }

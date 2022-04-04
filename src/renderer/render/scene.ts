@@ -139,8 +139,11 @@ export class Scene extends ThreeScene {
   }
 
   private addLights() {
+    const hemilight = new HemisphereLight(0xffffff, 0xffffff, 1);
+    hemilight.name = "hemilight";
+
     const lights = [
-      new HemisphereLight(0xffffff, 0xffffff, 1)
+      hemilight
       , sunlight(this._mapWidth, this._mapHeight)
     ]
     lights.forEach(light => {

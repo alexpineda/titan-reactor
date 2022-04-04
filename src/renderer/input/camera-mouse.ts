@@ -2,7 +2,8 @@
 import { Settings } from "../../common/types";
 import { Intersection, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
-import { CameraMode, Controls } from "./camera-mode";
+import { CameraMode } from "./camera-mode";
+import { Controls } from "../utils/camera-utils"
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 
 const MAX_ACCELERATION = 2;
@@ -102,21 +103,21 @@ export class CameraMouse {
 
         if (controls.cameraMode === CameraMode.Battle) {
             if (this._clicked) {
-                controls.standard.zoomTo(controls.standard.camera.zoom * (this._clicked.z === 0 ? 2 : 1 / 2), false);
+                controls.orbit.zoomTo(controls.orbit.camera.zoom * (this._clicked.z === 0 ? 2 : 1 / 2), false);
             }
             if (this._lookAt.x || this._lookAt.y) {
-                controls.standard.rotate((-this._lookAt.x / 1000) * settings.controls.camera.helicopterRotateSpeed, (-this._lookAt.y / 1000) * settings.controls.camera.helicopterRotateSpeed, true);
+                controls.orbit.rotate((-this._lookAt.x / 1000) * settings.controls.camera.helicopterRotateSpeed, (-this._lookAt.y / 1000) * settings.controls.camera.helicopterRotateSpeed, true);
                 this._lookAt.x = 0;
                 this._lookAt.y = 0;
             }
 
             if (this._deltaY) {
-                controls.standard.getPosition(deltaYP);
+                controls.orbit.getPosition(deltaYP);
 
                 if (this._deltaY < 0) {
-                    controls.standard.setPosition(deltaYP.x, deltaYP.y - 2, deltaYP.z, true);
+                    controls.orbit.setPosition(deltaYP.x, deltaYP.y - 2, deltaYP.z, true);
                 } else {
-                    controls.standard.setPosition(deltaYP.x, deltaYP.y + 2, deltaYP.z, true);
+                    controls.orbit.setPosition(deltaYP.x, deltaYP.y + 2, deltaYP.z, true);
                 }
                 this._deltaY = 0;
             }
@@ -124,19 +125,19 @@ export class CameraMouse {
 
             if (this._deltaY) {
                 if (this._deltaY < 0) {
-                    smoothDollyIn(controls.standard, 3);
+                    smoothDollyIn(controls.orbit, 3);
                 } else {
-                    smoothDollyOut(controls.standard, 3);
+                    smoothDollyOut(controls.orbit, 3);
                 }
                 this._deltaY = 0;
             }
 
             if (this._vector.x !== 0) {
-                controls.standard.truck(this._vector.x * delta * this._accel, 0, true);
+                controls.orbit.truck(this._vector.x * delta * this._accel, 0, true);
             }
 
             if (this._vector.y !== 0) {
-                controls.standard.forward(this._vector.y * delta * this._accel, true);
+                controls.orbit.forward(this._vector.y * delta * this._accel, true);
             }
 
 
@@ -147,18 +148,18 @@ export class CameraMouse {
             }
         } else if (controls.cameraMode === CameraMode.Overview) {
             if (this._clicked && this._clicked.z === 0) {
-                rayCaster.setFromCamera(this._clicked, controls.standard.camera);
+                rayCaster.setFromCamera(this._clicked, controls.orbit.camera);
                 intersections.length = 0;
                 rayCaster.intersectObject(terrain, false, intersections);
                 if (intersections.length) {
-                    controls.standard.moveTo(intersections[0].point.x, 0, intersections[0].point.z, false);
+                    controls.orbit.moveTo(intersections[0].point.x, 0, intersections[0].point.z, false);
                     controls.keys.onToggleCameraMode(CameraMode.Default);
                 }
             }
 
             if (!this._clicked && this._mouse.z === 2) {
                 controls.PIP.enabled = true;
-                rayCaster.setFromCamera(this._mouse, controls.standard.camera);
+                rayCaster.setFromCamera(this._mouse, controls.orbit.camera);
                 intersections.length = 0;
                 rayCaster.intersectObject(terrain, false, intersections);
                 if (intersections.length) {
