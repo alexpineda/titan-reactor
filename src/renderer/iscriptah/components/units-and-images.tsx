@@ -1,4 +1,3 @@
-import React from "react";
 import Unit from "./unit";
 import Sprite from "./sprite";
 import Image from "./image";
@@ -10,7 +9,7 @@ import {
   setSprite,
   setImage,
 } from "../stores";
-import { useGameStore } from "../../../stores/game-store";
+import { useGameStore } from "@stores/game-store";
 
 export const UnitsAndImages = ({ search }: { search: number | string }) => {
   const bwDat = useGameStore((state) => state.assets?.bwDat);

@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import AnimationBlocks from "./animation-blocks";
-import calculateImagesFromIscript from "../../../../common/iscript/images-from-iscript";
+import calculateImagesFromIscript from "../../iscript/images-from-iscript";
 
-import { useGameStore } from "../../../stores/game-store";
-import { UnitDAT } from "../../../../common/types";
+import { useGameStore } from "@stores/game-store";
+import { UnitDAT } from "common/types";
 
 const Unit = ({
   unit,

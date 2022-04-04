@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import shallow from "zustand/shallow";
-import range from "../../../../common/utils/range";
+import range from "common/utils/range";
 import { useIscriptStore, setFrame, setBaseFrame } from "../stores";
 
 export const Frames = ({ numFrames }: { numFrames: number }) => {
@@ -57,7 +57,7 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
       </header>
       <section className="p-2 relative">
         <ul>
-          {range(0, numFrames).map((frame: number, i: number) => {
+          {range(0, numFrames).map((_, i: number) => {
             const isBaseFrame =
               selectedBaseFrame === null
                 ? 0

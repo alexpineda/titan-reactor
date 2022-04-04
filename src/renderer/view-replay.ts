@@ -91,7 +91,7 @@ async function TitanReactorGame(
   const bwDat = assets.bwDat;
   assert(openBw.wasm);
 
-  openBw.call!.resetGameSpeed!();
+  openBw.call!.setGameSpeed!(1);
 
   const createImage = (imageTypeId: number) => {
     const atlas = assets.grps[imageTypeId];
@@ -370,16 +370,16 @@ async function TitanReactorGame(
 
   const skipHandler = (dir: number) => () => {
     if (reset) return;
-    const currentFrame = openBw.wasm!._replay_get_value(3);
-    openBw.wasm!._replay_set_value(3, currentFrame + 100 * dir);
+    const currentFrame = openBw.call!.getCurrentFrame!();
+    openBw.call!.setCurrentFrame!(currentFrame + 100 * dir);
     reset = refreshScene;
   }
   keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
   keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
 
   const speedHandler = (scale: number) => () => {
-    const currentSpeed = openBw.wasm!._replay_get_value(0);
-    openBw.wasm!._replay_set_value(0, Math.min(16, currentSpeed * scale))
+    const currentSpeed = openBw.call!.getGameSpeed!();
+    openBw.call!.setGameSpeed!(Math.min(16, currentSpeed * scale));
   }
   keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
   keyboardManager.on(InputEvents.SpeedDown, speedHandler(1 / 2));
@@ -505,7 +505,7 @@ async function TitanReactorGame(
     imageData.data.fill(0);
     resourceImageData.data.fill(0);
 
-    for (const unit of iterateUnits()) {
+    for (const unit of unitsIterator()) {
       const dat = bwDat.units[unit.typeId];
 
       const showOnMinimap =
@@ -558,7 +558,7 @@ async function TitanReactorGame(
   const unitBufferView = new UnitsBufferView(openBw.wasm);
   const unitList = new IntrusiveList(openBw.wasm.HEAPU32, 0, 43);
 
-  function* iterateUnits() {
+  function* unitsIterator() {
     const playersUnitAddr = openBw.call!.getUnitsAddr!();
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
@@ -646,8 +646,6 @@ async function TitanReactorGame(
   }
 
   const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
-
-
 
   const drawMinimap = (() => {
     const color = "white";
@@ -1425,7 +1423,7 @@ async function TitanReactorGame(
   _sceneResizeHandler();
 
   gameStatePosition.resume();
-  plugins.callHook("onGameReady");
+  await plugins.callHookAsync("onGameReady", { players, fogOfWar, unitsIterator, projectedCameraView });
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
   return dispose;

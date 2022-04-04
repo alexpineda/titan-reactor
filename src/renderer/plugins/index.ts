@@ -56,7 +56,8 @@ export const onClick = (event: MouseEvent) => {
         type: SYSTEM_EVENT_MOUSE_CLICK,
         payload: {
             x: event.clientX,
-            y: event.clientY
+            y: event.clientY,
+            button: event.button
         }
     })
 }
@@ -73,6 +74,10 @@ export const onGameDisposed = () => {
 
 export const callHook = (...args: Parameters<PluginSystemNative["callHook"]>) => {
     nativePluginSystem.callHook(...args);
+}
+
+export const callHookAsync = async (...args: Parameters<PluginSystemNative["callHookAsync"]>) => {
+    await nativePluginSystem.callHookAsync(...args);
 }
 
 export const installPluginLocal = async (repository: string) => {

@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
 import shallow from "zustand/shallow";
-import { gameSpeeds } from "../../../../common/utils/conversions";
+import { gameSpeeds } from "common/utils/conversions";
 import TransformDetails from "./transform-details";
 import { WrappedCanvas } from "./wrapped-canvas";
 import {
@@ -15,7 +14,7 @@ import {
   setTransform,
   setShowFloorAxes,
 } from "../stores";
-import { CanvasTarget } from "../../../../common/image";
+import { CanvasTarget } from "@image";
 
 export const Animation = ({
   surface,
@@ -195,9 +194,7 @@ export const Animation = ({
 
         <select
           value={gamespeed}
-          onChange={({ target }) =>
-            setGamespeed(Number((target as HTMLInputElement).value))
-          }
+          onChange={({ target }) => setGamespeed(Number(target.value))}
         >
           {Object.entries(gameSpeeds).map(([name, val]) => {
             return (

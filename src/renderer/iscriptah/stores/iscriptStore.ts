@@ -1,4 +1,4 @@
-import { ImageDAT, UnitDAT, Block } from "../../../../common/types";
+import { ImageDAT, UnitDAT, Block } from "common/types";
 import create from "zustand";
 
 //a user settings store which persists to disk

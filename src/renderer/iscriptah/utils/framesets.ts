@@ -1,4 +1,4 @@
-import { Block } from "../../../../common/types";
+import { Block } from "common/types";
 
 export const interactiveOpCodes = [
   "playfram",
@@ -7,7 +7,7 @@ export const interactiveOpCodes = [
   "engset",
 ];
 
-export const getDirectionalFrame = (cmd, cameraDirection: number) => {
+export const getDirectionalFrame = (cmd: any, cameraDirection: number) => {
   const frameset = Math.floor(cmd[1] / 17) * 17;
 
   if (cameraDirection > 16) {
@@ -18,12 +18,13 @@ export const getDirectionalFrame = (cmd, cameraDirection: number) => {
 };
 
 export const areFrameSetsEnabled = (
-  cmd,
-  cmds,
+  cmd: any,
+  cmds: any,
   selectedBlock: Block,
   blockFrameCount: number
 ) =>
   interactiveOpCodes.includes(cmd[0]) &&
   selectedBlock.image.gfxTurns &&
   blockFrameCount > 17 &&
+  //@ts-ignore
   !cmds.find(([op]) => op === "setfldirect");

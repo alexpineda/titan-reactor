@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { ImageDAT } from "../../../../common/types";
-import { iscriptHeaders } from "../../../../common/bwdat/enums";
+import { useState } from "react";
+import { ImageDAT } from "common/types";
+import { iscriptHeaders } from "common/enums";
 import { setBlock } from "../stores";
-import { useGameStore } from "../../../stores/game-store";
+import { useGameStore } from "@stores/game-store";
 
 export const AnimationBlocks = ({ image }: { image: ImageDAT }) => {
   const [expanded, setExpanded] = useState(false);

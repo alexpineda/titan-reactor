@@ -1,4 +1,3 @@
-import React from "react";
 import { Euler, Vector3 } from "three";
 import {
   useIScriptahStore,

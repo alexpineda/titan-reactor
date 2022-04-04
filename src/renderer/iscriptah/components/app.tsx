@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import shallow from "zustand/shallow";
 import UnitsAndImages from "./units-and-images";
 
-import { CanvasTarget } from "../../../../common/image";
+import { CanvasTarget } from "@image";
+import { useGameStore } from "@stores/game-store";
 import Commands from "./commands";
 import Animation from "./animation";
 import Frames from "./frames";
-import IScriptSprite from "../../../core/iscript-sprite";
-// import { createTitanImageFactory } from "../../../../common/image";
-import { createIScriptRunnerFactory } from "../../../../common/iscript";
-import { AtlasLoader } from "../../../../common/image";
-import { blockInitializing, blockFrameCountChanged } from "../iscript-reducer";
-import calculateImagesFromIscript from "../../../../common/iscript/images-from-iscript";
-import { UnitDAT } from "../../../../common/types";
-import { useIScriptahStore, useIscriptStore } from "../stores";
+import IScriptSprite from "@core/iscript-sprite";
+import calculateImagesFromIscript from "../../iscript/images-from-iscript";
+import { UnitDAT } from "common/types";
+import {
+  setBlockFrameCount,
+  useIScriptahStore,
+  useIscriptStore,
+} from "../stores";
+import { IScriptRunner } from "renderer/iscript/iscript-runner";
 
 const App = ({
   surface,
@@ -24,6 +26,9 @@ const App = ({
 }) => {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("alpha");
+  const { assets } = useGameStore((state) => ({
+    assets: state.assets,
+  }));
 
   const { renderMode, cameraDirection } = useIScriptahStore(
     (store) => ({
@@ -50,60 +55,57 @@ const App = ({
     shallow
   );
 
-  // useEffect(() => {
-  //   if (!selectedBlock) return;
-  //   const preload = async () => {
-  //     if (three.atlases) {
-  //       Object.values(three.atlases).forEach((pl) => pl.dispose());
-  //     }
-  //     three.dispose();
+  const tileset = 0;
 
-  //     const imageIds = calculateImagesFromIscript(
-  //       three.bwDat,
-  //       selectedBlock.image,
-  //       selectedUnit
-  //     );
+  useEffect(() => {
+    if (!selectedBlock) return;
+    const preload = async () => {
+      // three.dispose();
 
-  //     three.atlases = {};
+      const imageIds = calculateImagesFromIscript(
+        assets!.bwDat,
+        selectedBlock.image,
+        selectedUnit
+      );
 
-  //     // @todo fix file loading
-  //     const atlasLoader = new GrpFileLoader(
-  //       three.bwDat,
-  //       bwDataPath,
-  //       (file: string) => fsPromises.readFile(`${bwDataPath}/${file}`)
-  //     );
+      const { header } = selectedBlock;
 
-  //     for (let imageId of imageIds) {
-  //       await atlasLoader.load(imageId);
-  //     }
+      const createTitanImageFactory = () => {};
 
-  //     const { header } = selectedBlock;
+      // unit: any = null,
+      // bwDat: BwDAT,
+      // createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite,
+      // createTitanImage: (
+      //   image: number
+      // ) => Image,
+      // runner: IScriptRunner,
+      // createTitanSpriteCb: (titanSprite: IScriptSprite) => void,
+      // destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void = () => { },
 
-  //     const createTitanSprite = (unit: UnitDAT | null): TitanSprite =>
-  //       new TitanSprite(
-  //         unit,
-  //         three.bwDat,
-  //         createTitanSprite,
-  //         createTitanImageFactory(
-  //           three.bwDat,
-  //           three.atlases,
-  //           createIScriptRunnerFactory(three.bwDat, three.tileset),
-  //           (msg: string) => console.error(msg)
-  //         ),
-  //         addTitanSpriteCb
-  //       );
+      const createTitanSprite = (unit: UnitDAT | null): IScriptSprite =>
+        new IScriptSprite(
+          unit,
+          assets!.bwDat,
+          createTitanSprite,
+          createTitanImageFactory(
+            assets!.bwDat,
+            assets!.grps,
+            createIScriptRunnerFactory(assets!.bwDat, tileset),
+            (msg: string) => console.error(msg)
+          ),
+          new IScriptRunner(assets!.bwDat, tileset),
+          addTitanSpriteCb
+        );
 
-  //     const titanSprite = createTitanSprite(selectedUnit);
-  //     addTitanSpriteCb(titanSprite);
+      const titanSprite = createTitanSprite(selectedUnit);
+      addTitanSpriteCb(titanSprite);
 
-  //     titanSprite.addImage(selectedBlock.image.index);
-  //     titanSprite.run(header);
-  //     setBlockFrameCount(
-  //       three.atlases[selectedBlock.image.index].frames.length
-  //     );
-  //   };
-  //   initializeBlock(preload);
-  // }, [selectedBlock, renderMode]);
+      titanSprite.spawnIScriptImage(selectedBlock.image.index);
+      titanSprite.run(header);
+      setBlockFrameCount(assets!.grps[selectedBlock.image.index].frames.length);
+    };
+    initializeBlock(preload);
+  }, [selectedBlock, renderMode]);
 
   useEffect(() => {
     if (!(selectedUnit || selectedSprite || selectedImage)) return;

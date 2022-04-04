@@ -1,4 +1,4 @@
-import create from "zustand/vanilla";
+import create from "zustand";
 import { GameCanvasDimensions } from "common/types";
 import Assets from "../assets/assets";
 import { onGameDisposed } from "../plugins";

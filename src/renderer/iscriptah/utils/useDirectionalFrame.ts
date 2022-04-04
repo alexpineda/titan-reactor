@@ -3,7 +3,7 @@ import {
   getDirectionalFrame as _getDirectionalFrame,
   areFrameSetsEnabled as _areFrameSetsEnabled,
 } from "./framesets";
-import { AnimationBlockType,  Block } from "../../../../common/types";
+import { AnimationBlockType, Block } from "common/types";
 
 
 export default (cmds: AnimationBlockType, selectedBlock: Block, blockFrameCount: number, cameraDirection: number) => {
@@ -12,7 +12,7 @@ export default (cmds: AnimationBlockType, selectedBlock: Block, blockFrameCount:
     dirCache.current = {};
   }, [selectedBlock, cameraDirection]);
 
-  const getDirectionalFrame = (cmd) => {
+  const getDirectionalFrame = (cmd: any) => {
     if (dirCache.current[cmd] !== undefined) return dirCache.current[cmd];
     if (!areFrameSetsEnabled(cmd)) {
       dirCache.current[cmd] = null;
@@ -22,7 +22,7 @@ export default (cmds: AnimationBlockType, selectedBlock: Block, blockFrameCount:
     return dirCache.current[cmd];
   };
 
-  const areFrameSetsEnabled = (cmd) => {
+  const areFrameSetsEnabled = (cmd: any) => {
     return _areFrameSetsEnabled(cmd, cmds, selectedBlock, blockFrameCount);
   };
 

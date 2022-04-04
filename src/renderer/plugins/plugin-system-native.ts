@@ -8,7 +8,7 @@ import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 
 type HookOptions = {
     postFn?: Function;
-    synchronous?: boolean;
+    async?: boolean;
     hookAuthorPluginId?: string
 }
 
@@ -28,6 +28,10 @@ class Hook {
         this.name = name;
         this.args = args;
         this.opts = opts;
+    }
+
+    isAsync() {
+        return this.opts.async;
     }
 
     hasListeners() {
@@ -54,13 +58,25 @@ class Hook {
         }
     }
 
+    async callAsync(...args: any[]) {
+        for (const listener of this.listeners) {
+            if (this.opts.hookAuthorPluginId === undefined || listener.pluginId !== this.opts.hookAuthorPluginId) {
+                try {
+                    await listener.fn(...args);
+                } catch (e) {
+                    log.error(withErrorMessage(`Error with hook ${this.name}`, e));
+                }
+            }
+        }
+    }
+
 }
 
 const createDefaultHooks = () => ({
     onGameDisposed: new Hook("onGameDisposed", []),
-    onGameReady: new Hook("onGameReady", []),
-    onBeforeRender: new Hook("onBeforeRender", ["delta", "elapsed"], { synchronous: true }),
-    onRender: new Hook("onRender", ["delta", "elapsed"], { synchronous: true }),
+    onGameReady: new Hook("onGameReady", [], { async: true }),
+    onBeforeRender: new Hook("onBeforeRender", ["delta", "elapsed"]),
+    onRender: new Hook("onRender", ["delta", "elapsed"]),
     onTerrainGenerated: new Hook("onTerrainGenerated", ["scene", "terrain", "mapWidth", "mapHeight"]),
     onUnitCreated: new Hook("onUnitCreated", ["unit"]),
     onUnitKilled: new Hook("onUnitKilled", ["unit"]),
@@ -86,9 +102,11 @@ export class PluginSystemNative {
 
             const sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
 
-            plugin.onInitialized(pluginPackage.config, { THREE, stores, sendUIMessage });
             plugin.id = pluginPackage.id;
             plugin.name = pluginPackage.name;
+
+            plugin.onInitialized && plugin.onInitialized(pluginPackage.config, { THREE, stores, sendUIMessage });
+
 
             return plugin;
         } catch (e: unknown) {
@@ -187,10 +205,14 @@ export class PluginSystemNative {
         this.#plugins = [...this.#plugins, ...additionalPlugins];
     }
 
-    //callHookSync
     callHook(hookName: string, ...args: any[]) {
         if (this.hooks[hookName] === undefined) {
             log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
+            return;
+        }
+
+        if (this.hooks[hookName].isAsync()) {
+            log.error(`@plugin-system-native: hook "${hookName}" is async but being called synchronously`);
             return;
         }
 
@@ -199,6 +221,25 @@ export class PluginSystemNative {
         }
 
         return this.hooks[hookName].call(...args);
+
+    }
+
+    async callHookAsync(hookName: string, ...args: any[]) {
+        if (this.hooks[hookName] === undefined) {
+            log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
+            return;
+        }
+
+        if (!this.hooks[hookName].isAsync()) {
+            log.error(`@plugin-system-native: hook "${hookName}" is not async but being called asynchronously`);
+            return;
+        }
+
+        if (this.hooks[hookName].args.length !== args.length) {
+            log.warning(`@plugin-system-native: hook "${hookName}" expects ${this.hooks[hookName].args.length} arguments, but got ${args.length}`);
+        }
+
+        return await this.hooks[hookName].callAsync(...args);
 
     }
 }

@@ -46,7 +46,11 @@ export interface OpenBWAPI {
         getBulletsAddress?: () => number,
         getBulletsDeletedCount?: () => number,
         getBulletsDeletedAddress?: () => number,
-        resetGameSpeed?: () => void;
+        setGameSpeed?: (speed: number) => void;
+        getGameSpeed?: () => number;
+        setCurrentFrame?: (speed: number) => void;
+        getCurrentFrame?: () => number;
+
         nextFrame?: () => number;
         tryCatch?: (callback: () => void) => void;
         loadReplay: (buffer: Buffer) => void;

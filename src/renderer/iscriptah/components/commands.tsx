@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import shallow from "zustand/shallow";
-import { iscriptHeaders } from "../../../../common/bwdat/enums";
+import { iscriptHeaders } from "common/enums";
 import { interactiveOpCodes } from "../utils/framesets";
 import useDirectionalFrame from "../utils/useDirectionalFrame";
 import { useIScriptahStore, useIscriptStore, setBaseFrame } from "../stores";
-import { useGameStore } from "../../../stores/game-store";
+import { useGameStore } from "@stores/game-store";
 
 export const Commands = () => {
   const bwDat = useGameStore((state) => state.assets?.bwDat);
@@ -122,6 +122,7 @@ export const Commands = () => {
           {cmds &&
             cmds
               .map((cmd, i: number) => [cmd, i])
+              //@ts-ignore
               .filter(([[op]]) =>
                 showOnlyPlayFrame ? interactiveOpCodes.includes(op) : true
               )
@@ -143,15 +144,18 @@ export const Commands = () => {
                       }
                     }}
                     onClick={() => {
+                      //@ts-ignore
                       if (!interactiveOpCodes.includes(cmd[0])) return;
                       if (areFrameSetsEnabled(cmd)) {
                         const [frame, flip] = getDirectionalFrame(cmd);
                         setBaseFrame(frame, flip);
                       } else {
+                        //@ts-ignore
                         setBaseFrame(cmd[1]);
                       }
                     }}
                     className={`p-2 rounded select-none flex justify-between ${
+                      //@ts-ignore
                       interactiveOpCodes.includes(cmd[0])
                         ? "cursor-pointer bg-green-100 hover:bg-gray-300"
                         : ""

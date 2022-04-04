@@ -184,7 +184,7 @@ async function TitanReactorMap(
         scene.incrementTileAnimation();
       }
       for (const sprite of sprites) {
-        sprite.update();
+        sprite.update(0, 0);
       }
       frameElapsed = 0;
     }

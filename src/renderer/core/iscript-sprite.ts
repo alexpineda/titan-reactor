@@ -9,7 +9,7 @@ import {
 } from "../../common/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "../../common/types";
 import pick from "../../common/utils/pick";
-import { ImageSD, Image3D, ImageHD2, ImageHD } from ".";
+import { ImageSD, Image3D, ImageHD2, ImageHD, Image } from ".";
 import { IScriptRunner } from "../iscript/iscript-runner";
 import { IScriptState } from "../iscript/iscript-state";
 
@@ -22,26 +22,13 @@ enum ImageOrder {
 
 type Image = ImageSD | ImageHD | ImageHD2 | Image3D;
 
-class IScriptImage {
-
-  constructor(
-    public readonly image: Image,
-    public readonly state: IScriptState,
-    public readonly parent: IScriptSprite
-  ) {
-    this.image = image;
-    this.parent = parent;
-    this.state = state;
-  }
-}
-
 /**
  * A sprite group. It is a group of images each with their own iscript execution.
  */
 export class IScriptSprite extends Group {
   private bwDat: BwDAT;
   iscriptImages: IScriptImage[] = [];
-  mainImage?: IScriptImage;
+  mainImage?: Image;
   lastZOff: number;
   unit: any | null;
   createSprite: (unit: UnitDAT | null | undefined) => IScriptSprite;
@@ -142,20 +129,20 @@ export class IScriptSprite extends Group {
   }
 
   //iscript_execute_sprite
-  update() { //delta: number, cameraDirection: number
-    // if (this.unit) {
-    //   this.position.copy(this.unit.position);
-    //   this.rotation.copy(this.unit.rotation);
-    //   this.setDirection((this.unit.direction + cameraDirection) % 32);
-    //   this.visible = this.unit.visible;
+  update(delta: number, cameraDirection: number) { //
+    if (this.unit) {
+      this.position.copy(this.unit.position);
+      this.rotation.copy(this.unit.rotation);
+      this.setDirection((this.unit.direction + cameraDirection) % 32);
+      this.visible = this.unit.visible;
 
-    //   if (
-    //     this.unit.current.anim !== this.unit.previous.anim &&
-    //     headersById[this.unit.current.anim]
-    //   ) {
-    //     this.run(this.unit.current.anim);
-    //   }
-    // }
+      if (
+        this.unit.current.anim !== this.unit.previous.anim &&
+        headersById[this.unit.current.anim]
+      ) {
+        this.run(this.unit.current.anim);
+      }
+    }
 
     let _terminated = false;
     for (const iscriptImage of this.iscriptImages) {
