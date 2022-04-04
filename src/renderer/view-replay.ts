@@ -59,7 +59,6 @@ import Janitor from "./utils/janitor";
 import { CameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
-import { useToggleStore } from "./stores/toggle-store";
 import gameStore from "./stores/game-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
@@ -1393,23 +1392,10 @@ async function TitanReactorGame(
   {
     const unsub = useSettingsStore.subscribe((state) => {
       settings = state.data;
-
+      renderer.gamma = settings.graphics.gamma;
       audioMixer.masterVolume = settings.audio.global;
       audioMixer.musicVolume = settings.audio.music;
       audioMixer.soundVolume = settings.audio.sound;
-    });
-    janitor.callback(unsub);
-  }
-
-  {
-    //TODO: move to fog of war plugin
-    const unsub = useToggleStore.subscribe((state) => {
-      for (const player of players) {
-        if (player.vision !== state.playerVision[player.id]) {
-          player.vision = state.playerVision[player.id];
-          fogOfWar.playerVisionWasToggled = true;
-        }
-      }
     });
     janitor.callback(unsub);
   }

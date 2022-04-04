@@ -11,6 +11,7 @@
   - [Communicating between native.js and index.jx](#communicating-between-nativejs-and-indexjx)
   - [useStore advanced](#usestore-advanced)
   - [titan-reactor exports reference](#titan-reactor-exports-reference)
+  - [README.md](#readmemd)
   - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
 
@@ -275,6 +276,9 @@ This method is a small optimization minimizing virtual dom diffing and re-render
 - registerComponent
 - pluginContentReady
 
+## README.md
+
+By including a README.md Titan Reactor will include a Readme tab in the config window.
 
 ## Publishing Your Plugin
 

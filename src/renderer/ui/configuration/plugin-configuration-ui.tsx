@@ -1,48 +1,53 @@
 import { InitializedPluginPackage } from "common/types";
 import { useControls } from "leva";
 import DetailSheet from "./detail-sheet";
+import groupBy from "lodash.groupby";
 
 interface PluginConfigurationProps {
-  pluginConfig: InitializedPluginPackage;
+  pluginPackage: InitializedPluginPackage;
   onChange: (pluginId: string, value: any) => void;
 }
 
 const PluginConfigurationUI = ({
-  pluginConfig,
+  pluginPackage,
   onChange,
 }: PluginConfigurationProps) => {
+  // copy the object and add onChange hooks so we can read changes and update the pluginConfig
   const mapChangeFn = (config: any) => {
-    if (!config) {
-      return null;
-    }
-
-    const obj: any = {};
-
-    for (const k in config) {
-      if (typeof config[k] === "object" && "value" in config[k]) {
-        obj[k] = { ...config[k] };
-        obj[k].onChange = (value: any) => {
+    const values = [];
+    for (const k in config || {}) {
+      if (
+        k !== "system" &&
+        typeof config[k] === "object" &&
+        "value" in config[k]
+      ) {
+        const obj = {
+          ...config[k],
+          folder: config[k].folder || "Configuration",
+          _key: k,
+        };
+        obj.onChange = (value: any) => {
           if (config[k].value !== value) {
             config[k].value = value;
-            obj[k].value = value;
-            onChange(pluginConfig.id, config);
+            obj.value = value;
+            onChange(pluginPackage.id, config);
           }
         };
+        values.push(obj);
       }
     }
-    return obj;
+    const grouped = groupBy(values, "folder");
+    return Object.keys(grouped).map((folder) => [
+      folder,
+      grouped[folder].reduce((acc, v) => ({ ...acc, [v._key]: v }), {}),
+    ]);
   };
 
-  const userConfig = mapChangeFn(pluginConfig.config) ?? {
-    "N/A": {
-      value: "This plugin has no user configuration.",
-      editable: false,
-    },
-  };
+  for (const [folder, data] of mapChangeFn(pluginPackage.config)) {
+    useControls(folder, data);
+  }
 
-  useControls(userConfig, [userConfig]);
-
-  return <DetailSheet pluginConfig={pluginConfig} />;
+  return <DetailSheet pluginConfig={pluginPackage} />;
 };
 
 export default PluginConfigurationUI;

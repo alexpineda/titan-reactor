@@ -333,7 +333,8 @@ const Configuration = () => {
                 ) && (
                   <>
                     <PluginConfigurationUI
-                      pluginConfig={selectedPluginPackage.plugin}
+                      key={selectedPluginPackage.plugin.id}
+                      pluginPackage={selectedPluginPackage.plugin}
                       onChange={onChange}
                     />
                     {updateVersion && (
@@ -477,7 +478,8 @@ const Configuration = () => {
                       </Button>
                     )}
                     <PluginConfigurationUI
-                      pluginConfig={selectedPluginPackage.plugin!}
+                      key={selectedPluginPackage.plugin.id}
+                      pluginPackage={selectedPluginPackage.plugin!}
                       onChange={onChange}
                     />
                   </>

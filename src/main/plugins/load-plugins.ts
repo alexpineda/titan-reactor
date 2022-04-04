@@ -248,9 +248,10 @@ export const savePluginsConfig = async (pluginId: string, config: any, updateMai
     const existingConfigPath = path.join(_pluginDirectory, pluginConfig.path);
 
     try {
-        const pkgJson = await PackageJson.load(existingConfigPath)
+        const pkgJson = await PackageJson.load(existingConfigPath);
+        const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-        pluginConfig.config = deepMerge(pluginConfig.config, config);
+        pluginConfig.config = deepMerge(pluginConfig.config, config, { arrayMerge: overwriteMerge });
         pkgJson.update({
             config
         })
