@@ -79,8 +79,7 @@ const createDefaultHooks = () => ({
     onRender: new Hook("onRender", ["delta", "elapsed"]),
     onTerrainGenerated: new Hook("onTerrainGenerated", ["scene", "terrain", "mapWidth", "mapHeight"]),
     onUnitCreated: new Hook("onUnitCreated", ["unit"]),
-    onUnitKilled: new Hook("onUnitKilled", ["unit"]),
-    //onGetImage, onAfterGetImage, onBulletUpdate, onImageUpdate
+    onUnitKilled: new Hook("onUnitKilled", ["unit"])
 });
 
 const defaultHookNamesArray = Object.keys(createDefaultHooks());

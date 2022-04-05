@@ -59,7 +59,7 @@ import { CameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
-import chatStore, { useChatStore } from "./stores/chat-store";
+import { useChatStore } from "./stores/chat-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
 import type { Scene } from "./render/scene";
@@ -1410,7 +1410,16 @@ async function TitanReactorGame(
   _sceneResizeHandler();
 
   gameStatePosition.resume();
-  await plugins.callHookAsync("onGameReady", { players, fogOfWar, unitsIterator, projectedCameraView });
+  {
+    const toggleFogOfWar = (playerId: number) => {
+      const player = players.find(p => p.id === playerId);
+      if (player) {
+        player.vision = !player.vision;
+        fogOfWar.playerVisionWasToggled = true;
+      }
+    }
+    await plugins.callHookAsync("onGameReady", { players, toggleFogOfWar, unitsIterator, projectedCameraView });
+  }
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
   useChatStore.subscribe(chat => console.log(chat))
