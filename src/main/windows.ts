@@ -7,6 +7,7 @@ import { format as formatUrl } from "url";
 const browserWindows = {} as {
   main: null | BrowserWindow;
   config: null | BrowserWindow;
+  iscriptah: null | BrowserWindow;
 };
 
 interface CreateWindowArgs {

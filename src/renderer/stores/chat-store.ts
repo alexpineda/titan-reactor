@@ -7,7 +7,7 @@ export const CHAT_INTERVAL = 4000;
 let _chatIndex = 0;
 
 export type ChatMessage = {
-    content: string;
+    content?: string;
     player: Player;
     id?: number;
 };
@@ -17,6 +17,7 @@ export type ChatStore = {
     lastChatAdd: number;
     addChatMessage: (message: ChatMessage) => void;
     removeOneFromChat: () => void;
+    reset: () => void;
 };
 
 let _interval: number | undefined;

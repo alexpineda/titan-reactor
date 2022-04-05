@@ -1,11 +1,9 @@
-import {
-  convertReplay,
-  parseReplay,
-  Version,
-  CommandsStream,
-  ChkDowngrader,
-  Replay,
-} from "downgrade-replay";
+import parseReplay, { Replay } from "./process-replay/parse-replay";
+import convertReplay from "./process-replay/convert-replay";
+import { Version } from "./process-replay/version";
+import CommandsStream from "./process-replay/commands/commands-stream";
+import ChkDowngrader from "./process-replay/chk/chk-downgrader";
+
 import fs from "fs";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";

@@ -1,6 +1,6 @@
 // convenience store for plugin subscriptions
 import Chk from "bw-chk";
-import { Replay } from "downgrade-replay";
+import { Replay } from "../../process-replay/parse-replay";
 import create from "zustand/vanilla";
 
 export type WorldStore = {

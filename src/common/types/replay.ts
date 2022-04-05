@@ -1,16 +1,3 @@
-import { ColorRepresentation } from "three";
-import { Race } from "./player";
-
-export type ReplayPlayer = {
-  id: number;
-  name: string;
-  race: Race;
-  color: {
-    hex: string;
-    rgb: ColorRepresentation;
-  };
-};
-
 export type baseSelection = {
   player: number;
   id: number;

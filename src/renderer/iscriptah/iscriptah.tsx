@@ -245,15 +245,15 @@ resizeHandler();
 
 renderer.setAnimationLoop(animLoop);
 
-const dispose = () => {
-  renderer.setAnimationLoop(null);
-  renderer.dispose();
-  disposeThingies();
+// const dispose = () => {
+//   renderer.setAnimationLoop(null);
+//   renderer.dispose();
+//   disposeThingies();
 
-  window.removeEventListener("resize", resizeHandler);
-  transformControls.removeEventListener("dragging-changed", dragChangedHandler);
-  transformControls.dispose();
-  controls.dispose();
-};
+//   window.removeEventListener("resize", resizeHandler);
+//   transformControls.removeEventListener("dragging-changed", dragChangedHandler);
+//   transformControls.dispose();
+//   controls.dispose();
+// };
 
 bootup();

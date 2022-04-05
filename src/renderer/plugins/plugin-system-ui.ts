@@ -3,7 +3,7 @@ import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types
 import settingsStore from "@stores/settings-store";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
-import { useGameStore, useScreenStore, useWorldStore, ScreenStore } from "@stores";
+import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore } from "@stores";
 
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED } from "./events";
 import waitForAssets from "../bootup/wait-for-assets";
@@ -39,6 +39,17 @@ const _replayPosition = {
     payload: _makeReplayPosition()
 }
 
+const worldPartial = (world: WorldStore) => {
+    return {
+        map: world.map,
+        replay: world.replay ? {
+            header: world.replay.header,
+            rawCmds: world.replay.rawCmds
+        } : undefined
+    }
+}
+
+
 
 export class PluginSystemUI {
     #_iframe: HTMLIFrameElement = document.createElement("iframe");
@@ -63,7 +74,7 @@ export class PluginSystemUI {
         const initialStore = () => ({
             [UI_PLUGIN_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
             [UI_PLUGIN_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
-            [UI_PLUGIN_EVENT_WORLD_CHANGED]: useWorldStore.getState(),
+            [UI_PLUGIN_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
             [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload
         })
 
@@ -125,7 +136,7 @@ export class PluginSystemUI {
         this.#_janitor.callback(useWorldStore.subscribe((world) => {
             this.sendMessage({
                 type: UI_PLUGIN_EVENT_WORLD_CHANGED,
-                payload: world
+                payload: worldPartial(world)
             });
         }));
 

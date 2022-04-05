@@ -4,13 +4,12 @@ import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, Perspective
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
-import type { CommandsStream, Replay } from "downgrade-replay";
 import type Chk from "bw-chk";
 
-import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
+import { BulletState, Commands, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  ReplayPlayer, UnitDAT, WeaponDAT, TerrainInfo
+  UnitDAT, WeaponDAT, TerrainInfo
 } from "common/types";
 import { buildPlayerColor } from "common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
@@ -60,11 +59,14 @@ import { CameraMode } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
+import chatStore, { useChatStore } from "./stores/chat-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
 import type { Scene } from "./render/scene";
 import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
+import { Replay } from "./process-replay/parse-replay";
+import CommandsStream from "./process-replay/commands/commands-stream";
 
 CameraControls.install({ THREE: THREE });
 
@@ -311,9 +313,9 @@ async function TitanReactorGame(
 
   const updatePlayerColors = (replay: Replay) => {
     return replay.header.players.map(
-      ({ id, color }: ReplayPlayer) =>
+      ({ id, color }) =>
         buildPlayerColor(
-          color.hex,
+          color,
           id
         )
     );
@@ -1172,6 +1174,8 @@ async function TitanReactorGame(
   const _boundaryMin = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
   const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
   const _cameraBoundaryBox = new Box3(_boundaryMin, _boundaryMax)
+  const _commandsThisFrame = [];
+
 
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
@@ -1233,39 +1237,41 @@ async function TitanReactorGame(
         unitAttackScore.strength.setScalar(0);
       }
 
-      const cmdsThisFrame = [];
 
-      {
-        let cmd = cmds.next();
-        while (cmd.done === false) {
-          if (
-            typeof cmd.value === "number" &&
-            cmd.value !== gameStatePosition.bwGameFrame
-          ) {
-            break;
-          }
-          cmdsThisFrame.push(cmd.value);
-          cmd = cmds.next();
-        }
-      }
+      // {
+      //   _commandsThisFrame.length = 0;
+      //   let cmd = cmds.next();
+      //   while (cmd.done === false) {
+      //     if (
+      //       typeof cmd.value === "number"
+      //     ) {
+      //       if (cmd.value > gameStatePosition.bwGameFrame) {
+      //         break;
+      //       } else if (cmd.value < gameStatePosition.bwGameFrame) {
+      //         cmd = cmds.next();
+      //         continue;
+      //       }
+      //     } else {
+      //       _commandsThisFrame.push(cmd.value);
+      //       if (
+      //         cmd.value.id === Commands.chat &&
+      //         typeof cmd.value.senderSlot === "number" &&
+      //         players.playersById[cmd.value.senderSlot]
+      //       ) {
+
+      //         chatStore().addChatMessage({
+      //           content: cmd.value.message,
+      //           player: players.playersById[cmd.value.senderSlot],
+      //         })
+
+      //       }
+      //       cmd = cmds.next();
+      //     }
+      //   }
+      // }
 
       // if (rep.cmds[gameStatePosition.bwGameFrame]) {
       //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
-      //     //FIXME: remove once we filter commands
-      //     if (!players.playersById[cmd.player]) continue;
-
-      //     if (
-      //       cmd.id === commands.chat &&
-      //       players.playersById[cmd.senderSlot]
-      //     ) {
-      //       unstable_batchedUpdates(() =>
-      //         addChatMessage({
-      //           content: cmd.message,
-      //           player: players.playersById[cmd.senderSlot],
-      //         })
-      //       );
-      //     }
-
       //     // if (players.playersById[cmd.player].showPov) {
       //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
       //     // } else {
@@ -1407,6 +1413,7 @@ async function TitanReactorGame(
   await plugins.callHookAsync("onGameReady", { players, fogOfWar, unitsIterator, projectedCameraView });
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
+  useChatStore.subscribe(chat => console.log(chat))
   return dispose;
 }
 

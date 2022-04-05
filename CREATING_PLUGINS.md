@@ -118,7 +118,7 @@ Note that only mouse clicks events (`onClick`) will be available for listening t
 
 - **world** : Partial<[WorldStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/stores/realtime/world-store.ts)>
   - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/bw-chk.d.ts#L21)
-  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/downgrade-replay.d.ts#L15)
+  - **replay**: [Replay]()
 
 
 - **scene** : "screenType/screenStatus"

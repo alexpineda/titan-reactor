@@ -9,7 +9,7 @@ import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs", "app");
 
-export default (onOpenPluginManager: () => void) => {
+export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) => {
 
   const template = [
     {
@@ -43,7 +43,7 @@ export default (onOpenPluginManager: () => void) => {
       label: "&View",
       submenu: [
         {
-          label: "&Settings \& Plugin Manager",
+          label: "&Manage Plugins",
           click: function () {
             onOpenPluginManager();
           },
@@ -53,7 +53,7 @@ export default (onOpenPluginManager: () => void) => {
       ],
     },
     {
-      label: "&Debug",
+      label: "&Tools",
       submenu: [
         {
           label: "Reload App",
@@ -85,39 +85,11 @@ export default (onOpenPluginManager: () => void) => {
         },
         { type: "separator" },
         {
-          label: "Change Screen", submenu: [
-            {
-              label: "@home/loading",
-              click: function () {
-              },
-            },
-            {
-              label: "@home/ready",
-              click: function () {
-              },
-            },
-            {
-              label: "@replay/loading",
-              click: function () {
-              },
-            },
-            {
-              label: "@replay/ready",
-              click: function () {
-              },
-            },
-            ,
-            {
-              label: "@map/loading",
-              click: function () {
-              },
-            },
-            {
-              label: "@map/ready",
-              click: function () {
-              }
-            }]
-        }
+          label: "&IScriptah - Animation Viewer",
+          click: function () {
+            onOpenIscriptah();
+          },
+        },
       ],
     },
     {

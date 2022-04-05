@@ -2,11 +2,11 @@ import { Unit } from ".";
 import {
   Player,
   PlayerColor,
-  ReplayPlayer,
   StartLocation,
   PlayerPOVI,
   POVSelectionI,
 } from "common/types";
+import { Replay } from "renderer/process-replay/parse-replay";
 
 class POVSelection implements POVSelectionI {
   lastIssuedCommand?: any;
@@ -34,7 +34,7 @@ export class Players extends Array<Player> {
   playersById: Record<number, Player> = {};
 
   constructor(
-    players: ReplayPlayer[],
+    players: Replay["header"]["players"],
     startLocations: StartLocation[],
     colors: PlayerColor[]
   ) {

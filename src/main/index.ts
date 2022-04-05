@@ -38,6 +38,28 @@ const createMainWindow = () => {
 
 }
 
+
+const createIscriptahWindow = () => {
+  if (windows.iscriptah) {
+    if (windows.iscriptah.isMinimized()) windows.iscriptah.restore()
+    windows.iscriptah.focus()
+    return;
+  }
+
+  windows.iscriptah = createWindow({
+    query: "?iscriptah",
+    onClose: () => {
+      windows.iscriptah = null;
+    },
+    nodeIntegration: true,
+    devTools: true,
+    backgroundThrottling: true,
+    hideMenu: true,
+    removeMenu: true
+  });
+
+}
+
 const createConfigurationWindow = () => {
   if (windows.config) {
     if (windows.config.isMinimized()) windows.config.restore()
@@ -70,9 +92,9 @@ if (!gotTheLock) {
   app.commandLine.appendSwitch("disable-xr-sandbox");
   app.commandLine.appendSwitch("strict-origin-isolation");
 
-  createAppMenu(() => {
-    createConfigurationWindow();
-  });
+  createAppMenu(() =>
+    createConfigurationWindow()
+    , () => createIscriptahWindow());
 
   if (process.defaultApp) {
     if (process.argv.length >= 2) {
