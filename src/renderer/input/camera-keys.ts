@@ -1,11 +1,14 @@
-import CameraControls from "camera-controls";
-import { Settings } from "../../common/types";
 import { Vector3 } from "three";
-import Janitor from "../utils/janitor";
-import { testKeys } from "../utils/key-utils";
+import CameraControls from "camera-controls";
+
+import { Settings } from "common/types";
+
+import Janitor from "@utils/janitor";
+import { testKeys } from "@utils/key-utils";
+import { Controls } from "@utils/camera-utils";
+
 import { smoothDollyIn, smoothDollyOut } from "./camera-presets";
 import { CameraMode } from "./camera-mode";
-import { Controls } from "../utils/camera-utils";
 
 const MAX_ACCELERATION = 2;
 const ACCELERATION = 1.01;
