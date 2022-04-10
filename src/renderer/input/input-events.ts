@@ -1,9 +1,4 @@
 export enum InputEvents {
-  TogglePlay = "TogglePlay",
-  SpeedUp = "SpeedUp",
-  SpeedDown = "SpeedDown",
-  SkipForward = "SkipForward",
-  SkipBackwards = "SkipBackwards",
   ToggleMenu = "ToggleMenu",
   ToggleReplayPosition = "ToggleReplayPosition",
   ToggleUnitSelection = "ToggleUnitSelection",

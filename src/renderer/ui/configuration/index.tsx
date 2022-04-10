@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { Container, Button, Tabs, Tab, Divider } from "muicss/react";
 import search from "libnpmsearch";
-import { Leva } from "leva";
 import { debounce } from "lodash";
-import React from "react";
 import semver from "semver";
 
 import { InitializedPluginPackage } from "common/types";
@@ -27,9 +25,9 @@ if (module.hot) {
   module.hot.accept();
 }
 
-const onChange = debounce(async (pluginId: string, config: any) => {
+const onChange = async (pluginId: string, config: any) => {
   updatePluginsConfig(pluginId, config);
-}, 100);
+};
 
 const LIMIT = 1000;
 const RESTART_REQUIRED = "Restart required for new settings to take effect";
@@ -54,37 +52,6 @@ type Plugin = {
   plugin?: InitializedPluginPackage;
   onlinePackage?: search.Result;
 };
-
-class ErrorBoundary extends React.Component {
-  override state: { error: Error | undefined } = { error: undefined };
-
-  constructor(props: any) {
-    super(props);
-  }
-
-  static getDerivedStateFromError(error: any) {
-    return { error };
-  }
-
-  override componentDidCatch(error: any, errorInfo: any) {
-    console.error(error, errorInfo);
-  }
-
-  override render() {
-    if (this.state.error) {
-      return (
-        <>
-          There was an error with this plugin:{" "}
-          {this.state.error instanceof Error
-            ? this.state.error.message
-            : "unknown"}{" "}
-        </>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 const getUpdateVersion = (remoteVersion: string, localVersion: string) => {
   try {
@@ -260,141 +227,79 @@ const Configuration = () => {
                   selectedPluginPackage.onlinePackage?.name}
               </h2>
             )}
-            <ErrorBoundary>
-              <Leva
-                fill
-                flat
-                hideCopyButton
-                titleBar={false}
-                theme={{
-                  colors: {
-                    accent1: "blue",
-                    accent2: "orange",
-                    accent3: "red",
-                    elevation1: "red",
-                    elevation2: "#f5f5f5",
-                    elevation3: "#d9e0f0",
-                    highlight1: "black",
-                    highlight2: "#222",
-                    highlight3: "#333",
-                    vivid1: "red",
-                  },
-                  sizes: {
-                    controlWidth: "40vw",
-                  },
-                  fontSizes: {
-                    root: "14px",
-                  },
-                }}
-              />
-              {selectedPluginPackage.onlinePackage && (
-                <>
-                  <DetailSheet
-                    pluginConfig={selectedPluginPackage.onlinePackage}
-                  />
-                  <Button
-                    color="primary"
-                    onClick={async () => {
-                      if (
-                        confirm(
-                          "This will download the plugin into your plugins folder. Continue?"
-                        )
-                      ) {
-                        const plugin = await installPluginLocal(
-                          selectedPluginPackage.onlinePackage!.name
+
+            {selectedPluginPackage.onlinePackage && (
+              <>
+                <DetailSheet
+                  pluginConfig={selectedPluginPackage.onlinePackage}
+                  controls={[]}
+                />
+                <Button
+                  color="primary"
+                  onClick={async () => {
+                    if (
+                      confirm(
+                        "This will download the plugin into your plugins folder. Continue?"
+                      )
+                    ) {
+                      const plugin = await installPluginLocal(
+                        selectedPluginPackage.onlinePackage!.name
+                      );
+                      if (plugin) {
+                        useSettingsStore.setState({
+                          disabledPlugins: [
+                            ...settingsStore.disabledPlugins,
+                            plugin,
+                          ],
+                        });
+                        setSelectedPluginPackage({ plugin });
+                        setBanner(`${plugin.name} installed!`);
+                        setTabIndex(0);
+                      } else {
+                        setBanner(
+                          `Failed to install ${
+                            selectedPluginPackage.onlinePackage!.name
+                          }`
                         );
-                        if (plugin) {
-                          useSettingsStore.setState({
-                            disabledPlugins: [
-                              ...settingsStore.disabledPlugins,
-                              plugin,
-                            ],
-                          });
-                          setSelectedPluginPackage({ plugin });
-                          setBanner(`${plugin.name} installed!`);
-                          setTabIndex(0);
-                        } else {
-                          setBanner(
-                            `Failed to install ${
-                              selectedPluginPackage.onlinePackage!.name
-                            }`
-                          );
-                        }
                       }
-                    }}
-                  >
-                    Install Plugin
-                  </Button>
-                </>
-              )}
-              {selectedPluginPackage.plugin &&
-                settingsStore.enabledPlugins.includes(
-                  selectedPluginPackage.plugin
-                ) && (
-                  <>
-                    <PluginConfigurationUI
-                      key={selectedPluginPackage.plugin.id}
-                      pluginPackage={selectedPluginPackage.plugin}
-                      onChange={onChange}
-                    />
-                    {updateVersion && (
-                      <Button
-                        color="primary"
-                        onClick={async () => {
-                          if (
-                            confirm(
-                              "This will update the plugin in your plugins folder. Continue?"
-                            )
-                          ) {
-                            const plugin = await installPluginLocal(
-                              selectedPluginPackage.plugin!.name
-                            );
-                            if (plugin) {
-                              console.log(
-                                `Succesfully updated ${
-                                  selectedPluginPackage.plugin!.name
-                                }`
-                              );
-                            } else {
-                              setBanner(
-                                `Failed to update ${
-                                  selectedPluginPackage.plugin!.name
-                                }`
-                              );
-                            }
-                          }
-                        }}
-                      >
-                        Update to {updateVersion}
-                      </Button>
-                    )}
+                    }
+                  }}
+                >
+                  Install Plugin
+                </Button>
+              </>
+            )}
+            {selectedPluginPackage.plugin &&
+              settingsStore.enabledPlugins.includes(
+                selectedPluginPackage.plugin
+              ) && (
+                <>
+                  <PluginConfigurationUI
+                    key={selectedPluginPackage.plugin.id}
+                    pluginPackage={selectedPluginPackage.plugin}
+                    onChange={onChange}
+                  />
+                  {updateVersion && (
                     <Button
+                      color="primary"
                       onClick={async () => {
                         if (
                           confirm(
-                            "Are you sure you want to disable this plugin?"
+                            "This will update the plugin in your plugins folder. Continue?"
                           )
                         ) {
-                          if (
-                            await disablePlugin(
-                              selectedPluginPackage.plugin!.id
-                            )
-                          ) {
-                            setBanner(RESTART_REQUIRED);
-                            useSettingsStore.setState({
-                              disabledPlugins: [
-                                ...settingsStore.disabledPlugins,
-                                selectedPluginPackage.plugin!,
-                              ],
-                              enabledPlugins:
-                                settingsStore.enabledPlugins.filter(
-                                  (p) =>
-                                    p.id !== selectedPluginPackage.plugin!.id
-                                ),
-                            });
+                          const plugin = await installPluginLocal(
+                            selectedPluginPackage.plugin!.name
+                          );
+                          if (plugin) {
+                            console.log(
+                              `Succesfully updated ${
+                                selectedPluginPackage.plugin!.name
+                              }`
+                            );
                           } else {
                             setBanner(
-                              `Failed to disable ${
+                              `Failed to update ${
                                 selectedPluginPackage.plugin!.name
                               }`
                             );
@@ -402,89 +307,114 @@ const Configuration = () => {
                         }
                       }}
                     >
-                      Disable Plugin
+                      Update to {updateVersion}
                     </Button>
-                  </>
-                )}
-              {selectedPluginPackage.plugin &&
-                settingsStore.disabledPlugins.includes(
-                  selectedPluginPackage.plugin
-                ) && (
-                  <>
+                  )}
+                  <Button
+                    onClick={async () => {
+                      if (
+                        confirm("Are you sure you want to disable this plugin?")
+                      ) {
+                        if (
+                          await disablePlugin(selectedPluginPackage.plugin!.id)
+                        ) {
+                          setBanner(RESTART_REQUIRED);
+                          useSettingsStore.setState({
+                            disabledPlugins: [
+                              ...settingsStore.disabledPlugins,
+                              selectedPluginPackage.plugin!,
+                            ],
+                            enabledPlugins: settingsStore.enabledPlugins.filter(
+                              (p) => p.id !== selectedPluginPackage.plugin!.id
+                            ),
+                          });
+                        } else {
+                          setBanner(
+                            `Failed to disable ${
+                              selectedPluginPackage.plugin!.name
+                            }`
+                          );
+                        }
+                      }
+                    }}
+                  >
+                    Disable Plugin
+                  </Button>
+                </>
+              )}
+            {selectedPluginPackage.plugin &&
+              settingsStore.disabledPlugins.includes(
+                selectedPluginPackage.plugin
+              ) && (
+                <>
+                  <Button
+                    color="primary"
+                    onClick={async () => {
+                      if (
+                        confirm(
+                          "Make sure you trust the authors of this plugin before enabling it. Do you wish to continue and enable this plugin?"
+                        )
+                      ) {
+                        if (
+                          await enablePlugins([
+                            selectedPluginPackage.plugin!.id,
+                          ])
+                        ) {
+                          useSettingsStore.setState({
+                            enabledPlugins: [
+                              ...settingsStore.enabledPlugins,
+                              selectedPluginPackage.plugin!,
+                            ],
+                            disabledPlugins:
+                              settingsStore.disabledPlugins.filter(
+                                (p) => p.id !== selectedPluginPackage.plugin!.id
+                              ),
+                          });
+                        } else {
+                          setBanner("Failed to enable plugin");
+                        }
+                      }
+                    }}
+                  >
+                    Enable Plugin
+                  </Button>
+                  {canDelete && (
                     <Button
-                      color="primary"
+                      color="danger"
                       onClick={async () => {
                         if (
                           confirm(
-                            "Make sure you trust the authors of this plugin before enabling it. Do you wish to continue and enable this plugin?"
+                            "Are you sure you wish to place this plugin in the trashbin?"
                           )
                         ) {
                           if (
-                            await enablePlugins([
-                              selectedPluginPackage.plugin!.id,
-                            ])
+                            await deletePlugin(selectedPluginPackage.plugin!.id)
                           ) {
+                            setBanner("Plugin files were placed in trash bin");
                             useSettingsStore.setState({
-                              enabledPlugins: [
-                                ...settingsStore.enabledPlugins,
-                                selectedPluginPackage.plugin!,
-                              ],
                               disabledPlugins:
                                 settingsStore.disabledPlugins.filter(
                                   (p) =>
                                     p.id !== selectedPluginPackage.plugin!.id
                                 ),
                             });
+                            setSelectedPluginPackage({ plugin: undefined });
                           } else {
-                            setBanner("Failed to enable plugin");
+                            setBanner("Failed to delete plugin");
                           }
                         }
                       }}
                     >
-                      Enable Plugin
+                      Delete Plugin
                     </Button>
-                    {canDelete && (
-                      <Button
-                        color="danger"
-                        onClick={async () => {
-                          if (
-                            confirm(
-                              "Are you sure you wish to place this plugin in the trashbin?"
-                            )
-                          ) {
-                            if (
-                              await deletePlugin(
-                                selectedPluginPackage.plugin!.id
-                              )
-                            ) {
-                              setBanner(
-                                "Plugin files were placed in trash bin"
-                              );
-                              useSettingsStore.setState({
-                                disabledPlugins:
-                                  settingsStore.disabledPlugins.filter(
-                                    (p) =>
-                                      p.id !== selectedPluginPackage.plugin!.id
-                                  ),
-                              });
-                              setSelectedPluginPackage({ plugin: undefined });
-                            } else {
-                              setBanner("Failed to delete plugin");
-                            }
-                          }
-                        }}
-                      >
-                        Delete Plugin
-                      </Button>
-                    )}
-                    <PluginConfigurationUI
-                      key={selectedPluginPackage.plugin.id}
-                      pluginPackage={selectedPluginPackage.plugin!}
-                      onChange={onChange}
-                    />
-                  </>
-                )}
-            </ErrorBoundary>
+                  )}
+                  <PluginConfigurationUI
+                    key={selectedPluginPackage.plugin.id}
+                    pluginPackage={selectedPluginPackage.plugin!}
+                    onChange={onChange}
+                  />
+                </>
+              )}
           </main>
         </div>
       </div>

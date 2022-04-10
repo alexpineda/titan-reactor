@@ -6,7 +6,7 @@ import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
 
-import { BulletState, Commands, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo
@@ -28,9 +28,8 @@ import {
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
-  InputEvents,
   MinimapMouse,
-  ReplayKeys
+  PluginKeyShortcuts,
 } from "./input";
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
@@ -67,6 +66,7 @@ import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
+import { HOOK_ON_BEFORE_RENDER, HOOK_ON_GAME_READY, HOOK_ON_RENDER, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
 
 CameraControls.install({ THREE: THREE });
 
@@ -115,9 +115,6 @@ async function TitanReactorGame(
   }
 
   const { mapWidth, mapHeight } = terrain;
-
-  const keyboardManager = new ReplayKeys(window.document.body);
-  janitor.disposable(keyboardManager);
 
   const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -343,12 +340,6 @@ async function TitanReactorGame(
     gameSpeeds.fastest
   );
 
-  // todo change this to store
-  const togglePlayHandler = () => {
-    gameStatePosition.togglePlay();
-  };
-  keyboardManager.on(InputEvents.TogglePlay, togglePlayHandler);
-
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
@@ -370,21 +361,21 @@ async function TitanReactorGame(
     _wasReset = true;
   }
 
-  const skipHandler = (dir: number) => () => {
+  const skipHandler = (dir: number, amount = 200) => {
     if (reset) return;
     const currentFrame = openBw.call!.getCurrentFrame!();
-    openBw.call!.setCurrentFrame!(currentFrame + 100 * dir);
+    openBw.call!.setCurrentFrame!(currentFrame + amount * dir);
     reset = refreshScene;
   }
-  keyboardManager.on(InputEvents.SkipForward, skipHandler(1));
-  keyboardManager.on(InputEvents.SkipBackwards, skipHandler(-1));
+  const skipForward = () => skipHandler(1);
+  const skipBackward = () => skipHandler(-1);
 
-  const speedHandler = (scale: number) => () => {
+  const speedHandler = (scale: number) => {
     const currentSpeed = openBw.call!.getGameSpeed!();
     openBw.call!.setGameSpeed!(Math.min(16, currentSpeed * scale));
   }
-  keyboardManager.on(InputEvents.SpeedUp, speedHandler(2));
-  keyboardManager.on(InputEvents.SpeedDown, speedHandler(1 / 2));
+  const speedUp = () => speedHandler(2);
+  const speedDown = () => speedHandler(0.5);
 
   // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
@@ -553,7 +544,7 @@ async function TitanReactorGame(
       });
       unitData.copyTo(unit)
       units.set(unitData.id, unit as unknown as Unit);
-      plugins.callHook("onUnitCreated", unit);
+      plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
       return unit as unknown as Unit;
     }
   }
@@ -599,7 +590,7 @@ async function TitanReactorGame(
       units.delete(unitId);
       freeUnits.push(unit);
 
-      plugins.callHook("onUnitKilled", unit);
+      plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
     }
 
     const playersUnitAddr = openBw.call!.getUnitsAddr!();
@@ -1160,7 +1151,7 @@ async function TitanReactorGame(
   let delta = 0;
 
   projectedCameraView.update();
-  const cmds = commandsStream.generate();
+  // const cmds = commandsStream.generate();
 
   const _stepperListener = (evt: KeyboardEvent) => {
     if (evt.key === "n" && gameStatePosition.mode === GameStatePlayMode.SingleStep) {
@@ -1304,12 +1295,7 @@ async function TitanReactorGame(
       //   }
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-
-      {
-        const playerDataAddr = openBw.wasm!._get_buffer(8);
-        const productionDataAddr = openBw.wasm!._get_buffer(9);
-        plugins.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
-      }
+      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9));
       currentBwFrame = null;
     }
 
@@ -1367,7 +1353,8 @@ async function TitanReactorGame(
     gameStatePosition.update(delta);
     drawMinimap(projectedCameraView);
 
-    plugins.callHook("onBeforeRender", delta, elapsed);
+    //FIXME: optimize with a dedicated method
+    plugins.callHook(HOOK_ON_BEFORE_RENDER, delta, elapsed);
     controls.cameraShake.update(elapsed, camera);
     fogOfWar.update(players.getVisionFlag(), camera);
     renderer.render(scene, camera, delta);
@@ -1381,7 +1368,7 @@ async function TitanReactorGame(
         setUseScale(true);
       }
     }
-    plugins.callHook("onRender", delta, elapsed);
+    plugins.callHook(HOOK_ON_RENDER, delta, elapsed);
 
     controls.cameraShake.restore(camera);
   };
@@ -1411,14 +1398,41 @@ async function TitanReactorGame(
 
   gameStatePosition.resume();
   {
-    const toggleFogOfWar = (playerId: number) => {
+    const toggleFogOfWarByPlayerId = (playerId: number) => {
       const player = players.find(p => p.id === playerId);
       if (player) {
         player.vision = !player.vision;
         fogOfWar.playerVisionWasToggled = true;
       }
     }
-    await plugins.callHookAsync("onGameReady", { players, toggleFogOfWar, unitsIterator, projectedCameraView });
+
+    const shortcuts = new PluginKeyShortcuts(window.document.body)
+    janitor.disposable(shortcuts);
+
+    const api = {
+      isInGame: true,
+      getPlayers: () => Object.freeze(players),
+      toggleFogOfWarByPlayerId,
+      unitsIterator,
+      projectedCameraView,
+      skipForward,
+      skipBackward,
+      speedUp,
+      speedDown,
+      togglePause: () => gameStatePosition.togglePause()
+    };
+
+    const callableApi = {
+      registerHotkey: (...args: Parameters<PluginKeyShortcuts["addListener"]>) => {
+        shortcuts.addListener(...args)
+      },
+      clearHotkeys: (...args: Parameters<PluginKeyShortcuts["clearListeners"]>) => shortcuts.clearListeners(...args)
+    }
+
+    janitor.callback(plugins.inject(api));
+    janitor.callback(plugins.injectCallableWithPluginId(callableApi));
+    // getSpeed, getCurrentFrame, gotoFrame
+    await plugins.callHookAsync(HOOK_ON_GAME_READY);
   }
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 

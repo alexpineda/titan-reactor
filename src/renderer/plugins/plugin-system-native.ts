@@ -5,6 +5,17 @@ import * as stores from "@stores"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
+import { HOOK_ON_BEFORE_RENDER, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_RENDER, HOOK_ON_TERRAIN_GENERATED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
+
+type NativePlugin = {
+    id: string;
+    name: string;
+    isEnabled: boolean;
+    onConfigChanged: (newConfig: {}, oldConfig: {}) => void;
+    onDisabled: () => void;
+    onUIMessage: (message: any) => void;
+    config: {};
+}
 
 type HookOptions = {
     postFn?: Function;
@@ -12,16 +23,10 @@ type HookOptions = {
     hookAuthorPluginId?: string
 }
 
-type HookListener = {
-    pluginId: string;
-    pluginName: string;
-    fn: Function;
-}
 // plugins may register their own custom hooks
 class Hook {
     readonly args: string[];
     readonly name: string;
-    protected listeners: HookListener[] = [];
     protected opts: HookOptions;
 
     constructor(name: string, args: string[], opts: HookOptions = {}) {
@@ -34,58 +39,26 @@ class Hook {
         return this.opts.async;
     }
 
-    hasListeners() {
-        return this.listeners.length > 0;
-    }
-
-    addListener(listener: HookListener) {
-        this.listeners.push(listener);
-    }
-
-    removeListener(fn: Function) {
-        this.listeners = this.listeners.filter(listener => listener.fn !== fn);
-    }
-
-    call(...args: any[]) {
-        for (const listener of this.listeners) {
-            if (this.opts.hookAuthorPluginId === undefined || listener.pluginId !== this.opts.hookAuthorPluginId) {
-                try {
-                    listener.fn(...args);
-                } catch (e) {
-                    log.error(withErrorMessage(`Error with hook ${this.name}`, e));
-                }
-            }
-        }
-    }
-
-    async callAsync(...args: any[]) {
-        for (const listener of this.listeners) {
-            if (this.opts.hookAuthorPluginId === undefined || listener.pluginId !== this.opts.hookAuthorPluginId) {
-                try {
-                    await listener.fn(...args);
-                } catch (e) {
-                    log.error(withErrorMessage(`Error with hook ${this.name}`, e));
-                }
-            }
-        }
+    isAuthor(plugin: NativePlugin) {
+        return this.opts.hookAuthorPluginId === plugin.id;
     }
 
 }
 
 const createDefaultHooks = () => ({
-    onGameDisposed: new Hook("onGameDisposed", []),
-    onGameReady: new Hook("onGameReady", [], { async: true }),
-    onBeforeRender: new Hook("onBeforeRender", ["delta", "elapsed"]),
-    onRender: new Hook("onRender", ["delta", "elapsed"]),
-    onTerrainGenerated: new Hook("onTerrainGenerated", ["scene", "terrain", "mapWidth", "mapHeight"]),
-    onUnitCreated: new Hook("onUnitCreated", ["unit"]),
-    onUnitKilled: new Hook("onUnitKilled", ["unit"])
+    onGameDisposed: new Hook(HOOK_ON_GAME_DISPOSED, []),
+    onGameReady: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
+    onBeforeRender: new Hook(HOOK_ON_BEFORE_RENDER, ["delta", "elapsed"]),
+    onRender: new Hook(HOOK_ON_RENDER, ["delta", "elapsed"]),
+    onTerrainGenerated: new Hook(HOOK_ON_TERRAIN_GENERATED, ["scene", "terrain", "mapWidth", "mapHeight"]),
+    onUnitCreated: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
+    onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"])
 });
 
-const defaultHookNamesArray = Object.keys(createDefaultHooks());
+const pluginProto = {};
 
 export class PluginSystemNative {
-    #plugins: any[] = [];
+    #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
 
     readonly hooks: Record<string, Hook> = createDefaultHooks();
@@ -96,15 +69,30 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const plugin = Function(pluginPackage.nativeSource!)();
-            pluginPackage.nativeSource = undefined;
+            const pluginRaw = Function(pluginPackage.nativeSource!)();
+            delete pluginPackage.nativeSource;
 
-            const sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
+            const pluginPropertyConfig: Record<string, {}> = {};
+            for (const key in pluginRaw) {
+                if (pluginRaw.hasOwnProperty(key)) {
+                    pluginPropertyConfig[key as keyof typeof pluginPropertyConfig] = {
+                        configurable: true,
+                        enumerable: true,
+                        writable: true,
+                        value: pluginRaw[key]
+                    }
+                }
+            }
+            const plugin = Object.create(pluginProto, pluginPropertyConfig);
 
             plugin.id = pluginPackage.id;
             plugin.name = pluginPackage.name;
+            plugin.config = pluginPackage.config;
+            plugin.sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
+            plugin.isEnabled = true;
 
-            plugin.onInitialized && plugin.onInitialized(pluginPackage.config, { THREE, stores, sendUIMessage });
+            plugin.onInitialized && plugin.onInitialized({ THREE, stores });
+            log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
 
 
             return plugin;
@@ -116,14 +104,13 @@ export class PluginSystemNative {
     };
 
     constructor(pluginPackages: InitializedPluginPackage[], uiPlugins: PluginSystemUI) {
-        this.#plugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
+        this.#nativePlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
-        this.#plugins.forEach(plugin => this.#registerDefaultHooks(plugin));
         this.#uiPlugins = uiPlugins;
     }
 
     sendCustomUIMessage(pluginId: string, message: any) {
-        const plugin = this.#plugins.find(p => p.id === pluginId);
+        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
                 this.#uiPlugins.sendMessage({
@@ -140,7 +127,7 @@ export class PluginSystemNative {
     }
 
     onUIMessage(pluginId: string, message: any) {
-        const plugin = this.#plugins.find(p => p.id === pluginId);
+        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
                 plugin.onUIMessage && plugin.onUIMessage(message);
@@ -150,48 +137,28 @@ export class PluginSystemNative {
         }
     }
 
-    #registerDefaultHooks(plugin: any) {
-        for (const hookName of defaultHookNamesArray) {
-            if (typeof plugin[hookName] === "function") {
-                this.hooks[hookName].addListener({
-                    pluginId: plugin.id,
-                    pluginName: plugin.name,
-                    fn: plugin[hookName]
-                });
-            }
-        }
-    }
-
-    #unregisterAllHooks(plugin: any) {
-        for (const hookName of Object.keys(this.hooks)) {
-            if (typeof plugin[hookName] === "function") {
-                this.hooks[hookName].removeListener(
-                    plugin[hookName]
-                );
-            }
-        }
-    }
-
     // master hook
     onDisable(pluginId: string) {
-        const plugin = this.#plugins.find(p => p.id === pluginId);
+        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
-                plugin.onDisable && plugin.onDisable();
-                this.#unregisterAllHooks(plugin);
+                plugin.isEnabled = false;
+                plugin.onDisabled && plugin.onDisabled();
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
             }
-            this.#plugins = this.#plugins.filter(p => p !== plugin);
+            this.#nativePlugins = this.#nativePlugins.filter(p => p !== plugin);
         }
     }
 
     // master hook
     onConfigChanged(pluginId: string, config: any) {
-        const plugin = this.#plugins.find(p => p.id === pluginId);
+        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
-                plugin.onConfigChanged && plugin.onConfigChanged(config);
+                const oldConfig = { ...plugin.config };
+                plugin.config = config;
+                plugin.onConfigChanged && plugin.onConfigChanged(config, oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
             }
@@ -201,7 +168,39 @@ export class PluginSystemNative {
     enableAdditionalPlugins(pluginPackages: InitializedPluginPackage[]) {
         const additionalPlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
-        this.#plugins = [...this.#plugins, ...additionalPlugins];
+        this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins];
+    }
+
+    //FIXME: inject into prototype of plugins
+    inject(object: {}) {
+        // this.#nativePlugins.forEach(plugin => {
+        Object.assign(pluginProto, object);
+        // })
+
+        return () => {
+            // this.#nativePlugins.forEach(plugin => {
+            Object.keys(object).forEach(key => {
+                delete pluginProto[key as keyof typeof pluginProto];
+            })
+            // })
+        }
+    }
+
+    injectCallableWithPluginId(object: { [key: string]: (...args: any[]) => any }) {
+        this.#nativePlugins.forEach(plugin => {
+            Object.keys(object).forEach(key => {
+                // @ts-ignore
+                plugin[key] = object[key].bind(plugin, plugin.id);
+            })
+        });
+
+        return () => {
+            this.#nativePlugins.forEach(plugin => {
+                Object.keys(object).forEach(key => {
+                    delete plugin[key as keyof typeof plugin];
+                })
+            })
+        }
     }
 
     callHook(hookName: string, ...args: any[]) {
@@ -210,17 +209,13 @@ export class PluginSystemNative {
             return;
         }
 
-        if (this.hooks[hookName].isAsync()) {
-            log.error(`@plugin-system-native: hook "${hookName}" is async but being called synchronously`);
-            return;
+        //TODO: setup hook listeners before hand
+        for (const plugin of this.#nativePlugins) {
+            if (!this.hooks[hookName].isAuthor(plugin) && plugin[hookName as keyof typeof plugin] !== undefined) {
+                //@ts-ignore
+                plugin[hookName].apply(plugin, args);
+            }
         }
-
-        if (this.hooks[hookName].args.length !== args.length) {
-            log.warning(`@plugin-system-native: hook "${hookName}" expects ${this.hooks[hookName].args.length} arguments, but got ${args.length}`);
-        }
-
-        return this.hooks[hookName].call(...args);
-
     }
 
     async callHookAsync(hookName: string, ...args: any[]) {
@@ -229,16 +224,12 @@ export class PluginSystemNative {
             return;
         }
 
-        if (!this.hooks[hookName].isAsync()) {
-            log.error(`@plugin-system-native: hook "${hookName}" is not async but being called asynchronously`);
-            return;
+        for (const plugin of this.#nativePlugins) {
+            if (!this.hooks[hookName].isAuthor(plugin) && plugin[hookName as keyof typeof plugin] !== undefined) {
+                //@ts-ignore
+                await plugin[hookName].apply(plugin, args);
+            }
         }
-
-        if (this.hooks[hookName].args.length !== args.length) {
-            log.warning(`@plugin-system-native: hook "${hookName}" expects ${this.hooks[hookName].args.length} arguments, but got ${args.length}`);
-        }
-
-        return await this.hooks[hookName].callAsync(...args);
 
     }
 }

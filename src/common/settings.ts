@@ -32,13 +32,6 @@ export const defaultSettings: Settings = {
       battle: "F5",
       overview: "F7",
     },
-    replay: {
-      pause: "KeyP",
-      speedUp: "KeyU",
-      speedDown: "KeyD",
-      skipForward: "BracketRight",
-      skipBackward: "BracketLeft",
-    },
     camera: {
       truckLeft: "ArrowLeft",
       truckRight: "ArrowRight",

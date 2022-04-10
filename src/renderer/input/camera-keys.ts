@@ -29,7 +29,7 @@ export class CameraKeys {
         this._el = el;
         this._janitor = new Janitor();
 
-        const kd = (e: KeyboardEvent) => {
+        const keyDown = (e: KeyboardEvent) => {
             if (!this._keyOnce) {
                 this._keyOnce = true;
             }
@@ -52,8 +52,8 @@ export class CameraKeys {
 
         }
 
-        this._el.addEventListener("keydown", kd);
-        this._janitor.callback(() => this._el.removeEventListener("keydown", kd));
+        this._el.addEventListener("keydown", keyDown);
+        this._janitor.callback(() => this._el.removeEventListener("keydown", keyDown));
 
         const keyUp = (e: KeyboardEvent) => {
             this._keyOnce = false;

@@ -186,23 +186,25 @@ return {
     // onInitialized will be called on load if your plugin is already enabled
     // it will also be called anytime the user enables your plugin
     // onInitialized is REQUIRED
-    onInitialized(config, deps) {
-
+    onInitialized(deps) {
+      // config property will be on the object
+      console.log(this.config);
     },
 
     // Titan Reactor provides a UI for users to change config of your plugin
     // this hook fires anytime a user has changed a config field
-    onConfigChanged(config) {
-
+    onConfigChanged(newConfig, oldConfig) {
+      this.config === newConfig; // true;
     },
 
     // if the user disables your plugin, clean up!
-    onDisable() {
+    onDisabled() {
 
     },
 
     // onGameReady fires when everything is loaded but before the first frame is run
-    onGameReady() {
+    // the apis provided allow you to iterate players and units, modify replay position and speed and other things
+    async onGameReady() {
       
     },
 
@@ -237,16 +239,11 @@ const MyComponent = ({ config, useMessage, sendMessage }) => {
 
 In your `native.js`:
 ```js
-let _sendUIMessage;
+
 
 return {
-  onInitialized(config, { sendUIMessage }) {
-    // assign it for later use
-    _sendUIMessage = sendUIMessage;
-  },
-
-  onGameStart() {
-    _sendUIMessage({ foo : "bar!" });
+  onGameReady() {
+    this.sendUIMessage({ foo : "bar!" });
   }
 
   // you may respond to ui sent messages here

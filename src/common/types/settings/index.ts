@@ -32,13 +32,6 @@ export type Settings = {
             battle?: string;
             overview?: string;
         },
-        replay: {
-            pause?: string;
-            speedUp?: string;
-            speedDown?: string;
-            skipForward?: string;
-            skipBackward?: string;
-        },
         camera: {
             truckLeft?: string,
             truckRight?: string,

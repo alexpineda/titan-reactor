@@ -36,7 +36,7 @@ export class GameStatePosition {
     this.lastDelta = 0;
   }
 
-  togglePlay() {
+  togglePause() {
     if (this.paused) {
       this.resume();
     } else {

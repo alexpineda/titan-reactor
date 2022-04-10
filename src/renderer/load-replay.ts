@@ -35,11 +35,11 @@ import {
 } from "common/utils/casclib";
 
 export default async (filepath: string) => {
+  gameStore().disposeGame();
+
   log.info(`@load-replay/file: ${filepath}`);
 
   processStore().start(Process.ReplayInitialization);
-
-  gameStore().disposeGame();
 
   const janitor = new Janitor();
   const settings = settingsStore().data;

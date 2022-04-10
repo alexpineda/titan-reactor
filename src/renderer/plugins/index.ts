@@ -80,6 +80,14 @@ export const callHookAsync = async (...args: Parameters<PluginSystemNative["call
     await nativePluginSystem.callHookAsync(...args);
 }
 
+export const inject = (...args: Parameters<PluginSystemNative["inject"]>) => {
+    return nativePluginSystem.inject(...args);
+}
+
+export const injectCallableWithPluginId = (...args: Parameters<PluginSystemNative["injectCallableWithPluginId"]>) => {
+    return nativePluginSystem.injectCallableWithPluginId(...args);
+}
+
 export const installPluginLocal = async (repository: string) => {
     const pluginPackage = await installPlugin(repository);
     if (pluginPackage) {
