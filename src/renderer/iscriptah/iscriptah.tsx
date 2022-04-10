@@ -117,10 +117,10 @@ transformControls.setSpace("local");
 scene.add(transformControls);
 const thingies: IScriptSprite[] = [];
 
-const disposeThingies = () => {
-  thingies.forEach(removeTitanSprite);
-  thingies.length = 0;
-};
+// const disposeThingies = () => {
+//   thingies.forEach(removeTitanSprite);
+//   thingies.length = 0;
+// };
 
 const clock = new Clock(true);
 

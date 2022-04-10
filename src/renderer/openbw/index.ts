@@ -50,6 +50,8 @@ const openBw: OpenBWAPI = {
       getGameSpeed: () => _wasm._replay_get_value(0),
       setCurrentFrame: (frame: number) => _wasm._replay_set_value(3, frame),
       getCurrentFrame: () => _wasm._replay_get_value(3),
+      isPaused: () => _wasm._replay_get_value(1) === 1,
+      setPaused: (paused: boolean) => _wasm._replay_set_value(1, paused ? 1 : 0),
       loadReplay: (buffer: Buffer) => {
         tryCatch(() => {
           const buf = _wasm.allocate(buffer, _wasm.ALLOC_NORMAL);

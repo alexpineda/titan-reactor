@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from "react";
 import shallow from "zustand/shallow";
 import UnitsAndImages from "./units-and-images";

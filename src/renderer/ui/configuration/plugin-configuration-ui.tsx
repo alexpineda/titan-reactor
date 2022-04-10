@@ -4,7 +4,6 @@ import groupBy from "lodash.groupby";
 import keyboardShortcut from "../leva-plugins/keyboard-shortcut";
 import ErrorBoundary from "./error-boundary";
 import { Leva } from "leva";
-import { AnyColor } from "colord";
 
 interface PluginConfigurationProps {
   pluginPackage: InitializedPluginPackage;

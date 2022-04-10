@@ -42,11 +42,6 @@ export type Settings = {
             helicopterRotateSpeed: number,
         }
     },
-    battleCam: {
-        shakeMultiplier: number;
-        fogofwar: false;
-        scanlines: true;
-    },
     plugins: {
         serverPort: number;
         developmentDirectory?: string;

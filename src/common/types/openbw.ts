@@ -1,4 +1,4 @@
-import { UnitStruct, ImageStruct, SoundStruct } from "./structs";
+import { SoundStruct } from "./structs";
 
 export interface OpenBWWasm {
     _reset: () => void;
@@ -10,8 +10,6 @@ export interface OpenBWWasm {
     _replay_set_value: (index: number, value: number) => void;
     _get_fow_ptr: (visiblity: number, instant: boolean) => number;
     get_util_funcs: () => ({
-        get_units_debug: () => UnitStruct[],
-        get_sprites_debug: () => ImageStruct[],
         get_sounds: () => SoundStruct[],
     })
 
@@ -50,6 +48,8 @@ export interface OpenBWAPI {
         getGameSpeed?: () => number;
         setCurrentFrame?: (speed: number) => void;
         getCurrentFrame?: () => number;
+        isPaused?: () => boolean;
+        setPaused?: (paused: boolean) => void;
 
         nextFrame?: () => number;
         tryCatch?: (callback: () => void) => void;

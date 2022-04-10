@@ -20,53 +20,53 @@ const pos = new Vector3();
 const _target = new Vector3();
 
 export class MinimapMouse {
-  mapWidth: number;
-  mapHeight: number;
-  surface: CanvasTarget;
+  #mapWidth: number;
+  #mapHeight: number;
+  #surface: CanvasTarget;
 
-  _isDragStart = false;
-  _isDragging = false;
-  _isPreviewing = false;
-  _isPreviewStart = false;
-  _mouseDown = false;
+  #isDragStart = false;
+  #isDragging = false;
+  #isPreviewing = false;
+  #isPreviewStart = false;
+  #mouseDown = false;
 
-  private _enabled = false;
-  private janitor = new Janitor();
+  #enabled = false;
+  #janitor = new Janitor();
 
   set enabled(val: boolean) {
-    this._enabled = val;
+    this.#enabled = val;
     if (val === false) {
-      this._isPreviewing = false;
-      this._isDragging = false;
+      this.#isPreviewing = false;
+      this.#isDragging = false;
     }
   }
 
   get enabled() {
-    return this._enabled;
+    return this.#enabled;
   }
 
   constructor(surface: CanvasTarget, mapWidth: number, mapHeight: number) {
-    this.surface = surface;
-    this.mapWidth = mapWidth;
-    this.mapHeight = mapHeight;
+    this.#surface = surface;
+    this.#mapWidth = mapWidth;
+    this.#mapHeight = mapHeight;
 
-    const max = Math.max(this.mapWidth, this.mapHeight);
-    const wAspect = this.mapWidth / max;
-    const hAspect = this.mapHeight / max;
+    const max = Math.max(this.#mapWidth, this.#mapHeight);
+    const wAspect = this.#mapWidth / max;
+    const hAspect = this.#mapHeight / max;
 
     const getX = (mouseX: number) =>
       MathUtils.clamp(
-        (mouseX - this.surface.width / 2) / this.surface.width / wAspect,
+        (mouseX - this.#surface.width / 2) / this.#surface.width / wAspect,
         -0.5,
         0.5
-      ) * this.mapWidth;
+      ) * this.#mapWidth;
 
     const getY = (mouseY: number) =>
       MathUtils.clamp(
-        (mouseY - this.surface.height / 2) / this.surface.height / hAspect,
+        (mouseY - this.#surface.height / 2) / this.#surface.height / hAspect,
         -0.5,
         0.5
-      ) * this.mapHeight;
+      ) * this.#mapHeight;
 
     const onMouseDown = (e: MouseEvent) => {
       if (!this.enabled) return;
@@ -76,31 +76,31 @@ export class MinimapMouse {
 
       pos.set(x, 0, y);
 
-      this._mouseDown = true;
+      this.#mouseDown = true;
 
       if (e.button === LeftMouse) {
-        this._isDragging = true;
-        this._isDragStart = true;
+        this.#isDragging = true;
+        this.#isDragStart = true;
       } else if (e.button === RightMouse) {
-        this._isPreviewStart = true;
+        this.#isPreviewStart = true;
       }
     };
-    this.surface.canvas.addEventListener("mousedown", onMouseDown);
-    this.janitor.callback(() => this.surface.canvas.removeEventListener("mousedown", onMouseDown));
+    this.#surface.canvas.addEventListener("mousedown", onMouseDown);
+    this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mousedown", onMouseDown));
 
 
     const onMouseUp = () => {
       if (!this.enabled) return;
 
-      this._mouseDown = false;
-      this._isDragging = false;
+      this.#mouseDown = false;
+      this.#isDragging = false;
 
     };
-    this.surface.canvas.addEventListener("mouseup", onMouseUp);
-    this.janitor.callback(() => this.surface.canvas.removeEventListener("mouseup", onMouseUp));
+    this.#surface.canvas.addEventListener("mouseup", onMouseUp);
+    this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mouseup", onMouseUp));
 
-    this.surface.canvas.addEventListener("mouseleave", onMouseUp);
-    this.janitor.callback(() => this.surface.canvas.removeEventListener("mouseleave", onMouseUp));
+    this.#surface.canvas.addEventListener("mouseleave", onMouseUp);
+    this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mouseleave", onMouseUp));
 
     const onMouseMove = (e: MouseEvent) => {
       if (!this.enabled) return;
@@ -111,47 +111,47 @@ export class MinimapMouse {
       pos.set(x, 0, y);
 
     }
-    this.surface.canvas.addEventListener("mousemove", onMouseMove
+    this.#surface.canvas.addEventListener("mousemove", onMouseMove
     );
-    this.janitor.callback(() => this.surface.canvas.removeEventListener("mousemove", onMouseMove));
+    this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mousemove", onMouseMove));
 
   }
 
   update(controls: Controls) {
     if (!this.enabled) return;
 
-    if (this._isDragStart) {
+    if (this.#isDragStart) {
       controls.keys.onToggleCameraMode(CameraMode.Default);
       controls.orbit.moveTo(pos.x, 0, pos.z, false);
-      if (this._isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
-        this._isPreviewing = false;
+      if (this.#isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
+        this.#isPreviewing = false;
       }
-    } else if (this._isDragging) {
+    } else if (this.#isDragging) {
       controls.orbit.moveTo(pos.x, 0, pos.z, true);
-      if (this._isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
-        this._isPreviewing = false;
+      if (this.#isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
+        this.#isPreviewing = false;
       }
-    } else if (this._isPreviewStart) {
-      if (this._isPreviewing) {
+    } else if (this.#isPreviewStart) {
+      if (this.#isPreviewing) {
         if (pos.setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) > Proximity) {
-          this._isPreviewing = false;
+          this.#isPreviewing = false;
         }
       } else {
-        this._isPreviewing = true;
+        this.#isPreviewing = true;
       }
-      this._isPreviewStart = false;
-    } else if (this._isPreviewing && this._mouseDown) {
+      this.#isPreviewStart = false;
+    } else if (this.#isPreviewing && this.#mouseDown) {
       controls.PIP.camera.position.set(pos.x, controls.PIP.camera.position.y, pos.z);
       controls.PIP.camera.lookAt(pos.x, 0, pos.z)
     }
 
-    controls.PIP.enabled = this._isPreviewing;
-    this._isDragStart = false;
+    controls.PIP.enabled = this.#isPreviewing;
+    this.#isDragStart = false;
 
   }
 
   dispose() {
-    this.janitor.mopUp();
+    this.#janitor.mopUp();
   }
 }
 

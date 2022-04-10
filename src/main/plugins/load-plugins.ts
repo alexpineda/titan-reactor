@@ -46,7 +46,7 @@ let _pluginDirectory = "";
 const loadPluginPackage = async (folderPath: string, folderName: string): Promise<null | InitializedPluginPackage> => {
 
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
-    const pluginNative = await _tryLoadUtf8(path.join(folderPath, "native.js")) as string | null;
+    const pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
     const readme = await _tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
 
     if (!packageJSON) {

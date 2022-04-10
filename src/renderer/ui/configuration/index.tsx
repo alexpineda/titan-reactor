@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { Container, Button, Tabs, Tab, Divider } from "muicss/react";
 import search from "libnpmsearch";
-import { debounce } from "lodash";
 import semver from "semver";
 
 import { InitializedPluginPackage } from "common/types";

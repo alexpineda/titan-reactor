@@ -7,8 +7,8 @@
   - [Store Reference](#store-reference)
   - [registerComponent reference](#registercomponent-reference)
   - [CSS for React Components](#css-for-react-components)
-  - [native.js](#nativejs)
-  - [Communicating between native.js and index.jx](#communicating-between-nativejs-and-indexjx)
+  - [plugin.js](#pluginjs)
+  - [Communicating between plugin.js and index.jx](#communicating-between-pluginjs-and-indexjx)
   - [useStore advanced](#usestore-advanced)
   - [titan-reactor exports reference](#titan-reactor-exports-reference)
   - [README.md](#readmemd)
@@ -40,11 +40,11 @@ You'll first need a `package.json` under your plugin folder with at least a uniq
 
 ## How it works
 
-Your plugin directory must contain a `package.json` file. It may also contain either  `index.jsx` or `native.js` or both.
+Your plugin directory must contain a `package.json` file. It may also contain either  `index.jsx` or `plugin.js` or both.
 
 For React components use `index.jsx`. Your code will automatically be be transpiled by Titan Reactor. Your component will live in an iframe with other plugins in a separate process. You can show different components based on the screen (eg replay loading or replay active) and read *some* of Titan Reactor game state.
 
-For more comprehensive processing use `native.js` which allows you to access full Titan Reactor game state on the main Chromium process. This will mostly be used for modifying game state, such as player colors. You can communicate with your React components as well if need be.
+For more comprehensive processing use `plugin.js` which allows you to access full Titan Reactor game state on the main Chromium process. This will mostly be used for modifying game state, such as player colors. You can communicate with your React components as well if need be.
 
 We use the `config` value in `package.json` to define user configuration options and default values. These settings will be shown to the user in the config window. We use Leva for this config window and so the values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). 
 
@@ -170,9 +170,9 @@ These additional font-families are available for your styles:
 
 Finally, included in the "runtime" environment is also the full set of open prop variables for use in your CSS. [See Open Props for more details.](https://open-props.style/)
 
-## native.js
+## plugin.js
 
-You can create really powerful plugins by using a `native.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
+You can create really powerful plugins by using a `plugin.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
 Checkout the official plugins for several examples, and see here for the [list of default hooks](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/plugins/plugin-system-native.ts#L56).
 
@@ -216,9 +216,9 @@ return {
 }
 ```
 
-## Communicating between native.js and index.jx
+## Communicating between plugin.js and index.jx
 
-You can messages from native.js to your react components. For a full working example see the official FPS plugin.
+You can messages from plugin.js to your react components. For a full working example see the official FPS plugin.
 
 In your `index.jsx`:
 ```jsx
@@ -227,7 +227,7 @@ import React from "react";
 // useMessage is a hook passed in as a prop for your component
 const MyComponent = ({ config, useMessage, sendMessage }) => {
 
-  // any messages sent from native.js are received here
+  // any messages sent from plugin.js are received here
   const message = useMessage();
 
   // here we just render the message, but you could also respond to events
@@ -237,7 +237,7 @@ const MyComponent = ({ config, useMessage, sendMessage }) => {
 
 ```
 
-In your `native.js`:
+In your `plugin.js`:
 ```js
 
 

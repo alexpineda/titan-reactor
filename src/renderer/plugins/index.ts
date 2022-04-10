@@ -76,6 +76,15 @@ export const callHook = (...args: Parameters<PluginSystemNative["callHook"]>) =>
     nativePluginSystem.callHook(...args);
 }
 
+// optimized
+export const onBeforeRender = (delta: number, elapsed: number) => {
+    nativePluginSystem.onBeforeRender(delta, elapsed);
+}
+
+export const onRender = (delta: number, elapsed: number) => {
+    nativePluginSystem.onRender(delta, elapsed);
+}
+
 export const callHookAsync = async (...args: Parameters<PluginSystemNative["callHookAsync"]>) => {
     await nativePluginSystem.callHookAsync(...args);
 }

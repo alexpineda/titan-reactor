@@ -66,7 +66,7 @@ import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_BEFORE_RENDER, HOOK_ON_GAME_READY, HOOK_ON_RENDER, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
+import { HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
 
 CameraControls.install({ THREE: THREE });
 
@@ -87,6 +87,7 @@ async function TitanReactorGame(
   commandsStream: CommandsStream
 ) {
   let settings = settingsStore().data;
+  commandsStream;
 
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
@@ -376,6 +377,9 @@ async function TitanReactorGame(
   }
   const speedUp = () => speedHandler(2);
   const speedDown = () => speedHandler(0.5);
+  const togglePause = () => {
+    openBw.call!.setPaused!(!openBw.call!.isPaused!());
+  }
 
   // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
@@ -1165,8 +1169,8 @@ async function TitanReactorGame(
   const _boundaryMin = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
   const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
   const _cameraBoundaryBox = new Box3(_boundaryMin, _boundaryMax)
-  const _commandsThisFrame = [];
-
+  const _commandsThisFrame: any[] = [];
+  _commandsThisFrame;
 
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
@@ -1353,8 +1357,7 @@ async function TitanReactorGame(
     gameStatePosition.update(delta);
     drawMinimap(projectedCameraView);
 
-    //FIXME: optimize with a dedicated method
-    plugins.callHook(HOOK_ON_BEFORE_RENDER, delta, elapsed);
+    plugins.onBeforeRender(delta, elapsed);
     controls.cameraShake.update(elapsed, camera);
     fogOfWar.update(players.getVisionFlag(), camera);
     renderer.render(scene, camera, delta);
@@ -1368,7 +1371,7 @@ async function TitanReactorGame(
         setUseScale(true);
       }
     }
-    plugins.callHook(HOOK_ON_RENDER, delta, elapsed);
+    plugins.onRender(delta, elapsed);
 
     controls.cameraShake.restore(camera);
   };
@@ -1419,14 +1422,14 @@ async function TitanReactorGame(
       skipBackward,
       speedUp,
       speedDown,
-      togglePause: () => gameStatePosition.togglePause()
+      togglePause
     };
 
     const callableApi = {
       registerHotkey: (...args: Parameters<PluginKeyShortcuts["addListener"]>) => {
         shortcuts.addListener(...args)
       },
-      clearHotkeys: (...args: Parameters<PluginKeyShortcuts["clearListeners"]>) => shortcuts.clearListeners(...args)
+      clearHotkeys: (pluginId: string) => shortcuts.clearListeners(pluginId)
     }
 
     janitor.callback(plugins.inject(api));

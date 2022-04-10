@@ -5,15 +5,17 @@ import * as stores from "@stores"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_BEFORE_RENDER, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_RENDER, HOOK_ON_TERRAIN_GENERATED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
+import { HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_TERRAIN_GENERATED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
 
 type NativePlugin = {
     id: string;
     name: string;
     isEnabled: boolean;
-    onConfigChanged: (newConfig: {}, oldConfig: {}) => void;
-    onDisabled: () => void;
-    onUIMessage: (message: any) => void;
+    onConfigChanged?: (newConfig: {}, oldConfig: {}) => void;
+    onDisabled?: () => void;
+    onUIMessage?: (message: any) => void;
+    onBeforeRender?: (delta: number, elapsed: number) => void;
+    onRender?: (delta: number, elapsed: number) => void;
     config: {};
 }
 
@@ -48,8 +50,6 @@ class Hook {
 const createDefaultHooks = () => ({
     onGameDisposed: new Hook(HOOK_ON_GAME_DISPOSED, []),
     onGameReady: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
-    onBeforeRender: new Hook(HOOK_ON_BEFORE_RENDER, ["delta", "elapsed"]),
-    onRender: new Hook(HOOK_ON_RENDER, ["delta", "elapsed"]),
     onTerrainGenerated: new Hook(HOOK_ON_TERRAIN_GENERATED, ["scene", "terrain", "mapWidth", "mapHeight"]),
     onUnitCreated: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
     onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"])
@@ -137,7 +137,6 @@ export class PluginSystemNative {
         }
     }
 
-    // master hook
     onDisable(pluginId: string) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
@@ -151,7 +150,6 @@ export class PluginSystemNative {
         }
     }
 
-    // master hook
     onConfigChanged(pluginId: string, config: any) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
@@ -165,6 +163,18 @@ export class PluginSystemNative {
         }
     }
 
+    onBeforeRender(delta: number, elapsed: number) {
+        for (const plugin of this.#nativePlugins) {
+            plugin.onBeforeRender && plugin.onBeforeRender(delta, elapsed);
+        }
+    }
+
+    onRender(delta: number, elapsed: number) {
+        for (const plugin of this.#nativePlugins) {
+            plugin.onRender && plugin.onRender(delta, elapsed);
+        }
+    }
+
     enableAdditionalPlugins(pluginPackages: InitializedPluginPackage[]) {
         const additionalPlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
@@ -173,16 +183,12 @@ export class PluginSystemNative {
 
     //FIXME: inject into prototype of plugins
     inject(object: {}) {
-        // this.#nativePlugins.forEach(plugin => {
         Object.assign(pluginProto, object);
-        // })
 
         return () => {
-            // this.#nativePlugins.forEach(plugin => {
             Object.keys(object).forEach(key => {
                 delete pluginProto[key as keyof typeof pluginProto];
             })
-            // })
         }
     }
 
@@ -209,7 +215,6 @@ export class PluginSystemNative {
             return;
         }
 
-        //TODO: setup hook listeners before hand
         for (const plugin of this.#nativePlugins) {
             if (!this.hooks[hookName].isAuthor(plugin) && plugin[hookName as keyof typeof plugin] !== undefined) {
                 //@ts-ignore

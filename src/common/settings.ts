@@ -42,11 +42,6 @@ export const defaultSettings: Settings = {
       helicopterRotateSpeed: 0.9,
     }
   },
-  battleCam: {
-    shakeMultiplier: 1,
-    fogofwar: false,
-    scanlines: true,
-  },
   plugins: {
     serverPort: 8080,
     enabled: [],
