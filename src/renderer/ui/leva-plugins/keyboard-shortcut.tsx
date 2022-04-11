@@ -5,7 +5,17 @@ const { Row, Label, String } = Components;
 
 type PluginProps = LevaInputProps<string>;
 
-const forbidden = ["Escape", "Enter"];
+const forbidden = [
+  "ShiftLeft",
+  "ShiftRight",
+  "AltLeft",
+  "AltRight",
+  "MetaLeft",
+  "MetaRight",
+  "ControlLeft",
+  "ControlRight",
+  "Tab",
+];
 
 const Plugin = () => {
   const { label, displayValue, onUpdate, onChange, emitOnEditEnd } =
@@ -22,7 +32,10 @@ const Plugin = () => {
           onKeyDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (!forbidden.includes(e.code)) {
+            if (e.code === "Escape") {
+              onUpdate("");
+              emitOnEditEnd();
+            } else if (!forbidden.includes(e.code)) {
               onUpdate(e.code);
               emitOnEditEnd();
             }
