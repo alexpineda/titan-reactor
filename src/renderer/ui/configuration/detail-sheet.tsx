@@ -24,7 +24,7 @@ export default ({
   }
 
   return (
-    <Tabs>
+    <Tabs defaultSelectedIndex={pluginConfig.readme ? 1 : 0}>
       <Tab value="details" label="Details">
         <div style={{ marginTop: "1rem" }}>
           <p>
