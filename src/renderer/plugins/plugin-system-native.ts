@@ -55,7 +55,27 @@ const createDefaultHooks = () => ({
     onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"])
 });
 
-const pluginProto = {};
+const pluginProto = {
+    saveAudioSettings(settings: any) {
+        const state = stores.useSettingsStore.getState();
+        state.save({
+            audio: {
+                ...state.data.audio,
+                ...settings,
+            }
+        }
+        );
+    },
+    saveGraphicsSettings(settings: any) {
+        const state = stores.useSettingsStore.getState();
+        state.save({
+            graphics: {
+                ...state.data.graphics,
+                ...settings
+            }
+        });
+    }
+};
 
 export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
