@@ -58,8 +58,8 @@ export class Settings extends EventEmitter {
     return this._settings;
   }
 
-  disablePlugin(pluginName: string) {
-    this.save({
+  async disablePlugin(pluginName: string) {
+    await this.save({
       plugins: {
         ...this._settings.plugins,
         enabled: this._settings.plugins.enabled.filter(p => p !== pluginName),
@@ -67,8 +67,8 @@ export class Settings extends EventEmitter {
     })
   }
 
-  enablePlugins(pluginNames: string[]) {
-    this.save({
+  async enablePlugins(pluginNames: string[]) {
+    await this.save({
       plugins: {
         ...this._settings.plugins,
         enabled: [...this._settings.plugins.enabled, ...pluginNames],

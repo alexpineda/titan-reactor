@@ -6,6 +6,8 @@ import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_TERRAIN_GENERATED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
+import { CameraModePlugin } from "renderer/input/camera-mode";
+import gameStore from "@stores/game-store";
 
 type NativePlugin = {
     id: string;
@@ -16,7 +18,9 @@ type NativePlugin = {
     onUIMessage?: (message: any) => void;
     onBeforeRender?: (delta: number, elapsed: number) => void;
     onRender?: (delta: number, elapsed: number) => void;
-    config: {};
+    config: {
+        cameraModeKey?: {}
+    };
 }
 
 type HookOptions = {
@@ -85,12 +89,15 @@ export class PluginSystemNative {
 
     initializePlugin(pluginPackage: InitializedPluginPackage) {
 
+        const bwDat = gameStore().assets?.bwDat;
+        
         try {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)();
+            const pluginRaw = Function(pluginPackage.nativeSource!)({THREE, stores, bwDat});
             delete pluginPackage.nativeSource;
+            debugger;
 
             const pluginPropertyConfig: Record<string, {}> = {};
             for (const key in pluginRaw) {
@@ -111,7 +118,7 @@ export class PluginSystemNative {
             plugin.sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
             plugin.isEnabled = true;
 
-            plugin.onInitialized && plugin.onInitialized({ THREE, stores });
+            plugin.init && plugin.init();
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
 
 
@@ -127,6 +134,17 @@ export class PluginSystemNative {
         this.#nativePlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#uiPlugins = uiPlugins;
+    }
+
+    getDefaultCameraModePlugin() {
+        const cameraModeName = stores.useSettingsStore.getState().data.plugins.cameraMode;
+        const plugin = this.#nativePlugins.find(p => p.name === cameraModeName) ?? this.#nativePlugins.find(p => p.config.cameraModeKey);
+
+        if (plugin) {
+            return plugin as unknown as CameraModePlugin;
+        }
+
+        throw new Error("No camera mode plugin found");
     }
 
     sendCustomUIMessage(pluginId: string, message: any) {
@@ -201,30 +219,15 @@ export class PluginSystemNative {
         this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins];
     }
 
-    //FIXME: inject into prototype of plugins
-    inject(object: {}) {
+    /**
+     * Temporarily inject an api into all active plugins.
+     */
+    injectApi(object: {}) {
         Object.assign(pluginProto, object);
 
         return () => {
             Object.keys(object).forEach(key => {
                 delete pluginProto[key as keyof typeof pluginProto];
-            })
-        }
-    }
-
-    injectCallableWithPluginId(object: { [key: string]: (...args: any[]) => any }) {
-        this.#nativePlugins.forEach(plugin => {
-            Object.keys(object).forEach(key => {
-                // @ts-ignore
-                plugin[key] = object[key].bind(plugin, plugin.id);
-            })
-        });
-
-        return () => {
-            this.#nativePlugins.forEach(plugin => {
-                Object.keys(object).forEach(key => {
-                    delete plugin[key as keyof typeof plugin];
-                })
             })
         }
     }

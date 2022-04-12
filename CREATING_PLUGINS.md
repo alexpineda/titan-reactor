@@ -8,6 +8,8 @@
   - [registerComponent reference](#registercomponent-reference)
   - [CSS for React Components](#css-for-react-components)
   - [plugin.js](#pluginjs)
+  - [Camera Mode APIs](#camera-mode-apis)
+  - [Game Time APIs](#game-time-apis)
   - [Communicating between plugin.js and index.jx](#communicating-between-pluginjs-and-indexjx)
   - [useStore advanced](#usestore-advanced)
   - [titan-reactor exports reference](#titan-reactor-exports-reference)
@@ -23,6 +25,8 @@ Plugins in Titan Reactor allow you to connect to the game to display custom char
 - A plugin can use two methods to integrate with Titan Reactor, visual via React components, programmatic via game objects, or both.
 - If you'd like to provide user configuration, Titan Reactor provides a configuration UI for the user to use based on your json "schema".
 
+Please note that due to frequency of changes and lack of time these documents may be out of date or incomplete. It's recommended to start with an existing plugin and work from there.
+
 ## Your first plugin package.json
 
 *plugins/my-cool-plugin/package.json*
@@ -31,11 +35,14 @@ Plugins in Titan Reactor allow you to connect to the game to display custom char
   "name": "@titan-reactor-plugin/my-cool-plugin",
   "description": "My Cool Plugin",
   "version": "1.0.0",
-  "keywords": ["titan-reactor-plugin"]
+  "keywords": ["titan-reactor-plugin"],
+  "peerDependencies": {
+        "titan-reactor": "0.5.0"
+  }
 }
 ```
 
-You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. For your version number it is required you use semver `1.0.0`, `2.0.0` etc for updates. 
+You'll first need a `package.json` under your plugin folder with at least a unique name and version. We use the [npm package.json spec](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. For your version number it is required you use semver `1.0.0`, `2.0.0` etc for updates. `peerDependencies` lets Titan Reactor know about compatibility.
 
 
 ## How it works
@@ -73,20 +80,13 @@ Once we've got our basic `package.json` we can start with `index.jsx`:
 
 ```jsx
 import React from "react";
-import { registerComponent, useStore } from "titan-reactor";
-
-// select frame.time value from the "ui store" 
-// the store is aka game data made available to all react plugins
-const _timeSelector = store => store.frame.time;
+import { registerComponent, useFrame } from "titan-reactor";
 
 const MyComponent = ({ config }) => {
+    // will update on every game second with latest frame data
+    const frame = useFrame();
 
-    // this is computationally efficient in two ways:
-    // 1) we are using _timeSelector rather than inlining the function here to reduce object allocation
-    // 2) useStore will only cause a re-render if the time has changed
-    const time = useStore(_timeSelector);
-
-    return <h1>Hello { config.userName.value }. Game time is {time} </h1>
+    return <h1>Hello { config.userName.value }. Game time is {frame.time} </h1>
 };
 
 registerComponent({ pluginId: "_plugin_id_", screen: "@replay/ready" }, MyComponent);
@@ -107,6 +107,8 @@ Note that only mouse clicks events (`onClick`) will be available for listening t
 
 ## Store Reference
 
+useFrame();
+
 - **frame**
   - **time**: game time label `eg, "12:00"`
   - **frame**: current replay frame
@@ -116,14 +118,14 @@ Note that only mouse clicks events (`onClick`) will be available for listening t
   - **upgrades**: Int32Array for each player (8 total), with [upgradeId, level, progress]
   - **research**: Int32Array for each player (8 total), with [researchId, progress]
 
-- **world** : Partial<[WorldStore](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/stores/realtime/world-store.ts)>
+useMap();
   - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/bw-chk.d.ts#L21)
-  - **replay**: [Replay]()
 
+useReplay();
+  - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/process-replay/parse-replay.ts#L49)
 
+useStore(); //generic
 - **scene** : "screenType/screenStatus"
-
-
 - **dimensions** [GameCanvasDimensions](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/image.ts#L11)
 
 ## registerComponent reference
@@ -174,19 +176,17 @@ Finally, included in the "runtime" environment is also the full set of open prop
 
 You can create really powerful plugins by using a `plugin.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
-Checkout the official plugins for several examples, and see here for the [list of default hooks](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/plugins/plugin-system-native.ts#L56).
+Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-community) for several examples.
 
-Simple example listening to arguably the most important hooks:
 ```js
+// we provide global dependencies via the arguments object
+const { THREE } = arguments;
+
 // your plugin must return an object with keynames matching hook names that you want to listen to
 return {
-    // config is user config related to your plugin
-    // deps is list of dependencies shared from Titan Reactor such as THREE
-    // you'll likely want to keep a reference for your own keepsake
-    // onInitialized will be called on load if your plugin is already enabled
+    // init() will be called on load if your plugin is already enabled
     // it will also be called anytime the user enables your plugin
-    // onInitialized is REQUIRED
-    onInitialized(deps) {
+    init() {
       // config property will be on the object
       console.log(this.config);
     },
@@ -213,8 +213,64 @@ return {
 
     },
     
+    // These APIS are only available if 
 }
 ```
+
+## Camera Mode APIs
+
+Your plugin is considered a camera mode if your config has a `cameraModeKey` setting. A camera mode is a controller for camera movement and rendering.
+
+```json
+"cameraModeKey": {
+          "label": "Toggle Camera",
+          "type": "keyboard-shortcut",
+          "value": "F5"
+      },
+```
+
+Additional callbacks are made available:
+```js
+// REQUIRED. When entering this camera mode.
+async onEnterCameraMode(controls, minimapMouse, camera, mapWidth, mapHeight);
+
+// When exiting the camera mode.
+onExitCameraMode();
+
+// When updating the mouse.
+onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, clicked);
+
+// When updating the keyboard.
+onCameraKeyboardUpdate(delta, elapsed, move) {
+
+// Whether a unit should be hidden or not.
+onShouldHideUnit(unit);
+
+// The audio listener has a physical location, update it here.
+onUpdateAudioMixerLocation(delta, elapsed, audioMixer, camera, target);
+```
+
+
+
+Additional properties for setting options:
+```javascript
+orbit: CameraControls; // the main controller for camera movement
+minimap: true, // whether to display the minimap
+pip: false, // whether to enable PIP
+pointerLock: true, // whether to lock the pointer (FPS style mouse)
+soundMode: "spatial", // either "classic" for stereo panning or "spatial" for 3d
+boundByMap: true, // whether the camera target is bound to the map
+```
+
+CameraControls [documentation may be found here](https://github.com/yomotsu/camera-controls).
+
+
+## Game Time APIs
+When a game is started apis are made available to your plugin for that instance of the game.
+
+Since this api is in very active development please refer to the source code for the time being.
+
+Take special care not to keep references to objects from the game instance. Dereference any values via the `onGameDisposed` callback.
 
 ## Communicating between plugin.js and index.jx
 

@@ -26,7 +26,6 @@ export const defaultSettings: Settings = {
     gamma: 0.9,
   },
   controls: {
-    debug: false,
     mode: {
       default: "F2, Escape",
       battle: "F5",
@@ -43,6 +42,7 @@ export const defaultSettings: Settings = {
     }
   },
   plugins: {
+    cameraMode: "@titan-reactor-plugins/camera-default",
     serverPort: 8080,
     enabled: [],
   }

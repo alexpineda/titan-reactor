@@ -26,7 +26,6 @@ export type Settings = {
         gamma: number;
     },
     controls: {
-        debug?: boolean,
         mode: {
             default?: string;
             battle?: string;
@@ -37,12 +36,10 @@ export type Settings = {
             truckRight?: string,
             forward?: string,
             backward?: string,
-            zoomIn?: string,
-            zoomOut?: string,
-            helicopterRotateSpeed: number,
         }
     },
     plugins: {
+        cameraMode: string;
         serverPort: number;
         developmentDirectory?: string;
         enabled: string[],

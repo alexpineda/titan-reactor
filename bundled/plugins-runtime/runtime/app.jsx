@@ -111,7 +111,9 @@ export default ({ components }) => {
       )}
       {!appLoaded && !error && <p style={styleCenterText}>암흑 물질</p>}
       {appLoaded && !error && !hasAnyComponents && (
-        <p style={styleCenterText}>First Run: Installing Default Plugins....</p>
+        <>
+        <p style={styleCenterText}>Installing Default Plugins and Restarting.</p>
+        </>
       )}
       {error && <GlobalErrorState error={error} />}
       <div

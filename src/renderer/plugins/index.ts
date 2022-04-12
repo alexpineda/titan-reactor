@@ -3,7 +3,7 @@
 import { ipcRenderer } from "electron";
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR } from "common/ipc-handle-names";
 import { GameStatePosition } from "@core";
 import {
     installPlugin
@@ -12,6 +12,7 @@ import {
 import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
+import  { useScreenStore } from "@stores/screen-store";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -37,6 +38,11 @@ ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
     nativePluginSystem.onDisable(pluginId);
     uiPluginSystem.refresh();
 });
+
+ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
+    useScreenStore.setState({error: new Error(`Error installing default plugins`)});
+});
+
 
 const _messageListener = function (event: MessageEvent) {
     if (event.data.type === "system:custom-message") {
@@ -67,6 +73,10 @@ export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: nu
     // nativePluginSystem.onFrame()
 }
 
+export const getDefaultCameraModePlugin = () => {
+    return nativePluginSystem.getDefaultCameraModePlugin();
+}
+
 export const onGameDisposed = () => {
     uiPluginSystem.reset();
     nativePluginSystem.callHook("onGameDisposed");
@@ -89,14 +99,9 @@ export const callHookAsync = async (...args: Parameters<PluginSystemNative["call
     await nativePluginSystem.callHookAsync(...args);
 }
 
-export const inject = (...args: Parameters<PluginSystemNative["inject"]>) => {
-    return nativePluginSystem.inject(...args);
+export const injectApi = (...args: Parameters<PluginSystemNative["injectApi"]>) => {
+    return nativePluginSystem.injectApi(...args);
 }
-
-export const injectCallableWithPluginId = (...args: Parameters<PluginSystemNative["injectCallableWithPluginId"]>) => {
-    return nativePluginSystem.injectCallableWithPluginId(...args);
-}
-
 export const installPluginLocal = async (repository: string) => {
     const pluginPackage = await installPlugin(repository);
     if (pluginPackage) {

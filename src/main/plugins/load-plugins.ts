@@ -2,13 +2,13 @@ import PackageJson from '@npmcli/package-json';
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import { shell } from 'electron';
+import { app, shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import browserWindows from "../windows";
@@ -95,7 +95,12 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
     }
 }
 
-const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock", "@titan-reactor-plugins/fps", "@titan-reactor-plugins/default-screens", "@titan-reactor-plugins/players-bar"];
+const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock",
+    "@titan-reactor-plugins/default-screens",
+    "@titan-reactor-plugins/player-colors",
+    "@titan-reactor-plugins/global-settings",
+    "@titan-reactor-plugins/players-bar",
+    "@titan-reactor-plugins/replay-control"];
 
 
 export default async (pluginDirectory: string) => {
@@ -112,13 +117,20 @@ export default async (pluginDirectory: string) => {
             for (const defaultPackage of DEFAULT_PACKAGES) {
                 const plugin = await installPlugin(defaultPackage);
                 if (plugin) {
-                    enablePluginIds.push(plugin.id);
+                    enablePluginIds.push(plugin.name);
                 } else {
                     log.error(`@load-plugins/default: Failed to install default plugin ${defaultPackage}`);
                 }
             }
-            enablePlugins(enablePluginIds);
-
+            await settings.enablePlugins(enablePluginIds);
+            if (enablePluginIds.length > 0) {
+                app.relaunch();
+                app.exit();
+            } else {
+                log.error(`@load-plugins/default: Failed to install default plugins`);
+                browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL_ERROR);
+            }
+            
         }
     } catch (e) {
         log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
@@ -138,7 +150,7 @@ export const installPlugin = async (repository: string) => {
 
         await pacote.extract(repository, folderPath);
 
-        try {
+        try { 
             const loadedPackage = await loadPluginPackage(folderPath, folderName);
 
             if (loadedPackage) {
@@ -171,7 +183,7 @@ export const installPlugin = async (repository: string) => {
     return null;
 }
 
-export const enablePlugins = (pluginIds: string[]) => {
+export const enablePlugins = async (pluginIds: string[]) => {
     const plugins = pluginIds.map(pluginId => {
         const plugin = _disabledPluginPackages.find(plugin => plugin.id === pluginId);
         if (!plugin) {
@@ -181,7 +193,7 @@ export const enablePlugins = (pluginIds: string[]) => {
     }).filter(plugin => plugin !== undefined) as InitializedPluginPackage[];
 
     try {
-        settings.enablePlugins(plugins.map(plugin => plugin.name));
+        await settings.enablePlugins(plugins.map(plugin => plugin.name));
         _disabledPluginPackages = _disabledPluginPackages.filter(otherPlugin => !plugins.includes(otherPlugin));
         _enabledPluginPackages.push(...plugins);
         browserWindows.main?.webContents.send(ON_PLUGINS_ENABLED, plugins);
@@ -194,7 +206,7 @@ export const enablePlugins = (pluginIds: string[]) => {
 };
 
 // note: requires restart for user to see changes
-export const disablePlugin = (pluginId: string) => {
+export const disablePlugin = async (pluginId: string) => {
     const plugin = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!plugin) {
         log.info(`@load-plugins/disable: Plugin ${pluginId} not found`);
@@ -204,7 +216,7 @@ export const disablePlugin = (pluginId: string) => {
     log.info(`@load-plugins/disable: Disabling plugin ${plugin.name}`);
 
     try {
-        settings.disablePlugin(plugin.name);
+        await settings.disablePlugin(plugin.name);
         _enabledPluginPackages = _enabledPluginPackages.filter(otherPlugin => otherPlugin !== plugin);
         _disabledPluginPackages.push(plugin);
         browserWindows.main?.webContents.send(DISABLE_PLUGIN, plugin.id);

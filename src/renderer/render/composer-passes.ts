@@ -96,6 +96,7 @@ export const createPasses = () => {
     passes,
     effects,
 
+    //TODO: remove these into camera mode plugin settings
     presetRegularCam() {
       fogEffect.blendMode.opacity.value = 1;
       enable(Passes.Render, Passes.Regular);

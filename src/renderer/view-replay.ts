@@ -46,7 +46,7 @@ import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
-import { calculateHorizontalFoV, constrainControls, constrainControlsBattleCam, constrainControlsOverviewCam, getDirection32 } from "./utils/camera-utils";
+import { getDirection32, setBoundary } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
@@ -54,7 +54,7 @@ import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
-import { CameraMode } from "./input/camera-mode";
+import { CameraModePlugin } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
@@ -163,7 +163,14 @@ async function TitanReactorGame(
     }
   }
 
-  const createControls = (cameraMode: CameraMode) => {
+  const createControls = (cameraMode: CameraModePlugin, oldControls?: any) => {
+    const oldTarget = new Vector3();
+    const oldPosition = new Vector3();
+    if (oldControls) {
+      oldControls.orbit.getTarget(oldTarget);
+      oldControls.orbit.getPosition(oldPosition);
+      oldControls.dispose();
+    }
     const janitor = new Janitor()
     const controls = new CameraControls(
       camera,
@@ -171,45 +178,112 @@ async function TitanReactorGame(
     );
     janitor.disposable(controls);
 
-    const cameraMouse = new CameraMouse(document.body);
+    const cameraMouse = new CameraMouse(document.body, cameraMode);
     janitor.disposable(cameraMouse);
 
-    const cameraKeys = new CameraKeys(window.document.body, settings);
+    const cameraKeys = new CameraKeys(window.document.body, settings, cameraMode);
     janitor.disposable(cameraKeys);
 
     const cameraShake = new CameraShake();
-
-    const toggle = (enabled: boolean) => {
-      controls.enabled = enabled;
-      cameraMouse.enabled = enabled;
-      cameraKeys.enabled = enabled;
-      cameraShake.enabled = enabled;
-    }
-    const enableAll = () => toggle(true);
-    const disableAll = () => toggle(false);
 
     _PIP.camera.position.set(0, 50, 0);
     _PIP.camera.lookAt(0, 0, 0);
     _PIP.enabled = false;
 
     return {
+      oldTarget,
+      oldPosition,
       cameraMode,
       orbit: controls,
       mouse: cameraMouse,
       keys: cameraKeys,
       cameraShake,
       dispose: () => janitor.mopUp(),
-      enableAll,
-      disableAll,
       PIP: _PIP
     };
   }
 
-  let controls = createControls(CameraMode.Default);
+  
+  const units: Map<number, Unit> = new Map();
+  const images: Map<number, Image> = new Map();
+  const freeImages: Image[] = [];
+  janitor.callback(() => {
+    const _janitor = new Janitor();
+    for (const image of freeImages) {
+      _janitor.object3d(image);
+    }
+    _janitor.mopUp();
+  });
+
+
+  const setUseScale = (scale: number) => {
+    ImageHD.useScale = scale;
+    for (const [, image] of images) {
+      if (image instanceof ImageHD) {
+
+        image.scale.copy(image.originalScale);
+
+        if (scale !== 1) {
+          image.scale.multiplyScalar(ImageHD.useScale);
+        }
+
+        image.updateMatrix();
+      }
+    }
+  }
+
+  
+  const onToggleCameraMode = async (cameraMode: CameraModePlugin, oldControls?:any, prevCameraMode?: CameraModePlugin) => {
+
+    console.log(`changing camera mode`, cameraMode);
+    if (prevCameraMode && prevCameraMode.onExitCameraMode) {
+      prevCameraMode.onExitCameraMode();
+    }
+
+    const newControls = createControls(cameraMode, oldControls);
+
+    newControls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
+    newControls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+    newControls.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
+    newControls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
+    newControls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
+
+    await cameraMode.onEnterCameraMode(newControls, minimapMouse, camera, mapWidth, mapHeight);
+
+    setUseScale(cameraMode.unitScale || 1);
+
+    if (cameraMode.pointerLock) {
+      gameSurface.requestPointerLock();
+    } else {
+      gameSurface.exitPointerLock();
+    }
+
+    if (cameraMode.minimap) {
+      minimapSurface.canvas.style.display = "block";
+      minimapMouse.enabled = true;
+    } else {
+      minimapMouse.enabled = false;
+      minimapSurface.canvas.style.display = "none";
+    }
+
+    if (cameraMode.cameraShake) {
+      newControls.cameraShake.enabled = true;
+    } else {
+      newControls.cameraShake.enabled = false;
+    }
+
+    if (cameraMode.boundByMap) {
+      setBoundary(newControls, mapWidth, mapHeight);
+    }
+
+    renderer.composerPasses.presetRegularCam();
+
+    return newControls;
+  }
+  
+  let controls = await onToggleCameraMode(plugins.getDefaultCameraModePlugin());
   //@ts-ignore
   window.controls = controls;
-
-  constrainControls(controls, minimapMouse, camera, mapWidth, mapHeight);
 
   //@ts-ignore
   window.camera = camera;
@@ -232,76 +306,8 @@ async function TitanReactorGame(
   //   }
   // }
 
-  //TODO: change to standard visitImage fn
-  const setUseScale = (enable: boolean) => {
-    ImageHD.useScale = enable ? 2.5 : 1;
-    for (const [, image] of images) {
-      if (image instanceof ImageHD) {
 
-        image.scale.copy(image.originalScale);
 
-        if (enable) {
-          image.scale.multiplyScalar(ImageHD.useScale);
-        }
-
-        image.updateMatrix();
-      }
-    }
-  }
-
-  const onToggleCameraMode = async (cm: CameraMode) => {
-    if (controls.cameraMode === CameraMode.Default && cm === controls.cameraMode) {
-      return;
-    }
-    if (controls.cameraMode === CameraMode.Overview) {
-      controls.cameraMode = CameraMode.Default;
-    } else {
-      controls.cameraMode = cm;
-    }
-
-    // @ts-ignore
-    const oldTarget = controls.orbit.getTarget();
-    // @ts-ignore
-    const oldPosition = controls.orbit.getPosition();
-    controls.dispose();
-    controls = createControls(controls.cameraMode);
-    //FIXME: change to standard key listener device
-    controls.keys.onToggleCameraMode = onToggleCameraMode;
-    gameSurface.exitPointerLock();
-    setUseScale(false);
-
-    //@ts-ignore
-    window.controls = controls;
-    minimapSurface.canvas.style.display = "block";
-
-    if (controls.cameraMode === CameraMode.Default) {
-      setUseScale(false);
-      if (cm === CameraMode.Battle) {
-        const t = new Vector3();
-        t.lerpVectors(oldTarget, oldPosition, 0.8);
-        await controls.orbit.setTarget(t.x, 0, t.z, false);
-      } else {
-        await controls.orbit.setTarget(oldTarget.x, 0, oldTarget.z, false);
-      }
-      await constrainControls(controls, minimapMouse, camera, mapWidth, mapHeight);
-      renderer.composerPasses.presetRegularCam();
-      // setUseDepth(false);
-    } else if (controls.cameraMode === CameraMode.Battle) {
-      setUseScale(false);
-      gameSurface.requestPointerLock();
-      await controls.orbit.setTarget(oldTarget.x, 0, oldTarget.z, false);
-      await constrainControlsBattleCam(controls, minimapMouse, camera, mapWidth, mapHeight);
-      renderer.composerPasses.presetBattleCam();
-      // setUseDepth(true);
-    } else if (controls.cameraMode === CameraMode.Overview) {
-      await constrainControlsOverviewCam(controls, minimapMouse, camera, mapWidth, mapHeight);
-      renderer.composerPasses.presetOverviewCam();
-      setUseScale(true);
-      minimapSurface.canvas.style.display = "none";
-    }
-  }
-
-  controls.keys.onToggleCameraMode = onToggleCameraMode;
 
   const projectedCameraView = new ProjectedCameraView(
     camera
@@ -756,32 +762,25 @@ async function TitanReactorGame(
         canvas.width / 2,
         canvas.height / 2
       );
-      if (controls.cameraMode === CameraMode.Battle) {
+
+      ctx.beginPath();
+      ctx.moveTo(...view.tl);
+      ctx.lineTo(...view.tr);
+      ctx.lineTo(...view.br);
+      ctx.lineTo(...view.bl);
+      ctx.lineTo(...view.tl);
+      ctx.stroke();
+      if (controls.PIP.enabled) {
+        const h = 5;
+        const w = h * controls.PIP.camera.aspect;
+        ctx.strokeStyle = pipColor;
         ctx.beginPath();
-        const fov2 = calculateHorizontalFoV(MathUtils.degToRad(camera.getEffectiveFOV()), camera.aspect) / 2;
-        const a = Math.PI - controls.orbit.azimuthAngle;
-        ctx.arc(camera.position.x, camera.position.z, 10, a, a + fov2);
+        ctx.moveTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
+        ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z - h);
+        ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z + h);
+        ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z + h);
+        ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
         ctx.stroke();
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(...view.tl);
-        ctx.lineTo(...view.tr);
-        ctx.lineTo(...view.br);
-        ctx.lineTo(...view.bl);
-        ctx.lineTo(...view.tl);
-        ctx.stroke();
-        if (controls.PIP.enabled) {
-          const h = 5;
-          const w = h * controls.PIP.camera.aspect;
-          ctx.strokeStyle = pipColor;
-          ctx.beginPath();
-          ctx.moveTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
-          ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z - h);
-          ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z + h);
-          ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z + h);
-          ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
-          ctx.stroke();
-        }
       }
       ctx.restore();
 
@@ -798,7 +797,12 @@ async function TitanReactorGame(
       const dat = assets.bwDat.sounds[sound.typeId];
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
 
-      if (controls.cameraMode === CameraMode.Default) {
+      if (controls.cameraMode.soundMode === "spatial") {
+        if (dat.minVolume || camera.position.distanceTo(mapCoords) < SoundPlayMaxDistance) {
+          soundChannels.queue(sound, dat, mapCoords);
+        }
+      }
+      else  {
         const volume = getBwVolume(
           dat,
           mapCoords,
@@ -820,29 +824,13 @@ async function TitanReactorGame(
           soundChannels.queue(classicSound, dat, mapCoords);
         }
       }
-      else {
-        if (dat.minVolume || camera.position.distanceTo(mapCoords) < SoundPlayMaxDistance) {
-          soundChannels.queue(sound, dat, mapCoords);
-        }
-      }
-
+      
     }
   };
 
   const buildCreep = (bwFrame: FrameBW) => {
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
-
-  const units: Map<number, Unit> = new Map();
-  const images: Map<number, Image> = new Map();
-  const freeImages: Image[] = [];
-  janitor.callback(() => {
-    const _janitor = new Janitor();
-    for (const image of freeImages) {
-      _janitor.object3d(image);
-    }
-    _janitor.mopUp();
-  });
 
   const unitsBySprite: Map<number, Unit> = new Map();
   const sprites: Map<number, Group> = new Map();
@@ -914,7 +902,8 @@ async function TitanReactorGame(
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
     // hide addons in battle cam as they look awkward, and overview as it takes too much space
-    if (spriteIsHidden(spriteData) || (controls.cameraMode !== CameraMode.Default && unit && bwDat.units[unit.typeId].isAddon)) {
+    //FIXME: make onShouldHideUnit a global plugin feature 
+    if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.onShouldHideUnit &&  controls.cameraMode.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
     }
 
@@ -934,7 +923,8 @@ async function TitanReactorGame(
       const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
       const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
 
-      if (controls.cameraMode === CameraMode.Battle && bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
+      //FIXME:L make camera shake params more accessible
+      if (controls.cameraMode.cameraShake && bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
         const distance = camera.position.distanceTo(_spritePos);
         if (distance < MaxShakeDistance) {
           const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / MaxShakeDistance) * exp[2];
@@ -1178,8 +1168,8 @@ async function TitanReactorGame(
 
     controls.orbit.getTarget(_cameraTarget);
     controls.orbit.update(delta / 1000);
-    controls.mouse.update(delta / 100, controls, settings, terrain.terrain);
-    controls.keys.update(delta / 100, controls);
+    controls.mouse.update(delta / 100, elapsed);
+    controls.keys.update(delta / 100, elapsed);
     minimapMouse.update(controls);
 
     if (reset) reset();
@@ -1217,13 +1207,7 @@ async function TitanReactorGame(
       creep.creepValuesTexture.needsUpdate = true;
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
-      if (controls.cameraMode === CameraMode.Battle) {
-        audioMixer.updateFromCamera(camera);
-      } else if (controls.cameraMode === CameraMode.Default) {
-        audioMixer.update(_cameraTarget.x, _cameraTarget.y, _cameraTarget.z, delta);
-      } else {
-        audioMixer.update(camera.position.x, camera.position.y, camera.position.z, delta);
-      }
+      controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, audioMixer, camera, _cameraTarget);
       soundChannels.play(elapsed);
 
       if (unitAttackScore.needsUpdate) {
@@ -1305,7 +1289,7 @@ async function TitanReactorGame(
 
 
     {
-      const dir = (controls.cameraMode !== CameraMode.Battle) ? 0 : getDirection32(projectedCameraView.center, camera.position);
+      const dir = getDirection32(projectedCameraView.center, camera.position);
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
@@ -1314,19 +1298,18 @@ async function TitanReactorGame(
         }
       }
 
-      if (controls.cameraMode === CameraMode.Battle) {
+      if (controls.cameraMode.depthOfField) {
         renderer.composerPasses.effects[Effects.DepthOfField].setTarget(projectedCameraView.center);
         renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().adoptCameraSettings(camera);
       }
 
-
-      if (controls.cameraMode === CameraMode.Default) {
-        _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2, 0, -mapHeight / 2 + projectedCameraView.height / 2), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2, 0, mapHeight / 2 - projectedCameraView.height / 2));
-        controls.orbit.setBoundary(_cameraBoundaryBox);
-      }
-
-
     }
+
+    if (controls.cameraMode.boundByMap) {
+      _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2, 0, -mapHeight / 2 + projectedCameraView.height / 2), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2, 0, mapHeight / 2 - projectedCameraView.height / 2));
+      controls.orbit.setBoundary(_cameraBoundaryBox);
+    }
+
 
     renderer.targetSurface = gameSurface;
 
@@ -1362,14 +1345,11 @@ async function TitanReactorGame(
     fogOfWar.update(players.getVisionFlag(), camera);
     renderer.render(scene, camera, delta);
     if (controls.PIP.enabled) {
-      if (controls.cameraMode === CameraMode.Overview) {
-        setUseScale(false);
-      }
+      const scale = ImageHD.useScale;
+      setUseScale(1);
       fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
       renderer.render(scene, controls.PIP.camera, delta, controls.PIP.viewport);
-      if (controls.cameraMode === CameraMode.Overview) {
-        setUseScale(true);
-      }
+      setUseScale(scale);
     }
     plugins.onRender(delta, elapsed);
 
@@ -1422,19 +1402,28 @@ async function TitanReactorGame(
       skipBackward,
       speedUp,
       speedDown,
-      togglePause
+      togglePause,
+      getCurrentFrame: () => currentBwFrame?.frame,
+      gotoFrame: (frame: number) => openBw.call!.setCurrentFrame!(frame),
+      getSpeed: () => openBw.call!.getGameSpeed!(),
+      get orbit() {
+        return controls.orbit
+      },
+      registerHotkey(key: string, fn: Function) {
+        shortcuts.addListener(this.id, key, fn);
+      },
+      clearHotkeys() { shortcuts.clearListeners(this.id) }
     };
 
-    const callableApi = {
-      registerHotkey: (...args: Parameters<PluginKeyShortcuts["addListener"]>) => {
-        shortcuts.addListener(...args)
-      },
-      clearHotkeys: (pluginId: string) => shortcuts.clearListeners(pluginId)
-    }
+    // const callableApi = {
+    //   registerHotkey: (...args: Parameters<PluginKeyShortcuts["addListener"]>) => {
+    //     shortcuts.addListener(...args)
+    //   },
+    //   clearHotkeys: (pluginId: string) => shortcuts.clearListeners(pluginId)
+    // }
 
-    janitor.callback(plugins.inject(api));
-    janitor.callback(plugins.injectCallableWithPluginId(callableApi));
-    // getSpeed, getCurrentFrame, gotoFrame
+    janitor.callback(plugins.injectApi(api));
+    // janitor.callback(plugins.injectCallableWithPluginId(callableApi));
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
   }
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)

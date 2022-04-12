@@ -6,6 +6,35 @@ import App from "./runtime/app.jsx";
 // game state
 export const useStore = create(() => ({}));
 
+// friendly utilities
+const _useReplay = (state) => state.world.replay;
+export const useReplay = () => {
+  return useStore(_useReplay);
+};
+
+const _useMap = (state) => state.world.map;
+export const useMap = () => {
+  return useStore(_useMap);
+};
+
+const _useFrame = (state) => state.frame;
+export const useFrame = () => {
+  return useStore(_useFrame);
+};
+
+
+const _usePlayers = (state) =>
+state.world?.replay?.header?.players 
+export const usePlayers = () => {
+  return useStore(_usePlayers) ?? [];
+};
+
+const _usePlayerFrame = (state) => state.frame.playerData;
+export const usePlayerFrame = () => {
+  const playerData = useStore(_usePlayerFrame);
+  return (id) => getPlayerInfo(id, playerData);
+}
+
 // plugin specific configuration
 const useConfig = create(() => ({}));
 export const usePluginConfig = (pluginId) =>
@@ -45,31 +74,7 @@ const _addPlugin = (plugin) => {
 
 export let assets = {};
 
-// export const createAltColors = (color: string): AltColors => {
-//   let darken = new Color(0.1, 0.1, 0.1);
-//   const test = { h: 0, s: 0, l: 0 };
-//   new Color().setStyle(color).getHSL(test);
 
-//   if (test.l > 0.6) {
-//     darken = new Color(0.2, 0.2, 0.2);
-//   }
-//   const darker = `#${new Color().setStyle(color).sub(darken).getHexString()}`;
-
-//   const hueShift = `#${new Color()
-//     .setStyle(darker)
-//     .offsetHSL(0.01, 0, 0)
-//     .getHexString()}66`;
-//   const lightShift = `#${new Color()
-//     .setStyle(darker)
-//     .offsetHSL(0, 0, 0.1)
-//     .getHexString()}`;
-
-//   return {
-//     darker,
-//     hueShift,
-//     lightShift,
-//   };
-// };
 
 export class RollingNumber {
   constructor(value = 0) {
@@ -192,7 +197,7 @@ class PlayerInfo {
 }
 
 const playerInfo = new PlayerInfo();
-export const getPlayerInfo = (playerId, playerData) => {
+const getPlayerInfo = (playerId, playerData) => {
   playerInfo.playerData = playerData;
   playerInfo.playerId = playerId;
   return playerInfo;
