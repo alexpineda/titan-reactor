@@ -36,9 +36,6 @@ export const defaultSettings: Settings = {
       truckRight: "ArrowRight",
       forward: "ArrowUp",
       backward: "ArrowDown",
-      zoomIn: "NumpadAdd",
-      zoomOut: "NumpadSubtract",
-      helicopterRotateSpeed: 0.9,
     }
   },
   plugins: {

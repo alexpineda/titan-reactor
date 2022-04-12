@@ -1,10 +1,11 @@
 import "../reset.css";
 import "../mui.min.css";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { Container, Button, Tabs, Tab, Divider } from "muicss/react";
 import search from "libnpmsearch";
 import semver from "semver";
+import { debounce } from "lodash";
 
 import { InitializedPluginPackage } from "common/types";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
@@ -24,26 +25,28 @@ if (module.hot) {
   module.hot.accept();
 }
 
-const onChange = async (pluginId: string, config: any) => {
+const onChange = debounce(async (pluginId: string, config: any) => {
   updatePluginsConfig(pluginId, config);
-};
+}, 100);
 
 const LIMIT = 1000;
 const RESTART_REQUIRED = "Restart required for new settings to take effect";
-const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
+// const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
 const SEARCH_COMMUNITY = "@titan-reactor-plugins";
 
 const searchPackages = async (cb: (val: search.Result[]) => void) => {
   const communityPackages = await search(SEARCH_COMMUNITY, {
     limit: LIMIT,
   });
-  const publicPackages = (
-    await search(SEARCH_KEYWORDS, {
-      limit: LIMIT,
-    })
-  ).filter((pkg) => !communityPackages.some((p) => p.name === pkg.name));
 
-  const results = [...communityPackages, ...publicPackages];
+  // TOOD: enable public packages once we properly sandbox
+  // const publicPackages =  (
+  //   await search(SEARCH_KEYWORDS, {
+  //     limit: LIMIT,
+  //   })
+  // ).filter((pkg) => !communityPackages.some((p) => p.name === pkg.name));
+
+  const results = [...communityPackages];
   cb(results);
 };
 

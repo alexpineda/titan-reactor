@@ -32,6 +32,10 @@ export class PluginKeyShortcuts {
         }
     }
 
+    removeListener(fn: Function) {
+        this.#listeners = this.#listeners.filter(l => l.fn !== fn);
+    }
+
     clearListeners(pluginId: string) {
         this.#listeners = this.#listeners.filter(l => l.pluginId !== pluginId);
     }

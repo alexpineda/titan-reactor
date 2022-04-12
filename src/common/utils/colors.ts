@@ -4,5 +4,5 @@ import { PlayerColor } from "../types/colors";
 export const buildPlayerColor = (color: string, id: number): PlayerColor => ({
   playerId: id,
   hex: color,
-  three: new Color().setStyle(color),
+  three: new Color().setStyle(color).convertSRGBToLinear(),
 });

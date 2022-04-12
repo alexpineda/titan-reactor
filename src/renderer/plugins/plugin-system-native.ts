@@ -9,7 +9,7 @@ import { HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_TERRAIN_GENERATED, H
 import { CameraModePlugin } from "renderer/input/camera-mode";
 import gameStore from "@stores/game-store";
 
-type NativePlugin = {
+export type NativePlugin = {
     id: string;
     name: string;
     isEnabled: boolean;
@@ -19,7 +19,9 @@ type NativePlugin = {
     onBeforeRender?: (delta: number, elapsed: number) => void;
     onRender?: (delta: number, elapsed: number) => void;
     config: {
-        cameraModeKey?: {}
+        cameraModeKey?: {
+            value: string
+        }
     };
 }
 
@@ -145,6 +147,10 @@ export class PluginSystemNative {
         }
 
         throw new Error("No camera mode plugin found");
+    }
+
+    getCameraModePlugins() {
+        return this.#nativePlugins.filter(p => p.config.cameraModeKey) as CameraModePlugin[];
     }
 
     sendCustomUIMessage(pluginId: string, message: any) {

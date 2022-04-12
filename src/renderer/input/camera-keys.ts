@@ -11,7 +11,6 @@ export class CameraKeys {
     #el: HTMLElement;
     #move = new Vector2();
     #janitor: Janitor;
-    #dolly = 0;
 
     #cameraMode: CameraModePlugin;
 

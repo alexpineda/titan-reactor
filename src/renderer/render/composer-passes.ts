@@ -33,6 +33,8 @@ export enum Effects {
   SMAA,
   FogOfWar,
   Bloom,
+  ToneMapping,
+  ToneMappingCinematic
 };
 
 //https://github.com/vanruesc/postprocessing/wiki/Skinned-and-Instanced-Meshes
@@ -53,8 +55,7 @@ export const createPasses = () => {
   });
 
   const fogEffect = effects[Effects.FogOfWar] = new FogOfWarEffect();
-  const toneMapping = new ToneMappingEffect({ mode: ToneMappingMode.ACES_FILMIC });
-  const toneMappingCinema = new ToneMappingEffect({ mode: ToneMappingMode.OPTIMIZED_CINEON });
+  const toneMappingCinema = effects[Effects.ToneMappingCinematic] = new ToneMappingEffect({ mode: ToneMappingMode.OPTIMIZED_CINEON });
 
   const bloomEffect = effects[Effects.Bloom] = new BloomEffect({
     luminanceThreshold: 0.9,
@@ -73,7 +74,7 @@ export const createPasses = () => {
     toneMappingCinema
   );
   passes[Passes.Bloom] = new EffectPass(throwAwayCamera, bloomEffect);
-  passes[Passes.Regular] = new EffectPass(throwAwayCamera, fogEffect, toneMapping);
+  passes[Passes.Regular] = new EffectPass(throwAwayCamera, fogEffect);
 
   const enable = (...whichOnes: Passes[]) => {
     let i = 0;

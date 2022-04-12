@@ -77,6 +77,10 @@ export const getDefaultCameraModePlugin = () => {
     return nativePluginSystem.getDefaultCameraModePlugin();
 }
 
+export const getCameraModePlugins = () => {
+    return nativePluginSystem.getCameraModePlugins();
+}
+
 export const onGameDisposed = () => {
     uiPluginSystem.reset();
     nativePluginSystem.callHook("onGameDisposed");
