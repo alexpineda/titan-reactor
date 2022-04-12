@@ -1,8 +1,9 @@
 import { BwDAT, UnitStruct } from "common/types";
 import { UnitFlags, unitTypes, iscriptHeaders } from "common/enums";
 import UnitsBufferView from "../buffer-view/units-buffer-view";
+import { Unit } from "@core/unit";
 
-export const isCloaked = (unit: UnitStruct) => {
+export const unitIsCloaked = (unit: UnitStruct) => {
   return (
     ((unit.statusFlags & UnitFlags.Cloaked) != 0 ||
       (unit.statusFlags & UnitFlags.PassivelyCloaked) != 0) &&
@@ -10,8 +11,8 @@ export const isCloaked = (unit: UnitStruct) => {
   );
 }
 
-export const isFlying = (unit: UnitStruct) => {
-  return unit.statusFlags & UnitFlags.Flying
+export const unitIsFlying = (unit: Unit) => {
+  return  Boolean(unit.statusFlags & UnitFlags.Flying);
 }
 
 export const getAngle = (direction: number) => {
@@ -21,7 +22,7 @@ export const getAngle = (direction: number) => {
   return direction * Math.PI / 128.0;
 }
 
-export const isAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
+export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
   if (u.orderTargetAddr === 0 || u.orderTargetUnit === 0) return undefined;
   const unit = u.subunit && bwDat.units[u.subunit.typeId].isTurret ? u.subunit : u;
   switch (unit.owSprite.mainImage.iscriptAnimation) {

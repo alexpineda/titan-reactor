@@ -141,16 +141,16 @@ export class UnitsBufferView extends FlingyBufferView
         return this._bw.HEAPU32[this._index32 + 69];
     }
 
-    // 	const order_type_t *secondary_order_type;
-    // 	int damage_overlay_state;
-    // 	fp8 hp_construction_rate;
-    // 	fp8 shield_construction_rate;
-    // 	int remaining_build_time;
-    // 	int previous_hp;
-    // 	std::array<unit_id, 8> loaded_units; 4 wide
+    // 	const order_type_t *secondary_order_type; 70
+    // 	int damage_overlay_state; 71
+    // 	fp8 hp_construction_rate; 72
+    // 	fp8 shield_construction_rate; 73
+    // 	int remaining_build_time; 74
+    // 	int previous_hp; 75
+    // 	std::array<unit_id, 8> loaded_units; 4 wide 83
 
     get statusFlags() {
-        return this._bw.HEAP32[this._index32 + 88];
+        return this._bw.HEAP32[this._index32 + 113];
     }
 
 

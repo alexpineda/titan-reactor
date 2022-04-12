@@ -42,7 +42,7 @@ import renderer from "./render/renderer";
 import {
   useSettingsStore, useWorldStore,
 } from "./stores";
-import { hasDirectionalFrames, isClickable, isFlipped, isHidden, redraw } from "./utils/image-utils";
+import { imageHasDirectionalFrames, imageIsClickable, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
@@ -67,6 +67,7 @@ import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
+import { unitIsFlying } from "@utils/unit-utils";
 
 CameraControls.install({ THREE: THREE });
 
@@ -840,17 +841,17 @@ async function TitanReactorGame(
 
   scene.add(spritesGroup);
 
-  const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlyer?: boolean) => {
+  const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlying?: boolean) => {
     const spriteX = pxToGameUnit.x(x);
     const spriteZ = pxToGameUnit.y(y);
     let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-    const flyingY = isFlyer ? 5.5 : spriteY;
+    const flyingY = isFlying ? 5.5 : spriteY;
 
     v2.set(spriteX, spriteZ);
     v.set(spriteX, flyingY, spriteZ);
   }
-  const calcSpriteCoords = (sprite: SpritesBufferView, v: Vector3, v2: Vector2, isFlyer?: boolean) => {
-    calcSpriteCoordsXY(sprite.x, sprite.y, v, v2, isFlyer);
+  const calcSpriteCoords = (sprite: SpritesBufferView, v: Vector3, v2: Vector2, isFlying?: boolean) => {
+    calcSpriteCoordsXY(sprite.x, sprite.y, v, v2, isFlying);
   }
   const _spritePos = new Vector3();
   const _spritePos2d = new Vector2();
@@ -912,7 +913,7 @@ async function TitanReactorGame(
 
     const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
 
-    calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit?.extra.dat.isFlyer);
+    calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
 
     const player = players.playersById[spriteData.owner];
@@ -986,7 +987,7 @@ async function TitanReactorGame(
         image = createImage(imageData.typeId);
         images.set(imageData.index, image);
       }
-      image.visible = spriteIsVisible && !isHidden(imageData as ImageStruct);
+      image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
 
       if (image.visible) {
         if (player) {
@@ -995,16 +996,16 @@ async function TitanReactorGame(
 
         image.position.x = imageData.x / 32;
         image.position.z = 0;
-        image.position.y = -imageData.y / 32;
+        // flying building or drone, don't use 2d offset
+        image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (image.dat.drawFunction === drawFunctions.rleShadow) {
+        if (image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
-          if (unit && bwDat.units[unit.typeId].isFlyer) {
-            image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
-          }
+          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
+
           image.rotation.copy(sprite.rotation);
           image.renderOrder = spriteRenderOrder - 1;
           if (image.parent !== spritesGroup) {
@@ -1029,8 +1030,8 @@ async function TitanReactorGame(
         //FIXME: use modifier 1 for opacity value
         image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
 
-        if (hasDirectionalFrames(imageData as ImageStruct)) {
-          const flipped = isFlipped(imageData as ImageStruct);
+        if (imageHasDirectionalFrames(imageData as ImageStruct)) {
+          const flipped = imageIsFlipped(imageData as ImageStruct);
           const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
           const newFrameOffset = (direction + camera.userData.direction) % 32;
 
@@ -1040,7 +1041,7 @@ async function TitanReactorGame(
             image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
           }
         } else {
-          image.setFrame(imageData.frameIndex, isFlipped(imageData as ImageStruct));
+          image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
         }
 
         if (imageData.index === spriteData.mainImageIndex) {
@@ -1051,12 +1052,12 @@ async function TitanReactorGame(
             // image.rotation.y = unit.angle;
           }
 
-          if (isClickable(imageData as ImageStruct)) {
+          if (imageIsClickable(imageData as ImageStruct)) {
             image.layers.enable(Layers.Clickable);
           }
         }
 
-        if (redraw(imageData as ImageStruct)) {
+        if (imageNeedsRedraw(imageData as ImageStruct)) {
           image.updateMatrix();
         }
       }
@@ -1426,6 +1427,7 @@ async function TitanReactorGame(
     janitor.callback(plugins.injectApi(api));
 
     plugins.getCameraModePlugins().forEach((cameraMode) => {
+      console.log("registering camera mode", cameraMode.name, cameraMode.config.cameraModeKey!.value);
       const _toggleCallback = async () => {
         controls = await onToggleCameraMode(cameraMode, controls.cameraMode);
       }
