@@ -268,7 +268,7 @@ CameraControls [documentation may be found here](https://github.com/yomotsu/came
 ## Game Time APIs
 When a game is started apis are made available to your plugin for that instance of the game.
 
-Since this api is in very active development please refer to the source code for the time being.
+Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/view-replay.ts#L1395) for the time being.
 
 Take special care not to keep references to objects from the game instance. Dereference any values via the `onGameDisposed` callback.
 
