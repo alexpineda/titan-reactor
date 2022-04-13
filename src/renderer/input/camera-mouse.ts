@@ -17,8 +17,10 @@ export class CameraMouse {
     #mouseScrollY = 0;
     #clicked?: Vector3;
     #mouse = new Vector3(0, 0, -1)
+    #clientX = 0;
+    #clientY = 0;
+
     #cameraMode: CameraModePlugin;
-    enabled = true;
 
     direction = new Vector3();
 
@@ -42,6 +44,9 @@ export class CameraMouse {
         const onMouseMove = (evt: MouseEvent) => {
             const x = evt.clientX / window.innerWidth;
             const y = evt.clientY / window.innerHeight;
+
+            this.#clientX = evt.clientX;
+            this.#clientY = evt.clientY;
 
             if (x < 0.01 && x > -0.01) {
                 this.#screenDrag.x = -1;
@@ -93,7 +98,7 @@ export class CameraMouse {
 
     update(delta: number, elapsed: number) {
 
-        this.#cameraMode.onCameraMouseUpdate && this.#cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clicked);
+        this.#cameraMode.onCameraMouseUpdate && this.#cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
 
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;

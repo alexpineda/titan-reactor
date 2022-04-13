@@ -9,6 +9,7 @@ import {
   ClearPass
 }
   from "postprocessing";
+import { CameraModePlugin } from "renderer/input/camera-mode";
 
 import {
   Camera,
@@ -97,19 +98,8 @@ export const createPasses = () => {
     passes,
     effects,
 
-    //TODO: remove these into camera mode plugin settings
-    presetRegularCam() {
-      fogEffect.blendMode.opacity.value = 1;
-      enable(Passes.Render, Passes.Regular);
-    },
-
-    presetBattleCam() {
-      fogEffect.blendMode.opacity.value = 0.2;
-      enable(Passes.Render, Passes.Cinematic);
-    },
-
-    presetOverviewCam() {
-      fogEffect.blendMode.opacity.value = 0.7;
+    setCameraModePostProcessing(cameraMode: CameraModePlugin) {
+      fogEffect.blendMode.opacity.value = cameraMode.fogOfWar;
       enable(Passes.Render, Passes.Regular);
     },
 

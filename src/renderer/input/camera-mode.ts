@@ -14,6 +14,8 @@ export interface CameraModePlugin extends NativePlugin {
     unitScale?: number;
     maxSoundDistance?: number;
     soundMode: "classic" | "spatial";
+    background?: "tiles" | "space";
+    fogOfWar: number;
     orbit?: CameraControls;
 
     dispose: () => void;
@@ -22,7 +24,7 @@ export interface CameraModePlugin extends NativePlugin {
 
     onExitCameraMode?: (target: Vector3, position: Vector3) => void;
 
-    onCameraMouseUpdate?: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clicked?: Vector3) => void;
+    onCameraMouseUpdate?: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3) => void;
 
     onCameraKeyboardUpdate?: (delta: number, elapsed: number, truck: Vector2) => void;
 

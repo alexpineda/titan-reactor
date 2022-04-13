@@ -14,8 +14,6 @@ export class CameraKeys {
 
     #cameraMode: CameraModePlugin;
 
-    enabled = true;
-
     onFocusPress?: () => void;
 
     constructor(el: HTMLElement, settings: Settings, cameraMode: CameraModePlugin) {
@@ -62,12 +60,7 @@ export class CameraKeys {
     }
 
     update(delta: number, elapsed: number) {
-        if (!this.enabled) return;
-
         this.#cameraMode.onCameraKeyboardUpdate && this.#cameraMode.onCameraKeyboardUpdate(delta, elapsed, this.#move);
-        this.#move.x = 0;
-        this.#move.y = 0;
-
     }
 
     dispose() {

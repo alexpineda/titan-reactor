@@ -2,6 +2,7 @@ import path from "path";
 import {
   CubeTextureLoader,
   DirectionalLight,
+  Group,
   HemisphereLight,
   Mesh,
   MeshBasicMaterial,
@@ -39,10 +40,11 @@ function sunlight(mapWidth: number, mapHeight: number) {
 }
 
 export class Scene extends ThreeScene {
-  private _mapWidth: number;
-  private _mapHeight: number;
-  private _janitor: Janitor;
-  private _skybox: Texture;
+  #mapWidth: number;
+  #mapHeight: number;
+  #janitor: Janitor;
+  #skybox: Texture;
+  #tiles: Group;
 
   constructor({
     mapWidth,
@@ -50,17 +52,16 @@ export class Scene extends ThreeScene {
     terrain,
   }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "terrain" | "tileset">) {
     super();
-    this._mapHeight = mapHeight;
-    this._mapWidth = mapWidth;
+    this.#mapHeight = mapHeight;
+    this.#mapWidth = mapWidth;
 
-    this._janitor = new Janitor();
+    this.#janitor = new Janitor();
     this.addLights();
     this.addTerrain(terrain);
-    this._skybox = this.skybox("sparse");
-
-    //TODO: move to init() async
-    callHook("onTerrainGenerated", this, terrain, mapWidth, mapHeight);
-    // this.enableSkybox();
+    this.#skybox = this.skybox("sparse");
+    this.#tiles = new Group();
+    this.#tiles.visible = false;
+    this.add(this.#tiles);
 
     const edgeMaterial = new MeshBasicMaterial({
       map: (terrain.material as MeshStandardMaterial).map
@@ -74,7 +75,7 @@ export class Scene extends ThreeScene {
     bc.rotation.x = -Math.PI / 2;
     bc.position.set(0, 0, mapHeight);
     bc.scale.setY(-1);
-    this.add(bc);
+    this.#tiles.add(bc);
 
     const br = new Mesh();
     br.geometry = terrain.geometry;
@@ -83,7 +84,7 @@ export class Scene extends ThreeScene {
     br.position.set(mapWidth, 0, mapHeight);
     br.scale.setY(-1);
     br.scale.setX(-1);
-    this.add(br)
+    this.#tiles.add(br)
 
     const bl = new Mesh();
     bl.geometry = terrain.geometry;
@@ -92,7 +93,7 @@ export class Scene extends ThreeScene {
     bl.position.set(-mapWidth, 0, mapHeight);
     bl.scale.setY(-1);
     bl.scale.setX(-1);
-    this.add(bl)
+    this.#tiles.add(bl)
 
 
     const tc = new Mesh();
@@ -101,7 +102,7 @@ export class Scene extends ThreeScene {
     tc.rotation.x = -Math.PI / 2;
     tc.position.set(0, 0, -mapHeight);
     tc.scale.setY(-1);
-    this.add(tc);
+    this.#tiles.add(tc);
 
     const tr = new Mesh();
     tr.geometry = terrain.geometry;
@@ -110,7 +111,7 @@ export class Scene extends ThreeScene {
     tr.position.set(mapWidth, 0, -mapHeight);
     tr.scale.setY(-1);
     tr.scale.setX(-1);
-    this.add(tr)
+    this.#tiles.add(tr)
 
     const tl = new Mesh();
     tl.geometry = terrain.geometry;
@@ -119,7 +120,7 @@ export class Scene extends ThreeScene {
     tl.position.set(-mapWidth, 0, -mapHeight);
     tl.scale.setY(-1);
     tl.scale.setX(-1);
-    this.add(tl)
+    this.#tiles.add(tl)
 
     const l = new Mesh();
     l.geometry = terrain.geometry;
@@ -127,7 +128,7 @@ export class Scene extends ThreeScene {
     l.rotation.x = -Math.PI / 2;
     l.position.set(-mapWidth, 0, 0);
     l.scale.setX(-1);
-    this.add(l)
+    this.#tiles.add(l)
 
     const r = new Mesh();
     r.geometry = terrain.geometry;
@@ -135,7 +136,7 @@ export class Scene extends ThreeScene {
     r.rotation.x = -Math.PI / 2;
     r.position.set(mapWidth, 0, 0);
     r.scale.setX(-1);
-    this.add(r)
+    this.#tiles.add(r)
   }
 
   private addLights() {
@@ -144,7 +145,7 @@ export class Scene extends ThreeScene {
 
     const lights = [
       hemilight
-      , sunlight(this._mapWidth, this._mapHeight)
+      , sunlight(this.#mapWidth, this.#mapHeight)
     ]
     lights.forEach(light => {
       this.add(light)
@@ -173,7 +174,15 @@ export class Scene extends ThreeScene {
   }
 
   enableSkybox() {
-    this.background = this._skybox;
+    this.background = this.#skybox;
+  }
+
+  enableTiles() {
+    this.#tiles.visible = true;
+  }
+
+  disableTiles() {
+    this.#tiles.visible = false;
   }
 
   addTerrain(
@@ -181,7 +190,7 @@ export class Scene extends ThreeScene {
   ) {
     this.userData = { terrain };
     this.add(terrain);
-    this._janitor.object3d(terrain);
+    this.#janitor.object3d(terrain);
 
   }
 
@@ -198,8 +207,8 @@ export class Scene extends ThreeScene {
   }
 
   dispose() {
-    this._skybox.dispose();
-    this._janitor.mopUp();
+    this.#skybox.dispose();
+    this.#janitor.mopUp();
   }
 }
 export default Scene;

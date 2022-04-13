@@ -142,8 +142,6 @@ async function TitanReactorGame(
     prevDirection: -1
   };
 
-  renderer.composerPasses.presetRegularCam();
-
   const minimapMouse = new MinimapMouse(
     minimapSurface,
     mapWidth,
@@ -151,16 +149,32 @@ async function TitanReactorGame(
   );
   janitor.disposable(minimapMouse);
 
-  const _PIP = {
+  const _PIP: {
+    camera: PerspectiveCamera,
+    enabled: boolean,
+    viewport: Vector4,
+    margin: number,
+    height: number,
+    position?: Vector2
+    update: () => void
+  } = {
     enabled: false,
     camera: new PerspectiveCamera(15, 1, 0.1, 1000),
     viewport: new Vector4(0, 0, 300, 200),
-    setSize: (renderWidth: number, aspect: number) => {
-      // FIXME: add a setting for pip size
-      const pipHeight = 300;
-      const pipWidth = pipHeight * aspect;
-      const margin = 20;
-      _PIP.viewport.set(renderWidth - pipWidth - margin, margin, pipWidth, pipHeight);
+    margin: 20,
+    height: 300,
+    update() {
+      const aspect = camera.aspect;
+
+      const pipWidth = this.height * aspect;
+      if (this.position) {
+        const x = this.position.x - pipWidth / 2;
+        const y = window.innerHeight - this.position.y - (this.height / 2);
+        _PIP.viewport.set(MathUtils.clamp(x, 0, gameSurface.scaledWidth - pipWidth), MathUtils.clamp(y, 0, window.innerHeight - this.height), pipWidth, this.height);
+      } else {
+        _PIP.viewport.set(gameSurface.scaledWidth - pipWidth - this.margin, this.margin, pipWidth, this.height);
+      }
+
       _PIP.camera.aspect = aspect;
       _PIP.camera.updateProjectionMatrix();
     }
@@ -300,8 +314,15 @@ async function TitanReactorGame(
       })
     }
 
-    //TODO: build post processing chain based on config
-    renderer.composerPasses.presetRegularCam();
+    scene.disableSkybox();
+    scene.disableTiles();
+    if (cameraMode.background === "space") {
+      scene.enableSkybox();
+    } else if (cameraMode.background === "tiles") {
+      scene.enableTiles();
+    }
+
+    renderer.composerPasses.setCameraModePostProcessing(cameraMode);
 
     return newControls;
   }
@@ -322,9 +343,6 @@ async function TitanReactorGame(
   //     }
   //   }
   // }
-
-
-
 
   const projectedCameraView = new ProjectedCameraView(
     camera
@@ -438,9 +456,7 @@ async function TitanReactorGame(
       rect.minimapHeight,
     );
 
-    controls.PIP.setSize(gameSurface.scaledWidth, camera.aspect)
-    projectedCameraView.update();
-
+    controls.PIP.update();
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 100);
@@ -669,7 +685,6 @@ async function TitanReactorGame(
   const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
 
   const drawMinimap = (() => {
-    const color = "white";
     const pipColor = "#aaaaaa"
 
     let _generatingMinimapFog = false;
@@ -1155,7 +1170,6 @@ async function TitanReactorGame(
   let _lastElapsed = 0;
   let delta = 0;
 
-  projectedCameraView.update();
   // const cmds = commandsStream.generate();
 
   const _stepperListener = (evt: KeyboardEvent) => {
@@ -1177,6 +1191,8 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
+    projectedCameraView.update();
+
     controls.orbit.getTarget(_cameraTarget);
     controls.orbit.getPosition(_cameraPosition);
     controls.orbit.update(delta / 1000);
@@ -1188,7 +1204,6 @@ async function TitanReactorGame(
 
     if (!gameStatePosition.paused) {
       if (!currentBwFrame) {
-        projectedCameraView.update();
 
         currentBwFrame = gameStateReader.next();
         if (!currentBwFrame || gameStatePosition.mode == GameStatePlayMode.SingleStep) {
@@ -1348,7 +1363,6 @@ async function TitanReactorGame(
 
     //   cameras.setTarget(x, getTerrainY(x, z), z, true);
     // }
-    projectedCameraView.update();
     gameStatePosition.update(delta);
     drawMinimap(projectedCameraView);
 
@@ -1438,6 +1452,19 @@ async function TitanReactorGame(
         controls.PIP.enabled = true;
         controls.PIP.camera.position.set(x, controls.PIP.camera.position.y, z);
         controls.PIP.camera.lookAt(x, 0, z);
+      },
+      setPipDimensions(position?: Vector2, height?: number) {
+        if (position) {
+          controls.PIP.position = position;
+        } else {
+          delete controls.PIP.position;
+        }
+
+        if (height) {
+          controls.PIP.height = height;
+        }
+
+        controls.PIP.update();
       },
       pipHide() {
         controls.PIP.enabled = false;
