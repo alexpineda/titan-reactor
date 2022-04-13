@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
+import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
 import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
@@ -11,7 +11,6 @@ import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo
 } from "common/types";
-import { buildPlayerColor } from "common/utils/colors";
 import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
 import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
 import type { MainMixer, Music, SoundChannels } from "./audio";
@@ -50,7 +49,7 @@ import { getDirection32, setBoundary } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
@@ -61,12 +60,12 @@ import gameStore from "./stores/game-store";
 import { useChatStore } from "./stores/chat-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
-import type { Scene } from "./render/scene";
+import { Scene } from "./render/scene";
 import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 
@@ -119,6 +118,9 @@ async function TitanReactorGame(
   }
 
   const { mapWidth, mapHeight } = terrain;
+
+  const cssScene = new ThreeScene();
+  const cssRenderer = new CSS2DRenderer();
 
   const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -191,7 +193,7 @@ async function TitanReactorGame(
     const cameraMouse = new CameraMouse(document.body, cameraMode);
     janitor.disposable(cameraMouse);
 
-    const cameraKeys = new CameraKeys(window.document.body, settings, cameraMode);
+    const cameraKeys = new CameraKeys(document.body, settings, cameraMode);
     janitor.disposable(cameraKeys);
 
     const cameraShake = new CameraShake();
@@ -355,11 +357,8 @@ async function TitanReactorGame(
 
   const updatePlayerColors = (replay: Replay) => {
     return replay.header.players.map(
-      ({ id, color }) =>
-        buildPlayerColor(
-          color,
-          id
-        )
+      ({ color }) =>
+        new Color().setStyle(color).convertSRGBToLinear()
     );
   }
 
@@ -500,7 +499,7 @@ async function TitanReactorGame(
     if (isResourceContainer) {
       color = resourceColor;
     } else if (unit.extras.player) {
-      color = unit.extras.recievingDamage & 1 ? flashColor : unit.extras.player.color.three;
+      color = unit.extras.recievingDamage & 1 ? flashColor : unit.extras.player.color;
     } else {
       return;
     }
@@ -668,7 +667,7 @@ async function TitanReactorGame(
         if (unit.extras.player) {
 
           unit.extras.highlight.position.set(mx, terrain.getTerrainY(mx, my), my);
-          (unit.extras.highlight.material as MeshBasicMaterial).color.set(unit.extras.player.color.three);
+          (unit.extras.highlight.material as MeshBasicMaterial).color.set(unit.extras.player.color);
         }
         // if (unitData.order == orders.die) {
         //   unit.extra.timeOfDeath = Date.now();
@@ -1016,7 +1015,7 @@ async function TitanReactorGame(
 
       if (image.visible) {
         if (player) {
-          image.setTeamColor(player.color.three);
+          image.setTeamColor(player.color);
         }
 
         image.position.x = imageData.x / 32;
@@ -1049,7 +1048,6 @@ async function TitanReactorGame(
         if (imageData.modifier === 14) {
           image.setWarpingIn((imageData.modifierData1 - 48) / 15);
         } else {
-          //FIXME: see if we even need this
           image.setWarpingIn(0);
         }
         //FIXME: use modifier 1 for opacity value
@@ -1071,7 +1069,6 @@ async function TitanReactorGame(
 
         if (imageData.index === spriteData.mainImageIndex) {
 
-          // const z = image._zOff * image.unitTileScale;
           if (unit) {
             // for 3d models
             // image.rotation.y = unit.angle;
@@ -1086,9 +1083,6 @@ async function TitanReactorGame(
           image.updateMatrix();
         }
       }
-      //FIXME: is this the reason for overlays displaying in 0,0?
-      // sprite.position.z += z - sprite.lastZOff;
-      // sprite.lastZOff = z;
       imageCounter++;
     }
   }
@@ -1203,7 +1197,10 @@ async function TitanReactorGame(
     controls.keys.update(delta / 100, elapsed);
     minimapMouse.update(controls);
 
-    if (reset) reset();
+    if (reset) {
+      reset();
+      plugins.callHook(HOOK_ON_FRAME_RESET);
+    }
 
     if (!gameStatePosition.paused) {
       if (!currentBwFrame) {
@@ -1316,6 +1313,9 @@ async function TitanReactorGame(
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
       plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9));
+      if (cssScene.children.length) {
+        cssRenderer.render(cssScene, camera);
+      }
       currentBwFrame = null;
     }
 
@@ -1340,32 +1340,8 @@ async function TitanReactorGame(
       controls.orbit.setBoundary(_cameraBoundaryBox);
     }
 
-
     renderer.targetSurface = gameSurface;
 
-    // if (players[0].showPov && players[1].showPov) {
-    //   players.forEach(({ camera }) => {
-    //     renderMan.renderSplitScreen(scene, camera, camera.viewport);
-    //   });
-    // } else if (players[0].showPov) {
-    //   renderMan.render(scene, players[0].camera, delta);
-    // } else if (players[1].showPov) {
-    //   renderMan.render(scene, players[1].camera, delta);
-    // } else {
-    // if (units.followingUnit && units.selected.length) {
-    //   const x =
-    //     units.selected.reduce(
-    //       (sum, unit) => sum + unit.getWorldPosition().x,
-    //       0
-    //     ) / units.selected.length;
-    //   const z =
-    //     units.selected.reduce(
-    //       (sum, unit) => sum + unit.getWorldPosition().z,
-    //       0
-    //     ) / units.selected.length;
-
-    //   cameras.setTarget(x, getTerrainY(x, z), z, true);
-    // }
     gameStatePosition.update(delta);
     drawMinimap(projectedCameraView);
 
@@ -1382,6 +1358,7 @@ async function TitanReactorGame(
       renderer.render(scene, controls.PIP.camera, delta, controls.PIP.viewport);
       setUseScale(scale);
     }
+
     plugins.onRender(delta, elapsed);
 
   };
@@ -1423,6 +1400,9 @@ async function TitanReactorGame(
 
     const api = {
       isInGame: true,
+      scene,
+      cssScene,
+      assets,
       toggleFogOfWarByPlayerId,
       unitsIterator,
       projectedCameraView,
@@ -1431,6 +1411,7 @@ async function TitanReactorGame(
       speedUp,
       speedDown,
       togglePause,
+      pxToGameUnit,
       terrain: {
         tileset: terrain.tileset,
         mapWidth: terrain.mapWidth,
@@ -1439,7 +1420,10 @@ async function TitanReactorGame(
         getMapCoords: terrain.getMapCoords,
         terrain: terrain.terrain
       },
-      getCurrentFrame: () => currentBwFrame?.frame,
+      get frame() {
+        return currentBwFrame?.frame;
+      },
+      maxFrame: replay.header.frameCount,
       gotoFrame: (frame: number) => openBw.call!.setCurrentFrame!(frame),
       getSpeed: () => openBw.call!.getGameSpeed!(),
       registerHotkey(key: string, fn: Function) {
@@ -1495,7 +1479,6 @@ async function TitanReactorGame(
       janitor.callback(() => shortcuts.removeListener(_toggleCallback));
 
     });
-
 
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
   }

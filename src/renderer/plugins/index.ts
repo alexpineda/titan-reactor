@@ -12,7 +12,7 @@ import {
 import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
-import  { useScreenStore } from "@stores/screen-store";
+import { useScreenStore } from "@stores/screen-store";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -40,9 +40,8 @@ ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
-    useScreenStore.setState({error: new Error(`Error installing default plugins`)});
+    useScreenStore.setState({ error: new Error(`Error installing default plugins`) });
 });
-
 
 const _messageListener = function (event: MessageEvent) {
     if (event.data.type === "system:custom-message") {
@@ -70,7 +69,7 @@ export const onClick = (event: MouseEvent) => {
 
 export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) => {
     uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
-    // nativePluginSystem.onFrame()
+    nativePluginSystem.onFrame();
 }
 
 export const getDefaultCameraModePlugin = () => {
@@ -81,22 +80,8 @@ export const getCameraModePlugins = () => {
     return nativePluginSystem.getCameraModePlugins();
 }
 
-export const onGameDisposed = () => {
-    uiPluginSystem.reset();
-    nativePluginSystem.callHook("onGameDisposed");
-}
-
 export const callHook = (...args: Parameters<PluginSystemNative["callHook"]>) => {
     nativePluginSystem.callHook(...args);
-}
-
-// optimized
-export const onBeforeRender = (delta: number, elapsed: number) => {
-    nativePluginSystem.onBeforeRender(delta, elapsed);
-}
-
-export const onRender = (delta: number, elapsed: number) => {
-    nativePluginSystem.onRender(delta, elapsed);
 }
 
 export const callHookAsync = async (...args: Parameters<PluginSystemNative["callHookAsync"]>) => {
@@ -106,6 +91,7 @@ export const callHookAsync = async (...args: Parameters<PluginSystemNative["call
 export const injectApi = (...args: Parameters<PluginSystemNative["injectApi"]>) => {
     return nativePluginSystem.injectApi(...args);
 }
+
 export const installPluginLocal = async (repository: string) => {
     const pluginPackage = await installPlugin(repository);
     if (pluginPackage) {
@@ -114,3 +100,20 @@ export const installPluginLocal = async (repository: string) => {
         return null;
     }
 }
+
+/**
+ * We don't use the generic callHook here in order to reduce object allocation
+ */
+export const onGameDisposed = () => {
+    uiPluginSystem.reset();
+    nativePluginSystem.callHook("onGameDisposed");
+}
+
+export const onBeforeRender = (delta: number, elapsed: number) => {
+    nativePluginSystem.onBeforeRender(delta, elapsed);
+}
+
+export const onRender = (delta: number, elapsed: number) => {
+    nativePluginSystem.onRender(delta, elapsed);
+}
+

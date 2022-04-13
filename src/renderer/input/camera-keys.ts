@@ -14,8 +14,6 @@ export class CameraKeys {
 
     #cameraMode: CameraModePlugin;
 
-    onFocusPress?: () => void;
-
     constructor(el: HTMLElement, settings: Settings, cameraMode: CameraModePlugin) {
         this.#el = el;
         this.#janitor = new Janitor();
@@ -51,9 +49,6 @@ export class CameraKeys {
             if (testKeys(e, settings.controls.camera.truckLeft) || testKeys(e, settings.controls.camera.truckRight)) {
                 this.#move.x = 0;
             }
-
-            // todo support ESCAPE as default camera mode escape key
-
         }
         this.#el.addEventListener("keyup", keyUp);
         this.#janitor.callback(() => this.#el.removeEventListener("keyup", keyUp));

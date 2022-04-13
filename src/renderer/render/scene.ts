@@ -14,7 +14,6 @@ import {
 
 import { TerrainInfo } from "common/types";
 import Janitor from "@utils/janitor";
-import { callHook } from "../plugins";
 
 
 function sunlight(mapWidth: number, mapHeight: number) {
@@ -150,6 +149,9 @@ export class Scene extends ThreeScene {
     lights.forEach(light => {
       this.add(light)
     });
+
+    this.userData.hemilight = hemilight;
+    this.userData.sunlight = sunlight;
   }
 
   skybox(key: string) {
@@ -188,10 +190,9 @@ export class Scene extends ThreeScene {
   addTerrain(
     terrain: Mesh
   ) {
-    this.userData = { terrain };
+    this.userData.terrain = terrain;
     this.add(terrain);
     this.#janitor.object3d(terrain);
-
   }
 
   get terrain() {

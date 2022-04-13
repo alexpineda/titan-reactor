@@ -1,6 +1,5 @@
 export * from "./bwdat";
 export * from "./chk";
-export * from "./colors";
 export * from "./file";
 export * from "./grp";
 export * from "./iscript";

@@ -5,9 +5,8 @@ import * as stores from "@stores"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_TERRAIN_GENERATED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
-import { CameraModePlugin } from "renderer/input/camera-mode";
-import gameStore from "@stores/game-store";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
+import { CameraModePlugin } from "../input/camera-mode";
 
 export type NativePlugin = {
     id: string;
@@ -18,6 +17,7 @@ export type NativePlugin = {
     onUIMessage?: (message: any) => void;
     onBeforeRender?: (delta: number, elapsed: number) => void;
     onRender?: (delta: number, elapsed: number) => void;
+    onFrame?: () => void;
     config: {
         cameraModeKey?: {
             value: string
@@ -56,12 +56,28 @@ class Hook {
 const createDefaultHooks = () => ({
     onGameDisposed: new Hook(HOOK_ON_GAME_DISPOSED, []),
     onGameReady: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
-    onTerrainGenerated: new Hook(HOOK_ON_TERRAIN_GENERATED, ["scene", "terrain", "mapWidth", "mapHeight"]),
+    onScenePrepared: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "replayHeader", "commandsStream", "map"]),
     onUnitCreated: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
-    onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"])
+    onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
+    onFrameReset: new Hook(HOOK_ON_FRAME_RESET, [])
 });
 
-const pluginProto = {
+type PluginPrototype = {
+    config?: {
+        [key: string]: any
+    };
+    getConfig: (key: string) => any;
+    saveAudioSettings: (settings: any) => any;
+    saveGraphicsSettings: (settings: any) => any;
+}
+
+const pluginProto: PluginPrototype = {
+    getConfig(key: string) {
+        if (this.config?.[key]?.factor) {
+            return this.config[key].value * this.config[key].factor;
+        }
+        return this.config?.[key]?.value
+    },
     saveAudioSettings(settings: any) {
         const state = stores.useSettingsStore.getState();
         state.save({
@@ -91,13 +107,11 @@ export class PluginSystemNative {
 
     initializePlugin(pluginPackage: InitializedPluginPackage) {
 
-        const bwDat = gameStore().assets?.bwDat;
-
         try {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, stores, bwDat });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, stores });
             delete pluginPackage.nativeSource;
 
             const pluginPropertyConfig: Record<string, {}> = {};
@@ -118,10 +132,7 @@ export class PluginSystemNative {
             plugin.config = pluginPackage.config;
             plugin.sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
             plugin.isEnabled = true;
-
-            plugin.init && plugin.init();
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
-
 
             return plugin;
         } catch (e: unknown) {
@@ -217,6 +228,12 @@ export class PluginSystemNative {
         }
     }
 
+    onFrame() {
+        for (const plugin of this.#nativePlugins) {
+            plugin.onFrame && plugin.onFrame();
+        }
+    }
+
     enableAdditionalPlugins(pluginPackages: InitializedPluginPackage[]) {
         const additionalPlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
@@ -253,6 +270,11 @@ export class PluginSystemNative {
     async callHookAsync(hookName: string, ...args: any[]) {
         if (this.hooks[hookName] === undefined) {
             log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
+            return;
+        }
+
+        if (this.hooks[hookName].args.length !== args.length) {
+            log.error(`@plugin-system-native: invalid arguments length`);
             return;
         }
 

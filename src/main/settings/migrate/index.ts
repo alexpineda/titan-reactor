@@ -1,7 +1,6 @@
-import { Settings } from "../../../common/types";
-import v2ToV3 from "./v2-to-v3";
+import { Settings } from "common/types";
 
-const migrations: ((settings: any) => [boolean, any])[] = [v2ToV3];
+const migrations: ((settings: any) => [boolean, any])[] = [];
 
 export default (_settings: any): [boolean, Settings] => {
     let settings = _settings;

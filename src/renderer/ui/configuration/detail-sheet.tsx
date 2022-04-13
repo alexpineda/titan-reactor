@@ -1,7 +1,7 @@
 import { InitializedPluginPackage } from "common/types";
 import { Tab, Tabs } from "muicss/react";
 import ReactMarkdown from "react-markdown/index";
-import { levaStore, useControls } from "leva";
+import { useControls } from "leva";
 import { useEffect } from "react";
 
 export default ({
@@ -20,9 +20,9 @@ export default ({
     | "readme"
   >;
 }) => {
-  // const store = useCreateStore();
-
   useEffect(() => {
+    // on mount clear the default leva store
+    //@ts-ignore
     __STORE.dispose();
   }, []);
 

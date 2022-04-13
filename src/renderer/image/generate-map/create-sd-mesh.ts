@@ -19,7 +19,7 @@ export const createSDMesh = async (
   creepTexture: WrappedTexture,
   creepEdgesTexture: WrappedTexture,
   geomOptions: GeometryOptions,
-  { paletteIndicesMap, paletteMap, creepEdgesTextureUniform, creepTextureUniform, sdMap, elevationsMap, mapTilesMap }: DataTexturesResult,
+  { paletteIndicesMap, paletteMap, creepEdgesTextureUniform, creepTextureUniform, sdMap, elevationsMap, mapTilesMap, roughnessMap }: DataTexturesResult,
   displacementCanvas: HTMLCanvasElement,
 ) => {
 
@@ -96,6 +96,9 @@ export const createSDMesh = async (
     displacementScale: geomOptions.displacementScale,
     displacementMap: new THREE.CanvasTexture(displacementCanvas),
     map: sdMap,
+    roughness: 1,
+    bumpMap: roughnessMap,
+    bumpScale: 0.3,
     // @ts-ignore
     onBeforeCompile: function (shader) {
       let fs = shader.fragmentShader;
@@ -150,8 +153,6 @@ export const createSDMesh = async (
     sdTerrain.userData.elevationsMaterial,
     sdTerrain.userData.mat,
   ];
-  //#endregion sd map
-
 
   sdTerrain.visible = true;
 

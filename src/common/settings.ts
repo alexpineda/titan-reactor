@@ -1,7 +1,7 @@
 import { Settings, AssetTextureResolution } from "./types";
 
 export const defaultSettings: Settings = {
-  version: 3,
+  version: 4,
   language: "en-US",
   directories: {
     starcraft: "",
@@ -26,11 +26,6 @@ export const defaultSettings: Settings = {
     gamma: 0.9,
   },
   controls: {
-    mode: {
-      default: "F2, Escape",
-      battle: "F5",
-      overview: "F7",
-    },
     camera: {
       truckLeft: "ArrowLeft",
       truckRight: "ArrowRight",

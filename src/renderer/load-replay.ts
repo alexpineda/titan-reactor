@@ -33,6 +33,8 @@ import rendererIsDev from "@utils/renderer-is-dev";
 import {
   readCascFile,
 } from "common/utils/casclib";
+import { callHookAsync } from "./plugins";
+import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -101,6 +103,8 @@ export default async (filepath: string) => {
   janitor.disposable(scene);
 
   await waitForAssets();
+
+  await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, replay.header, new CommandsStream(replay.rawCmds), map);
 
   processStore().increment(Process.ReplayInitialization);
 

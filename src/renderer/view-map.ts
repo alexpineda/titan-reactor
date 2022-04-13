@@ -55,7 +55,6 @@ async function TitanReactorMap(
   if (!settings) {
     throw new Error("Settings not loaded");
   }
-  // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
 
   const gameSurface = new CanvasTarget();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);

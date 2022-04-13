@@ -1,25 +1,9 @@
-import { Unit } from ".";
 import {
   Player,
-  PlayerColor,
   StartLocation,
-  PlayerPOVI,
-  POVSelectionI,
 } from "common/types";
 import { Replay } from "renderer/process-replay/parse-replay";
-
-class POVSelection implements POVSelectionI {
-  lastIssuedCommand?: any;
-  unit: Unit;
-  constructor(unit: Unit) {
-    this.unit = unit;
-  }
-}
-
-class PlayerPOV implements PlayerPOVI {
-  selections: POVSelection[] = [];
-  active = false;
-}
+import { Color } from "three";
 
 const _pVision = (p: Player) => {
   return p.vision;
@@ -30,16 +14,14 @@ const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
 }
 
 export class Players extends Array<Player> {
-  activePovs = 0;
   playersById: Record<number, Player> = {};
 
   constructor(
     players: Replay["header"]["players"],
     startLocations: StartLocation[],
-    colors: PlayerColor[]
+    colors: Color[]
   ) {
     super();
-    this.activePovs = 0;
 
     this.push(
       ...players.map((player, i) => ({
@@ -48,8 +30,7 @@ export class Players extends Array<Player> {
         name: player.name,
         race: player.race,
         vision: true,
-        startLocation: startLocations.find((u) => u.player == player.id),
-        pov: new PlayerPOV(),
+        startLocation: startLocations.find((u) => u.player == player.id)
       }))
     );
 
@@ -58,14 +39,9 @@ export class Players extends Array<Player> {
     }
   }
 
-  //  FIXME: update pov selections based on command
-  // update(cmds) {
-
-  // }
   static override get [Symbol.species]() {
     return Array;
   }
-
 
   getVisionFlag() {
     return this.filter(_pVision)

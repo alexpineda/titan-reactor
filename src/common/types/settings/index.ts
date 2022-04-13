@@ -1,7 +1,7 @@
 import type { InitializedPluginPackage } from "../plugin";
 
 export type Settings = {
-    version: 3;
+    version: 4;
     language: string;
     directories: {
         starcraft: string;
@@ -26,11 +26,6 @@ export type Settings = {
         gamma: number;
     },
     controls: {
-        mode: {
-            default?: string;
-            battle?: string;
-            overview?: string;
-        },
         camera: {
             truckLeft?: string,
             truckRight?: string,
@@ -44,8 +39,6 @@ export type Settings = {
         enabled: string[],
     }
 
-    // showDisabledDoodads: boolean;
-    // showCritters: boolean;
 };
 
 export enum AssetTextureResolution {
