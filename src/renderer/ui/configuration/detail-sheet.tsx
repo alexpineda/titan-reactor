@@ -1,7 +1,8 @@
 import { InitializedPluginPackage } from "common/types";
 import { Tab, Tabs } from "muicss/react";
 import ReactMarkdown from "react-markdown/index";
-import { useControls } from "leva";
+import { levaStore, useControls } from "leva";
+import { useEffect } from "react";
 
 export default ({
   pluginConfig,
@@ -19,6 +20,12 @@ export default ({
     | "readme"
   >;
 }) => {
+  // const store = useCreateStore();
+
+  useEffect(() => {
+    __STORE.dispose();
+  }, []);
+
   for (const [folder, data] of controls) {
     useControls(folder, data);
   }

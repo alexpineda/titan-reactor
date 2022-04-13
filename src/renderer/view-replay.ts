@@ -199,6 +199,9 @@ async function TitanReactorGame(
     _PIP.camera.position.set(0, 50, 0);
     _PIP.camera.lookAt(0, 0, 0);
     _PIP.enabled = false;
+    delete _PIP.position;
+    _PIP.height = 300;
+    _PIP.update();
 
     return {
       rested: true,
