@@ -1,40 +1,35 @@
-import { Controls } from "@utils/camera-utils";
-import { MainMixer } from "../audio";
 import { NativePlugin } from "../plugins/plugin-system-native";
-import { Camera, PerspectiveCamera, Vector2, Vector3 } from "three";
-import MinimapMouse from "./minimap-mouse";
+import { Camera, Vector2, Vector3 } from "three";
+import CameraControls from "camera-controls";
+import ProjectedCameraView from "renderer/camera/projected-camera-view";
 
-export interface CameraModeInitialization {
-    id: string;
-    minimap?: boolean;
-    pointerLock?: boolean;
-    cameraShake?: boolean;
-    unitScale?: number;
-    camera: {
-
-    };
-}
 export interface CameraModePlugin extends NativePlugin {
     minimap?: boolean;
-    pip?: boolean;
     pointerLock?: boolean;
-    boundByMap?: boolean;
+    boundByMap?: {
+        scaleBoundsByCamera: boolean
+    };
     cameraShake?: boolean;
+    rotateSprites?: boolean;
     unitScale?: number;
+    maxSoundDistance?: number;
     soundMode: "classic" | "spatial";
-    depthOfField?: boolean;
+    orbit?: CameraControls;
+
     dispose: () => void;
 
-    onEnterCameraMode: (controls: Controls, prevData:any, minimapMouse: MinimapMouse, camera: PerspectiveCamera, mapWidth: number, mapHeight: number) => Promise<void>;
-    
-    onExitCameraMode?: () => void;
+    onEnterCameraMode: (prevData: any, camera: Camera) => Promise<void>;
 
-    onCameraMouseUpdate?: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, clicked?: Vector3) => void;
+    onExitCameraMode?: (target: Vector3, position: Vector3) => void;
+
+    onCameraMouseUpdate?: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clicked?: Vector3) => void;
 
     onCameraKeyboardUpdate?: (delta: number, elapsed: number, truck: Vector2) => void;
 
     onShouldHideUnit?: (unit: any) => boolean;
 
-    onUpdateAudioMixerLocation: (delta: number, elapsed: number, audioMixer: MainMixer, camera: Camera, target: Vector3) => void;
+    onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;
+
+    onDrawMinimap?: (ctx: CanvasRenderingContext2D, view: ProjectedCameraView, target: Vector3, position: Vector3) => void;
 }
 

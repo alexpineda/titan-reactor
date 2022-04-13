@@ -16,7 +16,6 @@ export type Controls = {
     camera: Camera;
     viewport: Vector4;
   }
-  dispose: () => void,
 }
 
 export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {

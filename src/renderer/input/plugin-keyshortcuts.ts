@@ -54,6 +54,12 @@ export class PluginKeyShortcuts {
         }
     }
 
+    pressKey(code: string) {
+        this.#keyDownListener(new KeyboardEvent("keydown", {
+            code
+        }))
+    }
+
     dispose() {
         this.#domElement.removeEventListener("keydown", this.#keyDownListenerInstance);
     }

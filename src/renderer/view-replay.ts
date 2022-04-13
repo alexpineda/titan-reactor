@@ -68,11 +68,13 @@ import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
+import withErrorMessage from "common/utils/with-error-message";
 
 CameraControls.install({ THREE: THREE });
 
 const { startLocation } = unitTypes;
 const _cameraTarget = new Vector3();
+const _cameraPosition = new Vector3();
 
 async function TitanReactorGame(
   map: Chk,
@@ -183,19 +185,19 @@ async function TitanReactorGame(
     _PIP.camera.position.set(0, 50, 0);
     _PIP.camera.lookAt(0, 0, 0);
     _PIP.enabled = false;
- 
+
     return {
+      rested: true,
       cameraMode,
       orbit: controls,
       mouse: cameraMouse,
       keys: cameraKeys,
       cameraShake,
-      dispose: () => janitor.mopUp(),
       PIP: _PIP
     };
   }
 
-  
+
   const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
   const freeImages: Image[] = [];
@@ -226,29 +228,47 @@ async function TitanReactorGame(
 
   const shortcuts = new PluginKeyShortcuts(window.document.body)
   janitor.disposable(shortcuts);
-  
-  const onToggleCameraMode = async (cameraMode: CameraModePlugin, prevCameraMode?: CameraModePlugin) => {
+
+  const switchCameraMode = async (cameraMode: CameraModePlugin, prevCameraMode?: CameraModePlugin) => {
 
     let prevData: any;
 
     if (prevCameraMode) {
-      if (prevCameraMode.onExitCameraMode){
-         prevData = prevCameraMode.onExitCameraMode();
+      if (prevCameraMode.onExitCameraMode) {
+        try {
+          const target = new THREE.Vector3();
+          const position = new THREE.Vector3();
+
+          prevCameraMode.orbit!.getTarget(target);
+          prevCameraMode.orbit!.getPosition(position);
+
+          prevData = prevCameraMode.onExitCameraMode(target, position);
+        } catch (e) {
+          log.error(withErrorMessage("onExitCameraMode", e));
+        }
       }
-      prevCameraMode.dispose();
+      try {
+        prevCameraMode.dispose();
+      } catch (e) {
+        log.error(withErrorMessage("prevCameraMode.dispose", e));
+      }
     }
 
-    const janitor = new Janitor();
-    const newControls = createControls(cameraMode, janitor);
+    const controlsJanitor = new Janitor();
+    const newControls = createControls(cameraMode, controlsJanitor);
 
-    cameraMode.dispose = () => newControls.dispose();
+    cameraMode.dispose = () => {
+      delete cameraMode.orbit;
+      controlsJanitor.mopUp();
+    }
+    cameraMode.orbit = newControls.orbit;
     newControls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
-    await cameraMode.onEnterCameraMode(newControls, prevData, minimapMouse, camera, mapWidth, mapHeight);
+    await cameraMode.onEnterCameraMode(prevData, camera);
 
     setUseScale(cameraMode.unitScale || 1);
 
@@ -274,24 +294,19 @@ async function TitanReactorGame(
 
     if (cameraMode.boundByMap) {
       setBoundary(newControls, mapWidth, mapHeight);
+      newControls.rested = false;
+      newControls.orbit.addEventListener('rest', () => {
+        newControls.rested = true;
+      })
     }
 
-
-
+    //TODO: build post processing chain based on config
     renderer.composerPasses.presetRegularCam();
 
     return newControls;
   }
-  
-  let controls = await onToggleCameraMode(plugins.getDefaultCameraModePlugin());
-  //@ts-ignore
-  window.controls = controls;
 
-  //@ts-ignore
-  window.camera = camera;
-  //@ts-ignore
-  janitor.callback(() => { window.controls = null; window.camera = null; });
-
+  let controls = await switchCameraMode(plugins.getDefaultCameraModePlugin());
 
   //@ts-ignore
   window.scene = scene;
@@ -450,7 +465,7 @@ async function TitanReactorGame(
   const flashColor = new Color(200, 200, 200);
 
   const _buildMinimap = (unit: Unit, unitType: UnitDAT) => {
-    const isResourceContainer = unitType.isResourceContainer && !unit.extra.player;
+    const isResourceContainer = unitType.isResourceContainer && !unit.extras.player;
     if (
       (!isResourceContainer &&
         !fogOfWar.isVisible(tile32(unit.x), tile32(unit.y)))
@@ -465,8 +480,8 @@ async function TitanReactorGame(
 
     if (isResourceContainer) {
       color = resourceColor;
-    } else if (unit.extra.player) {
-      color = unit.extra.recievingDamage & 1 ? flashColor : unit.extra.player.color.three;
+    } else if (unit.extras.player) {
+      color = unit.extras.recievingDamage & 1 ? flashColor : unit.extras.player.color.three;
     } else {
       return;
     }
@@ -531,7 +546,7 @@ async function TitanReactorGame(
       return unit;
     } else {
       const existingUnit = freeUnits.pop();
-      const highlight = existingUnit?.extra.highlight ?? new THREE.Mesh(new THREE.SphereBufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+      const highlight = existingUnit?.extras.highlight ?? new THREE.Mesh(new THREE.SphereBufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
       highlight.name = "Highlight";
       if (unitData.owner < 8) {
         const div = document.createElement("div");
@@ -543,7 +558,7 @@ async function TitanReactorGame(
         highlight.add(debuglabel)
       }
       const unit = Object.assign(existingUnit || {}, {
-        extra: {
+        extras: {
           recievingDamage: 0,
           highlight,
           dat: bwDat.units[unitData.typeId],
@@ -598,7 +613,7 @@ async function TitanReactorGame(
       const unitId = openBw.wasm!.HEAP32[(deletedUnitAddr >> 2) + i];
       const unit = units.get(unitId);
       if (!unit) continue;
-      unit.extra.highlight.removeFromParent();
+      unit.extras.highlight.removeFromParent();
       units.delete(unitId);
       freeUnits.push(unit);
 
@@ -620,21 +635,21 @@ async function TitanReactorGame(
 
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
-          !unit.extra.recievingDamage &&
+          !unit.extras.recievingDamage &&
           (unit.hp > unitData.hp || unit.shields > unitData.shields)
           && unit.typeId === unitData.typeId // ignore morphs
         ) {
-          unit.extra.recievingDamage = 0b000111000111000111;
-        } else if (unit.extra.recievingDamage) {
-          unit.extra.recievingDamage = unit.extra.recievingDamage >> 1;
+          unit.extras.recievingDamage = 0b000111000111000111;
+        } else if (unit.extras.recievingDamage) {
+          unit.extras.recievingDamage = unit.extras.recievingDamage >> 1;
         }
 
-        unit.extra.player = players.playersById[unitData.owner];
-        unit.extra.highlight.visible = unit.extra.player !== undefined;
-        if (unit.extra.player) {
+        unit.extras.player = players.playersById[unitData.owner];
+        unit.extras.highlight.visible = unit.extras.player !== undefined;
+        if (unit.extras.player) {
 
-          unit.extra.highlight.position.set(mx, terrain.getTerrainY(mx, my), my);
-          (unit.extra.highlight.material as MeshBasicMaterial).color.set(unit.extra.player.color.three);
+          unit.extras.highlight.position.set(mx, terrain.getTerrainY(mx, my), my);
+          (unit.extras.highlight.material as MeshBasicMaterial).color.set(unit.extras.player.color.three);
         }
         // if (unitData.order == orders.die) {
         //   unit.extra.timeOfDeath = Date.now();
@@ -642,7 +657,7 @@ async function TitanReactorGame(
 
         // unit morph
         if (unit.typeId !== unitData.typeId) {
-          unit.extra.dat = bwDat.units[unitData.typeId];
+          unit.extras.dat = bwDat.units[unitData.typeId];
         }
 
         unitData.copyTo(unit);
@@ -753,9 +768,6 @@ async function TitanReactorGame(
         );
       }
 
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 0.8;
       ctx.setTransform(
         canvas.width / mapWidth,
         0,
@@ -765,13 +777,8 @@ async function TitanReactorGame(
         canvas.height / 2
       );
 
-      ctx.beginPath();
-      ctx.moveTo(...view.tl);
-      ctx.lineTo(...view.tr);
-      ctx.lineTo(...view.br);
-      ctx.lineTo(...view.bl);
-      ctx.lineTo(...view.tl);
-      ctx.stroke();
+      controls.cameraMode.onDrawMinimap && controls.cameraMode.onDrawMinimap(ctx, view, _cameraTarget, _cameraPosition);
+
       if (controls.PIP.enabled) {
         const h = 5;
         const w = h * controls.PIP.camera.aspect;
@@ -800,11 +807,11 @@ async function TitanReactorGame(
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
 
       if (controls.cameraMode.soundMode === "spatial") {
-        if (dat.minVolume || camera.position.distanceTo(mapCoords) < SoundPlayMaxDistance) {
+        if (dat.minVolume || camera.position.distanceTo(mapCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
           soundChannels.queue(sound, dat, mapCoords);
         }
       }
-      else  {
+      else {
         const volume = getBwVolume(
           dat,
           mapCoords,
@@ -826,7 +833,7 @@ async function TitanReactorGame(
           soundChannels.queue(classicSound, dat, mapCoords);
         }
       }
-      
+
     }
   };
 
@@ -905,7 +912,7 @@ async function TitanReactorGame(
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
     // hide addons in battle cam as they look awkward, and overview as it takes too much space
     //FIXME: make onShouldHideUnit a global plugin feature 
-    if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.onShouldHideUnit &&  controls.cameraMode.onShouldHideUnit(unit))) {
+    if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.onShouldHideUnit && controls.cameraMode.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
     }
 
@@ -1171,6 +1178,7 @@ async function TitanReactorGame(
     _lastElapsed = elapsed;
 
     controls.orbit.getTarget(_cameraTarget);
+    controls.orbit.getPosition(_cameraPosition);
     controls.orbit.update(delta / 1000);
     controls.mouse.update(delta / 100, elapsed);
     controls.keys.update(delta / 100, elapsed);
@@ -1211,7 +1219,9 @@ async function TitanReactorGame(
       creep.creepValuesTexture.needsUpdate = true;
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
-      controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, audioMixer, camera, _cameraTarget);
+      const audioPosition = controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, _cameraTarget, _cameraPosition);
+      audioMixer.updateFromVector3(audioPosition as Vector3, delta);
+
       soundChannels.play(elapsed);
 
       if (unitAttackScore.needsUpdate) {
@@ -1293,7 +1303,7 @@ async function TitanReactorGame(
 
 
     {
-      const dir = controls.orbit.polarAngle < 0.25 ? 0 : getDirection32(projectedCameraView.center, camera.position);
+      const dir = controls.cameraMode.rotateSprites ? getDirection32(projectedCameraView.center, camera.position) : 0;
       if (dir != camera.userData.direction) {
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
@@ -1302,15 +1312,13 @@ async function TitanReactorGame(
         }
       }
 
-      if (controls.cameraMode.depthOfField) {
-        renderer.composerPasses.effects[Effects.DepthOfField].setTarget(projectedCameraView.center);
-        renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().adoptCameraSettings(camera);
-      }
+      renderer.composerPasses.effects[Effects.DepthOfField].setTarget(projectedCameraView.center);
+      renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().adoptCameraSettings(camera);
 
     }
 
-    if (controls.cameraMode.boundByMap) {
-      _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2, 0, -mapHeight / 2 + projectedCameraView.height / 2), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2, 0, mapHeight / 2 - projectedCameraView.height / 2));
+    if (controls.cameraMode.boundByMap?.scaleBoundsByCamera && controls.rested) {
+      _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2.5, 0, -mapHeight / 2 + projectedCameraView.height / 2.5), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2.5, 0, mapHeight / 2 - projectedCameraView.height / 2.5));
       controls.orbit.setBoundary(_cameraBoundaryBox);
     }
 
@@ -1365,7 +1373,7 @@ async function TitanReactorGame(
     log.info("disposing replay viewer");
     gameStatePosition.pause();
     janitor.mopUp();
-    controls.dispose();
+    controls.cameraMode.dispose();
   };
 
   window.onbeforeunload = dispose;
@@ -1406,18 +1414,34 @@ async function TitanReactorGame(
       speedUp,
       speedDown,
       togglePause,
+      terrain: {
+        tileset: terrain.tileset,
+        mapWidth: terrain.mapWidth,
+        mapHeight: terrain.mapHeight,
+        getTerrainY: terrain.getTerrainY,
+        getMapCoords: terrain.getMapCoords,
+        terrain: terrain.terrain
+      },
       getCurrentFrame: () => currentBwFrame?.frame,
       gotoFrame: (frame: number) => openBw.call!.setCurrentFrame!(frame),
       getSpeed: () => openBw.call!.getGameSpeed!(),
-      get orbit() {
-        return controls.orbit
-      },
       registerHotkey(key: string, fn: Function) {
         // @ts-ignore
         shortcuts.addListener(this.id, key, fn);
       },
       // @ts-ignore
       clearHotkeys() { shortcuts.clearListeners(this.id) },
+      exitCameraMode: () => {
+        shortcuts.pressKey("Escape")
+      },
+      pipLookAt(x: number, z: number) {
+        controls.PIP.enabled = true;
+        controls.PIP.camera.position.set(x, controls.PIP.camera.position.y, z);
+        controls.PIP.camera.lookAt(x, 0, z);
+      },
+      pipHide() {
+        controls.PIP.enabled = false;
+      }
       // setPlayerColor, 
       // getPlayerColors, 
       // setPlayerName, 
@@ -1426,15 +1450,21 @@ async function TitanReactorGame(
 
     janitor.callback(plugins.injectApi(api));
 
+    let switchingCameraMode = false;
     plugins.getCameraModePlugins().forEach((cameraMode) => {
-      console.log("registering camera mode", cameraMode.name, cameraMode.config.cameraModeKey!.value);
       const _toggleCallback = async () => {
-        controls = await onToggleCameraMode(cameraMode, controls.cameraMode);
+        if (switchingCameraMode) return;
+
+        if (cameraMode !== controls.cameraMode) {
+          switchingCameraMode = true;
+          controls = await switchCameraMode(cameraMode, controls.cameraMode);
+        }
+        switchingCameraMode = false;
       }
       shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!.value, _toggleCallback);
       janitor.callback(() => shortcuts.removeListener(_toggleCallback));
+
     });
-    
 
 
     await plugins.callHookAsync(HOOK_ON_GAME_READY);

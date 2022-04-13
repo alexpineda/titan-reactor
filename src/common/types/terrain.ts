@@ -22,10 +22,16 @@ export type TerrainInfo = {
   mapWidth: number;
   mapHeight: number;
   terrain: Mesh;
+  /**
+   * Gets the y offset at the given x,z coordinates.
+   */
   getTerrainY: GetTerrainY;
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
+  /**
+   * Converts from pixel units to threejs map units
+   */
   getMapCoords: (x: number, y: number) => Vector3;
 };
 

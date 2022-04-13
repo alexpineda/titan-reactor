@@ -3,7 +3,7 @@ import type { UnitStruct } from "../../common/types/structs";
 import type { Mesh } from "three";
 
 export type Unit = UnitStruct & {
-    extra: {
+    extras: {
         player?: Player;
         recievingDamage: number;
         timeOfDeath?: number;

@@ -39,7 +39,6 @@ export type Settings = {
         }
     },
     plugins: {
-        cameraMode: string;
         serverPort: number;
         developmentDirectory?: string;
         enabled: string[],

@@ -39,7 +39,6 @@ export const defaultSettings: Settings = {
     }
   },
   plugins: {
-    cameraMode: "@titan-reactor-plugins/camera-default",
     serverPort: 8080,
     enabled: [],
   }

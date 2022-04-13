@@ -93,7 +93,7 @@ export class CameraMouse {
 
     update(delta: number, elapsed: number) {
 
-        this.#cameraMode.onCameraMouseUpdate && this.#cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#clicked);
+        this.#cameraMode.onCameraMouseUpdate && this.#cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clicked);
 
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;

@@ -17,6 +17,7 @@
   - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
 
+⚠️ The plugin API is under heavy development. Expect frequent breaking changes until Titan Reactor v1. Big plans include supporting TypeScript out of the box.
 
 ## Overview
 
@@ -25,7 +26,6 @@ Plugins in Titan Reactor allow you to connect to the game to display custom char
 - A plugin can use two methods to integrate with Titan Reactor, visual via React components, programmatic via game objects, or both.
 - If you'd like to provide user configuration, Titan Reactor provides a configuration UI for the user to use based on your json "schema".
 
-Please note that due to frequency of changes and lack of time these documents may be out of date or incomplete. It's recommended to start with an existing plugin and work from there.
 
 ## Your first plugin package.json
 

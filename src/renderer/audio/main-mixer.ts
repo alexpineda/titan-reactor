@@ -67,6 +67,10 @@ export class MainMixer extends AudioListener {
     this.context.listener.positionZ.linearRampToValueAtTime(z, endTime);
   }
 
+  updateFromVector3(v: Vector3, delta: number) {
+    this.update(v.x, v.y, v.z, delta);
+  }
+
   updateFromCamera(camera: Camera) {
     if (this.parent) {
       throw new Error("This method should not be called on a parented object.");

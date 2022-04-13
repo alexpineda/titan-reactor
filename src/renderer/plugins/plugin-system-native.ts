@@ -92,14 +92,13 @@ export class PluginSystemNative {
     initializePlugin(pluginPackage: InitializedPluginPackage) {
 
         const bwDat = gameStore().assets?.bwDat;
-        
+
         try {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({THREE, stores, bwDat});
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, stores, bwDat });
             delete pluginPackage.nativeSource;
-            debugger;
 
             const pluginPropertyConfig: Record<string, {}> = {};
             for (const key in pluginRaw) {
@@ -139,14 +138,13 @@ export class PluginSystemNative {
     }
 
     getDefaultCameraModePlugin() {
-        const cameraModeName = stores.useSettingsStore.getState().data.plugins.cameraMode;
-        const plugin = this.#nativePlugins.find(p => p.name === cameraModeName) ?? this.#nativePlugins.find(p => p.config.cameraModeKey);
+        const plugin = this.#nativePlugins.find(p => p.config?.cameraModeKey?.value === "Escape");
 
         if (plugin) {
             return plugin as unknown as CameraModePlugin;
         }
 
-        throw new Error("No camera mode plugin found");
+        throw new Error("No default camera mode plugin found. Please provide a cameraModeKey in the plugin config with value of Escape.");
     }
 
     getCameraModePlugins() {

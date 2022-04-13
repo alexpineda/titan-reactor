@@ -1,6 +1,6 @@
 import "../reset.css";
 import "../mui.min.css";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { Container, Button, Tabs, Tab, Divider } from "muicss/react";
 import search from "libnpmsearch";

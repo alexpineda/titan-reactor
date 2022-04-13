@@ -17,35 +17,33 @@ const forbidden = [
   "Tab",
 ];
 
-const Plugin = () => {
-  const { label, displayValue, onUpdate, onChange, emitOnEditEnd } =
-    useInputContext<PluginProps>();
-
-  return (
-    <>
-      <Row input>
-        <Label>{label}</Label>
-        <String
-          displayValue={displayValue}
-          onUpdate={onUpdate}
-          onChange={onChange}
-          onKeyDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (e.code === "Escape") {
-              onUpdate("");
-              emitOnEditEnd();
-            } else if (!forbidden.includes(e.code)) {
-              onUpdate(e.code);
-              emitOnEditEnd();
-            }
-          }}
-        />
-      </Row>
-    </>
-  );
-};
-
 export default createPlugin({
-  component: Plugin,
+  component: () => {
+    const { label, displayValue, onUpdate, onChange, emitOnEditEnd } =
+      useInputContext<PluginProps>();
+  
+    return (
+      <>
+        <Row input>
+          <Label>{label}</Label>
+          <String
+            displayValue={displayValue}
+            onUpdate={onUpdate}
+            onChange={onChange}
+            onKeyDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.code=== "Delete") {
+                onUpdate("");
+                emitOnEditEnd();
+              } else if (!forbidden.includes(e.code)) {
+                onUpdate(e.code);
+                emitOnEditEnd();
+              }
+            }}
+          />
+        </Row>
+      </>
+    );
+  }
 });

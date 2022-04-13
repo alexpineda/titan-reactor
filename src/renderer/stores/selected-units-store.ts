@@ -12,18 +12,18 @@ export const useSelectedUnitsStore = create<SelectedUnitsStore>((set, get) => ({
     selectedUnits: [],
     setSelectedUnits: (selectedUnits: Unit[]) => {
         for (const unit of get().selectedUnits) {
-            unit.extra.selected = false;
+            unit.extras.selected = false;
         }
 
         for (const unit of selectedUnits) {
-            unit.extra.selected = true;
+            unit.extras.selected = true;
         }
 
         set({ selectedUnits });
     },
     selectOfType: (ut) =>
         get().setSelectedUnits(
-            get().selectedUnits.filter(({ extra: { dat: unitType } }) => unitType === ut)
+            get().selectedUnits.filter(({ extras: { dat: unitType } }) => unitType === ut)
         ),
 }));
 

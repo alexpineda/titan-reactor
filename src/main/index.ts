@@ -175,5 +175,14 @@ if (!gotTheLock) {
     globalShortcut.register("F10", () => {
       createConfigurationWindow();
     });
+
+    
   });
+
+  app.on('browser-window-blur', function () {
+    globalShortcut.unregister('CommandOrControl+Shift+I');
+    globalShortcut.unregister('CommandOrControl+R');
+    globalShortcut.unregister('F10');
+    globalShortcut.unregister('F5');
+});
 }
