@@ -3,13 +3,13 @@
 import { ipcRenderer } from "electron";
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 import { GameStatePosition } from "@core";
 import {
     installPlugin
 } from "@ipc/plugins";
 
-import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK } from "./events";
+import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK, SYSTEM_EVENT_FIRST_INSTALL } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
@@ -29,6 +29,12 @@ ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
         }
     })
     nativePluginSystem.onConfigChanged(pluginId, config);
+});
+
+ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
+    uiPluginSystem.sendMessage({
+        type: SYSTEM_EVENT_FIRST_INSTALL
+    });
 });
 
 ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {

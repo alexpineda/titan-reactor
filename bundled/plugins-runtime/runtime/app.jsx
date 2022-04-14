@@ -45,14 +45,11 @@ const Component = ({ component, JSXElement, useMessage, sendMessage }) => {
   );
 };
 
+const _firstInstall = (store) => store.firstInstall;
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
-  const [[logoOpacity, logoScale], setLogoVals] = useState([0.5, 1.5]);
-
-  useEffect(() => {
-    setLogoVals([0.1, 3.5]);
-  }, []);
+  const firstInstall = useStore(_firstInstall);
 
   useEffect(() => {
     if (!appLoaded && screen !== "@home/loading") {
@@ -69,8 +66,6 @@ export default ({ components }) => {
     zIndex: "-999",
     left: "50%",
     top: "50%",
-    transform: `translate(-50%, -50%) scale(${logoScale / 2})`,
-    transition: "all 3s ease-out",
     cursor: "wait",
     color: "#ffeedd",
     fontFamily: "Conthrax",
@@ -92,30 +87,15 @@ export default ({ components }) => {
         flexDirection: "column",
       }}
     >
-      {(screen.startsWith("@home") || screen.endsWith("error")) && (
-        <>
-          <img
-            src="runtime/logo.png"
-            alt="logo"
-            style={{
-              position: "absolute",
-              zIndex: "-1000",
-              left: "50%",
-              top: "50%",
-              transform: `translate(-50%, -50%) scale(${logoScale})`,
-              opacity: logoOpacity,
-              transition: "all 30s ease-out",
-            }}
-          />
-        </>
-      )}
-      {!appLoaded && !error && <p style={styleCenterText}>암흑 물질</p>}
-      {appLoaded && !error && !hasAnyComponents && (
-        <>
-          <p style={styleCenterText}>
-            Installing Default Plugins and Restarting.
-          </p>
-        </>
+      {!hasAnyComponents && !error && (
+        <div style={styleCenterText}>
+          <p>암흑 물질</p>
+          {firstInstall && (
+            <p style={styleCenterText}>
+              Installing Default Plugins and Restarting.
+            </p>
+          )}
+        </div>
       )}
       {error && <GlobalErrorState error={error} />}
       <div

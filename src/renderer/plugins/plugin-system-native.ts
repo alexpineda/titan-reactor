@@ -2,6 +2,7 @@ import * as log from "@ipc/log";
 import { InitializedPluginPackage } from "common/types";
 import * as THREE from "three";
 import * as stores from "@stores"
+import * as postprocessing from "postprocessing"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
@@ -112,7 +113,7 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, stores });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, stores, postprocessing });
             delete pluginPackage.nativeSource;
 
             const pluginPropertyConfig: Record<string, {}> = {};

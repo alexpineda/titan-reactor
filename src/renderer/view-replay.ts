@@ -286,7 +286,7 @@ async function TitanReactorGame(
     newControls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
-    await cameraMode.onEnterCameraMode(prevData, camera);
+    await cameraMode.onEnterCameraMode(prevData);
 
     setUseScale(cameraMode.unitScale || 1);
 

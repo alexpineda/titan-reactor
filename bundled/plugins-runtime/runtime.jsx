@@ -257,6 +257,8 @@ const _messageListener = function (event) {
       document
         .elementFromPoint(event.data.payload.x, event.data.payload.y)
         .click();
+    } else if (event.data.type === "system:first-install") {
+      useStore.setState({ firstInstall: true });
     } else if (event.data.type === "system:custom-message") {
       const { message, pluginId } = event.data.payload;
       const plugin = _plugins[pluginId];

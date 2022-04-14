@@ -8,7 +8,7 @@ import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import browserWindows from "../windows";
@@ -116,6 +116,7 @@ export default async (pluginDirectory: string) => {
         await loadPluginPackages(await readFolder(pluginDirectory));
 
         if (_enabledPluginPackages.length === 0 && _disabledPluginPackages.length === 0) {
+            browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);
             const enablePluginIds = [];
             for (const defaultPackage of DEFAULT_PACKAGES) {
                 const plugin = await installPlugin(defaultPackage);

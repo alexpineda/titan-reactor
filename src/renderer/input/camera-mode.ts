@@ -1,5 +1,5 @@
 import { NativePlugin } from "../plugins/plugin-system-native";
-import { Camera, Vector2, Vector3 } from "three";
+import { Vector2, Vector3 } from "three";
 import CameraControls from "camera-controls";
 import ProjectedCameraView from "renderer/camera/projected-camera-view";
 
@@ -20,7 +20,7 @@ export interface CameraModePlugin extends NativePlugin {
 
     dispose: () => void;
 
-    onEnterCameraMode: (prevData: any, camera: Camera) => Promise<void>;
+    onEnterCameraMode: (prevData: any) => Promise<void>;
 
     onExitCameraMode?: (target: Vector3, position: Vector3) => void;
 
