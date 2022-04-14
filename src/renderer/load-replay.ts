@@ -104,7 +104,7 @@ export default async (filepath: string) => {
 
   await waitForAssets();
 
-  await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, replay.header, new CommandsStream(replay.rawCmds), map);
+  await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, map, replay.header);
 
   processStore().increment(Process.ReplayInitialization);
 

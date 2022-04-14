@@ -56,7 +56,7 @@ class Hook {
 const createDefaultHooks = () => ({
     onGameDisposed: new Hook(HOOK_ON_GAME_DISPOSED, []),
     onGameReady: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
-    onScenePrepared: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "replayHeader", "commandsStream", "map"]),
+    onScenePrepared: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "map", "replayHeader"]),
     onUnitCreated: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
     onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
     onFrameReset: new Hook(HOOK_ON_FRAME_RESET, [])
@@ -66,39 +66,40 @@ type PluginPrototype = {
     config?: {
         [key: string]: any
     };
+    $$permissions: {
+        [key: string]: boolean
+    },
     getConfig: (key: string) => any;
-    saveAudioSettings: (settings: any) => any;
-    saveGraphicsSettings: (settings: any) => any;
+    saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
 }
 
 const pluginProto: PluginPrototype = {
+    $$permissions: {},
     getConfig(key: string) {
         if (this.config?.[key]?.factor) {
             return this.config[key].value * this.config[key].factor;
         }
         return this.config?.[key]?.value
     },
-    saveAudioSettings(settings: any) {
-        const state = stores.useSettingsStore.getState();
-        state.save({
-            audio: {
-                ...state.data.audio,
-                ...settings,
+    saveSettings(settings: { audio?: {}, graphics?: {} }) {
+        if (this.$$permissions["settings.write"]) {
+            const state = stores.useSettingsStore.getState();
+            state.save({
+                audio: {
+                    ...state.data.audio,
+                    ...settings.audio,
+                },
+                graphics: {
+                    ...state.data.graphics,
+                    ...settings.graphics
+                }
             }
+            );
         }
-        );
     },
-    saveGraphicsSettings(settings: any) {
-        const state = stores.useSettingsStore.getState();
-        state.save({
-            graphics: {
-                ...state.data.graphics,
-                ...settings
-            }
-        });
-    }
 };
 
+const VALID_PERMISSIONS = ["settings.write", "replay.file", "replay.commands"];
 export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
@@ -125,6 +126,22 @@ export class PluginSystemNative {
                     }
                 }
             }
+
+            const permissions = Object.freeze((pluginPackage.config?.system?.permissions ?? []).reduce((acc: Record<string, boolean>, permission: string) => {
+                if (VALID_PERMISSIONS.includes(permission)) {
+                    acc[permission] = true;
+                } else {
+                    log.warning(`Invalid permission ${permission} for plugin ${pluginPackage.name}`);
+                }
+                return acc;
+            }, {}));
+
+            pluginPropertyConfig["$$permissions"] = {
+                configurable: false,
+                enumerable: false,
+                writable: false,
+                value: permissions
+            }
             const plugin = Object.create(pluginProto, pluginPropertyConfig);
 
             plugin.id = pluginPackage.id;
@@ -133,6 +150,7 @@ export class PluginSystemNative {
             plugin.sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
             plugin.isEnabled = true;
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
+            plugin.init && plugin.init();
 
             return plugin;
         } catch (e: unknown) {

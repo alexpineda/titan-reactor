@@ -61,6 +61,9 @@ export class MainMixer extends AudioListener {
     if (this.parent) {
       throw new Error("This method should not be called on a parented object.");
     }
+    if (Number.isNaN(x) || Number.isNaN(y) || Number.isNaN(z)) {
+      return;
+    }
     const endTime = this.context.currentTime + delta * 0.001;
     this.context.listener.positionX.linearRampToValueAtTime(x, endTime);
     this.context.listener.positionY.linearRampToValueAtTime(y, endTime);

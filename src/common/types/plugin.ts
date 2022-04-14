@@ -32,7 +32,11 @@ export interface PluginPackage {
     };
     description?: string;
     repository?: string | { type?: string; url?: string };
-    iframe?: "isolated" | "shared";
+    config?: {
+        system?: {
+            permissions?: string[]
+        }
+    }
 }
 
 export type ScreenData = {
@@ -42,7 +46,6 @@ export type ScreenData = {
 
 export interface InitializedPluginPackage extends PluginPackage {
     nativeSource?: string | null;
-    config: {};
     path: string;
     date?: Date;
     readme?: string
