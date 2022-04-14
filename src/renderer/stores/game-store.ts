@@ -3,11 +3,13 @@ import { GameCanvasDimensions } from "common/types";
 import Assets from "../assets/assets";
 import { onGameDisposed } from "../plugins";
 
+type MinimapDimensions = Pick<GameCanvasDimensions, "minimapWidth" | "minimapHeight">;
+
 export type GameStore = {
   assets: Assets | null;
-  dimensions: GameCanvasDimensions;
+  dimensions: MinimapDimensions;
   setAssets: (assets: Assets | null) => void;
-  setDimensions: (dimensions: GameCanvasDimensions) => void;
+  setDimensions: (dimensions: MinimapDimensions) => void;
   setDisposeGame: (game: () => void) => void;
   disposeGame: () => void;
   log: string[][],
@@ -20,18 +22,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   log: [],
   assets: null,
   dimensions: {
-    left: 0,
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 0,
-    height: 0,
+    minimapEnabled: false,
     minimapWidth: 0,
     minimapHeight: 0
   },
   setAssets: (assets: Assets | null) => set({ assets }),
   setDisposeGame: (gameDisposer) => set({ gameDisposer }),
-  setDimensions: (dimensions: GameCanvasDimensions) => set({ dimensions }),
+  setDimensions: (dimensions: MinimapDimensions) => set({ dimensions }),
   disposeGame: () => {
     const gameDisposer = get().gameDisposer;
     gameDisposer && gameDisposer();

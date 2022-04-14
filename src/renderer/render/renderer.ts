@@ -147,7 +147,4 @@ export class TitanRenderer {
     }
 }
 
-const _r = new TitanRenderer();
-// @ts-ignore
-window.renderer = _r;
-export default _r;
+export default new TitanRenderer();

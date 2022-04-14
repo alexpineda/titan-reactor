@@ -15,7 +15,7 @@ export default ({
   controls,
 }: {
   controls: any[][];
-  pluginConfig: InitializedPluginPackage;
+  pluginConfig: Partial<InitializedPluginPackage>;
 }) => {
   useEffect(() => {
     // on mount clear the default leva store

@@ -15,6 +15,7 @@ import browserWindows from "../windows";
 import settings from "../settings/singleton"
 import withErrorMessage from 'common/utils/with-error-message';
 import log from "../log"
+import fileExists from 'common/utils/file-exists';
 
 
 let _enabledPluginPackages: InitializedPluginPackage[];
@@ -48,6 +49,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
     const pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
     const readme = await _tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
+    const hasUI = await fileExists(path.join(folderPath, "index.jsx"));
 
     if (!packageJSON) {
         return null
@@ -73,7 +75,8 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         path: folderName,
         config: packageJSON.config ?? {},
         nativeSource: pluginNative,
-        readme: readme ?? undefined
+        readme: readme ?? undefined,
+        hasUI
     };
 
 }
@@ -130,7 +133,7 @@ export default async (pluginDirectory: string) => {
                 log.error(`@load-plugins/default: Failed to install default plugins`);
                 browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL_ERROR);
             }
-            
+
         }
     } catch (e) {
         log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
@@ -150,7 +153,7 @@ export const installPlugin = async (repository: string) => {
 
         await pacote.extract(repository, folderPath);
 
-        try { 
+        try {
             const loadedPackage = await loadPluginPackage(folderPath, folderName);
 
             if (loadedPackage) {
@@ -263,7 +266,12 @@ export const savePluginsConfig = async (pluginId: string, config: any, updateMai
         const pkgJson = await PackageJson.load(existingConfigPath);
         const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-        pluginConfig.config = deepMerge(pluginConfig.config, config, { arrayMerge: overwriteMerge });
+        if (pluginConfig.config) {
+            pluginConfig.config = deepMerge(pluginConfig.config, config, { arrayMerge: overwriteMerge });
+        } else {
+            pluginConfig.config = config;
+        }
+
         pkgJson.update({
             config
         })

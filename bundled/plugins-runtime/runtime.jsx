@@ -22,9 +22,7 @@ export const useFrame = () => {
   return useStore(_useFrame);
 };
 
-
-const _usePlayers = (state) =>
-state.world?.replay?.header?.players 
+const _usePlayers = (state) => state.world?.replay?.header?.players;
 export const usePlayers = () => {
   return useStore(_usePlayers) ?? [];
 };
@@ -33,7 +31,7 @@ const _usePlayerFrame = (state) => state.frame.playerData;
 export const usePlayerFrame = () => {
   const playerData = useStore(_usePlayerFrame);
   return (id) => getPlayerInfo(id, playerData);
-}
+};
 
 // plugin specific configuration
 const useConfig = create(() => ({}));
@@ -56,7 +54,32 @@ export const setStyleSheet = (id, content) => {
 
 const _plugins = {};
 
+/**
+ * Simplify the config values for the React side of things
+ */
+function processConfigBeforeReceive(config) {
+  if (config) {
+    const configCopy = {
+      $$meta: config,
+    };
+    Object.keys(config).forEach((key) => {
+      if (config[key]?.value !== undefined) {
+        if (config[key]?.factor !== undefined) {
+          configCopy[key] = config[key].value * config[key].factor;
+        } else {
+          configCopy[key] = config[key].value;
+        }
+      }
+    });
+    return configCopy;
+  }
+}
+
 const _addPlugin = (plugin) => {
+  if (!plugin.hasUI) {
+    return;
+  }
+
   _plugins[plugin.id] = {
     id: plugin.id,
     messageHandler: new EventTarget(),
@@ -69,12 +92,12 @@ const _addPlugin = (plugin) => {
   script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
   document.head.appendChild(script);
 
-  useConfig.setState({ [plugin.id]: plugin.config });
+  useConfig.setState({
+    [plugin.id]: processConfigBeforeReceive(plugin.config),
+  });
 };
 
 export let assets = {};
-
-
 
 export class RollingNumber {
   constructor(value = 0) {
@@ -162,6 +185,7 @@ class PlayerInfo {
   constructor() {
     this._struct_size = 7;
     this.playerId = 0;
+    this.playerData = [];
   }
 
   get _offset() {
@@ -207,8 +231,6 @@ const updateDimensionsCss = (dimensions) => {
   setStyleSheet(
     "game-dimension-css-vars",
     `:root {
-        --game-width: ${dimensions.width}px;
-        --game-height: ${dimensions.height}px;
         --minimap-width: ${dimensions.minimapWidth}px;
         --minimap-height: ${dimensions.minimapHeight}px;
       }`
@@ -227,7 +249,9 @@ const _messageListener = function (event) {
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({
-        [event.data.payload.pluginId]: event.data.payload.config,
+        [event.data.payload.pluginId]: processConfigBeforeReceive(
+          event.data.payload.config
+        ),
       });
     } else if (event.data.type === "system:mouse-click") {
       document
@@ -254,19 +278,22 @@ let _channelIds = 0;
 export const registerComponent = (component, JSXElement) => {
   const plugin = _plugins[component.pluginId];
   if (!plugin) {
+    console.warn(`Plugin ${component.pluginId} not found`);
     return;
   }
 
   component.id = `${component.pluginId}_${++_channelIds}`;
 
   // native to react communication channel
-  const useMessage = () => {
-    const [message, setMessage] = useState(null);
-    plugin.messageHandler.addEventListener("message", ({ detail }) => {
-      setMessage(detail);
-      component.onMessage && component.onMessage(detail);
-    });
-    return message;
+  const useMessage = (cb, deps = []) => {
+    useEffect(() => {
+      const handler = ({ detail }) => {
+        typeof cb === "function" && cb(detail);
+      };
+      plugin.messageHandler.addEventListener("message", handler);
+      return () =>
+        plugin.messageHandler.removeEventListener("message", handler);
+    }, deps);
   };
 
   const sendMessage = (message) => {

@@ -17,6 +17,9 @@ import { useScreenStore } from "@stores/screen-store";
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
 
+/**
+ * A plugin config has been updated in the config window
+ */
 ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
     uiPluginSystem.sendMessage({
         type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,

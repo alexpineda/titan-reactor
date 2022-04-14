@@ -7,6 +7,7 @@ import browserWindows from "../windows";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
 import { getEnabledPluginConfigs, replacePluginContent } from "./load-plugins";
 import settings from "../settings/singleton"
+import fileExists from "common/utils/file-exists";
 
 const _runtimePath = path.resolve(__static, "plugins-runtime");
 
@@ -26,11 +27,15 @@ app.get('*', async function (req, res) {
     const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(settings.get().directories.plugins, req.path);
 
     if (!(filepath.startsWith(settings.get().directories.plugins) || filepath.startsWith(_runtimePath))) {
-        res.status(404);
-        return;
+        return res.sendStatus(404);
+    }
+
+    if (!(await fileExists(filepath))) {
+        return res.sendStatus(404);
     }
 
     if (filepath.endsWith(".jsx")) {
+
         let result = await transpile(fs.readFileSync(filepath, "utf8"), transpileErrors);
         let content = "";
 
@@ -49,7 +54,8 @@ app.get('*', async function (req, res) {
             res.send(content);
         } else {
             browserWindows.main?.webContents?.send(LOG_MESSAGE, `@plugin-server: transpile error - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`, "error");
-            res.status(400);
+            return res.sendStatus(400);
+
         }
 
     } else {

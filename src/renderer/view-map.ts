@@ -75,15 +75,6 @@ async function TitanReactorMap(
   control.verticalDragToForward = true;
   janitor.disposable(control);
   control.setLookAt(0, 50, 0, 0, 0, 0, true);
-  //@ts-ignore
-  window.control = control;
-  //@ts-ignore
-  window.camera = camera;
-  //@ts-ignore
-  janitor.callback(() => { window.control = null; window.camera = null; });
-
-  // @ts-ignore
-  janitor.callback(() => window.renderMan = null)
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
@@ -196,11 +187,6 @@ async function TitanReactorMap(
 
   renderer.getWebGLRenderer().setAnimationLoop(gameLoop);
   janitor.callback(() => renderer.getWebGLRenderer().setAnimationLoop(null));
-
-  //@ts-ignore
-  window.scene = scene;
-  // @ts-ignore
-  janitor.callback(() => scene = null)
 
   const unsub = useSettingsStore.subscribe((state, prevState) => {
     settings = state.data;

@@ -48,7 +48,8 @@ export interface InitializedPluginPackage extends PluginPackage {
     nativeSource?: string | null;
     path: string;
     date?: Date;
-    readme?: string
+    readme?: string;
+    hasUI: boolean;
 }
 
 export interface PluginLifecycle {

@@ -158,10 +158,6 @@ if (!gotTheLock) {
 
   app.on('browser-window-focus', function (event) {
 
-    globalShortcut.register('CommandOrControl+Shift+I', () => {
-      // @ts-ignore
-      event.sender.webContents.openDevTools();
-    });
     globalShortcut.register("CommandOrControl+R", async () => {
       await settings.initialize();
       // @ts-ignore
@@ -176,13 +172,12 @@ if (!gotTheLock) {
       createConfigurationWindow();
     });
 
-    
+
   });
 
   app.on('browser-window-blur', function () {
-    globalShortcut.unregister('CommandOrControl+Shift+I');
     globalShortcut.unregister('CommandOrControl+R');
     globalShortcut.unregister('F10');
     globalShortcut.unregister('F5');
-});
+  });
 }

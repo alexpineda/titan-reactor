@@ -6,7 +6,6 @@ const PROCESS_MAX = 10;
 
 export enum Process {
   TerrainGeneration,
-  IScriptahInitialization,
   ReplayInitialization,
   MapInitialization,
   AtlasPreload

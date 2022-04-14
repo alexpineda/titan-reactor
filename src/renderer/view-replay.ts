@@ -57,7 +57,6 @@ import { CameraModePlugin } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
-import { useChatStore } from "./stores/chat-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
 import { Scene } from "./render/scene";
@@ -305,6 +304,12 @@ async function TitanReactorGame(
       minimapSurface.canvas.style.display = "none";
     }
 
+    const rect = gameSurface.getRect();
+    gameStore().setDimensions({
+      minimapWidth: rect.minimapWidth,
+      minimapHeight: minimapMouse.enabled ? rect.minimapHeight : 0,
+    });
+
     if (cameraMode.cameraShake) {
       newControls.cameraShake.enabled = true;
     } else {
@@ -333,11 +338,6 @@ async function TitanReactorGame(
   }
 
   let controls = await switchCameraMode(plugins.getDefaultCameraModePlugin());
-
-  //@ts-ignore
-  window.scene = scene;
-  //@ts-ignore
-  janitor.callback(() => (window.scene = null));
 
   // const setUseDepth = (useDepth: boolean) => {
   //   ImageHD.useDepth = useDepth;
@@ -436,14 +436,14 @@ async function TitanReactorGame(
     document.removeEventListener("keydown", nextFrameHandler)
   );
 
-  //@ts-ignore
-  janitor.callback(() => (window.cameras = null));
-
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    const rect = gameSurface.getRect();
-    gameStore().setDimensions(rect);
 
+    const rect = gameSurface.getRect();
+    gameStore().setDimensions({
+      minimapWidth: rect.minimapWidth,
+      minimapHeight: minimapMouse.enabled ? rect.minimapHeight : 0,
+    });
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
@@ -734,6 +734,8 @@ async function TitanReactorGame(
           _generatingCreep = false;
         });
       }
+
+      if (!fogBitmap || !unitsBitmap || !resourcesBitmap || !creepBitmap) return;
 
       ctx.save();
 
@@ -1484,7 +1486,6 @@ async function TitanReactorGame(
   }
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
-  useChatStore.subscribe(chat => console.log(chat))
   return dispose;
 }
 

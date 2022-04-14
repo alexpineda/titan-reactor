@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStore, usePluginConfig, assets } from "titan-reactor";
+import { useStore, usePluginConfig } from "titan-reactor";
 const _screenSelector = (store) => store.screen;
 
 const _style_ErrorCenterText = {
@@ -112,7 +112,9 @@ export default ({ components }) => {
       {!appLoaded && !error && <p style={styleCenterText}>암흑 물질</p>}
       {appLoaded && !error && !hasAnyComponents && (
         <>
-        <p style={styleCenterText}>Installing Default Plugins and Restarting.</p>
+          <p style={styleCenterText}>
+            Installing Default Plugins and Restarting.
+          </p>
         </>
       )}
       {error && <GlobalErrorState error={error} />}
