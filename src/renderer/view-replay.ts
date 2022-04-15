@@ -261,7 +261,6 @@ async function TitanReactorGame(
 
           prevCameraMode.orbit!.getTarget(target);
           prevCameraMode.orbit!.getPosition(position);
-          prevCameraMode.isActiveCameraMode = false;
 
           prevData = prevCameraMode.onExitCameraMode(target, position);
         } catch (e) {
@@ -279,6 +278,7 @@ async function TitanReactorGame(
     const newControls = createControls(cameraMode, controlsJanitor);
 
     cameraMode.dispose = () => {
+      cameraMode.isActiveCameraMode = false;
       delete cameraMode.orbit;
       controlsJanitor.mopUp();
     }

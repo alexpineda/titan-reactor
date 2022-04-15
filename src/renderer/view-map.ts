@@ -82,6 +82,7 @@ async function TitanReactorMap(
   renderer.setCameraModeEffectsAndPasses({
     passes: [clearPass, renderPass]
   });
+  renderer.changeCamera(camera);
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
@@ -194,29 +195,6 @@ async function TitanReactorMap(
 
   renderer.getWebGLRenderer().setAnimationLoop(gameLoop);
   janitor.callback(() => renderer.getWebGLRenderer().setAnimationLoop(null));
-
-  const unsub = useSettingsStore.subscribe((state, prevState) => {
-    settings = state.data;
-    const prevSettings = prevState.data;
-    if (settings === null || prevSettings === null) return;
-
-    // if (prevSettings.showDisabledDoodads !== settings.showDisabledDoodads) {
-    //   for (const doodad of disabledDoodads) {
-    //     doodad.visible = settings.showDisabledDoodads;
-    //   }
-    // }
-
-    // if (prevSettings.showCritters !== settings.showCritters) {
-    //   for (const critter of critters) {
-    //     critter.visible = settings.showCritters;
-    //   }
-    // }
-
-    // if (prevSettings.mapBackgroundColor !== settings.mapBackgroundColor) {
-    //   scene.background = new Color(settings.mapBackgroundColor);
-    // }
-  });
-  janitor.callback(unsub)
 
   const dispose = () => {
     log.info("disposing map viewer");
