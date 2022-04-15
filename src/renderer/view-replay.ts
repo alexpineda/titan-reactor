@@ -72,6 +72,7 @@ import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
+import FPSMeter from "@utils/fps-meter";
 
 CameraControls.install({ THREE: THREE });
 
@@ -100,6 +101,9 @@ async function TitanReactorGame(
   assert(openBw.wasm);
 
   openBw.call!.setGameSpeed!(1);
+  openBw.call!.setPaused!(false);
+
+  const fps = new FPSMeter();
 
   const createImage = (imageTypeId: number) => {
     const atlas = assets.grps[imageTypeId];
@@ -380,7 +384,7 @@ async function TitanReactorGame(
   );
 
 
-  const updatePlayerColors = (replay: Replay) => {
+  const makeThreeColors = (replay: Replay) => {
     return replay.header.players.map(
       ({ color }) =>
         new Color().setStyle(color).convertSRGBToLinear()
@@ -389,7 +393,7 @@ async function TitanReactorGame(
 
   janitor.callback(useWorldStore.subscribe(world => {
     if (world.replay) {
-      const colors = updatePlayerColors(world.replay);
+      const colors = makeThreeColors(world.replay);
       for (let i = 0; i < players.length; i++) {
         players[i].color = colors[i];
       }
@@ -399,7 +403,7 @@ async function TitanReactorGame(
   const players = new Players(
     replay.header.players,
     preplacedMapUnits.filter((u) => u.unitId === startLocation),
-    updatePlayerColors(replay)
+    makeThreeColors(replay)
   );
 
   music.playGame();
@@ -1344,6 +1348,7 @@ async function TitanReactorGame(
       cssRenderer.render(cssScene, camera);
     }
 
+    fps.update(elapsed);
     plugins.onRender(delta, elapsed);
 
   };
@@ -1351,6 +1356,7 @@ async function TitanReactorGame(
   const dispose = () => {
     log.info("disposing replay viewer");
     gameStatePosition.pause();
+    pluginsJanitor.mopUp();
     janitor.mopUp();
     controls.cameraMode.dispose();
   };
@@ -1377,6 +1383,8 @@ async function TitanReactorGame(
     id: player.id,
     name: player.name
   }));
+
+  let pluginsJanitor = new Janitor;
 
   const setupPlugins = async () => {
     shortcuts.clearAll();
@@ -1481,10 +1489,11 @@ async function TitanReactorGame(
       setPlayerColors,
       getOriginalColors,
       setPlayerNames,
-      getOriginalNames
+      getOriginalNames,
+      getFPS: () => fps.fps
     };
 
-    janitor.callback(plugins.injectApi(api));
+    pluginsJanitor.callback(plugins.injectApi(api));
 
     let switchingCameraMode = false;
     plugins.getCameraModePlugins().forEach((cameraMode) => {
@@ -1497,8 +1506,8 @@ async function TitanReactorGame(
         }
         switchingCameraMode = false;
       }
-      shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!.value, _toggleCallback);
-      janitor.callback(() => shortcuts.removeListener(_toggleCallback));
+      shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!, _toggleCallback);
+      pluginsJanitor.callback(() => shortcuts.removeListener(_toggleCallback));
 
     });
 
@@ -1509,6 +1518,7 @@ async function TitanReactorGame(
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
   const _onReloadPlugins = async () => {
+    pluginsJanitor.mopUp();
     renderer.getWebGLRenderer().setAnimationLoop(null);
     await (settingsStore().load());
     plugins.initializePluginSystem(settingsStore().enabledPlugins);

@@ -384,7 +384,10 @@ In your `plugin.js`:
 
 return {
   onGameReady() {
+    // default debounced version to protect performance
     this.sendUIMessage("hi!");
+    // immediate send, use at your own risk :)
+    this.sendUIMessageImmediate("immediate!")
   },
 
   // you may respond to ui sent messages here

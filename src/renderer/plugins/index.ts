@@ -3,7 +3,7 @@
 import { ipcRenderer } from "electron";
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL, RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 import { GameStatePosition } from "@core";
 import {
     installPlugin
@@ -14,7 +14,6 @@ import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
 import { Vector3 } from "three";
-import settingsStore from "@stores/settings-store";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;

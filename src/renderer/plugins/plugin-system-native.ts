@@ -14,6 +14,7 @@ import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS_WRITE } from "./permissions";
 import settingsStore from "@stores/settings-store";
 
+
 const STDLIB = {
     CSS2DObject
 }
@@ -26,7 +27,9 @@ interface PluginPrototype {
     $$permissions: {
         [key: string]: boolean
     },
-    getConfig: (key: string) => any;
+    $$config: {
+        [key: string]: any
+    },
     setConfig: (key: string, value: any) => any;
     saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
 }
@@ -42,9 +45,7 @@ export interface NativePlugin extends PluginPrototype {
     onRender?: (delta: number, elapsed: number) => void;
     onFrame?: (frame: number, commands?: any[]) => void;
     config: {
-        cameraModeKey?: {
-            value: string
-        }
+        cameraModeKey?: string
     };
 }
 
@@ -90,16 +91,11 @@ const createDefaultHooks = () => ({
 const pluginProto: PluginPrototype = {
     id: "",
     $$permissions: {},
-    getConfig(key: string) {
-        if (this.config?.[key]?.factor) {
-            return this.config[key].value * this.config[key].factor;
-        }
-        return this.config?.[key]?.value
-    },
+    $$config: {},
     setConfig(key: string, value: any) {
-        if (this.config?.[key]?.value !== undefined) {
-            this.config[key].value = value;
-            updatePluginsConfig(this.id, this.config);
+        if (this.$$config?.[key]?.value !== undefined) {
+            this.$$config[key].value = value;
+            updatePluginsConfig(this.id, this.$$config);
         }
     },
     saveSettings(settings: { audio?: {}, graphics?: {} }) {
@@ -119,6 +115,22 @@ const pluginProto: PluginPrototype = {
         }
     },
 };
+
+function processConfigBeforeReceive(config: any) {
+    if (config) {
+        const configCopy: any = {};
+        Object.keys(config).forEach((key) => {
+            if (config[key]?.value !== undefined) {
+                if (config[key]?.factor !== undefined) {
+                    configCopy[key] = config[key].value * config[key].factor;
+                } else {
+                    configCopy[key] = config[key].value;
+                }
+            }
+        });
+        return Object.freeze(configCopy);
+    }
+}
 
 const VALID_PERMISSIONS = [
     PERMISSION_SETTINGS_WRITE,
@@ -171,8 +183,12 @@ export class PluginSystemNative {
 
             plugin.id = pluginPackage.id;
             plugin.name = pluginPackage.name;
-            plugin.config = pluginPackage.config;
-            plugin.sendUIMessage = (message: any) => this.sendCustomUIMessage(pluginPackage.id, message);
+            plugin.config = processConfigBeforeReceive(pluginPackage.config);
+            plugin.$$config = pluginPackage.config;
+            const sendUIMessage = (message: any) => {
+                this.sendCustomUIMessage(pluginPackage.id, message);
+            }
+            plugin.sendUIMessage = sendUIMessage;
             plugin.isEnabled = true;
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
             plugin.init && plugin.init();
@@ -192,7 +208,7 @@ export class PluginSystemNative {
     }
 
     getDefaultCameraModePlugin() {
-        const plugin = this.#nativePlugins.find(p => p.config?.cameraModeKey?.value === "Escape");
+        const plugin = this.#nativePlugins.find(p => p.config?.cameraModeKey === "Escape");
 
         if (plugin) {
             return plugin as unknown as CameraModePlugin;
@@ -258,7 +274,7 @@ export class PluginSystemNative {
         if (plugin) {
             try {
                 const oldConfig = { ...plugin.config };
-                plugin.config = config;
+                plugin.config = processConfigBeforeReceive(config);
                 plugin.onConfigChanged && plugin.onConfigChanged(config, oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
