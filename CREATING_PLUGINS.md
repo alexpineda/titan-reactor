@@ -2,22 +2,36 @@
 - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Your first plugin package.json](#your-first-plugin-packagejson)
+    - [Example](#example)
   - [How it works](#how-it-works)
+    - [Required Files](#required-files)
+    - [UI Component](#ui-component)
+    - [Game Component](#game-component)
+    - [System and User Configuration](#system-and-user-configuration)
   - [Writing a React Component](#writing-a-react-component)
-  - [Store Reference](#store-reference)
-  - [registerComponent reference](#registercomponent-reference)
+    - [Example](#example-1)
+    - [registerComponent()](#registercomponent)
+    - [Technology](#technology)
+    - [Using User Configuration](#using-user-configuration)
+    - [Interaction](#interaction)
+  - [React API Reference](#react-api-reference)
+  - [More on registerComponent()](#more-on-registercomponent)
   - [CSS for React Components](#css-for-react-components)
-  - [plugin.js](#pluginjs)
-  - [Camera Mode APIs](#camera-mode-apis)
-  - [Game Time APIs](#game-time-apis)
-  - [Communicating between plugin.js and index.jx](#communicating-between-pluginjs-and-indexjx)
+    - [CSS Variables](#css-variables)
+    - [Included Font Families](#included-font-families)
+  - [Modifying Game State](#modifying-game-state)
+    - [Generic Hooks](#generic-hooks)
+  - [Camera Mode Plugins](#camera-mode-plugins)
+  - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
   - [useStore advanced](#usestore-advanced)
-  - [titan-reactor exports reference](#titan-reactor-exports-reference)
   - [README.md](#readmemd)
   - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
 
 ⚠️ The plugin API is under heavy development. Expect frequent breaking changes until Titan Reactor v1. Big plans include supporting TypeScript out of the box.
+
+Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-official-plugins) for several examples.
+
 
 ## Overview
 
@@ -28,6 +42,8 @@ Plugins in Titan Reactor allow you to connect to the game to display custom char
 
 
 ## Your first plugin package.json
+
+### Example
 
 *plugins/my-cool-plugin/package.json*
 ```json
@@ -47,11 +63,19 @@ You'll first need a `package.json` under your plugin folder with at least a uniq
 
 ## How it works
 
+### Required Files
+
 Your plugin directory must contain a `package.json` file. It may also contain either  `index.jsx` or `plugin.js` or both.
 
-For React components use `index.jsx`. Your code will automatically be be transpiled by Titan Reactor. Your component will live in an iframe with other plugins in a separate process. You can show different components based on the screen (eg replay loading or replay active) and read *some* of Titan Reactor game state.
+### UI Component
+
+For React UI components use `index.jsx`. Your code will automatically be be transpiled by Titan Reactor. Your component will live in an iframe with other plugins in a separate process. You can show different components based on the screen (eg replay loading or replay active) and read *some* of Titan Reactor game state.
+
+### Game Component
 
 For more comprehensive processing use `plugin.js` which allows you to access full Titan Reactor game state on the main Chromium process. This will mostly be used for modifying game state, such as player colors. You can communicate with your React components as well if need be.
+
+### System and User Configuration
 
 We use the `config` value in `package.json` to define user configuration options and default values. These settings will be shown to the user in the config window. We use Leva for this config window and so the values follow the [Leva convention](https://github.com/pmndrs/leva/blob/main/docs/inputs.md), you can see also their [storybook examples](https://leva.pmnd.rs/?path=/story/inputs-string--simple). 
 
@@ -76,6 +100,8 @@ We use the `config` value in `package.json` to define user configuration options
 
 ## Writing a React Component
 
+### Example
+
 Once we've got our basic `package.json` we can start with `index.jsx`:
 
 ```jsx
@@ -86,28 +112,33 @@ const MyComponent = ({ config }) => {
     // will update on every game second with latest frame data
     const frame = useFrame();
 
-    return <h1>Hello { config.userName.value }. Game time is {frame.time} </h1>
+    return <h1>Hello { config.userName }. Game time is {frame.time} </h1>
 };
 
 registerComponent({ pluginId: "_plugin_id_", screen: "@replay/ready" }, MyComponent);
 ```
 
+### registerComponent()
+
 `registerComponent` lets Titan Reactor know about our new React Component, and will mount it and unmount it according to the screen and layout rules. The `_plugin_id_` macro will be replaced with our actual unique plugin id for us and is just boilerplate.
 
-Additional properties in the first argument allow us to tap into layout and screen rules. In this case **our React component will be mounted when the replay screen is ready (loaded), and unmounted on any other state**.
+### Technology
 
 Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
 
+### Using User Configuration
+
 Every component will be provided with their plugin `config` object which corresponds with `config` field of our `package.json`. The component will re-render on any config update.
 
-Note that only mouse clicks events (`onClick`) will be available for listening to any of your react components. This is due to a limitation with having a full screen iframe mostly non-interactable on-top of the game canvas.
+### Interaction
 
+Only mouse clicks events (`onClick`) will be available for listening to any of your react components. This is due to a limitation with having a full screen iframe mostly non-interactable on-top of the game canvas.
 
+## React API Reference
 
+`titan-reactor` exports several utility methods, components and hooks.
 
-## Store Reference
-
-useFrame();
+**useFrame()**
 
 - **frame**
   - **time**: game time label `eg, "12:00"`
@@ -118,69 +149,118 @@ useFrame();
   - **upgrades**: Int32Array for each player (8 total), with [upgradeId, level, progress]
   - **research**: Int32Array for each player (8 total), with [researchId, progress]
 
-useMap();
+**useMap()**
   - **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/bw-chk.d.ts#L21)
 
-useReplay();
+**useReplay()**
   - **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/process-replay/parse-replay.ts#L49)
 
-useStore(); //generic
-- **scene** : "screenType/screenStatus"
-- **dimensions** [GameCanvasDimensions](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/image.ts#L11)
+**usePlayers()**
+ - Convenience function for accessing `replay.header.players`
 
-## registerComponent reference
+**usePlayerFrame()**
+ - provides function `getPlayerInfo(playerId)` to get frame based information like minerals and gas.
+
+**usePlayer()**
+- Convenience function to retrieve a particular player from `replay.header.players`
+- provides function `getPlayer(playerId)`
+
+**RollingResource**
+- A component that rolls to a number in an animated fashion
+
+**assets**
+- A full set of game assets like icons (mostly in base64)
+- See the [Assets](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/assets/assets.ts) type for reference
+- You must check `assets.ready`
+- eg.
+  ```js
+        if (!assets.ready) {
+        return null;
+      }
+  ```
+
+## More on registerComponent()
 
 Example: 
 ```js
 registerComponent({
   pluginId: "_plugin_id_",
   screen: "@home/ready",
-  snap: "center"
+  snap: "center",
+  order: 0
 }, MyElement)
 
 ```
 
-**screen** = "screenType/screenStatus"
-- screenType = `@home` | `@replay` | `@map`
+**screen** *(optional)* = "screenType/screenStatus"
 
-- screenStatus = `loading` | `ready`
+screenType = `@home` | `@replay` | `@map`
 
-`@home/loading` is not available to plugins. if `screen` is omitted, the plugin channel will be mounted on `@home/ready` and will remain mounted until the application is closed.
+screenStatus = `loading` | `ready`
 
-**snap**
-- `top` | `left` | `right` | `bottom` | `center`
+- eg. "@replay/loading"
 
-If multiple components are snapped into the same location, we use `config.order.value` to determine an ordering. 
+- if `screen` is omitted, the plugin channel will be mounted on `@home/ready` and will remain mounted until the application is closed. 
+- `@home/loading` is not available to plugins. 
 
-If multiple components are snapped to the center we provide a tabbing system.
+**snap** *(optional)*
 
-If snap is omitted, positioning is upto the plugin author and the root node must have style `position: absolute`.
+`top` | `left` | `right` | `bottom` | `center`
+
+- If multiple components are snapped to the center we provide a tabbing system.
+
+- If snap is omitted, positioning is upto the plugin author and the root node must have style `position: absolute`.
+
+**order** (optional)
+
+- If multiple components are snapped into the same location, we use `order` to determine an ordering. 
+- Defaults to 0
+
 
 ## CSS for React Components
 
-The following css variables are available to your styles:
-- --game-width
-- --game-height
-- --minimap-width
-- --minimap-height
+### CSS Variables
 
-These additional font-families are available for your styles:
+The following css variables are available to your styles:
+
+`--minimap-width`
+
+`--minimap-height`
+
+- If the minimap is not visible minimap-height will go to 0.
+
+The full set of open prop variables for use in your CSS. [See Open Props for more details.](https://open-props.style/)
+
+
+### Included Font Families
 
 `Inter` the default body font.
 
 `Conthrax` and `Conthrax-Bold` are good for scores and numbers.
 
-Finally, included in the "runtime" environment is also the full set of open prop variables for use in your CSS. [See Open Props for more details.](https://open-props.style/)
 
-## plugin.js
 
+## Modifying Game State
 You can create really powerful plugins by using a `plugin.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
-Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-community) for several examples.
+When a game is started apis are made available to your plugin for that instance of the game.
+
+- eg. `gotoFrame(frame)`
+  
+Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/view-replay.ts#L1395) for the time being.
+
+Take special care not to keep references to objects from the game instance. Dereference any values via the `onGameDisposed` callback.
+
+
+
+### Generic Hooks
 
 ```js
 // we provide global dependencies via the arguments object
-const { THREE } = arguments;
+// THREE - three.js
+// STDLIB - additional three.js objects
+// postprocessing - from the `postprocessing` npm package
+const { THREE, STDLIB, postprocessing } = arguments[0];
 
 // your plugin must return an object with keynames matching hook names that you want to listen to
 return {
@@ -195,6 +275,10 @@ return {
     // this hook fires anytime a user has changed a config field
     onConfigChanged(newConfig, oldConfig) {
       this.config === newConfig; // true;
+
+      // in this example we use goToFrame api call to jump to a user changed config value
+      // a lot of times you'll also want to check if newConfig.jumpToFrame !== oldConfig.jumpToFrame
+      this.goToFrame(this.config.jumpToFrame)
     },
 
     // if the user disables your plugin, clean up!
@@ -212,14 +296,25 @@ return {
     onGameDisposed() {
 
     },
+
+    // every bw game frame
+    // frame - the frame number
+    // commands - an array of replay commands
+    // not some frames may be skipped for fps reasons
+    // commands will include upto 5s of skipped frames
+    onFrame(frame, commands) {
+
+    }
     
-    // These APIS are only available if 
 }
 ```
 
-## Camera Mode APIs
+## Camera Mode Plugins
 
 Your plugin is considered a camera mode if your config has a `cameraModeKey` setting. A camera mode is a controller for camera movement and rendering.
+
+In order to avoid bugs, special care must be taken to check `isActiveCameraMode` when doing work in non-camera mode hooks like `onConfigChanged()` or `onFrame()`.
+
 
 ```json
 "cameraModeKey": {
@@ -231,64 +326,48 @@ Your plugin is considered a camera mode if your config has a `cameraModeKey` set
 
 Additional callbacks are made available:
 ```js
-// REQUIRED. When entering this camera mode.
-async onEnterCameraMode(controls, minimapMouse, camera, mapWidth, mapHeight);
+// REQUIRED.
+// The previous camera mode may leave data behind
+// for smoother transitions between modes
+async onEnterCameraMode(prevData);
 
-// When exiting the camera mode.
-onExitCameraMode();
+// The camera target and position for convenience 
+// in case we wish to pass this info along to the
+// next camera mode.
+onExitCameraMode(target, position);
 
 // When updating the mouse.
-onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, clicked);
+onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX, clientY, clicked);
 
-// When updating the keyboard.
-onCameraKeyboardUpdate(delta, elapsed, move) {
+// ...
 
-// Whether a unit should be hidden or not.
-onShouldHideUnit(unit);
-
-// The audio listener has a physical location, update it here.
-onUpdateAudioMixerLocation(delta, elapsed, audioMixer, camera, target);
 ```
 
+- See the [`CameraModePlugin` type for full API documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/input/camera-mode.ts).
+
+- The `orbit` object is an instance of [CameraControls](https://github.com/yomotsu/camera-controls).
 
 
-Additional properties for setting options:
-```javascript
-orbit: CameraControls; // the main controller for camera movement
-minimap: true, // whether to display the minimap
-pip: false, // whether to enable PIP
-pointerLock: true, // whether to lock the pointer (FPS style mouse)
-soundMode: "spatial", // either "classic" for stereo panning or "spatial" for 3d
-boundByMap: true, // whether the camera target is bound to the map
-```
 
-CameraControls [documentation may be found here](https://github.com/yomotsu/camera-controls).
-
-
-## Game Time APIs
-When a game is started apis are made available to your plugin for that instance of the game.
-
-Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/view-replay.ts#L1395) for the time being.
-
-Take special care not to keep references to objects from the game instance. Dereference any values via the `onGameDisposed` callback.
-
-## Communicating between plugin.js and index.jx
+## Communicating between Game and your UI component
 
 You can messages from plugin.js to your react components. For a full working example see the official FPS plugin.
 
 In your `index.jsx`:
 ```jsx
-import React from "react";
+import React, { useState } from "react";
 
 // useMessage is a hook passed in as a prop for your component
 const MyComponent = ({ config, useMessage, sendMessage }) => {
 
-  // any messages sent from plugin.js are received here
-  const message = useMessage();
+  const [message, setMessage] = useState("");
 
-  // here we just render the message, but you could also respond to events
-  // and use sendMessage({bar: "foo"}) to respond
-  return <p>{message.foo}</p>
+  // any messages sent from plugin.js are received here
+  useMessage(incomingMessage => {
+    setMessage(incomingMessage);
+  });
+
+  return <p onClick={() => sendMessage("click!")}>{message}</p>
 });
 
 ```
@@ -299,12 +378,12 @@ In your `plugin.js`:
 
 return {
   onGameReady() {
-    this.sendUIMessage({ foo : "bar!" });
+    this.sendUIMessage("hi!");
   }
 
   // you may respond to ui sent messages here
   onUIMessage(message) {
-
+    console.log(message);
   }
 }
 ```
@@ -319,16 +398,6 @@ It's best to [keep the "selector" function memoized](https://github.com/pmndrs/z
 **Optimized (Transient) Use**
 
 This method is a small optimization minimizing virtual dom diffing and re-renders. See [FPS Meter plugin](https://github.com/imbateam-gg/titan-reactor-community/tree/main/plugins/fps) and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
-
-## titan-reactor exports reference
-
-- useStore
-- getPlayerInfo
-- assets
-- RollingResource
-- registerComponent
-- pluginContentReady
-
 ## README.md
 
 By including a README.md Titan Reactor will include a Readme tab in the config window.
