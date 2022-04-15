@@ -288,9 +288,10 @@ export class PluginSystemNative {
      */
     injectApi(object: {}) {
         Object.assign(pluginProto, object);
+        const keys = Object.keys(object);
 
         return () => {
-            Object.keys(object).forEach(key => {
+            keys.forEach(key => {
                 delete pluginProto[key as keyof typeof pluginProto];
             })
         }

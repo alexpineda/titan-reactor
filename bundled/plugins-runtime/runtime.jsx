@@ -292,6 +292,7 @@ export const registerComponent = (component, JSXElement) => {
   }
 
   component.id = `${component.pluginId}_${++_channelIds}`;
+  component.order = component.order ?? 0;
 
   // native to react communication channel
   const useMessage = (cb, deps = []) => {

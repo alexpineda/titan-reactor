@@ -70,6 +70,8 @@ import { unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { CSS2DRenderer } from "./render/css-renderer";
+import { ipcRenderer } from "electron";
+import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 CameraControls.install({ THREE: THREE });
 
@@ -1237,9 +1239,7 @@ async function TitanReactorGame(
       if (!currentBwFrame) {
 
         currentBwFrame = gameStateReader.next();
-        if (!currentBwFrame || gameStatePosition.mode == GameStatePlayMode.SingleStep) {
-          gameStatePosition.paused = true;
-        } else if (currentBwFrame.needsUpdate === false) {
+        if (currentBwFrame.needsUpdate === false) {
           currentBwFrame = null;
         }
       }
@@ -1372,7 +1372,7 @@ async function TitanReactorGame(
   _sceneResizeHandler();
 
   gameStatePosition.resume();
-  {
+  const setupPlugins = async () => {
     const toggleFogOfWarByPlayerId = (playerId: number) => {
       const player = players.find(p => p.id === playerId);
       if (player) {
@@ -1461,14 +1461,30 @@ async function TitanReactorGame(
         }
         switchingCameraMode = false;
       }
+      shortcuts.clearListeners(cameraMode.id);
       shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!.value, _toggleCallback);
       janitor.callback(() => shortcuts.removeListener(_toggleCallback));
 
     });
 
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
+
   }
-  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+  await setupPlugins();
+  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
+
+  const _onReloadPlugins = async () => {
+    renderer.getWebGLRenderer().setAnimationLoop(null);
+    await (settingsStore().load());
+    plugins.initializePluginSystem(settingsStore().enabledPlugins);
+    controls = await switchCameraMode(plugins.getDefaultCameraModePlugin());
+
+    await setupPlugins();
+    renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
+  };
+
+  ipcRenderer.on(RELOAD_PLUGINS, _onReloadPlugins);
+  janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, _onReloadPlugins));
 
   return dispose;
 }

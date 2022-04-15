@@ -60,7 +60,9 @@ export default ({ components }) => {
     appLoaded &&
     (component.screen === undefined || component.screen === screen);
 
-  const orderSort = (a, b) => a.order - b.order;
+  const orderSort = (a, b) => {
+    return a.component.order - b.component.order;
+  };
 
   const styleCenterText = {
     position: "absolute",

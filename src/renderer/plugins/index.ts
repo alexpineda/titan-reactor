@@ -39,12 +39,6 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
     });
 });
 
-
-ipcRenderer.on(RELOAD_PLUGINS, async () => {
-    await (settingsStore().load());
-    initializePluginSystem(settingsStore().enabledPlugins);
-});
-
 ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
     uiPluginSystem.refresh();
     nativePluginSystem.enableAdditionalPlugins(plugins);
