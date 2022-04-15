@@ -22,7 +22,7 @@ const getContainerSize = (rawCmds: Buffer) => {
         continue;
       }
 
-      if (command.skipped && !command.data) {
+      if (command.isUnknown && !command.data) {
         continue;
       }
 

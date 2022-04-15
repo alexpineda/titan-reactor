@@ -92,9 +92,9 @@ export const onClick = (event: MouseEvent) => {
     })
 }
 
-export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) => {
+export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number, commands: any[]) => {
     uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
-    nativePluginSystem.onFrame(gameStatePosition.bwGameFrame);
+    nativePluginSystem.onFrame(gameStatePosition.bwGameFrame, commands);
 }
 
 export const getDefaultCameraModePlugin = () => {

@@ -33,6 +33,13 @@ export const usePlayerFrame = () => {
   return (id) => getPlayerInfo(id, playerData);
 };
 
+export const usePlayer = () => {
+  const players = usePlayers();
+  return (playerId) => {
+    return players.find((player) => player.id === playerId);
+  };
+};
+
 // plugin specific configuration
 const useConfig = create(() => ({}));
 export const usePluginConfig = (pluginId) =>

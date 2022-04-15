@@ -33,7 +33,7 @@ const convertCommands = (replay: Replay, commandsBuf: BufferList) => {
         continue;
       }
 
-      if (command.skipped && !command.data) {
+      if (command.isUnknown && !command.data) {
         continue;
       }
 

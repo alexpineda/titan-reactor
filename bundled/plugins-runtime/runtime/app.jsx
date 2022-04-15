@@ -8,7 +8,6 @@ const _style_ErrorCenterText = {
   left: "50%",
   top: "50%",
   transform: `translate(-50%, -50%)`,
-  transition: "all 3s ease-out",
   cursor: "wait",
   color: "#ffeedd",
   fontFamily: "Conthrax",
@@ -61,14 +60,18 @@ export default ({ components }) => {
     appLoaded &&
     (component.screen === undefined || component.screen === screen);
 
+  const orderSort = (a, b) => a.order - b.order;
+
   const styleCenterText = {
     position: "absolute",
     zIndex: "-999",
     left: "50%",
     top: "50%",
+    transform: `translate(-50%, -50%)`,
     cursor: "wait",
     color: "#ffeedd",
     fontFamily: "Conthrax",
+    animation: "var(--animation-blink) forwards",
   };
 
   const hasAnyComponents = Object.keys(components).reduce((acc, key) => {
@@ -87,14 +90,12 @@ export default ({ components }) => {
         flexDirection: "column",
       }}
     >
-      {!hasAnyComponents && !error && (
+      {(!hasAnyComponents || !appLoaded) && !error && (
         <div style={styleCenterText}>
-          <p>암흑 물질</p>
-          {firstInstall && (
-            <p style={styleCenterText}>
-              Installing Default Plugins and Restarting.
-            </p>
-          )}
+          <p style={{ fontSize: "var(--font-size-8)", transform: "scale(2)" }}>
+            암흑 물질
+          </p>
+          {firstInstall && <p>Installing Default Plugins and Restarting.</p>}
         </div>
       )}
       {error && <GlobalErrorState error={error} />}
@@ -187,6 +188,7 @@ export default ({ components }) => {
           {components["left"] &&
             components["left"]
               .filter(screenFilter)
+              .sort(orderSort)
               .map(({ JSXElement, component, useMessage, sendMessage }) => (
                 <Component
                   key={component.id}

@@ -422,6 +422,10 @@ async function TitanReactorGame(
       }
     });
     highlights.forEach(h => h.removeFromParent());
+
+    cmds = commandsStream.generate();
+    cmd = cmds.next();
+
     plugins.callHook(HOOK_ON_FRAME_RESET, openBw.call!.getCurrentFrame!());
 
     currentBwFrame = null;
@@ -1194,7 +1198,7 @@ async function TitanReactorGame(
   let _lastElapsed = 0;
   let delta = 0;
 
-  // const cmds = commandsStream.generate();
+  let cmds = commandsStream.generate();
 
   const _stepperListener = (evt: KeyboardEvent) => {
     if (evt.key === "n" && gameStatePosition.mode === GameStatePlayMode.SingleStep) {
@@ -1209,7 +1213,8 @@ async function TitanReactorGame(
   const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
   const _cameraBoundaryBox = new Box3(_boundaryMin, _boundaryMax)
   const _commandsThisFrame: any[] = [];
-  _commandsThisFrame;
+
+  let cmd = cmds.next();
 
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - _lastElapsed;
@@ -1272,73 +1277,23 @@ async function TitanReactorGame(
       }
 
 
-      // {
-      //   _commandsThisFrame.length = 0;
-      //   let cmd = cmds.next();
-      //   while (cmd.done === false) {
-      //     if (
-      //       typeof cmd.value === "number"
-      //     ) {
-      //       if (cmd.value > gameStatePosition.bwGameFrame) {
-      //         break;
-      //       } else if (cmd.value < gameStatePosition.bwGameFrame) {
-      //         cmd = cmds.next();
-      //         continue;
-      //       }
-      //     } else {
-      //       _commandsThisFrame.push(cmd.value);
-      //       if (
-      //         cmd.value.id === Commands.chat &&
-      //         typeof cmd.value.senderSlot === "number" &&
-      //         players.playersById[cmd.value.senderSlot]
-      //       ) {
+      _commandsThisFrame.length = 0;
+      while (cmd.done === false) {
+        if (
+          typeof cmd.value === "number"
+        ) {
+          if (cmd.value > gameStatePosition.bwGameFrame) {
+            break;
+          }
+          // only include past 5 game seconds (in case we are skipping frames)
+        } else if (gameStatePosition.bwGameFrame - cmd.value.frame < 120) {
+          _commandsThisFrame.push(cmd.value);
+        }
+        cmd = cmds.next();
+      }
 
-      //         chatStore().addChatMessage({
-      //           content: cmd.value.message,
-      //           player: players.playersById[cmd.value.senderSlot],
-      //         })
-
-      //       }
-      //       cmd = cmds.next();
-      //     }
-      //   }
-      // }
-
-      // if (rep.cmds[gameStatePosition.bwGameFrame]) {
-      //   for (const cmd of rep.cmds[gameStatePosition.bwGameFrame]) {
-      //     // if (players.playersById[cmd.player].showPov) {
-      //     //   players.playersById[cmd.player].camera.update(cmd, pxToGameUnit);
-      //     // } else {
-      //     //   players.playersById[cmd.player].camera.update(
-      //     //     cmd,
-      //     //     pxToGameUnit,
-      //     //     1000
-      //     //   );
-      //     // }
-
-      //     if (players.playersById[cmd.player].showActions) {
-      //       switch (cmd.id) {
-      //         case commands.rightClick:
-      //         case commands.targetedOrder:
-      //         case commands.build: {
-      //           const px = pxToGameUnit.x(cmd.x);
-      //           const py = pxToGameUnit.y(cmd.y);
-      //           const pz = terrainInfo.getTerrainY(px, py);
-
-      //           // fadingPointers.addPointer(
-      //           //   px,
-      //           //   py,
-      //           //   pz,
-      //           //   players.playersById[cmd.player].color.rgb,
-      //           //   gameStatePosition.bwGameFrame
-      //           // );
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9));
+      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
 
       currentBwFrame = null;
     }

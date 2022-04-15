@@ -26,7 +26,7 @@ export type NativePlugin = {
     onUIMessage?: (message: any) => void;
     onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
     onRender?: (delta: number, elapsed: number) => void;
-    onFrame?: (frame: number) => void;
+    onFrame?: (frame: number, commands: any[]) => void;
     config: {
         cameraModeKey?: {
             value: string
@@ -271,9 +271,9 @@ export class PluginSystemNative {
         }
     }
 
-    onFrame(frame: number) {
+    onFrame(frame: number, commands: any[]) {
         for (const plugin of this.#nativePlugins) {
-            plugin.onFrame && plugin.onFrame(frame);
+            plugin.onFrame && plugin.onFrame(frame, commands);
         }
     }
 
