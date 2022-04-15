@@ -1,13 +1,11 @@
 import Janitor from "@utils/janitor";
 import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
 import settingsStore from "@stores/settings-store";
-import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore } from "@stores";
 
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED } from "./events";
 import waitForAssets from "../bootup/wait-for-assets";
-import { ipcRenderer } from "electron";
 import { GameStatePosition } from "@core";
 import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
@@ -48,8 +46,6 @@ const worldPartial = (world: WorldStore) => {
         } : undefined
     }
 }
-
-
 
 export class PluginSystemUI {
     #_iframe: HTMLIFrameElement = document.createElement("iframe");
@@ -112,13 +108,6 @@ export class PluginSystemUI {
             const settings = settingsStore().data;
             this.#_iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
-        const reload = () => {
-            this.reset();
-            this.refresh();
-        }
-        ipcRenderer.on(RELOAD_PLUGINS, reload);
-        this.#_janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, reload));
-
 
         this.#_janitor.callback(useGameStore.subscribe((game, prev) => {
             if (game.dimensions !== prev.dimensions) {
@@ -149,6 +138,7 @@ export class PluginSystemUI {
     }
 
     dispose() {
+        this.reset();
         this.#_janitor.mopUp();
     }
 

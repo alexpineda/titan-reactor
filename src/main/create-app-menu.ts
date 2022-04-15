@@ -64,7 +64,8 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
         },
         {
           label: "Reload All Plugins",
-          click: function () {
+          click: async () => {
+            await settings.initialize();
             browserWindows.main?.webContents.send(RELOAD_PLUGINS);
           }
         },

@@ -1,6 +1,8 @@
 import * as log from "@ipc/log";
 import { InitializedPluginPackage } from "common/types";
 import * as THREE from "three";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+
 import * as stores from "@stores"
 import * as postprocessing from "postprocessing"
 import withErrorMessage from "common/utils/with-error-message";
@@ -9,6 +11,11 @@ import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
 import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
+import { updatePluginsConfig } from "@ipc/plugins";
+
+const STDLIB = {
+    CSS2DObject
+}
 
 export type NativePlugin = {
     id: string;
@@ -19,7 +26,7 @@ export type NativePlugin = {
     onUIMessage?: (message: any) => void;
     onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
     onRender?: (delta: number, elapsed: number) => void;
-    onFrame?: () => void;
+    onFrame?: (frame: number) => void;
     config: {
         cameraModeKey?: {
             value: string
@@ -65,6 +72,7 @@ const createDefaultHooks = () => ({
 });
 
 type PluginPrototype = {
+    id: string;
     config?: {
         [key: string]: any
     };
@@ -72,16 +80,24 @@ type PluginPrototype = {
         [key: string]: boolean
     },
     getConfig: (key: string) => any;
+    setConfig: (key: string, value: any) => any;
     saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
 }
 
 const pluginProto: PluginPrototype = {
+    id: "",
     $$permissions: {},
     getConfig(key: string) {
         if (this.config?.[key]?.factor) {
             return this.config[key].value * this.config[key].factor;
         }
         return this.config?.[key]?.value
+    },
+    setConfig(key: string, value: any) {
+        if (this.config?.[key]?.value !== undefined) {
+            this.config[key].value = value;
+            updatePluginsConfig(this.id, this.config);
+        }
     },
     saveSettings(settings: { audio?: {}, graphics?: {} }) {
         if (this.$$permissions["settings.write"]) {
@@ -114,7 +130,7 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, stores, postprocessing });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, stores, postprocessing });
             delete pluginPackage.nativeSource;
 
             const pluginPropertyConfig: Record<string, {}> = {};
@@ -210,6 +226,13 @@ export class PluginSystemNative {
         }
     }
 
+    dispose() {
+        for (const plugin of this.#nativePlugins) {
+            this.onDisable(plugin.id);
+        }
+        this.#nativePlugins = [];
+    }
+
     onDisable(pluginId: string) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
@@ -248,9 +271,9 @@ export class PluginSystemNative {
         }
     }
 
-    onFrame() {
+    onFrame(frame: number) {
         for (const plugin of this.#nativePlugins) {
-            plugin.onFrame && plugin.onFrame();
+            plugin.onFrame && plugin.onFrame(frame);
         }
     }
 

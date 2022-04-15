@@ -1,7 +1,9 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
+import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, SphereBufferGeometry, Mesh } from "three";
 import * as THREE from "three";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
@@ -49,7 +51,6 @@ import { getDirection32, setBoundary } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
-import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
@@ -68,6 +69,7 @@ import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_
 import { unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
+import { CSS2DRenderer } from "./render/css-renderer";
 
 CameraControls.install({ THREE: THREE });
 
@@ -124,6 +126,10 @@ async function TitanReactorGame(
 
   const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+
+  cssRenderer.domElement.style.position = 'absolute';
+  cssRenderer.domElement.style.top = '0px';
+  document.body.appendChild(cssRenderer.domElement);
 
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
@@ -256,8 +262,8 @@ async function TitanReactorGame(
     if (prevCameraMode) {
       if (prevCameraMode.onExitCameraMode) {
         try {
-          const target = new THREE.Vector3();
-          const position = new THREE.Vector3();
+          const target = new Vector3();
+          const position = new Vector3();
 
           prevCameraMode.orbit!.getTarget(target);
           prevCameraMode.orbit!.getPosition(position);
@@ -416,6 +422,7 @@ async function TitanReactorGame(
       }
     });
     highlights.forEach(h => h.removeFromParent());
+    plugins.callHook(HOOK_ON_FRAME_RESET, openBw.call!.getCurrentFrame!());
 
     currentBwFrame = null;
     reset = null;
@@ -462,6 +469,7 @@ async function TitanReactorGame(
       minimapHeight: minimapMouse.enabled ? rect.minimapHeight : 0,
     });
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
@@ -581,7 +589,7 @@ async function TitanReactorGame(
       return unit;
     } else {
       const existingUnit = freeUnits.pop();
-      const highlight = existingUnit?.extras.highlight ?? new THREE.Mesh(new THREE.SphereBufferGeometry(), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+      const highlight = existingUnit?.extras.highlight ?? new Mesh(new SphereBufferGeometry(), new MeshBasicMaterial({ color: 0xff0000 }));
       highlight.name = "Highlight";
       if (unitData.owner < 8) {
         const div = document.createElement("div");
@@ -1218,7 +1226,6 @@ async function TitanReactorGame(
 
     if (reset) {
       reset();
-      plugins.callHook(HOOK_ON_FRAME_RESET);
     }
 
     if (!gameStatePosition.paused) {
@@ -1332,9 +1339,7 @@ async function TitanReactorGame(
       // }
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
       plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9));
-      if (cssScene.children.length) {
-        cssRenderer.render(cssScene, camera);
-      }
+
       currentBwFrame = null;
     }
 
@@ -1374,6 +1379,14 @@ async function TitanReactorGame(
       renderer.render(delta, controls.PIP.viewport);
       renderer.changeCamera(camera);
       setUseScale(scale);
+    }
+
+    let _cssItems = 0;
+    for (const cssItem of cssScene.children) {
+      _cssItems += cssItem.children.length;
+    }
+    if (_cssItems) {
+      cssRenderer.render(cssScene, camera);
     }
 
     plugins.onRender(delta, elapsed);
@@ -1438,7 +1451,7 @@ async function TitanReactorGame(
         getMapCoords: terrain.getMapCoords,
         terrain: terrain.terrain
       },
-      get frame() {
+      getFrame() {
         return currentBwFrame?.frame;
       },
       maxFrame: replay.header.frameCount,

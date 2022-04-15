@@ -41,15 +41,19 @@ export class PluginKeyShortcuts {
     }
 
     #keyDownListener(e: KeyboardEvent) {
+        let _called = false;
         // test all registered plugin keys
         for (const listener of this.#listeners) {
             if (testKey(e, listener.key)) {
                 try {
+                    if (_called) {
+                        log.warning(`Multiple listeners called for key ${e.code}`);
+                    }
                     listener.fn();
+                    _called = true;
                 } catch (e) {
                     log.error(withErrorMessage(`Error in keyboard shortcut listener`, e));
                 }
-                break;
             }
         }
     }

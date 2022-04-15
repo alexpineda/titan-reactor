@@ -107,7 +107,6 @@ const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock",
 
 
 export default async (pluginDirectory: string) => {
-    if (_enabledPluginPackages) return;
     _enabledPluginPackages = [];
     _disabledPluginPackages = [];
     _pluginDirectory = pluginDirectory;

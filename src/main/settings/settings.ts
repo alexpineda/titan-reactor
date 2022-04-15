@@ -1,5 +1,4 @@
 import { app } from "electron";
-import { EventEmitter } from "events";
 import { promises as fsPromises } from "fs";
 
 import phrases from "common/phrases";
@@ -27,7 +26,7 @@ const getEnvLocale = (env = process.env) => {
  * A settings management utility which saves and loads settings from a file.
  * It will also emit a "change" event whenever the settings are loaded or saved.
  */
-export class Settings extends EventEmitter {
+export class Settings {
   private _settings: SettingsType = {
     ...defaultSettings
   };
@@ -149,7 +148,6 @@ export class Settings extends EventEmitter {
       } else {
         this._settings = { ...(await this.createDefaults()), ...settings };
       }
-      this._emitChanged();
     } catch (e) {
       log.error(withErrorMessage("@settings/load-and-migrate", e));
     }
@@ -163,15 +161,10 @@ export class Settings extends EventEmitter {
   async save(settings: Partial<SettingsType>) {
     this._settings = Object.assign({}, this._settings, settings);
     this._settings.plugins.enabled = [...new Set(this._settings.plugins.enabled)];
-    
+
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {
       encoding: "utf8",
     });
-    this._emitChanged();
-  }
-
-  async _emitChanged() {
-    this.emit("change", await this.getMeta());
   }
 
   /**
