@@ -82,9 +82,6 @@ async function bootup() {
       throw new Error(error);
     }
 
-    renderer.getWebGLRenderer().toneMappingExposure = settings.graphics.gamma;
-
-
     await openBw.loaded;
     await waitUnless(10_000, preloadAssets(settings, hasErrors));
     screenStore().complete();

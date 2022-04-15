@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
+import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 
 import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
@@ -33,7 +34,6 @@ import {
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
-  Effects,
   GameCanvasTarget,
   Layers,
 } from "./render";
@@ -67,6 +67,7 @@ import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
+import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 
 CameraControls.install({ THREE: THREE });
 
@@ -244,6 +245,7 @@ async function TitanReactorGame(
     }
   }
 
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw);
   const shortcuts = new PluginKeyShortcuts(window.document.body)
   janitor.disposable(shortcuts);
 
@@ -259,6 +261,7 @@ async function TitanReactorGame(
 
           prevCameraMode.orbit!.getTarget(target);
           prevCameraMode.orbit!.getPosition(position);
+          prevCameraMode.isActiveCameraMode = false;
 
           prevData = prevCameraMode.onExitCameraMode(target, position);
         } catch (e) {
@@ -286,6 +289,7 @@ async function TitanReactorGame(
     newControls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
+    cameraMode.isActiveCameraMode = true;
     await cameraMode.onEnterCameraMode(prevData);
 
     setUseScale(cameraMode.unitScale || 1);
@@ -332,7 +336,21 @@ async function TitanReactorGame(
       scene.enableTiles();
     }
 
-    renderer.composerPasses.setCameraModePostProcessing(cameraMode);
+    const clearPass = new ClearPass(camera);
+    const renderPass = new RenderPass(scene, camera);
+
+    const fogOfWarEffect = new FogOfWarEffect();
+    fogOfWar.setEffect(fogOfWarEffect);
+    fogOfWarEffect.blendMode.opacity.value = cameraMode.fogOfWar ?? 1;
+
+    if (cameraMode.onSetComposerPasses) {
+      renderer.setCameraModeEffectsAndPasses(cameraMode.onSetComposerPasses(clearPass, renderPass, fogOfWarEffect));
+    } else {
+      renderer.setCameraModeEffectsAndPasses({
+        passes: [clearPass, renderPass, new EffectPass(camera, fogOfWarEffect)]
+      });
+    }
+    renderer.changeCamera(camera);
 
     return newControls;
   }
@@ -353,7 +371,6 @@ async function TitanReactorGame(
     camera
   );
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw, renderer.composerPasses.effects[Effects.FogOfWar]);
 
   const updatePlayerColors = (replay: Replay) => {
     return replay.header.players.map(
@@ -1331,10 +1348,6 @@ async function TitanReactorGame(
           currentBwFrame.needsUpdate = true;
         }
       }
-
-      renderer.composerPasses.effects[Effects.DepthOfField].setTarget(projectedCameraView.center);
-      renderer.composerPasses.effects[Effects.DepthOfField].getCircleOfConfusionMaterial().adoptCameraSettings(camera);
-
     }
 
     if (controls.cameraMode.boundByMap?.scaleBoundsByCamera && controls.rested) {
@@ -1347,17 +1360,19 @@ async function TitanReactorGame(
     gameStatePosition.update(delta);
     drawMinimap(projectedCameraView);
 
-    plugins.onBeforeRender(delta, elapsed);
+    plugins.onBeforeRender(delta, elapsed, _cameraTarget, _cameraPosition);
     controls.cameraShake.update(elapsed, camera);
     fogOfWar.update(players.getVisionFlag(), camera);
-    renderer.render(scene, camera, delta);
+    renderer.render(delta);
     controls.cameraShake.restore(camera);
 
     if (controls.PIP.enabled) {
       const scale = ImageHD.useScale;
       setUseScale(1);
       fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
-      renderer.render(scene, controls.PIP.camera, delta, controls.PIP.viewport);
+      renderer.changeCamera(controls.PIP.camera);
+      renderer.render(delta, controls.PIP.viewport);
+      renderer.changeCamera(camera);
       setUseScale(scale);
     }
 
@@ -1394,7 +1409,7 @@ async function TitanReactorGame(
       const player = players.find(p => p.id === playerId);
       if (player) {
         player.vision = !player.vision;
-        fogOfWar.playerVisionWasToggled = true;
+        fogOfWar.forceInstantUpdate = true;
       }
     }
 
@@ -1414,6 +1429,7 @@ async function TitanReactorGame(
       speedDown,
       togglePause,
       pxToGameUnit,
+      fogOfWar,
       terrain: {
         tileset: terrain.tileset,
         mapWidth: terrain.mapWidth,

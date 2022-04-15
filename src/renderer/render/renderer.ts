@@ -2,7 +2,6 @@ import {
     Camera,
     HalfFloatType,
     PCFSoftShadowMap,
-    Scene,
     sRGBEncoding,
     Vector4,
     WebGLRenderer,
@@ -10,7 +9,6 @@ import {
 import {
     EffectComposer,
 } from "postprocessing";
-import { createPasses, Passes } from "./composer-passes";
 import rendererIsDev from "../utils/renderer-is-dev";
 import CanvasTarget from "../image/canvas/canvas-target";
 
@@ -31,11 +29,19 @@ const createWebGLRenderer = () => {
     renderer.sortObjects = true;
     return renderer;
 };
+
+type CameraModeEffectsAndPasses = {
+    effects: any[],
+    passes: any[]
+}
 export class TitanRenderer {
-    private _renderer?: WebGLRenderer;
-    private _targetSurface = new CanvasTarget();
-    readonly composerPasses = createPasses();
-    private _gamma = 0.9;
+    #renderer?: WebGLRenderer;
+    #targetSurface = new CanvasTarget();
+    #gamma = 0.9;
+    #cameraMode: CameraModeEffectsAndPasses = {
+        effects: [],
+        passes: []
+    };
 
     composer = new EffectComposer(null, {
         frameBufferType: HalfFloatType,
@@ -47,57 +53,81 @@ export class TitanRenderer {
     }
 
     get gamma() {
-        return this._gamma;
+        return this.#gamma;
     }
 
     set gamma(value: number) {
-        this._gamma = value;
-        if (this._renderer) {
-            this._renderer.toneMappingExposure = value;
+        this.#gamma = value;
+        if (this.#renderer) {
+            this.#renderer.toneMappingExposure = value;
         }
     }
 
     getWebGLRenderer() {
-        if (this._renderer) {
-            return this._renderer;
+        if (this.#renderer) {
+            return this.#renderer;
         }
-        const renderer = this._renderer = createWebGLRenderer();
-        renderer.toneMappingExposure = this._gamma;
+        const renderer = this.#renderer = createWebGLRenderer();
+        renderer.toneMappingExposure = this.#gamma;
 
         this.composer.setRenderer(renderer);
         this.composer.autoRenderToScreen = false;
 
-        for (const pass of this.composerPasses.passes) {
-            if (pass === undefined) continue;
-            this.composer.addPass(pass);
-        }
-        this.composerPasses.enable(Passes.Render);
-
         renderer.domElement.addEventListener(
             "webglcontextlost",
             () => {
-                this._renderer?.setAnimationLoop(null);
+                this.#renderer?.setAnimationLoop(null);
                 // this.getWebGLRenderer();
                 // this._renderer = undefined;
             }
         );
 
-        if (this._targetSurface) {
-            this.setSize(this._targetSurface.scaledWidth, this._targetSurface.scaledHeight);
+        if (this.#targetSurface) {
+            this.setSize(this.#targetSurface.scaledWidth, this.#targetSurface.scaledHeight);
         }
 
         return renderer;
     }
 
-    set targetSurface(surface: CanvasTarget) {
-        this._targetSurface = surface;
-        this._renderer?.setViewport(
-            new Vector4(0, 0, surface.width, surface.height)
-        );
-        this.setSize(this._targetSurface.scaledWidth, this._targetSurface.scaledHeight);
+    setCameraModeEffectsAndPasses(cm: Partial<CameraModeEffectsAndPasses>) {
+        this.composer.removeAllPasses();
+
+        this.#cameraMode = {
+            effects: (cm.effects ?? []).filter(effect => effect.camera),
+            passes: cm.passes ?? []
+        }
+
+        for (const pass of this.#cameraMode.passes) {
+            this.composer.addPass(pass);
+        }
     }
 
-    render(scene: Scene, camera: Camera, delta: number, viewport?: Vector4) {
+    set targetSurface(surface: CanvasTarget) {
+        this.#targetSurface = surface;
+        this.#renderer?.setViewport(
+            new Vector4(0, 0, surface.width, surface.height)
+        );
+        this.setSize(this.#targetSurface.scaledWidth, this.#targetSurface.scaledHeight);
+    }
+
+    changeCamera(camera: Camera) {
+        let lastPass: any = null;
+
+        for (const pass of this.#cameraMode.passes) {
+            pass.camera = camera;
+            pass.renderToScreen = false;
+            if (pass.enabled) {
+                lastPass = pass;
+            }
+        }
+        lastPass.renderToScreen = true;
+
+        for (const effect of this.#cameraMode.effects) {
+            effect.camera = camera;
+        }
+    }
+
+    render(delta: number, viewport?: Vector4) {
         const renderer = this.getWebGLRenderer();
 
         if (viewport) {
@@ -106,27 +136,22 @@ export class TitanRenderer {
             renderer.setScissor(viewport);
         }
 
-        if (this.composer.passes.length) {
-            this.composerPasses.update(scene, camera);
-            this.composer.render(delta);
-        } else {
-            renderer.render(scene, camera);
-        }
+        this.composer.render(delta);
 
         if (viewport) {
             renderer.setScissorTest(false);
         }
 
-        this._targetSurface.ctx.drawImage(
+        this.#targetSurface.ctx.drawImage(
             renderer.domElement,
             0,
-            renderer.domElement.height - this._targetSurface.scaledHeight,
-            this._targetSurface.scaledWidth,
-            this._targetSurface.scaledHeight,
+            renderer.domElement.height - this.#targetSurface.scaledHeight,
+            this.#targetSurface.scaledWidth,
+            this.#targetSurface.scaledHeight,
             0,
             0,
-            this._targetSurface.scaledWidth,
-            this._targetSurface.scaledHeight
+            this.#targetSurface.scaledWidth,
+            this.#targetSurface.scaledHeight
         );
 
 
@@ -137,10 +162,10 @@ export class TitanRenderer {
     }
 
     dispose() {
-        if (this._renderer) {
-            this._renderer.setAnimationLoop(null);
-            this._renderer.dispose();
-            this._renderer = undefined;
+        if (this.#renderer) {
+            this.#renderer.setAnimationLoop(null);
+            this.#renderer.dispose();
+            this.#renderer = undefined;
         }
 
         this.composer.dispose();

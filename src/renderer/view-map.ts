@@ -4,6 +4,7 @@ import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import { strict as assert } from "assert";
 import CameraControls from "camera-controls";
+import { ClearPass, RenderPass } from "postprocessing";
 
 import { playerColors } from "common/enums";
 import type {
@@ -75,6 +76,12 @@ async function TitanReactorMap(
   control.verticalDragToForward = true;
   janitor.disposable(control);
   control.setLookAt(0, 50, 0, 0, 0, 0, true);
+
+  const clearPass = new ClearPass(camera);
+  const renderPass = new RenderPass(scene, camera);
+  renderer.setCameraModeEffectsAndPasses({
+    passes: [clearPass, renderPass]
+  });
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
@@ -180,7 +187,7 @@ async function TitanReactorMap(
     }
 
     control.update(delta / 1000);
-    renderer.render(scene, camera, delta);
+    renderer.render(delta);
     last = elapsed;
 
   }

@@ -13,6 +13,7 @@ import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK, SYSTEM_EV
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
+import { Vector3 } from "three";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -118,8 +119,8 @@ export const onGameDisposed = () => {
     nativePluginSystem.callHook("onGameDisposed");
 }
 
-export const onBeforeRender = (delta: number, elapsed: number) => {
-    nativePluginSystem.onBeforeRender(delta, elapsed);
+export const onBeforeRender = (delta: number, elapsed: number, target: Vector3, position: Vector3) => {
+    nativePluginSystem.onBeforeRender(delta, elapsed, target, position);
 }
 
 export const onRender = (delta: number, elapsed: number) => {

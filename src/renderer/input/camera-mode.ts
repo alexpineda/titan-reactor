@@ -4,6 +4,7 @@ import CameraControls from "camera-controls";
 import ProjectedCameraView from "renderer/camera/projected-camera-view";
 
 export interface CameraModePlugin extends NativePlugin {
+    isActiveCameraMode: boolean;
     minimap?: boolean;
     pointerLock?: boolean;
     boundByMap?: {
@@ -23,6 +24,11 @@ export interface CameraModePlugin extends NativePlugin {
     onEnterCameraMode: (prevData: any) => Promise<void>;
 
     onExitCameraMode?: (target: Vector3, position: Vector3) => void;
+
+    onSetComposerPasses: (clearPass: any, renderPass: any, fogOfWarEffect: any) => {
+        passes?: any[];
+        effects?: any[];
+    };
 
     onCameraMouseUpdate?: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3) => void;
 

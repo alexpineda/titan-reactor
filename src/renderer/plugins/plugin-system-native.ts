@@ -8,6 +8,7 @@ import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
 import { CameraModePlugin } from "../input/camera-mode";
+import { Vector3 } from "three";
 
 export type NativePlugin = {
     id: string;
@@ -16,7 +17,7 @@ export type NativePlugin = {
     onConfigChanged?: (newConfig: {}, oldConfig: {}) => void;
     onDisabled?: () => void;
     onUIMessage?: (message: any) => void;
-    onBeforeRender?: (delta: number, elapsed: number) => void;
+    onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
     onRender?: (delta: number, elapsed: number) => void;
     onFrame?: () => void;
     config: {
@@ -235,9 +236,9 @@ export class PluginSystemNative {
         }
     }
 
-    onBeforeRender(delta: number, elapsed: number) {
+    onBeforeRender(delta: number, elapsed: number, target: Vector3, position: Vector3) {
         for (const plugin of this.#nativePlugins) {
-            plugin.onBeforeRender && plugin.onBeforeRender(delta, elapsed);
+            plugin.onBeforeRender && plugin.onBeforeRender(delta, elapsed, target, position);
         }
     }
 
