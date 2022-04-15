@@ -47,7 +47,7 @@ export const usePluginConfig = (pluginId) =>
 
 const useComponents = create(() => ({}));
 
-export const setStyleSheet = (id, content) => {
+const setPluginStyleSheet = (id, content) => {
   let style;
 
   style = document.getElementById(id);
@@ -235,7 +235,7 @@ const getPlayerInfo = (playerId, playerData) => {
 };
 
 const updateDimensionsCss = (dimensions) => {
-  setStyleSheet(
+  setPluginStyleSheet(
     "game-dimension-css-vars",
     `:root {
         --minimap-width: ${dimensions.minimapWidth}px;
@@ -319,8 +319,12 @@ export const registerComponent = (component, JSXElement) => {
     );
   };
 
+  const setStyleSheet = (content) => {
+    setPluginStyleSheet(component.pluginId, content);
+  };
+
   const pos = component.snap || "loose";
-  const val = { component, JSXElement, useMessage, sendMessage };
+  const val = { component, JSXElement, useMessage, sendMessage, setStyleSheet };
 
   const _components = useComponents.getState();
   if (!_components[pos]) {

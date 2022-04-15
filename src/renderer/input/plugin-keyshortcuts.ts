@@ -40,6 +40,10 @@ export class PluginKeyShortcuts {
         this.#listeners = this.#listeners.filter(l => l.pluginId !== pluginId);
     }
 
+    clearAll() {
+        this.#listeners.length = 0;
+    }
+
     #keyDownListener(e: KeyboardEvent) {
         let _called = false;
         // test all registered plugin keys

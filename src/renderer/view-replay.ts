@@ -1372,7 +1372,15 @@ async function TitanReactorGame(
   _sceneResizeHandler();
 
   gameStatePosition.resume();
+  const originalColors = replay.header.players.map(player => player.color);
+  const originalNames = replay.header.players.map(player => ({
+    id: player.id,
+    name: player.name
+  }));
+
   const setupPlugins = async () => {
+    shortcuts.clearAll();
+
     const toggleFogOfWarByPlayerId = (playerId: number) => {
       const player = players.find(p => p.id === playerId);
       if (player) {
@@ -1382,6 +1390,34 @@ async function TitanReactorGame(
     }
 
 
+    const setPlayerColors = (colors: string[]) => {
+      const replay = useWorldStore.getState().replay;
+
+      if (replay) {
+        replay.header.players.forEach((player, i) => {
+          player.color = colors[i];
+        });
+        useWorldStore.setState({ replay: { ...replay } })
+      }
+    }
+
+    const getOriginalColors = () => [...originalColors];
+
+    const setPlayerNames = (players: { name: string, id: number }[]) => {
+      const replay = useWorldStore.getState().replay;
+
+      if (replay) {
+        for (const player of players) {
+          const replayPlayer = replay.header.players.find(p => p.id === player.id);
+          if (replayPlayer) {
+            replayPlayer.name = player.name;
+          }
+        }
+        useWorldStore.setState({ replay: { ...replay } })
+      }
+    }
+
+    const getOriginalNames = () => [...originalNames];
 
     const api = {
       isInGame: true,
@@ -1441,11 +1477,11 @@ async function TitanReactorGame(
       },
       pipHide() {
         controls.PIP.enabled = false;
-      }
-      // setPlayerColor, 
-      // getPlayerColors, 
-      // setPlayerName, 
-      // getPlayerNames
+      },
+      setPlayerColors,
+      getOriginalColors,
+      setPlayerNames,
+      getOriginalNames
     };
 
     janitor.callback(plugins.injectApi(api));
@@ -1461,7 +1497,6 @@ async function TitanReactorGame(
         }
         switchingCameraMode = false;
       }
-      shortcuts.clearListeners(cameraMode.id);
       shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!.value, _toggleCallback);
       janitor.callback(() => shortcuts.removeListener(_toggleCallback));
 

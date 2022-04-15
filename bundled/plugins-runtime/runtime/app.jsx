@@ -120,6 +120,7 @@ export default ({ components }) => {
           {components["top-left"] &&
             components["top-left"]
               .filter(screenFilter)
+              .sort(orderSort)
               .map(({ JSXElement, component, useMessage, sendMessage }) => (
                 <Component
                   key={component.id}
@@ -140,6 +141,7 @@ export default ({ components }) => {
           {components["top"] &&
             components["top"]
               .filter(screenFilter)
+              .sort(orderSort)
               .map(({ JSXElement, component, useMessage, sendMessage }) => (
                 <Component
                   key={component.id}
@@ -160,6 +162,7 @@ export default ({ components }) => {
           {components["top-right"] &&
             components["top-right"]
               .filter(screenFilter)
+              .sort(orderSort)
               .map(({ JSXElement, component, useMessage, sendMessage }) => (
                 <Component
                   key={component.id}
@@ -213,6 +216,7 @@ export default ({ components }) => {
           {components["center"] &&
             components["center"]
               .filter(screenFilter)
+              .sort(orderSort)
               .map(({ JSXElement, component, useMessage, sendMessage }) => (
                 <Component
                   key={component.id}
@@ -230,6 +234,7 @@ export default ({ components }) => {
           {components["right"] &&
             components["right"]
               .filter(screenFilter)
+              .sort(orderSort)
               .map(({ JSXElement, component, useMessage, sendMessage }) => (
                 <Component
                   key={component.id}
@@ -248,6 +253,7 @@ export default ({ components }) => {
         {components["bottom"] &&
           components["bottom"]
             .filter(screenFilter)
+            .sort(orderSort)
             .map(({ JSXElement, component, useMessage, sendMessage }) => (
               <Component
                 key={component.id}
@@ -261,6 +267,7 @@ export default ({ components }) => {
       {components["loose"] &&
         components["loose"]
           .filter(screenFilter)
+          .sort(orderSort)
           .map(({ JSXElement, component, useMessage, sendMessage }) => (
             <Component
               key={component.id}

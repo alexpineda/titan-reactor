@@ -1,15 +1,15 @@
 # Table of Contents
 - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
-  - [Your first plugin package.json](#your-first-plugin-packagejson)
-    - [Example](#example)
+  - [Basic Plugin Information](#basic-plugin-information)
+    - [package.json](#packagejson)
   - [How it works](#how-it-works)
     - [Required Files](#required-files)
     - [UI Component](#ui-component)
     - [Game Component](#game-component)
     - [System and User Configuration](#system-and-user-configuration)
   - [Writing a React Component](#writing-a-react-component)
-    - [Example](#example-1)
+    - [Example](#example)
     - [registerComponent()](#registercomponent)
     - [Technology](#technology)
     - [Using User Configuration](#using-user-configuration)
@@ -20,10 +20,11 @@
     - [CSS Variables](#css-variables)
     - [Included Font Families](#included-font-families)
   - [Modifying Game State](#modifying-game-state)
-    - [Generic Hooks](#generic-hooks)
+    - [Game Time APIs](#game-time-apis)
+    - [Hooks](#hooks)
   - [Camera Mode Plugins](#camera-mode-plugins)
   - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
-  - [useStore advanced](#usestore-advanced)
+  - [Special Permissions](#special-permissions)
   - [README.md](#readmemd)
   - [Publishing Your Plugin](#publishing-your-plugin)
   - [Request For Plugin](#request-for-plugin)
@@ -35,15 +36,15 @@ Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-off
 
 ## Overview
 
-Plugins in Titan Reactor allow you to connect to the game to display custom charts, player scores, or anything you like.
+Plugins in Titan Reactor allow you to connect to the game to display custom charts, player scores, or anything you like. Plugins are written using Javascript and/or JSX.
 
 - A plugin can use two methods to integrate with Titan Reactor, visual via React components, programmatic via game objects, or both.
-- If you'd like to provide user configuration, Titan Reactor provides a configuration UI for the user to use based on your json "schema".
+- If you'd like to provide user configuration, Titan Reactor provides a configuration UI for the user.
 
 
-## Your first plugin package.json
+## Basic Plugin Information
 
-### Example
+### package.json
 
 *plugins/my-cool-plugin/package.json*
 ```json
@@ -243,6 +244,7 @@ The full set of open prop variables for use in your CSS. [See Open Props for mor
 ## Modifying Game State
 You can create really powerful plugins by using a `plugin.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
+### Game Time APIs
 When a game is started apis are made available to your plugin for that instance of the game.
 
 - eg. `gotoFrame(frame)`
@@ -253,7 +255,10 @@ Take special care not to keep references to objects from the game instance. Dere
 
 
 
-### Generic Hooks
+### Hooks
+
+Every plugin gets a base set of hooks.
+
 
 ```js
 // we provide global dependencies via the arguments object
@@ -324,7 +329,8 @@ In order to avoid bugs, special care must be taken to check `isActiveCameraMode`
       },
 ```
 
-Additional callbacks are made available:
+Camera Mode Plugins get an additional set of hooks.
+
 ```js
 // REQUIRED.
 // The previous camera mode may leave data behind
@@ -351,7 +357,7 @@ onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX,
 
 ## Communicating between Game and your UI component
 
-You can messages from plugin.js to your react components. For a full working example see the official FPS plugin.
+You can send messages back and forth to your react components.
 
 In your `index.jsx`:
 ```jsx
@@ -379,7 +385,7 @@ In your `plugin.js`:
 return {
   onGameReady() {
     this.sendUIMessage("hi!");
-  }
+  },
 
   // you may respond to ui sent messages here
   onUIMessage(message) {
@@ -388,16 +394,26 @@ return {
 }
 ```
 
-## useStore advanced
+## Special Permissions
 
-Titan Reactor provides a useStore hook for channels to access game state. This is a zustand store, [please see zustand for complete details](https://github.com/pmndrs/zustand). This brief section will illustrate two uses:
+There are certain features that require you to request special permissions. The user will be able to see your special permissions before enabling your plugin. Typical things requiring permission are saving user settings or readying complete replay data, as some players may be sensitive about plugins reading this information. In order to activate a permission, place it in your config.json like so:
 
-**Regular Use**
-It's best to [keep the "selector" function memoized](https://github.com/pmndrs/zustand#memoizing-selectors) with useCallback or kept outside the function to minimize object allocation. If a selector isn't provided your component will re-render every game second since that is when `store.frame` gets updated which is the most frequently updated.
+```json
+    "config": {
+        "system": {
+            "permissions": [
+                "settings.write"
+            ]
+        }
+    }
+```
 
-**Optimized (Transient) Use**
+**settings.write**
+Enables the `saveSettings` api to save app settings.
 
-This method is a small optimization minimizing virtual dom diffing and re-renders. See [FPS Meter plugin](https://github.com/imbateam-gg/titan-reactor-community/tree/main/plugins/fps) and [Zustand documentation](https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes).
+**replay.commands**
+Enables access to replay commands in the *onFrame()* hook.
+
 ## README.md
 
 By including a README.md Titan Reactor will include a Readme tab in the config window.

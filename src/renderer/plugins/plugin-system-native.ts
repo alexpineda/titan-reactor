@@ -2,9 +2,8 @@ import * as log from "@ipc/log";
 import { InitializedPluginPackage } from "common/types";
 import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
-
-import * as stores from "@stores"
 import * as postprocessing from "postprocessing"
+
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
@@ -12,12 +11,27 @@ import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON
 import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
+import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS_WRITE } from "./permissions";
+import settingsStore from "@stores/settings-store";
 
 const STDLIB = {
     CSS2DObject
 }
 
-export type NativePlugin = {
+interface PluginPrototype {
+    id: string;
+    config?: {
+        [key: string]: any
+    };
+    $$permissions: {
+        [key: string]: boolean
+    },
+    getConfig: (key: string) => any;
+    setConfig: (key: string, value: any) => any;
+    saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
+}
+
+export interface NativePlugin extends PluginPrototype {
     id: string;
     name: string;
     isEnabled: boolean;
@@ -26,7 +40,7 @@ export type NativePlugin = {
     onUIMessage?: (message: any) => void;
     onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
     onRender?: (delta: number, elapsed: number) => void;
-    onFrame?: (frame: number, commands: any[]) => void;
+    onFrame?: (frame: number, commands?: any[]) => void;
     config: {
         cameraModeKey?: {
             value: string
@@ -71,18 +85,7 @@ const createDefaultHooks = () => ({
     onFrameReset: new Hook(HOOK_ON_FRAME_RESET, [])
 });
 
-type PluginPrototype = {
-    id: string;
-    config?: {
-        [key: string]: any
-    };
-    $$permissions: {
-        [key: string]: boolean
-    },
-    getConfig: (key: string) => any;
-    setConfig: (key: string, value: any) => any;
-    saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
-}
+
 
 const pluginProto: PluginPrototype = {
     id: "",
@@ -100,8 +103,8 @@ const pluginProto: PluginPrototype = {
         }
     },
     saveSettings(settings: { audio?: {}, graphics?: {} }) {
-        if (this.$$permissions["settings.write"]) {
-            const state = stores.useSettingsStore.getState();
+        if (this.$$permissions[PERMISSION_SETTINGS_WRITE]) {
+            const state = settingsStore();
             state.save({
                 audio: {
                     ...state.data.audio,
@@ -117,7 +120,11 @@ const pluginProto: PluginPrototype = {
     },
 };
 
-const VALID_PERMISSIONS = ["settings.write", "replay.file", "replay.commands"];
+const VALID_PERMISSIONS = [
+    PERMISSION_SETTINGS_WRITE,
+    PERMISSION_REPLAY_COMMANDS,
+    PERMISSION_REPLAY_FILE
+];
 export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
@@ -130,7 +137,7 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, stores, postprocessing });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing });
             delete pluginPackage.nativeSource;
 
             const pluginPropertyConfig: Record<string, {}> = {};
@@ -273,7 +280,13 @@ export class PluginSystemNative {
 
     onFrame(frame: number, commands: any[]) {
         for (const plugin of this.#nativePlugins) {
-            plugin.onFrame && plugin.onFrame(frame, commands);
+            if (plugin.onFrame) {
+                if (plugin.$$permissions[PERMISSION_REPLAY_COMMANDS]) {
+                    plugin.onFrame(frame, commands);
+                } else {
+                    plugin.onFrame(frame)
+                }
+            }
         }
     }
 
