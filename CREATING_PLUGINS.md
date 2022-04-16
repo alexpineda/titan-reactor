@@ -24,6 +24,7 @@
     - [Hooks](#hooks)
   - [Camera Mode Plugins](#camera-mode-plugins)
   - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
+    - [Message Throttling](#message-throttling)
   - [Special Permissions](#special-permissions)
   - [README.md](#readmemd)
   - [Publishing Your Plugin](#publishing-your-plugin)
@@ -384,10 +385,7 @@ In your `plugin.js`:
 
 return {
   onGameReady() {
-    // default debounced version to protect performance
     this.sendUIMessage("hi!");
-    // immediate send, use at your own risk :)
-    this.sendUIMessageImmediate("immediate!")
   },
 
   // you may respond to ui sent messages here
@@ -396,6 +394,11 @@ return {
   }
 }
 ```
+
+
+### Message Throttling
+
+`sendUIMessage` is expensive due to the object needing to be serialized and sent via `window.postMessage` to the iframe container. For this reason we automatically throttle messages to one every 100ms and it is recommended you reduce how much you send messages across to the bare minimum (eg one every game second).
 
 ## Special Permissions
 

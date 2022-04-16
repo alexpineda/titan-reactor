@@ -13,6 +13,7 @@ import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS_WRITE } from "./permissions";
 import settingsStore from "@stores/settings-store";
+import throttle from "lodash.throttle";
 
 
 const STDLIB = {
@@ -185,9 +186,9 @@ export class PluginSystemNative {
             plugin.name = pluginPackage.name;
             plugin.config = processConfigBeforeReceive(pluginPackage.config);
             plugin.$$config = pluginPackage.config;
-            const sendUIMessage = (message: any) => {
+            const sendUIMessage = throttle((message: any) => {
                 this.sendCustomUIMessage(pluginPackage.id, message);
-            }
+            }, 100, { leading: true, trailing: false });
             plugin.sendUIMessage = sendUIMessage;
             plugin.isEnabled = true;
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);

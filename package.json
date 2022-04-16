@@ -1,7 +1,7 @@
 {
     "name": "titan-reactor",
     "productName": "Titan Reactor",
-    "version": "0.4.5",
+    "version": "0.5.0",
     "description": "The Advanced Starcraft Broodwar Observing Tool",
     "main": "src/main/index.js",
     "scripts": {
@@ -86,6 +86,7 @@
         "lodash.groupby": "^4.6.0",
         "lodash.omit": "^4.5.0",
         "lodash.shuffle": "^4.2.0",
+        "lodash.throttle": "^4.1.1",
         "mkdirp": "^1.0.4",
         "muicss": "^0.10.3",
         "pacote": "^13.0.3",
@@ -100,7 +101,6 @@
         "scm-extractor": "^1.0.6",
         "semver": "^7.3.5",
         "three": "0.137.0",
-        "three-stdlib": "^2.9.1",
         "webpack": "4.42.1",
         "winreg": "^1.2.4",
         "zustand": "3.3.3"
@@ -124,6 +124,7 @@
         "@types/lodash.groupby": "^4.6.6",
         "@types/lodash.omit": "^4.5.6",
         "@types/lodash.shuffle": "^4.2.6",
+        "@types/lodash.throttle": "^4.1.6",
         "@types/mkdirp": "^1.0.2",
         "@types/muicss": "^0.9.4",
         "@types/pacote": "^11.1.3",
