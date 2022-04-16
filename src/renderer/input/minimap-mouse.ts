@@ -69,6 +69,7 @@ export class MinimapMouse {
 
     const onMouseDown = (e: MouseEvent) => {
       if (!this.enabled) return;
+      e.preventDefault();
       e.stopPropagation();
 
       const x = getX(e.offsetX);
@@ -91,6 +92,7 @@ export class MinimapMouse {
 
     const onMouseUp = (e: MouseEvent) => {
       if (!this.enabled) return;
+      e.preventDefault();
       e.stopPropagation();
 
       this.#mouseDown = false;
@@ -104,7 +106,7 @@ export class MinimapMouse {
     this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mouseleave", onMouseUp));
 
     const onMouseMove = (e: MouseEvent) => {
-      if (!this.enabled) return;
+      e.preventDefault();
       e.stopPropagation();
 
       const x = getX(e.offsetX);

@@ -41,15 +41,22 @@ const _replayPosition = {
 const worldPartial = (world: WorldStore) => {
     return {
         map: world.map,
-        replay: world.replay ? {
-            header: world.replay.header,
-            rawCmds: world.replay.rawCmds
-        } : undefined
+        replay: world.replay?.header
     }
 }
 
 const unitPartial = (unit: Unit) => {
-    return unit;
+    return {
+        ...unit,
+        extras: {
+            ...unit.extras,
+            player: unit.extras.player?.id,
+            dat: {
+                ...unit.extras.dat,
+                ...unit.extras.dat.copyFlags()
+            }
+        }
+    }
 }
 
 export class PluginSystemUI {
@@ -135,12 +142,12 @@ export class PluginSystemUI {
             });
         }));
 
-        // this.#_janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
-        //     this.sendMessage({
-        //         type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-        //         payload: selectedUnits.map(unitPartial)
-        //     });
-        // }));
+        this.#_janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
+            this.sendMessage({
+                type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+                payload: selectedUnits.map(unitPartial)
+            });
+        }));
 
         this.refresh();
 
@@ -188,6 +195,13 @@ export class PluginSystemUI {
 
             //TODO: add transferables
             this.sendMessage(_replayPosition);
+
+            // in case hp changed, etc.
+            // TODO: maybe introduce a dirty flag to units and check if any are dirty to send
+            this.sendMessage({
+                type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+                payload: useSelectedUnitsStore.getState().selectedUnits.map(unitPartial)
+            });
         }
     }
 }

@@ -16,15 +16,15 @@ export default async (
   try {
     const result = await transformAsync(content, {
       presets: [
-        
+
         "@babel/preset-react",
       ],
       configFile: false,
       browserslistConfigFile: false,
-      sourceMaps: "inline",
+      sourceMaps: false,
       sourceType: "module",
       babelrc: false,
-      
+
     });
 
     return result;

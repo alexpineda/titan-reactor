@@ -163,6 +163,46 @@ export class UnitDAT implements UnitDAT {
   get isProtoss() {
     return this._starEditGroupFlag(4);
   }
+
+  //TODO: hardcode these values on load
+  copyFlags() {
+    return {
+      isBuilding: this.isBuilding,
+      isAddon: this.isAddon,
+      isFlyer: this.isFlyer,
+      isResourceMiner: this.isResourceMiner,
+      isTurret: this.isTurret,
+      isFlyingBuilding: this.isFlyingBuilding,
+      isHero: this.isHero,
+      regenerates: this.regenerates,
+      animatedIdle: this.animatedIdle,
+      cloakable: this.cloakable,
+      twoUnitsInOneEgg: this.twoUnitsInOneEgg,
+      singleEntity: this.singleEntity,
+      isResourceDepot: this.isResourceDepot,
+      isResourceContainer: this.isResourceContainer,
+      isRobotic: this.isRobotic,
+      isDetector: this.isDetector,
+      isOrganic: this.isOrganic,
+      requiresCreep: this.requiresCreep,
+      requiresPsi: this.requiresPsi,
+      burrowable: this.burrowable,
+      isSpellcaster: this.isSpellcaster,
+      permanentCloak: this.permanentCloak,
+      pickupItem: this.pickupItem,
+      ignoreSupplyCheck: this.ignoreSupplyCheck,
+      useMediumOverlays: this.useMediumOverlays,
+      useLargeOverlays: this.useLargeOverlays,
+      battleReactions: this.battleReactions,
+      fullAutoAttack: this.fullAutoAttack,
+      invincible: this.invincible,
+      isMechanical: this.isMechanical,
+      producesUnits: this.producesUnits,
+      isZerg: this.isZerg,
+      isTerran: this.isTerran,
+      isProtoss: this.isProtoss,
+    }
+  }
 }
 
 export type UnitDATIncomingType = {

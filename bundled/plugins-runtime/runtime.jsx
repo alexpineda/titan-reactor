@@ -22,7 +22,7 @@ export const useFrame = () => {
   return useStore(_useFrame);
 };
 
-const _usePlayers = (state) => state.world?.replay?.header?.players;
+const _usePlayers = (state) => state.world?.replay?.players;
 export const usePlayers = () => {
   return useStore(_usePlayers) ?? [];
 };
@@ -38,6 +38,11 @@ export const usePlayer = () => {
   return (playerId) => {
     return players.find((player) => player.id === playerId);
   };
+};
+
+const _useSelectedUnits = (state) => state.units;
+export const useSelectedUnits = () => {
+  return useStore(_useSelectedUnits) ?? [];
 };
 
 // plugin specific configuration
@@ -107,10 +112,10 @@ const _addPlugin = (plugin) => {
 export let assets = {};
 export let enums = {};
 
-export class RollingNumber {
-  constructor(value = 0) {
-    this.upSpeed = 80;
-    this.downSpeed = 30;
+class RollingValue {
+  constructor(value = 0, upSpeed = 80, downSpeed = 30) {
+    this.upSpeed = upSpeed;
+    this.downSpeed = downSpeed;
 
     this._value = typeof value === "number" ? value : 0;
     this._rollingValue = this._value;
@@ -170,9 +175,17 @@ export class RollingNumber {
   }
 }
 
-export const RollingResource = ({ value, ...props }) => {
+export const RollingNumber = ({ value, upSpeed, downSpeed, ...props }) => {
   const numberRef = useRef(null);
-  const rollingNumber = useRef(new RollingNumber(value));
+  const rollingNumber = useRef(
+    new RollingValue(value, upSpeed ?? 80, downSpeed ?? 30)
+  );
+
+  useEffect(() => {
+    if (numberRef.current) {
+      numberRef.current.textContent = value;
+    }
+  }, []);
 
   useEffect(() => {
     rollingNumber.current.start(value, (val) => {
@@ -279,6 +292,8 @@ const _messageListener = function (event) {
   } else {
     if (event.data.type === "dimensions") {
       updateDimensionsCss(event.data.payload);
+    } else if (event.data.type === "units") {
+      console.log(event.data.payload);
     }
     useStore.setState({ [event.data.type]: event.data.payload });
   }

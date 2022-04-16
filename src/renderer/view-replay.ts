@@ -1,8 +1,7 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, SphereBufferGeometry, Mesh } from "three";
+import { Box3, Color, Group, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
 import * as THREE from "three";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
@@ -43,7 +42,7 @@ import renderer from "./render/renderer";
 import {
   useSettingsStore, useWorldStore,
 } from "./stores";
-import { imageHasDirectionalFrames, imageIsClickable, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
+import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
@@ -209,7 +208,7 @@ async function TitanReactorGame(
     const cameraMouse = new CameraMouse(document.body, cameraMode);
     janitor.disposable(cameraMouse);
 
-    const cameraKeys = new CameraKeys(document.body, settings, cameraMode);
+    const cameraKeys = new CameraKeys(document.body, cameraMode);
     janitor.disposable(cameraKeys);
 
     const cameraShake = new CameraShake();
@@ -612,21 +611,10 @@ async function TitanReactorGame(
       return unit;
     } else {
       const existingUnit = freeUnits.pop();
-      const highlight = existingUnit?.extras.highlight ?? new Mesh(new SphereBufferGeometry(), new MeshBasicMaterial({ color: 0xff0000 }));
-      highlight.name = "Highlight";
-      if (unitData.owner < 8) {
-        const div = document.createElement("div");
-        div.innerText = unitData.id.toString();
-        div.style.color = "white";
-        div.style.fontWeight = "500"
-        const debuglabel = new CSS2DObject(div);
-        debuglabel.name = "debug-label";
-        highlight.add(debuglabel)
-      }
+
       const unit = Object.assign(existingUnit || {}, {
         extras: {
           recievingDamage: 0,
-          highlight,
           dat: bwDat.units[unitData.typeId],
           player: undefined,
           timeOfDeath: undefined,
@@ -679,7 +667,6 @@ async function TitanReactorGame(
       const unitId = openBw.wasm!.HEAP32[(deletedUnitAddr >> 2) + i];
       const unit = units.get(unitId);
       if (!unit) continue;
-      unit.extras.highlight.removeFromParent();
       units.delete(unitId);
       freeUnits.push(unit);
 
@@ -696,9 +683,6 @@ async function TitanReactorGame(
 
         unitsBySprite.set(unitData.spriteIndex, unit);
 
-        const mx = pxToGameUnit.x(unitData.x);
-        const my = pxToGameUnit.y(unitData.y);
-
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
           !unit.extras.recievingDamage &&
@@ -711,12 +695,7 @@ async function TitanReactorGame(
         }
 
         unit.extras.player = players.playersById[unitData.owner];
-        unit.extras.highlight.visible = unit.extras.player !== undefined;
-        if (unit.extras.player) {
 
-          unit.extras.highlight.position.set(mx, terrain.getTerrainY(mx, my), my);
-          (unit.extras.highlight.material as MeshBasicMaterial).color.set(unit.extras.player.color);
-        }
         // if (unitData.order == orders.die) {
         //   unit.extra.timeOfDeath = Date.now();
         // }

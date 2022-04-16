@@ -7,7 +7,7 @@ import { tile32 } from "common/utils/conversions";
 import Janitor from "@utils/janitor";
 
 import ProjectedCameraView from "../camera/projected-camera-view";
-import { GameCanvasTarget, Layers } from "../render";
+import { Layers } from "../render";
 import { MouseSelectionBox } from "./mouse-selection-box";
 import { MouseCursor } from "./mouse-cursor";
 import { useSelectedUnitsStore } from "@stores/selected-units-store";
@@ -301,14 +301,17 @@ export class MouseUnitSelector {
                     }
                 }
             }
+            const state = useSelectedUnitsStore.getState();
+
+            if (selected.size === 0 && state.selectedUnits.length === 0) {
+                return;
+            }
 
             let selectedArr = [...selected];
-            const state = useSelectedUnitsStore.getState();
-            const selectedUnits = state.selectedUnits;
 
-            if (event.shiftKey && selectedUnits.length < 12) {
+            if (event.shiftKey && state.selectedUnits.length < 12) {
                 selectedArr = [
-                    ...selectedUnits,
+                    ...state.selectedUnits,
                     ...selectedArr,
                 ];
             }
@@ -343,7 +346,6 @@ export class MouseUnitSelector {
 
         document.body.addEventListener("pointerdown", mouseDownListener, {
             capture: false,
-
             passive: true,
         });
         this._janitor.callback(() => document.body.removeEventListener("pointerdown", mouseDownListener))

@@ -25,14 +25,6 @@ export type Settings = {
         anisotropy: "high" | "med" | "low";
         gamma: number;
     },
-    controls: {
-        camera: {
-            truckLeft?: string,
-            truckRight?: string,
-            forward?: string,
-            backward?: string,
-        }
-    },
     plugins: {
         serverPort: number;
         developmentDirectory?: string;

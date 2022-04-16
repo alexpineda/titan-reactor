@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsage, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsage } from "three";
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";

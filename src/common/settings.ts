@@ -25,14 +25,6 @@ export const defaultSettings: Settings = {
     anisotropy: "high",
     gamma: 0.9,
   },
-  controls: {
-    camera: {
-      truckLeft: "ArrowLeft",
-      truckRight: "ArrowRight",
-      forward: "ArrowUp",
-      backward: "ArrowDown",
-    }
-  },
   plugins: {
     serverPort: 8080,
     enabled: [],

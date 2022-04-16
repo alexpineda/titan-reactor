@@ -15,13 +15,18 @@ const forbidden = [
   "ControlLeft",
   "ControlRight",
   "Tab",
+  "KeyF",
+  "ArrowDown",
+  "ArrowUp",
+  "ArrowRight",
+  "ArrowLeft",
 ];
 
 export default createPlugin({
   component: () => {
     const { label, displayValue, onUpdate, onChange, emitOnEditEnd } =
       useInputContext<PluginProps>();
-  
+
     return (
       <>
         <Row input>
@@ -33,7 +38,7 @@ export default createPlugin({
             onKeyDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (e.code=== "Delete") {
+              if (e.code === "Delete") {
                 onUpdate("");
                 emitOnEditEnd();
               } else if (!forbidden.includes(e.code)) {
@@ -45,5 +50,5 @@ export default createPlugin({
         </Row>
       </>
     );
-  }
+  },
 });
