@@ -105,6 +105,7 @@ const _addPlugin = (plugin) => {
 };
 
 export let assets = {};
+export let enums = {};
 
 export class RollingNumber {
   constructor(value = 0) {
@@ -253,6 +254,7 @@ const _messageListener = function (event) {
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:assets") {
       Object.assign(assets, event.data.payload.assets);
+      Object.assign(enums, event.data.payload.enums);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({

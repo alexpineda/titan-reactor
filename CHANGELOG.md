@@ -4,28 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2022-01-26
+## [Unreleased]
+
+## [0.5.0] - 2022-04-16
 ### Added 
-  - Bullet Y Tracking. Watch as flying units and ground units exchange fire from their different elevations!
   - All new and extensive plugin system:
     - Create custom HUD and UI elements using live data from the game and game files.
     - Easy to develop with no build tools required!
+    - [CREATING PLUGINS documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
+  - Bullet Y Tracking. Watch as flying units and ground units exchange fire from their different elevations!
   - Picture In Picture mode allowing more action to be captured by a single observer
-    - Right click the minimap to enable/disable PIP
-    - Right click in Overview Cam to enable/disable PIP
   - Automatic settings migrations
-  - Customizable `helicopter rotate speed` setting
+  - New menus and debug menus
   
 ### Changed
 - Scanner no longer shows in minimap
-- Several optimizations to reduce GC use
-- Saner default `models` directory so things don't fail on first run
+- Massive performance improvements reducing GC usage
 - Scrubbing through a replay won't flash the images any more
-- The camera shaking logic has drastically improved when in battle cam mode
-- Battle cam isn't so extreme in it's field of view any longer resulting in more pleasant views
-- Units in overview mode are now 2.5x the size (previously 2x) and 1x when viewed in PIP
+- The camera shaking logic has drastically improved
 
-## [0.4.0] - 2022-01-26
+
+## [0.4.0] - 2022-02-8
 ### Added 
 - Battle Cam / Helicopter Mode (Default Key "F3")
   - Hover around battles like a helicopter
@@ -77,7 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit selection / unit boxing for the time being.
 
 
-[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/imbateam-gg/titan-reactor/compare/alpha-0.1.3...v0.3.0
 [0.2.0]: https://github.com/imbateam-gg/titan-reactor/compare/alpha-0.1.2...alpha-0.1.3

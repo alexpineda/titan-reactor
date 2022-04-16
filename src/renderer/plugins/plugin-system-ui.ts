@@ -2,13 +2,14 @@ import Janitor from "@utils/janitor";
 import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
 import settingsStore from "@stores/settings-store";
 
-import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore } from "@stores";
+import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED } from "./events";
+import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED } from "./events";
 import waitForAssets from "../bootup/wait-for-assets";
-import { GameStatePosition } from "@core";
+import { GameStatePosition, Unit } from "@core";
 import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
+import * as enums from "common/enums";
 
 
 const screenChanged = (screen: ScreenStore) => {
@@ -45,6 +46,10 @@ const worldPartial = (world: WorldStore) => {
             rawCmds: world.replay.rawCmds
         } : undefined
     }
+}
+
+const unitPartial = (unit: Unit) => {
+    return unit;
 }
 
 export class PluginSystemUI {
@@ -96,8 +101,9 @@ export class PluginSystemUI {
                         cmdIcons: assets.cmdIcons,
                         raceInsetIcons: assets.raceInsetIcons,
                         workerIcons: assets.workerIcons,
-                        wireframeIcons: assets.wireframeIcons,
-                    }
+                        wireframeIcons: assets.wireframeIcons
+                    },
+                    enums
                 }
             }, "*")
         };
@@ -128,6 +134,13 @@ export class PluginSystemUI {
                 payload: worldPartial(world)
             });
         }));
+
+        // this.#_janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
+        //     this.sendMessage({
+        //         type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+        //         payload: selectedUnits.map(unitPartial)
+        //     });
+        // }));
 
         this.refresh();
 

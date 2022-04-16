@@ -18,6 +18,10 @@ Titan Reactor is a fresh take on observing matchups in our favorite game, built 
 
 Developing plugins for Titan Reactor is easy and requires no build tools, just a text editor is fine :) [Details here in CREATING_PLUGINS.md](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
 
+### Data Sensitivity
+
+Replay information is not transmitted anywhere. Plugins may request permission to access replay information and it is your responsibility to trust the plugins/plugin authors that you grant access to.
+
 ### Development Installation
 
 *Using node 16 and yarn*

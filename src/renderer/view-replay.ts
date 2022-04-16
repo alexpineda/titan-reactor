@@ -73,6 +73,8 @@ import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import FPSMeter from "@utils/fps-meter";
+import MouseUnitSelector from "./input/mouse-unit-selector";
+import SelectionCircle from "@core/selection-circle";
 
 CameraControls.install({ THREE: THREE });
 
@@ -163,6 +165,8 @@ async function TitanReactorGame(
   );
   janitor.disposable(minimapMouse);
 
+
+
   const _PIP: {
     camera: PerspectiveCamera,
     enabled: boolean,
@@ -232,6 +236,12 @@ async function TitanReactorGame(
   const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
   const freeImages: Image[] = [];
+  const unitsBySprite: Map<number, Unit> = new Map();
+  const sprites: Map<number, Group> = new Map();
+  const spritesGroup = new Group();
+  spritesGroup.name = "sprites";
+  scene.add(spritesGroup);
+
   janitor.callback(() => {
     const _janitor = new Janitor();
     for (const image of freeImages) {
@@ -383,6 +393,9 @@ async function TitanReactorGame(
     camera
   );
 
+  const mouseUnitSelector = new MouseUnitSelector(bwDat);
+  mouseUnitSelector.bind(spritesGroup, projectedCameraView, terrain, camera, units);
+  janitor.disposable(mouseUnitSelector);
 
   const makeThreeColors = (replay: Replay) => {
     return replay.header.players.map(
@@ -895,12 +908,7 @@ async function TitanReactorGame(
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
 
-  const unitsBySprite: Map<number, Unit> = new Map();
-  const sprites: Map<number, Group> = new Map();
-  const spritesGroup = new Group();
-  spritesGroup.name = "sprites";
 
-  scene.add(spritesGroup);
 
   const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlying?: boolean) => {
     const spriteX = pxToGameUnit.x(x);
@@ -948,6 +956,8 @@ async function TitanReactorGame(
     if (!sprite) {
       sprite = new Group();
       sprite.name = "sprite";
+      sprite.userData.selectionCircle = new SelectionCircle();
+      sprite.add(sprite.userData.selectionCircle)
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
     }
@@ -964,7 +974,6 @@ async function TitanReactorGame(
       fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
-    // hide addons in battle cam as they look awkward, and overview as it takes too much space
     //FIXME: make onShouldHideUnit a global plugin feature 
     if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.onShouldHideUnit && controls.cameraMode.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
@@ -1032,13 +1041,21 @@ async function TitanReactorGame(
 
     // floating terran buildings
 
-    let imageCounter = 0;
+    let imageCounter = 1;
     sprite.position.x = _spritePos.x;
     sprite.position.z = _spritePos.z;
     sprite.position.y = bulletY ?? _spritePos.y;
     sprite.renderOrder = spriteRenderOrder;
     sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
 
+    // we do it in the image loop in order to use the right image scale
+    // is there a better ways so we can do it properly at the sprite level?
+    if (unit && unit.extras.selected) {
+      sprite.userData.selectionCircle.update(dat);
+      sprite.userData.selectionCircle.visible = true;
+    } else {
+      sprite.userData.selectionCircle.visible = false;
+    }
 
     for (const imgAddr of spriteData.images.reverse()) {
       const imageData = imageBufferView.get(imgAddr);
@@ -1049,6 +1066,7 @@ async function TitanReactorGame(
         images.set(imageData.index, image);
       }
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
+      image.userData.unit = unit;
 
       if (image.visible) {
         if (player) {
@@ -1068,13 +1086,13 @@ async function TitanReactorGame(
           image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
 
           image.rotation.copy(sprite.rotation);
-          image.renderOrder = spriteRenderOrder - 1;
+          image.renderOrder = - 1;
           if (image.parent !== spritesGroup) {
             spritesGroup.add(image);
           }
         } else {
           image.rotation.set(0, 0, 0);
-          image.renderOrder = imageCounter;
+          image.renderOrder = spriteRenderOrder + imageCounter;
           if (image.parent !== sprite) {
             sprite.add(image);
           }
@@ -1104,16 +1122,18 @@ async function TitanReactorGame(
           image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
         }
 
+
+
         if (imageData.index === spriteData.mainImageIndex) {
 
+
           if (unit) {
+            image.layers.enable(Layers.Clickable);
             // for 3d models
             // image.rotation.y = unit.angle;
           }
-
-          if (imageIsClickable(imageData as ImageStruct)) {
-            image.layers.enable(Layers.Clickable);
-          }
+        } else {
+          image.layers.disable(Layers.Clickable);
         }
 
         if (imageNeedsRedraw(imageData as ImageStruct)) {
@@ -1160,6 +1180,7 @@ async function TitanReactorGame(
       if (!image) continue;
       image.removeFromParent();
       images.delete(imageIndex);
+      delete image.userData.unit;
       freeImages.push(image);
     }
 

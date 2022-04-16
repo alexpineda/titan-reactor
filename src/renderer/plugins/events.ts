@@ -10,3 +10,4 @@ export const UI_PLUGIN_EVENT_ON_FRAME = "frame";
 export const UI_PLUGIN_EVENT_DIMENSIONS_CHANGED = "dimensions";
 export const UI_PLUGIN_EVENT_SCREEN_CHANGED = "screen";
 export const UI_PLUGIN_EVENT_WORLD_CHANGED = "world";
+export const UI_PLUGIN_EVENT_UNITS_SELECTED = "units";
