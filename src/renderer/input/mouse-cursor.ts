@@ -69,6 +69,7 @@ export class MouseCursor {
           .join("\n")}
       `)
     );
+    this.pointer();
   }
 
   _updateClasses(index: number, type = "pointer") {

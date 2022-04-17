@@ -3,6 +3,25 @@ import { UnitFlags, unitTypes, iscriptHeaders } from "common/enums";
 import UnitsBufferView from "../buffer-view/units-buffer-view";
 import { Unit } from "@core/unit";
 
+export const unitIsCompleted = (unit: UnitStruct) => {
+  return unit.statusFlags & UnitFlags.Completed;
+}
+
+export const canSelectUnit = (unit: Unit) => {
+  //do not allow unit training selection for terran and protoss
+  // && !(
+  //   (unit.extras.dat.isTerran || unit.extras.dat.isProtoss) &&
+  //   !unit.extras.dat.isBuilding &&
+  //   !unitIsCompleted(unit)
+  // ) 
+
+  return Boolean(unit.typeId !== unitTypes.darkSwarm &&
+    unit.typeId !== unitTypes.disruptionWeb &&
+    // unit.order !== orders.die &&
+    !unit.extras.dat.isTurret &&
+    unit.typeId !== unitTypes.spiderMine && (unitIsCompleted(unit) || unit.extras.dat.isZerg));
+}
+
 export const unitIsCloaked = (unit: UnitStruct) => {
   return (
     ((unit.statusFlags & UnitFlags.Cloaked) != 0 ||
@@ -12,7 +31,7 @@ export const unitIsCloaked = (unit: UnitStruct) => {
 }
 
 export const unitIsFlying = (unit: Unit) => {
-  return  Boolean(unit.statusFlags & UnitFlags.Flying);
+  return Boolean(unit.statusFlags & UnitFlags.Flying);
 }
 
 export const getAngle = (direction: number) => {

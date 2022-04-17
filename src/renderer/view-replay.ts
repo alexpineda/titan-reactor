@@ -2,6 +2,7 @@ import { debounce } from "lodash";
 import { strict as assert } from "assert";
 import { Box3, Color, Group, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
 import * as THREE from "three";
+import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
@@ -31,12 +32,13 @@ import FogOfWar from "./fogofwar/fog-of-war";
 import {
   MinimapMouse,
   PluginKeyShortcuts,
+  MouseSelectionBox,
+  MouseCursor
 } from "./input";
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
-  GameCanvasTarget,
-  Layers,
+  GameCanvasTarget
 } from "./render";
 import renderer from "./render/renderer";
 import {
@@ -65,15 +67,15 @@ import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
-import { unitIsFlying } from "@utils/unit-utils";
+import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import FPSMeter from "@utils/fps-meter";
-import MouseUnitSelector from "./input/mouse-unit-selector";
 import SelectionCircle from "@core/selection-circle";
+import selectedUnitsStore from "@stores/selected-units-store";
 
 CameraControls.install({ THREE: THREE });
 
@@ -129,14 +131,15 @@ async function TitanReactorGame(
   const { mapWidth, mapHeight } = terrain;
 
   const cssScene = new ThreeScene();
-  const cssRenderer = new CSS2DRenderer();
+  const cssRenderer = new CSS2DRenderer({
+    element: document.body
+  });
 
   const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
-  cssRenderer.domElement.style.position = 'absolute';
-  cssRenderer.domElement.style.top = '0px';
-  document.body.appendChild(cssRenderer.domElement);
+  // cssRenderer.domElement.style.position = 'absolute';
+  // cssRenderer.domElement.style.top = '0px';
 
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
@@ -349,6 +352,10 @@ async function TitanReactorGame(
       })
     }
 
+    if (!cameraMode.unitSelection) {
+      selectedUnitsStore().clear();
+    }
+
     scene.disableSkybox();
     scene.disableTiles();
     if (cameraMode.background === "space") {
@@ -392,9 +399,116 @@ async function TitanReactorGame(
     camera
   );
 
-  const mouseUnitSelector = new MouseUnitSelector(bwDat);
-  mouseUnitSelector.bind(spritesGroup, projectedCameraView, terrain, camera, units);
-  janitor.disposable(mouseUnitSelector);
+  {
+    const selectionBox = new SelectionBox(camera, scene);
+    const visualBox = new MouseSelectionBox();
+    janitor.disposable(visualBox);
+    const mouseCursor = new MouseCursor();
+    janitor.disposable(mouseCursor);
+
+    let mouseIsDown = false;
+    const _canOnlySelectOne = [
+      unitTypes.larva,
+      unitTypes.zergEgg,
+      unitTypes.geyser,
+      unitTypes.mineral1,
+      unitTypes.mineral2,
+      unitTypes.mineral3,
+      unitTypes.mutaliskCocoon,
+      unitTypes.lurkerEgg,
+    ];
+
+    const canOnlySelectOne = (unit: Unit) => _canOnlySelectOne.includes(unit.typeId)
+
+    const typeIdSort = (a: Unit, b: Unit) => {
+      return a.typeId - b.typeId;
+    }
+
+    const _selectDown = (event: PointerEvent) => {
+      if (!controls.cameraMode.unitSelection) return;
+      mouseIsDown = true;
+      selectionBox.startPoint.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        - (event.clientY / window.innerHeight) * 2 + 1,
+        0.5);
+
+      visualBox.start(event.clientX, event.clientY);
+
+    };
+    gameSurface.canvas.addEventListener('pointerdown', _selectDown);
+    janitor.callback(() => gameSurface.canvas.removeEventListener('pointerdown', _selectDown));
+
+    const _selectMove = (event: PointerEvent) => {
+
+      if (mouseIsDown) {
+
+        selectionBox.endPoint.set(
+          (event.clientX / window.innerWidth) * 2 - 1,
+          - (event.clientY / window.innerHeight) * 2 + 1,
+          0.5);
+
+        visualBox.end(event.clientX, event.clientY);
+
+      }
+
+    }
+
+    gameSurface.canvas.addEventListener('pointermove', _selectMove);
+    janitor.callback(() => gameSurface.canvas.removeEventListener('pointermove', _selectMove));
+
+    const _selectUp = (event: PointerEvent) => {
+      if (!mouseIsDown) return;
+
+      mouseIsDown = false;
+
+      selectionBox.endPoint.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        - (event.clientY / window.innerHeight) * 2 + 1,
+        0.5);
+
+      visualBox.clear();
+
+      const allSelected = selectionBox.select();
+
+      //TODO: if only buildings were selected selected the one on the cursor
+      // else, remove all buildings from selection
+
+      let selectedUnits: Unit[] = [];
+      for (let i = 0; i < allSelected.length; i++) {
+        if (allSelected[i].userData.unit && canSelectUnit(allSelected[i].userData.unit) && !selectedUnits.includes(allSelected[i].userData.unit)) {
+          selectedUnits.push(allSelected[i].userData.unit);
+        }
+      }
+
+      // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
+      if (
+        selectedUnits.length > 1 &&
+        selectedUnits.some(canOnlySelectOne)
+      ) {
+        if (
+          selectedUnits.every((unit) => unit.typeId === selectedUnits[0].typeId)
+        ) {
+          selectedUnits = selectedUnits.slice(-1);
+        } else {
+          selectedUnits = selectedUnits.filter(
+            (unit) => !_canOnlySelectOne.includes(unit.typeId)
+          );
+        }
+      }
+
+      selectedUnits.sort(typeIdSort);
+
+      if (event.shiftKey) {
+        selectedUnitsStore().appendSelectedUnits(selectedUnits);
+      } else {
+        selectedUnitsStore().setSelectedUnits(selectedUnits);
+      }
+
+    }
+    gameSurface.canvas.addEventListener('pointerup', _selectUp);
+    janitor.callback(() => gameSurface.canvas.removeEventListener('pointerup', _selectUp));
+
+  }
 
   const makeThreeColors = (replay: Replay) => {
     return replay.header.players.map(
@@ -445,6 +559,7 @@ async function TitanReactorGame(
     cmd = cmds.next();
 
     plugins.callHook(HOOK_ON_FRAME_RESET, openBw.call!.getCurrentFrame!());
+    gameStatePosition.paused = false;
 
     currentBwFrame = null;
     reset = null;
@@ -617,10 +732,9 @@ async function TitanReactorGame(
           recievingDamage: 0,
           dat: bwDat.units[unitData.typeId],
           player: undefined,
-          timeOfDeath: undefined,
           warpingIn: undefined,
           warpingLen: undefined,
-          selected: undefined,
+          selected: false,
         }
       });
       unitData.copyTo(unit)
@@ -670,6 +784,7 @@ async function TitanReactorGame(
       units.delete(unitId);
       freeUnits.push(unit);
 
+      selectedUnitsStore().removeUnit(unit);
       plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
     }
 
@@ -695,10 +810,6 @@ async function TitanReactorGame(
         }
 
         unit.extras.player = players.playersById[unitData.owner];
-
-        // if (unitData.order == orders.die) {
-        //   unit.extra.timeOfDeath = Date.now();
-        // }
 
         // unit morph
         if (unit.typeId !== unitData.typeId) {
@@ -1106,13 +1217,10 @@ async function TitanReactorGame(
         if (imageData.index === spriteData.mainImageIndex) {
 
 
-          if (unit) {
-            image.layers.enable(Layers.Clickable);
-            // for 3d models
-            // image.rotation.y = unit.angle;
-          }
-        } else {
-          image.layers.disable(Layers.Clickable);
+          // if (unit ) {
+          // for 3d models
+          // image.rotation.y = unit.angle;
+          // }
         }
 
         if (imageNeedsRedraw(imageData as ImageStruct)) {
@@ -1135,7 +1243,6 @@ async function TitanReactorGame(
     const deletedSpriteAddr = openBw.wasm!._get_buffer(4);
 
     camera.getWorldDirection(_cameraWorldDirection);
-
 
     // avoid image flashing by clearing the group here when user is scrubbing through a replay
     if (_wasReset) {
@@ -1243,7 +1350,9 @@ async function TitanReactorGame(
       if (!currentBwFrame) {
 
         currentBwFrame = gameStateReader.next();
-        if (currentBwFrame.needsUpdate === false) {
+        if (!currentBwFrame) {
+          gameStatePosition.paused = true;
+        } else if (currentBwFrame.needsUpdate === false) {
           currentBwFrame = null;
         }
       }

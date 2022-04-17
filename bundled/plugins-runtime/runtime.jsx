@@ -292,8 +292,6 @@ const _messageListener = function (event) {
   } else {
     if (event.data.type === "dimensions") {
       updateDimensionsCss(event.data.payload);
-    } else if (event.data.type === "units") {
-      console.log(event.data.payload);
     }
     useStore.setState({ [event.data.type]: event.data.payload });
   }

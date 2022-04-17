@@ -39,7 +39,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
             "#include <map_fragment>",
             `
                 #include <map_fragment>
-                diffuseColor = vec4(0., 1., 0., diffuseColor.a * 0.5);
+                diffuseColor = vec4(0., 1., 0., diffuseColor.a);
             `
           );
         },

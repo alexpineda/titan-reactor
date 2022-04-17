@@ -198,10 +198,16 @@ export class PluginSystemUI {
 
             // in case hp changed, etc.
             // TODO: maybe introduce a dirty flag to units and check if any are dirty to send
-            this.sendMessage({
-                type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-                payload: useSelectedUnitsStore.getState().selectedUnits.map(unitPartial)
-            });
+            const units = useSelectedUnitsStore.getState().selectedUnits;
+            // in this case only change if the empty state has changed
+            if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
+                this.sendMessage({
+                    type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+                    payload: units.map(unitPartial)
+                });
+                _lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] = units.length;
+            }
+
         }
     }
 }
