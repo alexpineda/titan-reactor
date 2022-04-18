@@ -4,7 +4,7 @@ import { ipcRenderer } from "electron";
 
 import { InitializedPluginPackage } from "common/types";
 import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
-import { GameStatePosition } from "@core";
+import { GameStatePosition, Unit } from "@core";
 import {
     installPlugin
 } from "@ipc/plugins";
@@ -85,9 +85,9 @@ export const onClick = (event: MouseEvent) => {
     })
 }
 
-export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number, commands: any[]) => {
+export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number, commands: any[], followedUnits: Unit[]) => {
     uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
-    nativePluginSystem.onFrame(gameStatePosition.bwGameFrame, commands);
+    nativePluginSystem.onFrame(gameStatePosition.bwGameFrame, followedUnits, commands);
 }
 
 export const getDefaultCameraModePlugin = () => {

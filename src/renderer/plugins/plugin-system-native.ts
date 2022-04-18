@@ -7,13 +7,14 @@ import * as postprocessing from "postprocessing"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_FOLLOWED as HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED } from "./hooks";
 import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS_WRITE } from "./permissions";
 import settingsStore from "@stores/settings-store";
 import throttle from "lodash.throttle";
+import { Unit } from "@core";
 
 
 const STDLIB = {
@@ -44,7 +45,7 @@ export interface NativePlugin extends PluginPrototype {
     onUIMessage?: (message: any) => void;
     onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
     onRender?: (delta: number, elapsed: number) => void;
-    onFrame?: (frame: number, commands?: any[]) => void;
+    onFrame?: (frame: number, followedUnits: Unit[], commands?: any[]) => void;
     config: {
         cameraModeKey?: string
     };
@@ -84,7 +85,10 @@ const createDefaultHooks = () => ({
     onScenePrepared: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "map", "replayHeader"]),
     onUnitCreated: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
     onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
-    onFrameReset: new Hook(HOOK_ON_FRAME_RESET, [])
+    onFrameReset: new Hook(HOOK_ON_FRAME_RESET, []),
+    onUnitsFollowed: new Hook(HOOK_ON_UNITS_FOLLOWED, ["units"]),
+    onUnitUnfollowed: new Hook(HOOK_ON_UNIT_UNFOLLOWED, ["unit"]),
+    onUnitClearFollowed: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, [])
 });
 
 
@@ -274,9 +278,10 @@ export class PluginSystemNative {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
+                debugger;
                 const oldConfig = { ...plugin.config };
                 plugin.config = processConfigBeforeReceive(config);
-                plugin.onConfigChanged && plugin.onConfigChanged(config, oldConfig);
+                plugin.onConfigChanged && plugin.onConfigChanged(plugin.config, oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
             }
@@ -295,13 +300,13 @@ export class PluginSystemNative {
         }
     }
 
-    onFrame(frame: number, commands: any[]) {
+    onFrame(frame: number, followedUnits: Unit[], commands: any[]) {
         for (const plugin of this.#nativePlugins) {
             if (plugin.onFrame) {
                 if (plugin.$$permissions[PERMISSION_REPLAY_COMMANDS]) {
-                    plugin.onFrame(frame, commands);
+                    plugin.onFrame(frame, followedUnits, commands);
                 } else {
-                    plugin.onFrame(frame)
+                    plugin.onFrame(frame, followedUnits)
                 }
             }
         }

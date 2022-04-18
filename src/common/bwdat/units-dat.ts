@@ -17,11 +17,11 @@ export class UnitDAT implements UnitDAT {
   }
 
   _flag(shift: number) {
-    return Boolean(this.specialAbilityFlags & (1 << shift));
+    return (this.specialAbilityFlags & (1 << shift)) !== 0;
   }
 
   get isBuilding() {
-    return Boolean(this.specialAbilityFlags & 1);
+    return this._flag(0);
   }
 
   get isAddon() {

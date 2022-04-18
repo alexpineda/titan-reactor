@@ -20,13 +20,10 @@ export class CameraMouse {
     #clientX = 0;
     #clientY = 0;
 
-    #cameraMode: CameraModePlugin;
 
     direction = new Vector3();
 
-    constructor(domElement: HTMLElement, cameraMode: CameraModePlugin) {
-        this.#cameraMode = cameraMode;
-
+    constructor(domElement: HTMLElement) {
         const onWheel = (evt: WheelEvent) => {
             if (this.#_mouseWheelTimeout) return;
             this.#mouseScrollY = evt.deltaY;
@@ -96,9 +93,9 @@ export class CameraMouse {
 
     }
 
-    update(delta: number, elapsed: number) {
+    update(delta: number, elapsed: number, cameraMode: CameraModePlugin) {
 
-        this.#cameraMode.onCameraMouseUpdate && this.#cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
+        cameraMode.onCameraMouseUpdate && cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
 
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;

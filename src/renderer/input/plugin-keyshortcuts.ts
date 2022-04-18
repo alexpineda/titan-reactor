@@ -7,6 +7,7 @@ export class PluginKeyShortcuts {
     #domElement: HTMLElement;
     #keyDownListenerInstance: (e: KeyboardEvent) => void;
     #listeners: { pluginId: string, key: string, fn: Function }[] = [];
+    onBeforeEscape?: () => boolean;
 
     constructor(domElement: HTMLElement) {
         this.#domElement = domElement;
@@ -49,6 +50,12 @@ export class PluginKeyShortcuts {
         // test all registered plugin keys
         for (const listener of this.#listeners) {
             if (testKey(e, listener.key)) {
+                if (listener.key === "Escape" && this.onBeforeEscape) {
+                    if (this.onBeforeEscape()) {
+                        return;
+                    }
+                }
+
                 try {
                     if (_called) {
                         log.warning(`Multiple listeners called for key ${e.code}`);

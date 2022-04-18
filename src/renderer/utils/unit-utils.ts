@@ -1,5 +1,5 @@
 import { BwDAT, UnitStruct } from "common/types";
-import { UnitFlags, unitTypes, iscriptHeaders } from "common/enums";
+import { UnitFlags, unitTypes, iscriptHeaders, orders } from "common/enums";
 import UnitsBufferView from "../buffer-view/units-buffer-view";
 import { Unit } from "@core/unit";
 
@@ -8,18 +8,16 @@ export const unitIsCompleted = (unit: UnitStruct) => {
 }
 
 export const canSelectUnit = (unit: Unit) => {
-  //do not allow unit training selection for terran and protoss
-  // && !(
-  //   (unit.extras.dat.isTerran || unit.extras.dat.isProtoss) &&
-  //   !unit.extras.dat.isBuilding &&
-  //   !unitIsCompleted(unit)
-  // ) 
 
   return Boolean(unit.typeId !== unitTypes.darkSwarm &&
     unit.typeId !== unitTypes.disruptionWeb &&
-    // unit.order !== orders.die &&
+    unit.hp > 0 &&
     !unit.extras.dat.isTurret &&
-    unit.typeId !== unitTypes.spiderMine && (unitIsCompleted(unit) || unit.extras.dat.isZerg));
+    (unit.statusFlags & UnitFlags.Loaded) === 0 &&
+    (unit.statusFlags & UnitFlags.InBunker) === 0 &&
+    unit.order !== orders.harvestGas &&
+    unit.typeId !== unitTypes.spiderMine &&
+    (unitIsCompleted(unit) || unit.extras.dat.isZerg || unit.extras.dat.isBuilding));
 }
 
 export const unitIsCloaked = (unit: UnitStruct) => {

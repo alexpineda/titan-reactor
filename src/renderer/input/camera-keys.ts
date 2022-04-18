@@ -9,17 +9,17 @@ const keyForward = "ArrowUp";
 const keyBackward = "ArrowDown";
 const keyLeft = "ArrowLeft";
 const keyRight = "ArrowRight";
+const keyFollow = "KeyF";
 export class CameraKeys {
     #el: HTMLElement;
     #move = new Vector2();
     #janitor: Janitor;
+    #onToggleFollowUnit: () => void;
 
-    #cameraMode: CameraModePlugin;
-
-    constructor(el: HTMLElement, cameraMode: CameraModePlugin) {
+    constructor(el: HTMLElement, onToggleFollowUnit: () => void) {
         this.#el = el;
         this.#janitor = new Janitor();
-        this.#cameraMode = cameraMode;
+        this.#onToggleFollowUnit = onToggleFollowUnit;
 
         const keyDown = (e: KeyboardEvent) => {
             if (this.#move.y == 0) {
@@ -51,13 +51,21 @@ export class CameraKeys {
             if (testKeys(e, keyLeft) || testKeys(e, keyRight)) {
                 this.#move.x = 0;
             }
+
+            if (testKeys(e, keyLeft) || testKeys(e, keyRight)) {
+                this.#move.x = 0;
+            }
+
+            if (testKeys(e, keyFollow)) {
+                this.#onToggleFollowUnit();
+            }
         }
         this.#el.addEventListener("keyup", keyUp);
         this.#janitor.callback(() => this.#el.removeEventListener("keyup", keyUp));
     }
 
-    update(delta: number, elapsed: number) {
-        this.#cameraMode.onCameraKeyboardUpdate && this.#cameraMode.onCameraKeyboardUpdate(delta, elapsed, this.#move);
+    update(delta: number, elapsed: number, cameraMode: CameraModePlugin) {
+        cameraMode.onCameraKeyboardUpdate && cameraMode.onCameraKeyboardUpdate(delta, elapsed, this.#move);
     }
 
     dispose() {

@@ -3,12 +3,14 @@ import { Vector2 } from "three";
 export class MouseSelectionBox {
     selectElement: HTMLSpanElement;
     enabled = true;
-
     #start = new Vector2
+
+    set color(value: string) {
+        this.selectElement.style.outline = `3px solid ${value}`;
+    }
 
     constructor() {
         this.selectElement = document.createElement("span");
-        this.selectElement.style.outline = "3px solid #00ff007f";
         this.selectElement.style.position = "absolute";
         this.selectElement.style.display = "none";
         this.selectElement.style.pointerEvents = "none";
@@ -31,6 +33,15 @@ export class MouseSelectionBox {
         this.selectElement.style.top = `${t}px`;
         this.selectElement.style.width = `${r - l}px`;
         this.selectElement.style.height = `${b - t}px`;
+    }
+
+    getMinDragSize(x: number, y: number) {
+        if (Math.abs(x - this.#start.x) > 10 &&
+            Math.abs(y - this.#start.y) > 10) {
+            return [this.#start.x, this.#start.y, x, y];
+        } else {
+            return [x - 10, y - 10, x + 10, y + 10];
+        }
     }
 
     update(x: number, y: number, x2: number, y2: number) {

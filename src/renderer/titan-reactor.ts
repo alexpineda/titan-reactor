@@ -65,7 +65,6 @@ async function bootup() {
     await (settingsStore().load());
     registerFileDialogHandlers();
 
-    //TODO: use a different initialization method
     await initializePluginSystem(settingsStore().enabledPlugins);
     document.body.addEventListener("click", evt => pluginSystem.onClick(evt));
 

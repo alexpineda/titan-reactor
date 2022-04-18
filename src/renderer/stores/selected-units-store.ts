@@ -1,13 +1,11 @@
 import create from "zustand/vanilla";
-import { UnitDAT } from "common/bwdat/units-dat";
 import { Unit } from "@core";
 
 export type SelectedUnitsStore = {
     selectedUnits: Unit[];
     setSelectedUnits: (unit: Unit[]) => void;
     appendSelectedUnits: (unit: Unit[]) => void;
-    clear: () => void;
-    selectOfType: (type: UnitDAT) => void;
+    clearSelectedUnits: () => void;
     removeUnit: (unit: Unit) => void;
 };
 
@@ -33,7 +31,7 @@ export const useSelectedUnitsStore = create<SelectedUnitsStore>((set, get) => ({
 
         set({ selectedUnits: [...get().selectedUnits, ...uniques] });
     },
-    clear() {
+    clearSelectedUnits() {
         for (const unit of get().selectedUnits) {
             unit.extras.selected = false;
         }
@@ -41,12 +39,10 @@ export const useSelectedUnitsStore = create<SelectedUnitsStore>((set, get) => ({
     },
     removeUnit(unit) {
         unit.extras.selected = false;
-        set({ selectedUnits: get().selectedUnits.filter(u => u !== unit) });
-    },
-    selectOfType: (ut) =>
-        get().setSelectedUnits(
-            get().selectedUnits.filter(({ extras: { dat: unitType } }) => unitType === ut)
-        ),
+        set({
+            selectedUnits: get().selectedUnits.filter(u => u !== unit)
+        });
+    }
 }));
 
 export default () => useSelectedUnitsStore.getState();

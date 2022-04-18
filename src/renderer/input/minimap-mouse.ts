@@ -18,7 +18,7 @@ export interface MinimapPreviewEvent extends MinimapEvent {
 const pos = new Vector3();
 const _target = new Vector3();
 
-export class MinimapMouse {
+export class MinimapMouse extends EventTarget {
   #mapWidth: number;
   #mapHeight: number;
   #surface: CanvasTarget;
@@ -37,6 +37,7 @@ export class MinimapMouse {
     if (val === false) {
       this.#isPreviewing = false;
       this.#isDragging = false;
+      this.#isDragStart = false;
     }
   }
 
@@ -45,6 +46,7 @@ export class MinimapMouse {
   }
 
   constructor(surface: CanvasTarget, mapWidth: number, mapHeight: number) {
+    super();
     this.#surface = surface;
     this.#mapWidth = mapWidth;
     this.#mapHeight = mapHeight;
@@ -71,6 +73,8 @@ export class MinimapMouse {
       if (!this.enabled) return;
       e.preventDefault();
       e.stopPropagation();
+
+      this.dispatchEvent(new Event("mousedown"));
 
       const x = getX(e.offsetX);
       const y = getY(e.offsetY);

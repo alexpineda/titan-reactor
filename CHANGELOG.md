@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - [CREATING PLUGINS documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
   - Bullet Y Tracking. Watch as flying units and ground units exchange fire from their different elevations!
   - Picture In Picture mode allowing more action to be captured by a single observer
-  - Automatic settings migrations
+  - Follow unit command (Key F)
   - New menus and debug menus
   
 ### Changed

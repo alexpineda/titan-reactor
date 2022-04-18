@@ -39,7 +39,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
             "#include <map_fragment>",
             `
                 #include <map_fragment>
-                diffuseColor = vec4(0., 1., 0., diffuseColor.a);
+                diffuseColor = vec4(0., 1., 0., diffuseColor.a * 0.75);
             `
           );
         },
@@ -48,6 +48,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
     this.material.depthTest = false;
     this.material.transparent = true;
     this.visible = false;
+    this.name = "selectionCircle";
   }
 
   update(spriteDef: SpriteDAT) {

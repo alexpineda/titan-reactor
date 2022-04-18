@@ -58,7 +58,7 @@ export default async (filepath: string) => {
     return;
   }
 
-  processStore().increment(Process.ReplayInitialization, 8);
+  processStore().increment(Process.ReplayInitialization);
   document.title = "Titan Reactor - Loading";
 
   screenStore().init(ScreenType.Replay);

@@ -54,7 +54,7 @@ export class UnitsBufferView extends FlingyBufferView
     }
 
     get order() {
-        const _order = this._bw.HEAPU32[this._index32 + 32];
+        const _order = this._bw.HEAPU32[this._index32 + 29];
         if (_order === 0) return null;
         return this._bw.HEAP32[_order >> 2];
     }
@@ -125,7 +125,7 @@ export class UnitsBufferView extends FlingyBufferView
     // 	int rank_increase
     // 	int kill_count
     get kills() {
-        return this._bw.HEAP32[this._index32 + 58];
+        return this._bw.HEAP32[this._index32 + 59];
     }
     // 	int last_attacking_player;
     // 	int secondary_order_timer;

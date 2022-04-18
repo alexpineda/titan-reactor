@@ -30,7 +30,6 @@ export type Settings = {
         developmentDirectory?: string;
         enabled: string[],
     }
-
 };
 
 export enum AssetTextureResolution {

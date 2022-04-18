@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
+import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
@@ -9,7 +9,7 @@ import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
 import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 
-import { BulletState, DamageType, drawFunctions, Explosion, unitTypes } from "common/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, orders, UnitFlags, unitTypes } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo
@@ -66,7 +66,7 @@ import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "./plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED } from "./plugins/hooks";
 import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
@@ -166,6 +166,9 @@ async function TitanReactorGame(
     mapHeight
   );
   janitor.disposable(minimapMouse);
+  minimapMouse.addEventListener("mousedown", () => {
+    clearFollowedUnits();
+  })
 
 
 
@@ -200,6 +203,57 @@ async function TitanReactorGame(
     }
   }
 
+  let followedUnits: Unit[] = [];
+
+  let followedTarget = new Vector3();
+  const setFollowedUnits = (units: Unit[]) => {
+    followedUnits = units;
+    plugins.callHook(HOOK_ON_UNITS_FOLLOWED, units);
+  }
+
+  const unFollowUnit = (unit: Unit) => {
+    const idx = followedUnits.indexOf(unit);
+    if (idx > -1) {
+      followedUnits.splice(idx, 1);
+      plugins.callHook(HOOK_ON_UNIT_UNFOLLOWED, unit);
+    }
+  }
+
+  const clearFollowedUnits = () => {
+    if (followedUnits.length > 0) {
+      followedUnits.length = 0;
+      plugins.callHook(HOOK_ON_UNITS_CLEAR_FOLLOWED);
+    }
+  }
+  const calculateFollowedUnitsTarget = () => {
+    if (followedUnits.length === 0) {
+      return;
+    }
+
+    followedTarget.set(pxToGameUnit.x(followedUnits[0].x), 0, pxToGameUnit.y(followedUnits[0].y));
+
+    for (let i = 1; i < followedUnits.length; i++) {
+      followedTarget.set(
+        (followedTarget.x + pxToGameUnit.x(followedUnits[i].x)) / 2,
+        0,
+        (followedTarget.z + pxToGameUnit.y(followedUnits[i].y)) / 2
+      )
+    }
+    return followedTarget;
+  }
+
+  const cameraMouse = new CameraMouse(document.body);
+  janitor.disposable(cameraMouse);
+
+  const cameraKeys = new CameraKeys(document.body, () => {
+    if (followedUnits.length) {
+      clearFollowedUnits();
+    } else if (selectedUnitsStore().selectedUnits.length) {
+      setFollowedUnits(selectedUnitsStore().selectedUnits);
+    }
+  });
+  janitor.disposable(cameraKeys);
+
   const createControls = (cameraMode: CameraModePlugin, janitor: Janitor) => {
 
     const controls = new CameraControls(
@@ -207,12 +261,6 @@ async function TitanReactorGame(
       gameSurface.canvas,
     );
     janitor.disposable(controls);
-
-    const cameraMouse = new CameraMouse(document.body, cameraMode);
-    janitor.disposable(cameraMouse);
-
-    const cameraKeys = new CameraKeys(document.body, cameraMode);
-    janitor.disposable(cameraKeys);
 
     const cameraShake = new CameraShake();
 
@@ -271,6 +319,7 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw);
   const shortcuts = new PluginKeyShortcuts(window.document.body)
+
   janitor.disposable(shortcuts);
 
   const switchCameraMode = async (cameraMode: CameraModePlugin, prevCameraMode?: CameraModePlugin) => {
@@ -326,6 +375,7 @@ async function TitanReactorGame(
 
     if (cameraMode.minimap) {
       minimapSurface.canvas.style.display = "block";
+      minimapSurface.canvas.style.pointerEvents = "auto";
       minimapMouse.enabled = true;
     } else {
       minimapMouse.enabled = false;
@@ -335,7 +385,7 @@ async function TitanReactorGame(
     const rect = gameSurface.getRect();
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
-      minimapHeight: minimapMouse.enabled ? rect.minimapHeight : 0,
+      minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
 
     if (cameraMode.cameraShake) {
@@ -353,7 +403,7 @@ async function TitanReactorGame(
     }
 
     if (!cameraMode.unitSelection) {
-      selectedUnitsStore().clear();
+      selectedUnitsStore().clearSelectedUnits();
     }
 
     scene.disableSkybox();
@@ -399,10 +449,15 @@ async function TitanReactorGame(
     camera
   );
 
+
+
   {
     const selectionBox = new SelectionBox(camera, scene);
+
     const visualBox = new MouseSelectionBox();
+    visualBox.color = "#007f00";
     janitor.disposable(visualBox);
+
     const mouseCursor = new MouseCursor();
     janitor.disposable(mouseCursor);
 
@@ -426,6 +481,7 @@ async function TitanReactorGame(
 
     const _selectDown = (event: PointerEvent) => {
       if (!controls.cameraMode.unitSelection) return;
+      minimapSurface.canvas.style.pointerEvents = "none";
       mouseIsDown = true;
       selectionBox.startPoint.set(
         (event.clientX / window.innerWidth) * 2 - 1,
@@ -456,28 +512,40 @@ async function TitanReactorGame(
     gameSurface.canvas.addEventListener('pointermove', _selectMove);
     janitor.callback(() => gameSurface.canvas.removeEventListener('pointermove', _selectMove));
 
+    const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
+
     const _selectUp = (event: PointerEvent) => {
       if (!mouseIsDown) return;
+      minimapSurface.canvas.style.pointerEvents = "auto";
 
       mouseIsDown = false;
 
+      const [startX, startY, endX, endY] = visualBox.getMinDragSize(event.clientX, event.clientY);
+
+      selectionBox.startPoint.set(
+        (startX / window.innerWidth) * 2 - 1,
+        - (startY / window.innerHeight) * 2 + 1,
+        0.5);
+
       selectionBox.endPoint.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        - (event.clientY / window.innerHeight) * 2 + 1,
+        (endX / window.innerWidth) * 2 - 1,
+        - (endY / window.innerHeight) * 2 + 1,
         0.5);
 
       visualBox.clear();
 
       const allSelected = selectionBox.select();
 
-      //TODO: if only buildings were selected selected the one on the cursor
-      // else, remove all buildings from selection
-
       let selectedUnits: Unit[] = [];
       for (let i = 0; i < allSelected.length; i++) {
         if (allSelected[i].userData.unit && canSelectUnit(allSelected[i].userData.unit) && !selectedUnits.includes(allSelected[i].userData.unit)) {
           selectedUnits.push(allSelected[i].userData.unit);
         }
+      }
+
+      const onlyUnits = selectedUnits.filter(_hasAnyUnit);
+      if (onlyUnits.length > 0 && onlyUnits.length !== selectedUnits.length) {
+        selectedUnits = onlyUnits;
       }
 
       // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
@@ -496,7 +564,7 @@ async function TitanReactorGame(
         }
       }
 
-      selectedUnits.sort(typeIdSort);
+      selectedUnits.sort(typeIdSort).splice(12);
 
       if (event.shiftKey) {
         selectedUnitsStore().appendSelectedUnits(selectedUnits);
@@ -547,16 +615,10 @@ async function TitanReactorGame(
     units.clear();
     unitsBySprite.clear();
     sprites.clear();
-    const highlights: Object3D[] = [];
-    scene.children.forEach((obj: Object3D) => {
-      if (obj.parent === scene && obj.name === "Highlight") {
-        highlights.push(obj)
-      }
-    });
-    highlights.forEach(h => h.removeFromParent());
-
     cmds = commandsStream.generate();
     cmd = cmds.next();
+    selectedUnitsStore().clearSelectedUnits();
+    clearFollowedUnits();
 
     plugins.callHook(HOOK_ON_FRAME_RESET, openBw.call!.getCurrentFrame!());
     gameStatePosition.paused = false;
@@ -603,7 +665,7 @@ async function TitanReactorGame(
     const rect = gameSurface.getRect();
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
-      minimapHeight: minimapMouse.enabled ? rect.minimapHeight : 0,
+      minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
     cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
@@ -785,6 +847,7 @@ async function TitanReactorGame(
       freeUnits.push(unit);
 
       selectedUnitsStore().removeUnit(unit);
+      unFollowUnit(unit);
       plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
     }
 
@@ -817,6 +880,14 @@ async function TitanReactorGame(
         }
 
         unitData.copyTo(unit);
+
+        if (unit.extras.selected &&
+          (unit.hp === 0 ||
+            unit.order === orders.harvestGas ||
+            (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
+            (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
+          selectedUnitsStore().removeUnit(unit);
+        }
 
       }
     }
@@ -1338,8 +1409,8 @@ async function TitanReactorGame(
     controls.orbit.getTarget(_cameraTarget);
     controls.orbit.getPosition(_cameraPosition);
     controls.orbit.update(delta / 1000);
-    controls.mouse.update(delta / 100, elapsed);
-    controls.keys.update(delta / 100, elapsed);
+    controls.mouse.update(delta / 100, elapsed, controls.cameraMode);
+    controls.keys.update(delta / 100, elapsed, controls.cameraMode);
     minimapMouse.update(controls);
 
     if (reset) {
@@ -1406,7 +1477,7 @@ async function TitanReactorGame(
       }
 
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
+      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame, followedUnits);
 
       currentBwFrame = null;
     }
@@ -1465,16 +1536,19 @@ async function TitanReactorGame(
   const dispose = () => {
     log.info("disposing replay viewer");
     gameStatePosition.pause();
+    clearFollowedUnits();
     pluginsJanitor.mopUp();
     janitor.mopUp();
     controls.cameraMode.dispose();
+    selectedUnitsStore().clearSelectedUnits();
+
   };
 
   window.onbeforeunload = dispose;
 
   {
     const unsub = useSettingsStore.subscribe((state) => {
-      settings = state.data;
+      Object.assign(settings, state.data);
       renderer.gamma = settings.graphics.gamma;
       audioMixer.masterVolume = settings.audio.global;
       audioMixer.musicVolume = settings.audio.music;
@@ -1599,7 +1673,8 @@ async function TitanReactorGame(
       getOriginalColors,
       setPlayerNames,
       getOriginalNames,
-      getFPS: () => fps.fps
+      getFPS: () => fps.fps,
+      calculateFollowedUnitsTarget
     };
 
     pluginsJanitor.callback(plugins.injectApi(api));
