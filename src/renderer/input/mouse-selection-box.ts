@@ -35,13 +35,9 @@ export class MouseSelectionBox {
         this.selectElement.style.height = `${b - t}px`;
     }
 
-    getMinDragSize(x: number, y: number) {
-        if (Math.abs(x - this.#start.x) > 10 &&
-            Math.abs(y - this.#start.y) > 10) {
-            return [this.#start.x, this.#start.y, x, y];
-        } else {
-            return [x - 10, y - 10, x + 10, y + 10];
-        }
+    isMinDragSize(x: number, y: number) {
+        return (Math.abs(x - this.#start.x) > 10 &&
+            Math.abs(y - this.#start.y) > 10);
     }
 
     update(x: number, y: number, x2: number, y2: number) {

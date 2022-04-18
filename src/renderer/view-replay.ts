@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene } from "three";
+import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Object3D } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
@@ -449,7 +449,13 @@ async function TitanReactorGame(
     camera
   );
 
-
+  const _stopFollowingOnClick = () => {
+    if (settings.game.stopFollowingOnClick) {
+      clearFollowedUnits();
+    }
+  }
+  gameSurface.canvas.addEventListener('pointerdown', _stopFollowingOnClick);
+  janitor.callback(() => gameSurface.canvas.removeEventListener('pointerdown', _stopFollowingOnClick));
 
   {
     const selectionBox = new SelectionBox(camera, scene);
@@ -514,53 +520,84 @@ async function TitanReactorGame(
 
     const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
 
+    const _selectRayCaster = new Raycaster();
+
+    const getUnitFromMouseIntersect = (clipV: Vector2) => {
+      _selectRayCaster.setFromCamera(clipV, camera);
+      const intersects = _selectRayCaster.intersectObjects(spritesGroup.children, true);
+      if (intersects.length) {
+        let closestUnit: Unit | undefined;
+        let closestRenderOrder = -1;
+
+        for (const intersect of intersects) {
+          if (
+            intersect.uv !== undefined &&
+            intersect.object instanceof ImageHD &&
+            intersect.object.userData.unit && canSelectUnit(intersect.object.userData.unit)
+          ) {
+            if (
+              intersect.object.renderOrder > closestRenderOrder
+            ) {
+              closestRenderOrder = intersect.object.renderOrder;
+              closestUnit = intersect.object.userData.unit;
+            }
+          }
+        }
+
+        return closestUnit;
+      }
+    };
+
     const _selectUp = (event: PointerEvent) => {
-      if (!mouseIsDown) return;
       minimapSurface.canvas.style.pointerEvents = "auto";
-
       mouseIsDown = false;
-
-      const [startX, startY, endX, endY] = visualBox.getMinDragSize(event.clientX, event.clientY);
-
-      selectionBox.startPoint.set(
-        (startX / window.innerWidth) * 2 - 1,
-        - (startY / window.innerHeight) * 2 + 1,
-        0.5);
-
-      selectionBox.endPoint.set(
-        (endX / window.innerWidth) * 2 - 1,
-        - (endY / window.innerHeight) * 2 + 1,
-        0.5);
-
       visualBox.clear();
 
-      const allSelected = selectionBox.select();
-
       let selectedUnits: Unit[] = [];
-      for (let i = 0; i < allSelected.length; i++) {
-        if (allSelected[i].userData.unit && canSelectUnit(allSelected[i].userData.unit) && !selectedUnits.includes(allSelected[i].userData.unit)) {
-          selectedUnits.push(allSelected[i].userData.unit);
-        }
-      }
 
-      const onlyUnits = selectedUnits.filter(_hasAnyUnit);
-      if (onlyUnits.length > 0 && onlyUnits.length !== selectedUnits.length) {
-        selectedUnits = onlyUnits;
-      }
-
-      // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
-      if (
-        selectedUnits.length > 1 &&
-        selectedUnits.some(canOnlySelectOne)
-      ) {
-        if (
-          selectedUnits.every((unit) => unit.typeId === selectedUnits[0].typeId)
-        ) {
-          selectedUnits = selectedUnits.slice(-1);
+      if (!visualBox.isMinDragSize(event.clientX, event.clientY)) {
+        const unit = getUnitFromMouseIntersect(new Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
+        if (unit) {
+          selectedUnits.push(unit);
         } else {
-          selectedUnits = selectedUnits.filter(
-            (unit) => !_canOnlySelectOne.includes(unit.typeId)
-          );
+          selectedUnitsStore().clearSelectedUnits();
+          return;
+        }
+      } else {
+
+        selectionBox.endPoint.set(
+          (event.clientX / window.innerWidth) * 2 - 1,
+          - (event.clientY / window.innerHeight) * 2 + 1,
+          0.5);
+
+
+        const allSelected = selectionBox.select();
+
+        for (let i = 0; i < allSelected.length; i++) {
+          if (allSelected[i].userData.unit && canSelectUnit(allSelected[i].userData.unit) && !selectedUnits.includes(allSelected[i].userData.unit)) {
+            selectedUnits.push(allSelected[i].userData.unit);
+          }
+        }
+
+        const onlyUnits = selectedUnits.filter(_hasAnyUnit);
+        if (onlyUnits.length > 0 && onlyUnits.length !== selectedUnits.length) {
+          selectedUnits = onlyUnits;
+        }
+
+        // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
+        if (
+          selectedUnits.length > 1 &&
+          selectedUnits.some(canOnlySelectOne)
+        ) {
+          if (
+            selectedUnits.every((unit) => unit.typeId === selectedUnits[0].typeId)
+          ) {
+            selectedUnits = selectedUnits.slice(-1);
+          } else {
+            selectedUnits = selectedUnits.filter(
+              (unit) => !_canOnlySelectOne.includes(unit.typeId)
+            );
+          }
         }
       }
 
@@ -1673,6 +1710,7 @@ async function TitanReactorGame(
       getOriginalColors,
       setPlayerNames,
       getOriginalNames,
+      replay: { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] },
       getFPS: () => fps.fps,
       calculateFollowedUnitsTarget
     };

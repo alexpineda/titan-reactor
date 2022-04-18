@@ -25,6 +25,9 @@ export type Settings = {
         anisotropy: "high" | "med" | "low";
         gamma: number;
     },
+    game: {
+        stopFollowingOnClick: boolean
+    },
     plugins: {
         serverPort: number;
         developmentDirectory?: string;

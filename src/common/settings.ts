@@ -19,6 +19,9 @@ export const defaultSettings: Settings = {
     music: 0.5,
     sound: 1
   },
+  game: {
+    stopFollowingOnClick: true
+  },
   graphics: {
     antialias: true,
     pixelRatio: "med",
