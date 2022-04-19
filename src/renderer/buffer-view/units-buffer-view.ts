@@ -10,37 +10,10 @@ export class UnitsBufferView extends FlingyBufferView
     implements UnitStruct {
     static unit_generation_size = 0;
 
-    _subunit?: UnitsBufferView;
-
-    // if (dumping->unit_type->flags & dumping->unit_type->flag_resource && dumping->status_flags & dumping->status_flag_completed)
-    // 	{
-    // 		// DUMP_RAW(resourceAmount, dumping->building.resource.resource_count);
-    // 		DUMP_RAW(remainingBuildtime, 0);
-    // 	}
-    // 	else
-    // 	{
-    // 		// DUMP_RAW(resourceAmount, 0);
-    // 		DUMP_VAL_AS(remainingBuildtime, remaining_build_time);
-    // 	}
-
-    get remainingBuildTime() {
-        return 0;
-    }
+    #subunit?: UnitsBufferView;
+    #currentBuildUnit?: UnitsBufferView;
 
     get resourceAmount() {
-        return 0;
-    }
-
-    get remainingTrainTime() {
-        // 	if (dumping->current_build_unit)
-        // 	{
-        // 		int remainingTrainTime = ((float)dumping->current_build_unit->remaining_build_time / (float)dumping->current_build_unit->unit_type->build_time) * 255;
-        // 		DUMP_RAW(remainingTrainTime, remainingTrainTime);
-        // 	}
-        // 	else
-        // 	{
-        // 		DUMP_RAW(resourceAmount, 0);
-        // 	}
         return 0;
     }
 
@@ -104,12 +77,18 @@ export class UnitsBufferView extends FlingyBufferView
     // player_units_link 2
 
     get subunit(): UnitStruct | null {
+        // turrets will reference their parent unit, so we can't just return this
+        // unless we want an infinite loop
+        if (this.typeFlags & 0x10) {
+            return null;
+        }
+
         const addr = this._bw.HEAPU32[this._index32 + 43];
         if (addr === 0) return null;
-        if (this._subunit === undefined) {
-            this._subunit = new UnitsBufferView(this._bw);
+        if (this.#subunit === undefined) {
+            this.#subunit = new UnitsBufferView(this._bw);
         }
-        return this._subunit.get(addr);
+        return this.#subunit.get(addr);
     }
 
     // order_queue 2
@@ -125,7 +104,7 @@ export class UnitsBufferView extends FlingyBufferView
     // 	int rank_increase
     // 	int kill_count
     get kills() {
-        return this._bw.HEAP32[this._index32 + 59];
+        return this._bw.HEAP32[this._index32 + 56];
     }
     // 	int last_attacking_player;
     // 	int secondary_order_timer;
@@ -145,7 +124,10 @@ export class UnitsBufferView extends FlingyBufferView
     // 	int damage_overlay_state; 71
     // 	fp8 hp_construction_rate; 72
     // 	fp8 shield_construction_rate; 73
-    // 	int remaining_build_time; 74
+
+    get remainingBuildTime() {
+        return this._bw.HEAPU32[this._index32 + 74];
+    }
     // 	int previous_hp; 75
     // 	std::array<unit_id, 8> loaded_units; 4 wide 83
 
@@ -153,7 +135,21 @@ export class UnitsBufferView extends FlingyBufferView
         return this._bw.HEAP32[this._index32 + 113];
     }
 
+    // int carrying_flags; 114
+    // int wireframe_randomizer; 115
+    // int secondary_order_state; 116
+    // int move_target_timer; 117
+    // uint32_t detected_flags; 118
 
+    get currentBuildUnit(): UnitStruct | null {
+        const addr = this._bw.HEAPU32[this._index32 + 119];
+        if (addr === 0) return null;
+        if (this.#currentBuildUnit === undefined) {
+            this.#currentBuildUnit = new UnitsBufferView(this._bw);
+        }
+        const unit = this.#currentBuildUnit.get(addr);
+        return unit;
+    }
 
     override copyTo(dest: Partial<Unit>) {
         super.copyTo(dest);
@@ -163,8 +159,9 @@ export class UnitsBufferView extends FlingyBufferView
         dest.order = this.order;
         dest.shields = this.shields;
         dest.energy = this.energy;
-        dest.kills = this.kills;
+        dest.kills = this.kills + (this.subunit?.kills ?? 0);
         dest.statusFlags = this.statusFlags;
+        dest.remainingBuildTime = this.remainingBuildTime;
     }
 
     copy(bufferView = new UnitsBufferView(this._bw)) {

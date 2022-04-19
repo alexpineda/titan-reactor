@@ -9,7 +9,6 @@ export interface UnitStruct extends FlingyStruct {
 
   statusFlags: number;
   remainingBuildTime: number;
-  remainingTrainTime: number;
   resourceAmount: number;
   order: number | null;
   kills: number;

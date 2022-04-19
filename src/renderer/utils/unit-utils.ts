@@ -11,7 +11,7 @@ export const canSelectUnit = (unit: Unit) => {
 
   return Boolean(unit.typeId !== unitTypes.darkSwarm &&
     unit.typeId !== unitTypes.disruptionWeb &&
-    unit.hp > 0 &&
+    unit.order !== orders.die &&
     !unit.extras.dat.isTurret &&
     (unit.statusFlags & UnitFlags.Loaded) === 0 &&
     (unit.statusFlags & UnitFlags.InBunker) === 0 &&
@@ -51,5 +51,12 @@ export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
       return bwDat.weapons[bwDat.units[unit.typeId].airWeapon];
     default:
       return undefined;
+  }
+}
+
+export const unitRemainingTrainTime = (u: UnitsBufferView, bwDat: BwDAT) => {
+  if (u.currentBuildUnit)
+  {
+    return ((u.currentBuildUnit.remainingBuildTime / bwDat.units[u.typeId].buildTime) * 255);
   }
 }
