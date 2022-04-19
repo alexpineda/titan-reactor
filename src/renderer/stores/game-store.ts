@@ -1,7 +1,6 @@
 import create from "zustand";
 import { GameCanvasDimensions } from "common/types";
 import Assets from "../assets/assets";
-import { onGameDisposed } from "../plugins";
 
 type MinimapDimensions = Pick<GameCanvasDimensions, "minimapWidth" | "minimapHeight">;
 
@@ -32,7 +31,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   disposeGame: () => {
     const gameDisposer = get().gameDisposer;
     gameDisposer && gameDisposer();
-    onGameDisposed();
     set({ gameDisposer: undefined });
   },
   addLog: (item, color = "white") => {

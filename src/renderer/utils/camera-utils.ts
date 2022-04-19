@@ -37,8 +37,8 @@ export const AZI_RANGE = (24 * Math.PI) / 64;
 export const BATTLE_POLAR_MAX = (20 * Math.PI) / 64;
 export const BATTLE_POLAR_MIN = (Math.PI) / 64;
 
-export const setBoundary = (controls: Controls, mapWidth: number, mapHeight: number) => {
-  controls.orbit.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
+export const setBoundary = (orbit: CameraControls, mapWidth: number, mapHeight: number) => {
+  orbit.setBoundary(new Box3(new Vector3(-mapWidth / 2, 0, -mapHeight / 2), new Vector3(mapWidth / 2, 0, mapHeight / 2)));
 };
 
 

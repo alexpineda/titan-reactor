@@ -23,6 +23,7 @@
     - [Game Time APIs](#game-time-apis)
     - [Hooks](#hooks)
   - [Camera Mode Plugins](#camera-mode-plugins)
+  - [Custom Hooks](#custom-hooks)
   - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
     - [Message Throttling](#message-throttling)
   - [Special Permissions](#special-permissions)
@@ -250,7 +251,7 @@ When a game is started apis are made available to your plugin for that instance 
 
 - eg. `gotoFrame(frame)`
   
-Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/view-replay.ts#L1395) for the time being.
+Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/view-replay.ts#L1635) for the time being.
 
 Take special care not to keep references to objects from the game instance. Dereference any values via the `onGameDisposed` callback.
 
@@ -270,26 +271,24 @@ const { THREE, STDLIB, postprocessing } = arguments[0];
 
 // your plugin must return an object with keynames matching hook names that you want to listen to
 return {
-    // init() will be called on load if your plugin is already enabled
+    // onPluginCreated() will be called on load if your plugin is already enabled
     // it will also be called anytime the user enables your plugin
-    init() {
+    onPluginCreated() {
       // config property will be on the object
       console.log(this.config);
     },
 
-    // Titan Reactor provides a UI for users to change config of your plugin
-    // this hook fires anytime a user has changed a config field
-    onConfigChanged(newConfig, oldConfig) {
-      this.config === newConfig; // true;
-
-      // in this example we use goToFrame api call to jump to a user changed config value
-      // a lot of times you'll also want to check if newConfig.jumpToFrame !== oldConfig.jumpToFrame
-      this.goToFrame(this.config.jumpToFrame)
+    onPluginDisposed() {
+      // user disabled your plugin
     },
 
-    // if the user disables your plugin, clean up!
-    onDisabled() {
-
+    // Titan Reactor provides a UI for users to change config of your plugin
+    // this hook fires anytime a user has changed a config field
+    onConfigChanged(oldConfig) {
+      // in this example we use goToFrame api call to jump to a user changed config value
+      if (this.config.jumpToFrame !== oldConfig.jumpToFrame) {
+        this.goToFrame(this.config.jumpToFrame)
+      }
     },
 
     // onGameReady fires when everything is loaded but before the first frame is run
@@ -305,10 +304,11 @@ return {
 
     // every bw game frame
     // frame - the frame number
+    // followingUnits - any units the user is following with the F key
     // commands - an array of replay commands
     // not some frames may be skipped for fps reasons
     // commands will include upto 5s of skipped frames
-    onFrame(frame, commands) {
+    onFrame(frame, followingUnits, commands) {
 
     }
     
@@ -355,6 +355,28 @@ onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX,
 - The `orbit` object is an instance of [CameraControls](https://github.com/yomotsu/camera-controls).
 
 
+## Custom Hooks
+
+Custom hooks must start with `onCustom...`;
+
+```js
+onGameReady() {
+  this.registerCustomHook("onCustomPing");
+},
+
+onFrame() {
+  if (this.getFrame() > this.maxFrame - 100) {
+    this.callCustomHook("onCustomPing");
+  }
+}
+```
+
+In another plugin. We could also respond by returning a value or reading `this.context` to read other plugins values in the chain.
+```js
+onCustomPing() {
+  console.log("pong")
+}
+```
 
 ## Communicating between Game and your UI component
 

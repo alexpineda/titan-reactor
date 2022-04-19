@@ -7,7 +7,7 @@ import * as postprocessing from "postprocessing"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_FOLLOWED as HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED } from "./hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED } from "./hooks";
 import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
@@ -15,7 +15,7 @@ import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS
 import settingsStore from "@stores/settings-store";
 import throttle from "lodash.throttle";
 import { Unit } from "@core";
-
+import Janitor from "@utils/janitor";
 
 const STDLIB = {
     CSS2DObject
@@ -39,19 +39,44 @@ interface PluginPrototype {
 export interface NativePlugin extends PluginPrototype {
     id: string;
     name: string;
-    isEnabled: boolean;
-    onConfigChanged?: (newConfig: {}, oldConfig: {}) => void;
-    onDisabled?: () => void;
+    /**
+     * Called when a plugin has it's configuration changed by the user
+     */
+    onConfigChanged?: (oldConfig: {}) => void;
+    /**
+     * Called on a plugins initialization for convenience
+     */
+    onPluginCreated?: () => void;
+    /**
+     * CaLLed when a plugin must release its resources
+     */
+    onPluginDispose?: () => void;
+    /**
+     * Called when an React component sends a message to this window
+     */
     onUIMessage?: (message: any) => void;
+    /**
+     * Called just before render
+     */
     onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
+    /**
+     * Called after rendering is done
+     */
     onRender?: (delta: number, elapsed: number) => void;
+    /**
+     * Called on a game frame
+     */
     onFrame?: (frame: number, followedUnits: Unit[], commands?: any[]) => void;
     config: {
         cameraModeKey?: string
     };
+    /**
+     * Used for message passing in hooks
+     */
+    context: any;
 }
 
-type HookOptions = {
+type InternalHookOptions = {
     postFn?: Function;
     async?: boolean;
     hookAuthorPluginId?: string
@@ -61,20 +86,20 @@ type HookOptions = {
 class Hook {
     readonly args: string[];
     readonly name: string;
-    protected opts: HookOptions;
+    #opts: InternalHookOptions;
 
-    constructor(name: string, args: string[], opts: HookOptions = {}) {
+    constructor(name: string, args: string[], opts: InternalHookOptions = {}) {
         this.name = name;
         this.args = args;
-        this.opts = opts;
+        this.#opts = opts;
     }
 
     isAsync() {
-        return this.opts.async;
+        return this.#opts.async;
     }
 
-    isAuthor(plugin: NativePlugin) {
-        return this.opts.hookAuthorPluginId === plugin.id;
+    isAuthor(id: string) {
+        return this.#opts.hookAuthorPluginId === id;
     }
 
 }
@@ -154,49 +179,57 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor });
             delete pluginPackage.nativeSource;
 
-            const pluginPropertyConfig: Record<string, {}> = {};
-            for (const key in pluginRaw) {
-                if (pluginRaw.hasOwnProperty(key)) {
-                    pluginPropertyConfig[key as keyof typeof pluginPropertyConfig] = {
-                        configurable: true,
-                        enumerable: true,
-                        writable: true,
-                        value: pluginRaw[key]
-                    }
-                }
-            }
+            pluginRaw.id = pluginPackage.id;
+            pluginRaw.name = pluginPackage.name;
+            //FIXME: freeze config but allow us to edit for saving
+            // possibly use a Weakmap instead of attaching to object
+            pluginRaw.$$config = { ...pluginPackage.config };
 
-            const permissions = Object.freeze((pluginPackage.config?.system?.permissions ?? []).reduce((acc: Record<string, boolean>, permission: string) => {
+            const permissions = (pluginPackage.config?.system?.permissions ?? []).reduce((acc: Record<string, boolean>, permission: string) => {
                 if (VALID_PERMISSIONS.includes(permission)) {
                     acc[permission] = true;
                 } else {
                     log.warning(`Invalid permission ${permission} for plugin ${pluginPackage.name}`);
                 }
                 return acc;
-            }, {}));
+            }, {});
+            pluginRaw.$$permissions = Object.freeze(permissions);
 
-            pluginPropertyConfig["$$permissions"] = {
-                configurable: false,
-                enumerable: false,
-                writable: false,
-                value: permissions
+            const nonEditableKeys = ["id", "name", "$$config", "$$permissions"];
+
+            const pluginPropertyConfig: Record<string, {}> = {};
+            for (const key in pluginRaw) {
+                if (pluginRaw.hasOwnProperty(key)) {
+                    const editable = nonEditableKeys.includes(key) ? false : true;
+                    pluginPropertyConfig[key as keyof typeof pluginPropertyConfig] = {
+                        configurable: editable,
+                        enumerable: true,
+                        writable: editable,
+                        value: pluginRaw[key]
+                    }
+                }
             }
+
             const plugin = Object.create(pluginProto, pluginPropertyConfig);
 
-            plugin.id = pluginPackage.id;
-            plugin.name = pluginPackage.name;
             plugin.config = processConfigBeforeReceive(pluginPackage.config);
-            plugin.$$config = pluginPackage.config;
             const sendUIMessage = throttle((message: any) => {
                 this.sendCustomUIMessage(pluginPackage.id, message);
             }, 100, { leading: true, trailing: false });
             plugin.sendUIMessage = sendUIMessage;
-            plugin.isEnabled = true;
+            plugin.registerCustomHook = (name: string, args: string[], async = false) => {
+                this.#registerCustomHook(name, args, pluginPackage.id, async);
+            };
+            plugin.callCustomHook = (name: string, ...args: any[]) => {
+                if (this.hooks[name].isAuthor(pluginPackage.id)) {
+                    return this.callHook(name, args);
+                }
+            };
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
-            plugin.init && plugin.init();
+            plugin.onPluginCreated && plugin.onPluginCreated();
 
             return plugin;
         } catch (e: unknown) {
@@ -224,6 +257,20 @@ export class PluginSystemNative {
 
     getCameraModePlugins() {
         return this.#nativePlugins.filter(p => p.config.cameraModeKey) as CameraModePlugin[];
+    }
+
+    #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async: boolean = false) {
+        if (this.hooks[name] !== undefined) {
+            log.error(`@plugin-system: hook ${name} already registered`);
+            return;
+        }
+
+        if (!name.startsWith("onCustom")) {
+            log.error(`@plugin-system: hook ${name} must start with "onCustom"`);
+            return;
+        }
+
+        this.hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
     }
 
     sendCustomUIMessage(pluginId: string, message: any) {
@@ -256,17 +303,20 @@ export class PluginSystemNative {
 
     dispose() {
         for (const plugin of this.#nativePlugins) {
-            this.onDisable(plugin.id);
+            try {
+                plugin.onPluginDispose && plugin.onPluginDispose();
+            } catch (e) {
+                log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
+            }
         }
         this.#nativePlugins = [];
     }
 
-    onDisable(pluginId: string) {
+    onPluginDispose(pluginId: string) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
-                plugin.isEnabled = false;
-                plugin.onDisabled && plugin.onDisabled();
+                plugin.onPluginDispose && plugin.onPluginDispose();
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
             }
@@ -278,10 +328,9 @@ export class PluginSystemNative {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
-                debugger;
                 const oldConfig = { ...plugin.config };
                 plugin.config = processConfigBeforeReceive(config);
-                plugin.onConfigChanged && plugin.onConfigChanged(plugin.config, oldConfig);
+                plugin.onConfigChanged && plugin.onConfigChanged(oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
             }
@@ -338,12 +387,16 @@ export class PluginSystemNative {
             return;
         }
 
+        let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.hooks[hookName].isAuthor(plugin) && plugin[hookName as keyof typeof plugin] !== undefined) {
+            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined) {
+                plugin.context = context;
                 //@ts-ignore
-                plugin[hookName].apply(plugin, args);
+                context = plugin[hookName].apply(plugin, args) ?? context;
+                delete plugin.context;
             }
         }
+        return context;
     }
 
     async callHookAsync(hookName: string, ...args: any[]) {
@@ -352,17 +405,15 @@ export class PluginSystemNative {
             return;
         }
 
-        if (this.hooks[hookName].args.length !== args.length) {
-            log.error(`@plugin-system-native: invalid arguments length`);
-            return;
-        }
-
+        let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.hooks[hookName].isAuthor(plugin) && plugin[hookName as keyof typeof plugin] !== undefined) {
+            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined) {
+                plugin.context = context;
                 //@ts-ignore
-                await plugin[hookName].apply(plugin, args);
+                context = await plugin[hookName].apply(plugin, args) ?? context;
+                delete plugin.context;
             }
         }
-
+        return context;
     }
 }

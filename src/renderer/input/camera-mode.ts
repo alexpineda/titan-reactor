@@ -1,8 +1,17 @@
 import { NativePlugin } from "../plugins/plugin-system-native";
-import { Vector2, Vector3 } from "three";
+import { PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
 import CameraControls from "camera-controls";
 import ProjectedCameraView from "renderer/camera/projected-camera-view";
 
+export interface PIP {
+    camera: PerspectiveCamera,
+    enabled: boolean,
+    viewport: Vector4,
+    margin: number,
+    height: number,
+    position?: Vector2
+    update: () => void
+}
 export interface CameraModePlugin extends NativePlugin {
     isActiveCameraMode: boolean;
     minimap?: boolean;

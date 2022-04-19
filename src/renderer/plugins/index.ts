@@ -14,6 +14,7 @@ import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
 import { Vector3 } from "three";
+import { HOOK_ON_GAME_DISPOSED } from "./hooks";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -45,7 +46,7 @@ ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
 
 
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
-    nativePluginSystem.onDisable(pluginId);
+    nativePluginSystem.onPluginDispose(pluginId);
     uiPluginSystem.refresh();
 });
 
@@ -80,7 +81,9 @@ export const onClick = (event: MouseEvent) => {
         payload: {
             x: event.clientX,
             y: event.clientY,
-            button: event.button
+            button: event.button,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
         }
     })
 }
@@ -124,7 +127,7 @@ export const installPluginLocal = async (repository: string) => {
  */
 export const onGameDisposed = () => {
     uiPluginSystem.reset();
-    nativePluginSystem.callHook("onGameDisposed");
+    nativePluginSystem.callHook(HOOK_ON_GAME_DISPOSED);
 }
 
 export const onBeforeRender = (delta: number, elapsed: number, target: Vector3, position: Vector3) => {

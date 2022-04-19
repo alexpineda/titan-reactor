@@ -2,6 +2,8 @@ import { MathUtils, Vector3 } from "three";
 import { CanvasTarget } from "../image";
 import Janitor from "../utils/janitor";
 import { Controls } from "../utils/camera-utils";
+import CameraControls from "camera-controls";
+import { PIP } from "./camera-mode";
 
 const LeftMouse = 0;
 const RightMouse = 2;
@@ -120,22 +122,22 @@ export class MinimapMouse extends EventTarget {
 
   }
 
-  update(controls: Controls) {
+  update(orbit: CameraControls, pip: PIP) {
     if (!this.enabled) return;
 
     if (this.#isDragStart) {
-      controls.orbit.moveTo(pos.x, 0, pos.z, false);
-      if (this.#isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
+      orbit.moveTo(pos.x, 0, pos.z, false);
+      if (this.#isPreviewing && orbit.getTarget(_target).setY(pip.camera.position.y).distanceTo(pip.camera.position) < Proximity) {
         this.#isPreviewing = false;
       }
     } else if (this.#isDragging) {
-      controls.orbit.moveTo(pos.x, 0, pos.z, true);
-      if (this.#isPreviewing && controls.orbit.getTarget(_target).setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) < Proximity) {
+      orbit.moveTo(pos.x, 0, pos.z, true);
+      if (this.#isPreviewing && orbit.getTarget(_target).setY(pip.camera.position.y).distanceTo(pip.camera.position) < Proximity) {
         this.#isPreviewing = false;
       }
     } else if (this.#isPreviewStart) {
       if (this.#isPreviewing) {
-        if (pos.setY(controls.PIP.camera.position.y).distanceTo(controls.PIP.camera.position) > Proximity) {
+        if (pos.setY(pip.camera.position.y).distanceTo(pip.camera.position) > Proximity) {
           this.#isPreviewing = false;
         }
       } else {
@@ -143,11 +145,11 @@ export class MinimapMouse extends EventTarget {
       }
       this.#isPreviewStart = false;
     } else if (this.#isPreviewing && this.#mouseDown) {
-      controls.PIP.camera.position.set(pos.x, controls.PIP.camera.position.y, pos.z);
-      controls.PIP.camera.lookAt(pos.x, 0, pos.z)
+      pip.camera.position.set(pos.x, pip.camera.position.y, pos.z);
+      pip.camera.lookAt(pos.x, 0, pos.z)
     }
 
-    controls.PIP.enabled = this.#isPreviewing;
+    pip.enabled = this.#isPreviewing;
     this.#isDragStart = false;
 
   }
