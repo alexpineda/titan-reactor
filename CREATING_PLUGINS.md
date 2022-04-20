@@ -109,9 +109,12 @@ Once we've got our basic `package.json` we can start with `index.jsx`:
 
 ```jsx
 import React from "react";
-import { registerComponent, useFrame } from "titan-reactor";
+import { registerComponent, usePluginConfig, useFrame } from "titan-reactor";
 
-const MyComponent = ({ config }) => {
+const MyComponent = () => {
+
+    // will update any time the user changes config
+    const config = usePluginConfig();
     // will update on every game second with latest frame data
     const frame = useFrame();
 
@@ -141,6 +144,9 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 
 `titan-reactor` exports several utility methods, components and hooks.
 
+**usePluginConfig()**
+- Get this plugins configuration values
+
 **useFrame()**
 
 - **frame**
@@ -167,6 +173,16 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 **usePlayer()**
 - Convenience function to retrieve a particular player from `replay.header.players`
 - provides function `getPlayer(playerId)`
+
+**useStyleSheet(content)**
+- Set a global stylesheet
+
+**useMessage()**
+- Recieve messages from your plugin.js
+
+**useSendMessage()**
+- Send messages to your plugin.js
+- provides function `sendMessage(content)`
 
 **RollingResource**
 - A component that rolls to a number in an animated fashion
@@ -384,19 +400,19 @@ You can send messages back and forth to your react components.
 
 In your `index.jsx`:
 ```jsx
-import React, { useState } from "react";
+import React, { useState, useMessage, useSendMessage } from "react";
 
 // useMessage is a hook passed in as a prop for your component
-const MyComponent = ({ config, useMessage, sendMessage }) => {
+const MyComponent = ({ config }) => {
 
-  const [message, setMessage] = useState("");
+  const sendMessage = useSendMessage();
 
   // any messages sent from plugin.js are received here
   useMessage(incomingMessage => {
-    setMessage(incomingMessage);
+    console.log(incomingMessage);
   });
 
-  return <p onClick={() => sendMessage("click!")}>{message}</p>
+  return <p onClick={() => sendMessage("Hi!")}>Say Hi</p>
 });
 
 ```
@@ -407,7 +423,7 @@ In your `plugin.js`:
 
 return {
   onGameReady() {
-    this.sendUIMessage("hi!");
+    this.sendUIMessage("Word.");
   },
 
   // you may respond to ui sent messages here

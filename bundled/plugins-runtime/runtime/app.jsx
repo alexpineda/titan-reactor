@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useStore, usePluginConfig } from "titan-reactor";
+import { useStore, PluginContext } from "titan-reactor";
 const _screenSelector = (store) => store.screen;
 
 const _style_ErrorCenterText = {
@@ -30,16 +30,10 @@ const GlobalErrorState = ({ error }) => {
   );
 };
 
-const Component = ({ component, JSXElement, useMessage, sendMessage }) => {
-  const config = usePluginConfig(component.pluginId);
-
+const Component = ({ component, JSXElement }) => {
   return (
     <ErrorBoundary key={component.id}>
-      <JSXElement
-        config={config}
-        useMessage={useMessage}
-        sendMessage={sendMessage}
-      />
+      <JSXElement />
     </ErrorBoundary>
   );
 };
@@ -104,50 +98,52 @@ export default ({ components }) => {
       )}
       {error && <GlobalErrorState error={error} />}
       {appLoaded && screen === "@home/ready" && !error && (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: `translate(-50%, -50%)`,
-          }}
-        >
-          <h1
+        <>
+          <div
             style={{
-              fontFamily: "Conthrax",
-              color: "var(--orange-5)",
-              animation:
-                "var(--animation-slide-in-down) forwards, var(--animation-fade-in)",
-              animationDuration: "5s",
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: `translate(-50%, -50%)`,
             }}
           >
-            Titan Reactor
-          </h1>
-          <p
-            style={{
-              marginTop: "var(--size-2)",
-              textAlign: "center",
-              color: "var(--gray-4)",
-            }}
-          >
-            Menu: ALT, Fullscreen: F11, Plugins: F10
-          </p>
-          {updateAvailable && (
-            <div
+            <h1
               style={{
-                color: "var(--green-5)",
-                textAlign: "center",
-                textDecoration: "underline",
-                cursor: "pointer",
+                fontFamily: "Conthrax",
+                color: "var(--orange-5)",
+                animation:
+                  "var(--animation-slide-in-down) forwards, var(--animation-fade-in)",
+                animationDuration: "5s",
               }}
-              onClick={() =>
-                window.parent.postMessage("system:download-update", "*")
-              }
             >
-              Download New Version {updateAvailable.version} Now!
-            </div>
-          )}
-        </div>
+              Titan Reactor
+            </h1>
+            <p
+              style={{
+                marginTop: "var(--size-2)",
+                textAlign: "center",
+                color: "var(--gray-4)",
+              }}
+            >
+              Menu: ALT, Fullscreen: F11, Plugins: F10
+            </p>
+            {updateAvailable && (
+              <div
+                style={{
+                  color: "var(--green-5)",
+                  textAlign: "center",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  window.parent.postMessage("system:download-update", "*")
+                }
+              >
+                Download New Version {updateAvailable.version} Now!
+              </div>
+            )}
+          </div>
+        </>
       )}
       <div
         id="top-container"
@@ -169,14 +165,14 @@ export default ({ components }) => {
             components["top-left"]
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  useMessage={useMessage}
-                  sendMessage={sendMessage}
-                />
+              .map(({ JSXElement, component }) => (
+                <PluginContext.Provider value={component}>
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                  />
+                </PluginContext.Provider>
               ))}
         </div>
         <div
@@ -190,14 +186,14 @@ export default ({ components }) => {
             components["top"]
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  useMessage={useMessage}
-                  sendMessage={sendMessage}
-                />
+              .map(({ JSXElement, component }) => (
+                <PluginContext.Provider value={component}>
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                  />
+                </PluginContext.Provider>
               ))}
         </div>
         <div
@@ -211,14 +207,14 @@ export default ({ components }) => {
             components["top-right"]
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  useMessage={useMessage}
-                  sendMessage={sendMessage}
-                />
+              .map(({ JSXElement, component }) => (
+                <PluginContext.Provider value={component}>
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                  />
+                </PluginContext.Provider>
               ))}
         </div>
       </div>
@@ -243,14 +239,14 @@ export default ({ components }) => {
             components["left"]
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  useMessage={useMessage}
-                  sendMessage={sendMessage}
-                />
+              .map(({ JSXElement, component }) => (
+                <PluginContext.Provider value={component}>
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                  />
+                </PluginContext.Provider>
               ))}
         </div>
         <div
@@ -274,14 +270,14 @@ export default ({ components }) => {
               components["center"]
                 .filter(screenFilter)
                 .sort(orderSort)
-                .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                    useMessage={useMessage}
-                    sendMessage={sendMessage}
-                  />
+                .map(({ JSXElement, component }) => (
+                  <PluginContext.Provider value={component}>
+                    <Component
+                      key={component.id}
+                      component={component}
+                      JSXElement={JSXElement}
+                    />
+                  </PluginContext.Provider>
                 ))}
           </div>
           <div
@@ -296,14 +292,14 @@ export default ({ components }) => {
               components["bottom"]
                 .filter(screenFilter)
                 .sort(orderSort)
-                .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                    useMessage={useMessage}
-                    sendMessage={sendMessage}
-                  />
+                .map(({ JSXElement, component }) => (
+                  <PluginContext.Provider value={component}>
+                    <Component
+                      key={component.id}
+                      component={component}
+                      JSXElement={JSXElement}
+                    />
+                  </PluginContext.Provider>
                 ))}
           </div>
         </div>
@@ -315,14 +311,14 @@ export default ({ components }) => {
             components["right"]
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  useMessage={useMessage}
-                  sendMessage={sendMessage}
-                />
+              .map(({ JSXElement, component }) => (
+                <PluginContext.Provider value={component}>
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                  />
+                </PluginContext.Provider>
               ))}
         </div>
       </div>
@@ -331,14 +327,14 @@ export default ({ components }) => {
         components["loose"]
           .filter(screenFilter)
           .sort(orderSort)
-          .map(({ JSXElement, component, useMessage, sendMessage }) => (
-            <Component
-              key={component.id}
-              component={component}
-              JSXElement={JSXElement}
-              useMessage={useMessage}
-              sendMessage={sendMessage}
-            />
+          .map(({ JSXElement, component }) => (
+            <PluginContext.Provider value={component}>
+              <Component
+                key={component.id}
+                component={component}
+                JSXElement={JSXElement}
+              />
+            </PluginContext.Provider>
           ))}
     </div>
   );

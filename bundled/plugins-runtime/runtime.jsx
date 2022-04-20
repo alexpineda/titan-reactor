@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useContext } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
 import App from "./runtime/app.jsx";
@@ -47,21 +47,22 @@ export const useSelectedUnits = () => {
 
 // plugin specific configuration
 const useConfig = create(() => ({}));
-export const usePluginConfig = (pluginId) =>
-  useConfig((store) => store[pluginId]);
 
 const useComponents = create(() => ({}));
 
 const setPluginStyleSheet = (id, content) => {
-  let style;
-
-  style = document.getElementById(id);
+  let style = document.getElementById(id);
   if (!style) {
     style = document.createElement("style");
     style.id = id;
     document.head.appendChild(style);
   }
   style.textContent = content;
+};
+
+const removePluginStylesheet = (id) => {
+  const style = document.getElementById(id);
+  style && document.head.removeChild(style);
 };
 
 const _plugins = {};
@@ -300,6 +301,52 @@ const _messageListener = function (event) {
 };
 window.addEventListener("message", _messageListener);
 
+export const PluginContext = React.createContext();
+
+export const useMessage = (cb, deps = []) => {
+  const { messageHandler } = useContext(PluginContext);
+
+  useEffect(() => {
+    const handler = ({ detail }) => {
+      typeof cb === "function" && cb(detail);
+    };
+    messageHandler.addEventListener("message", handler);
+    return () => messageHandler.removeEventListener("message", handler);
+  }, deps);
+};
+
+export const useSendMessage = () => {
+  const { pluginId } = useContext(PluginContext);
+
+  return (message) =>
+    window.parent.postMessage(
+      {
+        type: "system:custom-message",
+        payload: {
+          pluginId,
+          message,
+        },
+      },
+      "*"
+    );
+};
+
+export const usePluginConfig = () => {
+  const { pluginId } = useContext(PluginContext);
+  return useConfig((store) => store[pluginId]);
+};
+
+export const useStyleSheet = (content, deps = []) => {
+  const { pluginId } = useContext(PluginContext);
+  useEffect(() => {
+    setPluginStyleSheet(pluginId, content);
+  }, [content, ...deps]);
+
+  useEffect(() => {
+    return () => removePluginStylesheet(pluginId);
+  }, []);
+};
+
 let _channelIds = 0;
 export const registerComponent = (component, JSXElement) => {
   const plugin = _plugins[component.pluginId];
@@ -310,38 +357,10 @@ export const registerComponent = (component, JSXElement) => {
 
   component.id = `${component.pluginId}_${++_channelIds}`;
   component.order = component.order ?? 0;
-
-  // native to react communication channel
-  const useMessage = (cb, deps = []) => {
-    useEffect(() => {
-      const handler = ({ detail }) => {
-        typeof cb === "function" && cb(detail);
-      };
-      plugin.messageHandler.addEventListener("message", handler);
-      return () =>
-        plugin.messageHandler.removeEventListener("message", handler);
-    }, deps);
-  };
-
-  const sendMessage = (message) => {
-    window.parent.postMessage(
-      {
-        type: "system:custom-message",
-        payload: {
-          pluginId: component.pluginId,
-          message,
-        },
-      },
-      "*"
-    );
-  };
-
-  const setStyleSheet = (content) => {
-    setPluginStyleSheet(component.pluginId, content);
-  };
+  component.messageHandler = plugin.messageHandler;
 
   const pos = component.snap || "loose";
-  const val = { component, JSXElement, useMessage, sendMessage, setStyleSheet };
+  const val = { component, JSXElement };
 
   const _components = useComponents.getState();
   if (!_components[pos]) {

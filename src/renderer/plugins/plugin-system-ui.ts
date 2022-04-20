@@ -102,6 +102,16 @@ export class PluginSystemUI {
         })
 
         this.#_iframe.onload = async () => {
+            // for plugin dev reload only
+            {
+                const screenState = useScreenStore.getState();
+                if (screenState.type === ScreenType.Home || screenState.error) {
+                    this.#_iframe.style.pointerEvents = "auto";
+                } else {
+                    this.#_iframe.style.pointerEvents = "none";
+                }
+            }
+
             this.#_iframe.contentWindow?.postMessage({
                 type: SYSTEM_EVENT_READY,
                 payload: {
