@@ -44,6 +44,13 @@ const worldPartial = (world: WorldStore) => {
     }
 }
 
+const unitsPartial = (units: Unit[]) => {
+    if (units.length === 1) {
+        return units.map(unitWithDump);
+    } else {
+        return units.map(unitPartial);
+    }
+}
 const unitPartial = (unit: Unit) => {
     return {
         ...unit,
@@ -151,7 +158,7 @@ export class PluginSystemUI {
         this.#_janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
             this.sendMessage({
                 type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-                payload: selectedUnits.map(unitPartial)
+                payload: unitsPartial(selectedUnits)
             });
         }));
 
@@ -209,7 +216,7 @@ export class PluginSystemUI {
             if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
                 this.sendMessage({
                     type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-                    payload: units.length === 1 ? units.map(unitWithDump) : units.map(unitPartial)
+                    payload: unitsPartial(units)
                 });
                 _lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] = units.length;
             }

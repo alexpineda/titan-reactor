@@ -1704,7 +1704,18 @@ async function TitanReactorGame(
       getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
       replay: { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] },
       getFPS: () => fps.fps,
-      calculateFollowedUnitsTarget
+      calculateFollowedUnitsTarget,
+      selectUnits: (ids: number[]) => {
+        const selection = [];
+        for (const id of ids) {
+          const unit = units.get(id);
+          if (unit) {
+            selection.push(unit);
+          }
+        }
+        selectedUnitsStore().setSelectedUnits(selection);
+      },
+      getSelectedUnits: () => selectedUnitsStore().selectedUnits,
     };
 
     pluginsApiJanitor.callback(plugins.injectApi(api));
