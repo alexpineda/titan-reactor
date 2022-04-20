@@ -4,12 +4,15 @@ import settingsStore from "@stores/settings-store";
 
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED } from "./events";
+import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_EVENT_UPDATE_AVAILABLE } from "./events";
 import waitForAssets from "../bootup/wait-for-assets";
 import { GameStatePosition, Unit } from "@core";
 import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
+import { downloadUpdate } from "@ipc";
+import packageJson from "../../../package.json"
+import semver from "semver";
 
 const screenChanged = (screen: ScreenStore) => {
     return {
@@ -87,7 +90,6 @@ export class PluginSystemUI {
         this.#_iframe.style.height = "100%";
         this.#_iframe.style.position = "absolute";
         this.#_iframe.style.zIndex = "10";
-        this.#_iframe.style.pointerEvents = "none";
         this.#_iframe.style.userSelect = "none";
         this.#_iframe.sandbox.add("allow-scripts");
         this.#_iframe.sandbox.add("allow-downloads");
@@ -106,7 +108,35 @@ export class PluginSystemUI {
                     plugins: pluginPackages,
                     initialStore: initialStore()
                 }
-            }, "*")
+            }, "*");
+
+            const releases = await fetch(
+                "https://api.github.com/repos/imbateam-gg/titan-reactor/releases"
+            )
+                .then((res) => res.json());
+
+            if (releases.length) {
+                const latestRelease = releases[0];
+                if (semver.gt(latestRelease.name.substring(1), packageJson.version)) {
+                    this.sendMessage({
+                        type: SYSTEM_EVENT_UPDATE_AVAILABLE,
+                        payload: {
+                            version: latestRelease.name,
+                            url: latestRelease.html_url,
+                        },
+                    });
+                }
+
+                const _onDownloadUpdate = (event: MessageEvent) => {
+                    if (event.data === "system:download-update") {
+                        downloadUpdate(latestRelease.html_url)
+                    }
+                };
+                window.addEventListener("message", _onDownloadUpdate);
+                this.#_janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
+            }
+
+
 
 
             const assets = await waitForAssets();
@@ -145,6 +175,12 @@ export class PluginSystemUI {
         }));
 
         this.#_janitor.callback(useScreenStore.subscribe((screen) => {
+            if (screen.type === ScreenType.Home || screen.error) {
+                this.#_iframe.style.pointerEvents = "auto";
+            } else {
+                this.#_iframe.style.pointerEvents = "none";
+            }
+
             this.sendMessage(screenChanged(screen));
         }));
 

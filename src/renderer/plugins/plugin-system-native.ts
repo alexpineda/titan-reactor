@@ -198,7 +198,7 @@ export class PluginSystemNative {
             }, {});
             pluginRaw.$$permissions = Object.freeze(permissions);
 
-            const nonEditableKeys = ["id", "name", "$$config", "$$permissions"];
+            const nonEditableKeys = ["id", "name", "$$permissions"];
 
             const pluginPropertyConfig: Record<string, {}> = {};
             for (const key in pluginRaw) {

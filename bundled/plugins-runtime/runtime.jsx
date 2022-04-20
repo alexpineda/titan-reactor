@@ -281,6 +281,8 @@ const _messageListener = function (event) {
         .click();
     } else if (event.data.type === "system:first-install") {
       useStore.setState({ firstInstall: true });
+    } else if (event.data.type === "system:update-available") {
+      useStore.setState({ updateAvailable: event.data.payload });
     } else if (event.data.type === "system:custom-message") {
       const { message, pluginId } = event.data.payload;
       const plugin = _plugins[pluginId];

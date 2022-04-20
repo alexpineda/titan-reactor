@@ -1,11 +1,12 @@
 import { ipcRenderer } from "electron";
 
 import {
+  DOWNLOAD_UPDATE,
   OPEN_DEMO_REPLAY,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   SELECT_FOLDER,
-} from "../../common/ipc-handle-names";
+} from "common/ipc-handle-names";
 
 export const selectFolder = async (key: string) => {
   return await ipcRenderer.send(SELECT_FOLDER, key);
@@ -21,4 +22,8 @@ export const openMapDialog = async (filepath: string) => {
 
 export const openDemoReplay = async () => {
   ipcRenderer.send(OPEN_DEMO_REPLAY);
+};
+
+export const downloadUpdate = async (url: string) => {
+  ipcRenderer.send(DOWNLOAD_UPDATE, url);
 };

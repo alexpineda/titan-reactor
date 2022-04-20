@@ -45,10 +45,12 @@ const Component = ({ component, JSXElement, useMessage, sendMessage }) => {
 };
 
 const _firstInstall = (store) => store.firstInstall;
+const _updateAvailable = (store) => store.updateAvailable;
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
   const firstInstall = useStore(_firstInstall);
+  const updateAvailable = useStore(_updateAvailable);
 
   useEffect(() => {
     if (!appLoaded && screen !== "@home/loading") {
@@ -101,6 +103,52 @@ export default ({ components }) => {
         </div>
       )}
       {error && <GlobalErrorState error={error} />}
+      {appLoaded && screen === "@home/ready" && !error && (
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: `translate(-50%, -50%)`,
+          }}
+        >
+          <h1
+            style={{
+              fontFamily: "Conthrax",
+              color: "var(--orange-5)",
+              animation:
+                "var(--animation-slide-in-down) forwards, var(--animation-fade-in)",
+              animationDuration: "5s",
+            }}
+          >
+            Titan Reactor
+          </h1>
+          <p
+            style={{
+              marginTop: "var(--size-2)",
+              textAlign: "center",
+              color: "var(--gray-4)",
+            }}
+          >
+            Menu: ALT, Fullscreen: F11, Plugins: F10
+          </p>
+          {updateAvailable && (
+            <div
+              style={{
+                color: "var(--green-5)",
+                textAlign: "center",
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+              onClick={() =>
+                window.parent.postMessage("system:download-update", "*")
+              }
+            >
+              Download New Version {updateAvailable.version} Now!
+            </div>
+          )}
+        </div>
+      )}
       <div
         id="top-container"
         style={{
@@ -205,10 +253,14 @@ export default ({ components }) => {
                 />
               ))}
         </div>
-        <div id="center_container" style={{
-          display: "flex",
-          flexDirection: "column",
-        }}>
+        <div
+          id="center_container"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+          }}
+        >
           <div
             id="center"
             style={{
@@ -234,7 +286,11 @@ export default ({ components }) => {
           </div>
           <div
             id="bottom"
-            style={{ display: "flex", flexGrow: 1, marginLeft: "var(--minimap-width)" }}
+            style={{
+              display: "flex",
+              flexGrow: 1,
+              marginLeft: "var(--minimap-width)",
+            }}
           >
             {components["bottom"] &&
               components["bottom"]

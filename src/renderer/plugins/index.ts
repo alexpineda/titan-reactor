@@ -1,15 +1,22 @@
-
-
 import { ipcRenderer } from "electron";
 
 import { InitializedPluginPackage } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
-import { GameStatePosition, Unit } from "@core";
 import {
-    installPlugin
-} from "@ipc/plugins";
+    ON_PLUGIN_CONFIG_UPDATED,
+    ON_PLUGINS_ENABLED,
+    DISABLE_PLUGIN,
+    ON_PLUGINS_INITIAL_INSTALL_ERROR,
+    ON_PLUGINS_INITIAL_INSTALL,
+} from "common/ipc-handle-names";
+import { GameStatePosition, Unit } from "@core";
+import { installPlugin } from "@ipc/plugins";
 
-import { SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED, SYSTEM_EVENT_MOUSE_CLICK, SYSTEM_EVENT_FIRST_INSTALL } from "./events";
+import {
+    SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
+    SYSTEM_EVENT_MOUSE_CLICK,
+    SYSTEM_EVENT_FIRST_INSTALL,
+    SYSTEM_EVENT_CUSTOM_MESSAGE,
+} from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
@@ -27,15 +34,15 @@ ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
         type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
         payload: {
             pluginId,
-            config
-        }
-    })
+            config,
+        },
+    });
     nativePluginSystem.onConfigChanged(pluginId, config);
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
     uiPluginSystem.sendMessage({
-        type: SYSTEM_EVENT_FIRST_INSTALL
+        type: SYSTEM_EVENT_FIRST_INSTALL,
     });
 });
 
@@ -44,25 +51,28 @@ ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
     nativePluginSystem.enableAdditionalPlugins(plugins);
 });
 
-
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
     nativePluginSystem.onPluginDispose(pluginId);
     uiPluginSystem.refresh();
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
-    useScreenStore.setState({ error: new Error(`Error installing default plugins`) });
+    useScreenStore.setState({
+        error: new Error(`Error installing default plugins`),
+    });
 });
 
 const _messageListener = function (event: MessageEvent) {
-    if (event.data.type === "system:custom-message") {
+    if (event.data.type === SYSTEM_EVENT_CUSTOM_MESSAGE) {
         const { pluginId, message } = event.data.payload;
         nativePluginSystem.onUIMessage(pluginId, message);
     }
-}
+};
 window.addEventListener("message", _messageListener);
 
-export const initializePluginSystem = async (pluginPackages: InitializedPluginPackage[]) => {
+export const initializePluginSystem = async (
+    pluginPackages: InitializedPluginPackage[]
+) => {
     if (uiPluginSystem) {
         uiPluginSystem.dispose();
     }
@@ -73,7 +83,8 @@ export const initializePluginSystem = async (pluginPackages: InitializedPluginPa
 
     uiPluginSystem = new PluginSystemUI(pluginPackages);
     nativePluginSystem = new PluginSystemNative(pluginPackages, uiPluginSystem);
-}
+
+};
 
 export const onClick = (event: MouseEvent) => {
     uiPluginSystem.sendMessage({
@@ -84,34 +95,50 @@ export const onClick = (event: MouseEvent) => {
             button: event.button,
             shiftKey: event.shiftKey,
             ctrlKey: event.ctrlKey,
-        }
-    })
-}
+        },
+    });
+};
 
-export const onFrame = (gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number, commands: any[], followedUnits: Unit[]) => {
+export const onFrame = (
+    gameStatePosition: GameStatePosition,
+    playerDataAddr: number,
+    productionDataAddr: number,
+    commands: any[],
+    followedUnits: Unit[]
+) => {
     uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
-    nativePluginSystem.onFrame(gameStatePosition.bwGameFrame, followedUnits, commands);
-}
+    nativePluginSystem.onFrame(
+        gameStatePosition.bwGameFrame,
+        followedUnits,
+        commands
+    );
+};
 
 export const getDefaultCameraModePlugin = () => {
     return nativePluginSystem.getDefaultCameraModePlugin();
-}
+};
 
 export const getCameraModePlugins = () => {
     return nativePluginSystem.getCameraModePlugins();
-}
+};
 
-export const callHook = (...args: Parameters<PluginSystemNative["callHook"]>) => {
+export const callHook = (
+    ...args: Parameters<PluginSystemNative["callHook"]>
+) => {
     nativePluginSystem.callHook(...args);
-}
+};
 
-export const callHookAsync = async (...args: Parameters<PluginSystemNative["callHookAsync"]>) => {
+export const callHookAsync = async (
+    ...args: Parameters<PluginSystemNative["callHookAsync"]>
+) => {
     await nativePluginSystem.callHookAsync(...args);
-}
+};
 
-export const injectApi = (...args: Parameters<PluginSystemNative["injectApi"]>) => {
+export const injectApi = (
+    ...args: Parameters<PluginSystemNative["injectApi"]>
+) => {
     return nativePluginSystem.injectApi(...args);
-}
+};
 
 export const installPluginLocal = async (repository: string) => {
     const pluginPackage = await installPlugin(repository);
@@ -120,7 +147,7 @@ export const installPluginLocal = async (repository: string) => {
     } else {
         return null;
     }
-}
+};
 
 /**
  * We don't use the generic callHook here in order to reduce object allocation
@@ -128,13 +155,17 @@ export const installPluginLocal = async (repository: string) => {
 export const onGameDisposed = () => {
     uiPluginSystem.reset();
     nativePluginSystem.callHook(HOOK_ON_GAME_DISPOSED);
-}
+};
 
-export const onBeforeRender = (delta: number, elapsed: number, target: Vector3, position: Vector3) => {
+export const onBeforeRender = (
+    delta: number,
+    elapsed: number,
+    target: Vector3,
+    position: Vector3
+) => {
     nativePluginSystem.onBeforeRender(delta, elapsed, target, position);
-}
+};
 
 export const onRender = (delta: number, elapsed: number) => {
     nativePluginSystem.onRender(delta, elapsed);
-}
-
+};

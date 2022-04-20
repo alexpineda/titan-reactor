@@ -1,6 +1,7 @@
-import { ipcMain } from "electron";
+import { ipcMain, shell } from "electron";
 
 import {
+  DOWNLOAD_UPDATE,
   OPEN_DEMO_REPLAY,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
@@ -40,3 +41,9 @@ ipcMain.on(SELECT_FOLDER, async (event, key) =>
     event.sender.send(SELECT_FOLDER, { key, filePaths })
   )
 );
+
+ipcMain.on(DOWNLOAD_UPDATE, async (_, url: string) => {
+  if (url.startsWith("https://github.com/imbateam-gg/titan-reactor/releases")) {
+    shell.openExternal(url, { activate: true })
+  }
+});
