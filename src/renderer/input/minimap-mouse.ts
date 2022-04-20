@@ -1,7 +1,6 @@
 import { MathUtils, Vector3 } from "three";
 import { CanvasTarget } from "../image";
 import Janitor from "../utils/janitor";
-import { Controls } from "../utils/camera-utils";
 import CameraControls from "camera-controls";
 import { PIP } from "./camera-mode";
 
@@ -96,7 +95,7 @@ export class MinimapMouse extends EventTarget {
     this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mousedown", onMouseDown));
 
 
-    const onMouseUp = (e: MouseEvent) => {
+    const onMouseUp = () => {
       if (!this.enabled) return;
 
       this.#mouseDown = false;

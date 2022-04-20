@@ -477,7 +477,7 @@ async function TitanReactorGame(
     }
 
     const _selectDown = (event: PointerEvent) => {
-      if (!controls.cameraMode.unitSelection) return;
+      if (!controls.cameraMode.unitSelection || event.button !== 0) return;
       minimapSurface.canvas.style.pointerEvents = "none";
       mouseIsDown = true;
       selectionBox.startPoint.set(
@@ -540,6 +540,8 @@ async function TitanReactorGame(
     };
 
     const _selectUp = (event: PointerEvent) => {
+      if (!mouseIsDown) return;
+
       minimapSurface.canvas.style.pointerEvents = "auto";
       mouseIsDown = false;
       visualBox.clear();
@@ -1332,8 +1334,8 @@ async function TitanReactorGame(
   const _ignoreSprites: number[] = [];
 
   const buildSprites = (delta: number) => {
-    const deleteImageCount = openBw.wasm!._counts(0, 15);
-    const deletedSpriteCount = openBw.wasm!._counts(0, 16);
+    const deleteImageCount = openBw.wasm!._counts(15);
+    const deletedSpriteCount = openBw.wasm!._counts(16);
     const deletedImageAddr = openBw.wasm!._get_buffer(3);
     const deletedSpriteAddr = openBw.wasm!._get_buffer(4);
 

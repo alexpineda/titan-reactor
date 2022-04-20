@@ -11,7 +11,6 @@ import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 
-
 const screenChanged = (screen: ScreenStore) => {
     return {
         type: UI_PLUGIN_EVENT_SCREEN_CHANGED,
@@ -56,6 +55,13 @@ const unitPartial = (unit: Unit) => {
                 ...unit.extras.dat.copyFlags()
             }
         }
+    }
+}
+
+const unitWithDump = (unit: Unit) => {
+    return {
+        ...unitPartial(unit),
+        ...openBw.wasm!.get_util_funcs().dump_unit(unit.id)
     }
 }
 
@@ -203,7 +209,7 @@ export class PluginSystemUI {
             if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
                 this.sendMessage({
                     type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-                    payload: units.map(unitPartial)
+                    payload: units.length === 1 ? units.map(unitWithDump) : units.map(unitPartial)
                 });
                 _lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] = units.length;
             }

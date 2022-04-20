@@ -34,16 +34,16 @@ const openBw: OpenBWAPI = {
     const _nextFrame = () => _wasm._next_frame();
 
     openBw.call = {
-      getFowSize: () => _wasm._counts(0, 10),
+      getFowSize: () => _wasm._counts(10),
       getFowPtr: (visibility: number, instant: boolean) => _wasm._get_fow_ptr(visibility, instant),
       getTilesPtr: () => _wasm._get_buffer(0),
-      getTilesSize: () => _wasm._counts(0, 0),
+      getTilesSize: () => _wasm._counts(0),
       getSoundObjects: () => _wasm.get_util_funcs().get_sounds(),
-      getSpritesOnTileLineSize: () => _wasm._counts(0, 14),
+      getSpritesOnTileLineSize: () => _wasm._counts(14),
       getSpritesOnTileLineAddress: () => _wasm._get_buffer(1),
       getUnitsAddr: () => _wasm._get_buffer(2),
       getBulletsAddress: () => _wasm._get_buffer(6),
-      getBulletsDeletedCount: () => _wasm._counts(0, 18),
+      getBulletsDeletedCount: () => _wasm._counts(18),
       getBulletsDeletedAddress: () => _wasm._get_buffer(7),
       nextFrame: () => tryCatch(_nextFrame),
       setGameSpeed: (speed: number) => _wasm._replay_set_value(0, speed),

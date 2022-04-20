@@ -54,9 +54,12 @@ export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
   }
 }
 
-export const unitRemainingTrainTime = (u: UnitsBufferView, bwDat: BwDAT) => {
-  if (u.currentBuildUnit)
-  {
-    return ((u.currentBuildUnit.remainingBuildTime / bwDat.units[u.typeId].buildTime) * 255);
-  }
-}
+// export const unitRemainingTrainTime = (u: UnitsBufferView) => {
+//   const bwDat = gameStore().assets?.bwDat;
+
+//   if (u.currentBuildUnit && bwDat)
+//   {
+//     return ((u.currentBuildUnit.remainingBuildTime / bwDat.units[u.typeId].buildTime) * 255);
+//   }
+//   return null;
+// }
