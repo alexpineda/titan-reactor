@@ -188,6 +188,7 @@ export default ({ components }) => {
           style={{
             display: "flex",
             flexDirection: "column-reverse",
+            marginBottom: "var(--minimap-height)",
           }}
         >
           {components["left"] &&
@@ -204,28 +205,51 @@ export default ({ components }) => {
                 />
               ))}
         </div>
-        <div
-          id="center"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexGrow: 1,
-          }}
-        >
-          {components["center"] &&
-            components["center"]
-              .filter(screenFilter)
-              .sort(orderSort)
-              .map(({ JSXElement, component, useMessage, sendMessage }) => (
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  useMessage={useMessage}
-                  sendMessage={sendMessage}
-                />
-              ))}
+        <div id="center_container" style={{
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          <div
+            id="center"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexGrow: 1,
+            }}
+          >
+            {components["center"] &&
+              components["center"]
+                .filter(screenFilter)
+                .sort(orderSort)
+                .map(({ JSXElement, component, useMessage, sendMessage }) => (
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                    useMessage={useMessage}
+                    sendMessage={sendMessage}
+                  />
+                ))}
+          </div>
+          <div
+            id="bottom"
+            style={{ display: "flex", flexGrow: 1, marginLeft: "var(--minimap-width)" }}
+          >
+            {components["bottom"] &&
+              components["bottom"]
+                .filter(screenFilter)
+                .sort(orderSort)
+                .map(({ JSXElement, component, useMessage, sendMessage }) => (
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                    useMessage={useMessage}
+                    sendMessage={sendMessage}
+                  />
+                ))}
+          </div>
         </div>
         <div
           id="right"
@@ -246,24 +270,7 @@ export default ({ components }) => {
               ))}
         </div>
       </div>
-      <div
-        id="bottom"
-        style={{ height: "var(--minimap-height)", display: "flex" }}
-      >
-        {components["bottom"] &&
-          components["bottom"]
-            .filter(screenFilter)
-            .sort(orderSort)
-            .map(({ JSXElement, component, useMessage, sendMessage }) => (
-              <Component
-                key={component.id}
-                component={component}
-                JSXElement={JSXElement}
-                useMessage={useMessage}
-                sendMessage={sendMessage}
-              />
-            ))}
-      </div>
+
       {components["loose"] &&
         components["loose"]
           .filter(screenFilter)
