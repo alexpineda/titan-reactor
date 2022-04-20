@@ -142,8 +142,6 @@ async function TitanReactorGame(
   const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
-
-
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getRect());
@@ -202,7 +200,7 @@ async function TitanReactorGame(
 
   let followedTarget = new Vector3();
   const setFollowedUnits = (units: Unit[]) => {
-    followedUnits = units;
+    followedUnits = [...units];
     plugins.callHook(HOOK_ON_UNITS_FOLLOWED, units);
   }
 
@@ -572,6 +570,14 @@ async function TitanReactorGame(
           }
         }
 
+        if (event.shiftKey) {
+          for (const unit of selectedUnitsStore().selectedUnits) {
+            if (!selectedUnits.includes(unit)) {
+              selectedUnits.push(unit);
+            }
+          }
+        }
+        
         const onlyUnits = selectedUnits.filter(_hasAnyUnit);
         if (onlyUnits.length > 0 && onlyUnits.length !== selectedUnits.length) {
           selectedUnits = onlyUnits;
@@ -595,12 +601,7 @@ async function TitanReactorGame(
       }
 
       selectedUnits.sort(typeIdSort).splice(12);
-
-      if (event.shiftKey) {
-        selectedUnitsStore().appendSelectedUnits(selectedUnits);
-      } else {
-        selectedUnitsStore().setSelectedUnits(selectedUnits);
-      }
+      selectedUnitsStore().setSelectedUnits(selectedUnits);
 
     }
     gameSurface.canvas.addEventListener('pointerup', _selectUp);
@@ -866,7 +867,7 @@ async function TitanReactorGame(
     units: Map<number, Unit>,
     unitsBySprite: Map<number, Unit>
   ) => {
-    const deletedUnitCount = openBw.wasm!._counts(0, 17);
+    const deletedUnitCount = openBw.wasm!._counts(17);
     const deletedUnitAddr = openBw.wasm!._get_buffer(5);
 
     for (let i = 0; i < deletedUnitCount; i++) {
