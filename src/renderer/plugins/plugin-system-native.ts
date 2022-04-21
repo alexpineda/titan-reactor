@@ -14,7 +14,6 @@ import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS_WRITE } from "./permissions";
 import settingsStore from "@stores/settings-store";
 import throttle from "lodash.throttle";
-import { Unit } from "@core";
 import Janitor from "@utils/janitor";
 
 const STDLIB = {
@@ -66,7 +65,7 @@ export interface NativePlugin extends PluginPrototype {
     /**
      * Called on a game frame
      */
-    onFrame?: (frame: number, followedUnits: Unit[], commands?: any[]) => void;
+    onFrame?: (frame: number, commands?: any[]) => void;
     config: {
         cameraModeKey?: string
     };
@@ -353,13 +352,13 @@ export class PluginSystemNative {
         }
     }
 
-    onFrame(frame: number, followedUnits: Unit[], commands: any[]) {
+    onFrame(frame: number, commands: any[]) {
         for (const plugin of this.#nativePlugins) {
             if (plugin.onFrame) {
                 if (plugin.$$permissions[PERMISSION_REPLAY_COMMANDS]) {
-                    plugin.onFrame(frame, followedUnits, commands);
+                    plugin.onFrame(frame, commands);
                 } else {
-                    plugin.onFrame(frame, followedUnits)
+                    plugin.onFrame(frame)
                 }
             }
         }

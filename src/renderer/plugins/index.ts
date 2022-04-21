@@ -8,7 +8,7 @@ import {
     ON_PLUGINS_INITIAL_INSTALL_ERROR,
     ON_PLUGINS_INITIAL_INSTALL,
 } from "common/ipc-handle-names";
-import { GameStatePosition, Unit } from "@core";
+import { GameStatePosition } from "@core";
 import { installPlugin } from "@ipc/plugins";
 
 import {
@@ -103,13 +103,11 @@ export const onFrame = (
     gameStatePosition: GameStatePosition,
     playerDataAddr: number,
     productionDataAddr: number,
-    commands: any[],
-    followedUnits: Unit[]
+    commands: any[]
 ) => {
     uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
     nativePluginSystem.onFrame(
         gameStatePosition.bwGameFrame,
-        followedUnits,
         commands
     );
 };

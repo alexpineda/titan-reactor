@@ -1508,7 +1508,7 @@ async function TitanReactorGame(
       }
 
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
-      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame, followedUnits);
+      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
 
       currentBwFrame = null;
     }
@@ -1708,6 +1708,7 @@ async function TitanReactorGame(
       getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
       replay: { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] },
       getFPS: () => fps.fps,
+      getFollowedUnits: () => followedUnits,
       calculateFollowedUnitsTarget,
       selectUnits: (ids: number[]) => {
         const selection = [];
