@@ -22,6 +22,9 @@ export const defaultSettings: Settings = {
   game: {
     stopFollowingOnClick: true
   },
+  util: {
+    sanityCheckReplayCommands: true,
+  },
   graphics: {
     antialias: true,
     pixelRatio: "med",
@@ -31,5 +34,5 @@ export const defaultSettings: Settings = {
   plugins: {
     serverPort: 8080,
     enabled: [],
-  }
+  },
 };

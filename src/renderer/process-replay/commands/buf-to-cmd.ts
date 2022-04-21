@@ -109,8 +109,6 @@ const bufToCommand = (id: number, data: Buffer) => {
     // 	}
     // 	cmd = allianceCmd
 
-    // commands we don't process
-    // or don't support
     default:
       return {};
   }

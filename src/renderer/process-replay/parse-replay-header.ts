@@ -120,16 +120,16 @@ const parseHeader = (buf: Buffer) => {
   for (let i = 0; i < 8; i++) {
     const offset = 0xa1 + 0x24 * i;
     const type = buf.readUInt8(offset + 0x8);
-    if (type === 1 || type === 2) {
-      players.push({
-        id: buf.readUInt32LE(offset),
-        isComputer: type === 1,
-        race: raceStr(buf.readUInt8(offset + 0x9)),
-        name: cstring(buf.slice(offset + 0xb, offset + 0xb + 0x19)),
-        team: buf.readUInt8(offset + 0xa),
-        color: getPlayerColor(buf.readUInt32LE(0x251 + i * 4)),
-      });
-    }
+    players.push({
+      id: buf.readUInt32LE(offset),
+      isComputer: type === 1,
+      isHuman: type === 2,
+      isActive: type === 1 || type === 2,
+      race: raceStr(buf.readUInt8(offset + 0x9)),
+      name: cstring(buf.slice(offset + 0xb, offset + 0xb + 0x19)),
+      team: buf.readUInt8(offset + 0xa),
+      color: getPlayerColor(buf.readUInt32LE(0x251 + i * 4)),
+    });
   }
   return {
     isBroodwar,

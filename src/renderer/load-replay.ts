@@ -1,5 +1,5 @@
 import parseReplay, { Replay } from "./process-replay/parse-replay";
-import convertReplay from "./process-replay/convert-replay";
+import writeReplay from "./process-replay/write-replay";
 import { Version } from "./process-replay/version";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import ChkDowngrader from "./process-replay/chk/chk-downgrader";
@@ -35,6 +35,7 @@ import {
 } from "common/utils/casclib";
 import { callHookAsync } from "./plugins";
 import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
+import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -63,10 +64,14 @@ export default async (filepath: string) => {
 
   screenStore().init(ScreenType.Replay);
 
+  const sanityCheck = settings.util.sanityCheckReplayCommands ? sanityCheckCommands(replay, true) : [];
+
   if (replay.version !== Version.titanReactor) {
     try {
       const chkDowngrader = new ChkDowngrader();
-      repBin = await convertReplay(replay, chkDowngrader);
+      const chk = chkDowngrader.downgrade(replay.chk.slice(0));
+      const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
+      repBin = await writeReplay(replay.rawHeader, rawCmds, chk);
       if (rendererIsDev) {
         fs.writeFileSync(`D:\\last_replay.rep`, repBin);
       }
@@ -76,6 +81,8 @@ export default async (filepath: string) => {
       return;
     }
   }
+
+  replay.header.players = replay.header.players.filter(p => p.isActive);
 
   processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;

@@ -6,7 +6,7 @@ import {
   HeaderMagicTitanReactor,
   Version,
 } from "./version";
-import parseHeader from "./header";
+import parseHeader from "./parse-replay-header";
 import { readBlock } from "./blocks";
 
 const parseReplay = async (buf: Buffer) => {

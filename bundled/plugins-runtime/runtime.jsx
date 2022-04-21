@@ -46,8 +46,38 @@ export const useSelectedUnits = () => {
   return useStore(_useSelectedUnits) ?? [];
 };
 
+const unitIsComplete = (unit) => {
+  return unit.statusFlags & (0x01 === 1);
+};
+
+export const getUnitIcon = (unit) => {
+  if (
+    (unit.extras.dat.isBuilding &&
+      !unit.extras.dat.isZerg &&
+      unitIsComplete(unit) &&
+      unit.buildQueue?.length) ||
+    (unit.extras.dat.isZerg &&
+      !unit.extras.dat.isBuilding &&
+      unit.buildQueue?.length)
+  ) {
+    return unit.buildQueue[0];
+  }
+
+  if (unitIsComplete(unit) && unit.remainingTrainTime) {
+    if (unit.typeId === enums.unitTypes.reaver) {
+      return enums.unitTypes.scarab;
+    } else if (unit.typeId === enums.unitTypes.carrier) {
+      return enums.unitTypes.interceptor;
+    } else if (unit.typeId === enums.unitTypes.nuclearSilo) {
+      return enums.unitTypes.nuclearMissile;
+    }
+  }
+
+  return null;
+};
+
 const mapUnitInProduction = (input, unit) =>
-  unit.isTurret
+  unit.isTurret || unit.typeId === 97 || unit.typeId === 36
     ? null
     : {
         typeId: input[0],

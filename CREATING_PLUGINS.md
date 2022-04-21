@@ -479,7 +479,8 @@ This is a list of plugins that I'd personally like to see come to life by the co
   - Race / Name animations
 - Player/matchup/map data sheets
 - Replay and map repositories
-- Camera macros
+- Extra blood / particles / explosions / smoke
+- Camera macros (eg intro player1, intro player 2)
 - Replay autoupload
 - Replay loading screens
 - Player alias database

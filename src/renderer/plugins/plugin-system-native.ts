@@ -128,7 +128,7 @@ const pluginProto: PluginPrototype = {
             updatePluginsConfig(this.id, this.$$config);
         }
     },
-    saveSettings(settings: { audio?: {}, graphics?: {} }) {
+    saveSettings(settings: { audio?: {}, graphics?: {}, util?: {} }) {
         if (this.$$permissions[PERMISSION_SETTINGS_WRITE]) {
             const state = settingsStore();
             state.save({
@@ -139,6 +139,10 @@ const pluginProto: PluginPrototype = {
                 graphics: {
                     ...state.data.graphics,
                     ...settings.graphics
+                },
+                util: {
+                    ...state.data.util,
+                    ...settings.util
                 }
             }
             );

@@ -35,8 +35,8 @@ jobs:
         with:
           node-version: 16
           
-      # - name: Install Yarn
-      #  run: npm install -g yarn@1.22.4
+      - name: Install Yarn
+       run: npm install -g yarn@1.22.4
         
       - name: Install Packages
         run: yarn install

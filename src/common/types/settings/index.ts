@@ -28,6 +28,9 @@ export type Settings = {
     game: {
         stopFollowingOnClick: boolean
     },
+    util: {
+        sanityCheckReplayCommands: boolean,
+    },
     plugins: {
         serverPort: number;
         developmentDirectory?: string;

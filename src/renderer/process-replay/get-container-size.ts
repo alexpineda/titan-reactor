@@ -13,11 +13,9 @@ const _getContainerSize = (unitTag: number) => {
 
 const getContainerSize = (rawCmds: Buffer) => {
   const cmds = new CommandsStream(rawCmds);
-  const g = cmds.generate();
-  let command;
 
   try {
-    while ((command = g.next().value)) {
+    for (const command of cmds.generate()) {
       if (typeof command === "number") {
         continue;
       }
