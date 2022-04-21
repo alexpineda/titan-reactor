@@ -53,7 +53,7 @@ const mapUnitInProduction = (input, unit) =>
         typeId: input[0],
         icon: input[0],
         count: input[1],
-        progress: 1,
+        progress: input[2] / unit.buildTime,
         isUnit: true,
       };
 
@@ -79,24 +79,18 @@ export const useProduction = () => {
 
   return [
     (playerId) =>
-      chunk(unitProduction[playerId], 2)
+      chunk(unitProduction[playerId], 3)
         .map((unit) => mapUnitInProduction(unit, assets.bwDat.units[unit[0]]))
-        .filter((unit) => unit)
-        .sort((a, b) => a.count - b.count)
-        .sort((a, b) => a.typeId - b.typeId),
+        .filter((unit) => unit),
+
     (playerId) =>
-      chunk(upgrades[playerId], 3)
-        .map((upgrade) =>
-          mapUpgradeInProduction(upgrade, assets.bwDat.upgrades[upgrade[0]])
-        )
-        .sort((a, b) => a.level - b.level)
-        .sort((a, b) => a.progress - b.progress),
+      chunk(upgrades[playerId], 3).map((upgrade) =>
+        mapUpgradeInProduction(upgrade, assets.bwDat.upgrades[upgrade[0]])
+      ),
     (playerId) =>
-      chunk(research[playerId], 2)
-        .map((research) =>
-          mapResearchInProduction(research, assets.bwDat.tech[research[0]])
-        )
-        .sort((a, b) => a.progress - b.progress),
+      chunk(research[playerId], 2).map((research) =>
+        mapResearchInProduction(research, assets.bwDat.tech[research[0]])
+      ),
   ];
 };
 // plugin specific configuration

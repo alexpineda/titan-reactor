@@ -35,14 +35,14 @@ jobs:
         with:
           node-version: 16
           
-      - name: Install Yarn
-        run: npm install -g yarn@1.22.4
+      # - name: Install Yarn
+      #  run: npm install -g yarn@1.22.4
         
       - name: Install Packages
-        run: yarn workspace titan-reactor install
+        run: yarn install
         
       - name: Build Titan Reactor TS application / Electorn
-        run: yarn workspace titan-reactor dist
+        run: yarn dist
         env: #satisfy electron-builder even though we're not using their publish function (yet?)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
@@ -55,7 +55,7 @@ jobs:
       - name: Generate release tag
         id: tag
         run: |
-          echo "::set-output name=release_tag::UserBuild_$(date +"%Y.%m.%d_%H-%M")"
+          echo "::set-output name=release_tag::Release_$(date +"%Y.%m.%d_%H-%M")"
           
       - name: Release
         uses: ncipollo/release-action@v1
