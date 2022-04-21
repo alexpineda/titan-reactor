@@ -12,197 +12,92 @@ export class UnitDAT implements UnitDAT {
   starEditGroupFlags = 0;
   name = "";
 
+  isBuilding: boolean;
+  isAddon: boolean;
+  isFlyer: boolean;
+  isResourceMiner: boolean;
+  isTurret: boolean;
+  isFlyingBuilding: boolean;
+  isHero: boolean;
+  regenerates: boolean;
+  animatedIdle: boolean;
+  cloakable: boolean;
+  twoUnitsInOneEgg: boolean;
+  singleEntity: boolean;
+  isResourceDepot: boolean;
+  isResourceContainer: boolean;
+  isRobotic: boolean;
+  isDetector: boolean;
+  isOrganic: boolean;
+  requiresCreep: boolean;
+  unusedFlag: boolean;
+  requiresPsi: boolean;
+  burrowable: boolean;
+  isSpellcaster: boolean;
+  permanentCloak: boolean;
+  pickupItem: boolean;
+  ignoreSupplyCheck: boolean;
+  useMediumOverlays: boolean;
+  useLargeOverlays: boolean;
+  battleReactions: boolean;
+  fullAutoAttack: boolean;
+  invincible: boolean;
+  isMechanical: boolean;
+  producesUnits: boolean;
+
+  isZerg: boolean;
+  isTerran: boolean;
+  isProtoss: boolean;
+
   constructor(data: UnitDATIncomingType) {
     Object.assign(this, data);
-  }
 
-  _flag(shift: number) {
-    return (this.specialAbilityFlags & (1 << shift)) !== 0;
-  }
-
-  get isBuilding() {
-    return this._flag(0);
-  }
-
-  get isAddon() {
-    return this._flag(1);
-  }
-
-  get isFlyer() {
-    return this._flag(2);
-  }
-
-  get isResourceMiner() {
-    return this._flag(3);
-  }
-
-  get isTurret() {
-    return this._flag(4);
-  }
-
-  get isFlyingBuilding() {
-    return this._flag(5);
-  }
-
-  get isHero() {
-    return this._flag(6);
-  }
-
-  get regenerates() {
-    return this._flag(7);
-  }
-
-  get animatedIdle() {
-    return this._flag(8);
-  }
-
-  get cloakable() {
-    return this._flag(9);
-  }
-
-  get twoUnitsInOneEgg() {
-    return this._flag(10);
-  }
-
-  get singleEntity() {
-    return this._flag(11);
-  }
-
-  get isResourceDepot() {
-    return this._flag(12);
-  }
-
-  get isResourceContainer() {
-    return this._flag(13);
-  }
-
-  get isRobotic() {
-    return this._flag(14);
-  }
-
-  get isDetector() {
-    return this._flag(15);
-  }
-
-  get isOrganic() {
-    return this._flag(16);
-  }
-
-  get requiresCreep() {
-    return this._flag(17);
-  }
-
-  get unusedFlag() {
-    return this._flag(18);
-  }
-
-  get requiresPsi() {
-    return this._flag(19);
-  }
-
-  get burrowable() {
-    return this._flag(20);
-  }
-
-  get isSpellcaster() {
-    return this._flag(21);
-  }
-
-  get permanentCloak() {
-    return this._flag(22);
-  }
-
-  get pickupItem() {
-    return this._flag(23);
-  }
-
-  get ignoreSupplyCheck() {
-    return this._flag(24);
-  }
-
-  get useMediumOverlays() {
-    return this._flag(25);
-  }
-
-  get useLargeOverlays() {
-    return this._flag(26);
-  }
-
-  get battleReactions() {
-    return this._flag(27);
-  }
-
-  get fullAutoAttack() {
-    return this._flag(28);
-  }
-
-  get invincible() {
-    return this._flag(29);
-  }
-
-  get isMechanical() {
-    return this._flag(30);
-  }
-
-  get producesUnits() {
-    return this._flag(31);
-  }
-
-  _starEditGroupFlag(bit: number) {
-    return !!(this.starEditGroupFlags & bit);
-  }
-
-  get isZerg() {
-    return this._starEditGroupFlag(1);
-  }
-
-  get isTerran() {
-    return this._starEditGroupFlag(2);
-  }
-
-  get isProtoss() {
-    return this._starEditGroupFlag(4);
-  }
-
-  //TODO: hardcode these values on load
-  copyFlags() {
-    return {
-      isBuilding: this.isBuilding,
-      isAddon: this.isAddon,
-      isFlyer: this.isFlyer,
-      isResourceMiner: this.isResourceMiner,
-      isTurret: this.isTurret,
-      isFlyingBuilding: this.isFlyingBuilding,
-      isHero: this.isHero,
-      regenerates: this.regenerates,
-      animatedIdle: this.animatedIdle,
-      cloakable: this.cloakable,
-      twoUnitsInOneEgg: this.twoUnitsInOneEgg,
-      singleEntity: this.singleEntity,
-      isResourceDepot: this.isResourceDepot,
-      isResourceContainer: this.isResourceContainer,
-      isRobotic: this.isRobotic,
-      isDetector: this.isDetector,
-      isOrganic: this.isOrganic,
-      requiresCreep: this.requiresCreep,
-      requiresPsi: this.requiresPsi,
-      burrowable: this.burrowable,
-      isSpellcaster: this.isSpellcaster,
-      permanentCloak: this.permanentCloak,
-      pickupItem: this.pickupItem,
-      ignoreSupplyCheck: this.ignoreSupplyCheck,
-      useMediumOverlays: this.useMediumOverlays,
-      useLargeOverlays: this.useLargeOverlays,
-      battleReactions: this.battleReactions,
-      fullAutoAttack: this.fullAutoAttack,
-      invincible: this.invincible,
-      isMechanical: this.isMechanical,
-      producesUnits: this.producesUnits,
-      isZerg: this.isZerg,
-      isTerran: this.isTerran,
-      isProtoss: this.isProtoss,
+    const flag = (shift: number) => {
+      return (this.specialAbilityFlags & (1 << shift)) !== 0;
     }
+
+    const starEditGroupFlag = (bit: number) => {
+      return !!(this.starEditGroupFlags & bit);
+    }
+
+    this.isBuilding = flag(0);
+    this.isAddon = flag(1);
+    this.isFlyer = flag(2);
+    this.isResourceMiner = flag(3);
+    this.isTurret = flag(4);
+    this.isFlyingBuilding = flag(5);
+    this.isHero = flag(6);
+    this.regenerates = flag(7);
+    this.animatedIdle = flag(8);
+    this.cloakable = flag(9);
+    this.twoUnitsInOneEgg = flag(10);
+    this.singleEntity = flag(11);
+    this.isResourceDepot = flag(12);
+    this.isResourceContainer = flag(13);
+    this.isRobotic = flag(14);
+    this.isDetector = flag(15);
+    this.isOrganic = flag(16);
+    this.requiresCreep = flag(17);
+    this.unusedFlag = flag(18);
+    this.requiresPsi = flag(19);
+    this.burrowable = flag(20);
+    this.isSpellcaster = flag(21);
+    this.permanentCloak = flag(22);
+    this.pickupItem = flag(23);
+    this.ignoreSupplyCheck = flag(24);
+    this.useMediumOverlays = flag(25);
+    this.useLargeOverlays = flag(26);
+    this.battleReactions = flag(27);
+    this.fullAutoAttack = flag(28);
+    this.invincible = flag(29);
+    this.isMechanical = flag(30);
+    this.producesUnits = flag(31);
+
+    this.isZerg = starEditGroupFlag(1);
+    this.isTerran = starEditGroupFlag(2);
+    this.isProtoss = starEditGroupFlag(4);
   }
+
 }
 
 export type UnitDATIncomingType = {

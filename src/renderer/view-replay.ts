@@ -577,7 +577,7 @@ async function TitanReactorGame(
             }
           }
         }
-        
+
         const onlyUnits = selectedUnits.filter(_hasAnyUnit);
         if (onlyUnits.length > 0 && onlyUnits.length !== selectedUnits.length) {
           selectedUnits = onlyUnits;
@@ -1254,7 +1254,6 @@ async function TitanReactorGame(
         images.set(imageData.index, image);
       }
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
-      image.userData.unit = unit;
 
       if (image.visible) {
         if (player) {
@@ -1313,17 +1312,22 @@ async function TitanReactorGame(
 
 
         if (imageData.index === spriteData.mainImageIndex) {
+          image.userData.unit = unit;
 
 
           // if (unit ) {
           // for 3d models
           // image.rotation.y = unit.angle;
           // }
+        } else {
+          delete image.userData.unit;
         }
 
         if (imageNeedsRedraw(imageData as ImageStruct)) {
           image.updateMatrix();
         }
+      } else {
+        delete image.userData.unit;
       }
       imageCounter++;
     }
@@ -1669,7 +1673,7 @@ async function TitanReactorGame(
       getSpeed: () => openBw.call!.getGameSpeed!(),
       registerHotkey(key: string, fn: Function) {
         // @ts-ignore
-        shortcuts.addListener(this.id, key, fn);
+        key && shortcuts.addListener(this.id, key, fn);
       },
       // @ts-ignore
       clearHotkeys() { shortcuts.clearListeners(this.id) },

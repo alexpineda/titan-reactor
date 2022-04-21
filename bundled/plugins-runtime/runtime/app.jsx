@@ -151,7 +151,6 @@ export default ({ components }) => {
           width: "100%",
           display: "flex",
           justifyContent: "space-between",
-          flexGrow: 1,
         }}
       >
         <div
@@ -284,7 +283,6 @@ export default ({ components }) => {
             id="bottom"
             style={{
               display: "flex",
-              flexGrow: 1,
               marginLeft: "var(--minimap-width)",
             }}
           >

@@ -1,5 +1,4 @@
 export * from "./game-store";
-export * from "./hud-store";
 export * from "./process-store";
 export * from "./screen-store";
 export * from "./settings-store";

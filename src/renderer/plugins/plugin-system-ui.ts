@@ -60,10 +60,6 @@ const unitPartial = (unit: Unit) => {
         extras: {
             ...unit.extras,
             player: unit.extras.player?.id,
-            dat: {
-                ...unit.extras.dat,
-                ...unit.extras.dat.copyFlags()
-            }
         }
     }
 }

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useContext } from "react";
 import ReactDOM from "react-dom";
 import create from "zustand";
+import chunk from "https://cdn.skypack.dev/lodash.chunk";
 import App from "./runtime/app.jsx";
 
 // game state
@@ -45,6 +46,59 @@ export const useSelectedUnits = () => {
   return useStore(_useSelectedUnits) ?? [];
 };
 
+const mapUnitInProduction = (input, unit) =>
+  unit.isTurret
+    ? null
+    : {
+        typeId: input[0],
+        icon: input[0],
+        count: input[1],
+        progress: 1,
+        isUnit: true,
+      };
+
+const mapUpgradeInProduction = (input, upgrade) => ({
+  typeId: input[0],
+  icon: upgrade.icon,
+  level: input[1],
+  isUpgrade: true,
+  progress:
+    input[2] /
+    (upgrade.researchTimeBase + upgrade.researchTimeFactor * input[1]),
+});
+
+const mapResearchInProduction = (input, research) => ({
+  typeId: input[0],
+  icon: research.icon,
+  progress: input[1] / research.researchTime,
+  isResearch: true,
+});
+
+export const useProduction = () => {
+  const { unitProduction, upgrades, research } = useFrame();
+
+  return [
+    (playerId) =>
+      chunk(unitProduction[playerId], 2)
+        .map((unit) => mapUnitInProduction(unit, assets.bwDat.units[unit[0]]))
+        .filter((unit) => unit)
+        .sort((a, b) => a.count - b.count)
+        .sort((a, b) => a.typeId - b.typeId),
+    (playerId) =>
+      chunk(upgrades[playerId], 3)
+        .map((upgrade) =>
+          mapUpgradeInProduction(upgrade, assets.bwDat.upgrades[upgrade[0]])
+        )
+        .sort((a, b) => a.level - b.level)
+        .sort((a, b) => a.progress - b.progress),
+    (playerId) =>
+      chunk(research[playerId], 2)
+        .map((research) =>
+          mapResearchInProduction(research, assets.bwDat.tech[research[0]])
+        )
+        .sort((a, b) => a.progress - b.progress),
+  ];
+};
 // plugin specific configuration
 const useConfig = create(() => ({}));
 
