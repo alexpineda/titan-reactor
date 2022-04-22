@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useContext } from "react";
 import ReactDOM from "react-dom";
+import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
 import chunk from "https://cdn.skypack.dev/lodash.chunk";
 import App from "./runtime/app.jsx";
@@ -355,9 +356,17 @@ const _messageListener = function (event) {
         ),
       });
     } else if (event.data.type === "system:mouse-click") {
-      document
-        .elementFromPoint(event.data.payload.x, event.data.payload.y)
-        .click();
+      const { clientX, clientY, button, shiftKey, ctrlKey } =
+        event.data.payload;
+
+      const element = document.elementFromPoint(clientX, clientY);
+      ReactTestUtils.Simulate.click(element, {
+        button,
+        shiftKey,
+        ctrlKey,
+        clientX,
+        clientY,
+      });
     } else if (event.data.type === "system:first-install") {
       useStore.setState({ firstInstall: true });
     } else if (event.data.type === "system:update-available") {

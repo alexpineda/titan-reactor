@@ -1067,6 +1067,7 @@ async function TitanReactorGame(
 
       if (controls.cameraMode.soundMode === "spatial") {
         if (dat.minVolume || camera.position.distanceTo(mapCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
+          // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
           soundChannels.queue(sound, dat, mapCoords);
         }
       }
@@ -1082,6 +1083,7 @@ async function TitanReactorGame(
         );
 
         const pan = getBwPanning(sound, mapCoords, projectedCameraView.left, projectedCameraView.width);
+        //FIXME; see if we can avoid creating this object
         const classicSound = Object.assign({}, sound, {
           extra: {
             volume,
@@ -1089,6 +1091,7 @@ async function TitanReactorGame(
           }
         });
         if (volume > SoundPlayMinVolume) {
+          // plugins.callHook("onBeforeSound", classicSound, dat, mapCoords);
           soundChannels.queue(classicSound, dat, mapCoords);
         }
       }
@@ -1701,6 +1704,7 @@ async function TitanReactorGame(
       pipHide() {
         controls.PIP.enabled = false;
       },
+      pipIsActive: () => controls.PIP.enabled,
       setPlayerColors,
       getOriginalColors,
       setPlayerNames,

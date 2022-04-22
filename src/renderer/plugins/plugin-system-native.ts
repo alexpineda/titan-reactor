@@ -228,7 +228,7 @@ export class PluginSystemNative {
             };
             plugin.callCustomHook = (name: string, ...args: any[]) => {
                 if (this.hooks[name].isAuthor(pluginPackage.id)) {
-                    return this.callHook(name, args);
+                    return this.callHook(name, ...args);
                 }
             };
             log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);

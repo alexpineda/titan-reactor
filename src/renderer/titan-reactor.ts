@@ -66,7 +66,7 @@ async function bootup() {
     registerFileDialogHandlers();
 
     await initializePluginSystem(settingsStore().enabledPlugins);
-    document.body.addEventListener("click", evt => pluginSystem.onClick(evt));
+    document.body.addEventListener("mouseup", evt => pluginSystem.onClick(evt));
 
     const settings = settingsStore().data;
     const hasErrors = settingsStore().errors.length > 0;

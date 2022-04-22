@@ -87,11 +87,13 @@ export const initializePluginSystem = async (
 };
 
 export const onClick = (event: MouseEvent) => {
+    console.log("original event", event);
+
     uiPluginSystem.sendMessage({
         type: SYSTEM_EVENT_MOUSE_CLICK,
         payload: {
-            x: event.clientX,
-            y: event.clientY,
+            clientX: event.clientX,
+            clientY: event.clientY,
             button: event.button,
             shiftKey: event.shiftKey,
             ctrlKey: event.ctrlKey,

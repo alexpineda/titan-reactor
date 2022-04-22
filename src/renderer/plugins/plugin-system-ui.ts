@@ -122,7 +122,7 @@ export class PluginSystemUI {
                 .then((res) => res.json());
 
             if (releases.length) {
-                const latestRelease = releases[0];
+                const latestRelease = releases.find((p: any) => !p.prerelease); //find first non-pre-release
                 if (semver.gt(latestRelease.name.substring(1), packageJson.version)) {
                     this.sendMessage({
                         type: SYSTEM_EVENT_UPDATE_AVAILABLE,

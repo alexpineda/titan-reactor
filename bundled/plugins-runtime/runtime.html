@@ -39,12 +39,18 @@
       overflow: hidden;
     }
   </style>
+  <script>
+    window.process = {
+      env: "development"
+    }
+  </script>
   <script type="importmap">
     {
       "imports": {
       "titan-reactor": "./runtime.jsx",
       "react": "https://cdn.skypack.dev/react@17.0.2",
       "react-dom": "https://cdn.skypack.dev/react-dom@17.0.2",
+      "react-dom/test-utils": "https://cdn.skypack.dev/react-dom@17.0.2/test-utils",
       "zustand": "https://cdn.skypack.dev/zustand@3.7.1"
       }
     }
