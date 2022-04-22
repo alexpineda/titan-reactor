@@ -49,5 +49,8 @@ export interface CameraModePlugin extends NativePlugin {
     onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;
 
     onDrawMinimap?: (ctx: CanvasRenderingContext2D, view: ProjectedCameraView, target: Vector3, position: Vector3) => void;
+
+    onMinimapDragUpdate?: (pos: Vector3, isDragStart: boolean, isDragging: boolean, mouseButton?: number) => void;
+
 }
 

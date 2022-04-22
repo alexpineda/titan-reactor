@@ -38,7 +38,7 @@ import {
 import { FrameBW, ImageBufferView, SpritesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
-  GameCanvasTarget
+  GameCanvasTarget, Layers
 } from "./render";
 import renderer from "./render/renderer";
 import {
@@ -76,6 +76,7 @@ import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import FPSMeter from "@utils/fps-meter";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
+import FadingPointers from "@image/fading-pointers";
 
 CameraControls.install({ THREE: THREE });
 
@@ -160,6 +161,7 @@ async function TitanReactorGame(
     direction: 0,
     prevDirection: -1
   };
+  camera.layers.disable(Layers.PictureInPicture);
 
   const minimapMouse = new MinimapMouse(
     minimapSurface,
@@ -171,7 +173,8 @@ async function TitanReactorGame(
     clearFollowedUnits();
   })
 
-
+  const fadingPointers = new FadingPointers();
+  scene.add(fadingPointers);
 
   const _PIP: PIP = {
     enabled: false,
@@ -181,6 +184,7 @@ async function TitanReactorGame(
     height: 300,
     update() {
       const aspect = camera.aspect;
+      this.camera.layers.enable(Layers.PictureInPicture);
 
       const pipWidth = this.height * aspect;
       if (this.position) {
@@ -256,6 +260,7 @@ async function TitanReactorGame(
 
     const cameraShake = new CameraShake();
 
+    _PIP.camera = new PerspectiveCamera(15, 1, 0.1, 1000);
     _PIP.camera.position.set(0, 50, 0);
     _PIP.camera.lookAt(0, 0, 0);
     _PIP.enabled = false;
@@ -650,6 +655,7 @@ async function TitanReactorGame(
     cmd = cmds.next();
     selectedUnitsStore().clearSelectedUnits();
     clearFollowedUnits();
+    fadingPointers.clear();
 
     plugins.callHook(HOOK_ON_FRAME_RESET, openBw.call!.getCurrentFrame!());
     gameStatePosition.paused = false;
@@ -1445,7 +1451,7 @@ async function TitanReactorGame(
     controls.orbit.update(delta / 1000);
     cameraMouse.update(delta / 100, elapsed, controls.cameraMode);
     cameraKeys.update(delta / 100, elapsed, controls.cameraMode);
-    minimapMouse.update(controls.orbit, controls.PIP);
+    minimapMouse.update(controls.cameraMode);
 
     if (reset) {
       reset();
@@ -1510,6 +1516,7 @@ async function TitanReactorGame(
         cmd = cmds.next();
       }
 
+      fadingPointers.update(gameStatePosition.bwGameFrame);
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
       plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
 
@@ -1602,6 +1609,9 @@ async function TitanReactorGame(
     name: player.name
   }));
 
+
+
+
   let pluginsApiJanitor = new Janitor;
 
   const setupPlugins = async () => {
@@ -1683,6 +1693,9 @@ async function TitanReactorGame(
       exitCameraMode: () => {
         shortcuts.pressKey("Escape")
       },
+      getPipCamera() {
+        return controls.PIP.camera;
+      },
       pipLookAt(x: number, z: number) {
         controls.PIP.enabled = true;
         controls.PIP.camera.position.set(x, controls.PIP.camera.position.y, z);
@@ -1706,6 +1719,9 @@ async function TitanReactorGame(
       },
       pipIsActive: () => controls.PIP.enabled,
       setPlayerColors,
+      getPlayerColor: (id: number) => {
+        return players.find(p => p.id === id)?.color ?? new Color(1, 1, 1);
+      },
       getOriginalColors,
       setPlayerNames,
       getOriginalNames,
@@ -1725,6 +1741,7 @@ async function TitanReactorGame(
         selectedUnitsStore().setSelectedUnits(selection);
       },
       getSelectedUnits: () => selectedUnitsStore().selectedUnits,
+      fadingPointers
     };
 
     pluginsApiJanitor.callback(plugins.injectApi(api));

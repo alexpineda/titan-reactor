@@ -15,6 +15,7 @@ import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS
 import settingsStore from "@stores/settings-store";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
+import { Layers } from "../render/layers";
 
 const STDLIB = {
     CSS2DObject
@@ -182,7 +183,7 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers });
             delete pluginPackage.nativeSource;
 
             pluginRaw.id = pluginPackage.id;

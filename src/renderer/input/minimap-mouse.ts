@@ -1,12 +1,7 @@
 import { MathUtils, Vector3 } from "three";
 import { CanvasTarget } from "../image";
 import Janitor from "../utils/janitor";
-import CameraControls from "camera-controls";
-import { PIP } from "./camera-mode";
-
-const LeftMouse = 0;
-const RightMouse = 2;
-const Proximity = 8;
+import { CameraModePlugin } from "./camera-mode";
 
 export interface MinimapEvent {
   e: MouseEvent;
@@ -17,7 +12,6 @@ export interface MinimapPreviewEvent extends MinimapEvent {
 }
 
 const pos = new Vector3();
-const _target = new Vector3();
 
 export class MinimapMouse extends EventTarget {
   #mapWidth: number;
@@ -26,9 +20,7 @@ export class MinimapMouse extends EventTarget {
 
   #isDragStart = false;
   #isDragging = false;
-  #isPreviewing = false;
-  #isPreviewStart = false;
-  #mouseDown = false;
+  mouseButton?: number;
 
   #enabled = false;
   #janitor = new Janitor();
@@ -36,9 +28,9 @@ export class MinimapMouse extends EventTarget {
   set enabled(val: boolean) {
     this.#enabled = val;
     if (val === false) {
-      this.#isPreviewing = false;
       this.#isDragging = false;
       this.#isDragStart = false;
+      this.mouseButton = undefined;
     }
   }
 
@@ -82,14 +74,10 @@ export class MinimapMouse extends EventTarget {
 
       pos.set(x, 0, y);
 
-      this.#mouseDown = true;
+      this.mouseButton = e.button;
+      this.#isDragging = true;
+      this.#isDragStart = true;
 
-      if (e.button === LeftMouse) {
-        this.#isDragging = true;
-        this.#isDragStart = true;
-      } else if (e.button === RightMouse) {
-        this.#isPreviewStart = true;
-      }
     };
     this.#surface.canvas.addEventListener("mousedown", onMouseDown);
     this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mousedown", onMouseDown));
@@ -98,7 +86,7 @@ export class MinimapMouse extends EventTarget {
     const onMouseUp = () => {
       if (!this.enabled) return;
 
-      this.#mouseDown = false;
+      this.mouseButton = undefined;
       this.#isDragging = false;
 
     };
@@ -121,34 +109,11 @@ export class MinimapMouse extends EventTarget {
 
   }
 
-  update(orbit: CameraControls, pip: PIP) {
+  update(cameraMode: CameraModePlugin) {
     if (!this.enabled) return;
 
-    if (this.#isDragStart) {
-      orbit.moveTo(pos.x, 0, pos.z, false);
-      if (this.#isPreviewing && orbit.getTarget(_target).setY(pip.camera.position.y).distanceTo(pip.camera.position) < Proximity) {
-        this.#isPreviewing = false;
-      }
-    } else if (this.#isDragging) {
-      orbit.moveTo(pos.x, 0, pos.z, true);
-      if (this.#isPreviewing && orbit.getTarget(_target).setY(pip.camera.position.y).distanceTo(pip.camera.position) < Proximity) {
-        this.#isPreviewing = false;
-      }
-    } else if (this.#isPreviewStart) {
-      if (this.#isPreviewing) {
-        if (pos.setY(pip.camera.position.y).distanceTo(pip.camera.position) > Proximity) {
-          this.#isPreviewing = false;
-        }
-      } else {
-        this.#isPreviewing = true;
-      }
-      this.#isPreviewStart = false;
-    } else if (this.#isPreviewing && this.#mouseDown) {
-      pip.camera.position.set(pos.x, pip.camera.position.y, pos.z);
-      pip.camera.lookAt(pos.x, 0, pos.z)
-    }
+    cameraMode.onMinimapDragUpdate && cameraMode.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
 
-    pip.enabled = this.#isPreviewing;
     this.#isDragStart = false;
 
   }

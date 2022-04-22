@@ -473,10 +473,6 @@ This is a list of plugins that I'd personally like to see come to life by the co
 - Day/night cycle
 - Battle review
   - After a battle calculate tally dead, score, etc.
-- Player renamer
-- Player intros
-  - Camera macro
-  - Race / Name animations
 - Player/matchup/map data sheets
 - Replay and map repositories
 - Extra blood / particles / explosions / smoke
@@ -487,3 +483,4 @@ This is a list of plugins that I'd personally like to see come to life by the co
 - Twitch integrations
   - sponsor a unit with bits, sponsored unit scorecard at end of game (kills, etc.)
 - Commercial sponsor integrations into map
+- Player renamer
