@@ -46,6 +46,15 @@ const parseReplay = async (buf: Buffer) => {
   const chkSize = (await readBlock(bl, 4)).readUInt32LE(0);
   const chk = await readBlock(bl, chkSize);
 
+  const stormPlayerToGamePlayer = []
+  for (let i = 0; i < 8; i++) {
+    const offset = 0xa1 + 0x24 * i
+    const stormId = rawHeader.readInt32LE(offset + 0x4)
+    if (stormId >= 0) {
+      stormPlayerToGamePlayer[stormId] = rawHeader.readUInt32LE(offset)
+    }
+  }
+
   return {
     version,
     rawHeader,
@@ -53,6 +62,7 @@ const parseReplay = async (buf: Buffer) => {
     rawCmds,
     chk,
     containerSize,
+    stormPlayerToGamePlayer
   };
 };
 

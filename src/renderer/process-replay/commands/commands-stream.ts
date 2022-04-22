@@ -6,9 +6,11 @@ import bufToSCRCommand from "./buf-to-cmd-scr";
 
 class CommandsStream {
   #buffer: Buffer;
+  #stormPlayerToGamePlayer: number[];
 
-  constructor(buffer: Buffer) {
+  constructor(buffer: Buffer, stormPlayerToGamePlayer: number[]) {
     this.#buffer = buffer;
+    this.#stormPlayerToGamePlayer = stormPlayerToGamePlayer;
   }
 
   *generate() {
@@ -25,7 +27,7 @@ class CommandsStream {
       let pos = 5;
 
       while (pos < frameEnd) {
-        const player = buffer.readUInt8(pos);
+        const player = this.#stormPlayerToGamePlayer[buffer.readUInt8(pos)];
         pos += 1;
         const id = buffer.readUInt8(pos);
         pos += 1;

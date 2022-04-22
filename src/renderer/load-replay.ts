@@ -36,6 +36,7 @@ import {
 import { callHookAsync } from "./plugins";
 import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
+import getContainerSize from "./process-replay/get-container-size";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -71,7 +72,12 @@ export default async (filepath: string) => {
       const chkDowngrader = new ChkDowngrader();
       const chk = chkDowngrader.downgrade(replay.chk.slice(0));
       const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
-      repBin = await writeReplay(replay.rawHeader, rawCmds, chk);
+      //TODO: replace this with reading scr section
+      const containerSize = getContainerSize(replay);
+      if (containerSize === undefined) {
+        throw new Error("invalid container size");
+      }
+      repBin = await writeReplay(replay.rawHeader, rawCmds, chk, containerSize);
       if (rendererIsDev) {
         fs.writeFileSync(`D:\\last_replay.rep`, repBin);
       }
@@ -165,7 +171,7 @@ export default async (filepath: string) => {
     soundChannels,
     music,
     gameStateReader,
-    new CommandsStream(replay.rawCmds),
+    new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
   );
 
   gameStore().setDisposeGame(disposeGame);

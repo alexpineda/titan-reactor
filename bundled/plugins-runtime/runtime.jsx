@@ -78,7 +78,7 @@ export const getUnitIcon = (unit) => {
 };
 
 const mapUnitInProduction = (input, unit) =>
-  unit.isTurret || unit.typeId === 97 || unit.typeId === 36
+  unit.isTurret
     ? null
     : {
         typeId: input[0],

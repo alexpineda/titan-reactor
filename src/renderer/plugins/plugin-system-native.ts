@@ -184,7 +184,8 @@ export class PluginSystemNative {
                 throw new Error("No native source provided");
             }
             const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers });
-            delete pluginPackage.nativeSource;
+            //override but give a truthy value
+            pluginPackage.nativeSource = "true";
 
             pluginRaw.id = pluginPackage.id;
             pluginRaw.name = pluginPackage.name;

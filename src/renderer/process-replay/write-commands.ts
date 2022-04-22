@@ -16,7 +16,7 @@ export const writeCommands = (replay: Replay, ignoreList: number[] = []) => {
   let currFrame = 0;
   let frameBuf = new BufferList();
 
-  const commands = new CommandsStream(replay.rawCmds);
+  const commands = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
 
   for (const command of commands.generate()) {
     if (typeof command === "number") {
@@ -72,7 +72,7 @@ export const writeCommands = (replay: Replay, ignoreList: number[] = []) => {
 export const sanityCheckCommands = (replay: Replay, stopAfterFirstFailure = false) => {
   let currFrame = 0;
 
-  const cmds = new CommandsStream(replay.rawCmds);
+  const cmds = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
   const invalids = [];
 
   for (const command of cmds.generate()) {

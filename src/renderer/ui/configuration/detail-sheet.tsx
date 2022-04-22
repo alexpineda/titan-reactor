@@ -38,6 +38,11 @@ export default ({
 
   return (
     <>
+      {(pluginConfig.nativeSource || permissions?.length) && (
+        <div style={{ marginTop: "1rem" }}>
+          ⚠️ Yes I trust the authors of this plugin.
+        </div>
+      )}
       {!!permissions.length && (
         <div style={{ marginTop: "1rem" }}>
           ⚠️ This plugin has special permissions: <ul>{permissions}</ul>
