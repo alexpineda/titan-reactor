@@ -1,11 +1,12 @@
+import { AnimAtlas } from "@image";
 import { Texture } from "three";
-import { BwDAT, GRPInterface } from "../../common/types";
-import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "../../common/types/icons";
+import { BwDAT, GRPInterface } from "common/types";
+import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
 
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
   grps: GRPInterface[];
-  selectionCirclesHD: GRPInterface[];
+  selectionCirclesHD: AnimAtlas[];
 
   gameIcons: ResourceIcons;
   cmdIcons: string[];
@@ -23,7 +24,7 @@ interface AssetsConstructorArgs {
 class Assets {
   bwDat: BwDAT;
   grps: GRPInterface[] = [];
-  selectionCirclesHD: GRPInterface[] = [];
+  selectionCirclesHD: AnimAtlas[] = [];
 
   gameIcons: ResourceIcons;
   cmdIcons: string[];

@@ -1,27 +1,73 @@
-// @ts-nocheck
-import { UpgradeCompleted } from "../../common/types";
 import {
+  BufferAttribute,
+  BufferGeometry,
   Color,
   DataTexture,
-  Group,
+  Mesh,
+  MeshBasicMaterial,
   RedFormat,
-  Sprite as ThreeSprite,
-  SpriteMaterial,
+  Shader,
+  StaticDrawUsage,
   Uniform,
   UnsignedByteType,
+  WebGLRenderer,
 } from "three";
 
-import getMaxEnergy from "../../common/bwdat/core/get-max-energy";
-import { Sprite } from ".";
+import { SpriteDAT, UpgradeCompleted } from "common/types";
+import getMaxEnergy from "../utils/get-max-energy";
+import { Unit } from "./unit";
+import gameStore from "@stores/game-store";
 
 const getTypeIds = ({ typeId }: { typeId: number }) => typeId;
+// dummy map till I figure out how to get uv attribute in shader
+const map = new DataTexture(
+  new Uint8Array([0]),
+  1,
+  1,
+  RedFormat,
+  UnsignedByteType
+);
+map.needsUpdate = true;
 
-function onBeforeCompile(shader: any) {
-  // @ts-ignore
-  Object.assign(shader.uniforms, this.customUniforms);
-  const fs = shader.fragmentShader;
-  shader.fragmentShader =
-    `
+class SelectionBarMaterial extends MeshBasicMaterial {
+  customUniforms: {
+    hp: Uniform;
+    bwGreenColor: Uniform;
+    bwRedColor: Uniform;
+    bwYellowColor: Uniform;
+    hasShields: Uniform;
+    shields: Uniform;
+    shieldsColor: Uniform;
+    energyColor: Uniform;
+    energy: Uniform;
+    hasEnergy: Uniform;
+  };
+
+  constructor() {
+    super({ map, transparent: true, depthTest: false });
+
+    this.customUniforms = {
+      hp: new Uniform(0),
+      bwGreenColor: new Uniform(hpColorGreen),
+      bwRedColor: new Uniform(hpColorRed),
+      bwYellowColor: new Uniform(hpColorYellow),
+
+      hasShields: new Uniform(0),
+      shields: new Uniform(0),
+      shieldsColor: new Uniform(shieldsColor),
+
+      energyColor: new Uniform(energyColor),
+      energy: new Uniform(0),
+      hasEnergy: new Uniform(0),
+    };
+  }
+
+  override onBeforeCompile(shader: Shader, _: WebGLRenderer): void {
+    // @ts-ignore
+    Object.assign(shader.uniforms, this.customUniforms);
+    const fs = shader.fragmentShader;
+    shader.fragmentShader =
+      `
       uniform float hp;
       uniform vec3 bwGreenColor;
       uniform vec3 bwRedColor;
@@ -47,10 +93,10 @@ function onBeforeCompile(shader: any) {
       }
 
       ` +
-    fs.replace(
-      "#include <map_fragment>",
-      `
-            vec3 gray = vec3(0.5);
+      fs.replace(
+        "#include <map_fragment>",
+        `
+            vec3 gray = vec3(0.4);
             float ty = 1. - vUv.y;
 
             vec2 shieldsPos = vec2(0., barHeight) * hasShields;
@@ -60,7 +106,6 @@ function onBeforeCompile(shader: any) {
             float drawShield = (1. - step(shieldsPos.y, ty));    
             float drawHp = (step(hpPos.x, ty) * (1. - step(hpPos.y, ty)) );
             float drawEnergy = (step(energyPos.x, ty) * (1. - step(energyPos.y, ty)));
-
 
             vec3 hpC1 = mix(bwRedColor, bwYellowColor, step(1./3., hp));
             hpC1 = mix(hpC1, bwGreenColor, step(2./3., hp));
@@ -79,104 +124,90 @@ function onBeforeCompile(shader: any) {
             vec3 energyC1 = mix(energyColor, gray, step(energy, vUv.x));
             vec4 energyC =  vec4(borderize(energyC1, energyC1 * 0.3, vUv * borderModifier), 1.) * hasEnergy;
 
-            vec4 barColor = shieldC * drawShield + hpC * drawHp + energyC * drawEnergy;
-            diffuseColor = mapTexelToLinear(barColor);
+            diffuseColor = shieldC * drawShield + hpC * drawHp + energyC * drawEnergy;
 
         `
-    );
+      );
+  }
 }
 
-const hpColorGreen = new Color(16 / 255, 135 / 255, 16 / 255);
-const hpColorRed = new Color(234 / 255, 25 / 255, 25 / 255);
-const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255);
-const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255);
-const energyColor = new Color(158 / 255, 34 / 255, 189 / 255);
+const hpColorGreen = new Color(16 / 255, 135 / 255, 16 / 255).convertSRGBToLinear();
+const hpColorRed = new Color(234 / 255, 25 / 255, 25 / 255).convertSRGBToLinear();
+const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255).convertSRGBToLinear();
+const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255).convertSRGBToLinear();
+const energyColor = new Color(158 / 255, 34 / 255, 189 / 255).convertSRGBToLinear();
 
-// dummy map till I figure out how to get uv attribute in shader
-const map = new DataTexture(
-  new Uint8Array([0]),
-  1,
-  1,
-  RedFormat,
-  UnsignedByteType
-);
-map.needsUpdate = true;
 
-const createSprite = () => {
-  const sprite = new ThreeSprite(
-    new SpriteMaterial({
-      map,
-    })
-  );
-  sprite.userData = {
-    customUniforms: {
-      hp: new Uniform(0),
-      bwGreenColor: new Uniform(hpColorGreen),
-      bwRedColor: new Uniform(hpColorRed),
-      bwYellowColor: new Uniform(hpColorYellow),
 
-      hasShields: new Uniform(0),
-      shields: new Uniform(0),
-      shieldsColor: new Uniform(shieldsColor),
-
-      energyColor: new Uniform(energyColor),
-      energy: new Uniform(0),
-      hasEnergy: new Uniform(0),
-    },
-  };
-  sprite.material.onBeforeCompile = onBeforeCompile.bind(sprite);
-  sprite.material.depthTest = false;
-  sprite.material.transparent = true;
-
-  return sprite;
-};
-
-export class SelectionBars extends Group {
-  bar = createSprite();
+export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
 
   constructor() {
-    super();
-    this.add(this.bar);
+    const _geometry = new BufferGeometry();
+    _geometry.setIndex([0, 1, 2, 0, 2, 3]);
+
+    const posAttribute = new BufferAttribute(
+      new Float32Array([
+        -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0,
+      ]),
+      3,
+      false
+    );
+    posAttribute.usage = StaticDrawUsage;
+    _geometry.setAttribute("position", posAttribute);
+
+    const uvAttribute = new BufferAttribute(
+      new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]),
+      2,
+      false
+    );
+    uvAttribute.usage = StaticDrawUsage;
+    _geometry.setAttribute("uv", uvAttribute);
+
+    super(_geometry, new SelectionBarMaterial())
+
+    this.visible = false;
   }
 
   update(
-    sprite: Sprite,
+    unit: Unit,
+    sprite: SpriteDAT,
     completedUpgrades: UpgradeCompleted[],
     renderOrder: number,
-    grpOffset: number
   ) {
-    if (!sprite.unit || !sprite.unit.owner) {
+    if (unit.owner > 7) {
       this.visible = false;
       return;
     }
-
     this.visible = true;
 
-    this.position.z =
-      sprite.dat.selectionCircleOffset / 32 + grpOffset + 0.4;
-    this.scale.set(sprite.dat.healthBar / 32, 0.3, 1);
+    const frameY = gameStore().assets!.bwDat.grps[561 + sprite.selectionCircle.index].frames[0].h / 2;
+    this.position.y =
+      -(sprite.selectionCircleOffset + frameY + 8) / 32;
+    this.scale.set(sprite.healthBar / 32, 0.4, 1);
 
-    this.bar.material.needsUpdate = true;
-    this.bar.renderOrder = renderOrder;
+    this.renderOrder = renderOrder + 10;
 
-    this.bar.userData.customUniforms.hp.value =
-      sprite.unit.hp / sprite.unit.dat.hp;
+    const material = this.material as SelectionBarMaterial;
+    material.needsUpdate = true;
 
-    const hasShields = sprite.unit.dat.shieldsEnabled;
-    const hasEnergy = sprite.unit.dat.isSpellcaster;
+    material.customUniforms.hp.value =
+      unit.hp / unit.extras.dat.hp;
 
-    this.bar.userData.customUniforms.hasEnergy.value = hasEnergy ? 1 : 0;
-    this.bar.userData.customUniforms.hasShields.value = hasShields ? 1 : 0;
+    const hasShields = unit.extras.dat.shieldsEnabled;
+    const hasEnergy = unit.extras.dat.isSpellcaster;
+
+    material.customUniforms.hasEnergy.value = hasEnergy ? 1 : 0;
+    material.customUniforms.hasShields.value = hasShields ? 1 : 0;
 
     if (hasShields) {
-      this.bar.userData.customUniforms.shields.value =
-        sprite.unit.shields / sprite.unit.dat.shields;
+      material.customUniforms.shields.value =
+        unit.shields / unit.extras.dat.shields;
     }
 
     if (hasEnergy) {
-      this.bar.userData.customUniforms.energy.value =
-        sprite.unit.energy /
-        getMaxEnergy(sprite.unit.dat, completedUpgrades.map(getTypeIds));
+      material.customUniforms.energy.value =
+        unit.energy /
+        getMaxEnergy(unit.extras.dat, completedUpgrades.map(getTypeIds));
     }
   }
 }

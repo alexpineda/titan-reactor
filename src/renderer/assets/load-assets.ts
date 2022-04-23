@@ -49,11 +49,10 @@ export default async (settings: Settings) => {
     log.verbose("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);
 
-    log.verbose("@load-assets/sd");
+    log.verbose("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
 
-    log.verbose("@load-assets/selection-circles");
     const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);
 
     const envMap = await loadEnvironmentMap(`${__static}/envmap.hdr`);

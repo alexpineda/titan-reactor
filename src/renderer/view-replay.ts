@@ -77,6 +77,7 @@ import FPSMeter from "@utils/fps-meter";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
+import SelectionBars from "@core/selection-bars";
 
 CameraControls.install({ THREE: THREE });
 
@@ -1158,7 +1159,9 @@ async function TitanReactorGame(
       sprite = new Group();
       sprite.name = "sprite";
       sprite.userData.selectionCircle = new SelectionCircle();
+      sprite.userData.selectionBars = new SelectionBars();
       sprite.add(sprite.userData.selectionCircle)
+      sprite.add(sprite.userData.selectionBars)
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
     }
@@ -1247,10 +1250,20 @@ async function TitanReactorGame(
 
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
-    if (unit && unit.extras.selected) {
+    if (unit && unit.extras.selected && sprite.visible) {
       sprite.userData.selectionCircle.update(dat);
       sprite.userData.selectionCircle.visible = true;
+
+      (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
+      sprite.userData.selectionBars.visible = true;
     } else {
+      if (unit?.extras.recievingDamage && sprite.visible) {
+        (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
+        sprite.userData.selectionBars.visible = true;
+      } else {
+        sprite.userData.selectionBars.visible = false;
+      }
+
       sprite.userData.selectionCircle.visible = false;
     }
 

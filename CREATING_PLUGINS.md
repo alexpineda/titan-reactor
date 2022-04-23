@@ -484,3 +484,5 @@ This is a list of plugins that I'd personally like to see come to life by the co
   - sponsor a unit with bits, sponsored unit scorecard at end of game (kills, etc.)
 - Commercial sponsor integrations into map
 - Player renamer
+- Units lost
+- Build order
