@@ -17,7 +17,7 @@ import OpenBwWasmReader from "./openbw/openbw-reader";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
-import loadTerrain from "./assets/load-terrain";
+import loadTerrain from "./image/generate-map/load-terrain";
 import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";

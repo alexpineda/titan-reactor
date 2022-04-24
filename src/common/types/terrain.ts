@@ -1,4 +1,4 @@
-import { Mesh, Texture, Vector3 } from "three";
+import { Object3D, Texture, Vector3 } from "three";
 
 import { GetTerrainY } from "./util";
 
@@ -7,13 +7,12 @@ export type WrappedTexture = {
   texture: Texture;
   width: number;
   height: number;
+  pxPerTile: 32 | 64 | 128;
 }
 
 export type WrappedQuartileTextures = {
   mapQuartiles: Texture[][],
   quartileHeight: number,
-  quartileStrideH: number,
-  quartileStrideW: number,
   quartileWidth: number,
 }
 
@@ -21,7 +20,7 @@ export type TerrainInfo = {
   tileset: number;
   mapWidth: number;
   mapHeight: number;
-  terrain: Mesh;
+  terrain: Object3D;
   /**
    * Gets the y offset at the given x,z coordinates.
    */
@@ -44,7 +43,7 @@ export type TilesetBuffers = {
   tileset: number;
   tilegroupU16: Uint16Array;
   tilegroupBuf: Buffer;
-  hdTiles?: Buffer;
-  creepGrpSD?: Buffer;
-  creepGrpHD?: Buffer;
+  hdTiles: Buffer;
+  creepGrpSD: Buffer;
+  creepGrpHD: Buffer;
 };

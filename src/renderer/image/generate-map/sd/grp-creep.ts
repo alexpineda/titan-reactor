@@ -74,5 +74,6 @@ export const grpToCreepTexture = (
   texture.needsUpdate = true;
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
-  return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD };
+
+  return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD, pxPerTile: PX_PER_TILE_SD };
 };

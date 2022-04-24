@@ -1,4 +1,4 @@
-import { WrappedTexture } from "common/types";
+import { AssetTextureResolution, WrappedTexture } from "common/types";
 import {
   MeshBasicMaterial,
   OrthographicCamera,
@@ -13,19 +13,21 @@ import {
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 
-import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture } from "./common";
 
 const width = 13;
 const height = 1;
 
 // generates a single creep texture from 0 - 13
-export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array): WrappedTexture => {
+export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res: AssetTextureResolution): WrappedTexture => {
   const renderer = new WebGLRenderer({
     depth: false,
     stencil: false,
     alpha: true,
   });
   renderer.autoClear = false;
+
+  const PX_PER_TILE_HD = res === AssetTextureResolution.HD ? 128 : 64;
 
   const tiles = parseDdsGrp(buffer);
 
@@ -80,5 +82,5 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array): Wr
   mat.dispose();
   renderer.dispose();
 
-  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD };
+  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD, pxPerTile: PX_PER_TILE_HD };
 };

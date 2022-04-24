@@ -10,18 +10,19 @@ import {
   WebGLRenderer,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
-import { WrappedQuartileTextures } from "common/types";
+import { AssetTextureResolution, WrappedQuartileTextures } from "common/types";
 
-import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture } from "./common";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
 // over max supported size
-export const mapDataToTextures = (
+export const createHdQuartiles = (
   mapWidth: number,
   mapHeight: number,
   buffer: Buffer,
-  mapTilesData: Record<number, number>,
+  mapTilesData: Uint16Array,
+  res: AssetTextureResolution
 ): WrappedQuartileTextures => {
 
   const renderer = new WebGLRenderer({
@@ -30,6 +31,7 @@ export const mapDataToTextures = (
     alpha: true,
   });
   renderer.autoClear = false;
+  const PX_PER_TILE_HD = res === AssetTextureResolution.HD ? 128 : 64;
 
   const mapQuartiles: CanvasTexture[][] = [];
   const hdTiles = parseDdsGrp(buffer);
@@ -43,6 +45,7 @@ export const mapDataToTextures = (
   // 128; //128, 64, 32   1, 2, 4
   // 192; //96, 64, 32    1.5->2, 3, 6
   // 256; //128,64,32     2, 4, 8
+
 
   const quartileStrideW = Math.ceil(mapWidth / maxQuartileSize);
   const quartileWidth = mapWidth / quartileStrideW;
@@ -122,8 +125,6 @@ export const mapDataToTextures = (
   return {
     mapQuartiles,
     quartileHeight,
-    quartileStrideH,
-    quartileStrideW,
     quartileWidth,
   };
 };

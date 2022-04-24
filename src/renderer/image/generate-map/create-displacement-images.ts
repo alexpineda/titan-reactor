@@ -19,7 +19,7 @@ import {
 import { MapEffect } from "./effects/map-effect";
 
 import processStore, { Process } from "@stores/process-store";
-import { DataTexturesResult } from "./generate-map-data-textures";
+import { MapDataTextures } from "./generate-map-data-textures";
 import { GeometryOptions } from "./geometry-options";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
@@ -34,7 +34,7 @@ export const createDisplacementImages = async ({
     geomOptions,
     levels
 }: {
-    dataTextures: DataTexturesResult,
+    dataTextures: MapDataTextures,
     geomOptions: GeometryOptions,
     levels: Matrix3
     palette: Uint8Array,

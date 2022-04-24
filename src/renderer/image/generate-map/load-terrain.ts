@@ -3,18 +3,16 @@ import { readCascFile } from "common/utils/casclib";
 import { AssetTextureResolution, PxToGameUnit, TerrainInfo } from "common/types";
 
 import {
-  generateMapDataTextures, createHDMesh, createSDMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
-} from "../image/generate-map";
+  generateMapDataTextures, createTerrainGeometry, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
+} from ".";
 
-import { loadTilesetFiles } from "./load-tileset-files";
-import settingsStore from "../stores/settings-store";
-import * as sd from "../image/generate-map/sd";
-import * as hd from "../image/generate-map/hd";
-import { Layers } from "../render"
-import { Mesh, Vector3 } from "three";
-import assert from "assert";
-import * as log from "../ipc";
-import renderer from "../render/renderer";
+import { loadTilesetFiles } from "../../assets/load-tileset-files";
+import settingsStore from "../../stores/settings-store";
+import * as sd from "./sd";
+import * as hd from "./hd";
+import { Vector3 } from "three";
+import * as log from "../../ipc";
+import renderer from "../../render/renderer";
 
 export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
   const settings = settingsStore().data;
@@ -50,8 +48,6 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     levels,
   });
 
-  let terrain = new Mesh();
-
   const high = renderer.getWebGLRenderer().capabilities.getMaxAnisotropy();
   const anisotropies = {
     max: high,
@@ -61,37 +57,26 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
 
   const anisotropy = anisotropies[settings.graphics.anisotropy as keyof typeof anisotropies];
 
-  if (renderSD) {
-    assert(creepGrpSD);
-    const creepTexture = sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16);
-    const creepEdgesTexture = await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette);
-    terrain = await createSDMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas);
+  const creepTexture = renderSD ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, settings.assets.terrain);
 
-    creepTexture.texture.anisotropy = anisotropy;
-    creepEdgesTexture.texture.anisotropy = anisotropy;
-    dataTextures.sdMap.anisotropy = anisotropy;
-  } else {
-    assert(hdTiles);
-    assert(creepGrpHD);
+  const creepEdgesTexture = renderSD ? await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette) : hd.ddsToCreepEdgesTexture(creepGrpHD, settings.assets.terrain);
 
-    const creepTexture = hd.ddsToCreepTexture(hdTiles, tilegroupU16);
-    const creepEdgesTexture = hd.ddsToCreepEdgesTexture(creepGrpHD);
-    const hdQuartileTextures = hd.mapDataToTextures(mapWidth, mapHeight,
-      hdTiles,
-      bitmaps.mapTilesData
-    );
-    terrain = await createHDMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, hdQuartileTextures);
+  const textures = renderSD ? sd.createSdQuartiles(mapWidth, mapHeight, bitmaps.diffuse) : hd.createHdQuartiles(mapWidth, mapHeight,
+    hdTiles,
+    bitmaps.mapTilesData,
+    settings.assets.terrain
+  );
 
-    creepTexture.texture.anisotropy = anisotropy;
-    creepEdgesTexture.texture.anisotropy = anisotropy;
-    for (const row of hdQuartileTextures.mapQuartiles) {
-      for (const texture of row) {
-        texture.anisotropy = anisotropy;
-      }
+  const terrain = await createTerrainGeometry(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
+
+  creepTexture.texture.anisotropy = anisotropy;
+  creepEdgesTexture.texture.anisotropy = anisotropy;
+
+  for (const row of textures.mapQuartiles) {
+    for (const texture of row) {
+      texture.anisotropy = anisotropy;
     }
   }
-
-  terrain.layers.enable(Layers.Clickable);
 
   const getTerrainY = genTerrainY(
     displacementImages.displacementImage,

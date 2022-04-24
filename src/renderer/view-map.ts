@@ -168,7 +168,6 @@ async function TitanReactorMap(
 
 
   let last = 0;
-  let frame = 0;
   let frameElapsed = 0;
   renderer.targetSurface = gameSurface;
   renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
@@ -177,10 +176,6 @@ async function TitanReactorMap(
     const delta = elapsed - last;
     frameElapsed += delta;
     if (frameElapsed > 42) {
-      frame++;
-      if (frame % 8 === 0) {
-        scene.incrementTileAnimation();
-      }
       for (const sprite of sprites) {
         sprite.update(0, 0);
       }

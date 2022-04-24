@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
 import { MapBitmapsResult } from "./generate-map-data-bitmaps";
 
-export interface DataTexturesResult {
+export interface MapDataTextures {
     sdMap: THREE.DataTexture,
     roughnessMap: THREE.DataTexture,
     mapTilesMap: THREE.DataTexture,
@@ -33,7 +33,7 @@ export const generateMapDataTextures = async ({
         mapHeight: number,
         mapData: MapBitmapsResult,
     }
-): Promise<DataTexturesResult> => {
+): Promise<MapDataTextures> => {
 
     //#region texture definitions
     const sdMap = new THREE.DataTexture(

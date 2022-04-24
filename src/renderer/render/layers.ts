@@ -9,6 +9,5 @@ export enum Layers {
     Player8,
     Resources,
     Doodads,
-    Clickable,
     PictureInPicture
 }

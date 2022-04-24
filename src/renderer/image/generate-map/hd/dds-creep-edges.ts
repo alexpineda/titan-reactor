@@ -1,4 +1,4 @@
-import { DDSGrpFrameType, WrappedTexture } from "common/types";
+import { AssetTextureResolution, DDSGrpFrameType, WrappedTexture } from "common/types";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 import {
   MeshBasicMaterial,
@@ -14,7 +14,7 @@ import {
   NearestFilter
 } from "three";
 
-import { createCompressedTexture, PX_PER_TILE_HD } from "./common";
+import { createCompressedTexture } from "./common";
 
 const bottomEdges = [0, 1, 2, 3];
 const rightEdges = [4];
@@ -22,13 +22,15 @@ const topEdges = [6, 11, 17, 21];
 const leftEdges = [15];
 
 // generates a single creep texture for the edges from 0 - 15
-export const ddsToCreepEdgesTexture = (buffer: Buffer): WrappedTexture => {
+export const ddsToCreepEdgesTexture = (buffer: Buffer, res: AssetTextureResolution): WrappedTexture => {
   const renderer = new WebGLRenderer({
     depth: false,
     stencil: false,
     alpha: true,
   });
   renderer.autoClear = false;
+  const PX_PER_TILE_HD = res === AssetTextureResolution.HD ? 128 : 64;
+  const edgeScale = res === AssetTextureResolution.HD ? 256 : 128;
 
   const creepGrp = parseDdsGrpWithFrameData(buffer);
 
@@ -39,28 +41,28 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer): WrappedTexture => {
     if (topEdges.includes(tileId)) {
       return {
         x,
-        y: grp.h / 256,
+        y: grp.h / edgeScale,
       };
     }
 
     if (bottomEdges.includes(tileId)) {
       return {
         x,
-        y: 1 - grp.h / 256,
+        y: 1 - grp.h / edgeScale,
       };
     }
 
     if (leftEdges.includes(tileId)) {
       return {
         y,
-        x: 1 - grp.w / 256,
+        x: 1 - grp.w / edgeScale,
       };
     }
 
     if (rightEdges.includes(tileId)) {
       return {
         y,
-        x: grp.w / 256,
+        x: grp.w / edgeScale,
       };
     }
 
@@ -131,5 +133,5 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer): WrappedTexture => {
   mat.dispose();
   renderer.dispose();
 
-  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD };
+  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD, pxPerTile: PX_PER_TILE_HD };
 };

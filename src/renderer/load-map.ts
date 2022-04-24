@@ -6,7 +6,7 @@ import {
 } from "./core";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
-import loadTerrain from "./assets/load-terrain";
+import loadTerrain from "./image/generate-map/load-terrain";
 import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store";
 import screenStore from "./stores/screen-store";

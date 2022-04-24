@@ -55,11 +55,11 @@ export const loadTilesetFiles = async (
     (await readFileFn(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
-  let hdTiles, creepGrpHD, creepGrpSD;
+  let hdTiles, creepGrpHD;
 
-  if (terrainTextureResolution === AssetTextureResolution.SD) {
-    creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
-  } else if (terrainTextureResolution === AssetTextureResolution.HD2) {
+  const creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
+
+  if (terrainTextureResolution === AssetTextureResolution.HD2) {
     hdTiles = await readFileFn(`HD2/TileSet/${tilesetName}.dds.vr4`)
 
     creepGrpHD =

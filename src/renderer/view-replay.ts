@@ -1487,9 +1487,6 @@ async function TitanReactorGame(
       buildCreep(currentBwFrame);
 
       gameStatePosition.bwGameFrame = currentBwFrame.frame;
-      if (gameStatePosition.bwGameFrame % 8 === 0) {
-        scene.incrementTileAnimation();
-      }
 
       buildUnits(
         units,
