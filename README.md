@@ -1,15 +1,30 @@
-# Titan Reactor 
+<br />
 
-Titan Reactor is a fresh take on observing matchups in our favorite game, built with openbw, typescript and three.js!
+<h1 align="center">Titan Reactor</h1>
+<h3 align="center">OpenBW game renderer with plugins</h3>
 
-![ezgif-5-c2c910945a](https://user-images.githubusercontent.com/586716/153120765-4fa4faf4-0e46-42b9-ba08-10ab5ace2f20.gif)
+<br>
 
-- [Join our Discord](http://discord.imbateam.gg/)
+<p align="center">
+  <a href="https://twitter.com/imbateam" target="_blank">
+    <img src="https://img.shields.io/twitter/follow/imbateam?label=%40imbateam&style=flat&colorA=000000&colorB=000000&logo=twitter&logoColor=000000" alt="Chat on Twitter">
+  </a>
+  <a href="https://discord.gg/ZZjjNvJ" target="_blank">
+    <img src="https://img.shields.io/discord/835029442987950091?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=000000" alt="Chat on Twitter">
+  </a>
+</p>
+
+<br />
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/586716/153120765-4fa4faf4-0e46-42b9-ba08-10ab5ace2f20.gif" />
+</p>
+<br/>
 
 ### Requirements
 - A purchased copy of Starcraft Remastered
 - Microsoft Windows
-- Suggested 4GB Ram & VRam
+- Suggested 4GB Ram
 
 ### Downloads
 - Available via the [Releases Page](https://github.com/imbateam-gg/titan-reactor/releases)
