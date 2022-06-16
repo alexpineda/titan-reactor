@@ -138,7 +138,7 @@
         "babel-loader": "^8.2.2",
         "benny": "^3.7.1",
         "dotenv": "^8.2.0",
-        "electron": "17.1.2",
+        "electron": "17.2.0",
         "electron-builder": "^22.8.1",
         "electron-webpack": "^2.8.2",
         "electron-webpack-ts": "^4.0.1",
