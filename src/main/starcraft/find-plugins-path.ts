@@ -1,10 +1,11 @@
 import fileExists from "common/utils/file-exists";
 import path from "path";
-import { app } from "electron";
 import { promises as fsPromises } from "fs";
+import getUserDataPath from "../get-user-data-path";
 
 export async function findPluginsPath() {
-    const pluginsPath = path.join(app.getPath("documents"), "Titan Reactor", "Plugins");
+    const pluginsPath = path.join(getUserDataPath(), "plugins");
+
     if (await fileExists(pluginsPath)) {
         return pluginsPath;
     } else {

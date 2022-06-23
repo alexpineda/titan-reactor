@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { strict as assert } from "assert";
-import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster } from "three";
+import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
@@ -1600,11 +1600,23 @@ async function TitanReactorGame(
 
   {
     const unsub = useSettingsStore.subscribe((state) => {
+      const oldTerrainSetting = settings.graphics.terrainShadows;
+
       Object.assign(settings, state.data);
       renderer.gamma = settings.graphics.gamma;
       audioMixer.masterVolume = settings.audio.global;
       audioMixer.musicVolume = settings.audio.music;
       audioMixer.soundVolume = settings.audio.sound;
+
+      if (oldTerrainSetting !== settings.graphics.terrainShadows) {
+        terrain.terrain.traverse(o => {
+          if (o instanceof Mesh) {
+            o.castShadow = settings.graphics.terrainShadows;
+            o.receiveShadow = settings.graphics.terrainShadows;
+          }
+        })
+      }
+
     });
     janitor.callback(unsub);
   }

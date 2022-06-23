@@ -51,6 +51,7 @@ app.get('*', async function (req, res) {
         res.setHeader("Content-Type", "application/javascript");
 
         if (transpileErrors.length === 0) {
+            res.setHeader("access-control-allow-origin", "*");
             res.send(content);
         } else {
             browserWindows.main?.webContents?.send(LOG_MESSAGE, `@plugin-server: transpile error - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`, "error");

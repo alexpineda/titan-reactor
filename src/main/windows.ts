@@ -1,8 +1,7 @@
 import { BrowserView, BrowserWindow } from "electron";
 import isDev from "electron-is-dev";
 import path from "path";
-import { format as formatUrl } from "url";
-
+import { pathToFileURL } from "url";
 
 const browserWindows = {} as {
   main: null | BrowserWindow;
@@ -51,18 +50,13 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
   }
 
   if (isDev) {
-    w.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}${query}`);
+    w.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`);
   } else {
-    w.loadURL(
-      formatUrl({
-        pathname: path.join(__dirname, `index.html${query}`),
-        protocol: "file",
-        slashes: true,
-      })
-    );
+    w.loadURL(pathToFileURL(path.join(__dirname, 'index.html')).toString());
   }
 
   w.on("ready-to-show", () => {
+    w.webContents.send("temp-load-content", query);
     w.show();
   });
 

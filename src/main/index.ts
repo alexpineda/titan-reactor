@@ -47,7 +47,7 @@ const createIscriptahWindow = () => {
   }
 
   windows.iscriptah = createWindow({
-    query: "?iscriptah",
+    query: "iscriptah",
     onClose: () => {
       windows.iscriptah = null;
     },
@@ -69,12 +69,13 @@ const createConfigurationWindow = () => {
 
 
   windows.config = createWindow({
-    query: "?config",
+    query: "config",
     onClose: () => {
       windows.config = null;
     },
     nodeIntegration: true,
-    // removeMenu: true,
+    removeMenu: true,
+    backgroundThrottling: true,
     backgroundColor: "#000000",
     devTools: true
   });
@@ -119,7 +120,6 @@ if (!gotTheLock) {
     await settings.init(settingsPath);
 
     createMainWindow();
-    createConfigurationWindow();
 
     // on window ready send bootup logs
     const _readyToShowLogs = () => {
