@@ -39,6 +39,24 @@ const Component = ({ component, JSXElement }) => {
 };
 
 const _firstInstall = (store) => store.firstInstall;
+
+const orderSort = (a, b) => {
+  return a.component.order - b.component.order;
+};
+
+const styleCenterText = {
+  position: "absolute",
+  zIndex: "-999",
+  left: "50%",
+  top: "50%",
+  transform: `translate(-50%, -50%)`,
+  cursor: "wait",
+  color: "#ffeedd",
+  fontFamily: "Conthrax",
+  animation: "var(--animation-blink) forwards",
+  animationDuration: "10s",
+};
+
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
@@ -48,27 +66,21 @@ export default ({ components }) => {
     if (!appLoaded && screen !== "@home/loading") {
       setAppLoaded(true);
     }
+
+    if (screen.startsWith("@home")) {
+      document.body.style.backdropFilter =
+        "blur(20px) grayscale(0.2) contrast(0.5) brightness(0.5)";
+      document.body.style.background =
+        "url(./runtime/logo.png) center center / cover";
+    } else {
+      document.body.style.backdropFilter = "";
+      document.body.style.background = "";
+    }
   }, [screen]);
 
   const screenFilter = ({ component }) =>
     appLoaded &&
     (component.screen === undefined || component.screen === screen);
-
-  const orderSort = (a, b) => {
-    return a.component.order - b.component.order;
-  };
-
-  const styleCenterText = {
-    position: "absolute",
-    zIndex: "-999",
-    left: "50%",
-    top: "50%",
-    transform: `translate(-50%, -50%)`,
-    cursor: "wait",
-    color: "#ffeedd",
-    fontFamily: "Conthrax",
-    animation: "var(--animation-blink) forwards",
-  };
 
   const hasAnyComponents = Object.keys(components).reduce((acc, key) => {
     return acc || Boolean(components[key]);
@@ -88,13 +100,12 @@ export default ({ components }) => {
     >
       {(!hasAnyComponents || !appLoaded) && !error && (
         <div style={styleCenterText}>
-          <p style={{ fontSize: "var(--font-size-8)", transform: "scale(2)" }}>
-            암흑 물질
-          </p>
+          <p style={{ fontSize: "var(--font-size-8)" }}>Loading...</p>
           {firstInstall && <p>Installing Default Plugins and Restarting.</p>}
         </div>
       )}
       {error && <GlobalErrorState error={error} />}
+
       <div
         id="top-container"
         style={{
