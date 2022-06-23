@@ -6,6 +6,7 @@ import { app, shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
+import semver from 'semver';
 
 import { InitializedPluginPackage } from "common/types";
 import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
@@ -16,7 +17,10 @@ import settings from "../settings/singleton"
 import withErrorMessage from 'common/utils/with-error-message';
 import log from "../log"
 import fileExists from 'common/utils/file-exists';
+import packagejson from "../../../package.json";
 
+const _builtInsPath = path.resolve(__static, "plugins-runtime", "builtins");
+const _builtInPlugins: string[] = [];
 
 let _enabledPluginPackages: InitializedPluginPackage[];
 let _disabledPluginPackages: InitializedPluginPackage[];
@@ -90,6 +94,18 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
         if (plugin === null) {
             continue;
         }
+
+        const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
+        const pluginApiVersion = plugin.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
+
+        //TODO: disable plugin in settings if version is not compatible
+        if (semver.major(titanReactorApiVersion) <
+            semver.major(pluginApiVersion)) {
+            log.error(
+                `@load-plugins/load-plugin-packages: Plugin ${plugin.name} requires Titan Reactor API version ${pluginApiVersion} but the current version is ${titanReactorApiVersion}`
+            );
+        }
+
         if (settings.get().plugins.enabled.includes(plugin.name)) {
             _enabledPluginPackages.push(plugin);
         } else {
@@ -98,12 +114,21 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
     }
 }
 
-const DEFAULT_PACKAGES: string[] = ["@titan-reactor-plugins/clock",
+const DEFAULT_PACKAGES: string[] = [
+    "@titan-reactor-plugins/global-settings",
+    "@titan-reactor-plugins/clock",
     "@titan-reactor-plugins/default-screens",
     "@titan-reactor-plugins/player-colors",
-    "@titan-reactor-plugins/global-settings",
+    "@titan-reactor-plugins/replay-control",
+    "@titan-reactor-plugins/camera-default",
+    "@titan-reactor-plugins/camera-overview",
+    "@titan-reactor-plugins/camera-battle",
     "@titan-reactor-plugins/players-bar",
-    "@titan-reactor-plugins/replay-control"];
+    "@titan-reactor-plugins/recently-dead",
+    "@titan-reactor-plugins/chat-display",
+    "@titan-reactor-plugins/unit-selection-display",
+    "@titan-reactor-plugins/production-bar"
+];
 
 
 export default async (pluginDirectory: string) => {
@@ -112,11 +137,14 @@ export default async (pluginDirectory: string) => {
     _pluginDirectory = pluginDirectory;
 
     try {
-        await loadPluginPackages(await readFolder(pluginDirectory));
+        const folders = [...(await readFolder(_builtInsPath)), ...(await readFolder(pluginDirectory))];
+        await loadPluginPackages(folders);
 
         if (_enabledPluginPackages.length === 0 && _disabledPluginPackages.length === 0) {
             browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);
             const enablePluginIds = [];
+
+            enablePluginIds.push(..._builtInPlugins);
             for (const defaultPackage of DEFAULT_PACKAGES) {
                 const plugin = await installPlugin(defaultPackage);
                 if (plugin) {

@@ -1,16 +1,16 @@
 <br />
 
 <h1 align="center">Titan Reactor</h1>
-<h3 align="center">OpenBW game renderer with plugins</h3>
+<h3 align="center">An OpenBW game renderer with plugins. </h3>
 
 <br>
 
 <p align="center">
   <a href="https://twitter.com/imbateam" target="_blank">
-    <img src="https://img.shields.io/twitter/follow/imbateam?label=%40imbateam&style=flat&colorA=000000&colorB=000000&logo=twitter&logoColor=000000" alt="Chat on Twitter">
+    <img src="https://img.shields.io/twitter/follow/imbateam?label=%40imbateam&style=flat&colorA=000000&colorB=B7121F&logo=twitter&logoColor=B7121F" alt="Chat on Twitter">
   </a>
   <a href="https://discord.gg/ZZjjNvJ" target="_blank">
-    <img src="https://img.shields.io/discord/835029442987950091?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=000000" alt="Chat on Twitter">
+    <img src="https://img.shields.io/discord/835029442987950091?style=flat&colorA=B7121F&colorB=000000&label=discord&logo=discord&logoColor=FFFFFF" alt="Chat on Twitter">
   </a>
 </p>
 
@@ -31,7 +31,13 @@
 
 ### Developing Plugins
 
-Developing plugins for Titan Reactor is easy and requires no build tools, just a text editor is fine :) [Details here in CREATING_PLUGINS.md](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
+Plugin API Version is presently `1.0.0`
+
+Developing plugins for Titan Reactor is easy and requires no build tools! A knowledge of React, javascript, and a basic text editor is all that is needed.
+
+[See the CREATING_PLUGINS document for more details.](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
+
+
 
 ### Data Sensitivity
 
@@ -48,6 +54,8 @@ Replay information is not transmitted anywhere. Plugins may request permission t
 and then
 
 `yarn dev`
+
+To build the OpenBW WASM files, [visit the openbw fork repository](https://github.com/imbateam-gg/openbw).
 
 ### Legal
 

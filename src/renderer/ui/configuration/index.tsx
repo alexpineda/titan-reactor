@@ -31,22 +31,21 @@ const onChange = debounce(async (pluginId: string, config: any) => {
 
 const LIMIT = 1000;
 const RESTART_REQUIRED = "Restart required for new settings to take effect";
-// const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
-const SEARCH_COMMUNITY = "@titan-reactor-plugins";
+const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
+const SEARCH_OFFICIAL = "@titan-reactor-plugins";
 
 const searchPackages = async (cb: (val: search.Result[]) => void) => {
-  const communityPackages = await search(SEARCH_COMMUNITY, {
+  const officialPackages = await search(SEARCH_OFFICIAL, {
     limit: LIMIT,
   });
 
-  // TOOD: enable public packages once we properly sandbox
-  // const publicPackages =  (
-  //   await search(SEARCH_KEYWORDS, {
-  //     limit: LIMIT,
-  //   })
-  // ).filter((pkg) => !communityPackages.some((p) => p.name === pkg.name));
+  const publicPackages = (
+    await search(SEARCH_KEYWORDS, {
+      limit: LIMIT,
+    })
+  ).filter((pkg) => !officialPackages.some((p) => p.name === pkg.name));
 
-  const results = [...communityPackages];
+  const results = [...officialPackages, ...publicPackages];
   cb(results);
 };
 
@@ -354,7 +353,7 @@ const Configuration = () => {
                     onClick={async () => {
                       if (
                         confirm(
-                          "Make sure you trust the authors of this plugin before enabling it. Do you wish to continue and enable this plugin?"
+                          "Do you wish to continue and enable this plugin?"
                         )
                       ) {
                         if (

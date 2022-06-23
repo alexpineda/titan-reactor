@@ -12,6 +12,9 @@ export interface PluginPackage {
     };
     description?: string;
     repository?: string | { type?: string; url?: string };
+    peerDependencies?: {
+        [key: string]: string;
+    },
     config?: {
         system?: {
             permissions?: string[]

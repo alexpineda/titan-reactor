@@ -56,7 +56,7 @@ Plugins in Titan Reactor allow you to connect to the game to display custom char
   "version": "1.0.0",
   "keywords": ["titan-reactor-plugin"],
   "peerDependencies": {
-        "titan-reactor": "0.5.0"
+        "titan-reactor-api": "1.0.0"
   }
 }
 ```

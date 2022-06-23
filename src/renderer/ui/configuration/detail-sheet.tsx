@@ -3,6 +3,8 @@ import { Tab, Tabs } from "muicss/react";
 import ReactMarkdown from "react-markdown/index";
 import { useControls } from "leva";
 import { useEffect } from "react";
+import semver from "semver";
+import packagejson from "../../../../package.json";
 
 const permissionDescriptions = {
   "settings.write": "Allows the plugin to write to the settings file",
@@ -36,12 +38,22 @@ export default ({
     )
   );
 
+  const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
+  const pluginApiVersion =
+    pluginConfig.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
+
   return (
     <>
-      {(pluginConfig.nativeSource || permissions?.length) && (
-        <div style={{ marginTop: "1rem" }}>
-          ⚠️ Yes I trust the authors of this plugin.
-        </div>
+      {semver.major(titanReactorApiVersion) <
+        semver.major(pluginApiVersion) && (
+        <p>
+          ⚠️ This plugin is out of date. Titan Reactor Plugin API is{" "}
+          {titanReactorApiVersion} and this plugin API version is{" "}
+          {pluginApiVersion}
+        </p>
+      )}
+      {pluginConfig.name?.startsWith("@titan-reactor-plugins/") && (
+        <div style={{ marginTop: "1rem" }}>✅ This is an official plugin.</div>
       )}
       {!!permissions.length && (
         <div style={{ marginTop: "1rem" }}>

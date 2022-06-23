@@ -26,13 +26,25 @@ interface PluginPrototype {
     config?: {
         [key: string]: any
     };
+    /**
+     *SSpecial permissions specified in the package.json.
+     */
     $$permissions: {
         [key: string]: boolean
     },
+    /**
+     * Unprocessed configuration data from the package.json.
+     */
     $$config: {
         [key: string]: any
     },
+    /**
+     * Allows a plugin to update it's own config key/value store
+     */
     setConfig: (key: string, value: any) => any;
+    /**
+     * Allows a plugin to update the main application settings
+     */
     saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
 }
 
@@ -122,19 +134,24 @@ const pluginProto: PluginPrototype = {
     id: "",
     $$permissions: {},
     $$config: {},
+
     setConfig(key: string, value: any) {
         if (this.$$config?.[key]?.value !== undefined) {
             this.$$config[key].value = value;
             updatePluginsConfig(this.id, this.$$config);
         }
     },
-    saveSettings(settings: { audio?: {}, graphics?: {}, util?: {} }) {
+    saveSettings(settings: { audio?: {}, graphics?: {}, util?: {}, game?: {} }) {
         if (this.$$permissions[PERMISSION_SETTINGS_WRITE]) {
             const state = settingsStore();
             state.save({
                 audio: {
                     ...state.data.audio,
                     ...settings.audio,
+                },
+                game: {
+                    ...state.data.game,
+                    ...settings.game,
                 },
                 graphics: {
                     ...state.data.graphics,
