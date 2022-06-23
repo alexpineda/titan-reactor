@@ -5,5 +5,5 @@ export * from "./transform-level-configuration";
 export * from "./generate-map-data-bitmaps"
 export * from "./geometry-options"
 export * from "./create-displacement-images"
-export * from "./create-terrain-geometry";
+export * from "./create-terrain-mesh";
 export * from "./create-sd-mesh";

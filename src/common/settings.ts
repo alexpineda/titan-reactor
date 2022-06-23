@@ -30,6 +30,8 @@ export const defaultSettings: Settings = {
     pixelRatio: "med",
     anisotropy: "high",
     gamma: 0.9,
+    terrainChunky: true,
+    terrainShadows: true
   },
   plugins: {
     serverPort: 8080,

@@ -16,7 +16,7 @@ import {
     BlendFunction,
     ConvolutionMaterial
 } from "postprocessing";
-import { MapEffect } from "./effects/map-effect";
+import { MapEffect } from "./glsl/map-effect";
 
 import processStore, { Process } from "@stores/process-store";
 import { MapDataTextures } from "./generate-map-data-textures";

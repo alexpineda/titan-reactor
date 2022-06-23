@@ -1,6 +1,7 @@
-import { Group, Vector2, LOD, MeshStandardMaterial, Mesh } from "three";
+import { Group, Vector2, LOD, MeshStandardMaterial, Mesh, EdgesGeometry, LineSegments, LineBasicMaterial } from "three";
 
-import { WrappedTexture, WrappedQuartileTextures as MapQuartileTextures } from "common/types";
+
+import { WrappedTexture, WrappedQuartileTextures } from "common/types";
 import processStore, { Process } from "@stores/process-store";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
@@ -11,7 +12,7 @@ import hdHeaderFrag from "./glsl/hd-header.frag";
 import { GeometryOptions } from "./geometry-options";
 import range from "common/utils/range";
 
-export const createTerrainGeometry = async (
+export const createTerrainMesh = async (
     mapWidth: number,
     mapHeight: number,
     creepTexture: WrappedTexture,
@@ -19,7 +20,9 @@ export const createTerrainGeometry = async (
     geomOptions: GeometryOptions,
     { creepEdgesTextureUniform, creepTextureUniform }: MapDataTextures,
     displaceCanvas: HTMLCanvasElement,
-    mapTextures: MapQuartileTextures
+    mapTextures: WrappedQuartileTextures,
+    terrainChunky: boolean,
+    terrainShadows: boolean
 ) => {
     const terrain = new Group();
 
@@ -44,7 +47,6 @@ export const createTerrainGeometry = async (
                 //2 -> 4
 
                 const g = createDisplacementGeometryQuartile(
-                    null,
                     qw,
                     qh,
                     qw * geomOptions.displaceVertexScale / levelFactor,
@@ -58,6 +60,9 @@ export const createTerrainGeometry = async (
                     qy * qh * geomOptions.displaceDimensionScale
                 );
 
+                if (terrainChunky) {
+                    g.computeVertexNormals();
+                }
 
                 const mat = new MeshStandardMaterial({
                     map: mapTextures.mapQuartiles[qx][qy],
@@ -121,9 +126,19 @@ export const createTerrainGeometry = async (
                     },
                 });
 
+                const edges = new EdgesGeometry(g);
+                const line = new LineSegments(edges, new LineBasicMaterial({ color: 0xffffff }));
+                line.position.set(
+                    qx * qw + qw / 2 - mapWidth / 2,
+                    -(qy * qh + qh / 2) + mapHeight / 2,
+                    0
+                );
+                line.visible = false;
+                terrain.add(line);
+
                 const terrainQuartile = new Mesh(g, mat);
-                terrainQuartile.castShadow = true;
-                terrainQuartile.receiveShadow = true;
+                terrainQuartile.castShadow = terrainShadows;
+                terrainQuartile.receiveShadow = terrainShadows;
 
                 terrainQuartile.position.set(
                     qx * qw + qw / 2 - mapWidth / 2,
@@ -147,4 +162,4 @@ export const createTerrainGeometry = async (
 
     return terrain;
 };
-export default createTerrainGeometry;
+export default createTerrainMesh;

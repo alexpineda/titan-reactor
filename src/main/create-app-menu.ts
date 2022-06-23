@@ -7,7 +7,7 @@ import settings from "./settings/singleton"
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
-export const logFilePath = path.join(getUserDataPath(), "logs", "app");
+export const logFilePath = path.join(getUserDataPath(), "logs");
 
 export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) => {
 
@@ -107,6 +107,18 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
           label: "Discord",
           click: async () => {
             await shell.openExternal("http://discord.imbateam.gg");
+          },
+        },
+        {
+          label: "Twitter",
+          click: async () => {
+            await shell.openExternal("https://twitter.com/imbateam");
+          },
+        },
+        {
+          label: "Patreon",
+          click: async () => {
+            await shell.openExternal("https://www.patreon.com/imbateam");
           },
         }
       ],

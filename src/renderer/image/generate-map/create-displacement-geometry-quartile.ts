@@ -1,7 +1,7 @@
-import { BufferAttribute, BufferGeometry, PlaneBufferGeometry, Vector2, Vector3 } from "three";
+import { BufferAttribute, PlaneBufferGeometry, Vector2, Vector3 } from "three";
+import simplifyGeometry from "./simplify-geometry";
 
 export const createDisplacementGeometryQuartile = (
-  existingGeom: BufferGeometry | null,
   width: number,
   height: number,
   widthSegments: number,
@@ -15,7 +15,6 @@ export const createDisplacementGeometryQuartile = (
   offY = 0
 ) => {
   const geom =
-    existingGeom ||
     new PlaneBufferGeometry(width, height, widthSegments, heightSegments);
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -51,9 +50,10 @@ export const createDisplacementGeometryQuartile = (
     pos.setXYZ(i, p.x, p.y, p.z);
   }
   pos.needsUpdate = true;
-  geom.computeVertexNormals();
 
-  return geom;
+  const simplifiedGeom = simplifyGeometry(geom, widthSegments, heightSegments);
+
+  return simplifiedGeom;
 };
 
 function getDisplacement(

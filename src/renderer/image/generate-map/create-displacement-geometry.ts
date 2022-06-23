@@ -1,7 +1,7 @@
 import { BufferAttribute, BufferGeometry, PlaneBufferGeometry, Vector2, Vector3 } from "three";
 
 export const createDisplacementGeometry = (
-  existingGeom: BufferGeometry,
+  existingGeom: BufferGeometry | null,
   width: number,
   height: number,
   widthSegments: number,

@@ -3,7 +3,7 @@ import { readCascFile } from "common/utils/casclib";
 import { AssetTextureResolution, PxToGameUnit, TerrainInfo } from "common/types";
 
 import {
-  generateMapDataTextures, createTerrainGeometry, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
+  generateMapDataTextures, createTerrainMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
 } from ".";
 
 import { loadTilesetFiles } from "../../assets/load-tileset-files";
@@ -67,7 +67,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     settings.assets.terrain
   );
 
-  const terrain = await createTerrainGeometry(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
+  const terrain = await createTerrainMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures, settings.graphics.terrainChunky, settings.graphics.terrainShadows);
 
   creepTexture.texture.anisotropy = anisotropy;
   creepEdgesTexture.texture.anisotropy = anisotropy;

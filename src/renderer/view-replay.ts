@@ -99,7 +99,7 @@ async function TitanReactorGame(
   commandsStream: CommandsStream
 ) {
   let settings = settingsStore().data;
-  commandsStream;
+
 
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
