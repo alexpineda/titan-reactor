@@ -60,6 +60,7 @@ app.get('*', async function (req, res) {
         }
 
     } else {
+        res.setHeader("access-control-allow-origin", "*");
         res.sendFile(filepath);
     }
 

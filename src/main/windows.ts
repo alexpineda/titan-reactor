@@ -1,4 +1,4 @@
-import { BrowserView, BrowserWindow } from "electron";
+import { BrowserWindow } from "electron";
 import isDev from "electron-is-dev";
 import path from "path";
 import { pathToFileURL } from "url";
@@ -74,41 +74,5 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
   });
 
   return w;
-}
-
-
-export const createBrowserView = (createWindowArgs: CreateWindowArgs) => {
-  const { query, backgroundColor, nodeIntegration } = createDefaultArgs(createWindowArgs);
-
-  const view = new BrowserView({
-    webPreferences: {
-      nodeIntegration,
-      nodeIntegrationInWorker: false,
-      nodeIntegrationInSubFrames: false,
-      webSecurity: true,
-      spellcheck: false,
-      enableWebSQL: false,
-      contextIsolation: false,
-      defaultFontSize: 14,
-      backgroundThrottling: true,
-    }
-  });
-  view.setBackgroundColor(backgroundColor);
-  view.setBounds({ x: 0, y: 0, width: 600, height: 400 });
-  // view.setAutoResize({ width: true, height: true });
-
-  if (isDev) {
-    view.webContents.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}${query}`);
-  } else {
-    view.webContents.loadURL(
-      formatUrl({
-        pathname: path.join(__dirname, `index.html${query}`),
-        protocol: "file",
-        slashes: true,
-      })
-    );
-  }
-
-  return view;
 }
 export default browserWindows;

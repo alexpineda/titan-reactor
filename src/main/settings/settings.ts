@@ -172,6 +172,7 @@ export class Settings {
    * @returns a JS object with default settings
    */
   async createDefaults(): Promise<SettingsType> {
+
     const derivedSettings = {
       ...defaultSettings,
       language: supportedLanguages.find(s => s === String(getEnvLocale()))

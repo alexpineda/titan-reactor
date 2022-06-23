@@ -19,9 +19,6 @@ import log from "../log"
 import fileExists from 'common/utils/file-exists';
 import packagejson from "../../../package.json";
 
-const _builtInsPath = path.resolve(__static, "plugins-runtime", "builtins");
-const _builtInPlugins: string[] = [];
-
 let _enabledPluginPackages: InitializedPluginPackage[];
 let _disabledPluginPackages: InitializedPluginPackage[];
 
@@ -120,7 +117,7 @@ const DEFAULT_PACKAGES: string[] = [
     "@titan-reactor-plugins/default-screens",
     "@titan-reactor-plugins/player-colors",
     "@titan-reactor-plugins/replay-control",
-    "@titan-reactor-plugins/camera-default",
+    "@titan-reactor-plugins/camera-standard",
     "@titan-reactor-plugins/camera-overview",
     "@titan-reactor-plugins/camera-battle",
     "@titan-reactor-plugins/players-bar",
@@ -137,14 +134,16 @@ export default async (pluginDirectory: string) => {
     _pluginDirectory = pluginDirectory;
 
     try {
-        const folders = [...(await readFolder(_builtInsPath)), ...(await readFolder(pluginDirectory))];
+        const folders = await readFolder(pluginDirectory);
         await loadPluginPackages(folders);
 
+        console.log("@load-plugins/load-configs: Loaded plugins:", _enabledPluginPackages, _disabledPluginPackages);
         if (_enabledPluginPackages.length === 0 && _disabledPluginPackages.length === 0) {
-            browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);
+            setTimeout(() => {
+                browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);
+            }, 1000);
             const enablePluginIds = [];
 
-            enablePluginIds.push(..._builtInPlugins);
             for (const defaultPackage of DEFAULT_PACKAGES) {
                 const plugin = await installPlugin(defaultPackage);
                 if (plugin) {

@@ -22,7 +22,7 @@ export default ({
   useEffect(() => {
     // on mount clear the default leva store
     //@ts-ignore
-    __STORE.dispose();
+    window.__STORE && window.__STORE.dispose();
   }, []);
 
   for (const [folder, data] of controls) {

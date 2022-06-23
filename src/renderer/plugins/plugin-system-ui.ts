@@ -123,23 +123,25 @@ export class PluginSystemUI {
 
             if (releases.length) {
                 const latestRelease = releases.find((p: any) => !p.prerelease); //find first non-pre-release
-                if (semver.gt(latestRelease.name.substring(1), packageJson.version)) {
-                    this.sendMessage({
-                        type: SYSTEM_EVENT_UPDATE_AVAILABLE,
-                        payload: {
-                            version: latestRelease.name,
-                            url: latestRelease.html_url,
-                        },
-                    });
-                }
-
-                const _onDownloadUpdate = (event: MessageEvent) => {
-                    if (event.data === "system:download-update") {
-                        downloadUpdate(latestRelease.html_url)
+                if (latestRelease) {
+                    if (semver.gt(latestRelease.name.substring(1), packageJson.version)) {
+                        this.sendMessage({
+                            type: SYSTEM_EVENT_UPDATE_AVAILABLE,
+                            payload: {
+                                version: latestRelease.name,
+                                url: latestRelease.html_url,
+                            },
+                        });
                     }
-                };
-                window.addEventListener("message", _onDownloadUpdate);
-                this.#_janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
+
+                    const _onDownloadUpdate = (event: MessageEvent) => {
+                        if (event.data === "system:download-update") {
+                            downloadUpdate(latestRelease.html_url)
+                        }
+                    };
+                    window.addEventListener("message", _onDownloadUpdate);
+                    this.#_janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
+                }
             }
 
 
