@@ -30,7 +30,7 @@ export const defaultSettings: Settings = {
     pixelRatio: "med",
     anisotropy: "high",
     gamma: 0.9,
-    terrainChunky: true,
+    terrainChunky: false,
     terrainShadows: true
   },
   plugins: {
