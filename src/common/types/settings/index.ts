@@ -32,6 +32,7 @@ export type Settings = {
     },
     util: {
         sanityCheckReplayCommands: boolean,
+        debugMode: boolean
     },
     plugins: {
         serverPort: number;

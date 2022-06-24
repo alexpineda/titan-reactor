@@ -11,8 +11,11 @@ import {
 } from "postprocessing";
 import rendererIsDev from "../utils/renderer-is-dev";
 import CanvasTarget from "../image/canvas/canvas-target";
+import settingsStore from "@stores/settings-store";
 
 const createWebGLRenderer = () => {
+    let settings = settingsStore().data;
+
     const renderer = new WebGLRenderer({
         powerPreference: "high-performance",
         preserveDrawingBuffer: false,
@@ -21,7 +24,7 @@ const createWebGLRenderer = () => {
         depth: false,
     });
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = rendererIsDev;
+    renderer.debug.checkShaderErrors = rendererIsDev || settings.util.debugMode;
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;

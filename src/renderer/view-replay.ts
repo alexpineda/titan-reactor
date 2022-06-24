@@ -100,7 +100,6 @@ async function TitanReactorGame(
 ) {
   let settings = settingsStore().data;
 
-
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
   assert(openBw.wasm);

@@ -24,6 +24,7 @@ export const defaultSettings: Settings = {
   },
   util: {
     sanityCheckReplayCommands: true,
+    debugMode: false
   },
   graphics: {
     antialias: true,

@@ -18,12 +18,13 @@ interface CreateWindowArgs {
   backgroundColor?: string;
   nodeIntegration?: boolean;
   backgroundThrottling?: boolean;
+  debugMode?: boolean;
 }
 
 const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true }, args);
 
 export const createWindow = (createWindowArgs: CreateWindowArgs) => {
-  const { onClose, query, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling } = createDefaultArgs(createWindowArgs);
+  const { onClose, query, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, debugMode } = createDefaultArgs(createWindowArgs);
 
   const w = new BrowserWindow({
     width: 800,
@@ -62,7 +63,7 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
 
   w.on("closed", onClose);
 
-  if (isDev && devTools) {
+  if ((isDev || debugMode) && devTools) {
     w.webContents.openDevTools();
   }
 

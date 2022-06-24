@@ -1,4 +1,4 @@
-import { transformAsync } from "@babel/core";
+import { createConfigItem, transformAsync } from "@babel/core";
 
 export interface TransformSyntaxError extends Error {
   message: string;
@@ -10,14 +10,15 @@ export interface TransformSyntaxError extends Error {
 }
 
 export default async (
+  filename: string,
   content: string,
   transpileErrors: TransformSyntaxError[]
 ) => {
   try {
     const result = await transformAsync(content, {
+      filename,
       presets: [
-
-        "@babel/preset-react",
+        createConfigItem(require("@babel/preset-react")),
       ],
       configFile: false,
       browserslistConfigFile: false,

@@ -11,14 +11,10 @@ export type GameStore = {
   setDimensions: (dimensions: MinimapDimensions) => void;
   setDisposeGame: (game: () => void) => void;
   disposeGame: () => void;
-  log: string[][],
-  addLog: (log: string, color?: string) => void;
-  clearLog: () => void;
   gameDisposer?: () => void;
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  log: [],
   assets: null,
   dimensions: {
     minimapEnabled: false,
@@ -33,10 +29,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     gameDisposer && gameDisposer();
     set({ gameDisposer: undefined });
   },
-  addLog: (item, color = "white") => {
-    set({ log: [...get().log, [item, color]].slice(-10) });
-  },
-  clearLog: () => set({ log: [] }),
 }));
 
 export default () => useGameStore.getState();

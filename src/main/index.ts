@@ -16,7 +16,7 @@ const settingsPath = path.join(getUserDataPath(), "settings.json");
 
 const gotTheLock = app.requestSingleInstanceLock();
 
-const createMainWindow = () => {
+const createMainWindow = (debugMode = false) => {
   if (windows.main) {
     if (windows.main.isMinimized()) windows.main.restore()
     windows.main.focus()
@@ -32,12 +32,12 @@ const createMainWindow = () => {
     devTools: true,
     backgroundThrottling: false,
     hideMenu: true,
-    removeMenu: false
+    removeMenu: false,
+    debugMode
   });
   windows.main.maximize();
 
 }
-
 
 const createIscriptahWindow = () => {
   if (windows.iscriptah) {
@@ -119,7 +119,7 @@ if (!gotTheLock) {
   app.on("ready", async () => {
     await settings.init(settingsPath);
 
-    createMainWindow();
+    createMainWindow(settings.get().util.debugMode);
 
     // on window ready send bootup logs
     const _readyToShowLogs = () => {
