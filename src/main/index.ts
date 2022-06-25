@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, globalShortcut, dialog } from "electron";
+import { app, powerSaveBlocker, globalShortcut, dialog, nativeTheme } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -92,6 +92,8 @@ if (!gotTheLock) {
   app.commandLine.appendSwitch("force_high_performance_gpu");
   app.commandLine.appendSwitch("disable-xr-sandbox");
   app.commandLine.appendSwitch("strict-origin-isolation");
+
+  nativeTheme.themeSource = "light";
 
   createAppMenu(() =>
     createConfigurationWindow()

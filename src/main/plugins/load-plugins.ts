@@ -2,7 +2,7 @@ import PackageJson from '@npmcli/package-json';
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import { app, shell } from 'electron';
+import { app, dialog, shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
@@ -19,8 +19,8 @@ import log from "../log"
 import fileExists from 'common/utils/file-exists';
 import packagejson from "../../../package.json";
 
-let _enabledPluginPackages: InitializedPluginPackage[];
-let _disabledPluginPackages: InitializedPluginPackage[];
+let _enabledPluginPackages: InitializedPluginPackage[] = [];
+let _disabledPluginPackages: InitializedPluginPackage[] = [];
 
 export const getEnabledPluginConfigs = () => _enabledPluginPackages;
 export const getDisabledPluginConfigs = () => _disabledPluginPackages;
@@ -141,11 +141,12 @@ export default async (pluginDirectory: string) => {
         if (_enabledPluginPackages.length === 0 && _disabledPluginPackages.length === 0) {
             setTimeout(() => {
                 browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);
-            }, 1000);
+            }, 200);
             const enablePluginIds = [];
 
             for (const defaultPackage of DEFAULT_PACKAGES) {
                 const plugin = await installPlugin(defaultPackage);
+                browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);
                 if (plugin) {
                     enablePluginIds.push(plugin.name);
                 } else {
@@ -154,6 +155,7 @@ export default async (pluginDirectory: string) => {
             }
             await settings.enablePlugins(enablePluginIds);
             if (enablePluginIds.length > 0) {
+                dialog.showMessageBoxSync({ message: "Plugins successfully installed. Restarting..." });
                 app.relaunch();
                 app.exit();
             } else {

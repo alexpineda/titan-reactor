@@ -10,8 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added 
   - All new and extensive plugin system:
     - Create custom HUD and UI elements using live data from the game and game files.
-    - Easy to develop with no build tools required!
-    - [CREATING PLUGINS documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
+    - [Modify the existing plugins or create your own!](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
   - Bullet Y Tracking. Watch as flying units and ground units exchange fire from their different elevations!
   - Picture In Picture mode allowing more action to be captured by a single observer
   - Follow unit command (Key F)

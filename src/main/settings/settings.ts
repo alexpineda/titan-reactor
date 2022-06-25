@@ -91,13 +91,13 @@ export class Settings {
 
     for (const file of files) {
       if (!(await fileExists(this._settings.directories[file as keyof SettingsType["directories"]]))) {
-        errors.push(`${file} directory is not a valid path`);
+        errors.push(`${file} directory is not a valid path. Please change your settings.json file to contain the valid path.`);
       }
     }
 
     const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
     if (!isCascStorage && !await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"])) {
-      errors.push("starcraft directory is not a valid path");
+      errors.push("starcraft directory is not a valid path. Please change your settings.json file to contain the valid path.");
     }
 
     const localLanguage = supportedLanguages.includes(getEnvLocale() as string)

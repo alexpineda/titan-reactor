@@ -129,7 +129,7 @@ const Configuration = () => {
                   be enabled/disabled.
                 </p>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  {settingsStore.enabledPlugins.map((plugin) => (
+                  {settingsStore.enabledPlugins.sort().map((plugin) => (
                     <Button
                       variant="flat"
                       size="small"

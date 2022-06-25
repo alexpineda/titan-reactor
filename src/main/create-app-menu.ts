@@ -5,6 +5,7 @@ import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton"
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { spawn } from "child_process";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs");
@@ -26,13 +27,6 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
           label: "Open &Replay",
           click: function () {
             showOpenReplayDialog();
-          },
-        },
-        { type: "separator" },
-        {
-          label: "&Preferences (settings.json)",
-          click: function () {
-            shell.showItemInFolder(settingsPath)
           },
         },
         { type: "separator" },
@@ -82,6 +76,12 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
           label: "View &Log File(s)",
           click: function () {
             shell.openPath(logFilePath);
+          },
+        },
+        {
+          label: "View Raw Settings (settings.json)",
+          click: function () {
+            spawn('C:\\windows\\notepad.exe', [settingsPath]);
           },
         },
         { type: "separator" },

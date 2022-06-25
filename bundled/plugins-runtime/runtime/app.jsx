@@ -101,10 +101,18 @@ export default ({ components }) => {
       {(!hasAnyComponents || !appLoaded) && !error && (
         <div style={styleCenterText}>
           <p style={{ fontSize: "var(--font-size-8)" }}>Loading...</p>
-          {firstInstall && <p>Installing Default Plugins and Restarting.</p>}
         </div>
       )}
-      {error && <GlobalErrorState error={error} />}
+      {(!hasAnyComponents || !appLoaded) && firstInstall && (
+        <div style={styleCenterText}>
+          {firstInstall && (
+            <p style={{ fontSize: "var(--font-size-6)" }}>
+              Installing Default Plugins...
+            </p>
+          )}
+        </div>
+      )}
+      {error && !firstInstall && <GlobalErrorState error={error} />}
 
       <div
         id="top-container"
