@@ -20,6 +20,8 @@ const forbidden = [
   "ArrowUp",
   "ArrowRight",
   "ArrowLeft",
+  "Backspace",
+  "Delete",
 ];
 
 export default createPlugin({
@@ -38,7 +40,7 @@ export default createPlugin({
             onKeyDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (e.code === "Delete") {
+              if (e.code === "Delete" || e.code === "Backspace") {
                 onUpdate("");
                 emitOnEditEnd();
               } else if (!forbidden.includes(e.code)) {
