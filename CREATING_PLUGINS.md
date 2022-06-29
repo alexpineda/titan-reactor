@@ -198,6 +198,10 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
       }
   ```
 
+**enums**
+- A full set of game enums like unit types
+- See the [enums](https://github.com/imbateam-gg/titan-reactor/tree/dev/src/common/enums) folder for reference
+
 ## More on registerComponent()
 
 Example: 
