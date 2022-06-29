@@ -227,15 +227,24 @@ export class PluginSystemUI {
     onFrame(gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) {
         const time = gameStatePosition.getSecond();
 
+        // update the ui every game second
         if (_lastSend[UI_PLUGIN_EVENT_ON_FRAME] !== time) {
             _lastSend[UI_PLUGIN_EVENT_ON_FRAME] = time;
 
+            // minerals, gas, supply, supply_max, worker_supply, army_supply, apm
             const playerData = openBw.wasm!.HEAP32.slice((playerDataAddr >> 2), (playerDataAddr >> 2) + (7 * 8));
+
+            // production data is 8 arrays (players) of 3 vectors (unit, upgrades, research), 
+            // each vector is first stored as 3 ints (addresses)
+            // so we first read units via copyData(), then increment to the next vector, and then read the upgrades via copyData() and so on.
+            // unit = id, count, progress
+            // upgrades = id, level, progress
+            // research = id, progress
+
             const productionData = new StdVector(openBw.wasm!.HEAP32, productionDataAddr >> 2);
 
-            // production data is a series of 3 vectors (unit, research, upgrades), 
-            // each of which are each represented in wasm as 3 ints (addresses)
 
+            //TODO: perhaps a more readable abstraction would benefit here
             for (let player = 0; player < 8; player++) {
                 _replayPosition.payload.unitProduction[player] = productionData.copyData();
                 productionData.index += 3;
@@ -250,7 +259,7 @@ export class PluginSystemUI {
             _replayPosition.payload.time = gameStatePosition.getFriendlyTime();
             _replayPosition.payload.playerData = playerData;
 
-            //TODO: add transferables
+            //TODO: add transferables (if applicable) or better yet shared arrays
             this.sendMessage(_replayPosition);
 
             // in case hp changed, etc.
@@ -258,9 +267,10 @@ export class PluginSystemUI {
             const units = useSelectedUnitsStore.getState().selectedUnits;
             // in this case only change if the empty state has changed
             if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
+                const payload = unitsPartial(units);
                 this.sendMessage({
                     type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-                    payload: unitsPartial(units)
+                    payload
                 });
                 _lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] = units.length;
             }
