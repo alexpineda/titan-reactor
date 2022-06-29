@@ -193,6 +193,7 @@ export let assets = {};
 export let enums = {};
 
 class RollingValue {
+  #lastTime = 0;
   constructor(value = 0, upSpeed = 80, downSpeed = 30) {
     this.upSpeed = upSpeed;
     this.downSpeed = downSpeed;
@@ -236,11 +237,13 @@ class RollingValue {
     this._speed = direction ? this.upSpeed : this.downSpeed;
     this._running = true;
 
-    let lastTime = 0;
+    this.#lastTime = 0;
     const raf = (elapsed) => {
-      const delta = elapsed - lastTime;
-      this.update(delta);
-      onUpdate(this._rollingValue);
+      const delta = elapsed - this.#lastTime;
+      if (this.update(delta)) {
+        this.#lastTime = elapsed;
+        onUpdate(this._rollingValue);
+      }
 
       if (this.isRunning) {
         requestAnimationFrame(raf);
