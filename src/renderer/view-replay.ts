@@ -78,6 +78,7 @@ import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
 import SelectionBars from "@core/selection-bars";
+import { StdVector } from "./buffer-view/std-vector";
 
 CameraControls.install({ THREE: THREE });
 
@@ -930,7 +931,6 @@ async function TitanReactorGame(
     }
   }
 
-  const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
 
   const drawMinimap = (() => {
     const pipColor = "#aaaaaa"
@@ -1243,7 +1243,7 @@ async function TitanReactorGame(
     let imageCounter = 1;
     sprite.position.x = _spritePos.x;
     sprite.position.z = _spritePos.z;
-    sprite.position.y = bulletY ?? _spritePos.y;
+    sprite.position.y = sprite.userData.fixedY ?? bulletY ?? _spritePos.y;
     sprite.renderOrder = spriteRenderOrder;
     sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
 
@@ -1358,6 +1358,7 @@ async function TitanReactorGame(
   const imageBufferView = new ImageBufferView(openBw.wasm);
   const bulletBufferView = new BulletsBufferView(openBw.wasm);
   const _ignoreSprites: number[] = [];
+  const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
 
   const buildSprites = (delta: number) => {
     const deleteImageCount = openBw.wasm!._counts(15);
@@ -1373,6 +1374,7 @@ async function TitanReactorGame(
       _wasReset = false;
     }
 
+    //TODO: use sprite pool
     for (let i = 0; i < deletedSpriteCount; i++) {
       const spriteIndex = openBw.wasm!.HEAP32[(deletedSpriteAddr >> 2) + i];
       unitsBySprite.delete(spriteIndex);
@@ -1402,14 +1404,14 @@ async function TitanReactorGame(
       const bullet = bulletBufferView.get(bulletAddr);
       const weapon = bwDat.weapons[bullet.weaponTypeId];
 
-      // if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
-      //   continue;
-      // }
+      if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
+        continue;
+      }
 
       buildSprite(bullet.owSprite, delta, bullet, weapon);
       _ignoreSprites.push(bullet.spriteIndex);
     }
-
+      
     // build all remaining sprites
     const spriteList = new IntrusiveList(openBw.wasm!.HEAPU32);
     const spriteTileLineSize = openBw.call!.getSpritesOnTileLineSize!();
@@ -1428,6 +1430,23 @@ async function TitanReactorGame(
 
         buildSprite(spriteData, delta);
       }
+    }
+
+    // linked sprites are a psuedo link of sprites the create their own sprites in the iscript
+    // eg. sprol, which openbw then calls create_thingy_at_image
+    // the reason we need to track this link is because some bullets create trails
+    // titan-reactor.h only sends us sprites of halo rocket trail and long bolt/gemini missile trail
+    //TODO: find a more elegant way to deal with elevation, perhaps unit/bullets track Y and others are terrain bound?
+    const linkedSpritesAddr = openBw.call!.getLinkedSpritesAddress!();
+    for (let i = 0; i < openBw.call!.getLinkedSpritesCount!(); i++) {
+        const addr = (linkedSpritesAddr >> 2) + (i << 1);
+        const parent = sprites.get(openBw.wasm!.HEAP32[addr]);
+        const child = sprites.get(openBw.wasm!.HEAP32[addr + 1]);
+        if (!child || !parent) {
+          break;
+        }
+        // keep a reference to the value so that we retain it in buildSprite() in future iterations
+        child.position.y = child.userData.fixedY = parent.position.y;
     }
   };
 

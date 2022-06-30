@@ -45,6 +45,9 @@ const openBw: OpenBWAPI = {
       getBulletsAddress: () => _wasm._get_buffer(6),
       getBulletsDeletedCount: () => _wasm._counts(18),
       getBulletsDeletedAddress: () => _wasm._get_buffer(7),
+      getLinkedSpritesAddress: () => _wasm._get_buffer(10),
+      getLinkedSpritesCount: () => _wasm._counts(1),
+    
       nextFrame: () => tryCatch(_nextFrame),
       setGameSpeed: (speed: number) => _wasm._replay_set_value(0, speed),
       getGameSpeed: () => _wasm._replay_get_value(0),
