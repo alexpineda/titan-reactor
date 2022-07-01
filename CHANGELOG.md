@@ -6,7 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.5.0] - 2022-04-16
+## [0.5.1] - 2022-07-1
+
+### Changed
+- Allow Backspace key to delete plugin hotkey setting
+
+### Fixed
+- Rolling numbers now respect up and down time
+- Bullet trails now properly follow bullets in the Y coordinate
+
+## [0.5.0] - 2022-06-24
 ### Added 
   - All new and extensive plugin system:
     - Create custom HUD and UI elements using live data from the game and game files.
@@ -75,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit selection / unit boxing for the time being.
 
 
-[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/imbateam-gg/titan-reactor/compare/alpha-0.1.3...v0.3.0

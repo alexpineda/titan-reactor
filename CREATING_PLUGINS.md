@@ -480,7 +480,7 @@ This is a list of plugins that I'd personally like to see come to life by the co
 - Player/matchup/map data sheets
 - Replay and map repositories
 - Extra blood / particles / explosions / smoke
-- Camera macros (eg intro player1, intro player 2)
+- Camera macros / Player intros (eg intro player1, intro player 2)
 - Replay autoupload
 - Replay loading screens
 - Player alias database
@@ -490,3 +490,4 @@ This is a list of plugins that I'd personally like to see come to life by the co
 - Player renamer
 - Units lost
 - Build order
+- Marker / Scribbling Tool

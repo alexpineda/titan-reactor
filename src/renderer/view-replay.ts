@@ -9,7 +9,7 @@ import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
 import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 
-import { BulletState, DamageType, drawFunctions, Explosion, orders, UnitFlags, unitTypes } from "common/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo
@@ -78,7 +78,6 @@ import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
 import SelectionBars from "@core/selection-bars";
-import { StdVector } from "./buffer-view/std-vector";
 
 CameraControls.install({ THREE: THREE });
 
@@ -1411,7 +1410,7 @@ async function TitanReactorGame(
       buildSprite(bullet.owSprite, delta, bullet, weapon);
       _ignoreSprites.push(bullet.spriteIndex);
     }
-      
+
     // build all remaining sprites
     const spriteList = new IntrusiveList(openBw.wasm!.HEAPU32);
     const spriteTileLineSize = openBw.call!.getSpritesOnTileLineSize!();
@@ -1439,14 +1438,14 @@ async function TitanReactorGame(
     //TODO: find a more elegant way to deal with elevation, perhaps unit/bullets track Y and others are terrain bound?
     const linkedSpritesAddr = openBw.call!.getLinkedSpritesAddress!();
     for (let i = 0; i < openBw.call!.getLinkedSpritesCount!(); i++) {
-        const addr = (linkedSpritesAddr >> 2) + (i << 1);
-        const parent = sprites.get(openBw.wasm!.HEAP32[addr]);
-        const child = sprites.get(openBw.wasm!.HEAP32[addr + 1]);
-        if (!child || !parent) {
-          break;
-        }
-        // keep a reference to the value so that we retain it in buildSprite() in future iterations
-        child.position.y = child.userData.fixedY = parent.position.y;
+      const addr = (linkedSpritesAddr >> 2) + (i << 1);
+      const parent = sprites.get(openBw.wasm!.HEAP32[addr]);
+      const child = sprites.get(openBw.wasm!.HEAP32[addr + 1]);
+      if (!child || !parent) {
+        break;
+      }
+      // keep a reference to the value so that we retain it in buildSprite() in future iterations
+      child.position.y = child.userData.fixedY = parent.position.y;
     }
   };
 
