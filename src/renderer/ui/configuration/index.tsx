@@ -93,6 +93,27 @@ const Configuration = () => {
     (p) => p.name === selectedPluginPackage.plugin?.name
   );
 
+  const pluginsWithUpdatesAvailable = settingsStore.enabledPlugins.reduce(
+    (memo, plugin) => {
+      const remote = remotePackages.find((p) => p.name === plugin.name);
+
+      const updateVersion = getUpdateVersion(
+        remote?.version ?? "0.0.0",
+        plugin.version ?? "0.0.0"
+      );
+
+      if (updateVersion) {
+        return {
+          ...memo,
+          [plugin.name]: updateVersion,
+        };
+      } else {
+        return memo;
+      }
+    },
+    {}
+  );
+
   const canDelete = Boolean(matchingRemotePlugin);
 
   const updateVersion = getUpdateVersion(
@@ -148,7 +169,20 @@ const Configuration = () => {
                         textAlign: "left",
                       }}
                     >
-                      {plugin.description}
+                      {plugin.description}{" "}
+                      {pluginsWithUpdatesAvailable[
+                        plugin.name as keyof typeof pluginsWithUpdatesAvailable
+                      ] && (
+                        <span
+                          style={{
+                            fontSize: "30%",
+                            position: "absolute",
+                            top: "-5px",
+                          }}
+                        >
+                          🔴
+                        </span>
+                      )}
                     </Button>
                   ))}
                   <Divider />
