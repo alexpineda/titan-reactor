@@ -24,7 +24,6 @@ import {
   Image,
   Players,
   Unit,
-  GameStatePlayMode,
   ImageHD,
 } from "./core";
 import Creep from "./creep/creep";
@@ -287,6 +286,7 @@ async function TitanReactorGame(
       selectionCircle: SelectionCircle;
       selectionBars: SelectionBars;
       fixedY?: number;
+      typeId: number;
     }
   }
 
@@ -619,6 +619,9 @@ async function TitanReactorGame(
 
       selectedUnits.sort(typeIdSort).splice(12);
       selectedUnitsStore().setSelectedUnits(selectedUnits);
+      if (settings.util.debugMode) {
+        console.log(selectedUnits)
+      }
 
     }
     gameSurface.canvas.addEventListener('pointerup', _selectUp);
@@ -671,7 +674,6 @@ async function TitanReactorGame(
 
     const frame = openBw.call!.getCurrentFrame!();
     plugins.callHook(HOOK_ON_FRAME_RESET, frame);
-    gameStatePosition.paused = false;
 
     // remove any upgrade or tech that is no longer available
     for (let player = 0; player < 8; player++) {
@@ -704,18 +706,6 @@ async function TitanReactorGame(
   const togglePause = () => {
     openBw.call!.setPaused!(!openBw.call!.isPaused!());
   }
-
-  // const toggleMenuHandler = () => useHudStore.getState().toggleInGameMenu();
-
-  const nextFrameHandler = (evt: KeyboardEvent) => {
-    if (evt.code === "KeyN") {
-      gameStatePosition.advanceGameFrames = 1;
-    }
-  };
-  document.addEventListener("keydown", nextFrameHandler);
-  janitor.callback(() =>
-    document.removeEventListener("keydown", nextFrameHandler)
-  );
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
@@ -1186,10 +1176,17 @@ async function TitanReactorGame(
       sprite.name = "sprite";
       sprite.userData.selectionCircle = new SelectionCircle();
       sprite.userData.selectionBars = new SelectionBars();
+      sprite.userData.typeId = spriteData.typeId;
       sprite.add(sprite.userData.selectionCircle)
       sprite.add(sprite.userData.selectionBars)
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
+    }
+
+    // openbw recycled the id for the sprite, so we reset some things
+    if (sprite.userData.typeId !== spriteData.typeId) {
+      delete sprite.userData.fixedY;
+      sprite.userData.typeId = spriteData.typeId;
     }
 
     const dat = bwDat.sprites[spriteData.typeId];
@@ -1481,9 +1478,11 @@ async function TitanReactorGame(
       } else if (j === size - 1) {
         if (val === 0 && !arr.includes(typeId)) {
           arr.push(typeId);
-          arrReset.push([typeId, gameStatePosition.bwGameFrame]);
+          arrReset.push([typeId, currentBwFrame?.frame ?? -1]);
           plugins.callHook(hook, [typeId, level, dat[typeId]]);
-          console.log(`${hook} ${typeId} ${level} ${dat[typeId].name} `);
+          if (settings.util.debugMode) {
+            console.log(`${hook} ${typeId} ${level} ${dat[typeId].name} `);
+          }
         }
       } else if (j === 1) {
         level = val;
@@ -1505,20 +1504,10 @@ async function TitanReactorGame(
     }
   }
 
-
   let _lastElapsed = 0;
   let delta = 0;
 
   let cmds = commandsStream.generate();
-
-  const _stepperListener = (evt: KeyboardEvent) => {
-    if (evt.key === "n" && gameStatePosition.mode === GameStatePlayMode.SingleStep) {
-      gameStatePosition.paused = false;
-    }
-  };
-
-  window.addEventListener("keypress", _stepperListener);
-  janitor.callback(() => { window.removeEventListener("keypress", _stepperListener) });
 
   const _boundaryMin = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
   const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
@@ -1544,26 +1533,19 @@ async function TitanReactorGame(
       reset();
     }
 
-    if (!gameStatePosition.paused) {
-      if (!currentBwFrame) {
-
-        currentBwFrame = gameStateReader.next();
-        if (!currentBwFrame) {
-          gameStatePosition.paused = true;
-        } else if (currentBwFrame.needsUpdate === false) {
-          currentBwFrame = null;
-        }
+    if (!currentBwFrame) {
+      currentBwFrame = gameStateReader.next();
+      if (currentBwFrame.needsUpdate === false) {
+        currentBwFrame = null;
       }
     }
 
-    if (gameStatePosition.advanceGameFrames && currentBwFrame) {
+    if (currentBwFrame && currentBwFrame.needsUpdate) {
       if (currentBwFrame.frame % 42 === 0) {
         updateCompletedUpgrades();
       }
       buildSounds(openBw.call!.getSoundObjects!());
       buildCreep(currentBwFrame);
-
-      gameStatePosition.bwGameFrame = currentBwFrame.frame;
 
       buildUnits(
         units,
@@ -1593,18 +1575,20 @@ async function TitanReactorGame(
         if (
           typeof cmd.value === "number"
         ) {
-          if (cmd.value > gameStatePosition.bwGameFrame) {
+          if (cmd.value > currentBwFrame.frame) {
             break;
           }
           // only include past 5 game seconds (in case we are skipping frames)
-        } else if (gameStatePosition.bwGameFrame - cmd.value.frame < 120) {
+        } else if (currentBwFrame.frame - cmd.value.frame < 120) {
           _commandsThisFrame.push(cmd.value);
         }
         cmd = cmds.next();
       }
 
-      fadingPointers.update(gameStatePosition.bwGameFrame);
+      fadingPointers.update(currentBwFrame.frame);
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
+
+      gameStatePosition.bwGameFrame = currentBwFrame.frame;
       plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
 
 
@@ -1629,8 +1613,6 @@ async function TitanReactorGame(
     }
 
     renderer.targetSurface = gameSurface;
-
-    gameStatePosition.update(delta);
     drawMinimap(projectedCameraView);
 
     plugins.onBeforeRender(delta, elapsed, _cameraTarget, _cameraPosition);
@@ -1667,7 +1649,6 @@ async function TitanReactorGame(
 
   const dispose = () => {
     log.info("disposing replay viewer");
-    gameStatePosition.pause();
     clearFollowedUnits();
     plugins.onGameDisposed();
     pluginsApiJanitor.mopUp();
@@ -1705,7 +1686,6 @@ async function TitanReactorGame(
   // force layout recalc
   _sceneResizeHandler();
 
-  gameStatePosition.resume();
   const originalColors = replay.header.players.map(player => player.color);
   const originalNames = replay.header.players.map(player => ({
     id: player.id,
