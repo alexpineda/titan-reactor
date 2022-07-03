@@ -12,7 +12,7 @@ import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 import { BulletState, DamageType, drawFunctions, Explosion, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT
 } from "common/types";
 import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
 import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
@@ -66,7 +66,7 @@ import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED } from "./plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./plugins/hooks";
 import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
@@ -78,8 +78,9 @@ import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
 import SelectionBars from "@core/selection-bars";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { IndexedObjectPool } from "./utils/indexed-object-pool";
+import { StdVector } from "./buffer-view/std-vector";
+import range from "common/utils/range";
 
 CameraControls.install({ THREE: THREE });
 
@@ -286,6 +287,11 @@ async function TitanReactorGame(
   const images: Map<number, Image> = new Map();
   const freeImages = new IndexedObjectPool<Image>();
   const unitsBySprite: Map<number, Unit> = new Map();
+  type SpriteType = Group & {
+    userData: {
+
+    }
+  }
   const sprites: Map<number, Group> = new Map();
   const spritesGroup = new Group();
   spritesGroup.name = "sprites";
@@ -661,8 +667,17 @@ async function TitanReactorGame(
     clearFollowedUnits();
     fadingPointers.clear();
 
-    plugins.callHook(HOOK_ON_FRAME_RESET, openBw.call!.getCurrentFrame!());
+    const frame = openBw.call!.getCurrentFrame!();
+    plugins.callHook(HOOK_ON_FRAME_RESET, frame);
     gameStatePosition.paused = false;
+
+    // remove any upgrade or tech that is no longer available
+    for (let player = 0; player < 8; player++) {
+      completedResearchReset[player] = completedResearchReset[player].filter(([_, techFrame]) => techFrame <= frame);
+      completedResearch[player] = completedResearch.map(([techId]) => techId);
+      completedUpgradesReset[player] = completedUpgradesReset[player].filter(([_, techFrame]) => techFrame <= frame);
+      completedUpgrades[player] = completedUpgrades.map(([techId]) => techId);
+    }
 
     currentBwFrame = null;
     reset = null;
@@ -733,6 +748,13 @@ async function TitanReactorGame(
   );
 
   let currentBwFrame: FrameBW | null;
+
+  // TODO: merge these two, one is used for convenience in selection bars for energy hp testing
+  const completedUpgrades = range(0, 8).map(() => [] as number[]);
+  const completedResearch = range(0, 8).map(() => [] as number[]);
+  const completedUpgradesReset = range(0, 8).map(() => [] as number[][]);
+  const completedResearchReset = range(0, 8).map(() => [] as number[][]);
+  const productionData = new StdVector(openBw.wasm!.HEAP32, openBw.wasm!._get_buffer(9) >> 2);
 
   const creep = new Creep(
     mapWidth,
@@ -1252,14 +1274,14 @@ async function TitanReactorGame(
 
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
-    if (unit && unit.extras.selected && sprite.visible) {
+    if (unit && unit?.order !== orders.die && unit.extras.selected && sprite.visible) {
       sprite.userData.selectionCircle.update(dat);
       sprite.userData.selectionCircle.visible = true;
 
       (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
       sprite.userData.selectionBars.visible = true;
     } else {
-      if (unit?.extras.recievingDamage && sprite.visible) {
+      if (unit?.order !== orders.die && unit?.extras.recievingDamage && sprite.visible) {
         (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
         sprite.userData.selectionBars.visible = true;
       } else {
@@ -1394,6 +1416,9 @@ async function TitanReactorGame(
       freeImages.add(image.dat.index, image);
     }
 
+
+
+
     // build bullet sprites first since they need special Y calculations
     bulletList.addr = openBw.call!.getBulletsAddress!();
     _ignoreSprites.length = 0;
@@ -1449,6 +1474,41 @@ async function TitanReactorGame(
     }
   };
 
+  const _updateCompleted = (arr: number[], arrReset: number[][], size: number, dat: UpgradeDAT[] | TechDataDAT[], hook: string) => {
+    let j = 0;
+    let typeId = 0;
+    let level = 0;
+    for (const val of productionData) {
+      if (j === 0) {
+        typeId = val;
+      } else if (j === size - 1) {
+        if (val === 0 && !arr.includes(typeId)) {
+          arr.push(typeId);
+          arrReset.push([typeId, gameStatePosition.bwGameFrame]);
+          plugins.callHook(hook, [typeId, level, dat[typeId]]);
+          console.log(`${hook} ${typeId} ${level} ${dat[typeId].name} `);
+        }
+      } else if (j === 1) {
+        level = val;
+      }
+      j++;
+      if (j === size) {
+        j = 0;
+      }
+    }
+  }
+
+  const updateCompletedUpgrades = () => {
+    let addr32 = openBw.wasm!._get_buffer(9) >> 2;
+    for (let player = 0; player < 8; player++) {
+      productionData.addr32 = addr32 + (player * 9) + 3;
+      _updateCompleted(completedUpgrades[player], completedUpgradesReset[player], 3, bwDat.upgrades, HOOK_ON_UPGRADE_COMPLETED);
+      productionData.addr32 += 3;
+      _updateCompleted(completedResearch[player], completedResearchReset[player], 2, bwDat.tech, HOOK_ON_TECH_COMPLETED);
+    }
+  }
+
+
   let _lastElapsed = 0;
   let delta = 0;
 
@@ -1500,6 +1560,9 @@ async function TitanReactorGame(
     }
 
     if (gameStatePosition.advanceGameFrames && currentBwFrame) {
+      if (currentBwFrame.frame % 42 === 0) {
+        updateCompletedUpgrades();
+      }
       buildSounds(openBw.call!.getSoundObjects!());
       buildCreep(currentBwFrame);
 
@@ -1546,6 +1609,7 @@ async function TitanReactorGame(
       fadingPointers.update(gameStatePosition.bwGameFrame);
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
       plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
+
 
       currentBwFrame = null;
     }

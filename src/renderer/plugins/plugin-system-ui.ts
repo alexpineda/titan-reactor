@@ -247,11 +247,11 @@ export class PluginSystemUI {
             //TODO: perhaps a more readable abstraction would benefit here
             for (let player = 0; player < 8; player++) {
                 _replayPosition.payload.unitProduction[player] = productionData.copyData();
-                productionData.index += 3;
+                productionData.addr32 += 3;
                 _replayPosition.payload.upgrades[player] = productionData.copyData();
-                productionData.index += 3;
+                productionData.addr32 += 3;
                 _replayPosition.payload.research[player] = productionData.copyData();
-                productionData.index += 3;
+                productionData.addr32 += 3;
             }
 
             _replayPosition.payload.frame = gameStatePosition.bwGameFrame;

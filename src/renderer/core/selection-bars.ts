@@ -13,12 +13,11 @@ import {
   WebGLRenderer,
 } from "three";
 
-import { SpriteDAT, UpgradeCompleted } from "common/types";
+import { SpriteDAT } from "common/types";
 import getMaxEnergy from "../utils/get-max-energy";
 import { Unit } from "./unit";
 import gameStore from "@stores/game-store";
 
-const getTypeIds = ({ typeId }: { typeId: number }) => typeId;
 // dummy map till I figure out how to get uv attribute in shader
 const map = new DataTexture(
   new Uint8Array([0]),
@@ -171,7 +170,7 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
   update(
     unit: Unit,
     sprite: SpriteDAT,
-    completedUpgrades: UpgradeCompleted[],
+    completedUpgrades: number[],
     renderOrder: number,
   ) {
     if (unit.owner > 7) {
@@ -207,7 +206,7 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
     if (hasEnergy) {
       material.customUniforms.energy.value =
         unit.energy /
-        getMaxEnergy(unit.extras.dat, completedUpgrades.map(getTypeIds));
+        getMaxEnergy(unit.extras.dat, completedUpgrades);
     }
   }
 }

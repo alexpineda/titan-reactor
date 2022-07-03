@@ -7,7 +7,7 @@ import * as postprocessing from "postprocessing"
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED } from "./hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./hooks";
 import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
@@ -125,7 +125,9 @@ const createDefaultHooks = () => ({
     onFrameReset: new Hook(HOOK_ON_FRAME_RESET, []),
     onUnitsFollowed: new Hook(HOOK_ON_UNITS_FOLLOWED, ["units"]),
     onUnitUnfollowed: new Hook(HOOK_ON_UNIT_UNFOLLOWED, ["unit"]),
-    onUnitClearFollowed: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, [])
+    onUnitClearFollowed: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, []),
+    onUpgradeCompleted: new Hook(HOOK_ON_UPGRADE_COMPLETED, ["upgrade"]),
+    onTechCompleted: new Hook(HOOK_ON_TECH_COMPLETED, ["tech"]),
 });
 
 
