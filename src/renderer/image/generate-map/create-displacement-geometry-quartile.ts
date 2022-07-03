@@ -13,7 +13,6 @@ export const createDisplacementGeometryQuartile = (
   scaleHeight = 1,
   offX = 0,
   offY = 0,
-  optimize = false
 ) => {
   const geom =
     new PlaneBufferGeometry(width, height, widthSegments, heightSegments);
@@ -51,10 +50,6 @@ export const createDisplacementGeometryQuartile = (
     pos.setXYZ(i, p.x, p.y, p.z);
   }
   pos.needsUpdate = true;
-
-  if (!optimize) {
-    return geom;
-  }
 
   const simplifiedGeom = simplifyGeometry(geom, widthSegments, heightSegments);
 

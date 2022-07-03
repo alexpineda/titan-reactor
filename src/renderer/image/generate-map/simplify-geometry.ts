@@ -12,7 +12,7 @@ class Face {
         this.points[2].set(pos.getX(i2), pos.getY(i2), pos.getZ(i2));
     }
 
-    setUV(uvs: BufferAttribute | InterleavedBufferAttribute, i0:number, i1:number, i2:number) {
+    setUV(uvs: BufferAttribute | InterleavedBufferAttribute, i0: number, i1: number, i2: number) {
         this.uvs[0].set(uvs.getX(i0), uvs.getY(i0));
         this.uvs[1].set(uvs.getX(i1), uvs.getY(i1));
         this.uvs[2].set(uvs.getX(i2), uvs.getY(i2));
@@ -38,8 +38,8 @@ class Face {
 class Tile {
     static #id = 0;
     id = 0;
-    face1?:Face = undefined;
-    face2?:Face = undefined;
+    face1?: Face = undefined;
+    face2?: Face = undefined;
     merged = false;
     x = 0;
     y = 0;
@@ -131,13 +131,12 @@ const groupTileFaces = (geom: BufferGeometry, w: number, h: number) => {
 const computeMergeTiles = (tiles: Tile[][]) => {
     let width = 0;
     let height = 0;
-    let mergeCount = 0;
 
     for (let x = 0; x < tiles.length; x++) {
         for (let y = 0; y < tiles[x].length; y++) {
             const tile = tiles[x][y];
             // for simplicity, only deal with completely flat tiles
-            if (tile.equalZ === false || tile.merged ) continue;
+            if (tile.equalZ === false || tile.merged) continue;
 
             // left to right, getting greedy with width
             let i = 1;
@@ -151,7 +150,7 @@ const computeMergeTiles = (tiles: Tile[][]) => {
             i = 0;
             while (i < width) {
                 let j = 1;
-                while (tiles[x + i] && tiles[x + i][y + j] !== undefined && tiles[x + i][y + j].equalZ && tiles[x + i][y+ j].centerZ === tile.centerZ && tiles[x + i][y + j].merged === false) {
+                while (tiles[x + i] && tiles[x + i][y + j] !== undefined && tiles[x + i][y + j].equalZ && tiles[x + i][y + j].centerZ === tile.centerZ && tiles[x + i][y + j].merged === false) {
                     j++;
                 }
                 height = Math.min(height, j);
@@ -170,13 +169,12 @@ const computeMergeTiles = (tiles: Tile[][]) => {
             for (let k = 0; k < width; k++) {
                 for (let l = 0; l < height; l++) {
                     const activeTile = tiles[x + k][y + l];
-                    mergeCount++;
 
                     // compute merge tile faces while we have easy access to that information
                     if (k == 0 && l == 0) { // tl
                         mergeTile.face1.points[0].copy(activeTile.face1!.points[0]);
                         mergeTile.face1.uvs[0].copy(activeTile.face1!.uvs[0]);
-                    } 
+                    }
                     if (k == 0 && l == height - 1) { // bl
                         mergeTile.face1.points[1].copy(activeTile.face1!.points[1]);
                         mergeTile.face1.uvs[1].copy(activeTile.face1!.uvs[1]);
@@ -190,7 +188,7 @@ const computeMergeTiles = (tiles: Tile[][]) => {
 
                         mergeTile.face2.points[2].copy(activeTile.face1!.points[2]);
                         mergeTile.face2.uvs[2].copy(activeTile.face1!.uvs[2]);
-                    } 
+                    }
                     if (k == width - 1 && l == height - 1) { // br
                         mergeTile.face2.points[1].copy(activeTile.face2!.points[1]);
                         mergeTile.face2.uvs[1].copy(activeTile.face2!.uvs[1]);
@@ -201,7 +199,6 @@ const computeMergeTiles = (tiles: Tile[][]) => {
             }
         }
     }
-    log.verbose(`merged ${mergeCount} tiles`);
 }
 
 /**
@@ -215,25 +212,25 @@ const generateGeometryFromTiles = (tiles: Tile[][]) => {
     const normals = [];
     const uvs = [];
 
-    const _normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0 ,1 ];
+    const _normals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
 
-    for (let y= 0; y < tiles[0].length; y++) {
+    for (let y = 0; y < tiles[0].length; y++) {
         for (let x = 0; x < tiles.length; x++) {
             const tile = tiles[x][y];
             if (processed.has(tile)) {
                 continue;
             }
             processed.add(tile);
-            
+
             vertices.push(...tile.vertices);
             normals.push(..._normals);
-            uvs.push( ...tile.uvs );
+            uvs.push(...tile.uvs);
         }
     }
 
-    geom.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-    geom.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-    geom.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+    geom.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+    geom.setAttribute('normal', new Float32BufferAttribute(normals, 3));
+    geom.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
 
     return geom;
 }

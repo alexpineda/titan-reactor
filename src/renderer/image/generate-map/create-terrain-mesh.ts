@@ -22,7 +22,6 @@ export const createTerrainMesh = async (
     mapTextures: WrappedQuartileTextures,
     terrainChunky: boolean,
     terrainShadows: boolean,
-    debugMode: boolean
 ) => {
     const terrain = new Group();
 
@@ -48,7 +47,6 @@ export const createTerrainMesh = async (
                 qh / mapHeight,
                 qx * qw * geomOptions.displaceDimensionScale,
                 qy * qh * geomOptions.displaceDimensionScale,
-                !debugMode
             );
 
             if (terrainChunky) {

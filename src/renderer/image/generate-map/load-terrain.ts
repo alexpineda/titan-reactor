@@ -67,7 +67,7 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     settings.assets.terrain
   );
 
-  const terrain = await createTerrainMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures, settings.graphics.terrainChunky, settings.graphics.terrainShadows, settings.util.debugMode);
+  const terrain = await createTerrainMesh(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures, settings.graphics.terrainChunky, settings.graphics.terrainShadows);
 
   creepTexture.texture.anisotropy = anisotropy;
   creepEdgesTexture.texture.anisotropy = anisotropy;
