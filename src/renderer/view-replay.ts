@@ -282,17 +282,19 @@ async function TitanReactorGame(
     };
   }
 
+  interface SpriteType extends Group {
+    userData: {
+      selectionCircle: SelectionCircle;
+      selectionBars: SelectionBars;
+      fixedY?: number;
+    }
+  }
 
   const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
   const freeImages = new IndexedObjectPool<Image>();
   const unitsBySprite: Map<number, Unit> = new Map();
-  type SpriteType = Group & {
-    userData: {
-
-    }
-  }
-  const sprites: Map<number, Group> = new Map();
+  const sprites: Map<number, SpriteType> = new Map();
   const spritesGroup = new Group();
   spritesGroup.name = "sprites";
   scene.add(spritesGroup);
@@ -1180,7 +1182,7 @@ async function TitanReactorGame(
     const unit = unitsBySprite.get(spriteData.index);
     let sprite = sprites.get(spriteData.index);
     if (!sprite) {
-      sprite = new Group();
+      sprite = new Group() as SpriteType;
       sprite.name = "sprite";
       sprite.userData.selectionCircle = new SelectionCircle();
       sprite.userData.selectionBars = new SelectionBars();
@@ -1331,7 +1333,6 @@ async function TitanReactorGame(
           }
         }
 
-
         // 63-48=15
         if (imageData.modifier === 14) {
           image.setWarpingIn((imageData.modifierData1 - 48) / 15);
@@ -1355,12 +1356,8 @@ async function TitanReactorGame(
           image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
         }
 
-
-
         if (imageData.index === spriteData.mainImageIndex) {
           image.userData.unit = unit;
-
-
 
           // if (unit ) {
           // for 3d models

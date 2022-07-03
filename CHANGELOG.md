@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added completed upgrade and tech hooks for native plugins
+
+### Fixed
+- Units don't stay selected after being killed
+- Unit discoloration bug is fixed
+- Energy max is properly shown on energy bar depending on upgrade completed
+
+
+### Changed
+- Geometry will be optimized in debug mode now as well
+
 ## [0.5.1] - 2022-07-1
 
 ### Changed

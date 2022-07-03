@@ -98,7 +98,7 @@ export default ({ components }) => {
         flexDirection: "column",
       }}
     >
-      {(!hasAnyComponents || !appLoaded) && !error && (
+      {(!hasAnyComponents || !appLoaded) && !error && !firstInstall && (
         <div style={styleCenterText}>
           <p style={{ fontSize: "var(--font-size-8)" }}>Loading...</p>
         </div>

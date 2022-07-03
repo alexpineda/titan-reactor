@@ -9,7 +9,7 @@ export enum UnitTileScale {
   HD = 4
 }
 
-export type Image = Object3D & {
+export interface Image extends Object3D {
   dat: ImageDAT;
   setFrame: (frame: number, flip: boolean) => void;
 
