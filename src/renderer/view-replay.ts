@@ -919,7 +919,7 @@ async function TitanReactorGame(
         unitData.copyTo(unit);
 
         if (unit.extras.selected &&
-          (unit.hp === 0 ||
+          (unit.order === orders.die ||
             unit.order === orders.harvestGas ||
             (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
             (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
@@ -1272,6 +1272,7 @@ async function TitanReactorGame(
       if (!image) {
         image = createImage(imageData.typeId);
         images.set(imageData.index, image);
+        image.userData = {};
       }
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
 
