@@ -21,6 +21,8 @@ export const DepthMode = {
   Depth: 1, // for angled views
 };
 
+const white = new Color(0xffffff);
+
 /**
  * An image instance that uses HD assets
  */
@@ -49,6 +51,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   private _normalizedSpriteHeight = 0;
 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean) {
+
     if (this.dat.index === imageDef.index && !force) {
       return;
     }
@@ -56,8 +59,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.dat = imageDef;
     this.material.map = atlas.diffuse;
     (this.material as TeamSpriteMaterial).teamMask = atlas.teammask;
-    (this.material as TeamSpriteMaterial).isShadow = this.dat.drawFunction === drawFunctions.rleShadow;
-    (this.material as TeamSpriteMaterial).imageId = imageDef.index;
+    (this.material as TeamSpriteMaterial).isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
     this.originalScale.set(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
@@ -75,8 +77,9 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     } else {
       this.material.blending = NormalBlending;
     }
-
     this.resetParams();
+
+    this.material.needsUpdate = true;
 
   }
 
@@ -136,8 +139,8 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.setCloaked(false);
     this.setDelta(0);
     this.setFrame(0, false, true);
+    this.setTeamColor(white);
 
-    this.material.needsUpdate = true;
   }
 
   get unitTileScale() {

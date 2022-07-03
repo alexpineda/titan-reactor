@@ -24,7 +24,6 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
   private _dynamicUniforms: DynamicUniforms;
   isTeamSpriteMaterial = true;
   isShadow = false;
-  imageId = 0;
 
   constructor(parameters?: SpriteMaterialParameters) {
     super(parameters);
@@ -190,8 +189,6 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
       Boolean(this.teamMask),
       this.isShadow,
       Boolean(this.warpingIn),
-      //FIXME: do we need to recompile if team mask is changed (due to different image)?
-      this.imageId
     ];
     return flags.join("");
   }

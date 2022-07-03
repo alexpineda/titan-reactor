@@ -78,12 +78,15 @@ import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
 import SelectionBars from "@core/selection-bars";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { IndexedObjectPool } from "./utils/indexed-object-pool";
 
 CameraControls.install({ THREE: THREE });
 
 const { startLocation } = unitTypes;
 const _cameraTarget = new Vector3();
 const _cameraPosition = new Vector3();
+const white = new Color(0xffffff);
 
 async function TitanReactorGame(
   map: Chk,
@@ -108,6 +111,7 @@ async function TitanReactorGame(
   openBw.call!.setPaused!(false);
 
   const fps = new FPSMeter();
+  selectedUnitsStore().clearSelectedUnits();
 
   const createImage = (imageTypeId: number) => {
     const atlas = assets.grps[imageTypeId];
@@ -117,8 +121,8 @@ async function TitanReactorGame(
 
     const imageDef = bwDat.images[imageTypeId];
 
-    if (freeImages.length > 0) {
-      const freeImage = freeImages.pop() as Image;
+    const freeImage = freeImages.get(imageTypeId);
+    if (freeImage) {
       freeImage.changeImage(atlas, imageDef);
       return freeImage;
     }
@@ -280,7 +284,7 @@ async function TitanReactorGame(
 
   const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
-  const freeImages: Image[] = [];
+  const freeImages = new IndexedObjectPool<Image>();
   const unitsBySprite: Map<number, Unit> = new Map();
   const sprites: Map<number, Group> = new Map();
   const spritesGroup = new Group();
@@ -289,7 +293,7 @@ async function TitanReactorGame(
 
   janitor.callback(() => {
     const _janitor = new Janitor();
-    for (const image of freeImages) {
+    for (const image of freeImages.all()) {
       _janitor.object3d(image);
     }
     _janitor.mopUp();
@@ -1272,15 +1276,14 @@ async function TitanReactorGame(
       if (!image) {
         image = createImage(imageData.typeId);
         images.set(imageData.index, image);
-        image.userData = {};
       }
+      delete image.userData.unit;
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
 
       if (image.visible) {
-        if (player) {
-          image.setTeamColor(player.color);
-        }
+        image.setTeamColor(player?.color ?? white);
 
+        //TODO: use lo offsets if applicable (for directional camera changes)
         image.position.x = imageData.x / 32;
         image.position.z = 0;
         // flying building or drone, don't use 2d offset
@@ -1336,19 +1339,16 @@ async function TitanReactorGame(
           image.userData.unit = unit;
 
 
+
           // if (unit ) {
           // for 3d models
           // image.rotation.y = unit.angle;
           // }
-        } else {
-          delete image.userData.unit;
         }
 
         if (imageNeedsRedraw(imageData as ImageStruct)) {
           image.updateMatrix();
         }
-      } else {
-        delete image.userData.unit;
       }
       imageCounter++;
     }
@@ -1391,8 +1391,7 @@ async function TitanReactorGame(
       if (!image) continue;
       image.removeFromParent();
       images.delete(imageIndex);
-      delete image.userData.unit;
-      freeImages.push(image);
+      freeImages.add(image.dat.index, image);
     }
 
     // build bullet sprites first since they need special Y calculations
@@ -1592,6 +1591,9 @@ async function TitanReactorGame(
     let _cssItems = 0;
     for (const cssItem of cssScene.children) {
       _cssItems += cssItem.children.length;
+      if (_cssItems > 0) {
+        break;
+      }
     }
     if (_cssItems) {
       cssRenderer.render(cssScene, camera);

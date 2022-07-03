@@ -8,7 +8,6 @@ import Assets from "../assets/assets";
 
 
 export default async (): Promise<Assets> => {
-    log.info("waiting for assets");
     return await new Promise((res: (value: Assets) => void) => {
         if (processStore().isComplete(Process.AtlasPreload)) {
             const assets = gameStore().assets;

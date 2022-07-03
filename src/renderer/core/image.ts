@@ -1,6 +1,7 @@
 import { GRPInterface } from "../../common/types";
 import type { Color, Object3D } from "three";
 import type { ImageDAT } from "../../common/types/bwdat";
+import { Unit } from "./unit";
 
 export enum UnitTileScale {
   SD = 1,
@@ -22,4 +23,8 @@ export type Image = Object3D & {
   setTeamColor: (color: Color) => void;
 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT): void;
+
+  userData: {
+    unit?: Unit
+  }
 };

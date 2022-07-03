@@ -1,4 +1,3 @@
-import * as log from "@ipc/log";
 import range from "common/utils/range";
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, InterleavedBufferAttribute, Vector2, Vector3 } from "three";
 
