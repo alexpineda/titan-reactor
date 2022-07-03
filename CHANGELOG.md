@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Warp flash animation on protoss buildings
+
+
+
+## [0.5.2] - 2022-07-3
+
+### Added
 - Added completed upgrade and tech hooks for native plugins
 
 ### Fixed
@@ -96,7 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit selection / unit boxing for the time being.
 
 
-[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.3.0...v0.4.0

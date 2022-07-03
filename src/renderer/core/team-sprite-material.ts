@@ -1,98 +1,127 @@
+import assert from "assert";
+import { drawFunctions } from "common/enums";
+import { GRPInterface } from "common/types";
 import { Color, MeshBasicMaterial, SpriteMaterialParameters, Texture } from "three";
 
-import warp from "../image/effect/warp";
-
 type DynamicUniforms = {
-  delta: {
-    value: number;
-  };
-  warpingIn: {
-    value: number;
-  };
-  warpingInLen: {
-    value: number;
-  };
   teamColor: {
     value: Color;
   };
   teamMask: {
     value?: Texture;
   };
+  warpInFlashTexture: {
+    value?: Texture,
+  },
+  modifier: {
+    value: number;
+  },
+  modifierData1: {
+    value: number;
+  },
+  modifierData2: {
+    value: number;
+  },
+  warpInFlashTextureWidth: {
+    value: number;
+  },
+  warpInFlashTextureHeight: {
+    value: number;
+  }
 };
 
 export class TeamSpriteMaterial extends MeshBasicMaterial {
-  private _dynamicUniforms: DynamicUniforms;
+  #dynamicUniforms: DynamicUniforms;
   isTeamSpriteMaterial = true;
-  isShadow = false;
+  #customCacheKey = "";
 
   constructor(parameters?: SpriteMaterialParameters) {
     super(parameters);
     this.isTeamSpriteMaterial = true;
     this.defines = {};
-    this._dynamicUniforms = {
-      delta: {
-        value: 0,
-      },
-      warpingIn: {
-        value: 0,
-      },
-      warpingInLen: {
-        value: 0,
-      },
+
+    this.#dynamicUniforms = {
       teamColor: {
         value: new Color(0xffffff),
       },
       teamMask: {
         value: undefined,
       },
+      warpInFlashTexture: {
+        value: undefined,
+      },
+      warpInFlashTextureWidth: {
+        value: 0,
+      },
+      warpInFlashTextureHeight: {
+        value: 0,
+      },
+      modifierData1: {
+        value: 0
+      },
+      modifierData2: {
+        value: 0
+      },
+      modifier: {
+        value: 0
+      }
     };
   }
 
   set teamMask(val: Texture | undefined) {
-    this._dynamicUniforms.teamMask.value = val;
+    this.#dynamicUniforms.teamMask.value = val;
+    this.#generateProgramCacheKey();
   }
 
   get teamMask() {
-    return this._dynamicUniforms.teamMask.value;
+    return this.#dynamicUniforms.teamMask.value;
   }
 
   set teamColor(val) {
-    this._dynamicUniforms.teamColor.value = val;
+    this.#dynamicUniforms.teamColor.value = val;
   }
 
   get teamColor() {
-    return this._dynamicUniforms.teamColor.value;
+    return this.#dynamicUniforms.teamColor.value;
   }
 
-  set warpingIn(val) {
-    this._dynamicUniforms.warpingIn.value = val;
+  set warpInFlashGRP(val: GRPInterface | undefined) {
+    assert(val);
+    this.#dynamicUniforms.warpInFlashTexture.value = val.diffuse;
+    this.#dynamicUniforms.warpInFlashTextureWidth.value = val.spriteWidth;
+    this.#dynamicUniforms.warpInFlashTextureHeight.value = val.spriteHeight;
   }
 
-  get warpingIn() {
-    return this._dynamicUniforms.warpingIn.value;
+  set modifierData1(val: number) {
+    this.#dynamicUniforms.modifierData1.value = val;
   }
 
-  set warpingInLen(val) {
-    this._dynamicUniforms.warpingInLen.value = val;
+  get modifierData1() {
+    return this.#dynamicUniforms.modifierData1.value;
   }
 
-  get warpingInLen() {
-    return this._dynamicUniforms.warpingInLen.value;
+  set modifierData2(val: number) {
+    this.#dynamicUniforms.modifierData2.value = val;
   }
 
-  set delta(val) {
-    this._dynamicUniforms.delta.value = val;
+  get modifierData2() {
+    return this.#dynamicUniforms.modifierData2.value;
   }
 
-  get delta() {
-    return this._dynamicUniforms.delta.value;
+  set modifier(val: number) {
+    this.#dynamicUniforms.modifier.value = val;
+    this.#generateProgramCacheKey();
+  }
+
+  get modifier() {
+    return this.#dynamicUniforms.modifier.value;
   }
 
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   override onBeforeCompile(shader: any) {
-    function extendVertex(replace: string, chunks: string[][]) {
-      return extend("vertexShader", replace, chunks);
-    }
+    // function extendVertex(replace: string, chunks: string[][]) {
+    //   return extend("vertexShader", replace, chunks);
+    // }
 
     function extendFragment(replace: string, chunks: string[][]) {
       return extend("fragmentShader", replace, chunks);
@@ -128,13 +157,9 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     }
 
     const mapFragments = [];
-    const vertFragments = [];
+    // const vertFragments = [];
 
-    if (this.isShadow) {
-      mapFragments.push([
-        "\ndiffuseColor = vec4((vec3(diffuseColor.a)) * 0.5, diffuseColor.a);\n",
-      ]);
-    } else if (this.teamMask) {
+    if (this.teamMask) {
       mapFragments.push([
         `
         float maskValue = texture2D( teamMask, vUv ).r;
@@ -143,37 +168,38 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
         `uniform sampler2D teamMask;
            uniform vec3 teamColor;`,
       ]);
-
-      Object.assign(shader.uniforms, this._dynamicUniforms);
-
     }
 
-    if (this.warpingIn) {
-      vertFragments.push(warp.vertex);
-      mapFragments.push(warp.fragment);
-
+    if (this.modifier === drawFunctions.rleShadow) {
+      mapFragments.push([
+        "\ndiffuseColor = vec4((vec3(diffuseColor.a)) * 0.5, diffuseColor.a);\n",
+      ]);
+    }
+    else if (this.modifier === drawFunctions.warpFlash) {
       mapFragments.push([
         `
-      if (warpingIn > 0.){
-        // draw warp texture
-        diffuseColor = vec4(
-          mix(diffuseColor.rgb, vec3(1.), warpingIn),
-          diffuseColor.a
-        );
-      }
-
-      `,
+        vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData1, 5.), 0.2 * floor(modifierData1 / 5.));
+        vec4 warp = texture2D( warpInFlashTexture, warpUv );
+        diffuseColor = vec4(warp.rgb, diffuseColor.a);
+      `
+      ]);
+    } else if (this.modifier === drawFunctions.warpFlash2) {
+      mapFragments.push([
         `
-        uniform float warpingIn;
-        uniform float warpingInLen;
-        uniform float delta;
-        `,
+        float flashPower = 1. - ((modifierData1 - 48.) / 15.);
+        diffuseColor = vec4(mix(diffuseColor.rgb, vec3(1.), flashPower), diffuseColor.a);
+      `
       ]);
     }
 
-    extendVertex("gl_Position = projectionMatrix * mvPosition;", vertFragments);
+    mapFragments.push(["", `
+    uniform float modifier;
+    uniform float modifierData1;
+    uniform float modifierData2;
+    uniform sampler2D warpInFlashTexture;`])
+
+    // extendVertex("gl_Position = projectionMatrix * mvPosition;", vertFragments);
     extendFragment("#include <map_fragment>", mapFragments);
-    // shader.uniforms.warpingIn = this._dynamicUniforms.warpingIn;
 
     /*
     // hallucination effect
@@ -181,16 +207,20 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     vec3 hallucinateColor = vec3(0.75, 1.125, 2.65) * b;
     return mix(blendTarget, hallucinateColor, halT);
     */
+    Object.assign(shader.uniforms, this.#dynamicUniforms);
+
   }
 
-  //FIXME: compute when updating fields rather than ehre
+  #generateProgramCacheKey() {
+    const newKey = `${Boolean(this.teamMask)}${this.modifier}`;
+    if (this.#customCacheKey !== newKey) {
+      this.needsUpdate = true;
+      this.#customCacheKey = newKey;
+    }
+  }
+
   override customProgramCacheKey() {
-    const flags = [
-      Boolean(this.teamMask),
-      this.isShadow,
-      Boolean(this.warpingIn),
-    ];
-    return flags.join("");
+    return this.#customCacheKey;
   }
 }
 

@@ -18,8 +18,8 @@ export interface Image extends Object3D {
   // for iscript sprite
   readonly unitTileScale: UnitTileScale;
 
-  setWarpingIn: (warpingIn: number) => void;
-  setCloaked: (cloaked: boolean) => void;
+  setModifiers: (modifier: number, modifierData1: number, modifierData2: number) => void;
+  resetModifiers: () => void;
   setTeamColor: (color: Color) => void;
 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT): void;

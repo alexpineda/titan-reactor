@@ -842,19 +842,14 @@ async function TitanReactorGame(
     if (unit) {
       return unit;
     } else {
-      const existingUnit = freeUnits.pop();
+      const unit = (freeUnits.pop() ?? { extras: {} }) as Unit;
 
-      const unit = Object.assign(existingUnit || {}, {
-        extras: {
-          recievingDamage: 0,
-          dat: bwDat.units[unitData.typeId],
-          player: undefined,
-          warpingIn: undefined,
-          warpingLen: undefined,
-          selected: false,
-        }
-      });
       unitData.copyTo(unit)
+      unit.extras.recievingDamage = 0;
+      unit.extras.player = undefined;
+      unit.extras.selected = false;
+      unit.extras.dat = bwDat.units[unitData.typeId];
+
       units.set(unitData.id, unit as unknown as Unit);
       plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
       return unit as unknown as Unit;
@@ -1303,7 +1298,11 @@ async function TitanReactorGame(
 
       if (image.visible) {
         image.setTeamColor(player?.color ?? white);
+        image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
 
+        if (imageData.modifier === 12 || imageData.modifier === 17) {
+          console.log(imageData.modifier, imageData.modifierData1, imageData.modifierData2)
+        }
         //TODO: use lo offsets if applicable (for directional camera changes)
         image.position.x = imageData.x / 32;
         image.position.z = 0;
@@ -1329,15 +1328,6 @@ async function TitanReactorGame(
             sprite.add(image);
           }
         }
-
-        // 63-48=15
-        if (imageData.modifier === 14) {
-          image.setWarpingIn((imageData.modifierData1 - 48) / 15);
-        } else {
-          image.setWarpingIn(0);
-        }
-        //FIXME: use modifier 1 for opacity value
-        image.setCloaked(imageData.modifier === 2 || imageData.modifier === 5);
 
         if (imageHasDirectionalFrames(imageData as ImageStruct)) {
           const flipped = imageIsFlipped(imageData as ImageStruct);

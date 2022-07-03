@@ -15,6 +15,7 @@ import { drawFunctions } from "../../common/enums";
 import { ImageDAT, GrpFrameType, GRPInterface } from "../../common/types";
 import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
+import gameStore from "@stores/game-store";
 
 export const DepthMode = {
   Ordered: 0, // for top down views
@@ -59,7 +60,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.dat = imageDef;
     this.material.map = atlas.diffuse;
     (this.material as TeamSpriteMaterial).teamMask = atlas.teammask;
-    (this.material as TeamSpriteMaterial).isShadow = imageDef.drawFunction === drawFunctions.rleShadow;
+    (this.material as TeamSpriteMaterial).warpInFlashGRP = gameStore().assets?.grps[210];
     this.originalScale.set(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
@@ -95,16 +96,8 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
 
     this.atlas = atlas;
     this.dat = imageDef;
-    //FIXME: what does warp flash 2 mean? do we want to use warpFlash as well?
-    // if (imageDef.drawFunction === drawFunctions.warpFlash2) {
-    //   this.material.warpingIn = 150;
-    // }
-
     this.material.transparent = true;
-    this.material.alphaTest = 0.01;
     this.material.depthTest = ImageHD.useDepth;
-
-    // this.geometry = this.geometry.clone();
 
     const posAttribute = new BufferAttribute(
       new Float32Array([
@@ -135,12 +128,9 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
 
 
   resetParams() {
-    this.setWarpingIn(0);
-    this.setCloaked(false);
-    this.setDelta(0);
+    this.resetModifiers();
     this.setFrame(0, false, true);
     this.setTeamColor(white);
-
   }
 
   get unitTileScale() {
@@ -155,18 +145,22 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     (this.material as TeamSpriteMaterial).teamColor = val;
   }
 
-  //FIXME: move calculation to here via modifierData1
-  setWarpingIn(val: number) {
-    (this.material as TeamSpriteMaterial).warpingIn = val;
+  setModifiers(modifier: number, modifierData1: number, modifierData2: number) {
+    (this.material as TeamSpriteMaterial).modifier = modifier;
+    (this.material as TeamSpriteMaterial).modifierData1 = modifierData1;
+    (this.material as TeamSpriteMaterial).modifierData2 = modifierData2;
+    if (modifier > 1 && modifier < 7) {
+      this.material.opacity = 0.5;
+    } else {
+      this.material.opacity = 1;
+    }
   }
 
-  //FIXME: move calculation to here via modifierData1
-  setCloaked(val: boolean) {
-    this.material.opacity = val ? 0.5 : 1;
-  }
-
-  setDelta(delta: number) {
-    (this.material as TeamSpriteMaterial).delta = delta;
+  resetModifiers() {
+    (this.material as TeamSpriteMaterial).modifier = 0;
+    (this.material as TeamSpriteMaterial).modifierData1 = 0;
+    (this.material as TeamSpriteMaterial).modifierData2 = 0;
+    this.material.opacity = 1;
   }
 
   setFrame(frame: number, flip: boolean, force = false) {
@@ -201,8 +195,6 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
 
     this.lastSetFrame = frame;
     this.lastFlipFrame = flipFrame;
-
-
 
     const off =
       (frame.yoff + frame.h - this._normalizedSpriteHeight / 2) / this._normalizedSpriteHeight;

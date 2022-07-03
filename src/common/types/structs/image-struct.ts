@@ -9,4 +9,5 @@ export interface ImageStruct {
   y: number;
   modifier: number;
   modifierData1: number;
+  modifierData2: number;
 }

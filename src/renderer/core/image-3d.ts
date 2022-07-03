@@ -69,8 +69,8 @@ export class Image3D extends Object3D implements Image {
   }
 
   setTeamColor() { }
-  setWarpingIn() { }
-  setCloaked() { }
+  setModifiers() { }
+  resetModifiers() { }
 
   get frames() {
     return this.atlas.frames;

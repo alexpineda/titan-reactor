@@ -36,6 +36,10 @@ export class ImageBufferView
     return this._bw.HEAP32[this._index32 + 5];
   }
 
+  get modifierData2() {
+    return this._bw.HEAP32[this._index32 + 6];
+  }
+
   get frameIndex() {
     return this._bw.HEAPU32[this._index32 + 7];
   }
