@@ -54,7 +54,7 @@ import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
-import { CameraModePlugin, PIP } from "./input/camera-mode";
+import { CameraModePlugin } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
@@ -180,27 +180,34 @@ async function TitanReactorGame(
   const fadingPointers = new FadingPointers();
   scene.add(fadingPointers);
 
-  const _PIP: PIP = {
-    enabled: false,
-    camera: new PerspectiveCamera(15, 1, 0.1, 1000),
-    viewport: new Vector4(0, 0, 300, 200),
-    margin: 20,
-    height: 300,
-    update() {
-      const aspect = camera.aspect;
+  class PIP {
+    enabled = false;
+    camera = new PerspectiveCamera(15, 1, 0.1, 1000);
+    viewport = new Vector4(0, 0, 300, 200);
+    margin = 20;
+    height = 300;
+    position?: Vector2;
+
+    constructor() {
+      this.camera.position.set(0, 50, 0);
+      this.camera.lookAt(0, 0, 0);
+    }
+
+    update(aspect: number) {
       this.camera.layers.enable(Layers.PictureInPicture);
 
-      const pipWidth = this.height * aspect;
+      const width = this.height * aspect;
+
       if (this.position) {
-        const x = this.position.x - pipWidth / 2;
+        const x = this.position.x - width / 2;
         const y = window.innerHeight - this.position.y - (this.height / 2);
-        _PIP.viewport.set(MathUtils.clamp(x, 0, gameSurface.scaledWidth - pipWidth), MathUtils.clamp(y, 0, window.innerHeight - this.height), pipWidth, this.height);
+        this.viewport.set(MathUtils.clamp(x, 0, gameSurface.scaledWidth - width), MathUtils.clamp(y, 0, window.innerHeight - this.height), width, this.height);
       } else {
-        _PIP.viewport.set(gameSurface.scaledWidth - pipWidth - this.margin, this.margin, pipWidth, this.height);
+        this.viewport.set(gameSurface.scaledWidth - width - this.margin, this.margin, width, this.height);
       }
 
-      _PIP.camera.aspect = aspect;
-      _PIP.camera.updateProjectionMatrix();
+      this.camera.aspect = aspect;
+      this.camera.updateProjectionMatrix();
     }
   }
 
@@ -264,20 +271,15 @@ async function TitanReactorGame(
 
     const cameraShake = new CameraShake();
 
-    _PIP.camera = new PerspectiveCamera(15, 1, 0.1, 1000);
-    _PIP.camera.position.set(0, 50, 0);
-    _PIP.camera.lookAt(0, 0, 0);
-    _PIP.enabled = false;
-    delete _PIP.position;
-    _PIP.height = 300;
-    _PIP.update();
+    const pip = new PIP();
+    pip.update(camera.aspect);
 
     return {
       rested: true,
       cameraMode,
       orbit: controls,
       cameraShake,
-      PIP: _PIP
+      PIP: pip
     };
   }
 
@@ -619,6 +621,7 @@ async function TitanReactorGame(
 
       selectedUnits.sort(typeIdSort).splice(12);
       selectedUnitsStore().setSelectedUnits(selectedUnits);
+
       if (settings.util.debugMode) {
         console.log(selectedUnits)
       }
@@ -730,7 +733,7 @@ async function TitanReactorGame(
       rect.minimapHeight,
     );
 
-    controls.PIP.update();
+    controls.PIP.update(camera.aspect);
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 100);
@@ -1794,7 +1797,7 @@ async function TitanReactorGame(
           controls.PIP.height = height;
         }
 
-        controls.PIP.update();
+        controls.PIP.update(camera.aspect);
       },
       pipHide() {
         controls.PIP.enabled = false;
