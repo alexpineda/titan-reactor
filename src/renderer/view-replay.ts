@@ -889,6 +889,18 @@ async function TitanReactorGame(
     const deletedUnitCount = openBw.wasm!._counts(17);
     const deletedUnitAddr = openBw.wasm!._get_buffer(5);
 
+    // const deletedUnits = new StdVector(openBw.wasm!.HEAP32, deletedUnitAddr >> 2);
+    // for (const unitId of deletedUnits) {
+    //   const unit = units.get(unitId);
+    //   if (!unit) continue;
+    //   units.delete(unitId);
+    //   freeUnits.push(unit);
+
+    //   selectedUnitsStore().removeUnit(unit);
+    //   unFollowUnit(unit);
+    //   plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
+    // }
+
     for (let i = 0; i < deletedUnitCount; i++) {
       const unitId = openBw.wasm!.HEAP32[(deletedUnitAddr >> 2) + i];
       const unit = units.get(unitId);
@@ -1300,9 +1312,6 @@ async function TitanReactorGame(
         image.setTeamColor(player?.color ?? white);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
 
-        if (imageData.modifier === 12 || imageData.modifier === 17) {
-          console.log(imageData.modifier, imageData.modifierData1, imageData.modifierData2)
-        }
         //TODO: use lo offsets if applicable (for directional camera changes)
         image.position.x = imageData.x / 32;
         image.position.z = 0;

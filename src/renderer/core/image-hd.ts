@@ -23,6 +23,7 @@ export const DepthMode = {
 };
 
 const white = new Color(0xffffff);
+const CLOAK_OPACITY = 0.6;
 
 /**
  * An image instance that uses HD assets
@@ -149,8 +150,15 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     (this.material as TeamSpriteMaterial).modifier = modifier;
     (this.material as TeamSpriteMaterial).modifierData1 = modifierData1;
     (this.material as TeamSpriteMaterial).modifierData2 = modifierData2;
-    if (modifier > 1 && modifier < 7) {
-      this.material.opacity = 0.5;
+
+    // 3 & 6 === cloak
+    // 2 and 5 === activate cloak
+    // 4 and 7 === deactivate cloak
+    // modifierData1 = 0->8 for cloak progress
+    if (modifier === 2 || modifier === 5 || modifier === 4 || modifier === 7) {
+      this.material.opacity = CLOAK_OPACITY + (modifierData1 / 8) * (1 - CLOAK_OPACITY);
+    } else if (modifier === 3 || modifier === 6) {
+      this.material.opacity = CLOAK_OPACITY;
     } else {
       this.material.opacity = 1;
     }

@@ -22,12 +22,6 @@ type DynamicUniforms = {
   modifierData2: {
     value: number;
   },
-  warpInFlashTextureWidth: {
-    value: number;
-  },
-  warpInFlashTextureHeight: {
-    value: number;
-  }
 };
 
 export class TeamSpriteMaterial extends MeshBasicMaterial {
@@ -49,12 +43,6 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
       },
       warpInFlashTexture: {
         value: undefined,
-      },
-      warpInFlashTextureWidth: {
-        value: 0,
-      },
-      warpInFlashTextureHeight: {
-        value: 0,
       },
       modifierData1: {
         value: 0
@@ -88,8 +76,6 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
   set warpInFlashGRP(val: GRPInterface | undefined) {
     assert(val);
     this.#dynamicUniforms.warpInFlashTexture.value = val.diffuse;
-    this.#dynamicUniforms.warpInFlashTextureWidth.value = val.spriteWidth;
-    this.#dynamicUniforms.warpInFlashTextureHeight.value = val.spriteHeight;
   }
 
   set modifierData1(val: number) {
