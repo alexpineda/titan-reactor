@@ -696,6 +696,7 @@ async function TitanReactorGame(
     const currentFrame = openBw.call!.getCurrentFrame!();
     openBw.call!.setCurrentFrame!(currentFrame + amount * dir);
     reset = refreshScene;
+    return openBw.call!.getCurrentFrame!();
   }
   const skipForward = () => skipHandler(1);
   const skipBackward = () => skipHandler(-1);
@@ -703,11 +704,14 @@ async function TitanReactorGame(
   const speedHandler = (scale: number) => {
     const currentSpeed = openBw.call!.getGameSpeed!();
     openBw.call!.setGameSpeed!(Math.min(16, currentSpeed * scale));
+    return openBw.call!.getGameSpeed!();
   }
   const speedUp = () => speedHandler(2);
   const speedDown = () => speedHandler(0.5);
   const togglePause = () => {
-    openBw.call!.setPaused!(!openBw.call!.isPaused!());
+    const isPaused = !openBw.call!.isPaused!();
+    openBw.call!.setPaused!(isPaused);
+    return isPaused;
   }
 
   const _sceneResizeHandler = () => {
