@@ -252,7 +252,6 @@ export default ({ components }) => {
             id="bottom"
             style={{
               display: "flex",
-              marginLeft: "var(--minimap-width)",
             }}
           >
             {components["bottom"] &&
