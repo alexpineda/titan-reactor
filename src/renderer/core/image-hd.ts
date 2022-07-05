@@ -55,6 +55,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean) {
 
     if (this.dat.index === imageDef.index && !force) {
+      this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
       return;
     }
     this.atlas = atlas;

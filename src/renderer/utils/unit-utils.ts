@@ -53,13 +53,3 @@ export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
       return undefined;
   }
 }
-
-// export const unitRemainingTrainTime = (u: UnitsBufferView) => {
-//   const bwDat = gameStore().assets?.bwDat;
-
-//   if (u.currentBuildUnit && bwDat)
-//   {
-//     return ((u.currentBuildUnit.remainingBuildTime / bwDat.units[u.typeId].buildTime) * 255);
-//   }
-//   return null;
-// }

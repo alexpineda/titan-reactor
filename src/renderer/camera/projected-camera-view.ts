@@ -21,7 +21,6 @@ const _intersect = [
  * World position for the four corners of our view
  */
 export default class ProjectedCameraView {
-  #camera: Camera;
 
 
   left = 0;
@@ -37,29 +36,25 @@ export default class ProjectedCameraView {
   tl: [number, number] = [0, 0];
   center = new Vector3();
 
-  constructor(camera: Camera) {
-    this.#camera = camera;
-  }
-
-  update() {
+  update(camera: Camera, target: Vector3) {
 
     for (let i = 0; i < 5; i++) {
-      _vector.set(_points[i][0], _points[i][1], 1).unproject(this.#camera);
+      _vector.set(_points[i][0], _points[i][1], 1).unproject(camera);
       if (
         !_plane.intersectLine(
-          new Line3(this.#camera.position, _vector),
+          new Line3(camera.position, _vector),
           _intersect[i]
         )
       ) {
         _intersect[0] = new Vector3(
-          this.#camera.position.x - 16,
+          camera.position.x - 16,
           0,
-          this.#camera.position.z + 16
+          camera.position.z + 16
         );
         _intersect[1] = new Vector3(
-          this.#camera.position.x + 16,
+          camera.position.x + 16,
           0,
-          this.#camera.position.z - 16
+          camera.position.z - 16
         );
         break;
       }
@@ -85,6 +80,9 @@ export default class ProjectedCameraView {
     this.height = _intersect[0].z - _intersect[1].z;
 
     this.center.copy(_intersect[4]);
+    if (Number.isNaN(this.center.x) || this.center.x === undefined) {
+      this.center.copy(target);
+    }
 
   }
 }

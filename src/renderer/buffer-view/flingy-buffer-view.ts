@@ -8,7 +8,7 @@ export class FlingyBufferView extends ThingyBufferView
     implements FlingyStruct {
 
     get index() {
-        return this._bw.HEAPU32[this._index32 + 2];
+        return this._bw.HEAPU32[this._addr32 + 2];
     }
 
     // target = 3
@@ -29,11 +29,11 @@ export class FlingyBufferView extends ThingyBufferView
     }
 
     get x() {
-        return this._bw.HEAP32[this._index32 + 16];
+        return this._bw.HEAP32[this._addr32 + 16];
     }
 
     get y() {
-        return this._bw.HEAP32[this._index32 + 17];
+        return this._bw.HEAP32[this._addr32 + 17];
     }
 
     override copyTo(dest: Partial<FlingyStruct>) {

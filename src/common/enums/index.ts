@@ -29,3 +29,4 @@ export * from "./bullet-state";
 export * from "./weapon-types";
 export * from "./weapon-behavior";
 export * from "./sprite-types";
+export * from "./unit-type-flags";

@@ -4,6 +4,9 @@ import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
 import { CameraModePlugin } from "../input/camera-mode";
+import { imageIsFlipped } from "./image-utils";
+import { ImageStruct } from "common/types";
+import DirectionalCamera from "../camera/directional-camera";
 
 export type Controls = {
   orbit: CameraControls,
@@ -57,4 +60,28 @@ export function calculateHorizontalFoV(verticalFoV: number, aspect = 16 / 9) {
 
   return Math.atan(Math.tan(verticalFoV * MathUtils.DEG2RAD * 0.5) * aspect) * MathUtils.RAD2DEG * 2.0;
 
+}
+
+const _imageFrameInfo = {
+  frame: 0,
+  flipped: false
+};
+
+export function applyCameraDirectionToImageFrameOffset(camera: DirectionalCamera, image: ImageStruct) {
+  const flipped = imageIsFlipped(image);
+  const direction = flipped ? 32 - image.frameIndexOffset : image.frameIndexOffset;
+  _imageFrameInfo.frame = (direction + camera.userData.direction) % 32;
+  _imageFrameInfo.flipped = _imageFrameInfo.frame > 16;
+  return _imageFrameInfo;
+}
+
+export function applyCameraDirectionToImageFrame(camera: DirectionalCamera, image: ImageStruct) {
+  const newFrameOffset = applyCameraDirectionToImageFrameOffset(camera, image);
+
+  if (_imageFrameInfo.flipped) {
+    _imageFrameInfo.frame = image.frameIndexBase + 32 - newFrameOffset.frame;
+  } else {
+    _imageFrameInfo.frame = image.frameIndexBase + newFrameOffset.frame;
+  }
+  return _imageFrameInfo;
 }

@@ -23,29 +23,29 @@ export class UnitsBufferView extends FlingyBufferView
     }
 
     get owner() {
-        return this._bw.HEAP32[this._index32 + 28];
+        return this._bw.HEAP32[this._addr32 + 28];
     }
 
     get order() {
-        const _order = this._bw.HEAPU32[this._index32 + 29];
+        const _order = this._bw.HEAPU32[this._addr32 + 29];
         if (_order === 0) return null;
         return this._bw.HEAP32[_order >> 2];
     }
 
     get groundWeaponCooldown() {
-        return this._bw.HEAPU32[this._index32 + 35];
+        return this._bw.HEAPU32[this._addr32 + 35];
     }
 
     get airWeaponCooldown() {
-        return this._bw.HEAPU32[this._index32 + 36];
+        return this._bw.HEAPU32[this._addr32 + 36];
     }
 
     get spellCooldown() {
-        return this._bw.HEAPU32[this._index32 + 37];
+        return this._bw.HEAPU32[this._addr32 + 37];
     }
 
     get orderTargetAddr() {
-        return this._bw.HEAPU32[this._index32 + 38];
+        return this._bw.HEAPU32[this._addr32 + 38];
     }
 
     get orderTargetX() {
@@ -61,16 +61,16 @@ export class UnitsBufferView extends FlingyBufferView
     }
 
     get shields() {
-        return FP8(this._bw.HEAPU32[this._index32 + 39]);
+        return FP8(this._bw.HEAPU32[this._addr32 + 39]);
     }
 
     get typeId() {
-        const addr = this._bw.HEAPU32[this._index32 + 40];
+        const addr = this._bw.HEAPU32[this._addr32 + 40];
         return this._bw.HEAP32[addr >> 2];
     }
 
     get typeFlags() {
-        const addr = this._bw.HEAPU32[this._index32 + 40];
+        const addr = this._bw.HEAPU32[this._addr32 + 40];
         return this._bw.HEAPU32[(addr >> 2) + 35];
     }
 
@@ -83,13 +83,36 @@ export class UnitsBufferView extends FlingyBufferView
             return null;
         }
 
-        const addr = this._bw.HEAPU32[this._index32 + 43];
+        const addr = this._bw.HEAPU32[this._addr32 + 43];
         if (addr === 0) return null;
         if (this.#subunit === undefined) {
             this.#subunit = new UnitsBufferView(this._bw);
         }
         return this.#subunit.get(addr);
     }
+
+    get parentUnit(): UnitStruct | null {
+        if ((this.typeFlags & 0x10) === 0) {
+            return null;
+        }
+
+        const addr = this._bw.HEAPU32[this._addr32 + 43];
+        if (addr === 0) return null;
+        if (this.#subunit === undefined) {
+            this.#subunit = new UnitsBufferView(this._bw);
+        }
+        return this.#subunit.get(addr);
+    }
+
+    get subunitId(): number | null {
+        const addr = this._bw.HEAPU32[this._addr32 + 43];
+        if (addr === 0) return null;
+        if (this.#subunit === undefined) {
+            this.#subunit = new UnitsBufferView(this._bw);
+        }
+        return this.#subunit.get(addr).id;
+    }
+
 
     // order_queue 2
     // 	unit_t *auto_target_unit
@@ -104,7 +127,7 @@ export class UnitsBufferView extends FlingyBufferView
     // 	int rank_increase
     // 	int kill_count
     get kills() {
-        return this._bw.HEAP32[this._index32 + 56];
+        return this._bw.HEAP32[this._addr32 + 56];
     }
     // 	int last_attacking_player;
     // 	int secondary_order_timer;
@@ -113,11 +136,11 @@ export class UnitsBufferView extends FlingyBufferView
     // 	int movement_state; 
     // 	static_vector<const unit_type_t *, 5> build_queue; 6 wide
     get energy() {
-        return FP8(this._bw.HEAPU32[this._index32 + 68]);
+        return FP8(this._bw.HEAPU32[this._addr32 + 68]);
     }
 
     get generation() {
-        return this._bw.HEAPU32[this._index32 + 69];
+        return this._bw.HEAPU32[this._addr32 + 69];
     }
 
     // 	const order_type_t *secondary_order_type; 70
@@ -126,13 +149,13 @@ export class UnitsBufferView extends FlingyBufferView
     // 	fp8 shield_construction_rate; 73
 
     get remainingBuildTime() {
-        return this._bw.HEAPU32[this._index32 + 74];
+        return this._bw.HEAPU32[this._addr32 + 74];
     }
     // 	int previous_hp; 75
     // 	std::array<unit_id, 8> loaded_units; 4 wide 83
 
     get statusFlags() {
-        return this._bw.HEAP32[this._index32 + 113];
+        return this._bw.HEAP32[this._addr32 + 113];
     }
 
     // int carrying_flags; 114
@@ -142,7 +165,7 @@ export class UnitsBufferView extends FlingyBufferView
     // uint32_t detected_flags; 118
 
     get currentBuildUnit(): UnitStruct | null {
-        const addr = this._bw.HEAPU32[this._index32 + 119];
+        const addr = this._bw.HEAPU32[this._addr32 + 119];
         if (addr === 0) return null;
         if (this.#currentBuildUnit === undefined) {
             this.#currentBuildUnit = new UnitsBufferView(this._bw);
@@ -162,6 +185,7 @@ export class UnitsBufferView extends FlingyBufferView
         dest.kills = this.kills + (this.subunit?.kills ?? 0);
         dest.statusFlags = this.statusFlags;
         dest.remainingBuildTime = this.remainingBuildTime;
+        dest.subunitId = this.subunitId;
     }
 
     copy(bufferView = new UnitsBufferView(this._bw)) {

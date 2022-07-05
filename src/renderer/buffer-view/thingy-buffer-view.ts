@@ -28,16 +28,16 @@ export class ThingyBufferView
     }
 
 
-    protected get _index32() {
+    protected get _addr32() {
         return (this._address >> 2) + 2; //skip link base
     }
 
     get hp() {
-        return FP8(this._bw.HEAPU32[this._index32]);
+        return FP8(this._bw.HEAPU32[this._addr32]);
     }
 
     get owSprite() {
-        const spriteAddr = this._bw.HEAPU32[this._index32 + 1];
+        const spriteAddr = this._bw.HEAPU32[this._addr32 + 1];
         return this._sprite.get(spriteAddr);
     }
 

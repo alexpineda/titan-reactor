@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Warp flash animation on protoss buildings
+- skipForward, skipBackward, speedUp, speedDown, togglePause plugin apis now return appropriate values
 
+### Fixed
+- Units with turrets with offsets will now look better when camera rotated
 
 
 ## [0.5.2] - 2022-07-3

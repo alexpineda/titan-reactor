@@ -17,6 +17,7 @@ export type ImageDAT = {
   iscript: number;
   shieldOverlay: number;
   attackOverlay: number;
+  damageOverlay: number;
   specialOverlay: number;
   landingDustOverlay: number;
   liftOffDustOverlay: number;

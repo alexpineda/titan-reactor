@@ -9,7 +9,7 @@ import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
 import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 
-import { BulletState, DamageType, drawFunctions, Explosion, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, iscriptHeaders, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT
@@ -47,7 +47,7 @@ import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { openBw } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
-import { getDirection32, setBoundary } from "./utils/camera-utils";
+import { applyCameraDirectionToImageFrame, getDirection32, setBoundary } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
@@ -80,6 +80,7 @@ import SelectionBars from "@core/selection-bars";
 import { IndexedObjectPool } from "./utils/indexed-object-pool";
 import { StdVector } from "./buffer-view/std-vector";
 import range from "common/utils/range";
+import DirectionalCamera from "./camera/directional-camera";
 
 CameraControls.install({ THREE: THREE });
 
@@ -160,11 +161,7 @@ async function TitanReactorGame(
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const camera = new PerspectiveCamera(15, gameSurface.width / gameSurface.height, 0.1, 500);
-  camera.userData = {
-    direction: 0,
-    prevDirection: -1
-  };
+  const camera = new DirectionalCamera(15, gameSurface.width / gameSurface.height, 0.1, 500);
   camera.layers.disable(Layers.PictureInPicture);
 
   const minimapMouse = new MinimapMouse(
@@ -453,9 +450,7 @@ async function TitanReactorGame(
   //   }
   // }
 
-  const projectedCameraView = new ProjectedCameraView(
-    camera
-  );
+  const projectedCameraView = new ProjectedCameraView();
 
   const _stopFollowingOnClick = () => {
     if (settings.game.stopFollowingOnClick) {
@@ -856,6 +851,7 @@ async function TitanReactorGame(
       unit.extras.player = undefined;
       unit.extras.selected = false;
       unit.extras.dat = bwDat.units[unitData.typeId];
+      unit.extras.turretLo = null;
 
       units.set(unitData.id, unit as unknown as Unit);
       plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
@@ -895,18 +891,6 @@ async function TitanReactorGame(
   ) => {
     const deletedUnitCount = openBw.wasm!._counts(17);
     const deletedUnitAddr = openBw.wasm!._get_buffer(5);
-
-    // const deletedUnits = new StdVector(openBw.wasm!.HEAP32, deletedUnitAddr >> 2);
-    // for (const unitId of deletedUnits) {
-    //   const unit = units.get(unitId);
-    //   if (!unit) continue;
-    //   units.delete(unitId);
-    //   freeUnits.push(unit);
-
-    //   selectedUnitsStore().removeUnit(unit);
-    //   unFollowUnit(unit);
-    //   plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
-    // }
 
     for (let i = 0; i < deletedUnitCount; i++) {
       const unitId = openBw.wasm!.HEAP32[(deletedUnitAddr >> 2) + i];
@@ -956,6 +940,15 @@ async function TitanReactorGame(
             (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
             (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
           selectedUnitsStore().removeUnit(unit);
+        }
+
+        if (unit.typeId === unitTypes.siegeTankTankMode) {
+          if (unit.extras.turretLo === null) {
+            unit.extras.turretLo = new Vector2;
+          }
+          getImageLoOffset(unit.extras.turretLo, unitData.owSprite.mainImage, 0);
+        } else {
+          unit.extras.turretLo = null;
         }
 
       }
@@ -1140,7 +1133,18 @@ async function TitanReactorGame(
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
 
-
+  const getImageLoOffset = (out: Vector2, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
+    // size_t frame = use_frame_index_offset ? image->frame_index_offset : image->frame_index;
+    const frameInfo = applyCameraDirectionToImageFrame(camera, image);
+    if (useFrameIndexOffset) {
+      frameInfo.frame = frameInfo.frame % 17;
+    }
+    const dat = assets.bwDat.images[image.typeId];
+    out.copy(bwDat.los[dat.specialOverlay - 1][frameInfo.frame][offsetIndex]);
+    out.x = frameInfo.flipped ? -out.x : out.x;
+    out.y = -out.y;
+    return out;
+  }
 
   const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlying?: boolean) => {
     const spriteX = pxToGameUnit.x(x);
@@ -1319,11 +1323,27 @@ async function TitanReactorGame(
         image.setTeamColor(player?.color ?? white);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
 
-        //TODO: use lo offsets if applicable (for directional camera changes)
         image.position.x = imageData.x / 32;
-        image.position.z = 0;
         // flying building or drone, don't use 2d offset
         image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
+
+        // tank turret needs to use different LO depending on camera angle
+        // in order to handle this we need to set the LO to the correct frame
+        // in addition, terran turret subunits are treated differently in bw so we accomodate that
+        // by setting the lo from the main unit image and not the turret image 
+        // as seen in `update_unit_movement`
+        const subunitId = unit?.subunitId;
+        if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret)) {
+          const subunit = units.get(subunitId);
+          // bw keeps parent unit in subunit as well, so in this case this is actually parent unit
+          // ie base tank
+          if (subunit && subunit.extras.turretLo) {
+            image.position.x = subunit.extras.turretLo.x / 32;
+            image.position.y = subunit.extras.turretLo.y / 32;
+          }
+        }
+
+        image.position.z = 0;
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
@@ -1346,15 +1366,8 @@ async function TitanReactorGame(
         }
 
         if (imageHasDirectionalFrames(imageData as ImageStruct)) {
-          const flipped = imageIsFlipped(imageData as ImageStruct);
-          const direction = flipped ? 32 - imageData.frameIndexOffset : imageData.frameIndexOffset;
-          const newFrameOffset = (direction + camera.userData.direction) % 32;
-
-          if (newFrameOffset > 16) {
-            image.setFrame(imageData.frameIndexBase + 32 - newFrameOffset, true);
-          } else {
-            image.setFrame(imageData.frameIndexBase + newFrameOffset, false);
-          }
+          const frameInfo = applyCameraDirectionToImageFrame(camera, imageData);
+          image.setFrame(frameInfo.frame, frameInfo.flipped);
         } else {
           image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
         }
@@ -1523,14 +1536,15 @@ async function TitanReactorGame(
   let cmd = cmds.next();
 
   const GAME_LOOP = (elapsed: number) => {
+    if (_disposing) return;
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    projectedCameraView.update();
-
+    controls.orbit.update(delta / 1000);
     controls.orbit.getTarget(_cameraTarget);
     controls.orbit.getPosition(_cameraPosition);
-    controls.orbit.update(delta / 1000);
+    projectedCameraView.update(camera, _cameraTarget);
+
     cameraMouse.update(delta / 100, elapsed, controls.cameraMode);
     cameraKeys.update(delta / 100, elapsed, controls.cameraMode);
     minimapMouse.update(controls.cameraMode);
@@ -1653,15 +1667,17 @@ async function TitanReactorGame(
 
   };
 
+  let _disposing = false;
   const dispose = () => {
     log.info("disposing replay viewer");
+    _disposing = true;
+    renderer.getWebGLRenderer().setAnimationLoop(null);
     clearFollowedUnits();
     plugins.onGameDisposed();
     pluginsApiJanitor.mopUp();
     janitor.mopUp();
     controls.cameraMode.dispose();
     selectedUnitsStore().clearSelectedUnits();
-
   };
 
   window.onbeforeunload = dispose;
@@ -1836,7 +1852,8 @@ async function TitanReactorGame(
     pluginsApiJanitor.callback(plugins.injectApi(api));
 
     let switchingCameraMode = false;
-    plugins.getCameraModePlugins().forEach((cameraMode) => {
+
+    for (const cameraMode of plugins.getCameraModePlugins()) {
       const _toggleCallback = async () => {
         if (switchingCameraMode) return;
 
@@ -1848,8 +1865,7 @@ async function TitanReactorGame(
       }
       shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!, _toggleCallback);
       pluginsApiJanitor.callback(() => shortcuts.removeListener(_toggleCallback));
-
-    });
+    }
 
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
