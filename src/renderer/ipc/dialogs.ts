@@ -5,6 +5,7 @@ import {
   OPEN_DEMO_REPLAY,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
+  OPEN_URL,
   SELECT_FOLDER,
 } from "common/ipc-handle-names";
 
@@ -27,3 +28,7 @@ export const openDemoReplay = async () => {
 export const downloadUpdate = async (url: string) => {
   ipcRenderer.send(DOWNLOAD_UPDATE, url);
 };
+
+export const openUrl = async (url: string) => {
+  ipcRenderer.send(OPEN_URL, url);
+}

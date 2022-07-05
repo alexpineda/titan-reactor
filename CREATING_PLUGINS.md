@@ -208,7 +208,7 @@ Example:
 ```js
 registerComponent({
   pluginId: "_plugin_id_",
-  screen: "@home/ready",
+  screen: "@replay/ready",
   snap: "center",
   order: 0
 }, MyElement)
@@ -217,14 +217,11 @@ registerComponent({
 
 **screen** *(optional)* = "screenType/screenStatus"
 
-screenType = `@home` | `@replay` | `@map`
+screenType = `@replay` | `@map`
 
 screenStatus = `loading` | `ready`
 
 - eg. "@replay/loading"
-
-- if `screen` is omitted, the plugin channel will be mounted on `@home/ready` and will remain mounted until the application is closed. 
-- `@home/loading` is not available to plugins. 
 
 **snap** *(optional)*
 

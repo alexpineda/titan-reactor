@@ -9,7 +9,7 @@ import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
 import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 
-import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, iscriptHeaders, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
+import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT

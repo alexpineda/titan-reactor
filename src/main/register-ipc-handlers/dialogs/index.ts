@@ -1,10 +1,12 @@
 import { ipcMain, shell } from "electron";
+import { whitelistUrls } from "../../whitelist-urls";
 
 import {
   DOWNLOAD_UPDATE,
   OPEN_DEMO_REPLAY,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
+  OPEN_URL,
   SELECT_FOLDER,
 } from "../../../common/ipc-handle-names";
 import browserWindows from "../../windows";
@@ -44,6 +46,15 @@ ipcMain.on(SELECT_FOLDER, async (event, key) =>
 
 ipcMain.on(DOWNLOAD_UPDATE, async (_, url: string) => {
   if (url.startsWith("https://github.com/imbateam-gg/titan-reactor/releases")) {
+    shell.openExternal(url, { activate: true })
+  }
+});
+
+ipcMain.on(OPEN_URL, async (_, url: string) => {
+  const isWhitelisted = whitelistUrls.some((whitelistedUrl) => whitelistedUrl === url);
+  console.log(url, whitelistUrls, isWhitelisted)
+
+  if (isWhitelisted) {
     shell.openExternal(url, { activate: true })
   }
 });

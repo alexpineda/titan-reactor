@@ -5,13 +5,16 @@ import { waitUnless } from "common/utils/wait";
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
 import { useSettingsStore } from "./stores";
-import screenStore from "./stores/screen-store";
+import screenStore, { useScreenStore } from "./stores/screen-store";
 import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
 import preloadAssets from "./bootup/load-assets-when-ready";
 import renderer from "./render/renderer";
 import settingsStore from "./stores/settings-store";
 import * as pluginSystem from "./plugins";
 import { initializePluginSystem } from "./plugins";
+import { SYSTEM_EVENT_OPEN_URL } from "./plugins/events";
+import { openUrl } from "./ipc";
+import { ScreenStatus, ScreenType } from "common/types";
 
 // @ts-ignore
 if (module.hot) {
@@ -89,3 +92,44 @@ async function bootup() {
     screenStore().setError(err);
   }
 }
+
+window.addEventListener("message", evt => {
+  if (evt.data?.type === SYSTEM_EVENT_OPEN_URL) {
+    openUrl(evt.data.payload);
+  }
+})
+
+const iframeDiv = document.createElement("div");
+iframeDiv.style.position = "absolute";
+iframeDiv.style.display = "flex";
+iframeDiv.style.flexDirection = "column";
+iframeDiv.style.alignItems = "center";
+iframeDiv.style.zIndex = "10";
+iframeDiv.style.marginLeft = "30px";
+iframeDiv.style.marginTop = "150px";
+
+const createIFrame = (url: string) => {
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.width = "560";
+  iframe.height = "315";
+  iframe.frameBorder = "0";
+  iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
+  iframe.allowFullscreen = true;
+  return iframe;
+}
+
+iframeDiv.appendChild(createIFrame("http://embed-casts.imbateam.gg"))
+iframeDiv.appendChild(createIFrame("http://embed-casts-2.imbateam.gg"));
+
+useScreenStore.subscribe((store) => {
+  if (store.type === ScreenType.Home && store.status === ScreenStatus.Ready && !store.error) {
+    if (!iframeDiv.parentElement) {
+      document.body.appendChild(iframeDiv);
+    }
+  } else {
+    if (iframeDiv.parentElement) {
+      iframeDiv.remove();
+    }
+  }
+});

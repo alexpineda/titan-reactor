@@ -72,23 +72,23 @@ const unitWithDump = (unit: Unit) => {
 }
 
 export class PluginSystemUI {
-    #_iframe: HTMLIFrameElement = document.createElement("iframe");
-    #_janitor = new Janitor();
+    #iframe: HTMLIFrameElement = document.createElement("iframe");
+    #janitor = new Janitor();
     refresh: () => void;
 
 
     constructor(pluginPackages: InitializedPluginPackage[]) {
-        this.#_iframe.style.backgroundColor = "transparent";
-        this.#_iframe.style.border = "none";
-        this.#_iframe.style.left = "0";
-        this.#_iframe.style.top = "0";
-        this.#_iframe.style.width = "100%";
-        this.#_iframe.style.height = "100%";
-        this.#_iframe.style.position = "absolute";
-        this.#_iframe.style.zIndex = "10";
-        this.#_iframe.style.userSelect = "none";
-        this.#_iframe.sandbox.add("allow-scripts");
-        this.#_iframe.sandbox.add("allow-downloads");
+        this.#iframe.style.backgroundColor = "transparent";
+        this.#iframe.style.border = "none";
+        this.#iframe.style.left = "0";
+        this.#iframe.style.top = "0";
+        this.#iframe.style.width = "100%";
+        this.#iframe.style.height = "100%";
+        this.#iframe.style.position = "absolute";
+        this.#iframe.style.zIndex = "10";
+        this.#iframe.style.userSelect = "none";
+        this.#iframe.sandbox.add("allow-scripts");
+        this.#iframe.sandbox.add("allow-downloads");
 
         const initialStore = () => ({
             [UI_PLUGIN_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
@@ -97,18 +97,18 @@ export class PluginSystemUI {
             [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload
         })
 
-        this.#_iframe.onload = async () => {
+        this.#iframe.onload = async () => {
             // for plugin dev reload only
             {
                 const screenState = useScreenStore.getState();
                 if (screenState.type === ScreenType.Home || screenState.error) {
-                    this.#_iframe.style.pointerEvents = "auto";
+                    this.#iframe.style.pointerEvents = "auto";
                 } else {
-                    this.#_iframe.style.pointerEvents = "none";
+                    this.#iframe.style.pointerEvents = "none";
                 }
             }
 
-            this.#_iframe.contentWindow?.postMessage({
+            this.#iframe.contentWindow?.postMessage({
                 type: SYSTEM_EVENT_READY,
                 payload: {
                     plugins: pluginPackages,
@@ -140,7 +140,7 @@ export class PluginSystemUI {
                         }
                     };
                     window.addEventListener("message", _onDownloadUpdate);
-                    this.#_janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
+                    this.#janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
                 }
             }
 
@@ -149,7 +149,7 @@ export class PluginSystemUI {
 
             const assets = await waitForAssets();
 
-            this.#_iframe.contentWindow?.postMessage({
+            this.#iframe.contentWindow?.postMessage({
                 type: SYSTEM_EVENT_ASSETS,
                 payload: {
                     assets: {
@@ -165,15 +165,15 @@ export class PluginSystemUI {
                 }
             }, "*")
         };
-        document.body.appendChild(this.#_iframe);
-        this.#_janitor.callback(() => document.body.removeChild(this.#_iframe));
+        document.body.appendChild(this.#iframe);
+        this.#janitor.callback(() => document.body.removeChild(this.#iframe));
 
         this.refresh = () => {
             const settings = settingsStore().data;
-            this.#_iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
+            this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
 
-        this.#_janitor.callback(useGameStore.subscribe((game, prev) => {
+        this.#janitor.callback(useGameStore.subscribe((game, prev) => {
             if (game.dimensions !== prev.dimensions) {
                 this.sendMessage({
                     type: UI_PLUGIN_EVENT_DIMENSIONS_CHANGED,
@@ -182,24 +182,24 @@ export class PluginSystemUI {
             }
         }));
 
-        this.#_janitor.callback(useScreenStore.subscribe((screen) => {
+        this.#janitor.callback(useScreenStore.subscribe((screen) => {
             if (screen.type === ScreenType.Home || screen.error) {
-                this.#_iframe.style.pointerEvents = "auto";
+                this.#iframe.style.pointerEvents = "auto";
             } else {
-                this.#_iframe.style.pointerEvents = "none";
+                this.#iframe.style.pointerEvents = "none";
             }
 
             this.sendMessage(screenChanged(screen));
         }));
 
-        this.#_janitor.callback(useWorldStore.subscribe((world) => {
+        this.#janitor.callback(useWorldStore.subscribe((world) => {
             this.sendMessage({
                 type: UI_PLUGIN_EVENT_WORLD_CHANGED,
                 payload: worldPartial(world)
             });
         }));
 
-        this.#_janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
+        this.#janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
             this.sendMessage({
                 type: UI_PLUGIN_EVENT_UNITS_SELECTED,
                 payload: unitsPartial(selectedUnits)
@@ -211,12 +211,12 @@ export class PluginSystemUI {
     }
 
     sendMessage(message: any, transfer?: Transferable[]) {
-        this.#_iframe.contentWindow?.postMessage(message, "*", transfer);
+        this.#iframe.contentWindow?.postMessage(message, "*", transfer);
     }
 
     dispose() {
         this.reset();
-        this.#_janitor.mopUp();
+        this.#janitor.mopUp();
     }
 
     reset() {
