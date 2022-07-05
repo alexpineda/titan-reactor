@@ -12,7 +12,7 @@ export class PluginKeyShortcuts {
     constructor(domElement: HTMLElement) {
         this.#domElement = domElement;
         this.#keyDownListenerInstance = this.#keyDownListener.bind(this);
-        this.#domElement.addEventListener("keydown", this.#keyDownListenerInstance, {
+        this.#domElement.addEventListener("keyup", this.#keyDownListenerInstance, {
             passive: true,
             capture: true,
         });
