@@ -13,12 +13,17 @@
     <img src="https://img.shields.io/discord/835029442987950091?style=flat&colorA=B7121F&colorB=000000&label=discord&logo=discord&logoColor=FFFFFF" alt="Chat on Twitter">
   </a>
 </p>
-
+<p align="center">
+<img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCj7TSQvBRYebRDIL0FW1MBQ?style=plastic" />
+</p>
 <br />
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/586716/153120765-4fa4faf4-0e46-42b9-ba08-10ab5ace2f20.gif" />
 </p>
+
+
+
 <br/>
 
 ### Requirements
