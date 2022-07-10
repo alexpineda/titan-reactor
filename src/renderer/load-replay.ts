@@ -67,6 +67,11 @@ export default async (filepath: string) => {
 
   const sanityCheck = settings.util.sanityCheckReplayCommands ? sanityCheckCommands(replay, true) : [];
 
+  if (replay.header.players.some(player => player.isComputer)) {
+    screenStore().setError(new Error("Replay contains computer players. Computer players are not currently supported."));
+    return;
+  }
+
   if (replay.version !== Version.titanReactor) {
     try {
       const chkDowngrader = new ChkDowngrader();

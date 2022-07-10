@@ -110,9 +110,28 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
           },
         },
         {
+          label: "Youtube",
+          click: async () => {
+            await shell.openExternal("https://www.youtube.com/channel/UCj7TSQvBRYebRDIL0FW1MBQ");
+          },
+        },
+        {
+          label: "Twitch",
+          click: async () => {
+            await shell.openExternal("https://www.twitch.tv/imbateamgg");
+          },
+        },
+        {
           label: "Twitter",
           click: async () => {
             await shell.openExternal("https://twitter.com/imbateam");
+          },
+        },
+        { type: "separator" },
+        {
+          label: "Kofi",
+          click: async () => {
+            await shell.openExternal("https://ko-fi.com/imbateam");
           },
         },
         {
