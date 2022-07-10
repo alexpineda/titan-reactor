@@ -9,6 +9,7 @@ import Chk from "bw-chk";
 import { strict as assert } from "assert";
 
 import { ScreenType } from "common/types";
+import { GameTypes } from "common/enums";
 import { pxToMapMeter } from "common/utils/conversions";
 
 import { ImageHD } from "./core";
@@ -107,6 +108,13 @@ export default async (filepath: string) => {
   }
   cleanMapTitles(map);
 
+  const gameTitle = `${map.title} - ${replay.header.players
+    .map(({ name }) => name)
+    .join(", ")}`
+
+  log.info(`@load-replay/game: ${gameTitle}`);
+  log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
+
   useWorldStore.setState({ replay, map }, true);
   janitor.callback(() => useWorldStore.setState({}, true));
 
@@ -182,9 +190,7 @@ export default async (filepath: string) => {
   gameStore().setDisposeGame(disposeGame);
   processStore().increment(Process.ReplayInitialization);
 
-  document.title = `Titan Reactor - ${map.title} - ${replay.header.players
-    .map(({ name }) => name)
-    .join(", ")}`;
+  document.title = `Titan Reactor - ${gameTitle}`;
 
   processStore().complete(Process.ReplayInitialization);
   screenStore().complete();
