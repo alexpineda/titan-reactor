@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Warp flash animation on protoss buildings
 - skipForward, skipBackward, speedUp, speedDown, togglePause plugin apis now return appropriate values
 
-
 ### Changed
 - Hotkeys activate on key up event only
 
@@ -18,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tank mode siege tank turrets (phew!) will now look better when camera rotated
 - When the camera target is above the horizon units will not rotate oddly
 - Disposing of the previous replay should execute before any additional plugin calls
+- UMS games that use set alliance now work (thank you Heinerman!)
 
 
 ## [0.5.2] - 2022-07-3
