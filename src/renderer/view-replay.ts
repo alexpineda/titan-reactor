@@ -709,7 +709,7 @@ async function TitanReactorGame(
     if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
       newSpeed = currentSpeed + 0.25;
     } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
-      newSpeed = Math.min(currentSpeed - 0.25, 16);
+      newSpeed = currentSpeed - 0.25;
     } else {
       newSpeed = Math.max(0.25, Math.min(16, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
     }
@@ -1516,7 +1516,7 @@ async function TitanReactorGame(
           arrReset.push([typeId, currentBwFrame?.frame ?? -1]);
           plugins.callHook(hook, [typeId, level, dat[typeId]]);
           if (settings.util.debugMode) {
-            console.log(`${hook} ${typeId} ${level} ${dat[typeId].name} ${currentBwFrame!.frame}`);
+            console.log(`${hook} ${typeId} ${level} ${dat[typeId].name}`);
           }
         }
       } else if (j === 1) {

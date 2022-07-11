@@ -68,6 +68,13 @@ export default async (filepath: string) => {
 
   const sanityCheck = settings.util.sanityCheckReplayCommands ? sanityCheckCommands(replay, true) : [];
 
+  if (sanityCheck.length) {
+    sanityCheck.forEach((command,i ) => i < 10 && log.warning(`@sanity-check/${command.reason}: ${JSON.stringify(command)}`));
+    if (sanityCheck.length > 10) {
+      log.warning(`@load-replay/sanity-check: ${sanityCheck.length} total invalid commands found`);
+    }
+  }
+
   if (replay.header.players.some(player => player.isComputer)) {
     screenStore().setError(new Error("Replay contains computer players. Computer players are not currently supported."));
     return;

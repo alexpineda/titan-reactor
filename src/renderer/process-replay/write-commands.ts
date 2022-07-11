@@ -29,12 +29,10 @@ export const writeCommands = (replay: Replay, ignoreList: number[] = []) => {
     }
 
     if (command.isUnknown && !command.data) {
-      log.warning(`Unknown command: ${command.id}`);
       continue;
     }
 
     if (!replay.header.players.find(p => p.id === command.player)) {
-      log.warning(`Unknown player: ${command.player}`);
       continue;
     }
 

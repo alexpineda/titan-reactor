@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When the camera target is above the horizon units will not rotate oddly
 - Disposing of the previous replay should execute before any additional plugin calls
 - UMS games that use set alliance now work (thank you Heinerman!)
+- Maps that use disabled doodads now work (thank you Heinerman!)
+- OBS chat won't break replays anymore
 
 
 ## [0.5.2] - 2022-07-3
