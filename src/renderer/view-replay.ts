@@ -696,13 +696,29 @@ async function TitanReactorGame(
   const skipForward = () => skipHandler(1);
   const skipBackward = () => skipHandler(-1);
 
-  const speedHandler = (scale: number) => {
+  enum ChangeSpeedDirection {
+    Up,
+    Down
+  }
+
+  const speedHandler = (direction: ChangeSpeedDirection) => {
     const currentSpeed = openBw.call!.getGameSpeed!();
-    openBw.call!.setGameSpeed!(Math.min(16, currentSpeed * scale));
+    let newSpeed = 0;
+
+    // smaller increments/decrements between 1 & 2
+    if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
+      newSpeed = currentSpeed + 0.25;
+    } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
+      newSpeed = Math.min(currentSpeed - 0.25, 16);
+    } else {
+      newSpeed = Math.max(0.25, Math.min(16, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
+    }
+
+    openBw.call!.setGameSpeed!(newSpeed);
     return openBw.call!.getGameSpeed!();
   }
-  const speedUp = () => speedHandler(2);
-  const speedDown = () => speedHandler(0.5);
+  const speedUp = () => speedHandler(ChangeSpeedDirection.Up);
+  const speedDown = () => speedHandler(ChangeSpeedDirection.Down);
   const togglePause = () => {
     const isPaused = !openBw.call!.isPaused!();
     openBw.call!.setPaused!(isPaused);
@@ -1500,7 +1516,7 @@ async function TitanReactorGame(
           arrReset.push([typeId, currentBwFrame?.frame ?? -1]);
           plugins.callHook(hook, [typeId, level, dat[typeId]]);
           if (settings.util.debugMode) {
-            console.log(`${hook} ${typeId} ${level} ${dat[typeId].name} `);
+            console.log(`${hook} ${typeId} ${level} ${dat[typeId].name} ${currentBwFrame!.frame}`);
           }
         }
       } else if (j === 1) {

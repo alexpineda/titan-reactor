@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Warp flash animation on protoss buildings
 - skipForward, skipBackward, speedUp, speedDown, togglePause plugin apis now return appropriate values
+- speed changes now goes by 0.25 increments when >= 1 and <= 2
 
 ### Changed
 - Hotkeys activate on key up event only
