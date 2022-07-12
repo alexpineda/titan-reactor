@@ -1,6 +1,6 @@
 import "./ui/reset.css";
-import { openBw } from "./openbw";
 import { waitUnless } from "common/utils/wait";
+import "./ipc/register-file-dialog-handlers";
 
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
@@ -82,7 +82,6 @@ async function bootup() {
       throw new Error(error);
     }
 
-    await openBw.loaded;
     await waitUnless(10_000, loadAssetsWithRetry(settings, hasErrors));
     screenStore().complete();
   } catch (err: any) {

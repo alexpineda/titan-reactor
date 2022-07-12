@@ -1,8 +1,8 @@
 import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
-import { OpenBWAPI } from "../../common/types";
+import { OpenBWAPI } from "common/types";
 
 export default class FogOfWar {
-    #openBw: OpenBWAPI;
+    #openBW: OpenBWAPI;
     imageData: ImageData;
     texture: Texture;
     // until postprocessing gets types
@@ -12,7 +12,7 @@ export default class FogOfWar {
     enabled = true;
 
     constructor(width: number, height: number, openBw: OpenBWAPI) {
-        this.#openBw = openBw;
+        this.#openBW = openBw;
 
         // for use with canvas drawing / minimap
         this.imageData = new ImageData(width, height);
@@ -46,10 +46,10 @@ export default class FogOfWar {
     }
 
     update(playerVision: number, camera: Camera) {
-        const tilesize = this.#openBw.call!.getFowSize!();
-        const ptr = this.#openBw.call!.getFowPtr!(playerVision, this.forceInstantUpdate);
+        const tilesize = this.#openBW.getFowSize();
+        const ptr = this.#openBW.getFowPtr(playerVision, this.forceInstantUpdate);
 
-        this.#buffer = this.#openBw.wasm!.HEAPU8.subarray(ptr, ptr + tilesize);
+        this.#buffer = this.#openBW.HEAPU8.subarray(ptr, ptr + tilesize);
         this.texture.image.data.set(this.#buffer);
         this.texture.needsUpdate = true;
 

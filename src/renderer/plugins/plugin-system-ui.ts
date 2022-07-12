@@ -1,5 +1,5 @@
 import Janitor from "@utils/janitor";
-import { InitializedPluginPackage, ScreenStatus, ScreenType } from "common/types";
+import { InitializedPluginPackage, OpenBWAPI, ScreenStatus, ScreenType } from "common/types";
 import settingsStore from "@stores/settings-store";
 
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
@@ -7,7 +7,6 @@ import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, u
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_EVENT_UPDATE_AVAILABLE } from "./events";
 import waitForAssets from "../utils/wait-for-assets";
 import { GameStatePosition, Unit } from "@core";
-import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import { downloadUpdate } from "@ipc";
@@ -64,13 +63,18 @@ const unitPartial = (unit: Unit) => {
     }
 }
 
+let _dumpUnitCall: (id: number) => {};
+
 const unitWithDump = (unit: Unit) => {
     return {
         ...unitPartial(unit),
-        ...openBw.wasm!.get_util_funcs().dump_unit(unit.id)
+        ..._dumpUnitCall(unit.id)
     }
 }
 
+export const setDumpUnitCall = (fn: (id: number) => {}) => {
+    _dumpUnitCall = fn;
+}
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
     #janitor = new Janitor();
@@ -220,7 +224,7 @@ export class PluginSystemUI {
         _replayPosition.payload = _makeReplayPosition();
     }
 
-    onFrame(gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) {
+    onFrame(openBW: OpenBWAPI, gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) {
         const time = gameStatePosition.getSecond();
 
         // update the ui every game second
@@ -228,7 +232,7 @@ export class PluginSystemUI {
             _lastSend[UI_PLUGIN_EVENT_ON_FRAME] = time;
 
             // minerals, gas, supply, supply_max, worker_supply, army_supply, apm
-            const playerData = openBw.wasm!.HEAP32.slice((playerDataAddr >> 2), (playerDataAddr >> 2) + (7 * 8));
+            const playerData = openBW.HEAP32.slice((playerDataAddr >> 2), (playerDataAddr >> 2) + (7 * 8));
 
             // production data is 8 arrays (players) of 3 vectors (unit, upgrades, research), 
             // each vector is first stored as 3 ints (addresses)
@@ -237,7 +241,7 @@ export class PluginSystemUI {
             // upgrades = id, level, progress
             // research = id, progress
 
-            const productionData = new StdVector(openBw.wasm!.HEAP32, productionDataAddr >> 2);
+            const productionData = new StdVector(openBW.HEAP32, productionDataAddr >> 2);
 
 
             //TODO: perhaps a more readable abstraction would benefit here

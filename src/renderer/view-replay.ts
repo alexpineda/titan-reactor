@@ -33,7 +33,7 @@ import {
   MouseSelectionBox,
   MouseCursor
 } from "./input";
-import { ImageBufferView, SpritesBufferView } from "./buffer-view";
+import { ImageBufferView, SpritesBufferView, TilesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
   GameCanvasTarget, Layers
@@ -44,7 +44,7 @@ import {
 } from "./stores";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
-import { openBw, OpenBWGameReadHead } from "./openbw";
+import { getOpenBW } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { applyCameraDirectionToImageFrame, getDirection32, setBoundary } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
@@ -97,7 +97,6 @@ async function TitanReactorGame(
   audioMixer: MainMixer,
   soundChannels: SoundChannels,
   music: Music,
-  playReadHead: OpenBWGameReadHead,
   commandsStream: CommandsStream
 ) {
   let settings = settingsStore().data;
@@ -105,8 +104,9 @@ async function TitanReactorGame(
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
 
-  openBw.call!.setGameSpeed!(1);
-  openBw.call!.setPaused!(false);
+  const openBW = await getOpenBW();
+  openBW.setGameSpeed(1);
+  openBW.setPaused(false);
 
   const fps = new FPSMeter();
   selectedUnitsStore().clearSelectedUnits();
@@ -320,7 +320,7 @@ async function TitanReactorGame(
     }
   }
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBw);
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW);
   const shortcuts = new PluginKeyShortcuts(window.document.body)
 
   janitor.disposable(shortcuts);
@@ -667,7 +667,7 @@ async function TitanReactorGame(
     clearFollowedUnits();
     fadingPointers.clear();
 
-    const frame = openBw.call!.getCurrentFrame!();
+    const frame = openBW.getCurrentFrame();
     plugins.callHook(HOOK_ON_FRAME_RESET, frame);
 
     // remove any upgrade or tech that is no longer available
@@ -678,17 +678,18 @@ async function TitanReactorGame(
       completedUpgrades[player] = completedUpgrades.map(([techId]) => techId);
     }
 
-    currentBwFrame = null;
+    previousBwFrame = -1;
     reset = null;
     _wasReset = true;
   }
 
   const skipHandler = (dir: number, amount = 200) => {
     if (reset) return;
-    const currentFrame = openBw.call!.getCurrentFrame!();
-    openBw.call!.setCurrentFrame!(currentFrame + amount * dir);
+    const currentFrame = openBW.getCurrentFrame();
+    openBW.setCurrentFrame(currentFrame + amount * dir);
+    currentBwFrame = openBW.getCurrentFrame();
     reset = refreshScene;
-    return openBw.call!.getCurrentFrame!();
+    return currentBwFrame;
   }
   const skipForward = () => skipHandler(1);
   const skipBackward = () => skipHandler(-1);
@@ -699,7 +700,7 @@ async function TitanReactorGame(
   }
 
   const speedHandler = (direction: ChangeSpeedDirection) => {
-    const currentSpeed = openBw.call!.getGameSpeed!();
+    const currentSpeed = openBW.getGameSpeed();
     let newSpeed = 0;
 
     // smaller increments/decrements between 1 & 2
@@ -711,14 +712,14 @@ async function TitanReactorGame(
       newSpeed = Math.max(0.25, Math.min(16, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
     }
 
-    openBw.call!.setGameSpeed!(newSpeed);
-    return openBw.call!.getGameSpeed!();
+    openBW.setGameSpeed(newSpeed);
+    return openBW.getGameSpeed();
   }
   const speedUp = () => speedHandler(ChangeSpeedDirection.Up);
   const speedDown = () => speedHandler(ChangeSpeedDirection.Down);
   const togglePause = () => {
-    const isPaused = !openBw.call!.isPaused!();
-    openBw.call!.setPaused!(isPaused);
+    const isPaused = !openBW.isPaused();
+    openBW.setPaused(isPaused);
     return isPaused;
   }
 
@@ -754,14 +755,15 @@ async function TitanReactorGame(
     window.removeEventListener("resize", sceneResizeHandler)
   );
 
-  let currentBwFrame: OpenBWGameReadHead | null;
+  let currentBwFrame = 0;
+  let previousBwFrame = -1;
 
   // TODO: merge these two, one is used for convenience in selection bars for energy hp testing
   const completedUpgrades = range(0, 8).map(() => [] as number[]);
   const completedResearch = range(0, 8).map(() => [] as number[]);
   const completedUpgradesReset = range(0, 8).map(() => [] as number[][]);
   const completedResearchReset = range(0, 8).map(() => [] as number[][]);
-  const productionData = new StdVector(openBw.wasm!.HEAP32, openBw.wasm!._get_buffer(9) >> 2);
+  const productionData = new StdVector(openBW.HEAP32, openBW._get_buffer(9) >> 2);
 
   const creep = new Creep(
     mapWidth,
@@ -872,11 +874,11 @@ async function TitanReactorGame(
     }
   }
 
-  const unitBufferView = new UnitsBufferView(openBw.wasm!);
-  const unitList = new IntrusiveList(openBw.wasm!.HEAPU32, 0, 43);
+  const unitBufferView = new UnitsBufferView(openBW);
+  const unitList = new IntrusiveList(openBW.HEAPU32, 0, 43);
 
   function* unitsIterator() {
-    const playersUnitAddr = openBw.call!.getUnitsAddr!();
+    const playersUnitAddr = openBW.getUnitsAddr();
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
       for (const unitAddr of unitList) {
@@ -902,11 +904,11 @@ async function TitanReactorGame(
     units: Map<number, Unit>,
     unitsBySprite: Map<number, Unit>
   ) => {
-    const deletedUnitCount = openBw.wasm!._counts(17);
-    const deletedUnitAddr = openBw.wasm!._get_buffer(5);
+    const deletedUnitCount = openBW._counts(17);
+    const deletedUnitAddr = openBW._get_buffer(5);
 
     for (let i = 0; i < deletedUnitCount; i++) {
-      const unitId = openBw.wasm!.HEAP32[(deletedUnitAddr >> 2) + i];
+      const unitId = openBW.HEAP32[(deletedUnitAddr >> 2) + i];
       const unit = units.get(unitId);
       if (!unit) continue;
       units.delete(unitId);
@@ -917,7 +919,7 @@ async function TitanReactorGame(
       plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
     }
 
-    const playersUnitAddr = openBw.call!.getUnitsAddr!();
+    const playersUnitAddr = openBW.getUnitsAddr();
 
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
@@ -1101,6 +1103,19 @@ async function TitanReactorGame(
 
   const SoundPlayMaxDistance = 40;
   const buildSounds = (sounds: SoundStruct[]) => {
+
+    // const linkedSpritesAddr = openBw.call!.getSoundsAddress!();
+    // for (let i = 0; i < openBw.call!.getSoundsCount!(); i++) {
+    //   const addr = (linkedSpritesAddr >> 2) + (i << 1);
+    //   const parent = sprites.get(openBw.wasm!.HEAP32[addr]);
+    //   const child = sprites.get(openBw.wasm!.HEAP32[addr + 1]);
+    //   if (!child || !parent) {
+    //     break;
+    //   }
+    //   // keep a reference to the value so that we retain it in buildSprite() in future iterations
+    //   child.position.y = child.userData.fixedY = parent.position.y;
+    // }
+
     for (const sound of sounds) {
       if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
         continue;
@@ -1144,8 +1159,11 @@ async function TitanReactorGame(
     }
   };
 
-  const buildCreep = (bwFrame: OpenBWGameReadHead) => {
-    creep.generate(bwFrame.tiles, bwFrame.frame);
+  const _tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, openBW.HEAPU8);
+  const buildCreep = (frame: number) => {
+    _tiles.ptrIndex = openBW.getTilesPtr();
+    _tiles.itemsCount = openBW.getTilesSize();
+    creep.generate(_tiles, frame);
   };
 
   const getImageLoOffset = (out: Vector2, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
@@ -1404,17 +1422,17 @@ async function TitanReactorGame(
     }
   }
 
-  const spriteBufferView = new SpritesBufferView(openBw.wasm!);
-  const imageBufferView = new ImageBufferView(openBw.wasm!);
-  const bulletBufferView = new BulletsBufferView(openBw.wasm!);
+  const spriteBufferView = new SpritesBufferView(openBW);
+  const imageBufferView = new ImageBufferView(openBW);
+  const bulletBufferView = new BulletsBufferView(openBW);
   const _ignoreSprites: number[] = [];
-  const bulletList = new IntrusiveList(openBw.wasm!.HEAPU32, 0);
+  const bulletList = new IntrusiveList(openBW.HEAPU32, 0);
 
   const buildSprites = (delta: number) => {
-    const deleteImageCount = openBw.wasm!._counts(15);
-    const deletedSpriteCount = openBw.wasm!._counts(16);
-    const deletedImageAddr = openBw.wasm!._get_buffer(3);
-    const deletedSpriteAddr = openBw.wasm!._get_buffer(4);
+    const deleteImageCount = openBW._counts(15);
+    const deletedSpriteCount = openBW._counts(16);
+    const deletedImageAddr = openBW._get_buffer(3);
+    const deletedSpriteAddr = openBW._get_buffer(4);
 
     camera.getWorldDirection(_cameraWorldDirection);
 
@@ -1426,7 +1444,7 @@ async function TitanReactorGame(
 
     //TODO: use sprite pool
     for (let i = 0; i < deletedSpriteCount; i++) {
-      const spriteIndex = openBw.wasm!.HEAP32[(deletedSpriteAddr >> 2) + i];
+      const spriteIndex = openBW.HEAP32[(deletedSpriteAddr >> 2) + i];
       unitsBySprite.delete(spriteIndex);
 
       const sprite = sprites.get(spriteIndex);
@@ -1436,7 +1454,7 @@ async function TitanReactorGame(
     }
 
     for (let i = 0; i < deleteImageCount; i++) {
-      const imageIndex = openBw.wasm!.HEAP32[(deletedImageAddr >> 2) + i];
+      const imageIndex = openBW.HEAP32[(deletedImageAddr >> 2) + i];
       const image = images.get(imageIndex);
       if (!image) continue;
       image.removeFromParent();
@@ -1448,7 +1466,7 @@ async function TitanReactorGame(
 
 
     // build bullet sprites first since they need special Y calculations
-    bulletList.addr = openBw.call!.getBulletsAddress!();
+    bulletList.addr = openBW.getBulletsAddress();
     _ignoreSprites.length = 0;
     for (const bulletAddr of bulletList) {
       if (bulletAddr === 0) continue;
@@ -1465,9 +1483,9 @@ async function TitanReactorGame(
     }
 
     // build all remaining sprites
-    const spriteList = new IntrusiveList(openBw.wasm!.HEAPU32);
-    const spriteTileLineSize = openBw.call!.getSpritesOnTileLineSize!();
-    const spritetileAddr = openBw.call!.getSpritesOnTileLineAddress!();
+    const spriteList = new IntrusiveList(openBW.HEAPU32);
+    const spriteTileLineSize = openBW.getSpritesOnTileLineSize();
+    const spritetileAddr = openBW.getSpritesOnTileLineAddress();
     for (let l = 0; l < spriteTileLineSize; l++) {
       spriteList.addr = spritetileAddr + (l << 3)
       for (const spriteAddr of spriteList) {
@@ -1489,11 +1507,11 @@ async function TitanReactorGame(
     // the reason we need to track this link is because some bullets create trails
     // titan-reactor.h only sends us sprites of halo rocket trail and long bolt/gemini missile trail
     //TODO: find a more elegant way to deal with elevation, perhaps unit/bullets track Y and others are terrain bound?
-    const linkedSpritesAddr = openBw.call!.getLinkedSpritesAddress!();
-    for (let i = 0; i < openBw.call!.getLinkedSpritesCount!(); i++) {
+    const linkedSpritesAddr = openBW.getLinkedSpritesAddress();
+    for (let i = 0; i < openBW.getLinkedSpritesCount(); i++) {
       const addr = (linkedSpritesAddr >> 2) + (i << 1);
-      const parent = sprites.get(openBw.wasm!.HEAP32[addr]);
-      const child = sprites.get(openBw.wasm!.HEAP32[addr + 1]);
+      const parent = sprites.get(openBW.HEAP32[addr]);
+      const child = sprites.get(openBW.HEAP32[addr + 1]);
       if (!child || !parent) {
         break;
       }
@@ -1512,7 +1530,7 @@ async function TitanReactorGame(
       } else if (j === size - 1) {
         if (val === 0 && !arr.includes(typeId)) {
           arr.push(typeId);
-          arrReset.push([typeId, currentBwFrame?.frame ?? -1]);
+          arrReset.push([typeId, currentBwFrame]);
           plugins.callHook(hook, [typeId, level, dat[typeId]]);
           if (settings.util.debugMode) {
             console.log(`${hook} ${typeId} ${level} ${dat[typeId].name}`);
@@ -1529,7 +1547,7 @@ async function TitanReactorGame(
   }
 
   const updateCompletedUpgrades = () => {
-    let addr32 = openBw.wasm!._get_buffer(9) >> 2;
+    let addr32 = openBW._get_buffer(9) >> 2;
     for (let player = 0; player < 8; player++) {
       productionData.addr32 = addr32 + (player * 9) + 3;
       _updateCompleted(completedUpgrades[player], completedUpgradesReset[player], 3, bwDat.upgrades, HOOK_ON_UPGRADE_COMPLETED);
@@ -1568,18 +1586,12 @@ async function TitanReactorGame(
       reset();
     }
 
-    if (!currentBwFrame) {
-      currentBwFrame = playReadHead.update();
-      if (currentBwFrame?.needsUpdate === false) {
-        currentBwFrame = null;
-      }
-    }
-
-    if (currentBwFrame && currentBwFrame.needsUpdate) {
-      if (currentBwFrame.frame % 42 === 0) {
+    currentBwFrame = openBW.nextFrame(false);
+    if (currentBwFrame !== previousBwFrame) {
+      if (currentBwFrame % 42 === 0) {
         updateCompletedUpgrades();
       }
-      buildSounds(openBw.call!.getSoundObjects!());
+      buildSounds(openBW.getSoundObjects());
       buildCreep(currentBwFrame);
 
       buildUnits(
@@ -1588,7 +1600,7 @@ async function TitanReactorGame(
       );
       buildMinimap(minimapImageData, minimapResourceImageData);
       buildSprites(delta);
-      // buildResearchAndUpgrades(currentBwFrame);
+
       fogOfWar.texture.needsUpdate = true;
       creep.creepValuesTexture.needsUpdate = true;
       creep.creepEdgesValuesTexture.needsUpdate = true;
@@ -1604,30 +1616,28 @@ async function TitanReactorGame(
         unitAttackScore.strength.setScalar(0);
       }
 
-
       _commandsThisFrame.length = 0;
       while (cmd.done === false) {
         if (
           typeof cmd.value === "number"
         ) {
-          if (cmd.value > currentBwFrame.frame) {
+          if (cmd.value > currentBwFrame) {
             break;
           }
           // only include past 5 game seconds (in case we are skipping frames)
-        } else if (currentBwFrame.frame - cmd.value.frame < 120) {
+        } else if (currentBwFrame - cmd.value.frame < 120) {
           _commandsThisFrame.push(cmd.value);
         }
         cmd = cmds.next();
       }
 
-      fadingPointers.update(currentBwFrame.frame);
+      fadingPointers.update(currentBwFrame);
       renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
 
-      gameStatePosition.bwGameFrame = currentBwFrame.frame;
-      plugins.onFrame(gameStatePosition, openBw.wasm!._get_buffer(8), openBw.wasm!._get_buffer(9), _commandsThisFrame);
+      gameStatePosition.bwGameFrame = currentBwFrame;
+      plugins.onFrame(openBW, gameStatePosition, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
-
-      currentBwFrame = null;
+      previousBwFrame = currentBwFrame;
     }
 
 
@@ -1637,7 +1647,7 @@ async function TitanReactorGame(
         camera.userData.prevDirection = camera.userData.direction;
         camera.userData.direction = dir;
         if (currentBwFrame) {
-          currentBwFrame.needsUpdate = true;
+          previousBwFrame = -1;
         }
       }
     }
@@ -1798,11 +1808,11 @@ async function TitanReactorGame(
         terrain: terrain.terrain
       },
       getFrame() {
-        return currentBwFrame?.frame;
+        return currentBwFrame;
       },
       maxFrame: replay.header.frameCount,
-      gotoFrame: (frame: number) => openBw.call!.setCurrentFrame!(frame),
-      getSpeed: () => openBw.call!.getGameSpeed!(),
+      gotoFrame: (frame: number) => openBW.setCurrentFrame(frame),
+      getSpeed: () => openBW.getGameSpeed(),
       registerHotkey(key: string, fn: Function) {
         // @ts-ignore
         key && shortcuts.addListener(this.id, key, fn);

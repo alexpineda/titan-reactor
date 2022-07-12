@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { InitializedPluginPackage } from "common/types";
+import { InitializedPluginPackage, OpenBWAPI } from "common/types";
 import {
     ON_PLUGIN_CONFIG_UPDATED,
     ON_PLUGINS_ENABLED,
@@ -100,12 +100,13 @@ export const onClick = (event: MouseEvent) => {
 };
 
 export const onFrame = (
+    openBw: OpenBWAPI,
     gameStatePosition: GameStatePosition,
     playerDataAddr: number,
     productionDataAddr: number,
     commands: any[]
 ) => {
-    uiPluginSystem.onFrame(gameStatePosition, playerDataAddr, productionDataAddr);
+    uiPluginSystem.onFrame(openBw, gameStatePosition, playerDataAddr, productionDataAddr);
     nativePluginSystem.onFrame(
         gameStatePosition.bwGameFrame,
         commands

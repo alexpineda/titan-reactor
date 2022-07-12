@@ -1,3 +1,5 @@
+import { ReadFile } from "common/types";
+import type OpenBWFileList from "../../renderer/openbw/openbw-filelist";
 import { SoundStruct } from "./structs";
 
 export interface OpenBWWasm {
@@ -41,39 +43,39 @@ export interface OpenBWWasm {
     ALLOC_NORMAL: number;
 }
 
-export interface OpenBWAPI {
-    wasm?: OpenBWWasm;
+export interface OpenBWAPI extends OpenBWWasm {
+    running: boolean;
+    files: OpenBWFileList;
+
     callbacks: {
         beforeFrame: () => void;
         afterFrame: () => void;
     };
-    call?: {
-        getFowSize?: () => number;
-        getFowPtr?: (visibility: number, instant: boolean) => number;
-        getTilesPtr?: () => number;
-        getTilesSize?: () => number;
-        getSoundObjects?: () => SoundStruct[];
-        getSpritesOnTileLineSize?: () => number;
-        getSpritesOnTileLineAddress?: () => number;
-        getUnitsAddr?: () => number;
-        getBulletsAddress?: () => number,
-        getBulletsDeletedCount?: () => number,
-        getBulletsDeletedAddress?: () => number,
-        getLinkedSpritesAddress?: () => number,
-        getLinkedSpritesCount?: () => number,
-        getSoundsAddress?: () => number,
-        getSoundsCount?: () => number,
-        setGameSpeed?: (speed: number) => void;
-        getGameSpeed?: () => number;
-        setCurrentFrame?: (frame: number) => void;
-        getCurrentFrame?: () => number;
-        isPaused?: () => boolean;
-        setPaused?: (paused: boolean) => void;
+    getFowSize: () => number;
+    getFowPtr: (visibility: number, instant: boolean) => number;
+    getTilesPtr: () => number;
+    getTilesSize: () => number;
+    getSoundObjects: () => SoundStruct[];
+    getSpritesOnTileLineSize: () => number;
+    getSpritesOnTileLineAddress: () => number;
+    getUnitsAddr: () => number;
+    getBulletsAddress: () => number,
+    getBulletsDeletedCount: () => number,
+    getBulletsDeletedAddress: () => number,
+    getLinkedSpritesAddress: () => number,
+    getLinkedSpritesCount: () => number,
+    getSoundsAddress: () => number,
+    getSoundsCount: () => number,
+    setGameSpeed: (speed: number) => void;
+    getGameSpeed: () => number;
+    setCurrentFrame: (frame: number) => void;
+    getCurrentFrame: () => number;
+    isPaused: () => boolean;
+    setPaused: (paused: boolean) => void;
 
-        nextFrame?: () => number;
-        tryCatch?: (callback: () => void) => void;
-        loadReplay: (buffer: Buffer) => void;
-        main?: () => void;
-    }
-    loaded: Promise<boolean>;
+    nextFrame: (debug: boolean) => number;
+    tryCatch: (callback: () => void) => void;
+    loadReplay: (buffer: Buffer) => void;
+    start: (readFile: ReadFile) => void;
+
 };

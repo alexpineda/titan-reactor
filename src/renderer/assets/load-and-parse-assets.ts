@@ -24,7 +24,6 @@ import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
-import { openBwFiles, openBw } from "../openbw";
 import { UnitTileScale } from "../core";
 import loadEnvironmentMap from "../image/env-map";
 
@@ -39,10 +38,6 @@ export default async (settings: Settings) => {
     });
 
     await openCascStorage(settings.directories.starcraft);
-
-    log.verbose("@load-assets/openbw: ready buffers");
-    await openBwFiles.loadBuffers(readCascFile);
-    openBw.call!.main!();
 
     log.verbose("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);

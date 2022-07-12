@@ -1,10 +1,11 @@
+import { ipcRenderer } from "electron";
 import {
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
-} from "../../common/ipc-handle-names";
-import { ipcRenderer } from "electron";
+} from "common/ipc-handle-names";
+import screenStore from "@stores/screen-store";
+
 import * as log from "./log";
-import screenStore from "../stores/screen-store";
 import loadMap from "../load-map";
 import loadReplay from "../load-replay";
 

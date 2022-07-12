@@ -1,4 +1,3 @@
-import "./register-file-dialog-handlers";
 
 // outward apis
 export * from "./casclib";

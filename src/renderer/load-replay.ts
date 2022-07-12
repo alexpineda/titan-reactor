@@ -23,7 +23,7 @@ import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
 import waitForAssets from "./utils/wait-for-assets";
 import Janitor from "./utils/janitor";
-import { openBw } from "./openbw";
+import { getOpenBW } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { useWorldStore } from "@stores";
 import { cleanMapTitles } from "@utils/map-string-utils";
@@ -35,7 +35,7 @@ import { callHookAsync } from "./plugins";
 import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
 import getContainerSize from "./process-replay/get-container-size";
-import OpenBWGameReadHead from "./openbw/openbw-game-read-head";
+import { setDumpUnitCall } from "./plugins/plugin-system-ui";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -63,6 +63,10 @@ export default async (filepath: string) => {
   document.title = "Titan Reactor - Loading";
 
   screenStore().init(ScreenType.Replay);
+
+  const openBw = await getOpenBW();
+  await openBw.start(readCascFile);
+  setDumpUnitCall((id) => openBw.get_util_funcs().dump_unit(id));
 
   const sanityCheck = settings.util.sanityCheckReplayCommands ? sanityCheckCommands(replay, true) : [];
 
@@ -138,9 +142,8 @@ export default async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
 
-  const playReadHead = new OpenBWGameReadHead(openBw);
   try {
-    playReadHead.loadReplay(repBin);
+    openBw.loadReplay(repBin);
   } catch (e: unknown) {
     log.error(e);
     if (e instanceof Error) {
@@ -188,7 +191,6 @@ export default async (filepath: string) => {
     audioMixer,
     soundChannels,
     music,
-    playReadHead,
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
   );
 

@@ -5,8 +5,8 @@ import { findFiles } from "common/utils/casclib";
 import * as log from "@ipc/log";
 import settingsStore from "@stores/settings-store";
 
-import filepaths from "./filepaths";
-import filelist from "./list";
+import filepaths from "./extra/filepaths";
+import filelist from "./extra/list";
 interface Callbacks {
   beforeFrame: () => void;
   afterFrame: () => void;
@@ -23,7 +23,7 @@ export default class OpenBWFileList {
     return path.toLowerCase().replace(/\//g, "\\");
   }
 
-  setup(openBw: any, callbacks: Callbacks) {
+  constructor(openBw: any, callbacks: Callbacks) {
     openBw.setupCallbacks({
       js_fatal_error: (ptr: any) => {
         throw new Error(openBw.UTF8ToString(ptr));

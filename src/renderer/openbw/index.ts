@@ -1,85 +1,99 @@
-import createOpenBw from "./titan.wasm.js";
-import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
-import { OpenBWAPI, OpenBWWasm } from "../../common/types";
-export * from "./openbw-game-read-head";
+import { OpenBWAPI, OpenBWWasm, ReadFile } from "common/types";
+import initializeWASM from "./titan.wasm.js";
+import OpenBWFileList from "./openbw-filelist";
 
-const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
 
-const callbacks = {
-  beforeFrame: () => { },
-  afterFrame: () => { },
-};
+const createOpenBW = async () => {
+  const callbacks = {
+    beforeFrame: () => { },
+    afterFrame: () => { },
+  };
 
-const openBw: OpenBWAPI = {
-  callbacks,
-  loaded: createOpenBw({
-    wasmBinary: readFileSync(wasmFileLocation),
-  }).then((_wasm: OpenBWWasm) => {
-    openBw.wasm = _wasm;
-    openBwFiles.setup(_wasm, callbacks);
-    const tryCatch = (cb: Function) => {
-      try {
-        return cb();
-      } catch (e) {
-        if (typeof e === 'number') {
-          throw new Error(_wasm.getExceptionMessage(e));
-        } else {
-          throw e;
-        }
+  const wasm = await initializeWASM({
+    wasmBinary: readFileSync(wasmFileLocation)
+  }) as OpenBWWasm;
+
+  const openBW = Object.create(wasm) as OpenBWAPI;
+
+  const tryCatch = (cb: Function) => {
+    try {
+      return cb();
+    } catch (e) {
+      if (typeof e === 'number') {
+        throw new Error(wasm.getExceptionMessage(e));
+      } else {
+        throw e;
       }
-    };
+    }
+  };
 
-    const _nextFrame = () => _wasm._next_frame();
+  openBW.getFowSize = () => wasm._counts(10);
+  openBW.getFowPtr = (visibility: number, instant: boolean) => wasm._get_fow_ptr(visibility, instant);
 
-    openBw.call = {
-      getFowSize: () => _wasm._counts(10),
-      getFowPtr: (visibility: number, instant: boolean) => _wasm._get_fow_ptr(visibility, instant),
-      getTilesPtr: () => _wasm._get_buffer(0),
-      getTilesSize: () => _wasm._counts(0),
-      getSoundObjects: () => _wasm.get_util_funcs().get_sounds(),
-      getSpritesOnTileLineSize: () => _wasm._counts(14),
-      getSpritesOnTileLineAddress: () => _wasm._get_buffer(1),
-      getUnitsAddr: () => _wasm._get_buffer(2),
-      getBulletsAddress: () => _wasm._get_buffer(6),
-      getBulletsDeletedCount: () => _wasm._counts(18),
-      getBulletsDeletedAddress: () => _wasm._get_buffer(7),
-      getLinkedSpritesAddress: () => _wasm._get_buffer(10),
-      getLinkedSpritesCount: () => _wasm._counts(1),
+  openBW.getTilesPtr = () => wasm._get_buffer(0);
+  openBW.getTilesSize = () => wasm._counts(0);
 
-      nextFrame: () => tryCatch(_nextFrame),
-      setGameSpeed: (speed: number) => _wasm._replay_set_value(0, speed),
-      getGameSpeed: () => _wasm._replay_get_value(0),
-      setCurrentFrame: (frame: number) => _wasm._replay_set_value(3, frame),
-      getCurrentFrame: () => _wasm._replay_get_value(3),
-      isPaused: () => _wasm._replay_get_value(1) === 1,
-      setPaused: (paused: boolean) => _wasm._replay_set_value(1, paused ? 1 : 0),
-      loadReplay: (buffer: Buffer) => {
-        tryCatch(() => {
-          const buf = _wasm.allocate(buffer, _wasm.ALLOC_NORMAL);
-          _wasm._load_replay(buf, buffer.length);
-          _wasm._free(buf);
-        });
-      },
-      tryCatch,
-      main: () => {
-        try {
-          _wasm.callMain();
-        } catch (e) {
-          throw new Error(_wasm.getExceptionMessage(e));
-        }
-      }
-    };
-    //@ts-ignore
-    window.openBw = openBw;
-    return true;
-  })
-};
+  openBW.getSoundObjects = () => wasm.get_util_funcs().get_sounds();
 
-const getOpenBW = () => {
-  return openBw;
+  openBW.getSpritesOnTileLineSize = () => wasm._counts(14);
+  openBW.getSpritesOnTileLineAddress = () => wasm._get_buffer(1);
+
+  openBW.getUnitsAddr = () => wasm._get_buffer(2);
+
+  openBW.getBulletsAddress = () => wasm._get_buffer(6);
+  openBW.getBulletsDeletedCount = () => wasm._counts(18);
+  openBW.getBulletsDeletedAddress = () => wasm._get_buffer(7);
+
+  openBW.getLinkedSpritesAddress = () => wasm._get_buffer(10);
+  openBW.getLinkedSpritesCount = () => wasm._counts(1);
+
+  openBW.getLinkedSpritesAddress = () => wasm._get_buffer(10);
+  openBW.getLinkedSpritesCount = () => wasm._counts(1);
+
+
+  const _nextFrame = () => wasm._next_frame();
+  openBW.nextFrame = (debug = false) => debug ? tryCatch(_nextFrame) : _nextFrame();
+
+  openBW.setGameSpeed = (speed: number) => wasm._replay_set_value(0, speed);
+  openBW.getGameSpeed = () => wasm._replay_get_value(0);
+
+  openBW.setCurrentFrame = (frame: number) => wasm._replay_set_value(3, frame);
+  openBW.getCurrentFrame = () => wasm._replay_get_value(3);
+
+  openBW.isPaused = () => wasm._replay_get_value(1) === 1;
+  openBW.setPaused = (paused: boolean) => wasm._replay_set_value(1, paused ? 1 : 0);
+
+  openBW.loadReplay = (buffer: Buffer) => {
+    tryCatch(() => {
+      const buf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
+      wasm._load_replay(buf, buffer.length);
+      wasm._free(buf);
+    });
+  };
+  openBW.tryCatch = tryCatch;
+
+  openBW.start = async (readFile: ReadFile) => {
+    if (openBW.running) return;
+
+    const files = new OpenBWFileList(wasm, callbacks);
+    await files.loadBuffers(readFile);
+    tryCatch(() => wasm.callMain());
+    openBW.running = true;
+  }
+  return openBW;
 }
 
-export { openBw, openBwFiles, getOpenBW };
+const openBws: Record<number, OpenBWAPI> = {};
+
+const getOpenBW = async (instance = 0) => {
+  if (openBws[instance]) return openBws[instance];
+
+  const openBW = await createOpenBW();
+  openBws[instance] = openBW;
+  return openBW;
+}
+
+export { getOpenBW };
