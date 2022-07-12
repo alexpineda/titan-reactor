@@ -10,7 +10,6 @@ import { strict as assert } from "assert";
 
 import { ScreenType } from "common/types";
 import { GameTypes } from "common/enums";
-import { pxToMapMeter } from "common/utils/conversions";
 
 import { ImageHD } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
@@ -128,8 +127,7 @@ export default async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
 
   const terrain = await loadTerrain(
-    map,
-    pxToMapMeter(map.size[0], map.size[1])
+    map
   );
   const scene = new Scene(terrain);
   janitor.object3d(scene);

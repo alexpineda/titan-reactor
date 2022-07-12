@@ -1,5 +1,4 @@
-import { Object3D, Texture, Vector3 } from "three";
-
+import { Object3D, Texture } from "three";
 import { GetTerrainY } from "./util";
 
 // FIXME: deprecate? image has it?
@@ -28,10 +27,6 @@ export type TerrainInfo = {
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
-  /**
-   * Converts from pixel units to threejs map units
-   */
-  getMapCoords: (x: number, y: number) => Vector3;
 };
 
 export type TilesetBuffers = {

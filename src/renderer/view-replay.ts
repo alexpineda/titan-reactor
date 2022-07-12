@@ -1110,6 +1110,9 @@ async function TitanReactorGame(
       }
       const dat = assets.bwDat.sounds[sound.typeId];
       const mapCoords = terrain.getMapCoords(sound.x, sound.y)
+      const mapCoords = new Vector3;
+
+      pxToGameUnit.xyz(sound.x, sound.y, terrain.getTerrainY, mapCoords);
 
       if (controls.cameraMode.soundMode === "spatial") {
         if (dat.minVolume || camera.position.distanceTo(mapCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
@@ -1796,7 +1799,6 @@ async function TitanReactorGame(
         mapWidth: terrain.mapWidth,
         mapHeight: terrain.mapHeight,
         getTerrainY: terrain.getTerrainY,
-        getMapCoords: terrain.getMapCoords,
         terrain: terrain.terrain
       },
       getFrame() {

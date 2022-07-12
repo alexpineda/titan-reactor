@@ -1,3 +1,4 @@
+import { Vector2, Vector3 } from "three";
 import { PxToGameUnit } from "../types/util";
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
@@ -11,16 +12,12 @@ export const pxToMapMeter = (
   return {
     x: (x: number) => transform(x, mapWidth),
     y: (y: number) => transform(y, mapHeight),
-    xy: (xy: { x: number; y: number }) => {
-      if (Array.isArray(xy)) {
-        return [transform(xy[0], mapWidth), transform(xy[1], mapHeight)];
-      } else {
-        return {
-          x: transform(xy.x, mapWidth),
-          y: transform(xy.y, mapHeight),
-        };
-      }
+    xy: (x: number, y: number, out: Vector2) => {
+      out.set(transform(x, mapWidth), transform(y, mapHeight));
     },
+    xyz: (x: number, y: number, zFunction: (x: number, y: number) => number, out: Vector3) => {
+      out.set(transform(x, mapWidth), zFunction(x, y), transform(y, mapHeight));
+    }
   };
 };
 

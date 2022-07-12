@@ -13,7 +13,6 @@ import screenStore from "./stores/screen-store";
 import { ScreenType } from "../common/types";
 import TitanReactorMap from "./view-map";
 import waitForAssets from "./bootup/wait-for-assets";
-import { pxToMapMeter } from "../common/utils/conversions";
 import { cleanMapTitles } from "@utils/map-string-utils";
 import { useWorldStore } from "./stores";
 
@@ -52,7 +51,7 @@ export default async (chkFilepath: string) => {
   processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing scene");
-  const terrainInfo = await loadTerrain(chk, pxToMapMeter(chk.size[0], chk.size[1]));
+  const terrainInfo = await loadTerrain(chk);
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;

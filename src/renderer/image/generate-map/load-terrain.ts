@@ -1,6 +1,6 @@
 import type Chk from "bw-chk";
 import { readCascFile } from "common/utils/casclib";
-import { AssetTextureResolution, PxToGameUnit, TerrainInfo } from "common/types";
+import { AssetTextureResolution, TerrainInfo } from "common/types";
 
 import {
   generateMapDataTextures, createTerrainMesh, generateMapDataBitmaps, defaultOptions, transformLevelConfiguration, createDisplacementImages, getTerrainY as genTerrainY
@@ -10,11 +10,10 @@ import { loadTilesetFiles } from "../../assets/load-tileset-files";
 import settingsStore from "../../stores/settings-store";
 import * as sd from "./sd";
 import * as hd from "./hd";
-import { Vector3 } from "three";
 import * as log from "../../ipc";
 import renderer from "../../render/renderer";
 
-export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Promise<TerrainInfo> {
+export default async function loadTerrain(chk: Chk): Promise<TerrainInfo> {
   const settings = settingsStore().data;
   const geomOptions = defaultOptions;
   const [mapWidth, mapHeight] = chk.size;
@@ -95,12 +94,6 @@ export default async function loadTerrain(chk: Chk, pxToMap: PxToGameUnit): Prom
     minimapBitmap,
     terrain,
     creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
-    creepTextureUniform: dataTextures.creepTextureUniform,
-    getMapCoords: (x, y) => {
-      const mapX = pxToMap.x(x);
-      const mapZ = pxToMap.y(y);
-      const mapY = getTerrainY(mapX, mapZ);
-      return new Vector3(mapX, mapY, mapZ);
-    }
+    creepTextureUniform: dataTextures.creepTextureUniform
   }
 }
