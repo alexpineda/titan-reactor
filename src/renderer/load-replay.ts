@@ -6,14 +6,12 @@ import ChkDowngrader from "./process-replay/chk/chk-downgrader";
 
 import fs from "fs";
 import Chk from "bw-chk";
-import { strict as assert } from "assert";
 
 import { ScreenType } from "common/types";
 import { GameTypes } from "common/enums";
 
 import { ImageHD } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
-import OpenBwWasmReader from "./openbw/openbw-reader";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
@@ -37,6 +35,7 @@ import { callHookAsync } from "./plugins";
 import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
 import getContainerSize from "./process-replay/get-container-size";
+import OpenBWGameReadHead from "./openbw/openbw-game-read-head";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -139,14 +138,15 @@ export default async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
 
-  assert(openBw.wasm);
-  const gameStateReader = new OpenBwWasmReader(openBw);
-  janitor.disposable(gameStateReader);
-
+  const playReadHead = new OpenBWGameReadHead(openBw);
   try {
-    gameStateReader.loadReplay(repBin);
+    playReadHead.loadReplay(repBin);
   } catch (e: unknown) {
     log.error(e);
+    if (e instanceof Error) {
+      screenStore().setError(e);
+      return;
+    }
   }
 
   processStore().increment(Process.ReplayInitialization);
@@ -188,7 +188,7 @@ export default async (filepath: string) => {
     audioMixer,
     soundChannels,
     music,
-    gameStateReader,
+    playReadHead,
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
   );
 

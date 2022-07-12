@@ -1,5 +1,4 @@
 import { debounce } from "lodash";
-import { strict as assert } from "assert";
 import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
@@ -34,7 +33,7 @@ import {
   MouseSelectionBox,
   MouseCursor
 } from "./input";
-import { FrameBW, ImageBufferView, SpritesBufferView } from "./buffer-view";
+import { ImageBufferView, SpritesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
   GameCanvasTarget, Layers
@@ -45,7 +44,7 @@ import {
 } from "./stores";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
-import { openBw } from "./openbw";
+import { openBw, OpenBWGameReadHead } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
 import { applyCameraDirectionToImageFrame, getDirection32, setBoundary } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
@@ -61,7 +60,6 @@ import gameStore from "./stores/game-store";
 import * as plugins from "./plugins";
 import settingsStore from "./stores/settings-store";
 import { Scene } from "./render/scene";
-import type OpenBwWasmReader from "./openbw/openbw-reader";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
@@ -99,14 +97,13 @@ async function TitanReactorGame(
   audioMixer: MainMixer,
   soundChannels: SoundChannels,
   music: Music,
-  gameStateReader: OpenBwWasmReader,
+  playReadHead: OpenBWGameReadHead,
   commandsStream: CommandsStream
 ) {
   let settings = settingsStore().data;
 
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
-  assert(openBw.wasm);
 
   openBw.call!.setGameSpeed!(1);
   openBw.call!.setPaused!(false);
@@ -757,7 +754,7 @@ async function TitanReactorGame(
     window.removeEventListener("resize", sceneResizeHandler)
   );
 
-  let currentBwFrame: FrameBW | null;
+  let currentBwFrame: OpenBWGameReadHead | null;
 
   // TODO: merge these two, one is used for convenience in selection bars for energy hp testing
   const completedUpgrades = range(0, 8).map(() => [] as number[]);
@@ -875,8 +872,8 @@ async function TitanReactorGame(
     }
   }
 
-  const unitBufferView = new UnitsBufferView(openBw.wasm);
-  const unitList = new IntrusiveList(openBw.wasm.HEAPU32, 0, 43);
+  const unitBufferView = new UnitsBufferView(openBw.wasm!);
+  const unitList = new IntrusiveList(openBw.wasm!.HEAPU32, 0, 43);
 
   function* unitsIterator() {
     const playersUnitAddr = openBw.call!.getUnitsAddr!();
@@ -1109,7 +1106,6 @@ async function TitanReactorGame(
         continue;
       }
       const dat = assets.bwDat.sounds[sound.typeId];
-      const mapCoords = terrain.getMapCoords(sound.x, sound.y)
       const mapCoords = new Vector3;
 
       pxToGameUnit.xyz(sound.x, sound.y, terrain.getTerrainY, mapCoords);
@@ -1148,7 +1144,7 @@ async function TitanReactorGame(
     }
   };
 
-  const buildCreep = (bwFrame: FrameBW) => {
+  const buildCreep = (bwFrame: OpenBWGameReadHead) => {
     creep.generate(bwFrame.tiles, bwFrame.frame);
   };
 
@@ -1408,11 +1404,11 @@ async function TitanReactorGame(
     }
   }
 
-  const spriteBufferView = new SpritesBufferView(openBw.wasm);
-  const imageBufferView = new ImageBufferView(openBw.wasm);
-  const bulletBufferView = new BulletsBufferView(openBw.wasm);
+  const spriteBufferView = new SpritesBufferView(openBw.wasm!);
+  const imageBufferView = new ImageBufferView(openBw.wasm!);
+  const bulletBufferView = new BulletsBufferView(openBw.wasm!);
   const _ignoreSprites: number[] = [];
-  const bulletList = new IntrusiveList(openBw.wasm.HEAPU32, 0);
+  const bulletList = new IntrusiveList(openBw.wasm!.HEAPU32, 0);
 
   const buildSprites = (delta: number) => {
     const deleteImageCount = openBw.wasm!._counts(15);
@@ -1573,8 +1569,8 @@ async function TitanReactorGame(
     }
 
     if (!currentBwFrame) {
-      currentBwFrame = gameStateReader.next();
-      if (currentBwFrame.needsUpdate === false) {
+      currentBwFrame = playReadHead.update();
+      if (currentBwFrame?.needsUpdate === false) {
         currentBwFrame = null;
       }
     }

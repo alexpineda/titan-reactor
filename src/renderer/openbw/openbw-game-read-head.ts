@@ -1,9 +1,7 @@
-import { strict as assert } from "assert";
 import { OpenBWAPI } from "common/types";
-import { TilesBufferView } from ".";
+import { TilesBufferView } from "../buffer-view";
 
-//FIXME: deprecate this class
-export class FrameBW {
+export class OpenBWGameReadHead {
   frame = 0;
   prevFrame = -1;
   needsUpdate = false;
@@ -12,9 +10,12 @@ export class FrameBW {
   private _bw: OpenBWAPI;
 
   constructor(bw: OpenBWAPI) {
-    assert(bw.wasm);
     this._bw = bw;
-    this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, bw.wasm.HEAPU8);
+    this._tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, bw.wasm!.HEAPU8);
+  }
+
+  loadReplay(buffer: Buffer) {
+    this._bw.call!.loadReplay!(buffer);
   }
 
   update() {
@@ -22,12 +23,14 @@ export class FrameBW {
     this.frame = this._bw.call!.nextFrame!();
     this.needsUpdate = this.frame !== this.prevFrame;
     if (this.needsUpdate === false) {
-      return;
+      return null;
     }
     this.prevFrame = this.frame;
 
     this.tiles.ptrIndex = this._bw.call!.getTilesPtr!();
     this.tiles.itemsCount = this._bw.call!.getTilesSize!();
+
+    return this;
 
   }
 
@@ -36,4 +39,4 @@ export class FrameBW {
   }
 
 }
-export default FrameBW;
+export default OpenBWGameReadHead;

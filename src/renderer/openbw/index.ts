@@ -3,6 +3,7 @@ import OpenBWFileList from "./openbw-filelist";
 import { readFileSync } from "fs";
 import path from "path";
 import { OpenBWAPI, OpenBWWasm } from "../../common/types";
+export * from "./openbw-game-read-head";
 
 const openBwFiles = new OpenBWFileList();
 const wasmFileLocation = path.join(__static, "titan.wasm");
@@ -47,7 +48,7 @@ const openBw: OpenBWAPI = {
       getBulletsDeletedAddress: () => _wasm._get_buffer(7),
       getLinkedSpritesAddress: () => _wasm._get_buffer(10),
       getLinkedSpritesCount: () => _wasm._counts(1),
-    
+
       nextFrame: () => tryCatch(_nextFrame),
       setGameSpeed: (speed: number) => _wasm._replay_set_value(0, speed),
       getGameSpeed: () => _wasm._replay_get_value(0),
@@ -77,4 +78,8 @@ const openBw: OpenBWAPI = {
   })
 };
 
-export { openBw, openBwFiles };
+const getOpenBW = () => {
+  return openBw;
+}
+
+export { openBw, openBwFiles, getOpenBW };

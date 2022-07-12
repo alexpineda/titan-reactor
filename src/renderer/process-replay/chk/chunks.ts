@@ -39,7 +39,7 @@ export const getChkChunks = (buf: Buffer) => {
     const previous = chunkExists(name);
     if (previous && writeType) {
       if (writeType === PARTIAL_OVERWRITE) {
-        if (previous.length > buffer.length) {
+        if (previous[1].length > buffer.length) {
           const newBuf = Buffer.concat([buffer, previous.slice(buffer.length)]);
           chunks.splice(chunks.indexOf(previous), 1, [name, newBuf]);
         }
