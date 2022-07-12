@@ -1,4 +1,3 @@
-import assert from "assert";
 import { drawFunctions } from "common/enums";
 import { GRPInterface } from "common/types";
 import { Color, MeshBasicMaterial, SpriteMaterialParameters, Texture } from "three";

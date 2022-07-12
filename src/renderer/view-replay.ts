@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Box3, Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
+import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
@@ -46,7 +46,7 @@ import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { getOpenBW } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
-import { applyCameraDirectionToImageFrame, getDirection32, setBoundary } from "./utils/camera-utils";
+import { applyCameraDirectionToImageFrame, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
@@ -1601,9 +1601,6 @@ async function TitanReactorGame(
 
   let cmds = commandsStream.generate();
 
-  const _boundaryMin = new Vector3(-mapWidth / 2, 0, -mapHeight / 2);
-  const _boundaryMax = new Vector3(mapWidth / 2, 0, mapHeight / 2);
-  const _cameraBoundaryBox = new Box3(_boundaryMin, _boundaryMax)
   const _commandsThisFrame: any[] = [];
 
   let cmd = cmds.next();

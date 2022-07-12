@@ -4,7 +4,6 @@ import {
     Matrix3,
     PerspectiveCamera
 } from "three";
-import { strict as assert } from "assert";
 
 import {
     EffectComposer,
@@ -165,8 +164,10 @@ export const createDisplacementImages = async ({
             displacementCanvasSmall.width,
             displacementCanvasSmall.height
         );
-    assert(displacementImage)
 
+    if (!displacementImage) {
+        throw new Error("displacementImage is null");
+    }
     return {
         displaceCanvas,
         displacementImage,

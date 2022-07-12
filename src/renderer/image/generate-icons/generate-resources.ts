@@ -1,6 +1,5 @@
 
 import { WebGLRenderer } from "three";
-import { strict as assert } from "assert";
 import renderIcons from "./render-icons";
 
 export default (renderer: WebGLRenderer, dds: Buffer[]) => {
@@ -13,7 +12,9 @@ export default (renderer: WebGLRenderer, dds: Buffer[]) => {
 
     const getNext = () => {
         const next = renderIcon.next().value;
-        assert(next)
+        if (!next) {
+            throw new Error("No more icons");
+        }
         return next;
     }
 

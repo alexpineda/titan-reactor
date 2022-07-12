@@ -1,5 +1,4 @@
 import gameStore from "../stores/game-store";
-import { strict as assert } from "assert";
 
 type Icons = string[];
 
@@ -15,8 +14,7 @@ export class MouseCursor {
   private dragIconsIndex = 0;
 
   constructor() {
-    const icons = gameStore().assets;
-    assert(icons);
+    const icons = gameStore().assets!;
 
     this.arrowIcons = icons.arrowIcons;
     this.hoverIcons = icons.hoverIcons.icons;

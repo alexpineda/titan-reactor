@@ -2,7 +2,6 @@
 import { debounce } from "lodash";
 import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
-import { strict as assert } from "assert";
 import CameraControls from "camera-controls";
 import { ClearPass, RenderPass } from "postprocessing";
 
@@ -16,7 +15,6 @@ import { IScriptSprite } from "./core"
 import * as log from "./ipc/log"
 import { Scene } from "./render";
 import renderer from "./render/renderer";
-import gameStore from "./stores/game-store";
 import { useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
@@ -27,8 +25,7 @@ async function TitanReactorMap(
   scene: Scene
 ) {
   const janitor = new Janitor();
-  const assets = gameStore().assets;
-  assert(assets);
+  // const assets = gameStore().assets;
 
   const preplacedMapUnits = chk.units;
   // const preplacedMapSprites = chk.sprites;
