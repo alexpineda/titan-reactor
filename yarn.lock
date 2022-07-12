@@ -9737,10 +9737,10 @@ postcss@^7.0.14, postcss@^7.0.32, postcss@^7.0.5, postcss@^7.0.6:
     picocolors "^0.2.1"
     source-map "^0.6.1"
 
-postprocessing@6.24.0:
-  version "6.24.0"
-  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.24.0.tgz#d821387e716160756bcd89ee0b4f0f47c118a6ca"
-  integrity sha512-DzqA1+3L63kGwnllD0Un9pHfURD9lw7j0vnh4anapwdbIULMD/LLwLZdOS7ADEb2+L5lf1Q8Aj1dhcqhn2BUug==
+postprocessing@6.28.2:
+  version "6.28.2"
+  resolved "https://registry.yarnpkg.com/postprocessing/-/postprocessing-6.28.2.tgz#7da068f0d54fbf37fed29b8e206ccf5eef8acd45"
+  integrity sha512-B2qBTiL3tXp5/rdWKG65ePBuQG6U/mie8K8mpvJrBfy9VhgQLJ5YOfx4Hjxv2vHSpXRs3rM0JwekficDFxCpyQ==
 
 prelude-ls@^1.2.1:
   version "1.2.1"
@@ -11409,10 +11409,10 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-three@0.137.0:
-  version "0.137.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.137.0.tgz#0ebd6ba66637a332c31f234bcdd35aeec071a6e3"
-  integrity sha512-rzSDhia6cU35UCy6y+zEEws6vSgytfHqFMSaBvUcySgzwvDO6vETyswtSNi/+aVqJw8WLMwyT1mlQQ1T/dxxOA==
+three@0.142.0:
+  version "0.142.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.142.0.tgz#89e226a16221f212eb1d40f0786604b711f28aed"
+  integrity sha512-ESjPO+3geFr+ZUfVMpMnF/eVU2uJPOh0e2ZpMFqjNca1wApS9lJb7E4MjwGIczgt9iuKd8PEm6Pfgp2bJ92Xtg==
 
 throat@^6.0.1:
   version "6.0.1"
