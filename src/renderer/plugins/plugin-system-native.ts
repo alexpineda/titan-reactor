@@ -240,10 +240,9 @@ export class PluginSystemNative {
             const plugin = Object.create(pluginProto, pluginPropertyConfig);
 
             plugin.config = processConfigBeforeReceive(pluginPackage.config);
-            const sendUIMessage = throttle((message: any) => {
-                this.sendCustomUIMessage(pluginPackage.id, message);
-            }, 100, { leading: true, trailing: false });
-            plugin.sendUIMessage = sendUIMessage;
+            plugin.sendUIMessage = throttle((message: any) => {
+                this.sendCustomUIMessage(plugin, message);
+            }, 100, { leading: true, trailing: false });;
             plugin.registerCustomHook = (name: string, args: string[], async = false) => {
                 this.#registerCustomHook(name, args, pluginPackage.id, async);
             };
@@ -252,7 +251,7 @@ export class PluginSystemNative {
                     return this.callHook(name, ...args);
                 }
             };
-            log.info(`@plugin-system-native: initialized plugin "${plugin.name}"`);
+            log.verbose(`@plugin-system-native: initialized plugin "${plugin.name}"`);
             plugin.onPluginCreated && plugin.onPluginCreated();
 
             return plugin;
@@ -297,20 +296,15 @@ export class PluginSystemNative {
         this.hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
     }
 
-    sendCustomUIMessage(pluginId: string, message: any) {
-        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
-        if (plugin) {
-            try {
-                this.#uiPlugins.sendMessage({
-                    type: SYSTEM_EVENT_CUSTOM_MESSAGE,
-                    payload: {
-                        pluginId,
-                        message
-                    }
-                });
-            } catch (e) {
-                log.error(withErrorMessage(`@plugin-system-native: sendCustomUIMessage "${plugin.name}"`, e));
-            }
+    sendCustomUIMessage(plugin: NativePlugin, message: any) {
+        if (this.#nativePlugins.includes(plugin)) {
+            this.#uiPlugins.sendMessage({
+                type: SYSTEM_EVENT_CUSTOM_MESSAGE,
+                payload: {
+                    pluginId: plugin.id,
+                    message
+                }
+            });
         }
     }
 

@@ -1,3 +1,4 @@
+import { isFiniteVector3 } from "@utils/finite-values";
 import { Camera, Line3, Plane, Vector3 } from "three";
 
 const _points = [
@@ -80,7 +81,7 @@ export default class ProjectedCameraView {
     this.height = _intersect[0].z - _intersect[1].z;
 
     this.center.copy(_intersect[4]);
-    if (Number.isNaN(this.center.x) || this.center.x === undefined) {
+    if (!isFiniteVector3(this.center)) {
       this.center.copy(target);
     }
 

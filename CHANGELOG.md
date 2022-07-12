@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Hotkeys activate on key up event only
 - New home page with links and videos
+- Many small optimizations across the board
 
 ### Fixed
 - Tank mode siege tank turrets (phew!) will now look better when camera rotated
@@ -23,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maps that use disabled doodads now work (thank you Heinerman!)
 - OBS chat won't break replays anymore
 
+### Removed
+- Map camera boundaries for the time being as it's causing some unwanted errors / side effects
 
 ## [0.5.2] - 2022-07-3
 

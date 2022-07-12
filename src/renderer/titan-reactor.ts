@@ -103,7 +103,7 @@ iframeDiv.style.flexDirection = "column";
 iframeDiv.style.alignItems = "center";
 iframeDiv.style.zIndex = "10";
 iframeDiv.style.marginLeft = "30px";
-iframeDiv.style.marginTop = "150px";
+iframeDiv.style.marginTop = "200px";
 
 const createIFrame = (url: string) => {
   const iframe = document.createElement("iframe");
@@ -113,11 +113,16 @@ const createIFrame = (url: string) => {
   iframe.frameBorder = "0";
   iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
   iframe.allowFullscreen = true;
+  iframe.style.marginTop = "10px";
+  iframe.style.background = "black"
   return iframe;
 }
 
-iframeDiv.appendChild(createIFrame("http://embed-casts.imbateam.gg"))
-iframeDiv.appendChild(createIFrame("http://embed-casts-2.imbateam.gg"));
+const video1 = createIFrame("http://embed-casts.imbateam.gg");
+const video2 = createIFrame("http://embed-casts-2.imbateam.gg");
+
+iframeDiv.appendChild(video1)
+iframeDiv.appendChild(video2);
 
 useScreenStore.subscribe((store) => {
   if (store.type === ScreenType.Home && store.status === ScreenStatus.Ready && !store.error) {
@@ -130,3 +135,17 @@ useScreenStore.subscribe((store) => {
     }
   }
 });
+
+
+const _sceneResizeHandler = () => {
+  const height = window.innerHeight / 3;
+  const width = height * 1.77;
+
+  video1.width = `${width}`;
+  video1.height = `${height}`;
+  video2.width = `${width}`;
+  video2.height = `${height}`;
+
+};
+window.addEventListener("resize", _sceneResizeHandler, false);
+_sceneResizeHandler();

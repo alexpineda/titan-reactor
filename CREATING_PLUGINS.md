@@ -29,7 +29,6 @@
   - [Special Permissions](#special-permissions)
   - [README.md](#readmemd)
   - [Publishing Your Plugin](#publishing-your-plugin)
-  - [Request For Plugin](#request-for-plugin)
 
 ⚠️ The plugin API is under heavy development. Expect frequent breaking changes until Titan Reactor v1. Big plans include supporting TypeScript out of the box.
 
@@ -466,26 +465,3 @@ By including a README.md Titan Reactor will include a Readme tab in the config w
 ## Publishing Your Plugin
 
 In order to make your plugin available to others, simply publish your package to `npm` and ensure you have `titan-reactor-plugin` in keywords. If you'd like to publish under the official **@titan-reactor-plugins** scope please see the [Titan Reactor Plugins](https://github.com/imbateam-gg/titan-reactor-community) repository.
-
-## Request For Plugin
-
-This is a list of plugins that I'd personally like to see come to life by the community:
-
-- Day/night cycle
-- Battle review
-  - After a battle calculate tally dead, score, etc.
-- Player/matchup/map data sheets
-- Replay and map repositories
-- Extra blood / particles / explosions / smoke
-- Camera macros / Player intros (eg intro player1, intro player 2)
-- Replay autoupload
-- Replay loading screens
-- Player alias database
-- Twitch integrations
-  - sponsor a unit with bits, sponsored unit scorecard at end of game (kills, etc.)
-- Commercial sponsor integrations into map
-- Player renamer
-- Units lost
-- Build order display
-  - clicking on a item in the build order will jump the replay to that spot.
-- Marker / Scribbling Tool

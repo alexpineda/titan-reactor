@@ -13,7 +13,7 @@ import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT
 } from "common/types";
-import { gameSpeeds, pxToMapMeter, tile32 } from "common/utils/conversions";
+import { gameSpeeds, pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
 import type { MainMixer, Music, SoundChannels } from "./audio";
 
@@ -283,6 +283,11 @@ async function TitanReactorGame(
       selectionBars: SelectionBars;
       fixedY?: number;
       typeId: number;
+      /**
+       * for matrix calculations
+       */
+      needsMatrixUpdate: boolean;
+      renderTestCount: number;
     }
   }
 
@@ -396,13 +401,13 @@ async function TitanReactorGame(
       newControls.cameraShake.enabled = false;
     }
 
-    if (cameraMode.boundByMap) {
-      setBoundary(newControls.orbit, mapWidth, mapHeight);
-      newControls.rested = false;
-      newControls.orbit.addEventListener('rest', () => {
-        newControls.rested = true;
-      })
-    }
+    // if (cameraMode.boundByMap) {
+    //   setBoundary(newControls.orbit, mapWidth, mapHeight);
+    //   newControls.rested = false;
+    //   newControls.orbit.addEventListener('rest', () => {
+    //     newControls.rested = true;
+    //   })
+    // }
 
     if (!cameraMode.unitSelection) {
       selectedUnitsStore().clearSelectedUnits();
@@ -782,7 +787,7 @@ async function TitanReactorGame(
     const isResourceContainer = unitType.isResourceContainer && !unit.extras.player;
     if (
       (!isResourceContainer &&
-        !fogOfWar.isVisible(tile32(unit.x), tile32(unit.y)))
+        !fogOfWar.isVisible(floor32(unit.x), floor32(unit.y)))
     ) {
       return;
     }
@@ -1117,7 +1122,7 @@ async function TitanReactorGame(
     // }
 
     for (const sound of sounds) {
-      if (!fogOfWar.isVisible(tile32(sound.x), tile32(sound.y))) {
+      if (!fogOfWar.isVisible(floor32(sound.x), floor32(sound.y))) {
         continue;
       }
       const dat = assets.bwDat.sounds[sound.typeId];
@@ -1217,21 +1222,31 @@ async function TitanReactorGame(
   const MaxShakeDistance = 30;
 
   const _cameraWorldDirection = new Vector3();
+  const _spritePool: Group[] = [];
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
     const unit = unitsBySprite.get(spriteData.index);
     let sprite = sprites.get(spriteData.index);
     if (!sprite) {
-      sprite = new Group() as SpriteType;
-      sprite.name = "sprite";
-      sprite.userData.selectionCircle = new SelectionCircle();
-      sprite.userData.selectionBars = new SelectionBars();
-      sprite.userData.typeId = spriteData.typeId;
-      sprite.add(sprite.userData.selectionCircle)
-      sprite.add(sprite.userData.selectionBars)
+      if (_spritePool.length) {
+        sprite = _spritePool.pop() as SpriteType;
+      } else {
+        sprite = new Group() as SpriteType;
+        // sprite.matrixAutoUpdate = false;
+        sprite.name = "sprite";
+        sprite.userData.selectionCircle = new SelectionCircle();
+        sprite.userData.selectionBars = new SelectionBars();
+        sprite.userData.typeId = spriteData.typeId;
+        sprite.add(sprite.userData.selectionCircle)
+        sprite.add(sprite.userData.selectionBars)
+      }
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
+      sprite.userData.needsMatrixUpdate = true;
+      sprite.userData.renderTestCount = 0;
+    } else {
+      sprite.userData.needsMatrixUpdate = false;
     }
 
     // openbw recycled the id for the sprite, so we reset some things
@@ -1249,7 +1264,7 @@ async function TitanReactorGame(
       spriteData.owner === 11 ||
       dat.image.iscript === 336 ||
       dat.image.iscript === 337 ||
-      fogOfWar.isSomewhatVisible(tile32(spriteData.x), tile32(spriteData.y));
+      fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y));
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
     //FIXME: make onShouldHideUnit a global plugin feature 
@@ -1261,6 +1276,21 @@ async function TitanReactorGame(
 
     calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
+
+    const a = _cameraPosition.distanceTo(_spritePos) / Math.min(500, controls.orbit.maxDistance);
+    const v = Math.floor((a * a * a) * 1.5);
+    sprite.visible = spriteIsVisible;
+
+    if (!spriteIsVisible || v > 0 && sprite.userData.renderTestCount > 0) {
+      if (sprite.userData.renderTestCount < v) {
+        sprite.userData.renderTestCount++;
+      } else {
+        sprite.userData.renderTestCount = 0;
+      }
+      return;
+    } else {
+      sprite.userData.renderTestCount++;
+    }
 
     const player = players.playersById[spriteData.owner];
 
@@ -1313,14 +1343,22 @@ async function TitanReactorGame(
       }
     }
 
-    // floating terran buildings
+    // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
+    _spritePos.y = sprite.userData.fixedY ?? bulletY ?? _spritePos.y;
 
-    let imageCounter = 1;
-    sprite.position.x = _spritePos.x;
-    sprite.position.z = _spritePos.z;
-    sprite.position.y = sprite.userData.fixedY ?? bulletY ?? _spritePos.y;
+    // if (sprite.userData.needsMatrixUpdate || sprite.position.x !== _spritePos.x || sprite.position.y !== _spritePos.y || sprite.position.z !== _spritePos.z) {
+    //   sprite.position.copy(_spritePos);
+    //   sprite.updateMatrix();
+    // } else {
+    sprite.position.copy(_spritePos);
+    // }
+
+    sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z)
+    // lookAt(sprite, sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
+
+    // sprite.updateMatrix();
+
     sprite.renderOrder = spriteRenderOrder;
-    sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
 
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
@@ -1340,6 +1378,8 @@ async function TitanReactorGame(
 
       sprite.userData.selectionCircle.visible = false;
     }
+
+    let imageCounter = 1;
 
     for (const imgAddr of spriteData.images.reverse()) {
       const imageData = imageBufferView.get(imgAddr);
@@ -1442,7 +1482,6 @@ async function TitanReactorGame(
       _wasReset = false;
     }
 
-    //TODO: use sprite pool
     for (let i = 0; i < deletedSpriteCount; i++) {
       const spriteIndex = openBW.HEAP32[(deletedSpriteAddr >> 2) + i];
       unitsBySprite.delete(spriteIndex);
@@ -1451,6 +1490,7 @@ async function TitanReactorGame(
       if (!sprite) continue;
       sprite.removeFromParent();
       sprites.delete(spriteIndex);
+      _spritePool.push(sprite);
     }
 
     for (let i = 0; i < deleteImageCount; i++) {
@@ -1652,10 +1692,10 @@ async function TitanReactorGame(
       }
     }
 
-    if (controls.cameraMode.boundByMap?.scaleBoundsByCamera && controls.rested) {
-      _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2.5, 0, -mapHeight / 2 + projectedCameraView.height / 2.5), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2.5, 0, mapHeight / 2 - projectedCameraView.height / 2.5));
-      controls.orbit.setBoundary(_cameraBoundaryBox);
-    }
+    // if (controls.cameraMode.boundByMap?.scaleBoundsByCamera && controls.rested) {
+    //   _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2.5, 0, -mapHeight / 2 + projectedCameraView.height / 2.5), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2.5, 0, mapHeight / 2 - projectedCameraView.height / 2.5));
+    //   controls.orbit.setBoundary(_cameraBoundaryBox);
+    // }
 
     renderer.targetSurface = gameSurface;
     drawMinimap(projectedCameraView);

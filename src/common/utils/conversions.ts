@@ -3,7 +3,7 @@ import { PxToGameUnit } from "../types/util";
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
 
-export const tile32 = (x: number) => Math.floor(x / 32);
+export const floor32 = (x: number) => Math.floor(x / 32);
 
 export const pxToMapMeter = (
   mapWidth: number,
@@ -16,7 +16,9 @@ export const pxToMapMeter = (
       out.set(transform(x, mapWidth), transform(y, mapHeight));
     },
     xyz: (x: number, y: number, zFunction: (x: number, y: number) => number, out: Vector3) => {
-      out.set(transform(x, mapWidth), zFunction(x, y), transform(y, mapHeight));
+      const nx = transform(x, mapWidth);
+      const ny = transform(y, mapHeight);
+      out.set(nx, zFunction(nx, ny), ny);
     }
   };
 };

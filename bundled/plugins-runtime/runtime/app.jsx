@@ -153,6 +153,7 @@ export default ({ components }) => {
             display: "flex",
             padding: "var(--size-6)",
             justifyContent: "space-between",
+            marginTop: "var(--size-4)",
           }}
         >
           <div
@@ -161,15 +162,14 @@ export default ({ components }) => {
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
+              animation: "var(--animation-fade-in)",
+              animationDuration: "2s",
             }}
           >
             <h1
               style={{
                 fontFamily: "Conthrax",
                 color: "var(--orange-5)",
-                animation:
-                  "var(--animation-slide-in-down) forwards, var(--animation-fade-in)",
-                animationDuration: "5s",
               }}
             >
               Titan Reactor

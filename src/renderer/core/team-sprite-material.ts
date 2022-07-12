@@ -74,8 +74,7 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
   }
 
   set warpInFlashGRP(val: GRPInterface | undefined) {
-    assert(val);
-    this.#dynamicUniforms.warpInFlashTexture.value = val.diffuse;
+    this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
   }
 
   set modifierData1(val: number) {
