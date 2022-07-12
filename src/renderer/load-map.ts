@@ -12,7 +12,7 @@ import processStore, { Process } from "./stores/process-store";
 import screenStore from "./stores/screen-store";
 import { ScreenType } from "../common/types";
 import TitanReactorMap from "./view-map";
-import waitForAssets from "./bootup/wait-for-assets";
+import waitForAssets from "./utils/wait-for-assets";
 import { cleanMapTitles } from "@utils/map-string-utils";
 import { useWorldStore } from "./stores";
 

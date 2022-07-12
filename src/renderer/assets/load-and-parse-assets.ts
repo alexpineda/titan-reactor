@@ -30,8 +30,6 @@ import loadEnvironmentMap from "../image/env-map";
 
 export default async (settings: Settings) => {
 
-
-
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png")) {
             return fsPromises.readFile(file);

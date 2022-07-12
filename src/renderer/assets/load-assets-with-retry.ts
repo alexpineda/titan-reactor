@@ -3,7 +3,7 @@ import {
   useSettingsStore,
 } from "../stores";
 import processStore, { Process } from "../stores/process-store";
-import loadAssets from "../assets/load-assets";
+import loadAndParseAssets from "./load-and-parse-assets";
 import { Settings } from "../../common/types";
 
 const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => void) => {
@@ -13,7 +13,7 @@ const tryLoad = async (settings: Settings, hasErrors: boolean, onSuccess: () => 
   if (processStore().isComplete(Process.AtlasPreload) || processStore().isInProgress(Process.AtlasPreload)) {
     return;
   }
-  await loadAssets(settings);
+  await loadAndParseAssets(settings);
   onSuccess();
   return true;
 };

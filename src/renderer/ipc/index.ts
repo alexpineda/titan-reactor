@@ -1,3 +1,6 @@
+import "./register-file-dialog-handlers";
+
+// outward apis
 export * from "./casclib";
 export * from "./dialogs";
 export * from "./exit-app";

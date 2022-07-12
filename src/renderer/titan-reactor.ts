@@ -6,8 +6,7 @@ import { version } from "../../package.json";
 import * as log from "./ipc/log";
 import { useSettingsStore } from "./stores";
 import screenStore, { useScreenStore } from "./stores/screen-store";
-import registerFileDialogHandlers from "./bootup/register-file-dialog-handlers";
-import preloadAssets from "./bootup/load-assets-when-ready";
+import loadAssetsWithRetry from "./assets/load-assets-with-retry";
 import renderer from "./render/renderer";
 import settingsStore from "./stores/settings-store";
 import * as pluginSystem from "./plugins";
@@ -66,7 +65,6 @@ async function bootup() {
   try {
     log.info("@init: loading settings");
     await (settingsStore().load());
-    registerFileDialogHandlers();
 
     await initializePluginSystem(settingsStore().enabledPlugins);
     document.body.addEventListener("mouseup", evt => pluginSystem.onClick(evt));
@@ -85,7 +83,7 @@ async function bootup() {
     }
 
     await openBw.loaded;
-    await waitUnless(10_000, preloadAssets(settings, hasErrors));
+    await waitUnless(10_000, loadAssetsWithRetry(settings, hasErrors));
     screenStore().complete();
   } catch (err: any) {
     log.error(err.message);

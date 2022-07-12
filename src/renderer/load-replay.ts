@@ -21,7 +21,7 @@ import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
-import waitForAssets from "./bootup/wait-for-assets";
+import waitForAssets from "./utils/wait-for-assets";
 import Janitor from "./utils/janitor";
 import { openBw } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";

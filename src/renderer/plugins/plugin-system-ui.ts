@@ -5,7 +5,7 @@ import settingsStore from "@stores/settings-store";
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_EVENT_UPDATE_AVAILABLE } from "./events";
-import waitForAssets from "../bootup/wait-for-assets";
+import waitForAssets from "../utils/wait-for-assets";
 import { GameStatePosition, Unit } from "@core";
 import { openBw } from "../openbw";
 import { StdVector } from "../buffer-view/std-vector";
@@ -76,7 +76,6 @@ export class PluginSystemUI {
     #janitor = new Janitor();
     refresh: () => void;
 
-
     constructor(pluginPackages: InitializedPluginPackage[]) {
         this.#iframe.style.backgroundColor = "transparent";
         this.#iframe.style.border = "none";
@@ -143,9 +142,6 @@ export class PluginSystemUI {
                     this.#janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
                 }
             }
-
-
-
 
             const assets = await waitForAssets();
 
