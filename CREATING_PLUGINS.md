@@ -486,5 +486,6 @@ This is a list of plugins that I'd personally like to see come to life by the co
 - Commercial sponsor integrations into map
 - Player renamer
 - Units lost
-- Build order
+- Build order display
+  - clicking on a item in the build order will jump the replay to that spot.
 - Marker / Scribbling Tool

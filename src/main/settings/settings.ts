@@ -1,5 +1,6 @@
 import { app } from "electron";
 import { promises as fsPromises } from "fs";
+import path from "path";
 
 import phrases from "common/phrases";
 import { defaultSettings } from "common/settings";
@@ -97,7 +98,11 @@ export class Settings {
 
     const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
     if (!isCascStorage && !await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"])) {
-      errors.push("starcraft directory is not a valid path. Please change your settings.json file to contain the valid path.");
+      if (await fileExists(path.join(this._settings.directories["starcraft"], "STARDAT.MPQ"))) {
+        errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported. Please change your settings.json file to contain the valid Remastered path.");
+      } else {
+        errors.push("The StarCraft directory is not a valid path. Please change your settings.json file to contain the valid path.");
+      }
     }
 
     const localLanguage = supportedLanguages.includes(getEnvLocale() as string)

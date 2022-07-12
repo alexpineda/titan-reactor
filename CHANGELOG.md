@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Hotkeys activate on key up event only
+- New home page with links and videos
 
 ### Fixed
 - Tank mode siege tank turrets (phew!) will now look better when camera rotated
