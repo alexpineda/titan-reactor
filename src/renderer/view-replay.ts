@@ -1107,32 +1107,34 @@ async function TitanReactorGame(
 
 
   const SoundPlayMaxDistance = 40;
-  const buildSounds = (sounds: SoundStruct[]) => {
+  const buildSounds = () => {
 
-    // const linkedSpritesAddr = openBw.call!.getSoundsAddress!();
-    // for (let i = 0; i < openBw.call!.getSoundsCount!(); i++) {
-    //   const addr = (linkedSpritesAddr >> 2) + (i << 1);
-    //   const parent = sprites.get(openBw.wasm!.HEAP32[addr]);
-    //   const child = sprites.get(openBw.wasm!.HEAP32[addr + 1]);
-    //   if (!child || !parent) {
-    //     break;
-    //   }
-    //   // keep a reference to the value so that we retain it in buildSprite() in future iterations
-    //   child.position.y = child.userData.fixedY = parent.position.y;
-    // }
+    const soundsAddr = openBW.getSoundsAddress!();
+    for (let i = 0; i < openBW.getSoundsCount!(); i++) {
+      const addr = (soundsAddr >> 2) + (i << 2);
+      const typeId = openBW.HEAP32[addr];
+      const x = openBW.HEAP32[addr + 1];
+      const y = openBW.HEAP32[addr + 2];
+      const unit_id = openBW.HEAP32[addr + 3];
 
-    for (const sound of sounds) {
-      if (!fogOfWar.isVisible(floor32(sound.x), floor32(sound.y))) {
+      if (!fogOfWar.isVisible(floor32(x), floor32(y))) {
         continue;
       }
-      const dat = assets.bwDat.sounds[sound.typeId];
+      const dat = assets.bwDat.sounds[typeId];
       const mapCoords = new Vector3;
 
-      pxToGameUnit.xyz(sound.x, sound.y, terrain.getTerrainY, mapCoords);
+      pxToGameUnit.xyz(x, y, terrain.getTerrainY, mapCoords);
 
       if (controls.cameraMode.soundMode === "spatial") {
         if (dat.minVolume || camera.position.distanceTo(mapCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
           // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
+          const sound = {} as SoundStruct;
+          sound.typeId = typeId;
+          sound.unitTypeId = unit_id;
+          sound.x = x;
+          sound.y = y;
+          delete sound.volume;
+          delete sound.pan;
           soundChannels.queue(sound, dat, mapCoords);
         }
       }
@@ -1140,27 +1142,30 @@ async function TitanReactorGame(
         const volume = getBwVolume(
           dat,
           mapCoords,
-          sound,
+          x,
+          y,
           projectedCameraView.left,
           projectedCameraView.top,
           projectedCameraView.right,
           projectedCameraView.bottom
         );
 
-        const pan = getBwPanning(sound, mapCoords, projectedCameraView.left, projectedCameraView.width);
+        const pan = getBwPanning(x, y, mapCoords, projectedCameraView.left, projectedCameraView.width);
         //FIXME; see if we can avoid creating this object
-        const classicSound = Object.assign({}, sound, {
-          extra: {
-            volume,
-            pan
-          }
-        });
+
         if (volume > SoundPlayMinVolume) {
+          const sound = {} as SoundStruct;
+          sound.typeId = typeId;
+          sound.unitTypeId = unit_id;
+          sound.x = x;
+          sound.y = y;
+          sound.volume = volume;
+          sound.pan = pan;
+
           // plugins.callHook("onBeforeSound", classicSound, dat, mapCoords);
-          soundChannels.queue(classicSound, dat, mapCoords);
+          soundChannels.queue(sound, dat, mapCoords);
         }
       }
-
     }
   };
 
@@ -1628,7 +1633,7 @@ async function TitanReactorGame(
       if (currentBwFrame % 42 === 0) {
         updateCompletedUpgrades();
       }
-      buildSounds(openBW.getSoundObjects());
+      buildSounds();
       buildCreep(currentBwFrame);
 
       buildUnits(

@@ -5,10 +5,10 @@ import { SoundStruct } from "../../common/types/structs";
 export const MinPlayVolume = 10;
 
 // Calculate the volume using the openbw algorithm
-export const getBwVolume = (dat: SoundDAT, mapCoords: Vector3, sound: SoundStruct, left: number, top: number, right: number, bottom: number) => {
+export const getBwVolume = (dat: SoundDAT, mapCoords: Vector3, x: number, y: number, left: number, top: number, right: number, bottom: number) => {
     let volume = dat.minVolume || 0;
 
-    if (sound.x !== 0 && sound.y !== 0) {
+    if (x !== 0 && y !== 0) {
         let distance = 0;
         if (mapCoords.x < left) distance += left - mapCoords.x;
         else if (mapCoords.x > right) distance += mapCoords.x - right;
@@ -23,10 +23,10 @@ export const getBwVolume = (dat: SoundDAT, mapCoords: Vector3, sound: SoundStruc
     return volume;
 }
 
-export const getBwPanning = (sound: SoundStruct, mapCoords: Vector3, left: number, width: number) => {
+export const getBwPanning = (x: number, y: number, mapCoords: Vector3, left: number, width: number) => {
     let pan = 0;
 
-    if (sound.x !== 0 && sound.y !== 0) {
+    if (x !== 0 && y !== 0) {
         let pan_x = mapCoords.x - (left + width / 2);
         const isLeft = pan_x < 0;
         if (isLeft) pan_x = -pan_x;

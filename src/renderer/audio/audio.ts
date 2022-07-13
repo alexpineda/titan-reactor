@@ -7,9 +7,6 @@ import MainMixer from "./main-mixer";
 
 const stopTime = 30; //ms
 
-const isClassicSound = (sound: any): sound is ClassicSound => {
-  return sound.extra !== undefined;
-}
 // an instance of a bw sound
 export class Audio {
   static rolloffFactor = 1;
@@ -53,10 +50,10 @@ export class Audio {
     let volume = 1;
     let panner;
 
-    if (isClassicSound(this.sound)) {
+    if (this.sound.volume !== undefined) {
       panner = this.mixer.context.createStereoPanner();
-      panner.pan.value = this.sound.extra.pan;
-      volume = this.sound.extra.volume / 100;
+      panner.pan.value = this.sound.pan!;
+      volume = this.sound.volume / 100;
     } else {
 
       panner = this.mixer.context.createPanner();

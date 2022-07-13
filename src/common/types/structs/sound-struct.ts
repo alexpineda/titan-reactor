@@ -3,4 +3,7 @@ export interface SoundStruct {
   unitTypeId: number | null;
   x: number;
   y: number;
+
+  volume?: number;
+  pan?: number;
 }
