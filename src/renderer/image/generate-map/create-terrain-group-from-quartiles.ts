@@ -5,13 +5,13 @@ import { WrappedTexture, WrappedQuartileTextures } from "common/types";
 import processStore, { Process } from "@stores/process-store";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
-import { MapDataTextures } from "./generate-map-data-textures";
+import { MapDataTextures } from "./create-data-textures";
 
 import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
 import { GeometryOptions } from "./geometry-options";
 
-export const createTerrainMesh = async (
+export const createTerrainGroupFromQuartiles = async (
     mapWidth: number,
     mapHeight: number,
     creepTexture: WrappedTexture,
@@ -20,8 +20,6 @@ export const createTerrainMesh = async (
     { creepEdgesTextureUniform, creepTextureUniform }: MapDataTextures,
     displaceCanvas: HTMLCanvasElement,
     mapTextures: WrappedQuartileTextures,
-    terrainChunky: boolean,
-    terrainShadows: boolean,
 ) => {
     const terrain = new Group();
 
@@ -49,9 +47,9 @@ export const createTerrainMesh = async (
                 qy * qh * geomOptions.displaceDimensionScale,
             );
 
-            if (terrainChunky) {
-                g.computeVertexNormals();
-            }
+            // if (terrainChunky) {
+            //     g.computeVertexNormals();
+            // }
 
             const mat = new MeshStandardMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
@@ -116,8 +114,8 @@ export const createTerrainMesh = async (
             });
 
             const terrainQuartile = new Mesh(g, mat);
-            terrainQuartile.castShadow = terrainShadows;
-            terrainQuartile.receiveShadow = terrainShadows;
+            terrainQuartile.castShadow = true;
+            terrainQuartile.receiveShadow = true;
             terrainQuartile.userData = {
                 qx,
                 qy,
@@ -141,4 +139,4 @@ export const createTerrainMesh = async (
 
     return terrain;
 };
-export default createTerrainMesh;
+export default createTerrainGroupFromQuartiles;

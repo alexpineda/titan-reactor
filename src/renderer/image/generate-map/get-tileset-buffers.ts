@@ -1,7 +1,7 @@
-import { AssetTextureResolution, TilesetBuffers } from "../../common/types";
+import { readCascFile } from "common/utils/casclib";
+import { AssetTextureResolution, TilesetBuffers } from "common/types";
 
-export const loadTilesetFiles = async (
-  readFileFn: (filename: string) => Promise<Buffer>,
+export const getTilesetBuffers = async (
   tileset: number,
   tilesBuffer: Buffer,
   terrainTextureResolution: AssetTextureResolution
@@ -22,7 +22,6 @@ export const loadTilesetFiles = async (
   if (tilesBuffer.buffer.byteLength % 2 === 1) {
     const tiles = Buffer.alloc(tilesBuffer.byteLength + 1);
     tilesBuffer.copy(tiles);
-    // mapTiles = new Uint16Array(tiles.buffer);
     mapTiles = new Uint16Array(
       tiles.buffer,
       tiles.byteOffset,
@@ -39,51 +38,39 @@ export const loadTilesetFiles = async (
   }
 
   const tilesetName = tilesets[tileset];
-  const tilegroupBuf = await readFileFn(`TileSet/${tilesetName}.cv5`);
+  const tilegroupBuf = await readCascFile(`TileSet/${tilesetName}.cv5`);
   const tilegroupU16 = new Uint16Array(tilegroupBuf.buffer);
 
   const megatiles = new Uint32Array(
-    (await readFileFn(`TileSet/${tilesetName}.vx4ex`)).buffer
+    (await readCascFile(`TileSet/${tilesetName}.vx4ex`)).buffer
   );
   const minitilesFlags = new Uint16Array(
-    (await readFileFn(`TileSet/${tilesetName}.vf4`)).buffer
+    (await readCascFile(`TileSet/${tilesetName}.vf4`)).buffer
   );
   const minitiles = new Uint8Array(
-    (await readFileFn(`TileSet/${tilesetName}.vr4`)).buffer
+    (await readCascFile(`TileSet/${tilesetName}.vr4`)).buffer
   );
   const palette = new Uint8Array(
-    (await readFileFn(`TileSet/${tilesetName}.wpe`)).buffer
+    (await readCascFile(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
   let hdTiles, creepGrpHD;
 
-  const creepGrpSD = await readFileFn(`TileSet/${tilesetName}.grp`);
+  const creepGrpSD = await readCascFile(`TileSet/${tilesetName}.grp`);
 
   if (terrainTextureResolution === AssetTextureResolution.HD2) {
-    hdTiles = await readFileFn(`HD2/TileSet/${tilesetName}.dds.vr4`)
+    hdTiles = await readCascFile(`HD2/TileSet/${tilesetName}.dds.vr4`)
 
     creepGrpHD =
-      await readFileFn(`HD2/TileSet/${tilesetName}.dds.grp`)
+      await readCascFile(`HD2/TileSet/${tilesetName}.dds.grp`)
 
   } else {
     hdTiles =
-      await readFileFn(`TileSet/${tilesetName}.dds.vr4`)
+      await readCascFile(`TileSet/${tilesetName}.dds.vr4`)
     creepGrpHD =
-      await readFileFn(`TileSet/${tilesetName}.dds.grp`)
+      await readCascFile(`TileSet/${tilesetName}.dds.grp`)
 
   }
-
-
-
-  // const warpInGrpHD = MapHD.renderWarpIn(
-  //   renderer,
-  //   readDdsGrp(await readFile("anim/main_210.anim", false), false)
-  // );
-
-  // const warpInGrpSD = readDdsGrp(
-  //   await readFile(`anim/main_210.anim`, false),
-  //   false
-  // );
 
   return {
     mapTiles,

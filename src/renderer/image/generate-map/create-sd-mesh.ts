@@ -1,4 +1,4 @@
-import { MapDataTextures } from "./generate-map-data-textures";
+import { MapDataTextures } from "./create-data-textures";
 import * as THREE from "three";
 import {
   Mesh,

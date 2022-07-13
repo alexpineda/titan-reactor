@@ -17,12 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Many small optimizations across the board
 
 ### Fixed
-- Tank mode siege tank turrets (phew!) will now look better when camera rotated
+- Tank mode siege tank turrets will now look better when camera rotated
 - When the camera target is above the horizon units will not rotate oddly
 - Disposing of the previous replay should execute before any additional plugin calls
 - UMS games that use set alliance now work (thank you Heinerman!)
 - Maps that use disabled doodads now work (thank you Heinerman!)
-- OBS chat won't break replays anymore
+- Observer chat won't break replays anymore
 
 ### Removed
 - Map camera boundaries for the time being as it's causing some unwanted errors / side effects

@@ -6,7 +6,7 @@ import {
 } from "./core";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
-import loadTerrain from "./image/generate-map/load-terrain";
+import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store";
 import screenStore from "./stores/screen-store";
@@ -15,12 +15,15 @@ import TitanReactorMap from "./view-map";
 import waitForAssets from "./utils/wait-for-assets";
 import { cleanMapTitles } from "@utils/map-string-utils";
 import { useWorldStore } from "./stores";
+import settingsStore from "@stores/settings-store";
 
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
 }
 export default async (chkFilepath: string) => {
+
+  const settings = settingsStore().data;
 
   gameStore().disposeGame();
 
@@ -51,7 +54,10 @@ export default async (chkFilepath: string) => {
   processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing scene");
-  const terrainInfo = await loadTerrain(chk);
+  const terrainInfo = await chkToTerrainMesh(chk, {
+    textureResolution: settings.assets.terrain,
+    anisotropy: settings.graphics.anisotropy
+  });
   const scene = new Scene(terrainInfo);
 
   ImageHD.useDepth = false;

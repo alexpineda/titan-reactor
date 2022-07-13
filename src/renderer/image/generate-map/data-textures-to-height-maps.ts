@@ -18,13 +18,13 @@ import {
 import { MapEffect } from "./glsl/map-effect";
 
 import processStore, { Process } from "@stores/process-store";
-import { MapDataTextures } from "./generate-map-data-textures";
+import { MapDataTextures } from "./create-data-textures";
 import { GeometryOptions } from "./geometry-options";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
 
 // TODO: dispose effects?
-export const createDisplacementImages = async ({
+export const dataTexturesToHeightMaps = async ({
     palette,
     tileset,
     mapWidth,
@@ -174,4 +174,4 @@ export const createDisplacementImages = async ({
         displacementCanvasSmall,
     };
 };
-export default createDisplacementImages;
+export default dataTexturesToHeightMaps;

@@ -15,7 +15,7 @@ import { MainMixer, SoundChannels, Music } from "./audio";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
-import loadTerrain from "./image/generate-map/load-terrain";
+import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
@@ -129,8 +129,11 @@ export default async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
 
-  const terrain = await loadTerrain(
-    map
+  const terrain = await chkToTerrainMesh(
+    map, {
+    textureResolution: settings.assets.terrain,
+    anisotropy: settings.graphics.anisotropy
+  }
   );
   const scene = new Scene(terrain);
   janitor.object3d(scene);

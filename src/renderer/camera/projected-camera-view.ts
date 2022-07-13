@@ -1,4 +1,4 @@
-import { isFiniteVector3 } from "@utils/finite-values";
+import { isFiniteVector3 } from "@utils/vector-utils";
 import { Camera, Line3, Plane, Vector3 } from "three";
 
 const _points = [
