@@ -14,7 +14,7 @@ import {
 } from "three";
 
 import { SpriteDAT } from "common/types";
-import getMaxEnergy from "../utils/get-max-energy";
+import { getMaxUnitEnergy } from "@utils/unit-utils";
 import { Unit } from "./unit";
 import gameStore from "@stores/game-store";
 
@@ -206,7 +206,7 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
     if (hasEnergy) {
       material.customUniforms.energy.value =
         unit.energy /
-        getMaxEnergy(unit.extras.dat, completedUpgrades);
+        getMaxUnitEnergy(unit.extras.dat, completedUpgrades);
     }
   }
 }

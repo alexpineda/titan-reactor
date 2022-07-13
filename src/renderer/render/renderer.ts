@@ -9,7 +9,7 @@ import {
 import {
     EffectComposer,
 } from "postprocessing";
-import rendererIsDev from "../utils/renderer-is-dev";
+import { rendererIsDev } from "../utils/renderer-utils";
 import CanvasTarget from "../image/canvas/canvas-target";
 import settingsStore from "@stores/settings-store";
 

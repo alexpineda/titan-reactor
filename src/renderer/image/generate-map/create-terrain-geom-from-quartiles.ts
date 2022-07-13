@@ -11,7 +11,7 @@ import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
 import { GeometryOptions } from "./geometry-options";
 
-export const createTerrainGroupFromQuartiles = async (
+export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
     mapHeight: number,
     creepTexture: WrappedTexture,
@@ -139,4 +139,4 @@ export const createTerrainGroupFromQuartiles = async (
 
     return terrain;
 };
-export default createTerrainGroupFromQuartiles;
+export default createTerrainGeometryFromQuartiles;

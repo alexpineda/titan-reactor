@@ -20,7 +20,7 @@ import { createCompressedTexture } from "./common";
 export const createHdQuartiles = (
   mapWidth: number,
   mapHeight: number,
-  buffer: Buffer,
+  imageData: Buffer,
   mapTilesData: Uint16Array,
   res: AssetTextureResolution
 ): WrappedQuartileTextures => {
@@ -34,7 +34,7 @@ export const createHdQuartiles = (
   const PX_PER_TILE_HD = res === AssetTextureResolution.HD ? 128 : 64;
 
   const mapQuartiles: CanvasTexture[][] = [];
-  const hdTiles = parseDdsGrp(buffer);
+  const hdTiles = parseDdsGrp(imageData);
   const webGlMaxTextureSize = renderer.capabilities.maxTextureSize;
   //16384, 8192, 4096
 

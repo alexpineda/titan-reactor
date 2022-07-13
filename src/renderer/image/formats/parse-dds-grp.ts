@@ -8,7 +8,7 @@ export const parseDdsGrp = (buf: Buffer) => {
   const frames: Buffer[] = [];
   for (let i = 0; i < frameCount; i++) {
     const size = buf.readUInt32LE(pos + 8);
-    const dds = buf.slice(pos + 12, pos + 12 + size);
+    const dds = buf.subarray(pos + 12, pos + 12 + size);
 
     pos = pos + 12 + size;
     frames.push(dds);

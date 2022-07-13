@@ -1,7 +1,7 @@
 import type Chk from "bw-chk";
 import { AssetTextureResolution, TerrainInfo } from "common/types";
 import {
-  createDataTextures, createTerrainGroupFromQuartiles, extractBitmaps, defaultOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
+  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
 } from ".";
 
 import * as log from "@ipc";
@@ -57,7 +57,7 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     settings.textureResolution
   );
 
-  const terrain = await createTerrainGroupFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
+  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 

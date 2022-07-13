@@ -12,8 +12,8 @@ import processStore, { Process } from "./stores/process-store";
 import screenStore from "./stores/screen-store";
 import { ScreenType } from "../common/types";
 import TitanReactorMap from "./view-map";
-import waitForAssets from "./utils/wait-for-assets";
-import { cleanMapTitles } from "@utils/map-string-utils";
+import { waitForProcess } from "./utils/wait-for-process";
+import { cleanMapTitles } from "@utils/chk-utils";
 import { useWorldStore } from "./stores";
 import settingsStore from "@stores/settings-store";
 
@@ -49,7 +49,7 @@ export default async (chkFilepath: string) => {
 
   updateWindowTitle(chk.title);
 
-  await waitForAssets();
+  await waitForProcess(Process.AtlasPreload);
 
   processStore().increment(Process.MapInitialization);
 

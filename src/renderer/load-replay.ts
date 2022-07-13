@@ -21,13 +21,13 @@ import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
-import waitForAssets from "./utils/wait-for-assets";
+import { waitForProcess } from "./utils/wait-for-process";
 import Janitor from "./utils/janitor";
 import { getOpenBW } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { useWorldStore } from "@stores";
-import { cleanMapTitles } from "@utils/map-string-utils";
-import rendererIsDev from "@utils/renderer-is-dev";
+import { cleanMapTitles } from "@utils/chk-utils";
+import { rendererIsDev } from "@utils/renderer-utils";
 import {
   readCascFile,
 } from "common/utils/casclib";
@@ -139,7 +139,7 @@ export default async (filepath: string) => {
   janitor.object3d(scene);
   janitor.disposable(scene);
 
-  await waitForAssets();
+  await waitForProcess(Process.AtlasPreload);
 
   await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, map, replay.header);
 

@@ -2,16 +2,17 @@ import Janitor from "@utils/janitor";
 import { InitializedPluginPackage, OpenBWAPI, ScreenStatus, ScreenType } from "common/types";
 import settingsStore from "@stores/settings-store";
 
-import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
+import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore, Process } from "@stores";
 
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_EVENT_UPDATE_AVAILABLE } from "./events";
-import waitForAssets from "../utils/wait-for-assets";
+import { waitForProcess } from "../utils/wait-for-process";
 import { GameStatePosition, Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import { downloadUpdate } from "@ipc";
 import packageJson from "../../../package.json"
 import semver from "semver";
+import gameStore from "@stores/game-store";
 
 const screenChanged = (screen: ScreenStore) => {
     return {
@@ -147,7 +148,8 @@ export class PluginSystemUI {
                 }
             }
 
-            const assets = await waitForAssets();
+            await waitForProcess(Process.AtlasPreload);
+            const assets = gameStore().assets!;
 
             this.#iframe.contentWindow?.postMessage({
                 type: SYSTEM_EVENT_ASSETS,

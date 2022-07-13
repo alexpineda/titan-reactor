@@ -5,5 +5,5 @@ export * from "./transform-level-configuration";
 export * from "./extract-bitmaps"
 export * from "./geometry-options"
 export * from "./data-textures-to-height-maps"
-export * from "./create-terrain-group-from-quartiles";
+export * from "./create-terrain-geom-from-quartiles";
 export * from "./create-sd-mesh";
