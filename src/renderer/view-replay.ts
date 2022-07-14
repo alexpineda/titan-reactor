@@ -70,7 +70,6 @@ import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
-import FPSMeter from "@utils/fps-meter";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
@@ -108,7 +107,6 @@ async function TitanReactorGame(
   openBW.setGameSpeed(1);
   openBW.setPaused(false);
 
-  const fps = new FPSMeter();
   selectedUnitsStore().clearSelectedUnits();
 
   const createImage = (imageTypeId: number) => {
@@ -1228,12 +1226,12 @@ async function TitanReactorGame(
         sprite.name = "sprite";
         sprite.userData.selectionCircle = new SelectionCircle();
         sprite.userData.selectionBars = new SelectionBars();
-        sprite.userData.typeId = spriteData.typeId;
         sprite.add(sprite.userData.selectionCircle)
         sprite.add(sprite.userData.selectionBars)
       }
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
+      sprite.userData.typeId = spriteData.typeId;
       sprite.userData.needsMatrixUpdate = true;
       sprite.userData.renderTestCount = 0;
     } else {
@@ -1411,7 +1409,7 @@ async function TitanReactorGame(
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+        if (!controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
           image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
@@ -1710,7 +1708,6 @@ async function TitanReactorGame(
       cssRenderer.render(cssScene, camera);
     }
 
-    fps.update(elapsed);
     plugins.onRender(delta, elapsed);
 
   };
@@ -1879,7 +1876,6 @@ async function TitanReactorGame(
       getOriginalNames,
       getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
       replay: { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] },
-      getFPS: () => fps.fps,
       getFollowedUnits: () => followedUnits,
       calculateFollowedUnitsTarget,
       selectUnits: (ids: number[]) => {

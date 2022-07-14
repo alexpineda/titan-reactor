@@ -151,6 +151,6 @@
         "worker-loader": "^2.0.0"
     },
     "config": {
-        "titan-reactor-api": "1.0.1"
+        "titan-reactor-api": "1.1.0"
     }
 }

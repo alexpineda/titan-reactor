@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Regression in floating sprites is fixed
+- Bullet tracking now works on floating buildings
+
+### Removed
+- getFPS is removed from the plugin api
+
+## [0.5.3]
+
 ### Added
 - Warp flash animation on protoss buildings
 - skipForward, skipBackward, speedUp, speedDown, togglePause plugin apis now return appropriate values
@@ -120,7 +129,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit selection / unit boxing for the time being.
 
 
-[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.4.0...v0.5.0
