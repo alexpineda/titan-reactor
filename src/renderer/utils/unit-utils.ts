@@ -28,7 +28,7 @@ export const unitIsCloaked = (unit: UnitStruct) => {
   );
 }
 
-export const unitIsFlying = (unit: Unit) => {
+export const unitIsFlying = (unit: UnitStruct) => {
   return Boolean(unit.statusFlags & UnitFlags.Flying);
 }
 

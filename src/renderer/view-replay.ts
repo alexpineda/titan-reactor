@@ -1303,15 +1303,15 @@ async function TitanReactorGame(
       }
 
       if (weapon.weaponBehavior === WeaponBehavior.AppearOnTargetUnit && bullet.targetUnit) {
-        calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, bwDat.units[bullet.targetUnit.typeId].isFlyer);
+        calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, unitIsFlying(bullet.targetUnit));
         bulletY = _targetSpritePos.y;
         // appear on attacker: dark swarm/scarab/stasis field (visible?)
       } else if ((weapon.weaponBehavior === WeaponBehavior.AppearOnAttacker || weapon.weaponBehavior === WeaponBehavior.AttackTarget_3x3Area) && bullet.ownerUnit) {
-        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, bwDat.units[bullet.ownerUnit.typeId].isFlyer);
+        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, unitIsFlying(bullet.ownerUnit));
         bulletY = _ownerSpritePos.y;
       } else if (weapon.weaponBehavior === WeaponBehavior.FlyAndDontFollowTarget && bullet.targetUnit && bullet.ownerUnit) {
-        calcSpriteCoordsXY(bullet.targetPosX, bullet.targetPosY, _targetSpritePos, _targetSpritePos2d, bwDat.units[bullet.targetUnit.typeId].isFlyer);
-        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, bwDat.units[bullet.ownerUnit.typeId].isFlyer);
+        calcSpriteCoordsXY(bullet.targetPosX, bullet.targetPosY, _targetSpritePos, _targetSpritePos2d, unitIsFlying(bullet.targetUnit));
+        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, unitIsFlying(bullet.ownerUnit));
 
         const unitDistances = _ownerSpritePos2d.distanceTo(_targetSpritePos2d);
         const bulletDistanceToTarget = _spritePos2d.distanceTo(_targetSpritePos2d);
@@ -1321,8 +1321,8 @@ async function TitanReactorGame(
       else if ((weapon.weaponBehavior === WeaponBehavior.FlyAndFollowTarget || weapon.weaponBehavior === WeaponBehavior.Bounce) && bullet.targetUnit) {
         const prevUnit = bullet.prevBounceUnit ?? bullet.ownerUnit;
         if (prevUnit) {
-          calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, bwDat.units[bullet.targetUnit.typeId].isFlyer);
-          calcSpriteCoords(prevUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, bwDat.units[prevUnit.typeId].isFlyer);
+          calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, unitIsFlying(bullet.targetUnit));
+          calcSpriteCoords(prevUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, unitIsFlying(prevUnit));
 
           const unitDistances = _ownerSpritePos2d.distanceTo(_targetSpritePos2d);
           const bulletDistanceToTarget = _spritePos2d.distanceTo(_targetSpritePos2d);
