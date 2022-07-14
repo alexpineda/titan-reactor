@@ -2,81 +2,55 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "common/types";
 import range from "common/utils/range";
-import { SoundStruct } from "common/types/structs";
-import Audio from "./audio";
-import { ClassicSound } from "./classic-sound";
-import DeferredAudioBuffer from "./deferred-audio-buffer";
+import { SoundChannel } from "./sound-channel";
 import MainMixer from "./main-mixer";
-import SoundChannel from "./sound-channel";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export class SoundChannels {
   mixer: MainMixer;
   maxChannels = 8;
-  channels = range(0, this.maxChannels).map(() => new SoundChannel());
-  buffers = new Map();
-  audio: Audio[] = [];
-  scheduled: Audio[] = [];
-  loadSoundAsync: (id: number) => Promise<ArrayBuffer>;
+  channels: SoundChannel[];
+  buffers: Map<number, AudioBuffer> = new Map();
+  #loading: Map<number, boolean> = new Map();
+  loadSoundAsync: (id: number) => Promise<ArrayBufferLike>;
 
   constructor(
     mixer: MainMixer,
-    loadSoundAsync: (id: number) => Promise<ArrayBuffer>
+    loadSoundAsync: (id: number) => Promise<ArrayBufferLike>
   ) {
+
     this.mixer = mixer;
     this.loadSoundAsync = loadSoundAsync;
+    this.channels = range(0, this.maxChannels).map(() => new SoundChannel(mixer));
   }
 
   async _load(id: number) {
     const buffer = await this.loadSoundAsync(id);
-    return await this.mixer.context.decodeAudioData(buffer.slice(0));
+    return await this.mixer.context.decodeAudioData(buffer.slice(0));;
   }
 
-  _getBuffer(soundId: number) {
-    let buffer = this.buffers.get(soundId);
-    if (!buffer) {
-      buffer = new DeferredAudioBuffer(this._load.bind(this), soundId);
-      this.buffers.set(soundId, buffer);
-    }
-    return buffer;
-  }
-
-  _getAvailableChannel(audio: Audio) {
-    const sound = audio.sound;
-
-    if (audio.dat.flags & 0x10) {
+  _getAvailableChannel(dat: SoundDAT, typeId: number, unitTypeId: number) {
+    if (dat.flags & 0x10) {
       for (const channel of this.channels) {
-        if (channel.isPlaying && channel.id === sound.typeId) {
-          if (channel.audio && channel.audio.isPlaying) {
-            return;
-          }
-          channel.isPlaying = false;
+        if ((channel.isQueued || channel.isPlaying) && channel.typeId === typeId) {
+          return;
         }
       }
-    } else if (audio.dat.flags & 2 && sound.unitTypeId) {
+    } else if (dat.flags & 2 && unitTypeId >= 0) {
       for (const channel of this.channels) {
         if (
-          channel.isPlaying &&
-          channel.unitTypeId === sound.unitTypeId &&
-          channel.audio &&
-          channel.audio.dat.flags & 2
+          (channel.isQueued || channel.isPlaying) &&
+          channel.unitTypeId === unitTypeId &&
+          channel.flags & 2
         ) {
-          if (channel.audio && channel.audio.isPlaying) {
-            return;
-          }
-          channel.isPlaying = false;
+          return;
         }
       }
     }
 
     let availableChannel;
     for (const channel of this.channels) {
-      if (channel.isPlaying) {
-        if (channel.audio && !channel.audio.isPlaying) {
-          channel.isPlaying = false;
-          availableChannel = channel;
-        }
-      } else {
+      if (!(channel.isQueued || channel.isPlaying)) {
         availableChannel = channel;
       }
     }
@@ -85,60 +59,52 @@ export class SoundChannels {
       return availableChannel;
     }
 
-    let bestPriority = audio.dat.priority;
+    let bestPriority = dat.priority;
     for (const channel of this.channels) {
-      if (!channel.audio) {
-        return channel;
-      }
-      if (channel.audio?.dat.flags & 0x20) continue;
-      if (channel.audio?.dat.priority < bestPriority) {
-        bestPriority = channel.audio?.dat.priority;
+      if (channel.isQueued) continue;
+      if (channel.flags & 0x20) continue;
+      if (channel.priority < bestPriority) {
+        bestPriority = channel.priority;
         availableChannel = channel;
       }
     }
     return availableChannel;
   }
 
-  queue(soundData: SoundStruct | ClassicSound, dat: SoundDAT, mapCoords: Vector3) {
-    this.audio.push(
-      new Audio(this.mixer, soundData, this._getBuffer(soundData.typeId), dat, mapCoords)
-    );
-  }
+  play(elapsed: number, typeId: number, unitTypeId: number, dat: SoundDAT, mapCoords: Vector3, volume: number | null, pan: number | null) {
 
-  _channelHasAudioAvailable(audio: Audio) {
-    return audio.buffer.buffer;
-  }
 
-  _channelHasNotPlayed(audio: Audio) {
-    return !audio.source;
-  }
+    const buffer = this.buffers.get(typeId);
 
-  play(elapsed: number) {
-    for (const audio of this.audio) {
-      if (elapsed - audio.buffer.lastPlayed <= 80) {
-        continue;
+    if (buffer) {
+      const channel = this._getAvailableChannel(dat, typeId, unitTypeId);
+      if (!channel || elapsed - channel.lastPlayed <= 80) {
+        return;
       }
-      const channel = this._getAvailableChannel(audio);
-      if (channel) {
-        channel.queue(audio);
-        audio.queue(elapsed);
+      // new SoundChannel(this.mixer, soundData, this._getBuffer(soundData.typeId), dat, mapCoords)
+
+      channel.queue(typeId, unitTypeId, mapCoords, dat.flags, dat.priority, volume, pan);
+      channel.play(elapsed, buffer);
+
+    } else {
+      if (this.#loading.get(typeId)) {
+        return;
       }
-    }
 
-    this.audio.length = 0;
-    for (const channel of this.channels) {
-      if (!channel.audio) {
-        continue;
+      const channel = this._getAvailableChannel(dat, typeId, unitTypeId);
+      if (!channel) {
+        return;
       }
-      this.scheduled.push(channel.audio);
-    }
 
-    for (const audio of this.scheduled.filter(this._channelHasAudioAvailable)) {
-      audio.play(elapsed);
-    }
+      channel.queue(typeId, unitTypeId, mapCoords, dat.flags, dat.priority, volume, pan);
+      this.#loading.set(typeId, true);
 
-    //keep items that are loading for next time
-    this.scheduled = this.scheduled.filter(this._channelHasNotPlayed);
+      this._load(typeId).then(buffer => {
+        channel.play(elapsed, buffer);
+        this.buffers.set(typeId, buffer);
+        this.#loading.delete(typeId);
+      })
+    }
   }
 }
 export default SoundChannels;

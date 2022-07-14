@@ -11,10 +11,10 @@ import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
 } from "common/types";
 import { gameSpeeds, pxToMapMeter, floor32 } from "common/utils/conversions";
-import { SoundStruct, SpriteStruct, ImageStruct } from "common/types/structs";
+import { SpriteStruct, ImageStruct } from "common/types/structs";
 import type { MainMixer, Music, SoundChannels } from "./audio";
 
 import ProjectedCameraView from "./camera/projected-camera-view";
@@ -1107,7 +1107,10 @@ async function TitanReactorGame(
 
 
   const SoundPlayMaxDistance = 40;
-  const buildSounds = () => {
+  const _soundCoords = new Vector3;
+  let _soundDat: SoundDAT;
+
+  const buildSounds = (elapsed: number) => {
 
     const soundsAddr = openBW.getSoundsAddress!();
     for (let i = 0; i < openBW.getSoundsCount!(); i++) {
@@ -1115,33 +1118,25 @@ async function TitanReactorGame(
       const typeId = openBW.HEAP32[addr];
       const x = openBW.HEAP32[addr + 1];
       const y = openBW.HEAP32[addr + 2];
-      const unit_id = openBW.HEAP32[addr + 3];
+      const unitTypeId = openBW.HEAP32[addr + 3];
 
       if (!fogOfWar.isVisible(floor32(x), floor32(y))) {
         continue;
       }
-      const dat = assets.bwDat.sounds[typeId];
-      const mapCoords = new Vector3;
+      _soundDat = assets.bwDat.sounds[typeId];
 
-      pxToGameUnit.xyz(x, y, terrain.getTerrainY, mapCoords);
+      pxToGameUnit.xyz(x, y, terrain.getTerrainY, _soundCoords);
 
       if (controls.cameraMode.soundMode === "spatial") {
-        if (dat.minVolume || camera.position.distanceTo(mapCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
+        if (_soundDat.minVolume || camera.position.distanceTo(_soundCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
           // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
-          const sound = {} as SoundStruct;
-          sound.typeId = typeId;
-          sound.unitTypeId = unit_id;
-          sound.x = x;
-          sound.y = y;
-          delete sound.volume;
-          delete sound.pan;
-          soundChannels.queue(sound, dat, mapCoords);
+          soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
         }
       }
       else {
         const volume = getBwVolume(
-          dat,
-          mapCoords,
+          _soundDat,
+          _soundCoords,
           x,
           y,
           projectedCameraView.left,
@@ -1150,20 +1145,12 @@ async function TitanReactorGame(
           projectedCameraView.bottom
         );
 
-        const pan = getBwPanning(x, y, mapCoords, projectedCameraView.left, projectedCameraView.width);
+        const pan = getBwPanning(x, y, _soundCoords, projectedCameraView.left, projectedCameraView.width);
         //FIXME; see if we can avoid creating this object
 
         if (volume > SoundPlayMinVolume) {
-          const sound = {} as SoundStruct;
-          sound.typeId = typeId;
-          sound.unitTypeId = unit_id;
-          sound.x = x;
-          sound.y = y;
-          sound.volume = volume;
-          sound.pan = pan;
-
           // plugins.callHook("onBeforeSound", classicSound, dat, mapCoords);
-          soundChannels.queue(sound, dat, mapCoords);
+          soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
         }
       }
     }
@@ -1507,9 +1494,6 @@ async function TitanReactorGame(
       freeImages.add(image.dat.index, image);
     }
 
-
-
-
     // build bullet sprites first since they need special Y calculations
     bulletList.addr = openBW.getBulletsAddress();
     _ignoreSprites.length = 0;
@@ -1633,7 +1617,7 @@ async function TitanReactorGame(
       if (currentBwFrame % 42 === 0) {
         updateCompletedUpgrades();
       }
-      buildSounds();
+      buildSounds(elapsed);
       buildCreep(currentBwFrame);
 
       buildUnits(
@@ -1649,8 +1633,6 @@ async function TitanReactorGame(
 
       const audioPosition = controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, _cameraTarget, _cameraPosition);
       audioMixer.updateFromVector3(audioPosition as Vector3, delta);
-
-      soundChannels.play(elapsed);
 
       if (unitAttackScore.needsUpdate) {
         controls.cameraShake.shake(elapsed, unitAttackScore.duration, unitAttackScore.frequency, unitAttackScore.strength);

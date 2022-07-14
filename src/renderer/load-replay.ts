@@ -164,9 +164,7 @@ export default async (filepath: string) => {
   }
   processStore().increment(Process.ReplayInitialization);
 
-  const loadAudioFile = async (id: number) => {
-    return (await readCascFile(`sound/${assets.bwDat.sounds[id].file}`)).buffer;
-  }
+  const loadAudioFile = async (id: number) => await (await (readCascFile(`sound/${assets.bwDat.sounds[id].file}`))).buffer;
 
   const audioMixer = new MainMixer();
   const soundChannels = new SoundChannels(
