@@ -327,7 +327,6 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW);
   const shortcuts = new PluginKeyShortcuts(window.document.body)
-
   janitor.disposable(shortcuts);
 
   const switchCameraMode = async (cameraMode: CameraModePlugin, prevCameraMode?: CameraModePlugin) => {

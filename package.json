@@ -1,7 +1,7 @@
 {
     "name": "titan-reactor",
     "productName": "Titan Reactor",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "The Advanced Starcraft Broodwar Observing Tool",
     "main": "src/main/index.js",
     "scripts": {

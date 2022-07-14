@@ -1,8 +1,6 @@
 import { Vector3 } from "three";
 import MainMixer from "./main-mixer";
 
-const stopTime = 30; //ms
-
 // an instance of a bw sound
 export class SoundChannel {
   static rolloffFactor = 1;
