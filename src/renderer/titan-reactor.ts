@@ -59,6 +59,91 @@ log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
   log.verbose(`@init: device pixel ratio: ${window.devicePixelRatio}`);
 }
 
+window.addEventListener("message", evt => {
+  if (evt.data?.type === SYSTEM_EVENT_OPEN_URL) {
+    openUrl(evt.data.payload);
+  }
+})
+
+const iframeDiv = document.createElement("div");
+iframeDiv.style.position = "absolute";
+iframeDiv.style.display = "flex";
+iframeDiv.style.flexDirection = "column";
+iframeDiv.style.alignItems = "center";
+iframeDiv.style.zIndex = "10";
+iframeDiv.style.marginLeft = "30px";
+iframeDiv.style.marginTop = "200px";
+
+const createIFrame = (embedUrl: string) => {
+  const div = document.createElement("div");
+  div.style.margin = "0 0";
+  div.style.padding = "0 0";
+  div.style.position = "relative";
+  div.style.marginTop = "10px";
+  div.style.background = "black"
+
+  const clicker = document.createElement("div");
+  clicker.style.margin = "0 0";
+  clicker.style.padding = "0 0";
+  clicker.style.position = "absolute";
+  clicker.style.top = "0";
+  clicker.style.cursor = "pointer";
+  clicker.style.width = "100%";
+  clicker.style.height = "50px";
+  clicker.textContent = "&nbsp;"
+
+  const iframe = document.createElement("iframe");
+  iframe.src = embedUrl;
+  iframe.width = "560";
+  iframe.height = "315";
+  iframe.frameBorder = "0";
+  iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
+  iframe.allowFullscreen = true;
+  iframe.style.position = "relative"
+
+  div.appendChild(iframe);
+  div.appendChild(clicker)
+  return { div, clicker, iframe };
+}
+
+const video1 = createIFrame("http://embed-casts.imbateam.gg");
+const video2 = createIFrame("http://embed-casts-2.imbateam.gg");
+
+iframeDiv.appendChild(video1.div)
+iframeDiv.appendChild(video2.div);
+
+useScreenStore.subscribe((store) => {
+  if (store.type === ScreenType.Home && store.status === ScreenStatus.Ready && !store.error) {
+    if (!iframeDiv.parentElement) {
+      document.body.appendChild(iframeDiv);
+    }
+  } else {
+    if (iframeDiv.parentElement) {
+      iframeDiv.remove();
+    }
+  }
+});
+
+
+const _sceneResizeHandler = () => {
+  const height = window.innerHeight / 3;
+  const width = height * 1.77;
+
+  video1.div.style.width = `${width}px`;
+  video1.div.style.height = `${height}px`;
+  video2.div.style.width = `${width}px`;
+  video2.div.style.height = `${height}px`;
+
+  video1.iframe.width = `${width}`;
+  video1.iframe.height = `${height}`;
+  video2.iframe.width = `${width}`;
+  video2.iframe.height = `${height}`;
+
+};
+window.addEventListener("resize", _sceneResizeHandler, false);
+_sceneResizeHandler();
+
+
 bootup();
 
 async function bootup() {
@@ -82,6 +167,15 @@ async function bootup() {
       throw new Error(error);
     }
 
+    video1.clicker.addEventListener("click", () => {
+      openUrl(`http://youtube${settings.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
+    });
+
+    video2.clicker.addEventListener("click", () => {
+      openUrl(`http://youtube${settings.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
+    });
+
+
     await waitUnless(10_000, loadAssetsWithRetry(settings, hasErrors));
     screenStore().complete();
   } catch (err: any) {
@@ -89,63 +183,3 @@ async function bootup() {
     screenStore().setError(err);
   }
 }
-
-window.addEventListener("message", evt => {
-  if (evt.data?.type === SYSTEM_EVENT_OPEN_URL) {
-    openUrl(evt.data.payload);
-  }
-})
-
-const iframeDiv = document.createElement("div");
-iframeDiv.style.position = "absolute";
-iframeDiv.style.display = "flex";
-iframeDiv.style.flexDirection = "column";
-iframeDiv.style.alignItems = "center";
-iframeDiv.style.zIndex = "10";
-iframeDiv.style.marginLeft = "30px";
-iframeDiv.style.marginTop = "200px";
-
-const createIFrame = (url: string) => {
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.width = "560";
-  iframe.height = "315";
-  iframe.frameBorder = "0";
-  iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
-  iframe.allowFullscreen = true;
-  iframe.style.marginTop = "10px";
-  iframe.style.background = "black"
-  return iframe;
-}
-
-const video1 = createIFrame("http://embed-casts.imbateam.gg");
-const video2 = createIFrame("http://embed-casts-2.imbateam.gg");
-
-iframeDiv.appendChild(video1)
-iframeDiv.appendChild(video2);
-
-useScreenStore.subscribe((store) => {
-  if (store.type === ScreenType.Home && store.status === ScreenStatus.Ready && !store.error) {
-    if (!iframeDiv.parentElement) {
-      document.body.appendChild(iframeDiv);
-    }
-  } else {
-    if (iframeDiv.parentElement) {
-      iframeDiv.remove();
-    }
-  }
-});
-
-
-const _sceneResizeHandler = () => {
-  const height = window.innerHeight / 3;
-  const width = height * 1.77;
-
-  video1.width = `${width}`;
-  video1.height = `${height}`;
-  video2.width = `${width}`;
-  video2.height = `${height}`;
-
-};
-window.addEventListener("resize", _sceneResizeHandler, false);
-_sceneResizeHandler();

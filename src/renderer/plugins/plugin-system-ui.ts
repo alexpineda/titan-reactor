@@ -4,7 +4,7 @@ import settingsStore from "@stores/settings-store";
 
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore, Process } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, SYSTEM_EVENT_ASSETS, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_EVENT_UPDATE_AVAILABLE } from "./events";
+import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED } from "./events";
 import { waitForProcess } from "../utils/wait-for-process";
 import { GameStatePosition, Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
@@ -95,10 +95,11 @@ export class PluginSystemUI {
         this.#iframe.sandbox.add("allow-downloads");
 
         const initialStore = () => ({
+            language: settingsStore().data.language,
             [UI_PLUGIN_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
             [UI_PLUGIN_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
             [UI_PLUGIN_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
-            [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload
+            [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload,
         })
 
         this.#iframe.onload = async () => {
@@ -112,13 +113,7 @@ export class PluginSystemUI {
                 }
             }
 
-            this.#iframe.contentWindow?.postMessage({
-                type: SYSTEM_EVENT_READY,
-                payload: {
-                    plugins: pluginPackages,
-                    initialStore: initialStore()
-                }
-            }, "*");
+            let updateAvailable: undefined | { version: string, url: string } = undefined;
 
             const releases = await fetch(
                 "https://api.github.com/repos/imbateam-gg/titan-reactor/releases"
@@ -129,13 +124,10 @@ export class PluginSystemUI {
                 const latestRelease = releases.find((p: any) => !p.prerelease); //find first non-pre-release
                 if (latestRelease) {
                     if (semver.gt(latestRelease.name.substring(1), packageJson.version)) {
-                        this.sendMessage({
-                            type: SYSTEM_EVENT_UPDATE_AVAILABLE,
-                            payload: {
-                                version: latestRelease.name,
-                                url: latestRelease.html_url,
-                            },
-                        });
+                        updateAvailable = {
+                            version: latestRelease.name,
+                            url: latestRelease.html_url,
+                        };
                     }
 
                     const _onDownloadUpdate = (event: MessageEvent) => {
@@ -152,8 +144,11 @@ export class PluginSystemUI {
             const assets = gameStore().assets!;
 
             this.#iframe.contentWindow?.postMessage({
-                type: SYSTEM_EVENT_ASSETS,
+                type: SYSTEM_EVENT_READY,
                 payload: {
+                    plugins: pluginPackages,
+                    initialStore: initialStore(),
+                    updateAvailable,
                     assets: {
                         ready: true,
                         bwDat: assets.bwDat,
@@ -163,9 +158,9 @@ export class PluginSystemUI {
                         workerIcons: assets.workerIcons,
                         wireframeIcons: assets.wireframeIcons
                     },
-                    enums
+                    enums,
                 }
-            }, "*")
+            }, "*");
         };
         document.body.appendChild(this.#iframe);
         this.#janitor.callback(() => document.body.removeChild(this.#iframe));

@@ -9,6 +9,11 @@ import App from "./runtime/app.jsx";
 export const useStore = create(() => ({}));
 
 // friendly utilities
+const _useLocale = (state) => state.language;
+export const useLocale = () => {
+  return useStore(_useLocale);
+};
+
 const _useReplay = (state) => state.world.replay;
 export const useReplay = () => {
   return useStore(_useReplay);
@@ -341,16 +346,24 @@ const updateDimensionsCss = (dimensions) => {
   );
 };
 
+export const updateAvailable = {};
+
 const _messageListener = function (event) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
       useStore.setState(event.data.payload.initialStore);
+
       updateDimensionsCss(event.data.payload.initialStore.dimensions);
-      event.data.payload.plugins.forEach(_addPlugin);
-      ReactDOM.render(<AppWrapper />, document.body);
-    } else if (event.data.type === "system:assets") {
+
       Object.assign(assets, event.data.payload.assets);
       Object.assign(enums, event.data.payload.enums);
+      if (event.data.payload.updateAvailable) {
+        Object.assign(updateAvailable, event.data.payload.updateAvailable);
+      }
+
+      ReactDOM.render(<AppWrapper />, document.body);
+
+      event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({
@@ -372,8 +385,6 @@ const _messageListener = function (event) {
       });
     } else if (event.data.type === "system:first-install") {
       useStore.setState({ firstInstall: true });
-    } else if (event.data.type === "system:update-available") {
-      useStore.setState({ updateAvailable: event.data.payload });
     } else if (event.data.type === "system:custom-message") {
       const { message, pluginId } = event.data.payload;
       const plugin = _plugins[pluginId];

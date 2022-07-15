@@ -1,5 +1,5 @@
 import { ipcMain, shell } from "electron";
-import { whitelistUrls } from "../../whitelist-urls";
+import { whiteListRegex, whitelistUrls } from "../../whitelist-urls";
 
 import {
   DOWNLOAD_UPDATE,
@@ -51,8 +51,8 @@ ipcMain.on(DOWNLOAD_UPDATE, async (_, url: string) => {
 });
 
 ipcMain.on(OPEN_URL, async (_, url: string) => {
-  const isWhitelisted = whitelistUrls.some((whitelistedUrl) => whitelistedUrl === url);
-  console.log(url, whitelistUrls, isWhitelisted)
+  const isWhitelisted = whitelistUrls.some((whitelistedUrl) => whitelistedUrl === url) ||
+    whiteListRegex.some((regex) => regex.test(url));
 
   if (isWhitelisted) {
     shell.openExternal(url, { activate: true })

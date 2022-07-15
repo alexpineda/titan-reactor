@@ -1,11 +1,9 @@
 
 export const SYSTEM_EVENT_READY = "system:ready";
-export const SYSTEM_EVENT_ASSETS = "system:assets";
 export const SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED = "system:plugin-config-changed";
 export const SYSTEM_EVENT_MOUSE_CLICK = "system:mouse-click";
 export const SYSTEM_EVENT_CUSTOM_MESSAGE = "system:custom-message";
 export const SYSTEM_EVENT_FIRST_INSTALL = "system:first-install";
-export const SYSTEM_EVENT_UPDATE_AVAILABLE = "system:update-available";
 export const SYSTEM_EVENT_OPEN_URL = "system:open-url";
 
 export const UI_PLUGIN_EVENT_ON_FRAME = "frame";

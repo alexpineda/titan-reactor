@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useStore, PluginContext } from "titan-reactor";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  useStore,
+  PluginContext,
+  useLocale,
+  updateAvailable,
+} from "titan-reactor";
+
 const _screenSelector = (store) => store.screen;
 
 const _style_ErrorCenterText = {
@@ -73,6 +79,7 @@ const iconStyle = {
   height: "var(--size-8)",
   marginRight: "var(--size-4)",
   filter: "sepia(0.5)",
+  cursor: "pointer",
 };
 
 const loadingSvg = (
@@ -93,6 +100,25 @@ export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
   const firstInstall = useStore(_firstInstall);
+  const locale = useLocale();
+
+  const containerDiv = useRef();
+
+  useEffect(() => {
+    if (!containerDiv.current) return;
+
+      let opacity = 0;
+      const cancelId = setInterval(() => {
+        opacity += 0.025;
+        containerDiv.current.style.opacity = Math.min(opacity, 1);
+        if (opacity >= 1) {
+          clearInterval(cancelId);
+        }
+      }, 50)
+      
+      return () => clearInterval(cancelId);
+
+  }, [screen])
 
   useEffect(() => {
     if (!appLoaded && screen !== "@home/loading") {
@@ -119,10 +145,10 @@ export default ({ components }) => {
     return acc || Boolean(components[key]);
   }, false);
 
-  const updateAvailable = useStore((store) => store.updateAvailable);
 
   return (
     <div
+      ref={containerDiv}
       style={{
         position: "absolute",
         left: 0,
@@ -183,7 +209,7 @@ export default ({ components }) => {
             >
               Menu: ALT, Fullscreen: F11, Plugins: F10
             </p>
-            {updateAvailable && (
+            {updateAvailable.version && (
               <div
                 style={{
                   color: "var(--green-5)",
@@ -208,7 +234,9 @@ export default ({ components }) => {
             <img
               onClick={() =>
                 openUrl(
-                  "https://www.youtube.com/channel/UCj7TSQvBRYebRDIL0FW1MBQ"
+                  locale === "ko-KR"
+                    ? "http://youtube-kr.imbateam.gg"
+                    : "http://youtube.imbateam.gg"
                 )
               }
               src="./runtime/assets/youtube.png"
