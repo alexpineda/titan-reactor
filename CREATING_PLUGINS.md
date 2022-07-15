@@ -173,6 +173,15 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 - Convenience function to retrieve a particular player from `replay.header.players`
 - provides function `getPlayer(playerId)`
 
+**useSelectedUnits()**
+- Provides Unit objects if any are presently selected
+
+**getUnitIcon(unit)**
+- Pass in a selected unit to get the correct icon id to use with `assets.cmdIcons`
+
+**useProduction**
+- returns `[getUnits, getUpgrades, getResearch]` where each can be used to get player production information eg `getUnits(player.id)`
+  
 **useStyleSheet(content)**
 - Set a global stylesheet
 
@@ -187,15 +196,8 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 - A component that rolls to a number in an animated fashion
 
 **assets**
-- A full set of game assets like icons (mostly in base64)
+- A full set of game assets like icons (mostly in base64) and DAT information
 - See the [Assets](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/assets/assets.ts) type for reference
-- You must check `assets.ready`
-- eg.
-  ```js
-        if (!assets.ready) {
-        return null;
-      }
-  ```
 
 **enums**
 - A full set of game enums like unit types
