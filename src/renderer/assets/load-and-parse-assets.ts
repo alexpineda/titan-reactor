@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { GRPInterface, Settings } from "common/types";
+import { AssetTextureResolution, GRPInterface, Settings } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -131,6 +131,9 @@ export default async (settings: Settings) => {
         processStore().increment(Process.AtlasPreload);
         await loadImageAtlasGrp(id, UnitTileScale.HD2);
     }
+
+    // warp in flash
+    await loadImageAtlasGrp(210, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD);
 
     gameStore().setAssets(new Assets({
         bwDat,
