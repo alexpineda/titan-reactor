@@ -22,9 +22,10 @@ export interface Image extends Object3D {
   resetModifiers: () => void;
   setTeamColor: (color: Color) => void;
 
-  changeImage(atlas: GRPInterface, imageDef: ImageDAT): void;
+  changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean): void;
 
   userData: {
-    unit?: Unit
+    unit?: Unit,
+    typeId: number;
   }
 };

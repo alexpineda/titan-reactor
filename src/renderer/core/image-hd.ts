@@ -16,6 +16,7 @@ import { ImageDAT, GrpFrameType, GRPInterface } from "../../common/types";
 import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 import gameStore from "@stores/game-store";
+import { Unit } from "./unit";
 
 export const DepthMode = {
   Ordered: 0, // for top down views
@@ -51,6 +52,14 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
 
   private _normalizedSpriteWidth = 0;
   private _normalizedSpriteHeight = 0;
+
+  override userData: {
+    typeId: number;
+    unit?: Unit;
+  } = {
+      typeId: -1,
+      unit: undefined
+    }
 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean) {
 
@@ -100,6 +109,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.dat = imageDef;
     this.material.transparent = true;
     this.material.depthTest = ImageHD.useDepth;
+
 
     const posAttribute = new BufferAttribute(
       new Float32Array([

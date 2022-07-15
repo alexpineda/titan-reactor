@@ -1,6 +1,7 @@
-import { BwDAT } from "../../common/types";
-import { ImageFlags, drawFunctions } from "../../common/enums";
-import { ImageStruct } from "../../common/types/structs";
+import { BwDAT, ImageStruct } from "common/types";
+import { ImageFlags, drawFunctions } from "common/enums";
+import ImageHD from "@core/image-hd";
+import { Image } from "../core"
 
 export const imageIsShadow = (image: ImageStruct, bwDat: BwDAT) => {
   return (
@@ -31,4 +32,20 @@ export const imageHasDirectionalFrames = (image: ImageStruct) => {
 
 export const imageIsClickable = (image: ImageStruct) => {
   return image.flags & ImageFlags.Clickable;
+}
+
+export const setUseScale = (images: Map<number, Image>, scale: number) => {
+  ImageHD.useScale = scale;
+  for (const [, image] of images) {
+    if (image instanceof ImageHD) {
+
+      image.scale.copy(image.originalScale);
+
+      if (scale !== 1) {
+        image.scale.multiplyScalar(ImageHD.useScale);
+      }
+
+      image.updateMatrix();
+    }
+  }
 }

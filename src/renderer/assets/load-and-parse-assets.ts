@@ -1,10 +1,5 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
-import {
-    // @ts-ignore
-    SMAAImageLoader,
-} from "postprocessing";
-
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
 import { AssetTextureResolution, GRPInterface, Settings } from "common/types";
@@ -26,6 +21,9 @@ import Assets from "./assets";
 import * as log from "../ipc/log"
 import { UnitTileScale } from "../core";
 import loadEnvironmentMap from "../image/env-map";
+import { calculateImagesFromUnitsIscript } from "../iscript/images-from-iscript";
+import range from "common/utils/range";
+import { unitTypes } from "common/enums";
 
 export default async (settings: Settings) => {
 
@@ -70,7 +68,24 @@ export default async (settings: Settings) => {
 
     const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${refId(i)}`.slice(-3)}.anim`;
 
-    const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number) => {
+    const loadingHD2 = new Set();
+    const loadingHD = new Set();
+
+    const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number, res: AssetTextureResolution) => {
+        if (res === AssetTextureResolution.HD) {
+            if (loadingHD.has(imageId)) {
+                return;
+            } else {
+                loadingHD.add(imageId);
+            }
+        } else if (res === AssetTextureResolution.HD2) {
+            if (loadingHD2.has(imageId)) {
+                return;
+            } else {
+                loadingHD2.add(imageId);
+            }
+        }
+
         let atlas: GRPInterface;
         const glbFileName = path.join(
             settings.directories.assets,
@@ -79,8 +94,8 @@ export default async (settings: Settings) => {
             )}`.slice(-3) + ".glb"
         )
         const fs = await fileExists(glbFileName);
-        const loadAnimBuffer = () => readCascFile(genFileName(imageId, settings.assets.images === AssetTextureResolution.HD2 ? "HD2/" : ""));
-        const scale = settings.assets.images === AssetTextureResolution.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
+        const loadAnimBuffer = () => readCascFile(genFileName(imageId, res === AssetTextureResolution.HD2 ? "HD2/" : ""));
+        const scale = res === AssetTextureResolution.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
 
         const imageDat = bwDat.images[imageId];
         if (fs) {
@@ -106,15 +121,16 @@ export default async (settings: Settings) => {
     const grps: GRPInterface[] = [];
     log.info(`@load-assets/atlas: ${settings.assets.images}`);
 
-    processStore().start(Process.AtlasPreload, 11);
-
     const loadImageAtlasGrp = loadImageAtlas(grps);
-    for (let i = 0; i < 999; i++) {
-        i % 100 === 0 && processStore().increment(Process.AtlasPreload);
-        await loadImageAtlasGrp(i);
-    }
 
-    const smaaImages = (await new Promise(resolve => new SMAAImageLoader().load(resolve))) as any[]
+    const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
+    const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
+
+    processStore().start(Process.AtlasPreload, preloadImageIds.length);
+    for (const id of preloadImageIds) {
+        processStore().increment(Process.AtlasPreload);
+        await loadImageAtlasGrp(id, settings.assets.images);
+    }
 
     gameStore().setAssets(new Assets({
         bwDat,
@@ -128,8 +144,8 @@ export default async (settings: Settings) => {
         hoverIcons,
         dragIcons,
         wireframeIcons,
-        smaaImages,
-        envMap
+        envMap,
+        loadAnim: loadImageAtlasGrp
     }));
     processStore().complete(Process.AtlasPreload);
 };

@@ -11,7 +11,7 @@ import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, AssetTextureResolution
 } from "common/types";
 import { gameSpeeds, pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types/structs";
@@ -24,6 +24,7 @@ import {
   Players,
   Unit,
   ImageHD,
+  UnitTileScale,
 } from "./core";
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
@@ -42,7 +43,7 @@ import renderer from "./render/renderer";
 import {
   useSettingsStore, useWorldStore,
 } from "./stores";
-import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
+import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, setUseScale } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { getOpenBW } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
@@ -64,7 +65,7 @@ import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./plugins/hooks";
-import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
+import { canOnlySelectOne, canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { CSS2DRenderer } from "./render/css-renderer";
@@ -78,6 +79,7 @@ import { IndexedObjectPool } from "./utils/indexed-object-pool";
 import { StdVector } from "./buffer-view/std-vector";
 import range from "common/utils/range";
 import DirectionalCamera from "./camera/directional-camera";
+import { inverse } from "@utils/function-utils";
 
 CameraControls.install({ THREE: THREE });
 
@@ -109,10 +111,29 @@ async function TitanReactorGame(
 
   selectedUnitsStore().clearSelectedUnits();
 
+  enum UpgradeHDImageStatus {
+    Loading,
+    Loaded,
+  }
+
+  const _upgradeHDImageQueue = new Map<number, UpgradeHDImageStatus>();
+
   const createImage = (imageTypeId: number) => {
     const atlas = assets.grps[imageTypeId];
     if (!atlas) {
-      throw new Error(`imageId ${imageTypeId} not found`);
+      // schedule properly
+      assets.loadAnim(imageTypeId, AssetTextureResolution.HD2);
+      _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loading);
+      requestIdleCallback(() => assets.loadAnim(imageTypeId, AssetTextureResolution.HD).then(() => {
+        _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loaded);
+      }));
+      return;
+    } else {
+      if (atlas.unitTileScale === UnitTileScale.HD2 && !_upgradeHDImageQueue.has(imageTypeId)) {
+        requestIdleCallback(() => assets.loadAnim(imageTypeId, AssetTextureResolution.HD).then(() => {
+          _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loaded);
+        }));
+      }
     }
 
     const imageDef = bwDat.images[imageTypeId];
@@ -307,22 +328,6 @@ async function TitanReactorGame(
   });
 
 
-  const setUseScale = (scale: number) => {
-    ImageHD.useScale = scale;
-    for (const [, image] of images) {
-      if (image instanceof ImageHD) {
-
-        image.scale.copy(image.originalScale);
-
-        if (scale !== 1) {
-          image.scale.multiplyScalar(ImageHD.useScale);
-        }
-
-        image.updateMatrix();
-      }
-    }
-  }
-
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW);
   const shortcuts = new PluginKeyShortcuts(window.document.body)
   janitor.disposable(shortcuts);
@@ -369,7 +374,7 @@ async function TitanReactorGame(
     cameraMode.isActiveCameraMode = true;
     await cameraMode.onEnterCameraMode(prevData);
 
-    setUseScale(cameraMode.unitScale || 1);
+    setUseScale(images, cameraMode.unitScale || 1);
 
     if (cameraMode.pointerLock) {
       gameSurface.requestPointerLock();
@@ -470,18 +475,6 @@ async function TitanReactorGame(
     janitor.disposable(mouseCursor);
 
     let mouseIsDown = false;
-    const _canOnlySelectOne = [
-      unitTypes.larva,
-      unitTypes.zergEgg,
-      unitTypes.geyser,
-      unitTypes.mineral1,
-      unitTypes.mineral2,
-      unitTypes.mineral3,
-      unitTypes.mutaliskCocoon,
-      unitTypes.lurkerEgg,
-    ];
-
-    const canOnlySelectOne = (unit: Unit) => _canOnlySelectOne.includes(unit.typeId)
 
     const typeIdSort = (a: Unit, b: Unit) => {
       return a.typeId - b.typeId;
@@ -606,9 +599,7 @@ async function TitanReactorGame(
           ) {
             selectedUnits = selectedUnits.slice(-1);
           } else {
-            selectedUnits = selectedUnits.filter(
-              (unit) => !_canOnlySelectOne.includes(unit.typeId)
-            );
+            selectedUnits = selectedUnits.filter(inverse(canOnlySelectOne));
           }
         }
       }
@@ -1376,8 +1367,17 @@ async function TitanReactorGame(
       let image = images.get(imageData.index);
       if (!image) {
         image = createImage(imageData.typeId);
+        if (!image) {
+          continue;
+        }
         images.set(imageData.index, image);
       }
+      image.userData.typeId = imageData.typeId;
+
+      if (image.unitTileScale === UnitTileScale.HD2 && assets.grps[imageData.typeId].unitTileScale === UnitTileScale.HD) {
+        image.changeImage(assets.grps[imageData.typeId], bwDat.images[imageData.typeId], true);
+      }
+
       delete image.userData.unit;
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
 
@@ -1689,12 +1689,12 @@ async function TitanReactorGame(
 
     if (controls.PIP.enabled) {
       const scale = ImageHD.useScale;
-      setUseScale(1);
+      setUseScale(images, 1);
       fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
       renderer.changeCamera(controls.PIP.camera);
       renderer.render(delta, controls.PIP.viewport);
       renderer.changeCamera(camera);
-      setUseScale(scale);
+      setUseScale(images, scale);
     }
 
     let _cssItems = 0;

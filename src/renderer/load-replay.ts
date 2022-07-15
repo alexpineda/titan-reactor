@@ -36,6 +36,7 @@ import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
 import getContainerSize from "./process-replay/get-container-size";
 import { setDumpUnitCall } from "./plugins/plugin-system-ui";
+import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -181,6 +182,10 @@ export default async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
   ImageHD.useDepth = false;
+
+  const unitSprites = map.units.map(u => u.sprite).filter(s => Number.isInteger(s)) as number[];
+  const mapSprites = calculateImagesFromSpritesIscript(assets.bwDat, [...unitSprites, ...map.sprites.map(s => s.spriteId)]);
+  await Promise.all(mapSprites.map((spriteId) => assets.loadAnim(spriteId, settings.assets.images)));
 
   const disposeGame = await TitanReactorGame(
     map,

@@ -20,6 +20,19 @@ export const canSelectUnit = (unit: Unit) => {
     (unitIsCompleted(unit) || unit.extras.dat.isZerg || unit.extras.dat.isBuilding));
 }
 
+const _canOnlySelectOne = [
+  unitTypes.larva,
+  unitTypes.zergEgg,
+  unitTypes.vespeneGeyser,
+  unitTypes.mineral1,
+  unitTypes.mineral2,
+  unitTypes.mineral3,
+  unitTypes.mutaliskCocoon,
+  unitTypes.lurkerEgg,
+];
+
+export const canOnlySelectOne = (unit: UnitStruct) => _canOnlySelectOne.includes(unit.typeId)
+
 export const unitIsCloaked = (unit: UnitStruct) => {
   return (
     ((unit.statusFlags & UnitFlags.Cloaked) != 0 ||

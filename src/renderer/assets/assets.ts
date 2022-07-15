@@ -1,6 +1,6 @@
 import { AnimAtlas } from "@image";
 import { Texture } from "three";
-import { BwDAT, GRPInterface } from "common/types";
+import { AssetTextureResolution, BwDAT, GRPInterface } from "common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
 
 interface AssetsConstructorArgs {
@@ -16,8 +16,8 @@ interface AssetsConstructorArgs {
   hoverIcons: CenteredCursorIcons;
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
-  smaaImages: any[];
   envMap: Texture;
+  loadAnim: (imageID: number, res: AssetTextureResolution) => Promise<void>
 }
 
 // FIXME: remove this class its just an object
@@ -34,8 +34,8 @@ class Assets {
   hoverIcons: CenteredCursorIcons;
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
-  smaaImages: any[];
   envMap: Texture;
+  loadAnim: (imageID: number, res: AssetTextureResolution) => Promise<void>
 
   constructor({
     bwDat,
@@ -49,8 +49,8 @@ class Assets {
     hoverIcons,
     dragIcons,
     wireframeIcons,
-    smaaImages,
-    envMap
+    envMap,
+    loadAnim
   }: AssetsConstructorArgs) {
     this.arrowIcons = arrowIcons;
     this.bwDat = bwDat;
@@ -63,8 +63,8 @@ class Assets {
     this.selectionCirclesHD = selectionCirclesHD;
     this.workerIcons = workerIcons;
     this.wireframeIcons = wireframeIcons;
-    this.smaaImages = smaaImages;
     this.envMap = envMap;
+    this.loadAnim = loadAnim;
   }
 
 }
