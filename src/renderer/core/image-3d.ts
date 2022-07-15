@@ -5,7 +5,7 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 import { GlbAtlas } from "../image/atlas/glb-atlas";
 import type { GRPInterface, ImageDAT } from "common/types";
-import type { Image } from ".";
+import type { Image, Unit } from ".";
 
 /**
  * An image instance that may include a 3d model
@@ -26,6 +26,14 @@ export class Image3D extends Object3D implements Image {
   // unused, only for 2d
   offsetY = 0;
 
+  override userData: {
+    typeId: number;
+    unit?: Unit;
+  } = {
+      typeId: -1,
+      unit: undefined
+    }
+    
   constructor(
     atlas: GlbAtlas,
     imageDef: ImageDAT,

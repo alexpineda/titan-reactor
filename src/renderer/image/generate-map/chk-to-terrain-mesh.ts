@@ -1,5 +1,5 @@
 import type Chk from "bw-chk";
-import { AssetTextureResolution, TerrainInfo } from "common/types";
+import {  TerrainInfo } from "common/types";
 import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
 } from ".";
@@ -10,9 +10,10 @@ import { getTilesetBuffers } from "./get-tileset-buffers";
 import * as sd from "./sd";
 import * as hd from "./hd";
 import { anisotropyOptions } from "@utils/renderer-utils";
+import { UnitTileScale } from "@core/image";
 
 type TerrainMeshSettings = {
-  textureResolution: AssetTextureResolution;
+  textureResolution: UnitTileScale;
   anisotropy: string;
 }
 
@@ -20,7 +21,7 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   const geomOptions = defaultOptions;
   const [mapWidth, mapHeight] = chk.size;
 
-  const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles, settings.textureResolution);
+  const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
   const bitmaps = await extractBitmaps(chk.size[0], chk.size[1], tilesetBuffers);
   const dataTextures = await createDataTextures({
     blendNonWalkableBase: geomOptions.blendNonWalkableBase,
@@ -45,7 +46,7 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     levels,
   });
 
-  const isLowRes = settings.textureResolution === AssetTextureResolution.SD;
+  const isLowRes = settings.textureResolution === UnitTileScale.SD;
 
   const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, settings.textureResolution);
 

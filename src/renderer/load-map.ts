@@ -2,7 +2,7 @@ import loadScm from "./utils/load-scm";
 
 import Chk from "bw-chk";
 import {
-  ImageHD,
+  ImageHD, UnitTileScale,
 } from "./core";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
@@ -10,7 +10,7 @@ import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store";
 import screenStore from "./stores/screen-store";
-import { ScreenType } from "../common/types";
+import { AssetTextureResolution, ScreenType } from "../common/types";
 import TitanReactorMap from "./view-map";
 import { waitForProcess } from "./utils/wait-for-process";
 import { cleanMapTitles } from "@utils/chk-utils";
@@ -55,7 +55,7 @@ export default async (chkFilepath: string) => {
 
   log.verbose("initializing scene");
   const terrainInfo = await chkToTerrainMesh(chk, {
-    textureResolution: settings.assets.terrain,
+    textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
     anisotropy: settings.graphics.anisotropy
   });
   const scene = new Scene(terrainInfo);

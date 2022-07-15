@@ -1,4 +1,4 @@
-import { AssetTextureResolution, DDSGrpFrameType, WrappedTexture } from "common/types";
+import {  DDSGrpFrameType, WrappedTexture } from "common/types";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 import {
   MeshBasicMaterial,
@@ -15,6 +15,7 @@ import {
 } from "three";
 
 import { createCompressedTexture } from "./common";
+import { UnitTileScale } from "@core/image";
 
 const bottomEdges = [0, 1, 2, 3];
 const rightEdges = [4];
@@ -22,15 +23,15 @@ const topEdges = [6, 11, 17, 21];
 const leftEdges = [15];
 
 // generates a single creep texture for the edges from 0 - 15
-export const ddsToCreepEdgesTexture = (buffer: Buffer, res: AssetTextureResolution): WrappedTexture => {
+export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): WrappedTexture => {
   const renderer = new WebGLRenderer({
     depth: false,
     stencil: false,
     alpha: true,
   });
   renderer.autoClear = false;
-  const PX_PER_TILE_HD = res === AssetTextureResolution.HD ? 128 : 64;
-  const edgeScale = res === AssetTextureResolution.HD ? 256 : 128;
+  const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
+  const edgeScale = res === UnitTileScale.HD ? 256 : 128;
 
   const creepGrp = parseDdsGrpWithFrameData(buffer);
 

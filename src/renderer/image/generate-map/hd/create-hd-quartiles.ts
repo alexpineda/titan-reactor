@@ -10,9 +10,10 @@ import {
   WebGLRenderer,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
-import { AssetTextureResolution, WrappedQuartileTextures } from "common/types";
+import {  WrappedQuartileTextures } from "common/types";
 
 import { createCompressedTexture } from "./common";
+import { UnitTileScale } from "@core/image";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
@@ -22,7 +23,7 @@ export const createHdQuartiles = (
   mapHeight: number,
   imageData: Buffer,
   mapTilesData: Uint16Array,
-  res: AssetTextureResolution
+  res: UnitTileScale
 ): WrappedQuartileTextures => {
 
   const renderer = new WebGLRenderer({
@@ -31,7 +32,7 @@ export const createHdQuartiles = (
     alpha: true,
   });
   renderer.autoClear = false;
-  const PX_PER_TILE_HD = res === AssetTextureResolution.HD ? 128 : 64;
+  const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
 
   const mapQuartiles: CanvasTexture[][] = [];
   const hdTiles = parseDdsGrp(imageData);

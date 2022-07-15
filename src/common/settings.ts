@@ -11,8 +11,8 @@ export const defaultSettings: Settings = {
     plugins: ""
   },
   assets: {
-    images: AssetTextureResolution.HD2,
-    terrain: AssetTextureResolution.SD,
+    images: AssetTextureResolution.HD,
+    terrain: AssetTextureResolution.HD,
   },
   audio: {
     global: 1,

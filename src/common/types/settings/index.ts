@@ -43,7 +43,6 @@ export type Settings = {
 
 export enum AssetTextureResolution {
     SD = "sd",
-    HD2 = "hd2",
     HD = "hd",
 }
 

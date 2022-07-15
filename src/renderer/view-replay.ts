@@ -11,7 +11,7 @@ import { ClearPass, RenderPass, EffectPass } from "postprocessing";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, AssetTextureResolution
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
 } from "common/types";
 import { gameSpeeds, pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types/structs";
@@ -122,15 +122,15 @@ async function TitanReactorGame(
     const atlas = assets.grps[imageTypeId];
     if (!atlas) {
       // schedule properly
-      assets.loadAnim(imageTypeId, AssetTextureResolution.HD2);
+      assets.loadAnim(imageTypeId, UnitTileScale.HD2);
       _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loading);
-      requestIdleCallback(() => assets.loadAnim(imageTypeId, AssetTextureResolution.HD).then(() => {
+      requestIdleCallback(() => assets.loadAnim(imageTypeId, UnitTileScale.HD).then(() => {
         _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loaded);
       }));
       return;
     } else {
       if (atlas.unitTileScale === UnitTileScale.HD2 && !_upgradeHDImageQueue.has(imageTypeId)) {
-        requestIdleCallback(() => assets.loadAnim(imageTypeId, AssetTextureResolution.HD).then(() => {
+        requestIdleCallback(() => assets.loadAnim(imageTypeId, UnitTileScale.HD).then(() => {
           _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loaded);
         }));
       }

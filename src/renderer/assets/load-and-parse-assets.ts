@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AssetTextureResolution, GRPInterface, Settings } from "common/types";
+import { GRPInterface, Settings } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -44,7 +44,7 @@ export default async (settings: Settings) => {
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
 
-    const selectionCirclesHD = await loadSelectionCircles(settings.assets.images);
+    const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
 
     const envMap = await loadEnvironmentMap(`${__static}/envmap.hdr`);
 
@@ -71,14 +71,14 @@ export default async (settings: Settings) => {
     const loadingHD2 = new Set();
     const loadingHD = new Set();
 
-    const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number, res: AssetTextureResolution) => {
-        if (res === AssetTextureResolution.HD) {
+    const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number, res: UnitTileScale) => {
+        if (res === UnitTileScale.HD) {
             if (loadingHD.has(imageId)) {
                 return;
             } else {
                 loadingHD.add(imageId);
             }
-        } else if (res === AssetTextureResolution.HD2) {
+        } else if (res === UnitTileScale.HD2) {
             if (loadingHD2.has(imageId)) {
                 return;
             } else {
@@ -94,8 +94,8 @@ export default async (settings: Settings) => {
             )}`.slice(-3) + ".glb"
         )
         const fs = await fileExists(glbFileName);
-        const loadAnimBuffer = () => readCascFile(genFileName(imageId, res === AssetTextureResolution.HD2 ? "HD2/" : ""));
-        const scale = res === AssetTextureResolution.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
+        const loadAnimBuffer = () => readCascFile(genFileName(imageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
+        const scale = res === UnitTileScale.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
 
         const imageDat = bwDat.images[imageId];
         if (fs) {
@@ -129,7 +129,7 @@ export default async (settings: Settings) => {
     processStore().start(Process.AtlasPreload, preloadImageIds.length);
     for (const id of preloadImageIds) {
         processStore().increment(Process.AtlasPreload);
-        await loadImageAtlasGrp(id, settings.assets.images);
+        await loadImageAtlasGrp(id, UnitTileScale.HD2);
     }
 
     gameStore().setAssets(new Assets({

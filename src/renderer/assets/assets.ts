@@ -1,7 +1,8 @@
 import { AnimAtlas } from "@image";
 import { Texture } from "three";
-import { AssetTextureResolution, BwDAT, GRPInterface } from "common/types";
+import {  BwDAT, GRPInterface } from "common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
+import { UnitTileScale } from "@core/image";
 
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
@@ -17,7 +18,7 @@ interface AssetsConstructorArgs {
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
   envMap: Texture;
-  loadAnim: (imageID: number, res: AssetTextureResolution) => Promise<void>
+  loadAnim: (imageID: number, res: UnitTileScale) => Promise<void>
 }
 
 // FIXME: remove this class its just an object
@@ -35,7 +36,7 @@ class Assets {
   dragIcons: CenteredCursorIcons;
   wireframeIcons: string[];
   envMap: Texture;
-  loadAnim: (imageID: number, res: AssetTextureResolution) => Promise<void>
+  loadAnim: (imageID: number, res: UnitTileScale) => Promise<void>
 
   constructor({
     bwDat,

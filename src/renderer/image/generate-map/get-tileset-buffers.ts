@@ -1,10 +1,9 @@
 import { readCascFile } from "common/utils/casclib";
-import { AssetTextureResolution, TilesetBuffers } from "common/types";
+import { TilesetBuffers } from "common/types";
 
 export const getTilesetBuffers = async (
   tileset: number,
-  tilesBuffer: Buffer,
-  terrainTextureResolution: AssetTextureResolution
+  tilesBuffer: Buffer
 ): Promise<TilesetBuffers> => {
   const tilesets = [
     "badlands",
@@ -58,19 +57,19 @@ export const getTilesetBuffers = async (
 
   const creepGrpSD = await readCascFile(`TileSet/${tilesetName}.grp`);
 
-  if (terrainTextureResolution === AssetTextureResolution.HD2) {
+  // if (terrainTextureResolution === AssetTextureResolution.HD2) {
     hdTiles = await readCascFile(`HD2/TileSet/${tilesetName}.dds.vr4`)
 
     creepGrpHD =
       await readCascFile(`HD2/TileSet/${tilesetName}.dds.grp`)
 
-  } else {
-    hdTiles =
-      await readCascFile(`TileSet/${tilesetName}.dds.vr4`)
-    creepGrpHD =
-      await readCascFile(`TileSet/${tilesetName}.dds.grp`)
+  // } else {
+  //   hdTiles =
+  //     await readCascFile(`TileSet/${tilesetName}.dds.vr4`)
+  //   creepGrpHD =
+  //     await readCascFile(`TileSet/${tilesetName}.dds.grp`)
 
-  }
+  // }
 
   return {
     mapTiles,

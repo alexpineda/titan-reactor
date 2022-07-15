@@ -7,10 +7,10 @@ import ChkDowngrader from "./process-replay/chk/chk-downgrader";
 import fs from "fs";
 import Chk from "bw-chk";
 
-import { ScreenType } from "common/types";
+import { AssetTextureResolution, ScreenType } from "common/types";
 import { GameTypes } from "common/enums";
 
-import { ImageHD } from "./core";
+import { ImageHD, UnitTileScale } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
@@ -132,7 +132,8 @@ export default async (filepath: string) => {
 
   const terrain = await chkToTerrainMesh(
     map, {
-    textureResolution: settings.assets.terrain,
+      //TODO: replace since HD2 and HD will be loaded
+    textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2,
     anisotropy: settings.graphics.anisotropy
   }
   );
@@ -185,7 +186,7 @@ export default async (filepath: string) => {
 
   const unitSprites = map.units.map(u => u.sprite).filter(s => Number.isInteger(s)) as number[];
   const mapSprites = calculateImagesFromSpritesIscript(assets.bwDat, [...unitSprites, ...map.sprites.map(s => s.spriteId)]);
-  await Promise.all(mapSprites.map((spriteId) => assets.loadAnim(spriteId, settings.assets.images)));
+  await Promise.all(mapSprites.map((spriteId) => assets.loadAnim(spriteId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2)));
 
   const disposeGame = await TitanReactorGame(
     map,
