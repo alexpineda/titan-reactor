@@ -1,7 +1,7 @@
-import { Group, Vector2, MeshStandardMaterial, Mesh } from "three";
+import { Vector2, MeshStandardMaterial, Mesh } from "three";
 
 
-import { WrappedTexture, WrappedQuartileTextures } from "common/types";
+import { WrappedTexture, WrappedQuartileTextures, Terrain, GeometryOptions } from "common/types";
 import processStore, { Process } from "@stores/process-store";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
@@ -9,7 +9,6 @@ import { MapDataTextures } from "./create-data-textures";
 
 import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
-import { GeometryOptions } from "./geometry-options";
 
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
@@ -21,7 +20,7 @@ export const createTerrainGeometryFromQuartiles = async (
     displaceCanvas: HTMLCanvasElement,
     mapTextures: WrappedQuartileTextures,
 ) => {
-    const terrain = new Group();
+    const terrain = new Terrain();
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
@@ -135,6 +134,9 @@ export const createTerrainGeometryFromQuartiles = async (
     terrain.updateMatrix();
     terrain.visible = true;
     terrain.name = "TerrainHD";
+    terrain.userData = {
+        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY, geomOptions
+    }
 
 
     return terrain;

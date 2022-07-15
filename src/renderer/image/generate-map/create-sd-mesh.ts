@@ -5,8 +5,7 @@ import {
   Vector2,
 } from "three";
 
-import { GeometryOptions } from "./geometry-options";
-import { WrappedTexture } from "common/types";
+import { WrappedTexture, GeometryOptions } from "common/types";
 import sdMapFrag from "./glsl/sd-map.frag";
 import sdMapFragHeader from "./glsl/sd-map-header.frag";
 import elevationFrag from "./glsl/elevation.frag";

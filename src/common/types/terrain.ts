@@ -1,7 +1,32 @@
-import { Object3D, Texture } from "three";
+
+
+import { BufferGeometry, Group, Mesh, MeshStandardMaterial, Texture } from "three";
 import { GetTerrainY } from "./util";
 
-// FIXME: deprecate? image has it?
+
+export type GeometryOptions = {
+  /** 
+   * low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
+   */
+  elevationLevels: number[];
+  ignoreLevels: number[];
+  normalizeLevels: boolean;
+  displaceDimensionScale: number;
+  /**
+   * number of vertices per tile
+   */
+  displaceVertexScale: number;
+  blendNonWalkableBase: boolean;
+  firstPass: boolean;
+  secondPass: boolean;
+  processWater: boolean;
+  displacementScale: number;
+  drawMode: { value: number };
+  detailsMix: number;
+  bumpScale: number;
+  firstBlur: number;
+}
+
 export type WrappedTexture = {
   texture: Texture;
   width: number;
@@ -15,11 +40,34 @@ export type WrappedQuartileTextures = {
   quartileWidth: number,
 }
 
+export class TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial> {
+  override userData = {
+    qx: 0,
+    qy: 0
+  }
+}
+
+export class Terrain extends Group {
+  override children: TerrainQuartile[] = [];
+  override userData: {
+    quartileWidth: number,
+    quartileHeight: number,
+    tilesX: number,
+    tilesY: number,
+    geomOptions?: GeometryOptions
+  } = {
+      quartileWidth: 0,
+      quartileHeight: 0,
+      tilesX: 0,
+      tilesY: 0,
+    }
+}
+
 export type TerrainInfo = {
   tileset: number;
   mapWidth: number;
   mapHeight: number;
-  terrain: Object3D;
+  terrain: Terrain;
   /**
    * Gets the y offset at the given x,z coordinates.
    */

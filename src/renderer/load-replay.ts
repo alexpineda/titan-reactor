@@ -133,7 +133,7 @@ export default async (filepath: string) => {
   const terrain = await chkToTerrainMesh(
     map, {
       //TODO: replace since HD2 and HD will be loaded
-    textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2,
+    textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
     anisotropy: settings.graphics.anisotropy
   }
   );

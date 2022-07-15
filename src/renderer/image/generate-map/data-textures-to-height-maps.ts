@@ -19,7 +19,7 @@ import { MapEffect } from "./glsl/map-effect";
 
 import processStore, { Process } from "@stores/process-store";
 import { MapDataTextures } from "./create-data-textures";
-import { GeometryOptions } from "./geometry-options";
+import { GeometryOptions } from "common/types";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
 

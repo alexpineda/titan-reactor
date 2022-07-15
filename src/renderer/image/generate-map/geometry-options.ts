@@ -17,26 +17,3 @@ export const defaultOptions = {
     bumpScale: 0.1,
     firstBlur: 4,
 };
-
-export type GeometryOptions = {
-    /** 
-     * low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
-     */
-    elevationLevels: number[];
-    ignoreLevels: number[];
-    normalizeLevels: boolean;
-    displaceDimensionScale: number;
-    /**
-     * number of vertices per tile
-     */
-    displaceVertexScale: number;
-    blendNonWalkableBase: boolean;
-    firstPass: boolean;
-    secondPass: boolean;
-    processWater: boolean;
-    displacementScale: number;
-    drawMode: { value: number };
-    detailsMix: number;
-    bumpScale: number;
-    firstBlur: number;
-}

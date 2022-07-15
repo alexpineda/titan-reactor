@@ -730,10 +730,6 @@ async function TitanReactorGame(
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();
 
-    // players.forEach(({ camera }) =>
-    //   camera.updateGameScreenAspect(gameSurface.width, gameSurface.height)
-    // );
-
     minimapSurface.setDimensions(
       rect.minimapWidth,
       rect.minimapHeight,
@@ -1409,7 +1405,7 @@ async function TitanReactorGame(
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (!controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+        if (controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
           image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
@@ -1582,6 +1578,9 @@ async function TitanReactorGame(
     }
   }
 
+
+  const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
+
   let _lastElapsed = 0;
   let delta = 0;
 
@@ -1658,6 +1657,8 @@ async function TitanReactorGame(
       gameStatePosition.bwGameFrame = currentBwFrame;
       plugins.onFrame(openBW, gameStatePosition, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
+      scene.setBorderTileOpacity(Math.min(1, Math.max(0, 0.7 - controls.orbit.distance / _maxTransparentBorderTilesDistance)));
+
       previousBwFrame = currentBwFrame;
     }
 
@@ -1672,11 +1673,6 @@ async function TitanReactorGame(
         }
       }
     }
-
-    // if (controls.cameraMode.boundByMap?.scaleBoundsByCamera && controls.rested) {
-    //   _cameraBoundaryBox.set(_boundaryMin.set(-mapWidth / 2 + projectedCameraView.width / 2.5, 0, -mapHeight / 2 + projectedCameraView.height / 2.5), _boundaryMax.set(mapWidth / 2 - projectedCameraView.width / 2.5, 0, mapHeight / 2 - projectedCameraView.height / 2.5));
-    //   controls.orbit.setBoundary(_cameraBoundaryBox);
-    // }
 
     renderer.targetSurface = gameSurface;
     drawMinimap(projectedCameraView);
@@ -1929,6 +1925,15 @@ async function TitanReactorGame(
 
   ipcRenderer.on(RELOAD_PLUGINS, _onReloadPlugins);
   janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, _onReloadPlugins));
+
+  const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
+  precompileCamera.updateProjectionMatrix();
+  precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
+  precompileCamera.lookAt(scene.position);
+
+  GAME_LOOP(0);
+  renderer.getWebGLRenderer().render(scene, precompileCamera);
+  renderer.render(0);
 
   return dispose;
 }

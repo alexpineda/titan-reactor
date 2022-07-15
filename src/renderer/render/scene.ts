@@ -2,13 +2,17 @@ import path from "path";
 import {
   CubeTextureLoader,
   DirectionalLight,
+  Group,
   HemisphereLight,
+  Material,
+  Mesh,
+  MeshBasicMaterial,
   Object3D,
   Scene as ThreeScene,
   Texture,
 } from "three";
 
-import { TerrainInfo } from "common/types";
+import { TerrainInfo, TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
 
 
@@ -39,7 +43,7 @@ export class Scene extends ThreeScene {
   #mapHeight: number;
   #janitor: Janitor;
   #skybox: Texture;
-  // #tiles: Group;
+  #borderTiles: Group;
 
   constructor({
     mapWidth,
@@ -54,84 +58,106 @@ export class Scene extends ThreeScene {
     this.addLights();
     this.addTerrain(terrain);
     this.#skybox = this.skybox("sparse");
-    // this.#tiles = new Group();
-    // this.#tiles.visible = false;
-    // this.add(this.#tiles);
 
-    // const edgeMaterial = new MeshBasicMaterial({
-    //   map: (terrain.material as MeshStandardMaterial).map
-    // });
-    // edgeMaterial.transparent = true;
-    // edgeMaterial.opacity = 0.5;
+    this.#borderTiles = new Group();
+    this.add(this.#borderTiles);
 
-    // const bc = new Mesh();
-    // bc.geometry = terrain.geometry;
-    // bc.material = edgeMaterial;
-    // bc.rotation.x = -Math.PI / 2;
-    // bc.position.set(0, 0, mapHeight);
-    // bc.scale.setY(-1);
-    // this.#tiles.add(bc);
+    const tx = terrain.userData.tilesX;
+    const ty = terrain.userData.tilesY;
+    const qw = terrain.userData.quartileWidth;
+    const qh = terrain.userData.quartileHeight;
 
-    // const br = new Mesh();
-    // br.geometry = terrain.geometry;
-    // br.material = edgeMaterial;
-    // br.rotation.x = -Math.PI / 2;
-    // br.position.set(mapWidth, 0, mapHeight);
-    // br.scale.setY(-1);
-    // br.scale.setX(-1);
-    // this.#tiles.add(br)
+    const createMesh = (q: TerrainQuartile, edgeMaterial: Material) => {
+      const mesh = new Mesh();
+      mesh.geometry = q.geometry;
+      mesh.material = edgeMaterial;
+      mesh.position.copy(q.position);
+      return mesh;
+    }
 
-    // const bl = new Mesh();
-    // bl.geometry = terrain.geometry;
-    // bl.material = edgeMaterial;
-    // bl.rotation.x = -Math.PI / 2;
-    // bl.position.set(-mapWidth, 0, mapHeight);
-    // bl.scale.setY(-1);
-    // bl.scale.setX(-1);
-    // this.#tiles.add(bl)
+    for (let i = 0; i < terrain.children.length; i++) {
+      const q = terrain.children[i];
+      const qx = q.userData.qx;
+      const qy = q.userData.qy;
 
+      const edgeMaterial = new MeshBasicMaterial({
+        map: q.material.map
+      });
+      edgeMaterial.transparent = true;
+      edgeMaterial.opacity = 0.5;
 
-    // const tc = new Mesh();
-    // tc.geometry = terrain.geometry;
-    // tc.material = edgeMaterial;
-    // tc.rotation.x = -Math.PI / 2;
-    // tc.position.set(0, 0, -mapHeight);
-    // tc.scale.setY(-1);
-    // this.#tiles.add(tc);
+      if (qx === 0 && qy === 0) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setY(mesh.position.y + qh);
+        mesh.position.setX(mesh.position.x - qw);
+        mesh.scale.setY(-1);
+        mesh.scale.setX(-1);
+        this.#borderTiles.add(mesh);
+      }
 
-    // const tr = new Mesh();
-    // tr.geometry = terrain.geometry;
-    // tr.material = edgeMaterial;
-    // tr.rotation.x = -Math.PI / 2;
-    // tr.position.set(mapWidth, 0, -mapHeight);
-    // tr.scale.setY(-1);
-    // tr.scale.setX(-1);
-    // this.#tiles.add(tr)
+      if (qx === tx - 1 && qy === 0) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setY(mesh.position.y + qh);
+        mesh.position.setX(mesh.position.x + qw);
+        mesh.scale.setY(-1);
+        mesh.scale.setX(-1);
+        this.#borderTiles.add(mesh);
+      }
 
-    // const tl = new Mesh();
-    // tl.geometry = terrain.geometry;
-    // tl.material = edgeMaterial;
-    // tl.rotation.x = -Math.PI / 2;
-    // tl.position.set(-mapWidth, 0, -mapHeight);
-    // tl.scale.setY(-1);
-    // tl.scale.setX(-1);
-    // this.#tiles.add(tl)
+      if (qx === tx - 1 && qy === ty - 1) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setY(mesh.position.y - qh);
+        mesh.position.setX(mesh.position.x + qw);
+        mesh.scale.setY(-1);
+        mesh.scale.setX(-1);
+        this.#borderTiles.add(mesh);
+      }
 
-    // const l = new Mesh();
-    // l.geometry = terrain.geometry;
-    // l.material = edgeMaterial;
-    // l.rotation.x = -Math.PI / 2;
-    // l.position.set(-mapWidth, 0, 0);
-    // l.scale.setX(-1);
-    // this.#tiles.add(l)
+      if (qx === 0 && qy === ty - 1) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setY(mesh.position.y - qh);
+        mesh.position.setX(mesh.position.x - qw);
+        mesh.scale.setY(-1);
+        mesh.scale.setX(-1);
+        this.#borderTiles.add(mesh);
+      }
 
-    // const r = new Mesh();
-    // r.geometry = terrain.geometry;
-    // r.material = edgeMaterial;
-    // r.rotation.x = -Math.PI / 2;
-    // r.position.set(mapWidth, 0, 0);
-    // r.scale.setX(-1);
-    // this.#tiles.add(r)
+      if (qy === 0) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setY(mesh.position.y + qh);
+        mesh.scale.setY(-1);
+        this.#borderTiles.add(mesh);
+      }
+      if (qx === 0) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setX(mesh.position.x - qw);
+        mesh.scale.setX(-1);
+        this.#borderTiles.add(mesh);
+      }
+      if (qy === ty - 1) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setY(mesh.position.y - qh);
+        mesh.scale.setY(-1);
+        this.#borderTiles.add(mesh);
+      }
+      if (qx === tx - 1) {
+        const mesh = createMesh(q, edgeMaterial);
+        mesh.position.setX(mesh.position.x + qw);
+        mesh.scale.setX(-1);
+        this.#borderTiles.add(mesh);
+      }
+
+    }
+
+    this.#borderTiles.rotation.x = -Math.PI / 2;
+    this.#borderTiles.matrixAutoUpdate = false;
+    this.#borderTiles.updateMatrix();
+  }
+
+  setBorderTileOpacity(opacity: number) {
+    this.#borderTiles.children.forEach((mesh) => {
+      ((mesh as Mesh).material as MeshBasicMaterial).opacity = opacity;
+    });
   }
 
   private addLights() {
