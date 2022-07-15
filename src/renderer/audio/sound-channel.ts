@@ -8,8 +8,6 @@ export class SoundChannel {
 
   #mixer: MainMixer;
   #gain: GainNode;
-  #stereoPanner: StereoPannerNode;
-  #panner: PannerNode;
 
   isPlaying = false;
   isQueued = false;
@@ -25,17 +23,32 @@ export class SoundChannel {
   typeId = 0;
   unitTypeId = -1;
 
+  #pannerPool: PannerNode[] = [];
+  #stereoPannerPool: StereoPannerNode[] = [];
 
   constructor(mixer: MainMixer) {
     this.#mixer = mixer;
     this.#gain = this.#mixer.context.createGain();
-    this.#stereoPanner = this.#mixer.context.createStereoPanner();
-    this.#panner = this.#mixer.context.createPanner();
 
     this.#gain.connect(this.#mixer.sound);
-    this.#panner.connect(this.#gain);
-    this.#stereoPanner.connect(this.#gain);
+  }
 
+  #getStereoPanner() {
+    if (this.#stereoPannerPool.length > 0) {
+      return this.#stereoPannerPool.pop() as StereoPannerNode;
+    }
+    const panner = this.#mixer.context.createStereoPanner();
+    panner.connect(this.#gain);
+    return panner;
+  }
+
+  #getPanner() {
+    if (this.#pannerPool.length > 0) {
+      return this.#pannerPool.pop() as PannerNode;
+    }
+    const panner = this.#mixer.context.createPanner();
+    panner.connect(this.#gain);
+    return panner;
   }
 
   queue(typeId: number, unitTypeId: number, mapCoords: Vector3, flags: number, priority: number, volume: number | null, pan: number | null) {
@@ -61,24 +74,37 @@ export class SoundChannel {
     const source = this.#mixer.context.createBufferSource();
     source.buffer = buffer;
 
-    source.onended = () => {
-      this.isPlaying = false;
-    };
+
 
     if (this.volume !== null && this.pan !== null) {
-      source.connect(this.#stereoPanner);
-      this.#stereoPanner.pan.value = this.pan;
+      const panner = this.#getStereoPanner();
+      source.connect(panner);
+      panner.pan.value = this.pan;
+
+      source.onended = () => {
+        source.disconnect(panner);
+        this.#stereoPannerPool.push(panner);
+        this.isPlaying = false;
+      };
+
     } else {
-      source.connect(this.#panner);
+      const panner = this.#getPanner();
+      source.connect(panner);
 
-      this.#panner.panningModel = "HRTF";
-      this.#panner.refDistance = SoundChannel.refDistance;
-      this.#panner.rolloffFactor = SoundChannel.rolloffFactor;
-      this.#panner.distanceModel = "inverse";
+      panner.panningModel = "HRTF";
+      panner.refDistance = SoundChannel.refDistance;
+      panner.rolloffFactor = SoundChannel.rolloffFactor;
+      panner.distanceModel = "inverse";
 
-      this.#panner.positionX.value = this.mapCoords.x;
-      this.#panner.positionY.value = this.mapCoords.y;
-      this.#panner.positionZ.value = this.mapCoords.z;
+      panner.positionX.value = this.mapCoords.x;
+      panner.positionY.value = this.mapCoords.y;
+      panner.positionZ.value = this.mapCoords.z;
+
+      source.onended = () => {
+        source.disconnect(panner);
+        this.#pannerPool.push(panner);
+        this.isPlaying = false;
+      };
     }
 
     source.start(0);
