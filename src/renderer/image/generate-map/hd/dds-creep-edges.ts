@@ -1,4 +1,4 @@
-import {  DDSGrpFrameType, WrappedTexture } from "common/types";
+import { DDSGrpFrameType, WrappedTexture } from "common/types";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 import {
   MeshBasicMaterial,
@@ -11,7 +11,8 @@ import {
   sRGBEncoding,
   DoubleSide,
   WebGLRenderer,
-  NearestFilter
+  NearestFilter,
+  LinearEncoding
 } from "three";
 
 import { createCompressedTexture } from "./common";
@@ -105,6 +106,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
     const y = 0;
     const grp = creepGrp[i];
     const texture = createCompressedTexture(grp.dds);
+    texture.encoding = LinearEncoding
 
     mat.map = texture;
     mat.needsUpdate = true;
