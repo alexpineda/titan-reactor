@@ -109,7 +109,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.dat = imageDef;
     this.material.transparent = true;
     this.material.depthTest = ImageHD.useDepth;
-
+    this.material.alphaTest = 0.01;
 
     const posAttribute = new BufferAttribute(
       new Float32Array([

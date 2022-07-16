@@ -1,5 +1,5 @@
 import type Chk from "bw-chk";
-import {  TerrainInfo } from "common/types";
+import { TerrainInfo } from "common/types";
 import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
 } from ".";

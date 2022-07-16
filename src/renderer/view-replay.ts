@@ -64,7 +64,7 @@ import { Scene } from "./render/scene";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./plugins/hooks";
 import { canOnlySelectOne, canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
@@ -72,7 +72,7 @@ import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import SelectionCircle from "@core/selection-circle";
-import selectedUnitsStore from "@stores/selected-units-store";
+import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
 import SelectionBars from "@core/selection-bars";
 import { IndexedObjectPool } from "./utils/indexed-object-pool";
@@ -1755,7 +1755,9 @@ async function TitanReactorGame(
     name: player.name
   }));
 
-
+  janitor.callback(useSelectedUnitsStore.subscribe((state) => {
+    plugins.callHook(HOOK_ON_UNITS_SELECTED, state.selectedUnits);
+  }));
 
 
   let pluginsApiJanitor = new Janitor;

@@ -58,10 +58,13 @@ export const getTilesetBuffers = async (
   const creepGrpSD = await readCascFile(`TileSet/${tilesetName}.grp`);
 
   // if (terrainTextureResolution === AssetTextureResolution.HD2) {
-    hdTiles = await readCascFile(`HD2/TileSet/${tilesetName}.dds.vr4`)
+  hdTiles = await readCascFile(`TileSet/${tilesetName}.dds.vr4`)
+  // hdTiles = await readCascFile(`HD2/TileSet/${tilesetName}.dds.vr4`)
 
-    creepGrpHD =
-      await readCascFile(`HD2/TileSet/${tilesetName}.dds.grp`)
+  // creepGrpHD =
+  // await readCascFile(`HD2/TileSet/${tilesetName}.dds.grp`)
+  creepGrpHD =
+    await readCascFile(`TileSet/${tilesetName}.dds.grp`)
 
   // } else {
   //   hdTiles =

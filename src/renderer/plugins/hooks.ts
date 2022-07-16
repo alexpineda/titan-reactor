@@ -9,3 +9,4 @@ export const HOOK_ON_UNIT_UNFOLLOWED = "onUnitUnfollowed";
 export const HOOK_ON_UNITS_CLEAR_FOLLOWED = "onUnitClearFollowed";
 export const HOOK_ON_TECH_COMPLETED = "onTechCompleted";
 export const HOOK_ON_UPGRADE_COMPLETED = "onUpgradeCompleted";
+export const HOOK_ON_UNITS_SELECTED = "onUnitsSelected";

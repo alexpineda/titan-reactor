@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import * as postprocessing from "postprocessing"
 
+import * as enums from "common/enums";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
@@ -126,6 +127,7 @@ const createDefaultHooks = () => ({
     onUnitsFollowed: new Hook(HOOK_ON_UNITS_FOLLOWED, ["units"]),
     onUnitUnfollowed: new Hook(HOOK_ON_UNIT_UNFOLLOWED, ["unit"]),
     onUnitClearFollowed: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, []),
+    onUnitsSelected: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, ["units"]),
     onUpgradeCompleted: new Hook(HOOK_ON_UPGRADE_COMPLETED, ["upgrade"]),
     onTechCompleted: new Hook(HOOK_ON_TECH_COMPLETED, ["tech"]),
 });
@@ -202,7 +204,7 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers, enums });
             //override but give a truthy value
             pluginPackage.nativeSource = "true";
 
