@@ -153,10 +153,13 @@ async function TitanReactorGame(
   const { mapWidth, mapHeight } = terrain;
 
   const cssScene = new ThreeScene();
-  const cssRenderer = new CSS2DRenderer();
+  const cssRenderer = new CSS2DRenderer({
+
+  });
   cssRenderer.domElement.style.position = 'absolute';
   cssRenderer.domElement.style.pointerEvents = 'none';
   cssRenderer.domElement.style.top = '0px';
+  cssRenderer.domElement.style.left = '0px';
   cssRenderer.domElement.style.zIndex = '100';
   document.body.appendChild(cssRenderer.domElement);
   janitor.callback(() => document.body.removeChild(cssRenderer.domElement));
@@ -725,7 +728,7 @@ async function TitanReactorGame(
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
     renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
-    cssRenderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    cssRenderer.setSize(gameSurface.width, gameSurface.height);
 
     camera.aspect = gameSurface.width / gameSurface.height;
     camera.updateProjectionMatrix();

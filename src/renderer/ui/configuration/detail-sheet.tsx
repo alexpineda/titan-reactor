@@ -1,35 +1,30 @@
 import { InitializedPluginPackage } from "common/types";
-import { Tab, Tabs } from "muicss/react";
 import ReactMarkdown from "react-markdown/index";
-import { useControls } from "leva";
-import { useEffect } from "react";
+import { Leva, useControls } from "leva";
 import semver from "semver";
 import packagejson from "../../../../package.json";
+import { Tab, Tabs } from "./tabs";
+import ErrorBoundary from "./error-boundary";
 
 const permissionDescriptions = {
   "settings.write": "Allows the plugin to write to the settings file",
   "replay.file": "Allows the plugin to access the replay file entirely",
-  "replay.commands": "Allows the plugin to access the replay commands",
+  "replay.commands":
+    "Allows the plugin to access the replay commands like select units, move and attack.",
 };
 
 export default ({
-  pluginConfig,
+  pluginPackage,
   controls,
 }: {
   controls: any[][];
-  pluginConfig: Partial<InitializedPluginPackage>;
+  pluginPackage: Partial<InitializedPluginPackage>;
 }) => {
-  useEffect(() => {
-    // on mount clear the default leva store
-    //@ts-ignore
-    window.__STORE && window.__STORE.dispose();
-  }, []);
-
   for (const [folder, data] of controls) {
-    useControls(folder, data);
+    useControls(folder, data, [pluginPackage.id]);
   }
 
-  const permissions = (pluginConfig.config?.system?.permissions ?? []).map(
+  const permissions = (pluginPackage.config?.system?.permissions ?? []).map(
     (p) => (
       <li>
         {permissionDescriptions[p as keyof typeof permissionDescriptions] ??
@@ -40,10 +35,36 @@ export default ({
 
   const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
   const pluginApiVersion =
-    pluginConfig.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
+    pluginPackage.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
 
   return (
-    <>
+    <ErrorBoundary>
+      <Leva
+        fill
+        flat
+        hideCopyButton
+        titleBar={false}
+        theme={{
+          colors: {
+            accent1: "blue",
+            accent2: "orange",
+            accent3: "red",
+            elevation1: "red",
+            elevation2: "#f5f5f5",
+            elevation3: "#d9e0f0",
+            highlight1: "black",
+            highlight2: "#222",
+            highlight3: "#333",
+            vivid1: "red",
+          },
+          sizes: {
+            controlWidth: "40vw",
+          },
+          fontSizes: {
+            root: "14px",
+          },
+        }}
+      />
       {semver.major(titanReactorApiVersion) <
         semver.major(pluginApiVersion) && (
         <p>
@@ -52,7 +73,7 @@ export default ({
           {pluginApiVersion}
         </p>
       )}
-      {pluginConfig.name?.startsWith("@titan-reactor-plugins/") && (
+      {pluginPackage.name?.startsWith("@titan-reactor-plugins/") && (
         <div style={{ marginTop: "1rem" }}>✅ This is an official plugin.</div>
       )}
       {!!permissions.length && (
@@ -60,67 +81,67 @@ export default ({
           ⚠️ This plugin has special permissions: <ul>{permissions}</ul>
         </div>
       )}
-      <Tabs defaultSelectedIndex={pluginConfig.readme ? 1 : 0}>
-        <Tab value="details" label="Details">
+      <Tabs defaultSelectedIndex={pluginPackage.readme ? 1 : 0}>
+        <Tab label="Details">
           <div style={{ marginTop: "1rem" }}>
             <p>
               <span style={{ fontWeight: "bold" }}>Version:</span>{" "}
-              {pluginConfig.version}
+              {pluginPackage.version}
             </p>
-            {pluginConfig.description && (
+            {pluginPackage.description && (
               <p>
                 <span style={{ fontWeight: "bold" }}>Description:</span>{" "}
-                {pluginConfig.description}
+                {pluginPackage.description}
               </p>
             )}
-            {pluginConfig.author && (
+            {pluginPackage.author && (
               <p>
                 <span style={{ fontWeight: "bold" }}>Author:</span>{" "}
-                {typeof pluginConfig.author === "string" ? (
-                  pluginConfig.author
+                {typeof pluginPackage.author === "string" ? (
+                  pluginPackage.author
                 ) : (
                   <>
-                    {pluginConfig.author.name}{" "}
-                    {pluginConfig.author.email &&
-                      `<${pluginConfig.author.email}>`}
+                    {pluginPackage.author.name}{" "}
+                    {pluginPackage.author.email &&
+                      `<${pluginPackage.author.email}>`}
                   </>
                 )}
               </p>
             )}
             <p>
               <span style={{ fontWeight: "bold" }}>Name:</span>{" "}
-              {pluginConfig.name ?? "error: name is required in plugin.json"}
+              {pluginPackage.name ?? "error: name is required in plugin.json"}
             </p>
-            {pluginConfig.date && (
+            {pluginPackage.date && (
               <p>
                 <span style={{ fontWeight: "bold" }}>Date Published:</span>
-                {new Intl.DateTimeFormat("en-US").format(pluginConfig.date)}
+                {new Intl.DateTimeFormat("en-US").format(pluginPackage.date)}
               </p>
             )}
-            {pluginConfig.repository && (
+            {pluginPackage.repository && (
               <p>
                 <span style={{ fontWeight: "bold" }}>Repository:</span>
-                {typeof pluginConfig.repository === "string" ? (
-                  pluginConfig.repository
+                {typeof pluginPackage.repository === "string" ? (
+                  pluginPackage.repository
                 ) : (
                   <>
-                    {pluginConfig.repository.type}{" "}
-                    {pluginConfig.repository.url &&
-                      `<${pluginConfig.repository.url}>`}
+                    {pluginPackage.repository.type}{" "}
+                    {pluginPackage.repository.url &&
+                      `<${pluginPackage.repository.url}>`}
                   </>
                 )}
               </p>
             )}
           </div>
         </Tab>
-        {pluginConfig.readme && (
-          <Tab value="readme" label="Read Me">
+        {pluginPackage.readme && (
+          <Tab label="Read Me">
             <div style={{ marginTop: "1rem" }}>
-              <ReactMarkdown children={pluginConfig.readme} />
+              <ReactMarkdown children={pluginPackage.readme} />
             </div>
           </Tab>
         )}
       </Tabs>
-    </>
+    </ErrorBoundary>
   );
 };

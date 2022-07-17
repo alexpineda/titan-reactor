@@ -12,6 +12,18 @@ export default class Janitor {
     private _disposable = new Set<Disposable>();
     private _callbacks = new Set<EmptyFn>();
 
+    add(obj: Object3D | Disposable | EmptyFn) {
+        if (obj instanceof Object3D) {
+            this.object3d(obj);
+        } else if ("dispose" in obj) {
+            this.disposable(obj);
+        } else if (typeof obj === "function") {
+            this.callback(obj);
+        } else {
+            throw new Error("Unsupported type");
+        }
+    }
+
     callback(callback: EmptyFn) {
         this._callbacks.add(callback);
     }

@@ -6,7 +6,12 @@ import chunk from "https://cdn.skypack.dev/lodash.chunk";
 import App from "./runtime/app.jsx";
 
 // game state
-export const useStore = create(() => ({}));
+export const useStore = create(() => ({
+  screen: {
+    screen: `@home/loading`,
+    error: null,
+  },
+}));
 
 // friendly utilities
 const _useLocale = (state) => state.language;
@@ -361,8 +366,6 @@ const _messageListener = function (event) {
         Object.assign(updateAvailable, event.data.payload.updateAvailable);
       }
 
-      ReactDOM.render(<AppWrapper />, document.body);
-
       event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);
     } else if (event.data.type === "system:plugin-config-changed") {
@@ -475,6 +478,15 @@ const AppWrapper = () => {
   const components = useComponents();
   return <App components={components} />;
 };
+
+ReactDOM.render(<AppWrapper />, document.body);
+
+window.parent.postMessage(
+  {
+    type: "system:runtime-ready",
+  },
+  "*"
+);
 
 /**
  * A utility function for plugins with iframe = "isolated".

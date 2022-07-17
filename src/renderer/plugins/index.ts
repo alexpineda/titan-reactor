@@ -15,7 +15,6 @@ import {
     SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
     SYSTEM_EVENT_MOUSE_CLICK,
     SYSTEM_EVENT_FIRST_INSTALL,
-    SYSTEM_EVENT_CUSTOM_MESSAGE,
 } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
@@ -47,12 +46,14 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
 });
 
 ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
+    // TODO target plugin specifically
     uiPluginSystem.refresh();
     nativePluginSystem.enableAdditionalPlugins(plugins);
 });
 
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
-    nativePluginSystem.onPluginDispose(pluginId);
+    nativePluginSystem.disablePlugin(pluginId);
+    // TODO target plugin specifically
     uiPluginSystem.refresh();
 });
 
@@ -62,13 +63,7 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
     });
 });
 
-const _messageListener = function (event: MessageEvent) {
-    if (event.data.type === SYSTEM_EVENT_CUSTOM_MESSAGE) {
-        const { pluginId, message } = event.data.payload;
-        nativePluginSystem.onUIMessage(pluginId, message);
-    }
-};
-window.addEventListener("message", _messageListener);
+
 
 export const initializePluginSystem = async (
     pluginPackages: InitializedPluginPackage[]
@@ -84,6 +79,7 @@ export const initializePluginSystem = async (
     uiPluginSystem = new PluginSystemUI(pluginPackages);
     nativePluginSystem = new PluginSystemNative(pluginPackages, uiPluginSystem);
 
+    await uiPluginSystem.isRunning();
 };
 
 export const onClick = (event: MouseEvent) => {

@@ -1,7 +1,6 @@
 export enum ScreenStatus {
     Loading,
-    Ready,
-    Error,
+    Ready
 }
 
 export enum ScreenType {

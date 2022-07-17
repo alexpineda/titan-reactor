@@ -36,19 +36,8 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
     {
       label: "&View",
       submenu: [
-        {
-          label: "&Manage Plugins",
-          click: function () {
-            onOpenPluginManager();
-          },
-        },
-        { type: "separator" },
         { role: "togglefullscreen" },
-      ],
-    },
-    {
-      label: "&Tools",
-      submenu: [
+        { type: "separator" },
         {
           label: "Reload App",
           click: async () => {
@@ -63,8 +52,6 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
             browserWindows.main?.webContents.send(RELOAD_PLUGINS);
           }
         },
-        { type: "separator" },
-        { role: "toggledevtools" },
         { type: "separator" },
         {
           label: "View &Plugin File(s)",
@@ -84,6 +71,20 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
             spawn('C:\\windows\\notepad.exe', [settingsPath]);
           },
         },
+      ],
+    },
+    {
+      label: "&Tools",
+      submenu: [
+        {
+          label: "&Command Center",
+          click: function () {
+            onOpenPluginManager();
+          },
+        },
+        { type: "separator" },
+        { role: "toggledevtools" },
+
         { type: "separator" },
         {
           label: "&IScriptah - Animation Viewer",

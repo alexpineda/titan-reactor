@@ -3,13 +3,11 @@ import { whiteListRegex, whitelistUrls } from "../../whitelist-urls";
 
 import {
   DOWNLOAD_UPDATE,
-  OPEN_DEMO_REPLAY,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   OPEN_URL,
-  SELECT_FOLDER,
-} from "../../../common/ipc-handle-names";
-import browserWindows from "../../windows";
+  SHOW_FOLDER_DIALOG,
+} from "common/ipc-handle-names";
 import { showOpenFileDialog, showOpenFolderDialog } from "./api";
 
 export const showOpenMapDialog = (defaultPath?: string) =>
@@ -29,20 +27,10 @@ export const showOpenReplayDialog = (defaultPath?: string) =>
     defaultPath,
   });
 
-ipcMain.on(OPEN_DEMO_REPLAY, async () => {
-  browserWindows.main?.webContents.send(OPEN_REPLAY_DIALOG, [
-    `${__static}/demo.rep`,
-  ]);
-});
-
 ipcMain.on(OPEN_MAP_DIALOG, async (_, defaultPath = "") => showOpenMapDialog(defaultPath));
 ipcMain.on(OPEN_REPLAY_DIALOG, async (_, defaultPath = "") => showOpenReplayDialog(defaultPath));
 
-ipcMain.on(SELECT_FOLDER, async (event, key) =>
-  showOpenFolderDialog((filePaths) =>
-    event.sender.send(SELECT_FOLDER, { key, filePaths })
-  )
-);
+ipcMain.handle(SHOW_FOLDER_DIALOG, () => showOpenFolderDialog());
 
 ipcMain.on(DOWNLOAD_UPDATE, async (_, url: string) => {
   if (url.startsWith("https://github.com/imbateam-gg/titan-reactor/releases")) {

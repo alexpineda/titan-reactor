@@ -8,24 +8,29 @@ import { ScreenStatus, ScreenType } from "../../common/types";
 export type ScreenStore = {
     type: ScreenType,
     status: ScreenStatus;
-    error?: Error;
+    error: Error | null;
     init: (value: ScreenType) => void;
     complete: () => void;
     setError: (error: Error) => void;
+    clearError: () => void;
 };
 
 export const useScreenStore = create<ScreenStore>((set) => ({
     type: ScreenType.Home,
     status: ScreenStatus.Loading,
+    error: null,
     init: (value: ScreenType) => {
-        set({ type: value, status: ScreenStatus.Loading, error: undefined });
+        set({ type: value, status: ScreenStatus.Loading, error: null });
     },
     complete: () => {
-        set({ status: ScreenStatus.Ready, error: undefined });
+        set({ status: ScreenStatus.Ready, error: null });
     },
     setError: (error: Error) => {
         log.error(error.message);
-        set({ status: ScreenStatus.Error, error });
+        set({ error });
+    },
+    clearError: () => {
+        set({ error: null });
     }
 }));
 

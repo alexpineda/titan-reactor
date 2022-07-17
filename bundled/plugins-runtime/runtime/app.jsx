@@ -107,18 +107,17 @@ export default ({ components }) => {
   useEffect(() => {
     if (!containerDiv.current) return;
 
-      let opacity = 0;
-      const cancelId = setInterval(() => {
-        opacity += 0.025;
-        containerDiv.current.style.opacity = Math.min(opacity, 1);
-        if (opacity >= 1) {
-          clearInterval(cancelId);
-        }
-      }, 50)
-      
-      return () => clearInterval(cancelId);
+    let opacity = 0;
+    const cancelId = setInterval(() => {
+      opacity += 0.025;
+      containerDiv.current.style.opacity = Math.min(opacity, 1);
+      if (opacity >= 1) {
+        clearInterval(cancelId);
+      }
+    }, 50);
 
-  }, [screen])
+    return () => clearInterval(cancelId);
+  }, [screen]);
 
   useEffect(() => {
     if (!appLoaded && screen !== "@home/loading") {
@@ -145,7 +144,6 @@ export default ({ components }) => {
     return acc || Boolean(components[key]);
   }, false);
 
-
   return (
     <div
       ref={containerDiv}
@@ -159,10 +157,10 @@ export default ({ components }) => {
         flexDirection: "column",
       }}
     >
-      {(!hasAnyComponents || !appLoaded) && !error && !firstInstall && (
+      {!appLoaded && !error && !firstInstall && (
         <div style={styleCenterText}>{loadingSvg}</div>
       )}
-      {(!hasAnyComponents || !appLoaded) && firstInstall && (
+      {!appLoaded && firstInstall && (
         <div style={styleCenterText}>
           {firstInstall && (
             <p style={{ fontSize: "var(--font-size-6)" }}>

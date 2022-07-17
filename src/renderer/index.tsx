@@ -1,7 +1,6 @@
 import { ipcRenderer } from "electron";
 
 ipcRenderer.once("temp-load-content", (_, data) => {
-  console.log(data);
   if (data === "config") {
     import("./ui/configuration/index");
   } else if (data === "iscriptah") {

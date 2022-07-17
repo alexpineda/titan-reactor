@@ -7,7 +7,7 @@ import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
 export type SettingsStore = SettingsMeta & {
   save: (data: any) => Promise<void>;
-  load: () => Promise<void>;
+  load: () => Promise<SettingsMeta>;
 };
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
@@ -24,6 +24,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   load: async () => {
     const settings = await invokeGetSettings() as SettingsMeta;
     set(settings);
+    return settings;
   },
 }));
 

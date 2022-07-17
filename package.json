@@ -83,7 +83,6 @@
         "lodash.shuffle": "^4.2.0",
         "lodash.throttle": "^4.1.1",
         "mkdirp": "^1.0.4",
-        "muicss": "^0.10.3",
         "pacote": "^13.0.3",
         "pkware-wasm": "^1.0.0",
         "postprocessing": "6.28.2",

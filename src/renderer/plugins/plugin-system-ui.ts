@@ -4,7 +4,7 @@ import settingsStore from "@stores/settings-store";
 
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore, Process } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED } from "./events";
+import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_RUNTIME_READY } from "./events";
 import { waitForProcess } from "../utils/wait-for-process";
 import { GameStatePosition, Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
@@ -79,7 +79,26 @@ export const setDumpUnitCall = (fn: (id: number) => {}) => {
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
     #janitor = new Janitor();
+    #isRunning = false;
     refresh: () => void;
+
+    isRunning() {
+        if (this.#isRunning) {
+            return Promise.resolve(true);
+        }
+
+        return new Promise(resolve => {
+            const _listener = (evt: MessageEvent) => {
+                if (evt.data?.type === SYSTEM_RUNTIME_READY) {
+                    this.#isRunning = true;
+                    window.removeEventListener("message", _listener);
+                    resolve(true);
+                }
+            };
+
+            window.addEventListener("message", _listener)
+        });
+    }
 
     constructor(pluginPackages: InitializedPluginPackage[]) {
         this.#iframe.style.backgroundColor = "transparent";
@@ -106,6 +125,7 @@ export class PluginSystemUI {
             // for plugin dev reload only
             {
                 const screenState = useScreenStore.getState();
+                //TODO SUBSCRIBE
                 if (screenState.type === ScreenType.Home || screenState.error) {
                     this.#iframe.style.pointerEvents = "auto";
                 } else {
@@ -136,7 +156,7 @@ export class PluginSystemUI {
                         }
                     };
                     window.addEventListener("message", _onDownloadUpdate);
-                    this.#janitor.callback(() => window.removeEventListener("message", _onDownloadUpdate));
+                    this.#janitor.add(() => window.removeEventListener("message", _onDownloadUpdate));
                 }
             }
 
@@ -163,14 +183,14 @@ export class PluginSystemUI {
             }, "*");
         };
         document.body.appendChild(this.#iframe);
-        this.#janitor.callback(() => document.body.removeChild(this.#iframe));
+        this.#janitor.add(() => document.body.removeChild(this.#iframe));
 
         this.refresh = () => {
             const settings = settingsStore().data;
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
 
-        this.#janitor.callback(useGameStore.subscribe((game, prev) => {
+        this.#janitor.add(useGameStore.subscribe((game, prev) => {
             if (game.dimensions !== prev.dimensions) {
                 this.sendMessage({
                     type: UI_PLUGIN_EVENT_DIMENSIONS_CHANGED,
@@ -179,7 +199,7 @@ export class PluginSystemUI {
             }
         }));
 
-        this.#janitor.callback(useScreenStore.subscribe((screen) => {
+        this.#janitor.add(useScreenStore.subscribe((screen) => {
             if (screen.type === ScreenType.Home || screen.error) {
                 this.#iframe.style.pointerEvents = "auto";
             } else {
@@ -189,14 +209,14 @@ export class PluginSystemUI {
             this.sendMessage(screenChanged(screen));
         }));
 
-        this.#janitor.callback(useWorldStore.subscribe((world) => {
+        this.#janitor.add(useWorldStore.subscribe((world) => {
             this.sendMessage({
                 type: UI_PLUGIN_EVENT_WORLD_CHANGED,
                 payload: worldPartial(world)
             });
         }));
 
-        this.#janitor.callback(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
+        this.#janitor.add(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
             this.sendMessage({
                 type: UI_PLUGIN_EVENT_UNITS_SELECTED,
                 payload: unitsPartial(selectedUnits)

@@ -2,14 +2,15 @@ import { dialog } from "electron";
 
 import windows from "../../windows";
 
-export const showOpenFolderDialog = (onOpen: (filePaths: string[]) => void) =>
+export const showOpenFolderDialog = (onOpen?: (filePaths: string[]) => void) =>
   dialog
     .showOpenDialog({
       properties: ["openDirectory"],
     })
     .then(({ filePaths, canceled }) => {
       if (canceled) return;
-      onOpen(filePaths);
+      onOpen && onOpen(filePaths);
+      return filePaths;
     })
     .catch((err) => {
       dialog.showMessageBox({

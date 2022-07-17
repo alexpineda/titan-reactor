@@ -27,6 +27,8 @@ import { unitTypes } from "common/enums";
 
 export default async (settings: Settings) => {
 
+    processStore().start(Process.AtlasPreload, 999);
+
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png")) {
             return fsPromises.readFile(file);

@@ -1,6 +1,3 @@
-import { ScreenType } from ".";
-import { ScreenStatus } from ".";
-
 export interface PluginPackage {
     name: string;
     id: string;
@@ -20,11 +17,6 @@ export interface PluginPackage {
             permissions?: string[]
         }
     }
-}
-
-export type ScreenData = {
-    type: ScreenType;
-    status: ScreenStatus;
 }
 
 export interface InitializedPluginPackage extends PluginPackage {

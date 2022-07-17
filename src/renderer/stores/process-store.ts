@@ -40,6 +40,13 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
 
     performance.mark(`process-${id}`);
 
+    const exists = get().processes.find(p => p.id === id);
+    if (exists) {
+      log.warning("@process/init: process already exists - will restart");
+      exists.current = 0;
+      exists.max = max;
+    }
+
     const process = {
       id,
       current: 0,
@@ -47,7 +54,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
     }
 
     set(({ processes, completedProcesses }) => ({
-      processes: [...processes, process],
+      processes: exists ? processes : [...processes, process],
       completedProcesses: completedProcesses.filter((p) => p.id !== id),
     }));
 

@@ -99,9 +99,9 @@ export class Settings {
     const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
     if (!isCascStorage && !await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"])) {
       if (await fileExists(path.join(this._settings.directories["starcraft"], "STARDAT.MPQ"))) {
-        errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported. Please change your settings.json file to contain the valid Remastered path.");
+        errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported. Go to Tools > Command Center and change the StarCraft directory to the correct one.");
       } else {
-        errors.push("The StarCraft directory is not a valid path. Please change your settings.json file to contain the valid path.");
+        errors.push("The StarCraft directory is not a valid path. Go to Tools > Command Center and change the StarCraft directory to the correct one.");
       }
     }
 

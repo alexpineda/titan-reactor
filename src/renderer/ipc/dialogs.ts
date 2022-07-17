@@ -2,15 +2,14 @@ import { ipcRenderer } from "electron";
 
 import {
   DOWNLOAD_UPDATE,
-  OPEN_DEMO_REPLAY,
   OPEN_MAP_DIALOG,
   OPEN_REPLAY_DIALOG,
   OPEN_URL,
-  SELECT_FOLDER,
+  SHOW_FOLDER_DIALOG,
 } from "common/ipc-handle-names";
 
-export const selectFolder = async (key: string) => {
-  return await ipcRenderer.send(SELECT_FOLDER, key);
+export const showFolderDialog = async () => {
+  return await ipcRenderer.invoke(SHOW_FOLDER_DIALOG);
 };
 
 export const openReplayDialog = async (filepath: string) => {
@@ -19,10 +18,6 @@ export const openReplayDialog = async (filepath: string) => {
 
 export const openMapDialog = async (filepath: string) => {
   ipcRenderer.send(OPEN_MAP_DIALOG, filepath);
-};
-
-export const openDemoReplay = async () => {
-  ipcRenderer.send(OPEN_DEMO_REPLAY);
 };
 
 export const downloadUpdate = async (url: string) => {

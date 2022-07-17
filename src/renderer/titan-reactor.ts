@@ -1,25 +1,30 @@
 import "./ui/reset.css";
-import { waitUnless } from "common/utils/wait";
 import "./ipc/register-file-dialog-handlers";
 
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
 import { useSettingsStore } from "./stores";
 import screenStore, { useScreenStore } from "./stores/screen-store";
-import loadAssetsWithRetry from "./assets/load-assets-with-retry";
 import renderer from "./render/renderer";
 import settingsStore from "./stores/settings-store";
 import * as pluginSystem from "./plugins";
 import { initializePluginSystem } from "./plugins";
 import { SYSTEM_EVENT_OPEN_URL } from "./plugins/events";
 import { openUrl } from "./ipc";
-import { ScreenStatus, ScreenType } from "common/types";
+import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
+import { ipcRenderer } from "electron";
+import { SETTINGS_CHANGED } from "common/ipc-handle-names";
+import processStore, { Process } from "@stores/process-store";
+import loadAndParseAssets from "./assets/load-and-parse-assets";
 
 // @ts-ignore
 if (module.hot) {
   // @ts-ignore
   module.hot.accept();
 }
+
+// @ts-ignore
+window.isTitanReactorRenderer = true;
 
 log.info(`@init: titan-reactor ${version}`);
 log.info(`@init: chrome ${process.versions.chrome}`);
@@ -149,37 +154,51 @@ bootup();
 async function bootup() {
   try {
     log.info("@init: loading settings");
-    await (settingsStore().load());
+    const settings = await (settingsStore().load());
 
     await initializePluginSystem(settingsStore().enabledPlugins);
     document.body.addEventListener("mouseup", evt => pluginSystem.onClick(evt));
 
-    const settings = settingsStore().data;
-    const hasErrors = settingsStore().errors.length > 0;
-
-    if (hasErrors) {
-      const error = `@init: error with settings - ${useSettingsStore
-        .getState()
-        .errors.join(", ")}`
-      log.error(
-        error
-      );
-      throw new Error(error);
-    }
-
     video1.clicker.addEventListener("click", () => {
-      openUrl(`http://youtube${settings.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
+      openUrl(`http://youtube${settings.data.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
     });
 
     video2.clicker.addEventListener("click", () => {
-      openUrl(`http://youtube${settings.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
+      openUrl(`http://youtube${settings.data.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
     });
 
+    await tryLoad(settings);
 
-    await waitUnless(10_000, loadAssetsWithRetry(settings, hasErrors));
-    screenStore().complete();
   } catch (err: any) {
     log.error(err.message);
     screenStore().setError(err);
   }
 }
+
+const tryLoad = async (settings: SettingsMeta) => {
+  screenStore().clearError();
+
+  if (settings.errors.length) {
+    const error = `@init: error with settings - ${settings.errors.join(", ")}`
+    log.error(
+      error
+    );
+    throw new Error(error);
+  }
+
+  if (processStore().isComplete(Process.AtlasPreload) || processStore().isInProgress(Process.AtlasPreload)) {
+    return;
+  }
+  await loadAndParseAssets(settings.data);
+  screenStore().complete();
+}
+
+ipcRenderer.on(SETTINGS_CHANGED, async (_, settings) => {
+  try {
+    await tryLoad(settings);
+    useSettingsStore.setState(settings);
+  } catch (err: any) {
+    log.error(err.message);
+    screenStore().setError(err);
+  }
+})

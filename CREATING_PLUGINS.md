@@ -448,14 +448,11 @@ There are certain features that require you to request special permissions. The 
     "config": {
         "system": {
             "permissions": [
-                "settings.write"
+                "replay.commands"
             ]
         }
     }
 ```
-
-**settings.write**
-Enables the `saveSettings` api to save app settings.
 
 **replay.commands**
 Enables access to replay commands in the *onFrame()* hook.

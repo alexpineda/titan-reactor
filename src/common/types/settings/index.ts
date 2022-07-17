@@ -24,7 +24,6 @@ export type Settings = {
         pixelRatio: "high" | "med" | "low";
         anisotropy: "high" | "med" | "low";
         gamma: number;
-        terrainChunky: boolean;
         terrainShadows: boolean;
     },
     game: {

@@ -5,6 +5,7 @@ import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import * as postprocessing from "postprocessing"
 
 import * as enums from "common/enums";
+
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
@@ -12,8 +13,7 @@ import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON
 import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
-import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE, PERMISSION_SETTINGS_WRITE } from "./permissions";
-import settingsStore from "@stores/settings-store";
+import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
 import { Layers } from "../render/layers";
@@ -43,10 +43,6 @@ interface PluginPrototype {
      * Allows a plugin to update it's own config key/value store
      */
     setConfig: (key: string, value: any) => any;
-    /**
-     * Allows a plugin to update the main application settings
-     */
-    saveSettings: (settings: { audio?: {}, graphics?: {} }) => any;
 }
 
 export interface NativePlugin extends PluginPrototype {
@@ -144,31 +140,7 @@ const pluginProto: PluginPrototype = {
             this.$$config[key].value = value;
             updatePluginsConfig(this.id, this.$$config);
         }
-    },
-    saveSettings(settings: { audio?: {}, graphics?: {}, util?: {}, game?: {} }) {
-        if (this.$$permissions[PERMISSION_SETTINGS_WRITE]) {
-            const state = settingsStore();
-            state.save({
-                audio: {
-                    ...state.data.audio,
-                    ...settings.audio,
-                },
-                game: {
-                    ...state.data.game,
-                    ...settings.game,
-                },
-                graphics: {
-                    ...state.data.graphics,
-                    ...settings.graphics
-                },
-                util: {
-                    ...state.data.util,
-                    ...settings.util
-                }
-            }
-            );
-        }
-    },
+    }
 };
 
 function processConfigBeforeReceive(config: any) {
@@ -188,13 +160,13 @@ function processConfigBeforeReceive(config: any) {
 }
 
 const VALID_PERMISSIONS = [
-    PERMISSION_SETTINGS_WRITE,
     PERMISSION_REPLAY_COMMANDS,
     PERMISSION_REPLAY_FILE
 ];
 export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
+    #janitor = new Janitor;
 
     readonly hooks: Record<string, Hook> = createDefaultHooks();
 
@@ -243,7 +215,7 @@ export class PluginSystemNative {
 
             plugin.config = processConfigBeforeReceive(pluginPackage.config);
             plugin.sendUIMessage = throttle((message: any) => {
-                this.sendCustomUIMessage(plugin, message);
+                this.#sendCustomUIMessage(plugin, message);
             }, 100, { leading: true, trailing: false });;
             plugin.registerCustomHook = (name: string, args: string[], async = false) => {
                 this.#registerCustomHook(name, args, pluginPackage.id, async);
@@ -268,6 +240,15 @@ export class PluginSystemNative {
         this.#nativePlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#uiPlugins = uiPlugins;
+
+        const _messageListener = (event: MessageEvent) => {
+            if (event.data.type === SYSTEM_EVENT_CUSTOM_MESSAGE) {
+                const { pluginId, message } = event.data.payload;
+                this.#onUIMessage(pluginId, message);
+            }
+        };
+        window.addEventListener("message", _messageListener);
+        this.#janitor.add(() => { window.removeEventListener("message", _messageListener); });
     }
 
     getDefaultCameraModePlugin() {
@@ -298,7 +279,7 @@ export class PluginSystemNative {
         this.hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
     }
 
-    sendCustomUIMessage(plugin: NativePlugin, message: any) {
+    #sendCustomUIMessage(plugin: NativePlugin, message: any) {
         if (this.#nativePlugins.includes(plugin)) {
             this.#uiPlugins.sendMessage({
                 type: SYSTEM_EVENT_CUSTOM_MESSAGE,
@@ -310,7 +291,7 @@ export class PluginSystemNative {
         }
     }
 
-    onUIMessage(pluginId: string, message: any) {
+    #onUIMessage(pluginId: string, message: any) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
@@ -332,7 +313,7 @@ export class PluginSystemNative {
         this.#nativePlugins = [];
     }
 
-    onPluginDispose(pluginId: string) {
+    disablePlugin(pluginId: string) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {

@@ -1,0 +1,13 @@
+@import "https://unpkg.com/open-props";
+/* optional imports that use the props */
+@import "https://unpkg.com/open-props/normalize.min.css";
+@import "https://unpkg.com/open-props/buttons.min.css";
+
+/* individual imports */
+@import "https://unpkg.com/open-props/indigo.min.css";
+@import "https://unpkg.com/open-props/indigo-hsl.min.css";
+@import "https://unpkg.com/open-props/easings.min.css";
+@import "https://unpkg.com/open-props/animations.min.css";
+@import "https://unpkg.com/open-props/sizes.min.css";
+@import "https://unpkg.com/open-props/gradients.min.css";
+/* see PropPacks for the full list */
