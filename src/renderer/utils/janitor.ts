@@ -12,6 +12,11 @@ export default class Janitor {
     private _disposable = new Set<Disposable>();
     private _callbacks = new Set<EmptyFn>();
 
+    addEventListener(element: { addEventListener: Function, removeEventListener: Function }, event: string, callback: Function) {
+        element.addEventListener(event, callback);
+        this.add(() => element.removeEventListener(event, callback));
+    }
+
     add(obj: Object3D | Disposable | EmptyFn) {
         if (obj instanceof Object3D) {
             this.object3d(obj);

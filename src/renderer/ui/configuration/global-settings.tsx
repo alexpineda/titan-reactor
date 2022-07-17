@@ -72,14 +72,21 @@ export const GlobalSettings = () => {
     },
     pixelRatio: {
       folder: "Graphics",
-      label: "Pixel Ratio (Requires Game Reload)",
+      label: "Pixel Ratio",
       value: settings.data.graphics.pixelRatio,
+      options: ["low", "med", "high"],
+      path: "graphics",
+    },
+    anisotropy: {
+      folder: "Graphics",
+      label: "Anisotropy",
+      value: settings.data.graphics.anisotropy,
       options: ["low", "med", "high"],
       path: "graphics",
     },
     terrainShadows: {
       folder: "Graphics",
-      label: "Terrain Shadows (Requires Game Reload)",
+      label: "Terrain Shadows",
       value: settings.data.graphics.terrainShadows,
       path: "graphics",
     },

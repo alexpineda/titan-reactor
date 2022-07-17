@@ -6,12 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- Minimap size is now configurable
+- Terrain now has mirrored edge tiles
+- Anisotropy graphics setting is now configurable via the UI
+
+## Changed
+- Global Settings is no longer a plugin and now built into the app
+- Easier initial setup with directory options in settings
+- Plugin Settings is now called Command Center
+- Menus have been re-ordered slightly
+- More optimizations to reduce GC usage, caused minor bugs in audio which will be addressed
+- HD is now the default (rather than HD2)
+- Anisotropy default has changed from high to low
+
 ### Fixed
 - Regression in floating sprites is fixed
+- Regression creep edges fixed
 - Bullet tracking now works on floating buildings
 
 ### Removed
 - getFPS is removed from the plugin api
+- HD2 is no longer an option
 
 ## [0.5.3]
 

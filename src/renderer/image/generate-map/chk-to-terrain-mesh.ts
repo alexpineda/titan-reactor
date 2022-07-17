@@ -62,17 +62,6 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 
-
-  const anisotropy = anisotropyOptions[settings.anisotropy as keyof typeof anisotropyOptions];
-  creepTexture.texture.anisotropy = anisotropy;
-  creepEdgesTexture.texture.anisotropy = anisotropy;
-
-  for (const row of textures.mapQuartiles) {
-    for (const texture of row) {
-      texture.anisotropy = anisotropy;
-    }
-  }
-
   const getTerrainY = genTerrainY(
     displacementImages.displacementImage,
     geomOptions.displacementScale,
@@ -88,6 +77,18 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     minimapBitmap,
     terrain,
     creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
-    creepTextureUniform: dataTextures.creepTextureUniform
+    creepTextureUniform: dataTextures.creepTextureUniform,
+    setAnisotropy: (anisotropy: string) => {
+      const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
+      creepTexture.texture.anisotropy = value;
+
+      creepEdgesTexture.texture.anisotropy = value;
+
+      for (const row of textures.mapQuartiles) {
+        for (const texture of row) {
+          texture.anisotropy = value;
+        }
+      }
+    }
   }
 }

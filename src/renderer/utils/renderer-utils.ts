@@ -1,3 +1,4 @@
+import { Settings } from "common/types";
 import { WebGLRenderer } from "three";
 
 const renderer = new WebGLRenderer();
@@ -11,3 +12,12 @@ export const anisotropyOptions = {
 };
 
 export const rendererIsDev = process.env.NODE_ENV === "development";
+
+export const getPixelRatio = (settings: Settings) => {
+    const pixelRatios = {
+        high: window.devicePixelRatio,
+        med: 1,
+        low: 0.75
+    };
+    return pixelRatios[settings.graphics.pixelRatio]
+}

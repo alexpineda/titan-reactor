@@ -14,7 +14,8 @@ export interface PluginPackage {
     },
     config?: {
         system?: {
-            permissions?: string[]
+            permissions?: string[],
+            deprecated?: boolean;
         }
     }
 }

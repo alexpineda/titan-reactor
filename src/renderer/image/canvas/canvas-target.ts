@@ -35,6 +35,10 @@ export class CanvasTarget {
   getContext() {
     return this.canvas.getContext("2d");
   }
+
+  dispose() {
+    this.canvas.remove();
+  }
 }
 
 export default CanvasTarget;

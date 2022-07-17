@@ -75,6 +75,7 @@ export type TerrainInfo = {
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
+  setAnisotropy: (anisotropy: string) => void;
 };
 
 export type TilesetBuffers = {

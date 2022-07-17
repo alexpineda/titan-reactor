@@ -32,8 +32,10 @@ function sunlight(mapWidth: number, mapHeight: number) {
   light.shadow.camera.right = sizeW;
   light.shadow.camera.top = sizeh;
   light.shadow.camera.bottom = -sizeh;
-  light.shadow.mapSize.width = 512 * 4;
-  light.shadow.mapSize.height = 512 * 4;
+  light.shadow.mapSize.width = 512 * 2;
+  light.shadow.mapSize.height = 512 * 2;
+  light.shadow.autoUpdate = false;
+  light.shadow.needsUpdate = true;
   light.name = "sunlight";
   return light;
 }
@@ -45,6 +47,9 @@ export class Scene extends ThreeScene {
   #skybox: Texture;
   #borderTiles: Group;
 
+  hemilight: HemisphereLight;
+  sunlight: DirectionalLight;
+
   constructor({
     mapWidth,
     mapHeight,
@@ -55,12 +60,19 @@ export class Scene extends ThreeScene {
     this.#mapWidth = mapWidth;
 
     this.#janitor = new Janitor();
-    this.addLights();
+
+    this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 1);
+    this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
+
+    this.add(this.hemilight);
+    this.add(this.sunlight);
     this.addTerrain(terrain);
     this.#skybox = this.skybox("sparse");
 
     this.#borderTiles = new Group();
     this.add(this.#borderTiles);
+
+    // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
 
     const tx = terrain.userData.tilesX;
     const ty = terrain.userData.tilesY;
@@ -160,22 +172,6 @@ export class Scene extends ThreeScene {
     });
   }
 
-  private addLights() {
-    const hemilight = new HemisphereLight(0xffffff, 0xffffff, 1);
-    hemilight.name = "hemilight";
-
-    const lights = [
-      hemilight
-      , sunlight(this.#mapWidth, this.#mapHeight)
-    ]
-    lights.forEach(light => {
-      this.add(light)
-    });
-
-    this.userData.hemilight = hemilight;
-    this.userData.sunlight = sunlight;
-  }
-
   skybox(key: string) {
     const loader = new CubeTextureLoader();
     const rootPath = path.join(__static, "skybox", key);
@@ -199,14 +195,6 @@ export class Scene extends ThreeScene {
 
   enableSkybox() {
     this.background = this.#skybox;
-  }
-
-  enableTiles() {
-    // this.#tiles.visible = true;
-  }
-
-  disableTiles() {
-    // this.#tiles.visible = false;
   }
 
   addTerrain(

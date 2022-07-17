@@ -80,6 +80,7 @@ import { StdVector } from "./buffer-view/std-vector";
 import range from "common/utils/range";
 import DirectionalCamera from "./camera/directional-camera";
 import { inverse } from "@utils/function-utils";
+import { getPixelRatio } from "@utils/renderer-utils";
 
 CameraControls.install({ THREE: THREE });
 
@@ -153,9 +154,7 @@ async function TitanReactorGame(
   const { mapWidth, mapHeight } = terrain;
 
   const cssScene = new ThreeScene();
-  const cssRenderer = new CSS2DRenderer({
-
-  });
+  const cssRenderer = new CSS2DRenderer();
   cssRenderer.domElement.style.position = 'absolute';
   cssRenderer.domElement.style.pointerEvents = 'none';
   cssRenderer.domElement.style.top = '0px';
@@ -164,19 +163,28 @@ async function TitanReactorGame(
   document.body.appendChild(cssRenderer.domElement);
   janitor.callback(() => document.body.removeChild(cssRenderer.domElement));
 
-  const gameSurface = new GameCanvasTarget(settings, mapWidth, mapHeight);
-  gameSurface.setDimensions(window.innerWidth, window.innerHeight);
 
+  terrain.setAnisotropy(settings.graphics.anisotropy);
+
+  const gameSurface = new GameCanvasTarget(mapWidth, mapHeight);
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings));
   document.body.appendChild(gameSurface.canvas);
-  janitor.callback(() => document.body.removeChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getRect());
+  janitor.add(gameSurface);
+
+  const _regainPointerLock = () => {
+    if (gameSurface.pointerLockInvalidState) {
+      gameSurface.requestPointerLock();
+    }
+  }
+  janitor.addEventListener(gameSurface.canvas, 'pointerdown', _regainPointerLock);
 
   const minimapSurface = new CanvasTarget();
   minimapSurface.canvas.style.position = "absolute";
   minimapSurface.canvas.style.bottom = "0";
   minimapSurface.canvas.style.zIndex = "20";
   document.body.appendChild(minimapSurface.canvas);
-  janitor.callback(() => document.body.removeChild(minimapSurface.canvas));
+  janitor.add(minimapSurface);
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
@@ -418,12 +426,10 @@ async function TitanReactorGame(
       selectedUnitsStore().clearSelectedUnits();
     }
 
+    //TODO deprecate
     scene.disableSkybox();
-    scene.disableTiles();
     if (cameraMode.background === "space") {
       scene.enableSkybox();
-    } else if (cameraMode.background === "tiles") {
-      scene.enableTiles();
     }
 
     const clearPass = new ClearPass(camera);
@@ -720,7 +726,7 @@ async function TitanReactorGame(
   }
 
   const _sceneResizeHandler = () => {
-    gameSurface.setDimensions(window.innerWidth, window.innerHeight);
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings));
 
     const rect = gameSurface.getRect();
     gameStore().setDimensions({
@@ -1257,7 +1263,7 @@ async function TitanReactorGame(
     let bulletY: number | undefined;
 
     const a = _cameraPosition.distanceTo(_spritePos) / Math.min(500, controls.orbit.maxDistance);
-    const v = Math.floor((a * a * a) * 1.5);
+    const v = Math.floor((a * a * a) * 1.25);
     sprite.visible = spriteIsVisible;
 
     if (!spriteIsVisible || v > 0 && sprite.userData.renderTestCount > 0) {
@@ -1582,6 +1588,15 @@ async function TitanReactorGame(
   }
 
 
+  // apply initial terrain shadow settings
+  terrain.terrain.traverse(o => {
+    if (o instanceof Mesh) {
+      o.castShadow = settings.graphics.terrainShadows;
+      o.receiveShadow = settings.graphics.terrainShadows;
+    }
+  })
+  renderer.getWebGLRenderer().shadowMap.needsUpdate = settings.graphics.terrainShadows;
+
   const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
 
   let _lastElapsed = 0;
@@ -1655,7 +1670,6 @@ async function TitanReactorGame(
       }
 
       fadingPointers.update(currentBwFrame);
-      renderer.getWebGLRenderer().shadowMap.needsUpdate = true;
 
       gameStatePosition.bwGameFrame = currentBwFrame;
       plugins.onFrame(openBW, gameStatePosition, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
@@ -1727,23 +1741,32 @@ async function TitanReactorGame(
   window.onbeforeunload = dispose;
 
   {
-    const unsub = useSettingsStore.subscribe((state) => {
-      const oldTerrainSetting = settings.graphics.terrainShadows;
+    const unsub = useSettingsStore.subscribe(({ data: newSettings }) => {
 
-      Object.assign(settings, state.data);
-      renderer.gamma = settings.graphics.gamma;
-      audioMixer.masterVolume = settings.audio.global;
-      audioMixer.musicVolume = settings.audio.music;
-      audioMixer.soundVolume = settings.audio.sound;
+      renderer.gamma = newSettings.graphics.gamma;
+      audioMixer.masterVolume = newSettings.audio.global;
+      audioMixer.musicVolume = newSettings.audio.music;
+      audioMixer.soundVolume = newSettings.audio.sound;
 
-      if (oldTerrainSetting !== settings.graphics.terrainShadows) {
+      if (settings.graphics.terrainShadows !== newSettings.graphics.terrainShadows) {
         terrain.terrain.traverse(o => {
           if (o instanceof Mesh) {
-            o.castShadow = settings.graphics.terrainShadows;
-            o.receiveShadow = settings.graphics.terrainShadows;
+            o.castShadow = newSettings.graphics.terrainShadows;
+            o.receiveShadow = newSettings.graphics.terrainShadows;
           }
-        })
+        });
+        renderer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
       }
+
+      if (settings.graphics.pixelRatio !== newSettings.graphics.pixelRatio) {
+        _sceneResizeHandler();
+      }
+
+      if (settings.graphics.anisotropy !== newSettings.graphics.anisotropy) {
+        terrain.setAnisotropy(newSettings.graphics.anisotropy);
+      }
+
+      Object.assign(settings, newSettings);
 
     });
     janitor.callback(unsub);

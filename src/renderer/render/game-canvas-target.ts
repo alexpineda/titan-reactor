@@ -1,4 +1,4 @@
-import { Settings, GameAspect, GameCanvasDimensions } from "common/types";
+import { GameAspect, GameCanvasDimensions } from "common/types";
 import { CanvasTarget } from "../image";
 
 const MinimapRatio = .25;
@@ -9,18 +9,23 @@ export class GameCanvasTarget extends CanvasTarget {
   right = 0;
   bottom = 0;
   aspect = 0;
-  private _settings: Settings;
-  private _mapWidth: number;
-  private _mapHeight: number;
 
-  constructor(settings: Settings, mapWidth: number, mapHeight: number) {
+  #mapWidth: number;
+  #mapHeight: number;
+  #shouldHavePointerLock = false;
+
+  constructor(mapWidth: number, mapHeight: number) {
     super();
-    this._settings = settings;
-    this._mapHeight = mapHeight;
-    this._mapWidth = mapWidth;
+    this.#mapHeight = mapHeight;
+    this.#mapWidth = mapWidth;
+
+    document.addEventListener('pointerlockerror', () => {
+      this.#shouldHavePointerLock = false;
+    });
+
   }
 
-  override setDimensions(screenWidth: number, screenHeight: number) {
+  override setDimensions(screenWidth: number, screenHeight: number, pixelRatio: number) {
     const gameAspect = GameAspect.Fit;
 
     const maxWidth = screenWidth;
@@ -35,19 +40,13 @@ export class GameCanvasTarget extends CanvasTarget {
     this.left = 0;
     this.right = 0;
 
-    const pixelRatios = {
-      high: window.devicePixelRatio,
-      med: 1,
-      low: 0.75
-    };
-
     if (gameAspect === GameAspect.Fit) {
       this.top = 0;
 
       super.setDimensions(
         Math.floor(maxWidth - 2),
         Math.floor(maxHeight - 2),
-        pixelRatios[this._settings.graphics.pixelRatio]
+        pixelRatio
       );
 
     } else {
@@ -67,23 +66,29 @@ export class GameCanvasTarget extends CanvasTarget {
       super.setDimensions(
         Math.floor(width),
         Math.floor(height),
-        pixelRatios[this._settings.graphics.pixelRatio]
+        pixelRatio
       );
     }
   }
 
+  get pointerLockInvalidState() {
+    return this.#shouldHavePointerLock && document.pointerLockElement !== this.canvas;
+  }
+
   requestPointerLock() {
+    this.#shouldHavePointerLock = true;
     this.canvas.requestPointerLock();
   }
 
   exitPointerLock() {
+    this.#shouldHavePointerLock = false;
     document.exitPointerLock();
   }
 
   getRect(): GameCanvasDimensions {
-    const max = Math.max(this._mapWidth, this._mapHeight);
-    const wAspect = this._mapWidth / max;
-    const hAspect = this._mapHeight / max;
+    const max = Math.max(this.#mapWidth, this.#mapHeight);
+    const wAspect = this.#mapWidth / max;
+    const hAspect = this.#mapHeight / max;
     const minimapSize = this.height * MinimapRatio;
 
     return {
@@ -96,6 +101,10 @@ export class GameCanvasTarget extends CanvasTarget {
       minimapWidth: Math.floor(minimapSize * wAspect),
       minimapHeight: Math.floor(minimapSize * hAspect)
     };
+  }
+
+  override dispose() {
+    this.canvas.remove();
   }
 }
 

@@ -44,20 +44,20 @@ export class MinimapMouse extends EventTarget {
     this.#mapWidth = mapWidth;
     this.#mapHeight = mapHeight;
 
-    const max = Math.max(this.#mapWidth, this.#mapHeight);
-    const wAspect = this.#mapWidth / max;
-    const hAspect = this.#mapHeight / max;
+    // const max = Math.max(this.#mapWidth, this.#mapHeight);
+    // const wAspect = this.#mapWidth / max;
+    // const hAspect = this.#mapHeight / max;
 
     const getX = (mouseX: number) =>
       MathUtils.clamp(
-        (mouseX - this.#surface.width / 2) / this.#surface.width / wAspect,
+        (mouseX - this.#surface.width / 2) / this.#surface.width,
         -0.5,
         0.5
       ) * this.#mapWidth;
 
     const getY = (mouseY: number) =>
       MathUtils.clamp(
-        (mouseY - this.#surface.height / 2) / this.#surface.height / hAspect,
+        (mouseY - this.#surface.height / 2) / this.#surface.height,
         -0.5,
         0.5
       ) * this.#mapHeight;
