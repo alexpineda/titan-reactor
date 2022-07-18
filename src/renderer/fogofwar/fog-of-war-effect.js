@@ -17,12 +17,6 @@ export default class FogOfWarEffect extends Effect {
         ["fogUvTransform", new Uniform(new Vector4())],
       ]),
     });
-
-    if (module.hot) {
-      module.hot.accept("./fog-of-war.frag", function () {
-        this.fragmentShader = fragmentShader;
-      });
-    }
   }
 
   get fog() {

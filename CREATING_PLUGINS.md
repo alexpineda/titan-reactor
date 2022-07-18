@@ -108,7 +108,7 @@ Once we've got our basic `package.json` we can start with `index.jsx`:
 
 ```jsx
 import React from "react";
-import { registerComponent, usePluginConfig, useFrame } from "titan-reactor";
+import { registerComponent, usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor";
 
 const MyComponent = () => {
 
@@ -117,7 +117,7 @@ const MyComponent = () => {
     // will update on every game second with latest frame data
     const frame = useFrame();
 
-    return <h1>Hello { config.userName }. Game time is {frame.time} </h1>
+    return <h1>Hello { config.userName }. Game time is {getFriendlyTime(frame.frame)} </h1>
 };
 
 registerComponent({ pluginId: "_plugin_id_", screen: "@replay/ready" }, MyComponent);
@@ -191,6 +191,9 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 **useSendMessage()**
 - Send messages to your plugin.js
 - provides function `sendMessage(content)`
+
+**getFriendlyTime(frame)**
+- Converts a game frame to a time label like 12:01
 
 **RollingResource**
 - A component that rolls to a number in an animated fashion

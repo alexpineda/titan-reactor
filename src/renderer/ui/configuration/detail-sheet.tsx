@@ -65,12 +65,6 @@ export default ({
           },
         }}
       />
-      {pluginPackage.config?.system?.deprecated && (
-        <div style={{ marginTop: "1rem" }}>
-          🛑 The author of this plugin has deprecated it and this plugin should
-          be disabled and no longer used.
-        </div>
-      )}
       {semver.major(titanReactorApiVersion) <
         semver.major(pluginApiVersion) && (
         <p>

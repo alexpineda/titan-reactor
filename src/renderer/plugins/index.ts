@@ -8,7 +8,6 @@ import {
     ON_PLUGINS_INITIAL_INSTALL_ERROR,
     ON_PLUGINS_INITIAL_INSTALL,
 } from "common/ipc-handle-names";
-import { GameStatePosition } from "@core";
 import { installPlugin } from "@ipc/plugins";
 
 import {
@@ -97,14 +96,14 @@ export const onClick = (event: MouseEvent) => {
 
 export const onFrame = (
     openBw: OpenBWAPI,
-    gameStatePosition: GameStatePosition,
+    currentFrame: number,
     playerDataAddr: number,
     productionDataAddr: number,
     commands: any[]
 ) => {
-    uiPluginSystem.onFrame(openBw, gameStatePosition, playerDataAddr, productionDataAddr);
+    uiPluginSystem.onFrame(openBw, currentFrame, playerDataAddr, productionDataAddr);
     nativePluginSystem.onFrame(
-        gameStatePosition.bwGameFrame,
+        currentFrame,
         commands
     );
 };

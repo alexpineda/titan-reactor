@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - getFPS is removed from the plugin api
 - HD2 is no longer an option
+- Deprecated maxFrame and time fields from the useFrame() hook, use useReplay() and getFriendlyTime() instead
 
 ## [0.5.3]
 

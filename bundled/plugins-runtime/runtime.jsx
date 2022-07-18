@@ -134,6 +134,15 @@ export const useProduction = () => {
       ),
   ];
 };
+
+export const getFriendlyTime = (frame) => {
+  const t = Math.floor((frame * 42) / 1000);
+  const minutes = Math.floor(t / 60);
+  const seconds = Math.floor(t % 60);
+
+  return `${minutes}:${("00" + seconds).slice(-2)}`;
+};
+
 // plugin specific configuration
 const useConfig = create(() => ({}));
 

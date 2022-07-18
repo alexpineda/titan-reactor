@@ -13,13 +13,12 @@ import { CanvasTarget } from "./image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
 } from "common/types";
-import { gameSpeeds, pxToMapMeter, floor32 } from "common/utils/conversions";
+import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types/structs";
 import type { MainMixer, Music, SoundChannels } from "./audio";
 
 import ProjectedCameraView from "./camera/projected-camera-view";
 import {
-  GameStatePosition,
   Image,
   Players,
   Unit,
@@ -437,7 +436,7 @@ async function TitanReactorGame(
 
     const fogOfWarEffect = new FogOfWarEffect();
     fogOfWar.setEffect(fogOfWarEffect);
-    fogOfWarEffect.blendMode.opacity.value = cameraMode.fogOfWar ?? 1;
+    fogOfWarEffect.blendMode.opacity.value = fogOfWar.enabled ? (cameraMode.fogOfWar ?? 1) : 0;
 
     if (cameraMode.onSetComposerPasses) {
       renderer.setCameraModeEffectsAndPasses(cameraMode.onSetComposerPasses(clearPass, renderPass, fogOfWarEffect));
@@ -470,8 +469,7 @@ async function TitanReactorGame(
       clearFollowedUnits();
     }
   }
-  gameSurface.canvas.addEventListener('pointerdown', _stopFollowingOnClick);
-  janitor.callback(() => gameSurface.canvas.removeEventListener('pointerdown', _stopFollowingOnClick));
+  janitor.addEventListener(gameSurface.canvas, "pointerdown", _stopFollowingOnClick);
 
   {
     const selectionBox = new SelectionBox(camera, scene);
@@ -650,11 +648,6 @@ async function TitanReactorGame(
 
   music.playGame();
 
-  const gameStatePosition = new GameStatePosition(
-    replay.header.frameCount,
-    gameSpeeds.fastest
-  );
-
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
@@ -684,6 +677,12 @@ async function TitanReactorGame(
     reset = null;
     _wasReset = true;
   }
+
+  janitor.addEventListener(document.body, "keyup", (event: KeyboardEvent) => {
+    if (event.key === "\\") {
+      reset = refreshScene;
+    }
+  });
 
   const skipHandler = (dir: number, amount = 200) => {
     if (reset) return;
@@ -1671,8 +1670,7 @@ async function TitanReactorGame(
 
       fadingPointers.update(currentBwFrame);
 
-      gameStatePosition.bwGameFrame = currentBwFrame;
-      plugins.onFrame(openBW, gameStatePosition, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
+      plugins.onFrame(openBW, currentBwFrame, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
       scene.setBorderTileOpacity(Math.min(1, Math.max(0, 0.7 - controls.orbit.distance / _maxTransparentBorderTilesDistance)));
 

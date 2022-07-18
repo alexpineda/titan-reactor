@@ -33,6 +33,14 @@ export class StdVector {
         // return this.heap.slice(this.index, this.index + this.size);
     }
 
+    copyDataShallow() {
+        const addr = this.heap[this.addr32];
+        const end_addr = this.heap[this.addr32 + 1];
+
+        return this.heap.subarray(addr >> 2, end_addr >> 2);
+        // return this.heap.slice(this.index, this.index + this.size);
+    }
+
     get isEmpty() {
         return this.heap[this.addr32] === this.heap[this.addr32 + 1];
     }

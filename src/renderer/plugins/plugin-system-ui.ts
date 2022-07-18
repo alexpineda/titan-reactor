@@ -6,13 +6,14 @@ import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, u
 
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_RUNTIME_READY } from "./events";
 import { waitForProcess } from "../utils/wait-for-process";
-import { GameStatePosition, Unit } from "@core";
+import { Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import { downloadUpdate } from "@ipc";
 import packageJson from "../../../package.json"
 import semver from "semver";
 import gameStore from "@stores/game-store";
+import { getSecond } from "common/utils/conversions";
 
 const screenChanged = (screen: ScreenStore) => {
     return {
@@ -27,8 +28,6 @@ const screenChanged = (screen: ScreenStore) => {
 let _lastSend: { [key: string]: any } = {};
 const _makeReplayPosition = () => ({
     frame: 0,
-    maxFrame: 0,
-    time: "",
     playerData: new Int32Array(),
     unitProduction: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
     research: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
@@ -241,8 +240,8 @@ export class PluginSystemUI {
         _replayPosition.payload = _makeReplayPosition();
     }
 
-    onFrame(openBW: OpenBWAPI, gameStatePosition: GameStatePosition, playerDataAddr: number, productionDataAddr: number) {
-        const time = gameStatePosition.getSecond();
+    onFrame(openBW: OpenBWAPI, currentFrame: number, playerDataAddr: number, productionDataAddr: number) {
+        const time = getSecond(currentFrame);
 
         // update the ui every game second
         if (_lastSend[UI_PLUGIN_EVENT_ON_FRAME] !== time) {
@@ -271,9 +270,7 @@ export class PluginSystemUI {
                 productionData.addr32 += 3;
             }
 
-            _replayPosition.payload.frame = gameStatePosition.bwGameFrame;
-            _replayPosition.payload.maxFrame = gameStatePosition.maxFrame;
-            _replayPosition.payload.time = gameStatePosition.getFriendlyTime();
+            _replayPosition.payload.frame = currentFrame;
             _replayPosition.payload.playerData = playerData;
 
             //TODO: add transferables (if applicable) or better yet shared arrays
@@ -284,6 +281,7 @@ export class PluginSystemUI {
             const units = useSelectedUnitsStore.getState().selectedUnits;
             // in this case only change if the empty state has changed
             if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
+                //TODO move this out to supply to native as well
                 const payload = unitsPartial(units);
                 this.sendMessage({
                     type: UI_PLUGIN_EVENT_UNITS_SELECTED,

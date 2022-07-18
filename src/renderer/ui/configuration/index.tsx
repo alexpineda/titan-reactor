@@ -287,7 +287,6 @@ const Configuration = () => {
         {banner && <p className="mui--bg-accent mui--text-light">{banner}</p>}
 
         <Tabs
-          //@ts-ignore
           onChange={(index: number) => setMainTabIndex(index)}
           selectedIndex={mainTabIndex}
         >
@@ -423,15 +422,26 @@ const Configuration = () => {
                     selectedPluginPackage.plugin
                   ) && (
                     <>
-                      <DetailSheet
-                        key={selectedPluginPackage.plugin.id}
-                        pluginPackage={selectedPluginPackage.plugin}
-                        controls={mapConfigToLeva(
-                          selectedPluginPackage.plugin.id,
-                          selectedPluginPackage.plugin.config,
-                          onChange
-                        )}
-                      />
+                      {!selectedPluginPackage.plugin.config?.system
+                        ?.deprecated && (
+                        <DetailSheet
+                          key={selectedPluginPackage.plugin.id}
+                          pluginPackage={selectedPluginPackage.plugin}
+                          controls={mapConfigToLeva(
+                            selectedPluginPackage.plugin.id,
+                            selectedPluginPackage.plugin.config,
+                            onChange
+                          )}
+                        />
+                      )}
+                      {selectedPluginPackage.plugin.config?.system
+                        ?.deprecated && (
+                        <div style={{ marginTop: "1rem" }}>
+                          🛑 The author of this plugin has marked it as
+                          deprecated and this plugin should be disabled and no
+                          longer used.
+                        </div>
+                      )}
                       {updateVersion && (
                         <button onClick={tryUpdatePlugin}>
                           Update to {updateVersion}

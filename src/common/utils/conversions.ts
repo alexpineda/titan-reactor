@@ -50,14 +50,6 @@ export const angleToDirection = (angle: number) =>
     (((angle + (Math.PI * 1) / 2) % (Math.PI * 2)) / (Math.PI * 2)) * 32
   );
 
-export const getFriendlyTime = (frame: number) => {
-  const t = Math.floor((frame * gameSpeeds.fastest) / 1000);
-  const minutes = Math.floor(t / 60);
-  const seconds = Math.floor(t % 60);
-
-  return `${minutes}:${("00" + seconds).slice(-2)}`;
-}
-
 export const getSecond = (frame: number) => {
   return Math.floor((frame * gameSpeeds.fastest) / 1000);
 }
