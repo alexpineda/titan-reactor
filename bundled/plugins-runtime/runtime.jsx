@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useContext } from "react";
+import React, { useRef, useEffect, useContext, useState } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
@@ -141,6 +141,41 @@ export const getFriendlyTime = (frame) => {
   const seconds = Math.floor(t % 60);
 
   return `${minutes}:${("00" + seconds).slice(-2)}`;
+};
+
+export const openUrl = (url) =>
+  window.parent.postMessage(
+    {
+      type: "system:open-url",
+      payload: url,
+    },
+    "*"
+  );
+
+export const useRSSItems = (url) => {
+  const [rss, setRss] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      const response = await fetch(url);
+      const text = await response.text();
+      const xml = new DOMParser().parseFromString(text, "text/xml");
+      const items = [];
+      xml.querySelectorAll("item").forEach((el) => {
+        try {
+          items.push({
+            title: el.querySelector("title").textContent,
+            link: el.querySelector("link").textContent,
+            description: el.querySelector("description").textContent,
+            pubDate: el.querySelector("pubDate").textContent,
+          });
+        } catch (e) {}
+      });
+      setRss(items);
+    })();
+  }, [url]);
+
+  return rss;
 };
 
 // plugin specific configuration
@@ -459,6 +494,8 @@ export const useStyleSheet = (content, deps = []) => {
     return () => removePluginStylesheet(pluginId);
   }, []);
 };
+
+export const proxyFetch = (url) => fetch(`?proxy=${encodeURIComponent(url)}`);
 
 let _channelIds = 0;
 export const registerComponent = (component, JSXElement) => {

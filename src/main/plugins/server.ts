@@ -8,6 +8,7 @@ import { getEnabledPluginConfigs, replacePluginContent } from "./load-plugins";
 import settings from "../settings/singleton"
 import fileExists from "common/utils/file-exists";
 import logService from "../logger/singleton";
+import fetch from 'node-fetch';
 
 const _runtimePath = path.resolve(__static, "plugins-runtime");
 
@@ -22,6 +23,19 @@ app.use(function (_, res, next) {
 const transpileErrors: TransformSyntaxError[] = [];
 
 app.get('*', async function (req, res) {
+    if ((req.query["proxy"])) {
+        const proxy = req.query["proxy"];
+        const response = await fetch(proxy as string);
+
+        res.status(response.status);
+        if (response.headers.has("content-type")) {
+            res.setHeader("Content-Type", response.headers.get("content-type")!);
+        }
+        const text = await response.text();
+        res.send(text);
+        return;
+    }
+
     const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(settings.get().directories.plugins, req.path);
 
     if (!(filepath.startsWith(settings.get().directories.plugins) || filepath.startsWith(_runtimePath))) {

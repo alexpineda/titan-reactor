@@ -8,6 +8,9 @@ export const whitelistUrls = [
 
 export const whiteListRegex = [
     /\.imbateam\.gg$/,
-    /^http:\/\/\.youtube\.com/,
-    /^https:\/\/\.youtube\.com/,
+    /^http:\/\/youtube\.com/,
+    /^https:\/\/youtube\.com/,
+    /^https:\/\/repmastered\.app/,
+    /^https:\/\/www\.starcraftworld\.net/,
+    /^https:\/\/sscaitournament\.com/,
 ]

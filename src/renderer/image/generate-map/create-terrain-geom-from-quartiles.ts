@@ -54,64 +54,58 @@ export const createTerrainGeometryFromQuartiles = async (
                 map: mapTextures.mapQuartiles[qx][qy],
                 roughness: 1,
                 // @ts-ignore
-                onBeforeCompile: function (shader) {
-                    let fs = shader.fragmentShader;
 
-                    //FIXME: chop up map rather than customize shader
-                    // vs = vs.replace(
-                    //     "#include <displacementmap_vertex>",
-                    //     hdDisplaceVert
-                    // );
-                    // shader.vertexShader = [hdDisplaceVertHeader, vs].join("\n");
-
-                    fs = fs.replace("#include <map_fragment>", hdMapFrag);
-                    shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
-
-                    shader.uniforms.quartileResolution = {
-                        value: new Vector2(qw / mapWidth, qh / mapHeight),
-                    };
-                    shader.uniforms.quartileOffset = {
-                        value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
-                    };
-                    shader.uniforms.invMapResolution = {
-                        value: new Vector2(1 / qw, 1 / qh),
-                    };
-                    shader.uniforms.mapToCreepResolution = {
-                        value: new Vector2(
-                            qw / (creepTexture.width / creepTexture.pxPerTile),
-                            qh / (creepTexture.height / creepTexture.pxPerTile)
-                        ),
-                    };
-                    shader.uniforms.creepResolution = {
-                        value: new Vector2(
-                            creepTexture.width / creepTexture.pxPerTile,
-                            creepTexture.height / creepTexture.pxPerTile
-                        ),
-                    };
-
-                    shader.uniforms.mapToCreepEdgesResolution = {
-                        value: new Vector2(
-                            qw / (creepEdgesTexture.width / creepEdgesTexture.pxPerTile),
-                            qh / (creepEdgesTexture.height / creepEdgesTexture.pxPerTile)
-                        ),
-                    };
-                    shader.uniforms.creepEdges = creepEdgesTextureUniform;
-                    shader.uniforms.creep = creepTextureUniform;
-                    shader.uniforms.creepEdgesTexture = {
-                        value: creepEdgesTexture.texture,
-                    };
-                    shader.uniforms.creepEdgesResolution = {
-                        value: new Vector2(
-                            creepEdgesTexture.width / creepEdgesTexture.pxPerTile,
-                            creepEdgesTexture.height / creepEdgesTexture.pxPerTile
-                        ),
-                    };
-                    shader.uniforms.creepTexture = {
-                        value: creepTexture.texture,
-                    };
-                },
             });
+            mat.onBeforeCompile = function (shader) {
+                let fs = shader.fragmentShader;
 
+                //@ts-ignore
+                fs = fs.replace("#include <map_fragment>", hdMapFrag);
+                shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
+
+                shader.uniforms.quartileResolution = {
+                    value: new Vector2(qw / mapWidth, qh / mapHeight),
+                };
+                shader.uniforms.quartileOffset = {
+                    value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
+                };
+                shader.uniforms.invMapResolution = {
+                    value: new Vector2(1 / qw, 1 / qh),
+                };
+                shader.uniforms.mapToCreepResolution = {
+                    value: new Vector2(
+                        qw / (creepTexture.width / creepTexture.pxPerTile),
+                        qh / (creepTexture.height / creepTexture.pxPerTile)
+                    ),
+                };
+                shader.uniforms.creepResolution = {
+                    value: new Vector2(
+                        creepTexture.width / creepTexture.pxPerTile,
+                        creepTexture.height / creepTexture.pxPerTile
+                    ),
+                };
+
+                shader.uniforms.mapToCreepEdgesResolution = {
+                    value: new Vector2(
+                        qw / (creepEdgesTexture.width / creepEdgesTexture.pxPerTile),
+                        qh / (creepEdgesTexture.height / creepEdgesTexture.pxPerTile)
+                    ),
+                };
+                shader.uniforms.creepEdges = creepEdgesTextureUniform;
+                shader.uniforms.creep = creepTextureUniform;
+                shader.uniforms.creepEdgesTexture = {
+                    value: creepEdgesTexture.texture,
+                };
+                shader.uniforms.creepEdgesResolution = {
+                    value: new Vector2(
+                        creepEdgesTexture.width / creepEdgesTexture.pxPerTile,
+                        creepEdgesTexture.height / creepEdgesTexture.pxPerTile
+                    ),
+                };
+                shader.uniforms.creepTexture = {
+                    value: creepTexture.texture,
+                };
+            };
             const terrainQuartile = new Mesh(g, mat);
             terrainQuartile.castShadow = true;
             terrainQuartile.receiveShadow = true;

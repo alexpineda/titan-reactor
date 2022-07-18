@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  useStore,
-  PluginContext,
-  useLocale,
-  updateAvailable,
-} from "titan-reactor";
+import { useStore, PluginContext } from "titan-reactor";
+import { Home } from "./home.jsx";
 
 const _screenSelector = (store) => store.screen;
 
@@ -65,23 +61,6 @@ const styleCenterText = {
   alignItems: "center",
 };
 
-const openUrl = (url) =>
-  window.parent.postMessage(
-    {
-      type: "system:open-url",
-      payload: url,
-    },
-    "*"
-  );
-
-const iconStyle = {
-  width: "var(--size-8)",
-  height: "var(--size-8)",
-  marginRight: "var(--size-4)",
-  filter: "sepia(0.5)",
-  cursor: "pointer",
-};
-
 const loadingSvg = (
   <svg width="205.245" height="230.766" xmlns="http://www.w3.org/2000/svg">
     <path
@@ -91,17 +70,10 @@ const loadingSvg = (
   </svg>
 );
 
-const _loadingStyle = {
-  fontSize: "var(--font-size-8)",
-  marginTop: "var(--size-4)",
-};
-
 export default ({ components }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
   const firstInstall = useStore(_firstInstall);
-  const locale = useLocale();
-
   const containerDiv = useRef();
 
   useEffect(() => {
@@ -140,9 +112,8 @@ export default ({ components }) => {
     !screen.startsWith("@home") &&
     (component.screen === undefined || component.screen === screen);
 
-  const hasAnyComponents = Object.keys(components).reduce((acc, key) => {
-    return acc || Boolean(components[key]);
-  }, false);
+  const homeComponentsFilter = ({ component }) =>
+    appLoaded && screen === "@home/ready" && component.screen === screen;
 
   return (
     <div
@@ -172,103 +143,24 @@ export default ({ components }) => {
       {error && !firstInstall && <GlobalErrorState error={error} />}
 
       {screen === "@home/ready" && appLoaded && !error && (
-        <div
-          style={{
-            display: "flex",
-            padding: "var(--size-6)",
-            justifyContent: "space-between",
-            marginTop: "var(--size-4)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              animation: "var(--animation-fade-in)",
-              animationDuration: "2s",
-            }}
-          >
-            <h1
-              style={{
-                fontFamily: "Conthrax",
-                color: "var(--orange-5)",
-              }}
-            >
-              Titan Reactor
-            </h1>
-            <p
-              style={{
-                marginTop: "var(--size-2)",
-                textAlign: "center",
-                color: "var(--gray-4)",
-              }}
-            >
-              Menu: ALT, Fullscreen: F11, Plugins: F10
-            </p>
-            {updateAvailable.version && (
-              <div
-                style={{
-                  color: "var(--green-5)",
-                  textAlign: "center",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                }}
-                onClick={() =>
-                  window.parent.postMessage("system:download-update", "*")
-                }
-              >
-                Download New Version {updateAvailable.version} Now!
-              </div>
-            )}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "end",
-            }}
-          >
-            <img
-              onClick={() =>
-                openUrl(
-                  locale === "ko-KR"
-                    ? "http://youtube-kr.imbateam.gg"
-                    : "http://youtube.imbateam.gg"
-                )
-              }
-              src="./runtime/assets/youtube.png"
-              style={iconStyle}
-            />
-            <img
-              onClick={() => openUrl("https://www.twitch.tv/imbateamgg")}
-              src="./runtime/assets/twitch.png"
-              style={iconStyle}
-            />
-            <img
-              onClick={() => openUrl("http://discord.imbateam.gg")}
-              src="./runtime/assets/discord.png"
-              style={iconStyle}
-            />
-            <img
-              onClick={() =>
-                openUrl("https://github.com/imbateam-gg/titan-reactor")
-              }
-              src="./runtime/assets/github.png"
-              style={iconStyle}
-            />
-            <img
-              style={{ ...iconStyle, marginLeft: "var(--size-6)" }}
-              onClick={() => openUrl("https://www.patreon.com/imbateam")}
-              src="./runtime/assets/patreon.png"
-            />
-            <img
-              onClick={() => openUrl("https://ko-fi.com/imbateam")}
-              src="./runtime/assets/kofi.png"
-              style={iconStyle}
-            />
-          </div>
-        </div>
+        <Home
+          components={
+            components["loose"]
+              ? components["loose"]
+                  .filter(homeComponentsFilter)
+                  .sort(orderSort)
+                  .map(({ JSXElement, component }) => (
+                    <PluginContext.Provider value={component}>
+                      <Component
+                        key={component.id}
+                        component={component}
+                        JSXElement={JSXElement}
+                      />
+                    </PluginContext.Provider>
+                  ))
+              : []
+          }
+        />
       )}
 
       <div

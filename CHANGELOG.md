@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimap size is now configurable
 - Terrain now has mirrored edge tiles
 - Anisotropy graphics setting is now configurable via the UI
+- Add Community Section to home page
+- Added proxyFetch and useRSSItems utilities to plugin api
 
 ## Changed
 - Global Settings is no longer a plugin and now built into the app

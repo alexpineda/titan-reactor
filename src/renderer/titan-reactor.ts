@@ -66,6 +66,7 @@ log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
 
 window.addEventListener("message", evt => {
   if (evt.data?.type === SYSTEM_EVENT_OPEN_URL) {
+    log.verbose(`@open-url: ${evt.data.payload}`);
     openUrl(evt.data.payload);
   }
 })

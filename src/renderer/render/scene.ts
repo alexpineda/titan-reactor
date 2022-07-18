@@ -95,8 +95,6 @@ export class Scene extends ThreeScene {
       const edgeMaterial = new MeshBasicMaterial({
         map: q.material.map
       });
-      edgeMaterial.transparent = true;
-      edgeMaterial.opacity = 0.5;
 
       if (qx === 0 && qy === 0) {
         const mesh = createMesh(q, edgeMaterial);

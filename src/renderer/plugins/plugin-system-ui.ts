@@ -15,6 +15,20 @@ import semver from "semver";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 
+const createMeta = (id: string, url: string) => {
+    const meta = document.createElement("meta");
+    meta.id = id;
+    meta.httpEquiv = "Content-Security-Policy";
+    meta.content = url;
+
+    const el = document.getElementById(id);
+    if (el) {
+        el.remove();
+    }
+
+    document.head.appendChild(meta);
+}
+
 const screenChanged = (screen: ScreenStore) => {
     return {
         type: UI_PLUGIN_EVENT_SCREEN_CHANGED,
@@ -120,7 +134,14 @@ export class PluginSystemUI {
             [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload,
         })
 
+        var iframeLoaded = false;
         this.#iframe.onload = async () => {
+            if (iframeLoaded) {
+                iframeLoaded = false;
+                this.refresh();
+                return;
+            }
+            iframeLoaded = true;
             // for plugin dev reload only
             {
                 const screenState = useScreenStore.getState();
@@ -186,6 +207,9 @@ export class PluginSystemUI {
 
         this.refresh = () => {
             const settings = settingsStore().data;
+
+            // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
+
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
 

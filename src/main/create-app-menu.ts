@@ -39,21 +39,6 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
         { role: "togglefullscreen" },
         { type: "separator" },
         {
-          label: "Reload App",
-          click: async () => {
-            await settings.initialize();
-            browserWindows.main?.webContents.reload();
-          }
-        },
-        {
-          label: "Reload All Plugins",
-          click: async () => {
-            await settings.initialize();
-            browserWindows.main?.webContents.send(RELOAD_PLUGINS);
-          }
-        },
-        { type: "separator" },
-        {
           label: "View &Plugin File(s)",
           click: function () {
             shell.openPath(settings.get().directories.plugins);
@@ -78,14 +63,28 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
       submenu: [
         {
           label: "&Command Center",
+          sublabel: "F10",
           click: function () {
             onOpenPluginManager();
           },
         },
+        {
+          label: "Restart Application",
+          sublabel: "Ctrl+R",
+          click: async () => {
+            await settings.initialize();
+            browserWindows.main?.webContents.reload();
+          }
+        },
+        {
+          label: "Reload Plugins",
+          click: async () => {
+            await settings.initialize();
+            browserWindows.main?.webContents.send(RELOAD_PLUGINS);
+          }
+        },
         { type: "separator" },
         { role: "toggledevtools" },
-
-        { type: "separator" },
         {
           label: "&IScriptah - Animation Viewer",
           click: function () {
