@@ -1,5 +1,6 @@
 import path from "path";
 import {
+  Color,
   CubeTextureLoader,
   DirectionalLight,
   Group,
@@ -14,6 +15,7 @@ import {
 
 import { TerrainInfo, TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
+import { Layers } from "./layers";
 
 
 function sunlight(mapWidth: number, mapHeight: number) {
@@ -53,8 +55,8 @@ export class Scene extends ThreeScene {
   constructor({
     mapWidth,
     mapHeight,
-    terrain,
-  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "terrain" | "tileset">) {
+    mesh: terrain,
+  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "mesh" | "tileset">) {
     super();
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
@@ -64,12 +66,17 @@ export class Scene extends ThreeScene {
     this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 1);
     this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
 
+    this.hemilight.layers.enableAll();
+    this.sunlight.layers.enableAll();
+
     this.add(this.hemilight);
     this.add(this.sunlight);
     this.addTerrain(terrain);
     this.#skybox = this.skybox("sparse");
+    this.disableSkybox();
 
     this.#borderTiles = new Group();
+    this.#borderTiles.layers.enable(Layers.Terrain);
     this.add(this.#borderTiles);
 
     // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
@@ -93,7 +100,8 @@ export class Scene extends ThreeScene {
       const qy = q.userData.qy;
 
       const edgeMaterial = new MeshBasicMaterial({
-        map: q.material.map
+        map: q.material.map,
+        color: new Color(0x666666)
       });
 
       if (qx === 0 && qy === 0) {
@@ -188,7 +196,7 @@ export class Scene extends ThreeScene {
   }
 
   disableSkybox() {
-    this.background = null;
+    this.background = new Color(0x000000);
   }
 
   enableSkybox() {

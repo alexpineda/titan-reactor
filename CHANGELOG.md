@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anisotropy graphics setting is now configurable via the UI
 - Add Community Section to home page
 - Added proxyFetch and useRSSItems utilities to plugin api
+- zoomCameraToSelection plugin api
 
 ## Changed
 - Global Settings is no longer a plugin and now built into the app
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More optimizations to reduce GC usage, caused minor bugs in audio which will be addressed
 - HD is now the default (rather than HD2)
 - Anisotropy default has changed from high to low
+- Flying units are further affected by terrain height
 
 ### Fixed
 - Regression in floating sprites is fixed

@@ -23,11 +23,11 @@ export type Settings = {
         antialias: boolean;
         pixelRatio: "high" | "med" | "low";
         anisotropy: "high" | "med" | "low";
-        gamma: number;
         terrainShadows: boolean;
     },
     game: {
         stopFollowingOnClick: boolean,
+        minimapSize: number;
     },
     util: {
         sanityCheckReplayCommands: boolean,

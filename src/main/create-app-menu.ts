@@ -63,14 +63,14 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
       submenu: [
         {
           label: "&Command Center",
-          sublabel: "F10",
+          accelerator: "F10",
           click: function () {
             onOpenPluginManager();
           },
         },
+        { type: "separator" },
         {
           label: "Restart Application",
-          sublabel: "Ctrl+R",
           click: async () => {
             await settings.initialize();
             browserWindows.main?.webContents.reload();

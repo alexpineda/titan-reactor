@@ -26,7 +26,7 @@ export interface CameraModePlugin extends NativePlugin {
 
     onExitCameraMode?: (target: Vector3, position: Vector3) => void;
 
-    onSetComposerPasses: (clearPass: any, renderPass: any, fogOfWarEffect: any) => {
+    onSetComposerPasses: (renderPass: any, fogOfWarEffect: any) => {
         passes?: any[];
         effects?: any[];
     };

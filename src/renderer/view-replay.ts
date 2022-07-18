@@ -1,12 +1,12 @@
 import { debounce } from "lodash";
-import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
+import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh, Object3D } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
-import { ClearPass, RenderPass, EffectPass } from "postprocessing";
+import { RenderPass, EffectPass } from "postprocessing";
 
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
@@ -46,7 +46,7 @@ import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { getOpenBW } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
-import { applyCameraDirectionToImageFrame, getDirection32 } from "./utils/camera-utils";
+import { applyCameraDirectionToImageFrame, getDirection32, zoomCameraToSelection } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
@@ -166,9 +166,9 @@ async function TitanReactorGame(
   terrain.setAnisotropy(settings.graphics.anisotropy);
 
   const gameSurface = new GameCanvasTarget(mapWidth, mapHeight);
-  gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings));
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings.graphics.pixelRatio));
   document.body.appendChild(gameSurface.canvas);
-  gameStore().setDimensions(gameSurface.getRect());
+  gameStore().setDimensions(gameSurface.getRect(settings.game.minimapSize));
   janitor.add(gameSurface);
 
   const _regainPointerLock = () => {
@@ -188,7 +188,6 @@ async function TitanReactorGame(
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
   const camera = new DirectionalCamera(15, gameSurface.width / gameSurface.height, 0.1, 500);
-  camera.layers.disable(Layers.PictureInPicture);
 
   const minimapMouse = new MinimapMouse(
     minimapSurface,
@@ -401,7 +400,7 @@ async function TitanReactorGame(
       minimapSurface.canvas.style.display = "none";
     }
 
-    const rect = gameSurface.getRect();
+    const rect = gameSurface.getRect(settings.game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
@@ -413,14 +412,6 @@ async function TitanReactorGame(
       newControls.cameraShake.enabled = false;
     }
 
-    // if (cameraMode.boundByMap) {
-    //   setBoundary(newControls.orbit, mapWidth, mapHeight);
-    //   newControls.rested = false;
-    //   newControls.orbit.addEventListener('rest', () => {
-    //     newControls.rested = true;
-    //   })
-    // }
-
     if (!cameraMode.unitSelection) {
       selectedUnitsStore().clearSelectedUnits();
     }
@@ -431,18 +422,27 @@ async function TitanReactorGame(
       scene.enableSkybox();
     }
 
-    const clearPass = new ClearPass(camera);
+    // const clearPass = new ClearPass(camera);
     const renderPass = new RenderPass(scene, camera);
+
+    // const terrainRenderPass = new RenderPass(scene, camera);
+    // terrainRenderPass.clearPass.enabled = true;
+    // terrainRenderPass.selection = new Selection([terrain.mesh], Layers.Terrain);
+
+    // const unitsRenderPass = new RenderPass(scene, camera);
+    // unitsRenderPass.clearPass.enabled = false;
+    // unitsRenderPass.selection = new Selection(undefined, Layers.Units);
 
     const fogOfWarEffect = new FogOfWarEffect();
     fogOfWar.setEffect(fogOfWarEffect);
     fogOfWarEffect.blendMode.opacity.value = fogOfWar.enabled ? (cameraMode.fogOfWar ?? 1) : 0;
 
     if (cameraMode.onSetComposerPasses) {
-      renderer.setCameraModeEffectsAndPasses(cameraMode.onSetComposerPasses(clearPass, renderPass, fogOfWarEffect));
+      renderer.setCameraModeEffectsAndPasses(cameraMode.onSetComposerPasses(renderPass, fogOfWarEffect));
     } else {
       renderer.setCameraModeEffectsAndPasses({
-        passes: [clearPass, renderPass, new EffectPass(camera, fogOfWarEffect)]
+        effects: [fogOfWarEffect],
+        passes: [renderPass, new EffectPass(camera, fogOfWarEffect)]
       });
     }
     renderer.changeCamera(camera);
@@ -725,9 +725,9 @@ async function TitanReactorGame(
   }
 
   const _sceneResizeHandler = () => {
-    gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings));
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings.graphics.pixelRatio));
 
-    const rect = gameSurface.getRect();
+    const rect = gameSurface.getRect(settings.game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
@@ -1172,7 +1172,7 @@ async function TitanReactorGame(
     const spriteX = pxToGameUnit.x(x);
     const spriteZ = pxToGameUnit.y(y);
     let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-    const flyingY = isFlying ? 5.5 : spriteY;
+    const flyingY = isFlying ? spriteY / terrain.geomOptions.displacementScale + terrain.geomOptions.displacementScale + 1 : spriteY;
 
     v2.set(spriteX, spriteZ);
     v.set(spriteX, flyingY, spriteZ);
@@ -1229,6 +1229,7 @@ async function TitanReactorGame(
       sprite.userData.typeId = spriteData.typeId;
       sprite.userData.needsMatrixUpdate = true;
       sprite.userData.renderTestCount = 0;
+      delete sprite.userData.fixedY;
     } else {
       sprite.userData.needsMatrixUpdate = false;
     }
@@ -1240,6 +1241,12 @@ async function TitanReactorGame(
     }
 
     const dat = bwDat.sprites[spriteData.typeId];
+
+    if (spriteData.owner < 8) {
+      sprite.layers.enable(Layers.Units);
+    } else {
+      sprite.layers.disable(Layers.Units);
+    }
 
     // doodads and resources are always visible
     // show units as fog is lifting from or lowering to explored
@@ -1283,7 +1290,6 @@ async function TitanReactorGame(
       const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
       const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
 
-      //FIXME:L make camera shake params more accessible
       if (controls.cameraMode.cameraShake && bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
         const distance = camera.position.distanceTo(_spritePos);
         if (distance < MaxShakeDistance) {
@@ -1588,7 +1594,7 @@ async function TitanReactorGame(
 
 
   // apply initial terrain shadow settings
-  terrain.terrain.traverse(o => {
+  terrain.mesh.traverse(o => {
     if (o instanceof Mesh) {
       o.castShadow = settings.graphics.terrainShadows;
       o.receiveShadow = settings.graphics.terrainShadows;
@@ -1741,13 +1747,12 @@ async function TitanReactorGame(
   {
     const unsub = useSettingsStore.subscribe(({ data: newSettings }) => {
 
-      renderer.gamma = newSettings.graphics.gamma;
       audioMixer.masterVolume = newSettings.audio.global;
       audioMixer.musicVolume = newSettings.audio.music;
       audioMixer.soundVolume = newSettings.audio.sound;
 
       if (settings.graphics.terrainShadows !== newSettings.graphics.terrainShadows) {
-        terrain.terrain.traverse(o => {
+        terrain.mesh.traverse(o => {
           if (o instanceof Mesh) {
             o.castShadow = newSettings.graphics.terrainShadows;
             o.receiveShadow = newSettings.graphics.terrainShadows;
@@ -1756,7 +1761,7 @@ async function TitanReactorGame(
         renderer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
       }
 
-      if (settings.graphics.pixelRatio !== newSettings.graphics.pixelRatio) {
+      if (settings.graphics.pixelRatio !== newSettings.graphics.pixelRatio || settings.game.minimapSize !== newSettings.game.minimapSize) {
         _sceneResizeHandler();
       }
 
@@ -1842,12 +1847,15 @@ async function TitanReactorGame(
       togglePause,
       pxToGameUnit,
       fogOfWar,
+      zoomCameraToSelection: (selection: Object3D[], fitRatio = 1.2) => {
+        return zoomCameraToSelection(camera, controls.orbit, selection, fitRatio);
+      },
       terrain: {
         tileset: terrain.tileset,
         mapWidth: terrain.mapWidth,
         mapHeight: terrain.mapHeight,
         getTerrainY: terrain.getTerrainY,
-        terrain: terrain.terrain
+        mesh: terrain.mesh
       },
       getFrame() {
         return currentBwFrame;

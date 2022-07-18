@@ -26,6 +26,9 @@ vec3 computeWorldPosition(const in vec2 uv, const in float depth) {
 
 float sampleFog(const in vec2 uv) {
 
+	if (uv.x <= 0. || uv.y <= 0. || uv.x >= 1. || uv.y >= 1.) {
+		return 0.1;
+	}
 	return texture2D(fog, uv).r;
 
 }

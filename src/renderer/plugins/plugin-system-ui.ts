@@ -15,19 +15,19 @@ import semver from "semver";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 
-const createMeta = (id: string, url: string) => {
-    const meta = document.createElement("meta");
-    meta.id = id;
-    meta.httpEquiv = "Content-Security-Policy";
-    meta.content = url;
+// const createMeta = (id: string, url: string) => {
+//     const meta = document.createElement("meta");
+//     meta.id = id;
+//     meta.httpEquiv = "Content-Security-Policy";
+//     meta.content = url;
 
-    const el = document.getElementById(id);
-    if (el) {
-        el.remove();
-    }
+//     const el = document.getElementById(id);
+//     if (el) {
+//         el.remove();
+//     }
 
-    document.head.appendChild(meta);
-}
+//     document.head.appendChild(meta);
+// }
 
 const screenChanged = (screen: ScreenStore) => {
     return {

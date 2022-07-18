@@ -20,7 +20,8 @@ export const defaultSettings: Settings = {
     sound: 1
   },
   game: {
-    stopFollowingOnClick: true
+    stopFollowingOnClick: true,
+    minimapSize: 0.25
   },
   util: {
     sanityCheckReplayCommands: true,
@@ -30,7 +31,6 @@ export const defaultSettings: Settings = {
     antialias: true,
     pixelRatio: "med",
     anisotropy: "high",
-    gamma: 0.9,
     terrainShadows: true
   },
   plugins: {

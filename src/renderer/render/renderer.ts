@@ -55,17 +55,6 @@ export class TitanRenderer {
         this.getWebGLRenderer();
     }
 
-    get gamma() {
-        return this.#gamma;
-    }
-
-    set gamma(value: number) {
-        this.#gamma = value;
-        if (this.#renderer) {
-            this.#renderer.toneMappingExposure = value;
-        }
-    }
-
     getWebGLRenderer() {
         if (this.#renderer) {
             return this.#renderer;

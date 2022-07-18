@@ -11,6 +11,7 @@ import * as sd from "./sd";
 import * as hd from "./hd";
 import { anisotropyOptions } from "@utils/renderer-utils";
 import { UnitTileScale } from "@core/image";
+import { Layers } from "../../render/layers";
 
 type TerrainMeshSettings = {
   textureResolution: UnitTileScale;
@@ -28,7 +29,6 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     palette: tilesetBuffers.palette, mapWidth: chk.size[0], mapHeight: chk.size[1], mapData: bitmaps,
   }
   );
-
 
   const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
 
@@ -59,6 +59,7 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   );
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
+  terrain.layers.enable(Layers.Terrain);
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 
@@ -75,9 +76,10 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     mapWidth,
     mapHeight,
     minimapBitmap,
-    terrain,
+    mesh: terrain,
     creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
     creepTextureUniform: dataTextures.creepTextureUniform,
+    geomOptions,
     setAnisotropy: (anisotropy: string) => {
       const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
       creepTexture.texture.anisotropy = value;

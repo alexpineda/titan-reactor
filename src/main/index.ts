@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, globalShortcut, dialog, nativeTheme } from "electron";
+import { app, powerSaveBlocker, dialog, nativeTheme } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -158,28 +158,4 @@ if (!gotTheLock) {
     contents.setWindowOpenHandler(() => ({ action: "deny" }));
   });
 
-  app.on('browser-window-focus', function (event) {
-
-    globalShortcut.register("CommandOrControl+R", async () => {
-      await settings.initialize();
-      // @ts-ignore
-      event.sender.webContents.reload();
-    });
-
-    globalShortcut.register("F5", () => {
-      console.log("F5 is pressed: Shortcut Disabled");
-    });
-
-    globalShortcut.register("F10", () => {
-      createConfigurationWindow();
-    });
-
-
-  });
-
-  app.on('browser-window-blur', function () {
-    globalShortcut.unregister('CommandOrControl+R');
-    globalShortcut.unregister('F10');
-    globalShortcut.unregister('F5');
-  });
 }

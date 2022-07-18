@@ -26,7 +26,6 @@ export default class FogOfWar {
             UnsignedByteType,
         );
 
-
         texture.wrapS = ClampToEdgeWrapping;
         texture.wrapT = ClampToEdgeWrapping;
         texture.magFilter = LinearFilter;
@@ -42,7 +41,7 @@ export default class FogOfWar {
         this.effect = effect;
         this.effect.fog = this.texture;
         this.effect.fogResolution = new Vector2(this.imageData.width, this.imageData.height);
-        this.effect.fogUvTransform = new Vector4(0.5, 0.5, 1 / this.imageData.height, 1 / this.imageData.width);
+        this.effect.fogUvTransform = new Vector4(0.5, 0.5, 0.99 / this.imageData.height, 0.99 / this.imageData.width);
     }
 
     update(playerVision: number, camera: Camera) {

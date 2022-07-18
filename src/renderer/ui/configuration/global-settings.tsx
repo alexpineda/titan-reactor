@@ -70,6 +70,15 @@ export const GlobalSettings = () => {
       value: settings.data.game.stopFollowingOnClick,
       path: "game",
     },
+    minimapSize: {
+      folder: "Game",
+      label: "Minimap Size % Height",
+      min: 0.15,
+      max: 0.35,
+      step: 0.025,
+      value: settings.data.game.minimapSize,
+      path: "game",
+    },
     pixelRatio: {
       folder: "Graphics",
       label: "Pixel Ratio",

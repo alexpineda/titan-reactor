@@ -1,8 +1,6 @@
 import { GameAspect, GameCanvasDimensions } from "common/types";
 import { CanvasTarget } from "../image";
 
-const MinimapRatio = .25;
-
 export class GameCanvasTarget extends CanvasTarget {
   top = 0;
   left = 0;
@@ -85,11 +83,11 @@ export class GameCanvasTarget extends CanvasTarget {
     document.exitPointerLock();
   }
 
-  getRect(): GameCanvasDimensions {
+  getRect(minimapRatio: number): GameCanvasDimensions {
     const max = Math.max(this.#mapWidth, this.#mapHeight);
     const wAspect = this.#mapWidth / max;
     const hAspect = this.#mapHeight / max;
-    const minimapSize = this.height * MinimapRatio;
+    const minimapSize = this.height * minimapRatio;
 
     return {
       left: this.left,

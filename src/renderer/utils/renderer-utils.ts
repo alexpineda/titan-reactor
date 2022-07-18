@@ -13,11 +13,11 @@ export const anisotropyOptions = {
 
 export const rendererIsDev = process.env.NODE_ENV === "development";
 
-export const getPixelRatio = (settings: Settings) => {
+export const getPixelRatio = (pixelRatio: Settings["graphics"]["pixelRatio"]) => {
     const pixelRatios = {
         high: window.devicePixelRatio,
         med: 1,
         low: 0.75
     };
-    return pixelRatios[settings.graphics.pixelRatio]
+    return pixelRatios[pixelRatio]
 }
