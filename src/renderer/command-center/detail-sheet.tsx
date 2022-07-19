@@ -7,7 +7,6 @@ import { Tab, Tabs } from "./tabs";
 import ErrorBoundary from "./error-boundary";
 
 const permissionDescriptions = {
-  "settings.write": "Allows the plugin to write to the settings file",
   "replay.file": "Allows the plugin to access the replay file entirely",
   "replay.commands":
     "Allows the plugin to access the replay commands like select units, move and attack.",

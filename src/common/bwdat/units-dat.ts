@@ -119,10 +119,10 @@ export type UnitDATIncomingType = {
   unitSize: number;
   armor: number;
 
-  readySound: string | number;
-  whatSound: string[];
-  yesSound: string[];
-  pissSound: string[];
+  readySound: number;
+  whatSound: number[];
+  yesSound: number[];
+  pissSound: number[];
 
   whatSoundStart: number;
   whatSoundEnd: number;
@@ -269,9 +269,9 @@ export class UnitsDAT extends DAT<UnitDATIncomingType> {
       const loadSounds = (
         start: keyof UnitDATIncomingType,
         end: keyof UnitDATIncomingType
-      ): string[] => {
+      ): number[] => {
         if (entry[start] && entry[end]) {
-          return range(0, entry[end] - entry[start]).map((s) => this.sounds[s + entry[start]].file);
+          return range(0, (entry[end] - entry[start]) + 1).map((s) => s + entry[start]);
         }
         return [];
       };
@@ -291,7 +291,6 @@ export class UnitsDAT extends DAT<UnitDATIncomingType> {
           "yesSoundEnd" as keyof UnitDATIncomingType
         ),
 
-        readySound: this.sounds[entry.readySound as number].file,
         name: this.stats[i],
         index: i,
       };

@@ -163,3 +163,12 @@ export const onBeforeRender = (
 export const onRender = (delta: number, elapsed: number) => {
     nativePluginSystem.onRender(delta, elapsed);
 };
+
+
+export const getByName = (id: string) => {
+    return nativePluginSystem.getByName(id);
+}
+
+export const doMacroAction = (...args: Parameters<PluginSystemNative["doMacroAction"]>) => {
+    nativePluginSystem.doMacroAction(...args);
+}

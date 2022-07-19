@@ -8,13 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Plugin API is Now 2.0.0
 ## Added
+- Macro hotkey system is here!
 - Minimap size is now configurable
 - Terrain now has mirrored edge tiles
 - Anisotropy graphics setting is now configurable via the UI
 - Add Community Section to home page
 - Plugins:
+  -  New plugin "Play Unit Selection Sound"
   -  Can now be marked as deprecated via config.system.deprecated = true
   -  `titan-reactor` module added exports getFriendlyTime, getRSSItems, proxyFetch
+  -  new playSound() api
 
 ## Changed
 - Global Settings is no longer a plugin and now built into the app
@@ -34,6 +37,7 @@ Plugin API is Now 2.0.0
 - Plugin API: 
   - Deprecated getFPS. 
   - Deprecated maxFrame and time fields from the useFrame() hook, use useReplay() and getFriendlyTime() instead
+- Keyboard shortcuts are no longer part of plugins and are now configured with the hotkey macro system.
 
 ## [0.5.3]
 

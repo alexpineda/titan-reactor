@@ -1,7 +1,7 @@
 
 import { Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
-import { CameraModePlugin } from "./camera-mode";
+import { CameraController } from "common/types";
 
 const passive = { passive: true };
 
@@ -93,9 +93,9 @@ export class CameraMouse {
 
     }
 
-    update(delta: number, elapsed: number, cameraMode: CameraModePlugin) {
+    update(delta: number, elapsed: number, cameraController: CameraController) {
 
-        cameraMode.isActiveCameraMode && cameraMode.onCameraMouseUpdate && cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
+        cameraController.isActiveCameraMode && cameraController.onCameraMouseUpdate && cameraController.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
 
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;

@@ -37,4 +37,7 @@ export const defaultSettings: Settings = {
     serverPort: 8080,
     enabled: [],
   },
+  macros: {
+    hotkeys: []
+  }
 };

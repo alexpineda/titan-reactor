@@ -1,3 +1,4 @@
+import { Macro } from "renderer/command-center/macros";
 import type { InitializedPluginPackage } from "../plugin";
 
 export type Settings = {
@@ -37,6 +38,9 @@ export type Settings = {
         serverPort: number;
         developmentDirectory?: string;
         enabled: string[],
+    },
+    macros: {
+        hotkeys: Macro[];
     }
 };
 

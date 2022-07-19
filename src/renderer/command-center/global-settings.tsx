@@ -1,4 +1,5 @@
 import { useSettingsStore } from "@stores/settings-store";
+import { Settings } from "common/types";
 import { Leva, useControls } from "leva";
 import { useState } from "react";
 import { mapConfigToLeva } from "./map-config-to-leva";
@@ -15,91 +16,98 @@ const levaConfigToAppConfig = (
   }, {} as Record<string, any>);
 };
 
+export const getLevaConfigField = (settings: Settings, fields: string[]) => {
+  const config = generateLevaGlobalConfig(settings);
+  return config[fields[fields.length -1] as keyof typeof config];
+}
+
+export const generateLevaGlobalConfig = (settings: Settings) => ({
+  starcraft: {
+    folder: "Directories",
+    label: "Starcraft",
+    value: settings.directories.starcraft,
+    path: "directories",
+    type: "directory",
+  },
+  maps: {
+    folder: "Directories",
+    label: "Maps",
+    value: settings.directories.maps,
+    path: "directories",
+    type: "directory",
+  },
+  replays: {
+    folder: "Directories",
+    label: "Replays",
+    value: settings.directories.replays,
+    path: "directories",
+    type: "directory",
+  },
+  global: {
+    folder: "Audio",
+    label: "Global Volume",
+    value: settings.audio.global,
+    min: 0,
+    max: 1,
+    path: "audio",
+  },
+  music: {
+    folder: "Audio",
+    label: "Music Volume",
+    value: settings.audio.music,
+    min: 0,
+    max: 1,
+    path: "audio",
+  },
+  sound: {
+    folder: "Audio",
+    label: "Sound Volume",
+    value: settings.audio.sound,
+    min: 0,
+    max: 1,
+    path: "audio",
+  },
+  stopFollowingOnClick: {
+    folder: "Game",
+    label: "Click anywhere to stop following units",
+    value: settings.game.stopFollowingOnClick,
+    path: "game",
+  },
+  minimapSize: {
+    folder: "Game",
+    label: "Minimap Size % Height",
+    min: 0.15,
+    max: 0.35,
+    step: 0.025,
+    value: settings.game.minimapSize,
+    path: "game",
+  },
+  pixelRatio: {
+    folder: "Graphics",
+    label: "Pixel Ratio",
+    value: settings.graphics.pixelRatio,
+    options: ["low", "med", "high"],
+    path: "graphics",
+  },
+  anisotropy: {
+    folder: "Graphics",
+    label: "Anisotropy",
+    value: settings.graphics.anisotropy,
+    options: ["low", "med", "high"],
+    path: "graphics",
+  },
+  terrainShadows: {
+    folder: "Graphics",
+    label: "Terrain Shadows",
+    value: settings.graphics.terrainShadows,
+    path: "graphics",
+  },
+});
+
 export const GlobalSettings = () => {
   const settings = useSettingsStore();
 
-  const [state, setState] = useState({
-    starcraft: {
-      folder: "Directories",
-      label: "Starcraft",
-      value: settings.data.directories.starcraft,
-      path: "directories",
-      type: "directory",
-    },
-    maps: {
-      folder: "Directories",
-      label: "Maps",
-      value: settings.data.directories.maps,
-      path: "directories",
-      type: "directory",
-    },
-    replays: {
-      folder: "Directories",
-      label: "Replays",
-      value: settings.data.directories.replays,
-      path: "directories",
-      type: "directory",
-    },
-    global: {
-      folder: "Audio",
-      label: "Global Volume",
-      value: settings.data.audio.global,
-      min: 0,
-      max: 1,
-      path: "audio",
-    },
-    music: {
-      folder: "Audio",
-      label: "Music Volume",
-      value: settings.data.audio.music,
-      min: 0,
-      max: 1,
-      path: "audio",
-    },
-    sound: {
-      folder: "Audio",
-      label: "Sound Volume",
-      value: settings.data.audio.sound,
-      min: 0,
-      max: 1,
-      path: "audio",
-    },
-    stopFollowingOnClick: {
-      folder: "Game",
-      label: "Click anywhere to stop following units",
-      value: settings.data.game.stopFollowingOnClick,
-      path: "game",
-    },
-    minimapSize: {
-      folder: "Game",
-      label: "Minimap Size % Height",
-      min: 0.15,
-      max: 0.35,
-      step: 0.025,
-      value: settings.data.game.minimapSize,
-      path: "game",
-    },
-    pixelRatio: {
-      folder: "Graphics",
-      label: "Pixel Ratio",
-      value: settings.data.graphics.pixelRatio,
-      options: ["low", "med", "high"],
-      path: "graphics",
-    },
-    anisotropy: {
-      folder: "Graphics",
-      label: "Anisotropy",
-      value: settings.data.graphics.anisotropy,
-      options: ["low", "med", "high"],
-      path: "graphics",
-    },
-    terrainShadows: {
-      folder: "Graphics",
-      label: "Terrain Shadows",
-      value: settings.data.graphics.terrainShadows,
-      path: "graphics",
-    },
-  });
+  const [state, setState] = useState(generateLevaGlobalConfig(settings.data));
 
   const controls = mapConfigToLeva("global-settings", state, (_, config) => {
     setState(config);

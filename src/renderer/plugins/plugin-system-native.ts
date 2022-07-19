@@ -1,89 +1,17 @@
 import * as log from "@ipc/log";
-import { InitializedPluginPackage } from "common/types";
-import * as THREE from "three";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
-import * as postprocessing from "postprocessing"
-import cameraControls from "camera-controls"
-import * as enums from "common/enums";
-
+import { CameraController, InitializedPluginPackage, NativePlugin, PluginPrototype } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./hooks";
-import { CameraModePlugin } from "../input/camera-mode";
 import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { Layers } from "../render/layers";
+import { MacroActionEffect, getMacroActionValue, MacroAction } from "../command-center/macros";
+import { createCompartment } from "@utils/ses-util";
 
-const STDLIB = {
-    CSS2DObject
-}
-
-interface PluginPrototype {
-    id: string;
-    config?: {
-        [key: string]: any
-    };
-    /**
-     *SSpecial permissions specified in the package.json.
-     */
-    $$permissions: {
-        [key: string]: boolean
-    },
-    /**
-     * Unprocessed configuration data from the package.json.
-     */
-    $$config: {
-        [key: string]: any
-    },
-    /**
-     * Allows a plugin to update it's own config key/value store
-     */
-    setConfig: (key: string, value: any) => any;
-}
-
-export interface NativePlugin extends PluginPrototype {
-    id: string;
-    name: string;
-    /**
-     * Called when a plugin has it's configuration changed by the user
-     */
-    onConfigChanged?: (oldConfig: {}) => void;
-    /**
-     * Called on a plugins initialization for convenience
-     */
-    onPluginCreated?: () => void;
-    /**
-     * CaLLed when a plugin must release its resources
-     */
-    onPluginDispose?: () => void;
-    /**
-     * Called when an React component sends a message to this window
-     */
-    onUIMessage?: (message: any) => void;
-    /**
-     * Called just before render
-     */
-    onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
-    /**
-     * Called after rendering is done
-     */
-    onRender?: (delta: number, elapsed: number) => void;
-    /**
-     * Called on a game frame
-     */
-    onFrame?: (frame: number, commands?: any[]) => void;
-    config: {
-        cameraModeKey?: string
-    };
-    /**
-     * Used for message passing in hooks
-     */
-    context: any;
-}
 
 type InternalHookOptions = {
     postFn?: Function;
@@ -136,10 +64,15 @@ const pluginProto: PluginPrototype = {
     $$config: {},
 
     setConfig(key: string, value: any) {
-        if (this.$$config?.[key]?.value !== undefined) {
-            this.$$config[key].value = value;
-            updatePluginsConfig(this.id, this.$$config);
+        if (!(key in this.$$config)) {
+            log.warning(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
+            return undefined;
         }
+
+        // TODO: use leva detection algo here to determine if values are in bounds
+
+        this.$$config[key].value = value;
+        updatePluginsConfig(this.id, this.$$config);
     }
 };
 
@@ -178,14 +111,8 @@ export class PluginSystemNative {
                 throw new Error("No native source provided");
             }
 
-            const modules = { THREE, STDLIB, postprocessing, Janitor, Layers, enums, cameraControls }
-
-            const c = new Compartment({
-                console: harden(console),
-                Math,
-                modules
-            });
-            const pluginRaw = c.globalThis.Function(pluginPackage.nativeSource!)(modules);
+            const c = createCompartment();
+            const pluginRaw = c.globalThis.Function(pluginPackage.nativeSource!)();
 
             //override but give a truthy value
             pluginPackage.nativeSource = "true";
@@ -194,7 +121,7 @@ export class PluginSystemNative {
             pluginRaw.name = pluginPackage.name;
             //FIXME: freeze config but allow us to edit for saving
             // possibly use a Weakmap instead of attaching to object
-            pluginRaw.$$config = { ...pluginPackage.config };
+            pluginRaw.$$config = JSON.parse(JSON.stringify(pluginPackage.config));
 
             const permissions = (pluginPackage.config?.system?.permissions ?? []).reduce((acc: Record<string, boolean>, permission: string) => {
                 if (VALID_PERMISSIONS.includes(permission)) {
@@ -262,17 +189,21 @@ export class PluginSystemNative {
     }
 
     getDefaultCameraModePlugin() {
-        const plugin = this.#nativePlugins.find(p => p.config?.cameraModeKey === "Escape");
+        const plugin = this.#nativePlugins.find(p => p.name === "@titan-reactor-plugins/camera-standard");
 
         if (plugin) {
-            return plugin as unknown as CameraModePlugin;
+            return plugin as unknown as CameraController;
         }
 
         throw new Error("No default camera mode plugin found. Please provide a cameraModeKey in the plugin config with value of Escape.");
     }
 
     getCameraModePlugins() {
-        return this.#nativePlugins.filter(p => p.config.cameraModeKey) as CameraModePlugin[];
+        return this.#nativePlugins.filter(p => p.isCameraController) as CameraController[];
+    }
+
+    getByName(name: string) {
+        return this.#nativePlugins.find(p => p.name === name);
     }
 
     #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async: boolean = false) {
@@ -426,5 +357,31 @@ export class PluginSystemNative {
             }
         }
         return context;
+    }
+
+    doMacroAction(action: MacroAction) {
+        const plugin = this.getByName(action.targetId!);
+        if (!plugin) {
+            log.error(`@macro-action: Plugin ${action.targetId} not found`);
+            return;
+        }
+
+        if (action.effect === MacroActionEffect.CallMethod) {
+            const key = `onMacro${action.field![0][0].toUpperCase()}${action.field![0].substring(1)}`
+            if (typeof plugin[key as keyof NativePlugin] === "function") {
+                try {
+                    plugin[key as keyof NativePlugin]();
+                } catch (e) {
+                    log.error(withErrorMessage(`@macro-action: ${action.targetId} ${key}`, e));
+                }
+            }
+        } else {
+            const key = action.field![0];
+            const field = plugin.$$config[key];
+            if (field === undefined) {
+                return;
+            }
+            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max));
+        }
     }
 }

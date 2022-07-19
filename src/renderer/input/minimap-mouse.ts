@@ -1,7 +1,7 @@
+import { CameraController } from "common/types";
 import { MathUtils, Vector3 } from "three";
 import { CanvasTarget } from "../image";
 import Janitor from "../utils/janitor";
-import { CameraModePlugin } from "./camera-mode";
 
 export interface MinimapEvent {
   e: MouseEvent;
@@ -109,10 +109,10 @@ export class MinimapMouse extends EventTarget {
 
   }
 
-  update(cameraMode: CameraModePlugin) {
+  update(cameraController: CameraController) {
     if (!this.enabled) return;
 
-    cameraMode.isActiveCameraMode && cameraMode.onMinimapDragUpdate && cameraMode.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
+    cameraController.isActiveCameraMode && cameraController.onMinimapDragUpdate && cameraController.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
 
     this.#isDragStart = false;
 

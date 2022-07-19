@@ -2,8 +2,7 @@ import { Vector2 } from "three";
 
 import Janitor from "@utils/janitor";
 import { testKeys } from "@utils/key-utils";
-
-import { CameraModePlugin } from "./camera-mode";
+import { CameraController } from "common/types";
 
 const keyForward = "ArrowUp";
 const keyBackward = "ArrowDown";
@@ -64,8 +63,8 @@ export class CameraKeys {
         this.#janitor.callback(() => this.#el.removeEventListener("keyup", keyUp));
     }
 
-    update(delta: number, elapsed: number, cameraMode: CameraModePlugin) {
-        cameraMode.isActiveCameraMode && cameraMode.onCameraKeyboardUpdate && cameraMode.onCameraKeyboardUpdate(delta, elapsed, this.#move);
+    update(delta: number, elapsed: number, cameraController: CameraController) {
+        cameraController.isActiveCameraMode && cameraController.onCameraKeyboardUpdate && cameraController.onCameraKeyboardUpdate(delta, elapsed, this.#move);
     }
 
     dispose() {

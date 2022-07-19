@@ -1,5 +1,5 @@
 
-import { Vector3 } from "three";
+import { AudioListener, Vector3, Audio } from "three";
 import { SoundDAT } from "common/types";
 import range from "common/utils/range";
 import { SoundChannel } from "./sound-channel";
@@ -24,9 +24,12 @@ export class SoundChannels {
     this.channels = range(0, this.maxChannels).map(() => new SoundChannel(mixer));
   }
 
-  async _load(id: number) {
-    const buffer = await this.loadSoundAsync(id);
-    return await this.mixer.context.decodeAudioData(buffer.slice(0));;
+  async _load(typeId: number) {
+    this.#loading.set(typeId, true);
+    const buffer = await this.loadSoundAsync(typeId);
+    const result = await this.mixer.context.decodeAudioData(buffer.slice(0));
+    this.#loading.delete(typeId);
+    return result
   }
 
   _getAvailableChannel(dat: SoundDAT, typeId: number, unitTypeId: number) {
@@ -71,6 +74,18 @@ export class SoundChannels {
     return availableChannel;
   }
 
+  async playGlobal(typeId: number, volume?: number) {
+    if (typeId === 0 || this.#loading.get(typeId)) {
+      return;
+    }
+    const buffer = this.buffers.get(typeId) ?? await this._load(typeId);
+    const audio = new Audio(this.mixer as unknown as AudioListener);
+
+    audio.setVolume(volume ?? this.mixer.soundVolume)
+    audio.setBuffer(buffer);
+    audio.play();
+  }
+
   play(elapsed: number, typeId: number, unitTypeId: number, dat: SoundDAT, mapCoords: Vector3, volume: number | null, pan: number | null) {
 
 
@@ -97,12 +112,10 @@ export class SoundChannels {
       }
 
       channel.queue(typeId, unitTypeId, mapCoords, dat.flags, dat.priority, volume, pan);
-      this.#loading.set(typeId, true);
 
       this._load(typeId).then(buffer => {
         channel.play(elapsed, buffer);
         this.buffers.set(typeId, buffer);
-        this.#loading.delete(typeId);
       })
     }
   }

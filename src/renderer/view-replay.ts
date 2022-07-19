@@ -11,7 +11,7 @@ import { RenderPass, EffectPass } from "postprocessing";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, CameraController
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types/structs";
@@ -29,7 +29,6 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   MinimapMouse,
-  PluginKeyShortcuts,
   MouseSelectionBox,
   MouseCursor
 } from "./input";
@@ -53,7 +52,6 @@ import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { CameraMouse } from "./input/camera-mouse";
 import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
-import { CameraModePlugin } from "./input/camera-mode";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
@@ -80,6 +78,9 @@ import range from "common/utils/range";
 import DirectionalCamera from "./camera/directional-camera";
 import { inverse } from "@utils/function-utils";
 import { getPixelRatio } from "@utils/renderer-utils";
+import { MacroActionEffect, HotkeyTrigger, Macro, MacroActionSequence, Macros, MacroTargetContext } from "./command-center/macros";
+import { createCompartment } from "@utils/ses-util";
+import { generateUUID } from "three/src/math/MathUtils";
 
 CameraControls.install({ THREE: THREE });
 
@@ -323,10 +324,8 @@ async function TitanReactorGame(
 
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW);
-  const shortcuts = new PluginKeyShortcuts(window.document.body)
-  janitor.disposable(shortcuts);
 
-  const switchCameraMode = async (cameraMode: CameraModePlugin, prevCameraMode?: CameraModePlugin) => {
+  const switchCameraMode = async (cameraMode: CameraController, prevCameraMode?: CameraController) => {
 
     let prevData: any;
 
@@ -418,10 +417,10 @@ async function TitanReactorGame(
     }
 
     //TODO deprecate
-    scene.disableSkybox();
-    if (cameraMode.background === "space") {
-      scene.enableSkybox();
-    }
+    // scene.disableSkybox();
+    // if (cameraMode.background === "space") {
+    scene.enableSkybox();
+    // }
 
     // const clearPass = new ClearPass(camera);
     const renderPass = new RenderPass(scene, camera);
@@ -696,8 +695,8 @@ async function TitanReactorGame(
     reset = refreshScene;
     return currentBwFrame;
   }
-  const skipForward = () => skipHandler(1);
-  const skipBackward = () => skipHandler(-1);
+  const skipForward = (amount = 200) => skipHandler(1, amount);
+  const skipBackward = (amount = 200) => skipHandler(-1, amount);
 
   enum ChangeSpeedDirection {
     Up,
@@ -1102,6 +1101,42 @@ async function TitanReactorGame(
   const _soundCoords = new Vector3;
   let _soundDat: SoundDAT;
 
+  const buildSound = (elapsed: number, x: number, y: number, typeId: number, unitTypeId: number) => {
+    if (!fogOfWar.isVisible(floor32(x), floor32(y)) || typeId === 0) {
+      return;
+    }
+    _soundDat = assets.bwDat.sounds[typeId];
+
+    pxToGameUnit.xyz(x, y, terrain.getTerrainY, _soundCoords);
+
+    if (controls.cameraMode.soundMode === "spatial") {
+      if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
+        // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
+        soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
+      }
+    }
+    else {
+      const volume = getBwVolume(
+        _soundDat,
+        _soundCoords,
+        x,
+        y,
+        projectedCameraView.left,
+        projectedCameraView.top,
+        projectedCameraView.right,
+        projectedCameraView.bottom
+      );
+
+      const pan = getBwPanning(x, y, _soundCoords, projectedCameraView.left, projectedCameraView.width);
+      //FIXME; see if we can avoid creating this object
+
+      if (volume > SoundPlayMinVolume) {
+        // plugins.callHook("onBeforeSound", classicSound, dat, mapCoords);
+        soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
+      }
+    }
+
+  }
   const buildSounds = (elapsed: number) => {
 
     const soundsAddr = openBW.getSoundsAddress!();
@@ -1112,39 +1147,7 @@ async function TitanReactorGame(
       const y = openBW.HEAP32[addr + 2];
       const unitTypeId = openBW.HEAP32[addr + 3];
 
-      if (!fogOfWar.isVisible(floor32(x), floor32(y))) {
-        continue;
-      }
-      _soundDat = assets.bwDat.sounds[typeId];
-
-      pxToGameUnit.xyz(x, y, terrain.getTerrainY, _soundCoords);
-
-      if (controls.cameraMode.soundMode === "spatial") {
-        if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
-          // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
-          soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
-        }
-      }
-      else {
-        const volume = getBwVolume(
-          _soundDat,
-          _soundCoords,
-          x,
-          y,
-          projectedCameraView.left,
-          projectedCameraView.top,
-          projectedCameraView.right,
-          projectedCameraView.bottom
-        );
-
-        const pan = getBwPanning(x, y, _soundCoords, projectedCameraView.left, projectedCameraView.width);
-        //FIXME; see if we can avoid creating this object
-
-        if (volume > SoundPlayMinVolume) {
-          // plugins.callHook("onBeforeSound", classicSound, dat, mapCoords);
-          soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
-        }
-      }
+      buildSound(elapsed, x, y, typeId, unitTypeId);
     }
   };
 
@@ -1768,8 +1771,6 @@ async function TitanReactorGame(
 
   }));
 
-
-
   const originalColors = replay.header.players.map(player => player.color);
   const originalNames = replay.header.players.map(player => ({
     id: player.id,
@@ -1780,11 +1781,9 @@ async function TitanReactorGame(
     plugins.callHook(HOOK_ON_UNITS_SELECTED, state.selectedUnits);
   }));
 
-
   let pluginsApiJanitor = new Janitor;
 
   const setupPlugins = async () => {
-    shortcuts.clearAll();
 
     const toggleFogOfWarByPlayerId = (playerId: number) => {
       const player = players.find(p => p.id === playerId);
@@ -1852,14 +1851,7 @@ async function TitanReactorGame(
       maxFrame: replay.header.frameCount,
       gotoFrame: (frame: number) => openBW.setCurrentFrame(frame),
       getSpeed: () => openBW.getGameSpeed(),
-      registerHotkey(key: string, fn: Function) {
-        // @ts-ignore
-        key && shortcuts.addListener(this.id, key, fn);
-      },
-      // @ts-ignore
-      clearHotkeys() { shortcuts.clearListeners(this.id) },
       exitCameraMode: () => {
-        shortcuts.pressKey("Escape")
       },
       getPipCamera() {
         return controls.PIP.camera;
@@ -1909,28 +1901,141 @@ async function TitanReactorGame(
         selectedUnitsStore().setSelectedUnits(selection);
       },
       getSelectedUnits: () => selectedUnitsStore().selectedUnits,
-      fadingPointers
+      fadingPointers,
+      playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
+        if (y !== undefined && volumeOrX !== undefined) {
+          buildSound(_lastElapsed, volumeOrX, y, typeId, unitTypeId);
+        } else {
+          soundChannels.playGlobal(typeId, volumeOrX);
+        }
+      }
     };
 
     pluginsApiJanitor.callback(plugins.injectApi(api));
 
-    for (const cameraMode of plugins.getCameraModePlugins()) {
-      const _toggleCallback = async () => {
-        if (switchingCameraMode) return;
 
-        if (cameraMode !== controls.cameraMode) {
-          switchingCameraMode = true;
-          controls = await switchCameraMode(cameraMode, controls.cameraMode);
+    const macros = new Macros;
+
+    let digit = 1;
+    for (const cameraMode of plugins.getCameraModePlugins()) {
+      macros.add(new Macro(generateUUID(), "Switch Camera", new HotkeyTrigger(`Ctrl+Digit${digit}`), [{
+        target: MacroTargetContext.Host,
+        effect: MacroActionEffect.CallMethod,
+        value: async () => {
+          if (switchingCameraMode) return;
+
+          if (cameraMode !== controls.cameraMode) {
+            switchingCameraMode = true;
+            controls = await switchCameraMode(cameraMode, controls.cameraMode);
+          }
+          switchingCameraMode = false;
         }
-        switchingCameraMode = false;
-      }
-      shortcuts.addListener(cameraMode.id, cameraMode.config.cameraModeKey!, _toggleCallback);
-      pluginsApiJanitor.callback(() => shortcuts.removeListener(_toggleCallback));
+      }]));
+      digit++;
     }
 
-    await plugins.callHookAsync(HOOK_ON_GAME_READY);
+    macros.add(new Macro(generateUUID(), "Toggle Music", new HotkeyTrigger("KeyM"), [{
+      target: MacroTargetContext.Host,
+      field: ["audio", "music"],
+      effect: MacroActionEffect.Set,
+      value: 0.5
+    },
+    {
+      target: MacroTargetContext.Host,
+      field: ["audio", "music"],
+      effect: MacroActionEffect.Min
+    }], MacroActionSequence.Alternate));
+
+    macros.add(new Macro(generateUUID(), "Toggle Sound", new HotkeyTrigger("KeyS"), [{
+      target: MacroTargetContext.Host,
+      field: ["audio", "sound"],
+      effect: MacroActionEffect.Set,
+      value: 0.5
+    },
+    {
+      target: MacroTargetContext.Host,
+      field: ["audio", "sound"],
+      effect: MacroActionEffect.Min
+    }], MacroActionSequence.Alternate));
+
+    macros.add(new Macro(generateUUID(), "Replay: Pause", new HotkeyTrigger("KeyP"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "togglePause()"
+    }]));
+    //     this.sendUIMessage("⏯️");
+
+    macros.add(new Macro(generateUUID(), "Replay: Speed Up", new HotkeyTrigger("KeyU"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "speedUp()"
+    }]));
+    //     this.sendUIMessage(`🔼 ${speed}x`);
+
+    macros.add(new Macro(generateUUID(), "Replay: Speed Down", new HotkeyTrigger("KeyD"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "speedDown()"
+    }]));
+    //    this.sendUIMessage(`🔽 ${speed}x`);
+
+    macros.add(new Macro(generateUUID(), "Replay: Skip Backwards", new HotkeyTrigger("BracketLeft"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "skipBackward()"
+    }]));
+    //     this.sendUIMessage("⏪");
+
+    macros.add(new Macro(generateUUID(), "Replay: Skip Forwards", new HotkeyTrigger("BracketRight"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "skipForward()"
+    }]));
+    //    this.sendUIMessage("⏩");
+
+    macros.add(new Macro(generateUUID(), "Replay: Skip Backwards", new HotkeyTrigger("Shift+BracketLeft"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "skipBackward(Infinity)"
+    }]));
+    //     this.sendUIMessage("⏪");
+
+    macros.add(new Macro(generateUUID(), "Replay: Skip Forwards", new HotkeyTrigger("Shift+BracketRight"), [{
+      target: MacroTargetContext.GameTimeApi,
+      effect: MacroActionEffect.CallMethod,
+      value: "skipForward(Infinity)"
+    }]));
+    //    this.sendUIMessage("⏩");
+
+    pluginsApiJanitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
+      for (const actions of macros.trigger(e)) {
+        for (const action of actions) {
+          if (action.target === MacroTargetContext.Host) {
+            if (action.effect === MacroActionEffect.CallMethod) {
+              try {
+                (action.value as () => void)();
+              } catch (e) {
+                log.error(withErrorMessage(`Error executing macro action on host`, e));
+              }
+            } else {
+              settingsStore().doMacroAction(action);
+            }
+          } else if (action.target === MacroTargetContext.GameTimeApi && action.effect === MacroActionEffect.CallMethod) {
+            const c = createCompartment(api);
+            try {
+              c.evaluate(action.value);
+            } catch (e) {
+              log.error(`Error executing macro action: ${e}`);
+            }
+          } else if (action.target === MacroTargetContext.Plugin) {
+            plugins.doMacroAction(action);
+          }
+        }
+      }
+    });
 
   }
+
   await setupPlugins();
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
@@ -1953,12 +2058,11 @@ async function TitanReactorGame(
   precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
   precompileCamera.lookAt(scene.position);
 
+  await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
 
   GAME_LOOP(0);
   renderer.getWebGLRenderer().render(scene, precompileCamera);
-
-  renderer.render(0);
 
   // pre-render other camera modes (for post processing)
   for (const cameraMode of plugins.getCameraModePlugins()) {
@@ -1969,8 +2073,9 @@ async function TitanReactorGame(
   }
 
   controls = await switchCameraMode(defaultCameraMode);
+  renderer.render(0);
 
-  // force layout recalc
+
   _sceneResizeHandler();
 
   return dispose;

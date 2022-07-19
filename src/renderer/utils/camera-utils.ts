@@ -3,9 +3,8 @@ import { Box3, Camera, MathUtils, Object3D, PerspectiveCamera, Vector3, Vector4 
 import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
-import { CameraModePlugin } from "../input/camera-mode";
 import { imageIsFlipped } from "./image-utils";
-import { ImageStruct } from "common/types";
+import { CameraController, ImageStruct } from "common/types";
 import DirectionalCamera from "../camera/directional-camera";
 
 export type Controls = {
@@ -13,7 +12,7 @@ export type Controls = {
   mouse: CameraMouse,
   keys: CameraKeys,
   cameraShake: CameraShake,
-  cameraMode: CameraModePlugin,
+  cameraController: CameraController,
   PIP: {
     enabled: boolean;
     camera: Camera;

@@ -19,7 +19,7 @@ export const useSelectedUnitsStore = create<SelectedUnitsStore>((set, get) => ({
             unit.extras.selected = true;
         }
 
-        set({ selectedUnits });
+        set({ selectedUnits: selectedUnits.slice(0, 12) });
     },
     clearSelectedUnits() {
         for (const unit of get().selectedUnits) {
@@ -29,6 +29,11 @@ export const useSelectedUnitsStore = create<SelectedUnitsStore>((set, get) => ({
     },
     removeUnit(unit) {
         unit.extras.selected = false;
+
+        if (!get().selectedUnits.includes(unit)) {
+            return;
+        }
+
         set({
             selectedUnits: get().selectedUnits.filter(u => u !== unit)
         });
