@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh, Object3D } from "three";
+import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
@@ -46,7 +46,7 @@ import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { getOpenBW } from "./openbw";
 import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
-import { applyCameraDirectionToImageFrame, getDirection32, zoomCameraToSelection } from "./utils/camera-utils";
+import { applyCameraDirectionToImageFrame, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
@@ -283,28 +283,6 @@ async function TitanReactorGame(
     }
   });
   janitor.disposable(cameraKeys);
-
-  const createControls = (cameraMode: CameraModePlugin) => {
-
-    const controls = new CameraControls(
-      camera,
-      gameSurface.canvas,
-    );
-
-    const cameraShake = new CameraShake();
-
-    const pip = new PIP();
-    pip.update(camera.aspect);
-
-    return {
-      rested: true,
-      cameraMode,
-      orbit: controls,
-      cameraShake,
-      PIP: pip
-    };
-  }
-
   interface SpriteType extends Group {
     userData: {
       selectionCircle: SelectionCircle;
@@ -366,12 +344,28 @@ async function TitanReactorGame(
       }
     }
 
-    const newControls = createControls(cameraMode);
+    const orbit = new CameraControls(
+      camera,
+      gameSurface.canvas,
+    );
+    const cameraShake = new CameraShake();
+    //FIXME: pip needs its own aspect + its own sprite.lookAt
+    const pip = new PIP();
+    pip.update(camera.aspect);
+
+    const newControls = {
+      rested: true,
+      cameraMode,
+      orbit,
+      cameraShake,
+      PIP: pip
+    };
 
     cameraMode.dispose = () => {
       cameraMode.isActiveCameraMode = false;
-      cameraMode.orbit?.dispose();
-      delete cameraMode.orbit;
+      cameraMode.orbit!.dispose();
+      // FIXME: dummy camera, needed?
+      cameraMode.orbit!.camera = new PerspectiveCamera();
     }
     cameraMode.orbit = newControls.orbit;
     newControls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
@@ -450,7 +444,8 @@ async function TitanReactorGame(
     return newControls;
   }
 
-  let controls = await switchCameraMode(plugins.getDefaultCameraModePlugin());
+  let switchingCameraMode = false;
+
 
   // const setUseDepth = (useDepth: boolean) => {
   //   ImageHD.useDepth = useDepth;
@@ -1078,7 +1073,7 @@ async function TitanReactorGame(
         canvas.height / 2
       );
 
-      controls.cameraMode.onDrawMinimap && controls.cameraMode.onDrawMinimap(ctx, view, _cameraTarget, _cameraPosition);
+      controls.cameraMode.isActiveCameraMode && controls.cameraMode.onDrawMinimap && controls.cameraMode.onDrawMinimap(ctx, view, _cameraTarget, _cameraPosition);
 
       if (controls.PIP.enabled) {
         const h = 5;
@@ -1096,7 +1091,6 @@ async function TitanReactorGame(
 
     }
   })();
-
 
   const SoundPlayMaxDistance = 40;
   const _soundCoords = new Vector3;
@@ -1120,7 +1114,7 @@ async function TitanReactorGame(
       pxToGameUnit.xyz(x, y, terrain.getTerrainY, _soundCoords);
 
       if (controls.cameraMode.soundMode === "spatial") {
-        if (_soundDat.minVolume || camera.position.distanceTo(_soundCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
+        if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
           // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
           soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
         }
@@ -1259,7 +1253,7 @@ async function TitanReactorGame(
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
     //FIXME: make onShouldHideUnit a global plugin feature 
-    if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.onShouldHideUnit && controls.cameraMode.onShouldHideUnit(unit))) {
+    if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.isActiveCameraMode && controls.cameraMode.onShouldHideUnit && controls.cameraMode.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
     }
 
@@ -1336,18 +1330,8 @@ async function TitanReactorGame(
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
     _spritePos.y = sprite.userData.fixedY ?? bulletY ?? _spritePos.y;
 
-    // if (sprite.userData.needsMatrixUpdate || sprite.position.x !== _spritePos.x || sprite.position.y !== _spritePos.y || sprite.position.z !== _spritePos.z) {
-    //   sprite.position.copy(_spritePos);
-    //   sprite.updateMatrix();
-    // } else {
     sprite.position.copy(_spritePos);
-    // }
-
     sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z)
-    // lookAt(sprite, sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
-
-    // sprite.updateMatrix();
-
     sprite.renderOrder = spriteRenderOrder;
 
     // we do it in the image loop in order to use the right image scale
@@ -1428,6 +1412,7 @@ async function TitanReactorGame(
           image.renderOrder = - 1;
           if (image.parent !== spritesGroup) {
             spritesGroup.add(image);
+            image.updateMatrixWorld();
           }
         } else {
           image.rotation.set(0, 0, 0);
@@ -1459,6 +1444,7 @@ async function TitanReactorGame(
       }
       imageCounter++;
     }
+    sprite.updateMatrixWorld();
   }
 
   const spriteBufferView = new SpritesBufferView(openBW);
@@ -1633,6 +1619,7 @@ async function TitanReactorGame(
 
     currentBwFrame = openBW.nextFrame(false);
     if (currentBwFrame !== previousBwFrame) {
+
       if (currentBwFrame % 42 === 0) {
         updateCompletedUpgrades();
       }
@@ -1650,7 +1637,7 @@ async function TitanReactorGame(
       creep.creepValuesTexture.needsUpdate = true;
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
-      const audioPosition = controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, _cameraTarget, _cameraPosition);
+      const audioPosition = controls.cameraMode.isActiveCameraMode ? controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, _cameraTarget, _cameraPosition) : _cameraPosition;
       audioMixer.updateFromVector3(audioPosition as Vector3, delta);
 
       if (unitAttackScore.needsUpdate) {
@@ -1744,39 +1731,35 @@ async function TitanReactorGame(
 
   window.onbeforeunload = dispose;
 
-  {
-    const unsub = useSettingsStore.subscribe(({ data: newSettings }) => {
+  janitor.add(useSettingsStore.subscribe(({ data: newSettings }) => {
 
-      audioMixer.masterVolume = newSettings.audio.global;
-      audioMixer.musicVolume = newSettings.audio.music;
-      audioMixer.soundVolume = newSettings.audio.sound;
+    audioMixer.masterVolume = newSettings.audio.global;
+    audioMixer.musicVolume = newSettings.audio.music;
+    audioMixer.soundVolume = newSettings.audio.sound;
 
-      if (settings.graphics.terrainShadows !== newSettings.graphics.terrainShadows) {
-        terrain.mesh.traverse(o => {
-          if (o instanceof Mesh) {
-            o.castShadow = newSettings.graphics.terrainShadows;
-            o.receiveShadow = newSettings.graphics.terrainShadows;
-          }
-        });
-        renderer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
-      }
+    if (settings.graphics.terrainShadows !== newSettings.graphics.terrainShadows) {
+      terrain.mesh.traverse(o => {
+        if (o instanceof Mesh) {
+          o.castShadow = newSettings.graphics.terrainShadows;
+          o.receiveShadow = newSettings.graphics.terrainShadows;
+        }
+      });
+      renderer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
+    }
 
-      if (settings.graphics.pixelRatio !== newSettings.graphics.pixelRatio || settings.game.minimapSize !== newSettings.game.minimapSize) {
-        _sceneResizeHandler();
-      }
+    if (settings.graphics.pixelRatio !== newSettings.graphics.pixelRatio || settings.game.minimapSize !== newSettings.game.minimapSize) {
+      _sceneResizeHandler();
+    }
 
-      if (settings.graphics.anisotropy !== newSettings.graphics.anisotropy) {
-        terrain.setAnisotropy(newSettings.graphics.anisotropy);
-      }
+    if (settings.graphics.anisotropy !== newSettings.graphics.anisotropy) {
+      terrain.setAnisotropy(newSettings.graphics.anisotropy);
+    }
 
-      Object.assign(settings, newSettings);
+    Object.assign(settings, newSettings);
 
-    });
-    janitor.callback(unsub);
-  }
+  }));
 
-  // force layout recalc
-  _sceneResizeHandler();
+
 
   const originalColors = replay.header.players.map(player => player.color);
   const originalNames = replay.header.players.map(player => ({
@@ -1847,9 +1830,6 @@ async function TitanReactorGame(
       togglePause,
       pxToGameUnit,
       fogOfWar,
-      zoomCameraToSelection: (selection: Object3D[], fitRatio = 1.2) => {
-        return zoomCameraToSelection(camera, controls.orbit, selection, fitRatio);
-      },
       terrain: {
         tileset: terrain.tileset,
         mapWidth: terrain.mapWidth,
@@ -1924,8 +1904,6 @@ async function TitanReactorGame(
 
     pluginsApiJanitor.callback(plugins.injectApi(api));
 
-    let switchingCameraMode = false;
-
     for (const cameraMode of plugins.getCameraModePlugins()) {
       const _toggleCallback = async () => {
         if (switchingCameraMode) return;
@@ -1965,9 +1943,27 @@ async function TitanReactorGame(
   precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
   precompileCamera.lookAt(scene.position);
 
+
+  const defaultCameraMode = plugins.getDefaultCameraModePlugin();
+  let controls = await switchCameraMode(defaultCameraMode);
+
   GAME_LOOP(0);
   renderer.getWebGLRenderer().render(scene, precompileCamera);
+
   renderer.render(0);
+
+  // pre-render other camera modes (for post processing)
+  for (const cameraMode of plugins.getCameraModePlugins()) {
+    if (cameraMode !== defaultCameraMode) {
+      controls = await switchCameraMode(cameraMode);
+      renderer.render(0);
+    }
+  }
+
+  controls = await switchCameraMode(defaultCameraMode);
+
+  // force layout recalc
+  _sceneResizeHandler();
 
   return dispose;
 }

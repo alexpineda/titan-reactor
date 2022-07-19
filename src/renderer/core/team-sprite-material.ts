@@ -101,18 +101,13 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     return this.#dynamicUniforms.modifier.value;
   }
 
-  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   override onBeforeCompile(shader: any) {
     // function extendVertex(replace: string, chunks: string[][]) {
     //   return extend("vertexShader", replace, chunks);
     // }
 
-    function extendFragment(replace: string, chunks: string[][]) {
-      return extend("fragmentShader", replace, chunks);
-    }
-
     function extend(
-      prop: string,
+      prop: "fragmentShader" | "vertexShader",
       replace: string,
       chunks: string[][],
       keep = true
@@ -183,7 +178,7 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     uniform sampler2D warpInFlashTexture;`])
 
     // extendVertex("gl_Position = projectionMatrix * mvPosition;", vertFragments);
-    extendFragment("#include <map_fragment>", mapFragments);
+    extend("fragmentShader", "#include <map_fragment>", mapFragments);
 
     /*
     // hallucination effect

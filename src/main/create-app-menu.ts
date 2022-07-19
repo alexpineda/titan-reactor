@@ -10,7 +10,7 @@ import { spawn } from "child_process";
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs");
 
-export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) => {
+export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void, goToStartPage: () => void) => {
 
   const template = [
     {
@@ -30,14 +30,6 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
           },
         },
         { type: "separator" },
-        { role: "quit" }
-      ],
-    },
-    {
-      label: "&View",
-      submenu: [
-        { role: "togglefullscreen" },
-        { type: "separator" },
         {
           label: "View &Plugin File(s)",
           click: function () {
@@ -56,11 +48,20 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
             spawn('C:\\windows\\notepad.exe', [settingsPath]);
           },
         },
+        { type: "separator" },
+        { role: "quit" }
       ],
     },
     {
-      label: "&Tools",
+      label: "&Go",
       submenu: [
+        {
+          label: "&Start Page",
+          accelerator: "F12",
+          click: function () {
+            goToStartPage();
+          },
+        },
         {
           label: "&Command Center",
           accelerator: "F10",
@@ -69,6 +70,12 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
           },
         },
         { type: "separator" },
+        { role: "togglefullscreen" },
+      ]
+    },
+    {
+      label: "&Tools",
+      submenu: [
         {
           label: "Restart Application",
           click: async () => {
@@ -91,55 +98,6 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void) =>
             onOpenIscriptah();
           },
         },
-      ],
-    },
-    {
-      label: "&About",
-      submenu: [
-
-        {
-          label: "Github",
-          click: async () => {
-            await shell.openExternal("https://github.com/imbateam-gg/titan-reactor");
-          },
-        },
-        {
-          label: "Discord",
-          click: async () => {
-            await shell.openExternal("http://discord.imbateam.gg");
-          },
-        },
-        {
-          label: "Youtube",
-          click: async () => {
-            await shell.openExternal("https://www.youtube.com/channel/UCj7TSQvBRYebRDIL0FW1MBQ");
-          },
-        },
-        {
-          label: "Twitch",
-          click: async () => {
-            await shell.openExternal("https://www.twitch.tv/imbateamgg");
-          },
-        },
-        {
-          label: "Twitter",
-          click: async () => {
-            await shell.openExternal("https://twitter.com/imbateam");
-          },
-        },
-        { type: "separator" },
-        {
-          label: "Kofi",
-          click: async () => {
-            await shell.openExternal("https://ko-fi.com/imbateam");
-          },
-        },
-        {
-          label: "Patreon",
-          click: async () => {
-            await shell.openExternal("https://www.patreon.com/imbateam");
-          },
-        }
       ],
     },
   ];

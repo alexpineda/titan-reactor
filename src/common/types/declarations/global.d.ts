@@ -11,16 +11,21 @@ declare module "*!worker" {
 }
 
 declare module '*.frag' {
-    const contents: { default: string }
+    const contents: string;
     export = contents
 }
 
 declare module '*.vert' {
-    const contents: { default: string }
+    const contents: string;
     export = contents
 }
 
 declare module '*.glsl' {
-    const contents: { default: string }
+    const contents: string;
+    export = contents
+}
+
+declare module '!!raw-loader!*' {
+    const contents: string;
     export = contents
 }

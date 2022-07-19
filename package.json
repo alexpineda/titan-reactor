@@ -96,6 +96,7 @@
         "scm-extractor": "^1.0.6",
         "semver": "^7.3.5",
         "three": "0.137.0",
+        "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
         "webpack": "4.42.1",
         "winreg": "^1.2.4",
         "zustand": "3.3.3"

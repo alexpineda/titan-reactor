@@ -1,14 +1,20 @@
-import { AudioListener, Camera, Vector3 } from "three";
+import { AudioContext, Vector3 } from "three";
 
 const MUSIC_REDUCTION_RATIO = 0.1;
-const _lerp = new Vector3;
+const _position = new Vector3;
 // mixes sound and music volumes
-export class MainMixer extends AudioListener {
+export class MainMixer {
   sound: GainNode;
   music: GainNode;
+  gain: GainNode;
+  context: AudioContext;
+
 
   constructor() {
-    super();
+    this.context = AudioContext.getContext();
+
+    this.gain = this.context.createGain();
+    this.gain.connect(this.context.destination);
 
     this.sound = this.context.createGain();
     this.sound.connect(this.gain);
@@ -16,13 +22,12 @@ export class MainMixer extends AudioListener {
     this.music = this.context.createGain();
     this.music.connect(this.gain);
 
-    this.matrixAutoUpdate = false;
   }
 
   // For compatibility with THREE.Audio, which is used for Music.
   // getInput() is called on the THREE.Audio constructor.
   // If in the future, we want audio for our menu, we'll need to dynamically swap this.
-  override getInput() {
+  getInput() {
     return this.music;
   }
 
@@ -52,15 +57,7 @@ export class MainMixer extends AudioListener {
     this.music.gain.setTargetAtTime(val * MUSIC_REDUCTION_RATIO, this.context.currentTime, 0.01);
   }
 
-  lerp(a: Vector3, b: Vector3, alpha: number, delta: number) {
-    _lerp.lerpVectors(a, b, alpha)
-    this.update(_lerp.x, _lerp.y, _lerp.z, delta);
-  }
-
   update(x: number, y: number, z: number, delta: number) {
-    if (this.parent) {
-      throw new Error("This method should not be called on a parented object.");
-    }
     if (Number.isNaN(x) || Number.isNaN(y) || Number.isNaN(z)) {
       return;
     }
@@ -74,12 +71,9 @@ export class MainMixer extends AudioListener {
     this.update(v.x, v.y, v.z, delta);
   }
 
-  updateFromCamera(camera: Camera) {
-    if (this.parent) {
-      throw new Error("This method should not be called on a parented object.");
-    }
-    this.matrixWorld.multiplyMatrices(camera.matrixWorld, this.matrix)
-    this.updateMatrixWorld(false);
+  get position() {
+    _position.set(this.context.listener.positionX.value, this.context.listener.positionY.value, this.context.listener.positionZ.value);
+    return _position;
   }
 }
 

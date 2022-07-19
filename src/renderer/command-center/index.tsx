@@ -13,7 +13,7 @@ import {
 } from "@ipc/plugins";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { InitializedPluginPackage } from "common/types";
-import { installPluginLocal } from "../../plugins";
+import { installPluginLocal } from "../plugins";
 import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";

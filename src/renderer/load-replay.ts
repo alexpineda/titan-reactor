@@ -3,6 +3,7 @@ import writeReplay from "./process-replay/write-replay";
 import { Version } from "./process-replay/version";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import ChkDowngrader from "./process-replay/chk/chk-downgrader";
+import { AudioListener } from "three";
 
 import fs from "fs";
 import Chk from "bw-chk";
@@ -175,7 +176,7 @@ export default async (filepath: string) => {
     loadAudioFile
   );
   const music = new Music(races);
-  music.setListener(audioMixer);
+  music.setListener(audioMixer as unknown as AudioListener);
   janitor.disposable(music);
 
   audioMixer.musicVolume = settings.audio.music;

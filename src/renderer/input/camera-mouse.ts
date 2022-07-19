@@ -95,7 +95,7 @@ export class CameraMouse {
 
     update(delta: number, elapsed: number, cameraMode: CameraModePlugin) {
 
-        cameraMode.onCameraMouseUpdate && cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
+        cameraMode.isActiveCameraMode && cameraMode.onCameraMouseUpdate && cameraMode.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
 
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;

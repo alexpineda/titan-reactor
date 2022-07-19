@@ -7,9 +7,6 @@ export interface CameraModePlugin extends NativePlugin {
     isActiveCameraMode: boolean;
     minimap?: boolean;
     pointerLock?: boolean;
-    boundByMap?: {
-        scaleBoundsByCamera: boolean
-    };
     unitSelection?: boolean;
     cameraShake?: boolean;
     rotateSprites?: boolean;

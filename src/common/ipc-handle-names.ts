@@ -11,6 +11,7 @@ export const LOAD_REPLAY_FROM_FILE = "LOAD_REPLAY_FROM_FILE";
 export const LOAD_CHK_FROM_FILE = "LOAD_CHK_FROM_FILE";
 export const DOWNLOAD_UPDATE = "DOWNLOAD_UPDATE";
 export const OPEN_URL = "OPEN_URL";
+export const GO_TO_START_PAGE = "GO_TO_START_PAGE";
 
 export const OPEN_CASCLIB = "OPEN_CASCLIB";
 export const CLOSE_CASCLIB = "CLOSE_CASCLIB";

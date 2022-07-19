@@ -3,7 +3,7 @@ import { InitializedPluginPackage } from "common/types";
 import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import * as postprocessing from "postprocessing"
-
+import cameraControls from "camera-controls"
 import * as enums from "common/enums";
 
 import withErrorMessage from "common/utils/with-error-message";
@@ -176,7 +176,7 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers, enums });
+            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers, enums, cameraControls });
             //override but give a truthy value
             pluginPackage.nativeSource = "true";
 

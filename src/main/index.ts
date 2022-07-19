@@ -10,7 +10,7 @@ import getUserDataPath from "./get-user-data-path";
 import pluginServer from "./plugins/server";
 import browserWindows from "./windows";
 import { getBootupLogs } from "./log";
-import { LOG_MESSAGE } from "common/ipc-handle-names";
+import { GO_TO_START_PAGE, LOG_MESSAGE } from "common/ipc-handle-names";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 
@@ -97,7 +97,9 @@ if (!gotTheLock) {
 
   createAppMenu(() =>
     createConfigurationWindow()
-    , () => createIscriptahWindow());
+    , () => createIscriptahWindow(), () => {
+      windows.main?.webContents.send(GO_TO_START_PAGE);
+    });
 
   if (process.defaultApp) {
     if (process.argv.length >= 2) {

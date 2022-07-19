@@ -1,6 +1,6 @@
 import groupBy from "lodash.groupby";
-import keyboardShortcut from "../leva-plugins/keyboard-shortcut";
-import directory from "../leva-plugins/directory";
+import keyboardShortcut from "./leva-plugins/keyboard-shortcut";
+import directory from "./leva-plugins/directory";
 
 export const mapConfigToLeva = (pluginId: string, config: any, onChange: (pluginId: string, value: any) => void) => {
     const values = [];

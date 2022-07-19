@@ -63,15 +63,21 @@ export class Scene extends ThreeScene {
 
     this.#janitor = new Janitor();
 
+    this.autoUpdate = false;
+
     this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 1);
     this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
 
     this.hemilight.layers.enableAll();
     this.sunlight.layers.enableAll();
+    this.hemilight.updateMatrixWorld();
+    this.sunlight.updateMatrixWorld();
 
     this.add(this.hemilight);
     this.add(this.sunlight);
     this.addTerrain(terrain);
+    terrain.updateMatrixWorld();
+
     this.#skybox = this.skybox("sparse");
     this.disableSkybox();
 
@@ -168,8 +174,8 @@ export class Scene extends ThreeScene {
     }
 
     this.#borderTiles.rotation.x = -Math.PI / 2;
-    this.#borderTiles.matrixAutoUpdate = false;
-    this.#borderTiles.updateMatrix();
+    this.#borderTiles.updateMatrixWorld();
+
   }
 
   setBorderTileOpacity(opacity: number) {

@@ -65,7 +65,7 @@ export class CameraKeys {
     }
 
     update(delta: number, elapsed: number, cameraMode: CameraModePlugin) {
-        cameraMode.onCameraKeyboardUpdate && cameraMode.onCameraKeyboardUpdate(delta, elapsed, this.#move);
+        cameraMode.isActiveCameraMode && cameraMode.onCameraKeyboardUpdate && cameraMode.onCameraKeyboardUpdate(delta, elapsed, this.#move);
     }
 
     dispose() {

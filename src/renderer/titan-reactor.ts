@@ -1,4 +1,4 @@
-import "./ui/reset.css";
+import "./reset.css";
 import "./ipc/register-file-dialog-handlers";
 
 import { version } from "../../package.json";
@@ -13,9 +13,11 @@ import { SYSTEM_EVENT_OPEN_URL } from "./plugins/events";
 import { openUrl } from "./ipc";
 import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
 import { ipcRenderer } from "electron";
-import { SETTINGS_CHANGED } from "common/ipc-handle-names";
+import { GO_TO_START_PAGE, SETTINGS_CHANGED } from "common/ipc-handle-names";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
+import gameStore from "@stores/game-store";
+// import "./utils/webgl-lint";
 
 // @ts-ignore
 if (module.hot) {
@@ -203,3 +205,12 @@ ipcRenderer.on(SETTINGS_CHANGED, async (_, settings) => {
     screenStore().setError(err);
   }
 })
+
+
+ipcRenderer.on(GO_TO_START_PAGE, () => {
+  if (!processStore().hasAnyProcessIncomplete()) {
+    gameStore().disposeGame();
+    screenStore().init(ScreenType.Home);
+    screenStore().complete();
+  }
+});

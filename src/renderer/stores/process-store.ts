@@ -30,11 +30,13 @@ export type ProcessStore = {
   complete: (id: Process, affix?: string) => void;
   isComplete: (id: Process) => boolean;
   isInProgress: (id: Process) => boolean;
+  hasAnyProcessIncomplete: () => boolean;
 };
 
 export const useProcessStore = create<ProcessStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
+  hasAnyProcessIncomplete: () => get().processes.length > 0,
   start: (id: Process, max = PROCESS_MAX) => {
     log.info("@process/init: " + snake(Process[id]));
 

@@ -112,7 +112,7 @@ export class MinimapMouse extends EventTarget {
   update(cameraMode: CameraModePlugin) {
     if (!this.enabled) return;
 
-    cameraMode.onMinimapDragUpdate && cameraMode.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
+    cameraMode.isActiveCameraMode && cameraMode.onMinimapDragUpdate && cameraMode.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
 
     this.#isDragStart = false;
 

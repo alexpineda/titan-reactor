@@ -28,6 +28,7 @@
     - [Message Throttling](#message-throttling)
   - [Special Permissions](#special-permissions)
   - [README.md](#readmemd)
+  - [Deprecating Your Plugin](#deprecating-your-plugin)
   - [Publishing Your Plugin](#publishing-your-plugin)
 
 ⚠️ The plugin API is under heavy development. Expect frequent breaking changes until Titan Reactor v1. Big plans include supporting TypeScript out of the box.
@@ -463,6 +464,20 @@ Enables access to replay commands in the *onFrame()* hook.
 ## README.md
 
 By including a README.md Titan Reactor will include a Readme tab in the config window.
+
+## Deprecating Your Plugin
+
+If you wish to decommission your plugin you may mark a release as deprecated by setting the following in your `package.json`:
+
+```json
+{
+  "config": {
+    "system": {
+      "deprecated": true
+    }
+  }
+}
+```
 
 ## Publishing Your Plugin
 

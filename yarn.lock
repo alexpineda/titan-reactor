@@ -1412,6 +1412,13 @@
     lodash "^4.17.15"
     tmp-promise "^3.0.2"
 
+"@masatomakino/raf-ticker@^0.2.9":
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/@masatomakino/raf-ticker/-/raf-ticker-0.2.9.tgz#f405d2062ea8ac7ec71d10e78f2c972367da98bf"
+  integrity sha512-UvmJLqrwQfGd23R7gQ/vRjOw/HUeWPZlHn0CxUhPjVJCRflkAQ7tNVMZwG8zeJTLIMrel9rhGBk34j9qFrFuuw==
+  dependencies:
+    eventemitter3 "^4.0.7"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
@@ -5252,7 +5259,7 @@ etag@~1.8.1:
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
 
-eventemitter3@^4.0.0:
+eventemitter3@^4.0.0, eventemitter3@^4.0.7:
   version "4.0.7"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
@@ -11105,6 +11112,12 @@ three@0.137.0:
   version "0.137.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.137.0.tgz#0ebd6ba66637a332c31f234bcdd35aeec071a6e3"
   integrity sha512-rzSDhia6cU35UCy6y+zEEws6vSgytfHqFMSaBvUcySgzwvDO6vETyswtSNi/+aVqJw8WLMwyT1mlQQ1T/dxxOA==
+
+threejs-shader-materials@MasatoMakino/threejs-shader-materials:
+  version "0.4.0"
+  resolved "https://codeload.github.com/MasatoMakino/threejs-shader-materials/tar.gz/cd4a653f698ebf52f9d3d697a248ef0b9a86d3fa"
+  dependencies:
+    "@masatomakino/raf-ticker" "^0.2.9"
 
 throat@^6.0.1:
   version "6.0.1"

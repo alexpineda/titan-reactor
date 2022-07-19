@@ -46,6 +46,7 @@ export const setUseScale = (images: Map<number, Image>, scale: number) => {
       }
 
       image.updateMatrix();
+      image.updateMatrixWorld();
     }
   }
 }

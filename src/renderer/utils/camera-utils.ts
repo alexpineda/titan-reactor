@@ -87,38 +87,36 @@ export function applyCameraDirectionToImageFrame(camera: DirectionalCamera, imag
 }
 
 // https://codepen.io/discoverthreejs/pen/vwVeZB
-const _target = new Vector3();
-export const zoomCameraToSelection = (camera: PerspectiveCamera, controls: CameraControls, selection: Object3D[], fitRatio = 1.2) => {
-  const box = new Box3();
+const _position = new Vector3();
+const _direction = new Vector3();
+const _box = new Box3();
+const _boxSize = new Vector3();
+const _boxCenter = new Vector3();
 
-  for (const object of selection) box.expandByObject(object);
+export const zoomCameraToSelection = async (camera: PerspectiveCamera, controls: CameraControls, selection: Object3D[] | Object3D, fitRatio = 1.2) => {
 
-  const size = box.getSize(new Vector3());
-  const center = box.getCenter(new Vector3());
+  if (selection instanceof Object3D) {
+    _box.expandByObject(selection);
+  } else {
+    for (const object of selection) _box.expandByObject(object);
+  }
 
-  const maxSize = Math.max(size.x, size.y, size.z);
+  _box.getSize(_boxSize);
+  _box.getCenter(_boxCenter);
+
+  const maxSize = Math.max(_boxSize.x, _boxSize.y, _boxSize.z);
   const fitHeightDistance =
     maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
   const fitWidthDistance = fitHeightDistance / camera.aspect;
   const distance = fitRatio * Math.max(fitHeightDistance, fitWidthDistance);
 
-  controls.getTarget(_target)
-  const direction = _target
-    .clone()
+  const direction = controls.getTarget(_direction)
     .sub(camera.position)
     .normalize()
     .multiplyScalar(distance);
 
-  // controls.maxDistance = distance * 10;
-  controls.setTarget(center.x, center.y, center.z);
+  _position.copy(_boxCenter).sub(direction);
+  controls.setLookAt(_position.x, _position.y, _position.z, _boxCenter.x, _boxCenter.y, _boxCenter.z, false);
 
-  center.sub(direction);
-  controls.moveTo(center.x, center.y, center.z);
-
-  // camera.near = distance / 100;
-  // camera.far = distance * 100;
-  // camera.updateProjectionMatrix();
-
-  // camera.position.copy(controls.target).sub(direction);
   return distance;
 }
