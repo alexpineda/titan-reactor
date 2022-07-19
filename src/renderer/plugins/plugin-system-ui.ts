@@ -79,6 +79,15 @@ const unitWithDump = (unit: Unit) => {
 export const setDumpUnitCall = (fn: (id: number) => {}) => {
     _dumpUnitCall = fn;
 }
+
+
+const _selectedUnitMessage = {
+    type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+    payload: {}
+}
+
+const _productionTransferables: ArrayBufferLike[] = [];
+
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
     #janitor = new Janitor();
@@ -273,34 +282,33 @@ export class PluginSystemUI {
 
             const productionData = new StdVector(openBW.HEAP32, productionDataAddr >> 2);
 
+            _productionTransferables.length = 0;
+            _productionTransferables.push(playerData.buffer);
 
             //TODO: perhaps a more readable abstraction would benefit here
             for (let player = 0; player < 8; player++) {
                 _replayPosition.payload.unitProduction[player] = productionData.copyData();
+                _productionTransferables.push(_replayPosition.payload.unitProduction[player].buffer);
                 productionData.addr32 += 3;
                 _replayPosition.payload.upgrades[player] = productionData.copyData();
+                _productionTransferables.push(_replayPosition.payload.upgrades[player].buffer);
                 productionData.addr32 += 3;
                 _replayPosition.payload.research[player] = productionData.copyData();
+                _productionTransferables.push(_replayPosition.payload.research[player].buffer);
                 productionData.addr32 += 3;
             }
 
             _replayPosition.payload.frame = currentFrame;
             _replayPosition.payload.playerData = playerData;
 
-            //TODO: add transferables (if applicable) or better yet shared arrays
-            this.sendMessage(_replayPosition);
+            this.sendMessage(_replayPosition, _productionTransferables);
 
-            // in case hp changed, etc.
-            // TODO: maybe introduce a dirty flag to units and check if any are dirty to send
             const units = useSelectedUnitsStore.getState().selectedUnits;
             // in this case only change if the empty state has changed
             if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
                 //TODO move this out to supply to native as well
-                const payload = unitsPartial(units);
-                this.sendMessage({
-                    type: UI_PLUGIN_EVENT_UNITS_SELECTED,
-                    payload
-                });
+                _selectedUnitMessage.payload = unitsPartial(units);
+                this.sendMessage(_selectedUnitMessage);
                 _lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] = units.length;
             }
 

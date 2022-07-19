@@ -1409,8 +1409,9 @@ async function TitanReactorGame(
           image.renderOrder = - 1;
           if (image.parent !== spritesGroup) {
             spritesGroup.add(image);
-            image.updateMatrixWorld();
           }
+          image.updateMatrix();
+          image.updateMatrixWorld();
         } else {
           image.rotation.set(0, 0, 0);
           image.renderOrder = spriteRenderOrder + imageCounter;
@@ -1441,6 +1442,7 @@ async function TitanReactorGame(
       }
       imageCounter++;
     }
+    sprite.updateMatrix();
     sprite.updateMatrixWorld();
   }
 
