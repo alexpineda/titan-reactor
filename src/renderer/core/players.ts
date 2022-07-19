@@ -39,6 +39,10 @@ export class Players extends Array<Player> {
     }
   }
 
+  get(id: number) {
+    return this.playersById[id];
+  }
+
   static override get [Symbol.species]() {
     return Array;
   }

@@ -130,7 +130,7 @@ class SelectionBarMaterial extends MeshBasicMaterial {
   }
 }
 
-const hpColorGreen = new Color(16 / 255, 135 / 255, 16 / 255).convertSRGBToLinear();
+const hpColorGreen = new Color(16 / 255, 195 / 255, 16 / 255).convertSRGBToLinear();
 const hpColorRed = new Color(234 / 255, 25 / 255, 25 / 255).convertSRGBToLinear();
 const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255).convertSRGBToLinear();
 const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255).convertSRGBToLinear();

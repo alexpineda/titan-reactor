@@ -771,7 +771,7 @@ async function TitanReactorGame(
   const flashColor = new Color(200, 200, 200);
 
   const _buildMinimap = (unit: Unit, unitType: UnitDAT) => {
-    const isResourceContainer = unitType.isResourceContainer && !unit.extras.player;
+    const isResourceContainer = unitType.isResourceContainer && unit.owner === 11;
     if (
       (!isResourceContainer &&
         !fogOfWar.isVisible(floor32(unit.x), floor32(unit.y)))
@@ -786,8 +786,8 @@ async function TitanReactorGame(
 
     if (isResourceContainer) {
       color = resourceColor;
-    } else if (unit.extras.player) {
-      color = unit.extras.recievingDamage & 1 ? flashColor : unit.extras.player.color;
+    } else if (unit.owner < 8) {
+      color = unit.extras.recievingDamage & 1 ? flashColor : players.get(unit.owner).color;
     } else {
       return;
     }
@@ -855,7 +855,6 @@ async function TitanReactorGame(
 
       unitData.copyTo(unit)
       unit.extras.recievingDamage = 0;
-      unit.extras.player = undefined;
       unit.extras.selected = false;
       unit.extras.dat = bwDat.units[unitData.typeId];
       unit.extras.turretLo = null;
@@ -931,8 +930,6 @@ async function TitanReactorGame(
         } else if (unit.extras.recievingDamage) {
           unit.extras.recievingDamage = unit.extras.recievingDamage >> 1;
         }
-
-        unit.extras.player = players.playersById[unitData.owner];
 
         // unit morph
         if (unit.typeId !== unitData.typeId) {
@@ -1879,7 +1876,7 @@ async function TitanReactorGame(
       pipIsActive: () => controls.PIP.enabled,
       setPlayerColors,
       getPlayerColor: (id: number) => {
-        return players.find(p => p.id === id)?.color ?? new Color(1, 1, 1);
+        return players.get(id)?.color ?? new Color(1, 1, 1);
       },
       getOriginalColors,
       setPlayerNames,

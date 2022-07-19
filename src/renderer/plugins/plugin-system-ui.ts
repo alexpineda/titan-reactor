@@ -64,24 +64,14 @@ const unitsPartial = (units: Unit[]) => {
     if (units.length === 1) {
         return units.map(unitWithDump);
     } else {
-        return units.map(unitPartial);
+        return units;
     }
 }
-const unitPartial = (unit: Unit) => {
-    return {
-        ...unit,
-        extras: {
-            ...unit.extras,
-            player: unit.extras.player?.id,
-        }
-    }
-}
-
 let _dumpUnitCall: (id: number) => {};
 
 const unitWithDump = (unit: Unit) => {
     return {
-        ...unitPartial(unit),
+        ...unit,
         ..._dumpUnitCall(unit.id)
     }
 }
