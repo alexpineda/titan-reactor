@@ -1,5 +1,6 @@
 import "./reset.css";
 import "./ipc/register-file-dialog-handlers";
+import "ses";
 
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
@@ -18,6 +19,14 @@ import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import gameStore from "@stores/game-store";
 // import "./utils/webgl-lint";
+
+lockdown(
+  {
+    localeTaming: 'unsafe',
+    consoleTaming: 'unsafe',
+    errorTaming: 'unsafe'
+  }
+);
 
 // @ts-ignore
 if (module.hot) {

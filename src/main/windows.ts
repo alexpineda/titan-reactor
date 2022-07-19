@@ -59,13 +59,14 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
   w.on("ready-to-show", () => {
     w.webContents.send("temp-load-content", query);
     w.show();
+    if ((isDev || debugMode) && devTools) {
+      w.webContents.openDevTools();
+    }
   });
 
   w.on("closed", onClose);
 
-  if ((isDev || debugMode) && devTools) {
-    w.webContents.openDevTools();
-  }
+
 
   w.webContents.on("devtools-opened", () => {
     w.focus();

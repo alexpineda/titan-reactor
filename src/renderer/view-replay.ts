@@ -453,6 +453,8 @@ async function TitanReactorGame(
 
   let switchingCameraMode = false;
 
+  const defaultCameraMode = plugins.getDefaultCameraModePlugin();
+  let controls = await switchCameraMode(defaultCameraMode);
 
   // const setUseDepth = (useDepth: boolean) => {
   //   ImageHD.useDepth = useDepth;
@@ -1952,8 +1954,6 @@ async function TitanReactorGame(
   precompileCamera.lookAt(scene.position);
 
 
-  const defaultCameraMode = plugins.getDefaultCameraModePlugin();
-  let controls = await switchCameraMode(defaultCameraMode);
 
   GAME_LOOP(0);
   renderer.getWebGLRenderer().render(scene, precompileCamera);

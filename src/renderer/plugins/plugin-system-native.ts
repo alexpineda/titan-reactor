@@ -163,6 +163,7 @@ const VALID_PERMISSIONS = [
     PERMISSION_REPLAY_COMMANDS,
     PERMISSION_REPLAY_FILE
 ];
+
 export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
@@ -176,7 +177,16 @@ export class PluginSystemNative {
             if (!pluginPackage.nativeSource) {
                 throw new Error("No native source provided");
             }
-            const pluginRaw = Function(pluginPackage.nativeSource!)({ THREE, STDLIB, postprocessing, Janitor, Layers, enums, cameraControls });
+
+            const modules = { THREE, STDLIB, postprocessing, Janitor, Layers, enums, cameraControls }
+
+            const c = new Compartment({
+                console: harden(console),
+                Math,
+                modules
+            });
+            const pluginRaw = c.globalThis.Function(pluginPackage.nativeSource!)(modules);
+
             //override but give a truthy value
             pluginPackage.nativeSource = "true";
 
