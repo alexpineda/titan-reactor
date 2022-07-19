@@ -202,17 +202,24 @@ async function TitanReactorGame(
   const fadingPointers = new FadingPointers();
   scene.add(fadingPointers);
 
+  // TODO: make into a "consumable" api for plugins
   class PIP {
     enabled = false;
     camera = new PerspectiveCamera(15, 1, 0.1, 1000);
+    orbit = new CameraControls(this.camera, gameSurface.canvas);
     viewport = new Vector4(0, 0, 300, 200);
     margin = 20;
     height = 300;
     position?: Vector2;
 
     constructor() {
-      this.camera.position.set(0, 50, 0);
-      this.camera.lookAt(0, 0, 0);
+      this.orbit.enabled = false;
+      this.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
+      this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
+      this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
+      this.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
+      this.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+      this.orbit.setLookAt(0, 50, 0, 0, 0, 0);
     }
 
     update(aspect: number) {
@@ -1604,6 +1611,7 @@ async function TitanReactorGame(
     _lastElapsed = elapsed;
 
     controls.orbit.update(delta / 1000);
+    controls.PIP.orbit.update(delta / 1000);
     controls.orbit.getTarget(_cameraTarget);
     controls.orbit.getPosition(_cameraPosition);
     projectedCameraView.update(camera, _cameraTarget);
@@ -1856,8 +1864,9 @@ async function TitanReactorGame(
       },
       pipLookAt(x: number, z: number) {
         controls.PIP.enabled = true;
-        controls.PIP.camera.position.set(x, controls.PIP.camera.position.y, z);
-        controls.PIP.camera.lookAt(x, 0, z);
+        controls.PIP.orbit.moveTo(x, 0, z);
+        //FIXME: remove this once we have multiple cameras properly working
+        controls.PIP.orbit.rotateTo(controls.cameraMode.orbit!.azimuthAngle, controls.cameraMode.orbit!.polarAngle, false);
       },
       setPipDimensions(position?: Vector2, height?: number) {
         if (position) {
