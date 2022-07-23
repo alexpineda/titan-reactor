@@ -18,15 +18,17 @@ import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
 import { mapConfigToLeva } from "./map-config-to-leva";
+import { MacrosPanel } from "./macros/macro-settings";
 
-// @ts-ignore
 if (module.hot) {
-  // @ts-ignore
   module.hot.accept();
 }
 
-// @ts-ignore
-window.isTitanReactorConfig = true;
+const s = document.createElement("link");
+s.rel = "stylesheet";
+s.href =
+  "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap";
+document.head.appendChild(s);
 
 const onChange = debounce(async (pluginId: string, config: any) => {
   updatePluginsConfig(pluginId, config);
@@ -308,7 +310,6 @@ const Configuration = () => {
                 <h3>Manage Plugins</h3>
 
                 <Tabs
-                  //@ts-ignore
                   onChange={(index: number) => setTabIndex(index)}
                   selectedIndex={tabIndex}
                 >
@@ -428,9 +429,13 @@ const Configuration = () => {
                           key={selectedPluginPackage.plugin.id}
                           pluginPackage={selectedPluginPackage.plugin}
                           controls={mapConfigToLeva(
-                            selectedPluginPackage.plugin.id,
                             selectedPluginPackage.plugin.config,
-                            onChange
+                            () => {
+                              onChange(
+                                selectedPluginPackage.plugin!.id,
+                                selectedPluginPackage.plugin!.config
+                              );
+                            }
                           )}
                         />
                       )}
@@ -468,15 +473,21 @@ const Configuration = () => {
                         key={selectedPluginPackage.plugin.id}
                         pluginPackage={selectedPluginPackage.plugin}
                         controls={mapConfigToLeva(
-                          selectedPluginPackage.plugin.id,
                           selectedPluginPackage.plugin.config,
-                          onChange
+                          () =>
+                            onChange(
+                              selectedPluginPackage.plugin!.id,
+                              selectedPluginPackage.plugin!.config
+                            )
                         )}
                       />
                     </>
                   )}
               </main>
             </div>
+          </Tab>
+          <Tab label="Macros">
+            <MacrosPanel />
           </Tab>
         </Tabs>
       </div>

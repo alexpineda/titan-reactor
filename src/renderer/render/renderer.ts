@@ -46,7 +46,7 @@ export class TitanRenderer {
         passes: []
     };
 
-    composer = new EffectComposer(null, {
+    composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
         multisampling: 0
     });

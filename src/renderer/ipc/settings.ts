@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { GET_LOADED_SETTINGS, SET_SETTINGS_FROM_CONFIGW } from "common/ipc-handle-names";
+import { GET_LOADED_SETTINGS, SAVE_SETTINGS_DATA } from "common/ipc-handle-names";
 import { Settings } from "common/types";
 
 export const getSettings = async () => {
@@ -8,9 +8,5 @@ export const getSettings = async () => {
 };
 
 export const saveSettings = async (settings: Settings) => {
-  //@ts-ignore
-  if (!window.isTitanReactorConfig) {
-    throw new Error("This window is not a Titan Reactor config window");
-  }
-  return await ipcRenderer.invoke(SET_SETTINGS_FROM_CONFIGW, settings);
+  return await ipcRenderer.invoke(SAVE_SETTINGS_DATA, settings);
 };

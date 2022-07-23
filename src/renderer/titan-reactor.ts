@@ -14,28 +14,38 @@ import { SYSTEM_EVENT_OPEN_URL } from "./plugins/events";
 import { openUrl } from "./ipc";
 import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
 import { ipcRenderer } from "electron";
-import { GO_TO_START_PAGE, SETTINGS_CHANGED } from "common/ipc-handle-names";
+import { GO_TO_START_PAGE, SETTINGS_WERE_SAVED } from "common/ipc-handle-names";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import gameStore from "@stores/game-store";
 // import "./utils/webgl-lint";
 
-lockdown(
-  {
-    localeTaming: 'unsafe',
-    consoleTaming: 'unsafe',
-    errorTaming: 'unsafe'
+// lockdown(
+//   {
+//     localeTaming: 'unsafe',
+//     consoleTaming: 'unsafe',
+//     errorTaming: 'unsafe',
+//     errorTrapping: 'none',
+//   }
+// );
+
+window.harden = x => x;
+window.Compartment = function Compartment(env: {}) {
+  return {
+    evaluate(code: string) {
+      // destructure env
+      const vars = `const {${Object.keys(env).join(",")}} = env;\n`
+      eval(vars + code)
+    },
+    globalThis: {
+      Function: (code: string) => {
+        const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`
+        const fn = Function(vars + code);
+        return () => fn(env);
+      }
+    }
   }
-);
-
-// @ts-ignore
-if (module.hot) {
-  // @ts-ignore
-  module.hot.accept();
 }
-
-// @ts-ignore
-window.isTitanReactorRenderer = true;
 
 log.info(`@init: titan-reactor ${version}`);
 log.info(`@init: chrome ${process.versions.chrome}`);
@@ -205,7 +215,7 @@ const tryLoad = async (settings: SettingsMeta) => {
   screenStore().complete();
 }
 
-ipcRenderer.on(SETTINGS_CHANGED, async (_, settings) => {
+ipcRenderer.on(SETTINGS_WERE_SAVED, async (_, settings) => {
   try {
     await tryLoad(settings);
     useSettingsStore.setState(settings);
@@ -223,3 +233,5 @@ ipcRenderer.on(GO_TO_START_PAGE, () => {
     screenStore().complete();
   }
 });
+
+

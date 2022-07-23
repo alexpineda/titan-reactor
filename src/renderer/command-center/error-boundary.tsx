@@ -2,9 +2,11 @@ import React from "react";
 
 class ErrorBoundary extends React.Component {
   override state: { error: Error | undefined } = { error: undefined };
+  override props: { message: string; children: React.ReactNode };
 
-  constructor(props: any) {
+  constructor(props: { message: string; children: React.ReactNode }) {
     super(props);
+    this.props = props;
   }
 
   static getDerivedStateFromError(error: any) {
@@ -18,12 +20,12 @@ class ErrorBoundary extends React.Component {
   override render() {
     if (this.state.error) {
       return (
-        <>
-          There was an error with this plugin:{" "}
+        <p>
+          {this.props.message + ": "}
           {this.state.error instanceof Error
             ? this.state.error.message
             : "unknown"}{" "}
-        </>
+        </p>
       );
     }
 

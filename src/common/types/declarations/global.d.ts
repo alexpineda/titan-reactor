@@ -29,3 +29,9 @@ declare module '!!raw-loader!*' {
     const contents: string;
     export = contents
 }
+
+interface NodeModule {
+    hot?: {
+        accept: () => void;
+    };
+}

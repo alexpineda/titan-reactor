@@ -20,7 +20,8 @@ export interface PluginPackage {
         system?: {
             permissions?: string[],
             deprecated?: boolean;
-        }
+        },
+        [key: string]: any
     }
 }
 
@@ -32,6 +33,10 @@ export interface InitializedPluginPackage extends PluginPackage {
     hasUI: boolean;
 }
 
+export type PluginMetaData = {
+    methods: string[];
+    isCameraController: boolean;
+} & Pick<InitializedPluginPackage, "nativeSource" | "version" | "name" | "description" | "config">
 
 export interface PluginPrototype {
     id: string;
@@ -53,7 +58,7 @@ export interface PluginPrototype {
     /**
      * Allows a plugin to update it's own config key/value store
      */
-    setConfig: (key: string, value: any) => any;
+    setConfig: (key: string, value: any, persist: boolean) => any;
 }
 
 export interface NativePlugin extends PluginPrototype {

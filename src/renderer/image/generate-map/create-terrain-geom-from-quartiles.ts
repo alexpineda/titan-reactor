@@ -46,20 +46,13 @@ export const createTerrainGeometryFromQuartiles = async (
                 qy * qh * geomOptions.displaceDimensionScale,
             );
 
-            // if (terrainChunky) {
-            //     g.computeVertexNormals();
-            // }
-
             const mat = new MeshStandardMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
                 roughness: 1,
-                // @ts-ignore
-
             });
             mat.onBeforeCompile = function (shader) {
                 let fs = shader.fragmentShader;
 
-                //@ts-ignore
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
                 shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
 

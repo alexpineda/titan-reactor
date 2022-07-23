@@ -2,8 +2,10 @@ export const OPEN_FILE = "openFile";
 export const OPEN_MAP_DIALOG = "OPEN_MAP_DIALOG";
 export const OPEN_REPLAY_DIALOG = "OPEN_REPLAY_DIALOG";
 export const GET_LOADED_SETTINGS = "GET_SETTINGS";
-export const SET_SETTINGS_FROM_CONFIGW = "SET_SETTINGS_FROM_CONFIGW";
-export const SETTINGS_CHANGED = "SETTINGS_CHANGED";
+
+export const SAVE_SETTINGS_DATA = "SAVE_SETTINGS";
+export const SETTINGS_WERE_SAVED = "SETTINGS_WERE_SAVED";
+
 export const SHOW_FOLDER_DIALOG = "SHOW_FOLDER_DIALOG";
 export const LOG_MESSAGE = "LOG_MESSAGE";
 export const EXIT = "EXIT";
@@ -12,6 +14,19 @@ export const LOAD_CHK_FROM_FILE = "LOAD_CHK_FROM_FILE";
 export const DOWNLOAD_UPDATE = "DOWNLOAD_UPDATE";
 export const OPEN_URL = "OPEN_URL";
 export const GO_TO_START_PAGE = "GO_TO_START_PAGE";
+
+export const INVOKE_BROWSER_WINDOW = "INVOKE_BROWSER_WINDOW";
+export const INVOKE_BROWSER_WINDOW_RESPONSE = "INVOKE_BROWSER_WINDOW_RESPONSE";
+
+export const enum InvokeBrowserTarget {
+    Game = "game",
+    CommandCenter = "command-center",
+};
+
+export const enum BrowserTargetPayloadType {
+    PluginMacroMethodCatalog = "pluginMacroMethodCatalog",
+    GameTimeApiMethodCatalog = "gameTimeApiMethodCatalog",
+}
 
 export const OPEN_CASCLIB = "OPEN_CASCLIB";
 export const CLOSE_CASCLIB = "CLOSE_CASCLIB";

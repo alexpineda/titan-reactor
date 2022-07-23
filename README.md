@@ -1,7 +1,7 @@
 <br />
 
 <h1 align="center">Titan Reactor</h1>
-<h3 align="center">An OpenBW game renderer with plugins. </h3>
+<h3 align="center">An OpenBW game renderer with plugins and macros.</h3>
 
 <br>
 

@@ -3,8 +3,8 @@ import create from "zustand";
 import { Settings, SettingsMeta } from "common/types";
 import { defaultSettings } from "common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
-import { MacroActionEffect, getMacroActionValue, MacroAction } from "../command-center/macros";
-import { getLevaConfigField } from "../command-center/global-settings";
+import { getMacroActionValue, MacroAction, MacroActionType } from "../command-center/macros";
+import { getAppSettingsLevaConfigField } from "../command-center/global-settings";
 
 import lSet from "lodash.set";
 
@@ -22,6 +22,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   errors: [],
   enabledPlugins: [],
   disabledPlugins: [],
+  pluginsMetadata: [],
   set: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
   },
@@ -35,11 +36,11 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     return settings;
   },
   doMacroAction: async (action) => {
-    if (action.effect === MacroActionEffect.CallMethod) {
+    if (action.type !== MacroActionType.ModifyAppSettings) {
       return;
     }
 
-    const field = getLevaConfigField(get().data, action.field!) as any;
+    const field = getAppSettingsLevaConfigField(get(), action.field!) as any;
     if (field === undefined) {
       return;
     }

@@ -1,6 +1,6 @@
 import { InitializedPluginPackage } from "common/types";
 import ReactMarkdown from "react-markdown/index";
-import { Leva, useControls } from "leva";
+import { LevaPanel, useControls, useCreateStore } from "leva";
 import semver from "semver";
 import packagejson from "../../../package.json";
 import { Tab, Tabs } from "./tabs";
@@ -19,8 +19,9 @@ export default ({
   controls: any[][];
   pluginPackage: Partial<InitializedPluginPackage>;
 }) => {
+  const store = useCreateStore();
   for (const [folder, data] of controls) {
-    useControls(folder, data, [pluginPackage.id]);
+    useControls(folder, data, { store });
   }
 
   const permissions = (pluginPackage.config?.system?.permissions ?? []).map(
@@ -37,8 +38,9 @@ export default ({
     pluginPackage.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
 
   return (
-    <ErrorBoundary>
-      <Leva
+    <ErrorBoundary message="There was an error with this plugin">
+      <LevaPanel
+        store={store}
         fill
         flat
         hideCopyButton

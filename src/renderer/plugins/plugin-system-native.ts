@@ -9,7 +9,7 @@ import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { MacroActionEffect, getMacroActionValue, MacroAction } from "../command-center/macros";
+import { MacroActionEffect, getMacroActionValue, Macro, MacroActionPlugin } from "../command-center/macros";
 import { createCompartment } from "@utils/ses-util";
 
 
@@ -63,7 +63,7 @@ const pluginProto: PluginPrototype = {
     $$permissions: {},
     $$config: {},
 
-    setConfig(key: string, value: any) {
+    setConfig(key: string, value: any, persist = true) {
         if (!(key in this.$$config)) {
             log.warning(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
             return undefined;
@@ -72,7 +72,10 @@ const pluginProto: PluginPrototype = {
         // TODO: use leva detection algo here to determine if values are in bounds
 
         this.$$config[key].value = value;
-        updatePluginsConfig(this.id, this.$$config);
+
+        if (persist) {
+            updatePluginsConfig(this.id, this.$$config);
+        }
     }
 };
 
@@ -188,22 +191,16 @@ export class PluginSystemNative {
         this.#janitor.add(() => { window.removeEventListener("message", _messageListener); });
     }
 
-    getDefaultCameraModePlugin() {
-        const plugin = this.#nativePlugins.find(p => p.name === "@titan-reactor-plugins/camera-standard");
-
-        if (plugin) {
-            return plugin as unknown as CameraController;
-        }
-
-        throw new Error("No default camera mode plugin found. Please provide a cameraModeKey in the plugin config with value of Escape.");
-    }
-
-    getCameraModePlugins() {
+    getCameraControllers() {
         return this.#nativePlugins.filter(p => p.isCameraController) as CameraController[];
     }
 
-    getByName(name: string) {
+    #getByName(name: string) {
         return this.#nativePlugins.find(p => p.name === name);
+    }
+
+    #getById(id: string) {
+        return this.#nativePlugins.find(p => p.id === id);
     }
 
     #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async: boolean = false) {
@@ -333,8 +330,7 @@ export class PluginSystemNative {
         for (const plugin of this.#nativePlugins) {
             if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined) {
                 plugin.context = context;
-                //@ts-ignore
-                context = plugin[hookName].apply(plugin, args) ?? context;
+                context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
                 delete plugin.context;
             }
         }
@@ -351,37 +347,67 @@ export class PluginSystemNative {
         for (const plugin of this.#nativePlugins) {
             if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined) {
                 plugin.context = context;
-                //@ts-ignore
-                context = await plugin[hookName].apply(plugin, args) ?? context;
+                context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
                 delete plugin.context;
             }
         }
         return context;
     }
 
-    doMacroAction(action: MacroAction) {
-        const plugin = this.getByName(action.targetId!);
+    setAllMacroDefaults(macro: Macro) {
+        for (const plugin of this.#nativePlugins) {
+            macro.setPluginsDefaults(plugin.name, plugin.config);
+        }
+    }
+
+    setMacroDefaults(macro: Macro, pluginId: string, config: any) {
+        const plugin = this.#getById(pluginId);
         if (!plugin) {
-            log.error(`@macro-action: Plugin ${action.targetId} not found`);
+            log.error(`Plugin ${pluginId} not found`);
+            return;
+        }
+        macro.setPluginsDefaults(plugin.name, config);
+    }
+
+    getAllMacroActions() {
+        const actions: { pluginName: string, pluginAction: string }[] = [];
+        for (const plugin of this.#nativePlugins) {
+            for (const key of Object.keys(plugin)) {
+                if (key.startsWith('onMacro') && typeof plugin[key as keyof typeof plugin] === 'function') {
+                    actions.push({
+                        pluginName: plugin.name,
+                        pluginAction: key,
+                    })
+                }
+            }
+        }
+        return actions;
+    }
+
+    doMacroAction(action: MacroActionPlugin) {
+        const plugin = this.#getByName(action.pluginName!);
+        if (!plugin) {
+            log.error(`@macro-action: Plugin ${action.pluginName} not found`);
             return;
         }
 
         if (action.effect === MacroActionEffect.CallMethod) {
-            const key = `onMacro${action.field![0][0].toUpperCase()}${action.field![0].substring(1)}`
+            const key = action.field[0];
             if (typeof plugin[key as keyof NativePlugin] === "function") {
                 try {
                     plugin[key as keyof NativePlugin]();
                 } catch (e) {
-                    log.error(withErrorMessage(`@macro-action: ${action.targetId} ${key}`, e));
+                    log.error(withErrorMessage(`@macro-action: ${action.pluginName} ${key}`, e));
                 }
             }
         } else {
-            const key = action.field![0];
+            const key = action.field[0];
             const field = plugin.$$config[key];
             if (field === undefined) {
                 return;
             }
-            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max));
+            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max), false);
         }
     }
+
 }

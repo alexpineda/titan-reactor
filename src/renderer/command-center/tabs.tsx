@@ -42,7 +42,6 @@ export const Tabs = ({
                 onChange && onChange(index);
               }}
             >
-              {/*@ts-ignore  */}
               {child.props.label}
             </div>
           );

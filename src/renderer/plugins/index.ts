@@ -20,6 +20,7 @@ import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
 import { Vector3 } from "three";
 import { HOOK_ON_GAME_DISPOSED } from "./hooks";
+import { Macros } from "../command-center/macros";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -61,8 +62,6 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
         error: new Error(`Error installing default plugins`),
     });
 });
-
-
 
 export const initializePluginSystem = async (
     pluginPackages: InitializedPluginPackage[]
@@ -108,12 +107,8 @@ export const onFrame = (
     );
 };
 
-export const getDefaultCameraModePlugin = () => {
-    return nativePluginSystem.getDefaultCameraModePlugin();
-};
-
-export const getCameraModePlugins = () => {
-    return nativePluginSystem.getCameraModePlugins();
+export const getCameraControllers = () => {
+    return nativePluginSystem.getCameraControllers();
 };
 
 export const callHook = (
@@ -164,11 +159,19 @@ export const onRender = (delta: number, elapsed: number) => {
     nativePluginSystem.onRender(delta, elapsed);
 };
 
-
-export const getByName = (id: string) => {
-    return nativePluginSystem.getByName(id);
-}
-
 export const doMacroAction = (...args: Parameters<PluginSystemNative["doMacroAction"]>) => {
-    nativePluginSystem.doMacroAction(...args);
+    return nativePluginSystem.doMacroAction(...args);
 }
+
+export const setAllMacroDefaults = (macros: Macros) => {
+    for (const macro of macros) {
+        nativePluginSystem.setAllMacroDefaults(macro);
+    }
+}
+
+export const setMacroDefaults = (macros: Macros, pluginId: string, config: any) => {
+    for (const macro of macros) {
+        nativePluginSystem.setMacroDefaults(macro, pluginId, config);
+    }
+}
+

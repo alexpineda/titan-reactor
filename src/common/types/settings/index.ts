@@ -1,8 +1,8 @@
-import { Macro } from "renderer/command-center/macros";
-import type { InitializedPluginPackage } from "../plugin";
+import { MacrosDTO } from "renderer/command-center/macros";
+import type { InitializedPluginPackage, PluginMetaData } from "../plugin";
 
 export type Settings = {
-    version: 4;
+    version: 5;
     language: string;
     directories: {
         starcraft: string;
@@ -27,6 +27,7 @@ export type Settings = {
         terrainShadows: boolean;
     },
     game: {
+        cameraController: string;
         stopFollowingOnClick: boolean,
         minimapSize: number;
     },
@@ -39,9 +40,7 @@ export type Settings = {
         developmentDirectory?: string;
         enabled: string[],
     },
-    macros: {
-        hotkeys: Macro[];
-    }
+    macros: MacrosDTO
 };
 
 export enum AssetTextureResolution {
@@ -69,6 +68,7 @@ export type SettingsMeta = {
     phrases: Record<string, string>;
     enabledPlugins: InitializedPluginPackage[];
     disabledPlugins: InitializedPluginPackage[];
+    pluginsMetadata: PluginMetaData[];
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */

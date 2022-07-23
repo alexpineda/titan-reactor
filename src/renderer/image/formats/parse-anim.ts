@@ -73,8 +73,7 @@ export const parseAnim = (buf: Buffer) => {
       const height = texture.readUInt16LE(10);
       texture.consume(12);
       if (ddsOffset > 0) {
-        // @ts-ignore
-        tex[layerNames[i]] = {
+        tex[layerNames[i] as keyof typeof tex] = {
           ddsOffset,
           size,
           width,
@@ -82,7 +81,7 @@ export const parseAnim = (buf: Buffer) => {
         };
       }
       return tex;
-    }, {});
+    }, {} as Record<string, AnimDds>);
 
   const parseFrames = (numFrames: number, o: number) => {
     return range(0, numFrames).map((frame) => {

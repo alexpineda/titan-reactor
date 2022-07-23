@@ -10,6 +10,7 @@ export default class Creep {
   creepValuesTexture: Texture;
   creepEdgesValuesTexture: Texture;
   creepImageData: ImageData;
+  worker: Worker;
 
   private _lastFrame = 0;
 
@@ -25,10 +26,8 @@ export default class Creep {
     this.creepEdgesValuesTexture = creepEdgesValuesTexture;
     this.creepImageData = new ImageData(mapWidth, mapHeight);
 
-    // @ts-ignore
     this.worker = new Worker();
-    // @ts-ignore
-    this.worker.onmessage = ({ data }) => {
+    this.worker.onmessage = ({ data }: { data: any }) => {
       const { creepData, edgesData, imageData, frame } = data;
       if (frame < this._lastFrame) return;
       this._lastFrame = frame;
@@ -50,12 +49,10 @@ export default class Creep {
       frame,
     };
 
-    //@ts-ignore
     this.worker.postMessage(msg, [msg.buffer.buffer]);
   }
 
   dispose() {
-    //@ts-ignore
     this.worker.terminate();
   }
 }

@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import CameraControls from "camera-controls";
-import { ClearPass, RenderPass } from "postprocessing";
+import { RenderPass } from "postprocessing";
 
 import { playerColors } from "common/enums";
 import type {
@@ -74,10 +74,9 @@ async function TitanReactorMap(
   janitor.disposable(control);
   control.setLookAt(0, 50, 0, 0, 0, 0, true);
 
-  const clearPass = new ClearPass(camera);
   const renderPass = new RenderPass(scene, camera);
   renderer.setCameraModeEffectsAndPasses({
-    passes: [clearPass, renderPass]
+    passes: [renderPass]
   });
   renderer.changeCamera(camera);
 

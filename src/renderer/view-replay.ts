@@ -11,7 +11,7 @@ import { RenderPass, EffectPass } from "postprocessing";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { CanvasTarget } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, CameraController
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, CameraController, SettingsMeta
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types/structs";
@@ -67,7 +67,7 @@ import withErrorMessage from "common/utils/with-error-message";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
-import { RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, SETTINGS_WERE_SAVED } from "common/ipc-handle-names";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
@@ -78,9 +78,8 @@ import range from "common/utils/range";
 import DirectionalCamera from "./camera/directional-camera";
 import { inverse } from "@utils/function-utils";
 import { getPixelRatio } from "@utils/renderer-utils";
-import { MacroActionEffect, HotkeyTrigger, Macro, MacroActionSequence, Macros, MacroTargetContext } from "./command-center/macros";
+import { Macros } from "./command-center/macros";
 import { createCompartment } from "@utils/ses-util";
-import { generateUUID } from "three/src/math/MathUtils";
 
 CameraControls.install({ THREE: THREE });
 
@@ -325,29 +324,35 @@ async function TitanReactorGame(
 
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW);
 
-  const switchCameraMode = async (cameraMode: CameraController, prevCameraMode?: CameraController) => {
+  const switchCameraController = async (controllerName: string, prevController?: CameraController) => {
 
+    const controllers = plugins.getCameraControllers();
+    const controller = controllers.find(plugin => plugin.name === controllerName) ?? controllers[0];
+    if (controller === undefined) {
+      throw new Error(`No camera controller named ${controllerName}`);
+    }
     let prevData: any;
 
-    if (prevCameraMode) {
-      if (prevCameraMode.onExitCameraMode) {
+    if (prevController) {
+      if (prevController.onExitCameraMode) {
         try {
           const target = new Vector3();
           const position = new Vector3();
 
-          prevCameraMode.orbit!.getTarget(target);
-          prevCameraMode.orbit!.getPosition(position);
+          prevController.orbit!.getTarget(target);
+          prevController.orbit!.getPosition(position);
 
-          prevData = prevCameraMode.onExitCameraMode(target, position);
+          prevData = prevController.onExitCameraMode(target, position);
         } catch (e) {
           log.error(withErrorMessage("onExitCameraMode", e));
         }
       }
       try {
-        prevCameraMode.dispose();
+        prevController.dispose();
       } catch (e) {
         log.error(withErrorMessage("prevCameraMode.dispose", e));
       }
+
     }
 
     const orbit = new CameraControls(
@@ -361,37 +366,42 @@ async function TitanReactorGame(
 
     const newControls = {
       rested: true,
-      cameraMode,
+      cameraMode: controller,
       orbit,
       cameraShake,
       PIP: pip
     };
 
-    cameraMode.dispose = () => {
-      cameraMode.isActiveCameraMode = false;
-      cameraMode.orbit!.dispose();
+    controller.dispose = () => {
+      controller.isActiveCameraMode = false;
+      controller.orbit!.dispose();
       // FIXME: dummy camera, needed?
-      cameraMode.orbit!.camera = new PerspectiveCamera();
+      controller.orbit!.camera = new PerspectiveCamera();
     }
-    cameraMode.orbit = newControls.orbit;
+    controller.orbit = newControls.orbit;
     newControls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
     newControls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
 
-    cameraMode.isActiveCameraMode = true;
-    await cameraMode.onEnterCameraMode(prevData);
+    controller.isActiveCameraMode = true;
+    try {
+      await controller.onEnterCameraMode(prevData);
+    } catch (e) {
+      log.error(withErrorMessage("onEnterCameraMode", e));
+      throw new Error("onEnterCameraMode failed");
+    }
 
-    setUseScale(images, cameraMode.unitScale || 1);
+    setUseScale(images, controller.unitScale || 1);
 
-    if (cameraMode.pointerLock) {
+    if (controller.pointerLock) {
       gameSurface.requestPointerLock();
     } else {
       gameSurface.exitPointerLock();
     }
 
-    if (cameraMode.minimap) {
+    if (controller.minimap) {
       minimapSurface.canvas.style.display = "block";
       minimapSurface.canvas.style.pointerEvents = "auto";
       minimapMouse.enabled = true;
@@ -406,13 +416,13 @@ async function TitanReactorGame(
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
 
-    if (cameraMode.cameraShake) {
+    if (controller.cameraShake) {
       newControls.cameraShake.enabled = true;
     } else {
       newControls.cameraShake.enabled = false;
     }
 
-    if (!cameraMode.unitSelection) {
+    if (!controller.unitSelection) {
       selectedUnitsStore().clearSelectedUnits();
     }
 
@@ -435,10 +445,10 @@ async function TitanReactorGame(
 
     const fogOfWarEffect = new FogOfWarEffect();
     fogOfWar.setEffect(fogOfWarEffect);
-    fogOfWarEffect.blendMode.opacity.value = fogOfWar.enabled ? (cameraMode.fogOfWar ?? 1) : 0;
+    fogOfWarEffect.blendMode.opacity.value = fogOfWar.enabled ? (controller.fogOfWar ?? 1) : 0;
 
-    if (cameraMode.onSetComposerPasses) {
-      renderer.setCameraModeEffectsAndPasses(cameraMode.onSetComposerPasses(renderPass, fogOfWarEffect));
+    if (controller.onSetComposerPasses) {
+      renderer.setCameraModeEffectsAndPasses(controller.onSetComposerPasses(renderPass, fogOfWarEffect));
     } else {
       renderer.setCameraModeEffectsAndPasses({
         effects: [fogOfWarEffect],
@@ -450,10 +460,8 @@ async function TitanReactorGame(
     return newControls;
   }
 
-  let switchingCameraMode = false;
+  let defaultCameraController = settings.game.cameraController;
 
-  const defaultCameraMode = plugins.getDefaultCameraModePlugin();
-  let controls = await switchCameraMode(defaultCameraMode);
 
   // const setUseDepth = (useDepth: boolean) => {
   //   ImageHD.useDepth = useDepth;
@@ -721,10 +729,9 @@ async function TitanReactorGame(
   }
   const speedUp = () => speedHandler(ChangeSpeedDirection.Up);
   const speedDown = () => speedHandler(ChangeSpeedDirection.Down);
-  const togglePause = () => {
-    const isPaused = !openBW.isPaused();
-    openBW.setPaused(isPaused);
-    return isPaused;
+  const togglePause = (setPaused?: boolean) => {
+    openBW.setPaused(setPaused ?? !openBW.isPaused());
+    return openBW.isPaused();
   }
 
   const _sceneResizeHandler = () => {
@@ -1745,6 +1752,14 @@ async function TitanReactorGame(
 
   janitor.add(useSettingsStore.subscribe(({ data: newSettings }) => {
 
+    if (newSettings.macros.revision > settings.macros.revision) {
+      macros.deserialize(newSettings.macros);
+    }
+
+    if (newSettings.game.cameraController !== controls.cameraMode.name) {
+      switchCameraController(newSettings.game.cameraController);
+    }
+
     audioMixer.masterVolume = newSettings.audio.global;
     audioMixer.musicVolume = newSettings.audio.music;
     audioMixer.soundVolume = newSettings.audio.sound;
@@ -1782,6 +1797,8 @@ async function TitanReactorGame(
   }));
 
   let pluginsApiJanitor = new Janitor;
+  const macros = new Macros;
+  macros.deserialize(settings.macros);
 
   const setupPlugins = async () => {
 
@@ -1851,7 +1868,8 @@ async function TitanReactorGame(
       maxFrame: replay.header.frameCount,
       gotoFrame: (frame: number) => openBW.setCurrentFrame(frame),
       getSpeed: () => openBW.getGameSpeed(),
-      exitCameraMode: () => {
+      changeToDefaultCameraController: () => {
+        switchCameraController(defaultCameraController);
       },
       getPipCamera() {
         return controls.PIP.camera;
@@ -1911,140 +1929,41 @@ async function TitanReactorGame(
       }
     };
 
-    pluginsApiJanitor.callback(plugins.injectApi(api));
+    pluginsApiJanitor.add(plugins.injectApi(api));
 
+    const container = createCompartment(api);
 
-    const macros = new Macros;
-
-    let digit = 1;
-    for (const cameraMode of plugins.getCameraModePlugins()) {
-      macros.add(new Macro(generateUUID(), "Switch Camera", new HotkeyTrigger(`Ctrl+Digit${digit}`), [{
-        target: MacroTargetContext.Host,
-        effect: MacroActionEffect.CallMethod,
-        value: async () => {
-          if (switchingCameraMode) return;
-
-          if (cameraMode !== controls.cameraMode) {
-            switchingCameraMode = true;
-            controls = await switchCameraMode(cameraMode, controls.cameraMode);
-          }
-          switchingCameraMode = false;
-        }
-      }]));
-      digit++;
+    const createGameCompartment = () => {
+      return container;
     }
 
-    macros.add(new Macro(generateUUID(), "Toggle Music", new HotkeyTrigger("KeyM"), [{
-      target: MacroTargetContext.Host,
-      field: ["audio", "music"],
-      effect: MacroActionEffect.Set,
-      value: 0.5
-    },
-    {
-      target: MacroTargetContext.Host,
-      field: ["audio", "music"],
-      effect: MacroActionEffect.Min
-    }], MacroActionSequence.Alternate));
+    macros.initGame(createGameCompartment);
 
-    macros.add(new Macro(generateUUID(), "Toggle Sound", new HotkeyTrigger("KeyS"), [{
-      target: MacroTargetContext.Host,
-      field: ["audio", "sound"],
-      effect: MacroActionEffect.Set,
-      value: 0.5
-    },
-    {
-      target: MacroTargetContext.Host,
-      field: ["audio", "sound"],
-      effect: MacroActionEffect.Min
-    }], MacroActionSequence.Alternate));
+    macros.setHostDefaults(settings);
+    ipcRenderer.on(SETTINGS_WERE_SAVED, async (_, settings: SettingsMeta) => {
+      macros.setHostDefaults(settings.data);
+      defaultCameraController = settings.data.game.cameraController;
+    });
 
-    macros.add(new Macro(generateUUID(), "Replay: Pause", new HotkeyTrigger("KeyP"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "togglePause()"
-    }]));
-    //     this.sendUIMessage("⏯️");
-
-    macros.add(new Macro(generateUUID(), "Replay: Speed Up", new HotkeyTrigger("KeyU"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "speedUp()"
-    }]));
-    //     this.sendUIMessage(`🔼 ${speed}x`);
-
-    macros.add(new Macro(generateUUID(), "Replay: Speed Down", new HotkeyTrigger("KeyD"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "speedDown()"
-    }]));
-    //    this.sendUIMessage(`🔽 ${speed}x`);
-
-    macros.add(new Macro(generateUUID(), "Replay: Skip Backwards", new HotkeyTrigger("BracketLeft"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "skipBackward()"
-    }]));
-    //     this.sendUIMessage("⏪");
-
-    macros.add(new Macro(generateUUID(), "Replay: Skip Forwards", new HotkeyTrigger("BracketRight"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "skipForward()"
-    }]));
-    //    this.sendUIMessage("⏩");
-
-    macros.add(new Macro(generateUUID(), "Replay: Skip Backwards", new HotkeyTrigger("Shift+BracketLeft"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "skipBackward(Infinity)"
-    }]));
-    //     this.sendUIMessage("⏪");
-
-    macros.add(new Macro(generateUUID(), "Replay: Skip Forwards", new HotkeyTrigger("Shift+BracketRight"), [{
-      target: MacroTargetContext.GameTimeApi,
-      effect: MacroActionEffect.CallMethod,
-      value: "skipForward(Infinity)"
-    }]));
-    //    this.sendUIMessage("⏩");
+    plugins.setAllMacroDefaults(macros);
+    ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
+      plugins.setMacroDefaults(macros, pluginId, config);
+    });
 
     pluginsApiJanitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
-      for (const actions of macros.trigger(e)) {
-        for (const action of actions) {
-          if (action.target === MacroTargetContext.Host) {
-            if (action.effect === MacroActionEffect.CallMethod) {
-              try {
-                (action.value as () => void)();
-              } catch (e) {
-                log.error(withErrorMessage(`Error executing macro action on host`, e));
-              }
-            } else {
-              settingsStore().doMacroAction(action);
-            }
-          } else if (action.target === MacroTargetContext.GameTimeApi && action.effect === MacroActionEffect.CallMethod) {
-            const c = createCompartment(api);
-            try {
-              c.evaluate(action.value);
-            } catch (e) {
-              log.error(`Error executing macro action: ${e}`);
-            }
-          } else if (action.target === MacroTargetContext.Plugin) {
-            plugins.doMacroAction(action);
-          }
-        }
-      }
+      macros.doMacros(e);
     });
 
   }
 
   await setupPlugins();
-  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
   const _onReloadPlugins = async () => {
     pluginsApiJanitor.mopUp();
     renderer.getWebGLRenderer().setAnimationLoop(null);
     await (settingsStore().load());
     plugins.initializePluginSystem(settingsStore().enabledPlugins);
-    controls = await switchCameraMode(plugins.getDefaultCameraModePlugin());
+    controls = await switchCameraController(defaultCameraController);
 
     await setupPlugins();
     renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
@@ -2061,22 +1980,30 @@ async function TitanReactorGame(
   await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
 
+  let controls = await switchCameraController(defaultCameraController);
+
   GAME_LOOP(0);
   renderer.getWebGLRenderer().render(scene, precompileCamera);
 
   // pre-render other camera modes (for post processing)
-  for (const cameraMode of plugins.getCameraModePlugins()) {
-    if (cameraMode !== defaultCameraMode) {
-      controls = await switchCameraMode(cameraMode);
+  for (const cameraController of plugins.getCameraControllers()) {
+    if (cameraController.name !== defaultCameraController) {
+      controls = await switchCameraController(cameraController.name);
       renderer.render(0);
     }
   }
 
-  controls = await switchCameraMode(defaultCameraMode);
+  controls = await switchCameraController(defaultCameraController);
   renderer.render(0);
 
+  janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
+    if (e.code === "Escape") {
+      switchCameraController(defaultCameraController);
+    }
+  })
 
   _sceneResizeHandler();
+  renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
   return dispose;
 }

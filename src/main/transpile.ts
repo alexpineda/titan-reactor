@@ -12,7 +12,7 @@ export interface TransformSyntaxError extends Error {
 export default async (
   filename: string,
   content: string,
-  transpileErrors: TransformSyntaxError[]
+  transpileErrors: Error[]
 ) => {
   try {
     const result = await transformAsync(content, {
@@ -30,8 +30,9 @@ export default async (
 
     return result;
   } catch (e) {
-    //@ts-ignore
-    transpileErrors.push(e);
+    if (e instanceof Error) {
+      transpileErrors.push(e);
+    }
     return null;
   }
 };

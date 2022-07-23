@@ -204,7 +204,10 @@ export default async (filepath: string) => {
   const allSprites = [...preloadCommandUnits, ...unitSprites, ...new Set(map.sprites.map(s => s.spriteId))];
   const allImages = calculateImagesFromSpritesIscript(assets.bwDat, allSprites);
 
-  await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2)));
+  log.verbose(`@load-replay/preload-images: ${allImages.length}`);
+  processStore().start(Process.AtlasPreload, allImages.length);
+
+  await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
 
   const disposeGame = await TitanReactorGame(
     map,
@@ -220,10 +223,8 @@ export default async (filepath: string) => {
   );
 
   gameStore().setDisposeGame(disposeGame);
-  processStore().increment(Process.ReplayInitialization);
 
   document.title = `Titan Reactor - ${gameTitle}`;
 
-  processStore().complete(Process.ReplayInitialization);
   screenStore().complete();
 };

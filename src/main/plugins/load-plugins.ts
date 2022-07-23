@@ -8,7 +8,7 @@ import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
 import semver from 'semver';
 
-import { InitializedPluginPackage } from "common/types";
+import { InitializedPluginPackage, PluginMetaData } from "common/types";
 import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
@@ -18,6 +18,7 @@ import withErrorMessage from 'common/utils/with-error-message';
 import log from "../log"
 import fileExists from 'common/utils/file-exists';
 import packagejson from "../../../package.json";
+import omit from 'lodash.omit';
 
 let _enabledPluginPackages: InitializedPluginPackage[] = [];
 let _disabledPluginPackages: InitializedPluginPackage[] = [];
@@ -112,11 +113,9 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
 }
 
 const DEFAULT_PACKAGES: string[] = [
-    "@titan-reactor-plugins/global-settings",
     "@titan-reactor-plugins/clock",
     "@titan-reactor-plugins/default-screens",
     "@titan-reactor-plugins/player-colors",
-    "@titan-reactor-plugins/replay-control",
     "@titan-reactor-plugins/camera-standard",
     "@titan-reactor-plugins/camera-overview",
     "@titan-reactor-plugins/camera-battle",
@@ -280,8 +279,6 @@ export const uninstallPlugin = async (pluginId: string) => {
     return true;
 }
 
-
-
 export const savePluginsConfig = async (pluginId: string, config: any, updateMainWindow = true) => {
     const pluginConfig = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!pluginConfig) {
@@ -313,4 +310,25 @@ export const savePluginsConfig = async (pluginId: string, config: any, updateMai
     if (updateMainWindow) {
         browserWindows.main?.webContents.send(ON_PLUGIN_CONFIG_UPDATED, pluginId, config);
     }
+}
+
+const getMethods = (fn: string) => {
+    const regex = /(onMacro([a-zA-Z0-9_$]+))+/g
+    const matches = fn.match(regex);
+    if (matches) {
+        return [...new Set(matches)];
+    } else {
+        return [];
+    }
+}
+
+export const getPluginsMetaData: () => PluginMetaData[] = () => {
+    return _enabledPluginPackages.map(plugin => ({
+        name: plugin.name,
+        description: plugin.description,
+        version: plugin.version,
+        config: omit(plugin.config, "system"),
+        methods: getMethods((plugin.nativeSource ?? "")),
+        isCameraController: (plugin.nativeSource ?? "").includes("onEnterCameraMode")
+    }));
 }

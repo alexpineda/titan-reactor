@@ -1,7 +1,7 @@
 import { Settings, AssetTextureResolution } from "./types";
 
 export const defaultSettings: Settings = {
-  version: 4,
+  version: 5,
   language: "en-US",
   directories: {
     starcraft: "",
@@ -20,6 +20,7 @@ export const defaultSettings: Settings = {
     sound: 1
   },
   game: {
+    cameraController: "@titan-reactor-plugins/camera-standard",
     stopFollowingOnClick: true,
     minimapSize: 0.25
   },
@@ -38,6 +39,8 @@ export const defaultSettings: Settings = {
     enabled: [],
   },
   macros: {
-    hotkeys: []
+    version: "",
+    revision: 0,
+    macros: []
   }
 };

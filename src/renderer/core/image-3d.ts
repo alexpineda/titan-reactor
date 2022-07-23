@@ -4,7 +4,7 @@ import { AnimationAction, AnimationMixer, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 import { GlbAtlas } from "../image/atlas/glb-atlas";
-import type { GRPInterface, ImageDAT } from "common/types";
+import type { ImageDAT } from "common/types";
 import type { Image, Unit } from ".";
 
 /**
@@ -33,7 +33,7 @@ export class Image3D extends Object3D implements Image {
       typeId: -1,
       unit: undefined
     }
-    
+
   constructor(
     atlas: GlbAtlas,
     imageDef: ImageDAT,
@@ -67,8 +67,7 @@ export class Image3D extends Object3D implements Image {
     this.setFrame(0);
   }
 
-  //@ts-ignore
-  changeImage(atlas: GRPInterface, imageDef: ImageDAT): void {
+  changeImage(): void {
     throw new Error("Method not implemented.");
   }
 

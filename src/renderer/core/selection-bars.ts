@@ -62,7 +62,6 @@ class SelectionBarMaterial extends MeshBasicMaterial {
   }
 
   override onBeforeCompile(shader: Shader, _: WebGLRenderer): void {
-    // @ts-ignore
     Object.assign(shader.uniforms, this.customUniforms);
     const fs = shader.fragmentShader;
     shader.fragmentShader =
