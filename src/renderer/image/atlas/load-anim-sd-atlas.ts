@@ -5,8 +5,7 @@ import {
     UnsignedByteType,
 } from "three";
 
-import { AnimDds, GrpFrameType, ImageDAT } from "common/types";
-import { UnitTileScale } from "../../core";
+import { AnimDds, GrpFrameType, ImageDAT, UnitTileScale } from "common/types";
 import { createDDSTexture, Grp } from "../formats";
 import { AnimAtlas } from "./anim-atlas";
 

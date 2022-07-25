@@ -10,10 +10,8 @@ import {
   WebGLRenderer,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
-import {  WrappedQuartileTextures } from "common/types";
-
+import { WrappedQuartileTextures, UnitTileScale } from "common/types";
 import { createCompressedTexture } from "./common";
-import { UnitTileScale } from "@core/image";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be

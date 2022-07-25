@@ -19,7 +19,7 @@ export function loadGlb(
   envMap: Texture | null,
   name = "",
   meshCb: (mesh: Mesh) => void = () => { }
-) {
+): Promise<GlbResponse> {
   return new Promise((resolve, reject) => {
     new GLTFLoader().load(
       file,

@@ -18,10 +18,12 @@ import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import gameStore from "@stores/game-store";
 import { rendererIsDev } from "@utils/renderer-utils";
+import "ses";
 // import "./utils/webgl-lint";
 
 if (rendererIsDev) {
 
+  //@ts-ignore
   window.harden = x => x;
 
   //@ts-ignore

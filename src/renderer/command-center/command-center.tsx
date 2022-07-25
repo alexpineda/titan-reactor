@@ -20,6 +20,7 @@ import { Tab, Tabs } from "./tabs";
 import { mapConfigToLeva } from "./map-config-to-leva";
 import { MacrosPanel } from "./macros/macro-settings";
 import { Helmet } from "react-helmet";
+import { openCascStorage, readCascFileBatch } from "@ipc/casclib";
 
 if (module.hot) {
   module.hot.accept();
@@ -68,10 +69,12 @@ const getUpdateVersion = (remoteVersion: string, localVersion: string) => {
   }
 };
 
+const _iconsBase64: Record<number, string> = {};
+
 const CommandCenter = () => {
-  const settingsStore = useSettingsStore();
+  const settings = useSettingsStore();
   const [selectedPluginPackage, setSelectedPluginPackage] = useState<Plugin>({
-    plugin: settingsStore.enabledPlugins[0] ?? settingsStore.disabledPlugins[0],
+    plugin: settings.enabledPlugins[0] ?? settings.disabledPlugins[0],
   });
 
   const [remotePackages, setRemotePackages] = useState<search.Result[]>([]);
@@ -80,6 +83,35 @@ const CommandCenter = () => {
 
   const [tabIndex, setTabIndex] = useState(0);
   const [mainTabIndex, setMainTabIndex] = useState(0);
+
+  useEffect(() => {
+    if (!settings.errors.length) {
+      (async () => {
+        await openCascStorage(settings.data.directories.starcraft);
+
+        const pluginIcons = [
+          ...settings.enabledPlugins,
+          ...settings.disabledPlugins,
+        ]
+          .map((p) => p.config?.icon ?? "filter_center_focus")
+          .filter((i) => typeof i === "number");
+        const icons = [
+          ...new Set(
+            [...pluginIcons, 230, 389].filter((i) => !_iconsBase64[i])
+          ),
+        ];
+
+        const buffers = await readCascFileBatch(
+          icons.map((i: number) => `webui/dist/lib/images/cmdicons.${i}.png`),
+          "base64"
+        );
+
+        for (let i = 0; i < icons.length; i++) {
+          _iconsBase64[icons[i]] = `data:image/png;base64,${buffers[i]}`;
+        }
+      })();
+    }
+  }, [settings.errors.length]);
 
   useEffect(() => {
     if (banner) {
@@ -100,7 +132,7 @@ const CommandCenter = () => {
     (p) => p.name === selectedPluginPackage.plugin?.name
   );
 
-  const pluginsWithUpdatesAvailable = settingsStore.enabledPlugins.reduce(
+  const pluginsWithUpdatesAvailable = settings.enabledPlugins.reduce(
     (memo, plugin) => {
       const remote = remotePackages.find((p) => p.name === plugin.name);
 
@@ -129,6 +161,7 @@ const CommandCenter = () => {
   );
 
   interface PluginButtonProps {
+    icon: number | string | null;
     name: string;
     description?: string;
     isSelected: boolean;
@@ -137,6 +170,7 @@ const CommandCenter = () => {
     isOnline?: boolean;
   }
   const PluginButton = ({
+    icon,
     name,
     description,
     isSelected,
@@ -155,6 +189,14 @@ const CommandCenter = () => {
           : "var(--gray-7)",
       }}
     >
+      {typeof icon === "number" && (
+        <img
+          style={{ width: "var(--size-8)" }}
+          src={_iconsBase64[icon]}
+          alt={name}
+        />
+      )}
+      {typeof icon === "string" && <i className="material-icons">{icon}</i>}
       {description}{" "}
       {pluginsWithUpdatesAvailable[
         name as keyof typeof pluginsWithUpdatesAvailable
@@ -177,13 +219,13 @@ const CommandCenter = () => {
   const nonInstalledRemotePackages = remotePackages
     .filter(
       (p) =>
-        !settingsStore.enabledPlugins.find(
+        !settings.enabledPlugins.find(
           (installedPlugin) => installedPlugin.name === p.name
         )
     )
     .filter(
       (p) =>
-        !settingsStore.disabledPlugins.find(
+        !settings.disabledPlugins.find(
           (installedPlugin) => installedPlugin.name === p.name
         )
     );
@@ -199,7 +241,7 @@ const CommandCenter = () => {
       );
       if (plugin) {
         useSettingsStore.setState({
-          disabledPlugins: [...settingsStore.disabledPlugins, plugin],
+          disabledPlugins: [...settings.disabledPlugins, plugin],
         });
         setSelectedPluginPackage({ plugin });
         setBanner(`${plugin.name} installed!`);
@@ -235,10 +277,10 @@ const CommandCenter = () => {
         setBanner(RESTART_REQUIRED);
         useSettingsStore.setState({
           disabledPlugins: [
-            ...settingsStore.disabledPlugins,
+            ...settings.disabledPlugins,
             selectedPluginPackage.plugin!,
           ],
-          enabledPlugins: settingsStore.enabledPlugins.filter(
+          enabledPlugins: settings.enabledPlugins.filter(
             (p) => p.id !== selectedPluginPackage.plugin!.id
           ),
         });
@@ -253,10 +295,10 @@ const CommandCenter = () => {
       if (await enablePlugins([selectedPluginPackage.plugin!.id])) {
         useSettingsStore.setState({
           enabledPlugins: [
-            ...settingsStore.enabledPlugins,
+            ...settings.enabledPlugins,
             selectedPluginPackage.plugin!,
           ],
-          disabledPlugins: settingsStore.disabledPlugins.filter(
+          disabledPlugins: settings.disabledPlugins.filter(
             (p) => p.id !== selectedPluginPackage.plugin!.id
           ),
         });
@@ -273,7 +315,7 @@ const CommandCenter = () => {
       if (await deletePlugin(selectedPluginPackage.plugin!.id)) {
         setBanner("Plugin files were placed in trash bin");
         useSettingsStore.setState({
-          disabledPlugins: settingsStore.disabledPlugins.filter(
+          disabledPlugins: settings.disabledPlugins.filter(
             (p) => p.id !== selectedPluginPackage.plugin!.id
           ),
         });
@@ -326,8 +368,9 @@ const CommandCenter = () => {
                       can be enabled/disabled.
                     </p>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                      {settingsStore.enabledPlugins.sort().map((plugin) => (
+                      {settings.enabledPlugins.sort().map((plugin) => (
                         <PluginButton
+                          icon={plugin.config?.icon}
                           key={plugin.id}
                           name={plugin.name}
                           description={plugin.description}
@@ -352,8 +395,9 @@ const CommandCenter = () => {
                       >
                         Disabled Plugins
                       </p>
-                      {settingsStore.disabledPlugins.map((plugin) => (
+                      {settings.disabledPlugins.map((plugin) => (
                         <PluginButton
+                          icon={plugin.config?.icon}
                           key={plugin.id}
                           name={plugin.name}
                           description={plugin.description}
@@ -378,6 +422,7 @@ const CommandCenter = () => {
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       {nonInstalledRemotePackages.map((onlinePackage) => (
                         <PluginButton
+                          icon={null}
                           key={onlinePackage.name}
                           name={onlinePackage.name}
                           description={onlinePackage.name}
@@ -426,7 +471,7 @@ const CommandCenter = () => {
                   </>
                 )}
                 {selectedPluginPackage.plugin &&
-                  settingsStore.enabledPlugins.includes(
+                  settings.enabledPlugins.includes(
                     selectedPluginPackage.plugin
                   ) && (
                     <>
@@ -463,7 +508,7 @@ const CommandCenter = () => {
                     </>
                   )}
                 {selectedPluginPackage.plugin &&
-                  settingsStore.disabledPlugins.includes(
+                  settings.disabledPlugins.includes(
                     selectedPluginPackage.plugin
                   ) && (
                     <>
@@ -494,7 +539,7 @@ const CommandCenter = () => {
             </div>
           </Tab>
           <Tab label="Macros">
-            <MacrosPanel />
+            <MacrosPanel iconCache={_iconsBase64} />
           </Tab>
         </Tabs>
       </div>
@@ -503,7 +548,7 @@ const CommandCenter = () => {
 };
 
 const container = document.getElementById("app");
-const root = createRoot(container!); // cr
+const root = createRoot(container!);
 
 settingsStore()
   .load()

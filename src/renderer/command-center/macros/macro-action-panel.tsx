@@ -10,9 +10,10 @@ export const MacroActionPanel = (
   props: MacroActionPanelProps & {
     setActiveAction: (actionId: string) => void;
     deleteAction: (actionId: string) => void;
+    iconCache: Record<number, string>;
   }
 ) => {
-  const { action, setActiveAction, deleteAction } = props;
+  const { action, setActiveAction, deleteAction, iconCache } = props;
 
   return (
     <div
@@ -31,19 +32,35 @@ export const MacroActionPanel = (
           marginBottom: "var(--size-1)",
         }}
       >
-        <span style={{ fontWeight: 500 }}>
-          Action: {spaceOutCapitalLetters(action.type)}
+        <span
+          style={{ fontWeight: 500, display: "flex", alignItems: "center" }}
+        >
+          <img
+            src={iconCache[230]}
+            style={{
+              width: "var(--size-4)",
+              filter: "invert(100%) sepia(1) saturate(100%) hue-rotate(50deg)",
+            }}
+          />{" "}
+          <span>{spaceOutCapitalLetters(action.type)}</span>
         </span>
-        <button onClick={() => setActiveAction(action.id)}>
-          <i className="material-icons small" style={{ fontSize: "1rem" }}>
+        <button
+          onClick={() => setActiveAction(action.id)}
+          style={{
+            padding: "var(--size-1)",
+          }}
+        >
+          <i
+            className="material-icons small"
+            style={{ fontSize: "var(--size-3)" }}
+          >
             edit
           </i>
         </button>
         <button
           style={{
             justifySelf: "end",
-            background: "var(--red-4)",
-            color: "white",
+            color: "var(--red-4)",
             fontSize: "var(--font-size-00)",
           }}
           onClick={() => deleteAction(action.id)}

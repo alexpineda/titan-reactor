@@ -1,7 +1,6 @@
-import { AnimDds, AnimSprite, GrpType } from "common/types";
+import { AnimDds, AnimSprite, GrpType, UnitTileScale } from "common/types";
 import { ImageDAT } from "common/bwdat/images-dat";
 
-import { UnitTileScale } from "../../core";
 import { AnimAtlas } from "./anim-atlas"
 import { parseAnim, createDDSTexture } from "../formats";
 

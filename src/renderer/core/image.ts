@@ -1,13 +1,6 @@
-import { GRPInterface } from "../../common/types";
+import { GRPInterface, UnitTileScale, ImageDAT } from "common/types";
 import type { Color, Object3D } from "three";
-import type { ImageDAT } from "../../common/types/bwdat";
 import { Unit } from "./unit";
-
-export enum UnitTileScale {
-  SD = 1,
-  HD2 = 2,
-  HD = 4
-}
 
 export interface Image extends Object3D {
   dat: ImageDAT;

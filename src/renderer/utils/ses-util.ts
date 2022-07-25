@@ -6,6 +6,7 @@ import Janitor from "@utils/janitor";
 import { Layers } from "../render/layers";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { mix } from "./object-utils";
+import "ses";
 const STDLIB = {
     CSS2DObject
 }

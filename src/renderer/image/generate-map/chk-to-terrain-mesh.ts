@@ -1,5 +1,5 @@
 import type Chk from "bw-chk";
-import { TerrainInfo } from "common/types";
+import { TerrainInfo, UnitTileScale } from "common/types";
 import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
 } from ".";
@@ -10,7 +10,6 @@ import { getTilesetBuffers } from "./get-tileset-buffers";
 import * as sd from "./sd";
 import * as hd from "./hd";
 import { anisotropyOptions } from "@utils/renderer-utils";
-import { UnitTileScale } from "@core/image";
 import { Layers } from "../../render/layers";
 
 type TerrainMeshSettings = {

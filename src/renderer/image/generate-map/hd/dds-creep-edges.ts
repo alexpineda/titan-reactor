@@ -1,22 +1,10 @@
-import { DDSGrpFrameType, WrappedTexture } from "common/types";
-import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
+import { DDSGrpFrameType, WrappedTexture, UnitTileScale } from "common/types";
 import {
-  MeshBasicMaterial,
-  OrthographicCamera,
-  Scene,
-  Vector3,
-  PlaneBufferGeometry,
-  Mesh,
-  CanvasTexture,
-  sRGBEncoding,
-  DoubleSide,
-  WebGLRenderer,
-  NearestFilter,
-  LinearEncoding
+  CanvasTexture, DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer
 } from "three";
+import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 
 import { createCompressedTexture } from "./common";
-import { UnitTileScale } from "@core/image";
 
 const bottomEdges = [0, 1, 2, 3];
 const rightEdges = [4];
@@ -28,6 +16,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
   const renderer = new WebGLRenderer({
     depth: false,
     stencil: false,
+    antialias: false,
     alpha: true,
   });
   renderer.autoClear = false;
@@ -106,7 +95,6 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
     const y = 0;
     const grp = creepGrp[i];
     const texture = createCompressedTexture(grp.dds);
-    texture.encoding = LinearEncoding
 
     mat.map = texture;
     mat.needsUpdate = true;

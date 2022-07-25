@@ -61,6 +61,8 @@ export const CreateMacroAction = ({
         alignItems: "center",
         justifyContent: "start",
         maxWidth: "var(--size-md)",
+        marginInline: "var(--size-6)",
+        marginBottom: "var(--size-9)",
       }}
     >
       <select
@@ -75,7 +77,13 @@ export const CreateMacroAction = ({
       </select>
       <button
         onClick={createAction}
-        style={{ display: "flex", alignItems: "center" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+
+          paddingBlock: "var(--size-1)",
+          paddingInline: "var(--size-3)",
+        }}
       >
         <i className="material-icons">add</i> Action
       </button>

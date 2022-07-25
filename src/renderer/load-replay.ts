@@ -8,10 +8,10 @@ import { AudioListener } from "three";
 import fs from "fs";
 import Chk from "bw-chk";
 
-import { AssetTextureResolution, ScreenType } from "common/types";
+import { AssetTextureResolution, ScreenType, UnitTileScale } from "common/types";
 import { GameTypes } from "common/enums";
 
-import { ImageHD, UnitTileScale } from "./core";
+import { ImageHD } from "./core";
 import { MainMixer, SoundChannels, Music } from "./audio";
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";

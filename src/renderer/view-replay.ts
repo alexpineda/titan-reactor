@@ -12,7 +12,7 @@ import {
   UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SettingsMeta
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
-import { SpriteStruct, ImageStruct } from "common/types/structs";
+import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { MainMixer, Music, SoundChannels } from "./audio";
 
 import {
@@ -20,7 +20,6 @@ import {
   Players,
   Unit,
   ImageHD,
-  UnitTileScale,
 } from "./core";
 import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";

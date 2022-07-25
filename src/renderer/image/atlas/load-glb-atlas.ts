@@ -1,12 +1,8 @@
 import { Texture } from "three";
-
-import { GrpType } from "common/types";
-import { ImageDAT } from "common/bwdat/images-dat";
-
+import { UnitTileScale, GrpType, ImageDAT } from "common/types";
 import { loadAnimAtlas } from "./load-anim-atlas";
 import { GlbAtlas } from "./glb-atlas";
-import { UnitTileScale } from "../../core";
-import loadGlb, { GlbResponse } from "../formats/load-glb";
+import loadGlb from "../formats/load-glb";
 
 export const loadGlbAtlas = async (glbFileName: string,
     loadAnimBuffer: () => Promise<Buffer>,
@@ -23,7 +19,7 @@ export const loadGlbAtlas = async (glbFileName: string,
             glbFileName,
             envMap,
             imageDef.name
-        )) as GlbResponse;
+        ));
 
         const looseFrames = anim.frames.length % 17;
 

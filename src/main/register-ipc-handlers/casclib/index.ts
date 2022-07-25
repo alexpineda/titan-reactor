@@ -17,16 +17,18 @@ ipcMain.handle(OPEN_CASCLIB, (_, bwPath) => {
   }
 });
 
-ipcMain.handle(OPEN_CASCLIB_FILE, async (_, filepath) => {
-  return await casclib.readCascFile(filepath);
+ipcMain.handle(OPEN_CASCLIB_FILE, async (_, filepath: string, encoding: BufferEncoding) => {
+  const buffer = await casclib.readCascFile(filepath);
+  return encoding ? buffer.toString(encoding) : buffer;
 });
 
 
-ipcMain.handle(OPEN_CASCLIB_BATCH, async (_, filepaths: string[]) => {
+//TODO ADD ERROR MESSAGIN
+ipcMain.handle(OPEN_CASCLIB_BATCH, async (_, filepaths: string[], encoding: BufferEncoding) => {
   const buffers = [];
   for (const filepath of filepaths) {
     const buffer = await casclib.readCascFile(filepath);
-    buffers.push(buffer);
+    buffers.push(encoding ? buffer.toString(encoding) : buffer);
   }
   return buffers;
 });

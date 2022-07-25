@@ -23,6 +23,7 @@ export const MacroPanel = ({
   deleteAction,
   deleteMacro,
   createAction,
+  iconCache,
 }: {
   macro: MacroDTO;
   pluginsMetadata: PluginMetaData[];
@@ -33,6 +34,7 @@ export const MacroPanel = ({
   deleteAction: (id: string) => void;
   deleteMacro: (id: string) => void;
   createAction: (macro: MacroDTO, action: MacroAction) => void;
+  iconCache: Record<number, string>;
 }) => {
   const ChangeHotkeyTriggerKey = debounce(
     (e: KeyboardEvent<HTMLInputElement>) => {
@@ -94,8 +96,13 @@ export const MacroPanel = ({
             alignItems: "center",
           }}
         >
-          <i className="material-icons">stars</i>
-
+          <img
+            style={{
+              width: "var(--size-6)",
+              filter: "invert(100%) sepia(1) saturate(100%) hue-rotate(50deg)",
+            }}
+            src={iconCache[389]}
+          />
           {macro.name}
         </h4>
 
@@ -136,13 +143,19 @@ export const MacroPanel = ({
         <button
           style={{
             justifySelf: "end",
-            background: "var(--red-6)",
-            color: "white",
-            fontSize: "var(--font-size-00)",
+            color: "var(--red-6)",
+            padding: "var(--size-2)",
           }}
           onClick={() => deleteMacro(macro.id)}
         >
-          <i className="material-icons">delete</i>
+          <i
+            className="material-icons"
+            style={{
+              fontSize: "var(--font-size-4)",
+            }}
+          >
+            delete
+          </i>
         </button>
       </span>
       <CreateMacroAction
@@ -152,6 +165,7 @@ export const MacroPanel = ({
       <div>
         {macro.actions.map((action) => (
           <MacroActionPanel
+            iconCache={iconCache}
             key={action.id}
             action={action}
             pluginsMetadata={pluginsMetadata}

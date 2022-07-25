@@ -52,7 +52,17 @@ export const MacroActionPanelHost = (
         <MacroActionEffectSelector {...props} />
       </ErrorBoundary>
       {viewOnly && action.effect === MacroActionEffect.Set && (
-        <p>{action.value}</p>
+        <p
+          style={{
+            background: "var(--green-0)",
+            paddingBlock: "var(--size-2)",
+            borderRadius: "var(--radius-2)",
+            paddingInline: "var(--size-3)",
+            color: "var(--green-9)",
+          }}
+        >
+          {action.value}
+        </p>
       )}
 
       {(action.effect === MacroActionEffect.Set ||

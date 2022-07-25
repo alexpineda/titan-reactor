@@ -34,7 +34,6 @@ const createMainWindow = (debugMode = false) => {
     hideMenu: true,
     removeMenu: false,
     debugMode,
-    query: "main"
   });
   windows.main.maximize();
 
@@ -48,7 +47,6 @@ const createIscriptahWindow = () => {
   }
 
   windows.iscriptah = createWindow({
-    query: "iscriptah",
     onClose: () => {
       windows.iscriptah = null;
     },
@@ -70,7 +68,6 @@ const createConfigurationWindow = () => {
 
 
   windows.config = createWindow({
-    query: "config",
     onClose: () => {
       windows.config = null;
     },

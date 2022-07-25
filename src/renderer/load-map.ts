@@ -2,19 +2,19 @@ import loadScm from "./utils/load-scm";
 
 import Chk from "bw-chk";
 import {
-  ImageHD, UnitTileScale,
+  ImageHD,
 } from "./core";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
 import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
-import gameStore from "./stores/game-store";
-import processStore, { Process } from "./stores/process-store";
-import screenStore from "./stores/screen-store";
-import { AssetTextureResolution, ScreenType } from "../common/types";
+import gameStore from "@stores/game-store";
+import processStore, { Process } from "@stores/process-store";
+import screenStore from "@stores/screen-store";
+import { AssetTextureResolution, ScreenType, UnitTileScale } from "common/types";
 import TitanReactorMap from "./view-map";
-import { waitForProcess } from "./utils/wait-for-process";
+import { waitForProcess } from "@utils/wait-for-process";
 import { cleanMapTitles } from "@utils/chk-utils";
-import { useWorldStore } from "./stores";
+import { useWorldStore } from "@stores";
 import settingsStore from "@stores/settings-store";
 
 

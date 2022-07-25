@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AssetTextureResolution, GRPInterface, Settings } from "common/types";
+import { AssetTextureResolution, GRPInterface, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -12,14 +12,12 @@ import {
 
 import { loadAnimAtlas, loadGlbAtlas, parseAnim } from "../image";
 
-
-import gameStore from "../stores/game-store";
-import processStore, { Process } from "../stores/process-store";
+import gameStore from "@stores/game-store";
+import processStore, { Process } from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
 import Assets from "./assets";
 import * as log from "../ipc/log"
-import { UnitTileScale } from "../core";
 import loadEnvironmentMap from "../image/env-map";
 import { calculateImagesFromUnitsIscript } from "../iscript/images-from-iscript";
 import range from "common/utils/range";

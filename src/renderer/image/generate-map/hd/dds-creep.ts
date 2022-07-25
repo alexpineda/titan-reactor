@@ -1,5 +1,4 @@
-import { UnitTileScale } from "@core/image";
-import {  WrappedTexture } from "common/types";
+import { WrappedTexture, UnitTileScale } from "common/types";
 import {
   MeshBasicMaterial,
   OrthographicCamera,

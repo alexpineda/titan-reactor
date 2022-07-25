@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow } from "electron";
 import isDev from "electron-is-dev";
 import path from "path";
 import { pathToFileURL } from "url";
@@ -11,7 +11,6 @@ const browserWindows = {} as {
 
 interface CreateWindowArgs {
   onClose?: () => void;
-  query?: string;
   removeMenu?: boolean;
   hideMenu?: boolean;
   devTools?: boolean;
@@ -24,7 +23,7 @@ interface CreateWindowArgs {
 const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true }, args);
 
 export const createWindow = (createWindowArgs: CreateWindowArgs) => {
-  const { onClose, query, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, debugMode } = createDefaultArgs(createWindowArgs);
+  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, debugMode } = createDefaultArgs(createWindowArgs);
 
   const w = new BrowserWindow({
     width: 800,

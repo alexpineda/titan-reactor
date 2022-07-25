@@ -12,7 +12,11 @@ import { CreateMacro } from "./create-macro";
 import { generateUUID } from "three/src/math/MathUtils";
 import { useSettingsStore } from "@stores/settings-store";
 
-export const MacrosPanel = () => {
+export const MacrosPanel = ({
+  iconCache,
+}: {
+  iconCache: Record<number, string>;
+}) => {
   const settings = useSettingsStore();
   console.log(settings.data.macros);
   const state = settings.data.macros;
@@ -115,6 +119,7 @@ export const MacrosPanel = () => {
           {state.macros.map((macro) => (
             <MacroPanel
               macro={macro}
+              iconCache={iconCache}
               pluginsMetadata={settings.pluginsMetadata}
               updateMacro={updateMacro}
               updateMacroAction={updateMacroAction}

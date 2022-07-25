@@ -13,6 +13,11 @@ const createOpenBW = async () => {
   };
 
   const wasm = await initializeWASM({
+    locateFile: (filename: string) => {
+      if (filename === "titan.worker.js") {
+        return path.join(__static, filename);
+      }
+    },
     wasmBinary: readFileSync(wasmFileLocation)
   }) as OpenBWWasm;
 

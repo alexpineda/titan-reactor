@@ -1,9 +1,7 @@
 import { AnimAtlas } from "@image";
 import { Texture } from "three";
-import {  BwDAT, GRPInterface } from "common/types";
+import { BwDAT, GRPInterface, UnitTileScale } from "common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
-import { UnitTileScale } from "@core/image";
-
 interface AssetsConstructorArgs {
   bwDat: BwDAT;
   grps: GRPInterface[];

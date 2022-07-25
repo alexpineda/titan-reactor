@@ -1,7 +1,5 @@
 import { Texture } from "three";
-
-import { GrpFrameType, GRPInterface, GrpType } from "common/types";
-import { UnitTileScale } from "@core";
+import { GrpFrameType, GRPInterface, GrpType, UnitTileScale } from "common/types";
 
 export class AnimAtlas implements GRPInterface {
     unitTileScale: UnitTileScale = UnitTileScale.HD;
