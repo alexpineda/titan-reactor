@@ -18,7 +18,6 @@ import {
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
-import { Vector3 } from "three";
 import { HOOK_ON_GAME_DISPOSED } from "./hooks";
 import { Macros } from "../command-center/macros";
 
@@ -36,7 +35,7 @@ ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
             config,
         },
     });
-    nativePluginSystem.onConfigChanged(pluginId, config);
+    nativePluginSystem.hook_onConfigChanged(pluginId, config);
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
@@ -52,7 +51,7 @@ ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
 });
 
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
-    nativePluginSystem.disablePlugin(pluginId);
+    nativePluginSystem.hook_onPluginDispose(pluginId);
     // TODO target plugin specifically
     uiPluginSystem.refresh();
 });
@@ -101,14 +100,18 @@ export const onFrame = (
     commands: any[]
 ) => {
     uiPluginSystem.onFrame(openBw, currentFrame, playerDataAddr, productionDataAddr);
-    nativePluginSystem.onFrame(
+    nativePluginSystem.hook_onFrame(
         currentFrame,
         commands
     );
 };
 
-export const getCameraControllers = () => {
-    return nativePluginSystem.getCameraControllers();
+export const getSceneInputHandlers = () => {
+    return nativePluginSystem.getSceneInputHandlers();
+};
+
+export const getSceneInputHandler = (name: string) => {
+    return nativePluginSystem.getSceneInputHandlers().find((handler) => handler.name === name);
 };
 
 export const callHook = (
@@ -149,14 +152,12 @@ export const onGameDisposed = () => {
 export const onBeforeRender = (
     delta: number,
     elapsed: number,
-    target: Vector3,
-    position: Vector3
 ) => {
-    nativePluginSystem.onBeforeRender(delta, elapsed, target, position);
+    nativePluginSystem.hook_onBeforeRender(delta, elapsed);
 };
 
 export const onRender = (delta: number, elapsed: number) => {
-    nativePluginSystem.onRender(delta, elapsed);
+    nativePluginSystem.hook_onRender(delta, elapsed);
 };
 
 export const doMacroAction = (...args: Parameters<PluginSystemNative["doMacroAction"]>) => {

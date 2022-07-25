@@ -14,13 +14,13 @@ import {
   setTransform,
   setShowFloorAxes,
 } from "../stores";
-import { CanvasTarget } from "@image";
+import { Surface } from "@image";
 
 export const Animation = ({
   surface,
   selectedBlock,
 }: {
-  surface: CanvasTarget;
+  surface: Surface;
   selectedBlock: any;
 }) => {
   const {

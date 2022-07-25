@@ -1,23 +1,20 @@
 import { debounce } from "lodash";
-import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Vector4, Scene as ThreeScene, Raycaster, Mesh } from "three";
+import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Mesh } from "three";
 import * as THREE from "three";
-import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox';
 
 import { easeCubicIn } from "d3-ease";
 import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
-import { RenderPass, EffectPass } from "postprocessing";
 
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
-import { CanvasTarget } from "./image";
+import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, CameraController, SettingsMeta
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SettingsMeta
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types/structs";
 import type { MainMixer, Music, SoundChannels } from "./audio";
 
-import ProjectedCameraView from "./camera/projected-camera-view";
 import {
   Image,
   Players,
@@ -29,13 +26,11 @@ import Creep from "./creep/creep";
 import FogOfWar from "./fogofwar/fog-of-war";
 import {
   MinimapMouse,
-  MouseSelectionBox,
-  MouseCursor
 } from "./input";
 import { ImageBufferView, SpritesBufferView, TilesBufferView } from "./buffer-view";
 import * as log from "./ipc/log";
 import {
-  GameCanvasTarget, Layers
+  GameSurface, Layers
 } from "./render";
 import renderer from "./render/renderer";
 import {
@@ -50,7 +45,6 @@ import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { CameraMouse } from "./input/camera-mouse";
-import CameraShake from "./camera/camera-shake";
 import Janitor from "./utils/janitor";
 import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
@@ -62,9 +56,7 @@ import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./plugins/hooks";
-import { canOnlySelectOne, canSelectUnit, unitIsFlying } from "@utils/unit-utils";
-import withErrorMessage from "common/utils/with-error-message";
-import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
+import { unitIsFlying } from "@utils/unit-utils";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer } from "electron";
 import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, SETTINGS_WERE_SAVED } from "common/ipc-handle-names";
@@ -75,17 +67,17 @@ import SelectionBars from "@core/selection-bars";
 import { IndexedObjectPool } from "./utils/indexed-object-pool";
 import { StdVector } from "./buffer-view/std-vector";
 import range from "common/utils/range";
-import DirectionalCamera from "./camera/directional-camera";
-import { inverse } from "@utils/function-utils";
 import { getPixelRatio } from "@utils/renderer-utils";
 import { Macros } from "./command-center/macros";
 import { createCompartment } from "@utils/ses-util";
+import { GameViewportsDirector } from "./camera/game-viewport-director";
+import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
+import { EffectPass, RenderPass } from "postprocessing";
+import { drawMinimap } from "./render/draw-minimap";
 
 CameraControls.install({ THREE: THREE });
 
 const { startLocation } = unitTypes;
-const _cameraTarget = new Vector3();
-const _cameraPosition = new Vector3();
 const white = new Color(0xffffff);
 
 async function TitanReactorGame(
@@ -162,86 +154,40 @@ async function TitanReactorGame(
   document.body.appendChild(cssRenderer.domElement);
   janitor.callback(() => document.body.removeChild(cssRenderer.domElement));
 
-
   terrain.setAnisotropy(settings.graphics.anisotropy);
 
-  const gameSurface = new GameCanvasTarget(mapWidth, mapHeight);
+  const gameSurface = new GameSurface(mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings.graphics.pixelRatio));
   document.body.appendChild(gameSurface.canvas);
-  gameStore().setDimensions(gameSurface.getRect(settings.game.minimapSize));
+  gameStore().setDimensions(gameSurface.getMinimapDimensions(settings.game.minimapSize));
   janitor.add(gameSurface);
 
-  const _regainPointerLock = () => {
-    if (gameSurface.pointerLockInvalidState) {
-      gameSurface.requestPointerLock();
-    }
-  }
-  janitor.addEventListener(gameSurface.canvas, 'pointerdown', _regainPointerLock);
-
-  const minimapSurface = new CanvasTarget();
+  const minimapSurface = new Surface();
   minimapSurface.canvas.style.position = "absolute";
   minimapSurface.canvas.style.bottom = "0";
   minimapSurface.canvas.style.zIndex = "20";
   document.body.appendChild(minimapSurface.canvas);
   janitor.add(minimapSurface);
 
-  const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
+  const gameViewportsDirector = new GameViewportsDirector(scene, gameSurface, minimapSurface);
+  janitor.add(gameViewportsDirector);
 
-  const camera = new DirectionalCamera(15, gameSurface.width / gameSurface.height, 0.1, 500);
+  const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
   const minimapMouse = new MinimapMouse(
     minimapSurface,
     mapWidth,
-    mapHeight
+    mapHeight,
+    () => {
+      clearFollowedUnits();
+    }
   );
   janitor.disposable(minimapMouse);
-  minimapMouse.addEventListener("mousedown", () => {
-    clearFollowedUnits();
-  })
 
   const fadingPointers = new FadingPointers();
   scene.add(fadingPointers);
 
-  // TODO: make into a "consumable" api for plugins
-  class PIP {
-    enabled = false;
-    camera = new PerspectiveCamera(15, 1, 0.1, 1000);
-    orbit = new CameraControls(this.camera, gameSurface.canvas);
-    viewport = new Vector4(0, 0, 300, 200);
-    margin = 20;
-    height = 300;
-    position?: Vector2;
-
-    constructor() {
-      this.orbit.enabled = false;
-      this.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
-      this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
-      this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
-      this.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
-      this.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
-      this.orbit.setLookAt(0, 50, 0, 0, 0, 0);
-    }
-
-    update(aspect: number) {
-      this.camera.layers.enable(Layers.PictureInPicture);
-
-      const width = this.height * aspect;
-
-      if (this.position) {
-        const x = this.position.x - width / 2;
-        const y = window.innerHeight - this.position.y - (this.height / 2);
-        this.viewport.set(MathUtils.clamp(x, 0, gameSurface.scaledWidth - width), MathUtils.clamp(y, 0, window.innerHeight - this.height), width, this.height);
-      } else {
-        this.viewport.set(gameSurface.scaledWidth - width - this.margin, this.margin, width, this.height);
-      }
-
-      this.camera.aspect = aspect;
-      this.camera.updateProjectionMatrix();
-    }
-  }
-
   let followedUnits: Unit[] = [];
-
   let followedTarget = new Vector3();
   const setFollowedUnits = (units: Unit[]) => {
     followedUnits = [...units];
@@ -322,146 +268,40 @@ async function TitanReactorGame(
   });
 
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW);
+  const fogOfWarEffect = new FogOfWarEffect();
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, fogOfWarEffect);
 
-  const switchCameraController = async (controllerName: string, prevController?: CameraController) => {
 
-    const controllers = plugins.getCameraControllers();
-    const controller = controllers.find(plugin => plugin.name === controllerName) ?? controllers[0];
-    if (controller === undefined) {
-      throw new Error(`No camera controller named ${controllerName}`);
-    }
-    let prevData: any;
+  gameViewportsDirector.onActivate = (inputHandler) => {
 
-    if (prevController) {
-      if (prevController.onExitCameraMode) {
-        try {
-          const target = new Vector3();
-          const position = new Vector3();
-
-          prevController.orbit!.getTarget(target);
-          prevController.orbit!.getPosition(position);
-
-          prevData = prevController.onExitCameraMode(target, position);
-        } catch (e) {
-          log.error(withErrorMessage("onExitCameraMode", e));
-        }
-      }
-      try {
-        prevController.dispose();
-      } catch (e) {
-        log.error(withErrorMessage("prevCameraMode.dispose", e));
-      }
-
-    }
-
-    const orbit = new CameraControls(
-      camera,
-      gameSurface.canvas,
-    );
-    const cameraShake = new CameraShake();
-    //FIXME: pip needs its own aspect + its own sprite.lookAt
-    const pip = new PIP();
-    pip.update(camera.aspect);
-
-    const newControls = {
-      rested: true,
-      cameraMode: controller,
-      orbit,
-      cameraShake,
-      PIP: pip
-    };
-
-    controller.dispose = () => {
-      controller.isActiveCameraMode = false;
-      controller.orbit!.dispose();
-      // FIXME: dummy camera, needed?
-      controller.orbit!.camera = new PerspectiveCamera();
-    }
-    controller.orbit = newControls.orbit;
-    newControls.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
-    newControls.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
-    newControls.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
-    newControls.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
-    newControls.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
-
-    controller.isActiveCameraMode = true;
-    try {
-      await controller.onEnterCameraMode(prevData);
-    } catch (e) {
-      log.error(withErrorMessage("onEnterCameraMode", e));
-      throw new Error("onEnterCameraMode failed");
-    }
-
-    setUseScale(images, controller.unitScale || 1);
-
-    if (controller.pointerLock) {
-      gameSurface.requestPointerLock();
-    } else {
-      gameSurface.exitPointerLock();
-    }
-
-    if (controller.minimap) {
+    if (inputHandler.gameOptions.showMinimap) {
       minimapSurface.canvas.style.display = "block";
       minimapSurface.canvas.style.pointerEvents = "auto";
-      minimapMouse.enabled = true;
     } else {
-      minimapMouse.enabled = false;
       minimapSurface.canvas.style.display = "none";
     }
 
-    const rect = gameSurface.getRect(settings.game.minimapSize);
+    const rect = gameSurface.getMinimapDimensions(settings.game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
 
-    if (controller.cameraShake) {
-      newControls.cameraShake.enabled = true;
-    } else {
-      newControls.cameraShake.enabled = false;
-    }
 
-    if (!controller.unitSelection) {
+    if (!inputHandler.gameOptions.allowUnitSelection) {
       selectedUnitsStore().clearSelectedUnits();
     }
 
-    //TODO deprecate
-    // scene.disableSkybox();
-    // if (cameraMode.background === "space") {
-    scene.enableSkybox();
-    // }
-
-    // const clearPass = new ClearPass(camera);
-    const renderPass = new RenderPass(scene, camera);
-
-    // const terrainRenderPass = new RenderPass(scene, camera);
-    // terrainRenderPass.clearPass.enabled = true;
-    // terrainRenderPass.selection = new Selection([terrain.mesh], Layers.Terrain);
-
-    // const unitsRenderPass = new RenderPass(scene, camera);
-    // unitsRenderPass.clearPass.enabled = false;
-    // unitsRenderPass.selection = new Selection(undefined, Layers.Units);
-
-    const fogOfWarEffect = new FogOfWarEffect();
-    fogOfWar.setEffect(fogOfWarEffect);
-    fogOfWarEffect.blendMode.opacity.value = fogOfWar.enabled ? (controller.fogOfWar ?? 1) : 0;
-
-    if (controller.onSetComposerPasses) {
-      renderer.setCameraModeEffectsAndPasses(controller.onSetComposerPasses(renderPass, fogOfWarEffect));
-    } else {
-      renderer.setCameraModeEffectsAndPasses({
-        effects: [fogOfWarEffect],
-        passes: [renderPass, new EffectPass(camera, fogOfWarEffect)]
-      });
-    }
-    renderer.changeCamera(camera);
-
-    return newControls;
   }
 
-  let defaultCameraController = settings.game.cameraController;
+  let defaultSceneController = settings.game.sceneController;
 
+  const renderPass = new RenderPass(scene, new PerspectiveCamera());
+
+  const defaultPostProcessingBundle = {
+    effects: [fogOfWarEffect],
+    passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWarEffect)]
+  };
 
   // const setUseDepth = (useDepth: boolean) => {
   //   ImageHD.useDepth = useDepth;
@@ -473,8 +313,6 @@ async function TitanReactorGame(
   //   }
   // }
 
-  const projectedCameraView = new ProjectedCameraView();
-
   const _stopFollowingOnClick = () => {
     if (settings.game.stopFollowingOnClick) {
       clearFollowedUnits();
@@ -482,158 +320,6 @@ async function TitanReactorGame(
   }
   janitor.addEventListener(gameSurface.canvas, "pointerdown", _stopFollowingOnClick);
 
-  {
-    const selectionBox = new SelectionBox(camera, scene);
-
-    const visualBox = new MouseSelectionBox();
-    visualBox.color = "#007f00";
-    janitor.disposable(visualBox);
-
-    const mouseCursor = new MouseCursor();
-    janitor.disposable(mouseCursor);
-
-    let mouseIsDown = false;
-
-    const typeIdSort = (a: Unit, b: Unit) => {
-      return a.typeId - b.typeId;
-    }
-
-    const _selectDown = (event: PointerEvent) => {
-      if (!controls.cameraMode.unitSelection || event.button !== 0) return;
-      minimapSurface.canvas.style.pointerEvents = "none";
-      mouseIsDown = true;
-      selectionBox.startPoint.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        - (event.clientY / window.innerHeight) * 2 + 1,
-        0.5);
-
-      visualBox.start(event.clientX, event.clientY);
-
-    };
-    gameSurface.canvas.addEventListener('pointerdown', _selectDown);
-    janitor.callback(() => gameSurface.canvas.removeEventListener('pointerdown', _selectDown));
-
-    const _selectMove = (event: PointerEvent) => {
-
-      if (mouseIsDown) {
-
-        selectionBox.endPoint.set(
-          (event.clientX / window.innerWidth) * 2 - 1,
-          - (event.clientY / window.innerHeight) * 2 + 1,
-          0.5);
-
-        visualBox.end(event.clientX, event.clientY);
-
-      }
-
-    }
-
-    gameSurface.canvas.addEventListener('pointermove', _selectMove);
-    janitor.callback(() => gameSurface.canvas.removeEventListener('pointermove', _selectMove));
-
-    const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
-
-    const _selectRayCaster = new Raycaster();
-
-    const getUnitFromMouseIntersect = (clipV: Vector2) => {
-      _selectRayCaster.setFromCamera(clipV, camera);
-      const intersects = _selectRayCaster.intersectObjects(spritesGroup.children, true);
-      if (intersects.length) {
-        let closestUnit: Unit | undefined;
-        let closestRenderOrder = -1;
-
-        for (const intersect of intersects) {
-          if (
-            intersect.uv !== undefined &&
-            intersect.object instanceof ImageHD &&
-            intersect.object.userData.unit && canSelectUnit(intersect.object.userData.unit)
-          ) {
-            if (
-              intersect.object.renderOrder > closestRenderOrder
-            ) {
-              closestRenderOrder = intersect.object.renderOrder;
-              closestUnit = intersect.object.userData.unit;
-            }
-          }
-        }
-
-        return closestUnit;
-      }
-    };
-
-    const _selectUp = (event: PointerEvent) => {
-      if (!mouseIsDown) return;
-
-      minimapSurface.canvas.style.pointerEvents = "auto";
-      mouseIsDown = false;
-      visualBox.clear();
-
-      let selectedUnits: Unit[] = [];
-
-      if (!visualBox.isMinDragSize(event.clientX, event.clientY)) {
-        const unit = getUnitFromMouseIntersect(new Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
-        if (unit) {
-          selectedUnits.push(unit);
-        } else {
-          selectedUnitsStore().clearSelectedUnits();
-          return;
-        }
-      } else {
-
-        selectionBox.endPoint.set(
-          (event.clientX / window.innerWidth) * 2 - 1,
-          - (event.clientY / window.innerHeight) * 2 + 1,
-          0.5);
-
-
-        const allSelected = selectionBox.select();
-
-        for (let i = 0; i < allSelected.length; i++) {
-          if (allSelected[i].userData.unit && canSelectUnit(allSelected[i].userData.unit) && !selectedUnits.includes(allSelected[i].userData.unit)) {
-            selectedUnits.push(allSelected[i].userData.unit);
-          }
-        }
-
-        if (event.shiftKey) {
-          for (const unit of selectedUnitsStore().selectedUnits) {
-            if (!selectedUnits.includes(unit)) {
-              selectedUnits.push(unit);
-            }
-          }
-        }
-
-        const onlyUnits = selectedUnits.filter(_hasAnyUnit);
-        if (onlyUnits.length > 0 && onlyUnits.length !== selectedUnits.length) {
-          selectedUnits = onlyUnits;
-        }
-
-        // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
-        if (
-          selectedUnits.length > 1 &&
-          selectedUnits.some(canOnlySelectOne)
-        ) {
-          if (
-            selectedUnits.every((unit) => unit.typeId === selectedUnits[0].typeId)
-          ) {
-            selectedUnits = selectedUnits.slice(-1);
-          } else {
-            selectedUnits = selectedUnits.filter(inverse(canOnlySelectOne));
-          }
-        }
-      }
-
-      selectedUnits.sort(typeIdSort).splice(12);
-      selectedUnitsStore().setSelectedUnits(selectedUnits);
-
-      if (settings.util.debugMode) {
-        console.log(selectedUnits)
-      }
-
-    }
-    gameSurface.canvas.addEventListener('pointerup', _selectUp);
-    janitor.callback(() => gameSurface.canvas.removeEventListener('pointerup', _selectUp));
-
-  }
 
   const makeThreeColors = (replay: Replay) => {
     return replay.header.players.map(
@@ -737,23 +423,21 @@ async function TitanReactorGame(
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings.graphics.pixelRatio));
 
-    const rect = gameSurface.getRect(settings.game.minimapSize);
+    const rect = gameSurface.getMinimapDimensions(settings.game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
-    renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    renderer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
     cssRenderer.setSize(gameSurface.width, gameSurface.height);
-
-    camera.aspect = gameSurface.width / gameSurface.height;
-    camera.updateProjectionMatrix();
 
     minimapSurface.setDimensions(
       rect.minimapWidth,
       rect.minimapHeight,
     );
 
-    controls.PIP.update(camera.aspect);
+    gameViewportsDirector.aspect = gameSurface.aspect;
+
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 100);
@@ -780,8 +464,12 @@ async function TitanReactorGame(
   );
   janitor.disposable(creep);
 
-  const minimapImageData = new ImageData(mapWidth, mapHeight);
-  const minimapResourceImageData = new ImageData(mapWidth, mapHeight);
+  const minimapUnitsImage = new ImageData(mapWidth, mapHeight);
+  const minimapResourcesImage = new ImageData(mapWidth, mapHeight);
+  const minimapFOWImage = new ImageData(mapWidth, mapHeight);
+  const minimapTerrainBitmap = terrain.minimapBitmap;
+
+
   const resourceColor = new Color(0, 55, 55);
   const flashColor = new Color(200, 200, 200);
 
@@ -822,7 +510,7 @@ async function TitanReactorGame(
     const wX = Math.floor(w / 2);
     const wY = Math.floor(w / 2);
 
-    const _out = isResourceContainer ? minimapResourceImageData : minimapImageData;
+    const _out = isResourceContainer ? minimapResourcesImage : minimapUnitsImage;
     const alpha = isResourceContainer ? 150 : 255;
 
     for (let x = -wX; x < wX; x++) {
@@ -899,13 +587,6 @@ async function TitanReactorGame(
     }
   }
 
-  let unitAttackScore = {
-    frequency: new Vector3(10, 20, 7.5),
-    duration: new Vector3(1000, 1000, 1000),
-    strength: new Vector3(),
-    needsUpdate: false
-  }
-
   const buildUnits = (
     units: Map<number, Unit>,
     unitsBySprite: Map<number, Unit>
@@ -974,137 +655,7 @@ async function TitanReactorGame(
     }
   }
 
-
-  const drawMinimap = (() => {
-    const pipColor = "#aaaaaa"
-
-    let _generatingMinimapFog = false;
-    let _generatingUnits = false;
-    let _generatingResources = false;
-    let _generatingCreep = false;
-
-    let fogBitmap: ImageBitmap;
-    let unitsBitmap: ImageBitmap;
-    let resourcesBitmap: ImageBitmap;
-    let creepBitmap: ImageBitmap;
-
-    const { canvas, ctx } = minimapSurface;
-
-    return (view: ProjectedCameraView) => {
-      if (!_generatingMinimapFog) {
-        _generatingMinimapFog = true;
-
-        createImageBitmap(fogOfWar.imageData).then((ib) => {
-          fogBitmap = ib;
-          _generatingMinimapFog = false;
-        });
-      }
-
-      if (!_generatingUnits) {
-        _generatingUnits = true;
-        createImageBitmap(minimapImageData).then((ib) => {
-          unitsBitmap = ib;
-          _generatingUnits = false;
-        });
-      }
-
-      if (!_generatingResources) {
-        _generatingResources = true;
-        createImageBitmap(minimapResourceImageData).then((ib) => {
-          resourcesBitmap = ib;
-          _generatingResources = false;
-        });
-      }
-
-      if (!_generatingCreep) {
-        _generatingCreep = true;
-        createImageBitmap(creep.creepImageData).then((ib) => {
-          creepBitmap = ib;
-          _generatingCreep = false;
-        });
-      }
-
-      if (!fogBitmap || !unitsBitmap || !resourcesBitmap || !creepBitmap) return;
-
-      ctx.save();
-
-      ctx.drawImage(
-        terrain.minimapBitmap,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      if (creepBitmap) {
-        ctx.drawImage(
-          creepBitmap,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-      }
-
-      if (unitsBitmap) {
-        ctx.drawImage(
-          unitsBitmap,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-      }
-
-      if (fogBitmap && fogOfWar.enabled) {
-        ctx.drawImage(
-          fogBitmap,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-      }
-
-      if (resourcesBitmap) {
-        ctx.drawImage(
-          resourcesBitmap,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-      }
-
-      ctx.setTransform(
-        canvas.width / mapWidth,
-        0,
-        0,
-        canvas.height / mapHeight,
-        canvas.width / 2,
-        canvas.height / 2
-      );
-
-      controls.cameraMode.isActiveCameraMode && controls.cameraMode.onDrawMinimap && controls.cameraMode.onDrawMinimap(ctx, view, _cameraTarget, _cameraPosition);
-
-      if (controls.PIP.enabled) {
-        const h = 5;
-        const w = h * controls.PIP.camera.aspect;
-        ctx.strokeStyle = pipColor;
-        ctx.beginPath();
-        ctx.moveTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
-        ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z - h);
-        ctx.lineTo(controls.PIP.camera.position.x + w, controls.PIP.camera.position.z + h);
-        ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z + h);
-        ctx.lineTo(controls.PIP.camera.position.x - w, controls.PIP.camera.position.z - h);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-    }
-  })();
-
-  const SoundPlayMaxDistance = 40;
+  const SoundPlayMaxDistance = 100;
   const _soundCoords = new Vector3;
   let _soundDat: SoundDAT;
 
@@ -1116,25 +667,25 @@ async function TitanReactorGame(
 
     pxToGameUnit.xyz(x, y, terrain.getTerrainY, _soundCoords);
 
-    if (controls.cameraMode.soundMode === "spatial") {
-      if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (controls.cameraMode.maxSoundDistance ?? SoundPlayMaxDistance)) {
+    if (gameViewportsDirector.audio === "3d") {
+      if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
         // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
         soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
       }
     }
-    else {
+    else if (gameViewportsDirector.audio === "stereo") {
       const volume = getBwVolume(
         _soundDat,
         _soundCoords,
         x,
         y,
-        projectedCameraView.left,
-        projectedCameraView.top,
-        projectedCameraView.right,
-        projectedCameraView.bottom
+        gameViewportsDirector.primaryViewport.projectedView.left,
+        gameViewportsDirector.primaryViewport.projectedView.top,
+        gameViewportsDirector.primaryViewport.projectedView.right,
+        gameViewportsDirector.primaryViewport.projectedView.bottom,
       );
 
-      const pan = getBwPanning(x, y, _soundCoords, projectedCameraView.left, projectedCameraView.width);
+      const pan = getBwPanning(x, y, _soundCoords, gameViewportsDirector.primaryViewport.projectedView.left, gameViewportsDirector.primaryViewport.projectedView.width);
       //FIXME; see if we can avoid creating this object
 
       if (volume > SoundPlayMinVolume) {
@@ -1167,7 +718,9 @@ async function TitanReactorGame(
 
   const getImageLoOffset = (out: Vector2, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
     // size_t frame = use_frame_index_offset ? image->frame_index_offset : image->frame_index;
-    const frameInfo = applyCameraDirectionToImageFrame(camera, image);
+
+    //TODO: apply to all camera angles
+    const frameInfo = applyCameraDirectionToImageFrame(gameViewportsDirector.primaryViewport.camera, image);
     if (useFrameIndexOffset) {
       frameInfo.frame = frameInfo.frame % 17;
     }
@@ -1268,19 +821,20 @@ async function TitanReactorGame(
       fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y));
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
-    //FIXME: make onShouldHideUnit a global plugin feature 
-    if (spriteIsHidden(spriteData) || (unit && controls.cameraMode.isActiveCameraMode && controls.cameraMode.onShouldHideUnit && controls.cameraMode.onShouldHideUnit(unit))) {
+    //TODO: make this apply to each render cycle
+    if (spriteIsHidden(spriteData) || (unit && gameViewportsDirector.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
     }
+    sprite.visible = spriteIsVisible;
 
     const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
 
     calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
 
-    const a = _cameraPosition.distanceTo(_spritePos) / Math.min(500, controls.orbit.maxDistance);
+    //TODO: apply to all orbits
+    const a = gameViewportsDirector.primaryViewport.camera.position.distanceTo(_spritePos) / Math.min(500, gameViewportsDirector.primaryViewport.orbit!.maxDistance);
     const v = Math.floor((a * a * a) * 1.25);
-    sprite.visible = spriteIsVisible;
 
     if (!spriteIsVisible || v > 0 && sprite.userData.renderTestCount > 0) {
       if (sprite.userData.renderTestCount < v) {
@@ -1300,15 +854,20 @@ async function TitanReactorGame(
       const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
       const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
 
-      if (controls.cameraMode.cameraShake && bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
-        const distance = camera.position.distanceTo(_spritePos);
-        if (distance < MaxShakeDistance) {
-          const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / MaxShakeDistance) * exp[2];
-          if (calcStrength > unitAttackScore.strength.getComponent(_bulletStrength[1])) {
-            unitAttackScore.strength.setComponent(_bulletStrength[1], calcStrength);
-            unitAttackScore.duration.setComponent(_bulletStrength[1], exp[1] * 1000);
-            unitAttackScore.frequency.setComponent(_bulletStrength[1], exp[0]);
-            unitAttackScore.needsUpdate = true;
+      if (bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
+        for (const v of gameViewportsDirector.viewports) {
+          if (!v.cameraShake.enabled) {
+            continue;
+          }
+          const distance = v.camera.position.distanceTo(_spritePos);
+          if (distance < MaxShakeDistance) {
+            const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / MaxShakeDistance) * exp[2];
+            if (calcStrength > v.shakeCalculation.strength.getComponent(_bulletStrength[1])) {
+              v.shakeCalculation.strength.setComponent(_bulletStrength[1], calcStrength);
+              v.shakeCalculation.duration.setComponent(_bulletStrength[1], exp[1] * 1000);
+              v.shakeCalculation.frequency.setComponent(_bulletStrength[1], exp[0]);
+              v.shakeCalculation.needsUpdate = true;
+            }
           }
         }
       }
@@ -1347,6 +906,7 @@ async function TitanReactorGame(
     _spritePos.y = sprite.userData.fixedY ?? bulletY ?? _spritePos.y;
 
     sprite.position.copy(_spritePos);
+    //TODO: per game viewport
     sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z)
     sprite.renderOrder = spriteRenderOrder;
 
@@ -1417,9 +977,11 @@ async function TitanReactorGame(
 
         image.position.z = 0;
 
+        //TODO store variables so its easy to change from one mode to another or use a universal function
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+        if (image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+          // if (controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
           image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
@@ -1439,8 +1001,9 @@ async function TitanReactorGame(
           }
         }
 
+        // TODO store frameInfo per viewport and apply on render
         if (imageHasDirectionalFrames(imageData as ImageStruct)) {
-          const frameInfo = applyCameraDirectionToImageFrame(camera, imageData);
+          const frameInfo = applyCameraDirectionToImageFrame(gameViewportsDirector.primaryViewport.camera, imageData);
           image.setFrame(frameInfo.frame, frameInfo.flipped);
         } else {
           image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
@@ -1477,7 +1040,8 @@ async function TitanReactorGame(
     const deletedImageAddr = openBW._get_buffer(3);
     const deletedSpriteAddr = openBW._get_buffer(4);
 
-    camera.getWorldDirection(_cameraWorldDirection);
+    //TODO: get world dir PER viewport
+    gameViewportsDirector.primaryViewport.camera.getWorldDirection(_cameraWorldDirection);
 
     // avoid image flashing by clearing the group here when user is scrubbing through a replay
     if (_wasReset) {
@@ -1609,6 +1173,8 @@ async function TitanReactorGame(
   const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
 
   let _lastElapsed = 0;
+  const _a = new Vector3;
+
   let delta = 0;
 
   let cmds = commandsStream.generate();
@@ -1622,15 +1188,15 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    controls.orbit.update(delta / 1000);
-    controls.PIP.orbit.update(delta / 1000);
-    controls.orbit.getTarget(_cameraTarget);
-    controls.orbit.getPosition(_cameraPosition);
-    projectedCameraView.update(camera, _cameraTarget);
+    gameViewportsDirector.primaryViewport.orbit!.update(delta / 1000);
+    for (const viewport of gameViewportsDirector.viewports) {
+      viewport.orbit?.getTarget(_a);
+      viewport.projectedView.update(viewport.camera, _a);
+    }
 
-    cameraMouse.update(delta / 100, elapsed, controls.cameraMode);
-    cameraKeys.update(delta / 100, elapsed, controls.cameraMode);
-    minimapMouse.update(controls.cameraMode);
+    cameraMouse.update(delta / 100, elapsed, gameViewportsDirector);
+    cameraKeys.update(delta / 100, elapsed, gameViewportsDirector);
+    minimapMouse.update(gameViewportsDirector);
 
     if (reset) {
       reset();
@@ -1649,20 +1215,22 @@ async function TitanReactorGame(
         units,
         unitsBySprite
       );
-      buildMinimap(minimapImageData, minimapResourceImageData);
+      buildMinimap(minimapUnitsImage, minimapResourcesImage);
       buildSprites(delta);
 
       fogOfWar.texture.needsUpdate = true;
       creep.creepValuesTexture.needsUpdate = true;
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
-      const audioPosition = controls.cameraMode.isActiveCameraMode ? controls.cameraMode.onUpdateAudioMixerLocation(delta, elapsed, _cameraTarget, _cameraPosition) : _cameraPosition;
+      const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
       audioMixer.updateFromVector3(audioPosition as Vector3, delta);
 
-      if (unitAttackScore.needsUpdate) {
-        controls.cameraShake.shake(elapsed, unitAttackScore.duration, unitAttackScore.frequency, unitAttackScore.strength);
-        unitAttackScore.needsUpdate = false;
-        unitAttackScore.strength.setScalar(0);
+      for (const v of gameViewportsDirector.viewports) {
+        if (v.cameraShake.enabled && v.shakeCalculation.needsUpdate) {
+          v.cameraShake.shake(elapsed, v.shakeCalculation.duration, v.shakeCalculation.frequency, v.shakeCalculation.strength);
+          v.shakeCalculation.needsUpdate = false;
+          v.shakeCalculation.strength.setScalar(0);
+        }
       }
 
       _commandsThisFrame.length = 0;
@@ -1684,40 +1252,41 @@ async function TitanReactorGame(
 
       plugins.onFrame(openBW, currentBwFrame, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
-      scene.setBorderTileOpacity(Math.min(1, Math.max(0, 0.7 - controls.orbit.distance / _maxTransparentBorderTilesDistance)));
+      // scene.setBorderTileOpacity(Math.min(1, Math.max(0, 0.7 - getOrbit().distance / _maxTransparentBorderTilesDistance)));
 
       previousBwFrame = currentBwFrame;
     }
 
 
     {
-      const dir = controls.cameraMode.rotateSprites ? getDirection32(projectedCameraView.center, camera.position) : 0;
-      if (dir != camera.userData.direction) {
-        camera.userData.prevDirection = camera.userData.direction;
-        camera.userData.direction = dir;
-        if (currentBwFrame) {
-          previousBwFrame = -1;
+      for (const v of gameViewportsDirector.viewports) {
+        const dir = v.renderOptions.rotateSprites ? getDirection32(v.projectedView.center, v.camera.position) : 0;
+        if (dir != v.camera.userData.direction) {
+          v.camera.userData.prevDirection = v.camera.userData.direction;
+          v.camera.userData.direction = dir;
+          // if (currentBwFrame) {
+          //   previousBwFrame = -1;
+          // }
         }
       }
     }
 
     renderer.targetSurface = gameSurface;
-    drawMinimap(projectedCameraView);
+    drawMinimap(minimapSurface, mapWidth, mapHeight, minimapUnitsImage, minimapResourcesImage, minimapFOWImage, creep.minimapImageData, minimapTerrainBitmap, fogOfWar.enabled, gameViewportsDirector);
 
-    plugins.onBeforeRender(delta, elapsed, _cameraTarget, _cameraPosition);
-    controls.cameraShake.update(elapsed, camera);
-    fogOfWar.update(players.getVisionFlag(), camera);
-    renderer.render(delta);
-    controls.cameraShake.restore(camera);
+    plugins.onBeforeRender(delta, elapsed);
 
-    if (controls.PIP.enabled) {
-      const scale = ImageHD.useScale;
-      setUseScale(images, 1);
-      fogOfWar.update(players.getVisionFlag(), controls.PIP.camera);
-      renderer.changeCamera(controls.PIP.camera);
-      renderer.render(delta, controls.PIP.viewport);
-      renderer.changeCamera(camera);
-      setUseScale(images, scale);
+    for (const v of gameViewportsDirector.viewports) {
+      if (!v.enabled) continue;
+
+      setUseScale(images, v.renderOptions.unitScale);
+      v.cameraShake.update(elapsed, v.camera);
+      fogOfWarEffect.blendMode.opacity.value = v.renderOptions.fogOfWarOpacity;
+      fogOfWar.update(players.getVisionFlag(), v.camera, minimapFOWImage);
+      renderer.setPostProcessingBundle(defaultPostProcessingBundle);
+      renderer.updatePostProcessingCamera(v.camera);
+      renderer.render(delta);
+      v.cameraShake.restore(v.camera);
     }
 
     let _cssItems = 0;
@@ -1727,8 +1296,9 @@ async function TitanReactorGame(
         break;
       }
     }
+    //TODO: remove css renderer from main thread
     if (_cssItems) {
-      cssRenderer.render(cssScene, camera);
+      cssRenderer.render(cssScene, gameViewportsDirector.primaryViewport.camera);
     }
 
     plugins.onRender(delta, elapsed);
@@ -1744,7 +1314,7 @@ async function TitanReactorGame(
     plugins.onGameDisposed();
     pluginsApiJanitor.mopUp();
     janitor.mopUp();
-    controls.cameraMode.dispose();
+    // controls.cameraMode.dispose();
     selectedUnitsStore().clearSelectedUnits();
   };
 
@@ -1756,8 +1326,8 @@ async function TitanReactorGame(
       macros.deserialize(newSettings.macros);
     }
 
-    if (newSettings.game.cameraController !== controls.cameraMode.name) {
-      switchCameraController(newSettings.game.cameraController);
+    if (newSettings.game.sceneController !== gameViewportsDirector.name) {
+      gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
 
     audioMixer.masterVolume = newSettings.audio.global;
@@ -1842,12 +1412,17 @@ async function TitanReactorGame(
 
     const api = {
       isInGame: true,
+      get primaryViewport() {
+        return gameViewportsDirector.primaryViewport;
+      },
+      get secondaryViewport() {
+        return gameViewportsDirector.secondaryViewport;
+      },
       scene,
       cssScene,
       assets,
       toggleFogOfWarByPlayerId,
       unitsIterator,
-      projectedCameraView,
       skipForward,
       skipBackward,
       speedUp,
@@ -1869,34 +1444,8 @@ async function TitanReactorGame(
       gotoFrame: (frame: number) => openBW.setCurrentFrame(frame),
       getSpeed: () => openBW.getGameSpeed(),
       changeToDefaultCameraController: () => {
-        switchCameraController(defaultCameraController);
+        gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);
       },
-      getPipCamera() {
-        return controls.PIP.camera;
-      },
-      pipLookAt(x: number, z: number) {
-        controls.PIP.enabled = true;
-        controls.PIP.orbit.moveTo(x, 0, z);
-        //FIXME: remove this once we have multiple cameras properly working
-        controls.PIP.orbit.rotateTo(controls.cameraMode.orbit!.azimuthAngle, controls.cameraMode.orbit!.polarAngle, false);
-      },
-      setPipDimensions(position?: Vector2, height?: number) {
-        if (position) {
-          controls.PIP.position = position;
-        } else {
-          delete controls.PIP.position;
-        }
-
-        if (height) {
-          controls.PIP.height = height;
-        }
-
-        controls.PIP.update(camera.aspect);
-      },
-      pipHide() {
-        controls.PIP.enabled = false;
-      },
-      pipIsActive: () => controls.PIP.enabled,
       setPlayerColors,
       getPlayerColor: (id: number) => {
         return players.get(id)?.color ?? new Color(1, 1, 1);
@@ -1933,16 +1482,14 @@ async function TitanReactorGame(
 
     const container = createCompartment(api);
 
-    const createGameCompartment = () => {
+    macros.initGame(() => {
       return container;
-    }
-
-    macros.initGame(createGameCompartment);
+    });
 
     macros.setHostDefaults(settings);
     ipcRenderer.on(SETTINGS_WERE_SAVED, async (_, settings: SettingsMeta) => {
       macros.setHostDefaults(settings.data);
-      defaultCameraController = settings.data.game.cameraController;
+      defaultSceneController = settings.data.game.sceneController;
     });
 
     plugins.setAllMacroDefaults(macros);
@@ -1963,7 +1510,7 @@ async function TitanReactorGame(
     renderer.getWebGLRenderer().setAnimationLoop(null);
     await (settingsStore().load());
     plugins.initializePluginSystem(settingsStore().enabledPlugins);
-    controls = await switchCameraController(defaultCameraController);
+    gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
 
     await setupPlugins();
     renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
@@ -1977,28 +1524,16 @@ async function TitanReactorGame(
   precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
   precompileCamera.lookAt(scene.position);
 
+  await gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);
+
   await plugins.callHookAsync(HOOK_ON_GAME_READY);
-
-
-  let controls = await switchCameraController(defaultCameraController);
 
   GAME_LOOP(0);
   renderer.getWebGLRenderer().render(scene, precompileCamera);
 
-  // pre-render other camera modes (for post processing)
-  for (const cameraController of plugins.getCameraControllers()) {
-    if (cameraController.name !== defaultCameraController) {
-      controls = await switchCameraController(cameraController.name);
-      renderer.render(0);
-    }
-  }
-
-  controls = await switchCameraController(defaultCameraController);
-  renderer.render(0);
-
   janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
     if (e.code === "Escape") {
-      switchCameraController(defaultCameraController);
+      gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);
     }
   })
 

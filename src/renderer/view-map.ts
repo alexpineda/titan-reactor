@@ -10,7 +10,7 @@ import type {
   TerrainInfo,
 } from "common/types";
 
-import { CanvasTarget } from "./image";
+import { Surface } from "./image";
 import { IScriptSprite } from "./core"
 import * as log from "./ipc/log"
 import { Scene } from "./render";
@@ -54,14 +54,14 @@ async function TitanReactorMap(
     throw new Error("Settings not loaded");
   }
 
-  const gameSurface = new CanvasTarget();
+  const gameSurface = new Surface();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
 
   // scene.background = new Color(settings.mapBackgroundColor);
-  const camera = new PerspectiveCamera(55, gameSurface.width / gameSurface.height, 3, 256);
+  const camera = new PerspectiveCamera(55, gameSurface.aspect, 3, 256);
   const control = new CameraControls(
     camera,
     gameSurface.canvas,
@@ -75,10 +75,10 @@ async function TitanReactorMap(
   control.setLookAt(0, 50, 0, 0, 0, 0, true);
 
   const renderPass = new RenderPass(scene, camera);
-  renderer.setCameraModeEffectsAndPasses({
+  renderer.setPostProcessingBundle({
     passes: [renderPass]
   });
-  renderer.changeCamera(camera);
+  renderer.updatePostProcessingCamera(camera);
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
@@ -153,9 +153,9 @@ async function TitanReactorMap(
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+    renderer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
 
-    camera.aspect = gameSurface.width / gameSurface.height;
+    camera.aspect = gameSurface.aspect;
     camera.updateProjectionMatrix();
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
@@ -166,7 +166,7 @@ async function TitanReactorMap(
   let last = 0;
   let frameElapsed = 0;
   renderer.targetSurface = gameSurface;
-  renderer.setSize(gameSurface.scaledWidth, gameSurface.scaledHeight);
+  renderer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
 
   function gameLoop(elapsed: number) {
     const delta = elapsed - last;

@@ -22,7 +22,7 @@
   - [Modifying Game State](#modifying-game-state)
     - [Game Time APIs](#game-time-apis)
     - [Hooks](#hooks)
-  - [Camera Mode Plugins](#camera-mode-plugins)
+  - [Scene Controller Plugins](#scene-controller-plugins)
   - [Custom Hooks](#custom-hooks)
   - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
     - [Message Throttling](#message-throttling)
@@ -31,7 +31,7 @@
   - [Deprecating Your Plugin](#deprecating-your-plugin)
   - [Publishing Your Plugin](#publishing-your-plugin)
 
-⚠️ The plugin API is under heavy development. Expect frequent breaking changes until Titan Reactor v1. Big plans include supporting TypeScript out of the box.
+⚠️ The plugin API is under heavy development. Expect frequent breaking changes until Titan Reactor v1.
 
 Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-official-plugins) for several examples.
 
@@ -72,7 +72,7 @@ Your plugin directory must contain a `package.json` file. It may also contain ei
 
 ### UI Component
 
-For React UI components use `index.jsx`. Your code will automatically be be transpiled by Titan Reactor. Your component will live in an iframe with other plugins in a separate process. You can show different components based on the screen (eg replay loading or replay active) and read *some* of Titan Reactor game state.
+For React UI components use `index.jsx`. Your code will automatically be be transpiled by Titan Reactor. Your component(s) will live in an iframe with other plugins in a separate UI process. You can show different components based on the screen (eg replay loading or replay active).
 
 ### Game Component
 
@@ -87,8 +87,10 @@ We use the `config` value in `package.json` to define user configuration options
   "name": "@titan-reactor-plugin/my-cool-plugin",
   "description": "My Cool Plugin",
   "version": "1.0.0",
-  "keywords": ["titan-reactor-plugin"]
-
+  "keywords": ["titan-reactor-plugin"],
+  "peerDependencies": {
+        "titan-reactor-api": "2.0.0"
+    },
    "config": {
       "userName": {
           "value": "this value will be modifiable by the user since I have a value property!"
@@ -130,7 +132,7 @@ registerComponent({ pluginId: "_plugin_id_", screen: "@replay/ready" }, MyCompon
 
 ### Technology
 
-Your script will be treated by the browser as an ES6 module, meaning you have full access to the module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
+Your script will be treated by the browser as an ES6 module, meaning you have full access to the ES6 module system. Provided for you is an import map for `titan-reactor`, `react`, `react-dom` and `zustand`. You may import these with these names directly. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`.
 
 ### Using User Configuration
 
@@ -150,10 +152,8 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 **useFrame()**
 
 - **frame**
-  - **time**: game time label `eg, "12:00"`
   - **frame**: current replay frame
-  - **maxFrame**: max replay frame
-  - **playerData**: raw player data, use `getPlayerInfo` utility to extract meaningful data
+  - **playerData**: raw player data, use `usePlayerFrame` utility to extract meaningful data
   - **unitProduction**: Int32Array for each player (8 total), with [unitId, count]
   - **upgrades**: Int32Array for each player (8 total), with [upgradeId, level, progress]
   - **research**: Int32Array for each player (8 total), with [researchId, progress]
@@ -264,7 +264,6 @@ The full set of open prop variables for use in your CSS. [See Open Props for mor
 `Conthrax` and `Conthrax-Bold` are good for scores and numbers.
 
 
-
 ## Modifying Game State
 You can create really powerful plugins by using a `plugin.js` file that is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
@@ -285,11 +284,10 @@ Every plugin gets a base set of hooks.
 
 
 ```js
-// we provide global dependencies via the arguments object
+// global dependencies are made available
 // THREE - three.js
 // STDLIB - additional three.js objects
 // postprocessing - from the `postprocessing` npm package
-const { THREE, STDLIB, postprocessing } = arguments[0];
 
 // your plugin must return an object with keynames matching hook names that you want to listen to
 return {
@@ -328,7 +326,7 @@ return {
     // frame - the frame number
     // followingUnits - any units the user is following with the F key
     // commands - an array of replay commands
-    // not some frames may be skipped for fps reasons
+    // note some frames may be skipped for fps reasons
     // commands will include upto 5s of skipped frames
     onFrame(frame, followingUnits, commands) {
 
@@ -337,33 +335,18 @@ return {
 }
 ```
 
-## Camera Mode Plugins
+## Scene Controller Plugins
 
-Your plugin is considered a camera mode if your config has a `cameraModeKey` setting. A camera mode is a controller for camera movement and rendering.
-
-In order to avoid bugs, special care must be taken to check `isActiveCameraMode` when doing work in non-camera mode hooks like `onConfigChanged()` or `onFrame()`.
-
-
-```json
-"cameraModeKey": {
-          "label": "Toggle Camera",
-          "type": "keyboard-shortcut",
-          "value": "F5"
-      },
-```
-
-Camera Mode Plugins get an additional set of hooks.
+Your plugin is considered a scene controller if your plugin has a `onEnterScene` callback. A scene controller defines viewports, what they are used for, and responds to user input in order to change camera positions and transitions.
 
 ```js
 // REQUIRED.
-// The previous camera mode may leave data behind
-// for smoother transitions between modes
-async onEnterCameraMode(prevData);
+async onEnterScene(prevData);
 
 // The camera target and position for convenience 
 // in case we wish to pass this info along to the
 // next camera mode.
-onExitCameraMode(target, position);
+onExitScene(target, position);
 
 // When updating the mouse.
 onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX, clientY, clicked);
@@ -372,7 +355,7 @@ onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX,
 
 ```
 
-- See the [`CameraModePlugin` type for full API documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/input/camera-mode.ts).
+- See the [`SceneControllerPlugin` type for full API documentation](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/input/camera-mode.ts).
 
 - The `orbit` object is an instance of [CameraControls](https://github.com/yomotsu/camera-controls).
 

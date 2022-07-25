@@ -35,6 +35,9 @@ export const imageIsClickable = (image: ImageStruct) => {
 }
 
 export const setUseScale = (images: Map<number, Image>, scale: number) => {
+  if (ImageHD.useScale === scale) {
+    return;
+  }
   ImageHD.useScale = scale;
   for (const [, image] of images) {
     if (image instanceof ImageHD) {

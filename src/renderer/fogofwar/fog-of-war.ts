@@ -1,23 +1,18 @@
-import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, Texture, UnsignedByteType, Vector2, Vector4 } from "three";
+import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, UnsignedByteType, Vector2, Vector4 } from "three";
 import { OpenBWAPI } from "common/types";
+import FogOfWarEffect from "./fog-of-war-effect";
 
 export default class FogOfWar {
     #openBW: OpenBWAPI;
-    imageData: ImageData;
-    texture: Texture;
-    // until postprocessing gets types
-    effect: any;
+    texture: DataTexture;
+    effect: FogOfWarEffect;
     #buffer = new Uint8Array();
     forceInstantUpdate = false;
     enabled = true;
 
-    constructor(width: number, height: number, openBw: OpenBWAPI) {
+    constructor(width: number, height: number, openBw: OpenBWAPI, effect: FogOfWarEffect) {
         this.#openBW = openBw;
 
-        // for use with canvas drawing / minimap
-        this.imageData = new ImageData(width, height);
-
-        // for shader
         const texture = new DataTexture(
             new Uint8ClampedArray(width * height),
             width,
@@ -35,16 +30,13 @@ export default class FogOfWar {
 
         this.texture = texture;
 
-    }
-
-    setEffect(effect: any) {
         this.effect = effect;
         this.effect.fog = this.texture;
-        this.effect.fogResolution = new Vector2(this.imageData.width, this.imageData.height);
-        this.effect.fogUvTransform = new Vector4(0.5, 0.5, 0.99 / this.imageData.height, 0.99 / this.imageData.width);
+        this.effect.fogResolution = new Vector2(this.texture.image.width, this.texture.image.height);
+        this.effect.fogUvTransform = new Vector4(0.5, 0.5, 0.99 / this.texture.image.height, 0.99 / this.texture.image.width);
     }
 
-    update(playerVision: number, camera: Camera) {
+    update(playerVision: number, camera: Camera, minimapFOWImage: ImageData) {
         const tilesize = this.#openBW.getFowSize();
         const ptr = this.#openBW.getFowPtr(playerVision, this.forceInstantUpdate);
 
@@ -57,24 +49,24 @@ export default class FogOfWar {
         this.forceInstantUpdate = false;
 
         for (let i = 0; i < tilesize; i = i + 1) {
-            this.imageData.data[i * 4 - 1] = Math.max(50, 255 - this.#buffer[i]);
+            minimapFOWImage.data[i * 4 - 1] = Math.max(50, 255 - this.#buffer[i]);
         }
     }
 
     isVisible(x: number, y: number) {
-        return this.#buffer[y * this.imageData.width + x] > 55;
+        return this.#buffer[y * this.texture.image.width + x] > 55;
     }
 
     isExplored(x: number, y: number) {
-        return this.#buffer[y * this.imageData.width + x] > 0;
+        return this.#buffer[y * this.texture.image.width + x] > 0;
     }
 
     isSomewhatVisible(x: number, y: number) {
-        return this.#buffer[y * this.imageData.width + x] > 55;
+        return this.#buffer[y * this.texture.image.width + x] > 55;
     }
 
     isSomewhatExplored(x: number, y: number) {
-        return this.#buffer[y * this.imageData.width + x] > 0;
+        return this.#buffer[y * this.texture.image.width + x] > 0;
     }
 
 };

@@ -5,25 +5,25 @@ const ONE_SECOND = 1000;
 const FPS = 60;
 let _remap = [0, 1, 2] as (0 | 1 | 2)[];
 class CameraShake {
-  private _noise: number[][] = [];
+  #noise: number[][] = [];
 
-  private offset = new Vector3();
+  #offset = new Vector3();
 
-  private _enabled = true;
+  #enabled = false;
 
   _duration = new Vector3();
   _startTime = [0, 0, 0];
   _strength = new Vector3();
 
-  private _prevCameraPosition = new Vector3();
+  #prevCameraPosition = new Vector3();
 
   set enabled(val: boolean) {
-    this._enabled = val;
+    this.#enabled = val;
     this._strength.setScalar(0);
   }
 
   get enabled() {
-    return this._enabled;
+    return this.#enabled;
   }
 
   constructor(
@@ -39,7 +39,7 @@ class CameraShake {
   setParams(component: 0 | 1 | 2, duration: number, frequency: number, strength: number) {
     this._strength.setComponent(component, strength);
     this._duration.setComponent(component, duration);
-    this._noise[component] = makePNoise1D(
+    this.#noise[component] = makePNoise1D(
       (duration / ONE_SECOND) * frequency,
       (duration / ONE_SECOND) * FPS
     );
@@ -53,7 +53,7 @@ class CameraShake {
     const ease = sineOut(1 - progress);
 
     if (progress >= 1) {
-      this.offset.setComponent(component, 0)
+      this.#offset.setComponent(component, 0)
       this._strength.setComponent(component, 0);
       if (this._strength.length() === 0) {
         _remap = shuffle(_remap);
@@ -61,8 +61,8 @@ class CameraShake {
       return 0;
     }
 
-    const offset = this._noise[component][frameNumber] * this._strength.getComponent(component) * ease;
-    this.offset.setComponent(component, offset);
+    const offset = this.#noise[component][frameNumber] * this._strength.getComponent(component) * ease;
+    this.#offset.setComponent(component, offset);
     return offset;
   }
 
@@ -86,13 +86,13 @@ class CameraShake {
     this._update(_remap[0], elapsed);
     this._update(_remap[1], elapsed);
     this._update(_remap[2], elapsed);
-    this._prevCameraPosition.copy(camera.position);
-    camera.position.add(this.offset)
+    this.#prevCameraPosition.copy(camera.position);
+    camera.position.add(this.#offset)
   }
 
   restore(camera: Camera) {
     if (this.enabled === false) return;
-    camera.position.copy(this._prevCameraPosition);
+    camera.position.copy(this.#prevCameraPosition);
   }
 }
 

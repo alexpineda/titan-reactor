@@ -1,5 +1,4 @@
 import type CameraControls from "camera-controls";
-import type ProjectedCameraView from "../../renderer/camera/projected-camera-view";
 import type { Vector2, Vector3 } from "three";
 
 export interface PluginPackage {
@@ -35,7 +34,7 @@ export interface InitializedPluginPackage extends PluginPackage {
 
 export type PluginMetaData = {
     methods: string[];
-    isCameraController: boolean;
+    isSceneController: boolean;
 } & Pick<InitializedPluginPackage, "nativeSource" | "version" | "name" | "description" | "config">
 
 export interface PluginPrototype {
@@ -62,9 +61,11 @@ export interface PluginPrototype {
 }
 
 export interface NativePlugin extends PluginPrototype {
-    isCameraController?: boolean;
+    isSceneController?: boolean;
     id: string;
     name: string;
+    orbit: CameraControls;
+
     /**
      * Called when a plugin has it's configuration changed by the user
      */
@@ -84,7 +85,7 @@ export interface NativePlugin extends PluginPrototype {
     /**
      * Called just before render
      */
-    onBeforeRender?: (delta: number, elapsed: number, target: Vector3, position: Vector3) => void;
+    onBeforeRender?: (delta: number, elapsed: number) => void;
     /**
      * Called after rendering is done
      */
@@ -99,41 +100,39 @@ export interface NativePlugin extends PluginPrototype {
     context: any;
 }
 
+export type UserInputCallbacks = {
+    onCameraMouseUpdate: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3) => void;
 
-export interface CameraController extends NativePlugin {
-    isActiveCameraMode: boolean;
-    minimap?: boolean;
-    pointerLock?: boolean;
-    unitSelection?: boolean;
-    cameraShake?: boolean;
-    rotateSprites?: boolean;
-    unitScale?: number;
-    maxSoundDistance?: number;
-    soundMode: "classic" | "spatial";
-    fogOfWar: number;
-    orbit?: CameraControls;
+    onCameraKeyboardUpdate: (delta: number, elapsed: number, truck: Vector2) => void;
 
-    dispose: () => void;
-
-    onEnterCameraMode: (prevData: any) => Promise<void>;
-
-    onExitCameraMode?: (target: Vector3, position: Vector3) => void;
-
-    onSetComposerPasses: (renderPass: any, fogOfWarEffect: any) => {
-        passes?: any[];
-        effects?: any[];
-    };
-
-    onCameraMouseUpdate?: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3) => void;
-
-    onCameraKeyboardUpdate?: (delta: number, elapsed: number, truck: Vector2) => void;
-
-    onShouldHideUnit?: (unit: any) => boolean;
+    //TODO: change this to a more generic type
+    onShouldHideUnit: (unit: any) => boolean | undefined;
 
     onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;
 
-    onDrawMinimap?: (ctx: CanvasRenderingContext2D, view: ProjectedCameraView, target: Vector3, position: Vector3) => void;
+    onMinimapDragUpdate: (pos: Vector3, isDragStart: boolean, isDragging: boolean, mouseButton?: number) => void;
 
-    onMinimapDragUpdate?: (pos: Vector3, isDragStart: boolean, isDragging: boolean, mouseButton?: number) => void;
+    onDrawMinimap: (ctx: CanvasRenderingContext2D) => void;
+
+}
+
+export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
+    dispose: () => void;
+
+    gameOptions: {
+        usePointerLock: boolean;
+        showMinimap: boolean;
+        allowUnitSelection: boolean;
+        audio: "stereo" | "3d";
+    }
+
+    onEnterScene: (prevData: any) => Promise<void>;
+
+    onExitScene?: (prevData: any) => void;
+
+    onPostProcessingBundle: (renderPass: any, fogOfWarEffect: any) => {
+        passes?: any[];
+        effects?: any[];
+    };
 
 }

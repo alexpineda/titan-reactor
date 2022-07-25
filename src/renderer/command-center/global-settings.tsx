@@ -85,13 +85,13 @@ export const getAppSettingsLevaConfig = (settings: SettingsMeta) => ({
     value: settings.data.game.minimapSize,
     path: "game",
   },
-  cameraController: {
+  sceneController: {
     folder: "Game",
-    label: "Camera Controller",
-    value: settings.data.game.cameraController,
+    label: "Scene Controller",
+    value: settings.data.game.sceneController,
     path: "game",
     options: settings.pluginsMetadata
-      .filter((p) => p.isCameraController)
+      .filter((p) => p.isSceneController)
       .map((p) => p.name),
   },
   pixelRatio: {

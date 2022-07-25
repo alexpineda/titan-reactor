@@ -1,16 +1,16 @@
 import * as log from "@ipc/log";
-import { CameraController, InitializedPluginPackage, NativePlugin, PluginPrototype } from "common/types";
+import { SceneInputHandler, InitializedPluginPackage, NativePlugin, PluginPrototype } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./hooks";
-import { Vector3 } from "three";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
 import { MacroActionEffect, getMacroActionValue, Macro, MacroActionPlugin } from "../command-center/macros";
 import { createCompartment } from "@utils/ses-util";
+import { mix } from "@utils/object-utils";
 
 
 type InternalHookOptions = {
@@ -104,6 +104,7 @@ export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
     #janitor = new Janitor;
+    #activeSceneInputHandler = "";
 
     readonly hooks: Record<string, Hook> = createDefaultHooks();
 
@@ -165,6 +166,7 @@ export class PluginSystemNative {
                     return this.callHook(name, ...args);
                 }
             };
+            plugin.isSceneController = !!plugin.onEnterScene;
             log.verbose(`@plugin-system-native: initialized plugin "${plugin.name}"`);
             plugin.onPluginCreated && plugin.onPluginCreated();
 
@@ -184,15 +186,19 @@ export class PluginSystemNative {
         const _messageListener = (event: MessageEvent) => {
             if (event.data.type === SYSTEM_EVENT_CUSTOM_MESSAGE) {
                 const { pluginId, message } = event.data.payload;
-                this.#onUIMessage(pluginId, message);
+                this.#hook_onUIMessage(pluginId, message);
             }
         };
         window.addEventListener("message", _messageListener);
         this.#janitor.add(() => { window.removeEventListener("message", _messageListener); });
     }
 
-    getCameraControllers() {
-        return this.#nativePlugins.filter(p => p.isCameraController) as CameraController[];
+    getSceneInputHandlers() {
+        return this.#nativePlugins.filter(p => (p as SceneInputHandler).onEnterScene) as SceneInputHandler[];
+    }
+
+    setActiveSceneInputHandler(id: string) {
+        this.#activeSceneInputHandler = id;
     }
 
     #getByName(name: string) {
@@ -229,7 +235,7 @@ export class PluginSystemNative {
         }
     }
 
-    #onUIMessage(pluginId: string, message: any) {
+    #hook_onUIMessage(pluginId: string, message: any) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
@@ -251,7 +257,7 @@ export class PluginSystemNative {
         this.#nativePlugins = [];
     }
 
-    disablePlugin(pluginId: string) {
+    hook_onPluginDispose(pluginId: string) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
@@ -263,9 +269,13 @@ export class PluginSystemNative {
         }
     }
 
-    onConfigChanged(pluginId: string, config: any) {
+    #sceneInputHandlerGaurd(plugin: NativePlugin) {
+        return !plugin.isSceneController || this.#activeSceneInputHandler === plugin.id;
+    }
+
+    hook_onConfigChanged(pluginId: string, config: any) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
-        if (plugin) {
+        if (plugin && this.#sceneInputHandlerGaurd(plugin)) {
             try {
                 const oldConfig = { ...plugin.config };
                 plugin.config = processConfigBeforeReceive(config);
@@ -276,21 +286,21 @@ export class PluginSystemNative {
         }
     }
 
-    onBeforeRender(delta: number, elapsed: number, target: Vector3, position: Vector3) {
+    hook_onBeforeRender(delta: number, elapsed: number) {
         for (const plugin of this.#nativePlugins) {
-            plugin.onBeforeRender && plugin.onBeforeRender(delta, elapsed, target, position);
+            plugin.onBeforeRender && this.#sceneInputHandlerGaurd(plugin) && plugin.onBeforeRender(delta, elapsed);
         }
     }
 
-    onRender(delta: number, elapsed: number) {
+    hook_onRender(delta: number, elapsed: number) {
         for (const plugin of this.#nativePlugins) {
             plugin.onRender && plugin.onRender(delta, elapsed);
         }
     }
 
-    onFrame(frame: number, commands: any[]) {
+    hook_onFrame(frame: number, commands: any[]) {
         for (const plugin of this.#nativePlugins) {
-            if (plugin.onFrame) {
+            if (plugin.onFrame && this.#sceneInputHandlerGaurd(plugin)) {
                 if (plugin.$$permissions[PERMISSION_REPLAY_COMMANDS]) {
                     plugin.onFrame(frame, commands);
                 } else {
@@ -310,7 +320,7 @@ export class PluginSystemNative {
      * Temporarily inject an api into all active plugins.
      */
     injectApi(object: {}) {
-        Object.assign(pluginProto, object);
+        mix(pluginProto, object);
         const keys = Object.keys(object);
 
         return () => {
@@ -328,7 +338,7 @@ export class PluginSystemNative {
 
         let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined) {
+            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
                 delete plugin.context;
@@ -345,7 +355,7 @@ export class PluginSystemNative {
 
         let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined) {
+            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
                 delete plugin.context;
@@ -367,21 +377,6 @@ export class PluginSystemNative {
             return;
         }
         macro.setPluginsDefaults(plugin.name, config);
-    }
-
-    getAllMacroActions() {
-        const actions: { pluginName: string, pluginAction: string }[] = [];
-        for (const plugin of this.#nativePlugins) {
-            for (const key of Object.keys(plugin)) {
-                if (key.startsWith('onMacro') && typeof plugin[key as keyof typeof plugin] === 'function') {
-                    actions.push({
-                        pluginName: plugin.name,
-                        pluginAction: key,
-                    })
-                }
-            }
-        }
-        return actions;
     }
 
     doMacroAction(action: MacroActionPlugin) {

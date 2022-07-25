@@ -22,7 +22,7 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 // import "balloon-css/balloon.min.css";
 
 import App from "./components/app";
-import { CanvasTarget } from "@image";
+import { Surface } from "@image";
 import "common/utils/electron-file-loader";
 import IScriptSprite from "@core/iscript-sprite";
 import {
@@ -37,7 +37,7 @@ import { updateEntities } from "./entities";
 import { render } from "react-dom";
 import settingsStore from "@stores/settings-store";
 
-const surface = new CanvasTarget();
+const surface = new Surface();
 surface.setDimensions(300, 300, window.devicePixelRatio);
 
 const scene = new Scene();
@@ -52,7 +52,7 @@ renderer.outputEncoding = sRGBEncoding;
 renderer.toneMapping = CineonToneMapping;
 
 const renderToCanvas = (
-  canvasTarget: CanvasTarget,
+  canvasTarget: Surface,
   scene: Scene,
   camera: PerspectiveCamera
 ) => {
@@ -65,12 +65,7 @@ const renderToCanvas = (
   canvasTarget.canvas.getContext("2d")?.drawImage(renderer.domElement, 0, 0);
 };
 
-const camera = new PerspectiveCamera(
-  22,
-  surface.width / surface.height,
-  1,
-  256
-);
+const camera = new PerspectiveCamera(22, surface.aspect, 1, 256);
 camera.userData.direction = 0;
 camera.position.set(0, 30, 10);
 camera.lookAt(new Vector3());
@@ -237,7 +232,7 @@ const resizeHandler = () => {
     (window.innerHeight * 3) / 4,
     window.devicePixelRatio
   );
-  camera.aspect = surface.width / surface.height;
+  camera.aspect = surface.aspect;
   camera.updateProjectionMatrix();
 };
 window.addEventListener("resize", resizeHandler, false);

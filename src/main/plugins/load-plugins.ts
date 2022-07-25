@@ -329,6 +329,6 @@ export const getPluginsMetaData: () => PluginMetaData[] = () => {
         version: plugin.version,
         config: omit(plugin.config, "system"),
         methods: getMethods((plugin.nativeSource ?? "")),
-        isCameraController: (plugin.nativeSource ?? "").includes("onEnterCameraMode")
+        isSceneController: (plugin.nativeSource ?? "").includes("onEnterScene")
     }));
 }

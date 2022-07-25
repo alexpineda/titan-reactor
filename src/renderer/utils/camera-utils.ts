@@ -4,7 +4,7 @@ import type { CameraMouse } from "../input/camera-mouse";
 import type { CameraKeys } from "../input/camera-keys";
 import type CameraShake from "../camera/camera-shake";
 import { imageIsFlipped } from "./image-utils";
-import { CameraController, ImageStruct } from "common/types";
+import { SceneInputHandler, ImageStruct } from "common/types";
 import DirectionalCamera from "../camera/directional-camera";
 
 export type Controls = {
@@ -12,7 +12,7 @@ export type Controls = {
   mouse: CameraMouse,
   keys: CameraKeys,
   cameraShake: CameraShake,
-  cameraController: CameraController,
+  cameraController: SceneInputHandler,
   PIP: {
     enabled: boolean;
     camera: Camera;

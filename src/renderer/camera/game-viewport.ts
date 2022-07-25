@@ -1,0 +1,201 @@
+import { Surface } from "@image/canvas";
+import CameraControls from "camera-controls";
+import { MathUtils, Vector2, Vector3, Vector4 } from "three";
+import CameraShake from "./camera-shake";
+import DirectionalCamera from "./directional-camera";
+import ProjectedCameraView from "./projected-camera-view";
+
+
+const isNumber = (value: any): value is Number => {
+    return typeof value === "number";
+}
+
+export class GameViewPort {
+    enabled = true;
+    camera = new DirectionalCamera(15, 1, 0.1, 1000);
+    projectedView = new ProjectedCameraView();
+    orbit?: CameraControls;
+    viewport = new Vector4(0, 0, 300, 200);
+    cameraShake = new CameraShake;
+    shakeCalculation = {
+        frequency: new Vector3(10, 20, 7.5),
+        duration: new Vector3(1000, 1000, 1000),
+        strength: new Vector3(),
+        needsUpdate: false
+    }
+    #height = 300;
+    #width = 300;
+    #left?: number | null;
+    #right?: number | null;
+    #top?: number | null;
+    #bottom?: number | null;
+    #center?: Vector2 | null;
+    #surface: Surface;
+    constrainAspect = false;
+
+    renderOptions = {
+        unitScale: 1,
+        fogOfWarOpacity: 1,
+        rotateSprites: false,
+        useCameraShake: false,
+    }
+
+    constructor(surface: Surface) {
+        this.#surface = surface;
+        this.camera = new DirectionalCamera(15, surface.aspect, 0.1, 500);
+        this.orbit = this.reset();
+    }
+
+    reset() {
+        const wasEnabled = this.orbit?.enabled ?? true;
+        this.orbit?.dispose();
+
+        this.orbit = new CameraControls(this.camera, this.#surface.canvas);
+        this.orbit.enabled = wasEnabled;
+        this.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
+        this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
+        this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
+        this.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
+        this.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
+        this.orbit.setLookAt(0, 50, 0, 0, 0, 0, false);
+        return this.orbit;
+    }
+
+
+    set center(val: Vector2 | undefined | null) {
+        this.#center = val;
+        this.updateDimensions();
+    }
+
+    get center() {
+        return this.#center;
+    }
+
+    set height(val: number) {
+        this.#height = val;
+        if (this.constrainAspect) {
+            this.#width = this.#height * this.camera.aspect;
+        }
+        this.updateDimensions();
+    }
+
+    set width(val: number) {
+        this.#width = val;
+        if (this.constrainAspect) {
+            this.#height = this.#width / this.camera.aspect;
+        }
+        this.updateDimensions();
+    }
+
+    get width() {
+        return this.#width;
+    }
+
+    get height() {
+        return this.#height;
+    }
+
+    get left() {
+        return this.#left;
+    }
+
+    set left(val: number | undefined | null) {
+        this.#left = val;
+        this.updateDimensions();
+    }
+
+    set right(val: number | undefined | null) {
+        this.#right = val;
+        this.updateDimensions();
+    }
+
+    get right() {
+        return this.#right;
+    }
+
+    get top() {
+        return this.#top;
+    }
+
+    set top(val: number | undefined | null) {
+        this.#top = val;
+        this.updateDimensions();
+    }
+
+    set bottom(val: number | undefined | null) {
+        this.#bottom = val;
+        this.updateDimensions();
+    }
+
+    get bottom() {
+        return this.#bottom;
+    }
+
+    updateDimensions() {
+
+        if (this.center) {
+            const x = this.center.x - this.width / 2;
+            const y = window.innerHeight - this.center.y - (this.height / 2);
+            this.viewport.set(MathUtils.clamp(x, 0, this.surfaceWidth - this.#width), MathUtils.clamp(y, 0, this.surfaceHeight - this.height), this.width, this.height);
+        } else {
+            let x = 0, y = 0;
+
+            if (isNumber(this.left) && !isNumber(this.right)) {
+                x = this.left;
+            } else if (isNumber(this.right) && !isNumber(this.left)) {
+                x = this.surfaceWidth - this.width - this.right;
+            } else if (isNumber(this.left) && isNumber(this.right)) {
+                x = this.left;
+                this.width = this.surfaceWidth - this.left - this.right;
+            }
+
+            if (isNumber(this.bottom) && !isNumber(this.top)) {
+                y = this.bottom;
+            } else if (isNumber(this.top) && !isNumber(this.bottom)) {
+                y = this.surfaceHeight - this.height - this.top;
+            } else if (isNumber(this.bottom) && isNumber(this.top)) {
+                y = this.bottom;
+                this.height = this.surfaceWidth - this.bottom - this.top;
+            }
+
+            this.viewport.set(x, y, this.width, this.height);
+        }
+    }
+
+    get surfaceWidth() {
+        return this.#surface.bufferWidth;
+    }
+
+    get surfaceHeight() {
+        return this.#surface.bufferHeight;
+    }
+
+    get aspect() {
+        return this.camera.aspect;
+    }
+
+    set aspect(aspect: number) {
+        this.camera.aspect = aspect;
+        this.camera.updateProjectionMatrix();
+        if (this.constrainAspect) {
+            this.height = this.#height;
+        }
+        this.updateDimensions();
+    }
+
+    dispose() {
+        this.orbit?.dispose();
+    }
+
+    generatePrevData() {
+        const target = new Vector3();
+        const position = new Vector3();
+
+        this.orbit!.getTarget(target);
+        this.orbit!.getPosition(position);
+        return {
+            target: target,
+            position: position
+        }
+    }
+}

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import shallow from "zustand/shallow";
 import UnitsAndImages from "./units-and-images";
 
-import { CanvasTarget } from "@image";
+import { Surface } from "@image";
 import { useGameStore } from "@stores/game-store";
 import Commands from "./commands";
 import Animation from "./animation";
@@ -22,7 +22,7 @@ const App = ({
   surface,
   addTitanSpriteCb,
 }: {
-  surface: CanvasTarget;
+  surface: Surface;
   addTitanSpriteCb: (titanSprite: IScriptSprite) => void;
 }) => {
   const [search, setSearch] = useState("");

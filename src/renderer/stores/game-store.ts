@@ -1,8 +1,7 @@
+import { MinimapDimensions } from "common/types"
 import create from "zustand";
-import { GameCanvasDimensions } from "common/types";
 import Assets from "../assets/assets";
 
-type MinimapDimensions = Pick<GameCanvasDimensions, "minimapWidth" | "minimapHeight">;
 
 export type GameStore = {
   assets: Assets | null;
@@ -17,7 +16,6 @@ export type GameStore = {
 export const useGameStore = create<GameStore>((set, get) => ({
   assets: null,
   dimensions: {
-    minimapEnabled: false,
     minimapWidth: 0,
     minimapHeight: 0
   },

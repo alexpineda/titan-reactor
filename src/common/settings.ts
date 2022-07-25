@@ -20,7 +20,7 @@ export const defaultSettings: Settings = {
     sound: 1
   },
   game: {
-    cameraController: "@titan-reactor-plugins/camera-standard",
+    sceneController: "@titan-reactor-plugins/camera-standard",
     stopFollowingOnClick: true,
     minimapSize: 0.25
   },

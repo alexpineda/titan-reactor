@@ -10,7 +10,7 @@ import {
     EffectComposer,
 } from "postprocessing";
 import { rendererIsDev } from "../utils/renderer-utils";
-import CanvasTarget from "../image/canvas/canvas-target";
+import Surface from "../image/canvas/surface";
 import settingsStore from "@stores/settings-store";
 
 const createWebGLRenderer = () => {
@@ -33,15 +33,15 @@ const createWebGLRenderer = () => {
     return renderer;
 };
 
-type CameraModeEffectsAndPasses = {
+type PostProcessingBundle = {
     effects: any[],
     passes: any[]
 }
 export class TitanRenderer {
     #renderer?: WebGLRenderer;
-    #targetSurface = new CanvasTarget();
+    #targetSurface = new Surface();
     #gamma = 0.9;
-    #cameraMode: CameraModeEffectsAndPasses = {
+    #postProcessingBundle: PostProcessingBundle = {
         effects: [],
         passes: []
     };
@@ -74,38 +74,43 @@ export class TitanRenderer {
             }
         );
 
-        if (this.#targetSurface) {
-            this.setSize(this.#targetSurface.scaledWidth, this.#targetSurface.scaledHeight);
-        }
+        this.setSize(this.targetSurface.bufferWidth, this.targetSurface.bufferHeight);
 
         return renderer;
     }
 
-    setCameraModeEffectsAndPasses(cm: Partial<CameraModeEffectsAndPasses>) {
+    setPostProcessingBundle(cm: Partial<PostProcessingBundle>) {
         this.composer.removeAllPasses();
 
-        this.#cameraMode = {
+        this.#postProcessingBundle = {
             effects: (cm.effects ?? []).filter(effect => effect.camera),
             passes: cm.passes ?? []
         }
 
-        for (const pass of this.#cameraMode.passes) {
+        for (const pass of this.#postProcessingBundle.passes) {
             this.composer.addPass(pass);
         }
     }
 
-    set targetSurface(surface: CanvasTarget) {
-        this.#targetSurface = surface;
-        this.#renderer?.setViewport(
-            new Vector4(0, 0, surface.width, surface.height)
-        );
-        this.setSize(this.#targetSurface.scaledWidth, this.#targetSurface.scaledHeight);
+    get targetSurface() {
+        return this.#targetSurface;
     }
 
-    changeCamera(camera: Camera) {
+    set targetSurface(surface: Surface) {
+        if (this.#targetSurface === surface) {
+            return;
+        }
+        this.#targetSurface = surface;
+        this.#renderer?.setViewport(
+            new Vector4(0, 0, surface.bufferWidth, surface.bufferHeight)
+        );
+        this.setSize(this.#targetSurface.bufferWidth, this.#targetSurface.bufferHeight);
+    }
+
+    updatePostProcessingCamera(camera: Camera) {
         let lastPass: any = null;
 
-        for (const pass of this.#cameraMode.passes) {
+        for (const pass of this.#postProcessingBundle.passes) {
             pass.camera = camera;
             pass.renderToScreen = false;
             if (pass.enabled) {
@@ -114,9 +119,10 @@ export class TitanRenderer {
         }
         lastPass.renderToScreen = true;
 
-        for (const effect of this.#cameraMode.effects) {
+        for (const effect of this.#postProcessingBundle.effects) {
             effect.camera = camera;
         }
+
     }
 
     render(delta: number, viewport?: Vector4) {
@@ -137,20 +143,20 @@ export class TitanRenderer {
         this.#targetSurface.ctx.drawImage(
             renderer.domElement,
             0,
-            renderer.domElement.height - this.#targetSurface.scaledHeight,
-            this.#targetSurface.scaledWidth,
-            this.#targetSurface.scaledHeight,
+            renderer.domElement.height - this.#targetSurface.bufferHeight,
+            this.#targetSurface.bufferWidth,
+            this.#targetSurface.bufferHeight,
             0,
             0,
-            this.#targetSurface.scaledWidth,
-            this.#targetSurface.scaledHeight
+            this.#targetSurface.bufferWidth,
+            this.#targetSurface.bufferHeight
         );
 
 
     }
 
-    setSize(width: number, height: number) {
-        this.composer.setSize(width, height, false);
+    setSize(bufferWidth: number, bufferHeight: number) {
+        this.composer.setSize(bufferWidth, bufferHeight, false);
     }
 
     dispose() {

@@ -190,10 +190,6 @@ export class Settings {
         replays: await findReplaysPath(),
         assets: app.getPath("documents"),
         plugins: await findPluginsPath(),
-      },
-      game: {
-        ...defaultSettings.game,
-        cameraController: ""
       }
     };
     return derivedSettings;

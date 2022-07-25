@@ -1,6 +1,6 @@
-import { CameraController } from "common/types";
+import { UserInputCallbacks } from "common/types";
 import { MathUtils, Vector3 } from "three";
-import { CanvasTarget } from "../image";
+import { Surface } from "../image";
 import Janitor from "../utils/janitor";
 
 export interface MinimapEvent {
@@ -16,33 +16,21 @@ const pos = new Vector3();
 export class MinimapMouse extends EventTarget {
   #mapWidth: number;
   #mapHeight: number;
-  #surface: CanvasTarget;
+  #surface: Surface;
 
   #isDragStart = false;
   #isDragging = false;
   mouseButton?: number;
 
-  #enabled = false;
   #janitor = new Janitor();
 
-  set enabled(val: boolean) {
-    this.#enabled = val;
-    if (val === false) {
-      this.#isDragging = false;
-      this.#isDragStart = false;
-      this.mouseButton = undefined;
-    }
-  }
-
-  get enabled() {
-    return this.#enabled;
-  }
-
-  constructor(surface: CanvasTarget, mapWidth: number, mapHeight: number) {
+  constructor(surface: Surface, mapWidth: number, mapHeight: number, onClick: (e: MouseEvent) => void) {
     super();
     this.#surface = surface;
     this.#mapWidth = mapWidth;
     this.#mapHeight = mapHeight;
+
+    this.#janitor.addEventListener(document, "mousedown", onClick);
 
     // const max = Math.max(this.#mapWidth, this.#mapHeight);
     // const wAspect = this.#mapWidth / max;
@@ -63,7 +51,6 @@ export class MinimapMouse extends EventTarget {
       ) * this.#mapHeight;
 
     const onMouseDown = (e: MouseEvent) => {
-      if (!this.enabled) return;
       e.preventDefault();
       e.stopPropagation();
 
@@ -84,8 +71,6 @@ export class MinimapMouse extends EventTarget {
 
 
     const onMouseUp = () => {
-      if (!this.enabled) return;
-
       this.mouseButton = undefined;
       this.#isDragging = false;
 
@@ -109,10 +94,8 @@ export class MinimapMouse extends EventTarget {
 
   }
 
-  update(cameraController: CameraController) {
-    if (!this.enabled) return;
-
-    cameraController.isActiveCameraMode && cameraController.onMinimapDragUpdate && cameraController.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
+  update(callbacks: UserInputCallbacks) {
+    callbacks.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
 
     this.#isDragStart = false;
 

@@ -1,12 +1,11 @@
-import { GameAspect, GameCanvasDimensions } from "common/types";
-import { CanvasTarget } from "../image";
+import { GameAspect, MinimapDimensions } from "common/types";
+import { Surface } from "../image";
 
-export class GameCanvasTarget extends CanvasTarget {
+export class GameSurface extends Surface {
   top = 0;
   left = 0;
   right = 0;
   bottom = 0;
-  aspect = 0;
 
   #mapWidth: number;
   #mapHeight: number;
@@ -40,6 +39,7 @@ export class GameCanvasTarget extends CanvasTarget {
 
     if (gameAspect === GameAspect.Fit) {
       this.top = 0;
+      this.bottom = 0;
 
       super.setDimensions(
         Math.floor(maxWidth - 2),
@@ -49,7 +49,6 @@ export class GameCanvasTarget extends CanvasTarget {
 
     } else {
       const aspect = aspects[gameAspect];
-      this.aspect = aspect;
       let width = maxWidth;
       if (width / aspect > maxHeight) {
         width = maxHeight * aspect;
@@ -73,6 +72,14 @@ export class GameCanvasTarget extends CanvasTarget {
     return this.#shouldHavePointerLock && document.pointerLockElement !== this.canvas;
   }
 
+  togglePointerLock(val: boolean) {
+    if (val) {
+      this.requestPointerLock();
+    } else {
+      this.exitPointerLock();
+    }
+  }
+
   requestPointerLock() {
     this.#shouldHavePointerLock = true;
     this.canvas.requestPointerLock();
@@ -83,19 +90,13 @@ export class GameCanvasTarget extends CanvasTarget {
     document.exitPointerLock();
   }
 
-  getRect(minimapRatio: number): GameCanvasDimensions {
+  getMinimapDimensions(minimapRatio: number): MinimapDimensions {
     const max = Math.max(this.#mapWidth, this.#mapHeight);
     const wAspect = this.#mapWidth / max;
     const hAspect = this.#mapHeight / max;
     const minimapSize = this.height * minimapRatio;
 
     return {
-      left: this.left,
-      top: this.top,
-      right: window.innerWidth - (this.width + this.left),
-      bottom: window.innerHeight - (this.height + this.top),
-      width: this.width,
-      height: this.height,
       minimapWidth: Math.floor(minimapSize * wAspect),
       minimapHeight: Math.floor(minimapSize * hAspect)
     };
@@ -106,4 +107,4 @@ export class GameCanvasTarget extends CanvasTarget {
   }
 }
 
-export default GameCanvasTarget;
+export default GameSurface;

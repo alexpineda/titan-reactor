@@ -9,7 +9,7 @@ export default class Creep {
   mapHeight: number;
   creepValuesTexture: Texture;
   creepEdgesValuesTexture: Texture;
-  creepImageData: ImageData;
+  minimapImageData: ImageData;
   worker: Worker;
 
   private _lastFrame = 0;
@@ -24,7 +24,7 @@ export default class Creep {
     this.mapHeight = mapHeight;
     this.creepValuesTexture = creepValuesTexture;
     this.creepEdgesValuesTexture = creepEdgesValuesTexture;
-    this.creepImageData = new ImageData(mapWidth, mapHeight);
+    this.minimapImageData = new ImageData(mapWidth, mapHeight);
 
     this.worker = new Worker();
     this.worker.onmessage = ({ data }: { data: any }) => {
@@ -36,7 +36,7 @@ export default class Creep {
       this.creepEdgesValuesTexture.image.data = edgesData;
 
       //for minimap
-      this.creepImageData = imageData;
+      this.minimapImageData = imageData;
     };
     this._lastFrame = 0;
   }

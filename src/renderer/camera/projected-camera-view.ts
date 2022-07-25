@@ -22,8 +22,6 @@ const _intersect = [
  * World position for the four corners of our view
  */
 export default class ProjectedCameraView {
-
-
   left = 0;
   top = 0;
   right = 0;

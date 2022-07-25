@@ -79,7 +79,7 @@ export class Scene extends ThreeScene {
     terrain.updateMatrixWorld();
 
     this.#skybox = this.skybox("sparse");
-    this.disableSkybox();
+    this.enableSkybox();
 
     this.#borderTiles = new Group();
     this.#borderTiles.layers.enable(Layers.Terrain);

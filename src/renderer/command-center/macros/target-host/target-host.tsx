@@ -17,11 +17,11 @@ export const MacroActionPanelHost = (
 
   const _propConfig = getAppSettingsLevaConfigField(settings, action.field);
   const propConfig =
-    action.field[1] === "cameraController"
+    action.field[1] === "sceneController"
       ? {
           ..._propConfig,
           options: pluginsMetadata
-            .filter((p) => p.isCameraController)
+            .filter((p) => p.isSceneController)
             .map((p) => p.name),
         }
       : _propConfig;

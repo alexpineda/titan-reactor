@@ -27,7 +27,7 @@ export type Settings = {
         terrainShadows: boolean;
     },
     game: {
-        cameraController: string;
+        sceneController: string;
         stopFollowingOnClick: boolean,
         minimapSize: number;
     },
