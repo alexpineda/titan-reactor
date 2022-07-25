@@ -1,7 +1,7 @@
 import search from "libnpmsearch";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import semver from "semver";
 import "./style.css";
 
@@ -495,8 +495,11 @@ const Configuration = () => {
   );
 };
 
+const container = document.getElementById("app");
+const root = createRoot(container!); // cr
+
 settingsStore()
   .load()
   .then(() => {
-    render(<Configuration />, document.getElementById("app"));
+    root.render(<Configuration />);
   });
