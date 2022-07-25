@@ -13,15 +13,22 @@ export const MacroActionPanelGameTimeApi = ({
   const [value, setValue] = useState(action.value);
 
   return (
-    <p>
+    <p
+      style={{
+        display: "grid",
+        gridGap: "var(--size-1)",
+      }}
+    >
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={viewOnly}
       />
-      <button onClick={() => updateMacroAction({ ...action, value })}>
-        Save
-      </button>
+      {!viewOnly && (
+        <button onClick={() => updateMacroAction({ ...action, value })}>
+          Save
+        </button>
+      )}
     </p>
   );
 };

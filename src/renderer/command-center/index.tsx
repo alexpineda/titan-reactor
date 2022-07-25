@@ -19,6 +19,7 @@ import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
 import { mapConfigToLeva } from "./map-config-to-leva";
 import { MacrosPanel } from "./macros/macro-settings";
+import { Helmet } from "react-helmet";
 
 if (module.hot) {
   module.hot.accept();
@@ -67,7 +68,7 @@ const getUpdateVersion = (remoteVersion: string, localVersion: string) => {
   }
 };
 
-const Configuration = () => {
+const CommandCenter = () => {
   const settingsStore = useSettingsStore();
   const [selectedPluginPackage, setSelectedPluginPackage] = useState<Plugin>({
     plugin: settingsStore.enabledPlugins[0] ?? settingsStore.disabledPlugins[0],
@@ -285,6 +286,12 @@ const Configuration = () => {
 
   return (
     <>
+      <Helmet>
+        <link
+          href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet"
+        />
+      </Helmet>
       <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
         {banner && <p className="mui--bg-accent mui--text-light">{banner}</p>}
 
@@ -501,5 +508,5 @@ const root = createRoot(container!); // cr
 settingsStore()
   .load()
   .then(() => {
-    root.render(<Configuration />);
+    root.render(<CommandCenter />);
   });

@@ -237,7 +237,7 @@ export const getMacroActionValue = (action: MacroActionHostModifyValue | MacroAc
         return Math.min(defaultValue + step, max);
     } else if (action.effect === MacroActionEffect.Decrease && min !== undefined && isFiniteV(step, min)) {
         return Math.max(defaultValue - step!, min);
-    } else if (action.effect === MacroActionEffect.Set) {
+    } else if (action.effect === MacroActionEffect.Set && action.value !== undefined) {
         return action.value;
     } else if (action.effect === MacroActionEffect.Max && Number.isFinite(max)) {
         return max;

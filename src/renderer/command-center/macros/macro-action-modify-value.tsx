@@ -18,6 +18,6 @@ export const MacroActionModifyValue = (
 
   const store = useCreateStore();
 
-  useControls(controls, { store }, [action.id]);
+  useControls(controls, { store }, [action]);
   return createLevaPanel(store);
 };

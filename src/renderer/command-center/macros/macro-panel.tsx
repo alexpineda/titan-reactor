@@ -71,60 +71,97 @@ export const MacroPanel = ({
   return (
     <div
       style={{
-        margin: "var(--size-6)",
+        padding: "var(--size-4)",
+        margin: "var(--size-7)",
+        borderRadius: "var(--size-4)",
+        boxShadow: "2px 2px 10px -6px",
       }}
     >
-      <h2>{macro.name}</h2>
-      <button onClick={() => deleteMacro(macro.id)}>Delete Macro</button>
-      <button onClick={() => renameMacro()}>Rename Macro</button>
-      <p>
-        <label>
-          {capitalizeFirstLetters(macro.trigger.type)}
-          <input
-            value={macro.trigger.value}
-            onKeyDown={ChangeHotkeyTriggerKey}
-            readOnly={true}
-          />
-        </label>
-      </p>
-      <div>
-        <label>
-          Sequence{" "}
-          <select
-            onChange={(evt) => {
-              updateMacro({
-                ...macro,
-                actionSequence:
-                  MacroActionSequence[
-                    evt.target.value as keyof typeof MacroActionSequence
-                  ],
-              });
-            }}
-            value={macro.actionSequence}
-          >
-            {Object.keys(MacroActionSequence).map((key) => (
-              <option key={key} value={key}>
-                {spaceOutCapitalLetters(key)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <span
+        style={{
+          display: "grid",
+          gridGap: "var(--size-3)",
+          padding: "var(--size-3)",
+          gridTemplateColumns: "auto auto auto auto 1fr",
+          alignItems: "center",
+          justifyContent: "start",
+          marginBottom: "var(--size-5)",
+        }}
+      >
+        <h4
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <i className="material-icons">stars</i>
+
+          {macro.name}
+        </h4>
+
+        <button onClick={() => renameMacro()}>Rename</button>
+        <span>
+          <label>
+            {capitalizeFirstLetters(macro.trigger.type)}
+            <input
+              value={macro.trigger.value}
+              onKeyDown={ChangeHotkeyTriggerKey}
+              readOnly={true}
+            />
+          </label>
+        </span>
+        <span>
+          <label>
+            Sequence{" "}
+            <select
+              onChange={(evt) => {
+                updateMacro({
+                  ...macro,
+                  actionSequence:
+                    MacroActionSequence[
+                      evt.target.value as keyof typeof MacroActionSequence
+                    ],
+                });
+              }}
+              value={macro.actionSequence}
+            >
+              {Object.keys(MacroActionSequence).map((key) => (
+                <option key={key} value={key}>
+                  {spaceOutCapitalLetters(key)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </span>
+        <button
+          style={{
+            justifySelf: "end",
+            background: "var(--red-6)",
+            color: "white",
+            fontSize: "var(--font-size-00)",
+          }}
+          onClick={() => deleteMacro(macro.id)}
+        >
+          <i className="material-icons">delete</i>
+        </button>
+      </span>
       <CreateMacroAction
         onCreate={(action) => createAction(macro, action)}
         pluginsMetadata={pluginsMetadata}
       />
-      {macro.actions.map((action) => (
-        <MacroActionPanel
-          key={action.id}
-          action={action}
-          pluginsMetadata={pluginsMetadata}
-          updateMacroAction={updateMacroAction}
-          viewOnly={activeAction !== action.id}
-          setActiveAction={setActiveAction}
-          deleteAction={deleteAction}
-        />
-      ))}
+      <div>
+        {macro.actions.map((action) => (
+          <MacroActionPanel
+            key={action.id}
+            action={action}
+            pluginsMetadata={pluginsMetadata}
+            updateMacroAction={updateMacroAction}
+            viewOnly={activeAction !== action.id}
+            setActiveAction={setActiveAction}
+            deleteAction={deleteAction}
+          />
+        ))}
+      </div>
     </div>
   );
 };

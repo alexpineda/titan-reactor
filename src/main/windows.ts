@@ -1,4 +1,4 @@
-import { BrowserWindow } from "electron";
+import { BrowserWindow, ipcMain } from "electron";
 import isDev from "electron-is-dev";
 import path from "path";
 import { pathToFileURL } from "url";
@@ -56,17 +56,17 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
     w.loadURL(pathToFileURL(path.join(__dirname, 'index.html')).toString());
   }
 
+  // on(event: 'unresponsive', listener: Function): this;
+
   w.on("ready-to-show", () => {
-    w.webContents.send("temp-load-content", query);
     w.show();
     if ((isDev || debugMode) && devTools) {
       w.webContents.openDevTools();
     }
   });
 
+
   w.on("closed", onClose);
-
-
 
   w.webContents.on("devtools-opened", () => {
     w.focus();

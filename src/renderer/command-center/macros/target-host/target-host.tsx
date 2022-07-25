@@ -19,7 +19,15 @@ export const MacroActionPanelHost = (
   const propConfig = getAppSettingsLevaConfigField(settings, action.field);
 
   return (
-    <div>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "auto auto auto auto",
+        gridGap: "var(--size-3)",
+        alignItems: "center",
+        justifyContent: "start",
+      }}
+    >
       <select
         onChange={(evt) => {
           updateMacroAction({
@@ -50,6 +58,7 @@ export const MacroActionPanelHost = (
       {(action.effect === MacroActionEffect.Set ||
         action.effect === MacroActionEffect.Toggle) &&
         !viewOnly &&
+        action.value !== undefined &&
         propConfig !== undefined && (
           <ErrorBoundary message="Error with modifier">
             <MacroActionModifyValue {...props} config={propConfig} />

@@ -1,6 +1,5 @@
 import "./reset.css";
 import "./ipc/register-file-dialog-handlers";
-import "ses";
 
 import { version } from "../../package.json";
 import * as log from "./ipc/log";
@@ -18,39 +17,45 @@ import { GO_TO_START_PAGE, SETTINGS_WERE_SAVED } from "common/ipc-handle-names";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import gameStore from "@stores/game-store";
+import { rendererIsDev } from "@utils/renderer-utils";
 // import "./utils/webgl-lint";
 
-// lockdown(
-//   {
-//     localeTaming: 'unsafe',
-//     consoleTaming: 'unsafe',
-//     errorTaming: 'unsafe',
-//     errorTrapping: 'none',
-//   }
-// );
+if (rendererIsDev) {
 
-window.harden = x => x;
+  window.harden = x => x;
 
-//@ts-ignore
-window.Compartment = function Compartment(env: {}) {
-  // const windowCopy = {...window};
-  // delete windowCopy.require;
+  //@ts-ignore
+  window.Compartment = function Compartment(env: {}) {
+    // const windowCopy = {...window};
+    // delete windowCopy.require;
 
-  return {
-    evaluate(code: string) {
-      // destructure env
-      const vars = `const {${Object.keys(env).join(",")}} = env;\n`
-      eval(vars + code)
-    },
-    globalThis: {
-      Function: (code: string) => {
-        const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`
-        const fn = Function(vars + code);
-        return () => fn(env);
+    return {
+      evaluate(code: string) {
+        // destructure env
+        const vars = `const {${Object.keys(env).join(",")}} = env;\n`
+        eval(vars + code)
+      },
+      globalThis: {
+        Function: (code: string) => {
+          const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`
+          const fn = Function(vars + code);
+          return () => fn(env);
+        }
       }
     }
   }
+
+} else {
+  lockdown(
+    {
+      localeTaming: 'unsafe',
+      consoleTaming: 'unsafe',
+      errorTaming: 'unsafe',
+      errorTrapping: 'none',
+    }
+  );
 }
+
 
 log.info(`@init: titan-reactor ${version}`);
 log.info(`@init: chrome ${process.versions.chrome}`);

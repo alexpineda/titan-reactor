@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import ErrorBoundary from "../error-boundary";
 import {
   MacroAction,
@@ -14,6 +14,7 @@ import { useSettingsStore } from "@stores/settings-store";
 
 export const MacrosPanel = () => {
   const settings = useSettingsStore();
+  console.log(settings.data.macros);
   const state = settings.data.macros;
 
   const save = (newMacros: MacrosDTO) => {
@@ -108,7 +109,6 @@ export const MacrosPanel = () => {
 
   return (
     <div>
-      <h1>Macros</h1>
       <ErrorBoundary message="There was an error with this page">
         <CreateMacro onCreate={createMacro} />
         <div>

@@ -1,4 +1,4 @@
-import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
+import { getAppSettingsLevaConfig, getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacrosDTO, SettingsMeta } from "common/types";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "pluginsMetadata">
@@ -38,14 +38,15 @@ const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPl
 const sanitizeMacroActionFields = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
 
     if (action.type === MacroActionType.ModifyAppSettings) {
-        const field = getAppSettingsLevaConfigField(settings, action.field) as any;
+        let field = getAppSettingsLevaConfigField(settings, action.field) as any;
 
-        if (field === undefined) {
-            action.error = {
-                type: MacroActionConfigurationErrorType.MissingField,
-                message: `Missing field ${action.field.join(".")}`,
-            }
-            return;
+        const config = getAppSettingsLevaConfig(settings);
+
+
+        // sane default
+        if (field === undefined || action.field.length == 0) {
+            field = config.sound;
+            action.field = [config.sound.path, "sound"];
         }
 
         if (action.effect === MacroActionEffect.Set) {
@@ -74,11 +75,23 @@ const sanitizeMacroActionFields = (action: MacroAction, settings: SettingsAndPlu
             return;
         }
 
-        if (!action.field) {
-            action.error = {
-                type: MacroActionConfigurationErrorType.MissingField,
-                message: `Missing field for plugin ${action.pluginName}`,
+        if (!action.field || action.field.length === 0) {
+            let replaced: string | undefined;
+            if (plugin.methods.length) {
+                replaced = plugin.methods[0];
+            } else if (plugin.config) {
+                replaced = Object.keys(plugin.config!).find(k => k !== "system");
             }
+            if (replaced) {
+                action.field = [replaced]
+            }
+            else {
+                action.error = {
+                    type: MacroActionConfigurationErrorType.MissingField,
+                    message: `Missing field for plugin`,
+                }
+            }
+
             return;
         }
 

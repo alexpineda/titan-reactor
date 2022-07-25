@@ -53,24 +53,32 @@ export const CreateMacroAction = ({
   };
 
   return (
-    <div>
-      <h2>Create Action</h2>
-      <div>
-        <label>
-          Type:{" "}
-          <select
-            onChange={(e) => setActionType(e.target.value as MacroActionType)}
-            value={actionType}
-          >
-            {Object.values(MacroActionType).map((key) => (
-              <option key={key} value={key}>
-                {spaceOutCapitalLetters(key)}
-              </option>
-            ))}
-          </select>
-          <button onClick={createAction}>Create Action</button>
-        </label>
-      </div>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "auto auto",
+        gridGap: "var(--size-3)",
+        alignItems: "center",
+        justifyContent: "start",
+        maxWidth: "var(--size-md)",
+      }}
+    >
+      <select
+        onChange={(e) => setActionType(e.target.value as MacroActionType)}
+        value={actionType}
+      >
+        {Object.values(MacroActionType).map((key) => (
+          <option key={key} value={key}>
+            {spaceOutCapitalLetters(key)}
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={createAction}
+        style={{ display: "flex", alignItems: "center" }}
+      >
+        <i className="material-icons">add</i> Action
+      </button>
     </div>
   );
 };

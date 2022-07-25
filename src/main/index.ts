@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, dialog, nativeTheme } from "electron";
+import { app, powerSaveBlocker, dialog, nativeTheme, ipcMain } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -33,7 +33,8 @@ const createMainWindow = (debugMode = false) => {
     backgroundThrottling: false,
     hideMenu: true,
     removeMenu: false,
-    debugMode
+    debugMode,
+    query: "main"
   });
   windows.main.maximize();
 
@@ -82,6 +83,14 @@ const createConfigurationWindow = () => {
   windows.config.title = "Configuration Panel";
   windows.config.minimize();
 }
+
+ipcMain.handle("who-am-i", async (e) => {
+  if (e.sender === windows.main?.webContents) {
+    return "main";
+  } else {
+    return "config";
+  }
+});
 
 if (!gotTheLock) {
   app.quit();

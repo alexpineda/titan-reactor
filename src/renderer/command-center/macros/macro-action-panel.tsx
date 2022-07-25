@@ -16,21 +16,50 @@ export const MacroActionPanel = (
 
   return (
     <div
+      className="hover"
       style={{
         margin: "var(--size-6)",
       }}
     >
-      <h3>
-        {spaceOutCapitalLetters(action.type)}{" "}
-        {action.error && (
-          <p>
-            {" "}
-            - {action.error.type}: {action.error.message}
-          </p>
-        )}{" "}
-      </h3>
-      <button onClick={() => setActiveAction(action.id)}>Edit</button>
-      <button onClick={() => deleteAction(action.id)}>Delete</button>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto auto 1fr",
+          gridGap: "var(--size-3)",
+          alignItems: "center",
+          justifyContent: "start",
+          marginBottom: "var(--size-1)",
+        }}
+      >
+        <span style={{ fontWeight: 500 }}>
+          Action: {spaceOutCapitalLetters(action.type)}
+        </span>
+        <button onClick={() => setActiveAction(action.id)}>
+          <i className="material-icons small" style={{ fontSize: "1rem" }}>
+            edit
+          </i>
+        </button>
+        <button
+          style={{
+            justifySelf: "end",
+            background: "var(--red-4)",
+            color: "white",
+            fontSize: "var(--font-size-00)",
+          }}
+          onClick={() => deleteAction(action.id)}
+        >
+          <i className="material-icons small" style={{ fontSize: "1rem" }}>
+            delete
+          </i>
+        </button>
+      </div>
+
+      {action.error && (
+        <p style={{ color: "var(--red-6)" }}>
+          {" "}
+          - {action.error.type}: {action.error.message}
+        </p>
+      )}
       <ErrorBoundary
         message="There was an error with this action"
         key={action.id}

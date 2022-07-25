@@ -13,9 +13,22 @@ export const CreateMacro = ({
   });
 
   return (
-    <div>
-      <h2>Create New Macro</h2>
-      <div>
+    <div
+      style={{
+        padding: "var(--size-3)",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto auto auto",
+          gridGap: "var(--size-3)",
+          alignItems: "center",
+          justifyContent: "end",
+        }}
+      >
+        <h3>Macros</h3>
+
         <label>
           Name:
           <input
@@ -43,9 +56,10 @@ export const CreateMacro = ({
               return;
             }
             onCreate(name, triggerType);
+            setName("");
           }}
         >
-          Add Macro
+          + Macro
         </button>
       </div>
     </div>

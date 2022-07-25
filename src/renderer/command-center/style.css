@@ -4,10 +4,19 @@
 @import "https://unpkg.com/open-props/buttons.min.css";
 
 /* individual imports */
-@import "https://unpkg.com/open-props/indigo.min.css";
-@import "https://unpkg.com/open-props/indigo-hsl.min.css";
 @import "https://unpkg.com/open-props/easings.min.css";
 @import "https://unpkg.com/open-props/animations.min.css";
 @import "https://unpkg.com/open-props/sizes.min.css";
 @import "https://unpkg.com/open-props/gradients.min.css";
 /* see PropPacks for the full list */
+
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+* {
+    font-family: Roboto, sans-serif;
+}
+
+.hover {
+    background-color: var(--grey-3);
+}
