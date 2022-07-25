@@ -1,5 +1,4 @@
-import { PluginMetaData } from "common/types";
-import { MacroAction } from "../macros";
+import { PluginMetaData, MacroAction } from "common/types";
 
 export type MacroActionPanelProps = {
     action: MacroAction;

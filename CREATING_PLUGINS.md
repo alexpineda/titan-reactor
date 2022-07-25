@@ -339,6 +339,8 @@ return {
 
 Your plugin is considered a scene controller if your plugin has a `onEnterScene` callback. A scene controller defines viewports, what they are used for, and responds to user input in order to change camera positions and transitions.
 
+Unlike regular plugins, any hooks won't be executed unless the scene is active, including regular plugin hooks.
+
 ```js
 // REQUIRED.
 async onEnterScene(prevData);

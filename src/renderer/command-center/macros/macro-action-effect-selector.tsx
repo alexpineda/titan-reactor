@@ -1,21 +1,27 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
-import { getMacroActionValidEffects, MacroActionEffect } from "../macros";
+import { MacroActionEffect } from "common/types";
+import { getMacroActionValidEffects } from "common/sanitize-macros";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
+import { useSettingsStore } from "@stores";
 
 export const MacroActionEffectSelector = ({
   action,
   updateMacroAction,
-  pluginsMetadata,
   viewOnly,
 }: MacroActionPanelProps) => {
-  const validEffects = getMacroActionValidEffects(action, pluginsMetadata);
+  const settings = useSettingsStore();
+  const validEffects = getMacroActionValidEffects(action, settings);
 
   return (
     <select
       onChange={(evt) => {
-        action.effect =
-          MacroActionEffect[evt.target.value as keyof typeof MacroActionEffect];
-        updateMacroAction(action);
+        updateMacroAction({
+          ...action,
+          effect:
+            MacroActionEffect[
+              evt.target.value as keyof typeof MacroActionEffect
+            ],
+        });
       }}
       value={action.effect}
       disabled={viewOnly}

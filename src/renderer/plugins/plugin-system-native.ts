@@ -1,17 +1,16 @@
-import * as log from "@ipc/log";
-import { SceneInputHandler, InitializedPluginPackage, NativePlugin, PluginPrototype } from "common/types";
+import { SceneInputHandler, InitializedPluginPackage, NativePlugin, PluginPrototype, MacroActionPlugin, MacroActionEffect } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./hooks";
-import { updatePluginsConfig } from "@ipc/plugins";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { MacroActionEffect, getMacroActionValue, Macro, MacroActionPlugin } from "../command-center/macros";
+import { getMacroActionValue, Macro } from "../command-center/macros";
+import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
-
+import * as log from "@ipc/log";
 
 type InternalHookOptions = {
     postFn?: Function;
@@ -401,7 +400,7 @@ export class PluginSystemNative {
             if (field === undefined) {
                 return;
             }
-            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max), false);
+            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options), false);
         }
     }
 

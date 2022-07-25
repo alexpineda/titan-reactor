@@ -1,8 +1,12 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
-import { PluginMetaData } from "common/types";
+import {
+  PluginMetaData,
+  MacroAction,
+  MacroActionEffect,
+  MacroActionType,
+} from "common/types";
 import { useState } from "react";
 import { generateUUID } from "three/src/math/MathUtils";
-import { MacroAction, MacroActionEffect, MacroActionType } from "../macros";
 
 export const CreateMacroAction = ({
   pluginsMetadata,

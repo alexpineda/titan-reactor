@@ -8,8 +8,10 @@ export const MacroActionModifyValue = (
   const { action, config, updateMacroAction } = props;
   const controls = {
     SetField: mapSingleConfigToLeva(config, (value) => {
-      action.value = value;
-      updateMacroAction(action);
+      updateMacroAction({
+        ...action,
+        value,
+      });
     }),
   };
 

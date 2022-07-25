@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MacroTriggerDTO } from "../macros";
+import { MacroTriggerDTO } from "common/types";
 
 export const CreateMacro = ({
   onCreate,
@@ -9,7 +9,7 @@ export const CreateMacro = ({
   const [name, setName] = useState("");
   const [triggerType, setTriggerType] = useState<MacroTriggerDTO>({
     type: "hotkey",
-    value:""
+    value: "",
   });
 
   return (
@@ -18,17 +18,25 @@ export const CreateMacro = ({
       <div>
         <label>
           Name:
-          <input type="text" onChange={(e) => setName(e.target.value)} value={name} />
+          <input
+            type="text"
+            onChange={(e) => setName(e.target.value)}
+            value={name}
+          />
         </label>
 
         <label>
           Trigger Type:
-          <select onChange={(e) => setTriggerType({ type: e.target.value, value:"" })} value={triggerType.type}>
+          <select
+            onChange={(e) =>
+              setTriggerType({ type: e.target.value, value: "" })
+            }
+            value={triggerType.type}
+          >
             <option value="hotkey">Hotkey</option>
           </select>
         </label>
 
-        
         <button
           onClick={() => {
             if (name.trim() === "") {

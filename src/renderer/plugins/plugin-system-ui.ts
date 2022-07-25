@@ -1,11 +1,10 @@
 import Janitor from "@utils/janitor";
 import { InitializedPluginPackage, OpenBWAPI, ScreenStatus, ScreenType } from "common/types";
 import settingsStore from "@stores/settings-store";
-
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore, Process } from "@stores";
 
 import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_RUNTIME_READY } from "./events";
-import { waitForProcess } from "../utils/wait-for-process";
+import { waitForProcess } from "@utils/wait-for-process";
 import { Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";

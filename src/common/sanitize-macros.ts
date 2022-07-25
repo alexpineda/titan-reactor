@@ -1,0 +1,183 @@
+import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacrosDTO, SettingsMeta } from "common/types";
+
+type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "pluginsMetadata">
+
+export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta) => {
+    for (const macro of macros.macros) {
+        for (const action of macro.actions) {
+            sanitizeMacroAction(action, settings);
+        }
+    }
+    return macros;
+}
+
+const sanitizeMacroAction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
+    delete action.error;
+    sanitizeMacroActionFields(action, settings);
+    if (!action.error) {
+        sanitizeMacroActionEffects(action, settings);
+    }
+}
+
+const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
+    if (action.type === MacroActionType.ModifyAppSettings || action.type === MacroActionType.ModifyPluginSettings) {
+
+        const validEffects = getMacroActionValidEffects(action, settings);
+        if (!validEffects.includes(action.effect)) {
+            action.effect = validEffects[0];
+        }
+
+        if (action.effect !== MacroActionEffect.Set && action.effect !== MacroActionEffect.Toggle) {
+            delete action.value;
+        }
+    }
+}
+
+
+const sanitizeMacroActionFields = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
+
+    if (action.type === MacroActionType.ModifyAppSettings) {
+        const field = getAppSettingsLevaConfigField(settings, action.field) as any;
+
+        if (field === undefined) {
+            action.error = {
+                type: MacroActionConfigurationErrorType.MissingField,
+                message: `Missing field ${action.field.join(".")}`,
+            }
+            return;
+        }
+
+        if (action.effect === MacroActionEffect.Set) {
+            if (action.value === undefined) {
+                if (field.options) {
+                    action.value = field.options[0];
+                } else {
+                    action.value = field.value;
+                }
+            }
+            const typeOfField = typeof action.value;
+            if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
+                action.error = {
+                    type: MacroActionConfigurationErrorType.InvalidFieldValue,
+                    message: `Invalid field type: ${typeOfField}`
+                }
+            }
+        }
+    } else if (action.type === MacroActionType.ModifyPluginSettings) {
+        const plugin = settings.pluginsMetadata.find((p) => p.name === action.pluginName);
+        if (!plugin) {
+            action.error = {
+                type: MacroActionConfigurationErrorType.MissingPlugin,
+                message: `Missing plugin ${action.pluginName}`,
+            }
+            return;
+        }
+
+        if (!action.field) {
+            action.error = {
+                type: MacroActionConfigurationErrorType.MissingField,
+                message: `Missing field for plugin ${action.pluginName}`,
+            }
+            return;
+        }
+
+        if (action.field[0].startsWith("onMacro") && !plugin.methods.includes(action.field[0])) {
+            action.error = {
+                type: MacroActionConfigurationErrorType.MissingField,
+                message: `Missing field for plugin ${action.pluginName} ${action.field[0]}`,
+            }
+            return;
+        }
+
+        if (action.effect === MacroActionEffect.Set) {
+            const field = plugin.config?.[action.field[0] as keyof typeof plugin] ?? { value: null };
+            if (action.value === undefined) {
+                if (field.options) {
+                    action.value = field.options[0];
+                } else {
+                    action.value = field.value;
+                }
+            }
+            const typeOfField = typeof action.value;
+            if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
+                action.error = {
+                    type: MacroActionConfigurationErrorType.InvalidFieldValue,
+                    message: `Invalid field type: ${typeOfField}`
+                }
+            }
+        }
+    }
+}
+
+export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number" | "string") => {
+    if (valueType === "boolean") {
+        return [
+            MacroActionEffect.SetToDefault,
+            MacroActionEffect.Set,
+            MacroActionEffect.Toggle,
+        ];
+    } else if (valueType === "number") {
+        return [
+            MacroActionEffect.SetToDefault,
+            MacroActionEffect.Set,
+            MacroActionEffect.Increase,
+            MacroActionEffect.Decrease,
+            MacroActionEffect.Min,
+            MacroActionEffect.Max,
+        ];
+    } else if (valueType === "string") {
+        return [MacroActionEffect.SetToDefault, MacroActionEffect.Set];
+    }
+    return [];
+};
+
+// if value type === boolean, set to default, toggle,
+// if number, increase, decrease, min, max, set
+// if string, set
+// if method, call
+export const getMacroActionValidEffects = (
+    action: MacroAction,
+    settings: SettingsAndPluginsMeta
+): MacroActionEffect[] => {
+
+    if (action.type === MacroActionType.ModifyAppSettings) {
+        if (action.effect === MacroActionEffect.CallMethod) {
+            return [];
+        }
+
+        const field = getAppSettingsLevaConfigField(settings, action.field);
+        if (!field) {
+            return [];
+        }
+
+        //@ts-ignore
+        const typeOfField = field?.options ? "number" : typeof field.value;
+        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
+            console.warn(`Unsupported field type: ${typeOfField}`);
+            return [];
+        }
+        return getMacroActionValidModifyEffects(typeOfField);
+    } else if (action.type === MacroActionType.CallGameTimeApi) {
+        return [MacroActionEffect.CallMethod];
+    } else if (action.type === MacroActionType.ModifyPluginSettings) {
+        const plugin = settings.pluginsMetadata.find((p) => p.name === action.pluginName);
+        if (!plugin) {
+            return [];
+        }
+
+        const callMethod = plugin.methods.includes(action.field[0]) ? [MacroActionEffect.CallMethod] : [];
+
+        const field = plugin.config?.[action.field[0] as keyof typeof plugin];
+        if (field === undefined) {
+            return callMethod;
+        }
+        const typeOfField = typeof field.value;
+        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
+            console.warn(`Unsupported field type: ${typeOfField}`);
+            return [];
+        }
+        return [...callMethod, ...getMacroActionValidModifyEffects(typeOfField)];
+    }
+    return [];
+};

@@ -13,3 +13,4 @@ export * from "./plugin";
 export * from "./screen";
 export * from "./openbw";
 export * from "./structs";
+export * from "./macros";

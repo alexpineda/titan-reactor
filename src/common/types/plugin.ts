@@ -128,7 +128,7 @@ export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
 
     onEnterScene: (prevData: any) => Promise<void>;
 
-    onExitScene?: (prevData: any) => void;
+    onExitScene?: (currentData: any) => void;
 
     onPostProcessingBundle: (renderPass: any, fogOfWarEffect: any) => {
         passes?: any[];

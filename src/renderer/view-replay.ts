@@ -1170,7 +1170,7 @@ async function TitanReactorGame(
   })
   renderer.getWebGLRenderer().shadowMap.needsUpdate = settings.graphics.terrainShadows;
 
-  const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
+  // const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
 
   let _lastElapsed = 0;
   const _a = new Vector3;
@@ -1310,12 +1310,11 @@ async function TitanReactorGame(
     log.info("disposing replay viewer");
     _disposing = true;
     renderer.getWebGLRenderer().setAnimationLoop(null);
+    selectedUnitsStore().clearSelectedUnits();
     clearFollowedUnits();
     plugins.onGameDisposed();
     pluginsApiJanitor.mopUp();
     janitor.mopUp();
-    // controls.cameraMode.dispose();
-    selectedUnitsStore().clearSelectedUnits();
   };
 
   window.onbeforeunload = dispose;
@@ -1443,7 +1442,7 @@ async function TitanReactorGame(
       maxFrame: replay.header.frameCount,
       gotoFrame: (frame: number) => openBW.setCurrentFrame(frame),
       getSpeed: () => openBW.getGameSpeed(),
-      changeToDefaultCameraController: () => {
+      exitScene: () => {
         gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);
       },
       setPlayerColors,

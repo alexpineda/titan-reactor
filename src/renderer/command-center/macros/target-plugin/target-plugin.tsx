@@ -1,10 +1,8 @@
-import {
-  MacroActionEffect,
-  MacroActionPluginModifyValue,
-} from "../../../command-center/macros";
+import { MacroActionEffect, MacroActionPluginModifyValue } from "common/types";
 import { MacroActionEffectSelector } from "../macro-action-effect-selector";
 import { MacroActionModifyValue } from "../macro-action-modify-value";
 import { MacroActionPanelProps } from "../macro-action-panel-props";
+import ErrorBoundary from "../../error-boundary";
 
 export const MacroActionPanelPlugin = (
   props: MacroActionPanelProps & {
@@ -27,8 +25,10 @@ export const MacroActionPanelPlugin = (
         Plugin{" "}
         <select
           onChange={(evt) => {
-            action.pluginName = evt.target.value;
-            updateMacroAction(action);
+            updateMacroAction({
+              ...action,
+              pluginName: evt.target.value,
+            });
           }}
           value={action.pluginName}
           disabled={viewOnly}
@@ -44,8 +44,10 @@ export const MacroActionPanelPlugin = (
         Field{" "}
         <select
           onChange={(evt) => {
-            action.field = [evt.target.value];
-            updateMacroAction(action);
+            updateMacroAction({
+              ...action,
+              field: [evt.target.value],
+            });
           }}
           value={action.field[0]}
           disabled={viewOnly}
@@ -68,10 +70,17 @@ export const MacroActionPanelPlugin = (
           ))}
         </select>
       </label>
-      <MacroActionEffectSelector {...props} />
+      <ErrorBoundary message="Error with effects">
+        <MacroActionEffectSelector {...props} />
+      </ErrorBoundary>
 
+      {viewOnly && action.effect === MacroActionEffect.Set && (
+        <p>{action.value}</p>
+      )}
       {action.effect === MacroActionEffect.Set && !viewOnly && (
-        <MacroActionModifyValue {...props} config={plugin} action={action} />
+        <ErrorBoundary message="Error with modifier">
+          <MacroActionModifyValue {...props} config={plugin} action={action} />
+        </ErrorBoundary>
       )}
     </>
   );

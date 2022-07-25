@@ -1,172 +1,11 @@
 import * as log from "@ipc/log";
 import settingsStore from "@stores/settings-store";
-import { PluginMetaData, Settings } from "common/types";
+import { MacroAction, MacroActionEffect, MacroActionHostModifyValue, MacroActionPluginModifyValue, MacroActionSequence, MacroActionType, MacrosDTO, Settings, Trigger } from "common/types";
 import get from "lodash.get";
 import { MathUtils } from "three";
 import * as plugins from "../plugins";
 import packagejson from "../../../package.json";
-import { getAppSettingsLevaConfigField } from "./global-settings";
 
-export enum MacroActionEffect {
-    SetToDefault = "SetToDefault",
-    Set = "Set",
-    Toggle = "Toggle",
-    Increase = "Increase",
-    Decrease = "Decrease",
-    Min = "Min",
-    Max = "Max",
-    CallMethod = "CallMethod",
-}
-
-export enum MacroActionType {
-    ModifyAppSettings = "ModifyAppSettings",
-    ModifyPluginSettings = "ModifyPluginSettings",
-    CallGameTimeApi = "CallGameTimeApi",
-}
-
-export enum MacroActionConfigurationError {
-    InvalidField = "InvalidField",
-}
-
-export type MacroActionBase = {
-    id: string;
-    type: MacroActionType;
-    effect: MacroActionEffect;
-    error?: MacroActionConfigurationError;
-    resetValue?: any;
-}
-
-export type MacroActionHostModifyValue = MacroActionBase & {
-    type: MacroActionType.ModifyAppSettings;
-    field: string[];
-    value?: any;
-}
-
-export type MacroActionGameTimeApiCallMethod = MacroActionBase & {
-    type: MacroActionType.CallGameTimeApi;
-    value: string;
-}
-
-export type MacroActionPluginModifyValue = MacroActionBase & {
-    type: MacroActionType.ModifyPluginSettings;
-    pluginName: string;
-    field: string[];
-    value?: any;
-}
-
-export type MacroActionPlugin = MacroActionPluginModifyValue;
-export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCallMethod | MacroActionPlugin);
-
-export type MacroTriggerDTO = {
-    type: string;
-    value: string;
-}
-
-export type MacroDTO = {
-    id: string;
-    name: string;
-    enabled: boolean;
-    trigger: MacroTriggerDTO;
-    actions: MacroAction[];
-    actionSequence: MacroActionSequence;
-};
-
-export type MacrosDTO = {
-    version: string;
-    revision: number;
-    macros: MacroDTO[];
-};
-
-export const validateMacroAction = (action: MacroAction, plugins: PluginMetaData[]) => {
-    delete action.error;
-    if (action.type === MacroActionType.ModifyAppSettings || action.type === MacroActionType.ModifyPluginSettings) {
-        if (!action.field) {
-            action.error = MacroActionConfigurationError.InvalidField;
-        }
-
-        //TODO validate that field exists in plugin or config
-
-        const validEffects = getMacroActionValidEffects(action, plugins);
-        if (!validEffects.includes(action.effect)) {
-            action.effect = validEffects[0];
-        }
-
-        if (action.effect !== MacroActionEffect.Set && action.effect !== MacroActionEffect.Toggle) {
-            delete action.value;
-        }
-    }
-}
-
-export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number" | "string") => {
-    if (valueType === "boolean") {
-        return [
-            MacroActionEffect.SetToDefault,
-            MacroActionEffect.Set,
-            MacroActionEffect.Toggle,
-        ];
-    } else if (valueType === "number") {
-        return [
-            MacroActionEffect.SetToDefault,
-            MacroActionEffect.Set,
-            MacroActionEffect.Increase,
-            MacroActionEffect.Decrease,
-            MacroActionEffect.Min,
-            MacroActionEffect.Max,
-        ];
-    } else if (valueType === "string") {
-        return [MacroActionEffect.SetToDefault, MacroActionEffect.Set];
-    }
-    return [];
-};
-
-// if value type === boolean, set to default, toggle,
-// if number, increase, decrease, min, max, set
-// if string, set
-// if method, call
-export const getMacroActionValidEffects = (
-    action: MacroAction,
-    pluginsMetadata: PluginMetaData[]
-): MacroActionEffect[] => {
-    const settings = settingsStore();
-
-    if (action.type === MacroActionType.ModifyAppSettings) {
-        if (action.effect === MacroActionEffect.CallMethod) {
-            return [];
-        }
-        const config = getAppSettingsLevaConfigField(settings, action.field);
-        if (!config) {
-            return [];
-        }
-
-        const typeOfField = typeof config.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return getMacroActionValidModifyEffects(typeOfField);
-    } else if (action.type === MacroActionType.CallGameTimeApi) {
-        return [MacroActionEffect.CallMethod];
-    } else if (action.type === MacroActionType.ModifyPluginSettings) {
-        const plugin = pluginsMetadata.find((p) => p.name === action.pluginName);
-        if (!plugin) {
-            return [];
-        }
-
-        const callMethod = plugin.methods.includes(action.field[0]) ? [MacroActionEffect.CallMethod] : [];
-
-        const field = plugin.config?.[action.field[0] as keyof typeof plugin];
-        if (field === undefined) {
-            return callMethod;
-        }
-        const typeOfField = typeof field.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return [...callMethod, ...getMacroActionValidModifyEffects(typeOfField)];
-    }
-    return [];
-};
 export class Macros {
     #createGameCompartment?: (deps?: {}) => Compartment;
 
@@ -215,6 +54,10 @@ export class Macros {
         for (const macro of this.trigger(e)) {
             actions = macro.getActionSequence();
             for (const action of actions) {
+                if (action.error) {
+                    log.error(action.error.message);
+                    continue;
+                }
                 if (action.type === MacroActionType.ModifyAppSettings) {
                     settings.doMacroAction(action);
                 } else if (action.type === MacroActionType.ModifyPluginSettings) {
@@ -267,13 +110,6 @@ export class Macros {
             return newMacro;
         });
     }
-}
-
-export enum MacroActionSequence {
-    AllSync = "AllSync",
-    AllAsync = "AllAsync",
-    SingleAlternate = "SingleAlternate",
-    SingleRandom = "SingleRandom",
 }
 
 export class Macro {
@@ -334,12 +170,6 @@ export class Macro {
 
 }
 
-
-interface Trigger<T> {
-    type: string;
-    test: (event: T) => boolean;
-}
-
 export class HotkeyTrigger implements Trigger<KeyboardEvent> {
     type = "hotkey";
     #raw: string;
@@ -388,44 +218,58 @@ export class HotkeyTrigger implements Trigger<KeyboardEvent> {
     }
 }
 
-export const getMacroActionValue = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, defaultValue: any, _step?: number, _min?: number, _max?: number) => {
-
-    let value = action.effect === MacroActionEffect.SetToDefault ? action.resetValue : defaultValue;
-    value = action.effect === MacroActionEffect.Set ? action.value : value;
-
-    const min = _min ?? -Infinity;
-    const max = _max ?? Infinity;
-
-    let step = _step;
-
-    if (typeof value === "number") {
-        value = MathUtils.clamp(value, min, max)
-
-        if (!step) {
-            if (Number.isFinite(min)) {
-                if (Number.isFinite(max)) { step = +(Math.abs(max - min) / 100).toPrecision(1) }
-                else { step = +(Math.abs(value - min) / 100).toPrecision(1) }
-            }
-            else if (Number.isFinite(max)) { step = +(Math.abs(max - value) / 100).toPrecision(1) }
-            else { step = 1; }
+const isFiniteV = (...args: any) => {
+    for (const arg of args) {
+        if (!Number.isFinite(arg)) {
+            return false;
         }
     }
+    return true;
+}
 
-    if (action.effect === MacroActionEffect.Increase) {
-        return Math.min(value + step, max);
-    } else if (action.effect === MacroActionEffect.Decrease) {
-        return Math.max(value - step!, min);
+export const getMacroActionValue = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, defaultValue: any, step?: number, min?: number, max?: number, options?: string[]) => {
+
+    if (options) {
+        return getMacroActionOptionsValue(action, options);
+    }
+
+    if (action.effect === MacroActionEffect.Increase && max !== undefined && isFiniteV(step, max)) {
+        return Math.min(defaultValue + step, max);
+    } else if (action.effect === MacroActionEffect.Decrease && min !== undefined && isFiniteV(step, min)) {
+        return Math.max(defaultValue - step!, min);
     } else if (action.effect === MacroActionEffect.Set) {
-        return value;
+        return action.value;
     } else if (action.effect === MacroActionEffect.Max && Number.isFinite(max)) {
         return max;
     } else if (action.effect === MacroActionEffect.Min && Number.isFinite(min)) {
         return min;
-    } else if (action.effect === MacroActionEffect.Toggle) {
-        return !value;
+    } else if (action.effect === MacroActionEffect.Toggle && typeof action.value === "boolean") {
+        return !action.value;
+    } else if (action.effect === MacroActionEffect.SetToDefault) {
+        return action.resetValue;
     }
 
-    return value;
+    throw new Error(`Invalid macro action effect ${action.effect}`);
+}
+
+export const getMacroActionOptionsValue = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, options: string[]) => {
+
+    const idx = options.indexOf(action.value);
+
+    if (action.effect === MacroActionEffect.Increase) {
+        return options[Math.min(idx + 1, options.length - 1)];
+    } else if (action.effect === MacroActionEffect.Decrease) {
+        return options[Math.max(idx - 1, 0)];
+    } else if (action.effect === MacroActionEffect.Set) {
+        return action.value;
+    } else if (action.effect === MacroActionEffect.Max) {
+        return options[options.length - 1];
+    } else if (action.effect === MacroActionEffect.Min) {
+        return options[0];
+    }
+
+    throw new Error(`Invalid macro action options effect ${action.effect}`);
+
 }
 
 // class StreamDeckTrigger implements Trigger {

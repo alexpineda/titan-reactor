@@ -2,8 +2,9 @@ import settingsStore from "@stores/settings-store";
 import {
   getAppSettingsLevaConfig,
   getAppSettingsLevaConfigField,
-} from "../../global-settings";
-import { MacroActionEffect, MacroActionHostModifyValue } from "../../macros";
+} from "common/get-app-settings-leva-config";
+import { MacroActionEffect, MacroActionHostModifyValue } from "common/types";
+import ErrorBoundary from "../../error-boundary";
 import { MacroActionEffectSelector } from "../macro-action-effect-selector";
 import { MacroActionModifyValue } from "../macro-action-modify-value";
 import { MacroActionPanelProps } from "../macro-action-panel-props";
@@ -12,26 +13,19 @@ export const MacroActionPanelHost = (
   props: MacroActionPanelProps & { action: MacroActionHostModifyValue }
 ) => {
   const settings = settingsStore();
-  const { action, viewOnly, updateMacroAction, pluginsMetadata } = props;
+  const { action, viewOnly, updateMacroAction } = props;
   const config = getAppSettingsLevaConfig(settings);
 
-  const _propConfig = getAppSettingsLevaConfigField(settings, action.field);
-  const propConfig =
-    action.field[1] === "sceneController"
-      ? {
-          ..._propConfig,
-          options: pluginsMetadata
-            .filter((p) => p.isSceneController)
-            .map((p) => p.name),
-        }
-      : _propConfig;
+  const propConfig = getAppSettingsLevaConfigField(settings, action.field);
 
   return (
     <div>
       <select
         onChange={(evt) => {
-          action.field = evt.target.value.split(".");
-          updateMacroAction(action);
+          updateMacroAction({
+            ...action,
+            field: evt.target.value.split("."),
+          });
         }}
         value={action.field.join(".")}
         disabled={viewOnly}
@@ -46,10 +40,21 @@ export const MacroActionPanelHost = (
           );
         })}
       </select>
-      <MacroActionEffectSelector {...props} />
+      <ErrorBoundary message="Error with effects">
+        <MacroActionEffectSelector {...props} />
+      </ErrorBoundary>
+      {viewOnly && action.effect === MacroActionEffect.Set && (
+        <p>{action.value}</p>
+      )}
+
       {(action.effect === MacroActionEffect.Set ||
         action.effect === MacroActionEffect.Toggle) &&
-        !viewOnly && <MacroActionModifyValue {...props} config={propConfig} />}
+        !viewOnly &&
+        propConfig !== undefined && (
+          <ErrorBoundary message="Error with modifier">
+            <MacroActionModifyValue {...props} config={propConfig} />
+          </ErrorBoundary>
+        )}
     </div>
   );
 };

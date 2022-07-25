@@ -1,4 +1,4 @@
-import { Grp } from "../../renderer/image";
+import { Grp } from "common/image/grp";
 import parseIscript from "./parse-iscript-bin";
 import path from "path";
 

@@ -5,6 +5,7 @@ import { GameSurface } from "renderer/render";
 import { Scene, Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
 import { activateUnitSelection } from "./game-viewport-unit-selection";
+import * as log from "@ipc/log";
 
 const _target = new Vector3;
 const _position = new Vector3;
@@ -85,6 +86,10 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #activating = false;
 
     async activate(inputHandler: SceneInputHandler) {
+        if (inputHandler === undefined) {
+            log.warning("GameViewportsDirector.activate: inputHandler is undefined");
+            return;
+        }
         if (this.#activating) {
             return;
         }

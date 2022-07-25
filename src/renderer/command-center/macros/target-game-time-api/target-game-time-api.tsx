@@ -1,4 +1,5 @@
-import { MacroAction } from "../../macros";
+import { useState } from "react";
+import { MacroAction } from "common/types";
 
 export const MacroActionPanelGameTimeApi = ({
   action,
@@ -9,16 +10,20 @@ export const MacroActionPanelGameTimeApi = ({
   viewOnly: boolean;
   updateMacroAction: (action: MacroAction) => void;
 }) => {
+  const [value, setValue] = useState(action.value);
+
   return (
     <p>
       <input
         value={action.value}
         onChange={(e) => {
-          action.value = e.target.value;
+          setValue(e.target.value);
         }}
         disabled={viewOnly}
       />
-      <button onClick={() => updateMacroAction(action)}>Save</button>
+      <button onClick={() => updateMacroAction({ ...action, value })}>
+        Save
+      </button>
     </p>
   );
 };

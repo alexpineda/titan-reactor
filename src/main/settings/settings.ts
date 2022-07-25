@@ -16,6 +16,7 @@ import loadPlugins, { getDisabledPluginConfigs, getEnabledPluginConfigs, getPlug
 import { findPluginsPath } from "../starcraft/find-plugins-path";
 import withErrorMessage from "common/utils/with-error-message";
 import log from "../log";
+import { sanitizeMacros } from "common/sanitize-macros";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -114,8 +115,13 @@ export class Settings {
       ? this._settings.language
       : localLanguage;
 
-    return {
+    const macros = sanitizeMacros(this._settings.macros, {
       data: this._settings,
+      pluginsMetadata: getPluginsMetaData(),
+    });
+
+    return {
+      data: { ...this._settings, macros },
       errors,
       isCascStorage,
       enabledPlugins: getEnabledPluginConfigs(),
@@ -167,10 +173,15 @@ export class Settings {
   async save(settings: Partial<SettingsType>) {
     this._settings = Object.assign({}, this._settings, settings);
     this._settings.plugins.enabled = [...new Set(this._settings.plugins.enabled)];
+    this._settings.macros = sanitizeMacros(this._settings.macros, {
+      data: this._settings,
+      pluginsMetadata: getPluginsMetaData(),
+    });
 
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {
       encoding: "utf8",
     });
+    return this._settings;
   }
 
   /**

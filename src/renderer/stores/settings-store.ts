@@ -1,10 +1,10 @@
 import create from "zustand";
 
-import { Settings, SettingsMeta } from "common/types";
+import { Settings, SettingsMeta, MacroAction, MacroActionType } from "common/types";
 import { defaultSettings } from "common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
-import { getMacroActionValue, MacroAction, MacroActionType } from "../command-center/macros";
-import { getAppSettingsLevaConfigField } from "../command-center/global-settings";
+import { getMacroActionValue } from "../command-center/macros";
+import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 
 import lSet from "lodash.set";
 
@@ -27,11 +27,11 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set((state) => ({ data: { ...state.data, ...settings } }));
   },
   save: async (settings) => {
-    set((state) => ({ data: { ...state.data, ...settings } }));
-    await saveSettings(get().data);
+    const data = await saveSettings({ ...get().data, ...settings });
+    set({ data });
   },
   load: async () => {
-    const settings = await invokeGetSettings() as SettingsMeta;
+    const settings = await invokeGetSettings();
     set(settings);
     return settings;
   },
@@ -45,7 +45,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       return;
     }
 
-    const value = getMacroActionValue(action, field.value, field.step, field.min, field.max);
+    const value = getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options);
     const newSettings = { ...get().data };
     lSet(newSettings, action.field!, value);
     get().set(newSettings);

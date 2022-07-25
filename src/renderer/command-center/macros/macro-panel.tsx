@@ -3,9 +3,12 @@ import {
   capitalizeFirstLetters,
   spaceOutCapitalLetters,
 } from "@utils/string-utils";
-import { PluginMetaData } from "common/types";
-import ErrorBoundary from "../error-boundary";
-import { MacroAction, MacroActionSequence, MacroDTO } from "../macros";
+import {
+  PluginMetaData,
+  MacroAction,
+  MacroActionSequence,
+  MacroDTO,
+} from "common/types";
 import { MacroActionPanel } from "./macro-action-panel";
 import debounce from "lodash.debounce";
 import { CreateMacroAction } from "./create-macro-action";
@@ -46,8 +49,13 @@ export const MacroPanel = ({
       const ctrlKey = e.ctrlKey ? ["Ctrl"] : [];
       const altKey = e.altKey ? ["Alt"] : [];
       const key = [...shiftKey, ...ctrlKey, ...altKey, e.code].join("+");
-      macro.trigger.value = key;
-      updateMacro(macro);
+      updateMacro({
+        ...macro,
+        trigger: {
+          ...macro.trigger,
+          value: key,
+        },
+      });
     },
     100,
     { leading: true, trailing: false }
@@ -76,16 +84,20 @@ export const MacroPanel = ({
           Sequence{" "}
           <select
             onChange={(evt) => {
-              macro.actionSequence =
-                MacroActionSequence[
-                  evt.target.value as keyof typeof MacroActionSequence
-                ];
-              updateMacro(macro);
+              updateMacro({
+                ...macro,
+                actionSequence:
+                  MacroActionSequence[
+                    evt.target.value as keyof typeof MacroActionSequence
+                  ],
+              });
             }}
             value={macro.actionSequence}
           >
             {Object.keys(MacroActionSequence).map((key) => (
-              <option value={key}>{spaceOutCapitalLetters(key)}</option>
+              <option key={key} value={key}>
+                {spaceOutCapitalLetters(key)}
+              </option>
             ))}
           </select>
         </label>
@@ -95,19 +107,15 @@ export const MacroPanel = ({
         pluginsMetadata={pluginsMetadata}
       />
       {macro.actions.map((action) => (
-        <ErrorBoundary
-          message="There was an error with this action"
+        <MacroActionPanel
           key={action.id}
-        >
-          <MacroActionPanel
-            action={action}
-            pluginsMetadata={pluginsMetadata}
-            updateMacroAction={updateMacroAction}
-            viewOnly={activeAction !== action.id}
-            setActiveAction={setActiveAction}
-            deleteAction={deleteAction}
-          />
-        </ErrorBoundary>
+          action={action}
+          pluginsMetadata={pluginsMetadata}
+          updateMacroAction={updateMacroAction}
+          viewOnly={activeAction !== action.id}
+          setActiveAction={setActiveAction}
+          deleteAction={deleteAction}
+        />
       ))}
     </div>
   );

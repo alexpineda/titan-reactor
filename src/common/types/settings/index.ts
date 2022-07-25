@@ -1,4 +1,4 @@
-import { MacrosDTO } from "renderer/command-center/macros";
+import { MacrosDTO } from "common/types";
 import type { InitializedPluginPackage, PluginMetaData } from "../plugin";
 
 export type Settings = {

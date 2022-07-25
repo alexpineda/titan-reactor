@@ -39,8 +39,8 @@ export const defaultSettings: Settings = {
     enabled: [],
   },
   macros: {
-    version: "",
     revision: 0,
-    macros: []
+    macros: [],
+    version: ""
   }
 };

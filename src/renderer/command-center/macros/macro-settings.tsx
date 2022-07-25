@@ -6,8 +6,7 @@ import {
   MacroDTO,
   MacrosDTO,
   MacroTriggerDTO,
-  validateMacroAction,
-} from "../macros";
+} from "common/types";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
 import { generateUUID } from "three/src/math/MathUtils";
@@ -15,26 +14,27 @@ import { useSettingsStore } from "@stores/settings-store";
 
 export const MacrosPanel = () => {
   const settings = useSettingsStore();
-  const [state, setState] = useState<MacrosDTO>(settings.data.macros);
-  const prevRevision = useRef(state.revision);
+  const state = settings.data.macros;
 
-  useEffect(() => {
-    if (state.revision !== prevRevision.current) {
+  const save = (newMacros: MacrosDTO) => {
+    if (state.revision !== newMacros.revision) {
       settings.save({
-        macros: state,
+        macros: newMacros,
       });
     }
-  }, [state]);
+  };
 
   const [activeAction, setActiveAction] = useState<string | null>(null);
 
-  // psuedo flux with mutable state but pretending its immutable weehoo!
   const updateMacro = (macro: MacroDTO) => {
-    const newMacro = { ...macro };
     const idx = state.macros.findIndex((m) => m.id === macro.id);
-    state.macros.splice(idx, 1, newMacro);
+    if (macro === state.macros[idx]) {
+      throw new Error("Trying to update the same macro reference");
+    }
+    const newMacros = [...state.macros];
+    newMacros.splice(idx, 1, macro);
 
-    setState({ ...state, revision: state.revision + 1 });
+    save({ ...state, macros: newMacros, revision: state.revision + 1 });
   };
 
   const updateMacroAction = (action: MacroAction) => {
@@ -44,20 +44,22 @@ export const MacrosPanel = () => {
     const macro = state.macros[idx];
     const newMacro = { ...macro };
 
-    const actionIdx = macro.actions.findIndex((a) => a.id === action.id);
-    const newAction = { ...action };
+    const actionIdx = macro.actions.findIndex(
+      (a: MacroAction) => a.id === action.id
+    );
+    if (action === macro.actions[actionIdx]) {
+      throw new Error("Trying to update the same action reference");
+    }
 
-    validateMacroAction(newAction, settings.pluginsMetadata);
-
-    newMacro.actions.splice(actionIdx, 1, newAction);
-
-    state.macros.splice(idx, 1, newMacro);
-    setState({ ...state, revision: state.revision + 1 });
-    console.log(newAction);
+    newMacro.actions.splice(actionIdx, 1, action);
+    const newMacros = [...state.macros];
+    newMacros.splice(idx, 1, newMacro);
+    save({ ...state, macros: newMacros, revision: state.revision + 1 });
+    console.log(action);
   };
 
   const deleteMacro = (macroId: string) => {
-    setState({
+    save({
       ...state,
       macros: state.macros.filter((m) => m.id !== macroId),
       revision: state.revision + 1,
@@ -69,9 +71,14 @@ export const MacrosPanel = () => {
       m.actions.find((a) => a.id === actionId)
     );
     const macro = state.macros[idx];
+    if (!macro) {
+      throw new Error(
+        "Trying to delete an action from a macro that doesn't exist"
+      );
+    }
     macro.actions = macro.actions.filter((a) => a.id !== actionId);
 
-    setState({
+    save({
       ...state,
       macros: [...state.macros],
       revision: state.revision + 1,
@@ -87,7 +94,7 @@ export const MacrosPanel = () => {
       enabled: true,
       actionSequence: MacroActionSequence.AllSync,
     };
-    setState({
+    save({
       ...state,
       macros: [newMacro, ...state.macros],
       revision: state.revision + 1,
@@ -96,7 +103,7 @@ export const MacrosPanel = () => {
 
   const createAction = (macro: MacroDTO, action: MacroAction) => {
     macro.actions.push(action);
-    setState({ ...state, revision: state.revision + 1 });
+    save({ ...state, revision: state.revision + 1 });
   };
 
   return (

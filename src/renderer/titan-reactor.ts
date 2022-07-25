@@ -30,7 +30,12 @@ import gameStore from "@stores/game-store";
 // );
 
 window.harden = x => x;
+
+//@ts-ignore
 window.Compartment = function Compartment(env: {}) {
+  // const windowCopy = {...window};
+  // delete windowCopy.require;
+
   return {
     evaluate(code: string) {
       // destructure env
