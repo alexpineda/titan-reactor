@@ -14,11 +14,9 @@ export const MacroActionPanelGameTimeApi = ({
 
   return (
     <p>
-      <input
-        value={action.value}
-        onChange={(e) => {
-          setValue(e.target.value);
-        }}
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         disabled={viewOnly}
       />
       <button onClick={() => updateMacroAction({ ...action, value })}>

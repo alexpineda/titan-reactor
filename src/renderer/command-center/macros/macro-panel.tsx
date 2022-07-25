@@ -61,6 +61,13 @@ export const MacroPanel = ({
     { leading: true, trailing: false }
   );
 
+  const renameMacro = () => {
+    const name = prompt("Enter a new name for this macro", macro.name);
+    if (name !== null) {
+      updateMacro({ ...macro, name });
+    }
+  };
+
   return (
     <div
       style={{
@@ -69,6 +76,7 @@ export const MacroPanel = ({
     >
       <h2>{macro.name}</h2>
       <button onClick={() => deleteMacro(macro.id)}>Delete Macro</button>
+      <button onClick={() => renameMacro()}>Rename Macro</button>
       <p>
         <label>
           {capitalizeFirstLetters(macro.trigger.type)}

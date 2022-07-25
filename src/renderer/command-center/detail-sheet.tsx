@@ -1,10 +1,11 @@
 import { InitializedPluginPackage } from "common/types";
 import ReactMarkdown from "react-markdown/index";
-import { LevaPanel, useControls, useCreateStore } from "leva";
+import { useControls, useCreateStore } from "leva";
 import semver from "semver";
 import packagejson from "../../../package.json";
 import { Tab, Tabs } from "./tabs";
 import ErrorBoundary from "./error-boundary";
+import { createLevaPanel } from "./create-leva-panel";
 
 const permissionDescriptions = {
   "replay.file": "Allows the plugin to access the replay file entirely",
@@ -39,33 +40,7 @@ export default ({
 
   return (
     <ErrorBoundary message="There was an error with this plugin">
-      <LevaPanel
-        store={store}
-        fill
-        flat
-        hideCopyButton
-        titleBar={false}
-        theme={{
-          colors: {
-            accent1: "blue",
-            accent2: "orange",
-            accent3: "red",
-            elevation1: "red",
-            elevation2: "#f5f5f5",
-            elevation3: "#d9e0f0",
-            highlight1: "black",
-            highlight2: "#222",
-            highlight3: "#333",
-            vivid1: "red",
-          },
-          sizes: {
-            controlWidth: "40vw",
-          },
-          fontSizes: {
-            root: "14px",
-          },
-        }}
-      />
+      {createLevaPanel(store)}
       {semver.major(titanReactorApiVersion) <
         semver.major(pluginApiVersion) && (
         <p>
