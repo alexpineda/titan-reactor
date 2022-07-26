@@ -12,7 +12,6 @@ const _position = new Vector3;
 
 export class GameViewportsDirector implements UserInputCallbacks {
     viewports: GameViewPort[] = [];
-    // #macros: MacrosDTO;
     #surface: GameSurface;
     #minimapSurface: Surface;
     #scene: Scene;
@@ -57,7 +56,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
             }
         }
         this.#janitor.addEventListener(gameSurface.canvas, 'pointerdown', _regainPointerLock);
-
     }
 
     onShouldHideUnit(...args: Parameters<UserInputCallbacks["onShouldHideUnit"]>) {
@@ -101,9 +99,9 @@ export class GameViewportsDirector implements UserInputCallbacks {
             return;
         }
         this.#activating = true;
-        let prevData: any;
+        let prevData: any = this.generatePrevData();
         if (this.#inputHandler && this.#inputHandler.onExitScene) {
-            prevData = this.#inputHandler.onExitScene(this.generatePrevData());
+            prevData = this.#inputHandler.onExitScene(prevData);
         }
         this.#janitor.mopUp();
         this.#inputHandler = null;
@@ -112,12 +110,13 @@ export class GameViewportsDirector implements UserInputCallbacks {
             new GameViewPort(this.#surface),
             new GameViewPort(this.#surface),
         ]
+        this.viewports[0].enabled = true;
+
         for (const viewport of this.viewports) {
             this.#janitor.add(viewport)
             viewport.width = this.#surface.bufferWidth;
             viewport.height = this.#surface.bufferHeight;
             viewport.aspect = this.#surface.aspect;
-            viewport.cameraShake.enabled = viewport.renderOptions.useCameraShake;
         };
 
         await inputHandler.onEnterScene(prevData);
@@ -165,7 +164,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
 
     generatePrevData() {
-        return this.viewports[0].generatePrevData();
+        return this.viewports.length ? this.viewports[0].generatePrevData() : null;
     }
 
 }

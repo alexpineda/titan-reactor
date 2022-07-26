@@ -17,6 +17,8 @@ class CameraShake {
 
   #prevCameraPosition = new Vector3();
 
+  maxShakeDistance = 30;
+
   set enabled(val: boolean) {
     this.#enabled = val;
     this._strength.setScalar(0);

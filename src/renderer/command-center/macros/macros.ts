@@ -32,7 +32,7 @@ export class Macros {
         }
     }
 
-    initGame(createCompartment: ((deps?: {}) => Compartment)) {
+    setContainer(createCompartment: ((deps?: {}) => Compartment)) {
         this.#createGameCompartment = createCompartment;
     }
 

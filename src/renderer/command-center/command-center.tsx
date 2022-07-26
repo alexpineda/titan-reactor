@@ -21,6 +21,8 @@ import { mapConfigToLeva } from "./map-config-to-leva";
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { openCascStorage, readCascFileBatch } from "@ipc/casclib";
+import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { InvokeBrowserTarget } from "common/ipc-handle-names";
 
 if (module.hot) {
   module.hot.accept();
@@ -34,6 +36,13 @@ document.head.appendChild(s);
 
 const onChange = debounce(async (pluginId: string, config: any) => {
   updatePluginsConfig(pluginId, config);
+  sendWindow(InvokeBrowserTarget.Game, {
+    type: SendWindowActionType.PluginConfigChanged,
+    payload: {
+      pluginId,
+      config,
+    },
+  });
 }, 100);
 
 const LIMIT = 1000;

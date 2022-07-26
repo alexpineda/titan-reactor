@@ -2,11 +2,11 @@ import { ipcRenderer } from "electron";
 
 import { InitializedPluginPackage, OpenBWAPI, SceneInputHandler } from "common/types";
 import {
-    ON_PLUGIN_CONFIG_UPDATED,
     ON_PLUGINS_ENABLED,
     DISABLE_PLUGIN,
     ON_PLUGINS_INITIAL_INSTALL_ERROR,
     ON_PLUGINS_INITIAL_INSTALL,
+    SEND_BROWSER_WINDOW,
 } from "common/ipc-handle-names";
 import { installPlugin } from "@ipc/plugins";
 
@@ -20,6 +20,7 @@ import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
 import { HOOK_ON_GAME_DISPOSED } from "./hooks";
 import { Macros } from "../command-center/macros/macros";
+import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -27,15 +28,17 @@ let nativePluginSystem: PluginSystemNative;
 /**
  * A plugin config has been updated in the config window
  */
-ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
-    uiPluginSystem.sendMessage({
-        type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
-        payload: {
-            pluginId,
-            config,
-        },
-    });
-    nativePluginSystem.hook_onConfigChanged(pluginId, config);
+ipcRenderer.on(SEND_BROWSER_WINDOW, (_, { type, payload: { pluginId, config } }: {
+    type: SendWindowActionType.PluginConfigChanged,
+    payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
+}) => {
+    if (type === SendWindowActionType.PluginConfigChanged) {
+        uiPluginSystem.sendMessage({
+            type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
+            payload: { pluginId, config }
+        });
+        nativePluginSystem.hook_onConfigChanged(pluginId, config);
+    }
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {

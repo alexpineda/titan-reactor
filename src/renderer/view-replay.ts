@@ -58,7 +58,7 @@ import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, 
 import { unitIsFlying } from "@utils/unit-utils";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer, IpcRendererEvent } from "electron";
-import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
+import { RELOAD_PLUGINS, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
@@ -223,7 +223,7 @@ async function TitanReactorGame(
       )
     }
     return _followedUnitsPosition;
-  }, 10);
+  }, 30);
 
   const cameraMouse = new CameraMouse(document.body);
   janitor.disposable(cameraMouse);
@@ -768,10 +768,9 @@ async function TitanReactorGame(
     [DamageType.Concussive]: [0.5, 1],
     [DamageType.Normal]: [0.25, 2],
   };
-  const MaxShakeDistance = 30;
-
   const _cameraWorldDirection = new Vector3();
   const _spritePool: Group[] = [];
+  const _lowCameraPosition = new Vector3();
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
@@ -836,8 +835,8 @@ async function TitanReactorGame(
 
     let v = Infinity;
     for (const viewport of gameViewportsDirector.activeViewports()) {
-      const a = viewport.camera.position.distanceTo(_spritePos) / Math.min(500, viewport.orbit.maxDistance);
-      v = Math.min(v, Math.floor((a * a * a) * 1.25));
+      const a = viewport.orbit.getPosition(_lowCameraPosition).setY(_spritePos.y).distanceTo(_spritePos) / Math.min(500, viewport.orbit.maxDistance);
+      v = Math.min(v, Math.floor((a * a * a * a)));
     }
 
     if (!spriteIsVisible || v > 0 && sprite.userData.renderTestCount > 0) {
@@ -864,8 +863,8 @@ async function TitanReactorGame(
             continue;
           }
           const distance = v.camera.position.distanceTo(_spritePos);
-          if (distance < MaxShakeDistance) {
-            const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / MaxShakeDistance) * exp[2];
+          if (distance < v.cameraShake.maxShakeDistance) {
+            const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / v.cameraShake.maxShakeDistance) * exp[2];
             if (calcStrength > v.shakeCalculation.strength.getComponent(_bulletStrength[1])) {
               v.shakeCalculation.strength.setComponent(_bulletStrength[1], calcStrength);
               v.shakeCalculation.duration.setComponent(_bulletStrength[1], exp[1] * 1000);
@@ -984,7 +983,7 @@ async function TitanReactorGame(
         //TODO store variables so its easy to change from one mode to another or use a universal function
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+        if (gameViewportsDirector.primaryViewport.renderOptions.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           // if (controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
@@ -1325,9 +1324,6 @@ async function TitanReactorGame(
 
   janitor.add(useSettingsStore.subscribe(({ data: newSettings }) => {
 
-    if (newSettings.macros.revision > settings.macros.revision) {
-      macros.deserialize(newSettings.macros);
-    }
 
     if (newSettings.game.sceneController !== gameViewportsDirector.name) {
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
@@ -1489,40 +1485,9 @@ async function TitanReactorGame(
 
     const container = createCompartment(api);
 
-    macros.initGame(() => {
+    macros.setContainer(() => {
       return container;
     });
-
-    macros.setHostDefaults(settings);
-    ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
-      type: SendWindowActionType.RefreshSettings
-      payload: SendWindowActionPayload<SendWindowActionType.RefreshSettings>
-    }) => {
-      if (type === SendWindowActionType.RefreshSettings) {
-        macros.setHostDefaults(payload.data);
-        defaultSceneController = payload.data.game.sceneController;
-      }
-    })
-
-    plugins.setAllMacroDefaults(macros);
-    ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
-      plugins.setMacroDefaults(macros, pluginId, config);
-    });
-
-    pluginsApiJanitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
-      macros.doMacros(e);
-    });
-
-    const _handleManualTrigger = (_: IpcRendererEvent, { type, payload }: {
-      type: SendWindowActionType.ManualMacroTrigger,
-      payload: SendWindowActionPayload<SendWindowActionType.ManualMacroTrigger>
-    }) => {
-      if (type === SendWindowActionType.ManualMacroTrigger) {
-        macros.execMacroById(payload);
-      }
-    }
-    ipcRenderer.on(SEND_BROWSER_WINDOW, _handleManualTrigger);
-    pluginsApiJanitor.callback(() => ipcRenderer.off(SEND_BROWSER_WINDOW, _handleManualTrigger));
 
   }
 
@@ -1541,6 +1506,53 @@ async function TitanReactorGame(
 
   ipcRenderer.on(RELOAD_PLUGINS, _onReloadPlugins);
   janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, _onReloadPlugins));
+
+
+  macros.setHostDefaults(settings);
+  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
+    type: SendWindowActionType.RefreshSettings
+    payload: SendWindowActionPayload<SendWindowActionType.RefreshSettings>
+  }) => {
+    if (type === SendWindowActionType.RefreshSettings) {
+      macros.setHostDefaults(payload.data);
+      defaultSceneController = payload.data.game.sceneController;
+    }
+  })
+
+  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
+    type: SendWindowActionType.RefreshMacros
+    payload: SendWindowActionPayload<SendWindowActionType.RefreshMacros>
+  }) => {
+    if (type === SendWindowActionType.RefreshMacros) {
+      macros.deserialize(payload);
+    }
+  })
+
+  plugins.setAllMacroDefaults(macros);
+
+  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
+    type: SendWindowActionType.PluginConfigChanged
+    payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
+  }) => {
+    if (type === SendWindowActionType.PluginConfigChanged) {
+      plugins.setMacroDefaults(macros, pluginId, config);
+    }
+  })
+
+  janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
+    macros.doMacros(e);
+  });
+
+  const _handleManualTrigger = (_: IpcRendererEvent, { type, payload }: {
+    type: SendWindowActionType.ManualMacroTrigger,
+    payload: SendWindowActionPayload<SendWindowActionType.ManualMacroTrigger>
+  }) => {
+    if (type === SendWindowActionType.ManualMacroTrigger) {
+      macros.execMacroById(payload);
+    }
+  }
+  ipcRenderer.on(SEND_BROWSER_WINDOW, _handleManualTrigger);
+  janitor.callback(() => ipcRenderer.off(SEND_BROWSER_WINDOW, _handleManualTrigger));
 
   const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
   precompileCamera.updateProjectionMatrix();

@@ -9,7 +9,7 @@ import deepMerge from "deepmerge"
 import semver from 'semver';
 
 import { InitializedPluginPackage, PluginMetaData } from "common/types";
-import { ON_PLUGIN_CONFIG_UPDATED, ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
+import { ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import browserWindows from "../windows";
@@ -191,7 +191,7 @@ export const installPlugin = async (repository: string) => {
                 if (enabledPlugin) {
                     const oldConfig = enabledPlugin.config;
                     _enabledPluginPackages.splice(_enabledPluginPackages.indexOf(enabledPlugin), 1, loadedPackage);
-                    savePluginsConfig(loadedPackage.id, oldConfig, false);
+                    savePluginsConfig(loadedPackage.id, oldConfig);
                     browserWindows.main?.webContents.send(RELOAD_PLUGINS);
                     browserWindows.config?.webContents.reloadIgnoringCache();
 
@@ -279,7 +279,7 @@ export const uninstallPlugin = async (pluginId: string) => {
     return true;
 }
 
-export const savePluginsConfig = async (pluginId: string, config: any, updateMainWindow = true) => {
+export const savePluginsConfig = async (pluginId: string, config: any) => {
     const pluginConfig = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!pluginConfig) {
         log.error(`@settings/load-plugins: Could not find plugin with id ${pluginId}`);
@@ -305,10 +305,6 @@ export const savePluginsConfig = async (pluginId: string, config: any, updateMai
     } catch (e) {
         log.error(withErrorMessage(`@save-plugins-config: Error writing plugin package.json`, e));
         return;
-    }
-
-    if (updateMainWindow) {
-        browserWindows.main?.webContents.send(ON_PLUGIN_CONFIG_UPDATED, pluginId, config);
     }
 }
 

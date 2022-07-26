@@ -11,7 +11,7 @@ const isNumber = (value: any): value is Number => {
 }
 
 export class GameViewPort {
-    enabled = true;
+    enabled = false;
     camera = new DirectionalCamera(15, 1, 0.1, 1000);
     projectedView = new ProjectedCameraView();
     orbit: CameraControls;
@@ -37,7 +37,6 @@ export class GameViewPort {
         unitScale: 1,
         fogOfWarOpacity: 1,
         rotateSprites: false,
-        useCameraShake: false,
     }
 
     constructor(surface: Surface) {
@@ -48,11 +47,9 @@ export class GameViewPort {
     }
 
     reset() {
-        const wasEnabled = this.orbit?.enabled ?? true;
         this.orbit?.dispose();
 
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
-        this.orbit.enabled = wasEnabled;
         this.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
@@ -65,7 +62,7 @@ export class GameViewPort {
 
     set center(val: Vector2 | undefined | null) {
         this.#center = val;
-        this.updateDimensions();
+        this.update();
     }
 
     get center() {
@@ -77,7 +74,7 @@ export class GameViewPort {
         if (this.constrainToAspect) {
             this.#width = this.#height * this.camera.aspect;
         }
-        this.updateDimensions();
+        this.update();
     }
 
     set width(val: number) {
@@ -85,7 +82,7 @@ export class GameViewPort {
         if (this.constrainToAspect) {
             this.#height = this.#width / this.camera.aspect;
         }
-        this.updateDimensions();
+        this.update();
     }
 
     get width() {
@@ -105,7 +102,7 @@ export class GameViewPort {
         if (typeof val === "number") {
             this.#left = val <= 1 ? this.#surface.bufferWidth * val : val;
         }
-        this.updateDimensions();
+        this.update();
     }
 
     set right(val: number | undefined | null) {
@@ -113,7 +110,7 @@ export class GameViewPort {
         if (typeof val === "number") {
             this.#right = val <= 1 ? this.#surface.bufferWidth * val : val;
         }
-        this.updateDimensions();
+        this.update();
     }
 
     get right() {
@@ -129,7 +126,7 @@ export class GameViewPort {
         if (typeof val === "number") {
             this.#top = val <= 1 ? this.#surface.bufferHeight * val : val;
         }
-        this.updateDimensions();
+        this.update();
     }
 
     set bottom(val: number | undefined | null) {
@@ -137,14 +134,14 @@ export class GameViewPort {
         if (typeof val === "number") {
             this.#bottom = val <= 1 ? this.#surface.bufferHeight * val : val;
         }
-        this.updateDimensions();
+        this.update();
     }
 
     get bottom() {
         return this.#bottom;
     }
 
-    updateDimensions() {
+    update() {
 
         if (this.center) {
             const _x = this.center.x <= 1 ? this.#surface.bufferWidth * this.center.x : this.center.x;
@@ -195,7 +192,7 @@ export class GameViewPort {
         if (this.constrainToAspect) {
             this.height = this.#height;
         } else {
-            this.updateDimensions();
+            this.update();
         }
     }
 

@@ -17,7 +17,12 @@ export default class Janitor {
         this.add(() => element.removeEventListener(event, callback));
     }
 
-    add(obj: Object3D | Disposable | EmptyFn) {
+    on(nodeEventListener: { on: Function, off: Function }, event: string, callback: Function) {
+        nodeEventListener.on(event, callback);
+        this.add(() => nodeEventListener.off(event, callback));
+    }
+
+    add(obj: Object3D | Disposable | EmptyFn | NodeJS.EventEmitter, fn?: Function) {
         if (obj instanceof Object3D) {
             this.object3d(obj);
         } else if ("dispose" in obj) {
