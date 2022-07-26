@@ -12,5 +12,6 @@ diffuseColor = getCreepColor(creepUv, vUv, creep, creepResolution, mapToCreepRes
 if (creepEdge > 0.) {
     vec2 creepUv = getCreepUv(vUv, creepEdge, creepEdgesResolution, mapToCreepEdgesResolution);
     vec4 creepEdgeColor = texture2D(creepEdgesTexture, creepUv);
+    // diffuseColor = vec4(vec3(creepEdgeColor.a), 1.);
     diffuseColor = mix(diffuseColor, creepEdgeColor, creepEdgeColor.a);
 }

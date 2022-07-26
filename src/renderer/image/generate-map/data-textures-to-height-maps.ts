@@ -8,12 +8,11 @@ import {
 import {
     EffectComposer,
     EffectPass,
-    BlurPass,
-    SavePass,
+    KawaseBlurPass,
+    CopyPass,
     ClearPass,
     KernelSize,
     BlendFunction,
-    ConvolutionMaterial
 } from "postprocessing";
 import { MapEffect } from "./glsl/map-effect";
 
@@ -62,10 +61,10 @@ export const dataTexturesToHeightMaps = async ({
         mapHeight * geomOptions.displaceDimensionScale,
         true
     );
-    const savePass = new SavePass();
-    const blurPassHuge = new BlurPass();
-    blurPassHuge.convolutionMaterial = new ConvolutionMaterial();
-    blurPassHuge.kernelSize = geomOptions.firstBlur;
+    const savePass = new CopyPass();
+    const blurPassHuge = new KawaseBlurPass({
+        kernelSize: geomOptions.firstBlur
+    });
 
     composer.removeAllPasses();
     composer.addPass(new ClearPass());
@@ -101,7 +100,7 @@ export const dataTexturesToHeightMaps = async ({
     );
     composer.addPass(blurPassHuge);
     composer.addPass(savePass);
-    composer.addPass(new SavePass());
+    composer.addPass(new CopyPass());
     if (geomOptions.firstPass) {
         composer.render(0.01);
     }
@@ -132,8 +131,9 @@ export const dataTexturesToHeightMaps = async ({
         )
     );
 
-    const blurPassMed = new BlurPass();
-    blurPassMed.kernelSize = KernelSize.VERY_SMALL;
+    const blurPassMed = new KawaseBlurPass({
+        kernelSize: KernelSize.VERY_SMALL
+    });
     composer.addPass(blurPassMed);
     if (geomOptions.secondPass) {
         composer.render(0.01);
@@ -148,7 +148,6 @@ export const dataTexturesToHeightMaps = async ({
 
     displaceCanvas.getContext("2d")?.drawImage(renderer.domElement, 0, 0);
 
-    // small optimization: scale down for getTerrainY
     const displacementCanvasSmall = document.createElement("canvas");
     displacementCanvasSmall.width = mapWidth * 4;
     displacementCanvasSmall.height = mapHeight * 4;

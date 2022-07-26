@@ -247,16 +247,16 @@ export class MapEffect extends Effect {
   }
 
   get texture(): Texture {
-    return this.uniforms.get("texture").value;
+    return this.uniforms.get("texture")!.value!;
   }
 
-  set texture(value: Texture) {
+  set texture(value: Texture | null) {
     const currentTexture = this.texture;
 
     if (currentTexture !== value) {
       const previousEncoding =
         currentTexture !== null ? currentTexture.encoding : null;
-      this.uniforms.get("texture").value = value;
+      this.uniforms.get("texture")!.value = value;
 
       if (value !== null) {
         switch (value.encoding) {
@@ -281,91 +281,91 @@ export class MapEffect extends Effect {
   }
 
   get details(): Texture {
-    return this.uniforms.get("details").value;
+    return this.uniforms.get("details")!.value;
   }
 
   set details(value: Texture) {
-    this.uniforms.get("details").value = value;
+    this.uniforms.get("details")!.value = value;
   }
 
   get elevations(): Texture {
-    return this.uniforms.get("elevations").value;
+    return this.uniforms.get("elevations")!.value;
   }
 
   set elevations(value: Texture) {
-    this.uniforms.get("elevations").value = value;
+    this.uniforms.get("elevations")!.value = value;
   }
 
   get levels(): Matrix3 {
-    return this.uniforms.get("levels").value;
+    return this.uniforms.get("levels")!.value;
   }
 
   set levels(value: Matrix3) {
-    this.uniforms.get("levels").value = value;
+    this.uniforms.get("levels")!.value = value;
   }
 
   get mapTiles(): Texture {
-    return this.uniforms.get("mapTiles").value;
+    return this.uniforms.get("mapTiles")!.value;
   }
 
   set mapTiles(value: Texture) {
-    this.uniforms.get("mapTiles").value = value;
+    this.uniforms.get("mapTiles")!.value = value;
   }
 
   get ignoreDoodads(): number {
-    return this.uniforms.get("ignoreDoodads").value;
+    return this.uniforms.get("ignoreDoodads")!.value;
   }
 
   set ignoreDoodads(value: number) {
-    this.uniforms.get("ignoreDoodads").value = value;
+    this.uniforms.get("ignoreDoodads")!.value = value;
   }
 
   get detailsMix(): number {
-    return this.uniforms.get("detailsMix").value;
+    return this.uniforms.get("detailsMix")!.value;
   }
 
   set detailsMix(value: number) {
-    this.uniforms.get("detailsMix").value = value;
+    this.uniforms.get("detailsMix")!.value = value;
   }
 
   get tileset(): number {
-    return this.uniforms.get("tileset").value;
+    return this.uniforms.get("tileset")!.value;
   }
 
   set tileset(value: number) {
-    this.uniforms.get("tileset").value = value;
+    this.uniforms.get("tileset")!.value = value;
   }
 
   get paletteIndices(): Texture {
-    return this.uniforms.get("paletteIndices").value;
+    return this.uniforms.get("paletteIndices")!.value;
   }
 
   set paletteIndices(value: Texture) {
-    this.uniforms.get("paletteIndices").value = value;
+    this.uniforms.get("paletteIndices")!.value = value;
   }
 
   get processWater(): boolean {
-    return this.uniforms.get("processWater").value;
+    return this.uniforms.get("processWater")!.value;
   }
 
   set processWater(value: boolean) {
-    this.uniforms.get("processWater").value = value;
+    this.uniforms.get("processWater")!.value = value;
   }
 
   get palette(): Uint8Array {
-    return this.uniforms.get("palette").value;
+    return this.uniforms.get("palette")!.value;
   }
 
   set palette(value: Uint8Array) {
-    this.uniforms.get("palette").value = value;
+    this.uniforms.get("palette")!.value = value;
   }
 
   get ignoreLevels(): Matrix3 {
-    return this.uniforms.get("ignoreLevels").value;
+    return this.uniforms.get("ignoreLevels")!.value;
   }
 
   set ignoreLevels(value: Matrix3) {
-    this.uniforms.get("ignoreLevels").value = value;
+    this.uniforms.get("ignoreLevels")!.value = value;
   }
 
   get aspectCorrection(): boolean {
@@ -383,7 +383,7 @@ export class MapEffect extends Effect {
         this.setVertexShader(vertexShader);
       } else {
         this.defines.delete("ASPECT_CORRECTION");
-        this.setVertexShader(null);
+        this.setVertexShader("");
       }
 
       this.setChanged();
@@ -415,12 +415,12 @@ export class MapEffect extends Effect {
         }
 
         this.defines.set("UV_TRANSFORM", "1");
-        this.uniforms.get("uvTransform").value = new Matrix3();
+        this.uniforms.get("uvTransform")!.value = new Matrix3();
         this.setVertexShader(vertexShader);
       } else {
         this.defines.delete("UV_TRANSFORM");
-        this.uniforms.get("uvTransform").value = null;
-        this.setVertexShader(null);
+        this.uniforms.get("uvTransform")!.value = null;
+        this.setVertexShader("");
       }
 
       this.setChanged();
@@ -462,12 +462,12 @@ export class MapEffect extends Effect {
    * @param {Number} [deltaTime] - The time between the last frame and the current one in seconds.
    */
 
-  update() {
-    const texture = this.uniforms.get("texture").value;
+  override update() {
+    const texture = this.uniforms.get("texture")!.value;
 
     if (this.uvTransform && texture.matrixAutoUpdate) {
       texture.updateMatrix();
-      this.uniforms.get("uvTransform").value.copy(texture.matrix);
+      this.uniforms.get("uvTransform")!.value.copy(texture.matrix);
     }
   }
 }

@@ -26,66 +26,66 @@ export const createSDMesh = async (
   const sdMapMaterial = new THREE.MeshStandardMaterial({
     map: sdMap,
     displacementScale: geomOptions.displacementScale,
-    displacementMap: new THREE.CanvasTexture(displacementCanvas),
-    // @ts-ignore
-    onBeforeCompile: function (shader) {
-      let fs = shader.fragmentShader;
+    displacementMap: new THREE.CanvasTexture(displacementCanvas)
 
-      fs = fs.replace(
-        "#include <map_fragment>",
-        sdMapFrag
-      );
-
-      shader.fragmentShader = `
-        ${sdMapFragHeader}
-        ${fs}
-      `;
-
-      shader.uniforms.palette = { value: paletteMap };
-      shader.uniforms.paletteIndices = { value: paletteIndicesMap };
-      shader.uniforms.counter = tileAnimationCounterUniform;
-
-      shader.uniforms.mapResolution = {
-        value: new Vector2(mapWidth, mapHeight),
-      };
-      shader.uniforms.invMapResolution = {
-        value: new Vector2(1 / mapWidth, 1 / mapHeight),
-      };
-      shader.uniforms.mapToCreepResolution = {
-        value: new Vector2(
-          mapWidth / (creepTexture.width / 32),
-          mapHeight / (creepTexture.height / 32)
-        ),
-      };
-      shader.uniforms.creepResolution = {
-        value: new Vector2(
-          creepTexture.width / 32,
-          creepTexture.height / 32
-        ),
-      };
-      shader.uniforms.creepEdgesResolution = {
-        value: new Vector2(
-          creepEdgesTexture.width / 32,
-          creepEdgesTexture.height / 32
-        ),
-      };
-      shader.uniforms.mapToCreepEdgesResolution = {
-        value: new Vector2(
-          mapWidth / (creepEdgesTexture.width / 32),
-          mapHeight / (creepEdgesTexture.height / 32)
-        ),
-      };
-      shader.uniforms.creep = creepTextureUniform;
-      shader.uniforms.creepEdges = creepEdgesTextureUniform;
-      shader.uniforms.creepEdgesTexture = {
-        value: creepEdgesTexture.texture,
-      };
-      shader.uniforms.creepTexture = {
-        value: creepTexture.texture,
-      };
-    },
   });
-  sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounterUniform;
+  sdMapMaterial.onBeforeCompile = function (shader) {
+    let fs = shader.fragmentShader;
+
+    fs = fs.replace(
+      "#include <map_fragment>",
+      sdMapFrag
+    );
+
+    shader.fragmentShader = `
+      ${sdMapFragHeader}
+      ${fs}
+    `;
+
+    shader.uniforms.palette = { value: paletteMap };
+    shader.uniforms.paletteIndices = { value: paletteIndicesMap };
+    shader.uniforms.counter = tileAnimationCounterUniform;
+
+    shader.uniforms.mapResolution = {
+      value: new Vector2(mapWidth, mapHeight),
+    };
+    shader.uniforms.invMapResolution = {
+      value: new Vector2(1 / mapWidth, 1 / mapHeight),
+    };
+    shader.uniforms.mapToCreepResolution = {
+      value: new Vector2(
+        mapWidth / (creepTexture.width / 32),
+        mapHeight / (creepTexture.height / 32)
+      ),
+    };
+    shader.uniforms.creepResolution = {
+      value: new Vector2(
+        creepTexture.width / 32,
+        creepTexture.height / 32
+      ),
+    };
+    shader.uniforms.creepEdgesResolution = {
+      value: new Vector2(
+        creepEdgesTexture.width / 32,
+        creepEdgesTexture.height / 32
+      ),
+    };
+    shader.uniforms.mapToCreepEdgesResolution = {
+      value: new Vector2(
+        mapWidth / (creepEdgesTexture.width / 32),
+        mapHeight / (creepEdgesTexture.height / 32)
+      ),
+    };
+    shader.uniforms.creep = creepTextureUniform;
+    shader.uniforms.creepEdges = creepEdgesTextureUniform;
+    shader.uniforms.creepEdgesTexture = {
+      value: creepEdgesTexture.texture,
+    };
+    shader.uniforms.creepTexture = {
+      value: creepTexture.texture,
+    };
+  },
+    sdMapMaterial.userData.tileAnimationCounter = tileAnimationCounterUniform;
 
   const elevationOptions = {
     drawMode: { value: 0 },
@@ -98,25 +98,25 @@ export const createSDMesh = async (
     roughness: 1,
     bumpMap: roughnessMap,
     bumpScale: 0.3,
-    // @ts-ignore
-    onBeforeCompile: function (shader) {
-      let fs = shader.fragmentShader;
 
-      fs = fs.replace(
-        "#include <map_fragment>",
-        elevationFrag
-      );
-
-      shader.fragmentShader = `
-        ${elevationHeader}
-        ${fs}
-      `;
-
-      shader.uniforms.elevations = { value: elevationsMap };
-      shader.uniforms.drawMode = elevationOptions.drawMode;
-      shader.uniforms.mapTiles = { value: mapTilesMap };
-    },
   });
+  elevationsMaterial.onBeforeCompile = function (shader) {
+    let fs = shader.fragmentShader;
+
+    fs = fs.replace(
+      "#include <map_fragment>",
+      elevationFrag
+    );
+
+    shader.fragmentShader = `
+      ${elevationHeader}
+      ${fs}
+    `;
+
+    shader.uniforms.elevations = { value: elevationsMap };
+    shader.uniforms.drawMode = elevationOptions.drawMode;
+    shader.uniforms.mapTiles = { value: mapTilesMap };
+  };
   elevationsMaterial.userData = elevationOptions;
 
   const geometry = new THREE.PlaneBufferGeometry(
