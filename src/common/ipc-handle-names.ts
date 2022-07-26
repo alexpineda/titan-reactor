@@ -4,7 +4,6 @@ export const OPEN_REPLAY_DIALOG = "OPEN_REPLAY_DIALOG";
 export const GET_LOADED_SETTINGS = "GET_SETTINGS";
 
 export const SAVE_SETTINGS_DATA = "SAVE_SETTINGS";
-export const SETTINGS_WERE_SAVED = "SETTINGS_WERE_SAVED";
 
 export const SHOW_FOLDER_DIALOG = "SHOW_FOLDER_DIALOG";
 export const LOG_MESSAGE = "LOG_MESSAGE";
@@ -18,6 +17,9 @@ export const GO_TO_START_PAGE = "GO_TO_START_PAGE";
 export const INVOKE_BROWSER_WINDOW = "INVOKE_BROWSER_WINDOW";
 export const INVOKE_BROWSER_WINDOW_RESPONSE = "INVOKE_BROWSER_WINDOW_RESPONSE";
 
+export const SEND_BROWSER_WINDOW = "SEND_BROWSER_WINDOW";
+
+
 export const enum InvokeBrowserTarget {
     Game = "game",
     CommandCenter = "command-center",
@@ -26,6 +28,7 @@ export const enum InvokeBrowserTarget {
 export const enum BrowserTargetPayloadType {
     PluginMacroMethodCatalog = "pluginMacroMethodCatalog",
     GameTimeApiMethodCatalog = "gameTimeApiMethodCatalog",
+    ManualMacroExecute = "ManualMacroExecute",
 }
 
 export const OPEN_CASCLIB = "OPEN_CASCLIB";

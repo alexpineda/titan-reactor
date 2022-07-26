@@ -29,6 +29,7 @@ export const Tabs = ({
 
           return (
             <div
+              key={index}
               style={{
                 padding: "var(--size-2)",
                 cursor: "pointer",

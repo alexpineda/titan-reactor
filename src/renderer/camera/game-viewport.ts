@@ -14,7 +14,7 @@ export class GameViewPort {
     enabled = true;
     camera = new DirectionalCamera(15, 1, 0.1, 1000);
     projectedView = new ProjectedCameraView();
-    orbit?: CameraControls;
+    orbit: CameraControls;
     viewport = new Vector4(0, 0, 300, 200);
     cameraShake = new CameraShake;
     shakeCalculation = {
@@ -31,7 +31,7 @@ export class GameViewPort {
     #bottom?: number | null;
     #center?: Vector2 | null;
     #surface: Surface;
-    constrainAspect = false;
+    constrainToAspect = true;
 
     renderOptions = {
         unitScale: 1,
@@ -43,6 +43,7 @@ export class GameViewPort {
     constructor(surface: Surface) {
         this.#surface = surface;
         this.camera = new DirectionalCamera(15, surface.aspect, 0.1, 500);
+        this.orbit = new CameraControls(this.camera, this.#surface.canvas);
         this.orbit = this.reset();
     }
 
@@ -72,16 +73,16 @@ export class GameViewPort {
     }
 
     set height(val: number) {
-        this.#height = val;
-        if (this.constrainAspect) {
+        this.#height = val <= 1 ? this.#surface.bufferHeight * val : val;
+        if (this.constrainToAspect) {
             this.#width = this.#height * this.camera.aspect;
         }
         this.updateDimensions();
     }
 
     set width(val: number) {
-        this.#width = val;
-        if (this.constrainAspect) {
+        this.#width = val <= 1 ? this.#surface.bufferWidth * val : val;
+        if (this.constrainToAspect) {
             this.#height = this.#width / this.camera.aspect;
         }
         this.updateDimensions();
@@ -101,11 +102,17 @@ export class GameViewPort {
 
     set left(val: number | undefined | null) {
         this.#left = val;
+        if (typeof val === "number") {
+            this.#left = val <= 1 ? this.#surface.bufferWidth * val : val;
+        }
         this.updateDimensions();
     }
 
     set right(val: number | undefined | null) {
         this.#right = val;
+        if (typeof val === "number") {
+            this.#right = val <= 1 ? this.#surface.bufferWidth * val : val;
+        }
         this.updateDimensions();
     }
 
@@ -119,11 +126,17 @@ export class GameViewPort {
 
     set top(val: number | undefined | null) {
         this.#top = val;
+        if (typeof val === "number") {
+            this.#top = val <= 1 ? this.#surface.bufferHeight * val : val;
+        }
         this.updateDimensions();
     }
 
     set bottom(val: number | undefined | null) {
         this.#bottom = val;
+        if (typeof val === "number") {
+            this.#bottom = val <= 1 ? this.#surface.bufferHeight * val : val;
+        }
         this.updateDimensions();
     }
 
@@ -134,8 +147,10 @@ export class GameViewPort {
     updateDimensions() {
 
         if (this.center) {
-            const x = this.center.x - this.width / 2;
-            const y = window.innerHeight - this.center.y - (this.height / 2);
+            const _x = this.center.x <= 1 ? this.#surface.bufferWidth * this.center.x : this.center.x;
+            const _y = this.center.y <= 1 ? this.#surface.bufferHeight * this.center.y : this.center.y;
+            const x = _x - this.width / 2;
+            const y = window.innerHeight - _y - (this.height / 2);
             this.viewport.set(MathUtils.clamp(x, 0, this.surfaceWidth - this.#width), MathUtils.clamp(y, 0, this.surfaceHeight - this.height), this.width, this.height);
         } else {
             let x = 0, y = 0;
@@ -177,10 +192,11 @@ export class GameViewPort {
     set aspect(aspect: number) {
         this.camera.aspect = aspect;
         this.camera.updateProjectionMatrix();
-        if (this.constrainAspect) {
+        if (this.constrainToAspect) {
             this.height = this.#height;
+        } else {
+            this.updateDimensions();
         }
-        this.updateDimensions();
     }
 
     dispose() {

@@ -55,8 +55,6 @@ const createDefaultHooks = () => ({
     onTechCompleted: new Hook(HOOK_ON_TECH_COMPLETED, ["tech"]),
 });
 
-
-
 const pluginProto: PluginPrototype = {
     id: "",
     $$permissions: {},
@@ -103,7 +101,7 @@ export class PluginSystemNative {
     #nativePlugins: NativePlugin[] = [];
     #uiPlugins: PluginSystemUI;
     #janitor = new Janitor;
-    #activeSceneInputHandler = "";
+    #activeSceneInputHandler?: SceneInputHandler;
 
     readonly hooks: Record<string, Hook> = createDefaultHooks();
 
@@ -196,8 +194,8 @@ export class PluginSystemNative {
         return this.#nativePlugins.filter(p => (p as SceneInputHandler).onEnterScene) as SceneInputHandler[];
     }
 
-    setActiveSceneInputHandler(id: string) {
-        this.#activeSceneInputHandler = id;
+    setActiveSceneInputHandler(plugin: SceneInputHandler) {
+        this.#activeSceneInputHandler = plugin;
     }
 
     #getByName(name: string) {
@@ -269,7 +267,7 @@ export class PluginSystemNative {
     }
 
     #sceneInputHandlerGaurd(plugin: NativePlugin) {
-        return !plugin.isSceneController || this.#activeSceneInputHandler === plugin.id;
+        return !plugin.isSceneController || this.#activeSceneInputHandler === plugin;
     }
 
     hook_onConfigChanged(pluginId: string, config: any) {

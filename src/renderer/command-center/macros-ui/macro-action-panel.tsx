@@ -13,7 +13,7 @@ export const MacroActionPanel = (
     iconCache: Record<number, string>;
   }
 ) => {
-  const { action, setActiveAction, deleteAction, iconCache } = props;
+  const { action, setActiveAction, deleteAction, iconCache, viewOnly } = props;
 
   return (
     <div
@@ -52,7 +52,10 @@ export const MacroActionPanel = (
         >
           <i
             className="material-icons small"
-            style={{ fontSize: "var(--size-3)" }}
+            style={{
+              fontSize: "var(--size-3)",
+              color: viewOnly ? "inherit" : "var(--red-4)",
+            }}
           >
             edit
           </i>

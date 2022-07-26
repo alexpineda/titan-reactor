@@ -40,7 +40,6 @@ type PostProcessingBundle = {
 export class TitanRenderer {
     #renderer?: WebGLRenderer;
     #targetSurface = new Surface();
-    #gamma = 0.9;
     #postProcessingBundle: PostProcessingBundle = {
         effects: [],
         passes: []
@@ -60,7 +59,6 @@ export class TitanRenderer {
             return this.#renderer;
         }
         const renderer = this.#renderer = createWebGLRenderer();
-        renderer.toneMappingExposure = this.#gamma;
 
         this.composer.setRenderer(renderer);
         this.composer.autoRenderToScreen = false;
@@ -107,7 +105,7 @@ export class TitanRenderer {
         this.setSize(this.#targetSurface.bufferWidth, this.#targetSurface.bufferHeight);
     }
 
-    updatePostProcessingCamera(camera: Camera) {
+    updatePostProcessingCamera(camera: Camera, renderLastPassToScreen: boolean) {
         let lastPass: any = null;
 
         for (const pass of this.#postProcessingBundle.passes) {
@@ -117,7 +115,7 @@ export class TitanRenderer {
                 lastPass = pass;
             }
         }
-        lastPass.renderToScreen = true;
+        lastPass.renderToScreen = renderLastPassToScreen;
 
         for (const effect of this.#postProcessingBundle.effects) {
             effect.camera = camera;
@@ -140,6 +138,10 @@ export class TitanRenderer {
             renderer.setScissorTest(false);
         }
 
+    }
+
+    renderBuffer() {
+        const renderer = this.getWebGLRenderer();
         this.#targetSurface.ctx.drawImage(
             renderer.domElement,
             0,
@@ -151,8 +153,6 @@ export class TitanRenderer {
             this.#targetSurface.bufferWidth,
             this.#targetSurface.bufferHeight
         );
-
-
     }
 
     setSize(bufferWidth: number, bufferHeight: number) {

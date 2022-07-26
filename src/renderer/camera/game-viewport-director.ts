@@ -22,6 +22,13 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     onActivate?: (viewport: SceneInputHandler) => void;
 
+    *activeViewports() {
+        for (const viewport of this.viewports) {
+            if (viewport.enabled) {
+                yield viewport;
+            }
+        }
+    }
 
     get usePointerLock() {
         return this.#inputHandler?.gameOptions?.usePointerLock ?? false;

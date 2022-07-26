@@ -18,7 +18,7 @@ import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
 import { mapConfigToLeva } from "./map-config-to-leva";
-import { MacrosPanel } from "./macros/macro-settings";
+import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { openCascStorage, readCascFileBatch } from "@ipc/casclib";
 

@@ -13,12 +13,13 @@ import { SYSTEM_EVENT_OPEN_URL } from "./plugins/events";
 import { openUrl } from "./ipc";
 import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
 import { ipcRenderer } from "electron";
-import { GO_TO_START_PAGE, SETTINGS_WERE_SAVED } from "common/ipc-handle-names";
+import { GO_TO_START_PAGE, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import gameStore from "@stores/game-store";
 import { rendererIsDev } from "@utils/renderer-utils";
 import "ses";
+import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 // import "./utils/webgl-lint";
 
 if (rendererIsDev) {
@@ -227,13 +228,12 @@ const tryLoad = async (settings: SettingsMeta) => {
   screenStore().complete();
 }
 
-ipcRenderer.on(SETTINGS_WERE_SAVED, async (_, settings) => {
-  try {
-    await tryLoad(settings);
-    useSettingsStore.setState(settings);
-  } catch (err: any) {
-    log.error(err.message);
-    screenStore().setError(err);
+ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
+  type: SendWindowActionType.RefreshSettings
+  payload: SendWindowActionPayload<SendWindowActionType.RefreshSettings>
+}) => {
+  if (type === SendWindowActionType.RefreshSettings) {
+    useSettingsStore.setState(payload);
   }
 })
 

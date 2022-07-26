@@ -1,4 +1,4 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, useState } from "react";
 import {
   capitalizeFirstLetters,
   spaceOutCapitalLetters,
@@ -8,10 +8,14 @@ import {
   MacroAction,
   MacroActionSequence,
   MacroDTO,
+  TriggerType,
 } from "common/types";
 import { MacroActionPanel } from "./macro-action-panel";
 import debounce from "lodash.debounce";
 import { CreateMacroAction } from "./create-macro-action";
+import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import EditableLabel from "react-inline-editing";
 
 export const MacroPanel = ({
   macro,
@@ -43,14 +47,22 @@ export const MacroPanel = ({
         e.code.includes("Shift") ||
         e.code.includes("Control") ||
         e.code.includes("Alt") ||
-        e.code.includes("Escape")
+        e.code.includes("Escape") ||
+        e.code.includes("ArrowUp") ||
+        e.code.includes("ArrowDown") ||
+        e.code.includes("ArrowLeft") ||
+        e.code.includes("ArrowRight")
       ) {
         return;
       }
       const shiftKey = e.shiftKey ? ["Shift"] : [];
       const ctrlKey = e.ctrlKey ? ["Ctrl"] : [];
       const altKey = e.altKey ? ["Alt"] : [];
-      const key = [...shiftKey, ...ctrlKey, ...altKey, e.code].join("+");
+      const key =
+        e.code === "Backspace"
+          ? ""
+          : [...shiftKey, ...ctrlKey, ...altKey, e.code].join("+");
+
       updateMacro({
         ...macro,
         trigger: {
@@ -63,9 +75,8 @@ export const MacroPanel = ({
     { leading: true, trailing: false }
   );
 
-  const renameMacro = () => {
-    const name = prompt("Enter a new name for this macro", macro.name);
-    if (name !== null) {
+  const renameMacro = (name: string) => {
+    if (name !== macro.name) {
       updateMacro({ ...macro, name });
     }
   };
@@ -84,7 +95,7 @@ export const MacroPanel = ({
           display: "grid",
           gridGap: "var(--size-3)",
           padding: "var(--size-3)",
-          gridTemplateColumns: "auto auto auto auto 1fr",
+          gridTemplateColumns: "auto auto auto 1fr",
           alignItems: "center",
           justifyContent: "start",
           marginBottom: "var(--size-5)",
@@ -103,18 +114,19 @@ export const MacroPanel = ({
             }}
             src={iconCache[389]}
           />
-          {macro.name}
+          <EditableLabel text={macro.name} onFocusOut={renameMacro} />
         </h4>
 
-        <button onClick={() => renameMacro()}>Rename</button>
         <span>
           <label>
             {capitalizeFirstLetters(macro.trigger.type)}
-            <input
-              value={macro.trigger.value}
-              onKeyDown={ChangeHotkeyTriggerKey}
-              readOnly={true}
-            />
+            {macro.trigger.type === TriggerType.Hotkey && (
+              <input
+                value={macro.trigger.value}
+                onKeyDown={ChangeHotkeyTriggerKey}
+                readOnly={true}
+              />
+            )}
           </label>
         </span>
         <span>
@@ -140,23 +152,47 @@ export const MacroPanel = ({
             </select>
           </label>
         </span>
-        <button
+        <div
           style={{
-            justifySelf: "end",
-            color: "var(--red-6)",
-            padding: "var(--size-2)",
+            display: "grid",
+            justifyContent: "end",
+            gridTemplateColumns: "auto auto",
+            gridGap: "var(--size-4)",
           }}
-          onClick={() => deleteMacro(macro.id)}
         >
-          <i
-            className="material-icons"
+          {(macro.trigger.type === TriggerType.Manual ||
+            macro.trigger.type === TriggerType.Hotkey) && (
+            <button
+              onClick={() => {
+                sendWindow(InvokeBrowserTarget.Game, {
+                  type: SendWindowActionType.ManualMacroTrigger,
+                  payload: macro.id,
+                });
+              }}
+            >
+              <i className="material-icons" style={{ color: "var(--green-7)" }}>
+                play_arrow
+              </i>{" "}
+              Test Macro
+            </button>
+          )}
+          <button
             style={{
-              fontSize: "var(--font-size-4)",
+              color: "var(--red-6)",
+              padding: "var(--size-2)",
             }}
+            onClick={() => deleteMacro(macro.id)}
           >
-            delete
-          </i>
-        </button>
+            <i
+              className="material-icons"
+              style={{
+                fontSize: "var(--font-size-4)",
+              }}
+            >
+              delete
+            </i>
+          </button>
+        </div>
       </span>
       <CreateMacroAction
         onCreate={(action) => createAction(macro, action)}

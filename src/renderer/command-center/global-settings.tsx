@@ -1,4 +1,6 @@
+import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { useSettingsStore } from "@stores/settings-store";
+import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import {
   getAppSettingsLevaConfig,
   levaConfigToAppConfig,
@@ -36,7 +38,12 @@ export const GlobalSettings = () => {
         ...newSettings.graphics,
       },
     };
-    settings.save(newState);
+    settings.save(newState).then((payload) => {
+      sendWindow(InvokeBrowserTarget.Game, {
+        type: SendWindowActionType.RefreshSettings,
+        payload,
+      });
+    });
   });
 
   const store = useCreateStore();

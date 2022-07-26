@@ -1,10 +1,23 @@
 import { ipcRenderer } from "electron";
 
-import { BrowserTargetPayloadType, InvokeBrowserTarget, INVOKE_BROWSER_WINDOW, INVOKE_BROWSER_WINDOW_RESPONSE } from "common/ipc-handle-names";
+import { BrowserTargetPayloadType, InvokeBrowserTarget, INVOKE_BROWSER_WINDOW, INVOKE_BROWSER_WINDOW_RESPONSE, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
+import { MacrosDTO, SettingsMeta } from "common/types";
 
 export const invokeWindow = async (target: InvokeBrowserTarget, message: { type: string, payload?: any }) => {
     const messageId = Math.random().toString();
     return await ipcRenderer.invoke(INVOKE_BROWSER_WINDOW, { target, messageId }, message);
+}
+
+export enum SendWindowActionType {
+    ManualMacroTrigger = "ManualMacroTrigger",
+    RefreshSettings = "RefreshSettings",
+    RefreshMacros = "RefreshMacros",
+}
+
+export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.RefreshSettings ? SettingsMeta : T extends SendWindowActionType.RefreshMacros ? MacrosDTO : never;
+
+export function sendWindow<T extends SendWindowActionType>(target: InvokeBrowserTarget, message: { type: SendWindowActionType, payload: SendWindowActionPayload<T> }) {
+    ipcRenderer.send(SEND_BROWSER_WINDOW, { target }, message);
 }
 
 const _registry = new Set<BrowserTargetPayloadType>();

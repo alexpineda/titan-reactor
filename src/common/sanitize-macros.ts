@@ -3,6 +3,11 @@ import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, Macr
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "pluginsMetadata">
 
+
+const getPluginConfigFields = (config: any) => {
+    return Object.keys(config).filter(k => k !== "system")
+}
+
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta) => {
     for (const macro of macros.macros) {
         for (const action of macro.actions) {
@@ -85,13 +90,14 @@ const sanitizeMacroActionFields = (action: MacroAction, settings: SettingsAndPlu
             if (replaced) {
                 action.field = [replaced]
             }
-            else {
+            // failed to properly assign a field even though the config is available and/or plugins methods are available
+            else if (getPluginConfigFields(plugin.config).length || plugin.methods.length) {
                 action.error = {
                     type: MacroActionConfigurationErrorType.MissingField,
                     message: `Missing field for plugin`,
                 }
+                return;
             }
-
             return;
         }
 
@@ -135,7 +141,9 @@ export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number"
             MacroActionEffect.SetToDefault,
             MacroActionEffect.Set,
             MacroActionEffect.Increase,
+            MacroActionEffect.IncreaseCycle,
             MacroActionEffect.Decrease,
+            MacroActionEffect.DecreaseCycle,
             MacroActionEffect.Min,
             MacroActionEffect.Max,
         ];

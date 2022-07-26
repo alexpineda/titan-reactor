@@ -11,6 +11,9 @@ import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
 import { generateUUID } from "three/src/math/MathUtils";
 import { useSettingsStore } from "@stores/settings-store";
+import { createDefaultMacros } from "./default-macros";
+import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { InvokeBrowserTarget } from "common/ipc-handle-names";
 
 export const MacrosPanel = ({
   iconCache,
@@ -18,13 +21,16 @@ export const MacrosPanel = ({
   iconCache: Record<number, string>;
 }) => {
   const settings = useSettingsStore();
-  console.log(settings.data.macros);
   const state = settings.data.macros;
 
   const save = (newMacros: MacrosDTO) => {
     if (state.revision !== newMacros.revision) {
       settings.save({
         macros: newMacros,
+      });
+      sendWindow(InvokeBrowserTarget.Game, {
+        type: SendWindowActionType.RefreshMacros,
+        payload: newMacros,
       });
     }
   };
@@ -60,7 +66,6 @@ export const MacrosPanel = ({
     const newMacros = [...state.macros];
     newMacros.splice(idx, 1, newMacro);
     save({ ...state, macros: newMacros, revision: state.revision + 1 });
-    console.log(action);
   };
 
   const deleteMacro = (macroId: string) => {
@@ -114,6 +119,29 @@ export const MacrosPanel = ({
   return (
     <div>
       <ErrorBoundary message="There was an error with this page">
+        {state.macros.length === 0 && (
+          <div
+            style={{
+              padding: "var(--size-3)",
+              background: "var(--yellow-1)",
+              color: "var(--orange-7)",
+              display: "grid",
+              gridTemplateColumns: "auto auto",
+              justifyContent: "start",
+              gridGap: "1rem",
+              alignItems: "center",
+            }}
+          >
+            You don't have any macros. Configure a default set?{" "}
+            <button
+              onClick={() => {
+                save(createDefaultMacros());
+              }}
+            >
+              Create default macros
+            </button>
+          </div>
+        )}
         <CreateMacro onCreate={createMacro} />
         <div>
           {state.macros.map((macro) => (

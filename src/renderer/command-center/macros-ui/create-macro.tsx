@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MacroTriggerDTO } from "common/types";
+import { MacroTriggerDTO, TriggerType } from "common/types";
 
 export const CreateMacro = ({
   onCreate,
@@ -8,8 +8,7 @@ export const CreateMacro = ({
 }) => {
   const [name, setName] = useState("");
   const [triggerType, setTriggerType] = useState<MacroTriggerDTO>({
-    type: "hotkey",
-    value: "",
+    type: TriggerType.Manual,
   });
 
   return (
@@ -41,12 +40,18 @@ export const CreateMacro = ({
         <label>
           Trigger Type:
           <select
-            onChange={(e) =>
-              setTriggerType({ type: e.target.value, value: "" })
-            }
+            onChange={(e) => {
+              const type =
+                TriggerType[e.target.value as keyof typeof TriggerType];
+              setTriggerType({ type });
+            }}
             value={triggerType.type}
           >
-            <option value="hotkey">Hotkey</option>
+            {Object.keys(TriggerType).map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
           </select>
         </label>
 

@@ -9,7 +9,7 @@ import type Chk from "bw-chk";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SettingsMeta
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -57,8 +57,8 @@ import CommandsStream from "./process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
 import { CSS2DRenderer } from "./render/css-renderer";
-import { ipcRenderer } from "electron";
-import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, SETTINGS_WERE_SAVED } from "common/ipc-handle-names";
+import { ipcRenderer, IpcRendererEvent } from "electron";
+import { ON_PLUGIN_CONFIG_UPDATED, RELOAD_PLUGINS, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
@@ -67,12 +67,13 @@ import { IndexedObjectPool } from "./utils/indexed-object-pool";
 import { StdVector } from "./buffer-view/std-vector";
 import range from "common/utils/range";
 import { getPixelRatio } from "@utils/renderer-utils";
-import { Macros } from "./command-center/macros";
+import { Macros } from "./command-center/macros/macros";
 import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "./camera/game-viewport-director";
 import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { EffectPass, RenderPass } from "postprocessing";
 import { drawMinimap } from "./render/draw-minimap";
+import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 
 CameraControls.install({ THREE: THREE });
 
@@ -187,13 +188,13 @@ async function TitanReactorGame(
   scene.add(fadingPointers);
 
   let followedUnits: Unit[] = [];
-  let followedTarget = new Vector3();
-  const setFollowedUnits = (units: Unit[]) => {
+  let _followedUnitsPosition = new Vector3();
+  const followUnits = (units: Unit[]) => {
     followedUnits = [...units];
     plugins.callHook(HOOK_ON_UNITS_FOLLOWED, units);
   }
 
-  const unFollowUnit = (unit: Unit) => {
+  const unfollowUnit = (unit: Unit) => {
     const idx = followedUnits.indexOf(unit);
     if (idx > -1) {
       followedUnits.splice(idx, 1);
@@ -207,22 +208,22 @@ async function TitanReactorGame(
       plugins.callHook(HOOK_ON_UNITS_CLEAR_FOLLOWED);
     }
   }
-  const calculateFollowedUnitsTarget = () => {
+  const calculateFollowedUnitsTarget = debounce(() => {
     if (followedUnits.length === 0) {
       return;
     }
 
-    followedTarget.set(pxToGameUnit.x(followedUnits[0].x), 0, pxToGameUnit.y(followedUnits[0].y));
+    _followedUnitsPosition.set(pxToGameUnit.x(followedUnits[0].x), 0, pxToGameUnit.y(followedUnits[0].y));
 
     for (let i = 1; i < followedUnits.length; i++) {
-      followedTarget.set(
-        (followedTarget.x + pxToGameUnit.x(followedUnits[i].x)) / 2,
+      _followedUnitsPosition.set(
+        (_followedUnitsPosition.x + pxToGameUnit.x(followedUnits[i].x)) / 2,
         0,
-        (followedTarget.z + pxToGameUnit.y(followedUnits[i].y)) / 2
+        (_followedUnitsPosition.z + pxToGameUnit.y(followedUnits[i].y)) / 2
       )
     }
-    return followedTarget;
-  }
+    return _followedUnitsPosition;
+  }, 10);
 
   const cameraMouse = new CameraMouse(document.body);
   janitor.disposable(cameraMouse);
@@ -231,7 +232,7 @@ async function TitanReactorGame(
     if (followedUnits.length) {
       clearFollowedUnits();
     } else if (selectedUnitsStore().selectedUnits.length) {
-      setFollowedUnits(selectedUnitsStore().selectedUnits);
+      followUnits(selectedUnitsStore().selectedUnits);
     }
   });
   janitor.disposable(cameraKeys);
@@ -290,6 +291,8 @@ async function TitanReactorGame(
     if (!inputHandler.gameOptions.allowUnitSelection) {
       selectedUnitsStore().clearSelectedUnits();
     }
+
+    plugins.setActiveInputHandler(inputHandler);
 
   }
 
@@ -601,7 +604,7 @@ async function TitanReactorGame(
       freeUnits.push(unit);
 
       selectedUnitsStore().removeUnit(unit);
-      unFollowUnit(unit);
+      unfollowUnit(unit);
       plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
     }
 
@@ -831,9 +834,11 @@ async function TitanReactorGame(
     calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
 
-    //TODO: apply to all orbits
-    const a = gameViewportsDirector.primaryViewport.camera.position.distanceTo(_spritePos) / Math.min(500, gameViewportsDirector.primaryViewport.orbit!.maxDistance);
-    const v = Math.floor((a * a * a) * 1.25);
+    let v = Infinity;
+    for (const viewport of gameViewportsDirector.activeViewports()) {
+      const a = viewport.camera.position.distanceTo(_spritePos) / Math.min(500, viewport.orbit.maxDistance);
+      v = Math.min(v, Math.floor((a * a * a) * 1.25));
+    }
 
     if (!spriteIsVisible || v > 0 && sprite.userData.renderTestCount > 0) {
       if (sprite.userData.renderTestCount < v) {
@@ -854,7 +859,7 @@ async function TitanReactorGame(
       const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
 
       if (bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
-        for (const v of gameViewportsDirector.viewports) {
+        for (const v of gameViewportsDirector.activeViewports()) {
           if (!v.cameraShake.enabled) {
             continue;
           }
@@ -1187,9 +1192,9 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    gameViewportsDirector.primaryViewport.orbit!.update(delta / 1000);
-    for (const viewport of gameViewportsDirector.viewports) {
-      viewport.orbit?.getTarget(_a);
+    for (const viewport of gameViewportsDirector.activeViewports()) {
+      viewport.orbit.update(delta / 1000);
+      viewport.orbit.getTarget(_a);
       viewport.projectedView.update(viewport.camera, _a);
     }
 
@@ -1224,7 +1229,7 @@ async function TitanReactorGame(
       const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
       audioMixer.updateFromVector3(audioPosition as Vector3, delta);
 
-      for (const v of gameViewportsDirector.viewports) {
+      for (const v of gameViewportsDirector.activeViewports()) {
         if (v.cameraShake.enabled && v.shakeCalculation.needsUpdate) {
           v.cameraShake.shake(elapsed, v.shakeCalculation.duration, v.shakeCalculation.frequency, v.shakeCalculation.strength);
           v.shakeCalculation.needsUpdate = false;
@@ -1258,7 +1263,7 @@ async function TitanReactorGame(
 
 
     {
-      for (const v of gameViewportsDirector.viewports) {
+      for (const v of gameViewportsDirector.activeViewports()) {
         const dir = v.renderOptions.rotateSprites ? getDirection32(v.projectedView.center, v.camera.position) : 0;
         if (dir != v.camera.userData.direction) {
           v.camera.userData.prevDirection = v.camera.userData.direction;
@@ -1275,18 +1280,18 @@ async function TitanReactorGame(
 
     plugins.onBeforeRender(delta, elapsed);
 
-    for (const v of gameViewportsDirector.viewports) {
-      if (!v.enabled) continue;
-
+    for (const v of gameViewportsDirector.activeViewports()) {
       setUseScale(images, v.renderOptions.unitScale);
       v.cameraShake.update(elapsed, v.camera);
       fogOfWarEffect.blendMode.opacity.value = v.renderOptions.fogOfWarOpacity;
       fogOfWar.update(players.getVisionFlag(), v.camera, minimapFOWImage);
       renderer.setPostProcessingBundle(defaultPostProcessingBundle);
-      renderer.updatePostProcessingCamera(v.camera);
-      renderer.render(delta);
+      renderer.updatePostProcessingCamera(v.camera, true);
+      renderer.render(delta, v.viewport);
       v.cameraShake.restore(v.camera);
     }
+    renderer.renderBuffer();
+
 
     let _cssItems = 0;
     for (const cssItem of cssScene.children) {
@@ -1453,8 +1458,12 @@ async function TitanReactorGame(
       getOriginalNames,
       getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
       replay: { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] },
-      getFollowedUnits: () => followedUnits,
-      calculateFollowedUnitsTarget,
+      get followedUnitsPosition() {
+        if (followedUnits.length === 0) {
+          return null;
+        }
+        return calculateFollowedUnitsTarget();
+      },
       selectUnits: (ids: number[]) => {
         const selection = [];
         for (const id of ids) {
@@ -1485,10 +1494,15 @@ async function TitanReactorGame(
     });
 
     macros.setHostDefaults(settings);
-    ipcRenderer.on(SETTINGS_WERE_SAVED, async (_, settings: SettingsMeta) => {
-      macros.setHostDefaults(settings.data);
-      defaultSceneController = settings.data.game.sceneController;
-    });
+    ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
+      type: SendWindowActionType.RefreshSettings
+      payload: SendWindowActionPayload<SendWindowActionType.RefreshSettings>
+    }) => {
+      if (type === SendWindowActionType.RefreshSettings) {
+        macros.setHostDefaults(payload.data);
+        defaultSceneController = payload.data.game.sceneController;
+      }
+    })
 
     plugins.setAllMacroDefaults(macros);
     ipcRenderer.on(ON_PLUGIN_CONFIG_UPDATED, (_, pluginId: string, config: any) => {
@@ -1498,6 +1512,17 @@ async function TitanReactorGame(
     pluginsApiJanitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
       macros.doMacros(e);
     });
+
+    const _handleManualTrigger = (_: IpcRendererEvent, { type, payload }: {
+      type: SendWindowActionType.ManualMacroTrigger,
+      payload: SendWindowActionPayload<SendWindowActionType.ManualMacroTrigger>
+    }) => {
+      if (type === SendWindowActionType.ManualMacroTrigger) {
+        macros.execMacroById(payload);
+      }
+    }
+    ipcRenderer.on(SEND_BROWSER_WINDOW, _handleManualTrigger);
+    pluginsApiJanitor.callback(() => ipcRenderer.off(SEND_BROWSER_WINDOW, _handleManualTrigger));
 
   }
 

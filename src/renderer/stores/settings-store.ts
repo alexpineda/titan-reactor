@@ -9,7 +9,7 @@ import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-conf
 import lSet from "lodash.set";
 
 export type SettingsStore = SettingsMeta & {
-  save: (data: Partial<Settings>) => Promise<void>;
+  save: (data: Partial<Settings>) => Promise<SettingsMeta>;
   set: (data: Partial<Settings>) => Promise<void>;
   load: () => Promise<SettingsMeta>;
   doMacroAction: (action: MacroAction) => void;
@@ -29,6 +29,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   save: async (settings) => {
     const data = await saveSettings({ ...get().data, ...settings });
     set({ data });
+    return await invokeGetSettings();
   },
   load: async () => {
     const settings = await invokeGetSettings();

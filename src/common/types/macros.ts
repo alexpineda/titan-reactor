@@ -10,6 +10,8 @@ export enum MacroActionEffect {
     Toggle = "Toggle",
     Increase = "Increase",
     Decrease = "Decrease",
+    IncreaseCycle = "IncreaseCycle",
+    DecreaseCycle = "DecreaseCycle",
     Min = "Min",
     Max = "Max",
     CallMethod = "CallMethod",
@@ -65,8 +67,8 @@ export type MacroActionPlugin = MacroActionPluginModifyValue;
 export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCallMethod | MacroActionPlugin);
 
 export type MacroTriggerDTO = {
-    type: string;
-    value: string;
+    type: TriggerType;
+    value?: any;
 }
 
 export type MacroDTO = {
@@ -85,7 +87,13 @@ export type MacrosDTO = {
 };
 
 
-export interface Trigger<T> {
-    type: string;
-    test: (event: T) => boolean;
+export enum TriggerType {
+    Manual = "Manual",
+    Hotkey = "Hotkey",
+    PluginCustomHook = "PluginCustomHook",
+}
+export interface MacroTrigger {
+    type: TriggerType;
+    test: (event: any) => boolean;
+    serialize: () => MacroTriggerDTO;
 }

@@ -78,7 +78,7 @@ async function TitanReactorMap(
   renderer.setPostProcessingBundle({
     passes: [renderPass]
   });
-  renderer.updatePostProcessingCamera(camera);
+  renderer.updatePostProcessingCamera(camera, true);
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
