@@ -1440,7 +1440,10 @@ async function TitanReactorGame(
         return currentBwFrame;
       },
       maxFrame: replay.header.frameCount,
-      gotoFrame: (frame: number) => openBW.setCurrentFrame(frame),
+      gotoFrame: (frame: number) => {
+        openBW.setCurrentFrame(frame);
+        reset = refreshScene;
+      },
       getSpeed: () => openBW.getGameSpeed(),
       exitScene: () => {
         gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);

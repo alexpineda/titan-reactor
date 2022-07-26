@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { InitializedPluginPackage, OpenBWAPI, SceneInputHandler } from "common/types";
+import { InitializedPluginPackage, MacroActionPlugin, OpenBWAPI, SceneInputHandler } from "common/types";
 import {
     ON_PLUGINS_ENABLED,
     DISABLE_PLUGIN,
@@ -163,8 +163,14 @@ export const onRender = (delta: number, elapsed: number) => {
     nativePluginSystem.hook_onRender(delta, elapsed);
 };
 
-export const doMacroAction = (...args: Parameters<PluginSystemNative["doMacroAction"]>) => {
-    return nativePluginSystem.doMacroAction(...args);
+export const doMacroAction = (action: MacroActionPlugin) => {
+    const result = nativePluginSystem.doMacroAction(action);
+    if (result) {
+        uiPluginSystem.sendMessage({
+            type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
+            payload: result
+        });
+    }
 }
 
 export const setAllMacroDefaults = (macros: Macros) => {

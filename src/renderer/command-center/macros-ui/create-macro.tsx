@@ -8,7 +8,7 @@ export const CreateMacro = ({
 }) => {
   const [name, setName] = useState("");
   const [triggerType, setTriggerType] = useState<MacroTriggerDTO>({
-    type: TriggerType.Manual,
+    type: TriggerType.Hotkey,
   });
 
   return (

@@ -1,56 +1,31 @@
+import { keyComboWeight } from "@utils/key-utils";
 import { MacroTrigger, MacroTriggerDTO, TriggerType } from "common/types";
+import { KeyCombo } from "./key-combo";
 
 export class HotkeyTrigger implements MacroTrigger {
     type = TriggerType.Hotkey;
-    #raw: string;
-    key: string;
-    ctrl?: boolean;
-    alt?: boolean;
-    shift?: boolean;
-    modifierCount = 0;
+    #keyCombo = new KeyCombo;
 
     constructor(raw: string) {
-        this.#raw = raw;
-        this.key = /(\+(.+))$/.exec(raw)?.[2] ?? raw;
-        this.ctrl = raw.includes("Ctrl");
-        this.alt = raw.includes("Alt");
-        this.shift = raw.includes("Shift");
-
-        if (this.ctrl) {
-            this.modifierCount++;
-        }
-        if (this.alt) {
-            this.modifierCount++;
-        }
-        if (this.shift) {
-            this.modifierCount++;
-        }
+        this.#keyCombo.deserialize(raw);
     }
 
     test(event: KeyboardEvent) {
-        if (this.ctrl !== event.ctrlKey) {
-            return false;
-        }
-
-        if (this.alt !== event.altKey) {
-            return false;
-        }
-
-        if (this.shift !== event.shiftKey) {
-            return false;
-        }
-
-        return event.code === this.key;
+        return this.#keyCombo.testKeyComboFromEvent(event);
     }
 
     serialize() {
         return {
             type: TriggerType.Hotkey,
-            value: this.#raw
+            value: this.#keyCombo.serialize()
         }
     }
 
     static deserialize(dto: MacroTriggerDTO) {
         return new HotkeyTrigger(dto.value);
     };
+
+    get weight() {
+        return keyComboWeight(this.#keyCombo.keyCombo);
+    }
 }

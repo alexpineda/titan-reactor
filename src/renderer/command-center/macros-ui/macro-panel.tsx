@@ -1,4 +1,4 @@
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent } from "react";
 import {
   capitalizeFirstLetters,
   spaceOutCapitalLetters,
@@ -16,6 +16,9 @@ import { CreateMacroAction } from "./create-macro-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import EditableLabel from "react-inline-editing";
+import { KeyCombo } from "../macros/key-combo";
+
+const keyCombo = new KeyCombo();
 
 export const MacroPanel = ({
   macro,
@@ -40,40 +43,19 @@ export const MacroPanel = ({
   createAction: (macro: MacroDTO, action: MacroAction) => void;
   iconCache: Record<number, string>;
 }) => {
-  const ChangeHotkeyTriggerKey = debounce(
-    (e: KeyboardEvent<HTMLInputElement>) => {
-      e.preventDefault();
-      if (
-        e.code.includes("Shift") ||
-        e.code.includes("Control") ||
-        e.code.includes("Alt") ||
-        e.code.includes("Escape") ||
-        e.code.includes("ArrowUp") ||
-        e.code.includes("ArrowDown") ||
-        e.code.includes("ArrowLeft") ||
-        e.code.includes("ArrowRight")
-      ) {
-        return;
-      }
-      const shiftKey = e.shiftKey ? ["Shift"] : [];
-      const ctrlKey = e.ctrlKey ? ["Ctrl"] : [];
-      const altKey = e.altKey ? ["Alt"] : [];
-      const key =
-        e.code === "Backspace"
-          ? ""
-          : [...shiftKey, ...ctrlKey, ...altKey, e.code].join("+");
+  const ChangeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
+    const key = await keyCombo.generateKeyComboFromEvent(e);
 
-      updateMacro({
+    if (key) {
+      await updateMacro({
         ...macro,
         trigger: {
           ...macro.trigger,
-          value: key,
+          value: keyCombo.serialize(),
         },
       });
-    },
-    100,
-    { leading: true, trailing: false }
-  );
+    }
+  };
 
   const renameMacro = (name: string) => {
     if (name !== macro.name) {

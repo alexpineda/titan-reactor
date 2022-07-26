@@ -380,7 +380,7 @@ export class PluginSystemNative {
         const plugin = this.#getByName(action.pluginName!);
         if (!plugin) {
             log.error(`@macro-action: Plugin ${action.pluginName} not found`);
-            return;
+            return null;
         }
 
         if (action.effect === MacroActionEffect.CallMethod) {
@@ -392,13 +392,18 @@ export class PluginSystemNative {
                     log.error(withErrorMessage(`@macro-action: ${action.pluginName} ${key}`, e));
                 }
             }
+            return null;
         } else {
             const key = action.field[0];
             const field = plugin.$$config[key];
             if (field === undefined) {
-                return;
+                return null;
             }
             plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options), false);
+            return {
+                pluginId: plugin.id,
+                config: plugin.$$config
+            }
         }
     }
 

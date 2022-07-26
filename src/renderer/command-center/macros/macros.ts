@@ -18,9 +18,12 @@ export class Macros {
         this.macros.push(macro);
     }
 
-    *trigger(event: KeyboardEvent): Generator<Macro> {
-        for (const macro of this.macros) {
-            if (macro.test(event)) {
+    async *trigger(event: KeyboardEvent): AsyncGenerator<Macro> {
+        const sorted = [...this.macros].sort((a, b) => a.trigger.weight - b.trigger.weight);
+
+        // simpler macros first for responsiveness
+        for (const macro of sorted) {
+            if (await macro.test(event)) {
                 yield macro;
             }
         }
@@ -75,9 +78,8 @@ export class Macros {
         }
     }
 
-    doMacros(e: KeyboardEvent) {
-
-        for (const macro of this.trigger(e)) {
+    async doMacros(e: KeyboardEvent) {
+        for await (const macro of this.trigger(e)) {
             this.#execMacro(macro);
         }
     }
