@@ -48,8 +48,17 @@ export const setUseScale = (images: Map<number, Image>, scale: number) => {
         image.scale.multiplyScalar(ImageHD.useScale);
       }
 
-      image.updateMatrix();
-      image.updateMatrixWorld();
+      image.matrixWorldNeedsUpdate = true;
+    }
+  }
+}
+
+export const setUseDepth = (images: Map<number, Image>, useDepth: boolean) => {
+  ImageHD.useDepth = useDepth;
+  for (const [, image] of images) {
+    if (image instanceof ImageHD) {
+      image.material.depthTest = ImageHD.useDepth;
+      // image.setFrame(image.frame, image.flip, true);
     }
   }
 }

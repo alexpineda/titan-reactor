@@ -9,7 +9,7 @@ import type Chk from "bw-chk";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -36,10 +36,10 @@ import {
   useScreenStore,
   useSettingsStore, useWorldStore,
 } from "./stores";
-import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, setUseScale } from "./utils/image-utils";
+import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, setUseDepth, setUseScale } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { getOpenBW } from "./openbw";
-import { spriteIsHidden, spriteSortOrder } from "./utils/sprite-utils";
+import { spriteIsHidden, spriteSortOrder, useSpriteDirectional } from "./utils/sprite-utils";
 import { applyCameraDirectionToImageFrame, getDirection32 } from "./utils/camera-utils";
 import { CameraKeys } from "./input/camera-keys";
 import { IntrusiveList } from "./buffer-view/intrusive-list";
@@ -237,19 +237,7 @@ async function TitanReactorGame(
     }
   });
   janitor.disposable(cameraKeys);
-  interface SpriteType extends Group {
-    userData: {
-      selectionCircle: SelectionCircle;
-      selectionBars: SelectionBars;
-      fixedY?: number;
-      typeId: number;
-      /**
-       * for matrix calculations
-       */
-      needsMatrixUpdate: boolean;
-      renderTestCount: number;
-    }
-  }
+
 
   const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
@@ -305,16 +293,6 @@ async function TitanReactorGame(
     effects: [fogOfWarEffect],
     passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWarEffect)]
   };
-
-  // const setUseDepth = (useDepth: boolean) => {
-  //   ImageHD.useDepth = useDepth;
-  //   for (const [, image] of images) {
-  //     if (image instanceof ImageHD) {
-  //       image.material.depthTest = ImageHD.useDepth;
-  //       image.setFrame(image.frame, image.flip, true);
-  //     }
-  //   }
-  // }
 
   const _stopFollowingOnClick = () => {
     if (settings.game.stopFollowingOnClick) {
@@ -769,7 +747,6 @@ async function TitanReactorGame(
     [DamageType.Concussive]: [0.5, 1],
     [DamageType.Normal]: [0.25, 2],
   };
-  const _cameraWorldDirection = new Vector3();
   const _spritePool: Group[] = [];
   const _lowCameraPosition = new Vector3();
 
@@ -907,12 +884,12 @@ async function TitanReactorGame(
     }
 
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
-    _spritePos.y = sprite.userData.fixedY ?? bulletY ?? _spritePos.y;
+    _spritePos.y = (sprite.userData.fixedY ?? bulletY ?? _spritePos.y) + (gameViewportsDirector.primaryViewport.renderOptions.rotateSprites ? 0.2 : 0);
 
     sprite.position.copy(_spritePos);
     //TODO: per game viewport
-    sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z)
-    sprite.renderOrder = spriteRenderOrder;
+    // sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z)
+    // sprite.renderOrder = spriteRenderOrder;
 
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
@@ -954,8 +931,10 @@ async function TitanReactorGame(
 
       delete image.userData.unit;
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
+      image.matrixWorldNeedsUpdate = false;
 
       if (image.visible) {
+        image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
         image.setTeamColor(player?.color ?? white);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
 
@@ -981,22 +960,19 @@ async function TitanReactorGame(
 
         image.position.z = 0;
 
-        //TODO store variables so its easy to change from one mode to another or use a universal function
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
         if (gameViewportsDirector.primaryViewport.renderOptions.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
-          // if (controls.cameraMode.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
-          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z);
+          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z) - 0.1;
 
           image.rotation.copy(sprite.rotation);
           image.renderOrder = - 1;
           if (image.parent !== spritesGroup) {
             spritesGroup.add(image);
           }
-          image.updateMatrix();
-          image.updateMatrixWorld();
+          image.matrixWorldNeedsUpdate = true;
         } else {
           image.rotation.set(0, 0, 0);
           image.renderOrder = spriteRenderOrder + imageCounter;
@@ -1005,11 +981,8 @@ async function TitanReactorGame(
           }
         }
 
-        // TODO store frameInfo per viewport and apply on render
-        if (imageHasDirectionalFrames(imageData as ImageStruct)) {
-          const frameInfo = applyCameraDirectionToImageFrame(gameViewportsDirector.primaryViewport.camera, imageData);
-          image.setFrame(frameInfo.frame, frameInfo.flipped);
-        } else {
+        // if it's directional we'll set it elsewhere relative to the viewport camera direction
+        if (!imageHasDirectionalFrames(imageData as ImageStruct)) {
           image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
         }
 
@@ -1021,15 +994,10 @@ async function TitanReactorGame(
           // image.rotation.y = unit.angle;
           // }
         }
-
-        if (imageNeedsRedraw(imageData as ImageStruct)) {
-          image.updateMatrix();
-        }
       }
       imageCounter++;
     }
-    sprite.updateMatrix();
-    sprite.updateMatrixWorld();
+
   }
 
   const spriteBufferView = new SpritesBufferView(openBW);
@@ -1043,9 +1011,6 @@ async function TitanReactorGame(
     const deletedSpriteCount = openBW._counts(16);
     const deletedImageAddr = openBW._get_buffer(3);
     const deletedSpriteAddr = openBW._get_buffer(4);
-
-    //TODO: get world dir PER viewport
-    gameViewportsDirector.primaryViewport.camera.getWorldDirection(_cameraWorldDirection);
 
     // avoid image flashing by clearing the group here when user is scrubbing through a replay
     if (_wasReset) {
@@ -1127,6 +1092,42 @@ async function TitanReactorGame(
       child.position.y = child.userData.fixedY = parent.position.y;
     }
   };
+
+
+  function* spriteIterator() {
+    const spriteList = new IntrusiveList(openBW.HEAPU32);
+    const spriteTileLineSize = openBW.getSpritesOnTileLineSize();
+    const spritetileAddr = openBW.getSpritesOnTileLineAddress();
+    for (let l = 0; l < spriteTileLineSize; l++) {
+      spriteList.addr = spritetileAddr + (l << 3)
+      for (const spriteAddr of spriteList) {
+        if (spriteAddr === 0) {
+          continue;
+        }
+
+        const spriteData = spriteBufferView.get(spriteAddr);
+        yield spriteData;
+
+        let sprite = sprites.get(spriteData.index);
+        if (sprite) {
+          yield sprite;
+        }
+      }
+    }
+  }
+
+  function* spriteImageIterator(spriteData: SpritesBufferView) {
+    for (const imgAddr of spriteData.images.reverse()) {
+      const imageData = imageBufferView.get(imgAddr);
+      yield imageData;
+
+      let image = images.get(imageData.index);
+      if (image) {
+        yield image;
+      }
+    }
+  }
+
 
   const _updateCompleted = (arr: number[], arrReset: number[][], size: number, dat: UpgradeDAT[] | TechDataDAT[], hook: string) => {
     let j = 0;
@@ -1280,6 +1281,8 @@ async function TitanReactorGame(
 
     for (const v of gameViewportsDirector.activeViewports()) {
       setUseScale(images, v.renderOptions.unitScale);
+      setUseDepth(images, v.renderOptions.rotateSprites);
+      useSpriteDirectional(v.camera, spriteIterator, spriteImageIterator);
       v.cameraShake.update(elapsed, v.camera);
       fogOfWarEffect.blendMode.opacity.value = v.renderOptions.fogOfWarOpacity;
       fogOfWar.update(players.getVisionFlag(), v.camera, minimapFOWImage);

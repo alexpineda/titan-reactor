@@ -1,3 +1,6 @@
+import type SelectionBars from "@core/selection-bars";
+import type SelectionCircle from "@core/selection-circle";
+import { Group } from "three";
 
 export type CanvasDimensions = {
   left: number;
@@ -17,4 +20,18 @@ export enum UnitTileScale {
   SD = 1,
   HD2 = 2,
   HD = 4
+}
+
+export interface SpriteType extends Group {
+  userData: {
+    selectionCircle: SelectionCircle;
+    selectionBars: SelectionBars;
+    fixedY?: number;
+    typeId: number;
+    /**
+     * for matrix calculations
+     */
+    needsMatrixUpdate: boolean;
+    renderTestCount: number;
+  }
 }

@@ -64,6 +64,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean) {
 
     if (this.dat.index === imageDef.index && !force) {
+      this.material.depthTest = ImageHD.useDepth;
       this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
       return;
     }
@@ -78,6 +79,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
       1
     );
 
+    this.material.depthTest = ImageHD.useDepth;
     this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
 
     // spriteWidth is only valid with HD, have to scale to HD2 if applicable
