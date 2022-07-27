@@ -30,7 +30,7 @@ export const verbose = (msg: string) => {
 
 export const log = async (message: string, level = "info") => {
   logClient(message, level);
-  return await ipcRenderer.send(LOG_MESSAGE, { level, message });
+  ipcRenderer.send(LOG_MESSAGE, { level, message });
 };
 
 export const logClient = (message: string, level = "info") => {

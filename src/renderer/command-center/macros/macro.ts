@@ -20,10 +20,6 @@ export class Macro {
         this.actionSequence = actionSequence;
     }
 
-    test(event: KeyboardEvent) {
-        return this.trigger.test(event);
-    }
-
     setHostDefaults(settings: Settings) {
         for (const action of this.actions) {
             if (action.type === MacroActionType.ModifyAppSettings) {

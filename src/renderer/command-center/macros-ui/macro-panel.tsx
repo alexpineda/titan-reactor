@@ -11,11 +11,9 @@ import {
   TriggerType,
 } from "common/types";
 import { MacroActionPanel } from "./macro-action-panel";
-import debounce from "lodash.debounce";
 import { CreateMacroAction } from "./create-macro-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import EditableLabel from "react-inline-editing";
 import { KeyCombo } from "../macros/key-combo";
 
 const keyCombo = new KeyCombo();
@@ -51,14 +49,14 @@ export const MacroPanel = ({
         ...macro,
         trigger: {
           ...macro.trigger,
-          value: keyCombo.serialize(),
+          value: keyCombo.stringify(),
         },
       });
     }
   };
 
-  const renameMacro = (name: string) => {
-    if (name !== macro.name) {
+  const renameMacro = (name: string | null) => {
+    if (name !== macro.name && name !== null && name.trim() !== "") {
       updateMacro({ ...macro, name });
     }
   };
@@ -67,7 +65,6 @@ export const MacroPanel = ({
     <div
       style={{
         padding: "var(--size-4)",
-        margin: "var(--size-7)",
         borderRadius: "var(--size-4)",
         boxShadow: "2px 2px 10px -6px",
       }}
@@ -96,7 +93,12 @@ export const MacroPanel = ({
             }}
             src={iconCache[389]}
           />
-          <EditableLabel text={macro.name} onFocusOut={renameMacro} />
+          <span
+            contentEditable
+            onBlur={(e) => renameMacro(e.target.textContent)}
+          >
+            {macro.name}
+          </span>
         </h4>
 
         <span>
@@ -155,7 +157,7 @@ export const MacroPanel = ({
               <i className="material-icons" style={{ color: "var(--green-7)" }}>
                 play_arrow
               </i>{" "}
-              Test Macro
+              Run Macro (Manually)
             </button>
           )}
           <button

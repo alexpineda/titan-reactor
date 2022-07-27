@@ -208,6 +208,7 @@ export default async (filepath: string) => {
   processStore().start(Process.AtlasPreload, allImages.length);
 
   await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
+  processStore().complete(Process.AtlasPreload);
 
   const disposeGame = await TitanReactorGame(
     map,
@@ -226,5 +227,7 @@ export default async (filepath: string) => {
 
   document.title = `Titan Reactor - ${gameTitle}`;
 
+  processStore().complete(Process.ReplayInitialization);
   screenStore().complete();
+
 };

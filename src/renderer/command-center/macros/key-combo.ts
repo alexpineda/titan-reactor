@@ -1,4 +1,3 @@
-import { keyComboWeight } from "@utils/key-utils";
 import { KeyboardEvent as SyntheticKeyboardEvent } from "react";
 
 export type KeyComboDTO = {
@@ -7,46 +6,21 @@ export type KeyComboDTO = {
     shiftKey: boolean,
     codes: string[],
 };
+type KeyEvent = SyntheticKeyboardEvent<HTMLInputElement> | KeyboardEvent;
 
-export class KeyCombo {
-    keyCombo: KeyComboDTO = {
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        codes: []
-    }
-
-    #testCombo: KeyComboDTO = {
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        codes: []
-    }
-
+const isKeyComboDTO = (obj: any): obj is KeyComboDTO => {
+    return obj && typeof obj === "object" && "ctrlKey" in obj && "altKey" in obj && "shiftKey" in obj && "codes" in obj;
+}
+export class KeyCombo implements KeyComboDTO {
     #timeout: NodeJS.Timeout | null = null;
     #promise: Promise<KeyComboDTO | null> = Promise.resolve(null);
-    #testPromise: Promise<boolean> = Promise.resolve(false);
 
+    ctrlKey = false;
+    altKey = false;
+    shiftKey = false;
+    codes: string[] = [];
 
-    generateKeyComboFromEvent(e: SyntheticKeyboardEvent<HTMLInputElement> | KeyboardEvent) {
-        if (this.#timeout === null) {
-            this.keyCombo = {
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                codes: []
-            }
-            this.#promise = new Promise(res => {
-                this.#timeout = setTimeout(() => {
-                    res(this.keyCombo)
-                    this.#timeout = null;
-                    this.#promise = Promise.resolve(null);
-                }, 1000);
-            })
-        }
-
-        e.preventDefault();
-
+    isIllegal(e: KeyEvent) {
         if (
             e.code.includes("Shift") ||
             e.code.includes("Control") ||
@@ -57,88 +31,116 @@ export class KeyCombo {
             e.code.includes("ArrowLeft") ||
             e.code.includes("ArrowRight")
         ) {
+            return true;
+        }
+        return false
+    }
+
+    createEmptyKeyCombo() {
+        return {
+            ctrlKey: false,
+            altKey: false,
+            shiftKey: false,
+            codes: []
+        }
+    }
+
+    createKeyCombo(e: KeyEvent) {
+        return {
+            ctrlKey: e.ctrlKey,
+            altKey: e.altKey,
+            shiftKey: e.shiftKey,
+            codes: [e.code]
+        }
+    }
+
+    resetKeyCombo() {
+        Object.assign(this, this.createEmptyKeyCombo());
+    }
+
+    generateKeyComboFromEvent(e: KeyEvent) {
+        e.preventDefault();
+
+        if (this.isIllegal(e)) {
             return this.#promise;
         }
 
-        this.keyCombo.shiftKey = e.shiftKey;
-        this.keyCombo.ctrlKey = e.ctrlKey;
-        this.keyCombo.altKey = e.altKey;
-        this.keyCombo.codes.push(e.code);
-        return this.#promise;
-    }
-
-    testKeyComboFromEvent(e: SyntheticKeyboardEvent<HTMLInputElement> | KeyboardEvent) {
         if (this.#timeout === null) {
-            this.#testCombo = {
-                ctrlKey: e.ctrlKey,
-                altKey: e.altKey,
-                shiftKey: e.shiftKey,
-                codes: [e.code]
-            }
-            if (this.keyCombo.codes.length === 1) {
-                return Promise.resolve(this.#compareCombos(this.keyCombo, this.#testCombo));
-            }
-            if (!this.#compareModifiers(this.keyCombo, this.#testCombo)) {
-                return Promise.resolve(false);
-            }
-            return this.#testPromise = new Promise(res => {
-                this.#timeout = setTimeout(() => {
-                    res(this.#compareCombos(this.keyCombo, this.#testCombo));
-                    this.#timeout = null;
-                    this.#testPromise = Promise.resolve(false);
-                }, keyComboWeight(this.keyCombo) * 100);
-            })
+            this.set(e);
         } else {
-
-            if (
-                e.code.includes("Shift") ||
-                e.code.includes("Control") ||
-                e.code.includes("Alt") ||
-                e.code.includes("Escape") ||
-                e.code.includes("ArrowUp") ||
-                e.code.includes("ArrowDown") ||
-                e.code.includes("ArrowLeft") ||
-                e.code.includes("ArrowRight")
-            ) {
-                return this.#testPromise;
-            }
-
-            this.#testCombo.shiftKey = e.shiftKey;
-            this.#testCombo.ctrlKey = e.ctrlKey;
-            this.#testCombo.altKey = e.altKey;
-            this.#testCombo.codes.push(e.code);
-            return this.#testPromise;
+            this.add(e);
+            clearTimeout(this.#timeout);
         }
+
+        return this.#promise = new Promise(res => {
+            this.#timeout = setTimeout(() => {
+                res(this)
+                this.#timeout = null;
+                this.#promise = Promise.resolve(null);
+            }, 800);
+        });
+
     }
 
-    #compareModifiers(a: KeyComboDTO, b: KeyComboDTO) {
-        if (a.ctrlKey !== b.ctrlKey) {
+    // simple test for equality
+    test(e: SyntheticKeyboardEvent<HTMLInputElement> | KeyboardEvent | KeyComboDTO) {
+        return this.compareCombos(isKeyComboDTO(e) ? e : this.createKeyCombo(e))
+    }
+
+    testShallow(e: KeyComboDTO, n = 1) {
+        if (!this.compareModifiers(e)) {
             return false;
         }
 
-        if (a.altKey !== b.altKey) {
+        for (let i = 0; i < n; i++) {
+            if (this.codes[i] !== e.codes[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    set(e: KeyEvent) {
+        this.shiftKey = e.shiftKey;
+        this.ctrlKey = e.ctrlKey;
+        this.altKey = e.altKey;
+        this.codes = [e.code];
+    }
+
+    add(e: KeyEvent) {
+        this.shiftKey = e.shiftKey;
+        this.ctrlKey = e.ctrlKey;
+        this.altKey = e.altKey;
+        this.codes.push(e.code);
+    }
+
+    compareModifiers(b: KeyComboDTO) {
+        if (this.ctrlKey !== b.ctrlKey) {
             return false;
         }
 
-        if (a.shiftKey !== b.shiftKey) {
+        if (this.altKey !== b.altKey) {
+            return false;
+        }
+
+        if (this.shiftKey !== b.shiftKey) {
             return false;
         }
         return true;
     }
 
-    #compareCombos(a: KeyComboDTO, b: KeyComboDTO) {
+    compareCombos(b: KeyComboDTO) {
 
-        if (this.#compareModifiers(a, b) === false) {
+        if (this.compareModifiers(b) === false) {
             return false;
         }
 
-
-        if (a.codes.length !== b.codes.length) {
+        if (this.codes.length !== b.codes.length) {
             return false;
         }
 
-        for (let i = 0; i < a.codes.length; i++) {
-            if (a.codes[i] !== b.codes[i]) {
+        for (let i = 0; i < this.codes.length; i++) {
+            if (this.codes[i] !== b.codes[i]) {
                 return false;
             }
         }
@@ -146,23 +148,23 @@ export class KeyCombo {
         return true;
     }
 
-    serialize() {
-        const shiftKey = this.keyCombo.shiftKey ? ["Shift"] : [];
-        const ctrlKey = this.keyCombo.ctrlKey ? ["Ctrl"] : [];
-        const altKey = this.keyCombo.altKey ? ["Alt"] : [];
-        const v = [...shiftKey, ...ctrlKey, ...altKey, ...this.keyCombo.codes].join("+");
+    stringify() {
+        const shiftKey = this.shiftKey ? ["Shift"] : [];
+        const ctrlKey = this.ctrlKey ? ["Ctrl"] : [];
+        const altKey = this.altKey ? ["Alt"] : [];
+        const v = [...shiftKey, ...ctrlKey, ...altKey, ...this.codes].join("+");
         return v;
     }
 
-    deserialize(raw: string) {
-        const keys = /(\+(.+))$/.exec(raw)?.[2] ?? raw;
+    parse(raw: string) {
+        const keys = (raw ?? "").split("+");
         const keyCombo = {
-            ctrlKey: raw.includes("Ctrl"),
-            altKey: raw.includes("Alt"),
-            shiftKey: raw.includes("Shift"),
-            codes: keys.split("+").filter(k => ["Shift", "Ctrl", "Alt"].includes(k) === false)
+            ctrlKey: keys.includes("Ctrl"),
+            altKey: keys.includes("Alt"),
+            shiftKey: keys.includes("Shift"),
+            codes: keys.filter(k => ["Shift", "Ctrl", "Alt"].includes(k) === false)
         }
-        this.keyCombo = keyCombo;
+        Object.assign(this, keyCombo);
     }
 
 }

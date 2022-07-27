@@ -70,7 +70,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
     const config = packageJSON.config ?? {};
     if (typeof config._visible !== "object") {
         if (hasUI) {
-            Object.assign(config, { _visible: { value: true, label: "Visible", folder: "System" } });
+            Object.assign(config, { _visible: { value: true, label: "UI Visible", folder: "System" } });
         } else {
             delete config._visible;
         }
@@ -148,7 +148,6 @@ export default async (pluginDirectory: string) => {
         const folders = await readFolder(pluginDirectory);
         await loadPluginPackages(folders);
 
-        console.log("@load-plugins/load-configs: Loaded plugins:", _enabledPluginPackages, _disabledPluginPackages);
         if (_enabledPluginPackages.length === 0 && _disabledPluginPackages.length === 0) {
             setTimeout(() => {
                 browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL);

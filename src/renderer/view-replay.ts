@@ -1140,9 +1140,6 @@ async function TitanReactorGame(
           arr.push(typeId);
           arrReset.push([typeId, currentBwFrame]);
           plugins.callHook(hook, [typeId, level, dat[typeId]]);
-          if (settings.util.debugMode) {
-            console.log(`${hook} ${typeId} ${level} ${dat[typeId].name}`);
-          }
         }
       } else if (j === 1) {
         level = val;
@@ -1312,7 +1309,7 @@ async function TitanReactorGame(
 
   janitor.add(useSettingsStore.subscribe(({ data: newSettings }) => {
 
-    if (newSettings.game.sceneController !== gameViewportsDirector.name) {
+    if (!gameViewportsDirector.disabled && newSettings.game.sceneController !== gameViewportsDirector.name) {
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
 
@@ -1474,12 +1471,14 @@ async function TitanReactorGame(
     };
 
     pluginsApiJanitor.add(plugins.injectApi(api));
+    await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
     const container = createCompartment(api);
 
     macros.setContainer(() => {
       return container;
     });
+
 
   }
 
@@ -1489,11 +1488,11 @@ async function TitanReactorGame(
     _halt = true;
     renderer.getWebGLRenderer().setAnimationLoop(null);
     pluginsApiJanitor.mopUp();
-    gameViewportsDirector.activate(null);
+    await gameViewportsDirector.activate(null);
     await (settingsStore().load());
-    plugins.initializePluginSystem(settingsStore().enabledPlugins);
+    await plugins.initializePluginSystem(settingsStore().enabledPlugins);
     await setupPlugins();
-    gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
+    await gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
     renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
     _halt = false;
   };
@@ -1535,9 +1534,7 @@ async function TitanReactorGame(
     }
   })
 
-  janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
-    macros.doMacros(e);
-  });
+  janitor.callback(macros.listenForKeyCombos());
 
   janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
     type: SendWindowActionType.ManualMacroTrigger,
@@ -1550,7 +1547,6 @@ async function TitanReactorGame(
 
   await gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);
 
-  await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
   const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
   precompileCamera.updateProjectionMatrix();

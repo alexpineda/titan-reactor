@@ -5,7 +5,6 @@ import * as log from "../ipc/log";
 const PROCESS_MAX = 10;
 
 export enum Process {
-  TerrainGeneration,
   ReplayInitialization,
   MapInitialization,
   AtlasPreload
@@ -27,41 +26,55 @@ export type ProcessStore = {
   processes: LoadingStoreProcess[];
   start: (id: Process, max?: number) => void;
   increment: (id: Process, current?: number) => void;
-  complete: (id: Process, affix?: string) => void;
+  complete: (id: Process) => void;
   isComplete: (id: Process) => boolean;
   isInProgress: (id: Process) => boolean;
   hasAnyProcessIncomplete: () => boolean;
 };
+
+const _timerDebug: Record<number, NodeJS.Timeout> = {};
 
 export const useProcessStore = create<ProcessStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
   hasAnyProcessIncomplete: () => get().processes.length > 0,
   start: (id: Process, max = PROCESS_MAX) => {
+    performance.clearMarks(`process-${id}`);
+    performance.clearMeasures(`process-${id}`);
+    clearTimeout(_timerDebug[id]);
+    _timerDebug[id] = setTimeout(() => {
+      log.error(`@process/start: Process ${Process[id]} timed out`);
+      get().complete(id)
+    }, 10000);
     log.info("@process/init: " + snake(Process[id]));
 
     performance.mark(`process-${id}`);
 
     const exists = get().processes.find(p => p.id === id);
     if (exists) {
-      log.warning("@process/init: process already exists - will restart");
+      log.warning("@process/start: process already exists - will restart");
       exists.current = 0;
       exists.max = max;
     }
 
-    const process = {
-      id,
-      current: 0,
-      max
-    }
-
     set(({ processes, completedProcesses }) => ({
-      processes: exists ? processes : [...processes, process],
+      processes: exists ? [...processes] : [...processes, {
+        id,
+        current: 0,
+        max
+      }],
       completedProcesses: completedProcesses.filter((p) => p.id !== id),
     }));
 
   },
   increment: (id: Process, current?: number) => {
+    clearTimeout(_timerDebug[id]);
+    _timerDebug[id] = setTimeout(() => {
+      log.error(`@process/increment: Process ${Process[id]} timed out`);
+      get().complete(id)
+      performance.clearMarks(`process-${id}`);
+      performance.clearMeasures(`process-${id}`);
+    }, 10000);
     const process = get().processes.find((p) => p.id === id);
 
     if (process) {
@@ -69,14 +82,27 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
 
       log.verbose("@process/" + snake(Process[id]) + ": " + (next / process.max).toFixed(2));
 
-      set((state) => ({
-        processes: (state.processes as LoadingStoreDeterminateProcess[]).map(
-          (p) => (p.id === id ? { ...p, current: current ?? next } : p)
-        ),
-      }));
+      if (process.current === process.max) {
+        get().complete(id)
+      } else {
+        set((state) => ({
+          processes: (state.processes as LoadingStoreDeterminateProcess[]).map(
+            (p) => (p.id === id ? { ...p, current: current ?? next } : p)
+          ),
+        }));
+      }
     }
   },
   complete: (id: Process) => {
+    clearTimeout(_timerDebug[id]);
+    if (get().isComplete(id)) {
+      return;
+    }
+    if (!get().isInProgress(id)) {
+      log.error(`@process/complete: process ${Process[id]} is not in progress`);
+      return;
+    }
+
     const perf = performance.measure(`process-${id}`);
     performance.clearMarks(`process-${id}`);
     performance.clearMeasures(`process-${id}`);

@@ -1,23 +1,18 @@
-import { keyComboWeight } from "@utils/key-utils";
 import { MacroTrigger, MacroTriggerDTO, TriggerType } from "common/types";
 import { KeyCombo } from "./key-combo";
 
 export class HotkeyTrigger implements MacroTrigger {
     type = TriggerType.Hotkey;
-    #keyCombo = new KeyCombo;
+    value = new KeyCombo();
 
     constructor(raw: string) {
-        this.#keyCombo.deserialize(raw);
-    }
-
-    test(event: KeyboardEvent) {
-        return this.#keyCombo.testKeyComboFromEvent(event);
+        this.value.parse(raw);
     }
 
     serialize() {
         return {
             type: TriggerType.Hotkey,
-            value: this.#keyCombo.serialize()
+            value: this.value.stringify()
         }
     }
 
@@ -26,6 +21,6 @@ export class HotkeyTrigger implements MacroTrigger {
     };
 
     get weight() {
-        return keyComboWeight(this.#keyCombo.keyCombo);
+        return this.value.codes.length;
     }
 }

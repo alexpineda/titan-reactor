@@ -144,6 +144,39 @@ export const MacrosPanel = ({
         )}
         <CreateMacro onCreate={createMacro} />
         <div>
+          {/* {Object.entries(
+            groupBy(state.macros, (m) => {
+              // const s = m.name.split(":");
+              return "General";
+              // return s.length === 1 ? "General" : s[0].trim();
+            })
+          ).map(([name, macros]) => (
+            <div
+              style={{
+                margin: "var(--size-7)",
+              }}
+            >
+              {name && (
+                <p
+                  style={{
+                    color: "var(--gray-6)",
+                    display: "flex",
+                    alignItems: "center",
+                    position: "sticky",
+                  }}
+                >
+                  <i
+                    className="material-icons"
+                    style={{
+                      fontSize: "var(--font-size-3)",
+                      marginRight: "var(--size-2)",
+                    }}
+                  >
+                    folder
+                  </i>
+                  {name}
+                </p>
+              )} */}
           {state.macros.map((macro) => (
             <MacroPanel
               macro={macro}
@@ -158,6 +191,8 @@ export const MacrosPanel = ({
               createAction={createAction}
             />
           ))}
+          {/* </div> */}
+          {/* ))} */}
         </div>
       </ErrorBoundary>
     </div>

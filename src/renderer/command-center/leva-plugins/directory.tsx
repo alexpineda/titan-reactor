@@ -17,7 +17,6 @@ export default createPlugin({
           input
           onClick={async () => {
             const folders = await showFolderDialog();
-            console.log(folders);
             if (folders && folders.length) {
               onUpdate(folders[0]);
               emitOnEditEnd();

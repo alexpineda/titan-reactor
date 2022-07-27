@@ -53,40 +53,42 @@ export const CreateMacroAction = ({
   };
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "auto auto",
-        gridGap: "var(--size-3)",
-        alignItems: "center",
-        justifyContent: "start",
-        maxWidth: "var(--size-md)",
-        marginInline: "var(--size-6)",
-        marginBottom: "var(--size-9)",
-      }}
-    >
-      <select
-        onChange={(e) => setActionType(e.target.value as MacroActionType)}
-        value={actionType}
-      >
-        {Object.values(MacroActionType).map((key) => (
-          <option key={key} value={key}>
-            {spaceOutCapitalLetters(key)}
-          </option>
-        ))}
-      </select>
-      <button
-        onClick={createAction}
+    <>
+      <div
         style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "auto auto",
+          gridGap: "var(--size-3)",
           alignItems: "center",
-
-          paddingBlock: "var(--size-1)",
-          paddingInline: "var(--size-3)",
+          justifyContent: "start",
+          maxWidth: "var(--size-md)",
+          marginInline: "var(--size-6)",
+          marginBottom: "var(--size-9)",
         }}
       >
-        <i className="material-icons">add</i> Action
-      </button>
-    </div>
+        <select
+          onChange={(e) => setActionType(e.target.value as MacroActionType)}
+          value={actionType}
+        >
+          {Object.values(MacroActionType).map((key) => (
+            <option key={key} value={key}>
+              {spaceOutCapitalLetters(key)}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={createAction}
+          style={{
+            display: "flex",
+            alignItems: "center",
+
+            paddingBlock: "var(--size-1)",
+            paddingInline: "var(--size-3)",
+          }}
+        >
+          <i className="material-icons">add</i> Action
+        </button>
+      </div>
+    </>
   );
 };

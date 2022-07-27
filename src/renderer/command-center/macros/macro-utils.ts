@@ -66,6 +66,8 @@ export const getMacroActionOptionsValue = (action: MacroActionHostModifyValue | 
         return options[options.length - 1];
     } else if (action.effect === MacroActionEffect.Min) {
         return options[0];
+    } else if (action.effect === MacroActionEffect.SetToDefault) {
+        return action.resetValue;
     }
 
     throw new Error(`Invalid macro action options effect ${action.effect}`);

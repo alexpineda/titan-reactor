@@ -16,7 +16,6 @@ import {
 } from "postprocessing";
 import { MapEffect } from "./glsl/map-effect";
 
-import processStore, { Process } from "@stores/process-store";
 import { MapDataTextures } from "./create-data-textures";
 import { GeometryOptions } from "common/types";
 
@@ -139,7 +138,6 @@ export const dataTexturesToHeightMaps = async ({
         composer.render(0.01);
     }
     //#endregion composer
-    processStore().increment(Process.TerrainGeneration);
     renderer.dispose();
 
     const displaceCanvas = document.createElement("canvas");

@@ -94,7 +94,5 @@ export enum TriggerType {
 }
 export interface MacroTrigger {
     type: TriggerType;
-    test: (event: any) => Promise<boolean>;
     serialize: () => MacroTriggerDTO;
-    weight: number;
 }

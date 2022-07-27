@@ -23,6 +23,7 @@ import { Helmet } from "react-helmet";
 import { openCascStorage, readCascFileBatch } from "@ipc/casclib";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import * as log from "@ipc/log";
 
 if (module.hot) {
   module.hot.accept();
@@ -271,9 +272,7 @@ const CommandCenter = () => {
         selectedPluginPackage.plugin!.name
       );
       if (plugin) {
-        console.log(
-          `Succesfully updated ${selectedPluginPackage.plugin!.name}`
-        );
+        log.info(`Succesfully updated ${selectedPluginPackage.plugin!.name}`);
       } else {
         setBanner(`Failed to update ${selectedPluginPackage.plugin!.name}`);
       }

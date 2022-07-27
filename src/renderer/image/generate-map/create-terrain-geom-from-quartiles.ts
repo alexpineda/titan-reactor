@@ -2,7 +2,6 @@ import { Vector2, MeshStandardMaterial, Mesh } from "three";
 
 
 import { WrappedTexture, WrappedQuartileTextures, Terrain, GeometryOptions } from "common/types";
-import processStore, { Process } from "@stores/process-store";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { MapDataTextures } from "./create-data-textures";
@@ -30,8 +29,6 @@ export const createTerrainGeometryFromQuartiles = async (
 
     for (let qy = 0; qy < tilesY; qy++) {
         for (let qx = 0; qx < tilesX; qx++) {
-            processStore().increment(Process.TerrainGeneration);
-
             const g = createDisplacementGeometryQuartile(
                 qw,
                 qh,

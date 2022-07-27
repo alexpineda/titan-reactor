@@ -27,6 +27,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set((state) => ({ data: { ...state.data, ...settings } }));
   },
   save: async (settings) => {
+    set({ data: { ...get().data, ...settings } });
     const data = await saveSettings({ ...get().data, ...settings });
     set({ data });
     return await invokeGetSettings();

@@ -19,10 +19,8 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 
 const sanitizeMacroAction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
     delete action.error;
+    sanitizeMacroActionEffects(action, settings);
     sanitizeMacroActionFields(action, settings);
-    if (!action.error) {
-        sanitizeMacroActionEffects(action, settings);
-    }
 }
 
 const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPluginsMeta) => {

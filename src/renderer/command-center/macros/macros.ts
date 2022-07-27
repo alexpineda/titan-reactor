@@ -6,6 +6,7 @@ import packagejson from "../../../../package.json";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
+import { KeyCombo } from "./key-combo";
 
 export class Macros {
     #createGameCompartment?: (deps?: {}) => Compartment;
@@ -18,15 +19,82 @@ export class Macros {
         this.macros.push(macro);
     }
 
-    async *trigger(event: KeyboardEvent): AsyncGenerator<Macro> {
-        const sorted = [...this.macros].sort((a, b) => a.trigger.weight - b.trigger.weight);
+    listenForKeyCombos() {
 
-        // simpler macros first for responsiveness
-        for (const macro of sorted) {
-            if (await macro.test(event)) {
-                yield macro;
+        let testCombo = new KeyCombo;
+        let candidate: Macro | null;
+        let acceptingInput: NodeJS.Timeout | null = null;
+
+        const finishUp = () => {
+            acceptingInput = null;
+            if (candidate) {
+                this.#execMacro(candidate);
+                candidate = null;
             }
         }
+        //TODO: allow user to configure timeout on key combo
+        const createInputWindow = () => {
+            clearTimeout(acceptingInput!);
+            acceptingInput = setTimeout(() => {
+                finishUp();
+            }, 800);
+        }
+
+
+        const _listener = (e: KeyboardEvent) => {
+
+            if (testCombo.isIllegal(e)) {
+                return;
+            }
+
+            const macros = this.macros.filter(m => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight);
+
+
+            if (acceptingInput === null) {
+                testCombo.set(e);
+            } else {
+                testCombo.add(e);
+            }
+            createInputWindow();
+
+            const currentWeight = testCombo.codes.length;
+            const maxWeight = macros.reduce((acc, m) => Math.max(acc, (m.trigger as HotkeyTrigger).weight), 0);
+
+            for (const macro of macros) {
+                if (macro.trigger instanceof HotkeyTrigger) {
+                    const trigger = macro.trigger as HotkeyTrigger;
+                    if (trigger.weight === currentWeight) {
+                        if (trigger.value.test(testCombo)) {
+                            candidate = macro;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            let _canSkip = true;
+            // see if we can short circuit the next weights
+            for (let nextWeight = currentWeight + 1; nextWeight <= maxWeight; nextWeight++) {
+                for (const macro of macros) {
+                    if (macro.trigger instanceof HotkeyTrigger) {
+                        const trigger = macro.trigger as HotkeyTrigger;
+                        if (trigger.weight === nextWeight) {
+                            if (trigger.value.testShallow(testCombo, currentWeight)) {
+                                _canSkip = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (_canSkip) {
+                clearTimeout(acceptingInput!);
+                finishUp();
+            }
+        }
+
+        window.addEventListener("keydown", _listener);
+        return () => window.removeEventListener("keydown", _listener);
     }
 
     *[Symbol.iterator]() {
@@ -75,12 +143,6 @@ export class Macros {
             else {
                 log.error(`Invalid macro action ${macro.name}`);
             }
-        }
-    }
-
-    async doMacros(e: KeyboardEvent) {
-        for await (const macro of this.trigger(e)) {
-            this.#execMacro(macro);
         }
     }
 

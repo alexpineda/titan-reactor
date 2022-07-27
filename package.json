@@ -53,10 +53,12 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
-        "extraResources": [{
-            "from": "bundled",
-            "to": "bundled"
-        }]
+        "extraResources": [
+            {
+                "from": "bundled",
+                "to": "bundled"
+            }
+        ]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",
@@ -95,7 +97,6 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-helmet": "^6.1.0",
-        "react-inline-editing": "^1.0.10",
         "react-markdown": "^8.0.0",
         "sanitize-filename": "^1.6.3",
         "scm-extractor": "^1.0.6",

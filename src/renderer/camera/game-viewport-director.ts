@@ -29,6 +29,10 @@ export class GameViewportsDirector implements UserInputCallbacks {
         }
     }
 
+    get disabled() {
+        return this.#inputHandler === null;
+    }
+
     get usePointerLock() {
         return this.#inputHandler?.gameOptions?.usePointerLock ?? false;
     }

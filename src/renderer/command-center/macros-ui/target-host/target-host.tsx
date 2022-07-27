@@ -15,8 +15,10 @@ export const MacroActionPanelHost = (
   const settings = settingsStore();
   const { action, viewOnly, updateMacroAction } = props;
   const config = getAppSettingsLevaConfig(settings);
-
-  const propConfig = getAppSettingsLevaConfigField(settings, action.field);
+  const propConfig = {
+    ...getAppSettingsLevaConfigField(settings, action.field),
+    value: action.value,
+  };
 
   return (
     <div
@@ -33,6 +35,8 @@ export const MacroActionPanelHost = (
           updateMacroAction({
             ...action,
             field: evt.target.value.split("."),
+            effect: MacroActionEffect.SetToDefault,
+            value: undefined,
           });
         }}
         value={action.field.join(".")}
