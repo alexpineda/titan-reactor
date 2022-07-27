@@ -107,7 +107,7 @@ const groupTileFaces = (geom: BufferGeometry, w: number, h: number) => {
         face.setUV(uvs, index.array[i], index.array[i + 1], index.array[i + 2]);
 
         if (tiles[x] === undefined || tiles[x][y] === undefined) {
-            debugger;
+            throw new Error("Invalid tile coordinates.");
         }
         if (tiles[x][y].face1 === undefined) {
             tiles[x][y].face1 = face;

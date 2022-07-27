@@ -33,8 +33,8 @@ export const getMacroActionValue = (action: MacroActionHostModifyValue | MacroAc
         return max;
     } else if (action.effect === MacroActionEffect.Min && Number.isFinite(min)) {
         return min;
-    } else if (action.effect === MacroActionEffect.Toggle && typeof action.value === "boolean") {
-        return !action.value;
+    } else if (action.effect === MacroActionEffect.Toggle && typeof currentValue === "boolean") {
+        return !currentValue;
     } else if (action.effect === MacroActionEffect.SetToDefault) {
         return action.resetValue;
     }

@@ -174,7 +174,7 @@ export const createDefaultMacros = () => {
   );
 
   macros.add(
-    new Macro(generateUUID(), "Toggle Production", new HotkeyTrigger("Shift+P"), [
+    new Macro(generateUUID(), "Toggle Production", new HotkeyTrigger("Shift+KeyP"), [
       {
         id: generateUUID(),
         type: MacroActionType.ModifyPluginSettings,

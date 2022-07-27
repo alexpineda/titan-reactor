@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useStore, PluginContext } from "titan-reactor";
 import { Home } from "./home.jsx";
 
 const _screenSelector = (store) => store.screen;
@@ -32,10 +31,12 @@ const GlobalErrorState = ({ error }) => {
   );
 };
 
-const Component = ({ component, JSXElement }) => {
+const Component = ({ component, JSXElement, config }) => {
   return (
     <ErrorBoundary key={component.id}>
-      <JSXElement />
+      <div style={{ display: config._visible ? "block" : "none" }}>
+        <JSXElement />
+      </div>
     </ErrorBoundary>
   );
 };
@@ -70,11 +71,12 @@ const loadingSvg = (
   </svg>
 );
 
-export default ({ components }) => {
+export default ({ components, useConfig, useStore, PluginContext }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
   const firstInstall = useStore(_firstInstall);
   const containerDiv = useRef();
+  const config = useConfig();
 
   useEffect(() => {
     if (!containerDiv.current) return;
@@ -112,9 +114,6 @@ export default ({ components }) => {
     !screen.startsWith("@home") &&
     (component.screen === undefined || component.screen === screen);
 
-  const homeComponentsFilter = ({ component }) =>
-    appLoaded && screen === "@home/ready" && component.screen === screen;
-
   return (
     <div
       ref={containerDiv}
@@ -142,26 +141,7 @@ export default ({ components }) => {
       )}
       {error && !firstInstall && <GlobalErrorState error={error} />}
 
-      {screen === "@home/ready" && appLoaded && !error && (
-        <Home
-          components={
-            components["loose"]
-              ? components["loose"]
-                  .filter(homeComponentsFilter)
-                  .sort(orderSort)
-                  .map(({ JSXElement, component }) => (
-                    <PluginContext.Provider value={component}>
-                      <Component
-                        key={component.id}
-                        component={component}
-                        JSXElement={JSXElement}
-                      />
-                    </PluginContext.Provider>
-                  ))
-              : []
-          }
-        />
-      )}
+      {screen === "@home/ready" && appLoaded && !error && <Home />}
 
       <div
         id="top-container"
@@ -178,19 +158,20 @@ export default ({ components }) => {
             flexDirection: "column",
           }}
         >
-          {components["top-left"] &&
-            components["top-left"]
-              .filter(screenFilter)
-              .sort(orderSort)
-              .map(({ JSXElement, component }) => (
-                <PluginContext.Provider value={component}>
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                  />
-                </PluginContext.Provider>
-              ))}
+          {components
+            .filter((c) => c.snap === "top-left")
+            .filter(screenFilter)
+            .sort(orderSort)
+            .map(({ JSXElement, component }) => (
+              <PluginContext.Provider value={component}>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                  config={config[component.pluginId]}
+                />
+              </PluginContext.Provider>
+            ))}
         </div>
         <div
           id="top"
@@ -200,19 +181,20 @@ export default ({ components }) => {
             marginTop: screen === "@home/ready" ? "200px" : "0",
           }}
         >
-          {components["top"] &&
-            components["top"]
-              .filter(screenFilter)
-              .sort(orderSort)
-              .map(({ JSXElement, component }) => (
-                <PluginContext.Provider value={component}>
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                  />
-                </PluginContext.Provider>
-              ))}
+          {components
+            .filter((c) => c.snap === "top")
+            .filter(screenFilter)
+            .sort(orderSort)
+            .map(({ JSXElement, component }) => (
+              <PluginContext.Provider value={component}>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                  config={config[component.pluginId]}
+                />
+              </PluginContext.Provider>
+            ))}
         </div>
         <div
           id="top-right"
@@ -221,19 +203,20 @@ export default ({ components }) => {
             flexDirection: "column",
           }}
         >
-          {components["top-right"] &&
-            components["top-right"]
-              .filter(screenFilter)
-              .sort(orderSort)
-              .map(({ JSXElement, component }) => (
-                <PluginContext.Provider value={component}>
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                  />
-                </PluginContext.Provider>
-              ))}
+          {components
+            .filter((c) => c.snap === "top-right")
+            .filter(screenFilter)
+            .sort(orderSort)
+            .map(({ JSXElement, component }) => (
+              <PluginContext.Provider value={component}>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                  config={config[component.pluginId]}
+                />
+              </PluginContext.Provider>
+            ))}
         </div>
       </div>
       <div
@@ -254,19 +237,20 @@ export default ({ components }) => {
             marginBottom: "var(--minimap-height)",
           }}
         >
-          {components["left"] &&
-            components["left"]
-              .filter(screenFilter)
-              .sort(orderSort)
-              .map(({ JSXElement, component }) => (
-                <PluginContext.Provider value={component}>
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                  />
-                </PluginContext.Provider>
-              ))}
+          {components
+            .filter((c) => c.snap === "left")
+            .filter(screenFilter)
+            .sort(orderSort)
+            .map(({ JSXElement, component }) => (
+              <PluginContext.Provider value={component}>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                  config={config[component.pluginId]}
+                />
+              </PluginContext.Provider>
+            ))}
         </div>
         <div
           id="center_container"
@@ -285,47 +269,8 @@ export default ({ components }) => {
               flexGrow: 1,
             }}
           >
-            {components["center"] &&
-              components["center"]
-                .filter(screenFilter)
-                .sort(orderSort)
-                .map(({ JSXElement, component }) => (
-                  <PluginContext.Provider value={component}>
-                    <Component
-                      key={component.id}
-                      component={component}
-                      JSXElement={JSXElement}
-                    />
-                  </PluginContext.Provider>
-                ))}
-          </div>
-          <div
-            id="bottom"
-            style={{
-              display: "flex",
-            }}
-          >
-            {components["bottom"] &&
-              components["bottom"]
-                .filter(screenFilter)
-                .sort(orderSort)
-                .map(({ JSXElement, component }) => (
-                  <PluginContext.Provider value={component}>
-                    <Component
-                      key={component.id}
-                      component={component}
-                      JSXElement={JSXElement}
-                    />
-                  </PluginContext.Provider>
-                ))}
-          </div>
-        </div>
-        <div
-          id="right"
-          style={{ display: "flex", flexDirection: "column-reverse" }}
-        >
-          {components["right"] &&
-            components["right"]
+            {components
+              .filter((c) => c.snap === "center")
               .filter(screenFilter)
               .sort(orderSort)
               .map(({ JSXElement, component }) => (
@@ -334,25 +279,68 @@ export default ({ components }) => {
                     key={component.id}
                     component={component}
                     JSXElement={JSXElement}
+                    config={config[component.pluginId]}
                   />
                 </PluginContext.Provider>
               ))}
+          </div>
+          <div
+            id="bottom"
+            style={{
+              display: "flex",
+            }}
+          >
+            {components
+              .filter((c) => c.snap === "bottom")
+              .filter(screenFilter)
+              .sort(orderSort)
+              .map(({ JSXElement, component }) => (
+                <PluginContext.Provider value={component}>
+                  <Component
+                    key={component.id}
+                    component={component}
+                    JSXElement={JSXElement}
+                    config={config[component.pluginId]}
+                  />
+                </PluginContext.Provider>
+              ))}
+          </div>
+        </div>
+        <div
+          id="right"
+          style={{ display: "flex", flexDirection: "column-reverse" }}
+        >
+          {components
+            .filter((c) => c.snap === "right")
+            .filter(screenFilter)
+            .sort(orderSort)
+            .map(({ JSXElement, component }) => (
+              <PluginContext.Provider value={component}>
+                <Component
+                  key={component.id}
+                  component={component}
+                  JSXElement={JSXElement}
+                  config={config[component.pluginId]}
+                />
+              </PluginContext.Provider>
+            ))}
         </div>
       </div>
 
-      {components["loose"] &&
-        components["loose"]
-          .filter(screenFilter)
-          .sort(orderSort)
-          .map(({ JSXElement, component }) => (
-            <PluginContext.Provider value={component}>
-              <Component
-                key={component.id}
-                component={component}
-                JSXElement={JSXElement}
-              />
-            </PluginContext.Provider>
-          ))}
+      {components
+        .filter((c) => c.snap === "loose")
+        .filter(screenFilter)
+        .sort(orderSort)
+        .map(({ JSXElement, component }) => (
+          <PluginContext.Provider value={component}>
+            <Component
+              key={component.id}
+              component={component}
+              JSXElement={JSXElement}
+              config={config[component.pluginId]}
+            />
+          </PluginContext.Provider>
+        ))}
     </div>
   );
 };

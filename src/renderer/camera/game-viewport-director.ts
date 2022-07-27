@@ -90,7 +90,12 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     #activating = false;
 
-    async activate(inputHandler: SceneInputHandler) {
+    async activate(inputHandler: SceneInputHandler | null) {
+        if (inputHandler === null) {
+            this.#janitor.mopUp();
+            this.#inputHandler = null;
+            return;
+        }
         if (inputHandler === undefined) {
             log.warning("GameViewportsDirector.activate: inputHandler is undefined");
             return;

@@ -33,6 +33,7 @@ import {
 } from "./render";
 import renderer from "./render/renderer";
 import {
+  useScreenStore,
   useSettingsStore, useWorldStore,
 } from "./stores";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, setUseScale } from "./utils/image-utils";
@@ -1186,8 +1187,9 @@ async function TitanReactorGame(
 
   let cmd = cmds.next();
 
+  let _halt = false;
   const GAME_LOOP = (elapsed: number) => {
-    if (_disposing) return;
+    if (_halt) return;
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
@@ -1308,22 +1310,7 @@ async function TitanReactorGame(
 
   };
 
-  let _disposing = false;
-  const dispose = () => {
-    log.info("disposing replay viewer");
-    _disposing = true;
-    renderer.getWebGLRenderer().setAnimationLoop(null);
-    selectedUnitsStore().clearSelectedUnits();
-    clearFollowedUnits();
-    plugins.onGameDisposed();
-    pluginsApiJanitor.mopUp();
-    janitor.mopUp();
-  };
-
-  window.onbeforeunload = dispose;
-
   janitor.add(useSettingsStore.subscribe(({ data: newSettings }) => {
-
 
     if (newSettings.game.sceneController !== gameViewportsDirector.name) {
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
@@ -1368,6 +1355,8 @@ async function TitanReactorGame(
   let pluginsApiJanitor = new Janitor;
   const macros = new Macros;
   macros.deserialize(settings.macros);
+
+  // let pluginsInstance = 0;
 
   const setupPlugins = async () => {
 
@@ -1497,15 +1486,19 @@ async function TitanReactorGame(
   await setupPlugins();
 
   const _onReloadPlugins = async () => {
-    pluginsApiJanitor.mopUp();
+    _halt = true;
     renderer.getWebGLRenderer().setAnimationLoop(null);
+    pluginsApiJanitor.mopUp();
+    gameViewportsDirector.activate(null);
     await (settingsStore().load());
     plugins.initializePluginSystem(settingsStore().enabledPlugins);
-    gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
-
     await setupPlugins();
+    gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
     renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
+    _halt = false;
   };
+
+  useScreenStore.subscribe(s => console.log(s))
 
   ipcRenderer.on(RELOAD_PLUGINS, _onReloadPlugins);
   janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, _onReloadPlugins));
@@ -1546,26 +1539,23 @@ async function TitanReactorGame(
     macros.doMacros(e);
   });
 
-  const _handleManualTrigger = (_: IpcRendererEvent, { type, payload }: {
+  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
     type: SendWindowActionType.ManualMacroTrigger,
     payload: SendWindowActionPayload<SendWindowActionType.ManualMacroTrigger>
   }) => {
     if (type === SendWindowActionType.ManualMacroTrigger) {
       macros.execMacroById(payload);
     }
-  }
-  ipcRenderer.on(SEND_BROWSER_WINDOW, _handleManualTrigger);
-  janitor.callback(() => ipcRenderer.off(SEND_BROWSER_WINDOW, _handleManualTrigger));
-
-  const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
-  precompileCamera.updateProjectionMatrix();
-  precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
-  precompileCamera.lookAt(scene.position);
+  });
 
   await gameViewportsDirector.activate(plugins.getSceneInputHandler(defaultSceneController)!);
 
   await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
+  const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
+  precompileCamera.updateProjectionMatrix();
+  precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
+  precompileCamera.lookAt(scene.position);
   GAME_LOOP(0);
   renderer.getWebGLRenderer().render(scene, precompileCamera);
 
@@ -1578,7 +1568,16 @@ async function TitanReactorGame(
   _sceneResizeHandler();
   renderer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
-  return dispose;
+  return () => {
+    log.info("disposing replay viewer");
+    _halt = true;
+    renderer.getWebGLRenderer().setAnimationLoop(null);
+    selectedUnitsStore().clearSelectedUnits();
+    clearFollowedUnits();
+    plugins.onGameDisposed();
+    pluginsApiJanitor.mopUp();
+    janitor.mopUp();
+  };;
 }
 
 export default TitanReactorGame;

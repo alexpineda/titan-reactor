@@ -5,8 +5,7 @@ import create from "zustand";
 import chunk from "https://cdn.skypack.dev/lodash.chunk";
 import App from "./runtime/app.jsx";
 
-// game state
-export const useStore = create(() => ({
+const useStore = create(() => ({
   screen: {
     screen: `@home/loading`,
     error: null,
@@ -181,7 +180,9 @@ export const useRSSItems = (url) => {
 // plugin specific configuration
 const useConfig = create(() => ({}));
 
-const useComponents = create(() => ({}));
+const useComponents = create(() => ({
+  components: [],
+}));
 
 const setPluginStyleSheet = (id, content) => {
   let style = document.getElementById(id);
@@ -449,7 +450,7 @@ const _messageListener = function (event) {
 };
 window.addEventListener("message", _messageListener);
 
-export const PluginContext = React.createContext();
+const PluginContext = React.createContext();
 
 export const useMessage = (cb, deps = []) => {
   const { messageHandler } = useContext(PluginContext);
@@ -509,20 +510,21 @@ export const registerComponent = (component, JSXElement) => {
   component.order = component.order ?? 0;
   component.messageHandler = plugin.messageHandler;
 
-  const pos = component.snap || "loose";
-  const val = { component, JSXElement };
-
-  const _components = useComponents.getState();
-  if (!_components[pos]) {
-    _components[pos] = [];
-  }
-  _components[pos].push(val);
-  useComponents.setState({ ..._components });
+  const components = useComponents.getState().components;
+  components.push({ component, JSXElement, snap: component.snap ?? "loose" });
+  useComponents.setState({ components: [...components] });
 };
 
 const AppWrapper = () => {
-  const components = useComponents();
-  return <App components={components} />;
+  const components = useComponents((state) => state.components);
+  return (
+    <App
+      components={components}
+      useConfig={useConfig}
+      useStore={useStore}
+      PluginContext={PluginContext}
+    />
+  );
 };
 
 ReactDOM.render(<AppWrapper />, document.body);
@@ -533,34 +535,3 @@ window.parent.postMessage(
   },
   "*"
 );
-
-/**
- * A utility function for plugins with iframe = "isolated".
- * With IFrame based plugins, we need to wait for the iframe to load
- * in order for us to report the document content size to Titan Reactor so it can be placed optimally.
- *
- * Call pluginContentReady *once* with your plugins outer most container element.
- */
-export const pluginContentReady = (outerElement, channelId) => {
-  const resizeObserver = new ResizeObserver((entries) => {
-    for (let entry of entries) {
-      const contentBoxSize = entry.contentBoxSize[0];
-
-      // we can only send content.ready once, so make sure our div is actually sized
-      if (contentBoxSize.inlineSize > 0 && contentBoxSize.blockSize > 0) {
-        parent.postMessage(
-          {
-            type: "content.ready",
-            channelId,
-            height: `${contentBoxSize.blockSize}px`,
-            width: `${contentBoxSize.inlineSize}px`,
-          },
-          "*"
-        );
-        resizeObserver.unobserve(outerElement);
-      }
-    }
-  });
-
-  resizeObserver.observe(outerElement);
-};

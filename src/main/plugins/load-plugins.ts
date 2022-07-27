@@ -67,6 +67,15 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         return null;
     }
 
+    const config = packageJSON.config ?? {};
+    if (typeof config._visible !== "object") {
+        if (hasUI) {
+            Object.assign(config, { _visible: { value: true, label: "Visible", folder: "System" } });
+        } else {
+            delete config._visible;
+        }
+    }
+
     return {
         id: MathUtils.generateUUID(),
         name: packageJSON.name,
@@ -75,7 +84,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         author: packageJSON.author,
         repository: packageJSON.repository,
         path: folderName,
-        config: packageJSON.config ?? {},
+        config,
         nativeSource: pluginNative,
         readme: readme ?? undefined,
         hasUI
@@ -96,12 +105,14 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
         const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
         const pluginApiVersion = plugin.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
 
-        //TODO: disable plugin in settings if version is not compatible
         if (semver.major(titanReactorApiVersion) <
             semver.major(pluginApiVersion)) {
             log.error(
                 `@load-plugins/load-plugin-packages: Plugin ${plugin.name} requires Titan Reactor API version ${pluginApiVersion} but the current version is ${titanReactorApiVersion}`
             );
+            //TODO: disable plugin in settings.json if version is not compatible
+            _disabledPluginPackages.push(plugin);
+            return;
         }
 
         if (settings.get().plugins.enabled.includes(plugin.name)) {
@@ -127,6 +138,7 @@ const DEFAULT_PACKAGES: string[] = [
 ];
 
 
+//TODO return disabled/enabled plugins and re-save settings.json
 export default async (pluginDirectory: string) => {
     _enabledPluginPackages = [];
     _disabledPluginPackages = [];

@@ -108,12 +108,8 @@ export class PluginSystemNative {
     initializePlugin(pluginPackage: InitializedPluginPackage) {
 
         try {
-            if (!pluginPackage.nativeSource) {
-                throw new Error("No native source provided");
-            }
-
             const c = createCompartment();
-            const pluginRaw = c.globalThis.Function(pluginPackage.nativeSource!)();
+            const pluginRaw = pluginPackage.nativeSource ? c.globalThis.Function(pluginPackage.nativeSource)() : {};
 
             //override but give a truthy value
             pluginPackage.nativeSource = "true";
@@ -176,8 +172,7 @@ export class PluginSystemNative {
     };
 
     constructor(pluginPackages: InitializedPluginPackage[], uiPlugins: PluginSystemUI) {
-        this.#nativePlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
-
+        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
         this.#uiPlugins = uiPlugins;
 
         const _messageListener = (event: MessageEvent) => {
