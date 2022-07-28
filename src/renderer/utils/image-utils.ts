@@ -33,32 +33,3 @@ export const imageHasDirectionalFrames = (image: ImageStruct) => {
 export const imageIsClickable = (image: ImageStruct) => {
   return image.flags & ImageFlags.Clickable;
 }
-
-export const setUseScale = (images: Map<number, Image>, scale: number) => {
-  if (ImageHD.useScale === scale) {
-    return;
-  }
-  ImageHD.useScale = scale;
-  for (const [, image] of images) {
-    if (image instanceof ImageHD) {
-
-      image.scale.copy(image.originalScale);
-
-      if (scale !== 1) {
-        image.scale.multiplyScalar(ImageHD.useScale);
-      }
-
-      image.matrixWorldNeedsUpdate = true;
-    }
-  }
-}
-
-export const setUseDepth = (images: Map<number, Image>, useDepth: boolean) => {
-  ImageHD.useDepth = useDepth;
-  for (const [, image] of images) {
-    if (image instanceof ImageHD) {
-      image.material.depthTest = ImageHD.useDepth;
-      // image.setFrame(image.frame, image.flip, true);
-    }
-  }
-}

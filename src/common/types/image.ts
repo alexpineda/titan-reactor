@@ -1,5 +1,6 @@
 import type SelectionBars from "@core/selection-bars";
 import type SelectionCircle from "@core/selection-circle";
+import { Effect, Pass } from "postprocessing";
 import { Group } from "three";
 
 export type CanvasDimensions = {
@@ -34,4 +35,16 @@ export interface SpriteType extends Group {
     needsMatrixUpdate: boolean;
     renderTestCount: number;
   }
+}
+
+export type PostProcessingBundleDTO = {
+  effects: Effect[],
+  passes: Pass[]
+}
+
+export type GameViewPortRenderOptions = {
+  unitScale: number;
+  fogOfWarOpacity: number;
+  rotateSprites: boolean;
+  postProcessing: PostProcessingBundleDTO;
 }

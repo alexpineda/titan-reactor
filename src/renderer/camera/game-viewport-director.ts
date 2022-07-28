@@ -1,6 +1,6 @@
 import { Surface } from "@image/canvas";
 import Janitor from "@utils/janitor";
-import { SceneInputHandler, UserInputCallbacks } from "common/types";
+import { PostProcessingBundleDTO, SceneInputHandler, UserInputCallbacks } from "common/types";
 import { GameSurface } from "renderer/render";
 import { Scene, Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
@@ -18,6 +18,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #janitor = new Janitor();
     #inputHandler?: SceneInputHandler | null;
     #lastAudioPositon = new Vector3;
+    #defaultPostProcessingBundle: PostProcessingBundleDTO;
 
     onActivate?: (viewport: SceneInputHandler) => void;
 
@@ -49,10 +50,16 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.#inputHandler?.gameOptions?.audio ?? null;
     }
 
-    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface) {
+    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
         this.#scene = scene;
         this.#surface = gameSurface;
         this.#minimapSurface = minimapSurface;
+        this.#defaultPostProcessingBundle = defaultPostProcessingBundle;
+
+        this.#janitor.callback = () => {
+            defaultPostProcessingBundle.effects.forEach(effect => effect.dispose());
+            defaultPostProcessingBundle.passes.forEach(pass => pass.dispose());
+        }
 
         const _regainPointerLock = () => {
             if (gameSurface.pointerLockInvalidState) {
@@ -116,8 +123,8 @@ export class GameViewportsDirector implements UserInputCallbacks {
         this.#inputHandler = null;
 
         this.viewports = [
-            new GameViewPort(this.#surface),
-            new GameViewPort(this.#surface),
+            new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
+            new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
         ]
         this.viewports[0].enabled = true;
 

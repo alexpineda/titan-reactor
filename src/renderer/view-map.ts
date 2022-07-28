@@ -14,10 +14,11 @@ import { Surface } from "./image";
 import { IScriptSprite } from "./core"
 import * as log from "./ipc/log"
 import { Scene } from "./render";
-import renderer from "./render/renderer";
+import renderComposer from "./render/render-composer";
 import { useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location"
+import { updatePostProcessingCamera } from "@utils/renderer-utils";
 
 async function TitanReactorMap(
   chk: Chk,
@@ -75,10 +76,9 @@ async function TitanReactorMap(
   control.setLookAt(0, 50, 0, 0, 0, 0, true);
 
   const renderPass = new RenderPass(scene, camera);
-  renderer.setPostProcessingBundle({
-    passes: [renderPass]
-  });
-  renderer.updatePostProcessingCamera(camera, true);
+  const postProcessingBundle = { passes: [renderPass], effects: [] };
+  updatePostProcessingCamera(postProcessingBundle, camera, true);
+  renderComposer.setBundlePasses(postProcessingBundle);
 
   const startLocations = preplacedMapUnits
     .filter((unit) => unit.unitId === 214)
@@ -153,7 +153,7 @@ async function TitanReactorMap(
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-    renderer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
+    renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
 
     camera.aspect = gameSurface.aspect;
     camera.updateProjectionMatrix();
@@ -165,8 +165,8 @@ async function TitanReactorMap(
 
   let last = 0;
   let frameElapsed = 0;
-  renderer.targetSurface = gameSurface;
-  renderer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
+  renderComposer.targetSurface = gameSurface;
+  renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
 
   function gameLoop(elapsed: number) {
     const delta = elapsed - last;
@@ -179,13 +179,13 @@ async function TitanReactorMap(
     }
 
     control.update(delta / 1000);
-    renderer.render(delta);
+    renderComposer.render(delta);
     last = elapsed;
 
   }
 
-  renderer.getWebGLRenderer().setAnimationLoop(gameLoop);
-  janitor.callback(() => renderer.getWebGLRenderer().setAnimationLoop(null));
+  renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
+  janitor.callback(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
 
   const dispose = () => {
     log.info("disposing map viewer");

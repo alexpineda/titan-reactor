@@ -1,5 +1,4 @@
 import {
-    Camera,
     HalfFloatType,
     PCFSoftShadowMap,
     sRGBEncoding,
@@ -12,6 +11,7 @@ import {
 import { rendererIsDev } from "../utils/renderer-utils";
 import Surface from "../image/canvas/surface";
 import settingsStore from "@stores/settings-store";
+import { PostProcessingBundleDTO } from "common/types";
 
 const createWebGLRenderer = () => {
     let settings = settingsStore().data;
@@ -33,18 +33,9 @@ const createWebGLRenderer = () => {
     return renderer;
 };
 
-type PostProcessingBundle = {
-    effects: any[],
-    passes: any[]
-}
-export class TitanRenderer {
+export class TitanRenderComposer {
     #renderer?: WebGLRenderer;
     #targetSurface = new Surface();
-    #postProcessingBundle: PostProcessingBundle = {
-        effects: [],
-        passes: []
-    };
-
     composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
         multisampling: 0
@@ -77,15 +68,9 @@ export class TitanRenderer {
         return renderer;
     }
 
-    setPostProcessingBundle(cm: Partial<PostProcessingBundle>) {
+    setBundlePasses(bundle: PostProcessingBundleDTO) {
         this.composer.removeAllPasses();
-
-        this.#postProcessingBundle = {
-            effects: (cm.effects ?? []).filter(effect => effect.camera),
-            passes: cm.passes ?? []
-        }
-
-        for (const pass of this.#postProcessingBundle.passes) {
+        for (const pass of bundle.passes) {
             this.composer.addPass(pass);
         }
     }
@@ -103,24 +88,6 @@ export class TitanRenderer {
             new Vector4(0, 0, surface.bufferWidth, surface.bufferHeight)
         );
         this.setSize(this.#targetSurface.bufferWidth, this.#targetSurface.bufferHeight);
-    }
-
-    updatePostProcessingCamera(camera: Camera, renderLastPassToScreen: boolean) {
-        let lastPass: any = null;
-
-        for (const pass of this.#postProcessingBundle.passes) {
-            pass.camera = camera;
-            pass.renderToScreen = false;
-            if (pass.enabled) {
-                lastPass = pass;
-            }
-        }
-        lastPass.renderToScreen = renderLastPassToScreen;
-
-        for (const effect of this.#postProcessingBundle.effects) {
-            effect.camera = camera;
-        }
-
     }
 
     render(delta: number, viewport?: Vector4) {
@@ -170,4 +137,4 @@ export class TitanRenderer {
     }
 }
 
-export default new TitanRenderer();
+export default new TitanRenderComposer();

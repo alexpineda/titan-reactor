@@ -1,5 +1,5 @@
-import { Settings } from "common/types";
-import { WebGLRenderer } from "three";
+import { PostProcessingBundleDTO, Settings } from "common/types";
+import { Camera, WebGLRenderer } from "three";
 
 const renderer = new WebGLRenderer();
 const high = renderer.capabilities.getMaxAnisotropy();
@@ -20,4 +20,27 @@ export const getPixelRatio = (pixelRatio: Settings["graphics"]["pixelRatio"]) =>
         low: 0.75
     };
     return pixelRatios[pixelRatio]
+}
+
+export const updatePostProcessingCamera = (bundle: PostProcessingBundleDTO, camera: Camera, renderLastPassToScreen: boolean) => {
+    let lastPass: any = null;
+
+    for (const pass of bundle.passes) {
+        //@ts-ignore
+        pass.camera = camera;
+        pass.renderToScreen = false;
+        if (pass.enabled) {
+            lastPass = pass;
+        }
+    }
+    lastPass.renderToScreen = renderLastPassToScreen;
+
+    for (const effect of bundle.effects) {
+        // @ts-ignore
+        if (effect.camera) {
+            // @ts-ignore
+            effect.camera = camera;
+        }
+    }
+
 }

@@ -1,11 +1,12 @@
 import { SpriteFlags } from "common/enums";
-import { SpriteStruct, SpriteType } from "common/types";
+import { GameViewPortRenderOptions, SpriteStruct, SpriteType } from "common/types";
 import { ImageBufferView, SpritesBufferView } from "../buffer-view";
 import { Vector3 } from "three";
 import { Image } from "@core/image";
 import { imageHasDirectionalFrames } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import DirectionalCamera from "../camera/directional-camera";
+import ImageHD from "@core/image-hd";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
     let score = 0;
@@ -23,7 +24,11 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
 
 const _cameraWorldDirection = new Vector3();
 
-export const useSpriteDirectional = (camera: DirectionalCamera, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<Image | ImageBufferView>) => {
+export const updateSpritesForViewport = (camera: DirectionalCamera, options: GameViewPortRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<Image | ImageBufferView>) => {
+
+    ImageHD.useDepth = options.rotateSprites;
+    ImageHD.useScale = options.unitScale;
+
     camera.getWorldDirection(_cameraWorldDirection);
     let frameInfo: { frame: number, flipped: boolean } | null = null;
 
@@ -36,6 +41,16 @@ export const useSpriteDirectional = (camera: DirectionalCamera, spriteIterator: 
                         frameInfo = applyCameraDirectionToImageFrame(camera, image);
                     }
                 } else {
+                    if (image instanceof ImageHD) {
+                        image.material.depthTest = ImageHD.useDepth;
+
+                        if (image.scale.x !== ImageHD.useScale) {
+                            image.scale.copy(image.originalScale);
+                            image.scale.multiplyScalar(ImageHD.useScale);
+                            image.matrixWorldNeedsUpdate = true;
+                        }
+                    }
+
                     if (frameInfo !== null) {
                         image.setFrame(frameInfo.frame, frameInfo.flipped);
                     }
@@ -45,6 +60,8 @@ export const useSpriteDirectional = (camera: DirectionalCamera, spriteIterator: 
                     }
                     frameInfo = null;
                 }
+
+
             }
         } else {
             sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);

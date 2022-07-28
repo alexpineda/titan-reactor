@@ -1,5 +1,6 @@
 import { Surface } from "@image/canvas";
 import CameraControls from "camera-controls";
+import { GameViewPortRenderOptions, PostProcessingBundleDTO } from "common/types";
 import { MathUtils, Vector2, Vector3, Vector4 } from "three";
 import CameraShake from "./camera-shake";
 import DirectionalCamera from "./directional-camera";
@@ -9,7 +10,6 @@ import ProjectedCameraView from "./projected-camera-view";
 const isNumber = (value: any): value is Number => {
     return typeof value === "number";
 }
-
 export class GameViewPort {
     enabled = false;
     camera = new DirectionalCamera(15, 1, 0.1, 1000);
@@ -33,17 +33,19 @@ export class GameViewPort {
     #surface: Surface;
     constrainToAspect = true;
 
-    renderOptions = {
-        unitScale: 1,
-        fogOfWarOpacity: 1,
-        rotateSprites: false,
-    }
+    renderOptions: GameViewPortRenderOptions
 
-    constructor(surface: Surface) {
+    constructor(surface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
         this.#surface = surface;
         this.camera = new DirectionalCamera(15, surface.aspect, 0.1, 500);
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
         this.orbit = this.reset();
+        this.renderOptions = {
+            unitScale: 1,
+            fogOfWarOpacity: 1,
+            rotateSprites: false,
+            postProcessing: defaultPostProcessingBundle
+        }
     }
 
     reset() {

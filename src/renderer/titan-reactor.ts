@@ -5,7 +5,7 @@ import { version } from "../../package.json";
 import * as log from "./ipc/log";
 import { useSettingsStore } from "./stores";
 import screenStore, { useScreenStore } from "./stores/screen-store";
-import renderer from "./render/renderer";
+import renderComposer from "./render/render-composer";
 import settingsStore from "./stores/settings-store";
 import * as pluginSystem from "./plugins";
 import { initializePluginSystem } from "./plugins";
@@ -66,7 +66,7 @@ log.info(`@init: electron ${process.versions.electron}`);
 log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
 
 {
-  const r = renderer.getWebGLRenderer();
+  const r = renderComposer.getWebGLRenderer();
   log.verbose(`@init: webgl capabilities`);
   for (const prop of Object.getOwnPropertyNames(r.capabilities)) {
     const value = r.capabilities[prop as keyof typeof r.capabilities];
