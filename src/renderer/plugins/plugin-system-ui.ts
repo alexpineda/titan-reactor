@@ -130,7 +130,7 @@ export class PluginSystemUI {
             [UI_PLUGIN_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
             [UI_PLUGIN_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
             [UI_PLUGIN_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
-            [UI_PLUGIN_EVENT_ON_FRAME]: _replayPosition.payload,
+            [UI_PLUGIN_EVENT_ON_FRAME]: _makeReplayPosition(),
         })
 
         var iframeLoaded = false;

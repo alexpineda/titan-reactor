@@ -1,5 +1,5 @@
 import { SpriteFlags } from "common/enums";
-import { GameViewPortRenderOptions, SpriteStruct, SpriteType } from "common/types";
+import { SpriteRenderOptions, SpriteStruct, SpriteType } from "common/types";
 import { ImageBufferView, SpritesBufferView } from "../buffer-view";
 import { Vector3 } from "three";
 import { Image } from "@core/image";
@@ -24,7 +24,7 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
 
 const _cameraWorldDirection = new Vector3();
 
-export const updateSpritesForViewport = (camera: DirectionalCamera, options: GameViewPortRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<Image | ImageBufferView>) => {
+export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<Image | ImageBufferView>) => {
 
     ImageHD.useDepth = options.rotateSprites;
     ImageHD.useScale = options.unitScale;

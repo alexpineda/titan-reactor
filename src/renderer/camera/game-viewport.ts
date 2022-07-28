@@ -1,6 +1,6 @@
 import { Surface } from "@image/canvas";
 import CameraControls from "camera-controls";
-import { GameViewPortRenderOptions, PostProcessingBundleDTO } from "common/types";
+import { SpriteRenderOptions, PostProcessingBundleDTO } from "common/types";
 import { MathUtils, Vector2, Vector3, Vector4 } from "three";
 import CameraShake from "./camera-shake";
 import DirectionalCamera from "./directional-camera";
@@ -33,18 +33,24 @@ export class GameViewPort {
     #surface: Surface;
     constrainToAspect = true;
 
-    renderOptions: GameViewPortRenderOptions
+    spriteRenderOptions: SpriteRenderOptions
+    postProcessing: PostProcessingBundleDTO;
 
-    constructor(surface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
+    constructor(surface: Surface, bundle: PostProcessingBundleDTO) {
         this.#surface = surface;
         this.camera = new DirectionalCamera(15, surface.aspect, 0.1, 500);
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
         this.orbit = this.reset();
-        this.renderOptions = {
+
+        this.postProcessing = {
+            ...bundle,
+            passes: [...bundle.passes],
+            effects: [...bundle.effects]
+        };
+
+        this.spriteRenderOptions = {
             unitScale: 1,
-            fogOfWarOpacity: 1,
             rotateSprites: false,
-            postProcessing: defaultPostProcessingBundle
         }
     }
 

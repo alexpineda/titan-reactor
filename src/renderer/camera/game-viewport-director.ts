@@ -34,10 +34,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.#inputHandler === null;
     }
 
-    get usePointerLock() {
-        return this.#inputHandler?.gameOptions?.usePointerLock ?? false;
-    }
-
     get allowUnitSelection() {
         return this.#inputHandler?.gameOptions?.allowUnitSelection ?? false;
     }
@@ -60,13 +56,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
             defaultPostProcessingBundle.effects.forEach(effect => effect.dispose());
             defaultPostProcessingBundle.passes.forEach(pass => pass.dispose());
         }
-
-        const _regainPointerLock = () => {
-            if (gameSurface.pointerLockInvalidState) {
-                gameSurface.requestPointerLock();
-            }
-        }
-        this.#janitor.addEventListener(gameSurface.canvas, 'pointerdown', _regainPointerLock);
     }
 
     onShouldHideUnit(...args: Parameters<UserInputCallbacks["onShouldHideUnit"]>) {
@@ -84,8 +73,8 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     onUpdateAudioMixerLocation(delta: number, elapsed: number) {
         if (this.#inputHandler?.onUpdateAudioMixerLocation) {
-            this.primaryViewport.orbit?.getTarget(_target);
-            this.primaryViewport.orbit?.getPosition(_position);
+            this.primaryViewport.orbit.getTarget(_target);
+            this.primaryViewport.orbit.getPosition(_position);
             this.#lastAudioPositon.copy(this.#inputHandler.onUpdateAudioMixerLocation(delta, elapsed, _target, _position));
         }
         return this.#lastAudioPositon;
@@ -121,6 +110,9 @@ export class GameViewportsDirector implements UserInputCallbacks {
         }
         this.#janitor.mopUp();
         this.#inputHandler = null;
+        this.#surface.togglePointerLock(false);
+
+        this.#defaultPostProcessingBundle.fogOfWarEffect.blendMode.setOpacity(1);
 
         this.viewports = [
             new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
@@ -142,18 +134,12 @@ export class GameViewportsDirector implements UserInputCallbacks {
             this.#janitor.add(activateUnitSelection(this.viewports[0].camera, this.#scene, this.#surface, this.#minimapSurface));
         }
 
-        this.#surface.togglePointerLock(this.usePointerLock);
-
         this.onActivate && this.onActivate(inputHandler);
         this.#activating = false;
     }
 
     get primaryViewport() {
         return this.viewports[0];
-    }
-
-    get secondaryViewport() {
-        return this.viewports[1];
     }
 
     set aspect(val: number) {

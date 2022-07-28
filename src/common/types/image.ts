@@ -38,13 +38,13 @@ export interface SpriteType extends Group {
 }
 
 export type PostProcessingBundleDTO = {
+  fogOfWarEffect: Effect;
+  renderPass: Pass;
   effects: Effect[],
   passes: Pass[]
 }
 
-export type GameViewPortRenderOptions = {
+export type SpriteRenderOptions = {
   unitScale: number;
-  fogOfWarOpacity: number;
   rotateSprites: boolean;
-  postProcessing: PostProcessingBundleDTO;
 }

@@ -261,6 +261,8 @@ async function TitanReactorGame(
   const renderPass = new RenderPass(scene, new PerspectiveCamera());
 
   const gameViewportsDirector = new GameViewportsDirector(scene, gameSurface, minimapSurface, {
+    fogOfWarEffect,
+    renderPass,
     effects: [fogOfWarEffect],
     passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWarEffect)]
   });
@@ -881,7 +883,7 @@ async function TitanReactorGame(
     }
 
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
-    _spritePos.y = (sprite.userData.fixedY ?? bulletY ?? _spritePos.y) + (gameViewportsDirector.primaryViewport.renderOptions.rotateSprites ? 0.2 : 0);
+    _spritePos.y = (sprite.userData.fixedY ?? bulletY ?? _spritePos.y);
 
     sprite.position.copy(_spritePos);
     //TODO: per game viewport
@@ -930,6 +932,7 @@ async function TitanReactorGame(
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
       image.matrixWorldNeedsUpdate = false;
 
+      //FIXME: move this to sprite directional utils?
       if (image.visible) {
         image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
         image.setTeamColor(player?.color ?? white);
@@ -959,7 +962,7 @@ async function TitanReactorGame(
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (gameViewportsDirector.primaryViewport.renderOptions.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+        if (gameViewportsDirector.primaryViewport.spriteRenderOptions.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
           image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z) - 0.1;
@@ -1190,7 +1193,7 @@ async function TitanReactorGame(
     delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    for (const viewport of gameViewportsDirector.activeViewports()) {
+    for (const viewport of gameViewportsDirector.viewports) {
       viewport.orbit.update(delta / 1000);
       viewport.orbit.getTarget(_a);
       viewport.projectedView.update(viewport.camera, _a);
@@ -1262,7 +1265,7 @@ async function TitanReactorGame(
 
     {
       for (const v of gameViewportsDirector.activeViewports()) {
-        const dir = v.renderOptions.rotateSprites ? getDirection32(v.projectedView.center, v.camera.position) : 0;
+        const dir = v.spriteRenderOptions.rotateSprites ? getDirection32(v.projectedView.center, v.camera.position) : 0;
         if (dir != v.camera.userData.direction) {
           v.camera.userData.prevDirection = v.camera.userData.direction;
           v.camera.userData.direction = dir;
@@ -1278,15 +1281,11 @@ async function TitanReactorGame(
     plugins.onBeforeRender(delta, elapsed);
 
     for (const v of gameViewportsDirector.activeViewports()) {
-      // setUseScale(images, v.renderOptions.unitScale);
-      // setUseDepth(images, v.renderOptions.rotateSprites);
-      // useSpriteDirectional(v.camera, spriteIterator, spriteImageIterator);
-      updateSpritesForViewport(v.camera, v.renderOptions, spriteIterator, spriteImageIterator);
+      updateSpritesForViewport(v.camera, v.spriteRenderOptions, spriteIterator, spriteImageIterator);
       v.cameraShake.update(elapsed, v.camera);
-      fogOfWarEffect.blendMode.opacity.value = v.renderOptions.fogOfWarOpacity;
       fogOfWar.update(players.getVisionFlag(), v.camera, minimapFOWImage);
-      updatePostProcessingCamera(v.renderOptions.postProcessing, v.camera, true);
-      renderComposer.setBundlePasses(v.renderOptions.postProcessing);
+      updatePostProcessingCamera(v.postProcessing, v.camera, true);
+      renderComposer.setBundlePasses(v.postProcessing);
       renderComposer.render(delta, v.viewport);
       v.cameraShake.restore(v.camera);
     }
@@ -1355,8 +1354,6 @@ async function TitanReactorGame(
   const macros = new Macros;
   macros.deserialize(settings.macros);
 
-  // let pluginsInstance = 0;
-
   const setupPlugins = async () => {
 
     const toggleFogOfWarByPlayerId = (playerId: number) => {
@@ -1366,7 +1363,6 @@ async function TitanReactorGame(
         fogOfWar.forceInstantUpdate = true;
       }
     }
-
 
     const setPlayerColors = (colors: string[]) => {
       const replay = useWorldStore.getState().replay;
@@ -1398,12 +1394,14 @@ async function TitanReactorGame(
     const getOriginalNames = () => [...originalNames];
 
     const api = {
-      isInGame: true,
-      get primaryViewport() {
+      get viewport() {
         return gameViewportsDirector.primaryViewport;
       },
-      get secondaryViewport() {
-        return gameViewportsDirector.secondaryViewport;
+      get secondViewport() {
+        return gameViewportsDirector.viewports[1];
+      },
+      get viewports() {
+        return gameViewportsDirector.viewports;
       },
       scene,
       cssScene,
@@ -1469,6 +1467,12 @@ async function TitanReactorGame(
         } else {
           soundChannels.playGlobal(typeId, volumeOrX);
         }
+      },
+      togglePointerLock: (val: boolean) => {
+        gameSurface.togglePointerLock(val);
+      },
+      get pointerLockLost() {
+        return gameSurface.pointerLockLost;
       }
     };
 

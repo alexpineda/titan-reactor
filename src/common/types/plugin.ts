@@ -110,7 +110,7 @@ export type UserInputCallbacks = {
 
     onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;
 
-    onMinimapDragUpdate: (pos: Vector3, isDragStart: boolean, isDragging: boolean, mouseButton?: number) => void;
+    onMinimapDragUpdate: (pos: Vector3, isDragStart: boolean, mouseButton?: number) => void;
 
     onDrawMinimap: (ctx: CanvasRenderingContext2D) => void;
 
@@ -120,7 +120,6 @@ export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
     dispose: () => void;
 
     gameOptions: {
-        usePointerLock: boolean;
         showMinimap: boolean;
         allowUnitSelection: boolean;
         audio: "stereo" | "3d";

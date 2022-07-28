@@ -70,7 +70,10 @@ export class MinimapMouse extends EventTarget {
     this.#janitor.callback(() => this.#surface.canvas.removeEventListener("mousedown", onMouseDown));
 
 
-    const onMouseUp = () => {
+    const onMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       this.mouseButton = undefined;
       this.#isDragging = false;
 
@@ -95,7 +98,9 @@ export class MinimapMouse extends EventTarget {
   }
 
   update(callbacks: UserInputCallbacks) {
-    callbacks.onMinimapDragUpdate(pos, this.#isDragStart, this.#isDragging, this.mouseButton);
+    if (this.#isDragging || this.#isDragStart) {
+      callbacks.onMinimapDragUpdate(pos, this.#isDragStart, this.mouseButton);
+    }
 
     this.#isDragStart = false;
 
