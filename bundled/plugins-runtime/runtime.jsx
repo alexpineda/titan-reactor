@@ -180,8 +180,11 @@ export const useRSSItems = (url) => {
 // plugin specific configuration
 const useConfig = create(() => ({}));
 
-const useComponents = create(() => ({
+const useComponents = create((set, get) => ({
   components: [],
+  add: (item) => set({ components: [...get().components, item] }),
+  remove: (id) =>
+    set({ components: get().components.filter((c) => c.pluginId === id) }),
 }));
 
 const setPluginStyleSheet = (id, content) => {
@@ -222,15 +225,23 @@ function processConfigBeforeReceive(config) {
   }
 }
 
+const _removePlugin = (_plugin) => {
+  const plugin = _plugins[_plugin.id];
+  if (!plugin) {
+    return;
+  }
+
+  useComponents.getState().remove(plugin.id);
+
+  plugin.script.remove();
+
+  delete _plugins[plugin.id];
+};
+
 const _addPlugin = (plugin) => {
   if (!plugin.hasUI) {
     return;
   }
-
-  _plugins[plugin.id] = {
-    id: plugin.id,
-    messageHandler: new EventTarget(),
-  };
 
   // initialize the plugin channels custom script and we'll later wait for it to register
   const script = document.createElement("script");
@@ -238,6 +249,12 @@ const _addPlugin = (plugin) => {
   script.async = true;
   script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
   document.head.appendChild(script);
+
+  _plugins[plugin.id] = {
+    id: plugin.id,
+    messageHandler: new EventTarget(),
+    script,
+  };
 
   useConfig.setState({
     [plugin.id]: processConfigBeforeReceive(plugin.config),
@@ -413,6 +430,10 @@ const _messageListener = function (event) {
 
       event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);
+    } else if (event.data.type === "system:plugin-enabled") {
+      _addPlugin(event.data.payload.plugin);
+    } else if (event.data.type === "system:plugin-disabled") {
+      _removePlugin(event.data.payload.plugin);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({
         [event.data.payload.pluginId]: processConfigBeforeReceive(
@@ -498,21 +519,25 @@ export const useStyleSheet = (content, deps = []) => {
 
 export const proxyFetch = (url) => fetch(`?proxy=${encodeURIComponent(url)}`);
 
-let _channelIds = 0;
-export const registerComponent = (component, JSXElement) => {
-  const plugin = _plugins[component.pluginId];
+//registerComponent
+export const _rc = (pluginId, component, JSXElement) => {
+  const plugin = _plugins[pluginId];
   if (!plugin) {
-    console.warn(`Plugin ${component.pluginId} not found`);
     return;
   }
 
-  component.id = `${component.pluginId}_${++_channelIds}`;
+  component.id = Math.random();
   component.order = component.order ?? 0;
-  component.messageHandler = plugin.messageHandler;
 
-  const components = useComponents.getState().components;
-  components.push({ component, JSXElement, snap: component.snap ?? "loose" });
-  useComponents.setState({ components: [...components] });
+  useComponents.getState().add({
+    ...component,
+    pluginId,
+    id: Math.random(),
+    order: component.order ?? 0,
+    messageHandler: plugin.messageHandler,
+    JSXElement,
+    snap: component.snap ?? "loose",
+  });
 };
 
 const AppWrapper = () => {

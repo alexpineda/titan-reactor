@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Home } from "./home.jsx";
+import { usePluginConfig } from "titan-reactor";
 
 const _screenSelector = (store) => store.screen;
 
@@ -31,9 +32,10 @@ const GlobalErrorState = ({ error }) => {
   );
 };
 
-const Component = ({ component, JSXElement, config }) => {
+const Component = ({ id, JSXElement }) => {
+  const config = usePluginConfig();
   return (
-    <ErrorBoundary key={component.id}>
+    <ErrorBoundary key={id}>
       <div style={{ display: config._visible ? "block" : "none" }}>
         <JSXElement />
       </div>
@@ -44,7 +46,7 @@ const Component = ({ component, JSXElement, config }) => {
 const _firstInstall = (store) => store.firstInstall;
 
 const orderSort = (a, b) => {
-  return a.component.order - b.component.order;
+  return a.order - b.order;
 };
 
 const styleCenterText = {
@@ -71,12 +73,11 @@ const loadingSvg = (
   </svg>
 );
 
-export default ({ components, useConfig, useStore, PluginContext }) => {
+export default ({ components, useStore, PluginContext }) => {
   const [appLoaded, setAppLoaded] = useState(false);
   const { screen, error } = useStore(_screenSelector);
   const firstInstall = useStore(_firstInstall);
   const containerDiv = useRef();
-  const config = useConfig();
 
   useEffect(() => {
     if (!containerDiv.current) return;
@@ -109,10 +110,16 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
     }
   }, [screen]);
 
-  const screenFilter = ({ component }) =>
+  const screenFilter = (component) =>
     appLoaded &&
     !screen.startsWith("@home") &&
     (component.screen === undefined || component.screen === screen);
+
+  const renderComponent = (component) => (
+    <PluginContext.Provider value={component}>
+      <Component key={component.id} {...component} />
+    </PluginContext.Provider>
+  );
 
   return (
     <div
@@ -162,16 +169,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
             .filter((c) => c.snap === "top-left")
             .filter(screenFilter)
             .sort(orderSort)
-            .map(({ JSXElement, component }) => (
-              <PluginContext.Provider value={component}>
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  config={config[component.pluginId]}
-                />
-              </PluginContext.Provider>
-            ))}
+            .map(renderComponent)}
         </div>
         <div
           id="top"
@@ -185,16 +183,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
             .filter((c) => c.snap === "top")
             .filter(screenFilter)
             .sort(orderSort)
-            .map(({ JSXElement, component }) => (
-              <PluginContext.Provider value={component}>
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  config={config[component.pluginId]}
-                />
-              </PluginContext.Provider>
-            ))}
+            .map(renderComponent)}
         </div>
         <div
           id="top-right"
@@ -207,16 +196,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
             .filter((c) => c.snap === "top-right")
             .filter(screenFilter)
             .sort(orderSort)
-            .map(({ JSXElement, component }) => (
-              <PluginContext.Provider value={component}>
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  config={config[component.pluginId]}
-                />
-              </PluginContext.Provider>
-            ))}
+            .map(renderComponent)}
         </div>
       </div>
       <div
@@ -241,16 +221,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
             .filter((c) => c.snap === "left")
             .filter(screenFilter)
             .sort(orderSort)
-            .map(({ JSXElement, component }) => (
-              <PluginContext.Provider value={component}>
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  config={config[component.pluginId]}
-                />
-              </PluginContext.Provider>
-            ))}
+            .map(renderComponent)}
         </div>
         <div
           id="center_container"
@@ -273,16 +244,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
               .filter((c) => c.snap === "center")
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component }) => (
-                <PluginContext.Provider value={component}>
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                    config={config[component.pluginId]}
-                  />
-                </PluginContext.Provider>
-              ))}
+              .map(renderComponent)}
           </div>
           <div
             id="bottom"
@@ -294,16 +256,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
               .filter((c) => c.snap === "bottom")
               .filter(screenFilter)
               .sort(orderSort)
-              .map(({ JSXElement, component }) => (
-                <PluginContext.Provider value={component}>
-                  <Component
-                    key={component.id}
-                    component={component}
-                    JSXElement={JSXElement}
-                    config={config[component.pluginId]}
-                  />
-                </PluginContext.Provider>
-              ))}
+              .map(renderComponent)}
           </div>
         </div>
         <div
@@ -314,16 +267,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
             .filter((c) => c.snap === "right")
             .filter(screenFilter)
             .sort(orderSort)
-            .map(({ JSXElement, component }) => (
-              <PluginContext.Provider value={component}>
-                <Component
-                  key={component.id}
-                  component={component}
-                  JSXElement={JSXElement}
-                  config={config[component.pluginId]}
-                />
-              </PluginContext.Provider>
-            ))}
+            .map(renderComponent)}
         </div>
       </div>
 
@@ -331,16 +275,7 @@ export default ({ components, useConfig, useStore, PluginContext }) => {
         .filter((c) => c.snap === "loose")
         .filter(screenFilter)
         .sort(orderSort)
-        .map(({ JSXElement, component }) => (
-          <PluginContext.Provider value={component}>
-            <Component
-              key={component.id}
-              component={component}
-              JSXElement={JSXElement}
-              config={config[component.pluginId]}
-            />
-          </PluginContext.Provider>
-        ))}
+        .map(renderComponent)}
     </div>
   );
 };

@@ -71,13 +71,9 @@ export interface NativePlugin extends PluginPrototype {
      */
     onConfigChanged?: (oldConfig: {}) => void;
     /**
-     * Called on a plugins initialization for convenience
-     */
-    onPluginCreated?: () => void;
-    /**
      * CaLLed when a plugin must release its resources
      */
-    onPluginDispose?: () => void;
+    dispose?: () => void;
     /**
      * Called when an React component sends a message to this window
      */
@@ -98,6 +94,18 @@ export interface NativePlugin extends PluginPrototype {
      * Used for message passing in hooks
      */
     context: any;
+
+    /**
+     * When a game has been loaded and the game loop is about to begin
+     */
+    onGameReady?: () => void;
+    onGameDisposed?: () => void;
+    onScenePrepared?: () => void;
+    onUnitCreated?: () => void;
+    onUnitKilled?: () => void;
+    onFrameReset?: () => void;
+    onUpgradeCompleted?: () => void;
+    onTechCompleted?: () => void;
 }
 
 export type UserInputCallbacks = {

@@ -18,7 +18,7 @@ import {
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import { useScreenStore } from "@stores/screen-store";
-import { HOOK_ON_GAME_DISPOSED } from "./hooks";
+import { HOOK_ON_GAME_DISPOSE } from "./hooks";
 import { Macros } from "../command-center/macros/macros";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 
@@ -147,9 +147,9 @@ export const installPluginLocal = async (repository: string) => {
 /**
  * We don't use the generic callHook here in order to reduce object allocation
  */
-export const onGameDisposed = () => {
+export const disposeGame = () => {
     uiPluginSystem.reset();
-    nativePluginSystem.callHook(HOOK_ON_GAME_DISPOSED);
+    nativePluginSystem.callHook(HOOK_ON_GAME_DISPOSE);
 };
 
 export const onBeforeRender = (

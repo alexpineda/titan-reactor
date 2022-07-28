@@ -33,7 +33,6 @@ import {
 } from "./render";
 import renderComposer from "./render/render-composer";
 import {
-  useScreenStore,
   useSettingsStore, useWorldStore,
 } from "./stores";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
@@ -55,7 +54,7 @@ import { Scene } from "./render/scene";
 import type Assets from "./assets/assets";
 import { Replay } from "./process-replay/parse-replay";
 import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
 import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer, IpcRendererEvent } from "electron";
@@ -191,21 +190,18 @@ async function TitanReactorGame(
   let _followedUnitsPosition = new Vector3();
   const followUnits = (units: Unit[]) => {
     followedUnits = [...units];
-    plugins.callHook(HOOK_ON_UNITS_FOLLOWED, units);
   }
 
   const unfollowUnit = (unit: Unit) => {
     const idx = followedUnits.indexOf(unit);
     if (idx > -1) {
       followedUnits.splice(idx, 1);
-      plugins.callHook(HOOK_ON_UNIT_UNFOLLOWED, unit);
     }
   }
 
   const clearFollowedUnits = () => {
     if (followedUnits.length > 0) {
       followedUnits.length = 0;
-      plugins.callHook(HOOK_ON_UNITS_CLEAR_FOLLOWED);
     }
   }
   const calculateFollowedUnitsTarget = debounce(() => {
@@ -340,7 +336,6 @@ async function TitanReactorGame(
     fadingPointers.clear();
 
     const frame = openBW.getCurrentFrame();
-    plugins.callHook(HOOK_ON_FRAME_RESET, frame);
 
     // remove any upgrade or tech that is no longer available
     for (let player = 0; player < 8; player++) {
@@ -350,6 +345,7 @@ async function TitanReactorGame(
       completedUpgrades[player] = completedUpgrades.map(([techId]) => techId);
     }
 
+    plugins.callHook(HOOK_ON_FRAME_RESET, frame);
     previousBwFrame = -1;
     reset = null;
     _wasReset = true;
@@ -361,16 +357,16 @@ async function TitanReactorGame(
     }
   });
 
-  const skipHandler = (dir: number, amount = 200) => {
+  const skipHandler = (dir: number, gameSeconds = 200) => {
     if (reset) return;
     const currentFrame = openBW.getCurrentFrame();
-    openBW.setCurrentFrame(currentFrame + amount * dir);
+    openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
     currentBwFrame = openBW.getCurrentFrame();
     reset = refreshScene;
     return currentBwFrame;
   }
-  const skipForward = (amount = 200) => skipHandler(1, amount);
-  const skipBackward = (amount = 200) => skipHandler(-1, amount);
+  const skipForward = (amount = 1) => skipHandler(1, amount);
+  const skipBackward = (amount = 1) => skipHandler(-1, amount);
 
   enum ChangeSpeedDirection {
     Up,
@@ -421,10 +417,9 @@ async function TitanReactorGame(
   };
 
   const sceneResizeHandler = debounce(_sceneResizeHandler, 100);
-  window.addEventListener("resize", sceneResizeHandler, false);
-  janitor.callback(() =>
-    window.removeEventListener("resize", sceneResizeHandler)
-  );
+  janitor.addEventListener(window, "resize", sceneResizeHandler, {
+    passive: true,
+  })
 
   let currentBwFrame = 0;
   let previousBwFrame = -1;
@@ -448,7 +443,6 @@ async function TitanReactorGame(
   const minimapResourcesImage = new ImageData(mapWidth, mapHeight);
   const minimapFOWImage = new ImageData(mapWidth, mapHeight);
   const minimapTerrainBitmap = terrain.minimapBitmap;
-
 
   const resourceColor = new Color(0, 55, 55);
   const flashColor = new Color(200, 200, 200);
@@ -649,7 +643,6 @@ async function TitanReactorGame(
 
     if (gameViewportsDirector.audio === "3d") {
       if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
-        // plugins.callHook("onBeforeSound", sound, dat, mapCoords);
         soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
       }
     }
@@ -669,7 +662,6 @@ async function TitanReactorGame(
       //FIXME; see if we can avoid creating this object
 
       if (volume > SoundPlayMinVolume) {
-        // plugins.callHook("onBeforeSound", classicSound, dat, mapCoords);
         soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
       }
     }
@@ -1393,6 +1385,45 @@ async function TitanReactorGame(
 
     const getOriginalNames = () => [...originalNames];
 
+    // class PlayerInfo {
+    //   constructor() {
+    //     this._struct_size = 7;
+    //     this.playerId = 0;
+    //     this.playerData = [];
+    //   }
+
+    //   get _offset() {
+    //     return this._struct_size * this.playerId;
+    //   }
+
+    //   get minerals() {
+    //     return this.playerData[this._offset + 0];
+    //   }
+
+    //   get vespeneGas() {
+    //     return this.playerData[this._offset + 1];
+    //   }
+    //   get supply() {
+    //     return this.playerData[this._offset + 2];
+    //   }
+
+    //   get supplyMax() {
+    //     return this.playerData[this._offset + 3];
+    //   }
+
+    //   get workerSupply() {
+    //     return this.playerData[this._offset + 4];
+    //   }
+
+    //   get armySupply() {
+    //     return this.playerData[this._offset + 5];
+    //   }
+
+    //   get apm() {
+    //     return this.playerData[this._offset + 6];
+    //   }
+    // }
+
     const api = {
       get viewport() {
         return gameViewportsDirector.primaryViewport;
@@ -1503,13 +1534,11 @@ async function TitanReactorGame(
     _halt = false;
   };
 
-  useScreenStore.subscribe(s => console.log(s))
-
-  ipcRenderer.on(RELOAD_PLUGINS, _onReloadPlugins);
-  janitor.callback(() => ipcRenderer.off(RELOAD_PLUGINS, _onReloadPlugins));
-
+  janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
 
   macros.setHostDefaults(settings);
+  plugins.setAllMacroDefaults(macros);
+
   janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
     type: SendWindowActionType.RefreshSettings
     payload: SendWindowActionPayload<SendWindowActionType.RefreshSettings>
@@ -1528,8 +1557,6 @@ async function TitanReactorGame(
       macros.deserialize(payload);
     }
   })
-
-  plugins.setAllMacroDefaults(macros);
 
   janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
     type: SendWindowActionType.PluginConfigChanged
@@ -1576,7 +1603,7 @@ async function TitanReactorGame(
     renderComposer.getWebGLRenderer().setAnimationLoop(null);
     selectedUnitsStore().clearSelectedUnits();
     clearFollowedUnits();
-    plugins.onGameDisposed();
+    plugins.disposeGame();
     pluginsApiJanitor.mopUp();
     janitor.mopUp();
   };;

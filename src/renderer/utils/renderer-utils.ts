@@ -22,7 +22,7 @@ export const getPixelRatio = (pixelRatio: Settings["graphics"]["pixelRatio"]) =>
     return pixelRatios[pixelRatio]
 }
 
-export const updatePostProcessingCamera = (bundle: PostProcessingBundleDTO, camera: Camera, renderLastPassToScreen: boolean) => {
+export const updatePostProcessingCamera = (bundle: Pick<PostProcessingBundleDTO, "effects" | "passes">, camera: Camera, renderLastPassToScreen: boolean) => {
     let lastPass: any = null;
 
     for (const pass of bundle.passes) {

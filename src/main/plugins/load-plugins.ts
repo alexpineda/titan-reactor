@@ -23,14 +23,8 @@ import omit from 'lodash.omit';
 let _enabledPluginPackages: InitializedPluginPackage[] = [];
 let _disabledPluginPackages: InitializedPluginPackage[] = [];
 
-export const getEnabledPluginConfigs = () => _enabledPluginPackages;
-export const getDisabledPluginConfigs = () => _disabledPluginPackages;
-
-const PLUGIN_ID_MACRO = "_plugin_id_";
-
-export const replacePluginContent = (content: string, pluginId: string) => {
-    return content.replace(new RegExp(PLUGIN_ID_MACRO, "g"), pluginId);
-}
+export const getEnabledPluginPackages = () => _enabledPluginPackages;
+export const getDisabledPluginPackages = () => _disabledPluginPackages;
 
 const _tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<any | null> => {
     try {

@@ -12,13 +12,13 @@ export default class Janitor {
     private _disposable = new Set<Disposable>();
     private _callbacks = new Set<EmptyFn>();
 
-    addEventListener(element: { addEventListener: Function, removeEventListener: Function }, event: string, callback: Function) {
-        element.addEventListener(event, callback);
+    addEventListener(element: { addEventListener: Function, removeEventListener: Function }, event: string, callback: Function, options?: AddEventListenerOptions) {
+        element.addEventListener(event, callback, options);
         this.add(() => element.removeEventListener(event, callback));
         return this;
     }
 
-    on(nodeEventListener: { on: Function, off: Function }, event: string, callback: Function) {
+    on(nodeEventListener: NodeJS.EventEmitter, event: string, callback: (...args: any[]) => void) {
         nodeEventListener.on(event, callback);
         this.add(() => nodeEventListener.off(event, callback));
     }

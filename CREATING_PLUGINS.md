@@ -111,7 +111,7 @@ Once we've got our basic `package.json` we can start with `index.jsx`:
 
 ```jsx
 import React from "react";
-import { registerComponent, usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor";
+import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor";
 
 const MyComponent = () => {
 
@@ -123,12 +123,12 @@ const MyComponent = () => {
     return <h1>Hello { config.userName }. Game time is {getFriendlyTime(frame.frame)} </h1>
 };
 
-registerComponent({ pluginId: "_plugin_id_", screen: "@replay/ready" }, MyComponent);
+registerComponent({ screen: "@replay/ready" }, MyComponent);
 ```
 
 ### registerComponent()
 
-`registerComponent` lets Titan Reactor know about our new React Component, and will mount it and unmount it according to the screen and layout rules. The `_plugin_id_` macro will be replaced with our actual unique plugin id for us and is just boilerplate.
+`registerComponent` is provided for you in the environemnt and calling it lets Titan Reactor know about our new React Component. The screen rule causes the component to mount or unmount it according to the screen.
 
 ### Technology
 
@@ -212,7 +212,6 @@ Only mouse clicks events (`onClick`) will be available for listening to any of y
 Example: 
 ```js
 registerComponent({
-  pluginId: "_plugin_id_",
   screen: "@replay/ready",
   snap: "center",
   order: 0
@@ -291,15 +290,11 @@ Every plugin gets a base set of hooks.
 
 // your plugin must return an object with keynames matching hook names that you want to listen to
 return {
-    // onPluginCreated() will be called on load if your plugin is already enabled
-    // it will also be called anytime the user enables your plugin
-    onPluginCreated() {
-      // config property will be on the object
-      console.log(this.config);
-    },
-
-    onPluginDisposed() {
-      // user disabled your plugin
+    
+    // onGameReady fires when everything is loaded but before the first frame is run
+    // the apis provided allow you to iterate players and units, modify replay position and speed and other things
+    async onGameReady() {
+      
     },
 
     // Titan Reactor provides a UI for users to change config of your plugin
@@ -311,12 +306,7 @@ return {
       }
     },
 
-    // onGameReady fires when everything is loaded but before the first frame is run
-    // the apis provided allow you to iterate players and units, modify replay position and speed and other things
-    async onGameReady() {
-      
-    },
-
+    
     // when the game is over, get rid of any unneeded object references to the previous game!
     onGameDisposed() {
 
@@ -330,7 +320,12 @@ return {
     // commands will include upto 5s of skipped frames
     onFrame(frame, followingUnits, commands) {
 
-    }
+    },
+
+
+    dispose() {
+      // user disabled your plugin 
+    },
     
 }
 ```

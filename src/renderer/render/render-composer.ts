@@ -68,7 +68,7 @@ export class TitanRenderComposer {
         return renderer;
     }
 
-    setBundlePasses(bundle: PostProcessingBundleDTO) {
+    setBundlePasses(bundle: Pick<PostProcessingBundleDTO, "passes">) {
         this.composer.removeAllPasses();
         for (const pass of bundle.passes) {
             this.composer.addPass(pass);

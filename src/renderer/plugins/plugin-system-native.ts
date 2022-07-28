@@ -2,7 +2,7 @@ import { SceneInputHandler, InitializedPluginPackage, NativePlugin, PluginProtot
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSED, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNITS_CLEAR_FOLLOWED, HOOK_ON_UNITS_FOLLOWED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_UNFOLLOWED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED } from "./hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSE, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
@@ -41,18 +41,15 @@ class Hook {
 }
 
 const createDefaultHooks = () => ({
-    onGameDisposed: new Hook(HOOK_ON_GAME_DISPOSED, []),
-    onGameReady: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
-    onScenePrepared: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "map", "replayHeader"]),
-    onUnitCreated: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
-    onUnitKilled: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
-    onFrameReset: new Hook(HOOK_ON_FRAME_RESET, []),
-    onUnitsFollowed: new Hook(HOOK_ON_UNITS_FOLLOWED, ["units"]),
-    onUnitUnfollowed: new Hook(HOOK_ON_UNIT_UNFOLLOWED, ["unit"]),
-    onUnitClearFollowed: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, []),
-    onUnitsSelected: new Hook(HOOK_ON_UNITS_CLEAR_FOLLOWED, ["units"]),
-    onUpgradeCompleted: new Hook(HOOK_ON_UPGRADE_COMPLETED, ["upgrade"]),
-    onTechCompleted: new Hook(HOOK_ON_TECH_COMPLETED, ["tech"]),
+    [HOOK_ON_GAME_DISPOSE]: new Hook(HOOK_ON_GAME_DISPOSE, []),
+    [HOOK_ON_GAME_READY]: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
+    [HOOK_ON_SCENE_PREPARED]: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "map", "replayHeader"]),
+    [HOOK_ON_UNIT_CREATED]: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
+    [HOOK_ON_UNIT_KILLED]: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
+    [HOOK_ON_FRAME_RESET]: new Hook(HOOK_ON_FRAME_RESET, []),
+    [HOOK_ON_UPGRADE_COMPLETED]: new Hook(HOOK_ON_UPGRADE_COMPLETED, ["upgrade"]),
+    [HOOK_ON_UNITS_SELECTED]: new Hook(HOOK_ON_UNITS_SELECTED, ["units"]),
+    [HOOK_ON_TECH_COMPLETED]: new Hook(HOOK_ON_TECH_COMPLETED, ["tech"]),
 });
 
 const pluginProto: PluginPrototype = {
@@ -161,7 +158,6 @@ export class PluginSystemNative {
             };
             plugin.isSceneController = !!plugin.onEnterScene;
             log.verbose(`@plugin-system-native: initialized plugin "${plugin.name}"`);
-            plugin.onPluginCreated && plugin.onPluginCreated();
 
             return plugin;
         } catch (e: unknown) {
@@ -241,7 +237,7 @@ export class PluginSystemNative {
     dispose() {
         for (const plugin of this.#nativePlugins) {
             try {
-                plugin.onPluginDispose && plugin.onPluginDispose();
+                plugin.dispose && plugin.dispose();
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
             }
@@ -253,7 +249,7 @@ export class PluginSystemNative {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
-                plugin.onPluginDispose && plugin.onPluginDispose();
+                plugin.dispose && plugin.dispose();
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
             }

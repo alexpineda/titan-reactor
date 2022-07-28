@@ -12,7 +12,7 @@ import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import migrate from "./migrate";
-import loadPlugins, { getDisabledPluginConfigs, getEnabledPluginConfigs, getPluginsMetaData } from "../plugins/load-plugins";
+import loadPlugins, { getDisabledPluginPackages, getEnabledPluginPackages, getPluginsMetaData } from "../plugins/load-plugins";
 import { findPluginsPath } from "../starcraft/find-plugins-path";
 import withErrorMessage from "common/utils/with-error-message";
 import log from "../log";
@@ -124,8 +124,8 @@ export class Settings {
       data: { ...this._settings, macros },
       errors,
       isCascStorage,
-      enabledPlugins: getEnabledPluginConfigs(),
-      disabledPlugins: getDisabledPluginConfigs(),
+      enabledPlugins: getEnabledPluginPackages(),
+      disabledPlugins: getDisabledPluginPackages(),
       pluginsMetadata: getPluginsMetaData(),
       phrases: {
         ...phrases["en-US"],

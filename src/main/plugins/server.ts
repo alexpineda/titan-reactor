@@ -4,11 +4,11 @@ import fs from "fs";
 import transpile, { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
-import { getEnabledPluginConfigs, replacePluginContent } from "./load-plugins";
 import settings from "../settings/singleton"
 import fileExists from "common/utils/file-exists";
 import logService from "../logger/singleton";
 import fetch from 'node-fetch';
+import { getEnabledPluginPackages } from "./load-plugins";
 
 const _runtimePath = path.resolve(__static, "plugins-runtime");
 
@@ -36,7 +36,8 @@ app.get('*', async function (req, res) {
         return;
     }
 
-    const filepath = req.path.startsWith("/runtime") ? path.join(_runtimePath, req.path) : path.join(settings.get().directories.plugins, req.path);
+    const isPlugin = !req.path.startsWith("/runtime");
+    const filepath = isPlugin ? path.join(settings.get().directories.plugins, req.path) : path.join(_runtimePath, req.path);
 
     if (!(filepath.startsWith(settings.get().directories.plugins) || filepath.startsWith(_runtimePath))) {
         logService.error(`@server/403-forbidden: ${filepath}`);
@@ -57,9 +58,24 @@ app.get('*', async function (req, res) {
             content = result.code;
         }
 
-        const plugin = getEnabledPluginConfigs().find(p => p.id === req.query["plugin-id"]);
+        const plugins = getEnabledPluginPackages();
+        let plugin;
+        for (const _plugin of plugins) {
+            if (filepath.startsWith(path.join(settings.get().directories.plugins, _plugin.path))) {
+                plugin = _plugin;
+            }
+        }
+
+        if (!plugin && isPlugin) {
+            return res.sendStatus(404);
+        }
+        //.find(p => p.id === req.query["plugin-id"]);
         if (plugin && content) {
-            content = replacePluginContent(content, plugin.id);
+            content = `
+            import { _rc } from "titan-reactor";
+            const registerComponent = (...args) => _rc("${plugin.id}", ...args);
+            ${content}
+            `
         }
 
         res.setHeader("Content-Type", "application/javascript");

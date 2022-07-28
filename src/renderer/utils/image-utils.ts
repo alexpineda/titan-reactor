@@ -1,7 +1,5 @@
 import { BwDAT, ImageStruct } from "common/types";
 import { ImageFlags, drawFunctions } from "common/enums";
-import ImageHD from "@core/image-hd";
-import { Image } from "../core"
 
 export const imageIsShadow = (image: ImageStruct, bwDat: BwDAT) => {
   return (
