@@ -2,18 +2,10 @@ import search from "libnpmsearch";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import semver from "semver";
 import "./style.css";
-
-import {
-  deletePlugin,
-  disablePlugin,
-  enablePlugins,
-  updatePluginsConfig,
-} from "@ipc/plugins";
+import { updatePluginsConfig } from "@ipc/plugins";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { InitializedPluginPackage } from "common/types";
-import { installPluginLocal } from "../plugins";
 import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
@@ -23,7 +15,8 @@ import { Helmet } from "react-helmet";
 import { openCascStorage, readCascFileBatch } from "@ipc/casclib";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import * as log from "@ipc/log";
+import { getUpdateVersion, localPluginRepository } from "./plugin-utils";
+import { PluginButton } from "./plugin-button";
 
 if (module.hot) {
   module.hot.accept();
@@ -46,12 +39,13 @@ const onChange = debounce(async (pluginId: string, config: any) => {
   });
 }, 100);
 
+type RemotePackage = search.Result;
+
 const LIMIT = 1000;
-const RESTART_REQUIRED = "Restart required for new settings to take effect";
 const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
 const SEARCH_OFFICIAL = "@titan-reactor-plugins";
 
-const searchPackages = async (cb: (val: search.Result[]) => void) => {
+const searchPackages = async (cb: (val: RemotePackage[]) => void) => {
   const officialPackages = await search(SEARCH_OFFICIAL, {
     limit: LIMIT,
   });
@@ -66,28 +60,20 @@ const searchPackages = async (cb: (val: search.Result[]) => void) => {
   cb(results);
 };
 
-type Plugin = {
-  plugin?: InitializedPluginPackage;
-  onlinePackage?: search.Result;
-};
-
-const getUpdateVersion = (remoteVersion: string, localVersion: string) => {
-  try {
-    return semver.gt(remoteVersion, localVersion) ? remoteVersion : undefined;
-  } catch (e) {
-    return undefined;
-  }
-};
-
 const _iconsBase64: Record<number, string> = {};
+type Plugin = {
+  local?: InitializedPluginPackage;
+  remote?: RemotePackage;
+};
 
 const CommandCenter = () => {
   const settings = useSettingsStore();
-  const [selectedPluginPackage, setSelectedPluginPackage] = useState<Plugin>({
-    plugin: settings.enabledPlugins[0] ?? settings.disabledPlugins[0],
+  const { enabledPlugins, disabledPlugins } = settings;
+  const [plugin, setSelectedPluginPackage] = useState<Plugin>({
+    local: enabledPlugins[0] ?? disabledPlugins[0],
   });
 
-  const [remotePackages, setRemotePackages] = useState<search.Result[]>([]);
+  const [remotePackages, setRemotePackages] = useState<RemotePackage[]>([]);
   const [pagination] = useState(0);
   const [banner, setBanner] = useState("");
 
@@ -99,10 +85,7 @@ const CommandCenter = () => {
       (async () => {
         await openCascStorage(settings.data.directories.starcraft);
 
-        const pluginIcons = [
-          ...settings.enabledPlugins,
-          ...settings.disabledPlugins,
-        ]
+        const pluginIcons = [...enabledPlugins, ...disabledPlugins]
           .map((p) => p.config?.icon ?? "filter_center_focus")
           .filter((i) => typeof i === "number");
         const icons = [
@@ -131,208 +114,92 @@ const CommandCenter = () => {
   }, [banner]);
 
   useEffect(() => {
-    if (!selectedPluginPackage.plugin) {
-      setSelectedPluginPackage({ onlinePackage: undefined });
+    if (!plugin.local) {
+      setSelectedPluginPackage({ remote: undefined });
     }
     searchPackages(setRemotePackages);
   }, [pagination]);
 
   // Safety precaution: If the plugin is not remotely hosted don't allow deletion on disk
   const matchingRemotePlugin = remotePackages.find(
-    (p) => p.name === selectedPluginPackage.plugin?.name
-  );
-
-  const pluginsWithUpdatesAvailable = settings.enabledPlugins.reduce(
-    (memo, plugin) => {
-      const remote = remotePackages.find((p) => p.name === plugin.name);
-
-      const updateVersion = getUpdateVersion(
-        remote?.version ?? "0.0.0",
-        plugin.version ?? "0.0.0"
-      );
-
-      if (updateVersion) {
-        return {
-          ...memo,
-          [plugin.name]: updateVersion,
-        };
-      } else {
-        return memo;
-      }
-    },
-    {}
+    (p) => p.name === plugin.local?.name
   );
 
   const canDelete = Boolean(matchingRemotePlugin);
 
-  const updateVersion = getUpdateVersion(
-    matchingRemotePlugin?.version ?? "0.0.0",
-    selectedPluginPackage.plugin?.version ?? "0.0.0"
-  );
-
-  interface PluginButtonProps {
-    icon: number | string | null;
-    name: string;
-    description?: string;
-    isSelected: boolean;
-    onClick: () => void;
-    isDisabled?: boolean;
-    isOnline?: boolean;
-  }
-  const PluginButton = ({
-    icon,
-    name,
-    description,
-    isSelected,
-    onClick,
-    isDisabled = false,
-    isOnline = false,
-  }: PluginButtonProps) => (
-    <button
-      onClick={onClick}
-      style={{
-        textAlign: "left",
-        color: isDisabled
-          ? "var(--gray-5)"
-          : isSelected
-          ? "var(--gray-9)"
-          : "var(--gray-7)",
-      }}
-    >
-      {typeof icon === "number" && (
-        <img
-          style={{ width: "var(--size-8)" }}
-          src={_iconsBase64[icon]}
-          alt={name}
-        />
-      )}
-      {typeof icon === "string" && <i className="material-icons">{icon}</i>}
-      {description}{" "}
-      {pluginsWithUpdatesAvailable[
-        name as keyof typeof pluginsWithUpdatesAvailable
-      ] &&
-        !isDisabled &&
-        !isOnline && (
-          <span
-            style={{
-              fontSize: "30%",
-              position: "absolute",
-              top: "-5px",
-            }}
-          >
-            🔴
-          </span>
-        )}
-    </button>
-  );
+  const updateVersion = getUpdateVersion(matchingRemotePlugin, plugin.local);
 
   const nonInstalledRemotePackages = remotePackages
     .filter(
       (p) =>
-        !settings.enabledPlugins.find(
+        !enabledPlugins.find(
           (installedPlugin) => installedPlugin.name === p.name
         )
     )
     .filter(
       (p) =>
-        !settings.disabledPlugins.find(
+        !disabledPlugins.find(
           (installedPlugin) => installedPlugin.name === p.name
         )
     );
 
-  const tryInstallPlugin = async () => {
-    if (
-      confirm(
-        "This will download the plugin into your plugins folder. Continue?"
-      )
-    ) {
-      const plugin = await installPluginLocal(
-        selectedPluginPackage.onlinePackage!.name
-      );
-      if (plugin) {
-        useSettingsStore.setState({
-          disabledPlugins: [...settings.disabledPlugins, plugin],
-        });
-        setSelectedPluginPackage({ plugin });
-        setBanner(`${plugin.name} installed!`);
-        setTabIndex(0);
-      } else {
-        setBanner(
-          `Failed to install ${selectedPluginPackage.onlinePackage!.name}`
-        );
-      }
-    }
-  };
+  const Icon = ({ icon }: { icon: number | string }) => (
+    <>
+      {typeof icon === "number" && (
+        <img style={{ width: "var(--size-8)" }} src={_iconsBase64[icon]} />
+      )}
+      {typeof icon === "string" && <i className="material-icons">{icon}</i>}
+    </>
+  );
 
-  const tryUpdatePlugin = async () => {
-    if (
-      confirm("This will update the plugin in your plugins folder. Continue?")
-    ) {
-      const plugin = await installPluginLocal(
-        selectedPluginPackage.plugin!.name
-      );
-      if (plugin) {
-        log.info(`Succesfully updated ${selectedPluginPackage.plugin!.name}`);
-      } else {
-        setBanner(`Failed to update ${selectedPluginPackage.plugin!.name}`);
+  const localPluginButton = (local: InitializedPluginPackage) => (
+    <PluginButton
+      icon={local.config?.icon ? <Icon icon={local.config?.icon} /> : null}
+      key={local.id}
+      description={local.description}
+      isDisabled={true}
+      isSelected={plugin.local?.id === local.id}
+      hasUpdateAvailable={
+        !!getUpdateVersion(
+          remotePackages.find((p) => p.name === local.name),
+          local
+        )
       }
-    }
-  };
-
-  const tryDisablePlugin = async () => {
-    if (confirm("Are you sure you want to disable this plugin?")) {
-      if (await disablePlugin(selectedPluginPackage.plugin!.id)) {
-        setBanner(RESTART_REQUIRED);
-        useSettingsStore.setState({
-          disabledPlugins: [
-            ...settings.disabledPlugins,
-            selectedPluginPackage.plugin!,
-          ],
-          enabledPlugins: settings.enabledPlugins.filter(
-            (p) => p.id !== selectedPluginPackage.plugin!.id
-          ),
+      onClick={() => {
+        setSelectedPluginPackage({
+          local: local,
         });
-      } else {
-        setBanner(`Failed to disable ${selectedPluginPackage.plugin!.name}`);
-      }
-    }
-  };
+      }}
+    />
+  );
 
-  const tryEnablePlugin = async () => {
-    if (confirm("Do you wish to continue and enable this plugin?")) {
-      if (await enablePlugins([selectedPluginPackage.plugin!.id])) {
-        useSettingsStore.setState({
-          enabledPlugins: [
-            ...settings.enabledPlugins,
-            selectedPluginPackage.plugin!,
-          ],
-          disabledPlugins: settings.disabledPlugins.filter(
-            (p) => p.id !== selectedPluginPackage.plugin!.id
-          ),
+  const remotePackageButton = (remote: RemotePackage) => (
+    <PluginButton
+      icon={null}
+      description={remote.name}
+      isOnline={true}
+      isSelected={plugin.local?.name === remote.name}
+      hasUpdateAvailable={false}
+      onClick={() => {
+        setSelectedPluginPackage({
+          remote: remote,
         });
-      } else {
-        setBanner("Failed to enable plugin");
-      }
-    }
-  };
+      }}
+    />
+  );
 
-  const tryDeletePlugin = async () => {
-    if (
-      confirm("Are you sure you wish to place this plugin in the trashbin?")
-    ) {
-      if (await deletePlugin(selectedPluginPackage.plugin!.id)) {
-        setBanner("Plugin files were placed in trash bin");
-        useSettingsStore.setState({
-          disabledPlugins: settings.disabledPlugins.filter(
-            (p) => p.id !== selectedPluginPackage.plugin!.id
-          ),
-        });
-        setSelectedPluginPackage({ plugin: undefined });
-      } else {
-        setBanner("Failed to delete plugin");
-      }
-    }
-  };
+  const {
+    tryDeletePlugin,
+    tryDisablePlugin,
+    tryEnablePlugin,
+    tryInstallPlugin,
+    tryUpdatePlugin,
+  } = localPluginRepository(
+    setSelectedPluginPackage,
+    setBanner,
+    setTabIndex,
+    settings.load
+  );
 
   return (
     <>
@@ -376,22 +243,7 @@ const CommandCenter = () => {
                       can be enabled/disabled.
                     </p>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                      {settings.enabledPlugins.sort().map((plugin) => (
-                        <PluginButton
-                          icon={plugin.config?.icon}
-                          key={plugin.id}
-                          name={plugin.name}
-                          description={plugin.description}
-                          isSelected={
-                            selectedPluginPackage.plugin?.id === plugin.id
-                          }
-                          onClick={() => {
-                            setSelectedPluginPackage({
-                              plugin,
-                            });
-                          }}
-                        />
-                      ))}
+                      {enabledPlugins.sort().map(localPluginButton)}
                       <p
                         style={{
                           margin: "var(--size-8) 0 var(--size-4) 0",
@@ -403,23 +255,7 @@ const CommandCenter = () => {
                       >
                         Disabled Plugins
                       </p>
-                      {settings.disabledPlugins.map((plugin) => (
-                        <PluginButton
-                          icon={plugin.config?.icon}
-                          key={plugin.id}
-                          name={plugin.name}
-                          description={plugin.description}
-                          isDisabled={true}
-                          isSelected={
-                            selectedPluginPackage.plugin?.id === plugin.id
-                          }
-                          onClick={() => {
-                            setSelectedPluginPackage({
-                              plugin,
-                            });
-                          }}
-                        />
-                      ))}
+                      {disabledPlugins.map(localPluginButton)}
                     </div>
                   </Tab>
                   <Tab label="Online">
@@ -428,24 +264,7 @@ const CommandCenter = () => {
                       publish for you to install here.
                     </p>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                      {nonInstalledRemotePackages.map((onlinePackage) => (
-                        <PluginButton
-                          icon={null}
-                          key={onlinePackage.name}
-                          name={onlinePackage.name}
-                          description={onlinePackage.name}
-                          isOnline={true}
-                          isSelected={
-                            selectedPluginPackage.onlinePackage?.name ===
-                            onlinePackage.name
-                          }
-                          onClick={() => {
-                            setSelectedPluginPackage({
-                              onlinePackage,
-                            });
-                          }}
-                        />
-                      ))}
+                      {nonInstalledRemotePackages.map(remotePackageButton)}
                     </div>
                   </Tab>
                 </Tabs>
@@ -457,92 +276,80 @@ const CommandCenter = () => {
                   flexDirection: "column",
                 }}
               >
-                {selectedPluginPackage && (
+                {plugin && (
                   <h2>
-                    {selectedPluginPackage.plugin?.description ??
-                      selectedPluginPackage.plugin?.name ??
-                      selectedPluginPackage.onlinePackage?.name}{" "}
-                    -{" "}
-                    {selectedPluginPackage.plugin?.version ??
-                      selectedPluginPackage.onlinePackage?.version}
+                    {plugin.local?.description ??
+                      plugin.local?.name ??
+                      plugin.remote?.name}{" "}
+                    - {plugin.local?.version ?? plugin.remote?.version}
                   </h2>
                 )}
 
-                {selectedPluginPackage.onlinePackage && (
+                {plugin.remote && (
                   <>
                     <DetailSheet
-                      key={selectedPluginPackage.onlinePackage.name}
-                      pluginPackage={selectedPluginPackage.onlinePackage}
+                      key={plugin.remote.name}
+                      pluginPackage={plugin.remote}
                       controls={[]}
                     />
-                    <button onClick={tryInstallPlugin}>Install Plugin</button>
+                    <button
+                      onClick={() => tryInstallPlugin(plugin.remote!.name)}
+                    >
+                      Install Plugin
+                    </button>
                   </>
                 )}
-                {selectedPluginPackage.plugin &&
-                  settings.enabledPlugins.includes(
-                    selectedPluginPackage.plugin
-                  ) && (
-                    <>
-                      {!selectedPluginPackage.plugin.config?.system
-                        ?.deprecated && (
-                        <DetailSheet
-                          key={selectedPluginPackage.plugin.id}
-                          pluginPackage={selectedPluginPackage.plugin}
-                          controls={mapConfigToLeva(
-                            selectedPluginPackage.plugin.config,
-                            () => {
-                              onChange(
-                                selectedPluginPackage.plugin!.id,
-                                selectedPluginPackage.plugin!.config
-                              );
-                            }
-                          )}
-                        />
-                      )}
-                      {selectedPluginPackage.plugin.config?.system
-                        ?.deprecated && (
-                        <div style={{ marginTop: "1rem" }}>
-                          🛑 The author of this plugin has marked it as
-                          deprecated and this plugin should be disabled and no
-                          longer used.
-                        </div>
-                      )}
-                      {updateVersion && (
-                        <button onClick={tryUpdatePlugin}>
-                          Update to {updateVersion}
-                        </button>
-                      )}
-                      <button onClick={tryDisablePlugin}>Disable Plugin</button>
-                    </>
-                  )}
-                {selectedPluginPackage.plugin &&
-                  settings.disabledPlugins.includes(
-                    selectedPluginPackage.plugin
-                  ) && (
-                    <>
-                      <button onClick={tryEnablePlugin}>Enable Plugin</button>
-                      {canDelete && (
-                        <button
-                          style={{ background: "var(--red-5)", color: "white" }}
-                          onClick={tryDeletePlugin}
-                        >
-                          Delete Plugin
-                        </button>
-                      )}
+                {plugin.local && enabledPlugins.includes(plugin.local) && (
+                  <>
+                    {!plugin.local.config?.system?.deprecated && (
                       <DetailSheet
-                        key={selectedPluginPackage.plugin.id}
-                        pluginPackage={selectedPluginPackage.plugin}
-                        controls={mapConfigToLeva(
-                          selectedPluginPackage.plugin.config,
-                          () =>
-                            onChange(
-                              selectedPluginPackage.plugin!.id,
-                              selectedPluginPackage.plugin!.config
-                            )
-                        )}
+                        key={plugin.local.id}
+                        pluginPackage={plugin.local}
+                        controls={mapConfigToLeva(plugin.local.config, () => {
+                          onChange(plugin.local!.id, plugin.local!.config);
+                        })}
                       />
-                    </>
-                  )}
+                    )}
+                    {plugin.local.config?.system?.deprecated && (
+                      <div style={{ marginTop: "1rem" }}>
+                        🛑 The author of this plugin has marked it as deprecated
+                        and this plugin should be disabled and no longer used.
+                      </div>
+                    )}
+                    {updateVersion && (
+                      <button
+                        onClick={() => tryUpdatePlugin(plugin.local!.name)}
+                      >
+                        Update to {updateVersion}
+                      </button>
+                    )}
+                    <button onClick={() => tryDisablePlugin(plugin.local!.id)}>
+                      Disable Plugin
+                    </button>
+                  </>
+                )}
+                {plugin.local && disabledPlugins.includes(plugin.local) && (
+                  <>
+                    <button onClick={() => tryEnablePlugin(plugin.local!.id)}>
+                      Enable Plugin
+                    </button>
+                    {canDelete && (
+                      <button
+                        style={{ background: "var(--red-5)", color: "white" }}
+                        onClick={() => tryDeletePlugin(plugin.local!.id)}
+                      >
+                        Delete Plugin
+                      </button>
+                    )}
+                    <DetailSheet
+                      key={plugin.local.id}
+                      pluginPackage={plugin.local}
+                      controls={mapConfigToLeva(plugin.local.config, () =>
+                        onChange(plugin.local!.id, plugin.local!.config)
+                      )}
+                    />
+                  </>
+                )}
               </main>
             </div>
           </Tab>

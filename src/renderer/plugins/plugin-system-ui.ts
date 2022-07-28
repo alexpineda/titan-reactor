@@ -3,7 +3,7 @@ import { InitializedPluginPackage, OpenBWAPI, ScreenStatus, ScreenType } from "c
 import settingsStore from "@stores/settings-store";
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
-import { UI_PLUGIN_EVENT_DIMENSIONS_CHANGED, SYSTEM_EVENT_READY, UI_PLUGIN_EVENT_ON_FRAME, UI_PLUGIN_EVENT_SCREEN_CHANGED, UI_PLUGIN_EVENT_WORLD_CHANGED, UI_PLUGIN_EVENT_UNITS_SELECTED, SYSTEM_RUNTIME_READY } from "./events";
+import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED } from "./events";
 import { waitForTruthy } from "@utils/wait-for-process";
 import { Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
@@ -31,7 +31,7 @@ import Assets from "../assets/assets";
 
 const screenChanged = (screen: ScreenStore) => {
     return {
-        type: UI_PLUGIN_EVENT_SCREEN_CHANGED,
+        type: UI_STATE_EVENT_SCREEN_CHANGED,
         payload: {
             screen: `@${ScreenType[screen.type]}/${ScreenStatus[screen.status]}`.toLowerCase(),
             error: screen.error?.message
@@ -49,7 +49,7 @@ const _makeReplayPosition = () => ({
 })
 
 const _replayPosition = {
-    type: UI_PLUGIN_EVENT_ON_FRAME,
+    type: UI_STATE_EVENT_ON_FRAME,
     payload: _makeReplayPosition()
 }
 
@@ -82,7 +82,7 @@ export const setDumpUnitCall = (fn: (id: number) => {}) => {
 
 
 const _selectedUnitMessage = {
-    type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+    type: UI_STATE_EVENT_UNITS_SELECTED,
     payload: {}
 }
 
@@ -101,7 +101,7 @@ export class PluginSystemUI {
 
         return new Promise(resolve => {
             const _listener = (evt: MessageEvent) => {
-                if (evt.data?.type === SYSTEM_RUNTIME_READY) {
+                if (evt.data?.type === UI_SYSTEM_RUNTIME_READY) {
                     this.#isRunning = true;
                     window.removeEventListener("message", _listener);
                     resolve(true);
@@ -127,10 +127,10 @@ export class PluginSystemUI {
 
         const initialStore = () => ({
             language: settingsStore().data.language,
-            [UI_PLUGIN_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
-            [UI_PLUGIN_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
-            [UI_PLUGIN_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
-            [UI_PLUGIN_EVENT_ON_FRAME]: _makeReplayPosition(),
+            [UI_STATE_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
+            [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
+            [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
+            [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
         })
 
         var iframeLoaded = false;
@@ -182,7 +182,7 @@ export class PluginSystemUI {
             const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
             this.#iframe.contentWindow?.postMessage({
-                type: SYSTEM_EVENT_READY,
+                type: UI_SYSTEM_READY,
                 payload: {
                     plugins: pluginPackages,
                     initialStore: initialStore(),
@@ -213,7 +213,7 @@ export class PluginSystemUI {
         this.#janitor.add(useGameStore.subscribe((game, prev) => {
             if (game.dimensions !== prev.dimensions) {
                 this.sendMessage({
-                    type: UI_PLUGIN_EVENT_DIMENSIONS_CHANGED,
+                    type: UI_STATE_EVENT_DIMENSIONS_CHANGED,
                     payload: game.dimensions
                 });
             }
@@ -231,14 +231,14 @@ export class PluginSystemUI {
 
         this.#janitor.add(useWorldStore.subscribe((world) => {
             this.sendMessage({
-                type: UI_PLUGIN_EVENT_WORLD_CHANGED,
+                type: UI_STATE_EVENT_WORLD_CHANGED,
                 payload: worldPartial(world)
             });
         }));
 
         this.#janitor.add(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
             this.sendMessage({
-                type: UI_PLUGIN_EVENT_UNITS_SELECTED,
+                type: UI_STATE_EVENT_UNITS_SELECTED,
                 payload: unitsPartial(selectedUnits)
             });
         }));
@@ -249,6 +249,20 @@ export class PluginSystemUI {
 
     sendMessage(message: any, transfer?: Transferable[]) {
         this.#iframe.contentWindow?.postMessage(message, "*", transfer);
+    }
+
+    disablePlugin(id: string) {
+        this.sendMessage({
+            type: UI_SYSTEM_PLUGIN_DISABLED,
+            payload: id
+        });
+    }
+
+    enablePlugins(plugins: InitializedPluginPackage[]) {
+        this.sendMessage({
+            type: UI_SYSTEM_PLUGINS_ENABLED,
+            payload: plugins
+        });
     }
 
     dispose() {
@@ -265,8 +279,8 @@ export class PluginSystemUI {
         const time = getSecond(currentFrame);
 
         // update the ui every game second
-        if (_lastSend[UI_PLUGIN_EVENT_ON_FRAME] !== time) {
-            _lastSend[UI_PLUGIN_EVENT_ON_FRAME] = time;
+        if (_lastSend[UI_STATE_EVENT_ON_FRAME] !== time) {
+            _lastSend[UI_STATE_EVENT_ON_FRAME] = time;
 
             // minerals, gas, supply, supply_max, worker_supply, army_supply, apm
             const playerData = openBW.HEAP32.slice((playerDataAddr >> 2), (playerDataAddr >> 2) + (7 * 8));
@@ -303,11 +317,11 @@ export class PluginSystemUI {
 
             const units = useSelectedUnitsStore.getState().selectedUnits;
             // in this case only change if the empty state has changed
-            if (_lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
+            if (_lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
                 //TODO move this out to supply to native as well
                 _selectedUnitMessage.payload = unitsPartial(units);
                 this.sendMessage(_selectedUnitMessage);
-                _lastSend[UI_PLUGIN_EVENT_UNITS_SELECTED] = units.length;
+                _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = units.length;
             }
 
         }

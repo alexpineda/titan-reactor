@@ -76,12 +76,8 @@ export class Settings {
       }
     })
   }
-  /**
-   * 
-   * @returns a JS object with the current settings and metadata
-   */
+
   async getMeta(): Promise<SettingsMeta> {
-    //FIXME: use Error objects so we can contain and id as well as message
     const errors = [];
     const files = [
       "starcraft",

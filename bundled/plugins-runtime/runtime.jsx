@@ -184,7 +184,7 @@ const useComponents = create((set, get) => ({
   components: [],
   add: (item) => set({ components: [...get().components, item] }),
   remove: (id) =>
-    set({ components: get().components.filter((c) => c.pluginId === id) }),
+    set({ components: get().components.filter((c) => c.pluginId !== id) }),
 }));
 
 const setPluginStyleSheet = (id, content) => {
@@ -225,9 +225,9 @@ function processConfigBeforeReceive(config) {
   }
 }
 
-const _removePlugin = (_plugin) => {
-  const plugin = _plugins[_plugin.id];
-  if (!plugin) {
+const _removePlugin = (pluginId) => {
+  const plugin = _plugins[pluginId];
+  if (!plugin || pluginId !== plugin.id) {
     return;
   }
 
@@ -430,10 +430,10 @@ const _messageListener = function (event) {
 
       event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);
-    } else if (event.data.type === "system:plugin-enabled") {
-      _addPlugin(event.data.payload.plugin);
+    } else if (event.data.type === "system:plugins-enabled") {
+      event.data.payload.forEach(_addPlugin);
     } else if (event.data.type === "system:plugin-disabled") {
-      _removePlugin(event.data.payload.plugin);
+      _removePlugin(event.data.payload);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({
         [event.data.payload.pluginId]: processConfigBeforeReceive(

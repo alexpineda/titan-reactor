@@ -20,6 +20,18 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #lastAudioPositon = new Vector3;
     #defaultPostProcessingBundle: PostProcessingBundleDTO;
 
+    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
+        this.#scene = scene;
+        this.#surface = gameSurface;
+        this.#minimapSurface = minimapSurface;
+        this.#defaultPostProcessingBundle = defaultPostProcessingBundle;
+
+        this.#janitor.callback = () => {
+            defaultPostProcessingBundle.effects.forEach(effect => effect.dispose());
+            defaultPostProcessingBundle.passes.forEach(pass => pass.dispose());
+        }
+    }
+
     onActivate?: (viewport: SceneInputHandler) => void;
 
     *activeViewports() {
@@ -46,17 +58,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.#inputHandler?.gameOptions?.audio ?? null;
     }
 
-    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
-        this.#scene = scene;
-        this.#surface = gameSurface;
-        this.#minimapSurface = minimapSurface;
-        this.#defaultPostProcessingBundle = defaultPostProcessingBundle;
-
-        this.#janitor.callback = () => {
-            defaultPostProcessingBundle.effects.forEach(effect => effect.dispose());
-            defaultPostProcessingBundle.passes.forEach(pass => pass.dispose());
-        }
-    }
 
     onShouldHideUnit(...args: Parameters<UserInputCallbacks["onShouldHideUnit"]>) {
         return this.#inputHandler?.onShouldHideUnit && this.#inputHandler.onShouldHideUnit(...args);

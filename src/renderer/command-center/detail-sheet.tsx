@@ -27,7 +27,7 @@ export default ({
 
   const permissions = (pluginPackage.config?.system?.permissions ?? []).map(
     (p) => (
-      <li>
+      <li key={p}>
         {permissionDescriptions[p as keyof typeof permissionDescriptions] ??
           "Invalid Permission"}
       </li>

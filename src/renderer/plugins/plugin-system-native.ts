@@ -1,7 +1,7 @@
 import { SceneInputHandler, InitializedPluginPackage, NativePlugin, PluginPrototype, MacroActionPlugin, MacroActionEffect } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
-import { SYSTEM_EVENT_CUSTOM_MESSAGE } from "./events";
+import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSE, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
@@ -172,7 +172,7 @@ export class PluginSystemNative {
         this.#uiPlugins = uiPlugins;
 
         const _messageListener = (event: MessageEvent) => {
-            if (event.data.type === SYSTEM_EVENT_CUSTOM_MESSAGE) {
+            if (event.data.type === UI_SYSTEM_CUSTOM_MESSAGE) {
                 const { pluginId, message } = event.data.payload;
                 this.#hook_onUIMessage(pluginId, message);
             }
@@ -214,7 +214,7 @@ export class PluginSystemNative {
     #sendCustomUIMessage(plugin: NativePlugin, message: any) {
         if (this.#nativePlugins.includes(plugin)) {
             this.#uiPlugins.sendMessage({
-                type: SYSTEM_EVENT_CUSTOM_MESSAGE,
+                type: UI_SYSTEM_CUSTOM_MESSAGE,
                 payload: {
                     pluginId: plugin.id,
                     message
@@ -263,11 +263,11 @@ export class PluginSystemNative {
 
     hook_onConfigChanged(pluginId: string, config: any) {
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
-        if (plugin && this.#sceneInputHandlerGaurd(plugin)) {
+        if (plugin) {
             try {
                 const oldConfig = { ...plugin.config };
                 plugin.config = processConfigBeforeReceive(config);
-                plugin.onConfigChanged && plugin.onConfigChanged(oldConfig);
+                plugin.onConfigChanged && this.#sceneInputHandlerGaurd(plugin) && plugin.onConfigChanged(oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
             }
@@ -299,7 +299,7 @@ export class PluginSystemNative {
     }
 
     enableAdditionalPlugins(pluginPackages: InitializedPluginPackage[]) {
-        const additionalPlugins = pluginPackages.filter(p => Boolean(p.nativeSource)).map(p => this.initializePlugin(p)).filter(Boolean);
+        const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins];
     }

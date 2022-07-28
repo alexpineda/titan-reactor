@@ -238,7 +238,6 @@ export const enablePlugins = async (pluginIds: string[]) => {
     } catch (e) {
         log.info(`@load-plugins/enable: Error enabling plugins ${plugins.map(plugin => plugin.name).join(", ")}`);
     }
-
 };
 
 // note: requires restart for user to see changes

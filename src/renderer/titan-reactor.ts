@@ -9,7 +9,7 @@ import renderComposer from "./render/render-composer";
 import settingsStore from "./stores/settings-store";
 import * as pluginSystem from "./plugins";
 import { initializePluginSystem } from "./plugins";
-import { SYSTEM_EVENT_OPEN_URL } from "./plugins/events";
+import { UI_SYSTEM_OPEN_URL } from "./plugins/events";
 import { openUrl } from "./ipc";
 import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
 import { ipcRenderer } from "electron";
@@ -99,7 +99,7 @@ log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
 }
 
 window.addEventListener("message", evt => {
-  if (evt.data?.type === SYSTEM_EVENT_OPEN_URL) {
+  if (evt.data?.type === UI_SYSTEM_OPEN_URL) {
     log.verbose(`@open-url: ${evt.data.payload}`);
     openUrl(evt.data.payload);
   }

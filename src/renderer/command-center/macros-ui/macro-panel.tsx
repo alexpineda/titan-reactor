@@ -1,4 +1,4 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, useEffect, useRef } from "react";
 import {
   capitalizeFirstLetters,
   spaceOutCapitalLetters,
@@ -57,9 +57,20 @@ export const MacroPanel = ({
 
   const renameMacro = (name: string | null) => {
     if (name !== macro.name && name !== null && name.trim() !== "") {
+      if (nameRef.current) {
+        nameRef.current.innerText = macro.name;
+      }
       updateMacro({ ...macro, name });
     }
   };
+
+  const nameRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (nameRef.current) {
+      nameRef.current.innerText = macro.name;
+    }
+  }, []);
 
   return (
     <div
@@ -94,11 +105,10 @@ export const MacroPanel = ({
             src={iconCache[389]}
           />
           <span
+            ref={nameRef}
             contentEditable
             onBlur={(e) => renameMacro(e.target.textContent)}
-          >
-            {macro.name}
-          </span>
+          ></span>
         </h4>
 
         <span>

@@ -101,7 +101,7 @@ export const dataTexturesToHeightMaps = async ({
     composer.addPass(savePass);
     composer.addPass(new CopyPass());
     if (geomOptions.firstPass) {
-        composer.render(0.01);
+        composer.render(0);
     }
 
     composer.removeAllPasses();

@@ -11,9 +11,9 @@ import {
 import { installPlugin } from "@ipc/plugins";
 
 import {
-    SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
-    SYSTEM_EVENT_MOUSE_CLICK,
-    SYSTEM_EVENT_FIRST_INSTALL,
+    UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
+    UI_SYSTEM_MOUSE_CLICK,
+    UI_SYSTEM_FIRST_INSTALL,
 } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
@@ -34,7 +34,7 @@ ipcRenderer.on(SEND_BROWSER_WINDOW, (_, { type, payload: { pluginId, config } }:
 }) => {
     if (type === SendWindowActionType.PluginConfigChanged) {
         uiPluginSystem.sendMessage({
-            type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
+            type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
             payload: { pluginId, config }
         });
         nativePluginSystem.hook_onConfigChanged(pluginId, config);
@@ -43,20 +43,18 @@ ipcRenderer.on(SEND_BROWSER_WINDOW, (_, { type, payload: { pluginId, config } }:
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
     uiPluginSystem.sendMessage({
-        type: SYSTEM_EVENT_FIRST_INSTALL,
+        type: UI_SYSTEM_FIRST_INSTALL,
     });
 });
 
 ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
-    // TODO target plugin specifically
-    uiPluginSystem.refresh();
+    uiPluginSystem.enablePlugins(plugins);
     nativePluginSystem.enableAdditionalPlugins(plugins);
 });
 
 ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
     nativePluginSystem.hook_onPluginDispose(pluginId);
-    // TODO target plugin specifically
-    uiPluginSystem.refresh();
+    uiPluginSystem.disablePlugin(pluginId);
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
@@ -84,7 +82,7 @@ export const initializePluginSystem = async (
 
 export const onClick = (event: MouseEvent) => {
     uiPluginSystem.sendMessage({
-        type: SYSTEM_EVENT_MOUSE_CLICK,
+        type: UI_SYSTEM_MOUSE_CLICK,
         payload: {
             clientX: event.clientX,
             clientY: event.clientY,
@@ -167,7 +165,7 @@ export const doMacroAction = (action: MacroActionPlugin) => {
     const result = nativePluginSystem.doMacroAction(action);
     if (result) {
         uiPluginSystem.sendMessage({
-            type: SYSTEM_EVENT_PLUGIN_CONFIG_CHANGED,
+            type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
             payload: result
         });
     }
