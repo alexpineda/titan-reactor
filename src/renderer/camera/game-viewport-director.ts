@@ -6,6 +6,7 @@ import { Scene, Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
 import { activateUnitSelection } from "./game-viewport-unit-selection";
 import * as log from "@ipc/log";
+import { MouseCursor } from "../input";
 
 const _target = new Vector3;
 const _position = new Vector3;
@@ -19,6 +20,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #inputHandler?: SceneInputHandler | null;
     #lastAudioPositon = new Vector3;
     #defaultPostProcessingBundle: PostProcessingBundleDTO;
+    #mouseCursor = new MouseCursor();
 
     constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
         this.#scene = scene;
@@ -33,6 +35,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     }
 
     onActivate?: (viewport: SceneInputHandler) => void;
+    beforeActivate?: (viewport: SceneInputHandler) => void;
 
     *activeViewports() {
         for (const viewport of this.viewports) {
@@ -50,14 +53,9 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.#inputHandler?.gameOptions?.allowUnitSelection ?? false;
     }
 
-    get showMinimap() {
-        return this.#inputHandler?.gameOptions?.showMinimap ?? true;
-    }
-
     get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
         return this.#inputHandler?.gameOptions?.audio ?? null;
     }
-
 
     onShouldHideUnit(...args: Parameters<UserInputCallbacks["onShouldHideUnit"]>) {
         return this.#inputHandler?.onShouldHideUnit && this.#inputHandler.onShouldHideUnit(...args);
@@ -113,8 +111,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         this.#inputHandler = null;
         this.#surface.togglePointerLock(false);
 
-        this.#defaultPostProcessingBundle.fogOfWarEffect.blendMode.setOpacity(1);
-
         this.viewports = [
             new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
             new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
@@ -128,6 +124,8 @@ export class GameViewportsDirector implements UserInputCallbacks {
             viewport.aspect = this.#surface.aspect;
         };
 
+        this.beforeActivate && this.beforeActivate(inputHandler);
+        this.#defaultPostProcessingBundle.fogOfWarEffect.blendMode.setOpacity(1);
         await inputHandler.onEnterScene(prevData);
         this.#inputHandler = inputHandler;
 
@@ -139,13 +137,23 @@ export class GameViewportsDirector implements UserInputCallbacks {
         this.#activating = false;
     }
 
+    get mouseCursor() {
+        return this.#mouseCursor?.enabled ?? false;
+    }
+
+    set mouseCursor(value: boolean) {
+        this.#mouseCursor.enabled = value;
+    }
+
     get primaryViewport() {
         return this.viewports[0];
     }
 
     set aspect(val: number) {
         for (const viewport of this.viewports) {
-            viewport.aspect = val;
+            if (viewport.aspect !== val) {
+                viewport.aspect = val;
+            }
         }
     }
 
@@ -162,6 +170,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     }
 
     dispose() {
+        this.#mouseCursor.dispose();
         this.#janitor.mopUp();
     }
 

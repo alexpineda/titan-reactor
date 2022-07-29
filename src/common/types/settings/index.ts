@@ -4,6 +4,7 @@ import type { InitializedPluginPackage, PluginMetaData } from "../plugin";
 export type Settings = {
     version: 5;
     language: string;
+    source?: string;
     directories: {
         starcraft: string;
         maps: string;

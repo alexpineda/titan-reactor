@@ -1,4 +1,4 @@
-import { GRPInterface, UnitTileScale, ImageDAT } from "common/types";
+import { Atlas, UnitTileScale, ImageDAT } from "common/types";
 import type { Color, Object3D } from "three";
 import { Unit } from "./unit";
 
@@ -15,7 +15,7 @@ export interface Image extends Object3D {
   resetModifiers: () => void;
   setTeamColor: (color: Color) => void;
 
-  changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean): void;
+  changeImage(atlas: Atlas, imageDef: ImageDAT, force?: boolean): void;
 
   userData: {
     unit?: Unit,

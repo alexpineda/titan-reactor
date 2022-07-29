@@ -1,7 +1,6 @@
 // thanks to farty and neiv for references
 import BufferList from "bl";
-
-import { AnimDds } from "common/types/grp";
+import { AnimDds } from "common/types";
 import range from "common/utils/range";
 
 const versionSD = 0x0101;

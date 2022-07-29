@@ -13,9 +13,10 @@ export type ScreenStore = {
     complete: () => void;
     setError: (error: Error) => void;
     clearError: () => void;
+    readonly isInGame: boolean
 };
 
-export const useScreenStore = create<ScreenStore>((set) => ({
+export const useScreenStore = create<ScreenStore>((set, get) => ({
     type: ScreenType.Home,
     status: ScreenStatus.Loading,
     error: null,
@@ -31,6 +32,9 @@ export const useScreenStore = create<ScreenStore>((set) => ({
     },
     clearError: () => {
         set({ error: null });
+    },
+    get isInGame() {
+        return (get().type === ScreenType.Replay || get().type === ScreenType.Map) && get().status === ScreenStatus.Ready;
     }
 }));
 

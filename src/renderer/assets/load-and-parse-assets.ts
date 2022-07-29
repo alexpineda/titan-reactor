@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AssetTextureResolution, GRPInterface, Settings, UnitTileScale } from "common/types";
+import { AssetTextureResolution, Atlas, GlbAtlas, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -16,7 +16,6 @@ import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons";
-import Assets from "./assets";
 import * as log from "../ipc/log"
 import loadEnvironmentMap from "../image/env-map";
 import { calculateImagesFromUnitsIscript } from "../iscript/images-from-iscript";
@@ -71,7 +70,7 @@ export default async (settings: Settings) => {
     const loadingHD2 = new Set();
     const loadingHD = new Set();
 
-    const loadImageAtlas = (atlases: GRPInterface[]) => async (imageId: number, res: UnitTileScale) => {
+    const loadImageAtlas = (atlases: Atlas[]) => async (imageId: number, res: UnitTileScale) => {
         if (res === UnitTileScale.HD) {
             if (loadingHD.has(imageId)) {
                 return;
@@ -86,7 +85,7 @@ export default async (settings: Settings) => {
             }
         }
 
-        let atlas: GRPInterface;
+        let atlas: Atlas | GlbAtlas;
         const glbFileName = path.join(
             settings.directories.assets,
             `00${refId(
@@ -112,13 +111,14 @@ export default async (settings: Settings) => {
                 loadAnimBuffer,
                 imageDat,
                 scale,
-                bwDat.grps[imageDat.grp]
+                bwDat.grps[imageDat.grp],
+                // assets[imageId]
             )
         }
         atlases[imageId] = atlas;
     };
 
-    const grps: GRPInterface[] = [];
+    const grps: Atlas[] = [];
     log.info(`@load-assets/atlas: ${settings.assets.images}`);
 
     const loadImageAtlasGrp = loadImageAtlas(grps);
@@ -135,7 +135,7 @@ export default async (settings: Settings) => {
     // warp in flash
     await loadImageAtlasGrp(210, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD);
 
-    gameStore().setAssets(new Assets({
+    gameStore().setAssets({
         bwDat,
         grps,
         selectionCirclesHD,
@@ -149,6 +149,6 @@ export default async (settings: Settings) => {
         wireframeIcons,
         envMap,
         loadAnim: loadImageAtlasGrp
-    }));
+    });
     processStore().complete(Process.AtlasPreload);
 };

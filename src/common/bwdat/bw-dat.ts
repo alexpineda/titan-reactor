@@ -1,4 +1,4 @@
-import { GrpType, IScriptDATType } from "../types";
+import { GrpSprite, IScriptDATType } from "../types";
 import { ImageDAT } from "./images-dat";
 import { OrderDAT } from "./orders-dat";
 import { LoDAT } from "./parse-lo";
@@ -20,5 +20,5 @@ export interface BwDAT {
   los: LoDAT[];
   sprites: SpriteDAT[];
   weapons: WeaponDAT[];
-  grps: GrpType[];
+  grps: GrpSprite[];
 }

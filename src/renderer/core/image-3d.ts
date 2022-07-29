@@ -3,8 +3,7 @@ import "three/examples/jsm/utils/SkeletonUtils";
 import { AnimationAction, AnimationMixer, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
-import { GlbAtlas } from "../image/atlas/glb-atlas";
-import type { ImageDAT } from "common/types";
+import type { GlbAtlas, ImageDAT } from "common/types";
 import type { Image, Unit } from ".";
 
 /**

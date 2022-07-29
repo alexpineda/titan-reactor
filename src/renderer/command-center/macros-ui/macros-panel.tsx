@@ -25,9 +25,12 @@ export const MacrosPanel = ({
 
   const save = (newMacros: MacrosDTO) => {
     if (state.revision !== newMacros.revision) {
-      settings.save({
-        macros: newMacros,
-      });
+      settings.save(
+        {
+          macros: newMacros,
+        },
+        "macros-panel"
+      );
       sendWindow(InvokeBrowserTarget.Game, {
         type: SendWindowActionType.RefreshMacros,
         payload: newMacros,

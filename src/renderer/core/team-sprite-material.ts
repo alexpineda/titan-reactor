@@ -1,5 +1,5 @@
 import { drawFunctions } from "common/enums";
-import { GRPInterface } from "common/types";
+import { Atlas } from "common/types";
 import { Color, MeshBasicMaterial, SpriteMaterialParameters, Texture } from "three";
 
 type DynamicUniforms = {
@@ -72,7 +72,7 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     return this.#dynamicUniforms.teamColor.value;
   }
 
-  set warpInFlashGRP(val: GRPInterface | undefined) {
+  set warpInFlashGRP(val: Atlas | undefined) {
     this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
   }
 

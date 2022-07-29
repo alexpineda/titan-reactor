@@ -13,7 +13,7 @@ import packageJson from "../../../package.json"
 import semver from "semver";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
-import Assets from "../assets/assets";
+import { Assets } from "common/types/assets";
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");

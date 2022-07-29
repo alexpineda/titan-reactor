@@ -60,11 +60,12 @@ const searchPackages = async (cb: (val: RemotePackage[]) => void) => {
   cb(results);
 };
 
-const _iconsBase64: Record<number, string> = {};
 type Plugin = {
   local?: InitializedPluginPackage;
   remote?: RemotePackage;
 };
+
+const _iconsBase64: Record<number, string> = {};
 
 const CommandCenter = () => {
   const settings = useSettingsStore();

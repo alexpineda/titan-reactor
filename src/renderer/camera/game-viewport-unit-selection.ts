@@ -5,7 +5,7 @@ import selectedUnitsStore from "@stores/selected-units-store";
 import { inverse } from "@utils/function-utils";
 import Janitor from "@utils/janitor";
 import { canOnlySelectOne, canSelectUnit } from "@utils/unit-utils";
-import { MouseCursor, MouseSelectionBox } from "../input";
+import { MouseSelectionBox } from "../input";
 import { Camera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 
@@ -16,9 +16,6 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
     const visualBox = new MouseSelectionBox();
     visualBox.color = "#007f00";
     janitor.disposable(visualBox);
-
-    const mouseCursor = new MouseCursor();
-    janitor.disposable(mouseCursor);
 
     let mouseIsDown = false;
 
@@ -36,10 +33,18 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
             0.5);
 
         visualBox.start(event.clientX, event.clientY);
-
     };
     gameSurface.canvas.addEventListener('pointerdown', _selectDown);
     janitor.callback(() => gameSurface.canvas.removeEventListener('pointerdown', _selectDown));
+
+    // const hoverUnit = throttle((event: PointerEvent) => {
+    //     const unit = getUnitFromMouseIntersect(new Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
+    //     if (unit) {
+    //         mouseCursor.hover();
+    //     } else {
+    //         mouseCursor.pointer();
+    //     }
+    // }, 100);
 
     const _selectMove = (event: PointerEvent) => {
 
@@ -51,7 +56,9 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
                 0.5);
 
             visualBox.end(event.clientX, event.clientY);
-
+            // mouseCursor.drag();
+        } else {
+            // hoverUnit(event)
         }
 
     }
@@ -96,6 +103,7 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
         minimapSurface.canvas.style.pointerEvents = "auto";
         mouseIsDown = false;
         visualBox.clear();
+        // mouseCursor.pointer();
 
         let selectedUnits: Unit[] = [];
 
@@ -158,5 +166,6 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
     gameSurface.canvas.addEventListener('pointerup', _selectUp);
     janitor.callback(() => gameSurface.canvas.removeEventListener('pointerup', _selectUp));
 
-    return () => janitor.mopUp();
+    return () => janitor.mopUp()
+
 }

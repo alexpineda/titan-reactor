@@ -5,7 +5,7 @@ let _storageHandle: any;
 
 export const readCascFile = async (filePath: string): Promise<Buffer> => {
   if (!settingsStore().isCascStorage) {
-    return hardfile.readCascFile(filePath);
+    return hardfile.readCascFile(filePath) as Promise<Buffer>;
   }
   return await casclib.readFile(_storageHandle, filePath);
 

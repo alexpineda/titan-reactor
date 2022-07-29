@@ -2,7 +2,7 @@ import { Grp } from "common/image/grp";
 import parseIscript from "./parse-iscript-bin";
 import path from "path";
 
-import { ReadFile, GrpFrameType, GrpType, IScriptDATType } from "../types";
+import { ReadFile, AnimFrame, GrpSprite, IScriptDATType } from "../types";
 import range from "../utils/range";
 import { BwDAT } from "./bw-dat";
 import { FlingiesDAT } from "./flingy-dat";
@@ -48,9 +48,9 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
     images.map((image) => readFile(`unit/${image.grpFile.replace(/\\/g, "/")}`))
   );
 
-  const grps = bufs.map((buf): GrpType => {
+  const grps = bufs.map((buf): GrpSprite => {
     const grp = new Grp(buf);
-    const frames = range(0, grp.frameCount()).map((frame): GrpFrameType => {
+    const frames = range(0, grp.frameCount()).map((frame): AnimFrame => {
       const { x, y, w, h } = grp.header(frame);
       //FIXME: calculate xoff, yoff
       return { x, y, w, h, xoff: 0, yoff: 0 };
@@ -69,7 +69,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
       maxFrameH,
       maxFramew,
     };
-  }) as GrpType[];
+  }) as GrpSprite[];
 
   return {
     iscript,

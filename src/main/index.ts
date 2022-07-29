@@ -141,7 +141,7 @@ if (!gotTheLock) {
     browserWindows.main?.on("ready-to-show", _readyToShowLogs);
     browserWindows.main!.setFullScreen(true);
 
-    pluginServer.listen(settings.get().plugins.serverPort);
+    pluginServer.listen(settings.get().plugins.serverPort, "localhost");
 
   });
 

@@ -12,7 +12,7 @@ import {
 } from "three";
 
 import { drawFunctions } from "../../common/enums";
-import { ImageDAT, GrpFrameType, GRPInterface } from "../../common/types";
+import { ImageDAT, AnimFrame, Atlas } from "../../common/types";
 import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 import gameStore from "@stores/game-store";
@@ -35,10 +35,10 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
 
   readonly originalScale = new Vector3();
 
-  private atlas: GRPInterface;
+  private atlas: Atlas;
   private uv: BufferAttribute | InterleavedBufferAttribute;
   private pos: BufferAttribute | InterleavedBufferAttribute;
-  private lastSetFrame?: GrpFrameType;
+  private lastSetFrame?: AnimFrame;
   private lastFlipFrame?: boolean;
 
   frame = 0;
@@ -61,7 +61,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
       unit: undefined
     }
 
-  changeImage(atlas: GRPInterface, imageDef: ImageDAT, force?: boolean) {
+  changeImage(atlas: Atlas, imageDef: ImageDAT, force?: boolean) {
 
     if (this.dat.index === imageDef.index && !force) {
       this.material.depthTest = ImageHD.useDepth;
@@ -98,7 +98,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   }
 
   constructor(
-    atlas: GRPInterface,
+    atlas: Atlas,
     imageDef: ImageDAT,
   ) {
     const _geometry = new BufferGeometry();
@@ -206,7 +206,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   }
 
   //dds is flipped y so we don't do it in our uvs
-  _setFrame(frame: GrpFrameType, flipFrame?: boolean, force?: boolean) {
+  _setFrame(frame: AnimFrame, flipFrame?: boolean, force?: boolean) {
     if (frame === undefined) {
       return false;
     }

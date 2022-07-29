@@ -17,7 +17,7 @@ import {
 } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
-import { useScreenStore } from "@stores/screen-store";
+import screenStore from "@stores/screen-store";
 import { HOOK_ON_GAME_DISPOSE } from "./hooks";
 import { Macros } from "../command-center/macros/macros";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
@@ -58,9 +58,7 @@ ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => {
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
-    useScreenStore.setState({
-        error: new Error(`Error installing default plugins`),
-    });
+    screenStore().setError(new Error("Failed to install plugins"));
 });
 
 export const initializePluginSystem = async (

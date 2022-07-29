@@ -229,11 +229,12 @@ const tryLoad = async (settings: SettingsMeta) => {
 }
 
 ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
-  type: SendWindowActionType.RefreshSettings
-  payload: SendWindowActionPayload<SendWindowActionType.RefreshSettings>
+  type: SendWindowActionType.CommitSettings
+  payload: SendWindowActionPayload<SendWindowActionType.CommitSettings>
 }) => {
-  if (type === SendWindowActionType.RefreshSettings) {
-    useSettingsStore.setState(payload);
+  if (type === SendWindowActionType.CommitSettings && !screenStore().isInGame) {
+    console.log("@init: refreshing settings");
+    useSettingsStore.setState({ ...payload, data: { ...payload.data, source: "titan-reactor" } });
   }
 })
 

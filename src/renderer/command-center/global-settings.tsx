@@ -38,9 +38,9 @@ export const GlobalSettings = () => {
         ...newSettings.graphics,
       },
     };
-    settings.save(newState).then((payload) => {
+    settings.save(newState, "global-settings").then((payload) => {
       sendWindow(InvokeBrowserTarget.Game, {
-        type: SendWindowActionType.RefreshSettings,
+        type: SendWindowActionType.CommitSettings,
         payload,
       });
     });

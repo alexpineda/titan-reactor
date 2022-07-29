@@ -10,12 +10,12 @@ export const invokeWindow = async (target: InvokeBrowserTarget, message: { type:
 
 export enum SendWindowActionType {
     ManualMacroTrigger = "ManualMacroTrigger",
-    RefreshSettings = "RefreshSettings",
+    CommitSettings = "RefreshSettings",
     RefreshMacros = "RefreshMacros",
     PluginConfigChanged = "PluginConfigChanged",
 }
 
-export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.RefreshSettings ? SettingsMeta : T extends SendWindowActionType.RefreshMacros ? MacrosDTO : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : never;
+export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.RefreshMacros ? MacrosDTO : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : never;
 
 export function sendWindow<T extends SendWindowActionType>(target: InvokeBrowserTarget, message: { type: SendWindowActionType, payload: SendWindowActionPayload<T> }) {
     ipcRenderer.send(SEND_BROWSER_WINDOW, { target }, message);

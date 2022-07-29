@@ -1,7 +1,7 @@
 export * from "./bwdat";
 export * from "./chk";
 export * from "./file";
-export * from "./grp";
+export * from "./anim-grp";
 export * from "./iscript";
 export * from "./player";
 export * from "./replay";
@@ -14,3 +14,4 @@ export * from "./screen";
 export * from "./openbw";
 export * from "./structs";
 export * from "./macros";
+export * from "./utils";

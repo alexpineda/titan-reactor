@@ -128,7 +128,6 @@ export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
     dispose: () => void;
 
     gameOptions: {
-        showMinimap: boolean;
         allowUnitSelection: boolean;
         audio: "stereo" | "3d";
     }

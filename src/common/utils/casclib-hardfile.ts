@@ -2,8 +2,8 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import * as log from "../../../src/renderer/ipc";
 
-export const readCascFile = (filePath: string) => {
-  return fsPromises.readFile(`D:/dev/bwdata/${filePath}`);
+export const readCascFile = (filePath: string, encoding?: BufferEncoding) => {
+  return fsPromises.readFile(`D:/dev/bwdata/${filePath}`, encoding);
 };
 export default readCascFile;
 

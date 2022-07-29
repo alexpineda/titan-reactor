@@ -5,9 +5,8 @@ import {
     UnsignedByteType,
 } from "three";
 
-import { AnimDds, GrpFrameType, ImageDAT, UnitTileScale } from "common/types";
+import { AnimDds, AnimFrame, ImageDAT, UnitTileScale } from "common/types";
 import { createDDSTexture, Grp } from "../formats";
-import { AnimAtlas } from "./anim-atlas";
 
 export const loadAnimSdAtlas = async ({
     readGrp,
@@ -18,7 +17,7 @@ export const loadAnimSdAtlas = async ({
     sdAnim: {
         buf: Buffer;
         maps: Record<string, AnimDds>;
-        frames: GrpFrameType[];
+        frames: AnimFrame[];
     };
     imageDef: ImageDAT;
 }) => {
@@ -31,21 +30,21 @@ export const loadAnimSdAtlas = async ({
     const ddsBuf = getBuf(sprite.maps.diffuse);
     const diffuse = await createDDSTexture(ddsBuf);
 
-    let teamcolor;
+    let teammask;
     if (sprite.maps.teamcolor) {
         const ddsBuf = getBuf(sprite.maps.teamcolor, 4);
 
-        teamcolor = new DataTexture(
+        teammask = new DataTexture(
             new Uint8Array(ddsBuf),
             sprite.maps.teamcolor.width,
             sprite.maps.teamcolor.height,
             LuminanceFormat,
             UnsignedByteType
         );
-        teamcolor.needsUpdate = true;
+        teammask.needsUpdate = true;
     }
 
-    return new AnimAtlas(diffuse, {
+    return new {
         diffuse,
         grp,
         imageIndex: imageDef.index,
@@ -55,5 +54,6 @@ export const loadAnimSdAtlas = async ({
         spriteWidth: w,
         spriteHeight: h,
         unitTileScale: UnitTileScale.SD,
-    }, teamcolor);
+        teammask
+    };
 }

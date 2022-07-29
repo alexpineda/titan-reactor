@@ -1,21 +1,21 @@
-import { AnimDds, AnimSprite, GrpType, UnitTileScale } from "common/types";
+import { AnimDds, Atlas, GrpSprite, UnitTileScale } from "common/types";
 import { ImageDAT } from "common/bwdat/images-dat";
 
-import { AnimAtlas } from "./anim-atlas"
 import { parseAnim, createDDSTexture } from "../formats";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);
 
+
 export const loadAnimAtlas = async (
     loadAnimBuffer: () => Promise<Buffer>,
     imageDef: ImageDAT,
     scale: Exclude<UnitTileScale, "SD">,
-    grp: GrpType
-) => {
+    grp: GrpSprite
+): Promise<Atlas> => {
 
     const buf = await loadAnimBuffer();
-    const [sprite] = parseAnim(buf) as AnimSprite[];
+    const [sprite] = parseAnim(buf);
 
     if (!sprite.maps) {
         throw new Error("No sprite maps");
@@ -32,7 +32,7 @@ export const loadAnimAtlas = async (
         return await createDDSTexture(ddsBuf);
     }
 
-    const teamcolor = await optionalLoad(sprite.maps.teamcolor);
+    const teammask = await optionalLoad(sprite.maps.teamcolor);
 
     // FIXME: handle SD properly
     const uvScale = UnitTileScale.HD / scale;
@@ -45,25 +45,25 @@ export const loadAnimAtlas = async (
     // const emissive = await optionalLoad(sprite.maps.emissive);
 
     //FIXME: diffuse is used twice
-    return new AnimAtlas(
+    return {
+        type: "anim",
         diffuse,
-        {
-            diffuse,
-            grp,
-            imageIndex: imageDef.index,
-            frames: sprite.frames.map(frame => ({
-                x: frame.x / uvScale,
-                y: frame.y / uvScale,
-                w: frame.w / uvScale,
-                h: frame.h / uvScale,
-                xoff: frame.xoff / uvScale,
-                yoff: frame.yoff / uvScale,
-            })),
-            textureWidth: sprite.maps.diffuse.width,
-            textureHeight: sprite.maps.diffuse.height,
-            spriteWidth: sprite.w,
-            spriteHeight: sprite.h,
-            unitTileScale: scale,
-        }, teamcolor);
+        grp,
+        imageIndex: imageDef.index,
+        frames: sprite.frames.map(frame => ({
+            x: frame.x / uvScale,
+            y: frame.y / uvScale,
+            w: frame.w / uvScale,
+            h: frame.h / uvScale,
+            xoff: frame.xoff / uvScale,
+            yoff: frame.yoff / uvScale,
+        })),
+        textureWidth: sprite.maps.diffuse.width,
+        textureHeight: sprite.maps.diffuse.height,
+        spriteWidth: sprite.w,
+        spriteHeight: sprite.h,
+        unitTileScale: scale,
+        teammask
+    };
 
 }

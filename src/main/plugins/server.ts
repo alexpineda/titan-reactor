@@ -3,14 +3,17 @@ import express from "express";
 import fs from "fs";
 import transpile, { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
-import { LOG_MESSAGE } from "common/ipc-handle-names";
+import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import settings from "../settings/singleton"
 import fileExists from "common/utils/file-exists";
 import logService from "../logger/singleton";
 import fetch from 'node-fetch';
 import { getEnabledPluginPackages } from "./load-plugins";
+import * as casclib from "bw-casclib";
+
 
 const _runtimePath = path.resolve(__static, "plugins-runtime");
+let _handle: any = null;
 
 const app = express();
 
@@ -23,6 +26,42 @@ app.use(function (_, res, next) {
 const transpileErrors: TransformSyntaxError[] = [];
 
 app.get('*', async function (req, res) {
+    if (req.url.startsWith("/m_api")) {
+        if (req.method === "GET") {
+            if (req.query["iconPNG"]) {
+                const icon = Number(req.query["iconPNG"]);
+
+                if (_handle === null) {
+                    _handle = await casclib.openStorage(settings.get().directories.starcraft);
+                }
+                const data = await casclib.readFile(_handle, `webui/dist/lib/images/cmdicons.${icon}.png`);
+
+                res.setHeader("Content-Type", "image/png");
+                res.send(data);
+                res.end();
+                return;
+                // POST wasn't working
+            } else if (req.query["macroId"]) {
+                browserWindows.main!.webContents.send(SERVER_API_FIRE_MACRO, req.query["macroId"]);
+                return res.status(200).send();
+            }
+
+            try {
+                req.headers
+                const lastRevision = req.headers["X-LastRevision"];
+                if (lastRevision === "" + settings.get().macros.revision) {
+                    res.status(304).send();
+                    return;
+                }
+            } catch (e) {
+            }
+            res.setHeader("Content-Type", "application/json");
+            res.send(settings.get().macros);
+
+        }
+        return;
+    }
+
     if ((req.query["proxy"])) {
         const proxy = req.query["proxy"];
         const response = await fetch(proxy as string);

@@ -85,7 +85,7 @@ export const createDataTextures = async ({
 
     const sdMap = createDataTexture(mapData.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
     const roughnessMap = createDataTexture(mapData.roughness, w32, h32, { format: THREE.RedIntegerFormat });
-    const mapTilesMap = createDataTexture(mapData.layers, w32, h32, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
+    const mapTilesMap = createDataTexture(mapData.mapTilesData, w32, h32, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
 
     const creepEdgesValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
     const creepValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });

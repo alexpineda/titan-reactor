@@ -5,6 +5,8 @@ export const GET_LOADED_SETTINGS = "GET_SETTINGS";
 
 export const SAVE_SETTINGS_DATA = "SAVE_SETTINGS";
 
+export const SERVER_API_FIRE_MACRO = "SERVER_API_FIRE_MACRO";
+
 export const SHOW_FOLDER_DIALOG = "SHOW_FOLDER_DIALOG";
 export const LOG_MESSAGE = "LOG_MESSAGE";
 export const DOWNLOAD_UPDATE = "DOWNLOAD_UPDATE";
@@ -15,7 +17,6 @@ export const INVOKE_BROWSER_WINDOW = "INVOKE_BROWSER_WINDOW";
 export const INVOKE_BROWSER_WINDOW_RESPONSE = "INVOKE_BROWSER_WINDOW_RESPONSE";
 
 export const SEND_BROWSER_WINDOW = "SEND_BROWSER_WINDOW";
-
 
 export const enum InvokeBrowserTarget {
     Game = "game",
