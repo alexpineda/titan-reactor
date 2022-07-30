@@ -81,8 +81,6 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
     if (process) {
       const next = Math.min(++process.current, process.max);
 
-      log.verbose("@process/" + snake(Process[id]) + ": " + (next / process.max).toFixed(2));
-
       if (process.current === process.max) {
         get().complete(id)
       } else {

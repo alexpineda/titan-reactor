@@ -20,13 +20,13 @@ const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 const _createSession = (ogData: Settings) => create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
     ...JSON.parse(JSON.stringify(ogData)),
     minimapScale: 1,
-    merge: async (rhs: DeepPartial<Settings>, source: string) => {
+    merge: async (rhs: DeepPartial<Settings>) => {
 
         const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });
-        const d = diff(newSettings, get());
-        console.log(d ?? "no diff", source);
+        const d = diff(get(), newSettings);
+        console.log(d ?? "no diff");
         //@ts-ignore
-        set({ ...newSettings, source });
+        set({ ...newSettings });
     },
     doMacroAction: async (action) => {
         if (action.type !== MacroActionType.ModifyAppSettings) {

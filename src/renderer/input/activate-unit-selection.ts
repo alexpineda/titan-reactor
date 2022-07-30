@@ -5,7 +5,7 @@ import selectedUnitsStore from "@stores/selected-units-store";
 import { inverse } from "@utils/function-utils";
 import Janitor from "@utils/janitor";
 import { canOnlySelectOne, canSelectUnit } from "@utils/unit-utils";
-import { MouseSelectionBox } from "../input";
+import { MouseSelectionBox } from ".";
 import { Camera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 

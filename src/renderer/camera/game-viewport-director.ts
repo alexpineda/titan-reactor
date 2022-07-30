@@ -4,7 +4,7 @@ import { PostProcessingBundleDTO, SceneInputHandler, UserInputCallbacks } from "
 import { GameSurface } from "renderer/render";
 import { Scene, Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
-import { activateUnitSelection } from "./game-viewport-unit-selection";
+import { activateUnitSelection } from "../input/activate-unit-selection";
 import * as log from "@ipc/log";
 import { MouseCursor } from "../input";
 

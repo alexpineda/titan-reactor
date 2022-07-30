@@ -9,7 +9,7 @@ import type Chk from "bw-chk";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -1519,15 +1519,15 @@ async function TitanReactorGame(
       return;
 
     // update our session with the new user manipulated settings
-    const mergeSettings = {};
+    const mergeSettings: DeepPartial<SettingsMeta> = {
+      data: {}
+    };
     for (const d of diffs) {
       if (d.kind === "E" && d.path) {
         set(mergeSettings, d.path, d.rhs);
       }
     }
-    console.log("mergeSettings", mergeSettings)
-
-    session.getState().merge(mergeSettings);
+    session.getState().merge(mergeSettings.data!);
     macros.setHostDefaults(settings.data);
 
   }));
@@ -1576,7 +1576,7 @@ async function TitanReactorGame(
 
   janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
     if (e.code === "Escape") {
-      gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
+      session.getState().merge({ game: { sceneController: settingsStore().data.game.sceneController } })
     }
   })
 

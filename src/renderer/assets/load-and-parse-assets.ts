@@ -112,11 +112,20 @@ export default async (settings: Settings) => {
                 imageDat,
                 scale,
                 bwDat.grps[imageDat.grp],
-                // assets[imageId]
             )
-        }
+
+            // add mipmaps to HD
+            if (atlases[imageId]?.unitTileScale === UnitTileScale.HD2 && atlas.unitTileScale === UnitTileScale.HD) {
+                const hd2 = atlases[imageId];
+                atlas.diffuse.mipmaps.push(hd2.diffuse.mipmaps[0]);
+
+                if (hd2.teammask) {
+                    atlas.teammask?.mipmaps.push(hd2.teammask.mipmaps[0]);
+                }
+            }
+        };
         atlases[imageId] = atlas;
-    };
+    }
 
     const grps: Atlas[] = [];
     log.info(`@load-assets/atlas: ${settings.assets.images}`);
@@ -124,7 +133,7 @@ export default async (settings: Settings) => {
     const loadImageAtlasGrp = loadImageAtlas(grps);
 
     const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
-    const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
+    const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
 
     processStore().start(Process.AtlasPreload, preloadImageIds.length);
     for (const id of preloadImageIds) {
