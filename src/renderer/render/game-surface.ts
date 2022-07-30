@@ -90,11 +90,11 @@ export class GameSurface extends Surface {
     document.exitPointerLock();
   }
 
-  getMinimapDimensions(minimapRatio: number): MinimapDimensions {
+  getMinimapDimensions(minimapScale: number): MinimapDimensions {
     const max = Math.max(this.#mapWidth, this.#mapHeight);
     const wAspect = this.#mapWidth / max;
     const hAspect = this.#mapHeight / max;
-    const minimapSize = this.height * minimapRatio;
+    const minimapSize = this.height * 0.25 * minimapScale;
 
     return {
       minimapWidth: Math.floor(minimapSize * wAspect),

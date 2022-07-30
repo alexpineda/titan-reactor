@@ -56,6 +56,11 @@ export const useSelectedUnits = () => {
   return useStore(_useSelectedUnits) ?? [];
 };
 
+const _useProgress = (state) => state.progress;
+export const useProgress = () => {
+  return useStore(_useProgress) ?? [];
+};
+
 const unitIsComplete = (unit) => {
   return unit.statusFlags & (0x01 === 1);
 };

@@ -14,7 +14,7 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
     const selectionBox = new SelectionBox(camera, scene);
 
     const visualBox = new MouseSelectionBox();
-    visualBox.color = "#007f00";
+    visualBox.color = "#00cc00";
     janitor.disposable(visualBox);
 
     let mouseIsDown = false;

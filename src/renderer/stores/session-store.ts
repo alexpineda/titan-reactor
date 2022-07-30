@@ -10,6 +10,7 @@ import lSet from "lodash.set";
 import settingsStore from "./settings-store";
 
 export type SessionStore = Settings & {
+    minimapScale: number;
     merge: (rhs: DeepPartial<Settings>) => void;
     doMacroAction: (action: MacroAction) => void;
 }
@@ -18,6 +19,7 @@ const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
 const _createSession = (ogData: Settings) => create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
     ...JSON.parse(JSON.stringify(ogData)),
+    minimapScale: 1,
     merge: async (rhs: DeepPartial<Settings>, source: string) => {
 
         const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });

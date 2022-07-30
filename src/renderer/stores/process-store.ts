@@ -30,6 +30,7 @@ export type ProcessStore = {
   isComplete: (id: Process) => boolean;
   isInProgress: (id: Process) => boolean;
   hasAnyProcessIncomplete: () => boolean;
+  getTotalProgress: () => number;
 };
 
 const _timerDebug: Record<number, NodeJS.Timeout> = {};
@@ -121,6 +122,11 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
     get().processes.some((p) => p.id === id),
   isComplete: (id: Process) =>
     get().completedProcesses.some((p) => p.id === id),
+  getTotalProgress: () => {
+    const total = get().processes.reduce((acc, p) => acc + p.max, 0);
+    const process = get().processes.reduce((acc, p) => acc + p.current, 0);
+    return process / total;
+  }
 }));
 
 export default () => useProcessStore.getState();

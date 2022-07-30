@@ -289,11 +289,6 @@ async function TitanReactorGame(
 
   const miscApi = {
     minimap: {
-      set scale(oValue: number) {
-        const value = MathUtils.clamp(oValue, 0.1, 1);
-        const minimapSize = value * settingsStore().data.game.minimapSize;
-        session.getState().merge({ game: { minimapSize } });
-      },
       get enabled() {
         return minimapSurface.canvas.style.display === "block";
       },
@@ -302,6 +297,9 @@ async function TitanReactorGame(
         if (value) {
           minimapSurface.canvas.style.pointerEvents = "auto";
         }
+      },
+      set scale(value: number) {
+        session.getState().merge({ game: { minimapSize: value } });
       }
     }
   }
@@ -678,8 +676,6 @@ async function TitanReactorGame(
       );
 
       const pan = getBwPanning(x, y, _soundCoords, gameViewportsDirector.primaryViewport.projectedView.left, gameViewportsDirector.primaryViewport.projectedView.width);
-      //FIXME; see if we can avoid creating this object
-
       if (volume > SoundPlayMinVolume) {
         soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
       }
@@ -1455,7 +1451,7 @@ async function TitanReactorGame(
       },
       set mouseCursor(val: boolean) {
         gameViewportsDirector.mouseCursor = val;
-      },
+      }
     };
 
     mix(api, miscApi);
@@ -1535,18 +1531,6 @@ async function TitanReactorGame(
     macros.setHostDefaults(settings.data);
 
   }));
-
-  // TODO FIXME, no more CommitSettings
-  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
-    type: SendWindowActionType.CommitSettings
-    payload: SendWindowActionPayload<SendWindowActionType.CommitSettings>
-  }) => {
-    if (type === SendWindowActionType.CommitSettings) {
-      macros.setHostDefaults(payload.data);
-      // apply only diff
-      // session.getState().merge(payload.data, "replay:refresh");
-    }
-  })
 
   janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
     type: SendWindowActionType.RefreshMacros

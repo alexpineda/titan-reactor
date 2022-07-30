@@ -161,14 +161,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.#inputHandler?.name ?? "";
     }
 
-    serialize() {
-
-    }
-
-    deserialize() {
-
-    }
-
     dispose() {
         this.#mouseCursor.dispose();
         this.#janitor.mopUp();

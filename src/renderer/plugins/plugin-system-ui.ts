@@ -3,7 +3,7 @@ import { InitializedPluginPackage, OpenBWAPI, ScreenStatus, ScreenType } from "c
 import settingsStore from "@stores/settings-store";
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
-import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED } from "./events";
+import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
 import { waitForTruthy } from "@utils/wait-for-process";
 import { Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
@@ -14,6 +14,7 @@ import semver from "semver";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 import { Assets } from "common/types/assets";
+import processStore, { useProcessStore } from "@stores/process-store";
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");
@@ -131,6 +132,8 @@ export class PluginSystemUI {
             [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
             [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
             [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
+            [UI_STATE_EVENT_PROGRESS]: processStore().getTotalProgress(),
+            [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage,
         })
 
         var iframeLoaded = false;
@@ -243,6 +246,13 @@ export class PluginSystemUI {
             });
         }));
 
+        this.#janitor.add(useProcessStore.subscribe((process) => {
+            this.sendMessage({
+                type: UI_STATE_EVENT_PROGRESS,
+                payload: process.getTotalProgress()
+            });
+        }))
+
         this.refresh();
 
     }
@@ -273,6 +283,7 @@ export class PluginSystemUI {
     reset() {
         _lastSend = {}
         _replayPosition.payload = _makeReplayPosition();
+        _selectedUnitMessage.payload = [];
     }
 
     onFrame(openBW: OpenBWAPI, currentFrame: number, playerDataAddr: number, productionDataAddr: number) {

@@ -48,6 +48,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         value: settings.data.audio.global,
         min: 0,
         max: 1,
+        step: 0.05,
         path: "audio",
     },
     music: {
@@ -56,6 +57,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         value: settings.data.audio.music,
         min: 0,
         max: 1,
+        step: 0.05,
         path: "audio",
     },
     sound: {
@@ -64,6 +66,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         value: settings.data.audio.sound,
         min: 0,
         max: 1,
+        step: 0.05,
         path: "audio",
     },
     stopFollowingOnClick: {
@@ -75,9 +78,9 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     minimapSize: {
         folder: "Game",
         label: "Minimap Size % Height",
-        min: 0.15,
-        max: 0.35,
-        step: 0.025,
+        min: 0.5,
+        max: 1.5,
+        step: 0.1,
         value: settings.data.game.minimapSize,
         path: "game",
     },

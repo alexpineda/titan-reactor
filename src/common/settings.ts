@@ -22,7 +22,7 @@ export const defaultSettings: Settings = {
   game: {
     sceneController: "@titan-reactor-plugins/camera-standard",
     stopFollowingOnClick: true,
-    minimapSize: 0.25
+    minimapSize: 1
   },
   util: {
     sanityCheckReplayCommands: true,

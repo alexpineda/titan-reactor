@@ -14,3 +14,4 @@ export const UI_STATE_EVENT_DIMENSIONS_CHANGED = "dimensions";
 export const UI_STATE_EVENT_SCREEN_CHANGED = "screen";
 export const UI_STATE_EVENT_WORLD_CHANGED = "world";
 export const UI_STATE_EVENT_UNITS_SELECTED = "units";
+export const UI_STATE_EVENT_PROGRESS = "progress";
