@@ -36,7 +36,8 @@
         "staticSourceDirectory": "bundled",
         "title": "Titan Reactor",
         "main": {
-            "sourceDirectory": "src/main"
+            "sourceDirectory": "src/main",
+            "extraEntries": ["@/command-center.preload.ts"]
         },
         "renderer": {
             "sourceDirectory": "src/renderer",
@@ -53,12 +54,10 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",

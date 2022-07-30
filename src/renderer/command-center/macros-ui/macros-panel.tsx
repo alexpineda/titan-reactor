@@ -15,11 +15,7 @@ import { createDefaultMacros } from "./default-macros";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 
-export const MacrosPanel = ({
-  iconCache,
-}: {
-  iconCache: Record<number, string>;
-}) => {
+export const MacrosPanel = () => {
   const settings = useSettingsStore();
   const state = settings.data.macros;
 
@@ -183,7 +179,6 @@ export const MacrosPanel = ({
           {state.macros.map((macro) => (
             <MacroPanel
               macro={macro}
-              iconCache={iconCache}
               pluginsMetadata={settings.pluginsMetadata}
               updateMacro={updateMacro}
               updateMacroAction={updateMacroAction}

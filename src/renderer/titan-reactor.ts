@@ -13,7 +13,7 @@ import { UI_SYSTEM_OPEN_URL } from "./plugins/events";
 import { openUrl } from "./ipc";
 import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
 import { ipcRenderer } from "electron";
-import { GO_TO_START_PAGE, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
+import { GO_TO_START_PAGE, LOG_MESSAGE, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import gameStore from "@stores/game-store";
@@ -24,10 +24,10 @@ import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 
 if (rendererIsDev) {
 
-  //@ts-ignore
+
   window.harden = x => x;
 
-  //@ts-ignore
+  // @ts-ignore
   window.Compartment = function Compartment(env: {}) {
     // const windowCopy = {...window};
     // delete windowCopy.require;
@@ -247,3 +247,6 @@ ipcRenderer.on(GO_TO_START_PAGE, () => {
 });
 
 
+ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
+  log.logClient(message, level);
+});

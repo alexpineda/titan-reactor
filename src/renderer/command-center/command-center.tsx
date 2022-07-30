@@ -65,8 +65,6 @@ type Plugin = {
   remote?: RemotePackage;
 };
 
-const _iconsBase64: Record<number, string> = {};
-
 const CommandCenter = () => {
   const settings = useSettingsStore();
   const { enabledPlugins, disabledPlugins } = settings;
@@ -80,32 +78,6 @@ const CommandCenter = () => {
 
   const [tabIndex, setTabIndex] = useState(0);
   const [mainTabIndex, setMainTabIndex] = useState(0);
-
-  useEffect(() => {
-    if (!settings.errors.length) {
-      (async () => {
-        await openCascStorage(settings.data.directories.starcraft);
-
-        const pluginIcons = [...enabledPlugins, ...disabledPlugins]
-          .map((p) => p.config?.icon ?? "filter_center_focus")
-          .filter((i) => typeof i === "number");
-        const icons = [
-          ...new Set(
-            [...pluginIcons, 230, 389].filter((i) => !_iconsBase64[i])
-          ),
-        ];
-
-        const buffers = await readCascFileBatch(
-          icons.map((i: number) => `webui/dist/lib/images/cmdicons.${i}.png`),
-          "base64"
-        );
-
-        for (let i = 0; i < icons.length; i++) {
-          _iconsBase64[icons[i]] = `data:image/png;base64,${buffers[i]}`;
-        }
-      })();
-    }
-  }, [settings.errors.length]);
 
   useEffect(() => {
     if (banner) {
@@ -144,18 +116,13 @@ const CommandCenter = () => {
         )
     );
 
-  const Icon = ({ icon }: { icon: number | string }) => (
-    <>
-      {typeof icon === "number" && (
-        <img style={{ width: "var(--size-8)" }} src={_iconsBase64[icon]} />
-      )}
-      {typeof icon === "string" && <i className="material-icons">{icon}</i>}
-    </>
+  const Icon = ({ icon }: { icon: string }) => (
+    <i className="material-icons">{icon}</i>
   );
 
   const localPluginButton = (local: InitializedPluginPackage) => (
     <PluginButton
-      icon={local.config?.icon ? <Icon icon={local.config?.icon} /> : null}
+      icon={local.config?.icon ? <Icon icon={local.config!.icon} /> : null}
       key={local.id}
       description={local.description}
       isDisabled={true}
@@ -355,7 +322,7 @@ const CommandCenter = () => {
             </div>
           </Tab>
           <Tab label="Macros">
-            <MacrosPanel iconCache={_iconsBase64} />
+            <MacrosPanel />
           </Tab>
         </Tabs>
       </div>

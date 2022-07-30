@@ -6,9 +6,9 @@ import {
     deletePlugin,
     disablePlugin,
     enablePlugins,
+    installPlugin
 } from "@ipc/plugins";
 import semver from "semver";
-import { installPluginLocal } from "../plugins";
 
 type RemotePackage = search.Result;
 
@@ -29,7 +29,7 @@ export const localPluginRepository = (setSelectedPluginPackage: SetSelectedPlugi
                 "This will download the plugin into your plugins folder. Continue?"
             )
         ) {
-            const installedPlugin = await installPluginLocal(
+            const installedPlugin = await installPlugin(
                 packageName
             );
             if (installedPlugin) {
@@ -49,7 +49,7 @@ export const localPluginRepository = (setSelectedPluginPackage: SetSelectedPlugi
         if (
             confirm("This will update the plugin in your plugins folder. Continue?")
         ) {
-            const installedPlugin = await installPluginLocal(
+            const installedPlugin = await installPlugin(
                 packageName
             );
             if (installedPlugin) {

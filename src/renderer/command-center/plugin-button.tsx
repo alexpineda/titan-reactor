@@ -17,22 +17,6 @@ export const PluginButton = ({
   isOnline = false,
   hasUpdateAvailable,
 }: PluginButtonProps) => {
-  // const remote = remotePackages.find((p) => p.name === plugin.name);
-
-  //   const updateVersion = getUpdateVersion(
-  //     remote?.version ?? "0.0.0",
-  //     plugin.version ?? "0.0.0"
-  //   );
-
-  //   if (updateVersion) {
-  //     return {
-  //       ...memo,
-  //       [plugin.name]: updateVersion,
-  //     };
-  //   } else {
-  //     return memo;
-  //   }
-
   return (
     <button
       onClick={onClick}

@@ -1,6 +1,5 @@
 import { ipcRenderer } from "electron";
-
-import { LOG_MESSAGE } from "../../common/ipc-handle-names";
+import { LOG_MESSAGE } from "common/ipc-handle-names";
 
 type ErrorOrUnknown = Error | unknown;
 
@@ -42,7 +41,3 @@ export const logClient = (message: string, level = "info") => {
     console.log(message);
   }
 }
-
-ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
-  logClient(message, level);
-});

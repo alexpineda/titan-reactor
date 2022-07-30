@@ -28,7 +28,6 @@ export const MacroPanel = ({
   deleteAction,
   deleteMacro,
   createAction,
-  iconCache,
 }: {
   macro: MacroDTO;
   pluginsMetadata: PluginMetaData[];
@@ -39,7 +38,6 @@ export const MacroPanel = ({
   deleteAction: (id: string) => void;
   deleteMacro: (id: string) => void;
   createAction: (macro: MacroDTO, action: MacroAction) => void;
-  iconCache: Record<number, string>;
 }) => {
   const ChangeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
     const key = await keyCombo.generateKeyComboFromEvent(e);
@@ -97,13 +95,13 @@ export const MacroPanel = ({
             alignItems: "center",
           }}
         >
-          <img
-            style={{
-              width: "var(--size-6)",
-              filter: "invert(100%) sepia(1) saturate(100%) hue-rotate(50deg)",
-            }}
-            src={iconCache[389]}
-          />
+          <i
+            className="material-icons"
+            style={{ fontSize: "var(--font-size-3)" }}
+          >
+            beenhere
+          </i>
+          &nbsp;
           <span
             ref={nameRef}
             contentEditable
@@ -195,7 +193,6 @@ export const MacroPanel = ({
       <div>
         {macro.actions.map((action) => (
           <MacroActionPanel
-            iconCache={iconCache}
             key={action.id}
             action={action}
             pluginsMetadata={pluginsMetadata}

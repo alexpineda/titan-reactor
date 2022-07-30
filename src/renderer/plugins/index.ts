@@ -8,7 +8,6 @@ import {
     ON_PLUGINS_INITIAL_INSTALL,
     SEND_BROWSER_WINDOW,
 } from "common/ipc-handle-names";
-import { installPlugin } from "@ipc/plugins";
 
 import {
     UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
@@ -129,15 +128,6 @@ export const injectApi = (
     ...args: Parameters<PluginSystemNative["injectApi"]>
 ) => {
     return nativePluginSystem.injectApi(...args);
-};
-
-export const installPluginLocal = async (repository: string) => {
-    const pluginPackage = await installPlugin(repository);
-    if (pluginPackage) {
-        return pluginPackage;
-    } else {
-        return null;
-    }
 };
 
 /**

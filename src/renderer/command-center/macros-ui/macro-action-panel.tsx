@@ -10,10 +10,9 @@ export const MacroActionPanel = (
   props: MacroActionPanelProps & {
     setActiveAction: (actionId: string) => void;
     deleteAction: (actionId: string) => void;
-    iconCache: Record<number, string>;
   }
 ) => {
-  const { action, setActiveAction, deleteAction, iconCache, viewOnly } = props;
+  const { action, setActiveAction, deleteAction, viewOnly } = props;
 
   return (
     <div
@@ -35,13 +34,16 @@ export const MacroActionPanel = (
         <span
           style={{ fontWeight: 500, display: "flex", alignItems: "center" }}
         >
-          <img
-            src={iconCache[230]}
-            style={{
-              width: "var(--size-4)",
-              filter: "invert(100%) sepia(1) saturate(100%) hue-rotate(50deg)",
-            }}
-          />{" "}
+          <i
+            className="material-icons"
+            style={{ fontSize: "var(--font-size-3)" }}
+          >
+            {action.type === MacroActionType.CallGameTimeApi
+              ? "code"
+              : action.type === MacroActionType.ModifyAppSettings
+              ? "settings_applications"
+              : "extension"}
+          </i>
           <span>{spaceOutCapitalLetters(action.type)}</span>
         </span>
         <button
@@ -68,7 +70,10 @@ export const MacroActionPanel = (
           }}
           onClick={() => deleteAction(action.id)}
         >
-          <i className="material-icons small" style={{ fontSize: "1rem" }}>
+          <i
+            className="material-icons small"
+            style={{ fontSize: "var(--font-size-2)" }}
+          >
             delete
           </i>
         </button>

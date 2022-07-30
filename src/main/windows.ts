@@ -18,13 +18,26 @@ interface CreateWindowArgs {
   nodeIntegration?: boolean;
   backgroundThrottling?: boolean;
   debugMode?: boolean;
+  preloadFile?: string | undefined;
 }
 
-const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true }, args);
+const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true, preloadFile: undefined }, args);
 
 export const createWindow = (createWindowArgs: CreateWindowArgs) => {
-  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, debugMode } = createDefaultArgs(createWindowArgs);
+  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, debugMode, preloadFile } = createDefaultArgs(createWindowArgs);
 
+  let preload: string | undefined = undefined;
+
+  if (preloadFile) {
+    if (isDev) {
+      // preload = `http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`;
+      preload = path.resolve(__dirname, `${preloadFile}.js`);
+    } else {
+      preload = path.resolve(__dirname, `${preloadFile}.js`);
+    }
+  }
+
+  console.log(preload)
   const w = new BrowserWindow({
     width: 800,
     height: 600,
@@ -37,12 +50,12 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
       webSecurity: true,
       spellcheck: false,
       enableWebSQL: false,
-      contextIsolation: false,
+      contextIsolation: !!preload,
       defaultFontSize: 14,
       backgroundThrottling,
+      preload
     },
   });
-
   w.setAutoHideMenuBar(hideMenu)
 
   if (removeMenu) {
