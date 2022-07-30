@@ -1,6 +1,6 @@
 import { useControls, useCreateStore } from "leva";
 import { createLevaPanel } from "../create-leva-panel";
-import { mapSingleConfigToLeva } from "../map-config-to-leva";
+import { mapSingleConfigToLeva } from "@utils/leva-utils";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 
 export const MacroActionModifyValue = (

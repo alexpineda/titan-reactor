@@ -1,10 +1,9 @@
-import { MacrosDTO } from "common/types";
+import { AssetTextureResolution, MacrosDTO } from "common/types";
 import type { InitializedPluginPackage, PluginMetaData } from "../plugin";
 
 export type Settings = {
     version: 5;
     language: string;
-    source?: string;
     directories: {
         starcraft: string;
         maps: string;
@@ -42,25 +41,6 @@ export type Settings = {
         enabled: string[],
     },
     macros: MacrosDTO
-};
-
-export enum AssetTextureResolution {
-    SD = "sd",
-    HD = "hd",
-}
-
-export enum ShadowLevel {
-    Off,
-    Low,
-    Medium,
-    High
-}
-
-export enum GameAspect {
-    Fit = "Fit",
-    Native = "Native",
-    FourThree = "FourThree",
-    SixteenNine = "SixteenNine",
 };
 
 export type SettingsMeta = {

@@ -136,7 +136,8 @@ export default async (filepath: string) => {
     map, {
     //TODO: replace since HD2 and HD will be loaded
     textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
-    anisotropy: settings.graphics.anisotropy
+    anisotropy: settings.graphics.anisotropy,
+    shadows: settings.graphics.terrainShadows
   }
   );
   const scene = new Scene(terrain);

@@ -5,7 +5,7 @@ import { HotkeyTrigger, Macro, Macros } from "../macros";
 
 export const createDefaultMacros = () => {
 
-  const macros = new Macros();
+  const macros = new Macros(null!);
 
   macros.add(
     new Macro(

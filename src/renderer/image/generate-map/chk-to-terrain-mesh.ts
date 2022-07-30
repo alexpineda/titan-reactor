@@ -11,10 +11,12 @@ import * as sd from "./sd";
 import * as hd from "./hd";
 import { anisotropyOptions } from "@utils/renderer-utils";
 import { Layers } from "../../render/layers";
+import { Mesh } from "three";
 
 type TerrainMeshSettings = {
   textureResolution: UnitTileScale;
   anisotropy: string;
+  shadows: boolean;
 }
 
 export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings): Promise<TerrainInfo> {
@@ -69,6 +71,9 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     mapHeight
   );
 
+  let _shadows = settings.shadows;
+  let _anisotropy = settings.anisotropy;
+
   return {
     tileset: chk.tileset,
     getTerrainY,
@@ -79,7 +84,23 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
     creepTextureUniform: dataTextures.creepTextureUniform,
     geomOptions,
-    setAnisotropy: (anisotropy: string) => {
+    get shadowsEnabled() {
+      return _shadows;
+    },
+    set shadowsEnabled(val: boolean) {
+      _shadows = val;
+      terrain.traverse(o => {
+        if (o instanceof Mesh) {
+          o.castShadow = val;
+          o.receiveShadow = val;
+        }
+      });
+    },
+    get anisotropy() {
+      return _anisotropy;
+    },
+    set anisotropy(anisotropy: string) {
+      _anisotropy = anisotropy;
       const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
       creepTexture.texture.anisotropy = value;
 

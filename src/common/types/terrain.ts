@@ -68,6 +68,7 @@ export type TerrainInfo = {
   mapWidth: number;
   mapHeight: number;
   mesh: Terrain;
+  shadowsEnabled: boolean;
   /**
    * Gets the y offset at the given x,z coordinates.
    */
@@ -75,7 +76,7 @@ export type TerrainInfo = {
   creepTextureUniform: { value: Texture };
   creepEdgesTextureUniform: { value: Texture };
   minimapBitmap: ImageBitmap;
-  setAnisotropy: (anisotropy: string) => void;
+  anisotropy: string;
   geomOptions: GeometryOptions;
 };
 

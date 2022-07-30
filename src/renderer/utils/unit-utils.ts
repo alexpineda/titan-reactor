@@ -102,3 +102,45 @@ export const getMaxUnitEnergy = (unitType: UnitDAT, completedUpgrades: number[])
 
   return energy;
 };
+
+
+export class PlayerInfo {
+  #structSize = 7;
+  playerId: number;
+  playerData: Uint32Array[];
+  constructor() {
+    this.playerId = 0;
+    this.playerData = [];
+  }
+
+  get _offset() {
+    return this.#structSize * this.playerId;
+  }
+
+  get minerals() {
+    return this.playerData[this._offset + 0];
+  }
+
+  get vespeneGas() {
+    return this.playerData[this._offset + 1];
+  }
+  get supply() {
+    return this.playerData[this._offset + 2];
+  }
+
+  get supplyMax() {
+    return this.playerData[this._offset + 3];
+  }
+
+  get workerSupply() {
+    return this.playerData[this._offset + 4];
+  }
+
+  get armySupply() {
+    return this.playerData[this._offset + 5];
+  }
+
+  get apm() {
+    return this.playerData[this._offset + 6];
+  }
+}

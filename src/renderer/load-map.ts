@@ -56,7 +56,8 @@ export default async (chkFilepath: string) => {
   log.verbose("initializing scene");
   const terrainInfo = await chkToTerrainMesh(chk, {
     textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
-    anisotropy: settings.graphics.anisotropy
+    anisotropy: settings.graphics.anisotropy,
+    shadows: settings.graphics.terrainShadows
   });
   const scene = new Scene(terrainInfo);
 

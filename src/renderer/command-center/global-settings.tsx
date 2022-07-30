@@ -8,7 +8,7 @@ import {
 import { useControls, useCreateStore } from "leva";
 import { useState } from "react";
 import { createLevaPanel } from "./create-leva-panel";
-import { mapConfigToLeva } from "./map-config-to-leva";
+import { mapConfigToLeva } from "@utils/leva-utils";
 
 export const GlobalSettings = () => {
   const settings = useSettingsStore();

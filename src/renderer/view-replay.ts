@@ -9,12 +9,11 @@ import type Chk from "bw-chk";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, Settings
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { MainMixer, Music, SoundChannels } from "./audio";
-import { diff } from "deep-diff";
 
 import {
   Image,
@@ -34,7 +33,7 @@ import {
 } from "./render";
 import renderComposer from "./render/render-composer";
 import {
-  useSettingsStore, useWorldStore,
+  useWorldStore,
 } from "./stores";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
@@ -50,7 +49,7 @@ import BulletsBufferView from "./buffer-view/bullets-buffer-view";
 import { WeaponBehavior } from "../common/enums";
 import gameStore from "./stores/game-store";
 import * as plugins from "./plugins";
-import settingsStore from "./stores/settings-store";
+import settingsStore, { useSettingsStore } from "./stores/settings-store";
 import { Scene } from "./render/scene";
 import { Assets } from "common/types/assets";
 import { Replay } from "./process-replay/parse-replay";
@@ -76,6 +75,9 @@ import { EffectPass, RenderPass } from "postprocessing";
 import { drawMinimap } from "./render/draw-minimap";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { mix } from "./utils/object-utils"
+import { createSession } from "@stores/session-store";
+import { diff } from "deep-diff";
+import set from "lodash.set";
 
 CameraControls.install({ THREE: THREE });
 
@@ -94,8 +96,7 @@ async function TitanReactorGame(
   music: Music,
   commandsStream: CommandsStream
 ) {
-  let settings = settingsStore().data;
-  let _ogSettings = JSON.parse(JSON.stringify(settings)) as Settings;
+  const session = createSession();
 
   const preplacedMapUnits = map.units;
   const bwDat = assets.bwDat;
@@ -157,12 +158,12 @@ async function TitanReactorGame(
   document.body.appendChild(cssRenderer.domElement);
   janitor.callback(() => document.body.removeChild(cssRenderer.domElement));
 
-  terrain.setAnisotropy(settings.graphics.anisotropy);
+  terrain.anisotropy = session.getState().graphics.anisotropy;
 
   const gameSurface = new GameSurface(mapWidth, mapHeight);
-  gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(settings.graphics.pixelRatio));
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
   document.body.appendChild(gameSurface.canvas);
-  gameStore().setDimensions(gameSurface.getMinimapDimensions(settings.game.minimapSize));
+  gameStore().setDimensions(gameSurface.getMinimapDimensions(session.getState().game.minimapSize));
   janitor.add(gameSurface);
 
   const minimapSurface = new Surface();
@@ -272,12 +273,11 @@ async function TitanReactorGame(
 
   gameViewportsDirector.onActivate = (inputHandler) => {
 
-    const rect = gameSurface.getMinimapDimensions(settings.game.minimapSize);
+    const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: miscApi.minimap ? rect.minimapHeight : 0,
     });
-
 
     if (!inputHandler.gameOptions.allowUnitSelection) {
       selectedUnitsStore().clearSelectedUnits();
@@ -291,12 +291,8 @@ async function TitanReactorGame(
     minimap: {
       set scale(oValue: number) {
         const value = MathUtils.clamp(oValue, 0.1, 1);
-        const minimapSize = value * _ogSettings.game.minimapSize;
-        console.log('viewport set scale', minimapSize);
-        settingsStore().merge({ game: { minimapSize } }, "view-replay:miscApi.minimap.setScale()");
-      },
-      get scale() {
-        return settings.game.minimapSize / _ogSettings.game.minimapSize;
+        const minimapSize = value * settingsStore().data.game.minimapSize;
+        session.getState().merge({ game: { minimapSize } });
       },
       get enabled() {
         return minimapSurface.canvas.style.display === "block";
@@ -311,7 +307,7 @@ async function TitanReactorGame(
   }
 
   const _stopFollowingOnClick = () => {
-    if (settings.game.stopFollowingOnClick) {
+    if (session.getState().game.stopFollowingOnClick) {
       clearFollowedUnits();
     }
   }
@@ -416,11 +412,10 @@ async function TitanReactorGame(
     return openBW.isPaused();
   }
 
-  const _sceneResizeHandler = (incomingSettings: Settings) => {
-    gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(incomingSettings.graphics.pixelRatio));
+  const _sceneResizeHandler = () => {
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
 
-    const rect = gameSurface.getMinimapDimensions(incomingSettings.game.minimapSize);
-    console.log(incomingSettings === settings, incomingSettings.game.minimapSize, settings.game.minimapSize, rect);
+    const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
@@ -438,7 +433,9 @@ async function TitanReactorGame(
     gameViewportsDirector.aspect = gameSurface.aspect;
   };
 
-  const sceneResizeHandler = debounce(() => _sceneResizeHandler(settings), 100);
+  const sceneResizeHandler = debounce(() => {
+    _sceneResizeHandler()
+  }, 100);
   janitor.addEventListener(window, "resize", sceneResizeHandler, {
     passive: true,
   })
@@ -1180,12 +1177,11 @@ async function TitanReactorGame(
   // apply initial terrain shadow settings
   terrain.mesh.traverse(o => {
     if (o instanceof Mesh) {
-      o.castShadow = settings.graphics.terrainShadows;
-      o.receiveShadow = settings.graphics.terrainShadows;
+      o.castShadow = session.getState().graphics.terrainShadows;
+      o.receiveShadow = session.getState().graphics.terrainShadows;
     }
   })
-  renderComposer.getWebGLRenderer().shadowMap.needsUpdate = settings.graphics.terrainShadows;
-
+  renderComposer.getWebGLRenderer().shadowMap.needsUpdate = session.getState().graphics.terrainShadows;
   // const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
 
   let _lastElapsed = 0;
@@ -1271,8 +1267,6 @@ async function TitanReactorGame(
 
       plugins.onFrame(openBW, currentBwFrame, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
-      // scene.setBorderTileOpacity(Math.min(1, Math.max(0, 0.7 - getOrbit().distance / _maxTransparentBorderTilesDistance)));
-
       previousBwFrame = currentBwFrame;
     }
 
@@ -1333,8 +1327,8 @@ async function TitanReactorGame(
   }));
 
   let pluginsApiJanitor = new Janitor;
-  const macros = new Macros;
-  macros.deserialize(settings.macros);
+  const macros = new Macros(session);
+  macros.deserialize(settingsStore().data.macros);
 
   const setupPlugins = async () => {
 
@@ -1375,45 +1369,6 @@ async function TitanReactorGame(
 
     const getOriginalNames = () => [...originalNames];
 
-    // class PlayerInfo {
-    //   constructor() {
-    //     this._struct_size = 7;
-    //     this.playerId = 0;
-    //     this.playerData = [];
-    //   }
-
-    //   get _offset() {
-    //     return this._struct_size * this.playerId;
-    //   }
-
-    //   get minerals() {
-    //     return this.playerData[this._offset + 0];
-    //   }
-
-    //   get vespeneGas() {
-    //     return this.playerData[this._offset + 1];
-    //   }
-    //   get supply() {
-    //     return this.playerData[this._offset + 2];
-    //   }
-
-    //   get supplyMax() {
-    //     return this.playerData[this._offset + 3];
-    //   }
-
-    //   get workerSupply() {
-    //     return this.playerData[this._offset + 4];
-    //   }
-
-    //   get armySupply() {
-    //     return this.playerData[this._offset + 5];
-    //   }
-
-    //   get apm() {
-    //     return this.playerData[this._offset + 6];
-    //   }
-    // }
-
     const api = {
       get viewport() {
         return gameViewportsDirector.primaryViewport;
@@ -1453,7 +1408,7 @@ async function TitanReactorGame(
       },
       getSpeed: () => openBW.getGameSpeed(),
       exitScene: () => {
-        gameViewportsDirector.activate(plugins.getSceneInputHandler(_ogSettings.game.sceneController)!);
+        gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
       },
       setPlayerColors,
       getPlayerColor: (id: number) => {
@@ -1505,8 +1460,6 @@ async function TitanReactorGame(
 
     mix(api, miscApi);
 
-    console.log(api);
-
     pluginsApiJanitor.add(plugins.injectApi(api));
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
@@ -1529,14 +1482,14 @@ async function TitanReactorGame(
     await (settingsStore().load());
     await plugins.initializePluginSystem(settingsStore().enabledPlugins);
     await setupPlugins();
-    await gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
+    await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
     renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
     _halt = false;
   };
 
   janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
 
-  macros.setHostDefaults(settings);
+  macros.setHostDefaults(settingsStore().data);
   plugins.setAllMacroDefaults(macros);
 
   janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
@@ -1563,16 +1516,35 @@ async function TitanReactorGame(
     macros.execMacroById(macroId);
   });
 
+  janitor.add(useSettingsStore.subscribe((settings, prevSettings) => {
+
+    const diffs = diff(prevSettings, settings);
+    if (diffs === undefined)
+      return;
+
+    // update our session with the new user manipulated settings
+    const mergeSettings = {};
+    for (const d of diffs) {
+      if (d.kind === "E" && d.path) {
+        set(mergeSettings, d.path, d.rhs);
+      }
+    }
+    console.log("mergeSettings", mergeSettings)
+
+    session.getState().merge(mergeSettings);
+    macros.setHostDefaults(settings.data);
+
+  }));
+
+  // TODO FIXME, no more CommitSettings
   janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
     type: SendWindowActionType.CommitSettings
     payload: SendWindowActionPayload<SendWindowActionType.CommitSettings>
   }) => {
     if (type === SendWindowActionType.CommitSettings) {
-      console.log("Refreshing settings");
-      console.log(diff(settings, _ogSettings));
       macros.setHostDefaults(payload.data);
-      _ogSettings = JSON.parse(JSON.stringify(payload.data)) as Settings;
-      useSettingsStore.setState({ ...payload, data: { ...payload.data, source: "replay:refresh" } });
+      // apply only diff
+      // session.getState().merge(payload.data, "replay:refresh");
     }
   })
 
@@ -1585,10 +1557,7 @@ async function TitanReactorGame(
     }
   })
 
-  janitor.add(useSettingsStore.subscribe(({ data: newSettings }) => {
-    console.log("settings subscribe")
-    console.log(diff(newSettings, settings));
-
+  janitor.add(session.subscribe((newSettings) => {
     if (!gameViewportsDirector.disabled && newSettings.game.sceneController !== gameViewportsDirector.name) {
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
@@ -1597,30 +1566,22 @@ async function TitanReactorGame(
     audioMixer.musicVolume = newSettings.audio.music;
     audioMixer.soundVolume = newSettings.audio.sound;
 
-    if (settings.graphics.terrainShadows !== newSettings.graphics.terrainShadows) {
-      terrain.mesh.traverse(o => {
-        if (o instanceof Mesh) {
-          o.castShadow = newSettings.graphics.terrainShadows;
-          o.receiveShadow = newSettings.graphics.terrainShadows;
-        }
-      });
+    if (newSettings.graphics.terrainShadows !== terrain.shadowsEnabled) {
+      terrain.shadowsEnabled = newSettings.graphics.terrainShadows;
       renderComposer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
     }
 
-    // if (settings.graphics.pixelRatio !== newSettings.graphics.pixelRatio || settings.game.minimapSize !== newSettings.game.minimapSize) {
-    // }
-
-    if (settings.graphics.anisotropy !== newSettings.graphics.anisotropy) {
-      terrain.setAnisotropy(newSettings.graphics.anisotropy);
+    if (newSettings.graphics.anisotropy !== terrain.anisotropy) {
+      terrain.anisotropy = newSettings.graphics.anisotropy;
     }
 
-    Object.assign(settings, newSettings);
-    _sceneResizeHandler(settings);
+    Object.assign(session, newSettings);
+    _sceneResizeHandler();
 
   }));
 
 
-  await gameViewportsDirector.activate(plugins.getSceneInputHandler(settings.game.sceneController)!);
+  await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
 
   const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
   precompileCamera.updateProjectionMatrix();
@@ -1631,11 +1592,11 @@ async function TitanReactorGame(
 
   janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
     if (e.code === "Escape") {
-      gameViewportsDirector.activate(plugins.getSceneInputHandler(_ogSettings.game.sceneController)!);
+      gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
     }
   })
 
-  _sceneResizeHandler(settings);
+  _sceneResizeHandler();
   renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
   return () => {

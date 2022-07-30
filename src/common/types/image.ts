@@ -48,3 +48,22 @@ export type SpriteRenderOptions = {
   unitScale: number;
   rotateSprites: boolean;
 }
+
+export enum AssetTextureResolution {
+  SD = "sd",
+  HD = "hd",
+}
+
+export enum ShadowLevel {
+  Off,
+  Low,
+  Medium,
+  High
+}
+
+export enum GameAspect {
+  Fit = "Fit",
+  Native = "Native",
+  FourThree = "FourThree",
+  SixteenNine = "SixteenNine",
+};

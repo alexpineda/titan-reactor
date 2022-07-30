@@ -232,9 +232,8 @@ ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
   type: SendWindowActionType.CommitSettings
   payload: SendWindowActionPayload<SendWindowActionType.CommitSettings>
 }) => {
-  if (type === SendWindowActionType.CommitSettings && !screenStore().isInGame) {
-    console.log("@init: refreshing settings");
-    useSettingsStore.setState({ ...payload, data: { ...payload.data, source: "titan-reactor" } });
+  if (type === SendWindowActionType.CommitSettings) {
+    useSettingsStore.setState(payload);
   }
 })
 

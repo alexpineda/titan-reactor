@@ -46,7 +46,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
       log.error(`@process/start: Process ${Process[id]} timed out`);
       get().complete(id)
     }, 10000);
-    log.info("@process/init: " + snake(Process[id]));
+    log.verbose("@process/init: " + snake(Process[id]));
 
     performance.mark(`process-${id}`);
 

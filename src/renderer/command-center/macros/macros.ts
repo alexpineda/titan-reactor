@@ -1,5 +1,4 @@
 import * as log from "@ipc/log";
-import settingsStore from "@stores/settings-store";
 import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType } from "common/types";
 import * as plugins from "../../plugins";
 import packagejson from "../../../../package.json";
@@ -7,13 +6,20 @@ import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
+import { UseStore } from "zustand";
+import { SessionStore } from "@stores/session-store";
 
 export class Macros {
     #createGameCompartment?: (deps?: {}) => Compartment;
+    #session: UseStore<SessionStore>;
 
     version = packagejson.config["titan-reactor-macro-api"];
     revision = 0;
     macros: Macro[] = [];
+
+    constructor(session: UseStore<SessionStore>) {
+        this.#session = session;
+    }
 
     add(macro: Macro) {
         this.macros.push(macro);
@@ -120,8 +126,6 @@ export class Macros {
     }
 
     #execMacro(macro: Macro) {
-        const settings = settingsStore();
-
         const actions = macro.getActionSequence();
         for (const action of actions) {
             if (action.error) {
@@ -129,7 +133,7 @@ export class Macros {
                 continue;
             }
             if (action.type === MacroActionType.ModifyAppSettings) {
-                settings.doMacroAction(action);
+                this.#session.getState().doMacroAction(action);
             } else if (action.type === MacroActionType.ModifyPluginSettings) {
                 plugins.doMacroAction(action);
             } else if (action.type === MacroActionType.CallGameTimeApi) {
