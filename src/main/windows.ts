@@ -36,7 +36,6 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
     }
   }
 
-  console.log(preload)
   const w = new BrowserWindow({
     width: 800,
     height: 600,

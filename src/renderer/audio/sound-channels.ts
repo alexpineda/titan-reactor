@@ -96,8 +96,6 @@ export class SoundChannels {
       if (!channel || elapsed - channel.lastPlayed <= 80) {
         return;
       }
-      // new SoundChannel(this.mixer, soundData, this._getBuffer(soundData.typeId), dat, mapCoords)
-
       channel.queue(typeId, unitTypeId, mapCoords, dat.flags, dat.priority, volume, pan);
       channel.play(elapsed, buffer);
 

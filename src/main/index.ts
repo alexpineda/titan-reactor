@@ -66,7 +66,6 @@ const createConfigurationWindow = () => {
     return;
   }
 
-
   windows.config = createWindow({
     onClose: () => {
       windows.config = null;

@@ -24,9 +24,7 @@ export const Home = () => {
       <div
         style={{
           display: "flex",
-          padding: "var(--size-6)",
           justifyContent: "space-between",
-          marginTop: "var(--size-4)",
         }}
       >
         <div

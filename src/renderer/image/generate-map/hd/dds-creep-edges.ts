@@ -18,6 +18,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
     stencil: false,
     antialias: false,
     alpha: true,
+    precision: "highp",
   });
   renderer.autoClear = false;
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
@@ -78,9 +79,9 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
 
   const scene = new Scene();
   const plane = new PlaneBufferGeometry();
-  const mat = new MeshBasicMaterial({});
-  const mesh = new Mesh(plane, mat);
-  mesh.rotation.x = Math.PI / 2;
+  const mat = new MeshBasicMaterial({
+    transparent: true,
+  });
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -89,6 +90,9 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
   }
   canvas.width = width * PX_PER_TILE_HD;
   canvas.height = height * PX_PER_TILE_HD;
+
+  const mesh = new Mesh(plane, mat);
+  mesh.rotation.x = Math.PI / 2;
 
   for (let i = 0; i < creepGrp.length; i++) {
     const x = i;
@@ -101,11 +105,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
     mat.side = DoubleSide;
     mesh.scale.set(grp.w / PX_PER_TILE_HD, grp.h / PX_PER_TILE_HD, 1);
     mesh.position.x = x - width / 2 + getOffset(grp, i).x;
-    // if (x >= 1 && x <= 4) {
-    //   mesh.position.z = y - height / 2 + 1;
-    // } else {
     mesh.position.z = y - height / 2 + getOffset(grp, i).y;
-    // }
     mesh.rotation.z = Math.PI;
     mesh.rotation.y = Math.PI;
     scene.add(mesh);
@@ -113,13 +113,13 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
     scene.remove(mesh);
   }
 
-  ctx.drawImage(renderer.domElement, 0, 0);
-  const texture = new CanvasTexture(canvas);
+  // ctx.drawImage(renderer.domElement, 0, 0);
+  const texture = new CanvasTexture(renderer.domElement);
   texture.encoding = sRGBEncoding;
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  // texture.flipY = true;
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
+
 
   mat.dispose();
   renderer.dispose();

@@ -152,7 +152,10 @@ export class PluginSystemNative {
                 this.#registerCustomHook(name, args, pluginPackage.id, async);
             };
             plugin.callCustomHook = (name: string, ...args: any[]) => {
-                if (this.hooks[name].isAuthor(pluginPackage.id)) {
+                if (this.hooks[name] === undefined) {
+                    log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it was not found`);
+                }
+                else if (this.hooks[name].isAuthor(pluginPackage.id)) {
                     return this.callHook(name, ...args);
                 }
             };
