@@ -83,16 +83,20 @@ export const createDataTextures = async ({
     const w32 = mapWidth * 32;
     const h32 = mapHeight * 32;
 
+    // minitile resolution
+    const w4 = mapWidth * 4;
+    const h4 = mapHeight * 4;
+
     const sdMap = createDataTexture(mapData.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
     const roughnessMap = createDataTexture(mapData.roughness, w32, h32, { format: THREE.RedIntegerFormat });
-    const mapTilesMap = createDataTexture(mapData.mapTilesData, w32, h32, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
+    const mapTilesMap = createDataTexture(mapData.mapTilesData, mapWidth, mapHeight, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
 
     const creepEdgesValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
     const creepValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
 
     const displacementDetailsMap = createDataTexture(mapData.displacementDetail, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
-    const elevationsMap = createDataTexture(mapData.layers, mapWidth * 4, mapHeight * 4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
-    const nonZeroElevationsMap = createDataTexture(createNonZeroElevationsData(mapData.layers, mapWidth * 4, mapHeight * 4, blendNonWalkableBase), mapWidth * 4, mapHeight * 4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const elevationsMap = createDataTexture(mapData.layers, w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const nonZeroElevationsMap = createDataTexture(createNonZeroElevationsData(mapData.layers, w4, h4, blendNonWalkableBase), w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
 
     const paletteIndicesMap = createDataTexture(mapData.paletteIndices, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
     const paletteMap = createDataTexture(new Float32Array(palette.length).fill(0).map((_, i) => palette[i] / 255), palette.length / 4, 1, { textureDataType: THREE.FloatType, flipY: false, encoding: THREE.sRGBEncoding });

@@ -3,7 +3,7 @@ export * from "./create-displacement-geometry-quartile";
 export * from "./create-data-textures"
 export * from "./transform-level-configuration";
 export * from "./extract-bitmaps"
-export * from "./geometry-options"
+export * from "./default-geometry-options"
 export * from "./data-textures-to-height-maps"
 export * from "./create-terrain-geom-from-quartiles";
 export * from "./create-sd-mesh";

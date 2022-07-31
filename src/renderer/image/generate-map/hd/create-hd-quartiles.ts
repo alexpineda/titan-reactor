@@ -5,9 +5,13 @@ import {
   Vector3,
   PlaneBufferGeometry,
   Mesh,
-  CanvasTexture,
   sRGBEncoding,
   WebGLRenderer,
+  Texture,
+  WebGLRenderTarget,
+  NearestFilter,
+  LinearEncoding,
+  DoubleSide,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
@@ -21,18 +25,15 @@ export const createHdQuartiles = (
   mapHeight: number,
   imageData: Buffer,
   mapTilesData: Uint16Array,
-  res: UnitTileScale
+  res: UnitTileScale,
+  renderer: WebGLRenderer
 ): WrappedQuartileTextures => {
 
-  const renderer = new WebGLRenderer({
-    depth: false,
-    stencil: false,
-    alpha: true,
-  });
-  renderer.autoClear = false;
+
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
 
-  const mapQuartiles: CanvasTexture[][] = [];
+
+  const mapQuartiles: Texture[][] = [];
   const hdTiles = parseDdsGrp(imageData);
   const webGlMaxTextureSize = renderer.capabilities.maxTextureSize;
   //16384, 8192, 4096
@@ -69,24 +70,12 @@ export const createHdQuartiles = (
   const renderHeight = quartileHeight * PX_PER_TILE_HD;
   renderer.setSize(renderWidth, renderHeight);
 
-  const quartileScene = new Scene();
   const plane = new PlaneBufferGeometry();
-  const mat = new MeshBasicMaterial({});
-  const mesh = new Mesh(plane, mat);
-  quartileScene.add(mesh);
-
   for (let qx = 0; qx < quartileStrideW; qx++) {
     mapQuartiles[qx] = [];
     for (let qy = 0; qy < quartileStrideH; qy++) {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        throw new Error("Could not get context");
-      }
-      canvas.width = renderWidth;
-      canvas.height = renderHeight;
-      // FIXME: use render target, must use same renderer as game?
-      // const rt = new WebGLRenderTarget(renderWidth, renderHeight);
+
+      const quartileScene = new Scene();
 
       for (let x = 0; x < quartileWidth; x++) {
         for (let y = 0; y < quartileHeight; y++) {
@@ -98,27 +87,38 @@ export const createHdQuartiles = (
             if (!hdCache.has(tile)) {
               hdCache.set(tile, texture);
             }
-            mat.map = texture;
-            mat.needsUpdate = true;
+            texture.encoding = sRGBEncoding;
+            const mat = new MeshBasicMaterial({
+              map: texture,
+              side: DoubleSide,
+            });
+            const mesh = new Mesh(plane, mat);
+            quartileScene.add(mesh);
             mesh.position.x = x - quartileWidth / 2 + 0.5;
             mesh.position.z = y - quartileHeight / 2 + 0.5;
             mesh.rotation.x = Math.PI / 2;
-            renderer.render(quartileScene, ortho);
           } else {
             console.error("no tile", tile);
           }
         }
       }
 
-      ctx.drawImage(renderer.domElement, 0, 0);
-      mapQuartiles[qx][qy] = new CanvasTexture(canvas);
+      const rt = new WebGLRenderTarget(renderWidth, renderHeight, {
+        anisotropy: renderer.capabilities.getMaxAnisotropy(),
+        minFilter: NearestFilter,
+        magFilter: NearestFilter,
+        encoding: sRGBEncoding,
+      });
+      renderer.setRenderTarget(rt)
+      quartileScene.scale.set(1, 1, -1);
+      renderer.render(quartileScene, ortho);
+
+      mapQuartiles[qx][qy] = rt.texture;
       mapQuartiles[qx][qy].encoding = sRGBEncoding;
-      mapQuartiles[qx][qy].flipY = false;
     }
   }
 
-  mat.dispose();
-  renderer.dispose();
+  renderer.setRenderTarget(null)
   hdCache.forEach((t) => t.dispose());
 
   return {

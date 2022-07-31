@@ -722,7 +722,7 @@ async function TitanReactorGame(
     const spriteX = pxToGameUnit.x(x);
     const spriteZ = pxToGameUnit.y(y);
     let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-    const flyingY = isFlying ? spriteY / terrain.geomOptions.displacementScale + terrain.geomOptions.displacementScale + 1 : spriteY;
+    const flyingY = isFlying ? spriteY / terrain.geomOptions.maxTerrainHeight + terrain.geomOptions.maxTerrainHeight + 1 : spriteY;
 
     v2.set(spriteX, spriteZ);
     v.set(spriteX, flyingY, spriteZ);
@@ -1388,9 +1388,9 @@ async function TitanReactorGame(
       pxToGameUnit,
       fogOfWar,
       terrain: {
-        tileset: terrain.tileset,
-        mapWidth: terrain.mapWidth,
-        mapHeight: terrain.mapHeight,
+        tileset: map.tileset,
+        mapWidth,
+        mapHeight,
         getTerrainY: terrain.getTerrainY,
         mesh: terrain.mesh
       },

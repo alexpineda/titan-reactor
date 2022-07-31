@@ -1,7 +1,7 @@
 import type Chk from "bw-chk";
-import { TerrainInfo, UnitTileScale } from "common/types";
+import { GeometryOptions, TerrainInfo, UnitTileScale } from "common/types";
 import {
-  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
+  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
 } from ".";
 
 import * as log from "@ipc";
@@ -11,7 +11,8 @@ import * as sd from "./sd";
 import * as hd from "./hd";
 import { anisotropyOptions } from "@utils/renderer-utils";
 import { Layers } from "../../render/layers";
-import { Mesh } from "three";
+import { LinearEncoding, Mesh, sRGBEncoding } from "three";
+import renderComposer from "../../render/render-composer";
 
 type TerrainMeshSettings = {
   textureResolution: UnitTileScale;
@@ -19,8 +20,7 @@ type TerrainMeshSettings = {
   shadows: boolean;
 }
 
-export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings): Promise<TerrainInfo> {
-  const geomOptions = defaultOptions;
+export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings, geomOptions: GeometryOptions = defaultGeometryOptions): Promise<TerrainInfo> {
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -37,6 +37,8 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
 
   log.verbose(`Generating terrain ${settings.textureResolution} textures`);
 
+  const renderer = renderComposer.getWebGLRenderer();
+
   const displacementImages = await dataTexturesToHeightMaps({
     palette,
     tileset,
@@ -45,19 +47,28 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     dataTextures,
     geomOptions,
     levels,
+    renderer
   });
 
   const isLowRes = settings.textureResolution === UnitTileScale.SD;
 
-  const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, settings.textureResolution);
+  renderer.autoClear = false;
+  renderer.outputEncoding = LinearEncoding;
+  renderer.clear();
+  const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, settings.textureResolution, renderer);
 
-  const creepEdgesTexture = isLowRes ? await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette) : hd.ddsToCreepEdgesTexture(creepGrpHD, settings.textureResolution);
+  renderer.clear();
+  const creepEdgesTexture = isLowRes ? await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette) : hd.ddsToCreepEdgesTexture(creepGrpHD, settings.textureResolution, renderer);
 
+  renderer.clear();
   const textures = isLowRes ? sd.createSdQuartiles(mapWidth, mapHeight, bitmaps.diffuse) : hd.createHdQuartiles(mapWidth, mapHeight,
     hdTiles,
     bitmaps.mapTilesData,
-    settings.textureResolution
+    settings.textureResolution, renderer
   );
+  renderer.autoClear = true;
+  renderer.outputEncoding = sRGBEncoding;
+
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
   terrain.layers.enable(Layers.Terrain);
@@ -66,7 +77,7 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
 
   const getTerrainY = genTerrainY(
     displacementImages.displacementImage,
-    geomOptions.displacementScale,
+    geomOptions.maxTerrainHeight,
     mapWidth,
     mapHeight
   );

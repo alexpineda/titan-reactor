@@ -2,7 +2,7 @@ import groupBy from "lodash.groupby";
 import keyboardShortcut from "../command-center/leva-plugins/keyboard-shortcut";
 import directory from "../command-center/leva-plugins/directory";
 
-export const mapSingleConfigToLeva = (fieldConfig: any, onChange: (value: any) => void) => {
+export const mapSingleConfigToLeva = (fieldConfig: any, onChange: (value: any, key?: string) => void, key?: string) => {
     let wrapper = (input: any) => input;
     if (fieldConfig.type === "keyboard-shortcut") {
         wrapper = keyboardShortcut;
@@ -15,13 +15,13 @@ export const mapSingleConfigToLeva = (fieldConfig: any, onChange: (value: any) =
         onChange: (value: any, _: any, input: { initial: boolean }) => {
             if (fieldConfig.value !== value && !input.initial) {
                 fieldConfig.value = value;
-                onChange(value);
+                onChange(value, key);
             }
         },
     });
 }
 
-export const mapConfigToLeva = (config: any, onChange: (value: any) => void) => {
+export const mapConfigToLeva = (config: any, onChange: (value: any, key?: string) => void) => {
     const values = [];
     for (const k in config || {}) {
         if (
@@ -29,7 +29,7 @@ export const mapConfigToLeva = (config: any, onChange: (value: any) => void) => 
             typeof config[k] === "object" &&
             "value" in config[k]
         ) {
-            const obj = mapSingleConfigToLeva(config[k], onChange);
+            const obj = mapSingleConfigToLeva(config[k], onChange, k);
 
             obj.folder = config[k].folder || "Configuration";
             obj._key = k;

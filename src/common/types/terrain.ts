@@ -1,6 +1,6 @@
 
 
-import { BufferGeometry, Group, Mesh, MeshStandardMaterial, Texture } from "three";
+import { BufferGeometry, Group, Material, Mesh, MeshStandardMaterial, Texture } from "three";
 import { GetTerrainY } from "./util";
 
 
@@ -11,16 +11,16 @@ export type GeometryOptions = {
   elevationLevels: number[];
   ignoreLevels: number[];
   normalizeLevels: boolean;
-  displaceDimensionScale: number;
+  textureDetail: number;
   /**
    * number of vertices per tile
    */
-  displaceVertexScale: number;
+  meshDetail: number;
   blendNonWalkableBase: boolean;
   firstPass: boolean;
   secondPass: boolean;
   processWater: boolean;
-  displacementScale: number;
+  maxTerrainHeight: number;
   drawMode: { value: number };
   detailsMix: number;
   bumpScale: number;

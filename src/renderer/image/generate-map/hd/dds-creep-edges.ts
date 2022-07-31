@@ -1,6 +1,7 @@
+import { disposeObject3D } from "@utils/dispose";
 import { DDSGrpFrameType, WrappedTexture, UnitTileScale } from "common/types";
 import {
-  CanvasTexture, DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer
+  DoubleSide, LinearEncoding, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
 } from "three";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 
@@ -12,15 +13,8 @@ const topEdges = [6, 11, 17, 21];
 const leftEdges = [15];
 
 // generates a single creep texture for the edges from 0 - 15
-export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): WrappedTexture => {
-  const renderer = new WebGLRenderer({
-    depth: false,
-    stencil: false,
-    antialias: false,
-    alpha: true,
-    precision: "highp",
-  });
-  renderer.autoClear = false;
+export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, renderer: WebGLRenderer): WrappedTexture => {
+
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
   const edgeScale = res === UnitTileScale.HD ? 256 : 128;
 
@@ -75,54 +69,47 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale): Wrap
   ortho.position.y = width;
   ortho.lookAt(new Vector3());
 
+  const rt = new WebGLRenderTarget(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD, {
+    anisotropy: renderer.capabilities.getMaxAnisotropy(),
+    encoding: sRGBEncoding,
+  });
+  renderer.setRenderTarget(rt)
   renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
 
   const scene = new Scene();
   const plane = new PlaneBufferGeometry();
-  const mat = new MeshBasicMaterial({
-    transparent: true,
-  });
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Could not create canvas context");
-  }
-  canvas.width = width * PX_PER_TILE_HD;
-  canvas.height = height * PX_PER_TILE_HD;
-
-  const mesh = new Mesh(plane, mat);
-  mesh.rotation.x = Math.PI / 2;
 
   for (let i = 0; i < creepGrp.length; i++) {
     const x = i;
     const y = 0;
     const grp = creepGrp[i];
     const texture = createCompressedTexture(grp.dds);
+    texture.encoding = sRGBEncoding;
 
-    mat.map = texture;
-    mat.needsUpdate = true;
-    mat.side = DoubleSide;
+    const mesh = new Mesh(plane, new MeshBasicMaterial({
+      transparent: true,
+      map: texture,
+      side: DoubleSide,
+    }));
+    mesh.rotation.x = Math.PI / 2;
     mesh.scale.set(grp.w / PX_PER_TILE_HD, grp.h / PX_PER_TILE_HD, 1);
     mesh.position.x = x - width / 2 + getOffset(grp, i).x;
     mesh.position.z = y - height / 2 + getOffset(grp, i).y;
     mesh.rotation.z = Math.PI;
     mesh.rotation.y = Math.PI;
     scene.add(mesh);
-    renderer.render(scene, ortho);
-    scene.remove(mesh);
   }
 
-  // ctx.drawImage(renderer.domElement, 0, 0);
-  const texture = new CanvasTexture(renderer.domElement);
+  renderer.render(scene, ortho);
+  renderer.setRenderTarget(null);
+
+  const texture = rt.texture;
   texture.encoding = sRGBEncoding;
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
 
-
-  mat.dispose();
-  renderer.dispose();
+  disposeObject3D(scene);
 
   return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD, pxPerTile: PX_PER_TILE_HD };
 };

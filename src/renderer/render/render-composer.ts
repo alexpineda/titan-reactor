@@ -30,12 +30,14 @@ const createWebGLRenderer = () => {
     renderer.shadowMap.type = PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = false;
     renderer.sortObjects = true;
+    renderer.autoClear = false;
     return renderer;
 };
 
 export class TitanRenderComposer {
     #renderer?: WebGLRenderer;
     #targetSurface = new Surface();
+    onRestoreContext?: () => void;
     composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
         multisampling: 0
@@ -56,12 +58,14 @@ export class TitanRenderComposer {
 
         renderer.domElement.addEventListener(
             "webglcontextlost",
-            () => {
-                this.#renderer?.setAnimationLoop(null);
-                // this.getWebGLRenderer();
-                // this._renderer = undefined;
+            (evt) => {
+                evt.preventDefault();
             }
         );
+
+        renderer.domElement.addEventListener(
+            "webglcontextrestored",
+            () => this.onRestoreContext && this.onRestoreContext())
 
         this.setSize(this.targetSurface.bufferWidth, this.targetSurface.bufferHeight);
 

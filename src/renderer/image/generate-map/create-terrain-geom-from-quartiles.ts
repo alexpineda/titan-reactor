@@ -32,21 +32,25 @@ export const createTerrainGeometryFromQuartiles = async (
             const g = createDisplacementGeometryQuartile(
                 qw,
                 qh,
-                qw * geomOptions.displaceVertexScale,
-                qh * geomOptions.displaceVertexScale,
+                qw * geomOptions.meshDetail,
+                qh * geomOptions.meshDetail,
                 displaceCanvas,
-                geomOptions.displacementScale,
+                geomOptions.maxTerrainHeight,
                 0,
                 qw / mapWidth,
                 qh / mapHeight,
-                qx * qw * geomOptions.displaceDimensionScale,
-                qy * qh * geomOptions.displaceDimensionScale,
+                qx * qw * geomOptions.textureDetail,
+                qy * qh * geomOptions.textureDetail,
             );
 
             const mat = new MeshStandardMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
                 roughness: 1,
+                bumpMap: mapTextures.mapQuartiles[qx][qy],
+                bumpScale: geomOptions.bumpScale,
+                fog: false
             });
+
             mat.onBeforeCompile = function (shader) {
                 let fs = shader.fragmentShader;
 

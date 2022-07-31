@@ -1,3 +1,4 @@
+import { disposeObject3D } from "@utils/dispose";
 import { WrappedTexture, UnitTileScale } from "common/types";
 import {
   MeshBasicMaterial,
@@ -6,10 +7,11 @@ import {
   Vector3,
   PlaneBufferGeometry,
   Mesh,
-  CanvasTexture,
   sRGBEncoding,
   WebGLRenderer,
   NearestFilter,
+  WebGLRenderTarget,
+  LinearEncoding,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 
@@ -19,13 +21,7 @@ const width = 13;
 const height = 1;
 
 // generates a single creep texture from 0 - 13
-export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res: UnitTileScale): WrappedTexture => {
-  const renderer = new WebGLRenderer({
-    depth: false,
-    stencil: false,
-    alpha: true,
-  });
-  renderer.autoClear = false;
+export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res: UnitTileScale, renderer: WebGLRenderer): WrappedTexture => {
 
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
 
@@ -40,47 +36,46 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
   ortho.position.y = width;
   ortho.lookAt(new Vector3());
 
+  const rt = new WebGLRenderTarget(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD, {
+    anisotropy: renderer.capabilities.getMaxAnisotropy(),
+    minFilter: NearestFilter,
+    magFilter: NearestFilter,
+    encoding: LinearEncoding,
+  });
+  renderer.setRenderTarget(rt)
   renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
 
   const scene = new Scene();
   const plane = new PlaneBufferGeometry();
-  const mat = new MeshBasicMaterial({});
-  const mesh = new Mesh(plane, mat);
-  mesh.rotation.x = Math.PI / 2;
 
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Could not create canvas context");
-  }
-  canvas.width = width * PX_PER_TILE_HD;
-  canvas.height = height * PX_PER_TILE_HD;
 
   for (let i = 0; i < width; i++) {
     const x = i;
     const y = 0;
     // get the 13 creep tiles in the 2nd tile group including a first empty tile
     const texture = createCompressedTexture(tiles[tilegroupU16[36 + i]]);
+    texture.encoding = sRGBEncoding;
 
-    mat.map = texture;
-    mat.needsUpdate = true;
+    const mat = new MeshBasicMaterial({
+      map: texture,
+    });
+    const mesh = new Mesh(plane, mat);
+    mesh.rotation.x = Math.PI / 2;
     mesh.position.x = x - width / 2 + 0.5;
     mesh.position.z = y - height / 2 + 0.5;
     scene.add(mesh);
-    renderer.render(scene, ortho);
-    scene.remove(mesh);
   }
 
-  ctx.drawImage(renderer.domElement, 0, 0);
-  const texture = new CanvasTexture(canvas);
+  renderer.render(scene, ortho);
+  const texture = rt.texture;
   texture.encoding = sRGBEncoding;
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   texture.flipY = true;
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
+  renderer.setRenderTarget(null);
 
-  mat.dispose();
-  renderer.dispose();
+  disposeObject3D(scene);
 
   return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD, pxPerTile: PX_PER_TILE_HD };
 };

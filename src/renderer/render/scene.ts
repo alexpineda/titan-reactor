@@ -13,7 +13,7 @@ import {
   Texture,
 } from "three";
 
-import { TerrainInfo, TerrainQuartile } from "common/types";
+import { Terrain, TerrainInfo, TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
 import { Layers } from "./layers";
 
@@ -51,6 +51,11 @@ export class Scene extends ThreeScene {
 
   hemilight: HemisphereLight;
   sunlight: DirectionalLight;
+
+  //@ts-ignore
+  userData: {
+    terrain: Terrain
+  }
 
   constructor({
     mapWidth,
@@ -210,10 +215,18 @@ export class Scene extends ThreeScene {
   }
 
   addTerrain(
-    terrain: Object3D
+    terrain: Terrain
   ) {
     this.userData.terrain = terrain;
     this.add(terrain);
+    this.#janitor.object3d(terrain);
+  }
+
+  replaceTerrain(
+    terrain: Terrain
+  ) {
+    this.remove(this.userData.terrain);
+    this.addTerrain(terrain);
     this.#janitor.object3d(terrain);
   }
 

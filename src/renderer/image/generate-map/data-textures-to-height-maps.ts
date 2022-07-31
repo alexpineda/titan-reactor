@@ -29,7 +29,8 @@ export const dataTexturesToHeightMaps = async ({
     mapHeight,
     dataTextures,
     geomOptions,
-    levels
+    levels,
+    renderer
 }: {
     dataTextures: MapDataTextures,
     geomOptions: GeometryOptions,
@@ -38,15 +39,10 @@ export const dataTexturesToHeightMaps = async ({
     tileset: number,
     mapWidth: number,
     mapHeight: number,
+    renderer: WebGLRenderer,
 }
 
 ) => {
-    const renderer = new WebGLRenderer({
-        depth: false,
-        stencil: false,
-        alpha: true,
-    });
-    renderer.autoClear = false;
     const camera = new PerspectiveCamera();
 
     //#region composer
@@ -56,8 +52,8 @@ export const dataTexturesToHeightMaps = async ({
     composer.autoRenderToScreen = true;
 
     composer.setSize(
-        mapWidth * geomOptions.displaceDimensionScale,
-        mapHeight * geomOptions.displaceDimensionScale,
+        mapWidth * geomOptions.textureDetail,
+        mapHeight * geomOptions.textureDetail,
         true
     );
     const savePass = new CopyPass();
@@ -138,11 +134,11 @@ export const dataTexturesToHeightMaps = async ({
         composer.render(0.01);
     }
     //#endregion composer
-    renderer.dispose();
+
 
     const displaceCanvas = document.createElement("canvas");
-    displaceCanvas.width = mapWidth * geomOptions.displaceDimensionScale;
-    displaceCanvas.height = mapHeight * geomOptions.displaceDimensionScale;
+    displaceCanvas.width = mapWidth * geomOptions.textureDetail;
+    displaceCanvas.height = mapHeight * geomOptions.textureDetail;
 
     displaceCanvas.getContext("2d")?.drawImage(renderer.domElement, 0, 0);
 
@@ -162,9 +158,13 @@ export const dataTexturesToHeightMaps = async ({
             displacementCanvasSmall.height
         );
 
+
     if (!displacementImage) {
         throw new Error("displacementImage is null");
     }
+
+    composer.dispose();
+
     return {
         displaceCanvas,
         displacementImage,

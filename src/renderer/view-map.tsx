@@ -1,24 +1,33 @@
 // playground for environment
 import { debounce } from "lodash";
-import { PerspectiveCamera } from "three";
+import { Color, PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import CameraControls from "camera-controls";
 import { RenderPass } from "postprocessing";
+import { CellularNoiseMaterial } from "threejs-shader-materials";
+
+import { createRoot } from "react-dom/client";
 
 import { playerColors } from "common/enums";
-import type {
+import {
+  AssetTextureResolution,
+  GeometryOptions,
   TerrainInfo,
+  UnitTileScale,
 } from "common/types";
 
 import { Surface } from "./image";
-import { IScriptSprite } from "./core"
-import * as log from "./ipc/log"
+import { IScriptSprite } from "./core";
+import * as log from "./ipc/log";
 import { Scene } from "./render";
 import renderComposer from "./render/render-composer";
 import { useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
-import createStartLocation from "./core/create-start-location"
+import createStartLocation from "./core/create-start-location";
 import { updatePostProcessingCamera } from "@utils/renderer-utils";
+import { MapViewer } from "./render/map-options";
+import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
+import { defaultGeometryOptions } from "@image/generate-map";
 
 async function TitanReactorMap(
   chk: Chk,
@@ -60,20 +69,20 @@ async function TitanReactorMap(
   document.body.appendChild(gameSurface.canvas);
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
-
   // scene.background = new Color(settings.mapBackgroundColor);
   const camera = new PerspectiveCamera(55, gameSurface.aspect, 3, 256);
-  const control = new CameraControls(
-    camera,
-    gameSurface.canvas,
-  );
-  control.mouseButtons.left = CameraControls.ACTION.TRUCK;
-  control.mouseButtons.right = CameraControls.ACTION.ROTATE;
-  control.mouseButtons.middle = CameraControls.ACTION.DOLLY;
-  control.dollyToCursor = true;
-  control.verticalDragToForward = true;
-  janitor.disposable(control);
-  control.setLookAt(0, 50, 0, 0, 0, 0, true);
+
+  const createControls = () => {
+    const control = new CameraControls(camera, gameSurface.canvas);
+    control.mouseButtons.left = CameraControls.ACTION.TRUCK;
+    control.mouseButtons.right = CameraControls.ACTION.ROTATE;
+    control.mouseButtons.middle = CameraControls.ACTION.DOLLY;
+    control.dollyToCursor = true;
+    control.verticalDragToForward = true;
+    control.setLookAt(0, 50, 0, 0, 0, 0, true);
+    return control;
+  };
+  let control = createControls();
 
   const renderPass = new RenderPass(scene, camera);
   const postProcessingBundle = { passes: [renderPass], effects: [] };
@@ -150,7 +159,6 @@ async function TitanReactorMap(
   //   sprites.push(titanSprite);
   // }
 
-
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight);
     renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
@@ -160,8 +168,9 @@ async function TitanReactorMap(
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
-  janitor.callback(() => window.removeEventListener("resize", sceneResizeHandler));
-
+  janitor.callback(() =>
+    window.removeEventListener("resize", sceneResizeHandler)
+  );
 
   let last = 0;
   let frameElapsed = 0;
@@ -180,18 +189,61 @@ async function TitanReactorMap(
 
     control.update(delta / 1000);
     renderComposer.render(delta);
+    renderComposer.renderBuffer();
     last = elapsed;
-
   }
 
   renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
-  janitor.callback(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
+  janitor.callback(() =>
+    renderComposer.getWebGLRenderer().setAnimationLoop(null)
+  );
 
   const dispose = () => {
     log.info("disposing map viewer");
     janitor.mopUp();
-
+    root.unmount();
   };
+
+  renderComposer.onRestoreContext = async () => {
+    renderComposer.getWebGLRenderer().setAnimationLoop(null);
+    await update(_lastSetOptions);
+    log.info("restoring map viewer");
+    renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
+  };
+  const root = createRoot(document.getElementById("app")!);
+
+  let _lastSetOptions = defaultGeometryOptions;
+  const update = debounce(async (options: GeometryOptions) => {
+    scene.terrain.children.forEach((c) => {
+      c.material.color = new Color(0x999999);
+    });
+    renderComposer.getWebGLRenderer().setAnimationLoop(null);
+
+    const terrainInfo = await chkToTerrainMesh(
+      chk,
+      {
+        textureResolution:
+          settings.assets.terrain === AssetTextureResolution.SD
+            ? UnitTileScale.SD
+            : UnitTileScale.HD,
+        anisotropy: settings.graphics.anisotropy,
+        shadows: settings.graphics.terrainShadows,
+      },
+      options
+    );
+
+    scene.dispose();
+
+    scene = new Scene(terrainInfo);
+    const renderPass = new RenderPass(scene, camera);
+    const postProcessingBundle = { passes: [renderPass], effects: [] };
+    updatePostProcessingCamera(postProcessingBundle, camera, true);
+    renderComposer.setBundlePasses(postProcessingBundle);
+    renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
+    console.log(scene);
+  }, 1000);
+
+  root.render(<MapViewer onChange={update} />);
 
   return dispose;
 }

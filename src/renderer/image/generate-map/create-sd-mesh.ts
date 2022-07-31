@@ -25,7 +25,7 @@ export const createSDMesh = async (
   const tileAnimationCounterUniform = { value: 0 };
   const sdMapMaterial = new THREE.MeshStandardMaterial({
     map: sdMap,
-    displacementScale: geomOptions.displacementScale,
+    displacementScale: geomOptions.maxTerrainHeight,
     displacementMap: new THREE.CanvasTexture(displacementCanvas)
 
   });
@@ -92,7 +92,7 @@ export const createSDMesh = async (
   };
 
   const elevationsMaterial = new THREE.MeshStandardMaterial({
-    displacementScale: geomOptions.displacementScale,
+    displacementScale: geomOptions.maxTerrainHeight,
     displacementMap: new THREE.CanvasTexture(displacementCanvas),
     map: sdMap,
     roughness: 1,
@@ -122,8 +122,8 @@ export const createSDMesh = async (
   const geometry = new THREE.PlaneBufferGeometry(
     mapWidth,
     mapHeight,
-    mapWidth * geomOptions.displaceVertexScale,
-    mapHeight * geomOptions.displaceVertexScale
+    mapWidth * geomOptions.meshDetail,
+    mapHeight * geomOptions.meshDetail
   );
   // const geometry = createDisplacementGeometry(
   //   null,
