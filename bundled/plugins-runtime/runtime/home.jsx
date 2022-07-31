@@ -1,6 +1,5 @@
 import React from "react";
 import { useLocale, updateAvailable, openUrl } from "titan-reactor";
-import { Community } from "./community.jsx";
 
 const iconStyle = {
   width: "var(--size-8)",
@@ -118,16 +117,6 @@ export const Home = () => {
             style={iconStyle}
           />
         </div>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "50%",
-          alignSelf: "end",
-        }}
-      >
-        <Community />
       </div>
     </div>
   );

@@ -23,8 +23,9 @@ module.exports = function (config) {
     ...aliases,
   };
 
-  //eslint-disable-next-line
-  console.log(JSON.stringify(config, null, 4));
+  if (config.devServer) {
+    config.devServer.watchContentBase = true;
+  }
 
   return config;
 };

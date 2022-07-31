@@ -30,8 +30,7 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
 
   if (preloadFile) {
     if (isDev) {
-      // preload = `http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`;
-      preload = path.resolve(__dirname, `${preloadFile}.js`);
+      preload = path.resolve(__dirname, "..\\..", "dist", "main", `${preloadFile}.js`);
     } else {
       preload = path.resolve(__dirname, `${preloadFile}.js`);
     }

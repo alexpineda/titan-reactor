@@ -12,7 +12,6 @@ import { Tab, Tabs } from "./tabs";
 import { mapConfigToLeva } from "@utils/leva-utils";
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
-import { openCascStorage, readCascFileBatch } from "@ipc/casclib";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { getUpdateVersion, localPluginRepository } from "./plugin-utils";

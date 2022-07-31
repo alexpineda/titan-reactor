@@ -1,13 +1,11 @@
 import { Vector3 } from "three";
 import MainMixer from "./main-mixer";
 
-// an instance of a bw sound
 export class SoundChannel {
   static rolloffFactor = 1;
   static refDistance = 10;
 
   #mixer: MainMixer;
-  #gain: GainNode;
 
   isPlaying = false;
   isQueued = false;
@@ -25,12 +23,10 @@ export class SoundChannel {
 
   #pannerPool: PannerNode[] = [];
   #stereoPannerPool: StereoPannerNode[] = [];
+  #gainPool: GainNode[] = [];
 
   constructor(mixer: MainMixer) {
     this.#mixer = mixer;
-    this.#gain = this.#mixer.context.createGain();
-
-    this.#gain.connect(this.#mixer.sound);
   }
 
   #getStereoPanner() {
@@ -38,7 +34,6 @@ export class SoundChannel {
       return this.#stereoPannerPool.pop() as StereoPannerNode;
     }
     const panner = this.#mixer.context.createStereoPanner();
-    panner.connect(this.#gain);
     return panner;
   }
 
@@ -47,8 +42,16 @@ export class SoundChannel {
       return this.#pannerPool.pop() as PannerNode;
     }
     const panner = this.#mixer.context.createPanner();
-    panner.connect(this.#gain);
     return panner;
+  }
+
+  #getGain() {
+    if (this.#gainPool.length > 0) {
+      return this.#gainPool.pop() as GainNode;
+    }
+    const gain = this.#mixer.context.createGain();
+    gain.connect(this.#mixer.sound);
+    return gain
   }
 
   queue(typeId: number, unitTypeId: number, mapCoords: Vector3, flags: number, priority: number, volume: number | null, pan: number | null) {
@@ -68,28 +71,31 @@ export class SoundChannel {
     this.lastPlayed = elapsed;
 
     // quick fade in since some sounds are clipping at the start (eg probe harvest)
-    this.#gain.gain.value = 0;
-    this.#gain.gain.linearRampToValueAtTime(Math.min(0.99, this.volume !== null ? this.volume / 100 : 1), this.#mixer.context.currentTime + 0.01);
+    const gain = this.#getGain()
+    gain.gain.value = 0;
+    gain.gain.linearRampToValueAtTime(Math.min(0.99, this.volume !== null ? this.volume / 100 : 1), this.#mixer.context.currentTime + 0.01);
 
     const source = this.#mixer.context.createBufferSource();
     source.buffer = buffer;
 
-
-
     if (this.volume !== null && this.pan !== null) {
       const panner = this.#getStereoPanner();
       source.connect(panner);
+      panner.connect(gain);
       panner.pan.value = this.pan;
 
       source.onended = () => {
         source.disconnect(panner);
+        panner.disconnect(gain);
         this.#stereoPannerPool.push(panner);
+        this.#gainPool.push(gain);
         this.isPlaying = false;
       };
 
     } else {
       const panner = this.#getPanner();
       source.connect(panner);
+      panner.connect(gain);
 
       panner.panningModel = "HRTF";
       panner.refDistance = SoundChannel.refDistance;
@@ -102,6 +108,8 @@ export class SoundChannel {
 
       source.onended = () => {
         source.disconnect(panner);
+        panner.disconnect(gain);
+        this.#gainPool.push(gain);
         this.#pannerPool.push(panner);
         this.isPlaying = false;
       };
