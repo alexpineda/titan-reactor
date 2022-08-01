@@ -21,7 +21,6 @@ export enum MacroActionType {
     ModifyAppSettings = "ModifyAppSettings",
     ModifyPluginSettings = "ModifyPluginSettings",
     CallGameTimeApi = "CallGameTimeApi",
-    OnPluginCustomHook = "OnPluginCustomHook",
 }
 
 export type MacroActionConfigurationError = {
@@ -69,7 +68,7 @@ export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCa
 
 export type MacroTriggerDTO = {
     type: TriggerType;
-    value?: any;
+    value?: string;
 }
 
 export type MacroDTO = {
@@ -91,9 +90,10 @@ export type MacrosDTO = {
 export enum TriggerType {
     Manual = "Manual",
     Hotkey = "Hotkey",
-    PluginCustomHook = "PluginCustomHook",
+    GameHook = "GameHook",
 }
 export interface MacroTrigger {
     type: TriggerType;
     serialize: () => MacroTriggerDTO;
+    weight: number;
 }

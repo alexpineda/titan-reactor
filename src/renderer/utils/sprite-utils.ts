@@ -7,6 +7,7 @@ import { imageHasDirectionalFrames } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import DirectionalCamera from "../camera/directional-camera";
 import ImageHD from "@core/image-hd";
+import { GameViewportsDirector } from "renderer/camera/game-viewport-director";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
     let score = 0;
@@ -68,5 +69,27 @@ export const updateSpritesForViewport = (camera: DirectionalCamera, options: Spr
             sprite.updateMatrix();
             sprite.updateMatrixWorld();
         }
+    }
+}
+
+const _lowCameraPosition = new Vector3();
+
+export const throttleSpriteUpdate = (gameViewportsDirector: GameViewportsDirector, spritePos: Vector3, spriteIsVisible: boolean, spriteUserData: any) => {
+    let v = Infinity;
+    for (const viewport of gameViewportsDirector.activeViewports()) {
+        const a = viewport.orbit.getPosition(_lowCameraPosition).setY(spritePos.y).distanceTo(spritePos) / Math.min(500, viewport.orbit.maxDistance);
+        v = Math.min(v, Math.floor((a * a * a * a)));
+    }
+
+    if (!spriteIsVisible || v > 0 && spriteUserData.renderTestCount > 0) {
+        if (spriteUserData.renderTestCount < v) {
+            spriteUserData.renderTestCount++;
+        } else {
+            spriteUserData.renderTestCount = 0;
+        }
+        return true;
+    } else {
+        spriteUserData.renderTestCount++;
+        return false;
     }
 }

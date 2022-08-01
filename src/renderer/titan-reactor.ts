@@ -32,20 +32,18 @@ if (rendererIsDev) {
   window.Compartment = function Compartment(env: {}) {
     // const windowCopy = {...window};
     // delete windowCopy.require;
-
+    const globalThis: Record<string, any> = {};
+    globalThis["Function"] = (code: string) => {
+      const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`
+      const fn = Function(vars + code);
+      return fn.bind(globalThis, env);
+    }
     return {
       evaluate(code: string) {
-        // destructure env
-        const vars = `const {${Object.keys(env).join(",")}} = env;\n`
+        const vars = `const {${Object.keys(env).join(",")}} = env; this=globalThis;\n`
         eval(vars + code)
       },
-      globalThis: {
-        Function: (code: string) => {
-          const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`
-          const fn = Function(vars + code);
-          return () => fn(env);
-        }
-      }
+      globalThis
     }
   }
 
@@ -165,7 +163,6 @@ useScreenStore.subscribe((store) => {
   }
 });
 
-
 const _sceneResizeHandler = () => {
   const height = window.innerHeight / 3;
   const width = height * 1.77;
@@ -238,7 +235,6 @@ ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
   }
 })
 
-
 ipcRenderer.on(GO_TO_START_PAGE, () => {
   if (!processStore().hasAnyProcessIncomplete()) {
     gameStore().disposeGame();
@@ -246,7 +242,6 @@ ipcRenderer.on(GO_TO_START_PAGE, () => {
     screenStore().complete();
   }
 });
-
 
 ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
   log.logClient(message, level);

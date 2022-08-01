@@ -254,6 +254,9 @@ async function TitanReactorGame(
   });
 
 
+  const macros = new Macros(session);
+  macros.deserialize(settingsStore().data.macros);
+
   const fogOfWarEffect = new FogOfWarEffect();
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, fogOfWarEffect);
   const renderPass = new RenderPass(scene, new PerspectiveCamera());
@@ -262,8 +265,10 @@ async function TitanReactorGame(
     fogOfWarEffect,
     renderPass,
     effects: [fogOfWarEffect],
-    passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWarEffect)]
-  });
+    passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWarEffect)],
+  },
+    macros
+  );
   janitor.add(gameViewportsDirector);
 
   gameViewportsDirector.beforeActivate = () => {
@@ -711,7 +716,6 @@ async function TitanReactorGame(
     [DamageType.Normal]: [0.25, 2],
   };
   const _spritePool: Group[] = [];
-  const _lowCameraPosition = new Vector3();
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
@@ -763,33 +767,16 @@ async function TitanReactorGame(
       fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y));
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
-    //TODO: make this apply to each render cycle
     if (spriteIsHidden(spriteData) || (unit && gameViewportsDirector.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
     }
     sprite.visible = spriteIsVisible;
-
-    const spriteRenderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
+    sprite.renderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
 
     calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
 
-    let v = Infinity;
-    for (const viewport of gameViewportsDirector.activeViewports()) {
-      const a = viewport.orbit.getPosition(_lowCameraPosition).setY(_spritePos.y).distanceTo(_spritePos) / Math.min(500, viewport.orbit.maxDistance);
-      v = Math.min(v, Math.floor((a * a * a * a)));
-    }
-
-    if (!spriteIsVisible || v > 0 && sprite.userData.renderTestCount > 0) {
-      if (sprite.userData.renderTestCount < v) {
-        sprite.userData.renderTestCount++;
-      } else {
-        sprite.userData.renderTestCount = 0;
-      }
-      return;
-    } else {
-      sprite.userData.renderTestCount++;
-    }
+    // TODO: throttleSpriteUpdate, see #241
 
     const player = players.playersById[spriteData.owner];
 
@@ -849,7 +836,6 @@ async function TitanReactorGame(
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
     sprite.position.set(_spritePos.x, (sprite.userData.fixedY ?? bulletY ?? _spritePos.y), _spritePos.z);
 
-    sprite.renderOrder = spriteRenderOrder;
 
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
@@ -936,7 +922,7 @@ async function TitanReactorGame(
           image.matrixWorldNeedsUpdate = true;
         } else {
           image.rotation.set(0, 0, 0);
-          image.renderOrder = spriteRenderOrder + imageCounter;
+          image.renderOrder = sprite.renderOrder + imageCounter;
           if (image.parent !== sprite) {
             sprite.add(image);
           }
@@ -1040,7 +1026,6 @@ async function TitanReactorGame(
     // eg. sprol, which openbw then calls create_thingy_at_image
     // the reason we need to track this link is because some bullets create trails
     // titan-reactor.h only sends us sprites of halo rocket trail and long bolt/gemini missile trail
-    //TODO: find a more elegant way to deal with elevation, perhaps unit/bullets track Y and others are terrain bound?
     const linkedSpritesAddr = openBW.getLinkedSpritesAddress();
     for (let i = 0; i < openBW.getLinkedSpritesCount(); i++) {
       const addr = (linkedSpritesAddr >> 2) + (i << 1);
@@ -1277,8 +1262,7 @@ async function TitanReactorGame(
   }));
 
   let pluginsApiJanitor = new Janitor;
-  const macros = new Macros(session);
-  macros.deserialize(settingsStore().data.macros);
+
 
   const setupPlugins = async () => {
 
@@ -1380,8 +1364,6 @@ async function TitanReactorGame(
         return openBW.getGameSpeed();
       },
       setGameSpeed(value: number) {
-        console.log('set game speed', value);
-        console.log(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED))
         openBW.setGameSpeed(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED));
       },
       refreshScene: () => {
@@ -1461,12 +1443,13 @@ async function TitanReactorGame(
 
     mix(gameTimeApi, miscApi);
 
-    pluginsApiJanitor.add(plugins.injectApi(gameTimeApi));
+    pluginsApiJanitor.add(plugins.injectApi(gameTimeApi, macros));
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
     const container = createCompartment(gameTimeApi);
 
-    macros.setContainer(() => {
+    macros.setCreateCompartment((context?: any) => {
+      container.globalThis.context = context;
       return container;
     });
 
@@ -1533,18 +1516,12 @@ async function TitanReactorGame(
       }
     }
     session.getState().merge(mergeSettings.data!);
-    macros.setHostDefaults(settings.data);
+    if (settings.data.macros.revision !== macros.revision) {
+      macros.deserialize(settings.data.macros);
+    }
+    macros.setHostDefaults(settings.data); nsole
 
   }));
-
-  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload }: {
-    type: SendWindowActionType.RefreshMacros
-    payload: SendWindowActionPayload<SendWindowActionType.RefreshMacros>
-  }) => {
-    if (type === SendWindowActionType.RefreshMacros) {
-      macros.deserialize(payload);
-    }
-  })
 
   janitor.add(session.subscribe((newSettings) => {
     if (!gameViewportsDirector.disabled && newSettings.game.sceneController !== gameViewportsDirector.name) {

@@ -17,7 +17,7 @@ export class HotkeyTrigger implements MacroTrigger {
     }
 
     static deserialize(dto: MacroTriggerDTO) {
-        return new HotkeyTrigger(dto.value);
+        return new HotkeyTrigger(dto.value ?? "");
     };
 
     get weight() {

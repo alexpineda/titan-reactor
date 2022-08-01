@@ -15,6 +15,7 @@ import { CreateMacroAction } from "./create-macro-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { KeyCombo } from "../macros/key-combo";
+import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 
 const keyCombo = new KeyCombo();
 
@@ -39,22 +40,31 @@ export const MacroPanel = ({
   deleteMacro: (id: string) => void;
   createAction: (macro: MacroDTO, action: MacroAction) => void;
 }) => {
-  const ChangeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
-    const key = await keyCombo.generateKeyComboFromEvent(e);
+  const updateTriggerValue = (value: any) => {
+    updateMacro({
+      ...macro,
+      trigger: {
+        ...macro.trigger,
+        value,
+      },
+    });
+  };
 
+  const ChangeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if (e.key === "Backspace") {
+      updateTriggerValue("");
+      return;
+    }
+
+    const key = await keyCombo.generateKeyComboFromEvent(e);
     if (key) {
-      await updateMacro({
-        ...macro,
-        trigger: {
-          ...macro.trigger,
-          value: e.key === "Backspace" ? "" : keyCombo.stringify(),
-        },
-      });
+      updateTriggerValue(keyCombo.stringify());
     }
   };
 
   const renameMacro = (name: string | null) => {
-    if (name !== macro.name && name !== null && name.trim() !== "") {
+    if (name !== null && name.trim() !== "") {
       if (nameRef.current) {
         nameRef.current.innerText = macro.name;
       }
@@ -105,6 +115,12 @@ export const MacroPanel = ({
           <span
             ref={nameRef}
             contentEditable
+            onKeyDown={(e) => {
+              if (e.code === "Enter") {
+                e.preventDefault();
+                e.target.blur();
+              }
+            }}
             onBlur={(e) => renameMacro(e.target.textContent)}
           ></span>
         </h4>
@@ -117,6 +133,13 @@ export const MacroPanel = ({
                 value={macro.trigger.value}
                 onKeyDown={ChangeHotkeyTriggerKey}
                 readOnly={true}
+              />
+            )}
+            {macro.trigger.type === TriggerType.GameHook && (
+              <MacroCustomHookOptions
+                macro={macro}
+                pluginsMetadata={pluginsMetadata}
+                updateTriggerValue={updateTriggerValue}
               />
             )}
           </label>

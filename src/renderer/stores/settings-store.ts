@@ -5,8 +5,8 @@ import { defaultSettings } from "common/settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
 export type SettingsStore = SettingsMeta & {
-  save: (data: Partial<Settings>, source: string) => Promise<SettingsMeta>;
-  set: (data: Partial<Settings>, source: string) => Promise<void>;
+  save: (data: Partial<Settings>) => Promise<SettingsMeta>;
+  set: (data: Partial<Settings>) => Promise<void>;
   load: () => Promise<SettingsMeta>;
 };
 

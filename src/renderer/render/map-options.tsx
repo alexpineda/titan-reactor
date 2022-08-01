@@ -8,10 +8,13 @@ const toSimple = (obj: { [key: string]: { value: any } }) => {
   const result: GeometryOptions = defaultGeometryOptions;
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
+      // @ts-ignore
       if (Array.isArray(result[key])) {
         const k = key.split("_");
+        // @ts-ignore
         result[k[0]][k[1]] = obj[key].value;
       } else {
+        // @ts-ignore
         result[key] = obj[key].value;
       }
     }

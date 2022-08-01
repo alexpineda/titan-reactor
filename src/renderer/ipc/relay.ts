@@ -11,7 +11,6 @@ export const invokeWindow = async (target: InvokeBrowserTarget, message: { type:
 export enum SendWindowActionType {
     ManualMacroTrigger = "ManualMacroTrigger",
     CommitSettings = "RefreshSettings",
-    RefreshMacros = "RefreshMacros",
     PluginConfigChanged = "PluginConfigChanged",
 }
 

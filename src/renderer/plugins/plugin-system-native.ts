@@ -2,55 +2,15 @@ import { SceneInputHandler, PluginMetaData, NativePlugin, PluginPrototype, Macro
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_DISPOSE, HOOK_ON_GAME_READY, HOOK_ON_SCENE_PREPARED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./hooks";
+import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { getMacroActionValue, Macro } from "../command-center/macros";
+import { getMacroActionValue, Macro, Macros } from "../command-center/macros";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log";
-
-type InternalHookOptions = {
-    postFn?: Function;
-    async?: boolean;
-    hookAuthorPluginId?: string
-}
-
-// plugins may register their own custom hooks
-class Hook {
-    readonly args: string[];
-    readonly name: string;
-    #opts: InternalHookOptions;
-
-    constructor(name: string, args: string[], opts: InternalHookOptions = {}) {
-        this.name = name;
-        this.args = args;
-        this.#opts = opts;
-    }
-
-    isAsync() {
-        return this.#opts.async;
-    }
-
-    isAuthor(id: string) {
-        return this.#opts.hookAuthorPluginId === id;
-    }
-
-}
-
-const createDefaultHooks = () => ({
-    [HOOK_ON_GAME_DISPOSE]: new Hook(HOOK_ON_GAME_DISPOSE, []),
-    [HOOK_ON_GAME_READY]: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
-    [HOOK_ON_SCENE_PREPARED]: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "map", "replayHeader"]),
-    [HOOK_ON_UNIT_CREATED]: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
-    [HOOK_ON_UNIT_KILLED]: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
-    [HOOK_ON_FRAME_RESET]: new Hook(HOOK_ON_FRAME_RESET, []),
-    [HOOK_ON_UPGRADE_COMPLETED]: new Hook(HOOK_ON_UPGRADE_COMPLETED, ["upgrade"]),
-    [HOOK_ON_UNITS_SELECTED]: new Hook(HOOK_ON_UNITS_SELECTED, ["units"]),
-    [HOOK_ON_TECH_COMPLETED]: new Hook(HOOK_ON_TECH_COMPLETED, ["tech"]),
-});
 
 const pluginProto: PluginPrototype = {
     id: "",
@@ -99,8 +59,9 @@ export class PluginSystemNative {
     #uiPlugins: PluginSystemUI;
     #janitor = new Janitor;
     #activeSceneInputHandler?: SceneInputHandler;
+    #macros: Macros | null = null;
 
-    readonly hooks: Record<string, Hook> = createDefaultHooks();
+    #hooks: Record<string, Hook> = createDefaultHooks();
 
     initializePlugin(pluginPackage: PluginMetaData) {
 
@@ -151,9 +112,9 @@ export class PluginSystemNative {
 
             const plugin = Object.create(pluginProto, pluginPropertyConfig);
 
-            plugin.registerCustomHook = (name: string, args: string[], async = false) => {
-                this.#registerCustomHook(name, args, pluginPackage.id, async);
-            };
+            for (const hook of pluginPackage.hooks) {
+                this.#registerCustomHook(hook, [], pluginPackage.id, false);
+            }
 
             plugin.config = processConfigBeforeReceive(pluginPackage.config);
 
@@ -162,12 +123,12 @@ export class PluginSystemNative {
             }, 100, { leading: true, trailing: false });
 
             plugin.callCustomHook = (name: string, ...args: any[]) => {
-                if (this.hooks[name] === undefined) {
+                if (this.#hooks[name] === undefined) {
                     log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it was not found`);
                 }
-                else if (!this.hooks[name].isAuthor(pluginPackage.id)) {
+                else if (!this.#hooks[name].isAuthor(pluginPackage.id)) {
                     log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it is not the author`);
-                } else if (this.hooks[name].isAuthor(pluginPackage.id)) {
+                } else if (this.#hooks[name].isAuthor(pluginPackage.id)) {
                     return this.callHook(name, ...args);
                 }
             };
@@ -182,6 +143,7 @@ export class PluginSystemNative {
     };
 
     constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
+        this.#hooks = createDefaultHooks();
         this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
         this.#uiPlugins = uiPlugins;
 
@@ -212,7 +174,7 @@ export class PluginSystemNative {
     }
 
     #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async: boolean = false) {
-        if (this.hooks[name] !== undefined) {
+        if (this.#hooks[name] !== undefined) {
             log.error(`@plugin-system: hook ${name} already registered`);
             return;
         }
@@ -222,7 +184,7 @@ export class PluginSystemNative {
             return;
         }
 
-        this.hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
+        this.#hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
     }
 
     #sendCustomUIMessage(plugin: NativePlugin, message: any) {
@@ -251,11 +213,12 @@ export class PluginSystemNative {
     dispose() {
         for (const plugin of this.#nativePlugins) {
             try {
-                plugin.dispose && plugin.dispose();
+                this.hook_onPluginDispose(plugin.id);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
             }
         }
+        this.#hooks = {};
         this.#nativePlugins = [];
     }
 
@@ -268,6 +231,12 @@ export class PluginSystemNative {
                 log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
             }
             this.#nativePlugins = this.#nativePlugins.filter(p => p !== plugin);
+
+            for (const key of Object.keys(this.#hooks)) {
+                if (this.#hooks[key].isAuthor(pluginId)) {
+                    delete this.#hooks[key];
+                }
+            }
         }
     }
 
@@ -321,11 +290,13 @@ export class PluginSystemNative {
     /**
      * Temporarily inject an api into all active plugins.
      */
-    injectApi(object: {}) {
+    injectApi(object: {}, macros: Macros) {
         mix(pluginProto, object);
         const keys = Object.keys(object);
+        this.#macros = macros;
 
         return () => {
+            this.#macros = null;
             keys.forEach(key => {
                 delete pluginProto[key as keyof typeof pluginProto];
             })
@@ -333,36 +304,40 @@ export class PluginSystemNative {
     }
 
     callHook(hookName: string, ...args: any[]) {
-        if (this.hooks[hookName] === undefined) {
+        if (this.#hooks[hookName] === undefined) {
             log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
             return;
         }
 
         let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
+            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
+                this.#macros && this.#macros.callHook(hookName, plugin.name, context);
                 delete plugin.context;
             }
         }
+        this.#macros && this.#macros.callHook(hookName, undefined, context);
         return context;
     }
 
     async callHookAsync(hookName: string, ...args: any[]) {
-        if (this.hooks[hookName] === undefined) {
+        if (this.#hooks[hookName] === undefined) {
             log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
             return;
         }
 
         let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
+            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
+                this.#macros && this.#macros.callHook(hookName, plugin.name, context);
                 delete plugin.context;
             }
         }
+        this.#macros && this.#macros.callHook(hookName, undefined, context);
         return context;
     }
 

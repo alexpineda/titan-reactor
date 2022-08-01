@@ -23,8 +23,6 @@ const _createSession = (ogData: Settings) => create<SessionStore>((set: SetState
     merge: async (rhs: DeepPartial<Settings>) => {
 
         const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });
-        const d = diff(get(), newSettings);
-        console.log(d ?? "no diff");
         //@ts-ignore
         set({ ...newSettings });
     },
@@ -32,7 +30,6 @@ const _createSession = (ogData: Settings) => create<SessionStore>((set: SetState
         if (action.type !== MacroActionType.ModifyAppSettings) {
             return;
         }
-        console.log('settings-store.doMacroAction', action.value);
 
         const field = getAppSettingsLevaConfigField({ data: get(), enabledPlugins: settingsStore().enabledPlugins }, action.field!) as any;
         if (field === undefined) {

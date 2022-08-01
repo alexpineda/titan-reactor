@@ -8,14 +8,23 @@ import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
+import { PluginCustomHookTrigger } from "./custom-hook-trigger";
 
 export class Macros {
-    #createGameCompartment?: (deps?: {}) => Compartment;
+    #createGameCompartment?: (context?: any) => Compartment;
     #session: UseStore<SessionStore>;
 
     version = packagejson.config["titan-reactor-macro-api"];
     revision = 0;
     macros: Macro[] = [];
+
+    #meta: {
+        hotkeyMacros: Macro[];
+        hookMacros: Macro[];
+    } = {
+            hotkeyMacros: [],
+            hookMacros: []
+        }
 
     constructor(session: UseStore<SessionStore>) {
         this.#session = session;
@@ -53,9 +62,6 @@ export class Macros {
                 return;
             }
 
-            const macros = this.macros.filter(m => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight);
-
-
             if (acceptingInput === null) {
                 testCombo.set(e);
             } else {
@@ -64,16 +70,14 @@ export class Macros {
             createInputWindow();
 
             const currentWeight = testCombo.codes.length;
-            const maxWeight = macros.reduce((acc, m) => Math.max(acc, (m.trigger as HotkeyTrigger).weight), 0);
+            const maxWeight = this.#meta.hotkeyMacros.reduce((acc, m) => Math.max(acc, (m.trigger as HotkeyTrigger).weight), 0);
 
-            for (const macro of macros) {
-                if (macro.trigger instanceof HotkeyTrigger) {
-                    const trigger = macro.trigger as HotkeyTrigger;
-                    if (trigger.weight === currentWeight) {
-                        if (trigger.value.test(testCombo)) {
-                            candidate = macro;
-                            break;
-                        }
+            for (const macro of this.#meta.hotkeyMacros) {
+                const trigger = macro.trigger as HotkeyTrigger;
+                if (trigger.weight === currentWeight) {
+                    if (trigger.value.test(testCombo)) {
+                        candidate = macro;
+                        break;
                     }
                 }
             }
@@ -81,14 +85,12 @@ export class Macros {
             let _canSkip = true;
             // see if we can short circuit the next weights
             for (let nextWeight = currentWeight + 1; nextWeight <= maxWeight; nextWeight++) {
-                for (const macro of macros) {
-                    if (macro.trigger instanceof HotkeyTrigger) {
-                        const trigger = macro.trigger as HotkeyTrigger;
-                        if (trigger.weight === nextWeight) {
-                            if (trigger.value.testShallow(testCombo, currentWeight)) {
-                                _canSkip = false;
-                                break;
-                            }
+                for (const macro of this.#meta.hotkeyMacros) {
+                    const trigger = macro.trigger as HotkeyTrigger;
+                    if (trigger.weight === nextWeight) {
+                        if (trigger.value.testShallow(testCombo, currentWeight)) {
+                            _canSkip = false;
+                            break;
                         }
                     }
                 }
@@ -109,7 +111,7 @@ export class Macros {
         }
     }
 
-    setContainer(createCompartment: ((deps?: {}) => Compartment)) {
+    setCreateCompartment(createCompartment: ((context?: any) => Compartment)) {
         this.#createGameCompartment = createCompartment;
     }
 
@@ -125,7 +127,7 @@ export class Macros {
         }
     }
 
-    #execMacro(macro: Macro) {
+    #execMacro(macro: Macro, context?: any) {
         const actions = macro.getActionSequence();
         for (const action of actions) {
             if (action.error) {
@@ -137,9 +139,9 @@ export class Macros {
             } else if (action.type === MacroActionType.ModifyPluginSettings) {
                 plugins.doMacroAction(action);
             } else if (action.type === MacroActionType.CallGameTimeApi) {
-                const c = this.#createGameCompartment!();
+                const c = this.#createGameCompartment!(context);
                 try {
-                    c.evaluate(action.value);
+                    c.globalThis.Function(action.value)();
                 } catch (e) {
                     log.error(`Error executing macro action: ${e}`);
                 }
@@ -156,6 +158,14 @@ export class Macros {
             this.#execMacro(macro);
         } else {
             log.error(`Macro with id ${id} not found`);
+        }
+    }
+
+    callHook(hookName: string, pluginName?: string, ...context: any[]) {
+        for (const macro of this.#meta.hookMacros) {
+            if ((macro.trigger as PluginCustomHookTrigger).test(hookName, pluginName)) {
+                this.#execMacro(macro, context);
+            }
         }
     }
 
@@ -176,10 +186,13 @@ export class Macros {
 
     deserialize(macrosDTO: MacrosDTO) {
         this.version = macrosDTO.version;
+        this.revision = macrosDTO.revision;
         this.macros = macrosDTO.macros.map((macro) => {
             let trigger: MacroTrigger = new ManualTrigger();
             if (macro.trigger.type === TriggerType.Hotkey) {
                 trigger = HotkeyTrigger.deserialize(macro.trigger)
+            } else if (macro.trigger.type === TriggerType.GameHook) {
+                trigger = PluginCustomHookTrigger.deserialize(macro.trigger)
             }
             const newMacro = new Macro(
                 macro.id,
@@ -191,6 +204,12 @@ export class Macros {
             newMacro.enabled = macro.enabled;
             return newMacro;
         });
+
+        this.#meta.hookMacros = this.macros.filter((m) => m.trigger instanceof PluginCustomHookTrigger).sort((a, b) => {
+            return a.trigger.weight - b.trigger.weight;
+        });
+
+        this.#meta.hotkeyMacros = this.macros.filter((m) => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight)
     }
 }
 

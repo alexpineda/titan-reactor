@@ -10,12 +10,9 @@ import {
 } from "postprocessing";
 import { rendererIsDev } from "../utils/renderer-utils";
 import Surface from "../image/canvas/surface";
-import settingsStore from "@stores/settings-store";
 import { PostProcessingBundleDTO } from "common/types";
 
 const createWebGLRenderer = () => {
-    let settings = settingsStore().data;
-
     const renderer = new WebGLRenderer({
         powerPreference: "high-performance",
         preserveDrawingBuffer: false,

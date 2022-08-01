@@ -7,6 +7,7 @@ import { GameViewPort } from "./game-viewport";
 import { activateUnitSelection } from "../input/activate-unit-selection";
 import * as log from "@ipc/log";
 import { MouseCursor } from "../input";
+import { Macros } from "../command-center/macros";
 
 const _target = new Vector3;
 const _position = new Vector3;
@@ -21,12 +22,14 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #lastAudioPositon = new Vector3;
     #defaultPostProcessingBundle: PostProcessingBundleDTO;
     #mouseCursor = new MouseCursor();
+    #macros: Macros;
 
-    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO) {
+    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO, macros: Macros) {
         this.#scene = scene;
         this.#surface = gameSurface;
         this.#minimapSurface = minimapSurface;
         this.#defaultPostProcessingBundle = defaultPostProcessingBundle;
+        this.#macros = macros;
 
         this.#janitor.callback = () => {
             defaultPostProcessingBundle.effects.forEach(effect => effect.dispose());
@@ -107,6 +110,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
         if (this.#inputHandler && this.#inputHandler.onExitScene) {
             prevData = this.#inputHandler.onExitScene(prevData);
         }
+        this.#inputHandler && this.#macros.callHook("onExitScene", this.#inputHandler.name);
         this.#janitor.mopUp();
         this.#inputHandler = null;
         this.#surface.togglePointerLock(false);
@@ -127,6 +131,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
         this.beforeActivate && this.beforeActivate(inputHandler);
         this.#defaultPostProcessingBundle.fogOfWarEffect.blendMode.setOpacity(1);
         await inputHandler.onEnterScene(prevData);
+        this.#macros.callHook("onEnterScene", inputHandler.name);
         this.#inputHandler = inputHandler;
 
         if (this.allowUnitSelection) {

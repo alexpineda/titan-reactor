@@ -17,4 +17,5 @@ export class ManualTrigger implements MacroTrigger {
     static deserialize() {
         return new ManualTrigger();
     }
+
 }

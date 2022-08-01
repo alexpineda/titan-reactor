@@ -12,9 +12,9 @@ import { CreateMacro } from "./create-macro";
 import { generateUUID } from "three/src/math/MathUtils";
 import { useSettingsStore } from "@stores/settings-store";
 import { createDefaultMacros } from "./default-macros";
+import groupBy from "lodash.groupby";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import groupBy from "lodash.groupby";
 
 export const MacrosPanel = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
@@ -23,16 +23,16 @@ export const MacrosPanel = () => {
 
   const save = (newMacros: MacrosDTO) => {
     if (state.revision !== newMacros.revision) {
-      settings.save(
-        {
+      settings
+        .save({
           macros: newMacros,
-        },
-        "macros-panel"
-      );
-      sendWindow(InvokeBrowserTarget.Game, {
-        type: SendWindowActionType.RefreshMacros,
-        payload: newMacros,
-      });
+        })
+        .then((payload) => {
+          sendWindow(InvokeBrowserTarget.Game, {
+            type: SendWindowActionType.CommitSettings,
+            payload,
+          });
+        });
     }
   };
 
