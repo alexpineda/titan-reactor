@@ -15,12 +15,13 @@ export const createCompartment = (env: {} = {}) => {
 
     const modules = { THREE, STDLIB, postprocessing, Janitor, Layers, enums, cameraControls }
 
-    return new Compartment(mix(
+    const compartment = new Compartment(mix(
         env,
         { console: harden(console) },
-        Math,
         modules,
         { Image: harden(Image) },
     ));
+    compartment.globalThis.Math = Math;
+    return compartment;
 
 }

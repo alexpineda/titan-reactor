@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 
 import { BrowserTargetPayloadType, InvokeBrowserTarget, INVOKE_BROWSER_WINDOW, INVOKE_BROWSER_WINDOW_RESPONSE, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
-import { MacrosDTO, SettingsMeta } from "common/types";
+import { SettingsMeta } from "common/types";
 
 export const invokeWindow = async (target: InvokeBrowserTarget, message: { type: string, payload?: any }) => {
     const messageId = Math.random().toString();
@@ -12,9 +12,13 @@ export enum SendWindowActionType {
     ManualMacroTrigger = "ManualMacroTrigger",
     CommitSettings = "RefreshSettings",
     PluginConfigChanged = "PluginConfigChanged",
+    // game -> command center
+    ConsoleLog = "ConsoleLog",
+    // command center -> game
+    LoadReplay = "LoadReplay",
 }
 
-export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.RefreshMacros ? MacrosDTO : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : never;
+export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : T extends SendWindowActionType.ConsoleLog ? { message: string, level: "info" | "warning" | "error" | "verbose" } : never;
 
 export function sendWindow<T extends SendWindowActionType>(target: InvokeBrowserTarget, message: { type: SendWindowActionType, payload: SendWindowActionPayload<T> }) {
     ipcRenderer.send(SEND_BROWSER_WINDOW, { target }, message);

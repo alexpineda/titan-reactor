@@ -54,12 +54,12 @@ export default async (chkFilepath: string) => {
   processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing scene");
-  const terrainInfo = await chkToTerrainMesh(chk, {
+  const { terrain } = await chkToTerrainMesh(chk, {
     textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
     anisotropy: settings.graphics.anisotropy,
     shadows: settings.graphics.terrainShadows
   });
-  const scene = new Scene(terrainInfo);
+  const scene = new Scene(chk.size[0], chk.size[1], terrain);
 
   ImageHD.useDepth = false;
   processStore().increment(Process.MapInitialization);
@@ -67,7 +67,7 @@ export default async (chkFilepath: string) => {
   log.verbose("initializing gameloop");
   const disposeGame = await TitanReactorMap(
     chk,
-    terrainInfo,
+    terrain,
     scene
   );
   processStore().increment(Process.MapInitialization);

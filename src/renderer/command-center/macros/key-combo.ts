@@ -25,7 +25,6 @@ export class KeyCombo implements KeyComboDTO {
             e.code.includes("Shift") ||
             e.code.includes("Control") ||
             e.code.includes("Alt") ||
-            e.code.includes("Escape") ||
             e.code.includes("ArrowUp") ||
             e.code.includes("ArrowDown") ||
             e.code.includes("ArrowLeft") ||

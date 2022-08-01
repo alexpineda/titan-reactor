@@ -13,7 +13,7 @@ import {
   Texture,
 } from "three";
 
-import { Terrain, TerrainInfo, TerrainQuartile } from "common/types";
+import { TerrainMesh, TerrainInfo, TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
 import { Layers } from "./layers";
 
@@ -54,14 +54,15 @@ export class Scene extends ThreeScene {
 
   //@ts-ignore
   userData: {
-    terrain: Terrain
+    terrain: TerrainMesh
   }
 
-  constructor({
-    mapWidth,
-    mapHeight,
-    mesh: terrain,
-  }: Pick<TerrainInfo, "mapWidth" | "mapHeight" | "mesh" | "tileset">) {
+  constructor(
+    mapWidth: number,
+    mapHeight: number,
+    {
+      mesh: terrain,
+    }: Pick<TerrainInfo, "mesh">) {
     super();
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
@@ -112,7 +113,7 @@ export class Scene extends ThreeScene {
 
       const edgeMaterial = new MeshBasicMaterial({
         map: q.material.map,
-        color: new Color(0x666666)
+        color: new Color(0x999999)
       });
 
       if (qx === 0 && qy === 0) {
@@ -215,7 +216,7 @@ export class Scene extends ThreeScene {
   }
 
   addTerrain(
-    terrain: Terrain
+    terrain: TerrainMesh
   ) {
     this.userData.terrain = terrain;
     this.add(terrain);
@@ -223,7 +224,7 @@ export class Scene extends ThreeScene {
   }
 
   replaceTerrain(
-    terrain: Terrain
+    terrain: TerrainMesh
   ) {
     this.remove(this.userData.terrain);
     this.addTerrain(terrain);

@@ -26,7 +26,6 @@ export const enum InvokeBrowserTarget {
 export const enum BrowserTargetPayloadType {
     PluginMacroMethodCatalog = "pluginMacroMethodCatalog",
     GameTimeApiMethodCatalog = "gameTimeApiMethodCatalog",
-    ManualMacroExecute = "ManualMacroExecute",
 }
 
 export const OPEN_CASCLIB = "OPEN_CASCLIB";

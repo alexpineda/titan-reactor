@@ -6,25 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Plugin API is Now 2.0.0
+
 ## Added
-- Macro hotkey system is here!
+- Macro hotkey system with "programmable" triggers and action sequences
 - Minimap size is now configurable
 - Terrain now has mirrored edge tiles
 - Anisotropy graphics setting is now configurable via the UI
-- Add Community Section to home page
-- Plugins:
-  -  New plugin "Play Unit Selection Sound"
-  -  Can now be marked as deprecated via config.system.deprecated = true
-  -  `titan-reactor` module added exports getFriendlyTime, getRSSItems, proxyFetch
-  -  new playSound() api
+- New home page
+- Plugins v2
 
 ## Changed
 - Global Settings is no longer a plugin and now built into the app
 - Menus have been re-arranged. Plugin Settings is now called Command Center.
 - More optimizations to reduce GC usage, caused minor bugs in audio which will be addressed
 - HD is now the default (rather than HD2)
-- Anisotropy default has changed from high to low
 - Flying units are further affected by terrain height
 
 ### Fixed

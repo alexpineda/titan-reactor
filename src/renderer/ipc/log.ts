@@ -19,25 +19,22 @@ export const info = (msg: string) => {
   log(msg, "info");
 };
 
-export const debug = (msg: string) => {
-  log(msg, "debug");
-}
-
 export const verbose = (msg: string) => {
   log(msg, "verbose");
 }
 
-export const log = async (message: string, level = "info") => {
+export const log = async (message: string, level: "info" | "warning" | "error" | "verbose" = "info") => {
   logClient(message, level);
   ipcRenderer.send(LOG_MESSAGE, { level, message });
 };
 
-export const logClient = (message: string, level = "info") => {
+export const logClient = (message: string, level: "info" | "warning" | "error" | "verbose" = "info") => {
   if (level === "error") {
     console.error(message);
   } else if (level === "warning") {
     console.warn(message);
-  } else {
+  } else if (level === "verbose") {
     console.log(message);
   }
+
 }

@@ -1,7 +1,7 @@
 import { Vector2, MeshStandardMaterial, Mesh } from "three";
 
 
-import { WrappedTexture, WrappedQuartileTextures, Terrain, GeometryOptions } from "common/types";
+import { WrappedTexture, WrappedQuartileTextures, TerrainMesh, GeometryOptions } from "common/types";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { MapDataTextures } from "./create-data-textures";
@@ -19,7 +19,7 @@ export const createTerrainGeometryFromQuartiles = async (
     displaceCanvas: HTMLCanvasElement,
     mapTextures: WrappedQuartileTextures,
 ) => {
-    const terrain = new Terrain();
+    const terrain = new TerrainMesh();
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;

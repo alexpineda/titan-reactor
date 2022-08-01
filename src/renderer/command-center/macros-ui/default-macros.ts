@@ -10,7 +10,7 @@ export const createDefaultMacros = () => {
   macros.add(
     new Macro(
       generateUUID(),
-      "Change Scene Controller / Viewports",
+      "Alternate Scenes",
       new HotkeyTrigger("Tab"),
       [{
         id: generateUUID(),
@@ -26,6 +26,49 @@ export const createDefaultMacros = () => {
     new Macro(
       generateUUID(),
       "Toggle Music",
+  macros.add(
+    new Macro(
+      generateUUID(),
+      "Scenes: Default",
+      new HotkeyTrigger("Escape"),
+      [
+        {
+          id: generateUUID(),
+          type: MacroActionType.ModifyAppSettings,
+          field: [
+            "game",
+            "sceneController"
+          ],
+          effect: MacroActionEffect.SetToDefault,
+        }
+      ], MacroActionSequence.AllSync
+    )
+  );
+
+  macros.add(
+    new Macro(
+      generateUUID(),
+      "Scenes: Battle",
+      new HotkeyTrigger("F2"),
+      [
+        {
+          id: generateUUID(),
+          type: MacroActionType.ModifyAppSettings,
+          field: [
+            "game",
+            "sceneController"
+          ],
+          effect: MacroActionEffect.Set,
+          value: "@titan-reactor-plugins/camera-battle"
+        }
+      ], MacroActionSequence.AllSync
+    )
+  );
+
+  macros.add(
+    new Macro(
+      generateUUID(),
+      "Audio: Toggle Music",
       new HotkeyTrigger("KeyM"),
       [
         {
@@ -50,7 +93,7 @@ export const createDefaultMacros = () => {
   macros.add(
     new Macro(
       generateUUID(),
-      "Toggle Sound",
+      "Audio: Toggle Sound",
       new HotkeyTrigger("KeyS"),
       [
         {
@@ -70,17 +113,17 @@ export const createDefaultMacros = () => {
     )
   );
 
+
   macros.add(
     new Macro(generateUUID(), "Replay: Pause", new HotkeyTrigger("KeyP"), [
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
         effect: MacroActionEffect.CallMethod,
-        value: "togglePause()",
+        value: `togglePause(); simpleMessage("⏯️")`,
       },
     ])
   );
-  //     this.sendUIMessage("⏯️");
 
   macros.add(
     new Macro(generateUUID(), "Replay: Speed Up", new HotkeyTrigger("KeyU"), [
@@ -88,11 +131,10 @@ export const createDefaultMacros = () => {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
         effect: MacroActionEffect.CallMethod,
-        value: "speedUp()",
+        value: "const speed = speedUp(); simpleMessage(`🔼 ${speed}x`)",
       },
     ])
   );
-  //     this.sendUIMessage(`🔼 ${speed}x`);
 
   macros.add(
     new Macro(generateUUID(), "Replay: Speed Down", new HotkeyTrigger("KeyD"), [
@@ -100,11 +142,10 @@ export const createDefaultMacros = () => {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
         effect: MacroActionEffect.CallMethod,
-        value: "speedDown()",
+        value: "const speed = speedDown(); simpleMessage(`🔽 ${speed}x`)",
       },
     ])
   );
-  //    this.sendUIMessage(`🔽 ${speed}x`);
 
   macros.add(
     new Macro(
@@ -116,12 +157,11 @@ export const createDefaultMacros = () => {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
           effect: MacroActionEffect.CallMethod,
-          value: "skipBackward()",
+          value: "skipBackward(); simpleMessage('⏪')",
         },
       ]
     )
   );
-  //     this.sendUIMessage("⏪");
 
   macros.add(
     new Macro(
@@ -133,12 +173,11 @@ export const createDefaultMacros = () => {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
           effect: MacroActionEffect.CallMethod,
-          value: "skipForward()",
+          value: "skipForward(); simpleMessage('⏩')",
         },
       ]
     )
   );
-  //    this.sendUIMessage("⏩");
 
   macros.add(
     new Macro(
@@ -150,7 +189,7 @@ export const createDefaultMacros = () => {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
           effect: MacroActionEffect.CallMethod,
-          value: "gotoFrame(0)",
+          value: "gotoFrame(0); simpleMessage('Replay Start')",
         },
       ]
     )
@@ -167,22 +206,11 @@ export const createDefaultMacros = () => {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
           effect: MacroActionEffect.CallMethod,
-          value: "gotoFrame(replay.frameCount);",
+          value: "gotoFrame(replay.frameCount); simpleMessage('Replay End')",
         },
       ]
     )
   );
 
-  macros.add(
-    new Macro(generateUUID(), "Toggle Production", new HotkeyTrigger("Shift+KeyP"), [
-      {
-        id: generateUUID(),
-        type: MacroActionType.ModifyPluginSettings,
-        pluginName: "@titan-reactor-plugins/production-bar",
-        effect: MacroActionEffect.Toggle,
-        field: ["toggleVisible"],
-      },
-    ])
-  );
   return macros.serialize();
 } 

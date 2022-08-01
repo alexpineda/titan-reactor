@@ -33,6 +33,7 @@ export default class Janitor {
         } else {
             throw new Error("Unsupported type");
         }
+        return obj;
     }
 
     callback(callback: EmptyFn) {

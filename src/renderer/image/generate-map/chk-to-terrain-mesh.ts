@@ -1,5 +1,5 @@
 import type Chk from "bw-chk";
-import { GeometryOptions, TerrainInfo, UnitTileScale } from "common/types";
+import { GeometryOptions, TerrainExtra, TerrainInfo, UnitTileScale } from "common/types";
 import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
 } from ".";
@@ -20,7 +20,7 @@ type TerrainMeshSettings = {
   shadows: boolean;
 }
 
-export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings, geomOptions: GeometryOptions = defaultGeometryOptions): Promise<TerrainInfo> {
+export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings, geomOptions: GeometryOptions = defaultGeometryOptions): Promise<{ terrain: TerrainInfo, extra: TerrainExtra }> {
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -86,42 +86,43 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   let _anisotropy = settings.anisotropy;
 
   return {
-    tileset: chk.tileset,
-    getTerrainY,
-    mapWidth,
-    mapHeight,
-    minimapBitmap,
-    mesh: terrain,
-    creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
-    creepTextureUniform: dataTextures.creepTextureUniform,
-    geomOptions,
-    get shadowsEnabled() {
-      return _shadows;
-    },
-    set shadowsEnabled(val: boolean) {
-      _shadows = val;
-      terrain.traverse(o => {
-        if (o instanceof Mesh) {
-          o.castShadow = val;
-          o.receiveShadow = val;
-        }
-      });
-    },
-    get anisotropy() {
-      return _anisotropy;
-    },
-    set anisotropy(anisotropy: string) {
-      _anisotropy = anisotropy;
-      const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
-      creepTexture.texture.anisotropy = value;
+    terrain: {
+      mesh: terrain,
+      getTerrainY,
+      geomOptions,
+      get shadowsEnabled() {
+        return _shadows;
+      },
+      set shadowsEnabled(val: boolean) {
+        _shadows = val;
+        terrain.traverse(o => {
+          if (o instanceof Mesh) {
+            o.castShadow = val;
+            o.receiveShadow = val;
+          }
+        });
+      },
+      get anisotropy() {
+        return _anisotropy;
+      },
+      set anisotropy(anisotropy: string) {
+        _anisotropy = anisotropy;
+        const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
+        creepTexture.texture.anisotropy = value;
 
-      creepEdgesTexture.texture.anisotropy = value;
+        creepEdgesTexture.texture.anisotropy = value;
 
-      for (const row of textures.mapQuartiles) {
-        for (const texture of row) {
-          texture.anisotropy = value;
+        for (const row of textures.mapQuartiles) {
+          for (const texture of row) {
+            texture.anisotropy = value;
+          }
         }
       }
+    },
+    extra: {
+      minimapBitmap,
+      creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
+      creepTextureUniform: dataTextures.creepTextureUniform,
     }
   }
 }

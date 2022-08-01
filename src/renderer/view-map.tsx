@@ -55,8 +55,8 @@ async function TitanReactorMap(
   //   );
   // };
 
-  const { mapWidth, mapHeight } = terrainInfo;
-  // const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
+  const mapWidth = chk.size[0];
+  const mapHeight = chk.size[1]; // const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
   let settings = useSettingsStore.getState().data;
   if (!settings) {
@@ -234,7 +234,7 @@ async function TitanReactorMap(
     scene.dispose();
     control.dispose();
 
-    scene = new Scene(terrainInfo);
+    scene = new Scene(mapWidth, mapHeight, terrainInfo);
     control = createControls();
     const renderPass = new RenderPass(scene, camera);
     const postProcessingBundle = { passes: [renderPass], effects: [] };

@@ -23,6 +23,11 @@ import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import withErrorMessage from "common/utils/with-error-message";
 // import "./utils/webgl-lint";
 
+declare global {
+  interface Window { isGameWindow: boolean; }
+}
+window.isGameWindow = true;
+
 if (rendererIsDev) {
 
 
@@ -54,6 +59,7 @@ if (rendererIsDev) {
       consoleTaming: 'unsafe',
       errorTaming: 'unsafe',
       errorTrapping: 'none',
+      mathTaming: 'unsafe',
     }
   );
 }

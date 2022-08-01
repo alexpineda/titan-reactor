@@ -50,8 +50,8 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   offsetX = 0;
   offsetY = 0;
 
-  private _normalizedSpriteWidth = 0;
-  private _normalizedSpriteHeight = 0;
+  #spriteWidth = 0;
+  #spriteHeight = 0;
 
   override userData: {
     typeId: number;
@@ -83,8 +83,8 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
 
     // spriteWidth is only valid with HD, have to scale to HD2 if applicable
-    this._normalizedSpriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
-    this._normalizedSpriteHeight = atlas.spriteHeight * (atlas.unitTileScale / 4);
+    this.#spriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
+    this.#spriteHeight = atlas.spriteHeight * (atlas.unitTileScale / 4);
 
     if (imageDef.drawFunction === drawFunctions.rleShadow) {
       this.material.blending = SubtractiveBlending;
@@ -218,7 +218,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.lastFlipFrame = flipFrame;
 
     const off =
-      (frame.yoff + frame.h - this._normalizedSpriteHeight / 2) / this._normalizedSpriteHeight;
+      (frame.yoff + frame.h - this.#spriteHeight / 2) / this.#spriteHeight;
     const yOff = this.material.depthTest ? 0.5 - off : 0.5;
 
     // const zOff = this.material.depthTest ? off : 0;
@@ -246,21 +246,21 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     // const px0 = flipFrame ? _rightX : _leftX;
     // const px1 = flipFrame ? _leftX : _rightX;
 
-    const py0 = 1 - (frame.yoff + frame.h) / this._normalizedSpriteHeight - yOff;
-    const py1 = 1 - frame.yoff / this._normalizedSpriteHeight - yOff
+    const py0 = 1 - (frame.yoff + frame.h) / this.#spriteHeight - yOff;
+    const py1 = 1 - frame.yoff / this.#spriteHeight - yOff
 
     if (flipFrame) {
-      this.pos.setX(0, (this._normalizedSpriteWidth - (frame.xoff + frame.w)) / this._normalizedSpriteWidth -
+      this.pos.setX(0, (this.#spriteWidth - (frame.xoff + frame.w)) / this.#spriteWidth -
         0.5);
-      this.pos.setX(1, (this._normalizedSpriteWidth - frame.xoff) / this._normalizedSpriteWidth - 0.5);
-      this.pos.setX(2, (this._normalizedSpriteWidth - frame.xoff) / this._normalizedSpriteWidth - 0.5);
-      this.pos.setX(3, (this._normalizedSpriteWidth - (frame.xoff + frame.w)) / this._normalizedSpriteWidth -
+      this.pos.setX(1, (this.#spriteWidth - frame.xoff) / this.#spriteWidth - 0.5);
+      this.pos.setX(2, (this.#spriteWidth - frame.xoff) / this.#spriteWidth - 0.5);
+      this.pos.setX(3, (this.#spriteWidth - (frame.xoff + frame.w)) / this.#spriteWidth -
         0.5);
     } else {
-      this.pos.setX(0, frame.xoff / this._normalizedSpriteWidth - 0.5);
-      this.pos.setX(1, (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5);
-      this.pos.setX(2, (frame.xoff + frame.w) / this._normalizedSpriteWidth - 0.5);
-      this.pos.setX(3, frame.xoff / this._normalizedSpriteWidth - 0.5);
+      this.pos.setX(0, frame.xoff / this.#spriteWidth - 0.5);
+      this.pos.setX(1, (frame.xoff + frame.w) / this.#spriteWidth - 0.5);
+      this.pos.setX(2, (frame.xoff + frame.w) / this.#spriteWidth - 0.5);
+      this.pos.setX(3, frame.xoff / this.#spriteWidth - 0.5);
     }
 
     //0,0 bottom left -> 0,1 bottom right -> 1,1 top right ->0,1 top left

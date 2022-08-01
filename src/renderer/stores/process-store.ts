@@ -1,6 +1,6 @@
 import { snake } from "common/utils/camel";
 import create from "zustand/vanilla";
-import * as log from "../ipc/log";
+import * as log from "@ipc/log";
 
 const PROCESS_MAX = 10;
 
@@ -46,7 +46,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
     _timerDebug[id] = setTimeout(() => {
       log.error(`@process/start: Process ${Process[id]} timed out`);
       get().complete(id)
-    }, 10000);
+    }, 60000);
     log.verbose("@process/init: " + snake(Process[id]));
 
     performance.mark(`process-${id}`);

@@ -118,9 +118,7 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
             }
         } else {
 
-            if (selectedUnitsStore().selectedUnits.length === 12) {
-                return
-            }
+
             selectionBox.endPoint.set(
                 (event.clientX / window.innerWidth) * 2 - 1,
                 - (event.clientY / window.innerHeight) * 2 + 1,
@@ -163,6 +161,10 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
         }
 
         selectedUnits.sort(typeIdSort).splice(12);
+
+        if (selectedUnitsStore().selectedUnits.length === 12 && selectedUnits.length === 12) {
+            return
+        }
         selectedUnitsStore().setSelectedUnits(selectedUnits);
         if (settingsStore().data.util.debugMode) {
             console.log(selectedUnits);

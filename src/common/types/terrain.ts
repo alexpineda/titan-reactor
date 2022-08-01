@@ -47,7 +47,7 @@ export class TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial> 
   }
 }
 
-export class Terrain extends Group {
+export class TerrainMesh extends Group {
   override children: TerrainQuartile[] = [];
   override userData: {
     quartileWidth: number,
@@ -63,19 +63,20 @@ export class Terrain extends Group {
     }
 }
 
+export type TerrainExtra = {
+  creepTextureUniform: { value: Texture };
+  creepEdgesTextureUniform: { value: Texture };
+  minimapBitmap: ImageBitmap;
+}
+
 export type TerrainInfo = {
-  tileset: number;
-  mapWidth: number;
-  mapHeight: number;
-  mesh: Terrain;
+  mesh: TerrainMesh;
   shadowsEnabled: boolean;
   /**
    * Gets the y offset at the given x,z coordinates.
    */
   getTerrainY: GetTerrainY;
-  creepTextureUniform: { value: Texture };
-  creepEdgesTextureUniform: { value: Texture };
-  minimapBitmap: ImageBitmap;
+
   anisotropy: string;
   geomOptions: GeometryOptions;
 };

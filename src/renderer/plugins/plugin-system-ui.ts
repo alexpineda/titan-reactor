@@ -13,8 +13,9 @@ import packageJson from "../../../package.json"
 import semver from "semver";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
-import { Assets } from "common/types/assets";
+import { Assets } from "common/types";
 import processStore, { useProcessStore } from "@stores/process-store";
+import screenStore from "@stores/screen-store";
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");
@@ -84,7 +85,7 @@ export const setDumpUnitCall = (fn: (id: number) => {}) => {
 
 const _selectedUnitMessage = {
     type: UI_STATE_EVENT_UNITS_SELECTED,
-    payload: {}
+    payload: []
 }
 
 const _productionTransferables: ArrayBufferLike[] = [];
@@ -136,12 +137,11 @@ export class PluginSystemUI {
             [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage,
         })
 
+        const setInteractivity = (interactive: boolean) => {
+            this.#iframe.style.pointerEvents = interactive ? "auto" : "none";
+        }
         this.#janitor.add(useScreenStore.subscribe(state => {
-            if (state.type === ScreenType.Home || state.error) {
-                this.#iframe.style.pointerEvents = "auto";
-            } else {
-                this.#iframe.style.pointerEvents = "none";
-            }
+            setInteractivity(state.type === ScreenType.Home || state.error !== null)
         }));
 
         var iframeLoaded = false;
@@ -152,6 +152,8 @@ export class PluginSystemUI {
                 return;
             }
             iframeLoaded = true;
+
+            setInteractivity(screenStore().type === ScreenType.Home || screenStore().error !== null)
 
             let updateAvailable: undefined | { version: string, url: string } = undefined;
 

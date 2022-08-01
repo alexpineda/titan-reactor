@@ -9,7 +9,7 @@ import type Chk from "bw-chk";
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, TerrainExtra
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -78,6 +78,7 @@ import { mix } from "./utils/object-utils"
 import { createSession } from "@stores/session-store";
 import { diff } from "deep-diff";
 import set from "lodash.set";
+import { SimpleText } from "./render/simple-text";
 
 CameraControls.install({ THREE: THREE });
 
@@ -87,6 +88,7 @@ const white = new Color(0xffffff);
 async function TitanReactorGame(
   map: Chk,
   terrain: TerrainInfo,
+  terrainExtra: TerrainExtra,
   scene: Scene,
   assets: Assets,
   janitor: Janitor,
@@ -146,7 +148,8 @@ async function TitanReactorGame(
     );
   }
 
-  const { mapWidth, mapHeight } = terrain;
+  const mapWidth = map.size[0];
+  const mapHeight = map.size[1];
 
   const cssScene = new ThreeScene();
   const cssRenderer = new CSS2DRenderer();
@@ -172,6 +175,9 @@ async function TitanReactorGame(
   minimapSurface.canvas.style.zIndex = "20";
   document.body.appendChild(minimapSurface.canvas);
   janitor.add(minimapSurface);
+
+  const simpleText = new SimpleText();
+  janitor.add(simpleText);
 
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
@@ -413,15 +419,15 @@ async function TitanReactorGame(
   const creep = new Creep(
     mapWidth,
     mapHeight,
-    terrain.creepTextureUniform.value,
-    terrain.creepEdgesTextureUniform.value
+    terrainExtra.creepTextureUniform.value,
+    terrainExtra.creepEdgesTextureUniform.value
   );
   janitor.disposable(creep);
 
   const minimapUnitsImage = new ImageData(mapWidth, mapHeight);
   const minimapResourcesImage = new ImageData(mapWidth, mapHeight);
   const minimapFOWImage = new ImageData(mapWidth, mapHeight);
-  const minimapTerrainBitmap = terrain.minimapBitmap;
+  const minimapTerrainBitmap = terrainExtra.minimapBitmap;
 
   const resourceColor = new Color(0, 55, 55);
   const flashColor = new Color(200, 200, 200);
@@ -837,6 +843,7 @@ async function TitanReactorGame(
     sprite.position.set(_spritePos.x, (sprite.userData.fixedY ?? bulletY ?? _spritePos.y), _spritePos.z);
 
 
+    let _selWasVisible = sprite.userData.selectionCircle.visible;
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
     if (unit && unit?.order !== orders.die && unit.extras.selected && sprite.visible) {
@@ -854,6 +861,12 @@ async function TitanReactorGame(
       }
 
       sprite.userData.selectionCircle.visible = false;
+    }
+
+    if (!_selWasVisible && sprite.userData.selectionCircle.visible) {
+      // in case sprite scale changed
+      sprite.userData.selectionCircle.updateMatrix();
+      sprite.userData.selectionBars.updateMatrix();
     }
 
     let imageCounter = 1;
@@ -1347,6 +1360,9 @@ async function TitanReactorGame(
       get viewports() {
         return gameViewportsDirector.viewports;
       },
+      simpleMessage(val: string) {
+        simpleText.set(val);
+      },
       scene,
       cssScene,
       assets,
@@ -1519,7 +1535,7 @@ async function TitanReactorGame(
     if (settings.data.macros.revision !== macros.revision) {
       macros.deserialize(settings.data.macros);
     }
-    macros.setHostDefaults(settings.data); nsole
+    macros.setHostDefaults(settings.data);
 
   }));
 
@@ -1555,12 +1571,6 @@ async function TitanReactorGame(
   precompileCamera.lookAt(scene.position);
   GAME_LOOP(0);
   renderComposer.getWebGLRenderer().render(scene, precompileCamera);
-
-  janitor.addEventListener(window, "keyup", (e: KeyboardEvent) => {
-    if (e.code === "Escape") {
-      session.getState().merge({ game: { sceneController: settingsStore().data.game.sceneController } })
-    }
-  })
 
   _sceneResizeHandler();
   renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);

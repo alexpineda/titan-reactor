@@ -22,7 +22,7 @@ import gameStore from "./stores/game-store";
 import screenStore from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
-import { waitForProcess } from "./utils/wait-for-process";
+import { waitForTruthy } from "./utils/wait-for-process";
 import Janitor from "./utils/janitor";
 import { getOpenBW } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
@@ -39,6 +39,7 @@ import getContainerSize from "./process-replay/get-container-size";
 import { setDumpUnitCall } from "./plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
 import { CMDS } from "./process-replay/commands/commands";
+import { Assets } from "common/types";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -132,7 +133,7 @@ export default async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
 
-  const terrain = await chkToTerrainMesh(
+  const { terrain, extra } = await chkToTerrainMesh(
     map, {
     //TODO: replace since HD2 and HD will be loaded
     textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
@@ -140,11 +141,11 @@ export default async (filepath: string) => {
     shadows: settings.graphics.terrainShadows
   }
   );
-  const scene = new Scene(terrain);
+  const scene = new Scene(map.size[0], map.size[1], terrain);
   janitor.object3d(scene);
   janitor.disposable(scene);
 
-  await waitForProcess(Process.AtlasPreload);
+  await waitForTruthy<Assets>(() => gameStore().assets);
 
   await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, map, replay.header);
 
@@ -214,6 +215,7 @@ export default async (filepath: string) => {
   const disposeGame = await TitanReactorGame(
     map,
     terrain,
+    extra,
     scene,
     assets,
     janitor,
