@@ -14,7 +14,9 @@
   </a>
 </p>
 <p align="center">
+<a href="http://youtube.imbateam.gg" target="_blank">
 <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCj7TSQvBRYebRDIL0FW1MBQ?style=plastic" />
+</a>
 </p>
 <br />
 
