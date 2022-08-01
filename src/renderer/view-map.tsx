@@ -4,7 +4,6 @@ import { Color, PerspectiveCamera } from "three";
 import Chk from "bw-chk";
 import CameraControls from "camera-controls";
 import { RenderPass } from "postprocessing";
-import { CellularNoiseMaterial } from "threejs-shader-materials";
 
 import { createRoot } from "react-dom/client";
 
@@ -233,14 +232,15 @@ async function TitanReactorMap(
     );
 
     scene.dispose();
+    control.dispose();
 
     scene = new Scene(terrainInfo);
+    control = createControls();
     const renderPass = new RenderPass(scene, camera);
     const postProcessingBundle = { passes: [renderPass], effects: [] };
     updatePostProcessingCamera(postProcessingBundle, camera, true);
     renderComposer.setBundlePasses(postProcessingBundle);
     renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
-    console.log(scene);
   }, 1000);
 
   root.render(<MapViewer onChange={update} />);

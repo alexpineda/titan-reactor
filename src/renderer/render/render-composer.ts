@@ -24,7 +24,7 @@ const createWebGLRenderer = () => {
         depth: false,
     });
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = rendererIsDev || settings.util.debugMode;
+    renderer.debug.checkShaderErrors = rendererIsDev;
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;

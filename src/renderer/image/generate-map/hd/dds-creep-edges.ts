@@ -1,7 +1,7 @@
 import { disposeObject3D } from "@utils/dispose";
 import { DDSGrpFrameType, WrappedTexture, UnitTileScale } from "common/types";
 import {
-  DoubleSide, LinearEncoding, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
+  DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
 } from "three";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 

@@ -8,7 +8,7 @@ import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
 import semver from 'semver';
 
-import { InitializedPluginPackage, PluginMetaData } from "common/types";
+import { PluginMetaData } from "common/types";
 import { ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
@@ -18,10 +18,9 @@ import withErrorMessage from 'common/utils/with-error-message';
 import log from "../log"
 import fileExists from 'common/utils/file-exists';
 import packagejson from "../../../package.json";
-import omit from 'lodash.omit';
 
-let _enabledPluginPackages: InitializedPluginPackage[] = [];
-let _disabledPluginPackages: InitializedPluginPackage[] = [];
+let _enabledPluginPackages: PluginMetaData[] = [];
+let _disabledPluginPackages: PluginMetaData[] = [];
 
 export const getEnabledPluginPackages = () => _enabledPluginPackages;
 export const getDisabledPluginPackages = () => _disabledPluginPackages;
@@ -40,7 +39,7 @@ const _tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = 
 
 let _pluginDirectory = "";
 
-const loadPluginPackage = async (folderPath: string, folderName: string): Promise<null | InitializedPluginPackage> => {
+const loadPluginPackage = async (folderPath: string, folderName: string): Promise<null | PluginMetaData> => {
 
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
     const pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
@@ -81,7 +80,10 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         config,
         nativeSource: pluginNative,
         readme: readme ?? undefined,
-        hasUI
+        hasUI,
+        methods: getMethods(pluginNative ?? ""),
+        isSceneController: (pluginNative ?? "").includes("onEnterScene"),
+        hooks: packageJSON.config?.system?.customHooks ?? [],
     };
 
 }
@@ -226,7 +228,7 @@ export const enablePlugins = async (pluginIds: string[]) => {
             log.info(`@load-plugins/enable: Plugin ${pluginId} not found`);
         };
         return plugin;
-    }).filter(plugin => plugin !== undefined) as InitializedPluginPackage[];
+    }).filter(plugin => plugin !== undefined) as PluginMetaData[];
 
     try {
         await settings.enablePlugins(plugins.map(plugin => plugin.name));
@@ -320,15 +322,4 @@ const getMethods = (fn: string) => {
     } else {
         return [];
     }
-}
-
-export const getPluginsMetaData: () => PluginMetaData[] = () => {
-    return _enabledPluginPackages.map(plugin => ({
-        name: plugin.name,
-        description: plugin.description,
-        version: plugin.version,
-        config: omit(plugin.config, "system"),
-        methods: getMethods((plugin.nativeSource ?? "")),
-        isSceneController: (plugin.nativeSource ?? "").includes("onEnterScene")
-    }));
 }

@@ -135,6 +135,7 @@ export const MapViewer = ({
     },
   });
   const controls = mapConfigToLeva(state, (value: any, key?: string) => {
+    //@ts-ignore
     setState((state) => ({ ...state, [key!]: { ...state[key!], value } }));
     onChange(toSimple(state));
   });

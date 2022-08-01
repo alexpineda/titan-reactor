@@ -81,6 +81,7 @@ export class CameraMouse {
         });
 
         const pointerUp = (evt: PointerEvent) => {
+            this.#screenDrag.set(0, 0);
             this.#clicked = clicked.copy(this.#mouse);
             this.#clicked.z = evt.button;
             this.#mouse.z = -1;
@@ -90,6 +91,8 @@ export class CameraMouse {
             domElement.removeEventListener("pointerup", pointerUp);
         }
         );
+        this.#janitor.addEventListener(domElement, "pointerup", pointerUp, passive);
+        this.#janitor.addEventListener(domElement, "pointerleave", pointerUp, passive);
 
     }
 

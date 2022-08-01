@@ -1,5 +1,5 @@
 import Janitor from "@utils/janitor";
-import { InitializedPluginPackage, OpenBWAPI, ScreenStatus, ScreenType } from "common/types";
+import { PluginMetaData, OpenBWAPI, ScreenStatus, ScreenType } from "common/types";
 import settingsStore from "@stores/settings-store";
 import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
@@ -113,7 +113,7 @@ export class PluginSystemUI {
         });
     }
 
-    constructor(pluginPackages: InitializedPluginPackage[]) {
+    constructor(pluginPackages: PluginMetaData[]) {
         this.#iframe.style.backgroundColor = "transparent";
         this.#iframe.style.border = "none";
         this.#iframe.style.left = "0";
@@ -136,6 +136,14 @@ export class PluginSystemUI {
             [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage,
         })
 
+        this.#janitor.add(useScreenStore.subscribe(state => {
+            if (state.type === ScreenType.Home || state.error) {
+                this.#iframe.style.pointerEvents = "auto";
+            } else {
+                this.#iframe.style.pointerEvents = "none";
+            }
+        }));
+
         var iframeLoaded = false;
         this.#iframe.onload = async () => {
             if (iframeLoaded) {
@@ -144,16 +152,6 @@ export class PluginSystemUI {
                 return;
             }
             iframeLoaded = true;
-            // for plugin dev reload only
-            {
-                const screenState = useScreenStore.getState();
-                //TODO SUBSCRIBE
-                if (screenState.type === ScreenType.Home || screenState.error) {
-                    this.#iframe.style.pointerEvents = "auto";
-                } else {
-                    this.#iframe.style.pointerEvents = "none";
-                }
-            }
 
             let updateAvailable: undefined | { version: string, url: string } = undefined;
 
@@ -268,7 +266,7 @@ export class PluginSystemUI {
         });
     }
 
-    enablePlugins(plugins: InitializedPluginPackage[]) {
+    enablePlugins(plugins: PluginMetaData[]) {
         this.sendMessage({
             type: UI_SYSTEM_PLUGINS_ENABLED,
             payload: plugins

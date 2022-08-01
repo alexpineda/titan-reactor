@@ -20,6 +20,7 @@ import gameStore from "@stores/game-store";
 import { rendererIsDev } from "@utils/renderer-utils";
 import "ses";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
+import withErrorMessage from "common/utils/with-error-message";
 // import "./utils/webgl-lint";
 
 if (rendererIsDev) {
@@ -250,3 +251,7 @@ ipcRenderer.on(GO_TO_START_PAGE, () => {
 ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
   log.logClient(message, level);
 });
+
+window.onerror = (_: Event | string, source?: string, lineno?: number, colno?: number, error?: Error) => {
+  log.error(withErrorMessage(`${lineno}:${colno} - ${source}`, error));
+}

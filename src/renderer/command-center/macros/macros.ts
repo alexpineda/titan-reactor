@@ -38,7 +38,7 @@ export class Macros {
                 candidate = null;
             }
         }
-        //TODO: allow user to configure timeout on key combo
+
         const createInputWindow = () => {
             clearTimeout(acceptingInput!);
             acceptingInput = setTimeout(() => {

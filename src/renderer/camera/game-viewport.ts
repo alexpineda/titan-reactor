@@ -152,11 +152,10 @@ export class GameViewPort {
     update() {
 
         if (this.center) {
-            const _x = this.center.x <= 1 ? this.#surface.bufferWidth * this.center.x : this.center.x;
-            const _y = this.center.y <= 1 ? this.#surface.bufferHeight * this.center.y : this.center.y;
-            const x = _x - this.width / 2;
-            const y = window.innerHeight - _y - (this.height / 2);
-            this.viewport.set(MathUtils.clamp(x, 0, this.surfaceWidth - this.#width), MathUtils.clamp(y, 0, this.surfaceHeight - this.height), this.width, this.height);
+            const x = this.center.x - this.width / 2;
+            const y = this.surfaceHeight - this.center.y - (this.height / 2);
+
+            this.viewport.set(MathUtils.clamp(x, this.#width / 2, this.surfaceWidth - this.#width / 2), MathUtils.clamp(y, this.height / 2, this.surfaceHeight - this.height / 2), this.width, this.height);
         } else {
             let x = 0, y = 0;
 

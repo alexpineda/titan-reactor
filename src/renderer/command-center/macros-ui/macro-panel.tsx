@@ -47,7 +47,7 @@ export const MacroPanel = ({
         ...macro,
         trigger: {
           ...macro.trigger,
-          value: keyCombo.stringify(),
+          value: e.key === "Backspace" ? "" : keyCombo.stringify(),
         },
       });
     }

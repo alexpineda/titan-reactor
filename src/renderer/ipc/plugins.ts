@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 
 import { DELETE_PLUGIN, DISABLE_PLUGIN, ENABLE_PLUGINS, INSTALL_PLUGIN, UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
-import { InitializedPluginPackage } from "common/types";
+import { PluginMetaData } from "common/types";
 
 export const updatePluginsConfig = async (pluginId: string, config: any) => {
     return await ipcRenderer.invoke(UPDATE_PLUGIN_CONFIG, pluginId, config);
@@ -19,6 +19,6 @@ export const enablePlugins = async (pluginIds: string[]) => {
     return await ipcRenderer.invoke(ENABLE_PLUGINS, pluginIds);
 }
 
-export const installPlugin = async (repository: string): Promise<null | InitializedPluginPackage> => {
+export const installPlugin = async (repository: string): Promise<null | PluginMetaData> => {
     return await ipcRenderer.invoke(INSTALL_PLUGIN, repository);
 }

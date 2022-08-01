@@ -1,6 +1,6 @@
 
 
-import { BufferGeometry, Group, Material, Mesh, MeshStandardMaterial, Texture } from "three";
+import { BufferGeometry, Group, Mesh, MeshStandardMaterial, Texture } from "three";
 import { GetTerrainY } from "./util";
 
 

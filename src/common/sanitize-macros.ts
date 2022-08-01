@@ -1,7 +1,7 @@
 import { getAppSettingsLevaConfig, getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacrosDTO, SettingsMeta } from "common/types";
 
-type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "pluginsMetadata">
+type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
 
 const getPluginConfigFields = (config: any) => {
@@ -69,7 +69,7 @@ const sanitizeMacroActionFields = (action: MacroAction, settings: SettingsAndPlu
             }
         }
     } else if (action.type === MacroActionType.ModifyPluginSettings) {
-        const plugin = settings.pluginsMetadata.find((p) => p.name === action.pluginName);
+        const plugin = settings.enabledPlugins.find((p) => p.name === action.pluginName);
         if (!plugin) {
             action.error = {
                 type: MacroActionConfigurationErrorType.MissingPlugin,
@@ -180,7 +180,7 @@ export const getMacroActionValidEffects = (
     } else if (action.type === MacroActionType.CallGameTimeApi) {
         return [MacroActionEffect.CallMethod];
     } else if (action.type === MacroActionType.ModifyPluginSettings) {
-        const plugin = settings.pluginsMetadata.find((p) => p.name === action.pluginName);
+        const plugin = settings.enabledPlugins.find((p) => p.name === action.pluginName);
         if (!plugin) {
             return [];
         }

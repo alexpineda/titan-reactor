@@ -14,8 +14,10 @@ import { useSettingsStore } from "@stores/settings-store";
 import { createDefaultMacros } from "./default-macros";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import groupBy from "lodash.groupby";
 
 export const MacrosPanel = () => {
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const settings = useSettingsStore();
   const state = settings.data.macros;
 
@@ -143,20 +145,28 @@ export const MacrosPanel = () => {
         )}
         <CreateMacro onCreate={createMacro} />
         <div>
-          {/* {Object.entries(
+          {Object.entries(
             groupBy(state.macros, (m) => {
-              // const s = m.name.split(":");
-              return "General";
-              // return s.length === 1 ? "General" : s[0].trim();
+              const s = m.name.split(":");
+              return s.length === 1 ? "General" : s[0].trim();
             })
-          ).map(([name, macros]) => (
+          ).map(([groupName, macros]) => (
             <div
               style={{
                 margin: "var(--size-7)",
               }}
             >
-              {name && (
-                <p
+              {groupName && (
+                <div
+                  onClick={() => {
+                    if (collapsedGroups.includes(groupName)) {
+                      setCollapsedGroups(
+                        collapsedGroups.filter((g) => g !== groupName)
+                      );
+                    } else {
+                      setCollapsedGroups([...collapsedGroups, groupName]);
+                    }
+                  }}
                   style={{
                     color: "var(--gray-6)",
                     display: "flex",
@@ -173,24 +183,32 @@ export const MacrosPanel = () => {
                   >
                     folder
                   </i>
-                  {name}
-                </p>
-              )} */}
-          {state.macros.map((macro) => (
-            <MacroPanel
-              macro={macro}
-              pluginsMetadata={settings.pluginsMetadata}
-              updateMacro={updateMacro}
-              updateMacroAction={updateMacroAction}
-              activeAction={activeAction}
-              setActiveAction={setActiveAction}
-              deleteAction={deleteAction}
-              deleteMacro={deleteMacro}
-              createAction={createAction}
-            />
+                  <span>{groupName}</span>
+                  {collapsedGroups.includes(groupName) && (
+                    <ul>
+                      {macros.map((macro) => (
+                        <li>{macro.name}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              {!collapsedGroups.includes(groupName) &&
+                macros.map((macro) => (
+                  <MacroPanel
+                    macro={macro}
+                    pluginsMetadata={settings.enabledPlugins}
+                    updateMacro={updateMacro}
+                    updateMacroAction={updateMacroAction}
+                    activeAction={activeAction}
+                    setActiveAction={setActiveAction}
+                    deleteAction={deleteAction}
+                    deleteMacro={deleteMacro}
+                    createAction={createAction}
+                  />
+                ))}
+            </div>
           ))}
-          {/* </div> */}
-          {/* ))} */}
         </div>
       </ErrorBoundary>
     </div>

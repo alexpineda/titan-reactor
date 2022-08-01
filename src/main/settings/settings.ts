@@ -12,7 +12,7 @@ import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import foldersExist from "./folders-exist";
 import migrate from "./migrate";
-import loadPlugins, { getDisabledPluginPackages, getEnabledPluginPackages, getPluginsMetaData } from "../plugins/load-plugins";
+import loadPlugins, { getDisabledPluginPackages, getEnabledPluginPackages } from "../plugins/load-plugins";
 import { findPluginsPath } from "../starcraft/find-plugins-path";
 import withErrorMessage from "common/utils/with-error-message";
 import log from "../log";
@@ -113,7 +113,7 @@ export class Settings {
 
     const macros = sanitizeMacros(this._settings.macros, {
       data: this._settings,
-      pluginsMetadata: getPluginsMetaData(),
+      enabledPlugins: getEnabledPluginPackages(),
     });
 
     return {
@@ -122,7 +122,6 @@ export class Settings {
       isCascStorage,
       enabledPlugins: getEnabledPluginPackages(),
       disabledPlugins: getDisabledPluginPackages(),
-      pluginsMetadata: getPluginsMetaData(),
       phrases: {
         ...phrases["en-US"],
         ...phrases[this._settings.language as keyof typeof phrases],
@@ -171,7 +170,7 @@ export class Settings {
     this._settings.plugins.enabled = [...new Set(this._settings.plugins.enabled)];
     this._settings.macros = sanitizeMacros(this._settings.macros, {
       data: this._settings,
-      pluginsMetadata: getPluginsMetaData(),
+      enabledPlugins: getEnabledPluginPackages(),
     });
 
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {

@@ -21,6 +21,7 @@ export enum MacroActionType {
     ModifyAppSettings = "ModifyAppSettings",
     ModifyPluginSettings = "ModifyPluginSettings",
     CallGameTimeApi = "CallGameTimeApi",
+    OnPluginCustomHook = "OnPluginCustomHook",
 }
 
 export type MacroActionConfigurationError = {

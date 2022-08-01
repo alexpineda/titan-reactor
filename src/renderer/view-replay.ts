@@ -365,50 +365,7 @@ async function TitanReactorGame(
     _wasReset = true;
   }
 
-  janitor.addEventListener(document.body, "keyup", (event: KeyboardEvent) => {
-    if (event.key === "\\") {
-      reset = refreshScene;
-    }
-  });
 
-  const skipHandler = (dir: number, gameSeconds = 200) => {
-    if (reset) return;
-    const currentFrame = openBW.getCurrentFrame();
-    openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
-    currentBwFrame = openBW.getCurrentFrame();
-    reset = refreshScene;
-    return currentBwFrame;
-  }
-  const skipForward = (amount = 1) => skipHandler(1, amount);
-  const skipBackward = (amount = 1) => skipHandler(-1, amount);
-
-  enum ChangeSpeedDirection {
-    Up,
-    Down
-  }
-
-  const speedHandler = (direction: ChangeSpeedDirection) => {
-    const currentSpeed = openBW.getGameSpeed();
-    let newSpeed = 0;
-
-    // smaller increments/decrements between 1 & 2
-    if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
-      newSpeed = currentSpeed + 0.25;
-    } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
-      newSpeed = currentSpeed - 0.25;
-    } else {
-      newSpeed = Math.max(0.25, Math.min(16, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
-    }
-
-    openBW.setGameSpeed(newSpeed);
-    return openBW.getGameSpeed();
-  }
-  const speedUp = () => speedHandler(ChangeSpeedDirection.Up);
-  const speedDown = () => speedHandler(ChangeSpeedDirection.Down);
-  const togglePause = (setPaused?: boolean) => {
-    openBW.setPaused(setPaused ?? !openBW.isPaused());
-    return openBW.isPaused();
-  }
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
@@ -418,11 +375,11 @@ async function TitanReactorGame(
       minimapWidth: rect.minimapWidth,
       minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
     });
-    //TODO; no-op if same size
+
     renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
     cssRenderer.setSize(gameSurface.width, gameSurface.height);
 
-    //TODO; no-op if same size
+
     minimapSurface.setDimensions(
       rect.minimapWidth,
       rect.minimapHeight,
@@ -441,7 +398,7 @@ async function TitanReactorGame(
   let currentBwFrame = 0;
   let previousBwFrame = -1;
 
-  // TODO: merge these two, one is used for convenience in selection bars for energy hp testing
+  // FIXME: merge these two, one is used for convenience in selection bars for energy hp testing
   const completedUpgrades = range(0, 8).map(() => [] as number[]);
   const completedResearch = range(0, 8).map(() => [] as number[]);
   const completedUpgradesReset = range(0, 8).map(() => [] as number[][]);
@@ -706,7 +663,7 @@ async function TitanReactorGame(
   const getImageLoOffset = (out: Vector2, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
     // size_t frame = use_frame_index_offset ? image->frame_index_offset : image->frame_index;
 
-    //TODO: apply to all camera angles
+    //FIXME: apply to all camera angles
     const frameInfo = applyCameraDirectionToImageFrame(gameViewportsDirector.primaryViewport.camera, image);
     if (useFrameIndexOffset) {
       frameInfo.frame = frameInfo.frame % 17;
@@ -890,12 +847,9 @@ async function TitanReactorGame(
     }
 
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
-    _spritePos.y = (sprite.userData.fixedY ?? bulletY ?? _spritePos.y);
+    sprite.position.set(_spritePos.x, (sprite.userData.fixedY ?? bulletY ?? _spritePos.y), _spritePos.z);
 
-    sprite.position.copy(_spritePos);
-    //TODO: per game viewport
-    // sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z)
-    // sprite.renderOrder = spriteRenderOrder;
+    sprite.renderOrder = spriteRenderOrder;
 
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
@@ -1365,7 +1319,41 @@ async function TitanReactorGame(
 
     const getOriginalNames = () => [...originalNames];
 
-    const api = {
+    const skipHandler = (dir: number, gameSeconds = 200) => {
+      if (reset) return;
+      const currentFrame = openBW.getCurrentFrame();
+      openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
+      currentBwFrame = openBW.getCurrentFrame();
+      reset = refreshScene;
+      return currentBwFrame;
+    }
+
+    enum ChangeSpeedDirection {
+      Up,
+      Down
+    }
+
+    const MIN_SPEED = 0.25;
+    const MAX_SPEED = 16;
+    const speedHandler = (direction: ChangeSpeedDirection) => {
+      const currentSpeed = openBW.getGameSpeed();
+      let newSpeed = 0;
+
+      // smaller increments/decrements between 1 & 2
+      if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
+        newSpeed = currentSpeed + MIN_SPEED;
+      } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
+        newSpeed = currentSpeed - MIN_SPEED;
+      } else {
+        newSpeed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
+      }
+
+      openBW.setGameSpeed(newSpeed);
+      return openBW.getGameSpeed();
+    }
+
+
+    const gameTimeApi = {
       get viewport() {
         return gameViewportsDirector.primaryViewport;
       },
@@ -1380,11 +1368,25 @@ async function TitanReactorGame(
       assets,
       toggleFogOfWarByPlayerId,
       unitsIterator,
-      skipForward,
-      skipBackward,
-      speedUp,
-      speedDown,
-      togglePause,
+      skipForward: (amount = 1) => skipHandler(1, amount),
+      skipBackward: (amount = 1) => skipHandler(-1, amount),
+      speedUp: () => speedHandler(ChangeSpeedDirection.Up),
+      speedDown: () => speedHandler(ChangeSpeedDirection.Down),
+      togglePause: (setPaused?: boolean) => {
+        openBW.setPaused(setPaused ?? !openBW.isPaused());
+        return openBW.isPaused();
+      },
+      get gameSpeed() {
+        return openBW.getGameSpeed();
+      },
+      setGameSpeed(value: number) {
+        console.log('set game speed', value);
+        console.log(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED))
+        openBW.setGameSpeed(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED));
+      },
+      refreshScene: () => {
+        reset = refreshScene;
+      },
       pxToGameUnit,
       fogOfWar,
       terrain: {
@@ -1394,15 +1396,16 @@ async function TitanReactorGame(
         getTerrainY: terrain.getTerrainY,
         mesh: terrain.mesh
       },
-      getFrame() {
+      get currentFrame() {
         return currentBwFrame;
       },
-      maxFrame: replay.header.frameCount,
+      get maxFrame() {
+        return replay.header.frameCount
+      },
       gotoFrame: (frame: number) => {
         openBW.setCurrentFrame(frame);
         reset = refreshScene;
       },
-      getSpeed: () => openBW.getGameSpeed(),
       exitScene: () => {
         gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
       },
@@ -1431,7 +1434,9 @@ async function TitanReactorGame(
         }
         selectedUnitsStore().setSelectedUnits(selection);
       },
-      getSelectedUnits: () => selectedUnitsStore().selectedUnits,
+      get selectedUnits() {
+        return selectedUnitsStore().selectedUnits
+      },
       fadingPointers,
       playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
         if (y !== undefined && volumeOrX !== undefined) {
@@ -1454,12 +1459,12 @@ async function TitanReactorGame(
       }
     };
 
-    mix(api, miscApi);
+    mix(gameTimeApi, miscApi);
 
-    pluginsApiJanitor.add(plugins.injectApi(api));
+    pluginsApiJanitor.add(plugins.injectApi(gameTimeApi));
     await plugins.callHookAsync(HOOK_ON_GAME_READY);
 
-    const container = createCompartment(api);
+    const container = createCompartment(gameTimeApi);
 
     macros.setContainer(() => {
       return container;

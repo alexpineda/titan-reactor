@@ -24,19 +24,16 @@ export interface PluginPackage {
     }
 }
 
-export interface InitializedPluginPackage extends PluginPackage {
+export interface PluginMetaData extends PluginPackage {
     nativeSource?: string | null;
     path: string;
     date?: Date;
     readme?: string;
     hasUI: boolean;
-}
-
-export type PluginMetaData = {
     methods: string[];
+    hooks: string[];
     isSceneController: boolean;
-} & Pick<InitializedPluginPackage, "nativeSource" | "version" | "name" | "description" | "config">
-
+}
 export interface PluginPrototype {
     id: string;
     config?: {
@@ -61,10 +58,15 @@ export interface PluginPrototype {
 }
 
 export interface NativePlugin extends PluginPrototype {
-    isSceneController?: boolean;
     id: string;
     name: string;
     orbit: CameraControls;
+    $$meta: {
+        hooks: string[];
+        methods: string[];
+        hasUI: boolean;
+        isSceneController: boolean;
+    }
 
     /**
      * Called when a plugin has it's configuration changed by the user
@@ -113,7 +115,6 @@ export type UserInputCallbacks = {
 
     onCameraKeyboardUpdate: (delta: number, elapsed: number, truck: Vector2) => void;
 
-    //TODO: change this to a more generic type
     onShouldHideUnit: (unit: any) => boolean | undefined;
 
     onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;

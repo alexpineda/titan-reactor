@@ -1,4 +1,4 @@
-import { InitializedPluginPackage } from "common/types";
+import { PluginMetaData } from "common/types";
 import ReactMarkdown from "react-markdown/index";
 import { useControls, useCreateStore } from "leva";
 import semver from "semver";
@@ -18,7 +18,7 @@ export default ({
   controls,
 }: {
   controls: any[][];
-  pluginPackage: Partial<InitializedPluginPackage>;
+  pluginPackage: Partial<PluginMetaData>;
 }) => {
   const store = useCreateStore();
   for (const [folder, data] of controls) {

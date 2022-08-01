@@ -10,7 +10,6 @@ import {
   Texture,
   WebGLRenderTarget,
   NearestFilter,
-  LinearEncoding,
   DoubleSide,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";

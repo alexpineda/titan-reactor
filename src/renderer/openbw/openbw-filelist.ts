@@ -28,7 +28,6 @@ export default class OpenBWFileList {
       js_fatal_error: (ptr: any) => {
         throw new Error(openBw.UTF8ToString(ptr));
       },
-      //TODO: remove
       js_pre_main_loop: callbacks.beforeFrame, // pre-mainloop
       js_post_main_loop: callbacks.afterFrame, // post-mainloop,
       js_file_size: (index: number) => {

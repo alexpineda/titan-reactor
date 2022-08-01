@@ -1,4 +1,4 @@
-import { SceneInputHandler, InitializedPluginPackage, NativePlugin, PluginPrototype, MacroActionPlugin, MacroActionEffect } from "common/types";
+import { SceneInputHandler, PluginMetaData, NativePlugin, PluginPrototype, MacroActionPlugin, MacroActionEffect } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
@@ -102,7 +102,7 @@ export class PluginSystemNative {
 
     readonly hooks: Record<string, Hook> = createDefaultHooks();
 
-    initializePlugin(pluginPackage: InitializedPluginPackage) {
+    initializePlugin(pluginPackage: PluginMetaData) {
 
         try {
             const c = createCompartment();
@@ -113,6 +113,13 @@ export class PluginSystemNative {
 
             pluginRaw.id = pluginPackage.id;
             pluginRaw.name = pluginPackage.name;
+            pluginRaw.$$meta = {
+                methods: pluginPackage.methods,
+                hooks: pluginPackage.hooks,
+                hasUI: pluginPackage.hasUI,
+                isSceneController: pluginPackage.isSceneController,
+            }
+            pluginRaw.$$config = pluginPackage.config;
             //FIXME: freeze config but allow us to edit for saving
             // possibly use a Weakmap instead of attaching to object
             pluginRaw.$$config = JSON.parse(JSON.stringify(pluginPackage.config));
@@ -127,7 +134,7 @@ export class PluginSystemNative {
             }, {});
             pluginRaw.$$permissions = Object.freeze(permissions);
 
-            const nonEditableKeys = ["id", "name", "$$permissions"];
+            const nonEditableKeys = ["id", "name", "$$permissions", "$$meta"];
 
             const pluginPropertyConfig: Record<string, {}> = {};
             for (const key in pluginRaw) {
@@ -144,22 +151,26 @@ export class PluginSystemNative {
 
             const plugin = Object.create(pluginProto, pluginPropertyConfig);
 
-            plugin.config = processConfigBeforeReceive(pluginPackage.config);
-            plugin.sendUIMessage = throttle((message: any) => {
-                this.#sendCustomUIMessage(plugin, message);
-            }, 100, { leading: true, trailing: false });;
             plugin.registerCustomHook = (name: string, args: string[], async = false) => {
                 this.#registerCustomHook(name, args, pluginPackage.id, async);
             };
+
+            plugin.config = processConfigBeforeReceive(pluginPackage.config);
+
+            plugin.sendUIMessage = throttle((message: any) => {
+                this.#sendCustomUIMessage(plugin, message);
+            }, 100, { leading: true, trailing: false });
+
             plugin.callCustomHook = (name: string, ...args: any[]) => {
                 if (this.hooks[name] === undefined) {
                     log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it was not found`);
                 }
-                else if (this.hooks[name].isAuthor(pluginPackage.id)) {
+                else if (!this.hooks[name].isAuthor(pluginPackage.id)) {
+                    log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it is not the author`);
+                } else if (this.hooks[name].isAuthor(pluginPackage.id)) {
                     return this.callHook(name, ...args);
                 }
             };
-            plugin.isSceneController = !!plugin.onEnterScene;
             log.verbose(`@plugin-system-native: initialized plugin "${plugin.name}"`);
 
             return plugin;
@@ -170,7 +181,7 @@ export class PluginSystemNative {
         }
     };
 
-    constructor(pluginPackages: InitializedPluginPackage[], uiPlugins: PluginSystemUI) {
+    constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
         this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
         this.#uiPlugins = uiPlugins;
 
@@ -185,7 +196,7 @@ export class PluginSystemNative {
     }
 
     getSceneInputHandlers() {
-        return this.#nativePlugins.filter(p => (p as SceneInputHandler).onEnterScene) as SceneInputHandler[];
+        return this.#nativePlugins.filter(p => p.$$meta.isSceneController) as SceneInputHandler[];
     }
 
     setActiveSceneInputHandler(plugin: SceneInputHandler) {
@@ -261,7 +272,7 @@ export class PluginSystemNative {
     }
 
     #sceneInputHandlerGaurd(plugin: NativePlugin) {
-        return !plugin.isSceneController || this.#activeSceneInputHandler === plugin;
+        return !plugin.$$meta.isSceneController || this.#activeSceneInputHandler === plugin;
     }
 
     hook_onConfigChanged(pluginId: string, config: any) {
@@ -301,7 +312,7 @@ export class PluginSystemNative {
         }
     }
 
-    enableAdditionalPlugins(pluginPackages: InitializedPluginPackage[]) {
+    enableAdditionalPlugins(pluginPackages: PluginMetaData[]) {
         const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins];

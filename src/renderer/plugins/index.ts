@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { InitializedPluginPackage, MacroActionPlugin, OpenBWAPI, SceneInputHandler } from "common/types";
+import { PluginMetaData, MacroActionPlugin, OpenBWAPI, SceneInputHandler } from "common/types";
 import {
     ON_PLUGINS_ENABLED,
     DISABLE_PLUGIN,
@@ -46,7 +46,7 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
     });
 });
 
-ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: InitializedPluginPackage[]) => {
+ipcRenderer.on(ON_PLUGINS_ENABLED, (_, plugins: PluginMetaData[]) => {
     uiPluginSystem.enablePlugins(plugins);
     nativePluginSystem.enableAdditionalPlugins(plugins);
 });
@@ -61,7 +61,7 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
 });
 
 export const initializePluginSystem = async (
-    pluginPackages: InitializedPluginPackage[]
+    pluginPackages: PluginMetaData[]
 ) => {
     if (uiPluginSystem) {
         uiPluginSystem.dispose();

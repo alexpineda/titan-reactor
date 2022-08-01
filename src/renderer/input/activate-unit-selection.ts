@@ -8,6 +8,7 @@ import { canOnlySelectOne, canSelectUnit } from "@utils/unit-utils";
 import { MouseSelectionBox } from ".";
 import { Camera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
+import settingsStore from "@stores/settings-store";
 
 export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface: Surface, minimapSurface: Surface) => {
     const janitor = new Janitor;
@@ -117,11 +118,13 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
             }
         } else {
 
+            if (selectedUnitsStore().selectedUnits.length === 12) {
+                return
+            }
             selectionBox.endPoint.set(
                 (event.clientX / window.innerWidth) * 2 - 1,
                 - (event.clientY / window.innerHeight) * 2 + 1,
                 0.5);
-
 
             const allSelected = selectionBox.select();
 
@@ -161,6 +164,9 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
 
         selectedUnits.sort(typeIdSort).splice(12);
         selectedUnitsStore().setSelectedUnits(selectedUnits);
+        if (settingsStore().data.util.debugMode) {
+            console.log(selectedUnits);
+        }
 
     }
     gameSurface.canvas.addEventListener('pointerup', _selectUp);

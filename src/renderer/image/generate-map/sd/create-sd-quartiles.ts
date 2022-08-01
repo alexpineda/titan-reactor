@@ -11,7 +11,6 @@ export const createSdQuartiles = (
     diffuse: Uint8Array
 ): WrappedQuartileTextures => {
 
-    //TODO: calculate this bettah!
     const quartileWidth = 16; // in map tiles
     const quartileHeight = 16;
     const quartileWidthPx = quartileWidth * 32;

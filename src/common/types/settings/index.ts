@@ -1,5 +1,5 @@
 import { AssetTextureResolution, MacrosDTO } from "common/types";
-import type { InitializedPluginPackage, PluginMetaData } from "../plugin";
+import type { PluginMetaData } from "../plugin";
 
 export type Settings = {
     version: 5;
@@ -47,9 +47,8 @@ export type SettingsMeta = {
     data: Settings;
     errors: string[];
     phrases: Record<string, string>;
-    enabledPlugins: InitializedPluginPackage[];
-    disabledPlugins: InitializedPluginPackage[];
-    pluginsMetadata: PluginMetaData[];
+    enabledPlugins: PluginMetaData[];
+    disabledPlugins: PluginMetaData[];
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */

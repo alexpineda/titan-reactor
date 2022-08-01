@@ -13,14 +13,14 @@ export const levaConfigToAppConfig = (
 };
 
 export const getAppSettingsLevaConfigField = (
-    settings: Pick<SettingsMeta, "data" | "pluginsMetadata">,
+    settings: Pick<SettingsMeta, "data" | "enabledPlugins">,
     fields: string[]
 ) => {
     const config = getAppSettingsLevaConfig(settings);
     return config[fields[fields.length - 1] as keyof typeof config];
 };
 
-export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "pluginsMetadata">) => ({
+export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "enabledPlugins">) => ({
     starcraft: {
         folder: "Directories",
         label: "Starcraft",
@@ -89,7 +89,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         label: "Scene Controller",
         value: settings.data.game.sceneController,
         path: "game",
-        options: settings.pluginsMetadata
+        options: settings.enabledPlugins
             .filter((p) => p.isSceneController)
             .map((p) => p.name),
     },

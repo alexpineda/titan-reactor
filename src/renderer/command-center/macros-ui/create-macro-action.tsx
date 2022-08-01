@@ -1,9 +1,9 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import {
-  PluginMetaData,
   MacroAction,
   MacroActionEffect,
   MacroActionType,
+  PluginMetaData,
 } from "common/types";
 import { useState } from "react";
 import { generateUUID } from "three/src/math/MathUtils";

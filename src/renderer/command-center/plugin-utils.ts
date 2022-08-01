@@ -1,4 +1,4 @@
-import { InitializedPluginPackage, SettingsMeta } from "common/types";
+import { PluginMetaData, SettingsMeta } from "common/types";
 import type search from "libnpmsearch";
 import * as log from "@ipc/log"
 import React from "react";
@@ -13,7 +13,7 @@ import semver from "semver";
 type RemotePackage = search.Result;
 
 type Plugin = {
-    plugin?: InitializedPluginPackage;
+    plugin?: PluginMetaData;
     remote?: RemotePackage;
 };
 
@@ -100,7 +100,7 @@ export const localPluginRepository = (setSelectedPluginPackage: SetSelectedPlugi
     }
 });
 
-export const getUpdateVersion = (remote: RemotePackage | undefined, local: InitializedPluginPackage | undefined) => {
+export const getUpdateVersion = (remote: RemotePackage | undefined, local: PluginMetaData | undefined) => {
     const remoteVersion = remote?.version ?? "0.0.0";
     const localVersion = local?.version ?? "0.0.0";
     try {

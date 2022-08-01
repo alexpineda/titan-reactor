@@ -34,7 +34,7 @@ const _createSession = (ogData: Settings) => create<SessionStore>((set: SetState
         }
         console.log('settings-store.doMacroAction', action.value);
 
-        const field = getAppSettingsLevaConfigField({ data: get(), pluginsMetadata: settingsStore().pluginsMetadata }, action.field!) as any;
+        const field = getAppSettingsLevaConfigField({ data: get(), enabledPlugins: settingsStore().enabledPlugins }, action.field!) as any;
         if (field === undefined) {
             return;
         }

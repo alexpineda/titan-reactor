@@ -17,14 +17,13 @@ interface CreateWindowArgs {
   backgroundColor?: string;
   nodeIntegration?: boolean;
   backgroundThrottling?: boolean;
-  debugMode?: boolean;
   preloadFile?: string | undefined;
 }
 
 const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true, preloadFile: undefined }, args);
 
 export const createWindow = (createWindowArgs: CreateWindowArgs) => {
-  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, debugMode, preloadFile } = createDefaultArgs(createWindowArgs);
+  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, preloadFile } = createDefaultArgs(createWindowArgs);
 
   let preload: string | undefined = undefined;
 
@@ -70,7 +69,7 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
 
   w.on("ready-to-show", () => {
     w.show();
-    if ((isDev || debugMode) && devTools) {
+    if (isDev && devTools) {
       w.webContents.openDevTools();
     }
   });

@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import "./style.css";
 import { updatePluginsConfig } from "@ipc/plugins";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
-import { InitializedPluginPackage } from "common/types";
+import { PluginMetaData } from "common/types";
 import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
@@ -60,7 +60,7 @@ const searchPackages = async (cb: (val: RemotePackage[]) => void) => {
 };
 
 type Plugin = {
-  local?: InitializedPluginPackage;
+  local?: PluginMetaData;
   remote?: RemotePackage;
 };
 
@@ -119,7 +119,7 @@ const CommandCenter = () => {
     <i className="material-icons">{icon}</i>
   );
 
-  const localPluginButton = (local: InitializedPluginPackage) => (
+  const localPluginButton = (local: PluginMetaData) => (
     <PluginButton
       icon={local.config?.icon ? <Icon icon={local.config!.icon} /> : null}
       key={local.id}

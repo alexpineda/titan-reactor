@@ -367,7 +367,7 @@ onGameReady() {
 },
 
 onFrame() {
-  if (this.getFrame() > this.maxFrame - 100) {
+  if (this.currentFrame > this.maxFrame - 100) {
     this.callCustomHook("onCustomPing");
   }
 }
