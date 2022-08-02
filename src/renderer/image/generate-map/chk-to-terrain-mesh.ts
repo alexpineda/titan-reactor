@@ -13,6 +13,9 @@ import { anisotropyOptions } from "@utils/renderer-utils";
 import { Layers } from "../../render/layers";
 import { LinearEncoding, Mesh, sRGBEncoding } from "three";
 import renderComposer from "../../render/render-composer";
+// import { parseDdsGrp, parseDdsGrpAsTextures, parseDdsGrpWithFrameData } from "..";
+// import parseDDS from "@image/formats/parse-dds";
+// import { parseTMSK } from "@image/formats/parse-tmsk";
 
 type TerrainMeshSettings = {
   textureResolution: UnitTileScale;
@@ -66,9 +69,18 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     bitmaps.mapTilesData,
     settings.textureResolution, renderer
   );
+
+  // const effectTextures = async () => {
+  //   const waterNormal1 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal1);
+  //   const waterNormal2 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal2);
+  //   const noise = await parseDDS(tilesetBuffers.noise, false);
+  //   const waterMask = parseDdsGrpAsTextures(tilesetBuffers.waterMask);
+  //   const tileMask = parseTMSK(tilesetBuffers.tileMask);
+
+
+  // }
   renderer.autoClear = true;
   renderer.outputEncoding = sRGBEncoding;
-
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
   terrain.layers.enable(Layers.Terrain);

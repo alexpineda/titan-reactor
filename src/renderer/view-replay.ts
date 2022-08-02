@@ -35,7 +35,7 @@ import renderComposer from "./render/render-composer";
 import {
   useWorldStore,
 } from "./stores";
-import { imageHasDirectionalFrames, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
+import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
 import { getOpenBW } from "./openbw";
 import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "./utils/sprite-utils";
@@ -768,8 +768,7 @@ async function TitanReactorGame(
     // show if a building has been explored
     let spriteIsVisible =
       spriteData.owner === 11 ||
-      dat.image.iscript === 336 ||
-      dat.image.iscript === 337 ||
+      imageIsDoodad(dat.image) ||
       fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y));
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)

@@ -93,4 +93,9 @@ export type TilesetBuffers = {
   hdTiles: Buffer;
   creepGrpSD: Buffer;
   creepGrpHD: Buffer;
+  waterMask: Buffer;
+  waterNormal1: Buffer;
+  waterNormal2: Buffer;
+  noise: Buffer;
+  tileMask: Buffer;
 };

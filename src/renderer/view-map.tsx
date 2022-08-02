@@ -24,7 +24,7 @@ import { useSettingsStore } from "./stores";
 import Janitor from "./utils/janitor";
 import createStartLocation from "./core/create-start-location";
 import { updatePostProcessingCamera } from "@utils/renderer-utils";
-import { MapViewer } from "./render/map-options";
+import { MapDisplayOptions, MapViewer } from "./render/map-options";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
 
@@ -216,9 +216,8 @@ async function TitanReactorMap(
     scene.terrain.children.forEach((c) => {
       c.material.color = new Color(0x999999);
     });
-    renderComposer.getWebGLRenderer().setAnimationLoop(null);
 
-    const terrainInfo = await chkToTerrainMesh(
+    const { terrain } = await chkToTerrainMesh(
       chk,
       {
         textureResolution:
@@ -231,19 +230,35 @@ async function TitanReactorMap(
       options
     );
 
-    scene.dispose();
-    control.dispose();
-
-    scene = new Scene(mapWidth, mapHeight, terrainInfo);
-    control = createControls();
-    const renderPass = new RenderPass(scene, camera);
-    const postProcessingBundle = { passes: [renderPass], effects: [] };
-    updatePostProcessingCamera(postProcessingBundle, camera, true);
-    renderComposer.setBundlePasses(postProcessingBundle);
-    renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
+    scene.replaceTerrain(terrain.mesh);
+    updateDisplayOptions(_displayOptions);
+    _sceneResizeHandler();
   }, 1000);
 
-  root.render(<MapViewer onChange={update} />);
+  let _displayOptions: MapDisplayOptions = { wireframe: false, skybox: false };
+  const updateDisplayOptions = (options: MapDisplayOptions) => {
+    scene.terrain.children.forEach((c) => {
+      c.material.wireframe = options.wireframe;
+      c.material.color = new Color(0xffffff);
+    });
+
+    if (options.skybox) {
+      scene.enableSkybox();
+    } else {
+      scene.disableSkybox();
+    }
+  };
+
+  root.render(
+    <MapViewer
+      onChange={update}
+      onDisplayOptionsChange={(e) => {
+        _displayOptions = e;
+        updateDisplayOptions(e);
+      }}
+      defaultDisplayOptions={_displayOptions}
+    />
+  );
 
   return dispose;
 }

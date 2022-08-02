@@ -169,6 +169,12 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
         diffuseColor = vec4(mix(diffuseColor.rgb, vec3(1.), flashPower), diffuseColor.a);
       `
       ]);
+    } else if (this.modifier === drawFunctions.hallucination) {
+      mapFragments.push([
+        `
+        float b = dot(diffuseColor, vec3(.3, .6, .1));
+        diffuseColor = mix(diffuseColor, vec3(0.75, 1.125, 2.65) * b, diffuseColor.a);
+      `]);
     }
 
     mapFragments.push(["", `

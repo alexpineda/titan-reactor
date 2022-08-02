@@ -59,7 +59,7 @@ export default async (chkFilepath: string) => {
     anisotropy: settings.graphics.anisotropy,
     shadows: settings.graphics.terrainShadows
   });
-  const scene = new Scene(chk.size[0], chk.size[1], terrain);
+  const scene = new Scene(chk.size[0], chk.size[1], terrain.mesh);
 
   ImageHD.useDepth = false;
   processStore().increment(Process.MapInitialization);

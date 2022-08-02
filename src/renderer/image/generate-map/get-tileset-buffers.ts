@@ -17,7 +17,7 @@ export const getTilesetBuffers = async (
   ];
 
   let mapTiles;
-  //hitchhiker has odd length buffer??
+  //hitchhiker has odd length buffer
   if (tilesBuffer.buffer.byteLength % 2 === 1) {
     const tiles = Buffer.alloc(tilesBuffer.byteLength + 1);
     tilesBuffer.copy(tiles);
@@ -57,22 +57,16 @@ export const getTilesetBuffers = async (
 
   const creepGrpSD = await readCascFile(`TileSet/${tilesetName}.grp`);
 
-  // if (terrainTextureResolution === AssetTextureResolution.HD2) {
-  hdTiles = await readCascFile(`TileSet/${tilesetName}.dds.vr4`)
-  // hdTiles = await readCascFile(`HD2/TileSet/${tilesetName}.dds.vr4`)
-
-  // creepGrpHD =
-  // await readCascFile(`HD2/TileSet/${tilesetName}.dds.grp`)
+  hdTiles = await readCascFile(`TileSet/${tilesetName}.dds.vr4`);
   creepGrpHD =
-    await readCascFile(`TileSet/${tilesetName}.dds.grp`)
+    await readCascFile(`TileSet/${tilesetName}.dds.grp`);
 
-  // } else {
-  //   hdTiles =
-  //     await readCascFile(`TileSet/${tilesetName}.dds.vr4`)
-  //   creepGrpHD =
-  //     await readCascFile(`TileSet/${tilesetName}.dds.grp`)
+  const waterNormal1 = await readCascFile(`effect/water_normal_1.dds.grp`);
+  const waterNormal2 = await readCascFile(`effect/water_normal_2.dds.grp`);
+  const noise = await readCascFile(`effect/noise.DDS`);
 
-  // }
+  const waterMask = await readCascFile(`TileSet/${tilesetName}_mask.dds.grp`);
+  const tileMask = await readCascFile(`TileSet/${tilesetName}.tmsk`);
 
   return {
     mapTiles,
@@ -86,5 +80,10 @@ export const getTilesetBuffers = async (
     tilegroupBuf,
     creepGrpSD,
     creepGrpHD,
+    waterMask,
+    waterNormal1,
+    waterNormal2,
+    noise,
+    tileMask
   };
 };

@@ -1,7 +1,7 @@
 import { MacroDTO, PluginMetaData } from "common/types";
 import { useState } from "react";
 import { createDefaultHooks } from "../../plugins/hooks";
-import { PluginCustomHookTrigger } from "../macros/custom-hook-trigger";
+import { MacroHookTrigger } from "../../../common/macro-hook-trigger";
 
 export const MacroCustomHookOptions = ({
   macro,
@@ -17,7 +17,7 @@ export const MacroCustomHookOptions = ({
     "onEnterScene",
     "onExitScene",
   ];
-  const trigger = PluginCustomHookTrigger.deserialize(macro.trigger);
+  const trigger = MacroHookTrigger.deserialize(macro.trigger);
   const [selectedPlugin, setSelectedPlugin] = useState<string>(
     trigger.pluginName ?? ""
   );

@@ -8,7 +8,7 @@ import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
-import { PluginCustomHookTrigger } from "./custom-hook-trigger";
+import { MacroHookTrigger } from "../../../common/macro-hook-trigger";
 
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;
@@ -163,7 +163,7 @@ export class Macros {
 
     callHook(hookName: string, pluginName?: string, ...context: any[]) {
         for (const macro of this.#meta.hookMacros) {
-            if ((macro.trigger as PluginCustomHookTrigger).test(hookName, pluginName)) {
+            if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName)) {
                 this.#execMacro(macro, context);
             }
         }
@@ -192,7 +192,7 @@ export class Macros {
             if (macro.trigger.type === TriggerType.Hotkey) {
                 trigger = HotkeyTrigger.deserialize(macro.trigger)
             } else if (macro.trigger.type === TriggerType.GameHook) {
-                trigger = PluginCustomHookTrigger.deserialize(macro.trigger)
+                trigger = MacroHookTrigger.deserialize(macro.trigger)
             }
             const newMacro = new Macro(
                 macro.id,
@@ -205,7 +205,7 @@ export class Macros {
             return newMacro;
         });
 
-        this.#meta.hookMacros = this.macros.filter((m) => m.trigger instanceof PluginCustomHookTrigger).sort((a, b) => {
+        this.#meta.hookMacros = this.macros.filter((m) => m.trigger instanceof MacroHookTrigger).sort((a, b) => {
             return a.trigger.weight - b.trigger.weight;
         });
 

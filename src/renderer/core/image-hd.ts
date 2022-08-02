@@ -79,6 +79,11 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
       1
     );
 
+    // command center overlay scale up a bit to remove border issues
+    if (imageDef.index === 276) {
+      this.originalScale.multiply(new Vector3(1.01, 1.01, 1));
+    }
+
     this.material.depthTest = ImageHD.useDepth;
     this.scale.copy(this.originalScale).multiplyScalar(ImageHD.useScale);
 

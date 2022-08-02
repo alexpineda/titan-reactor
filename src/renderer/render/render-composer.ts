@@ -19,6 +19,7 @@ const createWebGLRenderer = () => {
         antialias: false,
         stencil: false,
         depth: false,
+        precision: "highp",
     });
     renderer.outputEncoding = sRGBEncoding;
     renderer.debug.checkShaderErrors = rendererIsDev;

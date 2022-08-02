@@ -78,6 +78,7 @@ export type MacroDTO = {
     trigger: MacroTriggerDTO;
     actions: MacroAction[];
     actionSequence: MacroActionSequence;
+    error?: string;
 };
 
 export type MacrosDTO = {

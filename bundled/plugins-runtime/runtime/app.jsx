@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Home } from "./home.jsx";
-import { usePluginConfig } from "titan-reactor";
+import { usePluginConfig, useProgress } from "titan-reactor";
 
 const _screenSelector = (store) => store.screen;
 
@@ -58,10 +58,8 @@ const styleCenterText = {
   cursor: "wait",
   color: "#ffeedd",
   fontFamily: "Conthrax",
-  animation: "var(--animation-blink) forwards",
-  animationDuration: "10s",
   display: "flex",
-  alignItems: "center",
+  flexDirection: "column",
 };
 
 const loadingSvg = (
@@ -121,6 +119,8 @@ export default ({ components, useStore, PluginContext }) => {
     </PluginContext.Provider>
   );
 
+  const progress = useProgress() ?? 0;
+
   return (
     <div
       ref={containerDiv}
@@ -135,7 +135,20 @@ export default ({ components, useStore, PluginContext }) => {
       }}
     >
       {!appLoaded && !error && !firstInstall && (
-        <div style={styleCenterText}>{loadingSvg}</div>
+        <div style={styleCenterText}>
+          <div>{loadingSvg}</div>
+          <div
+            style={{
+              background: "white",
+              transform: `scaleX(${progress})`,
+              height: "20px",
+              marginTop: "20px",
+              width: "100%",
+            }}
+          >
+            &nbsp;
+          </div>
+        </div>
       )}
       {!appLoaded && firstInstall && (
         <div style={styleCenterText}>

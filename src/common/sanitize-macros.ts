@@ -1,5 +1,6 @@
 import { getAppSettingsLevaConfig, getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacrosDTO, SettingsMeta } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { MacroHookTrigger } from "common/macro-hook-trigger";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -9,12 +10,34 @@ const getPluginConfigFields = (config: any) => {
 }
 
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta) => {
+    const hotkeys = new Set<string>();
+
     for (const macro of macros.macros) {
+        delete macro.error;
+        if (macro.trigger.type === TriggerType.Hotkey) {
+            if (macro.trigger.value) {
+                if (hotkeys.has(macro.trigger.value)) {
+                    macro.error = "Duplicate hotkey";
+                } else {
+                    hotkeys.add(macro.trigger.value);
+                }
+            }
+        }
+        sanitizeMacro(macro, settings);
         for (const action of macro.actions) {
             sanitizeMacroAction(action, settings);
         }
     }
     return macros;
+}
+
+const sanitizeMacro = (macro: MacroDTO, settings: SettingsAndPluginsMeta) => {
+    if (macro.trigger.type === TriggerType.GameHook) {
+        const d = MacroHookTrigger.deserialize(macro.trigger);
+        if (d !== undefined && settings.enabledPlugins.find(p => p.name === d.pluginName) === undefined) {
+            macro.error = `Plugin for game hook trigger not found - ${d.pluginName}`;
+        }
+    }
 }
 
 const sanitizeMacroAction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {

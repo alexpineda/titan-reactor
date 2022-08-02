@@ -13,9 +13,10 @@ import {
   Texture,
 } from "three";
 
-import { TerrainMesh, TerrainInfo, TerrainQuartile } from "common/types";
+import { TerrainMesh, TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
 import { Layers } from "./layers";
+import { disposeObject3D } from "@utils/dispose";
 
 
 function sunlight(mapWidth: number, mapHeight: number) {
@@ -60,9 +61,7 @@ export class Scene extends ThreeScene {
   constructor(
     mapWidth: number,
     mapHeight: number,
-    {
-      mesh: terrain,
-    }: Pick<TerrainInfo, "mesh">) {
+    terrain: TerrainMesh) {
     super();
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
@@ -82,7 +81,6 @@ export class Scene extends ThreeScene {
     this.add(this.hemilight);
     this.add(this.sunlight);
     this.addTerrain(terrain);
-    terrain.updateMatrixWorld();
 
     this.#skybox = this.skybox("sparse");
     this.enableSkybox();
@@ -208,7 +206,7 @@ export class Scene extends ThreeScene {
   }
 
   disableSkybox() {
-    this.background = new Color(0x000000);
+    this.background = new Color(0xffffff);
   }
 
   enableSkybox() {
@@ -220,15 +218,15 @@ export class Scene extends ThreeScene {
   ) {
     this.userData.terrain = terrain;
     this.add(terrain);
-    this.#janitor.object3d(terrain);
+    terrain.updateMatrixWorld();
   }
 
   replaceTerrain(
     terrain: TerrainMesh
   ) {
+    disposeObject3D(this.userData.terrain)
     this.remove(this.userData.terrain);
     this.addTerrain(terrain);
-    this.#janitor.object3d(terrain);
   }
 
   get terrain() {

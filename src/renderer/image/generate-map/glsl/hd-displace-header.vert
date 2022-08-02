@@ -1,3 +1,4 @@
 precision highp isampler2D;
-uniform vec2 quartileResolution;
+// normalized
+uniform vec2 quartileSize;
 uniform vec2 quartileOffset;

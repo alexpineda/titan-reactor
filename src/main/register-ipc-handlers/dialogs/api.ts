@@ -1,7 +1,5 @@
 import { dialog } from "electron";
 
-import windows from "../../windows";
-
 export const showOpenFolderDialog = (onOpen?: (filePaths: string[]) => void) =>
   dialog
     .showOpenDialog({

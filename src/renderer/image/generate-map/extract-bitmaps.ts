@@ -136,7 +136,7 @@ export const extractBitmaps = (
               diffuse[pixelPos * 4 + 3] = 255;
 
               displacementDetail[pixelPos] = details;
-              roughness[pixelPos] = elevation == 0 ? 0 : details / 3;
+              roughness[pixelPos] = elevation == 0 ? 0 : details;
             }
           }
         }

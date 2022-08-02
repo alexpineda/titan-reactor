@@ -209,6 +209,9 @@ export const MacroPanel = ({
           </button>
         </div>
       </span>
+
+      {macro.error && <p style={{ color: "var(--red-6)" }}>{macro.error}</p>}
+
       <CreateMacroAction
         onCreate={(action) => createAction(macro, action)}
         pluginsMetadata={pluginsMetadata}

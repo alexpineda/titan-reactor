@@ -1,6 +1,6 @@
 import { MacroTrigger, MacroTriggerDTO, TriggerType } from "common/types";
 
-export class PluginCustomHookTrigger implements MacroTrigger {
+export class MacroHookTrigger implements MacroTrigger {
     type = TriggerType.Hotkey;
     hookName: string;
     pluginName?: string;
@@ -23,7 +23,7 @@ export class PluginCustomHookTrigger implements MacroTrigger {
     }
 
     static deserialize(dto: MacroTriggerDTO) {
-        return new PluginCustomHookTrigger(dto.value ?? "");
+        return new MacroHookTrigger(dto.value ?? "");
     };
 
     toString() {

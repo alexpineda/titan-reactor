@@ -3,6 +3,7 @@ import { ColorChannel, BlendFunction, Effect } from "postprocessing";
 
 const fragmentShader = `
 precision highp usampler2D;
+
 uniform sampler2D texture;
 uniform usampler2D elevations;
 uniform usampler2D mapTiles;

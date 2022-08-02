@@ -57,7 +57,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
                 shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
 
-                shader.uniforms.quartileResolution = {
+                shader.uniforms.quartileSize = {
                     value: new Vector2(qw / mapWidth, qh / mapHeight),
                 };
                 shader.uniforms.quartileOffset = {
@@ -99,6 +99,20 @@ export const createTerrainGeometryFromQuartiles = async (
                 shader.uniforms.creepTexture = {
                     value: creepTexture.texture,
                 };
+
+
+                let vs = shader.vertexShader;
+                vs = vs.replace("varying vec3 vViewPosition;", `
+                    varying vec3 vViewPosition;
+                    varying vec3 v_Position;
+                `);
+                ;
+                vs = vs.replace("gl_Position = projectionMatrix * mvPosition;", `
+                    gl_Position = projectionMatrix * mvPosition;
+                    v_Position = projectionMatrix * mvPosition;
+                `);
+                shader.vertexShader = vs;
+
             };
             const terrainQuartile = new Mesh(g, mat);
             terrainQuartile.castShadow = true;

@@ -141,7 +141,7 @@ export default async (filepath: string) => {
     shadows: settings.graphics.terrainShadows
   }
   );
-  const scene = new Scene(map.size[0], map.size[1], terrain);
+  const scene = new Scene(map.size[0], map.size[1], terrain.mesh);
   janitor.object3d(scene);
   janitor.disposable(scene);
 

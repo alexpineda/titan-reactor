@@ -1,4 +1,4 @@
-import { BwDAT, ImageStruct } from "common/types";
+import { BwDAT, ImageDAT, ImageStruct } from "common/types";
 import { ImageFlags, drawFunctions } from "common/enums";
 
 export const imageIsShadow = (image: ImageStruct, bwDat: BwDAT) => {
@@ -30,4 +30,8 @@ export const imageHasDirectionalFrames = (image: ImageStruct) => {
 
 export const imageIsClickable = (image: ImageStruct) => {
   return image.flags & ImageFlags.Clickable;
+}
+
+export const imageIsDoodad = (dat: ImageDAT) => {
+  return dat.iscript === 336 || dat.iscript === 337;
 }

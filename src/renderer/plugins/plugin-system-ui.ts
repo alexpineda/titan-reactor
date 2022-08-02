@@ -134,7 +134,7 @@ export class PluginSystemUI {
             [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
             [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
             [UI_STATE_EVENT_PROGRESS]: processStore().getTotalProgress(),
-            [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage,
+            [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage.payload,
         })
 
         const setInteractivity = (interactive: boolean) => {
