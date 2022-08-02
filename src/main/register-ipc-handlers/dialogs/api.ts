@@ -23,13 +23,12 @@ export const showOpenFolderDialog = (onOpen?: (filePaths: string[]) => void) =>
 interface OpenFileDialogOptions {
   title: string;
   extensions: string[];
-  command: string;
   defaultPath?: string;
   multiSelect?: boolean;
 }
 
 export const showOpenFileDialog = function (options: OpenFileDialogOptions) {
-  const { title, extensions, command, defaultPath, multiSelect } =
+  const { title, extensions, defaultPath, multiSelect } =
     Object.assign({}, options);
 
   const filters = [{ name: title, extensions }];
@@ -38,7 +37,7 @@ export const showOpenFileDialog = function (options: OpenFileDialogOptions) {
     multiSelections.push("multiSelections");
   }
 
-  dialog
+  return dialog
     .showOpenDialog({
       properties: multiSelections as keyof typeof dialog.showOpenDialog,
       filters,
@@ -46,7 +45,7 @@ export const showOpenFileDialog = function (options: OpenFileDialogOptions) {
     })
     .then(({ filePaths, canceled }) => {
       if (canceled) return;
-      windows.main?.webContents.send(command, filePaths);
+      return filePaths;
     })
     .catch((err) => {
       dialog.showMessageBox({

@@ -16,6 +16,7 @@ import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { getUpdateVersion, localPluginRepository } from "./plugin-utils";
 import { PluginButton } from "./plugin-button";
+import { ReplayQueue } from "./replay-queue";
 
 if (module.hot) {
   module.hot.accept();
@@ -322,6 +323,9 @@ const CommandCenter = () => {
           </Tab>
           <Tab label="Macros">
             <MacrosPanel />
+          </Tab>
+          <Tab label="Replay Queue">
+            <ReplayQueue />
           </Tab>
         </Tabs>
       </div>

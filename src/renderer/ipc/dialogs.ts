@@ -12,12 +12,12 @@ export const showFolderDialog = async () => {
   return await ipcRenderer.invoke(SHOW_FOLDER_DIALOG);
 };
 
-export const openReplayDialog = async (filepath: string) => {
-  ipcRenderer.send(OPEN_REPLAY_DIALOG, filepath);
+export const openReplayDialog = async (multiSelect = false) => {
+  return ipcRenderer.invoke(OPEN_REPLAY_DIALOG, multiSelect);
 };
 
-export const openMapDialog = async (filepath: string) => {
-  ipcRenderer.send(OPEN_MAP_DIALOG, filepath);
+export const openMapDialog = async () => {
+  return ipcRenderer.invoke(OPEN_MAP_DIALOG);
 };
 
 export const downloadUpdate = async (url: string) => {

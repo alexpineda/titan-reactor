@@ -4,7 +4,7 @@ import getUserDataPath from "./get-user-data-path";
 import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton"
-import { RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { spawn } from "child_process";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
@@ -19,14 +19,20 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void, go
         { type: "separator" },
         {
           label: "Open &Map",
-          click: function () {
-            showOpenMapDialog();
+          click: async function () {
+            const files = await showOpenMapDialog();
+            if (files && files.length > 0) {
+              browserWindows.main!.webContents.send(OPEN_MAP_DIALOG, files[0]);
+            }
           },
         },
         {
           label: "Open &Replay",
-          click: function () {
-            showOpenReplayDialog();
+          click: async function () {
+            const files = await showOpenReplayDialog();
+            if (files && files.length > 0) {
+              browserWindows.main!.webContents.send(OPEN_REPLAY_DIALOG, files[0]);
+            }
           },
         },
         { type: "separator" },

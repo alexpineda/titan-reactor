@@ -10,25 +10,21 @@ import {
 } from "common/ipc-handle-names";
 import { showOpenFileDialog, showOpenFolderDialog } from "./api";
 
-export const showOpenMapDialog = (defaultPath?: string) =>
+export const showOpenMapDialog = () =>
   showOpenFileDialog({
     title: "Starcraft Map",
     extensions: ["scm", "scx"],
-    command: OPEN_MAP_DIALOG,
-    defaultPath,
   });
 
-export const showOpenReplayDialog = (defaultPath?: string) =>
+export const showOpenReplayDialog = (multiSelect: boolean = false) =>
   showOpenFileDialog({
     title: "Starcraft Replay",
     extensions: ["rep"],
-    command: OPEN_REPLAY_DIALOG,
-    multiSelect: true,
-    defaultPath,
+    multiSelect,
   });
 
-ipcMain.on(OPEN_MAP_DIALOG, async (_, defaultPath = "") => showOpenMapDialog(defaultPath));
-ipcMain.on(OPEN_REPLAY_DIALOG, async (_, defaultPath = "") => showOpenReplayDialog(defaultPath));
+ipcMain.handle(OPEN_MAP_DIALOG, async () => showOpenMapDialog());
+ipcMain.handle(OPEN_REPLAY_DIALOG, async (_, multiSelect: boolean = false) => showOpenReplayDialog(multiSelect));
 
 ipcMain.handle(SHOW_FOLDER_DIALOG, () => showOpenFolderDialog());
 

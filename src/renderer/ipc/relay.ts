@@ -18,7 +18,7 @@ export enum SendWindowActionType {
     LoadReplay = "LoadReplay",
 }
 
-export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : T extends SendWindowActionType.ConsoleLog ? { message: string, level: "info" | "warning" | "error" | "verbose" } : never;
+export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : T extends SendWindowActionType.ConsoleLog ? { message: string, level: "info" | "warning" | "error" | "verbose" } : T extends SendWindowActionType.LoadReplay ? string : never;
 
 export function sendWindow<T extends SendWindowActionType>(target: InvokeBrowserTarget, message: { type: SendWindowActionType, payload: SendWindowActionPayload<T> }) {
     ipcRenderer.send(SEND_BROWSER_WINDOW, { target }, message);
