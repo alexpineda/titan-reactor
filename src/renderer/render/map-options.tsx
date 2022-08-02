@@ -3,6 +3,31 @@ import { mapConfigToLeva } from "@utils/leva-utils";
 import { GeometryOptions } from "common/types";
 import { LevaPanel, useControls, useCreateStore } from "leva";
 import { useState } from "react";
+import { Vector3 } from "three";
+import Scene from "./scene";
+
+export const createUpdateDisplayOptions =
+  (scene: Scene) => (options: MapDisplayOptions) => {
+    console.log(options);
+    scene.terrain.children.forEach((c) => {
+      c.material.wireframe = options.wireframe;
+    });
+
+    if (options.skybox) {
+      scene.enableSkybox();
+    } else {
+      scene.disableSkybox();
+    }
+
+    scene.sunlight.position.copy(options.sunPosition);
+    scene.sunlight.intensity = options.sunIntensity;
+    scene.sunlight.color.set(options.sunColor);
+    scene.sunlight.shadow.needsUpdate = true;
+
+    scene.hemilight.intensity;
+    scene.hemilight.color;
+    scene.hemilight.groundColor;
+  };
 
 const toSimple = (obj: { [key: string]: { value: any } }) => {
   const result: GeometryOptions = defaultGeometryOptions;
@@ -25,26 +50,29 @@ const toSimple = (obj: { [key: string]: { value: any } }) => {
 export type MapDisplayOptions = {
   wireframe: boolean;
   skybox: boolean;
+  sunPosition: Vector3;
+  sunColor: string;
+  sunIntensity: number;
 };
 
 export const MapViewer = ({
   onChange,
   onDisplayOptionsChange,
-  defaultDisplayOptions,
+  displayOptions,
 }: {
   onChange: (options: GeometryOptions) => void;
   onDisplayOptionsChange: (options: MapDisplayOptions) => void;
-  defaultDisplayOptions: MapDisplayOptions;
+  displayOptions: MapDisplayOptions;
 }) => {
   const store = useCreateStore();
-  const [displayOptions, setDisplayOptions] = useState<MapDisplayOptions>(
-    defaultDisplayOptions
-  );
+  // const [displayOptions, setDisplayOptions] = useState<MapDisplayOptions>(
+  //   defaultDisplayOptions
+  // );
 
   const updateDisplayOptions = (newOptions: Partial<MapDisplayOptions>) => {
-    const n = { ...displayOptions, ...newOptions };
-    setDisplayOptions(n);
-    onDisplayOptionsChange(n);
+    Object.assign(displayOptions, newOptions);
+    // setDisplayOptions(n);
+    onDisplayOptionsChange(displayOptions);
   };
 
   const [state, setState] = useState({
@@ -172,6 +200,29 @@ export const MapViewer = ({
         updateDisplayOptions({ skybox: value });
       },
     },
+    sunPosition: {
+      folder: "Lighting",
+      value: displayOptions.sunPosition,
+      step: 1,
+      onChange: (value: Vector3) => {
+        updateDisplayOptions({ sunPosition: value });
+      },
+    },
+    sunColor: {
+      folder: "Lighting",
+      value: displayOptions.sunColor,
+      onChange: (value: string) => {
+        updateDisplayOptions({ sunColor: value });
+      },
+    },
+    sunIntensity: {
+      folder: "Lighting",
+      value: displayOptions.sunIntensity,
+      step: 0.5,
+      onChange: (value: number) => {
+        updateDisplayOptions({ sunIntensity: value });
+      },
+    },
   });
   const controls = mapConfigToLeva(
     state,
@@ -186,5 +237,59 @@ export const MapViewer = ({
     useControls(folder, config, { store, collapsed: true });
   }
 
-  return <LevaPanel store={store} />;
+  // if (high && walkable && mid) {
+  //   elevation = 6;
+  // } else if (high && walkable) {
+  //   elevation = 5;
+  // } else if (high) {
+  //   elevation = 4;
+  // } else if (mid && walkable) {
+  //   elevation = 3;
+  // } else if (mid) {
+  //   elevation = 2;
+  // } else if (walkable) {
+  //   elevation = 1;
+  // }
+
+  return (
+    <>
+      <LevaPanel store={store} />
+      <div
+        style={{
+          padding: "2rem",
+          display: "flex",
+          flexDirection: "column",
+          position: "absolute",
+          left: "0",
+          bottom: "0",
+        }}
+      >
+        <table>
+          <tbody>
+            <tr>
+              <td>High Mid Walkable</td>
+            </tr>
+            <tr>
+              <td>High Walkable</td>
+            </tr>
+            <tr>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td>Mid Walkable</td>
+            </tr>
+            <tr>
+              <td>Mid</td>
+            </tr>
+            <tr>
+              <td>Low Walkable</td>
+            </tr>
+            <tr>
+              <td>Low</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
 };

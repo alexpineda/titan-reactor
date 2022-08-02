@@ -24,3 +24,4 @@ export const parseTMSK = (buffer: Buffer) => {
     })
 };
 
+// u32 getMaskID(u32 vr4id){ u32 i;for(i=0;i<tmsk->count;i++) if(tmsk->tileMasks[i].vr4id == vr4id) return tmsk->tileMasks[i].maskid; return 0xFFFFFFFF; }

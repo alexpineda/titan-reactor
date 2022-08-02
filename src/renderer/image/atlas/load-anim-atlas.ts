@@ -2,6 +2,7 @@ import { AnimDds, Atlas, GrpSprite, UnitTileScale } from "common/types";
 import { ImageDAT } from "common/bwdat/images-dat";
 
 import { parseAnim, createDDSTexture } from "../formats";
+import { LinearEncoding, TextureEncoding } from "three";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);
@@ -24,12 +25,12 @@ export const loadAnimAtlas = async (
     const ddsBuf = getBufDds(buf, sprite.maps.diffuse);
     const diffuse = await createDDSTexture(ddsBuf);
 
-    const optionalLoad = async (layer: any) => {
+    const optionalLoad = async (layer: AnimDds, encoding?: TextureEncoding) => {
         if (layer === undefined) {
             return undefined;
         }
-        const ddsBuf = getBufDds(buf, sprite.maps.teamcolor);
-        return await createDDSTexture(ddsBuf);
+        const ddsBuf = getBufDds(buf, layer);
+        return await createDDSTexture(ddsBuf, encoding);
     }
 
     const teammask = await optionalLoad(sprite.maps.teamcolor);
@@ -42,7 +43,7 @@ export const loadAnimAtlas = async (
     // const normal = await optionalLoad(sprite.maps.normal);
     // const specular = await optionalLoad(sprite.maps.specular);
     // const aoDepth = await optionalLoad(sprite.maps.ao_depth);
-    // const emissive = await optionalLoad(sprite.maps.emissive);
+    const emissive = scale === UnitTileScale.HD ? await optionalLoad(sprite.maps.emissive, LinearEncoding) : undefined;
 
     //FIXME: diffuse is used twice
     return {
@@ -63,7 +64,10 @@ export const loadAnimAtlas = async (
         spriteWidth: sprite.w,
         spriteHeight: sprite.h,
         unitTileScale: scale,
-        teammask
+        teammask,
+        hdLayers: {
+            emissive
+        }
     };
 
 }

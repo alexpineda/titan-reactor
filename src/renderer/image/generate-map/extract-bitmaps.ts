@@ -6,7 +6,7 @@ export type MapBitmaps = {
   diffuse: Uint8Array;
   layers: Uint8Array;
   paletteIndices: Uint8Array;
-  roughness: Uint8Array;
+  occlussionRoughnessMetallic: Uint8Array;
   displacementDetail: Uint8Array;
 }
 
@@ -40,7 +40,7 @@ export const extractBitmaps = (
   const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4);
   const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
   const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
-  const roughness = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const occlussionRoughnessMetallic = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4);
   const displacementDetail = new Uint8Array(mapWidth * mapHeight * 32 * 32);
 
   for (let mapY = 0; mapY < mapHeight; mapY++) {
@@ -136,7 +136,8 @@ export const extractBitmaps = (
               diffuse[pixelPos * 4 + 3] = 255;
 
               displacementDetail[pixelPos] = details;
-              roughness[pixelPos] = elevation == 0 ? 0 : details;
+              // G channel for roughness
+              occlussionRoughnessMetallic[pixelPos * 4 + 1] = elevation == 0 ? 0 : details;
             }
           }
         }
@@ -149,7 +150,7 @@ export const extractBitmaps = (
     diffuse,
     layers,
     paletteIndices,
-    roughness,
+    occlussionRoughnessMetallic,
     displacementDetail,
   };
 };

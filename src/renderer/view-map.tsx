@@ -35,6 +35,9 @@ async function TitanReactorMap(
 ) {
   const janitor = new Janitor();
   // const assets = gameStore().assets;
+  scene.autoUpdate = true;
+  scene.sunlight.shadow.autoUpdate = true;
+  renderComposer.getWebGLRenderer().shadowMap.autoUpdate = true;
 
   const preplacedMapUnits = chk.units;
   // const preplacedMapSprites = chk.sprites;
@@ -69,7 +72,7 @@ async function TitanReactorMap(
   janitor.callback(() => document.body.removeChild(gameSurface.canvas));
 
   // scene.background = new Color(settings.mapBackgroundColor);
-  const camera = new PerspectiveCamera(55, gameSurface.aspect, 3, 256);
+  const camera = new PerspectiveCamera(55, gameSurface.aspect, 0.1, 1000);
 
   const createControls = () => {
     const control = new CameraControls(camera, gameSurface.canvas);
@@ -235,8 +238,16 @@ async function TitanReactorMap(
     _sceneResizeHandler();
   }, 1000);
 
-  let _displayOptions: MapDisplayOptions = { wireframe: false, skybox: false };
+  let _displayOptions: MapDisplayOptions = {
+    wireframe: false,
+    skybox: false,
+    sunColor: "#ffffff",
+    sunIntensity: scene.sunlight.intensity,
+    sunPosition: scene.sunlight.position.clone(),
+  };
+
   const updateDisplayOptions = (options: MapDisplayOptions) => {
+    console.log(options);
     scene.terrain.children.forEach((c) => {
       c.material.wireframe = options.wireframe;
       c.material.color = new Color(0xffffff);
@@ -247,6 +258,15 @@ async function TitanReactorMap(
     } else {
       scene.disableSkybox();
     }
+
+    scene.sunlight.position.copy(options.sunPosition);
+    scene.sunlight.intensity = options.sunIntensity;
+    scene.sunlight.color.set(options.sunColor);
+    scene.sunlight.shadow.needsUpdate = true;
+
+    scene.hemilight.intensity;
+    scene.hemilight.color;
+    scene.hemilight.groundColor;
   };
 
   root.render(
@@ -256,7 +276,7 @@ async function TitanReactorMap(
         _displayOptions = e;
         updateDisplayOptions(e);
       }}
-      defaultDisplayOptions={_displayOptions}
+      displayOptions={_displayOptions}
     />
   );
 

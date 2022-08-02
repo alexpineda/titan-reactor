@@ -13,9 +13,9 @@ import { anisotropyOptions } from "@utils/renderer-utils";
 import { Layers } from "../../render/layers";
 import { LinearEncoding, Mesh, sRGBEncoding } from "three";
 import renderComposer from "../../render/render-composer";
-// import { parseDdsGrp, parseDdsGrpAsTextures, parseDdsGrpWithFrameData } from "..";
-// import parseDDS from "@image/formats/parse-dds";
-// import { parseTMSK } from "@image/formats/parse-tmsk";
+import { parseDdsGrpAsTextures } from "..";
+import parseDDS from "@image/formats/parse-dds";
+import { parseTMSK } from "@image/formats/parse-tmsk";
 
 type TerrainMeshSettings = {
   textureResolution: UnitTileScale;
@@ -27,10 +27,10 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
-  const bitmaps = await extractBitmaps(chk.size[0], chk.size[1], tilesetBuffers);
+  const bitmaps = await extractBitmaps(mapWidth, mapHeight, tilesetBuffers);
   const dataTextures = await createDataTextures({
     blendNonWalkableBase: geomOptions.blendNonWalkableBase,
-    palette: tilesetBuffers.palette, mapWidth: chk.size[0], mapHeight: chk.size[1], mapData: bitmaps,
+    palette: tilesetBuffers.palette, mapWidth, mapHeight, bitmaps,
   }
   );
 
@@ -70,15 +70,15 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     settings.textureResolution, renderer
   );
 
-  // const effectTextures = async () => {
-  //   const waterNormal1 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal1);
-  //   const waterNormal2 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal2);
-  //   const noise = await parseDDS(tilesetBuffers.noise, false);
-  //   const waterMask = parseDdsGrpAsTextures(tilesetBuffers.waterMask);
-  //   const tileMask = parseTMSK(tilesetBuffers.tileMask);
+  {
+    const waterNormal1 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal1);
+    const waterNormal2 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal2);
+    const noise = await parseDDS(tilesetBuffers.noise, false);
+    const waterMask = parseDdsGrpAsTextures(tilesetBuffers.waterMask);
+    const tileMask = parseTMSK(tilesetBuffers.tileMask);
 
+  }
 
-  // }
   renderer.autoClear = true;
   renderer.outputEncoding = sRGBEncoding;
 

@@ -102,10 +102,6 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
   }
 
   override onBeforeCompile(shader: any) {
-    // function extendVertex(replace: string, chunks: string[][]) {
-    //   return extend("vertexShader", replace, chunks);
-    // }
-
     function extend(
       prop: "fragmentShader" | "vertexShader",
       replace: string,
@@ -136,7 +132,6 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     }
 
     const mapFragments = [];
-    // const vertFragments = [];
 
     if (this.teamMask) {
       mapFragments.push([
@@ -183,15 +178,8 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     uniform float modifierData2;
     uniform sampler2D warpInFlashTexture;`])
 
-    // extendVertex("gl_Position = projectionMatrix * mvPosition;", vertFragments);
     extend("fragmentShader", "#include <map_fragment>", mapFragments);
 
-    /*
-    // hallucination effect
-    float b = dot(sourceColor, vec3(0.30196078, 0.59215686, 0.10980392));
-    vec3 hallucinateColor = vec3(0.75, 1.125, 2.65) * b;
-    return mix(blendTarget, hallucinateColor, halT);
-    */
     Object.assign(shader.uniforms, this.#dynamicUniforms);
 
   }

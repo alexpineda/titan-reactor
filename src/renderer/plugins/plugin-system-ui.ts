@@ -83,7 +83,10 @@ export const setDumpUnitCall = (fn: (id: number) => {}) => {
 }
 
 
-const _selectedUnitMessage = {
+const _selectedUnitMessage: {
+    type: string;
+    payload: Unit[]
+} = {
     type: UI_STATE_EVENT_UNITS_SELECTED,
     payload: []
 }

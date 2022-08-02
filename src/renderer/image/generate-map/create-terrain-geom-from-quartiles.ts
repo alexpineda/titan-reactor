@@ -1,4 +1,4 @@
-import { Vector2, MeshStandardMaterial, Mesh } from "three";
+import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk } from "three";
 
 
 import { WrappedTexture, WrappedQuartileTextures, TerrainMesh, GeometryOptions } from "common/types";
@@ -15,7 +15,7 @@ export const createTerrainGeometryFromQuartiles = async (
     creepTexture: WrappedTexture,
     creepEdgesTexture: WrappedTexture,
     geomOptions: GeometryOptions,
-    { creepEdgesTextureUniform, creepTextureUniform }: MapDataTextures,
+    { creepEdgesTextureUniform, creepTextureUniform, occlussionRoughnessMetallicMap }: MapDataTextures,
     displaceCanvas: HTMLCanvasElement,
     mapTextures: WrappedQuartileTextures,
 ) => {
@@ -48,6 +48,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 roughness: 1,
                 bumpMap: mapTextures.mapQuartiles[qx][qy],
                 bumpScale: geomOptions.bumpScale,
+                roughnessMap: occlussionRoughnessMetallicMap,
                 fog: false
             });
 
@@ -55,6 +56,9 @@ export const createTerrainGeometryFromQuartiles = async (
                 let fs = shader.fragmentShader;
 
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
+                fs = fs.replace("#include <roughnessmap_fragment>", ShaderChunk.roughnessmap_fragment.replace("vec4 texelRoughness = texture2D( roughnessMap, vUv );", "vec4 texelRoughness = texture2D( roughnessMap, qUv );"));
+                ;
+
                 shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
 
                 shader.uniforms.quartileSize = {

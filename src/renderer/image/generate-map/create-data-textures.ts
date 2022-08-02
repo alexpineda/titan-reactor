@@ -4,7 +4,7 @@ import { MapBitmaps } from "./extract-bitmaps";
 
 export interface MapDataTextures {
     sdMap: THREE.DataTexture,
-    roughnessMap: THREE.DataTexture,
+    occlussionRoughnessMetallicMap: THREE.DataTexture,
     mapTilesMap: THREE.DataTexture,
     creepTextureUniform: {
         value: THREE.DataTexture,
@@ -68,7 +68,7 @@ export const createDataTextures = async ({
     palette,
     mapWidth,
     mapHeight,
-    mapData,
+    bitmaps,
 
 }:
     {
@@ -76,7 +76,7 @@ export const createDataTextures = async ({
         palette: Uint8Array,
         mapWidth: number,
         mapHeight: number,
-        mapData: MapBitmaps,
+        bitmaps: MapBitmaps,
     }
 ): Promise<MapDataTextures> => {
 
@@ -87,23 +87,23 @@ export const createDataTextures = async ({
     const w4 = mapWidth * 4;
     const h4 = mapHeight * 4;
 
-    const sdMap = createDataTexture(mapData.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
-    const roughnessMap = createDataTexture(mapData.roughness, w32, h32, { format: THREE.RedIntegerFormat });
-    const mapTilesMap = createDataTexture(mapData.mapTilesData, mapWidth, mapHeight, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
+    const sdMap = createDataTexture(bitmaps.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
+    const occlussionRoughnessMetallicMap = createDataTexture(bitmaps.occlussionRoughnessMetallic, w32, h32, { format: THREE.RGBAFormat });
+    const mapTilesMap = createDataTexture(bitmaps.mapTilesData, mapWidth, mapHeight, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
 
     const creepEdgesValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
     const creepValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
 
-    const displacementDetailsMap = createDataTexture(mapData.displacementDetail, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
-    const elevationsMap = createDataTexture(mapData.layers, w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
-    const nonZeroElevationsMap = createDataTexture(createNonZeroElevationsData(mapData.layers, w4, h4, blendNonWalkableBase), w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const displacementDetailsMap = createDataTexture(bitmaps.displacementDetail, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const elevationsMap = createDataTexture(bitmaps.layers, w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const nonZeroElevationsMap = createDataTexture(createNonZeroElevationsData(bitmaps.layers, w4, h4, blendNonWalkableBase), w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
 
-    const paletteIndicesMap = createDataTexture(mapData.paletteIndices, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const paletteIndicesMap = createDataTexture(bitmaps.paletteIndices, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
     const paletteMap = createDataTexture(new Float32Array(palette.length).fill(0).map((_, i) => palette[i] / 255), palette.length / 4, 1, { textureDataType: THREE.FloatType, flipY: false, encoding: THREE.sRGBEncoding });
 
     return {
         sdMap,
-        roughnessMap,
+        occlussionRoughnessMetallicMap,
         mapTilesMap,
         creepTextureUniform: { value: creepValues },
         creepEdgesTextureUniform: { value: creepEdgesValues },

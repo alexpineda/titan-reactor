@@ -13,10 +13,6 @@ export const transformLevelConfiguration = (elevationLevels: number[], normalize
         normalizeLevels ? v / max : v
     );
 
-    // const maxLevel = normalLevels.reduce(
-    //   (max, lvl) => (lvl > max ? lvl : max),
-    //   0
-    // );
     levelsMtx.set(...normalLevels as Matrix3LevelArgs, 0, 0);
     return levelsMtx;
 }
