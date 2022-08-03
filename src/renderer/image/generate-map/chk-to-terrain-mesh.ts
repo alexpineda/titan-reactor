@@ -1,7 +1,7 @@
 import type Chk from "bw-chk";
 import { GeometryOptions, TerrainExtra, TerrainInfo, UnitTileScale } from "common/types";
 import {
-  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, dataTexturesToHeightMaps, getTerrainY as genTerrainY
+  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect, getTerrainY as genTerrainY
 } from ".";
 
 import * as log from "@ipc";
@@ -30,19 +30,19 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   const bitmaps = await extractBitmaps(mapWidth, mapHeight, tilesetBuffers);
   const dataTextures = await createDataTextures({
     blendNonWalkableBase: geomOptions.blendNonWalkableBase,
-    palette: tilesetBuffers.palette, mapWidth, mapHeight, bitmaps,
+    palette: tilesetBuffers.paletteWPE, mapWidth, mapHeight, bitmaps,
   }
   );
 
   const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
 
-  const { creepGrpSD, palette, hdTiles, creepGrpHD, tilegroupU16, tileset, megatiles, minitiles } = tilesetBuffers;
+  const { creepGrpSD, paletteWPE: palette, hdTiles, creepGrpHD, tilegroupCV5: tilegroupU16, tileset, megatilesVX4: megatiles, minitilesVR4: minitiles } = tilesetBuffers;
 
-  log.verbose(`Generating terrain ${settings.textureResolution} textures`);
+  log.verbose(`Generating terrain textures`);
 
   const renderer = renderComposer.getWebGLRenderer();
 
-  const displacementImages = await dataTexturesToHeightMaps({
+  const displacementImages = await doHeightMapEffect({
     palette,
     tileset,
     mapWidth,
@@ -70,19 +70,18 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     settings.textureResolution, renderer
   );
 
-  {
-    const waterNormal1 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal1);
-    const waterNormal2 = parseDdsGrpAsTextures(tilesetBuffers.waterNormal2);
-    const noise = await parseDDS(tilesetBuffers.noise, false);
-    const waterMask = parseDdsGrpAsTextures(tilesetBuffers.waterMask);
-    const tileMask = parseTMSK(tilesetBuffers.tileMask);
-
+  const effectsTextures = {
+    waterNormal1: parseDdsGrpAsTextures(tilesetBuffers.waterNormal1),
+    waterNormal2: parseDdsGrpAsTextures(tilesetBuffers.waterNormal2),
+    noise: await parseDDS(tilesetBuffers.noise, false),
+    waterMask: parseDdsGrpAsTextures(tilesetBuffers.waterMask),
+    tileMask: parseTMSK(tilesetBuffers.tileMask),
   }
 
   renderer.autoClear = true;
   renderer.outputEncoding = sRGBEncoding;
 
-  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures);
+  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures, effectsTextures);
   terrain.layers.enable(Layers.Terrain);
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);

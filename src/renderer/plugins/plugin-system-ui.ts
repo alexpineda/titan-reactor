@@ -57,7 +57,15 @@ const _replayPosition = {
 
 const worldPartial = (world: WorldStore) => {
     return {
-        map: world.map,
+        map: world.map ? {
+            title: world.map.title,
+            description: world.map.description,
+            width: world.map.size[0],
+            height: world.map.size[1],
+            tileset: world.map.tileset,
+            tilesetName: world.map.tilesetName,
+            image: world.mapImage
+        } : undefined,
         replay: world.replay?.header
     }
 }

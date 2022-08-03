@@ -1,7 +1,7 @@
 import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk } from "three";
 
 
-import { WrappedTexture, WrappedQuartileTextures, TerrainMesh, GeometryOptions } from "common/types";
+import { CreepTexture, WrappedQuartileTextures, TerrainMesh, GeometryOptions, EffectsTextures } from "common/types";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { MapDataTextures } from "./create-data-textures";
@@ -12,12 +12,13 @@ import hdHeaderFrag from "./glsl/hd-header.frag";
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
     mapHeight: number,
-    creepTexture: WrappedTexture,
-    creepEdgesTexture: WrappedTexture,
+    creepTexture: CreepTexture,
+    creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
     { creepEdgesTextureUniform, creepTextureUniform, occlussionRoughnessMetallicMap }: MapDataTextures,
     displaceCanvas: HTMLCanvasElement,
     mapTextures: WrappedQuartileTextures,
+    effectsTextures: EffectsTextures
 ) => {
     const terrain = new TerrainMesh();
 
@@ -67,26 +68,25 @@ export const createTerrainGeometryFromQuartiles = async (
                 shader.uniforms.quartileOffset = {
                     value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
                 };
-                shader.uniforms.invMapResolution = {
+
+                shader.uniforms.tileUnit = {
                     value: new Vector2(1 / qw, 1 / qh),
                 };
+
                 shader.uniforms.mapToCreepResolution = {
                     value: new Vector2(
-                        qw / (creepTexture.width / creepTexture.pxPerTile),
-                        qh / (creepTexture.height / creepTexture.pxPerTile)
+                        qw / (creepTexture.count),
+                        qh / 1
                     ),
                 };
                 shader.uniforms.creepResolution = {
-                    value: new Vector2(
-                        creepTexture.width / creepTexture.pxPerTile,
-                        creepTexture.height / creepTexture.pxPerTile
-                    ),
+                    value: new Vector2(creepTexture.count, 1)
                 };
 
                 shader.uniforms.mapToCreepEdgesResolution = {
                     value: new Vector2(
-                        qw / (creepEdgesTexture.width / creepEdgesTexture.pxPerTile),
-                        qh / (creepEdgesTexture.height / creepEdgesTexture.pxPerTile)
+                        qw / (creepEdgesTexture.count),
+                        qh / 1
                     ),
                 };
                 shader.uniforms.creepEdges = creepEdgesTextureUniform;
@@ -96,14 +96,37 @@ export const createTerrainGeometryFromQuartiles = async (
                 };
                 shader.uniforms.creepEdgesResolution = {
                     value: new Vector2(
-                        creepEdgesTexture.width / creepEdgesTexture.pxPerTile,
-                        creepEdgesTexture.height / creepEdgesTexture.pxPerTile
+                        creepEdgesTexture.count,
+                        1
                     ),
                 };
                 shader.uniforms.creepTexture = {
                     value: creepTexture.texture,
                 };
 
+                shader.uniforms.waterMask = {
+                    value: effectsTextures.waterMask
+                };
+
+                shader.uniforms.waterNormal1_0 = {
+                    value: effectsTextures.waterNormal1[0]
+                };
+
+                shader.uniforms.waterNormal1_1 = {
+                    value: effectsTextures.waterNormal1[1]
+                };
+
+                shader.uniforms.waterNormal2_0 = {
+                    value: effectsTextures.waterNormal2[0]
+                };
+
+                shader.uniforms.waterNormal2_1 = {
+                    value: effectsTextures.waterNormal2[1]
+                };
+
+                shader.uniforms.tileMask = {
+                    value: effectsTextures.tileMask
+                };
 
                 let vs = shader.vertexShader;
                 vs = vs.replace("varying vec3 vViewPosition;", `

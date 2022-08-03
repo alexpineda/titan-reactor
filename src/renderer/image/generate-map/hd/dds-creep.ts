@@ -1,5 +1,5 @@
 import { disposeObject3D } from "@utils/dispose";
-import { WrappedTexture, UnitTileScale } from "common/types";
+import { CreepTexture, UnitTileScale } from "common/types";
 import {
   MeshBasicMaterial,
   OrthographicCamera,
@@ -21,7 +21,7 @@ const width = 13;
 const height = 1;
 
 // generates a single creep texture from 0 - 13
-export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res: UnitTileScale, renderer: WebGLRenderer): WrappedTexture => {
+export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res: UnitTileScale, renderer: WebGLRenderer): CreepTexture => {
 
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
 
@@ -77,5 +77,5 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
 
   disposeObject3D(scene);
 
-  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD, pxPerTile: PX_PER_TILE_HD };
+  return { texture, count: width };
 };

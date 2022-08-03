@@ -40,6 +40,7 @@ import { setDumpUnitCall } from "./plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
 import { CMDS } from "./process-replay/commands/commands";
 import { Assets } from "common/types";
+import { rgbToCanvas } from "./image";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -121,6 +122,18 @@ export default async (filepath: string) => {
   }
   cleanMapTitles(map);
 
+  const img = await map.image(Chk.customFileAccess(async (fs, isOptional) => {
+    try {
+      const img = await readCascFile(fs);
+      return img;
+    } catch (e) {
+      if (isOptional) {
+        return null;
+      }
+      throw e;
+    }
+  }), 512, 512);
+
   const gameTitle = `${map.title} - ${replay.header.players
     .map(({ name }) => name)
     .join(", ")}`
@@ -128,14 +141,13 @@ export default async (filepath: string) => {
   log.info(`@load-replay/game: ${gameTitle}`);
   log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
 
-  useWorldStore.setState({ replay, map }, true);
+  useWorldStore.setState({ replay, map, mapImage: rgbToCanvas({ data: img, width: 512, height: 512 }, "rgb").toDataURL() }, true);
   janitor.callback(() => useWorldStore.setState({}, true));
 
   processStore().increment(Process.ReplayInitialization);
 
   const { terrain, extra } = await chkToTerrainMesh(
     map, {
-    //TODO: replace since HD2 and HD will be loaded
     textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
     anisotropy: settings.graphics.anisotropy,
     shadows: settings.graphics.terrainShadows

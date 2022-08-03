@@ -37,19 +37,18 @@ export const getTilesetBuffers = async (
   }
 
   const tilesetName = tilesets[tileset];
-  const tilegroupBuf = await readCascFile(`TileSet/${tilesetName}.cv5`);
-  const tilegroupU16 = new Uint16Array(tilegroupBuf.buffer);
+  const tilegroupU16 = new Uint16Array((await readCascFile(`TileSet/${tilesetName}.cv5`)).buffer);
 
-  const megatiles = new Uint32Array(
+  const megatilesVX4 = new Uint32Array(
     (await readCascFile(`TileSet/${tilesetName}.vx4ex`)).buffer
   );
-  const minitilesFlags = new Uint16Array(
+  const minitilesFlagsVF4 = new Uint16Array(
     (await readCascFile(`TileSet/${tilesetName}.vf4`)).buffer
   );
-  const minitiles = new Uint8Array(
+  const minitilesVR4 = new Uint8Array(
     (await readCascFile(`TileSet/${tilesetName}.vr4`)).buffer
   );
-  const palette = new Uint8Array(
+  const paletteWPE = new Uint8Array(
     (await readCascFile(`TileSet/${tilesetName}.wpe`)).buffer
   ).slice(0, 1024);
 
@@ -70,14 +69,13 @@ export const getTilesetBuffers = async (
 
   return {
     mapTiles,
-    megatiles,
-    minitilesFlags,
-    minitiles,
-    palette,
+    megatilesVX4,
+    minitilesFlagsVF4,
+    minitilesVR4,
+    paletteWPE,
     tileset,
     hdTiles,
-    tilegroupU16,
-    tilegroupBuf,
+    tilegroupCV5: tilegroupU16,
     creepGrpSD,
     creepGrpHD,
     waterMask,

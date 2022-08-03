@@ -7,15 +7,17 @@ import {
   RGBAFormat,
 } from "three";
 
+export type DDS = {
+  mipmaps: ImageData[];
+  width: number;
+  height: number;
+  format: number;
+  mipmapCount: number;
+  isCubemap: boolean;
+}
+
 export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
-  const dds: {
-    mipmaps: ImageData[];
-    width: number;
-    height: number;
-    format: number;
-    mipmapCount: number;
-    isCubemap: boolean;
-  } = {
+  const dds: DDS = {
     mipmaps: [],
     width: 0,
     height: 0,

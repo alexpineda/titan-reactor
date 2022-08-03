@@ -6,6 +6,7 @@ import create from "zustand/vanilla";
 export type WorldStore = {
     map?: Chk,
     replay?: Replay,
+    mapImage?: string
 };
 
 export const useWorldStore = create<WorldStore>(() => ({

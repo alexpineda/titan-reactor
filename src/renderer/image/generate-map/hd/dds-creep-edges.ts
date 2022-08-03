@@ -1,5 +1,5 @@
 import { disposeObject3D } from "@utils/dispose";
-import { DDSGrpFrameType, WrappedTexture, UnitTileScale } from "common/types";
+import { DDSGrpFrameType, CreepTexture, UnitTileScale } from "common/types";
 import {
   DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
 } from "three";
@@ -13,7 +13,7 @@ const topEdges = [6, 11, 17, 21];
 const leftEdges = [15];
 
 // generates a single creep texture for the edges from 0 - 15
-export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, renderer: WebGLRenderer): WrappedTexture => {
+export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, renderer: WebGLRenderer): CreepTexture => {
 
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
   const edgeScale = res === UnitTileScale.HD ? 256 : 128;
@@ -111,5 +111,5 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
 
   disposeObject3D(scene);
 
-  return { texture, width: width * PX_PER_TILE_HD, height: height * PX_PER_TILE_HD, pxPerTile: PX_PER_TILE_HD };
+  return { texture, count: width };
 };

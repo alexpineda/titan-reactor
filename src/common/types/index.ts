@@ -16,3 +16,4 @@ export * from "./structs";
 export * from "./macros";
 export * from "./utils";
 export * from "./assets";
+export * from "./trigger";

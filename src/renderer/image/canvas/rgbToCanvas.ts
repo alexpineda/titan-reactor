@@ -20,17 +20,7 @@ export const rgbToCanvas = (
 
   canvas.width = width;
   canvas.height = height;
-  writeToContext2d(ctx, data as Uint8Array, width, height, format);
-  return canvas;
-};
 
-function writeToContext2d(
-  ctx: CanvasRenderingContext2D,
-  data: Uint8Array,
-  width: number,
-  height: number,
-  format = "rgb"
-) {
   const srcPixelWidth = format === "rgba" ? 4 : 3;
   const dstPixelWidth = 4;
 
@@ -48,4 +38,5 @@ function writeToContext2d(
   }
 
   ctx.putImageData(imagedata, 0, 0);
-}
+  return canvas;
+};

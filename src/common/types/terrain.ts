@@ -1,8 +1,8 @@
 
 
-import { BufferGeometry, Group, Mesh, MeshStandardMaterial, Texture } from "three";
+import { DDS } from "@image/formats/parse-dds";
+import { BufferGeometry, CompressedTexture, Group, Mesh, MeshStandardMaterial, Texture } from "three";
 import { GetTerrainY } from "./util";
-
 
 export type GeometryOptions = {
   /** 
@@ -27,11 +27,9 @@ export type GeometryOptions = {
   firstBlur: number;
 }
 
-export type WrappedTexture = {
+export type CreepTexture = {
   texture: Texture;
-  width: number;
-  height: number;
-  pxPerTile: 32 | 64 | 128;
+  count: number;
 }
 
 export type WrappedQuartileTextures = {
@@ -83,13 +81,12 @@ export type TerrainInfo = {
 
 export type TilesetBuffers = {
   mapTiles: Uint16Array;
-  megatiles: Uint32Array;
-  minitilesFlags: Uint16Array;
-  minitiles: Uint8Array;
-  palette: Uint8Array;
+  megatilesVX4: Uint32Array;
+  minitilesFlagsVF4: Uint16Array;
+  minitilesVR4: Uint8Array;
+  paletteWPE: Uint8Array;
   tileset: number;
-  tilegroupU16: Uint16Array;
-  tilegroupBuf: Buffer;
+  tilegroupCV5: Uint16Array;
   hdTiles: Buffer;
   creepGrpSD: Buffer;
   creepGrpHD: Buffer;
@@ -99,3 +96,11 @@ export type TilesetBuffers = {
   noise: Buffer;
   tileMask: Buffer;
 };
+
+export type EffectsTextures = {
+  waterNormal1: CompressedTexture[],
+  waterNormal2: CompressedTexture[],
+  noise: DDS,
+  waterMask: CompressedTexture[],
+  tileMask: { i: number, vr4id: number, maskid: number }[]
+}

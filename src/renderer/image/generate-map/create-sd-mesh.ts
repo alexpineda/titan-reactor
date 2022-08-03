@@ -5,7 +5,7 @@ import {
   Vector2,
 } from "three";
 
-import { WrappedTexture, GeometryOptions } from "common/types";
+import { CreepTexture, GeometryOptions } from "common/types";
 import sdMapFrag from "./glsl/sd-map.frag";
 import sdMapFragHeader from "./glsl/sd-map-header.frag";
 import elevationFrag from "./glsl/elevation.frag";
@@ -15,10 +15,10 @@ import elevationHeader from "./glsl/elevation-header.frag";
 export const createSDMesh = async (
   mapWidth: number,
   mapHeight: number,
-  creepTexture: WrappedTexture,
-  creepEdgesTexture: WrappedTexture,
+  creepTexture: CreepTexture,
+  creepEdgesTexture: CreepTexture,
   geomOptions: GeometryOptions,
-  { paletteIndicesMap, paletteMap, creepEdgesTextureUniform, creepTextureUniform, sdMap, elevationsMap, mapTilesMap, roughnessMap }: MapDataTextures,
+  { paletteIndicesMap, paletteMap, creepEdgesTextureUniform, creepTextureUniform, sdMap, elevationsMap, mapTilesMap }: MapDataTextures,
   displacementCanvas: HTMLCanvasElement,
 ) => {
 
@@ -96,9 +96,6 @@ export const createSDMesh = async (
     displacementMap: new THREE.CanvasTexture(displacementCanvas),
     map: sdMap,
     roughness: 1,
-    bumpMap: roughnessMap,
-    bumpScale: 0.3,
-
   });
   elevationsMaterial.onBeforeCompile = function (shader) {
     let fs = shader.fragmentShader;

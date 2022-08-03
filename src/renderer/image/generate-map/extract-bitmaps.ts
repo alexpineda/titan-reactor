@@ -7,14 +7,13 @@ export type MapBitmaps = {
   layers: Uint8Array;
   paletteIndices: Uint8Array;
   occlussionRoughnessMetallic: Uint8Array;
-  displacementDetail: Uint8Array;
 }
 
 export const extractBitmaps = (
   mapWidth: number,
   mapHeight: number,
-  { mapTiles, palette, tilegroupU16, megatiles, minitilesFlags, minitiles }:
-    Pick<TilesetBuffers, "mapTiles" | "palette" | "tilegroupU16" | "megatiles" | "minitilesFlags" | "minitiles">
+  { mapTiles, paletteWPE, tilegroupCV5, megatilesVX4, minitilesFlagsVF4, minitilesVR4 }:
+    Pick<TilesetBuffers, "mapTiles" | "paletteWPE" | "tilegroupCV5" | "megatilesVX4" | "minitilesFlagsVF4" | "minitilesVR4">
 ): MapBitmaps => {
   let tileGroup,
     groupIndex,
@@ -31,17 +30,17 @@ export const extractBitmaps = (
     elevation,
     miniPos,
     pixelPos,
-    details,
     r,
     g,
     b;
 
   const mapTilesData = new Uint16Array(mapWidth * mapHeight);
+  // const minitiles = new Uint16Array(mapWidth * mapHeight * 4 * 4);
   const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4);
   const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
   const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
   const occlussionRoughnessMetallic = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4);
-  const displacementDetail = new Uint8Array(mapWidth * mapHeight * 32 * 32);
+  const metaData = new Uint8Array(mapWidth * mapHeight * 4 * 4);
 
   for (let mapY = 0; mapY < mapHeight; mapY++) {
     for (let mapX = 0; mapX < mapWidth; mapX++) {
@@ -57,25 +56,24 @@ export const extractBitmaps = (
       groupIndex = tileId & 0xf;
       groupOffset = tileGroup * 26 + groupIndex + 10;
       megatileId = 0;
-      if (groupOffset > tilegroupU16.length) {
+      if (groupOffset > tilegroupCV5.length) {
         megatileId = 0;
       } else {
-        megatileId = tilegroupU16[groupOffset];
+        megatileId = tilegroupCV5[groupOffset];
       }
 
       mapTilesData[mapY * mapWidth + mapX] = megatileId;
 
       for (let miniY = 0; miniY < 4; miniY++) {
         for (let miniX = 0; miniX < 4; miniX++) {
-          mini = megatiles[megatileId * 16 + (miniY * 4 + miniX)];
+          mini = megatilesVX4[megatileId * 16 + (miniY * 4 + miniX)];
           minitile = mini & 0xfffffffe;
           flipped = mini & 1;
-          meta = minitilesFlags[megatileId * 16 + (miniY * 4 + miniX)];
+          meta = minitilesFlagsVF4[megatileId * 16 + (miniY * 4 + miniX)];
           walkable = meta & 0x01;
           mid = meta & 0x02;
           high = meta & 0x04;
           // blocksView = meta & 0x08;
-
           elevation = 0;
 
           // bool tile_can_have_creep(xy_t<size_t> tile_pos) {
@@ -104,19 +102,20 @@ export const extractBitmaps = (
             mapY * 4 * mapWidth * 4 + mapX * 4 + miniY * mapWidth * 4 + miniX;
 
           layers[miniPos] = elevation;
+          metaData[miniPos] = meta;
 
           for (let colorY = 0; colorY < 8; colorY++) {
             for (let colorX = 0; colorX < 8; colorX++) {
               let color = 0;
               if (flipped) {
-                color = minitiles[minitile * 0x20 + colorY * 8 + (7 - colorX)];
+                color = minitilesVR4[minitile * 0x20 + colorY * 8 + (7 - colorX)];
               } else {
-                color = minitiles[minitile * 0x20 + colorY * 8 + colorX];
+                color = minitilesVR4[minitile * 0x20 + colorY * 8 + colorX];
               }
 
-              r = palette[color * 4];
-              g = palette[color * 4 + 1];
-              b = palette[color * 4 + 2];
+              r = paletteWPE[color * 4];
+              g = paletteWPE[color * 4 + 1];
+              b = paletteWPE[color * 4 + 2];
 
               pixelPos =
                 mapY * 32 * mapWidth * 32 +
@@ -128,16 +127,13 @@ export const extractBitmaps = (
 
               paletteIndices[pixelPos] = color;
 
-              details = Math.floor((r + g + b) / 3);
-
               diffuse[pixelPos * 4] = r;
               diffuse[pixelPos * 4 + 1] = g;
               diffuse[pixelPos * 4 + 2] = b;
               diffuse[pixelPos * 4 + 3] = 255;
 
-              displacementDetail[pixelPos] = details;
               // G channel for roughness
-              occlussionRoughnessMetallic[pixelPos * 4 + 1] = elevation == 0 ? 0 : details;
+              occlussionRoughnessMetallic[pixelPos * 4 + 1] = elevation == 0 ? 0 : 255;
             }
           }
         }
@@ -151,6 +147,5 @@ export const extractBitmaps = (
     layers,
     paletteIndices,
     occlussionRoughnessMetallic,
-    displacementDetail,
   };
 };

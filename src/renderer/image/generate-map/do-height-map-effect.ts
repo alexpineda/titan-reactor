@@ -21,8 +21,7 @@ import { GeometryOptions } from "common/types";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
 
-// TODO: dispose effects?
-export const dataTexturesToHeightMaps = async ({
+export const doHeightMapEffect = async ({
     palette,
     tileset,
     mapWidth,
@@ -44,8 +43,6 @@ export const dataTexturesToHeightMaps = async ({
 
 ) => {
     const camera = new PerspectiveCamera();
-
-    //#region composer
     const composer = new EffectComposer(renderer, {
         frameBufferType: HalfFloatType,
     });
@@ -67,7 +64,6 @@ export const dataTexturesToHeightMaps = async ({
     const {
         sdMap,
         nonZeroElevationsMap,
-        displacementDetailsMap,
         mapTilesMap,
         paletteIndicesMap,
         elevationsMap
@@ -79,8 +75,6 @@ export const dataTexturesToHeightMaps = async ({
             new MapEffect({
                 texture: sdMap,
                 elevations: nonZeroElevationsMap,
-                details: displacementDetailsMap,
-                detailsMix: 0,
                 levels,
                 ignoreLevels: new Matrix3(),
                 mapTiles: mapTilesMap,
@@ -111,8 +105,6 @@ export const dataTexturesToHeightMaps = async ({
             new MapEffect({
                 texture: sdMap,
                 elevations: elevationsMap,
-                details: displacementDetailsMap,
-                detailsMix: geomOptions.detailsMix,
                 mapTiles: mapTilesMap,
                 ignoreDoodads: 1,
                 levels,
@@ -133,8 +125,6 @@ export const dataTexturesToHeightMaps = async ({
     if (geomOptions.secondPass) {
         composer.render(0.01);
     }
-    //#endregion composer
-
 
     const displaceCanvas = document.createElement("canvas");
     displaceCanvas.width = mapWidth * geomOptions.textureDetail;
@@ -142,33 +132,20 @@ export const dataTexturesToHeightMaps = async ({
 
     displaceCanvas.getContext("2d")?.drawImage(renderer.domElement, 0, 0);
 
-    const displacementCanvasSmall = document.createElement("canvas");
-    displacementCanvasSmall.width = mapWidth * 4;
-    displacementCanvasSmall.height = mapHeight * 4;
-    displacementCanvasSmall
-        .getContext("2d")
-        ?.drawImage(displaceCanvas, 0, 0, mapWidth * 4, mapHeight * 4);
-
-    const displacementImage = displacementCanvasSmall
+    const displacementImage = displaceCanvas
         .getContext("2d")
         ?.getImageData(
             0,
             0,
-            displacementCanvasSmall.width,
-            displacementCanvasSmall.height
-        );
-
-
-    if (!displacementImage) {
-        throw new Error("displacementImage is null");
-    }
+            displaceCanvas.width,
+            displaceCanvas.height
+        )!;
 
     composer.dispose();
 
     return {
         displaceCanvas,
         displacementImage,
-        displacementCanvasSmall,
     };
 };
-export default dataTexturesToHeightMaps;
+export default doHeightMapEffect;

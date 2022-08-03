@@ -1,4 +1,4 @@
-import { WrappedTexture } from "common/types";
+import { CreepTexture } from "common/types";
 import { DataTexture, NearestFilter, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
 import { PX_PER_TILE_SD } from "./common";
 
@@ -11,7 +11,7 @@ export const grpToCreepTexture = (
   megatiles: Uint32Array,
   minitiles: Uint8Array,
   tilegroupU16: Uint16Array,
-): WrappedTexture => {
+): CreepTexture => {
 
 
   const diffuse = new Uint8Array(
@@ -75,5 +75,5 @@ export const grpToCreepTexture = (
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
 
-  return { texture, width: width * PX_PER_TILE_SD, height: height * PX_PER_TILE_SD, pxPerTile: PX_PER_TILE_SD };
+  return { texture, count: width };
 };

@@ -3,19 +3,45 @@ import { blendNonZeroPixels } from "../rgb";
 import { MapBitmaps } from "./extract-bitmaps";
 
 export interface MapDataTextures {
+    /**
+     * The SD map data texture in RGBA format.
+     */
     sdMap: THREE.DataTexture,
+    /**
+     * RGBA
+     */
     occlussionRoughnessMetallicMap: THREE.DataTexture,
+    /**
+     * Megatiles data
+     */
     mapTilesMap: THREE.DataTexture,
+    /**
+     * Game creep data.
+     */
     creepTextureUniform: {
         value: THREE.DataTexture,
     },
+    /**
+     * Game creep data.
+     */
     creepEdgesTextureUniform: {
         value: THREE.DataTexture,
     },
-    displacementDetailsMap: THREE.DataTexture,
+    /**
+     * 0-6 "elevations"
+     */
     elevationsMap: THREE.DataTexture,
+    /**
+     * No idea.
+     */
     nonZeroElevationsMap: THREE.DataTexture,
+    /**
+      * Map color data as palette indices.
+      */
     paletteIndicesMap: THREE.DataTexture,
+    /**
+     * Palette colors.
+     */
     paletteMap: THREE.DataTexture,
 }
 
@@ -94,7 +120,6 @@ export const createDataTextures = async ({
     const creepEdgesValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
     const creepValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
 
-    const displacementDetailsMap = createDataTexture(bitmaps.displacementDetail, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
     const elevationsMap = createDataTexture(bitmaps.layers, w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
     const nonZeroElevationsMap = createDataTexture(createNonZeroElevationsData(bitmaps.layers, w4, h4, blendNonWalkableBase), w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
 
@@ -107,7 +132,6 @@ export const createDataTextures = async ({
         mapTilesMap,
         creepTextureUniform: { value: creepValues },
         creepEdgesTextureUniform: { value: creepEdgesValues },
-        displacementDetailsMap,
         elevationsMap,
         nonZeroElevationsMap,
         paletteIndicesMap,
