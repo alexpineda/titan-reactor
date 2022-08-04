@@ -8,6 +8,7 @@ import {
 } from "./version";
 import parseHeader from "./parse-replay-header";
 import { readBlock } from "./blocks";
+import { parseLMTS, parseSCRSection } from "./parse-scr-section";
 
 const parseReplay = async (buf: Buffer) => {
   const bl = new BufferList();
@@ -26,15 +27,22 @@ const parseReplay = async (buf: Buffer) => {
     throw new Error("not a replay");
   }
 
-  let containerSize;
+  let limits = {
+    images: 5000,
+    sprites: 2500,
+    thingies: 0,
+    units: 1700,
+    bullets: 100,
+    orders: 2000,
+    fogSprites: 0
+  };
+  let scrOffset: number | null = null;
 
   if (version === Version.remastered) {
-    // FIXME: support scr sections, specifically ShieldBattery POV addition
+    scrOffset = bl.readUInt32LE(0);
     bl.consume(4);
   } else if (version === Version.titanReactor) {
-    // const scrSection = await block(bl, 4);
-    await readBlock(bl, 4);
-    containerSize = (await readBlock(bl, 4)).readUInt32LE(0);
+    limits = parseLMTS(await readBlock(bl, 0x1c));
   }
 
   const rawHeader = await readBlock(bl, 0x279);
@@ -55,13 +63,19 @@ const parseReplay = async (buf: Buffer) => {
     }
   }
 
+  if (version === Version.remastered && scrOffset !== null) {
+    const scr = new BufferList(buf.subarray(scrOffset));
+    limits = await parseSCRSection(scr) ?? limits;
+    console.log(limits);
+  }
+
   return {
     version,
     rawHeader,
     header,
     rawCmds,
     chk,
-    containerSize,
+    limits,
     stormPlayerToGamePlayer
   };
 };

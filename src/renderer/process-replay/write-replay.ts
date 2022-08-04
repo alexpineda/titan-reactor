@@ -2,17 +2,14 @@ import BufferList from "bl";
 import { HeaderMagicTitanReactor } from "./version";
 import { writeBlock } from "./blocks";
 import { uint32 } from "./util/alloc";
+import { LMTS, writeLMTS } from "./parse-scr-section";
 
-const writeReplay = async (rawHeader: Buffer, rawCmds: Buffer, chk: Buffer, unitLimit: number) => {
+const writeReplay = async (rawHeader: Buffer, rawCmds: Buffer, chk: Buffer, limits: LMTS) => {
   const bl = new BufferList();
 
   await writeBlock(bl, uint32(HeaderMagicTitanReactor), false);
 
-  // reserve space for scr extra section
-  await writeBlock(bl, uint32(0), false);
-
-  //TODO: replace with entire SCR limits section
-  await writeBlock(bl, uint32(unitLimit), false);
+  await writeBlock(bl, writeLMTS(limits).slice(0), false);
 
   await writeBlock(bl, rawHeader, true);
 

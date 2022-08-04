@@ -35,7 +35,6 @@ import {
 import { callHookAsync } from "./plugins";
 import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
-import getContainerSize from "./process-replay/get-container-size";
 import { setDumpUnitCall } from "./plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
 import { CMDS } from "./process-replay/commands/commands";
@@ -92,12 +91,8 @@ export default async (filepath: string) => {
       const chkDowngrader = new ChkDowngrader();
       const chk = chkDowngrader.downgrade(replay.chk.slice(0));
       const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
-      //TODO: replace this with reading scr section
-      const containerSize = getContainerSize(replay);
-      if (containerSize === undefined) {
-        throw new Error("invalid container size");
-      }
-      repBin = await writeReplay(replay.rawHeader, rawCmds, chk, containerSize);
+
+      repBin = await writeReplay(replay.rawHeader, rawCmds, chk, replay.limits);
       if (rendererIsDev) {
         fs.writeFileSync(`D:\\last_replay.rep`, repBin);
       }
@@ -111,7 +106,7 @@ export default async (filepath: string) => {
   replay.header.players = replay.header.players.filter(p => p.isActive);
 
   processStore().increment(Process.ReplayInitialization);
-  UnitsBufferView.unit_generation_size = replay.containerSize === 1700 ? 5 : 3;
+  UnitsBufferView.unit_generation_size = replay.limits.units === 1700 ? 5 : 3;
 
   let map: Chk;
   try {
