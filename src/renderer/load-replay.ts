@@ -40,6 +40,7 @@ import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript
 import { CMDS } from "./process-replay/commands/commands";
 import { Assets } from "common/types";
 import { rgbToCanvas } from "./image";
+import { detectMeleeObservers } from "@utils/replay-utils";
 
 export default async (filepath: string) => {
   gameStore().disposeGame();
@@ -51,13 +52,17 @@ export default async (filepath: string) => {
   const janitor = new Janitor();
   const settings = settingsStore().data;
 
-  // validate before showing any loading progress
   let repBin: Buffer;
   let replay: Replay;
 
   try {
     repBin = await openFile(filepath);
     replay = await parseReplay(repBin);
+
+    if (replay.header.players.some(player => player.isComputer)) {
+      throw new Error("Replays with computer players are not currently supported.");
+    }
+
   } catch (e) {
     screenStore().setError(e instanceof Error ? e : new Error("Invalid replay"));
     return;
@@ -81,10 +86,7 @@ export default async (filepath: string) => {
     }
   }
 
-  if (replay.header.players.some(player => player.isComputer)) {
-    screenStore().setError(new Error("Replay contains computer players. Computer players are not currently supported."));
-    return;
-  }
+
 
   if (replay.version !== Version.titanReactor) {
     try {
@@ -104,6 +106,11 @@ export default async (filepath: string) => {
   }
 
   replay.header.players = replay.header.players.filter(p => p.isActive);
+
+  if (replay.header.gameType === GameTypes.Melee) {
+    const meleeObservers = detectMeleeObservers(new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer));
+    replay.header.players = replay.header.players.filter(p => !meleeObservers.includes(p.id));
+  }
 
   processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.limits.units === 1700 ? 5 : 3;

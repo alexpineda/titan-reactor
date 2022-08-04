@@ -1,3 +1,4 @@
+import { ReplayPlayer } from "common/types";
 import cstring from "./util/cstring";
 
 const parseHeader = (buf: Buffer) => {
@@ -108,7 +109,7 @@ const parseHeader = (buf: Buffer) => {
     "#00e4fc",
   ];
 
-  const players = [];
+  const players: ReplayPlayer[] = [];
   const getPlayerColor = (p: number) => {
     if (p < 8) {
       return playerColors[p];

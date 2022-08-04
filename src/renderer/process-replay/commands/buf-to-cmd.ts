@@ -92,22 +92,43 @@ const bufToCommand = (id: number, data: Buffer) => {
         value: data.readUInt8(0),
       };
 
-    // case CMDS.ALLIANCE.id {
-    //   const value = data.readUInt32LE(0);
 
-    //   for ()
-    // }
-    // 	// There are 2 bits for each slot, 0x00: not allied, 0x1: allied, 0x02: allied victory
-    // 	for i := byte(0); i < 11; i++ { // only 11 slots, 12th is always 0x01 or 0x02
-    // 		if x := data & 0x03; x != 0 {
-    // 			allianceCmd.SlotIDs = append(allianceCmd.SlotIDs, i)
-    // 			if x == 2 {
-    // 				allianceCmd.AlliedVictory = true
-    // 			}
-    // 		}
-    // 		data >>= 2
-    // 	}
-    // 	cmd = allianceCmd
+    case CMDS.ALLIANCE.id: {
+      let value = data.readUInt32LE(0);
+      const slotIds = [];
+      let alliedVictory = false;
+
+      // There are 2 bits for each slot, 0x00: not allied, 0x1: allied, 0x02: allied victory
+      for (let i = 0; i < 11; i++) {
+        const c = value & 0x3;
+        if (c) {
+          slotIds.push(i);
+          if (c == 2) {
+            alliedVictory = true;
+          }
+        }
+        value >>= 2;
+      }
+
+      return {
+        slotIds,
+        alliedVictory,
+      }
+    }
+
+    case CMDS.VISION.id: {
+      let value = data.readUint16LE(0);
+      const slotIds = [];
+      for (let i = 0; i < 11; i++) {
+        if (value & 0x1) {
+          slotIds.push(i);
+        }
+        value >>= 1;
+      }
+      return {
+        slotIds,
+      }
+    }
 
     default:
       return {};

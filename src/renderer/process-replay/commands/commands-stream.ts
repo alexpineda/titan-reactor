@@ -3,7 +3,6 @@ import { commandLength } from "./commands";
 import bufToCommand from "./buf-to-cmd";
 import bufToSCRCommand from "./buf-to-cmd-scr";
 
-
 class CommandsStream {
   #buffer: Buffer;
   #stormPlayerToGamePlayer: number[];

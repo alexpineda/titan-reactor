@@ -9,3 +9,15 @@ export type Player = {
   vision: boolean;
   startLocation?: StartLocation;
 };
+
+export type ReplayPlayer = {
+  id: number;
+  name: string;
+  race: "zerg" | "terran" | "protoss" | "unknown";
+  team: number;
+  color: string;
+
+  isComputer: boolean;
+  isHuman: boolean;
+  isActive: boolean;
+}
