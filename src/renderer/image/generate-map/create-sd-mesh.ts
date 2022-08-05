@@ -54,26 +54,26 @@ export const createSDMesh = async (
     };
     shader.uniforms.mapToCreepResolution = {
       value: new Vector2(
-        mapWidth / (creepTexture.width / 32),
-        mapHeight / (creepTexture.height / 32)
+        mapWidth / creepTexture.count,
+        mapHeight / 1
       ),
     };
     shader.uniforms.creepResolution = {
       value: new Vector2(
-        creepTexture.width / 32,
-        creepTexture.height / 32
+        creepTexture.count,
+        1
       ),
     };
     shader.uniforms.creepEdgesResolution = {
       value: new Vector2(
-        creepEdgesTexture.width / 32,
-        creepEdgesTexture.height / 32
+        creepEdgesTexture.count,
+        1
       ),
     };
     shader.uniforms.mapToCreepEdgesResolution = {
       value: new Vector2(
-        mapWidth / (creepEdgesTexture.width / 32),
-        mapHeight / (creepEdgesTexture.height / 32)
+        mapWidth / (creepEdgesTexture.count),
+        mapHeight / 1
       ),
     };
     shader.uniforms.creep = creepTextureUniform;

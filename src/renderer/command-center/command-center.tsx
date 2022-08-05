@@ -22,7 +22,7 @@ if (module.hot) {
   module.hot.accept();
 }
 
-window.title = "Command Center";
+document.title = "Command Center";
 
 const s = document.createElement("link");
 s.rel = "stylesheet";

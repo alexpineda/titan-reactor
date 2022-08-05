@@ -43,9 +43,6 @@ export const processString = (str: string, useColors = true) => {
 };
 
 export const cleanMapTitles = (chk: Chk) => {
-  chk._originalTitle = chk.title;
   chk.title = omitCharacters(chk.title);
-
-  chk._originalDescription = chk.description;
   chk.description = omitCharacters(chk.description);
 };

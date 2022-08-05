@@ -212,9 +212,9 @@ export class PluginSystemUI {
                     enums,
                 }
             }, "*");
+
         };
-        document.body.appendChild(this.#iframe);
-        this.#janitor.add(() => document.body.removeChild(this.#iframe));
+        
 
         this.refresh = () => {
             const settings = settingsStore().data;
@@ -265,6 +265,9 @@ export class PluginSystemUI {
         }))
 
         this.refresh();
+
+        document.body.appendChild(this.#iframe);
+        this.#janitor.add(() => document.body.removeChild(this.#iframe));
 
     }
 

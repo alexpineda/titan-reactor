@@ -92,6 +92,8 @@ export default ({ components, useStore, PluginContext }) => {
     return () => clearInterval(cancelId);
   }, [screen]);
 
+  const progress = useProgress() ?? 0;
+
   useEffect(() => {
     if (!appLoaded && screen !== "@home/loading") {
       setAppLoaded(true);
@@ -99,7 +101,7 @@ export default ({ components, useStore, PluginContext }) => {
 
     if (screen.startsWith("@home")) {
       document.body.style.backdropFilter =
-        "blur(20px) grayscale(0.2) contrast(0.5) brightness(0.5)";
+          `blur(20px) grayscale(0.2) contrast(0.5) brightness(0.2)`;
       document.body.style.background =
         "url(./runtime/logo.png) center center / cover";
     } else {
@@ -107,6 +109,14 @@ export default ({ components, useStore, PluginContext }) => {
       document.body.style.background = "";
     }
   }, [screen]);
+
+  useEffect(() => {
+    if (screen === "@home/loading") {
+      const b = (1 - progress) * 0.3 + 0.2;
+      document.body.style.backdropFilter =
+          `blur(20px) grayscale(0.2) contrast(0.5) brightness(${b})`;
+    }
+  }, [progress, screen]);
 
   const screenFilter = (component) =>
     appLoaded &&
@@ -119,7 +129,6 @@ export default ({ components, useStore, PluginContext }) => {
     </PluginContext.Provider>
   );
 
-  const progress = useProgress() ?? 0;
 
   return (
     <div

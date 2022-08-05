@@ -1,7 +1,6 @@
 import GrpSDLegacy from "../../atlas/grp-sd-legacy";
 import { ImageDAT, CreepTexture } from "common/types";
 import { NearestFilter } from "three";
-import { PX_PER_TILE_SD } from "./common";
 // leverage our SD grp reader to render creep edges in SD
 export const grpToCreepEdgesTextureAsync = async (
   creepGrp: Buffer,
