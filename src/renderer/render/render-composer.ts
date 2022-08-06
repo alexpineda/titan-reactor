@@ -8,7 +8,6 @@ import {
 import {
     EffectComposer,
 } from "postprocessing";
-import { rendererIsDev } from "../utils/renderer-utils";
 import Surface from "../image/canvas/surface";
 import { PostProcessingBundleDTO } from "common/types";
 
@@ -18,11 +17,11 @@ const createWebGLRenderer = () => {
         preserveDrawingBuffer: false,
         antialias: false,
         stencil: false,
-        depth: false,
+        depth: true,
         precision: "highp",
     });
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = rendererIsDev;
+    renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
@@ -82,9 +81,6 @@ export class TitanRenderComposer {
     }
 
     set targetSurface(surface: Surface) {
-        if (this.#targetSurface === surface) {
-            return;
-        }
         this.#targetSurface = surface;
         this.#renderer?.setViewport(
             new Vector4(0, 0, surface.bufferWidth, surface.bufferHeight)

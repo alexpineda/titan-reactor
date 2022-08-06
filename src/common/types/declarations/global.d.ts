@@ -30,6 +30,17 @@ declare module '!!raw-loader!*' {
     export = contents
 }
 
+declare module '*.svg' {
+    const contents: string;
+    export = contents
+}
+
+declare module '*.png' {
+    const contents: string;
+    export = contents
+}
+
+
 interface NodeModule {
     hot?: {
         accept: () => void;

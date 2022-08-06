@@ -1,213 +1,40 @@
 import "./reset.css";
-
-import { version } from "../../package.json";
 import * as log from "./ipc/log";
-import { useSettingsStore } from "./stores";
-import screenStore, { useScreenStore } from "./stores/screen-store";
-import renderComposer from "./render/render-composer";
+import screenStore from "./stores/screen-store";
 import settingsStore from "./stores/settings-store";
 import * as pluginSystem from "./plugins";
 import { initializePluginSystem } from "./plugins";
-import { UI_SYSTEM_OPEN_URL } from "./plugins/events";
-import { openUrl } from "./ipc";
-import { ScreenStatus, ScreenType, SettingsMeta } from "common/types";
-import { ipcRenderer } from "electron";
-import { GO_TO_START_PAGE, LOG_MESSAGE, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
-import gameStore from "@stores/game-store";
-import { rendererIsDev } from "@utils/renderer-utils";
-import "ses";
-import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import withErrorMessage from "common/utils/with-error-message";
-import loadMap from "./load-map";
-import loadReplay from "./load-replay";
+import { logCapabilities } from "@utils/renderer-utils";
+import { SettingsMeta } from "common/types";
+import { lockdown_ } from "@utils/ses-util";
+import "./home/home";
+import "./home/handle-events";
+import { playIntroAudio } from "./home/wraith-scene";
 // import "./utils/webgl-lint";
 
 declare global {
-  interface Window { isGameWindow: boolean; }
+  interface Window {
+    isGameWindow: boolean;
+  }
 }
 window.isGameWindow = true;
-
-if (rendererIsDev) {
-
-
-  window.harden = x => x;
-
-  // @ts-ignore
-  window.Compartment = function Compartment(env: {}) {
-    // const windowCopy = {...window};
-    // delete windowCopy.require;
-    const globalThis: Record<string, any> = {};
-    globalThis["Function"] = (code: string) => {
-      const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`
-      const fn = Function(vars + code);
-      return fn.bind(globalThis, env);
-    }
-    return {
-      evaluate(code: string) {
-        const vars = `const {${Object.keys(env).join(",")}} = env; this=globalThis;\n`
-        eval(vars + code)
-      },
-      globalThis
-    }
-  }
-
-} else {
-  lockdown(
-    {
-      localeTaming: 'unsafe',
-      consoleTaming: 'unsafe',
-      errorTaming: 'unsafe',
-      errorTrapping: 'none',
-      mathTaming: 'unsafe',
-    }
-  );
-}
-
-
-log.info(`@init: titan-reactor ${version}`);
-log.info(`@init: chrome ${process.versions.chrome}`);
-log.info(`@init: electron ${process.versions.electron}`);
-log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
-
-{
-  const r = renderComposer.getWebGLRenderer();
-  log.verbose(`@init: webgl capabilities`);
-  for (const prop of Object.getOwnPropertyNames(r.capabilities)) {
-    const value = r.capabilities[prop as keyof typeof r.capabilities];
-    if (typeof value === "function") continue;
-    log.verbose(`- ${prop}: ${value}`);
-  }
-  log.verbose(`- anisotropy: ${r.capabilities.getMaxAnisotropy()}`);
-  log.verbose(`- max precision: ${r.capabilities.getMaxPrecision("highp")}`);
-  log.verbose("webgl extensions");
-  log.verbose(
-    `- EXT_color_buffer_float ${r.extensions.has("EXT_color_buffer_float")}`
-  );
-  log.verbose(
-    `- OES_texture_float_linear ${r.extensions.has("OES_texture_float_linear")}`
-  );
-  log.verbose(
-    `- EXT_color_buffer_half_float ${r.extensions.has(
-      "EXT_color_buffer_half_float"
-    )}`
-  );
-  log.verbose(
-    `- WEBGL_multisampled_render_to_texture ${r.extensions.has(
-      "WEBGL_multisampled_render_to_texture"
-    )}`
-  );
-
-  r.extensions.init(r.capabilities);
-
-  log.verbose(`@init: device pixel ratio: ${window.devicePixelRatio}`);
-}
-
-window.addEventListener("message", evt => {
-  if (evt.data?.type === UI_SYSTEM_OPEN_URL) {
-    log.verbose(`@open-url: ${evt.data.payload}`);
-    openUrl(evt.data.payload);
-  }
-})
-
-const iframeDiv = document.createElement("div");
-iframeDiv.style.position = "absolute";
-iframeDiv.style.display = "flex";
-iframeDiv.style.flexDirection = "column";
-iframeDiv.style.alignItems = "center";
-iframeDiv.style.zIndex = "10";
-iframeDiv.style.marginLeft = "30px";
-iframeDiv.style.marginTop = "200px";
-
-const createIFrame = (embedUrl: string) => {
-  const div = document.createElement("div");
-  div.style.margin = "0 0";
-  div.style.padding = "0 0";
-  div.style.position = "relative";
-  div.style.marginTop = "10px";
-  div.style.background = "black"
-
-  const clicker = document.createElement("div");
-  clicker.style.margin = "0 0";
-  clicker.style.padding = "0 0";
-  clicker.style.position = "absolute";
-  clicker.style.top = "0";
-  clicker.style.cursor = "pointer";
-  clicker.style.width = "100%";
-  clicker.style.height = "50px";
-  clicker.textContent = "&nbsp;"
-
-  const iframe = document.createElement("iframe");
-  iframe.src = embedUrl;
-  iframe.width = "560";
-  iframe.height = "315";
-  iframe.frameBorder = "0";
-  iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
-  iframe.allowFullscreen = true;
-  iframe.style.position = "relative"
-
-  div.appendChild(iframe);
-  div.appendChild(clicker)
-  return { div, clicker, iframe };
-}
-
-const video1 = createIFrame("http://embed-casts.imbateam.gg");
-const video2 = createIFrame("http://embed-casts-2.imbateam.gg");
-
-iframeDiv.appendChild(video1.div)
-iframeDiv.appendChild(video2.div);
-
-useScreenStore.subscribe((store) => {
-  if (store.type === ScreenType.Home && store.status === ScreenStatus.Ready && !store.error) {
-    if (!iframeDiv.parentElement) {
-      document.body.appendChild(iframeDiv);
-    }
-  } else {
-    if (iframeDiv.parentElement) {
-      iframeDiv.remove();
-    }
-  }
-});
-
-const _sceneResizeHandler = () => {
-  const height = window.innerHeight / 3;
-  const width = height * 1.77;
-
-  video1.div.style.width = `${width}px`;
-  video1.div.style.height = `${height}px`;
-  video2.div.style.width = `${width}px`;
-  video2.div.style.height = `${height}px`;
-
-  video1.iframe.width = `${width}`;
-  video1.iframe.height = `${height}`;
-  video2.iframe.width = `${width}`;
-  video2.iframe.height = `${height}`;
-
-};
-window.addEventListener("resize", _sceneResizeHandler, false);
-_sceneResizeHandler();
-
-
-bootup();
 
 async function bootup() {
   try {
     log.info("@init: loading settings");
-    const settings = await (settingsStore().load());
+    const settings = await settingsStore().load();
 
     await initializePluginSystem(settingsStore().enabledPlugins);
-    document.body.addEventListener("mouseup", evt => pluginSystem.onClick(evt));
-
-    video1.clicker.addEventListener("click", () => {
-      openUrl(`http://youtube${settings.data.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
-    });
-
-    video2.clicker.addEventListener("click", () => {
-      openUrl(`http://youtube${settings.data.language === "ko-KR" ? "-kr" : ""}.imbateam.gg`);
-    });
+    document.body.addEventListener("mouseup", (evt) =>
+      pluginSystem.onClick(evt)
+    );
 
     await tryLoad(settings);
+
+    playIntroAudio();
+    setTimeout(() => screenStore().complete(), 3000);
 
   } catch (err: any) {
     log.error(err.message);
@@ -219,73 +46,20 @@ const tryLoad = async (settings: SettingsMeta) => {
   screenStore().clearError();
 
   if (settings.errors.length) {
-    const error = `@init: error with settings - ${settings.errors.join(", ")}`
-    log.error(
-      error
-    );
+    const error = `@init: error with settings - ${settings.errors.join(", ")}`;
+    log.error(error);
     throw new Error(error);
   }
 
-  if (processStore().isComplete(Process.AtlasPreload) || processStore().isInProgress(Process.AtlasPreload)) {
+  if (
+    processStore().isComplete(Process.AtlasPreload) ||
+    processStore().isInProgress(Process.AtlasPreload)
+  ) {
     return;
   }
   await loadAndParseAssets(settings.data);
-  screenStore().complete();
-}
+};
 
-ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
-  type: SendWindowActionType.CommitSettings
-  payload: SendWindowActionPayload<SendWindowActionType.CommitSettings>
-}) => {
-  if (type === SendWindowActionType.CommitSettings) {
-    useSettingsStore.setState(payload);
-  }
-})
-
-ipcRenderer.on(GO_TO_START_PAGE, () => {
-  if (!processStore().hasAnyProcessIncomplete()) {
-    gameStore().disposeGame();
-    screenStore().init(ScreenType.Home);
-    screenStore().complete();
-  }
-});
-
-ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
-  log.logClient(message, level);
-});
-
-window.onerror = (_: Event | string, source?: string, lineno?: number, colno?: number, error?: Error) => {
-  log.error(withErrorMessage(`${lineno}:${colno} - ${source}`, error));
-}
-
-ipcRenderer.on(OPEN_MAP_DIALOG, async (_, map: string) => {
-  try {
-    loadMap(map);
-  } catch (err: any) {
-    log.error(err.message);
-    screenStore().setError(err);
-  }
-});
-
-const _loadReplay = (replay: string) => {
-  try {
-    loadReplay(replay);
-  } catch (err: any) {
-    log.error(err.message);
-    screenStore().setError(err);
-  }
-}
-
-ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replay: string) => {
-  _loadReplay(replay);
-});
-
-
-ipcRenderer.on(SEND_BROWSER_WINDOW, async (_, { type, payload }: {
-  type: SendWindowActionType.LoadReplay
-  payload: SendWindowActionPayload<SendWindowActionType.LoadReplay>
-}) => {
-  if (type === SendWindowActionType.LoadReplay) {
-    _loadReplay(payload);
-  }
-})
+logCapabilities();
+lockdown_();
+bootup();

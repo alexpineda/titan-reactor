@@ -1,6 +1,6 @@
 import * as log from "@ipc/log";
 import create from "zustand";
-import { ScreenStatus, ScreenType } from "../../common/types";
+import { ScreenState, ScreenStatus, ScreenType } from "../../common/types";
 
 /**
  * High level screen state
@@ -8,20 +8,23 @@ import { ScreenStatus, ScreenType } from "../../common/types";
 export type ScreenStore = {
     type: ScreenType,
     status: ScreenStatus;
+    state: ScreenState | null;
     error: Error | null;
     init: (value: ScreenType) => void;
     complete: () => void;
     setError: (error: Error) => void;
     clearError: () => void;
-    readonly isInGame: boolean
 };
 
 export const useScreenStore = create<ScreenStore>((set, get) => ({
     type: ScreenType.Home,
     status: ScreenStatus.Loading,
+    state: null,
     error: null,
     init: (value: ScreenType) => {
-        set({ type: value, status: ScreenStatus.Loading, error: null });
+        const state = get().state;
+        state && state.dispose();
+        set({ type: value, status: ScreenStatus.Loading, error: null, state: null });
     },
     complete: () => {
         set({ status: ScreenStatus.Ready, error: null });
@@ -32,9 +35,6 @@ export const useScreenStore = create<ScreenStore>((set, get) => ({
     },
     clearError: () => {
         set({ error: null });
-    },
-    get isInGame() {
-        return (get().type === ScreenType.Replay || get().type === ScreenType.Map) && get().status === ScreenStatus.Ready;
     }
 }));
 

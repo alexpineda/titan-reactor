@@ -429,9 +429,6 @@ const _messageListener = function (event) {
 
       Object.assign(assets, event.data.payload.assets);
       Object.assign(enums, event.data.payload.enums);
-      if (event.data.payload.updateAvailable) {
-        Object.assign(updateAvailable, event.data.payload.updateAvailable);
-      }
 
       event.data.payload.plugins.forEach(_addPlugin);
       ReactDOM.render(<AppWrapper />, document.body);

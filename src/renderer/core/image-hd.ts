@@ -6,6 +6,7 @@ import {
   InterleavedBufferAttribute,
   Mesh,
   MeshBasicMaterial,
+  NearestMipMapNearestFilter,
   NormalBlending,
   SubtractiveBlending,
   Vector3,
@@ -93,6 +94,13 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     } else {
       this.material.blending = NormalBlending;
     }
+
+    // command center overlay scale up a bit to remove border issues
+    if (imageDef.index === 276) {
+      this.material.map.minFilter = NearestMipMapNearestFilter;
+      this.material.map.magFilter = NearestMipMapNearestFilter;
+    }
+
     this.resetParams();
 
     this.material.needsUpdate = true;

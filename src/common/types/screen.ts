@@ -9,3 +9,8 @@ export enum ScreenType {
     Map,
     IScriptah,
 }
+
+export type ScreenState = {
+    dispose: () => void;
+    start: () => void;
+}

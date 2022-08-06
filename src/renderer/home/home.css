@@ -1,0 +1,35 @@
+@font-face {
+  font-family: "Conthrax";
+  src: url("./assets/fonts/conthrax-rg.otf") format("opentype");
+  font-style: normal;
+  font-weight: 100 400;
+}
+
+@font-face {
+  font-family: "Conthrax-Bold";
+  src: url("./assets/fonts/conthrax-hv.otf") format("opentype");
+  font-style: normal;
+  font-weight: 500 900;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype");
+}
+
+:root {
+  --font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+    Cantarell, Noto Sans, sans-serif, Segoe UI, Roboto, Ubuntu, Cantarell,
+    Noto Sans, sans-serif;
+}
+
+html {
+  background-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  max-block-size: 100%;
+  max-inline-size: 100%;
+  overflow: hidden;
+}

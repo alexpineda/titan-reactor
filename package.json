@@ -5,6 +5,7 @@
     "description": "The Advanced Starcraft Broodwar Observing Tool",
     "main": "src/main/index.js",
     "scripts": {
+        "tscheck": "tsc --noEmit",
         "test": "jest --watchAll",
         "test:once": "jest --runInBand",
         "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",
@@ -41,7 +42,8 @@
         },
         "renderer": {
             "sourceDirectory": "src/renderer",
-            "webpackConfig": "build/renderer.config.js"
+            "webpackConfig": "build/renderer.config.js",
+            "template": "src/renderer/home/template.html"
         },
         "whiteListedModules": [
             "zustand",
@@ -94,7 +96,7 @@
         "node-fetch": "2",
         "pacote": "^13.0.3",
         "pkware-wasm": "^1.0.0",
-        "postprocessing": "6.28.2",
+        "postprocessing": "6.28.5",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-helmet": "^6.1.0",
@@ -163,11 +165,12 @@
         "rimraf": "^3.0.2",
         "source-map-support": "^0.5.19",
         "typescript": "^4.4.4",
+        "url-loader": "^4.1.1",
         "worker-loader": "^2.0.0"
     },
     "resolutions": {
-        "@types/react": "18.2.0",
-        "@types/react-dom": "18.2.0"
+        "@types/react": "18.0.15",
+        "@types/react-dom": "18.0.6"
     },
     "config": {
         "titan-reactor-api": "2.0.0",

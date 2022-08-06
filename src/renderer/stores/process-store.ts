@@ -1,5 +1,5 @@
 import { snake } from "common/utils/camel";
-import create from "zustand/vanilla";
+import create from "zustand";
 import * as log from "@ipc/log";
 
 const PROCESS_MAX = 10;
@@ -123,7 +123,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   getTotalProgress: () => {
     const total = get().processes.reduce((acc, p) => acc + p.max, 0);
     const process = get().processes.reduce((acc, p) => acc + p.current, 0);
-    return total > 0 ? process / total : 0;
+    return total > 0 ? process / total : get().completedProcesses.length ? 1 : 0;
   }
 }));
 

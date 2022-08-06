@@ -7,9 +7,8 @@ import {
 import * as log from "./ipc/log";
 import { Scene } from "./render";
 import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
-import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
-import screenStore from "@stores/screen-store";
+import screenStore, { useScreenStore } from "@stores/screen-store";
 import { AssetTextureResolution, ScreenType, UnitTileScale } from "common/types";
 import TitanReactorMap from "./view-map";
 import { waitForProcess } from "@utils/wait-for-process";
@@ -17,19 +16,15 @@ import { cleanMapTitles } from "@utils/chk-utils";
 import { useWorldStore } from "@stores";
 import settingsStore from "@stores/settings-store";
 
-
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
 }
 export default async (chkFilepath: string) => {
+  screenStore().init(ScreenType.Map);
 
   const settings = settingsStore().data;
 
-  gameStore().disposeGame();
-
   processStore().start(Process.MapInitialization, 3);
-
-  screenStore().init(ScreenType.Map);
 
   log.verbose("loading chk");
   let chk: Chk;
@@ -65,14 +60,16 @@ export default async (chkFilepath: string) => {
   processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing gameloop");
-  const disposeGame = await TitanReactorMap(
+  const state = await TitanReactorMap(
     chk,
     terrain,
     scene
   );
   processStore().increment(Process.MapInitialization);
-
-  gameStore().setDisposeGame(disposeGame);
   processStore().complete(Process.MapInitialization);
   screenStore().complete();
+
+  useScreenStore.setState({ state });
+  state.start();
+
 };

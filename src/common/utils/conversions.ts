@@ -12,13 +12,13 @@ export const pxToMapMeter = (
   return {
     x: (x: number) => transform(x, mapWidth),
     y: (y: number) => transform(y, mapHeight),
-    xy: (x: number, y: number, out: Vector2) => {
-      out.set(transform(x, mapWidth), transform(y, mapHeight));
+    xy: (x: number, y: number, out?: Vector2) => {
+      return (out ?? new Vector2).set(transform(x, mapWidth), transform(y, mapHeight));
     },
-    xyz: (x: number, y: number, zFunction: (x: number, y: number) => number, out: Vector3) => {
+    xyz: (x: number, y: number, out?: Vector3, zFunction: (x: number, y: number) => number = () => 0) => {
       const nx = transform(x, mapWidth);
       const ny = transform(y, mapHeight);
-      out.set(nx, zFunction(nx, ny), ny);
+      return (out ?? new Vector3).set(nx, zFunction(nx, ny), ny);
     }
   };
 };

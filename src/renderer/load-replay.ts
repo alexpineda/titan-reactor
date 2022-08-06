@@ -19,7 +19,7 @@ import { Scene } from "./render";
 import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
-import screenStore from "./stores/screen-store";
+import screenStore, { useScreenStore } from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
 import TitanReactorGame from "./view-replay";
 import { waitForTruthy } from "./utils/wait-for-process";
@@ -43,7 +43,7 @@ import { rgbToCanvas } from "./image";
 import { detectMeleeObservers } from "@utils/replay-utils";
 
 export default async (filepath: string) => {
-  gameStore().disposeGame();
+  screenStore().init(ScreenType.Replay);
 
   log.info(`@load-replay/file: ${filepath}`);
 
@@ -71,7 +71,6 @@ export default async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
   document.title = "Titan Reactor - Loading";
 
-  screenStore().init(ScreenType.Replay);
 
   const openBw = await getOpenBW();
   await openBw.start(readCascFile);
@@ -226,7 +225,7 @@ export default async (filepath: string) => {
   await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
   processStore().complete(Process.AtlasPreload);
 
-  const disposeGame = await TitanReactorGame(
+  const state = await TitanReactorGame(
     map,
     terrain,
     extra,
@@ -240,11 +239,12 @@ export default async (filepath: string) => {
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
   );
 
-  gameStore().setDisposeGame(disposeGame);
-
   document.title = `Titan Reactor - ${gameTitle}`;
 
   processStore().complete(Process.ReplayInitialization);
   screenStore().complete();
+
+  useScreenStore.setState({ state: state });
+  state.start();
 
 };

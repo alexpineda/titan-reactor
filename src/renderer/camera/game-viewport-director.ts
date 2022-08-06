@@ -92,7 +92,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     #activating = false;
 
-    async activate(inputHandler: SceneInputHandler | null) {
+    async activate(inputHandler: SceneInputHandler | null, firstRunData?: any) {
         if (inputHandler === null) {
             this.#janitor.mopUp();
             this.#inputHandler = null;
@@ -106,7 +106,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
             return;
         }
         this.#activating = true;
-        let prevData: any = this.generatePrevData();
+        let prevData: any = firstRunData ?? this.generatePrevData();
         if (this.#inputHandler && this.#inputHandler.onExitScene) {
             prevData = this.#inputHandler.onExitScene(prevData);
         }

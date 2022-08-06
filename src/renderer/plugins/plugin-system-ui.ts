@@ -8,14 +8,10 @@ import { waitForTruthy } from "@utils/wait-for-process";
 import { Unit } from "@core";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
-import { downloadUpdate } from "@ipc";
-import packageJson from "../../../package.json"
-import semver from "semver";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 import { Assets } from "common/types";
 import processStore, { useProcessStore } from "@stores/process-store";
-import screenStore from "@stores/screen-store";
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");
@@ -151,9 +147,9 @@ export class PluginSystemUI {
         const setInteractivity = (interactive: boolean) => {
             this.#iframe.style.pointerEvents = interactive ? "auto" : "none";
         }
-        this.#janitor.add(useScreenStore.subscribe(state => {
-            setInteractivity(state.type === ScreenType.Home || state.error !== null)
-        }));
+        // this.#janitor.add(useScreenStore.subscribe(state => {
+        //     setInteractivity(state.type === ScreenType.Home || state.error !== null)
+        // }));
 
         var iframeLoaded = false;
         this.#iframe.onload = async () => {
@@ -164,34 +160,7 @@ export class PluginSystemUI {
             }
             iframeLoaded = true;
 
-            setInteractivity(screenStore().type === ScreenType.Home || screenStore().error !== null)
-
-            let updateAvailable: undefined | { version: string, url: string } = undefined;
-
-            const releases = await fetch(
-                "https://api.github.com/repos/imbateam-gg/titan-reactor/releases"
-            )
-                .then((res) => res.json());
-
-            if (releases.length) {
-                const latestRelease = releases.find((p: any) => !p.prerelease); //find first non-pre-release
-                if (latestRelease) {
-                    if (semver.gt(latestRelease.name.substring(1), packageJson.version)) {
-                        updateAvailable = {
-                            version: latestRelease.name,
-                            url: latestRelease.html_url,
-                        };
-                    }
-
-                    const _onDownloadUpdate = (event: MessageEvent) => {
-                        if (event.data === "system:download-update") {
-                            downloadUpdate(latestRelease.html_url)
-                        }
-                    };
-                    window.addEventListener("message", _onDownloadUpdate);
-                    this.#janitor.add(() => window.removeEventListener("message", _onDownloadUpdate));
-                }
-            }
+            setInteractivity(false)
 
             const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
@@ -200,7 +169,6 @@ export class PluginSystemUI {
                 payload: {
                     plugins: pluginPackages,
                     initialStore: initialStore(),
-                    updateAvailable,
                     assets: {
                         bwDat: assets.bwDat,
                         gameIcons: assets.gameIcons,
@@ -214,7 +182,7 @@ export class PluginSystemUI {
             }, "*");
 
         };
-        
+
 
         this.refresh = () => {
             const settings = settingsStore().data;
@@ -234,12 +202,6 @@ export class PluginSystemUI {
         }));
 
         this.#janitor.add(useScreenStore.subscribe((screen) => {
-            if (screen.type === ScreenType.Home || screen.error) {
-                this.#iframe.style.pointerEvents = "auto";
-            } else {
-                this.#iframe.style.pointerEvents = "none";
-            }
-
             this.sendMessage(screenChanged(screen));
         }));
 

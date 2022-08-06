@@ -7,6 +7,7 @@ export class SimpleText {
         textEl.style.bottom = "1rem";
         textEl.style.left = "1rem";
         textEl.style.color = "white";
+        textEl.style.zIndex = "200";
         this.#textEl = textEl;
         1
         document.body.appendChild(textEl);

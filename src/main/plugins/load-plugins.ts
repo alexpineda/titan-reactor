@@ -91,7 +91,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
 const loadPluginPackages = async (folders: ReadFolderResult[]) => {
     for (const folder of folders) {
         if (!folder.isFolder) {
-            return null;
+            continue;
         }
         const plugin = await loadPluginPackage(folder.path, folder.name);
         if (plugin === null) {

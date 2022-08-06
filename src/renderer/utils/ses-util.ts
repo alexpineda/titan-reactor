@@ -1,3 +1,4 @@
+import "ses";
 import * as THREE from "three";
 import * as postprocessing from "postprocessing"
 import cameraControls from "camera-controls"
@@ -6,7 +7,7 @@ import Janitor from "@utils/janitor";
 import { Layers } from "../render/layers";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { mix } from "./object-utils";
-import "ses";
+import { rendererIsDev } from "./renderer-utils";
 const STDLIB = {
     CSS2DObject
 }
@@ -24,4 +25,40 @@ export const createCompartment = (env: {} = {}) => {
     compartment.globalThis.Math = Math;
     return compartment;
 
+}
+
+export const lockdown_ = () => {
+
+    if (rendererIsDev) {
+        window.harden = (x) => x;
+
+        // @ts-ignore
+        window.Compartment = function Compartment(env: {}) {
+            // const windowCopy = {...window};
+            // delete windowCopy.require;
+            const globalThis: Record<string, any> = {};
+            globalThis["Function"] = (code: string) => {
+                const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`;
+                const fn = Function(vars + code);
+                return fn.bind(globalThis, env);
+            };
+            return {
+                evaluate(code: string) {
+                    const vars = `const {${Object.keys(env).join(
+                        ","
+                    )}} = env; this=globalThis;\n`;
+                    eval(vars + code);
+                },
+                globalThis,
+            };
+        };
+    } else {
+        lockdown({
+            localeTaming: "unsafe",
+            consoleTaming: "unsafe",
+            errorTaming: "unsafe",
+            errorTrapping: "none",
+            mathTaming: "unsafe",
+        });
+    }
 }

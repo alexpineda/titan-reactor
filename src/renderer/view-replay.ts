@@ -624,7 +624,7 @@ async function TitanReactorGame(
     }
     _soundDat = assets.bwDat.sounds[typeId];
 
-    pxToGameUnit.xyz(x, y, terrain.getTerrainY, _soundCoords);
+    pxToGameUnit.xyz(x, y, _soundCoords, terrain.getTerrainY);
 
     if (gameViewportsDirector.audio === "3d") {
       if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
@@ -1562,7 +1562,7 @@ async function TitanReactorGame(
   }));
 
 
-  await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
+  await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
 
   const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
   precompileCamera.updateProjectionMatrix();
@@ -1572,18 +1572,19 @@ async function TitanReactorGame(
   renderComposer.getWebGLRenderer().render(scene, precompileCamera);
 
   _sceneResizeHandler();
-  renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
 
-  return () => {
-    log.info("disposing replay viewer");
-    _halt = true;
-    renderComposer.getWebGLRenderer().setAnimationLoop(null);
-    selectedUnitsStore().clearSelectedUnits();
-    clearFollowedUnits();
-    plugins.disposeGame();
-    pluginsApiJanitor.mopUp();
-    janitor.mopUp();
-  };;
+  return {
+    dispose: () => {
+      log.info("disposing replay viewer");
+      _halt = true;
+      renderComposer.getWebGLRenderer().setAnimationLoop(null);
+      selectedUnitsStore().clearSelectedUnits();
+      clearFollowedUnits();
+      plugins.disposeGame();
+      pluginsApiJanitor.mopUp();
+      janitor.mopUp();
+    }, start: () => renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+  }
 }
 
 export default TitanReactorGame;

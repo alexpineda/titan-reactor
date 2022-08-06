@@ -8,6 +8,7 @@ export class MainMixer {
   music: GainNode;
   gain: GainNode;
   context: AudioContext;
+  compressor: DynamicsCompressorNode;
 
 
   constructor() {
@@ -16,8 +17,11 @@ export class MainMixer {
     this.gain = this.context.createGain();
     this.gain.connect(this.context.destination);
 
+    this.compressor = this.context.createDynamicsCompressor();
+    this.compressor.connect(this.gain);
+
     this.sound = this.context.createGain();
-    this.sound.connect(this.gain);
+    this.sound.connect(this.compressor);
 
     this.music = this.context.createGain();
     this.music.connect(this.gain);

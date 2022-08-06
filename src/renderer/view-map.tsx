@@ -201,9 +201,10 @@ async function TitanReactorMap(
   );
 
   const dispose = () => {
+    root.render(null);
+    root.unmount();
     log.info("disposing map viewer");
     janitor.mopUp();
-    root.unmount();
   };
 
   renderComposer.onRestoreContext = async () => {
@@ -212,7 +213,6 @@ async function TitanReactorMap(
     log.info("restoring map viewer");
     renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
   };
-  const root = createRoot(document.getElementById("app")!);
 
   let _lastSetOptions = defaultGeometryOptions;
   const update = debounce(async (options: GeometryOptions) => {
@@ -269,18 +269,23 @@ async function TitanReactorMap(
     scene.hemilight.groundColor;
   };
 
-  root.render(
-    <MapViewer
-      onChange={update}
-      onDisplayOptionsChange={(e) => {
-        _displayOptions = e;
-        updateDisplayOptions(e);
-      }}
-      displayOptions={_displayOptions}
-    />
-  );
+  const root = createRoot(document.getElementById("map")!);
 
-  return dispose;
+  return {
+    dispose,
+    start: () => {
+      root.render(
+        <MapViewer
+          onChange={update}
+          onDisplayOptionsChange={(e) => {
+            _displayOptions = e;
+            updateDisplayOptions(e);
+          }}
+          displayOptions={_displayOptions}
+        />
+      );
+    },
+  };
 }
 
 export default TitanReactorMap;
