@@ -56,7 +56,7 @@ export default ({ components, useStore, PluginContext }) => {
   useEffect(() => {
     if (!containerDiv.current) return;
 
-    if (screen.startsWith("@home")) {
+    if (["@home", "@loading"].includes(screen)) {
       containerDiv.current.style.opacity = 1;
     } else {
       let opacity = 0;
@@ -71,11 +71,11 @@ export default ({ components, useStore, PluginContext }) => {
     }
   }, [screen]);
 
-  const appLoaded = screen !== "@home/loading";
+  const appLoaded = screen !== "@loading";
 
   const screenFilter = (component) =>
     appLoaded &&
-    ["@replay/ready", "@map/ready"].includes(screen) &&
+    ["@replay", "@map"].includes(screen) &&
     (component.screen ?? "").includes(screen);
 
   const renderComponent = (component) => (
@@ -125,7 +125,6 @@ export default ({ components, useStore, PluginContext }) => {
           style={{
             display: "flex",
             flexGrow: 1,
-            marginTop: screen === "@home/ready" ? "200px" : "0",
           }}
         >
           {components
@@ -155,7 +154,6 @@ export default ({ components, useStore, PluginContext }) => {
           display: "flex",
           justifyContent: "space-between",
           flexGrow: 1,
-          marginLeft: screen === "@home/ready" ? "600px" : "0",
         }}
       >
         <div

@@ -3,6 +3,8 @@ import {
 } from "../stores";
 import processStore, { Process } from "../stores/process-store";
 
+export const waitForSeconds = (seconds: number) => new Promise((res) => setTimeout(() => res(null), seconds * 1000))
+
 export const waitForProcess = (process: Process) => {
     return new Promise((res) => {
         if (processStore().isComplete(process)) {

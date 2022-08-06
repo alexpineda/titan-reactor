@@ -1,15 +1,12 @@
 import { debounce } from "lodash";
 import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Mesh } from "three";
-import * as THREE from "three";
-
 import { easeCubicIn } from "d3-ease";
-import CameraControls from "camera-controls";
 import type Chk from "bw-chk";
 
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, TerrainExtra
+  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, TerrainExtra, SceneState
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -80,8 +77,6 @@ import { diff } from "deep-diff";
 import set from "lodash.set";
 import { SimpleText } from "./render/simple-text";
 
-CameraControls.install({ THREE: THREE });
-
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
 
@@ -97,7 +92,7 @@ async function TitanReactorGame(
   soundChannels: SoundChannels,
   music: Music,
   commandsStream: CommandsStream
-) {
+): Promise<SceneState> {
   const session = createSession();
 
   const preplacedMapUnits = map.units;
@@ -1574,6 +1569,7 @@ async function TitanReactorGame(
   _sceneResizeHandler();
 
   return {
+    id: "@replay",
     dispose: () => {
       log.info("disposing replay viewer");
       _halt = true;

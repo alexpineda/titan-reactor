@@ -7,7 +7,7 @@ import App from "./runtime/app.jsx";
 
 const useStore = create(() => ({
   screen: {
-    screen: `@home/loading`,
+    screen: `@home`,
     error: null,
   },
 }));

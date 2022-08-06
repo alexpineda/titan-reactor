@@ -1,4 +1,4 @@
-import parseReplay, { Replay } from "./process-replay/parse-replay";
+import parseReplay from "./process-replay/parse-replay";
 import writeReplay from "./process-replay/write-replay";
 import { Version } from "./process-replay/version";
 import CommandsStream from "./process-replay/commands/commands-stream";
@@ -8,7 +8,7 @@ import { AudioListener } from "three";
 import fs from "fs";
 import Chk from "bw-chk";
 
-import { AssetTextureResolution, ScreenType, UnitTileScale } from "common/types";
+import { AssetTextureResolution, UnitTileScale } from "common/types";
 import { GameTypes } from "common/enums";
 
 import { ImageHD } from "./core";
@@ -19,9 +19,8 @@ import { Scene } from "./render";
 import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
-import screenStore, { useScreenStore } from "./stores/screen-store";
 import processStore, { Process } from "./stores/process-store";
-import TitanReactorGame from "./view-replay";
+import startReplay from "./start-replay";
 import { waitForTruthy } from "./utils/wait-for-process";
 import Janitor from "./utils/janitor";
 import { getOpenBW } from "./openbw";
@@ -43,30 +42,21 @@ import { rgbToCanvas } from "./image";
 import { detectMeleeObservers } from "@utils/replay-utils";
 
 export default async (filepath: string) => {
-  screenStore().init(ScreenType.Replay);
+  processStore().start(Process.ReplayInitialization);
 
   log.info(`@load-replay/file: ${filepath}`);
 
-  processStore().start(Process.ReplayInitialization);
 
   const janitor = new Janitor();
   const settings = settingsStore().data;
 
-  let repBin: Buffer;
-  let replay: Replay;
+  let replayBuffer = await openFile(filepath);
+  let replay = await parseReplay(replayBuffer);
 
-  try {
-    repBin = await openFile(filepath);
-    replay = await parseReplay(repBin);
-
-    if (replay.header.players.some(player => player.isComputer)) {
-      throw new Error("Replays with computer players are not currently supported.");
-    }
-
-  } catch (e) {
-    screenStore().setError(e instanceof Error ? e : new Error("Invalid replay"));
-    return;
+  if (replay.header.players.some(player => player.isComputer)) {
+    throw new Error("Replays with computer players are not currently supported.");
   }
+
 
   processStore().increment(Process.ReplayInitialization);
   document.title = "Titan Reactor - Loading";
@@ -88,20 +78,15 @@ export default async (filepath: string) => {
 
 
   if (replay.version !== Version.titanReactor) {
-    try {
-      const chkDowngrader = new ChkDowngrader();
-      const chk = chkDowngrader.downgrade(replay.chk.slice(0));
-      const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
+    const chkDowngrader = new ChkDowngrader();
+    const chk = chkDowngrader.downgrade(replay.chk.slice(0));
+    const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
 
-      repBin = await writeReplay(replay.rawHeader, rawCmds, chk, replay.limits);
-      if (rendererIsDev) {
-        fs.writeFileSync(`D:\\last_replay.rep`, repBin);
-      }
-      replay = await parseReplay(repBin);
-    } catch (e) {
-      screenStore().setError(e instanceof Error ? e : new Error("Failed to downgrade"));
-      return;
+    replayBuffer = await writeReplay(replay.rawHeader, rawCmds, chk, replay.limits);
+    if (rendererIsDev) {
+      fs.writeFileSync(`D:\\last_replay.rep`, replayBuffer);
     }
+    replay = await parseReplay(replayBuffer);
   }
 
   replay.header.players = replay.header.players.filter(p => p.isActive);
@@ -114,13 +99,7 @@ export default async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.limits.units === 1700 ? 5 : 3;
 
-  let map: Chk;
-  try {
-    map = new Chk(replay.chk);
-  } catch (e) {
-    screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
-    return;
-  }
+  const map = new Chk(replay.chk);
   cleanMapTitles(map);
 
   const img = await map.image(Chk.customFileAccess(async (fs, isOptional) => {
@@ -164,15 +143,7 @@ export default async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
 
-  try {
-    openBw.loadReplay(repBin);
-  } catch (e: unknown) {
-    log.error(e);
-    if (e instanceof Error) {
-      screenStore().setError(e);
-      return;
-    }
-  }
+  openBw.loadReplay(replayBuffer);
 
   processStore().increment(Process.ReplayInitialization);
   const races = ["terran", "zerg", "protoss"];
@@ -225,7 +196,7 @@ export default async (filepath: string) => {
   await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
   processStore().complete(Process.AtlasPreload);
 
-  const state = await TitanReactorGame(
+  const state = await startReplay(
     map,
     terrain,
     extra,
@@ -242,9 +213,7 @@ export default async (filepath: string) => {
   document.title = `Titan Reactor - ${gameTitle}`;
 
   processStore().complete(Process.ReplayInitialization);
-  screenStore().complete();
 
-  useScreenStore.setState({ state: state });
-  state.start();
+  return state;
 
 };

@@ -10,7 +10,7 @@ export * from "./util";
 export * from "./image";
 export * from "./settings";
 export * from "./plugin";
-export * from "./screen";
+export * from "./scene";
 export * from "./openbw";
 export * from "./structs";
 export * from "./macros";

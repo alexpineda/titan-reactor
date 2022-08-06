@@ -5,12 +5,11 @@ import Chk from "bw-chk";
 import CameraControls from "camera-controls";
 import { RenderPass } from "postprocessing";
 
-import { createRoot } from "react-dom/client";
-
 import { playerColors } from "common/enums";
 import {
   AssetTextureResolution,
   GeometryOptions,
+  SceneState,
   TerrainInfo,
   UnitTileScale,
 } from "common/types";
@@ -27,12 +26,13 @@ import { updatePostProcessingCamera } from "@utils/renderer-utils";
 import { MapDisplayOptions, MapViewer } from "./render/map-options";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
+import { root } from "./render/root";
 
 async function TitanReactorMap(
   chk: Chk,
   terrainInfo: TerrainInfo,
   scene: Scene
-) {
+): Promise<SceneState> {
   const janitor = new Janitor();
   // const assets = gameStore().assets;
   scene.autoUpdate = true;
@@ -269,9 +269,8 @@ async function TitanReactorMap(
     scene.hemilight.groundColor;
   };
 
-  const root = createRoot(document.getElementById("map")!);
-
   return {
+    id: "@map",
     dispose,
     start: () => {
       root.render(

@@ -22,10 +22,7 @@ export const createDefaultMacros = () => {
     )
   );
 
-  macros.add(
-    new Macro(
-      generateUUID(),
-      "Toggle Music",
+
   macros.add(
     new Macro(
       generateUUID(),

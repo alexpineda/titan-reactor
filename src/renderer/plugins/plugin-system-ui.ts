@@ -1,7 +1,7 @@
 import Janitor from "@utils/janitor";
-import { PluginMetaData, OpenBWAPI, ScreenStatus, ScreenType } from "common/types";
+import { PluginMetaData, OpenBWAPI } from "common/types";
 import settingsStore from "@stores/settings-store";
-import { useGameStore, useScreenStore, useWorldStore, ScreenStore, WorldStore, useSelectedUnitsStore } from "@stores";
+import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
 import { waitForTruthy } from "@utils/wait-for-process";
@@ -27,11 +27,11 @@ import processStore, { useProcessStore } from "@stores/process-store";
 //     document.head.appendChild(meta);
 // }
 
-const screenChanged = (screen: ScreenStore) => {
+const screenChanged = (screen: SceneStore) => {
     return {
         type: UI_STATE_EVENT_SCREEN_CHANGED,
         payload: {
-            screen: `@${ScreenType[screen.type]}/${ScreenStatus[screen.status]}`.toLowerCase(),
+            screen: screen.currentId,
             error: screen.error?.message
         }
     }
@@ -137,7 +137,7 @@ export class PluginSystemUI {
         const initialStore = () => ({
             language: settingsStore().data.language,
             [UI_STATE_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
-            [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useScreenStore.getState()).payload,
+            [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useSceneStore.getState()).payload,
             [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
             [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
             [UI_STATE_EVENT_PROGRESS]: processStore().getTotalProgress(),
@@ -201,7 +201,7 @@ export class PluginSystemUI {
             }
         }));
 
-        this.#janitor.add(useScreenStore.subscribe((screen) => {
+        this.#janitor.add(useSceneStore.subscribe((screen) => {
             this.sendMessage(screenChanged(screen));
         }));
 

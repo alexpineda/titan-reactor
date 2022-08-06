@@ -1,6 +1,5 @@
 import { UI_SYSTEM_OPEN_URL } from "../plugins/events";
 import { openUrl } from "@ipc";
-import { ScreenType } from "common/types";
 import { ipcRenderer } from "electron";
 import {
     GO_TO_START_PAGE,
@@ -13,11 +12,11 @@ import { useSettingsStore } from "@stores";
 
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import withErrorMessage from "common/utils/with-error-message";
-import loadMap from "../load-map";
 import loadReplay from "../load-replay";
-import processStore from "@stores/process-store";
-import screenStore from "@stores/screen-store";
 import * as log from "@ipc/log";
+import sceneStore from "@stores/scene-store";
+import loadMap from "../load-map";
+import { loadHomePage } from "../load-home-page";
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,
@@ -45,10 +44,7 @@ window.addEventListener("message", (evt) => {
 });
 
 ipcRenderer.on(GO_TO_START_PAGE, () => {
-    if (!processStore().hasAnyProcessIncomplete()) {
-        screenStore().init(ScreenType.Home);
-        screenStore().complete();
-    }
+    sceneStore().load(() => loadHomePage());
 });
 
 ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
@@ -66,25 +62,12 @@ window.onerror = (
 };
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (_, map: string) => {
-    try {
-        loadMap(map);
-    } catch (err: any) {
-        log.error(err.message);
-        screenStore().setError(err);
-    }
+    sceneStore().load(() => loadMap(map));
 });
 
-const _loadReplay = (replay: string) => {
-    try {
-        loadReplay(replay);
-    } catch (err: any) {
-        log.error(err.message);
-        screenStore().setError(err);
-    }
-};
 
 ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replay: string) => {
-    _loadReplay(replay);
+    sceneStore().load(() => loadReplay(replay));
 });
 
 ipcRenderer.on(
@@ -100,7 +83,7 @@ ipcRenderer.on(
         }
     ) => {
         if (type === SendWindowActionType.LoadReplay) {
-            _loadReplay(payload);
+            sceneStore().load(() => loadReplay(payload));
         }
     }
 );

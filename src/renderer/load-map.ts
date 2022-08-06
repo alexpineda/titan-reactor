@@ -8,9 +8,8 @@ import * as log from "./ipc/log";
 import { Scene } from "./render";
 import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import processStore, { Process } from "@stores/process-store";
-import screenStore, { useScreenStore } from "@stores/screen-store";
-import { AssetTextureResolution, ScreenType, UnitTileScale } from "common/types";
-import TitanReactorMap from "./view-map";
+import { AssetTextureResolution, UnitTileScale } from "common/types";
+import startMap from "./start-map";
 import { waitForProcess } from "@utils/wait-for-process";
 import { cleanMapTitles } from "@utils/chk-utils";
 import { useWorldStore } from "@stores";
@@ -20,21 +19,11 @@ const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
 }
 export default async (chkFilepath: string) => {
-  screenStore().init(ScreenType.Map);
-
-  const settings = settingsStore().data;
-
   processStore().start(Process.MapInitialization, 3);
-
+  const settings = settingsStore().data;
   log.verbose("loading chk");
-  let chk: Chk;
 
-  try {
-    chk = new Chk(await loadScm(chkFilepath));
-  } catch (e) {
-    screenStore().setError(e instanceof Error ? e : new Error("Invalid chk"));
-    return;
-  }
+  const chk = new Chk(await loadScm(chkFilepath));
   cleanMapTitles(chk);
 
   //FIXME: add janitor
@@ -59,17 +48,12 @@ export default async (chkFilepath: string) => {
   ImageHD.useDepth = false;
   processStore().increment(Process.MapInitialization);
 
-  log.verbose("initializing gameloop");
-  const state = await TitanReactorMap(
+  const state = await startMap(
     chk,
     terrain,
     scene
   );
-  processStore().increment(Process.MapInitialization);
   processStore().complete(Process.MapInitialization);
-  screenStore().complete();
 
-  useScreenStore.setState({ state });
-  state.start();
-
+  return state;
 };

@@ -16,7 +16,7 @@ import {
 } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
-import screenStore from "@stores/screen-store";
+import screenStore from "@stores/scene-store";
 import { HOOK_ON_GAME_DISPOSE } from "./hooks";
 import { Macros } from "../command-center/macros/macros";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
