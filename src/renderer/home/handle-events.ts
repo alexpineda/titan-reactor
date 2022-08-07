@@ -17,6 +17,7 @@ import * as log from "@ipc/log";
 import sceneStore from "@stores/scene-store";
 import loadMap from "../load-map";
 import { loadHomePage } from "../load-home-page";
+import { loadGameScene } from "../load-game-scene";
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,
@@ -62,11 +63,13 @@ window.onerror = (
 };
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (_, map: string) => {
+    await sceneStore().load(loadGameScene);
     sceneStore().load(() => loadMap(map));
 });
 
 
-ipcRenderer.on(OPEN_REPLAY_DIALOG, (_, replay: string) => {
+ipcRenderer.on(OPEN_REPLAY_DIALOG, async (_, replay: string) => {
+    await sceneStore().load(loadGameScene);
     sceneStore().load(() => loadReplay(replay));
 });
 
@@ -83,6 +86,7 @@ ipcRenderer.on(
         }
     ) => {
         if (type === SendWindowActionType.LoadReplay) {
+            await sceneStore().load(loadGameScene);
             sceneStore().load(() => loadReplay(payload));
         }
     }

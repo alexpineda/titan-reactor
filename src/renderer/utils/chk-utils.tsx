@@ -1,3 +1,5 @@
+import { rgbToCanvas } from "@image/canvas";
+import { readCascFile } from "common/utils/casclib";
 import Chk from "bw-chk";
 import { charColor } from "common/enums";
 
@@ -45,4 +47,24 @@ export const processString = (str: string, useColors = true) => {
 export const cleanMapTitles = (chk: Chk) => {
   chk.title = omitCharacters(chk.title);
   chk.description = omitCharacters(chk.description);
+};
+
+export const createMapImage = async (chk: Chk) => {
+  const img = await chk.image(
+    Chk.customFileAccess(async (fs, isOptional) => {
+      try {
+        const img = await readCascFile(fs);
+        return img;
+      } catch (e) {
+        if (isOptional) {
+          return null;
+        }
+        throw e;
+      }
+    }),
+    512,
+    512
+  );
+
+  return rgbToCanvas({ data: img, width: 512, height: 512 }, "rgb");
 };

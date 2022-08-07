@@ -5,6 +5,7 @@ import { ipcRenderer } from "electron";
 import { useEffect } from "react";
 import { imbateamLogo } from "./assets/imbateam";
 import titanReactorLogo from "./assets/logo.png";
+import { LoadBar } from "./load-bar";
 
 const styleCenterText = {
   position: "absolute",
@@ -61,17 +62,7 @@ export const SceneLoadingUI = () => {
         //@ts-ignore
         <div style={styleCenterText}>
           <div>{imbateamLogo}</div>
-          <div
-            style={{
-              background: "white",
-              transform: `scaleX(${progress})`,
-              height: "20px",
-              marginTop: "20px",
-              width: "100%",
-            }}
-          >
-            &nbsp;
-          </div>
+          <LoadBar color="white" thickness={20} style={{ marginTop: "20px" }} />
         </div>
       )}
       {_firstInstall && (

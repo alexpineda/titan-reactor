@@ -60,7 +60,6 @@ const worldPartial = (world: WorldStore) => {
             height: world.map.size[1],
             tileset: world.map.tileset,
             tilesetName: world.map.tilesetName,
-            image: world.mapImage
         } : undefined,
         replay: world.replay?.header
     }

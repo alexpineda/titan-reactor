@@ -8,7 +8,7 @@ import loadAndParseAssets from "./assets/load-and-parse-assets";
 import * as log from "./ipc/log";
 import { preloadIntro } from "./home/wraith-scene";
 import { root } from "./render/root";
-import { SceneLoadingUI } from "./home/loading";
+import { SceneLoadingUI } from "./home/home-loading";
 import { waitForSeconds } from "@utils/wait-for-process";
 import Janitor from "@utils/janitor";
 import mixer from "./audio/main-mixer";

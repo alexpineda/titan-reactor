@@ -31,9 +31,9 @@ import { root } from "./render/root";
 async function TitanReactorMap(
   chk: Chk,
   terrainInfo: TerrainInfo,
-  scene: Scene
+  scene: Scene,
+  janitor: Janitor
 ): Promise<SceneState> {
-  const janitor = new Janitor();
   // const assets = gameStore().assets;
   scene.autoUpdate = true;
   scene.sunlight.shadow.autoUpdate = true;

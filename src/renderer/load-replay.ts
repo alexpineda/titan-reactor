@@ -22,12 +22,12 @@ import settingsStore from "./stores/settings-store";
 import gameStore from "./stores/game-store";
 import processStore, { Process } from "./stores/process-store";
 import startReplay from "./start-replay";
-import { waitForTruthy } from "./utils/wait-for-process";
+import { waitForSeconds, waitForTruthy } from "./utils/wait-for-process";
 import Janitor from "./utils/janitor";
 import { getOpenBW } from "./openbw";
 import UnitsBufferView from "./buffer-view/units-buffer-view";
 import { useWorldStore } from "@stores";
-import { cleanMapTitles } from "@utils/chk-utils";
+import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { rendererIsDev } from "@utils/renderer-utils";
 import {
   readCascFile,
@@ -39,7 +39,6 @@ import { setDumpUnitCall } from "./plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
 import { CMDS } from "./process-replay/commands/commands";
 import { Assets } from "common/types";
-import { rgbToCanvas } from "./image";
 import { detectMeleeObservers } from "@utils/replay-utils";
 
 export default async (filepath: string) => {
@@ -58,7 +57,6 @@ export default async (filepath: string) => {
     throw new Error("Replays with computer players are not currently supported.");
   }
 
-
   processStore().increment(Process.ReplayInitialization);
   document.title = "Titan Reactor - Loading";
 
@@ -75,8 +73,6 @@ export default async (filepath: string) => {
       log.warning(`@load-replay/sanity-check: ${sanityCheck.length} total invalid commands found`);
     }
   }
-
-
 
   if (replay.version !== Version.titanReactor) {
     const chkDowngrader = new ChkDowngrader();
@@ -103,17 +99,6 @@ export default async (filepath: string) => {
   const map = new Chk(replay.chk);
   cleanMapTitles(map);
 
-  const img = await map.image(Chk.customFileAccess(async (fs, isOptional) => {
-    try {
-      const img = await readCascFile(fs);
-      return img;
-    } catch (e) {
-      if (isOptional) {
-        return null;
-      }
-      throw e;
-    }
-  }), 512, 512);
 
   const gameTitle = `${map.title} - ${replay.header.players
     .map(({ name }) => name)
@@ -122,8 +107,8 @@ export default async (filepath: string) => {
   log.info(`@load-replay/game: ${gameTitle}`);
   log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
 
-  useWorldStore.setState({ replay, map, mapImage: rgbToCanvas({ data: img, width: 512, height: 512 }, "rgb").toDataURL() }, true);
-  janitor.callback(() => useWorldStore.setState({}, true));
+  useWorldStore.setState({ replay, map, mapImage: await createMapImage(map) });
+  janitor.add(() => useWorldStore.getState().reset())
 
   processStore().increment(Process.ReplayInitialization);
 
