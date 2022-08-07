@@ -1,4 +1,4 @@
-import mixer from "./main-mixer";
+import { mixer } from "./main-mixer";
 
 export class Filter {
     node: BiquadFilterNode;

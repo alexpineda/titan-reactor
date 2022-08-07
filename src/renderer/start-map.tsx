@@ -14,19 +14,17 @@ import {
   UnitTileScale,
 } from "common/types";
 
-import { Surface } from "./image";
-import { IScriptSprite } from "./core";
-import * as log from "./ipc/log";
-import { Scene } from "./render";
-import renderComposer from "./render/render-composer";
-import { useSettingsStore } from "./stores";
-import Janitor from "./utils/janitor";
-import createStartLocation from "./core/create-start-location";
+import { Surface } from "@image";
+import { IScriptSprite } from "@core";
+import * as log from "@ipc/log";
+import { Scene, renderComposer, root } from "@render";
+import { MapDisplayOptions, MapViewer } from "@render/map-options";
+import { useSettingsStore } from "@stores";
+import Janitor from "@utils/janitor";
+import createStartLocation from "@core/create-start-location";
 import { updatePostProcessingCamera } from "@utils/renderer-utils";
-import { MapDisplayOptions, MapViewer } from "./render/map-options";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
-import { root } from "./render/root";
 
 async function TitanReactorMap(
   chk: Chk,

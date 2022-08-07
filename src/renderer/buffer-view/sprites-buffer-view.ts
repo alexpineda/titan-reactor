@@ -69,4 +69,3 @@ export class SpritesBufferView
   }
 
 }
-export default SpritesBufferView;

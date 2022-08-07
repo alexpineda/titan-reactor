@@ -1,7 +1,7 @@
 import { PostProcessingBundleDTO, Settings } from "common/types";
 import { Camera } from "three";
 import { version } from "../../../package.json";
-import renderComposer from "../render/render-composer";
+import { renderComposer } from "@render";
 import * as log from "@ipc/log";
 
 export const anisotropyOptions = {

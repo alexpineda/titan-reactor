@@ -1,7 +1,7 @@
 import create, { GetState, SetState } from "zustand";
 
 import { Settings, MacroAction, MacroActionType } from "common/types";
-import { getMacroActionValue } from "../command-center/macros";
+import { getMacroActionValue } from "../macros";
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import deepMerge from 'deepmerge';
 import { DeepPartial } from "common/types";

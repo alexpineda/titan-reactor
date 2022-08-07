@@ -135,4 +135,4 @@ export class TitanRenderComposer {
     }
 }
 
-export default new TitanRenderComposer();
+export const renderComposer = new TitanRenderComposer();

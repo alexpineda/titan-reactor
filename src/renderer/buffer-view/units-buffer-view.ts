@@ -193,4 +193,3 @@ export class UnitsBufferView extends FlingyBufferView
     }
 
 }
-export default UnitsBufferView;

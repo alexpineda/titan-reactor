@@ -4,7 +4,7 @@ import { SceneState } from "common/types";
 
 export type SceneStore = {
     state: SceneState | null;
-    load: (load: () => Promise<SceneState>) => Promise<void>;
+    execSceneLoader: (load: () => Promise<SceneState>) => Promise<void>;
     error: Error | null;
     setError: (error: Error) => void;
     clearError: () => void;
@@ -16,7 +16,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     scene: null,
     state: null,
     error: null,
-    load: async (loader: (prevData?: any) => Promise<SceneState>) => {
+    execSceneLoader: async (loader: (prevData?: any) => Promise<SceneState>) => {
         if (_loading) {
             console.warn("Scene is already loading");
             return;

@@ -1,4 +1,4 @@
-import { UI_SYSTEM_OPEN_URL } from "../plugins/events";
+import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
 import { openUrl } from "@ipc";
 import { ipcRenderer } from "electron";
 import {
@@ -12,12 +12,12 @@ import { useSettingsStore } from "@stores";
 
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import withErrorMessage from "common/utils/with-error-message";
-import loadReplay from "../load-replay";
+import loadReplay from "./load-replay";
 import * as log from "@ipc/log";
 import sceneStore from "@stores/scene-store";
-import loadMap from "../load-map";
-import { loadHomePage } from "../load-home-page";
-import { loadGameScene } from "../load-game-scene";
+import loadMap from "./load-map";
+import { homeSceneLoader } from "./scenes/home-scene-loader";
+import { interstitialSceneLoader } from "./scenes/interstitial-scene-loader";
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,
@@ -45,7 +45,7 @@ window.addEventListener("message", (evt) => {
 });
 
 ipcRenderer.on(GO_TO_START_PAGE, () => {
-    sceneStore().load(() => loadHomePage());
+    sceneStore().execSceneLoader(() => homeSceneLoader());
 });
 
 ipcRenderer.on(LOG_MESSAGE, async (_, message, level = "info") => {
@@ -63,14 +63,14 @@ window.onerror = (
 };
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (_, map: string) => {
-    await sceneStore().load(loadGameScene);
-    sceneStore().load(() => loadMap(map));
+    await sceneStore().execSceneLoader(interstitialSceneLoader);
+    sceneStore().execSceneLoader(() => loadMap(map));
 });
 
 
 ipcRenderer.on(OPEN_REPLAY_DIALOG, async (_, replay: string) => {
-    await sceneStore().load(loadGameScene);
-    sceneStore().load(() => loadReplay(replay));
+    await sceneStore().execSceneLoader(interstitialSceneLoader);
+    sceneStore().execSceneLoader(() => loadReplay(replay));
 });
 
 ipcRenderer.on(
@@ -86,8 +86,8 @@ ipcRenderer.on(
         }
     ) => {
         if (type === SendWindowActionType.LoadReplay) {
-            await sceneStore().load(loadGameScene);
-            sceneStore().load(() => loadReplay(payload));
+            await sceneStore().execSceneLoader(interstitialSceneLoader);
+            sceneStore().execSceneLoader(() => loadReplay(payload));
         }
     }
 );

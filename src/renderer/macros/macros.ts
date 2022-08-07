@@ -1,14 +1,14 @@
 import * as log from "@ipc/log";
 import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType } from "common/types";
-import * as plugins from "../../plugins";
-import packagejson from "../../../../package.json";
+import * as plugins from "@plugins";
+import packagejson from "../../../package.json";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
-import { MacroHookTrigger } from "../../../common/macro-hook-trigger";
+import { MacroHookTrigger } from "common/macro-hook-trigger";
 
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;

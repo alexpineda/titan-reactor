@@ -3,7 +3,7 @@ import { AudioListener, Vector3, Audio } from "three";
 import { SoundDAT } from "common/types";
 import range from "common/utils/range";
 import { SoundChannel } from "./sound-channel";
-import mixer from "./main-mixer";
+import { mixer } from "./main-mixer";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export class SoundChannels {

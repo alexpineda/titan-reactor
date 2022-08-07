@@ -1,19 +1,18 @@
 import sceneStore from "@stores/scene-store";
 import { SceneState, SettingsMeta } from "common/types";
-import settingsStore from "./stores/settings-store";
-import * as pluginSystem from "./plugins";
-import { initializePluginSystem } from "./plugins";
+import settingsStore from "@stores/settings-store";
+import * as pluginSystem from "@plugins";
+import { initializePluginSystem } from "@plugins";
 import processStore, { Process } from "@stores/process-store";
-import loadAndParseAssets from "./assets/load-and-parse-assets";
-import * as log from "./ipc/log";
-import { preloadIntro } from "./home/wraith-scene";
-import { root } from "./render/root";
-import { SceneLoadingUI } from "./home/home-loading";
+import loadAndParseAssets from "../image/assets/load-and-parse-assets";
+import * as log from "@ipc/log";
+import { preloadIntro } from "../home/wraith-scene";
+import { root } from "@render/root";
+import { SceneLoadingUI } from "../home/home-loading";
 import { waitForSeconds } from "@utils/wait-for-process";
 import Janitor from "@utils/janitor";
-import mixer from "./audio/main-mixer";
 import path from "path";
-import { Filter } from "./audio/filter";
+import { Filter, mixer } from "@audio";
 
 const tryLoad = async (settings: SettingsMeta) => {
   sceneStore().clearError();
@@ -33,7 +32,7 @@ const tryLoad = async (settings: SettingsMeta) => {
   await loadAndParseAssets(settings.data);
 };
 
-export async function loadLoadingPage(): Promise<SceneState> {
+export async function preHomeSceneLoader(): Promise<SceneState> {
   log.info("@init: loading settings");
   root.render(<SceneLoadingUI />);
 

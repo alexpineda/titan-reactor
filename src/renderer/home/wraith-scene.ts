@@ -1,7 +1,7 @@
-import mixer from "../audio/main-mixer";
-import renderComposer from "../render/render-composer";
-import { loadGlb, Surface } from "../image";
-import loadEnvironmentMap from "@image/env-map";
+import { mixer } from "@audio/main-mixer";
+import { renderComposer } from "@render";
+import { loadGlb, Surface } from "@image";
+import loadEnvironmentMap from "@image/environment/env-map";
 import {
     BlendFunction,
     BloomEffect,
@@ -13,9 +13,7 @@ import {
     RenderPass,
     SMAAEffect,
     ToneMappingEffect,
-    ToneMappingMode,
 } from "postprocessing";
-import CameraShake from "../camera/camera-shake";
 import {
     updatePostProcessingCamera,
 } from "@utils/renderer-utils";
@@ -40,7 +38,7 @@ import CameraControls from "camera-controls";
 import * as THREE from "three";
 import Janitor from "@utils/janitor";
 import gameStore from "@stores/game-store";
-import { Filter } from "../audio/filter";
+import { Filter } from "@audio/filter";
 import { upgradeStandardMaterial } from "@utils/material-utils";
 import settingsStore from "@stores/settings-store";
 import { SceneState } from "common/types";
@@ -71,12 +69,9 @@ const glitchEffect = new GlitchEffect({
 introSurface.canvas.style.position = "absolute";
 
 let _lastElapsed = 0;
-const shake = new CameraShake();
-shake.enabled = true;
 
 type Wraith = Object3D & { init: () => void, update: (delta: number, elapsed: number) => void, dispose: () => void };
 const _wraiths: Wraith[] = [];
-window.wraiths = _wraiths;
 
 const createWraith = (og: Object3D, originalPosition: Vector3) => {
     let _swerveRate = 1000;

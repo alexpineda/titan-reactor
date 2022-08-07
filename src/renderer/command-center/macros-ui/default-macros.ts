@@ -1,6 +1,6 @@
 import { generateUUID } from "three/src/math/MathUtils";
 import { MacroActionEffect, MacroActionSequence, MacroActionType } from "common/types"
-import { HotkeyTrigger, Macro, Macros } from "../macros";
+import { HotkeyTrigger, Macro, Macros } from "../../macros";
 
 
 export const createDefaultMacros = () => {

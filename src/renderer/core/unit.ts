@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
-import type { UnitDAT } from "../../common/types";
-import type { UnitStruct } from "../../common/types/structs";
+import type { UnitDAT } from "common/types";
+import type { UnitStruct } from "common/types/structs";
 
 export type Unit = UnitStruct & {
     extras: {

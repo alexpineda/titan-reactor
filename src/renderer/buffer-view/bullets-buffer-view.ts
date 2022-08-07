@@ -1,6 +1,6 @@
 import { OpenBWWasm, BulletStruct } from "common/types";
 import FlingyBufferView from "./flingy-buffer-view";
-import UnitsBufferView from "./units-buffer-view";
+import { UnitsBufferView } from "./units-buffer-view";
 
 /**
  * Maps to openbw bullet_t
@@ -58,4 +58,3 @@ export class BulletsBufferView extends FlingyBufferView
     }
 
 }
-export default BulletsBufferView;

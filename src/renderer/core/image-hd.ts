@@ -12,8 +12,8 @@ import {
   Vector3,
 } from "three";
 
-import { drawFunctions } from "../../common/enums";
-import { ImageDAT, AnimFrame, Atlas } from "../../common/types";
+import { drawFunctions } from "common/enums";
+import { ImageDAT, AnimFrame, Atlas } from "common/types";
 import { Image } from ".";
 import TeamSpriteMaterial from "./team-sprite-material";
 import gameStore from "@stores/game-store";

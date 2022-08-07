@@ -1,8 +1,8 @@
 import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, UnsignedByteType, Vector2, Vector4 } from "three";
 import { OpenBWAPI } from "common/types";
-import FogOfWarEffect from "./fog-of-war-effect";
+import { FogOfWarEffect } from "./fog-of-war-effect";
 
-export default class FogOfWar {
+export class FogOfWar {
     #openBW: OpenBWAPI;
     texture: DataTexture;
     effect: FogOfWarEffect;

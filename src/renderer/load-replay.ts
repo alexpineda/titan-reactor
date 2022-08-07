@@ -11,33 +11,32 @@ import Chk from "bw-chk";
 import { AssetTextureResolution, UnitTileScale } from "common/types";
 import { GameTypes } from "common/enums";
 
-import { ImageHD } from "./core";
-import { SoundChannels, Music } from "./audio";
-import mixer from "./audio/main-mixer"
-import { openFile } from "./ipc";
-import * as log from "./ipc/log";
-import { Scene } from "./render";
-import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
-import settingsStore from "./stores/settings-store";
-import gameStore from "./stores/game-store";
-import processStore, { Process } from "./stores/process-store";
+import { ImageHD } from "@core";
+import { SoundChannels, Music, mixer } from "@audio";
+import { openFile } from "@ipc";
+import * as log from "@ipc/log";
+import { Scene } from "@render";
+import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
+import settingsStore from "@stores/settings-store";
+import gameStore from "@stores/game-store";
+import processStore, { Process } from "@stores/process-store";
 import startReplay from "./start-replay";
-import { waitForSeconds, waitForTruthy } from "./utils/wait-for-process";
-import Janitor from "./utils/janitor";
-import { getOpenBW } from "./openbw";
-import UnitsBufferView from "./buffer-view/units-buffer-view";
+import { waitForTruthy } from "@utils/wait-for-process";
+import Janitor from "@utils/janitor";
+import { getOpenBW } from "@openbw";
+import { UnitsBufferView } from "@buffer-view";
 import { useWorldStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { rendererIsDev } from "@utils/renderer-utils";
 import {
   readCascFile,
 } from "common/utils/casclib";
-import { callHookAsync } from "./plugins";
-import { HOOK_ON_SCENE_PREPARED } from "./plugins/hooks";
-import { sanityCheckCommands, writeCommands } from "./process-replay/write-commands";
-import { setDumpUnitCall } from "./plugins/plugin-system-ui";
+import { callHookAsync } from "@plugins";
+import { HOOK_ON_SCENE_PREPARED } from "@plugins/hooks";
+import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
+import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
-import { CMDS } from "./process-replay/commands/commands";
+import { CMDS } from "@process-replay/commands/commands";
 import { Assets } from "common/types";
 import { detectMeleeObservers } from "@utils/replay-utils";
 

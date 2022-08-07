@@ -1,10 +1,10 @@
 import { Texture } from "three";
-import { TilesBufferView } from "../buffer-view";
+import { TilesBufferView } from "@buffer-view";
 
 //@ts-ignore
 import Worker from "./creep.worker.js";
 
-export default class Creep {
+export class Creep {
   mapWidth: number;
   mapHeight: number;
   creepValuesTexture: Texture;

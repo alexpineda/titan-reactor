@@ -1,4 +1,4 @@
-export type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah";
+export type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah" | "@interstitial";
 
 export type SceneState = {
     id: SceneStateID;

@@ -18,7 +18,7 @@ import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import screenStore from "@stores/scene-store";
 import { HOOK_ON_GAME_DISPOSE } from "./hooks";
-import { Macros } from "../command-center/macros/macros";
+import { Macros } from "../macros/macros";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 
 let uiPluginSystem: PluginSystemUI;

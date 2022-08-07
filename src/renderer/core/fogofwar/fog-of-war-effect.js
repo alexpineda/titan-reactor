@@ -3,7 +3,7 @@ import { Color, Matrix4, Uniform, Vector2, Vector4 } from "three";
 import { Effect, EffectAttribute, BlendFunction } from "postprocessing";
 import fragmentShader from "./fog-of-war.frag";
 
-export default class FogOfWarEffect extends Effect {
+export class FogOfWarEffect extends Effect {
   constructor() {
     super("FogOfWarEffect", fragmentShader, {
       attributes: EffectAttribute.DEPTH,

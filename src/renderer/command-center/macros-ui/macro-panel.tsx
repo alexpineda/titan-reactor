@@ -14,7 +14,7 @@ import { MacroActionPanel } from "./macro-action-panel";
 import { CreateMacroAction } from "./create-macro-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { KeyCombo } from "../macros/key-combo";
+import { KeyCombo } from "../../macros/key-combo";
 import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 
 const keyCombo = new KeyCombo();

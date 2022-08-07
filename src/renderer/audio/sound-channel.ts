@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import mixer from "./main-mixer";
+import { mixer } from "./main-mixer";
 
 export class SoundChannel {
   static rolloffFactor = 1;

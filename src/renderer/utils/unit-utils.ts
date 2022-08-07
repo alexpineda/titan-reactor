@@ -1,6 +1,6 @@
 import { BwDAT, UnitDAT, UnitStruct } from "common/types";
 import { UnitFlags, unitTypes, iscriptHeaders, orders, upgrades } from "common/enums";
-import UnitsBufferView from "../buffer-view/units-buffer-view";
+import { UnitsBufferView } from "@buffer-view";
 import { Unit } from "@core/unit";
 
 export const unitIsCompleted = (unit: UnitStruct) => {

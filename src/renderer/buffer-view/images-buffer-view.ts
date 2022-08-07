@@ -100,4 +100,3 @@ export class ImageBufferView
     other.iscriptAnimation = this.iscriptAnimation;
   }
 }
-export default ImageBufferView;

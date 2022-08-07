@@ -3,3 +3,4 @@ export * from "./main-mixer";
 export * from "./music";
 export * from "./sound-channel";
 export * from "./sound-channels";
+export * from "./filter";

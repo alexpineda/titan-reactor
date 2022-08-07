@@ -74,4 +74,3 @@ export abstract class BufferView<T> implements EntityIterator<T> {
     return arr;
   }
 }
-export default BufferView;

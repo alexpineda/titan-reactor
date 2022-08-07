@@ -2,81 +2,75 @@ import { debounce } from "lodash";
 import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Mesh } from "three";
 import { easeCubicIn } from "d3-ease";
 import type Chk from "bw-chk";
-import mixer from "./audio/main-mixer"
+import { mixer } from "@audio"
 
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
-import { Surface } from "./image";
+import { Surface } from "@image";
 import {
   UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, TerrainExtra, SceneState
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
-import type { Music, SoundChannels } from "./audio";
+import type { Music, SoundChannels } from "@audio";
 
 import {
   Image,
   Players,
   Unit,
-  ImageHD,
-} from "./core";
-import Creep from "./creep/creep";
-import FogOfWar from "./fogofwar/fog-of-war";
+  ImageHD, Creep, FogOfWar, FogOfWarEffect
+} from "@core";
+
 import {
-  MinimapMouse,
-} from "./input";
-import { ImageBufferView, SpritesBufferView, TilesBufferView } from "./buffer-view";
-import * as log from "./ipc/log";
+  MinimapMouse, CameraMouse, CameraKeys
+} from "@input";
+import { getOpenBW } from "@openbw";
+
+import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView, StdVector } from "@buffer-view";
+import * as log from "@ipc/log";
+
 import {
-  GameSurface, Layers
-} from "./render";
-import renderComposer from "./render/render-composer";
+  GameSurface, Layers, renderComposer, SimpleText, Scene
+} from "@render";
+import { CSS2DRenderer } from "@render/css-renderer";
+
 import {
   useWorldStore,
-} from "./stores";
-import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "./utils/image-utils";
-import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "./utils/sound-utils";
-import { getOpenBW } from "./openbw";
-import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "./utils/sprite-utils";
-import { applyCameraDirectionToImageFrame, getDirection32 } from "./utils/camera-utils";
-import { CameraKeys } from "./input/camera-keys";
-import { IntrusiveList } from "./buffer-view/intrusive-list";
-import UnitsBufferView from "./buffer-view/units-buffer-view";
-import { CameraMouse } from "./input/camera-mouse";
-import Janitor from "./utils/janitor";
-import BulletsBufferView from "./buffer-view/bullets-buffer-view";
-import { WeaponBehavior } from "../common/enums";
-import gameStore from "./stores/game-store";
-import * as plugins from "./plugins";
-import settingsStore, { useSettingsStore } from "./stores/settings-store";
-import { Scene } from "./render/scene";
+} from "@stores";
+import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
+import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "@utils/sound-utils";
+import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "@utils/sprite-utils";
+import { applyCameraDirectionToImageFrame, getDirection32 } from "@utils/camera-utils";
+
+import Janitor from "@utils/janitor";
+
+import { WeaponBehavior } from "common/enums";
+import gameStore from "@stores/game-store";
+import * as plugins from "@plugins";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { Assets } from "common/types/assets";
-import { Replay } from "./process-replay/parse-replay";
-import CommandsStream from "./process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "./plugins/hooks";
+import { Replay } from "@process-replay/parse-replay";
+import CommandsStream from "@process-replay/commands/commands-stream";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
-import { CSS2DRenderer } from "./render/css-renderer";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { RELOAD_PLUGINS, SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import SelectionCircle from "@core/selection-circle";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
 import SelectionBars from "@core/selection-bars";
-import { IndexedObjectPool } from "./utils/indexed-object-pool";
-import { StdVector } from "./buffer-view/std-vector";
+import { IndexedObjectPool } from "@utils/indexed-object-pool";
 import range from "common/utils/range";
 import { getPixelRatio, updatePostProcessingCamera } from "@utils/renderer-utils";
-import { Macros } from "./command-center/macros/macros";
+import { Macros } from "./macros/macros";
 import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "./camera/game-viewport-director";
-import FogOfWarEffect from "./fogofwar/fog-of-war-effect";
 import { EffectPass, RenderPass } from "postprocessing";
-import { drawMinimap } from "./render/draw-minimap";
+import { drawMinimap } from "@render/draw-minimap";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import { mix } from "./utils/object-utils"
+import { mix } from "@utils/object-utils"
 import { createSession } from "@stores/session-store";
 import { diff } from "deep-diff";
 import set from "lodash.set";
-import { SimpleText } from "./render/simple-text";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);

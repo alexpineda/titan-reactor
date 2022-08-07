@@ -5,3 +5,5 @@ export * from "./image";
 export * from "./image-hd";
 export * from "./image-3d";
 export * from "./iscript-sprite";
+export * from "./creep/creep";
+export * from "./fogofwar";

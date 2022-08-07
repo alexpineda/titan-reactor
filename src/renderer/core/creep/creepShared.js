@@ -1,4 +1,4 @@
-import range from "../../common/utils/range";
+import range from "common/utils/range";
 // creep neighbour calculations ported from openbw
 
 //https://stackoverflow.com/questions/6232939/is-there-a-way-to-correctly-multiply-two-32-bit-integers-in-javascript/6422061
