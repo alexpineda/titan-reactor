@@ -1,7 +1,5 @@
-import path from "path";
 import {
   Color,
-  CubeTextureLoader,
   DirectionalLight,
   Group,
   HemisphereLight,
@@ -10,7 +8,6 @@ import {
   MeshBasicMaterial,
   Object3D,
   Scene as ThreeScene,
-  Texture,
 } from "three";
 
 import { TerrainMesh, TerrainQuartile } from "common/types";
@@ -47,7 +44,6 @@ export class Scene extends ThreeScene {
   #mapWidth: number;
   #mapHeight: number;
   #janitor: Janitor;
-  #skybox: Texture;
   #borderTiles: Group;
 
   hemilight: HemisphereLight;
@@ -81,9 +77,6 @@ export class Scene extends ThreeScene {
     this.add(this.hemilight);
     this.add(this.sunlight);
     this.addTerrain(terrain);
-
-    this.#skybox = this.skybox("sparse");
-    this.enableSkybox();
 
     this.#borderTiles = new Group();
     this.#borderTiles.layers.enable(Layers.Terrain);
@@ -188,31 +181,6 @@ export class Scene extends ThreeScene {
     });
   }
 
-  skybox(key: string) {
-    const loader = new CubeTextureLoader();
-    const rootPath = path.join(__static, "skybox", key);
-    loader.setPath(rootPath);
-
-    const textureCube = loader.load([
-      'right.png',
-      'left.png',
-      'top.png',
-      'bot.png',
-      'front.png',
-      'back.png',
-    ]);
-
-    return textureCube;
-  }
-
-  disableSkybox() {
-    this.background = new Color(0xffffff);
-  }
-
-  enableSkybox() {
-    this.background = this.#skybox;
-  }
-
   addTerrain(
     terrain: TerrainMesh
   ) {
@@ -234,7 +202,6 @@ export class Scene extends ThreeScene {
   }
 
   dispose() {
-    this.#skybox.dispose();
     this.#janitor.mopUp();
   }
 }

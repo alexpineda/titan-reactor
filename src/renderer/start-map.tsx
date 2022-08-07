@@ -202,7 +202,6 @@ async function TitanReactorMap(
 
   const dispose = () => {
     root.render(null);
-    root.unmount();
     log.info("disposing map viewer");
     janitor.mopUp();
   };
@@ -252,12 +251,6 @@ async function TitanReactorMap(
       c.material.wireframe = options.wireframe;
       c.material.color = new Color(0xffffff);
     });
-
-    if (options.skybox) {
-      scene.enableSkybox();
-    } else {
-      scene.disableSkybox();
-    }
 
     scene.sunlight.position.copy(options.sunPosition);
     scene.sunlight.intensity = options.sunIntensity;

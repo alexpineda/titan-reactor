@@ -21,6 +21,7 @@ import loadEnvironmentMap from "../image/env-map";
 import { calculateImagesFromUnitsIscript } from "../iscript/images-from-iscript";
 import range from "common/utils/range";
 import { unitTypes } from "common/enums";
+import { CubeTexture, CubeTextureLoader } from "three";
 
 export default async (settings: Settings) => {
 
@@ -144,6 +145,19 @@ export default async (settings: Settings) => {
     // warp in flash
     await loadImageAtlasGrp(210, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD);
 
+    const loader = new CubeTextureLoader();
+    const rootPath = path.join(__static, "skybox", "sparse");
+    loader.setPath(rootPath);
+
+    const skyBox = await new Promise(res => loader.load([
+        "right.png",
+        "left.png",
+        "top.png",
+        "bot.png",
+        "front.png",
+        "back.png",
+    ], res)) as CubeTexture;
+
     gameStore().setAssets({
         bwDat,
         grps,
@@ -157,7 +171,8 @@ export default async (settings: Settings) => {
         dragIcons,
         wireframeIcons,
         envMap,
-        loadAnim: loadImageAtlasGrp
+        loadAnim: loadImageAtlasGrp,
+        skyBox
     });
     processStore().complete(Process.AtlasPreload);
 };

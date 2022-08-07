@@ -2,6 +2,7 @@ import { debounce } from "lodash";
 import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Mesh } from "three";
 import { easeCubicIn } from "d3-ease";
 import type Chk from "bw-chk";
+import mixer from "./audio/main-mixer"
 
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "./image";
@@ -10,7 +11,7 @@ import {
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
-import type { MainMixer, Music, SoundChannels } from "./audio";
+import type { Music, SoundChannels } from "./audio";
 
 import {
   Image,
@@ -88,7 +89,6 @@ async function TitanReactorGame(
   assets: Assets,
   janitor: Janitor,
   replay: Replay,
-  audioMixer: MainMixer,
   soundChannels: SoundChannels,
   music: Music,
   commandsStream: CommandsStream
@@ -622,7 +622,7 @@ async function TitanReactorGame(
     pxToGameUnit.xyz(x, y, _soundCoords, terrain.getTerrainY);
 
     if (gameViewportsDirector.audio === "3d") {
-      if (_soundDat.minVolume || audioMixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
+      if (_soundDat.minVolume || mixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
         soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
       }
     }
@@ -1180,7 +1180,7 @@ async function TitanReactorGame(
       creep.creepEdgesValuesTexture.needsUpdate = true;
 
       const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
-      audioMixer.updateFromVector3(audioPosition as Vector3, delta);
+      mixer.updateFromVector3(audioPosition as Vector3, delta);
 
       for (const v of gameViewportsDirector.activeViewports()) {
         if (v.cameraShake.enabled && v.shakeCalculation.needsUpdate) {
@@ -1538,9 +1538,9 @@ async function TitanReactorGame(
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
 
-    audioMixer.masterVolume = newSettings.audio.global;
-    audioMixer.musicVolume = newSettings.audio.music;
-    audioMixer.soundVolume = newSettings.audio.sound;
+    mixer.masterVolume = newSettings.audio.global;
+    mixer.musicVolume = newSettings.audio.music;
+    mixer.soundVolume = newSettings.audio.sound;
 
     if (newSettings.graphics.terrainShadows !== terrain.shadowsEnabled) {
       terrain.shadowsEnabled = newSettings.graphics.terrainShadows;

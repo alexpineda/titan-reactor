@@ -23,6 +23,12 @@ export default class Janitor {
         this.add(() => nodeEventListener.off(event, callback));
     }
 
+    setInterval(callback: EmptyFn, interval: number): NodeJS.Timeout {
+        const _i = setInterval(callback, interval);
+        this.add(() => clearInterval(_i));
+        return _i;
+    }
+
     add(obj: Object3D | Disposable | EmptyFn | NodeJS.EventEmitter) {
         if (obj instanceof Object3D) {
             this.object3d(obj);

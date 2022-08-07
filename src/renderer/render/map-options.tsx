@@ -13,12 +13,6 @@ export const createUpdateDisplayOptions =
       c.material.wireframe = options.wireframe;
     });
 
-    if (options.skybox) {
-      scene.enableSkybox();
-    } else {
-      scene.disableSkybox();
-    }
-
     scene.sunlight.position.copy(options.sunPosition);
     scene.sunlight.intensity = options.sunIntensity;
     scene.sunlight.color.set(options.sunColor);

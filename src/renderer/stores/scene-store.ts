@@ -1,6 +1,6 @@
 import * as log from "@ipc/log";
 import create from "zustand";
-import { SceneState, SceneStateID } from "common/types";
+import { SceneState } from "common/types";
 
 export type SceneStore = {
     state: SceneState | null;
@@ -8,7 +8,6 @@ export type SceneStore = {
     error: Error | null;
     setError: (error: Error) => void;
     clearError: () => void;
-    currentId: SceneStateID | undefined
 };
 
 let _loading = false;
@@ -17,22 +16,26 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     scene: null,
     state: null,
     error: null,
-    load: async (loader: () => Promise<SceneState>) => {
+    load: async (loader: (prevData?: any) => Promise<SceneState>) => {
         if (_loading) {
+            console.warn("Scene is already loading");
             return;
         }
         _loading = true;
 
         get().clearError();
         const oldState = get().state;
-        oldState && oldState.dispose();
+        let prevData: any = undefined;
+        if (oldState) {
+            prevData = oldState.dispose();
+        }
 
         try {
-            const state = await loader();
+            const state = await loader(prevData);
+            oldState && oldState.beforeNext && oldState.beforeNext();
             set({
                 state
             });
-            oldState && oldState.beforeNext && oldState.beforeNext();
             await state.start();
         } catch (err: any) {
             log.error(err.message);
@@ -47,9 +50,6 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     clearError: () => {
         set({ error: null });
     },
-    get currentId() {
-        return get().state?.id
-    }
 }));
 
 export default () => useSceneStore.getState()

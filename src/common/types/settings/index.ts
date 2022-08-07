@@ -30,6 +30,8 @@ export type Settings = {
         sceneController: string;
         stopFollowingOnClick: boolean,
         minimapSize: number;
+        playIntroSounds: boolean,
+
     },
     util: {
         sanityCheckReplayCommands: boolean,

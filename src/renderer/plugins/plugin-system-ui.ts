@@ -31,7 +31,7 @@ const screenChanged = (screen: SceneStore) => {
     return {
         type: UI_STATE_EVENT_SCREEN_CHANGED,
         payload: {
-            screen: screen.currentId,
+            screen: screen.state?.id,
             error: screen.error?.message
         }
     }

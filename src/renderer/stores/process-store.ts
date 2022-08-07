@@ -123,7 +123,8 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   getTotalProgress: () => {
     const total = get().processes.reduce((acc, p) => acc + p.max, 0);
     const process = get().processes.reduce((acc, p) => acc + p.current, 0);
-    return total > 0 ? process / total : get().completedProcesses.length ? 1 : 0;
+    const t = total > 0 ? process / total : get().completedProcesses.length ? 1 : 0;
+    return t;
   }
 }));
 

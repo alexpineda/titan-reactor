@@ -1,4 +1,5 @@
 import { AudioContext, Vector3 } from "three";
+import fs from "fs/promises";
 
 const MUSIC_REDUCTION_RATIO = 0.1;
 const _position = new Vector3;
@@ -79,6 +80,40 @@ export class MainMixer {
     _position.set(this.context.listener.positionX.value, this.context.listener.positionY.value, this.context.listener.positionZ.value);
     return _position;
   }
+
+  noise(length = 3, loop = true) {
+    const source = this.context.createBufferSource();
+    // fill the buffer with white noise (random values between -1.0 and 1.0)
+    const arrayBuffer = this.context.createBuffer(
+      2,
+      this.context.sampleRate * length,
+      this.context.sampleRate
+    );
+    for (let channel = 0; channel < arrayBuffer.numberOfChannels; channel++) {
+      let nowBuffering = arrayBuffer.getChannelData(channel);
+      for (let i = 0; i < arrayBuffer.length; i++) {
+        nowBuffering[i] = Math.random() * 2 - 1;
+      }
+    }
+    source.buffer = arrayBuffer;
+    source.loop = loop;
+
+    const gain = this.context.createGain();
+    source.connect(gain);
+    return { source, gain };
+  }
+
+
+  async loadAudioFile(filename: string) {
+    const buffer = (
+      await fs.readFile(filename)
+    ).buffer;
+
+    const result = await this.context.decodeAudioData(buffer.slice(0));
+    const sound = this.context.createBufferSource();
+    sound.buffer = result;
+    return sound;
+  }
 }
 
-export default MainMixer;
+export default new MainMixer();

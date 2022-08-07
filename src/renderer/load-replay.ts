@@ -12,7 +12,8 @@ import { AssetTextureResolution, UnitTileScale } from "common/types";
 import { GameTypes } from "common/enums";
 
 import { ImageHD } from "./core";
-import { MainMixer, SoundChannels, Music } from "./audio";
+import { SoundChannels, Music } from "./audio";
+import mixer from "./audio/main-mixer"
 import { openFile } from "./ipc";
 import * as log from "./ipc/log";
 import { Scene } from "./render";
@@ -133,11 +134,13 @@ export default async (filepath: string) => {
     shadows: settings.graphics.terrainShadows
   }
   );
+
+  const assets = await waitForTruthy<Assets>(() => gameStore().assets);
+
   const scene = new Scene(map.size[0], map.size[1], terrain.mesh);
+  scene.background = assets.skyBox;
   janitor.object3d(scene);
   janitor.disposable(scene);
-
-  await waitForTruthy<Assets>(() => gameStore().assets);
 
   await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, map, replay.header);
 
@@ -148,28 +151,22 @@ export default async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
   const races = ["terran", "zerg", "protoss"];
 
-  const assets = gameStore().assets;
-  if (!assets || !assets.bwDat) {
-    throw new Error("assets not loaded");
-  }
   processStore().increment(Process.ReplayInitialization);
 
   const loadAudioFile = async (id: number) => {
     return await (await (readCascFile(`sound/${assets.bwDat.sounds[id].file}`))).buffer;
   }
 
-  const audioMixer = new MainMixer();
   const soundChannels = new SoundChannels(
-    audioMixer,
     loadAudioFile
   );
   const music = new Music(races);
-  music.setListener(audioMixer as unknown as AudioListener);
+  music.setListener(mixer as unknown as AudioListener);
   janitor.disposable(music);
 
-  audioMixer.musicVolume = settings.audio.music;
-  audioMixer.soundVolume = settings.audio.sound;
-  audioMixer.masterVolume = settings.audio.global;
+  mixer.musicVolume = settings.audio.music;
+  mixer.soundVolume = settings.audio.sound;
+  mixer.masterVolume = settings.audio.global;
 
   processStore().increment(Process.ReplayInitialization);
   ImageHD.useDepth = false;
@@ -204,7 +201,6 @@ export default async (filepath: string) => {
     assets,
     janitor,
     replay,
-    audioMixer,
     soundChannels,
     music,
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),

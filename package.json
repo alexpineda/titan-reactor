@@ -56,10 +56,12 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
-        "extraResources": [{
-            "from": "bundled",
-            "to": "bundled"
-        }]
+        "extraResources": [
+            {
+                "from": "bundled",
+                "to": "bundled"
+            }
+        ]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",
@@ -108,7 +110,9 @@
         "three": "0.143.0",
         "three-gpu-pathtracer": "^0.0.5",
         "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
+        "tone": "^14.7.77",
         "troika-three-utils": "^0.46.0",
+        "tunajs": "^1.0.15",
         "webpack": "4.42.1",
         "winreg": "^1.2.4",
         "zustand": "3.3.3"

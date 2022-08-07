@@ -13,7 +13,7 @@
 
     "strict": true,
     "preserveConstEnums": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "isolatedModules": false,
     "strictPropertyInitialization": true,
     "forceConsistentCasingInFileNames": true,

@@ -8,12 +8,13 @@ import * as log from "./ipc/log";
 import { Scene } from "./render";
 import chkToTerrainMesh from "./image/generate-map/chk-to-terrain-mesh";
 import processStore, { Process } from "@stores/process-store";
-import { AssetTextureResolution, UnitTileScale } from "common/types";
+import { Assets, AssetTextureResolution, UnitTileScale } from "common/types";
 import startMap from "./start-map";
-import { waitForProcess } from "@utils/wait-for-process";
+import { waitForTruthy } from "@utils/wait-for-process";
 import { cleanMapTitles } from "@utils/chk-utils";
 import { useWorldStore } from "@stores";
 import settingsStore from "@stores/settings-store";
+import gameStore from "@stores/game-store";
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
@@ -33,7 +34,7 @@ export default async (chkFilepath: string) => {
 
   updateWindowTitle(chk.title);
 
-  await waitForProcess(Process.AtlasPreload);
+  await waitForTruthy<Assets>(() => gameStore().assets);
 
   processStore().increment(Process.MapInitialization);
 

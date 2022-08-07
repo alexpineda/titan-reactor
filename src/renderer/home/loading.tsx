@@ -25,7 +25,6 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
 });
 
 export const SceneLoadingUI = () => {
-  const scene = useSceneStore((state) => state.currentId);
   const error = useSceneStore((state) => state.error);
   const progress = useProcessStore((state) => state.getTotalProgress());
 
@@ -33,10 +32,9 @@ export const SceneLoadingUI = () => {
     const b = (1 - progress) * 0.2;
     //@ts-ignore
     document.body.style.backdropFilter = `blur(20px) grayscale(0.2) contrast(0.5) brightness(${b})`;
-  }, [progress, scene]);
+  }, [progress]);
 
   useEffect(() => {
-    console.log("useeffect once?");
     //@ts-ignore
     document.body.style.backdropFilter = `blur(20px) grayscale(0.2) contrast(0.5) brightness(0.2)`;
     document.body.style.background = `url(${titanReactorLogo}) center center / cover`;

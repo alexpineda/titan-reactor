@@ -71,7 +71,7 @@ export default ({ components, useStore, PluginContext }) => {
     }
   }, [screen]);
 
-  const appLoaded = screen !== "@loading";
+  const appLoaded = screen && screen !== "@loading";
 
   const screenFilter = (component) =>
     appLoaded &&

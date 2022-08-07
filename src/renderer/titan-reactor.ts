@@ -16,8 +16,8 @@ declare global {
 window.isGameWindow = true;
 
 async function bootup() {
-  await sceneStore().load(() => loadLoadingPage());
-  sceneStore().load(() => loadHomePage());
+  await sceneStore().load(loadLoadingPage);
+  sceneStore().load(loadHomePage);
 }
 
 

@@ -6,10 +6,14 @@ import { initializePluginSystem } from "./plugins";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "./assets/load-and-parse-assets";
 import * as log from "./ipc/log";
-import { playIntroAudio, preloadIntro } from "./home/wraith-scene";
+import { preloadIntro } from "./home/wraith-scene";
 import { root } from "./render/root";
 import { SceneLoadingUI } from "./home/loading";
 import { waitForSeconds } from "@utils/wait-for-process";
+import Janitor from "@utils/janitor";
+import mixer from "./audio/main-mixer";
+import path from "path";
+import { Filter } from "./audio/filter";
 
 const tryLoad = async (settings: SettingsMeta) => {
   sceneStore().clearError();
@@ -32,21 +36,41 @@ const tryLoad = async (settings: SettingsMeta) => {
 export async function loadLoadingPage(): Promise<SceneState> {
   log.info("@init: loading settings");
   root.render(<SceneLoadingUI />);
-  const settings = await settingsStore().load();
 
+  const janitor = new Janitor();
+  const settings = await settingsStore().load();
   await initializePluginSystem(settingsStore().enabledPlugins);
   document.body.addEventListener("mouseup", (evt) => pluginSystem.onClick(evt));
 
   await tryLoad(settings);
   await preloadIntro();
 
+  const dropYourSocks = await mixer.loadAudioFile(
+    path.join(__static, "drop-your-socks.mp3")
+  );
+  const filter = new Filter();
+  filter.node.type = "bandpass";
+  filter.changeFrequency(50);
+
+  const gain = mixer.context.createGain();
+  filter.node.connect(gain);
+  gain.connect(mixer.sound);
+  gain.gain.value = 0.6;
+
   //todo: subscribe to settings changes in order to resolve initial settings issues for users
   return {
     id: "@loading",
     start: async () => {
-      playIntroAudio();
+      dropYourSocks.detune.setValueAtTime(-200, mixer.context.currentTime + 5);
+      dropYourSocks.connect(filter.node);
+      settings.data.game.playIntroSounds && dropYourSocks.start();
       await waitForSeconds(3);
+      setTimeout(() => {
+        gain.disconnect();
+      }, 20000);
     },
-    dispose: () => {},
+    dispose: () => {
+      janitor.mopUp();
+    },
   };
 }
