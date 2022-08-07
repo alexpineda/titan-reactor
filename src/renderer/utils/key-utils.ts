@@ -1,4 +1,4 @@
-import { KeyComboDTO } from "../macros/key-combo";
+import { KeyComboDTO } from "@macros/key-combo";
 
 export const testKeys = (e: KeyboardEvent, keys: string | undefined) => {
     if (keys === undefined) {

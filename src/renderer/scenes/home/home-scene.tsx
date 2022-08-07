@@ -1,10 +1,9 @@
 import { openUrl } from "@ipc/dialogs";
 import { useSceneStore } from "@stores/scene-store";
-import discordLogo from "./assets/discord.png";
-import youtubeLogo from "./assets/youtube.png";
-import githubLogo from "./assets/github.png";
-import "./home.css";
-import { WrappedCanvas } from "../iscriptah/components/wrapped-canvas";
+import discordLogo from "@image/assets/discord.png";
+import youtubeLogo from "@image/assets/youtube.png";
+import githubLogo from "@image/assets/github.png";
+import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 
 const iconStyle = {
   width: "var(--size-8)",

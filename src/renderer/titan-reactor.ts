@@ -2,10 +2,10 @@ import "./reset.css";
 import sceneStore from "./stores/scene-store";
 import { logCapabilities } from "@utils/renderer-utils";
 import { lockdown_ } from "@utils/ses-util";
-import "./home/home";
+import "./scenes/home/home-scene";
 import "./handle-events";
-import { preHomeSceneLoader } from "./scenes/pre-home-scene-loader";
-import { homeSceneLoader } from "./scenes/home-scene-loader";
+import { preHomeSceneLoader } from "./scenes/pre-home-scene/pre-home-scene-loader";
+import { homeSceneLoader } from "./scenes/home/home-scene-loader";
 // import "./utils/webgl-lint";
 
 declare global {

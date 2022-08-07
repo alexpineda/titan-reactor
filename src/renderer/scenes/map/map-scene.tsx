@@ -26,7 +26,7 @@ import { updatePostProcessingCamera } from "@utils/renderer-utils";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
 
-async function TitanReactorMap(
+export async function mapScene(
   chk: Chk,
   terrainInfo: TerrainInfo,
   scene: Scene,
@@ -277,5 +277,3 @@ async function TitanReactorMap(
     },
   };
 }
-
-export default TitanReactorMap;

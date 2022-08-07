@@ -51,7 +51,7 @@
       "@input/*": ["renderer/input/*"],
       "@input": ["renderer/input/index.ts"],
       "@macros/*": ["renderer/macros/*"],
-      "@macros": ["renderer/input/macros.ts"]
+      "@macros": ["renderer/macros/index.ts"]
     },
     "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
     "outDir": "generated",

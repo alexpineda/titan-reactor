@@ -1,8 +1,8 @@
-import parseReplay from "./process-replay/parse-replay";
-import writeReplay from "./process-replay/write-replay";
-import { Version } from "./process-replay/version";
-import CommandsStream from "./process-replay/commands/commands-stream";
-import ChkDowngrader from "./process-replay/chk/chk-downgrader";
+import parseReplay from "@process-replay/parse-replay";
+import writeReplay from "@process-replay/write-replay";
+import { Version } from "@process-replay/version";
+import CommandsStream from "@process-replay/commands/commands-stream";
+import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 import { AudioListener } from "three";
 
 import fs from "fs";
@@ -20,7 +20,7 @@ import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "@stores/settings-store";
 import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
-import startReplay from "./start-replay";
+import startReplay from "./replay-scene";
 import { waitForTruthy } from "@utils/wait-for-process";
 import Janitor from "@utils/janitor";
 import { getOpenBW } from "@openbw";
@@ -35,12 +35,12 @@ import { callHookAsync } from "@plugins";
 import { HOOK_ON_SCENE_PREPARED } from "@plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
-import { calculateImagesFromSpritesIscript } from "./iscript/images-from-iscript";
+import { calculateImagesFromSpritesIscript } from "../../iscript/images-from-iscript";
 import { CMDS } from "@process-replay/commands/commands";
 import { Assets } from "common/types";
 import { detectMeleeObservers } from "@utils/replay-utils";
 
-export default async (filepath: string) => {
+export const replaySceneLoader = async (filepath: string) => {
   processStore().start(Process.ReplayInitialization);
 
   log.info(`@load-replay/file: ${filepath}`);

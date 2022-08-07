@@ -1,10 +1,10 @@
 import { SceneState } from "common/types";
-import { SceneLoading } from "../home/scene-loading";
+import { InterstitialScene } from "./interstitial-scene";
 import { getSurface } from "../home/wraith-scene";
-import { root } from "../render/root";
+import { root } from "@render";
 
 export async function interstitialSceneLoader(): Promise<SceneState> {
-  root.render(<SceneLoading surface={getSurface().canvas} />);
+  root.render(<InterstitialScene surface={getSurface().canvas} />);
   return {
     id: "@interstitial",
     start: () => {},

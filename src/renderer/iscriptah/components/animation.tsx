@@ -1,7 +1,7 @@
 import shallow from "zustand/shallow";
 import { gameSpeeds } from "common/utils/conversions";
 import TransformDetails from "./transform-details";
-import { WrappedCanvas } from "./wrapped-canvas";
+import { WrappedCanvas } from "../../image/canvas/wrapped-canvas";
 import {
   setAutoupdate,
   setRenderMode,

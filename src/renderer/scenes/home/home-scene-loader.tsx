@@ -1,6 +1,6 @@
 import { SceneState } from "common/types";
-import { Home } from "../home/home";
-import { createWraithScene, getSurface } from "../home/wraith-scene";
+import { Home } from "./home-scene";
+import { createWraithScene, getSurface } from "./wraith-scene";
 import { root } from "@render";
 
 export async function homeSceneLoader(): Promise<SceneState> {

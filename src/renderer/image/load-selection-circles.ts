@@ -1,5 +1,5 @@
 import { ImageDAT, UnitTileScale } from "common/types";
-import { loadAnimAtlas } from "..";
+import { loadAnimAtlas } from ".";
 import {
     readCascFile,
 } from "common/utils/casclib";

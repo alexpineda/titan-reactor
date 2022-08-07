@@ -7,7 +7,7 @@ import { GameViewPort } from "./game-viewport";
 import { activateUnitSelection } from "../input/activate-unit-selection";
 import * as log from "@ipc/log";
 import { MouseCursor } from "../input";
-import { Macros } from "../macros";
+import { Macros } from "@macros";
 
 const _target = new Vector3;
 const _position = new Vector3;

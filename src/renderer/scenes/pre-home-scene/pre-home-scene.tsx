@@ -3,9 +3,10 @@ import { useSceneStore } from "@stores/scene-store";
 import { ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 import { ipcRenderer } from "electron";
 import { useEffect } from "react";
-import { imbateamLogo } from "./assets/imbateam";
-import titanReactorLogo from "./assets/logo.png";
+import { imbateamLogo } from "@image/assets/imbateam";
+import titanReactorLogo from "@image/assets/logo.png";
 import { LoadBar } from "./load-bar";
+import "./styles.css";
 
 const styleCenterText = {
   position: "absolute",
@@ -25,7 +26,7 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
   _firstInstall = true;
 });
 
-export const SceneLoadingUI = () => {
+export const PreHomeScene = () => {
   const error = useSceneStore((state) => state.error);
   const progress = useProcessStore((state) => state.getTotalProgress());
 

@@ -12,12 +12,12 @@ import { useSettingsStore } from "@stores";
 
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import withErrorMessage from "common/utils/with-error-message";
-import loadReplay from "./load-replay";
+import { replaySceneLoader } from "./scenes/replay/replay-scene-loader";
 import * as log from "@ipc/log";
 import sceneStore from "@stores/scene-store";
-import loadMap from "./load-map";
-import { homeSceneLoader } from "./scenes/home-scene-loader";
-import { interstitialSceneLoader } from "./scenes/interstitial-scene-loader";
+import { mapSceneLoader } from "./scenes/map/map-scene-loader";
+import { homeSceneLoader } from "./scenes/home/home-scene-loader";
+import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,
@@ -64,13 +64,13 @@ window.onerror = (
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (_, map: string) => {
     await sceneStore().execSceneLoader(interstitialSceneLoader);
-    sceneStore().execSceneLoader(() => loadMap(map));
+    sceneStore().execSceneLoader(() => mapSceneLoader(map));
 });
 
 
 ipcRenderer.on(OPEN_REPLAY_DIALOG, async (_, replay: string) => {
     await sceneStore().execSceneLoader(interstitialSceneLoader);
-    sceneStore().execSceneLoader(() => loadReplay(replay));
+    sceneStore().execSceneLoader(() => replaySceneLoader(replay));
 });
 
 ipcRenderer.on(
@@ -87,7 +87,7 @@ ipcRenderer.on(
     ) => {
         if (type === SendWindowActionType.LoadReplay) {
             await sceneStore().execSceneLoader(interstitialSceneLoader);
-            sceneStore().execSceneLoader(() => loadReplay(payload));
+            sceneStore().execSceneLoader(() => replaySceneLoader(payload));
         }
     }
 );

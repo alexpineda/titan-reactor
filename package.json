@@ -43,7 +43,7 @@
         "renderer": {
             "sourceDirectory": "src/renderer",
             "webpackConfig": "build/renderer.config.js",
-            "template": "src/renderer/home/template.html"
+            "template": "src/renderer/template.html"
         },
         "whiteListedModules": [
             "zustand",
@@ -56,12 +56,10 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",

@@ -2,12 +2,12 @@ import { ReadFile } from "common/types";
 import { WebGLRenderer } from "three";
 
 import parseDdsGrp from "../formats/parse-dds-grp";
-import generateWireframes from "../generate-icons/generate-wireframes";
-import generateCenteredCursors from "../generate-icons/generate-centered-cursors";
-import generateCursors from "../generate-icons/generate-cursors";
-import generateCmdIcons from "../generate-icons/generate-cmds";
-import generateRaceInsetIcons from "../generate-icons/generate-races";
-import generateResourceIcons from "../generate-icons/generate-resources";
+import generateWireframes from "./generate-wireframes";
+import generateCenteredCursors from "./generate-centered-cursors";
+import generateCursors from "./generate-cursors";
+import generateCmdIcons from "./generate-cmds";
+import generateRaceInsetIcons from "./generate-races";
+import generateResourceIcons from "./generate-resources";
 
 export default async (readFile: ReadFile) => {
   const renderer = new WebGLRenderer({

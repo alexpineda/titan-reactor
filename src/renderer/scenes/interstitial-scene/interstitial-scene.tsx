@@ -1,10 +1,13 @@
 import { useSceneStore } from "@stores/scene-store";
-import "./home.css";
 import { useWorldStore } from "@stores/world-store";
-import { WrappedCanvas } from "../iscriptah/components/wrapped-canvas";
-import { LoadBar } from "./load-bar";
+import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
+import { LoadBar } from "../pre-home-scene/load-bar";
 
-export const SceneLoading = ({ surface }: { surface: HTMLCanvasElement }) => {
+export const InterstitialScene = ({
+  surface,
+}: {
+  surface: HTMLCanvasElement;
+}) => {
   const error = useSceneStore((state) => state.error);
   const { map, mapImage, replay } = useWorldStore();
 

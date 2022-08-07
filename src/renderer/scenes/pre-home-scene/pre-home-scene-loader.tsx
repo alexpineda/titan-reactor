@@ -4,11 +4,11 @@ import settingsStore from "@stores/settings-store";
 import * as pluginSystem from "@plugins";
 import { initializePluginSystem } from "@plugins";
 import processStore, { Process } from "@stores/process-store";
-import loadAndParseAssets from "../image/assets/load-and-parse-assets";
+import loadAndParseAssets from "@image/load-and-parse-assets";
 import * as log from "@ipc/log";
 import { preloadIntro } from "../home/wraith-scene";
 import { root } from "@render/root";
-import { SceneLoadingUI } from "../home/home-loading";
+import { PreHomeScene } from "./pre-home-scene";
 import { waitForSeconds } from "@utils/wait-for-process";
 import Janitor from "@utils/janitor";
 import path from "path";
@@ -34,7 +34,7 @@ const tryLoad = async (settings: SettingsMeta) => {
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
   log.info("@init: loading settings");
-  root.render(<SceneLoadingUI />);
+  root.render(<PreHomeScene />);
 
   const janitor = new Janitor();
   const settings = await settingsStore().load();

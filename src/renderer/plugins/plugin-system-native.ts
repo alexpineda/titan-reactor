@@ -6,7 +6,7 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { getMacroActionValue, Macro, Macros } from "../macros";
+import { getMacroActionValue, Macro, Macros } from "@macros";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
