@@ -17,7 +17,7 @@ export async function loadHomePageLight(): Promise<SceneState> {
 
 export async function loadHomePage(): Promise<SceneState> {
   const wraithScene = await createWraithScene();
-  root.render(<Home surface={wraithScene.surface.canvas} />);
+  root.render(<Home surface={getSurface().canvas} />);
 
   return {
     id: "@home",

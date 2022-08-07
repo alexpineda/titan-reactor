@@ -43,6 +43,7 @@ import gameStore from "@stores/game-store";
 import { Filter } from "../audio/filter";
 import { upgradeStandardMaterial } from "@utils/material-utils";
 import settingsStore from "@stores/settings-store";
+import { SceneState } from "common/types";
 
 
 CameraControls.install({ THREE: THREE });
@@ -73,19 +74,52 @@ let _lastElapsed = 0;
 const shake = new CameraShake();
 shake.enabled = true;
 
-type Wraith = Object3D & { init: () => void, update: (delta: number, elapsed: number) => void };
+type Wraith = Object3D & { init: () => void, update: (delta: number, elapsed: number) => void, dispose: () => void };
 const _wraiths: Wraith[] = [];
+window.wraiths = _wraiths;
 
-const wraithMethods = (originalPosition: Vector3) => {
+const createWraith = (og: Object3D, originalPosition: Vector3) => {
     let _swerveRate = 1000;
     let _nextSwerveRate = 1000;
     let _nextSwerveAngle = Math.PI / 3.5;
 
     let [wx, wy, wz] = [Math.random() * 3000 + 1000, Math.random() * 3000 + 1000, Math.random() * 3000 + 1000];
 
-    return {
+    const wraith = og.clone(true) as Wraith;;
+
+    const burnerLight = new PointLight(0xff0000, 5, 2, 10);
+    burnerLight.position.set(0, 0.1, -0.4);
+    wraith.add(burnerLight);
+
+    const rightBlinker = new PointLight(0xe57600, 1, 1, 7);
+    rightBlinker.position.set(-0.2, -0.2, -0.05);
+    wraith.add(rightBlinker);
+
+    const leftBlinker = new PointLight(0x00d6e5, 1, 1, 7);
+    leftBlinker.position.set(0.2, -0.2, -0.05);
+    wraith.add(leftBlinker);
+
+    let _a = 0;
+    let _b = 0;
+    let _interval0: NodeJS.Timeout;
+    let _interval1: NodeJS.Timeout;
+
+
+    return Object.assign(wraith, {
         init() {
             this.position.copy(originalPosition);
+
+            _a = 0;
+            _interval0 = setInterval(() => {
+                rightBlinker.intensity = _a % 6 === 0 ? 1 : 0;
+                _a++;
+            }, 1000 + Math.random() * 1000);
+
+            _b = 0;
+            _interval1 = setInterval(() => {
+                leftBlinker.intensity = _b % 7 === 0 ? 1 : 0;
+                _b++;
+            }, 1000 + Math.random() * 1000);
         },
         update(delta: number, elapsed: number) {
             _swerveRate = MathUtils.damp(_swerveRate, _nextSwerveRate, 0.001, delta);
@@ -102,25 +136,29 @@ const wraithMethods = (originalPosition: Vector3) => {
             this.position.y = originalPosition.y + Math.sin(elapsed / wy) * 0.3;
             this.position.z = originalPosition.z + Math.sin(elapsed / wz) * 0.6;
         },
-    } as Wraith;
+        dispose() {
+            clearInterval(_interval0);
+            clearInterval(_interval1);
+        }
+    } as Wraith);
 };
 
 let _polarAngleRange = 0;
 let _minPolarAngle = 0;
 let _polarAngle = 0;
-const introLoop = (elapsed: number) => {
+
+const INTRO_LOOP = (elapsed: number) => {
     const delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
     renderComposer.render(delta);
     renderComposer.renderBuffer();
 
-    // [-1, 1] -> [-Math.PI/2, Math.PI/2]
     for (const wraith of _wraiths) {
         wraith.update(delta, elapsed);
     }
 
-    controls.rotate(Math.PI / 15000, 0);
+    controls.rotate(Math.PI / 1000, 0);
     _polarAngle = MathUtils.damp(_polarAngle, _minPolarAngle + Math.sin(delta / 1000) * _polarAngleRange, 0.001, delta);
     controls.rotatePolarTo(_polarAngle);
     controls.update(delta / 1000);
@@ -156,27 +194,16 @@ export const preloadIntro = async () => {
         if (o instanceof Mesh) {
             o.material = upgradeStandardMaterial(o.material as MeshStandardMaterial);
             o.material.emissive = new Color(0);
-            (o.material as MeshPhysicalMaterial).transmission = 0.85;
+            (o.material as MeshPhysicalMaterial).transmission = 1;
             (o.material as MeshPhysicalMaterial).opacity = 0;
+            (o.material as MeshPhysicalMaterial).thickness = 0.5;
             // (o.material as MeshPhysicalMaterial).ior = 2.333;
         }
     });
 
-    const w1 = Object.assign(wraith, wraithMethods(new Vector3(0, 0, 0)));
-    const w2 = Object.assign(wraith.clone(true), wraithMethods(new Vector3(4, 0.2, 0)));
-    const w3 = Object.assign(wraith.clone(true), wraithMethods(new Vector3(-2, -0.1, -1.2)));
-
-    {
-        const plight = new PointLight(0xff0000, 4, 50, 2);
-        plight.position.set(0, -10, 0);
-        wraith.add(plight);
-    }
-
-    {
-        const plight = new PointLight(0x999900, 4, 50, 2);
-        plight.position.set(0, -10, 0);
-        w2.add(plight);
-    }
+    const w1 = createWraith(wraith, new Vector3(0, 0, 0));
+    const w2 = createWraith(wraith, new Vector3(4, 0.2, 0));
+    const w3 = createWraith(wraith, new Vector3(-2, -0.1, -1.2));
 
     _wraiths.push(w1, w2, w3);
     for (const wraith of _wraiths) {
@@ -262,7 +289,7 @@ export const getSurface = () => introSurface;
 
 
 
-export const createWraithScene = async () => {
+export async function createWraithScene(): Promise<SceneState> {
     const janitor = new Janitor;
 
     _noiseInstance = createWraithNoise();
@@ -280,6 +307,7 @@ export const createWraithScene = async () => {
 
     for (const wraith of _wraiths) {
         scene.add(wraith);
+        janitor.add(wraith);
     }
 
     scene.add(slight);
@@ -337,12 +365,7 @@ export const createWraithScene = async () => {
 
     glitchEffect.blendMode.setOpacity(0.5);
     const glitchPass = new EffectPass(camera, glitchEffect);
-    glitchPass.enabled = false;
-
-    const tone = new ToneMappingEffect({
-        mode: ToneMappingMode.OPTIMIZED_CINEON
-    });
-
+    const tone = new ToneMappingEffect();
 
     const postProcessingBundle = {
         passes: [
@@ -365,8 +388,8 @@ export const createWraithScene = async () => {
     renderComposer.setBundlePasses(postProcessingBundle);
 
     return {
-        surface: introSurface,
-        dispose: () => janitor.mopUp(), start: () => {
+        id: "@home",
+        start: () => {
             let _i = 0;
             janitor.setInterval(() => {
                 // glitchPass.enabled = false;
@@ -381,20 +404,19 @@ export const createWraithScene = async () => {
                 updatePostProcessingCamera(postProcessingBundle, camera, true);
             }, 1000);
 
-            glitchPass.enabled = true;
-            updatePostProcessingCamera(postProcessingBundle, camera, true);
 
             renderComposer.render(0);
             renderComposer.renderBuffer();
             renderComposer
                 .getWebGLRenderer()
                 .setAnimationLoop(
-                    introLoop
+                    INTRO_LOOP
                 );
             janitor.add(() => {
                 renderComposer.getWebGLRenderer().setAnimationLoop(null)
                 renderComposer.dispose();
             })
-        }
+        },
+        dispose: () => janitor.mopUp()
     }
 }
