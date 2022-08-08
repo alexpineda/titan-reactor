@@ -72,8 +72,8 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     playIntroSounds: {
         folder: "Audio",
         label: "Play App Intro Sounds",
-        value: settings.data.game.playIntroSounds,
-        path: "game",
+        value: settings.data.audio.playIntroSounds,
+        path: "audio",
     },
     stopFollowingOnClick: {
         folder: "Game",

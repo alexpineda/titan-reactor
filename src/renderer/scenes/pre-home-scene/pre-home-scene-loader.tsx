@@ -44,32 +44,31 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
   await tryLoad(settings);
   await preloadIntro();
 
-  const dropYourSocks = await mixer.loadAudioFile(
+  mixer.setVolumes(settings.data.audio);
+
+  const dropYourSocks = mixer.context.createBufferSource();
+  dropYourSocks.buffer = await mixer.loadAudioBuffer(
     path.join(__static, "drop-your-socks.mp3")
   );
-  const filter = new Filter();
-  filter.node.type = "bandpass";
-  filter.changeFrequency(50);
 
-  const gain = mixer.context.createGain();
-  filter.node.connect(gain);
-  gain.connect(mixer.sound);
-  gain.gain.value = 0.6;
+  janitor.add(
+    mixer.connect(
+      dropYourSocks,
+      new Filter("bandpass", 50).node,
+      mixer.createGain(0.6),
+      mixer.intro
+    )
+  );
 
-  //todo: subscribe to settings changes in order to resolve initial settings issues for users
+  dropYourSocks.onended = () => janitor.mopUp();
+
   return {
     id: "@loading",
     start: async () => {
       dropYourSocks.detune.setValueAtTime(-200, mixer.context.currentTime + 5);
-      dropYourSocks.connect(filter.node);
-      settings.data.game.playIntroSounds && dropYourSocks.start();
-      await waitForSeconds(3);
-      setTimeout(() => {
-        gain.disconnect();
-      }, 20000);
+      dropYourSocks.start();
+      await waitForSeconds(1);
     },
-    dispose: () => {
-      janitor.mopUp();
-    },
+    dispose: () => {},
   };
 }

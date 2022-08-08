@@ -18,6 +18,7 @@ import sceneStore from "@stores/scene-store";
 import { mapSceneLoader } from "./scenes/map/map-scene-loader";
 import { homeSceneLoader } from "./scenes/home/home-scene-loader";
 import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
+import { mixer } from "./audio";
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,
@@ -33,6 +34,7 @@ ipcRenderer.on(
     ) => {
         if (type === SendWindowActionType.CommitSettings) {
             useSettingsStore.setState(payload);
+            mixer.setVolumes(payload.data.audio);
         }
     }
 );

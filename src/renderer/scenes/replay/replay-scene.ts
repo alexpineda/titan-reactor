@@ -1532,9 +1532,7 @@ async function TitanReactorGame(
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
 
-    mixer.masterVolume = newSettings.audio.global;
-    mixer.musicVolume = newSettings.audio.music;
-    mixer.soundVolume = newSettings.audio.sound;
+    mixer.setVolumes(newSettings.audio);
 
     if (newSettings.graphics.terrainShadows !== terrain.shadowsEnabled) {
       terrain.shadowsEnabled = newSettings.graphics.terrainShadows;

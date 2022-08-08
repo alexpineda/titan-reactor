@@ -36,7 +36,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
             set({
                 state
             });
-            await state.start();
+            await state.start(oldState?.id);
         } catch (err: any) {
             log.error(err.message);
             get().setError(err);

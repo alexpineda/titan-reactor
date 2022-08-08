@@ -11,19 +11,15 @@ export class SoundChannels {
   channels: SoundChannel[];
   buffers: Map<number, AudioBuffer> = new Map();
   #loading: Map<number, boolean> = new Map();
-  loadSoundAsync: (id: number) => Promise<ArrayBufferLike>;
 
   constructor(
-    loadSoundAsync: (id: number) => Promise<ArrayBufferLike>
   ) {
-    this.loadSoundAsync = loadSoundAsync;
     this.channels = range(0, this.maxChannels).map(() => new SoundChannel());
   }
 
   async _load(typeId: number) {
     this.#loading.set(typeId, true);
-    const buffer = await this.loadSoundAsync(typeId);
-    const result = await mixer.context.decodeAudioData(buffer.slice(0));
+    const result = await mixer.loadAudioBuffer(typeId);
     this.#loading.delete(typeId);
     return result
   }

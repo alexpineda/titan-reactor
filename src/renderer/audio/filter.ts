@@ -3,10 +3,10 @@ import { mixer } from "./main-mixer";
 export class Filter {
     node: BiquadFilterNode;
 
-    constructor() {
+    constructor(type: BiquadFilterType, frequency = 84) {
         this.node = mixer.context.createBiquadFilter();
-        this.node.type = "lowpass";
-        this.changeFrequency(84);
+        this.node.type = type;
+        this.changeFrequency(frequency);
     }
 
     /** 33-140 */

@@ -10,8 +10,6 @@ import Chk from "bw-chk";
 
 import { AssetTextureResolution, UnitTileScale } from "common/types";
 import { GameTypes } from "common/enums";
-
-import { ImageHD } from "@core";
 import { SoundChannels, Music, mixer } from "@audio";
 import { openFile } from "@ipc";
 import * as log from "@ipc/log";
@@ -45,7 +43,6 @@ export const replaySceneLoader = async (filepath: string) => {
 
   log.info(`@load-replay/file: ${filepath}`);
 
-
   const janitor = new Janitor();
   const settings = settingsStore().data;
 
@@ -58,7 +55,6 @@ export const replaySceneLoader = async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
   document.title = "Titan Reactor - Loading";
-
 
   const openBw = await getOpenBW();
   await openBw.start(readCascFile);
@@ -98,7 +94,6 @@ export const replaySceneLoader = async (filepath: string) => {
   const map = new Chk(replay.chk);
   cleanMapTitles(map);
 
-
   const gameTitle = `${map.title} - ${replay.header.players
     .map(({ name }) => name)
     .join(", ")}`
@@ -137,23 +132,12 @@ export const replaySceneLoader = async (filepath: string) => {
 
   processStore().increment(Process.ReplayInitialization);
 
-  const loadAudioFile = async (id: number) => {
-    return await (await (readCascFile(`sound/${assets.bwDat.sounds[id].file}`))).buffer;
-  }
-
-  const soundChannels = new SoundChannels(
-    loadAudioFile
-  );
+  const soundChannels = new SoundChannels();
   const music = new Music(races);
   music.setListener(mixer as unknown as AudioListener);
   janitor.disposable(music);
 
-  mixer.musicVolume = settings.audio.music;
-  mixer.soundVolume = settings.audio.sound;
-  mixer.masterVolume = settings.audio.global;
-
   processStore().increment(Process.ReplayInitialization);
-  ImageHD.useDepth = false;
 
   const preloadCommands = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
   const preloadCommandTypes = [CMDS.TRAIN.id, CMDS.UNIT_MORPH.id, CMDS.BUILDING_MORPH.id, CMDS.BUILD.id];

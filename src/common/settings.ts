@@ -15,15 +15,15 @@ export const defaultSettings: Settings = {
     terrain: AssetTextureResolution.HD,
   },
   audio: {
-    global: 1,
+    global: 0.5,
     music: 0.5,
-    sound: 1
+    sound: 0.5,
+    playIntroSounds: true,
   },
   game: {
     sceneController: "@titan-reactor-plugins/camera-standard",
     stopFollowingOnClick: true,
     minimapSize: 1,
-    playIntroSounds: true,
   },
   util: {
     sanityCheckReplayCommands: true,

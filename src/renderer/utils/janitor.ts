@@ -7,10 +7,17 @@ interface Disposable {
 
 type EmptyFn = () => void;
 
+type SupportedJanitorTypes = Object3D | Disposable | EmptyFn | NodeJS.EventEmitter;
 export default class Janitor {
     private _objects = new Set<Object3D>();
     private _disposable = new Set<Disposable>();
     private _callbacks = new Set<EmptyFn>();
+
+    constructor(dispose?: SupportedJanitorTypes) {
+        if (dispose) {
+            this.add(dispose);
+        }
+    }
 
     addEventListener(element: { addEventListener: Function, removeEventListener: Function }, event: string, callback: Function, options?: AddEventListenerOptions) {
         element.addEventListener(event, callback, options);
@@ -29,7 +36,7 @@ export default class Janitor {
         return _i;
     }
 
-    add(obj: Object3D | Disposable | EmptyFn | NodeJS.EventEmitter) {
+    add<T extends SupportedJanitorTypes>(obj: T): T {
         if (obj instanceof Object3D) {
             this.object3d(obj);
         } else if ("dispose" in obj) {

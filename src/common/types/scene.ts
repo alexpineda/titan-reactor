@@ -3,6 +3,6 @@ export type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscript
 export type SceneState = {
     id: SceneStateID;
     dispose: () => void;
-    start: () => void;
+    start: (prevId?: SceneStateID) => void;
     beforeNext?: () => void;
 }

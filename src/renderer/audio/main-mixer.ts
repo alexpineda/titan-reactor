@@ -1,10 +1,15 @@
 import { AudioContext, Vector3 } from "three";
 import fs from "fs/promises";
-
+import {
+  readCascFile,
+} from "common/utils/casclib";
+import gameStore from "@stores/game-store";
+import { Settings } from "common/types";
 const MUSIC_REDUCTION_RATIO = 0.1;
 const _position = new Vector3;
 // mixes sound and music volumes
 export class MainMixer {
+  intro: GainNode;
   sound: GainNode;
   music: GainNode;
   gain: GainNode;
@@ -26,6 +31,9 @@ export class MainMixer {
 
     this.music = this.context.createGain();
     this.music.connect(this.gain);
+
+    this.intro = this.context.createGain();
+    this.intro.connect(this.compressor);
 
   }
 
@@ -60,6 +68,13 @@ export class MainMixer {
   set musicVolume(val) {
     if (val === this.music.gain.value) return;
     this.music.gain.setTargetAtTime(val * MUSIC_REDUCTION_RATIO, this.context.currentTime, 0.01);
+  }
+
+  setVolumes(volumes: Settings["audio"]) {
+    this.masterVolume = volumes.global;
+    this.soundVolume = volumes.sound;
+    this.musicVolume = volumes.music;
+    this.intro.gain.value = volumes.playIntroSounds ? 1 : 0;
   }
 
   update(x: number, y: number, z: number, delta: number) {
@@ -103,17 +118,55 @@ export class MainMixer {
     return { source, gain };
   }
 
-
-  async loadAudioFile(filename: string) {
-    const buffer = (
-      await fs.readFile(filename)
-    ).buffer;
-
-    const result = await this.context.decodeAudioData(buffer.slice(0));
-    const sound = this.context.createBufferSource();
-    sound.buffer = result;
-    return sound;
+  async loadAudioBuffer(id: number): Promise<AudioBuffer>
+  async loadAudioBuffer(filename: string): Promise<AudioBuffer>
+  async loadAudioBuffer(filenameOrId: string | number): Promise<AudioBuffer> {
+    if (typeof filenameOrId === "number") {
+      const assets = gameStore().assets!;
+      const buffer = (await readCascFile(`sound/${assets.bwDat.sounds[filenameOrId].file}`)).buffer
+      return await this.context.decodeAudioData(buffer.slice(0));
+    }
+    else if (typeof filenameOrId === "string" && filenameOrId.startsWith("casc:")) {
+      const filename = filenameOrId.replace("casc:", "");
+      const buffer = (await readCascFile(filename)).buffer
+      return await this.context.decodeAudioData(buffer.slice(0));
+    } else {
+      const buffer = (
+        await fs.readFile(filenameOrId)
+      ).buffer;
+      return (await this.context.decodeAudioData(buffer.slice(0)));
+    }
   }
+
+  connect(...args: AudioNode[]) {
+    for (let i = 0; i < args.length - 1; i++) {
+      args[i].connect(args[i + 1])
+    }
+    return () => {
+      for (let i = 0; i < args.length - 1; i++) {
+        args[i].disconnect(args[i + 1])
+      }
+    }
+  }
+
+  createGain(value: number) {
+    const gain = this.context.createGain();
+    gain.gain.value = value;
+    return gain;
+  }
+
+  createDistortion(k = 50) {
+    const DEG = Math.PI / 180;
+
+    const n_samples = 44100;
+    const curve = new Float32Array(n_samples);
+    curve.forEach((_, i) => {
+      const x = (i * 2) / n_samples - 1;
+      curve[i] = ((3 + k) * x * 20 * DEG) / (Math.PI + k * Math.abs(x));
+    });
+    return new WaveShaperNode(this.context, { curve });
+  }
+
 }
 
 export const mixer = new MainMixer();

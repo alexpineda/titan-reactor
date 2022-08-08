@@ -19,6 +19,7 @@ export type Settings = {
         global: number;
         music: number;
         sound: number;
+        playIntroSounds: boolean,
     },
     graphics: {
         antialias: boolean;
@@ -30,8 +31,6 @@ export type Settings = {
         sceneController: string;
         stopFollowingOnClick: boolean,
         minimapSize: number;
-        playIntroSounds: boolean,
-
     },
     util: {
         sanityCheckReplayCommands: boolean,
