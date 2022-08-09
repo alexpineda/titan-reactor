@@ -1,12 +1,12 @@
 
-type Lerp = (t: number, a: number, b: number) => number;
+type Lerp = (a: number, b: number, t: number) => number;
 
-export const createSpline = (lerp: Lerp, times: number[], values: number[]) => {
+export const createSpline = (lerp: Lerp, times: number[], values: number[], scale = 1) => {
     const spline = new LinearSpline(lerp);
     for (let i = 0; i < times.length; i++) {
-        spline.add(times[i], values[i]);
+        spline.add(times[i], values[i] * scale);
     }
-    return spline;
+    return (t: number) => spline.get(t);
 }
 
 export class LinearSpline {
@@ -38,8 +38,7 @@ export class LinearSpline {
         }
 
         return this.#lerp(
-            (t - this.#points[p1].t) / (
-                this.#points[p2].t - this.#points[p1].t),
-            this.#points[p1].v, this.#points[p2].v);
+            this.#points[p1].v, this.#points[p2].v, (t - this.#points[p1].t) / (
+                this.#points[p2].t - this.#points[p1].t));
     }
 }

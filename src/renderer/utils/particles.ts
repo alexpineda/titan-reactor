@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { DoubleSide, Vector3 } from 'three';
-import { createSpline } from "./linear-spline";
 
 const fragmentShader = `
 uniform sampler2D diffuseTexture;
@@ -34,6 +33,7 @@ void main() {
   
   gl_Position = projectionMatrix * mvPosition;
   gl_PointSize = pointMultiplier * size / gl_Position.w;
+//   gl_PointSize *= ( size / - mvPosition.z );
   
   vColor = color;
   vAngle = vec2(cos(angle), sin(angle));
@@ -55,12 +55,13 @@ export type Particle = {
 };
 
 
-
 export type ParticleSystemOptions = {
     count: number;
-    size: number;
+    size: (t: number) => number;
+    alpha: (t: number) => number;
     coordScale: number;
     tex: THREE.Texture;
+    sortParticles: boolean;
     spriteMap?: {
         frameCount: number;
         width: number;
@@ -82,7 +83,10 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
         vertexShader,
         side: DoubleSide
     });
+
     const points = new THREE.Points(geom, material);
+    points.frustumCulled = false;
+
     let particles = new Array<Particle>();
 
     for (let i = 0; i < opts.count; i++) {
@@ -159,18 +163,6 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
         geom.attributes.frame.needsUpdate = true;
     };
 
-    const alphaSpline = createSpline(
-        (t, a, b) => a + t * (b - a),
-        [0, .1, 0.3, 1],
-        [0, 1, 0.1, 0]
-    );
-
-    const sizeSpline = createSpline(
-        (t, a, b) => a + t * (b - a),
-        [0, .07, .2, 0.5, 1],
-        [0, 1.5, .1, .1, 0]
-    );
-
     const _velocityAdd = new Vector3;
 
     const updateParticles = (camera: THREE.Camera, delta: number) => {
@@ -184,18 +176,20 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
 
         for (let p of particles) {
             const t = 1.0 - p.life / p.maxLife;
-            p.color.w = alphaSpline.get(t);
-            p.currentSize = p.size * sizeSpline.get(t) * opts.size;
+            p.color.w = opts.alpha(t);
+            p.currentSize = p.size * opts.size(t);
             p.position.add(_velocityAdd.copy(p.velocity).multiplyScalar(delta / 1000));
             p.frame = Math.floor(t * p.maxFrame);
         }
-        particles.sort((a, b) => {
-            const d1 = camera.position.distanceTo(a.position);
-            const d2 = camera.position.distanceTo(b.position);
-            return d2 - d1;
-        });
-    }
+        if (opts.sortParticles) {
+            particles.sort((a, b) => {
+                const d1 = camera.position.distanceTo(a.position);
+                const d2 = camera.position.distanceTo(b.position);
+                return d2 - d1;
+            });
+        }
 
+    }
 
     return {
         opts,
@@ -208,3 +202,5 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
         }
     };
 };
+
+export type ParticleSystem = ReturnType<typeof createParticles>;

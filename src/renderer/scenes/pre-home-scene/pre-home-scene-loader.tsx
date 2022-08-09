@@ -6,7 +6,7 @@ import { initializePluginSystem } from "@plugins";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "@image/load-and-parse-assets";
 import * as log from "@ipc/log";
-import { preloadIntro } from "../home/wraith-scene";
+import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
 import { waitForSeconds } from "@utils/wait-for-process";

@@ -1,6 +1,6 @@
 import { SceneState } from "common/types";
 import { InterstitialScene } from "./interstitial-scene";
-import { getSurface } from "../home/wraith-scene";
+import { getSurface } from "../home/space-scene";
 import { root } from "@render";
 
 export async function interstitialSceneLoader(): Promise<SceneState> {

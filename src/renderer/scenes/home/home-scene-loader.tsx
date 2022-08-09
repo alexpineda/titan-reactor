@@ -1,6 +1,6 @@
 import { SceneState, SceneStateID } from "common/types";
 import { Home } from "./home-scene";
-import { createWraithScene, getSurface } from "./wraith-scene";
+import { createWraithScene, getSurface } from "./space-scene";
 import { root } from "@render";
 import { mixer } from "@audio/main-mixer";
 import { waitForSeconds } from "@utils/wait-for-process";
