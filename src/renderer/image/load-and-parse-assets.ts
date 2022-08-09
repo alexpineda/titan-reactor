@@ -28,7 +28,7 @@ export default async (settings: Settings) => {
     processStore().start(Process.AtlasPreload, 999);
 
     electronFileLoader((file: string) => {
-        if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png")) {
+        if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
             return fsPromises.readFile(file);
         } else {
             return readCascFile(file);

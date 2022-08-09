@@ -24,7 +24,8 @@ export type LoadingStoreProcess = LoadingStoreDeterminateProcess;
 export type ProcessStore = {
   completedProcesses: LoadingStoreProcess[];
   processes: LoadingStoreProcess[];
-  start: (id: Process, max?: number) => void;
+  add: (id: Process, count: number) => void;
+  start: (id: Process, max?: number) => { increment: () => void, complete: () => void };
   increment: (id: Process, current?: number) => void;
   complete: (id: Process) => void;
   isComplete: (id: Process) => boolean;
@@ -39,6 +40,16 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   completedProcesses: [],
   processes: [],
   hasAnyProcessIncomplete: () => get().processes.length > 0,
+  add(id: Process, count: number) {
+    const process = get().processes.find(p => p.id === id);
+    if (!process) {
+      log.warning(`Process ${id} does not exist. Can't add to it`);
+    }
+    process!.max + count;
+    set(({ processes }) => ({
+      processes: [...processes],
+    }));
+  },
   start: (id: Process, max = PROCESS_MAX) => {
     performance.clearMarks(`process-${id}`);
     performance.clearMeasures(`process-${id}`);
@@ -66,7 +77,10 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
       }],
       completedProcesses: completedProcesses.filter((p) => p.id !== id),
     }));
-
+    return {
+      increment: () => get().increment(id),
+      complete: () => get().complete(id),
+    }
   },
   increment: (id: Process, current?: number) => {
     clearTimeout(_timerDebug[id]);

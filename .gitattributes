@@ -4,3 +4,4 @@ bundled/drop-your-socks.mp3 filter=lfs diff=lfs merge=lfs -text
 bundled/wraith.glb filter=lfs diff=lfs merge=lfs -text
 bundled/battlecruiser.glb filter=lfs diff=lfs merge=lfs -text
 bundled/asteroid.glb filter=lfs diff=lfs merge=lfs -text
+bundled/FireBall03_8x8.exr filter=lfs diff=lfs merge=lfs -text

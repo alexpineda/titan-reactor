@@ -27,7 +27,7 @@ const tryLoad = async (settings: SettingsMeta) => {
     processStore().isComplete(Process.AtlasPreload) ||
     processStore().isInProgress(Process.AtlasPreload)
   ) {
-    return;
+    throw new Error("Can't load assets again");
   }
   await loadAndParseAssets(settings.data);
 };
@@ -61,6 +61,8 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
   );
 
   dropYourSocks.onended = () => janitor.mopUp();
+
+  // await waitForTruthy(() => processStore().isComplete(Process.AtlasPreload));
 
   return {
     id: "@loading",
