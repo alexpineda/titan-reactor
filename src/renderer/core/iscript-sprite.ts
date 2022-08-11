@@ -6,12 +6,12 @@ import {
   imageTypes,
   iscriptHeaders,
   overlayTypes,
-} from "../../common/enums";
-import { BwDAT, ImageDAT, UnitDAT } from "../../common/types";
-import pick from "../../common/utils/pick";
+} from "common/enums";
+import { BwDAT, ImageDAT, UnitDAT } from "common/types";
+import pick from "common/utils/pick";
 import { ImageSD, Image3D, ImageHD2, ImageHD, Image } from ".";
-import { IScriptRunner } from "../iscript/iscript-runner";
-import { IScriptState } from "../iscript/iscript-state";
+import { IScriptRunner } from "./iscript-runner";
+import { IScriptState } from "./iscript-state";
 
 enum ImageOrder {
   bottom,

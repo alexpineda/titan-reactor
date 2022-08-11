@@ -33,7 +33,7 @@ import { callHookAsync } from "@plugins";
 import { HOOK_ON_SCENE_PREPARED } from "@plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
-import { calculateImagesFromSpritesIscript } from "../../iscript/images-from-iscript";
+import { calculateImagesFromSpritesIscript } from "../../utils/images-from-iscript";
 import { CMDS } from "@process-replay/commands/commands";
 import { Assets } from "common/types";
 import { detectMeleeObservers } from "@utils/replay-utils";

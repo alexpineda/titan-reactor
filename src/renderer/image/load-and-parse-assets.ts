@@ -18,7 +18,7 @@ import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons/generate-icons";
 import * as log from "../ipc/log"
 import loadEnvironmentMap from "./environment/env-map";
-import { calculateImagesFromUnitsIscript } from "../iscript/images-from-iscript";
+import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
 import { unitTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";

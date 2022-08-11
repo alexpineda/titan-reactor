@@ -1546,16 +1546,17 @@ async function TitanReactorGame(
 
   }));
 
-
   await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
 
   const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
   precompileCamera.updateProjectionMatrix();
   precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
   precompileCamera.lookAt(scene.position);
+
+  // precompile the scene for the first time
+  // set game second to 1 so creep can be rendered since its slow to generate
   GAME_LOOP(0);
   renderComposer.getWebGLRenderer().render(scene, precompileCamera);
-
   _sceneResizeHandler();
 
   return {

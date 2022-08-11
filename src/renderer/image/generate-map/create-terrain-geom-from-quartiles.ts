@@ -22,7 +22,7 @@ export const createTerrainGeometryFromQuartiles = async (
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
-    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage, textures: mapTextures });
+    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage });
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;

@@ -9,14 +9,14 @@ import Commands from "./commands";
 import Animation from "./animation";
 import Frames from "./frames";
 import IScriptSprite from "@core/iscript-sprite";
-import calculateImagesFromIscript from "../../iscript/images-from-iscript";
+import calculateImagesFromIscript from "@utils/images-from-iscript";
 import { UnitDAT } from "common/types";
 import {
   setBlockFrameCount,
   useIScriptahStore,
   useIscriptStore,
 } from "../stores";
-import { IScriptRunner } from "renderer/iscript/iscript-runner";
+import { IScriptRunner } from "@core/iscript-runner";
 
 const App = ({
   surface,

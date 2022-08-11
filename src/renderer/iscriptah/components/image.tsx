@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import AnimationBlocks from "./animation-blocks";
-import calculateImagesFromIscript from "../../iscript/images-from-iscript";
+import calculateImagesFromIscript from "@utils/images-from-iscript";
 import { ImageDAT } from "common/types";
 import { useGameStore } from "@stores/game-store";
 

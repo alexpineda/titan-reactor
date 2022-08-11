@@ -1,7 +1,7 @@
 import { GetTerrainY, getTerrainY } from "@image/generate-map";
-import { GeometryOptions, TerrainQuartile, WrappedQuartileTextures } from "common/types";
+import { GeometryOptions, TerrainQuartile } from "common/types";
 import { anisotropyOptions } from "@utils/renderer-utils";
-import { Group, Mesh } from "three";
+import { Group, Mesh, MeshStandardMaterial } from "three";
 
 export class Terrain extends Group {
     override children: TerrainQuartile[] = [];
@@ -18,9 +18,8 @@ export class Terrain extends Group {
         }
     readonly getTerrainY: GetTerrainY;
     readonly geomOptions: GeometryOptions;
-    #textures: WrappedQuartileTextures;
 
-    constructor({ geomOptions, mapHeight, mapWidth, displacementImage, textures }: { geomOptions: GeometryOptions, mapWidth: number, mapHeight: number, displacementImage: ImageData, textures: WrappedQuartileTextures }) {
+    constructor({ geomOptions, mapHeight, mapWidth, displacementImage }: { geomOptions: GeometryOptions, mapWidth: number, mapHeight: number, displacementImage: ImageData }) {
         super();
 
         this.geomOptions = geomOptions;
@@ -30,8 +29,6 @@ export class Terrain extends Group {
             mapWidth,
             mapHeight
         );
-        this.#textures = textures;
-
     }
 
     set shadowsEnabled(val: boolean) {
@@ -43,14 +40,28 @@ export class Terrain extends Group {
         });
     }
 
+    #applyToMaterial(fn: (mat: MeshStandardMaterial) => void) {
+        for (const c of this.children) {
+            if (c instanceof Mesh) {
+                const material = c.material as MeshStandardMaterial;
+                fn(material);
+            }
+        }
+
+    }
+
     setAnisotropy(anisotropy: string) {
         const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
 
-        for (const row of this.#textures.mapQuartiles) {
-            for (const texture of row) {
-                texture.anisotropy = value;
-            }
-        }
+        this.#applyToMaterial(mat => {
+            mat.map!.anisotropy = value;
+        });
+    }
+
+    setBumpScale(value: number | null) {
+        this.#applyToMaterial(mat => {
+            mat.bumpScale = value ?? this.geomOptions.bumpScale;
+        });
     }
 
 }
