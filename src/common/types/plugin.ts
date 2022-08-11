@@ -29,7 +29,7 @@ export interface PluginMetaData extends PluginPackage {
     path: string;
     date?: Date;
     readme?: string;
-    hasUI: boolean;
+    indexFile: string;
     methods: string[];
     hooks: string[];
     isSceneController: boolean;
@@ -64,7 +64,7 @@ export interface NativePlugin extends PluginPrototype {
     $$meta: {
         hooks: string[];
         methods: string[];
-        hasUI: boolean;
+        indexFile: string;
         isSceneController: boolean;
     }
 

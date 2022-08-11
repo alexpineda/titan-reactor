@@ -64,4 +64,11 @@ export class Terrain extends Group {
         });
     }
 
+    setHighDetailStyle(value: boolean) {
+        this.setBumpScale(value ? this.geomOptions.bumpScale : null);
+        this.shadowsEnabled = value;
+
+        // TODO: other things
+    }
+
 }

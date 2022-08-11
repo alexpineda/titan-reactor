@@ -77,7 +77,7 @@ export class PluginSystemNative {
             pluginRaw.$$meta = {
                 methods: pluginPackage.methods,
                 hooks: pluginPackage.hooks,
-                hasUI: pluginPackage.hasUI,
+                indexFile: pluginPackage.indexFile,
                 isSceneController: pluginPackage.isSceneController,
             }
             pluginRaw.$$config = pluginPackage.config;

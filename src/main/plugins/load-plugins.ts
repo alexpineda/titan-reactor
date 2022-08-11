@@ -44,7 +44,13 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
     const pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
     const readme = await _tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
-    const hasUI = await fileExists(path.join(folderPath, "index.jsx"));
+
+    let indexFile = "";
+    if (await fileExists(path.join(folderPath, "index.jsx"))) {
+        indexFile = "index.jsx";
+    } else if (await fileExists(path.join(folderPath, "index.tsx"))) {
+        indexFile = "index.tsx";
+    }
 
     if (!packageJSON) {
         return null
@@ -62,7 +68,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
 
     const config = packageJSON.config ?? {};
     if (typeof config._visible !== "object") {
-        if (hasUI) {
+        if (indexFile) {
             Object.assign(config, { _visible: { value: true, label: "UI Visible", folder: "System" } });
         } else {
             delete config._visible;
@@ -80,7 +86,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         config,
         nativeSource: pluginNative,
         readme: readme ?? undefined,
-        hasUI,
+        indexFile,
         methods: getMethods(pluginNative ?? ""),
         isSceneController: (pluginNative ?? "").includes("onEnterScene"),
         hooks: packageJSON.config?.system?.customHooks ?? [],

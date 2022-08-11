@@ -288,6 +288,12 @@ async function TitanReactorGame(
 
     plugins.setActiveInputHandler(inputHandler);
 
+    // TODO: move rendering configuration to better settings other than rotateSprites
+    // Do all render differences here?
+    terrain.setHighDetailStyle(gameViewportsDirector.viewports[0].spriteRenderOptions.rotateSprites);
+    scene.sunlight.shadow.needsUpdate = true;
+    renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
+
   }
 
   const miscApi = {

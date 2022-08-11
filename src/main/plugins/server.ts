@@ -1,7 +1,7 @@
 import path from "path";
 import express from "express";
 import fs from "fs";
-import transpile, { TransformSyntaxError } from "../transpile";
+import { TransformSyntaxError } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import settings from "../settings/singleton"
@@ -10,6 +10,7 @@ import logService from "../logger/singleton";
 import fetch from 'node-fetch';
 import { getEnabledPluginPackages } from "./load-plugins";
 import * as casclib from "bw-casclib";
+import { DiagnosticCategory, JsxEmit, ModuleKind, ScriptTarget, transpileModule } from "typescript";
 
 
 const _runtimePath = path.resolve(__static, "plugins-runtime");
@@ -88,13 +89,23 @@ app.get('*', async function (req, res) {
         return res.sendStatus(404);
     }
 
-    if (filepath.endsWith(".jsx")) {
+    if (filepath.endsWith(".jsx") || filepath.endsWith(".tsx")) {
 
-        let result = await transpile(path.basename(filepath), fs.readFileSync(filepath, "utf8"), transpileErrors);
-        let content = "";
+        const ts = transpileModule(fs.readFileSync(filepath, "utf8"), { compilerOptions: { target: ScriptTarget.ESNext, module: ModuleKind.ESNext, allowJs: true, jsx: JsxEmit.React, isolatedModules: true, sourceMap: true, inlineSourceMap: true, skipLibCheck: true, allowSyntheticDefaultImports: true } });
 
-        if (result?.code) {
-            content = result.code;
+        let content = ts.outputText;
+        for (const error of ts.diagnostics ?? []) {
+            if (error.category === DiagnosticCategory.Error) {
+                transpileErrors.push({
+                    name: filepath,
+                    snippet: error.source!,
+                    message: error.messageText.toString(),
+                    loc: {
+                        line: error.start!,
+                        column: 0
+                    }
+                });
+            }
         }
 
         const plugins = getEnabledPluginPackages();
@@ -108,7 +119,7 @@ app.get('*', async function (req, res) {
         if (!plugin && isPlugin) {
             return res.sendStatus(404);
         }
-        //.find(p => p.id === req.query["plugin-id"]);
+
         if (plugin && content) {
             content = `
             import { _rc } from "titan-reactor";

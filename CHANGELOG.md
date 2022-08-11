@@ -7,13 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## Added
+## Added-
+- New home screen and map/replay loading screens
 - Macro hotkey system with "programmable" triggers and action sequences
-- Minimap size is now configurable
+- New global options: minimap size, asset preload, default scene controller, anisotropy
 - Terrain now has mirrored edge tiles
-- Anisotropy graphics setting is now configurable via the UI
-- New home page
-- Plugins v2
+- Plugins API v2
 
 ## Changed
 - Global Settings is no longer a plugin and now built into the app
@@ -25,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Regression in floating sprites is fixed
 - Regression creep edges fixed
+- Sprite overlay edges bug fixed
 - Bullet tracking now works on floating buildings
+- See 0.5.3 release for further fixes
 
 ### Removed
 - HD2 is no longer an option

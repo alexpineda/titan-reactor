@@ -244,7 +244,7 @@ const _removePlugin = (pluginId) => {
 };
 
 const _addPlugin = (plugin) => {
-  if (!plugin.hasUI) {
+  if (!plugin.indexFile) {
     return;
   }
 
@@ -252,7 +252,7 @@ const _addPlugin = (plugin) => {
   const script = document.createElement("script");
   script.type = "module";
   script.async = true;
-  script.src = `${plugin.path}/index.jsx?plugin-id=${plugin.id}`;
+  script.src = `${plugin.path}/${plugin.indexFile}`;
   document.head.appendChild(script);
 
   _plugins[plugin.id] = {

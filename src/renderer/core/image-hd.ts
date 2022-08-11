@@ -20,11 +20,6 @@ import gameStore from "@stores/game-store";
 import { Unit } from "./unit";
 import { imageIsDoodad } from "@utils/image-utils";
 
-export const DepthMode = {
-  Ordered: 0, // for top down views
-  Depth: 1, // for angled views
-};
-
 const white = new Color(0xffffff);
 const CLOAK_OPACITY = 0.6;
 
