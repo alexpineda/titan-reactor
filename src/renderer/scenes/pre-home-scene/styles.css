@@ -1,20 +1,23 @@
 @font-face {
   font-family: "Conthrax";
-  src: url("../../image/assets/fonts/conthrax-rg.otf") format("opentype");
+  src: url("../../../../bundled/fonts/conthrax-rg.otf") format("opentype");
+  /* src: url("../../image/assets/fonts/conthrax-rg.otf") format("opentype"); */
   font-style: normal;
   font-weight: 100 400;
 }
 
 @font-face {
   font-family: "Conthrax-Bold";
-  src: url("../../image/assets/fonts/conthrax-hv.otf") format("opentype");
+  src: url("../../../../bundled/fonts/conthrax-hv.otf") format("opentype");
+  /* src: url("../../image/assets/fonts/conthrax-hv.otf") format("opentype"); */
   font-style: normal;
   font-weight: 500 900;
 }
 
 @font-face {
   font-family: "Inter";
-  src: url("../../image/assets/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype");
+  src: url("../../../../bundled/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype");
+  /* src: url("../../image/assets/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype"); */
 }
 
 :root {

@@ -1,7 +1,7 @@
 import path from "path";
-import express from "express";
 import fs from "fs";
-import { TransformSyntaxError } from "../transpile";
+import express from "express";
+import { transpile } from "../transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import settings from "../settings/singleton"
@@ -10,12 +10,10 @@ import logService from "../logger/singleton";
 import fetch from 'node-fetch';
 import { getEnabledPluginPackages } from "./load-plugins";
 import * as casclib from "bw-casclib";
-import { DiagnosticCategory, JsxEmit, ModuleKind, ScriptTarget, transpileModule } from "typescript";
+import runtimeHTML from "!!raw-loader!./runtime.html";
+import runtimeJSX from "!!raw-loader!./runtime.jsx";
 
-
-const _runtimePath = path.resolve(__static, "plugins-runtime");
 let _handle: any = null;
-
 const app = express();
 
 app.use(function (_, res, next) {
@@ -24,7 +22,8 @@ app.use(function (_, res, next) {
     next()
 })
 
-const transpileErrors: TransformSyntaxError[] = [];
+
+//TODO: preload runtime.html and runtime.tsx
 
 app.get('*', async function (req, res) {
     if (req.url.startsWith("/m_api")) {
@@ -76,10 +75,24 @@ app.get('*', async function (req, res) {
         return;
     }
 
-    const isPlugin = !req.path.startsWith("/runtime");
-    const filepath = isPlugin ? path.join(settings.get().directories.plugins, req.path) : path.join(_runtimePath, req.path);
+    if (req.path.endsWith("conthrax-hv.otf")) {
+        return res.sendFile(path.resolve(__static, "fonts", "conthrax-hv.otf"));
+    } else if (req.path.endsWith("conthrax-rg.otf")) {
+        return res.sendFile(path.resolve(__static, "fonts", "conthrax-rg.otf"));
+    } else if (req.path.endsWith("Inter-VariableFont_slnt,wght.ttf")) {
+        return res.sendFile(path.resolve(__static, "fonts", "Inter-VariableFont_slnt,wght.ttf"));
+    } else if (req.path.endsWith("runtime.html")) {
+        res.setHeader("Content-Type", "text/html");
+        return res.send(runtimeHTML);
+    } else if (req.path.endsWith("runtime.jsx")) {
+        const { result } = transpile(runtimeJSX, "runtime.jsx");
+        res.setHeader("Content-Type", "application/javascript");
+        return res.send(result.outputText);
+    }
 
-    if (!(filepath.startsWith(settings.get().directories.plugins) || filepath.startsWith(_runtimePath))) {
+    const filepath = path.join(settings.get().directories.plugins, req.path);
+
+    if (!(filepath.startsWith(settings.get().directories.plugins))) {
         logService.error(`@server/403-forbidden: ${filepath}`);
         return res.sendStatus(403);
     }
@@ -91,23 +104,9 @@ app.get('*', async function (req, res) {
 
     if (filepath.endsWith(".jsx") || filepath.endsWith(".tsx")) {
 
-        const ts = transpileModule(fs.readFileSync(filepath, "utf8"), { compilerOptions: { target: ScriptTarget.ESNext, module: ModuleKind.ESNext, allowJs: true, jsx: JsxEmit.React, isolatedModules: true, sourceMap: true, inlineSourceMap: true, skipLibCheck: true, allowSyntheticDefaultImports: true } });
+        const { result, transpileErrors } = transpile(fs.readFileSync(filepath, "utf8"), filepath);
 
-        let content = ts.outputText;
-        for (const error of ts.diagnostics ?? []) {
-            if (error.category === DiagnosticCategory.Error) {
-                transpileErrors.push({
-                    name: filepath,
-                    snippet: error.source!,
-                    message: error.messageText.toString(),
-                    loc: {
-                        line: error.start!,
-                        column: 0
-                    }
-                });
-            }
-        }
-
+        let content = result.outputText;
         const plugins = getEnabledPluginPackages();
         let plugin;
         for (const _plugin of plugins) {
@@ -116,7 +115,7 @@ app.get('*', async function (req, res) {
             }
         }
 
-        if (!plugin && isPlugin) {
+        if (!plugin) {
             return res.sendStatus(404);
         }
 

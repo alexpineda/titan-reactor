@@ -168,6 +168,7 @@
         "reflect-metadata": "^0.1.13",
         "rimraf": "^3.0.2",
         "source-map-support": "^0.5.19",
+        "ts-node": "^10.9.1",
         "url-loader": "^4.1.1",
         "worker-loader": "^2.0.0"
     },

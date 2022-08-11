@@ -64,6 +64,7 @@ const worldPartial = (world: WorldStore) => {
         replay: world.replay?.header
     }
 }
+export type WorldPartial = ReturnType<typeof worldPartial>;
 
 const unitsPartial = (units: Unit[]) => {
     if (units.length === 1) {
@@ -72,6 +73,8 @@ const unitsPartial = (units: Unit[]) => {
         return units;
     }
 }
+export type UnitsPartial = ReturnType<typeof unitsPartial>;
+
 let _dumpUnitCall: (id: number) => {};
 
 const unitWithDump = (unit: Unit) => {
@@ -187,7 +190,6 @@ export class PluginSystemUI {
             const settings = settingsStore().data;
 
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
-
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
 

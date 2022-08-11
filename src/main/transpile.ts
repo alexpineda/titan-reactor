@@ -1,4 +1,4 @@
-import { createConfigItem, transformAsync } from "@babel/core";
+import { DiagnosticCategory, JsxEmit, ModuleKind, ScriptTarget, transpileModule } from "typescript";
 
 export interface TransformSyntaxError extends Error {
   message: string;
@@ -9,30 +9,28 @@ export interface TransformSyntaxError extends Error {
   snippet: string;
 }
 
-export default async (
-  filename: string,
-  content: string,
-  transpileErrors: Error[]
-) => {
-  try {
-    const result = await transformAsync(content, {
-      filename,
-      presets: [
-        createConfigItem(require("@babel/preset-react")),
-      ],
-      configFile: false,
-      browserslistConfigFile: false,
-      sourceMaps: false,
-      sourceType: "module",
-      babelrc: false,
 
-    });
+export const transpile = (source: string, filename: string) => {
+  const ts = transpileModule(source, { compilerOptions: { target: ScriptTarget.ESNext, module: ModuleKind.ESNext, allowJs: true, jsx: JsxEmit.React, isolatedModules: true, sourceMap: true, inlineSourceMap: true, skipLibCheck: true, allowSyntheticDefaultImports: true } });
 
-    return result;
-  } catch (e) {
-    if (e instanceof Error) {
-      transpileErrors.push(e);
+  const transpileErrors: TransformSyntaxError[] = [];
+
+  for (const error of ts.diagnostics ?? []) {
+    if (error.category === DiagnosticCategory.Error) {
+      transpileErrors.push({
+        name: filename,
+        snippet: error.source!,
+        message: error.messageText.toString(),
+        loc: {
+          line: error.start!,
+          column: 0
+        }
+      });
     }
-    return null;
   }
-};
+
+  return {
+    result: ts,
+    transpileErrors
+  }
+}
