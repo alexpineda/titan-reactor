@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Mesh } from "three";
+import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene } from "three";
 import { easeCubicIn } from "d3-ease";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
@@ -7,7 +7,7 @@ import { mixer } from "@audio"
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  UnitDAT, WeaponDAT, TerrainInfo, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, TerrainExtra, SceneState
+  UnitDAT, WeaponDAT, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, SceneState
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -71,13 +71,15 @@ import { mix } from "@utils/object-utils"
 import { createSession } from "@stores/session-store";
 import { diff } from "deep-diff";
 import set from "lodash.set";
+import { Terrain } from "@core/terrain";
+import { TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
 
 async function TitanReactorGame(
   map: Chk,
-  terrain: TerrainInfo,
+  terrain: Terrain,
   terrainExtra: TerrainExtra,
   scene: Scene,
   assets: Assets,
@@ -150,7 +152,8 @@ async function TitanReactorGame(
   document.body.appendChild(cssRenderer.domElement);
   janitor.callback(() => document.body.removeChild(cssRenderer.domElement));
 
-  terrain.anisotropy = session.getState().graphics.anisotropy;
+  terrain.setAnisotropy(session.getState().graphics.anisotropy);
+  terrainExtra.setCreepAnisotropy(session.getState().graphics.anisotropy);
 
   const gameSurface = new GameSurface(mapWidth, mapHeight);
   gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
@@ -1111,14 +1114,8 @@ async function TitanReactorGame(
 
 
   // apply initial terrain shadow settings
-  terrain.mesh.traverse(o => {
-    if (o instanceof Mesh) {
-      o.castShadow = session.getState().graphics.terrainShadows;
-      o.receiveShadow = session.getState().graphics.terrainShadows;
-    }
-  })
+  terrain.shadowsEnabled = session.getState().graphics.terrainShadows;
   renderComposer.getWebGLRenderer().shadowMap.needsUpdate = session.getState().graphics.terrainShadows;
-  // const _maxTransparentBorderTilesDistance = Math.max(mapWidth, mapHeight) * 4;
 
   let _lastElapsed = 0;
   const _a = new Vector3;
@@ -1349,6 +1346,7 @@ async function TitanReactorGame(
         return gameViewportsDirector.viewports;
       },
       simpleMessage(val: string) {
+        console.log("simpleMessage", val);
         simpleText.set(val);
       },
       scene,
@@ -1375,13 +1373,12 @@ async function TitanReactorGame(
       },
       pxToGameUnit,
       fogOfWar,
-      terrain: {
-        tileset: map.tileset,
-        mapWidth,
-        mapHeight,
-        getTerrainY: terrain.getTerrainY,
-        mesh: terrain.mesh
-      },
+      mapWidth,
+      mapHeight,
+      tileset: map.tileset,
+      tilesetName: map.tilesetName,
+      getTerrainY: terrain.getTerrainY,
+      terrain,
       get currentFrame() {
         return currentBwFrame;
       },
@@ -1527,7 +1524,7 @@ async function TitanReactorGame(
 
   }));
 
-  janitor.add(session.subscribe((newSettings) => {
+  janitor.add(session.subscribe((newSettings, prevSettings) => {
     if (!gameViewportsDirector.disabled && newSettings.game.sceneController !== gameViewportsDirector.name) {
       gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
@@ -1539,8 +1536,9 @@ async function TitanReactorGame(
       renderComposer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
     }
 
-    if (newSettings.graphics.anisotropy !== terrain.anisotropy) {
-      terrain.anisotropy = newSettings.graphics.anisotropy;
+    if (newSettings.graphics.anisotropy !== prevSettings.graphics.anisotropy) {
+      terrain.setAnisotropy(session.getState().graphics.anisotropy);
+      terrainExtra.setCreepAnisotropy(session.getState().graphics.anisotropy);
     }
 
     Object.assign(session, newSettings);

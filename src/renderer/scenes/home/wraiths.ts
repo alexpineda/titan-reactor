@@ -3,11 +3,8 @@ import { createSpline } from "@utils/linear-spline";
 import { createParticles, ParticleSystemOptions } from "@utils/particles";
 import { upgradeStandardMaterial } from "@utils/material-utils";
 import { ParticleSystem } from "@utils/particles";
-import { Camera, MathUtils, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, PointLight, Texture, Vector3, Vector4 } from "three";
-import { mixer } from "@audio/main-mixer";
-import Janitor from "@utils/janitor";
-import { Filter } from "@audio/filter";
-
+import { Camera, Group, MathUtils, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, PointLight, Texture, Vector3, Vector4 } from "three";
+import { playWraithComms } from "./wraith-noise";
 
 export type Wraith = Object3D & {
     init: () => void;
@@ -20,26 +17,6 @@ const wraithBlue = 0x0033ff;
 
 let _lastWraithSoundPlayed = true;
 let _wraithPlaySpot = Math.PI / 2 + (Math.PI / 3) * Math.random();
-
-
-const _wraithSounds = [
-    "tphrdy00.wav",
-    "tphwht00.wav",
-    "tphwht01.wav",
-    "tphwht02.wav",
-    "tphwht03.wav",
-    "tphyes00.wav",
-    "tphyes01.wav",
-    "tphyes02.wav",
-    "tphyes03.wav",
-    "tphpss00.wav",
-    "tphpss01.wav",
-    "tphpss02.wav",
-    "tphpss03.wav",
-    "tphpss04.wav",
-    "tphpss05.wav",
-    "tphpss06.wav",
-].map((s) => `casc:sound\\terran\\phoenix\\${s}`);
 
 const createWraith = (og: Object3D, originalPosition: Vector3, particles: ParticleSystem, i: number) => {
     let _swerveRate = 1000;
@@ -71,8 +48,8 @@ const createWraith = (og: Object3D, originalPosition: Vector3, particles: Partic
     let _interval0: NodeJS.Timeout;
     let _interval1: NodeJS.Timeout;
 
-    particles.points.position.set(0, 0, -0.2);
-    wraith.add(particles.points.clone());
+    particles.object.position.set(0, 0, -0.2);
+    wraith.add(particles.object.clone());
 
     return Object.assign(wraith, {
         init() {
@@ -116,7 +93,10 @@ const createWraith = (og: Object3D, originalPosition: Vector3, particles: Partic
 export const createWraiths = () => {
 
     const wraiths: Wraith[] = [];
+    const wraithGroup = new Group;
     let burners: ParticleSystem;
+
+
 
     return {
         async load(envmap: Texture, particle: Texture) {
@@ -135,6 +115,7 @@ export const createWraiths = () => {
 
             burners = createParticles({
                 count: 5000,
+                sizeAttenuation: true,
                 size: createSpline(
                     MathUtils.lerp,
                     [0, .07, .2, 0.5, 1],
@@ -148,7 +129,12 @@ export const createWraiths = () => {
                     [0, .1, 0.3, 1],
                     [0, 1, 0.1, 0]
                 ),
-                tex: particle,
+                spriteMap: {
+                    tex: particle,
+                    width: 8,
+                    height: 8,
+                    frameCount: 64
+                },
                 particleTemplate: (opts: ParticleSystemOptions) => {
                     const x = MathUtils.randFloatSpread(0.5) * opts.coordScale;
                     const y = MathUtils.randFloatSpread(0.5) * opts.coordScale
@@ -179,6 +165,7 @@ export const createWraiths = () => {
             const w3 = createWraith(model, new Vector3(-2, -0.1, -1.2), burners, 2);
 
             wraiths.push(w1, w2, w3);
+            wraithGroup.add(w1, w2, w3);
 
         },
         init() {
@@ -192,26 +179,9 @@ export const createWraiths = () => {
             }
             burners.update(camera, delta);
 
-
             if (normalizedAzimuthAngle > _wraithPlaySpot) {
                 if (!_lastWraithSoundPlayed) {
-                    (async () => {
-                        const sound = mixer.context.createBufferSource();
-                        sound.buffer = await mixer.loadAudioBuffer(
-                            _wraithSounds[MathUtils.randInt(0, _wraithSounds.length - 1)]
-                        );
-                        sound.detune.value = -200 * rear;
-
-                        const filter = new Filter("bandpass", 40);
-                        filter.changeQ(3);
-                        filter.changeGain(2);
-
-                        const janitor = new Janitor(
-                            mixer.connect(sound, filter.node, mixer.createGain(2), mixer.intro)
-                        );
-                        sound.start();
-                        sound.onended = () => janitor.mopUp();
-                    })();
+                    playWraithComms(rear);
                 }
                 _lastWraithSoundPlayed = true;
             } else {
@@ -225,6 +195,11 @@ export const createWraiths = () => {
                 wraith.dispose();
             }
         },
-        get: () => wraiths
+        get object() {
+            return wraithGroup;
+        },
+        get particles() {
+            return burners;
+        }
     }
 }

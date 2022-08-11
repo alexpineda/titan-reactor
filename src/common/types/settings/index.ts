@@ -14,6 +14,7 @@ export type Settings = {
     assets: {
         images: AssetTextureResolution;
         terrain: AssetTextureResolution;
+        preload: boolean;
     },
     audio: {
         global: number;

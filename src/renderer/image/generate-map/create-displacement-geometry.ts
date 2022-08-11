@@ -92,3 +92,5 @@ export const getTerrainY = (
     return imageF[p] + offset;
   };
 };
+
+export type GetTerrainY = (x: number, y: number) => number;

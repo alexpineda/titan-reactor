@@ -52,6 +52,8 @@ export const createAsteroids = () => {
                 asteroids.setMatrixAt(i, m);
             });
         },
-        get: () => asteroids
+        get object() {
+            return asteroids;
+        }
     }
 }

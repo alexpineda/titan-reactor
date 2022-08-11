@@ -1,7 +1,8 @@
 import type Chk from "bw-chk";
-import { GeometryOptions, TerrainExtra, TerrainInfo, UnitTileScale } from "common/types";
+import { anisotropyOptions } from "@utils/renderer-utils";
+import { GeometryOptions, UnitTileScale } from "common/types";
 import {
-  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect, getTerrainY as genTerrainY
+  createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect
 } from ".";
 
 import * as log from "@ipc";
@@ -9,8 +10,7 @@ import { getTilesetBuffers } from "./get-tileset-buffers";
 
 import * as sd from "./sd";
 import * as hd from "./hd";
-import { anisotropyOptions } from "@utils/renderer-utils";
-import { LinearEncoding, Mesh, sRGBEncoding } from "three";
+import { LinearEncoding, sRGBEncoding } from "three";
 import { renderComposer, Layers } from "@render";
 import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
@@ -22,7 +22,7 @@ type TerrainMeshSettings = {
   shadows: boolean;
 }
 
-export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings, geomOptions: GeometryOptions = defaultGeometryOptions): Promise<{ terrain: TerrainInfo, extra: TerrainExtra }> {
+export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings, geomOptions: GeometryOptions = defaultGeometryOptions) {
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -80,59 +80,24 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   renderer.autoClear = true;
   renderer.outputEncoding = sRGBEncoding;
 
-  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages.displaceCanvas, textures, effectsTextures);
+  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages, textures, effectsTextures);
   terrain.layers.enable(Layers.Terrain);
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 
-  const getTerrainY = genTerrainY(
-    displacementImages.displacementImage,
-    geomOptions.maxTerrainHeight,
-    mapWidth,
-    mapHeight
-  );
-
-  let _shadows = settings.shadows;
-  let _anisotropy = settings.anisotropy;
-
   return {
-    terrain: {
-      mesh: terrain,
-      getTerrainY,
-      geomOptions,
-      get shadowsEnabled() {
-        return _shadows;
-      },
-      set shadowsEnabled(val: boolean) {
-        _shadows = val;
-        terrain.traverse(o => {
-          if (o instanceof Mesh) {
-            o.castShadow = val;
-            o.receiveShadow = val;
-          }
-        });
-      },
-      get anisotropy() {
-        return _anisotropy;
-      },
-      set anisotropy(anisotropy: string) {
-        _anisotropy = anisotropy;
-        const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
-        creepTexture.texture.anisotropy = value;
-
-        creepEdgesTexture.texture.anisotropy = value;
-
-        for (const row of textures.mapQuartiles) {
-          for (const texture of row) {
-            texture.anisotropy = value;
-          }
-        }
-      }
-    },
+    terrain,
     extra: {
       minimapBitmap,
       creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
       creepTextureUniform: dataTextures.creepTextureUniform,
+      setCreepAnisotropy(anisotropy: string) {
+        const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
+        creepTexture.texture.anisotropy = value;
+        creepEdgesTexture.texture.anisotropy = value;
+      }
     }
   }
 }
+
+export type TerrainExtra = Awaited<ReturnType<typeof chkToTerrainMesh>>["extra"];

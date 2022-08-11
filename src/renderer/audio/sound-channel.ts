@@ -113,18 +113,5 @@ export class SoundChannel {
     this.isPlaying = true;
   }
 
-  // // https://alemangui.github.io/ramp-to-value
-  // stop() {
-  //   this.isPlaying = false;
-
-  //   this.#gain.gain.setValueAtTime(
-  //     this.#gain.gain.value,
-  //     this.#mixer.context.currentTime
-  //   );
-  //   this.#gain.gain.exponentialRampToValueAtTime(
-  //     0.0001,
-  //     this.#mixer.context.currentTime + stopTime * 0.001
-  //   );
-  // }
 }
 export default SoundChannel;

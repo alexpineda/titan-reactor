@@ -44,7 +44,7 @@ export const mapSceneLoader = async (chkFilepath: string) => {
     anisotropy: settings.graphics.anisotropy,
     shadows: settings.graphics.terrainShadows
   });
-  const scene = new Scene(map.size[0], map.size[1], terrain.mesh);
+  const scene = new Scene(map.size[0], map.size[1], terrain);
 
   ImageHD.useDepth = false;
   processStore().increment(Process.MapInitialization);

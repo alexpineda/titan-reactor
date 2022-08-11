@@ -116,7 +116,7 @@ export const replaySceneLoader = async (filepath: string) => {
 
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
-  const scene = new Scene(map.size[0], map.size[1], terrain.mesh);
+  const scene = new Scene(map.size[0], map.size[1], terrain);
   scene.background = assets.skyBox;
   janitor.object3d(scene);
   janitor.disposable(scene);
@@ -151,15 +151,17 @@ export const replaySceneLoader = async (filepath: string) => {
     }
   }
 
-  const unitSprites = new Set(map.units.map(u => u.sprite).filter(s => Number.isInteger(s)) as number[]);
-  const allSprites = [...preloadCommandUnits, ...unitSprites, ...new Set(map.sprites.map(s => s.spriteId))];
-  const allImages = calculateImagesFromSpritesIscript(assets.bwDat, allSprites);
+  if (settings.assets.preload) {
+    const unitSprites = new Set(map.units.map(u => u.sprite).filter(s => Number.isInteger(s)) as number[]);
+    const allSprites = [...preloadCommandUnits, ...unitSprites, ...new Set(map.sprites.map(s => s.spriteId))];
+    const allImages = calculateImagesFromSpritesIscript(assets.bwDat, allSprites);
 
-  log.verbose(`@load-replay/preload-images: ${allImages.length}`);
-  processStore().start(Process.AtlasPreload, allImages.length);
+    log.verbose(`@load-replay/preload-images: ${allImages.length}`);
+    processStore().start(Process.AtlasPreload, allImages.length);
 
-  await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
-  processStore().complete(Process.AtlasPreload);
+    await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
+    processStore().complete(Process.AtlasPreload);
+  }
 
   const state = await startReplay(
     map,

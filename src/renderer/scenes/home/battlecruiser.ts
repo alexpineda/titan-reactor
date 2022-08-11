@@ -15,6 +15,12 @@ export const createBattleCruiser = () => {
     let burners: ParticleSystem;
 
     return {
+        size: 4,
+        life: 100,
+        velocity: 0,
+        alpha: 0.01,
+        color: new Vector4(1, 1, 1, MathUtils.randFloat(0.5, 1)),
+        coordMultipler: new Vector3(.1, .1, .1),
         async load(envmap: Texture, particle: Texture) {
             const { model } = await loadGlb(
                 `${__static}/battlecruiser.glb`,
@@ -38,58 +44,65 @@ export const createBattleCruiser = () => {
             model.rotation.z = BC_START_ROT.z;
             model.position.copy(BC_START_POS);
 
+            const alphaSpline = createSpline(
+                MathUtils.lerp,
+                [0, .15, .33, .45, .66, .8, 1],
+                [0, 1, 0, 1, 0, 1, 0],
+            );
+
             burners = createParticles({
-                count: 50,
+                count: 4,
                 sortParticles: false,
-                size: createSpline(
-                    MathUtils.lerp,
-                    [0, .15, .33, .45, .66, .8, 1],
-                    [0, 1, 0, 1, 0, 1, 0],
-                    5
-                ),
-                alpha: createSpline(
-                    MathUtils.lerp,
-                    [0, .15, .33, .45, .66, .8, 1],
-                    [0, 1, 0, 1, 0, 1, 0],
-                    0.2
-                ),
-                coordScale: .5,
-                tex: particle,
+                sizeAttenuation: true,
+                size: _ => 10,
+                alpha: t => alphaSpline(t) * this.alpha,
+                spriteMap: {
+                    tex: particle,
+                    width: 8,
+                    height: 8,
+                    frameCount: 64
+                },
+                coordScale: 1,
                 particleTemplate: (opts: ParticleSystemOptions) => {
-                    const x = MathUtils.randFloatSpread(0.5) * opts.coordScale;
-                    const y = MathUtils.randFloatSpread(0.5) * opts.coordScale
-                    const z = MathUtils.randFloatSpread(0.5) * opts.coordScale;
+                    const x = MathUtils.randFloatSpread(1) * this.coordMultipler.x;
+                    const y = MathUtils.randFloatSpread(1) * this.coordMultipler.y;
+                    const z = MathUtils.randFloatSpread(1) * this.coordMultipler.z;
 
                     const position = new Vector3(x, y, z);
 
-                    const life = 0.5;
-                    const size = 4;
 
                     return {
                         position,
-                        size,
-                        currentSize: size,
-                        color: new Vector4(0.3, 0.3, 0.3, MathUtils.randFloat(0.5, 1)),
-                        life,
-                        maxLife: life,
+                        size: this.size,
+                        currentSize: this.size,
+                        color: this.color,
+                        life: this.life,
+                        maxLife: this.life,
                         angle: 0,
-                        velocity: new Vector3(0, 0, -5000 * opts.coordScale),
+                        velocity: new Vector3(0, 0, this.velocity * opts.coordScale),
                         frame: 0,
                         maxFrame: 64
                     };
                 }
             });
-            burners.points.rotation.y = Math.PI / 2;
-            burners.points.position.set(0.6, 2.25, 1.5);
-            model.add(burners.points);
+            burners.object.position.set(0, 2.4, 1.7);
+            burners.object.scale.set(1, 0.5, 0.5)
 
-            // const ball = new Mesh(new SphereGeometry(0.5, 10, 10), new ShaderMaterial());
-            // ball.position.set(0, 2.25, 1.8);
-            // ball.scale.set(1, 0.7, 0.5);
-            // ball.material.transparent = true;
-            // ball.material.needsUpdate = true;
-            // window._ball = ball;
-            // model.add(ball);
+            const burner1 = burners.object.clone();
+            const burner2 = burners.object.clone();
+            const burner3 = burners.object.clone();
+            const burner4 = burners.object.clone();
+
+            burner1.scale.setX(0.5);
+            burner1.position.set(-0.4, 2.25, 1.5);
+
+            burner2.scale.setX(0.5);
+            burner2.position.set(0.4, 2.25, 1.5);
+
+            burner4.position.setY(0.5);
+
+            model.add(burner1, burner2, burner3);
+
             return model;
         },
         update(delta: number, elapsed: number, cameraRotateSpeed: number, camera: Camera) {
@@ -99,8 +112,9 @@ export const createBattleCruiser = () => {
             battleCruiser.position.lerpVectors(BC_START_POS, BC_END_POS, bcv);
             burners.update(camera, delta);
         },
-        get: () => battleCruiser,
-        getParticles: () => burners
+        get object() {
+            return battleCruiser;
+        },
     }
 
 }

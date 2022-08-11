@@ -148,4 +148,4 @@ export const doHeightMapEffect = async ({
         displacementImage,
     };
 };
-export default doHeightMapEffect;
+export type HeightMaps = Awaited<ReturnType<typeof doHeightMapEffect>>;

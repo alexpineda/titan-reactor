@@ -133,13 +133,15 @@ export default async (settings: Settings) => {
 
     const loadImageAtlasGrp = loadImageAtlas(grps);
 
-    const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
-    const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
+    if (settings.assets.preload) {
+        const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
+        const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
 
-    processStore().start(Process.AtlasPreload, preloadImageIds.length);
-    for (const id of preloadImageIds) {
-        processStore().increment(Process.AtlasPreload);
-        await loadImageAtlasGrp(id, UnitTileScale.HD2);
+        processStore().start(Process.AtlasPreload, preloadImageIds.length);
+        for (const id of preloadImageIds) {
+            processStore().increment(Process.AtlasPreload);
+            await loadImageAtlasGrp(id, UnitTileScale.HD2);
+        }
     }
 
     // warp in flash

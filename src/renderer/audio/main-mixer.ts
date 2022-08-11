@@ -167,6 +167,18 @@ export class MainMixer {
     return new WaveShaperNode(this.context, { curve });
   }
 
+  smoothStop(gain: GainNode, delta = 0, decay = 1) {
+    // // https://alemangui.github.io/ramp-to-value
+
+    gain.gain.setValueAtTime(
+      gain.gain.value,
+      this.context.currentTime + delta
+    );
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      this.context.currentTime + delta + decay * 0.001
+    );
+  }
 }
 
 export const mixer = new MainMixer();

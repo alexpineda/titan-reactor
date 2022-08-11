@@ -1,13 +1,15 @@
 import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk } from "three";
 
 
-import { CreepTexture, WrappedQuartileTextures, TerrainMesh, GeometryOptions, EffectsTextures } from "common/types";
+import { CreepTexture, WrappedQuartileTextures, GeometryOptions, EffectsTextures } from "common/types";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { MapDataTextures } from "./create-data-textures";
 
 import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
+import { Terrain } from "@core/terrain";
+import { HeightMaps } from "./height-maps";
 
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
@@ -16,11 +18,11 @@ export const createTerrainGeometryFromQuartiles = async (
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
     { creepEdgesTextureUniform, creepTextureUniform, occlussionRoughnessMetallicMap }: MapDataTextures,
-    displaceCanvas: HTMLCanvasElement,
+    { displacementImage, displaceCanvas }: HeightMaps,
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
-    const terrain = new TerrainMesh();
+    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage, textures: mapTextures });
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
@@ -164,7 +166,7 @@ export const createTerrainGeometryFromQuartiles = async (
     terrain.visible = true;
     terrain.name = "TerrainHD";
     terrain.userData = {
-        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY, geomOptions
+        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY
     }
 
 

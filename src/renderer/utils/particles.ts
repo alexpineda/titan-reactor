@@ -1,43 +1,71 @@
 import * as THREE from 'three';
-import { DoubleSide, Vector3 } from 'three';
+import { Vector3 } from 'three';
 
 const fragmentShader = `
-uniform sampler2D diffuseTexture;
+#ifdef USE_SPRITEMAP
 
-varying vec2 vAngle;
-varying vec4 vColor;
+uniform sampler2D diffuseTexture;
+uniform vec2 uFrame;
 varying vec2 vFrame;
+varying vec2 vAngle;
+
+#endif
+
+varying vec4 vColor;
 
   void main() {
-    vec2 coords = ((gl_PointCoord / 8.+ vFrame) - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
-    vec4 c = texture2D(diffuseTexture, coords);
-    gl_FragColor = c * vColor;
+
+    gl_FragColor = vColor;
+
+
+    #ifdef USE_SPRITEMAP
+
+    vec2 coords = ((gl_PointCoord / uFrame + vFrame) - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
+    gl_FragColor *= texture2D(diffuseTexture, coords);
+
+    #endif
   }
 
 `;
 
 const vertexShader = `
 uniform float pointMultiplier;
-
 attribute float size;
+attribute vec4 color;
+varying vec4 vColor;
+
+#ifdef USE_SPRITEMAP
+
+uniform vec2 uFrame;
 attribute float angle;
 attribute float frame;
-attribute vec4 color;
-
-varying vec4 vColor;
 varying vec2 vAngle;
 varying vec2 vFrame;
+
+#endif
 
 void main() {
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
   
   gl_Position = projectionMatrix * mvPosition;
-  gl_PointSize = pointMultiplier * size / gl_Position.w;
-//   gl_PointSize *= ( size / - mvPosition.z );
+  gl_PointSize = pointMultiplier * size;
   
   vColor = color;
+
+  #ifdef USE_SPRITEMAP
+
   vAngle = vec2(cos(angle), sin(angle));
-  vFrame = vec2(mod(frame, 8.) / 8., 1. - floor(frame / 8.) / 8.);
+  vFrame = vec2(mod(frame, uFrame.x) / uFrame.x, 1. - floor(frame / uFrame.y) / uFrame.y);
+
+  #endif
+
+
+  #ifdef USE_SIZEATTENUATION
+  
+  gl_PointSize /= gl_Position.w;
+  
+  #endif
+  
 }
 `;
 
@@ -50,19 +78,19 @@ export type Particle = {
     maxLife: number;
     angle: number;
     velocity: THREE.Vector3;
-    frame: number;
-    maxFrame: number;
+    frame?: number;
+    maxFrame?: number;
 };
-
 
 export type ParticleSystemOptions = {
     count: number;
     size: (t: number) => number;
     alpha: (t: number) => number;
     coordScale: number;
-    tex: THREE.Texture;
     sortParticles: boolean;
+    sizeAttenuation: boolean;
     spriteMap?: {
+        tex: THREE.Texture;
         frameCount: number;
         width: number;
         height: number;
@@ -70,7 +98,7 @@ export type ParticleSystemOptions = {
     particleTemplate: (opts: ParticleSystemOptions) => Particle;
 }
 
-export const createParticles = (_opts: ParticleSystemOptions) => {
+export function createParticles<T extends ParticleSystemOptions>(_opts: T) {
     const opts = _opts;
     const geom = new THREE.BufferGeometry();
     const material = new THREE.ShaderMaterial({
@@ -81,8 +109,20 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
         depthWrite: false,
         fragmentShader,
         vertexShader,
-        side: DoubleSide
+        uniforms: {
+            pointMultiplier: { value: window.innerHeight / (2.0 * Math.tan(0.5 * 60.0 * Math.PI / 180.0)) },
+            diffuseTexture: { value: opts.spriteMap?.tex },
+            uFrame: { value: new THREE.Vector2(opts.spriteMap?.width ?? 1, opts.spriteMap?.height ?? 1) }
+        }
     });
+
+    if (opts.spriteMap) {
+        material.defines.USE_SPRITEMAP = 1;
+    }
+
+    if (opts.sizeAttenuation) {
+        material.defines.USE_SIZEATTENUATION = 1;
+    }
 
     const points = new THREE.Points(geom, material);
     points.frustumCulled = false;
@@ -92,11 +132,6 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
     for (let i = 0; i < opts.count; i++) {
         particles.push(opts.particleTemplate(opts));
     }
-
-    material.uniforms = {
-        pointMultiplier: { value: window.innerHeight / (2.0 * Math.tan(0.5 * 60.0 * Math.PI / 180.0)) },
-        diffuseTexture: { value: opts.tex },
-    };
 
     let gdfsghk = 0;
     const addParticles = (delta: number) => {
@@ -133,7 +168,9 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
             sizes.push(particle.currentSize);
             colors.push(particle.color.x, particle.color.y, particle.color.z, particle.color.w);
             angles.push(particle.angle);
-            frames.push(particle.frame);
+            if (opts.spriteMap) {
+                frames.push(particle.frame!);
+            }
         }
 
         geom.setAttribute(
@@ -160,7 +197,7 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
         geom.attributes.size.needsUpdate = true;
         geom.attributes.color.needsUpdate = true;
         geom.attributes.angle.needsUpdate = true;
-        geom.attributes.frame.needsUpdate = true;
+        geom.attributes.frame.needsUpdate = !!opts.spriteMap;
     };
 
     const _velocityAdd = new Vector3;
@@ -179,8 +216,11 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
             p.color.w = opts.alpha(t);
             p.currentSize = p.size * opts.size(t);
             p.position.add(_velocityAdd.copy(p.velocity).multiplyScalar(delta / 1000));
-            p.frame = Math.floor(t * p.maxFrame);
+            if (opts.spriteMap) {
+                p.frame = Math.floor(t * p.maxFrame!);
+            }
         }
+
         if (opts.sortParticles) {
             particles.sort((a, b) => {
                 const d1 = camera.position.distanceTo(a.position);
@@ -192,8 +232,12 @@ export const createParticles = (_opts: ParticleSystemOptions) => {
     }
 
     return {
-        opts,
-        points,
+        get opts() {
+            return opts;
+        },
+        get object() {
+            return points;
+        },
         update(camera: THREE.Camera, delta: number) {
             const d = delta / 1000;
             addParticles(d);

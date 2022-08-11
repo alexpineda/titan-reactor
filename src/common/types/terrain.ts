@@ -1,8 +1,7 @@
 
 
 import { DDS } from "@image/formats/parse-dds";
-import { BufferGeometry, CompressedTexture, Group, Mesh, MeshStandardMaterial, Texture } from "three";
-import { GetTerrainY } from "./util";
+import { BufferGeometry, CompressedTexture, Mesh, MeshStandardMaterial, Texture } from "three";
 
 export type GeometryOptions = {
   /** 
@@ -45,39 +44,6 @@ export class TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial> 
   }
 }
 
-export class TerrainMesh extends Group {
-  override children: TerrainQuartile[] = [];
-  override userData: {
-    quartileWidth: number,
-    quartileHeight: number,
-    tilesX: number,
-    tilesY: number,
-    geomOptions?: GeometryOptions
-  } = {
-      quartileWidth: 0,
-      quartileHeight: 0,
-      tilesX: 0,
-      tilesY: 0,
-    }
-}
-
-export type TerrainExtra = {
-  creepTextureUniform: { value: Texture };
-  creepEdgesTextureUniform: { value: Texture };
-  minimapBitmap: ImageBitmap;
-}
-
-export type TerrainInfo = {
-  mesh: TerrainMesh;
-  shadowsEnabled: boolean;
-  /**
-   * Gets the y offset at the given x,z coordinates.
-   */
-  getTerrainY: GetTerrainY;
-
-  anisotropy: string;
-  geomOptions: GeometryOptions;
-};
 
 export type TilesetBuffers = {
   mapTiles: Uint16Array;

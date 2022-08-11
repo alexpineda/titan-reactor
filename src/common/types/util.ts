@@ -6,5 +6,3 @@ export type PxToGameUnit = {
   xy: (x: number, y: number, out?: Vector2) => void;
   xyz: (x: number, y: number, out?: Vector3, zFunction?: (x: number, y: number) => number) => void;
 };
-
-export type GetTerrainY = (x: number, z: number) => number;

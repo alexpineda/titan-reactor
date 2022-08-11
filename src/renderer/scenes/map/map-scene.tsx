@@ -10,7 +10,6 @@ import {
   AssetTextureResolution,
   GeometryOptions,
   SceneState,
-  TerrainInfo,
   UnitTileScale,
 } from "common/types";
 
@@ -25,10 +24,11 @@ import createStartLocation from "@core/create-start-location";
 import { updatePostProcessingCamera } from "@utils/renderer-utils";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
+import { Terrain } from "@core/terrain";
 
 export async function mapScene(
   chk: Chk,
-  terrainInfo: TerrainInfo,
+  terrain: Terrain,
   scene: Scene,
   janitor: Janitor
 ): Promise<SceneState> {
@@ -98,7 +98,7 @@ export async function mapScene(
         x,
         y,
         playerColors[unit.player].hex,
-        terrainInfo.getTerrainY(x, y)
+        terrain.getTerrainY(x, y)
       );
     });
   startLocations.forEach((sl) => scene.add(sl));
@@ -230,7 +230,7 @@ export async function mapScene(
       options
     );
 
-    scene.replaceTerrain(terrain.mesh);
+    scene.replaceTerrain(terrain);
     updateDisplayOptions(_displayOptions);
     _sceneResizeHandler();
   }, 1000);

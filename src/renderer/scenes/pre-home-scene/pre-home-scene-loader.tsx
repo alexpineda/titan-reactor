@@ -52,17 +52,10 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
   );
 
   janitor.add(
-    mixer.connect(
-      dropYourSocks,
-      new Filter("bandpass", 50).node,
-      mixer.createGain(0.6),
-      mixer.intro
-    )
+    mixer.connect(dropYourSocks, new Filter("bandpass", 50).node, mixer.intro)
   );
 
   dropYourSocks.onended = () => janitor.mopUp();
-
-  // await waitForTruthy(() => processStore().isComplete(Process.AtlasPreload));
 
   return {
     id: "@loading",

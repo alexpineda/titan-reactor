@@ -10,10 +10,11 @@ import {
   Scene as ThreeScene,
 } from "three";
 
-import { TerrainMesh, TerrainQuartile } from "common/types";
+import { TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
 import { Layers } from "./layers";
 import { disposeObject3D } from "@utils/dispose";
+import { Terrain } from "@core/terrain";
 
 
 function sunlight(mapWidth: number, mapHeight: number) {
@@ -51,13 +52,13 @@ export class Scene extends ThreeScene {
 
   //@ts-ignore
   userData: {
-    terrain: TerrainMesh
+    terrain: Terrain
   }
 
   constructor(
     mapWidth: number,
     mapHeight: number,
-    terrain: TerrainMesh) {
+    terrain: Terrain) {
     super();
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
@@ -182,7 +183,7 @@ export class Scene extends ThreeScene {
   }
 
   addTerrain(
-    terrain: TerrainMesh
+    terrain: Terrain
   ) {
     this.userData.terrain = terrain;
     this.add(terrain);
@@ -190,7 +191,7 @@ export class Scene extends ThreeScene {
   }
 
   replaceTerrain(
-    terrain: TerrainMesh
+    terrain: Terrain
   ) {
     disposeObject3D(this.userData.terrain)
     this.remove(this.userData.terrain);

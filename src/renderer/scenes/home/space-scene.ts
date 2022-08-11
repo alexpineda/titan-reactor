@@ -33,12 +33,12 @@ import * as THREE from "three";
 import Janitor from "@utils/janitor";
 import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
-import { distantStars } from "./stars";
+import { createBattleLights, createStarField, distantStars } from "./stars";
 import { createBattleCruiser } from "./battlecruiser";
 import { createAsteroids } from "./asteroids";
-import { createWraithNoise, WraithNoise } from "./wraith-noise";
+import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
-import { CAMERA_ROTATE_SPEED, createCamera } from "./camera";
+import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
 
 CameraControls.install({ THREE: THREE });
 
@@ -69,6 +69,8 @@ let _lastElapsed = 0;
 const battleCruiser = createBattleCruiser();
 const asteroids = createAsteroids();
 const wraiths = createWraiths();
+const starfield = createStarField();
+const battleLights = createBattleLights();
 
 const INTRO_LOOP = async (elapsed: number) => {
     const delta = elapsed - _lastElapsed;
@@ -85,19 +87,25 @@ const INTRO_LOOP = async (elapsed: number) => {
             ? normalizedAzimuthAngle / Math.PI
             : 2 - normalizedAzimuthAngle / Math.PI;
 
-    camera.update(delta, controls, normalizedAzimuthAngle);
-
-    // spaceships
-    wraiths.update(delta, elapsed, camera.get(), normalizedAzimuthAngle, rear)
+    camera.update(delta, controls, normalizedAzimuthAngle, mouse);
 
     //TODO CHANGE TO DELTA
+    wraiths.update(delta, elapsed, camera.get(), normalizedAzimuthAngle, rear);
     battleCruiser.update(delta, elapsed, CAMERA_ROTATE_SPEED, camera.get());
+    starfield.update(normalizedAzimuthAngle, camera.get(), delta);
+    battleLights.update(camera.get(), delta);
 
     const g = MathUtils.smoothstep(Math.pow(rear, 2.5), 0.25, 1);
     glitchEffect.minStrength = glitchMax.x * g;
     glitchEffect.maxStrength = glitchMax.y * g;
-    _noiseInstance.value = rear;
 
+    if (camera.cameraState === CameraState.RotateAroundWraiths) {
+        _noiseInstance.value = rear;
+    } else {
+        _noiseInstance.value = 0;
+    }
+
+    starfield.object.position.copy(camera.get().position);
 
     renderComposer.render(delta);
     renderComposer.renderBuffer();
@@ -149,6 +157,9 @@ export const preloadIntro = async () => {
 
     await wraiths.load(envmap, fireTexture);
 
+    battleLights.load(fireTexture);
+    starfield.load();
+
     complete();
 };
 
@@ -186,12 +197,28 @@ export async function createWraithScene() {
     const slight = new DirectionalLight(0xffffff, 5);
 
     wraiths.init();
-    scene.add(...wraiths.get());
+    scene.add(wraiths.object);
     janitor.add(wraiths);
 
     scene.add(distantStars());
-    scene.add(battleCruiser.get());
-    scene.add(asteroids.get());
+    scene.add(battleCruiser.object);
+    scene.add(asteroids.object);
+    scene.add(starfield.object);
+    scene.add(battleLights.object);
+
+    playRemix();
+    setInterval(() => {
+        playRemix();
+    }, 60000 * 3 + Math.random() * 60000 * 10);
+
+    scene.userData = {
+        wraiths: wraiths,
+        battleCruiser: battleCruiser,
+        asteroids: asteroids,
+        starfield: starfield,
+        battleLights: battleLights,
+        controls: controls
+    }
     scene.add(slight);
 
     introSurface.setDimensions(
@@ -207,12 +234,12 @@ export async function createWraithScene() {
 
     controls.setLookAt(-3.15, 1.1, -0.7, 0, 0, 0, false);
     controls.zoomTo(1.75, false);
-    // controls.mouseButtons.left = 0;
-    // controls.mouseButtons.right = 0;
-    // controls.mouseButtons.middle = 0;
-    // controls.mouseButtons.wheel = 0;
+    controls.mouseButtons.left = 0;
+    controls.mouseButtons.right = 0;
+    controls.mouseButtons.middle = 0;
+    controls.mouseButtons.wheel = 0;
 
-    camera.init(controls.polarAngle);
+    janitor.add(camera.init(controls, battleCruiser.object));
 
     const renderPass = new RenderPass(scene, camera.get());
     const sunMaterial = new MeshBasicMaterial({
@@ -274,10 +301,6 @@ export async function createWraithScene() {
     renderComposer.setBundlePasses(postProcessingBundle);
 
     renderComposer.getWebGLRenderer().compile(scene, camera.get());
-
-    janitor.setInterval(() => {
-        controls.zoomTo(Math.random() * 2 + 1.75);
-    }, 20000);
 
     renderComposer.render(0);
     renderComposer.renderBuffer();
