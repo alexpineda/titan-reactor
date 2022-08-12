@@ -1,7 +1,7 @@
 import PackageJson from '@npmcli/package-json';
 import path from "path";
 import { MathUtils } from "three";
-import { promises as fsPromises } from "fs";
+import { promises as fsPromises, writeFileSync } from "fs";
 import { app, dialog, shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
@@ -18,6 +18,7 @@ import withErrorMessage from 'common/utils/with-error-message';
 import log from "../log"
 import fileExists from 'common/utils/file-exists';
 import packagejson from "../../../package.json";
+import { transpile } from '../transpile';
 
 let _enabledPluginPackages: PluginMetaData[] = [];
 let _disabledPluginPackages: PluginMetaData[] = [];
@@ -42,7 +43,26 @@ let _pluginDirectory = "";
 const loadPluginPackage = async (folderPath: string, folderName: string): Promise<null | PluginMetaData> => {
 
     const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
-    const pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
+
+    let pluginNative = null;
+    if (await fileExists(path.join(folderPath, "plugin.ts"))) {
+        const tsSource = await _tryLoadUtf8(path.join(folderPath, "plugin.ts")) as string | null;
+        if (tsSource) {
+            const result = transpile(tsSource, path.join(folderPath, "plugin.ts"));
+            if (result.transpileErrors.length) {
+                log.error(`@load-plugins/load-plugin-packages: Plugin ${folderName} transpilation errors: ${result.transpileErrors[0].message} ${result.transpileErrors[0].snippet}`);
+                return null;
+            }
+            pluginNative = result.result.outputText;
+            writeFileSync("D:\\test.js", pluginNative);
+        }
+    } else if (await fileExists(path.join(folderPath, "plugin.js"))) {
+        pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
+        if (pluginNative === null) {
+            log.error(`@load-plugins/load-plugin-packages: Plugin ${folderName} failed to load plugin.js`);
+            return null;
+        }
+    }
     const readme = await _tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
 
     let indexFile = "";

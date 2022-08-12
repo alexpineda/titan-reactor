@@ -114,4 +114,6 @@ export const buildPluginUIMessageTypes = () => {
 
 writeFile(fn("./packages/titan-reactor-runtime-host.d.ts"), buildPluginUIMessageTypes(), { encoding: "utf8" }, () => { })
 
+
+// export declare const registerComponent: (component: any, node: React.ReactNode) => void;
 writeFile(fn("./packages/titan-reactor-runtime.d.ts"), buildRunTimeTypes(), { encoding: "utf8" }, () => { })
