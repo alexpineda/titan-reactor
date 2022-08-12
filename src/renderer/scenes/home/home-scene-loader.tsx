@@ -1,4 +1,4 @@
-import { SceneState, SceneStateID } from "common/types";
+import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
 import { root } from "@render";

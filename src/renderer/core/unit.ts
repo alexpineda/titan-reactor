@@ -7,6 +7,7 @@ export type Unit = UnitStruct & {
         recievingDamage: number;
         selected?: boolean;
         dat: UnitDAT,
+        /** @internal */
         turretLo: Vector2 | null;
     }
 }

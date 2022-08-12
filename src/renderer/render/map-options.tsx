@@ -4,10 +4,10 @@ import { GeometryOptions } from "common/types";
 import { LevaPanel, useControls, useCreateStore } from "leva";
 import { useState } from "react";
 import { Vector3 } from "three";
-import Scene from "./scene";
+import BaseScene from "./base-scene";
 
 export const createUpdateDisplayOptions =
-  (scene: Scene) => (options: MapDisplayOptions) => {
+  (scene: BaseScene) => (options: MapDisplayOptions) => {
     console.log(options);
     scene.terrain.children.forEach((c) => {
       c.material.wireframe = options.wireframe;

@@ -41,7 +41,7 @@ function sunlight(mapWidth: number, mapHeight: number) {
   return light;
 }
 
-export class Scene extends ThreeScene {
+export class BaseScene extends ThreeScene {
   #mapWidth: number;
   #mapHeight: number;
   #janitor: Janitor;
@@ -206,4 +206,4 @@ export class Scene extends ThreeScene {
     this.#janitor.mopUp();
   }
 }
-export default Scene;
+export default BaseScene;

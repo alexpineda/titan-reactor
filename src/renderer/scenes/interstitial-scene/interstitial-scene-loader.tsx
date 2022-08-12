@@ -1,4 +1,4 @@
-import { SceneState } from "common/types";
+import { SceneState } from "../scene";
 import { InterstitialScene } from "./interstitial-scene";
 import { getSurface } from "../home/space-scene";
 import { root } from "@render";

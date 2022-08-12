@@ -7,7 +7,7 @@ import { mixer } from "@audio"
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  UnitDAT, WeaponDAT, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, SceneState
+  UnitDAT, WeaponDAT, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -29,7 +29,7 @@ import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, Uni
 import * as log from "@ipc/log";
 
 import {
-  GameSurface, Layers, renderComposer, SimpleText, Scene
+  GameSurface, Layers, renderComposer, SimpleText, BaseScene
 } from "@render";
 import { CSS2DRenderer } from "@render/css-renderer";
 
@@ -73,6 +73,7 @@ import { diff } from "deep-diff";
 import set from "lodash.set";
 import { Terrain } from "@core/terrain";
 import { TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
+import { SceneState } from "../scene";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
@@ -81,7 +82,7 @@ async function TitanReactorGame(
   map: Chk,
   terrain: Terrain,
   terrainExtra: TerrainExtra,
-  scene: Scene,
+  scene: BaseScene,
   assets: Assets,
   janitor: Janitor,
   replay: Replay,

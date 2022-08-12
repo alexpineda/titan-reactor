@@ -1,5 +1,6 @@
-import { GameAspect, MinimapDimensions } from "common/types";
+import { GameAspect } from "common/types";
 import { Surface } from "../image";
+import { MinimapDimensions } from "./minimap-dimensions";
 
 export class GameSurface extends Surface {
   top = 0;

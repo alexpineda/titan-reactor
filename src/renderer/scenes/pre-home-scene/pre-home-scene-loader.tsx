@@ -1,5 +1,5 @@
 import sceneStore from "@stores/scene-store";
-import { SceneState, SettingsMeta } from "common/types";
+import { SettingsMeta } from "common/types";
 import settingsStore from "@stores/settings-store";
 import * as pluginSystem from "@plugins";
 import { initializePluginSystem } from "@plugins";
@@ -13,6 +13,7 @@ import { waitForSeconds } from "@utils/wait-for-process";
 import Janitor from "@utils/janitor";
 import path from "path";
 import { Filter, mixer } from "@audio";
+import { SceneState } from "../scene";
 
 const tryLoad = async (settings: SettingsMeta) => {
   sceneStore().clearError();

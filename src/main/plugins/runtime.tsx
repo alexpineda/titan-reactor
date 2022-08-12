@@ -1,10 +1,16 @@
-import React, { useRef, useEffect, useContext, useState } from "react";
+import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
 import chunk from "https://cdn.skypack.dev/lodash.chunk";
+import {
+  MinimapDimensions,
+  PluginStateMessage,
+  Unit,
+} from "titan-reactor-host";
 
-const useStore = create(() => ({
+type StateMessage = Partial<PluginStateMessage> & { firstInstall?: boolean };
+const useStore = create<StateMessage>(() => ({
   screen: {
     screen: `@home`,
     error: null,
@@ -12,59 +18,59 @@ const useStore = create(() => ({
 }));
 
 // friendly utilities
-const _useLocale = (state) => state.language;
+const _useLocale = (state: StateMessage) => state.language;
 export const useLocale = () => {
   return useStore(_useLocale);
 };
 
-const _useReplay = (state) => state.world.replay;
+const _useReplay = (state: StateMessage) => state.world!.replay;
 export const useReplay = () => {
   return useStore(_useReplay);
 };
 
-const _useMap = (state) => state.world.map;
+const _useMap = (state: StateMessage) => state.world!.map;
 export const useMap = () => {
   return useStore(_useMap);
 };
 
-const _useFrame = (state) => state.frame;
+const _useFrame = (state: StateMessage) => state.frame;
 export const useFrame = () => {
   return useStore(_useFrame);
 };
 
-const _usePlayers = (state) => state.world?.replay?.players;
+const _usePlayers = (state: StateMessage) => state.world?.replay?.players;
 export const usePlayers = () => {
   return useStore(_usePlayers) ?? [];
 };
 
-const _usePlayerFrame = (state) => state.frame.playerData;
+const _usePlayerFrame = (state: StateMessage) => state.frame!.playerData;
 export const usePlayerFrame = () => {
   const playerData = useStore(_usePlayerFrame);
-  return (id) => getPlayerInfo(id, playerData);
+  return (id: number) => getPlayerInfo(id, playerData);
 };
 
 export const usePlayer = () => {
   const players = usePlayers();
-  return (playerId) => {
+  return (playerId: number) => {
     return players.find((player) => player.id === playerId);
   };
 };
 
-const _useSelectedUnits = (state) => state.units;
+const _useSelectedUnits = (state: StateMessage) => state.units;
 export const useSelectedUnits = () => {
   return useStore(_useSelectedUnits) ?? [];
 };
 
-const _useProgress = (state) => state.progress;
+const _useProgress = (state: StateMessage) => state.progress;
 export const useProgress = () => {
   return useStore(_useProgress) ?? [];
 };
 
-const unitIsComplete = (unit) => {
-  return unit.statusFlags & (0x01 === 1);
+const unitIsComplete = (unit: Unit) => {
+  return (unit.statusFlags & 0x01) === 1;
 };
 
-export const getUnitIcon = (unit) => {
+export const getUnitIcon = (unit: Unit) => {
   if (
     (unit.extras.dat.isBuilding &&
       !unit.extras.dat.isZerg &&
@@ -90,7 +96,7 @@ export const getUnitIcon = (unit) => {
   return null;
 };
 
-const mapUnitInProduction = (input, unit) =>
+const mapUnitInProduction = (input, unit: Unit) =>
   unit.isTurret
     ? null
     : {
@@ -119,26 +125,26 @@ const mapResearchInProduction = (input, research) => ({
 });
 
 export const useProduction = () => {
-  const { unitProduction, upgrades, research } = useFrame();
+  const { unitProduction, upgrades, research } = useFrame()!;
 
   return [
-    (playerId) =>
+    (playerId: number) =>
       chunk(unitProduction[playerId], 3)
         .map((unit) => mapUnitInProduction(unit, assets.bwDat.units[unit[0]]))
         .filter((unit) => unit),
 
-    (playerId) =>
+    (playerId: number) =>
       chunk(upgrades[playerId], 3).map((upgrade) =>
         mapUpgradeInProduction(upgrade, assets.bwDat.upgrades[upgrade[0]])
       ),
-    (playerId) =>
+    (playerId: number) =>
       chunk(research[playerId], 2).map((research) =>
         mapResearchInProduction(research, assets.bwDat.tech[research[0]])
       ),
   ];
 };
 
-export const getFriendlyTime = (frame) => {
+export const getFriendlyTime = (frame: number) => {
   const t = Math.floor((frame * 42) / 1000);
   const minutes = Math.floor(t / 60);
   const seconds = Math.floor(t % 60);
@@ -146,7 +152,7 @@ export const getFriendlyTime = (frame) => {
   return `${minutes}:${("00" + seconds).slice(-2)}`;
 };
 
-export const openUrl = (url) =>
+export const openUrl = (url: string) =>
   window.parent.postMessage(
     {
       type: "system:open-url",
@@ -155,43 +161,33 @@ export const openUrl = (url) =>
     "*"
   );
 
-export const useRSSItems = (url) => {
-  const [rss, setRss] = useState([]);
+// plugin specific configuration
+const useConfig = create<any>(() => ({}));
 
-  useEffect(() => {
-    (async () => {
-      const response = await fetch(url);
-      const text = await response.text();
-      const xml = new DOMParser().parseFromString(text, "text/xml");
-      const items = [];
-      xml.querySelectorAll("item").forEach((el) => {
-        try {
-          items.push({
-            title: el.querySelector("title").textContent,
-            link: el.querySelector("link").textContent,
-            description: el.querySelector("description").textContent,
-            pubDate: el.querySelector("pubDate").textContent,
-          });
-        } catch (e) {}
-      });
-      setRss(items);
-    })();
-  }, [url]);
-
-  return rss;
+type Component = {
+  pluginId: string;
+  id: number;
+  order: number;
+  messageHandler: null;
+  JSXElement: React.ReactNode;
+  //TODO: stronger types
+  snap: string;
 };
 
-// plugin specific configuration
-const useConfig = create(() => ({}));
+type ComponentsStore = {
+  components: Component[];
+  add: (component: Component) => void;
+  remove: (id: string) => void;
+};
 
-const useComponents = create((set, get) => ({
+const useComponents = create<ComponentsStore>((set, get) => ({
   components: [],
   add: (item) => set({ components: [...get().components, item] }),
   remove: (id) =>
     set({ components: get().components.filter((c) => c.pluginId !== id) }),
 }));
 
-const setPluginStyleSheet = (id, content) => {
+const setPluginStyleSheet = (id: string, content: string) => {
   let style = document.getElementById(id);
   if (!style) {
     style = document.createElement("style");
@@ -201,7 +197,7 @@ const setPluginStyleSheet = (id, content) => {
   style.textContent = content;
 };
 
-const removePluginStylesheet = (id) => {
+const removePluginStylesheet = (id: string) => {
   const style = document.getElementById(id);
   style && document.head.removeChild(style);
 };
@@ -211,9 +207,11 @@ const _plugins = {};
 /**
  * Simplify the config values for the React side of things
  */
-function processConfigBeforeReceive(config) {
+function processConfigBeforeReceive(config: any) {
   if (config) {
-    const configCopy = {
+    const configCopy: {
+      [key: string]: any;
+    } = {
       $$meta: config,
     };
     Object.keys(config).forEach((key) => {
@@ -229,7 +227,7 @@ function processConfigBeforeReceive(config) {
   }
 }
 
-const _removePlugin = (pluginId) => {
+const _removePlugin = (pluginId: string) => {
   const plugin = _plugins[pluginId];
   if (!plugin || pluginId !== plugin.id) {
     return;
@@ -270,6 +268,14 @@ export let enums = {};
 
 class RollingValue {
   #lastTime = 0;
+  upSpeed: number;
+  downSpeed: number;
+  _value: number;
+  _rollingValue: number;
+  _running = false;
+  _direction = false;
+  _speed = 0;
+
   constructor(value = 0, upSpeed = 80, downSpeed = 30) {
     this.upSpeed = upSpeed;
     this.downSpeed = downSpeed;
@@ -277,7 +283,7 @@ class RollingValue {
     this._value = typeof value === "number" ? value : 0;
     this._rollingValue = this._value;
   }
-  update(delta) {
+  update(delta: number) {
     if (this._running && delta >= this._speed) {
       this._rollingValue = this._direction
         ? Math.min(this._value, this._rollingValue + 1)
@@ -299,7 +305,7 @@ class RollingValue {
     return this._running;
   }
 
-  start(value, onUpdate) {
+  start(value: number, onUpdate: (value: number) => void) {
     if (value === this._value) return;
     this._value = typeof value === "number" ? value : 0;
 
@@ -314,7 +320,7 @@ class RollingValue {
     this._running = true;
 
     this.#lastTime = 0;
-    const raf = (elapsed) => {
+    const raf = (elapsed: number) => {
       const delta = elapsed - this.#lastTime;
       if (this.update(delta)) {
         this.#lastTime = elapsed;
@@ -334,22 +340,31 @@ class RollingValue {
   }
 }
 
-export const RollingNumber = ({ value, upSpeed, downSpeed, ...props }) => {
-  const numberRef = useRef(null);
+export const RollingNumber = ({
+  value,
+  upSpeed,
+  downSpeed,
+  ...props
+}: {
+  value: number;
+  upSpeed: number;
+  downSpeed: number;
+}) => {
+  const numberRef = useRef<HTMLSpanElement>(null);
   const rollingNumber = useRef(
     new RollingValue(value, upSpeed ?? 80, downSpeed ?? 30)
   );
 
   useEffect(() => {
     if (numberRef.current) {
-      numberRef.current.textContent = value;
+      numberRef.current.textContent = "" + value;
     }
   }, []);
 
   useEffect(() => {
     rollingNumber.current.start(value, (val) => {
       if (numberRef.current) {
-        numberRef.current.textContent = val;
+        numberRef.current.textContent = "" + val;
       }
     });
 
@@ -362,11 +377,9 @@ export const RollingNumber = ({ value, upSpeed, downSpeed, ...props }) => {
 };
 
 class PlayerInfo {
-  constructor() {
-    this._struct_size = 7;
-    this.playerId = 0;
-    this.playerData = [];
-  }
+  _struct_size = 7;
+  playerId = 0;
+  playerData: Required<StateMessage>["frame"]["playerData"] = new Int32Array();
 
   get _offset() {
     return this._struct_size * this.playerId;
@@ -401,13 +414,16 @@ class PlayerInfo {
 }
 
 const playerInfo = new PlayerInfo();
-const getPlayerInfo = (playerId, playerData) => {
+const getPlayerInfo = (
+  playerId: number,
+  playerData: Required<StateMessage>["frame"]["playerData"]
+) => {
   playerInfo.playerData = playerData;
   playerInfo.playerId = playerId;
   return playerInfo;
 };
 
-const updateDimensionsCss = (dimensions) => {
+const updateDimensionsCss = (dimensions: MinimapDimensions) => {
   setPluginStyleSheet(
     "game-dimension-css-vars",
     `:root {
@@ -419,7 +435,7 @@ const updateDimensionsCss = (dimensions) => {
 
 export const updateAvailable = {};
 
-const _messageListener = function (event) {
+const _messageListener = function (event: MessageEvent) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
       useStore.setState(event.data.payload.initialStore);
@@ -445,7 +461,7 @@ const _messageListener = function (event) {
       const { clientX, clientY, button, shiftKey, ctrlKey } =
         event.data.payload;
 
-      const element = document.elementFromPoint(clientX, clientY);
+      const element = document.elementFromPoint(clientX, clientY)!;
       ReactTestUtils.Simulate.click(element, {
         button,
         shiftKey,
@@ -472,7 +488,7 @@ const _messageListener = function (event) {
 };
 window.addEventListener("message", _messageListener);
 
-const PluginContext = React.createContext();
+const PluginContext = createContext(null);
 
 export const useMessage = (cb, deps = []) => {
   const { messageHandler } = useContext(PluginContext);
@@ -489,7 +505,7 @@ export const useMessage = (cb, deps = []) => {
 export const useSendMessage = () => {
   const { pluginId } = useContext(PluginContext);
 
-  return (message) =>
+  return (message: any) =>
     window.parent.postMessage(
       {
         type: "system:custom-message",
@@ -507,7 +523,7 @@ export const usePluginConfig = () => {
   return useConfig((store) => store[pluginId]);
 };
 
-export const useStyleSheet = (content, deps = []) => {
+export const useStyleSheet = (content: string, deps = []) => {
   const { pluginId } = useContext(PluginContext);
   useEffect(() => {
     setPluginStyleSheet(pluginId, content);
@@ -518,10 +534,15 @@ export const useStyleSheet = (content, deps = []) => {
   }, []);
 };
 
-export const proxyFetch = (url) => fetch(`?proxy=${encodeURIComponent(url)}`);
+export const proxyFetch = (url: string) =>
+  fetch(`?proxy=${encodeURIComponent(url)}`);
 
 //registerComponent
-export const _rc = (pluginId, component, JSXElement) => {
+export const _rc = (
+  pluginId: string,
+  component,
+  JSXElement: React.ReactNode
+) => {
   const plugin = _plugins[pluginId];
   if (!plugin) {
     return;
@@ -543,32 +564,25 @@ export const _rc = (pluginId, component, JSXElement) => {
 
 const AppWrapper = () => {
   const components = useComponents((state) => state.components);
-  return (
-    <App
-      components={components}
-      useConfig={useConfig}
-      useStore={useStore}
-      PluginContext={PluginContext}
-    />
-  );
+  return <App components={components} />;
 };
 
-const _screenSelector = (store) => store.screen;
+const _screenSelector = (store: StateMessage) => store.screen;
 
-const _style_ErrorCenterText = {
-  position: "absolute",
-  zIndex: "-999",
-  left: "50%",
-  top: "50%",
-  transform: `translate(-50%, -50%)`,
-  cursor: "wait",
-  color: "#ffeedd",
-  fontFamily: "Conthrax",
-};
-
-const GlobalErrorState = ({ error }) => {
+const GlobalErrorState = ({ error }: { error: any }) => {
   return (
-    <div style={_style_ErrorCenterText}>
+    <div
+      style={{
+        position: "absolute",
+        zIndex: "-999",
+        left: "50%",
+        top: "50%",
+        transform: `translate(-50%, -50%)`,
+        cursor: "wait",
+        color: "#ffeedd",
+        fontFamily: "Conthrax",
+      }}
+    >
       <p style={{ fontSize: "150%" }}>Uh oh!</p>
       <p
         style={{
@@ -583,7 +597,13 @@ const GlobalErrorState = ({ error }) => {
   );
 };
 
-const PluginComponent = ({ id, JSXElement }) => {
+const PluginComponent = ({
+  id,
+  JSXElement,
+}: {
+  id: string;
+  JSXElement: React.ReactNode;
+}) => {
   const config = usePluginConfig();
   return (
     <ErrorBoundary key={id}>
@@ -594,27 +614,27 @@ const PluginComponent = ({ id, JSXElement }) => {
   );
 };
 
-const _firstInstall = (store) => store.firstInstall;
+const _firstInstall = (store: StateMessage) => store.firstInstall;
 
 const orderSort = (a, b) => {
   return a.order - b.order;
 };
 
-const App = ({ components, useStore, PluginContext }) => {
-  const { screen, error } = useStore(_screenSelector);
+const App = ({ components }) => {
+  const { screen, error } = useStore(_screenSelector)!;
   const firstInstall = useStore(_firstInstall);
-  const containerDiv = useRef();
+  const containerDiv = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerDiv.current) return;
 
     if (["@home", "@loading"].includes(screen)) {
-      containerDiv.current.style.opacity = 1;
+      containerDiv.current.style.opacity = "1";
     } else {
       let opacity = 0;
       const cancelId = setInterval(() => {
         opacity += 0.025;
-        containerDiv.current.style.opacity = Math.min(opacity, 1);
+        containerDiv.current!.style.opacity = "" + Math.min(opacity, 1);
         if (opacity >= 1) {
           clearInterval(cancelId);
         }
@@ -780,20 +800,28 @@ const App = ({ components, useStore, PluginContext }) => {
 };
 
 class ErrorBoundary extends React.Component {
-  constructor(props) {
+  override state: {
+    hasError: boolean;
+  };
+
+  override props: {
+    children?: React.ReactNode;
+  } = {};
+
+  constructor(props: any) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  override componentDidCatch(error: any, errorInfo: any) {
     console.error(error, errorInfo);
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return <>☠️</>;
     }

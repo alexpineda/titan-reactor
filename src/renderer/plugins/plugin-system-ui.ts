@@ -5,13 +5,14 @@ import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore, use
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
 import { waitForTruthy } from "@utils/wait-for-process";
-import { Unit } from "@core";
+import { Unit } from "@core/unit";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 import { Assets } from "common/types";
 import processStore, { useProcessStore } from "@stores/process-store";
+import { MinimapDimensions } from "@render/minimap-dimensions";
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");
@@ -64,7 +65,6 @@ const worldPartial = (world: WorldStore) => {
         replay: world.replay?.header
     }
 }
-export type WorldPartial = ReturnType<typeof worldPartial>;
 
 const unitsPartial = (units: Unit[]) => {
     if (units.length === 1) {
@@ -73,8 +73,6 @@ const unitsPartial = (units: Unit[]) => {
         return units;
     }
 }
-export type UnitsPartial = ReturnType<typeof unitsPartial>;
-
 let _dumpUnitCall: (id: number) => {};
 
 const unitWithDump = (unit: Unit) => {
@@ -91,13 +89,23 @@ export const setDumpUnitCall = (fn: (id: number) => {}) => {
 
 const _selectedUnitMessage: {
     type: string;
-    payload: Unit[]
+    payload: ReturnType<typeof unitsPartial>
 } = {
     type: UI_STATE_EVENT_UNITS_SELECTED,
     payload: []
 }
 
 const _productionTransferables: ArrayBufferLike[] = [];
+
+export type PluginStateMessage = {
+    language: string,
+    [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions,
+    [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>['payload'],
+    [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>,
+    [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeReplayPosition>,
+    [UI_STATE_EVENT_PROGRESS]: number,
+    [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage['payload'],
+}
 
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
@@ -136,7 +144,7 @@ export class PluginSystemUI {
         this.#iframe.sandbox.add("allow-scripts");
         this.#iframe.sandbox.add("allow-downloads");
 
-        const initialStore = () => ({
+        const initialStore = (): PluginStateMessage => ({
             language: settingsStore().data.language,
             [UI_STATE_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
             [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useSceneStore.getState()).payload,

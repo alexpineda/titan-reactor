@@ -1,6 +1,6 @@
 import * as log from "@ipc/log";
 import create from "zustand";
-import { SceneState } from "common/types";
+import { SceneState } from "../scenes/scene";
 
 export type SceneStore = {
     state: SceneState | null;

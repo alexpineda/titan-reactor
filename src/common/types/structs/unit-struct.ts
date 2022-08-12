@@ -18,6 +18,9 @@ export interface UnitStruct extends FlingyStruct {
   orderTargetY: number;
   orderTargetUnit: number;
 
+  /**
+   * @internal
+   */
   subunit: UnitStruct | null;
   subunitId: number | null;
 }

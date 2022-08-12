@@ -1,5 +1,5 @@
 export const bootupLogs: LogMessage[] = [];
-import logService from "./logger/singleton";
+import { logService } from "./logger/singleton";
 
 type LogMessage = {
     level: "info" | "warning" | "error" | "debug" | "verbose";

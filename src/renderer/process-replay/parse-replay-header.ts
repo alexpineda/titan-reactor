@@ -1,5 +1,16 @@
-import { ReplayPlayer } from "common/types";
 import cstring from "./util/cstring";
+
+export type ReplayPlayer = {
+  id: number;
+  name: string;
+  race: "zerg" | "terran" | "protoss" | "unknown";
+  team: number;
+  color: string;
+
+  isComputer: boolean;
+  isHuman: boolean;
+  isActive: boolean;
+}
 
 const parseHeader = (buf: Buffer) => {
   let pos = 0;

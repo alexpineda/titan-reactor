@@ -1,6 +1,6 @@
-import { MinimapDimensions } from "common/types"
 import create from "zustand";
-import { Assets } from "../../common/types/assets";
+import { Assets } from "common/types/assets";
+import { MinimapDimensions } from "@render/minimap-dimensions";
 
 
 export type GameStore = {

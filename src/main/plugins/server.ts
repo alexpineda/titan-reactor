@@ -6,12 +6,12 @@ import browserWindows from "../windows";
 import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import settings from "../settings/singleton"
 import fileExists from "common/utils/file-exists";
-import logService from "../logger/singleton";
+import { logService } from "../logger/singleton";
 import fetch from 'node-fetch';
 import { getEnabledPluginPackages } from "./load-plugins";
 import * as casclib from "bw-casclib";
 import runtimeHTML from "!!raw-loader!./runtime.html";
-import runtimeJSX from "!!raw-loader!./runtime.jsx";
+import runtimeJSX from "!!raw-loader!./runtime.tsx";
 
 let _handle: any = null;
 const app = express();
@@ -84,8 +84,8 @@ app.get('*', async function (req, res) {
     } else if (req.path.endsWith("runtime.html")) {
         res.setHeader("Content-Type", "text/html");
         return res.send(runtimeHTML);
-    } else if (req.path.endsWith("runtime.jsx")) {
-        const { result } = transpile(runtimeJSX, "runtime.jsx");
+    } else if (req.path.endsWith("runtime.tsx")) {
+        const { result } = transpile(runtimeJSX, "runtime.tsx");
         res.setHeader("Content-Type", "application/javascript");
         return res.send(result.outputText);
     }

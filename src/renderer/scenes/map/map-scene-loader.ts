@@ -5,7 +5,7 @@ import {
   ImageHD,
 } from "@core";
 import * as log from "@ipc/log";
-import { Scene } from "@render";
+import { BaseScene } from "@render";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import processStore, { Process } from "@stores/process-store";
 import { Assets, AssetTextureResolution, UnitTileScale } from "common/types";
@@ -44,7 +44,7 @@ export const mapSceneLoader = async (chkFilepath: string) => {
     anisotropy: settings.graphics.anisotropy,
     shadows: settings.graphics.terrainShadows
   });
-  const scene = new Scene(map.size[0], map.size[1], terrain);
+  const scene = new BaseScene(map.size[0], map.size[1], terrain);
 
   ImageHD.useDepth = false;
   processStore().increment(Process.MapInitialization);

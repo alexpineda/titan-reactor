@@ -13,7 +13,7 @@ import { GameTypes } from "common/enums";
 import { SoundChannels, Music, mixer } from "@audio";
 import { openFile } from "@ipc";
 import * as log from "@ipc/log";
-import { Scene } from "@render";
+import { BaseScene } from "@render";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "@stores/settings-store";
 import gameStore from "@stores/game-store";
@@ -116,7 +116,7 @@ export const replaySceneLoader = async (filepath: string) => {
 
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
-  const scene = new Scene(map.size[0], map.size[1], terrain);
+  const scene = new BaseScene(map.size[0], map.size[1], terrain);
   scene.background = assets.skyBox;
   janitor.object3d(scene);
   janitor.disposable(scene);

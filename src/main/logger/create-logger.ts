@@ -21,7 +21,7 @@ const defaultOptions: LoggerOptions = {
 };
 const possibleLevels = ["verbose", "info", "debug", "warning", "error"];
 
-export default function createLogger(
+export function createLogger(
   baseFilename: string,
   options: Partial<LoggerOptions> = {}
 ) {
@@ -38,7 +38,7 @@ export default function createLogger(
   return new Logger(baseFilename, actualOptions);
 }
 
-class Logger {
+export class Logger {
   private options: LoggerOptions;
   private filename: string;
 

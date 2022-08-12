@@ -9,14 +9,13 @@ import { playerColors } from "common/enums";
 import {
   AssetTextureResolution,
   GeometryOptions,
-  SceneState,
   UnitTileScale,
 } from "common/types";
 
 import { Surface } from "@image";
 import { IScriptSprite } from "@core";
 import * as log from "@ipc/log";
-import { Scene, renderComposer, root } from "@render";
+import { BaseScene, renderComposer, root } from "@render";
 import { MapDisplayOptions, MapViewer } from "@render/map-options";
 import { useSettingsStore } from "@stores";
 import Janitor from "@utils/janitor";
@@ -25,11 +24,12 @@ import { updatePostProcessingCamera } from "@utils/renderer-utils";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
 import { Terrain } from "@core/terrain";
+import { SceneState } from "../scene";
 
 export async function mapScene(
   chk: Chk,
   terrain: Terrain,
-  scene: Scene,
+  scene: BaseScene,
   janitor: Janitor
 ): Promise<SceneState> {
   // const assets = gameStore().assets;
