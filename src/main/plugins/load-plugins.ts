@@ -48,7 +48,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
     if (await fileExists(path.join(folderPath, "plugin.ts"))) {
         const tsSource = await _tryLoadUtf8(path.join(folderPath, "plugin.ts")) as string | null;
         if (tsSource) {
-            const result = transpile(tsSource, path.join(folderPath, "plugin.ts"));
+            const result = transpile(tsSource, path.join(folderPath, "plugin.ts"), true);
             if (result.transpileErrors.length) {
                 log.error(`@load-plugins/load-plugin-packages: Plugin ${folderName} transpilation errors: ${result.transpileErrors[0].message} ${result.transpileErrors[0].snippet}`);
                 return null;

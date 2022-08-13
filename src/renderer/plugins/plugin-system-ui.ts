@@ -5,7 +5,7 @@ import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore, use
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
 import { waitForTruthy } from "@utils/wait-for-process";
-import { Unit } from "@core/unit";
+import { DumpedUnit, Unit } from "@core/unit";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import gameStore from "@stores/game-store";
@@ -13,6 +13,7 @@ import { getSecond } from "common/utils/conversions";
 import { Assets } from "common/types";
 import processStore, { useProcessStore } from "@stores/process-store";
 import { MinimapDimensions } from "@render/minimap-dimensions";
+import { normalizePluginConfiguration } from "@utils/function-utils"
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");
@@ -66,20 +67,20 @@ const worldPartial = (world: WorldStore) => {
     }
 }
 
-const unitsPartial = (units: Unit[]) => {
+const unitsPartial = (units: Unit[]): Unit[] | DumpedUnit[] => {
     if (units.length === 1) {
         return units.map(unitWithDump);
     } else {
         return units;
     }
 }
-let _dumpUnitCall: (id: number) => {};
+let _dumpUnitCall: (id: number) => any;
 
 const unitWithDump = (unit: Unit) => {
     return {
         ...unit,
         ..._dumpUnitCall(unit.id)
-    }
+    } as DumpedUnit
 }
 
 export const setDumpUnitCall = (fn: (id: number) => {}) => {
@@ -89,7 +90,7 @@ export const setDumpUnitCall = (fn: (id: number) => {}) => {
 
 const _selectedUnitMessage: {
     type: string;
-    payload: ReturnType<typeof unitsPartial>
+    payload: DumpedUnit[]
 } = {
     type: UI_STATE_EVENT_UNITS_SELECTED,
     payload: []
@@ -157,9 +158,6 @@ export class PluginSystemUI {
         const setInteractivity = (interactive: boolean) => {
             this.#iframe.style.pointerEvents = interactive ? "auto" : "none";
         }
-        // this.#janitor.add(useScreenStore.subscribe(state => {
-        //     setInteractivity(state.type === ScreenType.Home || state.error !== null)
-        // }));
 
         var iframeLoaded = false;
         this.#iframe.onload = async () => {
@@ -177,7 +175,7 @@ export class PluginSystemUI {
             this.#iframe.contentWindow?.postMessage({
                 type: UI_SYSTEM_READY,
                 payload: {
-                    plugins: pluginPackages,
+                    plugins: pluginPackages.map(plugin => ({ ...plugin, config: normalizePluginConfiguration(plugin.config ?? {}) })),
                     initialStore: initialStore(),
                     assets: {
                         bwDat: assets.bwDat,

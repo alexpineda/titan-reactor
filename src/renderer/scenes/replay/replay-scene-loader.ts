@@ -29,8 +29,6 @@ import { rendererIsDev } from "@utils/renderer-utils";
 import {
   readCascFile,
 } from "common/utils/casclib";
-import { callHookAsync } from "@plugins";
-import { HOOK_ON_SCENE_PREPARED } from "@plugins/hooks";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "../../utils/images-from-iscript";
@@ -120,8 +118,6 @@ export const replaySceneLoader = async (filepath: string) => {
   scene.background = assets.skyBox;
   janitor.object3d(scene);
   janitor.disposable(scene);
-
-  await callHookAsync(HOOK_ON_SCENE_PREPARED, scene, scene.userData, map, replay.header);
 
   processStore().increment(Process.ReplayInitialization);
 

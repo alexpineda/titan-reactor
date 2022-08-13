@@ -50,7 +50,7 @@ import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { Assets } from "common/types/assets";
 import { Replay } from "@process-replay/parse-replay";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_GAME_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { RELOAD_PLUGINS, SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
@@ -1343,6 +1343,7 @@ async function TitanReactorGame(
 
 
     const gameTimeApi = {
+      type: "replay",
       get viewport() {
         return gameViewportsDirector.primaryViewport;
       },
@@ -1452,7 +1453,7 @@ async function TitanReactorGame(
     mix(gameTimeApi, miscApi);
 
     pluginsApiJanitor.add(plugins.injectApi(gameTimeApi, macros));
-    await plugins.callHookAsync(HOOK_ON_GAME_READY);
+    await plugins.callHookAsync(HOOK_ON_SCENE_READY);
 
     const container = createCompartment(gameTimeApi);
 

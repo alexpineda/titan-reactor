@@ -2,18 +2,51 @@ import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
-import chunk from "https://cdn.skypack.dev/lodash.chunk";
+// import chunk from "https://cdn.skypack.dev/lodash.chunk";
 import {
+  DumpedUnit,
   MinimapDimensions,
-  PluginStateMessage,
+  TechDataDAT,
   Unit,
-} from "titan-reactor-host";
+  UnitDAT,
+  UpgradeDAT,
+  PluginMetaData,
+  PluginStateMessage,
+  UIStateAssets,
+} from "titan-reactor/host";
+
+// split up an array into chunks of size n
+function chunk(arr: Int32Array, n: number) {
+  const chunks = [];
+  let i = 0;
+  while (i < arr.length) {
+    chunks.push(arr.slice(i, (i += n)));
+  }
+  return chunks;
+}
+
+type Component = {
+  pluginId: string;
+  id: number;
+  order: number;
+  messageHandler: EventTarget;
+  JSXElement: React.FC<any>;
+  //TODO: stronger types
+  snap: string;
+  screen: string;
+};
+
+type Plugin = {
+  id: string;
+  messageHandler: EventTarget;
+  script: HTMLScriptElement;
+};
 
 type StateMessage = Partial<PluginStateMessage> & { firstInstall?: boolean };
 const useStore = create<StateMessage>(() => ({
   screen: {
     screen: `@home`,
-    error: null,
+    error: undefined,
   },
 }));
 
@@ -70,7 +103,7 @@ const unitIsComplete = (unit: Unit) => {
   return (unit.statusFlags & 0x01) === 1;
 };
 
-export const getUnitIcon = (unit: Unit) => {
+export const getUnitIcon = (unit: DumpedUnit) => {
   if (
     (unit.extras.dat.isBuilding &&
       !unit.extras.dat.isZerg &&
@@ -96,7 +129,7 @@ export const getUnitIcon = (unit: Unit) => {
   return null;
 };
 
-const mapUnitInProduction = (input, unit: Unit) =>
+const mapUnitInProduction = (input: Int32Array, unit: UnitDAT) =>
   unit.isTurret
     ? null
     : {
@@ -107,7 +140,7 @@ const mapUnitInProduction = (input, unit: Unit) =>
         isUnit: true,
       };
 
-const mapUpgradeInProduction = (input, upgrade) => ({
+const mapUpgradeInProduction = (input: Int32Array, upgrade: UpgradeDAT) => ({
   typeId: input[0],
   icon: upgrade.icon,
   level: input[1],
@@ -117,7 +150,7 @@ const mapUpgradeInProduction = (input, upgrade) => ({
     (upgrade.researchTimeBase + upgrade.researchTimeFactor * input[1]),
 });
 
-const mapResearchInProduction = (input, research) => ({
+const mapResearchInProduction = (input: Int32Array, research: TechDataDAT) => ({
   typeId: input[0],
   icon: research.icon,
   progress: input[1] / research.researchTime,
@@ -164,16 +197,6 @@ export const openUrl = (url: string) =>
 // plugin specific configuration
 const useConfig = create<any>(() => ({}));
 
-type Component = {
-  pluginId: string;
-  id: number;
-  order: number;
-  messageHandler: null;
-  JSXElement: React.ReactNode;
-  //TODO: stronger types
-  snap: string;
-};
-
 type ComponentsStore = {
   components: Component[];
   add: (component: Component) => void;
@@ -202,30 +225,7 @@ const removePluginStylesheet = (id: string) => {
   style && document.head.removeChild(style);
 };
 
-const _plugins = {};
-
-/**
- * Simplify the config values for the React side of things
- */
-function processConfigBeforeReceive(config: any) {
-  if (config) {
-    const configCopy: {
-      [key: string]: any;
-    } = {
-      $$meta: config,
-    };
-    Object.keys(config).forEach((key) => {
-      if (config[key]?.value !== undefined) {
-        if (config[key]?.factor !== undefined) {
-          configCopy[key] = config[key].value * config[key].factor;
-        } else {
-          configCopy[key] = config[key].value;
-        }
-      }
-    });
-    return configCopy;
-  }
-}
+const _plugins: Record<string, Plugin> = {};
 
 const _removePlugin = (pluginId: string) => {
   const plugin = _plugins[pluginId];
@@ -240,7 +240,7 @@ const _removePlugin = (pluginId: string) => {
   delete _plugins[plugin.id];
 };
 
-const _addPlugin = (plugin) => {
+const _addPlugin = (plugin: PluginMetaData) => {
   if (!plugin.indexFile) {
     return;
   }
@@ -259,13 +259,14 @@ const _addPlugin = (plugin) => {
   };
 
   useConfig.setState({
-    [plugin.id]: processConfigBeforeReceive(plugin.config),
+    [plugin.id]: plugin.config,
   });
 };
 
-export let assets = {};
-export let enums = {};
-
+//@ts-ignore
+export let assets: UIStateAssets = {};
+// TODO: export enums type defs
+export let enums: any = {};
 class RollingValue {
   #lastTime = 0;
   upSpeed: number;
@@ -376,7 +377,7 @@ export const RollingNumber = ({
   return <span ref={numberRef} {...props}></span>;
 };
 
-class PlayerInfo {
+export class PlayerInfo {
   _struct_size = 7;
   playerId = 0;
   playerData: Required<StateMessage>["frame"]["playerData"] = new Int32Array();
@@ -433,8 +434,6 @@ const updateDimensionsCss = (dimensions: MinimapDimensions) => {
   );
 };
 
-export const updateAvailable = {};
-
 const _messageListener = function (event: MessageEvent) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
@@ -453,9 +452,7 @@ const _messageListener = function (event: MessageEvent) {
       _removePlugin(event.data.payload);
     } else if (event.data.type === "system:plugin-config-changed") {
       useConfig.setState({
-        [event.data.payload.pluginId]: processConfigBeforeReceive(
-          event.data.payload.config
-        ),
+        [event.data.payload.pluginId]: event.data.payload.config,
       });
     } else if (event.data.type === "system:mouse-click") {
       const { clientX, clientY, button, shiftKey, ctrlKey } =
@@ -488,13 +485,13 @@ const _messageListener = function (event: MessageEvent) {
 };
 window.addEventListener("message", _messageListener);
 
-const PluginContext = createContext(null);
+const PluginContext = createContext<Component | null>(null);
 
-export const useMessage = (cb, deps = []) => {
-  const { messageHandler } = useContext(PluginContext);
+export const useMessage = (cb?: (event: any) => void, deps = []) => {
+  const { messageHandler } = useContext(PluginContext)!;
 
   useEffect(() => {
-    const handler = ({ detail }) => {
+    const handler = ({ detail }: any) => {
       typeof cb === "function" && cb(detail);
     };
     messageHandler.addEventListener("message", handler);
@@ -503,7 +500,7 @@ export const useMessage = (cb, deps = []) => {
 };
 
 export const useSendMessage = () => {
-  const { pluginId } = useContext(PluginContext);
+  const { pluginId } = useContext(PluginContext)!;
 
   return (message: any) =>
     window.parent.postMessage(
@@ -519,12 +516,12 @@ export const useSendMessage = () => {
 };
 
 export const usePluginConfig = () => {
-  const { pluginId } = useContext(PluginContext);
+  const { pluginId } = useContext(PluginContext)!;
   return useConfig((store) => store[pluginId]);
 };
 
 export const useStyleSheet = (content: string, deps = []) => {
-  const { pluginId } = useContext(PluginContext);
+  const { pluginId } = useContext(PluginContext)!;
   useEffect(() => {
     setPluginStyleSheet(pluginId, content);
   }, [content, ...deps]);
@@ -540,8 +537,8 @@ export const proxyFetch = (url: string) =>
 //registerComponent
 export const _rc = (
   pluginId: string,
-  component,
-  JSXElement: React.ReactNode
+  component: Component,
+  JSXElement: React.FC<any>
 ) => {
   const plugin = _plugins[pluginId];
   if (!plugin) {
@@ -598,15 +595,15 @@ const GlobalErrorState = ({ error }: { error: any }) => {
 };
 
 const PluginComponent = ({
-  id,
+  key,
   JSXElement,
 }: {
-  id: string;
-  JSXElement: React.ReactNode;
+  key: string | number;
+  JSXElement: Component["JSXElement"];
 }) => {
   const config = usePluginConfig();
   return (
-    <ErrorBoundary key={id}>
+    <ErrorBoundary key={key}>
       <div style={{ display: config._visible ? "block" : "none" }}>
         <JSXElement />
       </div>
@@ -616,11 +613,11 @@ const PluginComponent = ({
 
 const _firstInstall = (store: StateMessage) => store.firstInstall;
 
-const orderSort = (a, b) => {
+const orderSort = (a: Component, b: Component) => {
   return a.order - b.order;
 };
 
-const App = ({ components }) => {
+const App = ({ components }: { components: Component[] }) => {
   const { screen, error } = useStore(_screenSelector)!;
   const firstInstall = useStore(_firstInstall);
   const containerDiv = useRef<HTMLDivElement>(null);
@@ -628,7 +625,7 @@ const App = ({ components }) => {
   useEffect(() => {
     if (!containerDiv.current) return;
 
-    if (["@home", "@loading"].includes(screen)) {
+    if (["@home", "@loading"].includes(screen!)) {
       containerDiv.current.style.opacity = "1";
     } else {
       let opacity = 0;
@@ -643,16 +640,16 @@ const App = ({ components }) => {
     }
   }, [screen]);
 
-  const appLoaded = screen && screen !== "@loading";
+  const appLoaded = screen !== "@loading";
 
-  const screenFilter = (component) =>
+  const screenFilter = (component: Component) =>
     appLoaded &&
-    ["@replay", "@map"].includes(screen) &&
-    (component.screen ?? "").includes(screen);
+    ["@replay", "@map"].includes(screen!) &&
+    (component.screen ?? "").includes(screen!);
 
-  const renderComponent = (component) => (
+  const renderComponent = (component: Component) => (
     <PluginContext.Provider value={component}>
-      <PluginComponent key={component.id} {...component} />
+      <PluginComponent key={component.id} JSXElement={component.JSXElement} />
     </PluginContext.Provider>
   );
 

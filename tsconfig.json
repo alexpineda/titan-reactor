@@ -23,11 +23,11 @@
 
     "inlineSources": true,
     "sourceMap": true,
-    "removeComments": true,
+    "removeComments": false,
 
     "baseUrl": "src",
     "paths": {
-      "common": ["common/*"],
+      "common/*": ["common/*"],
       "@image/*": ["renderer/image/*"],
       "@image": ["renderer/image/index.ts"],
       "@core/*": ["renderer/core/*"],

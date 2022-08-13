@@ -100,7 +100,7 @@ export class UnitDAT implements UnitDAT {
 
 }
 
-export type UnitDATIncomingType = {
+export interface UnitDATIncomingType {
   index: number;
   flingy: any;
   subUnit1: number;

@@ -1,4 +1,4 @@
-import { SceneInputHandler, PluginMetaData, NativePlugin, PluginPrototype, MacroActionPlugin, MacroActionEffect } from "common/types";
+import { SceneInputHandler, PluginMetaData, NativePlugin, MacroActionPlugin, MacroActionEffect, PluginPackage } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
@@ -10,44 +10,70 @@ import { getMacroActionValue, Macro, Macros } from "@macros";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
-import * as log from "@ipc/log";
+import * as log from "@ipc/log"
+import { normalizePluginConfiguration } from "@utils/function-utils"
 
-const pluginProto: PluginPrototype = {
-    id: "",
-    $$permissions: {},
-    $$config: {},
+class PluginBase implements NativePlugin {
+    id: string;
+    name: string;
+    $$meta = { hooks: [], methods: [], indexFile: "", isSceneController: false };
+    #config: any = {}
 
-    setConfig(key: string, value: any, persist = true) {
-        if (!(key in this.$$config)) {
+    /**
+     * @internal
+     * Same as config but simplified to [key] = value | [key] = value * factor
+     */
+    #normalizedConfig: any;
+
+    constructor(pluginPackage: PluginPackage) {
+        this.id = pluginPackage.id;
+        this.name = pluginPackage.name;
+        this.config = pluginPackage.config;
+    }
+
+    callCustomHook: (hook: string, ...args: any[]) => any = () => { };
+    sendUIMessage: (message: any) => void = () => { };
+
+    /**
+     * 
+     * @param key The configuration key.
+     * @param value  The configuration value.
+     * @returns 
+     */
+    setConfig(key: string, value: any) {
+        if (!(key in this.#config)) {
             log.warning(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
             return undefined;
         }
 
         // TODO: use leva detection algo here to determine if values are in bounds
+        //@ts-ignore
+        this.#config[key].value = value;
 
-        this.$$config[key].value = value;
+        updatePluginsConfig(this.id, this.#config);
+    }
 
-        if (persist) {
-            updatePluginsConfig(this.id, this.$$config);
-        }
+    /*
+    * Generates the normalized config object.
+    * Same as config but simplified to [key] = value | [key] = value * factor
+    */
+    refreshConfig() {
+        this.#normalizedConfig = normalizePluginConfiguration(this.#config);
+    }
+
+    get config() {
+        return this.#normalizedConfig;
+    }
+
+    set config(value: any) {
+        this.#config = value;
+        this.refreshConfig();
+    }
+
+    getRawConfigComponent(key: string) {
+        return this.#config[key];
     }
 };
-
-function processConfigBeforeReceive(config: any) {
-    if (config) {
-        const configCopy: any = {};
-        Object.keys(config).forEach((key) => {
-            if (config[key]?.value !== undefined) {
-                if (config[key]?.factor !== undefined) {
-                    configCopy[key] = config[key].value * config[key].factor;
-                } else {
-                    configCopy[key] = config[key].value;
-                }
-            }
-        });
-        return Object.freeze(configCopy);
-    }
-}
 
 const VALID_PERMISSIONS = [
     PERMISSION_REPLAY_COMMANDS,
@@ -62,28 +88,32 @@ export class PluginSystemNative {
     #macros: Macros | null = null;
 
     #hooks: Record<string, Hook> = createDefaultHooks();
+    #permissions: Map<string, Record<string, boolean>> = new Map();
 
     initializePlugin(pluginPackage: PluginMetaData) {
+        const c = createCompartment({
+            PluginBase
+        });
 
         try {
-            const c = createCompartment();
-            const pluginRaw = pluginPackage.nativeSource ? c.globalThis.Function(pluginPackage.nativeSource)() : {};
+            // temporary object container returned from the plugin
+            let plugin = new PluginBase(pluginPackage);
 
-            //override but give a truthy value
-            pluginPackage.nativeSource = "true";
+            if (pluginPackage.nativeSource) {
+                if (pluginPackage.name === "@titan-reactor-plugins/fps") {
+                    const Constructor = c.globalThis.Function(pluginPackage.nativeSource.replace("export default", "return"))();
+                    plugin = new Constructor(pluginPackage);
+                } else {
+                    plugin = Object.assign(plugin, c.globalThis.Function(pluginPackage.nativeSource)())
+                }
+            }
 
-            pluginRaw.id = pluginPackage.id;
-            pluginRaw.name = pluginPackage.name;
-            pluginRaw.$$meta = {
+            plugin.$$meta = {
                 methods: pluginPackage.methods,
                 hooks: pluginPackage.hooks,
                 indexFile: pluginPackage.indexFile,
                 isSceneController: pluginPackage.isSceneController,
             }
-            pluginRaw.$$config = pluginPackage.config;
-            //FIXME: freeze config but allow us to edit for saving
-            // possibly use a Weakmap instead of attaching to object
-            pluginRaw.$$config = JSON.parse(JSON.stringify(pluginPackage.config));
 
             const permissions = (pluginPackage.config?.system?.permissions ?? []).reduce((acc: Record<string, boolean>, permission: string) => {
                 if (VALID_PERMISSIONS.includes(permission)) {
@@ -93,30 +123,12 @@ export class PluginSystemNative {
                 }
                 return acc;
             }, {});
-            pluginRaw.$$permissions = Object.freeze(permissions);
 
-            const nonEditableKeys = ["id", "name", "$$permissions", "$$meta"];
-
-            const pluginPropertyConfig: Record<string, {}> = {};
-            for (const key in pluginRaw) {
-                if (pluginRaw.hasOwnProperty(key)) {
-                    const editable = nonEditableKeys.includes(key) ? false : true;
-                    pluginPropertyConfig[key as keyof typeof pluginPropertyConfig] = {
-                        configurable: editable,
-                        enumerable: true,
-                        writable: editable,
-                        value: pluginRaw[key]
-                    }
-                }
-            }
-
-            const plugin = Object.create(pluginProto, pluginPropertyConfig);
+            this.#permissions.set(pluginPackage.id, permissions);
 
             for (const hook of pluginPackage.hooks) {
                 this.#registerCustomHook(hook, [], pluginPackage.id, false);
             }
-
-            plugin.config = processConfigBeforeReceive(pluginPackage.config);
 
             plugin.sendUIMessage = throttle((message: any) => {
                 this.#sendCustomUIMessage(plugin, message);
@@ -144,7 +156,7 @@ export class PluginSystemNative {
 
     constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
         this.#hooks = createDefaultHooks();
-        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
+        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean) as NativePlugin[];
         this.#uiPlugins = uiPlugins;
 
         const _messageListener = (event: MessageEvent) => {
@@ -187,7 +199,7 @@ export class PluginSystemNative {
         this.#hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
     }
 
-    #sendCustomUIMessage(plugin: NativePlugin, message: any) {
+    #sendCustomUIMessage(plugin: PluginBase, message: any) {
         if (this.#nativePlugins.includes(plugin)) {
             this.#uiPlugins.sendMessage({
                 type: UI_SYSTEM_CUSTOM_MESSAGE,
@@ -249,7 +261,7 @@ export class PluginSystemNative {
         if (plugin) {
             try {
                 const oldConfig = { ...plugin.config };
-                plugin.config = processConfigBeforeReceive(config);
+                plugin.config = config;
                 plugin.onConfigChanged && this.#sceneInputHandlerGaurd(plugin) && plugin.onConfigChanged(oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
@@ -272,7 +284,7 @@ export class PluginSystemNative {
     hook_onFrame(frame: number, commands: any[]) {
         for (const plugin of this.#nativePlugins) {
             if (plugin.onFrame && this.#sceneInputHandlerGaurd(plugin)) {
-                if (plugin.$$permissions[PERMISSION_REPLAY_COMMANDS]) {
+                if (this.#permissions.get(plugin.id)?.[PERMISSION_REPLAY_COMMANDS]) {
                     plugin.onFrame(frame, commands);
                 } else {
                     plugin.onFrame(frame)
@@ -284,21 +296,21 @@ export class PluginSystemNative {
     enableAdditionalPlugins(pluginPackages: PluginMetaData[]) {
         const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
 
-        this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins];
+        this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins] as NativePlugin[];
     }
 
     /**
      * Temporarily inject an api into all active plugins.
      */
     injectApi(object: {}, macros: Macros) {
-        mix(pluginProto, object);
+        mix(PluginBase.prototype, object);
         const keys = Object.keys(object);
         this.#macros = macros;
 
         return () => {
             this.#macros = null;
             keys.forEach(key => {
-                delete pluginProto[key as keyof typeof pluginProto];
+                delete PluginBase.prototype[key as keyof typeof PluginBase.prototype];
             })
         }
     }
@@ -375,14 +387,14 @@ export class PluginSystemNative {
             return null;
         } else {
             const key = action.field[0];
-            const field = plugin.$$config[key];
+            const field = plugin.getRawConfigComponent(key);
             if (field === undefined) {
                 return null;
             }
             plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options), false);
             return {
                 pluginId: plugin.id,
-                config: plugin.$$config
+                config: plugin.config
             }
         }
     }

@@ -1,8 +1,7 @@
-export const HOOK_ON_GAME_DISPOSE = "onGameDispose";
-export const HOOK_ON_GAME_READY = "onGameReady";
-export const HOOK_ON_SCENE_PREPARED = "onScenePrepared";
+export const HOOK_ON_SCENE_DISPOSED = "onSceneDisposed";
+export const HOOK_ON_SCENE_READY = "onSceneReady";
 export const HOOK_ON_UNIT_CREATED = "onUnitCreated";
-export const HOOK_ON_UNIT_KILLED = "onUnitKilled";
+export const HOOK_ON_UNIT_KILLED = "onUnitDestroyed";
 export const HOOK_ON_FRAME_RESET = "onFrameReset";
 export const HOOK_ON_TECH_COMPLETED = "onTechCompleted";
 export const HOOK_ON_UPGRADE_COMPLETED = "onUpgradeCompleted";
@@ -10,9 +9,8 @@ export const HOOK_ON_UNITS_SELECTED = "onUnitsSelected";
 
 
 export const createDefaultHooks = () => ({
-    [HOOK_ON_GAME_DISPOSE]: new Hook(HOOK_ON_GAME_DISPOSE, []),
-    [HOOK_ON_GAME_READY]: new Hook(HOOK_ON_GAME_READY, [], { async: true }),
-    [HOOK_ON_SCENE_PREPARED]: new Hook(HOOK_ON_SCENE_PREPARED, ["scene", "sceneUserData", "map", "replayHeader"]),
+    [HOOK_ON_SCENE_DISPOSED]: new Hook(HOOK_ON_SCENE_DISPOSED, []),
+    [HOOK_ON_SCENE_READY]: new Hook(HOOK_ON_SCENE_READY, [], { async: true }),
     [HOOK_ON_UNIT_CREATED]: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
     [HOOK_ON_UNIT_KILLED]: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
     [HOOK_ON_FRAME_RESET]: new Hook(HOOK_ON_FRAME_RESET, []),

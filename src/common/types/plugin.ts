@@ -1,4 +1,3 @@
-import type CameraControls from "camera-controls";
 import type { Vector2, Vector3 } from "three";
 
 export interface PluginPackage {
@@ -34,39 +33,48 @@ export interface PluginMetaData extends PluginPackage {
     hooks: string[];
     isSceneController: boolean;
 }
-export interface PluginPrototype {
-    id: string;
-    config?: {
-        [key: string]: any
-    };
-    /**
-     *SSpecial permissions specified in the package.json.
-     */
-    $$permissions: {
-        [key: string]: boolean
-    },
-    /**
-     * Unprocessed configuration data from the package.json.
-     */
-    $$config: {
-        [key: string]: any
-    },
-    /**
-     * Allows a plugin to update it's own config key/value store
-     */
-    setConfig: (key: string, value: any, persist: boolean) => any;
-}
 
-export interface NativePlugin extends PluginPrototype {
-    id: string;
-    name: string;
-    orbit: CameraControls;
+export interface NativePlugin {
+    /**
+     * The id of the plugin.
+     */
+    readonly id: string;
+    /**
+     * Package name.
+     */
+    readonly name: string;
+    /**
+     * @internal
+     */
     $$meta: {
         hooks: string[];
         methods: string[];
         indexFile: string;
         isSceneController: boolean;
     }
+
+    config: {
+        [key: string]: any
+    };
+    /**
+     * Unprocessed configuration data from the package.json.
+     * @internal
+     */
+    getRawConfigComponent(key: string): any;
+
+    /**
+     * Allows a plugin to update it's own config key/value store
+     */
+    setConfig: (key: string, value: any, persist: boolean) => any;
+
+    /**
+     * Send a message to your plugin UI.
+     */
+    sendUIMessage: (message: any) => void;
+    /**
+     * Call your custom hook. Must be defined in the package.json first.
+     */
+    callCustomHook: (hook: string, ...args: any[]) => any;
 
     /**
      * Called when a plugin has it's configuration changed by the user
@@ -95,32 +103,90 @@ export interface NativePlugin extends PluginPrototype {
     /**
      * Used for message passing in hooks
      */
-    context: any;
+    context?: any;
 
     /**
      * When a game has been loaded and the game loop is about to begin
      */
-    onGameReady?: () => void;
-    onGameDisposed?: () => void;
-    onScenePrepared?: () => void;
+    onSceneReady?: () => void;
+    /**
+     * When the scene is being disposed
+     */
+    onSceneDisposed?: () => void;
+    /**
+     * When a unit is created, but not necessarily fully trained.
+     */
     onUnitCreated?: () => void;
-    onUnitKilled?: () => void;
+    /**
+     * When a unit is destroyed, not necessarily killed.
+     */
+    onUnitDestroyed?: () => void;
+    /**
+     * When the scene objects have been reset due to replay forwarding or rewinding.
+     */
     onFrameReset?: () => void;
+    /**
+     * When an upgrade has been completed
+     */
     onUpgradeCompleted?: () => void;
+    /**
+     * When research has been completed
+     */
     onTechCompleted?: () => void;
 }
 
-export type UserInputCallbacks = {
+export interface UserInputCallbacks {
+    /**
+     * Updates every frame with the current mouse data.
+     * 
+     * @param delta - Time in milliseconds since last frame
+     * @param elapsed - Time in milliseconds since the game started
+     * @param scrollY - Mouse wheel scroll delta
+     * @param screenDrag - Screen scroll delta
+     * @param lookAt - pointerLock delta
+     * @param mouse - x,y mouse position in NDC + z = button state
+     * @param clientX mouse clientX value
+     * @param clientY mouse clientY value
+     * @param clicked - x,y mouse position in NDC + z = button state
+     */
     onCameraMouseUpdate: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3) => void;
 
+    /**
+     * Updates every frame with the current keyboard data.
+     * 
+     * @param delta - Time in milliseconds since last frame
+     * @param elapsed - Time in milliseconds since the game started
+     * @param truck - x,y movement deltas
+     */
     onCameraKeyboardUpdate: (delta: number, elapsed: number, truck: Vector2) => void;
 
+    /**
+     * Whether or not a unit should be drawn.
+     */
     onShouldHideUnit: (unit: any) => boolean | undefined;
 
+    /**
+     * You must return a Vector3 with a position for the audio listener.
+     * 
+     * @param delta - Time in milliseconds since last frame
+     * @param elapsed - Time in milliseconds since the game started
+     * @param target - Vector3 of the current camera target
+     * @param position - Vector 3 of the current camera position
+     */
     onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;
 
+    /**
+     * Updates when the minimap is clicked and dragged.
+     * 
+     * @param pos - Vector3 of the map coordinates.
+     * @param isDragStart - Did the user just start dragging
+     * @param mouseButton - The button the user is using.
+     */
     onMinimapDragUpdate: (pos: Vector3, isDragStart: boolean, mouseButton?: number) => void;
 
+    /**
+     * Called every frame to draw the minimap.
+     */
     onDrawMinimap: (ctx: CanvasRenderingContext2D) => void;
 
 }
@@ -129,14 +195,30 @@ export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
     dispose: () => void;
 
     gameOptions: {
+        /**
+         * Whether or not to allow user to select units.
+         */
         allowUnitSelection: boolean;
+        /**
+         * Audio mode in stereo is classic bw style, 3d is spatial.
+         */
         audio: "stereo" | "3d";
     }
 
+
+    /**
+     * When a scene is entered and nearly initialized.
+     */
     onEnterScene: (prevData: any) => Promise<void>;
 
+    /**
+     * When a scene has exited. Dispose resources here.
+     */
     onExitScene?: (currentData: any) => any;
 
+    /**
+     * When a scene is ready to be drawn.
+     */
     onPostProcessingBundle: (renderPass: any, fogOfWarEffect: any) => {
         passes?: any[];
         effects?: any[];

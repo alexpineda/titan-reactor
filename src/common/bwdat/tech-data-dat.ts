@@ -4,7 +4,7 @@ import { ReadFile } from "../types";
 export type TechDataDAT = {
   mineralCost: number;
   vespeneCost: number;
-  researchCost: number;
+  researchTime: number;
   energyRequired: number;
   researchRequirements: number;
   useRequirements: number;

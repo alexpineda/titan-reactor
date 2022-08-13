@@ -273,7 +273,7 @@ When a game is started apis are made available to your plugin for that instance 
   
 Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/view-replay.ts#L1635) for the time being.
 
-Take special care not to keep references to objects from the game instance. Dereference any values via the `onGameDisposed` callback.
+Take special care not to keep references to objects from the game instance. Dereference any values via the `onSceneDisposed` callback.
 
 
 
@@ -291,9 +291,9 @@ Every plugin gets a base set of hooks.
 // your plugin must return an object with keynames matching hook names that you want to listen to
 return {
     
-    // onGameReady fires when everything is loaded but before the first frame is run
+    // onSceneReady fires when everything is loaded but before the first frame is run
     // the apis provided allow you to iterate players and units, modify replay position and speed and other things
-    async onGameReady() {
+    async onSceneReady() {
       
     },
 
@@ -308,7 +308,7 @@ return {
 
     
     // when the game is over, get rid of any unneeded object references to the previous game!
-    onGameDisposed() {
+    onSceneDisposed() {
 
     },
 
@@ -362,7 +362,7 @@ onCameraMouseUpdate(delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX,
 Custom hooks must start with `onCustom...`;
 
 ```js
-onGameReady() {
+onSceneReady() {
   this.registerCustomHook("onCustomPing");
 },
 
@@ -408,7 +408,7 @@ In your `plugin.js`:
 
 
 return {
-  onGameReady() {
+  onSceneReady() {
     this.sendUIMessage("Word.");
   },
 

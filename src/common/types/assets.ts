@@ -19,3 +19,5 @@ export interface Assets {
     loadAnim: (imageID: number, res: UnitTileScale) => Promise<void>;
     skyBox: CubeTexture;
 }
+
+export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;

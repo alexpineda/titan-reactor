@@ -17,7 +17,7 @@ import {
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import screenStore from "@stores/scene-store";
-import { HOOK_ON_GAME_DISPOSE } from "./hooks";
+import { HOOK_ON_SCENE_DISPOSED } from "./hooks";
 import { Macros } from "@macros/macros";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 
@@ -135,7 +135,7 @@ export const injectApi = (
  */
 export const disposeGame = () => {
     uiPluginSystem.reset();
-    nativePluginSystem.callHook(HOOK_ON_GAME_DISPOSE);
+    nativePluginSystem.callHook(HOOK_ON_SCENE_DISPOSED);
 };
 
 export const onBeforeRender = (

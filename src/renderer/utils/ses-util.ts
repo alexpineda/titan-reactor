@@ -40,6 +40,7 @@ export const lockdown_ = () => {
             globalThis["Function"] = (code: string) => {
                 const vars = `const {${Object.keys(env).join(",")}} = arguments[0];\n`;
                 const fn = Function(vars + code);
+
                 return fn.bind(globalThis, env);
             };
             return {
