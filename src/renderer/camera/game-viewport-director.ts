@@ -1,7 +1,7 @@
 import { Surface } from "@image/canvas";
 import Janitor from "@utils/janitor";
 import { PostProcessingBundleDTO, SceneInputHandler, UserInputCallbacks } from "common/types";
-import { GameSurface } from "renderer/render";
+import { GameSurface } from "../render";
 import { Scene, Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
 import { activateUnitSelection } from "../input/activate-unit-selection";
@@ -129,7 +129,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
         };
 
         this.beforeActivate && this.beforeActivate(inputHandler);
-        this.#defaultPostProcessingBundle.fogOfWarEffect.blendMode.setOpacity(1);
+        this.#defaultPostProcessingBundle.fogOfWarEffect!.blendMode.setOpacity(1);
         await inputHandler.onEnterScene(prevData);
         this.#macros.callHook("onEnterScene", inputHandler.name);
         this.#inputHandler = inputHandler;

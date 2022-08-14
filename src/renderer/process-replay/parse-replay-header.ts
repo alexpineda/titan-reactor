@@ -192,4 +192,5 @@ const parseHeader = (buf: Buffer) => {
   };
 };
 
+export type ReplayHeader = ReturnType<typeof parseHeader>
 export default parseHeader;

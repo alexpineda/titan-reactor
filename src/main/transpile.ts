@@ -11,8 +11,8 @@ export interface TransformSyntaxError extends Error {
 }
 
 
-export const transpile = (_source: string, filename: string, removeImports = false) => {
-  const source = removeImports ? removeImportDeclarations(_source) : _source;
+export const transpile = (_source: string, filename: string, removeImports?: string[] | true) => {
+  const source = removeImports ? removeImportDeclarations(_source, removeImports) : _source;
   const ts = transpileModule(source, { compilerOptions: { target: ScriptTarget.ESNext, module: ModuleKind.ESNext, allowJs: true, jsx: JsxEmit.React, isolatedModules: true, inlineSourceMap: true, skipLibCheck: true, allowSyntheticDefaultImports: true } });
 
   const transpileErrors: TransformSyntaxError[] = [];

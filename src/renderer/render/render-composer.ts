@@ -25,7 +25,7 @@ const createWebGLRenderer = () => {
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
-    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.autoUpdate = true;
     renderer.sortObjects = true;
     renderer.autoClear = false;
     return renderer;

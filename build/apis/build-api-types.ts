@@ -307,7 +307,7 @@ export const extractTypesFromFiles = async ({ extractFiles, globalIgnore, extraT
             ], globalIgnore: ["SpritesBufferView", "Vector2"], extraTypes: ["type Vector2 = {x:number,y:number}"
                 // , 
                 // `
-                // export class PluginProto implements NativePlugin {
+                // export class PluginBase implements NativePlugin {
                 //     id: string;
                 //     name: string;
                 //     $$permissions: NativePlugin["$$permissions"];

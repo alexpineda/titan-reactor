@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene } from "three";
+import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Scene } from "three";
 import { easeCubicIn } from "d3-ease";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
@@ -7,7 +7,7 @@ import { mixer } from "@audio"
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  UnitDAT, WeaponDAT, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta
+  UnitDAT, WeaponDAT, UpgradeDAT, TechDataDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, PxToGameUnit
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -67,17 +67,69 @@ import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { EffectPass, RenderPass } from "postprocessing";
 import { drawMinimap } from "@render/draw-minimap";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import { mix } from "@utils/object-utils"
 import { createSession } from "@stores/session-store";
 import { diff } from "deep-diff";
 import set from "lodash.set";
 import { Terrain } from "@core/terrain";
 import { TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
 import { SceneState } from "../scene";
+import { GameViewPort } from "../../camera/game-viewport";
+import { GetTerrainY } from "@image/generate-map";
+import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
 
+export interface GameTimeApi {
+  type: "replay",
+  readonly viewport: GameViewPort;
+  readonly secondViewport: GameViewPort;
+  readonly viewports: GameViewPort[];
+  simpleMessage(message: string): void;
+  scene: BaseScene;
+  cssScene: Scene;
+  assets: Assets;
+  toggleFogOfWarByPlayerId(playerId: number): void;
+  unitsIterator(): IterableIterator<Unit>;
+  skipForward(seconds: number): void;
+  skipBackward(seconds: number): void;
+  speedUp(): number;
+  speedDown(): number;
+  togglePause(setPaused?: boolean): boolean;
+  readonly gameSpeed: number;
+  setGameSpeed(speed: number): void;
+  refreshScene(): void;
+  pxToGameUnit: PxToGameUnit;
+  fogOfWar: FogOfWar;
+  mapWidth: number;
+  mapHeight: number;
+  tileset: number;
+  tilesetName: string;
+  getTerrainY: GetTerrainY;
+  terrain: Terrain;
+  readonly currentFrame: number;
+  readonly maxFrame: number;
+  gotoFrame(frame: number): void;
+  exitScene(): void;
+  setPlayerColors(colors: string[]): void;
+  getPlayerColor(playerId: number): Color;
+  getOriginalColors(): string[];
+  setPlayerNames(names: { name: string, id: number }[]): void;
+  getOriginalNames(): { name: string, id: number }[];
+  getPlayers(): ReplayPlayer[];
+  replay: ReplayHeader;
+  readonly followedUnitsPosition: Vector3 | undefined | null;
+  selectUnits(units: number[]): void;
+  selectedUnits: Unit[];
+  playSound(typeId: number, volumeOrX?: number, y?: number, unitTypeId?: number): void;
+  togglePointerLock(val: boolean): void;
+  readonly pointerLockLost: boolean;
+  mouseCursor: boolean;
+  minimap: {
+    enabled: boolean;
+    scale: number;
+  }
+}
 async function TitanReactorGame(
   map: Chk,
   terrain: Terrain,
@@ -234,7 +286,6 @@ async function TitanReactorGame(
   });
   janitor.disposable(cameraKeys);
 
-
   const units: Map<number, Unit> = new Map();
   const images: Map<number, Image> = new Map();
   const freeImages = new IndexedObjectPool<Image>();
@@ -251,7 +302,6 @@ async function TitanReactorGame(
     }
     _janitor.mopUp();
   });
-
 
   const macros = new Macros(session);
   macros.deserialize(settingsStore().data.macros);
@@ -271,16 +321,15 @@ async function TitanReactorGame(
   janitor.add(gameViewportsDirector);
 
   gameViewportsDirector.beforeActivate = () => {
-    miscApi.minimap.enabled = true;
-    miscApi.minimap.scale = 1;
+    gameTimeApi.minimap.enabled = true;
+    gameTimeApi.minimap.scale = 1;
   }
 
   gameViewportsDirector.onActivate = (inputHandler) => {
-
     const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
-      minimapHeight: miscApi.minimap ? rect.minimapHeight : 0,
+      minimapHeight: gameTimeApi.minimap.enabled === true ? rect.minimapHeight : 0,
     });
 
     if (!inputHandler.gameOptions.allowUnitSelection) {
@@ -297,22 +346,202 @@ async function TitanReactorGame(
 
   }
 
-  const miscApi = {
-    minimap: {
-      get enabled() {
-        return minimapSurface.canvas.style.display === "block";
-      },
-      set enabled(value: boolean) {
-        minimapSurface.canvas.style.display = value ? "block" : "none";
-        if (value) {
-          minimapSurface.canvas.style.pointerEvents = "auto";
-        }
-      },
-      set scale(value: number) {
-        session.getState().merge({ game: { minimapSize: value } });
+  const gameTimeApi = ((): GameTimeApi => {
+    const toggleFogOfWarByPlayerId = (playerId: number) => {
+      const player = players.find(p => p.id === playerId);
+      if (player) {
+        player.vision = !player.vision;
+        fogOfWar.forceInstantUpdate = true;
       }
     }
-  }
+
+    const setPlayerColors = (colors: string[]) => {
+      const replay = useWorldStore.getState().replay;
+
+      if (replay) {
+        replay.header.players.forEach((player, i) => {
+          player.color = colors[i];
+        });
+        useWorldStore.setState({ replay: { ...replay } })
+      }
+    }
+
+    const getOriginalColors = () => [...originalColors];
+
+    const setPlayerNames = (players: { name: string, id: number }[]) => {
+      const replay = useWorldStore.getState().replay;
+
+      if (replay) {
+        for (const player of players) {
+          const replayPlayer = replay.header.players.find(p => p.id === player.id);
+          if (replayPlayer) {
+            replayPlayer.name = player.name;
+          }
+        }
+        useWorldStore.setState({ replay: { ...replay } })
+      }
+    }
+
+    const getOriginalNames = () => [...originalNames];
+
+    const skipHandler = (dir: number, gameSeconds = 200) => {
+      if (reset) return;
+      const currentFrame = openBW.getCurrentFrame();
+      openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
+      currentBwFrame = openBW.getCurrentFrame();
+      reset = refreshScene;
+      return currentBwFrame;
+    }
+
+    enum ChangeSpeedDirection {
+      Up,
+      Down
+    }
+
+    const MIN_SPEED = 0.25;
+    const MAX_SPEED = 16;
+    const speedHandler = (direction: ChangeSpeedDirection) => {
+      const currentSpeed = openBW.getGameSpeed();
+      let newSpeed = 0;
+
+      // smaller increments/decrements between 1 & 2
+      if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
+        newSpeed = currentSpeed + MIN_SPEED;
+      } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
+        newSpeed = currentSpeed - MIN_SPEED;
+      } else {
+        newSpeed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
+      }
+
+      openBW.setGameSpeed(newSpeed);
+      return openBW.getGameSpeed();
+    }
+
+    return {
+      type: "replay",
+      get viewport() {
+        return gameViewportsDirector.primaryViewport;
+      },
+      get secondViewport() {
+        return gameViewportsDirector.viewports[1];
+      },
+      get viewports() {
+        return gameViewportsDirector.viewports;
+      },
+      simpleMessage(val: string) {
+        console.log("simpleMessage", val);
+        simpleText.set(val);
+      },
+      scene,
+      cssScene,
+      assets,
+      toggleFogOfWarByPlayerId,
+      unitsIterator,
+      skipForward: (amount = 1) => skipHandler(1, amount),
+      skipBackward: (amount = 1) => skipHandler(-1, amount),
+      speedUp: () => speedHandler(ChangeSpeedDirection.Up),
+      speedDown: () => speedHandler(ChangeSpeedDirection.Down),
+      togglePause: (setPaused?: boolean) => {
+        openBW.setPaused(setPaused ?? !openBW.isPaused());
+        return openBW.isPaused();
+      },
+      get gameSpeed() {
+        return openBW.getGameSpeed();
+      },
+      setGameSpeed(value: number) {
+        openBW.setGameSpeed(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED));
+      },
+      refreshScene: () => {
+        reset = refreshScene;
+      },
+      pxToGameUnit,
+      fogOfWar,
+      mapWidth,
+      mapHeight,
+      tileset: map.tileset,
+      tilesetName: map.tilesetName,
+      getTerrainY: terrain.getTerrainY,
+      get terrain() {
+        return terrain;
+      },
+      get currentFrame() {
+        return currentBwFrame;
+      },
+      get maxFrame() {
+        return replay.header.frameCount
+      },
+      gotoFrame: (frame: number) => {
+        openBW.setCurrentFrame(frame);
+        reset = refreshScene;
+      },
+      exitScene: () => {
+        gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
+      },
+      setPlayerColors,
+      getPlayerColor: (id: number) => {
+        return players.get(id)?.color ?? new Color(1, 1, 1);
+      },
+      getOriginalColors,
+      setPlayerNames,
+      getOriginalNames,
+      getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
+      get replay() { return { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] } },
+      get followedUnitsPosition() {
+        if (followedUnits.length === 0) {
+          return null;
+        }
+        return calculateFollowedUnitsTarget();
+      },
+      selectUnits: (ids: number[]) => {
+        const selection = [];
+        for (const id of ids) {
+          const unit = units.get(id);
+          if (unit) {
+            selection.push(unit);
+          }
+        }
+        selectedUnitsStore().setSelectedUnits(selection);
+      },
+      get selectedUnits() {
+        return selectedUnitsStore().selectedUnits
+      },
+      // fadingPointers,
+      playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
+        if (y !== undefined && volumeOrX !== undefined) {
+          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId);
+        } else {
+          soundChannels.playGlobal(typeId, volumeOrX);
+        }
+      },
+      togglePointerLock: (val: boolean) => {
+        gameSurface.togglePointerLock(val);
+      },
+      get pointerLockLost() {
+        return gameSurface.pointerLockLost;
+      },
+      get mouseCursor() {
+        return gameViewportsDirector.mouseCursor;
+      },
+      set mouseCursor(val: boolean) {
+        gameViewportsDirector.mouseCursor = val;
+      },
+      minimap: {
+        get enabled() {
+          return minimapSurface.canvas.style.display === "block";
+        },
+        set enabled(value: boolean) {
+          minimapSurface.canvas.style.display = value ? "block" : "none";
+          if (value) {
+            minimapSurface.canvas.style.pointerEvents = "auto";
+          }
+        },
+        set scale(value: number) {
+          session.getState().merge({ game: { minimapSize: value } });
+        }
+      }
+    }
+  })();
+
 
   const _stopFollowingOnClick = () => {
     if (session.getState().game.stopFollowingOnClick) {
@@ -1124,10 +1353,10 @@ async function TitanReactorGame(
   terrain.shadowsEnabled = session.getState().graphics.terrainShadows;
   renderComposer.getWebGLRenderer().shadowMap.needsUpdate = session.getState().graphics.terrainShadows;
 
-  let _lastElapsed = 0;
   const _a = new Vector3;
 
   let delta = 0;
+  let lastElapsed = 0;
 
   let cmds = commandsStream.generate();
 
@@ -1140,8 +1369,8 @@ async function TitanReactorGame(
 
   const GAME_LOOP = (elapsed: number) => {
     if (_halt) return;
-    delta = elapsed - _lastElapsed;
-    _lastElapsed = elapsed;
+    delta = elapsed - lastElapsed;
+    lastElapsed = elapsed;
 
     for (const viewport of gameViewportsDirector.viewports) {
       viewport.orbit.update(delta / 1000);
@@ -1217,9 +1446,6 @@ async function TitanReactorGame(
         if (dir != v.camera.userData.direction) {
           v.camera.userData.prevDirection = v.camera.userData.direction;
           v.camera.userData.direction = dir;
-          // if (currentBwFrame) {
-          //   previousBwFrame = -1;
-          // }
         }
       }
     }
@@ -1238,7 +1464,6 @@ async function TitanReactorGame(
       v.cameraShake.restore(v.camera);
     }
     renderComposer.renderBuffer();
-
 
     let _cssItems = 0;
     for (const cssItem of cssScene.children) {
@@ -1268,201 +1493,15 @@ async function TitanReactorGame(
 
   let pluginsApiJanitor = new Janitor;
 
-
   const setupPlugins = async () => {
-
-    const toggleFogOfWarByPlayerId = (playerId: number) => {
-      const player = players.find(p => p.id === playerId);
-      if (player) {
-        player.vision = !player.vision;
-        fogOfWar.forceInstantUpdate = true;
-      }
-    }
-
-    const setPlayerColors = (colors: string[]) => {
-      const replay = useWorldStore.getState().replay;
-
-      if (replay) {
-        replay.header.players.forEach((player, i) => {
-          player.color = colors[i];
-        });
-        useWorldStore.setState({ replay: { ...replay } })
-      }
-    }
-
-    const getOriginalColors = () => [...originalColors];
-
-    const setPlayerNames = (players: { name: string, id: number }[]) => {
-      const replay = useWorldStore.getState().replay;
-
-      if (replay) {
-        for (const player of players) {
-          const replayPlayer = replay.header.players.find(p => p.id === player.id);
-          if (replayPlayer) {
-            replayPlayer.name = player.name;
-          }
-        }
-        useWorldStore.setState({ replay: { ...replay } })
-      }
-    }
-
-    const getOriginalNames = () => [...originalNames];
-
-    const skipHandler = (dir: number, gameSeconds = 200) => {
-      if (reset) return;
-      const currentFrame = openBW.getCurrentFrame();
-      openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
-      currentBwFrame = openBW.getCurrentFrame();
-      reset = refreshScene;
-      return currentBwFrame;
-    }
-
-    enum ChangeSpeedDirection {
-      Up,
-      Down
-    }
-
-    const MIN_SPEED = 0.25;
-    const MAX_SPEED = 16;
-    const speedHandler = (direction: ChangeSpeedDirection) => {
-      const currentSpeed = openBW.getGameSpeed();
-      let newSpeed = 0;
-
-      // smaller increments/decrements between 1 & 2
-      if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
-        newSpeed = currentSpeed + MIN_SPEED;
-      } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
-        newSpeed = currentSpeed - MIN_SPEED;
-      } else {
-        newSpeed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
-      }
-
-      openBW.setGameSpeed(newSpeed);
-      return openBW.getGameSpeed();
-    }
-
-
-    const gameTimeApi = {
-      type: "replay",
-      get viewport() {
-        return gameViewportsDirector.primaryViewport;
-      },
-      get secondViewport() {
-        return gameViewportsDirector.viewports[1];
-      },
-      get viewports() {
-        return gameViewportsDirector.viewports;
-      },
-      simpleMessage(val: string) {
-        console.log("simpleMessage", val);
-        simpleText.set(val);
-      },
-      scene,
-      cssScene,
-      assets,
-      toggleFogOfWarByPlayerId,
-      unitsIterator,
-      skipForward: (amount = 1) => skipHandler(1, amount),
-      skipBackward: (amount = 1) => skipHandler(-1, amount),
-      speedUp: () => speedHandler(ChangeSpeedDirection.Up),
-      speedDown: () => speedHandler(ChangeSpeedDirection.Down),
-      togglePause: (setPaused?: boolean) => {
-        openBW.setPaused(setPaused ?? !openBW.isPaused());
-        return openBW.isPaused();
-      },
-      get gameSpeed() {
-        return openBW.getGameSpeed();
-      },
-      setGameSpeed(value: number) {
-        openBW.setGameSpeed(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED));
-      },
-      refreshScene: () => {
-        reset = refreshScene;
-      },
-      pxToGameUnit,
-      fogOfWar,
-      mapWidth,
-      mapHeight,
-      tileset: map.tileset,
-      tilesetName: map.tilesetName,
-      getTerrainY: terrain.getTerrainY,
-      terrain,
-      get currentFrame() {
-        return currentBwFrame;
-      },
-      get maxFrame() {
-        return replay.header.frameCount
-      },
-      gotoFrame: (frame: number) => {
-        openBW.setCurrentFrame(frame);
-        reset = refreshScene;
-      },
-      exitScene: () => {
-        gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
-      },
-      setPlayerColors,
-      getPlayerColor: (id: number) => {
-        return players.get(id)?.color ?? new Color(1, 1, 1);
-      },
-      getOriginalColors,
-      setPlayerNames,
-      getOriginalNames,
-      getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
-      replay: { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] },
-      get followedUnitsPosition() {
-        if (followedUnits.length === 0) {
-          return null;
-        }
-        return calculateFollowedUnitsTarget();
-      },
-      selectUnits: (ids: number[]) => {
-        const selection = [];
-        for (const id of ids) {
-          const unit = units.get(id);
-          if (unit) {
-            selection.push(unit);
-          }
-        }
-        selectedUnitsStore().setSelectedUnits(selection);
-      },
-      get selectedUnits() {
-        return selectedUnitsStore().selectedUnits
-      },
-      fadingPointers,
-      playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
-        if (y !== undefined && volumeOrX !== undefined) {
-          buildSound(_lastElapsed, volumeOrX, y, typeId, unitTypeId);
-        } else {
-          soundChannels.playGlobal(typeId, volumeOrX);
-        }
-      },
-      togglePointerLock: (val: boolean) => {
-        gameSurface.togglePointerLock(val);
-      },
-      get pointerLockLost() {
-        return gameSurface.pointerLockLost;
-      },
-      get mouseCursor() {
-        return gameViewportsDirector.mouseCursor;
-      },
-      set mouseCursor(val: boolean) {
-        gameViewportsDirector.mouseCursor = val;
-      }
-    };
-
-    mix(gameTimeApi, miscApi);
-
-    pluginsApiJanitor.add(plugins.injectApi(gameTimeApi, macros));
-    await plugins.callHookAsync(HOOK_ON_SCENE_READY);
-
     const container = createCompartment(gameTimeApi);
-
     macros.setCreateCompartment((context?: any) => {
       container.globalThis.context = context;
       return container;
     });
 
-
+    pluginsApiJanitor.add(plugins.injectApi(gameTimeApi, macros));
+    await plugins.callHookAsync(HOOK_ON_SCENE_READY);
   }
 
   await setupPlugins();
@@ -1563,6 +1602,7 @@ async function TitanReactorGame(
 
   // precompile the scene for the first time
   // set game second to 1 so creep can be rendered since its slow to generate
+  //TODO: get all scene controllers
   GAME_LOOP(0);
   renderComposer.getWebGLRenderer().render(scene, precompileCamera);
   _sceneResizeHandler();

@@ -35,7 +35,7 @@ function sunlight(mapWidth: number, mapHeight: number) {
   light.shadow.camera.bottom = -sizeh;
   light.shadow.mapSize.width = 512 * 2;
   light.shadow.mapSize.height = 512 * 2;
-  light.shadow.autoUpdate = false;
+  light.shadow.autoUpdate = true;
   light.shadow.needsUpdate = true;
   light.name = "sunlight";
   return light;

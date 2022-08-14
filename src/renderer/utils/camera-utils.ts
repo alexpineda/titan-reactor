@@ -1,24 +1,8 @@
 import CameraControls from "camera-controls";
-import { Box3, Camera, MathUtils, Object3D, PerspectiveCamera, Vector3, Vector4 } from "three";
-import type { CameraMouse } from "../input/camera-mouse";
-import type { CameraKeys } from "../input/camera-keys";
-import type CameraShake from "../camera/camera-shake";
+import { Box3, MathUtils, Object3D, PerspectiveCamera, Vector3 } from "three";
 import { imageIsFlipped } from "./image-utils";
-import { SceneInputHandler, ImageStruct } from "common/types";
+import { ImageStruct } from "common/types";
 import DirectionalCamera from "../camera/directional-camera";
-
-export type Controls = {
-  orbit: CameraControls,
-  mouse: CameraMouse,
-  keys: CameraKeys,
-  cameraShake: CameraShake,
-  cameraController: SceneInputHandler,
-  PIP: {
-    enabled: boolean;
-    camera: Camera;
-    viewport: Vector4;
-  }
-}
 
 export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
   const adj = target.z - cameraPosition.z;

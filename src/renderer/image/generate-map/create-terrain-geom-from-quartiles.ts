@@ -51,7 +51,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 roughness: 1,
                 bumpMap: mapTextures.mapQuartiles[qx][qy],
                 bumpScale: geomOptions.bumpScale,
-                roughnessMap: occlussionRoughnessMetallicMap,
+                // roughnessMap: occlussionRoughnessMetallicMap,
                 fog: false
             });
 

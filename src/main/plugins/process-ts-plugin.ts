@@ -3,7 +3,7 @@ import * as tsm from "ts-morph";
 
 const fn = (filename: string) => resolve(process.cwd(), filename);
 
-export const removeImportDeclarations = (content: string) => {
+export const removeImportDeclarations = (content: string, specifiers: string[] | true) => {
     const project = new tsm.Project({
         tsConfigFilePath: fn("./tsconfig.json"),
         compilerOptions: {
@@ -16,7 +16,9 @@ export const removeImportDeclarations = (content: string) => {
     });
     const file = project.createSourceFile("plugin.ts", content);
     for (const importDecl of file.getImportDeclarations()) {
-        importDecl.remove();
+        if (specifiers === true || specifiers.includes(importDecl.getModuleSpecifierValue())) {
+            importDecl.remove();
+        }
     }
     return file.getText(true);
 }

@@ -1,4 +1,4 @@
-import { SceneInputHandler, PluginMetaData, NativePlugin, MacroActionPlugin, MacroActionEffect, PluginPackage } from "common/types";
+import { PluginMetaData, NativePlugin, MacroActionPlugin, MacroActionEffect, PluginPackage, SceneInputHandler } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
@@ -12,11 +12,13 @@ import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log"
 import { normalizePluginConfiguration } from "@utils/function-utils"
+import { GameTimeApi } from "../scenes/replay/replay-scene";
 
+interface PluginBase extends NativePlugin, GameTimeApi { };
 class PluginBase implements NativePlugin {
-    id: string;
-    name: string;
-    $$meta = { hooks: [], methods: [], indexFile: "", isSceneController: false };
+    readonly id: string;
+    readonly name: string;
+    isSceneController = false;
     #config: any = {}
 
     /**
@@ -40,7 +42,7 @@ class PluginBase implements NativePlugin {
      * @param value  The configuration value.
      * @returns 
      */
-    setConfig(key: string, value: any) {
+    setConfig(key: string, value: any): void {
         if (!(key in this.#config)) {
             log.warning(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
             return undefined;
@@ -61,19 +63,37 @@ class PluginBase implements NativePlugin {
         this.#normalizedConfig = normalizePluginConfiguration(this.#config);
     }
 
+    /**
+     * Read from the normalized configuration.
+     */
     get config() {
         return this.#normalizedConfig;
     }
 
+    /**
+     * Set the config from unnormalized data (ie leva config schema).
+     */
     set config(value: any) {
         this.#config = value;
         this.refreshConfig();
     }
 
+    /**
+     * @param key The configuration key.
+     * @returns the leva configuration for a particular field
+     */
     getRawConfigComponent(key: string) {
         return this.#config[key];
     }
 };
+
+export interface SceneController extends PluginBase, SceneInputHandler {
+
+};
+
+export class SceneController extends PluginBase {
+    override isSceneController = true;
+}
 
 const VALID_PERMISSIONS = [
     PERMISSION_REPLAY_COMMANDS,
@@ -92,7 +112,7 @@ export class PluginSystemNative {
 
     initializePlugin(pluginPackage: PluginMetaData) {
         const c = createCompartment({
-            PluginBase
+            PluginBase, SceneController
         });
 
         try {
@@ -100,20 +120,15 @@ export class PluginSystemNative {
             let plugin = new PluginBase(pluginPackage);
 
             if (pluginPackage.nativeSource) {
-                if (pluginPackage.name === "@titan-reactor-plugins/fps") {
+                if (pluginPackage.nativeSource.includes("export default")) {
                     const Constructor = c.globalThis.Function(pluginPackage.nativeSource.replace("export default", "return"))();
                     plugin = new Constructor(pluginPackage);
                 } else {
-                    plugin = Object.assign(plugin, c.globalThis.Function(pluginPackage.nativeSource)())
+                    plugin = Object.assign(plugin, c.globalThis.Function(pluginPackage.nativeSource)()) as PluginBase
                 }
             }
 
-            plugin.$$meta = {
-                methods: pluginPackage.methods,
-                hooks: pluginPackage.hooks,
-                indexFile: pluginPackage.indexFile,
-                isSceneController: pluginPackage.isSceneController,
-            }
+            plugin.isSceneController = pluginPackage.isSceneController;
 
             const permissions = (pluginPackage.config?.system?.permissions ?? []).reduce((acc: Record<string, boolean>, permission: string) => {
                 if (VALID_PERMISSIONS.includes(permission)) {
@@ -170,7 +185,7 @@ export class PluginSystemNative {
     }
 
     getSceneInputHandlers() {
-        return this.#nativePlugins.filter(p => p.$$meta.isSceneController) as SceneInputHandler[];
+        return this.#nativePlugins.filter(p => p.isSceneController) as SceneInputHandler[];
     }
 
     setActiveSceneInputHandler(plugin: SceneInputHandler) {
@@ -253,7 +268,7 @@ export class PluginSystemNative {
     }
 
     #sceneInputHandlerGaurd(plugin: NativePlugin) {
-        return !plugin.$$meta.isSceneController || this.#activeSceneInputHandler === plugin;
+        return !plugin.isSceneController || this.#activeSceneInputHandler === plugin;
     }
 
     hook_onConfigChanged(pluginId: string, config: any) {
@@ -391,7 +406,7 @@ export class PluginSystemNative {
             if (field === undefined) {
                 return null;
             }
-            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options), false);
+            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options));
             return {
                 pluginId: plugin.id,
                 config: plugin.config

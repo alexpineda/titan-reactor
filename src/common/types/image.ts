@@ -33,8 +33,8 @@ export interface SpriteType extends Group {
 }
 
 export type PostProcessingBundleDTO = {
-  fogOfWarEffect: Effect;
-  renderPass: Pass;
+  fogOfWarEffect?: Effect;
+  renderPass?: Pass;
   effects: Effect[],
   passes: Pass[]
 }

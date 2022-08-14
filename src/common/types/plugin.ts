@@ -43,19 +43,13 @@ export interface NativePlugin {
      * Package name.
      */
     readonly name: string;
-    /**
-     * @internal
-     */
-    $$meta: {
-        hooks: string[];
-        methods: string[];
-        indexFile: string;
-        isSceneController: boolean;
-    }
 
-    config: {
-        [key: string]: any
-    };
+    /**
+     * Whether or not this plugin is a scene controller.
+     */
+    isSceneController: boolean;
+
+    config: any;
     /**
      * Unprocessed configuration data from the package.json.
      * @internal
@@ -65,41 +59,41 @@ export interface NativePlugin {
     /**
      * Allows a plugin to update it's own config key/value store
      */
-    setConfig: (key: string, value: any, persist: boolean) => any;
+    setConfig(key: string, value: any): void;
 
     /**
      * Send a message to your plugin UI.
      */
-    sendUIMessage: (message: any) => void;
+    sendUIMessage(message: any): void;
     /**
      * Call your custom hook. Must be defined in the package.json first.
      */
-    callCustomHook: (hook: string, ...args: any[]) => any;
+    callCustomHook(hook: string, ...args: any[]): any;
 
     /**
      * Called when a plugin has it's configuration changed by the user
      */
-    onConfigChanged?: (oldConfig: {}) => void;
+    onConfigChanged?(oldConfig: {}): void;
     /**
      * CaLLed when a plugin must release its resources
      */
-    dispose?: () => void;
+    dispose?(): void;
     /**
      * Called when an React component sends a message to this window
      */
-    onUIMessage?: (message: any) => void;
+    onUIMessage?(message: any): void;
     /**
      * Called just before render
      */
-    onBeforeRender?: (delta: number, elapsed: number) => void;
+    onBeforeRender?(delta: number, elapsed: number): void;
     /**
      * Called after rendering is done
      */
-    onRender?: (delta: number, elapsed: number) => void;
+    onRender?(delta: number, elapsed: number): void;
     /**
      * Called on a game frame
      */
-    onFrame?: (frame: number, commands?: any[]) => void;
+    onFrame?(frame: number, commands?: any[]): void;
     /**
      * Used for message passing in hooks
      */
@@ -108,31 +102,31 @@ export interface NativePlugin {
     /**
      * When a game has been loaded and the game loop is about to begin
      */
-    onSceneReady?: () => void;
+    onSceneReady?(): void;
     /**
      * When the scene is being disposed
      */
-    onSceneDisposed?: () => void;
+    onSceneDisposed?(): void;
     /**
      * When a unit is created, but not necessarily fully trained.
      */
-    onUnitCreated?: () => void;
+    onUnitCreated?(): void;
     /**
      * When a unit is destroyed, not necessarily killed.
      */
-    onUnitDestroyed?: () => void;
+    onUnitDestroyed?(): void;
     /**
      * When the scene objects have been reset due to replay forwarding or rewinding.
      */
-    onFrameReset?: () => void;
+    onFrameReset?(): void;
     /**
      * When an upgrade has been completed
      */
-    onUpgradeCompleted?: () => void;
+    onUpgradeCompleted?(): void;
     /**
      * When research has been completed
      */
-    onTechCompleted?: () => void;
+    onTechCompleted?(): void;
 }
 
 export interface UserInputCallbacks {
@@ -149,7 +143,7 @@ export interface UserInputCallbacks {
      * @param clientY mouse clientY value
      * @param clicked - x,y mouse position in NDC + z = button state
      */
-    onCameraMouseUpdate: (delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3) => void;
+    onCameraMouseUpdate(delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3): void;
 
     /**
      * Updates every frame with the current keyboard data.
@@ -158,12 +152,12 @@ export interface UserInputCallbacks {
      * @param elapsed - Time in milliseconds since the game started
      * @param truck - x,y movement deltas
      */
-    onCameraKeyboardUpdate: (delta: number, elapsed: number, truck: Vector2) => void;
+    onCameraKeyboardUpdate(delta: number, elapsed: number, truck: Vector2): void;
 
     /**
      * Whether or not a unit should be drawn.
      */
-    onShouldHideUnit: (unit: any) => boolean | undefined;
+    onShouldHideUnit(unit: any): boolean | undefined;
 
     /**
      * You must return a Vector3 with a position for the audio listener.
@@ -173,7 +167,7 @@ export interface UserInputCallbacks {
      * @param target - Vector3 of the current camera target
      * @param position - Vector 3 of the current camera position
      */
-    onUpdateAudioMixerLocation: (delta: number, elapsed: number, target: Vector3, position: Vector3) => Vector3;
+    onUpdateAudioMixerLocation(delta: number, elapsed: number, target: Vector3, position: Vector3): Vector3;
 
     /**
      * Updates when the minimap is clicked and dragged.
@@ -182,18 +176,16 @@ export interface UserInputCallbacks {
      * @param isDragStart - Did the user just start dragging
      * @param mouseButton - The button the user is using.
      */
-    onMinimapDragUpdate: (pos: Vector3, isDragStart: boolean, mouseButton?: number) => void;
+    onMinimapDragUpdate(pos: Vector3, isDragStart: boolean, mouseButton?: number): void;
 
     /**
      * Called every frame to draw the minimap.
      */
-    onDrawMinimap: (ctx: CanvasRenderingContext2D) => void;
+    onDrawMinimap(ctx: CanvasRenderingContext2D): void;
 
 }
 
 export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
-    dispose: () => void;
-
     gameOptions: {
         /**
          * Whether or not to allow user to select units.
