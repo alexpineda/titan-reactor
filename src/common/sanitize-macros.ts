@@ -34,7 +34,7 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 const sanitizeMacro = (macro: MacroDTO, settings: SettingsAndPluginsMeta) => {
     if (macro.trigger.type === TriggerType.GameHook) {
         const d = MacroHookTrigger.deserialize(macro.trigger);
-        if (d !== undefined && settings.enabledPlugins.find(p => p.name === d.pluginName) === undefined) {
+        if (d !== undefined && d.pluginName && settings.enabledPlugins.find(p => p.name === d.pluginName) === undefined) {
             macro.error = `Plugin for game hook trigger not found - ${d.pluginName}`;
         }
     }

@@ -17,7 +17,7 @@ export const createTerrainGeometryFromQuartiles = async (
     creepTexture: CreepTexture,
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
-    { creepEdgesTextureUniform, creepTextureUniform, occlussionRoughnessMetallicMap }: MapDataTextures,
+    { creepEdgesTextureUniform, creepTextureUniform /*, occlussionRoughnessMetallicMap*/ }: MapDataTextures,
     { displacementImage, displaceCanvas }: HeightMaps,
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures

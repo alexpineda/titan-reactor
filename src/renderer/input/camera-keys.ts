@@ -56,6 +56,7 @@ export class CameraKeys {
             }
 
             if (testKeys(e, keyFollow)) {
+                console.log("toggle follow");
                 this.#onToggleFollowUnit();
             }
         }

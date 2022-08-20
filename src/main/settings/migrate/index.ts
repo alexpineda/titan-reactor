@@ -1,16 +1,18 @@
-import { Settings } from "common/types";
+import { Settings, SettingsV4, SettingsV5 } from "common/types";
+import { v4Tov5 } from "./v4-v5";
 
-const migrations: ((settings: any) => [boolean, any])[] = [];
+export type PreviousSettings = SettingsV4 | SettingsV5;
 
-export default (_settings: any): [boolean, Settings] => {
+const migrations: ((settings: PreviousSettings) => PreviousSettings)[] = [v4Tov5];
+
+export const doMigrations = (_settings: PreviousSettings): Settings => {
     let settings = _settings;
-    let anyMigrated = false;
+
     for (const migration of migrations) {
-        const [migrated, migratedSettings] = migration(settings);
-        if (migrated) {
-            settings = migratedSettings;
-            anyMigrated = true;
-        }
+        settings = migration(settings);
     }
-    return [anyMigrated, settings as Settings];
+    if (settings.version !== 5) {
+        throw new Error(`Settings version ${settings.version} is not supported`);
+    }
+    return settings as Settings;
 }

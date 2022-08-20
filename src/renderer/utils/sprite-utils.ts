@@ -27,7 +27,7 @@ const _cameraWorldDirection = new Vector3();
 
 export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<Image | ImageBufferView>) => {
 
-    ImageHD.useDepth = options.rotateSprites;
+    ImageHD.useDepth = false;// options.rotateSprites;
     ImageHD.useScale = options.unitScale;
 
     camera.getWorldDirection(_cameraWorldDirection);

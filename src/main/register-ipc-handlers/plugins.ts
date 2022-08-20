@@ -1,9 +1,9 @@
 import { ipcMain } from "electron";
 import { DELETE_PLUGIN, DISABLE_PLUGIN, ENABLE_PLUGINS, INSTALL_PLUGIN, UPDATE_PLUGIN_CONFIG } from "common/ipc-handle-names";
-import { disablePlugin, enablePlugins, installPlugin, savePluginsConfig, uninstallPlugin } from "../plugins/load-plugins";
+import { disablePlugin, enablePlugins, installPlugin, savePluginConfig, uninstallPlugin } from "../plugins/load-plugins";
 
 ipcMain.handle(UPDATE_PLUGIN_CONFIG, async (_, pluginId, config: any) => {
-    return await savePluginsConfig(pluginId, config);
+    return await savePluginConfig(pluginId, config);
 });
 
 ipcMain.handle(DISABLE_PLUGIN, async (_, pluginId) => {

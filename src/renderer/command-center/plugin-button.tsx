@@ -21,6 +21,7 @@ export const PluginButton = ({
     <button
       onClick={onClick}
       style={{
+        position: "relative",
         textAlign: "left",
         color: isDisabled
           ? "var(--gray-5)"
@@ -36,8 +37,10 @@ export const PluginButton = ({
           style={{
             fontSize: "30%",
             position: "absolute",
-            top: "-5px",
+            top: "2px",
+            right: "2px",
           }}
+          title="Update available"
         >
           🔴
         </span>

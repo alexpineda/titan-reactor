@@ -75,12 +75,6 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         value: settings.data.audio.playIntroSounds,
         path: "audio",
     },
-    stopFollowingOnClick: {
-        folder: "Game",
-        label: "Click anywhere to stop following units",
-        value: settings.data.game.stopFollowingOnClick,
-        path: "game",
-    },
     minimapSize: {
         folder: "Game",
         label: "Minimap Size % Height",

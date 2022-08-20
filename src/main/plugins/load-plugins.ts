@@ -1,14 +1,14 @@
 import PackageJson from '@npmcli/package-json';
 import path from "path";
 import { MathUtils } from "three";
-import { promises as fsPromises, writeFileSync } from "fs";
+import { promises as fsPromises } from "fs";
 import { app, dialog, shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
 import semver from 'semver';
 
-import { PluginMetaData } from "common/types";
+import { PluginMetaData, PluginPackage } from "common/types";
 import { ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
 
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
@@ -26,7 +26,15 @@ let _disabledPluginPackages: PluginMetaData[] = [];
 export const getEnabledPluginPackages = () => _enabledPluginPackages;
 export const getDisabledPluginPackages = () => _disabledPluginPackages;
 
-const _tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<any | null> => {
+const loadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<{}> => {
+    const content = await fsPromises.readFile(filepath, { encoding: "utf8" });
+    if (format === 'json') {
+        return JSON.parse(content);
+    }
+    return content;
+}
+
+const tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<any | null> => {
     try {
         const content = await fsPromises.readFile(filepath, { encoding: "utf8" });
         if (format === 'json') {
@@ -42,38 +50,41 @@ let _pluginDirectory = "";
 
 const loadPluginPackage = async (folderPath: string, folderName: string): Promise<null | PluginMetaData> => {
 
-    const packageJSON = await _tryLoadUtf8(path.join(folderPath, "package.json"), "json");
-
+    if (!await fileExists(path.join(folderPath, "package.json"))) {
+        log.error(`@load-plugins/load-plugin-packages: package.json missing - ${folderName}`);
+        return null
+    }
+    const packageJSON = await loadUtf8(path.join(folderPath, "package.json"), "json") as PluginPackage;
     let pluginNative = null;
     if (await fileExists(path.join(folderPath, "plugin.ts"))) {
-        const tsSource = await _tryLoadUtf8(path.join(folderPath, "plugin.ts")) as string | null;
+        const tsSource = await tryLoadUtf8(path.join(folderPath, "plugin.ts")) as string | null;
         if (tsSource) {
-            const result = transpile(tsSource, path.join(folderPath, "plugin.ts"), true);
-            if (result.transpileErrors.length) {
-                log.error(`@load-plugins/load-plugin-packages: Plugin ${folderName} transpilation errors: ${result.transpileErrors[0].message} ${result.transpileErrors[0].snippet}`);
+            try {
+                const result = transpile(tsSource, path.join(folderPath, "plugin.ts"), true);
+                if (result.transpileErrors.length) {
+                    log.error(`@load-plugins/load-plugin-packages: Plugin ${folderName} transpilation errors: ${result.transpileErrors[0].message} ${result.transpileErrors[0].snippet}`);
+                    return null;
+                }
+                pluginNative = result.result.outputText;
+            } catch (e) {
+                log.error(withErrorMessage(`@load-plugins/load-plugin-package: Plugin ${folderName} transpilation error`, e));
                 return null;
             }
-            pluginNative = result.result.outputText;
-            writeFileSync("D:\\test.js", pluginNative);
         }
     } else if (await fileExists(path.join(folderPath, "plugin.js"))) {
-        pluginNative = await _tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
+        pluginNative = await tryLoadUtf8(path.join(folderPath, "plugin.js")) as string | null;
         if (pluginNative === null) {
             log.error(`@load-plugins/load-plugin-packages: Plugin ${folderName} failed to load plugin.js`);
             return null;
         }
     }
-    const readme = await _tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
+    const readme = await tryLoadUtf8(path.join(folderPath, "readme.md")) as string | null;
 
     let indexFile = "";
     if (await fileExists(path.join(folderPath, "index.jsx"))) {
         indexFile = "index.jsx";
     } else if (await fileExists(path.join(folderPath, "index.tsx"))) {
         indexFile = "index.tsx";
-    }
-
-    if (!packageJSON) {
-        return null
     }
 
     if (packageJSON.name === undefined) {
@@ -102,6 +113,8 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         description: packageJSON.description,
         author: packageJSON.author,
         repository: packageJSON.repository,
+        keywords: packageJSON.keywords ?? [],
+        apiVersion: packageJSON.peerDependencies?.["titan-reactor-api"] ?? "1.0.0",
         path: folderName,
         config,
         nativeSource: pluginNative,
@@ -115,6 +128,8 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
 }
 
 const loadPluginPackages = async (folders: ReadFolderResult[]) => {
+    let _saveChangesToSettings = false;
+
     for (const folder of folders) {
         if (!folder.isFolder) {
             continue;
@@ -125,42 +140,39 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
         }
 
         const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
-        const pluginApiVersion = plugin.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
+        const pluginIsAlreadyEnabled = settings.get().plugins.enabled.includes(plugin.name);
 
-        if (semver.major(titanReactorApiVersion) <
-            semver.major(pluginApiVersion)) {
+        if (pluginIsAlreadyEnabled && semver.major(titanReactorApiVersion) !==
+            semver.major(plugin.apiVersion)) {
             log.error(
-                `@load-plugins/load-plugin-packages: Plugin ${plugin.name} requires Titan Reactor API version ${pluginApiVersion} but the current version is ${titanReactorApiVersion}`
+                `@load-plugins/load-plugin-packages: Plugin ${plugin.name} requires Titan Reactor API version ${plugin.apiVersion} but the current version is ${titanReactorApiVersion}`
             );
-            //TODO: disable plugin in settings.json if version is not compatible
             _disabledPluginPackages.push(plugin);
-            return;
-        }
-
-        if (settings.get().plugins.enabled.includes(plugin.name)) {
+            _saveChangesToSettings = true;
+        } else if (pluginIsAlreadyEnabled) {
             _enabledPluginPackages.push(plugin);
         } else {
             _disabledPluginPackages.push(plugin);
         }
     }
+
+    if (_saveChangesToSettings) {
+        await settings.disablePlugins(_disabledPluginPackages.map(p => p.name));
+    }
 }
 
 const DEFAULT_PACKAGES: string[] = [
     "@titan-reactor-plugins/clock",
-    "@titan-reactor-plugins/default-screens",
     "@titan-reactor-plugins/player-colors",
     "@titan-reactor-plugins/camera-standard",
     "@titan-reactor-plugins/camera-overview",
     "@titan-reactor-plugins/camera-battle",
     "@titan-reactor-plugins/players-bar",
-    "@titan-reactor-plugins/recently-dead",
-    "@titan-reactor-plugins/chat-display",
     "@titan-reactor-plugins/unit-selection-display",
-    "@titan-reactor-plugins/production-bar"
+    "@titan-reactor-plugins/production-bar",
+    "@titan-reactor-plugins/unit-sounds",
 ];
 
-
-//TODO return disabled/enabled plugins and re-save settings.json
 export default async (pluginDirectory: string) => {
     _enabledPluginPackages = [];
     _disabledPluginPackages = [];
@@ -204,7 +216,7 @@ export default async (pluginDirectory: string) => {
 
 
 export const installPlugin = async (repository: string) => {
-    log.info(`@load-plugins/install: Installing plugin ${repository}`);
+    log.info(`@load-plugins/install-plugin: Installing plugin ${repository}`);
 
     try {
 
@@ -218,17 +230,14 @@ export const installPlugin = async (repository: string) => {
             const loadedPackage = await loadPluginPackage(folderPath, folderName);
 
             if (loadedPackage) {
-                const enabledPlugin = _enabledPluginPackages.find(p => p.name === loadedPackage.name);
-                // if  a plugin is enabled, it means we're updating since the update function is only available
-                // when the plugin is enabled
-                if (enabledPlugin) {
-                    const oldConfig = enabledPlugin.config;
-                    _enabledPluginPackages.splice(_enabledPluginPackages.indexOf(enabledPlugin), 1, loadedPackage);
-                    savePluginsConfig(loadedPackage.id, oldConfig);
+                const pluginToUpdate = _enabledPluginPackages.find(p => p.name === loadedPackage.name);
+                // we are not only installing but also updating this package
+                if (pluginToUpdate) {
+                    const oldConfig = pluginToUpdate.config;
+                    _enabledPluginPackages.splice(_enabledPluginPackages.indexOf(pluginToUpdate), 1, loadedPackage);
+                    savePluginConfig(loadedPackage.id, oldConfig);
                     browserWindows.main?.webContents.send(RELOAD_PLUGINS);
                     browserWindows.config?.webContents.reloadIgnoringCache();
-
-                    //TODO: if plugin has native.js, requires full app restart
                 }
                 // otherwise this is a fresh install in which plugins get placed in the disabled plugins list
                 else {
@@ -237,11 +246,11 @@ export const installPlugin = async (repository: string) => {
             }
             return loadedPackage;
         } catch (e) {
-            log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
+            log.error(withErrorMessage(`@load-plugins/install-plugin: Error loading plugins`, e));
         }
 
     } catch (e) {
-        log.error(withErrorMessage(`@load-plugins/default: Error loading plugin ${repository}`, e));
+        log.error(withErrorMessage(`@load-plugins/install-plugin: Error loading plugin ${repository}`, e));
     }
 
     return null;
@@ -268,7 +277,6 @@ export const enablePlugins = async (pluginIds: string[]) => {
     }
 };
 
-// note: requires restart for user to see changes
 export const disablePlugin = async (pluginId: string) => {
     const plugin = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!plugin) {
@@ -279,7 +287,7 @@ export const disablePlugin = async (pluginId: string) => {
     log.info(`@load-plugins/disable: Disabling plugin ${plugin.name}`);
 
     try {
-        await settings.disablePlugin(plugin.name);
+        await settings.disablePlugins([plugin.name]);
         _enabledPluginPackages = _enabledPluginPackages.filter(otherPlugin => otherPlugin !== plugin);
         _disabledPluginPackages.push(plugin);
         browserWindows.main?.webContents.send(DISABLE_PLUGIN, plugin.id);
@@ -311,7 +319,7 @@ export const uninstallPlugin = async (pluginId: string) => {
     return true;
 }
 
-export const savePluginsConfig = async (pluginId: string, config: any) => {
+export const savePluginConfig = async (pluginId: string, config: any) => {
     const pluginConfig = _enabledPluginPackages.find(p => p.id === pluginId);
     if (!pluginConfig) {
         log.error(`@settings/load-plugins: Could not find plugin with id ${pluginId}`);

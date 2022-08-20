@@ -1,7 +1,8 @@
-import { Float32BufferAttribute, MathUtils, Points, PointsMaterial, BufferGeometry, Vector3, Vector4, Texture } from "three";
+import { Float32BufferAttribute, MathUtils, Points, PointsMaterial, BufferGeometry, Vector3, Texture, PerspectiveCamera, Color } from "three";
 import { createSpline } from "@utils/linear-spline";
-import { createParticles, ParticleSystem, ParticleSystemOptions } from "@utils/particles";
+import { createParticles, defaultUpdate, ParticleSystem } from "@utils/particles";
 import random from "random";
+import { quadrants } from "@utils/quadrants";
 
 export const distantStars = () => {
     const vertices = [];
@@ -31,39 +32,40 @@ export const distantStars = () => {
 export const createStarField = () => {
     let stars: ParticleSystem;
 
+    const quadrant = quadrants(3, -Math.PI / 2);
+    const blast = quadrants(80);
+
     return {
-        size: 0.01,
+        scale: 0.01,
+        alpha: 1,
         load() {
             stars = createParticles({
-                count: 1,
+                id: "stars",
+                count: 10,
                 sizeAttenuation: false,
-                size: _ => this.size,
-                alpha: createSpline(
-                    MathUtils.lerp,
-                    [0, 0.1, 0.2, 0.3, 1],
-                    [0, 1, 1, 0, 0],
-                ),
-                coordScale: 1,
                 sortParticles: false,
-                particleTemplate: (opts: ParticleSystemOptions) => {
-                    const x = MathUtils.randFloatSpread(20) * opts.coordScale;
-                    const y = MathUtils.randFloatSpread(20) * opts.coordScale;
-                    const z = MathUtils.randFloatSpread(100) * opts.coordScale;
+                update: defaultUpdate({
+                    size: 1,
+                    alpha: createSpline(
+                        MathUtils.lerp,
+                        [0, 0.1, 0.2, 0.3, 1],
+                        [0, 1, 1, 0, 0],
+                        this.alpha
+                    ),
+                    velocity: new Vector3(0, 0, -200000),
+                }),
+                emit: () => {
+                    const x = MathUtils.randFloatSpread(5);
+                    const y = MathUtils.randFloatSpread(5);
+                    const z = 100;
 
                     const position = new Vector3(x, y, z);
 
-                    const life = 1;
-                    const size = 1;
-
                     return {
                         position,
-                        size,
-                        currentSize: size,
-                        color: new Vector4(1, 0.6, 0.4, MathUtils.randFloat(0.5, 1)),
-                        life,
-                        maxLife: life,
-                        angle: 0,
-                        velocity: new Vector3(0, 0, -100000 * opts.coordScale),
+                        scale: this.scale,
+                        color: new Color(1, 0.6, 0.4),
+                        maxLife: 1,
                     };
                 },
             });
@@ -72,7 +74,18 @@ export const createStarField = () => {
             return stars.opts;
         },
         update(azimuth: number, ...args: Parameters<ParticleSystem["update"]>) {
-            this.size = (MathUtils.pingpong(azimuth, Math.PI / 2) / (Math.PI / 2)) * 0.01
+            if (quadrant.entered(0, azimuth)) {
+                this.alpha = 0.5;
+            } else if (quadrant.entered(1, azimuth)) {
+                this.alpha = 1;
+            }
+            if (blast.entered(39, azimuth)) {
+                stars.opts.count = 20;
+            }
+            if (blast.entered(41, azimuth)) {
+                stars.opts.count = 1;
+            }
+
             stars.update(...args);
         },
         get object() {
@@ -81,7 +94,6 @@ export const createStarField = () => {
     }
 }
 
-
 export const createBattleLights = () => {
     let stars: ParticleSystem;
     const dist = random.normal(0, 1);
@@ -89,59 +101,65 @@ export const createBattleLights = () => {
     return {
         load(tex: Texture) {
             stars = createParticles({
-                count: 5,
+                id: "battle-lights",
+                count: 9,
                 sizeAttenuation: true,
-                size: createSpline(
-                    MathUtils.lerp,
-                    [0, .15, .33, .45, .66, .8, 1],
-                    [0, 1, 0, 1, 0, 1, 0],
-                    2
-                ),
-                alpha: createSpline(
-                    MathUtils.lerp,
-                    [0, .15, .33, .45, .66, .8, 1],
-                    [0, 1, 0, 1, 0, 1, 0]
-                ),
+                update: defaultUpdate({
+                    size: createSpline(
+                        MathUtils.lerp,
+                        [0, .15, .33, .45, .66, .8, 1],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        2
+                    ),
+                    alpha: createSpline(
+                        MathUtils.lerp,
+                        [0, .15, .33, .45, .66, .8, 1],
+                        [0, 1, 0, 1, 0, 1, 0]
+                    ),
+                    velocity: new Vector3(0, 0, 0),
+                }),
                 spriteMap: {
                     tex,
                     width: 8,
                     height: 8,
-                    frameCount: 64
+                    frameCount: 64,
+                    loop: 1,
                 },
                 coordScale: 5,
                 sortParticles: false,
-                particleTemplate: (opts: ParticleSystemOptions) => {
-                    const x = MathUtils.randFloatSpread(10) * opts.coordScale * dist();
-                    const y = MathUtils.randFloatSpread(10) * opts.coordScale * dist();;
-                    const z = MathUtils.randFloatSpread(10) * opts.coordScale * dist();;
+                emit: () => {
+                    const x = MathUtils.randFloatSpread(50) * dist();
+                    const y = MathUtils.randFloatSpread(50) * dist();;
+                    const z = MathUtils.randFloatSpread(50) * dist();;
 
                     const position = new Vector3(x, y, z);
 
                     const life = MathUtils.randInt(1, 10);
                     const s = MathUtils.randFloat(0.1, 1);
-                    const size = Math.pow(s, 5);
+                    const scale = Math.pow(s, 5);
 
                     return {
                         position,
-                        size,
-                        currentSize: size,
-                        color: new Vector4(1, MathUtils.lerp(0.6, 1, size / 2), MathUtils.lerp(0.4, 1, size / 2), MathUtils.randFloat(0.5, 1)),
-                        life,
+                        scale,
+                        color: new Color(1, MathUtils.lerp(0.6, 1, scale / 2), MathUtils.lerp(0.4, 1, scale / 2)),
                         maxLife: life,
-                        angle: 0,
-                        velocity: new Vector3(0, 0, 0),
-                        frame: 0,
-                        maxFrame: 64,
                     };
                 },
             });
-            stars.object.position.set(-130, -130, 200);
+            stars.object.position.copy(this.battleStartPosition);
         },
         get opts() {
             return stars.opts;
         },
-        update(...args: Parameters<ParticleSystem["update"]>) {
-            stars.update(...args);
+        battleStartPosition: new Vector3(-130, -100, 170),
+        battleEndPosition: new Vector3(-130, -130, 200),
+        startAngle: Math.PI / 3,
+        endAngle: Math.PI,
+        update(camera: PerspectiveCamera, delta: number, azimuth: number) {
+            const r = MathUtils.smoothstep(azimuth, this.startAngle, this.endAngle);
+            this.opts.count = Math.floor(MathUtils.pingpong(r * 24, 6)) + 3;
+            stars.object.position.lerpVectors(this.battleStartPosition, this.battleEndPosition, r);
+            stars.update(camera, delta);
         },
         get object() {
             return stars.object;

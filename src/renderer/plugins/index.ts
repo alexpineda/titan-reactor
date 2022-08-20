@@ -20,6 +20,7 @@ import screenStore from "@stores/scene-store";
 import { HOOK_ON_SCENE_DISPOSED } from "./hooks";
 import { Macros } from "@macros/macros";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
+import settingsStore from "@stores/settings-store";
 
 let uiPluginSystem: PluginSystemUI;
 let nativePluginSystem: PluginSystemNative;
@@ -60,9 +61,11 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
     screenStore().setError(new Error("Failed to install plugins"));
 });
 
-export const initializePluginSystem = async (
-    pluginPackages: PluginMetaData[]
-) => {
+export const initializePluginSystem = async (reload = false) => {
+    if ((uiPluginSystem || nativePluginSystem) && !reload) {
+        throw new Error("Plugin system already initialized. Use reload=true to reinitialize");
+    }
+
     if (uiPluginSystem) {
         uiPluginSystem.dispose();
     }
@@ -70,6 +73,8 @@ export const initializePluginSystem = async (
     if (nativePluginSystem) {
         nativePluginSystem.dispose();
     }
+
+    const pluginPackages = settingsStore().enabledPlugins;
 
     uiPluginSystem = new PluginSystemUI(pluginPackages);
     nativePluginSystem = new PluginSystemNative(pluginPackages, uiPluginSystem);

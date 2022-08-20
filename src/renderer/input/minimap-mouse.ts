@@ -30,7 +30,7 @@ export class MinimapMouse extends EventTarget {
     this.#mapWidth = mapWidth;
     this.#mapHeight = mapHeight;
 
-    this.#janitor.addEventListener(document, "mousedown", onClick);
+    this.#janitor.addEventListener(surface.canvas, "mousedown", onClick);
 
     // const max = Math.max(this.#mapWidth, this.#mapHeight);
     // const wAspect = this.#mapWidth / max;

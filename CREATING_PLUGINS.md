@@ -447,17 +447,7 @@ By including a README.md Titan Reactor will include a Readme tab in the config w
 
 ## Deprecating Your Plugin
 
-If you wish to decommission your plugin you may mark a release as deprecated by setting the following in your `package.json`:
-
-```json
-{
-  "config": {
-    "system": {
-      "deprecated": true
-    }
-  }
-}
-```
+If you wish to decommission your plugin you may mark a release as deprecated by adding deprecated to the keywords in `package.json`:
 
 ## Publishing Your Plugin
 

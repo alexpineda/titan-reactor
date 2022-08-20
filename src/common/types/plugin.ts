@@ -9,6 +9,7 @@ export interface PluginPackage {
         email?: string;
         username?: string;
     };
+    keywords?: string[];
     description?: string;
     repository?: string | { type?: string; url?: string };
     peerDependencies?: {
@@ -17,7 +18,7 @@ export interface PluginPackage {
     config?: {
         system?: {
             permissions?: string[],
-            deprecated?: boolean;
+            customHooks?: string[],
         },
         [key: string]: any
     }
@@ -32,6 +33,7 @@ export interface PluginMetaData extends PluginPackage {
     methods: string[];
     hooks: string[];
     isSceneController: boolean;
+    apiVersion: string;
 }
 
 export interface NativePlugin {

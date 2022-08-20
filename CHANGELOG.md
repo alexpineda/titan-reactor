@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## Added-
+## Added
 - New home screen and map/replay loading screens
 - Macro hotkey system with "programmable" triggers and action sequences
 - New global options: minimap size, asset preload, default scene controller, anisotropy
@@ -20,14 +20,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More optimizations to reduce GC usage, caused minor bugs in audio which will be addressed
 - HD is now the default (rather than HD2)
 - Flying units are further affected by terrain height
+- Deprecated plugins will not show in online tab
+- Shadows will be placed in default locations unless in "3d" mode
 
 ### Fixed
 - Regression in floating sprites is fixed
 - Regression creep edges fixed
 - Sprite overlay edges bug fixed
 - Bullet tracking now works on floating buildings
-- See 0.5.3 release for further fixes
-
+- Regression on HP bar on resources now fixed
+- Follow unit now unfollows on minimap click
+- Previously on 0.5.3 release:
+  - Tank mode siege tank turrets will now look better when camera rotated
+  - When the camera target is above the horizon units will not rotate oddly
+  - Disposing of the previous replay should execute before any additional plugin calls
+  - UMS games that use set alliance now work (thank you Heinerman!)
+  - Maps that use disabled doodads now work (thank you Heinerman!)
+  - Observer chat won't break replays anymore
+  
 ### Removed
 - HD2 is no longer an option
 - Plugin API: 

@@ -22,18 +22,16 @@ export const MacrosPanel = () => {
   const state = settings.data.macros;
 
   const save = (newMacros: MacrosDTO) => {
-    if (state.revision !== newMacros.revision) {
-      settings
-        .save({
-          macros: newMacros,
-        })
-        .then((payload) => {
-          sendWindow(InvokeBrowserTarget.Game, {
-            type: SendWindowActionType.CommitSettings,
-            payload,
-          });
+    settings
+      .save({
+        macros: newMacros,
+      })
+      .then((payload) => {
+        sendWindow(InvokeBrowserTarget.Game, {
+          type: SendWindowActionType.CommitSettings,
+          payload,
         });
-    }
+      });
   };
 
   const [activeAction, setActiveAction] = useState<string | null>(null);
@@ -196,6 +194,7 @@ export const MacrosPanel = () => {
               {!collapsedGroups.includes(groupName) &&
                 macros.map((macro) => (
                   <MacroPanel
+                    key={macro.id}
                     macro={macro}
                     pluginsMetadata={settings.enabledPlugins}
                     updateMacro={updateMacro}

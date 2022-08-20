@@ -39,7 +39,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
   const janitor = new Janitor();
   const settings = await settingsStore().load();
-  await initializePluginSystem(settingsStore().enabledPlugins);
+  await initializePluginSystem();
   document.body.addEventListener("mouseup", (evt) => pluginSystem.onClick(evt));
 
   await tryLoad(settings);

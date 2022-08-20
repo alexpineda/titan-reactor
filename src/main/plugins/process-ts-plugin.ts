@@ -1,11 +1,7 @@
-import { resolve } from "path";
 import * as tsm from "ts-morph";
-
-const fn = (filename: string) => resolve(process.cwd(), filename);
 
 export const removeImportDeclarations = (content: string, specifiers: string[] | true) => {
     const project = new tsm.Project({
-        tsConfigFilePath: fn("./tsconfig.json"),
         compilerOptions: {
             isolatedModules: false,
             module: tsm.ModuleKind.CommonJS,

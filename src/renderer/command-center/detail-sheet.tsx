@@ -16,9 +16,11 @@ const permissionDescriptions = {
 export default ({
   pluginPackage,
   controls,
+  updateAvailable,
 }: {
   controls: any[][];
   pluginPackage: Partial<PluginMetaData>;
+  updateAvailable?: boolean;
 }) => {
   const store = useCreateStore();
   for (const [folder, data] of controls) {
@@ -40,26 +42,30 @@ export default ({
 
   return (
     <ErrorBoundary message="There was an error with this plugin">
-      {createLevaPanel(store)}
-      {semver.major(titanReactorApiVersion) <
-        semver.major(pluginApiVersion) && (
-        <p>
-          ⚠️ This plugin is out of date. Titan Reactor Plugin API is{" "}
-          {titanReactorApiVersion} and this plugin API version is{" "}
-          {pluginApiVersion}
-        </p>
-      )}
-      {pluginPackage.name?.startsWith("@titan-reactor-plugins/") && (
-        <div style={{ marginTop: "1rem" }}>✅ This is an official plugin.</div>
-      )}
-      {!!permissions.length && (
-        <div style={{ marginTop: "1rem" }}>
-          ⚠️ This plugin has special permissions: <ul>{permissions}</ul>
-        </div>
-      )}
-      <Tabs defaultSelectedIndex={pluginPackage.readme ? 1 : 0}>
-        <Tab label="Details">
+      <Tabs defaultSelectedIndex={0}>
+        <Tab label="Info">
           <div style={{ marginTop: "1rem" }}>
+            {semver.major(titanReactorApiVersion) <
+              semver.major(pluginApiVersion) && (
+              <p>
+                ⚠️ This plugin is out of date. Titan Reactor Plugin API is{" "}
+                {titanReactorApiVersion} and this plugin API version is{" "}
+                {pluginApiVersion}
+              </p>
+            )}
+            {updateAvailable && (
+              <p>⚠️ An update is available for this plugin.</p>
+            )}
+            {pluginPackage.name?.startsWith("@titan-reactor-plugins/") && (
+              <div style={{ marginTop: "1rem" }}>
+                ✅ This is an official plugin.
+              </div>
+            )}
+            {!!permissions.length && (
+              <div style={{ marginTop: "1rem" }}>
+                ⚠️ This plugin has special permissions: <ul>{permissions}</ul>
+              </div>
+            )}
             <p>
               <span style={{ fontWeight: "bold" }}>Version:</span>{" "}
               {pluginPackage.version}
@@ -109,14 +115,13 @@ export default ({
               </p>
             )}
           </div>
-        </Tab>
-        {pluginPackage.readme && (
-          <Tab label="Read Me">
+          {pluginPackage.readme && (
             <div style={{ marginTop: "1rem" }}>
               <ReactMarkdown children={pluginPackage.readme} />
             </div>
-          </Tab>
-        )}
+          )}
+        </Tab>
+        <Tab label="Configure">{createLevaPanel(store)}</Tab>
       </Tabs>
     </ErrorBoundary>
   );

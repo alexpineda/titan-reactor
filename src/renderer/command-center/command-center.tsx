@@ -17,6 +17,7 @@ import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { getUpdateVersion, localPluginRepository } from "./plugin-utils";
 import { PluginButton } from "./plugin-button";
 import { ReplayQueue } from "./replay-queue";
+import semver from "semver";
 
 if (module.hot) {
   module.hot.accept();
@@ -59,8 +60,12 @@ const searchPackages = async (cb: (val: RemotePackage[]) => void) => {
   ).filter((pkg) => !officialPackages.some((p) => p.name === pkg.name));
 
   const results = [...officialPackages, ...publicPackages];
+  console.log(results);
   cb(results);
 };
+
+const isDeprecated = (plugin: PluginMetaData | undefined) =>
+  (plugin?.keywords ?? []).includes("deprecated");
 
 type Plugin = {
   local?: PluginMetaData;
@@ -99,8 +104,12 @@ const CommandCenter = () => {
   const matchingRemotePlugin = remotePackages.find(
     (p) => p.name === plugin.local?.name
   );
+  const localVersionGreater = semver.gt(
+    plugin.local?.version ?? "0.0.0",
+    matchingRemotePlugin?.version ?? "0.0.0"
+  );
 
-  const canDelete = Boolean(matchingRemotePlugin);
+  const canDelete = Boolean(matchingRemotePlugin && !localVersionGreater);
 
   const updateVersion = getUpdateVersion(matchingRemotePlugin, plugin.local);
 
@@ -116,18 +125,19 @@ const CommandCenter = () => {
         !disabledPlugins.find(
           (installedPlugin) => installedPlugin.name === p.name
         )
-    );
+    )
+    .filter((p) => !(p.keywords ?? []).includes("deprecated"));
 
   const Icon = ({ icon }: { icon: string }) => (
     <i className="material-icons">{icon}</i>
   );
 
-  const localPluginButton = (local: PluginMetaData) => (
+  const localPluginButton = (local: PluginMetaData, isDisabled: boolean) => (
     <PluginButton
       icon={local.config?.icon ? <Icon icon={local.config!.icon} /> : null}
       key={local.id}
       description={local.description}
-      isDisabled={true}
+      isDisabled={isDisabled}
       isSelected={plugin.local?.id === local.id}
       hasUpdateAvailable={
         !!getUpdateVersion(
@@ -213,7 +223,9 @@ const CommandCenter = () => {
                       can be enabled/disabled.
                     </p>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                      {enabledPlugins.sort().map(localPluginButton)}
+                      {enabledPlugins
+                        .sort()
+                        .map((plugin) => localPluginButton(plugin, false))}
                       <p
                         style={{
                           margin: "var(--size-8) 0 var(--size-4) 0",
@@ -225,7 +237,9 @@ const CommandCenter = () => {
                       >
                         Disabled Plugins
                       </p>
-                      {disabledPlugins.map(localPluginButton)}
+                      {disabledPlugins.map((plugin) =>
+                        localPluginButton(plugin, true)
+                      )}
                     </div>
                   </Tab>
                   <Tab label="Online">
@@ -271,23 +285,26 @@ const CommandCenter = () => {
                 )}
                 {plugin.local && enabledPlugins.includes(plugin.local) && (
                   <>
-                    {!plugin.local.config?.system?.deprecated && (
+                    {!isDeprecated(plugin.local) && (
                       <DetailSheet
                         key={plugin.local.id}
                         pluginPackage={plugin.local}
                         controls={mapConfigToLeva(plugin.local.config, () => {
                           onChange(plugin.local!.id, plugin.local!.config);
                         })}
+                        updateAvailable={!!updateVersion}
                       />
                     )}
-                    {plugin.local.config?.system?.deprecated && (
+                    {isDeprecated(plugin.local) && (
                       <div style={{ marginTop: "1rem" }}>
                         🛑 The author of this plugin has marked it as deprecated
-                        and this plugin should be disabled and no longer used.
+                        and this plugin should be disabled/deleted and no longer
+                        used.
                       </div>
                     )}
                     {updateVersion && (
                       <button
+                        style={{ backgroundColor: "var(--yellow-3)" }}
                         onClick={() => tryUpdatePlugin(plugin.local!.name)}
                       >
                         Update to {updateVersion}
@@ -311,13 +328,22 @@ const CommandCenter = () => {
                         Delete Plugin
                       </button>
                     )}
-                    <DetailSheet
-                      key={plugin.local.id}
-                      pluginPackage={plugin.local}
-                      controls={mapConfigToLeva(plugin.local.config, () =>
-                        onChange(plugin.local!.id, plugin.local!.config)
-                      )}
-                    />
+                    {!isDeprecated(plugin.local) && (
+                      <DetailSheet
+                        key={plugin.local.id}
+                        pluginPackage={plugin.local}
+                        controls={mapConfigToLeva(plugin.local.config, () => {
+                          onChange(plugin.local!.id, plugin.local!.config);
+                        })}
+                      />
+                    )}
+                    {isDeprecated(plugin.local) && (
+                      <div style={{ marginTop: "1rem" }}>
+                        🛑 The author of this plugin has marked it as deprecated
+                        and this plugin should be disabled/deleted and no longer
+                        used.
+                      </div>
+                    )}
                   </>
                 )}
               </main>

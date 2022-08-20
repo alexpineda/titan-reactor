@@ -65,6 +65,26 @@ export const createDefaultMacros = () => {
   macros.add(
     new Macro(
       generateUUID(),
+      "Scenes: Overview",
+      new HotkeyTrigger("F3"),
+      [
+        {
+          id: generateUUID(),
+          type: MacroActionType.ModifyAppSettings,
+          field: [
+            "game",
+            "sceneController"
+          ],
+          effect: MacroActionEffect.Set,
+          value: "@titan-reactor-plugins/camera-overview"
+        }
+      ], MacroActionSequence.AllSync
+    )
+  );
+
+  macros.add(
+    new Macro(
+      generateUUID(),
       "Audio: Toggle Music",
       new HotkeyTrigger("KeyM"),
       [
@@ -191,7 +211,6 @@ export const createDefaultMacros = () => {
       ]
     )
   );
-  //     this.sendUIMessage("⏪");
 
   macros.add(
     new Macro(

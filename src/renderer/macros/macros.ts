@@ -1,7 +1,6 @@
 import * as log from "@ipc/log";
 import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType } from "common/types";
 import * as plugins from "@plugins";
-import packagejson from "../../../package.json";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
@@ -13,8 +12,6 @@ import { MacroHookTrigger } from "common/macro-hook-trigger";
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;
     #session: UseStore<SessionStore>;
-
-    version = packagejson.config["titan-reactor-macro-api"];
     revision = 0;
     macros: Macro[] = [];
 
@@ -171,7 +168,6 @@ export class Macros {
 
     serialize(): MacrosDTO {
         return {
-            version: this.version,
             revision: this.revision,
             macros: this.macros.map((macro) => ({
                 id: macro.id,
@@ -185,7 +181,6 @@ export class Macros {
     }
 
     deserialize(macrosDTO: MacrosDTO) {
-        this.version = macrosDTO.version;
         this.revision = macrosDTO.revision;
         this.macros = macrosDTO.macros.map((macro) => {
             let trigger: MacroTrigger = new ManualTrigger();

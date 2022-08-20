@@ -6,6 +6,7 @@ import browserWindows from "./windows";
 import settings from "./settings/singleton"
 import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { spawn } from "child_process";
+import electronIsDev from "electron-is-dev";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs");
@@ -96,14 +97,15 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void, go
             browserWindows.main?.webContents.send(RELOAD_PLUGINS);
           }
         },
-        { type: "separator" },
-        { role: "toggledevtools" },
-        {
-          label: "&IScriptah - Animation Viewer",
-          click: function () {
-            onOpenIscriptah();
-          },
-        },
+        ...(electronIsDev ? [
+          { type: "separator" },
+          { role: "toggledevtools" },
+          {
+            label: "&IScriptah - Animation Viewer",
+            click: function () {
+              onOpenIscriptah();
+            },
+          }] : []),
       ],
     },
   ];

@@ -25,7 +25,6 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
             console.warn("Scene is already loading");
         }
         _loading = true;
-        console.log("loading");
 
         get().clearError();
         const oldState = get().state;
@@ -40,7 +39,6 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
             set({
                 state
             });
-            console.log("starting", state);
             await state.start(oldState?.id);
         } catch (err: any) {
             if (err instanceof Error) {

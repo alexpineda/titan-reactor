@@ -542,14 +542,6 @@ async function TitanReactorGame(
     }
   })();
 
-
-  const _stopFollowingOnClick = () => {
-    if (session.getState().game.stopFollowingOnClick) {
-      clearFollowedUnits();
-    }
-  }
-  janitor.addEventListener(gameSurface.canvas, "pointerdown", _stopFollowingOnClick);
-
   const makeThreeColors = (replay: Replay) => {
     return replay.header.players.map(
       ({ color }) =>
@@ -1071,18 +1063,17 @@ async function TitanReactorGame(
 
 
     let _selWasVisible = sprite.userData.selectionCircle.visible;
+    const unitDieingOrDead = unit?.order === orders.die || unit?.hp === 0;
     // we do it in the image loop in order to use the right image scale
     // is there a better ways so we can do it properly at the sprite level?
-    if (unit && unit?.order !== orders.die && unit.extras.selected && sprite.visible) {
+    if (unit && !unitDieingOrDead && unit.extras.selected && sprite.visible) {
       sprite.userData.selectionCircle.update(dat);
       sprite.userData.selectionCircle.visible = true;
 
       (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
-      sprite.userData.selectionBars.visible = true;
     } else {
-      if (unit?.order !== orders.die && unit?.extras.recievingDamage && sprite.visible) {
+      if (!unitDieingOrDead && unit?.extras.recievingDamage && sprite.visible) {
         (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
-        sprite.userData.selectionBars.visible = true;
       } else {
         sprite.userData.selectionBars.visible = false;
       }
@@ -1512,7 +1503,7 @@ async function TitanReactorGame(
     pluginsApiJanitor.mopUp();
     await gameViewportsDirector.activate(null);
     await (settingsStore().load());
-    await plugins.initializePluginSystem(settingsStore().enabledPlugins);
+    await plugins.initializePluginSystem(true);
     await setupPlugins();
     await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
     renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);

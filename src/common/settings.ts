@@ -23,7 +23,6 @@ export const defaultSettings: Settings = {
   },
   game: {
     sceneController: "@titan-reactor-plugins/camera-standard",
-    stopFollowingOnClick: true,
     minimapSize: 1,
   },
   util: {
@@ -43,6 +42,7 @@ export const defaultSettings: Settings = {
   macros: {
     revision: 0,
     macros: [],
-    version: ""
   }
 };
+
+export const defaultSettingsV5 = defaultSettings;

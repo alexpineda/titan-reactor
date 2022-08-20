@@ -82,7 +82,6 @@ export type MacroDTO = {
 };
 
 export type MacrosDTO = {
-    version: string;
     revision: number;
     macros: MacroDTO[];
 };

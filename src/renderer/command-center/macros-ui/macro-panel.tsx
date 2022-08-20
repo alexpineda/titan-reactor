@@ -66,7 +66,7 @@ export const MacroPanel = ({
   const renameMacro = (name: string | null) => {
     if (name !== null && name.trim() !== "") {
       if (nameRef.current) {
-        nameRef.current.innerText = macro.name;
+        nameRef.current.innerText = name;
       }
       updateMacro({ ...macro, name });
     }

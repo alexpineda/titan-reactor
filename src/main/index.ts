@@ -28,6 +28,7 @@ const createMainWindow = () => {
       windows.main = null;
       windows.config?.close();
     },
+    backgroundColor: "#000000",
     nodeIntegration: true,
     devTools: true,
     backgroundThrottling: false,
