@@ -38,8 +38,6 @@
 
 ### Developing Plugins
 
-Plugin API Version is presently `1.0.0`
-
 Developing plugins for Titan Reactor is easy and requires no build tools! A knowledge of React, javascript, and a basic text editor is all that is needed.
 
 [See the CREATING_PLUGINS document for more details.](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
