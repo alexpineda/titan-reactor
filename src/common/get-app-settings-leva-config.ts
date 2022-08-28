@@ -42,6 +42,13 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         path: "directories",
         type: "directory",
     },
+    assets: {
+        folder: "Directories",
+        label: "Assets",
+        value: settings.data.directories.assets,
+        path: "directories",
+        type: "directory",
+    },
     global: {
         folder: "Audio",
         label: "Global Volume",

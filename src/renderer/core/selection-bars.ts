@@ -10,7 +10,6 @@ import {
   StaticDrawUsage,
   Uniform,
   UnsignedByteType,
-  Vector3,
   WebGLRenderer,
 } from "three";
 
@@ -18,7 +17,6 @@ import { SpriteDAT } from "common/types";
 import { getMaxUnitEnergy } from "@utils/unit-utils";
 import { Unit } from "./unit";
 import gameStore from "@stores/game-store";
-import { flatProjection } from "@utils/shader-utils";
 
 // dummy map till I figure out how to get uv attribute in shader
 const map = new DataTexture(

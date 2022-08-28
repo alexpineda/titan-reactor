@@ -1,9 +1,8 @@
-import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsage, Shader, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsage, Shader } from "three";
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";
 import { ImageHD } from "./image-hd";
-import { flatProjection } from "@utils/shader-utils";
 
 export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
   #spriteDat?: SpriteDAT;
