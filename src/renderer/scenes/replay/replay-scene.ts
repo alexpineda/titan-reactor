@@ -5,7 +5,7 @@ import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  WeaponDAT, DeepPartial, SettingsMeta, PxToGameUnit
+  WeaponDAT, PxToGameUnit
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -35,11 +35,11 @@ import Janitor from "@utils/janitor";
 import { WeaponBehavior } from "common/enums";
 import gameStore from "@stores/game-store";
 import * as plugins from "@plugins";
-import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import settingsStore from "@stores/settings-store";
 import { Assets } from "common/types/assets";
 import { Replay } from "@process-replay/parse-replay";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { getAngle, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
@@ -52,21 +52,20 @@ import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { EffectPass, RenderPass } from "postprocessing";
 import { MinimapGraphics } from "@render/minimap-graphics";
-import { createSession } from "@stores/session-store";
-import { diff } from "deep-diff";
-import set from "lodash.set";
+import { createSession, listenForNewSettings } from "@stores/session-store";
 import { Terrain } from "@core/terrain";
 import { TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
 import { SceneState } from "../scene";
 import { GameViewPort } from "../../camera/game-viewport";
 import { GetTerrainY } from "@image/generate-map";
 import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header";
-import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits, unfollowUnit } from "./followed-units";
+import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits } from "./followed-units";
 import { resetCompletedUpgrades, updateCompletedUpgrades } from "./completed-upgrades";
 import { ImageEntities } from "./image-entities";
 import { SpriteEntities } from "./sprite-entities";
 import { CssScene } from "./css-scene";
 import { listenToEvents } from "@utils/macro-utils";
+import { UnitEntities } from "./unit-entities";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
@@ -132,19 +131,22 @@ export async function replayScene(
   soundChannels: SoundChannels,
   commandsStream: CommandsStream
 ): Promise<SceneState> {
-  const session = createSession();
 
-  const preplacedMapUnits = map.units;
+  const session = createSession(settingsStore().data);
+  const macros = new Macros(session);
+  macros.deserialize(settingsStore().data.macros);
+
+  const players = janitor.add(new Players(
+    replay.header.players,
+    map.units.filter((u) => u.unitId === startLocation),
+  ));
   const bwDat = assets.bwDat;
 
   const openBW = await getOpenBW();
   openBW.setGameSpeed(1);
   openBW.setPaused(false);
 
-  selectedUnitsStore().clearSelectedUnits();
-
-  const mapWidth = map.size[0];
-  const mapHeight = map.size[1];
+  const [mapWidth, mapHeight] = map.size;
 
   const cssScene = new CssScene;
 
@@ -187,24 +189,21 @@ export async function replayScene(
     }
   }));
 
-  const units: Map<number, Unit> = new Map();
+  const units = new UnitEntities
+
   const sprites = new SpriteEntities;
   scene.add(sprites.group);
 
   const images = janitor.add(new ImageEntities);
 
-  const macros = new Macros(session);
-  macros.deserialize(settingsStore().data.macros);
-
-  const fogOfWarEffect = new FogOfWarEffect();
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, fogOfWarEffect);
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, new FogOfWarEffect());
   const renderPass = new RenderPass(scene, new PerspectiveCamera());
 
   const gameViewportsDirector = janitor.add(new GameViewportsDirector(scene, gameSurface, minimapSurface, {
-    fogOfWarEffect,
+    fogOfWarEffect: fogOfWar.effect,
     renderPass,
-    effects: [fogOfWarEffect],
-    passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWarEffect)],
+    effects: [fogOfWar.effect],
+    passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWar.effect)],
   },
     macros
   ));
@@ -253,6 +252,11 @@ export async function replayScene(
       }
     }
 
+    const originalColors = replay.header.players.map(player => player.color);
+    const originalNames = replay.header.players.map(player => ({
+      id: player.id,
+      name: player.name
+    }));
     const getOriginalColors = () => [...originalColors];
 
     const setPlayerNames = (players: { name: string, id: number }[]) => {
@@ -428,10 +432,7 @@ export async function replayScene(
     }
   })();
 
-  const players = janitor.add(new Players(
-    replay.header.players,
-    preplacedMapUnits.filter((u) => u.unitId === startLocation),
-  ));
+
 
 
   let reset: (() => void) | null = null;
@@ -443,8 +444,6 @@ export async function replayScene(
     sprites.clear();
     cmds = commandsStream.generate();
     cmd = cmds.next();
-    selectedUnitsStore().clearSelectedUnits();
-    clearFollowedUnits();
     fadingPointers.clear();
 
     const frame = openBW.getCurrentFrame();
@@ -511,26 +510,7 @@ export async function replayScene(
     }
   }
 
-  const freeUnits: Unit[] = [];
 
-  const getUnit = (units: Map<number, Unit>, unitData: UnitsBufferView) => {
-    const unit = units.get(unitData.id);
-    if (unit) {
-      return unit;
-    } else {
-      const unit = (freeUnits.pop() ?? { extras: {} }) as Unit;
-
-      unitData.copyTo(unit)
-      unit.extras.recievingDamage = 0;
-      unit.extras.selected = false;
-      unit.extras.dat = bwDat.units[unitData.typeId];
-      unit.extras.turretLo = null;
-
-      units.set(unitData.id, unit as unknown as Unit);
-      plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
-      return unit as unknown as Unit;
-    }
-  }
 
   const unitBufferView = new UnitsBufferView(openBW);
   const unitList = new IntrusiveList(openBW.HEAPU32, 0, 43);
@@ -557,15 +537,7 @@ export async function replayScene(
     const deletedUnitAddr = openBW._get_buffer(5);
 
     for (let i = 0; i < deletedUnitCount; i++) {
-      const unitId = openBW.HEAP32[(deletedUnitAddr >> 2) + i];
-      const unit = units.get(unitId);
-      if (!unit) continue;
-      units.delete(unitId);
-      freeUnits.push(unit);
-
-      selectedUnitsStore().removeUnit(unit);
-      unfollowUnit(unit);
-      plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
+      units.free(openBW.HEAP32[(deletedUnitAddr >> 2) + i]);
     }
 
     const playersUnitAddr = openBW.getUnitsAddr();
@@ -574,7 +546,7 @@ export async function replayScene(
       unitList.addr = playersUnitAddr + (p << 3);
       for (const unitAddr of unitList) {
         const unitData = unitBufferView.get(unitAddr);
-        const unit = getUnit(units, unitData);
+        const unit = units.getOrCreate(unitData);
 
         sprites.setUnit(unitData.spriteIndex, unit);
         //if receiving damage, blink 3 times, hold blink 3 frames
@@ -637,6 +609,8 @@ export async function replayScene(
     _tiles.ptrIndex = openBW.getTilesPtr();
     _tiles.itemsCount = openBW.getTilesSize();
     creep.generate(_tiles, frame);
+    creep.creepValuesTexture.needsUpdate = true;
+    creep.creepEdgesValuesTexture.needsUpdate = true;
   };
 
   scene.add(...selectionObjects);
@@ -674,7 +648,6 @@ export async function replayScene(
   const _targetSpritePos = new Vector3();
   const _ownerSpritePos = new Vector3();
   const _ownerSpritePos2d = new Vector2();
-
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
@@ -1006,20 +979,16 @@ export async function replayScene(
       }
       buildSounds(elapsed);
       buildCreep(currentBwFrame);
-
       buildUnits();
       buildMinimap();
       buildSprites(delta);
       updateSelectionGraphics(gameViewportsDirector.primaryViewport.camera, sprites);
 
       fogOfWar.texture.needsUpdate = true;
-      creep.creepValuesTexture.needsUpdate = true;
-      creep.creepEdgesValuesTexture.needsUpdate = true;
+
 
       const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
       mixer.updateFromVector3(audioPosition as Vector3, delta);
-
-
 
       _commandsThisFrame.length = 0;
       while (cmd.done === false) {
@@ -1047,7 +1016,6 @@ export async function replayScene(
 
     plugins.onBeforeRender(delta, elapsed);
 
-
     for (const v of gameViewportsDirector.activeViewports()) {
       v.updateCamera();
       updateSpritesForViewport(v.camera, v.spriteRenderOptions, spriteIterator, spriteImageIterator);
@@ -1067,18 +1035,12 @@ export async function replayScene(
     }
 
     renderComposer.renderBuffer();
-
     cssScene.render(gameViewportsDirector.primaryViewport.camera);
-
     plugins.onRender(delta, elapsed);
 
   };
 
-  const originalColors = replay.header.players.map(player => player.color);
-  const originalNames = replay.header.players.map(player => ({
-    id: player.id,
-    name: player.name
-  }));
+
 
   janitor.add(useSelectedUnitsStore.subscribe((state) => {
     plugins.callHook(HOOK_ON_UNITS_SELECTED, state.selectedUnits);
@@ -1115,28 +1077,13 @@ export async function replayScene(
   janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
   janitor.add(listenToEvents(macros));
 
-  janitor.add(useSettingsStore.subscribe((settings, prevSettings) => {
-
-    const diffs = diff(prevSettings, settings);
-    if (diffs === undefined)
-      return;
-
-    // update our session with the new user manipulated settings
-    const mergeSettings: DeepPartial<SettingsMeta> = {
-      data: {}
-    };
-    for (const d of diffs) {
-      if (d.kind === "E" && d.path) {
-        set(mergeSettings, d.path, d.rhs);
-      }
-    }
+  listenForNewSettings((mergeSettings, settings) => {
     session.getState().merge(mergeSettings.data!);
     if (settings.data.macros.revision !== macros.revision) {
       macros.deserialize(settings.data.macros);
     }
     macros.setHostDefaults(settings.data);
-
-  }));
+  })
 
   janitor.add(session.subscribe((newSettings, prevSettings) => {
     if (!gameViewportsDirector.disabled && newSettings.game.sceneController !== gameViewportsDirector.name) {
@@ -1162,16 +1109,9 @@ export async function replayScene(
 
   await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
 
-  const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 1000);
-  precompileCamera.updateProjectionMatrix();
-  precompileCamera.position.setY(Math.max(mapWidth, mapHeight) * 4)
-  precompileCamera.lookAt(scene.position);
-
-  // precompile the scene for the first time
-  // set game second to 1 so creep can be rendered since its slow to generate
-  //TODO: get all scene controllers
   GAME_LOOP(0);
-  renderComposer.getWebGLRenderer().render(scene, precompileCamera);
+  //TODO: compile all scene postprocessing bundles
+  renderComposer.compileScene(scene);
   _sceneResizeHandler();
 
   return {

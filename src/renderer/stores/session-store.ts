@@ -1,12 +1,15 @@
 import create, { GetState, SetState } from "zustand";
 
-import { Settings, MacroAction, MacroActionType } from "common/types";
+import { Settings, MacroAction, MacroActionType, SettingsMeta } from "common/types";
 import { getMacroActionValue } from "@macros";
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import deepMerge from 'deepmerge';
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
-import settingsStore from "./settings-store";
+import settingsStore, { SettingsStore, useSettingsStore } from "./settings-store";
+import Janitor from "@utils/janitor";
+import { diff } from "deep-diff";
+import set from "lodash.set";
 
 export type SessionStore = Settings & {
     minimapScale: number;
@@ -16,30 +19,51 @@ export type SessionStore = Settings & {
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-const _createSession = (ogData: Settings) => create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
-    ...JSON.parse(JSON.stringify(ogData)),
-    minimapScale: 1,
-    merge: async (rhs: DeepPartial<Settings>) => {
+export const createSession = (ogData: Settings) => {
+    return create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
+        ...JSON.parse(JSON.stringify(ogData)),
+        minimapScale: 1,
+        merge: async (rhs: DeepPartial<Settings>) => {
 
-        const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });
-        //@ts-ignore
-        set({ ...newSettings });
-    },
-    doMacroAction: async (action) => {
-        if (action.type !== MacroActionType.ModifyAppSettings) {
+            const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });
+            //@ts-ignore
+            set({ ...newSettings });
+        },
+        doMacroAction: async (action) => {
+            if (action.type !== MacroActionType.ModifyAppSettings) {
+                return;
+            }
+
+            const field = getAppSettingsLevaConfigField({ data: get(), enabledPlugins: settingsStore().enabledPlugins }, action.field!) as any;
+            if (field === undefined) {
+                return;
+            }
+
+            const value = getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options);
+            const newSettings = {};
+            lSet(newSettings, action.field!, value);
+            get().merge(newSettings);
+        }
+    }));
+};
+
+export const listenForNewSettings = (onNewSettings: (mergeSettings: DeepPartial<SettingsMeta>, settings: SettingsStore, prevSettings: SettingsStore) => void) => {
+    return new Janitor(useSettingsStore.subscribe((settings, prevSettings) => {
+
+        const diffs = diff(prevSettings, settings);
+        if (diffs === undefined)
             return;
+
+        // update our session with the new user manipulated settings
+        const mergeSettings: DeepPartial<SettingsMeta> = {
+            data: {}
+        };
+        for (const d of diffs) {
+            if (d.kind === "E" && d.path) {
+                set(mergeSettings, d.path, d.rhs);
+            }
         }
 
-        const field = getAppSettingsLevaConfigField({ data: get(), enabledPlugins: settingsStore().enabledPlugins }, action.field!) as any;
-        if (field === undefined) {
-            return;
-        }
-
-        const value = getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options);
-        const newSettings = {};
-        lSet(newSettings, action.field!, value);
-        get().merge(newSettings);
-    }
-}));
-
-export const createSession = () => _createSession(settingsStore().data);
+        onNewSettings(mergeSettings, settings, prevSettings)
+    }));
+}

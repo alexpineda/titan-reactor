@@ -1,6 +1,8 @@
 import {
     HalfFloatType,
     PCFSoftShadowMap,
+    PerspectiveCamera,
+    Scene,
     sRGBEncoding,
     Vector4,
     WebGLRenderer,
@@ -132,6 +134,14 @@ export class TitanRenderComposer {
         }
 
         this.composer.dispose();
+    }
+
+    compileScene(scene: Scene) {
+        const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 10000);
+        precompileCamera.updateProjectionMatrix();
+        precompileCamera.position.setY(1000)
+        precompileCamera.lookAt(0, 0, 0);
+        this.getWebGLRenderer().render(scene, precompileCamera);
     }
 }
 
