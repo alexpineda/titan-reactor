@@ -159,8 +159,8 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     return this.atlas.frames;
   }
 
-  setTeamColor(val: Color) {
-    (this.material as ImageHDMaterial).teamColor = val;
+  setTeamColor(val: Color | undefined) {
+    (this.material as ImageHDMaterial).teamColor = val ?? white;
   }
 
   setModifiers(modifier: number, modifierData1: number, modifierData2: number) {

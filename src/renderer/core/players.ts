@@ -1,4 +1,4 @@
-import worldStore, { useWorldStore } from "@stores/world-store";
+import { useWorldStore } from "@stores/world-store";
 import Janitor from "@utils/janitor";
 import {
   Player,
@@ -15,9 +15,19 @@ const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
   return (flags |= 1 << id);
 }
 
+const makeColor = (color: string) => new Color().setStyle(color).convertSRGBToLinear()
+const makeColors = (players: Replay["header"]["players"]) => players.map(
+  ({ color }) => makeColor(color)
+);
+
+export type PlayerName = {
+  id: number, name: string
+}
 export class Players extends Array<Player> {
   playersById: Record<number, Player> = {};
   #janitor = new Janitor();
+  originalColors: readonly string[];
+  originalNames: readonly PlayerName[];
 
   constructor(
     players: Replay["header"]["players"],
@@ -25,21 +35,13 @@ export class Players extends Array<Player> {
   ) {
     super();
 
-    const makeColors = (replay: Replay) => replay.header.players.map(
-      ({ color }) =>
-        new Color().setStyle(color).convertSRGBToLinear()
-    );
+    this.originalColors = Object.freeze(players.map(player => player.color));
+    this.originalNames = Object.freeze(players.map(player => Object.freeze({
+      id: player.id,
+      name: player.name
+    })));
 
-    this.#janitor.add(useWorldStore.subscribe(world => {
-      if (world.replay) {
-        const colors = makeColors(world.replay);
-        for (let i = 0; i < players.length; i++) {
-          this[i].color = colors[i];
-        }
-      }
-    }));
-
-    const colors = makeColors(worldStore().replay!);
+    const colors = makeColors(players);
 
     this.push(
       ...players.map((player, i) => ({
@@ -72,5 +74,39 @@ export class Players extends Array<Player> {
 
   dispose() {
     this.#janitor.dispose();
+  }
+
+  setPlayerColors = (colors: string[]) => {
+    const replay = useWorldStore.getState().replay;
+    if (replay) {
+      for (let i = 0; i < this.length; i++) {
+        replay.header.players[i].color = colors[i];
+        this[i].color = makeColor(colors[i]);
+      }
+      useWorldStore.setState({ replay: { ...replay } })
+    }
+  }
+
+  setPlayerNames(players: PlayerName[]) {
+    const replay = useWorldStore.getState().replay;
+
+    if (replay) {
+      for (const player of players) {
+        const replayPlayer = replay.header.players.find(p => p.id === player.id);
+        if (replayPlayer) {
+          replayPlayer.name = player.name;
+        }
+      }
+      useWorldStore.setState({ replay: { ...replay } })
+    }
+  }
+
+  toggleFogOfWarByPlayerId(playerId: number) {
+    const player = this.find(p => p.id === playerId);
+    if (player) {
+      player.vision = !player.vision;
+      return true;
+    }
+    return false;
   }
 }

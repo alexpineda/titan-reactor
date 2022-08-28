@@ -12,7 +12,7 @@ import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log"
 import { normalizePluginConfiguration } from "@utils/function-utils"
-import { GameTimeApi } from "../scenes/replay/replay-scene";
+import { GameTimeApi } from "../scenes/replay/game-time-api";
 
 interface PluginBase extends NativePlugin, GameTimeApi { };
 class PluginBase implements NativePlugin {

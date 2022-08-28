@@ -1,18 +1,17 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene } from "three";
+import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  WeaponDAT, PxToGameUnit
+  WeaponDAT
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { SoundChannels } from "@audio";
 import {
   Players,
-  Unit,
   ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D
 } from "@core";
 import {
@@ -24,13 +23,9 @@ import * as log from "@ipc/log";
 import {
   GameSurface, Layers, renderComposer, SimpleText, BaseScene
 } from "@render";
-import {
-  useWorldStore,
-} from "@stores";
-import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, isGltfAtlas } from "@utils/image-utils";
+import { getImageLoOffset, imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, isGltfAtlas } from "@utils/image-utils";
 import { buildSound } from "@utils/sound-utils";
 import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "@utils/sprite-utils";
-import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import Janitor from "@utils/janitor";
 import { WeaponBehavior } from "common/enums";
 import gameStore from "@stores/game-store";
@@ -56,9 +51,6 @@ import { createSession, listenForNewSettings } from "@stores/session-store";
 import { Terrain } from "@core/terrain";
 import { TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
 import { SceneState } from "../scene";
-import { GameViewPort } from "../../camera/game-viewport";
-import { GetTerrainY } from "@image/generate-map";
-import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header";
 import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits } from "./followed-units";
 import { resetCompletedUpgrades, updateCompletedUpgrades } from "./completed-upgrades";
 import { ImageEntities } from "./image-entities";
@@ -66,60 +58,9 @@ import { SpriteEntities } from "./sprite-entities";
 import { CssScene } from "./css-scene";
 import { listenToEvents } from "@utils/macro-utils";
 import { UnitEntities } from "./unit-entities";
+import { GameTimeApi } from "./game-time-api";
+import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./replay-controls";
 
-const { startLocation } = unitTypes;
-const white = new Color(0xffffff);
-
-export interface GameTimeApi {
-  type: "replay",
-  readonly viewport: GameViewPort;
-  readonly secondViewport: GameViewPort;
-  readonly viewports: GameViewPort[];
-  simpleMessage(message: string): void;
-  scene: BaseScene;
-  cssScene: Scene;
-  assets: Assets;
-  toggleFogOfWarByPlayerId(playerId: number): void;
-  unitsIterator(): IterableIterator<Unit>;
-  skipForward(seconds: number): void;
-  skipBackward(seconds: number): void;
-  speedUp(): number;
-  speedDown(): number;
-  togglePause(setPaused?: boolean): boolean;
-  readonly gameSpeed: number;
-  setGameSpeed(speed: number): void;
-  refreshScene(): void;
-  pxToGameUnit: PxToGameUnit;
-  fogOfWar: FogOfWar;
-  mapWidth: number;
-  mapHeight: number;
-  tileset: number;
-  tilesetName: string;
-  getTerrainY: GetTerrainY;
-  terrain: Terrain;
-  readonly currentFrame: number;
-  readonly maxFrame: number;
-  gotoFrame(frame: number): void;
-  exitScene(): void;
-  setPlayerColors(colors: string[]): void;
-  getPlayerColor(playerId: number): Color;
-  getOriginalColors(): string[];
-  setPlayerNames(names: { name: string, id: number }[]): void;
-  getOriginalNames(): { name: string, id: number }[];
-  getPlayers(): ReplayPlayer[];
-  replay: ReplayHeader;
-  readonly followedUnitsPosition: Vector3 | undefined | null;
-  selectUnits(units: number[]): void;
-  selectedUnits: Unit[];
-  playSound(typeId: number, volumeOrX?: number, y?: number, unitTypeId?: number): void;
-  togglePointerLock(val: boolean): void;
-  readonly pointerLockLost: boolean;
-  mouseCursor: boolean;
-  minimap: {
-    enabled: boolean;
-    scale: number;
-  }
-}
 export async function replayScene(
   map: Chk,
   terrain: Terrain,
@@ -138,7 +79,7 @@ export async function replayScene(
 
   const players = janitor.add(new Players(
     replay.header.players,
-    map.units.filter((u) => u.unitId === startLocation),
+    map.units.filter((u) => u.unitId === unitTypes.startLocation),
   ));
   const bwDat = assets.bwDat;
 
@@ -233,79 +174,13 @@ export async function replayScene(
   }
 
   const gameTimeApi = ((): GameTimeApi => {
-    const toggleFogOfWarByPlayerId = (playerId: number) => {
-      const player = players.find(p => p.id === playerId);
-      if (player) {
-        player.vision = !player.vision;
-        fogOfWar.forceInstantUpdate = true;
-      }
-    }
-
-    const setPlayerColors = (colors: string[]) => {
-      const replay = useWorldStore.getState().replay;
-
-      if (replay) {
-        replay.header.players.forEach((player, i) => {
-          player.color = colors[i];
-        });
-        useWorldStore.setState({ replay: { ...replay } })
-      }
-    }
-
-    const originalColors = replay.header.players.map(player => player.color);
-    const originalNames = replay.header.players.map(player => ({
-      id: player.id,
-      name: player.name
-    }));
-    const getOriginalColors = () => [...originalColors];
-
-    const setPlayerNames = (players: { name: string, id: number }[]) => {
-      const replay = useWorldStore.getState().replay;
-
-      if (replay) {
-        for (const player of players) {
-          const replayPlayer = replay.header.players.find(p => p.id === player.id);
-          if (replayPlayer) {
-            replayPlayer.name = player.name;
-          }
-        }
-        useWorldStore.setState({ replay: { ...replay } })
-      }
-    }
-
-    const getOriginalNames = () => [...originalNames];
 
     const skipHandler = (dir: number, gameSeconds = 200) => {
-      if (reset) return;
       const currentFrame = openBW.getCurrentFrame();
       openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
       currentBwFrame = openBW.getCurrentFrame();
       reset = refreshScene;
       return currentBwFrame;
-    }
-
-    enum ChangeSpeedDirection {
-      Up,
-      Down
-    }
-
-    const MIN_SPEED = 0.25;
-    const MAX_SPEED = 16;
-    const speedHandler = (direction: ChangeSpeedDirection) => {
-      const currentSpeed = openBW.getGameSpeed();
-      let newSpeed = 0;
-
-      // smaller increments/decrements between 1 & 2
-      if (direction === ChangeSpeedDirection.Up && currentSpeed >= 1 && currentSpeed < 2) {
-        newSpeed = currentSpeed + MIN_SPEED;
-      } else if (direction === ChangeSpeedDirection.Down && currentSpeed <= 2 && currentSpeed > 1) {
-        newSpeed = currentSpeed - MIN_SPEED;
-      } else {
-        newSpeed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, currentSpeed * (ChangeSpeedDirection.Up === direction ? 2 : 0.5)));
-      }
-
-      openBW.setGameSpeed(newSpeed);
-      return openBW.getGameSpeed();
     }
 
     return {
@@ -325,12 +200,16 @@ export async function replayScene(
       scene,
       cssScene,
       assets,
-      toggleFogOfWarByPlayerId,
+      toggleFogOfWarByPlayerId(playerId: number) {
+        if (players.toggleFogOfWarByPlayerId(playerId)) {
+          fogOfWar.forceInstantUpdate = true;
+        }
+      },
       unitsIterator,
       skipForward: (amount = 1) => skipHandler(1, amount),
       skipBackward: (amount = 1) => skipHandler(-1, amount),
-      speedUp: () => speedHandler(ChangeSpeedDirection.Up),
-      speedDown: () => speedHandler(ChangeSpeedDirection.Down),
+      speedUp: () => speedHandler(ReplayChangeSpeedDirection.Up, openBW),
+      speedDown: () => speedHandler(ReplayChangeSpeedDirection.Down, openBW),
       togglePause: (setPaused?: boolean) => {
         openBW.setPaused(setPaused ?? !openBW.isPaused());
         return openBW.isPaused();
@@ -339,7 +218,7 @@ export async function replayScene(
         return openBW.getGameSpeed();
       },
       setGameSpeed(value: number) {
-        openBW.setGameSpeed(MathUtils.clamp(value, MIN_SPEED, MAX_SPEED));
+        openBW.setGameSpeed(MathUtils.clamp(value, REPLAY_MIN_SPEED, REPLAY_MAX_SPEED));
       },
       refreshScene: () => {
         reset = refreshScene;
@@ -367,13 +246,21 @@ export async function replayScene(
       exitScene: () => {
         gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
       },
-      setPlayerColors,
+      setPlayerColors(colors: string[]) {
+        players.setPlayerColors(colors);
+      },
       getPlayerColor: (id: number) => {
         return players.get(id)?.color ?? new Color(1, 1, 1);
       },
-      getOriginalColors,
-      setPlayerNames,
-      getOriginalNames,
+      getOriginalColors() {
+        return players.originalColors;
+      },
+      setPlayerNames(...args: Parameters<Players["setPlayerNames"]>) {
+        players.setPlayerNames(...args);
+      },
+      getOriginalNames() {
+        return players.originalNames;
+      },
       getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
       get replay() { return { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] } },
       get followedUnitsPosition() {
@@ -432,9 +319,6 @@ export async function replayScene(
     }
   })();
 
-
-
-
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
@@ -486,13 +370,12 @@ export async function replayScene(
   let currentBwFrame = 0;
   let previousBwFrame = -1;
 
-  const creep = new Creep(
+  const creep = janitor.add(new Creep(
     mapWidth,
     mapHeight,
     terrainExtra.creepTextureUniform.value,
     terrainExtra.creepEdgesTextureUniform.value
-  );
-  janitor.disposable(creep);
+  ));
 
   const buildMinimap = () => {
     minimapGraphics.resetUnitsAndResources();
@@ -509,8 +392,6 @@ export async function replayScene(
       }
     }
   }
-
-
 
   const unitBufferView = new UnitsBufferView(openBW);
   const unitList = new IntrusiveList(openBW.HEAPU32, 0, 43);
@@ -579,7 +460,7 @@ export async function replayScene(
           if (unit.extras.turretLo === null) {
             unit.extras.turretLo = new Vector2;
           }
-          getImageLoOffset(unit.extras.turretLo, unitData.owSprite.mainImage, 0);
+          getImageLoOffset(unit.extras.turretLo, gameViewportsDirector.primaryViewport.camera, unitData.owSprite.mainImage, 0);
         } else {
           unit.extras.turretLo = null;
         }
@@ -614,21 +495,6 @@ export async function replayScene(
   };
 
   scene.add(...selectionObjects);
-
-  const getImageLoOffset = (out: Vector2, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
-    // size_t frame = use_frame_index_offset ? image->frame_index_offset : image->frame_index;
-
-    //FIXME: apply to all camera angles
-    const frameInfo = applyCameraDirectionToImageFrame(gameViewportsDirector.primaryViewport.camera, image);
-    if (useFrameIndexOffset) {
-      frameInfo.frame = frameInfo.frame % 17;
-    }
-    const dat = assets.bwDat.images[image.typeId];
-    out.copy(bwDat.los[dat.specialOverlay - 1][frameInfo.frame][offsetIndex]);
-    out.x = frameInfo.flipped ? -out.x : out.x;
-    out.y = -out.y;
-    return out;
-  }
 
   const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlying?: boolean) => {
     const spriteX = pxToGameUnit.x(x);
@@ -753,7 +619,7 @@ export async function replayScene(
 
       if (image.visible) {
         image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
-        image.setTeamColor(player?.color ?? white);
+        image.setTeamColor(player?.color);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
 
         if (image instanceof ImageHD) {
@@ -986,7 +852,6 @@ export async function replayScene(
 
       fogOfWar.texture.needsUpdate = true;
 
-
       const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
       mixer.updateFromVector3(audioPosition as Vector3, delta);
 
@@ -1039,8 +904,6 @@ export async function replayScene(
     plugins.onRender(delta, elapsed);
 
   };
-
-
 
   janitor.add(useSelectedUnitsStore.subscribe((state) => {
     plugins.callHook(HOOK_ON_UNITS_SELECTED, state.selectedUnits);
@@ -1120,8 +983,7 @@ export async function replayScene(
       log.info("disposing replay viewer");
       _halt = true;
       renderComposer.getWebGLRenderer().setAnimationLoop(null);
-      selectedUnitsStore().clearSelectedUnits();
-      clearFollowedUnits();
+      units.clear();
       resetCompletedUpgrades(0);
       plugins.disposeGame();
       pluginsApiJanitor.dispose();

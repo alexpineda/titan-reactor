@@ -1,5 +1,9 @@
 import { BwDAT, GltfAtlas, ImageDAT, ImageStruct } from "common/types";
 import { ImageFlags, drawFunctions } from "common/enums";
+import { applyCameraDirectionToImageFrame } from "./camera-utils";
+import { Vector2 } from "three";
+import gameStore from "@stores/game-store";
+import DirectionalCamera from "renderer/camera/directional-camera";
 
 export const imageIsShadow = (image: ImageStruct, bwDat: BwDAT) => {
   return (
@@ -37,3 +41,16 @@ export const imageIsDoodad = (dat: ImageDAT) => {
 }
 
 export const isGltfAtlas = (obj: any): obj is GltfAtlas => obj !== undefined && "model" in obj;
+
+
+export const getImageLoOffset = (out: Vector2, camera: DirectionalCamera, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
+  const frameInfo = applyCameraDirectionToImageFrame(camera, image);
+  if (useFrameIndexOffset) {
+    frameInfo.frame = frameInfo.frame % 17;
+  }
+  const dat = gameStore().assets!.bwDat.images[image.typeId];
+  out.copy(gameStore().assets!.bwDat.los[dat.specialOverlay - 1][frameInfo.frame][offsetIndex]);
+  out.x = frameInfo.flipped ? -out.x : out.x;
+  out.y = -out.y;
+  return out;
+}
