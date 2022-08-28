@@ -60,7 +60,7 @@ export class ImageEntities {
         }
     }
 
-    get(imageIndex: number, imageTypeId: number) {
+    getOrCreate(imageIndex: number, imageTypeId: number) {
         let image = this.#images.get(imageIndex);
         if (!image) {
             image = this.#create(imageTypeId);

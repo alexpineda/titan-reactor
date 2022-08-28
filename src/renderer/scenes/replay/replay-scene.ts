@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, Group, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Scene } from "three";
+import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Scene } from "three";
 import { easeCubicIn } from "d3-ease";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
@@ -7,7 +7,7 @@ import { mixer } from "@audio"
 import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  WeaponDAT, SoundDAT, SpriteType, DeepPartial, SettingsMeta, PxToGameUnit
+  WeaponDAT, SoundDAT, DeepPartial, SettingsMeta, PxToGameUnit
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
@@ -75,6 +75,7 @@ import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header"
 import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits, unfollowUnit } from "./followed-units";
 import { resetCompletedUpgrades, updateCompletedUpgrades } from "./completed-upgrades";
 import { ImageEntities } from "./image-entities";
+import { SpriteEntities } from "./sprite-entities";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
@@ -206,10 +207,8 @@ export async function replayScene(
 
   const units: Map<number, Unit> = new Map();
   const unitsBySprite: Map<number, Unit> = new Map();
-  const sprites: Map<number, SpriteType> = new Map();
-  const spritesGroup = new Group();
-  spritesGroup.name = "sprites";
-  scene.add(spritesGroup);
+  const sprites = new SpriteEntities;
+  scene.add(sprites.group);
 
   const images = janitor.add(new ImageEntities);
 
@@ -751,29 +750,11 @@ export async function replayScene(
     [DamageType.Concussive]: [0.5, 1],
     [DamageType.Normal]: [0.25, 2],
   };
-  const _spritePool: Group[] = [];
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
     const unit = unitsBySprite.get(spriteData.index);
-    let sprite = sprites.get(spriteData.index);
-    if (!sprite) {
-      if (_spritePool.length) {
-        sprite = _spritePool.pop() as SpriteType;
-      } else {
-        sprite = new Group() as SpriteType;
-        // sprite.matrixAutoUpdate = false;
-        sprite.name = "sprite";
-      }
-      sprites.set(spriteData.index, sprite);
-      spritesGroup.add(sprite);
-      sprite.userData.typeId = spriteData.typeId;
-      sprite.userData.needsMatrixUpdate = true;
-      sprite.userData.renderTestCount = 0;
-      delete sprite.userData.fixedY;
-    } else {
-      sprite.userData.needsMatrixUpdate = false;
-    }
+    let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
 
     // openbw recycled the id for the sprite, so we reset some things
     if (sprite.userData.typeId !== spriteData.typeId) {
@@ -871,7 +852,7 @@ export async function replayScene(
     for (const imgAddr of spriteData.images.reverse()) {
       const imageData = imageBufferView.get(imgAddr);
 
-      let image = images.get(imageData.index, imageData.typeId);
+      let image = images.getOrCreate(imageData.index, imageData.typeId);
       if (!image) {
         continue;
       }
@@ -929,8 +910,8 @@ export async function replayScene(
 
           image.rotation.copy(sprite.rotation);
           image.renderOrder = - 1;
-          if (image.parent !== spritesGroup) {
-            spritesGroup.add(image);
+          if (image.parent !== sprites.group) {
+            sprites.group.add(image);
           }
           image.matrixWorldNeedsUpdate = true;
         } else {
@@ -972,19 +953,14 @@ export async function replayScene(
 
     // avoid image flashing by clearing the group here when user is scrubbing through a replay
     if (_wasReset) {
-      spritesGroup.clear();
+      sprites.group.clear();
       _wasReset = false;
     }
 
     for (let i = 0; i < deletedSpriteCount; i++) {
       const spriteIndex = openBW.HEAP32[(deletedSpriteAddr >> 2) + i];
       unitsBySprite.delete(spriteIndex);
-
-      const sprite = sprites.get(spriteIndex);
-      if (!sprite) continue;
-      sprite.removeFromParent();
-      sprites.delete(spriteIndex);
-      _spritePool.push(sprite);
+      sprites.free(spriteIndex);
     }
 
     for (let i = 0; i < deleteImageCount; i++) {
@@ -1074,7 +1050,7 @@ export async function replayScene(
       const imageData = imageBufferView.get(imgAddr);
       yield imageData;
 
-      let image = images.get(imageData.index, imageData.typeId);
+      let image = images.getOrCreate(imageData.index, imageData.typeId);
       if (image) {
         yield image;
       }
