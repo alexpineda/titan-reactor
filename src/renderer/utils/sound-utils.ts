@@ -1,5 +1,11 @@
 import { Vector3 } from "three";
-import { SoundDAT } from "../../common/types";
+import { PxToGameUnit, SoundDAT } from "common/types";
+import { Terrain } from "@core/terrain";
+import gameStore from "@stores/game-store";
+import { GameViewportsDirector } from "renderer/camera/game-viewport-director";
+import SoundChannels from "@audio/sound-channels";
+import { MainMixer } from "@audio/main-mixer";
+import ProjectedCameraView from "renderer/camera/projected-camera-view";
 
 export const MinPlayVolume = 10;
 
@@ -39,4 +45,37 @@ export const getBwPanning = (x: number, y: number, mapCoords: Vector3, left: num
     }
 
     return pan / 255;
+}
+
+const SoundPlayMaxDistance = 100;
+let _soundCoords = new Vector3;
+let _soundDat: SoundDAT;
+
+export function buildSound(elapsed: number, x: number, y: number, typeId: number, unitTypeId: number, pxToGameUnit: PxToGameUnit, terrain: Terrain, audio: GameViewportsDirector["audio"], projectedView: ProjectedCameraView, soundChannels: SoundChannels, mixer: MainMixer) {
+    const assets = gameStore().assets!;
+    _soundDat = assets.bwDat.sounds[typeId];
+    pxToGameUnit.xyz(x, y, _soundCoords, terrain.getTerrainY);
+
+    if (audio === "3d") {
+        if (_soundDat.minVolume || mixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
+            soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
+        }
+    }
+    else if (audio === "stereo") {
+        const volume = getBwVolume(
+            _soundDat,
+            _soundCoords,
+            x,
+            y,
+            projectedView.left,
+            projectedView.top,
+            projectedView.right,
+            projectedView.bottom,
+        );
+        if (volume > MinPlayVolume) {
+            const pan = getBwPanning(x, y, _soundCoords, projectedView.left, projectedView.width);
+            soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
+        }
+    }
+
 }

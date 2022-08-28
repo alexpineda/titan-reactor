@@ -64,7 +64,7 @@ export const createCamera = () => {
             }, 90000);
 
 
-            return () => janitor.mopUp()
+            return janitor;
         },
         update(delta: number, controls: CameraControls, normalizedAzimuthAngle: number, mouse: Vector3) {
 

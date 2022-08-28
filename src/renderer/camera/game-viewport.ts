@@ -1,4 +1,5 @@
 import { Surface } from "@image/canvas";
+import { getDirection32 } from "@utils/camera-utils";
 import CameraControls from "camera-controls";
 import { SpriteRenderOptions, PostProcessingBundleDTO } from "common/types";
 import { MathUtils, Vector2, Vector3, Vector4 } from "three";
@@ -216,6 +217,27 @@ export class GameViewPort {
         return {
             target: target,
             position: position
+        }
+    }
+
+    shakeStart(elapsed: number) {
+        if (this.cameraShake.enabled && this.shakeCalculation.needsUpdate) {
+            this.cameraShake.shake(elapsed, this.shakeCalculation.duration, this.shakeCalculation.frequency, this.shakeCalculation.strength);
+            this.shakeCalculation.needsUpdate = false;
+            this.shakeCalculation.strength.setScalar(0);
+        }
+        this.cameraShake.update(elapsed, this.camera);
+    }
+
+    shakeEnd() {
+        this.cameraShake.restore(this.camera);
+    }
+
+    updateCamera() {
+        const dir = this.spriteRenderOptions.rotateSprites ? getDirection32(this.projectedView.center, this.camera.position) : 0;
+        if (dir != this.camera.userData.direction) {
+            this.camera.userData.prevDirection = this.camera.userData.direction;
+            this.camera.userData.direction = dir;
         }
     }
 }

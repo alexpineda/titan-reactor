@@ -56,7 +56,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     mixer.connect(dropYourSocks, new Filter("bandpass", 50).node, mixer.intro)
   );
 
-  dropYourSocks.onended = () => janitor.mopUp();
+  dropYourSocks.onended = () => janitor.dispose();
 
   return {
     id: "@loading",

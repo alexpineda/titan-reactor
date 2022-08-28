@@ -275,6 +275,8 @@ export async function createWraithScene() {
                 new BloomEffect({
                     intensity: 1.25,
                     blendFunction: BlendFunction.SCREEN,
+                    //@ts-ignore
+                    mipmapBlur: true,
                 }),
                 new SMAAEffect(),
                 tone,
@@ -298,5 +300,5 @@ export async function createWraithScene() {
         renderComposer.dispose();
     });
 
-    return () => janitor.mopUp();
+    return () => janitor.dispose();
 }

@@ -8,9 +8,28 @@ import { activateUnitSelection } from "../input/activate-unit-selection";
 import * as log from "@ipc/log";
 import { MouseCursor } from "../input";
 import { Macros } from "@macros";
+import { DamageType, Explosion } from "common/enums";
+import { easeCubicIn } from "d3-ease";
 
 const _target = new Vector3;
 const _position = new Vector3;
+
+// frequency, duration, strength multiplier
+const explosionFrequencyDuration = {
+    [Explosion.Splash_Radial]: [6, 1.25, 1],
+    [Explosion.Splash_Enemy]: [8, 1.25, 1],
+    [Explosion.SplashAir]: [10, 1, 1],
+    [Explosion.CorrosiveAcid]: [20, 0.75, 1],
+    [Explosion.Normal]: [15, 0.75, 1],
+    [Explosion.NuclearMissile]: [2, 3, 2],
+    [Explosion.YamatoGun]: [4, 2, 1],
+};
+// strength, xyz index
+const bulletStrength = {
+    [DamageType.Explosive]: [1, 0],
+    [DamageType.Concussive]: [0.5, 1],
+    [DamageType.Normal]: [0.25, 2],
+};
 
 export class GameViewportsDirector implements UserInputCallbacks {
     viewports: GameViewPort[] = [];
@@ -94,7 +113,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     async activate(inputHandler: SceneInputHandler | null, firstRunData?: any) {
         if (inputHandler === null) {
-            this.#janitor.mopUp();
+            this.#janitor.dispose();
             this.#inputHandler = null;
             return;
         }
@@ -111,7 +130,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
             prevData = this.#inputHandler.onExitScene(prevData);
         }
         this.#inputHandler && this.#macros.callHook("onExitScene", this.#inputHandler.name);
-        this.#janitor.mopUp();
+        this.#janitor.dispose();
         this.#inputHandler = null;
         this.#surface.togglePointerLock(false);
 
@@ -168,7 +187,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     dispose() {
         this.#mouseCursor.dispose();
-        this.#janitor.mopUp();
+        this.#janitor.dispose();
     }
 
 
@@ -176,5 +195,27 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.viewports.length ? this.viewports[0].generatePrevData() : null;
     }
 
-}
+    doShakeCalculation = (explosionType: Explosion, damageType: DamageType, gameViewportsDirector: GameViewportsDirector, spritePos: Vector3) => {
+        const exp = explosionFrequencyDuration[explosionType as keyof typeof explosionFrequencyDuration];
+        const _bulletStrength = bulletStrength[damageType as keyof typeof bulletStrength];
 
+        if (_bulletStrength && !(exp === undefined || damageType === DamageType.IgnoreArmor || damageType === DamageType.Independent)) {
+            for (const v of gameViewportsDirector.activeViewports()) {
+                if (!v.cameraShake.enabled) {
+                    continue;
+                }
+                const distance = v.camera.position.distanceTo(spritePos);
+                if (distance < v.cameraShake.maxShakeDistance) {
+                    const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / v.cameraShake.maxShakeDistance) * exp[2];
+                    if (calcStrength > v.shakeCalculation.strength.getComponent(_bulletStrength[1])) {
+                        v.shakeCalculation.strength.setComponent(_bulletStrength[1], calcStrength);
+                        v.shakeCalculation.duration.setComponent(_bulletStrength[1], exp[1] * 1000);
+                        v.shakeCalculation.frequency.setComponent(_bulletStrength[1], exp[0]);
+                        v.shakeCalculation.needsUpdate = true;
+                    }
+                }
+            }
+        }
+
+    }
+}

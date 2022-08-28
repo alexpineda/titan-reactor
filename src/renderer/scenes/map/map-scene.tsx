@@ -201,7 +201,7 @@ export async function mapScene(
   const dispose = () => {
     root.render(null);
     log.info("disposing map viewer");
-    janitor.mopUp();
+    janitor.dispose();
   };
 
   renderComposer.onRestoreContext = async () => {

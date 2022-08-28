@@ -57,7 +57,7 @@ export const createWraithNoise = () => {
                 highNoise.stop();
             }
 
-            janitor.mopUp();
+            janitor.dispose();
         },
     };
 };
@@ -98,7 +98,7 @@ export const playWraithComms = async (rear: number) => {
         mixer.connect(sound, filter.node, mixer.createGain(2), mixer.intro)
     );
     sound.start();
-    sound.onended = () => janitor.mopUp();
+    sound.onended = () => janitor.dispose();
 }
 
 export const playRemix = async () => {
@@ -132,5 +132,5 @@ export const playRemix = async () => {
         mixer.connect(sound, lopass.node, filter.node, mixer.createDistortion(2), gain, mixer.intro)
     );
     sound.start();
-    sound.onended = () => janitor.mopUp();
+    sound.onended = () => janitor.dispose();
 }

@@ -86,6 +86,6 @@ export class ImageEntities {
     }
 
     dispose() {
-        this.#janitor.mopUp();
+        this.#janitor.dispose();
     }
 }

@@ -260,7 +260,7 @@ export class PluginSystemUI {
 
     dispose() {
         this.reset();
-        this.#janitor.mopUp();
+        this.#janitor.dispose();
     }
 
     reset() {

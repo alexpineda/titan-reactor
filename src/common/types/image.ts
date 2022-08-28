@@ -25,7 +25,6 @@ export interface SpriteType extends Group {
     /**
      * for matrix calculations
      */
-    needsMatrixUpdate: boolean;
     renderTestCount: number;
   }
 }

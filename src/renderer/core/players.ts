@@ -71,6 +71,6 @@ export class Players extends Array<Player> {
   }
 
   dispose() {
-    this.#janitor.mopUp();
+    this.#janitor.dispose();
   }
 }

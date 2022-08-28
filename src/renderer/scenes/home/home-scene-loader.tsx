@@ -26,7 +26,7 @@ export async function homeSceneLoader(): Promise<SceneState> {
       }
     },
     dispose: () => {
-      janitor.mopUp();
+      janitor.dispose();
     },
   };
 }

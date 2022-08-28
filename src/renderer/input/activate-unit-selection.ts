@@ -174,6 +174,6 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
     gameSurface.canvas.addEventListener('pointerup', _selectUp);
     janitor.callback(() => gameSurface.canvas.removeEventListener('pointerup', _selectUp));
 
-    return () => janitor.mopUp()
+    return () => janitor.dispose()
 
 }

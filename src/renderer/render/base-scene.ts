@@ -203,7 +203,7 @@ export class BaseScene extends ThreeScene {
   }
 
   dispose() {
-    this.#janitor.mopUp();
+    this.#janitor.dispose();
   }
 }
 export default BaseScene;

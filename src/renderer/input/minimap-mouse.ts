@@ -107,7 +107,7 @@ export class MinimapMouse extends EventTarget {
   }
 
   dispose() {
-    this.#janitor.mopUp();
+    this.#janitor.dispose();
   }
 }
 

@@ -108,7 +108,7 @@ export class CameraMouse {
 
     dispose() {
         this.#_mouseWheelTimeout && clearTimeout(this.#_mouseWheelTimeout);
-        this.#janitor.mopUp();
+        this.#janitor.dispose();
     }
 
 }

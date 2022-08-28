@@ -69,6 +69,6 @@ export class CameraKeys {
     }
 
     dispose() {
-        this.#janitor.mopUp();
+        this.#janitor.dispose();
     }
 }

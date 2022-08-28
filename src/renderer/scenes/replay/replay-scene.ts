@@ -1,47 +1,37 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene as ThreeScene, Scene } from "three";
-import { easeCubicIn } from "d3-ease";
+import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3, Scene } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
-
-import { BulletState, DamageType, drawFunctions, Explosion, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
+import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
-  WeaponDAT, SoundDAT, DeepPartial, SettingsMeta, PxToGameUnit
+  WeaponDAT, DeepPartial, SettingsMeta, PxToGameUnit
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { SoundChannels } from "@audio";
-
 import {
   Players,
   Unit,
   ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D
 } from "@core";
-
 import {
   MinimapMouse, CameraMouse, CameraKeys
 } from "@input";
 import { getOpenBW } from "@openbw";
-
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView } from "@buffer-view";
 import * as log from "@ipc/log";
-
 import {
   GameSurface, Layers, renderComposer, SimpleText, BaseScene
 } from "@render";
-import { CSS2DRenderer } from "@render/css-renderer";
-
 import {
   useWorldStore,
 } from "@stores";
 import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, isGltfAtlas } from "@utils/image-utils";
-import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "@utils/sound-utils";
+import { buildSound } from "@utils/sound-utils";
 import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "@utils/sprite-utils";
-import { applyCameraDirectionToImageFrame, getDirection32 } from "@utils/camera-utils";
-
+import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import Janitor from "@utils/janitor";
-
 import { WeaponBehavior } from "common/enums";
 import gameStore from "@stores/game-store";
 import * as plugins from "@plugins";
@@ -51,8 +41,8 @@ import { Replay } from "@process-replay/parse-replay";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { getAngle, unitIsFlying } from "@utils/unit-utils";
-import { ipcRenderer, IpcRendererEvent } from "electron";
-import { RELOAD_PLUGINS, SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
+import { ipcRenderer } from "electron";
+import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import { hideSelections, selectionObjects, updateSelectionGraphics } from "./selection-objects";
 import FadingPointers from "@image/fading-pointers";
@@ -62,7 +52,6 @@ import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { EffectPass, RenderPass } from "postprocessing";
 import { MinimapGraphics } from "@render/minimap-graphics";
-import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { createSession } from "@stores/session-store";
 import { diff } from "deep-diff";
 import set from "lodash.set";
@@ -76,6 +65,8 @@ import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollo
 import { resetCompletedUpgrades, updateCompletedUpgrades } from "./completed-upgrades";
 import { ImageEntities } from "./image-entities";
 import { SpriteEntities } from "./sprite-entities";
+import { CssScene } from "./css-scene";
+import { listenToEvents } from "@utils/macro-utils";
 
 const { startLocation } = unitTypes;
 const white = new Color(0xffffff);
@@ -152,19 +143,10 @@ export async function replayScene(
 
   selectedUnitsStore().clearSelectedUnits();
 
-
   const mapWidth = map.size[0];
   const mapHeight = map.size[1];
 
-  const cssScene = new ThreeScene();
-  const cssRenderer = new CSS2DRenderer();
-  cssRenderer.domElement.style.position = 'absolute';
-  cssRenderer.domElement.style.pointerEvents = 'none';
-  cssRenderer.domElement.style.top = '0px';
-  cssRenderer.domElement.style.left = '0px';
-  cssRenderer.domElement.style.zIndex = '100';
-  document.body.appendChild(cssRenderer.domElement);
-  janitor.callback(() => document.body.removeChild(cssRenderer.domElement));
+  const cssScene = new CssScene;
 
   terrain.setAnisotropy(session.getState().graphics.anisotropy);
   terrainExtra.setCreepAnisotropy(session.getState().graphics.anisotropy);
@@ -206,7 +188,6 @@ export async function replayScene(
   }));
 
   const units: Map<number, Unit> = new Map();
-  const unitsBySprite: Map<number, Unit> = new Map();
   const sprites = new SpriteEntities;
   scene.add(sprites.group);
 
@@ -246,8 +227,6 @@ export async function replayScene(
 
     plugins.setActiveInputHandler(inputHandler);
 
-    // TODO: move rendering configuration to better settings other than rotateSprites
-    // Do all render differences here?
     terrain.setHighDetailStyle(gameViewportsDirector.viewports[0].spriteRenderOptions.rotateSprites);
     scene.sunlight.shadow.needsUpdate = true;
     renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
@@ -415,7 +394,7 @@ export async function replayScene(
       // fadingPointers,
       playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
         if (y !== undefined && volumeOrX !== undefined) {
-          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId);
+          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToGameUnit, terrain, gameViewportsDirector.audio, gameViewportsDirector.primaryViewport.projectedView, soundChannels, mixer);
         } else {
           soundChannels.playGlobal(typeId, volumeOrX);
         }
@@ -461,7 +440,6 @@ export async function replayScene(
   const refreshScene = () => {
     images.clear();
     units.clear();
-    unitsBySprite.clear();
     sprites.clear();
     cmds = commandsStream.generate();
     cmd = cmds.next();
@@ -489,7 +467,7 @@ export async function replayScene(
     });
 
     renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
-    cssRenderer.setSize(gameSurface.width, gameSurface.height);
+    cssScene.setSize(gameSurface.width, gameSurface.height);
 
     minimapSurface.setDimensions(
       rect.minimapWidth,
@@ -574,8 +552,6 @@ export async function replayScene(
   }
 
   const buildUnits = (
-    units: Map<number, Unit>,
-    unitsBySprite: Map<number, Unit>
   ) => {
     const deletedUnitCount = openBW._counts(17);
     const deletedUnitAddr = openBW._get_buffer(5);
@@ -600,8 +576,7 @@ export async function replayScene(
         const unitData = unitBufferView.get(unitAddr);
         const unit = getUnit(units, unitData);
 
-        unitsBySprite.set(unitData.spriteIndex, unit);
-
+        sprites.setUnit(unitData.spriteIndex, unit);
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
           !unit.extras.recievingDamage &&
@@ -641,42 +616,6 @@ export async function replayScene(
     }
   }
 
-  const SoundPlayMaxDistance = 100;
-  const _soundCoords = new Vector3;
-  let _soundDat: SoundDAT;
-
-  const buildSound = (elapsed: number, x: number, y: number, typeId: number, unitTypeId: number) => {
-    if (!fogOfWar.isVisible(floor32(x), floor32(y)) || typeId === 0) {
-      return;
-    }
-    _soundDat = assets.bwDat.sounds[typeId];
-
-    pxToGameUnit.xyz(x, y, _soundCoords, terrain.getTerrainY);
-
-    if (gameViewportsDirector.audio === "3d") {
-      if (_soundDat.minVolume || mixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {
-        soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, null, null);
-      }
-    }
-    else if (gameViewportsDirector.audio === "stereo") {
-      const volume = getBwVolume(
-        _soundDat,
-        _soundCoords,
-        x,
-        y,
-        gameViewportsDirector.primaryViewport.projectedView.left,
-        gameViewportsDirector.primaryViewport.projectedView.top,
-        gameViewportsDirector.primaryViewport.projectedView.right,
-        gameViewportsDirector.primaryViewport.projectedView.bottom,
-      );
-
-      const pan = getBwPanning(x, y, _soundCoords, gameViewportsDirector.primaryViewport.projectedView.left, gameViewportsDirector.primaryViewport.projectedView.width);
-      if (volume > SoundPlayMinVolume) {
-        soundChannels.play(elapsed, typeId, unitTypeId, _soundDat, _soundCoords, volume, pan);
-      }
-    }
-
-  }
   const buildSounds = (elapsed: number) => {
 
     const soundsAddr = openBW.getSoundsAddress!();
@@ -687,7 +626,9 @@ export async function replayScene(
       const y = openBW.HEAP32[addr + 2];
       const unitTypeId = openBW.HEAP32[addr + 3];
 
-      buildSound(elapsed, x, y, typeId, unitTypeId);
+      if (fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
+        buildSound(elapsed, x, y, typeId, unitTypeId, pxToGameUnit, terrain, gameViewportsDirector.audio, gameViewportsDirector.primaryViewport.projectedView, soundChannels, mixer);
+      }
     }
   };
 
@@ -734,26 +675,10 @@ export async function replayScene(
   const _ownerSpritePos = new Vector3();
   const _ownerSpritePos2d = new Vector2();
 
-  // frequency, duration, strength multiplier
-  const explosionFrequencyDuration = {
-    [Explosion.Splash_Radial]: [6, 1.25, 1],
-    [Explosion.Splash_Enemy]: [8, 1.25, 1],
-    [Explosion.SplashAir]: [10, 1, 1],
-    [Explosion.CorrosiveAcid]: [20, 0.75, 1],
-    [Explosion.Normal]: [15, 0.75, 1],
-    [Explosion.NuclearMissile]: [2, 3, 2],
-    [Explosion.YamatoGun]: [4, 2, 1],
-  };
-  // strength, xyz index
-  const bulletStrength = {
-    [DamageType.Explosive]: [1, 0],
-    [DamageType.Concussive]: [0.5, 1],
-    [DamageType.Normal]: [0.25, 2],
-  };
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
-    const unit = unitsBySprite.get(spriteData.index);
+    const unit = sprites.getUnit(spriteData.index);
     let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
 
     // openbw recycled the id for the sprite, so we reset some things
@@ -787,31 +712,12 @@ export async function replayScene(
     calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
 
-    // TODO: throttleSpriteUpdate, see #241
-
     const player = players.playersById[spriteData.owner];
 
     if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
 
-      const exp = explosionFrequencyDuration[weapon.explosionType as keyof typeof explosionFrequencyDuration];
-      const _bulletStrength = bulletStrength[weapon.damageType as keyof typeof bulletStrength];
-
-      if (bullet.state === BulletState.Dying && _bulletStrength && !(exp === undefined || weapon.damageType === DamageType.IgnoreArmor || weapon.damageType === DamageType.Independent)) {
-        for (const v of gameViewportsDirector.activeViewports()) {
-          if (!v.cameraShake.enabled) {
-            continue;
-          }
-          const distance = v.camera.position.distanceTo(_spritePos);
-          if (distance < v.cameraShake.maxShakeDistance) {
-            const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / v.cameraShake.maxShakeDistance) * exp[2];
-            if (calcStrength > v.shakeCalculation.strength.getComponent(_bulletStrength[1])) {
-              v.shakeCalculation.strength.setComponent(_bulletStrength[1], calcStrength);
-              v.shakeCalculation.duration.setComponent(_bulletStrength[1], exp[1] * 1000);
-              v.shakeCalculation.frequency.setComponent(_bulletStrength[1], exp[0]);
-              v.shakeCalculation.needsUpdate = true;
-            }
-          }
-        }
+      if (bullet.state === BulletState.Dying) {
+        gameViewportsDirector.doShakeCalculation(weapon.explosionType, weapon.damageType, gameViewportsDirector, _spritePos);
       }
 
       if (weapon.weaponBehavior === WeaponBehavior.AppearOnTargetUnit && bullet.targetUnit) {
@@ -951,21 +857,19 @@ export async function replayScene(
     const deletedImageAddr = openBW._get_buffer(3);
     const deletedSpriteAddr = openBW._get_buffer(4);
 
-    // avoid image flashing by clearing the group here when user is scrubbing through a replay
+    // avoid image flashing 
+    // we clear the group here rather than on the reset event
     if (_wasReset) {
       sprites.group.clear();
       _wasReset = false;
     }
 
     for (let i = 0; i < deletedSpriteCount; i++) {
-      const spriteIndex = openBW.HEAP32[(deletedSpriteAddr >> 2) + i];
-      unitsBySprite.delete(spriteIndex);
-      sprites.free(spriteIndex);
+      sprites.free(openBW.HEAP32[(deletedSpriteAddr >> 2) + i]);
     }
 
     for (let i = 0; i < deleteImageCount; i++) {
-      const imageIndex = openBW.HEAP32[(deletedImageAddr >> 2) + i];
-      images.free(imageIndex);
+      images.free(openBW.HEAP32[(deletedImageAddr >> 2) + i]);
     }
 
     // build bullet sprites first since they need special Y calculations
@@ -1103,10 +1007,7 @@ export async function replayScene(
       buildSounds(elapsed);
       buildCreep(currentBwFrame);
 
-      buildUnits(
-        units,
-        unitsBySprite
-      );
+      buildUnits();
       buildMinimap();
       buildSprites(delta);
       updateSelectionGraphics(gameViewportsDirector.primaryViewport.camera, sprites);
@@ -1118,13 +1019,7 @@ export async function replayScene(
       const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
       mixer.updateFromVector3(audioPosition as Vector3, delta);
 
-      for (const v of gameViewportsDirector.activeViewports()) {
-        if (v.cameraShake.enabled && v.shakeCalculation.needsUpdate) {
-          v.cameraShake.shake(elapsed, v.shakeCalculation.duration, v.shakeCalculation.frequency, v.shakeCalculation.strength);
-          v.shakeCalculation.needsUpdate = false;
-          v.shakeCalculation.strength.setScalar(0);
-        }
-      }
+
 
       _commandsThisFrame.length = 0;
       while (cmd.done === false) {
@@ -1148,29 +1043,21 @@ export async function replayScene(
       previousBwFrame = currentBwFrame;
     }
 
-
-    {
-      for (const v of gameViewportsDirector.activeViewports()) {
-        const dir = v.spriteRenderOptions.rotateSprites ? getDirection32(v.projectedView.center, v.camera.position) : 0;
-        if (dir != v.camera.userData.direction) {
-          v.camera.userData.prevDirection = v.camera.userData.direction;
-          v.camera.userData.direction = dir;
-        }
-      }
-    }
-
     minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, fogOfWar.enabled, gameViewportsDirector);
 
     plugins.onBeforeRender(delta, elapsed);
 
+
     for (const v of gameViewportsDirector.activeViewports()) {
+      v.updateCamera();
       updateSpritesForViewport(v.camera, v.spriteRenderOptions, spriteIterator, spriteImageIterator);
-      v.cameraShake.update(elapsed, v.camera);
+
+      v.shakeStart(elapsed);
       fogOfWar.update(players.getVisionFlag(), v.camera);
       updatePostProcessingCamera(v.postProcessing, v.camera, true);
       renderComposer.setBundlePasses(v.postProcessing);
       renderComposer.render(delta, v.viewport);
-      v.cameraShake.restore(v.camera);
+      v.shakeEnd();
 
       if (v === gameViewportsDirector.primaryViewport) {
         minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
@@ -1178,19 +1065,10 @@ export async function replayScene(
         hideSelections();
       }
     }
+
     renderComposer.renderBuffer();
 
-    let _cssItems = 0;
-    for (const cssItem of cssScene.children) {
-      _cssItems += cssItem.children.length;
-      if (_cssItems > 0) {
-        break;
-      }
-    }
-    //TODO: remove css renderer from main thread
-    if (_cssItems) {
-      cssRenderer.render(cssScene, gameViewportsDirector.primaryViewport.camera);
-    }
+    cssScene.render(gameViewportsDirector.primaryViewport.camera);
 
     plugins.onRender(delta, elapsed);
 
@@ -1224,7 +1102,7 @@ export async function replayScene(
   const _onReloadPlugins = async () => {
     _halt = true;
     renderComposer.getWebGLRenderer().setAnimationLoop(null);
-    pluginsApiJanitor.mopUp();
+    pluginsApiJanitor.dispose();
     await gameViewportsDirector.activate(null);
     await (settingsStore().load());
     await plugins.initializePluginSystem(true);
@@ -1235,33 +1113,7 @@ export async function replayScene(
   };
 
   janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
-
-  macros.setHostDefaults(settingsStore().data);
-  plugins.setAllMacroDefaults(macros);
-
-  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
-    type: SendWindowActionType.PluginConfigChanged
-    payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
-  }) => {
-    if (type === SendWindowActionType.PluginConfigChanged) {
-      plugins.setMacroDefaults(macros, pluginId, config);
-    }
-  })
-
-  janitor.add(macros.listenForKeyCombos());
-
-  janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
-    type: SendWindowActionType.ManualMacroTrigger,
-    payload: SendWindowActionPayload<SendWindowActionType.ManualMacroTrigger>
-  }) => {
-    if (type === SendWindowActionType.ManualMacroTrigger) {
-      macros.execMacroById(payload);
-    }
-  });
-
-  janitor.on(ipcRenderer, SERVER_API_FIRE_MACRO, (_: IpcRendererEvent, macroId: string) => {
-    macros.execMacroById(macroId);
-  });
+  janitor.add(listenToEvents(macros));
 
   janitor.add(useSettingsStore.subscribe((settings, prevSettings) => {
 
@@ -1332,8 +1184,8 @@ export async function replayScene(
       clearFollowedUnits();
       resetCompletedUpgrades(0);
       plugins.disposeGame();
-      pluginsApiJanitor.mopUp();
-      janitor.mopUp();
+      pluginsApiJanitor.dispose();
+      janitor.dispose();
     }, start: () => renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
   }
 }
