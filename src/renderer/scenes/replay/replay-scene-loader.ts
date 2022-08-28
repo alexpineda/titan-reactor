@@ -18,7 +18,7 @@ import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "@stores/settings-store";
 import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
-import startReplay from "./replay-scene";
+import { replayScene } from "./replay-scene";
 import { waitForTruthy } from "@utils/wait-for-process";
 import Janitor from "@utils/janitor";
 import { getOpenBW } from "@openbw";
@@ -159,7 +159,9 @@ export const replaySceneLoader = async (filepath: string) => {
     processStore().complete(Process.AtlasPreload);
   }
 
-  const state = await startReplay(
+  music.playGame();
+
+  const state = await replayScene(
     map,
     terrain,
     extra,
@@ -168,7 +170,6 @@ export const replaySceneLoader = async (filepath: string) => {
     janitor,
     replay,
     soundChannels,
-    music,
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
   );
 

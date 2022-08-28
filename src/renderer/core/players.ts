@@ -1,3 +1,5 @@
+import worldStore, { useWorldStore } from "@stores/world-store";
+import Janitor from "@utils/janitor";
 import {
   Player,
   StartLocation,
@@ -15,13 +17,29 @@ const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
 
 export class Players extends Array<Player> {
   playersById: Record<number, Player> = {};
+  #janitor = new Janitor();
 
   constructor(
     players: Replay["header"]["players"],
     startLocations: StartLocation[],
-    colors: Color[]
   ) {
     super();
+
+    const makeColors = (replay: Replay) => replay.header.players.map(
+      ({ color }) =>
+        new Color().setStyle(color).convertSRGBToLinear()
+    );
+
+    this.#janitor.add(useWorldStore.subscribe(world => {
+      if (world.replay) {
+        const colors = makeColors(world.replay);
+        for (let i = 0; i < players.length; i++) {
+          this[i].color = colors[i];
+        }
+      }
+    }));
+
+    const colors = makeColors(worldStore().replay!);
 
     this.push(
       ...players.map((player, i) => ({
@@ -50,5 +68,9 @@ export class Players extends Array<Player> {
   getVisionFlag() {
     return this.filter(_pVision)
       .reduce(_gFlags, 0);
+  }
+
+  dispose() {
+    this.#janitor.mopUp();
   }
 }

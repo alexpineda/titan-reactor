@@ -58,15 +58,15 @@ export class Terrain extends Group {
         });
     }
 
-    setBumpScale(value: number | null) {
+    setBumpScale(value: number) {
         this.#applyToMaterial(mat => {
-            mat.bumpScale = value ?? this.geomOptions.bumpScale;
+            mat.bumpScale = value;
         });
     }
 
-    setHighDetailStyle(value: boolean) {
-        this.setBumpScale(value ? this.geomOptions.bumpScale : null);
-        this.shadowsEnabled = value;
+    setHighDetailStyle(highDetail: boolean) {
+        this.setBumpScale(highDetail ? this.geomOptions.bumpScale : 0);
+        this.shadowsEnabled = highDetail;
 
         // TODO: other things
     }

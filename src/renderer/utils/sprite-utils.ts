@@ -23,8 +23,6 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
     return (sprite.flags & SpriteFlags.Hidden) !== 0;
 }
 
-
-
 export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<ImageBase | ImageBufferView>) => {
 
     ImageHD.useDepth = options.rotateSprites;
