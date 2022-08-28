@@ -288,7 +288,7 @@ async function TitanReactorGame(
   janitor.disposable(cameraKeys);
 
   const units: Map<number, Unit> = new Map();
-  const images: Map<number, ImageBase> = new Map();
+  const images: Map<number, ImageHD | Image3D> = new Map();
   const freeImages = new IndexedObjectPool<ImageBase>();
   const unitsBySprite: Map<number, Unit> = new Map();
   const sprites: Map<number, SpriteType> = new Map();
@@ -994,7 +994,7 @@ async function TitanReactorGame(
       spriteIsVisible = false;
     }
     sprite.visible = spriteIsVisible;
-    sprite.renderOrder = spriteSortOrder(spriteData as SpriteStruct) * 10;
+    sprite.userData.renderOrder = spriteSortOrder(spriteData as SpriteStruct);
 
     calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
@@ -1093,9 +1093,11 @@ async function TitanReactorGame(
         image.setTeamColor(player?.color ?? white);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
 
-        image.position.x = imageData.x / 32;
-        // flying building or drone, don't use 2d offset
-        image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
+        if (image instanceof ImageHD) {
+          image.position.x = imageData.x / 32;
+          // flying building or drone, don't use 2d offset
+          image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
+        }
 
         // tank turret needs to use different LO depending on camera angle
         // in order to handle this we need to set the LO to the correct frame
@@ -1103,7 +1105,7 @@ async function TitanReactorGame(
         // by setting the lo from the main unit image and not the turret image 
         // as seen in `update_unit_movement`
         const subunitId = unit?.subunitId;
-        if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret)) {
+        if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret) && image instanceof ImageHD) {
           const subunit = units.get(subunitId);
           // bw keeps parent unit in subunit as well, so in this case this is actually parent unit
           // ie base tank
@@ -1130,7 +1132,7 @@ async function TitanReactorGame(
           image.matrixWorldNeedsUpdate = true;
         } else {
           image.rotation.set(0, 0, 0);
-          image.renderOrder = sprite.renderOrder + imageCounter;
+          image.renderOrder = imageCounter;
           if (image.parent !== sprite) {
             sprite.add(image);
           }

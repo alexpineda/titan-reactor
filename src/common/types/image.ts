@@ -20,6 +20,8 @@ export interface SpriteType extends Group {
   userData: {
     fixedY?: number;
     typeId: number;
+    // track calculated render order
+    renderOrder: number;
     /**
      * for matrix calculations
      */

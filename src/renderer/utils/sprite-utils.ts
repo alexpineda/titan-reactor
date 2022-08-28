@@ -27,7 +27,7 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
 
 export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<ImageBase | ImageBufferView>) => {
 
-    ImageHD.useDepth = false;// options.rotateSprites;
+    ImageHD.useDepth = options.rotateSprites;
     ImageHD.useScale = options.unitScale;
 
     let frameInfo: { frame: number, flipped: boolean } | null = null;
@@ -62,6 +62,7 @@ export const updateSpritesForViewport = (camera: DirectionalCamera, options: Spr
                 }
             }
         } else if (sprite.visible) {
+            sprite.renderOrder = ImageHD.useDepth ? 0 : sprite.userData.renderOrder;
             sprite.updateMatrix();
             sprite.updateMatrixWorld();
         }
