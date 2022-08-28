@@ -1,10 +1,11 @@
 import { CubeTexture, Texture } from "three";
 import { BwDAT, Atlas, UnitTileScale } from "common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
+import { GltfAtlas } from "./anim-grp";
 
 export interface Assets {
     bwDat: BwDAT;
-    grps: Atlas[];
+    grps: (Atlas | GltfAtlas)[];
     selectionCirclesHD: Atlas[];
 
     gameIcons: ResourceIcons;
@@ -16,7 +17,7 @@ export interface Assets {
     dragIcons: CenteredCursorIcons;
     wireframeIcons: string[];
     envMap: Texture;
-    loadAnim: (imageID: number, res: UnitTileScale) => Promise<void>;
+    loadImageAtlas: (imageID: number, res: UnitTileScale) => Promise<void>;
     skyBox: CubeTexture;
 }
 

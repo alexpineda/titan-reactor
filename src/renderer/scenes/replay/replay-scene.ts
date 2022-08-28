@@ -17,7 +17,7 @@ import {
   Image,
   Players,
   Unit,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect
+  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D
 } from "@core";
 
 import {
@@ -36,7 +36,7 @@ import { CSS2DRenderer } from "@render/css-renderer";
 import {
   useWorldStore,
 } from "@stores";
-import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
+import { imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, isGltfAtlas } from "@utils/image-utils";
 import { getBwPanning, getBwVolume, MinPlayVolume as SoundPlayMinVolume } from "@utils/sound-utils";
 import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "@utils/sprite-utils";
 import { applyCameraDirectionToImageFrame, getDirection32 } from "@utils/camera-utils";
@@ -51,7 +51,7 @@ import { Assets } from "common/types/assets";
 import { Replay } from "@process-replay/parse-replay";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
-import { unitIsFlying } from "@utils/unit-utils";
+import { getAngle, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { RELOAD_PLUGINS, SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import SelectionCircle from "@core/selection-circle";
@@ -159,20 +159,19 @@ async function TitanReactorGame(
   }
 
   const _upgradeHDImageQueue = new Map<number, UpgradeHDImageStatus>();
-
   const createImage = (imageTypeId: number) => {
     const atlas = assets.grps[imageTypeId];
     if (!atlas) {
       // schedule properly
-      assets.loadAnim(imageTypeId, UnitTileScale.HD2);
+      assets.loadImageAtlas(imageTypeId, UnitTileScale.HD2);
       _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loading);
-      requestIdleCallback(() => assets.loadAnim(imageTypeId, UnitTileScale.HD).then(() => {
+      requestIdleCallback(() => assets.loadImageAtlas(imageTypeId, UnitTileScale.HD).then(() => {
         _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loaded);
       }));
       return;
     } else {
       if (atlas.unitTileScale === UnitTileScale.HD2 && !_upgradeHDImageQueue.has(imageTypeId)) {
-        requestIdleCallback(() => assets.loadAnim(imageTypeId, UnitTileScale.HD).then(() => {
+        requestIdleCallback(() => assets.loadImageAtlas(imageTypeId, UnitTileScale.HD).then(() => {
           _upgradeHDImageQueue.set(imageTypeId, UpgradeHDImageStatus.Loaded);
         }));
       }
@@ -180,16 +179,20 @@ async function TitanReactorGame(
 
     const imageDef = bwDat.images[imageTypeId];
 
-    const freeImage = freeImages.get(imageTypeId);
-    if (freeImage) {
-      freeImage.changeImage(atlas, imageDef);
-      return freeImage;
+    freeImages.get(imageTypeId);
+    // const freeImage = freeImages.get(imageTypeId);
+    // if (freeImage) {
+    //   freeImage.changeImage(atlas, imageDef);
+    //   return freeImage;
+    // }
+    if (isGltfAtlas(atlas)) {
+      return new Image3D(atlas, imageDef)
+    } else {
+      return new ImageHD(
+        atlas,
+        imageDef
+      );
     }
-
-    return new ImageHD(
-      atlas,
-      imageDef
-    );
   }
 
   const mapWidth = map.size[0];
@@ -976,7 +979,6 @@ async function TitanReactorGame(
     }
 
     const dat = bwDat.sprites[spriteData.typeId];
-
     if (spriteData.owner < 8) {
       sprite.layers.enable(Layers.Units);
     } else {
@@ -1087,6 +1089,7 @@ async function TitanReactorGame(
       sprite.userData.selectionBars.updateMatrix();
     }
 
+
     let imageCounter = 1;
 
     for (const imgAddr of spriteData.images.reverse()) {
@@ -1102,15 +1105,20 @@ async function TitanReactorGame(
       }
       image.userData.typeId = imageData.typeId;
 
-      if (image.unitTileScale === UnitTileScale.HD2 && assets.grps[imageData.typeId].unitTileScale === UnitTileScale.HD) {
-        image.changeImage(assets.grps[imageData.typeId], bwDat.images[imageData.typeId], true);
+      //upgrade HD2 image to HD if loaded
+      if (image instanceof ImageHD && image.unitTileScale === UnitTileScale.HD2 && assets.grps[imageData.typeId].unitTileScale === UnitTileScale.HD) {
+        image.changeImageType(assets.grps[imageData.typeId], bwDat.images[imageData.typeId], true);
       }
 
+      // always clear unit information since that can always change
       delete image.userData.unit;
-      image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct);
+
+      // only draw shadow if main image is not 3d
+      const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || !isGltfAtlas(assets.grps[spriteData.mainImage.typeId]) && image.dat.drawFunction === drawFunctions.rleShadow;
+
+      image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
       image.matrixWorldNeedsUpdate = false;
 
-      //FIXME: move this to sprite directional utils?
       if (image.visible) {
         image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
         image.setTeamColor(player?.color ?? white);
@@ -1166,11 +1174,9 @@ async function TitanReactorGame(
 
         if (imageData.index === spriteData.mainImageIndex) {
           image.userData.unit = unit;
-
-          // if (unit ) {
-          // for 3d models
-          // image.rotation.y = unit.angle;
-          // }
+          if (unit && image instanceof Image3D) {
+            image.rotation.y = getAngle(unit.direction);
+          }
         }
       }
       imageCounter++;

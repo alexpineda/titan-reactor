@@ -1,4 +1,4 @@
-import ImageHD from "@core/image-hd";
+import { ImageHD } from "@core/image-hd";
 import { Unit } from "@core/unit";
 import { Surface } from "@image/canvas";
 import selectedUnitsStore from "@stores/selected-units-store";

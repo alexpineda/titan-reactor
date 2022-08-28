@@ -15,7 +15,7 @@ import {
 import { drawFunctions } from "common/enums";
 import { ImageDAT, AnimFrame, Atlas } from "common/types";
 import { Image } from ".";
-import TeamSpriteMaterial from "./team-sprite-material";
+import { TeamSpriteMaterial } from "./image-hd-material";
 import gameStore from "@stores/game-store";
 import { Unit } from "./unit";
 import { imageIsDoodad } from "@utils/image-utils";
@@ -58,7 +58,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
       unit: undefined
     }
 
-  changeImage(atlas: Atlas, imageDef: ImageDAT, force?: boolean) {
+  changeImageType(atlas: Atlas, imageDef: ImageDAT, force?: boolean) {
 
     if (this.dat.index === imageDef.index && !force) {
       this.material.depthTest = ImageHD.useDepth;
@@ -141,7 +141,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.pos = this.geometry.getAttribute("position");
 
     this.matrixAutoUpdate = false;
-    this.changeImage(atlas, imageDef, true);
+    this.changeImageType(atlas, imageDef, true);
   }
 
 
@@ -281,4 +281,3 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     return true;
   }
 }
-export default ImageHD;

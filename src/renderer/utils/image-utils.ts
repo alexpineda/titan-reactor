@@ -1,4 +1,4 @@
-import { BwDAT, ImageDAT, ImageStruct } from "common/types";
+import { BwDAT, GltfAtlas, ImageDAT, ImageStruct } from "common/types";
 import { ImageFlags, drawFunctions } from "common/enums";
 
 export const imageIsShadow = (image: ImageStruct, bwDat: BwDAT) => {
@@ -35,3 +35,5 @@ export const imageIsClickable = (image: ImageStruct) => {
 export const imageIsDoodad = (dat: ImageDAT) => {
   return dat.iscript === 336 || dat.iscript === 337;
 }
+
+export const isGltfAtlas = (obj: any): obj is GltfAtlas => obj !== undefined && "model" in obj;

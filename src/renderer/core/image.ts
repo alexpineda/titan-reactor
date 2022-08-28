@@ -15,7 +15,7 @@ export interface Image extends Object3D {
   resetModifiers: () => void;
   setTeamColor: (color: Color) => void;
 
-  changeImage(atlas: Atlas, imageDef: ImageDAT, force?: boolean): void;
+  changeImageType(atlas: Atlas, imageDef: ImageDAT, force?: boolean): void;
 
   userData: {
     unit?: Unit,

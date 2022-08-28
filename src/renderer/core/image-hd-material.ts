@@ -1,6 +1,13 @@
 import { drawFunctions } from "common/enums";
 import { Atlas } from "common/types";
-import { Color, MeshBasicMaterial, SpriteMaterialParameters, Texture } from "three";
+import {
+  Color,
+  MeshBasicMaterial,
+  Shader,
+  ShaderChunk,
+  SpriteMaterialParameters,
+  Texture,
+} from "three";
 
 type DynamicUniforms = {
   teamColor: {
@@ -10,17 +17,17 @@ type DynamicUniforms = {
     value?: Texture;
   };
   warpInFlashTexture: {
-    value?: Texture,
-  },
+    value?: Texture;
+  };
   modifier: {
     value: number;
-  },
+  };
   modifierData1: {
     value: number;
-  },
+  };
   modifierData2: {
     value: number;
-  },
+  };
 };
 
 export class TeamSpriteMaterial extends MeshBasicMaterial {
@@ -44,14 +51,14 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
         value: undefined,
       },
       modifierData1: {
-        value: 0
+        value: 0,
       },
       modifierData2: {
-        value: 0
+        value: 0,
       },
       modifier: {
-        value: 0
-      }
+        value: 0,
+      },
     };
   }
 
@@ -101,7 +108,7 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     return this.#dynamicUniforms.modifier.value;
   }
 
-  override onBeforeCompile(shader: any) {
+  override onBeforeCompile(shader: Shader) {
     function extend(
       prop: "fragmentShader" | "vertexShader",
       replace: string,
@@ -148,40 +155,62 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
       mapFragments.push([
         "\ndiffuseColor = vec4((vec3(diffuseColor.a)) * 0.5, diffuseColor.a);\n",
       ]);
-    }
-    else if (this.modifier === drawFunctions.warpFlash) {
+    } else if (this.modifier === drawFunctions.warpFlash) {
       mapFragments.push([
         `
         vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData1, 5.), 0.2 * floor(modifierData1 / 5.));
         vec4 warp = texture2D( warpInFlashTexture, warpUv );
         diffuseColor = vec4(warp.rgb, diffuseColor.a);
-      `
+      `,
       ]);
     } else if (this.modifier === drawFunctions.warpFlash2) {
       mapFragments.push([
         `
         float flashPower = 1. - ((modifierData1 - 48.) / 15.);
         diffuseColor = vec4(mix(diffuseColor.rgb, vec3(1.), flashPower), diffuseColor.a);
-      `
+      `,
       ]);
     } else if (this.modifier === drawFunctions.hallucination) {
       mapFragments.push([
         `
         float b = dot(diffuseColor, vec3(.3, .6, .1));
         diffuseColor = mix(diffuseColor, vec3(0.75, 1.125, 2.65) * b, diffuseColor.a);
-      `]);
+      `,
+      ]);
     }
 
-    mapFragments.push(["", `
+    mapFragments.push([
+      "",
+      `
     uniform float modifier;
     uniform float modifierData1;
     uniform float modifierData2;
-    uniform sampler2D warpInFlashTexture;`])
+    uniform sampler2D warpInFlashTexture;`,
+    ]);
 
     extend("fragmentShader", "#include <map_fragment>", mapFragments);
 
-    Object.assign(shader.uniforms, this.#dynamicUniforms);
+    shader.vertexShader = shader.vertexShader.replace("#include <project_vertex>", ShaderChunk.project_vertex.replace(
+      "gl_Position = projectionMatrix * mvPosition;",
+      `
+        mat4 mv = modelViewMatrix;
 
+        mv[0][0] = modelMatrix[0][0];
+        mv[0][1] = 0.;
+        mv[0][2] = 0.;
+        mv[1][0] = 0.;
+        mv[1][1] = modelMatrix[1][1];
+        mv[1][2] = 0.;
+        mv[2][0] = 0.;
+        mv[2][1] = 0.;
+        mv[2][2] = modelMatrix[2][2];
+
+        gl_Position = projectionMatrix * mv * vec4(transformed, 1.);
+  
+      `
+    ));
+
+    Object.assign(shader.uniforms, this.#dynamicUniforms);
   }
 
   #generateProgramCacheKey() {
@@ -196,5 +225,3 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     return this.#customCacheKey;
   }
 }
-
-export default TeamSpriteMaterial;

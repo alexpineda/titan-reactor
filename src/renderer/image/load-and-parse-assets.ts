@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AssetTextureResolution, Atlas, GlbAtlas, Settings, UnitTileScale } from "common/types";
+import { AssetTextureResolution, Atlas, GltfAtlas, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -20,8 +20,10 @@ import * as log from "../ipc/log"
 import loadEnvironmentMap from "./environment/env-map";
 import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
-import { unitTypes } from "common/enums";
+import { imageTypes, unitTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
+import { rendererIsDev } from "@utils/renderer-utils";
+import { isGltfAtlas } from "@utils/image-utils";
 
 export default async (settings: Settings) => {
 
@@ -71,7 +73,7 @@ export default async (settings: Settings) => {
     const loadingHD2 = new Set();
     const loadingHD = new Set();
 
-    const loadImageAtlas = (atlases: Atlas[]) => async (imageId: number, res: UnitTileScale) => {
+    const loadImageAtlas = (atlases: (Atlas | GltfAtlas)[]) => async (imageId: number, res: UnitTileScale) => {
         if (res === UnitTileScale.HD) {
             if (loadingHD.has(imageId)) {
                 return;
@@ -84,9 +86,13 @@ export default async (settings: Settings) => {
             } else {
                 loadingHD2.add(imageId);
             }
+            // hd2 loading pass will have loaded the model
+        } else if (isGltfAtlas(atlases[imageId])) {
+            loadingHD.add(imageId);
+            return;
         }
+        let atlas: Atlas | GltfAtlas;
 
-        let atlas: Atlas | GlbAtlas;
         const glbFileName = path.join(
             settings.directories.assets,
             `00${refId(
@@ -99,6 +105,8 @@ export default async (settings: Settings) => {
 
         const imageDat = bwDat.images[imageId];
         if (fs) {
+            console.log("loading glb", glbFileName);
+            //TODO refactor:extend the object outside of loadGlbAtlas with anim
             atlas = await loadGlbAtlas(
                 glbFileName,
                 loadAnimBuffer,
@@ -144,8 +152,7 @@ export default async (settings: Settings) => {
         }
     }
 
-    // warp in flash
-    await loadImageAtlasGrp(210, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD);
+    await loadImageAtlasGrp(imageTypes.warpInFlash, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD);
 
     const loader = new CubeTextureLoader();
     const rootPath = path.join(__static, "skybox", "sparse");
@@ -173,7 +180,7 @@ export default async (settings: Settings) => {
         dragIcons,
         wireframeIcons,
         envMap,
-        loadAnim: loadImageAtlasGrp,
+        loadImageAtlas: loadImageAtlasGrp,
         skyBox
     });
     processStore().complete(Process.AtlasPreload);

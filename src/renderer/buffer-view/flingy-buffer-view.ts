@@ -1,6 +1,10 @@
 import { FlingyStruct } from "common/types";
 import ThingyBufferView from "./thingy-buffer-view";
 
+function fractional_part(raw_value: number, fractional_bits: number) {
+    return raw_value & ((1 << fractional_bits) - 1);
+}
+
 /**
  * Maps to openbw flingy_t
  */
@@ -17,15 +21,10 @@ export class FlingyBufferView extends ThingyBufferView
     // movement flags = 1
 
     get direction() {
-        // const heading = this._bw.HEAP32[this._index32 + 10];
-        // auto v = dir.fractional_part();
-        // if (v < 0) return 256 + v;
-        // else return v;
-
-        // raw_type fractional_part() const {
-        //     return raw_value & (((raw_type)1 << fractional_bits) - 1);
-        // }
-        return 0;
+        const heading = this._bw.HEAP32[this._addr32 + 10];
+        const v = fractional_part(heading, 8);
+        if (v < 0) return 256 + v;
+        else return v;
     }
 
     get x() {

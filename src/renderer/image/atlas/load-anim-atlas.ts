@@ -45,9 +45,7 @@ export const loadAnimAtlas = async (
     // const aoDepth = await optionalLoad(sprite.maps.ao_depth);
     const emissive = scale === UnitTileScale.HD ? await optionalLoad(sprite.maps.emissive, LinearEncoding) : undefined;
 
-    //FIXME: diffuse is used twice
     return {
-        type: "anim",
         diffuse,
         grp,
         imageIndex: imageDef.index,

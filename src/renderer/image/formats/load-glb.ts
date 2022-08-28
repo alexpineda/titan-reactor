@@ -3,6 +3,7 @@ import {
   Color,
   Group,
   Mesh,
+  MeshStandardMaterial,
   Object3D,
   sRGBEncoding,
   Texture
@@ -29,9 +30,12 @@ export function loadGlb(
           if (o instanceof Mesh) {
             o.castShadow = true;
             o.receiveShadow = true;
-            o.material.encoding = sRGBEncoding;
-            o.material.envMap = envMap;
-            o.material.emissive = new Color(0xffffff);
+            if ((o.material as MeshStandardMaterial).map) {
+              (o.material as MeshStandardMaterial).map!.encoding = sRGBEncoding;
+            }
+            (o.material as MeshStandardMaterial).envMap = envMap;
+            (o.material as MeshStandardMaterial).emissive = new Color(0xffffff);
+            (o.material as MeshStandardMaterial).emissiveIntensity = 0;
             model.userData.mesh = o;
             if (meshCb) {
               meshCb(o);

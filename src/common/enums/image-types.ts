@@ -1,4 +1,5 @@
 export enum imageTypes {
+  warpInFlash = 210,
   siegeTankTankTurret = 251,
   siegeTankSiegeTurret = 254,
   gasOverlay = 430,

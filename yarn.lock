@@ -11492,6 +11492,13 @@ three-gpu-pathtracer@^0.0.5:
   dependencies:
     three-mesh-bvh "^0.5.10"
 
+three-instanced-uniforms-mesh@^0.46.0:
+  version "0.46.0"
+  resolved "https://registry.yarnpkg.com/three-instanced-uniforms-mesh/-/three-instanced-uniforms-mesh-0.46.0.tgz#a6f546b64cf71684088038a73180eae27d52ee57"
+  integrity sha512-IlFbyN8415qSzinKjvJ1Leh4d1emXOlNiNvWYUvjuiJ+cmRXh2HasgbGM0kJNn0FfmRypeOucrQ72vx1ivS1lA==
+  dependencies:
+    troika-three-utils "^0.46.0"
+
 three-mesh-bvh@^0.5.10:
   version "0.5.15"
   resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.5.15.tgz#bcf681d784d8988618344a5e11e7ded7e76ee86a"

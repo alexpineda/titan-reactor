@@ -6,7 +6,7 @@ import { Image } from "@core/image";
 import { imageHasDirectionalFrames } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import DirectionalCamera from "../camera/directional-camera";
-import ImageHD from "@core/image-hd";
+import { ImageHD } from "@core/image-hd";
 import { GameViewportsDirector } from "renderer/camera/game-viewport-director";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
@@ -66,6 +66,11 @@ export const updateSpritesForViewport = (camera: DirectionalCamera, options: Spr
             }
         } else {
             sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
+            //TODO: remove this in favor of using shader to look at camera for 2d sprites
+        } else if (sprite.visible) {
+            // if (!sprite.userData.is3D) {
+            //     sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
+            // }
             sprite.updateMatrix();
             sprite.updateMatrixWorld();
         }

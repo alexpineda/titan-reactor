@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsa
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";
-import ImageHD from "./image-hd";
+import { ImageHD } from "./image-hd";
 
 export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
   #spriteDef?: SpriteDAT;

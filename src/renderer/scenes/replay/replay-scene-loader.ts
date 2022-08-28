@@ -155,7 +155,7 @@ export const replaySceneLoader = async (filepath: string) => {
     log.verbose(`@load-replay/preload-images: ${allImages.length}`);
     processStore().start(Process.AtlasPreload, allImages.length);
 
-    await Promise.all(allImages.map((imageId) => assets.loadAnim(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
+    await Promise.all(allImages.map((imageId) => assets.loadImageAtlas(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
     processStore().complete(Process.AtlasPreload);
   }
 
