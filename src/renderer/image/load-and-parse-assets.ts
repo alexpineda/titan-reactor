@@ -22,7 +22,6 @@ import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
 import { imageTypes, unitTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
-import { rendererIsDev } from "@utils/renderer-utils";
 import { isGltfAtlas } from "@utils/image-utils";
 
 export default async (settings: Settings) => {

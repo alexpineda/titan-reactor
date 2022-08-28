@@ -1,5 +1,5 @@
 import { Atlas } from "common/types";
-import { Color, MeshBasicMaterial, MeshStandardMaterial, Shader, ShaderChunk, SpriteMaterialParameters, Texture } from "three";
+import { Color, MeshStandardMaterial, Shader, ShaderChunk, SpriteMaterialParameters, Texture } from "three";
 
 type DynamicUniforms = {
     uTeamColor: {

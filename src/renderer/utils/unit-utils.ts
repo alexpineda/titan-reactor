@@ -49,7 +49,7 @@ export const getAngle = (direction: number) => {
   direction -= 64;
   if (direction < 0)
     direction += 256;
-  return direction * Math.PI / 128.0;
+  return -(direction * Math.PI / 128.0) + Math.PI / 2.0;
 }
 
 export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {

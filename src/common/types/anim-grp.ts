@@ -1,4 +1,4 @@
-import { AnimationClip, BufferGeometry, CompressedTexture, Group, Mesh, MeshStandardMaterial, Object3D, SkinnedMesh, Texture } from "three";
+import { AnimationClip, CompressedTexture, Object3D, Texture } from "three";
 import { UnitTileScale } from "./image";
 
 export type AnimFrame = {

@@ -27,6 +27,9 @@ export class ThingyBufferView
         this._sprite = new SpritesBufferView(bw);
     }
 
+    protected get _addr8() {
+        return this._address + (2 << 2); //skip link base
+    }
 
     protected get _addr32() {
         return (this._address >> 2) + 2; //skip link base

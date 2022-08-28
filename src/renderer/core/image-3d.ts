@@ -1,17 +1,17 @@
 import "three/examples/jsm/utils/SkeletonUtils";
 
-import { AnimationAction, AnimationMixer, Color, Mesh, MeshStandardMaterial, Object3D } from "three";
+import { AnimationAction, AnimationMixer, Color, Mesh, Object3D } from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 import type { GltfAtlas, ImageDAT } from "common/types";
-import type { Image, Unit } from ".";
+import type { ImageBase, Unit } from ".";
 import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 
 /**
  * An image instance that may include a 3d model
  */
-export class Image3D extends Object3D implements Image {
+export class Image3D extends Object3D implements ImageBase {
   atlas: GltfAtlas;
   model: Object3D;
   dat: ImageDAT;

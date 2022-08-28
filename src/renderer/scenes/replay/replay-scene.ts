@@ -14,7 +14,7 @@ import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { Music, SoundChannels } from "@audio";
 
 import {
-  Image,
+  ImageBase,
   Players,
   Unit,
   ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D
@@ -54,10 +54,8 @@ import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNIT_CREATED, HOOK_ON
 import { getAngle, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { RELOAD_PLUGINS, SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
-import SelectionCircle from "@core/selection-circle";
-import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
+import selectedUnitsStore, { selectionObjects, updateSelectionGraphics, useSelectedUnitsStore } from "@stores/selected-units-store";
 import FadingPointers from "@image/fading-pointers";
-import SelectionBars from "@core/selection-bars";
 import { IndexedObjectPool } from "@utils/indexed-object-pool";
 import range from "common/utils/range";
 import { getPixelRatio, updatePostProcessingCamera } from "@utils/renderer-utils";
@@ -290,8 +288,8 @@ async function TitanReactorGame(
   janitor.disposable(cameraKeys);
 
   const units: Map<number, Unit> = new Map();
-  const images: Map<number, Image> = new Map();
-  const freeImages = new IndexedObjectPool<Image>();
+  const images: Map<number, ImageBase> = new Map();
+  const freeImages = new IndexedObjectPool<ImageBase>();
   const unitsBySprite: Map<number, Unit> = new Map();
   const sprites: Map<number, SpriteType> = new Map();
   const spritesGroup = new Group();
@@ -894,6 +892,8 @@ async function TitanReactorGame(
     creep.generate(_tiles, frame);
   };
 
+  scene.add(...selectionObjects);
+
   const getImageLoOffset = (out: Vector2, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
     // size_t frame = use_frame_index_offset ? image->frame_index_offset : image->frame_index;
 
@@ -957,10 +957,6 @@ async function TitanReactorGame(
         sprite = new Group() as SpriteType;
         // sprite.matrixAutoUpdate = false;
         sprite.name = "sprite";
-        sprite.userData.selectionCircle = new SelectionCircle();
-        sprite.userData.selectionBars = new SelectionBars();
-        sprite.add(sprite.userData.selectionCircle)
-        sprite.add(sprite.userData.selectionBars)
       }
       sprites.set(spriteData.index, sprite);
       spritesGroup.add(sprite);
@@ -1062,33 +1058,6 @@ async function TitanReactorGame(
 
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
     sprite.position.set(_spritePos.x, (sprite.userData.fixedY ?? bulletY ?? _spritePos.y), _spritePos.z);
-
-
-    let _selWasVisible = sprite.userData.selectionCircle.visible;
-    const unitDieingOrDead = unit?.order === orders.die || unit?.hp === 0;
-    // we do it in the image loop in order to use the right image scale
-    // is there a better ways so we can do it properly at the sprite level?
-    if (unit && !unitDieingOrDead && unit.extras.selected && sprite.visible) {
-      sprite.userData.selectionCircle.update(dat);
-      sprite.userData.selectionCircle.visible = true;
-
-      (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
-    } else {
-      if (!unitDieingOrDead && unit?.extras.recievingDamage && sprite.visible) {
-        (sprite.userData.selectionBars as SelectionBars).update(unit, dat, [], sprite.renderOrder);
-      } else {
-        sprite.userData.selectionBars.visible = false;
-      }
-
-      sprite.userData.selectionCircle.visible = false;
-    }
-
-    if (!_selWasVisible && sprite.userData.selectionCircle.visible) {
-      // in case sprite scale changed
-      sprite.userData.selectionCircle.updateMatrix();
-      sprite.userData.selectionBars.updateMatrix();
-    }
-
 
     let imageCounter = 1;
 
@@ -1398,6 +1367,7 @@ async function TitanReactorGame(
       );
       buildMinimap(minimapUnitsImage, minimapResourcesImage);
       buildSprites(delta);
+      updateSelectionGraphics(gameViewportsDirector.primaryViewport.camera, completedUpgrades, sprites);
 
       fogOfWar.texture.needsUpdate = true;
       creep.creepValuesTexture.needsUpdate = true;

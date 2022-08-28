@@ -1,5 +1,3 @@
-import type SelectionBars from "@core/selection-bars";
-import type SelectionCircle from "@core/selection-circle";
 import { Effect, Pass } from "postprocessing";
 import { Group } from "three";
 
@@ -20,8 +18,6 @@ export enum UnitTileScale {
 
 export interface SpriteType extends Group {
   userData: {
-    selectionCircle: SelectionCircle;
-    selectionBars: SelectionBars;
     fixedY?: number;
     typeId: number;
     /**

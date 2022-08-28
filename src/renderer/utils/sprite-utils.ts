@@ -2,7 +2,7 @@ import { SpriteFlags } from "common/enums";
 import { SpriteRenderOptions, SpriteStruct, SpriteType } from "common/types";
 import { ImageBufferView, SpritesBufferView } from "../buffer-view";
 import { Vector3 } from "three";
-import { Image } from "@core/image";
+import { ImageBase } from "@core/image";
 import { imageHasDirectionalFrames } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import DirectionalCamera from "../camera/directional-camera";
@@ -23,14 +23,13 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
     return (sprite.flags & SpriteFlags.Hidden) !== 0;
 }
 
-const _cameraWorldDirection = new Vector3();
 
-export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<Image | ImageBufferView>) => {
+
+export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<SpriteType | SpritesBufferView>, imageIterator: (spriteData: SpritesBufferView) => Generator<ImageBase | ImageBufferView>) => {
 
     ImageHD.useDepth = false;// options.rotateSprites;
     ImageHD.useScale = options.unitScale;
 
-    camera.getWorldDirection(_cameraWorldDirection);
     let frameInfo: { frame: number, flipped: boolean } | null = null;
 
     for (const sprite of spriteIterator()) {
@@ -61,16 +60,8 @@ export const updateSpritesForViewport = (camera: DirectionalCamera, options: Spr
                     }
                     frameInfo = null;
                 }
-
-
             }
-        } else {
-            sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
-            //TODO: remove this in favor of using shader to look at camera for 2d sprites
         } else if (sprite.visible) {
-            // if (!sprite.userData.is3D) {
-            //     sprite.lookAt(sprite.position.x - _cameraWorldDirection.x, sprite.position.y - _cameraWorldDirection.y, sprite.position.z - _cameraWorldDirection.z);
-            // }
             sprite.updateMatrix();
             sprite.updateMatrixWorld();
         }

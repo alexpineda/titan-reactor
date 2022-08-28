@@ -1,11 +1,12 @@
-import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsage } from "three";
+import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsage, Shader, Vector3 } from "three";
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";
 import { ImageHD } from "./image-hd";
+import { flatProjection } from "@utils/shader-utils";
 
 export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
-  #spriteDef?: SpriteDAT;
+  #spriteDat?: SpriteDAT;
 
   constructor() {
     const _geometry = new BufferGeometry();
@@ -33,7 +34,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
       _geometry,
       new MeshBasicMaterial({
         // @ts-ignore
-        onBeforeCompile: (shader) => {
+        onBeforeCompile: (shader: Shader) => {
           const fs = shader.fragmentShader;
           shader.fragmentShader = fs.replace(
             "#include <map_fragment>",
@@ -42,22 +43,23 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
                 diffuseColor = vec4(0., 1., 0., diffuseColor.a * 0.5);
             `
           );
+
+          // flatProjection(shader);
         },
       })
     );
     this.material.depthTest = false;
     this.material.transparent = true;
-    this.visible = false;
     this.name = "selectionCircle";
   }
 
-  update(spriteDef: SpriteDAT) {
-    if (spriteDef !== this.#spriteDef) {
-      const circle = spriteDef.selectionCircle;
+  update(spriteDat: SpriteDAT) {
+    if (spriteDat !== this.#spriteDat) {
+      const circle = spriteDat.selectionCircle;
       const grp = gameStore().assets!.selectionCirclesHD[circle.index];
       this.material.map = grp.diffuse;
       this.material.needsUpdate = true;
-      this.position.y = -spriteDef.selectionCircleOffset / 32;
+      this.position.y = -spriteDat.selectionCircleOffset / 32;
 
       const unitTileScale = (grp.unitTileScale / 4) * 128;
       this.scale.set(
@@ -65,7 +67,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
         (grp?.textureHeight as number) / unitTileScale,
         1
       ).multiplyScalar(ImageHD.useScale);
-      this.#spriteDef = spriteDef;
+      this.#spriteDat = spriteDat;
     }
   }
 }

@@ -2,7 +2,7 @@ import { Atlas, UnitTileScale, ImageDAT } from "common/types";
 import type { Color, Object3D } from "three";
 import { Unit } from "./unit";
 
-export interface Image extends Object3D {
+export interface ImageBase extends Object3D {
   dat: ImageDAT;
   setFrame: (frame: number, flip: boolean) => void;
 

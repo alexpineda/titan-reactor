@@ -21,7 +21,8 @@ export class FlingyBufferView extends ThingyBufferView
     // movement flags = 1
 
     get direction() {
-        const heading = this._bw.HEAP32[this._addr32 + 10];
+        // heading is a large structure (fixed_point), get the byte at 2nd word for raw value
+        const heading = this._bw.HEAP8[this._addr8 + (11 << 2)];
         const v = fractional_part(heading, 8);
         if (v < 0) return 256 + v;
         else return v;

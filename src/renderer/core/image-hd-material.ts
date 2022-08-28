@@ -1,16 +1,16 @@
+import { flatProjection } from "@utils/shader-utils";
 import { drawFunctions } from "common/enums";
 import { Atlas } from "common/types";
 import {
   Color,
   MeshBasicMaterial,
   Shader,
-  ShaderChunk,
   SpriteMaterialParameters,
   Texture,
 } from "three";
 
 type DynamicUniforms = {
-  teamColor: {
+  uTeamColor: {
     value: Color;
   };
   teamMask: {
@@ -30,7 +30,7 @@ type DynamicUniforms = {
   };
 };
 
-export class TeamSpriteMaterial extends MeshBasicMaterial {
+export class ImageHDMaterial extends MeshBasicMaterial {
   #dynamicUniforms: DynamicUniforms;
   isTeamSpriteMaterial = true;
   #customCacheKey = "";
@@ -41,7 +41,7 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
     this.defines = {};
 
     this.#dynamicUniforms = {
-      teamColor: {
+      uTeamColor: {
         value: new Color(0xffffff),
       },
       teamMask: {
@@ -72,11 +72,11 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
   }
 
   set teamColor(val) {
-    this.#dynamicUniforms.teamColor.value = val;
+    this.#dynamicUniforms.uTeamColor.value = val;
   }
 
   get teamColor() {
-    return this.#dynamicUniforms.teamColor.value;
+    return this.#dynamicUniforms.uTeamColor.value;
   }
 
   set warpInFlashGRP(val: Atlas | undefined) {
@@ -144,10 +144,10 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
       mapFragments.push([
         `
         float maskValue = texture2D( teamMask, vUv ).r;
-        diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * teamColor, maskValue), diffuseColor.a);
+        diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * uTeamColor, maskValue), diffuseColor.a);
         `,
         `uniform sampler2D teamMask;
-           uniform vec3 teamColor;`,
+           uniform vec3 uTeamColor;`,
       ]);
     }
 
@@ -190,25 +190,7 @@ export class TeamSpriteMaterial extends MeshBasicMaterial {
 
     extend("fragmentShader", "#include <map_fragment>", mapFragments);
 
-    shader.vertexShader = shader.vertexShader.replace("#include <project_vertex>", ShaderChunk.project_vertex.replace(
-      "gl_Position = projectionMatrix * mvPosition;",
-      `
-        mat4 mv = modelViewMatrix;
-
-        mv[0][0] = modelMatrix[0][0];
-        mv[0][1] = 0.;
-        mv[0][2] = 0.;
-        mv[1][0] = 0.;
-        mv[1][1] = modelMatrix[1][1];
-        mv[1][2] = 0.;
-        mv[2][0] = 0.;
-        mv[2][1] = 0.;
-        mv[2][2] = modelMatrix[2][2];
-
-        gl_Position = projectionMatrix * mv * vec4(transformed, 1.);
-  
-      `
-    ));
+    flatProjection(shader);
 
     Object.assign(shader.uniforms, this.#dynamicUniforms);
   }

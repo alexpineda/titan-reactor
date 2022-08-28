@@ -8,7 +8,7 @@ import {
 } from "common/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "common/types";
 import pick from "common/utils/pick";
-import { Image3D, Image } from ".";
+import { Image3D, ImageBase } from ".";
 import { IScriptRunner } from "./iscript-runner";
 import { IScriptState } from "./iscript-state";
 
@@ -20,7 +20,7 @@ enum ImageOrder {
 }
 
 type IScriptImage = {
-  image: Image;
+  image: ImageBase;
   state: IScriptState;
   sprite: IScriptSprite;
   setFrame: (frame: number, flip: boolean) => void;
@@ -40,7 +40,7 @@ export class IScriptSprite extends Group {
   destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void;
   createTitanImage: (
     image: number
-  ) => Image
+  ) => ImageBase
   runner: IScriptRunner;
 
   iscriptOptions: {
@@ -54,7 +54,7 @@ export class IScriptSprite extends Group {
     createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite,
     createTitanImage: (
       image: number
-    ) => Image,
+    ) => ImageBase,
     runner: IScriptRunner,
     createTitanSpriteCb: (titanSprite: IScriptSprite) => void,
     destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void = () => { },

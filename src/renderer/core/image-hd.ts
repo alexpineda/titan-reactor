@@ -14,8 +14,8 @@ import {
 
 import { drawFunctions } from "common/enums";
 import { ImageDAT, AnimFrame, Atlas } from "common/types";
-import { Image } from ".";
-import { TeamSpriteMaterial } from "./image-hd-material";
+import { ImageBase } from ".";
+import { ImageHDMaterial } from "./image-hd-material";
 import gameStore from "@stores/game-store";
 import { Unit } from "./unit";
 import { imageIsDoodad } from "@utils/image-utils";
@@ -26,7 +26,7 @@ const CLOAK_OPACITY = 0.6;
 /**
  * An image instance that uses HD assets
  */
-export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements Image {
+export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements ImageBase {
   static useDepth = false;
   static useScale = 1;
 
@@ -68,8 +68,8 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
     this.atlas = atlas;
     this.dat = imageDef;
     this.material.map = atlas.diffuse;
-    (this.material as TeamSpriteMaterial).teamMask = atlas.teammask;
-    (this.material as TeamSpriteMaterial).warpInFlashGRP = gameStore().assets?.grps[210];
+    (this.material as ImageHDMaterial).teamMask = atlas.teammask;
+    (this.material as ImageHDMaterial).warpInFlashGRP = gameStore().assets?.grps[210];
     this.originalScale.set(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
@@ -110,7 +110,7 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
 
     _geometry.setIndex([0, 1, 2, 0, 2, 3]);
 
-    super(_geometry, new TeamSpriteMaterial);
+    super(_geometry, new ImageHDMaterial);
 
     this.atlas = atlas;
     this.dat = imageDef;
@@ -160,13 +160,13 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   }
 
   setTeamColor(val: Color) {
-    (this.material as TeamSpriteMaterial).teamColor = val;
+    (this.material as ImageHDMaterial).teamColor = val;
   }
 
   setModifiers(modifier: number, modifierData1: number, modifierData2: number) {
-    (this.material as TeamSpriteMaterial).modifier = modifier;
-    (this.material as TeamSpriteMaterial).modifierData1 = modifierData1;
-    (this.material as TeamSpriteMaterial).modifierData2 = modifierData2;
+    (this.material as ImageHDMaterial).modifier = modifier;
+    (this.material as ImageHDMaterial).modifierData1 = modifierData1;
+    (this.material as ImageHDMaterial).modifierData2 = modifierData2;
 
     // 3 & 6 === cloak
     // 2 and 5 === activate cloak
@@ -182,9 +182,9 @@ export class ImageHD extends Mesh<BufferGeometry, MeshBasicMaterial> implements 
   }
 
   resetModifiers() {
-    (this.material as TeamSpriteMaterial).modifier = 0;
-    (this.material as TeamSpriteMaterial).modifierData1 = 0;
-    (this.material as TeamSpriteMaterial).modifierData2 = 0;
+    (this.material as ImageHDMaterial).modifier = 0;
+    (this.material as ImageHDMaterial).modifierData1 = 0;
+    (this.material as ImageHDMaterial).modifierData2 = 0;
     this.material.opacity = 1;
   }
 
