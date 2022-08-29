@@ -769,7 +769,7 @@ export async function replayScene(
 
   let _spriteIteratorResult: {
     bufferView: SpritesBufferView,
-    object: SpriteType | undefined
+    object: SpriteType
   }
 
   function* spriteIterator() {
@@ -785,28 +785,43 @@ export async function replayScene(
         const bufferView = spriteBufferView.get(spriteAddr);
         const object = sprites.get(bufferView.index);
 
-        if (!_spriteIteratorResult) {
-          _spriteIteratorResult = {
-            bufferView,
-            object
+        if (object) {
+          if (!_spriteIteratorResult) {
+            _spriteIteratorResult = {
+              bufferView,
+              object
+            }
+          } else {
+            _spriteIteratorResult.bufferView = bufferView;
+            _spriteIteratorResult.object = object;
           }
-        } else {
-          _spriteIteratorResult.bufferView = bufferView;
-          _spriteIteratorResult.object = object;
+          yield _spriteIteratorResult;
         }
-        yield _spriteIteratorResult;
       }
     }
   }
 
+  let _imageIteratorResult: {
+    bufferView: ImageBufferView,
+    object: ImageHD | Image3D
+  }
+
   function* spriteImageIterator(spriteData: SpritesBufferView) {
     for (const imgAddr of spriteData.images.reverse()) {
-      const imageData = imageBufferView.get(imgAddr);
-      yield imageData;
+      const bufferView = imageBufferView.get(imgAddr);
+      const object = images.getOrCreate(bufferView.index, bufferView.typeId);
 
-      let image = images.getOrCreate(imageData.index, imageData.typeId);
-      if (image) {
-        yield image;
+      if (object) {
+        if (!_imageIteratorResult) {
+          _imageIteratorResult = {
+            bufferView,
+            object
+          }
+        } else {
+          _imageIteratorResult.bufferView = bufferView;
+          _imageIteratorResult.object = object;
+        }
+        yield _imageIteratorResult;
       }
     }
   }

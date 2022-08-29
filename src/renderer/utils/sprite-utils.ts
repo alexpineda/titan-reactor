@@ -2,7 +2,7 @@ import { SpriteFlags } from "common/enums";
 import { SpriteRenderOptions, SpriteStruct, SpriteType } from "common/types";
 import { ImageBufferView } from "../buffer-view/images-buffer-view";
 import { Vector3 } from "three";
-import { imageHasDirectionalFrames } from "./image-utils";
+import { imageHasDirectionalFrames, imageIsHidden } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import DirectionalCamera from "../camera/directional-camera";
 import { ImageHD } from "@core/image-hd";
@@ -15,16 +15,15 @@ type SpriteModelImageEffectEmissiveFrames = {
     frames: number[];
 }
 
-type SpriteModelImageEffectEmissiveVisibility = {
-    type: "emissive:visibility";
-    affects: number;
+type SpriteModelImageEffectEmissiveOverlay = {
+    type: "emissive:overlay-visible";
 }
 
 type SpriteModelImageEffectHideSprite = {
     type: "hide-sprite";
 }
 
-type SpriteModelImageEffects = SpriteModelImageEffectEmissiveFrames | SpriteModelImageEffectEmissiveVisibility | SpriteModelImageEffectHideSprite;
+type SpriteModelImageEffects = SpriteModelImageEffectEmissiveFrames | SpriteModelImageEffectEmissiveOverlay | SpriteModelImageEffectHideSprite;
 
 type SpriteModelEffects = {
     [key: number]: {
@@ -53,10 +52,11 @@ const spriteModelEffects: SpriteModelEffects = {
             //command center overlay
             276: [
                 {
-                    type: "emissive:visibility",
-                    affects: 275
+                    // set emissive to main image (eg. 275) if this overlay is visible
+                    type: "emissive:overlay-visible",
                 },
                 {
+                    // never draw this image
                     type: "hide-sprite"
                 }
             ]
@@ -80,66 +80,83 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
 
 export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<{
     bufferView: SpritesBufferView,
-    object: SpriteType | undefined
-}>, imageIterator: (spriteData: SpritesBufferView) => Generator<ImageHD | Image3D | ImageBufferView>) => {
+    object: SpriteType
+}>, imageIterator: (spriteData: SpritesBufferView) => Generator<{
+    bufferView: ImageBufferView,
+    object: ImageHD | Image3D
+}>) => {
 
     ImageHD.useDepth = options.rotateSprites;
     ImageHD.useScale = options.unitScale;
 
     let frameInfo: { frame: number, flipped: boolean } | null = null;
+    let mainImage: ImageHD | Image3D | null = null;
 
     for (const sprite of spriteIterator()) {
-        for (const image of imageIterator(sprite.bufferView)) {
+        if (sprite.object?.visible) {
+            for (const image of imageIterator(sprite.bufferView)) {
 
-            if (image instanceof ImageBufferView) {
-                if (imageHasDirectionalFrames(image)) {
-                    frameInfo = applyCameraDirectionToImageFrame(camera, image);
+                if (sprite.bufferView.mainImageIndex === image.bufferView.index) {
+                    mainImage = image.object;
                 }
-                // command center overlay
-                // if (image.iscript.typeId === 103) {
-                //     const bwDat = gameStore().assets!.bwDat;
-                //     const iscript = bwDat.iscript.iscripts[image.iscript.typeId];
-                //     debugger;
-                // }
-            } else {
+
+                if (imageHasDirectionalFrames(image.bufferView)) {
+                    frameInfo = applyCameraDirectionToImageFrame(camera, image.bufferView);
+                }
                 if (frameInfo !== null) {
-                    image.setFrame(frameInfo.frame, frameInfo.flipped);
+                    image.object.setFrame(frameInfo.frame, frameInfo.flipped);
                 }
 
-                if (image instanceof ImageHD) {
-                    image.material.depthTest = ImageHD.useDepth;
+                if (image.object instanceof ImageHD) {
+                    image.object.material.depthTest = ImageHD.useDepth;
 
-                    if (image.scale.x !== ImageHD.useScale) {
-                        image.scale.copy(image.originalScale);
-                        image.scale.multiplyScalar(ImageHD.useScale);
-                        image.matrixWorldNeedsUpdate = true;
+                    if (image.object.scale.x !== ImageHD.useScale) {
+                        image.object.scale.copy(image.object.originalScale);
+                        image.object.scale.multiplyScalar(ImageHD.useScale);
+                        image.object.matrixWorldNeedsUpdate = true;
                     }
-                } else if (spriteModelEffects[sprite.bufferView.typeId]) {
-                    if (spriteModelEffects[sprite.bufferView.typeId]!.images[image.userData.typeId]) {
-                        for (const effect of spriteModelEffects[sprite.bufferView.typeId]!.images[image.userData.typeId]) {
-                            switch (effect.type) {
-                                case "emissive:frames":
-                                    image.setEmissive(effect.frames[image.frame] ? 1 : 0);
-                                    break;
-                                case "emissive:visibility":
-                                    break;
-                                case "hide-sprite":
-                                    image.visible = false;
-                                    break;
+
+                    if (spriteModelEffects[sprite.bufferView.typeId]) {
+                        if (spriteModelEffects[sprite.bufferView.typeId]!.images[image.bufferView.typeId]) {
+                            for (const effect of spriteModelEffects[sprite.bufferView.typeId]!.images[image.bufferView.typeId]) {
+                                switch (effect.type) {
+                                    case "emissive:overlay-visible":
+                                        if (mainImage instanceof Image3D) {
+                                            mainImage?.setEmissive(imageIsHidden(image.bufferView) ? 0 : 1);
+                                        }
+                                        break;
+                                    case "hide-sprite":
+                                        image.object.visible = false;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                } else if (image.object instanceof Image3D) {
+                    if (spriteModelEffects[sprite.bufferView.typeId]) {
+                        if (spriteModelEffects[sprite.bufferView.typeId]!.images[image.bufferView.typeId]) {
+                            for (const effect of spriteModelEffects[sprite.bufferView.typeId]!.images[image.bufferView.typeId]) {
+                                switch (effect.type) {
+                                    case "emissive:frames":
+                                        if (mainImage instanceof Image3D) {
+                                            image.object.setEmissive(effect.frames.includes(image.object.frame) ? 1 : 0);
+                                        }
+                                        break;
+                                }
                             }
                         }
                     }
                 }
 
-                if (image.visible && image.matrixWorldNeedsUpdate) {
-                    image.updateMatrix();
-                    image.updateMatrixWorld();
+
+
+                if (image.object.visible && image.object.matrixWorldNeedsUpdate) {
+                    image.object.updateMatrix();
+                    image.object.updateMatrixWorld();
                 }
                 frameInfo = null;
             }
-        }
 
-        if (sprite.object?.visible) {
             sprite.object!.renderOrder = ImageHD.useDepth ? 0 : sprite.object!.userData.renderOrder;
             sprite.object!.updateMatrix();
             sprite.object!.updateMatrixWorld();
