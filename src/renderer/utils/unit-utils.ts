@@ -55,7 +55,7 @@ export const getAngle = (direction: number) => {
 export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
   if (u.orderTargetAddr === 0 || u.orderTargetUnit === 0) return undefined;
   const unit = u.subunit && bwDat.units[u.subunit.typeId].isTurret ? u.subunit : u;
-  switch (unit.owSprite.mainImage.iscriptAnimation) {
+  switch (unit.owSprite.mainImage.iscript.animation) {
     case iscriptHeaders.gndAttkInit:
     case iscriptHeaders.gndAttkRpt:
       return bwDat.weapons[bwDat.units[unit.typeId].groundWeapon];

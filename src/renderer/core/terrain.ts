@@ -65,7 +65,7 @@ export class Terrain extends Group {
     }
 
     setHighDetailStyle(highDetail: boolean) {
-        this.setBumpScale(highDetail ? this.geomOptions.bumpScale : 0);
+        this.setBumpScale(0);
         this.shadowsEnabled = highDetail;
 
         // TODO: other things

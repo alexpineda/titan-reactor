@@ -17,6 +17,7 @@ export class Image3D extends Object3D implements ImageBase {
   dat: ImageDAT;
   mixer?: AnimationMixer;
 
+  #frame = 0;
   #times = new Float32Array();
   #action?: AnimationAction;
   //@ts-ignore
@@ -94,17 +95,16 @@ export class Image3D extends Object3D implements ImageBase {
 
   setFrame(frame: number) {
     if (!this.mixer) return;
-    const effectiveFrame = this.atlas.fixedFrames[frame];
-    this.mixer.setTime(this.#times[effectiveFrame]);
+    this.#frame = frame;
+    this.mixer.setTime(this.#times[this.frame]);
 
-    if (this.dat.index === 239) {
-      //marine
-      if (effectiveFrame === 3) {
-        //fire
-        this.model.userData.mesh.material.emissiveIntensity = 1;
-      } else {
-        this.model.userData.mesh.material.emissiveIntensity = 0;
-      }
-    }
+  }
+
+  setEmissive(val: number) {
+    this.#material.emissiveIntensity = val;
+  }
+
+  get frame() {
+    return this.atlas.fixedFrames[this.#frame];
   }
 }

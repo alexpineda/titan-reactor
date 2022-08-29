@@ -33,7 +33,7 @@ export class IScriptRunner {
   }
 
   _toAnimationBlock(offset: number, header = -1, state: IScriptState) {
-    const commands = this.bwDat.iscript.animationBlocks[offset];
+    const commands = this.bwDat.iscript.animations[offset];
     if (!commands) {
       let name = "local";
       if (header >= 0) {
@@ -348,7 +348,7 @@ export class IScriptRunner {
               commandIndex: state.commandIndex,
             };
             state.commandIndex = 0;
-            state.commands = this.bwDat.iscript.animationBlocks[args[0]];
+            state.commands = this.bwDat.iscript.animations[args[0]];
             this._dispatch(command, args);
           }
           return;

@@ -3,10 +3,10 @@ import {
   getDirectionalFrame as _getDirectionalFrame,
   areFrameSetsEnabled as _areFrameSetsEnabled,
 } from "./framesets";
-import { AnimationBlockType, Block } from "common/types";
+import { IScriptAnimation, Block } from "common/types";
 
 
-export default (cmds: AnimationBlockType, selectedBlock: Block, blockFrameCount: number, cameraDirection: number) => {
+export default (cmds: IScriptAnimation, selectedBlock: Block, blockFrameCount: number, cameraDirection: number) => {
   const dirCache = useRef<any>();
   useEffect(() => {
     dirCache.current = {};

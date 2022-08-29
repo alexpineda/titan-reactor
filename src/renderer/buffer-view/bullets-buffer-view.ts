@@ -1,4 +1,4 @@
-import { OpenBWWasm, BulletStruct } from "common/types";
+import { OpenBWAPI, BulletStruct } from "common/types";
 import FlingyBufferView from "./flingy-buffer-view";
 import { UnitsBufferView } from "./units-buffer-view";
 
@@ -11,7 +11,7 @@ export class BulletsBufferView extends FlingyBufferView
     private _bulletOwnerUnit: UnitsBufferView;
     private _prevBounceUnit: UnitsBufferView;
 
-    constructor(bw: OpenBWWasm) {
+    constructor(bw: OpenBWAPI) {
         super(bw);
         this._bulletTarget = new UnitsBufferView(bw);
         this._bulletOwnerUnit = new UnitsBufferView(bw);

@@ -1,18 +1,20 @@
-import { OpenBWWasm, ImageStruct } from "common/types";
+import { OpenBWAPI, ImageStruct } from "common/types";
+import { IScriptBufferView } from "./iscript-buffer-view";
 export class ImageBufferView
   implements ImageStruct {
 
   _address = 0;
-  _bw: OpenBWWasm;
-  _debug = 0;
+  _bw: OpenBWAPI;
+  #iscriptState: IScriptBufferView;
 
   get(address: number) {
     this._address = address;
     return this;
   }
 
-  constructor(bw: OpenBWWasm) {
+  constructor(bw: OpenBWAPI) {
     this._bw = bw;
+    this.#iscriptState = new IScriptBufferView(bw);
   }
 
   private get _index32() {
@@ -64,12 +66,8 @@ export class ImageBufferView
     return this._bw.HEAP32[this._index32 + 12];
   }
 
-  get iscriptProgramCounter() {
-    return this._bw.HEAPU32[this._index32 + 13];
-  }
-
-  get iscriptAnimation() {
-    return this._bw.HEAP32[this._index32 + 16];
+  get iscript() {
+    return this.#iscriptState.get((this._index32 + 13) << 2);
   }
 
   get nextNode() {
@@ -82,21 +80,5 @@ export class ImageBufferView
       yield this;
       this._address = this.nextNode;
     } while (header !== this._address); // intrusive list
-  }
-
-  copyTo(other: any) {
-    other.index = this.index;
-    other.typeId = this.typeId;
-    other.modifier = this.modifier;
-    other.modifierData1 = this.modifierData1;
-    other.modifierData2 = this.modifierData2;
-    other.frameIndex = this.frameIndex;
-    other.frameIndexBase = this.frameIndexBase;
-    other.frameIndexOffset = this.frameIndexOffset;
-    other.flags = this.flags;
-    other.x = this.x;
-    other.y = this.y;
-    other.iscriptProgramCounter = this.iscriptProgramCounter;
-    other.iscriptAnimation = this.iscriptAnimation;
   }
 }

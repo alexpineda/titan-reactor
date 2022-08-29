@@ -1,9 +1,9 @@
-import { ImageDAT, IScriptRawType, AnimationBlockType } from "../../common/types";
+import { ImageDAT, IScriptProgram, IScriptAnimation } from "../../common/types";
 
-type Commands = AnimationBlockType & { header?: number };
+type Commands = IScriptAnimation & { header?: number };
 
 export class IScriptState {
-    iscript: IScriptRawType;
+    iscript: IScriptProgram;
     imageDesc: ImageDAT;
 
     alreadyRun: Record<number, boolean> = {};
@@ -42,7 +42,7 @@ export class IScriptState {
         };
     } = {};
 
-    constructor(iscript: IScriptRawType, imageDesc: ImageDAT) {
+    constructor(iscript: IScriptProgram, imageDesc: ImageDAT) {
         this.iscript = iscript;
         this.imageDesc = imageDesc;
 

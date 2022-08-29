@@ -5,6 +5,7 @@ import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
+  SpriteType,
   WeaponDAT
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
@@ -766,6 +767,11 @@ export async function replayScene(
   };
 
 
+  let _spriteIteratorResult: {
+    bufferView: SpritesBufferView,
+    object: SpriteType | undefined
+  }
+
   function* spriteIterator() {
     const spriteList = new IntrusiveList(openBW.HEAPU32);
     const spriteTileLineSize = openBW.getSpritesOnTileLineSize();
@@ -776,14 +782,19 @@ export async function replayScene(
         if (spriteAddr === 0) {
           continue;
         }
+        const bufferView = spriteBufferView.get(spriteAddr);
+        const object = sprites.get(bufferView.index);
 
-        const spriteData = spriteBufferView.get(spriteAddr);
-        yield spriteData;
-
-        let sprite = sprites.get(spriteData.index);
-        if (sprite) {
-          yield sprite;
+        if (!_spriteIteratorResult) {
+          _spriteIteratorResult = {
+            bufferView,
+            object
+          }
+        } else {
+          _spriteIteratorResult.bufferView = bufferView;
+          _spriteIteratorResult.object = object;
         }
+        yield _spriteIteratorResult;
       }
     }
   }

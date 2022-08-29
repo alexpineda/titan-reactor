@@ -61,8 +61,8 @@ export default async (settings: Settings) => {
     } = await generateIcons(readCascFile);
 
     const refId = (id: number) => {
-        if (sdAnim[id] && sdAnim[id].refId) {
-            return sdAnim[id].refId;
+        if (sdAnim?.[id]?.refId !== undefined) {
+            return sdAnim[id].refId!;
         }
         return id;
     };

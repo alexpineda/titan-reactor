@@ -16,7 +16,7 @@ const calculateImagesFromIScript = (
     const script = bwDat.iscript.iscripts[imageDef.iscript];
     for (const offset of script.offsets) {
       if (offset === 0) continue;
-      for (const cmd of bwDat.iscript.animationBlocks[offset]) {
+      for (const cmd of bwDat.iscript.animations[offset]) {
         const args = cmd[1] as opArgOne;
 
         switch (cmd[0]) {

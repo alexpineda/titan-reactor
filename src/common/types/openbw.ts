@@ -70,6 +70,8 @@ export interface OpenBWAPI extends OpenBWWasm {
     getGameSpeed: () => number;
     setCurrentFrame: (frame: number) => void;
     getCurrentFrame: () => number;
+    getIScriptProgramDataSize: () => number;
+    getIScriptProgramDataAddress: () => number;
     isPaused: () => boolean;
     setPaused: (paused: boolean) => void;
 

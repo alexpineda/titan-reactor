@@ -6,3 +6,4 @@ export * from "./intrusive-list";
 export * from "./units-buffer-view";
 export * from "./bullets-buffer-view";
 export * from "./std-vector";
+export * from "./iscript-buffer-view";

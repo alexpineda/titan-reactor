@@ -1,7 +1,7 @@
 
 import { ImageDAT } from "./bwdat";
 
-export type IScriptRawType = {
+export type IScriptProgram = {
   id: number;
   type: number;
   offset: number;
@@ -86,7 +86,7 @@ type opWarpOverlay = ["warpoverlay", [number]];
 type opGrdSprol = ["grdsprol", [number, number, number]];
 type opDoGrdDamage = ["dogrddamage", opArgNone];
 
-export type IscriptOperations =
+export type IScriptOperations =
   | opGoto
   | opPlayFrame
   | opPlayframtile
@@ -158,11 +158,11 @@ export type IscriptOperations =
   | opGrdSprol
   | opDoGrdDamage;
 
-export type AnimationBlockType = IscriptOperations[];
+export type IScriptAnimation = IScriptOperations[];
 
 export type IScriptDATType = {
-  iscripts: Record<number, IScriptRawType>;
-  animationBlocks: Record<number, AnimationBlockType>;
+  iscripts: Record<number, IScriptProgram>;
+  animations: Record<number, IScriptAnimation>;
 };
 
 export type Block = { image: ImageDAT; offset: number; header: number };

@@ -1,24 +1,28 @@
 import { Unit } from "@core/unit";
+import { SparseList } from "@utils/sparse-list";
 import { SpriteType } from "common/types";
 import { Group } from "three";
 
 export class SpriteEntities {
     group = new Group();
 
-    #sprites: Map<number, SpriteType> = new Map();
+    #spritesMap: Map<number, SpriteType> = new Map();
     #spritePool: Group[] = [];
+
+    // duplicate access
     #unitsBySprite: Map<number, Unit> = new Map();
+    #spritesList = new SparseList<SpriteType>();
 
     constructor() {
         this.group.name = "sprites";
     }
 
     get(spriteIndex: number) {
-        return this.#sprites.get(spriteIndex);
+        return this.#spritesMap.get(spriteIndex);
     }
 
     getOrCreate(spriteIndex: number, spriteTypeId: number) {
-        let sprite = this.#sprites.get(spriteIndex);
+        let sprite = this.#spritesMap.get(spriteIndex);
         if (!sprite) {
             if (this.#spritePool.length) {
                 sprite = this.#spritePool.pop() as SpriteType;
@@ -26,28 +30,33 @@ export class SpriteEntities {
                 sprite = new Group() as SpriteType;
                 sprite.name = "sprite";
             }
-            this.#sprites.set(spriteIndex, sprite);
+            this.#spritesMap.set(spriteIndex, sprite);
             this.group.add(sprite);
+            this.#spritesList.add(sprite);
+
             sprite.userData.typeId = spriteTypeId;
             sprite.userData.renderTestCount = 0;
             delete sprite.userData.fixedY;
+
         }
         return sprite;
     }
 
     free(spriteIndex: number) {
-        const sprite = this.#sprites.get(spriteIndex);
+        const sprite = this.#spritesMap.get(spriteIndex);
         if (sprite) {
             sprite.removeFromParent();
             this.#spritePool.push(sprite);
-            this.#sprites.delete(spriteIndex);
+            this.#spritesMap.delete(spriteIndex);
+            this.#spritesList.delete(sprite);
         }
         this.#unitsBySprite.delete(spriteIndex);
     }
 
     clear() {
-        this.#sprites.clear();
+        this.#spritesMap.clear();
         this.#unitsBySprite.clear();
+        this.#spritesList.clear();
     }
 
     getUnit(spriteIndex: number) {
@@ -56,5 +65,9 @@ export class SpriteEntities {
 
     setUnit(spriteIndex: number, unit: Unit) {
         this.#unitsBySprite.set(spriteIndex, unit);
+    }
+
+    get iterator() {
+        return this.#spritesList;
     }
 }

@@ -1,5 +1,5 @@
 import { Grp } from "common/image/grp";
-import parseIscript from "./parse-iscript-bin";
+import { parseIScriptBin } from "./parse-iscript-bin";
 import path from "path";
 
 import { ReadFile, AnimFrame, GrpSprite, IScriptDATType } from "../types";
@@ -17,7 +17,7 @@ import { UpgradesDAT } from "./upgrades-dat";
 import { WeaponsDAT } from "./weapons-dat";
 
 export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
-  const iscript = parseIscript(
+  const iscript = parseIScriptBin(
     await readFile("scripts/iscript.bin")
   ) as IScriptDATType;
 

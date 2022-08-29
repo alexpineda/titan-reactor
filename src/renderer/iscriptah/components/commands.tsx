@@ -43,7 +43,7 @@ export const Commands = () => {
   const elToClick = useRef<HTMLLIElement>();
 
   const { offset, header } = selectedBlock;
-  const animationBlocks = bwDat.iscript.animationBlocks;
+  const animationBlocks = bwDat.iscript.animations;
   const cmds = animationBlocks[offset];
   const headerLabel = iscriptHeaders[header];
   const [getDirectionalFrame, areFrameSetsEnabled] = useDirectionalFrame(

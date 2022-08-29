@@ -1,5 +1,5 @@
 import range from "../utils/range";
-import { IScriptDATType, IScriptRawType, AnimationBlockType, IscriptOperations } from "../types";
+import { IScriptDATType, IScriptProgram, IScriptAnimation, IScriptOperations } from "../types";
 
 const IScriptTypes: Record<number, number> = {
   0: 2,
@@ -122,24 +122,24 @@ const read = (buf: Buffer, size: number, pos: number) => {
 };
 
 export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
-  const iscripts: Record<number, IScriptRawType> = [];
-  const animationBlocks: Record<number, AnimationBlockType> = {};
+  const iscripts: Record<number, IScriptProgram> = [];
+  const animations: Record<number, IScriptAnimation> = {};
 
   function loadAnimationBlock(offset: number) {
-    if (!offset || animationBlocks[offset]) {
+    if (!offset || animations[offset]) {
       return;
     }
     let nextOffset: number | null = offset;
-    animationBlocks[offset] = [];
+    animations[offset] = [];
 
     while (nextOffset && nextOffset < buf.byteLength) {
       const res = loadCommand(nextOffset);
       const [cmd, nextPos] = res;
       nextOffset = nextPos;
-      animationBlocks[offset].push([
+      animations[offset].push([
         cmd.op.opName,
         cmd.args.map(({ val }) => val),
-      ] as IscriptOperations);
+      ] as IScriptOperations);
     }
   }
 
@@ -226,7 +226,7 @@ export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
       throw new Error("invalid header");
     }
 
-    const iscript: IScriptRawType = {
+    const iscript: IScriptProgram = {
       id: iscriptIndex,
       type: buf.readUInt8(offset + 4),
       offset,
@@ -245,6 +245,5 @@ export const parseIScriptBin = (buf: Buffer): IScriptDATType => {
 
   loadNextIScript(buf.readUInt16LE(0));
 
-  return { iscripts, animationBlocks };
+  return { iscripts, animations };
 };
-export default parseIScriptBin;

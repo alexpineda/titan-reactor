@@ -12,6 +12,12 @@ const createOpenBW = async () => {
     afterFrame: () => { },
   };
 
+  // const _cache: {
+  //   iscriptProgramDataSize: number | undefined,
+  // } = {
+  //   iscriptProgramDataSize: undefined
+  // }
+
   const wasm = await initializeWASM({
     locateFile: (filename: string) => {
       if (filename === "titan.worker.js") {
@@ -57,6 +63,16 @@ const createOpenBW = async () => {
 
   openBW.getSoundsAddress = () => wasm._get_buffer(11);
   openBW.getSoundsCount = () => wasm._counts(6);
+
+  openBW.getIScriptProgramDataSize = () => {
+    // _cache.iscriptProgramDataSize = _cache.iscriptProgramDataSize ?? ;
+    return wasm._counts(12);
+  }
+
+  openBW.getIScriptProgramDataAddress = () => {
+    // _cache.iscriptProgramDataSize = _cache.iscriptProgramDataSize ?? ;
+    return wasm._get_buffer(12);
+  }
 
 
   const _nextFrame = () => wasm._next_frame();

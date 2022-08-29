@@ -44,7 +44,6 @@ export const createCamera = () => {
             janitor.setInterval(() => {
                 _evolvingCameraState = (++_evolvingCameraState) % evolvingCameraStates.length;
                 this.cameraState = evolvingCameraStates[_evolvingCameraState];
-                console.log(this.cameraState)
                 _prevPosition.copy(camera.position);
                 if (this.cameraState === CameraState.UnderBattleCruiser) {
                     controls.setLookAt(-100, -1120, -1040, battleCruiser.position.x, battleCruiser.position.y, battleCruiser.position.z, false);

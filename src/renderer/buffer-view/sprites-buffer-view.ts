@@ -1,4 +1,4 @@
-import { OpenBWWasm, SpriteStruct } from "common/types";
+import { OpenBWAPI, SpriteStruct } from "common/types";
 import { ImageBufferView } from ".";
 import { IntrusiveList } from "./intrusive-list";
 
@@ -9,8 +9,8 @@ export class SpritesBufferView
   implements SpriteStruct {
 
   _address = 0;
-  _bw: OpenBWWasm;
-  _mainImage: ImageBufferView;
+  _bw: OpenBWAPI;
+  #mainImage: ImageBufferView;
   readonly images: IntrusiveList;
 
   get(address: number) {
@@ -19,10 +19,10 @@ export class SpritesBufferView
     return this;
   }
 
-  constructor(bw: OpenBWWasm) {
+  constructor(bw: OpenBWAPI) {
     this._bw = bw;
     this.images = new IntrusiveList(bw.HEAPU32, 0);
-    this._mainImage = new ImageBufferView(bw);
+    this.#mainImage = new ImageBufferView(bw);
   }
 
   private get _index32() {
@@ -60,7 +60,7 @@ export class SpritesBufferView
 
   get mainImage() {
     const addr = this._bw.HEAPU32[this._index32 + 12];
-    return this._mainImage.get(addr);
+    return this.#mainImage.get(addr);
   }
 
   get mainImageIndex() {
