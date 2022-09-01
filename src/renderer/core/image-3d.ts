@@ -1,13 +1,27 @@
 import "three/examples/jsm/utils/SkeletonUtils";
 
-import { AnimationAction, AnimationMixer, Color, Mesh, Object3D } from "three";
-import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
+import { AnimationAction, AnimationMixer, Bone, Color, Mesh, Object3D, SkinnedMesh } from "three";
 
 import type { GltfAtlas } from "common/types";
 import type { ImageBase } from ".";
 import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 import gameStore from "@stores/game-store";
+
+const sourceLookup = new Map();
+const cloneLookup = new Map();
+
+function parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: Object3D) => void) {
+
+  callback(a, b);
+
+  for (let i = 0; i < a.children.length; i++) {
+
+    parallelTraverse(a.children[i], b.children[i], callback);
+
+  }
+
+}
 
 /**
  * An image instance that may include a 3d model
@@ -34,7 +48,7 @@ export class Image3D extends Object3D implements ImageBase {
     this.atlas = atlas;
 
     // @ts-ignore
-    this.model = SkeletonUtils.clone(atlas.model);
+    this.model = Image3D.clone(atlas.model);
     this.#material = standardMaterialToImage3DMaterial(atlas.mesh.material);
     this.model.traverse((o: Object3D) => {
       if (o instanceof Mesh) {
@@ -93,6 +107,45 @@ export class Image3D extends Object3D implements ImageBase {
 
   get frame() {
     return this.atlas.fixedFrames[this.#frame];
+  }
+
+  static clone(source: Object3D) {
+
+    const clone = source.clone();
+    sourceLookup.clear();
+    cloneLookup.clear();
+
+    parallelTraverse(source, clone, (sourceNode: Object3D, clonedNode: Object3D) => {
+
+      sourceLookup.set(clonedNode, sourceNode);
+      cloneLookup.set(sourceNode, clonedNode);
+
+    });
+
+    clone.traverse((node) => {
+
+      if (node instanceof SkinnedMesh) {
+
+        const clonedMesh = node;
+        const sourceMesh = sourceLookup.get(node) as SkinnedMesh;
+        const sourceBones = sourceMesh.skeleton.bones;
+
+        clonedMesh.skeleton = sourceMesh.skeleton.clone();
+        clonedMesh.bindMatrix.copy(sourceMesh.bindMatrix);
+
+        clonedMesh.skeleton.bones = sourceBones.map(function (bone: Bone) {
+
+          return cloneLookup.get(bone);
+
+        });
+
+        clonedMesh.bind(clonedMesh.skeleton, clonedMesh.bindMatrix);
+      }
+
+    });
+
+    return clone;
+
   }
 
 }
