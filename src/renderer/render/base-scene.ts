@@ -16,7 +16,7 @@ import { disposeObject3D } from "@utils/dispose";
 import { Terrain } from "@core/terrain";
 
 function sunlight(mapWidth: number, mapHeight: number) {
-  const light = new DirectionalLight(0xffffff, 2);
+  const light = new DirectionalLight(0xffffff, 2.5);
   light.position.set(-32, 13, -26);
   light.target = new Object3D();
   light.castShadow = true;
@@ -65,8 +65,9 @@ export class BaseScene extends ThreeScene {
 
     this.autoUpdate = false;
 
-    this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 1);
+    this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 0.3);
     this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
+    window.scene = this;
 
     this.hemilight.layers.enableAll();
     this.sunlight.layers.enableAll();

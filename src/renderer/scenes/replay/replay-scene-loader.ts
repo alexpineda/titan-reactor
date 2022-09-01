@@ -116,6 +116,7 @@ export const replaySceneLoader = async (filepath: string) => {
 
   const scene = new BaseScene(map.size[0], map.size[1], terrain);
   scene.background = assets.skyBox;
+  scene.environment = assets.envMap;
   janitor.object3d(scene);
   janitor.disposable(scene);
 

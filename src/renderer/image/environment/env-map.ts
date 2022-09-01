@@ -1,28 +1,16 @@
-import { PMREMGenerator, Texture } from "three";
+import { EquirectangularReflectionMapping } from "three";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-import { renderComposer } from "@render/render-composer"
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader";
 
-export default function loadEnvironmentMap(
+export async function loadEnvironmentMap(
   filepath: string
-): Promise<Texture> {
-  const pmremGenerator = new PMREMGenerator(renderComposer.getWebGLRenderer());
-  pmremGenerator.compileEquirectangularShader();
+) {
+  const loader = filepath.endsWith(".exr") ? new EXRLoader() : new RGBELoader();
+  const tex = await loader.loadAsync(
+    filepath,
+  );
 
-  function getCubeMapTexture(file: string): Promise<Texture> {
-    return new Promise((resolve, reject) => {
-      new RGBELoader().load(
-        file,
-        (texture) => {
-          const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-          pmremGenerator.dispose();
-
-          resolve(envMap);
-        },
-        undefined,
-        reject
-      );
-    });
-  }
-
-  return getCubeMapTexture(filepath);
+  tex.mapping = EquirectangularReflectionMapping;
+  tex.name = filepath;
+  return tex;
 }

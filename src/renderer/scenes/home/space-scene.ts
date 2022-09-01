@@ -1,6 +1,6 @@
 import { renderComposer } from "@render";
 import { Surface } from "@image";
-import loadEnvironmentMap from "@image/environment/env-map";
+import { loadEnvironmentMap } from "@image/environment/env-map";
 import {
     BlendFunction,
     BloomEffect,

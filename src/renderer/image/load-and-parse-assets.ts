@@ -17,7 +17,7 @@ import processStore, { Process } from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import generateIcons from "./generate-icons/generate-icons";
 import * as log from "../ipc/log"
-import loadEnvironmentMap from "./environment/env-map";
+import { loadEnvironmentMap } from "./environment/env-map";
 import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
 import { imageTypes, unitTypes } from "common/enums";
@@ -47,11 +47,11 @@ export default async (settings: Settings) => {
 
     const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
 
-    const envHDRAssetFilename = path.join(
+    const envEXRAssetFilename = path.join(
         settings.directories.assets,
-        "envmap.hdr"
+        "envmap.exr"
     )
-    const envMapFilename = settings.assets.enable3dAssets && await fileExists(envHDRAssetFilename) ? envHDRAssetFilename : `${__static}/envmap.hdr`;
+    const envMapFilename = settings.assets.enable3dAssets && await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
     const envMap = await loadEnvironmentMap(envMapFilename);
 
     const {
@@ -109,8 +109,7 @@ export default async (settings: Settings) => {
 
         const imageDat = bwDat.images[imageId];
         if (fs) {
-            console.log("loading glb", glbFileName);
-            //TODO refactor:extend the object outside of loadGlbAtlas with anim
+            log.verbose(`loading glb  ${glbFileName}`);
             atlas = await loadGlbAtlas(
                 glbFileName,
                 loadAnimBuffer,
