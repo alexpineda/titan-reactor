@@ -35,8 +35,9 @@ export class SpriteEntities {
             this.#spritesList.add(sprite);
 
             sprite.userData.typeId = spriteTypeId;
-            sprite.userData.renderTestCount = 0;
             delete sprite.userData.fixedY;
+
+            sprite.matrixAutoUpdate = false;
 
         }
         return sprite;

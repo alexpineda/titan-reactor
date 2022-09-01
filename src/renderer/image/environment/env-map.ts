@@ -1,11 +1,11 @@
-import { PMREMGenerator, Texture, WebGLRenderer } from "three";
+import { PMREMGenerator, Texture } from "three";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
+import { renderComposer } from "@render/render-composer"
 
 export default function loadEnvironmentMap(
   filepath: string
 ): Promise<Texture> {
-  const renderer = new WebGLRenderer();
-  const pmremGenerator = new PMREMGenerator(renderer);
+  const pmremGenerator = new PMREMGenerator(renderComposer.getWebGLRenderer());
   pmremGenerator.compileEquirectangularShader();
 
   function getCubeMapTexture(file: string): Promise<Texture> {

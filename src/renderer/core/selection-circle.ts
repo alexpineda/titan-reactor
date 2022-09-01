@@ -2,7 +2,6 @@ import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsa
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";
-import { ImageHD } from "./image-hd";
 
 export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
   #spriteDat?: SpriteDAT;
@@ -65,7 +64,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
         (grp?.textureWidth as number) / unitTileScale,
         (grp?.textureHeight as number) / unitTileScale,
         1
-      ).multiplyScalar(ImageHD.useScale);
+      );
       this.#spriteDat = spriteDat;
     }
   }

@@ -8,7 +8,7 @@ import {
 } from "common/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "common/types";
 import pick from "common/utils/pick";
-import { Image3D, ImageBase } from ".";
+import { ImageBase } from ".";
 import { IScriptRunner } from "./iscript-runner";
 import { IScriptState } from "./iscript-state";
 
@@ -152,9 +152,9 @@ export class IScriptSprite extends Group {
 
     let _terminated = false;
     for (const iscriptImage of this.iscriptImages) {
-      if (iscriptImage.image instanceof Image3D && iscriptImage.image.mixer) {
-        iscriptImage.image.mixer.update(0); //3d animation mixer
-      }
+      // if (iscriptImage.image instanceof Image3D && iscriptImage.image.mixer) {
+      //   iscriptImage.image.mixer.update(0); //3d animation mixer
+      // }
       this._update(iscriptImage);
       if (iscriptImage.state.terminated) {
         _terminated = true;

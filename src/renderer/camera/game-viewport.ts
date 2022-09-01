@@ -50,8 +50,8 @@ export class GameViewPort {
         };
 
         this.spriteRenderOptions = {
-            unitScale: 1,
             rotateSprites: false,
+            use3dAssets: false,
         }
     }
 

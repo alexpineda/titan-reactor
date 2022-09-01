@@ -10,6 +10,7 @@ import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
 import { Terrain } from "@core/terrain";
 import { HeightMaps } from "./height-maps";
+import gameStore from "@stores/game-store";
 
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
@@ -30,6 +31,7 @@ export const createTerrainGeometryFromQuartiles = async (
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
 
+    let totalVertices = 0;
     for (let qy = 0; qy < tilesY; qy++) {
         for (let qx = 0; qx < tilesX; qx++) {
             const g = createDisplacementGeometryQuartile(
@@ -45,17 +47,20 @@ export const createTerrainGeometryFromQuartiles = async (
                 qx * qw * geomOptions.textureDetail,
                 qy * qh * geomOptions.textureDetail,
             );
+            console.log(g.attributes.position.count);
+            totalVertices += g.attributes.position.count;
 
-            const mat = new MeshStandardMaterial({
+            const material = new MeshStandardMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
                 roughness: 1,
                 bumpMap: mapTextures.mapQuartiles[qx][qy],
                 bumpScale: geomOptions.bumpScale,
+                envMap: gameStore().assets!.envMap,
                 // roughnessMap: occlussionRoughnessMetallicMap,
                 fog: false
             });
 
-            mat.onBeforeCompile = function (shader) {
+            material.onBeforeCompile = function (shader) {
                 let fs = shader.fragmentShader;
 
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
@@ -143,7 +148,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 shader.vertexShader = vs;
 
             };
-            const terrainQuartile = new Mesh(g, mat);
+            const terrainQuartile = new Mesh(g, material);
             terrainQuartile.castShadow = true;
             terrainQuartile.receiveShadow = true;
             terrainQuartile.userData = {
@@ -160,6 +165,7 @@ export const createTerrainGeometryFromQuartiles = async (
         }
     }
 
+    console.log(totalVertices);
     terrain.rotation.x = -Math.PI / 2;
     terrain.matrixAutoUpdate = false;
     terrain.updateMatrix();

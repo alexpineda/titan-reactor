@@ -12,10 +12,8 @@ import {
 
 import { TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
-import { Layers } from "./layers";
 import { disposeObject3D } from "@utils/dispose";
 import { Terrain } from "@core/terrain";
-
 
 function sunlight(mapWidth: number, mapHeight: number) {
   const light = new DirectionalLight(0xffffff, 2);
@@ -80,7 +78,6 @@ export class BaseScene extends ThreeScene {
     this.addTerrain(terrain);
 
     this.#borderTiles = new Group();
-    this.#borderTiles.layers.enable(Layers.Terrain);
     this.add(this.#borderTiles);
 
     // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });

@@ -44,7 +44,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     assets: {
         folder: "Directories",
-        label: "Assets",
+        label: "3D Assets",
         value: settings.data.directories.assets,
         path: "directories",
         type: "directory",
@@ -119,5 +119,11 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         label: "Terrain Shadows",
         value: settings.data.graphics.terrainShadows,
         path: "graphics",
+    },
+    enable3dAssets: {
+        folder: "Graphics",
+        label: "Enable 3D Assets",
+        value: settings.data.assets.enable3dAssets,
+        path: "assets",
     },
 });

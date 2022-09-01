@@ -1,4 +1,4 @@
-import { Atlas } from "common/types";
+import { AnimAtlas } from "common/types";
 import { Color, MeshStandardMaterial, Shader, ShaderChunk, SpriteMaterialParameters, Texture } from "three";
 
 type DynamicUniforms = {
@@ -56,7 +56,7 @@ export class Image3DMaterial extends MeshStandardMaterial {
         return this.#dynamicUniforms.uTeamColor.value;
     }
 
-    set warpInFlashGRP(val: Atlas | undefined) {
+    set warpInFlashGRP(val: AnimAtlas | undefined) {
         this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
     }
 

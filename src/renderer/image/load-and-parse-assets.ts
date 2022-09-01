@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AssetTextureResolution, Atlas, GltfAtlas, Settings, UnitTileScale } from "common/types";
+import { AssetTextureResolution, AnimAtlas, GltfAtlas, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -47,7 +47,12 @@ export default async (settings: Settings) => {
 
     const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
 
-    const envMap = await loadEnvironmentMap(`${__static}/envmap.hdr`);
+    const envHDRAssetFilename = path.join(
+        settings.directories.assets,
+        "envmap.hdr"
+    )
+    const envMapFilename = settings.assets.enable3dAssets && await fileExists(envHDRAssetFilename) ? envHDRAssetFilename : `${__static}/envmap.hdr`;
+    const envMap = await loadEnvironmentMap(envMapFilename);
 
     const {
         resourceIcons,
@@ -72,7 +77,7 @@ export default async (settings: Settings) => {
     const loadingHD2 = new Set();
     const loadingHD = new Set();
 
-    const loadImageAtlas = (atlases: (Atlas | GltfAtlas)[]) => async (imageId: number, res: UnitTileScale) => {
+    const loadImageAtlas = (atlases: (AnimAtlas | GltfAtlas)[]) => async (imageId: number, res: UnitTileScale) => {
         if (res === UnitTileScale.HD) {
             if (loadingHD.has(imageId)) {
                 return;
@@ -90,7 +95,7 @@ export default async (settings: Settings) => {
             loadingHD.add(imageId);
             return;
         }
-        let atlas: Atlas | GltfAtlas;
+        let atlas: AnimAtlas | GltfAtlas;
 
         const glbFileName = path.join(
             settings.directories.assets,
@@ -98,7 +103,7 @@ export default async (settings: Settings) => {
                 imageId
             )}`.slice(-3) + ".glb"
         )
-        const fs = await fileExists(glbFileName);
+        const fs = settings.assets.enable3dAssets ? await fileExists(glbFileName) : false;
         const loadAnimBuffer = () => readCascFile(genFileName(imageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
         const scale = res === UnitTileScale.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
 
@@ -110,7 +115,7 @@ export default async (settings: Settings) => {
                 glbFileName,
                 loadAnimBuffer,
                 imageDat,
-                scale,
+                UnitTileScale.HD,
                 bwDat.grps[imageDat.grp],
                 envMap
             );
@@ -135,7 +140,7 @@ export default async (settings: Settings) => {
         atlases[imageId] = atlas;
     }
 
-    const grps: Atlas[] = [];
+    const grps: AnimAtlas[] = [];
     log.info(`@load-assets/atlas: ${settings.assets.images}`);
 
     const loadImageAtlasGrp = loadImageAtlas(grps);

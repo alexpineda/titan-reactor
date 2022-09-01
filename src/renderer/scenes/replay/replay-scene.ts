@@ -13,7 +13,7 @@ import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { SoundChannels } from "@audio";
 import {
   Players,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D
+  ImageHD, Creep, FogOfWar, FogOfWarEffect, ImageBase, Image3D
 } from "@core";
 import {
   MinimapMouse, CameraMouse, CameraKeys
@@ -22,7 +22,7 @@ import { getOpenBW } from "@openbw";
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView } from "@buffer-view";
 import * as log from "@ipc/log";
 import {
-  GameSurface, Layers, renderComposer, SimpleText, BaseScene
+  GameSurface, renderComposer, SimpleText, BaseScene
 } from "@render";
 import { getImageLoOffset, imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, isGltfAtlas } from "@utils/image-utils";
 import { buildSound } from "@utils/sound-utils";
@@ -61,6 +61,8 @@ import { listenToEvents } from "@utils/macro-utils";
 import { UnitEntities } from "./unit-entities";
 import { GameTimeApi } from "./game-time-api";
 import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./replay-controls";
+import { ImageHDInstanced } from "@core/image-hd-instanced";
+import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, overlayEffectsMainImage } from "@core/model-effects";
 
 export async function replayScene(
   map: Chk,
@@ -168,7 +170,7 @@ export async function replayScene(
 
     plugins.setActiveInputHandler(inputHandler);
 
-    terrain.setHighDetailStyle(gameViewportsDirector.viewports[0].spriteRenderOptions.rotateSprites);
+    terrain.setTerrainQuality(gameViewportsDirector.viewports[0].spriteRenderOptions.rotateSprites);
     scene.sunlight.shadow.needsUpdate = true;
     renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
 
@@ -484,6 +486,7 @@ export async function replayScene(
         buildSound(elapsed, x, y, typeId, unitTypeId, pxToGameUnit, terrain, gameViewportsDirector.audio, gameViewportsDirector.primaryViewport.projectedView, soundChannels, mixer);
       }
     }
+
   };
 
   const _tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, openBW.HEAPU8);
@@ -528,11 +531,6 @@ export async function replayScene(
     }
 
     const dat = bwDat.sprites[spriteData.typeId];
-    if (spriteData.owner < 8) {
-      sprite.layers.enable(Layers.Units);
-    } else {
-      sprite.layers.disable(Layers.Units);
-    }
 
     // doodads and resources are always visible
     // show units as fog is lifting from or lowering to explored
@@ -592,8 +590,13 @@ export async function replayScene(
 
     // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
     sprite.position.set(_spritePos.x, (sprite.userData.fixedY ?? bulletY ?? _spritePos.y), _spritePos.z);
+    sprite.updateMatrix();
+    sprite.matrixWorld.copy(sprite.matrix);
+    // sprite.updateMatrixWorld();
 
     let imageCounter = 1;
+    overlayEffectsMainImage.setEmissive = null
+    overlayEffectsMainImage.is3dAsset = false;
 
     for (const imgAddr of spriteData.images.reverse()) {
       const imageData = imageBufferView.get(imgAddr);
@@ -602,15 +605,11 @@ export async function replayScene(
       if (!image) {
         continue;
       }
-      image.userData.typeId = imageData.typeId;
 
-      //upgrade HD2 image to HD if loaded
+      // upgrade HD2 image to HD if loaded
       if (image instanceof ImageHD && image.unitTileScale === UnitTileScale.HD2 && assets.grps[imageData.typeId].unitTileScale === UnitTileScale.HD) {
-        image.changeImageType(assets.grps[imageData.typeId], bwDat.images[imageData.typeId], true);
+        image.updateImageType(assets.grps[imageData.typeId], true);
       }
-
-      // always clear unit information since that can always change
-      delete image.userData.unit;
 
       // only draw shadow if main image is not 3d
       const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || !isGltfAtlas(assets.grps[spriteData.mainImage.typeId]) && image.dat.drawFunction === drawFunctions.rleShadow;
@@ -622,7 +621,9 @@ export async function replayScene(
         image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
         image.setTeamColor(player?.color);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
+        image.position.set(0, 0, 0)
 
+        //overlay offsets typically
         if (image instanceof ImageHD) {
           image.position.x = imageData.x / 32;
           // flying building or drone, don't use 2d offset
@@ -646,6 +647,7 @@ export async function replayScene(
         }
 
         image.position.z = 0;
+        image.rotation.set(0, 0, 0);
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
@@ -661,11 +663,17 @@ export async function replayScene(
           }
           image.matrixWorldNeedsUpdate = true;
         } else {
-          image.rotation.set(0, 0, 0);
           image.renderOrder = imageCounter;
-          if (image.parent !== sprite) {
-            sprite.add(image);
+          if (image.isInstanced) {
+            if (image.parent !== sprites.group) {
+              sprites.group.add(image);
+            }
+          } else {
+            if (image.parent !== sprite) {
+              sprite.add(image);
+            }
           }
+
         }
 
         // if it's directional we'll set it elsewhere relative to the viewport camera direction
@@ -674,11 +682,34 @@ export async function replayScene(
         }
 
         if (imageData.index === spriteData.mainImageIndex) {
-          image.userData.unit = unit;
-          if (unit && image instanceof Image3D) {
-            image.rotation.y = getAngle(unit.direction);
+          if (image instanceof Image3D) {
+            overlayEffectsMainImage.setEmissive = image.setEmissive.bind(image);
+            overlayEffectsMainImage.is3dAsset = true;
+          }
+
+          if (unit) {
+            image.rotation.y = image.isImage3d ? getAngle(unit.direction) : 0;
           }
         }
+      }
+
+
+      if (image instanceof ImageHD) {
+
+        applyOverlayEffectsToImageHD(spriteBufferView.typeId, imageBufferView, image);
+
+      } else if (image instanceof Image3D) {
+
+        applyOverlayEffectsToImage3D(spriteBufferView.typeId, imageBufferView.typeId, image);
+      }
+
+      if (image instanceof ImageHDInstanced) {
+        image.updateInstanceMatrix(sprite.matrixWorld);
+      } else if (image instanceof ImageHD) {
+        image.updateMatrixPosition(sprite.position);
+      } else if (image instanceof Image3D) {
+        image.updateMatrix();
+        image.updateMatrixWorld();
       }
       imageCounter++;
     }
@@ -803,13 +834,13 @@ export async function replayScene(
 
   let _imageIteratorResult: {
     bufferView: ImageBufferView,
-    object: ImageHD | Image3D
+    object: ImageBase
   }
 
   function* spriteImageIterator(spriteData: SpritesBufferView) {
     for (const imgAddr of spriteData.images.reverse()) {
       const bufferView = imageBufferView.get(imgAddr);
-      const object = images.getOrCreate(bufferView.index, bufferView.typeId);
+      const object = images.get(bufferView.index);
 
       if (object) {
         if (!_imageIteratorResult) {

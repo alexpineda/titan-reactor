@@ -16,6 +16,6 @@ export const defaultGeometryOptions: GeometryOptions = {
     processWater: true,
     drawMode: { value: 1 },
     detailsMix: 0,
-    bumpScale: 0.1,
+    bumpScale: 0.05,
     firstBlur: KernelSize.HUGE
 };

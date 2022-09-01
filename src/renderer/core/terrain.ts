@@ -64,7 +64,7 @@ export class Terrain extends Group {
         });
     }
 
-    setHighDetailStyle(highDetail: boolean) {
+    setTerrainQuality(highDetail: boolean) {
         this.setBumpScale(0);
         this.shadowsEnabled = highDetail;
 

@@ -11,7 +11,7 @@ import { getTilesetBuffers } from "./get-tileset-buffers";
 import * as sd from "./sd";
 import * as hd from "./hd";
 import { LinearEncoding, sRGBEncoding } from "three";
-import { renderComposer, Layers } from "@render";
+import { renderComposer } from "@render";
 import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
@@ -81,7 +81,6 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
   renderer.outputEncoding = sRGBEncoding;
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages, textures, effectsTextures);
-  terrain.layers.enable(Layers.Terrain);
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 

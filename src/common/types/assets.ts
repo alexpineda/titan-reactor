@@ -1,12 +1,12 @@
 import { CubeTexture, Texture } from "three";
-import { BwDAT, Atlas, UnitTileScale } from "common/types";
+import { BwDAT, AnimAtlas, UnitTileScale } from "common/types";
 import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
 import { GltfAtlas } from "./anim-grp";
 
 export interface Assets {
     bwDat: BwDAT;
-    grps: (Atlas | GltfAtlas)[];
-    selectionCirclesHD: Atlas[];
+    grps: (AnimAtlas | GltfAtlas)[];
+    selectionCirclesHD: AnimAtlas[];
 
     gameIcons: ResourceIcons;
     cmdIcons: string[];

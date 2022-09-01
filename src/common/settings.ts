@@ -13,7 +13,8 @@ export const defaultSettings: Settings = {
   assets: {
     images: AssetTextureResolution.HD,
     terrain: AssetTextureResolution.HD,
-    preload: true
+    preload: false,
+    enable3dAssets: true
   },
   audio: {
     global: 0.5,

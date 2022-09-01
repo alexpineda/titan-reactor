@@ -4,7 +4,6 @@ import * as postprocessing from "postprocessing"
 import cameraControls from "camera-controls"
 import * as enums from "common/enums";
 import Janitor from "@utils/janitor";
-import { Layers } from "../render/layers";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { mix } from "./object-utils";
 import { rendererIsDev } from "./renderer-utils";
@@ -14,7 +13,7 @@ const STDLIB = {
 
 export const createCompartment = (env: {} = {}) => {
 
-    const modules = { THREE, STDLIB, postprocessing, Janitor, Layers, enums, cameraControls }
+    const modules = { THREE, STDLIB, postprocessing, Janitor, enums, cameraControls }
 
     const compartment = new Compartment(mix(
         env,

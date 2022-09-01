@@ -57,6 +57,7 @@ export type Settings = {
         images: AssetTextureResolution;
         terrain: AssetTextureResolution;
         preload: boolean;
+        enable3dAssets: boolean;
     },
     audio: {
         global: number;

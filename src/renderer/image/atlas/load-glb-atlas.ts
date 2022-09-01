@@ -1,5 +1,5 @@
 import { Mesh, Object3D, Texture } from "three";
-import { UnitTileScale, GrpSprite, ImageDAT, GltfAtlas, Atlas } from "common/types";
+import { UnitTileScale, GrpSprite, ImageDAT, GltfAtlas, AnimAtlas } from "common/types";
 import { loadAnimAtlas } from "./load-anim-atlas";
 import loadGlb from "../formats/load-glb";
 
@@ -9,7 +9,7 @@ export const loadGlbAtlas = async (glbFileName: string,
     scale: UnitTileScale,
     grp: GrpSprite,
     envMap: Texture
-): Promise<GltfAtlas | Atlas> => {
+): Promise<GltfAtlas | AnimAtlas> => {
 
     const anim = await loadAnimAtlas(loadAnimBuffer, imageDef, scale, grp);
 
@@ -20,16 +20,16 @@ export const loadGlbAtlas = async (glbFileName: string,
             imageDef.name
         ));
 
-        let _mesh: GltfAtlas["model"] | undefined;
+        let mesh: GltfAtlas["mesh"] | undefined;
         model.traverse((o: Object3D) => {
             if (o instanceof Mesh) {
-                if (_mesh) {
+                if (mesh) {
                     throw new Error("Multiple meshes found in glb");
                 }
-                _mesh = o;
+                mesh = o;
             }
         });
-        if (_mesh === undefined) {
+        if (mesh === undefined) {
             throw new Error("No meshes found in glb");
         }
 
@@ -48,7 +48,7 @@ export const loadGlbAtlas = async (glbFileName: string,
         });
 
         return {
-            ...anim, model, animations, fixedFrames
+            ...anim, model, mesh, animations, fixedFrames
         }
     } catch (e) {
     }

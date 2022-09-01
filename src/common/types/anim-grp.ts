@@ -1,4 +1,4 @@
-import { AnimationClip, CompressedTexture, Object3D, Texture } from "three";
+import { AnimationClip, BufferGeometry, CompressedTexture, Mesh, MeshStandardMaterial, Object3D, SkinnedMesh, Texture } from "three";
 import { UnitTileScale } from "./image";
 
 export type AnimFrame = {
@@ -26,7 +26,7 @@ type HDLayers = {
   emissive?: CompressedTexture | undefined;
 }
 
-export interface Atlas {
+export interface AnimAtlas {
   textureWidth: number;
   textureHeight: number;
   spriteWidth: number;
@@ -42,8 +42,9 @@ export interface Atlas {
   mipmap?: HDLayers;
 };
 
-export interface GltfAtlas extends Atlas {
-  model: Object3D; //Mesh<BufferGeometry, MeshStandardMaterial> | SkinnedMesh<BufferGeometry, MeshStandardMaterial>;
+export interface GltfAtlas extends AnimAtlas {
+  model: Object3D; //
+  mesh: Mesh<BufferGeometry, MeshStandardMaterial> | SkinnedMesh<BufferGeometry, MeshStandardMaterial>;
   animations: AnimationClip[];
   fixedFrames: number[];
 }

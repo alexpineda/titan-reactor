@@ -1,6 +1,6 @@
 import { flatProjection } from "@utils/shader-utils";
 import { drawFunctions } from "common/enums";
-import { Atlas } from "common/types";
+import { AnimAtlas } from "common/types";
 import {
   Color,
   MeshBasicMaterial,
@@ -38,7 +38,6 @@ export class ImageHDMaterial extends MeshBasicMaterial {
   constructor(parameters?: SpriteMaterialParameters) {
     super(parameters);
     this.isTeamSpriteMaterial = true;
-    this.defines = {};
 
     this.#dynamicUniforms = {
       uTeamColor: {
@@ -60,6 +59,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         value: 0,
       },
     };
+
   }
 
   set teamMask(val: Texture | undefined) {
@@ -79,7 +79,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
     return this.#dynamicUniforms.uTeamColor.value;
   }
 
-  set warpInFlashGRP(val: Atlas | undefined) {
+  set warpInFlashGRP(val: AnimAtlas | undefined) {
     this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
   }
 

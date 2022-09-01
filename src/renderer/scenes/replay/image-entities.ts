@@ -1,11 +1,14 @@
 import { ImageBase } from "@core/image";
 import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
+import { ImageHDInstanced } from "@core/image-hd-instanced";
 import gameStore from "@stores/game-store";
 import { isGltfAtlas } from "@utils/image-utils";
 import { IndexedObjectPool } from "@utils/indexed-object-pool";
+// import { IterableMap } from "@utils/iteratible-map";
 import Janitor from "@utils/janitor";
 import { UnitTileScale } from "common/types";
+// import { InstancedMesh, SkinnedMesh } from "three";
 
 enum UpgradeHDImageStatus {
     Loading,
@@ -14,8 +17,17 @@ enum UpgradeHDImageStatus {
 
 export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();
-    #images: Map<number, ImageHD | Image3D> = new Map();
+
+    // always 2d
+    #images: Map<number, ImageBase> = new Map();
     #upgradeHDImageQueue = new Map<number, UpgradeHDImageStatus>();
+
+    // always 3d
+    // static meshes
+    // #instances = new IterableMap<number, InstancedMesh>();
+    // animated meshes
+    // #skinnedInstances = new IterableMap<number, SkinnedMesh>();
+    use3dAssets = true;
 
     #janitor = new Janitor;
 
@@ -41,16 +53,40 @@ export class ImageEntities {
 
         const freeImage = this.#freeImages.get(imageTypeId);
         if (freeImage && freeImage instanceof ImageHD) {
-            freeImage.changeImageType(atlas, imageDef);
             return freeImage;
         }
         if (isGltfAtlas(atlas)) {
-            return new Image3D(atlas, imageDef)
+            const freeImage = this.#freeImages.get(imageTypeId);
+            if (freeImage && freeImage instanceof Image3D) {
+                return freeImage;
+            }
+            return new Image3D(atlas, imageDef);
+            // if (atlas.model instanceof SkinnedMesh) {
+            //     if (this.#skinnedInstances.has(imageTypeId)) {
+            //         return this.#skinnedInstances.get(imageTypeId);
+            //     } else {
+            //         this.#skinnedInstances.set(imageTypeId, atlas.model);
+            //         return atlas.model;
+            //     }
+            // } else if (atlas.model instanceof InstancedMesh) {
+            //     if (this.#instances.has(imageTypeId)) {
+            //         return this.#instances.get(imageTypeId);
+            //     } else {
+            //         this.#instances.set(imageTypeId, atlas.model);
+            //         return atlas.model;
+            //     }
+            // }
         } else {
-            return new ImageHD(
-                atlas,
-                imageDef
-            );
+            const freeImage = this.#freeImages.get(imageTypeId);
+            if (freeImage && freeImage instanceof ImageHD) {
+                return freeImage;
+            }
+
+            if (imageDef.index === -1) {
+                return (new ImageHDInstanced(atlas, 1)).updateImageType(atlas, true);
+            }
+
+            return (new ImageHD(atlas)).updateImageType(atlas, true);
         }
     }
 
@@ -58,6 +94,10 @@ export class ImageEntities {
         for (const image of this.#freeImages.all()) {
             this.#janitor.add(image);
         }
+    }
+
+    get(imageIndex: number) {
+        return this.#images.get(imageIndex);
     }
 
     getOrCreate(imageIndex: number, imageTypeId: number) {

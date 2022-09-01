@@ -22,10 +22,6 @@ export interface SpriteType extends Group {
     typeId: number;
     // track calculated render order
     renderOrder: number;
-    /**
-     * for matrix calculations
-     */
-    renderTestCount: number;
   }
 }
 
@@ -37,8 +33,8 @@ export type PostProcessingBundleDTO = {
 }
 
 export type SpriteRenderOptions = {
-  unitScale: number;
   rotateSprites: boolean;
+  use3dAssets: boolean;
 }
 
 export enum AssetTextureResolution {

@@ -1,4 +1,4 @@
-import { AnimDds, Atlas, GrpSprite, UnitTileScale } from "common/types";
+import { AnimDds, AnimAtlas, GrpSprite, UnitTileScale } from "common/types";
 import { ImageDAT } from "common/bwdat/images-dat";
 
 import { parseAnim, createDDSTexture } from "../formats";
@@ -13,7 +13,7 @@ export const loadAnimAtlas = async (
     imageDef: ImageDAT,
     scale: Exclude<UnitTileScale, "SD">,
     grp: GrpSprite
-): Promise<Atlas> => {
+): Promise<AnimAtlas> => {
 
     const buf = await loadAnimBuffer();
     const [sprite] = parseAnim(buf);
