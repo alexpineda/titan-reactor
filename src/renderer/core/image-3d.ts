@@ -8,6 +8,10 @@ import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 import gameStore from "@stores/game-store";
 
+
+const white = new Color(0xffffff);
+
+
 const sourceLookup = new Map();
 const cloneLookup = new Map();
 
@@ -82,7 +86,7 @@ export class Image3D extends Object3D implements ImageBase {
     return this.atlas.unitTileScale;
   }
 
-  setTeamColor(val: Color) {
+  setTeamColor(val: Color | undefined = white) {
     this.#material.teamColor = val;
   }
 

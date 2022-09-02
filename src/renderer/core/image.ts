@@ -3,7 +3,7 @@ import type { Color, Object3D } from "three";
 
 export interface ImageBaseMethods {
   setModifiers: (modifier: number, modifierData1: number, modifierData2: number) => void;
-  setTeamColor: (color: Color) => void;
+  setTeamColor: (color: Color | undefined) => void;
   setEmissive?(val: number): void;
   updateImageType(atlas: AnimAtlas, force?: boolean): void;
   setFrame: (frame: number, flip: boolean) => void;
