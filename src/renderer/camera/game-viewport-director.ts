@@ -85,7 +85,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         this.#inputHandler?.onCameraMouseUpdate && this.#inputHandler.onCameraMouseUpdate(...args);
     }
 
-
     onUpdateAudioMixerLocation(delta: number, elapsed: number) {
         if (this.#inputHandler?.onUpdateAudioMixerLocation) {
             this.primaryViewport.orbit.getTarget(_target);

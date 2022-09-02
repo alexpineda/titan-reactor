@@ -36,13 +36,15 @@ export default class Janitor {
         return _i;
     }
 
-    add<T extends SupportedJanitorTypes>(obj: T): T {
+    add<T extends SupportedJanitorTypes | { remove: Function }>(obj: T): T {
         if (obj instanceof Object3D) {
             this.object3d(obj);
         } else if ("dispose" in obj) {
             this.disposable(obj);
         } else if (typeof obj === "function") {
             this.callback(obj);
+        } else if ("remove" in obj) {
+            this.callback(() => obj.remove());
         } else {
             throw new Error("Unsupported type");
         }

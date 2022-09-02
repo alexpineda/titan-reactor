@@ -3,7 +3,6 @@ import { ImageFlags, drawFunctions } from "common/enums";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import { Vector2 } from "three";
 import gameStore from "@stores/game-store";
-import DirectionalCamera from "renderer/camera/directional-camera";
 
 export const imageIsShadow = (image: ImageStruct, bwDat: BwDAT) => {
   return (
@@ -43,8 +42,8 @@ export const imageIsDoodad = (dat: ImageDAT) => {
 export const isGltfAtlas = (obj: any): obj is GltfAtlas => obj !== undefined && "model" in obj;
 
 
-export const getImageLoOffset = (out: Vector2, camera: DirectionalCamera, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
-  const frameInfo = applyCameraDirectionToImageFrame(camera, image);
+export const getImageLoOffset = (out: Vector2, cameraDirection: number, image: ImageStruct, offsetIndex: number, useFrameIndexOffset = false) => {
+  const frameInfo = applyCameraDirectionToImageFrame(cameraDirection, image);
   if (useFrameIndexOffset) {
     frameInfo.frame = frameInfo.frame % 17;
   }

@@ -5,7 +5,7 @@ import { inverse } from "@utils/function-utils";
 import Janitor from "@utils/janitor";
 import { canOnlySelectOne } from "@utils/unit-utils";
 import { MouseSelectionBox } from ".";
-import { Camera, Object3D, Raycaster, Scene, Vector2 } from "three";
+import { Object3D, PerspectiveCamera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 
 const typeIdSort = (a: Unit, b: Unit) => {
@@ -17,9 +17,9 @@ let _unit: Unit | null;
 let _mouse = new Vector2();
 
 
-export const createUnitSelection = (camera: Camera, scene: Scene, gameSurface: Surface, minimapSurface: Surface, onGetUnit: (objects: Object3D) => Unit | null) => {
+export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapSurface: Surface, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
-    const selectionBox = new SelectionBox(camera, scene);
+    const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
     const visualBox = janitor.add(new MouseSelectionBox("#00cc00"));
 
     let mouseIsDown = false;

@@ -130,9 +130,7 @@ export const replaySceneLoader = async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
 
   const soundChannels = new SoundChannels();
-  const music = new Music(races);
-  music.setListener(mixer as unknown as AudioListener);
-  janitor.disposable(music);
+  const music = janitor.add(new Music(races, mixer as unknown as AudioListener));
 
   processStore().increment(Process.ReplayInitialization);
 

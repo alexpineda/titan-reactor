@@ -6,8 +6,9 @@ const rand = (n: number) => Math.floor(Math.random() * n);
 export class Music {
   audio?: Audio;
   races: string[];
-  constructor(races: string[]) {
+  constructor(races: string[], listener: AudioListener) {
     this.races = races;
+    this.setListener(listener);
   }
 
   setListener(listener: AudioListener) {

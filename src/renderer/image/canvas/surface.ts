@@ -7,8 +7,11 @@ export class Surface {
   #bufferWidth = 0;
   #bufferHeight = 0;
 
-  constructor(defaultCanvas?: HTMLCanvasElement) {
-    const canvas = defaultCanvas || document.createElement("canvas");
+  constructor(styles?: Partial<ElementCSSInlineStyle["style"]>) {
+    const canvas = document.createElement("canvas");
+    if (styles) {
+      Object.assign(canvas.style, styles);
+    }
     canvas.addEventListener('contextmenu', e => {
       e.preventDefault();
     });

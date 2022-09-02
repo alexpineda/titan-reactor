@@ -2,18 +2,18 @@ import { Surface } from "@image/canvas";
 import { getDirection32 } from "@utils/camera-utils";
 import CameraControls from "camera-controls";
 import { SpriteRenderOptions, PostProcessingBundleDTO } from "common/types";
-import { MathUtils, Vector2, Vector3, Vector4 } from "three";
+import { MathUtils, OrthographicCamera, PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
 import CameraShake from "./camera-shake";
-import DirectionalCamera from "./directional-camera";
 import ProjectedCameraView from "./projected-camera-view";
 
+const _target = new Vector3;
 
 const isNumber = (value: any): value is Number => {
     return typeof value === "number";
 }
 export class GameViewPort {
     enabled = false;
-    camera = new DirectionalCamera(15, 1, 0.1, 1000);
+    camera: PerspectiveCamera | OrthographicCamera;
     projectedView = new ProjectedCameraView();
     orbit: CameraControls;
     viewport = new Vector4(0, 0, 300, 200);
@@ -39,9 +39,11 @@ export class GameViewPort {
 
     constructor(surface: Surface, bundle: PostProcessingBundleDTO) {
         this.#surface = surface;
-        this.camera = new DirectionalCamera(15, surface.aspect, 0.1, 500);
+        this.camera = new PerspectiveCamera(15, surface.aspect, 0.1, 500);
+        this.camera.userData.direction = 0;
+        this.camera.userData.prevDirection = -1;
+
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
-        this.orbit = this.reset();
 
         this.postProcessing = {
             ...bundle,
@@ -53,6 +55,8 @@ export class GameViewPort {
             rotateSprites: false,
             use3dAssets: false,
         }
+
+        this.reset();
     }
 
     reset() {
@@ -68,6 +72,11 @@ export class GameViewPort {
         return this.orbit;
     }
 
+    set orthographic(value: boolean) {
+        this.camera = value ? new OrthographicCamera() : new PerspectiveCamera(15, this.#surface.aspect, 0.1, 500);
+        this.reset()
+    }
+
 
     set center(val: Vector2 | undefined | null) {
         this.#center = val;
@@ -81,7 +90,7 @@ export class GameViewPort {
     set height(val: number) {
         this.#height = val <= 1 ? this.#surface.bufferHeight * val : val;
         if (this.constrainToAspect) {
-            this.#width = this.#height * this.camera.aspect;
+            this.#width = this.#height * this.aspect;
         }
         this.update();
     }
@@ -89,7 +98,7 @@ export class GameViewPort {
     set width(val: number) {
         this.#width = val <= 1 ? this.#surface.bufferWidth * val : val;
         if (this.constrainToAspect) {
-            this.#height = this.#width / this.camera.aspect;
+            this.#height = this.#width / this.aspect;
         }
         this.update();
     }
@@ -191,11 +200,13 @@ export class GameViewPort {
     }
 
     get aspect() {
-        return this.camera.aspect;
+        return this.camera instanceof PerspectiveCamera ? this.camera.aspect : 1;
     }
 
     set aspect(aspect: number) {
-        this.camera.aspect = aspect;
+        if (this.camera instanceof PerspectiveCamera) {
+            this.camera.aspect = aspect;
+        }
         this.camera.updateProjectionMatrix();
         if (this.constrainToAspect) {
             this.height = this.#height;
@@ -234,7 +245,7 @@ export class GameViewPort {
     }
 
     updateCamera() {
-        const dir = this.spriteRenderOptions.rotateSprites ? getDirection32(this.projectedView.center, this.camera.position) : 0;
+        const dir = this.spriteRenderOptions.rotateSprites ? getDirection32(this.projectedView.center ?? this.orbit.getTarget(_target), this.camera.position) : 0;
         if (dir != this.camera.userData.direction) {
             this.camera.userData.prevDirection = this.camera.userData.direction;
             this.camera.userData.direction = dir;

@@ -99,14 +99,15 @@ export async function replayScene(
 
   const gameSurface = janitor.add(new GameSurface(mapWidth, mapHeight));
   gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
-  document.body.appendChild(gameSurface.canvas);
+  janitor.add(document.body.appendChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getMinimapDimensions(session.getState().game.minimapSize));
 
-  const minimapSurface = janitor.add(new Surface());
-  minimapSurface.canvas.style.position = "absolute";
-  minimapSurface.canvas.style.bottom = "0";
-  minimapSurface.canvas.style.zIndex = "20";
-  document.body.appendChild(minimapSurface.canvas);
+  const minimapSurface = janitor.add(new Surface({
+    position: "absolute",
+    bottom: "0",
+    zIndex: "20"
+  }));
+  janitor.add(document.body.appendChild(minimapSurface.canvas));
 
   const simpleText = janitor.add(new SimpleText());
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
@@ -161,7 +162,7 @@ export async function replayScene(
     return null;
   }
 
-  const unitSelection = createUnitSelection(new PerspectiveCamera(), scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
+  const unitSelection = createUnitSelection( scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
 
   gameViewportsDirector.beforeActivate = () => {
     gameTimeApi.minimap.enabled = true;
@@ -477,7 +478,7 @@ export async function replayScene(
           if (unit.extras.turretLo === null) {
             unit.extras.turretLo = new Vector2;
           }
-          getImageLoOffset(unit.extras.turretLo, gameViewportsDirector.primaryViewport.camera, unitData.owSprite.mainImage, 0);
+          getImageLoOffset(unit.extras.turretLo, gameViewportsDirector.primaryViewport.camera.userData.direction, unitData.owSprite.mainImage, 0);
         } else {
           unit.extras.turretLo = null;
         }
@@ -954,7 +955,7 @@ export async function replayScene(
 
     for (const v of gameViewportsDirector.activeViewports()) {
       v.updateCamera();
-      updateSpritesForViewport(v.camera, v.spriteRenderOptions, spriteIterator, spriteImageIterator);
+      updateSpritesForViewport(v.camera.userData.direction, v.spriteRenderOptions, spriteIterator, spriteImageIterator);
 
       v.shakeStart(elapsed);
       fogOfWar.update(players.getVisionFlag(), v.camera);

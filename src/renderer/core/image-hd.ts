@@ -4,10 +4,15 @@ import {
   Color,
   DynamicDrawUsage,
   InterleavedBufferAttribute,
+  Intersection,
+  Matrix4,
   Mesh,
   NearestMipMapNearestFilter,
   NormalBlending,
+  Raycaster,
   SubtractiveBlending,
+  Triangle,
+  Vector2,
   Vector3,
 } from "three";
 
@@ -63,6 +68,33 @@ export const calculateFrame = (frame: AnimFrame, flipFrame: boolean, textureWidt
   pos.setY(1, py0);
   pos.setY(2, py1);
   pos.setY(3, py1);
+}
+
+const _worldScale = new Vector3;
+const _mvPosition = new Vector3;
+const _intersectPoint = new Vector3;
+const _alignedPosition = new Vector3;
+const _vA = new Vector3;
+const _vB = new Vector3;
+const _vC = new Vector3;
+const _uvA = new Vector2;
+const _uvB = new Vector2;
+const _uvC = new Vector2;
+const _viewWorldMatrix = new Matrix4;
+
+
+function transformVertex( vertexPosition: Vector3, mvPosition: Vector3, scale: Vector3) {
+
+	// compute position in camera space
+	_alignedPosition.copy(vertexPosition).multiply( scale );
+
+	vertexPosition.copy( mvPosition );
+	vertexPosition.x += _alignedPosition.x;
+	vertexPosition.y += _alignedPosition.y;
+
+	// transform to world space
+	vertexPosition.applyMatrix4( _viewWorldMatrix );
+
 }
 
 export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial> implements ImageBase {
@@ -263,4 +295,61 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
   override updateMatrixWorld(): void {
 
   }
+
+  override raycast( raycaster: Raycaster, intersects: Intersection[] ) {
+
+		if ( raycaster.camera === null ) {
+
+			console.error( 'THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.' );
+
+		}
+
+		_worldScale.setFromMatrixScale( this.matrixWorld );
+
+		_viewWorldMatrix.copy( raycaster.camera.matrixWorld );
+		this.modelViewMatrix.multiplyMatrices( raycaster.camera.matrixWorldInverse, this.matrixWorld );
+
+		_mvPosition.setFromMatrixPosition( this.modelViewMatrix );
+
+		transformVertex( _vA.set( - 0.5, - 0.5, 0 ), _mvPosition,  _worldScale );
+		transformVertex( _vB.set( 0.5, - 0.5, 0 ), _mvPosition,  _worldScale );
+		transformVertex( _vC.set( 0.5, 0.5, 0 ), _mvPosition,  _worldScale );
+
+		_uvA.set( 0, 0 );
+		_uvB.set( 1, 0 );
+		_uvC.set( 1, 1 );
+
+		// check first triangle
+		let intersect = raycaster.ray.intersectTriangle( _vA, _vB, _vC, false, _intersectPoint );
+
+		if ( intersect === null ) {
+
+			// check second triangle
+			transformVertex( _vB.set( - 0.5, 0.5, 0 ), _mvPosition, _worldScale );
+			_uvB.set( 0, 1 );
+
+			intersect = raycaster.ray.intersectTriangle( _vA, _vC, _vB, false, _intersectPoint );
+			if ( intersect === null ) {
+
+				return;
+
+			}
+
+		}
+
+		const distance = raycaster.ray.origin.distanceTo( _intersectPoint );
+
+		if ( distance < raycaster.near || distance > raycaster.far ) return;
+
+		intersects.push( {
+
+			distance: distance,
+			point: _intersectPoint.clone(),
+			uv: Triangle.getUV( _intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2() ),
+			face: null,
+			object: this
+
+		} );
+
+	}
 }

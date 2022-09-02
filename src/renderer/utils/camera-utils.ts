@@ -2,7 +2,6 @@ import CameraControls from "camera-controls";
 import { Box3, MathUtils, Object3D, PerspectiveCamera, Vector3 } from "three";
 import { imageIsFlipped } from "./image-utils";
 import { ImageStruct } from "common/types";
-import DirectionalCamera from "../camera/directional-camera";
 
 export const getDirection32 = (target: Vector3, cameraPosition: Vector3) => {
   const adj = target.z - cameraPosition.z;
@@ -50,16 +49,16 @@ const _imageFrameInfo = {
   flipped: false
 };
 
-export function applyCameraDirectionToImageFrameOffset(camera: DirectionalCamera, image: ImageStruct) {
+export function applyCameraDirectionToImageFrameOffset(cameraDirection: number, image: ImageStruct) {
   const flipped = imageIsFlipped(image);
   const direction = flipped ? 32 - image.frameIndexOffset : image.frameIndexOffset;
-  _imageFrameInfo.frame = (direction + camera.userData.direction) % 32;
+  _imageFrameInfo.frame = (direction + cameraDirection) % 32;
   _imageFrameInfo.flipped = _imageFrameInfo.frame > 16;
   return _imageFrameInfo;
 }
 
-export function applyCameraDirectionToImageFrame(camera: DirectionalCamera, image: ImageStruct) {
-  const newFrameOffset = applyCameraDirectionToImageFrameOffset(camera, image);
+export function applyCameraDirectionToImageFrame(cameraDirection: number, image: ImageStruct) {
+  const newFrameOffset = applyCameraDirectionToImageFrameOffset(cameraDirection, image);
 
   if (_imageFrameInfo.flipped) {
     _imageFrameInfo.frame = image.frameIndexBase + 32 - newFrameOffset.frame;

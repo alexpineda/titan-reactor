@@ -3,11 +3,9 @@ import { SpriteRenderOptions, SpriteStruct, SpriteType } from "common/types";
 import { ImageBufferView } from "../buffer-view/images-buffer-view";
 import { imageHasDirectionalFrames } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
-import DirectionalCamera from "../camera/directional-camera";
 import { ImageHD } from "@core/image-hd";
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import { ImageBase } from "@core/image";
-
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
     let score = 0;
@@ -28,7 +26,7 @@ let frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false 
 /**
  * Apply viewport specific transformations before rendering a sprite.
  */
-export const updateSpritesForViewport = (camera: DirectionalCamera, options: SpriteRenderOptions, spriteIterator: () => Generator<{
+export const updateSpritesForViewport = (cameraDirection: number, options: SpriteRenderOptions, spriteIterator: () => Generator<{
     bufferView: SpritesBufferView,
     object: SpriteType
 }>, imageIterator: (spriteData: SpritesBufferView) => Generator<{
@@ -55,7 +53,7 @@ export const updateSpritesForViewport = (camera: DirectionalCamera, options: Spr
 
             if (imageHasDirectionalFrames(image.bufferView)) {
                 if (image.object instanceof ImageHD) {
-                    frameInfo = applyCameraDirectionToImageFrame(camera, image.bufferView);
+                    frameInfo = applyCameraDirectionToImageFrame(cameraDirection, image.bufferView);
                 } else {
                     // ignore camera direction since we are rotating the 3d model
                     frameInfo.frame = image.bufferView.frameIndex;

@@ -66,8 +66,7 @@ export async function mapScene(
 
   const gameSurface = new Surface();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-  document.body.appendChild(gameSurface.canvas);
-  janitor.callback(() => document.body.removeChild(gameSurface.canvas));
+  janitor.add(document.body.appendChild(gameSurface.canvas));
 
   // scene.background = new Color(settings.mapBackgroundColor);
   const camera = new PerspectiveCamera(55, gameSurface.aspect, 0.1, 1000);

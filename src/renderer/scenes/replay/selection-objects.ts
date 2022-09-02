@@ -2,8 +2,7 @@ import SelectionCircle from "@core/selection-circle";
 import SelectionBars from "@core/selection-bars";
 import range from "common/utils/range";
 import gameStore from "@stores/game-store";
-import DirectionalCamera from "renderer/camera/directional-camera";
-import { Group, Vector3 } from "three";
+import { Camera, Group, Vector3 } from "three";
 import { SpriteDAT, SpriteType } from "common/types";
 import { Unit } from "@core";
 import { useSelectedUnitsStore } from "@stores/selected-units-store";
@@ -43,7 +42,7 @@ export const hideSelections = () => {
     }
 }
 
-export function updateSelectionGraphics(camera: DirectionalCamera, sprites: SpriteEntities) {
+export function updateSelectionGraphics(camera: Camera, sprites: SpriteEntities) {
     const bwDat = gameStore().assets!.bwDat;
     camera.getWorldDirection(_cameraWorldDirection);
     let sprite: SpriteType | undefined;
