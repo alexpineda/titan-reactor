@@ -51,7 +51,6 @@ class PluginBase implements NativePlugin {
         // TODO: use leva detection algo here to determine if values are in bounds
         //@ts-ignore
         this.#config[key].value = value;
-
         updatePluginsConfig(this.id, this.#config);
     }
 
@@ -85,6 +84,10 @@ class PluginBase implements NativePlugin {
     getRawConfigComponent(key: string) {
         return this.#config[key];
     }
+
+    get rawConfig() {
+        return this.#config;
+    }
 };
 
 export interface SceneController extends PluginBase, SceneInputHandler {
@@ -101,7 +104,7 @@ const VALID_PERMISSIONS = [
 ];
 
 export class PluginSystemNative {
-    #nativePlugins: NativePlugin[] = [];
+    #nativePlugins: PluginBase[] = [];
     #uiPlugins: PluginSystemUI;
     #janitor = new Janitor;
     #activeSceneInputHandler?: SceneInputHandler;
@@ -171,7 +174,7 @@ export class PluginSystemNative {
 
     constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
         this.#hooks = createDefaultHooks();
-        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean) as NativePlugin[];
+        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean) as PluginBase[];
         this.#uiPlugins = uiPlugins;
 
         const _messageListener = (event: MessageEvent) => {
@@ -185,10 +188,10 @@ export class PluginSystemNative {
     }
 
     getSceneInputHandlers() {
-        return this.#nativePlugins.filter(p => p.isSceneController) as SceneInputHandler[];
+        return this.#nativePlugins.filter(p => p.isSceneController) as SceneController[];
     }
 
-    setActiveSceneInputHandler(plugin: SceneInputHandler) {
+    setActiveSceneInputHandler(plugin: SceneController) {
         this.#activeSceneInputHandler = plugin;
     }
 
@@ -311,7 +314,7 @@ export class PluginSystemNative {
     enableAdditionalPlugins(pluginPackages: PluginMetaData[]) {
         const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
 
-        this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins] as NativePlugin[];
+        this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins] as PluginBase[];
     }
 
     /**
@@ -407,6 +410,8 @@ export class PluginSystemNative {
                 return null;
             }
             plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options));
+            this.hook_onConfigChanged(plugin.id, plugin.rawConfig);
+
             return {
                 pluginId: plugin.id,
                 config: plugin.config
