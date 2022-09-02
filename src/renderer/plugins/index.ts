@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { PluginMetaData, MacroActionPlugin, OpenBWAPI, SceneInputHandler } from "common/types";
+import { PluginMetaData, MacroActionPlugin, OpenBWAPI } from "common/types";
 import {
     ON_PLUGINS_ENABLED,
     DISABLE_PLUGIN,
@@ -15,7 +15,7 @@ import {
     UI_SYSTEM_FIRST_INSTALL,
 } from "./events";
 import { PluginSystemUI } from "./plugin-system-ui";
-import { PluginSystemNative } from "./plugin-system-native";
+import { PluginSystemNative, SceneController } from "./plugin-system-native";
 import screenStore from "@stores/scene-store";
 import { HOOK_ON_SCENE_DISPOSED } from "./hooks";
 import { Macros } from "@macros/macros";
@@ -177,6 +177,6 @@ export const setMacroDefaults = (macros: Macros, pluginId: string, config: any) 
 }
 
 
-export const setActiveInputHandler = (plugin: SceneInputHandler) => {
+export const setActiveInputHandler = (plugin: SceneController) => {
     nativePluginSystem.setActiveSceneInputHandler(plugin);
 }

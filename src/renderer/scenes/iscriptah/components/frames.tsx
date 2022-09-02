@@ -35,8 +35,16 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
 
   return (
     <aside
-      className="bg-gray-100 flex-0 flex flex-col max-h-screen overflow-y-scroll pb-10  select-none"
-      style={{ minWidth: "8rem" }}
+      style={{
+        flex: 0,
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "100vh",
+        overflowY: "scroll",
+        paddingBottom: "var(--size-10)",
+        userSelect: "none",
+        minWidth: "8rem",
+      }}
     >
       <header className="p-2">
         <p className="text-xs italic mb-4">

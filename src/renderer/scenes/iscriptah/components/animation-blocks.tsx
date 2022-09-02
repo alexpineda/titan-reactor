@@ -6,10 +6,7 @@ import { useGameStore } from "@stores/game-store";
 
 export const AnimationBlocks = ({ image }: { image: ImageDAT }) => {
   const [expanded, setExpanded] = useState(false);
-  const bwDat = useGameStore((state) => state.assets?.bwDat);
-  if (!bwDat) {
-    throw new Error("No bwDat loaded");
-  }
+  const bwDat = useGameStore((state) => state.assets!.bwDat);
 
   const iscriptAnimations = {
     header: 0,

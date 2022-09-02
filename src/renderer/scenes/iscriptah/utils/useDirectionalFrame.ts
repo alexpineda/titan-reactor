@@ -3,14 +3,14 @@ import {
   getDirectionalFrame as _getDirectionalFrame,
   areFrameSetsEnabled as _areFrameSetsEnabled,
 } from "./framesets";
-import { IScriptAnimation, Block } from "common/types";
+import { IScriptAnimation } from "common/types";
 
 
-export default (cmds: IScriptAnimation, selectedBlock: Block, blockFrameCount: number, cameraDirection: number) => {
+export default (cmds: IScriptAnimation, gfxTurns: boolean, blockFrameCount: number, cameraDirection: number) => {
   const dirCache = useRef<any>();
   useEffect(() => {
     dirCache.current = {};
-  }, [selectedBlock, cameraDirection]);
+  }, [gfxTurns, cameraDirection]);
 
   const getDirectionalFrame = (cmd: any) => {
     if (dirCache.current[cmd] !== undefined) return dirCache.current[cmd];
@@ -23,7 +23,7 @@ export default (cmds: IScriptAnimation, selectedBlock: Block, blockFrameCount: n
   };
 
   const areFrameSetsEnabled = (cmd: any) => {
-    return _areFrameSetsEnabled(cmd, cmds, selectedBlock, blockFrameCount);
+    return _areFrameSetsEnabled(cmd, cmds, gfxTurns, blockFrameCount);
   };
 
   return [getDirectionalFrame, areFrameSetsEnabled];

@@ -4,6 +4,7 @@ import { ipcRenderer } from "electron";
 import {
     GO_TO_START_PAGE,
     LOG_MESSAGE,
+    OPEN_ISCRIPTAH,
     OPEN_MAP_DIALOG,
     OPEN_REPLAY_DIALOG,
     SEND_BROWSER_WINDOW,
@@ -19,6 +20,7 @@ import { mapSceneLoader } from "./scenes/map/map-scene-loader";
 import { homeSceneLoader } from "./scenes/home/home-scene-loader";
 import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
 import { mixer } from "./audio";
+import { createIScriptahScene } from "./scenes/iscriptah/iscriptah";
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,
@@ -74,6 +76,11 @@ ipcRenderer.on(OPEN_REPLAY_DIALOG, async (_, replay: string) => {
     await sceneStore().execSceneLoader(interstitialSceneLoader);
     sceneStore().execSceneLoader(() => replaySceneLoader(replay));
 });
+
+ipcRenderer.on(OPEN_ISCRIPTAH, async () => {
+    sceneStore().execSceneLoader(() => createIScriptahScene());
+});
+
 
 ipcRenderer.on(
     SEND_BROWSER_WINDOW,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
     DataTexture,
     LuminanceFormat,
@@ -44,7 +43,7 @@ export const loadAnimSdAtlas = async ({
         teammask.needsUpdate = true;
     }
 
-    return new {
+    return {
         diffuse,
         grp,
         imageIndex: imageDef.index,

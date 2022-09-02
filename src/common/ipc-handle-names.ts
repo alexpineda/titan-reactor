@@ -2,6 +2,7 @@ export const OPEN_FILE = "openFile";
 export const OPEN_MAP_DIALOG = "OPEN_MAP_DIALOG";
 export const OPEN_REPLAY_DIALOG = "OPEN_REPLAY_DIALOG";
 export const GET_LOADED_SETTINGS = "GET_SETTINGS";
+export const OPEN_ISCRIPTAH = "OPEN_ISCRIPTAH";
 
 export const SAVE_SETTINGS_DATA = "SAVE_SETTINGS";
 

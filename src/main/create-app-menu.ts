@@ -4,14 +4,14 @@ import getUserDataPath from "./get-user-data-path";
 import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton"
-import { OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { OPEN_ISCRIPTAH, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { spawn } from "child_process";
 import electronIsDev from "electron-is-dev";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
 export const logFilePath = path.join(getUserDataPath(), "logs");
 
-export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void, goToStartPage: () => void) => {
+export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
 
   const template = [
     {
@@ -103,7 +103,7 @@ export default (onOpenPluginManager: () => void, onOpenIscriptah: () => void, go
           {
             label: "&IScriptah - Animation Viewer",
             click: function () {
-              onOpenIscriptah();
+              browserWindows.main!.webContents.send(OPEN_ISCRIPTAH);
             },
           }] : []),
       ],

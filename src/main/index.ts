@@ -39,26 +39,6 @@ const createMainWindow = () => {
 
 }
 
-const createIscriptahWindow = () => {
-  if (windows.iscriptah) {
-    if (windows.iscriptah.isMinimized()) windows.iscriptah.restore()
-    windows.iscriptah.focus()
-    return;
-  }
-
-  windows.iscriptah = createWindow({
-    onClose: () => {
-      windows.iscriptah = null;
-    },
-    nodeIntegration: true,
-    devTools: true,
-    backgroundThrottling: true,
-    hideMenu: true,
-    removeMenu: true
-  });
-
-}
-
 const createConfigurationWindow = () => {
   if (windows.config) {
     if (windows.config.isMinimized()) windows.config.restore()
@@ -102,7 +82,7 @@ if (!gotTheLock) {
 
   createAppMenu(() =>
     createConfigurationWindow()
-    , () => createIscriptahWindow(), () => {
+    , () => {
       windows.main?.webContents.send(GO_TO_START_PAGE);
     });
 

@@ -83,17 +83,17 @@ const _uvC = new Vector2;
 const _viewWorldMatrix = new Matrix4;
 
 
-function transformVertex( vertexPosition: Vector3, mvPosition: Vector3, scale: Vector3) {
+function transformVertex(vertexPosition: Vector3, mvPosition: Vector3, scale: Vector3) {
 
-	// compute position in camera space
-	_alignedPosition.copy(vertexPosition).multiply( scale );
+  // compute position in camera space
+  _alignedPosition.copy(vertexPosition).multiply(scale);
 
-	vertexPosition.copy( mvPosition );
-	vertexPosition.x += _alignedPosition.x;
-	vertexPosition.y += _alignedPosition.y;
+  vertexPosition.copy(mvPosition);
+  vertexPosition.x += _alignedPosition.x;
+  vertexPosition.y += _alignedPosition.y;
 
-	// transform to world space
-	vertexPosition.applyMatrix4( _viewWorldMatrix );
+  // transform to world space
+  vertexPosition.applyMatrix4(_viewWorldMatrix);
 
 }
 
@@ -169,7 +169,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     if (this.atlas.imageIndex === atlas.imageIndex && !force) {
       this.material.depthTest = ImageHD.useDepth;
-      return;
+      return this;
     }
     this.atlas = atlas;
     this.material.map = atlas.diffuse;
@@ -296,60 +296,60 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   }
 
-  override raycast( raycaster: Raycaster, intersects: Intersection[] ) {
+  override raycast(raycaster: Raycaster, intersects: Intersection[]) {
 
-		if ( raycaster.camera === null ) {
+    if (raycaster.camera === null) {
 
-			console.error( 'THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.' );
+      console.error('THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.');
 
-		}
+    }
 
-		_worldScale.setFromMatrixScale( this.matrixWorld );
+    _worldScale.setFromMatrixScale(this.matrixWorld);
 
-		_viewWorldMatrix.copy( raycaster.camera.matrixWorld );
-		this.modelViewMatrix.multiplyMatrices( raycaster.camera.matrixWorldInverse, this.matrixWorld );
+    _viewWorldMatrix.copy(raycaster.camera.matrixWorld);
+    this.modelViewMatrix.multiplyMatrices(raycaster.camera.matrixWorldInverse, this.matrixWorld);
 
-		_mvPosition.setFromMatrixPosition( this.modelViewMatrix );
+    _mvPosition.setFromMatrixPosition(this.modelViewMatrix);
 
-		transformVertex( _vA.set( - 0.5, - 0.5, 0 ), _mvPosition,  _worldScale );
-		transformVertex( _vB.set( 0.5, - 0.5, 0 ), _mvPosition,  _worldScale );
-		transformVertex( _vC.set( 0.5, 0.5, 0 ), _mvPosition,  _worldScale );
+    transformVertex(_vA.set(- 0.5, - 0.5, 0), _mvPosition, _worldScale);
+    transformVertex(_vB.set(0.5, - 0.5, 0), _mvPosition, _worldScale);
+    transformVertex(_vC.set(0.5, 0.5, 0), _mvPosition, _worldScale);
 
-		_uvA.set( 0, 0 );
-		_uvB.set( 1, 0 );
-		_uvC.set( 1, 1 );
+    _uvA.set(0, 0);
+    _uvB.set(1, 0);
+    _uvC.set(1, 1);
 
-		// check first triangle
-		let intersect = raycaster.ray.intersectTriangle( _vA, _vB, _vC, false, _intersectPoint );
+    // check first triangle
+    let intersect = raycaster.ray.intersectTriangle(_vA, _vB, _vC, false, _intersectPoint);
 
-		if ( intersect === null ) {
+    if (intersect === null) {
 
-			// check second triangle
-			transformVertex( _vB.set( - 0.5, 0.5, 0 ), _mvPosition, _worldScale );
-			_uvB.set( 0, 1 );
+      // check second triangle
+      transformVertex(_vB.set(- 0.5, 0.5, 0), _mvPosition, _worldScale);
+      _uvB.set(0, 1);
 
-			intersect = raycaster.ray.intersectTriangle( _vA, _vC, _vB, false, _intersectPoint );
-			if ( intersect === null ) {
+      intersect = raycaster.ray.intersectTriangle(_vA, _vC, _vB, false, _intersectPoint);
+      if (intersect === null) {
 
-				return;
+        return;
 
-			}
+      }
 
-		}
+    }
 
-		const distance = raycaster.ray.origin.distanceTo( _intersectPoint );
+    const distance = raycaster.ray.origin.distanceTo(_intersectPoint);
 
-		if ( distance < raycaster.near || distance > raycaster.far ) return;
+    if (distance < raycaster.near || distance > raycaster.far) return;
 
-		intersects.push( {
+    intersects.push({
 
-			distance: distance,
-			point: _intersectPoint.clone(),
-			uv: Triangle.getUV( _intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2() ),
-			face: null,
-			object: this
+      distance: distance,
+      point: _intersectPoint.clone(),
+      uv: Triangle.getUV(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2()),
+      face: null,
+      object: this
 
-		} );
+    });
 
-	}
+  }
 }

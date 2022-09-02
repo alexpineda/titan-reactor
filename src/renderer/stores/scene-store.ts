@@ -4,7 +4,7 @@ import { SceneState } from "../scenes/scene";
 
 export type SceneStore = {
     state: SceneState | null;
-    execSceneLoader: (load: () => Promise<SceneState>) => Promise<void>;
+    execSceneLoader: (load: () => Promise<SceneState> | SceneState) => Promise<void>;
     error: Error | null;
     setError: (error: Error) => void;
     clearError: () => void;
@@ -16,7 +16,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     scene: null,
     state: null,
     error: null,
-    execSceneLoader: async (loader: (prevData?: any) => Promise<SceneState>) => {
+    execSceneLoader: async (loader: (prevData?: any) => Promise<SceneState> | SceneState) => {
         if (get().error) {
             return;
         }

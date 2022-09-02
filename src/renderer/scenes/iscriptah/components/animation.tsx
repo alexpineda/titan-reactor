@@ -1,7 +1,7 @@
 import shallow from "zustand/shallow";
 import { gameSpeeds } from "common/utils/conversions";
 import TransformDetails from "./transform-details";
-import { WrappedCanvas } from "../../image/canvas/wrapped-canvas";
+import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 import {
   setAutoupdate,
   setRenderMode,
@@ -15,13 +15,14 @@ import {
   setShowFloorAxes,
 } from "../stores";
 import { Surface } from "@image";
+import { Block } from "common/types";
 
 export const Animation = ({
   surface,
   selectedBlock,
 }: {
   surface: Surface;
-  selectedBlock: any;
+  selectedBlock: Block;
 }) => {
   const {
     autoUpdate,
@@ -54,20 +55,6 @@ export const Animation = ({
     shallow
   );
 
-  if (!selectedBlock) {
-    return (
-      <aside className="bg-gray-100 flex-1 flex flex-col max-h-screen">
-        <header className="p-2">
-          <p className="text-xs italic">Animation</p>
-          <p className="font-bold text-lg text-blue-800">None</p>
-        </header>
-        <WrappedCanvas
-          canvas={surface.canvas}
-          className={"flex-1 text-gray-300 pattern-checks-sm"}
-        />
-      </aside>
-    );
-  }
   const { offset } = selectedBlock;
 
   return (

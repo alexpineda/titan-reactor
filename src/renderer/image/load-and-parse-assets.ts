@@ -22,6 +22,10 @@ import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
 import { imageTypes, unitTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
+import settingsStore from "@stores/settings-store";
+
+const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${i}`.slice(-3)}.anim`;
+
 
 export default async (settings: Settings) => {
 
@@ -70,8 +74,6 @@ export default async (settings: Settings) => {
         }
         return id;
     };
-
-    const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${i}`.slice(-3)}.anim`;
 
     const loadingHD2 = new Set();
     const loadingHD = new Set();
@@ -189,3 +191,37 @@ export default async (settings: Settings) => {
     });
     processStore().complete(Process.AtlasPreload);
 };
+
+export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) => {
+    const assets = gameStore().assets!;
+    const settings = settingsStore().data!;
+
+    const refImageId = assets.refId(imageId);
+    const glbFileName = path.join(
+        settings.directories.assets,
+        `00${refImageId}`.slice(-3) + ".glb"
+    )
+    const glbFileExists = image3d ? await fileExists(glbFileName) : false;
+
+    const loadAnimBuffer = () => readCascFile(genFileName(refImageId, ""));
+
+    const imageDat = assets.bwDat.images[imageId];
+    if (glbFileExists) {
+        log.verbose(`loading glb  ${glbFileName}`);
+        return await loadGlbAtlas(
+            glbFileName,
+            loadAnimBuffer,
+            imageDat,
+            UnitTileScale.HD,
+            assets.bwDat.grps[imageDat.grp],
+            assets.envMap
+        );
+    } else {
+        return await loadAnimAtlas(
+            loadAnimBuffer,
+            imageDat,
+            UnitTileScale.HD,
+            assets.bwDat.grps[imageDat.grp],
+        )
+    }
+}

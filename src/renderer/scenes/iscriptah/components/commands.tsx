@@ -5,18 +5,16 @@ import { interactiveOpCodes } from "../utils/framesets";
 import useDirectionalFrame from "../utils/useDirectionalFrame";
 import { useIScriptahStore, useIscriptStore, setBaseFrame } from "../stores";
 import { useGameStore } from "@stores/game-store";
+import { Block } from "common/types";
 
-export const Commands = () => {
-  const bwDat = useGameStore((state) => state.assets?.bwDat);
-  if (!bwDat) {
-    throw new Error("No bwDat loaded");
-  }
+export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
+  const bwDat = useGameStore((state) => state.assets!.bwDat);
 
   const { cameraDirection } = useIScriptahStore((state) => ({
     cameraDirection: state.cameraDirection,
   }));
 
-  const { blockFrameCount, selectedBlock, frame } = useIscriptStore(
+  const { blockFrameCount, frame } = useIscriptStore(
     (store) => ({
       blockFrameCount: store.blockFrameCount,
       selectedBlock: store.block,
@@ -25,19 +23,6 @@ export const Commands = () => {
     shallow
   );
 
-  if (!selectedBlock) {
-    return (
-      <aside
-        className="bg-gray-100 flex-0 flex flex-col max-h-screen overflow-y-scroll"
-        style={{ minWidth: "15rem" }}
-      >
-        <header className="p-2">
-          <p className="text-xs italic">IScript Animation Block</p>
-          <p className="font-bold text-lg text-blue-800">None</p>
-        </header>
-      </aside>
-    );
-  }
   const [showOnlyPlayFrame, setShowOnlyPlayFrame] = useState(true);
   const [clickEl, setClickEl] = useState<number | null>(null);
   const elToClick = useRef<HTMLLIElement>();
@@ -48,7 +33,7 @@ export const Commands = () => {
   const headerLabel = iscriptHeaders[header];
   const [getDirectionalFrame, areFrameSetsEnabled] = useDirectionalFrame(
     cmds,
-    selectedBlock,
+    !!selectedBlock.image.gfxTurns,
     blockFrameCount,
     cameraDirection
   );

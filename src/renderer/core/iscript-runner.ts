@@ -1,14 +1,13 @@
 
-// @ts-nocheck
-import { BwDAT } from "../../common/types";
-import { iscriptHeaders as headers } from "../../common/enums/iscript-headers";
+import { BwDAT } from "common/types";
+import { iscriptHeaders as headers } from "common/enums/iscript-headers";
 import { IScriptState } from "./iscript-state"
 
 export class IScriptRunner {
   private bwDat: BwDAT;
   tileset: number;
   logger: { log: () => void };
-  dispatched = [];
+  dispatched: any[] = [];
 
   constructor(
     bwDat: BwDAT,
@@ -243,7 +242,7 @@ export class IScriptRunner {
         case "playframtile":
           {
             state.frameset = 0;
-            this.setFrame(args[0] + this.tileset, false);
+            this.setFrame(args[0] + this.tileset, false, state);
             this._dispatch(command, args[0] + this.tileset);
           }
           break;
@@ -251,8 +250,9 @@ export class IScriptRunner {
         case "engframe":
           {
             state.frameset = args[0];
-            state.direction =
-              this.image.sprite.mainImage.userData.direction;
+            state.direction = 0;
+            // state.direction =
+            // this.image.sprite.mainImage.userData.direction;
             this.setFrameBasedOnDirection(state);
             this._dispatch(command, [state.frame, state.flip]);
           }
