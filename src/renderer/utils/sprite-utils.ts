@@ -7,6 +7,7 @@ import DirectionalCamera from "../camera/directional-camera";
 import { ImageHD } from "@core/image-hd";
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import { ImageBase } from "@core/image";
+import { Image3D } from "@core/image-3d";
 
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
@@ -23,7 +24,7 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
     return (sprite.flags & SpriteFlags.Hidden) !== 0;
 }
 
-let frameInfo: { frame: number, flipped: boolean } | null = null;
+let frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
 
 /**
  * Apply viewport specific transformations before rendering a sprite.
@@ -46,17 +47,22 @@ export const updateSpritesForViewport = (camera: DirectionalCamera, options: Spr
 
         for (const image of imageIterator(sprite.bufferView)) {
 
-            if (image.object instanceof ImageHD && image.object.material.depthTest !== ImageHD.useDepth) {
-                image.object.material.depthTest = ImageHD.useDepth;
-                image.object.setFrame(image.object.frame, image.object.flip)
+            if (image.object instanceof ImageHD) {
+                if (image.object.material.depthTest !== ImageHD.useDepth) {
+                    image.object.material.depthTest = ImageHD.useDepth;
+                    image.object.setFrame(image.object.frame, image.object.flip)
+                }
             }
 
             if (imageHasDirectionalFrames(image.bufferView)) {
-                frameInfo = applyCameraDirectionToImageFrame(camera, image.bufferView);
+                if (image.object instanceof ImageHD) {
+                    frameInfo = applyCameraDirectionToImageFrame(camera, image.bufferView);
+                } else {
+                    // ignore camera direction since we are rotating the 3d model
+                    frameInfo.frame = image.bufferView.frameIndex;
+                }
                 image.object.setFrame(frameInfo.frame, frameInfo.flipped);
             }
-
-            frameInfo = null;
         }
     }
 }

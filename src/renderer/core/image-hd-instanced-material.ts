@@ -34,6 +34,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
     #dynamicUniforms: DynamicUniforms;
     isTeamSpriteMaterial = true;
     #customCacheKey = "";
+    flatProjection = true;
 
     constructor(parameters?: SpriteMaterialParameters) {
         super(parameters);

@@ -622,6 +622,7 @@ export async function replayScene(
         image.setTeamColor(player?.color);
         image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
         image.position.set(0, 0, 0)
+        image.rotation.set(0, 0, 0);
 
         //overlay offsets typically
         if (image instanceof ImageHD) {
@@ -645,9 +646,6 @@ export async function replayScene(
             image.position.y = subunit.extras.turretLo.y / 32;
           }
         }
-
-        image.position.z = 0;
-        image.rotation.set(0, 0, 0);
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
@@ -688,7 +686,8 @@ export async function replayScene(
           }
 
           if (unit) {
-            image.rotation.y = image.isImage3d ? getAngle(unit.direction) : 0;
+            // only rotate if we're 3d and the frame is part of a frame set
+            image.rotation.y = image instanceof Image3D && !image.isLooseFrame ? getAngle(unit.direction) : 0;
           }
         }
       }
@@ -696,11 +695,11 @@ export async function replayScene(
 
       if (image instanceof ImageHD) {
 
-        applyOverlayEffectsToImageHD(spriteBufferView.typeId, imageBufferView, image);
+        applyOverlayEffectsToImageHD(imageBufferView, image);
 
       } else if (image instanceof Image3D) {
 
-        applyOverlayEffectsToImage3D(spriteBufferView.typeId, imageBufferView.typeId, image);
+        applyOverlayEffectsToImage3D(imageBufferView, image);
       }
 
       if (image instanceof ImageHDInstanced) {

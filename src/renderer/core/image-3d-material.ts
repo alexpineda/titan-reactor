@@ -18,7 +18,8 @@ type DynamicUniforms = {
         value: number;
     },
 };
-
+window.brightness = { value: 0.01 }
+window.contrast = { value: 1.05 }
 export class Image3DMaterial extends MeshStandardMaterial {
     #dynamicUniforms: DynamicUniforms;
     isTeamSpriteMaterial = true;
@@ -44,7 +45,9 @@ export class Image3DMaterial extends MeshStandardMaterial {
             },
             modifier: {
                 value: 0
-            }
+            },
+            uBrightness: window.brightness,
+            uContrast: window.contrast
         };
     }
 
@@ -88,6 +91,14 @@ export class Image3DMaterial extends MeshStandardMaterial {
     override onBeforeCompile(shader: Shader) {
         shader.fragmentShader = `
         uniform vec3 uTeamColor;
+        uniform float uBrightness;
+        uniform float uContrast;
+
+        vec3 brightnessContrast(vec3 value)
+        {
+            return (value - 0.5) * uContrast + 0.5 + uBrightness;
+        }
+
         ${shader.fragmentShader}
     `;
         shader.fragmentShader = shader.fragmentShader.replace(
@@ -96,7 +107,8 @@ export class Image3DMaterial extends MeshStandardMaterial {
             ShaderChunk.map_fragment.replace(
                 'diffuseColor *= sampledDiffuseColor;',
                 `
-        diffuseColor *= vec4(mix(sampledDiffuseColor.rgb, sampledDiffuseColor.rgb * uTeamColor, sampledDiffuseColor.a), 1.);
+        vec3 fColor = mix(sampledDiffuseColor.rgb, sampledDiffuseColor.rgb * uTeamColor, sampledDiffuseColor.a);
+        diffuseColor *= vec4(brightnessContrast(fColor), 1.);
     `
             )
         );

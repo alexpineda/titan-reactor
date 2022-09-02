@@ -19,6 +19,7 @@ export interface Assets {
     envMap: Texture;
     loadImageAtlas: (imageID: number, res: UnitTileScale) => Promise<void>;
     skyBox: CubeTexture;
+    refId: (id: number) => number;
 }
 
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;

@@ -60,7 +60,7 @@ export class ImageEntities {
             if (freeImage && freeImage instanceof Image3D) {
                 return freeImage;
             }
-            return new Image3D(atlas, imageDef);
+            return new Image3D(atlas);
             // if (atlas.model instanceof SkinnedMesh) {
             //     if (this.#skinnedInstances.has(imageTypeId)) {
             //         return this.#skinnedInstances.get(imageTypeId);

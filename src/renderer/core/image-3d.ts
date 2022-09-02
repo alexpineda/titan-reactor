@@ -55,7 +55,6 @@ export class Image3D extends Object3D implements ImageBase {
         o.material = this.#material;
       }
     });
-
     this.add(this.model);
 
     if (this.model && this.atlas.animations.length) {
@@ -107,6 +106,10 @@ export class Image3D extends Object3D implements ImageBase {
 
   get frame() {
     return this.atlas.fixedFrames[this.#frame];
+  }
+
+  get isLooseFrame() {
+    return this.#frame / 17 > Math.floor(this.atlas.frames.length / 17);
   }
 
   static clone(source: Object3D) {

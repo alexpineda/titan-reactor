@@ -72,43 +72,43 @@ export default async (settings: Settings) => {
         return id;
     };
 
-    const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${refId(i)}`.slice(-3)}.anim`;
+    const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${i}`.slice(-3)}.anim`;
 
     const loadingHD2 = new Set();
     const loadingHD = new Set();
 
     const loadImageAtlas = (atlases: (AnimAtlas | GltfAtlas)[]) => async (imageId: number, res: UnitTileScale) => {
-        if (res === UnitTileScale.HD) {
-            if (loadingHD.has(imageId)) {
+        const refImageId = refId(imageId);
+        const glbFileName = path.join(
+            settings.directories.assets,
+            `00${refImageId}`.slice(-3) + ".glb"
+        )
+        const glbFileExists = settings.assets.enable3dAssets ? await fileExists(glbFileName) : false;
+
+        if (res === UnitTileScale.HD || glbFileExists) {
+            if (loadingHD.has(refImageId)) {
                 return;
             } else {
+                loadingHD.add(refImageId);
                 loadingHD.add(imageId);
             }
         } else if (res === UnitTileScale.HD2) {
-            if (loadingHD2.has(imageId)) {
+            if (loadingHD2.has(refImageId)) {
                 return;
             } else {
+                loadingHD2.add(refImageId);
                 loadingHD2.add(imageId);
             }
             // hd2 loading pass will have loaded the model
-        } else if (isGltfAtlas(atlases[imageId])) {
-            loadingHD.add(imageId);
-            return;
         }
         let atlas: AnimAtlas | GltfAtlas;
 
-        const glbFileName = path.join(
-            settings.directories.assets,
-            `00${refId(
-                imageId
-            )}`.slice(-3) + ".glb"
-        )
-        const fs = settings.assets.enable3dAssets ? await fileExists(glbFileName) : false;
-        const loadAnimBuffer = () => readCascFile(genFileName(imageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
+
+        const loadAnimBuffer = () => readCascFile(genFileName(refImageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
         const scale = res === UnitTileScale.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
 
         const imageDat = bwDat.images[imageId];
-        if (fs) {
+        if (glbFileExists) {
             log.verbose(`loading glb  ${glbFileName}`);
             atlas = await loadGlbAtlas(
                 glbFileName,
@@ -137,6 +137,7 @@ export default async (settings: Settings) => {
             }
         };
         atlases[imageId] = atlas;
+        atlases[refImageId] = atlas;
     }
 
     const grps: AnimAtlas[] = [];
@@ -184,7 +185,8 @@ export default async (settings: Settings) => {
         wireframeIcons,
         envMap,
         loadImageAtlas: loadImageAtlasGrp,
-        skyBox
+        skyBox,
+        refId
     });
     processStore().complete(Process.AtlasPreload);
 };

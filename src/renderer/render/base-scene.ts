@@ -67,7 +67,6 @@ export class BaseScene extends ThreeScene {
 
     this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 0.3);
     this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
-    window.scene = this;
 
     this.hemilight.layers.enableAll();
     this.sunlight.layers.enableAll();

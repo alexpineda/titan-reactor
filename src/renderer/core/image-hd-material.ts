@@ -28,6 +28,9 @@ type DynamicUniforms = {
   modifierData2: {
     value: number;
   };
+  uFlatProjection: {
+    value: boolean;
+  }
 };
 
 export class ImageHDMaterial extends MeshBasicMaterial {
@@ -58,6 +61,9 @@ export class ImageHDMaterial extends MeshBasicMaterial {
       modifier: {
         value: 0,
       },
+      uFlatProjection: {
+        value: true
+      }
     };
 
   }
@@ -106,6 +112,15 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
   get modifier() {
     return this.#dynamicUniforms.modifier.value;
+  }
+
+  set flatProjection(val: boolean) {
+    this.#dynamicUniforms.uFlatProjection.value = val;
+    this.#generateProgramCacheKey();
+  }
+
+  get flatProjection() {
+    return this.#dynamicUniforms.uFlatProjection.value;
   }
 
   override onBeforeCompile(shader: Shader) {
@@ -185,18 +200,21 @@ export class ImageHDMaterial extends MeshBasicMaterial {
     uniform float modifier;
     uniform float modifierData1;
     uniform float modifierData2;
-    uniform sampler2D warpInFlashTexture;`,
+    uniform sampler2D warpInFlashTexture;
+    `,
     ]);
 
     extend("fragmentShader", "#include <map_fragment>", mapFragments);
 
-    flatProjection(shader);
+    if (this.flatProjection) {
+      flatProjection(shader);
+    }
 
     Object.assign(shader.uniforms, this.#dynamicUniforms);
   }
 
   #generateProgramCacheKey() {
-    const newKey = `${Boolean(this.teamMask)}${this.modifier}`;
+    const newKey = `${Boolean(this.teamMask)}${this.modifier}${this.flatProjection}`;
     if (this.#customCacheKey !== newKey) {
       this.needsUpdate = true;
       this.#customCacheKey = newKey;

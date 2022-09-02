@@ -52,14 +52,11 @@ export class ImagePool {
     #janitor = new Janitor;
 
     #spawn(imageTypeId: number) {
-        const assets = gameStore().assets!;
         const atlas = retrieveAtlas(imageTypeId);
         if (!atlas) return;
 
-        const imageDef = assets.bwDat.images[imageTypeId];
-
         if (isGltfAtlas(atlas)) {
-            return new Image3D(atlas, imageDef);
+            return new Image3D(atlas);
         } else {
             return new ImageHD(
                 atlas,
