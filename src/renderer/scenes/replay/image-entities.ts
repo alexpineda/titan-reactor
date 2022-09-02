@@ -2,6 +2,7 @@ import { ImageBase } from "@core/image";
 import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
+import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
 import { isGltfAtlas } from "@utils/image-utils";
 import { IndexedObjectPool } from "@utils/indexed-object-pool";
@@ -17,6 +18,7 @@ enum UpgradeHDImageStatus {
 
 export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();
+    #units: Map<ImageBase, Unit> = new Map()
 
     // always 2d
     #images: Map<number, ImageBase> = new Map();
@@ -51,31 +53,12 @@ export class ImageEntities {
 
         const imageDef = assets.bwDat.images[imageTypeId];
 
-        const freeImage = this.#freeImages.get(imageTypeId);
-        if (freeImage && freeImage instanceof ImageHD) {
-            return freeImage;
-        }
         if (isGltfAtlas(atlas)) {
             const freeImage = this.#freeImages.get(imageTypeId);
             if (freeImage && freeImage instanceof Image3D) {
                 return freeImage;
             }
             return new Image3D(atlas);
-            // if (atlas.model instanceof SkinnedMesh) {
-            //     if (this.#skinnedInstances.has(imageTypeId)) {
-            //         return this.#skinnedInstances.get(imageTypeId);
-            //     } else {
-            //         this.#skinnedInstances.set(imageTypeId, atlas.model);
-            //         return atlas.model;
-            //     }
-            // } else if (atlas.model instanceof InstancedMesh) {
-            //     if (this.#instances.has(imageTypeId)) {
-            //         return this.#instances.get(imageTypeId);
-            //     } else {
-            //         this.#instances.set(imageTypeId, atlas.model);
-            //         return atlas.model;
-            //     }
-            // }
         } else {
             const freeImage = this.#freeImages.get(imageTypeId);
             if (freeImage && freeImage instanceof ImageHD) {
@@ -109,6 +92,7 @@ export class ImageEntities {
             }
             this.#images.set(imageIndex, image);
         }
+        image.userData.imageIndex = imageIndex;
         return image;
     }
 
@@ -118,6 +102,7 @@ export class ImageEntities {
             image.removeFromParent();
             this.#images.delete(imageIndex);
             this.#freeImages.add(image.dat.index, image);
+            this.#units.delete(image);
         }
     }
 
@@ -127,5 +112,13 @@ export class ImageEntities {
 
     dispose() {
         this.#janitor.dispose();
+    }
+
+    setUnit(image: ImageBase, unit: Unit) {
+        this.#units.set(image, unit);
+    }
+
+    getUnit(image: ImageBase) {
+        return this.#units.get(image);
     }
 }

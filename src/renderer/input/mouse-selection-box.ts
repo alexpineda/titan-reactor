@@ -2,19 +2,20 @@ import { Vector2 } from "three";
 
 export class MouseSelectionBox {
     selectElement: HTMLSpanElement;
-    enabled = true;
+    #enabled = true;
     #start = new Vector2
 
     set color(value: string) {
         this.selectElement.style.outline = `3px solid ${value}`;
     }
 
-    constructor() {
+    constructor(color: string) {
         this.selectElement = document.createElement("span");
         this.selectElement.style.position = "absolute";
         this.selectElement.style.display = "none";
         this.selectElement.style.pointerEvents = "none";
         document.body.appendChild(this.selectElement);
+        this.color = color;
     }
 
     start(x: number, y: number) {
@@ -41,7 +42,7 @@ export class MouseSelectionBox {
     }
 
     update(x: number, y: number, x2: number, y2: number) {
-        if (!this.enabled) return;
+        if (!this.#enabled) return;
 
         const l = Math.min(x, x2);
         const r = Math.max(x, x2);
@@ -54,6 +55,16 @@ export class MouseSelectionBox {
         this.selectElement.style.width = `${r - l}px`;
         this.selectElement.style.height = `${b - t}px`;
     };
+
+    get enabled() {
+        return this.#enabled;
+    }
+
+    set enabled(value: boolean) {
+        this.#enabled = value;
+        if (value === false)
+            this.clear();
+    }
 
     clear() {
         this.selectElement.style.display = "none";

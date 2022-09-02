@@ -58,6 +58,7 @@ export class BaseScene extends ThreeScene {
     mapHeight: number,
     terrain: Terrain) {
     super();
+    window.scene = this;
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
 

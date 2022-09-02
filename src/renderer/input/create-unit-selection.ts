@@ -1,31 +1,32 @@
-import { ImageHD } from "@core/image-hd";
 import { Unit } from "@core/unit";
 import { Surface } from "@image/canvas";
 import selectedUnitsStore from "@stores/selected-units-store";
 import { inverse } from "@utils/function-utils";
 import Janitor from "@utils/janitor";
-import { canOnlySelectOne, canSelectUnit } from "@utils/unit-utils";
+import { canOnlySelectOne } from "@utils/unit-utils";
 import { MouseSelectionBox } from ".";
-import { Camera, Raycaster, Scene, Vector2 } from "three";
+import { Camera, Object3D, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
-import settingsStore from "@stores/settings-store";
 
-export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface: Surface, minimapSurface: Surface) => {
+const typeIdSort = (a: Unit, b: Unit) => {
+    return a.typeId - b.typeId;
+}
+const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
+const _selectRayCaster = new Raycaster();
+let _unit: Unit | null;
+let _mouse = new Vector2();
+
+
+export const createUnitSelection = (camera: Camera, scene: Scene, gameSurface: Surface, minimapSurface: Surface, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(camera, scene);
-
-    const visualBox = new MouseSelectionBox();
-    visualBox.color = "#00cc00";
-    janitor.disposable(visualBox);
+    const visualBox = janitor.add(new MouseSelectionBox("#00cc00"));
 
     let mouseIsDown = false;
-
-    const typeIdSort = (a: Unit, b: Unit) => {
-        return a.typeId - b.typeId;
-    }
+    let enabled = true;
 
     const _selectDown = (event: PointerEvent) => {
-        if (event.button !== 0) return;
+        if (event.button !== 0 || !enabled) return;
         minimapSurface.canvas.style.pointerEvents = "none";
         mouseIsDown = true;
         selectionBox.startPoint.set(
@@ -35,11 +36,9 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
 
         visualBox.start(event.clientX, event.clientY);
     };
-    gameSurface.canvas.addEventListener('pointerdown', _selectDown);
-    janitor.callback(() => gameSurface.canvas.removeEventListener('pointerdown', _selectDown));
 
     // const hoverUnit = throttle((event: PointerEvent) => {
-    //     const unit = getUnitFromMouseIntersect(new Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
+    //     const unit = getUnitFromMouseIntersect(_mouse.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
     //     if (unit) {
     //         mouseCursor.hover();
     //     } else {
@@ -48,6 +47,7 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
     // }, 100);
 
     const _selectMove = (event: PointerEvent) => {
+        if (!enabled) return;
 
         if (mouseIsDown) {
 
@@ -64,15 +64,8 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
 
     }
 
-    gameSurface.canvas.addEventListener('pointermove', _selectMove);
-    janitor.callback(() => gameSurface.canvas.removeEventListener('pointermove', _selectMove));
-
-    const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
-
-    const _selectRayCaster = new Raycaster();
-
     const getUnitFromMouseIntersect = (clipV: Vector2) => {
-        _selectRayCaster.setFromCamera(clipV, camera);
+        _selectRayCaster.setFromCamera(clipV, selectionBox.camera);
         // const intersects = _selectRayCaster.intersectObjects(spritesGroup.children, true);
         const intersects = _selectRayCaster.intersectObjects(scene.children, true);
         if (intersects.length) {
@@ -80,16 +73,15 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
             let closestRenderOrder = -1;
 
             for (const intersect of intersects) {
+                _unit = onGetUnit(intersect.object);
                 if (
-                    intersect.uv !== undefined &&
-                    intersect.object instanceof ImageHD &&
-                    intersect.object.userData.unit && canSelectUnit(intersect.object.userData.unit)
+                    _unit
                 ) {
                     if (
                         intersect.object.renderOrder > closestRenderOrder
                     ) {
                         closestRenderOrder = intersect.object.renderOrder;
-                        closestUnit = intersect.object.userData.unit;
+                        closestUnit = _unit;
                     }
                 }
             }
@@ -99,7 +91,7 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
     };
 
     const _selectUp = (event: PointerEvent) => {
-        if (!mouseIsDown) return;
+        if (!mouseIsDown || !enabled) return;
 
         minimapSurface.canvas.style.pointerEvents = "auto";
         mouseIsDown = false;
@@ -109,7 +101,7 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
         let selectedUnits: Unit[] = [];
 
         if (!visualBox.isMinDragSize(event.clientX, event.clientY)) {
-            const unit = getUnitFromMouseIntersect(new Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
+            const unit = getUnitFromMouseIntersect(_mouse.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
             if (unit) {
                 selectedUnits.push(unit);
             } else {
@@ -118,17 +110,16 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
             }
         } else {
 
-
             selectionBox.endPoint.set(
                 (event.clientX / window.innerWidth) * 2 - 1,
                 - (event.clientY / window.innerHeight) * 2 + 1,
                 0.5);
 
             const allSelected = selectionBox.select();
-
             for (let i = 0; i < allSelected.length; i++) {
-                if (allSelected[i].userData.unit && canSelectUnit(allSelected[i].userData.unit) && !selectedUnits.includes(allSelected[i].userData.unit)) {
-                    selectedUnits.push(allSelected[i].userData.unit);
+                _unit = onGetUnit(allSelected[i]);
+                if (_unit && !selectedUnits.includes(_unit)) {
+                    selectedUnits.push(_unit);
                 }
             }
 
@@ -166,14 +157,23 @@ export const activateUnitSelection = (camera: Camera, scene: Scene, gameSurface:
             return
         }
         selectedUnitsStore().setSelectedUnits(selectedUnits);
-        if (settingsStore().data.util.debugMode) {
-            console.log(selectedUnits);
-        }
 
     }
-    gameSurface.canvas.addEventListener('pointerup', _selectUp);
-    janitor.callback(() => gameSurface.canvas.removeEventListener('pointerup', _selectUp));
 
-    return () => janitor.dispose()
+    janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp);
+    janitor.addEventListener(gameSurface.canvas, "pointerdown", _selectDown);
+    janitor.addEventListener(gameSurface.canvas, 'pointermove', _selectMove);
+
+    return {
+        dispose: janitor,
+        selectionBox,
+        get enabled() {
+            return enabled;
+        },
+        set enabled(value: boolean) {
+            visualBox.enabled = value;
+            enabled = value;
+        }
+    }
 
 }

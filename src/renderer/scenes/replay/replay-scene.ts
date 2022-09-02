@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3 } from "three";
+import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
@@ -13,10 +13,10 @@ import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
 import type { SoundChannels } from "@audio";
 import {
   Players,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect, ImageBase, Image3D
+  ImageHD, Creep, FogOfWar, FogOfWarEffect, ImageBase, Image3D, Unit
 } from "@core";
 import {
-  MinimapMouse, CameraMouse, CameraKeys
+  MinimapMouse, CameraMouse, CameraKeys, createUnitSelection
 } from "@input";
 import { getOpenBW } from "@openbw";
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView } from "@buffer-view";
@@ -36,7 +36,7 @@ import { Assets } from "common/types/assets";
 import { Replay } from "@process-replay/parse-replay";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
-import { getAngle, unitIsFlying } from "@utils/unit-utils";
+import { canSelectUnit, getAngle, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
@@ -143,7 +143,7 @@ export async function replayScene(
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, new FogOfWarEffect());
   const renderPass = new RenderPass(scene, new PerspectiveCamera());
 
-  const gameViewportsDirector = janitor.add(new GameViewportsDirector(scene, gameSurface, minimapSurface, {
+  const gameViewportsDirector = janitor.add(new GameViewportsDirector(gameSurface, {
     fogOfWarEffect: fogOfWar.effect,
     renderPass,
     effects: [fogOfWar.effect],
@@ -151,6 +151,17 @@ export async function replayScene(
   },
     macros
   ));
+
+  const _getSelectionUnit = (object: Object3D): Unit | null => {
+    if (object instanceof ImageHD || object instanceof Image3D) {
+      return canSelectUnit(images.getUnit(object));
+    } else if (object.parent) {
+      return _getSelectionUnit(object.parent);
+    }
+    return null;
+  }
+
+  const unitSelection = createUnitSelection(new PerspectiveCamera(), scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
 
   gameViewportsDirector.beforeActivate = () => {
     gameTimeApi.minimap.enabled = true;
@@ -173,6 +184,9 @@ export async function replayScene(
     terrain.setTerrainQuality(gameViewportsDirector.viewports[0].spriteRenderOptions.rotateSprites);
     scene.sunlight.shadow.needsUpdate = true;
     renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
+
+    unitSelection.enabled = gameViewportsDirector.allowUnitSelection;
+    unitSelection.selectionBox.camera = gameViewportsDirector.primaryViewport.camera;
 
   }
 
@@ -688,6 +702,7 @@ export async function replayScene(
           if (unit) {
             // only rotate if we're 3d and the frame is part of a frame set
             image.rotation.y = image instanceof Image3D && !image.isLooseFrame ? getAngle(unit.direction) : 0;
+            images.setUnit(image, unit);
           }
         }
       }

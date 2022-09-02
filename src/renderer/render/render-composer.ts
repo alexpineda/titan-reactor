@@ -30,6 +30,7 @@ const createWebGLRenderer = () => {
     renderer.shadowMap.autoUpdate = true;
     renderer.sortObjects = true;
     renderer.autoClear = false;
+    window.renderer = renderer;
     return renderer;
 };
 

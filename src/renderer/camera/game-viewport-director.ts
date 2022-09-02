@@ -1,10 +1,8 @@
-import { Surface } from "@image/canvas";
 import Janitor from "@utils/janitor";
 import { PostProcessingBundleDTO, SceneInputHandler, UserInputCallbacks } from "common/types";
 import { GameSurface } from "../render";
-import { Scene, Vector3 } from "three";
+import { Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
-import { activateUnitSelection } from "../input/activate-unit-selection";
 import * as log from "@ipc/log";
 import { MouseCursor } from "../input";
 import { Macros } from "@macros";
@@ -34,8 +32,6 @@ const bulletStrength = {
 export class GameViewportsDirector implements UserInputCallbacks {
     viewports: GameViewPort[] = [];
     #surface: GameSurface;
-    #minimapSurface: Surface;
-    #scene: Scene;
     #janitor = new Janitor();
     #inputHandler?: SceneInputHandler | null;
     #lastAudioPositon = new Vector3;
@@ -43,10 +39,8 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #mouseCursor = new MouseCursor();
     #macros: Macros;
 
-    constructor(scene: Scene, gameSurface: GameSurface, minimapSurface: Surface, defaultPostProcessingBundle: PostProcessingBundleDTO, macros: Macros) {
-        this.#scene = scene;
+    constructor(gameSurface: GameSurface, defaultPostProcessingBundle: PostProcessingBundleDTO, macros: Macros) {
         this.#surface = gameSurface;
-        this.#minimapSurface = minimapSurface;
         this.#defaultPostProcessingBundle = defaultPostProcessingBundle;
         this.#macros = macros;
 
@@ -152,10 +146,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         await inputHandler.onEnterScene(prevData);
         this.#macros.callHook("onEnterScene", inputHandler.name);
         this.#inputHandler = inputHandler;
-
-        if (this.allowUnitSelection) {
-            this.#janitor.add(activateUnitSelection(this.viewports[0].camera, this.#scene, this.#surface, this.#minimapSurface));
-        }
 
         this.onActivate && this.onActivate(inputHandler);
         this.#activating = false;

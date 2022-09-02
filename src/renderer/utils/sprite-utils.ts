@@ -7,7 +7,6 @@ import DirectionalCamera from "../camera/directional-camera";
 import { ImageHD } from "@core/image-hd";
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import { ImageBase } from "@core/image";
-import { Image3D } from "@core/image-3d";
 
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
