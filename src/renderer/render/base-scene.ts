@@ -2,7 +2,6 @@ import {
   Color,
   DirectionalLight,
   Group,
-  HemisphereLight,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -45,7 +44,6 @@ export class BaseScene extends ThreeScene {
   #janitor: Janitor;
   #borderTiles: Group;
 
-  hemilight: HemisphereLight;
   sunlight: DirectionalLight;
 
   //@ts-ignore
@@ -66,15 +64,11 @@ export class BaseScene extends ThreeScene {
 
     this.autoUpdate = false;
 
-    this.hemilight = new HemisphereLight(0xffffff, 0xffffff, 0.3);
     this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
 
-    this.hemilight.layers.enableAll();
     this.sunlight.layers.enableAll();
-    this.hemilight.updateMatrixWorld();
     this.sunlight.updateMatrixWorld();
 
-    this.add(this.hemilight);
     this.add(this.sunlight);
     this.addTerrain(terrain);
 

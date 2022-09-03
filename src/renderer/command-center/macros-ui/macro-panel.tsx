@@ -16,6 +16,8 @@ import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { KeyCombo } from "../../macros/key-combo";
 import { MacroCustomHookOptions } from "./macro-custom-hook-options";
+import { KeyboardPreview } from "./keyboard-preview";
+import { HotkeyTrigger } from "@macros/hotkey-trigger";
 
 const keyCombo = new KeyCombo();
 
@@ -209,6 +211,12 @@ export const MacroPanel = ({
           </button>
         </div>
       </span>
+      {macro.trigger.type === TriggerType.Hotkey && (
+        <KeyboardPreview
+          previewKey={HotkeyTrigger.deserialize(macro.trigger).value.codes[0]}
+          svgProps={{ width: "100px"}}
+        />
+      )}
 
       {macro.error && <p style={{ color: "var(--red-6)" }}>{macro.error}</p>}
 
