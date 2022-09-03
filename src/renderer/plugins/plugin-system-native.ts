@@ -6,7 +6,7 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { getMacroActionValue, Macro, Macros } from "@macros";
+import { doMacroActionEffect, Macro, Macros } from "@macros";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
@@ -270,7 +270,7 @@ export class PluginSystemNative {
         }
     }
 
-    #sceneInputHandlerGaurd(plugin: NativePlugin) {
+    isRegularPluginOrActiveSceneController(plugin: NativePlugin) {
         return !plugin.isSceneController || this.#activeSceneInputHandler === plugin;
     }
 
@@ -280,7 +280,7 @@ export class PluginSystemNative {
             try {
                 const oldConfig = { ...plugin.config };
                 plugin.config = config;
-                plugin.onConfigChanged && this.#sceneInputHandlerGaurd(plugin) && plugin.onConfigChanged(oldConfig);
+                plugin.onConfigChanged && this.isRegularPluginOrActiveSceneController(plugin) && plugin.onConfigChanged(oldConfig);
             } catch (e) {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
             }
@@ -289,7 +289,7 @@ export class PluginSystemNative {
 
     hook_onBeforeRender(delta: number, elapsed: number) {
         for (const plugin of this.#nativePlugins) {
-            plugin.onBeforeRender && this.#sceneInputHandlerGaurd(plugin) && plugin.onBeforeRender(delta, elapsed);
+            plugin.onBeforeRender && this.isRegularPluginOrActiveSceneController(plugin) && plugin.onBeforeRender(delta, elapsed);
         }
     }
 
@@ -301,7 +301,7 @@ export class PluginSystemNative {
 
     hook_onFrame(frame: number, commands: any[]) {
         for (const plugin of this.#nativePlugins) {
-            if (plugin.onFrame && this.#sceneInputHandlerGaurd(plugin)) {
+            if (plugin.onFrame && this.isRegularPluginOrActiveSceneController(plugin)) {
                 if (this.#permissions.get(plugin.id)?.[PERMISSION_REPLAY_COMMANDS]) {
                     plugin.onFrame(frame, commands);
                 } else {
@@ -341,7 +341,7 @@ export class PluginSystemNative {
 
         let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
+            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
                 this.#macros && this.#macros.callHook(hookName, plugin.name, context);
@@ -360,7 +360,7 @@ export class PluginSystemNative {
 
         let context;
         for (const plugin of this.#nativePlugins) {
-            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.#sceneInputHandlerGaurd(plugin)) {
+            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
                 this.#macros && this.#macros.callHook(hookName, plugin.name, context);
@@ -393,6 +393,10 @@ export class PluginSystemNative {
             return null;
         }
 
+        if (!this.isRegularPluginOrActiveSceneController(plugin)) {
+            return null;
+        }
+
         if (action.effect === MacroActionEffect.CallMethod) {
             const key = action.field[0];
             if (typeof plugin[key as keyof NativePlugin] === "function") {
@@ -409,7 +413,8 @@ export class PluginSystemNative {
             if (field === undefined) {
                 return null;
             }
-            plugin.setConfig(key, getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options));
+            const existingValue = field.value;
+            plugin.setConfig(key, doMacroActionEffect(action, existingValue, field.value, field.step, field.min, field.max, field.options));
             this.hook_onConfigChanged(plugin.id, plugin.rawConfig);
 
             return {

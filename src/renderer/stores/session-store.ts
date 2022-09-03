@@ -1,7 +1,7 @@
 import create, { GetState, SetState } from "zustand";
 
 import { Settings, MacroAction, MacroActionType, SettingsMeta } from "common/types";
-import { getMacroActionValue } from "@macros";
+import { doMacroActionEffect } from "@macros";
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import deepMerge from 'deepmerge';
 import { DeepPartial } from "common/types";
@@ -10,6 +10,7 @@ import settingsStore, { SettingsStore, useSettingsStore } from "./settings-store
 import Janitor from "@utils/janitor";
 import { diff } from "deep-diff";
 import set from "lodash.set";
+import * as log from "@ipc/log";
 
 export type SessionStore = Settings & {
     minimapScale: number;
@@ -31,15 +32,20 @@ export const createSession = (ogData: Settings) => {
         },
         doMacroAction: async (action) => {
             if (action.type !== MacroActionType.ModifyAppSettings) {
+                log.warning("@settingsStore.doMacroAction. Macro type is invalid.");
                 return;
             }
 
             const field = getAppSettingsLevaConfigField({ data: get(), enabledPlugins: settingsStore().enabledPlugins }, action.field!) as any;
             if (field === undefined) {
+                log.warning("@settingsStore.doMacroAction. Settings field is no found.");
                 return;
             }
 
-            const value = getMacroActionValue(action, field.value, field.step, field.min, field.max, field.options);
+            
+            const existingValue = field.value;
+            let value = doMacroActionEffect(action, existingValue, field.value, field.step, field.min, field.max, field.options );
+
             const newSettings = {};
             lSet(newSettings, action.field!, value);
             get().merge(newSettings);

@@ -31,6 +31,10 @@ export class Macros {
         this.macros.push(macro);
     }
 
+    /**
+     * Manages listening to hotkey triggers and executing macros.
+     * @returns disposable
+     */
     listenForKeyCombos() {
 
         let testCombo = new KeyCombo;
@@ -112,18 +116,31 @@ export class Macros {
         this.#createGameCompartment = createCompartment;
     }
 
+    /**
+     * Resets the defaults from system configuration. Referred to in Set To Default option.
+     * @param settings 
+     */
     setHostDefaults(settings: Settings) {
         for (const macro of this.macros) {
             macro.setHostDefaults(settings);
         }
     }
 
+    /**
+     * Resets the defaults from plugin configuration. Referred to in Set To Default option.
+     * @param settings 
+     */
     setPluginsDefaults(pluginName: string, data: any) {
         for (const macro of this.macros) {
             macro.setPluginsDefaults(pluginName, data);
         }
     }
 
+    /**
+     * Executes a macro.
+     * @param macro 
+     * @param context Additional context provided to environment of caller. Usually provided from plugin hook results.
+     */
     #execMacro(macro: Macro, context?: any) {
         const actions = macro.getActionSequence();
         for (const action of actions) {
@@ -149,6 +166,10 @@ export class Macros {
         }
     }
 
+    /**
+     * Executes a macro by Id.
+     * @param id 
+     */
     execMacroById(id: string) {
         const macro = this.macros.find((m) => m.id === id);
         if (macro) {
@@ -158,6 +179,12 @@ export class Macros {
         }
     }
 
+    /**
+     * Executes a hook type macro. These are executed by Game Time API events and can either target a plugin or global context.
+     * @param hookName 
+     * @param pluginName 
+     * @param context 
+     */
     callHook(hookName: string, pluginName?: string, ...context: any[]) {
         for (const macro of this.#meta.hookMacros) {
             if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName)) {

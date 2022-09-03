@@ -11,7 +11,23 @@ const isFiniteV = (...args: any) => {
 }
 
 
-export const getMacroActionValue = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, currentValue: any, step?: number, min?: number, max?: number, options?: string[]) => {
+export const doMacroActionEffect = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, existingValue: any, currentValue: any,  step?: number, min?: number, max?: number, options?: string[] ) => {
+    // apply the effect and try not to get the same result
+    // this is because on alternate usually causes the same result as the existingValue to be assigned
+    // when what we really want is the next value
+    
+    let value: any;
+    let maxTries = 3;
+
+    do {
+        value = _doMacroActionEffect(action, currentValue, step, min, max, options);
+        maxTries--;
+    } while (maxTries && value === existingValue);
+
+    return value;
+}
+
+export const _doMacroActionEffect = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, currentValue: any, step?: number, min?: number, max?: number, options?: string[]) => {
 
     if (options) {
         return getMacroActionOptionsValue(action, currentValue, options);
