@@ -177,6 +177,6 @@ export const setMacroDefaults = (macros: Macros, pluginId: string, config: any) 
 }
 
 
-export const setActiveInputHandler = (plugin: SceneController) => {
+export const setSceneController = (plugin: SceneController) => {
     nativePluginSystem.setActiveSceneInputHandler(plugin);
 }

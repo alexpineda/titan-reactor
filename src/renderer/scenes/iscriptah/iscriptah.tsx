@@ -31,7 +31,6 @@ import { updateEntities } from "./entities";
 import { SceneState } from "../scene";
 import Janitor from "@utils/janitor";
 import { RenderPass } from "postprocessing";
-import { updatePostProcessingCamera } from "@utils/renderer-utils";
 import { renderComposer } from "@render/render-composer";
 import { root } from "@render/root";
 
@@ -198,8 +197,11 @@ export function createIScriptahScene(): SceneState {
   // };
 
   const renderPass = new RenderPass(scene, camera);
-  const postProcessingBundle = { passes: [renderPass], effects: [] };
-  updatePostProcessingCamera(postProcessingBundle, camera, true);
+  const postProcessingBundle = {
+    enabled: true,
+    passes: [renderPass],
+    effects: [],
+  };
   renderComposer.setBundlePasses(postProcessingBundle);
   janitor.add(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
 

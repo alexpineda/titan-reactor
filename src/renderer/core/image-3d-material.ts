@@ -17,9 +17,13 @@ type DynamicUniforms = {
     modifierData2: {
         value: number;
     },
+    uBrightness: {
+        value: number;
+    },
+    uContrast: {
+        value: number;
+    },
 };
-window.brightness = { value: 0.01 }
-window.contrast = { value: 1.05 }
 export class Image3DMaterial extends MeshStandardMaterial {
     #dynamicUniforms: DynamicUniforms;
     isTeamSpriteMaterial = true;
@@ -46,8 +50,8 @@ export class Image3DMaterial extends MeshStandardMaterial {
             modifier: {
                 value: 0
             },
-            uBrightness: window.brightness,
-            uContrast: window.contrast
+            uBrightness: { value: 0.01 },
+            uContrast: { value: 1.05 }
         };
     }
 

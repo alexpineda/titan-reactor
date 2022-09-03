@@ -1,4 +1,4 @@
-import { getAppSettingsLevaConfig, getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
+import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 import { MacroHookTrigger } from "common/macro-hook-trigger";
 
@@ -66,13 +66,9 @@ const sanitizeMacroActionFields = (action: MacroAction, settings: SettingsAndPlu
     if (action.type === MacroActionType.ModifyAppSettings) {
         let field = getAppSettingsLevaConfigField(settings, action.field) as any;
 
-        const config = getAppSettingsLevaConfig(settings);
-
-
         // sane default
         if (field === undefined || action.field.length == 0) {
-            field = config.sound;
-            action.field = [config.sound.path, "sound"];
+            return;
         }
 
         if (action.effect === MacroActionEffect.Set) {

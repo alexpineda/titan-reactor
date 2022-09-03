@@ -1,5 +1,5 @@
 import { SpriteFlags } from "common/enums";
-import { SpriteRenderOptions, SpriteStruct, SpriteType } from "common/types";
+import { SpriteStruct, SpriteType } from "common/types";
 import { ImageBufferView } from "../buffer-view/images-buffer-view";
 import { imageHasDirectionalFrames } from "./image-utils";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
@@ -26,7 +26,7 @@ let frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false 
 /**
  * Apply viewport specific transformations before rendering a sprite.
  */
-export const updateSpritesForViewport = (cameraDirection: number, options: SpriteRenderOptions, spriteIterator: () => Generator<{
+export const updateSpritesForViewport = (cameraDirection: number, useDepth: boolean, spriteIterator: () => Generator<{
     bufferView: SpritesBufferView,
     object: SpriteType
 }>, imageIterator: (spriteData: SpritesBufferView) => Generator<{
@@ -34,20 +34,20 @@ export const updateSpritesForViewport = (cameraDirection: number, options: Sprit
     object: ImageBase
 }>) => {
 
-    ImageHD.useDepth = options.rotateSprites;
+    ImageHD.useDepth = useDepth;
 
     for (const sprite of spriteIterator()) {
         if (sprite.object?.visible === false) {
             continue;
         }
-        sprite.object!.renderOrder = ImageHD.useDepth ? 0 : sprite.object!.userData.renderOrder;
+        sprite.object!.renderOrder = useDepth ? 0 : sprite.object!.userData.renderOrder;
 
         for (const image of imageIterator(sprite.bufferView)) {
-
+            //TODO: image renderOrder
             if (image.object instanceof ImageHD) {
-                if (image.object.material.depthTest !== ImageHD.useDepth) {
-                    image.object.material.depthTest = ImageHD.useDepth;
-                    image.object.setFrame(image.object.frame, image.object.flip)
+                if (image.object.material.depthTest !== useDepth) {
+                    image.object.material.depthTest = useDepth;
+                    image.object.setFrame(image.object.frame, image.object.flip, true)
                 }
             }
 

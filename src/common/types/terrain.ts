@@ -1,7 +1,7 @@
 
 
 import { DDS } from "@image/formats/parse-dds";
-import { BufferGeometry, CompressedTexture, Mesh, MeshStandardMaterial, Texture } from "three";
+import { BufferGeometry, CompressedTexture, Mesh, MeshBasicMaterial, MeshStandardMaterial, Texture } from "three";
 
 export type GeometryOptions = {
   /** 
@@ -37,13 +37,14 @@ export type WrappedQuartileTextures = {
   quartileWidth: number,
 }
 
-export class TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial> {
-  override userData = {
-    qx: 0,
-    qy: 0
+export interface TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial | MeshBasicMaterial> {
+  userData: {
+    qx: number;
+    qy: number;
+    basicMaterial: MeshBasicMaterial;
+    standardMaterial: MeshStandardMaterial;
   }
 }
-
 
 export type TilesetBuffers = {
   mapTiles: Uint16Array;

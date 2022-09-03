@@ -17,10 +17,6 @@ export const createUpdateDisplayOptions =
     scene.sunlight.intensity = options.sunIntensity;
     scene.sunlight.color.set(options.sunColor);
     scene.sunlight.shadow.needsUpdate = true;
-
-    scene.hemilight.intensity;
-    scene.hemilight.color;
-    scene.hemilight.groundColor;
   };
 
 const toSimple = (obj: { [key: string]: { value: any } }) => {

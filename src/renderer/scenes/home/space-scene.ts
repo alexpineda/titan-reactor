@@ -15,7 +15,6 @@ import {
     VignetteEffect,
 } from "postprocessing";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
-import { updatePostProcessingCamera } from "@utils/renderer-utils";
 
 import {
     DirectionalLight,
@@ -268,6 +267,7 @@ export async function createWraithScene() {
     });
 
     const postProcessingBundle = {
+        enabled: true,
         passes: [
             renderPass,
             new EffectPass(
@@ -287,7 +287,6 @@ export async function createWraithScene() {
         ],
         effects: [],
     };
-    updatePostProcessingCamera(postProcessingBundle, camera.get(), true);
     renderComposer.setBundlePasses(postProcessingBundle);
 
     renderComposer.getWebGLRenderer().compile(scene, camera.get());

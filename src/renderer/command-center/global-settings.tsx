@@ -9,11 +9,20 @@ import { useControls, useCreateStore } from "leva";
 import { useState } from "react";
 import { createLevaPanel } from "./create-leva-panel";
 import { mapConfigToLeva } from "@utils/leva-utils";
+import { renderComposer } from "@render/render-composer";
 
 export const GlobalSettings = () => {
   const settings = useSettingsStore();
 
-  const [state, setState] = useState(getAppSettingsLevaConfig(settings));
+  const [state, setState] = useState(
+    getAppSettingsLevaConfig(
+      settings,
+      renderComposer.getWebGLRenderer().capabilities.getMaxAnisotropy(),
+      window.devicePixelRatio,
+      //@ts-ignore
+      renderComposer.getWebGLRenderer().capabilities.maxSamples
+    )
+  );
 
   const controls = mapConfigToLeva(state, () => {
     setState(state);
@@ -36,6 +45,14 @@ export const GlobalSettings = () => {
       graphics: {
         ...settings.data.graphics,
         ...newSettings.graphics,
+      },
+      postprocessing: {
+        ...settings.data.postprocessing,
+        ...newSettings.postprocessing,
+      },
+      postprocessing3d: {
+        ...settings.data.postprocessing3d,
+        ...newSettings.postprocessing3d,
       },
     };
     settings.save(newState).then((payload) => {

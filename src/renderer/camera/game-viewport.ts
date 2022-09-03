@@ -1,7 +1,6 @@
 import { Surface } from "@image/canvas";
 import { getDirection32 } from "@utils/camera-utils";
 import CameraControls from "camera-controls";
-import { SpriteRenderOptions, PostProcessingBundleDTO } from "common/types";
 import { MathUtils, OrthographicCamera, PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
 import CameraShake from "./camera-shake";
 import ProjectedCameraView from "./projected-camera-view";
@@ -12,7 +11,7 @@ const isNumber = (value: any): value is Number => {
     return typeof value === "number";
 }
 export class GameViewPort {
-    enabled = false;
+    #enabled = false;
     camera: PerspectiveCamera | OrthographicCamera;
     projectedView = new ProjectedCameraView();
     orbit: CameraControls;
@@ -32,12 +31,25 @@ export class GameViewPort {
     #bottom?: number | null;
     #center?: Vector2 | null;
     #surface: Surface;
+    readonly #isPrimary: boolean;
+
     constrainToAspect = true;
+    renderMode3D = false;
+    freezeCamera = false;
 
-    spriteRenderOptions: SpriteRenderOptions
-    postProcessing: PostProcessingBundleDTO;
+    get enabled() {
+        return this.#enabled;
+    }
 
-    constructor(surface: Surface, bundle: PostProcessingBundleDTO) {
+    set enabled(val: boolean) {
+        if (val === false && this.#isPrimary) {
+            console.warn("Cannot disable primary viewport");
+            return;
+        }
+        this.#enabled = val;
+    }
+
+    constructor(surface: Surface, isPrimaryViewport: boolean) {
         this.#surface = surface;
         this.camera = new PerspectiveCamera(15, surface.aspect, 0.1, 500);
         this.camera.userData.direction = 0;
@@ -45,21 +57,12 @@ export class GameViewPort {
 
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
 
-        this.postProcessing = {
-            ...bundle,
-            passes: [...bundle.passes],
-            effects: [...bundle.effects]
-        };
-
-        this.spriteRenderOptions = {
-            rotateSprites: false,
-            use3dAssets: false,
-        }
-
-        this.reset();
+        this.#isPrimary = isPrimaryViewport;
+        this.enabled = isPrimaryViewport;
+        this.resetOrbit();
     }
 
-    reset() {
+    resetOrbit() {
         this.orbit?.dispose();
 
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
@@ -74,7 +77,8 @@ export class GameViewPort {
 
     set orthographic(value: boolean) {
         this.camera = value ? new OrthographicCamera() : new PerspectiveCamera(15, this.#surface.aspect, 0.1, 500);
-        this.reset()
+        this.constrainToAspect = !value;
+        this.resetOrbit()
     }
 
 
@@ -237,7 +241,8 @@ export class GameViewPort {
             this.shakeCalculation.needsUpdate = false;
             this.shakeCalculation.strength.setScalar(0);
         }
-        this.cameraShake.update(elapsed, this.camera);
+        if (!this.freezeCamera)
+            this.cameraShake.update(elapsed, this.camera);
     }
 
     shakeEnd() {
@@ -245,7 +250,7 @@ export class GameViewPort {
     }
 
     updateCamera() {
-        const dir = this.spriteRenderOptions.rotateSprites ? getDirection32(this.projectedView.center ?? this.orbit.getTarget(_target), this.camera.position) : 0;
+        const dir = this.renderMode3D ? getDirection32(this.projectedView.center ?? this.orbit.getTarget(_target), this.camera.position) : 0;
         if (dir != this.camera.userData.direction) {
             this.camera.userData.prevDirection = this.camera.userData.direction;
             this.camera.userData.direction = dir;

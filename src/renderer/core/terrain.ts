@@ -1,6 +1,5 @@
 import { GetTerrainY, getTerrainY } from "@image/generate-map";
 import { GeometryOptions, TerrainQuartile } from "common/types";
-import { anisotropyOptions } from "@utils/renderer-utils";
 import { Group, Mesh, MeshStandardMaterial } from "three";
 
 export class Terrain extends Group {
@@ -18,8 +17,9 @@ export class Terrain extends Group {
         }
     readonly getTerrainY: GetTerrainY;
     readonly geomOptions: GeometryOptions;
+    #setCreepAnisotropy: (anisotropy: number) => void;
 
-    constructor({ geomOptions, mapHeight, mapWidth, displacementImage }: { geomOptions: GeometryOptions, mapWidth: number, mapHeight: number, displacementImage: ImageData }) {
+    constructor({ geomOptions, mapHeight, mapWidth, displacementImage }: { geomOptions: GeometryOptions, mapWidth: number, mapHeight: number, displacementImage: ImageData }, setCreepAnisotropy: (anisotropy: number) => void) {
         super();
 
         this.geomOptions = geomOptions;
@@ -29,6 +29,7 @@ export class Terrain extends Group {
             mapWidth,
             mapHeight
         );
+        this.#setCreepAnisotropy = setCreepAnisotropy;
     }
 
     set shadowsEnabled(val: boolean) {
@@ -40,35 +41,55 @@ export class Terrain extends Group {
         });
     }
 
-    #applyToMaterial(fn: (mat: MeshStandardMaterial) => void) {
+    #applyToQuartile(fn: (mat: TerrainQuartile) => void) {
         for (const c of this.children) {
             if (c instanceof Mesh) {
-                const material = c.material as MeshStandardMaterial;
-                fn(material);
+                fn(c);
             }
         }
-
     }
 
-    setAnisotropy(anisotropy: string) {
-        const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
+    #applyToStandardMaterial(fn: (mat: MeshStandardMaterial) => void) {
+        for (const mesh of this.children) {
+            if (mesh instanceof Mesh) {
+                if (mesh.material instanceof MeshStandardMaterial) {
+                    fn(mesh.material);
+                }
+            }
+        }
+    }
 
-        this.#applyToMaterial(mat => {
-            mat.map!.anisotropy = value;
+    #changeToStandardMaterial() {
+        this.#applyToQuartile(mesh => {
+            mesh.material = mesh.userData.standardMaterial;
         });
     }
 
-    setBumpScale(value: number) {
-        this.#applyToMaterial(mat => {
-            mat.bumpScale = value;
+    #changeToBasicMaterial() {
+        this.#applyToQuartile(mesh => {
+            mesh.material = mesh.userData.basicMaterial;
         });
     }
 
-    setTerrainQuality(highDetail: boolean) {
-        this.setBumpScale(0);
-        this.shadowsEnabled = highDetail;
+    #setAnisotropy(anisotropy: number) {
+        this.#applyToQuartile(mesh => mesh.material.map!.anisotropy = anisotropy);
+        this.#setCreepAnisotropy(anisotropy);
+    }
 
-        // TODO: other things
+    #setBumpScale(value: number) {
+        this.#applyToStandardMaterial(material => material.bumpScale = value);
+    }
+
+    setTerrainQuality(highDefinition: boolean, anisotropy: number) {
+        this.shadowsEnabled = highDefinition;
+        if (highDefinition) {
+            this.#changeToStandardMaterial();
+            this.#setBumpScale(0);
+            this.#setAnisotropy(anisotropy);
+        } else {
+            this.#changeToBasicMaterial();
+            this.#setAnisotropy(1);
+        }
     }
 
 }

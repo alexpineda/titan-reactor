@@ -2,8 +2,8 @@ import { SVGProps } from "react";
 import keyMap from "./keymap.json";
 
 interface KeyboardPreviewProps {
-   previewKey: string | undefined
-   svgProps?: SVGProps<SVGSVGElement>
+  previewKey: string | undefined;
+  svgProps?: SVGProps<SVGSVGElement>;
 }
 const defaultViewBox = "0 0 1315.5 379.65";
 const zoomOut = 120;
@@ -13,14 +13,15 @@ const createViewBoxFromKey = (key: string | undefined) => {
     return defaultViewBox;
   }
   const keyData = keyMap[key as keyof typeof keyMap];
-  const x  = keyData[0] - zoomOut/2
-  const y = keyData[1] - zoomOut/2
-  const x2 = x + zoomOut;
-  const y2 = y + zoomOut;
+  const x = keyData[0] - zoomOut / 2;
+  const y = keyData[1] - zoomOut / 2;
 
   return `${x} ${y} ${zoomOut} ${zoomOut}`;
-}
-export const KeyboardPreview = ({svgProps, previewKey}: KeyboardPreviewProps) => (
+};
+export const KeyboardPreview = ({
+  svgProps,
+  previewKey,
+}: KeyboardPreviewProps) => (
   <svg
     viewBox={createViewBoxFromKey(previewKey)}
     xmlns="http://www.w3.org/2000/svg"

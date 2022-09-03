@@ -1,17 +1,13 @@
 import { Mesh, Object3D, Texture } from "three";
-import { UnitTileScale, GrpSprite, ImageDAT, GltfAtlas, AnimAtlas } from "common/types";
-import { loadAnimAtlas } from "./load-anim-atlas";
+import { ImageDAT, GltfAtlas, AnimAtlas } from "common/types";
 import loadGlb from "../formats/load-glb";
 
-export const loadGlbAtlas = async (glbFileName: string,
-    loadAnimBuffer: () => Promise<Buffer>,
+export const loadGlbAtlas = async (
+    glbFileName: string,
+    anim: AnimAtlas,
     imageDef: ImageDAT,
-    scale: UnitTileScale,
-    grp: GrpSprite,
-    envMap: Texture
+    envMap: Texture,
 ): Promise<GltfAtlas | AnimAtlas> => {
-
-    const anim = await loadAnimAtlas(loadAnimBuffer, imageDef, scale, grp);
 
     try {
         const { model, animations } = (await loadGlb(
@@ -48,7 +44,7 @@ export const loadGlbAtlas = async (glbFileName: string,
         });
 
         return {
-            ...anim, model, mesh, animations, fixedFrames
+            ...anim, model, mesh, animations, fixedFrames, isGLTF: true
         }
     } catch (e) {
     }

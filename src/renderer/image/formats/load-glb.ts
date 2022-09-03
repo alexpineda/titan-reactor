@@ -33,7 +33,9 @@ export function loadGlb(
             if ((o.material as MeshStandardMaterial).map) {
               (o.material as MeshStandardMaterial).map!.encoding = sRGBEncoding;
             }
-            (o.material as MeshStandardMaterial).envMap = envMap;
+            if (envMap) {
+              (o.material as MeshStandardMaterial).envMap = envMap;
+            }
             (o.material as MeshStandardMaterial).emissive = new Color(0xffffff);
             (o.material as MeshStandardMaterial).emissiveIntensity = 0;
             model.userData.mesh = o;

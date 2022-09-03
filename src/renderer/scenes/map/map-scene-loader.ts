@@ -8,12 +8,11 @@ import * as log from "@ipc/log";
 import { BaseScene } from "@render";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import processStore, { Process } from "@stores/process-store";
-import { Assets, AssetTextureResolution, UnitTileScale } from "common/types";
+import { Assets, UnitTileScale } from "common/types";
 import { mapScene as mapScene } from "./map-scene";
 import { waitForTruthy } from "@utils/wait-for-process";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { useWorldStore } from "@stores";
-import settingsStore from "@stores/settings-store";
 import gameStore from "@stores/game-store";
 import Janitor from "@utils/janitor";
 
@@ -22,7 +21,6 @@ const updateWindowTitle = (title: string) => {
 }
 export const mapSceneLoader = async (chkFilepath: string) => {
   processStore().start(Process.MapInitialization, 3);
-  const settings = settingsStore().data;
   log.verbose("loading chk");
 
   const janitor = new Janitor;
@@ -39,11 +37,7 @@ export const mapSceneLoader = async (chkFilepath: string) => {
   processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing scene");
-  const { terrain } = await chkToTerrainMesh(map, {
-    textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
-    anisotropy: settings.graphics.anisotropy,
-    shadows: settings.graphics.terrainShadows
-  });
+  const { terrain } = await chkToTerrainMesh(map, UnitTileScale.HD);
   const scene = new BaseScene(map.size[0], map.size[1], terrain);
 
   ImageHD.useDepth = false;

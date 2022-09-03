@@ -1,19 +1,27 @@
+import * as log from "@ipc/log";
+import withErrorMessage from "common/utils/with-error-message";
 import { Object3D } from "three";
 import { disposeObject3D } from "./dispose";
 
+function isIterable(obj: any): obj is Iterable<any> {
+    // checks for null and undefined
+    if (obj == null) {
+        return false;
+    }
+    return typeof obj[Symbol.iterator] === 'function';
+}
 interface Disposable {
     dispose: () => void;
 }
 
 type EmptyFn = () => void;
 
-type SupportedJanitorTypes = Object3D | Disposable | EmptyFn | NodeJS.EventEmitter;
+type SupportedJanitorTypes = Object3D | Disposable | EmptyFn | NodeJS.EventEmitter | HTMLElement;
+type ExtendedJanitorTypes = SupportedJanitorTypes | Iterable<SupportedJanitorTypes>;
 export default class Janitor {
-    #objects = new Set<Object3D>();
-    #disposable = new Set<Disposable>();
-    #callbacks = new Set<EmptyFn>();
+    #trackables = new Set<ExtendedJanitorTypes>();
 
-    constructor(dispose?: SupportedJanitorTypes) {
+    constructor(dispose?: ExtendedJanitorTypes) {
         if (dispose) {
             this.add(dispose);
         }
@@ -36,56 +44,47 @@ export default class Janitor {
         return _i;
     }
 
-    add<T extends SupportedJanitorTypes | { remove: Function }>(obj: T): T {
-        if (obj instanceof Object3D) {
-            this.object3d(obj);
-        } else if ("dispose" in obj) {
-            this.disposable(obj);
-        } else if (typeof obj === "function") {
-            this.callback(obj);
-        } else if ("remove" in obj) {
-            this.callback(() => obj.remove());
-        } else {
-            throw new Error("Unsupported type");
-        }
+    add<T extends ExtendedJanitorTypes>(obj: T): T {
+        this.#trackables.add(obj);
         return obj;
     }
 
-    callback(callback: EmptyFn) {
-        this.#callbacks.add(callback);
-    }
-
-    disposable(obj: Disposable) {
-        this.#disposable.add(obj);
-    }
-
-    object3d(obj: THREE.Object3D) {
-        this.#objects.add(obj);
-    }
-
-    dispose() {
-
-        if (this.#objects.size) {
-            for (const obj of this.#objects) {
+    #disposeAny(obj: ExtendedJanitorTypes) {
+        try {
+            if (obj instanceof Object3D) {
                 disposeObject3D(obj);
                 obj.removeFromParent();
+            } else if ("dispose" in obj) {
+                obj.dispose()
+            } else if (typeof obj === "function") {
+                obj();
+            } else if ("remove" in obj) {
+                obj.remove();
+            } else if (isIterable(obj)) {
+                for (const o of obj) {
+                    this.#disposeAny(o);
+                }
+            } else {
+                console.warn("Unsupported type", obj);
             }
-            this.#objects.clear();
+        } catch (e) {
+            log.error(withErrorMessage("Error disposing object", e));
         }
+    }
 
-        if (this.#callbacks.size) {
-            for (const cb of this.#callbacks) {
-                cb();
+    dispose(obj?: ExtendedJanitorTypes | false) {
+        if (obj === false || obj === undefined) {
+            if (this.#trackables) {
+                for (const obj of this.#trackables) {
+                    this.#disposeAny(obj);
+                }
             }
-            this.#callbacks.clear();
-        }
-
-        if (this.#disposable.size) {
-            for (const disposable of this.#disposable) {
-                disposable.dispose();
+            if (obj === undefined) {
+                this.#trackables.clear();
             }
-
-            this.#disposable.clear();
+        } else {
+            this.#disposeAny(obj);
+            return;
         }
 
     }

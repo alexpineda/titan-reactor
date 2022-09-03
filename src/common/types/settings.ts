@@ -1,5 +1,5 @@
-import { AssetTextureResolution, MacrosDTO } from "common/types";
-import type { PluginMetaData } from "../plugin";
+import { MacrosDTO } from "common/types";
+import type { PluginMetaData } from "./plugin";
 
 export type SettingsV4 = {
     version: 4;
@@ -12,8 +12,8 @@ export type SettingsV4 = {
         plugins: string;
     },
     assets: {
-        images: AssetTextureResolution;
-        terrain: AssetTextureResolution;
+        images: "sd" | "hd";
+        terrain: "sd" | "hd";
     },
     audio: {
         global: number;
@@ -40,10 +40,7 @@ export type SettingsV4 = {
     }
 };
 
-export type SettingsV5 = Settings;
-
-
-export type Settings = {
+export type SettingsV5 = {
     version: 5;
     language: string;
     directories: {
@@ -54,8 +51,8 @@ export type Settings = {
         plugins: string;
     },
     assets: {
-        images: AssetTextureResolution;
-        terrain: AssetTextureResolution;
+        images: "sd" | "hd";
+        terrain: "sd" | "hd";
         preload: boolean;
         enable3dAssets: boolean;
     },
@@ -86,6 +83,66 @@ export type Settings = {
     },
     macros: MacrosDTO
 };
+
+
+export type SettingsV6 = {
+    version: 6;
+    language: string;
+    directories: {
+        starcraft: string;
+        maps: string;
+        replays: string;
+        assets: string;
+        plugins: string;
+    },
+    assets: {
+        preload: boolean;
+    },
+    audio: {
+        global: number;
+        music: number;
+        sound: number;
+        playIntroSounds: boolean,
+    },
+    graphics: {
+        pixelRatio: number;
+    },
+    game: {
+        sceneController: string;
+        minimapSize: number;
+    },
+    util: {
+        sanityCheckReplayCommands: boolean,
+        debugMode: boolean
+    },
+    plugins: {
+        serverPort: number;
+        developmentDirectory?: string;
+        enabled: string[],
+    },
+    postprocessing: {
+        anisotropy: number;
+        antialias: number;
+        toneMapping: number;
+        bloom: number;
+        brightness: number;
+        contrast: number;
+    },
+    postprocessing3d: {
+        anisotropy: number;
+        antialias: number;
+        toneMapping: number;
+        bloom: number;
+        brightness: number;
+        contrast: number;
+        depthFocalLength: number;
+        depthBokehScale: number;
+        depthBlurQuality: number;
+    },
+    macros: MacrosDTO
+};
+
+export type Settings = SettingsV6;
 
 export type SettingsMeta = {
     data: Settings;

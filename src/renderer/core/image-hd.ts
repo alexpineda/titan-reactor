@@ -21,8 +21,8 @@ import { AnimFrame, AnimAtlas } from "common/types";
 import { ImageBase } from ".";
 import { ImageHDMaterial } from "./image-hd-material";
 import gameStore from "@stores/game-store";
-import { imageIsDoodad } from "@utils/image-utils";
 import { ImageHDInstancedMaterial } from "./image-hd-instanced-material";
+import { disposeMesh } from "@utils/dispose";
 
 const white = new Color(0xffffff);
 const CLOAK_OPACITY = 0.6;
@@ -101,6 +101,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
   isImage3d = false;
   isInstanced = false;
   static useDepth = false;
+  atlas: AnimAtlas;
 
   readonly originalScale = new Vector3();
 
@@ -112,7 +113,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   _zOff: number;
 
-  protected atlas: AnimAtlas;
   protected spriteWidth = 0;
   protected spriteHeight = 0;
 
@@ -181,7 +181,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
       1
     );
 
-    this.material.alphaTest = imageIsDoodad(this.dat) ? 0.01 : 0;
+    this.material.alphaTest = 0.01;
     this.material.depthTest = ImageHD.useDepth;
     this.scale.copy(this.originalScale);
 
@@ -283,6 +283,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
   }
 
   updateMatrixPosition(parentPosition: Vector3) {
+    //TODO: only do this once then only adjust position
     this.matrix.compose(this.position.add(parentPosition), this.quaternion, this.scale);
     this.matrixWorld.copy(this.matrix);
     this.matrixWorldNeedsUpdate = false;
@@ -351,5 +352,9 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     });
 
+  }
+
+  dispose(): void {
+    disposeMesh(this);
   }
 }

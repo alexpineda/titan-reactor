@@ -9,13 +9,12 @@ const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
 
 
 export const loadAnimAtlas = async (
-    loadAnimBuffer: () => Promise<Buffer>,
+    buf: Buffer,
     imageDef: ImageDAT,
     scale: Exclude<UnitTileScale, "SD">,
     grp: GrpSprite
 ): Promise<AnimAtlas> => {
 
-    const buf = await loadAnimBuffer();
     const [sprite] = parseAnim(buf);
 
     if (!sprite.maps) {
@@ -46,6 +45,8 @@ export const loadAnimAtlas = async (
     const emissive = scale === UnitTileScale.HD ? await optionalLoad(sprite.maps.emissive, LinearEncoding) : undefined;
 
     return {
+        isHD: scale === UnitTileScale.HD,
+        isHD2: scale === UnitTileScale.HD2,
         diffuse,
         grp,
         imageIndex: imageDef.index,

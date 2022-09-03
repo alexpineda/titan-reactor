@@ -1,5 +1,4 @@
 import type Chk from "bw-chk";
-import { anisotropyOptions } from "@utils/renderer-utils";
 import { GeometryOptions, UnitTileScale } from "common/types";
 import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect
@@ -16,13 +15,7 @@ import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
 
-type TerrainMeshSettings = {
-  textureResolution: UnitTileScale;
-  anisotropy: string;
-  shadows: boolean;
-}
-
-export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSettings, geomOptions: GeometryOptions = defaultGeometryOptions) {
+export default async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -52,21 +45,21 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
     renderer
   });
 
-  const isLowRes = settings.textureResolution === UnitTileScale.SD;
+  const isLowRes = textureResolution === UnitTileScale.SD;
 
   renderer.autoClear = false;
   renderer.outputEncoding = LinearEncoding;
   renderer.clear();
-  const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, settings.textureResolution, renderer);
+  const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, textureResolution, renderer);
 
   renderer.clear();
-  const creepEdgesTexture = isLowRes ? await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette) : hd.ddsToCreepEdgesTexture(creepGrpHD, settings.textureResolution, renderer);
+  const creepEdgesTexture = isLowRes ? await sd.grpToCreepEdgesTextureAsync(creepGrpSD, palette) : hd.ddsToCreepEdgesTexture(creepGrpHD, textureResolution, renderer);
 
   renderer.clear();
   const textures = isLowRes ? sd.createSdQuartiles(mapWidth, mapHeight, bitmaps.diffuse) : hd.createHdQuartiles(mapWidth, mapHeight,
     hdTiles,
     bitmaps.mapTilesData,
-    settings.textureResolution, renderer
+    textureResolution, renderer
   );
 
   const effectsTextures = {
@@ -90,11 +83,6 @@ export default async function chkToTerrainMesh(chk: Chk, settings: TerrainMeshSe
       minimapBitmap,
       creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
       creepTextureUniform: dataTextures.creepTextureUniform,
-      setCreepAnisotropy(anisotropy: string) {
-        const value = anisotropyOptions[anisotropy as keyof typeof anisotropyOptions];
-        creepTexture.texture.anisotropy = value;
-        creepEdgesTexture.texture.anisotropy = value;
-      }
     }
   }
 }

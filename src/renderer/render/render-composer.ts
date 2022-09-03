@@ -8,10 +8,15 @@ import {
     WebGLRenderer,
 } from "three";
 import {
-    EffectComposer,
+    EffectComposer
 } from "postprocessing";
 import Surface from "../image/canvas/surface";
-import { PostProcessingBundleDTO } from "common/types";
+import { PostProcessingBundle } from "common/types";
+import { ColorManagement } from "three/src/math/ColorManagement";
+
+
+//@ts-ignore
+ColorManagement.legacyMode = false;
 
 const createWebGLRenderer = () => {
     const renderer = new WebGLRenderer({
@@ -30,7 +35,6 @@ const createWebGLRenderer = () => {
     renderer.shadowMap.autoUpdate = true;
     renderer.sortObjects = true;
     renderer.autoClear = false;
-    window.renderer = renderer;
     return renderer;
 };
 
@@ -40,7 +44,8 @@ export class TitanRenderComposer {
     onRestoreContext?: () => void;
     composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
-        multisampling: 0
+        multisampling: 0,
+        stencilBuffer: true
     });
 
     constructor() {
@@ -72,11 +77,19 @@ export class TitanRenderComposer {
         return renderer;
     }
 
-    setBundlePasses(bundle: Pick<PostProcessingBundleDTO, "passes">) {
+    setBundlePasses(...args: PostProcessingBundle[]) {
         this.composer.removeAllPasses();
-        for (const pass of bundle.passes) {
-            this.composer.addPass(pass);
+        let lastPass: any = null;
+        for (const bundle of args) {
+            for (const pass of bundle.passes) {
+                pass.renderToScreen = false;
+                if (pass.enabled) {
+                    lastPass = pass;
+                    this.composer.addPass(pass);
+                }
+            }
         }
+        lastPass.renderToScreen = true;
     }
 
     get targetSurface() {

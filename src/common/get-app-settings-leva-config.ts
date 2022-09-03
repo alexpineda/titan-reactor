@@ -7,7 +7,7 @@ export const levaConfigToAppConfig = (
         if (!memo[item.path as keyof typeof memo]) {
             memo[item.path] = {};
         }
-        memo[item.path][key] = item.value;
+        memo[item.path][key.replace("_", "")] = item.value;
         return memo;
     }, {} as Record<string, any>);
 };
@@ -20,7 +20,7 @@ export const getAppSettingsLevaConfigField = (
     return config[fields[fields.length - 1] as keyof typeof config];
 };
 
-export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "enabledPlugins">) => ({
+export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "enabledPlugins">, maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
     starcraft: {
         folder: "Directories",
         label: "Starcraft",
@@ -104,26 +104,149 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "Graphics",
         label: "Pixel Ratio",
         value: settings.data.graphics.pixelRatio,
-        options: ["low", "med", "high"],
         path: "graphics",
+        min: 0.5,
+        max: maxPixelRatio,
+        step: 0.1,
     },
     anisotropy: {
-        folder: "Graphics",
         label: "Anisotropy",
-        value: settings.data.graphics.anisotropy,
-        options: ["low", "med", "high"],
-        path: "graphics",
+        value: settings.data.postprocessing.anisotropy,
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        min: 0,
+        max: maxAnisotropy,
+        step: 1,
     },
-    terrainShadows: {
-        folder: "Graphics",
-        label: "Terrain Shadows",
-        value: settings.data.graphics.terrainShadows,
-        path: "graphics",
+    antialias: {
+        label: "Anti Alias",
+        value: settings.data.postprocessing.antialias,
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        min: 0,
+        //@ts-ignore
+        max: maxAntiAlias,
+        step: 1,
     },
-    enable3dAssets: {
-        folder: "Graphics",
-        label: "Enable 3D Assets",
-        value: settings.data.assets.enable3dAssets,
-        path: "assets",
+    toneMapping: {
+        label: "Tone Mapping Exposure",
+        value: settings.data.postprocessing.toneMapping,
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        min: 0,
+        max: 2,
+        step: 0.1,
+    },
+    bloom: {
+        label: "Bloom Intensity",
+        value: settings.data.postprocessing.bloom,
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        min: 0,
+        max: 10,
+        step: 0.1,
+    },
+    brightness: {
+        label: "Brightness",
+        value: settings.data.postprocessing.brightness,
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        min: -0.5,
+        max: 0.5,
+        step: 0.01,
+    },
+    contrast: {
+        label: "Contrast",
+        value: settings.data.postprocessing.contrast,
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        min: -0.5,
+        max: 0.5,
+        step: 0.01,
+    },
+    anisotropy_: {
+        label: "Anisotropy",
+        value: settings.data.postprocessing3d.anisotropy,
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        min: 0,
+        max: maxAnisotropy,
+        step: 1,
+    },
+    antialias_: {
+        label: "Anti Alias",
+        value: settings.data.postprocessing3d.antialias,
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        min: 0,
+        //@ts-ignore
+        max: maxAntiAlias,
+        step: 1,
+    },
+    toneMapping_: {
+        label: "Tone Mapping Exposure",
+        value: settings.data.postprocessing3d.toneMapping,
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        min: 0,
+        max: 2,
+        step: 0.1,
+    },
+    bloom_: {
+        label: "Bloom Intensity",
+        value: settings.data.postprocessing3d.bloom,
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        min: 0,
+        max: 10,
+        step: 0.1,
+    },
+    brightness_: {
+        label: "Brightness",
+        value: settings.data.postprocessing3d.brightness,
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        min: -0.5,
+        max: 0.5,
+        step: 0.01,
+    },
+    contrast_: {
+        label: "Contrast",
+        value: settings.data.postprocessing3d.contrast,
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        min: -0.5,
+        max: 0.5,
+        step: 0.01,
+    },
+    "depthFocalLength": {
+        "label": "Depth Focal Length",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.depthFocalLength,
+        "min": 0.05,
+        "max": 1,
+        "step": 0.5
+    },
+    "depthBokehScale": {
+        "label": "Depth Bokeh Scale",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.depthBokehScale,
+        "min": 0.1,
+        "max": 5,
+        "step": 0.1
+    },
+    "depthBlurQuality": {
+        "label": "Depth Blur Quality",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.depthBlurQuality,
+        "options": [
+            0,
+            120,
+            240,
+            480
+        ]
     },
 });

@@ -1,4 +1,4 @@
-import { Camera, ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, UnsignedByteType, Vector2, Vector4 } from "three";
+import { ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, UnsignedByteType, Vector2, Vector4 } from "three";
 import { OpenBWAPI } from "common/types";
 import { FogOfWarEffect } from "./fog-of-war-effect";
 
@@ -36,7 +36,7 @@ export class FogOfWar {
         this.effect.fogUvTransform = new Vector4(0.5, 0.5, 0.99 / this.texture.image.height, 0.99 / this.texture.image.width);
     }
 
-    update(playerVision: number, camera: Camera) {
+    update(playerVision: number) {
         const tilesize = this.#openBW.getFowSize();
         const ptr = this.#openBW.getFowPtr(playerVision, this.forceInstantUpdate);
 
@@ -44,8 +44,6 @@ export class FogOfWar {
         this.texture.image.data.set(this.buffer);
         this.texture.needsUpdate = true;
 
-        this.effect.projectionInverse.copy(camera.projectionMatrixInverse);
-        this.effect.viewInverse.copy(camera.matrixWorld);
         this.forceInstantUpdate = false;
     }
 

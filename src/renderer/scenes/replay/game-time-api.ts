@@ -56,5 +56,6 @@ export interface GameTimeApi {
     minimap: {
         enabled: boolean;
         scale: number;
-    }
+    },
+    changeRenderMode(renderMode3D: boolean): void
 }

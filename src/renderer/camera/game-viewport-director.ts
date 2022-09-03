@@ -1,5 +1,5 @@
 import Janitor from "@utils/janitor";
-import { PostProcessingBundleDTO, SceneInputHandler, UserInputCallbacks } from "common/types";
+import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { GameSurface } from "../render";
 import { Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
@@ -8,6 +8,7 @@ import { MouseCursor } from "../input";
 import { Macros } from "@macros";
 import { DamageType, Explosion } from "common/enums";
 import { easeCubicIn } from "d3-ease";
+import { SceneController } from "@plugins/plugin-system-native";
 
 const _target = new Vector3;
 const _position = new Vector3;
@@ -33,25 +34,18 @@ export class GameViewportsDirector implements UserInputCallbacks {
     viewports: GameViewPort[] = [];
     #surface: GameSurface;
     #janitor = new Janitor();
-    #inputHandler?: SceneInputHandler | null;
+    #sceneController?: SceneInputHandler | null;
     #lastAudioPositon = new Vector3;
-    #defaultPostProcessingBundle: PostProcessingBundleDTO;
     #mouseCursor = new MouseCursor();
     #macros: Macros;
 
-    constructor(gameSurface: GameSurface, defaultPostProcessingBundle: PostProcessingBundleDTO, macros: Macros) {
+    constructor(gameSurface: GameSurface, macros: Macros) {
         this.#surface = gameSurface;
-        this.#defaultPostProcessingBundle = defaultPostProcessingBundle;
         this.#macros = macros;
-
-        this.#janitor.callback = () => {
-            defaultPostProcessingBundle.effects.forEach(effect => effect.dispose());
-            defaultPostProcessingBundle.passes.forEach(pass => pass.dispose());
-        }
     }
 
-    onActivate?: (viewport: SceneInputHandler) => void;
-    beforeActivate?: (viewport: SceneInputHandler) => void;
+    onActivate?: (viewport: SceneController) => void;
+    beforeActivate?: (viewport: SceneController) => void;
 
     *activeViewports() {
         for (const viewport of this.viewports) {
@@ -61,53 +55,72 @@ export class GameViewportsDirector implements UserInputCallbacks {
         }
     }
 
+    get numActiveViewports() {
+        let count = 0;
+        for (const viewport of this.viewports) {
+            if (viewport.enabled) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    get firstActiveViewport() {
+        for (const viewport of this.viewports) {
+            if (viewport.enabled) {
+                return viewport;
+            }
+        }
+        return null;
+    }
+
     get disabled() {
-        return this.#inputHandler === null;
+        return this.#sceneController === null;
     }
 
     get allowUnitSelection() {
-        return this.#inputHandler?.gameOptions?.allowUnitSelection ?? false;
+        return this.#sceneController?.gameOptions?.allowUnitSelection ?? false;
     }
 
     get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
-        return this.#inputHandler?.gameOptions?.audio ?? null;
+        return this.#sceneController?.gameOptions?.audio ?? null;
     }
 
     onShouldHideUnit(...args: Parameters<UserInputCallbacks["onShouldHideUnit"]>) {
-        return this.#inputHandler?.onShouldHideUnit && this.#inputHandler.onShouldHideUnit(...args);
+        return this.#sceneController?.onShouldHideUnit && this.#sceneController.onShouldHideUnit(...args);
     }
 
     onCameraKeyboardUpdate(...args: Parameters<UserInputCallbacks["onCameraKeyboardUpdate"]>) {
-        this.#inputHandler?.onCameraKeyboardUpdate && this.#inputHandler.onCameraKeyboardUpdate(...args);
+        this.#sceneController?.onCameraKeyboardUpdate && this.#sceneController.onCameraKeyboardUpdate(...args);
     }
 
     onCameraMouseUpdate(...args: Parameters<UserInputCallbacks["onCameraMouseUpdate"]>) {
-        this.#inputHandler?.onCameraMouseUpdate && this.#inputHandler.onCameraMouseUpdate(...args);
+        this.#sceneController?.onCameraMouseUpdate && this.#sceneController.onCameraMouseUpdate(...args);
     }
 
     onUpdateAudioMixerLocation(delta: number, elapsed: number) {
-        if (this.#inputHandler?.onUpdateAudioMixerLocation) {
+        if (this.#sceneController?.onUpdateAudioMixerLocation) {
             this.primaryViewport.orbit.getTarget(_target);
             this.primaryViewport.orbit.getPosition(_position);
-            this.#lastAudioPositon.copy(this.#inputHandler.onUpdateAudioMixerLocation(delta, elapsed, _target, _position));
+            this.#lastAudioPositon.copy(this.#sceneController.onUpdateAudioMixerLocation(delta, elapsed, _target, _position));
         }
         return this.#lastAudioPositon;
     }
 
     onMinimapDragUpdate(...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>) {
-        this.#inputHandler?.onMinimapDragUpdate && this.#inputHandler.onMinimapDragUpdate(...args);
+        this.#sceneController?.onMinimapDragUpdate && this.#sceneController.onMinimapDragUpdate(...args);
     }
 
     onDrawMinimap(...args: Parameters<UserInputCallbacks["onDrawMinimap"]>) {
-        this.#inputHandler?.onDrawMinimap && this.#inputHandler.onDrawMinimap(...args);
+        this.#sceneController?.onDrawMinimap && this.#sceneController.onDrawMinimap(...args);
     }
 
     #activating = false;
 
-    async activate(inputHandler: SceneInputHandler | null, firstRunData?: any) {
+    async activate(inputHandler: SceneController | null, firstRunData?: any) {
         if (inputHandler === null) {
             this.#janitor.dispose();
-            this.#inputHandler = null;
+            this.#sceneController = null;
             return;
         }
         if (inputHandler === undefined) {
@@ -119,17 +132,17 @@ export class GameViewportsDirector implements UserInputCallbacks {
         }
         this.#activating = true;
         let prevData: any = firstRunData ?? this.generatePrevData();
-        if (this.#inputHandler && this.#inputHandler.onExitScene) {
-            prevData = this.#inputHandler.onExitScene(prevData);
+        if (this.#sceneController && this.#sceneController.onExitScene) {
+            prevData = this.#sceneController.onExitScene(prevData);
         }
-        this.#inputHandler && this.#macros.callHook("onExitScene", this.#inputHandler.name);
+        this.#sceneController && this.#macros.callHook("onExitScene", this.#sceneController.name);
         this.#janitor.dispose();
-        this.#inputHandler = null;
+        this.#sceneController = null;
         this.#surface.togglePointerLock(false);
 
         this.viewports = [
-            new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
-            new GameViewPort(this.#surface, this.#defaultPostProcessingBundle),
+            new GameViewPort(this.#surface, true),
+            new GameViewPort(this.#surface, false),
         ]
         this.viewports[0].enabled = true;
 
@@ -141,10 +154,9 @@ export class GameViewportsDirector implements UserInputCallbacks {
         };
 
         this.beforeActivate && this.beforeActivate(inputHandler);
-        this.#defaultPostProcessingBundle.fogOfWarEffect!.blendMode.setOpacity(1);
         await inputHandler.onEnterScene(prevData);
         this.#macros.callHook("onEnterScene", inputHandler.name);
-        this.#inputHandler = inputHandler;
+        this.#sceneController = inputHandler;
 
         this.onActivate && this.onActivate(inputHandler);
         this.#activating = false;
@@ -171,7 +183,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     }
 
     get name() {
-        return this.#inputHandler?.name ?? "";
+        return this.#sceneController?.name ?? "";
     }
 
     dispose() {

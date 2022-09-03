@@ -3,7 +3,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 
 import phrases from "common/phrases";
-import { defaultSettings } from "common/settings";
+import { defaultSettings } from "common/default-settings";
 import fileExists from "common/utils/file-exists";
 import { Settings as SettingsType, SettingsMeta } from "common/types";
 

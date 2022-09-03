@@ -1,18 +1,13 @@
 import {
-  Color,
   DirectionalLight,
-  Group,
-  Material,
-  Mesh,
-  MeshBasicMaterial,
   Object3D,
   Scene as ThreeScene,
 } from "three";
 
-import { TerrainQuartile } from "common/types";
 import Janitor from "@utils/janitor";
 import { disposeObject3D } from "@utils/dispose";
 import { Terrain } from "@core/terrain";
+import { BorderTiles } from "./border-tiles";
 
 function sunlight(mapWidth: number, mapHeight: number) {
   const light = new DirectionalLight(0xffffff, 2.5);
@@ -42,7 +37,7 @@ export class BaseScene extends ThreeScene {
   #mapWidth: number;
   #mapHeight: number;
   #janitor: Janitor;
-  #borderTiles: Group;
+  #borderTiles: BorderTiles;
 
   sunlight: DirectionalLight;
 
@@ -56,11 +51,11 @@ export class BaseScene extends ThreeScene {
     mapHeight: number,
     terrain: Terrain) {
     super();
-    window.scene = this;
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
 
     this.#janitor = new Janitor();
+    this.#janitor.add(this);
 
     this.autoUpdate = false;
 
@@ -72,106 +67,17 @@ export class BaseScene extends ThreeScene {
     this.add(this.sunlight);
     this.addTerrain(terrain);
 
-    this.#borderTiles = new Group();
+    this.#borderTiles = new BorderTiles(terrain);
     this.add(this.#borderTiles);
-
-    // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
-
-    const tx = terrain.userData.tilesX;
-    const ty = terrain.userData.tilesY;
-    const qw = terrain.userData.quartileWidth;
-    const qh = terrain.userData.quartileHeight;
-
-    const createMesh = (q: TerrainQuartile, edgeMaterial: Material) => {
-      const mesh = new Mesh();
-      mesh.geometry = q.geometry;
-      mesh.material = edgeMaterial;
-      mesh.position.copy(q.position);
-      return mesh;
-    }
-
-    for (let i = 0; i < terrain.children.length; i++) {
-      const q = terrain.children[i];
-      const qx = q.userData.qx;
-      const qy = q.userData.qy;
-
-      const edgeMaterial = new MeshBasicMaterial({
-        map: q.material.map,
-        color: new Color(0x999999)
-      });
-
-      if (qx === 0 && qy === 0) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setY(mesh.position.y + qh);
-        mesh.position.setX(mesh.position.x - qw);
-        mesh.scale.setY(-1);
-        mesh.scale.setX(-1);
-        this.#borderTiles.add(mesh);
-      }
-
-      if (qx === tx - 1 && qy === 0) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setY(mesh.position.y + qh);
-        mesh.position.setX(mesh.position.x + qw);
-        mesh.scale.setY(-1);
-        mesh.scale.setX(-1);
-        this.#borderTiles.add(mesh);
-      }
-
-      if (qx === tx - 1 && qy === ty - 1) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setY(mesh.position.y - qh);
-        mesh.position.setX(mesh.position.x + qw);
-        mesh.scale.setY(-1);
-        mesh.scale.setX(-1);
-        this.#borderTiles.add(mesh);
-      }
-
-      if (qx === 0 && qy === ty - 1) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setY(mesh.position.y - qh);
-        mesh.position.setX(mesh.position.x - qw);
-        mesh.scale.setY(-1);
-        mesh.scale.setX(-1);
-        this.#borderTiles.add(mesh);
-      }
-
-      if (qy === 0) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setY(mesh.position.y + qh);
-        mesh.scale.setY(-1);
-        this.#borderTiles.add(mesh);
-      }
-      if (qx === 0) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setX(mesh.position.x - qw);
-        mesh.scale.setX(-1);
-        this.#borderTiles.add(mesh);
-      }
-      if (qy === ty - 1) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setY(mesh.position.y - qh);
-        mesh.scale.setY(-1);
-        this.#borderTiles.add(mesh);
-      }
-      if (qx === tx - 1) {
-        const mesh = createMesh(q, edgeMaterial);
-        mesh.position.setX(mesh.position.x + qw);
-        mesh.scale.setX(-1);
-        this.#borderTiles.add(mesh);
-      }
-
-    }
 
     this.#borderTiles.rotation.x = -Math.PI / 2;
     this.#borderTiles.updateMatrixWorld();
 
+    // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
   }
 
-  setBorderTileOpacity(opacity: number) {
-    this.#borderTiles.children.forEach((mesh) => {
-      ((mesh as Mesh).material as MeshBasicMaterial).opacity = opacity;
-    });
+  setBorderTileColor(color: number) {
+    this.#borderTiles.color = color;
   }
 
   addTerrain(

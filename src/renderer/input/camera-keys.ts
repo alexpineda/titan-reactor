@@ -40,7 +40,7 @@ export class CameraKeys {
         }
 
         this.#el.addEventListener("keydown", keyDown);
-        this.#janitor.callback(() => this.#el.removeEventListener("keydown", keyDown));
+        this.#janitor.add(() => this.#el.removeEventListener("keydown", keyDown));
 
         const keyUp = (e: KeyboardEvent) => {
             if (testKeys(e, keyForward) || testKeys(e, keyBackward)) {
@@ -61,7 +61,7 @@ export class CameraKeys {
             }
         }
         this.#el.addEventListener("keyup", keyUp);
-        this.#janitor.callback(() => this.#el.removeEventListener("keyup", keyUp));
+        this.#janitor.add(() => this.#el.removeEventListener("keyup", keyUp));
     }
 
     update(delta: number, elapsed: number, callbacks: UserInputCallbacks) {

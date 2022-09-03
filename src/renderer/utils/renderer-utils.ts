@@ -1,48 +1,8 @@
-import { PostProcessingBundleDTO, Settings } from "common/types";
-import { Camera } from "three";
 import { version } from "../../../package.json";
 import { renderComposer } from "@render";
 import * as log from "@ipc/log";
 
-export const anisotropyOptions = {
-    max: 1,
-    med: 1,
-    low: 1
-};
-
 export const rendererIsDev = process.env.NODE_ENV === "development";
-
-export const getPixelRatio = (pixelRatio: Settings["graphics"]["pixelRatio"]) => {
-    const pixelRatios = {
-        high: window.devicePixelRatio,
-        med: 1,
-        low: 0.75
-    };
-    return pixelRatios[pixelRatio]
-}
-
-export const updatePostProcessingCamera = (bundle: Pick<PostProcessingBundleDTO, "effects" | "passes">, camera: Camera, renderLastPassToScreen: boolean) => {
-    let lastPass: any = null;
-
-    for (const pass of bundle.passes) {
-        //@ts-ignore
-        pass.camera = camera;
-        pass.renderToScreen = false;
-        if (pass.enabled) {
-            lastPass = pass;
-        }
-    }
-    lastPass.renderToScreen = renderLastPassToScreen;
-
-    for (const effect of bundle.effects) {
-        // @ts-ignore
-        if (effect.camera) {
-            // @ts-ignore
-            effect.camera = camera;
-        }
-    }
-
-}
 
 export const logCapabilities = () => {
     log.info(`@init: titan-reactor ${version}`);
@@ -57,9 +17,6 @@ export const logCapabilities = () => {
         if (typeof value === "function") continue;
         log.verbose(`- ${prop}: ${value}`);
     }
-
-    anisotropyOptions.max = r.capabilities.getMaxAnisotropy();
-    anisotropyOptions.med = Math.floor(r.capabilities.getMaxAnisotropy() / 2);
 
     log.verbose(`- anisotropy: ${r.capabilities.getMaxAnisotropy()}`);
     log.verbose(`- max precision: ${r.capabilities.getMaxPrecision("highp")}`);

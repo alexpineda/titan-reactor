@@ -1,4 +1,4 @@
-import { defaultSettingsV5 } from "common/settings";
+import { defaultSettingsV5 } from "common/default-settings";
 import { SettingsV5 } from "common/types";
 import { PreviousSettings } from ".";
 

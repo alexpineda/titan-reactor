@@ -5,6 +5,7 @@ import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
 import { Surface } from "@image";
 import {
+  Settings,
   SpriteType,
   WeaponDAT
 } from "common/types";
@@ -40,13 +41,11 @@ import { canSelectUnit, getAngle, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
-import { hideSelections, selectionObjects, updateSelectionGraphics } from "./selection-objects";
+import { selectionObjects, updateSelectionGraphics } from "./selection-objects";
 import FadingPointers from "@image/fading-pointers";
-import { getPixelRatio, updatePostProcessingCamera } from "@utils/renderer-utils";
 import { Macros } from "@macros/macros";
 import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
-import { EffectPass, RenderPass } from "postprocessing";
 import { MinimapGraphics } from "@render/minimap-graphics";
 import { createSession, listenForNewSettings } from "@stores/session-store";
 import { Terrain } from "@core/terrain";
@@ -63,6 +62,7 @@ import { GameTimeApi } from "./game-time-api";
 import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./replay-controls";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, overlayEffectsMainImage } from "@core/model-effects";
+import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 
 export async function replayScene(
   map: Chk,
@@ -84,7 +84,6 @@ export async function replayScene(
     replay.header.players,
     map.units.filter((u) => u.unitId === unitTypes.startLocation),
   ));
-  const bwDat = assets.bwDat;
 
   const openBW = await getOpenBW();
   openBW.setGameSpeed(1);
@@ -94,11 +93,8 @@ export async function replayScene(
 
   const cssScene = new CssScene;
 
-  terrain.setAnisotropy(session.getState().graphics.anisotropy);
-  terrainExtra.setCreepAnisotropy(session.getState().graphics.anisotropy);
-
   const gameSurface = janitor.add(new GameSurface(mapWidth, mapHeight));
-  gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight, session.getState().graphics.pixelRatio);
   janitor.add(document.body.appendChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getMinimapDimensions(session.getState().game.minimapSize));
 
@@ -141,15 +137,56 @@ export async function replayScene(
 
   const images = janitor.add(new ImageEntities);
 
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, new FogOfWarEffect());
-  const renderPass = new RenderPass(scene, new PerspectiveCamera());
+  const fogOfWarEffect = janitor.add(new FogOfWarEffect());
+  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, fogOfWarEffect);
 
-  const gameViewportsDirector = janitor.add(new GameViewportsDirector(gameSurface, {
-    fogOfWarEffect: fogOfWar.effect,
-    renderPass,
-    effects: [fogOfWar.effect],
-    passes: [renderPass, new EffectPass(new PerspectiveCamera(), fogOfWar.effect)],
-  },
+  const globalEffectsBundle = janitor.add(
+    new GlobalEffects(
+      new PerspectiveCamera,
+      scene,
+      session.getState().postprocessing,
+      fogOfWarEffect));
+
+  images.onCreateImage = (image) => {
+    globalEffectsBundle.addBloomSelection(image);
+  }
+
+  images.onFreeImage = (image) => {
+    globalEffectsBundle.removeBloomSelection(image);
+  }
+
+  const initializeGlobalEffects = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
+
+    globalEffectsBundle.camera = viewports.primaryViewport.camera;
+    globalEffectsBundle.scene = scene;
+    globalEffectsBundle.options = options;
+    globalEffectsBundle.needsUpdate = true;
+
+    // do this after changing render mode as Extended differs
+    globalEffectsBundle.effectivePasses = viewports.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
+
+  }
+
+  janitor.add(session.subscribe(data => {
+    initializeGlobalEffects(viewports.primaryViewport.renderMode3D ? data.postprocessing3d : data.postprocessing);
+  }))
+
+  const initializeRenderMode = (renderMode3D: boolean) => {
+    const postprocessing = renderMode3D ? session.getState().postprocessing3d : session.getState().postprocessing;
+
+    terrain.setTerrainQuality(renderMode3D, session.getState().postprocessing.anisotropy);
+    terrain.shadowsEnabled = renderMode3D;
+    scene.sunlight.castShadow = renderMode3D;
+
+    scene.sunlight.shadow.needsUpdate = true;
+    renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
+    images.use3dImages = renderMode3D;
+    reset = refreshScene;
+
+    initializeGlobalEffects(postprocessing);
+  }
+
+  const viewports = janitor.add(new GameViewportsDirector(gameSurface,
     macros
   ));
 
@@ -162,32 +199,28 @@ export async function replayScene(
     return null;
   }
 
-  const unitSelection = createUnitSelection( scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
+  const unitSelection = createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
 
-  gameViewportsDirector.beforeActivate = () => {
+  viewports.beforeActivate = () => {
     gameTimeApi.minimap.enabled = true;
     gameTimeApi.minimap.scale = 1;
   }
 
-  gameViewportsDirector.onActivate = (inputHandler) => {
+  viewports.onActivate = (sceneController) => {
     const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
       minimapHeight: gameTimeApi.minimap.enabled === true ? rect.minimapHeight : 0,
     });
 
-    if (!inputHandler.gameOptions.allowUnitSelection) {
+    if (!sceneController.gameOptions.allowUnitSelection) {
       selectedUnitsStore().clearSelectedUnits();
     }
 
-    plugins.setActiveInputHandler(inputHandler);
+    plugins.setSceneController(sceneController);
 
-    terrain.setTerrainQuality(gameViewportsDirector.viewports[0].spriteRenderOptions.rotateSprites);
-    scene.sunlight.shadow.needsUpdate = true;
-    renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
-
-    unitSelection.enabled = gameViewportsDirector.allowUnitSelection;
-    unitSelection.selectionBox.camera = gameViewportsDirector.primaryViewport.camera;
+    unitSelection.enabled = viewports.allowUnitSelection;
+    unitSelection.selectionBox.camera = viewports.primaryViewport.camera;
 
   }
 
@@ -204,13 +237,13 @@ export async function replayScene(
     return {
       type: "replay",
       get viewport() {
-        return gameViewportsDirector.primaryViewport;
+        return viewports.primaryViewport;
       },
       get secondViewport() {
-        return gameViewportsDirector.viewports[1];
+        return viewports.viewports[1];
       },
       get viewports() {
-        return gameViewportsDirector.viewports;
+        return viewports.viewports;
       },
       simpleMessage(val: string) {
         simpleText.set(val);
@@ -262,7 +295,7 @@ export async function replayScene(
         reset = refreshScene;
       },
       exitScene: () => {
-        gameViewportsDirector.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
+        viewports.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
       },
       setPlayerColors(colors: string[]) {
         players.setPlayerColors(colors);
@@ -303,7 +336,7 @@ export async function replayScene(
       // fadingPointers,
       playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
         if (y !== undefined && volumeOrX !== undefined) {
-          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToGameUnit, terrain, gameViewportsDirector.audio, gameViewportsDirector.primaryViewport.projectedView, soundChannels, mixer);
+          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToGameUnit, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
         } else {
           soundChannels.playGlobal(typeId, volumeOrX);
         }
@@ -315,10 +348,10 @@ export async function replayScene(
         return gameSurface.pointerLockLost;
       },
       get mouseCursor() {
-        return gameViewportsDirector.mouseCursor;
+        return viewports.mouseCursor;
       },
       set mouseCursor(val: boolean) {
-        gameViewportsDirector.mouseCursor = val;
+        viewports.mouseCursor = val;
       },
       minimap: {
         get enabled() {
@@ -333,6 +366,10 @@ export async function replayScene(
         set scale(value: number) {
           session.getState().merge({ game: { minimapSize: value } });
         }
+      },
+      changeRenderMode: (renderMode3D?: boolean) => {
+        viewports.primaryViewport.renderMode3D = renderMode3D ?? !viewports.primaryViewport.renderMode3D;
+        initializeRenderMode(viewports.primaryViewport.renderMode3D)
       }
     }
   })();
@@ -347,6 +384,7 @@ export async function replayScene(
     cmds = commandsStream.generate();
     cmd = cmds.next();
     fadingPointers.clear();
+    globalEffectsBundle.clearBloomSelection();
 
     const frame = openBW.getCurrentFrame();
 
@@ -359,7 +397,7 @@ export async function replayScene(
   }
 
   const _sceneResizeHandler = () => {
-    gameSurface.setDimensions(window.innerWidth, window.innerHeight, getPixelRatio(session.getState().graphics.pixelRatio));
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight, session.getState().graphics.pixelRatio);
 
     const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({
@@ -375,7 +413,7 @@ export async function replayScene(
       rect.minimapHeight,
     );
 
-    gameViewportsDirector.aspect = gameSurface.aspect;
+    viewports.aspect = gameSurface.aspect;
   };
 
   const sceneResizeHandler = debounce(() => {
@@ -399,7 +437,7 @@ export async function replayScene(
     minimapGraphics.resetUnitsAndResources();
 
     for (const unit of unitsIterator()) {
-      const dat = bwDat.units[unit.typeId];
+      const dat = assets.bwDat.units[unit.typeId];
 
       const showOnMinimap =
         unit.typeId !== unitTypes.darkSwarm &&
@@ -461,7 +499,7 @@ export async function replayScene(
 
         // unit morph
         if (unit.typeId !== unitData.typeId) {
-          unit.extras.dat = bwDat.units[unitData.typeId];
+          unit.extras.dat = assets.bwDat.units[unitData.typeId];
         }
 
         unitData.copyTo(unit);
@@ -478,7 +516,7 @@ export async function replayScene(
           if (unit.extras.turretLo === null) {
             unit.extras.turretLo = new Vector2;
           }
-          getImageLoOffset(unit.extras.turretLo, gameViewportsDirector.primaryViewport.camera.userData.direction, unitData.owSprite.mainImage, 0);
+          getImageLoOffset(unit.extras.turretLo, viewports.primaryViewport.camera.userData.direction, unitData.owSprite.mainImage, 0);
         } else {
           unit.extras.turretLo = null;
         }
@@ -498,7 +536,7 @@ export async function replayScene(
       const unitTypeId = openBW.HEAP32[addr + 3];
 
       if (fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
-        buildSound(elapsed, x, y, typeId, unitTypeId, pxToGameUnit, terrain, gameViewportsDirector.audio, gameViewportsDirector.primaryViewport.projectedView, soundChannels, mixer);
+        buildSound(elapsed, x, y, typeId, unitTypeId, pxToGameUnit, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
       }
     }
 
@@ -545,7 +583,7 @@ export async function replayScene(
       sprite.userData.typeId = spriteData.typeId;
     }
 
-    const dat = bwDat.sprites[spriteData.typeId];
+    const dat = assets.bwDat.sprites[spriteData.typeId];
 
     // doodads and resources are always visible
     // show units as fog is lifting from or lowering to explored
@@ -556,7 +594,7 @@ export async function replayScene(
       fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y));
 
     // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
-    if (spriteIsHidden(spriteData) || (unit && gameViewportsDirector.onShouldHideUnit(unit))) {
+    if (spriteIsHidden(spriteData) || (unit && viewports.onShouldHideUnit(unit))) {
       spriteIsVisible = false;
     }
     sprite.visible = spriteIsVisible;
@@ -570,7 +608,7 @@ export async function replayScene(
     if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
 
       if (bullet.state === BulletState.Dying) {
-        gameViewportsDirector.doShakeCalculation(weapon.explosionType, weapon.damageType, gameViewportsDirector, _spritePos);
+        viewports.doShakeCalculation(weapon.explosionType, weapon.damageType, viewports, _spritePos);
       }
 
       if (weapon.weaponBehavior === WeaponBehavior.AppearOnTargetUnit && bullet.targetUnit) {
@@ -644,27 +682,27 @@ export async function replayScene(
           image.position.x = imageData.x / 32;
           // flying building or drone, don't use 2d offset
           image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
-        }
 
-        // tank turret needs to use different LO depending on camera angle
-        // in order to handle this we need to set the LO to the correct frame
-        // in addition, terran turret subunits are treated differently in bw so we accomodate that
-        // by setting the lo from the main unit image and not the turret image 
-        // as seen in `update_unit_movement`
-        const subunitId = unit?.subunitId;
-        if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret) && image instanceof ImageHD) {
-          const subunit = units.get(subunitId);
-          // bw keeps parent unit in subunit as well, so in this case this is actually parent unit
-          // ie base tank
-          if (subunit && subunit.extras.turretLo) {
-            image.position.x = subunit.extras.turretLo.x / 32;
-            image.position.y = subunit.extras.turretLo.y / 32;
+          // tank turret needs to use different LO depending on camera angle
+          // in order to handle this we need to set the LO to the correct frame
+          // in addition, terran turret subunits are treated differently in bw so we accomodate that
+          // by setting the lo from the main unit image and not the turret image 
+          // as seen in `update_unit_movement`
+          const subunitId = unit?.subunitId;
+          if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret)) {
+            const subunit = units.get(subunitId);
+            // bw keeps parent unit in subunit as well, so in this case this is actually parent unit
+            // ie base tank
+            if (subunit && subunit.extras.turretLo) {
+              image.position.x = subunit.extras.turretLo.x / 32;
+              image.position.y = subunit.extras.turretLo.y / 32;
+            }
           }
         }
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (gameViewportsDirector.primaryViewport.spriteRenderOptions.rotateSprites && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
+        if (viewports.primaryViewport.renderMode3D && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
           image.position.x = _spritePos.x;
           image.position.z = _spritePos.z;
           image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z) - 0.1;
@@ -696,6 +734,7 @@ export async function replayScene(
 
         if (imageData.index === spriteData.mainImageIndex) {
           if (image instanceof Image3D) {
+            //TODO: change this since its creating a function object every frame
             overlayEffectsMainImage.setEmissive = image.setEmissive.bind(image);
             overlayEffectsMainImage.is3dAsset = true;
           }
@@ -716,6 +755,7 @@ export async function replayScene(
       } else if (image instanceof Image3D) {
 
         applyOverlayEffectsToImage3D(imageBufferView, image);
+
       }
 
       if (image instanceof ImageHDInstanced) {
@@ -765,7 +805,7 @@ export async function replayScene(
       if (bulletAddr === 0) continue;
 
       const bullet = bulletBufferView.get(bulletAddr);
-      const weapon = bwDat.weapons[bullet.weaponTypeId];
+      const weapon = assets.bwDat.weapons[bullet.weaponTypeId];
 
       if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
         continue;
@@ -874,12 +914,9 @@ export async function replayScene(
 
   const minimapGraphics = new MinimapGraphics(mapWidth, mapHeight, terrainExtra.minimapBitmap);
 
-  // apply initial terrain shadow settings
-  terrain.shadowsEnabled = session.getState().graphics.terrainShadows;
-  renderComposer.getWebGLRenderer().shadowMap.needsUpdate = session.getState().graphics.terrainShadows;
   renderComposer.targetSurface = gameSurface;
 
-  const _a = new Vector3;
+  const _target = new Vector3;
 
   let delta = 0;
   let lastElapsed = 0;
@@ -888,22 +925,24 @@ export async function replayScene(
   const _commandsThisFrame: any[] = [];
   let cmd = cmds.next();
 
-  let _halt = false;
+  let _halt = false, _prevRenderMode3D: null | boolean = null;
 
   const GAME_LOOP = (elapsed: number) => {
     if (_halt) return;
     delta = elapsed - lastElapsed;
     lastElapsed = elapsed;
 
-    for (const viewport of gameViewportsDirector.viewports) {
-      viewport.orbit.update(delta / 1000);
-      viewport.orbit.getTarget(_a);
-      viewport.projectedView.update(viewport.camera, _a);
+    for (const viewport of viewports.viewports) {
+      if (!viewport.freezeCamera) {
+        viewport.orbit.update(delta / 1000);
+      }
+      viewport.orbit.getTarget(_target);
+      viewport.projectedView.update(viewport.camera, _target);
     }
 
-    cameraMouse.update(delta / 100, elapsed, gameViewportsDirector);
-    cameraKeys.update(delta / 100, elapsed, gameViewportsDirector);
-    minimapMouse.update(gameViewportsDirector);
+    cameraMouse.update(delta / 100, elapsed, viewports);
+    cameraKeys.update(delta / 100, elapsed, viewports);
+    minimapMouse.update(viewports);
 
     if (reset) {
       reset();
@@ -913,18 +952,18 @@ export async function replayScene(
     if (currentBwFrame !== previousBwFrame) {
 
       if (currentBwFrame % 24 === 0) {
-        updateCompletedUpgrades(openBW, bwDat, currentBwFrame);
+        updateCompletedUpgrades(openBW, assets.bwDat, currentBwFrame);
       }
       buildSounds(elapsed);
       buildCreep(currentBwFrame);
       buildUnits();
       buildMinimap();
       buildSprites(delta);
-      updateSelectionGraphics(gameViewportsDirector.primaryViewport.camera, sprites);
+      updateSelectionGraphics(viewports.primaryViewport.camera, sprites);
 
       fogOfWar.texture.needsUpdate = true;
 
-      const audioPosition = gameViewportsDirector.onUpdateAudioMixerLocation(delta, elapsed);
+      const audioPosition = viewports.onUpdateAudioMixerLocation(delta, elapsed);
       mixer.updateFromVector3(audioPosition as Vector3, delta);
 
       _commandsThisFrame.length = 0;
@@ -949,30 +988,35 @@ export async function replayScene(
       previousBwFrame = currentBwFrame;
     }
 
-    minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, fogOfWar.enabled, gameViewportsDirector);
+    minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, fogOfWar.enabled, viewports);
 
     plugins.onBeforeRender(delta, elapsed);
+    fogOfWar.update(players.getVisionFlag());
 
-    for (const v of gameViewportsDirector.activeViewports()) {
+    // global won't use camera so we can set it to any
+    for (const v of viewports.activeViewports()) {
+
+      if (v === viewports.primaryViewport) {
+        minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
+        if (_prevRenderMode3D !== v.renderMode3D) {
+          initializeRenderMode(v.renderMode3D);
+        }
+        _prevRenderMode3D = v.renderMode3D;
+
+      }
+
       v.updateCamera();
-      updateSpritesForViewport(v.camera.userData.direction, v.spriteRenderOptions, spriteIterator, spriteImageIterator);
-
+      updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteIterator, spriteImageIterator);
       v.shakeStart(elapsed);
-      fogOfWar.update(players.getVisionFlag(), v.camera);
-      updatePostProcessingCamera(v.postProcessing, v.camera, true);
-      renderComposer.setBundlePasses(v.postProcessing);
+      globalEffectsBundle.updateCamera(v.camera, _target)
+      renderComposer.setBundlePasses(globalEffectsBundle);
       renderComposer.render(delta, v.viewport);
       v.shakeEnd();
 
-      if (v === gameViewportsDirector.primaryViewport) {
-        minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
-      } else {
-        hideSelections();
-      }
     }
 
     renderComposer.renderBuffer();
-    cssScene.render(gameViewportsDirector.primaryViewport.camera);
+    cssScene.render(viewports.primaryViewport.camera);
     plugins.onRender(delta, elapsed);
 
   };
@@ -1000,11 +1044,11 @@ export async function replayScene(
     _halt = true;
     renderComposer.getWebGLRenderer().setAnimationLoop(null);
     pluginsApiJanitor.dispose();
-    await gameViewportsDirector.activate(null);
+    await viewports.activate(null);
     await (settingsStore().load());
     await plugins.initializePluginSystem(true);
     await setupPlugins();
-    await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
+    await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
     renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
     _halt = false;
   };
@@ -1020,29 +1064,19 @@ export async function replayScene(
     macros.setHostDefaults(settings.data);
   })
 
-  janitor.add(session.subscribe((newSettings, prevSettings) => {
-    if (!gameViewportsDirector.disabled && newSettings.game.sceneController !== gameViewportsDirector.name) {
-      gameViewportsDirector.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
+  janitor.add(session.subscribe((newSettings) => {
+    if (!viewports.disabled && newSettings.game.sceneController !== viewports.name) {
+      viewports.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
 
     mixer.setVolumes(newSettings.audio);
-
-    if (newSettings.graphics.terrainShadows !== terrain.shadowsEnabled) {
-      terrain.shadowsEnabled = newSettings.graphics.terrainShadows;
-      renderComposer.getWebGLRenderer().shadowMap.needsUpdate = newSettings.graphics.terrainShadows;
-    }
-
-    if (newSettings.graphics.anisotropy !== prevSettings.graphics.anisotropy) {
-      terrain.setAnisotropy(session.getState().graphics.anisotropy);
-      terrainExtra.setCreepAnisotropy(session.getState().graphics.anisotropy);
-    }
 
     Object.assign(session, newSettings);
     _sceneResizeHandler();
 
   }));
 
-  await gameViewportsDirector.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
+  await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
 
   GAME_LOOP(0);
   //TODO: compile all scene postprocessing bundles

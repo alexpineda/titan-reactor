@@ -6,7 +6,6 @@ import "./scenes/home/home-scene";
 import "./handle-events";
 import { preHomeSceneLoader } from "./scenes/pre-home-scene/pre-home-scene-loader";
 import { homeSceneLoader } from "./scenes/home/home-scene-loader";
-// import "./utils/webgl-lint";
 
 declare global {
   interface Window {
@@ -20,7 +19,7 @@ async function bootup() {
   sceneStore().execSceneLoader(homeSceneLoader);
 }
 
-
 logCapabilities();
 lockdown_();
 bootup();
+

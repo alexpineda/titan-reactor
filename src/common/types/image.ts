@@ -1,4 +1,4 @@
-import { Effect, Pass } from "postprocessing";
+import { Pass } from "postprocessing";
 import { Group } from "three";
 
 export type CanvasDimensions = {
@@ -25,21 +25,8 @@ export interface SpriteType extends Group {
   }
 }
 
-export type PostProcessingBundleDTO = {
-  fogOfWarEffect?: Effect;
-  renderPass?: Pass;
-  effects: Effect[],
+export type PostProcessingBundle = {
   passes: Pass[]
-}
-
-export type SpriteRenderOptions = {
-  rotateSprites: boolean;
-  use3dAssets: boolean;
-}
-
-export enum AssetTextureResolution {
-  SD = "sd",
-  HD = "hd",
 }
 
 export enum ShadowLevel {

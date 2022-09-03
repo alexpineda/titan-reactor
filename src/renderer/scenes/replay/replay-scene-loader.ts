@@ -8,7 +8,7 @@ import { AudioListener } from "three";
 import fs from "fs";
 import Chk from "bw-chk";
 
-import { AssetTextureResolution, UnitTileScale } from "common/types";
+import { UnitTileScale } from "common/types";
 import { GameTypes } from "common/enums";
 import { SoundChannels, Music, mixer } from "@audio";
 import { openFile } from "@ipc";
@@ -105,20 +105,14 @@ export const replaySceneLoader = async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
 
   const { terrain, extra } = await chkToTerrainMesh(
-    map, {
-    textureResolution: settings.assets.terrain === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD,
-    anisotropy: settings.graphics.anisotropy,
-    shadows: settings.graphics.terrainShadows
-  }
+    map, UnitTileScale.HD,
   );
 
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
-  const scene = new BaseScene(map.size[0], map.size[1], terrain);
+  const scene = janitor.add(new BaseScene(map.size[0], map.size[1], terrain));
   scene.background = assets.skyBox;
   scene.environment = assets.envMap;
-  janitor.object3d(scene);
-  janitor.disposable(scene);
 
   processStore().increment(Process.ReplayInitialization);
 
@@ -154,7 +148,7 @@ export const replaySceneLoader = async (filepath: string) => {
     log.verbose(`@load-replay/preload-images: ${allImages.length}`);
     processStore().start(Process.AtlasPreload, allImages.length);
 
-    await Promise.all(allImages.map((imageId) => assets.loadImageAtlas(imageId, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
+    await Promise.all(allImages.map((imageId) => assets.loadImageAtlas(imageId, UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
     processStore().complete(Process.AtlasPreload);
   }
 

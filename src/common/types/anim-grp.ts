@@ -27,6 +27,8 @@ type HDLayers = {
 }
 
 export interface AnimAtlas {
+  isHD2: boolean;
+  isHD: boolean;
   textureWidth: number;
   textureHeight: number;
   spriteWidth: number;
@@ -43,6 +45,7 @@ export interface AnimAtlas {
 };
 
 export interface GltfAtlas extends AnimAtlas {
+  isGLTF: boolean;
   model: Object3D; //
   mesh: Mesh<BufferGeometry, MeshStandardMaterial> | SkinnedMesh<BufferGeometry, MeshStandardMaterial>;
   animations: AnimationClip[];

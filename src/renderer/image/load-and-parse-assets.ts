@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AssetTextureResolution, AnimAtlas, GltfAtlas, Settings, UnitTileScale } from "common/types";
+import { AnimAtlas, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
@@ -25,7 +25,15 @@ import { CubeTexture, CubeTextureLoader } from "three";
 import settingsStore from "@stores/settings-store";
 
 const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${i}`.slice(-3)}.anim`;
+const loadAnimBuffer = (refImageId: number, res: UnitTileScale) => readCascFile(genFileName(refImageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
 
+const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
+    hd.diffuse.mipmaps.push(hd2.diffuse.mipmaps[0]);
+
+    if (hd2.teammask) {
+        hd.teammask?.mipmaps.push(hd2.teammask.mipmaps[0]);
+    }
+}
 
 export default async (settings: Settings) => {
 
@@ -54,7 +62,7 @@ export default async (settings: Settings) => {
         settings.directories.assets,
         "envmap.exr"
     )
-    const envMapFilename = settings.assets.enable3dAssets && await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
+    const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
     const envMap = await loadEnvironmentMap(envMapFilename);
 
     const {
@@ -77,87 +85,77 @@ export default async (settings: Settings) => {
 
     const loadingHD2 = new Set();
     const loadingHD = new Set();
+    const glbExists = new Map<number, boolean>();
+    const atlases: AnimAtlas[] = [];
 
-    const loadImageAtlas = (atlases: (AnimAtlas | GltfAtlas)[]) => async (imageId: number, res: UnitTileScale) => {
+    const loadImageAtlas = async (imageId: number) => {
         const refImageId = refId(imageId);
         const glbFileName = path.join(
             settings.directories.assets,
             `00${refImageId}`.slice(-3) + ".glb"
         )
-        const glbFileExists = settings.assets.enable3dAssets ? await fileExists(glbFileName) : false;
+        const imageDat = bwDat.images[imageId];
 
-        if (res === UnitTileScale.HD || glbFileExists) {
+        let res = UnitTileScale.HD2;
+        if (atlases[refImageId]?.isHD) {
+            return;
+        } else if (atlases[refImageId]?.isHD2) {
             if (loadingHD.has(refImageId)) {
                 return;
-            } else {
-                loadingHD.add(refImageId);
-                loadingHD.add(imageId);
             }
-        } else if (res === UnitTileScale.HD2) {
-            if (loadingHD2.has(refImageId)) {
-                return;
-            } else {
-                loadingHD2.add(refImageId);
-                loadingHD2.add(imageId);
-            }
-            // hd2 loading pass will have loaded the model
+            res = UnitTileScale.HD;
+            loadingHD.add(refImageId);
+            loadingHD.add(imageId);
+        } else if (loadingHD2.has(refImageId)) {
+            return;
+        } else if (!loadingHD2.has(refImageId)) {
+            loadingHD2.add(refImageId);
+            loadingHD2.add(imageId);
+            glbExists.set(refImageId, await fileExists(glbFileName));
         }
-        let atlas: AnimAtlas | GltfAtlas;
 
-
-        const loadAnimBuffer = () => readCascFile(genFileName(refImageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
-        const scale = res === UnitTileScale.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
-
-        const imageDat = bwDat.images[imageId];
-        if (glbFileExists) {
-            log.verbose(`loading glb  ${glbFileName}`);
-            atlas = await loadGlbAtlas(
+        // load glb after hd2 but before hd
+        if (glbExists.get(refImageId) && atlases[refImageId]?.isHD2) {
+            glbExists.set(imageId, false);
+            const glb = await loadGlbAtlas(
                 glbFileName,
-                loadAnimBuffer,
+                atlases[refImageId],
                 imageDat,
-                UnitTileScale.HD,
-                bwDat.grps[imageDat.grp],
-                envMap
+                envMap,
             );
+            atlases[imageId] = glb;
+            atlases[refImageId] = glb
+        }
+
+        const anim = await loadAnimAtlas(await loadAnimBuffer(refImageId, res), imageDat, res, bwDat.grps[imageDat.grp]);
+
+        if (atlases[imageId]?.isHD2 && anim.isHD) {
+            setHDMipMaps(anim, atlases[imageId]);
+        }
+
+        if (atlases[imageId] !== undefined) {
+            Object.assign(atlases[imageId], anim);
+            Object.assign(atlases[refImageId], anim);
         } else {
-            atlas = await loadAnimAtlas(
-                loadAnimBuffer,
-                imageDat,
-                scale,
-                bwDat.grps[imageDat.grp],
-            )
+            atlases[imageId] = anim;
+            atlases[refImageId] = anim
+        }
 
-            // add mipmaps to HD
-            if (atlases[imageId]?.unitTileScale === UnitTileScale.HD2 && atlas.unitTileScale === UnitTileScale.HD) {
-                const hd2 = atlases[imageId];
-                atlas.diffuse.mipmaps.push(hd2.diffuse.mipmaps[0]);
-
-                if (hd2.teammask) {
-                    atlas.teammask?.mipmaps.push(hd2.teammask.mipmaps[0]);
-                }
-            }
-        };
-        atlases[imageId] = atlas;
-        atlases[refImageId] = atlas;
     }
 
-    const grps: AnimAtlas[] = [];
-    log.info(`@load-assets/atlas: ${settings.assets.images}`);
-
-    const loadImageAtlasGrp = loadImageAtlas(grps);
-
     if (settings.assets.preload) {
+        log.info(`@load-assets/atlas: preload`);
         const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
         const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
 
         processStore().start(Process.AtlasPreload, preloadImageIds.length);
         for (const id of preloadImageIds) {
             processStore().increment(Process.AtlasPreload);
-            await loadImageAtlasGrp(id, UnitTileScale.HD2);
+            await loadImageAtlas(id);
         }
     }
 
-    await loadImageAtlasGrp(imageTypes.warpInFlash, settings.assets.images === AssetTextureResolution.SD ? UnitTileScale.SD : UnitTileScale.HD);
+    await loadImageAtlas(imageTypes.warpInFlash);
 
     const loader = new CubeTextureLoader();
     const rootPath = path.join(__static, "skybox", "sparse");
@@ -174,7 +172,7 @@ export default async (settings: Settings) => {
 
     gameStore().setAssets({
         bwDat,
-        grps,
+        grps: atlases,
         selectionCirclesHD,
         gameIcons: resourceIcons,
         cmdIcons,
@@ -185,7 +183,7 @@ export default async (settings: Settings) => {
         dragIcons,
         wireframeIcons,
         envMap,
-        loadImageAtlas: loadImageAtlasGrp,
+        loadImageAtlas,
         skyBox,
         refId
     });
@@ -203,22 +201,24 @@ export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) =>
     )
     const glbFileExists = image3d ? await fileExists(glbFileName) : false;
 
-    const loadAnimBuffer = () => readCascFile(genFileName(refImageId, ""));
-
     const imageDat = assets.bwDat.images[imageId];
     if (glbFileExists) {
         log.verbose(`loading glb  ${glbFileName}`);
-        return await loadGlbAtlas(
-            glbFileName,
-            loadAnimBuffer,
+        const anim = await loadAnimAtlas(
+            await loadAnimBuffer(refImageId, UnitTileScale.HD),
             imageDat,
             UnitTileScale.HD,
             assets.bwDat.grps[imageDat.grp],
+        );
+        return await loadGlbAtlas(
+            glbFileName,
+            anim,
+            imageDat,
             assets.envMap
         );
     } else {
         return await loadAnimAtlas(
-            loadAnimBuffer,
+            await loadAnimBuffer(refImageId, UnitTileScale.HD),
             imageDat,
             UnitTileScale.HD,
             assets.bwDat.grps[imageDat.grp],

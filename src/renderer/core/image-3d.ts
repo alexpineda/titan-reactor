@@ -7,6 +7,7 @@ import type { ImageBase } from ".";
 import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 import gameStore from "@stores/game-store";
+import { disposeObject3D } from "@utils/dispose";
 
 
 const white = new Color(0xffffff);
@@ -54,12 +55,13 @@ export class Image3D extends Object3D implements ImageBase {
     // @ts-ignore
     this.model = Image3D.clone(atlas.model);
     this.#material = standardMaterialToImage3DMaterial(atlas.mesh.material);
+    this.add(this.model);
+
     this.model.traverse((o: Object3D) => {
       if (o instanceof Mesh) {
         o.material = this.#material;
       }
     });
-    this.add(this.model);
 
     if (this.model && this.atlas.animations.length) {
       this.#times = this.atlas.animations[0].tracks[0].times;
@@ -78,8 +80,8 @@ export class Image3D extends Object3D implements ImageBase {
     return gameStore().assets!.bwDat.images[this.atlas.imageIndex];
   }
 
-  updateImageType(): void {
-    throw new Error("Method not implemented.");
+  updateImageType() {
+    return this;
   }
 
   get unitTileScale() {
@@ -153,6 +155,10 @@ export class Image3D extends Object3D implements ImageBase {
 
     return clone;
 
+  }
+
+  dispose() {
+    disposeObject3D(this);
   }
 
 }

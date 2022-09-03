@@ -1,7 +1,7 @@
 import create, { GetState, SetState } from "zustand";
 
 import { Settings, SettingsMeta } from "common/types";
-import { defaultSettings } from "common/settings";
+import { defaultSettings } from "common/default-settings";
 import { getSettings as invokeGetSettings, saveSettings } from "../ipc";
 
 export type SettingsStore = SettingsMeta & {

@@ -6,7 +6,7 @@ import { IScriptState } from "./iscript-state"
 export class IScriptRunner {
   private bwDat: BwDAT;
   tileset: number;
-  logger: { log: () => void };
+  logger: { log: (...args: any[]) => void | Console["log"] };
   dispatched: any[] = [];
 
   constructor(

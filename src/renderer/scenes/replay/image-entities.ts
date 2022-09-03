@@ -6,6 +6,7 @@ import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
 import { isGltfAtlas } from "@utils/image-utils";
 import { IndexedObjectPool } from "@utils/indexed-object-pool";
+import { IterableMap } from "@utils/iteratible-map";
 // import { IterableMap } from "@utils/iteratible-map";
 import Janitor from "@utils/janitor";
 import { UnitTileScale } from "common/types";
@@ -18,10 +19,11 @@ enum UpgradeHDImageStatus {
 
 export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();
+    #freeImages3D = new IndexedObjectPool<ImageBase>();
     #units: Map<ImageBase, Unit> = new Map()
 
     // always 2d
-    #images: Map<number, ImageBase> = new Map();
+    #images: IterableMap<number, ImageBase> = new IterableMap();
     #upgradeHDImageQueue = new Map<number, UpgradeHDImageStatus>();
 
     // always 3d
@@ -29,9 +31,18 @@ export class ImageEntities {
     // #instances = new IterableMap<number, InstancedMesh>();
     // animated meshes
     // #skinnedInstances = new IterableMap<number, SkinnedMesh>();
-    use3dAssets = true;
+    use3dImages = true;
 
     #janitor = new Janitor;
+
+    onCreateImage?: (image: ImageBase) => void;
+    onFreeImage?: (image: ImageBase) => void;
+
+    constructor() {
+        this.#janitor.add(() => this.#janitor.dispose(this.#freeImages.all()));
+        this.#janitor.add(() => this.#janitor.dispose(this.#freeImages3D.all()));
+        this.#janitor.add(this.#images);
+    }
 
     #create(imageTypeId: number) {
         const assets = gameStore().assets!;
@@ -53,16 +64,16 @@ export class ImageEntities {
 
         const imageDef = assets.bwDat.images[imageTypeId];
 
-        if (isGltfAtlas(atlas)) {
-            const freeImage = this.#freeImages.get(imageTypeId);
-            if (freeImage && freeImage instanceof Image3D) {
+        if (isGltfAtlas(atlas) && this.use3dImages) {
+            const freeImage = this.#freeImages3D.get(imageTypeId);
+            if (freeImage) {
                 return freeImage;
             }
             return new Image3D(atlas);
         } else {
             const freeImage = this.#freeImages.get(imageTypeId);
-            if (freeImage && freeImage instanceof ImageHD) {
-                return freeImage;
+            if (freeImage) {
+                return freeImage.updateImageType(atlas, true);
             }
 
             if (imageDef.index === -1) {
@@ -73,10 +84,8 @@ export class ImageEntities {
         }
     }
 
-    constructor() {
-        for (const image of this.#freeImages.all()) {
-            this.#janitor.add(image);
-        }
+    [Symbol.iterator]() {
+        return this.#images[Symbol.iterator]();
     }
 
     get(imageIndex: number) {
@@ -85,11 +94,15 @@ export class ImageEntities {
 
     getOrCreate(imageIndex: number, imageTypeId: number) {
         let image = this.#images.get(imageIndex);
-        if (!image) {
+        if (!image || (image.isImage3d !== this.use3dImages && isGltfAtlas(image.atlas))) {
+            if (image) {
+                this.free(imageIndex);
+            }
             image = this.#create(imageTypeId);
             if (!image) {
                 return
             }
+            this.onCreateImage?.(image);
             this.#images.set(imageIndex, image);
         }
         image.userData.imageIndex = imageIndex;
@@ -101,12 +114,20 @@ export class ImageEntities {
         if (image) {
             image.removeFromParent();
             this.#images.delete(imageIndex);
-            this.#freeImages.add(image.dat.index, image);
+            if (image.isImage3d) {
+                this.#freeImages3D.add(image.dat.index, image);
+            } else {
+                this.#freeImages.add(image.dat.index, image);
+            }
             this.#units.delete(image);
+            this.onFreeImage?.(image);
         }
     }
 
     clear() {
+        for (const image of this.#images) {
+            image.removeFromParent();
+        }
         this.#images.clear();
     }
 

@@ -1,4 +1,4 @@
-import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk } from "three";
+import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk, MeshBasicMaterial, Shader } from "three";
 
 
 import { CreepTexture, WrappedQuartileTextures, GeometryOptions, EffectsTextures } from "common/types";
@@ -23,7 +23,10 @@ export const createTerrainGeometryFromQuartiles = async (
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
-    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage });
+    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage }, (anisotropy: number)=> {
+        creepTexture.texture.anisotropy = anisotropy;
+        creepEdgesTexture.texture.anisotropy = anisotropy;
+      });
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
@@ -47,10 +50,9 @@ export const createTerrainGeometryFromQuartiles = async (
                 qx * qw * geomOptions.textureDetail,
                 qy * qh * geomOptions.textureDetail,
             );
-            console.log(g.attributes.position.count);
             totalVertices += g.attributes.position.count;
 
-            const material = new MeshStandardMaterial({
+            const standardMaterial = new MeshStandardMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
                 roughness: 1,
                 bumpMap: mapTextures.mapQuartiles[qx][qy],
@@ -60,7 +62,11 @@ export const createTerrainGeometryFromQuartiles = async (
                 fog: false
             });
 
-            material.onBeforeCompile = function (shader) {
+            const basicMaterial = new MeshBasicMaterial({
+                map: mapTextures.mapQuartiles[qx][qy],
+            })
+
+            const materialOnBeforeCompile =function (shader:Shader) {
                 let fs = shader.fragmentShader;
 
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
@@ -148,10 +154,15 @@ export const createTerrainGeometryFromQuartiles = async (
                 shader.vertexShader = vs;
 
             };
-            const terrainQuartile = new Mesh(g, material);
+            standardMaterial.onBeforeCompile = materialOnBeforeCompile;
+            basicMaterial.onBeforeCompile = materialOnBeforeCompile;
+
+            const terrainQuartile = new Mesh(g, standardMaterial);
             terrainQuartile.castShadow = true;
             terrainQuartile.receiveShadow = true;
             terrainQuartile.userData = {
+                basicMaterial,
+                standardMaterial,
                 qx,
                 qy,
             };

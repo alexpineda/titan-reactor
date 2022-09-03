@@ -10,10 +10,8 @@ export default async function (res: UnitTileScale) {
         const pre = res === UnitTileScale.HD2 ? "HD2/" : "";
         const scale = res === UnitTileScale.HD2 ? UnitTileScale.HD2 : UnitTileScale.HD;
 
-        const readAnim = async () => await readCascFile(`${pre}anim/main_${i}.anim`);
-
         const selCircleGRP = await loadAnimAtlas(
-            readAnim,
+            await readCascFile(`${pre}anim/main_${i}.anim`),
             { index: i } as ImageDAT,
             scale,
             {

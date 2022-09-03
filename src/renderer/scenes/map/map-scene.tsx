@@ -6,11 +6,7 @@ import CameraControls from "camera-controls";
 import { RenderPass } from "postprocessing";
 
 import { playerColors } from "common/enums";
-import {
-  AssetTextureResolution,
-  GeometryOptions,
-  UnitTileScale,
-} from "common/types";
+import { GeometryOptions, UnitTileScale } from "common/types";
 
 import { Surface } from "@image";
 import { IScriptSprite } from "@core";
@@ -20,7 +16,6 @@ import { MapDisplayOptions, MapViewer } from "@render/map-options";
 import { useSettingsStore } from "@stores";
 import Janitor from "@utils/janitor";
 import createStartLocation from "@core/create-start-location";
-import { updatePostProcessingCamera } from "@utils/renderer-utils";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
 import { Terrain } from "@core/terrain";
@@ -84,8 +79,11 @@ export async function mapScene(
   let control = createControls();
 
   const renderPass = new RenderPass(scene, camera);
-  const postProcessingBundle = { passes: [renderPass], effects: [] };
-  updatePostProcessingCamera(postProcessingBundle, camera, true);
+  const postProcessingBundle = {
+    enabled: true,
+    passes: [renderPass],
+    effects: [],
+  };
   renderComposer.setBundlePasses(postProcessingBundle);
 
   const startLocations = preplacedMapUnits
@@ -167,9 +165,7 @@ export async function mapScene(
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
-  janitor.callback(() =>
-    window.removeEventListener("resize", sceneResizeHandler)
-  );
+  janitor.add(() => window.removeEventListener("resize", sceneResizeHandler));
 
   let last = 0;
   let frameElapsed = 0;
@@ -193,9 +189,7 @@ export async function mapScene(
   }
 
   renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
-  janitor.callback(() =>
-    renderComposer.getWebGLRenderer().setAnimationLoop(null)
-  );
+  janitor.add(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
 
   const dispose = () => {
     root.render(null);
@@ -216,18 +210,7 @@ export async function mapScene(
       c.material.color = new Color(0x999999);
     });
 
-    const { terrain } = await chkToTerrainMesh(
-      chk,
-      {
-        textureResolution:
-          settings.assets.terrain === AssetTextureResolution.SD
-            ? UnitTileScale.SD
-            : UnitTileScale.HD,
-        anisotropy: settings.graphics.anisotropy,
-        shadows: settings.graphics.terrainShadows,
-      },
-      options
-    );
+    const { terrain } = await chkToTerrainMesh(chk, UnitTileScale.HD, options);
 
     scene.replaceTerrain(terrain);
     updateDisplayOptions(_displayOptions);
@@ -253,10 +236,6 @@ export async function mapScene(
     scene.sunlight.intensity = options.sunIntensity;
     scene.sunlight.color.set(options.sunColor);
     scene.sunlight.shadow.needsUpdate = true;
-
-    scene.hemilight.intensity;
-    scene.hemilight.color;
-    scene.hemilight.groundColor;
   };
 
   return {

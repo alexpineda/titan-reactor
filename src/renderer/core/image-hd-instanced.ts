@@ -154,9 +154,8 @@ export class ImageHDInstanced extends ImageHD {
     override updateMatrixWorld() {
     }
 
-    dispose() {
-
+    override dispose() {
+        super.dispose();
         this.dispatchEvent({ type: 'dispose' });
-
     }
 }
