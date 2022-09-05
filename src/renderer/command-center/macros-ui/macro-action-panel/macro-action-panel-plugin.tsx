@@ -1,7 +1,7 @@
 import { MacroActionEffect, MacroActionPluginModifyValue } from "common/types";
-import { MacroActionEffectSelector } from "../macro-action-effect-selector";
-import { MacroActionModifyValue } from "../macro-action-modify-value";
-import { MacroActionPanelProps } from "../macro-action-panel-props";
+import { MacroActionEffectSelector } from "./macro-action-effect-selector";
+import { MacroActionModifyValue } from "./macro-action-modify-value";
+import { MacroActionPanelProps } from "./macro-action-panel-props";
 import ErrorBoundary from "../../error-boundary";
 
 export const MacroActionPanelPlugin = (

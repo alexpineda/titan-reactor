@@ -7,9 +7,9 @@ import deepMerge from 'deepmerge';
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
 import settingsStore, { SettingsStore, useSettingsStore } from "./settings-store";
-import Janitor from "@utils/janitor";
 import { diff } from "deep-diff";
 import set from "lodash.set";
+import getProp from "lodash.get";
 import * as log from "@ipc/log";
 
 export type SessionStore = Settings & {
@@ -42,9 +42,9 @@ export const createSession = (ogData: Settings) => {
                 return;
             }
 
-            
+
             const existingValue = field.value;
-            let value = doMacroActionEffect(action, existingValue, field.value, field.step, field.min, field.max, field.options );
+            let value = doMacroActionEffect(action, existingValue, field.value, field.step, field.min, field.max, field.options);
 
             const newSettings = {};
             lSet(newSettings, action.field!, value);
@@ -53,8 +53,8 @@ export const createSession = (ogData: Settings) => {
     }));
 };
 
-export const listenForNewSettings = (onNewSettings: (mergeSettings: DeepPartial<SettingsMeta>, settings: SettingsStore, prevSettings: SettingsStore) => void) => {
-    return new Janitor(useSettingsStore.subscribe((settings, prevSettings) => {
+export const listenForNewSettings = (onNewSettings: (mergeSettings: DeepPartial<SettingsMeta>, settings: SettingsStore, prevSettings: SettingsStore) => void) =>
+    useSettingsStore.subscribe((settings, prevSettings) => {
 
         const diffs = diff(prevSettings, settings);
         if (diffs === undefined)
@@ -66,10 +66,18 @@ export const listenForNewSettings = (onNewSettings: (mergeSettings: DeepPartial<
         };
         for (const d of diffs) {
             if (d.kind === "E" && d.path) {
-                set(mergeSettings, d.path, d.rhs);
+                const parentProp = getProp(settings, d.path.slice(0, d.path.length - 1));
+                // don't diff down to array elements, just the entire array is fine!
+                // otherwise we're left with a sparse array :(
+                if (Array.isArray(parentProp) && typeof d.path[d.path.length - 1] === "number") {
+                    set(parentProp, d.path, d.rhs);
+                    set(mergeSettings, d.path.slice(0, d.path.length - 1), parentProp);
+                } else {
+                    set(mergeSettings, d.path, d.rhs);
+                }
             }
         }
 
         onNewSettings(mergeSettings, settings, prevSettings)
-    }));
-}
+    })
+

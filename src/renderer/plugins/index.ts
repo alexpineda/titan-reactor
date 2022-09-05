@@ -180,3 +180,7 @@ export const setMacroDefaults = (macros: Macros, pluginId: string, config: any) 
 export const setSceneController = (plugin: SceneController) => {
     nativePluginSystem.setActiveSceneInputHandler(plugin);
 }
+
+export const getPluginByName = (name: string) => {
+    return nativePluginSystem.getByName(name);
+}

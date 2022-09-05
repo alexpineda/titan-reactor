@@ -20,31 +20,30 @@ type SupportedJanitorTypes = Object3D | Disposable | EmptyFn | NodeJS.EventEmitt
 type ExtendedJanitorTypes = SupportedJanitorTypes | Iterable<SupportedJanitorTypes>;
 export default class Janitor {
     #trackables = new Set<ExtendedJanitorTypes>();
+    #keepTrackablesAfterDispose: boolean;
 
-    constructor(dispose?: ExtendedJanitorTypes) {
-        if (dispose) {
-            this.add(dispose);
-        }
+    constructor(keepTrackablesAfterDispose = false) {
+        this.#keepTrackablesAfterDispose = keepTrackablesAfterDispose;
     }
 
     addEventListener(element: { addEventListener: Function, removeEventListener: Function }, event: string, callback: Function, options?: AddEventListenerOptions) {
         element.addEventListener(event, callback, options);
-        this.add(() => element.removeEventListener(event, callback));
+        this.mop(() => element.removeEventListener(event, callback));
         return this;
     }
 
     on(nodeEventListener: NodeJS.EventEmitter, event: string, callback: (...args: any[]) => void) {
         nodeEventListener.on(event, callback);
-        this.add(() => nodeEventListener.off(event, callback));
+        this.mop(() => nodeEventListener.off(event, callback));
     }
 
     setInterval(callback: EmptyFn, interval: number): NodeJS.Timeout {
         const _i = setInterval(callback, interval);
-        this.add(() => clearInterval(_i));
+        this.mop(() => clearInterval(_i));
         return _i;
     }
 
-    add<T extends ExtendedJanitorTypes>(obj: T): T {
+    mop<T extends ExtendedJanitorTypes>(obj: T): T {
         this.#trackables.add(obj);
         return obj;
     }
@@ -72,14 +71,14 @@ export default class Janitor {
         }
     }
 
-    dispose(obj?: ExtendedJanitorTypes | false) {
-        if (obj === false || obj === undefined) {
+    dispose(obj?: ExtendedJanitorTypes) {
+        if (obj === undefined) {
             if (this.#trackables) {
                 for (const obj of this.#trackables) {
                     this.#disposeAny(obj);
                 }
             }
-            if (obj === undefined) {
+            if (!this.#keepTrackablesAfterDispose) {
                 this.#trackables.clear();
             }
         } else {

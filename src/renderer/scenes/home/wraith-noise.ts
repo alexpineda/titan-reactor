@@ -17,17 +17,17 @@ export const createWraithNoise = () => {
     const highpassFilter = new Filter("highpass", 10);
     highpassFilter.changeDetune(8000);
 
-    const janitor = new Janitor(
-        mixer.connect(
-            highGain,
-            gain,
-            lopassFilter.node,
-            highpassFilter.node,
-            mixer.createDistortion(50),
-            mixer.createGain(0.5),
-            mixer.intro
-        )
-    );
+    const janitor = new Janitor();
+    janitor.mop(mixer.connect(
+        highGain,
+        gain,
+        lopassFilter.node,
+        highpassFilter.node,
+        mixer.createDistortion(50),
+        mixer.createGain(0.5),
+        mixer.intro
+    ))
+
     gain.connect(highGain.gain);
 
     let _isPlaying = false;
@@ -94,9 +94,8 @@ export const playWraithComms = async (rear: number) => {
     filter.changeQ(3);
     filter.changeGain(2);
 
-    const janitor = new Janitor(
-        mixer.connect(sound, filter.node, mixer.createGain(2), mixer.intro)
-    );
+    const janitor = new Janitor();
+    janitor.mop(mixer.connect(sound, filter.node, mixer.createGain(2), mixer.intro));
     sound.start();
     sound.onended = () => janitor.dispose();
 }
@@ -128,9 +127,9 @@ export const playRemix = async () => {
     gain.gain.setTargetAtTime(4, mixer.context.currentTime, 1);
     gain.gain.setTargetAtTime(0, mixer.context.currentTime + 13, 0.5);
 
-    const janitor = new Janitor(
-        mixer.connect(sound, lopass.node, filter.node, mixer.createDistortion(2), gain, mixer.intro)
-    );
+    const janitor = new Janitor()
+    janitor.mop(mixer.connect(sound, lopass.node, filter.node, mixer.createDistortion(2), gain, mixer.intro))
+
     sound.start();
     sound.onended = () => janitor.dispose();
 }

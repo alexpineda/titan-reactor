@@ -4,20 +4,6 @@ import { GeometryOptions } from "common/types";
 import { LevaPanel, useControls, useCreateStore } from "leva";
 import { useState } from "react";
 import { Vector3 } from "three";
-import BaseScene from "./base-scene";
-
-export const createUpdateDisplayOptions =
-  (scene: BaseScene) => (options: MapDisplayOptions) => {
-    console.log(options);
-    scene.terrain.children.forEach((c) => {
-      c.material.wireframe = options.wireframe;
-    });
-
-    scene.sunlight.position.copy(options.sunPosition);
-    scene.sunlight.intensity = options.sunIntensity;
-    scene.sunlight.color.set(options.sunColor);
-    scene.sunlight.shadow.needsUpdate = true;
-  };
 
 const toSimple = (obj: { [key: string]: { value: any } }) => {
   const result: GeometryOptions = defaultGeometryOptions;

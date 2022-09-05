@@ -40,14 +40,14 @@ export function createIScriptahScene(): SceneState {
   surface.setDimensions(300, 300, window.devicePixelRatio);
 
   const scene = new Scene();
-  janitor.add(scene);
+  janitor.mop(scene);
 
   const camera = new PerspectiveCamera(22, surface.aspect, 1, 256);
   camera.userData.direction = 0;
   camera.position.set(0, 30, 10);
   camera.lookAt(new Vector3());
 
-  const controls = janitor.add(new OrbitControls(camera, surface.canvas));
+  const controls = janitor.mop(new OrbitControls(camera, surface.canvas));
   controls.mouseButtons = {
     LEFT: MOUSE.PAN,
     MIDDLE: MOUSE.DOLLY,
@@ -91,7 +91,7 @@ export function createIScriptahScene(): SceneState {
     dragChangedHandler
   );
   transformControls.setSpace("local");
-  janitor.add(transformControls);
+  janitor.mop(transformControls);
 
   scene.add(transformControls);
   const thingies: IScriptSprite[] = [];
@@ -203,7 +203,7 @@ export function createIScriptahScene(): SceneState {
     effects: [],
   };
   renderComposer.setBundlePasses(postProcessingBundle);
-  janitor.add(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
+  janitor.mop(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
 
   let lastTime = 0;
   let delta = 0;

@@ -1,5 +1,4 @@
 import { drawFunctions } from "common/enums";
-import { AnimAtlas } from "common/types";
 import { Color, DynamicDrawUsage, InstancedBufferAttribute, Matrix4 } from "three";
 import { calculateFrame, ImageHD } from "./image-hd";
 import { ImageHDInstancedMaterial } from "./image-hd-instanced-material";
@@ -28,8 +27,8 @@ export class ImageHDInstanced extends ImageHD {
     imageIdToIndex: Map<number, number> = new Map();
     offset = 0;
 
-    constructor(atlas: AnimAtlas, count: number) {
-        super(atlas);
+    constructor(count: number) {
+        super();
         this.frustumCulled = false;
         this.count = count;
         this.max = count;
@@ -57,6 +56,7 @@ export class ImageHDInstanced extends ImageHD {
         this.geometry.setAttribute("instanceMatrix", this.instanceMatrix);
 
     }
+
 
     override createMaterial() {
         return new ImageHDInstancedMaterial();

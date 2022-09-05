@@ -29,9 +29,9 @@ const CLOAK_OPACITY = 0.6;
 
 //dds is flipped y so we don't do it in our uvs
 export const calculateFrame = (frame: AnimFrame, flipFrame: boolean, textureWidth: number, textureHeight: number, spriteWidth: number, spriteHeight: number, depthTest: boolean, pos: { setX: (index: number, value: number) => void, setY: (index: number, value: number) => void }, uv: { setXY: (index: number, x: number, y: number) => void }) => {
-  const off =
-    (frame.yoff + frame.h - spriteHeight / 2) / spriteHeight;
-  const yOff = depthTest ? 0.5 - off : 0.5;
+  // const off =
+  // (frame.yoff + frame.h - spriteHeight / 2) / spriteHeight;
+  const yOff = 0.5;//depthTest ? 0.5 - off : 0.5;
 
   const _leftU = frame.x / textureWidth;
   const _rightU = (frame.x + frame.w) / textureWidth;
@@ -96,14 +96,12 @@ function transformVertex(vertexPosition: Vector3, mvPosition: Vector3, scale: Ve
   vertexPosition.applyMatrix4(_viewWorldMatrix);
 
 }
-
 export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial> implements ImageBase {
   isImage3d = false;
   isInstanced = false;
   static useDepth = false;
+  //@ts-ignore
   atlas: AnimAtlas;
-
-  readonly originalScale = new Vector3();
 
   #uv: BufferAttribute | InterleavedBufferAttribute;
   #pos: BufferAttribute | InterleavedBufferAttribute;
@@ -117,12 +115,10 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
   protected spriteHeight = 0;
 
   constructor(
-    atlas: AnimAtlas,
   ) {
 
     super();
 
-    this.atlas = atlas;
     this.material = this.createMaterial();
     this.material.transparent = true;
     this.material.depthTest = ImageHD.useDepth;
@@ -165,25 +161,25 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     return gameStore().assets!.bwDat.images[this.atlas.imageIndex];
   }
 
-  updateImageType(atlas: AnimAtlas, force?: boolean) {
-
-    if (this.atlas.imageIndex === atlas.imageIndex && !force) {
-      this.material.depthTest = ImageHD.useDepth;
+  updateImageType(atlas: AnimAtlas) {
+    if (this.atlas && this.atlas.imageIndex !== atlas.imageIndex) {
+      console.warn("changing image type");
+    }
+    if (this.atlas?.imageIndex === atlas.imageIndex && this.atlas?.unitTileScale === atlas.unitTileScale) {
       return this;
     }
+
     this.atlas = atlas;
     this.material.map = atlas.diffuse;
     this.material.teamMask = atlas.teammask;
     this.material.warpInFlashGRP = gameStore().assets?.grps[210];
-    this.originalScale.set(
+
+    this.material.alphaTest = 0.01;
+    this.scale.set(
       atlas.spriteWidth / 128,
       atlas.spriteHeight / 128,
       1
     );
-
-    this.material.alphaTest = 0.01;
-    this.material.depthTest = ImageHD.useDepth;
-    this.scale.copy(this.originalScale);
 
     // spriteWidth is only valid with HD, have to scale to HD2 if applicable
     this.spriteWidth = atlas.spriteWidth * (atlas.unitTileScale / 4);
@@ -195,13 +191,12 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
       this.material.blending = NormalBlending;
     }
 
-    // command center overlay scale up a bit to remove border issues
-    if (this.atlas.imageIndex === 276) {
+    // command center / armory overlay scale up a bit to remove border issues
+    if (atlas.imageIndex === 276 || atlas.imageIndex === 269) {
       this.material.map.minFilter = NearestMipMapNearestFilter;
       this.material.map.magFilter = NearestMipMapNearestFilter;
     }
 
-    this.resetParams();
     this.material.needsUpdate = true;
 
     return this;
@@ -209,7 +204,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   resetParams() {
     this.setModifiers(0, 0, 0);
-    this.setFrame(0, false, true);
+    this.setFrame(0, false);
     this.setTeamColor(white);
   }
 
@@ -266,11 +261,12 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.#flip = val;
   }
 
-  setFrame(frame: number, flip: boolean, force = false) {
-    if (frame === this.frame && flip === this.flip && force === false) {
-      return;
-    }
+  setFrame(frame: number, flip: boolean) {
+    // if (frame === this.frame && flip === this.flip && force === false) {
+    //   return;
+    // }
     if (this.atlas.frames[frame] === undefined) {
+      console.warn("invalid frame", frame, this.atlas.imageIndex);
       return;
     }
 

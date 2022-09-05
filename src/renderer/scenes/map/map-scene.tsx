@@ -61,7 +61,7 @@ export async function mapScene(
 
   const gameSurface = new Surface();
   gameSurface.setDimensions(window.innerWidth, window.innerHeight);
-  janitor.add(document.body.appendChild(gameSurface.canvas));
+  janitor.mop(document.body.appendChild(gameSurface.canvas));
 
   // scene.background = new Color(settings.mapBackgroundColor);
   const camera = new PerspectiveCamera(55, gameSurface.aspect, 0.1, 1000);
@@ -165,7 +165,7 @@ export async function mapScene(
   };
   const sceneResizeHandler = debounce(_sceneResizeHandler, 500);
   window.addEventListener("resize", sceneResizeHandler, false);
-  janitor.add(() => window.removeEventListener("resize", sceneResizeHandler));
+  janitor.mop(() => window.removeEventListener("resize", sceneResizeHandler));
 
   let last = 0;
   let frameElapsed = 0;
@@ -189,7 +189,7 @@ export async function mapScene(
   }
 
   renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
-  janitor.add(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
+  janitor.mop(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
 
   const dispose = () => {
     root.render(null);
@@ -234,8 +234,8 @@ export async function mapScene(
 
     scene.sunlight.position.copy(options.sunPosition);
     scene.sunlight.intensity = options.sunIntensity;
-    scene.sunlight.color.set(options.sunColor);
-    scene.sunlight.shadow.needsUpdate = true;
+    scene.sunlight.setColor(options.sunColor);
+    scene.sunlight.needsUpdate();
   };
 
   return {

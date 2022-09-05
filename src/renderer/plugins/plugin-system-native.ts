@@ -13,6 +13,7 @@ import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log"
 import { normalizePluginConfiguration } from "@utils/function-utils"
 import { GameTimeApi } from "../scenes/replay/game-time-api";
+import { GameViewPort } from "../camera/game-viewport";
 
 interface PluginBase extends NativePlugin, GameTimeApi { };
 class PluginBase implements NativePlugin {
@@ -91,11 +92,18 @@ class PluginBase implements NativePlugin {
 };
 
 export interface SceneController extends PluginBase, SceneInputHandler {
-
+    viewports: GameViewPort[];
 };
 
 export class SceneController extends PluginBase {
     override isSceneController = true;
+    viewports: GameViewPort[] = [];
+    get viewport() {
+        return this.viewports[0];
+    }
+    get secondViewport() {
+        return this.viewports[1];
+    }
 }
 
 const VALID_PERMISSIONS = [
@@ -184,7 +192,7 @@ export class PluginSystemNative {
             }
         };
         window.addEventListener("message", _messageListener);
-        this.#janitor.add(() => { window.removeEventListener("message", _messageListener); });
+        this.#janitor.mop(() => { window.removeEventListener("message", _messageListener); });
     }
 
     getSceneInputHandlers() {
@@ -195,7 +203,7 @@ export class PluginSystemNative {
         this.#activeSceneInputHandler = plugin;
     }
 
-    #getByName(name: string) {
+    getByName(name: string) {
         return this.#nativePlugins.find(p => p.name === name);
     }
 
@@ -387,7 +395,7 @@ export class PluginSystemNative {
     }
 
     doMacroAction(action: MacroActionPlugin) {
-        const plugin = this.#getByName(action.pluginName!);
+        const plugin = this.getByName(action.pluginName!);
         if (!plugin) {
             log.error(`@macro-action: Plugin ${action.pluginName} not found`);
             return null;

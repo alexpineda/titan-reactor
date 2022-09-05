@@ -33,11 +33,9 @@ export class Terrain extends Group {
     }
 
     set shadowsEnabled(val: boolean) {
-        this.traverse(o => {
-            if (o instanceof Mesh) {
-                o.castShadow = val;
-                o.receiveShadow = val;
-            }
+        this.#applyToQuartile(o => {
+            o.castShadow = val;
+            o.receiveShadow = val;
         });
     }
 
@@ -78,6 +76,10 @@ export class Terrain extends Group {
 
     #setBumpScale(value: number) {
         this.#applyToStandardMaterial(material => material.bumpScale = value);
+    }
+
+    set envMapIntensity(intensity: number) {
+        this.#applyToStandardMaterial(m => m.envMapIntensity = intensity);
     }
 
     setTerrainQuality(highDefinition: boolean, anisotropy: number) {

@@ -199,7 +199,7 @@ export class PluginSystemUI {
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         }
 
-        this.#janitor.add(useGameStore.subscribe((game, prev) => {
+        this.#janitor.mop(useGameStore.subscribe((game, prev) => {
             if (game.dimensions !== prev.dimensions) {
                 this.sendMessage({
                     type: UI_STATE_EVENT_DIMENSIONS_CHANGED,
@@ -208,25 +208,25 @@ export class PluginSystemUI {
             }
         }));
 
-        this.#janitor.add(useSceneStore.subscribe((screen) => {
+        this.#janitor.mop(useSceneStore.subscribe((screen) => {
             this.sendMessage(screenChanged(screen));
         }));
 
-        this.#janitor.add(useWorldStore.subscribe((world) => {
+        this.#janitor.mop(useWorldStore.subscribe((world) => {
             this.sendMessage({
                 type: UI_STATE_EVENT_WORLD_CHANGED,
                 payload: worldPartial(world)
             });
         }));
 
-        this.#janitor.add(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
+        this.#janitor.mop(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
             this.sendMessage({
                 type: UI_STATE_EVENT_UNITS_SELECTED,
                 payload: unitsPartial(selectedUnits)
             });
         }));
 
-        this.#janitor.add(useProcessStore.subscribe((process) => {
+        this.#janitor.mop(useProcessStore.subscribe((process) => {
             this.sendMessage({
                 type: UI_STATE_EVENT_PROGRESS,
                 payload: process.getTotalProgress()
@@ -236,7 +236,7 @@ export class PluginSystemUI {
         this.refresh();
 
         document.body.appendChild(this.#iframe);
-        this.#janitor.add(() => document.body.removeChild(this.#iframe));
+        this.#janitor.mop(() => document.body.removeChild(this.#iframe));
 
     }
 

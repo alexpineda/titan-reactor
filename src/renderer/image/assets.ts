@@ -76,24 +76,30 @@ export default async (settings: Settings) => {
         wireframeIcons,
     } = await generateIcons(readCascFile);
 
+    // lurker egg -> egg,
+    const customRefs: Record<number, number> = {
+        914: 21
+    }
+
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
             return sdAnim[id].refId!;
         }
-        return id;
+        return customRefs[id] ?? id;
     };
+
+
 
     const loadingHD2 = new Set();
     const loadingHD = new Set();
     const glbExists = new Map<number, boolean>();
     const atlases: AnimAtlas[] = [];
-
-    const loadImageAtlas = async (imageId: number) => {
+    const glbFileName = (refImageId: number) => path.join(
+        settings.directories.assets,
+        `00${refImageId}`.slice(-3) + ".glb"
+    )
+    const loadImageAtlas = async (imageId: number, earlyGlb = false) => {
         const refImageId = refId(imageId);
-        const glbFileName = path.join(
-            settings.directories.assets,
-            `00${refImageId}`.slice(-3) + ".glb"
-        )
         const imageDat = bwDat.images[imageId];
 
         let res = UnitTileScale.HD2;
@@ -111,20 +117,21 @@ export default async (settings: Settings) => {
         } else if (!loadingHD2.has(refImageId)) {
             loadingHD2.add(refImageId);
             loadingHD2.add(imageId);
-            glbExists.set(refImageId, await fileExists(glbFileName));
+            glbExists.set(refImageId, await fileExists(glbFileName(refImageId)));
         }
 
         // load glb after hd2 but before hd
-        if (glbExists.get(refImageId) && atlases[refImageId]?.isHD2) {
+        if (glbExists.get(refImageId) && (atlases[refImageId]?.isHD2 || earlyGlb)) {
             glbExists.set(imageId, false);
             const glb = await loadGlbAtlas(
-                glbFileName,
-                atlases[refImageId],
+                glbFileName(refImageId),
+                earlyGlb ? await loadAnimAtlas(await loadAnimBuffer(refImageId, res), imageDat, res, bwDat.grps[imageDat.grp]) : atlases[refImageId],
                 imageDat,
                 envMap,
             );
             atlases[imageId] = glb;
             atlases[refImageId] = glb
+            if (earlyGlb) return;
         }
 
         const anim = await loadAnimAtlas(await loadAnimBuffer(refImageId, res), imageDat, res, bwDat.grps[imageDat.grp]);
@@ -133,9 +140,14 @@ export default async (settings: Settings) => {
             setHDMipMaps(anim, atlases[imageId]);
         }
 
+        if (anim.isHD2 && atlases[imageId]?.isHD) {
+            console.warn("hd2 after hd", imageId);
+        }
+
         if (atlases[imageId] !== undefined) {
-            Object.assign(atlases[imageId], anim);
-            Object.assign(atlases[refImageId], anim);
+            // assigning to a new object since ImageHD needs to test against its existing atlas
+            atlases[imageId] = Object.assign({}, atlases[imageId], anim);
+            atlases[refImageId] = Object.assign({}, atlases[refImageId], anim)
         } else {
             atlases[imageId] = anim;
             atlases[refImageId] = anim
@@ -170,6 +182,8 @@ export default async (settings: Settings) => {
         "back.png",
     ], res)) as CubeTexture;
 
+
+
     gameStore().setAssets({
         bwDat,
         grps: atlases,
@@ -183,9 +197,19 @@ export default async (settings: Settings) => {
         dragIcons,
         wireframeIcons,
         envMap,
-        loadImageAtlas,
+        loadImageAtlas: (imageId: number) => {
+            loadImageAtlas(imageId);
+            return atlases[imageId];
+        },
+        loadImageAtlasAsync: (imageId: number, earlyGlb: boolean) => loadImageAtlas(imageId, earlyGlb),
         skyBox,
-        refId
+        refId,
+        resetAssetCache: () => {
+            atlases.length = 0;
+            loadingHD.clear();
+            loadingHD2.clear();
+            glbExists.clear();
+        }
     });
     processStore().complete(Process.AtlasPreload);
 };

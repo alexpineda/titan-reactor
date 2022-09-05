@@ -21,7 +21,7 @@ export const listenToEvents = (macros: Macros) => {
         }
     })
 
-    janitor.add(macros.listenForKeyCombos());
+    janitor.mop(macros.listenForKeyCombos());
 
     janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
         type: SendWindowActionType.ManualMacroTrigger,

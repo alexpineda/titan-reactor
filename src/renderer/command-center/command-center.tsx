@@ -60,7 +60,6 @@ const searchPackages = async (cb: (val: RemotePackage[]) => void) => {
   ).filter((pkg) => !officialPackages.some((p) => p.name === pkg.name));
 
   const results = [...officialPackages, ...publicPackages];
-  console.log(results);
   cb(results);
 };
 

@@ -127,6 +127,7 @@ export type SettingsV6 = {
         bloom: number;
         brightness: number;
         contrast: number;
+        fogOfWar: number;
     },
     postprocessing3d: {
         anisotropy: number;
@@ -138,6 +139,11 @@ export type SettingsV6 = {
         depthFocalLength: number;
         depthBokehScale: number;
         depthBlurQuality: number;
+        fogOfWar: number;
+        envMap: number;
+        sunlightDirection: [number, number, number];
+        sunlightColor: string;
+        sunlightIntensity: number;
     },
     macros: MacrosDTO
 };

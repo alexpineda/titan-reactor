@@ -43,7 +43,7 @@ export class Image3D extends Object3D implements ImageBase {
   #times = new Float32Array();
   #action?: AnimationAction;
   //@ts-ignore
-  #material: Image3DMaterial;
+  readonly material: Image3DMaterial;
   _zOff: number;
 
   constructor(
@@ -54,12 +54,12 @@ export class Image3D extends Object3D implements ImageBase {
 
     // @ts-ignore
     this.model = Image3D.clone(atlas.model);
-    this.#material = standardMaterialToImage3DMaterial(atlas.mesh.material);
+    this.material = standardMaterialToImage3DMaterial(atlas.mesh.material);
     this.add(this.model);
 
     this.model.traverse((o: Object3D) => {
       if (o instanceof Mesh) {
-        o.material = this.#material;
+        o.material = this.material;
       }
     });
 
@@ -89,7 +89,7 @@ export class Image3D extends Object3D implements ImageBase {
   }
 
   setTeamColor(val: Color | undefined = white) {
-    this.#material.teamColor = val;
+    this.material.teamColor = val;
   }
 
   setModifiers() {
@@ -107,7 +107,7 @@ export class Image3D extends Object3D implements ImageBase {
   }
 
   setEmissive(val: number) {
-    this.#material.emissiveIntensity = val;
+    this.material.emissiveIntensity = val;
   }
 
   get frame() {

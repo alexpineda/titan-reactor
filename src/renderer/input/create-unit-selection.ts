@@ -20,7 +20,7 @@ let _mouse = new Vector2();
 export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapSurface: Surface, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
-    const visualBox = janitor.add(new MouseSelectionBox("#00cc00"));
+    const visualBox = janitor.mop(new MouseSelectionBox("#00cc00"));
 
     let mouseIsDown = false;
     let enabled = true;

@@ -59,10 +59,10 @@ export class GameViewPort {
 
         this.#isPrimary = isPrimaryViewport;
         this.enabled = isPrimaryViewport;
-        this.resetOrbit();
+        this.reset();
     }
 
-    resetOrbit() {
+    reset() {
         this.orbit?.dispose();
 
         this.orbit = new CameraControls(this.camera, this.#surface.canvas);
@@ -78,7 +78,7 @@ export class GameViewPort {
     set orthographic(value: boolean) {
         this.camera = value ? new OrthographicCamera() : new PerspectiveCamera(15, this.#surface.aspect, 0.1, 500);
         this.constrainToAspect = !value;
-        this.resetOrbit()
+        this.reset()
     }
 
 

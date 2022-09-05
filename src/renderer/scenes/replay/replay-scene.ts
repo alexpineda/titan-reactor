@@ -10,7 +10,7 @@ import {
   WeaponDAT
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
-import { SpriteStruct, ImageStruct, UnitTileScale } from "common/types";
+import { SpriteStruct, ImageStruct } from "common/types";
 import type { SoundChannels } from "@audio";
 import {
   Players,
@@ -25,7 +25,7 @@ import * as log from "@ipc/log";
 import {
   GameSurface, renderComposer, SimpleText, BaseScene
 } from "@render";
-import { getImageLoOffset, imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw, isGltfAtlas } from "@utils/image-utils";
+import { getImageLoOffset, imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
 import { buildSound } from "@utils/sound-utils";
 import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "@utils/sprite-utils";
 import Janitor from "@utils/janitor";
@@ -39,7 +39,7 @@ import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { canSelectUnit, getAngle, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
-import { RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import { selectionObjects, updateSelectionGraphics } from "./selection-objects";
 import FadingPointers from "@image/fading-pointers";
@@ -80,7 +80,7 @@ export async function replayScene(
   const macros = new Macros(session);
   macros.deserialize(settingsStore().data.macros);
 
-  const players = janitor.add(new Players(
+  const players = janitor.mop(new Players(
     replay.header.players,
     map.units.filter((u) => u.unitId === unitTypes.startLocation),
   ));
@@ -90,25 +90,27 @@ export async function replayScene(
   openBW.setPaused(false);
 
   const [mapWidth, mapHeight] = map.size;
+  renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
+
 
   const cssScene = new CssScene;
 
-  const gameSurface = janitor.add(new GameSurface(mapWidth, mapHeight));
+  const gameSurface = janitor.mop(new GameSurface(mapWidth, mapHeight));
   gameSurface.setDimensions(window.innerWidth, window.innerHeight, session.getState().graphics.pixelRatio);
-  janitor.add(document.body.appendChild(gameSurface.canvas));
+  janitor.mop(document.body.appendChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getMinimapDimensions(session.getState().game.minimapSize));
 
-  const minimapSurface = janitor.add(new Surface({
+  const minimapSurface = janitor.mop(new Surface({
     position: "absolute",
     bottom: "0",
     zIndex: "20"
   }));
-  janitor.add(document.body.appendChild(minimapSurface.canvas));
+  janitor.mop(document.body.appendChild(minimapSurface.canvas));
 
-  const simpleText = janitor.add(new SimpleText());
+  const simpleText = janitor.mop(new SimpleText());
   const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
 
-  const minimapMouse = janitor.add(new MinimapMouse(
+  const minimapMouse = janitor.mop(new MinimapMouse(
     minimapSurface,
     mapWidth,
     mapHeight,
@@ -120,9 +122,9 @@ export async function replayScene(
   const fadingPointers = new FadingPointers();
   scene.add(fadingPointers);
 
-  const cameraMouse = janitor.add(new CameraMouse(document.body));
+  const cameraMouse = janitor.mop(new CameraMouse(document.body));
 
-  const cameraKeys = janitor.add(new CameraKeys(document.body, () => {
+  const cameraKeys = janitor.mop(new CameraKeys(document.body, () => {
     if (hasFollowedUnits()) {
       clearFollowedUnits();
     } else if (selectedUnitsStore().selectedUnits.length) {
@@ -135,20 +137,32 @@ export async function replayScene(
   const sprites = new SpriteEntities;
   scene.add(sprites.group);
 
-  const images = janitor.add(new ImageEntities);
+  const images = janitor.mop(new ImageEntities);
+  ipcRenderer.on(CLEAR_ASSET_CACHE, () => {
+    assets.resetAssetCache();
+    images.dispose();
+  })
 
-  const fogOfWarEffect = janitor.add(new FogOfWarEffect());
+  const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
   const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, fogOfWarEffect);
 
-  const globalEffectsBundle = janitor.add(
+  const globalEffectsBundle = janitor.mop(
     new GlobalEffects(
       new PerspectiveCamera,
       scene,
       session.getState().postprocessing,
       fogOfWarEffect));
 
+  //tank base, minerals
+  const ignoreRecieveShadow = [250, 253, 347, 349, 351];
+  const ignoreCastShadow = [347, 349, 351];
   images.onCreateImage = (image) => {
     globalEffectsBundle.addBloomSelection(image);
+    if (image instanceof Image3D && globalEffectsBundle.options3d) {
+      image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
+      image.castShadow = !ignoreCastShadow.includes(assets.refId(image.dat.index));
+      image.receiveShadow = !ignoreRecieveShadow.includes(assets.refId(image.dat.index));;
+    }
   }
 
   images.onFreeImage = (image) => {
@@ -165,28 +179,44 @@ export async function replayScene(
     // do this after changing render mode as Extended differs
     globalEffectsBundle.effectivePasses = viewports.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
 
+    if (globalEffectsBundle.options3d) {
+      for (const image of images) {
+        if (image instanceof Image3D) {
+          image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
+        }
+      }
+      scene.sunlight.setPosition(globalEffectsBundle.options3d.sunlightDirection[0], globalEffectsBundle.options3d.sunlightDirection[1], globalEffectsBundle.options3d.sunlightDirection[2]);
+      scene.sunlight.intensity = globalEffectsBundle.options3d.sunlightIntensity;
+      scene.sunlight.setColor(globalEffectsBundle.options3d.sunlightColor);
+      scene.sunlight.needsUpdate();
+
+      terrain.envMapIntensity = globalEffectsBundle.options3d.envMap;
+
+    }
+
   }
 
-  janitor.add(session.subscribe(data => {
-    initializeGlobalEffects(viewports.primaryViewport.renderMode3D ? data.postprocessing3d : data.postprocessing);
+  janitor.mop(session.subscribe(data => {
+    if (viewports.primaryViewport) {
+      initializeGlobalEffects(viewports.primaryViewport.renderMode3D ? data.postprocessing3d : data.postprocessing);
+    }
   }))
 
   const initializeRenderMode = (renderMode3D: boolean) => {
     const postprocessing = renderMode3D ? session.getState().postprocessing3d : session.getState().postprocessing;
 
     terrain.setTerrainQuality(renderMode3D, session.getState().postprocessing.anisotropy);
-    terrain.shadowsEnabled = renderMode3D;
-    scene.sunlight.castShadow = renderMode3D;
+    scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
+    scene.sunlight.enabled = renderMode3D;
+    // terrain.shadowsEnabled = true;
 
-    scene.sunlight.shadow.needsUpdate = true;
-    renderComposer.getWebGLRenderer().shadowMap.needsUpdate = true;
     images.use3dImages = renderMode3D;
     reset = refreshScene;
 
     initializeGlobalEffects(postprocessing);
   }
 
-  const viewports = janitor.add(new GameViewportsDirector(gameSurface,
+  const viewports = janitor.mop(new GameViewportsDirector(gameSurface,
     macros
   ));
 
@@ -219,9 +249,9 @@ export async function replayScene(
 
     plugins.setSceneController(sceneController);
 
-    unitSelection.enabled = viewports.allowUnitSelection;
-    unitSelection.selectionBox.camera = viewports.primaryViewport.camera;
-
+    unitSelection.enabled = sceneController.gameOptions?.allowUnitSelection;
+    unitSelection.selectionBox.camera = sceneController.viewport.camera;
+    _sceneResizeHandler();
   }
 
   const gameTimeApi = ((): GameTimeApi => {
@@ -236,15 +266,6 @@ export async function replayScene(
 
     return {
       type: "replay",
-      get viewport() {
-        return viewports.primaryViewport;
-      },
-      get secondViewport() {
-        return viewports.viewports[1];
-      },
-      get viewports() {
-        return viewports.viewports;
-      },
       simpleMessage(val: string) {
         simpleText.set(val);
       },
@@ -426,7 +447,7 @@ export async function replayScene(
   let currentBwFrame = 0;
   let previousBwFrame = -1;
 
-  const creep = janitor.add(new Creep(
+  const creep = janitor.mop(new Creep(
     mapWidth,
     mapHeight,
     terrainExtra.creepTextureUniform.value,
@@ -659,13 +680,8 @@ export async function replayScene(
         continue;
       }
 
-      // upgrade HD2 image to HD if loaded
-      if (image instanceof ImageHD && image.unitTileScale === UnitTileScale.HD2 && assets.grps[imageData.typeId].unitTileScale === UnitTileScale.HD) {
-        image.updateImageType(assets.grps[imageData.typeId], true);
-      }
-
       // only draw shadow if main image is not 3d
-      const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || !isGltfAtlas(assets.grps[spriteData.mainImage.typeId]) && image.dat.drawFunction === drawFunctions.rleShadow;
+      const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || image.dat.drawFunction === drawFunctions.rleShadow && !viewports.primaryViewport?.renderMode3D;
 
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
       image.matrixWorldNeedsUpdate = false;
@@ -702,29 +718,15 @@ export async function replayScene(
 
         // if we're a shadow, we act independently from a sprite since our Y coordinate
         // needs to be in world space
-        if (viewports.primaryViewport.renderMode3D && image.dat.drawFunction === drawFunctions.rleShadow && unit && unitIsFlying(unit)) {
-          image.position.x = _spritePos.x;
-          image.position.z = _spritePos.z;
-          image.position.y = terrain.getTerrainY(_spritePos.x, _spritePos.z) - 0.1;
-
-          image.rotation.copy(sprite.rotation);
-          image.renderOrder = - 1;
+        image.renderOrder = imageCounter;
+        if (image.isInstanced) {
           if (image.parent !== sprites.group) {
             sprites.group.add(image);
           }
-          image.matrixWorldNeedsUpdate = true;
         } else {
-          image.renderOrder = imageCounter;
-          if (image.isInstanced) {
-            if (image.parent !== sprites.group) {
-              sprites.group.add(image);
-            }
-          } else {
-            if (image.parent !== sprite) {
-              sprite.add(image);
-            }
+          if (image.parent !== sprite) {
+            sprite.add(image);
           }
-
         }
 
         // if it's directional we'll set it elsewhere relative to the viewport camera direction
@@ -928,9 +930,9 @@ export async function replayScene(
   let _halt = false, _prevRenderMode3D: null | boolean = null;
 
   const GAME_LOOP = (elapsed: number) => {
-    if (_halt) return;
     delta = elapsed - lastElapsed;
     lastElapsed = elapsed;
+    if (_halt || !viewports.primaryViewport) return;
 
     for (const viewport of viewports.viewports) {
       if (!viewport.freezeCamera) {
@@ -1021,7 +1023,7 @@ export async function replayScene(
 
   };
 
-  janitor.add(useSelectedUnitsStore.subscribe((state) => {
+  janitor.mop(useSelectedUnitsStore.subscribe((state) => {
     plugins.callHook(HOOK_ON_UNITS_SELECTED, state.selectedUnits);
   }));
 
@@ -1034,7 +1036,7 @@ export async function replayScene(
       return container;
     });
 
-    pluginsApiJanitor.add(plugins.injectApi(gameTimeApi, macros));
+    pluginsApiJanitor.mop(plugins.injectApi(gameTimeApi, macros));
     await plugins.callHookAsync(HOOK_ON_SCENE_READY);
   }
 
@@ -1054,17 +1056,17 @@ export async function replayScene(
   };
 
   janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
-  janitor.add(listenToEvents(macros));
+  janitor.mop(listenToEvents(macros));
 
-  listenForNewSettings((mergeSettings, settings) => {
+  janitor.mop(listenForNewSettings((mergeSettings, settings) => {
     session.getState().merge(mergeSettings.data!);
     if (settings.data.macros.revision !== macros.revision) {
       macros.deserialize(settings.data.macros);
     }
     macros.setHostDefaults(settings.data);
-  })
+  }));
 
-  janitor.add(session.subscribe((newSettings) => {
+  janitor.mop(session.subscribe((newSettings) => {
     if (!viewports.disabled && newSettings.game.sceneController !== viewports.name) {
       viewports.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
@@ -1072,7 +1074,6 @@ export async function replayScene(
     mixer.setVolumes(newSettings.audio);
 
     Object.assign(session, newSettings);
-    _sceneResizeHandler();
 
   }));
 
@@ -1089,6 +1090,7 @@ export async function replayScene(
       log.info("disposing replay viewer");
       _halt = true;
       renderComposer.getWebGLRenderer().setAnimationLoop(null);
+      renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
       units.clear();
       resetCompletedUpgrades(0);
       plugins.disposeGame();

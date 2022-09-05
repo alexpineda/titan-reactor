@@ -1,45 +1,18 @@
 import {
-  DirectionalLight,
-  Object3D,
-  Scene as ThreeScene,
+  Scene
 } from "three";
 
 import Janitor from "@utils/janitor";
 import { disposeObject3D } from "@utils/dispose";
 import { Terrain } from "@core/terrain";
 import { BorderTiles } from "./border-tiles";
+import { Sunlight } from "./sunlight";
 
-function sunlight(mapWidth: number, mapHeight: number) {
-  const light = new DirectionalLight(0xffffff, 2.5);
-  light.position.set(-32, 13, -26);
-  light.target = new Object3D();
-  light.castShadow = true;
-  light.shadow.camera.near = 1;
-  light.shadow.camera.far = 200;
-  light.shadow.bias = 0.0001;
-
-  const sizeW = mapWidth * 0.75;
-  const sizeh = mapHeight * 0.75;
-
-  light.shadow.camera.left = -sizeW;
-  light.shadow.camera.right = sizeW;
-  light.shadow.camera.top = sizeh;
-  light.shadow.camera.bottom = -sizeh;
-  light.shadow.mapSize.width = 512 * 2;
-  light.shadow.mapSize.height = 512 * 2;
-  light.shadow.autoUpdate = true;
-  light.shadow.needsUpdate = true;
-  light.name = "sunlight";
-  return light;
-}
-
-export class BaseScene extends ThreeScene {
-  #mapWidth: number;
-  #mapHeight: number;
+export class BaseScene extends Scene {
   #janitor: Janitor;
   #borderTiles: BorderTiles;
 
-  sunlight: DirectionalLight;
+  readonly sunlight: Sunlight;
 
   //@ts-ignore
   userData: {
@@ -51,20 +24,17 @@ export class BaseScene extends ThreeScene {
     mapHeight: number,
     terrain: Terrain) {
     super();
-    this.#mapHeight = mapHeight;
-    this.#mapWidth = mapWidth;
-
-    this.#janitor = new Janitor();
-    this.#janitor.add(this);
-
     this.autoUpdate = false;
 
-    this.sunlight = sunlight(this.#mapWidth, this.#mapHeight);
+    this.#janitor = new Janitor();
+    this.#janitor.mop(this);
 
-    this.sunlight.layers.enableAll();
-    this.sunlight.updateMatrixWorld();
+    this.sunlight = new Sunlight(mapWidth, mapHeight);
+    window.sunlight = this.sunlight;
+    // this.ambient = ambient;
 
-    this.add(this.sunlight);
+
+    this.add(...this.sunlight.children);
     this.addTerrain(terrain);
 
     this.#borderTiles = new BorderTiles(terrain);

@@ -27,6 +27,14 @@ export class FogOfWarEffect extends Effect {
     });
   }
 
+  set opacity(value: number) {
+    this.blendMode.opacity.value = value;
+  }
+
+  get opacity() {
+    return this.blendMode.opacity.value;
+  }
+
   set camera(camera: PerspectiveCamera | OrthographicCamera) {
     this.projectionInverse.copy(camera.projectionMatrixInverse);
     this.viewInverse.copy(camera.matrixWorld);

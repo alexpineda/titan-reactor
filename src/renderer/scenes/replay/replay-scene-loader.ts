@@ -100,7 +100,7 @@ export const replaySceneLoader = async (filepath: string) => {
   log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
 
   useWorldStore.setState({ replay, map, mapImage: await createMapImage(map) });
-  janitor.add(() => useWorldStore.getState().reset())
+  janitor.mop(() => useWorldStore.getState().reset())
 
   processStore().increment(Process.ReplayInitialization);
 
@@ -110,7 +110,7 @@ export const replaySceneLoader = async (filepath: string) => {
 
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
-  const scene = janitor.add(new BaseScene(map.size[0], map.size[1], terrain));
+  const scene = janitor.mop(new BaseScene(map.size[0], map.size[1], terrain));
   scene.background = assets.skyBox;
   scene.environment = assets.envMap;
 
@@ -124,7 +124,7 @@ export const replaySceneLoader = async (filepath: string) => {
   processStore().increment(Process.ReplayInitialization);
 
   const soundChannels = new SoundChannels();
-  const music = janitor.add(new Music(races, mixer as unknown as AudioListener));
+  const music = janitor.mop(new Music(races, mixer as unknown as AudioListener));
 
   processStore().increment(Process.ReplayInitialization);
 
@@ -148,7 +148,7 @@ export const replaySceneLoader = async (filepath: string) => {
     log.verbose(`@load-replay/preload-images: ${allImages.length}`);
     processStore().start(Process.AtlasPreload, allImages.length);
 
-    await Promise.all(allImages.map((imageId) => assets.loadImageAtlas(imageId, UnitTileScale.HD2).then(() => processStore().increment(Process.AtlasPreload))));
+    await Promise.all(allImages.map((imageId) => assets.loadImageAtlasAsync(imageId, true).then(() => processStore().increment(Process.AtlasPreload))));
     processStore().complete(Process.AtlasPreload);
   }
 

@@ -23,6 +23,53 @@ export enum MacroActionType {
     CallGameTimeApi = "CallGameTimeApi",
 }
 
+export enum MacroConditionType {
+    AppSettingsCondition = "AppSettingsCondition",
+    PluginSettingsCondition = "PluginSettingsCondition",
+    FunctionCondition = "FunctionCondition",
+}
+
+export enum MacroConditionComparator {
+    Equals = "Equals",
+    NotEquals = "NotEquals",
+    GreaterThan = "GreaterThan",
+    LessThan = "LessThan",
+    GreaterThanOrEquals = "GreaterThanOrEquals",
+    LessThanOrEquals = "LessThanOrEquals",
+}
+
+export type MacroConditionAppSetting = {
+    type: MacroConditionType.AppSettingsCondition,
+    id: string;
+    field: string[];
+    value?: any;
+
+    comparator: MacroConditionComparator;
+    error?: MacroActionConfigurationError;
+}
+
+export type MacroConditionPluginSetting = {
+    type: MacroConditionType.PluginSettingsCondition,
+    id: string;
+    pluginName: string;
+    field: string[];
+    value?: any;
+
+    comparator: MacroConditionComparator;
+    error?: MacroActionConfigurationError;
+}
+
+export type MacroConditionFunction = {
+    type: MacroConditionType.FunctionCondition,
+    id: string;
+    value?: string;
+    comparator: MacroConditionComparator;
+    error?: MacroActionConfigurationError;
+}
+
+export type MacroCondition = MacroConditionAppSetting | MacroConditionPluginSetting | MacroConditionFunction;
+
+
 export type MacroActionConfigurationError = {
     type: MacroActionConfigurationErrorType,
     message: string,
@@ -37,30 +84,36 @@ export enum MacroActionConfigurationErrorType {
     InvalidMacro = "InvalidMacro",
 }
 
-export type MacroActionBase = {
+export type MacroActionHostModifyValue = {
+    type: MacroActionType.ModifyAppSettings;
+    field: string[];
+    value?: any;
+
     id: string;
-    type: MacroActionType;
     effect: MacroActionEffect;
     error?: MacroActionConfigurationError;
     resetValue?: any;
 }
 
-export type MacroActionHostModifyValue = MacroActionBase & {
-    type: MacroActionType.ModifyAppSettings;
-    field: string[];
-    value?: any;
-}
-
-export type MacroActionGameTimeApiCallMethod = MacroActionBase & {
+export type MacroActionGameTimeApiCallMethod = {
     type: MacroActionType.CallGameTimeApi;
     value: string;
+
+    id: string;
+    effect: MacroActionEffect;
+    error?: MacroActionConfigurationError;
 }
 
-export type MacroActionPluginModifyValue = MacroActionBase & {
+export type MacroActionPluginModifyValue = {
     type: MacroActionType.ModifyPluginSettings;
     pluginName: string;
     field: string[];
     value?: any;
+
+    id: string;
+    effect: MacroActionEffect;
+    error?: MacroActionConfigurationError;
+    resetValue?: any;
 }
 
 export type MacroActionPlugin = MacroActionPluginModifyValue;
@@ -78,6 +131,7 @@ export type MacroDTO = {
     trigger: MacroTriggerDTO;
     actions: MacroAction[];
     actionSequence: MacroActionSequence;
+    conditions: MacroCondition[];
     error?: string;
 };
 

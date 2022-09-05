@@ -67,7 +67,7 @@ export class MinimapMouse extends EventTarget {
 
     };
     this.#surface.canvas.addEventListener("mousedown", onMouseDown);
-    this.#janitor.add(() => this.#surface.canvas.removeEventListener("mousedown", onMouseDown));
+    this.#janitor.mop(() => this.#surface.canvas.removeEventListener("mousedown", onMouseDown));
 
 
     const onMouseUp = (e: MouseEvent) => {
@@ -79,10 +79,10 @@ export class MinimapMouse extends EventTarget {
 
     };
     this.#surface.canvas.addEventListener("mouseup", onMouseUp);
-    this.#janitor.add(() => this.#surface.canvas.removeEventListener("mouseup", onMouseUp));
+    this.#janitor.mop(() => this.#surface.canvas.removeEventListener("mouseup", onMouseUp));
 
     this.#surface.canvas.addEventListener("mouseleave", onMouseUp);
-    this.#janitor.add(() => this.#surface.canvas.removeEventListener("mouseleave", onMouseUp));
+    this.#janitor.mop(() => this.#surface.canvas.removeEventListener("mouseleave", onMouseUp));
 
     const onMouseMove = (e: MouseEvent) => {
       const x = getX(e.offsetX);
@@ -93,7 +93,7 @@ export class MinimapMouse extends EventTarget {
     }
     this.#surface.canvas.addEventListener("mousemove", onMouseMove
     );
-    this.#janitor.add(() => this.#surface.canvas.removeEventListener("mousemove", onMouseMove));
+    this.#janitor.mop(() => this.#surface.canvas.removeEventListener("mousemove", onMouseMove));
 
   }
 

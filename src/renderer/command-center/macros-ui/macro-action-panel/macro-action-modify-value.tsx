@@ -1,5 +1,5 @@
 import { useControls, useCreateStore } from "leva";
-import { createLevaPanel } from "../create-leva-panel";
+import { createLevaPanel } from "../../create-leva-panel";
 import { mapSingleConfigToLeva } from "@utils/leva-utils";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 

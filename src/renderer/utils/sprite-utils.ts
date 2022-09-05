@@ -47,7 +47,7 @@ export const updateSpritesForViewport = (cameraDirection: number, useDepth: bool
             if (image.object instanceof ImageHD) {
                 if (image.object.material.depthTest !== useDepth) {
                     image.object.material.depthTest = useDepth;
-                    image.object.setFrame(image.object.frame, image.object.flip, true)
+                    image.object.setFrame(image.object.frame, image.object.flip)
                 }
             }
 

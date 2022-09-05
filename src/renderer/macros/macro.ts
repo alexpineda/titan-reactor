@@ -1,4 +1,4 @@
-import { MacroAction, MacroActionSequence, MacroActionType, MacroTrigger, Settings } from "common/types";
+import { MacroAction, MacroActionSequence, MacroActionType, MacroCondition, MacroTrigger, Settings } from "common/types";
 import get from "lodash.get";
 import { MathUtils } from "three";
 
@@ -8,16 +8,18 @@ export class Macro {
     trigger: MacroTrigger;
     actions: MacroAction[];
     actionSequence = MacroActionSequence.AllSync;
+    conditions: MacroCondition[] = [];
     #counter = 0;
     id: string;
 
 
-    constructor(guid: string, labeL: string, trigger: MacroTrigger, actions: MacroAction[], actionSequence = MacroActionSequence.AllSync) {
+    constructor(guid: string, labeL: string, trigger: MacroTrigger, actions: MacroAction[], actionSequence: MacroActionSequence = MacroActionSequence.AllSync, conditions: MacroCondition[] = []) {
         this.id = guid;
         this.name = labeL;
         this.trigger = trigger;
         this.actions = actions;
         this.actionSequence = actionSequence;
+        this.conditions = conditions;
     }
 
     setHostDefaults(settings: Settings) {

@@ -23,10 +23,10 @@ export const createTerrainGeometryFromQuartiles = async (
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
-    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage }, (anisotropy: number)=> {
+    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage }, (anisotropy: number) => {
         creepTexture.texture.anisotropy = anisotropy;
         creepEdgesTexture.texture.anisotropy = anisotropy;
-      });
+    });
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
@@ -51,6 +51,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 qy * qh * geomOptions.textureDetail,
             );
             totalVertices += g.attributes.position.count;
+            g.computeVertexNormals();
 
             const standardMaterial = new MeshStandardMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
@@ -66,7 +67,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 map: mapTextures.mapQuartiles[qx][qy],
             })
 
-            const materialOnBeforeCompile =function (shader:Shader) {
+            const materialOnBeforeCompile = function (shader: Shader) {
                 let fs = shader.fragmentShader;
 
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
@@ -177,6 +178,8 @@ export const createTerrainGeometryFromQuartiles = async (
     }
 
     console.log(totalVertices);
+    terrain.castShadow = true;
+    terrain.receiveShadow = true;
     terrain.rotation.x = -Math.PI / 2;
     terrain.matrixAutoUpdate = false;
     terrain.updateMatrix();

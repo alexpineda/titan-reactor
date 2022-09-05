@@ -4,7 +4,7 @@ import settingsStore from "@stores/settings-store";
 import * as pluginSystem from "@plugins";
 import { initializePluginSystem } from "@plugins";
 import processStore, { Process } from "@stores/process-store";
-import loadAndParseAssets from "@image/load-and-parse-assets";
+import loadAndParseAssets from "@image/assets";
 import * as log from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
@@ -52,7 +52,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     path.join(__static, "drop-your-socks.mp3")
   );
 
-  janitor.add(
+  janitor.mop(
     mixer.connect(dropYourSocks, new Filter("bandpass", 50).node, mixer.intro)
   );
 

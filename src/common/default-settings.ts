@@ -8,7 +8,7 @@ export const defaultSettingsV6: SettingsV6 = {
     maps: "",
     replays: "",
     assets: "",
-    plugins: ""
+    plugins: "",
   },
   assets: {
     preload: false,
@@ -25,7 +25,7 @@ export const defaultSettingsV6: SettingsV6 = {
   },
   util: {
     sanityCheckReplayCommands: true,
-    debugMode: false
+    debugMode: false,
   },
   graphics: {
     pixelRatio: 1,
@@ -37,6 +37,7 @@ export const defaultSettingsV6: SettingsV6 = {
     brightness: 0,
     contrast: 0,
     toneMapping: 0,
+    fogOfWar: 1,
   },
   postprocessing3d: {
     anisotropy: 0,
@@ -48,6 +49,11 @@ export const defaultSettingsV6: SettingsV6 = {
     depthFocalLength: 0.5,
     depthBlurQuality: 240,
     depthBokehScale: 1,
+    fogOfWar: 1,
+    envMap: 0.5,
+    sunlightColor: "#cbcbcb",
+    sunlightDirection: [-9, 43, -45],
+    sunlightIntensity: 5,
   },
   plugins: {
     serverPort: 8080,
@@ -56,7 +62,7 @@ export const defaultSettingsV6: SettingsV6 = {
   macros: {
     revision: 0,
     macros: [],
-  }
+  },
 };
 
 export const defaultSettingsV5: SettingsV5 = {
@@ -67,13 +73,13 @@ export const defaultSettingsV5: SettingsV5 = {
     maps: "",
     replays: "",
     assets: "",
-    plugins: ""
+    plugins: "",
   },
   assets: {
     terrain: "hd",
-    images: 'hd',
+    images: "hd",
     preload: false,
-    enable3dAssets: true
+    enable3dAssets: true,
   },
   audio: {
     global: 0.5,
@@ -87,13 +93,13 @@ export const defaultSettingsV5: SettingsV5 = {
   },
   util: {
     sanityCheckReplayCommands: true,
-    debugMode: false
+    debugMode: false,
   },
   graphics: {
     anisotropy: "low",
     pixelRatio: "low",
     antialias: false,
-    terrainShadows: false
+    terrainShadows: false,
   },
   plugins: {
     serverPort: 8080,
@@ -102,7 +108,7 @@ export const defaultSettingsV5: SettingsV5 = {
   macros: {
     revision: 0,
     macros: [],
-  }
+  },
 };
 
 export const defaultSettings = defaultSettingsV6;

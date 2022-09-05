@@ -35,13 +35,14 @@ export enum EffectivePasses {
 export function isPostProcessing3D(obj: any): obj is Settings["postprocessing3d"] {
     return obj !== undefined && "depthFocalLength" in obj;
 }
+
 export class GlobalEffects implements PostProcessingBundle {
     #prevVersion = 0;
     #version = 0;
     #effectivePasses: EffectivePasses = EffectivePasses.None;
     camera: Camera;
     scene: Scene;
-    #options: Settings["postprocessing"] | Settings["postprocessing3d"];
+    options: Settings["postprocessing"] | Settings["postprocessing3d"];
 
     #renderPass: RenderPass;
     #passes: Pass[] = [];
@@ -55,15 +56,13 @@ export class GlobalEffects implements PostProcessingBundle {
     constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
         this.camera = camera;
         this.scene = scene;
-        this.#options = options;
+        this.options = options;
         this.#renderPass = new RenderPass(scene, camera);
         this.#fogOfWarEffect = fogOfWar;
     }
 
-    set options(options: Settings["postprocessing"] | Settings["postprocessing3d"]) {
-        this.#options = options;
-        renderComposer.composer.multisampling = Math.min(options.antialias, renderComposer.getWebGLRenderer().capabilities.maxSamples);
-        this.needsUpdate = true;
+    get options3d() {
+        return isPostProcessing3D(this.options) ? this.options : null;
     }
 
     get effectivePasses() {
@@ -91,28 +90,29 @@ export class GlobalEffects implements PostProcessingBundle {
         const pass1: Effect[] = [];
         const pass2: Effect[] = [];
 
-        renderComposer.getWebGLRenderer().toneMappingExposure = this.#options.toneMapping;
+        renderComposer.getWebGLRenderer().toneMappingExposure = this.options.toneMapping;
+        renderComposer.composer.multisampling = Math.min(this.options.antialias, renderComposer.getWebGLRenderer().capabilities.maxSamples);
 
-        if (this.#effectivePasses > EffectivePasses.None) {
-            pass1.push(this.#fogOfWarEffect);
-        }
-
-        if (this.#effectivePasses === EffectivePasses.ExtendedWithDepth && isPostProcessing3D(this.#options) && this.#options.depthBlurQuality > 0) {
+        if (this.#effectivePasses === EffectivePasses.ExtendedWithDepth && isPostProcessing3D(this.options) && this.options.depthBlurQuality > 0) {
 
             this.#depthOfFieldEffect = new DepthOfFieldEffect(this.camera, {
                 bokehScale: 1,
-                focusDistance: 0.01,
-                focalLength: 0.1,
-                height: this.#options.depthBlurQuality,
+                worldFocusDistance: 1,
+                worldFocusRange: 5,
+                // focusDistance: 0.01,
+                // focalLength: 0.1,
+                height: this.options.depthBlurQuality,
             });
+            this.#depthOfFieldEffect.target = new Vector3;
+
             pass1.push(this.#depthOfFieldEffect);
         }
 
-        if (this.effectivePasses >= EffectivePasses.Extended && this.#options.bloom > 0) {
-            this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.#options.bloom, this.effectivePasses === EffectivePasses.ExtendedWithDepth);
+        if (this.effectivePasses >= EffectivePasses.Extended && this.options.bloom > 0) {
+            this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.options.bloom, this.effectivePasses === EffectivePasses.ExtendedWithDepth);
             if (this.#bloomEffect instanceof SelectiveBloomEffect) {
-                this.#bloomEffect.ignoreBackground = true;
-                this.#bloomEffect.depthMaskPass.epsilon = 0.001;/// and 0.00001
+                // this.#bloomEffect.ignoreBackground = true;
+                // this.#bloomEffect.depthMaskPass.epsilon = 0.001;/// and 0.00001
                 if (this.#depthOfFieldEffect) {
                     pass2.push(this.#bloomEffect);
                 }
@@ -122,14 +122,22 @@ export class GlobalEffects implements PostProcessingBundle {
         }
 
         const toneMappingPass = pass2.length ? pass2 : pass1;
+
+        if (this.#effectivePasses > EffectivePasses.None) {
+            if (this.options.fogOfWar > 0) {
+                this.#fogOfWarEffect.opacity = this.options.fogOfWar;
+                pass1.push(this.#fogOfWarEffect);
+            }
+        }
+
         if (this.effectivePasses > EffectivePasses.Base) {
 
-            if (this.#options.toneMapping > 0)
+            if (this.options.toneMapping > 0)
                 toneMappingPass.push(this.#tonemapping);
 
-            if (this.#options.brightness !== 0 || this.#options.contrast !== 0) {
-                this.#brightnessContrast.brightness = this.#options.brightness;
-                this.#brightnessContrast.contrast = this.#options.contrast;
+            if (this.options.brightness !== 0 || this.options.contrast !== 0) {
+                this.#brightnessContrast.brightness = this.options.brightness;
+                this.#brightnessContrast.contrast = this.options.contrast;
                 toneMappingPass.push(this.#brightnessContrast);
             }
         }
@@ -165,11 +173,12 @@ export class GlobalEffects implements PostProcessingBundle {
     }
 
     updateCamera(camera: PerspectiveCamera | OrthographicCamera, target: Vector3) {
-        this.#depthOfFieldEffect?.target.copy(target);
-        this.#depthOfFieldEffect?.circleOfConfusionMaterial.adoptCameraSettings(camera);
+        if (this.#depthOfFieldEffect) {
+            this.#depthOfFieldEffect.target.copy(target);
+            this.#depthOfFieldEffect.circleOfConfusionMaterial.adoptCameraSettings(camera);
+        }
         this.#renderPass.camera = camera;
         this.#fogOfWarEffect.camera = camera;
-
     }
 
     addBloomSelection(object: Object3D) {

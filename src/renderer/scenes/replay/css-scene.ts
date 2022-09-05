@@ -13,7 +13,7 @@ export class CssScene extends Scene {
         this.#cssRenderer.domElement.style.left = '0px';
         this.#cssRenderer.domElement.style.zIndex = '100';
         document.body.appendChild(this.#cssRenderer.domElement);
-        this.#janitor.add(() => document.body.removeChild(this.#cssRenderer.domElement));
+        this.#janitor.mop(() => document.body.removeChild(this.#cssRenderer.domElement));
     }
 
     setSize(width: number, height: number) {

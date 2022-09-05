@@ -32,7 +32,7 @@ export const mapSceneLoader = async (chkFilepath: string) => {
   await waitForTruthy<Assets>(() => gameStore().assets);
 
   useWorldStore.setState({ map, mapImage: await createMapImage(map) });
-  janitor.add(() => useWorldStore.getState().reset())
+  janitor.mop(() => useWorldStore.getState().reset())
 
   processStore().increment(Process.MapInitialization);
 

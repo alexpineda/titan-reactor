@@ -17,7 +17,7 @@ import {
 } from "../stores";
 import { IScriptRunner } from "@core/iscript-runner";
 import { ImageHD } from "@core/image-hd";
-import { loadImageAtlasDirect } from "@image/load-and-parse-assets";
+import { loadImageAtlasDirect } from "@image/assets";
 import { isGltfAtlas } from "@utils/image-utils";
 import { Image3D } from "@core/image-3d";
 import { ImageBase } from "@core/image";
@@ -86,7 +86,7 @@ const App = ({
           if (isGltfAtlas(atlas)) {
             return new Image3D(atlas);
           }
-          return new ImageHD(atlas).updateImageType(atlas);
+          return new ImageHD().updateImageType(atlas);
         };
       };
 

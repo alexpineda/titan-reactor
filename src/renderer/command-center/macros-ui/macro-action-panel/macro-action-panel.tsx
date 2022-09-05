@@ -1,10 +1,10 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import { MacroActionType } from "common/types";
-import ErrorBoundary from "../error-boundary";
+import ErrorBoundary from "../../error-boundary";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
-import { MacroActionPanelGameTimeApi } from "./target-game-time-api/target-game-time-api";
-import { MacroActionPanelHost } from "./target-host/target-host";
-import { MacroActionPanelPlugin } from "./target-plugin/target-plugin";
+import { MacroActionPanelGameTimeApi } from "./macro-action-panel-game-time-api";
+import { MacroActionPanelHost } from "./macro-action-panel-host";
+import { MacroActionPanelPlugin } from "./macro-action-panel-plugin";
 
 export const MacroActionPanel = (
   props: MacroActionPanelProps & {

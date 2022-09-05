@@ -1,4 +1,3 @@
-import Janitor from "@utils/janitor";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { GameSurface } from "../render";
 import { Vector3 } from "three";
@@ -30,11 +29,11 @@ const bulletStrength = {
     [DamageType.Normal]: [0.25, 2],
 };
 
+const empty: GameViewPort[] = [];
+
 export class GameViewportsDirector implements UserInputCallbacks {
-    viewports: GameViewPort[] = [];
     #surface: GameSurface;
-    #janitor = new Janitor();
-    #sceneController?: SceneInputHandler | null;
+    #sceneController?: SceneController | null;
     #lastAudioPositon = new Vector3;
     #mouseCursor = new MouseCursor();
     #macros: Macros;
@@ -46,6 +45,10 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     onActivate?: (viewport: SceneController) => void;
     beforeActivate?: (viewport: SceneController) => void;
+
+    get viewports() {
+        return this.#sceneController?.viewports ?? empty;
+    }
 
     *activeViewports() {
         for (const viewport of this.viewports) {
@@ -65,21 +68,8 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return count;
     }
 
-    get firstActiveViewport() {
-        for (const viewport of this.viewports) {
-            if (viewport.enabled) {
-                return viewport;
-            }
-        }
-        return null;
-    }
-
     get disabled() {
         return this.#sceneController === null;
-    }
-
-    get allowUnitSelection() {
-        return this.#sceneController?.gameOptions?.allowUnitSelection ?? false;
     }
 
     get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
@@ -119,7 +109,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     async activate(inputHandler: SceneController | null, firstRunData?: any) {
         if (inputHandler === null) {
-            this.#janitor.dispose();
             this.#sceneController = null;
             return;
         }
@@ -136,18 +125,18 @@ export class GameViewportsDirector implements UserInputCallbacks {
             prevData = this.#sceneController.onExitScene(prevData);
         }
         this.#sceneController && this.#macros.callHook("onExitScene", this.#sceneController.name);
-        this.#janitor.dispose();
         this.#sceneController = null;
         this.#surface.togglePointerLock(false);
 
-        this.viewports = [
-            new GameViewPort(this.#surface, true),
-            new GameViewPort(this.#surface, false),
-        ]
-        this.viewports[0].enabled = true;
+        if (inputHandler.viewports.length === 0) {
+            inputHandler.viewports = [
+                new GameViewPort(this.#surface, true),
+                new GameViewPort(this.#surface, false),
+            ]
+        }
 
-        for (const viewport of this.viewports) {
-            this.#janitor.add(viewport)
+        for (const viewport of inputHandler.viewports) {
+            viewport.reset();
             viewport.width = this.#surface.bufferWidth;
             viewport.height = this.#surface.bufferHeight;
             viewport.aspect = this.#surface.aspect;
@@ -188,9 +177,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     dispose() {
         this.#mouseCursor.dispose();
-        this.#janitor.dispose();
     }
-
 
     generatePrevData() {
         return this.viewports.length ? this.viewports[0].generatePrevData() : null;

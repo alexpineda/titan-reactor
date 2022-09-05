@@ -1,5 +1,5 @@
 import * as log from "@ipc/log";
-import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType } from "common/types";
+import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator } from "common/types";
 import * as plugins from "@plugins";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
@@ -8,6 +8,7 @@ import { KeyCombo } from "./key-combo";
 import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
 import { MacroHookTrigger } from "common/macro-hook-trigger";
+import get from "lodash.get";
 
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;
@@ -136,12 +137,52 @@ export class Macros {
         }
     }
 
+    #testCondition(comparator: MacroConditionComparator, a: any, b: any) {
+        if (comparator === MacroConditionComparator.Equals) {
+            return a === b;
+        } else if (comparator === MacroConditionComparator.NotEquals) {
+            return a !== b;
+        } else if (comparator === MacroConditionComparator.GreaterThan) {
+            return a > b;
+        } else if (comparator === MacroConditionComparator.GreaterThanOrEquals) {
+            return a >= b;
+        } else if (comparator === MacroConditionComparator.LessThan) {
+            return a < b;
+        } else if (comparator === MacroConditionComparator.LessThanOrEquals) {
+            return a <= b;
+        }
+        return false;
+    }
+
     /**
      * Executes a macro.
      * @param macro 
      * @param context Additional context provided to environment of caller. Usually provided from plugin hook results.
      */
     #execMacro(macro: Macro, context?: any) {
+
+        for (const condition of macro.conditions) {
+            let value: any;
+            if (condition.type === MacroConditionType.AppSettingsCondition) {
+                value = get(this.#session.getState(), condition.field);
+            } else if (condition.type === MacroConditionType.PluginSettingsCondition) {
+                value = get(plugins.getPluginByName(condition.pluginName)?.rawConfig ?? {}, condition.field);
+            } else {
+                const c = this.#createGameCompartment!(context);
+                try {
+                    value = c.globalThis.Function(condition.value)();
+                } catch (e) {
+                    log.error(`Error executing macro condition: ${e}`);
+                    return;
+                }
+            }
+
+            if (this.#testCondition(condition.comparator, value, condition.value) === false) {
+                console.log('failed test')
+                return;
+            }
+        }
+
         const actions = macro.getActionSequence();
         for (const action of actions) {
             if (action.error) {
@@ -203,6 +244,7 @@ export class Macros {
                 trigger: macro.trigger.serialize(),
                 actionSequence: macro.actionSequence,
                 actions: macro.actions,
+                conditions: macro.conditions,
             })),
         }
     }
@@ -224,6 +266,9 @@ export class Macros {
                 macro.actionSequence
             );
             newMacro.enabled = macro.enabled;
+
+            // instead of migration just check if it exists
+            newMacro.conditions = macro?.conditions ?? [];
             return newMacro;
         });
 

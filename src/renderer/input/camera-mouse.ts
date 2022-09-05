@@ -33,7 +33,7 @@ export class CameraMouse {
         };
 
         domElement.addEventListener("wheel", onWheel, passive);
-        this.#janitor.add(() => {
+        this.#janitor.mop(() => {
             domElement.removeEventListener("wheel", onWheel);
             this.#_mouseWheelTimeout && clearTimeout(this.#_mouseWheelTimeout);
         });
@@ -68,7 +68,7 @@ export class CameraMouse {
             this.#mouse.y = - (evt.clientY / window.innerHeight) * 2 + 1;
         }
         domElement.addEventListener("pointermove", onMouseMove, passive);
-        this.#janitor.add(() => {
+        this.#janitor.mop(() => {
             domElement.removeEventListener("pointermove", onMouseMove);
         });
 
@@ -76,7 +76,7 @@ export class CameraMouse {
             this.#mouse.z = evt.button;
         }
         domElement.addEventListener("pointerdown", pointerDown, passive);
-        this.#janitor.add(() => {
+        this.#janitor.mop(() => {
             domElement.removeEventListener("pointerdown", pointerDown);
         });
 
@@ -87,7 +87,7 @@ export class CameraMouse {
             this.#mouse.z = -1;
         }
         domElement.addEventListener("pointerup", pointerUp, passive);
-        this.#janitor.add(() => {
+        this.#janitor.mop(() => {
             domElement.removeEventListener("pointerup", pointerUp);
         }
         );

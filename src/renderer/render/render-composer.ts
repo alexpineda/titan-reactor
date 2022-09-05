@@ -1,10 +1,10 @@
 import {
     HalfFloatType,
-    PCFSoftShadowMap,
     PerspectiveCamera,
     Scene,
     sRGBEncoding,
     Vector4,
+    VSMShadowMap,
     WebGLRenderer,
 } from "three";
 import {
@@ -31,7 +31,7 @@ const createWebGLRenderer = () => {
     renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
 
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = PCFSoftShadowMap;
+    renderer.shadowMap.type = VSMShadowMap;
     renderer.shadowMap.autoUpdate = true;
     renderer.sortObjects = true;
     renderer.autoClear = false;

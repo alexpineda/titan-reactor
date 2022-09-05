@@ -3,6 +3,7 @@ import ErrorBoundary from "../error-boundary";
 import {
   MacroAction,
   MacroActionSequence,
+  MacroCondition,
   MacroDTO,
   MacrosDTO,
   MacroTriggerDTO,
@@ -67,6 +68,26 @@ export const MacrosPanel = () => {
     save({ ...state, macros: newMacros, revision: state.revision + 1 });
   };
 
+  const updateMacroCondition = (condition: MacroCondition) => {
+    const idx = state.macros.findIndex((m) =>
+      m.conditions.find((a) => a.id === condition.id)
+    );
+    const macro = state.macros[idx];
+    const newMacro = { ...macro };
+
+    const conditionIdx = macro.conditions.findIndex(
+      (a: MacroCondition) => a.id === condition.id
+    );
+    if (condition === macro.conditions[conditionIdx]) {
+      throw new Error("Trying to update the same condition reference");
+    }
+
+    newMacro.conditions.splice(conditionIdx, 1, condition);
+    const newMacros = [...state.macros];
+    newMacros.splice(idx, 1, newMacro);
+    save({ ...state, macros: newMacros, revision: state.revision + 1 });
+  };
+
   const deleteMacro = (macroId: string) => {
     save({
       ...state,
@@ -94,6 +115,25 @@ export const MacrosPanel = () => {
     });
   };
 
+  const deleteCondition = (conditionId: string) => {
+    const idx = state.macros.findIndex((m) =>
+      m.conditions.find((a) => a.id === conditionId)
+    );
+    const macro = state.macros[idx];
+    if (!macro) {
+      throw new Error(
+        "Trying to delete an action from a macro that doesn't exist"
+      );
+    }
+    macro.conditions = macro.conditions.filter((a) => a.id !== conditionId);
+
+    save({
+      ...state,
+      macros: [...state.macros],
+      revision: state.revision + 1,
+    });
+  };
+
   const createMacro = (name: string, trigger: MacroTriggerDTO) => {
     const newMacro = {
       id: generateUUID(),
@@ -102,6 +142,7 @@ export const MacrosPanel = () => {
       actions: [],
       enabled: true,
       actionSequence: MacroActionSequence.AllSync,
+      conditions: [],
     };
     save({
       ...state,
@@ -112,6 +153,11 @@ export const MacrosPanel = () => {
 
   const createAction = (macro: MacroDTO, action: MacroAction) => {
     macro.actions.push(action);
+    save({ ...state, revision: state.revision + 1 });
+  };
+
+  const createCondition = (macro: MacroDTO, action: MacroCondition) => {
+    macro.conditions.push(action);
     save({ ...state, revision: state.revision + 1 });
   };
 
@@ -199,11 +245,14 @@ export const MacrosPanel = () => {
                     pluginsMetadata={settings.enabledPlugins}
                     updateMacro={updateMacro}
                     updateMacroAction={updateMacroAction}
+                    updateMacroCondition={updateMacroCondition}
                     activeAction={activeAction}
                     setActiveAction={setActiveAction}
                     deleteAction={deleteAction}
+                    deleteCondition={deleteCondition}
                     deleteMacro={deleteMacro}
                     createAction={createAction}
+                    createCondition={createCondition}
                   />
                 ))}
             </div>

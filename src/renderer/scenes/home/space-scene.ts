@@ -172,7 +172,7 @@ let _noiseInstance: WraithNoise;
 export async function createWraithScene() {
     const janitor = new Janitor();
 
-    _noiseInstance = janitor.add(createWraithNoise());
+    _noiseInstance = janitor.mop(createWraithNoise());
     _noiseInstance.start();
 
     janitor.addEventListener(window, "resize", _sceneResizeHandler, {
@@ -188,7 +188,7 @@ export async function createWraithScene() {
 
     wraiths.init();
     scene.add(wraiths.object);
-    janitor.add(wraiths);
+    janitor.mop(wraiths);
 
     scene.add(distantStars());
     scene.add(battleCruiser.object);
@@ -226,7 +226,7 @@ export async function createWraithScene() {
     controls.mouseButtons.middle = 0;
     controls.mouseButtons.wheel = 0;
 
-    janitor.add(camera.init(controls, battleCruiser.object));
+    janitor.mop(camera.init(controls, battleCruiser.object));
 
     const renderPass = new RenderPass(scene, camera.get());
     const sunMaterial = new MeshBasicMaterial({
@@ -294,7 +294,7 @@ export async function createWraithScene() {
     renderComposer.render(0);
     renderComposer.renderBuffer();
     renderComposer.getWebGLRenderer().setAnimationLoop(INTRO_LOOP);
-    janitor.add(() => {
+    janitor.mop(() => {
         renderComposer.getWebGLRenderer().setAnimationLoop(null);
         renderComposer.dispose();
     });

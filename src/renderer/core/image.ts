@@ -12,7 +12,7 @@ export interface ImageBase extends Object3D {
   setModifiers: (modifier: number, modifierData1: number, modifierData2: number) => void;
   setTeamColor: (color: Color | undefined) => void;
   setEmissive?(val: number): void;
-  updateImageType(atlas: AnimAtlas, force?: boolean): ImageBase;
+  updateImageType(atlas: AnimAtlas): ImageBase;
   setFrame: (frame: number, flip: boolean) => void;
   dispose(): void;
 

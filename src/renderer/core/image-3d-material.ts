@@ -33,6 +33,7 @@ export class Image3DMaterial extends MeshStandardMaterial {
         super(parameters);
         this.isTeamSpriteMaterial = true;
         this.defines = {};
+        this.fog = false;
 
         this.#dynamicUniforms = {
             uTeamColor: {
@@ -50,8 +51,8 @@ export class Image3DMaterial extends MeshStandardMaterial {
             modifier: {
                 value: 0
             },
-            uBrightness: { value: 0.01 },
-            uContrast: { value: 1.05 }
+            uBrightness: { value: 0.00 },
+            uContrast: { value: 1.00 }
         };
     }
 

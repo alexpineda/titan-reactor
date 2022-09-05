@@ -4,7 +4,7 @@ import getUserDataPath from "./get-user-data-path";
 import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton"
-import { OPEN_ISCRIPTAH, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { CLEAR_ASSET_CACHE, OPEN_ISCRIPTAH, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { spawn } from "child_process";
 import electronIsDev from "electron-is-dev";
 
@@ -106,6 +106,13 @@ export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
               browserWindows.main!.webContents.send(OPEN_ISCRIPTAH);
             },
           }] : []),
+        { type: "separator" },
+        {
+          label: "Clear Asset Cache",
+          click: async () => {
+            browserWindows.main?.webContents.send(CLEAR_ASSET_CACHE);
+          }
+        }
       ],
     },
   ];

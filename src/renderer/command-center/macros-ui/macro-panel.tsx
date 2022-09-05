@@ -9,8 +9,9 @@ import {
   MacroActionSequence,
   MacroDTO,
   TriggerType,
+  MacroCondition,
 } from "common/types";
-import { MacroActionPanel } from "./macro-action-panel";
+import { MacroActionPanel } from "./macro-action-panel/macro-action-panel";
 import { CreateMacroAction } from "./create-macro-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
@@ -18,6 +19,8 @@ import { KeyCombo } from "../../macros/key-combo";
 import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 import { KeyboardPreview } from "./keyboard-preview";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
+import { MacroConditionPanel } from "./macro-condition-panel/macro-condition-panel";
+import { CreateMacroCondition } from "./create-macro-condition";
 
 const keyCombo = new KeyCombo();
 
@@ -26,21 +29,27 @@ export const MacroPanel = ({
   pluginsMetadata,
   updateMacro,
   updateMacroAction,
-  activeAction,
-  setActiveAction,
+  updateMacroCondition,
+  activeAction: activeActionOrCondition,
+  setActiveAction: setActiveActionOrCondition,
   deleteAction,
+  deleteCondition,
   deleteMacro,
   createAction,
+  createCondition,
 }: {
   macro: MacroDTO;
   pluginsMetadata: PluginMetaData[];
   updateMacro: (macro: MacroDTO) => void;
   updateMacroAction: (action: MacroAction) => void;
+  updateMacroCondition: (condition: MacroCondition) => void;
   activeAction: string | null;
   setActiveAction: (id: string | null) => void;
   deleteAction: (id: string) => void;
+  deleteCondition: (id: string) => void;
   deleteMacro: (id: string) => void;
   createAction: (macro: MacroDTO, action: MacroAction) => void;
+  createCondition: (macro: MacroDTO, action: MacroCondition) => void;
 }) => {
   const updateTriggerValue = (value: any) => {
     updateMacro({
@@ -214,25 +223,41 @@ export const MacroPanel = ({
       {macro.trigger.type === TriggerType.Hotkey && (
         <KeyboardPreview
           previewKey={HotkeyTrigger.deserialize(macro.trigger).value.codes[0]}
-          svgProps={{ width: "100px"}}
+          svgProps={{ width: "100px" }}
         />
       )}
 
       {macro.error && <p style={{ color: "var(--red-6)" }}>{macro.error}</p>}
-
+      <CreateMacroCondition
+        onCreate={(condition) => createCondition(macro, condition)}
+        pluginsMetadata={pluginsMetadata}
+      />
       <CreateMacroAction
         onCreate={(action) => createAction(macro, action)}
         pluginsMetadata={pluginsMetadata}
       />
       <div>
+        <p>Conditions (Optional)</p>
+        {(macro.conditions ?? []).map((condition) => (
+          <MacroConditionPanel
+            key={condition.id}
+            condition={condition}
+            pluginsMetadata={pluginsMetadata}
+            updateMacroCondition={updateMacroCondition}
+            viewOnly={activeActionOrCondition !== condition.id}
+            setActiveCondition={setActiveActionOrCondition}
+            deleteCondition={deleteCondition}
+          />
+        ))}
+        <p>Actions</p>
         {macro.actions.map((action) => (
           <MacroActionPanel
             key={action.id}
             action={action}
             pluginsMetadata={pluginsMetadata}
             updateMacroAction={updateMacroAction}
-            viewOnly={activeAction !== action.id}
-            setActiveAction={setActiveAction}
+            viewOnly={activeActionOrCondition !== action.id}
+            setActiveAction={setActiveActionOrCondition}
             deleteAction={deleteAction}
           />
         ))}

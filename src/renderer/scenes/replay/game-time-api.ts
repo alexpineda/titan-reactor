@@ -6,13 +6,11 @@ import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header"
 import BaseScene from "@render/base-scene";
 import { Assets, PxToGameUnit } from "common/types";
 import { Color, Scene, Vector3 } from "three";
-import { GameViewPort } from "../../camera/game-viewport";
+
 
 export interface GameTimeApi {
     type: "replay",
-    readonly viewport: GameViewPort;
-    readonly secondViewport: GameViewPort;
-    readonly viewports: GameViewPort[];
+
     simpleMessage(message: string): void;
     scene: BaseScene;
     cssScene: Scene;

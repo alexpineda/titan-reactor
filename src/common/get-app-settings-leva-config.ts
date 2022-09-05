@@ -93,7 +93,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     sceneController: {
         folder: "Game",
-        label: "Scene Controller",
+        label: "Scene Controller (Default)",
         value: settings.data.game.sceneController,
         path: "game",
         options: settings.enabledPlugins
@@ -143,7 +143,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "Classic Renderer",
         path: "postprocessing",
         min: 0,
-        max: 10,
+        max: 2,
         step: 0.1,
     },
     brightness: {
@@ -163,6 +163,15 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         min: -0.5,
         max: 0.5,
         step: 0.01,
+    },
+    "fogOfWar": {
+        "label": "Fog Of War Opacity",
+        folder: "Classic Renderer",
+        path: "postprocessing",
+        "value": settings.data.postprocessing.fogOfWar,
+        min: 0,
+        max: 1,
+        step: 0.1
     },
     anisotropy_: {
         label: "Anisotropy",
@@ -198,7 +207,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
-        max: 10,
+        max: 2,
         step: 0.1,
     },
     brightness_: {
@@ -233,7 +242,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         "value": settings.data.postprocessing3d.depthBokehScale,
-        "min": 0.1,
+        "min": 1,
         "max": 5,
         "step": 0.1
     },
@@ -248,5 +257,43 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
             240,
             480
         ]
+    },
+    "fogOfWar_": {
+        "label": "Fog Of War Opacity",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.fogOfWar,
+        min: 0,
+        max: 1,
+        step: 0.1
+    },
+    "envMap": {
+        "label": "Environment Map",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.envMap,
+        min: 0,
+        max: 2,
+        step: 0.05
+    },
+    "sunlightDirection": {
+        "label": "Sunlight Position",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.sunlightDirection,
+        step: 1
+    },
+    "sunlightIntensity": {
+        "label": "Sunlight Intensity",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.sunlightIntensity,
+        step: 0.25
+    },
+    "sunlightColor": {
+        "label": "Sunlight Color",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.sunlightColor,
     },
 });
