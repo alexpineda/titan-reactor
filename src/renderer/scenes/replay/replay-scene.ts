@@ -990,7 +990,7 @@ export async function replayScene(
       previousBwFrame = currentBwFrame;
     }
 
-    minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, fogOfWar.enabled, viewports);
+    minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
 
     plugins.onBeforeRender(delta, elapsed);
     fogOfWar.update(players.getVisionFlag());

@@ -20,7 +20,7 @@ export class MinimapGraphics {
 
 
 
-    drawMinimap({ canvas, ctx }: Surface, mapWidth: number, mapHeight: number, creepImage: ImageData, fogOfWarEnabled: boolean, callbacks: UserInputCallbacks) {
+    drawMinimap({ canvas, ctx }: Surface, mapWidth: number, mapHeight: number, creepImage: ImageData, fogOfWarOpacity: number, callbacks: UserInputCallbacks) {
 
         if (!this.#generatingMinimapFog) {
             this.#generatingMinimapFog = true;
@@ -87,7 +87,9 @@ export class MinimapGraphics {
             );
         }
 
-        if (this.#fogBitmap && fogOfWarEnabled) {
+        if (this.#fogBitmap && fogOfWarOpacity) {
+            ctx.save();
+            ctx.globalAlpha = fogOfWarOpacity;
             ctx.drawImage(
                 this.#fogBitmap,
                 0,
@@ -95,6 +97,7 @@ export class MinimapGraphics {
                 canvas.width,
                 canvas.height
             );
+            ctx.restore();
         }
 
         if (this.#resourcesBitmap) {

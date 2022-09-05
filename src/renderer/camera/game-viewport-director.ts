@@ -114,6 +114,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     async activate(inputHandler: SceneController | null, firstRunData?: any) {
         if (inputHandler === null) {
             this.#sceneController = null;
+            throw new Error("Cannot activate null scene controller");
             return;
         }
         if (inputHandler === undefined) {
