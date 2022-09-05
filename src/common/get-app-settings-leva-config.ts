@@ -207,7 +207,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
-        max: 2,
+        max: 10,
         step: 0.1,
     },
     brightness_: {
@@ -233,9 +233,18 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         "value": settings.data.postprocessing3d.depthFocalLength,
-        "min": 0.05,
-        "max": 1,
-        "step": 0.5
+        "min": 1,
+        "max": 20,
+        "step": 1
+    },
+    "depthFocalRange": {
+        "label": "Depth Focal Range",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.depthFocalRange,
+        "min": 1,
+        "max": 20,
+        "step": 1
     },
     "depthBokehScale": {
         "label": "Depth Bokeh Scale",
@@ -295,5 +304,11 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         "value": settings.data.postprocessing3d.sunlightColor,
+    },
+    "shadowIntensity": {
+        "label": "Shadow Intensity",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.shadowIntensity,
     },
 });

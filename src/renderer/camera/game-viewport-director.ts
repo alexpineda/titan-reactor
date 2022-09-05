@@ -50,6 +50,10 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.#sceneController?.viewports ?? empty;
     }
 
+    get activeSceneController() {
+        return this.#sceneController;
+    }
+
     *activeViewports() {
         for (const viewport of this.viewports) {
             if (viewport.enabled) {

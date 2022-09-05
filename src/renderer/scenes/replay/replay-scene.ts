@@ -63,6 +63,7 @@ import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHa
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
+import { SceneController } from "@plugins/plugin-system-native";
 
 export async function replayScene(
   map: Chk,
@@ -185,6 +186,7 @@ export async function replayScene(
           image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
         }
       }
+      scene.sunlight.shadowIntensity = globalEffectsBundle.options3d.shadowIntensity;
       scene.sunlight.setPosition(globalEffectsBundle.options3d.sunlightDirection[0], globalEffectsBundle.options3d.sunlightDirection[1], globalEffectsBundle.options3d.sunlightDirection[2]);
       scene.sunlight.intensity = globalEffectsBundle.options3d.sunlightIntensity;
       scene.sunlight.setColor(globalEffectsBundle.options3d.sunlightColor);
@@ -296,7 +298,6 @@ export async function replayScene(
         reset = refreshScene;
       },
       pxToGameUnit,
-      fogOfWar,
       mapWidth,
       mapHeight,
       tileset: map.tileset,
@@ -927,7 +928,7 @@ export async function replayScene(
   const _commandsThisFrame: any[] = [];
   let cmd = cmds.next();
 
-  let _halt = false, _prevRenderMode3D: null | boolean = null;
+  let _halt = false, _prevRenderMode3D: null | boolean = null, _prevSceneController: SceneController | null | undefined = null;
 
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - lastElapsed;
@@ -995,22 +996,31 @@ export async function replayScene(
     plugins.onBeforeRender(delta, elapsed);
     fogOfWar.update(players.getVisionFlag());
 
+
     // global won't use camera so we can set it to any
     for (const v of viewports.activeViewports()) {
 
       if (v === viewports.primaryViewport) {
         minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
-        if (_prevRenderMode3D !== v.renderMode3D) {
+        if (_prevRenderMode3D !== v.renderMode3D || _prevSceneController !== viewports.activeSceneController) {
           initializeRenderMode(v.renderMode3D);
+          _prevRenderMode3D = v.renderMode3D;
+          _prevSceneController = viewports.activeSceneController;
         }
-        _prevRenderMode3D = v.renderMode3D;
+
+        if (selectedUnitsStore().selectedUnits.length) {
+
+        }
+        v.orbit.getTarget(_target);
+        _target.setY(terrain.getTerrainY(_target.x, _target.z));
+        globalEffectsBundle.updateExtended(v.camera, _target)
 
       }
 
       v.updateCamera();
       updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteIterator, spriteImageIterator);
       v.shakeStart(elapsed);
-      globalEffectsBundle.updateCamera(v.camera, _target)
+      globalEffectsBundle.updateCamera(v.camera)
       renderComposer.setBundlePasses(globalEffectsBundle);
       renderComposer.render(delta, v.viewport);
       v.shakeEnd();

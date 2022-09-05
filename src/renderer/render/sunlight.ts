@@ -7,7 +7,7 @@ const createDirectional = (mapWidth: number, mapHeight: number) => {
     light.castShadow = true;
     light.shadow.camera.near = 1;
     light.shadow.camera.far = 1000;
-    light.shadow.normalBias = 0.25;
+    light.shadow.normalBias = 0;
     light.shadow.radius = 2;
 
     const sizeW = mapWidth * 1.5;
@@ -17,8 +17,8 @@ const createDirectional = (mapWidth: number, mapHeight: number) => {
     light.shadow.camera.right = sizeW;
     light.shadow.camera.top = sizeh;
     light.shadow.camera.bottom = -sizeh;
-    light.shadow.mapSize.width = 512 * 4;
-    light.shadow.mapSize.height = 512 * 4;
+    light.shadow.mapSize.width = 512 * 8;
+    light.shadow.mapSize.height = 512 * 8;
     light.shadow.autoUpdate = true;
     light.shadow.needsUpdate = true;
     light.layers.enableAll();
@@ -27,27 +27,34 @@ const createDirectional = (mapWidth: number, mapHeight: number) => {
 }
 export class Sunlight {
     #light: DirectionalLight;
+    #light2: DirectionalLight;
+    #intensity = 1;
+    shadowIntensity = 1;
 
     constructor(mapWidth: number, mapHeight: number) {
         this.#light = createDirectional(mapWidth, mapHeight);
+        this.#light2 = createDirectional(mapWidth, mapHeight);
+        this.#light2.castShadow = false;
         this.intensity = 1;
-
     }
 
     get children() {
-        return [this.#light, this.target];
+        return [this.#light, this.#light2, this.target];
     }
 
     set enabled(val: boolean) {
         this.#light.visible = val;
+        this.#light2.visible = val;
     }
 
     set intensity(value: number) {
-        this.#light.intensity = value
+        this.#intensity = value;
+        this.#light.intensity = value * this.shadowIntensity;
+        this.#light2.intensity = value * (1 - this.shadowIntensity);
     }
 
     get intensity() {
-        return this.#light.intensity;
+        return this.#intensity;
     }
 
     get target() {
@@ -66,5 +73,9 @@ export class Sunlight {
         this.#light.shadow.needsUpdate = true;
         this.#light.updateMatrix();
         this.#light.updateMatrixWorld();
+
+        this.#light2.shadow.needsUpdate = true;
+        this.#light2.updateMatrix();
+        this.#light2.updateMatrixWorld();
     }
 }

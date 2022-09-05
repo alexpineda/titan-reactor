@@ -139,11 +139,13 @@ export type SettingsV6 = {
         depthFocalLength: number;
         depthBokehScale: number;
         depthBlurQuality: number;
+        depthFocalRange: number;
         fogOfWar: number;
         envMap: number;
         sunlightDirection: [number, number, number];
         sunlightColor: string;
         sunlightIntensity: number;
+        shadowIntensity: number;
     },
     macros: MacrosDTO
 };

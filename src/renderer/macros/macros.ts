@@ -59,6 +59,9 @@ export class Macros {
 
 
         const _listener = (e: KeyboardEvent) => {
+            if (e.code !== "AltLeft" && e.code !== "F10") {
+                e.preventDefault();
+            }
 
             if (testCombo.isIllegal(e)) {
                 return;

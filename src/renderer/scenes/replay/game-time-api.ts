@@ -1,4 +1,3 @@
-import { FogOfWar } from "@core/fogofwar";
 import { Terrain } from "@core/terrain";
 import { Unit } from "@core/unit";
 import { GetTerrainY } from "@image/generate-map";
@@ -26,7 +25,6 @@ export interface GameTimeApi {
     setGameSpeed(speed: number): void;
     refreshScene(): void;
     pxToGameUnit: PxToGameUnit;
-    fogOfWar: FogOfWar;
     mapWidth: number;
     mapHeight: number;
     tileset: number;

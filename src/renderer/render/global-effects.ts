@@ -96,14 +96,12 @@ export class GlobalEffects implements PostProcessingBundle {
         if (this.#effectivePasses === EffectivePasses.ExtendedWithDepth && isPostProcessing3D(this.options) && this.options.depthBlurQuality > 0) {
 
             this.#depthOfFieldEffect = new DepthOfFieldEffect(this.camera, {
-                bokehScale: 1,
-                worldFocusDistance: 1,
-                worldFocusRange: 5,
-                // focusDistance: 0.01,
-                // focalLength: 0.1,
+                bokehScale: this.options.depthBokehScale,
+                // worldFocusDistance: this.options.depthFocalLength,
+                // worldFocusRange: this.options.depthFocalRange,
                 height: this.options.depthBlurQuality,
             });
-            this.#depthOfFieldEffect.target = new Vector3;
+            window.dof = this.#depthOfFieldEffect;
 
             pass1.push(this.#depthOfFieldEffect);
         }
@@ -115,6 +113,8 @@ export class GlobalEffects implements PostProcessingBundle {
                 // this.#bloomEffect.depthMaskPass.epsilon = 0.001;/// and 0.00001
                 if (this.#depthOfFieldEffect) {
                     pass2.push(this.#bloomEffect);
+                } else {
+                    pass1.push(this.#bloomEffect);
                 }
             } else {
                 pass1.push(this.#bloomEffect);
@@ -172,11 +172,15 @@ export class GlobalEffects implements PostProcessingBundle {
         this.#depthOfFieldEffect = undefined;
     }
 
-    updateCamera(camera: PerspectiveCamera | OrthographicCamera, target: Vector3) {
+    updateExtended(camera: PerspectiveCamera | OrthographicCamera, target: Vector3) {
         if (this.#depthOfFieldEffect) {
-            this.#depthOfFieldEffect.target.copy(target);
+            const distance = this.#depthOfFieldEffect.calculateFocusDistance(target);
+            this.#depthOfFieldEffect.circleOfConfusionMaterial.focusDistance = distance;
             this.#depthOfFieldEffect.circleOfConfusionMaterial.adoptCameraSettings(camera);
         }
+    }
+
+    updateCamera(camera: PerspectiveCamera | OrthographicCamera) {
         this.#renderPass.camera = camera;
         this.#fogOfWarEffect.camera = camera;
     }
