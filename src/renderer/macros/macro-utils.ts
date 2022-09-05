@@ -11,11 +11,11 @@ const isFiniteV = (...args: any) => {
 }
 
 
-export const doMacroActionEffect = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, existingValue: any, currentValue: any,  step?: number, min?: number, max?: number, options?: string[] ) => {
+export const doMacroActionEffect = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, existingValue: any, currentValue: any, step?: number, min?: number, max?: number, options?: string[]) => {
     // apply the effect and try not to get the same result
     // this is because on alternate usually causes the same result as the existingValue to be assigned
     // when what we really want is the next value
-    
+
     let value: any;
     let maxTries = 3;
 
@@ -58,7 +58,9 @@ export const _doMacroActionEffect = (action: MacroActionHostModifyValue | MacroA
     throw new Error(`Invalid macro action effect ${action.effect}`);
 }
 
-export const getMacroActionOptionsValue = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, currentValue: any, options: string[]) => {
+export const getMacroActionOptionsValue = (action: MacroActionHostModifyValue | MacroActionPluginModifyValue, currentValue: any, _options: string[] | {}) => {
+
+    let options = Array.isArray(_options) ? _options : Object.values(_options);
 
     const idx = options.indexOf(currentValue);
     if (idx === -1) {

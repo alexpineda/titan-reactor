@@ -1,5 +1,6 @@
 import settingsStore from "@stores/settings-store";
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
+import { getMacroActionOrConditionLevaConfig } from "common/sanitize-macros";
 import { MacroActionEffect, MacroActionHostModifyValue } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { AppSettingsDropDown } from "../app-settings-dropdown";
@@ -12,10 +13,7 @@ export const MacroActionPanelHost = (
 ) => {
   const settings = settingsStore();
   const { action, viewOnly, updateMacroAction } = props;
-  const propConfig = {
-    ...getAppSettingsLevaConfigField(settings, action.field),
-    value: action.value,
-  };
+  const levaConfig = getMacroActionOrConditionLevaConfig(action, settings);
 
   return (
     <div
@@ -52,7 +50,7 @@ export const MacroActionPanelHost = (
             color: "var(--green-9)",
           }}
         >
-          {action.value}
+          {levaConfig.displayValue}
         </p>
       )}
 
@@ -60,9 +58,9 @@ export const MacroActionPanelHost = (
         action.effect === MacroActionEffect.Toggle) &&
         !viewOnly &&
         action.value !== undefined &&
-        propConfig !== undefined && (
+        levaConfig !== undefined && (
           <ErrorBoundary message="Error with modifier">
-            <MacroActionModifyValue {...props} config={propConfig} />
+            <MacroActionModifyValue {...props} config={levaConfig} />
           </ErrorBoundary>
         )}
     </div>

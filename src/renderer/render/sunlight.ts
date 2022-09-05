@@ -51,6 +51,7 @@ export class Sunlight {
         this.#intensity = value;
         this.#light.intensity = value * this.shadowIntensity;
         this.#light2.intensity = value * (1 - this.shadowIntensity);
+        this.#light2.visible = this.#light2.intensity === 0;
     }
 
     get intensity() {

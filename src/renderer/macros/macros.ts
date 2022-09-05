@@ -9,6 +9,8 @@ import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
 import { MacroHookTrigger } from "common/macro-hook-trigger";
 import get from "lodash.get";
+import Janitor from "@utils/janitor";
+import { MouseTrigger } from "./mouse-trigger";
 
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;
@@ -18,9 +20,11 @@ export class Macros {
 
     #meta: {
         hotkeyMacros: Macro[];
+        mouseMacros: Macro[];
         hookMacros: Macro[];
     } = {
             hotkeyMacros: [],
+            mouseMacros: [],
             hookMacros: []
         }
 
@@ -38,6 +42,7 @@ export class Macros {
      */
     listenForKeyCombos() {
 
+        const janitor = new Janitor();
         let testCombo = new KeyCombo;
         let candidate: Macro | null;
         let acceptingInput: NodeJS.Timeout | null = null;
@@ -58,7 +63,7 @@ export class Macros {
         }
 
 
-        const _listener = (e: KeyboardEvent) => {
+        const _keyListener = (e: KeyboardEvent) => {
             if (e.code !== "AltLeft" && e.code !== "F10") {
                 e.preventDefault();
             }
@@ -106,8 +111,18 @@ export class Macros {
             }
         }
 
-        window.addEventListener("keydown", _listener);
-        return () => window.removeEventListener("keydown", _listener);
+        const _mouseListener = (e: MouseEvent) => {
+            for (const macro of this.#meta.mouseMacros) {
+                const trigger = macro.trigger as MouseTrigger;
+                if (trigger.value.test(e)) {
+                    this.#execMacro(macro);
+                }
+            }
+        }
+
+        janitor.addEventListener(window, "keydown", _keyListener);
+        janitor.addEventListener(window, "mousedown", _mouseListener);
+        return janitor;
     }
 
     *[Symbol.iterator]() {
@@ -260,6 +275,8 @@ export class Macros {
                 trigger = HotkeyTrigger.deserialize(macro.trigger)
             } else if (macro.trigger.type === TriggerType.GameHook) {
                 trigger = MacroHookTrigger.deserialize(macro.trigger)
+            } else if (macro.trigger.type === TriggerType.Mouse) {
+                trigger = MouseTrigger.deserialize(macro.trigger)
             }
             const newMacro = new Macro(
                 macro.id,
@@ -280,6 +297,8 @@ export class Macros {
         });
 
         this.#meta.hotkeyMacros = this.macros.filter((m) => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight)
+
+        this.#meta.mouseMacros = this.macros.filter((m) => m.trigger instanceof MouseTrigger);
     }
 }
 

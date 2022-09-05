@@ -115,7 +115,7 @@ export class Image3D extends Object3D implements ImageBase {
   }
 
   get isLooseFrame() {
-    return this.#frame / 17 > Math.floor(this.atlas.frames.length / 17);
+    return this.atlas.frames.length > 17 && this.#frame / 17 > Math.floor(this.atlas.frames.length / 17);
   }
 
   static clone(source: Object3D) {

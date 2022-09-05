@@ -182,7 +182,7 @@ export async function createWraithScene() {
 
     _sceneResizeHandler();
 
-    const scene = new Scene();
+    const scene = janitor.mop(new Scene());
     scene.background = gameStore().assets!.skyBox;
     const slight = new DirectionalLight(0xffffff, 5);
 
@@ -191,11 +191,14 @@ export async function createWraithScene() {
     janitor.mop(wraiths);
 
     scene.add(distantStars());
+
     scene.add(battleCruiser.object);
+
     scene.add(asteroids.object);
+
     scene.add(battleLights.object);
 
-    setInterval(() => {
+    janitor.setInterval(() => {
         playRemix();
     }, 60000 * 3 + Math.random() * 60000 * 10);
 
@@ -214,7 +217,6 @@ export async function createWraithScene() {
         devicePixelRatio
     );
     renderComposer.targetSurface = introSurface;
-    renderComposer.getWebGLRenderer().shadowMap.autoUpdate = true;
 
     camera.get().aspect = introSurface.width / introSurface.height;
     camera.get().updateProjectionMatrix();
@@ -228,7 +230,7 @@ export async function createWraithScene() {
 
     janitor.mop(camera.init(controls, battleCruiser.object));
 
-    const renderPass = new RenderPass(scene, camera.get());
+    const renderPass = janitor.mop(new RenderPass(scene, camera.get()));
     const sunMaterial = new MeshBasicMaterial({
         color: 0xffddaa,
         transparent: true,
@@ -236,7 +238,7 @@ export async function createWraithScene() {
     });
 
     const sunGeometry = new SphereBufferGeometry(0.75, 32, 32);
-    const sun = new Mesh(sunGeometry, sunMaterial);
+    const sun = janitor.mop(new Mesh(sunGeometry, sunMaterial));
     sun.frustumCulled = false;
 
     const godRaysEffect = new GodRaysEffect(camera.get(), sun, {
@@ -259,7 +261,7 @@ export async function createWraithScene() {
     sun.updateMatrixWorld();
 
     glitchEffect.blendMode.setOpacity(0.5);
-    const glitchPass = new EffectPass(camera.get(), glitchEffect);
+    const glitchPass = janitor.mop(new EffectPass(camera.get(), glitchEffect));
     const tone = new ToneMappingEffect();
 
     const vignet = new VignetteEffect({
@@ -270,7 +272,7 @@ export async function createWraithScene() {
         enabled: true,
         passes: [
             renderPass,
-            new EffectPass(
+            janitor.mop(new EffectPass(
                 camera.get(),
                 new BloomEffect({
                     intensity: 1.25,
@@ -282,7 +284,7 @@ export async function createWraithScene() {
                 tone,
                 godRaysEffect,
                 vignet
-            ),
+            )),
             glitchPass,
         ],
         effects: [],

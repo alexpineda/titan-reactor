@@ -7,14 +7,14 @@ import { renderComposer } from "./render-composer";
 const createBloomEffect = (scene: Scene, camera: Camera, intensity: number, selective: boolean) => {
     return selective ? new SelectiveBloomEffect(scene, camera, {
         luminanceThreshold: 0.1,
-        luminanceSmoothing: 0.3,
+        luminanceSmoothing: 1,
 
         //@ts-ignore
         mipmapBlur: true,
         intensity
     }) : new BloomEffect({
         luminanceThreshold: 0.1,
-        luminanceSmoothing: 0.3,
+        luminanceSmoothing: 1,
 
         //@ts-ignore
         mipmapBlur: true,
@@ -97,8 +97,6 @@ export class GlobalEffects implements PostProcessingBundle {
 
             this.#depthOfFieldEffect = new DepthOfFieldEffect(this.camera, {
                 bokehScale: this.options.depthBokehScale,
-                // worldFocusDistance: this.options.depthFocalLength,
-                // worldFocusRange: this.options.depthFocalRange,
                 height: this.options.depthBlurQuality,
             });
             window.dof = this.#depthOfFieldEffect;
@@ -107,9 +105,10 @@ export class GlobalEffects implements PostProcessingBundle {
         }
 
         if (this.effectivePasses >= EffectivePasses.Extended && this.options.bloom > 0) {
-            this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.options.bloom, this.effectivePasses === EffectivePasses.ExtendedWithDepth);
+            this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.options.bloom, true);
+            window.bloom = this.#bloomEffect;
             if (this.#bloomEffect instanceof SelectiveBloomEffect) {
-                // this.#bloomEffect.ignoreBackground = true;
+                this.#bloomEffect.ignoreBackground = true;
                 // this.#bloomEffect.depthMaskPass.epsilon = 0.001;/// and 0.00001
                 if (this.#depthOfFieldEffect) {
                     pass2.push(this.#bloomEffect);

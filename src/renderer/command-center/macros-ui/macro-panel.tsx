@@ -21,8 +21,10 @@ import { KeyboardPreview } from "./keyboard-preview";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MacroConditionPanel } from "./macro-condition-panel/macro-condition-panel";
 import { CreateMacroCondition } from "./create-macro-condition";
+import { MouseTriggerValue } from "@macros/mouse-trigger";
 
 const keyCombo = new KeyCombo();
+const mouseValue = new MouseTriggerValue();
 
 export const MacroPanel = ({
   macro,
@@ -61,7 +63,7 @@ export const MacroPanel = ({
     });
   };
 
-  const ChangeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
+  const changeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (e.key === "Backspace") {
       updateTriggerValue("");
@@ -72,6 +74,15 @@ export const MacroPanel = ({
     if (key) {
       updateTriggerValue(keyCombo.stringify());
     }
+  };
+
+  const changeMouseTriggerCode = async (e: MouseEvent) => {
+    e.preventDefault();
+    mouseValue.altKey = e.altKey;
+    mouseValue.ctrlKey = e.ctrlKey;
+    mouseValue.shiftKey = e.shiftKey;
+    mouseValue.button = e.button;
+    updateTriggerValue(mouseValue.stringify());
   };
 
   const renameMacro = (name: string | null) => {
@@ -142,7 +153,14 @@ export const MacroPanel = ({
             {macro.trigger.type === TriggerType.Hotkey && (
               <input
                 value={macro.trigger.value}
-                onKeyDown={ChangeHotkeyTriggerKey}
+                onKeyDown={changeHotkeyTriggerKey}
+                readOnly={true}
+              />
+            )}
+            {macro.trigger.type === TriggerType.Mouse && (
+              <input
+                value={macro.trigger.value ?? ""}
+                onMouseDown={(e) => changeMouseTriggerCode(e.nativeEvent)}
                 readOnly={true}
               />
             )}
@@ -228,14 +246,16 @@ export const MacroPanel = ({
       )}
 
       {macro.error && <p style={{ color: "var(--red-6)" }}>{macro.error}</p>}
-      <CreateMacroCondition
-        onCreate={(condition) => createCondition(macro, condition)}
-        pluginsMetadata={pluginsMetadata}
-      />
-      <CreateMacroAction
-        onCreate={(action) => createAction(macro, action)}
-        pluginsMetadata={pluginsMetadata}
-      />
+      <div style={{ display: "flex" }}>
+        <CreateMacroCondition
+          onCreate={(condition) => createCondition(macro, condition)}
+          pluginsMetadata={pluginsMetadata}
+        />
+        <CreateMacroAction
+          onCreate={(action) => createAction(macro, action)}
+          pluginsMetadata={pluginsMetadata}
+        />
+      </div>
       <div>
         <p>Conditions (Optional)</p>
         {(macro.conditions ?? []).map((condition) => (

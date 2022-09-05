@@ -1,5 +1,6 @@
 import settingsStore from "@stores/settings-store";
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
+import { getMacroActionOrConditionLevaConfig } from "common/sanitize-macros";
 import {
   MacroConditionAppSetting,
   MacroConditionComparator,
@@ -15,10 +16,7 @@ export const MacroConditionPanelHost = (
 ) => {
   const settings = settingsStore();
   const { condition, viewOnly, updateMacroCondition } = props;
-  const propConfig = {
-    ...getAppSettingsLevaConfigField(settings, condition.field),
-    value: condition.value,
-  };
+  const levaConfig = getMacroActionOrConditionLevaConfig(condition, settings);
 
   return (
     <div
@@ -55,13 +53,13 @@ export const MacroConditionPanelHost = (
             color: "var(--green-9)",
           }}
         >
-          {condition.comparator} {condition.value}
+          {levaConfig.displayValue}
         </p>
       )}
 
-      {!viewOnly && condition.value !== undefined && propConfig !== undefined && (
+      {!viewOnly && condition.value !== undefined && levaConfig !== undefined && (
         <ErrorBoundary message="Error with modifier">
-          <MacroConditionModifyValue {...props} config={propConfig} />
+          <MacroConditionModifyValue {...props} config={levaConfig} />
         </ErrorBoundary>
       )}
     </div>

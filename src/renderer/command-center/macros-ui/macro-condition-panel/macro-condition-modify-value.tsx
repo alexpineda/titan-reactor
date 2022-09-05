@@ -8,7 +8,7 @@ export const MacroConditionModifyValue = (
 ) => {
   const { condition, config, updateMacroCondition } = props;
   const controls = {
-    SetField: mapSingleConfigToLeva(config, (value) => {
+    SetField: mapSingleConfigToLeva({ ...config, label: "" }, (value) => {
       updateMacroCondition({
         ...condition,
         value,

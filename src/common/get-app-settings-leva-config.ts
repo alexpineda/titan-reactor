@@ -98,7 +98,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         path: "game",
         options: settings.enabledPlugins
             .filter((p) => p.isSceneController)
-            .map((p) => p.name),
+            .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
     },
     pixelRatio: {
         folder: "Graphics",
@@ -143,7 +143,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "Classic Renderer",
         path: "postprocessing",
         min: 0,
-        max: 2,
+        max: 1000,
         step: 0.1,
     },
     brightness: {
@@ -207,8 +207,8 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
-        max: 10,
-        step: 0.1,
+        max: 1000,
+        step: 1,
     },
     brightness_: {
         label: "Brightness",
@@ -260,12 +260,13 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         "value": settings.data.postprocessing3d.depthBlurQuality,
-        "options": [
-            0,
-            120,
-            240,
-            480
-        ]
+        "options": {
+
+            "Off": 0,
+            "Low": 120,
+            "Medium": 240,
+            "High": 480
+        }
     },
     "fogOfWar_": {
         "label": "Fog Of War Opacity",
@@ -297,7 +298,9 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         "value": settings.data.postprocessing3d.sunlightIntensity,
-        step: 0.25
+        step: 0.25,
+        min: 0,
+        max: 20
     },
     "sunlightColor": {
         "label": "Sunlight Color",
@@ -310,5 +313,8 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         folder: "3D Renderer",
         path: "postprocessing3d",
         "value": settings.data.postprocessing3d.shadowIntensity,
+        min: 0,
+        max: 1,
+        step: 0.1
     },
 });

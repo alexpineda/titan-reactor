@@ -145,6 +145,7 @@ export enum TriggerType {
     Manual = "Manual",
     Hotkey = "Hotkey",
     GameHook = "GameHook",
+    Mouse = "Mouse",
 }
 export interface MacroTrigger {
     type: TriggerType;

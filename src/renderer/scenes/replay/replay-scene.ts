@@ -207,12 +207,11 @@ export async function replayScene(
   const initializeRenderMode = (renderMode3D: boolean) => {
     const postprocessing = renderMode3D ? session.getState().postprocessing3d : session.getState().postprocessing;
 
-    terrain.setTerrainQuality(renderMode3D, session.getState().postprocessing.anisotropy);
+    terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
     scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
     scene.sunlight.enabled = renderMode3D;
-    // terrain.shadowsEnabled = true;
-
     images.use3dImages = renderMode3D;
+
     reset = refreshScene;
 
     initializeGlobalEffects(postprocessing);

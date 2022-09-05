@@ -1,5 +1,5 @@
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionType, MacroCondition, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionPlugin, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroConditionPluginSetting, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 import { MacroHookTrigger } from "common/macro-hook-trigger";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
@@ -98,7 +98,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
         if (assignProperValue) {
             if (action.value === undefined) {
                 if (field.options) {
-                    action.value = field.options[0];
+                    action.value = getFirstOption(field);
                 } else {
                     action.value = field.value;
                 }
@@ -107,7 +107,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
                 action.error = {
                     type: MacroActionConfigurationErrorType.InvalidFieldValue,
-                    message: `Invalid field type: ${typeOfField}`
+                    message: `Invalid field type: ${JSON.stringify(action)}`
                 }
             }
         }
@@ -155,7 +155,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             const field = plugin.config?.[action.field[0] as keyof typeof plugin] ?? { value: null };
             if (action.value === undefined) {
                 if (field.options) {
-                    action.value = field.options[0];
+                    action.value = getFirstOption(field);
                 } else {
                     action.value = field.value;
                 }
@@ -304,3 +304,29 @@ export const getMacroConditionValueValidComparitors = (valueType: "boolean" | "n
     }
     return [];
 };
+
+export const getFirstOption = (levaFieldConfig: { options: any[] }) => {
+    return !Array.isArray(levaFieldConfig.options) ? Object.values(levaFieldConfig.options)[0] : levaFieldConfig.options[0];
+}
+
+export const getMacroActionOrConditionLevaConfig = ({ value, field }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
+
+    const levaConfig = getAppSettingsLevaConfigField(settings, field);
+
+    const displayValue =
+        levaConfig?.options && !Array.isArray(levaConfig.options)
+            ? Object.entries(levaConfig.options).find(
+                ([_, v]) => v === value
+            )?.[0] ?? value
+            : value;
+
+    return {
+        ...levaConfig,
+        displayValue,
+        value
+    };
+}
+
+export const usesModifierEffects = (action: MacroAction) => {
+
+}
