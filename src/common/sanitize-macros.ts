@@ -1,5 +1,5 @@
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionPlugin, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroConditionPluginSetting, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 import { MacroHookTrigger } from "common/macro-hook-trigger";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
@@ -28,10 +28,8 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
             sanitizeMacroAction(action, settings);
         }
 
-        if (macro.conditions) {
-            for (const condition of macro?.conditions) {
-                sanitizeMacroCondition(condition, settings);
-            }
+        for (const condition of macro.conditions) {
+            sanitizeMacroCondition(condition, settings);
         }
 
     }
@@ -314,7 +312,9 @@ export const getMacroActionOrConditionLevaConfig = ({ value, field }: MacroCondi
     const levaConfig = getAppSettingsLevaConfigField(settings, field);
 
     const displayValue =
+        //@ts-ignore
         levaConfig?.options && !Array.isArray(levaConfig.options)
+            //@ts-ignore
             ? Object.entries(levaConfig.options).find(
                 ([_, v]) => v === value
             )?.[0] ?? value
@@ -325,8 +325,4 @@ export const getMacroActionOrConditionLevaConfig = ({ value, field }: MacroCondi
         displayValue,
         value
     };
-}
-
-export const usesModifierEffects = (action: MacroAction) => {
-
 }

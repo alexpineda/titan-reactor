@@ -29,7 +29,6 @@ export async function mapScene(
 ): Promise<SceneState> {
   // const assets = gameStore().assets;
   scene.autoUpdate = true;
-  scene.sunlight.shadow.autoUpdate = true;
   renderComposer.getWebGLRenderer().shadowMap.autoUpdate = true;
 
   const preplacedMapUnits = chk.units;
@@ -222,7 +221,7 @@ export async function mapScene(
     skybox: false,
     sunColor: "#ffffff",
     sunIntensity: scene.sunlight.intensity,
-    sunPosition: scene.sunlight.position.clone(),
+    sunPosition: scene.sunlight.getPosition(),
   };
 
   const updateDisplayOptions = (options: MapDisplayOptions) => {
@@ -232,7 +231,11 @@ export async function mapScene(
       c.material.color = new Color(0xffffff);
     });
 
-    scene.sunlight.position.copy(options.sunPosition);
+    scene.sunlight.setPosition(
+      options.sunPosition.x,
+      options.sunPosition.y,
+      options.sunPosition.z
+    );
     scene.sunlight.intensity = options.sunIntensity;
     scene.sunlight.setColor(options.sunColor);
     scene.sunlight.needsUpdate();

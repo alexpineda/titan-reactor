@@ -91,6 +91,7 @@ export class GlobalEffects implements PostProcessingBundle {
         const pass2: Effect[] = [];
 
         renderComposer.getWebGLRenderer().toneMappingExposure = this.options.toneMapping;
+        //@ts-ignore
         renderComposer.composer.multisampling = Math.min(this.options.antialias, renderComposer.getWebGLRenderer().capabilities.maxSamples);
 
         if (this.#effectivePasses === EffectivePasses.ExtendedWithDepth && isPostProcessing3D(this.options) && this.options.depthBlurQuality > 0) {
@@ -106,7 +107,6 @@ export class GlobalEffects implements PostProcessingBundle {
 
         if (this.effectivePasses >= EffectivePasses.Extended && this.options.bloom > 0) {
             this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.options.bloom, true);
-            window.bloom = this.#bloomEffect;
             if (this.#bloomEffect instanceof SelectiveBloomEffect) {
                 this.#bloomEffect.ignoreBackground = true;
                 // this.#bloomEffect.depthMaskPass.epsilon = 0.001;/// and 0.00001
@@ -180,6 +180,7 @@ export class GlobalEffects implements PostProcessingBundle {
     }
 
     updateCamera(camera: PerspectiveCamera | OrthographicCamera) {
+        //@ts-ignore
         this.#renderPass.camera = camera;
         this.#fogOfWarEffect.camera = camera;
     }

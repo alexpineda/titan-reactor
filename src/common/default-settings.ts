@@ -22,6 +22,7 @@ export const defaultSettingsV6: SettingsV6 = {
   game: {
     sceneController: "@titan-reactor-plugins/camera-standard",
     minimapSize: 1,
+    dampingFactor: 0.15
   },
   util: {
     sanityCheckReplayCommands: true,
@@ -47,6 +48,7 @@ export const defaultSettingsV6: SettingsV6 = {
     contrast: 0,
     toneMapping: 1,
     depthFocalLength: 0.5,
+    depthFocalRange: 20,
     depthBlurQuality: 240,
     depthBokehScale: 1,
     fogOfWar: 1,
@@ -54,6 +56,7 @@ export const defaultSettingsV6: SettingsV6 = {
     sunlightColor: "#cbcbcb",
     sunlightDirection: [-9, 43, -45],
     sunlightIntensity: 5,
+    shadowIntensity: 0.8,
   },
   plugins: {
     serverPort: 8080,

@@ -30,9 +30,6 @@ export class BaseScene extends Scene {
     this.#janitor.mop(this);
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
-    window.sunlight = this.sunlight;
-    // this.ambient = ambient;
-
 
     this.add(...this.sunlight.children);
     this.addTerrain(terrain);

@@ -1,5 +1,4 @@
 import settingsStore from "@stores/settings-store";
-import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import { getMacroActionOrConditionLevaConfig } from "common/sanitize-macros";
 import { MacroActionEffect, MacroActionHostModifyValue } from "common/types";
 import ErrorBoundary from "../../error-boundary";
