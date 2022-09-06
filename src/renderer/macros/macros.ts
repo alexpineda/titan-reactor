@@ -258,7 +258,10 @@ export class Macros {
                 id: macro.id,
                 name: macro.name,
                 enabled: macro.enabled,
-                trigger: macro.trigger.serialize(),
+                trigger: {
+                    type: macro.trigger.type,
+                    value: macro.trigger.serialize()
+                },
                 actionSequence: macro.actionSequence,
                 actions: macro.actions,
                 conditions: macro.conditions,
@@ -271,11 +274,11 @@ export class Macros {
         this.macros = macrosDTO.macros.map((macro) => {
             let trigger: MacroTrigger = new ManualTrigger();
             if (macro.trigger.type === TriggerType.Hotkey) {
-                trigger = HotkeyTrigger.deserialize(macro.trigger)
+                trigger = HotkeyTrigger.deserialize(macro.trigger.value)
             } else if (macro.trigger.type === TriggerType.GameHook) {
-                trigger = MacroHookTrigger.deserialize(macro.trigger)
+                trigger = MacroHookTrigger.deserialize(macro.trigger.value)
             } else if (macro.trigger.type === TriggerType.Mouse) {
-                trigger = MouseTrigger.deserialize(macro.trigger)
+                trigger = MouseTrigger.deserialize(macro.trigger.value)
             }
             const newMacro = new Macro(
                 macro.id,

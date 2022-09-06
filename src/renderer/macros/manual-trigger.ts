@@ -9,9 +9,7 @@ export class ManualTrigger implements MacroTrigger {
     }
 
     serialize() {
-        return {
-            type: this.type,
-        };
+        return null;
     }
 
     static deserialize() {

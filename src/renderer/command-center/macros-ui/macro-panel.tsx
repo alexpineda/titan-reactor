@@ -15,16 +15,15 @@ import { MacroActionPanel } from "./macro-action-panel/macro-action-panel";
 import { CreateMacroAction } from "./create-macro-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { KeyCombo } from "../../macros/key-combo";
 import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 import { KeyboardPreview } from "./keyboard-preview";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MacroConditionPanel } from "./macro-condition-panel/macro-condition-panel";
 import { CreateMacroCondition } from "./create-macro-condition";
-import { MouseTriggerValue } from "@macros/mouse-trigger";
+import { MouseTrigger } from "@macros/mouse-trigger";
 
-const keyCombo = new KeyCombo();
-const mouseValue = new MouseTriggerValue();
+const keyTrigger = new HotkeyTrigger();
+const mouseTrigger = new MouseTrigger();
 
 export const MacroPanel = ({
   macro,
@@ -70,19 +69,16 @@ export const MacroPanel = ({
       return;
     }
 
-    const key = await keyCombo.generateKeyComboFromEvent(e);
+    const key = await keyTrigger.value.generateKeyComboFromEvent(e);
     if (key) {
-      updateTriggerValue(keyCombo.stringify());
+      updateTriggerValue(keyTrigger.serialize());
     }
   };
 
   const changeMouseTriggerCode = async (e: MouseEvent) => {
     e.preventDefault();
-    mouseValue.altKey = e.altKey;
-    mouseValue.ctrlKey = e.ctrlKey;
-    mouseValue.shiftKey = e.shiftKey;
-    mouseValue.button = e.button;
-    updateTriggerValue(mouseValue.stringify());
+    mouseTrigger.copy(e);
+    updateTriggerValue(mouseTrigger.serialize());
   };
 
   const renameMacro = (name: string | null) => {
@@ -152,14 +148,18 @@ export const MacroPanel = ({
             {capitalizeFirstLetters(macro.trigger.type)}
             {macro.trigger.type === TriggerType.Hotkey && (
               <input
-                value={macro.trigger.value}
+                value={HotkeyTrigger.deserialize(
+                  macro.trigger.value
+                ).stringify()}
                 onKeyDown={changeHotkeyTriggerKey}
                 readOnly={true}
               />
             )}
             {macro.trigger.type === TriggerType.Mouse && (
               <input
-                value={macro.trigger.value ?? ""}
+                value={MouseTrigger.deserialize(
+                  macro.trigger.value
+                ).stringify()}
                 onMouseDown={(e) => changeMouseTriggerCode(e.nativeEvent)}
                 readOnly={true}
               />
@@ -240,7 +240,9 @@ export const MacroPanel = ({
       </span>
       {macro.trigger.type === TriggerType.Hotkey && (
         <KeyboardPreview
-          previewKey={HotkeyTrigger.deserialize(macro.trigger).value.codes[0]}
+          previewKey={
+            HotkeyTrigger.deserialize(macro.trigger.value).value.codes[0]
+          }
           svgProps={{ width: "100px" }}
         />
       )}

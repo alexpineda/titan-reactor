@@ -70,7 +70,6 @@ export class KeyCombo implements KeyComboDTO {
         // allow modifiers are single entries (no combos)
         if (this.isModifier(e)) {
             this.set(e);
-            this.codes = [];
             this.#promise = Promise.resolve(this);
             return this.#promise;
         }
@@ -118,7 +117,7 @@ export class KeyCombo implements KeyComboDTO {
         this.shiftKey = e.shiftKey;
         this.ctrlKey = e.ctrlKey;
         this.altKey = e.altKey;
-        this.codes = [e.code];
+        this.codes = this.isModifier(e) ? [] : [e.code];
     }
 
     add(e: KeyEvent) {
@@ -162,23 +161,9 @@ export class KeyCombo implements KeyComboDTO {
         return true;
     }
 
-    stringify() {
-        const shiftKey = this.shiftKey ? ["Shift"] : [];
-        const ctrlKey = this.ctrlKey ? ["Ctrl"] : [];
-        const altKey = this.altKey ? ["Alt"] : [];
-        const v = [...shiftKey, ...ctrlKey, ...altKey, ...this.codes].join("+");
-        return v;
-    }
-
-    parse(raw: string) {
-        const keys = (raw ?? "").split("+");
-        const keyCombo = {
-            ctrlKey: keys.includes("Ctrl"),
-            altKey: keys.includes("Alt"),
-            shiftKey: keys.includes("Shift"),
-            codes: keys.filter(k => ["Shift", "Ctrl", "Alt"].includes(k) === false)
-        }
-        Object.assign(this, keyCombo);
+    copy(dto: KeyComboDTO) {
+        Object.assign(this, dto);
+        return this;
     }
 
 }

@@ -1,6 +1,7 @@
 import { generateUUID } from "three/src/math/MathUtils";
-import { MacroActionEffect, MacroActionSequence, MacroActionType } from "common/types"
+import { MacroActionEffect, MacroActionSequence, MacroActionType, MacroConditionComparator, MacroConditionType } from "common/types"
 import { HotkeyTrigger, Macro, Macros } from "@macros";
+import { MouseTrigger } from "@macros/mouse-trigger";
 
 
 export const createDefaultMacros = () => {
@@ -10,8 +11,96 @@ export const createDefaultMacros = () => {
   macros.add(
     new Macro(
       generateUUID(),
+      "Default -> Battle Camera",
+      new MouseTrigger({ ctrlKey: false, altKey: false, shiftKey: false, button: 2 }),
+      [{
+        id: generateUUID(),
+        type: MacroActionType.ModifyAppSettings,
+        field: [
+          "game",
+          "sceneController"
+        ],
+        effect: MacroActionEffect.Set,
+        value: "@titan-reactor-plugins/camera-battle"
+      }],
+      MacroActionSequence.AllSync,
+      [
+        {
+          id: generateUUID(),
+          type: MacroConditionType.AppSettingsCondition,
+          field: [
+            "game",
+            "sceneController"
+          ],
+          comparator: MacroConditionComparator.Equals,
+          value: "@titan-reactor-plugins/camera-standard"
+        }
+      ]
+    )
+  );
+
+  macros.add(
+    new Macro(
+      generateUUID(),
+      "Battle -> Default Camera",
+      new MouseTrigger({ ctrlKey: false, altKey: false, shiftKey: false, button: 2 }),
+      [{
+        id: generateUUID(),
+        type: MacroActionType.ModifyAppSettings,
+        field: [
+          "game",
+          "sceneController"
+        ],
+        effect: MacroActionEffect.Set,
+        value: "@titan-reactor-plugins/camera-standard"
+      }],
+      MacroActionSequence.AllSync,
+      [
+        {
+          id: generateUUID(),
+          type: MacroConditionType.AppSettingsCondition,
+          field: [
+            "game",
+            "sceneController"
+          ],
+          comparator: MacroConditionComparator.Equals,
+          value: "@titan-reactor-plugins/camera-battle"
+        }
+      ]
+    )
+  );
+
+  macros.add(
+    new Macro(
+      generateUUID(),
+      "Toggle 3D",
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: ["F5"]
+      }),
+      [{
+        id: generateUUID(),
+        type: MacroActionType.CallGameTimeApi,
+        value: "changeRenderMode();",
+        effect: MacroActionEffect.CallMethod
+      }],
+      MacroActionSequence.AllSync
+    )
+  );
+
+
+  macros.add(
+    new Macro(
+      generateUUID(),
       "Alternate Scenes",
-      new HotkeyTrigger("Tab"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: ["Tab"]
+      }),
       [{
         id: generateUUID(),
         type: MacroActionType.ModifyAppSettings,
@@ -26,67 +115,13 @@ export const createDefaultMacros = () => {
   macros.add(
     new Macro(
       generateUUID(),
-      "Scenes: Default",
-      new HotkeyTrigger("Escape"),
-      [
-        {
-          id: generateUUID(),
-          type: MacroActionType.ModifyAppSettings,
-          field: [
-            "game",
-            "sceneController"
-          ],
-          effect: MacroActionEffect.SetToDefault,
-        }
-      ], MacroActionSequence.AllSync
-    )
-  );
-
-  macros.add(
-    new Macro(
-      generateUUID(),
-      "Scenes: Battle",
-      new HotkeyTrigger("F2"),
-      [
-        {
-          id: generateUUID(),
-          type: MacroActionType.ModifyAppSettings,
-          field: [
-            "game",
-            "sceneController"
-          ],
-          effect: MacroActionEffect.Set,
-          value: "@titan-reactor-plugins/camera-battle"
-        }
-      ], MacroActionSequence.AllSync
-    )
-  );
-
-  macros.add(
-    new Macro(
-      generateUUID(),
-      "Scenes: Overview",
-      new HotkeyTrigger("F3"),
-      [
-        {
-          id: generateUUID(),
-          type: MacroActionType.ModifyAppSettings,
-          field: [
-            "game",
-            "sceneController"
-          ],
-          effect: MacroActionEffect.Set,
-          value: "@titan-reactor-plugins/camera-overview"
-        }
-      ], MacroActionSequence.AllSync
-    )
-  );
-
-  macros.add(
-    new Macro(
-      generateUUID(),
       "Audio: Toggle Music",
-      new HotkeyTrigger("KeyM"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: ["KeyM"]
+      }),
       [
         {
           id: generateUUID(),
@@ -111,7 +146,12 @@ export const createDefaultMacros = () => {
     new Macro(
       generateUUID(),
       "Audio: Toggle Sound",
-      new HotkeyTrigger("KeyS"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: ["KeyS"]
+      }),
       [
         {
           id: generateUUID(),
@@ -132,7 +172,12 @@ export const createDefaultMacros = () => {
 
 
   macros.add(
-    new Macro(generateUUID(), "Replay: Pause", new HotkeyTrigger("KeyP"), [
+    new Macro(generateUUID(), "Replay: Pause", new HotkeyTrigger({
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      codes: ["KeyP"]
+    }), [
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
@@ -143,7 +188,12 @@ export const createDefaultMacros = () => {
   );
 
   macros.add(
-    new Macro(generateUUID(), "Replay: Speed Up", new HotkeyTrigger("KeyU"), [
+    new Macro(generateUUID(), "Replay: Speed Up", new HotkeyTrigger({
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      codes: ["KeyU"]
+    }), [
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
@@ -154,7 +204,12 @@ export const createDefaultMacros = () => {
   );
 
   macros.add(
-    new Macro(generateUUID(), "Replay: Speed Down", new HotkeyTrigger("KeyD"), [
+    new Macro(generateUUID(), "Replay: Speed Down", new HotkeyTrigger({
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      codes: ["KeyD"]
+    }), [
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
@@ -168,7 +223,12 @@ export const createDefaultMacros = () => {
     new Macro(
       generateUUID(),
       "Replay: Skip Backwards",
-      new HotkeyTrigger("BracketLeft"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: ["BracketLeft"]
+      }),
       [
         {
           id: generateUUID(),
@@ -184,7 +244,12 @@ export const createDefaultMacros = () => {
     new Macro(
       generateUUID(),
       "Replay: Skip Forwards",
-      new HotkeyTrigger("BracketRight"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: ["BracketRight"]
+      }),
       [
         {
           id: generateUUID(),
@@ -200,7 +265,12 @@ export const createDefaultMacros = () => {
     new Macro(
       generateUUID(),
       "Replay: Go To Beginning",
-      new HotkeyTrigger("Shift+BracketLeft"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        codes: ["BracketLeft"]
+      }),
       [
         {
           id: generateUUID(),
@@ -216,7 +286,12 @@ export const createDefaultMacros = () => {
     new Macro(
       generateUUID(),
       "Replay: Go To End",
-      new HotkeyTrigger("Shift+BracketRight"),
+      new HotkeyTrigger({
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        codes: ["BracketRight"]
+      }),
       [
         {
           id: generateUUID(),
