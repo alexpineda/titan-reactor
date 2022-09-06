@@ -3,6 +3,7 @@ import { ImageDAT } from "common/bwdat/images-dat";
 
 import { parseAnim, createDDSTexture } from "../formats";
 import { LinearEncoding, TextureEncoding } from "three";
+import Janitor from "@utils/janitor";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);
@@ -14,6 +15,7 @@ export const loadAnimAtlas = async (
     scale: Exclude<UnitTileScale, "SD">,
     grp: GrpSprite
 ): Promise<AnimAtlas> => {
+    const janitor = new Janitor()
 
     const [sprite] = parseAnim(buf);
 
@@ -22,14 +24,14 @@ export const loadAnimAtlas = async (
     }
 
     const ddsBuf = getBufDds(buf, sprite.maps.diffuse);
-    const diffuse = await createDDSTexture(ddsBuf);
+    const diffuse = janitor.mop(await createDDSTexture(ddsBuf));
 
     const optionalLoad = async (layer: AnimDds, encoding?: TextureEncoding) => {
         if (layer === undefined) {
             return undefined;
         }
         const ddsBuf = getBufDds(buf, layer);
-        return await createDDSTexture(ddsBuf, encoding);
+        return janitor.mop(await createDDSTexture(ddsBuf, encoding));
     }
 
     const teammask = await optionalLoad(sprite.maps.teamcolor);
@@ -66,6 +68,9 @@ export const loadAnimAtlas = async (
         teammask,
         hdLayers: {
             emissive
+        },
+        dispose() {
+            janitor.dispose();
         }
     };
 

@@ -6,7 +6,6 @@ import {
   MacroCondition,
   MacroDTO,
   MacrosDTO,
-  MacroTriggerDTO,
 } from "common/types";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
@@ -16,6 +15,10 @@ import { createDefaultMacros } from "./default-macros";
 import groupBy from "lodash.groupby";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import { ManualTrigger } from "@macros/manual-trigger";
+import { HotkeyTrigger } from "@macros/hotkey-trigger";
+import { MouseTrigger } from "@macros/mouse-trigger";
+import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 
 export const MacrosPanel = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
@@ -134,11 +137,17 @@ export const MacrosPanel = () => {
     });
   };
 
-  const createMacro = (name: string, trigger: MacroTriggerDTO) => {
+  const createMacro = (
+    name: string,
+    trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | MacroHookTrigger
+  ) => {
     const newMacro = {
       id: generateUUID(),
       name,
-      trigger,
+      trigger: {
+        type: trigger.type,
+        value: trigger.serialize(),
+      },
       actions: [],
       enabled: true,
       actionSequence: MacroActionSequence.AllSync,

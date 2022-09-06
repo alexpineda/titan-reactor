@@ -7,7 +7,7 @@ import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
-import { MacroHookTrigger } from "common/macro-hook-trigger";
+import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import get from "lodash.get";
 import Janitor from "@utils/janitor";
 import { MouseTrigger } from "./mouse-trigger";
@@ -36,13 +36,9 @@ export class Macros {
         this.macros.push(macro);
     }
 
-    /**
-     * Manages listening to hotkey triggers and executing macros.
-     * @returns disposable
-     */
-    listenForKeyCombos() {
-
+    #listenForKeyCombos(type: "keydown" | "keyup") {
         const janitor = new Janitor();
+
         let testCombo = new KeyCombo;
         let candidates: Macro[] = [];
         let acceptingInput: NodeJS.Timeout | null = null;
@@ -68,7 +64,7 @@ export class Macros {
                 e.preventDefault();
             }
 
-            if (testCombo.isIllegal(e)) {
+            if (testCombo.isArrowKey(e)) {
                 return;
             }
 
@@ -84,6 +80,9 @@ export class Macros {
 
             for (const macro of this.#meta.hotkeyMacros) {
                 const trigger = macro.trigger as HotkeyTrigger;
+                if (trigger.onKeyUp === (type !== "keyup")) {
+                    continue
+                }
                 if (trigger.weight === currentWeight) {
                     if (trigger.value.test(testCombo)) {
                         candidates.push(macro);
@@ -96,6 +95,9 @@ export class Macros {
             for (let nextWeight = currentWeight + 1; nextWeight <= maxWeight; nextWeight++) {
                 for (const macro of this.#meta.hotkeyMacros) {
                     const trigger = macro.trigger as HotkeyTrigger;
+                    if (trigger.onKeyUp === (type !== "keyup")) {
+                        continue
+                    }
                     if (trigger.weight === nextWeight) {
                         if (trigger.value.testShallow(testCombo, currentWeight)) {
                             _canSkipNextInSequence = false;
@@ -110,6 +112,20 @@ export class Macros {
             }
         }
 
+        janitor.addEventListener(window, type, _keyListener);
+
+        return janitor;
+    }
+    /**
+     * Manages listening to hotkey triggers and executing macros.
+     * @returns disposable
+     */
+    listenForKeyCombos() {
+
+        const janitor = new Janitor();
+        janitor.mop(this.#listenForKeyCombos("keydown"));
+        janitor.mop(this.#listenForKeyCombos("keyup"));
+
         const _mouseListener = (e: MouseEvent) => {
             for (const macro of this.#meta.mouseMacros) {
                 const trigger = macro.trigger as MouseTrigger;
@@ -119,7 +135,6 @@ export class Macros {
             }
         }
 
-        janitor.addEventListener(window, "keydown", _keyListener);
         janitor.addEventListener(window, "mousedown", _mouseListener);
         return janitor;
     }

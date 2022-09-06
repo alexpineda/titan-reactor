@@ -6,9 +6,13 @@ export class MouseTriggerValue {
     shiftKey = false;
     button = 0;
 
-
     test(e: MouseEvent) {
-        return this.ctrlKey === e.ctrlKey && this.altKey === e.altKey && this.shiftKey === e.shiftKey && this.button === e.button;
+        return (
+            this.ctrlKey === e.ctrlKey &&
+            this.altKey === e.altKey &&
+            this.shiftKey === e.shiftKey &&
+            this.button === e.button
+        );
     }
 
     copy(dto: MouseTriggerDTO) {
@@ -30,7 +34,14 @@ export class MouseTrigger implements MacroTrigger {
     type = TriggerType.Mouse;
     value = new MouseTriggerValue();
 
-    constructor(dto?: MouseTriggerDTO) {
+    constructor(
+        dto: MouseTriggerDTO = {
+            altKey: false,
+            ctrlKey: false,
+            shiftKey: false,
+            button: 0,
+        }
+    ) {
         if (dto) {
             this.copy(dto);
         }
@@ -41,19 +52,24 @@ export class MouseTrigger implements MacroTrigger {
             ctrlKey: this.value.ctrlKey,
             altKey: this.value.altKey,
             shiftKey: this.value.shiftKey,
-            button: this.value.button
-        }
+            button: this.value.button,
+        };
     }
 
     static deserialize(dto: MouseTriggerDTO) {
-        return (new MouseTrigger().copy(dto));
-    };
+        return new MouseTrigger().copy(dto);
+    }
 
     stringify() {
         const shiftKey = this.value.shiftKey ? ["Shift"] : [];
         const ctrlKey = this.value.ctrlKey ? ["Ctrl"] : [];
         const altKey = this.value.altKey ? ["Alt"] : [];
-        const v = [...shiftKey, ...ctrlKey, ...altKey, `Button${this.value.button}`].join("+");
+        const v = [
+            ...shiftKey,
+            ...ctrlKey,
+            ...altKey,
+            `Button${this.value.button}`,
+        ].join("+");
         return v;
     }
 

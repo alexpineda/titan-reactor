@@ -1,27 +1,36 @@
 import { MacroTrigger, TriggerType } from "common/types";
 import { KeyCombo, KeyComboDTO } from "./key-combo";
 
+interface HotkeyTriggerDTO extends KeyComboDTO {
+    onKeyUp: boolean;
+}
+
 export class HotkeyTrigger implements MacroTrigger {
     type = TriggerType.Hotkey;
     value = new KeyCombo();
     onKeyUp = false;
 
-    constructor(dto?: KeyComboDTO) {
-        if (dto) {
-            this.copy(dto);
-        }
+    constructor(dto: HotkeyTriggerDTO = {
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        codes: [],
+        onKeyUp: false
+    }) {
+        this.copy(dto);
     }
 
-    serialize(): KeyComboDTO {
+    serialize(): HotkeyTriggerDTO {
         return {
             ctrlKey: this.value.ctrlKey,
             altKey: this.value.altKey,
             shiftKey: this.value.shiftKey,
-            codes: this.value.codes
+            codes: this.value.codes,
+            onKeyUp: this.onKeyUp
         }
     }
 
-    static deserialize(dto: KeyComboDTO) {
+    static deserialize(dto: HotkeyTriggerDTO) {
         return (new HotkeyTrigger).copy(dto);
     };
 
@@ -37,8 +46,9 @@ export class HotkeyTrigger implements MacroTrigger {
         return v;
     }
 
-    copy(dto: KeyComboDTO) {
+    copy(dto: HotkeyTriggerDTO) {
         this.value.copy(dto)
+        this.onKeyUp = dto.onKeyUp;
         return this;
     }
 }

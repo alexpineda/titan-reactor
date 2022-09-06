@@ -42,6 +42,7 @@ export interface AnimAtlas {
 
   hdLayers?: HDLayers;
   mipmap?: HDLayers;
+  dispose(): void;
 };
 
 export interface GltfAtlas extends AnimAtlas {

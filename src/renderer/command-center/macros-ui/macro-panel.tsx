@@ -22,9 +22,6 @@ import { MacroConditionPanel } from "./macro-condition-panel/macro-condition-pan
 import { CreateMacroCondition } from "./create-macro-condition";
 import { MouseTrigger } from "@macros/mouse-trigger";
 
-const keyTrigger = new HotkeyTrigger();
-const mouseTrigger = new MouseTrigger();
-
 export const MacroPanel = ({
   macro,
   pluginsMetadata,
@@ -64,21 +61,17 @@ export const MacroPanel = ({
 
   const changeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (e.key === "Backspace") {
-      updateTriggerValue("");
-      return;
-    }
 
-    const key = await keyTrigger.value.generateKeyComboFromEvent(e);
+    const key = await hotkeyTrigger!.value.generateKeyComboFromEvent(e);
     if (key) {
-      updateTriggerValue(keyTrigger.serialize());
+      updateTriggerValue(hotkeyTrigger!.serialize());
     }
   };
 
   const changeMouseTriggerCode = async (e: MouseEvent) => {
     e.preventDefault();
-    mouseTrigger.copy(e);
-    updateTriggerValue(mouseTrigger.serialize());
+    mouseTrigger!.copy(e);
+    updateTriggerValue(mouseTrigger!.serialize());
   };
 
   const renameMacro = (name: string | null) => {
@@ -97,6 +90,16 @@ export const MacroPanel = ({
       nameRef.current.innerText = macro.name;
     }
   }, []);
+
+  const hotkeyTrigger =
+    macro.trigger.type === TriggerType.Hotkey
+      ? HotkeyTrigger.deserialize(macro.trigger.value)
+      : null;
+
+  const mouseTrigger =
+    macro.trigger.type === TriggerType.Mouse
+      ? MouseTrigger.deserialize(macro.trigger.value)
+      : null;
 
   return (
     <div
@@ -146,20 +149,29 @@ export const MacroPanel = ({
         <span>
           <label>
             {capitalizeFirstLetters(macro.trigger.type)}
-            {macro.trigger.type === TriggerType.Hotkey && (
-              <input
-                value={HotkeyTrigger.deserialize(
-                  macro.trigger.value
-                ).stringify()}
-                onKeyDown={changeHotkeyTriggerKey}
-                readOnly={true}
-              />
+            {hotkeyTrigger && (
+              <div>
+                <input
+                  value={hotkeyTrigger.stringify()}
+                  onKeyDown={changeHotkeyTriggerKey}
+                  readOnly={true}
+                />
+                <label>
+                  On KeyUp
+                  <input
+                    type="checkbox"
+                    checked={hotkeyTrigger.onKeyUp}
+                    onChange={(e) => {
+                      hotkeyTrigger.onKeyUp = e.target.checked;
+                      updateTriggerValue(hotkeyTrigger.serialize());
+                    }}
+                  />
+                </label>
+              </div>
             )}
-            {macro.trigger.type === TriggerType.Mouse && (
+            {mouseTrigger && (
               <input
-                value={MouseTrigger.deserialize(
-                  macro.trigger.value
-                ).stringify()}
+                value={mouseTrigger.stringify()}
                 onMouseDown={(e) => changeMouseTriggerCode(e.nativeEvent)}
                 readOnly={true}
               />

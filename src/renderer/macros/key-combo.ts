@@ -114,10 +114,10 @@ export class KeyCombo implements KeyComboDTO {
     }
 
     set(e: KeyEvent) {
-        this.shiftKey = e.shiftKey;
-        this.ctrlKey = e.ctrlKey;
-        this.altKey = e.altKey;
-        this.codes = this.isModifier(e) ? [] : [e.code];
+        this.shiftKey = this.isModifier(e) ? false : e.shiftKey;
+        this.ctrlKey = this.isModifier(e) ? false : e.ctrlKey;
+        this.altKey = this.isModifier(e) ? false : e.altKey;
+        this.codes = [e.code];
     }
 
     add(e: KeyEvent) {

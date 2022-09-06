@@ -88,7 +88,7 @@ export const CreateMacroCondition = ({
             paddingInline: "var(--size-3)",
           }}
         >
-          <i className="material-icons">add</i> Action
+          <i className="material-icons">add</i> Condition
         </button>
       </div>
     </>

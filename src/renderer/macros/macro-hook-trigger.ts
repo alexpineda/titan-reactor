@@ -1,20 +1,27 @@
 import { MacroTrigger, MacroTriggerDTO, TriggerType } from "common/types";
 
+export interface MacroHookTriggerDTO {
+    hookName: string;
+    pluginName?: string;
+}
+
 export class MacroHookTrigger implements MacroTrigger {
     type = TriggerType.Hotkey;
     hookName: string;
     pluginName?: string;
 
-    constructor(raw: string) {
-        const [hookName, pluginName] = raw.split(":");
-        this.hookName = hookName;
-        this.pluginName = pluginName;
+    constructor(dto: MacroHookTriggerDTO = { hookName: "" }) {
+        this.hookName = dto.hookName;
+        this.pluginName = dto.pluginName;
     }
 
     serialize() {
         return {
-            type: TriggerType.Hotkey,
-            value: this.toString()
+            type: this.type,
+            value: {
+                hookName: this.hookName,
+                pluginName: this.pluginName,
+            }
         }
     }
 
@@ -23,7 +30,7 @@ export class MacroHookTrigger implements MacroTrigger {
     }
 
     static deserialize(dto: MacroTriggerDTO) {
-        return new MacroHookTrigger(dto.value ?? "");
+        return new MacroHookTrigger(dto.value);
     };
 
     toString() {

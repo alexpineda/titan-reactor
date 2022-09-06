@@ -78,6 +78,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        onKeyUp: false,
         codes: ["F5"]
       }),
       [{
@@ -99,6 +100,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        onKeyUp: false,
         codes: ["Tab"]
       }),
       [{
@@ -120,6 +122,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        onKeyUp: false,
         codes: ["KeyM"]
       }),
       [
@@ -150,6 +153,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        onKeyUp: false,
         codes: ["KeyS"]
       }),
       [
@@ -176,6 +180,7 @@ export const createDefaultMacros = () => {
       ctrlKey: false,
       altKey: false,
       shiftKey: false,
+      onKeyUp: false,
       codes: ["KeyP"]
     }), [
       {
@@ -192,6 +197,7 @@ export const createDefaultMacros = () => {
       ctrlKey: false,
       altKey: false,
       shiftKey: false,
+      onKeyUp: false,
       codes: ["KeyU"]
     }), [
       {
@@ -208,6 +214,7 @@ export const createDefaultMacros = () => {
       ctrlKey: false,
       altKey: false,
       shiftKey: false,
+      onKeyUp: false,
       codes: ["KeyD"]
     }), [
       {
@@ -227,6 +234,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        onKeyUp: false,
         codes: ["BracketLeft"]
       }),
       [
@@ -248,6 +256,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        onKeyUp: false,
         codes: ["BracketRight"]
       }),
       [
@@ -269,6 +278,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
+        onKeyUp: false,
         codes: ["BracketLeft"]
       }),
       [
@@ -290,6 +300,7 @@ export const createDefaultMacros = () => {
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
+        onKeyUp: false,
         codes: ["BracketRight"]
       }),
       [

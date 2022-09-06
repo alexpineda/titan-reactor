@@ -1,6 +1,6 @@
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
-import { MacroHookTrigger } from "common/macro-hook-trigger";
+import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 

@@ -2,12 +2,13 @@ import { Mesh, Object3D, Texture } from "three";
 import { ImageDAT, GltfAtlas, AnimAtlas } from "common/types";
 import loadGlb from "../formats/load-glb";
 
+
 export const loadGlbAtlas = async (
     glbFileName: string,
     anim: AnimAtlas,
     imageDef: ImageDAT,
     envMap: Texture,
-): Promise<GltfAtlas | AnimAtlas> => {
+): Promise<Partial<GltfAtlas> | null> => {
 
     try {
         const { model, animations } = (await loadGlb(
@@ -44,10 +45,10 @@ export const loadGlbAtlas = async (
         });
 
         return {
-            ...anim, model, mesh, animations, fixedFrames, isGLTF: true
+            model, mesh, animations, fixedFrames, isGLTF: true
         }
     } catch (e) {
     }
 
-    return anim;
+    return null;
 }

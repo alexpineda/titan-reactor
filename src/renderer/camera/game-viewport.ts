@@ -34,8 +34,19 @@ export class GameViewPort {
     readonly #isPrimary: boolean;
 
     constrainToAspect = true;
-    renderMode3D = false;
+    #renderMode3D = false;
     freezeCamera = false;
+
+    needsUpdate = true;
+
+    set renderMode3D(val: boolean) {
+        this.#renderMode3D = val;
+        this.needsUpdate = true;
+    }
+
+    get renderMode3D() {
+        return this.#renderMode3D;
+    }
 
     get enabled() {
         return this.#enabled;
@@ -72,6 +83,8 @@ export class GameViewPort {
         this.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
         this.orbit.setLookAt(0, 50, 0, 0, 0, 0, false);
+
+        this.needsUpdate = true;
         return this.orbit;
     }
 

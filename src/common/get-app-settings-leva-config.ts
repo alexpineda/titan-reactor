@@ -118,6 +118,23 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         max: maxPixelRatio,
         step: 0.1,
     },
+    useHD2: {
+        folder: "Graphics",
+        label: "Use HD2",
+        value: settings.data.graphics.useHD2,
+        path: "graphics",
+        options: {
+            "As Mipmap (Highest Quality)": "auto",
+            "Never": "ignore",
+            "Exclusively (Lower Memory)": "force",
+        }
+    },
+    preload: {
+        folder: "Graphics",
+        label: "Preload Assets",
+        value: settings.data.assets.preload,
+        path: "assets",
+    },
     anisotropy: {
         label: "Anisotropy",
         value: settings.data.postprocessing.anisotropy,

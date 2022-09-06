@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { MacroTriggerDTO, TriggerType } from "common/types";
+import { TriggerType } from "common/types";
+import { HotkeyTrigger } from "@macros/hotkey-trigger";
+import { MouseTrigger } from "@macros/mouse-trigger";
+import { ManualTrigger } from "@macros/manual-trigger";
+import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 
 export const CreateMacro = ({
   onCreate,
 }: {
-  onCreate: (name: string, trigger: MacroTriggerDTO) => void;
+  onCreate: (
+    name: string,
+    trigger: HotkeyTrigger | MouseTrigger | ManualTrigger | MacroHookTrigger
+  ) => void;
 }) => {
   const [name, setName] = useState("");
-  const [triggerType, setTriggerType] = useState<MacroTriggerDTO>({
-    type: TriggerType.Hotkey,
-  });
+  const [triggerType, setTriggerType] = useState<TriggerType>(
+    TriggerType.Hotkey
+  );
 
   return (
     <div
@@ -43,9 +50,9 @@ export const CreateMacro = ({
             onChange={(e) => {
               const type =
                 TriggerType[e.target.value as keyof typeof TriggerType];
-              setTriggerType({ type });
+              setTriggerType(type);
             }}
-            value={triggerType.type}
+            value={triggerType}
           >
             {Object.keys(TriggerType).map((key) => (
               <option key={key} value={key}>
@@ -60,7 +67,19 @@ export const CreateMacro = ({
             if (name.trim() === "") {
               return;
             }
-            onCreate(name, triggerType);
+            let trigger:
+              | ManualTrigger
+              | HotkeyTrigger
+              | MouseTrigger
+              | MacroHookTrigger = new ManualTrigger();
+            if (triggerType === TriggerType.Hotkey) {
+              trigger = new HotkeyTrigger();
+            } else if (triggerType === TriggerType.Mouse) {
+              trigger = new MouseTrigger();
+            } else if (triggerType === TriggerType.GameHook) {
+              trigger = new MacroHookTrigger();
+            }
+            onCreate(name, trigger);
             setName("");
           }}
         >

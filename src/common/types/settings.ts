@@ -106,6 +106,7 @@ export type SettingsV6 = {
     },
     graphics: {
         pixelRatio: number;
+        useHD2: string;
     },
     game: {
         sceneController: string;

@@ -63,7 +63,6 @@ import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHa
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
-import { SceneController } from "@plugins/plugin-system-native";
 
 export async function replayScene(
   map: Chk,
@@ -941,7 +940,7 @@ export async function replayScene(
   const _commandsThisFrame: any[] = [];
   let cmd = cmds.next();
 
-  let _halt = false, _prevRenderMode3D: null | boolean = null, _prevSceneController: SceneController | null | undefined = null;
+  let _halt = false;
 
   const GAME_LOOP = (elapsed: number) => {
     delta = elapsed - lastElapsed;
@@ -1015,10 +1014,9 @@ export async function replayScene(
 
       if (v === viewports.primaryViewport) {
         minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
-        if (_prevRenderMode3D !== v.renderMode3D || _prevSceneController !== viewports.activeSceneController) {
+        if (v.needsUpdate) {
           initializeRenderMode(v.renderMode3D);
-          _prevRenderMode3D = v.renderMode3D;
-          _prevSceneController = viewports.activeSceneController;
+          v.needsUpdate = false;
         }
 
         if (selectedUnitsStore().selectedUnits.length) {

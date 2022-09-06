@@ -1,7 +1,7 @@
 import { MacroDTO, PluginMetaData } from "common/types";
 import { useState } from "react";
 import { createDefaultHooks } from "../../plugins/hooks";
-import { MacroHookTrigger } from "../../../common/macro-hook-trigger";
+import { MacroHookTrigger } from "../../macros/macro-hook-trigger";
 
 export const MacroCustomHookOptions = ({
   macro,
