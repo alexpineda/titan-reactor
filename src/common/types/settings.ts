@@ -112,6 +112,10 @@ export type SettingsV6 = {
         sceneController: string;
         minimapSize: number;
         dampingFactor: number;
+        movementSpeed: number;
+        rotateSpeed: number;
+        cameraShakeStrength: number;
+        zoomLevels: [number, number, number];
     },
     util: {
         sanityCheckReplayCommands: boolean,

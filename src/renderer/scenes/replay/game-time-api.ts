@@ -3,7 +3,7 @@ import { Unit } from "@core/unit";
 import { GetTerrainY } from "@image/generate-map";
 import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header";
 import BaseScene from "@render/base-scene";
-import { Assets, PxToGameUnit } from "common/types";
+import { Assets, PxToGameUnit, Settings } from "common/types";
 import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene, Vector3 } from "three";
 
@@ -13,6 +13,9 @@ export interface GameTimeApi {
     viewport: GameViewPort;
     secondViewport: GameViewPort
     simpleMessage(message: string): void;
+    cameraMovementSpeed: Settings["game"]["movementSpeed"];
+    cameraRotateSpeed: Settings["game"]["rotateSpeed"];
+    cameraZoomLevels: Settings["game"]["zoomLevels"];
     scene: BaseScene;
     cssScene: Scene;
     assets: Assets;

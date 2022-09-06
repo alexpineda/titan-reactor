@@ -283,6 +283,15 @@ export async function replayScene(
           fogOfWar.forceInstantUpdate = true;
         }
       },
+      get cameraMovementSpeed() {
+        return session.getState().game.movementSpeed;
+      },
+      get cameraRotateSpeed() {
+        return session.getState().game.rotateSpeed;
+      },
+      get cameraZoomLevels() {
+        return session.getState().game.zoomLevels;
+      },
       unitsIterator,
       skipForward: (amount = 1) => skipHandler(1, amount),
       skipBackward: (amount = 1) => skipHandler(-1, amount),
@@ -1015,7 +1024,6 @@ export async function replayScene(
       if (v === viewports.primaryViewport) {
         minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
         if (v.needsUpdate) {
-          console.log("needs update")
           initializeRenderMode(v.renderMode3D);
           v.needsUpdate = false;
         }
@@ -1031,7 +1039,7 @@ export async function replayScene(
 
       v.updateCamera(session.getState().game.dampingFactor, delta);
       updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteIterator, spriteImageIterator);
-      v.shakeStart(elapsed);
+      v.shakeStart(elapsed, session.getState().game.cameraShakeStrength);
       globalEffectsBundle.updateCamera(v.camera)
       renderComposer.setBundlePasses(globalEffectsBundle);
       renderComposer.render(delta, v.viewport);

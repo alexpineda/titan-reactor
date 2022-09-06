@@ -248,8 +248,9 @@ export class GameViewPort {
         }
     }
 
-    shakeStart(elapsed: number) {
-        if (this.cameraShake.enabled && this.shakeCalculation.needsUpdate) {
+    shakeStart(elapsed: number, strength: number) {
+        if (strength && this.shakeCalculation.needsUpdate) {
+            this.shakeCalculation.strength.multiplyScalar(strength);
             this.cameraShake.shake(elapsed, this.shakeCalculation.duration, this.shakeCalculation.frequency, this.shakeCalculation.strength);
             this.shakeCalculation.needsUpdate = false;
             this.shakeCalculation.strength.setScalar(0);

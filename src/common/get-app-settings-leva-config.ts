@@ -105,9 +105,35 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         label: "Camera Movement Damping",
         value: settings.data.game.dampingFactor,
         path: "game",
-        min: 0.005,
-        max: 0.5,
-        step: 0.005,
+        min: 0.01,
+        max: 0.1,
+        step: 0.01,
+    },
+    zoomLevels: {
+        folder: "Game",
+        label: "Camera Zoom Levels",
+        value: settings.data.game.zoomLevels,
+        path: "game",
+    },
+    rotateSpeed: {
+        folder: "Game",
+        label: "Camera Rotate Speed",
+        value: settings.data.game.rotateSpeed,
+        path: "game",
+    },
+    movementSpeed: {
+        folder: "Game",
+        label: "Camera Movement Speed",
+        value: settings.data.game.movementSpeed,
+        path: "game"
+    },
+    cameraShakeStrength: {
+        folder: "Game",
+        label: "Camera Shake Strength",
+        value: settings.data.game.cameraShakeStrength,
+        min: 0,
+        max: 1,
+        path: "game"
     },
     pixelRatio: {
         folder: "Graphics",

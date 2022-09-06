@@ -9,7 +9,7 @@ class CameraShake {
 
   #offset = new Vector3();
 
-  #enabled = false;
+  #enabled = true;
 
   _duration = new Vector3();
   _startTime = [0, 0, 0];
