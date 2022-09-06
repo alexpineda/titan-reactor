@@ -17,6 +17,7 @@ export class Macros {
     #session: UseStore<SessionStore>;
     revision = 0;
     macros: Macro[] = [];
+    #macroAlreadyExecuted: Set<Macro> = new Set();
 
     #meta: {
         hotkeyMacros: Macro[];
@@ -40,76 +41,42 @@ export class Macros {
         const janitor = new Janitor();
 
         let testCombo = new KeyCombo;
-        let candidates: Macro[] = [];
-        let acceptingInput: NodeJS.Timeout | null = null;
-
-        const finishUp = () => {
-            acceptingInput = null;
-            for (const candidate of candidates) {
-                this.#execMacro(candidate);
-            }
-            candidates.length = 0;
-        }
-
-        const createInputWindow = () => {
-            clearTimeout(acceptingInput!);
-            acceptingInput = setTimeout(() => {
-                finishUp();
-            }, 800);
-        }
-
 
         const _keyListener = (e: KeyboardEvent) => {
             if (e.code !== "AltLeft" && e.code !== "F10") {
                 e.preventDefault();
             }
 
-            if (testCombo.isArrowKey(e)) {
+            if (testCombo.isIllegal(e)) {
                 return;
             }
-
-            if (acceptingInput === null) {
-                testCombo.set(e);
-            } else {
-                testCombo.add(e);
+            if (type == "keyup") {
+                this.#macroAlreadyExecuted.clear();
             }
-            createInputWindow();
 
-            const currentWeight = testCombo.codes.length;
-            const maxWeight = this.#meta.hotkeyMacros.reduce((acc, m) => Math.max(acc, (m.trigger as HotkeyTrigger).weight), 0);
+            const candidates: Macro[] = [];
+            testCombo.set(e);
 
             for (const macro of this.#meta.hotkeyMacros) {
+                if (this.#macroAlreadyExecuted.has(macro)) {
+                    continue;
+                }
                 const trigger = macro.trigger as HotkeyTrigger;
                 if (trigger.onKeyUp === (type !== "keyup")) {
                     continue
                 }
-                if (trigger.weight === currentWeight) {
-                    if (trigger.value.test(testCombo)) {
-                        candidates.push(macro);
-                    }
+                if (trigger.value.test(testCombo) && this.#testMacroConditions(macro, e)) {
+                    if (type === "keydown")
+                        this.#macroAlreadyExecuted.add(macro);
+                    candidates.push(macro);
                 }
             }
 
-            let _canSkipNextInSequence = true;
-            // see if we can short circuit the next weights
-            for (let nextWeight = currentWeight + 1; nextWeight <= maxWeight; nextWeight++) {
-                for (const macro of this.#meta.hotkeyMacros) {
-                    const trigger = macro.trigger as HotkeyTrigger;
-                    if (trigger.onKeyUp === (type !== "keyup")) {
-                        continue
-                    }
-                    if (trigger.weight === nextWeight) {
-                        if (trigger.value.testShallow(testCombo, currentWeight)) {
-                            _canSkipNextInSequence = false;
-                            break;
-                        }
-                    }
-                }
+            for (const macro of candidates) {
+                this.#execMacro(macro);
             }
-            if (_canSkipNextInSequence) {
-                clearTimeout(acceptingInput!);
-                finishUp();
-            }
+
+
         }
 
         janitor.addEventListener(window, type, _keyListener);
@@ -127,11 +94,16 @@ export class Macros {
         janitor.mop(this.#listenForKeyCombos("keyup"));
 
         const _mouseListener = (e: MouseEvent) => {
+            const candidates: Macro[] = [];
             for (const macro of this.#meta.mouseMacros) {
                 const trigger = macro.trigger as MouseTrigger;
-                if (trigger.value.test(e)) {
-                    this.#execMacro(macro);
+                if (trigger.value.test(e) && this.#testMacroConditions(macro, e)) {
+                    candidates.push(macro);
                 }
+            }
+
+            for (const macro of candidates) {
+                this.#execMacro(macro);
             }
         }
 
@@ -186,13 +158,7 @@ export class Macros {
         return false;
     }
 
-    /**
-     * Executes a macro.
-     * @param macro 
-     * @param context Additional context provided to environment of caller. Usually provided from plugin hook results.
-     */
-    #execMacro(macro: Macro, context?: any) {
-
+    #testMacroConditions(macro: Macro, context?: any) {
         for (const condition of macro.conditions) {
             let value: any;
             if (condition.type === MacroConditionType.AppSettingsCondition) {
@@ -211,10 +177,18 @@ export class Macros {
 
             if (this.#testCondition(condition.comparator, value, condition.value) === false) {
                 console.log('failed test')
-                return;
+                return false;
             }
         }
+        return true;
+    }
 
+    /**
+     * Executes a macro.
+     * @param macro 
+     * @param context Additional context provided to environment of caller. Usually provided from plugin hook results.
+     */
+    #execMacro(macro: Macro, context?: any) {
         const actions = macro.getActionSequence();
         for (const action of actions) {
             if (action.error) {
@@ -245,7 +219,7 @@ export class Macros {
      */
     execMacroById(id: string) {
         const macro = this.macros.find((m) => m.id === id);
-        if (macro) {
+        if (macro && this.#testMacroConditions(macro)) {
             this.#execMacro(macro);
         } else {
             log.error(`Macro with id ${id} not found`);
@@ -259,10 +233,15 @@ export class Macros {
      * @param context 
      */
     callFromHook(hookName: string, pluginName?: string, ...context: any[]) {
+        const candidates: Macro[] = [];
         for (const macro of this.#meta.hookMacros) {
-            if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName)) {
-                this.#execMacro(macro, context);
+            if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName) && this.#testMacroConditions(macro, context)) {
+                candidates.push(macro);
             }
+        }
+
+        for (const macro of candidates) {
+            this.#execMacro(macro, context);
         }
     }
 

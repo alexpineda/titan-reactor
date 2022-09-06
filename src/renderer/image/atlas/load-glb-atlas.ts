@@ -1,11 +1,11 @@
 import { Mesh, Object3D, Texture } from "three";
-import { ImageDAT, GltfAtlas, AnimAtlas } from "common/types";
+import { ImageDAT, GltfAtlas, AnimFrame } from "common/types";
 import loadGlb from "../formats/load-glb";
 
 
 export const loadGlbAtlas = async (
     glbFileName: string,
-    anim: AnimAtlas,
+    frames: AnimFrame[],
     imageDef: ImageDAT,
     envMap: Texture,
 ): Promise<Partial<GltfAtlas> | null> => {
@@ -30,11 +30,11 @@ export const loadGlbAtlas = async (
             throw new Error("No meshes found in glb");
         }
 
-        const looseFrames = anim.frames.length % 17;
+        const looseFrames = frames.length % 17;
 
-        const fixedFrames = anim.frames.map((_, i) => {
+        const fixedFrames = frames.map((_, i) => {
             if (imageDef.gfxTurns) {
-                if (i < anim.frames.length - looseFrames) {
+                if (i < frames.length - looseFrames) {
                     return Math.floor(i / 17);
                 } else {
                     return Math.floor(i / 17) + (i % 17);

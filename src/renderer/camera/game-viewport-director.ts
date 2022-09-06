@@ -175,10 +175,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
         }
     }
 
-    get name() {
-        return this.#sceneController?.name ?? "";
-    }
-
     dispose() {
         this.#mouseCursor.dispose();
     }

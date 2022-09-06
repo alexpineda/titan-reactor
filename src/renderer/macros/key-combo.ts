@@ -20,22 +20,18 @@ export class KeyCombo implements KeyComboDTO {
     shiftKey = false;
     codes: string[] = [];
 
-    isModifier(e: KeyEvent) {
+    isLegalModifier(e: KeyEvent) {
         return e.code.includes("Shift") ||
-            e.code.includes("Control") ||
-            e.code.includes("Alt");
-    }
-
-    isArrowKey(e: KeyEvent) {
-        return e.code.includes("ArrowUp") ||
-            e.code.includes("ArrowDown") ||
-            e.code.includes("ArrowLeft") ||
-            e.code.includes("ArrowRight")
+            e.code.includes("Control");
     }
 
     isIllegal(e: KeyEvent) {
         if (
-            this.isModifier(e) || this.isArrowKey(e)
+            e.code.includes("Alt") ||
+            e.code.includes("ArrowUp") ||
+            e.code.includes("ArrowDown") ||
+            e.code.includes("ArrowLeft") ||
+            e.code.includes("ArrowRight")
         ) {
             return true;
         }
@@ -68,7 +64,7 @@ export class KeyCombo implements KeyComboDTO {
         e.preventDefault();
 
         // allow modifiers are single entries (no combos)
-        if (this.isModifier(e)) {
+        if (this.isLegalModifier(e)) {
             this.set(e);
             this.#promise = Promise.resolve(this);
             return this.#promise;
@@ -114,9 +110,9 @@ export class KeyCombo implements KeyComboDTO {
     }
 
     set(e: KeyEvent) {
-        this.shiftKey = this.isModifier(e) ? false : e.shiftKey;
-        this.ctrlKey = this.isModifier(e) ? false : e.ctrlKey;
-        this.altKey = this.isModifier(e) ? false : e.altKey;
+        this.shiftKey = this.isLegalModifier(e) ? false : e.shiftKey;
+        this.ctrlKey = this.isLegalModifier(e) ? false : e.ctrlKey;
+        this.altKey = this.isLegalModifier(e) ? false : e.altKey;
         this.codes = [e.code];
     }
 

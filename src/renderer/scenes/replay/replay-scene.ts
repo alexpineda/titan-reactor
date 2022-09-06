@@ -1015,6 +1015,7 @@ export async function replayScene(
       if (v === viewports.primaryViewport) {
         minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
         if (v.needsUpdate) {
+          console.log("needs update")
           initializeRenderMode(v.renderMode3D);
           v.needsUpdate = false;
         }
@@ -1088,7 +1089,7 @@ export async function replayScene(
   }));
 
   janitor.mop(session.subscribe((newSettings) => {
-    if (!viewports.disabled && newSettings.game.sceneController !== viewports.name) {
+    if (!viewports.disabled && viewports.activeSceneController && newSettings.game.sceneController !== viewports.activeSceneController?.name) {
       viewports.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
 

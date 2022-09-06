@@ -143,7 +143,7 @@ export default async (settings: Settings) => {
             glbExists.set(refImageId, false);
             const glb = await loadGlbAtlas(
                 glbFileName(refImageId),
-                anim,
+                anim.frames,
                 imageDat,
                 envMap,
             );
@@ -234,12 +234,13 @@ export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) =>
             UnitTileScale.HD,
             assets.bwDat.grps[imageDat.grp],
         );
-        return await loadGlbAtlas(
-            glbFileName,
-            anim,
-            imageDat,
-            assets.envMap
-        );
+        return {
+            ...anim, ...await loadGlbAtlas(
+                glbFileName, anim.frames,
+                imageDat,
+                assets.envMap
+            )
+        };
     } else {
         return await loadAnimAtlas(
             await loadAnimBuffer(refImageId, UnitTileScale.HD),
