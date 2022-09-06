@@ -110,6 +110,7 @@ export type SettingsV6 = {
     game: {
         sceneController: string;
         minimapSize: number;
+        dampingFactor: number;
     },
     util: {
         sanityCheckReplayCommands: boolean,

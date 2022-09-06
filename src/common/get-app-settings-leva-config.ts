@@ -100,6 +100,15 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
             .filter((p) => p.isSceneController)
             .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
     },
+    dampingFactor: {
+        folder: "Game",
+        label: "Camera Movement Damping",
+        value: settings.data.game.dampingFactor,
+        path: "game",
+        min: 0.005,
+        max: 0.5,
+        step: 0.005,
+    },
     pixelRatio: {
         folder: "Graphics",
         label: "Pixel Ratio",

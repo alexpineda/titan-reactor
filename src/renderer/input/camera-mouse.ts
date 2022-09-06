@@ -16,7 +16,8 @@ export class CameraMouse {
     #lookAt = new Vector2()
     #mouseScrollY = 0;
     #clicked?: Vector3;
-    #mouse = new Vector3(0, 0, -1)
+    #mouse = new Vector3(0, 0, -1);
+    #modifiers = new Vector3(0, 0, 0);
     #clientX = 0;
     #clientY = 0;
 
@@ -74,6 +75,7 @@ export class CameraMouse {
 
         const pointerDown = (evt: PointerEvent) => {
             this.#mouse.z = evt.button;
+            this.#modifiers.set(evt.altKey ? 1 : 0, evt.ctrlKey ? 1 : 0, evt.shiftKey ? 1 : 0);
         }
         domElement.addEventListener("pointerdown", pointerDown, passive);
         this.#janitor.mop(() => {
@@ -85,6 +87,7 @@ export class CameraMouse {
             this.#clicked = clicked.copy(this.#mouse);
             this.#clicked.z = evt.button;
             this.#mouse.z = -1;
+            this.#modifiers.set(0, 0, 0);
         }
         domElement.addEventListener("pointerup", pointerUp, passive);
         this.#janitor.mop(() => {
@@ -98,7 +101,7 @@ export class CameraMouse {
 
     update(delta: number, elapsed: number, callbacks: UserInputCallbacks) {
 
-        callbacks.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked);
+        callbacks.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked, this.#modifiers);
 
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;

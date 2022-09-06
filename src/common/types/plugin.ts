@@ -145,7 +145,7 @@ export interface UserInputCallbacks {
      * @param clientY mouse clientY value
      * @param clicked - x,y mouse position in NDC + z = button state
      */
-    onCameraMouseUpdate(delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked?: Vector3): void;
+    onCameraMouseUpdate(delta: number, elapsed: number, scrollY: number, screenDrag: Vector2, lookAt: Vector2, mouse: Vector3, clientX: number, clientY: number, clicked: Vector3, modifiers: Vector3): void;
 
     /**
      * Updates every frame with the current keyboard data.

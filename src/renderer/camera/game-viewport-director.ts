@@ -114,7 +114,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
     async activate(inputHandler: SceneController | null, firstRunData?: any) {
         if (inputHandler === null) {
             this.#sceneController = null;
-            throw new Error("Cannot activate null scene controller");
             return;
         }
         if (inputHandler === undefined) {
@@ -129,7 +128,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
         if (this.#sceneController && this.#sceneController.onExitScene) {
             prevData = this.#sceneController.onExitScene(prevData);
         }
-        this.#sceneController && this.#macros.callHook("onExitScene", this.#sceneController.name);
+        this.#sceneController && this.#macros.callFromHook("onExitScene", this.#sceneController.name);
         this.#sceneController = null;
         this.#surface.togglePointerLock(false);
 
@@ -149,7 +148,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
         this.beforeActivate && this.beforeActivate(inputHandler);
         await inputHandler.onEnterScene(prevData);
-        this.#macros.callHook("onEnterScene", inputHandler.name);
+        this.#macros.callFromHook("onEnterScene", inputHandler.name);
         this.#sceneController = inputHandler;
 
         this.onActivate && this.onActivate(inputHandler);

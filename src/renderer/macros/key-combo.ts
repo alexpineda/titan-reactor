@@ -20,15 +20,22 @@ export class KeyCombo implements KeyComboDTO {
     shiftKey = false;
     codes: string[] = [];
 
-    isIllegal(e: KeyEvent) {
-        if (
-            e.code.includes("Shift") ||
+    isModifier(e: KeyEvent) {
+        return e.code.includes("Shift") ||
             e.code.includes("Control") ||
-            e.code.includes("Alt") ||
-            e.code.includes("ArrowUp") ||
+            e.code.includes("Alt");
+    }
+
+    isArrowKey(e: KeyEvent) {
+        return e.code.includes("ArrowUp") ||
             e.code.includes("ArrowDown") ||
             e.code.includes("ArrowLeft") ||
             e.code.includes("ArrowRight")
+    }
+
+    isIllegal(e: KeyEvent) {
+        if (
+            this.isModifier(e) || this.isArrowKey(e)
         ) {
             return true;
         }
@@ -59,6 +66,14 @@ export class KeyCombo implements KeyComboDTO {
 
     generateKeyComboFromEvent(e: KeyEvent) {
         e.preventDefault();
+
+        // allow modifiers are single entries (no combos)
+        if (this.isModifier(e)) {
+            this.set(e);
+            this.codes = [];
+            this.#promise = Promise.resolve(this);
+            return this.#promise;
+        }
 
         if (this.isIllegal(e)) {
             return this.#promise;

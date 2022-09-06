@@ -121,7 +121,7 @@ export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCa
 
 export type MacroTriggerDTO = {
     type: TriggerType;
-    value?: string;
+    value?: any;
 }
 
 export type MacroDTO = {
@@ -149,6 +149,6 @@ export enum TriggerType {
 }
 export interface MacroTrigger {
     type: TriggerType;
-    serialize: () => MacroTriggerDTO;
+    serialize: () => any;
     weight: number;
 }

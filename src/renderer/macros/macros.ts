@@ -44,15 +44,15 @@ export class Macros {
 
         const janitor = new Janitor();
         let testCombo = new KeyCombo;
-        let candidate: Macro | null;
+        let candidates: Macro[] = [];
         let acceptingInput: NodeJS.Timeout | null = null;
 
         const finishUp = () => {
             acceptingInput = null;
-            if (candidate) {
+            for (const candidate of candidates) {
                 this.#execMacro(candidate);
-                candidate = null;
             }
+            candidates.length = 0;
         }
 
         const createInputWindow = () => {
@@ -86,26 +86,25 @@ export class Macros {
                 const trigger = macro.trigger as HotkeyTrigger;
                 if (trigger.weight === currentWeight) {
                     if (trigger.value.test(testCombo)) {
-                        candidate = macro;
-                        break;
+                        candidates.push(macro);
                     }
                 }
             }
 
-            let _canSkip = true;
+            let _canSkipNextInSequence = true;
             // see if we can short circuit the next weights
             for (let nextWeight = currentWeight + 1; nextWeight <= maxWeight; nextWeight++) {
                 for (const macro of this.#meta.hotkeyMacros) {
                     const trigger = macro.trigger as HotkeyTrigger;
                     if (trigger.weight === nextWeight) {
                         if (trigger.value.testShallow(testCombo, currentWeight)) {
-                            _canSkip = false;
+                            _canSkipNextInSequence = false;
                             break;
                         }
                     }
                 }
             }
-            if (_canSkip) {
+            if (_canSkipNextInSequence) {
                 clearTimeout(acceptingInput!);
                 finishUp();
             }
@@ -244,7 +243,7 @@ export class Macros {
      * @param pluginName 
      * @param context 
      */
-    callHook(hookName: string, pluginName?: string, ...context: any[]) {
+    callFromHook(hookName: string, pluginName?: string, ...context: any[]) {
         for (const macro of this.#meta.hookMacros) {
             if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName)) {
                 this.#execMacro(macro, context);

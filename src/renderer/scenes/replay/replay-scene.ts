@@ -251,7 +251,7 @@ export async function replayScene(
     plugins.setSceneController(sceneController);
 
     unitSelection.enabled = sceneController.gameOptions?.allowUnitSelection;
-    unitSelection.selectionBox.camera = sceneController.viewport.camera;
+    unitSelection.selectionBox.camera = sceneController.viewports[0].camera;
     _sceneResizeHandler();
   }
 
@@ -269,6 +269,12 @@ export async function replayScene(
       type: "replay",
       simpleMessage(val: string) {
         simpleText.set(val);
+      },
+      get viewport() {
+        return viewports.viewports[0];
+      },
+      get secondViewport() {
+        return viewports.viewports[1];
       },
       scene,
       cssScene,
@@ -316,7 +322,15 @@ export async function replayScene(
         reset = refreshScene;
       },
       exitScene: () => {
-        viewports.activate(plugins.getSceneInputHandler(settingsStore().data.game.sceneController)!);
+        // so we don't do it in the middle of the game loop
+        setTimeout(() => {
+          session.getState().merge({
+            game: {
+              sceneController: settingsStore().data.game.sceneController
+            }
+          });
+        }, 0);
+
       },
       setPlayerColors(colors: string[]) {
         players.setPlayerColors(colors);
@@ -1016,7 +1030,7 @@ export async function replayScene(
 
       }
 
-      v.updateCamera();
+      v.updateCamera(session.getState().game.dampingFactor, delta);
       updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteIterator, spriteImageIterator);
       v.shakeStart(elapsed);
       globalEffectsBundle.updateCamera(v.camera)

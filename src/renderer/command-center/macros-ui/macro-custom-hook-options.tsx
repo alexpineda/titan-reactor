@@ -16,7 +16,7 @@ export const MacroCustomHookOptions = ({
     ...Object.keys(createDefaultHooks()),
     "onEnterScene",
     "onExitScene",
-  ];
+  ].map((value) => ({ value, label: value }));
   const trigger = MacroHookTrigger.deserialize(macro.trigger);
   const [selectedPlugin, setSelectedPlugin] = useState<string>(
     trigger.pluginName ?? ""
@@ -24,7 +24,9 @@ export const MacroCustomHookOptions = ({
   const hooks = [
     ...pluginsMetadata
       .filter((p) => p.name !== selectedPlugin)
-      .map((p) => p.hooks)
+      .map((p) =>
+        p.hooks.map((value) => ({ value, label: `${p.description}: ${value}` }))
+      )
       .flat(),
     ...globalHooks,
   ];
@@ -58,8 +60,8 @@ export const MacroCustomHookOptions = ({
       >
         <option key={""} value={""}></option>
         {hooks.map((hook) => (
-          <option key={hook} value={hook}>
-            {hook}
+          <option key={hook.value} value={hook.value}>
+            {hook.label}
           </option>
         ))}
       </select>

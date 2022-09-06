@@ -98,10 +98,10 @@ export interface SceneController extends PluginBase, SceneInputHandler {
 export class SceneController extends PluginBase {
     override isSceneController = true;
     viewports: GameViewPort[] = [];
-    get viewport() {
+    override get viewport() {
         return this.viewports[0];
     }
-    get secondViewport() {
+    override get secondViewport() {
         return this.viewports[1];
     }
 }
@@ -352,11 +352,11 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
-                this.#macros && this.#macros.callHook(hookName, plugin.name, context);
+                this.#macros && this.#macros.callFromHook(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.#macros && this.#macros.callHook(hookName, undefined, context);
+        this.#macros && this.#macros.callFromHook(hookName, undefined, args, context);
         return context;
     }
 
@@ -371,11 +371,11 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
-                this.#macros && this.#macros.callHook(hookName, plugin.name, context);
+                this.#macros && this.#macros.callFromHook(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.#macros && this.#macros.callHook(hookName, undefined, context);
+        this.#macros && this.#macros.callFromHook(hookName, undefined, args, context);
         return context;
     }
 

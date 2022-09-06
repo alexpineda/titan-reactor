@@ -249,7 +249,9 @@ export class GameViewPort {
         this.cameraShake.restore(this.camera);
     }
 
-    updateCamera() {
+    updateCamera(targetDamping: number, delta: number) {
+        this.orbit.dampingFactor = MathUtils.damp(this.orbit.dampingFactor, targetDamping, 0.0001, delta);
+
         const dir = this.renderMode3D ? getDirection32(this.projectedView.center ?? this.orbit.getTarget(_target), this.camera.position) : 0;
         if (dir != this.camera.userData.direction) {
             this.camera.userData.prevDirection = this.camera.userData.direction;

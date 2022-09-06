@@ -4,12 +4,14 @@ import { GetTerrainY } from "@image/generate-map";
 import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header";
 import BaseScene from "@render/base-scene";
 import { Assets, PxToGameUnit } from "common/types";
+import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene, Vector3 } from "three";
 
 
 export interface GameTimeApi {
     type: "replay",
-
+    viewport: GameViewPort;
+    secondViewport: GameViewPort
     simpleMessage(message: string): void;
     scene: BaseScene;
     cssScene: Scene;
