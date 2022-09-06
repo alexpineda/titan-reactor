@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
+import { Color, MathUtils, Object3D, PCFSoftShadowMap, PerspectiveCamera, Vector2, Vector3, VSMShadowMap } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
@@ -184,6 +184,12 @@ export async function replayScene(
         if (image instanceof Image3D) {
           image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
         }
+      }
+
+
+      if (globalEffectsBundle.options3d.shadowQuality !== scene.sunlight.shadowQuality) {
+        scene.createSunlight();
+        scene.sunlight.shadowQuality = globalEffectsBundle.options3d.shadowQuality;
       }
       scene.sunlight.shadowIntensity = globalEffectsBundle.options3d.shadowIntensity;
       scene.sunlight.setPosition(globalEffectsBundle.options3d.sunlightDirection[0], globalEffectsBundle.options3d.sunlightDirection[1], globalEffectsBundle.options3d.sunlightDirection[2]);
@@ -1022,15 +1028,13 @@ export async function replayScene(
     for (const v of viewports.activeViewports()) {
 
       if (v === viewports.primaryViewport) {
+
         minimapGraphics.syncFOWBuffer(fogOfWar.buffer)
         if (v.needsUpdate) {
           initializeRenderMode(v.renderMode3D);
           v.needsUpdate = false;
         }
 
-        if (selectedUnitsStore().selectedUnits.length) {
-
-        }
         v.orbit.getTarget(_target);
         _target.setY(terrain.getTerrainY(_target.x, _target.z));
         globalEffectsBundle.updateExtended(v.camera, _target)

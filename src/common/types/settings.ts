@@ -152,6 +152,7 @@ export type SettingsV6 = {
         sunlightColor: string;
         sunlightIntensity: number;
         shadowIntensity: number;
+        shadowQuality: number;
     },
     macros: MacrosDTO
 };

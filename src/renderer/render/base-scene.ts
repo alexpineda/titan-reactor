@@ -11,8 +11,10 @@ import { Sunlight } from "./sunlight";
 export class BaseScene extends Scene {
   #janitor: Janitor;
   #borderTiles: BorderTiles;
+  #mapWidth: number;
+  #mapHeight: number;
 
-  readonly sunlight: Sunlight;
+  sunlight: Sunlight;
 
   //@ts-ignore
   userData: {
@@ -30,7 +32,6 @@ export class BaseScene extends Scene {
     this.#janitor.mop(this);
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
-
     this.add(...this.sunlight.children);
     this.addTerrain(terrain);
 
@@ -40,7 +41,19 @@ export class BaseScene extends Scene {
     this.#borderTiles.rotation.x = -Math.PI / 2;
     this.#borderTiles.updateMatrixWorld();
 
+    this.#mapHeight = mapHeight;
+    this.#mapWidth = mapWidth;
+
     // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
+  }
+
+  createSunlight() {
+    this.sunlight.dispose();
+    for (const child of this.sunlight.children) {
+      this.remove(child);
+    }
+    this.sunlight = new Sunlight(this.#mapWidth, this.#mapHeight);
+    this.add(...this.sunlight.children);
   }
 
   setBorderTileColor(color: number) {
@@ -68,6 +81,7 @@ export class BaseScene extends Scene {
   }
 
   dispose() {
+    this.sunlight.dispose();
     this.#janitor.dispose();
   }
 }

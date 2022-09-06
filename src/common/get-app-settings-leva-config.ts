@@ -146,12 +146,12 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     useHD2: {
         folder: "Graphics",
-        label: "Use HD2",
+        label: "Use HD2 (50% HD)",
         value: settings.data.graphics.useHD2,
         path: "graphics",
         options: {
             "As Mipmap (Highest Quality)": "auto",
-            "Never": "ignore",
+            "Never. Only HD.": "ignore",
             "Exclusively (Lower Memory)": "force",
         }
     },
@@ -368,5 +368,14 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         min: 0,
         max: 1,
         step: 0.1
+    },
+    "shadowQuality": {
+        "label": "Shadow Quality",
+        folder: "3D Renderer",
+        path: "postprocessing3d",
+        "value": settings.data.postprocessing3d.shadowQuality,
+        min: 0,
+        max: 8,
+        step: 1
     },
 });

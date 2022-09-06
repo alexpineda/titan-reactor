@@ -30,6 +30,7 @@ export class Sunlight {
     #light2: DirectionalLight;
     #intensity = 1;
     shadowIntensity = 1;
+    #quality = 1;
 
     constructor(mapWidth: number, mapHeight: number) {
         this.#light = createDirectional(mapWidth, mapHeight);
@@ -51,7 +52,6 @@ export class Sunlight {
         this.#intensity = value;
         this.#light.intensity = value * this.shadowIntensity;
         this.#light2.intensity = value * (1 - this.shadowIntensity);
-        this.#light2.visible = this.#light2.intensity === 0;
     }
 
     get intensity() {
@@ -82,5 +82,25 @@ export class Sunlight {
         this.#light2.shadow.needsUpdate = true;
         this.#light2.updateMatrix();
         this.#light2.updateMatrixWorld();
+    }
+
+    set shadowQuality(quality: number) {
+        this.#light.castShadow = quality > 0;
+        if (this.#light.castShadow === false) {
+            return;
+        }
+        this.#quality = quality;
+        this.#light.shadow.mapSize.width = 512 * quality;
+        this.#light.shadow.mapSize.height = 512 * quality;
+        this.#light.shadow.needsUpdate = true;
+    }
+
+    get shadowQuality() {
+        return this.#quality;
+    }
+
+    dispose() {
+        this.#light.dispose();
+        this.#light2.dispose();
     }
 }
