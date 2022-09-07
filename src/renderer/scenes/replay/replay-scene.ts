@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, Object3D, PCFSoftShadowMap, PerspectiveCamera, Vector2, Vector3, VSMShadowMap } from "three";
+import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
 import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
@@ -625,12 +625,6 @@ export async function replayScene(
 
     const unit = sprites.getUnit(spriteData.index);
     let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
-
-    // openbw recycled the id for the sprite, so we reset some things
-    if (sprite.userData.typeId !== spriteData.typeId) {
-      delete sprite.userData.fixedY;
-      sprite.userData.typeId = spriteData.typeId;
-    }
 
     const dat = assets.bwDat.sprites[spriteData.typeId];
 

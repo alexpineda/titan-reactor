@@ -22,7 +22,11 @@ export const defaultSettingsV6: SettingsV6 = {
   game: {
     sceneController: "@titan-reactor-plugins/camera-standard",
     minimapSize: 1,
-    dampingFactor: 0.15
+    dampingFactor: 0.15,
+    cameraShakeStrength: 1,
+    movementSpeed: 1,
+    rotateSpeed: 1,
+    zoomLevels: [0.5, 1, 2],
   },
   util: {
     sanityCheckReplayCommands: true,
@@ -58,6 +62,7 @@ export const defaultSettingsV6: SettingsV6 = {
     sunlightDirection: [-9, 43, -45],
     sunlightIntensity: 5,
     shadowIntensity: 0.8,
+    shadowQuality: 8
   },
   plugins: {
     serverPort: 8080,

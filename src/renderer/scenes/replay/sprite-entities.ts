@@ -33,13 +33,16 @@ export class SpriteEntities {
             this.#spritesMap.set(spriteIndex, sprite);
             this.group.add(sprite);
             this.#spritesList.add(sprite);
-
-            sprite.userData.typeId = spriteTypeId;
-            delete sprite.userData.fixedY;
-
             sprite.matrixAutoUpdate = false;
 
         }
+
+        // openbw recycled the id for the sprite, so we reset some things
+        if (sprite.userData.typeId !== spriteTypeId) {
+            delete sprite.userData.fixedY;
+        }
+        sprite.userData.typeId = spriteTypeId;
+
         return sprite;
     }
 
@@ -50,6 +53,11 @@ export class SpriteEntities {
             this.#spritePool.push(sprite);
             this.#spritesMap.delete(spriteIndex);
             this.#spritesList.delete(sprite);
+
+            // reset userData
+            delete sprite.userData.fixedY;
+            sprite.userData.typeId = -1;
+            sprite.userData.renderOrder = 0
         }
         this.#unitsBySprite.delete(spriteIndex);
     }
