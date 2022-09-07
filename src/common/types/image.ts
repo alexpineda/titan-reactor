@@ -18,7 +18,6 @@ export enum UnitTileScale {
 
 export interface SpriteType extends Group {
   userData: {
-    fixedY?: number;
     typeId: number;
     // track calculated render order
     renderOrder: number;

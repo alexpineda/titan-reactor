@@ -1,16 +1,16 @@
 import { ClampToEdgeWrapping, DataTexture, LinearFilter, RedFormat, UnsignedByteType, Vector2, Vector4 } from "three";
-import { OpenBWAPI } from "common/types";
+import { OpenBW } from "common/types";
 import { FogOfWarEffect } from "./fog-of-war-effect";
 
 export class FogOfWar {
-    #openBW: OpenBWAPI;
+    #openBW: OpenBW;
     texture: DataTexture;
     effect: FogOfWarEffect;
     buffer = new Uint8Array();
     forceInstantUpdate = false;
     enabled = true;
 
-    constructor(width: number, height: number, openBw: OpenBWAPI, effect: FogOfWarEffect) {
+    constructor(width: number, height: number, openBw: OpenBW, effect: FogOfWarEffect) {
         this.#openBW = openBw;
 
         const texture = new DataTexture(

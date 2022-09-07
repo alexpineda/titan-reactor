@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
-import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes, WeaponType } from "common/enums";
+import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
 import { Surface } from "@image";
 import {
   Settings,
@@ -63,6 +63,7 @@ import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHa
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
+import { FreeMap } from "@utils/free-map";
 
 export async function replayScene(
   map: Chk,
@@ -134,7 +135,7 @@ export async function replayScene(
 
   const units = new UnitEntities
 
-  const sprites = new SpriteEntities;
+  const sprites = new SpriteEntities(openBW);
   scene.add(sprites.group);
 
   const images = janitor.mop(new ImageEntities);
@@ -602,24 +603,51 @@ export async function replayScene(
 
   scene.add(...selectionObjects);
 
-  const calcSpriteCoordsXY = (x: number, y: number, v: Vector3, v2: Vector2, isFlying?: boolean) => {
-    const spriteX = pxToGameUnit.x(x);
-    const spriteZ = pxToGameUnit.y(y);
-    let spriteY = terrain.getTerrainY(spriteX, spriteZ);
-    const flyingY = isFlying ? spriteY / terrain.geomOptions.maxTerrainHeight + terrain.geomOptions.maxTerrainHeight + 1 : spriteY;
+  class DeadTargetSource {
+    x = 0;
+    y = 0;
+    statusFlags = 0;
+    copy(b: { x: number, y: number, statusFlags: number }) {
+      this.x = b.x;
+      this.y = b.y;
+      this.statusFlags = b.statusFlags;
+    }
+  }
 
-    v2.set(spriteX, spriteZ);
-    v.set(spriteX, flyingY, spriteZ);
+  // track bullet targets because they can die and that makes us sad :(
+  const deadTargetSource = new FreeMap<number, { sourceUnit: DeadTargetSource, targetUnit: DeadTargetSource }>(() => ({
+    sourceUnit: new DeadTargetSource,
+    targetUnit: new DeadTargetSource,
+  }));
+
+  const getWorldYPosition = (worldX: number, worldZ: number, isFlying?: boolean) => {
+    let y = terrain.getTerrainY(worldX, worldZ);
+    return isFlying ? y / terrain.geomOptions.maxTerrainHeight + terrain.geomOptions.maxTerrainHeight + 1 : y
   }
-  const calcSpriteCoords = (sprite: SpritesBufferView, v: Vector3, v2: Vector2, isFlying?: boolean) => {
-    calcSpriteCoordsXY(sprite.x, sprite.y, v, v2, isFlying);
+
+  const getWorldSpriteY = (sprite: { x: number, y: number }, isFlying?: boolean) => {
+    const worldX = pxToGameUnit.x(sprite.x);
+    const worldZ = pxToGameUnit.y(sprite.y);
+    return getWorldYPosition(worldX, worldZ, isFlying);
   }
-  const _spritePos = new Vector3();
-  const _spritePos2d = new Vector2();
-  const _targetSpritePos2d = new Vector2();
-  const _targetSpritePos = new Vector3();
-  const _ownerSpritePos = new Vector3();
-  const _ownerSpritePos2d = new Vector2();
+
+  const getWorldSpriteVectorsFromXY = (x: number, y: number, v: Vector3, isFlying?: boolean) => {
+    const worldX = pxToGameUnit.x(x);
+    const worldZ = pxToGameUnit.y(y);
+    v.set(worldX, getWorldYPosition(worldX, worldZ, isFlying), worldZ);
+  }
+  const getWorldSpriteVectors = (sprite: { x: number, y: number }, v: Vector3, isFlying?: boolean) => {
+    getWorldSpriteVectorsFromXY(sprite.x, sprite.y, v, isFlying);
+  }
+  const _spriteVector3 = new Vector3();
+  const _spriteVector2 = new Vector2();
+  const _destBulletVector2 = new Vector2();
+  const _destBulletVector3 = new Vector3();
+  const _sourceBulletVector3 = new Vector3();
+  const _sourceBulletVector2 = new Vector2();
+  let _bulletTargetUnit: UnitsBufferView | DeadTargetSource | undefined;
+  let _bulletSourceUnit: UnitsBufferView | DeadTargetSource | undefined;
+  let _bulletTargetPos = new Vector2();
 
   const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
 
@@ -643,7 +671,7 @@ export async function replayScene(
     sprite.visible = spriteIsVisible;
     sprite.userData.renderOrder = spriteSortOrder(spriteData as SpriteStruct);
 
-    calcSpriteCoords(spriteData, _spritePos, _spritePos2d, unit && unitIsFlying(unit));
+    getWorldSpriteVectors(spriteData, _spriteVector3, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
 
     const player = players.playersById[spriteData.owner];
@@ -651,41 +679,63 @@ export async function replayScene(
     if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
 
       if (bullet.state === BulletState.Dying) {
-        viewports.doShakeCalculation(weapon.explosionType, weapon.damageType, viewports, _spritePos);
+        viewports.doShakeCalculation(weapon.explosionType, weapon.damageType, _spriteVector3);
       }
 
-      if (weapon.weaponBehavior === WeaponBehavior.AppearOnTargetUnit && bullet.targetUnit) {
-        calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, unitIsFlying(bullet.targetUnit));
-        bulletY = _targetSpritePos.y;
-        // appear on attacker: dark swarm/scarab/stasis field (visible?)
-      } else if ((weapon.weaponBehavior === WeaponBehavior.AppearOnAttacker || weapon.weaponBehavior === WeaponBehavior.AttackTarget_3x3Area) && bullet.ownerUnit) {
-        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, unitIsFlying(bullet.ownerUnit));
-        bulletY = _ownerSpritePos.y;
-      } else if (weapon.weaponBehavior === WeaponBehavior.FlyAndDontFollowTarget && bullet.targetUnit && bullet.ownerUnit) {
-        calcSpriteCoordsXY(bullet.targetPosX, bullet.targetPosY, _targetSpritePos, _targetSpritePos2d, unitIsFlying(bullet.targetUnit));
-        calcSpriteCoords(bullet.ownerUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, unitIsFlying(bullet.ownerUnit));
+      const staticTargetYBullets = [WeaponBehavior.AppearOnTargetUnit, WeaponBehavior.AppearOnTargetPosition, WeaponBehavior.PersistOnTargetPos];
 
-        const unitDistances = _ownerSpritePos2d.distanceTo(_targetSpritePos2d);
-        const bulletDistanceToTarget = _spritePos2d.distanceTo(_targetSpritePos2d);
+      const staticSourceYBullets = [WeaponBehavior.AppearOnSourceUnit, WeaponBehavior.SelfDestruct];
 
-        bulletY = MathUtils.lerp(_targetSpritePos.y, _ownerSpritePos.y, bulletDistanceToTarget / unitDistances);
+      const dynamicYBullets = [WeaponBehavior.Fly, WeaponBehavior.ExtendToMaxRange, WeaponBehavior.FollowTarget, WeaponBehavior.Bounce]
+
+      _bulletSourceUnit = bullet.ownerUnit ?? bullet.prevBounceUnit ?? deadTargetSource.maybe(bullet.index)?.sourceUnit;
+      _bulletTargetUnit = bullet.targetUnit ?? deadTargetSource.maybe(bullet.index)?.targetUnit;
+      _bulletTargetPos.set(bullet.targetPosX, bullet.targetPosY);
+
+      if (bullet.ownerUnit || bullet.prevBounceUnit) {
+        deadTargetSource.get(bullet.index).sourceUnit.copy(bullet.ownerUnit ?? bullet.prevBounceUnit!);
       }
-      else if ((weapon.weaponBehavior === WeaponBehavior.FlyAndFollowTarget || weapon.weaponBehavior === WeaponBehavior.Bounce) && bullet.targetUnit) {
-        const prevUnit = bullet.prevBounceUnit ?? bullet.ownerUnit;
-        if (prevUnit) {
-          calcSpriteCoords(bullet.targetUnit.owSprite, _targetSpritePos, _targetSpritePos2d, unitIsFlying(bullet.targetUnit));
-          calcSpriteCoords(prevUnit.owSprite, _ownerSpritePos, _ownerSpritePos2d, unitIsFlying(prevUnit));
 
-          const unitDistances = _ownerSpritePos2d.distanceTo(_targetSpritePos2d);
-          const bulletDistanceToTarget = _spritePos2d.distanceTo(_targetSpritePos2d);
+      if (bullet.targetUnit) {
+        deadTargetSource.get(bullet.index).targetUnit.copy(bullet.targetUnit);
+      }
 
-          bulletY = MathUtils.lerp(_targetSpritePos.y, _ownerSpritePos.y, bulletDistanceToTarget / unitDistances);
+      // do this based on state instead? Since we probably want to use
+      // flingy move target instead of bullet target in some cases
+      if (staticSourceYBullets.includes(weapon.weaponBehavior)) {
+        bulletY = _bulletSourceUnit ? getWorldSpriteY(_bulletSourceUnit, unitIsFlying(_bulletSourceUnit)) : _spriteVector3.y;
+      } else if (dynamicYBullets.includes(weapon.weaponBehavior) || staticTargetYBullets.includes(weapon.weaponBehavior)) {
+
+        // if (_bulletTargetUnit) {
+        //   _bulletTargetPos.set(_bulletTargetUnit.x, _bulletTargetUnit.y);
+        // }
+
+        bulletY = getWorldSpriteY(_bulletTargetPos, _bulletTargetUnit ? unitIsFlying(_bulletTargetUnit) : false);
+
+        if (dynamicYBullets.includes(weapon.weaponBehavior) && _bulletSourceUnit) {
+
+          getWorldSpriteVectors(_bulletTargetPos.set(bullet.nextMovementWaypointX, bullet.nextMovementWaypointY), _destBulletVector3, _bulletTargetUnit ? unitIsFlying(_bulletTargetUnit) : false);
+
+          getWorldSpriteVectors(_bulletSourceUnit, _sourceBulletVector3, unitIsFlying(_bulletSourceUnit));
+
+          _destBulletVector2.set(_destBulletVector3.x, _destBulletVector3.z);
+          _sourceBulletVector2.set(_sourceBulletVector3.x, _sourceBulletVector3.z);
+
+          const sourceToTargetDistance = _sourceBulletVector2.distanceTo(_destBulletVector2);
+          const bulletToTargetDistance = pxToGameUnit.xy(bullet.x, bullet.y, _spriteVector2).distanceTo(_destBulletVector2);
+
+          //TODO: figure out why bulletToTargetDistance > sourceToTargetDistance in some cases, which is why we need the Math.min hack
+          bulletY = MathUtils.lerp(_destBulletVector3.y, _sourceBulletVector3.y, Math.min(1, bulletToTargetDistance / sourceToTargetDistance));
+
         }
+
+      } else {
+        console.warn("Unknown bullet behavior", weapon.weaponBehavior);
       }
+
     }
 
-    // update sprite y for easy comparison / assignment - beware of using spritePos.y for original values afterward!
-    sprite.position.set(_spritePos.x, (sprite.userData.fixedY ?? bulletY ?? _spritePos.y), _spritePos.z);
+    sprite.position.set(_spriteVector3.x, (sprites.getParent(spriteData.index)?.position.y ?? bulletY ?? _spriteVector3.y), _spriteVector3.z);
     sprite.updateMatrix();
     sprite.matrixWorld.copy(sprite.matrix);
     // sprite.updateMatrixWorld();
@@ -807,6 +857,8 @@ export async function replayScene(
     const deletedImageAddr = openBW._get_buffer(3);
     const deletedSpriteAddr = openBW._get_buffer(4);
 
+    sprites.updateLinkedSprites();
+
     // avoid image flashing 
     // we clear the group here rather than on the reset event
     if (_wasReset) {
@@ -822,6 +874,11 @@ export async function replayScene(
       images.free(openBW.HEAP32[(deletedImageAddr >> 2) + i]);
     }
 
+    for (let i = 0; i < openBW.getBulletsDeletedCount(); i++) {
+      deadTargetSource.delete(openBW.HEAP32[(openBW.getBulletsDeletedAddress() >> 2) + i]);
+    }
+
+
     // build bullet sprites first since they need special Y calculations
     bulletList.addr = openBW.getBulletsAddress();
     _ignoreSprites.length = 0;
@@ -830,10 +887,6 @@ export async function replayScene(
 
       const bullet = bulletBufferView.get(bulletAddr);
       const weapon = assets.bwDat.weapons[bullet.weaponTypeId];
-
-      if (bullet.weaponTypeId === WeaponType.FusionCutter_Harvest || bullet.weaponTypeId === WeaponType.ParticleBeam_Harvest || bullet.weaponTypeId === WeaponType.Spines_Harvest || weapon.weaponBehavior === WeaponBehavior.AppearOnTargetPos) {
-        continue;
-      }
 
       buildSprite(bullet.owSprite, delta, bullet, weapon);
       _ignoreSprites.push(bullet.spriteIndex);
@@ -859,21 +912,6 @@ export async function replayScene(
       }
     }
 
-    // linked sprites are a psuedo link of sprites the create their own sprites in the iscript
-    // eg. sprol, which openbw then calls create_thingy_at_image
-    // the reason we need to track this link is because some bullets create trails
-    // titan-reactor.h only sends us sprites of halo rocket trail and long bolt/gemini missile trail
-    const linkedSpritesAddr = openBW.getLinkedSpritesAddress();
-    for (let i = 0; i < openBW.getLinkedSpritesCount(); i++) {
-      const addr = (linkedSpritesAddr >> 2) + (i << 1);
-      const parent = sprites.get(openBW.HEAP32[addr]);
-      const child = sprites.get(openBW.HEAP32[addr + 1]);
-      if (!child || !parent) {
-        break;
-      }
-      // keep a reference to the value so that we retain it in buildSprite() in future iterations
-      child.position.y = child.userData.fixedY = parent.position.y;
-    }
   };
 
 

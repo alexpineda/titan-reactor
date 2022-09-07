@@ -12,6 +12,7 @@ export type WeaponDAT = {
   damageUpgrade: number;
   damageType: number;
   weaponBehavior: number;
+  lifetime: number;
   explosionType: number;
   innerSplashRange: number;
   mediumSplashRange: number;
@@ -40,7 +41,7 @@ export class WeaponsDAT extends DAT<WeaponDAT> {
       { size: 1, name: "damageUpgrade" },
       { size: 1, name: "damageType" },
       { size: 1, name: "weaponBehavior" },
-      { size: 1, name: "removeAfter" },
+      { size: 1, name: "lifetime" },
       { size: 1, name: "explosionType" },
       { size: 2, name: "innerSplashRange" },
       { size: 2, name: "mediumSplashRange" },

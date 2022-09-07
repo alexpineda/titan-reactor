@@ -1,4 +1,4 @@
-import { OpenBWAPI } from "common/types";
+import { OpenBW } from "common/types";
 
 export enum ReplayChangeSpeedDirection {
     Up,
@@ -7,7 +7,7 @@ export enum ReplayChangeSpeedDirection {
 
 export const REPLAY_MIN_SPEED = 0.25;
 export const REPLAY_MAX_SPEED = 16;
-export const speedHandler = (direction: ReplayChangeSpeedDirection, openBW: OpenBWAPI) => {
+export const speedHandler = (direction: ReplayChangeSpeedDirection, openBW: OpenBW) => {
     const currentSpeed = openBW.getGameSpeed();
     let newSpeed = 0;
 

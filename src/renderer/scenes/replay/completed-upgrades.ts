@@ -1,6 +1,6 @@
 import { StdVector } from "@buffer-view";
 import { HOOK_ON_TECH_COMPLETED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
-import { BwDAT, OpenBWAPI, TechDataDAT, UpgradeDAT } from "common/types";
+import { BwDAT, OpenBW, TechDataDAT, UpgradeDAT } from "common/types";
 import range from "common/utils/range";
 import * as plugins from "@plugins";
 
@@ -11,7 +11,7 @@ const completedResearchReset = range(0, 8).map(() => [] as number[][]);
 
 let productionData: StdVector;
 
-export const updateCompletedUpgrades = (openBW: OpenBWAPI, bwDat: BwDAT, currentBwFrame: number) => {
+export const updateCompletedUpgrades = (openBW: OpenBW, bwDat: BwDAT, currentBwFrame: number) => {
     if (!productionData) {
         productionData = new StdVector(openBW.HEAP32, openBW._get_buffer(9) >> 2);
     }

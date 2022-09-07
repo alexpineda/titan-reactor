@@ -7,6 +7,7 @@ export interface BulletStruct extends FlingyStruct {
     targetPosX: number;
     targetPosY: number;
     weaponTypeId: number;
+    remainingTime: number;
     ownerUnit?: UnitsBufferView;
     prevBounceUnit?: UnitsBufferView;
 }

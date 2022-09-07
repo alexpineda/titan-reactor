@@ -183,12 +183,12 @@ export class GameViewportsDirector implements UserInputCallbacks {
         return this.viewports.length ? this.viewports[0].generatePrevData() : null;
     }
 
-    doShakeCalculation = (explosionType: Explosion, damageType: DamageType, gameViewportsDirector: GameViewportsDirector, spritePos: Vector3) => {
+    doShakeCalculation = (explosionType: Explosion, damageType: DamageType, spritePos: Vector3) => {
         const exp = explosionFrequencyDuration[explosionType as keyof typeof explosionFrequencyDuration];
         const _bulletStrength = bulletStrength[damageType as keyof typeof bulletStrength];
 
         if (_bulletStrength && !(exp === undefined || damageType === DamageType.IgnoreArmor || damageType === DamageType.Independent)) {
-            for (const v of gameViewportsDirector.activeViewports()) {
+            for (const v of this.activeViewports()) {
                 if (!v.cameraShake.enabled) {
                     continue;
                 }

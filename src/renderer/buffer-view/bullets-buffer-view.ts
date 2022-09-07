@@ -1,4 +1,4 @@
-import { OpenBWAPI, BulletStruct } from "common/types";
+import { OpenBW, BulletStruct } from "common/types";
 import FlingyBufferView from "./flingy-buffer-view";
 import { UnitsBufferView } from "./units-buffer-view";
 
@@ -11,7 +11,7 @@ export class BulletsBufferView extends FlingyBufferView
     private _bulletOwnerUnit: UnitsBufferView;
     private _prevBounceUnit: UnitsBufferView;
 
-    constructor(bw: OpenBWAPI) {
+    constructor(bw: OpenBW) {
         super(bw);
         this._bulletTarget = new UnitsBufferView(bw);
         this._bulletOwnerUnit = new UnitsBufferView(bw);
@@ -43,6 +43,10 @@ export class BulletsBufferView extends FlingyBufferView
     get weaponTypeId() {
         const addr = this._bw.HEAPU32[this._addr32 + 33];
         return this._bw.HEAP32[addr >> 2];
+    }
+
+    get remainingTime() {
+        return this._bw.HEAPU32[this._addr32 + 34];
     }
 
     get ownerUnit() {

@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { PluginMetaData, MacroActionPlugin, OpenBWAPI } from "common/types";
+import { PluginMetaData, MacroActionPlugin, OpenBW } from "common/types";
 import {
     ON_PLUGINS_ENABLED,
     DISABLE_PLUGIN,
@@ -96,7 +96,7 @@ export const onClick = (event: MouseEvent) => {
 };
 
 export const onFrame = (
-    openBw: OpenBWAPI,
+    openBw: OpenBW,
     currentFrame: number,
     playerDataAddr: number,
     productionDataAddr: number,

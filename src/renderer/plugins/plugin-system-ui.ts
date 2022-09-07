@@ -1,5 +1,5 @@
 import Janitor from "@utils/janitor";
-import { PluginMetaData, OpenBWAPI } from "common/types";
+import { PluginMetaData, OpenBW } from "common/types";
 import settingsStore from "@stores/settings-store";
 import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
@@ -269,7 +269,7 @@ export class PluginSystemUI {
         _selectedUnitMessage.payload = [];
     }
 
-    onFrame(openBW: OpenBWAPI, currentFrame: number, playerDataAddr: number, productionDataAddr: number) {
+    onFrame(openBW: OpenBW, currentFrame: number, playerDataAddr: number, productionDataAddr: number) {
         const time = getSecond(currentFrame);
 
         // update the ui every game second

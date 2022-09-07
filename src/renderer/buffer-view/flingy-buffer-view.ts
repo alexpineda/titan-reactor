@@ -5,9 +5,6 @@ function fractional_part(raw_value: number, fractional_bits: number) {
     return raw_value & ((1 << fractional_bits) - 1);
 }
 
-/**
- * Maps to openbw flingy_t
- */
 export class FlingyBufferView extends ThingyBufferView
     implements FlingyStruct {
 
@@ -15,10 +12,37 @@ export class FlingyBufferView extends ThingyBufferView
         return this._bw.HEAPU32[this._addr32 + 2];
     }
 
-    // target = 3
-    // movement waypoint = 2
-    // target waypoint= 2
-    // movement flags = 1
+    get moveTargetX() {
+        return this._bw.HEAPU32[this._addr32 + 3];
+    }
+
+    get moveTargetY() {
+        return this._bw.HEAPU32[this._addr32 + 4];
+    }
+
+    get moveTargetUnit() {
+        return this._bw.HEAPU32[this._addr32 + 5];
+    }
+
+    get nextMovementWaypointX() {
+        return this._bw.HEAPU32[this._addr32 + 6];
+    }
+
+    get nextMovementWaypointY() {
+        return this._bw.HEAPU32[this._addr32 + 7];
+    }
+
+    get nextTargetWaypointX() {
+        return this._bw.HEAPU32[this._addr32 + 8];
+    }
+
+    get nextTargetWaypointY() {
+        return this._bw.HEAPU32[this._addr32 + 9];
+    }
+
+    get movementFlags() {
+        return this._bw.HEAPU32[this._addr32 + 10];
+    }
 
     get direction() {
         // heading is a large structure (fixed_point), get the byte at 2nd word for raw value

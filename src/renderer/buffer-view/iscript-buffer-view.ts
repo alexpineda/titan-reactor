@@ -1,11 +1,11 @@
-import { OpenBWAPI } from "common/types";
+import { OpenBW } from "common/types";
 import { IScriptStateStruct } from "common/types/structs/iscript-struct";
 
 export class IScriptBufferView
     implements IScriptStateStruct {
 
     #address = 0;
-    _bw: OpenBWAPI;
+    _bw: OpenBW;
     _debug = 0;
 
     get(address: number) {
@@ -13,7 +13,7 @@ export class IScriptBufferView
         return this;
     }
 
-    constructor(bw: OpenBWAPI) {
+    constructor(bw: OpenBW) {
         this._bw = bw;
     }
 

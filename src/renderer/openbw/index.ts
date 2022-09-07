@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
-import { OpenBWAPI, OpenBWWasm, ReadFile } from "common/types";
+import { OpenBW, OpenBWWasm, ReadFile } from "common/types";
 import initializeWASM from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 
@@ -27,7 +27,7 @@ const createOpenBW = async () => {
     wasmBinary: readFileSync(wasmFileLocation)
   }) as OpenBWWasm;
 
-  const openBW = Object.create(wasm) as OpenBWAPI;
+  const openBW = Object.create(wasm) as OpenBW;
 
   const tryCatch = (cb: Function) => {
     try {
@@ -107,7 +107,7 @@ const createOpenBW = async () => {
   return openBW;
 }
 
-const openBws: Record<number, OpenBWAPI> = {};
+const openBws: Record<number, OpenBW> = {};
 
 const getOpenBW = async (instance = 0) => {
   if (openBws[instance]) return openBws[instance];

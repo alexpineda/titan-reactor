@@ -1,4 +1,4 @@
-import { OpenBWAPI } from "common/types";
+import { OpenBW } from "common/types";
 import { ThingyStruct } from "common/types/structs/thingy-struct";
 import { FP8 } from "./fixed-point";
 import { SpritesBufferView } from "./sprites-buffer-view";
@@ -10,7 +10,7 @@ export class ThingyBufferView
     implements ThingyStruct {
 
     protected _address = 0;
-    protected _bw: OpenBWAPI;
+    protected _bw: OpenBW;
     protected _sprite: SpritesBufferView;
 
     get address() {
@@ -22,7 +22,7 @@ export class ThingyBufferView
         return this;
     }
 
-    constructor(bw: OpenBWAPI) {
+    constructor(bw: OpenBW) {
         this._bw = bw;
         this._sprite = new SpritesBufferView(bw);
     }

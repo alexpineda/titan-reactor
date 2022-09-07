@@ -43,7 +43,7 @@ export interface OpenBWWasm {
     ALLOC_NORMAL: number;
 }
 
-export interface OpenBWAPI extends OpenBWWasm {
+export interface OpenBW extends OpenBWWasm {
     running: boolean;
     files: OpenBWFileList;
 
@@ -51,27 +51,39 @@ export interface OpenBWAPI extends OpenBWWasm {
         beforeFrame: () => void;
         afterFrame: () => void;
     };
+
     getFowSize: () => number;
     getFowPtr: (visibility: number, instant: boolean) => number;
+
     getTilesPtr: () => number;
     getTilesSize: () => number;
+
     getSoundObjects: () => SoundStruct[];
+
     getSpritesOnTileLineSize: () => number;
     getSpritesOnTileLineAddress: () => number;
+
     getUnitsAddr: () => number;
+
     getBulletsAddress: () => number,
     getBulletsDeletedCount: () => number,
     getBulletsDeletedAddress: () => number,
+
     getLinkedSpritesAddress: () => number,
     getLinkedSpritesCount: () => number,
+
     getSoundsAddress: () => number,
     getSoundsCount: () => number,
+
     setGameSpeed: (speed: number) => void;
     getGameSpeed: () => number;
+
     setCurrentFrame: (frame: number) => void;
     getCurrentFrame: () => number;
+
     getIScriptProgramDataSize: () => number;
     getIScriptProgramDataAddress: () => number;
+
     isPaused: () => boolean;
     setPaused: (paused: boolean) => void;
 

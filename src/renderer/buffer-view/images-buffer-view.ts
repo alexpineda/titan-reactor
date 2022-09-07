@@ -1,10 +1,10 @@
-import { OpenBWAPI, ImageStruct } from "common/types";
+import { OpenBW, ImageStruct } from "common/types";
 import { IScriptBufferView } from "./iscript-buffer-view";
 export class ImageBufferView
   implements ImageStruct {
 
   _address = 0;
-  _bw: OpenBWAPI;
+  _bw: OpenBW;
   #iscriptState: IScriptBufferView;
 
   get(address: number) {
@@ -12,7 +12,7 @@ export class ImageBufferView
     return this;
   }
 
-  constructor(bw: OpenBWAPI) {
+  constructor(bw: OpenBW) {
     this._bw = bw;
     this.#iscriptState = new IScriptBufferView(bw);
   }

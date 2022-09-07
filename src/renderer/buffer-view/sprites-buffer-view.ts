@@ -1,4 +1,4 @@
-import { OpenBWAPI, SpriteStruct } from "common/types";
+import { OpenBW, SpriteStruct } from "common/types";
 import { ImageBufferView } from ".";
 import { IntrusiveList } from "./intrusive-list";
 
@@ -9,7 +9,7 @@ export class SpritesBufferView
   implements SpriteStruct {
 
   _address = 0;
-  _bw: OpenBWAPI;
+  _bw: OpenBW;
   #mainImage: ImageBufferView;
   readonly images: IntrusiveList;
 
@@ -19,7 +19,7 @@ export class SpritesBufferView
     return this;
   }
 
-  constructor(bw: OpenBWAPI) {
+  constructor(bw: OpenBW) {
     this._bw = bw;
     this.images = new IntrusiveList(bw.HEAPU32, 0);
     this.#mainImage = new ImageBufferView(bw);

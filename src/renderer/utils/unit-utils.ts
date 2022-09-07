@@ -42,7 +42,7 @@ export const unitIsCloaked = (unit: UnitStruct) => {
   );
 }
 
-export const unitIsFlying = (unit: UnitStruct) => {
+export const unitIsFlying = (unit: { statusFlags: number }) => {
   return Boolean(unit.statusFlags & UnitFlags.Flying);
 }
 
