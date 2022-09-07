@@ -45,6 +45,7 @@ export class UnitEntities {
     }
 
     clear() {
+        this.freeUnits.push(...this.units.values());
         this.units.clear();
         selectedUnitsStore().clearSelectedUnits();
         clearFollowedUnits();

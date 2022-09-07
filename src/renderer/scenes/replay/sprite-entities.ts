@@ -7,7 +7,7 @@ export class SpriteEntities {
     group = new Group();
 
     #spritesMap: Map<number, SpriteType> = new Map();
-    #spritePool: Group[] = [];
+    #spritePool: SpriteType[] = [];
 
     // duplicate access
     #unitsBySprite: Map<number, Unit> = new Map();
@@ -53,19 +53,26 @@ export class SpriteEntities {
             this.#spritePool.push(sprite);
             this.#spritesMap.delete(spriteIndex);
             this.#spritesList.delete(sprite);
-
-            // reset userData
-            delete sprite.userData.fixedY;
-            sprite.userData.typeId = -1;
-            sprite.userData.renderOrder = 0
+            this.#resetSpriteUserData(sprite);
         }
         this.#unitsBySprite.delete(spriteIndex);
     }
 
+    #resetSpriteUserData(sprite: SpriteType) {
+        delete sprite.userData.fixedY;
+        sprite.userData.typeId = -1;
+        sprite.userData.renderOrder = 0
+    }
+
     clear() {
+        for (const sprite of this.#spritesMap.values()) {
+            this.#resetSpriteUserData(sprite);
+            this.#spritePool.push(sprite);
+        }
         this.#spritesMap.clear();
         this.#unitsBySprite.clear();
         this.#spritesList.clear();
+        // we do not clear the sprite group as we do that before first frame to avoid flickering
     }
 
     getUnit(spriteIndex: number) {

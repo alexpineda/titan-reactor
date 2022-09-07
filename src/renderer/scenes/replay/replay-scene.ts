@@ -1010,13 +1010,12 @@ export async function replayScene(
       plugins.onFrame(openBW, currentBwFrame, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
       previousBwFrame = currentBwFrame;
-    }
 
-    minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
+      minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
+    }
 
     plugins.onBeforeRender(delta, elapsed);
     fogOfWar.update(players.getVisionFlag());
-
 
     // global won't use camera so we can set it to any
     for (const v of viewports.activeViewports()) {
@@ -1092,6 +1091,10 @@ export async function replayScene(
       macros.deserialize(settings.data.macros);
     }
     macros.setHostDefaults(settings.data);
+
+    if (mergeSettings.data?.graphics?.pixelRatio || mergeSettings.data?.game?.minimapSize) {
+      _sceneResizeHandler()
+    }
   }));
 
   janitor.mop(session.subscribe((newSettings) => {
@@ -1119,7 +1122,6 @@ export async function replayScene(
       _halt = true;
       renderComposer.getWebGLRenderer().setAnimationLoop(null);
       renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
-      units.clear();
       resetCompletedUpgrades(0);
       plugins.disposeGame();
       pluginsApiJanitor.dispose();
