@@ -74,9 +74,18 @@ const createOpenBW = async () => {
     return wasm._get_buffer(12);
   }
 
+  let _isReplay = true;
 
-  const _nextFrame = () => wasm._next_frame();
+  const _nextFrame = () => {
+    if (_isReplay) {
+      return wasm._next_frame();
+    } else {
+      wasm._next_no_replay();
+    }
+  }
   openBW.nextFrame = (debug = false) => debug ? tryCatch(_nextFrame) : _nextFrame();
+
+  openBW.isReplay = () => _isReplay;
 
   openBW.setGameSpeed = (speed: number) => wasm._replay_set_value(0, speed);
   openBW.getGameSpeed = () => wasm._replay_get_value(0);
@@ -92,8 +101,19 @@ const createOpenBW = async () => {
       const buf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
       wasm._load_replay(buf, buffer.length);
       wasm._free(buf);
+      _isReplay = true;
     });
   };
+
+  openBW.loadMap = (buffer: Buffer) => {
+    tryCatch(() => {
+      const buf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
+      wasm._load_map(buf, buffer.length);
+      wasm._free(buf);
+      _isReplay = false;
+    });
+  };
+
   openBW.tryCatch = tryCatch;
 
   openBW.start = async (readFile: ReadFile) => {

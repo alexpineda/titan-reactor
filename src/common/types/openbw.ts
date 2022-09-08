@@ -5,7 +5,10 @@ import { SoundStruct } from "./structs";
 export interface OpenBWWasm {
     _reset: () => void;
     _load_replay: (buffer: number, length: number) => void;
+    _load_map: (buffer: number, length: number) => void;
     _next_frame: () => number;
+    _next_no_replay: () => number;
+    _create_unit: (unitId: number, playerId: number, x: number, y: number) => number;
     _counts: (index: number) => number;
     _get_buffer: (index: number) => number;
     _replay_get_value: (index: number) => number;
@@ -87,9 +90,11 @@ export interface OpenBW extends OpenBWWasm {
     isPaused: () => boolean;
     setPaused: (paused: boolean) => void;
 
+    isReplay: () => boolean;
     nextFrame: (debug: boolean) => number;
     tryCatch: (callback: () => void) => void;
     loadReplay: (buffer: Buffer) => void;
+    loadMap: (buffer: Buffer) => void;
     start: (readFile: ReadFile) => void;
 
 };

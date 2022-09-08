@@ -916,7 +916,7 @@ export async function replayScene(
     lastElapsed = elapsed;
     if (!viewports.primaryViewport) return;
 
-    for (const viewport of viewports.viewports) {
+    for (const viewport of viewports.activeViewports()) {
 
       if (!viewport.freezeCamera) {
         viewport.orbit.update(delta / 1000);
@@ -958,21 +958,23 @@ export async function replayScene(
 
       mixer.updateFromVector3(audioPosition as Vector3, delta);
 
-      _commandsThisFrame.length = 0;
-      while (cmd.done === false) {
+      if (openBW.isReplay()) {
+        _commandsThisFrame.length = 0;
+        while (cmd.done === false) {
 
-        if (
-          typeof cmd.value === "number"
-        ) {
-          if (cmd.value > currentBwFrame) {
-            break;
+          if (
+            typeof cmd.value === "number"
+          ) {
+            if (cmd.value > currentBwFrame) {
+              break;
+            }
+            // only include past 5 game seconds (in case we are skipping frames)
+          } else if (currentBwFrame - cmd.value.frame < 120) {
+            _commandsThisFrame.push(cmd.value);
           }
-          // only include past 5 game seconds (in case we are skipping frames)
-        } else if (currentBwFrame - cmd.value.frame < 120) {
-          _commandsThisFrame.push(cmd.value);
-        }
-        cmd = cmds.next();
+          cmd = cmds.next();
 
+        }
       }
 
       fadingPointers.update(currentBwFrame);

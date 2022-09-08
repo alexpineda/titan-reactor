@@ -1,9 +1,5 @@
 import Chk from "bw-chk";
 import loadScm from "@utils/load-scm";
-
-import {
-  ImageHD,
-} from "@core";
 import * as log from "@ipc/log";
 import { BaseScene } from "@render";
 import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
@@ -15,6 +11,11 @@ import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { useWorldStore } from "@stores";
 import gameStore from "@stores/game-store";
 import Janitor from "@utils/janitor";
+import { getOpenBW } from "@openbw";
+import ChkDowngrader from "@process-replay/chk/chk-downgrader";
+import {
+  readCascFile,
+} from "common/utils/casclib";
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
@@ -25,11 +26,19 @@ export const mapSceneLoader = async (chkFilepath: string) => {
 
   const janitor = new Janitor;
 
-  const map = new Chk(await loadScm(chkFilepath));
+  const chkBuffer = await loadScm(chkFilepath);
+  const map = new Chk(chkBuffer);
+
   cleanMapTitles(map);
   updateWindowTitle(map.title);
 
   await waitForTruthy<Assets>(() => gameStore().assets);
+
+  const openBw = await getOpenBW();
+  await openBw.start(readCascFile);
+
+  const chkDowngrader = new ChkDowngrader();
+  openBw.loadMap(chkDowngrader.downgrade(chkBuffer));
 
   useWorldStore.setState({ map, mapImage: await createMapImage(map) });
   janitor.mop(() => useWorldStore.getState().reset())
@@ -37,10 +46,10 @@ export const mapSceneLoader = async (chkFilepath: string) => {
   processStore().increment(Process.MapInitialization);
 
   log.verbose("initializing scene");
+
   const { terrain } = await chkToTerrainMesh(map, UnitTileScale.HD);
   const scene = new BaseScene(map.size[0], map.size[1], terrain);
 
-  ImageHD.useDepth = false;
   processStore().increment(Process.MapInitialization);
 
   const state = await mapScene(
@@ -49,6 +58,7 @@ export const mapSceneLoader = async (chkFilepath: string) => {
     scene,
     janitor
   );
+
   processStore().complete(Process.MapInitialization);
 
   return state;

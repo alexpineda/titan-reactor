@@ -52,6 +52,7 @@ export const replaySceneLoader = async (filepath: string) => {
   }
 
   processStore().increment(Process.ReplayInitialization);
+
   document.title = "Titan Reactor - Loading";
 
   const openBw = await getOpenBW();
@@ -82,8 +83,11 @@ export const replaySceneLoader = async (filepath: string) => {
   replay.header.players = replay.header.players.filter(p => p.isActive);
 
   if (replay.header.gameType === GameTypes.Melee) {
+
     const meleeObservers = detectMeleeObservers(new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer));
+
     replay.header.players = replay.header.players.filter(p => !meleeObservers.includes(p.id));
+
   }
 
   processStore().increment(Process.ReplayInitialization);
@@ -114,19 +118,12 @@ export const replaySceneLoader = async (filepath: string) => {
   scene.background = assets.skyBox;
   scene.environment = assets.envMap;
 
-  processStore().increment(Process.ReplayInitialization);
-
   openBw.loadReplay(replayBuffer);
 
-  processStore().increment(Process.ReplayInitialization);
   const races = ["terran", "zerg", "protoss"];
-
-  processStore().increment(Process.ReplayInitialization);
 
   const soundChannels = new SoundChannels();
   const music = janitor.mop(new Music(races, mixer as unknown as AudioListener));
-
-  processStore().increment(Process.ReplayInitialization);
 
   const preloadCommands = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
   const preloadCommandTypes = [CMDS.TRAIN.id, CMDS.UNIT_MORPH.id, CMDS.BUILDING_MORPH.id, CMDS.BUILD.id];
