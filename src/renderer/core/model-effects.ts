@@ -1,7 +1,9 @@
 import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
-import { imageHasDirectionalFrames, imageIsHidden } from "@utils/image-utils";
+import { imageHasDirectionalFrames, imageIsFlipped, imageIsHidden } from "@utils/image-utils";
+import { ImageStruct } from "common/types";
+import { GameViewPort } from "../camera/game-viewport";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
 import { ImageHDInstanced } from "./image-hd-instanced";
@@ -89,10 +91,7 @@ export const modelSetFileRefIds = new Map([
 
 ]);
 
-export const overlayEffectsMainImage: { setEmissive: Image3D["setEmissive"] | null, is3dAsset: boolean } = {
-    setEmissive: null,
-    is3dAsset: false
-}
+export const overlayEffectsMainImage: { image: Image3D | null } = { image: null };
 
 /**
  * 
@@ -100,22 +99,22 @@ export const overlayEffectsMainImage: { setEmissive: Image3D["setEmissive"] | nu
 *
 */
 let imageTypeId: number;
-export const applyOverlayEffectsToImageHD = (imageBufferView: ImageBufferView, image: ImageHD | ImageHDInstanced) => {
+export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image: ImageHD | ImageHDInstanced) => {
 
-    imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
+    imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
 
     if (spriteModelEffects.images[imageTypeId]) {
         for (const effect of spriteModelEffects.images[imageTypeId]) {
             switch (effect.type) {
                 // set emissive on main image if I'm visible
                 case "emissive:overlay-visible":
-                    if (overlayEffectsMainImage?.setEmissive) {
-                        overlayEffectsMainImage?.setEmissive(imageIsHidden(imageBufferView) ? 0 : 1);
+                    if (overlayEffectsMainImage.image) {
+                        overlayEffectsMainImage.image.setEmissive(imageIsHidden(imageBuffer) ? 0 : 1);
                     }
                     break;
                 // hide me
                 case "hide-sprite":
-                    if (overlayEffectsMainImage.is3dAsset) {
+                    if (overlayEffectsMainImage.image) {
                         image.visible = false;
                     }
                     break;
@@ -153,31 +152,23 @@ export const applyOverlayEffectsToImage3D = (imageBufferView: ImageBufferView, i
 let _frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
 let _needsUpdateFrame = false;
 
-export const applyViewportToFrameOnImageHD = (imageBufferView: ImageBufferView, image: ImageHD, useDepth: boolean, cameraDirection: number) => {
+export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, image: ImageHD, viewport: GameViewPort) => {
 
-    imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
+    if (image.material.depthTest !== viewport.renderMode3D) {
 
-    if (image.material.depthTest !== useDepth) {
-
-        image.material.depthTest = useDepth;
-        image.setFrame(image.frame, image.flip)
+        image.material.depthTest = viewport.renderMode3D;
 
     }
 
-    if (imageHasDirectionalFrames(imageBufferView)) {
+    if (imageHasDirectionalFrames(imageBuffer)) {
 
-        _frameInfo = applyCameraDirectionToImageFrame(cameraDirection, imageBufferView);
+        _frameInfo = applyCameraDirectionToImageFrame(viewport.camera.userData.direction, imageBuffer);
         image.setFrame(_frameInfo.frame, _frameInfo.flipped);
 
-    }
+    } else {
 
-    if (spriteModelEffects.images[imageTypeId]) {
-        for (const effect of spriteModelEffects.images[imageTypeId]) {
-            switch (effect.type) {
-                // set emissive to myself if I'm on the right animation frame
+        image.setFrame(imageBuffer.frameIndex, imageIsFlipped(imageBuffer as ImageStruct));
 
-            }
-        }
     }
 
 }

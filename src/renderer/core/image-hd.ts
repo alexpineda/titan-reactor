@@ -99,7 +99,6 @@ function transformVertex(vertexPosition: Vector3, mvPosition: Vector3, scale: Ve
 export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial> implements ImageBase {
   isImage3d = false;
   isInstanced = false;
-  static useDepth = false;
   //@ts-ignore
   atlas: AnimAtlas;
 
@@ -121,7 +120,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     this.material = this.createMaterial();
     this.material.transparent = true;
-    this.material.depthTest = ImageHD.useDepth;
 
     this.geometry = new BufferGeometry();
     this.geometry.setIndex([0, 1, 2, 0, 2, 3]);

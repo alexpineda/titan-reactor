@@ -6,7 +6,6 @@ import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes } 
 import { Surface } from "@image";
 import {
   Settings,
-  SpriteType,
   WeaponDAT
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
@@ -14,7 +13,7 @@ import { SpriteStruct, ImageStruct } from "common/types";
 import type { SoundChannels } from "@audio";
 import {
   Players,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect, ImageBase, Image3D, Unit
+  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, Unit
 } from "@core";
 import {
   MinimapMouse, CameraMouse, CameraKeys, createUnitSelection
@@ -25,9 +24,9 @@ import * as log from "@ipc/log";
 import {
   GameSurface, renderComposer, SimpleText, BaseScene
 } from "@render";
-import { getImageLoOffset, imageHasDirectionalFrames, imageIsDoodad, imageIsFlipped, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
+import { getImageLoOffset, imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
 import { buildSound } from "@utils/sound-utils";
-import { spriteIsHidden, spriteSortOrder, updateSpritesForViewport } from "@utils/sprite-utils";
+import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import Janitor from "@utils/janitor";
 import { WeaponBehavior } from "common/enums";
 import gameStore from "@stores/game-store";
@@ -61,7 +60,7 @@ import { UnitEntities } from "./unit-entities";
 import { GameTimeApi } from "./game-time-api";
 import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./replay-controls";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
-import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, overlayEffectsMainImage } from "@core/model-effects";
+import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, applyViewportToFrameOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 import { FreeMap } from "@utils/free-map";
 
@@ -142,6 +141,7 @@ export async function replayScene(
   ipcRenderer.on(CLEAR_ASSET_CACHE, () => {
     assets.resetAssetCache();
     images.dispose();
+    reset = refreshScene;
   })
 
   const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
@@ -669,6 +669,7 @@ export async function replayScene(
     }
     sprite.visible = spriteIsVisible;
     sprite.userData.renderOrder = spriteSortOrder(spriteData as SpriteStruct);
+    sprite.renderOrder = viewports.primaryViewport.renderMode3D ? 0 : sprite.userData.renderOrder;
 
     getWorldSpriteVectors(spriteData, _spriteVector3, unit && unitIsFlying(unit));
     let bulletY: number | undefined;
@@ -728,14 +729,16 @@ export async function replayScene(
 
     }
 
+    if (spriteData.typeId === 513 && !sprites.getParent(spriteData.index)) {
+      debugger;
+    }
+
     sprite.position.set(_spriteVector3.x, (sprites.getParent(spriteData.index)?.position.y ?? bulletY ?? _spriteVector3.y), _spriteVector3.z);
     sprite.updateMatrix();
     sprite.matrixWorld.copy(sprite.matrix);
-    // sprite.updateMatrixWorld();
 
     let imageCounter = 1;
-    overlayEffectsMainImage.setEmissive = null
-    overlayEffectsMainImage.is3dAsset = false;
+    overlayEffectsMainImage.image = null
 
     for (const imgAddr of spriteData.images.reverse()) {
       const imageData = imageBufferView.get(imgAddr);
@@ -751,77 +754,73 @@ export async function replayScene(
       image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
       image.matrixWorldNeedsUpdate = false;
 
-      if (image.visible) {
-        image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
-        image.setTeamColor(player?.color);
-        image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
-        image.position.set(0, 0, 0)
-        image.rotation.set(0, 0, 0);
+      // if (image.visible) {
+      image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
+      image.setTeamColor(player?.color);
+      image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
+      image.position.set(0, 0, 0)
+      image.rotation.set(0, 0, 0);
 
-        //overlay offsets typically
-        if (image instanceof ImageHD) {
-          image.position.x = imageData.x / 32;
-          // flying building or drone, don't use 2d offset
-          image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
+      //overlay offsets typically
+      if (image instanceof ImageHD) {
+        image.position.x = imageData.x / 32;
+        // flying building or drone, don't use 2d offset
+        image.position.y = imageIsFrozen(imageData) ? 0 : -imageData.y / 32;
 
-          // tank turret needs to use different LO depending on camera angle
-          // in order to handle this we need to set the LO to the correct frame
-          // in addition, terran turret subunits are treated differently in bw so we accomodate that
-          // by setting the lo from the main unit image and not the turret image 
-          // as seen in `update_unit_movement`
-          const subunitId = unit?.subunitId;
-          if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret)) {
-            const subunit = units.get(subunitId);
-            // bw keeps parent unit in subunit as well, so in this case this is actually parent unit
-            // ie base tank
-            if (subunit && subunit.extras.turretLo) {
-              image.position.x = subunit.extras.turretLo.x / 32;
-              image.position.y = subunit.extras.turretLo.y / 32;
-            }
+        // tank turret needs to use different LO depending on camera angle
+        // in order to handle this we need to set the LO to the correct frame
+        // in addition, terran turret subunits are treated differently in bw so we accomodate that
+        // by setting the lo from the main unit image and not the turret image 
+        // as seen in `update_unit_movement`
+        const subunitId = unit?.subunitId;
+        if (subunitId !== null && subunitId !== undefined && (imageData.typeId === imageTypes.siegeTankTankTurret)) {
+          const subunit = units.get(subunitId);
+          // bw keeps parent unit in subunit as well, so in this case this is actually parent unit
+          // ie base tank
+          if (subunit && subunit.extras.turretLo) {
+            image.position.x = subunit.extras.turretLo.x / 32;
+            image.position.y = subunit.extras.turretLo.y / 32;
           }
         }
 
-        // if we're a shadow, we act independently from a sprite since our Y coordinate
-        // needs to be in world space
-        image.renderOrder = imageCounter;
-        if (image.isInstanced) {
-          if (image.parent !== sprites.group) {
-            sprites.group.add(image);
-          }
-        } else {
-          if (image.parent !== sprite) {
-            sprite.add(image);
-          }
+      }
+
+      image.renderOrder = imageCounter;
+
+      // if we're a shadow, we act independently from a sprite since our Y coordinate
+      // needs to be in world space
+      if (image.isInstanced) {
+        if (image.parent !== sprites.group) {
+          sprites.group.add(image);
         }
-
-        // if it's directional we'll set it elsewhere relative to the viewport camera direction
-        if (!imageHasDirectionalFrames(imageData as ImageStruct)) {
-          image.setFrame(imageData.frameIndex, imageIsFlipped(imageData as ImageStruct));
-        }
-
-        if (imageData.index === spriteData.mainImageIndex) {
-          if (image instanceof Image3D) {
-            //TODO: change this since its creating a function object every frame
-            overlayEffectsMainImage.setEmissive = image.setEmissive.bind(image);
-            overlayEffectsMainImage.is3dAsset = true;
-          }
-
-          if (unit) {
-            // only rotate if we're 3d and the frame is part of a frame set
-            image.rotation.y = image instanceof Image3D && !image.isLooseFrame ? getAngle(unit.direction) : 0;
-            images.setUnit(image, unit);
-          }
+      } else {
+        if (image.parent !== sprite) {
+          sprite.add(image);
         }
       }
 
+      if (imageData.index === spriteData.mainImageIndex) {
+        if (image instanceof Image3D) {
+          //TODO: change this since its creating a function object every frame
+          overlayEffectsMainImage.image = image;
+        }
+
+        if (unit) {
+          // only rotate if we're 3d and the frame is part of a frame set
+          image.rotation.y = image instanceof Image3D && !image.isLooseFrame ? getAngle(unit.direction) : 0;
+          images.setUnit(image, unit);
+        }
+      }
 
       if (image instanceof ImageHD) {
 
-        applyOverlayEffectsToImageHD(imageBufferView, image);
+        applyViewportToFrameOnImageHD(imageData, image, viewports.primaryViewport);
+        applyOverlayEffectsToImageHD(imageData, image);
 
       } else if (image instanceof Image3D) {
 
-        applyOverlayEffectsToImage3D(imageBufferView, image);
+        applyViewportToFrameOnImage3d(imageData, image);
+        applyOverlayEffectsToImage3D(imageData, image);
 
       }
 
@@ -838,7 +837,6 @@ export async function replayScene(
 
   }
 
-  const spriteBufferView = new SpritesBufferView(openBW);
   const spritesIterator = new SpritesBufferViewIterator(openBW);
   const imageBufferView = new ImageBufferView(openBW);
   const bulletBufferView = new BulletsBufferView(openBW);
@@ -896,55 +894,6 @@ export async function replayScene(
 
   };
 
-
-  let _spriteIteratorResult: {
-    bufferView: SpritesBufferView,
-    object: SpriteType
-  }
-
-  function* spriteObjectIterator() {
-    for (const bufferView of spritesIterator) {
-      const object = sprites.get(bufferView.index);
-      if (object) {
-        if (!_spriteIteratorResult) {
-          _spriteIteratorResult = {
-            bufferView,
-            object
-          }
-        } else {
-          _spriteIteratorResult.bufferView = bufferView;
-          _spriteIteratorResult.object = object;
-        }
-        yield _spriteIteratorResult;
-      }
-    }
-  }
-
-  let _imageIteratorResult: {
-    bufferView: ImageBufferView,
-    object: ImageBase
-  }
-
-  function* imageObjectIteratorBySprite(spriteData: SpritesBufferView) {
-    for (const imgAddr of spriteData.images.reverse()) {
-      const bufferView = imageBufferView.get(imgAddr);
-      const object = images.get(bufferView.index);
-
-      if (object) {
-        if (!_imageIteratorResult) {
-          _imageIteratorResult = {
-            bufferView,
-            object
-          }
-        } else {
-          _imageIteratorResult.bufferView = bufferView;
-          _imageIteratorResult.object = object;
-        }
-        yield _imageIteratorResult;
-      }
-    }
-  }
-
   const minimapGraphics = new MinimapGraphics(mapWidth, mapHeight, terrainExtra.minimapBitmap);
 
   renderComposer.targetSurface = gameSurface;
@@ -961,6 +910,7 @@ export async function replayScene(
   let _halt = false;
 
   const GAME_LOOP = (elapsed: number) => {
+
     delta = elapsed - lastElapsed;
     lastElapsed = elapsed;
     if (_halt || !viewports.primaryViewport) return;
@@ -985,8 +935,11 @@ export async function replayScene(
     if (currentBwFrame !== previousBwFrame) {
 
       if (currentBwFrame % 24 === 0) {
+
         updateCompletedUpgrades(openBW, assets.bwDat, currentBwFrame);
+
       }
+
       buildSounds(elapsed);
       buildCreep(currentBwFrame);
       buildUnits();
@@ -1001,6 +954,7 @@ export async function replayScene(
 
       _commandsThisFrame.length = 0;
       while (cmd.done === false) {
+
         if (
           typeof cmd.value === "number"
         ) {
@@ -1012,6 +966,7 @@ export async function replayScene(
           _commandsThisFrame.push(cmd.value);
         }
         cmd = cmds.next();
+
       }
 
       fadingPointers.update(currentBwFrame);
@@ -1021,6 +976,7 @@ export async function replayScene(
       previousBwFrame = currentBwFrame;
 
       minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
+
     }
 
     plugins.onBeforeRender(delta, elapsed);
@@ -1041,10 +997,30 @@ export async function replayScene(
         _target.setY(terrain.getTerrainY(_target.x, _target.z));
         globalEffectsBundle.updateExtended(v.camera, _target)
 
+      } else {
+        // iterate all images again and update image frames according to different view camera
+        //TODO: iterate over image objects and add image address to get buffer view
+        for (const spriteBuffer of spritesIterator) {
+
+          const object = sprites.get(spriteBuffer.index);
+          if (!object || object.visible === false) continue;
+
+          object.renderOrder = v.renderMode3D ? 0 : object.userData.renderOrder;
+
+          for (const imgAddr of spriteBuffer.images.reverse()) {
+
+            const imageBuffer = imageBufferView.get(imgAddr);
+            const image = images.get(imageBuffer.index);
+
+            if (image instanceof ImageHD) {
+              applyViewportToFrameOnImageHD(imageBuffer, image, v);
+            }
+
+          }
+        }
       }
 
       v.updateCamera(session.getState().game.dampingFactor, delta);
-      updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteObjectIterator, imageObjectIteratorBySprite);
       v.shakeStart(elapsed, session.getState().game.cameraShakeStrength);
       globalEffectsBundle.updateCamera(v.camera)
       renderComposer.setBundlePasses(globalEffectsBundle);
@@ -1095,6 +1071,7 @@ export async function replayScene(
   janitor.mop(listenToEvents(macros));
 
   janitor.mop(listenForNewSettings((mergeSettings, settings) => {
+
     session.getState().merge(mergeSettings.data!);
     if (settings.data.macros.revision !== macros.revision) {
       macros.deserialize(settings.data.macros);
@@ -1102,19 +1079,19 @@ export async function replayScene(
     macros.setHostDefaults(settings.data);
 
     if (mergeSettings.data?.graphics?.pixelRatio || mergeSettings.data?.game?.minimapSize) {
-      _sceneResizeHandler()
+      sceneResizeHandler()
     }
+
+    if (mergeSettings?.data?.audio) {
+      mixer.setVolumes(settings.data.audio);
+    }
+
   }));
 
   janitor.mop(session.subscribe((newSettings) => {
     if (!viewports.disabled && viewports.activeSceneController && newSettings.game.sceneController !== viewports.activeSceneController?.name) {
       viewports.activate(plugins.getSceneInputHandler(newSettings.game.sceneController)!);
     }
-
-    mixer.setVolumes(newSettings.audio);
-
-    // Object.assign(session, newSettings);
-
   }));
 
   await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });

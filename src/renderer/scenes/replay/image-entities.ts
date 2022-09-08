@@ -14,8 +14,6 @@ export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();
     #freeImages3D = new IndexedObjectPool<ImageBase>();
     #units: Map<ImageBase, Unit> = new Map()
-
-    // always 2d
     #images: IterableMap<number, ImageBase> = new IterableMap();
 
     use3dImages = true;
@@ -90,8 +88,6 @@ export class ImageEntities {
         if (image) {
             this.#images.delete(imageIndex);
             this.#free(image);
-        } else {
-            console.warn("ImageEntities: free: image not found", imageIndex);
         }
 
     }
@@ -114,8 +110,11 @@ export class ImageEntities {
     clear() {
 
         for (const image of this.#images) {
+
             this.#free(image);
+
         }
+
         this.#images.clear();
 
     }
