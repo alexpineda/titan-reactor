@@ -6,6 +6,8 @@ import { applyCameraDirectionToImageFrame } from "./camera-utils";
 import { ImageHD } from "@core/image-hd";
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import { ImageBase } from "@core/image";
+import { Image3D } from "@core/image-3d";
+import { applyViewportToFrameOnImage3d, applyViewportToFrameOnImageHD } from "@core/model-effects";
 
 export const spriteSortOrder = (sprite: SpriteStruct) => {
     let score = 0;
@@ -21,7 +23,6 @@ export const spriteIsHidden = (sprite: SpriteStruct) => {
     return (sprite.flags & SpriteFlags.Hidden) !== 0;
 }
 
-let frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
 
 /**
  * Apply viewport specific transformations before rendering a sprite.
@@ -37,29 +38,25 @@ export const updateSpritesForViewport = (cameraDirection: number, useDepth: bool
     ImageHD.useDepth = useDepth;
 
     for (const sprite of spriteIterator()) {
+
         if (sprite.object?.visible === false) {
             continue;
         }
         sprite.object!.renderOrder = useDepth ? 0 : sprite.object!.userData.renderOrder;
 
         for (const image of imageIterator(sprite.bufferView)) {
-            //TODO: image renderOrder
+
             if (image.object instanceof ImageHD) {
-                if (image.object.material.depthTest !== useDepth) {
-                    image.object.material.depthTest = useDepth;
-                    image.object.setFrame(image.object.frame, image.object.flip)
-                }
+
+                applyViewportToFrameOnImageHD(image.bufferView, image.object as ImageHD, useDepth, cameraDirection);
+
+            } else if (image.object instanceof Image3D) {
+
+                applyViewportToFrameOnImage3d(image.bufferView, image.object);
+
             }
 
-            if (imageHasDirectionalFrames(image.bufferView)) {
-                if (image.object instanceof ImageHD) {
-                    frameInfo = applyCameraDirectionToImageFrame(cameraDirection, image.bufferView);
-                } else {
-                    // ignore camera direction since we are rotating the 3d model
-                    frameInfo.frame = image.bufferView.frameIndex;
-                }
-                image.object.setFrame(frameInfo.frame, frameInfo.flipped);
-            }
+
         }
     }
 }

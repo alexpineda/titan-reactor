@@ -28,6 +28,8 @@ function parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: O
 
 }
 
+const _remapFrames = (x: number) => x;
+
 /**
  * An image instance that may include a 3d model
  */
@@ -38,6 +40,7 @@ export class Image3D extends Object3D implements ImageBase {
   atlas: GltfAtlas;
   mixer?: AnimationMixer;
   model: GltfAtlas["model"];
+  remapFrames = _remapFrames;
 
   #frame = 0;
   #times = new Float32Array();
@@ -106,11 +109,19 @@ export class Image3D extends Object3D implements ImageBase {
     this.mixer.setTime(this.#times[this.frame]);
   }
 
+  setFrameSet(frameSet: number) {
+    this.setFrame(Math.floor(frameSet * 17))
+  }
+
   setEmissive(val: number) {
     this.material.emissiveIntensity = val;
   }
 
   get frame() {
+    return this.atlas.fixedFrames[this.#frame];
+  }
+
+  get frameSet() {
     return this.atlas.fixedFrames[this.#frame];
   }
 

@@ -1,6 +1,7 @@
 import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import gameStore from "@stores/game-store";
-import { imageIsHidden } from "@utils/image-utils";
+import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
+import { imageHasDirectionalFrames, imageIsHidden } from "@utils/image-utils";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
 import { ImageHDInstanced } from "./image-hd-instanced";
@@ -27,7 +28,13 @@ type SpriteModelImageEffectFlatOnGround = {
     type: "flat-on-ground";
 }
 
-type SpriteModelImageEffects = SpriteModelImageEffectEmissiveFrames | SpriteModelImageEffectEmissiveOverlay | SpriteModelImageEffectHideSprite | SpriteModelImageEffectFixedRotation | SpriteModelImageEffectFlatOnGround;
+type SpriteModelImageEffectRemapFrame = {
+    type: "remap-frames";
+    remap: (frame: number) => number;
+}
+
+
+type SpriteModelImageEffects = SpriteModelImageEffectEmissiveFrames | SpriteModelImageEffectEmissiveOverlay | SpriteModelImageEffectHideSprite | SpriteModelImageEffectFixedRotation | SpriteModelImageEffectFlatOnGround | SpriteModelImageEffectRemapFrame;
 
 type SpriteModelEffects = {
     images: {
@@ -63,9 +70,24 @@ const spriteModelEffects: SpriteModelEffects = {
                 type: "hide-sprite"
             }
         ],
+        251: [
+            {
+                // regular tank turret uses siege tank turret frame 1
+                type: "remap-frames",
+                remap: (frame: number) => frame + 17
+            }
+        ],
         ...remnants
     }
 }
+
+export const modelSetFileRefIds = new Map([
+    // siege turret -> siege base
+    [254, 251],
+    // lurker egg -> egg,
+    [914, 21]
+
+]);
 
 export const overlayEffectsMainImage: { setEmissive: Image3D["setEmissive"] | null, is3dAsset: boolean } = {
     setEmissive: null,
@@ -79,6 +101,7 @@ export const overlayEffectsMainImage: { setEmissive: Image3D["setEmissive"] | nu
 */
 let imageTypeId: number;
 export const applyOverlayEffectsToImageHD = (imageBufferView: ImageBufferView, image: ImageHD | ImageHDInstanced) => {
+
     imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
 
     if (spriteModelEffects.images[imageTypeId]) {
@@ -102,9 +125,11 @@ export const applyOverlayEffectsToImageHD = (imageBufferView: ImageBufferView, i
             }
         }
     }
+
 }
 
 export const applyOverlayEffectsToImage3D = (imageBufferView: ImageBufferView, image: Image3D) => {
+
     imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
 
     if (spriteModelEffects.images[imageTypeId]) {
@@ -113,14 +138,74 @@ export const applyOverlayEffectsToImage3D = (imageBufferView: ImageBufferView, i
                 // set emissive to myself if I'm on the right animation frame
                 case "emissive:frames":
                     if (image.setEmissive) {
-                        image.setEmissive(effect.frames.includes(image.frame) ? 1 : 0);
+                        image.setEmissive(effect.frames.includes(image.frameSet) ? 1 : 0);
                     }
                     break;
                 case "fixed-rotation":
-                    if (effect.frames.includes(image.frame)) {
+                    if (effect.frames.includes(image.frameSet)) {
                         image.rotation.y = 0;
                     }
             }
         }
     }
+}
+
+let _frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
+let _needsUpdateFrame = false;
+
+export const applyViewportToFrameOnImageHD = (imageBufferView: ImageBufferView, image: ImageHD, useDepth: boolean, cameraDirection: number) => {
+
+    imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
+
+    if (image.material.depthTest !== useDepth) {
+
+        image.material.depthTest = useDepth;
+        image.setFrame(image.frame, image.flip)
+
+    }
+
+    if (imageHasDirectionalFrames(imageBufferView)) {
+
+        _frameInfo = applyCameraDirectionToImageFrame(cameraDirection, imageBufferView);
+        image.setFrame(_frameInfo.frame, _frameInfo.flipped);
+
+    }
+
+    if (spriteModelEffects.images[imageTypeId]) {
+        for (const effect of spriteModelEffects.images[imageTypeId]) {
+            switch (effect.type) {
+                // set emissive to myself if I'm on the right animation frame
+
+            }
+        }
+    }
+
+}
+
+export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, image: Image3D) => {
+
+    imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
+    _needsUpdateFrame = true;
+
+    if (spriteModelEffects.images[imageTypeId]) {
+
+        for (const effect of spriteModelEffects.images[imageTypeId]) {
+            switch (effect.type) {
+                // set emissive to myself if I'm on the right animation frame
+                case "remap-frames":
+                    image.setFrame(effect.remap(imageBufferView.frameIndex));
+                    _needsUpdateFrame = false;
+                    break;
+            }
+        }
+
+    }
+
+    if (_needsUpdateFrame && imageHasDirectionalFrames(imageBufferView)) {
+
+        // ignore camera direction since we are rotating the 3d model
+        image.setFrame(imageBufferView.frameIndex);
+
+    }
+
 }

@@ -483,18 +483,12 @@ export async function replayScene(
     terrainExtra.creepEdgesTextureUniform.value
   ));
 
+  const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
   const buildMinimap = () => {
     minimapGraphics.resetUnitsAndResources();
-
     for (const unit of unitsIterator()) {
-      const dat = assets.bwDat.units[unit.typeId];
-
-      const showOnMinimap =
-        unit.typeId !== unitTypes.darkSwarm &&
-        unit.typeId !== unitTypes.disruptionWeb;
-
-      if (showOnMinimap) {
-        minimapGraphics.buildUnitMinimap(unit, dat, fogOfWar, players)
+      if (!ignoreOnMinimap.includes(unit.typeId)) {
+        minimapGraphics.buildUnitMinimap(unit, assets.bwDat.units[unit.typeId], fogOfWar, players)
       }
     }
   }
@@ -639,6 +633,11 @@ export async function replayScene(
   const getWorldSpriteVectors = (sprite: { x: number, y: number }, v: Vector3, isFlying?: boolean) => {
     getWorldSpriteVectorsFromXY(sprite.x, sprite.y, v, isFlying);
   }
+
+  const staticTargetYBullets = [WeaponBehavior.AppearOnTargetUnit, WeaponBehavior.AppearOnTargetPosition, WeaponBehavior.PersistOnTargetPos];
+  const staticSourceYBullets = [WeaponBehavior.AppearOnSourceUnit, WeaponBehavior.SelfDestruct];
+  const dynamicYBullets = [WeaponBehavior.Fly, WeaponBehavior.ExtendToMaxRange, WeaponBehavior.FollowTarget, WeaponBehavior.Bounce]
+
   const _spriteVector3 = new Vector3();
   const _spriteVector2 = new Vector2();
   const _destBulletVector2 = new Vector2();
@@ -681,12 +680,6 @@ export async function replayScene(
       if (bullet.state === BulletState.Dying) {
         viewports.doShakeCalculation(weapon.explosionType, weapon.damageType, _spriteVector3);
       }
-
-      const staticTargetYBullets = [WeaponBehavior.AppearOnTargetUnit, WeaponBehavior.AppearOnTargetPosition, WeaponBehavior.PersistOnTargetPos];
-
-      const staticSourceYBullets = [WeaponBehavior.AppearOnSourceUnit, WeaponBehavior.SelfDestruct];
-
-      const dynamicYBullets = [WeaponBehavior.Fly, WeaponBehavior.ExtendToMaxRange, WeaponBehavior.FollowTarget, WeaponBehavior.Bounce]
 
       _bulletSourceUnit = bullet.ownerUnit ?? bullet.prevBounceUnit ?? deadTargetSource.maybe(bullet.index)?.sourceUnit;
       _bulletTargetUnit = bullet.targetUnit ?? deadTargetSource.maybe(bullet.index)?.targetUnit;
@@ -877,7 +870,6 @@ export async function replayScene(
     for (let i = 0; i < openBW.getBulletsDeletedCount(); i++) {
       deadTargetSource.delete(openBW.HEAP32[(openBW.getBulletsDeletedAddress() >> 2) + i]);
     }
-
 
     // build bullet sprites first since they need special Y calculations
     bulletList.addr = openBW.getBulletsAddress();
@@ -1142,7 +1134,7 @@ export async function replayScene(
 
     mixer.setVolumes(newSettings.audio);
 
-    Object.assign(session, newSettings);
+    // Object.assign(session, newSettings);
 
   }));
 

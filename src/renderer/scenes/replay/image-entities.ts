@@ -59,11 +59,14 @@ export class ImageEntities {
     getOrCreate(imageIndex: number, imageTypeId: number) {
         const assets = gameStore().assets!;
         const atlas = assets.loadImageAtlas(imageTypeId);
+
+        // atlas hasn't loaded yet
         if (!atlas) {
             return;
         }
+
         let image = this.#images.get(imageIndex);
-        if (!image || (image.isImage3d !== this.use3dImages && isGltfAtlas(image.atlas))) {
+        if (!image || (image.isImage3d !== this.use3dImages && isGltfAtlas(atlas))) {
             if (image) {
                 this.#free(image);
             }
@@ -71,47 +74,67 @@ export class ImageEntities {
             this.onCreateImage?.(image);
             this.#images.set(imageIndex, image);
         }
+
         // update to latest atlas
         image.updateImageType(gameStore().assets!.grps[imageTypeId]);
         image.userData.imageIndex = imageIndex;
+
         return image;
+
     }
 
     free(imageIndex: number) {
+
         const image = this.#images.get(imageIndex);
+
         if (image) {
             this.#images.delete(imageIndex);
             this.#free(image);
+        } else {
+            console.warn("ImageEntities: free: image not found", imageIndex);
         }
+
     }
 
     #free(image: ImageBase) {
+
         image.removeFromParent();
+        this.#units.delete(image);
+
         if (image.isImage3d) {
             this.#freeImages3D.add(image.dat.index, image);
         } else {
             this.#freeImages.add(image.dat.index, image);
         }
-        this.#units.delete(image);
+
         this.onFreeImage?.(image);
+
     }
 
     clear() {
+
         for (const image of this.#images) {
             this.#free(image);
         }
         this.#images.clear();
+
     }
 
     dispose() {
+
         this.#janitor.dispose();
+
     }
 
     setUnit(image: ImageBase, unit: Unit) {
+
         this.#units.set(image, unit);
+
     }
 
     getUnit(image: ImageBase) {
+
         return this.#units.get(image);
+
     }
 }

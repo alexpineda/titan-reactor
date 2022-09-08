@@ -276,6 +276,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.flip = flip;
     this.#uv.needsUpdate = true;
     this.#pos.needsUpdate = true;
+
   }
 
   updateMatrixPosition(parentPosition: Vector3) {
@@ -283,6 +284,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.matrix.compose(this.position.add(parentPosition), this.quaternion, this.scale);
     this.matrixWorld.copy(this.matrix);
     this.matrixWorldNeedsUpdate = false;
+
   }
 
   override updateMatrix(): void {
@@ -350,7 +352,9 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   }
 
-  dispose(): void {
+  dispose() {
+
     disposeMesh(this);
+
   }
 }
