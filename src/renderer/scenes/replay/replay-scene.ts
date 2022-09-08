@@ -446,6 +446,9 @@ export async function replayScene(
     _wasReset = true;
   }
 
+  janitor.mop(() => resetCompletedUpgrades(0));
+
+
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, session.getState().graphics.pixelRatio);
 
@@ -907,20 +910,21 @@ export async function replayScene(
   const _commandsThisFrame: any[] = [];
   let cmd = cmds.next();
 
-  let _halt = false;
-
   const GAME_LOOP = (elapsed: number) => {
 
     delta = elapsed - lastElapsed;
     lastElapsed = elapsed;
-    if (_halt || !viewports.primaryViewport) return;
+    if (!viewports.primaryViewport) return;
 
     for (const viewport of viewports.viewports) {
+
       if (!viewport.freezeCamera) {
         viewport.orbit.update(delta / 1000);
       }
+
       viewport.orbit.getTarget(_target);
       viewport.projectedView.update(viewport.camera, _target);
+
     }
 
     cameraMouse.update(delta / 100, elapsed, viewports);
@@ -932,6 +936,7 @@ export async function replayScene(
     }
 
     currentBwFrame = openBW.nextFrame(false);
+
     if (currentBwFrame !== previousBwFrame) {
 
       if (currentBwFrame % 24 === 0) {
@@ -950,6 +955,7 @@ export async function replayScene(
       fogOfWar.texture.needsUpdate = true;
 
       const audioPosition = viewports.onUpdateAudioMixerLocation(delta, elapsed);
+
       mixer.updateFromVector3(audioPosition as Vector3, delta);
 
       _commandsThisFrame.length = 0;
@@ -1042,6 +1048,7 @@ export async function replayScene(
   let pluginsApiJanitor = new Janitor;
 
   const setupPlugins = async () => {
+
     const container = createCompartment(gameTimeApi);
     macros.setCreateCompartment((context?: any) => {
       container.globalThis.context = context;
@@ -1050,12 +1057,12 @@ export async function replayScene(
 
     pluginsApiJanitor.mop(plugins.injectApi(gameTimeApi, macros));
     await plugins.callHookAsync(HOOK_ON_SCENE_READY);
+
   }
 
   await setupPlugins();
 
   const _onReloadPlugins = async () => {
-    _halt = true;
     renderComposer.getWebGLRenderer().setAnimationLoop(null);
     pluginsApiJanitor.dispose();
     await viewports.activate(null);
@@ -1064,7 +1071,6 @@ export async function replayScene(
     await setupPlugins();
     await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
     renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
-    _halt = false;
   };
 
   janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
@@ -1104,14 +1110,14 @@ export async function replayScene(
   return {
     id: "@replay",
     dispose: () => {
+
       log.info("disposing replay viewer");
-      _halt = true;
-      renderComposer.getWebGLRenderer().setAnimationLoop(null);
-      renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
-      resetCompletedUpgrades(0);
+      janitor.dispose();
       plugins.disposeGame();
       pluginsApiJanitor.dispose();
-      janitor.dispose();
+
+      renderComposer.getWebGLRenderer().setAnimationLoop(null);
+      renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
     }, start: () => renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
   }
 }

@@ -7,7 +7,6 @@ const passive = { passive: true };
 
 const clicked = new Vector3();
 
-
 export class CameraMouse {
     #_mouseWheelTimeout?: NodeJS.Timeout;
     #mouseWheelDelay = 200;
@@ -68,19 +67,11 @@ export class CameraMouse {
             this.#mouse.x = (evt.clientX / window.innerWidth) * 2 - 1;
             this.#mouse.y = - (evt.clientY / window.innerHeight) * 2 + 1;
         }
-        domElement.addEventListener("pointermove", onMouseMove, passive);
-        this.#janitor.mop(() => {
-            domElement.removeEventListener("pointermove", onMouseMove);
-        });
 
         const pointerDown = (evt: PointerEvent) => {
             this.#mouse.z = evt.button;
             this.#modifiers.set(evt.altKey ? 1 : 0, evt.ctrlKey ? 1 : 0, evt.shiftKey ? 1 : 0);
         }
-        domElement.addEventListener("pointerdown", pointerDown, passive);
-        this.#janitor.mop(() => {
-            domElement.removeEventListener("pointerdown", pointerDown);
-        });
 
         const pointerUp = (evt: PointerEvent) => {
             this.#screenDrag.set(0, 0);
@@ -89,11 +80,9 @@ export class CameraMouse {
             this.#mouse.z = -1;
             this.#modifiers.set(0, 0, 0);
         }
-        domElement.addEventListener("pointerup", pointerUp, passive);
-        this.#janitor.mop(() => {
-            domElement.removeEventListener("pointerup", pointerUp);
-        }
-        );
+
+        this.#janitor.addEventListener(domElement, "pointermove", onMouseMove, passive);
+        this.#janitor.addEventListener(domElement, "pointerdown", pointerDown, passive);
         this.#janitor.addEventListener(domElement, "pointerup", pointerUp, passive);
         this.#janitor.addEventListener(domElement, "pointerleave", pointerUp, passive);
 

@@ -68,6 +68,8 @@ export class Image3D extends Object3D implements ImageBase {
 
     if (this.model && this.atlas.animations.length) {
       this.#times = this.atlas.animations[0].tracks[0].times;
+      // so the last frame does not loop over
+      this.#times[this.#times.length - 1] = this.#times[this.#times.length - 1] - 0.0000001;
       this.mixer = new AnimationMixer(this);
       this.#action = this.mixer.clipAction(this.atlas.animations[0]);
       this.#action.play();
