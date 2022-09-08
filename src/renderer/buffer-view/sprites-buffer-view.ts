@@ -69,3 +69,31 @@ export class SpritesBufferView
   }
 
 }
+
+export class SpritesBufferViewIterator {
+  #openBW: OpenBW;
+  #sprites: SpritesBufferView;
+  constructor(openBW: OpenBW) {
+    this.#openBW = openBW;
+    this.#sprites = new SpritesBufferView(openBW);
+  }
+
+  *[Symbol.iterator]() {
+    const spriteList = new IntrusiveList(this.#openBW.HEAPU32);
+    const spriteTileLineSize = this.#openBW.getSpritesOnTileLineSize();
+    const spritetileAddr = this.#openBW.getSpritesOnTileLineAddress();
+    for (let l = 0; l < spriteTileLineSize; l++) {
+      spriteList.addr = spritetileAddr + (l << 3)
+      for (const spriteAddr of spriteList) {
+        if (spriteAddr === 0) {
+          continue;
+        }
+        yield this.#sprites.get(spriteAddr);
+      }
+    }
+  }
+
+  getSprite(addr: number) {
+    return this.#sprites.get(addr);
+  }
+}

@@ -83,7 +83,7 @@ const spriteModelEffects: SpriteModelEffects = {
 
 export const modelSetFileRefIds = new Map([
     // siege turret -> siege base
-    [254, 251],
+    [251, 254],
     // lurker egg -> egg,
     [914, 21]
 

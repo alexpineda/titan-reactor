@@ -165,7 +165,7 @@ export default async (settings: Settings) => {
             const glb = await loadGlbAtlas(
                 glbFileName(refImageId),
                 // use grp frames for convenience since we might fake being another image for re-use
-                anim.frames,
+                bwDat.grps[glbRefImageId].frames,
                 // bwDat.grps[bwDat.images[glbRefImageId].grp].frames.length,
                 imageDat,
                 envMap,

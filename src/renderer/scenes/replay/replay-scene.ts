@@ -20,7 +20,7 @@ import {
   MinimapMouse, CameraMouse, CameraKeys, createUnitSelection
 } from "@input";
 import { getOpenBW } from "@openbw";
-import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView } from "@buffer-view";
+import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView, SpritesBufferViewIterator } from "@buffer-view";
 import * as log from "@ipc/log";
 import {
   GameSurface, renderComposer, SimpleText, BaseScene
@@ -839,6 +839,7 @@ export async function replayScene(
   }
 
   const spriteBufferView = new SpritesBufferView(openBW);
+  const spritesIterator = new SpritesBufferViewIterator(openBW);
   const imageBufferView = new ImageBufferView(openBW);
   const bulletBufferView = new BulletsBufferView(openBW);
   const _ignoreSprites: number[] = [];
@@ -885,23 +886,12 @@ export async function replayScene(
     }
 
     // build all remaining sprites
-    const spriteList = new IntrusiveList(openBW.HEAPU32);
-    const spriteTileLineSize = openBW.getSpritesOnTileLineSize();
-    const spritetileAddr = openBW.getSpritesOnTileLineAddress();
-    for (let l = 0; l < spriteTileLineSize; l++) {
-      spriteList.addr = spritetileAddr + (l << 3)
-      for (const spriteAddr of spriteList) {
-        if (spriteAddr === 0) {
-          continue;
-        }
+    for (const sprite of spritesIterator) {
 
-        const spriteData = spriteBufferView.get(spriteAddr);
-        if (_ignoreSprites.includes(spriteData.index)) {
-          continue;
-        }
+      if (_ignoreSprites.includes(sprite.index)) continue;
 
-        buildSprite(spriteData, delta);
-      }
+      buildSprite(sprite, delta);
+
     }
 
   };
@@ -912,31 +902,20 @@ export async function replayScene(
     object: SpriteType
   }
 
-  function* spriteIterator() {
-    const spriteList = new IntrusiveList(openBW.HEAPU32);
-    const spriteTileLineSize = openBW.getSpritesOnTileLineSize();
-    const spritetileAddr = openBW.getSpritesOnTileLineAddress();
-    for (let l = 0; l < spriteTileLineSize; l++) {
-      spriteList.addr = spritetileAddr + (l << 3)
-      for (const spriteAddr of spriteList) {
-        if (spriteAddr === 0) {
-          continue;
-        }
-        const bufferView = spriteBufferView.get(spriteAddr);
-        const object = sprites.get(bufferView.index);
-
-        if (object) {
-          if (!_spriteIteratorResult) {
-            _spriteIteratorResult = {
-              bufferView,
-              object
-            }
-          } else {
-            _spriteIteratorResult.bufferView = bufferView;
-            _spriteIteratorResult.object = object;
+  function* spriteObjectIterator() {
+    for (const bufferView of spritesIterator) {
+      const object = sprites.get(bufferView.index);
+      if (object) {
+        if (!_spriteIteratorResult) {
+          _spriteIteratorResult = {
+            bufferView,
+            object
           }
-          yield _spriteIteratorResult;
+        } else {
+          _spriteIteratorResult.bufferView = bufferView;
+          _spriteIteratorResult.object = object;
         }
+        yield _spriteIteratorResult;
       }
     }
   }
@@ -946,7 +925,7 @@ export async function replayScene(
     object: ImageBase
   }
 
-  function* spriteImageIterator(spriteData: SpritesBufferView) {
+  function* imageObjectIteratorBySprite(spriteData: SpritesBufferView) {
     for (const imgAddr of spriteData.images.reverse()) {
       const bufferView = imageBufferView.get(imgAddr);
       const object = images.get(bufferView.index);
@@ -1065,7 +1044,7 @@ export async function replayScene(
       }
 
       v.updateCamera(session.getState().game.dampingFactor, delta);
-      updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteIterator, spriteImageIterator);
+      updateSpritesForViewport(v.camera.userData.direction, v.renderMode3D, spriteObjectIterator, imageObjectIteratorBySprite);
       v.shakeStart(elapsed, session.getState().game.cameraShakeStrength);
       globalEffectsBundle.updateCamera(v.camera)
       renderComposer.setBundlePasses(globalEffectsBundle);
