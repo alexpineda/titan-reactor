@@ -1,17 +1,13 @@
 import { Audio, AudioListener, AudioLoader } from "three";
-import * as log from "../ipc/log"
+import * as log from "../ipc/log";
 
 const rand = (n: number) => Math.floor(Math.random() * n);
 
 export class Music {
-  audio?: Audio;
-  races: string[];
-  constructor(races: string[], listener: AudioListener) {
-    this.races = races;
-    this.setListener(listener);
-  }
+  audio: Audio;
+  races = ["terran", "zerg", "protoss"];
 
-  setListener(listener: AudioListener) {
+  constructor(listener: AudioListener) {
     this.audio = new Audio(listener);
   }
 
@@ -28,14 +24,12 @@ export class Music {
   }
 
   playMenu() {
-    if (!this.audio) return;
     const race = ["t", "z", "p"];
     this.audio.onEnded = this.playMenu.bind(this);
     this._play(race[rand(2)] + "rdyroom.ogg");
   }
 
   _play(filepath: string) {
-    if (!this.audio) return;
     log.verbose(`now playing ${filepath}`);
     const audioLoader = new AudioLoader();
 
@@ -51,15 +45,14 @@ export class Music {
   }
 
   stop() {
-    if (!this.audio) return;
     this.audio.stop();
   }
 
   dispose() {
     if (this.audio && this.audio.isPlaying) {
       this.audio.stop();
-      delete this.audio;
     }
+    this.audio.disconnect();
   }
 }
 export default Music;

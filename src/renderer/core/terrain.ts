@@ -1,4 +1,4 @@
-import { GetTerrainY, getTerrainY } from "@image/generate-map";
+import { GetTerrainY } from "@image/generate-map";
 import { GeometryOptions, TerrainQuartile } from "common/types";
 import { Group, Mesh, MeshStandardMaterial } from "three";
 
@@ -19,16 +19,11 @@ export class Terrain extends Group {
     readonly geomOptions: GeometryOptions;
     #setCreepAnisotropy: (anisotropy: number) => void;
 
-    constructor({ geomOptions, mapHeight, mapWidth, displacementImage }: { geomOptions: GeometryOptions, mapWidth: number, mapHeight: number, displacementImage: ImageData }, setCreepAnisotropy: (anisotropy: number) => void) {
+    constructor( geomOptions: GeometryOptions, getTerrainY: GetTerrainY, setCreepAnisotropy: (anisotropy: number) => void) {
         super();
 
         this.geomOptions = geomOptions;
-        this.getTerrainY = getTerrainY(
-            displacementImage,
-            geomOptions.maxTerrainHeight,
-            mapWidth,
-            mapHeight
-        );
+        this.getTerrainY = getTerrainY;
         this.#setCreepAnisotropy = setCreepAnisotropy;
     }
 

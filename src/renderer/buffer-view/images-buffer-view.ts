@@ -81,4 +81,20 @@ export class ImageBufferView
       this._address = this.nextNode;
     } while (header !== this._address); // intrusive list
   }
+
+  copy(any: Partial<ImageStruct>) {
+    any.flags = this.flags;
+    any.frameIndex = this.frameIndex;
+    any.frameIndexBase = this.frameIndexBase;
+    any.frameIndexOffset = this.frameIndexOffset;
+    any.index = this.index;
+    any.typeId = this.typeId;
+    any.modifier = this.modifier;
+    any.modifierData1 = this.modifierData1;
+    any.modifierData2 = this.modifierData2;
+    any.x = this.x;
+    any.y = this.y;
+    return any;
+  }
+
 }

@@ -61,4 +61,15 @@ export class BulletsBufferView extends FlingyBufferView
         return this._prevBounceUnit.get(addr);
     }
 
+    /**
+     * Our extensions determining start fly Y value and end fly Y value
+     */
+    get extSrcHOffset() {
+        return this._bw.HEAPU32[this._addr32 + 41];
+    }
+
+    get extDstHOffset() {
+        return this._bw.HEAPU32[this._addr32 + 42];
+    }
+
 }

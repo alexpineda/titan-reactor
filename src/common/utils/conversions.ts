@@ -1,5 +1,11 @@
 import { Vector2, Vector3 } from "three";
-import { PxToGameUnit } from "../types/util";
+
+export type PxToGameUnit = {
+  x: (v: number) => number;
+  y: (v: number) => number;
+  xy: (x: number, y: number, out?: Vector2) => Vector2;
+  xyz: (x: number, y: number, out?: Vector3, zFunction?: (x: number, y: number) => number) => Vector3;
+};
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
 
@@ -15,10 +21,10 @@ export const pxToMapMeter = (
     xy: (x: number, y: number, out?: Vector2) => {
       return (out ?? new Vector2).set(transform(x, mapWidth), transform(y, mapHeight));
     },
-    xyz: (x: number, y: number, out?: Vector3, zFunction: (x: number, y: number) => number = () => 0) => {
+    xyz: (x: number, y: number, out?: Vector3, yFunction: (x: number, y: number) => number = () => 0) => {
       const nx = transform(x, mapWidth);
       const ny = transform(y, mapHeight);
-      return (out ?? new Vector3).set(nx, zFunction(nx, ny), ny);
+      return (out ?? new Vector3).set(nx, yFunction(nx, ny), ny);
     }
   };
 };

@@ -14,7 +14,7 @@ import { SoundChannels, Music, mixer } from "@audio";
 import { openFile } from "@ipc";
 import * as log from "@ipc/log";
 import { BaseScene } from "@render";
-import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
+import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "@stores/settings-store";
 import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
@@ -82,7 +82,7 @@ export const replaySceneLoader = async (filepath: string) => {
 
   replay.header.players = replay.header.players.filter(p => p.isActive);
 
-  if (replay.header.gameType === GameTypes.Melee) {
+  if (replay.header.gameType === GameTypes.Melee && settings.util.detectMeleeObservers) {
 
     const meleeObservers = detectMeleeObservers(new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer));
 
@@ -90,10 +90,10 @@ export const replaySceneLoader = async (filepath: string) => {
 
   }
 
-  processStore().increment(Process.ReplayInitialization);
   UnitsBufferView.unit_generation_size = replay.limits.units === 1700 ? 5 : 3;
 
   const map = new Chk(replay.chk);
+
   cleanMapTitles(map);
 
   const gameTitle = `${map.title} - ${replay.header.players
@@ -118,12 +118,10 @@ export const replaySceneLoader = async (filepath: string) => {
   scene.background = assets.skyBox;
   scene.environment = assets.envMap;
 
-  openBw.loadReplay(replayBuffer);
-
-  const races = ["terran", "zerg", "protoss"];
+  openBw.loadReplayWithHeightMap(replayBuffer, extra.heightMaps.singleChannel, extra.heightMaps.displacementImage.width, extra.heightMaps.displacementImage.height);
 
   const soundChannels = new SoundChannels();
-  const music = janitor.mop(new Music(races, mixer as unknown as AudioListener));
+  const music = janitor.mop(new Music(mixer as unknown as AudioListener));
 
   const preloadCommands = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
   const preloadCommandTypes = [CMDS.TRAIN.id, CMDS.UNIT_MORPH.id, CMDS.BUILDING_MORPH.id, CMDS.BUILD.id];
@@ -158,7 +156,12 @@ export const replaySceneLoader = async (filepath: string) => {
     scene,
     assets,
     janitor,
-    replay,
+    replay.header.players.map(player => ({
+      id: player.id,
+      name: player.name,
+      color: player.color,
+      race: player.race
+    })),
     soundChannels,
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
   );

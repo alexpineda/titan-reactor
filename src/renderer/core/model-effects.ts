@@ -48,6 +48,13 @@ const remnants = [7, 16, 20, 24, 32, 37, 53, 57, 89, 124, 230, 241, 920, 946].ma
 
 const spriteModelEffects: SpriteModelEffects = {
     images: {
+        // goliath turret
+        235: [
+            {
+                type: "emissive:frames",
+                frames: [0]
+            },
+        ],
         // marine + marine death (242)
         239: [
             {
@@ -61,6 +68,7 @@ const spriteModelEffects: SpriteModelEffects = {
             //     frames: [13, 14, 15, 16, 17, 18, 19, 20]
             // }
         ],
+        
         //command center overlay
         276: [
             {
@@ -76,6 +84,7 @@ const spriteModelEffects: SpriteModelEffects = {
             {
                 // regular tank turret uses siege tank turret frame 1
                 type: "remap-frames",
+                //TODO: change to frameset system
                 remap: (frame: number) => frame + 17
             }
         ],
@@ -192,7 +201,7 @@ export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, 
 
     }
 
-    if (_needsUpdateFrame && imageHasDirectionalFrames(imageBufferView)) {
+    if (_needsUpdateFrame) {
 
         // ignore camera direction since we are rotating the 3d model
         image.setFrame(imageBufferView.frameIndex);

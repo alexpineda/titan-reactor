@@ -16,7 +16,7 @@ import { MapDisplayOptions, MapViewer } from "@render/map-options";
 import { useSettingsStore } from "@stores";
 import Janitor from "@utils/janitor";
 import createStartLocation from "@core/create-start-location";
-import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
+import {chkToTerrainMesh} from "@image/generate-map/chk-to-terrain-mesh";
 import { defaultGeometryOptions } from "@image/generate-map";
 import { Terrain } from "@core/terrain";
 import { SceneState } from "../scene";

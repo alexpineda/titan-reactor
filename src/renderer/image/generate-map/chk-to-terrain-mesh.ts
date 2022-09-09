@@ -15,7 +15,7 @@ import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
 
-export default async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
+export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -23,8 +23,7 @@ export default async function chkToTerrainMesh(chk: Chk, textureResolution: Unit
   const dataTextures = await createDataTextures({
     blendNonWalkableBase: geomOptions.blendNonWalkableBase,
     palette: tilesetBuffers.paletteWPE, mapWidth, mapHeight, bitmaps,
-  }
-  );
+  });
 
   const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
 
@@ -34,7 +33,7 @@ export default async function chkToTerrainMesh(chk: Chk, textureResolution: Unit
 
   const renderer = renderComposer.getWebGLRenderer();
 
-  const displacementImages = await doHeightMapEffect({
+  const heightMaps = await doHeightMapEffect({
     palette,
     tileset,
     mapWidth,
@@ -73,7 +72,7 @@ export default async function chkToTerrainMesh(chk: Chk, textureResolution: Unit
   renderer.autoClear = true;
   renderer.outputEncoding = sRGBEncoding;
 
-  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, displacementImages, textures, effectsTextures);
+  const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, heightMaps, textures, effectsTextures);
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 
@@ -83,6 +82,7 @@ export default async function chkToTerrainMesh(chk: Chk, textureResolution: Unit
       minimapBitmap,
       creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
       creepTextureUniform: dataTextures.creepTextureUniform,
+      heightMaps
     }
   }
 }

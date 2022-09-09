@@ -114,6 +114,16 @@ const createOpenBW = async () => {
     });
   };
 
+  openBW.loadReplayWithHeightMap = (buffer: Buffer, data: Uint8ClampedArray, width: number, height: number) => {
+    tryCatch(() => {
+      const replayBuf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
+      const heightMapBuf = wasm.allocate(data, wasm.ALLOC_NORMAL);
+      wasm._load_replay_with_height_map(replayBuf, buffer.length, heightMapBuf, data.length, width, height);
+      wasm._free(replayBuf);
+      wasm._free(heightMapBuf);
+    });
+  }
+
   openBW.tryCatch = tryCatch;
 
   openBW.start = async (readFile: ReadFile) => {

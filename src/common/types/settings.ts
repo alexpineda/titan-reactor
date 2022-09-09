@@ -119,7 +119,8 @@ export type SettingsV6 = {
     },
     util: {
         sanityCheckReplayCommands: boolean,
-        debugMode: boolean
+        debugMode: boolean,
+        detectMeleeObservers: boolean,
     },
     plugins: {
         serverPort: number;

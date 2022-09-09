@@ -1,7 +1,7 @@
+import { BasePlayer } from "@core/players";
 import { Terrain } from "@core/terrain";
 import { Unit } from "@core/unit";
 import { GetTerrainY } from "@image/generate-map";
-import { ReplayHeader, ReplayPlayer } from "@process-replay/parse-replay-header";
 import BaseScene from "@render/base-scene";
 import { Assets, PxToGameUnit, Settings } from "common/types";
 import { GameViewPort } from "renderer/camera/game-viewport";
@@ -9,7 +9,7 @@ import { Color, Scene, Vector3 } from "three";
 
 
 export interface GameTimeApi {
-    type: "replay",
+    type: "replay" | "game" | "live",
     viewport: GameViewPort;
     secondViewport: GameViewPort
     simpleMessage(message: string): void;
@@ -37,7 +37,6 @@ export interface GameTimeApi {
     getTerrainY: GetTerrainY;
     terrain: Terrain;
     readonly currentFrame: number;
-    readonly maxFrame: number;
     gotoFrame(frame: number): void;
     exitScene(): void;
     setPlayerColors(colors: string[]): void;
@@ -45,8 +44,7 @@ export interface GameTimeApi {
     getOriginalColors(): readonly string[];
     setPlayerNames(names: { name: string, id: number }[]): void;
     getOriginalNames(): readonly { name: string, id: number }[];
-    getPlayers(): ReplayPlayer[];
-    replay: ReplayHeader;
+    getPlayers(): BasePlayer[];
     readonly followedUnitsPosition: Vector3 | undefined | null;
     selectUnits(units: number[]): void;
     selectedUnits: Unit[];

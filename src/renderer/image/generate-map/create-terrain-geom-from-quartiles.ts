@@ -11,6 +11,7 @@ import hdHeaderFrag from "./glsl/hd-header.frag";
 import { Terrain } from "@core/terrain";
 import { HeightMaps } from "./height-maps";
 import gameStore from "@stores/game-store";
+import { getTerrainY } from "./get-terrain-y";
 
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
@@ -19,11 +20,13 @@ export const createTerrainGeometryFromQuartiles = async (
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
     { creepEdgesTextureUniform, creepTextureUniform /*, occlussionRoughnessMetallicMap*/ }: MapDataTextures,
-    { displacementImage, displaceCanvas }: HeightMaps,
+    { displacementImage, displaceCanvas, singleChannel }: HeightMaps,
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
-    const terrain = new Terrain({ geomOptions, mapWidth, mapHeight, displacementImage }, (anisotropy: number) => {
+    const terrain = new Terrain(geomOptions, getTerrainY({
+        data: singleChannel, width: displacementImage.width, height: displacementImage.height
+    }, geomOptions.maxTerrainHeight, mapWidth, mapHeight) ,(anisotropy: number) => {
         creepTexture.texture.anisotropy = anisotropy;
         creepEdgesTexture.texture.anisotropy = anisotropy;
     });

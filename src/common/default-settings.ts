@@ -31,6 +31,7 @@ export const defaultSettingsV6: SettingsV6 = {
   util: {
     sanityCheckReplayCommands: true,
     debugMode: false,
+    detectMeleeObservers: true
   },
   graphics: {
     pixelRatio: 1,

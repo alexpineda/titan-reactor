@@ -18,6 +18,7 @@ import { MapEffect } from "./glsl/map-effect";
 
 import { MapDataTextures } from "./create-data-textures";
 import { GeometryOptions } from "common/types";
+import { rgbaToGreyScale } from "@image/canvas";
 
 type Matrix3LevelArgs = [number, number, number, number, number, number, number];
 
@@ -146,6 +147,7 @@ export const doHeightMapEffect = async ({
     return {
         displaceCanvas,
         displacementImage,
+        singleChannel: rgbaToGreyScale(displacementImage.data, displacementImage.width, displacementImage.height)
     };
 };
 export type HeightMaps = Awaited<ReturnType<typeof doHeightMapEffect>>;

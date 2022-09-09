@@ -4,7 +4,6 @@ import {
   Player,
   StartLocation,
 } from "common/types";
-import { Replay } from "renderer/process-replay/parse-replay";
 import { Color } from "three";
 
 const _pVision = (p: Player) => {
@@ -16,13 +15,16 @@ const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
 }
 
 const makeColor = (color: string) => new Color().setStyle(color).convertSRGBToLinear()
-const makeColors = (players: Replay["header"]["players"]) => players.map(
+const makeColors = (players: Pick<BasePlayer, "color">[]) => players.map(
   ({ color }) => makeColor(color)
 );
 
-export type PlayerName = {
-  id: number, name: string
+export type BasePlayer = {
+  id: number, name: string, color: string, race: string
 }
+
+export type PlayerName = Pick<BasePlayer, "id" | "name">
+
 export class Players extends Array<Player> {
   playersById: Record<number, Player> = {};
   #janitor = new Janitor();
@@ -30,7 +32,7 @@ export class Players extends Array<Player> {
   originalNames: readonly PlayerName[];
 
   constructor(
-    players: Replay["header"]["players"],
+    players: BasePlayer[],
     startLocations: StartLocation[],
   ) {
     super();

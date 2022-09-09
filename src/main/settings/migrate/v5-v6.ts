@@ -13,6 +13,7 @@ export const v5tov6 = (oldSettings: PreviousSettings): PreviousSettings => {
         postprocessing: defaultSettingsV6.postprocessing,
         postprocessing3d: defaultSettingsV6.postprocessing3d,
         graphics: defaultSettingsV6.graphics,
+        util: defaultSettingsV6.util,
     };
 
     return settings;

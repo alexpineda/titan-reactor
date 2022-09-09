@@ -6,7 +6,6 @@ export * from "./iscript";
 export * from "./player";
 export * from "./replay";
 export * from "./terrain";
-export * from "./util";
 export * from "./image";
 export * from "./settings";
 export * from "./plugin";

@@ -11,18 +11,21 @@ import { diff } from "deep-diff";
 import set from "lodash.set";
 import getProp from "lodash.get";
 import * as log from "@ipc/log";
+import { BasePlayer } from "@core/players";
 
 export type SessionStore = Settings & {
     minimapScale: number;
     merge: (rhs: DeepPartial<Settings>) => void;
     doMacroAction: (action: MacroAction) => void;
+    players: BasePlayer[];
 }
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-export const createSession = (ogData: Settings) => {
+export const createSession = (ogData: Settings, players: BasePlayer[]) => {
     return create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
         ...JSON.parse(JSON.stringify(ogData)),
+        players,
         minimapScale: 1,
         merge: async (rhs: DeepPartial<Settings>) => {
 

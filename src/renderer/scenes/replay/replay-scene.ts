@@ -13,10 +13,10 @@ import { SpriteStruct, ImageStruct } from "common/types";
 import type { SoundChannels } from "@audio";
 import {
   Players,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, Unit
+  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, Unit, BasePlayer
 } from "@core";
 import {
-  MinimapMouse, CameraMouse, CameraKeys, createUnitSelection
+  MinimapMouse, CameraMouse, CameraKeys
 } from "@input";
 import { getOpenBW } from "@openbw";
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView, SpritesBufferViewIterator } from "@buffer-view";
@@ -33,7 +33,6 @@ import gameStore from "@stores/game-store";
 import * as plugins from "@plugins";
 import settingsStore from "@stores/settings-store";
 import { Assets } from "common/types/assets";
-import { Replay } from "@process-replay/parse-replay";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { canSelectUnit, getAngle, unitIsFlying } from "@utils/unit-utils";
@@ -63,6 +62,7 @@ import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, applyViewportToFrameOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 import { FreeMap } from "@utils/free-map";
+import { createImageSelection } from "@input/create-image-selection";
 
 export async function replayScene(
   map: Chk,
@@ -71,17 +71,17 @@ export async function replayScene(
   scene: BaseScene,
   assets: Assets,
   janitor: Janitor,
-  replay: Replay,
+  basePlayers: BasePlayer[],
   soundChannels: SoundChannels,
   commandsStream: CommandsStream
 ): Promise<SceneState> {
 
-  const session = createSession(settingsStore().data);
+  const session = createSession(settingsStore().data, basePlayers);
   const macros = new Macros(session);
   macros.deserialize(settingsStore().data.macros);
 
   const players = janitor.mop(new Players(
-    replay.header.players,
+    basePlayers,
     map.units.filter((u) => u.unitId === unitTypes.startLocation),
   ));
 
@@ -91,7 +91,6 @@ export async function replayScene(
 
   const [mapWidth, mapHeight] = map.size;
   renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
-
 
   const cssScene = new CssScene;
 
@@ -108,7 +107,7 @@ export async function replayScene(
   janitor.mop(document.body.appendChild(minimapSurface.canvas));
 
   const simpleText = janitor.mop(new SimpleText());
-  const pxToGameUnit = pxToMapMeter(mapWidth, mapHeight);
+  const pxToWorld = pxToMapMeter(mapWidth, mapHeight);
 
   const minimapMouse = janitor.mop(new MinimapMouse(
     minimapSurface,
@@ -187,7 +186,6 @@ export async function replayScene(
         }
       }
 
-
       if (globalEffectsBundle.options3d.shadowQuality !== scene.sunlight.shadowQuality) {
         scene.createSunlight();
         scene.sunlight.shadowQuality = globalEffectsBundle.options3d.shadowQuality;
@@ -236,7 +234,16 @@ export async function replayScene(
     return null;
   }
 
-  const unitSelection = createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
+  const _imageDebug: Partial<ImageStruct> = {};
+  const unitSelection = createImageSelection(scene, gameSurface, minimapSurface, (object) => {
+    if (object instanceof ImageHD) {
+      console.log(object);
+      console.log(imageBufferView.get(object.userData.imageAddress).copy(_imageDebug));
+      object.scale.multiplyScalar(2);
+    }
+  });
+
+  // const unitSelection = createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
 
   viewports.beforeActivate = () => {
     gameTimeApi.minimap.enabled = true;
@@ -317,7 +324,7 @@ export async function replayScene(
       refreshScene: () => {
         reset = refreshScene;
       },
-      pxToGameUnit,
+      pxToGameUnit: pxToWorld,
       mapWidth,
       mapHeight,
       tileset: map.tileset,
@@ -328,9 +335,6 @@ export async function replayScene(
       },
       get currentFrame() {
         return currentBwFrame;
-      },
-      get maxFrame() {
-        return replay.header.frameCount
       },
       gotoFrame: (frame: number) => {
         openBW.setCurrentFrame(frame);
@@ -362,13 +366,12 @@ export async function replayScene(
       getOriginalNames() {
         return players.originalNames;
       },
-      getPlayers: () => [...replay.header.players.map(p => ({ ...p }))],
-      get replay() { return { ...replay.header, players: [...replay.header.players.map(p => ({ ...p }))] } },
+      getPlayers: () => [...basePlayers.map(p => ({ ...p }))],
       get followedUnitsPosition() {
         if (!hasFollowedUnits()) {
           return null;
         }
-        return calculateFollowedUnitsTarget(pxToGameUnit);
+        return calculateFollowedUnitsTarget(pxToWorld);
       },
       selectUnits: (ids: number[]) => {
         const selection = [];
@@ -386,7 +389,7 @@ export async function replayScene(
       // fadingPointers,
       playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
         if (y !== undefined && volumeOrX !== undefined) {
-          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToGameUnit, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
+          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToWorld, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
         } else {
           soundChannels.playGlobal(typeId, volumeOrX);
         }
@@ -583,7 +586,7 @@ export async function replayScene(
       const unitTypeId = openBW.HEAP32[addr + 3];
 
       if (fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
-        buildSound(elapsed, x, y, typeId, unitTypeId, pxToGameUnit, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
+        buildSound(elapsed, x, y, typeId, unitTypeId, pxToWorld, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
       }
     }
 
@@ -623,14 +626,14 @@ export async function replayScene(
   }
 
   const getWorldSpriteY = (sprite: { x: number, y: number }, isFlying?: boolean) => {
-    const worldX = pxToGameUnit.x(sprite.x);
-    const worldZ = pxToGameUnit.y(sprite.y);
+    const worldX = pxToWorld.x(sprite.x);
+    const worldZ = pxToWorld.y(sprite.y);
     return getWorldYPosition(worldX, worldZ, isFlying);
   }
 
   const getWorldSpriteVectorsFromXY = (x: number, y: number, v: Vector3, isFlying?: boolean) => {
-    const worldX = pxToGameUnit.x(x);
-    const worldZ = pxToGameUnit.y(y);
+    const worldX = pxToWorld.x(x);
+    const worldZ = pxToWorld.y(y);
     v.set(worldX, getWorldYPosition(worldX, worldZ, isFlying), worldZ);
   }
   const getWorldSpriteVectors = (sprite: { x: number, y: number }, v: Vector3, isFlying?: boolean) => {
@@ -651,7 +654,7 @@ export async function replayScene(
   let _bulletSourceUnit: UnitsBufferView | DeadTargetSource | undefined;
   let _bulletTargetPos = new Vector2();
 
-  const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView, weapon?: WeaponDAT) => {
+  const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView) => {
 
     const unit = sprites.getUnit(spriteData.index);
     let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
@@ -671,72 +674,23 @@ export async function replayScene(
       spriteIsVisible = false;
     }
     sprite.visible = spriteIsVisible;
-    sprite.userData.renderOrder = spriteSortOrder(spriteData as SpriteStruct);
-    sprite.renderOrder = viewports.primaryViewport.renderMode3D ? 0 : sprite.userData.renderOrder;
+    sprite.renderOrder = viewports.primaryViewport.renderMode3D ? 0 : spriteSortOrder(spriteData as SpriteStruct);
 
-    getWorldSpriteVectors(spriteData, _spriteVector3, unit && unitIsFlying(unit));
-    let bulletY: number | undefined;
+    _spriteVector3.set(pxToWorld.x(spriteData.x), ( spriteData.extFlyOffset > 0 ? spriteData.extFlyOffset * 5 : spriteData.extYValue)  * terrain.geomOptions.maxTerrainHeight + 0.1, pxToWorld.y(spriteData.y));
 
+    // if (bullet) {
+    //   const weapon = assets.bwDat.weapons[bullet.weaponTypeId];
+
+    //   bullet.extDstHOffset
+    //   bullet.extSrcHOffset
+
+    // }
+    
     const player = players.playersById[spriteData.owner];
 
-    if (bullet && bullet.spriteIndex !== 0 && weapon && spriteIsVisible) {
+    sprite.position.copy(_spriteVector3)
 
-      if (bullet.state === BulletState.Dying) {
-        viewports.doShakeCalculation(weapon.explosionType, weapon.damageType, _spriteVector3);
-      }
-
-      _bulletSourceUnit = bullet.ownerUnit ?? bullet.prevBounceUnit ?? deadTargetSource.maybe(bullet.index)?.sourceUnit;
-      _bulletTargetUnit = bullet.targetUnit ?? deadTargetSource.maybe(bullet.index)?.targetUnit;
-      _bulletTargetPos.set(bullet.targetPosX, bullet.targetPosY);
-
-      if (bullet.ownerUnit || bullet.prevBounceUnit) {
-        deadTargetSource.get(bullet.index).sourceUnit.copy(bullet.ownerUnit ?? bullet.prevBounceUnit!);
-      }
-
-      if (bullet.targetUnit) {
-        deadTargetSource.get(bullet.index).targetUnit.copy(bullet.targetUnit);
-      }
-
-      // do this based on state instead? Since we probably want to use
-      // flingy move target instead of bullet target in some cases
-      if (staticSourceYBullets.includes(weapon.weaponBehavior)) {
-        bulletY = _bulletSourceUnit ? getWorldSpriteY(_bulletSourceUnit, unitIsFlying(_bulletSourceUnit)) : _spriteVector3.y;
-      } else if (dynamicYBullets.includes(weapon.weaponBehavior) || staticTargetYBullets.includes(weapon.weaponBehavior)) {
-
-        // if (_bulletTargetUnit) {
-        //   _bulletTargetPos.set(_bulletTargetUnit.x, _bulletTargetUnit.y);
-        // }
-
-        bulletY = getWorldSpriteY(_bulletTargetPos, _bulletTargetUnit ? unitIsFlying(_bulletTargetUnit) : false);
-
-        if (dynamicYBullets.includes(weapon.weaponBehavior) && _bulletSourceUnit) {
-
-          getWorldSpriteVectors(_bulletTargetPos.set(bullet.nextMovementWaypointX, bullet.nextMovementWaypointY), _destBulletVector3, _bulletTargetUnit ? unitIsFlying(_bulletTargetUnit) : false);
-
-          getWorldSpriteVectors(_bulletSourceUnit, _sourceBulletVector3, unitIsFlying(_bulletSourceUnit));
-
-          _destBulletVector2.set(_destBulletVector3.x, _destBulletVector3.z);
-          _sourceBulletVector2.set(_sourceBulletVector3.x, _sourceBulletVector3.z);
-
-          const sourceToTargetDistance = _sourceBulletVector2.distanceTo(_destBulletVector2);
-          const bulletToTargetDistance = pxToGameUnit.xy(bullet.x, bullet.y, _spriteVector2).distanceTo(_destBulletVector2);
-
-          //TODO: figure out why bulletToTargetDistance > sourceToTargetDistance in some cases, which is why we need the Math.min hack
-          bulletY = MathUtils.lerp(_destBulletVector3.y, _sourceBulletVector3.y, Math.min(1, bulletToTargetDistance / sourceToTargetDistance));
-
-        }
-
-      } else {
-        console.warn("Unknown bullet behavior", weapon.weaponBehavior);
-      }
-
-    }
-
-    if (spriteData.typeId === 513 && !sprites.getParent(spriteData.index)) {
-      debugger;
-    }
-
-    sprite.position.set(_spriteVector3.x, (sprites.getParent(spriteData.index)?.position.y ?? bulletY ?? _spriteVector3.y), _spriteVector3.z);
+    // sprite.position.set(_spriteVector3.x, (sprites.getParent(spriteData.index)?.position.y ?? bulletY ?? _spriteVector3.y), _spriteVector3.z);
     sprite.updateMatrix();
     sprite.matrixWorld.copy(sprite.matrix);
 
@@ -803,8 +757,8 @@ export async function replayScene(
       }
 
       if (imageData.index === spriteData.mainImageIndex) {
+
         if (image instanceof Image3D) {
-          //TODO: change this since its creating a function object every frame
           overlayEffectsMainImage.image = image;
         }
 
@@ -813,7 +767,11 @@ export async function replayScene(
           image.rotation.y = image instanceof Image3D && !image.isLooseFrame ? getAngle(unit.direction) : 0;
           images.setUnit(image, unit);
         }
+
       }
+
+      //debug
+      image.userData.imageAddress = imageData._address;
 
       if (image instanceof ImageHD) {
 
@@ -880,9 +838,8 @@ export async function replayScene(
       if (bulletAddr === 0) continue;
 
       const bullet = bulletBufferView.get(bulletAddr);
-      const weapon = assets.bwDat.weapons[bullet.weaponTypeId];
 
-      buildSprite(bullet.owSprite, delta, bullet, weapon);
+      buildSprite(bullet.owSprite, delta, bullet);
       _ignoreSprites.push(bullet.spriteIndex);
     }
 
@@ -935,7 +892,7 @@ export async function replayScene(
       reset();
     }
 
-    currentBwFrame = openBW.nextFrame(false);
+    currentBwFrame = openBW.nextFrame(true);
 
     if (currentBwFrame !== previousBwFrame) {
 
@@ -988,6 +945,7 @@ export async function replayScene(
     }
 
     plugins.onBeforeRender(delta, elapsed);
+
     fogOfWar.update(players.getVisionFlag());
 
     // global won't use camera so we can set it to any
@@ -1013,7 +971,7 @@ export async function replayScene(
           const object = sprites.get(spriteBuffer.index);
           if (!object || object.visible === false) continue;
 
-          object.renderOrder = v.renderMode3D ? 0 : object.userData.renderOrder;
+          object.renderOrder = v.renderMode3D ? 0 : spriteSortOrder(spriteBuffer as SpriteStruct);
 
           for (const imgAddr of spriteBuffer.images.reverse()) {
 
@@ -1102,7 +1060,7 @@ export async function replayScene(
     }
   }));
 
-  await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToGameUnit.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
+  await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToWorld.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
 
   GAME_LOOP(0);
   //TODO: compile all scene postprocessing bundles

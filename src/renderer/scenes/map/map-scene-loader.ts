@@ -2,7 +2,7 @@ import Chk from "bw-chk";
 import loadScm from "@utils/load-scm";
 import * as log from "@ipc/log";
 import { BaseScene } from "@render";
-import chkToTerrainMesh from "@image/generate-map/chk-to-terrain-mesh";
+import {chkToTerrainMesh} from "@image/generate-map/chk-to-terrain-mesh";
 import processStore, { Process } from "@stores/process-store";
 import { Assets, UnitTileScale } from "common/types";
 import { mapScene as mapScene } from "./map-scene";

@@ -6,6 +6,8 @@ export interface OpenBWWasm {
     _reset: () => void;
     _load_replay: (buffer: number, length: number) => void;
     _load_map: (buffer: number, length: number) => void;
+    _upload_height_map: (buffer: number, length: number, width: number, height: number) => void;
+    _load_replay_with_height_map: (replayBuffer: number, replayLength: number, buffer: number, length: number, width: number, height: number) => void;
     _next_frame: () => number;
     _next_no_replay: () => number;
     _create_unit: (unitId: number, playerId: number, x: number, y: number) => number;
@@ -96,5 +98,8 @@ export interface OpenBW extends OpenBWWasm {
     loadReplay: (buffer: Buffer) => void;
     loadMap: (buffer: Buffer) => void;
     start: (readFile: ReadFile) => void;
+
+    uploadHeightMap: (data: Uint8ClampedArray, width: number, height: number) => void;
+    loadReplayWithHeightMap: (replayBuffer: Buffer, data: Uint8ClampedArray, width: number, height: number) => void;
 
 };
