@@ -1,11 +1,12 @@
 import { Vector3 } from "three";
-import { PxToGameUnit, SoundDAT } from "common/types";
+import { SoundDAT } from "common/types";
 import { Terrain } from "@core/terrain";
 import gameStore from "@stores/game-store";
 import { GameViewportsDirector } from "renderer/camera/game-viewport-director";
 import SoundChannels from "@audio/sound-channels";
 import { MainMixer } from "@audio/main-mixer";
 import ProjectedCameraView from "renderer/camera/projected-camera-view";
+import { PxToGameUnit } from "common/utils/conversions";
 
 export const MinPlayVolume = 10;
 

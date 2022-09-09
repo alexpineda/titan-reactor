@@ -1,9 +1,10 @@
 import { BasePlayer } from "@core/players";
 import { Terrain } from "@core/terrain";
 import { Unit } from "@core/unit";
-import { GetTerrainY } from "@image/generate-map";
+import { GetTerrainY } from "@image/generate-map/get-terrain-y";
 import BaseScene from "@render/base-scene";
-import { Assets, PxToGameUnit, Settings } from "common/types";
+import { Assets, Settings } from "common/types";
+import { PxToGameUnit } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene, Vector3 } from "three";
 

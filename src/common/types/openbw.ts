@@ -74,9 +74,6 @@ export interface OpenBW extends OpenBWWasm {
     getBulletsDeletedCount: () => number,
     getBulletsDeletedAddress: () => number,
 
-    getLinkedSpritesAddress: () => number,
-    getLinkedSpritesCount: () => number,
-
     getSoundsAddress: () => number,
     getSoundsCount: () => number,
 

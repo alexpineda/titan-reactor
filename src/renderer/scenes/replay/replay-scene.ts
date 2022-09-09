@@ -2,11 +2,10 @@ import { debounce } from "lodash";
 import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
-import { BulletState, drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
+import {  drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
 import { Surface } from "@image";
 import {
   Settings,
-  WeaponDAT
 } from "common/types";
 import { pxToMapMeter, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types";
@@ -19,7 +18,7 @@ import {
   MinimapMouse, CameraMouse, CameraKeys
 } from "@input";
 import { getOpenBW } from "@openbw";
-import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, BulletsBufferView, SpritesBufferViewIterator } from "@buffer-view";
+import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, SpritesBufferViewIterator } from "@buffer-view";
 import * as log from "@ipc/log";
 import {
   GameSurface, renderComposer, SimpleText, BaseScene
@@ -28,14 +27,13 @@ import { getImageLoOffset, imageIsDoodad, imageIsFrozen, imageIsHidden, imageNee
 import { buildSound } from "@utils/sound-utils";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import Janitor from "@utils/janitor";
-import { WeaponBehavior } from "common/enums";
 import gameStore from "@stores/game-store";
 import * as plugins from "@plugins";
 import settingsStore from "@stores/settings-store";
 import { Assets } from "common/types/assets";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
-import { canSelectUnit, getAngle, unitIsFlying } from "@utils/unit-utils";
+import { canSelectUnit, getAngle } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
@@ -61,7 +59,6 @@ import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHa
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, applyViewportToFrameOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
-import { FreeMap } from "@utils/free-map";
 import { createImageSelection } from "@input/create-image-selection";
 
 export async function replayScene(
@@ -133,7 +130,7 @@ export async function replayScene(
 
   const units = new UnitEntities
 
-  const sprites = new SpriteEntities(openBW);
+  const sprites = new SpriteEntities();
   scene.add(sprites.group);
 
   const images = janitor.mop(new ImageEntities);
@@ -603,63 +600,15 @@ export async function replayScene(
 
   scene.add(...selectionObjects);
 
-  class DeadTargetSource {
-    x = 0;
-    y = 0;
-    statusFlags = 0;
-    copy(b: { x: number, y: number, statusFlags: number }) {
-      this.x = b.x;
-      this.y = b.y;
-      this.statusFlags = b.statusFlags;
-    }
-  }
-
-  // track bullet targets because they can die and that makes us sad :(
-  const deadTargetSource = new FreeMap<number, { sourceUnit: DeadTargetSource, targetUnit: DeadTargetSource }>(() => ({
-    sourceUnit: new DeadTargetSource,
-    targetUnit: new DeadTargetSource,
-  }));
-
-  const getWorldYPosition = (worldX: number, worldZ: number, isFlying?: boolean) => {
-    let y = terrain.getTerrainY(worldX, worldZ);
-    return isFlying ? y / terrain.geomOptions.maxTerrainHeight + terrain.geomOptions.maxTerrainHeight + 1 : y
-  }
-
-  const getWorldSpriteY = (sprite: { x: number, y: number }, isFlying?: boolean) => {
-    const worldX = pxToWorld.x(sprite.x);
-    const worldZ = pxToWorld.y(sprite.y);
-    return getWorldYPosition(worldX, worldZ, isFlying);
-  }
-
-  const getWorldSpriteVectorsFromXY = (x: number, y: number, v: Vector3, isFlying?: boolean) => {
-    const worldX = pxToWorld.x(x);
-    const worldZ = pxToWorld.y(y);
-    v.set(worldX, getWorldYPosition(worldX, worldZ, isFlying), worldZ);
-  }
-  const getWorldSpriteVectors = (sprite: { x: number, y: number }, v: Vector3, isFlying?: boolean) => {
-    getWorldSpriteVectorsFromXY(sprite.x, sprite.y, v, isFlying);
-  }
-
-  const staticTargetYBullets = [WeaponBehavior.AppearOnTargetUnit, WeaponBehavior.AppearOnTargetPosition, WeaponBehavior.PersistOnTargetPos];
-  const staticSourceYBullets = [WeaponBehavior.AppearOnSourceUnit, WeaponBehavior.SelfDestruct];
-  const dynamicYBullets = [WeaponBehavior.Fly, WeaponBehavior.ExtendToMaxRange, WeaponBehavior.FollowTarget, WeaponBehavior.Bounce]
-
   const _spriteVector3 = new Vector3();
-  const _spriteVector2 = new Vector2();
-  const _destBulletVector2 = new Vector2();
-  const _destBulletVector3 = new Vector3();
-  const _sourceBulletVector3 = new Vector3();
-  const _sourceBulletVector2 = new Vector2();
-  let _bulletTargetUnit: UnitsBufferView | DeadTargetSource | undefined;
-  let _bulletSourceUnit: UnitsBufferView | DeadTargetSource | undefined;
-  let _bulletTargetPos = new Vector2();
 
-  const buildSprite = (spriteData: SpritesBufferView, _: number, bullet?: BulletsBufferView) => {
+  const buildSprite = (spriteData: SpritesBufferView, _: number) => {
 
     const unit = sprites.getUnit(spriteData.index);
     let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
 
     const dat = assets.bwDat.sprites[spriteData.typeId];
+    const player = players.playersById[spriteData.owner];
 
     // doodads and resources are always visible
     // show units as fog is lifting from or lowering to explored
@@ -676,21 +625,9 @@ export async function replayScene(
     sprite.visible = spriteIsVisible;
     sprite.renderOrder = viewports.primaryViewport.renderMode3D ? 0 : spriteSortOrder(spriteData as SpriteStruct);
 
-    _spriteVector3.set(pxToWorld.x(spriteData.x), ( spriteData.extFlyOffset > 0 ? spriteData.extFlyOffset * 5 : spriteData.extYValue)  * terrain.geomOptions.maxTerrainHeight + 0.1, pxToWorld.y(spriteData.y));
-
-    // if (bullet) {
-    //   const weapon = assets.bwDat.weapons[bullet.weaponTypeId];
-
-    //   bullet.extDstHOffset
-    //   bullet.extSrcHOffset
-
-    // }
-    
-    const player = players.playersById[spriteData.owner];
+    _spriteVector3.set(pxToWorld.x(spriteData.x), ( spriteData.extFlyOffset > 0 ? spriteData.extFlyOffset * 1.1 : spriteData.extYValue)  * terrain.geomOptions.maxTerrainHeight + 0.1, pxToWorld.y(spriteData.y));
 
     sprite.position.copy(_spriteVector3)
-
-    // sprite.position.set(_spriteVector3.x, (sprites.getParent(spriteData.index)?.position.y ?? bulletY ?? _spriteVector3.y), _spriteVector3.z);
     sprite.updateMatrix();
     sprite.matrixWorld.copy(sprite.matrix);
 
@@ -800,17 +737,12 @@ export async function replayScene(
 
   const spritesIterator = new SpritesBufferViewIterator(openBW);
   const imageBufferView = new ImageBufferView(openBW);
-  const bulletBufferView = new BulletsBufferView(openBW);
-  const _ignoreSprites: number[] = [];
-  const bulletList = new IntrusiveList(openBW.HEAPU32, 0);
 
   const buildSprites = (delta: number) => {
     const deleteImageCount = openBW._counts(15);
     const deletedSpriteCount = openBW._counts(16);
     const deletedImageAddr = openBW._get_buffer(3);
     const deletedSpriteAddr = openBW._get_buffer(4);
-
-    sprites.updateLinkedSprites();
 
     // avoid image flashing 
     // we clear the group here rather than on the reset event
@@ -827,26 +759,7 @@ export async function replayScene(
       images.free(openBW.HEAP32[(deletedImageAddr >> 2) + i]);
     }
 
-    for (let i = 0; i < openBW.getBulletsDeletedCount(); i++) {
-      deadTargetSource.delete(openBW.HEAP32[(openBW.getBulletsDeletedAddress() >> 2) + i]);
-    }
-
-    // build bullet sprites first since they need special Y calculations
-    bulletList.addr = openBW.getBulletsAddress();
-    _ignoreSprites.length = 0;
-    for (const bulletAddr of bulletList) {
-      if (bulletAddr === 0) continue;
-
-      const bullet = bulletBufferView.get(bulletAddr);
-
-      buildSprite(bullet.owSprite, delta, bullet);
-      _ignoreSprites.push(bullet.spriteIndex);
-    }
-
-    // build all remaining sprites
     for (const sprite of spritesIterator) {
-
-      if (_ignoreSprites.includes(sprite.index)) continue;
 
       buildSprite(sprite, delta);
 

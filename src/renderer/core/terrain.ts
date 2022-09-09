@@ -1,4 +1,4 @@
-import { GetTerrainY } from "@image/generate-map";
+import { GetTerrainY } from "@image/generate-map/get-terrain-y";
 import { GeometryOptions, TerrainQuartile } from "common/types";
 import { Group, Mesh, MeshStandardMaterial } from "three";
 

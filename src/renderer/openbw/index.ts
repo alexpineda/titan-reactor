@@ -58,9 +58,6 @@ const createOpenBW = async () => {
   openBW.getBulletsDeletedCount = () => wasm._counts(18);
   openBW.getBulletsDeletedAddress = () => wasm._get_buffer(7);
 
-  openBW.getLinkedSpritesAddress = () => wasm._get_buffer(10);
-  openBW.getLinkedSpritesCount = () => wasm._counts(1);
-
   openBW.getSoundsAddress = () => wasm._get_buffer(11);
   openBW.getSoundsCount = () => wasm._counts(6);
 
