@@ -1,6 +1,6 @@
-import * as hardfile from "./casclib-hardfile";
+import * as hardfile from "./casclib-disk";
 import * as casclib from "bw-casclib";
-import settingsStore from "../../../src/renderer/stores/settings-store";
+import settingsStore from "@stores/settings-store";
 let _storageHandle: any;
 
 export const readCascFile = async (filePath: string): Promise<Buffer> => {

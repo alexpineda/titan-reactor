@@ -29,6 +29,7 @@ export const loadGlbAtlas = async (
         if (mesh === undefined) {
             throw new Error("No meshes found in glb");
         }
+        model.children[0].position.setScalar(0);
 
         const looseFrames = frames.length % 17;
 

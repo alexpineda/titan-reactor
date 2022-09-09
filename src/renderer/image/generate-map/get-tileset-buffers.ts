@@ -1,4 +1,4 @@
-import { readCascFile } from "common/utils/casclib";
+import { readCascFile } from "@utils/casclib";
 import { TilesetBuffers } from "common/types";
 
 export const getTilesetBuffers = async (

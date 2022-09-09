@@ -28,7 +28,7 @@ import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { rendererIsDev } from "@utils/renderer-utils";
 import {
   readCascFile,
-} from "common/utils/casclib";
+} from "@utils/casclib";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import { calculateImagesFromSpritesIscript } from "../../utils/images-from-iscript";

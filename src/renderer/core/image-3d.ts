@@ -57,6 +57,7 @@ export class Image3D extends Object3D implements ImageBase {
 
     // @ts-ignore
     this.model = Image3D.clone(atlas.model);
+
     this.material = standardMaterialToImage3DMaterial(atlas.mesh.material);
     this.add(this.model);
 

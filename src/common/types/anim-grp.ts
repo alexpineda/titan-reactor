@@ -38,8 +38,6 @@ export interface AnimAtlas {
   diffuse: Texture;
   teammask?: Texture;
   unitTileScale: UnitTileScale;
-  grp: GrpSprite;
-
   hdLayers?: HDLayers;
   mipmap?: HDLayers;
   dispose(): void;

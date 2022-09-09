@@ -8,7 +8,7 @@ import electronFileLoader from "common/utils/electron-file-loader";
 import {
     openCascStorage,
     readCascFile,
-} from "common/utils/casclib";
+} from "@utils/casclib-win";
 
 import { loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
@@ -23,7 +23,11 @@ import range from "common/utils/range";
 import { imageTypes, unitTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
 import settingsStore from "@stores/settings-store";
-import { modelSetFileRefIds } from "@core/model-effects";
+import { modelSetFileRefIds } from "@core/model-effects-configuration";
+
+if (module.hot) {
+    module.hot.accept("@core/model-effects-configuration")
+}
 
 const genFileName = (i: number, prefix = "") => `${prefix}anim/main_${`00${i}`.slice(-3)}.anim`;
 const loadAnimBuffer = (refImageId: number, res: UnitTileScale) => readCascFile(genFileName(refImageId, res === UnitTileScale.HD2 ? "HD2/" : ""));
@@ -123,7 +127,7 @@ export default async (settings: Settings) => {
             loadingHD.add(refImageId);
             loadingHD.add(imageId);
             if (settings !== "auto") {
-                glbExists.set(refImageId, await fileExists(glbFileName(refImageId)));
+                glbExists.set(refImageId, await fileExists(glbFileName(glbRefImageId)));
             }
 
         } else if (loadingHD2.has(refImageId)) {
@@ -138,7 +142,7 @@ export default async (settings: Settings) => {
 
         }
 
-        const anim = await loadAnimAtlas(await loadAnimBuffer(refImageId, res), imageDat, res, bwDat.grps[imageDat.grp]);
+        const anim = await loadAnimAtlas(await loadAnimBuffer(refImageId, res), imageId, res);
 
         if (atlases[imageId]?.isHD2 && anim.isHD) {
 
@@ -158,21 +162,18 @@ export default async (settings: Settings) => {
 
         if (glbExists.get(refImageId)) {
 
-            console.log(glbFileName(glbRefImageId));
             glbExists.set(refImageId, false);
-            console.log(anim.frames.length, bwDat.grps[glbRefImageId].frames.length)
 
             const glb = await loadGlbAtlas(
-                glbFileName(refImageId),
+                glbFileName(glbRefImageId),
                 // use grp frames for convenience since we might fake being another image for re-use
                 bwDat.grps[glbRefImageId].frames,
-                // bwDat.grps[bwDat.images[glbRefImageId].grp].frames.length,
                 imageDat,
                 envMap,
             );
 
-            atlases[imageId] = Object.assign({}, { ...atlases[imageId], ...glb });
-            atlases[refImageId] = Object.assign({}, { ...atlases[refImageId], ...glb });
+            atlases[imageId] = Object.assign({}, atlases[imageId], glb );
+            atlases[refImageId] = Object.assign({}, atlases[refImageId], glb );
 
         }
 
@@ -258,9 +259,8 @@ export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) =>
 
         const anim = await loadAnimAtlas(
             await loadAnimBuffer(refImageId, UnitTileScale.HD),
-            imageDat,
+            imageId,
             UnitTileScale.HD,
-            assets.bwDat.grps[imageDat.grp],
         );
 
         return {
@@ -275,9 +275,8 @@ export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) =>
 
         return await loadAnimAtlas(
             await loadAnimBuffer(refImageId, UnitTileScale.HD),
-            imageDat,
+            imageId,
             UnitTileScale.HD,
-            assets.bwDat.grps[imageDat.grp],
         )
 
     }

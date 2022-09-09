@@ -2,7 +2,7 @@ import { ImageDAT, UnitTileScale } from "common/types";
 import { loadAnimAtlas } from ".";
 import {
     readCascFile,
-} from "common/utils/casclib";
+} from "@utils/casclib";
 
 export default async function (res: UnitTileScale) {
     const selectionCirclesHD = [];

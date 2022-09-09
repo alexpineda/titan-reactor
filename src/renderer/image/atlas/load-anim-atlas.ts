@@ -1,4 +1,4 @@
-import { AnimDds, AnimAtlas, GrpSprite, UnitTileScale } from "common/types";
+import { AnimDds, AnimAtlas, UnitTileScale } from "common/types";
 import { ImageDAT } from "common/bwdat/images-dat";
 
 import { parseAnim, createDDSTexture } from "../formats";
@@ -11,9 +11,8 @@ const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
 
 export const loadAnimAtlas = async (
     buf: Buffer,
-    imageDef: ImageDAT,
+    imageIndex: number,
     scale: Exclude<UnitTileScale, "SD">,
-    grp: GrpSprite
 ): Promise<AnimAtlas> => {
     const janitor = new Janitor()
 
@@ -50,8 +49,7 @@ export const loadAnimAtlas = async (
         isHD: scale === UnitTileScale.HD,
         isHD2: scale === UnitTileScale.HD2,
         diffuse,
-        grp,
-        imageIndex: imageDef.index,
+        imageIndex,
         frames: sprite.frames.map(frame => ({
             x: frame.x / uvScale,
             y: frame.y / uvScale,

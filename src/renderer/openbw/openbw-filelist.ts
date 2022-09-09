@@ -1,6 +1,6 @@
 
 import fs from "fs";
-import { findFiles } from "common/utils/casclib";
+import { findFiles } from "@utils/casclib";
 
 import * as log from "@ipc/log";
 import settingsStore from "@stores/settings-store";

@@ -15,7 +15,7 @@ import {
   ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, Unit, BasePlayer
 } from "@core";
 import {
-  MinimapMouse, CameraMouse, CameraKeys
+  MinimapMouse, CameraMouse, CameraKeys, createUnitSelection
 } from "@input";
 import { getOpenBW } from "@openbw";
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, SpritesBufferViewIterator } from "@buffer-view";
@@ -33,7 +33,7 @@ import settingsStore from "@stores/settings-store";
 import { Assets } from "common/types/assets";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
-import { canSelectUnit, getAngle } from "@utils/unit-utils";
+import { canSelectUnit } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
@@ -701,7 +701,6 @@ export async function replayScene(
 
         if (unit) {
           // only rotate if we're 3d and the frame is part of a frame set
-          image.rotation.y = image instanceof Image3D && !image.isLooseFrame ? getAngle(unit.direction) : 0;
           images.setUnit(image, unit);
         }
 
@@ -717,7 +716,7 @@ export async function replayScene(
 
       } else if (image instanceof Image3D) {
 
-        applyViewportToFrameOnImage3d(imageData, image);
+        applyViewportToFrameOnImage3d(imageData, image, unit);
         applyOverlayEffectsToImage3D(imageData, image);
 
       }

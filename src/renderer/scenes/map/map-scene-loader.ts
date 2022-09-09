@@ -15,7 +15,7 @@ import { getOpenBW } from "@openbw";
 import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 import {
   readCascFile,
-} from "common/utils/casclib";
+} from "@utils/casclib";
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;

@@ -2,103 +2,20 @@ import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsHidden } from "@utils/image-utils";
+import { getAngle } from "@utils/unit-utils";
 import { ImageStruct } from "common/types";
 import { GameViewPort } from "../camera/game-viewport";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
 import { ImageHDInstanced } from "./image-hd-instanced";
+import { spriteModelEffects } from "./model-effects-configuration";
+import { Unit } from "./unit";
 
-type SpriteModelImageEffectEmissiveFrames = {
-    type: "emissive:frames";
-    frames: number[];
+if (module.hot) {
+    module.hot.accept(
+        "./model-effects-configuration",
+    )
 }
-
-type SpriteModelImageEffectEmissiveOverlay = {
-    type: "emissive:overlay-visible";
-}
-
-type SpriteModelImageEffectHideSprite = {
-    type: "hide-sprite";
-}
-
-type SpriteModelImageEffectFixedRotation = {
-    type: "fixed-rotation";
-    frames: number[];
-}
-
-type SpriteModelImageEffectFlatOnGround = {
-    type: "flat-on-ground";
-}
-
-type SpriteModelImageEffectRemapFrame = {
-    type: "remap-frames";
-    remap: (frame: number) => number;
-}
-
-
-type SpriteModelImageEffects = SpriteModelImageEffectEmissiveFrames | SpriteModelImageEffectEmissiveOverlay | SpriteModelImageEffectHideSprite | SpriteModelImageEffectFixedRotation | SpriteModelImageEffectFlatOnGround | SpriteModelImageEffectRemapFrame;
-
-type SpriteModelEffects = {
-    images: {
-        [key: number]: SpriteModelImageEffects[];
-    }
-}
-
-const remnants = [7, 16, 20, 24, 32, 37, 53, 57, 89, 124, 230, 241, 920, 946].map(id => ({ [id]: [{ type: "flat-on-ground" }] })).reduce((a, b) => ({ ...a, ...b }), {});
-
-const spriteModelEffects: SpriteModelEffects = {
-    images: {
-        // goliath turret
-        235: [
-            {
-                type: "emissive:frames",
-                frames: [0]
-            },
-        ],
-        // marine + marine death (242)
-        239: [
-            {
-                type: "emissive:frames",
-                frames: [3]
-            },
-
-            //FIXME we are setting this automatically via isLooseFrame testing, deprecate?
-            // {
-            //     type: "fixed-rotation",
-            //     frames: [13, 14, 15, 16, 17, 18, 19, 20]
-            // }
-        ],
-        
-        //command center overlay
-        276: [
-            {
-                // set emissive to main image (eg. 275) if this overlay is visible
-                type: "emissive:overlay-visible",
-            },
-            {
-                // never draw this image
-                type: "hide-sprite"
-            }
-        ],
-        251: [
-            {
-                // regular tank turret uses siege tank turret frame 1
-                type: "remap-frames",
-                //TODO: change to frameset system
-                remap: (frame: number) => frame + 17
-            }
-        ],
-        ...remnants
-    }
-}
-
-export const modelSetFileRefIds = new Map([
-    // siege turret -> siege base
-    [251, 254],
-    // lurker egg -> egg,
-    [914, 21]
-
-]);
 
 export const overlayEffectsMainImage: { image: Image3D | null } = { image: null };
 
@@ -149,10 +66,9 @@ export const applyOverlayEffectsToImage3D = (imageBufferView: ImageBufferView, i
                         image.setEmissive(effect.frames.includes(image.frameSet) ? 1 : 0);
                     }
                     break;
-                case "fixed-rotation":
-                    if (effect.frames.includes(image.frameSet)) {
-                        image.rotation.y = 0;
-                    }
+                case "scale": 
+                    image.scale.setScalar(effect.scale);
+                    break;
             }
         }
     }
@@ -182,10 +98,14 @@ export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, imag
 
 }
 
-export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, image: Image3D) => {
+export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, image: Image3D, unit: Unit | undefined) => {
 
     imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
     _needsUpdateFrame = true;
+
+    if (unit && image === overlayEffectsMainImage.image) {
+        image.rotation.y = !image.isLooseFrame ? getAngle(unit.direction) : 0;
+    }
 
     if (spriteModelEffects.images[imageTypeId]) {
 
@@ -195,6 +115,10 @@ export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, 
                 case "remap-frames":
                     image.setFrame(effect.remap(imageBufferView.frameIndex));
                     _needsUpdateFrame = false;
+                    break;
+
+                case "rotate": 
+                    image.rotation.y = image.rotation.y + effect.rotation;
                     break;
             }
         }

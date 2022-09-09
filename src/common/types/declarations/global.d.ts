@@ -43,6 +43,6 @@ declare module '*.png' {
 
 interface NodeModule {
     hot?: {
-        accept: () => void;
+        accept: (dependencies?:string|string[], callback?: () => void, errorHandler?: (error: Error, info: {moduleId: string, dependencyId: string}) => void) => void;
     };
 }

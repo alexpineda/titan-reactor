@@ -2,7 +2,7 @@ import { AudioContext, Vector3 } from "three";
 import fs from "fs/promises";
 import {
   readCascFile,
-} from "common/utils/casclib";
+} from "@utils/casclib";
 import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
 const MUSIC_REDUCTION_RATIO = 0.1;
