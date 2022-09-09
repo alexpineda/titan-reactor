@@ -1,5 +1,4 @@
 import { AnimDds, AnimAtlas, UnitTileScale } from "common/types";
-import { ImageDAT } from "common/bwdat/images-dat";
 
 import { parseAnim, createDDSTexture } from "../formats";
 import { LinearEncoding, TextureEncoding } from "three";

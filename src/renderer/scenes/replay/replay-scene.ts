@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer } from "@audio"
-import {  drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
+import { drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
 import { Surface } from "@image";
 import {
   Settings,
@@ -33,11 +33,11 @@ import settingsStore from "@stores/settings-store";
 import { Assets } from "common/types/assets";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
-import { canSelectUnit } from "@utils/unit-utils";
+import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
-import { selectionObjects, updateSelectionGraphics } from "./selection-objects";
+import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "./selection-objects";
 import FadingPointers from "@image/fading-pointers";
 import { Macros } from "@macros/macros";
 import { createCompartment } from "@utils/ses-util";
@@ -57,7 +57,7 @@ import { UnitEntities } from "./unit-entities";
 import { GameTimeApi } from "./game-time-api";
 import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./replay-controls";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
-import { applyOverlayEffectsToImage3D, applyOverlayEffectsToImageHD, applyViewportToFrameOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
+import { applyOverlayEffectsToImageHD, applyModelEffectsOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 import { createImageSelection } from "@input/create-image-selection";
 
@@ -231,12 +231,16 @@ export async function replayScene(
     return null;
   }
 
+
   const _imageDebug: Partial<ImageStruct> = {};
-  const unitSelection = createImageSelection(scene, gameSurface, minimapSurface, (object) => {
-    if (object instanceof ImageHD) {
-      console.log(object);
-      console.log(imageBufferView.get(object.userData.imageAddress).copy(_imageDebug));
-      object.scale.multiplyScalar(2);
+  const unitSelection = createImageSelection(scene, gameSurface, minimapSurface, (objects) => {
+    globalEffectsBundle.clearBloomSelection();
+    for (const object of objects) {
+      if (object instanceof ImageHD || object instanceof Object3D) {
+        console.log(object);
+        console.log(imageBufferView.get(object.userData.imageAddress).copy(_imageDebug));
+        globalEffectsBundle.debugSelection.add(object);
+      }
     }
   });
 
@@ -598,9 +602,9 @@ export async function replayScene(
     creep.creepEdgesValuesTexture.needsUpdate = true;
   };
 
-  scene.add(...selectionObjects);
+  scene.add(...selectionMarkers);
 
-  const _spriteVector3 = new Vector3();
+  let _spriteY = 0;
 
   const buildSprite = (spriteData: SpritesBufferView, _: number) => {
 
@@ -625,9 +629,17 @@ export async function replayScene(
     sprite.visible = spriteIsVisible;
     sprite.renderOrder = viewports.primaryViewport.renderMode3D ? 0 : spriteSortOrder(spriteData as SpriteStruct);
 
-    _spriteVector3.set(pxToWorld.x(spriteData.x), ( spriteData.extFlyOffset > 0 ? spriteData.extFlyOffset * 1.1 : spriteData.extYValue)  * terrain.geomOptions.maxTerrainHeight + 0.1, pxToWorld.y(spriteData.y));
+    _spriteY = spriteData.extYValue + (spriteData.extFlyOffset * 1);
+    _spriteY = _spriteY * terrain.geomOptions.maxTerrainHeight + 0.1;
 
-    sprite.position.copy(_spriteVector3)
+    if (sprite.userData.isNew || !unit || !unitIsFlying(unit)) {
+      sprite.position.set(pxToWorld.x(spriteData.x), _spriteY, pxToWorld.y(spriteData.y))
+      sprite.userData.isNew = false;
+    } else {
+      _spriteY = MathUtils.damp(sprite.position.y, _spriteY, 0.001, delta);
+      sprite.position.set(pxToWorld.x(spriteData.x), _spriteY, pxToWorld.y(spriteData.y))
+    }
+
     sprite.updateMatrix();
     sprite.matrixWorld.copy(sprite.matrix);
 
@@ -716,8 +728,7 @@ export async function replayScene(
 
       } else if (image instanceof Image3D) {
 
-        applyViewportToFrameOnImage3d(imageData, image, unit);
-        applyOverlayEffectsToImage3D(imageData, image);
+        applyModelEffectsOnImage3d(imageData, image, unit);
 
       }
 

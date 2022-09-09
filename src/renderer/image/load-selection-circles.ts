@@ -1,4 +1,4 @@
-import { ImageDAT, UnitTileScale } from "common/types";
+import { UnitTileScale } from "common/types";
 import { loadAnimAtlas } from ".";
 import {
     readCascFile,
@@ -12,15 +12,8 @@ export default async function (res: UnitTileScale) {
 
         const selCircleGRP = await loadAnimAtlas(
             await readCascFile(`${pre}anim/main_${i}.anim`),
-            { index: i } as ImageDAT,
+            i,
             scale,
-            {
-                w: 0,
-                h: 0,
-                frames: [],
-                maxFrameH: 0,
-                maxFramew: 0
-            }
         )
 
         selectionCirclesHD.push(selCircleGRP);

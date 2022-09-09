@@ -19,8 +19,8 @@ export enum UnitTileScale {
 export interface SpriteType extends Group {
   userData: {
     typeId: number;
-    // track calculated render order
-    renderOrder: number;
+    // we use this to know whether to damp y height or set it immediately
+    isNew: boolean;
   }
 }
 

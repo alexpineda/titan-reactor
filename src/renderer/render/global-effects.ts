@@ -1,6 +1,6 @@
 import { FogOfWarEffect } from "@core/fogofwar";
 import { PostProcessingBundle, Settings } from "common/types";
-import { BloomEffect, BrightnessContrastEffect, DepthOfFieldEffect, Effect, EffectPass, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
+import { BlendFunction, BloomEffect, BrightnessContrastEffect, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, Selection, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
 import { renderComposer } from "./render-composer";
 
@@ -52,6 +52,11 @@ export class GlobalEffects implements PostProcessingBundle {
     #bloomEffect?: SelectiveBloomEffect | BloomEffect;
     #depthOfFieldEffect?: DepthOfFieldEffect;
     #fogOfWarEffect: FogOfWarEffect;
+
+    debug = true;
+    debugSelection = new Selection();
+
+    #outlineEffect?: OutlineEffect;
 
     constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
         this.camera = camera;
@@ -141,6 +146,20 @@ export class GlobalEffects implements PostProcessingBundle {
             }
         }
 
+        if (this.debug) {
+            this.#outlineEffect = new OutlineEffect(this.scene, this.camera, {
+                blendFunction: BlendFunction.SCREEN,
+                multisampling: 2,
+                patternScale: 40,
+                visibleEdgeColor: 0xffffff,
+                hiddenEdgeColor: 0x22090a,
+                resolutionScale: 0.75,
+                blur: false,
+                xRay: true
+            });
+            this.#outlineEffect.selection = this.debugSelection;
+            return [pass1, pass2, [this.#outlineEffect]]
+        }
         return [pass1, pass2]
     }
 

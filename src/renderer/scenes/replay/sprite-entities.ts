@@ -34,6 +34,7 @@ export class SpriteEntities {
             this.group.add(sprite);
             this.#spritesList.add(sprite);
             sprite.matrixAutoUpdate = false;
+            sprite.userData.isNew = true;
 
         }
 
@@ -58,7 +59,6 @@ export class SpriteEntities {
 
     #resetSpriteUserData(sprite: SpriteType) {
         sprite.userData.typeId = -1;
-        sprite.userData.renderOrder = 0
     }
 
     clear() {

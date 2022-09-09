@@ -49,16 +49,15 @@ const _imageFrameInfo = {
   flipped: false
 };
 
-export function applyCameraDirectionToImageFrameOffset(cameraDirection: number, image: ImageStruct) {
-  const flipped = imageIsFlipped(image);
-  const direction = flipped ? 32 - image.frameIndexOffset : image.frameIndexOffset;
+export function applyCameraDirectionToImageFrameOffset(cameraDirection: number, frameIndexOffset: number, flipped: boolean) {
+  const direction = flipped ? 32 - frameIndexOffset : frameIndexOffset;
   _imageFrameInfo.frame = (direction + cameraDirection) % 32;
   _imageFrameInfo.flipped = _imageFrameInfo.frame > 16;
   return _imageFrameInfo;
 }
 
 export function applyCameraDirectionToImageFrame(cameraDirection: number, image: ImageStruct) {
-  const newFrameOffset = applyCameraDirectionToImageFrameOffset(cameraDirection, image);
+  const newFrameOffset = applyCameraDirectionToImageFrameOffset(cameraDirection, image.frameIndexOffset, imageIsFlipped(image));
 
   if (_imageFrameInfo.flipped) {
     _imageFrameInfo.frame = image.frameIndexBase + 32 - newFrameOffset.frame;

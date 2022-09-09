@@ -1,12 +1,10 @@
-import { Unit } from "@core/unit";
 import { Surface } from "@image/canvas";
-import selectedUnitsStore from "@stores/selected-units-store";
 import Janitor from "@utils/janitor";
 import { MouseSelectionBox } from ".";
 import { Object3D, PerspectiveCamera, Scene } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 
-export const createImageSelection = (scene: Scene, gameSurface: Surface, minimapSurface: Surface, onSelect: (obj: Object3D) => void) => {
+export const createImageSelection = (scene: Scene, gameSurface: Surface, minimapSurface: Surface, onSelect: (obj: Object3D[]) => void) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
     const visualBox = janitor.mop(new MouseSelectionBox("#00cc00"));
@@ -50,8 +48,6 @@ export const createImageSelection = (scene: Scene, gameSurface: Surface, minimap
         visualBox.clear();
         // mouseCursor.pointer();
 
-        let selectedUnits: Unit[] = [];
-
         if (visualBox.isMinDragSize(event.clientX, event.clientY)) {
 
             selectionBox.endPoint.set(
@@ -59,13 +55,9 @@ export const createImageSelection = (scene: Scene, gameSurface: Surface, minimap
                 - (event.clientY / window.innerHeight) * 2 + 1,
                 0.5);
 
-            for (const item of selectionBox.select()) {
-                onSelect(item)
-            }
+            onSelect(selectionBox.select())
 
         }
-
-        selectedUnitsStore().setSelectedUnits(selectedUnits);
 
     }
 

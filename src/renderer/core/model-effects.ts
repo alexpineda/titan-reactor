@@ -3,7 +3,6 @@ import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsHidden } from "@utils/image-utils";
 import { getAngle } from "@utils/unit-utils";
-import { ImageStruct } from "common/types";
 import { GameViewPort } from "../camera/game-viewport";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
@@ -47,31 +46,11 @@ export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image
                 case "flat-on-ground":
                     image.material.flatProjection = false;
                     image.rotation.x = -Math.PI / 2;
-            }
-        }
-    }
-
-}
-
-export const applyOverlayEffectsToImage3D = (imageBufferView: ImageBufferView, image: Image3D) => {
-
-    imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
-
-    if (spriteModelEffects.images[imageTypeId]) {
-        for (const effect of spriteModelEffects.images[imageTypeId]) {
-            switch (effect.type) {
-                // set emissive to myself if I'm on the right animation frame
-                case "emissive:frames":
-                    if (image.setEmissive) {
-                        image.setEmissive(effect.frames.includes(image.frameSet) ? 1 : 0);
-                    }
-                    break;
-                case "scale": 
-                    image.scale.setScalar(effect.scale);
                     break;
             }
         }
     }
+
 }
 
 let _frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
@@ -79,26 +58,47 @@ let _needsUpdateFrame = false;
 
 export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, image: ImageHD, viewport: GameViewPort) => {
 
-    if (image.material.depthTest !== viewport.renderMode3D) {
+    imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
 
-        image.material.depthTest = viewport.renderMode3D;
 
-    }
+    // if (image.material.depthTest !== viewport.renderMode3D) {
+
+    image.material.depthTest = false;//viewport.renderMode3D;
+    image.material.depthWrite = false;
+
+    // }
 
     if (imageHasDirectionalFrames(imageBuffer)) {
 
+        //TODO: applyCameraDirectionToImageFrameOffset?
         _frameInfo = applyCameraDirectionToImageFrame(viewport.camera.userData.direction, imageBuffer);
-        image.setFrame(_frameInfo.frame, _frameInfo.flipped);
 
     } else {
 
-        image.setFrame(imageBuffer.frameIndex, imageIsFlipped(imageBuffer as ImageStruct));
+        _frameInfo.frame = imageBuffer.frameIndex;
+        _frameInfo.flipped = imageIsFlipped(imageBuffer);
 
     }
 
+    if (spriteModelEffects.images[imageTypeId]) {
+
+        for (const effect of spriteModelEffects.images[imageTypeId]) {
+            switch (effect.type) {
+                case "fixed-frame":
+                    _frameInfo.frame = effect.frame;
+                    _frameInfo.flipped = false;
+                    break;
+
+            }
+        }
+
+    }
+
+    image.setFrame(_frameInfo.frame, _frameInfo.flipped);
+
 }
 
-export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, image: Image3D, unit: Unit | undefined) => {
+export const applyModelEffectsOnImage3d = (imageBufferView: ImageBufferView, image: Image3D, unit: Unit | undefined) => {
 
     imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
     _needsUpdateFrame = true;
@@ -110,6 +110,7 @@ export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, 
     if (spriteModelEffects.images[imageTypeId]) {
 
         for (const effect of spriteModelEffects.images[imageTypeId]) {
+
             switch (effect.type) {
                 // set emissive to myself if I'm on the right animation frame
                 case "remap-frames":
@@ -117,9 +118,19 @@ export const applyViewportToFrameOnImage3d = (imageBufferView: ImageBufferView, 
                     _needsUpdateFrame = false;
                     break;
 
-                case "rotate": 
+                case "rotate":
                     image.rotation.y = image.rotation.y + effect.rotation;
                     break;
+
+                case "emissive:frames":
+                    if (image.setEmissive) {
+                        image.setEmissive(effect.frames.includes(image.frameSet) ? 1 : 0);
+                    }
+                    break;
+                case "scale":
+                    image.scale.setScalar(effect.scale);
+                    break;
+
             }
         }
 
