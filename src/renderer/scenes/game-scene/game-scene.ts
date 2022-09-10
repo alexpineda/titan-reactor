@@ -67,9 +67,8 @@ import readCascFile from "@utils/casclib";
 export async function makeGameScene(
   map: Chk,
   janitor: Janitor,
-  basePlayers: BasePlayer[],
   commandsStream: CommandsStream,
-  onOpenBWReady: (openBW: OpenBW) => void,
+  onOpenBWReady: (openBW: OpenBW) => BasePlayer[],
 ) {
 
   const assets = gameStore().assets!;
@@ -85,7 +84,7 @@ export async function makeGameScene(
 
   await openBW.start(readCascFile);
 
-  onOpenBWReady(openBW);
+  const basePlayers = onOpenBWReady(openBW);
 
   openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
 
@@ -327,7 +326,8 @@ export async function makeGameScene(
     startLocations,
   ));
 
-  const sandbox = createSandboxApi(openBW, makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY, true), session)
+  const sandbox = createSandboxApi(openBW, makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY, true));
+  window.sandbox = sandbox;
 
   const gameTimeApi = ((): GameTimeApi => {
 

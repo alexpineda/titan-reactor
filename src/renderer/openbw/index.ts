@@ -87,14 +87,14 @@ const createOpenBW = async () => {
 
   openBW.isReplay = () => _isReplay;
 
-  openBW.setSandbox = (sandbox: boolean) => {
+  openBW.setSandboxMode = (sandbox: boolean) => {
     if (!_isReplay) {
       return;
     }
     _isSandBox = sandbox;
   }
 
-  openBW.getSandbox = () => _isSandBox;
+  openBW.isSandboxMode = () => _isSandBox;
 
   openBW.setGameSpeed = (speed: number) => wasm._replay_set_value(0, speed);
   openBW.getGameSpeed = () => wasm._replay_get_value(0);
@@ -104,6 +104,12 @@ const createOpenBW = async () => {
 
   openBW.isPaused = () => wasm._replay_get_value(1) === 1;
   openBW.setPaused = (paused: boolean) => wasm._replay_set_value(1, paused ? 1 : 0);
+
+  openBW.getPlayersAddress = () => wasm._get_buffer(10);
+
+  openBW.setUnitLimits = (unitLimits: number) => {
+    openBW.unitGenerationSize = unitLimits === 1700 ? 5 : 3;
+  }
 
   openBW.loadReplay = (buffer: Buffer) => {
 

@@ -30,10 +30,10 @@ export const createSession = (ogData: Settings, players: BasePlayer[], openBw: O
         players,
         minimapScale: 1,
         get sandboxMode() {
-            return openBw.getSandbox();
+            return openBw.isSandboxMode();
         },
         set sandboxMode(value: boolean) {
-            openBw.setSandbox(value);
+            openBw.setSandboxMode(value);
         },
         merge: async (rhs: DeepPartial<Settings>) => {
 

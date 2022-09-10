@@ -104,19 +104,18 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   const disposeScene = await makeGameScene(
     map,
     janitor,
-    replay.header.players.map(player => ({
-      id: player.id,
-      name: player.name,
-      color: player.color,
-      race: player.race
-    })),
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
     (openBW: OpenBW) => {
 
-      openBW.unitGenerationSize = replay.limits.units === 1700 ? 5 : 3;
+      openBW.setUnitLimits(replay.limits.units);
       openBW.loadReplay(replayBuffer);
 
-      return openBW;
+      return replay.header.players.map(player => ({
+        id: player.id,
+        name: player.name,
+        color: player.color,
+        race: player.race
+      }));
     }
   );
 

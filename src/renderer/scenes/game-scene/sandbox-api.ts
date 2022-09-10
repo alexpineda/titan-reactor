@@ -11,7 +11,7 @@ const identityPxToWorld: PxToWorld = {
     xyz: (x, z, v) => v.set(x, 0, z)
 }
 
-export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, session: UseStore<SessionStore>) => {
+export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld) => {
 
     const sandBoxBufferViews = {
         units: new UnitsBufferView(openBW)
@@ -34,7 +34,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         createUnit(unitTypeId: number, playerId: number, x: number, y: number) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return null;
             }
 
@@ -49,7 +49,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         killUnit(unitOrId: UnitStruct | number) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -59,7 +59,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         removeUnit(unitOrId: UnitStruct | number) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -69,7 +69,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         orderUnitAttackMove(unitOrId: UnitStruct | number, targetUnitOrId?: UnitStruct | number | null, x: number = 0, y: number = 0) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -79,7 +79,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         orderUnitAttackUnit(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x: number = 0, y: number = 0) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -89,7 +89,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         orderUnitMove(unitOrId: UnitStruct | number, x: number = 0, y: number = 0) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -99,7 +99,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         orderUnitBuild(unitOrId: UnitStruct | number, unitType: number, x: number, y: number) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -109,7 +109,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         orderUnitTrain(unitOrId: UnitStruct | number, unitType: number) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 
@@ -119,7 +119,7 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld, se
 
         orderUnitRightClick(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x: number = 0, y: number = 0) {
 
-            if (!session.getState().sandboxMode) {
+            if (!openBW.isSandboxMode()) {
                 return;
             }
 

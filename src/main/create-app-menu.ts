@@ -19,15 +19,6 @@ export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
       submenu: [
         { type: "separator" },
         {
-          label: "Open &Map",
-          click: async function () {
-            const files = await showOpenMapDialog();
-            if (files && files.length > 0) {
-              browserWindows.main!.webContents.send(OPEN_MAP_DIALOG, files[0]);
-            }
-          },
-        },
-        {
           label: "Open &Replay",
           click: async function () {
             const files = await showOpenReplayDialog();
@@ -36,6 +27,16 @@ export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
             }
           },
         },
+        {
+          label: "Open &Map (Sandbox)",
+          click: async function () {
+            const files = await showOpenMapDialog();
+            if (files && files.length > 0) {
+              browserWindows.main!.webContents.send(OPEN_MAP_DIALOG, files[0]);
+            }
+          },
+        },
+
         { type: "separator" },
         {
           label: "View &Plugin File(s)",

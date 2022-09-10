@@ -63,8 +63,8 @@ export interface OpenBW extends OpenBWWasm {
 
     unitGenerationSize: number;
 
-    getSandbox: () => boolean;
-    setSandbox: (sandbox: boolean) => void;
+    isSandboxMode: () => boolean;
+    setSandboxMode: (mode: boolean) => void;
 
     getFowSize: () => number;
     getFowPtr: (visibility: number, instant: boolean) => number;
@@ -76,6 +76,8 @@ export interface OpenBW extends OpenBWWasm {
 
     getSpritesOnTileLineSize: () => number;
     getSpritesOnTileLineAddress: () => number;
+
+    getPlayersAddress: () => number;
 
     getUnitsAddr: () => number;
 
@@ -108,5 +110,7 @@ export interface OpenBW extends OpenBWWasm {
 
     uploadHeightMap: (data: Uint8ClampedArray, width: number, height: number) => void;
     loadReplayWithHeightMap: (replayBuffer: Buffer, data: Uint8ClampedArray, width: number, height: number) => void;
+
+    setUnitLimits: (unitLimits: number) => void;
 
 };

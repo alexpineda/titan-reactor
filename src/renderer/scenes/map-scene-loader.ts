@@ -14,11 +14,16 @@ import CommandsStream from "@process-replay/commands/commands-stream";
 import { SceneState } from "./scene";
 import settingsStore from "@stores/settings-store";
 import { preloadMapUnitsAndSprites } from "./game-scene/preload-map-units-and-sprites";
+import { PlayerBufferViewIterator, PlayerController } from "@buffer-view/player-buffer-view";
+import { BasePlayer } from "@core/players";
+import { playerColors } from "common/enums";
+import { raceToString } from "@utils/string-utils";
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
 }
 export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> => {
+
   processStore().start(Process.MapInitialization, 3);
   log.verbose("loading chk");
 
@@ -52,14 +57,35 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
   const disposeScene = await makeGameScene(
     map,
     janitor,
-    [],
     new CommandsStream(),
-    async (openBW: OpenBW) => {
+    (openBW: OpenBW) => {
 
-      openBW.unitGenerationSize = 3;
+      openBW.setUnitLimits(1700);
       openBW.loadMap(dBuffer);
 
-      return openBW;
+      const players: BasePlayer[] = [];
+      const p = new PlayerBufferViewIterator(openBW);
+
+      let id = 0;
+
+      for (const player of p) {
+
+        if (player.controller === PlayerController.Occupied) {
+
+          players.push({
+            id: id,
+            color: playerColors[id].hex,
+            name: `Player ${id}`,
+            race: raceToString(player.race)
+          });
+
+          id++;
+
+        }
+
+      }
+
+      return players;
     }
   );
 
