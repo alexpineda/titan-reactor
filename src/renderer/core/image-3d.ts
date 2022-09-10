@@ -100,7 +100,6 @@ export class Image3D extends Object3D implements ImageBase {
 
   setModifiers() {
   }
-  resetModifiers() { }
 
   get frames() {
     return this.atlas.frames;

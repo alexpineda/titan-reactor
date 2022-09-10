@@ -45,6 +45,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     onActivate?: (viewport: SceneController) => void;
     beforeActivate?: (viewport: SceneController) => void;
+    onCameraMouseUpdateCallback?: UserInputCallbacks["onCameraMouseUpdate"];
 
     get viewports() {
         return this.#sceneController?.viewports ?? empty;
@@ -89,6 +90,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     }
 
     onCameraMouseUpdate(...args: Parameters<UserInputCallbacks["onCameraMouseUpdate"]>) {
+        this.onCameraMouseUpdateCallback && this.onCameraMouseUpdateCallback(...args);
         this.#sceneController?.onCameraMouseUpdate && this.#sceneController.onCameraMouseUpdate(...args);
     }
 

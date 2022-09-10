@@ -1,12 +1,11 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "common/types";
-import { Terrain } from "@core/terrain";
 import gameStore from "@stores/game-store";
 import { GameViewportsDirector } from "renderer/camera/game-viewport-director";
-import SoundChannels from "@audio/sound-channels";
+import { SoundChannels } from "@audio/sound-channels";
 import { MainMixer } from "@audio/main-mixer";
 import ProjectedCameraView from "renderer/camera/projected-camera-view";
-import { PxToGameUnit } from "common/utils/conversions";
+import { PxToWorld } from "common/utils/conversions";
 
 export const MinPlayVolume = 10;
 
@@ -52,10 +51,10 @@ const SoundPlayMaxDistance = 100;
 let _soundCoords = new Vector3;
 let _soundDat: SoundDAT;
 
-export function buildSound(elapsed: number, x: number, y: number, typeId: number, unitTypeId: number, pxToGameUnit: PxToGameUnit, terrain: Terrain, audio: GameViewportsDirector["audio"], projectedView: ProjectedCameraView, soundChannels: SoundChannels, mixer: MainMixer) {
+export function buildSound(elapsed: number, x: number, y: number, typeId: number, unitTypeId: number, pxToWorld: PxToWorld, audio: GameViewportsDirector["audio"], projectedView: ProjectedCameraView, soundChannels: SoundChannels, mixer: MainMixer) {
     const assets = gameStore().assets!;
     _soundDat = assets.bwDat.sounds[typeId];
-    pxToGameUnit.xyz(x, y, _soundCoords, terrain.getTerrainY);
+    pxToWorld.xyz(x, y, _soundCoords);
 
     if (audio === "3d") {
         if (_soundDat.minVolume || mixer.position.distanceTo(_soundCoords) < (SoundPlayMaxDistance)) {

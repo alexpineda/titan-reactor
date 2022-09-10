@@ -65,8 +65,8 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
     waterNormal1: parseDdsGrpAsTextures(tilesetBuffers.waterNormal1),
     waterNormal2: parseDdsGrpAsTextures(tilesetBuffers.waterNormal2),
     noise: await parseDDS(tilesetBuffers.noise, false),
-    waterMask: parseDdsGrpAsTextures(tilesetBuffers.waterMask),
-    tileMask: parseTMSK(tilesetBuffers.tileMask),
+    waterMask: tilesetBuffers.waterMask ? parseDdsGrpAsTextures(tilesetBuffers.waterMask) : null,
+    tileMask: tilesetBuffers.tileMask ? parseTMSK(tilesetBuffers.tileMask) : null,
   }
 
   renderer.autoClear = true;
@@ -78,7 +78,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   return {
     terrain,
-    extra: {
+    terrainExtra: {
       minimapBitmap,
       creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
       creepTextureUniform: dataTextures.creepTextureUniform,
@@ -87,4 +87,4 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
   }
 }
 
-export type TerrainExtra = Awaited<ReturnType<typeof chkToTerrainMesh>>["extra"];
+export type TerrainExtra = Awaited<ReturnType<typeof chkToTerrainMesh>>["terrainExtra"];

@@ -1,6 +1,6 @@
 import create, { GetState, SetState } from "zustand";
 
-import { Settings, MacroAction, MacroActionType, SettingsMeta } from "common/types";
+import { Settings, MacroAction, MacroActionType, SettingsMeta, OpenBW } from "common/types";
 import { doMacroActionEffect } from "@macros";
 import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
 import deepMerge from 'deepmerge';
@@ -18,22 +18,32 @@ export type SessionStore = Settings & {
     merge: (rhs: DeepPartial<Settings>) => void;
     doMacroAction: (action: MacroAction) => void;
     players: BasePlayer[];
+    sandboxMode: boolean;
 }
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-export const createSession = (ogData: Settings, players: BasePlayer[]) => {
+export const createSession = (ogData: Settings, players: BasePlayer[], openBw: OpenBW) => {
     return create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
+
         ...JSON.parse(JSON.stringify(ogData)),
         players,
         minimapScale: 1,
+        get sandboxMode() {
+            return openBw.getSandbox();
+        },
+        set sandboxMode(value: boolean) {
+            openBw.setSandbox(value);
+        },
         merge: async (rhs: DeepPartial<Settings>) => {
 
             const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });
             //@ts-ignore
             set({ ...newSettings });
+
         },
         doMacroAction: async (action) => {
+
             if (action.type !== MacroActionType.ModifyAppSettings) {
                 log.warning("@settingsStore.doMacroAction. Macro type is invalid.");
                 return;
@@ -52,7 +62,9 @@ export const createSession = (ogData: Settings, players: BasePlayer[]) => {
             const newSettings = {};
             lSet(newSettings, action.field!, value);
             get().merge(newSettings);
+
         }
+
     }));
 };
 
@@ -67,6 +79,7 @@ export const listenForNewSettings = (onNewSettings: (mergeSettings: DeepPartial<
         const mergeSettings: DeepPartial<SettingsMeta> = {
             data: {}
         };
+
         for (const d of diffs) {
             if (d.kind === "E" && d.path) {
                 const parentProp = getProp(settings, d.path.slice(0, d.path.length - 1));

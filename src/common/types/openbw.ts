@@ -34,6 +34,10 @@ export interface OpenBWWasm {
             loaded?: number[];
             buildQueue?: number[];
         },
+        kill_unit: (unitId: number) => number;
+        remove_unit: (unitId: number) => number;
+        issue_command: (unitId: number, command: number, targetId: number, x: number, y: number, extra: number) => boolean;
+
     });
     callMain: () => void;
     HEAP8: Int8Array;
@@ -56,6 +60,11 @@ export interface OpenBW extends OpenBWWasm {
         beforeFrame: () => void;
         afterFrame: () => void;
     };
+
+    unitGenerationSize: number;
+
+    getSandbox: () => boolean;
+    setSandbox: (sandbox: boolean) => void;
 
     getFowSize: () => number;
     getFowPtr: (visibility: number, instant: boolean) => number;
@@ -90,11 +99,12 @@ export interface OpenBW extends OpenBWWasm {
     setPaused: (paused: boolean) => void;
 
     isReplay: () => boolean;
-    nextFrame: (debug: boolean) => number;
+    nextFrame: () => number;
+    nextFrameNoAdvance: () => number;
     tryCatch: (callback: () => void) => void;
     loadReplay: (buffer: Buffer) => void;
     loadMap: (buffer: Buffer) => void;
-    start: (readFile: ReadFile) => void;
+    start: (readFile: ReadFile) => Promise<void>;
 
     uploadHeightMap: (data: Uint8ClampedArray, width: number, height: number) => void;
     loadReplayWithHeightMap: (replayBuffer: Buffer, data: Uint8ClampedArray, width: number, height: number) => void;

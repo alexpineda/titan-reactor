@@ -4,13 +4,15 @@ import { Unit } from "@core/unit";
 import { GetTerrainY } from "@image/generate-map/get-terrain-y";
 import BaseScene from "@render/base-scene";
 import { Assets, Settings } from "common/types";
-import { PxToGameUnit } from "common/utils/conversions";
+import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene, Vector3 } from "three";
+import { createSandboxApi } from "./sandbox-api";
 
 
 export interface GameTimeApi {
     type: "replay" | "game" | "live",
+    sandbox: ReturnType<typeof createSandboxApi> | undefined,
     viewport: GameViewPort;
     secondViewport: GameViewPort
     simpleMessage(message: string): void;
@@ -30,7 +32,7 @@ export interface GameTimeApi {
     readonly gameSpeed: number;
     setGameSpeed(speed: number): void;
     refreshScene(): void;
-    pxToGameUnit: PxToGameUnit;
+    pxToGameUnit: PxToWorld;
     mapWidth: number;
     mapHeight: number;
     tileset: number;
@@ -48,6 +50,7 @@ export interface GameTimeApi {
     getPlayers(): BasePlayer[];
     readonly followedUnitsPosition: Vector3 | undefined | null;
     selectUnits(units: number[]): void;
+    deselectUnits(): void;
     selectedUnits: Unit[];
     playSound(typeId: number, volumeOrX?: number, y?: number, unitTypeId?: number): void;
     togglePointerLock(val: boolean): void;

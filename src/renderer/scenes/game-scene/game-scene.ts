@@ -1,15 +1,17 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
+import { Color, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
-import { mixer } from "@audio"
+import { mixer, Music } from "@audio"
 import { drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
 import { Surface } from "@image";
 import {
+  OpenBW,
   Settings,
+  UnitTileScale,
 } from "common/types";
-import { pxToMapMeter, floor32 } from "common/utils/conversions";
+import { makePxToWorld, floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types";
-import type { SoundChannels } from "@audio";
+import { SoundChannels } from "@audio";
 import {
   Players,
   ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, Unit, BasePlayer
@@ -30,7 +32,6 @@ import Janitor from "@utils/janitor";
 import gameStore from "@stores/game-store";
 import * as plugins from "@plugins";
 import settingsStore from "@stores/settings-store";
-import { Assets } from "common/types/assets";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED } from "@plugins/hooks";
 import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
@@ -38,15 +39,12 @@ import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore, { useSelectedUnitsStore } from "@stores/selected-units-store";
 import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "./selection-objects";
-import FadingPointers from "@image/fading-pointers";
 import { Macros } from "@macros/macros";
 import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { MinimapGraphics } from "@render/minimap-graphics";
 import { createSession, listenForNewSettings } from "@stores/session-store";
-import { Terrain } from "@core/terrain";
-import { TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
-import { SceneState } from "../scene";
+import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits } from "./followed-units";
 import { resetCompletedUpgrades, updateCompletedUpgrades } from "./completed-upgrades";
 import { ImageEntities } from "./image-entities";
@@ -55,36 +53,54 @@ import { CssScene } from "./css-scene";
 import { listenToEvents } from "@utils/macro-utils";
 import { UnitEntities } from "./unit-entities";
 import { GameTimeApi } from "./game-time-api";
-import { ReplayChangeSpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./replay-controls";
+import { SpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./speed-controls";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImageHD, applyModelEffectsOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 import { createImageSelection } from "@input/create-image-selection";
+import { createSandboxApi } from "./sandbox-api";
+import { RaycastHelper } from "@core/terrain-intersection";
+import { AudioListener } from "three";
+import { setDumpUnitCall } from "@plugins/plugin-system-ui";
+import readCascFile from "@utils/casclib";
 
-export async function replayScene(
+export async function makeGameScene(
   map: Chk,
-  terrain: Terrain,
-  terrainExtra: TerrainExtra,
-  scene: BaseScene,
-  assets: Assets,
   janitor: Janitor,
   basePlayers: BasePlayer[],
-  soundChannels: SoundChannels,
-  commandsStream: CommandsStream
-): Promise<SceneState> {
+  commandsStream: CommandsStream,
+  onOpenBWReady: (openBW: OpenBW) => void,
+) {
 
-  const session = createSession(settingsStore().data, basePlayers);
+  const assets = gameStore().assets!;
+
+
+  const { terrain, terrainExtra } = await chkToTerrainMesh(
+    map, UnitTileScale.HD,
+  );
+
+  const openBW = await getOpenBW();
+
+  setDumpUnitCall((id) => openBW.get_util_funcs().dump_unit(id));
+
+  await openBW.start(readCascFile);
+
+  onOpenBWReady(openBW);
+
+  openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
+
+  openBW.setGameSpeed(1);
+  openBW.setPaused(false);
+
+  const session = createSession(settingsStore().data, basePlayers, openBW);
+
   const macros = new Macros(session);
   macros.deserialize(settingsStore().data.macros);
 
-  const players = janitor.mop(new Players(
-    basePlayers,
-    map.units.filter((u) => u.unitId === unitTypes.startLocation),
-  ));
+  const soundChannels = new SoundChannels();
+  const music = janitor.mop(new Music(mixer as unknown as AudioListener));
+  music.playGame();
 
-  const openBW = await getOpenBW();
-  openBW.setGameSpeed(1);
-  openBW.setPaused(false);
 
   const [mapWidth, mapHeight] = map.size;
   renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
@@ -101,10 +117,11 @@ export async function replayScene(
     bottom: "0",
     zIndex: "20"
   }));
+
   janitor.mop(document.body.appendChild(minimapSurface.canvas));
 
   const simpleText = janitor.mop(new SimpleText());
-  const pxToWorld = pxToMapMeter(mapWidth, mapHeight);
+  const pxToWorld = makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY);
 
   const minimapMouse = janitor.mop(new MinimapMouse(
     minimapSurface,
@@ -115,9 +132,6 @@ export async function replayScene(
     }
   ));
 
-  const fadingPointers = new FadingPointers();
-  scene.add(fadingPointers);
-
   const cameraMouse = janitor.mop(new CameraMouse(document.body));
 
   const cameraKeys = janitor.mop(new CameraKeys(document.body, () => {
@@ -127,6 +141,11 @@ export async function replayScene(
       followUnits(selectedUnitsStore().selectedUnits);
     }
   }));
+
+  const scene = janitor.mop(new BaseScene(map.size[0], map.size[1], terrain));
+
+  scene.background = assets.skyBox;
+  scene.environment = assets.envMap;
 
   const units = new UnitEntities
 
@@ -164,6 +183,8 @@ export async function replayScene(
 
   images.onFreeImage = (image) => {
     globalEffectsBundle.removeBloomSelection(image);
+    if (globalEffectsBundle.debugSelection)
+      globalEffectsBundle.debugSelection.delete(image);
   }
 
   const initializeGlobalEffects = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
@@ -206,6 +227,7 @@ export async function replayScene(
   }))
 
   const initializeRenderMode = (renderMode3D: boolean) => {
+
     const postprocessing = renderMode3D ? session.getState().postprocessing3d : session.getState().postprocessing;
 
     terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
@@ -216,6 +238,7 @@ export async function replayScene(
     reset = refreshScene;
 
     initializeGlobalEffects(postprocessing);
+
   }
 
   const viewports = janitor.mop(new GameViewportsDirector(gameSurface,
@@ -223,28 +246,36 @@ export async function replayScene(
   ));
 
   const _getSelectionUnit = (object: Object3D): Unit | null => {
+
     if (object instanceof ImageHD || object instanceof Image3D) {
       return canSelectUnit(images.getUnit(object));
     } else if (object.parent) {
       return _getSelectionUnit(object.parent);
     }
+
     return null;
+
   }
 
-
   const _imageDebug: Partial<ImageStruct> = {};
-  const unitSelection = createImageSelection(scene, gameSurface, minimapSurface, (objects) => {
-    globalEffectsBundle.clearBloomSelection();
-    for (const object of objects) {
-      if (object instanceof ImageHD || object instanceof Object3D) {
-        console.log(object);
-        console.log(imageBufferView.get(object.userData.imageAddress).copy(_imageDebug));
-        globalEffectsBundle.debugSelection.add(object);
-      }
-    }
-  });
+  const imageSelection = janitor.mop(createImageSelection(scene, gameSurface, minimapSurface, (objects) => {
 
-  // const unitSelection = createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object));
+    if (globalEffectsBundle.debugSelection) {
+      globalEffectsBundle.debugSelection!.clear();
+
+      for (const object of objects) {
+        if (object instanceof ImageHD || object instanceof Object3D) {
+          console.log(object, imageBufferView.get(object.userData.imageAddress).copy(_imageDebug));
+          globalEffectsBundle.debugSelection!.add(object);
+        }
+      }
+
+    }
+
+  }));
+
+
+  const unitSelection = janitor.mop(createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object)));
 
   viewports.beforeActivate = () => {
     gameTimeApi.minimap.enabled = true;
@@ -266,8 +297,37 @@ export async function replayScene(
 
     unitSelection.enabled = sceneController.gameOptions?.allowUnitSelection;
     unitSelection.selectionBox.camera = sceneController.viewports[0].camera;
+    unitSelection.onSelectedUnitsChange = (units) => {
+      console.log(units)
+    }
+
+    imageSelection.selectionBox.camera = sceneController.viewports[0].camera;
     _sceneResizeHandler();
   }
+
+  const _mouseXY = new Vector2();
+  viewports.onCameraMouseUpdateCallback = (delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX, clientY, clicked) => {
+    if (viewports.primaryViewport && clicked?.z === 0) {
+      _mouseXY.set(clicked.x, clicked.y);
+      const intersections = RaycastHelper.intersectObject(terrain, true, viewports.primaryViewport.camera, _mouseXY);
+      if (intersections.length) {
+        console.log(intersections)
+        scene.add(
+          new Mesh(
+            new SphereBufferGeometry(0.5).translate(intersections[0].point.x, intersections[0].point.y, intersections[0].point.z),
+            new MeshBasicMaterial({ color: 0xff0000 })));
+        console.log(intersections[0].point);
+      }
+    }
+  };
+
+  const startLocations = map.units.filter((u) => u.unitId === unitTypes.startLocation);
+  const players = janitor.mop(new Players(
+    basePlayers,
+    startLocations,
+  ));
+
+  const sandbox = createSandboxApi(openBW, makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY, true), session)
 
   const gameTimeApi = ((): GameTimeApi => {
 
@@ -281,6 +341,9 @@ export async function replayScene(
 
     return {
       type: "replay",
+      get sandbox() {
+        return sandbox;
+      },
       simpleMessage(val: string) {
         simpleText.set(val);
       },
@@ -310,8 +373,8 @@ export async function replayScene(
       unitsIterator,
       skipForward: (amount = 1) => skipHandler(1, amount),
       skipBackward: (amount = 1) => skipHandler(-1, amount),
-      speedUp: () => speedHandler(ReplayChangeSpeedDirection.Up, openBW),
-      speedDown: () => speedHandler(ReplayChangeSpeedDirection.Down, openBW),
+      speedUp: () => speedHandler(SpeedDirection.Up, openBW),
+      speedDown: () => speedHandler(SpeedDirection.Down, openBW),
       togglePause: (setPaused?: boolean) => {
         openBW.setPaused(setPaused ?? !openBW.isPaused());
         return openBW.isPaused();
@@ -384,13 +447,17 @@ export async function replayScene(
         }
         selectedUnitsStore().setSelectedUnits(selection);
       },
+      deselectUnits() {
+        selectedUnitsStore().setSelectedUnits([]);
+      },
       get selectedUnits() {
         return selectedUnitsStore().selectedUnits
       },
+
       // fadingPointers,
       playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
         if (y !== undefined && volumeOrX !== undefined) {
-          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToWorld, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
+          buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToWorld, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
         } else {
           soundChannels.playGlobal(typeId, volumeOrX);
         }
@@ -437,7 +504,6 @@ export async function replayScene(
     sprites.clear();
     cmds = commandsStream.generate();
     cmd = cmds.next();
-    fadingPointers.clear();
     globalEffectsBundle.clearBloomSelection();
 
     const frame = openBW.getCurrentFrame();
@@ -519,6 +585,46 @@ export async function replayScene(
     }
   }
 
+  const buildUnit = (unitData: UnitsBufferView) => {
+    const unit = units.getOrCreate(unitData);
+
+    sprites.setUnit(unitData.spriteIndex, unit);
+    //if receiving damage, blink 3 times, hold blink 3 frames
+    if (
+      !unit.extras.recievingDamage &&
+      (unit.hp > unitData.hp || unit.shields > unitData.shields)
+      && unit.typeId === unitData.typeId // ignore morphs
+    ) {
+      unit.extras.recievingDamage = 0b000111000111000111;
+    } else if (unit.extras.recievingDamage) {
+      unit.extras.recievingDamage = unit.extras.recievingDamage >> 1;
+    }
+
+    // unit morph
+    if (unit.typeId !== unitData.typeId) {
+      unit.extras.dat = assets.bwDat.units[unitData.typeId];
+    }
+
+    unitData.copyTo(unit);
+
+    if (unit.extras.selected &&
+      (unit.order === orders.die ||
+        unit.order === orders.harvestGas ||
+        (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
+        (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
+      selectedUnitsStore().removeUnit(unit);
+    }
+
+    if (unit.typeId === unitTypes.siegeTankTankMode) {
+      if (unit.extras.turretLo === null) {
+        unit.extras.turretLo = new Vector2;
+      }
+      getImageLoOffset(unit.extras.turretLo, viewports.primaryViewport.camera.userData.direction, unitData.owSprite.mainImage, 0);
+    } else {
+      unit.extras.turretLo = null;
+    }
+  }
+
   const buildUnits = (
   ) => {
     const deletedUnitCount = openBW._counts(17);
@@ -533,45 +639,7 @@ export async function replayScene(
     for (let p = 0; p < 12; p++) {
       unitList.addr = playersUnitAddr + (p << 3);
       for (const unitAddr of unitList) {
-        const unitData = unitBufferView.get(unitAddr);
-        const unit = units.getOrCreate(unitData);
-
-        sprites.setUnit(unitData.spriteIndex, unit);
-        //if receiving damage, blink 3 times, hold blink 3 frames
-        if (
-          !unit.extras.recievingDamage &&
-          (unit.hp > unitData.hp || unit.shields > unitData.shields)
-          && unit.typeId === unitData.typeId // ignore morphs
-        ) {
-          unit.extras.recievingDamage = 0b000111000111000111;
-        } else if (unit.extras.recievingDamage) {
-          unit.extras.recievingDamage = unit.extras.recievingDamage >> 1;
-        }
-
-        // unit morph
-        if (unit.typeId !== unitData.typeId) {
-          unit.extras.dat = assets.bwDat.units[unitData.typeId];
-        }
-
-        unitData.copyTo(unit);
-
-        if (unit.extras.selected &&
-          (unit.order === orders.die ||
-            unit.order === orders.harvestGas ||
-            (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
-            (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
-          selectedUnitsStore().removeUnit(unit);
-        }
-
-        if (unit.typeId === unitTypes.siegeTankTankMode) {
-          if (unit.extras.turretLo === null) {
-            unit.extras.turretLo = new Vector2;
-          }
-          getImageLoOffset(unit.extras.turretLo, viewports.primaryViewport.camera.userData.direction, unitData.owSprite.mainImage, 0);
-        } else {
-          unit.extras.turretLo = null;
-        }
-
+        buildUnit(unitBufferView.get(unitAddr));
       }
     }
   }
@@ -587,7 +655,7 @@ export async function replayScene(
       const unitTypeId = openBW.HEAP32[addr + 3];
 
       if (fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
-        buildSound(elapsed, x, y, typeId, unitTypeId, pxToWorld, terrain, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
+        buildSound(elapsed, x, y, typeId, unitTypeId, pxToWorld, viewports.audio, viewports.primaryViewport.projectedView, soundChannels, mixer);
       }
     }
 
@@ -815,7 +883,7 @@ export async function replayScene(
       reset();
     }
 
-    currentBwFrame = openBW.nextFrame(true);
+    currentBwFrame = openBW.nextFrame();
 
     if (currentBwFrame !== previousBwFrame) {
 
@@ -838,26 +906,22 @@ export async function replayScene(
 
       mixer.updateFromVector3(audioPosition as Vector3, delta);
 
-      if (openBW.isReplay()) {
-        _commandsThisFrame.length = 0;
-        while (cmd.done === false) {
+      _commandsThisFrame.length = 0;
+      while (cmd.done === false) {
 
-          if (
-            typeof cmd.value === "number"
-          ) {
-            if (cmd.value > currentBwFrame) {
-              break;
-            }
-            // only include past 5 game seconds (in case we are skipping frames)
-          } else if (currentBwFrame - cmd.value.frame < 120) {
-            _commandsThisFrame.push(cmd.value);
+        if (
+          typeof cmd.value === "number"
+        ) {
+          if (cmd.value > currentBwFrame) {
+            break;
           }
-          cmd = cmds.next();
-
+          // only include past 5 game seconds (in case we are skipping frames)
+        } else if (currentBwFrame - cmd.value.frame < 120) {
+          _commandsThisFrame.push(cmd.value);
         }
-      }
+        cmd = cmds.next();
 
-      fadingPointers.update(currentBwFrame);
+      }
 
       plugins.onFrame(openBW, currentBwFrame, openBW._get_buffer(8), openBW._get_buffer(9), _commandsThisFrame);
 
@@ -983,24 +1047,24 @@ export async function replayScene(
     }
   }));
 
-  await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToWorld.xyz(players[0].startLocation!.x, players[0].startLocation!.y, new Vector3, terrain.getTerrainY) });
+  await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!, { target: pxToWorld.xyz(startLocations[0].x, startLocations[0].y, new Vector3) });
 
   GAME_LOOP(0);
   //TODO: compile all scene postprocessing bundles
   renderComposer.compileScene(scene);
   _sceneResizeHandler();
 
-  return {
-    id: "@replay",
-    dispose: () => {
+  renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
-      log.info("disposing replay viewer");
-      janitor.dispose();
-      plugins.disposeGame();
-      pluginsApiJanitor.dispose();
+  return () => {
 
-      renderComposer.getWebGLRenderer().setAnimationLoop(null);
-      renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
-    }, start: () => renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+    log.info("disposing replay viewer");
+    janitor.dispose();
+    plugins.disposeGame();
+    pluginsApiJanitor.dispose();
+
+    renderComposer.getWebGLRenderer().setAnimationLoop(null);
+    renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
+
   }
 }

@@ -4,15 +4,17 @@ import bufToCommand from "./buf-to-cmd";
 import bufToSCRCommand from "./buf-to-cmd-scr";
 
 class CommandsStream {
-  #buffer: Buffer;
-  #stormPlayerToGamePlayer: number[];
+  #buffer?: Buffer;
+  #stormPlayerToGamePlayer?: number[];
 
-  constructor(buffer: Buffer, stormPlayerToGamePlayer: number[]) {
+  constructor(buffer?: Buffer, stormPlayerToGamePlayer?: number[]) {
     this.#buffer = buffer;
     this.#stormPlayerToGamePlayer = stormPlayerToGamePlayer;
   }
 
   *generate() {
+    if (!this.#buffer || !this.#stormPlayerToGamePlayer) return;
+
     const buffer = new BufferList(this.#buffer);
 
     while (buffer.length >= 5) {

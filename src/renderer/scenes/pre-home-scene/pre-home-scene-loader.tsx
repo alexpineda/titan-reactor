@@ -9,7 +9,7 @@ import * as log from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
-import { waitForSeconds } from "@utils/wait-for-process";
+import { waitForSeconds } from "@utils/wait-for";
 import Janitor from "@utils/janitor";
 import path from "path";
 import { Filter, mixer } from "@audio";

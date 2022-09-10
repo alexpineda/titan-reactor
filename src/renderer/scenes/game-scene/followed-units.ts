@@ -1,7 +1,7 @@
 import { Unit } from "@core";
 import { Vector3 } from "three";
 import { debounce } from "lodash";
-import { PxToGameUnit } from "common/utils/conversions";
+import { PxToWorld } from "common/utils/conversions";
 
 const followedUnits: Unit[] = [];
 let _followedUnitsPosition = new Vector3();
@@ -24,7 +24,7 @@ export const clearFollowedUnits = () => {
     }
 }
 
-export const calculateFollowedUnitsTarget = debounce((pxToGameUnit: PxToGameUnit) => {
+export const calculateFollowedUnitsTarget = debounce((pxToGameUnit: PxToWorld) => {
     if (followedUnits.length === 0) {
         return;
     }

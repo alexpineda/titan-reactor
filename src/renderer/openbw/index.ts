@@ -3,6 +3,7 @@ import path from "path";
 import { OpenBW, OpenBWWasm, ReadFile } from "common/types";
 import initializeWASM from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
+import { Timer } from "@utils/timer";
 
 const wasmFileLocation = path.join(__static, "titan.wasm");
 
@@ -11,12 +12,6 @@ const createOpenBW = async () => {
     beforeFrame: () => { },
     afterFrame: () => { },
   };
-
-  // const _cache: {
-  //   iscriptProgramDataSize: number | undefined,
-  // } = {
-  //   iscriptProgramDataSize: undefined
-  // }
 
   const wasm = await initializeWASM({
     locateFile: (filename: string) => {
@@ -41,6 +36,8 @@ const createOpenBW = async () => {
     }
   };
 
+  openBW.unitGenerationSize = 3;
+
   openBW.getFowSize = () => wasm._counts(10);
   openBW.getFowPtr = (visibility: number, instant: boolean) => wasm._get_fow_ptr(visibility, instant);
 
@@ -62,27 +59,42 @@ const createOpenBW = async () => {
   openBW.getSoundsCount = () => wasm._counts(6);
 
   openBW.getIScriptProgramDataSize = () => {
-    // _cache.iscriptProgramDataSize = _cache.iscriptProgramDataSize ?? ;
     return wasm._counts(12);
   }
 
   openBW.getIScriptProgramDataAddress = () => {
-    // _cache.iscriptProgramDataSize = _cache.iscriptProgramDataSize ?? ;
     return wasm._get_buffer(12);
   }
 
-  let _isReplay = true;
+  let _isReplay = true, _isSandBox = false;
+  const timer = new Timer
 
-  const _nextFrame = () => {
-    if (_isReplay) {
-      return wasm._next_frame();
-    } else {
-      wasm._next_no_replay();
+  openBW.nextFrame = () => {
+    if (_isSandBox) {
+      timer.update();
+      if (timer.getElapsed() > 42) {
+        timer.resetElapsed();
+        return wasm._next_no_replay();
+      }
+      return wasm._replay_get_value(2);
     }
+    return wasm._next_frame();
   }
-  openBW.nextFrame = (debug = false) => debug ? tryCatch(_nextFrame) : _nextFrame();
+
+  openBW.nextFrameNoAdvance = () => {
+    return wasm._next_no_replay();
+  }
 
   openBW.isReplay = () => _isReplay;
+
+  openBW.setSandbox = (sandbox: boolean) => {
+    if (!_isReplay) {
+      return;
+    }
+    _isSandBox = sandbox;
+  }
+
+  openBW.getSandbox = () => _isSandBox;
 
   openBW.setGameSpeed = (speed: number) => wasm._replay_set_value(0, speed);
   openBW.getGameSpeed = () => wasm._replay_get_value(0);
@@ -94,6 +106,10 @@ const createOpenBW = async () => {
   openBW.setPaused = (paused: boolean) => wasm._replay_set_value(1, paused ? 1 : 0);
 
   openBW.loadReplay = (buffer: Buffer) => {
+
+    _isReplay = true;
+    _isSandBox = false;
+
     tryCatch(() => {
       const buf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
       wasm._load_replay(buf, buffer.length);
@@ -103,6 +119,10 @@ const createOpenBW = async () => {
   };
 
   openBW.loadMap = (buffer: Buffer) => {
+
+    _isReplay = false;
+    _isSandBox = true;
+
     tryCatch(() => {
       const buf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
       wasm._load_map(buf, buffer.length);
@@ -112,11 +132,23 @@ const createOpenBW = async () => {
   };
 
   openBW.loadReplayWithHeightMap = (buffer: Buffer, data: Uint8ClampedArray, width: number, height: number) => {
+
+    _isReplay = true;
+    _isSandBox = false;
+
     tryCatch(() => {
       const replayBuf = wasm.allocate(buffer, wasm.ALLOC_NORMAL);
       const heightMapBuf = wasm.allocate(data, wasm.ALLOC_NORMAL);
       wasm._load_replay_with_height_map(replayBuf, buffer.length, heightMapBuf, data.length, width, height);
       wasm._free(replayBuf);
+      wasm._free(heightMapBuf);
+    });
+  }
+
+  openBW.uploadHeightMap = (data: Uint8ClampedArray, width: number, height: number) => {
+    tryCatch(() => {
+      const heightMapBuf = wasm.allocate(data, wasm.ALLOC_NORMAL);
+      wasm._upload_height_map(heightMapBuf, data.length, width, height);
       wasm._free(heightMapBuf);
     });
   }
@@ -140,6 +172,7 @@ const getOpenBW = async (instance = 0) => {
   if (openBws[instance]) return openBws[instance];
 
   const openBW = await createOpenBW();
+
   openBws[instance] = openBW;
   return openBW;
 }

@@ -41,6 +41,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
   constructor(parameters?: SpriteMaterialParameters) {
     super(parameters);
     this.isTeamSpriteMaterial = true;
+    this.defines = {};
 
     this.#dynamicUniforms = {
       uTeamColor: {
@@ -182,7 +183,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
       mapFragments.push([
         `
         float flashPower = 1. - ((modifierData1 - 48.) / 15.);
-        diffuseColor = vec4(mix(diffuseColor.rgb, vec3(1.), flashPower), diffuseColor.a);
+        diffuseColor = vec4( mix( diffuseColor.rgb, vec3(1.), flashPower ), diffuseColor.a );
       `,
       ]);
     } else if (this.modifier === drawFunctions.hallucination) {

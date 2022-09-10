@@ -8,7 +8,6 @@ import FlingyBufferView from "./flingy-buffer-view";
  */
 export class UnitsBufferView extends FlingyBufferView
     implements UnitStruct {
-    static unit_generation_size = 0;
 
     #subunit?: UnitsBufferView;
     #currentBuildUnit?: UnitsBufferView;
@@ -18,8 +17,8 @@ export class UnitsBufferView extends FlingyBufferView
     }
 
     get id() {
-        const gen = this.generation % (1 << UnitsBufferView.unit_generation_size);
-        return (this.index + 1) | (gen << (16 - UnitsBufferView.unit_generation_size));
+        const gen = this.generation % (1 << this._bw.unitGenerationSize);
+        return (this.index + 1) | (gen << (16 - this._bw.unitGenerationSize));
     }
 
     get owner() {

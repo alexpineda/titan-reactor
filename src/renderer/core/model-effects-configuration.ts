@@ -56,6 +56,14 @@ export const spriteModelEffects: SpriteModelEffects<SpriteModelImageEffects> = {
             }
         ],
 
+        // egg
+        29: [
+            {
+                type: "scale",
+                scale: 0.8
+            }
+        ],
+
         // zergling
         54: [
             {
@@ -91,6 +99,14 @@ export const spriteModelEffects: SpriteModelEffects<SpriteModelImageEffects> = {
         225: [
             {
                 type: "hide-sprite"
+            }
+        ],
+
+        // firebat
+        226: [
+            {
+                type: "scale",
+                scale: 0.9
             }
         ],
 
@@ -201,6 +217,14 @@ export const spriteModelEffects: SpriteModelEffects<SpriteModelImageEffects> = {
             {
                 // never draw this image
                 type: "hide-sprite"
+            }
+        ],
+
+        // mineral type 3
+        349: [
+            {
+                type: "scale",
+                scale: 1.1
             }
         ],
 

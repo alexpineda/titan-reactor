@@ -3,7 +3,7 @@ import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
 import { root } from "@render";
 import { mixer } from "@audio/main-mixer";
-import { waitForSeconds } from "@utils/wait-for-process";
+import { waitForSeconds } from "@utils/wait-for";
 import Janitor from "@utils/janitor";
 
 export async function homeSceneLoader(): Promise<SceneState> {

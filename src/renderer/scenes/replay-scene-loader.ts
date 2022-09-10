@@ -3,40 +3,31 @@ import writeReplay from "@process-replay/write-replay";
 import { Version } from "@process-replay/version";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import ChkDowngrader from "@process-replay/chk/chk-downgrader";
-import { AudioListener } from "three";
 
 import fs from "fs";
 import Chk from "bw-chk";
 
-import { UnitTileScale } from "common/types";
+import { OpenBW } from "common/types";
 import { GameTypes } from "common/enums";
-import { SoundChannels, Music, mixer } from "@audio";
 import { openFile } from "@ipc";
 import * as log from "@ipc/log";
-import { BaseScene } from "@render";
-import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import settingsStore from "@stores/settings-store";
-import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
-import { replayScene } from "./replay-scene";
-import { waitForTruthy } from "@utils/wait-for-process";
+import { makeGameScene } from "./game-scene/game-scene";
 import Janitor from "@utils/janitor";
-import { getOpenBW } from "@openbw";
-import { UnitsBufferView } from "@buffer-view";
 import { useWorldStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { rendererIsDev } from "@utils/renderer-utils";
-import {
-  readCascFile,
-} from "@utils/casclib";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
-import { setDumpUnitCall } from "@plugins/plugin-system-ui";
-import { calculateImagesFromSpritesIscript } from "../../utils/images-from-iscript";
-import { CMDS } from "@process-replay/commands/commands";
-import { Assets } from "common/types";
 import { detectMeleeObservers } from "@utils/replay-utils";
+import { preloadMapUnitsAndSprites } from "./game-scene/preload-map-units-and-sprites";
+import { SceneState } from "./scene";
+import { Assets } from "common/types";
+import gameStore from "@stores/game-store";
+import { waitForTruthy } from "@utils/wait-for";
 
-export const replaySceneLoader = async (filepath: string) => {
+export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
+
   processStore().start(Process.ReplayInitialization);
 
   log.info(`@load-replay/file: ${filepath}`);
@@ -55,10 +46,6 @@ export const replaySceneLoader = async (filepath: string) => {
 
   document.title = "Titan Reactor - Loading";
 
-  const openBw = await getOpenBW();
-  await openBw.start(readCascFile);
-  setDumpUnitCall((id) => openBw.get_util_funcs().dump_unit(id));
-
   const sanityCheck = settings.util.sanityCheckReplayCommands ? sanityCheckCommands(replay, true) : [];
 
   if (sanityCheck.length) {
@@ -69,6 +56,7 @@ export const replaySceneLoader = async (filepath: string) => {
   }
 
   if (replay.version !== Version.titanReactor) {
+
     const chkDowngrader = new ChkDowngrader();
     const chk = chkDowngrader.downgrade(replay.chk.slice(0));
     const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
@@ -78,6 +66,7 @@ export const replaySceneLoader = async (filepath: string) => {
       fs.writeFileSync(`D:\\last_replay.rep`, replayBuffer);
     }
     replay = await parseReplay(replayBuffer);
+
   }
 
   replay.header.players = replay.header.players.filter(p => p.isActive);
@@ -89,8 +78,6 @@ export const replaySceneLoader = async (filepath: string) => {
     replay.header.players = replay.header.players.filter(p => !meleeObservers.includes(p.id));
 
   }
-
-  UnitsBufferView.unit_generation_size = replay.limits.units === 1700 ? 5 : 3;
 
   const map = new Chk(replay.chk);
 
@@ -106,55 +93,16 @@ export const replaySceneLoader = async (filepath: string) => {
   useWorldStore.setState({ replay, map, mapImage: await createMapImage(map) });
   janitor.mop(() => useWorldStore.getState().reset())
 
-  processStore().increment(Process.ReplayInitialization);
+  // wait for initial assets to load
+  await waitForTruthy<Assets>(() => gameStore().assets);
 
-  const { terrain, extra } = await chkToTerrainMesh(
-    map, UnitTileScale.HD,
-  );
-
-  const assets = await waitForTruthy<Assets>(() => gameStore().assets);
-
-  const scene = janitor.mop(new BaseScene(map.size[0], map.size[1], terrain));
-  scene.background = assets.skyBox;
-  scene.environment = assets.envMap;
-
-  openBw.loadReplayWithHeightMap(replayBuffer, extra.heightMaps.singleChannel, extra.heightMaps.displacementImage.width, extra.heightMaps.displacementImage.height);
-
-  const soundChannels = new SoundChannels();
-  const music = janitor.mop(new Music(mixer as unknown as AudioListener));
-
-  const preloadCommands = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
-  const preloadCommandTypes = [CMDS.TRAIN.id, CMDS.UNIT_MORPH.id, CMDS.BUILDING_MORPH.id, CMDS.BUILD.id];
-  const preloadCommandUnits = new Set<number>();
-
-  for (const command of preloadCommands.generate()) {
-    if (typeof command !== "number") {
-      if (preloadCommandTypes.includes(command.id)) {
-        preloadCommandUnits.add(command.unitTypeId!);
-      }
-    }
+  // wait for initial assets to load
+  if (settingsStore().data.assets.preload) {
+    await preloadMapUnitsAndSprites(map, replay);
   }
 
-  if (settings.assets.preload) {
-    const unitSprites = new Set(map.units.map(u => u.sprite).filter(s => Number.isInteger(s)) as number[]);
-    const allSprites = [...preloadCommandUnits, ...unitSprites, ...new Set(map.sprites.map(s => s.spriteId))];
-    const allImages = calculateImagesFromSpritesIscript(assets.bwDat, allSprites);
-
-    log.verbose(`@load-replay/preload-images: ${allImages.length}`);
-    processStore().start(Process.AtlasPreload, allImages.length);
-
-    await Promise.all(allImages.map((imageId) => assets.loadImageAtlasAsync(imageId, true).then(() => processStore().increment(Process.AtlasPreload))));
-    processStore().complete(Process.AtlasPreload);
-  }
-
-  music.playGame();
-
-  const state = await replayScene(
+  const disposeScene = await makeGameScene(
     map,
-    terrain,
-    extra,
-    scene,
-    assets,
     janitor,
     replay.header.players.map(player => ({
       id: player.id,
@@ -162,14 +110,24 @@ export const replaySceneLoader = async (filepath: string) => {
       color: player.color,
       race: player.race
     })),
-    soundChannels,
     new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer),
+    (openBW: OpenBW) => {
+
+      openBW.unitGenerationSize = replay.limits.units === 1700 ? 5 : 3;
+      openBW.loadReplay(replayBuffer);
+
+      return openBW;
+    }
   );
 
   document.title = `Titan Reactor - ${gameTitle}`;
 
   processStore().complete(Process.ReplayInitialization);
 
-  return state;
+  return {
+    id: "@replay",
+    start: () => { },
+    dispose: () => disposeScene(),
+  };
 
 };

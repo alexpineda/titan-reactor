@@ -13,10 +13,10 @@ import { useSettingsStore } from "@stores";
 
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import withErrorMessage from "common/utils/with-error-message";
-import { replaySceneLoader } from "./scenes/replay/replay-scene-loader";
+import { replaySceneLoader } from "./scenes/replay-scene-loader";
 import * as log from "@ipc/log";
 import sceneStore from "@stores/scene-store";
-import { mapSceneLoader } from "./scenes/map/map-scene-loader";
+import { mapSceneLoader } from "./scenes/map-scene-loader";
 import { homeSceneLoader } from "./scenes/home/home-scene-loader";
 import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
 import { mixer } from "./audio";

@@ -1,6 +1,9 @@
 import { readCascFile } from "@utils/casclib";
 import { TilesetBuffers } from "common/types";
 
+// platform, install
+const noWaterMasks = [1, 2];
+
 export const getTilesetBuffers = async (
   tileset: number,
   tilesBuffer: Buffer
@@ -64,8 +67,8 @@ export const getTilesetBuffers = async (
   const waterNormal2 = await readCascFile(`effect/water_normal_2.dds.grp`);
   const noise = await readCascFile(`effect/noise.DDS`);
 
-  const waterMask = await readCascFile(`TileSet/${tilesetName}_mask.dds.grp`);
-  const tileMask = await readCascFile(`TileSet/${tilesetName}.tmsk`);
+  const waterMask = noWaterMasks.includes(tileset) ? null : await readCascFile(`TileSet/${tilesetName}_mask.dds.grp`);
+  const tileMask = noWaterMasks.includes(tileset) ? null : await readCascFile(`TileSet/${tilesetName}.tmsk`);
 
   return {
     mapTiles,

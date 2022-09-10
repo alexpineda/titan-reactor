@@ -66,7 +66,7 @@ export const createImageSelection = (scene: Scene, gameSurface: Surface, minimap
     janitor.addEventListener(gameSurface.canvas, 'pointermove', _selectMove);
 
     return {
-        dispose: janitor,
+        dispose: () => janitor.dispose(),
         selectionBox,
         get enabled() {
             return enabled;

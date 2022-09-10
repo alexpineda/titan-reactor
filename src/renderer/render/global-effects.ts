@@ -1,6 +1,6 @@
 import { FogOfWarEffect } from "@core/fogofwar";
 import { PostProcessingBundle, Settings } from "common/types";
-import { BlendFunction, BloomEffect, BrightnessContrastEffect, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, Selection, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
+import { BlendFunction, BloomEffect, BrightnessContrastEffect, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
 import { renderComposer } from "./render-composer";
 
@@ -54,7 +54,9 @@ export class GlobalEffects implements PostProcessingBundle {
     #fogOfWarEffect: FogOfWarEffect;
 
     debug = true;
-    debugSelection = new Selection();
+    get debugSelection() {
+        return this.#outlineEffect?.selection;
+    }
 
     #outlineEffect?: OutlineEffect;
 
@@ -105,7 +107,6 @@ export class GlobalEffects implements PostProcessingBundle {
                 bokehScale: this.options.depthBokehScale,
                 height: this.options.depthBlurQuality,
             });
-            window.dof = this.#depthOfFieldEffect;
 
             pass1.push(this.#depthOfFieldEffect);
         }
@@ -149,16 +150,15 @@ export class GlobalEffects implements PostProcessingBundle {
         if (this.debug) {
             this.#outlineEffect = new OutlineEffect(this.scene, this.camera, {
                 blendFunction: BlendFunction.SCREEN,
-                multisampling: 2,
-                patternScale: 40,
+                multisampling: 0,
+                patternScale: 1,
                 visibleEdgeColor: 0xffffff,
                 hiddenEdgeColor: 0x22090a,
-                resolutionScale: 0.75,
+                resolutionScale: 0.5,
                 blur: false,
                 xRay: true
             });
-            this.#outlineEffect.selection = this.debugSelection;
-            return [pass1, pass2, [this.#outlineEffect]]
+            return [[this.#fogOfWarEffect, this.#outlineEffect]]
         }
         return [pass1, pass2]
     }

@@ -24,6 +24,7 @@ export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapS
 
     let mouseIsDown = false;
     let enabled = true;
+    let onSelectedUnitsChange: (units: Unit[]) => void = () => { };
 
     const _selectDown = (event: PointerEvent) => {
         if (event.button !== 0 || !enabled) return;
@@ -106,6 +107,7 @@ export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapS
                 selectedUnits.push(unit);
             } else {
                 selectedUnitsStore().clearSelectedUnits();
+                onSelectedUnitsChange([]);
                 return;
             }
         } else {
@@ -157,7 +159,7 @@ export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapS
             return
         }
         selectedUnitsStore().setSelectedUnits(selectedUnits);
-
+        onSelectedUnitsChange(selectedUnits);
     }
 
     janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp);
@@ -165,7 +167,7 @@ export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapS
     janitor.addEventListener(gameSurface.canvas, 'pointermove', _selectMove);
 
     return {
-        dispose: janitor,
+        dispose: () => janitor.dispose(),
         selectionBox,
         get enabled() {
             return enabled;
@@ -173,6 +175,9 @@ export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapS
         set enabled(value: boolean) {
             visualBox.enabled = value;
             enabled = value;
+        },
+        set onSelectedUnitsChange(value: (units: Unit[]) => void) {
+            onSelectedUnitsChange = value;
         }
     }
 

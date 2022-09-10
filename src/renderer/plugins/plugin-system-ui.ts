@@ -4,7 +4,7 @@ import settingsStore from "@stores/settings-store";
 import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore, useSelectedUnitsStore } from "@stores";
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
-import { waitForTruthy } from "@utils/wait-for-process";
+import { waitForTruthy } from "@utils/wait-for";
 import { DumpedUnit, Unit } from "@core/unit";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";

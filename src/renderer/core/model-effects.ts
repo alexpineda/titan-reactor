@@ -37,12 +37,6 @@ export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image
                         overlayEffectsMainImage.image.setEmissive(imageIsHidden(imageBuffer) ? 0 : 1);
                     }
                     break;
-                // hide me
-                case "hide-sprite":
-                    if (overlayEffectsMainImage.image) {
-                        image.visible = false;
-                    }
-                    break;
                 case "flat-on-ground":
                     image.material.flatProjection = false;
                     image.rotation.x = -Math.PI / 2;
@@ -63,7 +57,7 @@ export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, imag
 
     // if (image.material.depthTest !== viewport.renderMode3D) {
 
-    image.material.depthTest = false;//viewport.renderMode3D;
+    image.material.depthTest = viewport.renderMode3D;
     image.material.depthWrite = false;
 
     // }
@@ -80,13 +74,16 @@ export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, imag
 
     }
 
-    if (spriteModelEffects.images[imageTypeId]) {
+    if (viewport.renderMode3D && spriteModelEffects.images[imageTypeId]) {
 
         for (const effect of spriteModelEffects.images[imageTypeId]) {
             switch (effect.type) {
                 case "fixed-frame":
                     _frameInfo.frame = effect.frame;
                     _frameInfo.flipped = false;
+                    break;
+                case "hide-sprite":
+                    image.visible = false;
                     break;
 
             }
@@ -138,7 +135,6 @@ export const applyModelEffectsOnImage3d = (imageBufferView: ImageBufferView, ima
 
     if (_needsUpdateFrame) {
 
-        // ignore camera direction since we are rotating the 3d model
         image.setFrame(imageBufferView.frameIndex);
 
     }

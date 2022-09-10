@@ -57,17 +57,17 @@ export type TilesetBuffers = {
   hdTiles: Buffer;
   creepGrpSD: Buffer;
   creepGrpHD: Buffer;
-  waterMask: Buffer;
+  waterMask: Buffer | null;
   waterNormal1: Buffer;
   waterNormal2: Buffer;
   noise: Buffer;
-  tileMask: Buffer;
+  tileMask: Buffer | null;
 };
 
 export type EffectsTextures = {
   waterNormal1: CompressedTexture[],
   waterNormal2: CompressedTexture[],
   noise: DDS,
-  waterMask: CompressedTexture[],
-  tileMask: { i: number, vr4id: number, maskid: number }[]
+  waterMask: CompressedTexture[] | null,
+  tileMask: { i: number, vr4id: number, maskid: number }[] | null,
 }

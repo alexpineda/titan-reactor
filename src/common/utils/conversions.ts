@@ -1,32 +1,48 @@
 import { Vector2, Vector3 } from "three";
 
-export type PxToGameUnit = {
+export type PxToWorld = {
   x: (v: number) => number;
   y: (v: number) => number;
-  xy: (x: number, y: number, out?: Vector2) => Vector2;
-  xyz: (x: number, y: number, out?: Vector3, zFunction?: (x: number, y: number) => number) => Vector3;
+  xy: (x: number, y: number, out: Vector2) => Vector2;
+  xyz: (x: number, y: number, out: Vector3) => Vector3;
 };
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
+const invTransform = (a: number, b: number) => Math.floor(a * 32 + b / 2);
 
 export const floor32 = (x: number) => Math.floor(x / 32);
 
-export const pxToMapMeter = (
+export const makePxToWorld = (
   mapWidth: number,
-  mapHeight: number
-): PxToGameUnit => {
+  mapHeight: number,
+  yFunction: (x: number, y: number) => number = () => 0,
+  inverted = false
+): PxToWorld => {
+
+  const _transform = inverted ? invTransform : transform;
+
   return {
-    x: (x: number) => transform(x, mapWidth),
-    y: (y: number) => transform(y, mapHeight),
-    xy: (x: number, y: number, out?: Vector2) => {
-      return (out ?? new Vector2).set(transform(x, mapWidth), transform(y, mapHeight));
+
+    x: (x: number) => _transform(x, mapWidth),
+    y: (y: number) => _transform(y, mapHeight),
+    xy: (x: number, y: number, out: Vector2) => {
+
+      return (out ?? new Vector2).set(_transform(x, mapWidth), _transform(y, mapHeight));
+
     },
-    xyz: (x: number, y: number, out?: Vector3, yFunction: (x: number, y: number) => number = () => 0) => {
-      const nx = transform(x, mapWidth);
-      const ny = transform(y, mapHeight);
+    xyz: (x: number, y: number, out: Vector3) => {
+      if (inverted) {
+        throw new Error("inverted can only go from world to px");
+      }
+
+      const nx = _transform(x, mapWidth);
+      const ny = _transform(y, mapHeight);
       return (out ?? new Vector3).set(nx, yFunction(nx, ny), ny);
+
     }
+
   };
+
 };
 
 export enum gameSpeeds {

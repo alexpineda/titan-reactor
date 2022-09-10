@@ -28,10 +28,9 @@ const white = new Color(0xffffff);
 const CLOAK_OPACITY = 0.6;
 
 //dds is flipped y so we don't do it in our uvs
-export const calculateFrame = (frame: AnimFrame, flipFrame: boolean, textureWidth: number, textureHeight: number, spriteWidth: number, spriteHeight: number, depthTest: boolean, pos: { setX: (index: number, value: number) => void, setY: (index: number, value: number) => void }, uv: { setXY: (index: number, x: number, y: number) => void }) => {
-  // const off =
-  // (frame.yoff + frame.h - spriteHeight / 2) / spriteHeight;
-  const yOff = 0.5;//depthTest ? 0.5 - off : 0.5;
+export const calculateFrame = (frame: AnimFrame, flipFrame: boolean, textureWidth: number, textureHeight: number, spriteWidth: number, spriteHeight: number, pos: { setX: (index: number, value: number) => void, setY: (index: number, value: number) => void }, uv: { setXY: (index: number, x: number, y: number) => void }) => {
+
+  const yOff = 0.5;
 
   const _leftU = frame.x / textureWidth;
   const _rightU = (frame.x + frame.w) / textureWidth;
@@ -200,12 +199,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     return this;
   }
 
-  resetParams() {
-    this.setModifiers(0, 0, 0);
-    this.setFrame(0, false);
-    this.setTeamColor(white);
-  }
-
   get unitTileScale() {
     return this.atlas.unitTileScale;
   }
@@ -260,15 +253,12 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
   }
 
   setFrame(frame: number, flip: boolean) {
-    // if (frame === this.frame && flip === this.flip && force === false) {
-    //   return;
-    // }
     if (this.atlas.frames[frame] === undefined) {
       console.warn("invalid frame", frame, this.atlas.imageIndex);
       return;
     }
 
-    calculateFrame(this.atlas.frames[frame], flip, this.atlas.textureWidth, this.atlas.textureHeight, this.spriteWidth, this.spriteHeight, this.material.depthTest, this.#pos, this.#uv);
+    calculateFrame(this.atlas.frames[frame], flip, this.atlas.textureWidth, this.atlas.textureHeight, this.spriteWidth, this.spriteHeight, this.#pos, this.#uv);
 
     this.frame = frame;
     this.flip = flip;
@@ -277,8 +267,8 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   }
 
+  //TODO: only do compose once then only adjust position
   updateMatrixPosition(parentPosition: Vector3) {
-    //TODO: only do this once then only adjust position
     this.matrix.compose(this.position.add(parentPosition), this.quaternion, this.scale);
     this.matrixWorld.copy(this.matrix);
     this.matrixWorldNeedsUpdate = false;
@@ -293,6 +283,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   }
 
+  //TODO confine to frame offsets
   override raycast(raycaster: Raycaster, intersects: Intersection[]) {
 
     if (raycaster.camera === null) {
