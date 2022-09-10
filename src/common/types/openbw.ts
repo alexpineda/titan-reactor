@@ -74,6 +74,10 @@ export interface OpenBW extends OpenBWWasm {
 
     getSoundObjects: () => SoundStruct[];
 
+    getLastError: () => number;
+    getLastErrorMessage: () => string | null;
+
+
     getSpritesOnTileLineSize: () => number;
     getSpritesOnTileLineAddress: () => number;
 

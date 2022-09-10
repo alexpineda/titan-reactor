@@ -73,7 +73,6 @@ export async function makeGameScene(
 
   const assets = gameStore().assets!;
 
-
   const { terrain, terrainExtra } = await chkToTerrainMesh(
     map, UnitTileScale.HD,
   );

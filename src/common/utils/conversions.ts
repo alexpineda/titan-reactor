@@ -8,7 +8,7 @@ export type PxToWorld = {
 };
 
 const transform = (a: number, b: number) => a / 32 - b / 2;
-const invTransform = (a: number, b: number) => Math.floor(a * 32 + b / 2);
+const invTransform = (a: number, b: number) => Math.floor((a + b / 2) * 32);
 
 export const floor32 = (x: number) => Math.floor(x / 32);
 

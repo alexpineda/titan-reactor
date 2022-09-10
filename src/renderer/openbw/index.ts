@@ -169,6 +169,25 @@ const createOpenBW = async () => {
     tryCatch(() => wasm.callMain());
     openBW.running = true;
   }
+
+  openBW.getLastError = () => {
+    return wasm._counts(0);
+  }
+
+  openBW.getLastErrorMessage = () => {
+    switch (openBW.getLastError()) {
+      case 60:
+        return "Terrain displaces unit";
+      case 61:
+        return "Cannot create more units";
+      case 62: 
+        return "Unable to create unit";
+    }
+    return null;
+  }
+
+
+
   return openBW;
 }
 

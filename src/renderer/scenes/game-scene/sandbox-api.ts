@@ -1,8 +1,6 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
-import { SessionStore } from "@stores/session-store";
 import { OpenBW, UnitStruct } from "common/types";
 import { PxToWorld } from "common/utils/conversions";
-import { UseStore } from "zustand";
 
 const identityPxToWorld: PxToWorld = {
     x: a => a,
@@ -38,8 +36,14 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld) =>
                 return null;
             }
 
+            console.log(unitTypeId, playerId, coords().x(x), coords().y(y));
             const unitAddress = openBW._create_unit(unitTypeId, playerId, coords().x(x), coords().y(y));
             if (unitAddress === 0) {
+
+                if (openBW.getLastErrorMessage()) {
+                    console.error(openBW.getLastErrorMessage());
+                }
+
                 return null;
             }
 
