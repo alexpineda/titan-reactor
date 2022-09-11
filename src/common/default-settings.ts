@@ -22,6 +22,8 @@ export const defaultSettingsV6: SettingsV6 = {
   game: {
     sceneController: "@titan-reactor-plugins/camera-standard",
     minimapSize: 1,
+    minimapEnabled: true,
+    sandBoxMode: false,
     dampingFactor: 0.15,
     cameraShakeStrength: 1,
     movementSpeed: 1,

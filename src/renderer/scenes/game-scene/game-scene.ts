@@ -32,16 +32,15 @@ import Janitor from "@utils/janitor";
 import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE } from "common/ipc-handle-names";
 import selectedUnitsStore from "@stores/selected-units-store";
 import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "./selection-objects";
-import { createCompartment } from "@utils/ses-util";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { MinimapGraphics } from "@render/minimap-graphics";
-import { createSession } from "@stores/session-store";
+import { createSession } from "@stores/session/session";
 import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits } from "./followed-units";
 import { ImageEntities } from "./image-entities";
@@ -59,7 +58,8 @@ import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
 import { createCompletedUpgradesHelper } from "./completed-upgrades";
-import { mix } from "@utils/object-utils";
+import { SessionChangeEvent } from "@stores/session/reactive-session-variables";
+import shallow from "zustand/shallow";
 
 export async function makeGameScene(
   map: Chk,
@@ -89,10 +89,50 @@ export async function makeGameScene(
   openBW.setGameSpeed(1);
   openBW.setPaused(false);
 
-  const session = janitor.mop(await createSession(basePlayers, openBW));
+  const { sessionApi, callHook, callHookAsync, ...session } = janitor.mop(await createSession(openBW));
 
-  session.callbacks.needsResize = () => sceneResizeHandler();
-  session.callbacks.audioChanged = (audio) => mixer.setVolumes(audio);
+  const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
+
+    // resize handler when? minimapSize?
+    if (rhs.game?.minimapSize) {
+      sceneResizeHandler();
+    }
+
+    mixer.setVolumes(settings.audio);
+
+    if (viewports.activeSceneController) {
+
+      if (rhs.game?.sceneController && rhs.game.sceneController !== viewports.activeSceneController.name) {
+        setTimeout(() =>
+          viewports.activate(session.getSceneInputHandler(settings.game.sceneController)!), 0);
+      }
+
+      if (viewports.primaryViewport.renderMode3D && rhs.postprocessing3d) {
+        if (shallow(globalEffectsBundle.options, settings.postprocessing3d) === false) {
+          initializeGlobalEffects(settings.postprocessing3d)
+        }
+      } else if (viewports.primaryViewport.renderMode3D === false && rhs.postprocessing) {
+        if (shallow(globalEffectsBundle.options, settings.postprocessing) === false) {
+          initializeGlobalEffects(settings.postprocessing)
+        }
+      }
+
+    }
+
+    if (rhs.game?.minimapEnabled && rhs.game.minimapEnabled !== settings.game.minimapEnabled) {
+      minimapSurface.canvas.style.display = rhs.game.minimapEnabled ? "block" : "none";
+      if (rhs.game.minimapEnabled) {
+        minimapSurface.canvas.style.pointerEvents = "auto";
+      }
+    }
+
+  };
+
+  //@ts-ignore cant type EventTarget?
+  sessionApi.events.addEventListener("change", sessionListener, { passive: true });
+  //@ts-ignore cant type EventTarget?
+  janitor.mop(() => sessionApi.events.removeEventListener("change", sessionListener));
+
 
   const soundChannels = new SoundChannels();
   const music = janitor.mop(new Music(mixer as unknown as AudioListener));
@@ -216,17 +256,9 @@ export async function makeGameScene(
 
   }
 
-  // janitor.mop(session.subscribe(data => {
-
-  //   if (viewports.primaryViewport) {
-  //     initializeGlobalEffects(viewports.primaryViewport.renderMode3D ? data.postprocessing3d : data.postprocessing);
-  //   }
-
-  // }))
-
   const initializeRenderMode = (renderMode3D: boolean) => {
 
-    const postprocessing = renderMode3D ? session.getState().postprocessing3d : session.getState().postprocessing;
+    const postprocessing = renderMode3D ? sessionApi.getState().postprocessing3d : sessionApi.getState().postprocessing;
 
     terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
     scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
@@ -239,9 +271,7 @@ export async function makeGameScene(
 
   }
 
-  const viewports = janitor.mop(new GameViewportsDirector(gameSurface,
-    session.macros
-  ));
+  const viewports = janitor.mop(new GameViewportsDirector(gameSurface));
 
   const _getSelectionUnit = (object: Object3D): Unit | null => {
 
@@ -276,23 +306,23 @@ export async function makeGameScene(
   const unitSelection = janitor.mop(createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object)));
 
   viewports.beforeActivate = () => {
-    gameTimeApi.minimap.enabled = true;
-    gameTimeApi.minimap.scale = 1;
+
+    sessionApi.sessionVars.game.minimapSize.setToDefault();
+    sessionApi.sessionVars.game.minimapEnabled.setToDefault();
+
   }
 
   viewports.onActivate = (sceneController) => {
 
-    const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
+    const rect = gameSurface.getMinimapDimensions(sessionApi.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
-      minimapHeight: gameTimeApi.minimap.enabled === true ? rect.minimapHeight : 0,
+      minimapHeight: sessionApi.getState().game.minimapEnabled === true ? rect.minimapHeight : 0,
     });
 
     if (!sceneController.gameOptions.allowUnitSelection) {
       selectedUnitsStore().clearSelectedUnits();
     }
-
-    session.plugins.nativePlugins.setActiveSceneInputHandler(sceneController);
 
     unitSelection.enabled = sceneController.gameOptions?.allowUnitSelection;
     unitSelection.selectionBox.camera = sceneController.viewports[0].camera;
@@ -302,6 +332,8 @@ export async function makeGameScene(
 
     imageSelection.selectionBox.camera = sceneController.viewports[0].camera;
     _sceneResizeHandler();
+
+    session.onEnterScene(sceneController);
 
   }
 
@@ -331,8 +363,9 @@ export async function makeGameScene(
   ));
 
   const sandbox = createSandboxApi(openBW, makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY, true));
-  // window.sandbox = sandbox;
 
+  // window.sandbox = sandbox;
+  // window.o = session;
 
   const gameTimeApi = ((): GameTimeApi => {
 
@@ -367,13 +400,13 @@ export async function makeGameScene(
         }
       },
       get cameraMovementSpeed() {
-        return session.getState().game.movementSpeed;
+        return sessionApi.getState().game.movementSpeed;
       },
       get cameraRotateSpeed() {
-        return session.getState().game.rotateSpeed;
+        return sessionApi.getState().game.rotateSpeed;
       },
       get cameraZoomLevels() {
-        return session.getState().game.zoomLevels;
+        return sessionApi.getState().game.zoomLevels;
       },
       unitsIterator,
       skipForward: (amount = 1) => skipHandler(1, amount),
@@ -410,13 +443,14 @@ export async function makeGameScene(
         reset = refreshScene;
       },
       exitScene: () => {
-        // so we don't do it in the middle of the game loop
         setTimeout(() => {
-          session.getState().merge({
-            game: {
-              sceneController: settingsStore().data.game.sceneController
-            }
-          });
+
+          sessionApi.sessionVars.game.sceneController.setToDefault();
+          // session.getState().merge({
+          //   game: {
+          //     sceneController: settingsStore().data.game.sceneController
+          //   }
+          // });
         }, 0);
 
       },
@@ -479,20 +513,7 @@ export async function makeGameScene(
       set mouseCursor(val: boolean) {
         viewports.mouseCursor = val;
       },
-      minimap: {
-        get enabled() {
-          return minimapSurface.canvas.style.display === "block";
-        },
-        set enabled(value: boolean) {
-          minimapSurface.canvas.style.display = value ? "block" : "none";
-          if (value) {
-            minimapSurface.canvas.style.pointerEvents = "auto";
-          }
-        },
-        set scale(value: number) {
-          session.getState().merge({ game: { minimapSize: value } });
-        }
-      },
+
       changeRenderMode: (renderMode3D?: boolean) => {
         viewports.primaryViewport.renderMode3D = renderMode3D ?? !viewports.primaryViewport.renderMode3D;
         initializeRenderMode(viewports.primaryViewport.renderMode3D)
@@ -500,13 +521,15 @@ export async function makeGameScene(
     }
   })();
 
+  session.initializeContainer(gameTimeApi);
+
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
   const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } = createCompletedUpgradesHelper(openBW, (typeId: number, level: number) => {
-    session.callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.upgrades[typeId]]);
+    callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.upgrades[typeId]]);
   }, (typeId: number, level: number) => {
-    session.callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.tech[typeId]]);
+    callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.tech[typeId]]);
   });
 
   const refreshScene = () => {
@@ -521,7 +544,7 @@ export async function makeGameScene(
 
     // remove any upgrade or tech that is no longer available
     resetCompletedUpgrades(frame);
-    session.callHook(HOOK_ON_FRAME_RESET, frame);
+    callHook(HOOK_ON_FRAME_RESET, frame);
     previousBwFrame = -1;
     reset = null;
     _wasReset = true;
@@ -533,10 +556,10 @@ export async function makeGameScene(
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
 
-    const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
+    const rect = gameSurface.getMinimapDimensions(sessionApi.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
-      minimapHeight: minimapSurface.canvas.style.display === "block" ? rect.minimapHeight : 0,
+      minimapHeight: sessionApi.getState().game.minimapEnabled ? rect.minimapHeight : 0,
     });
 
     renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
@@ -982,8 +1005,8 @@ export async function makeGameScene(
         }
       }
 
-      v.updateCamera(session.getState().game.dampingFactor, delta);
-      v.shakeStart(elapsed, session.getState().game.cameraShakeStrength);
+      v.updateCamera(sessionApi.getState().game.dampingFactor, delta);
+      v.shakeStart(elapsed, sessionApi.getState().game.cameraShakeStrength);
       globalEffectsBundle.updateCamera(v.camera)
       renderComposer.setBundlePasses(globalEffectsBundle);
       renderComposer.render(delta, v.viewport);
@@ -1003,23 +1026,6 @@ export async function makeGameScene(
 
   let pluginsApiJanitor = new Janitor;
 
-  const setupPlugins = async () => {
-
-    const api = mix({}, gameTimeApi, session.sessionApi)
-
-    const container = createCompartment(api);
-    session.macros.setCreateCompartment((context?: any) => {
-      container.globalThis.context = context;
-      return container;
-    });
-
-    pluginsApiJanitor.mop(session.plugins.nativePlugins.injectApi(api));
-    await session.callHookAsync(HOOK_ON_SCENE_READY);
-
-  }
-
-  await setupPlugins();
-
   // const _onReloadPlugins = async () => {
   //   renderComposer.getWebGLRenderer().setAnimationLoop(null);
   //   pluginsApiJanitor.dispose();
@@ -1034,12 +1040,6 @@ export async function makeGameScene(
   // janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
 
 
-  janitor.mop(session.subscribe((newSettings) => {
-    if (!viewports.disabled && viewports.activeSceneController && newSettings.game.sceneController !== viewports.activeSceneController?.name) {
-      viewports.activate(session.getSceneInputHandler(newSettings.game.sceneController)!);
-    }
-  }));
-
   await viewports.activate(session.getSceneInputHandler(settingsStore().data.game.sceneController)!, { target: pxToWorld.xyz(startLocations[0].x, startLocations[0].y, new Vector3) });
 
   GAME_LOOP(0);
@@ -1047,6 +1047,7 @@ export async function makeGameScene(
   renderComposer.compileScene(scene);
   _sceneResizeHandler();
 
+  await session.onSceneReady();
   renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
   return () => {

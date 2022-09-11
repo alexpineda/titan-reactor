@@ -4,7 +4,7 @@ import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
-import { SessionStore } from "@stores/session-store";
+import { SessionStore } from "@stores/session/session";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import Janitor from "@utils/janitor";
 import { MouseTrigger } from "./mouse-trigger";
@@ -116,16 +116,6 @@ export class Macros {
 
     setCreateCompartment(createCompartment: ((context?: any) => Compartment)) {
         this.#createGameCompartment = createCompartment;
-    }
-
-    /**
-     * Resets the defaults from system configuration. Referred to in Set To Default option.
-     * @param settings 
-     */
-    setHostDefaults(settings: Settings) {
-        for (const macro of this.macros) {
-            macro.setHostDefaults(settings);
-        }
     }
 
     /**

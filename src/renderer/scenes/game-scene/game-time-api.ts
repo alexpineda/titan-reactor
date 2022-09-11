@@ -56,9 +56,5 @@ export interface GameTimeApi {
     togglePointerLock(val: boolean): void;
     readonly pointerLockLost: boolean;
     mouseCursor: boolean;
-    minimap: {
-        enabled: boolean;
-        scale: number;
-    },
     changeRenderMode(renderMode3D: boolean): void
 }

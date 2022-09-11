@@ -100,7 +100,6 @@ export type MacroActionHostModifyValue = {
     id: string;
     effect: MacroActionEffect;
     error?: MacroActionConfigurationError;
-    resetValue?: any;
 }
 
 export type MacroActionGameTimeApiCallMethod = {
@@ -112,6 +111,7 @@ export type MacroActionGameTimeApiCallMethod = {
     error?: MacroActionConfigurationError;
 }
 
+type NotAFunction<T> = T extends (...args: any[]) => any ? never : T;
 export type MacroActionPluginModifyValue = {
     type: MacroActionType.ModifyPluginSettings;
     pluginName: string;
@@ -121,7 +121,7 @@ export type MacroActionPluginModifyValue = {
     id: string;
     effect: MacroActionEffect;
     error?: MacroActionConfigurationError;
-    resetValue?: any;
+    resetValue?: NotAFunction<any>;
 }
 
 export type MacroActionPlugin = MacroActionPluginModifyValue;

@@ -53,7 +53,7 @@ export class GlobalEffects implements PostProcessingBundle {
     #depthOfFieldEffect?: DepthOfFieldEffect;
     #fogOfWarEffect: FogOfWarEffect;
 
-    debug = true;
+    debug = false;
     get debugSelection() {
         return this.#outlineEffect?.selection;
     }

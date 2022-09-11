@@ -22,14 +22,6 @@ export class Macro {
         this.conditions = conditions;
     }
 
-    setHostDefaults(settings: Settings) {
-        for (const action of this.actions) {
-            if (action.type === MacroActionType.ModifyAppSettings) {
-                action.resetValue = get(settings, action.field);
-            }
-        }
-    }
-
     setPluginsDefaults(pluginName: string, data: any) {
         for (const action of this.actions) {
             if (action.type === MacroActionType.ModifyPluginSettings && action.pluginName === pluginName) {

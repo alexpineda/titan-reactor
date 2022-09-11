@@ -4,7 +4,6 @@ import { Vector3 } from "three";
 import { GameViewPort } from "./game-viewport";
 import * as log from "@ipc/log";
 import { MouseCursor } from "../input";
-import { Macros } from "@macros";
 import { DamageType, Explosion } from "common/enums";
 import { easeCubicIn } from "d3-ease";
 import { SceneController } from "@plugins/plugin-system-native";
@@ -36,11 +35,9 @@ export class GameViewportsDirector implements UserInputCallbacks {
     #sceneController?: SceneController | null;
     #lastAudioPositon = new Vector3;
     #mouseCursor = new MouseCursor();
-    #macros: Macros;
 
-    constructor(gameSurface: GameSurface, macros: Macros) {
+    constructor(gameSurface: GameSurface) {
         this.#surface = gameSurface;
-        this.#macros = macros;
     }
 
     onActivate?: (viewport: SceneController) => void;
@@ -74,10 +71,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
             }
         }
         return count;
-    }
-
-    get disabled() {
-        return this.#sceneController === null;
     }
 
     get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
@@ -144,7 +137,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
         if (this.#sceneController && this.#sceneController.onExitScene) {
             prevData = this.#sceneController.onExitScene(prevData);
         }
-        this.#sceneController && this.#macros.callFromHook("onExitScene", this.#sceneController.name);
+        // this.#sceneController && this.#macros.callFromHook("onExitScene", this.#sceneController.name);
         this.#sceneController = null;
         this.#surface.togglePointerLock(false);
 
@@ -164,7 +157,6 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
         this.beforeActivate && this.beforeActivate(inputHandler);
         await inputHandler.onEnterScene(prevData);
-        this.#macros.callFromHook("onEnterScene", inputHandler.name);
         this.#sceneController = inputHandler;
 
         this.onActivate && this.onActivate(inputHandler);

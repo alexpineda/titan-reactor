@@ -111,6 +111,8 @@ export type SettingsV6 = {
     game: {
         sceneController: string;
         minimapSize: number;
+        minimapEnabled: boolean;
+        sandBoxMode: boolean;
         dampingFactor: number;
         movementSpeed: number;
         rotateSpeed: number;
@@ -172,4 +174,4 @@ export type SettingsMeta = {
     isCascStorage: boolean;
 };
 
-export type SessionData = Pick<Settings, "audio" | "game" | "postprocessing" | "postprocessing3d">;
+export type SessionSettingsData = Pick<Settings, "audio" | "game" | "postprocessing" | "postprocessing3d">;

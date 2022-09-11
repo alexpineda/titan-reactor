@@ -15,8 +15,8 @@ import { normalizePluginConfiguration } from "@utils/function-utils"
 import { GameTimeApi } from "../scenes/game-scene/game-time-api";
 import { GameViewPort } from "../camera/game-viewport";
 
-interface PluginBase extends NativePlugin, GameTimeApi { };
-class PluginBase implements NativePlugin {
+export interface PluginBase extends NativePlugin, GameTimeApi { };
+export class PluginBase implements NativePlugin {
     readonly id: string;
     readonly name: string;
     isSceneController = false;
@@ -119,7 +119,15 @@ export class PluginSystemNative {
 
     #hooks: Record<string, Hook> = createDefaultHooks();
     #permissions: Map<string, Record<string, boolean>> = new Map();
-    callFromHook: (hookName: string, pluginName?: string, ...context: any[]) => void = () => { }
+    externalHookListener: (hookName: string, pluginName?: string, ...context: any[]) => void = () => { }
+
+    [Symbol.iterator]() {
+        return this.#nativePlugins[Symbol.iterator]();
+    }
+
+    get reduce() {
+        return this.#nativePlugins.reduce.bind(this.#nativePlugins);
+    }
 
     initializePlugin(pluginPackage: PluginMetaData) {
 
@@ -203,8 +211,9 @@ export class PluginSystemNative {
         return this.#nativePlugins.filter(p => p.isSceneController) as SceneController[];
     }
 
-    setActiveSceneInputHandler(plugin: SceneController) {
+    setActiveSceneController(plugin: SceneController) {
         this.#activeSceneInputHandler = plugin;
+        this.externalHookListener("onEnterScene", plugin.name);
     }
 
     getByName(name: string) {
@@ -355,11 +364,11 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
-                this.callFromHook(hookName, plugin.name, args, context);
+                this.externalHookListener(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.callFromHook(hookName, undefined, args, context);
+        this.externalHookListener(hookName, undefined, args, context);
         return context;
     }
 
@@ -374,11 +383,11 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
-                this.callFromHook(hookName, plugin.name, args, context);
+                this.externalHookListener(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.callFromHook(hookName, undefined, args, context);
+        this.externalHookListener(hookName, undefined, args, context);
         return context;
     }
 

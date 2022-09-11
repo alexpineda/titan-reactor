@@ -1,4 +1,4 @@
-import { PluginMetaData, SessionData, SettingsMeta } from "common/types";
+import { PluginMetaData, SessionSettingsData, SettingsMeta } from "common/types";
 import lSet from "lodash.set";
 
 export const fromLevaConfigToNestedConfig = (
@@ -53,13 +53,13 @@ export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins
 });
 
 export const fromnNestedToSessionLevaField = (
-    settings: SessionData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
+    settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ) => {
     const config = fromNestedToSessionLevaConfig(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 };
 
-export const fromNestedToSessionLevaConfig = (settings: SessionData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
+export const fromNestedToSessionLevaConfig = (settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
     ...getAudioConfig(settings.audio),
     ...getGameConfig(settings.game, plugins.filter((p) => p.isSceneController)),
     ...getPostProcessingConfig(settings.postprocessing, maxAnisotropy, maxAntiAlias),
@@ -101,6 +101,16 @@ const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: Plu
         max: 1.5,
         step: 0.1,
         value: game.minimapSize,
+    },
+    "game.minimapEnabled": {
+        folder: "Game",
+        label: "Minimap Visible",
+        value: game.minimapEnabled,
+    },
+    "game.sandBoxMode": {
+        folder: "Game",
+        label: "Sandbox Mode",
+        value: game.sandBoxMode,
     },
     "game.sceneController": {
         folder: "Game",

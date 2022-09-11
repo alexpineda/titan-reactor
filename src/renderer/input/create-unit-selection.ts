@@ -7,6 +7,7 @@ import { canOnlySelectOne } from "@utils/unit-utils";
 import { MouseSelectionBox } from ".";
 import { Object3D, PerspectiveCamera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
+import shallow from "zustand/shallow";
 
 const typeIdSort = (a: Unit, b: Unit) => {
     return a.typeId - b.typeId;
@@ -155,11 +156,11 @@ export const createUnitSelection = (scene: Scene, gameSurface: Surface, minimapS
 
         selectedUnits.sort(typeIdSort).splice(12);
 
-        if (selectedUnitsStore().selectedUnits.length === 12 && selectedUnits.length === 12) {
-            return
+        if (shallow(selectedUnitsStore().selectedUnits, selectedUnits) === false) {
+            selectedUnitsStore().setSelectedUnits(selectedUnits);
+            onSelectedUnitsChange(selectedUnits);
         }
-        selectedUnitsStore().setSelectedUnits(selectedUnits);
-        onSelectedUnitsChange(selectedUnits);
+
     }
 
     janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp);
