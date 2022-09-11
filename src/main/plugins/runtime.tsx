@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
-// import chunk from "https://cdn.skypack.dev/lodash.chunk";
 import {
   DumpedUnit,
   MinimapDimensions,
@@ -42,7 +41,7 @@ type Plugin = {
   script: HTMLScriptElement;
 };
 
-type StateMessage = Partial<PluginStateMessage> & { firstInstall?: boolean };
+type StateMessage = Partial<PluginStateMessage>;
 const useStore = create<StateMessage>(() => ({
   screen: {
     screen: `@home`,
@@ -466,8 +465,6 @@ const _messageListener = function (event: MessageEvent) {
         clientX,
         clientY,
       });
-    } else if (event.data.type === "system:first-install") {
-      useStore.setState({ firstInstall: true });
     } else if (event.data.type === "system:custom-message") {
       const { message, pluginId } = event.data.payload;
       const plugin = _plugins[pluginId];
@@ -611,15 +608,12 @@ const PluginComponent = ({
   );
 };
 
-const _firstInstall = (store: StateMessage) => store.firstInstall;
-
 const orderSort = (a: Component, b: Component) => {
   return a.order - b.order;
 };
 
 const App = ({ components }: { components: Component[] }) => {
   const { screen, error } = useStore(_screenSelector)!;
-  const firstInstall = useStore(_firstInstall);
   const containerDiv = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -666,7 +660,7 @@ const App = ({ components }: { components: Component[] }) => {
         flexDirection: "column",
       }}
     >
-      {error && !firstInstall && <GlobalErrorState error={error} />}
+      {error && <GlobalErrorState error={error} />}
 
       <div
         id="top-container"

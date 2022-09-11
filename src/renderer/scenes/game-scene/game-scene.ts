@@ -35,7 +35,7 @@ import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
-import { CLEAR_ASSET_CACHE } from "common/ipc-handle-names";
+import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import selectedUnitsStore from "@stores/selected-units-store";
 import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "./selection-objects";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
@@ -304,6 +304,8 @@ export async function makeGameScene(
 
 
   const unitSelection = janitor.mop(createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object)));
+
+  viewports.externalOnExitScene = session.onExitScene;
 
   viewports.beforeActivate = () => {
 
@@ -1026,18 +1028,20 @@ export async function makeGameScene(
 
   let pluginsApiJanitor = new Janitor;
 
-  // const _onReloadPlugins = async () => {
-  //   renderComposer.getWebGLRenderer().setAnimationLoop(null);
-  //   pluginsApiJanitor.dispose();
-  //   await viewports.activate(null);
-  //   await (settingsStore().load());
-  //   await plugins.initializePluginSystem(true);
-  //   await setupPlugins();
-  //   await viewports.activate(plugins.getSceneInputHandler(session.getState().game.sceneController)!);
-  //   renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
-  // };
+  const _onReloadPlugins = async () => {
 
-  // janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
+    renderComposer.getWebGLRenderer().setAnimationLoop(null);
+    await viewports.activate(null);
+    await (settingsStore().load());
+    await session.reloadPlugins();
+    session.initializeContainer(gameTimeApi);
+    await viewports.activate(session.getSceneInputHandler(sessionApi.getState().game.sceneController)!);
+    await session.onSceneReady();
+    renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
+
+  };
+
+  janitor.on(ipcRenderer, RELOAD_PLUGINS, _onReloadPlugins);
 
 
   await viewports.activate(session.getSceneInputHandler(settingsStore().data.game.sceneController)!, { target: pxToWorld.xyz(startLocations[0].x, startLocations[0].y, new Vector3) });

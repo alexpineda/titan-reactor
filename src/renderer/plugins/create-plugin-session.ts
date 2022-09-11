@@ -19,9 +19,11 @@ import { HOOK_ON_SCENE_DISPOSED } from "./hooks";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import settingsStore from "@stores/settings-store";
 import Janitor from "@utils/janitor";
+import { Macros } from "@macros/macros";
+import { createReactivePluginApi } from "@stores/session/reactive-plugin-variables";
 
 
-export const createPluginSession = async () => {
+export const createPluginSession = async (macros: Macros) => {
 
     const janitor = new Janitor;
 
@@ -49,12 +51,6 @@ export const createPluginSession = async () => {
 
     });
 
-    // janitor.on(ipcRenderer, ON_PLUGINS_INITIAL_INSTALL, () => {
-    //     uiPluginSystem.sendMessage({
-    //         type: UI_SYSTEM_FIRST_INSTALL,
-    //     });
-    // });
-
     janitor.on(ipcRenderer, ON_PLUGINS_ENABLED, (_, plugins: PluginMetaData[]) => {
         uiPlugins.enablePlugins(plugins);
         nativePlugins.enableAdditionalPlugins(plugins);
@@ -69,36 +65,67 @@ export const createPluginSession = async () => {
         screenStore().setError(new Error("Failed to install plugins"));
     });
 
-    // export const injectApi = (
-    //     ...args: Parameters<PluginSystemNative["injectApi"]>
-    // ) => {
-    //     return nativePluginSystem.injectApi(...args);
-    // };
+    for (const macro of macros) {
+        nativePlugins.setAllMacroDefaults(macro);
+    }
+
+    nativePlugins.externalHookListener = (...args) => macros.callFromHook(...args);
+
+    // The user changed a plugin config
+    janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
+        type: SendWindowActionType.PluginConfigChanged
+        payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
+    }) => {
+        if (type === SendWindowActionType.PluginConfigChanged) {
+            for (const macro of macros) {
+                nativePlugins.setMacroDefaults(macro, pluginId, config);
+            }
+        }
+    })
+
+
+    // available to macros and sandbox only
+    const reactiveApi = createReactivePluginApi(nativePlugins);
+
+    macros.getPluginProperty = reactiveApi.getRawValue;
+    macros.doPluginAction = (action) => {
+        const result = reactiveApi.doAction(action);
+        if (result) {
+            uiPlugins.sendMessage({
+                type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
+                payload: result
+            });
+        }
+    };
+
+
+    const _clickPassThrough = (evt: MouseEvent) => {
+        uiPlugins.sendMessage({
+            type: UI_SYSTEM_MOUSE_CLICK,
+            payload: {
+                clientX: evt.clientX,
+                clientY: evt.clientY,
+                button: evt.button,
+                shiftKey: evt.shiftKey,
+                ctrlKey: evt.ctrlKey,
+            },
+        });
+    }
+
+    document.body.addEventListener("mouseup", _clickPassThrough);
+    janitor.mop(() => document.body.removeEventListener("mouseup", _clickPassThrough));
 
     return {
         nativePlugins,
         uiPlugins,
-        onClick: (event: MouseEvent) => {
-
-            uiPlugins.sendMessage({
-                type: UI_SYSTEM_MOUSE_CLICK,
-                payload: {
-                    clientX: event.clientX,
-                    clientY: event.clientY,
-                    button: event.button,
-                    shiftKey: event.shiftKey,
-                    ctrlKey: event.ctrlKey,
-                },
-            });
-
-        },
+        reactiveApi,
         dispose() {
             uiPlugins.reset();
             nativePlugins.callHook(HOOK_ON_SCENE_DISPOSED);
             uiPlugins.dispose();
             nativePlugins.dispose();
             janitor.dispose();
-        }
+        },
 
     }
 

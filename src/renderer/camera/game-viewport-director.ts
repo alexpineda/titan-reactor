@@ -46,6 +46,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
     externalOnMinimapDragUpdate?: (...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>) => false | void;
     externalOnCameraKeyboardUpdate?: (...args: Parameters<UserInputCallbacks["onCameraKeyboardUpdate"]>) => false | void;
     externalOnDrawMinimap?: (...args: Parameters<UserInputCallbacks["onDrawMinimap"]>) => false | void;
+    externalOnExitScene?: (name: string | undefined) => void;
 
     get viewports() {
         return this.#sceneController?.viewports ?? empty;
@@ -137,7 +138,7 @@ export class GameViewportsDirector implements UserInputCallbacks {
         if (this.#sceneController && this.#sceneController.onExitScene) {
             prevData = this.#sceneController.onExitScene(prevData);
         }
-        // this.#sceneController && this.#macros.callFromHook("onExitScene", this.#sceneController.name);
+        this.externalOnExitScene && this.externalOnExitScene(this.#sceneController?.name);
         this.#sceneController = null;
         this.#surface.togglePointerLock(false);
 

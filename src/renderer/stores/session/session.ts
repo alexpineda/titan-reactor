@@ -4,18 +4,17 @@ import settingsStore, { useSettingsStore } from "../settings-store";
 import Janitor from "@utils/janitor";
 import { createPluginSession } from "@plugins/create-plugin-session";
 import { PluginSystemNative, SceneController } from "@plugins/plugin-system-native";
-import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { createReactiveSessionVariables } from "./reactive-session-variables";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import { createReactivePluginApi } from "./reactive-plugin-variables";
 import { createCompartment } from "@utils/ses-util";
 import { HOOK_ON_SCENE_READY } from "@plugins/hooks";
 import { mix } from "@utils/object-utils";
 import { GameTimeApi } from "renderer/scenes/game-scene/game-time-api";
 
 export type Session = {
+
     onFrame: (
         currentFrame: number,
         commands: any[]
@@ -33,7 +32,10 @@ export type Session = {
     ) => Promise<void>,
     initializeContainer(gameTimeApi: GameTimeApi): void;
     onEnterScene(sceneController: SceneController): void;
-    onSceneReady(): Promise<void>
+    onExitScene(sceneController: string | undefined): void;
+    onSceneReady(): Promise<void>;
+    reloadPlugins: () => Promise<void>;
+
 }
 
 export type SessionStore = SessionSettingsData;
@@ -45,17 +47,9 @@ export type SessionStore = SessionSettingsData;
 export const createSession = async (openBW: OpenBW): Promise<Session> => {
 
     const janitor = new Janitor();
-    const plugins = janitor.mop(await createPluginSession());
 
     // available to plugins, macros, and sandbox
     const sessionApi = janitor.mop(createReactiveSessionVariables());
-
-    // available to macros and sandbox only
-    const pluginApi = createReactivePluginApi(plugins.nativePlugins);
-
-    const _clickPassThrough = (evt: MouseEvent) => plugins.onClick(evt);
-    document.body.addEventListener("mouseup", _clickPassThrough);
-    janitor.mop(() => document.body.removeEventListener("mouseup", _clickPassThrough));
 
     // configure macro system
     const macros = new Macros();
@@ -63,23 +57,13 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
 
     janitor.mop(macros.listenForKeyCombos());
 
-    macros.doPluginAction = (action) => {
-        const result = pluginApi.doAction(action);
-        if (result) {
-            plugins.uiPlugins.sendMessage({
-                type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
-                payload: result
-            });
-        }
-    };
     macros.doSessionAction = sessionApi.doAction;
     macros.getSessionProperty = sessionApi.getRawValue;
-    macros.getPluginProperty = pluginApi.getRawValue;
+
 
     janitor.on(ipcRenderer, SERVER_API_FIRE_MACRO, (_: IpcRendererEvent, macroId: string) => {
         macros.execMacroById(macroId);
     });
-
 
     // a macro was triggered manually or via web server
     janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
@@ -91,24 +75,6 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
         }
     });
 
-    for (const macro of macros) {
-        plugins.nativePlugins.setAllMacroDefaults(macro);
-    }
-
-    plugins.nativePlugins.externalHookListener = (...args) => macros.callFromHook(...args);
-
-    // The user changed a plugin config
-    janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
-        type: SendWindowActionType.PluginConfigChanged
-        payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
-    }) => {
-        if (type === SendWindowActionType.PluginConfigChanged) {
-            for (const macro of macros) {
-                plugins.nativePlugins.setMacroDefaults(macro, pluginId, config);
-            }
-        }
-    })
-
     useSettingsStore.subscribe((settings) => {
 
         if (settings.data.macros.revision !== macros.revision) {
@@ -118,6 +84,8 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
         }
 
     })
+
+    let plugins = await createPluginSession(macros);
 
     return {
         sessionApi,
@@ -148,6 +116,9 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
         onEnterScene(sceneController) {
             plugins.nativePlugins.setActiveSceneController(sceneController);
         },
+        onExitScene(sceneController) {
+            macros.callFromHook("onExitScene", sceneController);
+        },
         async onSceneReady() {
             await plugins.nativePlugins.callHookAsync(HOOK_ON_SCENE_READY);
         },
@@ -166,11 +137,11 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
         },
         initializeContainer(gameTimeApi: GameTimeApi) {
 
-            const safeAPI = mix({}, gameTimeApi, sessionApi.sessionVars);
+            const safeAPI = mix({ settings: sessionApi.sessionVars }, gameTimeApi);
 
-            // unsafe api simply allows access to plugin configurations
-            // which is not allowed WITHIN plugins since they are 3rd party, but ok in macros and sandbox
-            const unSafeAPI = mix({ plugins: pluginApi.pluginVars }, gameTimeApi, sessionApi.sessionVars);
+            // unsafe api additionally allows access to plugin configurations
+            // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
+            const unSafeAPI = mix({ plugins: plugins.reactiveApi.pluginVars, settings: sessionApi.sessionVars }, gameTimeApi);
 
             const container = createCompartment(unSafeAPI);
             macros.setCreateCompartment((context?: any) => {
@@ -180,7 +151,10 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
 
             plugins.nativePlugins.injectApi(safeAPI);
 
-
+        },
+        async reloadPlugins() {
+            plugins.dispose();
+            plugins = await createPluginSession(macros);
         }
     };
 };
