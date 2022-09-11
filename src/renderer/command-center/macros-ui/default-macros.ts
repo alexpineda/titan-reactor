@@ -6,7 +6,7 @@ import { MouseTrigger } from "@macros/mouse-trigger";
 
 export const createDefaultMacros = () => {
 
-  const macros = new Macros(null!);
+  const macros = new Macros();
 
   macros.add(
     new Macro(

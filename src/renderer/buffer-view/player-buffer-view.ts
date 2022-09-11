@@ -84,7 +84,7 @@ export class PlayerBufferViewIterator {
     *[Symbol.iterator]() {
         let addr = this.#openBW.getPlayersAddress();
         for (let l = 0; l < 8; l++) {
-            addr = addr + ((l * 5) << 2);
+            addr = addr + (5 << 2);
             yield this.#player.get(addr);
         }
     }

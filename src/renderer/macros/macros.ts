@@ -1,20 +1,16 @@
 import * as log from "@ipc/log";
-import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator } from "common/types";
-import * as plugins from "@plugins";
+import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPlugin, MacroActionHostModifyValue } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
-import { UseStore } from "zustand";
 import { SessionStore } from "@stores/session-store";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
-import get from "lodash.get";
 import Janitor from "@utils/janitor";
 import { MouseTrigger } from "./mouse-trigger";
 
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;
-    #session: UseStore<SessionStore>;
     revision = 0;
     macros: Macro[] = [];
     #macroAlreadyExecuted: Set<Macro> = new Set();
@@ -29,9 +25,10 @@ export class Macros {
             hookMacros: []
         }
 
-    constructor(session: UseStore<SessionStore>) {
-        this.#session = session;
-    }
+    doSessionAction?: (action: MacroActionHostModifyValue) => void;
+    doPluginAction?: (action: MacroActionPlugin) => void;
+    getSessionProperty?: (field: string[]) => SessionStore;
+    getPluginProperty?: (pluginName: string, field: string[]) => any;
 
     add(macro: Macro) {
         this.macros.push(macro);
@@ -162,9 +159,9 @@ export class Macros {
         for (const condition of macro.conditions) {
             let value: any;
             if (condition.type === MacroConditionType.AppSettingsCondition) {
-                value = get(this.#session.getState(), condition.field);
+                value = this.getSessionProperty!(condition.field);
             } else if (condition.type === MacroConditionType.PluginSettingsCondition) {
-                value = get(plugins.getPluginByName(condition.pluginName)?.rawConfig ?? {}, condition.field);
+                value = this.getPluginProperty!(condition.pluginName, condition.field);
             } else {
                 const c = this.#createGameCompartment!(context);
                 try {
@@ -196,9 +193,9 @@ export class Macros {
                 continue;
             }
             if (action.type === MacroActionType.ModifyAppSettings) {
-                this.#session.getState().doMacroAction(action);
+                this.doSessionAction!(action);
             } else if (action.type === MacroActionType.ModifyPluginSettings) {
-                plugins.doMacroAction(action);
+                this.doPluginAction!(action);
             } else if (action.type === MacroActionType.CallGameTimeApi) {
                 const c = this.#createGameCompartment!(context);
                 try {

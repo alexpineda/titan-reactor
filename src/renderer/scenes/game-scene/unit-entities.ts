@@ -1,10 +1,8 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
 import { Unit } from "@core/unit";
-import { HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "@plugins/hooks";
 import gameStore from "@stores/game-store";
 import selectedUnitsStore from "@stores/selected-units-store";
 import { clearFollowedUnits, unfollowUnit } from "./followed-units";
-import * as plugins from "@plugins";
 
 export class UnitEntities {
     freeUnits: Unit[] = [];
@@ -28,7 +26,7 @@ export class UnitEntities {
             unit.extras.turretLo = null;
 
             this.units.set(unitData.id, unit as unknown as Unit);
-            plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
+            // plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
             return unit as unknown as Unit;
         }
     }
@@ -40,7 +38,7 @@ export class UnitEntities {
             this.freeUnits.push(unit);
             selectedUnitsStore().removeUnit(unit);
             unfollowUnit(unit);
-            plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
+            // plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
         }
     }
 

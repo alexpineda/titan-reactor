@@ -6,7 +6,7 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { doMacroActionEffect, Macro, Macros } from "@macros";
+import { doMacroActionEffect, Macro } from "@macros";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
@@ -116,10 +116,10 @@ export class PluginSystemNative {
     #uiPlugins: PluginSystemUI;
     #janitor = new Janitor;
     #activeSceneInputHandler?: SceneInputHandler;
-    #macros: Macros | null = null;
 
     #hooks: Record<string, Hook> = createDefaultHooks();
     #permissions: Map<string, Record<string, boolean>> = new Map();
+    callFromHook: (hookName: string, pluginName?: string, ...context: any[]) => void = () => { }
 
     initializePlugin(pluginPackage: PluginMetaData) {
         const c = createCompartment({
@@ -328,13 +328,11 @@ export class PluginSystemNative {
     /**
      * Temporarily inject an api into all active plugins.
      */
-    injectApi(object: {}, macros: Macros) {
+    injectApi(object: {}) {
         mix(PluginBase.prototype, object);
         const keys = Object.keys(object);
-        this.#macros = macros;
 
         return () => {
-            this.#macros = null;
             keys.forEach(key => {
                 delete PluginBase.prototype[key as keyof typeof PluginBase.prototype];
             })
@@ -352,11 +350,11 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
-                this.#macros && this.#macros.callFromHook(hookName, plugin.name, args, context);
+                this.callFromHook(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.#macros && this.#macros.callFromHook(hookName, undefined, args, context);
+        this.callFromHook(hookName, undefined, args, context);
         return context;
     }
 
@@ -371,11 +369,11 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
-                this.#macros && this.#macros.callFromHook(hookName, plugin.name, args, context);
+                this.callFromHook(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.#macros && this.#macros.callFromHook(hookName, undefined, args, context);
+        this.callFromHook(hookName, undefined, args, context);
         return context;
     }
 

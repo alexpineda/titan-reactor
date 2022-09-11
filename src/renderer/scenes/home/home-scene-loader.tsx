@@ -1,7 +1,7 @@
 import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
-import { root } from "@render";
+import { renderComposer, root } from "@render";
 import { mixer } from "@audio/main-mixer";
 import { waitForSeconds } from "@utils/wait-for";
 import Janitor from "@utils/janitor";
@@ -21,7 +21,11 @@ export async function homeSceneLoader(): Promise<SceneState> {
 
   return {
     id: "@home",
+    beforeNext() {
+      renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
+    },
     start: (prevID?: SceneStateID) => {
+      renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
       if (prevID !== "@loading") {
         swoosh.start();
       }

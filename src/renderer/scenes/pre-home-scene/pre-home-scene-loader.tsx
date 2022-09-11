@@ -1,8 +1,6 @@
 import sceneStore from "@stores/scene-store";
 import { SettingsMeta } from "common/types";
 import settingsStore from "@stores/settings-store";
-import * as pluginSystem from "@plugins";
-import { initializePluginSystem } from "@plugins";
 import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "@image/assets";
 import * as log from "@ipc/log";
@@ -39,8 +37,6 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
   const janitor = new Janitor();
   const settings = await settingsStore().load();
-  await initializePluginSystem();
-  document.body.addEventListener("mouseup", (evt) => pluginSystem.onClick(evt));
 
   await tryLoad(settings);
   await preloadIntro();
