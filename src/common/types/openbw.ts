@@ -64,7 +64,7 @@ export interface OpenBW extends OpenBWWasm {
     unitGenerationSize: number;
 
     isSandboxMode: () => boolean;
-    setSandboxMode: (mode: boolean) => void;
+    setSandboxMode: (mode: boolean) => boolean | void;
 
     getFowSize: () => number;
     getFowPtr: (visibility: number, instant: boolean) => number;

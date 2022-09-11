@@ -1,15 +1,11 @@
-import create, { GetState, SetState, UseStore } from "zustand";
+import create, { UseStore } from "zustand";
 
-import { Settings, MacroActionType, SettingsMeta, OpenBW, SessionData, MacroActionHostModifyValue, MacroActionPluginModifyValue } from "common/types";
-import { doMacroActionEffect, Macros } from "@macros";
-import { getSessionLevaConfigField } from "common/get-app-settings-leva-config";
+import { Settings, MacroActionType, OpenBW, SessionData, MacroActionHostModifyValue, MacroActionPluginModifyValue } from "common/types";
+import { Macros } from "@macros";
 import deepMerge from 'deepmerge';
 import { DeepPartial } from "common/types";
-import lSet from "lodash.set";
-import settingsStore, { SettingsStore, useSettingsStore } from "./settings-store";
-import { diff } from "deep-diff";
-import set from "lodash.set";
-import getProp from "lodash.get";
+import lGet from "lodash.get";
+import settingsStore from "./settings-store";
 import * as log from "@ipc/log";
 import { BasePlayer } from "@core/players";
 import Janitor from "@utils/janitor";
@@ -17,13 +13,15 @@ import { listenToEvents } from "@utils/macro-utils";
 import { createPluginSession } from "@plugins/create-plugin-session";
 import { PluginSystemNative, SceneController } from "@plugins/plugin-system-native";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
+import { applyEffectToSessionProperty, createReactiveSessionApi, getSessionSettingsField, listenForNewSettings } from "./session-reactive";
 
 export type SessionStore = SessionData & {
     minimapScale: number;
-    merge: (rhs: DeepPartial<Settings>) => void;
     players: BasePlayer[];
     sandboxMode: boolean;
 }
+
+export type MergeSessiomStore = (rhs: DeepPartial<Settings>) => void;
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
@@ -41,8 +39,7 @@ export type Session = {
     onBeforeRender: (delta: number,
         elapsed: number) => void;
     onRender: (delta: number, elapsed: number) => void;
-    useSessionStore: UseStore<SessionStore>;
-    sessionApi: {};
+    sessionApi: ReturnType<typeof createReactiveSessionApi>,
     dispose: () => void;
     callbacks: SessionCallbacks;
     getSceneInputHandler: (name: string) => SceneController | undefined;
@@ -57,9 +54,10 @@ export type Session = {
     plugins: Awaited<ReturnType<typeof createPluginSession>>;
     getState(): SessionStore;
     subscribe: UseStore<SessionStore>["subscribe"];
+    useSessionStore: UseStore<SessionStore>;
 }
 
-export const createSession = async (ogData: SessionData, players: BasePlayer[], openBW: OpenBW): Promise<Session> => {
+export const createSession = async (players: BasePlayer[], openBW: OpenBW): Promise<Session> => {
 
     const janitor = new Janitor();
     const plugins = janitor.mop(await createPluginSession());
@@ -69,51 +67,47 @@ export const createSession = async (ogData: SessionData, players: BasePlayer[], 
         audioChanged: () => { }
     }
 
-    const useSessionStore = create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
+    const initialSettings = settingsStore().data;
 
-        audio: JSON.parse(JSON.stringify(ogData.audio)),
-        game: JSON.parse(JSON.stringify(ogData.game)),
-        postprocessing: JSON.parse(JSON.stringify(ogData.postprocessing)),
-        postprocessing3d: JSON.parse(JSON.stringify(ogData.postprocessing3d)),
+    const useSessionStore = create<SessionStore>(() => ({
 
+        audio: JSON.parse(JSON.stringify(initialSettings.audio)),
+        game: JSON.parse(JSON.stringify(initialSettings.game)),
+        postprocessing: JSON.parse(JSON.stringify(initialSettings.postprocessing)),
+        postprocessing3d: JSON.parse(JSON.stringify(initialSettings.postprocessing3d)),
+        sandboxMode: false,
         players,
         minimapScale: 1,
-        get sandboxMode() {
-            return openBW.isSandboxMode();
-        },
-        set sandboxMode(value: boolean) {
-            openBW.setSandboxMode(value);
-        },
-        merge: async (rhs: DeepPartial<Settings>) => {
-
-            const newSettings = deepMerge<DeepPartial<Settings>>(get(), rhs, { arrayMerge: overwriteMerge });
-            //@ts-ignore
-            set({ ...newSettings });
-
-        }
-
 
     }));
 
+    const merge = async (rhs: DeepPartial<Settings>) => {
+
+        const newSettings = deepMerge<DeepPartial<Settings>>(useSessionStore.getState(), rhs, { arrayMerge: overwriteMerge });
+        //@ts-ignore
+        useSessionStore.setState({ ...newSettings });
+
+    }
+
+    // const getSettingsField = (path: string[]) => {
+    //     const field = getAppSettingsLevaConfigField(settingsStore().data, settingsStore().enabledPlugins, path) as FieldDefinition | undefined;
+    //     if (field === undefined) {
+    //         log.warning("Session field is no found.");
+    //         return;
+    //     }
+    //     return field;
+    // }
     const doSessionAction = async (action: MacroActionHostModifyValue) => {
         if (action.type !== MacroActionType.ModifyAppSettings) {
             log.warning("@settingsStore.doMacroAction. Macro type is invalid.");
             return;
         }
 
-        const field = getSessionLevaConfigField(useSessionStore.getState(), settingsStore().enabledPlugins, action.field!) as any;
-        if (field === undefined) {
-            log.warning("@settingsStore.doMacroAction. Settings field is no found.");
-            return;
+        const field = getSessionSettingsField(useSessionStore.getState(), action.field!);
+
+        if (field) {
+            applyEffectToSessionProperty(merge, action.effect, action.field!, field, action.value, action.resetValue);
         }
-
-
-        const existingValue = field.value;
-        let value = doMacroActionEffect(action, existingValue, field.value, field.step, field.min, field.max, field.options);
-
-        const newSettings = {};
-        lSet(newSettings, action.field!, value);
-        useSessionStore.getState().merge(newSettings);
 
     }
 
@@ -137,8 +131,8 @@ export const createSession = async (ogData: SessionData, players: BasePlayer[], 
 
     macros.doSessionAction = doSessionAction;
     macros.doPluginAction = doPluginAction;
-    macros.getSessionProperty = (field) => getProp(useSessionStore.getState(), field);
-    macros.getPluginProperty = (name, field) => getProp(plugins.nativePlugins.getByName(name)?.rawConfig ?? {}, field);
+    macros.getSessionProperty = (field) => lGet(useSessionStore.getState(), field);
+    macros.getPluginProperty = (name, field) => lGet(plugins.nativePlugins.getByName(name)?.rawConfig ?? {}, field);
 
     plugins.nativePlugins.callFromHook = (...args) => macros.callFromHook(...args);
 
@@ -148,7 +142,7 @@ export const createSession = async (ogData: SessionData, players: BasePlayer[], 
 
     janitor.mop(listenForNewSettings((mergeSettings, settings) => {
 
-        useSessionStore.getState().merge({
+        merge({
             audio: settings.data.audio,
             game: settings.data.game,
             postprocessing: settings.data.postprocessing,
@@ -173,13 +167,9 @@ export const createSession = async (ogData: SessionData, players: BasePlayer[], 
 
     }));
 
-    const sessionApi = {
-
-    }
-
     return {
         useSessionStore,
-        sessionApi,
+        sessionApi: createReactiveSessionApi(useSessionStore, merge, openBW),
         dispose: () => janitor.dispose(),
         callbacks,
         onFrame: (
@@ -225,33 +215,3 @@ export const createSession = async (ogData: SessionData, players: BasePlayer[], 
         }
     };
 };
-
-export const listenForNewSettings = (onNewSettings: (mergeSettings: DeepPartial<SettingsMeta>, settings: SettingsStore, prevSettings: SettingsStore) => void) =>
-    useSettingsStore.subscribe((settings, prevSettings) => {
-
-        const diffs = diff(prevSettings, settings);
-        if (diffs === undefined)
-            return;
-
-        // update our session with the new user manipulated settings
-        const mergeSettings: DeepPartial<SettingsMeta> = {
-            data: {}
-        };
-
-        for (const d of diffs) {
-            if (d.kind === "E" && d.path) {
-                const parentProp = getProp(settings, d.path.slice(0, d.path.length - 1));
-                // don't diff down to array elements, just the entire array is fine!
-                // otherwise we're left with a sparse array :(
-                if (Array.isArray(parentProp) && typeof d.path[d.path.length - 1] === "number") {
-                    set(parentProp, d.path, d.rhs);
-                    set(mergeSettings, d.path.slice(0, d.path.length - 1), parentProp);
-                } else {
-                    set(mergeSettings, d.path, d.rhs);
-                }
-            }
-        }
-
-        onNewSettings(mergeSettings, settings, prevSettings)
-    })
-

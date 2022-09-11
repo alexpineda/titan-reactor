@@ -1,5 +1,5 @@
-import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { fromNestedToLevaSettingsField } from "common/get-app-settings-leva-config";
+import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
@@ -85,7 +85,7 @@ const sanitizeMacroConditionComparators = (condition: MacroCondition, settings: 
 const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroCondition, settings: SettingsAndPluginsMeta) => {
 
     if (action.type === MacroActionType.ModifyAppSettings || action.type === "AppSettingsCondition") {
-        let field = getAppSettingsLevaConfigField(settings.data, settings.enabledPlugins, action.field) as any;
+        let field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, action.field) as FieldDefinition;
 
         // sane default
         if (field === undefined || action.field.length == 0) {
@@ -96,7 +96,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
         if (assignProperValue) {
             if (action.value === undefined) {
                 if (field.options) {
-                    action.value = getFirstOption(field);
+                    action.value = getFirstOption(field.options);
                 } else {
                     action.value = field.value;
                 }
@@ -153,7 +153,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             const field = plugin.config?.[action.field[0] as keyof typeof plugin] ?? { value: null };
             if (action.value === undefined) {
                 if (field.options) {
-                    action.value = getFirstOption(field);
+                    action.value = getFirstOption(field.options);
                 } else {
                     action.value = field.value;
                 }
@@ -204,7 +204,7 @@ export const getMacroActionValidEffects = (
             return [];
         }
 
-        const field = getAppSettingsLevaConfigField(settings.data, settings.enabledPlugins, action.field);
+        const field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, action.field);
         if (!field) {
             return [];
         }
@@ -247,7 +247,7 @@ export const getMacroConditionValidComparators = (
 ): MacroConditionComparator[] => {
 
     if (condition.type === "AppSettingsCondition") {
-        const field = getAppSettingsLevaConfigField(settings.data, settings.enabledPlugins, condition.field);
+        const field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, condition.field);
         if (!field) {
             return [];
         }
@@ -303,13 +303,13 @@ export const getMacroConditionValueValidComparitors = (valueType: "boolean" | "n
     return [];
 };
 
-export const getFirstOption = (levaFieldConfig: { options: any[] }) => {
-    return !Array.isArray(levaFieldConfig.options) ? Object.values(levaFieldConfig.options)[0] : levaFieldConfig.options[0];
+export const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
+    return !Array.isArray(options) ? Object.values(options)[0] : options[0];
 }
 
 export const getMacroActionOrConditionLevaConfig = ({ value, field }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
 
-    const levaConfig = getAppSettingsLevaConfigField(settings.data, settings.enabledPlugins, field);
+    const levaConfig = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, field);
 
     const displayValue =
         //@ts-ignore

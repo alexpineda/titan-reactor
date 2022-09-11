@@ -21,10 +21,15 @@ export class Terrain extends Group {
     readonly geomOptions: GeometryOptions;
     #setCreepAnisotropy: (anisotropy: number) => void;
 
-    constructor(geomOptions: GeometryOptions, getTerrainY: GetTerrainY, setCreepAnisotropy: (anisotropy: number) => void) {
+    mapWidth: number;
+    mapHeight: number;
+
+    constructor(mapWidth: number, mapHeight: number, geomOptions: GeometryOptions, getTerrainY: GetTerrainY, setCreepAnisotropy: (anisotropy: number) => void) {
 
         super();
 
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
         this.geomOptions = geomOptions;
         this.getTerrainY = getTerrainY;
         this.#setCreepAnisotropy = setCreepAnisotropy;

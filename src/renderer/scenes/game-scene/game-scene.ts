@@ -59,6 +59,7 @@ import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
 import { createCompletedUpgradesHelper } from "./completed-upgrades";
+import { mix } from "@utils/object-utils";
 
 export async function makeGameScene(
   map: Chk,
@@ -88,7 +89,7 @@ export async function makeGameScene(
   openBW.setGameSpeed(1);
   openBW.setPaused(false);
 
-  const session = janitor.mop(await createSession(settingsStore().data, basePlayers, openBW));
+  const session = janitor.mop(await createSession(basePlayers, openBW));
 
   session.callbacks.needsResize = () => sceneResizeHandler();
   session.callbacks.audioChanged = (audio) => mixer.setVolumes(audio);
@@ -331,6 +332,7 @@ export async function makeGameScene(
 
   const sandbox = createSandboxApi(openBW, makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY, true));
   // window.sandbox = sandbox;
+
 
   const gameTimeApi = ((): GameTimeApi => {
 
@@ -1003,13 +1005,15 @@ export async function makeGameScene(
 
   const setupPlugins = async () => {
 
-    const container = createCompartment(gameTimeApi);
+    const api = mix({}, gameTimeApi, session.sessionApi)
+
+    const container = createCompartment(api);
     session.macros.setCreateCompartment((context?: any) => {
       container.globalThis.context = context;
       return container;
     });
 
-    pluginsApiJanitor.mop(session.plugins.nativePlugins.injectApi(gameTimeApi));
+    pluginsApiJanitor.mop(session.plugins.nativePlugins.injectApi(api));
     await session.callHookAsync(HOOK_ON_SCENE_READY);
 
   }
@@ -1049,7 +1053,6 @@ export async function makeGameScene(
 
     log.info("disposing replay viewer");
     janitor.dispose();
-    // plugins.disposeGame();
     pluginsApiJanitor.dispose();
 
     renderComposer.getWebGLRenderer().setAnimationLoop(null);

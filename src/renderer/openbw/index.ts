@@ -91,7 +91,7 @@ const createOpenBW = async () => {
     if (!_isReplay) {
       return;
     }
-    _isSandBox = sandbox;
+    return _isSandBox = sandbox;
   }
 
   openBW.isSandboxMode = () => _isSandBox;
@@ -180,7 +180,7 @@ const createOpenBW = async () => {
         return "Terrain displaces unit";
       case 61:
         return "Cannot create more units";
-      case 62: 
+      case 62:
         return "Unable to create unit";
     }
     return null;

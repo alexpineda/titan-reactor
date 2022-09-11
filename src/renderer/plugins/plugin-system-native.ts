@@ -122,6 +122,7 @@ export class PluginSystemNative {
     callFromHook: (hookName: string, pluginName?: string, ...context: any[]) => void = () => { }
 
     initializePlugin(pluginPackage: PluginMetaData) {
+
         const c = createCompartment({
             PluginBase, SceneController
         });
@@ -178,9 +179,11 @@ export class PluginSystemNative {
                 log.error(`@plugin-system: failed to initialize "${pluginPackage.name}" - ${e.message}`);
             }
         }
+
     };
 
     constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
+
         this.#hooks = createDefaultHooks();
         this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean) as PluginBase[];
         this.#uiPlugins = uiPlugins;
@@ -193,6 +196,7 @@ export class PluginSystemNative {
         };
         window.addEventListener("message", _messageListener);
         this.#janitor.mop(() => { window.removeEventListener("message", _messageListener); });
+
     }
 
     getSceneInputHandlers() {
@@ -331,6 +335,7 @@ export class PluginSystemNative {
     injectApi(object: {}) {
         mix(PluginBase.prototype, object);
         const keys = Object.keys(object);
+        console.log(keys)
 
         return () => {
             keys.forEach(key => {
@@ -419,8 +424,7 @@ export class PluginSystemNative {
             if (field === undefined) {
                 return null;
             }
-            const existingValue = field.value;
-            plugin.setConfig(key, doMacroActionEffect(action, existingValue, field.value, field.step, field.min, field.max, field.options));
+            plugin.setConfig(key, doMacroActionEffect(action.effect, field, action.value, action.resetValue));
             this.hook_onConfigChanged(plugin.id, plugin.rawConfig);
 
             return {

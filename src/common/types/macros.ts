@@ -84,6 +84,14 @@ export enum MacroActionConfigurationErrorType {
     InvalidMacro = "InvalidMacro",
 }
 
+export type FieldDefinition = {
+    value: any;
+    step?: number;
+    min?: number;
+    max?: number;
+    options?: any[] | {};
+}
+
 export type MacroActionHostModifyValue = {
     type: MacroActionType.ModifyAppSettings;
     field: string[];

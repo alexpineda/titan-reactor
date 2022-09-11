@@ -24,9 +24,9 @@ export const createTerrainGeometryFromQuartiles = async (
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
-    const terrain = new Terrain(geomOptions, getTerrainY({
+    const terrain = new Terrain(mapWidth, mapHeight, geomOptions, getTerrainY({
         data: singleChannel, width: displacementImage.width, height: displacementImage.height
-    }, geomOptions.maxTerrainHeight, mapWidth, mapHeight) ,(anisotropy: number) => {
+    }, geomOptions.maxTerrainHeight, mapWidth, mapHeight), (anisotropy: number) => {
         creepTexture.texture.anisotropy = anisotropy;
         creepEdgesTexture.texture.anisotropy = anisotropy;
     });
