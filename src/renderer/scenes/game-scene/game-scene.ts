@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, SphereBufferGeometry, Vector2, Vector3 } from "three";
+import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer, Music } from "@audio"
 import { drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
@@ -59,7 +59,6 @@ import { applyOverlayEffectsToImageHD, applyModelEffectsOnImage3d, applyViewport
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 import { createImageSelection } from "@input/create-image-selection";
 import { createSandboxApi } from "./sandbox-api";
-import { RaycastHelper } from "@core/terrain-intersection";
 import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
@@ -99,14 +98,13 @@ export async function makeGameScene(
   const music = janitor.mop(new Music(mixer as unknown as AudioListener));
   music.playGame();
 
-
   const [mapWidth, mapHeight] = map.size;
   renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
 
   const cssScene = new CssScene;
 
   const gameSurface = janitor.mop(new GameSurface(mapWidth, mapHeight));
-  gameSurface.setDimensions(window.innerWidth, window.innerHeight, session.getState().graphics.pixelRatio);
+  gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
   janitor.mop(document.body.appendChild(gameSurface.canvas));
   gameStore().setDimensions(gameSurface.getMinimapDimensions(session.getState().game.minimapSize));
 
@@ -196,6 +194,7 @@ export async function makeGameScene(
     globalEffectsBundle.effectivePasses = viewports.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
 
     if (globalEffectsBundle.options3d) {
+
       for (const image of images) {
         if (image instanceof Image3D) {
           image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
@@ -281,6 +280,7 @@ export async function makeGameScene(
   }
 
   viewports.onActivate = (sceneController) => {
+
     const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({
       minimapWidth: rect.minimapWidth,
@@ -301,23 +301,29 @@ export async function makeGameScene(
 
     imageSelection.selectionBox.camera = sceneController.viewports[0].camera;
     _sceneResizeHandler();
+
   }
 
-  const _mouseXY = new Vector2();
-  viewports.onCameraMouseUpdateCallback = (delta, elapsed, scrollY, screenDrag, lookAt, mouse, clientX, clientY, clicked) => {
-    if (viewports.primaryViewport && clicked?.z === 0) {
-      _mouseXY.set(clicked.x, clicked.y);
-      const intersections = RaycastHelper.intersectObject(terrain, true, viewports.primaryViewport.camera, _mouseXY);
-      if (intersections.length) {
-        console.log(intersections)
-        scene.add(
-          new Mesh(
-            new SphereBufferGeometry(0.5).translate(intersections[0].point.x, intersections[0].point.y, intersections[0].point.z),
-            new MeshBasicMaterial({ color: 0xff0000 })));
-        console.log(intersections[0].point);
-      }
-    }
-  };
+  // const _mouseXY = new Vector2();
+  // if (viewports.primaryViewport && clicked?.z === 0) {
+  //   _mouseXY.set(clicked.x, clicked.y);
+  //   const intersections = RaycastHelper.intersectObject(terrain, true, viewports.primaryViewport.camera, _mouseXY);
+  //   if (intersections.length) {
+  //     console.log(intersections)
+  //     scene.add(
+  //       new Mesh(
+  //         new SphereBufferGeometry(0.5).translate(intersections[0].point.x, intersections[0].point.y, intersections[0].point.z),
+  //         new MeshBasicMaterial({ color: 0xff0000 })));
+  //     console.log(intersections[0].point);
+  //   }
+  // }
+
+  // viewports.externalOnCameraMouseUpdate = () => {
+  //   return false;
+  // };
+  // viewports.externalOnDrawMinimap = () => false;
+  // viewports.externalOnCameraKeyboardUpdate = () => false;
+  // viewports.externalOnMinimapDragUpdate = () => true;
 
   const startLocations = map.units.filter((u) => u.unitId === unitTypes.startLocation);
   const players = janitor.mop(new Players(
@@ -519,7 +525,7 @@ export async function makeGameScene(
 
 
   const _sceneResizeHandler = () => {
-    gameSurface.setDimensions(window.innerWidth, window.innerHeight, session.getState().graphics.pixelRatio);
+    gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
 
     const rect = gameSurface.getMinimapDimensions(session.getState().game.minimapSize);
     gameStore().setDimensions({

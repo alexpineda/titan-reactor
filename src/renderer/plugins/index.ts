@@ -32,13 +32,17 @@ ipcRenderer.on(SEND_BROWSER_WINDOW, (_, { type, payload: { pluginId, config } }:
     type: SendWindowActionType.PluginConfigChanged,
     payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
 }) => {
+
     if (type === SendWindowActionType.PluginConfigChanged) {
+
         uiPluginSystem.sendMessage({
             type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
             payload: { pluginId, config }
         });
         nativePluginSystem.hook_onConfigChanged(pluginId, config);
+
     }
+
 });
 
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
@@ -62,6 +66,7 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => {
 });
 
 export const initializePluginSystem = async (reload = false) => {
+
     if ((uiPluginSystem || nativePluginSystem) && !reload) {
         throw new Error("Plugin system already initialized. Use reload=true to reinitialize");
     }
@@ -80,9 +85,11 @@ export const initializePluginSystem = async (reload = false) => {
     nativePluginSystem = new PluginSystemNative(pluginPackages, uiPluginSystem);
 
     await uiPluginSystem.isRunning();
+
 };
 
 export const onClick = (event: MouseEvent) => {
+
     uiPluginSystem.sendMessage({
         type: UI_SYSTEM_MOUSE_CLICK,
         payload: {
@@ -93,6 +100,7 @@ export const onClick = (event: MouseEvent) => {
             ctrlKey: event.ctrlKey,
         },
     });
+
 };
 
 export const onFrame = (
@@ -102,11 +110,13 @@ export const onFrame = (
     productionDataAddr: number,
     commands: any[]
 ) => {
+
     uiPluginSystem.onFrame(openBw, currentFrame, playerDataAddr, productionDataAddr);
     nativePluginSystem.hook_onFrame(
         currentFrame,
         commands
     );
+
 };
 
 export const getSceneInputHandlers = () => {
@@ -155,6 +165,7 @@ export const onRender = (delta: number, elapsed: number) => {
 };
 
 export const doMacroAction = (action: MacroActionPlugin) => {
+
     const result = nativePluginSystem.doMacroAction(action);
     if (result) {
         uiPluginSystem.sendMessage({
@@ -162,18 +173,23 @@ export const doMacroAction = (action: MacroActionPlugin) => {
             payload: result
         });
     }
+
 }
 
 export const setAllMacroDefaults = (macros: Macros) => {
+
     for (const macro of macros) {
         nativePluginSystem.setAllMacroDefaults(macro);
     }
+
 }
 
 export const setMacroDefaults = (macros: Macros, pluginId: string, config: any) => {
+
     for (const macro of macros) {
         nativePluginSystem.setMacroDefaults(macro, pluginId, config);
     }
+
 }
 
 

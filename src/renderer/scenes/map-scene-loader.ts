@@ -47,11 +47,11 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
 
   processStore().increment(Process.MapInitialization);
 
-  await waitForTruthy<Assets>(() => gameStore().assets);
+  const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
   // wait for initial assets to load
   if (settingsStore().data.assets.preload) {
-    await preloadMapUnitsAndSprites(map);
+    await preloadMapUnitsAndSprites(assets, map);
   }
 
   const disposeScene = await makeGameScene(

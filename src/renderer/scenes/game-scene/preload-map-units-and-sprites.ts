@@ -4,8 +4,9 @@ import { Replay } from "@process-replay/parse-replay";
 import processStore, { Process } from "@stores/process-store";
 import { calculateImagesFromSpritesIscript } from "@utils/images-from-iscript";
 import Chk from "bw-chk";
+import { Assets } from "common/types";
 
-export const preloadMapUnitsAndSprites = async (map: Chk, replay?: Replay) => {
+export const preloadMapUnitsAndSprites = async (assets: Assets, map: Chk, replay?: Replay) => {
 
     const preloadCommandUnits = new Set<number>();
 

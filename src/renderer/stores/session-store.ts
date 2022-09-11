@@ -1,8 +1,8 @@
 import create, { GetState, SetState } from "zustand";
 
-import { Settings, MacroAction, MacroActionType, SettingsMeta, OpenBW } from "common/types";
+import { Settings, MacroAction, MacroActionType, SettingsMeta, OpenBW, SessionData } from "common/types";
 import { doMacroActionEffect } from "@macros";
-import { getAppSettingsLevaConfigField } from "common/get-app-settings-leva-config";
+import { getSessionLevaConfigField } from "common/get-app-settings-leva-config";
 import deepMerge from 'deepmerge';
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
@@ -13,7 +13,7 @@ import getProp from "lodash.get";
 import * as log from "@ipc/log";
 import { BasePlayer } from "@core/players";
 
-export type SessionStore = Settings & {
+export type SessionStore = SessionData & {
     minimapScale: number;
     merge: (rhs: DeepPartial<Settings>) => void;
     doMacroAction: (action: MacroAction) => void;
@@ -23,10 +23,12 @@ export type SessionStore = Settings & {
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-export const createSession = (ogData: Settings, players: BasePlayer[], openBw: OpenBW) => {
+export const createSession = (ogData: SessionData, players: BasePlayer[], openBw: OpenBW) => {
     return create<SessionStore>((set: SetState<SessionStore>, get: GetState<SessionStore>) => ({
-
-        ...JSON.parse(JSON.stringify(ogData)),
+        audio: JSON.parse(JSON.stringify(ogData.audio)),
+        game: JSON.parse(JSON.stringify(ogData.game)),
+        postprocessing: JSON.parse(JSON.stringify(ogData.postprocessing)),
+        postprocessing3d: JSON.parse(JSON.stringify(ogData.postprocessing3d)),
         players,
         minimapScale: 1,
         get sandboxMode() {
@@ -49,7 +51,7 @@ export const createSession = (ogData: Settings, players: BasePlayer[], openBw: O
                 return;
             }
 
-            const field = getAppSettingsLevaConfigField({ data: get(), enabledPlugins: settingsStore().enabledPlugins }, action.field!) as any;
+            const field = getSessionLevaConfigField(get(), settingsStore().enabledPlugins, action.field!) as any;
             if (field === undefined) {
                 log.warning("@settingsStore.doMacroAction. Settings field is no found.");
                 return;

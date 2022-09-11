@@ -60,7 +60,7 @@ and then
 
 `yarn dev`
 
-To build the OpenBW WASM files, [visit the openbw fork repository](https://github.com/imbateam-gg/openbw).
+The OpenBW wasm files are included (via git lfs). If you wish to build them yourself [visit the openbw fork repository](https://github.com/imbateam-gg/openbw).
 
 ### Legal
 

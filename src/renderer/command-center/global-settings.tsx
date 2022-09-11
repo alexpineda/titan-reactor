@@ -3,7 +3,7 @@ import { useSettingsStore } from "@stores/settings-store";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import {
   getAppSettingsLevaConfig,
-  levaConfigToAppConfig,
+  levaConfigToNestedConfig,
 } from "common/get-app-settings-leva-config";
 import { useControls, useCreateStore } from "leva";
 import { useState } from "react";
@@ -16,7 +16,8 @@ export const GlobalSettings = () => {
 
   const [state, setState] = useState(
     getAppSettingsLevaConfig(
-      settings,
+      settings.data,
+      settings.enabledPlugins,
       renderComposer.getWebGLRenderer().capabilities.getMaxAnisotropy(),
       window.devicePixelRatio,
       //@ts-ignore
@@ -27,7 +28,7 @@ export const GlobalSettings = () => {
   const controls = mapConfigToLeva(state, () => {
     setState(state);
 
-    const newSettings = levaConfigToAppConfig(state);
+    const newSettings = levaConfigToNestedConfig(state);
 
     const newState = {
       directories: {

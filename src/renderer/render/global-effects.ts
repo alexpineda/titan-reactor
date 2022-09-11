@@ -158,7 +158,7 @@ export class GlobalEffects implements PostProcessingBundle {
                 blur: false,
                 xRay: true
             });
-            return [[this.#fogOfWarEffect, this.#outlineEffect]]
+            return [[this.#outlineEffect]]
         }
         return [pass1, pass2]
     }

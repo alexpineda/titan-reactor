@@ -1,6 +1,6 @@
-import { SettingsMeta } from "common/types";
+import { PluginMetaData, SessionData, SettingsMeta } from "common/types";
 
-export const levaConfigToAppConfig = (
+export const levaConfigToNestedConfig = (
     settings: Record<string, { path: string; value: any }>
 ) => {
     return Object.entries(settings).reduce((memo, [key, item]) => {
@@ -13,132 +13,20 @@ export const levaConfigToAppConfig = (
 };
 
 export const getAppSettingsLevaConfigField = (
-    settings: Pick<SettingsMeta, "data" | "enabledPlugins">,
-    fields: string[]
+    settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ) => {
-    const config = getAppSettingsLevaConfig(settings);
+    const config = getAppSettingsLevaConfig(settings, plugins);
     return config[fields[fields.length - 1] as keyof typeof config];
 };
 
-export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "enabledPlugins">, maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
-    starcraft: {
-        folder: "Directories",
-        label: "Starcraft",
-        value: settings.data.directories.starcraft,
-        path: "directories",
-        type: "directory",
-    },
-    maps: {
-        folder: "Directories",
-        label: "Maps",
-        value: settings.data.directories.maps,
-        path: "directories",
-        type: "directory",
-    },
-    replays: {
-        folder: "Directories",
-        label: "Replays",
-        value: settings.data.directories.replays,
-        path: "directories",
-        type: "directory",
-    },
-    assets: {
-        folder: "Directories",
-        label: "3D Assets",
-        value: settings.data.directories.assets,
-        path: "directories",
-        type: "directory",
-    },
-    global: {
-        folder: "Audio",
-        label: "Global Volume",
-        value: settings.data.audio.global,
-        min: 0,
-        max: 1,
-        step: 0.05,
-        path: "audio",
-    },
-    music: {
-        folder: "Audio",
-        label: "Music Volume",
-        value: settings.data.audio.music,
-        min: 0,
-        max: 1,
-        step: 0.05,
-        path: "audio",
-    },
-    sound: {
-        folder: "Audio",
-        label: "Sound Volume",
-        value: settings.data.audio.sound,
-        min: 0,
-        max: 1,
-        step: 0.05,
-        path: "audio",
-    },
-    playIntroSounds: {
-        folder: "Audio",
-        label: "Play App Intro Sounds",
-        value: settings.data.audio.playIntroSounds,
-        path: "audio",
-    },
-    minimapSize: {
-        folder: "Game",
-        label: "Minimap Size % Height",
-        min: 0.5,
-        max: 1.5,
-        step: 0.1,
-        value: settings.data.game.minimapSize,
-        path: "game",
-    },
-    sceneController: {
-        folder: "Game",
-        label: "Scene Controller (Default)",
-        value: settings.data.game.sceneController,
-        path: "game",
-        options: settings.enabledPlugins
-            .filter((p) => p.isSceneController)
-            .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
-    },
-    dampingFactor: {
-        folder: "Game",
-        label: "Camera Movement Damping",
-        value: settings.data.game.dampingFactor,
-        path: "game",
-        min: 0.01,
-        max: 0.1,
-        step: 0.01,
-    },
-    zoomLevels: {
-        folder: "Game",
-        label: "Camera Zoom Levels",
-        value: settings.data.game.zoomLevels,
-        path: "game",
-    },
-    rotateSpeed: {
-        folder: "Game",
-        label: "Camera Rotate Speed",
-        value: settings.data.game.rotateSpeed,
-        path: "game",
-    },
-    movementSpeed: {
-        folder: "Game",
-        label: "Camera Movement Speed",
-        value: settings.data.game.movementSpeed,
-        path: "game"
-    },
-    cameraShakeStrength: {
-        folder: "Game",
-        label: "Camera Shake Strength",
-        value: settings.data.game.cameraShakeStrength,
-        min: 0,
-        max: 1,
-        path: "game"
-    },
+export const getAppSettingsLevaConfig = (settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
+
+    ...getDirectoryConfig(settings.directories),
+
     pixelRatio: {
         folder: "Graphics",
         label: "Pixel Ratio",
-        value: settings.data.graphics.pixelRatio,
+        value: settings.graphics.pixelRatio,
         path: "graphics",
         min: 0.5,
         max: maxPixelRatio,
@@ -147,7 +35,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     useHD2: {
         folder: "Graphics",
         label: "Use HD2 (50% HD)",
-        value: settings.data.graphics.useHD2,
+        value: settings.graphics.useHD2,
         path: "graphics",
         options: {
             "As Mipmap (Highest Quality)": "auto",
@@ -158,12 +46,156 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     preload: {
         folder: "Graphics",
         label: "Preload Assets",
-        value: settings.data.assets.preload,
+        value: settings.assets.preload,
         path: "assets",
     },
+
+    ...getSessionLevaConfig(settings, plugins, maxAnisotropy, maxAntiAlias)
+
+});
+
+export const getSessionLevaConfigField = (
+    settings: SessionData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
+) => {
+    const config = getSessionLevaConfig(settings, plugins);
+    return config[fields[fields.length - 1] as keyof typeof config];
+};
+
+export const getSessionLevaConfig = (settings: SessionData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
+    ...getAudioConfig(settings.audio),
+    ...getGameConfig(settings.game, plugins.filter((p) => p.isSceneController)),
+    ...getPostProcessingConfig(settings.postprocessing, maxAnisotropy, maxAntiAlias),
+    ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
+});
+
+const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]) => ({
+    starcraft: {
+        folder: "Directories",
+        label: "Starcraft",
+        value: directories.starcraft,
+        path: "directories",
+        type: "directory",
+    },
+    maps: {
+        folder: "Directories",
+        label: "Maps",
+        value: directories.maps,
+        path: "directories",
+        type: "directory",
+    },
+    replays: {
+        folder: "Directories",
+        label: "Replays",
+        value: directories.replays,
+        path: "directories",
+        type: "directory",
+    },
+    assets: {
+        folder: "Directories",
+        label: "3D Assets",
+        value: directories.assets,
+        path: "directories",
+        type: "directory",
+    },
+});
+
+const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: PluginMetaData[]) => ({
+    minimapSize: {
+        folder: "Game",
+        label: "Minimap Size % Height",
+        min: 0.5,
+        max: 1.5,
+        step: 0.1,
+        value: game.minimapSize,
+        path: "game",
+    },
+    sceneController: {
+        folder: "Game",
+        label: "Scene Controller (Default)",
+        value: game.sceneController,
+        path: "game",
+        options: sceneControllers
+            .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
+    },
+    dampingFactor: {
+        folder: "Game",
+        label: "Camera Movement Damping",
+        value: game.dampingFactor,
+        path: "game",
+        min: 0.01,
+        max: 0.1,
+        step: 0.01,
+    },
+    zoomLevels: {
+        folder: "Game",
+        label: "Camera Zoom Levels",
+        value: game.zoomLevels,
+        path: "game",
+    },
+    rotateSpeed: {
+        folder: "Game",
+        label: "Camera Rotate Speed",
+        value: game.rotateSpeed,
+        path: "game",
+    },
+    movementSpeed: {
+        folder: "Game",
+        label: "Camera Movement Speed",
+        value: game.movementSpeed,
+        path: "game"
+    },
+    cameraShakeStrength: {
+        folder: "Game",
+        label: "Camera Shake Strength",
+        value: game.cameraShakeStrength,
+        min: 0,
+        max: 1,
+        path: "game"
+    },
+});
+
+const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
+    global: {
+        folder: "Audio",
+        label: "Global Volume",
+        value: audio.global,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        path: "audio",
+    },
+    music: {
+        folder: "Audio",
+        label: "Music Volume",
+        value: audio.music,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        path: "audio",
+    },
+    sound: {
+        folder: "Audio",
+        label: "Sound Volume",
+        value: audio.sound,
+        min: 0,
+        max: 1,
+        step: 0.05,
+        path: "audio",
+    },
+    playIntroSounds: {
+        folder: "Audio",
+        label: "Play App Intro Sounds",
+        value: audio.playIntroSounds,
+        path: "audio",
+    }
+});
+
+
+export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["postprocessing"], maxAnisotropy: number, maxAntiAlias: number) => ({
+
     anisotropy: {
         label: "Anisotropy",
-        value: settings.data.postprocessing.anisotropy,
+        value: postprocessing.anisotropy,
         folder: "Classic Renderer",
         path: "postprocessing",
         min: 0,
@@ -172,17 +204,16 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     antialias: {
         label: "Anti Alias",
-        value: settings.data.postprocessing.antialias,
+        value: postprocessing.antialias,
         folder: "Classic Renderer",
         path: "postprocessing",
         min: 0,
-        //@ts-ignore
         max: maxAntiAlias,
         step: 1,
     },
     toneMapping: {
         label: "Tone Mapping Exposure",
-        value: settings.data.postprocessing.toneMapping,
+        value: postprocessing.toneMapping,
         folder: "Classic Renderer",
         path: "postprocessing",
         min: 0,
@@ -191,7 +222,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     bloom: {
         label: "Bloom Intensity",
-        value: settings.data.postprocessing.bloom,
+        value: postprocessing.bloom,
         folder: "Classic Renderer",
         path: "postprocessing",
         min: 0,
@@ -200,7 +231,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     brightness: {
         label: "Brightness",
-        value: settings.data.postprocessing.brightness,
+        value: postprocessing.brightness,
         folder: "Classic Renderer",
         path: "postprocessing",
         min: -0.5,
@@ -209,7 +240,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     contrast: {
         label: "Contrast",
-        value: settings.data.postprocessing.contrast,
+        value: postprocessing.contrast,
         folder: "Classic Renderer",
         path: "postprocessing",
         min: -0.5,
@@ -220,14 +251,18 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Fog Of War Opacity",
         folder: "Classic Renderer",
         path: "postprocessing",
-        "value": settings.data.postprocessing.fogOfWar,
+        "value": postprocessing.fogOfWar,
         min: 0,
         max: 1,
         step: 0.1
     },
+});
+
+
+const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postprocessing3d"], maxAnisotropy: number, maxAntiAlias: number) => ({
     anisotropy_: {
         label: "Anisotropy",
-        value: settings.data.postprocessing3d.anisotropy,
+        value: postprocessing3d.anisotropy,
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
@@ -236,17 +271,16 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     antialias_: {
         label: "Anti Alias",
-        value: settings.data.postprocessing3d.antialias,
+        value: postprocessing3d.antialias,
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
-        //@ts-ignore
         max: maxAntiAlias,
         step: 1,
     },
     toneMapping_: {
         label: "Tone Mapping Exposure",
-        value: settings.data.postprocessing3d.toneMapping,
+        value: postprocessing3d.toneMapping,
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
@@ -255,7 +289,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     bloom_: {
         label: "Bloom Intensity",
-        value: settings.data.postprocessing3d.bloom,
+        value: postprocessing3d.bloom,
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: 0,
@@ -264,7 +298,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     brightness_: {
         label: "Brightness",
-        value: settings.data.postprocessing3d.brightness,
+        value: postprocessing3d.brightness,
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: -0.5,
@@ -273,7 +307,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
     },
     contrast_: {
         label: "Contrast",
-        value: settings.data.postprocessing3d.contrast,
+        value: postprocessing3d.contrast,
         folder: "3D Renderer",
         path: "postprocessing3d",
         min: -0.5,
@@ -284,7 +318,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Depth Focal Length",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.depthFocalLength,
+        "value": postprocessing3d.depthFocalLength,
         "min": 1,
         "max": 20,
         "step": 1
@@ -293,7 +327,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Depth Focal Range",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.depthFocalRange,
+        "value": postprocessing3d.depthFocalRange,
         "min": 1,
         "max": 20,
         "step": 1
@@ -302,7 +336,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Depth Bokeh Scale",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.depthBokehScale,
+        "value": postprocessing3d.depthBokehScale,
         "min": 1,
         "max": 5,
         "step": 0.1
@@ -311,7 +345,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Depth Blur Quality",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.depthBlurQuality,
+        "value": postprocessing3d.depthBlurQuality,
         "options": {
 
             "Off": 0,
@@ -324,7 +358,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Fog Of War Opacity",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.fogOfWar,
+        "value": postprocessing3d.fogOfWar,
         min: 0,
         max: 1,
         step: 0.1
@@ -333,7 +367,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Environment Map",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.envMap,
+        "value": postprocessing3d.envMap,
         min: 0,
         max: 2,
         step: 0.05
@@ -342,14 +376,14 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Sunlight Position",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.sunlightDirection,
+        "value": postprocessing3d.sunlightDirection,
         step: 1
     },
     "sunlightIntensity": {
         "label": "Sunlight Intensity",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.sunlightIntensity,
+        "value": postprocessing3d.sunlightIntensity,
         step: 0.25,
         min: 0,
         max: 20
@@ -358,13 +392,13 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Sunlight Color",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.sunlightColor,
+        "value": postprocessing3d.sunlightColor,
     },
     "shadowIntensity": {
         "label": "Shadow Intensity",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.shadowIntensity,
+        "value": postprocessing3d.shadowIntensity,
         min: 0,
         max: 1,
         step: 0.1
@@ -373,7 +407,7 @@ export const getAppSettingsLevaConfig = (settings: Pick<SettingsMeta, "data" | "
         "label": "Shadow Quality",
         folder: "3D Renderer",
         path: "postprocessing3d",
-        "value": settings.data.postprocessing3d.shadowQuality,
+        "value": postprocessing3d.shadowQuality,
         min: 0,
         max: 8,
         step: 1

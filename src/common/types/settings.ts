@@ -171,3 +171,5 @@ export type SettingsMeta = {
      */
     isCascStorage: boolean;
 };
+
+export type SessionData = Pick<Settings, "audio" | "game" | "postprocessing" | "postprocessing3d">;

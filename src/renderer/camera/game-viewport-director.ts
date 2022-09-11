@@ -45,7 +45,10 @@ export class GameViewportsDirector implements UserInputCallbacks {
 
     onActivate?: (viewport: SceneController) => void;
     beforeActivate?: (viewport: SceneController) => void;
-    onCameraMouseUpdateCallback?: UserInputCallbacks["onCameraMouseUpdate"];
+    externalOnCameraMouseUpdate?: (...args: Parameters<UserInputCallbacks["onCameraMouseUpdate"]>) => false | void;
+    externalOnMinimapDragUpdate?: (...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>) => false | void;
+    externalOnCameraKeyboardUpdate?: (...args: Parameters<UserInputCallbacks["onCameraKeyboardUpdate"]>) => false | void;
+    externalOnDrawMinimap?: (...args: Parameters<UserInputCallbacks["onDrawMinimap"]>) => false | void;
 
     get viewports() {
         return this.#sceneController?.viewports ?? empty;
@@ -86,11 +89,16 @@ export class GameViewportsDirector implements UserInputCallbacks {
     }
 
     onCameraKeyboardUpdate(...args: Parameters<UserInputCallbacks["onCameraKeyboardUpdate"]>) {
+        if (this.externalOnCameraKeyboardUpdate!(...args) === false) {
+            return;
+        }
         this.#sceneController?.onCameraKeyboardUpdate && this.#sceneController.onCameraKeyboardUpdate(...args);
     }
 
     onCameraMouseUpdate(...args: Parameters<UserInputCallbacks["onCameraMouseUpdate"]>) {
-        this.onCameraMouseUpdateCallback && this.onCameraMouseUpdateCallback(...args);
+        if (this.externalOnCameraMouseUpdate!(...args) === false) {
+            return;
+        }
         this.#sceneController?.onCameraMouseUpdate && this.#sceneController.onCameraMouseUpdate(...args);
     }
 
@@ -104,10 +112,16 @@ export class GameViewportsDirector implements UserInputCallbacks {
     }
 
     onMinimapDragUpdate(...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>) {
+        if (this.externalOnMinimapDragUpdate!(...args) === false) {
+            return;
+        }
         this.#sceneController?.onMinimapDragUpdate && this.#sceneController.onMinimapDragUpdate(...args);
     }
 
     onDrawMinimap(...args: Parameters<UserInputCallbacks["onDrawMinimap"]>) {
+        if (this.externalOnDrawMinimap!(...args) === false) {
+            return;
+        }
         this.#sceneController?.onDrawMinimap && this.#sceneController.onDrawMinimap(...args);
     }
 

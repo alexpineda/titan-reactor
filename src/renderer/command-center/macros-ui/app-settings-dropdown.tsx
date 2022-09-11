@@ -1,5 +1,5 @@
 import settingsStore from "@stores/settings-store";
-import { getAppSettingsLevaConfig } from "common/get-app-settings-leva-config";
+import { getSessionLevaConfig } from "common/get-app-settings-leva-config";
 import React from "react";
 
 interface Props {
@@ -7,9 +7,13 @@ interface Props {
   value: string;
   disabled?: boolean;
 }
-export const AppSettingsDropDown = ({ onChange, value, disabled }: Props) => {
+export const SessionSettingsDropDown = ({
+  onChange,
+  value,
+  disabled,
+}: Props) => {
   const settings = settingsStore();
-  const config = getAppSettingsLevaConfig(settings);
+  const config = getSessionLevaConfig(settings.data, settings.enabledPlugins);
 
   return (
     <select onChange={onChange} value={value} disabled={disabled}>

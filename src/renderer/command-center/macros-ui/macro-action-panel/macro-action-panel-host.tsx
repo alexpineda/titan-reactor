@@ -2,7 +2,7 @@ import settingsStore from "@stores/settings-store";
 import { getMacroActionOrConditionLevaConfig } from "common/sanitize-macros";
 import { MacroActionEffect, MacroActionHostModifyValue } from "common/types";
 import ErrorBoundary from "../../error-boundary";
-import { AppSettingsDropDown } from "../app-settings-dropdown";
+import { SessionSettingsDropDown } from "../app-settings-dropdown";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
@@ -24,7 +24,7 @@ export const MacroActionPanelHost = (
         justifyContent: "start",
       }}
     >
-      <AppSettingsDropDown
+      <SessionSettingsDropDown
         onChange={(evt) => {
           updateMacroAction({
             ...action,

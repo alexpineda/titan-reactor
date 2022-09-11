@@ -5,7 +5,7 @@ import {
   MacroConditionComparator,
 } from "common/types";
 import ErrorBoundary from "../../error-boundary";
-import { AppSettingsDropDown } from "../app-settings-dropdown";
+import { SessionSettingsDropDown } from "../app-settings-dropdown";
 import { MacroConditionComparatorSelector } from "./macro-condition-comparator-selector";
 import { MacroConditionModifyValue } from "./macro-condition-modify-value";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
@@ -27,7 +27,7 @@ export const MacroConditionPanelHost = (
         justifyContent: "start",
       }}
     >
-      <AppSettingsDropDown
+      <SessionSettingsDropDown
         onChange={(evt) => {
           updateMacroCondition({
             ...condition,

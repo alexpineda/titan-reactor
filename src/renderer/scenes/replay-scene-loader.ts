@@ -94,11 +94,11 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   janitor.mop(() => useWorldStore.getState().reset())
 
   // wait for initial assets to load
-  await waitForTruthy<Assets>(() => gameStore().assets);
+  const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
   // wait for initial assets to load
   if (settingsStore().data.assets.preload) {
-    await preloadMapUnitsAndSprites(map, replay);
+    await preloadMapUnitsAndSprites(assets, map, replay);
   }
 
   const disposeScene = await makeGameScene(
