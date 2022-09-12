@@ -14,8 +14,11 @@ import { renderComposer } from "@render";
 import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
+import { Creep } from "@core/creep/creep";
+import Janitor from "@utils/janitor";
 
 export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
+  const janitor = new Janitor();
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -33,6 +36,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   const renderer = renderComposer.getWebGLRenderer();
 
+  //TODO: properly dispose stuff in here
   const heightMaps = await doHeightMapEffect({
     palette,
     tileset,
@@ -67,8 +71,13 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
     noise: await parseDDS(tilesetBuffers.noise, false),
     waterMask: tilesetBuffers.waterMask ? parseDdsGrpAsTextures(tilesetBuffers.waterMask) : null,
     tileMask: tilesetBuffers.tileMask ? parseTMSK(tilesetBuffers.tileMask) : null,
+    dispose() {
+      janitor.dispose(this.waterNormal1, this.waterNormal2);
+      this.waterMask && janitor.dispose(this.waterMask);
+    }
   }
 
+  //TODO: required?
   renderer.autoClear = true;
   renderer.outputEncoding = sRGBEncoding;
 
@@ -76,13 +85,29 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
 
+  const creep = new Creep(
+    mapWidth,
+    mapHeight,
+    dataTextures.creepTextureUniform.value,
+    dataTextures.creepEdgesTextureUniform.value
+  );
+
   return {
     terrain,
     terrainExtra: {
       minimapBitmap,
       creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
       creepTextureUniform: dataTextures.creepTextureUniform,
-      heightMaps
+      heightMaps,
+      creep
+    },
+    dispose() {
+      janitor.dispose(
+        creep,
+        terrain,
+        textures.mapQuartiles.flat(),
+        effectsTextures
+      );
     }
   }
 }

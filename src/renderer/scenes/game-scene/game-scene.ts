@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
+import { Color, MathUtils, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer, Music } from "@audio"
 import { drawFunctions, imageTypes, unitTypes } from "common/enums";
@@ -11,7 +11,7 @@ import { floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types";
 import {
   Players,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, BasePlayer
+  ImageHD, FogOfWar, FogOfWarEffect, Image3D, BasePlayer, ImageBase
 } from "@core";
 import { getOpenBW } from "@openbw";
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, SpritesBufferViewIterator } from "@buffer-view";
@@ -34,16 +34,16 @@ import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { MinimapGraphics } from "@render/minimap-graphics";
 import { createSession } from "@core/session";
 import { GameTimeApi } from "@core/game-time-api";
-import { SpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "../../openbw/speed-controls";
+import { SpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "../../openbw/speed-handler";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImageHD, applyModelEffectsOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
-import { createImageSelection } from "@input/create-image-selection";
 import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
 import { SessionChangeEvent } from "@stores/session/reactive-session-variables";
 import shallow from "zustand/shallow";
+import { skipHandler } from "@openbw/skip-handler";
 
 export async function makeGameScene(
   map: Chk,
@@ -126,7 +126,7 @@ export async function makeGameScene(
   //tank base, minerals
   const ignoreRecieveShadow = [250, 253, 347, 349, 351];
   const ignoreCastShadow = [347, 349, 351];
-  images.onCreateImage = (image) => {
+  images.onCreateImage = (image: ImageBase) => {
     globalEffectsBundle.addBloomSelection(image);
     if (image instanceof Image3D && globalEffectsBundle.options3d) {
       image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
@@ -135,7 +135,7 @@ export async function makeGameScene(
     }
   }
 
-  images.onFreeImage = (image) => {
+  images.onFreeImage = (image: ImageBase) => {
     globalEffectsBundle.removeBloomSelection(image);
     if (globalEffectsBundle.debugSelection)
       globalEffectsBundle.debugSelection.delete(image);
@@ -184,33 +184,13 @@ export async function makeGameScene(
     scene.sunlight.enabled = renderMode3D;
     images.use3dImages = renderMode3D;
 
-    reset = refreshScene;
+    // reset = refreshScene;
 
     initializeGlobalEffects(postprocessing);
 
   }
 
   const viewports = janitor.mop(new GameViewportsDirector(gameSurface));
-
-
-  const _imageDebug: Partial<ImageStruct> = {};
-  const imageSelection = janitor.mop(createImageSelection(scene, gameSurface, minimapSurface, (objects) => {
-
-    if (globalEffectsBundle.debugSelection) {
-      globalEffectsBundle.debugSelection!.clear();
-
-      for (const object of objects) {
-        if (object instanceof ImageHD || object instanceof Object3D) {
-          console.log(object, imageBufferView.get(object.userData.imageAddress).copy(_imageDebug));
-          globalEffectsBundle.debugSelection!.add(object);
-        }
-      }
-
-    }
-
-  }));
-
-
 
   viewports.externalOnExitScene = session.onExitScene;
 
@@ -231,26 +211,11 @@ export async function makeGameScene(
 
     unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera)
 
-    imageSelection.selectionBox.camera = sceneController.viewports[0].camera;
     _sceneResizeHandler();
 
-    session.onEnterScene(sceneController);
+    session.setSceneController(sceneController);
 
   }
-
-  // const _mouseXY = new Vector2();
-  // if (viewports.primaryViewport && clicked?.z === 0) {
-  //   _mouseXY.set(clicked.x, clicked.y);
-  //   const intersections = RaycastHelper.intersectObject(terrain, true, viewports.primaryViewport.camera, _mouseXY);
-  //   if (intersections.length) {
-  //     console.log(intersections)
-  //     scene.add(
-  //       new Mesh(
-  //         new SphereBufferGeometry(0.5).translate(intersections[0].point.x, intersections[0].point.y, intersections[0].point.z),
-  //         new MeshBasicMaterial({ color: 0xff0000 })));
-  //     console.log(intersections[0].point);
-  //   }
-  // }
 
   viewports.externalOnCameraMouseUpdate = () => { };
   viewports.externalOnDrawMinimap = () => { };
@@ -263,19 +228,7 @@ export async function makeGameScene(
     startLocations,
   ));
 
-
-  // window.sandbox = sandbox;
-  // window.o = session;
-
   const gameTimeApi = ((): GameTimeApi => {
-
-    const skipHandler = (dir: number, gameSeconds = 200) => {
-      const currentFrame = openBW.getCurrentFrame();
-      openBW.setCurrentFrame(currentFrame + gameSeconds * 42 * dir);
-      currentBwFrame = openBW.getCurrentFrame();
-      reset = refreshScene;
-      return currentBwFrame;
-    }
 
     return {
       type: "replay",
@@ -311,8 +264,14 @@ export async function makeGameScene(
       get cameraZoomLevels() {
         return sessionApi.getState().game.zoomLevels;
       },
-      skipForward: (amount = 1) => skipHandler(1, amount),
-      skipBackward: (amount = 1) => skipHandler(-1, amount),
+      skipForward: skipHandler(openBW, 1, frame => {
+        // currentBwFrame = frame;
+        reset = refreshScene;
+      }),
+      skipBackward: skipHandler(openBW, -1, frame => {
+        // currentBwFrame = frame;
+        reset = refreshScene;
+      }),
       speedUp: () => speedHandler(SpeedDirection.Up, openBW),
       speedDown: () => speedHandler(SpeedDirection.Down, openBW),
       togglePause: (setPaused?: boolean) => {
@@ -394,7 +353,6 @@ export async function makeGameScene(
       //todo: deprecate
       changeRenderMode: (renderMode3D?: boolean) => {
         viewports.primaryViewport.renderMode3D = renderMode3D ?? !viewports.primaryViewport.renderMode3D;
-        // initializeRenderMode(viewports.primaryViewport.renderMode3D)
       }
     }
   })();
@@ -404,18 +362,16 @@ export async function makeGameScene(
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
-
   const refreshScene = () => {
 
     cmds = commandsStream.generate();
     cmd = cmds.next();
     globalEffectsBundle.clearBloomSelection();
-
     session.onFrameReset(openBW.getCurrentFrame());
-
     previousBwFrame = -1;
     reset = null;
     _wasReset = true;
+
   }
 
   const _sceneResizeHandler = () => {
@@ -447,14 +403,6 @@ export async function makeGameScene(
 
   let currentBwFrame = 0;
   let previousBwFrame = -1;
-
-  //TODO move to terrain generator
-  const creep = janitor.mop(new Creep(
-    scene.mapWidth,
-    scene.mapHeight,
-    terrainExtra.creepTextureUniform.value,
-    terrainExtra.creepEdgesTextureUniform.value
-  ));
 
   const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
   const buildMinimap = () => {
@@ -562,13 +510,12 @@ export async function makeGameScene(
 
   };
 
+  //TOOD: get rid of creep generation and use openbw
   const _tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, openBW.HEAPU8);
   const buildCreep = (frame: number) => {
     _tiles.ptrIndex = openBW.getTilesPtr();
     _tiles.itemsCount = openBW.getTilesSize();
-    creep.generate(_tiles, frame);
-    creep.creepValuesTexture.needsUpdate = true;
-    creep.creepEdgesValuesTexture.needsUpdate = true;
+    terrainExtra.creep.generate(_tiles, frame);
   };
 
   scene.add(...selectionMarkers);
@@ -825,7 +772,7 @@ export async function makeGameScene(
       session.onFrame(currentBwFrame, _commandsThisFrame);
 
       //TODO: move to sessionONFRAMR
-      minimapGraphics.drawMinimap(minimapSurface, scene.mapWidth, scene.mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
+      minimapGraphics.drawMinimap(minimapSurface, scene.mapWidth, scene.mapHeight, terrainExtra.creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
 
       previousBwFrame = currentBwFrame;
 
@@ -897,14 +844,13 @@ export async function makeGameScene(
 
   const _onReloadPlugins = async () => {
 
-    renderComposer.getWebGLRenderer().setAnimationLoop(null);
+    session.stopGameLoop();
     await viewports.activate(null);
     await (settingsStore().load());
     await session.reloadPlugins();
     session.initializeContainer(gameTimeApi);
     await viewports.activate(session.getSceneInputHandler(sessionApi.getState().game.sceneController)!);
-    await session.onSceneReady();
-    renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP);
+    await session.onSceneReady(GAME_LOOP);
 
   };
 
@@ -918,9 +864,7 @@ export async function makeGameScene(
   renderComposer.compileScene(scene);
   _sceneResizeHandler();
 
-  await session.onSceneReady();
-
-  renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
+  await session.onSceneReady(GAME_LOOP);
 
   return () => {
 

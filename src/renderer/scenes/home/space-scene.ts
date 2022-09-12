@@ -298,8 +298,9 @@ export async function createWraithScene() {
     renderComposer.getWebGLRenderer().setAnimationLoop(INTRO_LOOP);
     janitor.mop(() => {
         renderComposer.getWebGLRenderer().setAnimationLoop(null);
-        renderComposer.dispose();
     });
 
-    return () => janitor.dispose();
+    return () => {
+        janitor.dispose();
+    }
 }

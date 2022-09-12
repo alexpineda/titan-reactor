@@ -3,6 +3,7 @@ import { TilesBufferView } from "@buffer-view";
 
 //@ts-ignore
 import Worker from "./creep.worker.js";
+import Janitor from "@utils/janitor";
 
 export class Creep {
   mapWidth: number;
@@ -11,6 +12,7 @@ export class Creep {
   creepEdgesValuesTexture: Texture;
   minimapImageData: ImageData;
   worker: Worker;
+  #janitor = new Janitor();
 
   private _lastFrame = 0;
 
@@ -34,11 +36,16 @@ export class Creep {
 
       this.creepValuesTexture.image.data = creepData;
       this.creepEdgesValuesTexture.image.data = edgesData;
+      this.creepValuesTexture.needsUpdate = true;
+      this.creepEdgesValuesTexture.needsUpdate = true;
 
       //for minimap
       this.minimapImageData = imageData;
     };
     this._lastFrame = 0;
+    this.#janitor.mop(() => this.worker.terminate());
+    this.#janitor.mop(this.creepEdgesValuesTexture);
+    this.#janitor.mop(this.creepValuesTexture);
   }
 
   generate(tiles: TilesBufferView, frame: number) {
@@ -53,6 +60,6 @@ export class Creep {
   }
 
   dispose() {
-    this.worker.terminate();
+    this.#janitor.dispose();
   }
 }

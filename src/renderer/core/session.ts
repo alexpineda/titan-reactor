@@ -12,9 +12,8 @@ import { createCompartment } from "@utils/ses-util";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { mix } from "@utils/object-utils";
 import { GameTimeApi } from "./game-time-api";
-import { chkToTerrainMesh, TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
+import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import Chk from "bw-chk";
-import { Terrain } from "@core/terrain";
 import BaseScene from "@render/base-scene";
 import { UnitEntities } from "./unit-entities";
 import { SpriteEntities } from "./sprite-entities";
@@ -24,11 +23,11 @@ import { Surface } from "@image/canvas";
 import MinimapMouse from "@input/minimap-mouse";
 import { CameraMouse } from "@input/camera-mouse";
 import { CameraKeys } from "@input/camera-keys";
-import { makePxToWorld, PxToWorld } from "common/utils/conversions";
+import { makePxToWorld } from "common/utils/conversions";
 import { CssScene } from "../scenes/game-scene/css-scene";
 import { SoundChannels } from "@audio/sound-channels";
 import GameSurface from "@render/game-surface";
-import { createSandboxApi, SandboxAPI } from "@openbw/sandbox-api";
+import { createSandboxApi } from "@openbw/sandbox-api";
 import gameStore from "@stores/game-store";
 import { createUnitSelectionBox } from "@input/create-unit-selection";
 import { Object3D } from "three";
@@ -38,51 +37,7 @@ import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
 import { IterableSet } from "@utils/iterable-set";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
-
-export type Session = {
-
-    onFrame: (
-        currentFrame: number,
-        commands: any[]
-    ) => void;
-    onBeforeRender: (delta: number,
-        elapsed: number) => void;
-    onRender: (delta: number, elapsed: number) => void;
-    sessionApi: ReturnType<typeof createReactiveSessionVariables>,
-    dispose: () => void;
-    getSceneInputHandler: (name: string) => SceneController | undefined;
-    callHook: (
-        ...args: Parameters<PluginSystemNative["callHook"]>) => void;
-    callHookAsync: (
-        ...args: Parameters<PluginSystemNative["callHookAsync"]>
-    ) => Promise<void>,
-    initializeContainer(gameTimeApi: GameTimeApi): void;
-    onEnterScene(sceneController: SceneController): void;
-    onExitScene(sceneController: string | undefined): void;
-    onSceneReady(): Promise<void>;
-    reloadPlugins: () => Promise<void>;
-    terrain: Terrain;
-    terrainExtra: TerrainExtra;
-    units: UnitEntities;
-    selectedUnits: IterableSet<Unit>;
-    unitSelectionBox: ReturnType<typeof createUnitSelectionBox>
-    sprites: SpriteEntities;
-    images: ImageEntities;
-    scene: BaseScene;
-    simpleText: SimpleText;
-    pxToWorld: PxToWorld;
-    minimapMouse: MinimapMouse;
-    cameraMouse: CameraMouse;
-    cameraKeys: CameraKeys;
-    cssScene: CssScene;
-    soundChannels: SoundChannels;
-    gameSurface: GameSurface;
-    minimapSurface: Surface;
-    sandboxApi: SandboxAPI;
-    onFrameReset(frame: number): void;
-    updateCompletedUpgrades: ReturnType<typeof createCompletedUpgradesHelper>["updateCompletedUpgrades"];
-    completedUpgrades: ReturnType<typeof createCompletedUpgradesHelper>["completedUpgrades"];
-}
+import { renderComposer } from "@render/render-composer";
 
 export type SessionStore = SessionSettingsData;
 
@@ -91,7 +46,7 @@ export type SessionStore = SessionSettingsData;
  * Assembles all objects interacting with OpenBW and input/output this includes:
  * Plugins, Macros, THREE Scene Objects, Sounds, Input Handlers, etc.
  */
-export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): Promise<Session> => {
+export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk) => {
 
     const janitor = new Janitor();
 
@@ -134,9 +89,9 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
 
     let plugins = await createPluginSession(macros);
 
-    const { terrain, terrainExtra } = await chkToTerrainMesh(
+    const { terrain, terrainExtra } = janitor.mop(await chkToTerrainMesh(
         map, UnitTileScale.HD,
-    );
+    ));
 
     janitor.mop(terrain);
 
@@ -150,8 +105,6 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
 
     scene.background = assets.skyBox;
     scene.environment = assets.envMap;
-
-
 
     const _getSelectionUnit = (object: Object3D): Unit | null => {
 
@@ -307,14 +260,19 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
         onRender: (delta: number, elapsed: number) => {
             plugins.nativePlugins.hook_onRender(delta, elapsed);
         },
-        onEnterScene(sceneController) {
-            plugins.nativePlugins.setActiveSceneController(sceneController);
+        stopGameLoop() {
+            renderComposer.getWebGLRenderer().setAnimationLoop(null);
         },
-        onExitScene(sceneController) {
+        setSceneController(sceneController: SceneController) {
+            plugins.nativePlugins.setActiveSceneController(sceneController);
+
+        },
+        onExitScene(sceneController: string | undefined) {
             macros.callFromHook("onExitScene", sceneController);
         },
-        async onSceneReady() {
+        async onSceneReady(gameLoop: XRFrameRequestCallback) {
             await plugins.nativePlugins.callHookAsync(HOOK_ON_SCENE_READY);
+            renderComposer.getWebGLRenderer().setAnimationLoop(gameLoop);
         },
         getSceneInputHandler: (name: string) => {
             return plugins.nativePlugins.getSceneInputHandlers().find((handler) => handler.name === name);

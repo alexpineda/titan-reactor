@@ -71,8 +71,8 @@ export default class Janitor {
         }
     }
 
-    dispose(obj?: ExtendedJanitorTypes) {
-        if (obj === undefined) {
+    dispose(...objects: ExtendedJanitorTypes[]) {
+        if (objects.length === 0) {
             if (this.#trackables) {
                 for (const obj of this.#trackables) {
                     this.#disposeAny(obj);
@@ -82,7 +82,9 @@ export default class Janitor {
                 this.#trackables.clear();
             }
         } else {
-            this.#disposeAny(obj);
+            for (const object of objects) {
+                this.#disposeAny(object);
+            }
             return;
         }
 

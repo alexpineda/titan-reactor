@@ -1,3 +1,4 @@
+import Janitor from "@utils/janitor";
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
 import { MapBitmaps } from "./extract-bitmaps";
@@ -43,6 +44,8 @@ export interface MapDataTextures {
      * Palette colors.
      */
     paletteMap: THREE.DataTexture,
+
+    dispose: () => void
 }
 
 const _defaultOpts = {
@@ -113,6 +116,8 @@ export const createDataTextures = async ({
     const w4 = mapWidth * 4;
     const h4 = mapHeight * 4;
 
+    const janitor = new Janitor();
+
     const sdMap = createDataTexture(bitmaps.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
     const occlussionRoughnessMetallicMap = createDataTexture(bitmaps.occlussionRoughnessMetallic, w32, h32, { format: THREE.RGBAFormat });
     const mapTilesMap = createDataTexture(bitmaps.mapTilesData, mapWidth, mapHeight, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
@@ -136,6 +141,9 @@ export const createDataTextures = async ({
         nonZeroElevationsMap,
         paletteIndicesMap,
         paletteMap,
+        dispose: () => {
+            janitor.dispose(sdMap, occlussionRoughnessMetallicMap, mapTilesMap, creepEdgesValues, creepValues, elevationsMap, nonZeroElevationsMap, paletteIndicesMap, paletteMap);
+        }
     };
 };
 export default createDataTextures;
