@@ -1,4 +1,4 @@
-export default (msg: string, error: unknown) => {
+export const withErrorMessage = (error: unknown, msg: string) => {
     if (error instanceof Error) {
         return `${msg} - ${error.message}`;
     } else {

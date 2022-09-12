@@ -1,17 +1,19 @@
 import fileExists from "common/utils/file-exists";
 import path from "path";
 
-export default async (bwDir: string, folders: string[]) => {
-  if (await fileExists(bwDir)) {
-    for (const folder of folders) {
+export const foldersExist = async (rootDirectory: string, directories: string[]) => {
+  if (await fileExists(rootDirectory)) {
+    for (const folder of directories) {
       if (
         !(await fileExists(
-          path.join(bwDir, folder)
+          path.join(rootDirectory, folder)
         ))
       ) {
         return false;
       }
     }
+  } else {
+    return false;
   }
   return true;
 }

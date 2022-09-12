@@ -1,4 +1,5 @@
 import * as log from "@ipc/log";
+import { withErrorMessage } from "common/utils/with-error-message";
 import create from "zustand";
 import { SceneState } from "../scenes/scene";
 
@@ -26,7 +27,11 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
         const oldState = get().state;
         let prevData: any = undefined;
         if (oldState) {
-            prevData = oldState.dispose();
+            try {
+                prevData = oldState.dispose();
+            } catch (e) {
+                log.error(withErrorMessage(e, "Error disposing old scene"));
+            }
         }
 
         try {

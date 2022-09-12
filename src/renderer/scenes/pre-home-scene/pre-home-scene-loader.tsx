@@ -1,44 +1,46 @@
 import sceneStore from "@stores/scene-store";
-import { SettingsMeta } from "common/types";
 import settingsStore from "@stores/settings-store";
-import processStore, { Process } from "@stores/process-store";
 import loadAndParseAssets from "@image/assets";
 import * as log from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
-import { waitForSeconds } from "@utils/wait-for";
+import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import Janitor from "@utils/janitor";
 import path from "path";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 
-const tryLoad = async (settings: SettingsMeta) => {
-  sceneStore().clearError();
+let _lastErrorMessage = "";
 
-  if (settings.errors.length) {
-    const error = `@init: error with settings - ${settings.errors.join(", ")}`;
-    log.error(error);
-    throw new Error(error);
+const makeErrorScene = (errors: string[]) => {
+  if (errors.length) {
+    const message = errors.join(", ");
+    if (message !== _lastErrorMessage) {
+      log.error(message);
+      sceneStore().setError(new Error(message));
+      _lastErrorMessage = message;
+    }
+  } else {
+    sceneStore().clearError();
   }
-
-  if (
-    processStore().isComplete(Process.AtlasPreload) ||
-    processStore().isInProgress(Process.AtlasPreload)
-  ) {
-    throw new Error("Can't load assets again");
-  }
-  await loadAndParseAssets(settings.data);
 };
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
-  log.info("@init: loading settings");
   root.render(<PreHomeScene />);
 
   const janitor = new Janitor();
+
+  //TODO: use some sort of state machien
   const settings = await settingsStore().load();
 
-  await tryLoad(settings);
+  await waitForTruthy(() => {
+    makeErrorScene(settingsStore().errors);
+    return settingsStore().errors.length === 0;
+  });
+
+  await loadAndParseAssets(settings.data);
+
   await preloadIntro();
 
   mixer.setVolumes(settings.data.audio);

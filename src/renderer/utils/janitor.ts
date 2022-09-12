@@ -1,5 +1,5 @@
 import * as log from "@ipc/log";
-import withErrorMessage from "common/utils/with-error-message";
+import { withErrorMessage } from "common/utils/with-error-message";
 import { Object3D } from "three";
 import { disposeObject3D } from "./dispose";
 
@@ -67,7 +67,7 @@ export default class Janitor {
                 console.warn("Unsupported type", obj);
             }
         } catch (e) {
-            log.error(withErrorMessage("Error disposing object", e));
+            log.error(withErrorMessage(e, "Error disposing object"));
         }
     }
 

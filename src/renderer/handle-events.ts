@@ -12,7 +12,7 @@ import {
 import { useSettingsStore } from "@stores";
 
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import withErrorMessage from "common/utils/with-error-message";
+import { withErrorMessage } from "common/utils/with-error-message";
 import { replaySceneLoader } from "./scenes/replay-scene-loader";
 import * as log from "@ipc/log";
 import sceneStore from "@stores/scene-store";
@@ -65,7 +65,7 @@ if (!rendererIsDev) {
         colno?: number,
         error?: Error
     ) => {
-        log.error(withErrorMessage(`${lineno}:${colno} - ${source}`, error));
+        log.error(withErrorMessage(error, `${lineno}:${colno} - ${source}`));
     };
 }
 

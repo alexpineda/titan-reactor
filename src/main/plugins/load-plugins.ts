@@ -14,7 +14,7 @@ import { ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import browserWindows from "../windows";
 import settings from "../settings/singleton"
-import withErrorMessage from 'common/utils/with-error-message';
+import { withErrorMessage } from 'common/utils/with-error-message';
 import log from "../log"
 import fileExists from 'common/utils/file-exists';
 import packagejson from "../../../package.json";
@@ -67,7 +67,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
                 }
                 pluginNative = result.result.outputText;
             } catch (e) {
-                log.error(withErrorMessage(`@load-plugins/load-plugin-package: Plugin ${folderName} transpilation error`, e));
+                log.error(withErrorMessage(e, `@load-plugins/load-plugin-package: Plugin ${folderName} transpilation error`));
                 return null;
             }
         }
@@ -209,7 +209,7 @@ export default async (pluginDirectory: string) => {
 
         }
     } catch (e) {
-        log.error(withErrorMessage(`@load-plugins/default: Error loading plugins`, e));
+        log.error(withErrorMessage(e, `@load-plugins/default: Error loading plugins`));
     }
 
 }
@@ -246,11 +246,11 @@ export const installPlugin = async (repository: string) => {
             }
             return loadedPackage;
         } catch (e) {
-            log.error(withErrorMessage(`@load-plugins/install-plugin: Error loading plugins`, e));
+            log.error(withErrorMessage(e, `@load-plugins/install-plugin: Error loading plugins`));
         }
 
     } catch (e) {
-        log.error(withErrorMessage(`@load-plugins/install-plugin: Error loading plugin ${repository}`, e));
+        log.error(withErrorMessage(e, `@load-plugins/install-plugin: Error loading plugin ${repository}`));
     }
 
     return null;
@@ -343,7 +343,7 @@ export const savePluginConfig = async (pluginId: string, config: any) => {
         })
         await pkgJson.save()
     } catch (e) {
-        log.error(withErrorMessage(`@save-plugins-config: Error writing plugin package.json`, e));
+        log.error(withErrorMessage(e, `@save-plugins-config: Error writing plugin package.json`));
         return;
     }
 }

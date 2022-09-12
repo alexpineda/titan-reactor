@@ -102,3 +102,5 @@ Object3D.prototype.copy = function (source: Object3D, recursive = true) {
     return this;
 
 }
+
+export const arrayOverwriteMerge = (_: any, sourceArray: any) => sourceArray;

@@ -1,5 +1,5 @@
 import { PluginMetaData, NativePlugin, PluginPackage, SceneInputHandler } from "common/types";
-import withErrorMessage from "common/utils/with-error-message";
+import { withErrorMessage } from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
 import { Hook, createDefaultHooks } from "./hooks";
@@ -255,7 +255,7 @@ export class PluginSystemNative {
             try {
                 plugin.onUIMessage && plugin.onUIMessage(message);
             } catch (e) {
-                log.error(withErrorMessage(`@plugin-system-native: onUIMessage "${plugin.name}"`, e));
+                log.error(withErrorMessage(e, `@plugin-system-native: onUIMessage "${plugin.name}"`));
             }
         }
     }
@@ -265,7 +265,7 @@ export class PluginSystemNative {
             try {
                 this.hook_onPluginDispose(plugin.id);
             } catch (e) {
-                log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
+                log.error(withErrorMessage(e, `@plugin-system-native: onDispose "${plugin.name}"`));
             }
         }
         this.#hooks = {};
@@ -278,7 +278,7 @@ export class PluginSystemNative {
             try {
                 plugin.dispose && plugin.dispose();
             } catch (e) {
-                log.error(withErrorMessage(`@plugin-system-native: onDispose "${plugin.name}"`, e));
+                log.error(withErrorMessage(e, `@plugin-system-native: onDispose "${plugin.name}"`));
             }
             this.#nativePlugins = this.#nativePlugins.filter(p => p !== plugin);
 
@@ -306,7 +306,7 @@ export class PluginSystemNative {
                 plugin.config = config;
                 plugin.onConfigChanged && this.isRegularPluginOrActiveSceneController(plugin) && plugin.onConfigChanged(oldConfig);
             } catch (e) {
-                log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
+                log.error(withErrorMessage(e, `@plugin-system-native: onConfigChanged "${plugin.name}"`));
             }
         }
 

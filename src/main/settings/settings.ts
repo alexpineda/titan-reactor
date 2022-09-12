@@ -10,11 +10,11 @@ import { Settings as SettingsType, SettingsMeta } from "common/types";
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
-import foldersExist from "./folders-exist";
+import { foldersExist } from "./folders-exist";
 import { doMigrations } from "./migrate";
 import loadPlugins, { getDisabledPluginPackages, getEnabledPluginPackages } from "../plugins/load-plugins";
 import { findPluginsPath } from "../starcraft/find-plugins-path";
-import withErrorMessage from "common/utils/with-error-message";
+import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { sanitizeMacros } from "common/sanitize-macros";
 
@@ -80,25 +80,22 @@ export class Settings {
   async getMeta(): Promise<SettingsMeta> {
     const errors = [];
     const files = [
-      "starcraft",
-      "maps",
-      "replays",
-      "assets",
       "plugins",
     ];
 
     for (const file of files) {
       if (!(await fileExists(this._settings.directories[file as keyof SettingsType["directories"]]))) {
-        errors.push(`${file} directory is not a valid path. Please change your settings.json file to contain the valid path or use the Command Center (Go Menu > Command Center) to change the setting. Restart the application after changing the setting or use menu Tools > Restart Application.`);
+        errors.push(`${file} directory is not a valid path. `);
       }
     }
 
     const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
-    if (!isCascStorage && !await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"])) {
+    const isBareDirectory = await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"]);
+    if (!isCascStorage) {
       if (await fileExists(path.join(this._settings.directories["starcraft"], "STARDAT.MPQ"))) {
-        errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported. Use menu Go > Command Center and change the StarCraft directory to the correct one. Restart the application after changing the setting (or use menu Tools > Restart Application).");
-      } else {
-        errors.push("The StarCraft directory is not a valid path. Use menu Go > Command Center and change the StarCraft directory to the correct one. Restart the application after changing the setting (or use menu Tools > Restart Application).");
+        errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported.");
+      } else if (!isBareDirectory) {
+        errors.push("The StarCraft directory is not a valid path.");
       }
     }
 
@@ -141,7 +138,7 @@ export class Settings {
       const json = JSON.parse(contents) as SettingsType;
       return json;
     } catch (e) {
-      throw new Error(withErrorMessage(`@settings/load: Error loading settings.json from ${this._filepath}`, e));
+      throw new Error(withErrorMessage(e, `@settings/load: Error loading settings.json from ${this._filepath}`));
     }
   }
 
@@ -156,7 +153,7 @@ export class Settings {
         this._settings = { ...(await this.createDefaults()), ...settings };
       }
     } catch (e) {
-      log.error(withErrorMessage("@settings/load-and-migrate", e));
+      log.error(withErrorMessage(e, "@settings/load-and-migrate"));
     }
   }
 

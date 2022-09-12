@@ -15,8 +15,11 @@ declare global {
 window.isGameWindow = true;
 
 async function bootup() {
+
   await sceneStore().execSceneLoader(preHomeSceneLoader);
+
   sceneStore().execSceneLoader(homeSceneLoader);
+
 }
 
 logCapabilities();
