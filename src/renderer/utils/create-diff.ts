@@ -8,6 +8,7 @@ export function createDiff<T extends {}>(newValue: T, previousValue: T) {
     if (diffs === undefined)
         return;
 
+    //@ts-ignore
     const diffValues: DeepPartial<T> = {};
 
     for (const d of diffs) {

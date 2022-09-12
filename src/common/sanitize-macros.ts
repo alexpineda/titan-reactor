@@ -1,6 +1,5 @@
 import { fromNestedToLevaSettingsField } from "common/get-app-settings-leva-config";
-import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, ModifyValueActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
-import { MacroHookTrigger } from "@macros/macro-hook-trigger";
+import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, ModifyValueActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -23,7 +22,6 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
                 }
             }
         }
-        sanitizeMacro(macro, settings);
         for (const action of macro.actions) {
             sanitizeMacroAction(action, settings);
         }
@@ -34,15 +32,6 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 
     }
     return macros;
-}
-
-const sanitizeMacro = (macro: MacroDTO, settings: SettingsAndPluginsMeta) => {
-    if (macro.trigger.type === TriggerType.GameHook) {
-        const d = MacroHookTrigger.deserialize(macro.trigger);
-        if (d !== undefined && d.pluginName && settings.enabledPlugins.find(p => p.name === d.pluginName) === undefined) {
-            macro.error = `Plugin for game hook trigger not found - ${d.pluginName}`;
-        }
-    }
 }
 
 const sanitizeMacroAction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {

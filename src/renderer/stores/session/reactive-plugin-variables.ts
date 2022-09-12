@@ -1,6 +1,6 @@
 import * as log from "@ipc/log";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import { doActionEffect } from "@macros/macro-utils";
+import { doActionEffect } from "@macros/do-action-effect";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
 import settingsStore from "@stores/settings-store";
 import { last } from "@utils/function-utils";

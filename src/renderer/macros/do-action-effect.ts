@@ -27,7 +27,15 @@ export const doActionEffect = (effect: ActionEffect, field: FieldDefinition, new
         let nv = field.value - field.step;
         return nv < field.min ? field.max : nv;
     } else if (effect === ActionEffect.Set && newValue !== undefined) {
+
+        if (field.max !== undefined && newValue > field.max) {
+            return field.max;
+        } else if (field.min !== undefined && newValue < field.min) {
+            return field.min;
+        }
+
         return newValue;
+
     } else if (effect === ActionEffect.Max && field.max !== undefined && Number.isFinite(field.max)) {
         return field.max;
     } else if (effect === ActionEffect.Min && field.min !== undefined && Number.isFinite(field.min)) {
